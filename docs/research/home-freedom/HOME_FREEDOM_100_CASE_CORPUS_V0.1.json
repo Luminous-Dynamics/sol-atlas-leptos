@@ -272,7 +272,7 @@
         "CODE_PROFILE": "PASS",
         "FIRE_ACCESS": "PASS",
         "PRIMARY_ACCESS_ROUTE": "PASS",
-        "STEP_FREE_INTERNAL_ROUTE": "NOT_APPLICABLE",
+        "STEP_FREE_INTERNAL_ROUTE": "PASS",
         "WATER_CAPACITY": "PASS",
         "ELECTRICITY_CAPACITY": "PASS",
         "SANITATION_SERVICE": "PASS",
@@ -289,7 +289,7 @@
         "CODE_PROFILE": "PASS",
         "FIRE_ACCESS": "PASS",
         "PRIMARY_ACCESS_ROUTE": "PASS",
-        "STEP_FREE_INTERNAL_ROUTE": "NOT_APPLICABLE",
+        "STEP_FREE_INTERNAL_ROUTE": "PASS",
         "WATER_CAPACITY": "PASS",
         "ELECTRICITY_CAPACITY": "PASS",
         "SANITATION_SERVICE": "PASS",
@@ -306,7 +306,7 @@
         "CODE_PROFILE": "PASS",
         "FIRE_ACCESS": "PASS",
         "PRIMARY_ACCESS_ROUTE": "PASS",
-        "STEP_FREE_INTERNAL_ROUTE": "NOT_APPLICABLE",
+        "STEP_FREE_INTERNAL_ROUTE": "PASS",
         "WATER_CAPACITY": "PASS",
         "ELECTRICITY_CAPACITY": "PASS",
         "SANITATION_SERVICE": "PASS",
@@ -323,7 +323,7 @@
         "CODE_PROFILE": "PASS",
         "FIRE_ACCESS": "PASS",
         "PRIMARY_ACCESS_ROUTE": "PASS",
-        "STEP_FREE_INTERNAL_ROUTE": "NOT_APPLICABLE",
+        "STEP_FREE_INTERNAL_ROUTE": "PASS",
         "WATER_CAPACITY": "PASS",
         "ELECTRICITY_CAPACITY": "PASS",
         "SANITATION_SERVICE": "PASS",
@@ -340,7 +340,7 @@
         "CODE_PROFILE": "UNKNOWN",
         "FIRE_ACCESS": "PASS",
         "PRIMARY_ACCESS_ROUTE": "PASS",
-        "STEP_FREE_INTERNAL_ROUTE": "NOT_APPLICABLE",
+        "STEP_FREE_INTERNAL_ROUTE": "PASS",
         "WATER_CAPACITY": "PASS",
         "ELECTRICITY_CAPACITY": "PASS",
         "SANITATION_SERVICE": "PASS",
@@ -357,7 +357,7 @@
         "CODE_PROFILE": "PASS",
         "FIRE_ACCESS": "FAIL",
         "PRIMARY_ACCESS_ROUTE": "PASS",
-        "STEP_FREE_INTERNAL_ROUTE": "NOT_APPLICABLE",
+        "STEP_FREE_INTERNAL_ROUTE": "PASS",
         "WATER_CAPACITY": "PASS",
         "ELECTRICITY_CAPACITY": "PASS",
         "SANITATION_SERVICE": "PASS",
@@ -391,7 +391,7 @@
         "CODE_PROFILE": "PASS",
         "FIRE_ACCESS": "PASS",
         "PRIMARY_ACCESS_ROUTE": "PASS",
-        "STEP_FREE_INTERNAL_ROUTE": "NOT_APPLICABLE",
+        "STEP_FREE_INTERNAL_ROUTE": "PASS",
         "WATER_CAPACITY": "UNKNOWN",
         "ELECTRICITY_CAPACITY": "UNKNOWN",
         "SANITATION_SERVICE": "PASS",
@@ -408,7 +408,7 @@
         "CODE_PROFILE": "PASS",
         "FIRE_ACCESS": "PASS",
         "PRIMARY_ACCESS_ROUTE": "PASS",
-        "STEP_FREE_INTERNAL_ROUTE": "NOT_APPLICABLE",
+        "STEP_FREE_INTERNAL_ROUTE": "PASS",
         "WATER_CAPACITY": "PASS",
         "ELECTRICITY_CAPACITY": "PASS",
         "SANITATION_SERVICE": "FAIL",
@@ -425,7 +425,7 @@
         "CODE_PROFILE": "PASS",
         "FIRE_ACCESS": "PASS",
         "PRIMARY_ACCESS_ROUTE": "PASS",
-        "STEP_FREE_INTERNAL_ROUTE": "NOT_APPLICABLE",
+        "STEP_FREE_INTERNAL_ROUTE": "PASS",
         "WATER_CAPACITY": "PASS",
         "ELECTRICITY_CAPACITY": "PASS",
         "SANITATION_SERVICE": "PASS",
@@ -2375,13 +2375,11 @@
         },
         {
           "gate_id": "STEP_FREE_INTERNAL_ROUTE",
-          "state": "NOT_APPLICABLE"
+          "state": "PASS"
         }
       ],
-      "expected_disposition": "NOT_COMPARABLE",
-      "expected_reason_codes": [
-        "STEP_FREE_INTERNAL_ROUTE_NOT_APPLICABLE"
-      ]
+      "expected_disposition": "SCREENING_ELIGIBLE",
+      "expected_reason_codes": []
     },
     {
       "case_id": "H04_MULTIGENERATIONAL__S02_SURVEY_UNKNOWN",
@@ -2443,13 +2441,12 @@
         },
         {
           "gate_id": "STEP_FREE_INTERNAL_ROUTE",
-          "state": "NOT_APPLICABLE"
+          "state": "PASS"
         }
       ],
-      "expected_disposition": "NOT_COMPARABLE",
+      "expected_disposition": "CONDITIONAL_CONCEPT_ONLY",
       "expected_reason_codes": [
-        "SITE_SURVEY_UNKNOWN",
-        "STEP_FREE_INTERNAL_ROUTE_NOT_APPLICABLE"
+        "SITE_SURVEY_UNKNOWN"
       ]
     },
     {
@@ -2512,13 +2509,12 @@
         },
         {
           "gate_id": "STEP_FREE_INTERNAL_ROUTE",
-          "state": "NOT_APPLICABLE"
+          "state": "PASS"
         }
       ],
-      "expected_disposition": "NOT_COMPARABLE",
+      "expected_disposition": "CONDITIONAL_CONCEPT_ONLY",
       "expected_reason_codes": [
-        "LAND_RIGHTS_UNKNOWN",
-        "STEP_FREE_INTERNAL_ROUTE_NOT_APPLICABLE"
+        "LAND_RIGHTS_UNKNOWN"
       ]
     },
     {
@@ -2581,13 +2577,12 @@
         },
         {
           "gate_id": "STEP_FREE_INTERNAL_ROUTE",
-          "state": "NOT_APPLICABLE"
+          "state": "PASS"
         }
       ],
-      "expected_disposition": "NOT_COMPARABLE",
+      "expected_disposition": "CONDITIONAL_CONCEPT_ONLY",
       "expected_reason_codes": [
-        "SOIL_GEOTECH_UNKNOWN",
-        "STEP_FREE_INTERNAL_ROUTE_NOT_APPLICABLE"
+        "SOIL_GEOTECH_UNKNOWN"
       ]
     },
     {
@@ -2650,13 +2645,12 @@
         },
         {
           "gate_id": "STEP_FREE_INTERNAL_ROUTE",
-          "state": "NOT_APPLICABLE"
+          "state": "PASS"
         }
       ],
-      "expected_disposition": "NOT_COMPARABLE",
+      "expected_disposition": "CONDITIONAL_CONCEPT_ONLY",
       "expected_reason_codes": [
-        "CODE_PROFILE_UNKNOWN",
-        "STEP_FREE_INTERNAL_ROUTE_NOT_APPLICABLE"
+        "CODE_PROFILE_UNKNOWN"
       ]
     },
     {
@@ -2719,13 +2713,12 @@
         },
         {
           "gate_id": "STEP_FREE_INTERNAL_ROUTE",
-          "state": "NOT_APPLICABLE"
+          "state": "PASS"
         }
       ],
-      "expected_disposition": "NOT_COMPARABLE",
+      "expected_disposition": "BLOCKED",
       "expected_reason_codes": [
-        "FIRE_ACCESS_FAIL",
-        "STEP_FREE_INTERNAL_ROUTE_NOT_APPLICABLE"
+        "FIRE_ACCESS_FAIL"
       ]
     },
     {
@@ -2856,14 +2849,13 @@
         },
         {
           "gate_id": "STEP_FREE_INTERNAL_ROUTE",
-          "state": "NOT_APPLICABLE"
+          "state": "PASS"
         }
       ],
-      "expected_disposition": "NOT_COMPARABLE",
+      "expected_disposition": "CONDITIONAL_CONCEPT_ONLY",
       "expected_reason_codes": [
         "WATER_CAPACITY_UNKNOWN",
-        "ELECTRICITY_CAPACITY_UNKNOWN",
-        "STEP_FREE_INTERNAL_ROUTE_NOT_APPLICABLE"
+        "ELECTRICITY_CAPACITY_UNKNOWN"
       ]
     },
     {
@@ -2926,13 +2918,12 @@
         },
         {
           "gate_id": "STEP_FREE_INTERNAL_ROUTE",
-          "state": "NOT_APPLICABLE"
+          "state": "PASS"
         }
       ],
-      "expected_disposition": "NOT_COMPARABLE",
+      "expected_disposition": "BLOCKED",
       "expected_reason_codes": [
-        "SANITATION_SERVICE_FAIL",
-        "STEP_FREE_INTERNAL_ROUTE_NOT_APPLICABLE"
+        "SANITATION_SERVICE_FAIL"
       ]
     },
     {
@@ -2995,13 +2986,12 @@
         },
         {
           "gate_id": "STEP_FREE_INTERNAL_ROUTE",
-          "state": "NOT_APPLICABLE"
+          "state": "PASS"
         }
       ],
-      "expected_disposition": "NOT_COMPARABLE",
+      "expected_disposition": "CONDITIONAL_CONCEPT_ONLY",
       "expected_reason_codes": [
-        "CLIMATE_APPLICABILITY_UNKNOWN",
-        "STEP_FREE_INTERNAL_ROUTE_NOT_APPLICABLE"
+        "CLIMATE_APPLICABILITY_UNKNOWN"
       ]
     },
     {
@@ -3064,13 +3054,11 @@
         },
         {
           "gate_id": "STEP_FREE_INTERNAL_ROUTE",
-          "state": "NOT_APPLICABLE"
+          "state": "PASS"
         }
       ],
-      "expected_disposition": "NOT_COMPARABLE",
-      "expected_reason_codes": [
-        "STEP_FREE_INTERNAL_ROUTE_NOT_APPLICABLE"
-      ]
+      "expected_disposition": "SCREENING_ELIGIBLE",
+      "expected_reason_codes": []
     },
     {
       "case_id": "H05_STEP_FREE_FIRST__S02_SURVEY_UNKNOWN",
@@ -3132,13 +3120,12 @@
         },
         {
           "gate_id": "STEP_FREE_INTERNAL_ROUTE",
-          "state": "NOT_APPLICABLE"
+          "state": "PASS"
         }
       ],
-      "expected_disposition": "NOT_COMPARABLE",
+      "expected_disposition": "CONDITIONAL_CONCEPT_ONLY",
       "expected_reason_codes": [
-        "SITE_SURVEY_UNKNOWN",
-        "STEP_FREE_INTERNAL_ROUTE_NOT_APPLICABLE"
+        "SITE_SURVEY_UNKNOWN"
       ]
     },
     {
@@ -3201,13 +3188,12 @@
         },
         {
           "gate_id": "STEP_FREE_INTERNAL_ROUTE",
-          "state": "NOT_APPLICABLE"
+          "state": "PASS"
         }
       ],
-      "expected_disposition": "NOT_COMPARABLE",
+      "expected_disposition": "CONDITIONAL_CONCEPT_ONLY",
       "expected_reason_codes": [
-        "LAND_RIGHTS_UNKNOWN",
-        "STEP_FREE_INTERNAL_ROUTE_NOT_APPLICABLE"
+        "LAND_RIGHTS_UNKNOWN"
       ]
     },
     {
@@ -3270,13 +3256,12 @@
         },
         {
           "gate_id": "STEP_FREE_INTERNAL_ROUTE",
-          "state": "NOT_APPLICABLE"
+          "state": "PASS"
         }
       ],
-      "expected_disposition": "NOT_COMPARABLE",
+      "expected_disposition": "CONDITIONAL_CONCEPT_ONLY",
       "expected_reason_codes": [
-        "SOIL_GEOTECH_UNKNOWN",
-        "STEP_FREE_INTERNAL_ROUTE_NOT_APPLICABLE"
+        "SOIL_GEOTECH_UNKNOWN"
       ]
     },
     {
@@ -3339,13 +3324,12 @@
         },
         {
           "gate_id": "STEP_FREE_INTERNAL_ROUTE",
-          "state": "NOT_APPLICABLE"
+          "state": "PASS"
         }
       ],
-      "expected_disposition": "NOT_COMPARABLE",
+      "expected_disposition": "CONDITIONAL_CONCEPT_ONLY",
       "expected_reason_codes": [
-        "CODE_PROFILE_UNKNOWN",
-        "STEP_FREE_INTERNAL_ROUTE_NOT_APPLICABLE"
+        "CODE_PROFILE_UNKNOWN"
       ]
     },
     {
@@ -3408,13 +3392,12 @@
         },
         {
           "gate_id": "STEP_FREE_INTERNAL_ROUTE",
-          "state": "NOT_APPLICABLE"
+          "state": "PASS"
         }
       ],
-      "expected_disposition": "NOT_COMPARABLE",
+      "expected_disposition": "BLOCKED",
       "expected_reason_codes": [
-        "FIRE_ACCESS_FAIL",
-        "STEP_FREE_INTERNAL_ROUTE_NOT_APPLICABLE"
+        "FIRE_ACCESS_FAIL"
       ]
     },
     {
@@ -3545,14 +3528,13 @@
         },
         {
           "gate_id": "STEP_FREE_INTERNAL_ROUTE",
-          "state": "NOT_APPLICABLE"
+          "state": "PASS"
         }
       ],
-      "expected_disposition": "NOT_COMPARABLE",
+      "expected_disposition": "CONDITIONAL_CONCEPT_ONLY",
       "expected_reason_codes": [
         "WATER_CAPACITY_UNKNOWN",
-        "ELECTRICITY_CAPACITY_UNKNOWN",
-        "STEP_FREE_INTERNAL_ROUTE_NOT_APPLICABLE"
+        "ELECTRICITY_CAPACITY_UNKNOWN"
       ]
     },
     {
@@ -3615,13 +3597,12 @@
         },
         {
           "gate_id": "STEP_FREE_INTERNAL_ROUTE",
-          "state": "NOT_APPLICABLE"
+          "state": "PASS"
         }
       ],
-      "expected_disposition": "NOT_COMPARABLE",
+      "expected_disposition": "BLOCKED",
       "expected_reason_codes": [
-        "SANITATION_SERVICE_FAIL",
-        "STEP_FREE_INTERNAL_ROUTE_NOT_APPLICABLE"
+        "SANITATION_SERVICE_FAIL"
       ]
     },
     {
@@ -3684,13 +3665,12 @@
         },
         {
           "gate_id": "STEP_FREE_INTERNAL_ROUTE",
-          "state": "NOT_APPLICABLE"
+          "state": "PASS"
         }
       ],
-      "expected_disposition": "NOT_COMPARABLE",
+      "expected_disposition": "CONDITIONAL_CONCEPT_ONLY",
       "expected_reason_codes": [
-        "CLIMATE_APPLICABILITY_UNKNOWN",
-        "STEP_FREE_INTERNAL_ROUTE_NOT_APPLICABLE"
+        "CLIMATE_APPLICABILITY_UNKNOWN"
       ]
     },
     {
@@ -5007,13 +4987,11 @@
         },
         {
           "gate_id": "STEP_FREE_INTERNAL_ROUTE",
-          "state": "NOT_APPLICABLE"
+          "state": "PASS"
         }
       ],
-      "expected_disposition": "NOT_COMPARABLE",
-      "expected_reason_codes": [
-        "STEP_FREE_INTERNAL_ROUTE_NOT_APPLICABLE"
-      ]
+      "expected_disposition": "SCREENING_ELIGIBLE",
+      "expected_reason_codes": []
     },
     {
       "case_id": "H08_CARE_GUEST__S02_SURVEY_UNKNOWN",
@@ -5075,13 +5053,12 @@
         },
         {
           "gate_id": "STEP_FREE_INTERNAL_ROUTE",
-          "state": "NOT_APPLICABLE"
+          "state": "PASS"
         }
       ],
-      "expected_disposition": "NOT_COMPARABLE",
+      "expected_disposition": "CONDITIONAL_CONCEPT_ONLY",
       "expected_reason_codes": [
-        "SITE_SURVEY_UNKNOWN",
-        "STEP_FREE_INTERNAL_ROUTE_NOT_APPLICABLE"
+        "SITE_SURVEY_UNKNOWN"
       ]
     },
     {
@@ -5144,13 +5121,12 @@
         },
         {
           "gate_id": "STEP_FREE_INTERNAL_ROUTE",
-          "state": "NOT_APPLICABLE"
+          "state": "PASS"
         }
       ],
-      "expected_disposition": "NOT_COMPARABLE",
+      "expected_disposition": "CONDITIONAL_CONCEPT_ONLY",
       "expected_reason_codes": [
-        "LAND_RIGHTS_UNKNOWN",
-        "STEP_FREE_INTERNAL_ROUTE_NOT_APPLICABLE"
+        "LAND_RIGHTS_UNKNOWN"
       ]
     },
     {
@@ -5213,13 +5189,12 @@
         },
         {
           "gate_id": "STEP_FREE_INTERNAL_ROUTE",
-          "state": "NOT_APPLICABLE"
+          "state": "PASS"
         }
       ],
-      "expected_disposition": "NOT_COMPARABLE",
+      "expected_disposition": "CONDITIONAL_CONCEPT_ONLY",
       "expected_reason_codes": [
-        "SOIL_GEOTECH_UNKNOWN",
-        "STEP_FREE_INTERNAL_ROUTE_NOT_APPLICABLE"
+        "SOIL_GEOTECH_UNKNOWN"
       ]
     },
     {
@@ -5282,13 +5257,12 @@
         },
         {
           "gate_id": "STEP_FREE_INTERNAL_ROUTE",
-          "state": "NOT_APPLICABLE"
+          "state": "PASS"
         }
       ],
-      "expected_disposition": "NOT_COMPARABLE",
+      "expected_disposition": "CONDITIONAL_CONCEPT_ONLY",
       "expected_reason_codes": [
-        "CODE_PROFILE_UNKNOWN",
-        "STEP_FREE_INTERNAL_ROUTE_NOT_APPLICABLE"
+        "CODE_PROFILE_UNKNOWN"
       ]
     },
     {
@@ -5351,13 +5325,12 @@
         },
         {
           "gate_id": "STEP_FREE_INTERNAL_ROUTE",
-          "state": "NOT_APPLICABLE"
+          "state": "PASS"
         }
       ],
-      "expected_disposition": "NOT_COMPARABLE",
+      "expected_disposition": "BLOCKED",
       "expected_reason_codes": [
-        "FIRE_ACCESS_FAIL",
-        "STEP_FREE_INTERNAL_ROUTE_NOT_APPLICABLE"
+        "FIRE_ACCESS_FAIL"
       ]
     },
     {
@@ -5488,14 +5461,13 @@
         },
         {
           "gate_id": "STEP_FREE_INTERNAL_ROUTE",
-          "state": "NOT_APPLICABLE"
+          "state": "PASS"
         }
       ],
-      "expected_disposition": "NOT_COMPARABLE",
+      "expected_disposition": "CONDITIONAL_CONCEPT_ONLY",
       "expected_reason_codes": [
         "WATER_CAPACITY_UNKNOWN",
-        "ELECTRICITY_CAPACITY_UNKNOWN",
-        "STEP_FREE_INTERNAL_ROUTE_NOT_APPLICABLE"
+        "ELECTRICITY_CAPACITY_UNKNOWN"
       ]
     },
     {
@@ -5558,13 +5530,12 @@
         },
         {
           "gate_id": "STEP_FREE_INTERNAL_ROUTE",
-          "state": "NOT_APPLICABLE"
+          "state": "PASS"
         }
       ],
-      "expected_disposition": "NOT_COMPARABLE",
+      "expected_disposition": "BLOCKED",
       "expected_reason_codes": [
-        "SANITATION_SERVICE_FAIL",
-        "STEP_FREE_INTERNAL_ROUTE_NOT_APPLICABLE"
+        "SANITATION_SERVICE_FAIL"
       ]
     },
     {
@@ -5627,13 +5598,12 @@
         },
         {
           "gate_id": "STEP_FREE_INTERNAL_ROUTE",
-          "state": "NOT_APPLICABLE"
+          "state": "PASS"
         }
       ],
-      "expected_disposition": "NOT_COMPARABLE",
+      "expected_disposition": "CONDITIONAL_CONCEPT_ONLY",
       "expected_reason_codes": [
-        "CLIMATE_APPLICABILITY_UNKNOWN",
-        "STEP_FREE_INTERNAL_ROUTE_NOT_APPLICABLE"
+        "CLIMATE_APPLICABILITY_UNKNOWN"
       ]
     },
     {
