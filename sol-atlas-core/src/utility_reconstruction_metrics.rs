@@ -80,7 +80,8 @@ pub enum AssetAssociationError {
     CountOverflow,
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct AssetAssociationMetrics {
     pub evaluated_events: u64,
     pub excluded_owner_record_only_events: u64,
@@ -439,6 +440,24 @@ pub fn score_asset_association(
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    const FIXTURE: &str = include_str!(
+        "../../research/earth-observability/fixtures/asset-association-evaluation-synthetic-v0.1.json"
+    );
+
+    #[test]
+    fn committed_asset_association_fixture_parses_and_scores() {
+        let evaluation: AssetAssociationEvaluation =
+            serde_json::from_str(FIXTURE).expect("asset association fixture parses");
+        let metrics = score_asset_association(&evaluation).unwrap();
+        assert_eq!(metrics.evaluated_events, 4);
+        assert_eq!(metrics.excluded_owner_record_only_events, 1);
+        assert_eq!(metrics.truth_utility_asset_count, 2);
+        assert_eq!(metrics.predicted_candidate_asset_count, 2);
+        assert_eq!(metrics.overmerge_pairs, 0);
+        assert_eq!(metrics.oversplit_pairs, 0);
+        assert_eq!(metrics.b_cubed_f1, 1.0);
+    }
 
     fn evaluation() -> AssetAssociationEvaluation {
         AssetAssociationEvaluation {
