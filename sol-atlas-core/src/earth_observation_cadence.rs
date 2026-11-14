@@ -419,16 +419,27 @@ impl CadenceTimeline {
             .map(|(sensor_id, items)| {
                 let acquired = items.iter().filter(|item| item.is_acquired()).count();
                 let usable = items.iter().filter(|item| item.is_usable()).count();
-                let times = items
+                let expected_times = items
+                    .iter()
+                    .filter_map(|item| item.expected_at_unix_ms)
+                    .collect::<Vec<_>>();
+                let acquired_times = items
+                    .iter()
+                    .filter_map(|item| item.acquisition.map(AcquisitionWindow::midpoint_unix_ms))
+                    .collect::<Vec<_>>();
+                let usable_times = items
                     .iter()
                     .filter(|item| item.is_usable())
                     .filter_map(|item| item.acquisition.map(AcquisitionWindow::midpoint_unix_ms))
                     .collect::<Vec<_>>();
                 SensorCadenceSummary {
                     sensor_id,
+                    expected_opportunity_count: expected_times.len(),
                     acquired_count: acquired,
                     qualified_usable_count: usable,
-                    usable_revisit_gaps: summarize_gaps(times),
+                    expected_schedule_gaps: summarize_gaps(expected_times),
+                    actual_acquisition_gaps: summarize_gaps(acquired_times),
+                    usable_revisit_gaps: summarize_gaps(usable_times),
                     rights_blocked_count: items
                         .iter()
                         .filter(|item| item.state == OpportunityState::RightsBlocked)
@@ -462,9 +473,9 @@ impl CadenceTimeline {
             rights_blocked_count,
             usable_fraction_of_expected,
             usable_fraction_of_acquired,
-            nominal_schedule_gaps: summarize_gaps(expected_times),
-            actual_acquisition_gaps: summarize_gaps(acquired_times),
-            usable_revisit_gaps: summarize_gaps(usable_times),
+            portfolio_expected_opportunity_gaps: summarize_gaps(expected_times),
+            portfolio_acquisition_gaps: summarize_gaps(acquired_times),
+            portfolio_usable_observation_gaps: summarize_gaps(usable_times),
             delivery_latency: summarize_durations(delivery_latencies),
             first_actionable_claim_at_unix_ms,
             event_time_intervals: self.interval_censored_event_times(),
@@ -545,9 +556,12 @@ pub struct DurationSummary {
 #[serde(deny_unknown_fields)]
 pub struct SensorCadenceSummary {
     pub sensor_id: String,
+    pub expected_opportunity_count: usize,
     pub acquired_count: usize,
     pub qualified_usable_count: usize,
     pub rights_blocked_count: usize,
+    pub expected_schedule_gaps: GapSummary,
+    pub actual_acquisition_gaps: GapSummary,
     pub usable_revisit_gaps: GapSummary,
 }
 
@@ -574,9 +588,10 @@ pub struct CadenceReport {
     pub rights_blocked_count: usize,
     pub usable_fraction_of_expected: Option<f64>,
     pub usable_fraction_of_acquired: Option<f64>,
-    pub nominal_schedule_gaps: GapSummary,
-    pub actual_acquisition_gaps: GapSummary,
-    pub usable_revisit_gaps: GapSummary,
+    /// Combined optical/SAR/thermal portfolio; not a per-sensor revisit metric.
+    pub portfolio_expected_opportunity_gaps: GapSummary,
+    pub portfolio_acquisition_gaps: GapSummary,
+    pub portfolio_usable_observation_gaps: GapSummary,
     /// Arrival delay distribution in milliseconds, not physical revisit.
     pub delivery_latency: DurationSummary,
     pub first_actionable_claim_at_unix_ms: Option<i64>,
@@ -709,9 +724,9 @@ mod tests {
             ],
         ).unwrap();
         let report = timeline.report();
-        assert_eq!(report.nominal_schedule_gaps.p50_ms, Some(5 * DAY));
-        assert_eq!(report.usable_revisit_gaps.p50_ms, Some(5 * DAY));
-        assert_eq!(report.usable_revisit_gaps.maximum_ms, Some(15 * DAY));
+        assert_eq!(report.portfolio_expected_opportunity_gaps.p50_ms, Some(5 * DAY));
+        assert_eq!(report.portfolio_usable_observation_gaps.p50_ms, Some(5 * DAY));
+        assert_eq!(report.portfolio_usable_observation_gaps.maximum_ms, Some(15 * DAY));
         assert_eq!(report.qualified_usable_count, 3);
         assert!((report.usable_fraction_of_expected.unwrap() - 0.6).abs() < f64::EPSILON);
     }
@@ -826,7 +841,7 @@ mod tests {
         assert_eq!(report.no_acquisition_count, 1);
         assert_eq!(report.usable_fraction_of_expected, Some(0.5));
         assert_eq!(report.per_sensor.len(), 2);
-        assert_eq!(report.usable_revisit_gaps.gap_count, 1);
+        assert_eq!(report.portfolio_usable_observation_gaps.gap_count, 1);
         assert_eq!(report.usable_revisit_gaps.maximum_ms, Some(518_400_000));
     }
 
