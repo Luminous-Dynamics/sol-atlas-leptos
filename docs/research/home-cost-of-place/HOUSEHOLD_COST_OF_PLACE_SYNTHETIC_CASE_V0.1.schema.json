@@ -1,0 +1,224 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Cost-of-place synthetic household candidate set v0.1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "study_id",
+    "maturity",
+    "execution_status",
+    "price_date",
+    "currency",
+    "household_frame",
+    "candidates",
+    "comparison_policy",
+    "claim_ceiling"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "0.1.0"
+    },
+    "study_id": {
+      "const": "HOME-COST-OF-PLACE-001"
+    },
+    "maturity": {
+      "const": "SYNTHETIC_FIXTURE"
+    },
+    "execution_status": {
+      "const": "NOT_EVALUATED"
+    },
+    "price_date": {
+      "type": "string"
+    },
+    "currency": {
+      "type": "string"
+    },
+    "household_frame": {
+      "type": "object",
+      "required": [
+        "frame_id",
+        "horizon_years",
+        "income_state"
+      ],
+      "properties": {
+        "frame_id": {
+          "type": "string"
+        },
+        "horizon_years": {
+          "type": "integer"
+        },
+        "income_state": {
+          "type": "string"
+        }
+      }
+    },
+    "candidates": {
+      "type": "array",
+      "minItems": 2,
+      "items": {
+        "type": "object",
+        "required": [
+          "candidate_id",
+          "tenure_model",
+          "site_state",
+          "land_cost",
+          "service_readiness",
+          "finance_state",
+          "monthly_cost_components",
+          "transport_access",
+          "total_cost_state",
+          "affordability_state",
+          "hard_floor_results",
+          "ranking_state"
+        ],
+        "properties": {
+          "candidate_id": {
+            "type": "string"
+          },
+          "tenure_model": {
+            "type": "string"
+          },
+          "site_state": {
+            "type": "string"
+          },
+          "land_cost": {
+            "type": "null"
+          },
+          "service_readiness": {
+            "type": "object",
+            "required": [
+              "water",
+              "sanitation",
+              "electricity",
+              "road_access",
+              "bulk_capacity"
+            ],
+            "properties": {
+              "water": {
+                "type": "string"
+              },
+              "sanitation": {
+                "type": "string"
+              },
+              "electricity": {
+                "type": "string"
+              },
+              "road_access": {
+                "type": "string"
+              },
+              "bulk_capacity": {
+                "type": "string"
+              }
+            }
+          },
+          "finance_state": {
+            "type": "string"
+          },
+          "monthly_cost_components": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "component",
+                "amount",
+                "unit",
+                "source_ref",
+                "uncertainty"
+              ],
+              "properties": {
+                "component": {
+                  "type": "string"
+                },
+                "amount": {
+                  "type": "null"
+                },
+                "unit": {
+                  "type": "string"
+                },
+                "source_ref": {
+                  "type": "null"
+                },
+                "uncertainty": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "transport_access": {
+            "type": "object",
+            "required": [
+              "work_access",
+              "education_access",
+              "health_access",
+              "food_access"
+            ],
+            "properties": {
+              "work_access": {
+                "type": "string"
+              },
+              "education_access": {
+                "type": "string"
+              },
+              "health_access": {
+                "type": "string"
+              },
+              "food_access": {
+                "type": "string"
+              }
+            }
+          },
+          "total_cost_state": {
+            "const": "NOT_ESTIMATED"
+          },
+          "affordability_state": {
+            "const": "NOT_ASSESSED"
+          },
+          "hard_floor_results": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "gate_id",
+                "state"
+              ],
+              "properties": {
+                "gate_id": {
+                  "type": "string"
+                },
+                "state": {
+                  "enum": [
+                    "UNKNOWN",
+                    "PASS",
+                    "FAIL"
+                  ]
+                }
+              }
+            }
+          },
+          "ranking_state": {
+            "const": "UNRANKED"
+          }
+        }
+      }
+    },
+    "comparison_policy": {
+      "type": "object",
+      "required": [
+        "scalar_score",
+        "resident_choice_required"
+      ],
+      "properties": {
+        "scalar_score": {
+          "type": "null"
+        },
+        "resident_choice_required": {
+          "const": true
+        }
+      }
+    },
+    "claim_ceiling": {
+      "type": "string"
+    }
+  }
+}
