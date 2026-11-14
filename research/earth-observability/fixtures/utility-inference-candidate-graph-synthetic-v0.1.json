@@ -1,0 +1,89 @@
+{
+  "graph_id": "utility-inference-synthetic-001",
+  "status": "synthetic_candidate_utility_inference_not_authoritative",
+  "geography": "abstract_non_geographic",
+  "claim_boundary": "Candidate asset graph only; no authoritative asset identity or physical utility truth.",
+  "observed_events": [
+    {
+      "event_id": "event-1",
+      "observation_id": "observation-1",
+      "source_evidence_id": "gpr-evidence-1",
+      "acquisition_id": "acquisition-a",
+      "spatial_support_id": "support-a",
+      "sensor_configuration_id": "gpr-400mhz-v1"
+    },
+    {
+      "event_id": "event-2",
+      "observation_id": "observation-2",
+      "source_evidence_id": "gpr-evidence-2",
+      "acquisition_id": "acquisition-b",
+      "spatial_support_id": "support-b",
+      "sensor_configuration_id": "gpr-400mhz-v1"
+    },
+    {
+      "event_id": "event-clutter",
+      "observation_id": "observation-clutter",
+      "source_evidence_id": "gpr-evidence-clutter",
+      "acquisition_id": "acquisition-c",
+      "spatial_support_id": "support-c",
+      "sensor_configuration_id": "gpr-400mhz-v1"
+    }
+  ],
+  "candidate_assets": [
+    {
+      "candidate_asset_id": "candidate:utility-1",
+      "target_kinds": [
+        "water",
+        "unknown"
+      ],
+      "geometry_claim_id": "geometry-claim-1",
+      "supporting_evidence_ids": [
+        "gpr-evidence-1",
+        "gpr-evidence-2"
+      ],
+      "claim_status": "candidate",
+      "confidence": 0.72
+    }
+  ],
+  "event_asset_associations": [
+    {
+      "event_id": "event-1",
+      "candidate_asset_id": "candidate:utility-1",
+      "probability": 0.7
+    },
+    {
+      "event_id": "event-2",
+      "candidate_asset_id": "candidate:utility-1",
+      "probability": 0.85
+    }
+  ],
+  "candidate_nodes": [
+    {
+      "candidate_node_id": "candidate-node:a",
+      "geometry_claim_id": "node-geometry-a",
+      "supporting_evidence_ids": [
+        "gpr-evidence-1"
+      ]
+    },
+    {
+      "candidate_node_id": "candidate-node:b",
+      "geometry_claim_id": "node-geometry-b",
+      "supporting_evidence_ids": [
+        "gpr-evidence-2"
+      ]
+    }
+  ],
+  "candidate_connections": [
+    {
+      "connection_id": "candidate-connection-1",
+      "from_node_candidate_id": "candidate-node:a",
+      "to_node_candidate_id": "candidate-node:b",
+      "relation": "continuation",
+      "supporting_evidence_ids": [
+        "gpr-evidence-1",
+        "gpr-evidence-2"
+      ],
+      "confidence": 0.65
+    }
+  ]
+}
