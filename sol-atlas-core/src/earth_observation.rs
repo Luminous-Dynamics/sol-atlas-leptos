@@ -1145,7 +1145,7 @@ mod tests {
             TimeWindow::new("2024-01-01", "2025-01-01").unwrap(),
             ChangeDisposition::CandidateChange, None,
             vec!["obs-b".into()], vec!["obs-b".into()], vec![],
-            CoverageState::Unknown, None, None, None
+            CoverageState::Unknown, None, None, None, None
         ).unwrap();
         let other_support = ObservationRecord::new(
             "obs-b", AssetId::new("fixture:obs-b").unwrap(), "fixture-source", digest(b'b'), digest(b'c'),
