@@ -230,3 +230,99 @@ Real project rules must be pinned to the exact applicable jurisdiction, edition,
 ## 13. Claim ceiling
 
 This protocol, the schema and synthetic fixture do not establish a real site's development rights, infrastructure capacity, geotechnical conditions, structural or fire safety, accessibility, daylight/view/privacy/acoustic/thermal performance, product safety, affordability, resident satisfaction, cost savings, buildability or occupancy. No construction or operational action is authorized.
+
+
+## 14. Updated industry, interoperability and South African evidence scan
+
+This section records a dated capability scan, not independent verification of vendor performance.
+
+### Commercial design baselines (14 November 2026)
+
+**Autodesk Forma Building Layout Explorer** (announced 2 June 2026) is an experimental generative AI workflow for generating multifamily floor-plan options from a massing model. Autodesk describes it as exploratory and invites users to co-develop it; this is an important early-stage option-generation baseline, not a finished compliance or delivery authority:
+- https://adsknews.autodesk.com/en/news/building-layout-explorer-in-autodesk-forma
+
+**TestFit Site Solver / Multi-Family** publicly describes:
+- parcel/site definition, mixed-use and 3D context;
+- zoning profile parameters such as FAR, dwelling-unit density and parking ratio;
+- topography and US-specific data integrations (ESRI flood/wetlands and SSURGO soil/water-table/bedrock/slope);
+- unit mix, amenity, setbacks, egress/core inputs, automatic unit takeoffs, conceptual cost modelling, scheme comparison and Revit / DXF / CSV / SketchUp exchange.
+Sources:
+- https://www.testfit.io/product/site-solver
+- https://www.testfit.io/typologies/multi-family
+
+These are meaningful feasibility capabilities. US parcel, zoning, soil and cost integrations must not be treated as available or applicable for a Johannesburg site. Vendor-published speed, deal-volume or iteration claims remain marketing claims until matched experiments reproduce them.
+
+**Finch** publicly describes:
+- encoded firm standards and plan libraries;
+- multi-family and high-rise unit distribution and floor-plan generation;
+- vertical alignment, area/feasibility metrics, BIM geometry, and exchanges with Rhino, Revit, Grasshopper and Forma;
+- region/local-code and accessibility-aware plan libraries, with feature availability varying by subscription/customer tier.
+Sources:
+- https://www.finch3d.com/product
+- https://www.finch3d.com/
+
+The benchmark must record actual account entitlement, product version, region, setup, libraries, code pack and available export path. Do not benchmark a feature that the test account cannot actually use.
+
+### Open exchange: a 2026 IDS implementation challenge
+
+buildingSMART's 2026 IDS survey reports 186 completed responses; 58% of respondents had used IDS on real projects, and users raised concerns about documentation quality and differing checking results across tools. The same source describes IDS 1.0 as focused on alphanumeric IFC information and not geometric verification:
+- https://www.buildingsmart.org/ids-survey-results-2026/
+- https://www.buildingsmart.org/standards/bsi-standards/information-delivery-specification-ids/
+
+This creates a concrete interoperability benchmark lane:
+1. Freeze a small IFC 4.3.2.0 test model and IDS 1.0 requirement set.
+2. Execute it in at least two independent IDS checking implementations where available.
+3. Compare object selection, property, classification and relationship outcomes.
+4. Record checker version, IDS/IFC versions, warnings, unsupported constructs and semantic loss.
+5. Separately test geometry, space identity, boundaries and portal connectivity with a geometric oracle; never attribute those checks to IDS.
+6. Report result parity and disagreements at rule level rather than collapsing to one pass percentage.
+
+### Local regulatory and planning context
+
+The City of Johannesburg SDF 2040 gives strategic compact-city indicators including at least 15,000 people/km² and a jobs-density target of at least 7,500 jobs/km², while explicitly linking density to mixed use and accessibility and cautioning that densification alone does not ensure liveability. These are strategic planning indicators, not zoning rights or a parcel approval:
+- https://joburg.org.za/documents_/Documents/Johannesburg-Spatial-Development-Framework-2040.pdf
+
+South Africa's October 2026 government gazette describes mandatory building energy codes under Part XA of the National Building Regulations, supported by SANS 10400-XA:2021, and says the requirements apply to most building classes including homes. The exact applicable building classification, controlled standard edition, local authority process and project-specific route must still be established for a real project:
+- https://www.gov.za/sites/default/files/gcis_document/202610/55638gen4221.pdf
+
+Use this as a jurisdiction-adapter requirement, not as a substitute for controlled SANS texts or a competent energy professional. Do not infer compliance from a simulation or geometry result.
+
+### Whole-life cost and offsite evidence
+
+ISO 15686-5:2017 remains the current confirmed international standard for building/constructed-asset life-cycle costing; it requires a declared analysis period and scope across relevant acquisition, operation and disposal cash flows:
+- https://www.iso.org/standard/61148.html
+
+A 2026 systematic review of industrialised housing reports broad, heterogeneous examples: commonly cited schedule reductions of 25–60%, while cost outcomes range from savings to substantial increases depending on factory utilisation, transport/cranage, procurement, supply-chain capacity, interface rework and other conditions. It is not a universal forecast or a matched South African apartment result:
+- https://www.mdpi.com/2075-5309/16/3/552
+
+Therefore, the manufacturing benchmark must measure the all-in delivered apartment/building outcome, including factory setup and utilisation, component yield, packaging, storage, transport, cranage, site access, installation, commissioning, QA, defects, repair and financing/carrying costs. Compare against a matched conventional baseline and report the distribution, not just a point estimate.
+
+### Existing Luminous owners to compose (do not duplicate)
+
+- [#617 — 2026 AEC industry comparison](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/617): product capability/version matrix, matched commercial and human-led workflows, IFC/IDS exchange and expert review.
+- [#816 — Cost of Place](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/816): whole-household cost, service readiness, finance, transport and lifecycle affordability.
+- [#752 — Thermal Service Refuge](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/752): heat/power/water stress trajectories and accessible refuge network.
+- [Symtropy #1848 — Spatial Resilience](https://github.com/Luminous-Dynamics/symtropy/issues/1848): time-varying habitability and essential-service trajectories under matched stress traces.
+- [#819 — Home Freedom 100-case corpus](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/819): household × site evidence dispositions.
+- [#338 — IBAP run manifest](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/338): pre-registered run conditions and execution/evaluation separation.
+
+The apartment benchmark should provide adapters and exact scope mappings into these owners. The apartment programme must not fork their cost model, service-trajectory kernel, industry comparison or benchmark registration protocol.
+
+## 15. Executable multi-family qualifier
+
+The first Rust qualifier is `src/bin/home-multifamily-qualifier.rs`, with focused CI in `.github/workflows/home-multifamily-qualifier.yml`.
+
+P0 checks:
+- integer-mm coordinate and positive rectangle semantics;
+- building/floor envelope containment;
+- exact floor partition (declared rectangle area equals envelope area, with zero pairwise positive-area overlaps);
+- unique floor, space, unit, connection, core and service identities;
+- exact dwelling-unit / unit-programme mapping;
+- everyday portal segments located on a shared boundary and within its common span;
+- vertical core floor/space and vertical-link identity;
+- shared-service references only to declared units;
+- case-manifest identity, development-split integrity and the explicit unexecuted/sealed-set claim boundary.
+
+The qualifier consumes the synthetic fixture and the 47-case authored manifest. It does not execute all 46 adversarial mutations yet; its unit tests are the initial executable negative controls. It does not evaluate internal apartment rooms, door swings, wall thickness, egress, accessibility, fire, daylight, view/privacy, acoustics, thermal/ventilation, utility capacity, cost, planning or physical buildability.
+
+The workflow tests the qualifier separately from the existing stacked geometry PR. A queued workflow is not a pass; preserve exact-head run/commit identity in every status update.
