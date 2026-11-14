@@ -14,10 +14,10 @@
 //! A no-change or change assessment must reference an independently qualified
 //! detection-envelope receipt. Digests are references, not authentication.
 
-use crate::earth_observation::ObservationModality;
 use crate::earth_observability::{
-    classify_non_detection, DetectionQualification, NonDetectionDisposition,
+    DetectionQualification, NonDetectionDisposition, classify_non_detection,
 };
+use crate::earth_observation::ObservationModality;
 use serde::{Deserialize, Serialize};
 use std::collections::{BTreeMap, BTreeSet};
 
@@ -217,11 +217,15 @@ impl CadenceOpportunity {
         validate_optional_identifier(self.asset_id.as_deref(), "asset ID")?;
         validate_optional_identifier(self.source_event_id.as_deref(), "source event ID")?;
         if self.asset_id.is_none() || self.source_event_id.is_none() {
-            return Err("acquired opportunity requires canonical asset and source-event identities".into());
+            return Err(
+                "acquired opportunity requires canonical asset and source-event identities".into(),
+            );
         }
 
         if self.state == OpportunityState::QualifiedUsable && self.delivered_at_unix_ms.is_none() {
-            return Err("qualified usable observation requires a delivery/availability time".into());
+            return Err(
+                "qualified usable observation requires a delivery/availability time".into(),
+            );
         }
         if self.state == OpportunityState::AwaitingDelivery && self.delivered_at_unix_ms.is_some() {
             return Err("awaiting-delivery state cannot carry a delivery time".into());
@@ -248,12 +252,17 @@ impl CadenceOpportunity {
             if self.assessment_target_class_id.is_none()
                 || self.assessment_ontology_version.is_none()
             {
-                return Err("every assessment requires an explicit target class and ontology version".into());
+                return Err(
+                    "every assessment requires an explicit target class and ontology version"
+                        .into(),
+                );
             }
             match assessment {
                 ObservationAssessment::NoChangeWithinEnvelope => {
                     if self.coverage_qualification_receipt_sha256.is_none() {
-                        return Err("no-change assessment requires a coverage qualification receipt".into());
+                        return Err(
+                            "no-change assessment requires a coverage qualification receipt".into(),
+                        );
                     }
                     if self.detection_qualification_receipt_sha256.is_none() {
                         return Err("no-change assessment requires a target/sensor detection qualification receipt".into());
@@ -269,7 +278,9 @@ impl CadenceOpportunity {
                 }
                 ObservationAssessment::ChangeDetected => {
                     if self.detection_qualification_receipt_sha256.is_none() {
-                        return Err("change assessment requires a detection qualification receipt".into());
+                        return Err(
+                            "change assessment requires a detection qualification receipt".into(),
+                        );
                     }
                 }
                 ObservationAssessment::Unresolved => {}
@@ -361,7 +372,10 @@ impl CadenceTimeline {
             }
             if let Some(event_id) = opportunity.source_event_id.as_deref() {
                 if !source_event_ids.insert((opportunity.source_id.clone(), event_id.to_string())) {
-                    return Err("duplicate/replayed source event within one source would inflate cadence".into());
+                    return Err(
+                        "duplicate/replayed source event within one source would inflate cadence"
+                            .into(),
+                    );
                 }
             }
         }
@@ -378,7 +392,9 @@ impl CadenceTimeline {
                 .map(AcquisitionWindow::midpoint_unix_ms)
                 .or(b.expected_at_unix_ms)
                 .unwrap_or(i64::MAX);
-            a_time.cmp(&b_time).then(a.opportunity_id.cmp(&b.opportunity_id))
+            a_time
+                .cmp(&b_time)
+                .then(a.opportunity_id.cmp(&b.opportunity_id))
         });
 
         Ok(Self {
@@ -409,15 +425,22 @@ impl CadenceTimeline {
         let delivery_latencies = self
             .opportunities
             .iter()
-            .filter_map(|item| {
-                Some(item.delivered_at_unix_ms? - item.acquisition?.end_unix_ms)
-            })
+            .filter_map(|item| Some(item.delivered_at_unix_ms? - item.acquisition?.end_unix_ms))
             .collect::<Vec<_>>();
 
         let expected_count = expected_times.len();
-        let acquired_count = self.opportunities.iter().filter(|item| item.is_acquired()).count();
-        let usable_count = self.opportunities.iter().filter(|item| item.is_usable()).count();
-        let usable_with_known_expected_count = self.opportunities
+        let acquired_count = self
+            .opportunities
+            .iter()
+            .filter(|item| item.is_acquired())
+            .count();
+        let usable_count = self
+            .opportunities
+            .iter()
+            .filter(|item| item.is_usable())
+            .count();
+        let usable_with_known_expected_count = self
+            .opportunities
             .iter()
             .filter(|item| item.is_usable() && item.expected_at_unix_ms.is_some())
             .count();
@@ -524,12 +547,7 @@ impl CadenceTimeline {
             .opportunities
             .iter()
             .filter(|item| item.assessment == Some(ObservationAssessment::ChangeDetected))
-            .filter_map(|item| {
-                Some((
-                    item,
-                    item.acquisition?.start_unix_ms,
-                ))
-            })
+            .filter_map(|item| Some((item, item.acquisition?.start_unix_ms)))
             .collect::<Vec<_>>();
 
         let mut intervals = Vec::new();
@@ -552,8 +570,7 @@ impl CadenceTimeline {
                 })
                 .filter_map(|item| {
                     let window = item.acquisition?;
-                    (window.end_unix_ms < change_start)
-                        .then_some((item, window.end_unix_ms))
+                    (window.end_unix_ms < change_start).then_some((item, window.end_unix_ms))
                 })
                 .max_by_key(|(_, end)| *end);
 
@@ -572,7 +589,10 @@ impl CadenceTimeline {
         intervals.sort_by(|a, b| {
             a.upper_bound_inclusive_unix_ms
                 .cmp(&b.upper_bound_inclusive_unix_ms)
-                .then(a.first_qualified_change_opportunity_id.cmp(&b.first_qualified_change_opportunity_id))
+                .then(
+                    a.first_qualified_change_opportunity_id
+                        .cmp(&b.first_qualified_change_opportunity_id),
+                )
         });
         intervals
     }
@@ -687,7 +707,9 @@ fn validate_identifier(value: &str, label: &str) -> Result<(), String> {
             .bytes()
             .all(|byte| byte.is_ascii_alphanumeric() || matches!(byte, b'-' | b'_' | b'.' | b':'))
     {
-        return Err(format!("{label} must be a 1-128 character trimmed ASCII token"));
+        return Err(format!(
+            "{label} must be a 1-128 character trimmed ASCII token"
+        ));
     }
     Ok(())
 }
@@ -771,17 +793,72 @@ mod tests {
             "timeline-a",
             "support-a",
             vec![
-                item("a", "optical-a", ObservationModality::Optical, Some(0), Some((0, 0)), OpportunityState::QualifiedUsable, None, Some(0)),
-                item("b", "optical-a", ObservationModality::Optical, Some(5 * DAY), Some((5 * DAY, 5 * DAY)), OpportunityState::CloudContaminated, None, None),
-                item("c", "optical-a", ObservationModality::Optical, Some(10 * DAY), Some((10 * DAY, 10 * DAY)), OpportunityState::HazeOrSmokeContaminated, None, None),
-                item("d", "optical-a", ObservationModality::Optical, Some(15 * DAY), Some((15 * DAY, 15 * DAY)), OpportunityState::QualifiedUsable, None, Some(15 * DAY)),
-                item("e", "optical-a", ObservationModality::Optical, Some(20 * DAY), Some((20 * DAY, 20 * DAY)), OpportunityState::QualifiedUsable, None, Some(20 * DAY)),
+                item(
+                    "a",
+                    "optical-a",
+                    ObservationModality::Optical,
+                    Some(0),
+                    Some((0, 0)),
+                    OpportunityState::QualifiedUsable,
+                    None,
+                    Some(0),
+                ),
+                item(
+                    "b",
+                    "optical-a",
+                    ObservationModality::Optical,
+                    Some(5 * DAY),
+                    Some((5 * DAY, 5 * DAY)),
+                    OpportunityState::CloudContaminated,
+                    None,
+                    None,
+                ),
+                item(
+                    "c",
+                    "optical-a",
+                    ObservationModality::Optical,
+                    Some(10 * DAY),
+                    Some((10 * DAY, 10 * DAY)),
+                    OpportunityState::HazeOrSmokeContaminated,
+                    None,
+                    None,
+                ),
+                item(
+                    "d",
+                    "optical-a",
+                    ObservationModality::Optical,
+                    Some(15 * DAY),
+                    Some((15 * DAY, 15 * DAY)),
+                    OpportunityState::QualifiedUsable,
+                    None,
+                    Some(15 * DAY),
+                ),
+                item(
+                    "e",
+                    "optical-a",
+                    ObservationModality::Optical,
+                    Some(20 * DAY),
+                    Some((20 * DAY, 20 * DAY)),
+                    OpportunityState::QualifiedUsable,
+                    None,
+                    Some(20 * DAY),
+                ),
             ],
-        ).unwrap();
+        )
+        .unwrap();
         let report = timeline.report();
-        assert_eq!(report.portfolio_expected_opportunity_gaps.p50_ms, Some(5 * DAY));
-        assert_eq!(report.portfolio_usable_observation_gaps.p50_ms, Some(5 * DAY));
-        assert_eq!(report.portfolio_usable_observation_gaps.maximum_ms, Some(15 * DAY));
+        assert_eq!(
+            report.portfolio_expected_opportunity_gaps.p50_ms,
+            Some(5 * DAY)
+        );
+        assert_eq!(
+            report.portfolio_usable_observation_gaps.p50_ms,
+            Some(5 * DAY)
+        );
+        assert_eq!(
+            report.portfolio_usable_observation_gaps.maximum_ms,
+            Some(15 * DAY)
+        );
         assert_eq!(report.qualified_usable_count, 3);
         assert!((report.usable_fraction_of_expected.unwrap() - 0.6).abs() < f64::EPSILON);
     }
@@ -792,15 +869,51 @@ mod tests {
             "timeline-sar",
             "support-a",
             vec![
-                item("optical", "sentinel-2", ObservationModality::Optical, Some(0), Some((0, 0)), OpportunityState::QualifiedUsable, None, Some(0)),
-                item("cloudy", "sentinel-2", ObservationModality::Optical, Some(5 * DAY), Some((5 * DAY, 5 * DAY)), OpportunityState::CloudContaminated, None, None),
-                item("sar", "sentinel-1", ObservationModality::SyntheticApertureRadar, Some(6 * DAY), Some((6 * DAY, 6 * DAY)), OpportunityState::QualifiedUsable, None, Some(6 * DAY)),
+                item(
+                    "optical",
+                    "sentinel-2",
+                    ObservationModality::Optical,
+                    Some(0),
+                    Some((0, 0)),
+                    OpportunityState::QualifiedUsable,
+                    None,
+                    Some(0),
+                ),
+                item(
+                    "cloudy",
+                    "sentinel-2",
+                    ObservationModality::Optical,
+                    Some(5 * DAY),
+                    Some((5 * DAY, 5 * DAY)),
+                    OpportunityState::CloudContaminated,
+                    None,
+                    None,
+                ),
+                item(
+                    "sar",
+                    "sentinel-1",
+                    ObservationModality::SyntheticApertureRadar,
+                    Some(6 * DAY),
+                    Some((6 * DAY, 6 * DAY)),
+                    OpportunityState::QualifiedUsable,
+                    None,
+                    Some(6 * DAY),
+                ),
             ],
-        ).unwrap();
+        )
+        .unwrap();
         let report = timeline.report();
         assert_eq!(report.qualified_usable_count, 2);
         assert_eq!(report.per_sensor.len(), 2);
-        assert_eq!(report.per_sensor.iter().find(|x| x.sensor_id == "sentinel-1").unwrap().qualified_usable_count, 1);
+        assert_eq!(
+            report
+                .per_sensor
+                .iter()
+                .find(|x| x.sensor_id == "sentinel-1")
+                .unwrap()
+                .qualified_usable_count,
+            1
+        );
     }
 
     #[test]
@@ -809,11 +922,39 @@ mod tests {
             "timeline-event",
             "support-a",
             vec![
-                item("clean", "sensor-a", ObservationModality::Optical, Some(0), Some((0, 10)), OpportunityState::QualifiedUsable, Some(ObservationAssessment::NoChangeWithinEnvelope), Some(20)),
-                item("cloud-gap", "sensor-a", ObservationModality::Optical, Some(DAY), Some((DAY, DAY + 10)), OpportunityState::CloudContaminated, None, None),
-                item("positive", "sensor-a", ObservationModality::Optical, Some(2 * DAY), Some((2 * DAY, 2 * DAY + 10)), OpportunityState::QualifiedUsable, Some(ObservationAssessment::ChangeDetected), Some(2 * DAY + 20)),
+                item(
+                    "clean",
+                    "sensor-a",
+                    ObservationModality::Optical,
+                    Some(0),
+                    Some((0, 10)),
+                    OpportunityState::QualifiedUsable,
+                    Some(ObservationAssessment::NoChangeWithinEnvelope),
+                    Some(20),
+                ),
+                item(
+                    "cloud-gap",
+                    "sensor-a",
+                    ObservationModality::Optical,
+                    Some(DAY),
+                    Some((DAY, DAY + 10)),
+                    OpportunityState::CloudContaminated,
+                    None,
+                    None,
+                ),
+                item(
+                    "positive",
+                    "sensor-a",
+                    ObservationModality::Optical,
+                    Some(2 * DAY),
+                    Some((2 * DAY, 2 * DAY + 10)),
+                    OpportunityState::QualifiedUsable,
+                    Some(ObservationAssessment::ChangeDetected),
+                    Some(2 * DAY + 20),
+                ),
             ],
-        ).unwrap();
+        )
+        .unwrap();
         let intervals = timeline.interval_censored_event_times();
         assert_eq!(intervals.len(), 1);
         assert_eq!(intervals[0].lower_bound_exclusive_unix_ms, 10);
@@ -823,7 +964,16 @@ mod tests {
 
     #[test]
     fn no_change_requires_both_coverage_and_detection_qualification_receipts() {
-        let mut invalid = item("clean", "sensor-a", ObservationModality::Optical, Some(0), Some((0, 10)), OpportunityState::QualifiedUsable, Some(ObservationAssessment::NoChangeWithinEnvelope), Some(20));
+        let mut invalid = item(
+            "clean",
+            "sensor-a",
+            ObservationModality::Optical,
+            Some(0),
+            Some((0, 10)),
+            OpportunityState::QualifiedUsable,
+            Some(ObservationAssessment::NoChangeWithinEnvelope),
+            Some(20),
+        );
         invalid.detection_qualification_receipt_sha256 = None;
         assert!(CadenceTimeline::new("bad", "support-a", vec![invalid]).is_err());
     }
@@ -873,10 +1023,16 @@ mod tests {
             Some(2 * DAY + 20),
         );
         changed_class.assessment_target_class_id = Some("built-up-expansion".into());
-        assert!(CadenceTimeline::new("different-class", "support-a", vec![clean.clone(), changed_class])
+        assert!(
+            CadenceTimeline::new(
+                "different-class",
+                "support-a",
+                vec![clean.clone(), changed_class]
+            )
             .unwrap()
             .interval_censored_event_times()
-            .is_empty());
+            .is_empty()
+        );
 
         let mut changed_ontology = item(
             "positive-v2",
@@ -889,25 +1045,70 @@ mod tests {
             Some(2 * DAY + 20),
         );
         changed_ontology.assessment_ontology_version = Some("fixture-ontology-v2".into());
-        assert!(CadenceTimeline::new("different-ontology", "support-a", vec![clean, changed_ontology])
+        assert!(
+            CadenceTimeline::new(
+                "different-ontology",
+                "support-a",
+                vec![clean, changed_ontology]
+            )
             .unwrap()
             .interval_censored_event_times()
-            .is_empty());
+            .is_empty()
+        );
     }
 
     #[test]
     fn source_event_identity_is_scoped_to_its_source() {
-        let first = item("scene-a", "sensor-a", ObservationModality::Optical, Some(0), Some((0, 0)), OpportunityState::QualifiedUsable, None, Some(0));
-        let mut other_source = item("scene-b", "sensor-b", ObservationModality::Optical, Some(DAY), Some((DAY, DAY)), OpportunityState::QualifiedUsable, None, Some(DAY));
+        let first = item(
+            "scene-a",
+            "sensor-a",
+            ObservationModality::Optical,
+            Some(0),
+            Some((0, 0)),
+            OpportunityState::QualifiedUsable,
+            None,
+            Some(0),
+        );
+        let mut other_source = item(
+            "scene-b",
+            "sensor-b",
+            ObservationModality::Optical,
+            Some(DAY),
+            Some((DAY, DAY)),
+            OpportunityState::QualifiedUsable,
+            None,
+            Some(DAY),
+        );
         other_source.source_id = "source-b".into();
         other_source.source_event_id = first.source_event_id.clone();
-        assert!(CadenceTimeline::new("distinct-sources", "support-a", vec![first, other_source]).is_ok());
+        assert!(
+            CadenceTimeline::new("distinct-sources", "support-a", vec![first, other_source])
+                .is_ok()
+        );
     }
 
     #[test]
     fn duplicate_source_event_is_rejected_instead_of_inflating_revisit_count() {
-        let first = item("scene-a", "sensor-a", ObservationModality::Optical, Some(0), Some((0, 0)), OpportunityState::QualifiedUsable, None, Some(0));
-        let mut duplicate = item("scene-b", "sensor-a", ObservationModality::Optical, Some(DAY), Some((DAY, DAY)), OpportunityState::QualifiedUsable, None, Some(DAY));
+        let first = item(
+            "scene-a",
+            "sensor-a",
+            ObservationModality::Optical,
+            Some(0),
+            Some((0, 0)),
+            OpportunityState::QualifiedUsable,
+            None,
+            Some(0),
+        );
+        let mut duplicate = item(
+            "scene-b",
+            "sensor-a",
+            ObservationModality::Optical,
+            Some(DAY),
+            Some((DAY, DAY)),
+            OpportunityState::QualifiedUsable,
+            None,
+            Some(DAY),
+        );
         duplicate.source_event_id = first.source_event_id.clone();
         assert!(CadenceTimeline::new("duplicate", "support-a", vec![first, duplicate]).is_err());
     }
@@ -918,10 +1119,29 @@ mod tests {
             "timeline-rights",
             "support-a",
             vec![
-                item("blocked", "sensor-a", ObservationModality::Optical, Some(0), Some((0, 0)), OpportunityState::RightsBlocked, None, None),
-                item("missed", "sensor-a", ObservationModality::Optical, Some(DAY), None, OpportunityState::NoAcquisition, None, None),
+                item(
+                    "blocked",
+                    "sensor-a",
+                    ObservationModality::Optical,
+                    Some(0),
+                    Some((0, 0)),
+                    OpportunityState::RightsBlocked,
+                    None,
+                    None,
+                ),
+                item(
+                    "missed",
+                    "sensor-a",
+                    ObservationModality::Optical,
+                    Some(DAY),
+                    None,
+                    OpportunityState::NoAcquisition,
+                    None,
+                    None,
+                ),
             ],
-        ).unwrap();
+        )
+        .unwrap();
         let report = timeline.report();
         assert_eq!(report.qualified_usable_count, 0);
         assert_eq!(report.rights_blocked_count, 1);
@@ -936,16 +1156,41 @@ mod tests {
             "timeline-latency",
             "support-a",
             vec![
-                item("late", "sensor-a", ObservationModality::Optical, Some(0), Some((0, DAY)), OpportunityState::QualifiedUsable, Some(ObservationAssessment::ChangeDetected), Some(DAY + 3 * 60 * 60 * 1000)),
-                item("later", "sensor-a", ObservationModality::Optical, Some(2 * DAY), Some((2 * DAY, 2 * DAY)), OpportunityState::QualifiedUsable, None, Some(2 * DAY)),
+                item(
+                    "late",
+                    "sensor-a",
+                    ObservationModality::Optical,
+                    Some(0),
+                    Some((0, DAY)),
+                    OpportunityState::QualifiedUsable,
+                    Some(ObservationAssessment::ChangeDetected),
+                    Some(DAY + 3 * 60 * 60 * 1000),
+                ),
+                item(
+                    "later",
+                    "sensor-a",
+                    ObservationModality::Optical,
+                    Some(2 * DAY),
+                    Some((2 * DAY, 2 * DAY)),
+                    OpportunityState::QualifiedUsable,
+                    None,
+                    Some(2 * DAY),
+                ),
             ],
-        ).unwrap();
+        )
+        .unwrap();
         let report = timeline.report();
         assert_eq!(report.delivery_latency.sample_count, 2);
         assert_eq!(report.delivery_latency.p90_ms, Some(3 * 60 * 60 * 1000));
         assert_eq!(report.delivery_latency.maximum_ms, Some(3 * 60 * 60 * 1000));
-        assert_eq!(report.portfolio_usable_observation_gaps.p50_ms, Some(DAY + DAY / 2));
-        assert_eq!(report.first_actionable_claim_at_unix_ms, Some(DAY + 3 * 60 * 60 * 1000));
+        assert_eq!(
+            report.portfolio_usable_observation_gaps.p50_ms,
+            Some(DAY + DAY / 2)
+        );
+        assert_eq!(
+            report.first_actionable_claim_at_unix_ms,
+            Some(DAY + 3 * 60 * 60 * 1000)
+        );
     }
 
     #[test]
@@ -954,16 +1199,37 @@ mod tests {
             "timeline-no-positive",
             "support-a",
             vec![
-                item("clean-a", "sensor-a", ObservationModality::Optical, Some(0), Some((0, 0)), OpportunityState::QualifiedUsable, Some(ObservationAssessment::NoChangeWithinEnvelope), Some(0)),
-                item("clean-b", "sensor-a", ObservationModality::Optical, Some(2 * DAY), Some((2 * DAY, 2 * DAY)), OpportunityState::QualifiedUsable, Some(ObservationAssessment::NoChangeWithinEnvelope), Some(2 * DAY)),
+                item(
+                    "clean-a",
+                    "sensor-a",
+                    ObservationModality::Optical,
+                    Some(0),
+                    Some((0, 0)),
+                    OpportunityState::QualifiedUsable,
+                    Some(ObservationAssessment::NoChangeWithinEnvelope),
+                    Some(0),
+                ),
+                item(
+                    "clean-b",
+                    "sensor-a",
+                    ObservationModality::Optical,
+                    Some(2 * DAY),
+                    Some((2 * DAY, 2 * DAY)),
+                    OpportunityState::QualifiedUsable,
+                    Some(ObservationAssessment::NoChangeWithinEnvelope),
+                    Some(2 * DAY),
+                ),
             ],
-        ).unwrap();
+        )
+        .unwrap();
         assert!(timeline.interval_censored_event_times().is_empty());
     }
 
     #[test]
     fn committed_fixture_separates_optical_gap_from_sar_usability() {
-        let fixture = include_str!("../tests/fixtures/earth_observation_cadence/optical_cloud_gap_sar_bridge.json");
+        let fixture = include_str!(
+            "../tests/fixtures/earth_observation_cadence/optical_cloud_gap_sar_bridge.json"
+        );
         let timeline: CadenceTimeline = serde_json::from_str(fixture).unwrap();
         let report = timeline.report();
         assert_eq!(report.opportunity_count, 4);
@@ -973,7 +1239,10 @@ mod tests {
         assert_eq!(report.usable_fraction_of_expected, Some(0.5));
         assert_eq!(report.per_sensor.len(), 2);
         assert_eq!(report.portfolio_usable_observation_gaps.gap_count, 1);
-        assert_eq!(report.portfolio_usable_observation_gaps.maximum_ms, Some(518_400_000));
+        assert_eq!(
+            report.portfolio_usable_observation_gaps.maximum_ms,
+            Some(518_400_000)
+        );
     }
 
     #[test]
@@ -982,15 +1251,35 @@ mod tests {
             "timeline-serialize",
             "support-a",
             vec![
-                item("clean", "sensor-a", ObservationModality::Optical, Some(0), Some((0, 0)), OpportunityState::QualifiedUsable, Some(ObservationAssessment::NoChangeWithinEnvelope), Some(0)),
-                item("positive", "sensor-a", ObservationModality::Optical, Some(DAY), Some((DAY, DAY)), OpportunityState::QualifiedUsable, Some(ObservationAssessment::ChangeDetected), Some(DAY)),
+                item(
+                    "clean",
+                    "sensor-a",
+                    ObservationModality::Optical,
+                    Some(0),
+                    Some((0, 0)),
+                    OpportunityState::QualifiedUsable,
+                    Some(ObservationAssessment::NoChangeWithinEnvelope),
+                    Some(0),
+                ),
+                item(
+                    "positive",
+                    "sensor-a",
+                    ObservationModality::Optical,
+                    Some(DAY),
+                    Some((DAY, DAY)),
+                    OpportunityState::QualifiedUsable,
+                    Some(ObservationAssessment::ChangeDetected),
+                    Some(DAY),
+                ),
             ],
-        ).unwrap();
+        )
+        .unwrap();
         let json = serde_json::to_string(&valid).unwrap();
         let decoded: CadenceTimeline = serde_json::from_str(&json).unwrap();
         assert_eq!(decoded, valid);
         let mut value: serde_json::Value = serde_json::from_str(&json).unwrap();
-        value["opportunities"][0]["detection_qualification_receipt_sha256"] = serde_json::Value::Null;
+        value["opportunities"][0]["detection_qualification_receipt_sha256"] =
+            serde_json::Value::Null;
         assert!(serde_json::from_value::<CadenceTimeline>(value).is_err());
     }
 }
