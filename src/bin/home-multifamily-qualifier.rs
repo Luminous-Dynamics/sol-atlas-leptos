@@ -719,9 +719,7 @@ mod tests {
 
     #[test]
     fn unknown_shared_service_unit_is_rejected() {
-        let (fixture, mut corpus) = load_fixture();
-        corpus["cases"][0]["case_id"] = json!("CORRUPT");
-        let mut fixture = fixture;
+        let (mut fixture, corpus) = load_fixture();
         fixture["shared_services"][0]["served_unit_ids"][0] = json!("U-999");
         assert!(validate(&fixture, &corpus).is_err());
     }
