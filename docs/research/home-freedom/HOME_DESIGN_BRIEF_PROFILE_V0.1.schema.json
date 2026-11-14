@@ -15,7 +15,8 @@
     "preferences",
     "site_reference",
     "delivery",
-    "privacy"
+    "privacy",
+    "budget"
   ],
   "properties": {
     "schema_version": {
@@ -60,10 +61,6 @@
           "type": "integer",
           "minimum": 0,
           "maximum": 30
-        },
-        "notes": {
-          "type": "string",
-          "maxLength": 1000
         }
       }
     },
@@ -290,7 +287,8 @@
         "authority_profile_ref",
         "survey_state",
         "rights_state",
-        "climate_profile_ref"
+        "climate_profile_ref",
+        "soil_state"
       ],
       "properties": {
         "site_artifact_ref": {
@@ -344,7 +342,8 @@
       "additionalProperties": false,
       "properties": {
         "currency": {
-          "const": "ZAR"
+          "type": "string",
+          "pattern": "^[A-Z]{3}$"
         },
         "initial_capital_min": {
           "type": [
@@ -383,7 +382,12 @@
           ],
           "format": "date"
         }
-      }
+      },
+      "required": [
+        "currency",
+        "whole_life_horizon_years",
+        "cost_scope_ref"
+      ]
     },
     "delivery": {
       "type": "object",
@@ -436,7 +440,8 @@
         "data_sharing_mode",
         "purpose",
         "retention_policy_ref",
-        "contains_direct_identifiers"
+        "contains_direct_identifiers",
+        "redaction_status"
       ],
       "properties": {
         "data_sharing_mode": {
@@ -465,8 +470,43 @@
             "null"
           ],
           "maxLength": 240
+        },
+        "redaction_status": {
+          "enum": [
+            "NOT_REVIEWED",
+            "REVIEWED_NO_DIRECT_IDENTIFIERS"
+          ]
         }
       }
     }
-  }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "privacy": {
+            "properties": {
+              "data_sharing_mode": {
+                "enum": [
+                  "EXPLICIT_PURPOSE_SCOPED_CONSENT",
+                  "SYNTHETIC_PUBLIC"
+                ]
+              }
+            }
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "privacy": {
+            "properties": {
+              "redaction_status": {
+                "const": "REVIEWED_NO_DIRECT_IDENTIFIERS"
+              }
+            }
+          }
+        }
+      }
+    }
+  ]
 }
