@@ -155,9 +155,7 @@ fn evidence_is_admitted(ids: &[String], admitted: &BTreeSet<String>) -> bool {
 ///
 /// A successful result is structural validation, not a calibrated posterior
 /// or physical qualification.
-pub fn validate_network_hypothesis_set(
-    set: &NetworkHypothesisSet,
-) -> Vec<NetworkHypothesisError> {
+pub fn validate_network_hypothesis_set(set: &NetworkHypothesisSet) -> Vec<NetworkHypothesisError> {
     let mut errors = Vec::new();
 
     for (field, value) in [
@@ -175,11 +173,7 @@ pub fn validate_network_hypothesis_set(
     }
 
     if set.status == HypothesisEvidenceStatus::CalibrationReceiptReferenced
-        && set
-            .calibration_receipt_id
-            .as_deref()
-            .map(non_empty)
-            != Some(true)
+        && set.calibration_receipt_id.as_deref().map(non_empty) != Some(true)
     {
         errors.push(NetworkHypothesisError::CalibrationReceiptMissing);
     }
@@ -240,9 +234,7 @@ pub fn validate_network_hypothesis_set(
 
     for hypothesis in &set.hypotheses {
         if !non_empty(&hypothesis.hypothesis_id) {
-            errors.push(NetworkHypothesisError::EmptyIdentifier(
-                "hypothesis_id",
-            ));
+            errors.push(NetworkHypothesisError::EmptyIdentifier("hypothesis_id"));
         } else if !hypothesis_ids.insert(hypothesis.hypothesis_id.clone()) {
             errors.push(NetworkHypothesisError::DuplicateId(
                 "hypothesis_id",
@@ -347,9 +339,7 @@ pub fn validate_network_hypothesis_set(
 
             if let Some(asset_id) = assignment.candidate_asset_id.as_deref() {
                 if !asset_ids.contains(asset_id) {
-                    errors.push(NetworkHypothesisError::UnknownAsset(
-                        asset_id.to_string(),
-                    ));
+                    errors.push(NetworkHypothesisError::UnknownAsset(asset_id.to_string()));
                 } else if let (Some(source_id), Some(evidence_ids)) = (
                     event_sources.get(&assignment.event_id),
                     asset_evidence.get(asset_id),
@@ -391,9 +381,7 @@ pub fn validate_network_hypothesis_set(
         let mut node_ids = BTreeSet::new();
         for node in &hypothesis.candidate_nodes {
             if !non_empty(&node.candidate_node_id) {
-                errors.push(NetworkHypothesisError::EmptyIdentifier(
-                    "candidate_node_id",
-                ));
+                errors.push(NetworkHypothesisError::EmptyIdentifier("candidate_node_id"));
             }
             if !node_ids.insert(node.candidate_node_id.clone()) {
                 errors.push(NetworkHypothesisError::DuplicateId(
@@ -421,9 +409,7 @@ pub fn validate_network_hypothesis_set(
         let mut connection_ids = BTreeSet::new();
         for connection in &hypothesis.candidate_connections {
             if !non_empty(&connection.connection_id) {
-                errors.push(NetworkHypothesisError::EmptyIdentifier(
-                    "connection_id",
-                ));
+                errors.push(NetworkHypothesisError::EmptyIdentifier("connection_id"));
             }
             if !connection_ids.insert(connection.connection_id.clone()) {
                 errors.push(NetworkHypothesisError::DuplicateId(
@@ -477,7 +463,10 @@ mod tests {
     fn synthetic_joint_hypothesis_fixture_is_structurally_valid() {
         let set = fixture();
         let errors = validate_network_hypothesis_set(&set);
-        assert!(errors.is_empty(), "unexpected validation errors: {errors:?}");
+        assert!(
+            errors.is_empty(),
+            "unexpected validation errors: {errors:?}"
+        );
     }
 
     #[test]
@@ -507,13 +496,12 @@ mod tests {
         set.hypotheses[0].candidate_assets[0]
             .supporting_evidence_ids
             .retain(|id| id != "gpr-evidence-1");
-        assert!(
-            validate_network_hypothesis_set(&set)
-                .contains(&NetworkHypothesisError::AssignmentEvidenceNotBound(
-                    "event-1".to_string(),
-                    "candidate:utility-a".to_string(),
-                ))
-        );
+        assert!(validate_network_hypothesis_set(&set).contains(
+            &NetworkHypothesisError::AssignmentEvidenceNotBound(
+                "event-1".to_string(),
+                "candidate:utility-a".to_string(),
+            )
+        ));
     }
 
     #[test]
@@ -522,12 +510,9 @@ mod tests {
         set.hypotheses[0].candidate_assets[0]
             .event_ids
             .retain(|id| id != "event-2");
-        assert!(
-            validate_network_hypothesis_set(&set)
-                .contains(&NetworkHypothesisError::AssetAssignmentMismatch(
-                    "candidate:utility-a".to_string(),
-                ))
-        );
+        assert!(validate_network_hypothesis_set(&set).contains(
+            &NetworkHypothesisError::AssetAssignmentMismatch("candidate:utility-a".to_string(),)
+        ));
     }
 
     #[test]
@@ -535,12 +520,9 @@ mod tests {
         let mut set = fixture();
         set.hypotheses[0].candidate_connections[0].to_node_candidate_id =
             "candidate-node:missing".to_string();
-        assert!(
-            validate_network_hypothesis_set(&set)
-                .contains(&NetworkHypothesisError::UnknownNode(
-                    "candidate-node:missing".to_string(),
-                ))
-        );
+        assert!(validate_network_hypothesis_set(&set).contains(
+            &NetworkHypothesisError::UnknownNode("candidate-node:missing".to_string(),)
+        ));
     }
 
     #[test]
