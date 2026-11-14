@@ -62,10 +62,25 @@ pub enum ObservationAssessment {
 /// normalization step. Raw source timestamps and conversion receipts remain
 /// referenced in the source/processing evidence; this type is not a time authority.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
+#[serde(try_from = "AcquisitionWindowWire")]
 pub struct AcquisitionWindow {
     pub start_unix_ms: i64,
     pub end_unix_ms: i64,
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(deny_unknown_fields)]
+struct AcquisitionWindowWire {
+    start_unix_ms: i64,
+    end_unix_ms: i64,
+}
+
+impl TryFrom<AcquisitionWindowWire> for AcquisitionWindow {
+    type Error = String;
+
+    fn try_from(wire: AcquisitionWindowWire) -> Result<Self, Self::Error> {
+        Self::new(wire.start_unix_ms, wire.end_unix_ms)
+    }
 }
 
 impl AcquisitionWindow {
@@ -88,7 +103,7 @@ impl AcquisitionWindow {
 /// expected_at is optional: absence means no defensible acquisition schedule was
 /// available; it must not be fabricated from nominal constellation marketing.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
+#[serde(try_from = "CadenceOpportunityWire")]
 pub struct CadenceOpportunity {
     pub opportunity_id: String,
     pub support_id: String,
@@ -110,6 +125,50 @@ pub struct CadenceOpportunity {
     /// Required for both positive and negative promoted assessments: binds the
     /// target/support/sensor/platform/configuration detection envelope.
     pub detection_qualification_receipt_sha256: Option<String>,
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(deny_unknown_fields)]
+struct CadenceOpportunityWire {
+    opportunity_id: String,
+    support_id: String,
+    source_id: String,
+    sensor_id: String,
+    modality: ObservationModality,
+    expected_at_unix_ms: Option<i64>,
+    acquisition: Option<AcquisitionWindow>,
+    asset_id: Option<String>,
+    source_event_id: Option<String>,
+    state: OpportunityState,
+    delivered_at_unix_ms: Option<i64>,
+    assessment: Option<ObservationAssessment>,
+    coverage_qualification_receipt_sha256: Option<String>,
+    detection_qualification_receipt_sha256: Option<String>,
+}
+
+impl TryFrom<CadenceOpportunityWire> for CadenceOpportunity {
+    type Error = String;
+
+    fn try_from(wire: CadenceOpportunityWire) -> Result<Self, Self::Error> {
+        let opportunity = Self {
+            opportunity_id: wire.opportunity_id,
+            support_id: wire.support_id,
+            source_id: wire.source_id,
+            sensor_id: wire.sensor_id,
+            modality: wire.modality,
+            expected_at_unix_ms: wire.expected_at_unix_ms,
+            acquisition: wire.acquisition,
+            asset_id: wire.asset_id,
+            source_event_id: wire.source_event_id,
+            state: wire.state,
+            delivered_at_unix_ms: wire.delivered_at_unix_ms,
+            assessment: wire.assessment,
+            coverage_qualification_receipt_sha256: wire.coverage_qualification_receipt_sha256,
+            detection_qualification_receipt_sha256: wire.detection_qualification_receipt_sha256,
+        };
+        opportunity.validate()?;
+        Ok(opportunity)
+    }
 }
 
 impl CadenceOpportunity {
@@ -215,12 +274,35 @@ impl CadenceOpportunity {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
+#[serde(try_from = "CadenceTimelineWire")]
 pub struct CadenceTimeline {
     pub schema_version: u32,
     pub timeline_id: String,
     pub support_id: String,
     pub opportunities: Vec<CadenceOpportunity>,
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(deny_unknown_fields)]
+struct CadenceTimelineWire {
+    schema_version: u32,
+    timeline_id: String,
+    support_id: String,
+    opportunities: Vec<CadenceOpportunity>,
+}
+
+impl TryFrom<CadenceTimelineWire> for CadenceTimeline {
+    type Error = String;
+
+    fn try_from(wire: CadenceTimelineWire) -> Result<Self, Self::Error> {
+        if wire.schema_version != CADENCE_SCHEMA_VERSION {
+            return Err(format!(
+                "unsupported cadence schema version {}; expected {}",
+                wire.schema_version, CADENCE_SCHEMA_VERSION
+            ));
+        }
+        Self::new(wire.timeline_id, wire.support_id, wire.opportunities)
+    }
 }
 
 impl CadenceTimeline {
