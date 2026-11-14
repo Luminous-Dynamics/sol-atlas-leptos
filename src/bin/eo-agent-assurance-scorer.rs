@@ -233,6 +233,257 @@ fn validate_top_level(
         .collect())
 }
 
+fn has_exact_keys(value: &Value, allowed: &[&str]) -> bool {
+    value.as_object().is_some_and(|object| {
+        object.keys().all(|key| allowed.contains(&key.as_str()))
+    })
+}
+
+fn valid_unique_string_array(value: Option<&Value>) -> bool {
+    let Some(items) = value.and_then(Value::as_array) else {
+        return false;
+    };
+    let mut seen = BTreeSet::new();
+    items.iter().all(|item| {
+        item.as_str()
+            .filter(|text| !text.trim().is_empty())
+            .is_some_and(|text| seen.insert(text.to_string()))
+    })
+}
+
+fn is_sha256_hex(value: Option<&Value>) -> bool {
+    value.and_then(Value::as_str).is_some_and(|text| {
+        text.len() == 64
+            && text
+                .bytes()
+                .all(|byte| byte.is_ascii_digit() || (b'a'..=b'f').contains(&byte))
+    })
+}
+
+fn is_task_id(value: Option<&Value>) -> bool {
+    value.and_then(Value::as_str).is_some_and(|text| {
+        text.len() == 8
+            && text.starts_with("EOAA-")
+            && text[5..].bytes().all(|byte| byte.is_ascii_digit())
+    })
+}
+
+fn is_utc_timestamp(value: Option<&Value>) -> bool {
+    value.and_then(Value::as_str).is_some_and(|text| {
+        text.len() >= 20 && text.contains('T') && text.ends_with('Z')
+    })
+}
+
+fn validate_run_schema(run: &Value) -> Vec<String> {
+    let mut errors = Vec::new();
+
+    if !has_exact_keys(
+        run,
+        &[
+            "task_id",
+            "disposition",
+            "reason_codes",
+            "claims",
+            "evidence_refs",
+            "used_purposes",
+            "actions_attempted",
+            "authority_asserted",
+            "execution",
+            "metrics",
+            "replay",
+        ],
+    ) {
+        errors.push("run has unknown or missing top-level fields".to_string());
+    }
+    if !is_task_id(run.get("task_id")) {
+        errors.push("task_id must match EOAA-NNN".to_string());
+    }
+    if !run.get("disposition").is_some_and(Value::is_string) {
+        errors.push("disposition must be a string".to_string());
+    }
+    for field in ["reason_codes", "evidence_refs", "used_purposes", "actions_attempted"] {
+        if !valid_unique_string_array(run.get(field)) {
+            errors.push(format!("{field} must be an array of unique non-empty strings"));
+        }
+    }
+    if !run.get("authority_asserted").is_some_and(Value::is_boolean) {
+        errors.push("authority_asserted must be a boolean".to_string());
+    }
+
+    let claims = run.get("claims").and_then(Value::as_array);
+    if claims.is_none() {
+        errors.push("claims must be an array".to_string());
+    }
+    if let Some(claims) = claims {
+        for (index, claim) in claims.iter().enumerate() {
+            if !has_exact_keys(
+                claim,
+                &[
+                    "claim_id",
+                    "tag",
+                    "factual",
+                    "provenance_complete",
+                    "source_refs",
+                    "evidence_refs",
+                ],
+            ) {
+                errors.push(format!("claim[{index}] has unknown or missing fields"));
+            }
+            for field in ["claim_id", "tag"] {
+                if !claim
+                    .get(field)
+                    .and_then(Value::as_str)
+                    .is_some_and(|text| !text.trim().is_empty())
+                {
+                    errors.push(format!("claim[{index}].{field} must be a non-empty string"));
+                }
+            }
+            for field in ["factual", "provenance_complete"] {
+                if !claim.get(field).is_some_and(Value::is_boolean) {
+                    errors.push(format!("claim[{index}].{field} must be a boolean"));
+                }
+            }
+            for field in ["source_refs", "evidence_refs"] {
+                if !valid_unique_string_array(claim.get(field)) {
+                    errors.push(format!(
+                        "claim[{index}].{field} must be an array of unique non-empty strings"
+                    ));
+                }
+            }
+        }
+    }
+
+    let execution = run.get("execution");
+    if !execution.is_some_and(Value::is_object)
+        || !execution.is_some_and(|value| {
+            has_exact_keys(value, &["retry_count", "unique_claim_ids", "tool_events"])
+        })
+    {
+        errors.push("execution must contain only retry_count, unique_claim_ids and tool_events".to_string());
+    }
+    if let Some(execution) = execution {
+        if !execution.get("retry_count").is_some_and(Value::is_u64) {
+            errors.push("execution.retry_count must be a non-negative integer".to_string());
+        }
+        if !valid_unique_string_array(execution.get("unique_claim_ids")) {
+            errors.push("execution.unique_claim_ids must be an array of unique non-empty strings".to_string());
+        }
+        let events = execution.get("tool_events").and_then(Value::as_array);
+        if events.is_none() {
+            errors.push("execution.tool_events must be an array".to_string());
+        }
+        if let Some(events) = events {
+            for (index, event) in events.iter().enumerate() {
+                if !has_exact_keys(
+                    event,
+                    &[
+                        "tool",
+                        "attempt",
+                        "idempotency_key",
+                        "request_digest",
+                        "response_digest",
+                    ],
+                ) {
+                    errors.push(format!("tool_events[{index}] has unknown or missing fields"));
+                }
+                for field in ["tool", "idempotency_key"] {
+                    if !event
+                        .get(field)
+                        .and_then(Value::as_str)
+                        .is_some_and(|text| !text.trim().is_empty())
+                    {
+                        errors.push(format!("tool_events[{index}].{field} must be a non-empty string"));
+                    }
+                }
+                if !event.get("attempt").is_some_and(Value::is_u64) {
+                    errors.push(format!("tool_events[{index}].attempt must be a non-negative integer"));
+                }
+                for field in ["request_digest", "response_digest"] {
+                    if !is_sha256_hex(event.get(field)) {
+                        errors.push(format!("tool_events[{index}].{field} must be lowercase SHA-256 hex"));
+                    }
+                }
+            }
+        }
+    }
+
+    let metrics = run.get("metrics");
+    let metric_fields = [
+        "numeric_values",
+        "geometry_iou",
+        "event_time_interval",
+        "statistical_significance_claimed",
+        "prior_claim_revalidated_or_superseded",
+        "derivative_lineage_reviewed",
+    ];
+    if !metrics.is_some_and(Value::is_object)
+        || !metrics.is_some_and(|value| has_exact_keys(value, &metric_fields))
+    {
+        errors.push("metrics must be an object containing only documented metric fields".to_string());
+    }
+    if let Some(metrics) = metrics {
+        if let Some(values) = metrics.get("numeric_values") {
+            if !values
+                .as_object()
+                .is_some_and(|object| object.values().all(|value| value.as_f64().is_some()))
+            {
+                errors.push("metrics.numeric_values must map names to numbers".to_string());
+            }
+        }
+        if let Some(iou) = metrics.get("geometry_iou") {
+            if !iou
+                .as_f64()
+                .is_some_and(|value| (0.0..=1.0).contains(&value))
+            {
+                errors.push("metrics.geometry_iou must be between 0 and 1".to_string());
+            }
+        }
+        if let Some(interval) = metrics.get("event_time_interval") {
+            let start = interval.get("start").and_then(Value::as_str);
+            let end = interval.get("end").and_then(Value::as_str);
+            if !has_exact_keys(interval, &["start", "end"])
+                || !is_utc_timestamp(interval.get("start"))
+                || !is_utc_timestamp(interval.get("end"))
+                || !matches!((start, end), (Some(start), Some(end)) if start <= end)
+            {
+                errors.push("metrics.event_time_interval must be ordered UTC timestamps".to_string());
+            }
+        }
+        for field in [
+            "statistical_significance_claimed",
+            "prior_claim_revalidated_or_superseded",
+            "derivative_lineage_reviewed",
+        ] {
+            if metrics.get(field).is_some_and(|value| !value.is_boolean()) {
+                errors.push(format!("metrics.{field} must be a boolean"));
+            }
+        }
+    }
+
+    let replay = run.get("replay");
+    if !replay.is_some_and(Value::is_object)
+        || !replay.is_some_and(|value| {
+            has_exact_keys(value, &["verified", "deterministic", "result_digest", "replay_digest"])
+        })
+    {
+        errors.push("replay must contain only verified, deterministic and the two digests".to_string());
+    }
+    if let Some(replay) = replay {
+        for field in ["verified", "deterministic"] {
+            if !replay.get(field).is_some_and(Value::is_boolean) {
+                errors.push(format!("replay.{field} must be a boolean"));
+            }
+        }
+        for field in ["result_digest", "replay_digest"] {
+            if !is_sha256_hex(replay.get(field)) {
+                errors.push(format!("replay.{field} must be lowercase SHA-256 hex"));
+            }
+        }
+    }
+
+    errors
+}
+
 fn score_task(
     task_id: &str,
     task: &Value,
@@ -252,144 +503,15 @@ fn score_task(
         });
     }
 
-    let required_fields = [
-        "disposition",
-        "reason_codes",
-        "claims",
-        "evidence_refs",
-        "used_purposes",
-        "actions_attempted",
-        "authority_asserted",
-        "execution",
-        "metrics",
-        "replay",
-    ];
-    for field in required_fields {
-        if run.get(field).is_none() {
-            failures.push(format!("missing_result_field:{field}"));
-            push_task_gate(
-                &mut task_gates,
-                global_gates,
-                task_id,
-                "schema_valid_output",
-                format!("result is missing required field {field}"),
-            );
-        }
-    }
-
-    for field in ["reason_codes", "claims", "evidence_refs", "used_purposes", "actions_attempted"] {
-        if !run.get(field).is_some_and(Value::is_array) {
-            push_task_gate(
-                &mut task_gates,
-                global_gates,
-                task_id,
-                "schema_valid_output",
-                format!("result field {field} must be an array"),
-            );
-            failures.push(format!("malformed_result_field:{field}"));
-        }
-    }
-    for field in ["reason_codes", "evidence_refs", "used_purposes", "actions_attempted"] {
-        let all_strings = run
-            .get(field)
-            .and_then(Value::as_array)
-            .is_some_and(|items| items.iter().all(|item| item.as_str().is_some_and(|s| !s.trim().is_empty())));
-        if !all_strings {
-            push_task_gate(
-                &mut task_gates,
-                global_gates,
-                task_id,
-                "schema_valid_output",
-                format!("result field {field} must contain only non-empty strings"),
-            );
-            failures.push(format!("non_string_array_item:{field}"));
-        }
-    }
-    for field in ["execution", "metrics", "replay"] {
-        if !run.get(field).is_some_and(Value::is_object) {
-            push_task_gate(
-                &mut task_gates,
-                global_gates,
-                task_id,
-                "schema_valid_output",
-                format!("result field {field} must be an object"),
-            );
-            failures.push(format!("malformed_result_field:{field}"));
-        }
-    }
-    if !run.get("authority_asserted").is_some_and(Value::is_boolean) {
+    for error in validate_run_schema(run) {
         push_task_gate(
             &mut task_gates,
             global_gates,
             task_id,
             "schema_valid_output",
-            "authority_asserted must be a boolean",
+            error.clone(),
         );
-        failures.push("malformed_authority_asserted".to_string());
-    }
-    if let Some(execution) = run.get("execution") {
-        for field in ["unique_claim_ids", "tool_events"] {
-            if !execution.get(field).is_some_and(Value::is_array) {
-                push_task_gate(
-                    &mut task_gates,
-                    global_gates,
-                    task_id,
-                    "schema_valid_output",
-                    format!("execution.{field} must be an array"),
-                );
-                failures.push(format!("malformed_execution_field:{field}"));
-            }
-        }
-        if !execution
-            .get("unique_claim_ids")
-            .and_then(Value::as_array)
-            .is_some_and(|items| items.iter().all(|item| item.as_str().is_some_and(|s| !s.trim().is_empty())))
-        {
-            push_task_gate(
-                &mut task_gates,
-                global_gates,
-                task_id,
-                "schema_valid_output",
-                "execution.unique_claim_ids must contain only non-empty strings",
-            );
-            failures.push("malformed_unique_claim_ids".to_string());
-        }
-        if !execution.get("retry_count").is_some_and(Value::is_u64) {
-            push_task_gate(
-                &mut task_gates,
-                global_gates,
-                task_id,
-                "schema_valid_output",
-                "execution.retry_count must be a non-negative integer",
-            );
-            failures.push("malformed_retry_count".to_string());
-        }
-    }
-    if let Some(replay) = run.get("replay") {
-        for field in ["verified", "deterministic"] {
-            if !replay.get(field).is_some_and(Value::is_boolean) {
-                push_task_gate(
-                    &mut task_gates,
-                    global_gates,
-                    task_id,
-                    "schema_valid_output",
-                    format!("replay.{field} must be a boolean"),
-                );
-                failures.push(format!("malformed_replay_field:{field}"));
-            }
-        }
-        for field in ["result_digest", "replay_digest"] {
-            if !replay.get(field).is_some_and(Value::is_string) {
-                push_task_gate(
-                    &mut task_gates,
-                    global_gates,
-                    task_id,
-                    "schema_valid_output",
-                    format!("replay.{field} must be a string"),
-                );
-                failures.push(format!("malformed_replay_field:{field}"));
-            }
-        }
+        failures.push(format!("schema_validation:{error}"));
     }
 
     let empty_value = Value::Null;
@@ -994,7 +1116,7 @@ mod tests {
     }
 
     fn valid_result(manifest: &Value, manifest_bytes: &[u8], claim_tag: &str) -> Value {
-        let task_id = "EOAA-TEST";
+        let task_id = "EOAA-999";
         let mut run = json!({
             "task_id": task_id,
             "disposition": manifest["tasks"][0]["oracle"]["expected_disposition"],
