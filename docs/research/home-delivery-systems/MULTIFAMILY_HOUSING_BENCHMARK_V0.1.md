@@ -437,3 +437,26 @@ Hard gates:
 - 100% exact unit/footprint/floor transform binding.
 
 The current Rust source has 15 authored tests (one positive fixture and 14 negative controls). Hosted test/rustfmt evidence remains exact-head gated.
+
+
+## 20. Shared household-service distribution and apartment-boundary resilience
+
+The apartment programme now composes [#844 Multi-family Shared-Service Allocation](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/844). Its detailed benchmark is [MULTIFAMILY_SHARED_SERVICE_BENCHMARK_V0.1.md](MULTIFAMILY_SHARED_SERVICE_BENCHMARK_V0.1.md).
+
+The P0 service topology contains 6 resource classes, 34 nodes, 30 typed edges, 16 apartment-boundary service records, 16 synthetic event records, and a separate 16-case / 20-event authored stress manifest. The four per-unit service classes are potable-water delivery, electricity delivery, useful hot water and wastewater removal. A non-potable source/storage/treatment path is represented separately and receives no potable-use credit.
+
+The Rust service qualifier checks:
+- exact unit/floor/resource identity and service-boundary binding;
+- resource-flow type consistency and separate power/control dependencies;
+- directed connectivity from water/electricity/thermal sources to each apartment boundary and wastewater removal from each apartment to the declared outfall;
+- non-potable path separation from potable apartment boundaries;
+- event-to-node references and monotonic event time;
+- measurement/capacity/quality/quantity and allocation-policy evidence states;
+- exact stress-corpus ID, case split and not-executed claim ceiling.
+
+These checks establish only synthetic topology and evidence integrity. The 16 stress cases are authored controls; the current Rust tool checks their manifest and event references but does not yet execute every case as a mutation. Hydraulic simulations, metered service, quality sampling, service-deficit trajectories, conservation and physical trials remain NOT_RUN.
+
+Industry integration must consume specialist tools rather than replace them. EPA EPANET 2.2 provides established hydraulic/water-quality analysis of pressurised pipe networks; Bentley OpenFlows Water provides commercial hydraulic, water-quality, scenario and transient workflows; Grundfos documents pressure-zoned high-rise booster configurations. Luminous's research target is the evidence layer across those solvers: exact resident/service boundaries, shared dependency graphs, per-unit failure consequences, resource accounting, governance and revision-bound evidence. The benchmark must compare equivalent hydraulic models separately from workflow/assurance outcomes.
+
+Johannesburg Water's October 2026 reports of constrained reservoirs/towers, low pressure and intermittent supply reinforce why apartment service must be measured at the actual floor/unit boundary, rather than inferred from the presence of storage or booster equipment.
+
