@@ -512,24 +512,6 @@
       "evidence_refs": []
     },
     {
-      "node_id": "SRC-NONPOTABLE-UNKNOWN",
-      "node_kind": "source",
-      "resource_id": "R-NONPOTABLE-WATER",
-      "floor_id": null,
-      "unit_id": null,
-      "state": "unknown",
-      "capacity": {
-        "state": "unknown",
-        "lower": null,
-        "upper": null,
-        "unit": null,
-        "boundary_ref": null,
-        "evidence_ref": null
-      },
-      "measurement_ref": null,
-      "evidence_refs": []
-    },
-    {
       "node_id": "STORAGE-NONPOTABLE-UNKNOWN",
       "node_kind": "storage",
       "resource_id": "R-NONPOTABLE-WATER",
@@ -1028,7 +1010,7 @@
     },
     {
       "edge_id": "E-NONPOTABLE-SOURCE-STORAGE",
-      "from_node_id": "SRC-NONPOTABLE-UNKNOWN",
+      "from_node_id": "SRC-NONPOTABLE-UNQUALIFIED",
       "to_node_id": "STORAGE-NONPOTABLE-UNKNOWN",
       "relation": "resource_flow",
       "state": "declared",
