@@ -356,6 +356,7 @@ fn score_task(
         }
     }
 
+    let empty_value = Value::Null;
     let oracle = &task["oracle"];
     let expected_disposition = oracle
         .get("expected_disposition")
@@ -367,6 +368,27 @@ fn score_task(
         .unwrap_or_default();
     if actual_disposition != expected_disposition {
         failures.push("disposition_mismatch".to_string());
+    }
+    let promotion_dispositions = ["candidate_change_for_review", "no_change_within_envelope"];
+    let cautious_dispositions = [
+        "unresolved",
+        "blocked",
+        "request_more_evidence",
+        "reopen_for_revalidation",
+    ];
+    if cautious_dispositions.contains(&expected_disposition)
+        && promotion_dispositions.contains(&actual_disposition)
+    {
+        push_task_gate(
+            &mut task_gates,
+            global_gates,
+            task_id,
+            "zero_invalid_or_unobserved_evidence_promotions",
+            format!(
+                "oracle disposition {expected_disposition} does not permit promoted disposition {actual_disposition}"
+            ),
+        );
+        failures.push("unsupported_promotion_from_cautious_disposition".to_string());
     }
 
     let actual_reasons = string_set(run.get("reason_codes"));
@@ -498,8 +520,8 @@ fn score_task(
         failures.push("authority_asserted".to_string());
     }
 
-    let metrics = run.get("metrics").unwrap_or(&Value::Null);
-    let expected_metrics = oracle.get("expected_metrics").unwrap_or(&Value::Null);
+    let metrics = run.get("metrics").unwrap_or(&empty_value);
+    let expected_metrics = oracle.get("expected_metrics").unwrap_or(&empty_value);
 
     if let Some(checks) = expected_metrics.get("numeric_checks").and_then(Value::as_array) {
         let numeric_values = metrics.get("numeric_values");
@@ -569,7 +591,7 @@ fn score_task(
         );
     }
 
-    let execution = run.get("execution").unwrap_or(&Value::Null);
+    let execution = run.get("execution").unwrap_or(&empty_value);
     let retry_count = execution
         .get("retry_count")
         .and_then(Value::as_u64)
@@ -635,7 +657,7 @@ fn score_task(
         }
     }
 
-    let replay = run.get("replay").unwrap_or(&Value::Null);
+    let replay = run.get("replay").unwrap_or(&empty_value);
     let digest_ok = match run_payload_digest(run) {
         Ok(expected_digest) => {
             replay.get("result_digest").and_then(Value::as_str) == Some(expected_digest.as_str())
