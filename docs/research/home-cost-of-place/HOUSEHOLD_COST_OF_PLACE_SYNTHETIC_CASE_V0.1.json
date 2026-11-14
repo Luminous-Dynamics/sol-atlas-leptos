@@ -1,0 +1,395 @@
+{
+  "schema_version": "0.1.0",
+  "study_id": "HOME-COST-OF-PLACE-001",
+  "maturity": "SYNTHETIC_FIXTURE",
+  "execution_status": "NOT_EVALUATED",
+  "price_date": "2026-11-14",
+  "currency": "ZAR",
+  "household_frame": {
+    "frame_id": "SYNTH-HOUSEHOLD-001",
+    "horizon_years": 30,
+    "income_state": "NOT_PROVIDED_SYNTHETIC"
+  },
+  "candidates": [
+    {
+      "candidate_id": "SYNTH-SITE-SERVICED-COMPACT",
+      "tenure_model": "OWNER_OCCUPIED",
+      "site_state": "UNKNOWN",
+      "land_cost": null,
+      "service_readiness": {
+        "water": "UNKNOWN",
+        "sanitation": "UNKNOWN",
+        "electricity": "UNKNOWN",
+        "road_access": "UNKNOWN",
+        "bulk_capacity": "UNKNOWN"
+      },
+      "finance_state": "NOT_ASSESSED",
+      "monthly_cost_components": [
+        {
+          "component": "land_or_rent",
+          "amount": null,
+          "unit": "ZAR_per_month_or_one_off_as_declared",
+          "source_ref": null,
+          "uncertainty": "UNKNOWN"
+        },
+        {
+          "component": "capital_build_or_repair",
+          "amount": null,
+          "unit": "ZAR_per_month_or_one_off_as_declared",
+          "source_ref": null,
+          "uncertainty": "UNKNOWN"
+        },
+        {
+          "component": "finance",
+          "amount": null,
+          "unit": "ZAR_per_month_or_one_off_as_declared",
+          "source_ref": null,
+          "uncertainty": "UNKNOWN"
+        },
+        {
+          "component": "rates_and_levies",
+          "amount": null,
+          "unit": "ZAR_per_month_or_one_off_as_declared",
+          "source_ref": null,
+          "uncertainty": "UNKNOWN"
+        },
+        {
+          "component": "electricity",
+          "amount": null,
+          "unit": "ZAR_per_month_or_one_off_as_declared",
+          "source_ref": null,
+          "uncertainty": "UNKNOWN"
+        },
+        {
+          "component": "water_and_sanitation",
+          "amount": null,
+          "unit": "ZAR_per_month_or_one_off_as_declared",
+          "source_ref": null,
+          "uncertainty": "UNKNOWN"
+        },
+        {
+          "component": "insurance",
+          "amount": null,
+          "unit": "ZAR_per_month_or_one_off_as_declared",
+          "source_ref": null,
+          "uncertainty": "UNKNOWN"
+        },
+        {
+          "component": "maintenance_and_replacement",
+          "amount": null,
+          "unit": "ZAR_per_month_or_one_off_as_declared",
+          "source_ref": null,
+          "uncertainty": "UNKNOWN"
+        },
+        {
+          "component": "transport",
+          "amount": null,
+          "unit": "ZAR_per_month_or_one_off_as_declared",
+          "source_ref": null,
+          "uncertainty": "UNKNOWN"
+        },
+        {
+          "component": "professional_and_approval_fees",
+          "amount": null,
+          "unit": "ZAR_per_month_or_one_off_as_declared",
+          "source_ref": null,
+          "uncertainty": "UNKNOWN"
+        }
+      ],
+      "transport_access": {
+        "work_access": "UNKNOWN",
+        "education_access": "UNKNOWN",
+        "health_access": "UNKNOWN",
+        "food_access": "UNKNOWN"
+      },
+      "total_cost_state": "NOT_ESTIMATED",
+      "affordability_state": "NOT_ASSESSED",
+      "hard_floor_results": [
+        {
+          "gate_id": "TENURE_SECURITY",
+          "state": "UNKNOWN"
+        },
+        {
+          "gate_id": "WATER_SERVICE",
+          "state": "UNKNOWN"
+        },
+        {
+          "gate_id": "SANITATION_SERVICE",
+          "state": "UNKNOWN"
+        },
+        {
+          "gate_id": "ELECTRICITY_SERVICE",
+          "state": "UNKNOWN"
+        },
+        {
+          "gate_id": "BULK_CAPACITY",
+          "state": "UNKNOWN"
+        },
+        {
+          "gate_id": "SAFE_OCCUPANCY",
+          "state": "UNKNOWN"
+        },
+        {
+          "gate_id": "ACCESS_TO_OPPORTUNITY",
+          "state": "UNKNOWN"
+        }
+      ],
+      "ranking_state": "UNRANKED"
+    },
+    {
+      "candidate_id": "SYNTH-SITE-PERIPHERAL-LOW-LAND",
+      "tenure_model": "INCREMENTAL_OR_SERVICED_SITE",
+      "site_state": "UNKNOWN",
+      "land_cost": null,
+      "service_readiness": {
+        "water": "UNKNOWN",
+        "sanitation": "UNKNOWN",
+        "electricity": "UNKNOWN",
+        "road_access": "UNKNOWN",
+        "bulk_capacity": "UNKNOWN"
+      },
+      "finance_state": "NOT_ASSESSED",
+      "monthly_cost_components": [
+        {
+          "component": "land_or_rent",
+          "amount": null,
+          "unit": "ZAR_per_month_or_one_off_as_declared",
+          "source_ref": null,
+          "uncertainty": "UNKNOWN"
+        },
+        {
+          "component": "capital_build_or_repair",
+          "amount": null,
+          "unit": "ZAR_per_month_or_one_off_as_declared",
+          "source_ref": null,
+          "uncertainty": "UNKNOWN"
+        },
+        {
+          "component": "finance",
+          "amount": null,
+          "unit": "ZAR_per_month_or_one_off_as_declared",
+          "source_ref": null,
+          "uncertainty": "UNKNOWN"
+        },
+        {
+          "component": "rates_and_levies",
+          "amount": null,
+          "unit": "ZAR_per_month_or_one_off_as_declared",
+          "source_ref": null,
+          "uncertainty": "UNKNOWN"
+        },
+        {
+          "component": "electricity",
+          "amount": null,
+          "unit": "ZAR_per_month_or_one_off_as_declared",
+          "source_ref": null,
+          "uncertainty": "UNKNOWN"
+        },
+        {
+          "component": "water_and_sanitation",
+          "amount": null,
+          "unit": "ZAR_per_month_or_one_off_as_declared",
+          "source_ref": null,
+          "uncertainty": "UNKNOWN"
+        },
+        {
+          "component": "insurance",
+          "amount": null,
+          "unit": "ZAR_per_month_or_one_off_as_declared",
+          "source_ref": null,
+          "uncertainty": "UNKNOWN"
+        },
+        {
+          "component": "maintenance_and_replacement",
+          "amount": null,
+          "unit": "ZAR_per_month_or_one_off_as_declared",
+          "source_ref": null,
+          "uncertainty": "UNKNOWN"
+        },
+        {
+          "component": "transport",
+          "amount": null,
+          "unit": "ZAR_per_month_or_one_off_as_declared",
+          "source_ref": null,
+          "uncertainty": "UNKNOWN"
+        },
+        {
+          "component": "professional_and_approval_fees",
+          "amount": null,
+          "unit": "ZAR_per_month_or_one_off_as_declared",
+          "source_ref": null,
+          "uncertainty": "UNKNOWN"
+        }
+      ],
+      "transport_access": {
+        "work_access": "UNKNOWN",
+        "education_access": "UNKNOWN",
+        "health_access": "UNKNOWN",
+        "food_access": "UNKNOWN"
+      },
+      "total_cost_state": "NOT_ESTIMATED",
+      "affordability_state": "NOT_ASSESSED",
+      "hard_floor_results": [
+        {
+          "gate_id": "TENURE_SECURITY",
+          "state": "UNKNOWN"
+        },
+        {
+          "gate_id": "WATER_SERVICE",
+          "state": "UNKNOWN"
+        },
+        {
+          "gate_id": "SANITATION_SERVICE",
+          "state": "UNKNOWN"
+        },
+        {
+          "gate_id": "ELECTRICITY_SERVICE",
+          "state": "UNKNOWN"
+        },
+        {
+          "gate_id": "BULK_CAPACITY",
+          "state": "UNKNOWN"
+        },
+        {
+          "gate_id": "SAFE_OCCUPANCY",
+          "state": "UNKNOWN"
+        },
+        {
+          "gate_id": "ACCESS_TO_OPPORTUNITY",
+          "state": "UNKNOWN"
+        }
+      ],
+      "ranking_state": "UNRANKED"
+    },
+    {
+      "candidate_id": "SYNTH-EXISTING-REPAIR-FIRST",
+      "tenure_model": "RENTAL",
+      "site_state": "UNKNOWN",
+      "land_cost": null,
+      "service_readiness": {
+        "water": "UNKNOWN",
+        "sanitation": "UNKNOWN",
+        "electricity": "UNKNOWN",
+        "road_access": "UNKNOWN",
+        "bulk_capacity": "UNKNOWN"
+      },
+      "finance_state": "NOT_ASSESSED",
+      "monthly_cost_components": [
+        {
+          "component": "land_or_rent",
+          "amount": null,
+          "unit": "ZAR_per_month_or_one_off_as_declared",
+          "source_ref": null,
+          "uncertainty": "UNKNOWN"
+        },
+        {
+          "component": "capital_build_or_repair",
+          "amount": null,
+          "unit": "ZAR_per_month_or_one_off_as_declared",
+          "source_ref": null,
+          "uncertainty": "UNKNOWN"
+        },
+        {
+          "component": "finance",
+          "amount": null,
+          "unit": "ZAR_per_month_or_one_off_as_declared",
+          "source_ref": null,
+          "uncertainty": "UNKNOWN"
+        },
+        {
+          "component": "rates_and_levies",
+          "amount": null,
+          "unit": "ZAR_per_month_or_one_off_as_declared",
+          "source_ref": null,
+          "uncertainty": "UNKNOWN"
+        },
+        {
+          "component": "electricity",
+          "amount": null,
+          "unit": "ZAR_per_month_or_one_off_as_declared",
+          "source_ref": null,
+          "uncertainty": "UNKNOWN"
+        },
+        {
+          "component": "water_and_sanitation",
+          "amount": null,
+          "unit": "ZAR_per_month_or_one_off_as_declared",
+          "source_ref": null,
+          "uncertainty": "UNKNOWN"
+        },
+        {
+          "component": "insurance",
+          "amount": null,
+          "unit": "ZAR_per_month_or_one_off_as_declared",
+          "source_ref": null,
+          "uncertainty": "UNKNOWN"
+        },
+        {
+          "component": "maintenance_and_replacement",
+          "amount": null,
+          "unit": "ZAR_per_month_or_one_off_as_declared",
+          "source_ref": null,
+          "uncertainty": "UNKNOWN"
+        },
+        {
+          "component": "transport",
+          "amount": null,
+          "unit": "ZAR_per_month_or_one_off_as_declared",
+          "source_ref": null,
+          "uncertainty": "UNKNOWN"
+        },
+        {
+          "component": "professional_and_approval_fees",
+          "amount": null,
+          "unit": "ZAR_per_month_or_one_off_as_declared",
+          "source_ref": null,
+          "uncertainty": "UNKNOWN"
+        }
+      ],
+      "transport_access": {
+        "work_access": "UNKNOWN",
+        "education_access": "UNKNOWN",
+        "health_access": "UNKNOWN",
+        "food_access": "UNKNOWN"
+      },
+      "total_cost_state": "NOT_ESTIMATED",
+      "affordability_state": "NOT_ASSESSED",
+      "hard_floor_results": [
+        {
+          "gate_id": "TENURE_SECURITY",
+          "state": "UNKNOWN"
+        },
+        {
+          "gate_id": "WATER_SERVICE",
+          "state": "UNKNOWN"
+        },
+        {
+          "gate_id": "SANITATION_SERVICE",
+          "state": "UNKNOWN"
+        },
+        {
+          "gate_id": "ELECTRICITY_SERVICE",
+          "state": "UNKNOWN"
+        },
+        {
+          "gate_id": "BULK_CAPACITY",
+          "state": "UNKNOWN"
+        },
+        {
+          "gate_id": "SAFE_OCCUPANCY",
+          "state": "UNKNOWN"
+        },
+        {
+          "gate_id": "ACCESS_TO_OPPORTUNITY",
+          "state": "UNKNOWN"
+        }
+      ],
+      "ranking_state": "UNRANKED"
+    }
+  ],
+  "comparison_policy": {
+    "scalar_score": null,
+    "resident_choice_required": true
+  },
+  "claim_ceiling": "All cost, site, household, utility, tenure and access fields are unknown or synthetic. No affordability or financial decision is represented."
+}
