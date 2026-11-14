@@ -31,6 +31,12 @@ const WATER_BACKED_REFUGE_BENCHMARK: &str = include_str!(
 const WATER_BACKED_REFUGE_SCHEMA: &str = include_str!(
     "../../docs/research/highveld-neighborhood-commons/WATER_BACKED_REFUGE_BENCHMARK_MANIFEST_V0.1.schema.json"
 );
+const POOL_COVER_SCHEDULE: &str = include_str!(
+    "../../docs/research/highveld-neighborhood-commons/POOL_COVER_SCHEDULE_BENCHMARK_MANIFEST_V0.1.json"
+);
+const POOL_COVER_SCHEDULE_SCHEMA: &str = include_str!(
+    "../../docs/research/highveld-neighborhood-commons/POOL_COVER_SCHEDULE_BENCHMARK_MANIFEST_V0.1.schema.json"
+);
 
 fn text_at<'a>(value: &'a Value, key: &str) -> Option<&'a str> {
     value
@@ -87,6 +93,10 @@ fn audit() -> Result<Value, Vec<String>> {
         })?;
     let water_backed_refuge_schema: Value = serde_json::from_str(WATER_BACKED_REFUGE_SCHEMA)
         .map_err(|e| vec![format!("water-backed refuge schema JSON parse failed: {e}")])?;
+    let pool_cover_schedule: Value = serde_json::from_str(POOL_COVER_SCHEDULE)
+        .map_err(|e| vec![format!("pool cover schedule manifest JSON parse failed: {e}")])?;
+    let pool_cover_schedule_schema: Value = serde_json::from_str(POOL_COVER_SCHEDULE_SCHEMA)
+        .map_err(|e| vec![format!("pool cover schedule schema JSON parse failed: {e}")])?;
     let mut errors = Vec::new();
 
     if text_at(&schema, "$schema") != Some("https://json-schema.org/draft/2020-12/schema") {
@@ -111,6 +121,107 @@ fn audit() -> Result<Value, Vec<String>> {
         != Some("https://json-schema.org/draft/2020-12/schema")
     {
         errors.push("water-backed refuge schema must declare JSON Schema Draft 2020-12".to_owned());
+    }
+    if text_at(&pool_cover_schedule_schema, "$schema")
+        != Some("https://json-schema.org/draft/2020-12/schema")
+    {
+        errors.push("pool cover schedule schema must declare JSON Schema Draft 2020-12".to_owned());
+    }
+    for (key, expected) in [
+        ("study_id", "HIGHVELD-POOL-COVER-SCHEDULE-001"),
+        ("maturity", "BENCHMARK_PROTOCOL_NOT_EXECUTED"),
+        ("execution_status", "NOT_EXECUTED"),
+    ] {
+        if text_at(&pool_cover_schedule, key) != Some(expected) {
+            errors.push(format!("pool cover schedule {key} must remain {expected}"));
+        }
+    }
+    let pool_cover_arms = array_at(&pool_cover_schedule, "arms")
+        .cloned()
+        .unwrap_or_default();
+    let pool_cover_scenarios = array_at(&pool_cover_schedule, "scenarios")
+        .cloned()
+        .unwrap_or_default();
+    if pool_cover_arms.len() != 4 || !unique_ids(&pool_cover_arms) {
+        errors.push("pool cover benchmark must preserve four unique schedule arms".to_owned());
+    }
+    for required in [
+        "ALWAYS_COVERED",
+        "ALWAYS_OPEN",
+        "DAY_SHADE_NIGHT_EXPOSE",
+        "ADAPTIVE_COVER_BY_BOUNDARY_AND_WATER",
+    ] {
+        if !contains_id(&pool_cover_arms, required) {
+            errors.push(format!("pool cover schedule arm {required} is missing"));
+        }
+    }
+    let unique_pool_cover_scenarios = pool_cover_scenarios
+        .iter()
+        .filter_map(Value::as_str)
+        .collect::<BTreeSet<_>>();
+    if pool_cover_scenarios.len() != 6
+        || unique_pool_cover_scenarios.len() != pool_cover_scenarios.len()
+    {
+        errors.push("pool cover benchmark must preserve six unique scenarios".to_owned());
+    }
+    let pool_cover_expansion = &pool_cover_schedule["case_expansion"];
+    if pool_cover_expansion["arms"].as_u64() != Some(4)
+        || pool_cover_expansion["scenarios"].as_u64() != Some(6)
+        || pool_cover_expansion["cases"].as_u64() != Some(24)
+        || text_at(pool_cover_expansion, "state") != Some("REGISTERED_NOT_EXECUTED")
+    {
+        errors.push("pool cover benchmark must remain four by six, 24 registered cases".to_owned());
+    }
+    for required in [
+        "cover_evaporation_factor",
+        "cover_convection_factor",
+        "cover_shortwave_radiation_factor",
+        "cover_longwave_radiation_factor",
+    ] {
+        let factors = array_at(&pool_cover_schedule, "cover_factors_required")
+            .cloned()
+            .unwrap_or_default();
+        if !factors.iter().any(|factor| factor.as_str() == Some(required)) {
+            errors.push(format!("pool cover factor {required} is missing"));
+        }
+    }
+    for key in [
+        "net_heat_rejection_lower_bound_kw_positive",
+        "evaporation_upper_bound_within_discretionary_budget",
+        "qualified_water_rights_and_quality",
+        "pool_temperature_inside_owner_limits",
+        "cover_and_manual_override_qualified",
+        "no_conflict_with_active_pool_heat_recovery",
+        "unknown_critical_input_means_hold_review",
+    ] {
+        if pool_cover_schedule["robust_adaptive_gates"].get(key).and_then(Value::as_bool)
+            != Some(true)
+        {
+            errors.push(format!("pool cover robust gate {key} must remain true"));
+        }
+    }
+    for key in [
+        "water_rights_or_quality_violations",
+        "protected_essential_water_reserve_violations",
+        "pool_temperature_limit_violations",
+        "regeneration_with_nonpositive_lower_heat_rejection_bound",
+        "exposure_with_evaporation_upper_bound_above_budget",
+        "missing_required_cover_pathway_factors",
+        "indoor_pool_model_claimed_as_outdoor_validation",
+        "untraceable_schedule_cases",
+        "hard_floor_failures_hidden_by_weighted_score",
+    ] {
+        if pool_cover_schedule["hard_gates"].get(key).and_then(Value::as_u64) != Some(0) {
+            errors.push(format!("pool cover hard gate {key} must equal zero"));
+        }
+    }
+    if text_at(&pool_cover_schedule["model_scope"], "indoor_pool_baseline")
+        != Some("ENERGYPLUS_26_2_SWIMMINGPOOL_INDOOR_ONLY")
+        || text_at(&pool_cover_schedule["model_scope"], "outdoor_pool")
+            != Some("SPECIALIST_OUTDOOR_BOUNDARY_MODEL_AND_FIELD_VALIDATION_REQUIRED")
+        || pool_cover_schedule["model_scope"]["no_cross_scope_promotion"].as_bool() != Some(true)
+    {
+        errors.push("pool cover benchmark must preserve indoor/outdoor solver boundary".to_owned());
     }
     for (key, expected) in [
         ("study_id", "HIGHVELD-WATER-BACKED-REFUGE-001"),
@@ -689,6 +800,12 @@ fn audit() -> Result<Value, Vec<String>> {
         "water_backed_refuge_scenario_count":water_refuge_scenarios.len(),
         "water_backed_refuge_case_count":water_expansion["cases"].as_u64().unwrap_or(0),
         "water_backed_refuge_execution_status":"NOT_EXECUTED",
+        "pool_cover_schedule_study_id":"HIGHVELD-POOL-COVER-SCHEDULE-001",
+        "pool_cover_schedule_arm_count":pool_cover_arms.len(),
+        "pool_cover_schedule_scenario_count":pool_cover_scenarios.len(),
+        "pool_cover_schedule_case_count":pool_cover_expansion["cases"].as_u64().unwrap_or(0),
+        "pool_cover_schedule_execution_status":"NOT_EXECUTED",
+        "pool_cover_solver_boundary":"ENERGYPLUS_INDOOR_POOL_ONLY_OUTDOOR_PHYSICS_REQUIRES_SPECIALIST_FIELD_VALIDATION",
         "qanat_reference_transferability":"REFERENCE_ONLY_NOT_HIGHVELD_PREDICTION",
         "execution_status":"NOT_EXECUTED",
         "schema_engine":"NOT_RUN; schema declaration and manifest invariants checked by this Rust qualifier",
@@ -800,6 +917,19 @@ mod tests {
         assert_eq!(
             report["qanat_reference_transferability"],
             "REFERENCE_ONLY_NOT_HIGHVELD_PREDICTION"
+        );
+    }
+
+    #[test]
+    fn adaptive_pool_cover_schedule_is_registered_with_robust_uncertainty_gates() {
+        let report = audit().expect("pool cover schedule benchmark contract");
+        assert_eq!(report["pool_cover_schedule_arm_count"], 4);
+        assert_eq!(report["pool_cover_schedule_scenario_count"], 6);
+        assert_eq!(report["pool_cover_schedule_case_count"], 24);
+        assert_eq!(report["pool_cover_schedule_execution_status"], "NOT_EXECUTED");
+        assert_eq!(
+            report["pool_cover_solver_boundary"],
+            "ENERGYPLUS_INDOOR_POOL_ONLY_OUTDOOR_PHYSICS_REQUIRES_SPECIALIST_FIELD_VALIDATION"
         );
     }
 
