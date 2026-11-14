@@ -163,25 +163,29 @@ fn resource_path_intersects(
     adjacency: &BTreeMap<String, Vec<String>>,
     affected: &BTreeSet<String>,
 ) -> bool {
-    let mut pending = vec![(start.to_owned(), BTreeSet::from([start.to_owned()]))];
+    // Keep both states for a node: reachable with and without an affected node
+    // on the path. This avoids selecting an unaffected alternate path first.
+    let initial_affected = affected.contains(start);
+    let mut pending = vec![(start.to_owned(), initial_affected)];
     let mut visited = BTreeSet::new();
-    while let Some((current, path)) = pending.pop() {
-        if current == goal {
-            let resource_matches = node_records
-                .get(&current)
-                .is_some_and(|record| record.1 == resource_id);
-            return resource_matches && path.iter().any(|node| affected.contains(node));
-        }
-        if !visited.insert(current.clone()) {
+    while let Some((current, path_intersects)) = pending.pop() {
+        if !visited.insert((current.clone(), path_intersects)) {
             continue;
+        }
+        if current == goal
+            && path_intersects
+            && node_records
+                .get(&current)
+                .is_some_and(|record| record.1 == resource_id)
+        {
+            return true;
         }
         if let Some(next) = adjacency.get(&current) {
             for target in next {
-                if !visited.contains(target) {
-                    let mut next_path = path.clone();
-                    next_path.insert(target.clone());
-                    pending.push((target.clone(), next_path));
-                }
+                pending.push((
+                    target.clone(),
+                    path_intersects || affected.contains(target),
+                ));
             }
         }
     }
