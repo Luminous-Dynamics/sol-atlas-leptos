@@ -644,11 +644,9 @@ mod tests {
     #[test]
     fn joint_world_scorer_scores_a_listed_world_without_renormalizing() {
         let set = fixture();
-        let score = score_network_hypothesis_set(
-            &set,
-            NetworkHypothesisTruth::Listed("world-one-utility"),
-        )
-        .unwrap();
+        let score =
+            score_network_hypothesis_set(&set, NetworkHypothesisTruth::Listed("world-one-utility"))
+                .unwrap();
         assert_eq!(score.truth_category, "hypothesis:world-one-utility");
         assert_eq!(score.category_count, 4);
         assert!((score.negative_log_probability - -0.62_f64.ln()).abs() < 1e-12);
@@ -671,10 +669,7 @@ mod tests {
         set.hypotheses[0].probability = 0.0;
         set.hypotheses[1].probability = 0.85;
         assert_eq!(
-            score_network_hypothesis_set(
-                &set,
-                NetworkHypothesisTruth::Listed("world-one-utility"),
-            ),
+            score_network_hypothesis_set(&set, NetworkHypothesisTruth::Listed("world-one-utility"),),
             Err(NetworkHypothesisScoreError::ZeroProbabilityTruth(
                 "hypothesis:world-one-utility".to_string(),
             ))
@@ -694,5 +689,4 @@ mod tests {
             ))
         );
     }
-
 }
