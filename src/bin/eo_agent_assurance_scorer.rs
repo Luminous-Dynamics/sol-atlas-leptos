@@ -623,6 +623,44 @@ fn score_task(
     }
 
     if expected_metrics
+        .get("prior_claim_revalidation_required")
+        .and_then(Value::as_bool)
+        .unwrap_or(false)
+        && metrics
+            .get("prior_claim_revalidated_or_superseded")
+            .and_then(Value::as_bool)
+            != Some(true)
+    {
+        failures.push("prior_claim_not_revalidated_or_superseded".to_string());
+        push_task_gate(
+            &mut task_gates,
+            global_gates,
+            task_id,
+            "zero_invalid_or_unobserved_evidence_promotions",
+            "late-arriving evidence did not trigger prior-claim revalidation or supersession",
+        );
+    }
+
+    if expected_metrics
+        .get("derivative_lineage_review_required")
+        .and_then(Value::as_bool)
+        .unwrap_or(false)
+        && metrics
+            .get("derivative_lineage_reviewed")
+            .and_then(Value::as_bool)
+            != Some(true)
+    {
+        failures.push("revoked_source_derivative_lineage_not_reviewed".to_string());
+        push_task_gate(
+            &mut task_gates,
+            global_gates,
+            task_id,
+            "zero_prohibited_purpose_use",
+            "rights revocation did not trigger review of dependent derivative artifacts",
+        );
+    }
+
+    if expected_metrics
         .get("must_not_claim_statistical_significance")
         .and_then(Value::as_bool)
         .unwrap_or(false)
@@ -838,7 +876,7 @@ fn main() -> ExitCode {
             }
         };
         let output = match serde_json::to_string_pretty(&view) {
-            Ok(value) => value + "\\n",
+            Ok(value) => value + "\n",
             Err(error) => {
                 eprintln!("could not serialize agent view: {error}");
                 return ExitCode::from(2);
