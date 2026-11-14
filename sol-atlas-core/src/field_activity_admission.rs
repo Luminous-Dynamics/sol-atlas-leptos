@@ -102,6 +102,7 @@ pub enum TrackIneligibilityReason {
     TruthStateUnknownOrConflicted,
     TargetTruthLinkNotReviewed,
     TargetReferenceMissing,
+    InspectedSupportReferenceMissing,
     SpatialSupportMissing,
     SpatialReferenceNotQualified,
     PositioningNotTraceAligned,
@@ -284,6 +285,11 @@ fn event_track_reason(activity: &FieldActivityAdmission) -> Option<TrackIneligib
     }
     if !activity.target_linkage_reviewed || activity.truth_evidence_ids.is_empty() {
         return Some(TrackIneligibilityReason::TargetTruthLinkNotReviewed);
+    }
+    if activity.target_truth == ActivityTargetTruth::AbsentWithinInspectedSupport
+        && activity.target_reference_id.as_deref().map(non_empty) != Some(true)
+    {
+        return Some(TrackIneligibilityReason::InspectedSupportReferenceMissing);
     }
     None
 }
@@ -478,6 +484,31 @@ mod tests {
         let result = assess_field_activity(&activity).unwrap();
         assert_eq!(result.signal_event_detection, TrackEligibility::Ineligible(
             TrackIneligibilityReason::TruthStateUnknownOrConflicted
+        ));
+    }
+
+    #[test]
+    fn absence_truth_requires_a_named_inspected_support() {
+        let mut activity = fixture()[5].clone();
+        activity.target_reference_id = None;
+        let result = assess_field_activity(&activity).unwrap();
+        assert_eq!(
+            result.signal_event_detection,
+            TrackEligibility::Ineligible(
+                TrackIneligibilityReason::InspectedSupportReferenceMissing
+            )
+        );
+    }
+
+    #[test]
+    fn reviewed_absence_is_scoped_and_does_not_claim_universal_empty_ground() {
+        let activity = fixture()[5].clone();
+        let result = assess_field_activity(&activity).unwrap();
+        assert_eq!(result.signal_event_detection, TrackEligibility::Eligible);
+        assert_eq!(result.event_to_target_association, TrackEligibility::Eligible);
+        assert_eq!(result.localization, TrackEligibility::Eligible);
+        assert_eq!(result.network_topology_3d, TrackEligibility::Ineligible(
+            TrackIneligibilityReason::Structured3dGeometryMissing
         ));
     }
 
