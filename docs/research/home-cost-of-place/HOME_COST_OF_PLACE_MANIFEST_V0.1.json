@@ -1,0 +1,208 @@
+{
+  "schema_version": "0.1.0",
+  "study_id": "HOME-COST-OF-PLACE-001",
+  "maturity": "PROPOSED_NOT_EVALUATED",
+  "execution_status": "NOT_EXECUTED",
+  "region_profile": "JOHANNESBURG_GAUTENG_FIRST_PROFILE",
+  "functional_unit": "one household in one dwelling/site/tenure configuration over a declared occupancy horizon, with equivalent essential services and access requirements",
+  "tenure_models": [
+    {
+      "id": "OWNER_OCCUPIED",
+      "scope": "Land/title, deposit, finance, rates/levies, insurance, maintenance and eventual adaptation."
+    },
+    {
+      "id": "RENTAL",
+      "scope": "Rent, deposits, utility obligations, escalation, tenant rights, maintenance responsibility and relocation risk."
+    },
+    {
+      "id": "COOPERATIVE_OR_SHARED_EQUITY",
+      "scope": "Share purchase/contribution, governance, common costs, exit rights, finance and maintenance obligations."
+    },
+    {
+      "id": "RENT_TO_OWN",
+      "scope": "Rent, purchase option, credited payments, price reset, default and exit rules; legal review required."
+    },
+    {
+      "id": "INCREMENTAL_OR_SERVICED_SITE",
+      "scope": "Land/tenure, service connections, phase-specific safe occupancy, construction and future adaptation."
+    }
+  ],
+  "scenarios": [
+    {
+      "id": "BASELINE",
+      "mutation": "Matched service, location, household and time horizon.",
+      "expected": "COMPARABLE"
+    },
+    {
+      "id": "INTEREST_RATE_SHOCK",
+      "mutation": "Increase financing rate under a declared stress path.",
+      "expected": "RECOMPUTE_CASHFLOW"
+    },
+    {
+      "id": "UTILITY_TARIFF_SHOCK",
+      "mutation": "Increase water/electricity/waste tariffs and service charges.",
+      "expected": "RECOMPUTE_OPERATING_COST"
+    },
+    {
+      "id": "WATER_SERVICE_FAILURE",
+      "mutation": "Introduce outage, tanker/back-up cost or reduced service.",
+      "expected": "SERVICE_FLOOR_REVIEW"
+    },
+    {
+      "id": "TRANSPORT_DISRUPTION",
+      "mutation": "Increase commute duration/cost or remove a transit connection.",
+      "expected": "ACCESS_REVIEW"
+    },
+    {
+      "id": "INCOME_INTERRUPTION",
+      "mutation": "Reduce or interrupt household disposable income using a declared stress case.",
+      "expected": "AFFORDABILITY_STRESS"
+    },
+    {
+      "id": "REPAIR_EVENT",
+      "mutation": "Introduce a major component/system repair or replacement.",
+      "expected": "RECOMPUTE_LIFECYCLE_COST"
+    },
+    {
+      "id": "LAND_OR_RIGHTS_DELAY",
+      "mutation": "Delay title, land release, servitude or permit resolution.",
+      "expected": "BLOCK_OCCUPANCY_CLAIM"
+    },
+    {
+      "id": "BULK_SERVICE_CAPACITY",
+      "mutation": "Set utility connection capacity/availability to UNKNOWN or insufficient.",
+      "expected": "BLOCK_SITE_READINESS"
+    },
+    {
+      "id": "PHASED_EXPANSION",
+      "mutation": "Add a future room or service demand and recheck full cost and service floors.",
+      "expected": "REQUALIFY"
+    }
+  ],
+  "hard_gates": [
+    {
+      "id": "COST_PROVENANCE",
+      "target": 1,
+      "meaning": "All material cost rows carry source, unit, region, date, tax/delivery scope and uncertainty."
+    },
+    {
+      "id": "NO_UNKNOWN_ZERO_FILL",
+      "target": 0,
+      "meaning": "No unknown cost is silently coerced to zero."
+    },
+    {
+      "id": "SITE_SERVICE_READINESS",
+      "target": 0,
+      "meaning": "No unknown/inadequate connection or bulk capacity is represented as delivered service."
+    },
+    {
+      "id": "TENURE_LEGALITY",
+      "target": 0,
+      "meaning": "No insecure or unresolved tenure is represented as secure/approved."
+    },
+    {
+      "id": "NO_AGGREGATE_INFERENCE",
+      "target": 0,
+      "meaning": "No site/household claim is inferred from national averages alone."
+    },
+    {
+      "id": "SERVICE_FLOOR",
+      "target": 0,
+      "meaning": "No low-cost option offsets a breached essential water/sanitation/access/safety floor."
+    },
+    {
+      "id": "POSITIVE_CONTROL_PRESERVATION",
+      "target": 1,
+      "meaning": "Known-feasible cases remain admissible; an always-blocked system does not pass."
+    }
+  ],
+  "metrics": [
+    {
+      "id": "UPFRONT_CASH_TO_OCCUPY",
+      "unit": "currency_at_price_date",
+      "direction": "MINIMIZE"
+    },
+    {
+      "id": "RECURRING_HOUSING_COST",
+      "unit": "currency_per_month",
+      "direction": "MINIMIZE"
+    },
+    {
+      "id": "TOTAL_COST_OF_PLACE",
+      "unit": "currency_over_declared_horizon",
+      "direction": "MINIMIZE"
+    },
+    {
+      "id": "HOUSING_COST_BURDEN",
+      "unit": "fraction_of_disposable_income",
+      "direction": "REPORT"
+    },
+    {
+      "id": "TRANSPORT_COST",
+      "unit": "currency_per_month",
+      "direction": "MINIMIZE"
+    },
+    {
+      "id": "ACCESS_TIME",
+      "unit": "minutes_to_declared_opportunities",
+      "direction": "MINIMIZE"
+    },
+    {
+      "id": "UTILITY_SERVICE_RELIABILITY",
+      "unit": "unserved_hours_by_service",
+      "direction": "MINIMIZE"
+    },
+    {
+      "id": "TENURE_SECURITY",
+      "unit": "owner_native_disposition",
+      "direction": "REPORT"
+    },
+    {
+      "id": "COST_VOLATILITY",
+      "unit": "scenario_cost_interval",
+      "direction": "REPORT"
+    },
+    {
+      "id": "MAINTENANCE_BURDEN",
+      "unit": "currency_and_hours_per_year",
+      "direction": "MINIMIZE"
+    },
+    {
+      "id": "REPAIR_RECOVERY",
+      "unit": "days_to_restore_service",
+      "direction": "MINIMIZE"
+    },
+    {
+      "id": "PHASED_ADAPTATION_COST",
+      "unit": "currency_per_qualified_future_change",
+      "direction": "MINIMIZE"
+    }
+  ],
+  "comparators": [
+    {
+      "id": "QS_TENDER_BASELINE",
+      "scope": "Quantity surveyor / contractor estimate for matched design scope, with fees, exclusions, date and contingency."
+    },
+    {
+      "id": "SITE_PRO_FORMA",
+      "scope": "Site and development feasibility, not household lifecycle affordability."
+    },
+    {
+      "id": "LENDER_PAYMENT_CALCULATOR",
+      "scope": "Debt repayment only; not land, services, transport, maintenance or service floors."
+    },
+    {
+      "id": "PUBLIC_HOUSING_PROGRAMME",
+      "scope": "Versioned subsidy/serviced-site rules; eligibility is not inferred."
+    },
+    {
+      "id": "HOUSEHOLD_LIFECYCLE_WORKBOOK",
+      "scope": "Manual cost-of-place baseline with transparent formulas and source data."
+    },
+    {
+      "id": "LUMINOUS_COMPOSITION",
+      "scope": "Resident brief plus cost, tenure, utility, transport, lifecycle and owner evidence."
+    }
+  ],
+  "claim_ceiling": "Synthetic whole-household affordability research contract. No individual affordability, credit eligibility, site readiness or savings result is present."
+}
