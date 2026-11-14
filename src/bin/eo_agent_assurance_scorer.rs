@@ -466,24 +466,35 @@ fn score_task(
         claim_ids.insert(claim_id.to_string());
         claim_tags.insert(tag.to_string());
 
-        if claim["factual"].as_bool().unwrap_or(false) {
-            let source_refs = string_set(claim.get("source_refs"));
-            let evidence_refs = string_set(claim.get("evidence_refs"));
-            let provenance_complete = claim
-                .get("provenance_complete")
-                .and_then(Value::as_bool)
-                .unwrap_or(false);
+        let source_refs = string_set(claim.get("source_refs"));
+        let evidence_refs = string_set(claim.get("evidence_refs"));
+        let source_refs_are_strings = claim
+            .get("source_refs")
+            .and_then(Value::as_array)
+            .is_some_and(|items| items.iter().all(|item| item.as_str().is_some_and(|s| !s.trim().is_empty())));
+        let evidence_refs_are_strings = claim
+            .get("evidence_refs")
+            .and_then(Value::as_array)
+            .is_some_and(|items| items.iter().all(|item| item.as_str().is_some_and(|s| !s.trim().is_empty())));
+        let provenance_complete = claim
+            .get("provenance_complete")
+            .and_then(Value::as_bool)
+            .unwrap_or(false);
 
-            if !provenance_complete || source_refs.is_empty() || evidence_refs.is_empty() {
-                push_task_gate(
-                    &mut task_gates,
-                    global_gates,
-                    task_id,
-                    "complete_claim_level_provenance",
-                    format!("factual claim {claim_id} ({tag}) lacks complete source/evidence lineage"),
-                );
-                failures.push(format!("incomplete_provenance:{tag}"));
-            }
+        if !provenance_complete
+            || source_refs.is_empty()
+            || evidence_refs.is_empty()
+            || !source_refs_are_strings
+            || !evidence_refs_are_strings
+        {
+            push_task_gate(
+                &mut task_gates,
+                global_gates,
+                task_id,
+                "complete_claim_level_provenance",
+                format!("claim {claim_id} ({tag}) lacks complete source/evidence lineage"),
+            );
+            failures.push(format!("incomplete_provenance:{tag}"));
         }
     }
 
