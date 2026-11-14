@@ -936,7 +936,7 @@ mod tests {
         assert_eq!(decoded, valid);
 
         let mut value: serde_json::Value = serde_json::from_str(&json).unwrap();
-        value["observations"][0]["quality"] = serde_json::json!("obscured");
+        value["observations"][0]["quality"] = serde_json::json!("cloud_contaminated");
         let invalid = serde_json::from_value::<EvidenceBundle>(value);
         assert!(invalid.is_err());
     }
