@@ -106,7 +106,31 @@
         ],
         "support_id": "support-jukskei-synthetic",
         "target_class_id": "vegetation-loss",
-        "ontology_version": "fixture-ontology-v1"
+        "ontology_version": "fixture-ontology-v1",
+        "system_signatures": [
+          {
+            "source_id": "fixture-source",
+            "platform_id": "fixture-platform",
+            "sensor_id": "fixture-sensor",
+            "sensor_identity_origin": "provider_declared",
+            "instrument_id": "fixture-instrument",
+            "modality": "optical",
+            "collection_id": "fixture-collection",
+            "processing_baseline": "fixture-baseline",
+            "measurement_profile_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+          },
+          {
+            "source_id": "fixture-source",
+            "platform_id": "sentinel-2b",
+            "sensor_id": "derived:c2VudGluZWwtMmI:TVNJ",
+            "sensor_identity_origin": "derived_from_platform_and_instrument",
+            "instrument_id": "MSI",
+            "modality": "optical",
+            "collection_id": "sentinel-2-l2a",
+            "processing_baseline": "05.00",
+            "measurement_profile_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+          }
+        ]
       }
     }
   ]
