@@ -181,6 +181,23 @@ For agent comparisons, reuse relevant task design lessons from Earth-Agent / Ear
 
 Use spatially blocked and temporally blocked splits. Hold out entire AOIs, acquisition dates/tiles and reference-label sources where possible. Prevent pixels from the same scene, duplicate mosaics, derivative products or reused labels from crossing train/test boundaries. Report multi-seed variation for stochastic agents and a deterministic replay score for deterministic components.
 
+### 7.1 Current benchmark landscape (retrieved 14 November 2026)
+
+| Benchmark | Published scope / result | What it is useful for | What PCIT must add |
+|---|---|---|---|
+| Earth-Agent (2025) | 248 expert-curated tasks; 13,729 images; RGB, spectral and product modalities | Multimodal EO tool use and trajectory + outcome evaluation | Explicit null physical-change controls and measurement-profile perturbations |
+| Earth-Agent-Pro / Earth-Bench-Pro (2026) | 248 task cores / 744 questions; 248 open-world execution questions. Reported 66.13% LLM-as-Judge accuracy for the shared GPT-5 setup | Open-world acquisition-to-answer workflows; repair of affected workflow suffixes | Independent measurement-effect identification, source-independence scoring and calibrated abstention |
+| TerraBench (2026) | 403 tasks; 24,500 verified execution steps; three tracks and eight application domains | Heterogeneous Earth-system, GIS, simulator and document-grounded workflows with tolerance-aware numeric scoring | Target-conditional physical-change truth and explicit uncertainty about the observation operator |
+| ESA-EO-Bench (2026) | 294 tasks; 10 independently authenticated MCP servers; 70 tools | Live multi-agent workflows and balanced imagery + policy/text reasoning | Evidence dependency independence and scientific correctness under sensor/processing shifts |
+| GISAgentBench (2026) | 349 practitioner-sourced multi-step GIS tasks with executable references and exact outputs; best reported strict completion 32.7% | Exact, deterministic spatial output evaluation beyond LLM judging | Distinguish an exact output from an identifiable physical-world conclusion |
+| GeoNatureAgent (2026) | 103 tasks (93 main + 10 comparison expansion), 18 categories, 16 tools; Claude Sonnet 4 reports 61.7% on all 103 tasks; close-value comparisons report 0% across evaluated models | Fixed API/tool evaluation, error handling, cost reporting and hard comparison tasks | Cross-sensor measurement qualification and independent reference/label provenance |
+
+These numbers come from different task sets, model versions, scoring contracts and execution environments. They are **not a common leaderboard** and must not be ranked against one another. In particular, an LLM-as-judge score, strict file equality/tolerance score, task pass rate and tool-orchestration score are not interchangeable.
+
+The decisive opening for Sol-Atlas is not task-count inflation. The cited agent benchmarks primarily establish whether an agent can operate tools and produce plausible/correct task outputs. PCIT asks whether the physical interpretation is identifiable under measurement-system alternatives, whether corroboration is genuinely independent, and whether the system correctly abstains when it is not. This should become an orthogonal qualification track that can consume outputs from those benchmark styles without conflating their scores.
+
+**Matched SOTA comparison rule:** report agent-execution performance and scientific-qualification performance separately. Freeze the data, target estimand, spatial/temporal support, reference sampling, class ontology, tool layer, compute/cost budget and scoring policy. Compare both (a) the same underlying detector with and without the PCIT qualification layer and (b) strong conventional / learned change-detection baselines on the same admitted data. The relevant win is lower false physical-change promotion and better calibration at a comparable detection/coverage level—not a higher score on a different dataset.
+
 ## 8. Initial research targets (not achieved results)
 
 | Measure | Qualification target | Long-term ambition |
