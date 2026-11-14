@@ -48,6 +48,26 @@ These are not incidental missing-data notes. They are benchmark strata and quali
 
 Source: ter Huurne, Olde Scholtenhuis & Dorée (2024), Data in Brief 54, 110329, https://doi.org/10.1016/j.dib.2024.110329; article full text: https://pmc.ncbi.nlm.nih.gov/articles/PMC10973596/.
 
+### Additional platform and reference-truth limitations
+
+The full article and the associated thesis add important restrictions:
+
+- The same air-coupled **500 MHz** GPR equipment was used throughout, and the same experienced GPR operator was involved across activities. This enables cross-project variation, but it is not a multi-vendor, multi-frequency or multi-operator hardware benchmark.
+- The GPR system did **not** collect 3D data. Do not report 3D network reconstruction performance from these radargrams alone.
+- Trial trenches were measured by construction organizations using a mixture of analogue tape/water-level methods and GNSS. The spatial reference method, support and uncertainty therefore vary by activity.
+- Some organizations supplied georeferenced CAD files, but those files are not included in the public dataset because of confidentiality constraints. Public truth may instead be a trench cross-section, exposed-utility image, or combination.
+- Material and diameter are not available for every utility. Some trenches were sealed before researchers could inspect the utilities directly.
+
+Sources: the dataset paper (ter Huurne et al., 2024), https://doi.org/10.1016/j.dib.2024.110329; full text https://pmc.ncbi.nlm.nih.gov/articles/PMC10973596/; associated thesis section 5.4, https://research.utwente.nl/files/454962951/TerHuurne_NavigatingTheUnderground.pdf.
+
+These restrictions change the evaluation boundary:
+
+- UT-Gold-D is a **single-platform / single-operator, multi-project retrospective corpus**, not an instrument-transfer benchmark.
+- Treat target-event detection, event-to-target association, 2D/local-section geometry and full 3D/network topology as distinct tracks. The dataset alone does not establish complete 3D connectivity truth.
+- A cross-section image may support a limited target association or depth/relative-geometry claim only when the image-to-activity linkage, measurement method, scale and support are independently reviewed.
+- A withheld CAD drawing or missing material/diameter value is unavailable truth, not a negative label and not permission to reconstruct the withheld geometry.
+- Preserve the method used for trench truth (analogue, GNSS, image-only, CAD-not-supplied) and the per-target truth tier. Never aggregate all trench references into one undifferentiated "ground truth" label.
+
 ### What it can and cannot establish
 
 This is a strong first external physical-data candidate because it contains field radargrams and trench-based reference material.
@@ -80,7 +100,7 @@ The associated 2025 Data in Brief article is CC BY-NC. Distinguish the article l
 
 | Dataset | Best initial use | Not sufficient by itself for |
 |---|---|---|
-| UT-Gold-D | Field event detection, target-level retrospective evaluation, trench-reference comparisons | Multi-vendor transfer or complete network topology |
+| UT-Gold-D | Field event detection and selected event-to-target association across 13 projects on one 500 MHz platform/operator; limited trench-image or local-section comparisons where admissible | Multi-vendor or 3D acquisition transfer, complete connected network topology, universally structured geometry or complete material/diameter labels |
 | Moroccan 2,239-image set | Detector pretraining and image-level benchmark replication | Georeferenced asset reconstruction and independent topology scoring |
 | Sol-Atlas analytic fixtures | Contract, metric and negative-control tests | Physical sensor performance |
 | Symtropy physics scenes | Controlled forward-model sensitivity and simulation studies | Field qualification without physical comparison |
