@@ -343,15 +343,18 @@ mod tests {
 
     #[test]
     fn unknown_required_gate_never_promotes_to_screening_eligible() {
-        let (mut corpus, schema) = fixture();
-        let case = corpus["cases"].as_array_mut().unwrap().iter_mut()
-            .find(|case| case["case_id"] == "H01_COMPACT_SINGLE__S01_COMPLETE_REFERENCE")
+        let (mut corpus, _) = fixture();
+        let case_index = corpus["cases"].as_array().unwrap().iter()
+            .position(|case| case["case_id"] == "H01_COMPACT_SINGLE__S01_COMPLETE_REFERENCE")
             .unwrap();
-        let observation = case["gate_observations"].as_array_mut().unwrap().iter_mut()
-            .find(|gate| gate["gate_id"] == "SITE_SURVEY").unwrap();
-        observation["state"] = json!("UNKNOWN");
+        let mut case = corpus["cases"][case_index].clone();
+        case["gate_observations"].as_array_mut().unwrap().iter_mut()
+            .find(|gate| gate["gate_id"] == "SITE_SURVEY").unwrap()["state"] = json!("UNKNOWN");
+        corpus["site_scenarios"].as_array_mut().unwrap().iter_mut()
+            .find(|scenario| scenario["id"] == "S01_COMPLETE_REFERENCE").unwrap()
+            ["observations"]["SITE_SURVEY"] = json!("UNKNOWN");
         assert_eq!(
-            evaluate_case(case, &profile_map(&corpus), &scenario_map(&corpus)).unwrap().0,
+            evaluate_case(&case, &profile_map(&corpus), &scenario_map(&corpus)).unwrap().0,
             "CONDITIONAL_CONCEPT_ONLY"
         );
     }
@@ -392,13 +395,19 @@ mod tests {
 
     #[test]
     fn required_not_applicable_gate_is_not_comparable() {
-        let (corpus, _) = fixture();
-        let mut case = corpus["cases"].as_array().unwrap().iter()
+        let (mut corpus, _) = fixture();
+        let case = corpus["cases"].as_array_mut().unwrap().iter_mut()
+            .find(|case| case["case_id"] == "H05_STEP_FREE_FIRST__S01_COMPLETE_REFERENCE")
+            .unwrap();
+        case["gate_observations"].as_array_mut().unwrap().iter_mut()
+            .find(|gate| gate["gate_id"] == "STEP_FREE_INTERNAL_ROUTE").unwrap()["state"] =
+            json!("NOT_APPLICABLE");
+        corpus["site_scenarios"].as_array_mut().unwrap().iter_mut()
+            .find(|scenario| scenario["id"] == "S01_COMPLETE_REFERENCE").unwrap()
+            ["observations"]["STEP_FREE_INTERNAL_ROUTE"] = json!("NOT_APPLICABLE");
+        let case = corpus["cases"].as_array().unwrap().iter()
             .find(|case| case["case_id"] == "H05_STEP_FREE_FIRST__S01_COMPLETE_REFERENCE")
             .unwrap().clone();
-        let observation = case["gate_observations"].as_array_mut().unwrap().iter_mut()
-            .find(|gate| gate["gate_id"] == "STEP_FREE_INTERNAL_ROUTE").unwrap();
-        observation["state"] = json!("NOT_APPLICABLE");
         let result = evaluate_case(&case, &profile_map(&corpus), &scenario_map(&corpus)).unwrap();
         assert_eq!(result.0, "NOT_COMPARABLE");
     }
