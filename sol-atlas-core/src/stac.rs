@@ -11,14 +11,121 @@
 
 use crate::geospatial_assets::{
     AssetId, AssetKind, AssetRecord, AssetSource, GeoFootprint, LicenceMetadata, LicenceReview,
-    ObservationTime, ObservationTimeKind, SpatialResolution,
+    ObservationTime, ObservationTimeKind, SensorIdentityOrigin, SpatialResolution,
 };
 use serde_json::{Map, Value};
+use std::collections::BTreeMap;
+
+pub const STAC_EO_SOURCE_PROFILE_VERSION: u32 = 1;
+
+/// STAC Item-level, source-native platform/instrument context. The original
+/// source JSON is retained separately so unknown extensions are not discarded.
+#[derive(Debug, Clone, PartialEq)]
+pub struct StacSourceProfile {
+    profile_version: u32,
+    collection_id: Option<String>,
+    platform: Option<String>,
+    constellation: Option<String>,
+    instruments: Vec<String>,
+    provider_sensor_id: Option<String>,
+    sensor_identity: StacSensorIdentity,
+    /// Exact property names and JSON values for the recognized processing
+    /// fields. Values are not normalized into an invented common scalar.
+    processing_fields: BTreeMap<String, Value>,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum StacSensorIdentityOrigin {
+    ProviderDeclared,
+    DerivedFromPlatformAndInstrument,
+    Unknown,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct StacSensorIdentity {
+    value: Option<String>,
+    origin: StacSensorIdentityOrigin,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct StacObservationIdentity {
+    pub platform_id: String,
+    pub sensor_id: String,
+    pub sensor_identity_origin: SensorIdentityOrigin,
+    pub instrument_id: Option<String>,
+    pub collection_id: Option<String>,
+    pub processing_baseline: Option<String>,
+}
+
+impl StacSourceProfile {
+    pub fn profile_version(&self) -> u32 { self.profile_version }
+    pub fn collection_id(&self) -> Option<&str> { self.collection_id.as_deref() }
+    pub fn platform(&self) -> Option<&str> { self.platform.as_deref() }
+    pub fn constellation(&self) -> Option<&str> { self.constellation.as_deref() }
+    pub fn instruments(&self) -> &[String] { &self.instruments }
+    pub fn provider_sensor_id(&self) -> Option<&str> { self.provider_sensor_id.as_deref() }
+    pub fn sensor_identity(&self) -> &StacSensorIdentity { &self.sensor_identity }
+    pub fn processing_fields(&self) -> &BTreeMap<String, Value> { &self.processing_fields }
+
+    /// Build the observation identity only when platform and sensor identity
+    /// are unambiguous. Unknown/multiple-instrument cases remain unresolved.
+    pub fn observation_identity(&self) -> Option<StacObservationIdentity> {
+        let platform_id = self.platform.clone()?;
+        let sensor_id = self.sensor_identity.value.clone()?;
+        let sensor_identity_origin = match self.sensor_identity.origin {
+            StacSensorIdentityOrigin::ProviderDeclared => SensorIdentityOrigin::ProviderDeclared,
+            StacSensorIdentityOrigin::DerivedFromPlatformAndInstrument => {
+                SensorIdentityOrigin::DerivedFromPlatformAndInstrument
+            }
+            StacSensorIdentityOrigin::Unknown => return None,
+        };
+        let instrument_id = (self.instruments.len() == 1)
+            .then(|| self.instruments[0].clone());
+        let processing_baseline = [
+            "s2:processing_baseline",
+            "processing:version",
+            "processing:baseline",
+        ]
+        .iter()
+        .find_map(|key| self.processing_fields.get(*key))
+        .and_then(|value| match value {
+            Value::String(text) if !text.trim().is_empty() => Some(text.clone()),
+            Value::Number(number) => Some(number.to_string()),
+            _ => None,
+        });
+        Some(StacObservationIdentity {
+            platform_id,
+            sensor_id,
+            sensor_identity_origin,
+            instrument_id,
+            collection_id: self.collection_id.clone(),
+            processing_baseline,
+        })
+    }
+}
+
+/// Source-native asset metadata retained separately for each STAC asset.
+#[derive(Debug, Clone, PartialEq)]
+pub struct StacAssetProfile {
+    asset_key: String,
+    extension_fields: BTreeMap<String, Value>,
+}
+
+impl StacAssetProfile {
+    pub fn asset_key(&self) -> &str { &self.asset_key }
+    pub fn extension_fields(&self) -> &BTreeMap<String, Value> { &self.extension_fields }
+}
+
 
 /// Result of importing one STAC Item.
 #[derive(Debug, Clone, PartialEq)]
 pub struct StacItemImport {
     item_id: String,
+    /// Exact UTF-8 JSON text supplied to the importer, preserving unknown
+    /// STAC extensions and their source-native representation.
+    raw_item_json: String,
+    source_profile: StacSourceProfile,
+    asset_profiles: Vec<StacAssetProfile>,
     imported_assets: Vec<AssetRecord>,
     skipped_assets: Vec<SkippedStacAsset>,
 }
@@ -26,6 +133,18 @@ pub struct StacItemImport {
 impl StacItemImport {
     pub fn item_id(&self) -> &str {
         &self.item_id
+    }
+
+    pub fn raw_item_json(&self) -> &str {
+        &self.raw_item_json
+    }
+
+    pub fn source_profile(&self) -> &StacSourceProfile {
+        &self.source_profile
+    }
+
+    pub fn asset_profiles(&self) -> &[StacAssetProfile] {
+        &self.asset_profiles
     }
 
     pub fn imported_assets(&self) -> &[AssetRecord] {
@@ -94,6 +213,8 @@ pub fn import_item_json(input: &str) -> Result<StacItemImport, String> {
     let footprint = parse_item_footprint(object.get("bbox"))?;
     let observation_time = parse_observation_time(properties)?;
     let licence = parse_licence(object)?;
+    let source_profile = parse_source_profile(object, properties, &item_id)?;
+
 
     // A BTreeMap is not guaranteed by serde_json's configuration, so sort keys
     // explicitly to make the report stable regardless of input object ordering.
@@ -102,6 +223,7 @@ pub fn import_item_json(input: &str) -> Result<StacItemImport, String> {
 
     let mut imported_assets = Vec::new();
     let mut skipped_assets = Vec::new();
+    let mut asset_profiles = Vec::new();
 
     for key in keys {
         if key.trim().is_empty() {
@@ -116,6 +238,7 @@ pub fn import_item_json(input: &str) -> Result<StacItemImport, String> {
             continue;
         };
 
+        asset_profiles.push(parse_asset_profile(key, asset));
         let Some(href) = optional_nonempty_text(asset.get("href"), "asset href")? else {
             skipped_assets.push(SkippedStacAsset {
                 key: key.clone(),
@@ -174,12 +297,136 @@ pub fn import_item_json(input: &str) -> Result<StacItemImport, String> {
     }
 
     imported_assets.sort_by(|left, right| left.asset_id().cmp(right.asset_id()));
+    asset_profiles.sort_by(|left, right| left.asset_key.cmp(&right.asset_key));
 
     Ok(StacItemImport {
         item_id,
+        raw_item_json: input.to_string(),
+        source_profile,
+        asset_profiles,
         imported_assets,
         skipped_assets,
     })
+}
+
+fn parse_source_profile(
+    object: &Map<String, Value>,
+    properties: &Map<String, Value>,
+    item_id: &str,
+) -> Result<StacSourceProfile, String> {
+    let collection_id = optional_nonempty_text(object.get("collection"), "collection")?;
+    let platform = optional_nonempty_text(properties.get("platform"), "properties.platform")?;
+    let constellation =
+        optional_nonempty_text(properties.get("constellation"), "properties.constellation")?;
+    let instruments = parse_string_array(properties.get("instruments"), "properties.instruments")?;
+    let provider_sensor_id = optional_nonempty_text(
+        properties.get("sensor").or_else(|| properties.get("sensor_id")),
+        "properties.sensor",
+    )?;
+
+    let sensor_identity = if let Some(value) = provider_sensor_id.clone() {
+        StacSensorIdentity {
+            value: Some(value),
+            origin: StacSensorIdentityOrigin::ProviderDeclared,
+        }
+    } else if let (Some(platform), [instrument]) = (platform.as_deref(), instruments.as_slice()) {
+        StacSensorIdentity {
+            value: Some(format!(
+                "derived:{}:{}",
+                base64url_no_pad(platform.as_bytes()),
+                base64url_no_pad(instrument.as_bytes())
+            )),
+            origin: StacSensorIdentityOrigin::DerivedFromPlatformAndInstrument,
+        }
+    } else {
+        // Multiple instruments are intentionally ambiguous without an explicit
+        // provider sensor ID; never pick the first instrument silently.
+        let _ = item_id;
+        StacSensorIdentity {
+            value: None,
+            origin: StacSensorIdentityOrigin::Unknown,
+        }
+    };
+
+    let processing_keys = [
+        "processing:version",
+        "processing:level",
+        "processing:baseline",
+        "s2:processing_baseline",
+        "s2:product_type",
+        "landsat:processing_level",
+        "landsat:collection_number",
+        "landsat:collection_category",
+    ];
+    let mut processing_fields = BTreeMap::new();
+    for key in processing_keys {
+        if let Some(value) = properties.get(key) {
+            processing_fields.insert(key.to_string(), value.clone());
+        }
+    }
+
+    Ok(StacSourceProfile {
+        profile_version: STAC_EO_SOURCE_PROFILE_VERSION,
+        collection_id,
+        platform,
+        constellation,
+        instruments,
+        provider_sensor_id,
+        sensor_identity,
+        processing_fields,
+    })
+}
+
+fn parse_string_array(value: Option<&Value>, label: &str) -> Result<Vec<String>, String> {
+    let Some(value) = value.filter(|value| !value.is_null()) else {
+        return Ok(Vec::new());
+    };
+    let array = value
+        .as_array()
+        .ok_or_else(|| format!("{label} must be an array of strings or null"))?;
+    let mut seen = std::collections::BTreeSet::new();
+    let mut output = Vec::with_capacity(array.len());
+    for (index, item) in array.iter().enumerate() {
+        let text = item
+            .as_str()
+            .filter(|text| !text.trim().is_empty())
+            .ok_or_else(|| format!("{label}[{index}] must be a non-empty string"))?;
+        if !seen.insert(text.to_string()) {
+            return Err(format!("{label} contains duplicate value '{text}'"));
+        }
+        // Preserve source ordering; the set is used only to reject duplicates.
+        output.push(text.to_string());
+    }
+    Ok(output)
+}
+
+fn parse_asset_profile(
+    asset_key: &str,
+    asset: &Map<String, Value>,
+) -> StacAssetProfile {
+    let source_native_keys = [
+        "eo:bands",
+        "raster:bands",
+        "sar:polarizations",
+        "sar:frequency_band",
+        "sar:instrument_mode",
+        "gsd",
+        "proj:code",
+        "proj:epsg",
+        "proj:wkt2",
+        "proj:shape",
+        "proj:transform",
+    ];
+    let mut extension_fields = BTreeMap::new();
+    for key in source_native_keys {
+        if let Some(value) = asset.get(key) {
+            extension_fields.insert(key.to_string(), value.clone());
+        }
+    }
+    StacAssetProfile {
+        asset_key: asset_key.to_string(),
+        extension_fields,
+    }
 }
 
 fn required_nonempty_text(value: Option<&Value>, label: &str) -> Result<String, String> {
@@ -696,6 +943,218 @@ mod tests {
             wkt_result.imported_assets()[0].source_crs(),
             Some("WKT2:GEOGCRS[fixture]")
         );
+    }
+
+    #[test]
+    fn preserves_sentinel_platform_instrument_collection_and_processing_baseline() {
+        let item = r#"{
+          "type":"Feature",
+          "stac_version":"1.0.0",
+          "id":"s2a-scene-001",
+          "collection":"sentinel-2-l2a",
+          "stac_extensions":[
+            "https://stac-extensions.github.io/eo/v2.0.0/schema.json",
+            "https://stac-extensions.github.io/instrument/v1.0.0/schema.json",
+            "https://stac-extensions.github.io/sar/v1.0.0/schema.json"
+          ],
+          "properties":{
+            "datetime":"2025-01-01T00:00:00Z",
+            "platform":"sentinel-2a",
+            "constellation":"sentinel-2",
+            "instruments":["MSI"],
+            "s2:processing_baseline":"04.00",
+            "processing:version":"Sen2Cor-2.11",
+            "vendor:opaque_extension":{"preserve":true}
+          },
+          "assets":{
+            "B04":{
+              "href":"fixture:b04.tif",
+              "type":"image/tiff",
+              "eo:bands":[{"name":"B04","common_name":"red","center_wavelength":0.665}],
+              "raster:bands":[{"raster:spatial_resolution":10}]
+            },
+            "VH":{
+              "href":"fixture:vh.tif",
+              "type":"image/tiff",
+              "sar:polarizations":["VV","VH"],
+              "sar:frequency_band":"C",
+              "sar:instrument_mode":"IW"
+            }
+          }
+        }"#;
+        let result = import_item_json(item).unwrap();
+        let profile = result.source_profile();
+        assert_eq!(profile.profile_version(), STAC_EO_SOURCE_PROFILE_VERSION);
+        assert_eq!(profile.collection_id(), Some("sentinel-2-l2a"));
+        assert_eq!(profile.platform(), Some("sentinel-2a"));
+        assert_eq!(profile.constellation(), Some("sentinel-2"));
+        assert_eq!(profile.instruments(), &["MSI".to_string()]);
+        assert_eq!(
+            profile.sensor_identity().origin,
+            StacSensorIdentityOrigin::DerivedFromPlatformAndInstrument
+        );
+        assert_eq!(
+            profile.sensor_identity().value.as_deref(),
+            Some("derived:c2VudGluZWwtMmE:TVNJ")
+        );
+        assert_eq!(
+            profile.processing_fields().get("s2:processing_baseline"),
+            Some(&Value::String("04.00".into()))
+        );
+        assert_eq!(
+            profile.processing_fields().get("processing:version"),
+            Some(&Value::String("Sen2Cor-2.11".into()))
+        );
+
+        let identity = profile.observation_identity().unwrap();
+        assert_eq!(identity.platform_id, "sentinel-2a");
+        assert_eq!(identity.sensor_id, "derived:c2VudGluZWwtMmE:TVNJ");
+        assert_eq!(
+            identity.sensor_identity_origin,
+            SensorIdentityOrigin::DerivedFromPlatformAndInstrument
+        );
+        assert_eq!(identity.instrument_id.as_deref(), Some("MSI"));
+        assert_eq!(identity.collection_id.as_deref(), Some("sentinel-2-l2a"));
+        assert_eq!(identity.processing_baseline.as_deref(), Some("04.00"));
+
+        let b04 = result.asset_profiles().iter().find(|a| a.asset_key() == "B04").unwrap();
+        assert!(b04.extension_fields().contains_key("eo:bands"));
+        assert!(b04.extension_fields().contains_key("raster:bands"));
+        let vh = result.asset_profiles().iter().find(|a| a.asset_key() == "VH").unwrap();
+        assert_eq!(
+            vh.extension_fields().get("sar:polarizations"),
+            Some(&serde_json::json!(["VV", "VH"]))
+        );
+        assert!(!b04.extension_fields().contains_key("sar:polarizations"));
+        assert!(result.raw_item_json().contains("vendor:opaque_extension"));
+    }
+
+    #[test]
+    fn provider_sensor_identity_overrides_composite_derivation() {
+        let item = r#"{
+          "type":"Feature",
+          "id":"provider-sensor",
+          "collection":"provider-collection",
+          "properties":{
+            "datetime":"2025-01-01T00:00:00Z",
+            "platform":"platform-a",
+            "instruments":["instrument-a"],
+            "sensor":"provider-sensor-id"
+          },
+          "assets":{"visual":{"href":"fixture:visual","type":"image/jpeg"}}
+        }"#;
+        let result = import_item_json(item).unwrap();
+        let identity = result.source_profile().observation_identity().unwrap();
+        assert_eq!(identity.sensor_id, "provider-sensor-id");
+        assert_eq!(identity.sensor_identity_origin, SensorIdentityOrigin::ProviderDeclared);
+    }
+
+    #[test]
+    fn ambiguous_multiple_instruments_and_missing_platform_remain_unresolved() {
+        let multiple = r#"{
+          "type":"Feature",
+          "id":"multiple-instruments",
+          "properties":{
+            "datetime":"2025-01-01T00:00:00Z",
+            "platform":"platform-a",
+            "instruments":["instrument-a","instrument-b"]
+          },
+          "assets":{"visual":{"href":"fixture:visual","type":"image/jpeg"}}
+        }"#;
+        let result = import_item_json(multiple).unwrap();
+        assert_eq!(
+            result.source_profile().sensor_identity().origin,
+            StacSensorIdentityOrigin::Unknown
+        );
+        assert!(result.source_profile().observation_identity().is_none());
+
+        let no_platform = r#"{
+          "type":"Feature",
+          "id":"no-platform",
+          "properties":{
+            "datetime":"2025-01-01T00:00:00Z",
+            "instruments":["instrument-a"]
+          },
+          "assets":{"visual":{"href":"fixture:visual","type":"image/jpeg"}}
+        }"#;
+        let result = import_item_json(no_platform).unwrap();
+        assert!(result.source_profile().observation_identity().is_none());
+    }
+
+    #[test]
+    fn malformed_and_duplicate_instrument_values_fail_closed() {
+        let duplicate = r#"{
+          "type":"Feature",
+          "id":"duplicate-instruments",
+          "properties":{
+            "datetime":"2025-01-01T00:00:00Z",
+            "platform":"platform-a",
+            "instruments":["MSI","MSI"]
+          },
+          "assets":{"visual":{"href":"fixture:visual","type":"image/jpeg"}}
+        }"#;
+        assert!(import_item_json(duplicate).unwrap_err().contains("duplicate"));
+
+        let malformed = r#"{
+          "type":"Feature",
+          "id":"malformed-instruments",
+          "properties":{
+            "datetime":"2025-01-01T00:00:00Z",
+            "platform":"platform-a",
+            "instruments":"MSI"
+          },
+          "assets":{"visual":{"href":"fixture:visual","type":"image/jpeg"}}
+        }"#;
+        assert!(import_item_json(malformed).unwrap_err().contains("array of strings"));
+    }
+
+    #[test]
+    fn processing_and_asset_metadata_keep_source_namespaces() {
+        let item = r#"{
+          "type":"Feature",
+          "id":"landsat-and-sar",
+          "collection":"landsat-c2-l2",
+          "properties":{
+            "datetime":"2025-01-01T00:00:00Z",
+            "platform":"landsat-9",
+            "constellation":"landsat",
+            "instruments":["OLI-2"],
+            "landsat:collection_number":2,
+            "landsat:processing_level":"L2SP"
+          },
+          "assets":{
+            "analytic":{
+              "href":"fixture:analytic.tif",
+              "type":"image/tiff",
+              "eo:bands":[{"name":"SR_B4","common_name":"red"}]
+            }
+          }
+        }"#;
+        let result = import_item_json(item).unwrap();
+        assert_eq!(
+            result.source_profile().processing_fields().get("landsat:collection_number"),
+            Some(&serde_json::json!(2))
+        );
+        assert_eq!(
+            result.source_profile().processing_fields().get("landsat:processing_level"),
+            Some(&Value::String("L2SP".into()))
+        );
+        assert_eq!(result.asset_profiles()[0].asset_key(), "analytic");
+        assert!(result.asset_profiles()[0].extension_fields().contains_key("eo:bands"));
+    }
+
+    #[test]
+    fn item_and_asset_profiles_are_deterministic_but_raw_json_is_preserved() {
+        let a = r#"{"type":"Feature","id":"ordered","collection":"c","properties":{"datetime":"2025-01-01","platform":"p","instruments":["i"]},"assets":{"z":{"href":"z.tif","type":"image/tiff","sar:polarizations":["VV"]},"a":{"href":"a.tif","type":"image/tiff","eo:bands":[{"name":"B1"}]}}}"#;
+        let b = r#"{"assets":{"a":{"eo:bands":[{"name":"B1"}],"type":"image/tiff","href":"a.tif"},"z":{"sar:polarizations":["VV"],"type":"image/tiff","href":"z.tif"}},"properties":{"instruments":["i"],"platform":"p","datetime":"2025-01-01"},"collection":"c","id":"ordered","type":"Feature"}"#;
+        let left = import_item_json(a).unwrap();
+        let right = import_item_json(b).unwrap();
+        assert_eq!(left.source_profile(), right.source_profile());
+        assert_eq!(
+            left.asset_profiles().iter().map(|a| a.asset_key()).collect::<Vec<_>>(),
+            right.asset_profiles().iter().map(|a| a.asset_key()).collect::<Vec<_>>()
+        );
+        assert_ne!(left.raw_item_json(), right.raw_item_json());
     }
 
     #[test]
