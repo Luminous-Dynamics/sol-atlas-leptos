@@ -454,14 +454,14 @@ The Rust service qualifier checks:
 - measurement/capacity/quality/quantity and allocation-policy evidence states;
 - exact stress-corpus ID, case split and not-executed claim ceiling.
 
-These checks establish only synthetic topology and evidence integrity. The 16 stress cases are authored controls; the current Rust tool checks their manifest and event references but does not yet execute every case as a mutation. Hydraulic simulations, metered service, quality sampling, service-deficit trajectories, conservation and physical trials remain NOT_RUN.
+These checks establish only synthetic topology and evidence integrity. The Rust service qualifier now also emits a deterministic topology-impact preview for all 16 stress cases / 20 events: it accumulates declared unavailable nodes, propagates explicitly typed power/control dependencies, and reports the apartment/service paths that remain connected or become disconnected. A recovery event does not restore a path without measured recommissioning evidence. Connected topology is explicitly `CONNECTED_ONLY_NOT_SERVICE_PASS`. This is graph-impact replay, not a hydraulic simulation or physical service result. Hydraulic simulations, metered service, quality sampling, service-deficit trajectories, conservation and physical trials remain NOT_RUN.
 
 Industry integration must consume specialist tools rather than replace them. EPA EPANET 2.2 provides established hydraulic/water-quality analysis of pressurised pipe networks; Bentley OpenFlows Water provides commercial hydraulic, water-quality, scenario and transient workflows; Grundfos documents pressure-zoned high-rise booster configurations. Luminous's research target is the evidence layer across those solvers: exact resident/service boundaries, shared dependency graphs, per-unit failure consequences, resource accounting, governance and revision-bound evidence. The benchmark must compare equivalent hydraulic models separately from workflow/assurance outcomes.
 
 Johannesburg Water's October 2026 reports of constrained reservoirs/towers, low pressure and intermittent supply reinforce why apartment service must be measured at the actual floor/unit boundary, rather than inferred from the presence of storage or booster equipment.
 
 
-## 20. Unit-layout mutation corpus and schema
+## 21. Unit-layout mutation corpus and schema
 
 - `multifamily-unit-layout-corpus.schema.json`
 - `multifamily-unit-layout-corpus-v0.1.json`
