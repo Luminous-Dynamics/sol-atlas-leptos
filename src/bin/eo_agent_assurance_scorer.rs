@@ -1068,6 +1068,117 @@ mod tests {
     }
 
     #[test]
+    fn rejects_promoted_disposition_when_oracle_requires_more_evidence() {
+        let manifest = sample_manifest(
+            "unresolved",
+            "observation_unavailable",
+            "unsupported_claim",
+            "evidence-1",
+            "internal_analysis",
+            "training",
+        );
+        let bytes = serde_json::to_vec(&manifest).expect("manifest serializes");
+        let mut submitted = valid_result(&manifest, &bytes, "observation_unavailable");
+        submitted["runs"][0]["disposition"] = json!("no_change_within_envelope");
+        let digest = run_payload_digest(&submitted["runs"][0]).expect("run hashes");
+        submitted["runs"][0]["replay"]["result_digest"] = json!(digest);
+        submitted["runs"][0]["replay"]["replay_digest"] = json!(digest);
+        let report = score(&manifest, &submitted, &bytes).expect("score is emitted");
+        assert_eq!(report["hard_gate_pass"], false);
+        assert!(report["hard_gate_violations"]
+            .as_array()
+            .expect("array")
+            .iter()
+            .any(|item| item["code"] == "zero_invalid_or_unobserved_evidence_promotions"));
+    }
+
+    #[test]
+    fn accepts_bounded_retry_with_stable_idempotency_and_request_digest() {
+        let mut manifest = sample_manifest(
+            "no_change_within_envelope",
+            "no_change_within_envelope",
+            "change_confirmed",
+            "evidence-1",
+            "internal_analysis",
+            "training",
+        );
+        manifest["tasks"][0]["oracle"]["expected_metrics"] = json!({
+            "retry_count_exact": 1,
+            "unique_claim_id_count": 1
+        });
+        let bytes = serde_json::to_vec(&manifest).expect("manifest serializes");
+        let mut submitted = valid_result(&manifest, &bytes, "no_change_within_envelope");
+        submitted["runs"][0]["execution"]["retry_count"] = json!(1);
+        submitted["runs"][0]["execution"]["tool_events"] = json!([
+            {
+                "tool": "catalog.read",
+                "attempt": 0,
+                "idempotency_key": "catalog-request-1",
+                "request_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "response_digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+            },
+            {
+                "tool": "catalog.read",
+                "attempt": 1,
+                "idempotency_key": "catalog-request-1",
+                "request_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "response_digest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+            }
+        ]);
+        let digest = run_payload_digest(&submitted["runs"][0]).expect("run hashes");
+        submitted["runs"][0]["replay"]["result_digest"] = json!(digest);
+        submitted["runs"][0]["replay"]["replay_digest"] = json!(digest);
+        let report = score(&manifest, &submitted, &bytes).expect("score is emitted");
+        assert_eq!(report["hard_gate_pass"], true);
+        assert_eq!(report["passed_task_count"], 1);
+    }
+
+    #[test]
+    fn rejects_retry_with_changed_request_under_same_key() {
+        let mut manifest = sample_manifest(
+            "no_change_within_envelope",
+            "no_change_within_envelope",
+            "change_confirmed",
+            "evidence-1",
+            "internal_analysis",
+            "training",
+        );
+        manifest["tasks"][0]["oracle"]["expected_metrics"] = json!({
+            "retry_count_exact": 1,
+            "unique_claim_id_count": 1
+        });
+        let bytes = serde_json::to_vec(&manifest).expect("manifest serializes");
+        let mut submitted = valid_result(&manifest, &bytes, "no_change_within_envelope");
+        submitted["runs"][0]["execution"]["retry_count"] = json!(1);
+        submitted["runs"][0]["execution"]["tool_events"] = json!([
+            {
+                "tool": "catalog.read",
+                "attempt": 0,
+                "idempotency_key": "catalog-request-1",
+                "request_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "response_digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+            },
+            {
+                "tool": "catalog.read",
+                "attempt": 1,
+                "idempotency_key": "catalog-request-1",
+                "request_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+                "response_digest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+            }
+        ]);
+        let digest = run_payload_digest(&submitted["runs"][0]).expect("run hashes");
+        submitted["runs"][0]["replay"]["result_digest"] = json!(digest);
+        submitted["runs"][0]["replay"]["replay_digest"] = json!(digest);
+        let report = score(&manifest, &submitted, &bytes).expect("score is emitted");
+        assert_eq!(report["hard_gate_pass"], false);
+        assert!(report["hard_gate_violations"]
+            .as_array()
+            .expect("array")
+            .iter()
+            .any(|item| item["code"] == "deterministic_replay"));
+    }
+
+    #[test]
     fn detects_manifest_or_replay_digest_mismatch() {
         let manifest = sample_manifest(
             "candidate_change_for_review",
