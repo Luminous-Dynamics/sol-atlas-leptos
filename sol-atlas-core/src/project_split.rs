@@ -48,6 +48,8 @@ pub struct ProjectSplitManifest {
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum ProjectSplitError {
     EmptyIdentifier(&'static str),
+    DatasetIdentityMismatch,
+    InvalidSplitPolicy,
     DuplicateProject(String),
     DuplicateActivity(String),
     ProjectWithoutActivities(String),
@@ -197,9 +199,15 @@ pub fn validate_project_split_manifest(
         errors.push(ProjectSplitError::EmptyIdentifier("manifest_id"));
     }
     if manifest.dataset_id != index.dataset_id {
-        errors.push(ProjectSplitError::EmptyIdentifier(
-            "dataset_identity_mismatch",
-        ));
+        errors.push(ProjectSplitError::DatasetIdentityMismatch);
+    }
+    if manifest.split_policy != "leave_one_project_out_with_rotating_project_calibration" {
+        errors.push(ProjectSplitError::InvalidSplitPolicy);
+    }
+    if manifest.calibration_projects_per_fold == 0
+        || manifest.calibration_projects_per_fold >= project_ids.len().saturating_sub(1)
+    {
+        errors.push(ProjectSplitError::InvalidCalibrationProjectCount);
     }
     if manifest.project_count != project_ids.len()
         || manifest.folds.len() != project_ids.len()
@@ -287,19 +295,12 @@ mod tests {
 
     const PROJECT_COUNT: usize = 13;
 
+    const FIXTURE: &str = include_str!(
+        "../../research/earth-observability/fixtures/project-split-input-synthetic-v0.1.json"
+    );
+
     fn index() -> ProjectDatasetIndex {
-        ProjectDatasetIndex {
-            dataset_id: "ut-gold-d-synthetic-index".to_string(),
-            projects: (1..=PROJECT_COUNT)
-                .map(|project| ProjectActivityGroup {
-                    project_id: format!("project-{project:02}"),
-                    activity_ids: vec![
-                        format!("activity-{project:02}-a"),
-                        format!("activity-{project:02}-b"),
-                    ],
-                })
-                .collect(),
-        }
+        serde_json::from_str(FIXTURE).expect("project split fixture parses")
     }
 
     #[test]
@@ -372,13 +373,12 @@ mod tests {
     fn a_manually_contaminated_fold_is_rejected() {
         let index = index();
         let mut manifest = build_leave_one_project_out(&index, 3).unwrap();
-        manifest.folds[0].fit_project_ids.push(manifest.folds[0].blind_project_id.clone());
+        let blind_project_id = manifest.folds[0].blind_project_id.clone();
+        manifest.folds[0].fit_project_ids.push(blind_project_id.clone());
         assert!(
             validate_project_split_manifest(&index, &manifest)
                 .unwrap_err()
-                .contains(&ProjectSplitError::ProjectAssignedMultipleRoles(
-                    manifest.folds[0].blind_project_id.clone()
-                ))
+                .contains(&ProjectSplitError::ProjectAssignedMultipleRoles(blind_project_id))
         );
     }
 }
