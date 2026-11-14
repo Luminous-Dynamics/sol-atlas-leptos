@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/blob/main/docs/research/home-delivery-systems/home-service-interface.schema.json",
+  "$id": "https://raw.githubusercontent.com/Luminous-Dynamics/sol-atlas-leptos/main/docs/research/home-delivery-systems/home-service-interface.schema.json",
   "title": "Home Service Interface v0.1",
   "description": "Research-stage interface contract connecting a resident-selected household service to spatial, electrical, water, thermal, air, acoustic, control, maintenance and qualification evidence. It is not a product safety or engineering approval.",
   "type": "object",
