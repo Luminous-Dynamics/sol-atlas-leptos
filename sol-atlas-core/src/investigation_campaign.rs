@@ -275,7 +275,11 @@ pub fn score_investigation_campaign(
         let (worst_loss_id, worst_loss) = rows
             .iter()
             .map(|(_, _, row)| (row.project_id.clone(), row.realized_decision_loss))
-            .max_by(|left, right| left.1.total_cmp(&right.1))
+            .max_by(|left, right| {
+                left.1
+                    .total_cmp(&right.1)
+                    .then_with(|| right.0.cmp(&left.0))
+            })
             .expect("validated policy has project rows");
         let (worst_regret_id, worst_regret) = rows
             .iter()
