@@ -176,7 +176,7 @@ pub struct ObservationRecord {
     source_id: String,
     /// Provider-native platform/satellite identifier.
     platform_id: String,
-    /// Provider-native sensor identity, such as S2A_MSI or S1A_C-SAR.
+    /// Source-registry-qualified sensor identity, preserving its provider namespace.
     sensor_id: String,
     /// Provider-native instrument identifier where distinct from sensor ID.
     instrument_id: Option<String>,
