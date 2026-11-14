@@ -87,7 +87,12334 @@ The validator can check that a calibration receipt identifier was supplied when 
 
 The code deliberately does not derive a posterior from event marginals or multiply cross-modal likelihoods.
 
-## 3. The benchmark should score whole worlds and their components
+## 3. Asset-cluster scoring is now executable
+
+A separate event-to-asset evaluator is implemented in `sol-atlas-core/src/utility_reconstruction_metrics.rs`, with CLI `utility_reconstruction_eval`.
+
+It reports B-cubed precision/recall/F1, pairwise true-positive pairs, explicit overmerge/oversplit pairs, candidate false assets, missed truth assets, abstention and false association of adjudicated clutter. It scores only structured independent survey and reviewed trench-image truth. Owner-record-only, conflicted and insufficient truth are separately counted, not converted to negative examples.
+
+Every reference event requires exactly one prediction disposition: candidate asset or explicit abstention. Missing predictions are rejected. Clutter and abstention are singletons in their respective partitions. The committed fixture and pinned baseline are synthetic only.
+
+# EARTH-OBSERVABILITY-JOINT-NETWORK-HYPOTHESES-001
+## Joint posterior hypotheses for evidence-qualified utility-network reconstruction v0.1
+
+**Parent:** Sol-Atlas #771 — EARTH-OBSERVABILITY-QUAL-002  
+**Implementation branch:** research/earth-observability-joint-network-hypotheses-v0-1  
+**Status:** Rust structural contract and deterministic analytic fixture added; probability calibration, graph scoring and physical validation NOT_RUN  
+**Date:** 2026-11-14  
+**Claim ceiling:** The fixture is abstract and non-geographic. It does not represent a real utility, field survey, calibrated posterior, qualified network geometry or excavation clearance.
+
+---
+
+## 1. Research proposition: infer a distribution over worlds, not one best-looking map
+
+The current candidate-graph contract permits multiple event-to-asset association marginals and explicit abstention. That is useful, but independently meaningful marginal probabilities do not necessarily form a coherent joint network.
+
+For example, separate edge probabilities can each look plausible while their combination creates an impossible network: a single event is assigned to two incompatible assets, a crossing is treated as a junction, or two mutually exclusive asset partitions are simultaneously represented as facts.
+
+The next abstraction is a **joint network hypothesis set**:
+
+- one immutable evidence snapshot and one investigation scope;
+- a finite set of mutually exclusive candidate network worlds;
+- one complete event disposition per observed event in every world;
+- candidate assets, geometry claims, nodes and relations that are internally coherent within each world;
+- a probability for each whole world;
+- explicit residual probability for worlds not enumerated.
+
+This is not a claim that a Bayesian posterior has been calibrated. It is a data and validation contract that makes the intended probability semantics explicit and testable.
+
+The decision product becomes:
+
+> Here are the plausible physical network configurations, their relative support, the evidence that separates them, and the observation most likely to change the engineering decision.
+
+## 2. Contract semantics
+
+The executable contract is in `sol-atlas-core/src/network_hypotheses.rs`; the strict JSON Schema Draft 2020-12 interchange profile is `research/earth-observability/NETWORK_HYPOTHESES_V0_1.schema.json`. The Rust validator enforces cross-reference and cross-field invariants that JSON Schema alone cannot express.
+
+### 2.1 One hypothesis is one complete candidate world
+
+A NetworkHypothesis contains:
+
+- a unique hypothesis identity and whole-world probability;
+- exactly one assignment record for every event in the set;
+- explicit null assignment for events left unassociated;
+- candidate asset instances and their event membership;
+- optional geometry-claim references;
+- candidate nodes and their associated candidate assets;
+- evidence-supported relations between nodes.
+
+A candidate identifier is local and non-authoritative. It is not a MUDDI ObjectID, owner-system SystemID or utility-owner asset identifier.
+
+### 2.2 Mutually exclusive world mass
+
+The probability invariant is:
+
+sum(P(hypothesis_i)) + P(residual_unknown) = 1
+
+within a fixed numerical tolerance.
+
+The residual is not a negative detection, absence probability or permission to redistribute probability among the listed hypotheses. It represents unenumerated or unresolved possible worlds.
+
+The fixture contains three alternatives:
+
+| World | Probability | Interpretation |
+|---|---:|---|
+| world-one-utility | 0.62 | Two events belong to one candidate utility |
+| world-two-utilities | 0.23 | The events belong to distinct candidate utilities |
+| world-crossing-unresolved | 0.10 | Two distinct assets have an unresolved crossing relation |
+| Unenumerated worlds | 0.05 | Explicit residual unknown mass |
+
+The values are deliberately illustrative, not learned or calibrated.
+
+### 2.3 Evidence closure
+
+Every event has a source-evidence reference. Every assigned event must be represented in its candidate asset's event membership and supported by that exact source evidence. Every node and relation must resolve its references and carry admitted evidence.
+
+A null event assignment is a valid explicit abstention. It is not silently converted into an absent utility.
+
+### 2.4 Topology is not visual intersection
+
+The relation types distinguish continuation, junction, unresolved crossing and unresolved near-intersection.
+
+An unresolved crossing is not a graph edge establishing physical connection. It remains a spatial relationship awaiting evidence.
+
+### 2.5 Calibration status is separate from structural validity
+
+The validator can check that a calibration receipt identifier was supplied when a caller claims that one is referenced. It cannot authenticate that receipt or establish that the probabilities are calibrated.
+
+The code deliberately does not derive a posterior from event marginals or multiply cross-modal likelihoods.
+
+## 3. Asset-cluster scoring is now executable
+
+A separate event-to-asset evaluator is implemented in `sol-atlas-core/src/utility_reconstruction_metrics.rs`, with CLI `utility_reconstruction_eval`.
+
+It reports B-cubed precision/recall/F1, pairwise true-positive pairs, explicit overmerge/oversplit pairs, candidate false assets, missed truth assets, abstention and false association of adjudicated clutter. It scores only structured independent survey and reviewed trench-image truth. Owner-record-only, conflicted and insufficient truth are separately counted, not converted to negative examples.
+
+Every reference event requires exactly one prediction disposition: candidate asset or explicit abstention. Missing predictions are rejected. Clutter and abstention are singletons in their respective partitions. The committed fixture and pinned baseline are synthetic only.
+
+# EARTH-OBSERVABILITY-JOINT-NETWORK-HYPOTHESES-001
+## Joint posterior hypotheses for evidence-qualified utility-network reconstruction v0.1
+
+**Parent:** Sol-Atlas #771 — EARTH-OBSERVABILITY-QUAL-002  
+**Implementation branch:** research/earth-observability-joint-network-hypotheses-v0-1  
+**Status:** Rust structural contract and deterministic analytic fixture added; probability calibration, graph scoring and physical validation NOT_RUN  
+**Date:** 2026-11-14  
+**Claim ceiling:** The fixture is abstract and non-geographic. It does not represent a real utility, field survey, calibrated posterior, qualified network geometry or excavation clearance.
+
+---
+
+## 1. Research proposition: infer a distribution over worlds, not one best-looking map
+
+The current candidate-graph contract permits multiple event-to-asset association marginals and explicit abstention. That is useful, but independently meaningful marginal probabilities do not necessarily form a coherent joint network.
+
+For example, separate edge probabilities can each look plausible while their combination creates an impossible network: a single event is assigned to two incompatible assets, a crossing is treated as a junction, or two mutually exclusive asset partitions are simultaneously represented as facts.
+
+The next abstraction is a **joint network hypothesis set**:
+
+- one immutable evidence snapshot and one investigation scope;
+- a finite set of mutually exclusive candidate network worlds;
+- one complete event disposition per observed event in every world;
+- candidate assets, geometry claims, nodes and relations that are internally coherent within each world;
+- a probability for each whole world;
+- explicit residual probability for worlds not enumerated.
+
+This is not a claim that a Bayesian posterior has been calibrated. It is a data and validation contract that makes the intended probability semantics explicit and testable.
+
+The decision product becomes:
+
+> Here are the plausible physical network configurations, their relative support, the evidence that separates them, and the observation most likely to change the engineering decision.
+
+## 2. Contract semantics
+
+The executable contract is in `sol-atlas-core/src/network_hypotheses.rs`; the strict JSON Schema Draft 2020-12 interchange profile is `research/earth-observability/NETWORK_HYPOTHESES_V0_1.schema.json`. The Rust validator enforces cross-reference and cross-field invariants that JSON Schema alone cannot express.
+
+### 2.1 One hypothesis is one complete candidate world
+
+A NetworkHypothesis contains:
+
+- a unique hypothesis identity and whole-world probability;
+- exactly one assignment record for every event in the set;
+- explicit null assignment for events left unassociated;
+- candidate asset instances and their event membership;
+- optional geometry-claim references;
+- candidate nodes and their associated candidate assets;
+- evidence-supported relations between nodes.
+
+A candidate identifier is local and non-authoritative. It is not a MUDDI ObjectID, owner-system SystemID or utility-owner asset identifier.
+
+### 2.2 Mutually exclusive world mass
+
+The probability invariant is:
+
+sum(P(hypothesis_i)) + P(residual_unknown) = 1
+
+within a fixed numerical tolerance.
+
+The residual is not a negative detection, absence probability or permission to redistribute probability among the listed hypotheses. It represents unenumerated or unresolved possible worlds.
+
+The fixture contains three alternatives:
+
+| World | Probability | Interpretation |
+|---|---:|---|
+| world-one-utility | 0.62 | Two events belong to one candidate utility |
+| world-two-utilities | 0.23 | The events belong to distinct candidate utilities |
+| world-crossing-unresolved | 0.10 | Two distinct assets have an unresolved crossing relation |
+| Unenumerated worlds | 0.05 | Explicit residual unknown mass |
+
+The values are deliberately illustrative, not learned or calibrated.
+
+### 2.3 Evidence closure
+
+Every event has a source-evidence reference. Every assigned event must be represented in its candidate asset's event membership and supported by that exact source evidence. Every node and relation must resolve its references and carry admitted evidence.
+
+A null event assignment is a valid explicit abstention. It is not silently converted into an absent utility.
+
+### 2.4 Topology is not visual intersection
+
+The relation types distinguish continuation, junction, unresolved crossing and unresolved near-intersection.
+
+An unresolved crossing is not a graph edge establishing physical connection. It remains a spatial relationship awaiting evidence.
+
+### 2.5 Calibration status is separate from structural validity
+
+The validator can check that a calibration receipt identifier was supplied when a caller claims that one is referenced. It cannot authenticate that receipt or establish that the probabilities are calibrated.
+
+The code deliberately does not derive a posterior from event marginals or multiply cross-modal likelihoods.
+
+## 3. Asset-cluster scoring is now executable
+
+A separate event-to-asset evaluator is implemented in `sol-atlas-core/src/utility_reconstruction_metrics.rs`, with CLI `utility_reconstruction_eval`.
+
+It reports B-cubed precision/recall/F1, pairwise true-positive pairs, explicit overmerge/oversplit pairs, candidate false assets, missed truth assets, abstention and false association of adjudicated clutter. It scores only structured independent survey and reviewed trench-image truth. Owner-record-only, conflicted and insufficient truth are separately counted, not converted to negative examples.
+
+Every reference event requires exactly one prediction disposition: candidate asset or explicit abstention. Missing predictions are rejected. Clutter and abstention are singletons in their respective partitions. The committed fixture and pinned baseline are synthetic only.
+
+# EARTH-OBSERVABILITY-JOINT-NETWORK-HYPOTHESES-001
+## Joint posterior hypotheses for evidence-qualified utility-network reconstruction v0.1
+
+**Parent:** Sol-Atlas #771 — EARTH-OBSERVABILITY-QUAL-002  
+**Implementation branch:** research/earth-observability-joint-network-hypotheses-v0-1  
+**Status:** Rust structural contract and deterministic analytic fixture added; probability calibration, graph scoring and physical validation NOT_RUN  
+**Date:** 2026-11-14  
+**Claim ceiling:** The fixture is abstract and non-geographic. It does not represent a real utility, field survey, calibrated posterior, qualified network geometry or excavation clearance.
+
+---
+
+## 1. Research proposition: infer a distribution over worlds, not one best-looking map
+
+The current candidate-graph contract permits multiple event-to-asset association marginals and explicit abstention. That is useful, but independently meaningful marginal probabilities do not necessarily form a coherent joint network.
+
+For example, separate edge probabilities can each look plausible while their combination creates an impossible network: a single event is assigned to two incompatible assets, a crossing is treated as a junction, or two mutually exclusive asset partitions are simultaneously represented as facts.
+
+The next abstraction is a **joint network hypothesis set**:
+
+- one immutable evidence snapshot and one investigation scope;
+- a finite set of mutually exclusive candidate network worlds;
+- one complete event disposition per observed event in every world;
+- candidate assets, geometry claims, nodes and relations that are internally coherent within each world;
+- a probability for each whole world;
+- explicit residual probability for worlds not enumerated.
+
+This is not a claim that a Bayesian posterior has been calibrated. It is a data and validation contract that makes the intended probability semantics explicit and testable.
+
+The decision product becomes:
+
+> Here are the plausible physical network configurations, their relative support, the evidence that separates them, and the observation most likely to change the engineering decision.
+
+## 2. Contract semantics
+
+The executable contract is in `sol-atlas-core/src/network_hypotheses.rs`; the strict JSON Schema Draft 2020-12 interchange profile is `research/earth-observability/NETWORK_HYPOTHESES_V0_1.schema.json`. The Rust validator enforces cross-reference and cross-field invariants that JSON Schema alone cannot express.
+
+### 2.1 One hypothesis is one complete candidate world
+
+A NetworkHypothesis contains:
+
+- a unique hypothesis identity and whole-world probability;
+- exactly one assignment record for every event in the set;
+- explicit null assignment for events left unassociated;
+- candidate asset instances and their event membership;
+- optional geometry-claim references;
+- candidate nodes and their associated candidate assets;
+- evidence-supported relations between nodes.
+
+A candidate identifier is local and non-authoritative. It is not a MUDDI ObjectID, owner-system SystemID or utility-owner asset identifier.
+
+### 2.2 Mutually exclusive world mass
+
+The probability invariant is:
+
+sum(P(hypothesis_i)) + P(residual_unknown) = 1
+
+within a fixed numerical tolerance.
+
+The residual is not a negative detection, absence probability or permission to redistribute probability among the listed hypotheses. It represents unenumerated or unresolved possible worlds.
+
+The fixture contains three alternatives:
+
+| World | Probability | Interpretation |
+|---|---:|---|
+| world-one-utility | 0.62 | Two events belong to one candidate utility |
+| world-two-utilities | 0.23 | The events belong to distinct candidate utilities |
+| world-crossing-unresolved | 0.10 | Two distinct assets have an unresolved crossing relation |
+| Unenumerated worlds | 0.05 | Explicit residual unknown mass |
+
+The values are deliberately illustrative, not learned or calibrated.
+
+### 2.3 Evidence closure
+
+Every event has a source-evidence reference. Every assigned event must be represented in its candidate asset's event membership and supported by that exact source evidence. Every node and relation must resolve its references and carry admitted evidence.
+
+A null event assignment is a valid explicit abstention. It is not silently converted into an absent utility.
+
+### 2.4 Topology is not visual intersection
+
+The relation types distinguish continuation, junction, unresolved crossing and unresolved near-intersection.
+
+An unresolved crossing is not a graph edge establishing physical connection. It remains a spatial relationship awaiting evidence.
+
+### 2.5 Calibration status is separate from structural validity
+
+The validator can check that a calibration receipt identifier was supplied when a caller claims that one is referenced. It cannot authenticate that receipt or establish that the probabilities are calibrated.
+
+The code deliberately does not derive a posterior from event marginals or multiply cross-modal likelihoods.
+
+## 3. Asset-cluster scoring is now executable
+
+A separate event-to-asset evaluator is implemented in `sol-atlas-core/src/utility_reconstruction_metrics.rs`, with CLI `utility_reconstruction_eval`.
+
+It reports B-cubed precision/recall/F1, pairwise true-positive pairs, explicit overmerge/oversplit pairs, candidate false assets, missed truth assets, abstention and false association of adjudicated clutter. It scores only structured independent survey and reviewed trench-image truth. Owner-record-only, conflicted and insufficient truth are separately counted, not converted to negative examples.
+
+Every reference event requires exactly one prediction disposition: candidate asset or explicit abstention. Missing predictions are rejected. Clutter and abstention are singletons in their respective partitions. The committed fixture and pinned baseline are synthetic only.
+
+# EARTH-OBSERVABILITY-JOINT-NETWORK-HYPOTHESES-001
+## Joint posterior hypotheses for evidence-qualified utility-network reconstruction v0.1
+
+**Parent:** Sol-Atlas #771 — EARTH-OBSERVABILITY-QUAL-002  
+**Implementation branch:** research/earth-observability-joint-network-hypotheses-v0-1  
+**Status:** Rust structural contract and deterministic analytic fixture added; probability calibration, graph scoring and physical validation NOT_RUN  
+**Date:** 2026-11-14  
+**Claim ceiling:** The fixture is abstract and non-geographic. It does not represent a real utility, field survey, calibrated posterior, qualified network geometry or excavation clearance.
+
+---
+
+## 1. Research proposition: infer a distribution over worlds, not one best-looking map
+
+The current candidate-graph contract permits multiple event-to-asset association marginals and explicit abstention. That is useful, but independently meaningful marginal probabilities do not necessarily form a coherent joint network.
+
+For example, separate edge probabilities can each look plausible while their combination creates an impossible network: a single event is assigned to two incompatible assets, a crossing is treated as a junction, or two mutually exclusive asset partitions are simultaneously represented as facts.
+
+The next abstraction is a **joint network hypothesis set**:
+
+- one immutable evidence snapshot and one investigation scope;
+- a finite set of mutually exclusive candidate network worlds;
+- one complete event disposition per observed event in every world;
+- candidate assets, geometry claims, nodes and relations that are internally coherent within each world;
+- a probability for each whole world;
+- explicit residual probability for worlds not enumerated.
+
+This is not a claim that a Bayesian posterior has been calibrated. It is a data and validation contract that makes the intended probability semantics explicit and testable.
+
+The decision product becomes:
+
+> Here are the plausible physical network configurations, their relative support, the evidence that separates them, and the observation most likely to change the engineering decision.
+
+## 2. Contract semantics
+
+The executable contract is in `sol-atlas-core/src/network_hypotheses.rs`; the strict JSON Schema Draft 2020-12 interchange profile is `research/earth-observability/NETWORK_HYPOTHESES_V0_1.schema.json`. The Rust validator enforces cross-reference and cross-field invariants that JSON Schema alone cannot express.
+
+### 2.1 One hypothesis is one complete candidate world
+
+A NetworkHypothesis contains:
+
+- a unique hypothesis identity and whole-world probability;
+- exactly one assignment record for every event in the set;
+- explicit null assignment for events left unassociated;
+- candidate asset instances and their event membership;
+- optional geometry-claim references;
+- candidate nodes and their associated candidate assets;
+- evidence-supported relations between nodes.
+
+A candidate identifier is local and non-authoritative. It is not a MUDDI ObjectID, owner-system SystemID or utility-owner asset identifier.
+
+### 2.2 Mutually exclusive world mass
+
+The probability invariant is:
+
+sum(P(hypothesis_i)) + P(residual_unknown) = 1
+
+within a fixed numerical tolerance.
+
+The residual is not a negative detection, absence probability or permission to redistribute probability among the listed hypotheses. It represents unenumerated or unresolved possible worlds.
+
+The fixture contains three alternatives:
+
+| World | Probability | Interpretation |
+|---|---:|---|
+| world-one-utility | 0.62 | Two events belong to one candidate utility |
+| world-two-utilities | 0.23 | The events belong to distinct candidate utilities |
+| world-crossing-unresolved | 0.10 | Two distinct assets have an unresolved crossing relation |
+| Unenumerated worlds | 0.05 | Explicit residual unknown mass |
+
+The values are deliberately illustrative, not learned or calibrated.
+
+### 2.3 Evidence closure
+
+Every event has a source-evidence reference. Every assigned event must be represented in its candidate asset's event membership and supported by that exact source evidence. Every node and relation must resolve its references and carry admitted evidence.
+
+A null event assignment is a valid explicit abstention. It is not silently converted into an absent utility.
+
+### 2.4 Topology is not visual intersection
+
+The relation types distinguish continuation, junction, unresolved crossing and unresolved near-intersection.
+
+An unresolved crossing is not a graph edge establishing physical connection. It remains a spatial relationship awaiting evidence.
+
+### 2.5 Calibration status is separate from structural validity
+
+The validator can check that a calibration receipt identifier was supplied when a caller claims that one is referenced. It cannot authenticate that receipt or establish that the probabilities are calibrated.
+
+The code deliberately does not derive a posterior from event marginals or multiply cross-modal likelihoods.
+
+## 3. Asset-cluster scoring is now executable
+
+A separate event-to-asset evaluator is implemented in `sol-atlas-core/src/utility_reconstruction_metrics.rs`, with CLI `utility_reconstruction_eval`.
+
+It reports B-cubed precision/recall/F1, pairwise true-positive pairs, explicit overmerge/oversplit pairs, candidate false assets, missed truth assets, abstention and false association of adjudicated clutter. It scores only structured independent survey and reviewed trench-image truth. Owner-record-only, conflicted and insufficient truth are separately counted, not converted to negative examples.
+
+Every reference event requires exactly one prediction disposition: candidate asset or explicit abstention. Missing predictions are rejected. Clutter and abstention are singletons in their respective partitions. The committed fixture and pinned baseline are synthetic only.
+
+# EARTH-OBSERVABILITY-JOINT-NETWORK-HYPOTHESES-001
+## Joint posterior hypotheses for evidence-qualified utility-network reconstruction v0.1
+
+**Parent:** Sol-Atlas #771 — EARTH-OBSERVABILITY-QUAL-002  
+**Implementation branch:** research/earth-observability-joint-network-hypotheses-v0-1  
+**Status:** Rust structural contract and deterministic analytic fixture added; probability calibration, graph scoring and physical validation NOT_RUN  
+**Date:** 2026-11-14  
+**Claim ceiling:** The fixture is abstract and non-geographic. It does not represent a real utility, field survey, calibrated posterior, qualified network geometry or excavation clearance.
+
+---
+
+## 1. Research proposition: infer a distribution over worlds, not one best-looking map
+
+The current candidate-graph contract permits multiple event-to-asset association marginals and explicit abstention. That is useful, but independently meaningful marginal probabilities do not necessarily form a coherent joint network.
+
+For example, separate edge probabilities can each look plausible while their combination creates an impossible network: a single event is assigned to two incompatible assets, a crossing is treated as a junction, or two mutually exclusive asset partitions are simultaneously represented as facts.
+
+The next abstraction is a **joint network hypothesis set**:
+
+- one immutable evidence snapshot and one investigation scope;
+- a finite set of mutually exclusive candidate network worlds;
+- one complete event disposition per observed event in every world;
+- candidate assets, geometry claims, nodes and relations that are internally coherent within each world;
+- a probability for each whole world;
+- explicit residual probability for worlds not enumerated.
+
+This is not a claim that a Bayesian posterior has been calibrated. It is a data and validation contract that makes the intended probability semantics explicit and testable.
+
+The decision product becomes:
+
+> Here are the plausible physical network configurations, their relative support, the evidence that separates them, and the observation most likely to change the engineering decision.
+
+## 2. Contract semantics
+
+The executable contract is in `sol-atlas-core/src/network_hypotheses.rs`; the strict JSON Schema Draft 2020-12 interchange profile is `research/earth-observability/NETWORK_HYPOTHESES_V0_1.schema.json`. The Rust validator enforces cross-reference and cross-field invariants that JSON Schema alone cannot express.
+
+### 2.1 One hypothesis is one complete candidate world
+
+A NetworkHypothesis contains:
+
+- a unique hypothesis identity and whole-world probability;
+- exactly one assignment record for every event in the set;
+- explicit null assignment for events left unassociated;
+- candidate asset instances and their event membership;
+- optional geometry-claim references;
+- candidate nodes and their associated candidate assets;
+- evidence-supported relations between nodes.
+
+A candidate identifier is local and non-authoritative. It is not a MUDDI ObjectID, owner-system SystemID or utility-owner asset identifier.
+
+### 2.2 Mutually exclusive world mass
+
+The probability invariant is:
+
+sum(P(hypothesis_i)) + P(residual_unknown) = 1
+
+within a fixed numerical tolerance.
+
+The residual is not a negative detection, absence probability or permission to redistribute probability among the listed hypotheses. It represents unenumerated or unresolved possible worlds.
+
+The fixture contains three alternatives:
+
+| World | Probability | Interpretation |
+|---|---:|---|
+| world-one-utility | 0.62 | Two events belong to one candidate utility |
+| world-two-utilities | 0.23 | The events belong to distinct candidate utilities |
+| world-crossing-unresolved | 0.10 | Two distinct assets have an unresolved crossing relation |
+| Unenumerated worlds | 0.05 | Explicit residual unknown mass |
+
+The values are deliberately illustrative, not learned or calibrated.
+
+### 2.3 Evidence closure
+
+Every event has a source-evidence reference. Every assigned event must be represented in its candidate asset's event membership and supported by that exact source evidence. Every node and relation must resolve its references and carry admitted evidence.
+
+A null event assignment is a valid explicit abstention. It is not silently converted into an absent utility.
+
+### 2.4 Topology is not visual intersection
+
+The relation types distinguish continuation, junction, unresolved crossing and unresolved near-intersection.
+
+An unresolved crossing is not a graph edge establishing physical connection. It remains a spatial relationship awaiting evidence.
+
+### 2.5 Calibration status is separate from structural validity
+
+The validator can check that a calibration receipt identifier was supplied when a caller claims that one is referenced. It cannot authenticate that receipt or establish that the probabilities are calibrated.
+
+The code deliberately does not derive a posterior from event marginals or multiply cross-modal likelihoods.
+
+## 3. Asset-cluster scoring is now executable
+
+A separate event-to-asset evaluator is implemented in `sol-atlas-core/src/utility_reconstruction_metrics.rs`, with CLI `utility_reconstruction_eval`.
+
+It reports B-cubed precision/recall/F1, pairwise true-positive pairs, explicit overmerge/oversplit pairs, candidate false assets, missed truth assets, abstention and false association of adjudicated clutter. It scores only structured independent survey and reviewed trench-image truth. Owner-record-only, conflicted and insufficient truth are separately counted, not converted to negative examples.
+
+Every reference event requires exactly one prediction disposition: candidate asset or explicit abstention. Missing predictions are rejected. Clutter and abstention are singletons in their respective partitions. The committed fixture and pinned baseline are synthetic only.
+
+# EARTH-OBSERVABILITY-JOINT-NETWORK-HYPOTHESES-001
+## Joint posterior hypotheses for evidence-qualified utility-network reconstruction v0.1
+
+**Parent:** Sol-Atlas #771 — EARTH-OBSERVABILITY-QUAL-002  
+**Implementation branch:** research/earth-observability-joint-network-hypotheses-v0-1  
+**Status:** Rust structural contract and deterministic analytic fixture added; probability calibration, graph scoring and physical validation NOT_RUN  
+**Date:** 2026-11-14  
+**Claim ceiling:** The fixture is abstract and non-geographic. It does not represent a real utility, field survey, calibrated posterior, qualified network geometry or excavation clearance.
+
+---
+
+## 1. Research proposition: infer a distribution over worlds, not one best-looking map
+
+The current candidate-graph contract permits multiple event-to-asset association marginals and explicit abstention. That is useful, but independently meaningful marginal probabilities do not necessarily form a coherent joint network.
+
+For example, separate edge probabilities can each look plausible while their combination creates an impossible network: a single event is assigned to two incompatible assets, a crossing is treated as a junction, or two mutually exclusive asset partitions are simultaneously represented as facts.
+
+The next abstraction is a **joint network hypothesis set**:
+
+- one immutable evidence snapshot and one investigation scope;
+- a finite set of mutually exclusive candidate network worlds;
+- one complete event disposition per observed event in every world;
+- candidate assets, geometry claims, nodes and relations that are internally coherent within each world;
+- a probability for each whole world;
+- explicit residual probability for worlds not enumerated.
+
+This is not a claim that a Bayesian posterior has been calibrated. It is a data and validation contract that makes the intended probability semantics explicit and testable.
+
+The decision product becomes:
+
+> Here are the plausible physical network configurations, their relative support, the evidence that separates them, and the observation most likely to change the engineering decision.
+
+## 2. Contract semantics
+
+The executable contract is in `sol-atlas-core/src/network_hypotheses.rs`; the strict JSON Schema Draft 2020-12 interchange profile is `research/earth-observability/NETWORK_HYPOTHESES_V0_1.schema.json`. The Rust validator enforces cross-reference and cross-field invariants that JSON Schema alone cannot express.
+
+### 2.1 One hypothesis is one complete candidate world
+
+A NetworkHypothesis contains:
+
+- a unique hypothesis identity and whole-world probability;
+- exactly one assignment record for every event in the set;
+- explicit null assignment for events left unassociated;
+- candidate asset instances and their event membership;
+- optional geometry-claim references;
+- candidate nodes and their associated candidate assets;
+- evidence-supported relations between nodes.
+
+A candidate identifier is local and non-authoritative. It is not a MUDDI ObjectID, owner-system SystemID or utility-owner asset identifier.
+
+### 2.2 Mutually exclusive world mass
+
+The probability invariant is:
+
+sum(P(hypothesis_i)) + P(residual_unknown) = 1
+
+within a fixed numerical tolerance.
+
+The residual is not a negative detection, absence probability or permission to redistribute probability among the listed hypotheses. It represents unenumerated or unresolved possible worlds.
+
+The fixture contains three alternatives:
+
+| World | Probability | Interpretation |
+|---|---:|---|
+| world-one-utility | 0.62 | Two events belong to one candidate utility |
+| world-two-utilities | 0.23 | The events belong to distinct candidate utilities |
+| world-crossing-unresolved | 0.10 | Two distinct assets have an unresolved crossing relation |
+| Unenumerated worlds | 0.05 | Explicit residual unknown mass |
+
+The values are deliberately illustrative, not learned or calibrated.
+
+### 2.3 Evidence closure
+
+Every event has a source-evidence reference. Every assigned event must be represented in its candidate asset's event membership and supported by that exact source evidence. Every node and relation must resolve its references and carry admitted evidence.
+
+A null event assignment is a valid explicit abstention. It is not silently converted into an absent utility.
+
+### 2.4 Topology is not visual intersection
+
+The relation types distinguish continuation, junction, unresolved crossing and unresolved near-intersection.
+
+An unresolved crossing is not a graph edge establishing physical connection. It remains a spatial relationship awaiting evidence.
+
+### 2.5 Calibration status is separate from structural validity
+
+The validator can check that a calibration receipt identifier was supplied when a caller claims that one is referenced. It cannot authenticate that receipt or establish that the probabilities are calibrated.
+
+The code deliberately does not derive a posterior from event marginals or multiply cross-modal likelihoods.
+
+## 3. Asset-cluster scoring is now executable
+
+A separate event-to-asset evaluator is implemented in `sol-atlas-core/src/utility_reconstruction_metrics.rs`, with CLI `utility_reconstruction_eval`.
+
+It reports B-cubed precision/recall/F1, pairwise true-positive pairs, explicit overmerge/oversplit pairs, candidate false assets, missed truth assets, abstention and false association of adjudicated clutter. It scores only structured independent survey and reviewed trench-image truth. Owner-record-only, conflicted and insufficient truth are separately counted, not converted to negative examples.
+
+Every reference event requires exactly one prediction disposition: candidate asset or explicit abstention. Missing predictions are rejected. Clutter and abstention are singletons in their respective partitions. The committed fixture and pinned baseline are synthetic only.
+
+# EARTH-OBSERVABILITY-JOINT-NETWORK-HYPOTHESES-001
+## Joint posterior hypotheses for evidence-qualified utility-network reconstruction v0.1
+
+**Parent:** Sol-Atlas #771 — EARTH-OBSERVABILITY-QUAL-002  
+**Implementation branch:** research/earth-observability-joint-network-hypotheses-v0-1  
+**Status:** Rust structural contract and deterministic analytic fixture added; probability calibration, graph scoring and physical validation NOT_RUN  
+**Date:** 2026-11-14  
+**Claim ceiling:** The fixture is abstract and non-geographic. It does not represent a real utility, field survey, calibrated posterior, qualified network geometry or excavation clearance.
+
+---
+
+## 1. Research proposition: infer a distribution over worlds, not one best-looking map
+
+The current candidate-graph contract permits multiple event-to-asset association marginals and explicit abstention. That is useful, but independently meaningful marginal probabilities do not necessarily form a coherent joint network.
+
+For example, separate edge probabilities can each look plausible while their combination creates an impossible network: a single event is assigned to two incompatible assets, a crossing is treated as a junction, or two mutually exclusive asset partitions are simultaneously represented as facts.
+
+The next abstraction is a **joint network hypothesis set**:
+
+- one immutable evidence snapshot and one investigation scope;
+- a finite set of mutually exclusive candidate network worlds;
+- one complete event disposition per observed event in every world;
+- candidate assets, geometry claims, nodes and relations that are internally coherent within each world;
+- a probability for each whole world;
+- explicit residual probability for worlds not enumerated.
+
+This is not a claim that a Bayesian posterior has been calibrated. It is a data and validation contract that makes the intended probability semantics explicit and testable.
+
+The decision product becomes:
+
+> Here are the plausible physical network configurations, their relative support, the evidence that separates them, and the observation most likely to change the engineering decision.
+
+## 2. Contract semantics
+
+The executable contract is in `sol-atlas-core/src/network_hypotheses.rs`; the strict JSON Schema Draft 2020-12 interchange profile is `research/earth-observability/NETWORK_HYPOTHESES_V0_1.schema.json`. The Rust validator enforces cross-reference and cross-field invariants that JSON Schema alone cannot express.
+
+### 2.1 One hypothesis is one complete candidate world
+
+A NetworkHypothesis contains:
+
+- a unique hypothesis identity and whole-world probability;
+- exactly one assignment record for every event in the set;
+- explicit null assignment for events left unassociated;
+- candidate asset instances and their event membership;
+- optional geometry-claim references;
+- candidate nodes and their associated candidate assets;
+- evidence-supported relations between nodes.
+
+A candidate identifier is local and non-authoritative. It is not a MUDDI ObjectID, owner-system SystemID or utility-owner asset identifier.
+
+### 2.2 Mutually exclusive world mass
+
+The probability invariant is:
+
+sum(P(hypothesis_i)) + P(residual_unknown) = 1
+
+within a fixed numerical tolerance.
+
+The residual is not a negative detection, absence probability or permission to redistribute probability among the listed hypotheses. It represents unenumerated or unresolved possible worlds.
+
+The fixture contains three alternatives:
+
+| World | Probability | Interpretation |
+|---|---:|---|
+| world-one-utility | 0.62 | Two events belong to one candidate utility |
+| world-two-utilities | 0.23 | The events belong to distinct candidate utilities |
+| world-crossing-unresolved | 0.10 | Two distinct assets have an unresolved crossing relation |
+| Unenumerated worlds | 0.05 | Explicit residual unknown mass |
+
+The values are deliberately illustrative, not learned or calibrated.
+
+### 2.3 Evidence closure
+
+Every event has a source-evidence reference. Every assigned event must be represented in its candidate asset's event membership and supported by that exact source evidence. Every node and relation must resolve its references and carry admitted evidence.
+
+A null event assignment is a valid explicit abstention. It is not silently converted into an absent utility.
+
+### 2.4 Topology is not visual intersection
+
+The relation types distinguish continuation, junction, unresolved crossing and unresolved near-intersection.
+
+An unresolved crossing is not a graph edge establishing physical connection. It remains a spatial relationship awaiting evidence.
+
+### 2.5 Calibration status is separate from structural validity
+
+The validator can check that a calibration receipt identifier was supplied when a caller claims that one is referenced. It cannot authenticate that receipt or establish that the probabilities are calibrated.
+
+The code deliberately does not derive a posterior from event marginals or multiply cross-modal likelihoods.
+
+## 3. Asset-cluster scoring is now executable
+
+A separate event-to-asset evaluator is implemented in `sol-atlas-core/src/utility_reconstruction_metrics.rs`, with CLI `utility_reconstruction_eval`.
+
+It reports B-cubed precision/recall/F1, pairwise true-positive pairs, explicit overmerge/oversplit pairs, candidate false assets, missed truth assets, abstention and false association of adjudicated clutter. It scores only structured independent survey and reviewed trench-image truth. Owner-record-only, conflicted and insufficient truth are separately counted, not converted to negative examples.
+
+Every reference event requires exactly one prediction disposition: candidate asset or explicit abstention. Missing predictions are rejected. Clutter and abstention are singletons in their respective partitions. The committed fixture and pinned baseline are synthetic only.
+
+# EARTH-OBSERVABILITY-JOINT-NETWORK-HYPOTHESES-001
+## Joint posterior hypotheses for evidence-qualified utility-network reconstruction v0.1
+
+**Parent:** Sol-Atlas #771 — EARTH-OBSERVABILITY-QUAL-002  
+**Implementation branch:** research/earth-observability-joint-network-hypotheses-v0-1  
+**Status:** Rust structural contract and deterministic analytic fixture added; probability calibration, graph scoring and physical validation NOT_RUN  
+**Date:** 2026-11-14  
+**Claim ceiling:** The fixture is abstract and non-geographic. It does not represent a real utility, field survey, calibrated posterior, qualified network geometry or excavation clearance.
+
+---
+
+## 1. Research proposition: infer a distribution over worlds, not one best-looking map
+
+The current candidate-graph contract permits multiple event-to-asset association marginals and explicit abstention. That is useful, but independently meaningful marginal probabilities do not necessarily form a coherent joint network.
+
+For example, separate edge probabilities can each look plausible while their combination creates an impossible network: a single event is assigned to two incompatible assets, a crossing is treated as a junction, or two mutually exclusive asset partitions are simultaneously represented as facts.
+
+The next abstraction is a **joint network hypothesis set**:
+
+- one immutable evidence snapshot and one investigation scope;
+- a finite set of mutually exclusive candidate network worlds;
+- one complete event disposition per observed event in every world;
+- candidate assets, geometry claims, nodes and relations that are internally coherent within each world;
+- a probability for each whole world;
+- explicit residual probability for worlds not enumerated.
+
+This is not a claim that a Bayesian posterior has been calibrated. It is a data and validation contract that makes the intended probability semantics explicit and testable.
+
+The decision product becomes:
+
+> Here are the plausible physical network configurations, their relative support, the evidence that separates them, and the observation most likely to change the engineering decision.
+
+## 2. Contract semantics
+
+The executable contract is in `sol-atlas-core/src/network_hypotheses.rs`; the strict JSON Schema Draft 2020-12 interchange profile is `research/earth-observability/NETWORK_HYPOTHESES_V0_1.schema.json`. The Rust validator enforces cross-reference and cross-field invariants that JSON Schema alone cannot express.
+
+### 2.1 One hypothesis is one complete candidate world
+
+A NetworkHypothesis contains:
+
+- a unique hypothesis identity and whole-world probability;
+- exactly one assignment record for every event in the set;
+- explicit null assignment for events left unassociated;
+- candidate asset instances and their event membership;
+- optional geometry-claim references;
+- candidate nodes and their associated candidate assets;
+- evidence-supported relations between nodes.
+
+A candidate identifier is local and non-authoritative. It is not a MUDDI ObjectID, owner-system SystemID or utility-owner asset identifier.
+
+### 2.2 Mutually exclusive world mass
+
+The probability invariant is:
+
+sum(P(hypothesis_i)) + P(residual_unknown) = 1
+
+within a fixed numerical tolerance.
+
+The residual is not a negative detection, absence probability or permission to redistribute probability among the listed hypotheses. It represents unenumerated or unresolved possible worlds.
+
+The fixture contains three alternatives:
+
+| World | Probability | Interpretation |
+|---|---:|---|
+| world-one-utility | 0.62 | Two events belong to one candidate utility |
+| world-two-utilities | 0.23 | The events belong to distinct candidate utilities |
+| world-crossing-unresolved | 0.10 | Two distinct assets have an unresolved crossing relation |
+| Unenumerated worlds | 0.05 | Explicit residual unknown mass |
+
+The values are deliberately illustrative, not learned or calibrated.
+
+### 2.3 Evidence closure
+
+Every event has a source-evidence reference. Every assigned event must be represented in its candidate asset's event membership and supported by that exact source evidence. Every node and relation must resolve its references and carry admitted evidence.
+
+A null event assignment is a valid explicit abstention. It is not silently converted into an absent utility.
+
+### 2.4 Topology is not visual intersection
+
+The relation types distinguish continuation, junction, unresolved crossing and unresolved near-intersection.
+
+An unresolved crossing is not a graph edge establishing physical connection. It remains a spatial relationship awaiting evidence.
+
+### 2.5 Calibration status is separate from structural validity
+
+The validator can check that a calibration receipt identifier was supplied when a caller claims that one is referenced. It cannot authenticate that receipt or establish that the probabilities are calibrated.
+
+The code deliberately does not derive a posterior from event marginals or multiply cross-modal likelihoods.
+
+## 3. Asset-cluster scoring is now executable
+
+A separate event-to-asset evaluator is implemented in `sol-atlas-core/src/utility_reconstruction_metrics.rs`, with CLI `utility_reconstruction_eval`.
+
+It reports B-cubed precision/recall/F1, pairwise true-positive pairs, explicit overmerge/oversplit pairs, candidate false assets, missed truth assets, abstention and false association of adjudicated clutter. It scores only structured independent survey and reviewed trench-image truth. Owner-record-only, conflicted and insufficient truth are separately counted, not converted to negative examples.
+
+Every reference event requires exactly one prediction disposition: candidate asset or explicit abstention. Missing predictions are rejected. Clutter and abstention are singletons in their respective partitions. The committed fixture and pinned baseline are synthetic only.
+
+# EARTH-OBSERVABILITY-JOINT-NETWORK-HYPOTHESES-001
+## Joint posterior hypotheses for evidence-qualified utility-network reconstruction v0.1
+
+**Parent:** Sol-Atlas #771 — EARTH-OBSERVABILITY-QUAL-002  
+**Implementation branch:** research/earth-observability-joint-network-hypotheses-v0-1  
+**Status:** Rust structural contract and deterministic analytic fixture added; probability calibration, graph scoring and physical validation NOT_RUN  
+**Date:** 2026-11-14  
+**Claim ceiling:** The fixture is abstract and non-geographic. It does not represent a real utility, field survey, calibrated posterior, qualified network geometry or excavation clearance.
+
+---
+
+## 1. Research proposition: infer a distribution over worlds, not one best-looking map
+
+The current candidate-graph contract permits multiple event-to-asset association marginals and explicit abstention. That is useful, but independently meaningful marginal probabilities do not necessarily form a coherent joint network.
+
+For example, separate edge probabilities can each look plausible while their combination creates an impossible network: a single event is assigned to two incompatible assets, a crossing is treated as a junction, or two mutually exclusive asset partitions are simultaneously represented as facts.
+
+The next abstraction is a **joint network hypothesis set**:
+
+- one immutable evidence snapshot and one investigation scope;
+- a finite set of mutually exclusive candidate network worlds;
+- one complete event disposition per observed event in every world;
+- candidate assets, geometry claims, nodes and relations that are internally coherent within each world;
+- a probability for each whole world;
+- explicit residual probability for worlds not enumerated.
+
+This is not a claim that a Bayesian posterior has been calibrated. It is a data and validation contract that makes the intended probability semantics explicit and testable.
+
+The decision product becomes:
+
+> Here are the plausible physical network configurations, their relative support, the evidence that separates them, and the observation most likely to change the engineering decision.
+
+## 2. Contract semantics
+
+The executable contract is in `sol-atlas-core/src/network_hypotheses.rs`; the strict JSON Schema Draft 2020-12 interchange profile is `research/earth-observability/NETWORK_HYPOTHESES_V0_1.schema.json`. The Rust validator enforces cross-reference and cross-field invariants that JSON Schema alone cannot express.
+
+### 2.1 One hypothesis is one complete candidate world
+
+A NetworkHypothesis contains:
+
+- a unique hypothesis identity and whole-world probability;
+- exactly one assignment record for every event in the set;
+- explicit null assignment for events left unassociated;
+- candidate asset instances and their event membership;
+- optional geometry-claim references;
+- candidate nodes and their associated candidate assets;
+- evidence-supported relations between nodes.
+
+A candidate identifier is local and non-authoritative. It is not a MUDDI ObjectID, owner-system SystemID or utility-owner asset identifier.
+
+### 2.2 Mutually exclusive world mass
+
+The probability invariant is:
+
+sum(P(hypothesis_i)) + P(residual_unknown) = 1
+
+within a fixed numerical tolerance.
+
+The residual is not a negative detection, absence probability or permission to redistribute probability among the listed hypotheses. It represents unenumerated or unresolved possible worlds.
+
+The fixture contains three alternatives:
+
+| World | Probability | Interpretation |
+|---|---:|---|
+| world-one-utility | 0.62 | Two events belong to one candidate utility |
+| world-two-utilities | 0.23 | The events belong to distinct candidate utilities |
+| world-crossing-unresolved | 0.10 | Two distinct assets have an unresolved crossing relation |
+| Unenumerated worlds | 0.05 | Explicit residual unknown mass |
+
+The values are deliberately illustrative, not learned or calibrated.
+
+### 2.3 Evidence closure
+
+Every event has a source-evidence reference. Every assigned event must be represented in its candidate asset's event membership and supported by that exact source evidence. Every node and relation must resolve its references and carry admitted evidence.
+
+A null event assignment is a valid explicit abstention. It is not silently converted into an absent utility.
+
+### 2.4 Topology is not visual intersection
+
+The relation types distinguish continuation, junction, unresolved crossing and unresolved near-intersection.
+
+An unresolved crossing is not a graph edge establishing physical connection. It remains a spatial relationship awaiting evidence.
+
+### 2.5 Calibration status is separate from structural validity
+
+The validator can check that a calibration receipt identifier was supplied when a caller claims that one is referenced. It cannot authenticate that receipt or establish that the probabilities are calibrated.
+
+The code deliberately does not derive a posterior from event marginals or multiply cross-modal likelihoods.
+
+## 3. Asset-cluster scoring is now executable
+
+A separate event-to-asset evaluator is implemented in `sol-atlas-core/src/utility_reconstruction_metrics.rs`, with CLI `utility_reconstruction_eval`.
+
+It reports B-cubed precision/recall/F1, pairwise true-positive pairs, explicit overmerge/oversplit pairs, candidate false assets, missed truth assets, abstention and false association of adjudicated clutter. It scores only structured independent survey and reviewed trench-image truth. Owner-record-only, conflicted and insufficient truth are separately counted, not converted to negative examples.
+
+Every reference event requires exactly one prediction disposition: candidate asset or explicit abstention. Missing predictions are rejected. Clutter and abstention are singletons in their respective partitions. The committed fixture and pinned baseline are synthetic only.
+
+# EARTH-OBSERVABILITY-JOINT-NETWORK-HYPOTHESES-001
+## Joint posterior hypotheses for evidence-qualified utility-network reconstruction v0.1
+
+**Parent:** Sol-Atlas #771 — EARTH-OBSERVABILITY-QUAL-002  
+**Implementation branch:** research/earth-observability-joint-network-hypotheses-v0-1  
+**Status:** Rust structural contract and deterministic analytic fixture added; probability calibration, graph scoring and physical validation NOT_RUN  
+**Date:** 2026-11-14  
+**Claim ceiling:** The fixture is abstract and non-geographic. It does not represent a real utility, field survey, calibrated posterior, qualified network geometry or excavation clearance.
+
+---
+
+## 1. Research proposition: infer a distribution over worlds, not one best-looking map
+
+The current candidate-graph contract permits multiple event-to-asset association marginals and explicit abstention. That is useful, but independently meaningful marginal probabilities do not necessarily form a coherent joint network.
+
+For example, separate edge probabilities can each look plausible while their combination creates an impossible network: a single event is assigned to two incompatible assets, a crossing is treated as a junction, or two mutually exclusive asset partitions are simultaneously represented as facts.
+
+The next abstraction is a **joint network hypothesis set**:
+
+- one immutable evidence snapshot and one investigation scope;
+- a finite set of mutually exclusive candidate network worlds;
+- one complete event disposition per observed event in every world;
+- candidate assets, geometry claims, nodes and relations that are internally coherent within each world;
+- a probability for each whole world;
+- explicit residual probability for worlds not enumerated.
+
+This is not a claim that a Bayesian posterior has been calibrated. It is a data and validation contract that makes the intended probability semantics explicit and testable.
+
+The decision product becomes:
+
+> Here are the plausible physical network configurations, their relative support, the evidence that separates them, and the observation most likely to change the engineering decision.
+
+## 2. Contract semantics
+
+The executable contract is in `sol-atlas-core/src/network_hypotheses.rs`; the strict JSON Schema Draft 2020-12 interchange profile is `research/earth-observability/NETWORK_HYPOTHESES_V0_1.schema.json`. The Rust validator enforces cross-reference and cross-field invariants that JSON Schema alone cannot express.
+
+### 2.1 One hypothesis is one complete candidate world
+
+A NetworkHypothesis contains:
+
+- a unique hypothesis identity and whole-world probability;
+- exactly one assignment record for every event in the set;
+- explicit null assignment for events left unassociated;
+- candidate asset instances and their event membership;
+- optional geometry-claim references;
+- candidate nodes and their associated candidate assets;
+- evidence-supported relations between nodes.
+
+A candidate identifier is local and non-authoritative. It is not a MUDDI ObjectID, owner-system SystemID or utility-owner asset identifier.
+
+### 2.2 Mutually exclusive world mass
+
+The probability invariant is:
+
+sum(P(hypothesis_i)) + P(residual_unknown) = 1
+
+within a fixed numerical tolerance.
+
+The residual is not a negative detection, absence probability or permission to redistribute probability among the listed hypotheses. It represents unenumerated or unresolved possible worlds.
+
+The fixture contains three alternatives:
+
+| World | Probability | Interpretation |
+|---|---:|---|
+| world-one-utility | 0.62 | Two events belong to one candidate utility |
+| world-two-utilities | 0.23 | The events belong to distinct candidate utilities |
+| world-crossing-unresolved | 0.10 | Two distinct assets have an unresolved crossing relation |
+| Unenumerated worlds | 0.05 | Explicit residual unknown mass |
+
+The values are deliberately illustrative, not learned or calibrated.
+
+### 2.3 Evidence closure
+
+Every event has a source-evidence reference. Every assigned event must be represented in its candidate asset's event membership and supported by that exact source evidence. Every node and relation must resolve its references and carry admitted evidence.
+
+A null event assignment is a valid explicit abstention. It is not silently converted into an absent utility.
+
+### 2.4 Topology is not visual intersection
+
+The relation types distinguish continuation, junction, unresolved crossing and unresolved near-intersection.
+
+An unresolved crossing is not a graph edge establishing physical connection. It remains a spatial relationship awaiting evidence.
+
+### 2.5 Calibration status is separate from structural validity
+
+The validator can check that a calibration receipt identifier was supplied when a caller claims that one is referenced. It cannot authenticate that receipt or establish that the probabilities are calibrated.
+
+The code deliberately does not derive a posterior from event marginals or multiply cross-modal likelihoods.
+
+## 3. Asset-cluster scoring is now executable
+
+A separate event-to-asset evaluator is implemented in `sol-atlas-core/src/utility_reconstruction_metrics.rs`, with CLI `utility_reconstruction_eval`.
+
+It reports B-cubed precision/recall/F1, pairwise true-positive pairs, explicit overmerge/oversplit pairs, candidate false assets, missed truth assets, abstention and false association of adjudicated clutter. It scores only structured independent survey and reviewed trench-image truth. Owner-record-only, conflicted and insufficient truth are separately counted, not converted to negative examples.
+
+Every reference event requires exactly one prediction disposition: candidate asset or explicit abstention. Missing predictions are rejected. Clutter and abstention are singletons in their respective partitions. The committed fixture and pinned baseline are synthetic only.
+
+# EARTH-OBSERVABILITY-JOINT-NETWORK-HYPOTHESES-001
+## Joint posterior hypotheses for evidence-qualified utility-network reconstruction v0.1
+
+**Parent:** Sol-Atlas #771 — EARTH-OBSERVABILITY-QUAL-002  
+**Implementation branch:** research/earth-observability-joint-network-hypotheses-v0-1  
+**Status:** Rust structural contract and deterministic analytic fixture added; probability calibration, graph scoring and physical validation NOT_RUN  
+**Date:** 2026-11-14  
+**Claim ceiling:** The fixture is abstract and non-geographic. It does not represent a real utility, field survey, calibrated posterior, qualified network geometry or excavation clearance.
+
+---
+
+## 1. Research proposition: infer a distribution over worlds, not one best-looking map
+
+The current candidate-graph contract permits multiple event-to-asset association marginals and explicit abstention. That is useful, but independently meaningful marginal probabilities do not necessarily form a coherent joint network.
+
+For example, separate edge probabilities can each look plausible while their combination creates an impossible network: a single event is assigned to two incompatible assets, a crossing is treated as a junction, or two mutually exclusive asset partitions are simultaneously represented as facts.
+
+The next abstraction is a **joint network hypothesis set**:
+
+- one immutable evidence snapshot and one investigation scope;
+- a finite set of mutually exclusive candidate network worlds;
+- one complete event disposition per observed event in every world;
+- candidate assets, geometry claims, nodes and relations that are internally coherent within each world;
+- a probability for each whole world;
+- explicit residual probability for worlds not enumerated.
+
+This is not a claim that a Bayesian posterior has been calibrated. It is a data and validation contract that makes the intended probability semantics explicit and testable.
+
+The decision product becomes:
+
+> Here are the plausible physical network configurations, their relative support, the evidence that separates them, and the observation most likely to change the engineering decision.
+
+## 2. Contract semantics
+
+The executable contract is in `sol-atlas-core/src/network_hypotheses.rs`; the strict JSON Schema Draft 2020-12 interchange profile is `research/earth-observability/NETWORK_HYPOTHESES_V0_1.schema.json`. The Rust validator enforces cross-reference and cross-field invariants that JSON Schema alone cannot express.
+
+### 2.1 One hypothesis is one complete candidate world
+
+A NetworkHypothesis contains:
+
+- a unique hypothesis identity and whole-world probability;
+- exactly one assignment record for every event in the set;
+- explicit null assignment for events left unassociated;
+- candidate asset instances and their event membership;
+- optional geometry-claim references;
+- candidate nodes and their associated candidate assets;
+- evidence-supported relations between nodes.
+
+A candidate identifier is local and non-authoritative. It is not a MUDDI ObjectID, owner-system SystemID or utility-owner asset identifier.
+
+### 2.2 Mutually exclusive world mass
+
+The probability invariant is:
+
+sum(P(hypothesis_i)) + P(residual_unknown) = 1
+
+within a fixed numerical tolerance.
+
+The residual is not a negative detection, absence probability or permission to redistribute probability among the listed hypotheses. It represents unenumerated or unresolved possible worlds.
+
+The fixture contains three alternatives:
+
+| World | Probability | Interpretation |
+|---|---:|---|
+| world-one-utility | 0.62 | Two events belong to one candidate utility |
+| world-two-utilities | 0.23 | The events belong to distinct candidate utilities |
+| world-crossing-unresolved | 0.10 | Two distinct assets have an unresolved crossing relation |
+| Unenumerated worlds | 0.05 | Explicit residual unknown mass |
+
+The values are deliberately illustrative, not learned or calibrated.
+
+### 2.3 Evidence closure
+
+Every event has a source-evidence reference. Every assigned event must be represented in its candidate asset's event membership and supported by that exact source evidence. Every node and relation must resolve its references and carry admitted evidence.
+
+A null event assignment is a valid explicit abstention. It is not silently converted into an absent utility.
+
+### 2.4 Topology is not visual intersection
+
+The relation types distinguish continuation, junction, unresolved crossing and unresolved near-intersection.
+
+An unresolved crossing is not a graph edge establishing physical connection. It remains a spatial relationship awaiting evidence.
+
+### 2.5 Calibration status is separate from structural validity
+
+The validator can check that a calibration receipt identifier was supplied when a caller claims that one is referenced. It cannot authenticate that receipt or establish that the probabilities are calibrated.
+
+The code deliberately does not derive a posterior from event marginals or multiply cross-modal likelihoods.
+
+## 3. Asset-cluster scoring is now executable
+
+A separate event-to-asset evaluator is implemented in `sol-atlas-core/src/utility_reconstruction_metrics.rs`, with CLI `utility_reconstruction_eval`.
+
+It reports B-cubed precision/recall/F1, pairwise true-positive pairs, explicit overmerge/oversplit pairs, candidate false assets, missed truth assets, abstention and false association of adjudicated clutter. It scores only structured independent survey and reviewed trench-image truth. Owner-record-only, conflicted and insufficient truth are separately counted, not converted to negative examples.
+
+Every reference event requires exactly one prediction disposition: candidate asset or explicit abstention. Missing predictions are rejected. Clutter and abstention are singletons in their respective partitions. The committed fixture and pinned baseline are synthetic only.
+
+# EARTH-OBSERVABILITY-JOINT-NETWORK-HYPOTHESES-001
+## Joint posterior hypotheses for evidence-qualified utility-network reconstruction v0.1
+
+**Parent:** Sol-Atlas #771 — EARTH-OBSERVABILITY-QUAL-002  
+**Implementation branch:** research/earth-observability-joint-network-hypotheses-v0-1  
+**Status:** Rust structural contract and deterministic analytic fixture added; probability calibration, graph scoring and physical validation NOT_RUN  
+**Date:** 2026-11-14  
+**Claim ceiling:** The fixture is abstract and non-geographic. It does not represent a real utility, field survey, calibrated posterior, qualified network geometry or excavation clearance.
+
+---
+
+## 1. Research proposition: infer a distribution over worlds, not one best-looking map
+
+The current candidate-graph contract permits multiple event-to-asset association marginals and explicit abstention. That is useful, but independently meaningful marginal probabilities do not necessarily form a coherent joint network.
+
+For example, separate edge probabilities can each look plausible while their combination creates an impossible network: a single event is assigned to two incompatible assets, a crossing is treated as a junction, or two mutually exclusive asset partitions are simultaneously represented as facts.
+
+The next abstraction is a **joint network hypothesis set**:
+
+- one immutable evidence snapshot and one investigation scope;
+- a finite set of mutually exclusive candidate network worlds;
+- one complete event disposition per observed event in every world;
+- candidate assets, geometry claims, nodes and relations that are internally coherent within each world;
+- a probability for each whole world;
+- explicit residual probability for worlds not enumerated.
+
+This is not a claim that a Bayesian posterior has been calibrated. It is a data and validation contract that makes the intended probability semantics explicit and testable.
+
+The decision product becomes:
+
+> Here are the plausible physical network configurations, their relative support, the evidence that separates them, and the observation most likely to change the engineering decision.
+
+## 2. Contract semantics
+
+The executable contract is in `sol-atlas-core/src/network_hypotheses.rs`; the strict JSON Schema Draft 2020-12 interchange profile is `research/earth-observability/NETWORK_HYPOTHESES_V0_1.schema.json`. The Rust validator enforces cross-reference and cross-field invariants that JSON Schema alone cannot express.
+
+### 2.1 One hypothesis is one complete candidate world
+
+A NetworkHypothesis contains:
+
+- a unique hypothesis identity and whole-world probability;
+- exactly one assignment record for every event in the set;
+- explicit null assignment for events left unassociated;
+- candidate asset instances and their event membership;
+- optional geometry-claim references;
+- candidate nodes and their associated candidate assets;
+- evidence-supported relations between nodes.
+
+A candidate identifier is local and non-authoritative. It is not a MUDDI ObjectID, owner-system SystemID or utility-owner asset identifier.
+
+### 2.2 Mutually exclusive world mass
+
+The probability invariant is:
+
+sum(P(hypothesis_i)) + P(residual_unknown) = 1
+
+within a fixed numerical tolerance.
+
+The residual is not a negative detection, absence probability or permission to redistribute probability among the listed hypotheses. It represents unenumerated or unresolved possible worlds.
+
+The fixture contains three alternatives:
+
+| World | Probability | Interpretation |
+|---|---:|---|
+| world-one-utility | 0.62 | Two events belong to one candidate utility |
+| world-two-utilities | 0.23 | The events belong to distinct candidate utilities |
+| world-crossing-unresolved | 0.10 | Two distinct assets have an unresolved crossing relation |
+| Unenumerated worlds | 0.05 | Explicit residual unknown mass |
+
+The values are deliberately illustrative, not learned or calibrated.
+
+### 2.3 Evidence closure
+
+Every event has a source-evidence reference. Every assigned event must be represented in its candidate asset's event membership and supported by that exact source evidence. Every node and relation must resolve its references and carry admitted evidence.
+
+A null event assignment is a valid explicit abstention. It is not silently converted into an absent utility.
+
+### 2.4 Topology is not visual intersection
+
+The relation types distinguish continuation, junction, unresolved crossing and unresolved near-intersection.
+
+An unresolved crossing is not a graph edge establishing physical connection. It remains a spatial relationship awaiting evidence.
+
+### 2.5 Calibration status is separate from structural validity
+
+The validator can check that a calibration receipt identifier was supplied when a caller claims that one is referenced. It cannot authenticate that receipt or establish that the probabilities are calibrated.
+
+The code deliberately does not derive a posterior from event marginals or multiply cross-modal likelihoods.
+
+## 3. Asset-cluster scoring is now executable
+
+A separate event-to-asset evaluator is implemented in `sol-atlas-core/src/utility_reconstruction_metrics.rs`, with CLI `utility_reconstruction_eval`.
+
+It reports B-cubed precision/recall/F1, pairwise true-positive pairs, explicit overmerge/oversplit pairs, candidate false assets, missed truth assets, abstention and false association of adjudicated clutter. It scores only structured independent survey and reviewed trench-image truth. Owner-record-only, conflicted and insufficient truth are separately counted, not converted to negative examples.
+
+Every reference event requires exactly one prediction disposition: candidate asset or explicit abstention. Missing predictions are rejected. Clutter and abstention are singletons in their respective partitions. The committed fixture and pinned baseline are synthetic only.
+
+# EARTH-OBSERVABILITY-JOINT-NETWORK-HYPOTHESES-001
+## Joint posterior hypotheses for evidence-qualified utility-network reconstruction v0.1
+
+**Parent:** Sol-Atlas #771 — EARTH-OBSERVABILITY-QUAL-002  
+**Implementation branch:** research/earth-observability-joint-network-hypotheses-v0-1  
+**Status:** Rust structural contract and deterministic analytic fixture added; probability calibration, graph scoring and physical validation NOT_RUN  
+**Date:** 2026-11-14  
+**Claim ceiling:** The fixture is abstract and non-geographic. It does not represent a real utility, field survey, calibrated posterior, qualified network geometry or excavation clearance.
+
+---
+
+## 1. Research proposition: infer a distribution over worlds, not one best-looking map
+
+The current candidate-graph contract permits multiple event-to-asset association marginals and explicit abstention. That is useful, but independently meaningful marginal probabilities do not necessarily form a coherent joint network.
+
+For example, separate edge probabilities can each look plausible while their combination creates an impossible network: a single event is assigned to two incompatible assets, a crossing is treated as a junction, or two mutually exclusive asset partitions are simultaneously represented as facts.
+
+The next abstraction is a **joint network hypothesis set**:
+
+- one immutable evidence snapshot and one investigation scope;
+- a finite set of mutually exclusive candidate network worlds;
+- one complete event disposition per observed event in every world;
+- candidate assets, geometry claims, nodes and relations that are internally coherent within each world;
+- a probability for each whole world;
+- explicit residual probability for worlds not enumerated.
+
+This is not a claim that a Bayesian posterior has been calibrated. It is a data and validation contract that makes the intended probability semantics explicit and testable.
+
+The decision product becomes:
+
+> Here are the plausible physical network configurations, their relative support, the evidence that separates them, and the observation most likely to change the engineering decision.
+
+## 2. Contract semantics
+
+The executable contract is in `sol-atlas-core/src/network_hypotheses.rs`; the strict JSON Schema Draft 2020-12 interchange profile is `research/earth-observability/NETWORK_HYPOTHESES_V0_1.schema.json`. The Rust validator enforces cross-reference and cross-field invariants that JSON Schema alone cannot express.
+
+### 2.1 One hypothesis is one complete candidate world
+
+A NetworkHypothesis contains:
+
+- a unique hypothesis identity and whole-world probability;
+- exactly one assignment record for every event in the set;
+- explicit null assignment for events left unassociated;
+- candidate asset instances and their event membership;
+- optional geometry-claim references;
+- candidate nodes and their associated candidate assets;
+- evidence-supported relations between nodes.
+
+A candidate identifier is local and non-authoritative. It is not a MUDDI ObjectID, owner-system SystemID or utility-owner asset identifier.
+
+### 2.2 Mutually exclusive world mass
+
+The probability invariant is:
+
+sum(P(hypothesis_i)) + P(residual_unknown) = 1
+
+within a fixed numerical tolerance.
+
+The residual is not a negative detection, absence probability or permission to redistribute probability among the listed hypotheses. It represents unenumerated or unresolved possible worlds.
+
+The fixture contains three alternatives:
+
+| World | Probability | Interpretation |
+|---|---:|---|
+| world-one-utility | 0.62 | Two events belong to one candidate utility |
+| world-two-utilities | 0.23 | The events belong to distinct candidate utilities |
+| world-crossing-unresolved | 0.10 | Two distinct assets have an unresolved crossing relation |
+| Unenumerated worlds | 0.05 | Explicit residual unknown mass |
+
+The values are deliberately illustrative, not learned or calibrated.
+
+### 2.3 Evidence closure
+
+Every event has a source-evidence reference. Every assigned event must be represented in its candidate asset's event membership and supported by that exact source evidence. Every node and relation must resolve its references and carry admitted evidence.
+
+A null event assignment is a valid explicit abstention. It is not silently converted into an absent utility.
+
+### 2.4 Topology is not visual intersection
+
+The relation types distinguish continuation, junction, unresolved crossing and unresolved near-intersection.
+
+An unresolved crossing is not a graph edge establishing physical connection. It remains a spatial relationship awaiting evidence.
+
+### 2.5 Calibration status is separate from structural validity
+
+The validator can check that a calibration receipt identifier was supplied when a caller claims that one is referenced. It cannot authenticate that receipt or establish that the probabilities are calibrated.
+
+The code deliberately does not derive a posterior from event marginals or multiply cross-modal likelihoods.
+
+## 3. Asset-cluster scoring is now executable
+
+A separate event-to-asset evaluator is implemented in `sol-atlas-core/src/utility_reconstruction_metrics.rs`, with CLI `utility_reconstruction_eval`.
+
+It reports B-cubed precision/recall/F1, pairwise true-positive pairs, explicit overmerge/oversplit pairs, candidate false assets, missed truth assets, abstention and false association of adjudicated clutter. It scores only structured independent survey and reviewed trench-image truth. Owner-record-only, conflicted and insufficient truth are separately counted, not converted to negative examples.
+
+Every reference event requires exactly one prediction disposition: candidate asset or explicit abstention. Missing predictions are rejected. Clutter and abstention are singletons in their respective partitions. The committed fixture and pinned baseline are synthetic only.
+
+# EARTH-OBSERVABILITY-JOINT-NETWORK-HYPOTHESES-001
+## Joint posterior hypotheses for evidence-qualified utility-network reconstruction v0.1
+
+**Parent:** Sol-Atlas #771 — EARTH-OBSERVABILITY-QUAL-002  
+**Implementation branch:** research/earth-observability-joint-network-hypotheses-v0-1  
+**Status:** Rust structural contract and deterministic analytic fixture added; probability calibration, graph scoring and physical validation NOT_RUN  
+**Date:** 2026-11-14  
+**Claim ceiling:** The fixture is abstract and non-geographic. It does not represent a real utility, field survey, calibrated posterior, qualified network geometry or excavation clearance.
+
+---
+
+## 1. Research proposition: infer a distribution over worlds, not one best-looking map
+
+The current candidate-graph contract permits multiple event-to-asset association marginals and explicit abstention. That is useful, but independently meaningful marginal probabilities do not necessarily form a coherent joint network.
+
+For example, separate edge probabilities can each look plausible while their combination creates an impossible network: a single event is assigned to two incompatible assets, a crossing is treated as a junction, or two mutually exclusive asset partitions are simultaneously represented as facts.
+
+The next abstraction is a **joint network hypothesis set**:
+
+- one immutable evidence snapshot and one investigation scope;
+- a finite set of mutually exclusive candidate network worlds;
+- one complete event disposition per observed event in every world;
+- candidate assets, geometry claims, nodes and relations that are internally coherent within each world;
+- a probability for each whole world;
+- explicit residual probability for worlds not enumerated.
+
+This is not a claim that a Bayesian posterior has been calibrated. It is a data and validation contract that makes the intended probability semantics explicit and testable.
+
+The decision product becomes:
+
+> Here are the plausible physical network configurations, their relative support, the evidence that separates them, and the observation most likely to change the engineering decision.
+
+## 2. Contract semantics
+
+The executable contract is in `sol-atlas-core/src/network_hypotheses.rs`; the strict JSON Schema Draft 2020-12 interchange profile is `research/earth-observability/NETWORK_HYPOTHESES_V0_1.schema.json`. The Rust validator enforces cross-reference and cross-field invariants that JSON Schema alone cannot express.
+
+### 2.1 One hypothesis is one complete candidate world
+
+A NetworkHypothesis contains:
+
+- a unique hypothesis identity and whole-world probability;
+- exactly one assignment record for every event in the set;
+- explicit null assignment for events left unassociated;
+- candidate asset instances and their event membership;
+- optional geometry-claim references;
+- candidate nodes and their associated candidate assets;
+- evidence-supported relations between nodes.
+
+A candidate identifier is local and non-authoritative. It is not a MUDDI ObjectID, owner-system SystemID or utility-owner asset identifier.
+
+### 2.2 Mutually exclusive world mass
+
+The probability invariant is:
+
+sum(P(hypothesis_i)) + P(residual_unknown) = 1
+
+within a fixed numerical tolerance.
+
+The residual is not a negative detection, absence probability or permission to redistribute probability among the listed hypotheses. It represents unenumerated or unresolved possible worlds.
+
+The fixture contains three alternatives:
+
+| World | Probability | Interpretation |
+|---|---:|---|
+| world-one-utility | 0.62 | Two events belong to one candidate utility |
+| world-two-utilities | 0.23 | The events belong to distinct candidate utilities |
+| world-crossing-unresolved | 0.10 | Two distinct assets have an unresolved crossing relation |
+| Unenumerated worlds | 0.05 | Explicit residual unknown mass |
+
+The values are deliberately illustrative, not learned or calibrated.
+
+### 2.3 Evidence closure
+
+Every event has a source-evidence reference. Every assigned event must be represented in its candidate asset's event membership and supported by that exact source evidence. Every node and relation must resolve its references and carry admitted evidence.
+
+A null event assignment is a valid explicit abstention. It is not silently converted into an absent utility.
+
+### 2.4 Topology is not visual intersection
+
+The relation types distinguish continuation, junction, unresolved crossing and unresolved near-intersection.
+
+An unresolved crossing is not a graph edge establishing physical connection. It remains a spatial relationship awaiting evidence.
+
+### 2.5 Calibration status is separate from structural validity
+
+The validator can check that a calibration receipt identifier was supplied when a caller claims that one is referenced. It cannot authenticate that receipt or establish that the probabilities are calibrated.
+
+The code deliberately does not derive a posterior from event marginals or multiply cross-modal likelihoods.
+
+## 3. Asset-cluster scoring is now executable
+
+A separate event-to-asset evaluator is implemented in `sol-atlas-core/src/utility_reconstruction_metrics.rs`, with CLI `utility_reconstruction_eval`.
+
+It reports B-cubed precision/recall/F1, pairwise true-positive pairs, explicit overmerge/oversplit pairs, candidate false assets, missed truth assets, abstention and false association of adjudicated clutter. It scores only structured independent survey and reviewed trench-image truth. Owner-record-only, conflicted and insufficient truth are separately counted, not converted to negative examples.
+
+Every reference event requires exactly one prediction disposition: candidate asset or explicit abstention. Missing predictions are rejected. Clutter and abstention are singletons in their respective partitions. The committed fixture and pinned baseline are synthetic only.
+
+# EARTH-OBSERVABILITY-JOINT-NETWORK-HYPOTHESES-001
+## Joint posterior hypotheses for evidence-qualified utility-network reconstruction v0.1
+
+**Parent:** Sol-Atlas #771 — EARTH-OBSERVABILITY-QUAL-002  
+**Implementation branch:** research/earth-observability-joint-network-hypotheses-v0-1  
+**Status:** Rust structural contract and deterministic analytic fixture added; probability calibration, graph scoring and physical validation NOT_RUN  
+**Date:** 2026-11-14  
+**Claim ceiling:** The fixture is abstract and non-geographic. It does not represent a real utility, field survey, calibrated posterior, qualified network geometry or excavation clearance.
+
+---
+
+## 1. Research proposition: infer a distribution over worlds, not one best-looking map
+
+The current candidate-graph contract permits multiple event-to-asset association marginals and explicit abstention. That is useful, but independently meaningful marginal probabilities do not necessarily form a coherent joint network.
+
+For example, separate edge probabilities can each look plausible while their combination creates an impossible network: a single event is assigned to two incompatible assets, a crossing is treated as a junction, or two mutually exclusive asset partitions are simultaneously represented as facts.
+
+The next abstraction is a **joint network hypothesis set**:
+
+- one immutable evidence snapshot and one investigation scope;
+- a finite set of mutually exclusive candidate network worlds;
+- one complete event disposition per observed event in every world;
+- candidate assets, geometry claims, nodes and relations that are internally coherent within each world;
+- a probability for each whole world;
+- explicit residual probability for worlds not enumerated.
+
+This is not a claim that a Bayesian posterior has been calibrated. It is a data and validation contract that makes the intended probability semantics explicit and testable.
+
+The decision product becomes:
+
+> Here are the plausible physical network configurations, their relative support, the evidence that separates them, and the observation most likely to change the engineering decision.
+
+## 2. Contract semantics
+
+The executable contract is in `sol-atlas-core/src/network_hypotheses.rs`; the strict JSON Schema Draft 2020-12 interchange profile is `research/earth-observability/NETWORK_HYPOTHESES_V0_1.schema.json`. The Rust validator enforces cross-reference and cross-field invariants that JSON Schema alone cannot express.
+
+### 2.1 One hypothesis is one complete candidate world
+
+A NetworkHypothesis contains:
+
+- a unique hypothesis identity and whole-world probability;
+- exactly one assignment record for every event in the set;
+- explicit null assignment for events left unassociated;
+- candidate asset instances and their event membership;
+- optional geometry-claim references;
+- candidate nodes and their associated candidate assets;
+- evidence-supported relations between nodes.
+
+A candidate identifier is local and non-authoritative. It is not a MUDDI ObjectID, owner-system SystemID or utility-owner asset identifier.
+
+### 2.2 Mutually exclusive world mass
+
+The probability invariant is:
+
+sum(P(hypothesis_i)) + P(residual_unknown) = 1
+
+within a fixed numerical tolerance.
+
+The residual is not a negative detection, absence probability or permission to redistribute probability among the listed hypotheses. It represents unenumerated or unresolved possible worlds.
+
+The fixture contains three alternatives:
+
+| World | Probability | Interpretation |
+|---|---:|---|
+| world-one-utility | 0.62 | Two events belong to one candidate utility |
+| world-two-utilities | 0.23 | The events belong to distinct candidate utilities |
+| world-crossing-unresolved | 0.10 | Two distinct assets have an unresolved crossing relation |
+| Unenumerated worlds | 0.05 | Explicit residual unknown mass |
+
+The values are deliberately illustrative, not learned or calibrated.
+
+### 2.3 Evidence closure
+
+Every event has a source-evidence reference. Every assigned event must be represented in its candidate asset's event membership and supported by that exact source evidence. Every node and relation must resolve its references and carry admitted evidence.
+
+A null event assignment is a valid explicit abstention. It is not silently converted into an absent utility.
+
+### 2.4 Topology is not visual intersection
+
+The relation types distinguish continuation, junction, unresolved crossing and unresolved near-intersection.
+
+An unresolved crossing is not a graph edge establishing physical connection. It remains a spatial relationship awaiting evidence.
+
+### 2.5 Calibration status is separate from structural validity
+
+The validator can check that a calibration receipt identifier was supplied when a caller claims that one is referenced. It cannot authenticate that receipt or establish that the probabilities are calibrated.
+
+The code deliberately does not derive a posterior from event marginals or multiply cross-modal likelihoods.
+
+## 3. Asset-cluster scoring is now executable
+
+A separate event-to-asset evaluator is implemented in `sol-atlas-core/src/utility_reconstruction_metrics.rs`, with CLI `utility_reconstruction_eval`.
+
+It reports B-cubed precision/recall/F1, pairwise true-positive pairs, explicit overmerge/oversplit pairs, candidate false assets, missed truth assets, abstention and false association of adjudicated clutter. It scores only structured independent survey and reviewed trench-image truth. Owner-record-only, conflicted and insufficient truth are separately counted, not converted to negative examples.
+
+Every reference event requires exactly one prediction disposition: candidate asset or explicit abstention. Missing predictions are rejected. Clutter and abstention are singletons in their respective partitions. The committed fixture and pinned baseline are synthetic only.
+
+# EARTH-OBSERVABILITY-JOINT-NETWORK-HYPOTHESES-001
+## Joint posterior hypotheses for evidence-qualified utility-network reconstruction v0.1
+
+**Parent:** Sol-Atlas #771 — EARTH-OBSERVABILITY-QUAL-002  
+**Implementation branch:** research/earth-observability-joint-network-hypotheses-v0-1  
+**Status:** Rust structural contract and deterministic analytic fixture added; probability calibration, graph scoring and physical validation NOT_RUN  
+**Date:** 2026-11-14  
+**Claim ceiling:** The fixture is abstract and non-geographic. It does not represent a real utility, field survey, calibrated posterior, qualified network geometry or excavation clearance.
+
+---
+
+## 1. Research proposition: infer a distribution over worlds, not one best-looking map
+
+The current candidate-graph contract permits multiple event-to-asset association marginals and explicit abstention. That is useful, but independently meaningful marginal probabilities do not necessarily form a coherent joint network.
+
+For example, separate edge probabilities can each look plausible while their combination creates an impossible network: a single event is assigned to two incompatible assets, a crossing is treated as a junction, or two mutually exclusive asset partitions are simultaneously represented as facts.
+
+The next abstraction is a **joint network hypothesis set**:
+
+- one immutable evidence snapshot and one investigation scope;
+- a finite set of mutually exclusive candidate network worlds;
+- one complete event disposition per observed event in every world;
+- candidate assets, geometry claims, nodes and relations that are internally coherent within each world;
+- a probability for each whole world;
+- explicit residual probability for worlds not enumerated.
+
+This is not a claim that a Bayesian posterior has been calibrated. It is a data and validation contract that makes the intended probability semantics explicit and testable.
+
+The decision product becomes:
+
+> Here are the plausible physical network configurations, their relative support, the evidence that separates them, and the observation most likely to change the engineering decision.
+
+## 2. Contract semantics
+
+The executable contract is in `sol-atlas-core/src/network_hypotheses.rs`; the strict JSON Schema Draft 2020-12 interchange profile is `research/earth-observability/NETWORK_HYPOTHESES_V0_1.schema.json`. The Rust validator enforces cross-reference and cross-field invariants that JSON Schema alone cannot express.
+
+### 2.1 One hypothesis is one complete candidate world
+
+A NetworkHypothesis contains:
+
+- a unique hypothesis identity and whole-world probability;
+- exactly one assignment record for every event in the set;
+- explicit null assignment for events left unassociated;
+- candidate asset instances and their event membership;
+- optional geometry-claim references;
+- candidate nodes and their associated candidate assets;
+- evidence-supported relations between nodes.
+
+A candidate identifier is local and non-authoritative. It is not a MUDDI ObjectID, owner-system SystemID or utility-owner asset identifier.
+
+### 2.2 Mutually exclusive world mass
+
+The probability invariant is:
+
+sum(P(hypothesis_i)) + P(residual_unknown) = 1
+
+within a fixed numerical tolerance.
+
+The residual is not a negative detection, absence probability or permission to redistribute probability among the listed hypotheses. It represents unenumerated or unresolved possible worlds.
+
+The fixture contains three alternatives:
+
+| World | Probability | Interpretation |
+|---|---:|---|
+| world-one-utility | 0.62 | Two events belong to one candidate utility |
+| world-two-utilities | 0.23 | The events belong to distinct candidate utilities |
+| world-crossing-unresolved | 0.10 | Two distinct assets have an unresolved crossing relation |
+| Unenumerated worlds | 0.05 | Explicit residual unknown mass |
+
+The values are deliberately illustrative, not learned or calibrated.
+
+### 2.3 Evidence closure
+
+Every event has a source-evidence reference. Every assigned event must be represented in its candidate asset's event membership and supported by that exact source evidence. Every node and relation must resolve its references and carry admitted evidence.
+
+A null event assignment is a valid explicit abstention. It is not silently converted into an absent utility.
+
+### 2.4 Topology is not visual intersection
+
+The relation types distinguish continuation, junction, unresolved crossing and unresolved near-intersection.
+
+An unresolved crossing is not a graph edge establishing physical connection. It remains a spatial relationship awaiting evidence.
+
+### 2.5 Calibration status is separate from structural validity
+
+The validator can check that a calibration receipt identifier was supplied when a caller claims that one is referenced. It cannot authenticate that receipt or establish that the probabilities are calibrated.
+
+The code deliberately does not derive a posterior from event marginals or multiply cross-modal likelihoods.
+
+## 3. Asset-cluster scoring is now executable
+
+A separate event-to-asset evaluator is implemented in `sol-atlas-core/src/utility_reconstruction_metrics.rs`, with CLI `utility_reconstruction_eval`.
+
+It reports B-cubed precision/recall/F1, pairwise true-positive pairs, explicit overmerge/oversplit pairs, candidate false assets, missed truth assets, abstention and false association of adjudicated clutter. It scores only structured independent survey and reviewed trench-image truth. Owner-record-only, conflicted and insufficient truth are separately counted, not converted to negative examples.
+
+Every reference event requires exactly one prediction disposition: candidate asset or explicit abstention. Missing predictions are rejected. Clutter and abstention are singletons in their respective partitions. The committed fixture and pinned baseline are synthetic only.
+
+# EARTH-OBSERVABILITY-JOINT-NETWORK-HYPOTHESES-001
+## Joint posterior hypotheses for evidence-qualified utility-network reconstruction v0.1
+
+**Parent:** Sol-Atlas #771 — EARTH-OBSERVABILITY-QUAL-002  
+**Implementation branch:** research/earth-observability-joint-network-hypotheses-v0-1  
+**Status:** Rust structural contract and deterministic analytic fixture added; probability calibration, graph scoring and physical validation NOT_RUN  
+**Date:** 2026-11-14  
+**Claim ceiling:** The fixture is abstract and non-geographic. It does not represent a real utility, field survey, calibrated posterior, qualified network geometry or excavation clearance.
+
+---
+
+## 1. Research proposition: infer a distribution over worlds, not one best-looking map
+
+The current candidate-graph contract permits multiple event-to-asset association marginals and explicit abstention. That is useful, but independently meaningful marginal probabilities do not necessarily form a coherent joint network.
+
+For example, separate edge probabilities can each look plausible while their combination creates an impossible network: a single event is assigned to two incompatible assets, a crossing is treated as a junction, or two mutually exclusive asset partitions are simultaneously represented as facts.
+
+The next abstraction is a **joint network hypothesis set**:
+
+- one immutable evidence snapshot and one investigation scope;
+- a finite set of mutually exclusive candidate network worlds;
+- one complete event disposition per observed event in every world;
+- candidate assets, geometry claims, nodes and relations that are internally coherent within each world;
+- a probability for each whole world;
+- explicit residual probability for worlds not enumerated.
+
+This is not a claim that a Bayesian posterior has been calibrated. It is a data and validation contract that makes the intended probability semantics explicit and testable.
+
+The decision product becomes:
+
+> Here are the plausible physical network configurations, their relative support, the evidence that separates them, and the observation most likely to change the engineering decision.
+
+## 2. Contract semantics
+
+The executable contract is in `sol-atlas-core/src/network_hypotheses.rs`; the strict JSON Schema Draft 2020-12 interchange profile is `research/earth-observability/NETWORK_HYPOTHESES_V0_1.schema.json`. The Rust validator enforces cross-reference and cross-field invariants that JSON Schema alone cannot express.
+
+### 2.1 One hypothesis is one complete candidate world
+
+A NetworkHypothesis contains:
+
+- a unique hypothesis identity and whole-world probability;
+- exactly one assignment record for every event in the set;
+- explicit null assignment for events left unassociated;
+- candidate asset instances and their event membership;
+- optional geometry-claim references;
+- candidate nodes and their associated candidate assets;
+- evidence-supported relations between nodes.
+
+A candidate identifier is local and non-authoritative. It is not a MUDDI ObjectID, owner-system SystemID or utility-owner asset identifier.
+
+### 2.2 Mutually exclusive world mass
+
+The probability invariant is:
+
+sum(P(hypothesis_i)) + P(residual_unknown) = 1
+
+within a fixed numerical tolerance.
+
+The residual is not a negative detection, absence probability or permission to redistribute probability among the listed hypotheses. It represents unenumerated or unresolved possible worlds.
+
+The fixture contains three alternatives:
+
+| World | Probability | Interpretation |
+|---|---:|---|
+| world-one-utility | 0.62 | Two events belong to one candidate utility |
+| world-two-utilities | 0.23 | The events belong to distinct candidate utilities |
+| world-crossing-unresolved | 0.10 | Two distinct assets have an unresolved crossing relation |
+| Unenumerated worlds | 0.05 | Explicit residual unknown mass |
+
+The values are deliberately illustrative, not learned or calibrated.
+
+### 2.3 Evidence closure
+
+Every event has a source-evidence reference. Every assigned event must be represented in its candidate asset's event membership and supported by that exact source evidence. Every node and relation must resolve its references and carry admitted evidence.
+
+A null event assignment is a valid explicit abstention. It is not silently converted into an absent utility.
+
+### 2.4 Topology is not visual intersection
+
+The relation types distinguish continuation, junction, unresolved crossing and unresolved near-intersection.
+
+An unresolved crossing is not a graph edge establishing physical connection. It remains a spatial relationship awaiting evidence.
+
+### 2.5 Calibration status is separate from structural validity
+
+The validator can check that a calibration receipt identifier was supplied when a caller claims that one is referenced. It cannot authenticate that receipt or establish that the probabilities are calibrated.
+
+The code deliberately does not derive a posterior from event marginals or multiply cross-modal likelihoods.
+
+## 3. Asset-cluster scoring is now executable
+
+A separate event-to-asset evaluator is implemented in `sol-atlas-core/src/utility_reconstruction_metrics.rs`, with CLI `utility_reconstruction_eval`.
+
+It reports B-cubed precision/recall/F1, pairwise true-positive pairs, explicit overmerge/oversplit pairs, candidate false assets, missed truth assets, abstention and false association of adjudicated clutter. It scores only structured independent survey and reviewed trench-image truth. Owner-record-only, conflicted and insufficient truth are separately counted, not converted to negative examples.
+
+Every reference event requires exactly one prediction disposition: candidate asset or explicit abstention. Missing predictions are rejected. Clutter and abstention are singletons in their respective partitions. The committed fixture and pinned baseline are synthetic only.
+
+# EARTH-OBSERVABILITY-JOINT-NETWORK-HYPOTHESES-001
+## Joint posterior hypotheses for evidence-qualified utility-network reconstruction v0.1
+
+**Parent:** Sol-Atlas #771 — EARTH-OBSERVABILITY-QUAL-002  
+**Implementation branch:** research/earth-observability-joint-network-hypotheses-v0-1  
+**Status:** Rust structural contract and deterministic analytic fixture added; probability calibration, graph scoring and physical validation NOT_RUN  
+**Date:** 2026-11-14  
+**Claim ceiling:** The fixture is abstract and non-geographic. It does not represent a real utility, field survey, calibrated posterior, qualified network geometry or excavation clearance.
+
+---
+
+## 1. Research proposition: infer a distribution over worlds, not one best-looking map
+
+The current candidate-graph contract permits multiple event-to-asset association marginals and explicit abstention. That is useful, but independently meaningful marginal probabilities do not necessarily form a coherent joint network.
+
+For example, separate edge probabilities can each look plausible while their combination creates an impossible network: a single event is assigned to two incompatible assets, a crossing is treated as a junction, or two mutually exclusive asset partitions are simultaneously represented as facts.
+
+The next abstraction is a **joint network hypothesis set**:
+
+- one immutable evidence snapshot and one investigation scope;
+- a finite set of mutually exclusive candidate network worlds;
+- one complete event disposition per observed event in every world;
+- candidate assets, geometry claims, nodes and relations that are internally coherent within each world;
+- a probability for each whole world;
+- explicit residual probability for worlds not enumerated.
+
+This is not a claim that a Bayesian posterior has been calibrated. It is a data and validation contract that makes the intended probability semantics explicit and testable.
+
+The decision product becomes:
+
+> Here are the plausible physical network configurations, their relative support, the evidence that separates them, and the observation most likely to change the engineering decision.
+
+## 2. Contract semantics
+
+The executable contract is in `sol-atlas-core/src/network_hypotheses.rs`; the strict JSON Schema Draft 2020-12 interchange profile is `research/earth-observability/NETWORK_HYPOTHESES_V0_1.schema.json`. The Rust validator enforces cross-reference and cross-field invariants that JSON Schema alone cannot express.
+
+### 2.1 One hypothesis is one complete candidate world
+
+A NetworkHypothesis contains:
+
+- a unique hypothesis identity and whole-world probability;
+- exactly one assignment record for every event in the set;
+- explicit null assignment for events left unassociated;
+- candidate asset instances and their event membership;
+- optional geometry-claim references;
+- candidate nodes and their associated candidate assets;
+- evidence-supported relations between nodes.
+
+A candidate identifier is local and non-authoritative. It is not a MUDDI ObjectID, owner-system SystemID or utility-owner asset identifier.
+
+### 2.2 Mutually exclusive world mass
+
+The probability invariant is:
+
+sum(P(hypothesis_i)) + P(residual_unknown) = 1
+
+within a fixed numerical tolerance.
+
+The residual is not a negative detection, absence probability or permission to redistribute probability among the listed hypotheses. It represents unenumerated or unresolved possible worlds.
+
+The fixture contains three alternatives:
+
+| World | Probability | Interpretation |
+|---|---:|---|
+| world-one-utility | 0.62 | Two events belong to one candidate utility |
+| world-two-utilities | 0.23 | The events belong to distinct candidate utilities |
+| world-crossing-unresolved | 0.10 | Two distinct assets have an unresolved crossing relation |
+| Unenumerated worlds | 0.05 | Explicit residual unknown mass |
+
+The values are deliberately illustrative, not learned or calibrated.
+
+### 2.3 Evidence closure
+
+Every event has a source-evidence reference. Every assigned event must be represented in its candidate asset's event membership and supported by that exact source evidence. Every node and relation must resolve its references and carry admitted evidence.
+
+A null event assignment is a valid explicit abstention. It is not silently converted into an absent utility.
+
+### 2.4 Topology is not visual intersection
+
+The relation types distinguish continuation, junction, unresolved crossing and unresolved near-intersection.
+
+An unresolved crossing is not a graph edge establishing physical connection. It remains a spatial relationship awaiting evidence.
+
+### 2.5 Calibration status is separate from structural validity
+
+The validator can check that a calibration receipt identifier was supplied when a caller claims that one is referenced. It cannot authenticate that receipt or establish that the probabilities are calibrated.
+
+The code deliberately does not derive a posterior from event marginals or multiply cross-modal likelihoods.
+
+## 3. Asset-cluster scoring is now executable
+
+A separate event-to-asset evaluator is implemented in `sol-atlas-core/src/utility_reconstruction_metrics.rs`, with CLI `utility_reconstruction_eval`.
+
+It reports B-cubed precision/recall/F1, pairwise true-positive pairs, explicit overmerge/oversplit pairs, candidate false assets, missed truth assets, abstention and false association of adjudicated clutter. It scores only structured independent survey and reviewed trench-image truth. Owner-record-only, conflicted and insufficient truth are separately counted, not converted to negative examples.
+
+Every reference event requires exactly one prediction disposition: candidate asset or explicit abstention. Missing predictions are rejected. Clutter and abstention are singletons in their respective partitions. The committed fixture and pinned baseline are synthetic only.
+
+# EARTH-OBSERVABILITY-JOINT-NETWORK-HYPOTHESES-001
+## Joint posterior hypotheses for evidence-qualified utility-network reconstruction v0.1
+
+**Parent:** Sol-Atlas #771 — EARTH-OBSERVABILITY-QUAL-002  
+**Implementation branch:** research/earth-observability-joint-network-hypotheses-v0-1  
+**Status:** Rust structural contract and deterministic analytic fixture added; probability calibration, graph scoring and physical validation NOT_RUN  
+**Date:** 2026-11-14  
+**Claim ceiling:** The fixture is abstract and non-geographic. It does not represent a real utility, field survey, calibrated posterior, qualified network geometry or excavation clearance.
+
+---
+
+## 1. Research proposition: infer a distribution over worlds, not one best-looking map
+
+The current candidate-graph contract permits multiple event-to-asset association marginals and explicit abstention. That is useful, but independently meaningful marginal probabilities do not necessarily form a coherent joint network.
+
+For example, separate edge probabilities can each look plausible while their combination creates an impossible network: a single event is assigned to two incompatible assets, a crossing is treated as a junction, or two mutually exclusive asset partitions are simultaneously represented as facts.
+
+The next abstraction is a **joint network hypothesis set**:
+
+- one immutable evidence snapshot and one investigation scope;
+- a finite set of mutually exclusive candidate network worlds;
+- one complete event disposition per observed event in every world;
+- candidate assets, geometry claims, nodes and relations that are internally coherent within each world;
+- a probability for each whole world;
+- explicit residual probability for worlds not enumerated.
+
+This is not a claim that a Bayesian posterior has been calibrated. It is a data and validation contract that makes the intended probability semantics explicit and testable.
+
+The decision product becomes:
+
+> Here are the plausible physical network configurations, their relative support, the evidence that separates them, and the observation most likely to change the engineering decision.
+
+## 2. Contract semantics
+
+The executable contract is in `sol-atlas-core/src/network_hypotheses.rs`; the strict JSON Schema Draft 2020-12 interchange profile is `research/earth-observability/NETWORK_HYPOTHESES_V0_1.schema.json`. The Rust validator enforces cross-reference and cross-field invariants that JSON Schema alone cannot express.
+
+### 2.1 One hypothesis is one complete candidate world
+
+A NetworkHypothesis contains:
+
+- a unique hypothesis identity and whole-world probability;
+- exactly one assignment record for every event in the set;
+- explicit null assignment for events left unassociated;
+- candidate asset instances and their event membership;
+- optional geometry-claim references;
+- candidate nodes and their associated candidate assets;
+- evidence-supported relations between nodes.
+
+A candidate identifier is local and non-authoritative. It is not a MUDDI ObjectID, owner-system SystemID or utility-owner asset identifier.
+
+### 2.2 Mutually exclusive world mass
+
+The probability invariant is:
+
+sum(P(hypothesis_i)) + P(residual_unknown) = 1
+
+within a fixed numerical tolerance.
+
+The residual is not a negative detection, absence probability or permission to redistribute probability among the listed hypotheses. It represents unenumerated or unresolved possible worlds.
+
+The fixture contains three alternatives:
+
+| World | Probability | Interpretation |
+|---|---:|---|
+| world-one-utility | 0.62 | Two events belong to one candidate utility |
+| world-two-utilities | 0.23 | The events belong to distinct candidate utilities |
+| world-crossing-unresolved | 0.10 | Two distinct assets have an unresolved crossing relation |
+| Unenumerated worlds | 0.05 | Explicit residual unknown mass |
+
+The values are deliberately illustrative, not learned or calibrated.
+
+### 2.3 Evidence closure
+
+Every event has a source-evidence reference. Every assigned event must be represented in its candidate asset's event membership and supported by that exact source evidence. Every node and relation must resolve its references and carry admitted evidence.
+
+A null event assignment is a valid explicit abstention. It is not silently converted into an absent utility.
+
+### 2.4 Topology is not visual intersection
+
+The relation types distinguish continuation, junction, unresolved crossing and unresolved near-intersection.
+
+An unresolved crossing is not a graph edge establishing physical connection. It remains a spatial relationship awaiting evidence.
+
+### 2.5 Calibration status is separate from structural validity
+
+The validator can check that a calibration receipt identifier was supplied when a caller claims that one is referenced. It cannot authenticate that receipt or establish that the probabilities are calibrated.
+
+The code deliberately does not derive a posterior from event marginals or multiply cross-modal likelihoods.
+
+## 3. Asset-cluster scoring is now executable
+
+A separate event-to-asset evaluator is implemented in `sol-atlas-core/src/utility_reconstruction_metrics.rs`, with CLI `utility_reconstruction_eval`.
+
+It reports B-cubed precision/recall/F1, pairwise true-positive pairs, explicit overmerge/oversplit pairs, candidate false assets, missed truth assets, abstention and false association of adjudicated clutter. It scores only structured independent survey and reviewed trench-image truth. Owner-record-only, conflicted and insufficient truth are separately counted, not converted to negative examples.
+
+Every reference event requires exactly one prediction disposition: candidate asset or explicit abstention. Missing predictions are rejected. Clutter and abstention are singletons in their respective partitions. The committed fixture and pinned baseline are synthetic only.
+
+# EARTH-OBSERVABILITY-JOINT-NETWORK-HYPOTHESES-001
+## Joint posterior hypotheses for evidence-qualified utility-network reconstruction v0.1
+
+**Parent:** Sol-Atlas #771 — EARTH-OBSERVABILITY-QUAL-002  
+**Implementation branch:** research/earth-observability-joint-network-hypotheses-v0-1  
+**Status:** Rust structural contract and deterministic analytic fixture added; probability calibration, graph scoring and physical validation NOT_RUN  
+**Date:** 2026-11-14  
+**Claim ceiling:** The fixture is abstract and non-geographic. It does not represent a real utility, field survey, calibrated posterior, qualified network geometry or excavation clearance.
+
+---
+
+## 1. Research proposition: infer a distribution over worlds, not one best-looking map
+
+The current candidate-graph contract permits multiple event-to-asset association marginals and explicit abstention. That is useful, but independently meaningful marginal probabilities do not necessarily form a coherent joint network.
+
+For example, separate edge probabilities can each look plausible while their combination creates an impossible network: a single event is assigned to two incompatible assets, a crossing is treated as a junction, or two mutually exclusive asset partitions are simultaneously represented as facts.
+
+The next abstraction is a **joint network hypothesis set**:
+
+- one immutable evidence snapshot and one investigation scope;
+- a finite set of mutually exclusive candidate network worlds;
+- one complete event disposition per observed event in every world;
+- candidate assets, geometry claims, nodes and relations that are internally coherent within each world;
+- a probability for each whole world;
+- explicit residual probability for worlds not enumerated.
+
+This is not a claim that a Bayesian posterior has been calibrated. It is a data and validation contract that makes the intended probability semantics explicit and testable.
+
+The decision product becomes:
+
+> Here are the plausible physical network configurations, their relative support, the evidence that separates them, and the observation most likely to change the engineering decision.
+
+## 2. Contract semantics
+
+The executable contract is in `sol-atlas-core/src/network_hypotheses.rs`; the strict JSON Schema Draft 2020-12 interchange profile is `research/earth-observability/NETWORK_HYPOTHESES_V0_1.schema.json`. The Rust validator enforces cross-reference and cross-field invariants that JSON Schema alone cannot express.
+
+### 2.1 One hypothesis is one complete candidate world
+
+A NetworkHypothesis contains:
+
+- a unique hypothesis identity and whole-world probability;
+- exactly one assignment record for every event in the set;
+- explicit null assignment for events left unassociated;
+- candidate asset instances and their event membership;
+- optional geometry-claim references;
+- candidate nodes and their associated candidate assets;
+- evidence-supported relations between nodes.
+
+A candidate identifier is local and non-authoritative. It is not a MUDDI ObjectID, owner-system SystemID or utility-owner asset identifier.
+
+### 2.2 Mutually exclusive world mass
+
+The probability invariant is:
+
+sum(P(hypothesis_i)) + P(residual_unknown) = 1
+
+within a fixed numerical tolerance.
+
+The residual is not a negative detection, absence probability or permission to redistribute probability among the listed hypotheses. It represents unenumerated or unresolved possible worlds.
+
+The fixture contains three alternatives:
+
+| World | Probability | Interpretation |
+|---|---:|---|
+| world-one-utility | 0.62 | Two events belong to one candidate utility |
+| world-two-utilities | 0.23 | The events belong to distinct candidate utilities |
+| world-crossing-unresolved | 0.10 | Two distinct assets have an unresolved crossing relation |
+| Unenumerated worlds | 0.05 | Explicit residual unknown mass |
+
+The values are deliberately illustrative, not learned or calibrated.
+
+### 2.3 Evidence closure
+
+Every event has a source-evidence reference. Every assigned event must be represented in its candidate asset's event membership and supported by that exact source evidence. Every node and relation must resolve its references and carry admitted evidence.
+
+A null event assignment is a valid explicit abstention. It is not silently converted into an absent utility.
+
+### 2.4 Topology is not visual intersection
+
+The relation types distinguish continuation, junction, unresolved crossing and unresolved near-intersection.
+
+An unresolved crossing is not a graph edge establishing physical connection. It remains a spatial relationship awaiting evidence.
+
+### 2.5 Calibration status is separate from structural validity
+
+The validator can check that a calibration receipt identifier was supplied when a caller claims that one is referenced. It cannot authenticate that receipt or establish that the probabilities are calibrated.
+
+The code deliberately does not derive a posterior from event marginals or multiply cross-modal likelihoods.
+
+## 3. Asset-cluster scoring is now executable
+
+A separate event-to-asset evaluator is implemented in `sol-atlas-core/src/utility_reconstruction_metrics.rs`, with CLI `utility_reconstruction_eval`.
+
+It reports B-cubed precision/recall/F1, pairwise true-positive pairs, explicit overmerge/oversplit pairs, candidate false assets, missed truth assets, abstention and false association of adjudicated clutter. It scores only structured independent survey and reviewed trench-image truth. Owner-record-only, conflicted and insufficient truth are separately counted, not converted to negative examples.
+
+Every reference event requires exactly one prediction disposition: candidate asset or explicit abstention. Missing predictions are rejected. Clutter and abstention are singletons in their respective partitions. The committed fixture and pinned baseline are synthetic only.
+
+# EARTH-OBSERVABILITY-JOINT-NETWORK-HYPOTHESES-001
+## Joint posterior hypotheses for evidence-qualified utility-network reconstruction v0.1
+
+**Parent:** Sol-Atlas #771 — EARTH-OBSERVABILITY-QUAL-002  
+**Implementation branch:** research/earth-observability-joint-network-hypotheses-v0-1  
+**Status:** Rust structural contract and deterministic analytic fixture added; probability calibration, graph scoring and physical validation NOT_RUN  
+**Date:** 2026-11-14  
+**Claim ceiling:** The fixture is abstract and non-geographic. It does not represent a real utility, field survey, calibrated posterior, qualified network geometry or excavation clearance.
+
+---
+
+## 1. Research proposition: infer a distribution over worlds, not one best-looking map
+
+The current candidate-graph contract permits multiple event-to-asset association marginals and explicit abstention. That is useful, but independently meaningful marginal probabilities do not necessarily form a coherent joint network.
+
+For example, separate edge probabilities can each look plausible while their combination creates an impossible network: a single event is assigned to two incompatible assets, a crossing is treated as a junction, or two mutually exclusive asset partitions are simultaneously represented as facts.
+
+The next abstraction is a **joint network hypothesis set**:
+
+- one immutable evidence snapshot and one investigation scope;
+- a finite set of mutually exclusive candidate network worlds;
+- one complete event disposition per observed event in every world;
+- candidate assets, geometry claims, nodes and relations that are internally coherent within each world;
+- a probability for each whole world;
+- explicit residual probability for worlds not enumerated.
+
+This is not a claim that a Bayesian posterior has been calibrated. It is a data and validation contract that makes the intended probability semantics explicit and testable.
+
+The decision product becomes:
+
+> Here are the plausible physical network configurations, their relative support, the evidence that separates them, and the observation most likely to change the engineering decision.
+
+## 2. Contract semantics
+
+The executable contract is in `sol-atlas-core/src/network_hypotheses.rs`; the strict JSON Schema Draft 2020-12 interchange profile is `research/earth-observability/NETWORK_HYPOTHESES_V0_1.schema.json`. The Rust validator enforces cross-reference and cross-field invariants that JSON Schema alone cannot express.
+
+### 2.1 One hypothesis is one complete candidate world
+
+A NetworkHypothesis contains:
+
+- a unique hypothesis identity and whole-world probability;
+- exactly one assignment record for every event in the set;
+- explicit null assignment for events left unassociated;
+- candidate asset instances and their event membership;
+- optional geometry-claim references;
+- candidate nodes and their associated candidate assets;
+- evidence-supported relations between nodes.
+
+A candidate identifier is local and non-authoritative. It is not a MUDDI ObjectID, owner-system SystemID or utility-owner asset identifier.
+
+### 2.2 Mutually exclusive world mass
+
+The probability invariant is:
+
+sum(P(hypothesis_i)) + P(residual_unknown) = 1
+
+within a fixed numerical tolerance.
+
+The residual is not a negative detection, absence probability or permission to redistribute probability among the listed hypotheses. It represents unenumerated or unresolved possible worlds.
+
+The fixture contains three alternatives:
+
+| World | Probability | Interpretation |
+|---|---:|---|
+| world-one-utility | 0.62 | Two events belong to one candidate utility |
+| world-two-utilities | 0.23 | The events belong to distinct candidate utilities |
+| world-crossing-unresolved | 0.10 | Two distinct assets have an unresolved crossing relation |
+| Unenumerated worlds | 0.05 | Explicit residual unknown mass |
+
+The values are deliberately illustrative, not learned or calibrated.
+
+### 2.3 Evidence closure
+
+Every event has a source-evidence reference. Every assigned event must be represented in its candidate asset's event membership and supported by that exact source evidence. Every node and relation must resolve its references and carry admitted evidence.
+
+A null event assignment is a valid explicit abstention. It is not silently converted into an absent utility.
+
+### 2.4 Topology is not visual intersection
+
+The relation types distinguish continuation, junction, unresolved crossing and unresolved near-intersection.
+
+An unresolved crossing is not a graph edge establishing physical connection. It remains a spatial relationship awaiting evidence.
+
+### 2.5 Calibration status is separate from structural validity
+
+The validator can check that a calibration receipt identifier was supplied when a caller claims that one is referenced. It cannot authenticate that receipt or establish that the probabilities are calibrated.
+
+The code deliberately does not derive a posterior from event marginals or multiply cross-modal likelihoods.
+
+## 3. Asset-cluster scoring is now executable
+
+A separate event-to-asset evaluator is implemented in `sol-atlas-core/src/utility_reconstruction_metrics.rs`, with CLI `utility_reconstruction_eval`.
+
+It reports B-cubed precision/recall/F1, pairwise true-positive pairs, explicit overmerge/oversplit pairs, candidate false assets, missed truth assets, abstention and false association of adjudicated clutter. It scores only structured independent survey and reviewed trench-image truth. Owner-record-only, conflicted and insufficient truth are separately counted, not converted to negative examples.
+
+Every reference event requires exactly one prediction disposition: candidate asset or explicit abstention. Missing predictions are rejected. Clutter and abstention are singletons in their respective partitions. The committed fixture and pinned baseline are synthetic only.
+
+# EARTH-OBSERVABILITY-JOINT-NETWORK-HYPOTHESES-001
+## Joint posterior hypotheses for evidence-qualified utility-network reconstruction v0.1
+
+**Parent:** Sol-Atlas #771 — EARTH-OBSERVABILITY-QUAL-002  
+**Implementation branch:** research/earth-observability-joint-network-hypotheses-v0-1  
+**Status:** Rust structural contract and deterministic analytic fixture added; probability calibration, graph scoring and physical validation NOT_RUN  
+**Date:** 2026-11-14  
+**Claim ceiling:** The fixture is abstract and non-geographic. It does not represent a real utility, field survey, calibrated posterior, qualified network geometry or excavation clearance.
+
+---
+
+## 1. Research proposition: infer a distribution over worlds, not one best-looking map
+
+The current candidate-graph contract permits multiple event-to-asset association marginals and explicit abstention. That is useful, but independently meaningful marginal probabilities do not necessarily form a coherent joint network.
+
+For example, separate edge probabilities can each look plausible while their combination creates an impossible network: a single event is assigned to two incompatible assets, a crossing is treated as a junction, or two mutually exclusive asset partitions are simultaneously represented as facts.
+
+The next abstraction is a **joint network hypothesis set**:
+
+- one immutable evidence snapshot and one investigation scope;
+- a finite set of mutually exclusive candidate network worlds;
+- one complete event disposition per observed event in every world;
+- candidate assets, geometry claims, nodes and relations that are internally coherent within each world;
+- a probability for each whole world;
+- explicit residual probability for worlds not enumerated.
+
+This is not a claim that a Bayesian posterior has been calibrated. It is a data and validation contract that makes the intended probability semantics explicit and testable.
+
+The decision product becomes:
+
+> Here are the plausible physical network configurations, their relative support, the evidence that separates them, and the observation most likely to change the engineering decision.
+
+## 2. Contract semantics
+
+The executable contract is in `sol-atlas-core/src/network_hypotheses.rs`; the strict JSON Schema Draft 2020-12 interchange profile is `research/earth-observability/NETWORK_HYPOTHESES_V0_1.schema.json`. The Rust validator enforces cross-reference and cross-field invariants that JSON Schema alone cannot express.
+
+### 2.1 One hypothesis is one complete candidate world
+
+A NetworkHypothesis contains:
+
+- a unique hypothesis identity and whole-world probability;
+- exactly one assignment record for every event in the set;
+- explicit null assignment for events left unassociated;
+- candidate asset instances and their event membership;
+- optional geometry-claim references;
+- candidate nodes and their associated candidate assets;
+- evidence-supported relations between nodes.
+
+A candidate identifier is local and non-authoritative. It is not a MUDDI ObjectID, owner-system SystemID or utility-owner asset identifier.
+
+### 2.2 Mutually exclusive world mass
+
+The probability invariant is:
+
+sum(P(hypothesis_i)) + P(residual_unknown) = 1
+
+within a fixed numerical tolerance.
+
+The residual is not a negative detection, absence probability or permission to redistribute probability among the listed hypotheses. It represents unenumerated or unresolved possible worlds.
+
+The fixture contains three alternatives:
+
+| World | Probability | Interpretation |
+|---|---:|---|
+| world-one-utility | 0.62 | Two events belong to one candidate utility |
+| world-two-utilities | 0.23 | The events belong to distinct candidate utilities |
+| world-crossing-unresolved | 0.10 | Two distinct assets have an unresolved crossing relation |
+| Unenumerated worlds | 0.05 | Explicit residual unknown mass |
+
+The values are deliberately illustrative, not learned or calibrated.
+
+### 2.3 Evidence closure
+
+Every event has a source-evidence reference. Every assigned event must be represented in its candidate asset's event membership and supported by that exact source evidence. Every node and relation must resolve its references and carry admitted evidence.
+
+A null event assignment is a valid explicit abstention. It is not silently converted into an absent utility.
+
+### 2.4 Topology is not visual intersection
+
+The relation types distinguish continuation, junction, unresolved crossing and unresolved near-intersection.
+
+An unresolved crossing is not a graph edge establishing physical connection. It remains a spatial relationship awaiting evidence.
+
+### 2.5 Calibration status is separate from structural validity
+
+The validator can check that a calibration receipt identifier was supplied when a caller claims that one is referenced. It cannot authenticate that receipt or establish that the probabilities are calibrated.
+
+The code deliberately does not derive a posterior from event marginals or multiply cross-modal likelihoods.
+
+## 3. Asset-cluster scoring is now executable
+
+A separate event-to-asset evaluator is implemented in `sol-atlas-core/src/utility_reconstruction_metrics.rs`, with CLI `utility_reconstruction_eval`.
+
+It reports B-cubed precision/recall/F1, pairwise true-positive pairs, explicit overmerge/oversplit pairs, candidate false assets, missed truth assets, abstention and false association of adjudicated clutter. It scores only structured independent survey and reviewed trench-image truth. Owner-record-only, conflicted and insufficient truth are separately counted, not converted to negative examples.
+
+Every reference event requires exactly one prediction disposition: candidate asset or explicit abstention. Missing predictions are rejected. Clutter and abstention are singletons in their respective partitions. The committed fixture and pinned baseline are synthetic only.
+
+# EARTH-OBSERVABILITY-JOINT-NETWORK-HYPOTHESES-001
+## Joint posterior hypotheses for evidence-qualified utility-network reconstruction v0.1
+
+**Parent:** Sol-Atlas #771 — EARTH-OBSERVABILITY-QUAL-002  
+**Implementation branch:** research/earth-observability-joint-network-hypotheses-v0-1  
+**Status:** Rust structural contract and deterministic analytic fixture added; probability calibration, graph scoring and physical validation NOT_RUN  
+**Date:** 2026-11-14  
+**Claim ceiling:** The fixture is abstract and non-geographic. It does not represent a real utility, field survey, calibrated posterior, qualified network geometry or excavation clearance.
+
+---
+
+## 1. Research proposition: infer a distribution over worlds, not one best-looking map
+
+The current candidate-graph contract permits multiple event-to-asset association marginals and explicit abstention. That is useful, but independently meaningful marginal probabilities do not necessarily form a coherent joint network.
+
+For example, separate edge probabilities can each look plausible while their combination creates an impossible network: a single event is assigned to two incompatible assets, a crossing is treated as a junction, or two mutually exclusive asset partitions are simultaneously represented as facts.
+
+The next abstraction is a **joint network hypothesis set**:
+
+- one immutable evidence snapshot and one investigation scope;
+- a finite set of mutually exclusive candidate network worlds;
+- one complete event disposition per observed event in every world;
+- candidate assets, geometry claims, nodes and relations that are internally coherent within each world;
+- a probability for each whole world;
+- explicit residual probability for worlds not enumerated.
+
+This is not a claim that a Bayesian posterior has been calibrated. It is a data and validation contract that makes the intended probability semantics explicit and testable.
+
+The decision product becomes:
+
+> Here are the plausible physical network configurations, their relative support, the evidence that separates them, and the observation most likely to change the engineering decision.
+
+## 2. Contract semantics
+
+The executable contract is in `sol-atlas-core/src/network_hypotheses.rs`; the strict JSON Schema Draft 2020-12 interchange profile is `research/earth-observability/NETWORK_HYPOTHESES_V0_1.schema.json`. The Rust validator enforces cross-reference and cross-field invariants that JSON Schema alone cannot express.
+
+### 2.1 One hypothesis is one complete candidate world
+
+A NetworkHypothesis contains:
+
+- a unique hypothesis identity and whole-world probability;
+- exactly one assignment record for every event in the set;
+- explicit null assignment for events left unassociated;
+- candidate asset instances and their event membership;
+- optional geometry-claim references;
+- candidate nodes and their associated candidate assets;
+- evidence-supported relations between nodes.
+
+A candidate identifier is local and non-authoritative. It is not a MUDDI ObjectID, owner-system SystemID or utility-owner asset identifier.
+
+### 2.2 Mutually exclusive world mass
+
+The probability invariant is:
+
+sum(P(hypothesis_i)) + P(residual_unknown) = 1
+
+within a fixed numerical tolerance.
+
+The residual is not a negative detection, absence probability or permission to redistribute probability among the listed hypotheses. It represents unenumerated or unresolved possible worlds.
+
+The fixture contains three alternatives:
+
+| World | Probability | Interpretation |
+|---|---:|---|
+| world-one-utility | 0.62 | Two events belong to one candidate utility |
+| world-two-utilities | 0.23 | The events belong to distinct candidate utilities |
+| world-crossing-unresolved | 0.10 | Two distinct assets have an unresolved crossing relation |
+| Unenumerated worlds | 0.05 | Explicit residual unknown mass |
+
+The values are deliberately illustrative, not learned or calibrated.
+
+### 2.3 Evidence closure
+
+Every event has a source-evidence reference. Every assigned event must be represented in its candidate asset's event membership and supported by that exact source evidence. Every node and relation must resolve its references and carry admitted evidence.
+
+A null event assignment is a valid explicit abstention. It is not silently converted into an absent utility.
+
+### 2.4 Topology is not visual intersection
+
+The relation types distinguish continuation, junction, unresolved crossing and unresolved near-intersection.
+
+An unresolved crossing is not a graph edge establishing physical connection. It remains a spatial relationship awaiting evidence.
+
+### 2.5 Calibration status is separate from structural validity
+
+The validator can check that a calibration receipt identifier was supplied when a caller claims that one is referenced. It cannot authenticate that receipt or establish that the probabilities are calibrated.
+
+The code deliberately does not derive a posterior from event marginals or multiply cross-modal likelihoods.
+
+## 3. Asset-cluster scoring is now executable
+
+A separate event-to-asset evaluator is implemented in `sol-atlas-core/src/utility_reconstruction_metrics.rs`, with CLI `utility_reconstruction_eval`.
+
+It reports B-cubed precision/recall/F1, pairwise true-positive pairs, explicit overmerge/oversplit pairs, candidate false assets, missed truth assets, abstention and false association of adjudicated clutter. It scores only structured independent survey and reviewed trench-image truth. Owner-record-only, conflicted and insufficient truth are separately counted, not converted to negative examples.
+
+Every reference event requires exactly one prediction disposition: candidate asset or explicit abstention. Missing predictions are rejected. Clutter and abstention are singletons in their respective partitions. The committed fixture and pinned baseline are synthetic only.
+
+# EARTH-OBSERVABILITY-JOINT-NETWORK-HYPOTHESES-001
+## Joint posterior hypotheses for evidence-qualified utility-network reconstruction v0.1
+
+**Parent:** Sol-Atlas #771 — EARTH-OBSERVABILITY-QUAL-002  
+**Implementation branch:** research/earth-observability-joint-network-hypotheses-v0-1  
+**Status:** Rust structural contract and deterministic analytic fixture added; probability calibration, graph scoring and physical validation NOT_RUN  
+**Date:** 2026-11-14  
+**Claim ceiling:** The fixture is abstract and non-geographic. It does not represent a real utility, field survey, calibrated posterior, qualified network geometry or excavation clearance.
+
+---
+
+## 1. Research proposition: infer a distribution over worlds, not one best-looking map
+
+The current candidate-graph contract permits multiple event-to-asset association marginals and explicit abstention. That is useful, but independently meaningful marginal probabilities do not necessarily form a coherent joint network.
+
+For example, separate edge probabilities can each look plausible while their combination creates an impossible network: a single event is assigned to two incompatible assets, a crossing is treated as a junction, or two mutually exclusive asset partitions are simultaneously represented as facts.
+
+The next abstraction is a **joint network hypothesis set**:
+
+- one immutable evidence snapshot and one investigation scope;
+- a finite set of mutually exclusive candidate network worlds;
+- one complete event disposition per observed event in every world;
+- candidate assets, geometry claims, nodes and relations that are internally coherent within each world;
+- a probability for each whole world;
+- explicit residual probability for worlds not enumerated.
+
+This is not a claim that a Bayesian posterior has been calibrated. It is a data and validation contract that makes the intended probability semantics explicit and testable.
+
+The decision product becomes:
+
+> Here are the plausible physical network configurations, their relative support, the evidence that separates them, and the observation most likely to change the engineering decision.
+
+## 2. Contract semantics
+
+The executable contract is in `sol-atlas-core/src/network_hypotheses.rs`; the strict JSON Schema Draft 2020-12 interchange profile is `research/earth-observability/NETWORK_HYPOTHESES_V0_1.schema.json`. The Rust validator enforces cross-reference and cross-field invariants that JSON Schema alone cannot express.
+
+### 2.1 One hypothesis is one complete candidate world
+
+A NetworkHypothesis contains:
+
+- a unique hypothesis identity and whole-world probability;
+- exactly one assignment record for every event in the set;
+- explicit null assignment for events left unassociated;
+- candidate asset instances and their event membership;
+- optional geometry-claim references;
+- candidate nodes and their associated candidate assets;
+- evidence-supported relations between nodes.
+
+A candidate identifier is local and non-authoritative. It is not a MUDDI ObjectID, owner-system SystemID or utility-owner asset identifier.
+
+### 2.2 Mutually exclusive world mass
+
+The probability invariant is:
+
+sum(P(hypothesis_i)) + P(residual_unknown) = 1
+
+within a fixed numerical tolerance.
+
+The residual is not a negative detection, absence probability or permission to redistribute probability among the listed hypotheses. It represents unenumerated or unresolved possible worlds.
+
+The fixture contains three alternatives:
+
+| World | Probability | Interpretation |
+|---|---:|---|
+| world-one-utility | 0.62 | Two events belong to one candidate utility |
+| world-two-utilities | 0.23 | The events belong to distinct candidate utilities |
+| world-crossing-unresolved | 0.10 | Two distinct assets have an unresolved crossing relation |
+| Unenumerated worlds | 0.05 | Explicit residual unknown mass |
+
+The values are deliberately illustrative, not learned or calibrated.
+
+### 2.3 Evidence closure
+
+Every event has a source-evidence reference. Every assigned event must be represented in its candidate asset's event membership and supported by that exact source evidence. Every node and relation must resolve its references and carry admitted evidence.
+
+A null event assignment is a valid explicit abstention. It is not silently converted into an absent utility.
+
+### 2.4 Topology is not visual intersection
+
+The relation types distinguish continuation, junction, unresolved crossing and unresolved near-intersection.
+
+An unresolved crossing is not a graph edge establishing physical connection. It remains a spatial relationship awaiting evidence.
+
+### 2.5 Calibration status is separate from structural validity
+
+The validator can check that a calibration receipt identifier was supplied when a caller claims that one is referenced. It cannot authenticate that receipt or establish that the probabilities are calibrated.
+
+The code deliberately does not derive a posterior from event marginals or multiply cross-modal likelihoods.
+
+## 3. Asset-cluster scoring is now executable
+
+A separate event-to-asset evaluator is implemented in `sol-atlas-core/src/utility_reconstruction_metrics.rs`, with CLI `utility_reconstruction_eval`.
+
+It reports B-cubed precision/recall/F1, pairwise true-positive pairs, explicit overmerge/oversplit pairs, candidate false assets, missed truth assets, abstention and false association of adjudicated clutter. It scores only structured independent survey and reviewed trench-image truth. Owner-record-only, conflicted and insufficient truth are separately counted, not converted to negative examples.
+
+Every reference event requires exactly one prediction disposition: candidate asset or explicit abstention. Missing predictions are rejected. Clutter and abstention are singletons in their respective partitions. The committed fixture and pinned baseline are synthetic only.
+
+# EARTH-OBSERVABILITY-JOINT-NETWORK-HYPOTHESES-001
+## Joint posterior hypotheses for evidence-qualified utility-network reconstruction v0.1
+
+**Parent:** Sol-Atlas #771 — EARTH-OBSERVABILITY-QUAL-002  
+**Implementation branch:** research/earth-observability-joint-network-hypotheses-v0-1  
+**Status:** Rust structural contract and deterministic analytic fixture added; probability calibration, graph scoring and physical validation NOT_RUN  
+**Date:** 2026-11-14  
+**Claim ceiling:** The fixture is abstract and non-geographic. It does not represent a real utility, field survey, calibrated posterior, qualified network geometry or excavation clearance.
+
+---
+
+## 1. Research proposition: infer a distribution over worlds, not one best-looking map
+
+The current candidate-graph contract permits multiple event-to-asset association marginals and explicit abstention. That is useful, but independently meaningful marginal probabilities do not necessarily form a coherent joint network.
+
+For example, separate edge probabilities can each look plausible while their combination creates an impossible network: a single event is assigned to two incompatible assets, a crossing is treated as a junction, or two mutually exclusive asset partitions are simultaneously represented as facts.
+
+The next abstraction is a **joint network hypothesis set**:
+
+- one immutable evidence snapshot and one investigation scope;
+- a finite set of mutually exclusive candidate network worlds;
+- one complete event disposition per observed event in every world;
+- candidate assets, geometry claims, nodes and relations that are internally coherent within each world;
+- a probability for each whole world;
+- explicit residual probability for worlds not enumerated.
+
+This is not a claim that a Bayesian posterior has been calibrated. It is a data and validation contract that makes the intended probability semantics explicit and testable.
+
+The decision product becomes:
+
+> Here are the plausible physical network configurations, their relative support, the evidence that separates them, and the observation most likely to change the engineering decision.
+
+## 2. Contract semantics
+
+The executable contract is in `sol-atlas-core/src/network_hypotheses.rs`; the strict JSON Schema Draft 2020-12 interchange profile is `research/earth-observability/NETWORK_HYPOTHESES_V0_1.schema.json`. The Rust validator enforces cross-reference and cross-field invariants that JSON Schema alone cannot express.
+
+### 2.1 One hypothesis is one complete candidate world
+
+A NetworkHypothesis contains:
+
+- a unique hypothesis identity and whole-world probability;
+- exactly one assignment record for every event in the set;
+- explicit null assignment for events left unassociated;
+- candidate asset instances and their event membership;
+- optional geometry-claim references;
+- candidate nodes and their associated candidate assets;
+- evidence-supported relations between nodes.
+
+A candidate identifier is local and non-authoritative. It is not a MUDDI ObjectID, owner-system SystemID or utility-owner asset identifier.
+
+### 2.2 Mutually exclusive world mass
+
+The probability invariant is:
+
+sum(P(hypothesis_i)) + P(residual_unknown) = 1
+
+within a fixed numerical tolerance.
+
+The residual is not a negative detection, absence probability or permission to redistribute probability among the listed hypotheses. It represents unenumerated or unresolved possible worlds.
+
+The fixture contains three alternatives:
+
+| World | Probability | Interpretation |
+|---|---:|---|
+| world-one-utility | 0.62 | Two events belong to one candidate utility |
+| world-two-utilities | 0.23 | The events belong to distinct candidate utilities |
+| world-crossing-unresolved | 0.10 | Two distinct assets have an unresolved crossing relation |
+| Unenumerated worlds | 0.05 | Explicit residual unknown mass |
+
+The values are deliberately illustrative, not learned or calibrated.
+
+### 2.3 Evidence closure
+
+Every event has a source-evidence reference. Every assigned event must be represented in its candidate asset's event membership and supported by that exact source evidence. Every node and relation must resolve its references and carry admitted evidence.
+
+A null event assignment is a valid explicit abstention. It is not silently converted into an absent utility.
+
+### 2.4 Topology is not visual intersection
+
+The relation types distinguish continuation, junction, unresolved crossing and unresolved near-intersection.
+
+An unresolved crossing is not a graph edge establishing physical connection. It remains a spatial relationship awaiting evidence.
+
+### 2.5 Calibration status is separate from structural validity
+
+The validator can check that a calibration receipt identifier was supplied when a caller claims that one is referenced. It cannot authenticate that receipt or establish that the probabilities are calibrated.
+
+The code deliberately does not derive a posterior from event marginals or multiply cross-modal likelihoods.
+
+## 3. Asset-cluster scoring is now executable
+
+A separate event-to-asset evaluator is implemented in `sol-atlas-core/src/utility_reconstruction_metrics.rs`, with CLI `utility_reconstruction_eval`.
+
+It reports B-cubed precision/recall/F1, pairwise true-positive pairs, explicit overmerge/oversplit pairs, candidate false assets, missed truth assets, abstention and false association of adjudicated clutter. It scores only structured independent survey and reviewed trench-image truth. Owner-record-only, conflicted and insufficient truth are separately counted, not converted to negative examples.
+
+Every reference event requires exactly one prediction disposition: candidate asset or explicit abstention. Missing predictions are rejected. Clutter and abstention are singletons in their respective partitions. The committed fixture and pinned baseline are synthetic only.
+
+# EARTH-OBSERVABILITY-JOINT-NETWORK-HYPOTHESES-001
+## Joint posterior hypotheses for evidence-qualified utility-network reconstruction v0.1
+
+**Parent:** Sol-Atlas #771 — EARTH-OBSERVABILITY-QUAL-002  
+**Implementation branch:** research/earth-observability-joint-network-hypotheses-v0-1  
+**Status:** Rust structural contract and deterministic analytic fixture added; probability calibration, graph scoring and physical validation NOT_RUN  
+**Date:** 2026-11-14  
+**Claim ceiling:** The fixture is abstract and non-geographic. It does not represent a real utility, field survey, calibrated posterior, qualified network geometry or excavation clearance.
+
+---
+
+## 1. Research proposition: infer a distribution over worlds, not one best-looking map
+
+The current candidate-graph contract permits multiple event-to-asset association marginals and explicit abstention. That is useful, but independently meaningful marginal probabilities do not necessarily form a coherent joint network.
+
+For example, separate edge probabilities can each look plausible while their combination creates an impossible network: a single event is assigned to two incompatible assets, a crossing is treated as a junction, or two mutually exclusive asset partitions are simultaneously represented as facts.
+
+The next abstraction is a **joint network hypothesis set**:
+
+- one immutable evidence snapshot and one investigation scope;
+- a finite set of mutually exclusive candidate network worlds;
+- one complete event disposition per observed event in every world;
+- candidate assets, geometry claims, nodes and relations that are internally coherent within each world;
+- a probability for each whole world;
+- explicit residual probability for worlds not enumerated.
+
+This is not a claim that a Bayesian posterior has been calibrated. It is a data and validation contract that makes the intended probability semantics explicit and testable.
+
+The decision product becomes:
+
+> Here are the plausible physical network configurations, their relative support, the evidence that separates them, and the observation most likely to change the engineering decision.
+
+## 2. Contract semantics
+
+The executable contract is in `sol-atlas-core/src/network_hypotheses.rs`; the strict JSON Schema Draft 2020-12 interchange profile is `research/earth-observability/NETWORK_HYPOTHESES_V0_1.schema.json`. The Rust validator enforces cross-reference and cross-field invariants that JSON Schema alone cannot express.
+
+### 2.1 One hypothesis is one complete candidate world
+
+A NetworkHypothesis contains:
+
+- a unique hypothesis identity and whole-world probability;
+- exactly one assignment record for every event in the set;
+- explicit null assignment for events left unassociated;
+- candidate asset instances and their event membership;
+- optional geometry-claim references;
+- candidate nodes and their associated candidate assets;
+- evidence-supported relations between nodes.
+
+A candidate identifier is local and non-authoritative. It is not a MUDDI ObjectID, owner-system SystemID or utility-owner asset identifier.
+
+### 2.2 Mutually exclusive world mass
+
+The probability invariant is:
+
+sum(P(hypothesis_i)) + P(residual_unknown) = 1
+
+within a fixed numerical tolerance.
+
+The residual is not a negative detection, absence probability or permission to redistribute probability among the listed hypotheses. It represents unenumerated or unresolved possible worlds.
+
+The fixture contains three alternatives:
+
+| World | Probability | Interpretation |
+|---|---:|---|
+| world-one-utility | 0.62 | Two events belong to one candidate utility |
+| world-two-utilities | 0.23 | The events belong to distinct candidate utilities |
+| world-crossing-unresolved | 0.10 | Two distinct assets have an unresolved crossing relation |
+| Unenumerated worlds | 0.05 | Explicit residual unknown mass |
+
+The values are deliberately illustrative, not learned or calibrated.
+
+### 2.3 Evidence closure
+
+Every event has a source-evidence reference. Every assigned event must be represented in its candidate asset's event membership and supported by that exact source evidence. Every node and relation must resolve its references and carry admitted evidence.
+
+A null event assignment is a valid explicit abstention. It is not silently converted into an absent utility.
+
+### 2.4 Topology is not visual intersection
+
+The relation types distinguish continuation, junction, unresolved crossing and unresolved near-intersection.
+
+An unresolved crossing is not a graph edge establishing physical connection. It remains a spatial relationship awaiting evidence.
+
+### 2.5 Calibration status is separate from structural validity
+
+The validator can check that a calibration receipt identifier was supplied when a caller claims that one is referenced. It cannot authenticate that receipt or establish that the probabilities are calibrated.
+
+The code deliberately does not derive a posterior from event marginals or multiply cross-modal likelihoods.
+
+## 3. Asset-cluster scoring is now executable
+
+A separate event-to-asset evaluator is implemented in `sol-atlas-core/src/utility_reconstruction_metrics.rs`, with CLI `utility_reconstruction_eval`.
+
+It reports B-cubed precision/recall/F1, pairwise true-positive pairs, explicit overmerge/oversplit pairs, candidate false assets, missed truth assets, abstention and false association of adjudicated clutter. It scores only structured independent survey and reviewed trench-image truth. Owner-record-only, conflicted and insufficient truth are separately counted, not converted to negative examples.
+
+Every reference event requires exactly one prediction disposition: candidate asset or explicit abstention. Missing predictions are rejected. Clutter and abstention are singletons in their respective partitions. The committed fixture and pinned baseline are synthetic only.
+
+# EARTH-OBSERVABILITY-JOINT-NETWORK-HYPOTHESES-001
+## Joint posterior hypotheses for evidence-qualified utility-network reconstruction v0.1
+
+**Parent:** Sol-Atlas #771 — EARTH-OBSERVABILITY-QUAL-002  
+**Implementation branch:** research/earth-observability-joint-network-hypotheses-v0-1  
+**Status:** Rust structural contract and deterministic analytic fixture added; probability calibration, graph scoring and physical validation NOT_RUN  
+**Date:** 2026-11-14  
+**Claim ceiling:** The fixture is abstract and non-geographic. It does not represent a real utility, field survey, calibrated posterior, qualified network geometry or excavation clearance.
+
+---
+
+## 1. Research proposition: infer a distribution over worlds, not one best-looking map
+
+The current candidate-graph contract permits multiple event-to-asset association marginals and explicit abstention. That is useful, but independently meaningful marginal probabilities do not necessarily form a coherent joint network.
+
+For example, separate edge probabilities can each look plausible while their combination creates an impossible network: a single event is assigned to two incompatible assets, a crossing is treated as a junction, or two mutually exclusive asset partitions are simultaneously represented as facts.
+
+The next abstraction is a **joint network hypothesis set**:
+
+- one immutable evidence snapshot and one investigation scope;
+- a finite set of mutually exclusive candidate network worlds;
+- one complete event disposition per observed event in every world;
+- candidate assets, geometry claims, nodes and relations that are internally coherent within each world;
+- a probability for each whole world;
+- explicit residual probability for worlds not enumerated.
+
+This is not a claim that a Bayesian posterior has been calibrated. It is a data and validation contract that makes the intended probability semantics explicit and testable.
+
+The decision product becomes:
+
+> Here are the plausible physical network configurations, their relative support, the evidence that separates them, and the observation most likely to change the engineering decision.
+
+## 2. Contract semantics
+
+The executable contract is in `sol-atlas-core/src/network_hypotheses.rs`; the strict JSON Schema Draft 2020-12 interchange profile is `research/earth-observability/NETWORK_HYPOTHESES_V0_1.schema.json`. The Rust validator enforces cross-reference and cross-field invariants that JSON Schema alone cannot express.
+
+### 2.1 One hypothesis is one complete candidate world
+
+A NetworkHypothesis contains:
+
+- a unique hypothesis identity and whole-world probability;
+- exactly one assignment record for every event in the set;
+- explicit null assignment for events left unassociated;
+- candidate asset instances and their event membership;
+- optional geometry-claim references;
+- candidate nodes and their associated candidate assets;
+- evidence-supported relations between nodes.
+
+A candidate identifier is local and non-authoritative. It is not a MUDDI ObjectID, owner-system SystemID or utility-owner asset identifier.
+
+### 2.2 Mutually exclusive world mass
+
+The probability invariant is:
+
+sum(P(hypothesis_i)) + P(residual_unknown) = 1
+
+within a fixed numerical tolerance.
+
+The residual is not a negative detection, absence probability or permission to redistribute probability among the listed hypotheses. It represents unenumerated or unresolved possible worlds.
+
+The fixture contains three alternatives:
+
+| World | Probability | Interpretation |
+|---|---:|---|
+| world-one-utility | 0.62 | Two events belong to one candidate utility |
+| world-two-utilities | 0.23 | The events belong to distinct candidate utilities |
+| world-crossing-unresolved | 0.10 | Two distinct assets have an unresolved crossing relation |
+| Unenumerated worlds | 0.05 | Explicit residual unknown mass |
+
+The values are deliberately illustrative, not learned or calibrated.
+
+### 2.3 Evidence closure
+
+Every event has a source-evidence reference. Every assigned event must be represented in its candidate asset's event membership and supported by that exact source evidence. Every node and relation must resolve its references and carry admitted evidence.
+
+A null event assignment is a valid explicit abstention. It is not silently converted into an absent utility.
+
+### 2.4 Topology is not visual intersection
+
+The relation types distinguish continuation, junction, unresolved crossing and unresolved near-intersection.
+
+An unresolved crossing is not a graph edge establishing physical connection. It remains a spatial relationship awaiting evidence.
+
+### 2.5 Calibration status is separate from structural validity
+
+The validator can check that a calibration receipt identifier was supplied when a caller claims that one is referenced. It cannot authenticate that receipt or establish that the probabilities are calibrated.
+
+The code deliberately does not derive a posterior from event marginals or multiply cross-modal likelihoods.
+
+## 3. Asset-cluster scoring is now executable
+
+A separate event-to-asset evaluator is implemented in `sol-atlas-core/src/utility_reconstruction_metrics.rs`, with CLI `utility_reconstruction_eval`.
+
+It reports B-cubed precision/recall/F1, pairwise true-positive pairs, explicit overmerge/oversplit pairs, candidate false assets, missed truth assets, abstention and false association of adjudicated clutter. It scores only structured independent survey and reviewed trench-image truth. Owner-record-only, conflicted and insufficient truth are separately counted, not converted to negative examples.
+
+Every reference event requires exactly one prediction disposition: candidate asset or explicit abstention. Missing predictions are rejected. Clutter and abstention are singletons in their respective partitions. The committed fixture and pinned baseline are synthetic only.
+
+# EARTH-OBSERVABILITY-JOINT-NETWORK-HYPOTHESES-001
+## Joint posterior hypotheses for evidence-qualified utility-network reconstruction v0.1
+
+**Parent:** Sol-Atlas #771 — EARTH-OBSERVABILITY-QUAL-002  
+**Implementation branch:** research/earth-observability-joint-network-hypotheses-v0-1  
+**Status:** Rust structural contract and deterministic analytic fixture added; probability calibration, graph scoring and physical validation NOT_RUN  
+**Date:** 2026-11-14  
+**Claim ceiling:** The fixture is abstract and non-geographic. It does not represent a real utility, field survey, calibrated posterior, qualified network geometry or excavation clearance.
+
+---
+
+## 1. Research proposition: infer a distribution over worlds, not one best-looking map
+
+The current candidate-graph contract permits multiple event-to-asset association marginals and explicit abstention. That is useful, but independently meaningful marginal probabilities do not necessarily form a coherent joint network.
+
+For example, separate edge probabilities can each look plausible while their combination creates an impossible network: a single event is assigned to two incompatible assets, a crossing is treated as a junction, or two mutually exclusive asset partitions are simultaneously represented as facts.
+
+The next abstraction is a **joint network hypothesis set**:
+
+- one immutable evidence snapshot and one investigation scope;
+- a finite set of mutually exclusive candidate network worlds;
+- one complete event disposition per observed event in every world;
+- candidate assets, geometry claims, nodes and relations that are internally coherent within each world;
+- a probability for each whole world;
+- explicit residual probability for worlds not enumerated.
+
+This is not a claim that a Bayesian posterior has been calibrated. It is a data and validation contract that makes the intended probability semantics explicit and testable.
+
+The decision product becomes:
+
+> Here are the plausible physical network configurations, their relative support, the evidence that separates them, and the observation most likely to change the engineering decision.
+
+## 2. Contract semantics
+
+The executable contract is in `sol-atlas-core/src/network_hypotheses.rs`; the strict JSON Schema Draft 2020-12 interchange profile is `research/earth-observability/NETWORK_HYPOTHESES_V0_1.schema.json`. The Rust validator enforces cross-reference and cross-field invariants that JSON Schema alone cannot express.
+
+### 2.1 One hypothesis is one complete candidate world
+
+A NetworkHypothesis contains:
+
+- a unique hypothesis identity and whole-world probability;
+- exactly one assignment record for every event in the set;
+- explicit null assignment for events left unassociated;
+- candidate asset instances and their event membership;
+- optional geometry-claim references;
+- candidate nodes and their associated candidate assets;
+- evidence-supported relations between nodes.
+
+A candidate identifier is local and non-authoritative. It is not a MUDDI ObjectID, owner-system SystemID or utility-owner asset identifier.
+
+### 2.2 Mutually exclusive world mass
+
+The probability invariant is:
+
+sum(P(hypothesis_i)) + P(residual_unknown) = 1
+
+within a fixed numerical tolerance.
+
+The residual is not a negative detection, absence probability or permission to redistribute probability among the listed hypotheses. It represents unenumerated or unresolved possible worlds.
+
+The fixture contains three alternatives:
+
+| World | Probability | Interpretation |
+|---|---:|---|
+| world-one-utility | 0.62 | Two events belong to one candidate utility |
+| world-two-utilities | 0.23 | The events belong to distinct candidate utilities |
+| world-crossing-unresolved | 0.10 | Two distinct assets have an unresolved crossing relation |
+| Unenumerated worlds | 0.05 | Explicit residual unknown mass |
+
+The values are deliberately illustrative, not learned or calibrated.
+
+### 2.3 Evidence closure
+
+Every event has a source-evidence reference. Every assigned event must be represented in its candidate asset's event membership and supported by that exact source evidence. Every node and relation must resolve its references and carry admitted evidence.
+
+A null event assignment is a valid explicit abstention. It is not silently converted into an absent utility.
+
+### 2.4 Topology is not visual intersection
+
+The relation types distinguish continuation, junction, unresolved crossing and unresolved near-intersection.
+
+An unresolved crossing is not a graph edge establishing physical connection. It remains a spatial relationship awaiting evidence.
+
+### 2.5 Calibration status is separate from structural validity
+
+The validator can check that a calibration receipt identifier was supplied when a caller claims that one is referenced. It cannot authenticate that receipt or establish that the probabilities are calibrated.
+
+The code deliberately does not derive a posterior from event marginals or multiply cross-modal likelihoods.
+
+## 3. Asset-cluster scoring is now executable
+
+A separate event-to-asset evaluator is implemented in `sol-atlas-core/src/utility_reconstruction_metrics.rs`, with CLI `utility_reconstruction_eval`.
+
+It reports B-cubed precision/recall/F1, pairwise true-positive pairs, explicit overmerge/oversplit pairs, candidate false assets, missed truth assets, abstention and false association of adjudicated clutter. It scores only structured independent survey and reviewed trench-image truth. Owner-record-only, conflicted and insufficient truth are separately counted, not converted to negative examples.
+
+Every reference event requires exactly one prediction disposition: candidate asset or explicit abstention. Missing predictions are rejected. Clutter and abstention are singletons in their respective partitions. The committed fixture and pinned baseline are synthetic only.
+
+# EARTH-OBSERVABILITY-JOINT-NETWORK-HYPOTHESES-001
+## Joint posterior hypotheses for evidence-qualified utility-network reconstruction v0.1
+
+**Parent:** Sol-Atlas #771 — EARTH-OBSERVABILITY-QUAL-002  
+**Implementation branch:** research/earth-observability-joint-network-hypotheses-v0-1  
+**Status:** Rust structural contract and deterministic analytic fixture added; probability calibration, graph scoring and physical validation NOT_RUN  
+**Date:** 2026-11-14  
+**Claim ceiling:** The fixture is abstract and non-geographic. It does not represent a real utility, field survey, calibrated posterior, qualified network geometry or excavation clearance.
+
+---
+
+## 1. Research proposition: infer a distribution over worlds, not one best-looking map
+
+The current candidate-graph contract permits multiple event-to-asset association marginals and explicit abstention. That is useful, but independently meaningful marginal probabilities do not necessarily form a coherent joint network.
+
+For example, separate edge probabilities can each look plausible while their combination creates an impossible network: a single event is assigned to two incompatible assets, a crossing is treated as a junction, or two mutually exclusive asset partitions are simultaneously represented as facts.
+
+The next abstraction is a **joint network hypothesis set**:
+
+- one immutable evidence snapshot and one investigation scope;
+- a finite set of mutually exclusive candidate network worlds;
+- one complete event disposition per observed event in every world;
+- candidate assets, geometry claims, nodes and relations that are internally coherent within each world;
+- a probability for each whole world;
+- explicit residual probability for worlds not enumerated.
+
+This is not a claim that a Bayesian posterior has been calibrated. It is a data and validation contract that makes the intended probability semantics explicit and testable.
+
+The decision product becomes:
+
+> Here are the plausible physical network configurations, their relative support, the evidence that separates them, and the observation most likely to change the engineering decision.
+
+## 2. Contract semantics
+
+The executable contract is in `sol-atlas-core/src/network_hypotheses.rs`; the strict JSON Schema Draft 2020-12 interchange profile is `research/earth-observability/NETWORK_HYPOTHESES_V0_1.schema.json`. The Rust validator enforces cross-reference and cross-field invariants that JSON Schema alone cannot express.
+
+### 2.1 One hypothesis is one complete candidate world
+
+A NetworkHypothesis contains:
+
+- a unique hypothesis identity and whole-world probability;
+- exactly one assignment record for every event in the set;
+- explicit null assignment for events left unassociated;
+- candidate asset instances and their event membership;
+- optional geometry-claim references;
+- candidate nodes and their associated candidate assets;
+- evidence-supported relations between nodes.
+
+A candidate identifier is local and non-authoritative. It is not a MUDDI ObjectID, owner-system SystemID or utility-owner asset identifier.
+
+### 2.2 Mutually exclusive world mass
+
+The probability invariant is:
+
+sum(P(hypothesis_i)) + P(residual_unknown) = 1
+
+within a fixed numerical tolerance.
+
+The residual is not a negative detection, absence probability or permission to redistribute probability among the listed hypotheses. It represents unenumerated or unresolved possible worlds.
+
+The fixture contains three alternatives:
+
+| World | Probability | Interpretation |
+|---|---:|---|
+| world-one-utility | 0.62 | Two events belong to one candidate utility |
+| world-two-utilities | 0.23 | The events belong to distinct candidate utilities |
+| world-crossing-unresolved | 0.10 | Two distinct assets have an unresolved crossing relation |
+| Unenumerated worlds | 0.05 | Explicit residual unknown mass |
+
+The values are deliberately illustrative, not learned or calibrated.
+
+### 2.3 Evidence closure
+
+Every event has a source-evidence reference. Every assigned event must be represented in its candidate asset's event membership and supported by that exact source evidence. Every node and relation must resolve its references and carry admitted evidence.
+
+A null event assignment is a valid explicit abstention. It is not silently converted into an absent utility.
+
+### 2.4 Topology is not visual intersection
+
+The relation types distinguish continuation, junction, unresolved crossing and unresolved near-intersection.
+
+An unresolved crossing is not a graph edge establishing physical connection. It remains a spatial relationship awaiting evidence.
+
+### 2.5 Calibration status is separate from structural validity
+
+The validator can check that a calibration receipt identifier was supplied when a caller claims that one is referenced. It cannot authenticate that receipt or establish that the probabilities are calibrated.
+
+The code deliberately does not derive a posterior from event marginals or multiply cross-modal likelihoods.
+
+## 3. Asset-cluster scoring is now executable
+
+A separate event-to-asset evaluator is implemented in `sol-atlas-core/src/utility_reconstruction_metrics.rs`, with CLI `utility_reconstruction_eval`.
+
+It reports B-cubed precision/recall/F1, pairwise true-positive pairs, explicit overmerge/oversplit pairs, candidate false assets, missed truth assets, abstention and false association of adjudicated clutter. It scores only structured independent survey and reviewed trench-image truth. Owner-record-only, conflicted and insufficient truth are separately counted, not converted to negative examples.
+
+Every reference event requires exactly one prediction disposition: candidate asset or explicit abstention. Missing predictions are rejected. Clutter and abstention are singletons in their respective partitions. The committed fixture and pinned baseline are synthetic only.
+
+# EARTH-OBSERVABILITY-JOINT-NETWORK-HYPOTHESES-001
+## Joint posterior hypotheses for evidence-qualified utility-network reconstruction v0.1
+
+**Parent:** Sol-Atlas #771 — EARTH-OBSERVABILITY-QUAL-002  
+**Implementation branch:** research/earth-observability-joint-network-hypotheses-v0-1  
+**Status:** Rust structural contract and deterministic analytic fixture added; probability calibration, graph scoring and physical validation NOT_RUN  
+**Date:** 2026-11-14  
+**Claim ceiling:** The fixture is abstract and non-geographic. It does not represent a real utility, field survey, calibrated posterior, qualified network geometry or excavation clearance.
+
+---
+
+## 1. Research proposition: infer a distribution over worlds, not one best-looking map
+
+The current candidate-graph contract permits multiple event-to-asset association marginals and explicit abstention. That is useful, but independently meaningful marginal probabilities do not necessarily form a coherent joint network.
+
+For example, separate edge probabilities can each look plausible while their combination creates an impossible network: a single event is assigned to two incompatible assets, a crossing is treated as a junction, or two mutually exclusive asset partitions are simultaneously represented as facts.
+
+The next abstraction is a **joint network hypothesis set**:
+
+- one immutable evidence snapshot and one investigation scope;
+- a finite set of mutually exclusive candidate network worlds;
+- one complete event disposition per observed event in every world;
+- candidate assets, geometry claims, nodes and relations that are internally coherent within each world;
+- a probability for each whole world;
+- explicit residual probability for worlds not enumerated.
+
+This is not a claim that a Bayesian posterior has been calibrated. It is a data and validation contract that makes the intended probability semantics explicit and testable.
+
+The decision product becomes:
+
+> Here are the plausible physical network configurations, their relative support, the evidence that separates them, and the observation most likely to change the engineering decision.
+
+## 2. Contract semantics
+
+The executable contract is in `sol-atlas-core/src/network_hypotheses.rs`; the strict JSON Schema Draft 2020-12 interchange profile is `research/earth-observability/NETWORK_HYPOTHESES_V0_1.schema.json`. The Rust validator enforces cross-reference and cross-field invariants that JSON Schema alone cannot express.
+
+### 2.1 One hypothesis is one complete candidate world
+
+A NetworkHypothesis contains:
+
+- a unique hypothesis identity and whole-world probability;
+- exactly one assignment record for every event in the set;
+- explicit null assignment for events left unassociated;
+- candidate asset instances and their event membership;
+- optional geometry-claim references;
+- candidate nodes and their associated candidate assets;
+- evidence-supported relations between nodes.
+
+A candidate identifier is local and non-authoritative. It is not a MUDDI ObjectID, owner-system SystemID or utility-owner asset identifier.
+
+### 2.2 Mutually exclusive world mass
+
+The probability invariant is:
+
+sum(P(hypothesis_i)) + P(residual_unknown) = 1
+
+within a fixed numerical tolerance.
+
+The residual is not a negative detection, absence probability or permission to redistribute probability among the listed hypotheses. It represents unenumerated or unresolved possible worlds.
+
+The fixture contains three alternatives:
+
+| World | Probability | Interpretation |
+|---|---:|---|
+| world-one-utility | 0.62 | Two events belong to one candidate utility |
+| world-two-utilities | 0.23 | The events belong to distinct candidate utilities |
+| world-crossing-unresolved | 0.10 | Two distinct assets have an unresolved crossing relation |
+| Unenumerated worlds | 0.05 | Explicit residual unknown mass |
+
+The values are deliberately illustrative, not learned or calibrated.
+
+### 2.3 Evidence closure
+
+Every event has a source-evidence reference. Every assigned event must be represented in its candidate asset's event membership and supported by that exact source evidence. Every node and relation must resolve its references and carry admitted evidence.
+
+A null event assignment is a valid explicit abstention. It is not silently converted into an absent utility.
+
+### 2.4 Topology is not visual intersection
+
+The relation types distinguish continuation, junction, unresolved crossing and unresolved near-intersection.
+
+An unresolved crossing is not a graph edge establishing physical connection. It remains a spatial relationship awaiting evidence.
+
+### 2.5 Calibration status is separate from structural validity
+
+The validator can check that a calibration receipt identifier was supplied when a caller claims that one is referenced. It cannot authenticate that receipt or establish that the probabilities are calibrated.
+
+The code deliberately does not derive a posterior from event marginals or multiply cross-modal likelihoods.
+
+## 3. Asset-cluster scoring is now executable
+
+A separate event-to-asset evaluator is implemented in `sol-atlas-core/src/utility_reconstruction_metrics.rs`, with CLI `utility_reconstruction_eval`.
+
+It reports B-cubed precision/recall/F1, pairwise true-positive pairs, explicit overmerge/oversplit pairs, candidate false assets, missed truth assets, abstention and false association of adjudicated clutter. It scores only structured independent survey and reviewed trench-image truth. Owner-record-only, conflicted and insufficient truth are separately counted, not converted to negative examples.
+
+Every reference event requires exactly one prediction disposition: candidate asset or explicit abstention. Missing predictions are rejected. Clutter and abstention are singletons in their respective partitions. The committed fixture and pinned baseline are synthetic only.
+
+# EARTH-OBSERVABILITY-JOINT-NETWORK-HYPOTHESES-001
+## Joint posterior hypotheses for evidence-qualified utility-network reconstruction v0.1
+
+**Parent:** Sol-Atlas #771 — EARTH-OBSERVABILITY-QUAL-002  
+**Implementation branch:** research/earth-observability-joint-network-hypotheses-v0-1  
+**Status:** Rust structural contract and deterministic analytic fixture added; probability calibration, graph scoring and physical validation NOT_RUN  
+**Date:** 2026-11-14  
+**Claim ceiling:** The fixture is abstract and non-geographic. It does not represent a real utility, field survey, calibrated posterior, qualified network geometry or excavation clearance.
+
+---
+
+## 1. Research proposition: infer a distribution over worlds, not one best-looking map
+
+The current candidate-graph contract permits multiple event-to-asset association marginals and explicit abstention. That is useful, but independently meaningful marginal probabilities do not necessarily form a coherent joint network.
+
+For example, separate edge probabilities can each look plausible while their combination creates an impossible network: a single event is assigned to two incompatible assets, a crossing is treated as a junction, or two mutually exclusive asset partitions are simultaneously represented as facts.
+
+The next abstraction is a **joint network hypothesis set**:
+
+- one immutable evidence snapshot and one investigation scope;
+- a finite set of mutually exclusive candidate network worlds;
+- one complete event disposition per observed event in every world;
+- candidate assets, geometry claims, nodes and relations that are internally coherent within each world;
+- a probability for each whole world;
+- explicit residual probability for worlds not enumerated.
+
+This is not a claim that a Bayesian posterior has been calibrated. It is a data and validation contract that makes the intended probability semantics explicit and testable.
+
+The decision product becomes:
+
+> Here are the plausible physical network configurations, their relative support, the evidence that separates them, and the observation most likely to change the engineering decision.
+
+## 2. Contract semantics
+
+The executable contract is in `sol-atlas-core/src/network_hypotheses.rs`; the strict JSON Schema Draft 2020-12 interchange profile is `research/earth-observability/NETWORK_HYPOTHESES_V0_1.schema.json`. The Rust validator enforces cross-reference and cross-field invariants that JSON Schema alone cannot express.
+
+### 2.1 One hypothesis is one complete candidate world
+
+A NetworkHypothesis contains:
+
+- a unique hypothesis identity and whole-world probability;
+- exactly one assignment record for every event in the set;
+- explicit null assignment for events left unassociated;
+- candidate asset instances and their event membership;
+- optional geometry-claim references;
+- candidate nodes and their associated candidate assets;
+- evidence-supported relations between nodes.
+
+A candidate identifier is local and non-authoritative. It is not a MUDDI ObjectID, owner-system SystemID or utility-owner asset identifier.
+
+### 2.2 Mutually exclusive world mass
+
+The probability invariant is:
+
+sum(P(hypothesis_i)) + P(residual_unknown) = 1
+
+within a fixed numerical tolerance.
+
+The residual is not a negative detection, absence probability or permission to redistribute probability among the listed hypotheses. It represents unenumerated or unresolved possible worlds.
+
+The fixture contains three alternatives:
+
+| World | Probability | Interpretation |
+|---|---:|---|
+| world-one-utility | 0.62 | Two events belong to one candidate utility |
+| world-two-utilities | 0.23 | The events belong to distinct candidate utilities |
+| world-crossing-unresolved | 0.10 | Two distinct assets have an unresolved crossing relation |
+| Unenumerated worlds | 0.05 | Explicit residual unknown mass |
+
+The values are deliberately illustrative, not learned or calibrated.
+
+### 2.3 Evidence closure
+
+Every event has a source-evidence reference. Every assigned event must be represented in its candidate asset's event membership and supported by that exact source evidence. Every node and relation must resolve its references and carry admitted evidence.
+
+A null event assignment is a valid explicit abstention. It is not silently converted into an absent utility.
+
+### 2.4 Topology is not visual intersection
+
+The relation types distinguish continuation, junction, unresolved crossing and unresolved near-intersection.
+
+An unresolved crossing is not a graph edge establishing physical connection. It remains a spatial relationship awaiting evidence.
+
+### 2.5 Calibration status is separate from structural validity
+
+The validator can check that a calibration receipt identifier was supplied when a caller claims that one is referenced. It cannot authenticate that receipt or establish that the probabilities are calibrated.
+
+The code deliberately does not derive a posterior from event marginals or multiply cross-modal likelihoods.
+
+## 3. Asset-cluster scoring is now executable
+
+A separate event-to-asset evaluator is implemented in `sol-atlas-core/src/utility_reconstruction_metrics.rs`, with CLI `utility_reconstruction_eval`.
+
+It reports B-cubed precision/recall/F1, pairwise true-positive pairs, explicit overmerge/oversplit pairs, candidate false assets, missed truth assets, abstention and false association of adjudicated clutter. It scores only structured independent survey and reviewed trench-image truth. Owner-record-only, conflicted and insufficient truth are separately counted, not converted to negative examples.
+
+Every reference event requires exactly one prediction disposition: candidate asset or explicit abstention. Missing predictions are rejected. Clutter and abstention are singletons in their respective partitions. The committed fixture and pinned baseline are synthetic only.
+
+# EARTH-OBSERVABILITY-JOINT-NETWORK-HYPOTHESES-001
+## Joint posterior hypotheses for evidence-qualified utility-network reconstruction v0.1
+
+**Parent:** Sol-Atlas #771 — EARTH-OBSERVABILITY-QUAL-002  
+**Implementation branch:** research/earth-observability-joint-network-hypotheses-v0-1  
+**Status:** Rust structural contract and deterministic analytic fixture added; probability calibration, graph scoring and physical validation NOT_RUN  
+**Date:** 2026-11-14  
+**Claim ceiling:** The fixture is abstract and non-geographic. It does not represent a real utility, field survey, calibrated posterior, qualified network geometry or excavation clearance.
+
+---
+
+## 1. Research proposition: infer a distribution over worlds, not one best-looking map
+
+The current candidate-graph contract permits multiple event-to-asset association marginals and explicit abstention. That is useful, but independently meaningful marginal probabilities do not necessarily form a coherent joint network.
+
+For example, separate edge probabilities can each look plausible while their combination creates an impossible network: a single event is assigned to two incompatible assets, a crossing is treated as a junction, or two mutually exclusive asset partitions are simultaneously represented as facts.
+
+The next abstraction is a **joint network hypothesis set**:
+
+- one immutable evidence snapshot and one investigation scope;
+- a finite set of mutually exclusive candidate network worlds;
+- one complete event disposition per observed event in every world;
+- candidate assets, geometry claims, nodes and relations that are internally coherent within each world;
+- a probability for each whole world;
+- explicit residual probability for worlds not enumerated.
+
+This is not a claim that a Bayesian posterior has been calibrated. It is a data and validation contract that makes the intended probability semantics explicit and testable.
+
+The decision product becomes:
+
+> Here are the plausible physical network configurations, their relative support, the evidence that separates them, and the observation most likely to change the engineering decision.
+
+## 2. Contract semantics
+
+The executable contract is in `sol-atlas-core/src/network_hypotheses.rs`; the strict JSON Schema Draft 2020-12 interchange profile is `research/earth-observability/NETWORK_HYPOTHESES_V0_1.schema.json`. The Rust validator enforces cross-reference and cross-field invariants that JSON Schema alone cannot express.
+
+### 2.1 One hypothesis is one complete candidate world
+
+A NetworkHypothesis contains:
+
+- a unique hypothesis identity and whole-world probability;
+- exactly one assignment record for every event in the set;
+- explicit null assignment for events left unassociated;
+- candidate asset instances and their event membership;
+- optional geometry-claim references;
+- candidate nodes and their associated candidate assets;
+- evidence-supported relations between nodes.
+
+A candidate identifier is local and non-authoritative. It is not a MUDDI ObjectID, owner-system SystemID or utility-owner asset identifier.
+
+### 2.2 Mutually exclusive world mass
+
+The probability invariant is:
+
+sum(P(hypothesis_i)) + P(residual_unknown) = 1
+
+within a fixed numerical tolerance.
+
+The residual is not a negative detection, absence probability or permission to redistribute probability among the listed hypotheses. It represents unenumerated or unresolved possible worlds.
+
+The fixture contains three alternatives:
+
+| World | Probability | Interpretation |
+|---|---:|---|
+| world-one-utility | 0.62 | Two events belong to one candidate utility |
+| world-two-utilities | 0.23 | The events belong to distinct candidate utilities |
+| world-crossing-unresolved | 0.10 | Two distinct assets have an unresolved crossing relation |
+| Unenumerated worlds | 0.05 | Explicit residual unknown mass |
+
+The values are deliberately illustrative, not learned or calibrated.
+
+### 2.3 Evidence closure
+
+Every event has a source-evidence reference. Every assigned event must be represented in its candidate asset's event membership and supported by that exact source evidence. Every node and relation must resolve its references and carry admitted evidence.
+
+A null event assignment is a valid explicit abstention. It is not silently converted into an absent utility.
+
+### 2.4 Topology is not visual intersection
+
+The relation types distinguish continuation, junction, unresolved crossing and unresolved near-intersection.
+
+An unresolved crossing is not a graph edge establishing physical connection. It remains a spatial relationship awaiting evidence.
+
+### 2.5 Calibration status is separate from structural validity
+
+The validator can check that a calibration receipt identifier was supplied when a caller claims that one is referenced. It cannot authenticate that receipt or establish that the probabilities are calibrated.
+
+The code deliberately does not derive a posterior from event marginals or multiply cross-modal likelihoods.
+
+## 3. Asset-cluster scoring is now executable
+
+A separate event-to-asset evaluator is implemented in `sol-atlas-core/src/utility_reconstruction_metrics.rs`, with CLI `utility_reconstruction_eval`.
+
+It reports B-cubed precision/recall/F1, pairwise true-positive pairs, explicit overmerge/oversplit pairs, candidate false assets, missed truth assets, abstention and false association of adjudicated clutter. It scores only structured independent survey and reviewed trench-image truth. Owner-record-only, conflicted and insufficient truth are separately counted, not converted to negative examples.
+
+Every reference event requires exactly one prediction disposition: candidate asset or explicit abstention. Missing predictions are rejected. Clutter and abstention are singletons in their respective partitions. The committed fixture and pinned baseline are synthetic only.
+
+# EARTH-OBSERVABILITY-JOINT-NETWORK-HYPOTHESES-001
+## Joint posterior hypotheses for evidence-qualified utility-network reconstruction v0.1
+
+**Parent:** Sol-Atlas #771 — EARTH-OBSERVABILITY-QUAL-002  
+**Implementation branch:** research/earth-observability-joint-network-hypotheses-v0-1  
+**Status:** Rust structural contract and deterministic analytic fixture added; probability calibration, graph scoring and physical validation NOT_RUN  
+**Date:** 2026-11-14  
+**Claim ceiling:** The fixture is abstract and non-geographic. It does not represent a real utility, field survey, calibrated posterior, qualified network geometry or excavation clearance.
+
+---
+
+## 1. Research proposition: infer a distribution over worlds, not one best-looking map
+
+The current candidate-graph contract permits multiple event-to-asset association marginals and explicit abstention. That is useful, but independently meaningful marginal probabilities do not necessarily form a coherent joint network.
+
+For example, separate edge probabilities can each look plausible while their combination creates an impossible network: a single event is assigned to two incompatible assets, a crossing is treated as a junction, or two mutually exclusive asset partitions are simultaneously represented as facts.
+
+The next abstraction is a **joint network hypothesis set**:
+
+- one immutable evidence snapshot and one investigation scope;
+- a finite set of mutually exclusive candidate network worlds;
+- one complete event disposition per observed event in every world;
+- candidate assets, geometry claims, nodes and relations that are internally coherent within each world;
+- a probability for each whole world;
+- explicit residual probability for worlds not enumerated.
+
+This is not a claim that a Bayesian posterior has been calibrated. It is a data and validation contract that makes the intended probability semantics explicit and testable.
+
+The decision product becomes:
+
+> Here are the plausible physical network configurations, their relative support, the evidence that separates them, and the observation most likely to change the engineering decision.
+
+## 2. Contract semantics
+
+The executable contract is in `sol-atlas-core/src/network_hypotheses.rs`; the strict JSON Schema Draft 2020-12 interchange profile is `research/earth-observability/NETWORK_HYPOTHESES_V0_1.schema.json`. The Rust validator enforces cross-reference and cross-field invariants that JSON Schema alone cannot express.
+
+### 2.1 One hypothesis is one complete candidate world
+
+A NetworkHypothesis contains:
+
+- a unique hypothesis identity and whole-world probability;
+- exactly one assignment record for every event in the set;
+- explicit null assignment for events left unassociated;
+- candidate asset instances and their event membership;
+- optional geometry-claim references;
+- candidate nodes and their associated candidate assets;
+- evidence-supported relations between nodes.
+
+A candidate identifier is local and non-authoritative. It is not a MUDDI ObjectID, owner-system SystemID or utility-owner asset identifier.
+
+### 2.2 Mutually exclusive world mass
+
+The probability invariant is:
+
+sum(P(hypothesis_i)) + P(residual_unknown) = 1
+
+within a fixed numerical tolerance.
+
+The residual is not a negative detection, absence probability or permission to redistribute probability among the listed hypotheses. It represents unenumerated or unresolved possible worlds.
+
+The fixture contains three alternatives:
+
+| World | Probability | Interpretation |
+|---|---:|---|
+| world-one-utility | 0.62 | Two events belong to one candidate utility |
+| world-two-utilities | 0.23 | The events belong to distinct candidate utilities |
+| world-crossing-unresolved | 0.10 | Two distinct assets have an unresolved crossing relation |
+| Unenumerated worlds | 0.05 | Explicit residual unknown mass |
+
+The values are deliberately illustrative, not learned or calibrated.
+
+### 2.3 Evidence closure
+
+Every event has a source-evidence reference. Every assigned event must be represented in its candidate asset's event membership and supported by that exact source evidence. Every node and relation must resolve its references and carry admitted evidence.
+
+A null event assignment is a valid explicit abstention. It is not silently converted into an absent utility.
+
+### 2.4 Topology is not visual intersection
+
+The relation types distinguish continuation, junction, unresolved crossing and unresolved near-intersection.
+
+An unresolved crossing is not a graph edge establishing physical connection. It remains a spatial relationship awaiting evidence.
+
+### 2.5 Calibration status is separate from structural validity
+
+The validator can check that a calibration receipt identifier was supplied when a caller claims that one is referenced. It cannot authenticate that receipt or establish that the probabilities are calibrated.
+
+The code deliberately does not derive a posterior from event marginals or multiply cross-modal likelihoods.
+
+## 3. Asset-cluster scoring is now executable
+
+A separate event-to-asset evaluator is implemented in `sol-atlas-core/src/utility_reconstruction_metrics.rs`, with CLI `utility_reconstruction_eval`.
+
+It reports B-cubed precision/recall/F1, pairwise true-positive pairs, explicit overmerge/oversplit pairs, candidate false assets, missed truth assets, abstention and false association of adjudicated clutter. It scores only structured independent survey and reviewed trench-image truth. Owner-record-only, conflicted and insufficient truth are separately counted, not converted to negative examples.
+
+Every reference event requires exactly one prediction disposition: candidate asset or explicit abstention. Missing predictions are rejected. Clutter and abstention are singletons in their respective partitions. The committed fixture and pinned baseline are synthetic only.
+
+# EARTH-OBSERVABILITY-JOINT-NETWORK-HYPOTHESES-001
+## Joint posterior hypotheses for evidence-qualified utility-network reconstruction v0.1
+
+**Parent:** Sol-Atlas #771 — EARTH-OBSERVABILITY-QUAL-002  
+**Implementation branch:** research/earth-observability-joint-network-hypotheses-v0-1  
+**Status:** Rust structural contract and deterministic analytic fixture added; probability calibration, graph scoring and physical validation NOT_RUN  
+**Date:** 2026-11-14  
+**Claim ceiling:** The fixture is abstract and non-geographic. It does not represent a real utility, field survey, calibrated posterior, qualified network geometry or excavation clearance.
+
+---
+
+## 1. Research proposition: infer a distribution over worlds, not one best-looking map
+
+The current candidate-graph contract permits multiple event-to-asset association marginals and explicit abstention. That is useful, but independently meaningful marginal probabilities do not necessarily form a coherent joint network.
+
+For example, separate edge probabilities can each look plausible while their combination creates an impossible network: a single event is assigned to two incompatible assets, a crossing is treated as a junction, or two mutually exclusive asset partitions are simultaneously represented as facts.
+
+The next abstraction is a **joint network hypothesis set**:
+
+- one immutable evidence snapshot and one investigation scope;
+- a finite set of mutually exclusive candidate network worlds;
+- one complete event disposition per observed event in every world;
+- candidate assets, geometry claims, nodes and relations that are internally coherent within each world;
+- a probability for each whole world;
+- explicit residual probability for worlds not enumerated.
+
+This is not a claim that a Bayesian posterior has been calibrated. It is a data and validation contract that makes the intended probability semantics explicit and testable.
+
+The decision product becomes:
+
+> Here are the plausible physical network configurations, their relative support, the evidence that separates them, and the observation most likely to change the engineering decision.
+
+## 2. Contract semantics
+
+The executable contract is in `sol-atlas-core/src/network_hypotheses.rs`; the strict JSON Schema Draft 2020-12 interchange profile is `research/earth-observability/NETWORK_HYPOTHESES_V0_1.schema.json`. The Rust validator enforces cross-reference and cross-field invariants that JSON Schema alone cannot express.
+
+### 2.1 One hypothesis is one complete candidate world
+
+A NetworkHypothesis contains:
+
+- a unique hypothesis identity and whole-world probability;
+- exactly one assignment record for every event in the set;
+- explicit null assignment for events left unassociated;
+- candidate asset instances and their event membership;
+- optional geometry-claim references;
+- candidate nodes and their associated candidate assets;
+- evidence-supported relations between nodes.
+
+A candidate identifier is local and non-authoritative. It is not a MUDDI ObjectID, owner-system SystemID or utility-owner asset identifier.
+
+### 2.2 Mutually exclusive world mass
+
+The probability invariant is:
+
+sum(P(hypothesis_i)) + P(residual_unknown) = 1
+
+within a fixed numerical tolerance.
+
+The residual is not a negative detection, absence probability or permission to redistribute probability among the listed hypotheses. It represents unenumerated or unresolved possible worlds.
+
+The fixture contains three alternatives:
+
+| World | Probability | Interpretation |
+|---|---:|---|
+| world-one-utility | 0.62 | Two events belong to one candidate utility |
+| world-two-utilities | 0.23 | The events belong to distinct candidate utilities |
+| world-crossing-unresolved | 0.10 | Two distinct assets have an unresolved crossing relation |
+| Unenumerated worlds | 0.05 | Explicit residual unknown mass |
+
+The values are deliberately illustrative, not learned or calibrated.
+
+### 2.3 Evidence closure
+
+Every event has a source-evidence reference. Every assigned event must be represented in its candidate asset's event membership and supported by that exact source evidence. Every node and relation must resolve its references and carry admitted evidence.
+
+A null event assignment is a valid explicit abstention. It is not silently converted into an absent utility.
+
+### 2.4 Topology is not visual intersection
+
+The relation types distinguish continuation, junction, unresolved crossing and unresolved near-intersection.
+
+An unresolved crossing is not a graph edge establishing physical connection. It remains a spatial relationship awaiting evidence.
+
+### 2.5 Calibration status is separate from structural validity
+
+The validator can check that a calibration receipt identifier was supplied when a caller claims that one is referenced. It cannot authenticate that receipt or establish that the probabilities are calibrated.
+
+The code deliberately does not derive a posterior from event marginals or multiply cross-modal likelihoods.
+
+## 3. Asset-cluster scoring is now executable
+
+A separate event-to-asset evaluator is implemented in `sol-atlas-core/src/utility_reconstruction_metrics.rs`, with CLI `utility_reconstruction_eval`.
+
+It reports B-cubed precision/recall/F1, pairwise true-positive pairs, explicit overmerge/oversplit pairs, candidate false assets, missed truth assets, abstention and false association of adjudicated clutter. It scores only structured independent survey and reviewed trench-image truth. Owner-record-only, conflicted and insufficient truth are separately counted, not converted to negative examples.
+
+Every reference event requires exactly one prediction disposition: candidate asset or explicit abstention. Missing predictions are rejected. Clutter and abstention are singletons in their respective partitions. The committed fixture and pinned baseline are synthetic only.
+
+# EARTH-OBSERVABILITY-JOINT-NETWORK-HYPOTHESES-001
+## Joint posterior hypotheses for evidence-qualified utility-network reconstruction v0.1
+
+**Parent:** Sol-Atlas #771 — EARTH-OBSERVABILITY-QUAL-002  
+**Implementation branch:** research/earth-observability-joint-network-hypotheses-v0-1  
+**Status:** Rust structural contract and deterministic analytic fixture added; probability calibration, graph scoring and physical validation NOT_RUN  
+**Date:** 2026-11-14  
+**Claim ceiling:** The fixture is abstract and non-geographic. It does not represent a real utility, field survey, calibrated posterior, qualified network geometry or excavation clearance.
+
+---
+
+## 1. Research proposition: infer a distribution over worlds, not one best-looking map
+
+The current candidate-graph contract permits multiple event-to-asset association marginals and explicit abstention. That is useful, but independently meaningful marginal probabilities do not necessarily form a coherent joint network.
+
+For example, separate edge probabilities can each look plausible while their combination creates an impossible network: a single event is assigned to two incompatible assets, a crossing is treated as a junction, or two mutually exclusive asset partitions are simultaneously represented as facts.
+
+The next abstraction is a **joint network hypothesis set**:
+
+- one immutable evidence snapshot and one investigation scope;
+- a finite set of mutually exclusive candidate network worlds;
+- one complete event disposition per observed event in every world;
+- candidate assets, geometry claims, nodes and relations that are internally coherent within each world;
+- a probability for each whole world;
+- explicit residual probability for worlds not enumerated.
+
+This is not a claim that a Bayesian posterior has been calibrated. It is a data and validation contract that makes the intended probability semantics explicit and testable.
+
+The decision product becomes:
+
+> Here are the plausible physical network configurations, their relative support, the evidence that separates them, and the observation most likely to change the engineering decision.
+
+## 2. Contract semantics
+
+The executable contract is in `sol-atlas-core/src/network_hypotheses.rs`; the strict JSON Schema Draft 2020-12 interchange profile is `research/earth-observability/NETWORK_HYPOTHESES_V0_1.schema.json`. The Rust validator enforces cross-reference and cross-field invariants that JSON Schema alone cannot express.
+
+### 2.1 One hypothesis is one complete candidate world
+
+A NetworkHypothesis contains:
+
+- a unique hypothesis identity and whole-world probability;
+- exactly one assignment record for every event in the set;
+- explicit null assignment for events left unassociated;
+- candidate asset instances and their event membership;
+- optional geometry-claim references;
+- candidate nodes and their associated candidate assets;
+- evidence-supported relations between nodes.
+
+A candidate identifier is local and non-authoritative. It is not a MUDDI ObjectID, owner-system SystemID or utility-owner asset identifier.
+
+### 2.2 Mutually exclusive world mass
+
+The probability invariant is:
+
+sum(P(hypothesis_i)) + P(residual_unknown) = 1
+
+within a fixed numerical tolerance.
+
+The residual is not a negative detection, absence probability or permission to redistribute probability among the listed hypotheses. It represents unenumerated or unresolved possible worlds.
+
+The fixture contains three alternatives:
+
+| World | Probability | Interpretation |
+|---|---:|---|
+| world-one-utility | 0.62 | Two events belong to one candidate utility |
+| world-two-utilities | 0.23 | The events belong to distinct candidate utilities |
+| world-crossing-unresolved | 0.10 | Two distinct assets have an unresolved crossing relation |
+| Unenumerated worlds | 0.05 | Explicit residual unknown mass |
+
+The values are deliberately illustrative, not learned or calibrated.
+
+### 2.3 Evidence closure
+
+Every event has a source-evidence reference. Every assigned event must be represented in its candidate asset's event membership and supported by that exact source evidence. Every node and relation must resolve its references and carry admitted evidence.
+
+A null event assignment is a valid explicit abstention. It is not silently converted into an absent utility.
+
+### 2.4 Topology is not visual intersection
+
+The relation types distinguish continuation, junction, unresolved crossing and unresolved near-intersection.
+
+An unresolved crossing is not a graph edge establishing physical connection. It remains a spatial relationship awaiting evidence.
+
+### 2.5 Calibration status is separate from structural validity
+
+The validator can check that a calibration receipt identifier was supplied when a caller claims that one is referenced. It cannot authenticate that receipt or establish that the probabilities are calibrated.
+
+The code deliberately does not derive a posterior from event marginals or multiply cross-modal likelihoods.
+
+## 3. Asset-cluster scoring is now executable
+
+A separate event-to-asset evaluator is implemented in `sol-atlas-core/src/utility_reconstruction_metrics.rs`, with CLI `utility_reconstruction_eval`.
+
+It reports B-cubed precision/recall/F1, pairwise true-positive pairs, explicit overmerge/oversplit pairs, candidate false assets, missed truth assets, abstention and false association of adjudicated clutter. It scores only structured independent survey and reviewed trench-image truth. Owner-record-only, conflicted and insufficient truth are separately counted, not converted to negative examples.
+
+Every reference event requires exactly one prediction disposition: candidate asset or explicit abstention. Missing predictions are rejected. Clutter and abstention are singletons in their respective partitions. The committed fixture and pinned baseline are synthetic only.
+
+# EARTH-OBSERVABILITY-JOINT-NETWORK-HYPOTHESES-001
+## Joint posterior hypotheses for evidence-qualified utility-network reconstruction v0.1
+
+**Parent:** Sol-Atlas #771 — EARTH-OBSERVABILITY-QUAL-002  
+**Implementation branch:** research/earth-observability-joint-network-hypotheses-v0-1  
+**Status:** Rust structural contract and deterministic analytic fixture added; probability calibration, graph scoring and physical validation NOT_RUN  
+**Date:** 2026-11-14  
+**Claim ceiling:** The fixture is abstract and non-geographic. It does not represent a real utility, field survey, calibrated posterior, qualified network geometry or excavation clearance.
+
+---
+
+## 1. Research proposition: infer a distribution over worlds, not one best-looking map
+
+The current candidate-graph contract permits multiple event-to-asset association marginals and explicit abstention. That is useful, but independently meaningful marginal probabilities do not necessarily form a coherent joint network.
+
+For example, separate edge probabilities can each look plausible while their combination creates an impossible network: a single event is assigned to two incompatible assets, a crossing is treated as a junction, or two mutually exclusive asset partitions are simultaneously represented as facts.
+
+The next abstraction is a **joint network hypothesis set**:
+
+- one immutable evidence snapshot and one investigation scope;
+- a finite set of mutually exclusive candidate network worlds;
+- one complete event disposition per observed event in every world;
+- candidate assets, geometry claims, nodes and relations that are internally coherent within each world;
+- a probability for each whole world;
+- explicit residual probability for worlds not enumerated.
+
+This is not a claim that a Bayesian posterior has been calibrated. It is a data and validation contract that makes the intended probability semantics explicit and testable.
+
+The decision product becomes:
+
+> Here are the plausible physical network configurations, their relative support, the evidence that separates them, and the observation most likely to change the engineering decision.
+
+## 2. Contract semantics
+
+The executable contract is in `sol-atlas-core/src/network_hypotheses.rs`; the strict JSON Schema Draft 2020-12 interchange profile is `research/earth-observability/NETWORK_HYPOTHESES_V0_1.schema.json`. The Rust validator enforces cross-reference and cross-field invariants that JSON Schema alone cannot express.
+
+### 2.1 One hypothesis is one complete candidate world
+
+A NetworkHypothesis contains:
+
+- a unique hypothesis identity and whole-world probability;
+- exactly one assignment record for every event in the set;
+- explicit null assignment for events left unassociated;
+- candidate asset instances and their event membership;
+- optional geometry-claim references;
+- candidate nodes and their associated candidate assets;
+- evidence-supported relations between nodes.
+
+A candidate identifier is local and non-authoritative. It is not a MUDDI ObjectID, owner-system SystemID or utility-owner asset identifier.
+
+### 2.2 Mutually exclusive world mass
+
+The probability invariant is:
+
+sum(P(hypothesis_i)) + P(residual_unknown) = 1
+
+within a fixed numerical tolerance.
+
+The residual is not a negative detection, absence probability or permission to redistribute probability among the listed hypotheses. It represents unenumerated or unresolved possible worlds.
+
+The fixture contains three alternatives:
+
+| World | Probability | Interpretation |
+|---|---:|---|
+| world-one-utility | 0.62 | Two events belong to one candidate utility |
+| world-two-utilities | 0.23 | The events belong to distinct candidate utilities |
+| world-crossing-unresolved | 0.10 | Two distinct assets have an unresolved crossing relation |
+| Unenumerated worlds | 0.05 | Explicit residual unknown mass |
+
+The values are deliberately illustrative, not learned or calibrated.
+
+### 2.3 Evidence closure
+
+Every event has a source-evidence reference. Every assigned event must be represented in its candidate asset's event membership and supported by that exact source evidence. Every node and relation must resolve its references and carry admitted evidence.
+
+A null event assignment is a valid explicit abstention. It is not silently converted into an absent utility.
+
+### 2.4 Topology is not visual intersection
+
+The relation types distinguish continuation, junction, unresolved crossing and unresolved near-intersection.
+
+An unresolved crossing is not a graph edge establishing physical connection. It remains a spatial relationship awaiting evidence.
+
+### 2.5 Calibration status is separate from structural validity
+
+The validator can check that a calibration receipt identifier was supplied when a caller claims that one is referenced. It cannot authenticate that receipt or establish that the probabilities are calibrated.
+
+The code deliberately does not derive a posterior from event marginals or multiply cross-modal likelihoods.
+
+## 3. Asset-cluster scoring is now executable
+
+A separate event-to-asset evaluator is implemented in `sol-atlas-core/src/utility_reconstruction_metrics.rs`, with CLI `utility_reconstruction_eval`.
+
+It reports B-cubed precision/recall/F1, pairwise true-positive pairs, explicit overmerge/oversplit pairs, candidate false assets, missed truth assets, abstention and false association of adjudicated clutter. It scores only structured independent survey and reviewed trench-image truth. Owner-record-only, conflicted and insufficient truth are separately counted, not converted to negative examples.
+
+Every reference event requires exactly one prediction disposition: candidate asset or explicit abstention. Missing predictions are rejected. Clutter and abstention are singletons in their respective partitions. The committed fixture and pinned baseline are synthetic only.
+
+# EARTH-OBSERVABILITY-JOINT-NETWORK-HYPOTHESES-001
+## Joint posterior hypotheses for evidence-qualified utility-network reconstruction v0.1
+
+**Parent:** Sol-Atlas #771 — EARTH-OBSERVABILITY-QUAL-002  
+**Implementation branch:** research/earth-observability-joint-network-hypotheses-v0-1  
+**Status:** Rust structural contract and deterministic analytic fixture added; probability calibration, graph scoring and physical validation NOT_RUN  
+**Date:** 2026-11-14  
+**Claim ceiling:** The fixture is abstract and non-geographic. It does not represent a real utility, field survey, calibrated posterior, qualified network geometry or excavation clearance.
+
+---
+
+## 1. Research proposition: infer a distribution over worlds, not one best-looking map
+
+The current candidate-graph contract permits multiple event-to-asset association marginals and explicit abstention. That is useful, but independently meaningful marginal probabilities do not necessarily form a coherent joint network.
+
+For example, separate edge probabilities can each look plausible while their combination creates an impossible network: a single event is assigned to two incompatible assets, a crossing is treated as a junction, or two mutually exclusive asset partitions are simultaneously represented as facts.
+
+The next abstraction is a **joint network hypothesis set**:
+
+- one immutable evidence snapshot and one investigation scope;
+- a finite set of mutually exclusive candidate network worlds;
+- one complete event disposition per observed event in every world;
+- candidate assets, geometry claims, nodes and relations that are internally coherent within each world;
+- a probability for each whole world;
+- explicit residual probability for worlds not enumerated.
+
+This is not a claim that a Bayesian posterior has been calibrated. It is a data and validation contract that makes the intended probability semantics explicit and testable.
+
+The decision product becomes:
+
+> Here are the plausible physical network configurations, their relative support, the evidence that separates them, and the observation most likely to change the engineering decision.
+
+## 2. Contract semantics
+
+The executable contract is in `sol-atlas-core/src/network_hypotheses.rs`; the strict JSON Schema Draft 2020-12 interchange profile is `research/earth-observability/NETWORK_HYPOTHESES_V0_1.schema.json`. The Rust validator enforces cross-reference and cross-field invariants that JSON Schema alone cannot express.
+
+### 2.1 One hypothesis is one complete candidate world
+
+A NetworkHypothesis contains:
+
+- a unique hypothesis identity and whole-world probability;
+- exactly one assignment record for every event in the set;
+- explicit null assignment for events left unassociated;
+- candidate asset instances and their event membership;
+- optional geometry-claim references;
+- candidate nodes and their associated candidate assets;
+- evidence-supported relations between nodes.
+
+A candidate identifier is local and non-authoritative. It is not a MUDDI ObjectID, owner-system SystemID or utility-owner asset identifier.
+
+### 2.2 Mutually exclusive world mass
+
+The probability invariant is:
+
+sum(P(hypothesis_i)) + P(residual_unknown) = 1
+
+within a fixed numerical tolerance.
+
+The residual is not a negative detection, absence probability or permission to redistribute probability among the listed hypotheses. It represents unenumerated or unresolved possible worlds.
+
+The fixture contains three alternatives:
+
+| World | Probability | Interpretation |
+|---|---:|---|
+| world-one-utility | 0.62 | Two events belong to one candidate utility |
+| world-two-utilities | 0.23 | The events belong to distinct candidate utilities |
+| world-crossing-unresolved | 0.10 | Two distinct assets have an unresolved crossing relation |
+| Unenumerated worlds | 0.05 | Explicit residual unknown mass |
+
+The values are deliberately illustrative, not learned or calibrated.
+
+### 2.3 Evidence closure
+
+Every event has a source-evidence reference. Every assigned event must be represented in its candidate asset's event membership and supported by that exact source evidence. Every node and relation must resolve its references and carry admitted evidence.
+
+A null event assignment is a valid explicit abstention. It is not silently converted into an absent utility.
+
+### 2.4 Topology is not visual intersection
+
+The relation types distinguish continuation, junction, unresolved crossing and unresolved near-intersection.
+
+An unresolved crossing is not a graph edge establishing physical connection. It remains a spatial relationship awaiting evidence.
+
+### 2.5 Calibration status is separate from structural validity
+
+The validator can check that a calibration receipt identifier was supplied when a caller claims that one is referenced. It cannot authenticate that receipt or establish that the probabilities are calibrated.
+
+The code deliberately does not derive a posterior from event marginals or multiply cross-modal likelihoods.
+
+## 3. Asset-cluster scoring is now executable
+
+A separate event-to-asset evaluator is implemented in `sol-atlas-core/src/utility_reconstruction_metrics.rs`, with CLI `utility_reconstruction_eval`.
+
+It reports B-cubed precision/recall/F1, pairwise true-positive pairs, explicit overmerge/oversplit pairs, candidate false assets, missed truth assets, abstention and false association of adjudicated clutter. It scores only structured independent survey and reviewed trench-image truth. Owner-record-only, conflicted and insufficient truth are separately counted, not converted to negative examples.
+
+Every reference event requires exactly one prediction disposition: candidate asset or explicit abstention. Missing predictions are rejected. Clutter and abstention are singletons in their respective partitions. The committed fixture and pinned baseline are synthetic only.
+
+# EARTH-OBSERVABILITY-JOINT-NETWORK-HYPOTHESES-001
+## Joint posterior hypotheses for evidence-qualified utility-network reconstruction v0.1
+
+**Parent:** Sol-Atlas #771 — EARTH-OBSERVABILITY-QUAL-002  
+**Implementation branch:** research/earth-observability-joint-network-hypotheses-v0-1  
+**Status:** Rust structural contract and deterministic analytic fixture added; probability calibration, graph scoring and physical validation NOT_RUN  
+**Date:** 2026-11-14  
+**Claim ceiling:** The fixture is abstract and non-geographic. It does not represent a real utility, field survey, calibrated posterior, qualified network geometry or excavation clearance.
+
+---
+
+## 1. Research proposition: infer a distribution over worlds, not one best-looking map
+
+The current candidate-graph contract permits multiple event-to-asset association marginals and explicit abstention. That is useful, but independently meaningful marginal probabilities do not necessarily form a coherent joint network.
+
+For example, separate edge probabilities can each look plausible while their combination creates an impossible network: a single event is assigned to two incompatible assets, a crossing is treated as a junction, or two mutually exclusive asset partitions are simultaneously represented as facts.
+
+The next abstraction is a **joint network hypothesis set**:
+
+- one immutable evidence snapshot and one investigation scope;
+- a finite set of mutually exclusive candidate network worlds;
+- one complete event disposition per observed event in every world;
+- candidate assets, geometry claims, nodes and relations that are internally coherent within each world;
+- a probability for each whole world;
+- explicit residual probability for worlds not enumerated.
+
+This is not a claim that a Bayesian posterior has been calibrated. It is a data and validation contract that makes the intended probability semantics explicit and testable.
+
+The decision product becomes:
+
+> Here are the plausible physical network configurations, their relative support, the evidence that separates them, and the observation most likely to change the engineering decision.
+
+## 2. Contract semantics
+
+The executable contract is in `sol-atlas-core/src/network_hypotheses.rs`; the strict JSON Schema Draft 2020-12 interchange profile is `research/earth-observability/NETWORK_HYPOTHESES_V0_1.schema.json`. The Rust validator enforces cross-reference and cross-field invariants that JSON Schema alone cannot express.
+
+### 2.1 One hypothesis is one complete candidate world
+
+A NetworkHypothesis contains:
+
+- a unique hypothesis identity and whole-world probability;
+- exactly one assignment record for every event in the set;
+- explicit null assignment for events left unassociated;
+- candidate asset instances and their event membership;
+- optional geometry-claim references;
+- candidate nodes and their associated candidate assets;
+- evidence-supported relations between nodes.
+
+A candidate identifier is local and non-authoritative. It is not a MUDDI ObjectID, owner-system SystemID or utility-owner asset identifier.
+
+### 2.2 Mutually exclusive world mass
+
+The probability invariant is:
+
+sum(P(hypothesis_i)) + P(residual_unknown) = 1
+
+within a fixed numerical tolerance.
+
+The residual is not a negative detection, absence probability or permission to redistribute probability among the listed hypotheses. It represents unenumerated or unresolved possible worlds.
+
+The fixture contains three alternatives:
+
+| World | Probability | Interpretation |
+|---|---:|---|
+| world-one-utility | 0.62 | Two events belong to one candidate utility |
+| world-two-utilities | 0.23 | The events belong to distinct candidate utilities |
+| world-crossing-unresolved | 0.10 | Two distinct assets have an unresolved crossing relation |
+| Unenumerated worlds | 0.05 | Explicit residual unknown mass |
+
+The values are deliberately illustrative, not learned or calibrated.
+
+### 2.3 Evidence closure
+
+Every event has a source-evidence reference. Every assigned event must be represented in its candidate asset's event membership and supported by that exact source evidence. Every node and relation must resolve its references and carry admitted evidence.
+
+A null event assignment is a valid explicit abstention. It is not silently converted into an absent utility.
+
+### 2.4 Topology is not visual intersection
+
+The relation types distinguish continuation, junction, unresolved crossing and unresolved near-intersection.
+
+An unresolved crossing is not a graph edge establishing physical connection. It remains a spatial relationship awaiting evidence.
+
+### 2.5 Calibration status is separate from structural validity
+
+The validator can check that a calibration receipt identifier was supplied when a caller claims that one is referenced. It cannot authenticate that receipt or establish that the probabilities are calibrated.
+
+The code deliberately does not derive a posterior from event marginals or multiply cross-modal likelihoods.
+
+## 3. Asset-cluster scoring is now executable
+
+A separate event-to-asset evaluator is implemented in `sol-atlas-core/src/utility_reconstruction_metrics.rs`, with CLI `utility_reconstruction_eval`.
+
+It reports B-cubed precision/recall/F1, pairwise true-positive pairs, explicit overmerge/oversplit pairs, candidate false assets, missed truth assets, abstention and false association of adjudicated clutter. It scores only structured independent survey and reviewed trench-image truth. Owner-record-only, conflicted and insufficient truth are separately counted, not converted to negative examples.
+
+Every reference event requires exactly one prediction disposition: candidate asset or explicit abstention. Missing predictions are rejected. Clutter and abstention are singletons in their respective partitions. The committed fixture and pinned baseline are synthetic only.
+
+# EARTH-OBSERVABILITY-JOINT-NETWORK-HYPOTHESES-001
+## Joint posterior hypotheses for evidence-qualified utility-network reconstruction v0.1
+
+**Parent:** Sol-Atlas #771 — EARTH-OBSERVABILITY-QUAL-002  
+**Implementation branch:** research/earth-observability-joint-network-hypotheses-v0-1  
+**Status:** Rust structural contract and deterministic analytic fixture added; probability calibration, graph scoring and physical validation NOT_RUN  
+**Date:** 2026-11-14  
+**Claim ceiling:** The fixture is abstract and non-geographic. It does not represent a real utility, field survey, calibrated posterior, qualified network geometry or excavation clearance.
+
+---
+
+## 1. Research proposition: infer a distribution over worlds, not one best-looking map
+
+The current candidate-graph contract permits multiple event-to-asset association marginals and explicit abstention. That is useful, but independently meaningful marginal probabilities do not necessarily form a coherent joint network.
+
+For example, separate edge probabilities can each look plausible while their combination creates an impossible network: a single event is assigned to two incompatible assets, a crossing is treated as a junction, or two mutually exclusive asset partitions are simultaneously represented as facts.
+
+The next abstraction is a **joint network hypothesis set**:
+
+- one immutable evidence snapshot and one investigation scope;
+- a finite set of mutually exclusive candidate network worlds;
+- one complete event disposition per observed event in every world;
+- candidate assets, geometry claims, nodes and relations that are internally coherent within each world;
+- a probability for each whole world;
+- explicit residual probability for worlds not enumerated.
+
+This is not a claim that a Bayesian posterior has been calibrated. It is a data and validation contract that makes the intended probability semantics explicit and testable.
+
+The decision product becomes:
+
+> Here are the plausible physical network configurations, their relative support, the evidence that separates them, and the observation most likely to change the engineering decision.
+
+## 2. Contract semantics
+
+The executable contract is in `sol-atlas-core/src/network_hypotheses.rs`; the strict JSON Schema Draft 2020-12 interchange profile is `research/earth-observability/NETWORK_HYPOTHESES_V0_1.schema.json`. The Rust validator enforces cross-reference and cross-field invariants that JSON Schema alone cannot express.
+
+### 2.1 One hypothesis is one complete candidate world
+
+A NetworkHypothesis contains:
+
+- a unique hypothesis identity and whole-world probability;
+- exactly one assignment record for every event in the set;
+- explicit null assignment for events left unassociated;
+- candidate asset instances and their event membership;
+- optional geometry-claim references;
+- candidate nodes and their associated candidate assets;
+- evidence-supported relations between nodes.
+
+A candidate identifier is local and non-authoritative. It is not a MUDDI ObjectID, owner-system SystemID or utility-owner asset identifier.
+
+### 2.2 Mutually exclusive world mass
+
+The probability invariant is:
+
+sum(P(hypothesis_i)) + P(residual_unknown) = 1
+
+within a fixed numerical tolerance.
+
+The residual is not a negative detection, absence probability or permission to redistribute probability among the listed hypotheses. It represents unenumerated or unresolved possible worlds.
+
+The fixture contains three alternatives:
+
+| World | Probability | Interpretation |
+|---|---:|---|
+| world-one-utility | 0.62 | Two events belong to one candidate utility |
+| world-two-utilities | 0.23 | The events belong to distinct candidate utilities |
+| world-crossing-unresolved | 0.10 | Two distinct assets have an unresolved crossing relation |
+| Unenumerated worlds | 0.05 | Explicit residual unknown mass |
+
+The values are deliberately illustrative, not learned or calibrated.
+
+### 2.3 Evidence closure
+
+Every event has a source-evidence reference. Every assigned event must be represented in its candidate asset's event membership and supported by that exact source evidence. Every node and relation must resolve its references and carry admitted evidence.
+
+A null event assignment is a valid explicit abstention. It is not silently converted into an absent utility.
+
+### 2.4 Topology is not visual intersection
+
+The relation types distinguish continuation, junction, unresolved crossing and unresolved near-intersection.
+
+An unresolved crossing is not a graph edge establishing physical connection. It remains a spatial relationship awaiting evidence.
+
+### 2.5 Calibration status is separate from structural validity
+
+The validator can check that a calibration receipt identifier was supplied when a caller claims that one is referenced. It cannot authenticate that receipt or establish that the probabilities are calibrated.
+
+The code deliberately does not derive a posterior from event marginals or multiply cross-modal likelihoods.
+
+## 3. Asset-cluster scoring is now executable
+
+A separate event-to-asset evaluator is implemented in `sol-atlas-core/src/utility_reconstruction_metrics.rs`, with CLI `utility_reconstruction_eval`.
+
+It reports B-cubed precision/recall/F1, pairwise true-positive pairs, explicit overmerge/oversplit pairs, candidate false assets, missed truth assets, abstention and false association of adjudicated clutter. It scores only structured independent survey and reviewed trench-image truth. Owner-record-only, conflicted and insufficient truth are separately counted, not converted to negative examples.
+
+Every reference event requires exactly one prediction disposition: candidate asset or explicit abstention. Missing predictions are rejected. Clutter and abstention are singletons in their respective partitions. The committed fixture and pinned baseline are synthetic only.
+
+# EARTH-OBSERVABILITY-JOINT-NETWORK-HYPOTHESES-001
+## Joint posterior hypotheses for evidence-qualified utility-network reconstruction v0.1
+
+**Parent:** Sol-Atlas #771 — EARTH-OBSERVABILITY-QUAL-002  
+**Implementation branch:** research/earth-observability-joint-network-hypotheses-v0-1  
+**Status:** Rust structural contract and deterministic analytic fixture added; probability calibration, graph scoring and physical validation NOT_RUN  
+**Date:** 2026-11-14  
+**Claim ceiling:** The fixture is abstract and non-geographic. It does not represent a real utility, field survey, calibrated posterior, qualified network geometry or excavation clearance.
+
+---
+
+## 1. Research proposition: infer a distribution over worlds, not one best-looking map
+
+The current candidate-graph contract permits multiple event-to-asset association marginals and explicit abstention. That is useful, but independently meaningful marginal probabilities do not necessarily form a coherent joint network.
+
+For example, separate edge probabilities can each look plausible while their combination creates an impossible network: a single event is assigned to two incompatible assets, a crossing is treated as a junction, or two mutually exclusive asset partitions are simultaneously represented as facts.
+
+The next abstraction is a **joint network hypothesis set**:
+
+- one immutable evidence snapshot and one investigation scope;
+- a finite set of mutually exclusive candidate network worlds;
+- one complete event disposition per observed event in every world;
+- candidate assets, geometry claims, nodes and relations that are internally coherent within each world;
+- a probability for each whole world;
+- explicit residual probability for worlds not enumerated.
+
+This is not a claim that a Bayesian posterior has been calibrated. It is a data and validation contract that makes the intended probability semantics explicit and testable.
+
+The decision product becomes:
+
+> Here are the plausible physical network configurations, their relative support, the evidence that separates them, and the observation most likely to change the engineering decision.
+
+## 2. Contract semantics
+
+The executable contract is in `sol-atlas-core/src/network_hypotheses.rs`; the strict JSON Schema Draft 2020-12 interchange profile is `research/earth-observability/NETWORK_HYPOTHESES_V0_1.schema.json`. The Rust validator enforces cross-reference and cross-field invariants that JSON Schema alone cannot express.
+
+### 2.1 One hypothesis is one complete candidate world
+
+A NetworkHypothesis contains:
+
+- a unique hypothesis identity and whole-world probability;
+- exactly one assignment record for every event in the set;
+- explicit null assignment for events left unassociated;
+- candidate asset instances and their event membership;
+- optional geometry-claim references;
+- candidate nodes and their associated candidate assets;
+- evidence-supported relations between nodes.
+
+A candidate identifier is local and non-authoritative. It is not a MUDDI ObjectID, owner-system SystemID or utility-owner asset identifier.
+
+### 2.2 Mutually exclusive world mass
+
+The probability invariant is:
+
+sum(P(hypothesis_i)) + P(residual_unknown) = 1
+
+within a fixed numerical tolerance.
+
+The residual is not a negative detection, absence probability or permission to redistribute probability among the listed hypotheses. It represents unenumerated or unresolved possible worlds.
+
+The fixture contains three alternatives:
+
+| World | Probability | Interpretation |
+|---|---:|---|
+| world-one-utility | 0.62 | Two events belong to one candidate utility |
+| world-two-utilities | 0.23 | The events belong to distinct candidate utilities |
+| world-crossing-unresolved | 0.10 | Two distinct assets have an unresolved crossing relation |
+| Unenumerated worlds | 0.05 | Explicit residual unknown mass |
+
+The values are deliberately illustrative, not learned or calibrated.
+
+### 2.3 Evidence closure
+
+Every event has a source-evidence reference. Every assigned event must be represented in its candidate asset's event membership and supported by that exact source evidence. Every node and relation must resolve its references and carry admitted evidence.
+
+A null event assignment is a valid explicit abstention. It is not silently converted into an absent utility.
+
+### 2.4 Topology is not visual intersection
+
+The relation types distinguish continuation, junction, unresolved crossing and unresolved near-intersection.
+
+An unresolved crossing is not a graph edge establishing physical connection. It remains a spatial relationship awaiting evidence.
+
+### 2.5 Calibration status is separate from structural validity
+
+The validator can check that a calibration receipt identifier was supplied when a caller claims that one is referenced. It cannot authenticate that receipt or establish that the probabilities are calibrated.
+
+The code deliberately does not derive a posterior from event marginals or multiply cross-modal likelihoods.
+
+## 3. Asset-cluster scoring is now executable
+
+A separate event-to-asset evaluator is implemented in `sol-atlas-core/src/utility_reconstruction_metrics.rs`, with CLI `utility_reconstruction_eval`.
+
+It reports B-cubed precision/recall/F1, pairwise true-positive pairs, explicit overmerge/oversplit pairs, candidate false assets, missed truth assets, abstention and false association of adjudicated clutter. It scores only structured independent survey and reviewed trench-image truth. Owner-record-only, conflicted and insufficient truth are separately counted, not converted to negative examples.
+
+Every reference event requires exactly one prediction disposition: candidate asset or explicit abstention. Missing predictions are rejected. Clutter and abstention are singletons in their respective partitions. The committed fixture and pinned baseline are synthetic only.
+
+# EARTH-OBSERVABILITY-JOINT-NETWORK-HYPOTHESES-001
+## Joint posterior hypotheses for evidence-qualified utility-network reconstruction v0.1
+
+**Parent:** Sol-Atlas #771 — EARTH-OBSERVABILITY-QUAL-002  
+**Implementation branch:** research/earth-observability-joint-network-hypotheses-v0-1  
+**Status:** Rust structural contract and deterministic analytic fixture added; probability calibration, graph scoring and physical validation NOT_RUN  
+**Date:** 2026-11-14  
+**Claim ceiling:** The fixture is abstract and non-geographic. It does not represent a real utility, field survey, calibrated posterior, qualified network geometry or excavation clearance.
+
+---
+
+## 1. Research proposition: infer a distribution over worlds, not one best-looking map
+
+The current candidate-graph contract permits multiple event-to-asset association marginals and explicit abstention. That is useful, but independently meaningful marginal probabilities do not necessarily form a coherent joint network.
+
+For example, separate edge probabilities can each look plausible while their combination creates an impossible network: a single event is assigned to two incompatible assets, a crossing is treated as a junction, or two mutually exclusive asset partitions are simultaneously represented as facts.
+
+The next abstraction is a **joint network hypothesis set**:
+
+- one immutable evidence snapshot and one investigation scope;
+- a finite set of mutually exclusive candidate network worlds;
+- one complete event disposition per observed event in every world;
+- candidate assets, geometry claims, nodes and relations that are internally coherent within each world;
+- a probability for each whole world;
+- explicit residual probability for worlds not enumerated.
+
+This is not a claim that a Bayesian posterior has been calibrated. It is a data and validation contract that makes the intended probability semantics explicit and testable.
+
+The decision product becomes:
+
+> Here are the plausible physical network configurations, their relative support, the evidence that separates them, and the observation most likely to change the engineering decision.
+
+## 2. Contract semantics
+
+The executable contract is in `sol-atlas-core/src/network_hypotheses.rs`; the strict JSON Schema Draft 2020-12 interchange profile is `research/earth-observability/NETWORK_HYPOTHESES_V0_1.schema.json`. The Rust validator enforces cross-reference and cross-field invariants that JSON Schema alone cannot express.
+
+### 2.1 One hypothesis is one complete candidate world
+
+A NetworkHypothesis contains:
+
+- a unique hypothesis identity and whole-world probability;
+- exactly one assignment record for every event in the set;
+- explicit null assignment for events left unassociated;
+- candidate asset instances and their event membership;
+- optional geometry-claim references;
+- candidate nodes and their associated candidate assets;
+- evidence-supported relations between nodes.
+
+A candidate identifier is local and non-authoritative. It is not a MUDDI ObjectID, owner-system SystemID or utility-owner asset identifier.
+
+### 2.2 Mutually exclusive world mass
+
+The probability invariant is:
+
+sum(P(hypothesis_i)) + P(residual_unknown) = 1
+
+within a fixed numerical tolerance.
+
+The residual is not a negative detection, absence probability or permission to redistribute probability among the listed hypotheses. It represents unenumerated or unresolved possible worlds.
+
+The fixture contains three alternatives:
+
+| World | Probability | Interpretation |
+|---|---:|---|
+| world-one-utility | 0.62 | Two events belong to one candidate utility |
+| world-two-utilities | 0.23 | The events belong to distinct candidate utilities |
+| world-crossing-unresolved | 0.10 | Two distinct assets have an unresolved crossing relation |
+| Unenumerated worlds | 0.05 | Explicit residual unknown mass |
+
+The values are deliberately illustrative, not learned or calibrated.
+
+### 2.3 Evidence closure
+
+Every event has a source-evidence reference. Every assigned event must be represented in its candidate asset's event membership and supported by that exact source evidence. Every node and relation must resolve its references and carry admitted evidence.
+
+A null event assignment is a valid explicit abstention. It is not silently converted into an absent utility.
+
+### 2.4 Topology is not visual intersection
+
+The relation types distinguish continuation, junction, unresolved crossing and unresolved near-intersection.
+
+An unresolved crossing is not a graph edge establishing physical connection. It remains a spatial relationship awaiting evidence.
+
+### 2.5 Calibration status is separate from structural validity
+
+The validator can check that a calibration receipt identifier was supplied when a caller claims that one is referenced. It cannot authenticate that receipt or establish that the probabilities are calibrated.
+
+The code deliberately does not derive a posterior from event marginals or multiply cross-modal likelihoods.
+
+## 3. Asset-cluster scoring is now executable
+
+A separate event-to-asset evaluator is implemented in `sol-atlas-core/src/utility_reconstruction_metrics.rs`, with CLI `utility_reconstruction_eval`.
+
+It reports B-cubed precision/recall/F1, pairwise true-positive pairs, explicit overmerge/oversplit pairs, candidate false assets, missed truth assets, abstention and false association of adjudicated clutter. It scores only structured independent survey and reviewed trench-image truth. Owner-record-only, conflicted and insufficient truth are separately counted, not converted to negative examples.
+
+Every reference event requires exactly one prediction disposition: candidate asset or explicit abstention. Missing predictions are rejected. Clutter and abstention are singletons in their respective partitions. The committed fixture and pinned baseline are synthetic only.
+
+# EARTH-OBSERVABILITY-JOINT-NETWORK-HYPOTHESES-001
+## Joint posterior hypotheses for evidence-qualified utility-network reconstruction v0.1
+
+**Parent:** Sol-Atlas #771 — EARTH-OBSERVABILITY-QUAL-002  
+**Implementation branch:** research/earth-observability-joint-network-hypotheses-v0-1  
+**Status:** Rust structural contract and deterministic analytic fixture added; probability calibration, graph scoring and physical validation NOT_RUN  
+**Date:** 2026-11-14  
+**Claim ceiling:** The fixture is abstract and non-geographic. It does not represent a real utility, field survey, calibrated posterior, qualified network geometry or excavation clearance.
+
+---
+
+## 1. Research proposition: infer a distribution over worlds, not one best-looking map
+
+The current candidate-graph contract permits multiple event-to-asset association marginals and explicit abstention. That is useful, but independently meaningful marginal probabilities do not necessarily form a coherent joint network.
+
+For example, separate edge probabilities can each look plausible while their combination creates an impossible network: a single event is assigned to two incompatible assets, a crossing is treated as a junction, or two mutually exclusive asset partitions are simultaneously represented as facts.
+
+The next abstraction is a **joint network hypothesis set**:
+
+- one immutable evidence snapshot and one investigation scope;
+- a finite set of mutually exclusive candidate network worlds;
+- one complete event disposition per observed event in every world;
+- candidate assets, geometry claims, nodes and relations that are internally coherent within each world;
+- a probability for each whole world;
+- explicit residual probability for worlds not enumerated.
+
+This is not a claim that a Bayesian posterior has been calibrated. It is a data and validation contract that makes the intended probability semantics explicit and testable.
+
+The decision product becomes:
+
+> Here are the plausible physical network configurations, their relative support, the evidence that separates them, and the observation most likely to change the engineering decision.
+
+## 2. Contract semantics
+
+The executable contract is in `sol-atlas-core/src/network_hypotheses.rs`; the strict JSON Schema Draft 2020-12 interchange profile is `research/earth-observability/NETWORK_HYPOTHESES_V0_1.schema.json`. The Rust validator enforces cross-reference and cross-field invariants that JSON Schema alone cannot express.
+
+### 2.1 One hypothesis is one complete candidate world
+
+A NetworkHypothesis contains:
+
+- a unique hypothesis identity and whole-world probability;
+- exactly one assignment record for every event in the set;
+- explicit null assignment for events left unassociated;
+- candidate asset instances and their event membership;
+- optional geometry-claim references;
+- candidate nodes and their associated candidate assets;
+- evidence-supported relations between nodes.
+
+A candidate identifier is local and non-authoritative. It is not a MUDDI ObjectID, owner-system SystemID or utility-owner asset identifier.
+
+### 2.2 Mutually exclusive world mass
+
+The probability invariant is:
+
+sum(P(hypothesis_i)) + P(residual_unknown) = 1
+
+within a fixed numerical tolerance.
+
+The residual is not a negative detection, absence probability or permission to redistribute probability among the listed hypotheses. It represents unenumerated or unresolved possible worlds.
+
+The fixture contains three alternatives:
+
+| World | Probability | Interpretation |
+|---|---:|---|
+| world-one-utility | 0.62 | Two events belong to one candidate utility |
+| world-two-utilities | 0.23 | The events belong to distinct candidate utilities |
+| world-crossing-unresolved | 0.10 | Two distinct assets have an unresolved crossing relation |
+| Unenumerated worlds | 0.05 | Explicit residual unknown mass |
+
+The values are deliberately illustrative, not learned or calibrated.
+
+### 2.3 Evidence closure
+
+Every event has a source-evidence reference. Every assigned event must be represented in its candidate asset's event membership and supported by that exact source evidence. Every node and relation must resolve its references and carry admitted evidence.
+
+A null event assignment is a valid explicit abstention. It is not silently converted into an absent utility.
+
+### 2.4 Topology is not visual intersection
+
+The relation types distinguish continuation, junction, unresolved crossing and unresolved near-intersection.
+
+An unresolved crossing is not a graph edge establishing physical connection. It remains a spatial relationship awaiting evidence.
+
+### 2.5 Calibration status is separate from structural validity
+
+The validator can check that a calibration receipt identifier was supplied when a caller claims that one is referenced. It cannot authenticate that receipt or establish that the probabilities are calibrated.
+
+The code deliberately does not derive a posterior from event marginals or multiply cross-modal likelihoods.
+
+## 3. Asset-cluster scoring is now executable
+
+A separate event-to-asset evaluator is implemented in `sol-atlas-core/src/utility_reconstruction_metrics.rs`, with CLI `utility_reconstruction_eval`.
+
+It reports B-cubed precision/recall/F1, pairwise true-positive pairs, explicit overmerge/oversplit pairs, candidate false assets, missed truth assets, abstention and false association of adjudicated clutter. It scores only structured independent survey and reviewed trench-image truth. Owner-record-only, conflicted and insufficient truth are separately counted, not converted to negative examples.
+
+Every reference event requires exactly one prediction disposition: candidate asset or explicit abstention. Missing predictions are rejected. Clutter and abstention are singletons in their respective partitions. The committed fixture and pinned baseline are synthetic only.
+
+# EARTH-OBSERVABILITY-JOINT-NETWORK-HYPOTHESES-001
+## Joint posterior hypotheses for evidence-qualified utility-network reconstruction v0.1
+
+**Parent:** Sol-Atlas #771 — EARTH-OBSERVABILITY-QUAL-002  
+**Implementation branch:** research/earth-observability-joint-network-hypotheses-v0-1  
+**Status:** Rust structural contract and deterministic analytic fixture added; probability calibration, graph scoring and physical validation NOT_RUN  
+**Date:** 2026-11-14  
+**Claim ceiling:** The fixture is abstract and non-geographic. It does not represent a real utility, field survey, calibrated posterior, qualified network geometry or excavation clearance.
+
+---
+
+## 1. Research proposition: infer a distribution over worlds, not one best-looking map
+
+The current candidate-graph contract permits multiple event-to-asset association marginals and explicit abstention. That is useful, but independently meaningful marginal probabilities do not necessarily form a coherent joint network.
+
+For example, separate edge probabilities can each look plausible while their combination creates an impossible network: a single event is assigned to two incompatible assets, a crossing is treated as a junction, or two mutually exclusive asset partitions are simultaneously represented as facts.
+
+The next abstraction is a **joint network hypothesis set**:
+
+- one immutable evidence snapshot and one investigation scope;
+- a finite set of mutually exclusive candidate network worlds;
+- one complete event disposition per observed event in every world;
+- candidate assets, geometry claims, nodes and relations that are internally coherent within each world;
+- a probability for each whole world;
+- explicit residual probability for worlds not enumerated.
+
+This is not a claim that a Bayesian posterior has been calibrated. It is a data and validation contract that makes the intended probability semantics explicit and testable.
+
+The decision product becomes:
+
+> Here are the plausible physical network configurations, their relative support, the evidence that separates them, and the observation most likely to change the engineering decision.
+
+## 2. Contract semantics
+
+The executable contract is in `sol-atlas-core/src/network_hypotheses.rs`; the strict JSON Schema Draft 2020-12 interchange profile is `research/earth-observability/NETWORK_HYPOTHESES_V0_1.schema.json`. The Rust validator enforces cross-reference and cross-field invariants that JSON Schema alone cannot express.
+
+### 2.1 One hypothesis is one complete candidate world
+
+A NetworkHypothesis contains:
+
+- a unique hypothesis identity and whole-world probability;
+- exactly one assignment record for every event in the set;
+- explicit null assignment for events left unassociated;
+- candidate asset instances and their event membership;
+- optional geometry-claim references;
+- candidate nodes and their associated candidate assets;
+- evidence-supported relations between nodes.
+
+A candidate identifier is local and non-authoritative. It is not a MUDDI ObjectID, owner-system SystemID or utility-owner asset identifier.
+
+### 2.2 Mutually exclusive world mass
+
+The probability invariant is:
+
+sum(P(hypothesis_i)) + P(residual_unknown) = 1
+
+within a fixed numerical tolerance.
+
+The residual is not a negative detection, absence probability or permission to redistribute probability among the listed hypotheses. It represents unenumerated or unresolved possible worlds.
+
+The fixture contains three alternatives:
+
+| World | Probability | Interpretation |
+|---|---:|---|
+| world-one-utility | 0.62 | Two events belong to one candidate utility |
+| world-two-utilities | 0.23 | The events belong to distinct candidate utilities |
+| world-crossing-unresolved | 0.10 | Two distinct assets have an unresolved crossing relation |
+| Unenumerated worlds | 0.05 | Explicit residual unknown mass |
+
+The values are deliberately illustrative, not learned or calibrated.
+
+### 2.3 Evidence closure
+
+Every event has a source-evidence reference. Every assigned event must be represented in its candidate asset's event membership and supported by that exact source evidence. Every node and relation must resolve its references and carry admitted evidence.
+
+A null event assignment is a valid explicit abstention. It is not silently converted into an absent utility.
+
+### 2.4 Topology is not visual intersection
+
+The relation types distinguish continuation, junction, unresolved crossing and unresolved near-intersection.
+
+An unresolved crossing is not a graph edge establishing physical connection. It remains a spatial relationship awaiting evidence.
+
+### 2.5 Calibration status is separate from structural validity
+
+The validator can check that a calibration receipt identifier was supplied when a caller claims that one is referenced. It cannot authenticate that receipt or establish that the probabilities are calibrated.
+
+The code deliberately does not derive a posterior from event marginals or multiply cross-modal likelihoods.
+
+## 3. Asset-cluster scoring is now executable
+
+A separate event-to-asset evaluator is implemented in `sol-atlas-core/src/utility_reconstruction_metrics.rs`, with CLI `utility_reconstruction_eval`.
+
+It reports B-cubed precision/recall/F1, pairwise true-positive pairs, explicit overmerge/oversplit pairs, candidate false assets, missed truth assets, abstention and false association of adjudicated clutter. It scores only structured independent survey and reviewed trench-image truth. Owner-record-only, conflicted and insufficient truth are separately counted, not converted to negative examples.
+
+Every reference event requires exactly one prediction disposition: candidate asset or explicit abstention. Missing predictions are rejected. Clutter and abstention are singletons in their respective partitions. The committed fixture and pinned baseline are synthetic only.
+
+# EARTH-OBSERVABILITY-JOINT-NETWORK-HYPOTHESES-001
+## Joint posterior hypotheses for evidence-qualified utility-network reconstruction v0.1
+
+**Parent:** Sol-Atlas #771 — EARTH-OBSERVABILITY-QUAL-002  
+**Implementation branch:** research/earth-observability-joint-network-hypotheses-v0-1  
+**Status:** Rust structural contract and deterministic analytic fixture added; probability calibration, graph scoring and physical validation NOT_RUN  
+**Date:** 2026-11-14  
+**Claim ceiling:** The fixture is abstract and non-geographic. It does not represent a real utility, field survey, calibrated posterior, qualified network geometry or excavation clearance.
+
+---
+
+## 1. Research proposition: infer a distribution over worlds, not one best-looking map
+
+The current candidate-graph contract permits multiple event-to-asset association marginals and explicit abstention. That is useful, but independently meaningful marginal probabilities do not necessarily form a coherent joint network.
+
+For example, separate edge probabilities can each look plausible while their combination creates an impossible network: a single event is assigned to two incompatible assets, a crossing is treated as a junction, or two mutually exclusive asset partitions are simultaneously represented as facts.
+
+The next abstraction is a **joint network hypothesis set**:
+
+- one immutable evidence snapshot and one investigation scope;
+- a finite set of mutually exclusive candidate network worlds;
+- one complete event disposition per observed event in every world;
+- candidate assets, geometry claims, nodes and relations that are internally coherent within each world;
+- a probability for each whole world;
+- explicit residual probability for worlds not enumerated.
+
+This is not a claim that a Bayesian posterior has been calibrated. It is a data and validation contract that makes the intended probability semantics explicit and testable.
+
+The decision product becomes:
+
+> Here are the plausible physical network configurations, their relative support, the evidence that separates them, and the observation most likely to change the engineering decision.
+
+## 2. Contract semantics
+
+The executable contract is in `sol-atlas-core/src/network_hypotheses.rs`; the strict JSON Schema Draft 2020-12 interchange profile is `research/earth-observability/NETWORK_HYPOTHESES_V0_1.schema.json`. The Rust validator enforces cross-reference and cross-field invariants that JSON Schema alone cannot express.
+
+### 2.1 One hypothesis is one complete candidate world
+
+A NetworkHypothesis contains:
+
+- a unique hypothesis identity and whole-world probability;
+- exactly one assignment record for every event in the set;
+- explicit null assignment for events left unassociated;
+- candidate asset instances and their event membership;
+- optional geometry-claim references;
+- candidate nodes and their associated candidate assets;
+- evidence-supported relations between nodes.
+
+A candidate identifier is local and non-authoritative. It is not a MUDDI ObjectID, owner-system SystemID or utility-owner asset identifier.
+
+### 2.2 Mutually exclusive world mass
+
+The probability invariant is:
+
+sum(P(hypothesis_i)) + P(residual_unknown) = 1
+
+within a fixed numerical tolerance.
+
+The residual is not a negative detection, absence probability or permission to redistribute probability among the listed hypotheses. It represents unenumerated or unresolved possible worlds.
+
+The fixture contains three alternatives:
+
+| World | Probability | Interpretation |
+|---|---:|---|
+| world-one-utility | 0.62 | Two events belong to one candidate utility |
+| world-two-utilities | 0.23 | The events belong to distinct candidate utilities |
+| world-crossing-unresolved | 0.10 | Two distinct assets have an unresolved crossing relation |
+| Unenumerated worlds | 0.05 | Explicit residual unknown mass |
+
+The values are deliberately illustrative, not learned or calibrated.
+
+### 2.3 Evidence closure
+
+Every event has a source-evidence reference. Every assigned event must be represented in its candidate asset's event membership and supported by that exact source evidence. Every node and relation must resolve its references and carry admitted evidence.
+
+A null event assignment is a valid explicit abstention. It is not silently converted into an absent utility.
+
+### 2.4 Topology is not visual intersection
+
+The relation types distinguish continuation, junction, unresolved crossing and unresolved near-intersection.
+
+An unresolved crossing is not a graph edge establishing physical connection. It remains a spatial relationship awaiting evidence.
+
+### 2.5 Calibration status is separate from structural validity
+
+The validator can check that a calibration receipt identifier was supplied when a caller claims that one is referenced. It cannot authenticate that receipt or establish that the probabilities are calibrated.
+
+The code deliberately does not derive a posterior from event marginals or multiply cross-modal likelihoods.
+
+## 3. Asset-cluster scoring is now executable
+
+A separate event-to-asset evaluator is implemented in `sol-atlas-core/src/utility_reconstruction_metrics.rs`, with CLI `utility_reconstruction_eval`.
+
+It reports B-cubed precision/recall/F1, pairwise true-positive pairs, explicit overmerge/oversplit pairs, candidate false assets, missed truth assets, abstention and false association of adjudicated clutter. It scores only structured independent survey and reviewed trench-image truth. Owner-record-only, conflicted and insufficient truth are separately counted, not converted to negative examples.
+
+Every reference event requires exactly one prediction disposition: candidate asset or explicit abstention. Missing predictions are rejected. Clutter and abstention are singletons in their respective partitions. The committed fixture and pinned baseline are synthetic only.
+
+# EARTH-OBSERVABILITY-JOINT-NETWORK-HYPOTHESES-001
+## Joint posterior hypotheses for evidence-qualified utility-network reconstruction v0.1
+
+**Parent:** Sol-Atlas #771 — EARTH-OBSERVABILITY-QUAL-002  
+**Implementation branch:** research/earth-observability-joint-network-hypotheses-v0-1  
+**Status:** Rust structural contract and deterministic analytic fixture added; probability calibration, graph scoring and physical validation NOT_RUN  
+**Date:** 2026-11-14  
+**Claim ceiling:** The fixture is abstract and non-geographic. It does not represent a real utility, field survey, calibrated posterior, qualified network geometry or excavation clearance.
+
+---
+
+## 1. Research proposition: infer a distribution over worlds, not one best-looking map
+
+The current candidate-graph contract permits multiple event-to-asset association marginals and explicit abstention. That is useful, but independently meaningful marginal probabilities do not necessarily form a coherent joint network.
+
+For example, separate edge probabilities can each look plausible while their combination creates an impossible network: a single event is assigned to two incompatible assets, a crossing is treated as a junction, or two mutually exclusive asset partitions are simultaneously represented as facts.
+
+The next abstraction is a **joint network hypothesis set**:
+
+- one immutable evidence snapshot and one investigation scope;
+- a finite set of mutually exclusive candidate network worlds;
+- one complete event disposition per observed event in every world;
+- candidate assets, geometry claims, nodes and relations that are internally coherent within each world;
+- a probability for each whole world;
+- explicit residual probability for worlds not enumerated.
+
+This is not a claim that a Bayesian posterior has been calibrated. It is a data and validation contract that makes the intended probability semantics explicit and testable.
+
+The decision product becomes:
+
+> Here are the plausible physical network configurations, their relative support, the evidence that separates them, and the observation most likely to change the engineering decision.
+
+## 2. Contract semantics
+
+The executable contract is in `sol-atlas-core/src/network_hypotheses.rs`; the strict JSON Schema Draft 2020-12 interchange profile is `research/earth-observability/NETWORK_HYPOTHESES_V0_1.schema.json`. The Rust validator enforces cross-reference and cross-field invariants that JSON Schema alone cannot express.
+
+### 2.1 One hypothesis is one complete candidate world
+
+A NetworkHypothesis contains:
+
+- a unique hypothesis identity and whole-world probability;
+- exactly one assignment record for every event in the set;
+- explicit null assignment for events left unassociated;
+- candidate asset instances and their event membership;
+- optional geometry-claim references;
+- candidate nodes and their associated candidate assets;
+- evidence-supported relations between nodes.
+
+A candidate identifier is local and non-authoritative. It is not a MUDDI ObjectID, owner-system SystemID or utility-owner asset identifier.
+
+### 2.2 Mutually exclusive world mass
+
+The probability invariant is:
+
+sum(P(hypothesis_i)) + P(residual_unknown) = 1
+
+within a fixed numerical tolerance.
+
+The residual is not a negative detection, absence probability or permission to redistribute probability among the listed hypotheses. It represents unenumerated or unresolved possible worlds.
+
+The fixture contains three alternatives:
+
+| World | Probability | Interpretation |
+|---|---:|---|
+| world-one-utility | 0.62 | Two events belong to one candidate utility |
+| world-two-utilities | 0.23 | The events belong to distinct candidate utilities |
+| world-crossing-unresolved | 0.10 | Two distinct assets have an unresolved crossing relation |
+| Unenumerated worlds | 0.05 | Explicit residual unknown mass |
+
+The values are deliberately illustrative, not learned or calibrated.
+
+### 2.3 Evidence closure
+
+Every event has a source-evidence reference. Every assigned event must be represented in its candidate asset's event membership and supported by that exact source evidence. Every node and relation must resolve its references and carry admitted evidence.
+
+A null event assignment is a valid explicit abstention. It is not silently converted into an absent utility.
+
+### 2.4 Topology is not visual intersection
+
+The relation types distinguish continuation, junction, unresolved crossing and unresolved near-intersection.
+
+An unresolved crossing is not a graph edge establishing physical connection. It remains a spatial relationship awaiting evidence.
+
+### 2.5 Calibration status is separate from structural validity
+
+The validator can check that a calibration receipt identifier was supplied when a caller claims that one is referenced. It cannot authenticate that receipt or establish that the probabilities are calibrated.
+
+The code deliberately does not derive a posterior from event marginals or multiply cross-modal likelihoods.
+
+## 3. Asset-cluster scoring is now executable
+
+A separate event-to-asset evaluator is implemented in `sol-atlas-core/src/utility_reconstruction_metrics.rs`, with CLI `utility_reconstruction_eval`.
+
+It reports B-cubed precision/recall/F1, pairwise true-positive pairs, explicit overmerge/oversplit pairs, candidate false assets, missed truth assets, abstention and false association of adjudicated clutter. It scores only structured independent survey and reviewed trench-image truth. Owner-record-only, conflicted and insufficient truth are separately counted, not converted to negative examples.
+
+Every reference event requires exactly one prediction disposition: candidate asset or explicit abstention. Missing predictions are rejected. Clutter and abstention are singletons in their respective partitions. The committed fixture and pinned baseline are synthetic only.
+
+# EARTH-OBSERVABILITY-JOINT-NETWORK-HYPOTHESES-001
+## Joint posterior hypotheses for evidence-qualified utility-network reconstruction v0.1
+
+**Parent:** Sol-Atlas #771 — EARTH-OBSERVABILITY-QUAL-002  
+**Implementation branch:** research/earth-observability-joint-network-hypotheses-v0-1  
+**Status:** Rust structural contract and deterministic analytic fixture added; probability calibration, graph scoring and physical validation NOT_RUN  
+**Date:** 2026-11-14  
+**Claim ceiling:** The fixture is abstract and non-geographic. It does not represent a real utility, field survey, calibrated posterior, qualified network geometry or excavation clearance.
+
+---
+
+## 1. Research proposition: infer a distribution over worlds, not one best-looking map
+
+The current candidate-graph contract permits multiple event-to-asset association marginals and explicit abstention. That is useful, but independently meaningful marginal probabilities do not necessarily form a coherent joint network.
+
+For example, separate edge probabilities can each look plausible while their combination creates an impossible network: a single event is assigned to two incompatible assets, a crossing is treated as a junction, or two mutually exclusive asset partitions are simultaneously represented as facts.
+
+The next abstraction is a **joint network hypothesis set**:
+
+- one immutable evidence snapshot and one investigation scope;
+- a finite set of mutually exclusive candidate network worlds;
+- one complete event disposition per observed event in every world;
+- candidate assets, geometry claims, nodes and relations that are internally coherent within each world;
+- a probability for each whole world;
+- explicit residual probability for worlds not enumerated.
+
+This is not a claim that a Bayesian posterior has been calibrated. It is a data and validation contract that makes the intended probability semantics explicit and testable.
+
+The decision product becomes:
+
+> Here are the plausible physical network configurations, their relative support, the evidence that separates them, and the observation most likely to change the engineering decision.
+
+## 2. Contract semantics
+
+The executable contract is in `sol-atlas-core/src/network_hypotheses.rs`; the strict JSON Schema Draft 2020-12 interchange profile is `research/earth-observability/NETWORK_HYPOTHESES_V0_1.schema.json`. The Rust validator enforces cross-reference and cross-field invariants that JSON Schema alone cannot express.
+
+### 2.1 One hypothesis is one complete candidate world
+
+A NetworkHypothesis contains:
+
+- a unique hypothesis identity and whole-world probability;
+- exactly one assignment record for every event in the set;
+- explicit null assignment for events left unassociated;
+- candidate asset instances and their event membership;
+- optional geometry-claim references;
+- candidate nodes and their associated candidate assets;
+- evidence-supported relations between nodes.
+
+A candidate identifier is local and non-authoritative. It is not a MUDDI ObjectID, owner-system SystemID or utility-owner asset identifier.
+
+### 2.2 Mutually exclusive world mass
+
+The probability invariant is:
+
+sum(P(hypothesis_i)) + P(residual_unknown) = 1
+
+within a fixed numerical tolerance.
+
+The residual is not a negative detection, absence probability or permission to redistribute probability among the listed hypotheses. It represents unenumerated or unresolved possible worlds.
+
+The fixture contains three alternatives:
+
+| World | Probability | Interpretation |
+|---|---:|---|
+| world-one-utility | 0.62 | Two events belong to one candidate utility |
+| world-two-utilities | 0.23 | The events belong to distinct candidate utilities |
+| world-crossing-unresolved | 0.10 | Two distinct assets have an unresolved crossing relation |
+| Unenumerated worlds | 0.05 | Explicit residual unknown mass |
+
+The values are deliberately illustrative, not learned or calibrated.
+
+### 2.3 Evidence closure
+
+Every event has a source-evidence reference. Every assigned event must be represented in its candidate asset's event membership and supported by that exact source evidence. Every node and relation must resolve its references and carry admitted evidence.
+
+A null event assignment is a valid explicit abstention. It is not silently converted into an absent utility.
+
+### 2.4 Topology is not visual intersection
+
+The relation types distinguish continuation, junction, unresolved crossing and unresolved near-intersection.
+
+An unresolved crossing is not a graph edge establishing physical connection. It remains a spatial relationship awaiting evidence.
+
+### 2.5 Calibration status is separate from structural validity
+
+The validator can check that a calibration receipt identifier was supplied when a caller claims that one is referenced. It cannot authenticate that receipt or establish that the probabilities are calibrated.
+
+The code deliberately does not derive a posterior from event marginals or multiply cross-modal likelihoods.
+
+## 3. Asset-cluster scoring is now executable
+
+A separate event-to-asset evaluator is implemented in `sol-atlas-core/src/utility_reconstruction_metrics.rs`, with CLI `utility_reconstruction_eval`.
+
+It reports B-cubed precision/recall/F1, pairwise true-positive pairs, explicit overmerge/oversplit pairs, candidate false assets, missed truth assets, abstention and false association of adjudicated clutter. It scores only structured independent survey and reviewed trench-image truth. Owner-record-only, conflicted and insufficient truth are separately counted, not converted to negative examples.
+
+Every reference event requires exactly one prediction disposition: candidate asset or explicit abstention. Missing predictions are rejected. Clutter and abstention are singletons in their respective partitions. The committed fixture and pinned baseline are synthetic only.
+
+# EARTH-OBSERVABILITY-JOINT-NETWORK-HYPOTHESES-001
+## Joint posterior hypotheses for evidence-qualified utility-network reconstruction v0.1
+
+**Parent:** Sol-Atlas #771 — EARTH-OBSERVABILITY-QUAL-002  
+**Implementation branch:** research/earth-observability-joint-network-hypotheses-v0-1  
+**Status:** Rust structural contract and deterministic analytic fixture added; probability calibration, graph scoring and physical validation NOT_RUN  
+**Date:** 2026-11-14  
+**Claim ceiling:** The fixture is abstract and non-geographic. It does not represent a real utility, field survey, calibrated posterior, qualified network geometry or excavation clearance.
+
+---
+
+## 1. Research proposition: infer a distribution over worlds, not one best-looking map
+
+The current candidate-graph contract permits multiple event-to-asset association marginals and explicit abstention. That is useful, but independently meaningful marginal probabilities do not necessarily form a coherent joint network.
+
+For example, separate edge probabilities can each look plausible while their combination creates an impossible network: a single event is assigned to two incompatible assets, a crossing is treated as a junction, or two mutually exclusive asset partitions are simultaneously represented as facts.
+
+The next abstraction is a **joint network hypothesis set**:
+
+- one immutable evidence snapshot and one investigation scope;
+- a finite set of mutually exclusive candidate network worlds;
+- one complete event disposition per observed event in every world;
+- candidate assets, geometry claims, nodes and relations that are internally coherent within each world;
+- a probability for each whole world;
+- explicit residual probability for worlds not enumerated.
+
+This is not a claim that a Bayesian posterior has been calibrated. It is a data and validation contract that makes the intended probability semantics explicit and testable.
+
+The decision product becomes:
+
+> Here are the plausible physical network configurations, their relative support, the evidence that separates them, and the observation most likely to change the engineering decision.
+
+## 2. Contract semantics
+
+The executable contract is in `sol-atlas-core/src/network_hypotheses.rs`; the strict JSON Schema Draft 2020-12 interchange profile is `research/earth-observability/NETWORK_HYPOTHESES_V0_1.schema.json`. The Rust validator enforces cross-reference and cross-field invariants that JSON Schema alone cannot express.
+
+### 2.1 One hypothesis is one complete candidate world
+
+A NetworkHypothesis contains:
+
+- a unique hypothesis identity and whole-world probability;
+- exactly one assignment record for every event in the set;
+- explicit null assignment for events left unassociated;
+- candidate asset instances and their event membership;
+- optional geometry-claim references;
+- candidate nodes and their associated candidate assets;
+- evidence-supported relations between nodes.
+
+A candidate identifier is local and non-authoritative. It is not a MUDDI ObjectID, owner-system SystemID or utility-owner asset identifier.
+
+### 2.2 Mutually exclusive world mass
+
+The probability invariant is:
+
+sum(P(hypothesis_i)) + P(residual_unknown) = 1
+
+within a fixed numerical tolerance.
+
+The residual is not a negative detection, absence probability or permission to redistribute probability among the listed hypotheses. It represents unenumerated or unresolved possible worlds.
+
+The fixture contains three alternatives:
+
+| World | Probability | Interpretation |
+|---|---:|---|
+| world-one-utility | 0.62 | Two events belong to one candidate utility |
+| world-two-utilities | 0.23 | The events belong to distinct candidate utilities |
+| world-crossing-unresolved | 0.10 | Two distinct assets have an unresolved crossing relation |
+| Unenumerated worlds | 0.05 | Explicit residual unknown mass |
+
+The values are deliberately illustrative, not learned or calibrated.
+
+### 2.3 Evidence closure
+
+Every event has a source-evidence reference. Every assigned event must be represented in its candidate asset's event membership and supported by that exact source evidence. Every node and relation must resolve its references and carry admitted evidence.
+
+A null event assignment is a valid explicit abstention. It is not silently converted into an absent utility.
+
+### 2.4 Topology is not visual intersection
+
+The relation types distinguish continuation, junction, unresolved crossing and unresolved near-intersection.
+
+An unresolved crossing is not a graph edge establishing physical connection. It remains a spatial relationship awaiting evidence.
+
+### 2.5 Calibration status is separate from structural validity
+
+The validator can check that a calibration receipt identifier was supplied when a caller claims that one is referenced. It cannot authenticate that receipt or establish that the probabilities are calibrated.
+
+The code deliberately does not derive a posterior from event marginals or multiply cross-modal likelihoods.
+
+## 3. Asset-cluster scoring is now executable
+
+A separate event-to-asset evaluator is implemented in `sol-atlas-core/src/utility_reconstruction_metrics.rs`, with CLI `utility_reconstruction_eval`.
+
+It reports B-cubed precision/recall/F1, pairwise true-positive pairs, explicit overmerge/oversplit pairs, candidate false assets, missed truth assets, abstention and false association of adjudicated clutter. It scores only structured independent survey and reviewed trench-image truth. Owner-record-only, conflicted and insufficient truth are separately counted, not converted to negative examples.
+
+Every reference event requires exactly one prediction disposition: candidate asset or explicit abstention. Missing predictions are rejected. Clutter and abstention are singletons in their respective partitions. The committed fixture and pinned baseline are synthetic only.
+
+# EARTH-OBSERVABILITY-JOINT-NETWORK-HYPOTHESES-001
+## Joint posterior hypotheses for evidence-qualified utility-network reconstruction v0.1
+
+**Parent:** Sol-Atlas #771 — EARTH-OBSERVABILITY-QUAL-002  
+**Implementation branch:** research/earth-observability-joint-network-hypotheses-v0-1  
+**Status:** Rust structural contract and deterministic analytic fixture added; probability calibration, graph scoring and physical validation NOT_RUN  
+**Date:** 2026-11-14  
+**Claim ceiling:** The fixture is abstract and non-geographic. It does not represent a real utility, field survey, calibrated posterior, qualified network geometry or excavation clearance.
+
+---
+
+## 1. Research proposition: infer a distribution over worlds, not one best-looking map
+
+The current candidate-graph contract permits multiple event-to-asset association marginals and explicit abstention. That is useful, but independently meaningful marginal probabilities do not necessarily form a coherent joint network.
+
+For example, separate edge probabilities can each look plausible while their combination creates an impossible network: a single event is assigned to two incompatible assets, a crossing is treated as a junction, or two mutually exclusive asset partitions are simultaneously represented as facts.
+
+The next abstraction is a **joint network hypothesis set**:
+
+- one immutable evidence snapshot and one investigation scope;
+- a finite set of mutually exclusive candidate network worlds;
+- one complete event disposition per observed event in every world;
+- candidate assets, geometry claims, nodes and relations that are internally coherent within each world;
+- a probability for each whole world;
+- explicit residual probability for worlds not enumerated.
+
+This is not a claim that a Bayesian posterior has been calibrated. It is a data and validation contract that makes the intended probability semantics explicit and testable.
+
+The decision product becomes:
+
+> Here are the plausible physical network configurations, their relative support, the evidence that separates them, and the observation most likely to change the engineering decision.
+
+## 2. Contract semantics
+
+The executable contract is in `sol-atlas-core/src/network_hypotheses.rs`; the strict JSON Schema Draft 2020-12 interchange profile is `research/earth-observability/NETWORK_HYPOTHESES_V0_1.schema.json`. The Rust validator enforces cross-reference and cross-field invariants that JSON Schema alone cannot express.
+
+### 2.1 One hypothesis is one complete candidate world
+
+A NetworkHypothesis contains:
+
+- a unique hypothesis identity and whole-world probability;
+- exactly one assignment record for every event in the set;
+- explicit null assignment for events left unassociated;
+- candidate asset instances and their event membership;
+- optional geometry-claim references;
+- candidate nodes and their associated candidate assets;
+- evidence-supported relations between nodes.
+
+A candidate identifier is local and non-authoritative. It is not a MUDDI ObjectID, owner-system SystemID or utility-owner asset identifier.
+
+### 2.2 Mutually exclusive world mass
+
+The probability invariant is:
+
+sum(P(hypothesis_i)) + P(residual_unknown) = 1
+
+within a fixed numerical tolerance.
+
+The residual is not a negative detection, absence probability or permission to redistribute probability among the listed hypotheses. It represents unenumerated or unresolved possible worlds.
+
+The fixture contains three alternatives:
+
+| World | Probability | Interpretation |
+|---|---:|---|
+| world-one-utility | 0.62 | Two events belong to one candidate utility |
+| world-two-utilities | 0.23 | The events belong to distinct candidate utilities |
+| world-crossing-unresolved | 0.10 | Two distinct assets have an unresolved crossing relation |
+| Unenumerated worlds | 0.05 | Explicit residual unknown mass |
+
+The values are deliberately illustrative, not learned or calibrated.
+
+### 2.3 Evidence closure
+
+Every event has a source-evidence reference. Every assigned event must be represented in its candidate asset's event membership and supported by that exact source evidence. Every node and relation must resolve its references and carry admitted evidence.
+
+A null event assignment is a valid explicit abstention. It is not silently converted into an absent utility.
+
+### 2.4 Topology is not visual intersection
+
+The relation types distinguish continuation, junction, unresolved crossing and unresolved near-intersection.
+
+An unresolved crossing is not a graph edge establishing physical connection. It remains a spatial relationship awaiting evidence.
+
+### 2.5 Calibration status is separate from structural validity
+
+The validator can check that a calibration receipt identifier was supplied when a caller claims that one is referenced. It cannot authenticate that receipt or establish that the probabilities are calibrated.
+
+The code deliberately does not derive a posterior from event marginals or multiply cross-modal likelihoods.
+
+## 3. Asset-cluster scoring is now executable
+
+A separate event-to-asset evaluator is implemented in `sol-atlas-core/src/utility_reconstruction_metrics.rs`, with CLI `utility_reconstruction_eval`.
+
+It reports B-cubed precision/recall/F1, pairwise true-positive pairs, explicit overmerge/oversplit pairs, candidate false assets, missed truth assets, abstention and false association of adjudicated clutter. It scores only structured independent survey and reviewed trench-image truth. Owner-record-only, conflicted and insufficient truth are separately counted, not converted to negative examples.
+
+Every reference event requires exactly one prediction disposition: candidate asset or explicit abstention. Missing predictions are rejected. Clutter and abstention are singletons in their respective partitions. The committed fixture and pinned baseline are synthetic only.
+
+# EARTH-OBSERVABILITY-JOINT-NETWORK-HYPOTHESES-001
+## Joint posterior hypotheses for evidence-qualified utility-network reconstruction v0.1
+
+**Parent:** Sol-Atlas #771 — EARTH-OBSERVABILITY-QUAL-002  
+**Implementation branch:** research/earth-observability-joint-network-hypotheses-v0-1  
+**Status:** Rust structural contract and deterministic analytic fixture added; probability calibration, graph scoring and physical validation NOT_RUN  
+**Date:** 2026-11-14  
+**Claim ceiling:** The fixture is abstract and non-geographic. It does not represent a real utility, field survey, calibrated posterior, qualified network geometry or excavation clearance.
+
+---
+
+## 1. Research proposition: infer a distribution over worlds, not one best-looking map
+
+The current candidate-graph contract permits multiple event-to-asset association marginals and explicit abstention. That is useful, but independently meaningful marginal probabilities do not necessarily form a coherent joint network.
+
+For example, separate edge probabilities can each look plausible while their combination creates an impossible network: a single event is assigned to two incompatible assets, a crossing is treated as a junction, or two mutually exclusive asset partitions are simultaneously represented as facts.
+
+The next abstraction is a **joint network hypothesis set**:
+
+- one immutable evidence snapshot and one investigation scope;
+- a finite set of mutually exclusive candidate network worlds;
+- one complete event disposition per observed event in every world;
+- candidate assets, geometry claims, nodes and relations that are internally coherent within each world;
+- a probability for each whole world;
+- explicit residual probability for worlds not enumerated.
+
+This is not a claim that a Bayesian posterior has been calibrated. It is a data and validation contract that makes the intended probability semantics explicit and testable.
+
+The decision product becomes:
+
+> Here are the plausible physical network configurations, their relative support, the evidence that separates them, and the observation most likely to change the engineering decision.
+
+## 2. Contract semantics
+
+The executable contract is in `sol-atlas-core/src/network_hypotheses.rs`; the strict JSON Schema Draft 2020-12 interchange profile is `research/earth-observability/NETWORK_HYPOTHESES_V0_1.schema.json`. The Rust validator enforces cross-reference and cross-field invariants that JSON Schema alone cannot express.
+
+### 2.1 One hypothesis is one complete candidate world
+
+A NetworkHypothesis contains:
+
+- a unique hypothesis identity and whole-world probability;
+- exactly one assignment record for every event in the set;
+- explicit null assignment for events left unassociated;
+- candidate asset instances and their event membership;
+- optional geometry-claim references;
+- candidate nodes and their associated candidate assets;
+- evidence-supported relations between nodes.
+
+A candidate identifier is local and non-authoritative. It is not a MUDDI ObjectID, owner-system SystemID or utility-owner asset identifier.
+
+### 2.2 Mutually exclusive world mass
+
+The probability invariant is:
+
+sum(P(hypothesis_i)) + P(residual_unknown) = 1
+
+within a fixed numerical tolerance.
+
+The residual is not a negative detection, absence probability or permission to redistribute probability among the listed hypotheses. It represents unenumerated or unresolved possible worlds.
+
+The fixture contains three alternatives:
+
+| World | Probability | Interpretation |
+|---|---:|---|
+| world-one-utility | 0.62 | Two events belong to one candidate utility |
+| world-two-utilities | 0.23 | The events belong to distinct candidate utilities |
+| world-crossing-unresolved | 0.10 | Two distinct assets have an unresolved crossing relation |
+| Unenumerated worlds | 0.05 | Explicit residual unknown mass |
+
+The values are deliberately illustrative, not learned or calibrated.
+
+### 2.3 Evidence closure
+
+Every event has a source-evidence reference. Every assigned event must be represented in its candidate asset's event membership and supported by that exact source evidence. Every node and relation must resolve its references and carry admitted evidence.
+
+A null event assignment is a valid explicit abstention. It is not silently converted into an absent utility.
+
+### 2.4 Topology is not visual intersection
+
+The relation types distinguish continuation, junction, unresolved crossing and unresolved near-intersection.
+
+An unresolved crossing is not a graph edge establishing physical connection. It remains a spatial relationship awaiting evidence.
+
+### 2.5 Calibration status is separate from structural validity
+
+The validator can check that a calibration receipt identifier was supplied when a caller claims that one is referenced. It cannot authenticate that receipt or establish that the probabilities are calibrated.
+
+The code deliberately does not derive a posterior from event marginals or multiply cross-modal likelihoods.
+
+## 3. Asset-cluster scoring is now executable
+
+A separate event-to-asset evaluator is implemented in `sol-atlas-core/src/utility_reconstruction_metrics.rs`, with CLI `utility_reconstruction_eval`.
+
+It reports B-cubed precision/recall/F1, pairwise true-positive pairs, explicit overmerge/oversplit pairs, candidate false assets, missed truth assets, abstention and false association of adjudicated clutter. It scores only structured independent survey and reviewed trench-image truth. Owner-record-only, conflicted and insufficient truth are separately counted, not converted to negative examples.
+
+Every reference event requires exactly one prediction disposition: candidate asset or explicit abstention. Missing predictions are rejected. Clutter and abstention are singletons in their respective partitions. The committed fixture and pinned baseline are synthetic only.
+
+# EARTH-OBSERVABILITY-JOINT-NETWORK-HYPOTHESES-001
+## Joint posterior hypotheses for evidence-qualified utility-network reconstruction v0.1
+
+**Parent:** Sol-Atlas #771 — EARTH-OBSERVABILITY-QUAL-002  
+**Implementation branch:** research/earth-observability-joint-network-hypotheses-v0-1  
+**Status:** Rust structural contract and deterministic analytic fixture added; probability calibration, graph scoring and physical validation NOT_RUN  
+**Date:** 2026-11-14  
+**Claim ceiling:** The fixture is abstract and non-geographic. It does not represent a real utility, field survey, calibrated posterior, qualified network geometry or excavation clearance.
+
+---
+
+## 1. Research proposition: infer a distribution over worlds, not one best-looking map
+
+The current candidate-graph contract permits multiple event-to-asset association marginals and explicit abstention. That is useful, but independently meaningful marginal probabilities do not necessarily form a coherent joint network.
+
+For example, separate edge probabilities can each look plausible while their combination creates an impossible network: a single event is assigned to two incompatible assets, a crossing is treated as a junction, or two mutually exclusive asset partitions are simultaneously represented as facts.
+
+The next abstraction is a **joint network hypothesis set**:
+
+- one immutable evidence snapshot and one investigation scope;
+- a finite set of mutually exclusive candidate network worlds;
+- one complete event disposition per observed event in every world;
+- candidate assets, geometry claims, nodes and relations that are internally coherent within each world;
+- a probability for each whole world;
+- explicit residual probability for worlds not enumerated.
+
+This is not a claim that a Bayesian posterior has been calibrated. It is a data and validation contract that makes the intended probability semantics explicit and testable.
+
+The decision product becomes:
+
+> Here are the plausible physical network configurations, their relative support, the evidence that separates them, and the observation most likely to change the engineering decision.
+
+## 2. Contract semantics
+
+The executable contract is in `sol-atlas-core/src/network_hypotheses.rs`; the strict JSON Schema Draft 2020-12 interchange profile is `research/earth-observability/NETWORK_HYPOTHESES_V0_1.schema.json`. The Rust validator enforces cross-reference and cross-field invariants that JSON Schema alone cannot express.
+
+### 2.1 One hypothesis is one complete candidate world
+
+A NetworkHypothesis contains:
+
+- a unique hypothesis identity and whole-world probability;
+- exactly one assignment record for every event in the set;
+- explicit null assignment for events left unassociated;
+- candidate asset instances and their event membership;
+- optional geometry-claim references;
+- candidate nodes and their associated candidate assets;
+- evidence-supported relations between nodes.
+
+A candidate identifier is local and non-authoritative. It is not a MUDDI ObjectID, owner-system SystemID or utility-owner asset identifier.
+
+### 2.2 Mutually exclusive world mass
+
+The probability invariant is:
+
+sum(P(hypothesis_i)) + P(residual_unknown) = 1
+
+within a fixed numerical tolerance.
+
+The residual is not a negative detection, absence probability or permission to redistribute probability among the listed hypotheses. It represents unenumerated or unresolved possible worlds.
+
+The fixture contains three alternatives:
+
+| World | Probability | Interpretation |
+|---|---:|---|
+| world-one-utility | 0.62 | Two events belong to one candidate utility |
+| world-two-utilities | 0.23 | The events belong to distinct candidate utilities |
+| world-crossing-unresolved | 0.10 | Two distinct assets have an unresolved crossing relation |
+| Unenumerated worlds | 0.05 | Explicit residual unknown mass |
+
+The values are deliberately illustrative, not learned or calibrated.
+
+### 2.3 Evidence closure
+
+Every event has a source-evidence reference. Every assigned event must be represented in its candidate asset's event membership and supported by that exact source evidence. Every node and relation must resolve its references and carry admitted evidence.
+
+A null event assignment is a valid explicit abstention. It is not silently converted into an absent utility.
+
+### 2.4 Topology is not visual intersection
+
+The relation types distinguish continuation, junction, unresolved crossing and unresolved near-intersection.
+
+An unresolved crossing is not a graph edge establishing physical connection. It remains a spatial relationship awaiting evidence.
+
+### 2.5 Calibration status is separate from structural validity
+
+The validator can check that a calibration receipt identifier was supplied when a caller claims that one is referenced. It cannot authenticate that receipt or establish that the probabilities are calibrated.
+
+The code deliberately does not derive a posterior from event marginals or multiply cross-modal likelihoods.
+
+## 3. Asset-cluster scoring is now executable
+
+A separate event-to-asset evaluator is implemented in `sol-atlas-core/src/utility_reconstruction_metrics.rs`, with CLI `utility_reconstruction_eval`.
+
+It reports B-cubed precision/recall/F1, pairwise true-positive pairs, explicit overmerge/oversplit pairs, candidate false assets, missed truth assets, abstention and false association of adjudicated clutter. It scores only structured independent survey and reviewed trench-image truth. Owner-record-only, conflicted and insufficient truth are separately counted, not converted to negative examples.
+
+Every reference event requires exactly one prediction disposition: candidate asset or explicit abstention. Missing predictions are rejected. Clutter and abstention are singletons in their respective partitions. The committed fixture and pinned baseline are synthetic only.
+
+# EARTH-OBSERVABILITY-JOINT-NETWORK-HYPOTHESES-001
+## Joint posterior hypotheses for evidence-qualified utility-network reconstruction v0.1
+
+**Parent:** Sol-Atlas #771 — EARTH-OBSERVABILITY-QUAL-002  
+**Implementation branch:** research/earth-observability-joint-network-hypotheses-v0-1  
+**Status:** Rust structural contract and deterministic analytic fixture added; probability calibration, graph scoring and physical validation NOT_RUN  
+**Date:** 2026-11-14  
+**Claim ceiling:** The fixture is abstract and non-geographic. It does not represent a real utility, field survey, calibrated posterior, qualified network geometry or excavation clearance.
+
+---
+
+## 1. Research proposition: infer a distribution over worlds, not one best-looking map
+
+The current candidate-graph contract permits multiple event-to-asset association marginals and explicit abstention. That is useful, but independently meaningful marginal probabilities do not necessarily form a coherent joint network.
+
+For example, separate edge probabilities can each look plausible while their combination creates an impossible network: a single event is assigned to two incompatible assets, a crossing is treated as a junction, or two mutually exclusive asset partitions are simultaneously represented as facts.
+
+The next abstraction is a **joint network hypothesis set**:
+
+- one immutable evidence snapshot and one investigation scope;
+- a finite set of mutually exclusive candidate network worlds;
+- one complete event disposition per observed event in every world;
+- candidate assets, geometry claims, nodes and relations that are internally coherent within each world;
+- a probability for each whole world;
+- explicit residual probability for worlds not enumerated.
+
+This is not a claim that a Bayesian posterior has been calibrated. It is a data and validation contract that makes the intended probability semantics explicit and testable.
+
+The decision product becomes:
+
+> Here are the plausible physical network configurations, their relative support, the evidence that separates them, and the observation most likely to change the engineering decision.
+
+## 2. Contract semantics
+
+The executable contract is in `sol-atlas-core/src/network_hypotheses.rs`; the strict JSON Schema Draft 2020-12 interchange profile is `research/earth-observability/NETWORK_HYPOTHESES_V0_1.schema.json`. The Rust validator enforces cross-reference and cross-field invariants that JSON Schema alone cannot express.
+
+### 2.1 One hypothesis is one complete candidate world
+
+A NetworkHypothesis contains:
+
+- a unique hypothesis identity and whole-world probability;
+- exactly one assignment record for every event in the set;
+- explicit null assignment for events left unassociated;
+- candidate asset instances and their event membership;
+- optional geometry-claim references;
+- candidate nodes and their associated candidate assets;
+- evidence-supported relations between nodes.
+
+A candidate identifier is local and non-authoritative. It is not a MUDDI ObjectID, owner-system SystemID or utility-owner asset identifier.
+
+### 2.2 Mutually exclusive world mass
+
+The probability invariant is:
+
+sum(P(hypothesis_i)) + P(residual_unknown) = 1
+
+within a fixed numerical tolerance.
+
+The residual is not a negative detection, absence probability or permission to redistribute probability among the listed hypotheses. It represents unenumerated or unresolved possible worlds.
+
+The fixture contains three alternatives:
+
+| World | Probability | Interpretation |
+|---|---:|---|
+| world-one-utility | 0.62 | Two events belong to one candidate utility |
+| world-two-utilities | 0.23 | The events belong to distinct candidate utilities |
+| world-crossing-unresolved | 0.10 | Two distinct assets have an unresolved crossing relation |
+| Unenumerated worlds | 0.05 | Explicit residual unknown mass |
+
+The values are deliberately illustrative, not learned or calibrated.
+
+### 2.3 Evidence closure
+
+Every event has a source-evidence reference. Every assigned event must be represented in its candidate asset's event membership and supported by that exact source evidence. Every node and relation must resolve its references and carry admitted evidence.
+
+A null event assignment is a valid explicit abstention. It is not silently converted into an absent utility.
+
+### 2.4 Topology is not visual intersection
+
+The relation types distinguish continuation, junction, unresolved crossing and unresolved near-intersection.
+
+An unresolved crossing is not a graph edge establishing physical connection. It remains a spatial relationship awaiting evidence.
+
+### 2.5 Calibration status is separate from structural validity
+
+The validator can check that a calibration receipt identifier was supplied when a caller claims that one is referenced. It cannot authenticate that receipt or establish that the probabilities are calibrated.
+
+The code deliberately does not derive a posterior from event marginals or multiply cross-modal likelihoods.
+
+## 3. Asset-cluster scoring is now executable
+
+A separate event-to-asset evaluator is implemented in `sol-atlas-core/src/utility_reconstruction_metrics.rs`, with CLI `utility_reconstruction_eval`.
+
+It reports B-cubed precision/recall/F1, pairwise true-positive pairs, explicit overmerge/oversplit pairs, candidate false assets, missed truth assets, abstention and false association of adjudicated clutter. It scores only structured independent survey and reviewed trench-image truth. Owner-record-only, conflicted and insufficient truth are separately counted, not converted to negative examples.
+
+Every reference event requires exactly one prediction disposition: candidate asset or explicit abstention. Missing predictions are rejected. Clutter and abstention are singletons in their respective partitions. The committed fixture and pinned baseline are synthetic only.
+
+# EARTH-OBSERVABILITY-JOINT-NETWORK-HYPOTHESES-001
+## Joint posterior hypotheses for evidence-qualified utility-network reconstruction v0.1
+
+**Parent:** Sol-Atlas #771 — EARTH-OBSERVABILITY-QUAL-002  
+**Implementation branch:** research/earth-observability-joint-network-hypotheses-v0-1  
+**Status:** Rust structural contract and deterministic analytic fixture added; probability calibration, graph scoring and physical validation NOT_RUN  
+**Date:** 2026-11-14  
+**Claim ceiling:** The fixture is abstract and non-geographic. It does not represent a real utility, field survey, calibrated posterior, qualified network geometry or excavation clearance.
+
+---
+
+## 1. Research proposition: infer a distribution over worlds, not one best-looking map
+
+The current candidate-graph contract permits multiple event-to-asset association marginals and explicit abstention. That is useful, but independently meaningful marginal probabilities do not necessarily form a coherent joint network.
+
+For example, separate edge probabilities can each look plausible while their combination creates an impossible network: a single event is assigned to two incompatible assets, a crossing is treated as a junction, or two mutually exclusive asset partitions are simultaneously represented as facts.
+
+The next abstraction is a **joint network hypothesis set**:
+
+- one immutable evidence snapshot and one investigation scope;
+- a finite set of mutually exclusive candidate network worlds;
+- one complete event disposition per observed event in every world;
+- candidate assets, geometry claims, nodes and relations that are internally coherent within each world;
+- a probability for each whole world;
+- explicit residual probability for worlds not enumerated.
+
+This is not a claim that a Bayesian posterior has been calibrated. It is a data and validation contract that makes the intended probability semantics explicit and testable.
+
+The decision product becomes:
+
+> Here are the plausible physical network configurations, their relative support, the evidence that separates them, and the observation most likely to change the engineering decision.
+
+## 2. Contract semantics
+
+The executable contract is in `sol-atlas-core/src/network_hypotheses.rs`; the strict JSON Schema Draft 2020-12 interchange profile is `research/earth-observability/NETWORK_HYPOTHESES_V0_1.schema.json`. The Rust validator enforces cross-reference and cross-field invariants that JSON Schema alone cannot express.
+
+### 2.1 One hypothesis is one complete candidate world
+
+A NetworkHypothesis contains:
+
+- a unique hypothesis identity and whole-world probability;
+- exactly one assignment record for every event in the set;
+- explicit null assignment for events left unassociated;
+- candidate asset instances and their event membership;
+- optional geometry-claim references;
+- candidate nodes and their associated candidate assets;
+- evidence-supported relations between nodes.
+
+A candidate identifier is local and non-authoritative. It is not a MUDDI ObjectID, owner-system SystemID or utility-owner asset identifier.
+
+### 2.2 Mutually exclusive world mass
+
+The probability invariant is:
+
+sum(P(hypothesis_i)) + P(residual_unknown) = 1
+
+within a fixed numerical tolerance.
+
+The residual is not a negative detection, absence probability or permission to redistribute probability among the listed hypotheses. It represents unenumerated or unresolved possible worlds.
+
+The fixture contains three alternatives:
+
+| World | Probability | Interpretation |
+|---|---:|---|
+| world-one-utility | 0.62 | Two events belong to one candidate utility |
+| world-two-utilities | 0.23 | The events belong to distinct candidate utilities |
+| world-crossing-unresolved | 0.10 | Two distinct assets have an unresolved crossing relation |
+| Unenumerated worlds | 0.05 | Explicit residual unknown mass |
+
+The values are deliberately illustrative, not learned or calibrated.
+
+### 2.3 Evidence closure
+
+Every event has a source-evidence reference. Every assigned event must be represented in its candidate asset's event membership and supported by that exact source evidence. Every node and relation must resolve its references and carry admitted evidence.
+
+A null event assignment is a valid explicit abstention. It is not silently converted into an absent utility.
+
+### 2.4 Topology is not visual intersection
+
+The relation types distinguish continuation, junction, unresolved crossing and unresolved near-intersection.
+
+An unresolved crossing is not a graph edge establishing physical connection. It remains a spatial relationship awaiting evidence.
+
+### 2.5 Calibration status is separate from structural validity
+
+The validator can check that a calibration receipt identifier was supplied when a caller claims that one is referenced. It cannot authenticate that receipt or establish that the probabilities are calibrated.
+
+The code deliberately does not derive a posterior from event marginals or multiply cross-modal likelihoods.
+
+## 3. Asset-cluster scoring is now executable
+
+A separate event-to-asset evaluator is implemented in `sol-atlas-core/src/utility_reconstruction_metrics.rs`, with CLI `utility_reconstruction_eval`.
+
+It reports B-cubed precision/recall/F1, pairwise true-positive pairs, explicit overmerge/oversplit pairs, candidate false assets, missed truth assets, abstention and false association of adjudicated clutter. It scores only structured independent survey and reviewed trench-image truth. Owner-record-only, conflicted and insufficient truth are separately counted, not converted to negative examples.
+
+Every reference event requires exactly one prediction disposition: candidate asset or explicit abstention. Missing predictions are rejected. Clutter and abstention are singletons in their respective partitions. The committed fixture and pinned baseline are synthetic only.
+
+# EARTH-OBSERVABILITY-JOINT-NETWORK-HYPOTHESES-001
+## Joint posterior hypotheses for evidence-qualified utility-network reconstruction v0.1
+
+**Parent:** Sol-Atlas #771 — EARTH-OBSERVABILITY-QUAL-002  
+**Implementation branch:** research/earth-observability-joint-network-hypotheses-v0-1  
+**Status:** Rust structural contract and deterministic analytic fixture added; probability calibration, graph scoring and physical validation NOT_RUN  
+**Date:** 2026-11-14  
+**Claim ceiling:** The fixture is abstract and non-geographic. It does not represent a real utility, field survey, calibrated posterior, qualified network geometry or excavation clearance.
+
+---
+
+## 1. Research proposition: infer a distribution over worlds, not one best-looking map
+
+The current candidate-graph contract permits multiple event-to-asset association marginals and explicit abstention. That is useful, but independently meaningful marginal probabilities do not necessarily form a coherent joint network.
+
+For example, separate edge probabilities can each look plausible while their combination creates an impossible network: a single event is assigned to two incompatible assets, a crossing is treated as a junction, or two mutually exclusive asset partitions are simultaneously represented as facts.
+
+The next abstraction is a **joint network hypothesis set**:
+
+- one immutable evidence snapshot and one investigation scope;
+- a finite set of mutually exclusive candidate network worlds;
+- one complete event disposition per observed event in every world;
+- candidate assets, geometry claims, nodes and relations that are internally coherent within each world;
+- a probability for each whole world;
+- explicit residual probability for worlds not enumerated.
+
+This is not a claim that a Bayesian posterior has been calibrated. It is a data and validation contract that makes the intended probability semantics explicit and testable.
+
+The decision product becomes:
+
+> Here are the plausible physical network configurations, their relative support, the evidence that separates them, and the observation most likely to change the engineering decision.
+
+## 2. Contract semantics
+
+The executable contract is in `sol-atlas-core/src/network_hypotheses.rs`; the strict JSON Schema Draft 2020-12 interchange profile is `research/earth-observability/NETWORK_HYPOTHESES_V0_1.schema.json`. The Rust validator enforces cross-reference and cross-field invariants that JSON Schema alone cannot express.
+
+### 2.1 One hypothesis is one complete candidate world
+
+A NetworkHypothesis contains:
+
+- a unique hypothesis identity and whole-world probability;
+- exactly one assignment record for every event in the set;
+- explicit null assignment for events left unassociated;
+- candidate asset instances and their event membership;
+- optional geometry-claim references;
+- candidate nodes and their associated candidate assets;
+- evidence-supported relations between nodes.
+
+A candidate identifier is local and non-authoritative. It is not a MUDDI ObjectID, owner-system SystemID or utility-owner asset identifier.
+
+### 2.2 Mutually exclusive world mass
+
+The probability invariant is:
+
+sum(P(hypothesis_i)) + P(residual_unknown) = 1
+
+within a fixed numerical tolerance.
+
+The residual is not a negative detection, absence probability or permission to redistribute probability among the listed hypotheses. It represents unenumerated or unresolved possible worlds.
+
+The fixture contains three alternatives:
+
+| World | Probability | Interpretation |
+|---|---:|---|
+| world-one-utility | 0.62 | Two events belong to one candidate utility |
+| world-two-utilities | 0.23 | The events belong to distinct candidate utilities |
+| world-crossing-unresolved | 0.10 | Two distinct assets have an unresolved crossing relation |
+| Unenumerated worlds | 0.05 | Explicit residual unknown mass |
+
+The values are deliberately illustrative, not learned or calibrated.
+
+### 2.3 Evidence closure
+
+Every event has a source-evidence reference. Every assigned event must be represented in its candidate asset's event membership and supported by that exact source evidence. Every node and relation must resolve its references and carry admitted evidence.
+
+A null event assignment is a valid explicit abstention. It is not silently converted into an absent utility.
+
+### 2.4 Topology is not visual intersection
+
+The relation types distinguish continuation, junction, unresolved crossing and unresolved near-intersection.
+
+An unresolved crossing is not a graph edge establishing physical connection. It remains a spatial relationship awaiting evidence.
+
+### 2.5 Calibration status is separate from structural validity
+
+The validator can check that a calibration receipt identifier was supplied when a caller claims that one is referenced. It cannot authenticate that receipt or establish that the probabilities are calibrated.
+
+The code deliberately does not derive a posterior from event marginals or multiply cross-modal likelihoods.
+
+## 3. Asset-cluster scoring is now executable
+
+A separate event-to-asset evaluator is implemented in `sol-atlas-core/src/utility_reconstruction_metrics.rs`, with CLI `utility_reconstruction_eval`.
+
+It reports B-cubed precision/recall/F1, pairwise true-positive pairs, explicit overmerge/oversplit pairs, candidate false assets, missed truth assets, abstention and false association of adjudicated clutter. It scores only structured independent survey and reviewed trench-image truth. Owner-record-only, conflicted and insufficient truth are separately counted, not converted to negative examples.
+
+Every reference event requires exactly one prediction disposition: candidate asset or explicit abstention. Missing predictions are rejected. Clutter and abstention are singletons in their respective partitions. The committed fixture and pinned baseline are synthetic only.
+
+# EARTH-OBSERVABILITY-JOINT-NETWORK-HYPOTHESES-001
+## Joint posterior hypotheses for evidence-qualified utility-network reconstruction v0.1
+
+**Parent:** Sol-Atlas #771 — EARTH-OBSERVABILITY-QUAL-002  
+**Implementation branch:** research/earth-observability-joint-network-hypotheses-v0-1  
+**Status:** Rust structural contract and deterministic analytic fixture added; probability calibration, graph scoring and physical validation NOT_RUN  
+**Date:** 2026-11-14  
+**Claim ceiling:** The fixture is abstract and non-geographic. It does not represent a real utility, field survey, calibrated posterior, qualified network geometry or excavation clearance.
+
+---
+
+## 1. Research proposition: infer a distribution over worlds, not one best-looking map
+
+The current candidate-graph contract permits multiple event-to-asset association marginals and explicit abstention. That is useful, but independently meaningful marginal probabilities do not necessarily form a coherent joint network.
+
+For example, separate edge probabilities can each look plausible while their combination creates an impossible network: a single event is assigned to two incompatible assets, a crossing is treated as a junction, or two mutually exclusive asset partitions are simultaneously represented as facts.
+
+The next abstraction is a **joint network hypothesis set**:
+
+- one immutable evidence snapshot and one investigation scope;
+- a finite set of mutually exclusive candidate network worlds;
+- one complete event disposition per observed event in every world;
+- candidate assets, geometry claims, nodes and relations that are internally coherent within each world;
+- a probability for each whole world;
+- explicit residual probability for worlds not enumerated.
+
+This is not a claim that a Bayesian posterior has been calibrated. It is a data and validation contract that makes the intended probability semantics explicit and testable.
+
+The decision product becomes:
+
+> Here are the plausible physical network configurations, their relative support, the evidence that separates them, and the observation most likely to change the engineering decision.
+
+## 2. Contract semantics
+
+The executable contract is in `sol-atlas-core/src/network_hypotheses.rs`; the strict JSON Schema Draft 2020-12 interchange profile is `research/earth-observability/NETWORK_HYPOTHESES_V0_1.schema.json`. The Rust validator enforces cross-reference and cross-field invariants that JSON Schema alone cannot express.
+
+### 2.1 One hypothesis is one complete candidate world
+
+A NetworkHypothesis contains:
+
+- a unique hypothesis identity and whole-world probability;
+- exactly one assignment record for every event in the set;
+- explicit null assignment for events left unassociated;
+- candidate asset instances and their event membership;
+- optional geometry-claim references;
+- candidate nodes and their associated candidate assets;
+- evidence-supported relations between nodes.
+
+A candidate identifier is local and non-authoritative. It is not a MUDDI ObjectID, owner-system SystemID or utility-owner asset identifier.
+
+### 2.2 Mutually exclusive world mass
+
+The probability invariant is:
+
+sum(P(hypothesis_i)) + P(residual_unknown) = 1
+
+within a fixed numerical tolerance.
+
+The residual is not a negative detection, absence probability or permission to redistribute probability among the listed hypotheses. It represents unenumerated or unresolved possible worlds.
+
+The fixture contains three alternatives:
+
+| World | Probability | Interpretation |
+|---|---:|---|
+| world-one-utility | 0.62 | Two events belong to one candidate utility |
+| world-two-utilities | 0.23 | The events belong to distinct candidate utilities |
+| world-crossing-unresolved | 0.10 | Two distinct assets have an unresolved crossing relation |
+| Unenumerated worlds | 0.05 | Explicit residual unknown mass |
+
+The values are deliberately illustrative, not learned or calibrated.
+
+### 2.3 Evidence closure
+
+Every event has a source-evidence reference. Every assigned event must be represented in its candidate asset's event membership and supported by that exact source evidence. Every node and relation must resolve its references and carry admitted evidence.
+
+A null event assignment is a valid explicit abstention. It is not silently converted into an absent utility.
+
+### 2.4 Topology is not visual intersection
+
+The relation types distinguish continuation, junction, unresolved crossing and unresolved near-intersection.
+
+An unresolved crossing is not a graph edge establishing physical connection. It remains a spatial relationship awaiting evidence.
+
+### 2.5 Calibration status is separate from structural validity
+
+The validator can check that a calibration receipt identifier was supplied when a caller claims that one is referenced. It cannot authenticate that receipt or establish that the probabilities are calibrated.
+
+The code deliberately does not derive a posterior from event marginals or multiply cross-modal likelihoods.
+
+## 3. Asset-cluster scoring is now executable
+
+A separate event-to-asset evaluator is implemented in `sol-atlas-core/src/utility_reconstruction_metrics.rs`, with CLI `utility_reconstruction_eval`.
+
+It reports B-cubed precision/recall/F1, pairwise true-positive pairs, explicit overmerge/oversplit pairs, candidate false assets, missed truth assets, abstention and false association of adjudicated clutter. It scores only structured independent survey and reviewed trench-image truth. Owner-record-only, conflicted and insufficient truth are separately counted, not converted to negative examples.
+
+Every reference event requires exactly one prediction disposition: candidate asset or explicit abstention. Missing predictions are rejected. Clutter and abstention are singletons in their respective partitions. The committed fixture and pinned baseline are synthetic only.
+
+# EARTH-OBSERVABILITY-JOINT-NETWORK-HYPOTHESES-001
+## Joint posterior hypotheses for evidence-qualified utility-network reconstruction v0.1
+
+**Parent:** Sol-Atlas #771 — EARTH-OBSERVABILITY-QUAL-002  
+**Implementation branch:** research/earth-observability-joint-network-hypotheses-v0-1  
+**Status:** Rust structural contract and deterministic analytic fixture added; probability calibration, graph scoring and physical validation NOT_RUN  
+**Date:** 2026-11-14  
+**Claim ceiling:** The fixture is abstract and non-geographic. It does not represent a real utility, field survey, calibrated posterior, qualified network geometry or excavation clearance.
+
+---
+
+## 1. Research proposition: infer a distribution over worlds, not one best-looking map
+
+The current candidate-graph contract permits multiple event-to-asset association marginals and explicit abstention. That is useful, but independently meaningful marginal probabilities do not necessarily form a coherent joint network.
+
+For example, separate edge probabilities can each look plausible while their combination creates an impossible network: a single event is assigned to two incompatible assets, a crossing is treated as a junction, or two mutually exclusive asset partitions are simultaneously represented as facts.
+
+The next abstraction is a **joint network hypothesis set**:
+
+- one immutable evidence snapshot and one investigation scope;
+- a finite set of mutually exclusive candidate network worlds;
+- one complete event disposition per observed event in every world;
+- candidate assets, geometry claims, nodes and relations that are internally coherent within each world;
+- a probability for each whole world;
+- explicit residual probability for worlds not enumerated.
+
+This is not a claim that a Bayesian posterior has been calibrated. It is a data and validation contract that makes the intended probability semantics explicit and testable.
+
+The decision product becomes:
+
+> Here are the plausible physical network configurations, their relative support, the evidence that separates them, and the observation most likely to change the engineering decision.
+
+## 2. Contract semantics
+
+The executable contract is in `sol-atlas-core/src/network_hypotheses.rs`; the strict JSON Schema Draft 2020-12 interchange profile is `research/earth-observability/NETWORK_HYPOTHESES_V0_1.schema.json`. The Rust validator enforces cross-reference and cross-field invariants that JSON Schema alone cannot express.
+
+### 2.1 One hypothesis is one complete candidate world
+
+A NetworkHypothesis contains:
+
+- a unique hypothesis identity and whole-world probability;
+- exactly one assignment record for every event in the set;
+- explicit null assignment for events left unassociated;
+- candidate asset instances and their event membership;
+- optional geometry-claim references;
+- candidate nodes and their associated candidate assets;
+- evidence-supported relations between nodes.
+
+A candidate identifier is local and non-authoritative. It is not a MUDDI ObjectID, owner-system SystemID or utility-owner asset identifier.
+
+### 2.2 Mutually exclusive world mass
+
+The probability invariant is:
+
+sum(P(hypothesis_i)) + P(residual_unknown) = 1
+
+within a fixed numerical tolerance.
+
+The residual is not a negative detection, absence probability or permission to redistribute probability among the listed hypotheses. It represents unenumerated or unresolved possible worlds.
+
+The fixture contains three alternatives:
+
+| World | Probability | Interpretation |
+|---|---:|---|
+| world-one-utility | 0.62 | Two events belong to one candidate utility |
+| world-two-utilities | 0.23 | The events belong to distinct candidate utilities |
+| world-crossing-unresolved | 0.10 | Two distinct assets have an unresolved crossing relation |
+| Unenumerated worlds | 0.05 | Explicit residual unknown mass |
+
+The values are deliberately illustrative, not learned or calibrated.
+
+### 2.3 Evidence closure
+
+Every event has a source-evidence reference. Every assigned event must be represented in its candidate asset's event membership and supported by that exact source evidence. Every node and relation must resolve its references and carry admitted evidence.
+
+A null event assignment is a valid explicit abstention. It is not silently converted into an absent utility.
+
+### 2.4 Topology is not visual intersection
+
+The relation types distinguish continuation, junction, unresolved crossing and unresolved near-intersection.
+
+An unresolved crossing is not a graph edge establishing physical connection. It remains a spatial relationship awaiting evidence.
+
+### 2.5 Calibration status is separate from structural validity
+
+The validator can check that a calibration receipt identifier was supplied when a caller claims that one is referenced. It cannot authenticate that receipt or establish that the probabilities are calibrated.
+
+The code deliberately does not derive a posterior from event marginals or multiply cross-modal likelihoods.
+
+## 3. Asset-cluster scoring is now executable
+
+A separate event-to-asset evaluator is implemented in `sol-atlas-core/src/utility_reconstruction_metrics.rs`, with CLI `utility_reconstruction_eval`.
+
+It reports B-cubed precision/recall/F1, pairwise true-positive pairs, explicit overmerge/oversplit pairs, candidate false assets, missed truth assets, abstention and false association of adjudicated clutter. It scores only structured independent survey and reviewed trench-image truth. Owner-record-only, conflicted and insufficient truth are separately counted, not converted to negative examples.
+
+Every reference event requires exactly one prediction disposition: candidate asset or explicit abstention. Missing predictions are rejected. Clutter and abstention are singletons in their respective partitions. The committed fixture and pinned baseline are synthetic only.
+
+# EARTH-OBSERVABILITY-JOINT-NETWORK-HYPOTHESES-001
+## Joint posterior hypotheses for evidence-qualified utility-network reconstruction v0.1
+
+**Parent:** Sol-Atlas #771 — EARTH-OBSERVABILITY-QUAL-002  
+**Implementation branch:** research/earth-observability-joint-network-hypotheses-v0-1  
+**Status:** Rust structural contract and deterministic analytic fixture added; probability calibration, graph scoring and physical validation NOT_RUN  
+**Date:** 2026-11-14  
+**Claim ceiling:** The fixture is abstract and non-geographic. It does not represent a real utility, field survey, calibrated posterior, qualified network geometry or excavation clearance.
+
+---
+
+## 1. Research proposition: infer a distribution over worlds, not one best-looking map
+
+The current candidate-graph contract permits multiple event-to-asset association marginals and explicit abstention. That is useful, but independently meaningful marginal probabilities do not necessarily form a coherent joint network.
+
+For example, separate edge probabilities can each look plausible while their combination creates an impossible network: a single event is assigned to two incompatible assets, a crossing is treated as a junction, or two mutually exclusive asset partitions are simultaneously represented as facts.
+
+The next abstraction is a **joint network hypothesis set**:
+
+- one immutable evidence snapshot and one investigation scope;
+- a finite set of mutually exclusive candidate network worlds;
+- one complete event disposition per observed event in every world;
+- candidate assets, geometry claims, nodes and relations that are internally coherent within each world;
+- a probability for each whole world;
+- explicit residual probability for worlds not enumerated.
+
+This is not a claim that a Bayesian posterior has been calibrated. It is a data and validation contract that makes the intended probability semantics explicit and testable.
+
+The decision product becomes:
+
+> Here are the plausible physical network configurations, their relative support, the evidence that separates them, and the observation most likely to change the engineering decision.
+
+## 2. Contract semantics
+
+The executable contract is in `sol-atlas-core/src/network_hypotheses.rs`; the strict JSON Schema Draft 2020-12 interchange profile is `research/earth-observability/NETWORK_HYPOTHESES_V0_1.schema.json`. The Rust validator enforces cross-reference and cross-field invariants that JSON Schema alone cannot express.
+
+### 2.1 One hypothesis is one complete candidate world
+
+A NetworkHypothesis contains:
+
+- a unique hypothesis identity and whole-world probability;
+- exactly one assignment record for every event in the set;
+- explicit null assignment for events left unassociated;
+- candidate asset instances and their event membership;
+- optional geometry-claim references;
+- candidate nodes and their associated candidate assets;
+- evidence-supported relations between nodes.
+
+A candidate identifier is local and non-authoritative. It is not a MUDDI ObjectID, owner-system SystemID or utility-owner asset identifier.
+
+### 2.2 Mutually exclusive world mass
+
+The probability invariant is:
+
+sum(P(hypothesis_i)) + P(residual_unknown) = 1
+
+within a fixed numerical tolerance.
+
+The residual is not a negative detection, absence probability or permission to redistribute probability among the listed hypotheses. It represents unenumerated or unresolved possible worlds.
+
+The fixture contains three alternatives:
+
+| World | Probability | Interpretation |
+|---|---:|---|
+| world-one-utility | 0.62 | Two events belong to one candidate utility |
+| world-two-utilities | 0.23 | The events belong to distinct candidate utilities |
+| world-crossing-unresolved | 0.10 | Two distinct assets have an unresolved crossing relation |
+| Unenumerated worlds | 0.05 | Explicit residual unknown mass |
+
+The values are deliberately illustrative, not learned or calibrated.
+
+### 2.3 Evidence closure
+
+Every event has a source-evidence reference. Every assigned event must be represented in its candidate asset's event membership and supported by that exact source evidence. Every node and relation must resolve its references and carry admitted evidence.
+
+A null event assignment is a valid explicit abstention. It is not silently converted into an absent utility.
+
+### 2.4 Topology is not visual intersection
+
+The relation types distinguish continuation, junction, unresolved crossing and unresolved near-intersection.
+
+An unresolved crossing is not a graph edge establishing physical connection. It remains a spatial relationship awaiting evidence.
+
+### 2.5 Calibration status is separate from structural validity
+
+The validator can check that a calibration receipt identifier was supplied when a caller claims that one is referenced. It cannot authenticate that receipt or establish that the probabilities are calibrated.
+
+The code deliberately does not derive a posterior from event marginals or multiply cross-modal likelihoods.
+
+## 3. Asset-cluster scoring is now executable
+
+A separate event-to-asset evaluator is implemented in `sol-atlas-core/src/utility_reconstruction_metrics.rs`, with CLI `utility_reconstruction_eval`.
+
+It reports B-cubed precision/recall/F1, pairwise true-positive pairs, explicit overmerge/oversplit pairs, candidate false assets, missed truth assets, abstention and false association of adjudicated clutter. It scores only structured independent survey and reviewed trench-image truth. Owner-record-only, conflicted and insufficient truth are separately counted, not converted to negative examples.
+
+Every reference event requires exactly one prediction disposition: candidate asset or explicit abstention. Missing predictions are rejected. Clutter and abstention are singletons in their respective partitions. The committed fixture and pinned baseline are synthetic only.
+
+# EARTH-OBSERVABILITY-JOINT-NETWORK-HYPOTHESES-001
+## Joint posterior hypotheses for evidence-qualified utility-network reconstruction v0.1
+
+**Parent:** Sol-Atlas #771 — EARTH-OBSERVABILITY-QUAL-002  
+**Implementation branch:** research/earth-observability-joint-network-hypotheses-v0-1  
+**Status:** Rust structural contract and deterministic analytic fixture added; probability calibration, graph scoring and physical validation NOT_RUN  
+**Date:** 2026-11-14  
+**Claim ceiling:** The fixture is abstract and non-geographic. It does not represent a real utility, field survey, calibrated posterior, qualified network geometry or excavation clearance.
+
+---
+
+## 1. Research proposition: infer a distribution over worlds, not one best-looking map
+
+The current candidate-graph contract permits multiple event-to-asset association marginals and explicit abstention. That is useful, but independently meaningful marginal probabilities do not necessarily form a coherent joint network.
+
+For example, separate edge probabilities can each look plausible while their combination creates an impossible network: a single event is assigned to two incompatible assets, a crossing is treated as a junction, or two mutually exclusive asset partitions are simultaneously represented as facts.
+
+The next abstraction is a **joint network hypothesis set**:
+
+- one immutable evidence snapshot and one investigation scope;
+- a finite set of mutually exclusive candidate network worlds;
+- one complete event disposition per observed event in every world;
+- candidate assets, geometry claims, nodes and relations that are internally coherent within each world;
+- a probability for each whole world;
+- explicit residual probability for worlds not enumerated.
+
+This is not a claim that a Bayesian posterior has been calibrated. It is a data and validation contract that makes the intended probability semantics explicit and testable.
+
+The decision product becomes:
+
+> Here are the plausible physical network configurations, their relative support, the evidence that separates them, and the observation most likely to change the engineering decision.
+
+## 2. Contract semantics
+
+The executable contract is in `sol-atlas-core/src/network_hypotheses.rs`; the strict JSON Schema Draft 2020-12 interchange profile is `research/earth-observability/NETWORK_HYPOTHESES_V0_1.schema.json`. The Rust validator enforces cross-reference and cross-field invariants that JSON Schema alone cannot express.
+
+### 2.1 One hypothesis is one complete candidate world
+
+A NetworkHypothesis contains:
+
+- a unique hypothesis identity and whole-world probability;
+- exactly one assignment record for every event in the set;
+- explicit null assignment for events left unassociated;
+- candidate asset instances and their event membership;
+- optional geometry-claim references;
+- candidate nodes and their associated candidate assets;
+- evidence-supported relations between nodes.
+
+A candidate identifier is local and non-authoritative. It is not a MUDDI ObjectID, owner-system SystemID or utility-owner asset identifier.
+
+### 2.2 Mutually exclusive world mass
+
+The probability invariant is:
+
+sum(P(hypothesis_i)) + P(residual_unknown) = 1
+
+within a fixed numerical tolerance.
+
+The residual is not a negative detection, absence probability or permission to redistribute probability among the listed hypotheses. It represents unenumerated or unresolved possible worlds.
+
+The fixture contains three alternatives:
+
+| World | Probability | Interpretation |
+|---|---:|---|
+| world-one-utility | 0.62 | Two events belong to one candidate utility |
+| world-two-utilities | 0.23 | The events belong to distinct candidate utilities |
+| world-crossing-unresolved | 0.10 | Two distinct assets have an unresolved crossing relation |
+| Unenumerated worlds | 0.05 | Explicit residual unknown mass |
+
+The values are deliberately illustrative, not learned or calibrated.
+
+### 2.3 Evidence closure
+
+Every event has a source-evidence reference. Every assigned event must be represented in its candidate asset's event membership and supported by that exact source evidence. Every node and relation must resolve its references and carry admitted evidence.
+
+A null event assignment is a valid explicit abstention. It is not silently converted into an absent utility.
+
+### 2.4 Topology is not visual intersection
+
+The relation types distinguish continuation, junction, unresolved crossing and unresolved near-intersection.
+
+An unresolved crossing is not a graph edge establishing physical connection. It remains a spatial relationship awaiting evidence.
+
+### 2.5 Calibration status is separate from structural validity
+
+The validator can check that a calibration receipt identifier was supplied when a caller claims that one is referenced. It cannot authenticate that receipt or establish that the probabilities are calibrated.
+
+The code deliberately does not derive a posterior from event marginals or multiply cross-modal likelihoods.
+
+## 3. Asset-cluster scoring is now executable
+
+A separate event-to-asset evaluator is implemented in `sol-atlas-core/src/utility_reconstruction_metrics.rs`, with CLI `utility_reconstruction_eval`.
+
+It reports B-cubed precision/recall/F1, pairwise true-positive pairs, explicit overmerge/oversplit pairs, candidate false assets, missed truth assets, abstention and false association of adjudicated clutter. It scores only structured independent survey and reviewed trench-image truth. Owner-record-only, conflicted and insufficient truth are separately counted, not converted to negative examples.
+
+Every reference event requires exactly one prediction disposition: candidate asset or explicit abstention. Missing predictions are rejected. Clutter and abstention are singletons in their respective partitions. The committed fixture and pinned baseline are synthetic only.
+
+# EARTH-OBSERVABILITY-JOINT-NETWORK-HYPOTHESES-001
+## Joint posterior hypotheses for evidence-qualified utility-network reconstruction v0.1
+
+**Parent:** Sol-Atlas #771 — EARTH-OBSERVABILITY-QUAL-002  
+**Implementation branch:** research/earth-observability-joint-network-hypotheses-v0-1  
+**Status:** Rust structural contract and deterministic analytic fixture added; probability calibration, graph scoring and physical validation NOT_RUN  
+**Date:** 2026-11-14  
+**Claim ceiling:** The fixture is abstract and non-geographic. It does not represent a real utility, field survey, calibrated posterior, qualified network geometry or excavation clearance.
+
+---
+
+## 1. Research proposition: infer a distribution over worlds, not one best-looking map
+
+The current candidate-graph contract permits multiple event-to-asset association marginals and explicit abstention. That is useful, but independently meaningful marginal probabilities do not necessarily form a coherent joint network.
+
+For example, separate edge probabilities can each look plausible while their combination creates an impossible network: a single event is assigned to two incompatible assets, a crossing is treated as a junction, or two mutually exclusive asset partitions are simultaneously represented as facts.
+
+The next abstraction is a **joint network hypothesis set**:
+
+- one immutable evidence snapshot and one investigation scope;
+- a finite set of mutually exclusive candidate network worlds;
+- one complete event disposition per observed event in every world;
+- candidate assets, geometry claims, nodes and relations that are internally coherent within each world;
+- a probability for each whole world;
+- explicit residual probability for worlds not enumerated.
+
+This is not a claim that a Bayesian posterior has been calibrated. It is a data and validation contract that makes the intended probability semantics explicit and testable.
+
+The decision product becomes:
+
+> Here are the plausible physical network configurations, their relative support, the evidence that separates them, and the observation most likely to change the engineering decision.
+
+## 2. Contract semantics
+
+The executable contract is in `sol-atlas-core/src/network_hypotheses.rs`; the strict JSON Schema Draft 2020-12 interchange profile is `research/earth-observability/NETWORK_HYPOTHESES_V0_1.schema.json`. The Rust validator enforces cross-reference and cross-field invariants that JSON Schema alone cannot express.
+
+### 2.1 One hypothesis is one complete candidate world
+
+A NetworkHypothesis contains:
+
+- a unique hypothesis identity and whole-world probability;
+- exactly one assignment record for every event in the set;
+- explicit null assignment for events left unassociated;
+- candidate asset instances and their event membership;
+- optional geometry-claim references;
+- candidate nodes and their associated candidate assets;
+- evidence-supported relations between nodes.
+
+A candidate identifier is local and non-authoritative. It is not a MUDDI ObjectID, owner-system SystemID or utility-owner asset identifier.
+
+### 2.2 Mutually exclusive world mass
+
+The probability invariant is:
+
+sum(P(hypothesis_i)) + P(residual_unknown) = 1
+
+within a fixed numerical tolerance.
+
+The residual is not a negative detection, absence probability or permission to redistribute probability among the listed hypotheses. It represents unenumerated or unresolved possible worlds.
+
+The fixture contains three alternatives:
+
+| World | Probability | Interpretation |
+|---|---:|---|
+| world-one-utility | 0.62 | Two events belong to one candidate utility |
+| world-two-utilities | 0.23 | The events belong to distinct candidate utilities |
+| world-crossing-unresolved | 0.10 | Two distinct assets have an unresolved crossing relation |
+| Unenumerated worlds | 0.05 | Explicit residual unknown mass |
+
+The values are deliberately illustrative, not learned or calibrated.
+
+### 2.3 Evidence closure
+
+Every event has a source-evidence reference. Every assigned event must be represented in its candidate asset's event membership and supported by that exact source evidence. Every node and relation must resolve its references and carry admitted evidence.
+
+A null event assignment is a valid explicit abstention. It is not silently converted into an absent utility.
+
+### 2.4 Topology is not visual intersection
+
+The relation types distinguish continuation, junction, unresolved crossing and unresolved near-intersection.
+
+An unresolved crossing is not a graph edge establishing physical connection. It remains a spatial relationship awaiting evidence.
+
+### 2.5 Calibration status is separate from structural validity
+
+The validator can check that a calibration receipt identifier was supplied when a caller claims that one is referenced. It cannot authenticate that receipt or establish that the probabilities are calibrated.
+
+The code deliberately does not derive a posterior from event marginals or multiply cross-modal likelihoods.
+
+## 3. Asset-cluster scoring is now executable
+
+A separate event-to-asset evaluator is implemented in `sol-atlas-core/src/utility_reconstruction_metrics.rs`, with CLI `utility_reconstruction_eval`.
+
+It reports B-cubed precision/recall/F1, pairwise true-positive pairs, explicit overmerge/oversplit pairs, candidate false assets, missed truth assets, abstention and false association of adjudicated clutter. It scores only structured independent survey and reviewed trench-image truth. Owner-record-only, conflicted and insufficient truth are separately counted, not converted to negative examples.
+
+Every reference event requires exactly one prediction disposition: candidate asset or explicit abstention. Missing predictions are rejected. Clutter and abstention are singletons in their respective partitions. The committed fixture and pinned baseline are synthetic only.
+
+# EARTH-OBSERVABILITY-JOINT-NETWORK-HYPOTHESES-001
+## Joint posterior hypotheses for evidence-qualified utility-network reconstruction v0.1
+
+**Parent:** Sol-Atlas #771 — EARTH-OBSERVABILITY-QUAL-002  
+**Implementation branch:** research/earth-observability-joint-network-hypotheses-v0-1  
+**Status:** Rust structural contract and deterministic analytic fixture added; probability calibration, graph scoring and physical validation NOT_RUN  
+**Date:** 2026-11-14  
+**Claim ceiling:** The fixture is abstract and non-geographic. It does not represent a real utility, field survey, calibrated posterior, qualified network geometry or excavation clearance.
+
+---
+
+## 1. Research proposition: infer a distribution over worlds, not one best-looking map
+
+The current candidate-graph contract permits multiple event-to-asset association marginals and explicit abstention. That is useful, but independently meaningful marginal probabilities do not necessarily form a coherent joint network.
+
+For example, separate edge probabilities can each look plausible while their combination creates an impossible network: a single event is assigned to two incompatible assets, a crossing is treated as a junction, or two mutually exclusive asset partitions are simultaneously represented as facts.
+
+The next abstraction is a **joint network hypothesis set**:
+
+- one immutable evidence snapshot and one investigation scope;
+- a finite set of mutually exclusive candidate network worlds;
+- one complete event disposition per observed event in every world;
+- candidate assets, geometry claims, nodes and relations that are internally coherent within each world;
+- a probability for each whole world;
+- explicit residual probability for worlds not enumerated.
+
+This is not a claim that a Bayesian posterior has been calibrated. It is a data and validation contract that makes the intended probability semantics explicit and testable.
+
+The decision product becomes:
+
+> Here are the plausible physical network configurations, their relative support, the evidence that separates them, and the observation most likely to change the engineering decision.
+
+## 2. Contract semantics
+
+The executable contract is in `sol-atlas-core/src/network_hypotheses.rs`; the strict JSON Schema Draft 2020-12 interchange profile is `research/earth-observability/NETWORK_HYPOTHESES_V0_1.schema.json`. The Rust validator enforces cross-reference and cross-field invariants that JSON Schema alone cannot express.
+
+### 2.1 One hypothesis is one complete candidate world
+
+A NetworkHypothesis contains:
+
+- a unique hypothesis identity and whole-world probability;
+- exactly one assignment record for every event in the set;
+- explicit null assignment for events left unassociated;
+- candidate asset instances and their event membership;
+- optional geometry-claim references;
+- candidate nodes and their associated candidate assets;
+- evidence-supported relations between nodes.
+
+A candidate identifier is local and non-authoritative. It is not a MUDDI ObjectID, owner-system SystemID or utility-owner asset identifier.
+
+### 2.2 Mutually exclusive world mass
+
+The probability invariant is:
+
+sum(P(hypothesis_i)) + P(residual_unknown) = 1
+
+within a fixed numerical tolerance.
+
+The residual is not a negative detection, absence probability or permission to redistribute probability among the listed hypotheses. It represents unenumerated or unresolved possible worlds.
+
+The fixture contains three alternatives:
+
+| World | Probability | Interpretation |
+|---|---:|---|
+| world-one-utility | 0.62 | Two events belong to one candidate utility |
+| world-two-utilities | 0.23 | The events belong to distinct candidate utilities |
+| world-crossing-unresolved | 0.10 | Two distinct assets have an unresolved crossing relation |
+| Unenumerated worlds | 0.05 | Explicit residual unknown mass |
+
+The values are deliberately illustrative, not learned or calibrated.
+
+### 2.3 Evidence closure
+
+Every event has a source-evidence reference. Every assigned event must be represented in its candidate asset's event membership and supported by that exact source evidence. Every node and relation must resolve its references and carry admitted evidence.
+
+A null event assignment is a valid explicit abstention. It is not silently converted into an absent utility.
+
+### 2.4 Topology is not visual intersection
+
+The relation types distinguish continuation, junction, unresolved crossing and unresolved near-intersection.
+
+An unresolved crossing is not a graph edge establishing physical connection. It remains a spatial relationship awaiting evidence.
+
+### 2.5 Calibration status is separate from structural validity
+
+The validator can check that a calibration receipt identifier was supplied when a caller claims that one is referenced. It cannot authenticate that receipt or establish that the probabilities are calibrated.
+
+The code deliberately does not derive a posterior from event marginals or multiply cross-modal likelihoods.
+
+## 3. Asset-cluster scoring is now executable
+
+A separate event-to-asset evaluator is implemented in `sol-atlas-core/src/utility_reconstruction_metrics.rs`, with CLI `utility_reconstruction_eval`.
+
+It reports B-cubed precision/recall/F1, pairwise true-positive pairs, explicit overmerge/oversplit pairs, candidate false assets, missed truth assets, abstention and false association of adjudicated clutter. It scores only structured independent survey and reviewed trench-image truth. Owner-record-only, conflicted and insufficient truth are separately counted, not converted to negative examples.
+
+Every reference event requires exactly one prediction disposition: candidate asset or explicit abstention. Missing predictions are rejected. Clutter and abstention are singletons in their respective partitions. The committed fixture and pinned baseline are synthetic only.
+
+# EARTH-OBSERVABILITY-JOINT-NETWORK-HYPOTHESES-001
+## Joint posterior hypotheses for evidence-qualified utility-network reconstruction v0.1
+
+**Parent:** Sol-Atlas #771 — EARTH-OBSERVABILITY-QUAL-002  
+**Implementation branch:** research/earth-observability-joint-network-hypotheses-v0-1  
+**Status:** Rust structural contract and deterministic analytic fixture added; probability calibration, graph scoring and physical validation NOT_RUN  
+**Date:** 2026-11-14  
+**Claim ceiling:** The fixture is abstract and non-geographic. It does not represent a real utility, field survey, calibrated posterior, qualified network geometry or excavation clearance.
+
+---
+
+## 1. Research proposition: infer a distribution over worlds, not one best-looking map
+
+The current candidate-graph contract permits multiple event-to-asset association marginals and explicit abstention. That is useful, but independently meaningful marginal probabilities do not necessarily form a coherent joint network.
+
+For example, separate edge probabilities can each look plausible while their combination creates an impossible network: a single event is assigned to two incompatible assets, a crossing is treated as a junction, or two mutually exclusive asset partitions are simultaneously represented as facts.
+
+The next abstraction is a **joint network hypothesis set**:
+
+- one immutable evidence snapshot and one investigation scope;
+- a finite set of mutually exclusive candidate network worlds;
+- one complete event disposition per observed event in every world;
+- candidate assets, geometry claims, nodes and relations that are internally coherent within each world;
+- a probability for each whole world;
+- explicit residual probability for worlds not enumerated.
+
+This is not a claim that a Bayesian posterior has been calibrated. It is a data and validation contract that makes the intended probability semantics explicit and testable.
+
+The decision product becomes:
+
+> Here are the plausible physical network configurations, their relative support, the evidence that separates them, and the observation most likely to change the engineering decision.
+
+## 2. Contract semantics
+
+The executable contract is in `sol-atlas-core/src/network_hypotheses.rs`; the strict JSON Schema Draft 2020-12 interchange profile is `research/earth-observability/NETWORK_HYPOTHESES_V0_1.schema.json`. The Rust validator enforces cross-reference and cross-field invariants that JSON Schema alone cannot express.
+
+### 2.1 One hypothesis is one complete candidate world
+
+A NetworkHypothesis contains:
+
+- a unique hypothesis identity and whole-world probability;
+- exactly one assignment record for every event in the set;
+- explicit null assignment for events left unassociated;
+- candidate asset instances and their event membership;
+- optional geometry-claim references;
+- candidate nodes and their associated candidate assets;
+- evidence-supported relations between nodes.
+
+A candidate identifier is local and non-authoritative. It is not a MUDDI ObjectID, owner-system SystemID or utility-owner asset identifier.
+
+### 2.2 Mutually exclusive world mass
+
+The probability invariant is:
+
+sum(P(hypothesis_i)) + P(residual_unknown) = 1
+
+within a fixed numerical tolerance.
+
+The residual is not a negative detection, absence probability or permission to redistribute probability among the listed hypotheses. It represents unenumerated or unresolved possible worlds.
+
+The fixture contains three alternatives:
+
+| World | Probability | Interpretation |
+|---|---:|---|
+| world-one-utility | 0.62 | Two events belong to one candidate utility |
+| world-two-utilities | 0.23 | The events belong to distinct candidate utilities |
+| world-crossing-unresolved | 0.10 | Two distinct assets have an unresolved crossing relation |
+| Unenumerated worlds | 0.05 | Explicit residual unknown mass |
+
+The values are deliberately illustrative, not learned or calibrated.
+
+### 2.3 Evidence closure
+
+Every event has a source-evidence reference. Every assigned event must be represented in its candidate asset's event membership and supported by that exact source evidence. Every node and relation must resolve its references and carry admitted evidence.
+
+A null event assignment is a valid explicit abstention. It is not silently converted into an absent utility.
+
+### 2.4 Topology is not visual intersection
+
+The relation types distinguish continuation, junction, unresolved crossing and unresolved near-intersection.
+
+An unresolved crossing is not a graph edge establishing physical connection. It remains a spatial relationship awaiting evidence.
+
+### 2.5 Calibration status is separate from structural validity
+
+The validator can check that a calibration receipt identifier was supplied when a caller claims that one is referenced. It cannot authenticate that receipt or establish that the probabilities are calibrated.
+
+The code deliberately does not derive a posterior from event marginals or multiply cross-modal likelihoods.
+
+## 3. Asset-cluster scoring is now executable
+
+A separate event-to-asset evaluator is implemented in `sol-atlas-core/src/utility_reconstruction_metrics.rs`, with CLI `utility_reconstruction_eval`.
+
+It reports B-cubed precision/recall/F1, pairwise true-positive pairs, explicit overmerge/oversplit pairs, candidate false assets, missed truth assets, abstention and false association of adjudicated clutter. It scores only structured independent survey and reviewed trench-image truth. Owner-record-only, conflicted and insufficient truth are separately counted, not converted to negative examples.
+
+Every reference event requires exactly one prediction disposition: candidate asset or explicit abstention. Missing predictions are rejected. Clutter and abstention are singletons in their respective partitions. The committed fixture and pinned baseline are synthetic only.
+
+# EARTH-OBSERVABILITY-JOINT-NETWORK-HYPOTHESES-001
+## Joint posterior hypotheses for evidence-qualified utility-network reconstruction v0.1
+
+**Parent:** Sol-Atlas #771 — EARTH-OBSERVABILITY-QUAL-002  
+**Implementation branch:** research/earth-observability-joint-network-hypotheses-v0-1  
+**Status:** Rust structural contract and deterministic analytic fixture added; probability calibration, graph scoring and physical validation NOT_RUN  
+**Date:** 2026-11-14  
+**Claim ceiling:** The fixture is abstract and non-geographic. It does not represent a real utility, field survey, calibrated posterior, qualified network geometry or excavation clearance.
+
+---
+
+## 1. Research proposition: infer a distribution over worlds, not one best-looking map
+
+The current candidate-graph contract permits multiple event-to-asset association marginals and explicit abstention. That is useful, but independently meaningful marginal probabilities do not necessarily form a coherent joint network.
+
+For example, separate edge probabilities can each look plausible while their combination creates an impossible network: a single event is assigned to two incompatible assets, a crossing is treated as a junction, or two mutually exclusive asset partitions are simultaneously represented as facts.
+
+The next abstraction is a **joint network hypothesis set**:
+
+- one immutable evidence snapshot and one investigation scope;
+- a finite set of mutually exclusive candidate network worlds;
+- one complete event disposition per observed event in every world;
+- candidate assets, geometry claims, nodes and relations that are internally coherent within each world;
+- a probability for each whole world;
+- explicit residual probability for worlds not enumerated.
+
+This is not a claim that a Bayesian posterior has been calibrated. It is a data and validation contract that makes the intended probability semantics explicit and testable.
+
+The decision product becomes:
+
+> Here are the plausible physical network configurations, their relative support, the evidence that separates them, and the observation most likely to change the engineering decision.
+
+## 2. Contract semantics
+
+The executable contract is in `sol-atlas-core/src/network_hypotheses.rs`; the strict JSON Schema Draft 2020-12 interchange profile is `research/earth-observability/NETWORK_HYPOTHESES_V0_1.schema.json`. The Rust validator enforces cross-reference and cross-field invariants that JSON Schema alone cannot express.
+
+### 2.1 One hypothesis is one complete candidate world
+
+A NetworkHypothesis contains:
+
+- a unique hypothesis identity and whole-world probability;
+- exactly one assignment record for every event in the set;
+- explicit null assignment for events left unassociated;
+- candidate asset instances and their event membership;
+- optional geometry-claim references;
+- candidate nodes and their associated candidate assets;
+- evidence-supported relations between nodes.
+
+A candidate identifier is local and non-authoritative. It is not a MUDDI ObjectID, owner-system SystemID or utility-owner asset identifier.
+
+### 2.2 Mutually exclusive world mass
+
+The probability invariant is:
+
+sum(P(hypothesis_i)) + P(residual_unknown) = 1
+
+within a fixed numerical tolerance.
+
+The residual is not a negative detection, absence probability or permission to redistribute probability among the listed hypotheses. It represents unenumerated or unresolved possible worlds.
+
+The fixture contains three alternatives:
+
+| World | Probability | Interpretation |
+|---|---:|---|
+| world-one-utility | 0.62 | Two events belong to one candidate utility |
+| world-two-utilities | 0.23 | The events belong to distinct candidate utilities |
+| world-crossing-unresolved | 0.10 | Two distinct assets have an unresolved crossing relation |
+| Unenumerated worlds | 0.05 | Explicit residual unknown mass |
+
+The values are deliberately illustrative, not learned or calibrated.
+
+### 2.3 Evidence closure
+
+Every event has a source-evidence reference. Every assigned event must be represented in its candidate asset's event membership and supported by that exact source evidence. Every node and relation must resolve its references and carry admitted evidence.
+
+A null event assignment is a valid explicit abstention. It is not silently converted into an absent utility.
+
+### 2.4 Topology is not visual intersection
+
+The relation types distinguish continuation, junction, unresolved crossing and unresolved near-intersection.
+
+An unresolved crossing is not a graph edge establishing physical connection. It remains a spatial relationship awaiting evidence.
+
+### 2.5 Calibration status is separate from structural validity
+
+The validator can check that a calibration receipt identifier was supplied when a caller claims that one is referenced. It cannot authenticate that receipt or establish that the probabilities are calibrated.
+
+The code deliberately does not derive a posterior from event marginals or multiply cross-modal likelihoods.
+
+## 3. Asset-cluster scoring is now executable
+
+A separate event-to-asset evaluator is implemented in `sol-atlas-core/src/utility_reconstruction_metrics.rs`, with CLI `utility_reconstruction_eval`.
+
+It reports B-cubed precision/recall/F1, pairwise true-positive pairs, explicit overmerge/oversplit pairs, candidate false assets, missed truth assets, abstention and false association of adjudicated clutter. It scores only structured independent survey and reviewed trench-image truth. Owner-record-only, conflicted and insufficient truth are separately counted, not converted to negative examples.
+
+Every reference event requires exactly one prediction disposition: candidate asset or explicit abstention. Missing predictions are rejected. Clutter and abstention are singletons in their respective partitions. The committed fixture and pinned baseline are synthetic only.
+
+# EARTH-OBSERVABILITY-JOINT-NETWORK-HYPOTHESES-001
+## Joint posterior hypotheses for evidence-qualified utility-network reconstruction v0.1
+
+**Parent:** Sol-Atlas #771 — EARTH-OBSERVABILITY-QUAL-002  
+**Implementation branch:** research/earth-observability-joint-network-hypotheses-v0-1  
+**Status:** Rust structural contract and deterministic analytic fixture added; probability calibration, graph scoring and physical validation NOT_RUN  
+**Date:** 2026-11-14  
+**Claim ceiling:** The fixture is abstract and non-geographic. It does not represent a real utility, field survey, calibrated posterior, qualified network geometry or excavation clearance.
+
+---
+
+## 1. Research proposition: infer a distribution over worlds, not one best-looking map
+
+The current candidate-graph contract permits multiple event-to-asset association marginals and explicit abstention. That is useful, but independently meaningful marginal probabilities do not necessarily form a coherent joint network.
+
+For example, separate edge probabilities can each look plausible while their combination creates an impossible network: a single event is assigned to two incompatible assets, a crossing is treated as a junction, or two mutually exclusive asset partitions are simultaneously represented as facts.
+
+The next abstraction is a **joint network hypothesis set**:
+
+- one immutable evidence snapshot and one investigation scope;
+- a finite set of mutually exclusive candidate network worlds;
+- one complete event disposition per observed event in every world;
+- candidate assets, geometry claims, nodes and relations that are internally coherent within each world;
+- a probability for each whole world;
+- explicit residual probability for worlds not enumerated.
+
+This is not a claim that a Bayesian posterior has been calibrated. It is a data and validation contract that makes the intended probability semantics explicit and testable.
+
+The decision product becomes:
+
+> Here are the plausible physical network configurations, their relative support, the evidence that separates them, and the observation most likely to change the engineering decision.
+
+## 2. Contract semantics
+
+The executable contract is in `sol-atlas-core/src/network_hypotheses.rs`; the strict JSON Schema Draft 2020-12 interchange profile is `research/earth-observability/NETWORK_HYPOTHESES_V0_1.schema.json`. The Rust validator enforces cross-reference and cross-field invariants that JSON Schema alone cannot express.
+
+### 2.1 One hypothesis is one complete candidate world
+
+A NetworkHypothesis contains:
+
+- a unique hypothesis identity and whole-world probability;
+- exactly one assignment record for every event in the set;
+- explicit null assignment for events left unassociated;
+- candidate asset instances and their event membership;
+- optional geometry-claim references;
+- candidate nodes and their associated candidate assets;
+- evidence-supported relations between nodes.
+
+A candidate identifier is local and non-authoritative. It is not a MUDDI ObjectID, owner-system SystemID or utility-owner asset identifier.
+
+### 2.2 Mutually exclusive world mass
+
+The probability invariant is:
+
+sum(P(hypothesis_i)) + P(residual_unknown) = 1
+
+within a fixed numerical tolerance.
+
+The residual is not a negative detection, absence probability or permission to redistribute probability among the listed hypotheses. It represents unenumerated or unresolved possible worlds.
+
+The fixture contains three alternatives:
+
+| World | Probability | Interpretation |
+|---|---:|---|
+| world-one-utility | 0.62 | Two events belong to one candidate utility |
+| world-two-utilities | 0.23 | The events belong to distinct candidate utilities |
+| world-crossing-unresolved | 0.10 | Two distinct assets have an unresolved crossing relation |
+| Unenumerated worlds | 0.05 | Explicit residual unknown mass |
+
+The values are deliberately illustrative, not learned or calibrated.
+
+### 2.3 Evidence closure
+
+Every event has a source-evidence reference. Every assigned event must be represented in its candidate asset's event membership and supported by that exact source evidence. Every node and relation must resolve its references and carry admitted evidence.
+
+A null event assignment is a valid explicit abstention. It is not silently converted into an absent utility.
+
+### 2.4 Topology is not visual intersection
+
+The relation types distinguish continuation, junction, unresolved crossing and unresolved near-intersection.
+
+An unresolved crossing is not a graph edge establishing physical connection. It remains a spatial relationship awaiting evidence.
+
+### 2.5 Calibration status is separate from structural validity
+
+The validator can check that a calibration receipt identifier was supplied when a caller claims that one is referenced. It cannot authenticate that receipt or establish that the probabilities are calibrated.
+
+The code deliberately does not derive a posterior from event marginals or multiply cross-modal likelihoods.
+
+## 3. Asset-cluster scoring is now executable
+
+A separate event-to-asset evaluator is implemented in `sol-atlas-core/src/utility_reconstruction_metrics.rs`, with CLI `utility_reconstruction_eval`.
+
+It reports B-cubed precision/recall/F1, pairwise true-positive pairs, explicit overmerge/oversplit pairs, candidate false assets, missed truth assets, abstention and false association of adjudicated clutter. It scores only structured independent survey and reviewed trench-image truth. Owner-record-only, conflicted and insufficient truth are separately counted, not converted to negative examples.
+
+Every reference event requires exactly one prediction disposition: candidate asset or explicit abstention. Missing predictions are rejected. Clutter and abstention are singletons in their respective partitions. The committed fixture and pinned baseline are synthetic only.
+
+# EARTH-OBSERVABILITY-JOINT-NETWORK-HYPOTHESES-001
+## Joint posterior hypotheses for evidence-qualified utility-network reconstruction v0.1
+
+**Parent:** Sol-Atlas #771 — EARTH-OBSERVABILITY-QUAL-002  
+**Implementation branch:** research/earth-observability-joint-network-hypotheses-v0-1  
+**Status:** Rust structural contract and deterministic analytic fixture added; probability calibration, graph scoring and physical validation NOT_RUN  
+**Date:** 2026-11-14  
+**Claim ceiling:** The fixture is abstract and non-geographic. It does not represent a real utility, field survey, calibrated posterior, qualified network geometry or excavation clearance.
+
+---
+
+## 1. Research proposition: infer a distribution over worlds, not one best-looking map
+
+The current candidate-graph contract permits multiple event-to-asset association marginals and explicit abstention. That is useful, but independently meaningful marginal probabilities do not necessarily form a coherent joint network.
+
+For example, separate edge probabilities can each look plausible while their combination creates an impossible network: a single event is assigned to two incompatible assets, a crossing is treated as a junction, or two mutually exclusive asset partitions are simultaneously represented as facts.
+
+The next abstraction is a **joint network hypothesis set**:
+
+- one immutable evidence snapshot and one investigation scope;
+- a finite set of mutually exclusive candidate network worlds;
+- one complete event disposition per observed event in every world;
+- candidate assets, geometry claims, nodes and relations that are internally coherent within each world;
+- a probability for each whole world;
+- explicit residual probability for worlds not enumerated.
+
+This is not a claim that a Bayesian posterior has been calibrated. It is a data and validation contract that makes the intended probability semantics explicit and testable.
+
+The decision product becomes:
+
+> Here are the plausible physical network configurations, their relative support, the evidence that separates them, and the observation most likely to change the engineering decision.
+
+## 2. Contract semantics
+
+The executable contract is in `sol-atlas-core/src/network_hypotheses.rs`; the strict JSON Schema Draft 2020-12 interchange profile is `research/earth-observability/NETWORK_HYPOTHESES_V0_1.schema.json`. The Rust validator enforces cross-reference and cross-field invariants that JSON Schema alone cannot express.
+
+### 2.1 One hypothesis is one complete candidate world
+
+A NetworkHypothesis contains:
+
+- a unique hypothesis identity and whole-world probability;
+- exactly one assignment record for every event in the set;
+- explicit null assignment for events left unassociated;
+- candidate asset instances and their event membership;
+- optional geometry-claim references;
+- candidate nodes and their associated candidate assets;
+- evidence-supported relations between nodes.
+
+A candidate identifier is local and non-authoritative. It is not a MUDDI ObjectID, owner-system SystemID or utility-owner asset identifier.
+
+### 2.2 Mutually exclusive world mass
+
+The probability invariant is:
+
+sum(P(hypothesis_i)) + P(residual_unknown) = 1
+
+within a fixed numerical tolerance.
+
+The residual is not a negative detection, absence probability or permission to redistribute probability among the listed hypotheses. It represents unenumerated or unresolved possible worlds.
+
+The fixture contains three alternatives:
+
+| World | Probability | Interpretation |
+|---|---:|---|
+| world-one-utility | 0.62 | Two events belong to one candidate utility |
+| world-two-utilities | 0.23 | The events belong to distinct candidate utilities |
+| world-crossing-unresolved | 0.10 | Two distinct assets have an unresolved crossing relation |
+| Unenumerated worlds | 0.05 | Explicit residual unknown mass |
+
+The values are deliberately illustrative, not learned or calibrated.
+
+### 2.3 Evidence closure
+
+Every event has a source-evidence reference. Every assigned event must be represented in its candidate asset's event membership and supported by that exact source evidence. Every node and relation must resolve its references and carry admitted evidence.
+
+A null event assignment is a valid explicit abstention. It is not silently converted into an absent utility.
+
+### 2.4 Topology is not visual intersection
+
+The relation types distinguish continuation, junction, unresolved crossing and unresolved near-intersection.
+
+An unresolved crossing is not a graph edge establishing physical connection. It remains a spatial relationship awaiting evidence.
+
+### 2.5 Calibration status is separate from structural validity
+
+The validator can check that a calibration receipt identifier was supplied when a caller claims that one is referenced. It cannot authenticate that receipt or establish that the probabilities are calibrated.
+
+The code deliberately does not derive a posterior from event marginals or multiply cross-modal likelihoods.
+
+## 3. Asset-cluster scoring is now executable
+
+A separate event-to-asset evaluator is implemented in `sol-atlas-core/src/utility_reconstruction_metrics.rs`, with CLI `utility_reconstruction_eval`.
+
+It reports B-cubed precision/recall/F1, pairwise true-positive pairs, explicit overmerge/oversplit pairs, candidate false assets, missed truth assets, abstention and false association of adjudicated clutter. It scores only structured independent survey and reviewed trench-image truth. Owner-record-only, conflicted and insufficient truth are separately counted, not converted to negative examples.
+
+Every reference event requires exactly one prediction disposition: candidate asset or explicit abstention. Missing predictions are rejected. Clutter and abstention are singletons in their respective partitions. The committed fixture and pinned baseline are synthetic only.
+
+# EARTH-OBSERVABILITY-JOINT-NETWORK-HYPOTHESES-001
+## Joint posterior hypotheses for evidence-qualified utility-network reconstruction v0.1
+
+**Parent:** Sol-Atlas #771 — EARTH-OBSERVABILITY-QUAL-002  
+**Implementation branch:** research/earth-observability-joint-network-hypotheses-v0-1  
+**Status:** Rust structural contract and deterministic analytic fixture added; probability calibration, graph scoring and physical validation NOT_RUN  
+**Date:** 2026-11-14  
+**Claim ceiling:** The fixture is abstract and non-geographic. It does not represent a real utility, field survey, calibrated posterior, qualified network geometry or excavation clearance.
+
+---
+
+## 1. Research proposition: infer a distribution over worlds, not one best-looking map
+
+The current candidate-graph contract permits multiple event-to-asset association marginals and explicit abstention. That is useful, but independently meaningful marginal probabilities do not necessarily form a coherent joint network.
+
+For example, separate edge probabilities can each look plausible while their combination creates an impossible network: a single event is assigned to two incompatible assets, a crossing is treated as a junction, or two mutually exclusive asset partitions are simultaneously represented as facts.
+
+The next abstraction is a **joint network hypothesis set**:
+
+- one immutable evidence snapshot and one investigation scope;
+- a finite set of mutually exclusive candidate network worlds;
+- one complete event disposition per observed event in every world;
+- candidate assets, geometry claims, nodes and relations that are internally coherent within each world;
+- a probability for each whole world;
+- explicit residual probability for worlds not enumerated.
+
+This is not a claim that a Bayesian posterior has been calibrated. It is a data and validation contract that makes the intended probability semantics explicit and testable.
+
+The decision product becomes:
+
+> Here are the plausible physical network configurations, their relative support, the evidence that separates them, and the observation most likely to change the engineering decision.
+
+## 2. Contract semantics
+
+The executable contract is in `sol-atlas-core/src/network_hypotheses.rs`; the strict JSON Schema Draft 2020-12 interchange profile is `research/earth-observability/NETWORK_HYPOTHESES_V0_1.schema.json`. The Rust validator enforces cross-reference and cross-field invariants that JSON Schema alone cannot express.
+
+### 2.1 One hypothesis is one complete candidate world
+
+A NetworkHypothesis contains:
+
+- a unique hypothesis identity and whole-world probability;
+- exactly one assignment record for every event in the set;
+- explicit null assignment for events left unassociated;
+- candidate asset instances and their event membership;
+- optional geometry-claim references;
+- candidate nodes and their associated candidate assets;
+- evidence-supported relations between nodes.
+
+A candidate identifier is local and non-authoritative. It is not a MUDDI ObjectID, owner-system SystemID or utility-owner asset identifier.
+
+### 2.2 Mutually exclusive world mass
+
+The probability invariant is:
+
+sum(P(hypothesis_i)) + P(residual_unknown) = 1
+
+within a fixed numerical tolerance.
+
+The residual is not a negative detection, absence probability or permission to redistribute probability among the listed hypotheses. It represents unenumerated or unresolved possible worlds.
+
+The fixture contains three alternatives:
+
+| World | Probability | Interpretation |
+|---|---:|---|
+| world-one-utility | 0.62 | Two events belong to one candidate utility |
+| world-two-utilities | 0.23 | The events belong to distinct candidate utilities |
+| world-crossing-unresolved | 0.10 | Two distinct assets have an unresolved crossing relation |
+| Unenumerated worlds | 0.05 | Explicit residual unknown mass |
+
+The values are deliberately illustrative, not learned or calibrated.
+
+### 2.3 Evidence closure
+
+Every event has a source-evidence reference. Every assigned event must be represented in its candidate asset's event membership and supported by that exact source evidence. Every node and relation must resolve its references and carry admitted evidence.
+
+A null event assignment is a valid explicit abstention. It is not silently converted into an absent utility.
+
+### 2.4 Topology is not visual intersection
+
+The relation types distinguish continuation, junction, unresolved crossing and unresolved near-intersection.
+
+An unresolved crossing is not a graph edge establishing physical connection. It remains a spatial relationship awaiting evidence.
+
+### 2.5 Calibration status is separate from structural validity
+
+The validator can check that a calibration receipt identifier was supplied when a caller claims that one is referenced. It cannot authenticate that receipt or establish that the probabilities are calibrated.
+
+The code deliberately does not derive a posterior from event marginals or multiply cross-modal likelihoods.
+
+## 3. Asset-cluster scoring is now executable
+
+A separate event-to-asset evaluator is implemented in `sol-atlas-core/src/utility_reconstruction_metrics.rs`, with CLI `utility_reconstruction_eval`.
+
+It reports B-cubed precision/recall/F1, pairwise true-positive pairs, explicit overmerge/oversplit pairs, candidate false assets, missed truth assets, abstention and false association of adjudicated clutter. It scores only structured independent survey and reviewed trench-image truth. Owner-record-only, conflicted and insufficient truth are separately counted, not converted to negative examples.
+
+Every reference event requires exactly one prediction disposition: candidate asset or explicit abstention. Missing predictions are rejected. Clutter and abstention are singletons in their respective partitions. The committed fixture and pinned baseline are synthetic only.
+
+# EARTH-OBSERVABILITY-JOINT-NETWORK-HYPOTHESES-001
+## Joint posterior hypotheses for evidence-qualified utility-network reconstruction v0.1
+
+**Parent:** Sol-Atlas #771 — EARTH-OBSERVABILITY-QUAL-002  
+**Implementation branch:** research/earth-observability-joint-network-hypotheses-v0-1  
+**Status:** Rust structural contract and deterministic analytic fixture added; probability calibration, graph scoring and physical validation NOT_RUN  
+**Date:** 2026-11-14  
+**Claim ceiling:** The fixture is abstract and non-geographic. It does not represent a real utility, field survey, calibrated posterior, qualified network geometry or excavation clearance.
+
+---
+
+## 1. Research proposition: infer a distribution over worlds, not one best-looking map
+
+The current candidate-graph contract permits multiple event-to-asset association marginals and explicit abstention. That is useful, but independently meaningful marginal probabilities do not necessarily form a coherent joint network.
+
+For example, separate edge probabilities can each look plausible while their combination creates an impossible network: a single event is assigned to two incompatible assets, a crossing is treated as a junction, or two mutually exclusive asset partitions are simultaneously represented as facts.
+
+The next abstraction is a **joint network hypothesis set**:
+
+- one immutable evidence snapshot and one investigation scope;
+- a finite set of mutually exclusive candidate network worlds;
+- one complete event disposition per observed event in every world;
+- candidate assets, geometry claims, nodes and relations that are internally coherent within each world;
+- a probability for each whole world;
+- explicit residual probability for worlds not enumerated.
+
+This is not a claim that a Bayesian posterior has been calibrated. It is a data and validation contract that makes the intended probability semantics explicit and testable.
+
+The decision product becomes:
+
+> Here are the plausible physical network configurations, their relative support, the evidence that separates them, and the observation most likely to change the engineering decision.
+
+## 2. Contract semantics
+
+The executable contract is in `sol-atlas-core/src/network_hypotheses.rs`; the strict JSON Schema Draft 2020-12 interchange profile is `research/earth-observability/NETWORK_HYPOTHESES_V0_1.schema.json`. The Rust validator enforces cross-reference and cross-field invariants that JSON Schema alone cannot express.
+
+### 2.1 One hypothesis is one complete candidate world
+
+A NetworkHypothesis contains:
+
+- a unique hypothesis identity and whole-world probability;
+- exactly one assignment record for every event in the set;
+- explicit null assignment for events left unassociated;
+- candidate asset instances and their event membership;
+- optional geometry-claim references;
+- candidate nodes and their associated candidate assets;
+- evidence-supported relations between nodes.
+
+A candidate identifier is local and non-authoritative. It is not a MUDDI ObjectID, owner-system SystemID or utility-owner asset identifier.
+
+### 2.2 Mutually exclusive world mass
+
+The probability invariant is:
+
+sum(P(hypothesis_i)) + P(residual_unknown) = 1
+
+within a fixed numerical tolerance.
+
+The residual is not a negative detection, absence probability or permission to redistribute probability among the listed hypotheses. It represents unenumerated or unresolved possible worlds.
+
+The fixture contains three alternatives:
+
+| World | Probability | Interpretation |
+|---|---:|---|
+| world-one-utility | 0.62 | Two events belong to one candidate utility |
+| world-two-utilities | 0.23 | The events belong to distinct candidate utilities |
+| world-crossing-unresolved | 0.10 | Two distinct assets have an unresolved crossing relation |
+| Unenumerated worlds | 0.05 | Explicit residual unknown mass |
+
+The values are deliberately illustrative, not learned or calibrated.
+
+### 2.3 Evidence closure
+
+Every event has a source-evidence reference. Every assigned event must be represented in its candidate asset's event membership and supported by that exact source evidence. Every node and relation must resolve its references and carry admitted evidence.
+
+A null event assignment is a valid explicit abstention. It is not silently converted into an absent utility.
+
+### 2.4 Topology is not visual intersection
+
+The relation types distinguish continuation, junction, unresolved crossing and unresolved near-intersection.
+
+An unresolved crossing is not a graph edge establishing physical connection. It remains a spatial relationship awaiting evidence.
+
+### 2.5 Calibration status is separate from structural validity
+
+The validator can check that a calibration receipt identifier was supplied when a caller claims that one is referenced. It cannot authenticate that receipt or establish that the probabilities are calibrated.
+
+The code deliberately does not derive a posterior from event marginals or multiply cross-modal likelihoods.
+
+## 3. Asset-cluster scoring is now executable
+
+A separate event-to-asset evaluator is implemented in `sol-atlas-core/src/utility_reconstruction_metrics.rs`, with CLI `utility_reconstruction_eval`.
+
+It reports B-cubed precision/recall/F1, pairwise true-positive pairs, explicit overmerge/oversplit pairs, candidate false assets, missed truth assets, abstention and false association of adjudicated clutter. It scores only structured independent survey and reviewed trench-image truth. Owner-record-only, conflicted and insufficient truth are separately counted, not converted to negative examples.
+
+Every reference event requires exactly one prediction disposition: candidate asset or explicit abstention. Missing predictions are rejected. Clutter and abstention are singletons in their respective partitions. The committed fixture and pinned baseline are synthetic only.
+
+# EARTH-OBSERVABILITY-JOINT-NETWORK-HYPOTHESES-001
+## Joint posterior hypotheses for evidence-qualified utility-network reconstruction v0.1
+
+**Parent:** Sol-Atlas #771 — EARTH-OBSERVABILITY-QUAL-002  
+**Implementation branch:** research/earth-observability-joint-network-hypotheses-v0-1  
+**Status:** Rust structural contract and deterministic analytic fixture added; probability calibration, graph scoring and physical validation NOT_RUN  
+**Date:** 2026-11-14  
+**Claim ceiling:** The fixture is abstract and non-geographic. It does not represent a real utility, field survey, calibrated posterior, qualified network geometry or excavation clearance.
+
+---
+
+## 1. Research proposition: infer a distribution over worlds, not one best-looking map
+
+The current candidate-graph contract permits multiple event-to-asset association marginals and explicit abstention. That is useful, but independently meaningful marginal probabilities do not necessarily form a coherent joint network.
+
+For example, separate edge probabilities can each look plausible while their combination creates an impossible network: a single event is assigned to two incompatible assets, a crossing is treated as a junction, or two mutually exclusive asset partitions are simultaneously represented as facts.
+
+The next abstraction is a **joint network hypothesis set**:
+
+- one immutable evidence snapshot and one investigation scope;
+- a finite set of mutually exclusive candidate network worlds;
+- one complete event disposition per observed event in every world;
+- candidate assets, geometry claims, nodes and relations that are internally coherent within each world;
+- a probability for each whole world;
+- explicit residual probability for worlds not enumerated.
+
+This is not a claim that a Bayesian posterior has been calibrated. It is a data and validation contract that makes the intended probability semantics explicit and testable.
+
+The decision product becomes:
+
+> Here are the plausible physical network configurations, their relative support, the evidence that separates them, and the observation most likely to change the engineering decision.
+
+## 2. Contract semantics
+
+The executable contract is in `sol-atlas-core/src/network_hypotheses.rs`; the strict JSON Schema Draft 2020-12 interchange profile is `research/earth-observability/NETWORK_HYPOTHESES_V0_1.schema.json`. The Rust validator enforces cross-reference and cross-field invariants that JSON Schema alone cannot express.
+
+### 2.1 One hypothesis is one complete candidate world
+
+A NetworkHypothesis contains:
+
+- a unique hypothesis identity and whole-world probability;
+- exactly one assignment record for every event in the set;
+- explicit null assignment for events left unassociated;
+- candidate asset instances and their event membership;
+- optional geometry-claim references;
+- candidate nodes and their associated candidate assets;
+- evidence-supported relations between nodes.
+
+A candidate identifier is local and non-authoritative. It is not a MUDDI ObjectID, owner-system SystemID or utility-owner asset identifier.
+
+### 2.2 Mutually exclusive world mass
+
+The probability invariant is:
+
+sum(P(hypothesis_i)) + P(residual_unknown) = 1
+
+within a fixed numerical tolerance.
+
+The residual is not a negative detection, absence probability or permission to redistribute probability among the listed hypotheses. It represents unenumerated or unresolved possible worlds.
+
+The fixture contains three alternatives:
+
+| World | Probability | Interpretation |
+|---|---:|---|
+| world-one-utility | 0.62 | Two events belong to one candidate utility |
+| world-two-utilities | 0.23 | The events belong to distinct candidate utilities |
+| world-crossing-unresolved | 0.10 | Two distinct assets have an unresolved crossing relation |
+| Unenumerated worlds | 0.05 | Explicit residual unknown mass |
+
+The values are deliberately illustrative, not learned or calibrated.
+
+### 2.3 Evidence closure
+
+Every event has a source-evidence reference. Every assigned event must be represented in its candidate asset's event membership and supported by that exact source evidence. Every node and relation must resolve its references and carry admitted evidence.
+
+A null event assignment is a valid explicit abstention. It is not silently converted into an absent utility.
+
+### 2.4 Topology is not visual intersection
+
+The relation types distinguish continuation, junction, unresolved crossing and unresolved near-intersection.
+
+An unresolved crossing is not a graph edge establishing physical connection. It remains a spatial relationship awaiting evidence.
+
+### 2.5 Calibration status is separate from structural validity
+
+The validator can check that a calibration receipt identifier was supplied when a caller claims that one is referenced. It cannot authenticate that receipt or establish that the probabilities are calibrated.
+
+The code deliberately does not derive a posterior from event marginals or multiply cross-modal likelihoods.
+
+## 3. Asset-cluster scoring is now executable
+
+A separate event-to-asset evaluator is implemented in `sol-atlas-core/src/utility_reconstruction_metrics.rs`, with CLI `utility_reconstruction_eval`.
+
+It reports B-cubed precision/recall/F1, pairwise true-positive pairs, explicit overmerge/oversplit pairs, candidate false assets, missed truth assets, abstention and false association of adjudicated clutter. It scores only structured independent survey and reviewed trench-image truth. Owner-record-only, conflicted and insufficient truth are separately counted, not converted to negative examples.
+
+Every reference event requires exactly one prediction disposition: candidate asset or explicit abstention. Missing predictions are rejected. Clutter and abstention are singletons in their respective partitions. The committed fixture and pinned baseline are synthetic only.
+
+# EARTH-OBSERVABILITY-JOINT-NETWORK-HYPOTHESES-001
+## Joint posterior hypotheses for evidence-qualified utility-network reconstruction v0.1
+
+**Parent:** Sol-Atlas #771 — EARTH-OBSERVABILITY-QUAL-002  
+**Implementation branch:** research/earth-observability-joint-network-hypotheses-v0-1  
+**Status:** Rust structural contract and deterministic analytic fixture added; probability calibration, graph scoring and physical validation NOT_RUN  
+**Date:** 2026-11-14  
+**Claim ceiling:** The fixture is abstract and non-geographic. It does not represent a real utility, field survey, calibrated posterior, qualified network geometry or excavation clearance.
+
+---
+
+## 1. Research proposition: infer a distribution over worlds, not one best-looking map
+
+The current candidate-graph contract permits multiple event-to-asset association marginals and explicit abstention. That is useful, but independently meaningful marginal probabilities do not necessarily form a coherent joint network.
+
+For example, separate edge probabilities can each look plausible while their combination creates an impossible network: a single event is assigned to two incompatible assets, a crossing is treated as a junction, or two mutually exclusive asset partitions are simultaneously represented as facts.
+
+The next abstraction is a **joint network hypothesis set**:
+
+- one immutable evidence snapshot and one investigation scope;
+- a finite set of mutually exclusive candidate network worlds;
+- one complete event disposition per observed event in every world;
+- candidate assets, geometry claims, nodes and relations that are internally coherent within each world;
+- a probability for each whole world;
+- explicit residual probability for worlds not enumerated.
+
+This is not a claim that a Bayesian posterior has been calibrated. It is a data and validation contract that makes the intended probability semantics explicit and testable.
+
+The decision product becomes:
+
+> Here are the plausible physical network configurations, their relative support, the evidence that separates them, and the observation most likely to change the engineering decision.
+
+## 2. Contract semantics
+
+The executable contract is in `sol-atlas-core/src/network_hypotheses.rs`; the strict JSON Schema Draft 2020-12 interchange profile is `research/earth-observability/NETWORK_HYPOTHESES_V0_1.schema.json`. The Rust validator enforces cross-reference and cross-field invariants that JSON Schema alone cannot express.
+
+### 2.1 One hypothesis is one complete candidate world
+
+A NetworkHypothesis contains:
+
+- a unique hypothesis identity and whole-world probability;
+- exactly one assignment record for every event in the set;
+- explicit null assignment for events left unassociated;
+- candidate asset instances and their event membership;
+- optional geometry-claim references;
+- candidate nodes and their associated candidate assets;
+- evidence-supported relations between nodes.
+
+A candidate identifier is local and non-authoritative. It is not a MUDDI ObjectID, owner-system SystemID or utility-owner asset identifier.
+
+### 2.2 Mutually exclusive world mass
+
+The probability invariant is:
+
+sum(P(hypothesis_i)) + P(residual_unknown) = 1
+
+within a fixed numerical tolerance.
+
+The residual is not a negative detection, absence probability or permission to redistribute probability among the listed hypotheses. It represents unenumerated or unresolved possible worlds.
+
+The fixture contains three alternatives:
+
+| World | Probability | Interpretation |
+|---|---:|---|
+| world-one-utility | 0.62 | Two events belong to one candidate utility |
+| world-two-utilities | 0.23 | The events belong to distinct candidate utilities |
+| world-crossing-unresolved | 0.10 | Two distinct assets have an unresolved crossing relation |
+| Unenumerated worlds | 0.05 | Explicit residual unknown mass |
+
+The values are deliberately illustrative, not learned or calibrated.
+
+### 2.3 Evidence closure
+
+Every event has a source-evidence reference. Every assigned event must be represented in its candidate asset's event membership and supported by that exact source evidence. Every node and relation must resolve its references and carry admitted evidence.
+
+A null event assignment is a valid explicit abstention. It is not silently converted into an absent utility.
+
+### 2.4 Topology is not visual intersection
+
+The relation types distinguish continuation, junction, unresolved crossing and unresolved near-intersection.
+
+An unresolved crossing is not a graph edge establishing physical connection. It remains a spatial relationship awaiting evidence.
+
+### 2.5 Calibration status is separate from structural validity
+
+The validator can check that a calibration receipt identifier was supplied when a caller claims that one is referenced. It cannot authenticate that receipt or establish that the probabilities are calibrated.
+
+The code deliberately does not derive a posterior from event marginals or multiply cross-modal likelihoods.
+
+## 3. Asset-cluster scoring is now executable
+
+A separate event-to-asset evaluator is implemented in `sol-atlas-core/src/utility_reconstruction_metrics.rs`, with CLI `utility_reconstruction_eval`.
+
+It reports B-cubed precision/recall/F1, pairwise true-positive pairs, explicit overmerge/oversplit pairs, candidate false assets, missed truth assets, abstention and false association of adjudicated clutter. It scores only structured independent survey and reviewed trench-image truth. Owner-record-only, conflicted and insufficient truth are separately counted, not converted to negative examples.
+
+Every reference event requires exactly one prediction disposition: candidate asset or explicit abstention. Missing predictions are rejected. Clutter and abstention are singletons in their respective partitions. The committed fixture and pinned baseline are synthetic only.
+
+# EARTH-OBSERVABILITY-JOINT-NETWORK-HYPOTHESES-001
+## Joint posterior hypotheses for evidence-qualified utility-network reconstruction v0.1
+
+**Parent:** Sol-Atlas #771 — EARTH-OBSERVABILITY-QUAL-002  
+**Implementation branch:** research/earth-observability-joint-network-hypotheses-v0-1  
+**Status:** Rust structural contract and deterministic analytic fixture added; probability calibration, graph scoring and physical validation NOT_RUN  
+**Date:** 2026-11-14  
+**Claim ceiling:** The fixture is abstract and non-geographic. It does not represent a real utility, field survey, calibrated posterior, qualified network geometry or excavation clearance.
+
+---
+
+## 1. Research proposition: infer a distribution over worlds, not one best-looking map
+
+The current candidate-graph contract permits multiple event-to-asset association marginals and explicit abstention. That is useful, but independently meaningful marginal probabilities do not necessarily form a coherent joint network.
+
+For example, separate edge probabilities can each look plausible while their combination creates an impossible network: a single event is assigned to two incompatible assets, a crossing is treated as a junction, or two mutually exclusive asset partitions are simultaneously represented as facts.
+
+The next abstraction is a **joint network hypothesis set**:
+
+- one immutable evidence snapshot and one investigation scope;
+- a finite set of mutually exclusive candidate network worlds;
+- one complete event disposition per observed event in every world;
+- candidate assets, geometry claims, nodes and relations that are internally coherent within each world;
+- a probability for each whole world;
+- explicit residual probability for worlds not enumerated.
+
+This is not a claim that a Bayesian posterior has been calibrated. It is a data and validation contract that makes the intended probability semantics explicit and testable.
+
+The decision product becomes:
+
+> Here are the plausible physical network configurations, their relative support, the evidence that separates them, and the observation most likely to change the engineering decision.
+
+## 2. Contract semantics
+
+The executable contract is in `sol-atlas-core/src/network_hypotheses.rs`; the strict JSON Schema Draft 2020-12 interchange profile is `research/earth-observability/NETWORK_HYPOTHESES_V0_1.schema.json`. The Rust validator enforces cross-reference and cross-field invariants that JSON Schema alone cannot express.
+
+### 2.1 One hypothesis is one complete candidate world
+
+A NetworkHypothesis contains:
+
+- a unique hypothesis identity and whole-world probability;
+- exactly one assignment record for every event in the set;
+- explicit null assignment for events left unassociated;
+- candidate asset instances and their event membership;
+- optional geometry-claim references;
+- candidate nodes and their associated candidate assets;
+- evidence-supported relations between nodes.
+
+A candidate identifier is local and non-authoritative. It is not a MUDDI ObjectID, owner-system SystemID or utility-owner asset identifier.
+
+### 2.2 Mutually exclusive world mass
+
+The probability invariant is:
+
+sum(P(hypothesis_i)) + P(residual_unknown) = 1
+
+within a fixed numerical tolerance.
+
+The residual is not a negative detection, absence probability or permission to redistribute probability among the listed hypotheses. It represents unenumerated or unresolved possible worlds.
+
+The fixture contains three alternatives:
+
+| World | Probability | Interpretation |
+|---|---:|---|
+| world-one-utility | 0.62 | Two events belong to one candidate utility |
+| world-two-utilities | 0.23 | The events belong to distinct candidate utilities |
+| world-crossing-unresolved | 0.10 | Two distinct assets have an unresolved crossing relation |
+| Unenumerated worlds | 0.05 | Explicit residual unknown mass |
+
+The values are deliberately illustrative, not learned or calibrated.
+
+### 2.3 Evidence closure
+
+Every event has a source-evidence reference. Every assigned event must be represented in its candidate asset's event membership and supported by that exact source evidence. Every node and relation must resolve its references and carry admitted evidence.
+
+A null event assignment is a valid explicit abstention. It is not silently converted into an absent utility.
+
+### 2.4 Topology is not visual intersection
+
+The relation types distinguish continuation, junction, unresolved crossing and unresolved near-intersection.
+
+An unresolved crossing is not a graph edge establishing physical connection. It remains a spatial relationship awaiting evidence.
+
+### 2.5 Calibration status is separate from structural validity
+
+The validator can check that a calibration receipt identifier was supplied when a caller claims that one is referenced. It cannot authenticate that receipt or establish that the probabilities are calibrated.
+
+The code deliberately does not derive a posterior from event marginals or multiply cross-modal likelihoods.
+
+## 3. Asset-cluster scoring is now executable
+
+A separate event-to-asset evaluator is implemented in `sol-atlas-core/src/utility_reconstruction_metrics.rs`, with CLI `utility_reconstruction_eval`.
+
+It reports B-cubed precision/recall/F1, pairwise true-positive pairs, explicit overmerge/oversplit pairs, candidate false assets, missed truth assets, abstention and false association of adjudicated clutter. It scores only structured independent survey and reviewed trench-image truth. Owner-record-only, conflicted and insufficient truth are separately counted, not converted to negative examples.
+
+Every reference event requires exactly one prediction disposition: candidate asset or explicit abstention. Missing predictions are rejected. Clutter and abstention are singletons in their respective partitions. The committed fixture and pinned baseline are synthetic only.
+
+# EARTH-OBSERVABILITY-JOINT-NETWORK-HYPOTHESES-001
+## Joint posterior hypotheses for evidence-qualified utility-network reconstruction v0.1
+
+**Parent:** Sol-Atlas #771 — EARTH-OBSERVABILITY-QUAL-002  
+**Implementation branch:** research/earth-observability-joint-network-hypotheses-v0-1  
+**Status:** Rust structural contract and deterministic analytic fixture added; probability calibration, graph scoring and physical validation NOT_RUN  
+**Date:** 2026-11-14  
+**Claim ceiling:** The fixture is abstract and non-geographic. It does not represent a real utility, field survey, calibrated posterior, qualified network geometry or excavation clearance.
+
+---
+
+## 1. Research proposition: infer a distribution over worlds, not one best-looking map
+
+The current candidate-graph contract permits multiple event-to-asset association marginals and explicit abstention. That is useful, but independently meaningful marginal probabilities do not necessarily form a coherent joint network.
+
+For example, separate edge probabilities can each look plausible while their combination creates an impossible network: a single event is assigned to two incompatible assets, a crossing is treated as a junction, or two mutually exclusive asset partitions are simultaneously represented as facts.
+
+The next abstraction is a **joint network hypothesis set**:
+
+- one immutable evidence snapshot and one investigation scope;
+- a finite set of mutually exclusive candidate network worlds;
+- one complete event disposition per observed event in every world;
+- candidate assets, geometry claims, nodes and relations that are internally coherent within each world;
+- a probability for each whole world;
+- explicit residual probability for worlds not enumerated.
+
+This is not a claim that a Bayesian posterior has been calibrated. It is a data and validation contract that makes the intended probability semantics explicit and testable.
+
+The decision product becomes:
+
+> Here are the plausible physical network configurations, their relative support, the evidence that separates them, and the observation most likely to change the engineering decision.
+
+## 2. Contract semantics
+
+The executable contract is in `sol-atlas-core/src/network_hypotheses.rs`; the strict JSON Schema Draft 2020-12 interchange profile is `research/earth-observability/NETWORK_HYPOTHESES_V0_1.schema.json`. The Rust validator enforces cross-reference and cross-field invariants that JSON Schema alone cannot express.
+
+### 2.1 One hypothesis is one complete candidate world
+
+A NetworkHypothesis contains:
+
+- a unique hypothesis identity and whole-world probability;
+- exactly one assignment record for every event in the set;
+- explicit null assignment for events left unassociated;
+- candidate asset instances and their event membership;
+- optional geometry-claim references;
+- candidate nodes and their associated candidate assets;
+- evidence-supported relations between nodes.
+
+A candidate identifier is local and non-authoritative. It is not a MUDDI ObjectID, owner-system SystemID or utility-owner asset identifier.
+
+### 2.2 Mutually exclusive world mass
+
+The probability invariant is:
+
+sum(P(hypothesis_i)) + P(residual_unknown) = 1
+
+within a fixed numerical tolerance.
+
+The residual is not a negative detection, absence probability or permission to redistribute probability among the listed hypotheses. It represents unenumerated or unresolved possible worlds.
+
+The fixture contains three alternatives:
+
+| World | Probability | Interpretation |
+|---|---:|---|
+| world-one-utility | 0.62 | Two events belong to one candidate utility |
+| world-two-utilities | 0.23 | The events belong to distinct candidate utilities |
+| world-crossing-unresolved | 0.10 | Two distinct assets have an unresolved crossing relation |
+| Unenumerated worlds | 0.05 | Explicit residual unknown mass |
+
+The values are deliberately illustrative, not learned or calibrated.
+
+### 2.3 Evidence closure
+
+Every event has a source-evidence reference. Every assigned event must be represented in its candidate asset's event membership and supported by that exact source evidence. Every node and relation must resolve its references and carry admitted evidence.
+
+A null event assignment is a valid explicit abstention. It is not silently converted into an absent utility.
+
+### 2.4 Topology is not visual intersection
+
+The relation types distinguish continuation, junction, unresolved crossing and unresolved near-intersection.
+
+An unresolved crossing is not a graph edge establishing physical connection. It remains a spatial relationship awaiting evidence.
+
+### 2.5 Calibration status is separate from structural validity
+
+The validator can check that a calibration receipt identifier was supplied when a caller claims that one is referenced. It cannot authenticate that receipt or establish that the probabilities are calibrated.
+
+The code deliberately does not derive a posterior from event marginals or multiply cross-modal likelihoods.
+
+## 3. Asset-cluster scoring is now executable
+
+A separate event-to-asset evaluator is implemented in `sol-atlas-core/src/utility_reconstruction_metrics.rs`, with CLI `utility_reconstruction_eval`.
+
+It reports B-cubed precision/recall/F1, pairwise true-positive pairs, explicit overmerge/oversplit pairs, candidate false assets, missed truth assets, abstention and false association of adjudicated clutter. It scores only structured independent survey and reviewed trench-image truth. Owner-record-only, conflicted and insufficient truth are separately counted, not converted to negative examples.
+
+Every reference event requires exactly one prediction disposition: candidate asset or explicit abstention. Missing predictions are rejected. Clutter and abstention are singletons in their respective partitions. The committed fixture and pinned baseline are synthetic only.
+
+# EARTH-OBSERVABILITY-JOINT-NETWORK-HYPOTHESES-001
+## Joint posterior hypotheses for evidence-qualified utility-network reconstruction v0.1
+
+**Parent:** Sol-Atlas #771 — EARTH-OBSERVABILITY-QUAL-002  
+**Implementation branch:** research/earth-observability-joint-network-hypotheses-v0-1  
+**Status:** Rust structural contract and deterministic analytic fixture added; probability calibration, graph scoring and physical validation NOT_RUN  
+**Date:** 2026-11-14  
+**Claim ceiling:** The fixture is abstract and non-geographic. It does not represent a real utility, field survey, calibrated posterior, qualified network geometry or excavation clearance.
+
+---
+
+## 1. Research proposition: infer a distribution over worlds, not one best-looking map
+
+The current candidate-graph contract permits multiple event-to-asset association marginals and explicit abstention. That is useful, but independently meaningful marginal probabilities do not necessarily form a coherent joint network.
+
+For example, separate edge probabilities can each look plausible while their combination creates an impossible network: a single event is assigned to two incompatible assets, a crossing is treated as a junction, or two mutually exclusive asset partitions are simultaneously represented as facts.
+
+The next abstraction is a **joint network hypothesis set**:
+
+- one immutable evidence snapshot and one investigation scope;
+- a finite set of mutually exclusive candidate network worlds;
+- one complete event disposition per observed event in every world;
+- candidate assets, geometry claims, nodes and relations that are internally coherent within each world;
+- a probability for each whole world;
+- explicit residual probability for worlds not enumerated.
+
+This is not a claim that a Bayesian posterior has been calibrated. It is a data and validation contract that makes the intended probability semantics explicit and testable.
+
+The decision product becomes:
+
+> Here are the plausible physical network configurations, their relative support, the evidence that separates them, and the observation most likely to change the engineering decision.
+
+## 2. Contract semantics
+
+The executable contract is in `sol-atlas-core/src/network_hypotheses.rs`; the strict JSON Schema Draft 2020-12 interchange profile is `research/earth-observability/NETWORK_HYPOTHESES_V0_1.schema.json`. The Rust validator enforces cross-reference and cross-field invariants that JSON Schema alone cannot express.
+
+### 2.1 One hypothesis is one complete candidate world
+
+A NetworkHypothesis contains:
+
+- a unique hypothesis identity and whole-world probability;
+- exactly one assignment record for every event in the set;
+- explicit null assignment for events left unassociated;
+- candidate asset instances and their event membership;
+- optional geometry-claim references;
+- candidate nodes and their associated candidate assets;
+- evidence-supported relations between nodes.
+
+A candidate identifier is local and non-authoritative. It is not a MUDDI ObjectID, owner-system SystemID or utility-owner asset identifier.
+
+### 2.2 Mutually exclusive world mass
+
+The probability invariant is:
+
+sum(P(hypothesis_i)) + P(residual_unknown) = 1
+
+within a fixed numerical tolerance.
+
+The residual is not a negative detection, absence probability or permission to redistribute probability among the listed hypotheses. It represents unenumerated or unresolved possible worlds.
+
+The fixture contains three alternatives:
+
+| World | Probability | Interpretation |
+|---|---:|---|
+| world-one-utility | 0.62 | Two events belong to one candidate utility |
+| world-two-utilities | 0.23 | The events belong to distinct candidate utilities |
+| world-crossing-unresolved | 0.10 | Two distinct assets have an unresolved crossing relation |
+| Unenumerated worlds | 0.05 | Explicit residual unknown mass |
+
+The values are deliberately illustrative, not learned or calibrated.
+
+### 2.3 Evidence closure
+
+Every event has a source-evidence reference. Every assigned event must be represented in its candidate asset's event membership and supported by that exact source evidence. Every node and relation must resolve its references and carry admitted evidence.
+
+A null event assignment is a valid explicit abstention. It is not silently converted into an absent utility.
+
+### 2.4 Topology is not visual intersection
+
+The relation types distinguish continuation, junction, unresolved crossing and unresolved near-intersection.
+
+An unresolved crossing is not a graph edge establishing physical connection. It remains a spatial relationship awaiting evidence.
+
+### 2.5 Calibration status is separate from structural validity
+
+The validator can check that a calibration receipt identifier was supplied when a caller claims that one is referenced. It cannot authenticate that receipt or establish that the probabilities are calibrated.
+
+The code deliberately does not derive a posterior from event marginals or multiply cross-modal likelihoods.
+
+## 3. Asset-cluster scoring is now executable
+
+A separate event-to-asset evaluator is implemented in `sol-atlas-core/src/utility_reconstruction_metrics.rs`, with CLI `utility_reconstruction_eval`.
+
+It reports B-cubed precision/recall/F1, pairwise true-positive pairs, explicit overmerge/oversplit pairs, candidate false assets, missed truth assets, abstention and false association of adjudicated clutter. It scores only structured independent survey and reviewed trench-image truth. Owner-record-only, conflicted and insufficient truth are separately counted, not converted to negative examples.
+
+Every reference event requires exactly one prediction disposition: candidate asset or explicit abstention. Missing predictions are rejected. Clutter and abstention are singletons in their respective partitions. The committed fixture and pinned baseline are synthetic only.
+
+# EARTH-OBSERVABILITY-JOINT-NETWORK-HYPOTHESES-001
+## Joint posterior hypotheses for evidence-qualified utility-network reconstruction v0.1
+
+**Parent:** Sol-Atlas #771 — EARTH-OBSERVABILITY-QUAL-002  
+**Implementation branch:** research/earth-observability-joint-network-hypotheses-v0-1  
+**Status:** Rust structural contract and deterministic analytic fixture added; probability calibration, graph scoring and physical validation NOT_RUN  
+**Date:** 2026-11-14  
+**Claim ceiling:** The fixture is abstract and non-geographic. It does not represent a real utility, field survey, calibrated posterior, qualified network geometry or excavation clearance.
+
+---
+
+## 1. Research proposition: infer a distribution over worlds, not one best-looking map
+
+The current candidate-graph contract permits multiple event-to-asset association marginals and explicit abstention. That is useful, but independently meaningful marginal probabilities do not necessarily form a coherent joint network.
+
+For example, separate edge probabilities can each look plausible while their combination creates an impossible network: a single event is assigned to two incompatible assets, a crossing is treated as a junction, or two mutually exclusive asset partitions are simultaneously represented as facts.
+
+The next abstraction is a **joint network hypothesis set**:
+
+- one immutable evidence snapshot and one investigation scope;
+- a finite set of mutually exclusive candidate network worlds;
+- one complete event disposition per observed event in every world;
+- candidate assets, geometry claims, nodes and relations that are internally coherent within each world;
+- a probability for each whole world;
+- explicit residual probability for worlds not enumerated.
+
+This is not a claim that a Bayesian posterior has been calibrated. It is a data and validation contract that makes the intended probability semantics explicit and testable.
+
+The decision product becomes:
+
+> Here are the plausible physical network configurations, their relative support, the evidence that separates them, and the observation most likely to change the engineering decision.
+
+## 2. Contract semantics
+
+The executable contract is in `sol-atlas-core/src/network_hypotheses.rs`; the strict JSON Schema Draft 2020-12 interchange profile is `research/earth-observability/NETWORK_HYPOTHESES_V0_1.schema.json`. The Rust validator enforces cross-reference and cross-field invariants that JSON Schema alone cannot express.
+
+### 2.1 One hypothesis is one complete candidate world
+
+A NetworkHypothesis contains:
+
+- a unique hypothesis identity and whole-world probability;
+- exactly one assignment record for every event in the set;
+- explicit null assignment for events left unassociated;
+- candidate asset instances and their event membership;
+- optional geometry-claim references;
+- candidate nodes and their associated candidate assets;
+- evidence-supported relations between nodes.
+
+A candidate identifier is local and non-authoritative. It is not a MUDDI ObjectID, owner-system SystemID or utility-owner asset identifier.
+
+### 2.2 Mutually exclusive world mass
+
+The probability invariant is:
+
+sum(P(hypothesis_i)) + P(residual_unknown) = 1
+
+within a fixed numerical tolerance.
+
+The residual is not a negative detection, absence probability or permission to redistribute probability among the listed hypotheses. It represents unenumerated or unresolved possible worlds.
+
+The fixture contains three alternatives:
+
+| World | Probability | Interpretation |
+|---|---:|---|
+| world-one-utility | 0.62 | Two events belong to one candidate utility |
+| world-two-utilities | 0.23 | The events belong to distinct candidate utilities |
+| world-crossing-unresolved | 0.10 | Two distinct assets have an unresolved crossing relation |
+| Unenumerated worlds | 0.05 | Explicit residual unknown mass |
+
+The values are deliberately illustrative, not learned or calibrated.
+
+### 2.3 Evidence closure
+
+Every event has a source-evidence reference. Every assigned event must be represented in its candidate asset's event membership and supported by that exact source evidence. Every node and relation must resolve its references and carry admitted evidence.
+
+A null event assignment is a valid explicit abstention. It is not silently converted into an absent utility.
+
+### 2.4 Topology is not visual intersection
+
+The relation types distinguish continuation, junction, unresolved crossing and unresolved near-intersection.
+
+An unresolved crossing is not a graph edge establishing physical connection. It remains a spatial relationship awaiting evidence.
+
+### 2.5 Calibration status is separate from structural validity
+
+The validator can check that a calibration receipt identifier was supplied when a caller claims that one is referenced. It cannot authenticate that receipt or establish that the probabilities are calibrated.
+
+The code deliberately does not derive a posterior from event marginals or multiply cross-modal likelihoods.
+
+## 3. Asset-cluster scoring is now executable
+
+A separate event-to-asset evaluator is implemented in `sol-atlas-core/src/utility_reconstruction_metrics.rs`, with CLI `utility_reconstruction_eval`.
+
+It reports B-cubed precision/recall/F1, pairwise true-positive pairs, explicit overmerge/oversplit pairs, candidate false assets, missed truth assets, abstention and false association of adjudicated clutter. It scores only structured independent survey and reviewed trench-image truth. Owner-record-only, conflicted and insufficient truth are separately counted, not converted to negative examples.
+
+Every reference event requires exactly one prediction disposition: candidate asset or explicit abstention. Missing predictions are rejected. Clutter and abstention are singletons in their respective partitions. The committed fixture and pinned baseline are synthetic only.
+
+# EARTH-OBSERVABILITY-JOINT-NETWORK-HYPOTHESES-001
+## Joint posterior hypotheses for evidence-qualified utility-network reconstruction v0.1
+
+**Parent:** Sol-Atlas #771 — EARTH-OBSERVABILITY-QUAL-002  
+**Implementation branch:** research/earth-observability-joint-network-hypotheses-v0-1  
+**Status:** Rust structural contract and deterministic analytic fixture added; probability calibration, graph scoring and physical validation NOT_RUN  
+**Date:** 2026-11-14  
+**Claim ceiling:** The fixture is abstract and non-geographic. It does not represent a real utility, field survey, calibrated posterior, qualified network geometry or excavation clearance.
+
+---
+
+## 1. Research proposition: infer a distribution over worlds, not one best-looking map
+
+The current candidate-graph contract permits multiple event-to-asset association marginals and explicit abstention. That is useful, but independently meaningful marginal probabilities do not necessarily form a coherent joint network.
+
+For example, separate edge probabilities can each look plausible while their combination creates an impossible network: a single event is assigned to two incompatible assets, a crossing is treated as a junction, or two mutually exclusive asset partitions are simultaneously represented as facts.
+
+The next abstraction is a **joint network hypothesis set**:
+
+- one immutable evidence snapshot and one investigation scope;
+- a finite set of mutually exclusive candidate network worlds;
+- one complete event disposition per observed event in every world;
+- candidate assets, geometry claims, nodes and relations that are internally coherent within each world;
+- a probability for each whole world;
+- explicit residual probability for worlds not enumerated.
+
+This is not a claim that a Bayesian posterior has been calibrated. It is a data and validation contract that makes the intended probability semantics explicit and testable.
+
+The decision product becomes:
+
+> Here are the plausible physical network configurations, their relative support, the evidence that separates them, and the observation most likely to change the engineering decision.
+
+## 2. Contract semantics
+
+The executable contract is in `sol-atlas-core/src/network_hypotheses.rs`; the strict JSON Schema Draft 2020-12 interchange profile is `research/earth-observability/NETWORK_HYPOTHESES_V0_1.schema.json`. The Rust validator enforces cross-reference and cross-field invariants that JSON Schema alone cannot express.
+
+### 2.1 One hypothesis is one complete candidate world
+
+A NetworkHypothesis contains:
+
+- a unique hypothesis identity and whole-world probability;
+- exactly one assignment record for every event in the set;
+- explicit null assignment for events left unassociated;
+- candidate asset instances and their event membership;
+- optional geometry-claim references;
+- candidate nodes and their associated candidate assets;
+- evidence-supported relations between nodes.
+
+A candidate identifier is local and non-authoritative. It is not a MUDDI ObjectID, owner-system SystemID or utility-owner asset identifier.
+
+### 2.2 Mutually exclusive world mass
+
+The probability invariant is:
+
+sum(P(hypothesis_i)) + P(residual_unknown) = 1
+
+within a fixed numerical tolerance.
+
+The residual is not a negative detection, absence probability or permission to redistribute probability among the listed hypotheses. It represents unenumerated or unresolved possible worlds.
+
+The fixture contains three alternatives:
+
+| World | Probability | Interpretation |
+|---|---:|---|
+| world-one-utility | 0.62 | Two events belong to one candidate utility |
+| world-two-utilities | 0.23 | The events belong to distinct candidate utilities |
+| world-crossing-unresolved | 0.10 | Two distinct assets have an unresolved crossing relation |
+| Unenumerated worlds | 0.05 | Explicit residual unknown mass |
+
+The values are deliberately illustrative, not learned or calibrated.
+
+### 2.3 Evidence closure
+
+Every event has a source-evidence reference. Every assigned event must be represented in its candidate asset's event membership and supported by that exact source evidence. Every node and relation must resolve its references and carry admitted evidence.
+
+A null event assignment is a valid explicit abstention. It is not silently converted into an absent utility.
+
+### 2.4 Topology is not visual intersection
+
+The relation types distinguish continuation, junction, unresolved crossing and unresolved near-intersection.
+
+An unresolved crossing is not a graph edge establishing physical connection. It remains a spatial relationship awaiting evidence.
+
+### 2.5 Calibration status is separate from structural validity
+
+The validator can check that a calibration receipt identifier was supplied when a caller claims that one is referenced. It cannot authenticate that receipt or establish that the probabilities are calibrated.
+
+The code deliberately does not derive a posterior from event marginals or multiply cross-modal likelihoods.
+
+## 3. Asset-cluster scoring is now executable
+
+A separate event-to-asset evaluator is implemented in `sol-atlas-core/src/utility_reconstruction_metrics.rs`, with CLI `utility_reconstruction_eval`.
+
+It reports B-cubed precision/recall/F1, pairwise true-positive pairs, explicit overmerge/oversplit pairs, candidate false assets, missed truth assets, abstention and false association of adjudicated clutter. It scores only structured independent survey and reviewed trench-image truth. Owner-record-only, conflicted and insufficient truth are separately counted, not converted to negative examples.
+
+Every reference event requires exactly one prediction disposition: candidate asset or explicit abstention. Missing predictions are rejected. Clutter and abstention are singletons in their respective partitions. The committed fixture and pinned baseline are synthetic only.
+
+# EARTH-OBSERVABILITY-JOINT-NETWORK-HYPOTHESES-001
+## Joint posterior hypotheses for evidence-qualified utility-network reconstruction v0.1
+
+**Parent:** Sol-Atlas #771 — EARTH-OBSERVABILITY-QUAL-002  
+**Implementation branch:** research/earth-observability-joint-network-hypotheses-v0-1  
+**Status:** Rust structural contract and deterministic analytic fixture added; probability calibration, graph scoring and physical validation NOT_RUN  
+**Date:** 2026-11-14  
+**Claim ceiling:** The fixture is abstract and non-geographic. It does not represent a real utility, field survey, calibrated posterior, qualified network geometry or excavation clearance.
+
+---
+
+## 1. Research proposition: infer a distribution over worlds, not one best-looking map
+
+The current candidate-graph contract permits multiple event-to-asset association marginals and explicit abstention. That is useful, but independently meaningful marginal probabilities do not necessarily form a coherent joint network.
+
+For example, separate edge probabilities can each look plausible while their combination creates an impossible network: a single event is assigned to two incompatible assets, a crossing is treated as a junction, or two mutually exclusive asset partitions are simultaneously represented as facts.
+
+The next abstraction is a **joint network hypothesis set**:
+
+- one immutable evidence snapshot and one investigation scope;
+- a finite set of mutually exclusive candidate network worlds;
+- one complete event disposition per observed event in every world;
+- candidate assets, geometry claims, nodes and relations that are internally coherent within each world;
+- a probability for each whole world;
+- explicit residual probability for worlds not enumerated.
+
+This is not a claim that a Bayesian posterior has been calibrated. It is a data and validation contract that makes the intended probability semantics explicit and testable.
+
+The decision product becomes:
+
+> Here are the plausible physical network configurations, their relative support, the evidence that separates them, and the observation most likely to change the engineering decision.
+
+## 2. Contract semantics
+
+The executable contract is in `sol-atlas-core/src/network_hypotheses.rs`; the strict JSON Schema Draft 2020-12 interchange profile is `research/earth-observability/NETWORK_HYPOTHESES_V0_1.schema.json`. The Rust validator enforces cross-reference and cross-field invariants that JSON Schema alone cannot express.
+
+### 2.1 One hypothesis is one complete candidate world
+
+A NetworkHypothesis contains:
+
+- a unique hypothesis identity and whole-world probability;
+- exactly one assignment record for every event in the set;
+- explicit null assignment for events left unassociated;
+- candidate asset instances and their event membership;
+- optional geometry-claim references;
+- candidate nodes and their associated candidate assets;
+- evidence-supported relations between nodes.
+
+A candidate identifier is local and non-authoritative. It is not a MUDDI ObjectID, owner-system SystemID or utility-owner asset identifier.
+
+### 2.2 Mutually exclusive world mass
+
+The probability invariant is:
+
+sum(P(hypothesis_i)) + P(residual_unknown) = 1
+
+within a fixed numerical tolerance.
+
+The residual is not a negative detection, absence probability or permission to redistribute probability among the listed hypotheses. It represents unenumerated or unresolved possible worlds.
+
+The fixture contains three alternatives:
+
+| World | Probability | Interpretation |
+|---|---:|---|
+| world-one-utility | 0.62 | Two events belong to one candidate utility |
+| world-two-utilities | 0.23 | The events belong to distinct candidate utilities |
+| world-crossing-unresolved | 0.10 | Two distinct assets have an unresolved crossing relation |
+| Unenumerated worlds | 0.05 | Explicit residual unknown mass |
+
+The values are deliberately illustrative, not learned or calibrated.
+
+### 2.3 Evidence closure
+
+Every event has a source-evidence reference. Every assigned event must be represented in its candidate asset's event membership and supported by that exact source evidence. Every node and relation must resolve its references and carry admitted evidence.
+
+A null event assignment is a valid explicit abstention. It is not silently converted into an absent utility.
+
+### 2.4 Topology is not visual intersection
+
+The relation types distinguish continuation, junction, unresolved crossing and unresolved near-intersection.
+
+An unresolved crossing is not a graph edge establishing physical connection. It remains a spatial relationship awaiting evidence.
+
+### 2.5 Calibration status is separate from structural validity
+
+The validator can check that a calibration receipt identifier was supplied when a caller claims that one is referenced. It cannot authenticate that receipt or establish that the probabilities are calibrated.
+
+The code deliberately does not derive a posterior from event marginals or multiply cross-modal likelihoods.
+
+## 3. Asset-cluster scoring is now executable
+
+A separate event-to-asset evaluator is implemented in `sol-atlas-core/src/utility_reconstruction_metrics.rs`, with CLI `utility_reconstruction_eval`.
+
+It reports B-cubed precision/recall/F1, pairwise true-positive pairs, explicit overmerge/oversplit pairs, candidate false assets, missed truth assets, abstention and false association of adjudicated clutter. It scores only structured independent survey and reviewed trench-image truth. Owner-record-only, conflicted and insufficient truth are separately counted, not converted to negative examples.
+
+Every reference event requires exactly one prediction disposition: candidate asset or explicit abstention. Missing predictions are rejected. Clutter and abstention are singletons in their respective partitions. The committed fixture and pinned baseline are synthetic only.
+
+# EARTH-OBSERVABILITY-JOINT-NETWORK-HYPOTHESES-001
+## Joint posterior hypotheses for evidence-qualified utility-network reconstruction v0.1
+
+**Parent:** Sol-Atlas #771 — EARTH-OBSERVABILITY-QUAL-002  
+**Implementation branch:** research/earth-observability-joint-network-hypotheses-v0-1  
+**Status:** Rust structural contract and deterministic analytic fixture added; probability calibration, graph scoring and physical validation NOT_RUN  
+**Date:** 2026-11-14  
+**Claim ceiling:** The fixture is abstract and non-geographic. It does not represent a real utility, field survey, calibrated posterior, qualified network geometry or excavation clearance.
+
+---
+
+## 1. Research proposition: infer a distribution over worlds, not one best-looking map
+
+The current candidate-graph contract permits multiple event-to-asset association marginals and explicit abstention. That is useful, but independently meaningful marginal probabilities do not necessarily form a coherent joint network.
+
+For example, separate edge probabilities can each look plausible while their combination creates an impossible network: a single event is assigned to two incompatible assets, a crossing is treated as a junction, or two mutually exclusive asset partitions are simultaneously represented as facts.
+
+The next abstraction is a **joint network hypothesis set**:
+
+- one immutable evidence snapshot and one investigation scope;
+- a finite set of mutually exclusive candidate network worlds;
+- one complete event disposition per observed event in every world;
+- candidate assets, geometry claims, nodes and relations that are internally coherent within each world;
+- a probability for each whole world;
+- explicit residual probability for worlds not enumerated.
+
+This is not a claim that a Bayesian posterior has been calibrated. It is a data and validation contract that makes the intended probability semantics explicit and testable.
+
+The decision product becomes:
+
+> Here are the plausible physical network configurations, their relative support, the evidence that separates them, and the observation most likely to change the engineering decision.
+
+## 2. Contract semantics
+
+The executable contract is in `sol-atlas-core/src/network_hypotheses.rs`; the strict JSON Schema Draft 2020-12 interchange profile is `research/earth-observability/NETWORK_HYPOTHESES_V0_1.schema.json`. The Rust validator enforces cross-reference and cross-field invariants that JSON Schema alone cannot express.
+
+### 2.1 One hypothesis is one complete candidate world
+
+A NetworkHypothesis contains:
+
+- a unique hypothesis identity and whole-world probability;
+- exactly one assignment record for every event in the set;
+- explicit null assignment for events left unassociated;
+- candidate asset instances and their event membership;
+- optional geometry-claim references;
+- candidate nodes and their associated candidate assets;
+- evidence-supported relations between nodes.
+
+A candidate identifier is local and non-authoritative. It is not a MUDDI ObjectID, owner-system SystemID or utility-owner asset identifier.
+
+### 2.2 Mutually exclusive world mass
+
+The probability invariant is:
+
+sum(P(hypothesis_i)) + P(residual_unknown) = 1
+
+within a fixed numerical tolerance.
+
+The residual is not a negative detection, absence probability or permission to redistribute probability among the listed hypotheses. It represents unenumerated or unresolved possible worlds.
+
+The fixture contains three alternatives:
+
+| World | Probability | Interpretation |
+|---|---:|---|
+| world-one-utility | 0.62 | Two events belong to one candidate utility |
+| world-two-utilities | 0.23 | The events belong to distinct candidate utilities |
+| world-crossing-unresolved | 0.10 | Two distinct assets have an unresolved crossing relation |
+| Unenumerated worlds | 0.05 | Explicit residual unknown mass |
+
+The values are deliberately illustrative, not learned or calibrated.
+
+### 2.3 Evidence closure
+
+Every event has a source-evidence reference. Every assigned event must be represented in its candidate asset's event membership and supported by that exact source evidence. Every node and relation must resolve its references and carry admitted evidence.
+
+A null event assignment is a valid explicit abstention. It is not silently converted into an absent utility.
+
+### 2.4 Topology is not visual intersection
+
+The relation types distinguish continuation, junction, unresolved crossing and unresolved near-intersection.
+
+An unresolved crossing is not a graph edge establishing physical connection. It remains a spatial relationship awaiting evidence.
+
+### 2.5 Calibration status is separate from structural validity
+
+The validator can check that a calibration receipt identifier was supplied when a caller claims that one is referenced. It cannot authenticate that receipt or establish that the probabilities are calibrated.
+
+The code deliberately does not derive a posterior from event marginals or multiply cross-modal likelihoods.
+
+## 3. Asset-cluster scoring is now executable
+
+A separate event-to-asset evaluator is implemented in `sol-atlas-core/src/utility_reconstruction_metrics.rs`, with CLI `utility_reconstruction_eval`.
+
+It reports B-cubed precision/recall/F1, pairwise true-positive pairs, explicit overmerge/oversplit pairs, candidate false assets, missed truth assets, abstention and false association of adjudicated clutter. It scores only structured independent survey and reviewed trench-image truth. Owner-record-only, conflicted and insufficient truth are separately counted, not converted to negative examples.
+
+Every reference event requires exactly one prediction disposition: candidate asset or explicit abstention. Missing predictions are rejected. Clutter and abstention are singletons in their respective partitions. The committed fixture and pinned baseline are synthetic only.
+
+# EARTH-OBSERVABILITY-JOINT-NETWORK-HYPOTHESES-001
+## Joint posterior hypotheses for evidence-qualified utility-network reconstruction v0.1
+
+**Parent:** Sol-Atlas #771 — EARTH-OBSERVABILITY-QUAL-002  
+**Implementation branch:** research/earth-observability-joint-network-hypotheses-v0-1  
+**Status:** Rust structural contract and deterministic analytic fixture added; probability calibration, graph scoring and physical validation NOT_RUN  
+**Date:** 2026-11-14  
+**Claim ceiling:** The fixture is abstract and non-geographic. It does not represent a real utility, field survey, calibrated posterior, qualified network geometry or excavation clearance.
+
+---
+
+## 1. Research proposition: infer a distribution over worlds, not one best-looking map
+
+The current candidate-graph contract permits multiple event-to-asset association marginals and explicit abstention. That is useful, but independently meaningful marginal probabilities do not necessarily form a coherent joint network.
+
+For example, separate edge probabilities can each look plausible while their combination creates an impossible network: a single event is assigned to two incompatible assets, a crossing is treated as a junction, or two mutually exclusive asset partitions are simultaneously represented as facts.
+
+The next abstraction is a **joint network hypothesis set**:
+
+- one immutable evidence snapshot and one investigation scope;
+- a finite set of mutually exclusive candidate network worlds;
+- one complete event disposition per observed event in every world;
+- candidate assets, geometry claims, nodes and relations that are internally coherent within each world;
+- a probability for each whole world;
+- explicit residual probability for worlds not enumerated.
+
+This is not a claim that a Bayesian posterior has been calibrated. It is a data and validation contract that makes the intended probability semantics explicit and testable.
+
+The decision product becomes:
+
+> Here are the plausible physical network configurations, their relative support, the evidence that separates them, and the observation most likely to change the engineering decision.
+
+## 2. Contract semantics
+
+The executable contract is in `sol-atlas-core/src/network_hypotheses.rs`; the strict JSON Schema Draft 2020-12 interchange profile is `research/earth-observability/NETWORK_HYPOTHESES_V0_1.schema.json`. The Rust validator enforces cross-reference and cross-field invariants that JSON Schema alone cannot express.
+
+### 2.1 One hypothesis is one complete candidate world
+
+A NetworkHypothesis contains:
+
+- a unique hypothesis identity and whole-world probability;
+- exactly one assignment record for every event in the set;
+- explicit null assignment for events left unassociated;
+- candidate asset instances and their event membership;
+- optional geometry-claim references;
+- candidate nodes and their associated candidate assets;
+- evidence-supported relations between nodes.
+
+A candidate identifier is local and non-authoritative. It is not a MUDDI ObjectID, owner-system SystemID or utility-owner asset identifier.
+
+### 2.2 Mutually exclusive world mass
+
+The probability invariant is:
+
+sum(P(hypothesis_i)) + P(residual_unknown) = 1
+
+within a fixed numerical tolerance.
+
+The residual is not a negative detection, absence probability or permission to redistribute probability among the listed hypotheses. It represents unenumerated or unresolved possible worlds.
+
+The fixture contains three alternatives:
+
+| World | Probability | Interpretation |
+|---|---:|---|
+| world-one-utility | 0.62 | Two events belong to one candidate utility |
+| world-two-utilities | 0.23 | The events belong to distinct candidate utilities |
+| world-crossing-unresolved | 0.10 | Two distinct assets have an unresolved crossing relation |
+| Unenumerated worlds | 0.05 | Explicit residual unknown mass |
+
+The values are deliberately illustrative, not learned or calibrated.
+
+### 2.3 Evidence closure
+
+Every event has a source-evidence reference. Every assigned event must be represented in its candidate asset's event membership and supported by that exact source evidence. Every node and relation must resolve its references and carry admitted evidence.
+
+A null event assignment is a valid explicit abstention. It is not silently converted into an absent utility.
+
+### 2.4 Topology is not visual intersection
+
+The relation types distinguish continuation, junction, unresolved crossing and unresolved near-intersection.
+
+An unresolved crossing is not a graph edge establishing physical connection. It remains a spatial relationship awaiting evidence.
+
+### 2.5 Calibration status is separate from structural validity
+
+The validator can check that a calibration receipt identifier was supplied when a caller claims that one is referenced. It cannot authenticate that receipt or establish that the probabilities are calibrated.
+
+The code deliberately does not derive a posterior from event marginals or multiply cross-modal likelihoods.
+
+## 3. Asset-cluster scoring is now executable
+
+A separate event-to-asset evaluator is implemented in `sol-atlas-core/src/utility_reconstruction_metrics.rs`, with CLI `utility_reconstruction_eval`.
+
+It reports B-cubed precision/recall/F1, pairwise true-positive pairs, explicit overmerge/oversplit pairs, candidate false assets, missed truth assets, abstention and false association of adjudicated clutter. It scores only structured independent survey and reviewed trench-image truth. Owner-record-only, conflicted and insufficient truth are separately counted, not converted to negative examples.
+
+Every reference event requires exactly one prediction disposition: candidate asset or explicit abstention. Missing predictions are rejected. Clutter and abstention are singletons in their respective partitions. The committed fixture and pinned baseline are synthetic only.
+
+# EARTH-OBSERVABILITY-JOINT-NETWORK-HYPOTHESES-001
+## Joint posterior hypotheses for evidence-qualified utility-network reconstruction v0.1
+
+**Parent:** Sol-Atlas #771 — EARTH-OBSERVABILITY-QUAL-002  
+**Implementation branch:** research/earth-observability-joint-network-hypotheses-v0-1  
+**Status:** Rust structural contract and deterministic analytic fixture added; probability calibration, graph scoring and physical validation NOT_RUN  
+**Date:** 2026-11-14  
+**Claim ceiling:** The fixture is abstract and non-geographic. It does not represent a real utility, field survey, calibrated posterior, qualified network geometry or excavation clearance.
+
+---
+
+## 1. Research proposition: infer a distribution over worlds, not one best-looking map
+
+The current candidate-graph contract permits multiple event-to-asset association marginals and explicit abstention. That is useful, but independently meaningful marginal probabilities do not necessarily form a coherent joint network.
+
+For example, separate edge probabilities can each look plausible while their combination creates an impossible network: a single event is assigned to two incompatible assets, a crossing is treated as a junction, or two mutually exclusive asset partitions are simultaneously represented as facts.
+
+The next abstraction is a **joint network hypothesis set**:
+
+- one immutable evidence snapshot and one investigation scope;
+- a finite set of mutually exclusive candidate network worlds;
+- one complete event disposition per observed event in every world;
+- candidate assets, geometry claims, nodes and relations that are internally coherent within each world;
+- a probability for each whole world;
+- explicit residual probability for worlds not enumerated.
+
+This is not a claim that a Bayesian posterior has been calibrated. It is a data and validation contract that makes the intended probability semantics explicit and testable.
+
+The decision product becomes:
+
+> Here are the plausible physical network configurations, their relative support, the evidence that separates them, and the observation most likely to change the engineering decision.
+
+## 2. Contract semantics
+
+The executable contract is in `sol-atlas-core/src/network_hypotheses.rs`; the strict JSON Schema Draft 2020-12 interchange profile is `research/earth-observability/NETWORK_HYPOTHESES_V0_1.schema.json`. The Rust validator enforces cross-reference and cross-field invariants that JSON Schema alone cannot express.
+
+### 2.1 One hypothesis is one complete candidate world
+
+A NetworkHypothesis contains:
+
+- a unique hypothesis identity and whole-world probability;
+- exactly one assignment record for every event in the set;
+- explicit null assignment for events left unassociated;
+- candidate asset instances and their event membership;
+- optional geometry-claim references;
+- candidate nodes and their associated candidate assets;
+- evidence-supported relations between nodes.
+
+A candidate identifier is local and non-authoritative. It is not a MUDDI ObjectID, owner-system SystemID or utility-owner asset identifier.
+
+### 2.2 Mutually exclusive world mass
+
+The probability invariant is:
+
+sum(P(hypothesis_i)) + P(residual_unknown) = 1
+
+within a fixed numerical tolerance.
+
+The residual is not a negative detection, absence probability or permission to redistribute probability among the listed hypotheses. It represents unenumerated or unresolved possible worlds.
+
+The fixture contains three alternatives:
+
+| World | Probability | Interpretation |
+|---|---:|---|
+| world-one-utility | 0.62 | Two events belong to one candidate utility |
+| world-two-utilities | 0.23 | The events belong to distinct candidate utilities |
+| world-crossing-unresolved | 0.10 | Two distinct assets have an unresolved crossing relation |
+| Unenumerated worlds | 0.05 | Explicit residual unknown mass |
+
+The values are deliberately illustrative, not learned or calibrated.
+
+### 2.3 Evidence closure
+
+Every event has a source-evidence reference. Every assigned event must be represented in its candidate asset's event membership and supported by that exact source evidence. Every node and relation must resolve its references and carry admitted evidence.
+
+A null event assignment is a valid explicit abstention. It is not silently converted into an absent utility.
+
+### 2.4 Topology is not visual intersection
+
+The relation types distinguish continuation, junction, unresolved crossing and unresolved near-intersection.
+
+An unresolved crossing is not a graph edge establishing physical connection. It remains a spatial relationship awaiting evidence.
+
+### 2.5 Calibration status is separate from structural validity
+
+The validator can check that a calibration receipt identifier was supplied when a caller claims that one is referenced. It cannot authenticate that receipt or establish that the probabilities are calibrated.
+
+The code deliberately does not derive a posterior from event marginals or multiply cross-modal likelihoods.
+
+## 3. Asset-cluster scoring is now executable
+
+A separate event-to-asset evaluator is implemented in `sol-atlas-core/src/utility_reconstruction_metrics.rs`, with CLI `utility_reconstruction_eval`.
+
+It reports B-cubed precision/recall/F1, pairwise true-positive pairs, explicit overmerge/oversplit pairs, candidate false assets, missed truth assets, abstention and false association of adjudicated clutter. It scores only structured independent survey and reviewed trench-image truth. Owner-record-only, conflicted and insufficient truth are separately counted, not converted to negative examples.
+
+Every reference event requires exactly one prediction disposition: candidate asset or explicit abstention. Missing predictions are rejected. Clutter and abstention are singletons in their respective partitions. The committed fixture and pinned baseline are synthetic only.
+
+# EARTH-OBSERVABILITY-JOINT-NETWORK-HYPOTHESES-001
+## Joint posterior hypotheses for evidence-qualified utility-network reconstruction v0.1
+
+**Parent:** Sol-Atlas #771 — EARTH-OBSERVABILITY-QUAL-002  
+**Implementation branch:** research/earth-observability-joint-network-hypotheses-v0-1  
+**Status:** Rust structural contract and deterministic analytic fixture added; probability calibration, graph scoring and physical validation NOT_RUN  
+**Date:** 2026-11-14  
+**Claim ceiling:** The fixture is abstract and non-geographic. It does not represent a real utility, field survey, calibrated posterior, qualified network geometry or excavation clearance.
+
+---
+
+## 1. Research proposition: infer a distribution over worlds, not one best-looking map
+
+The current candidate-graph contract permits multiple event-to-asset association marginals and explicit abstention. That is useful, but independently meaningful marginal probabilities do not necessarily form a coherent joint network.
+
+For example, separate edge probabilities can each look plausible while their combination creates an impossible network: a single event is assigned to two incompatible assets, a crossing is treated as a junction, or two mutually exclusive asset partitions are simultaneously represented as facts.
+
+The next abstraction is a **joint network hypothesis set**:
+
+- one immutable evidence snapshot and one investigation scope;
+- a finite set of mutually exclusive candidate network worlds;
+- one complete event disposition per observed event in every world;
+- candidate assets, geometry claims, nodes and relations that are internally coherent within each world;
+- a probability for each whole world;
+- explicit residual probability for worlds not enumerated.
+
+This is not a claim that a Bayesian posterior has been calibrated. It is a data and validation contract that makes the intended probability semantics explicit and testable.
+
+The decision product becomes:
+
+> Here are the plausible physical network configurations, their relative support, the evidence that separates them, and the observation most likely to change the engineering decision.
+
+## 2. Contract semantics
+
+The executable contract is in `sol-atlas-core/src/network_hypotheses.rs`; the strict JSON Schema Draft 2020-12 interchange profile is `research/earth-observability/NETWORK_HYPOTHESES_V0_1.schema.json`. The Rust validator enforces cross-reference and cross-field invariants that JSON Schema alone cannot express.
+
+### 2.1 One hypothesis is one complete candidate world
+
+A NetworkHypothesis contains:
+
+- a unique hypothesis identity and whole-world probability;
+- exactly one assignment record for every event in the set;
+- explicit null assignment for events left unassociated;
+- candidate asset instances and their event membership;
+- optional geometry-claim references;
+- candidate nodes and their associated candidate assets;
+- evidence-supported relations between nodes.
+
+A candidate identifier is local and non-authoritative. It is not a MUDDI ObjectID, owner-system SystemID or utility-owner asset identifier.
+
+### 2.2 Mutually exclusive world mass
+
+The probability invariant is:
+
+sum(P(hypothesis_i)) + P(residual_unknown) = 1
+
+within a fixed numerical tolerance.
+
+The residual is not a negative detection, absence probability or permission to redistribute probability among the listed hypotheses. It represents unenumerated or unresolved possible worlds.
+
+The fixture contains three alternatives:
+
+| World | Probability | Interpretation |
+|---|---:|---|
+| world-one-utility | 0.62 | Two events belong to one candidate utility |
+| world-two-utilities | 0.23 | The events belong to distinct candidate utilities |
+| world-crossing-unresolved | 0.10 | Two distinct assets have an unresolved crossing relation |
+| Unenumerated worlds | 0.05 | Explicit residual unknown mass |
+
+The values are deliberately illustrative, not learned or calibrated.
+
+### 2.3 Evidence closure
+
+Every event has a source-evidence reference. Every assigned event must be represented in its candidate asset's event membership and supported by that exact source evidence. Every node and relation must resolve its references and carry admitted evidence.
+
+A null event assignment is a valid explicit abstention. It is not silently converted into an absent utility.
+
+### 2.4 Topology is not visual intersection
+
+The relation types distinguish continuation, junction, unresolved crossing and unresolved near-intersection.
+
+An unresolved crossing is not a graph edge establishing physical connection. It remains a spatial relationship awaiting evidence.
+
+### 2.5 Calibration status is separate from structural validity
+
+The validator can check that a calibration receipt identifier was supplied when a caller claims that one is referenced. It cannot authenticate that receipt or establish that the probabilities are calibrated.
+
+The code deliberately does not derive a posterior from event marginals or multiply cross-modal likelihoods.
+
+## 3. Asset-cluster scoring is now executable
+
+A separate event-to-asset evaluator is implemented in `sol-atlas-core/src/utility_reconstruction_metrics.rs`, with CLI `utility_reconstruction_eval`.
+
+It reports B-cubed precision/recall/F1, pairwise true-positive pairs, explicit overmerge/oversplit pairs, candidate false assets, missed truth assets, abstention and false association of adjudicated clutter. It scores only structured independent survey and reviewed trench-image truth. Owner-record-only, conflicted and insufficient truth are separately counted, not converted to negative examples.
+
+Every reference event requires exactly one prediction disposition: candidate asset or explicit abstention. Missing predictions are rejected. Clutter and abstention are singletons in their respective partitions. The committed fixture and pinned baseline are synthetic only.
+
+# EARTH-OBSERVABILITY-JOINT-NETWORK-HYPOTHESES-001
+## Joint posterior hypotheses for evidence-qualified utility-network reconstruction v0.1
+
+**Parent:** Sol-Atlas #771 — EARTH-OBSERVABILITY-QUAL-002  
+**Implementation branch:** research/earth-observability-joint-network-hypotheses-v0-1  
+**Status:** Rust structural contract and deterministic analytic fixture added; probability calibration, graph scoring and physical validation NOT_RUN  
+**Date:** 2026-11-14  
+**Claim ceiling:** The fixture is abstract and non-geographic. It does not represent a real utility, field survey, calibrated posterior, qualified network geometry or excavation clearance.
+
+---
+
+## 1. Research proposition: infer a distribution over worlds, not one best-looking map
+
+The current candidate-graph contract permits multiple event-to-asset association marginals and explicit abstention. That is useful, but independently meaningful marginal probabilities do not necessarily form a coherent joint network.
+
+For example, separate edge probabilities can each look plausible while their combination creates an impossible network: a single event is assigned to two incompatible assets, a crossing is treated as a junction, or two mutually exclusive asset partitions are simultaneously represented as facts.
+
+The next abstraction is a **joint network hypothesis set**:
+
+- one immutable evidence snapshot and one investigation scope;
+- a finite set of mutually exclusive candidate network worlds;
+- one complete event disposition per observed event in every world;
+- candidate assets, geometry claims, nodes and relations that are internally coherent within each world;
+- a probability for each whole world;
+- explicit residual probability for worlds not enumerated.
+
+This is not a claim that a Bayesian posterior has been calibrated. It is a data and validation contract that makes the intended probability semantics explicit and testable.
+
+The decision product becomes:
+
+> Here are the plausible physical network configurations, their relative support, the evidence that separates them, and the observation most likely to change the engineering decision.
+
+## 2. Contract semantics
+
+The executable contract is in `sol-atlas-core/src/network_hypotheses.rs`; the strict JSON Schema Draft 2020-12 interchange profile is `research/earth-observability/NETWORK_HYPOTHESES_V0_1.schema.json`. The Rust validator enforces cross-reference and cross-field invariants that JSON Schema alone cannot express.
+
+### 2.1 One hypothesis is one complete candidate world
+
+A NetworkHypothesis contains:
+
+- a unique hypothesis identity and whole-world probability;
+- exactly one assignment record for every event in the set;
+- explicit null assignment for events left unassociated;
+- candidate asset instances and their event membership;
+- optional geometry-claim references;
+- candidate nodes and their associated candidate assets;
+- evidence-supported relations between nodes.
+
+A candidate identifier is local and non-authoritative. It is not a MUDDI ObjectID, owner-system SystemID or utility-owner asset identifier.
+
+### 2.2 Mutually exclusive world mass
+
+The probability invariant is:
+
+sum(P(hypothesis_i)) + P(residual_unknown) = 1
+
+within a fixed numerical tolerance.
+
+The residual is not a negative detection, absence probability or permission to redistribute probability among the listed hypotheses. It represents unenumerated or unresolved possible worlds.
+
+The fixture contains three alternatives:
+
+| World | Probability | Interpretation |
+|---|---:|---|
+| world-one-utility | 0.62 | Two events belong to one candidate utility |
+| world-two-utilities | 0.23 | The events belong to distinct candidate utilities |
+| world-crossing-unresolved | 0.10 | Two distinct assets have an unresolved crossing relation |
+| Unenumerated worlds | 0.05 | Explicit residual unknown mass |
+
+The values are deliberately illustrative, not learned or calibrated.
+
+### 2.3 Evidence closure
+
+Every event has a source-evidence reference. Every assigned event must be represented in its candidate asset's event membership and supported by that exact source evidence. Every node and relation must resolve its references and carry admitted evidence.
+
+A null event assignment is a valid explicit abstention. It is not silently converted into an absent utility.
+
+### 2.4 Topology is not visual intersection
+
+The relation types distinguish continuation, junction, unresolved crossing and unresolved near-intersection.
+
+An unresolved crossing is not a graph edge establishing physical connection. It remains a spatial relationship awaiting evidence.
+
+### 2.5 Calibration status is separate from structural validity
+
+The validator can check that a calibration receipt identifier was supplied when a caller claims that one is referenced. It cannot authenticate that receipt or establish that the probabilities are calibrated.
+
+The code deliberately does not derive a posterior from event marginals or multiply cross-modal likelihoods.
+
+## 3. Asset-cluster scoring is now executable
+
+A separate event-to-asset evaluator is implemented in `sol-atlas-core/src/utility_reconstruction_metrics.rs`, with CLI `utility_reconstruction_eval`.
+
+It reports B-cubed precision/recall/F1, pairwise true-positive pairs, explicit overmerge/oversplit pairs, candidate false assets, missed truth assets, abstention and false association of adjudicated clutter. It scores only structured independent survey and reviewed trench-image truth. Owner-record-only, conflicted and insufficient truth are separately counted, not converted to negative examples.
+
+Every reference event requires exactly one prediction disposition: candidate asset or explicit abstention. Missing predictions are rejected. Clutter and abstention are singletons in their respective partitions. The committed fixture and pinned baseline are synthetic only.
+
+# EARTH-OBSERVABILITY-JOINT-NETWORK-HYPOTHESES-001
+## Joint posterior hypotheses for evidence-qualified utility-network reconstruction v0.1
+
+**Parent:** Sol-Atlas #771 — EARTH-OBSERVABILITY-QUAL-002  
+**Implementation branch:** research/earth-observability-joint-network-hypotheses-v0-1  
+**Status:** Rust structural contract and deterministic analytic fixture added; probability calibration, graph scoring and physical validation NOT_RUN  
+**Date:** 2026-11-14  
+**Claim ceiling:** The fixture is abstract and non-geographic. It does not represent a real utility, field survey, calibrated posterior, qualified network geometry or excavation clearance.
+
+---
+
+## 1. Research proposition: infer a distribution over worlds, not one best-looking map
+
+The current candidate-graph contract permits multiple event-to-asset association marginals and explicit abstention. That is useful, but independently meaningful marginal probabilities do not necessarily form a coherent joint network.
+
+For example, separate edge probabilities can each look plausible while their combination creates an impossible network: a single event is assigned to two incompatible assets, a crossing is treated as a junction, or two mutually exclusive asset partitions are simultaneously represented as facts.
+
+The next abstraction is a **joint network hypothesis set**:
+
+- one immutable evidence snapshot and one investigation scope;
+- a finite set of mutually exclusive candidate network worlds;
+- one complete event disposition per observed event in every world;
+- candidate assets, geometry claims, nodes and relations that are internally coherent within each world;
+- a probability for each whole world;
+- explicit residual probability for worlds not enumerated.
+
+This is not a claim that a Bayesian posterior has been calibrated. It is a data and validation contract that makes the intended probability semantics explicit and testable.
+
+The decision product becomes:
+
+> Here are the plausible physical network configurations, their relative support, the evidence that separates them, and the observation most likely to change the engineering decision.
+
+## 2. Contract semantics
+
+The executable contract is in `sol-atlas-core/src/network_hypotheses.rs`; the strict JSON Schema Draft 2020-12 interchange profile is `research/earth-observability/NETWORK_HYPOTHESES_V0_1.schema.json`. The Rust validator enforces cross-reference and cross-field invariants that JSON Schema alone cannot express.
+
+### 2.1 One hypothesis is one complete candidate world
+
+A NetworkHypothesis contains:
+
+- a unique hypothesis identity and whole-world probability;
+- exactly one assignment record for every event in the set;
+- explicit null assignment for events left unassociated;
+- candidate asset instances and their event membership;
+- optional geometry-claim references;
+- candidate nodes and their associated candidate assets;
+- evidence-supported relations between nodes.
+
+A candidate identifier is local and non-authoritative. It is not a MUDDI ObjectID, owner-system SystemID or utility-owner asset identifier.
+
+### 2.2 Mutually exclusive world mass
+
+The probability invariant is:
+
+sum(P(hypothesis_i)) + P(residual_unknown) = 1
+
+within a fixed numerical tolerance.
+
+The residual is not a negative detection, absence probability or permission to redistribute probability among the listed hypotheses. It represents unenumerated or unresolved possible worlds.
+
+The fixture contains three alternatives:
+
+| World | Probability | Interpretation |
+|---|---:|---|
+| world-one-utility | 0.62 | Two events belong to one candidate utility |
+| world-two-utilities | 0.23 | The events belong to distinct candidate utilities |
+| world-crossing-unresolved | 0.10 | Two distinct assets have an unresolved crossing relation |
+| Unenumerated worlds | 0.05 | Explicit residual unknown mass |
+
+The values are deliberately illustrative, not learned or calibrated.
+
+### 2.3 Evidence closure
+
+Every event has a source-evidence reference. Every assigned event must be represented in its candidate asset's event membership and supported by that exact source evidence. Every node and relation must resolve its references and carry admitted evidence.
+
+A null event assignment is a valid explicit abstention. It is not silently converted into an absent utility.
+
+### 2.4 Topology is not visual intersection
+
+The relation types distinguish continuation, junction, unresolved crossing and unresolved near-intersection.
+
+An unresolved crossing is not a graph edge establishing physical connection. It remains a spatial relationship awaiting evidence.
+
+### 2.5 Calibration status is separate from structural validity
+
+The validator can check that a calibration receipt identifier was supplied when a caller claims that one is referenced. It cannot authenticate that receipt or establish that the probabilities are calibrated.
+
+The code deliberately does not derive a posterior from event marginals or multiply cross-modal likelihoods.
+
+## 3. Asset-cluster scoring is now executable
+
+A separate event-to-asset evaluator is implemented in `sol-atlas-core/src/utility_reconstruction_metrics.rs`, with CLI `utility_reconstruction_eval`.
+
+It reports B-cubed precision/recall/F1, pairwise true-positive pairs, explicit overmerge/oversplit pairs, candidate false assets, missed truth assets, abstention and false association of adjudicated clutter. It scores only structured independent survey and reviewed trench-image truth. Owner-record-only, conflicted and insufficient truth are separately counted, not converted to negative examples.
+
+Every reference event requires exactly one prediction disposition: candidate asset or explicit abstention. Missing predictions are rejected. Clutter and abstention are singletons in their respective partitions. The committed fixture and pinned baseline are synthetic only.
+
+# EARTH-OBSERVABILITY-JOINT-NETWORK-HYPOTHESES-001
+## Joint posterior hypotheses for evidence-qualified utility-network reconstruction v0.1
+
+**Parent:** Sol-Atlas #771 — EARTH-OBSERVABILITY-QUAL-002  
+**Implementation branch:** research/earth-observability-joint-network-hypotheses-v0-1  
+**Status:** Rust structural contract and deterministic analytic fixture added; probability calibration, graph scoring and physical validation NOT_RUN  
+**Date:** 2026-11-14  
+**Claim ceiling:** The fixture is abstract and non-geographic. It does not represent a real utility, field survey, calibrated posterior, qualified network geometry or excavation clearance.
+
+---
+
+## 1. Research proposition: infer a distribution over worlds, not one best-looking map
+
+The current candidate-graph contract permits multiple event-to-asset association marginals and explicit abstention. That is useful, but independently meaningful marginal probabilities do not necessarily form a coherent joint network.
+
+For example, separate edge probabilities can each look plausible while their combination creates an impossible network: a single event is assigned to two incompatible assets, a crossing is treated as a junction, or two mutually exclusive asset partitions are simultaneously represented as facts.
+
+The next abstraction is a **joint network hypothesis set**:
+
+- one immutable evidence snapshot and one investigation scope;
+- a finite set of mutually exclusive candidate network worlds;
+- one complete event disposition per observed event in every world;
+- candidate assets, geometry claims, nodes and relations that are internally coherent within each world;
+- a probability for each whole world;
+- explicit residual probability for worlds not enumerated.
+
+This is not a claim that a Bayesian posterior has been calibrated. It is a data and validation contract that makes the intended probability semantics explicit and testable.
+
+The decision product becomes:
+
+> Here are the plausible physical network configurations, their relative support, the evidence that separates them, and the observation most likely to change the engineering decision.
+
+## 2. Contract semantics
+
+The executable contract is in `sol-atlas-core/src/network_hypotheses.rs`; the strict JSON Schema Draft 2020-12 interchange profile is `research/earth-observability/NETWORK_HYPOTHESES_V0_1.schema.json`. The Rust validator enforces cross-reference and cross-field invariants that JSON Schema alone cannot express.
+
+### 2.1 One hypothesis is one complete candidate world
+
+A NetworkHypothesis contains:
+
+- a unique hypothesis identity and whole-world probability;
+- exactly one assignment record for every event in the set;
+- explicit null assignment for events left unassociated;
+- candidate asset instances and their event membership;
+- optional geometry-claim references;
+- candidate nodes and their associated candidate assets;
+- evidence-supported relations between nodes.
+
+A candidate identifier is local and non-authoritative. It is not a MUDDI ObjectID, owner-system SystemID or utility-owner asset identifier.
+
+### 2.2 Mutually exclusive world mass
+
+The probability invariant is:
+
+sum(P(hypothesis_i)) + P(residual_unknown) = 1
+
+within a fixed numerical tolerance.
+
+The residual is not a negative detection, absence probability or permission to redistribute probability among the listed hypotheses. It represents unenumerated or unresolved possible worlds.
+
+The fixture contains three alternatives:
+
+| World | Probability | Interpretation |
+|---|---:|---|
+| world-one-utility | 0.62 | Two events belong to one candidate utility |
+| world-two-utilities | 0.23 | The events belong to distinct candidate utilities |
+| world-crossing-unresolved | 0.10 | Two distinct assets have an unresolved crossing relation |
+| Unenumerated worlds | 0.05 | Explicit residual unknown mass |
+
+The values are deliberately illustrative, not learned or calibrated.
+
+### 2.3 Evidence closure
+
+Every event has a source-evidence reference. Every assigned event must be represented in its candidate asset's event membership and supported by that exact source evidence. Every node and relation must resolve its references and carry admitted evidence.
+
+A null event assignment is a valid explicit abstention. It is not silently converted into an absent utility.
+
+### 2.4 Topology is not visual intersection
+
+The relation types distinguish continuation, junction, unresolved crossing and unresolved near-intersection.
+
+An unresolved crossing is not a graph edge establishing physical connection. It remains a spatial relationship awaiting evidence.
+
+### 2.5 Calibration status is separate from structural validity
+
+The validator can check that a calibration receipt identifier was supplied when a caller claims that one is referenced. It cannot authenticate that receipt or establish that the probabilities are calibrated.
+
+The code deliberately does not derive a posterior from event marginals or multiply cross-modal likelihoods.
+
+## 3. Asset-cluster scoring is now executable
+
+A separate event-to-asset evaluator is implemented in `sol-atlas-core/src/utility_reconstruction_metrics.rs`, with CLI `utility_reconstruction_eval`.
+
+It reports B-cubed precision/recall/F1, pairwise true-positive pairs, explicit overmerge/oversplit pairs, candidate false assets, missed truth assets, abstention and false association of adjudicated clutter. It scores only structured independent survey and reviewed trench-image truth. Owner-record-only, conflicted and insufficient truth are separately counted, not converted to negative examples.
+
+Every reference event requires exactly one prediction disposition: candidate asset or explicit abstention. Missing predictions are rejected. Clutter and abstention are singletons in their respective partitions. The committed fixture and pinned baseline are synthetic only.
+
+# EARTH-OBSERVABILITY-JOINT-NETWORK-HYPOTHESES-001
+## Joint posterior hypotheses for evidence-qualified utility-network reconstruction v0.1
+
+**Parent:** Sol-Atlas #771 — EARTH-OBSERVABILITY-QUAL-002  
+**Implementation branch:** research/earth-observability-joint-network-hypotheses-v0-1  
+**Status:** Rust structural contract and deterministic analytic fixture added; probability calibration, graph scoring and physical validation NOT_RUN  
+**Date:** 2026-11-14  
+**Claim ceiling:** The fixture is abstract and non-geographic. It does not represent a real utility, field survey, calibrated posterior, qualified network geometry or excavation clearance.
+
+---
+
+## 1. Research proposition: infer a distribution over worlds, not one best-looking map
+
+The current candidate-graph contract permits multiple event-to-asset association marginals and explicit abstention. That is useful, but independently meaningful marginal probabilities do not necessarily form a coherent joint network.
+
+For example, separate edge probabilities can each look plausible while their combination creates an impossible network: a single event is assigned to two incompatible assets, a crossing is treated as a junction, or two mutually exclusive asset partitions are simultaneously represented as facts.
+
+The next abstraction is a **joint network hypothesis set**:
+
+- one immutable evidence snapshot and one investigation scope;
+- a finite set of mutually exclusive candidate network worlds;
+- one complete event disposition per observed event in every world;
+- candidate assets, geometry claims, nodes and relations that are internally coherent within each world;
+- a probability for each whole world;
+- explicit residual probability for worlds not enumerated.
+
+This is not a claim that a Bayesian posterior has been calibrated. It is a data and validation contract that makes the intended probability semantics explicit and testable.
+
+The decision product becomes:
+
+> Here are the plausible physical network configurations, their relative support, the evidence that separates them, and the observation most likely to change the engineering decision.
+
+## 2. Contract semantics
+
+The executable contract is in `sol-atlas-core/src/network_hypotheses.rs`; the strict JSON Schema Draft 2020-12 interchange profile is `research/earth-observability/NETWORK_HYPOTHESES_V0_1.schema.json`. The Rust validator enforces cross-reference and cross-field invariants that JSON Schema alone cannot express.
+
+### 2.1 One hypothesis is one complete candidate world
+
+A NetworkHypothesis contains:
+
+- a unique hypothesis identity and whole-world probability;
+- exactly one assignment record for every event in the set;
+- explicit null assignment for events left unassociated;
+- candidate asset instances and their event membership;
+- optional geometry-claim references;
+- candidate nodes and their associated candidate assets;
+- evidence-supported relations between nodes.
+
+A candidate identifier is local and non-authoritative. It is not a MUDDI ObjectID, owner-system SystemID or utility-owner asset identifier.
+
+### 2.2 Mutually exclusive world mass
+
+The probability invariant is:
+
+sum(P(hypothesis_i)) + P(residual_unknown) = 1
+
+within a fixed numerical tolerance.
+
+The residual is not a negative detection, absence probability or permission to redistribute probability among the listed hypotheses. It represents unenumerated or unresolved possible worlds.
+
+The fixture contains three alternatives:
+
+| World | Probability | Interpretation |
+|---|---:|---|
+| world-one-utility | 0.62 | Two events belong to one candidate utility |
+| world-two-utilities | 0.23 | The events belong to distinct candidate utilities |
+| world-crossing-unresolved | 0.10 | Two distinct assets have an unresolved crossing relation |
+| Unenumerated worlds | 0.05 | Explicit residual unknown mass |
+
+The values are deliberately illustrative, not learned or calibrated.
+
+### 2.3 Evidence closure
+
+Every event has a source-evidence reference. Every assigned event must be represented in its candidate asset's event membership and supported by that exact source evidence. Every node and relation must resolve its references and carry admitted evidence.
+
+A null event assignment is a valid explicit abstention. It is not silently converted into an absent utility.
+
+### 2.4 Topology is not visual intersection
+
+The relation types distinguish continuation, junction, unresolved crossing and unresolved near-intersection.
+
+An unresolved crossing is not a graph edge establishing physical connection. It remains a spatial relationship awaiting evidence.
+
+### 2.5 Calibration status is separate from structural validity
+
+The validator can check that a calibration receipt identifier was supplied when a caller claims that one is referenced. It cannot authenticate that receipt or establish that the probabilities are calibrated.
+
+The code deliberately does not derive a posterior from event marginals or multiply cross-modal likelihoods.
+
+## 3. Asset-cluster scoring is now executable
+
+A separate event-to-asset evaluator is implemented in `sol-atlas-core/src/utility_reconstruction_metrics.rs`, with CLI `utility_reconstruction_eval`.
+
+It reports B-cubed precision/recall/F1, pairwise true-positive pairs, explicit overmerge/oversplit pairs, candidate false assets, missed truth assets, abstention and false association of adjudicated clutter. It scores only structured independent survey and reviewed trench-image truth. Owner-record-only, conflicted and insufficient truth are separately counted, not converted to negative examples.
+
+Every reference event requires exactly one prediction disposition: candidate asset or explicit abstention. Missing predictions are rejected. Clutter and abstention are singletons in their respective partitions. The committed fixture and pinned baseline are synthetic only.
+
+# EARTH-OBSERVABILITY-JOINT-NETWORK-HYPOTHESES-001
+## Joint posterior hypotheses for evidence-qualified utility-network reconstruction v0.1
+
+**Parent:** Sol-Atlas #771 — EARTH-OBSERVABILITY-QUAL-002  
+**Implementation branch:** research/earth-observability-joint-network-hypotheses-v0-1  
+**Status:** Rust structural contract and deterministic analytic fixture added; probability calibration, graph scoring and physical validation NOT_RUN  
+**Date:** 2026-11-14  
+**Claim ceiling:** The fixture is abstract and non-geographic. It does not represent a real utility, field survey, calibrated posterior, qualified network geometry or excavation clearance.
+
+---
+
+## 1. Research proposition: infer a distribution over worlds, not one best-looking map
+
+The current candidate-graph contract permits multiple event-to-asset association marginals and explicit abstention. That is useful, but independently meaningful marginal probabilities do not necessarily form a coherent joint network.
+
+For example, separate edge probabilities can each look plausible while their combination creates an impossible network: a single event is assigned to two incompatible assets, a crossing is treated as a junction, or two mutually exclusive asset partitions are simultaneously represented as facts.
+
+The next abstraction is a **joint network hypothesis set**:
+
+- one immutable evidence snapshot and one investigation scope;
+- a finite set of mutually exclusive candidate network worlds;
+- one complete event disposition per observed event in every world;
+- candidate assets, geometry claims, nodes and relations that are internally coherent within each world;
+- a probability for each whole world;
+- explicit residual probability for worlds not enumerated.
+
+This is not a claim that a Bayesian posterior has been calibrated. It is a data and validation contract that makes the intended probability semantics explicit and testable.
+
+The decision product becomes:
+
+> Here are the plausible physical network configurations, their relative support, the evidence that separates them, and the observation most likely to change the engineering decision.
+
+## 2. Contract semantics
+
+The executable contract is in `sol-atlas-core/src/network_hypotheses.rs`; the strict JSON Schema Draft 2020-12 interchange profile is `research/earth-observability/NETWORK_HYPOTHESES_V0_1.schema.json`. The Rust validator enforces cross-reference and cross-field invariants that JSON Schema alone cannot express.
+
+### 2.1 One hypothesis is one complete candidate world
+
+A NetworkHypothesis contains:
+
+- a unique hypothesis identity and whole-world probability;
+- exactly one assignment record for every event in the set;
+- explicit null assignment for events left unassociated;
+- candidate asset instances and their event membership;
+- optional geometry-claim references;
+- candidate nodes and their associated candidate assets;
+- evidence-supported relations between nodes.
+
+A candidate identifier is local and non-authoritative. It is not a MUDDI ObjectID, owner-system SystemID or utility-owner asset identifier.
+
+### 2.2 Mutually exclusive world mass
+
+The probability invariant is:
+
+sum(P(hypothesis_i)) + P(residual_unknown) = 1
+
+within a fixed numerical tolerance.
+
+The residual is not a negative detection, absence probability or permission to redistribute probability among the listed hypotheses. It represents unenumerated or unresolved possible worlds.
+
+The fixture contains three alternatives:
+
+| World | Probability | Interpretation |
+|---|---:|---|
+| world-one-utility | 0.62 | Two events belong to one candidate utility |
+| world-two-utilities | 0.23 | The events belong to distinct candidate utilities |
+| world-crossing-unresolved | 0.10 | Two distinct assets have an unresolved crossing relation |
+| Unenumerated worlds | 0.05 | Explicit residual unknown mass |
+
+The values are deliberately illustrative, not learned or calibrated.
+
+### 2.3 Evidence closure
+
+Every event has a source-evidence reference. Every assigned event must be represented in its candidate asset's event membership and supported by that exact source evidence. Every node and relation must resolve its references and carry admitted evidence.
+
+A null event assignment is a valid explicit abstention. It is not silently converted into an absent utility.
+
+### 2.4 Topology is not visual intersection
+
+The relation types distinguish continuation, junction, unresolved crossing and unresolved near-intersection.
+
+An unresolved crossing is not a graph edge establishing physical connection. It remains a spatial relationship awaiting evidence.
+
+### 2.5 Calibration status is separate from structural validity
+
+The validator can check that a calibration receipt identifier was supplied when a caller claims that one is referenced. It cannot authenticate that receipt or establish that the probabilities are calibrated.
+
+The code deliberately does not derive a posterior from event marginals or multiply cross-modal likelihoods.
+
+## 3. Asset-cluster scoring is now executable
+
+A separate event-to-asset evaluator is implemented in `sol-atlas-core/src/utility_reconstruction_metrics.rs`, with CLI `utility_reconstruction_eval`.
+
+It reports B-cubed precision/recall/F1, pairwise true-positive pairs, explicit overmerge/oversplit pairs, candidate false assets, missed truth assets, abstention and false association of adjudicated clutter. It scores only structured independent survey and reviewed trench-image truth. Owner-record-only, conflicted and insufficient truth are separately counted, not converted to negative examples.
+
+Every reference event requires exactly one prediction disposition: candidate asset or explicit abstention. Missing predictions are rejected. Clutter and abstention are singletons in their respective partitions. The committed fixture and pinned baseline are synthetic only.
+
+# EARTH-OBSERVABILITY-JOINT-NETWORK-HYPOTHESES-001
+## Joint posterior hypotheses for evidence-qualified utility-network reconstruction v0.1
+
+**Parent:** Sol-Atlas #771 — EARTH-OBSERVABILITY-QUAL-002  
+**Implementation branch:** research/earth-observability-joint-network-hypotheses-v0-1  
+**Status:** Rust structural contract and deterministic analytic fixture added; probability calibration, graph scoring and physical validation NOT_RUN  
+**Date:** 2026-11-14  
+**Claim ceiling:** The fixture is abstract and non-geographic. It does not represent a real utility, field survey, calibrated posterior, qualified network geometry or excavation clearance.
+
+---
+
+## 1. Research proposition: infer a distribution over worlds, not one best-looking map
+
+The current candidate-graph contract permits multiple event-to-asset association marginals and explicit abstention. That is useful, but independently meaningful marginal probabilities do not necessarily form a coherent joint network.
+
+For example, separate edge probabilities can each look plausible while their combination creates an impossible network: a single event is assigned to two incompatible assets, a crossing is treated as a junction, or two mutually exclusive asset partitions are simultaneously represented as facts.
+
+The next abstraction is a **joint network hypothesis set**:
+
+- one immutable evidence snapshot and one investigation scope;
+- a finite set of mutually exclusive candidate network worlds;
+- one complete event disposition per observed event in every world;
+- candidate assets, geometry claims, nodes and relations that are internally coherent within each world;
+- a probability for each whole world;
+- explicit residual probability for worlds not enumerated.
+
+This is not a claim that a Bayesian posterior has been calibrated. It is a data and validation contract that makes the intended probability semantics explicit and testable.
+
+The decision product becomes:
+
+> Here are the plausible physical network configurations, their relative support, the evidence that separates them, and the observation most likely to change the engineering decision.
+
+## 2. Contract semantics
+
+The executable contract is in `sol-atlas-core/src/network_hypotheses.rs`; the strict JSON Schema Draft 2020-12 interchange profile is `research/earth-observability/NETWORK_HYPOTHESES_V0_1.schema.json`. The Rust validator enforces cross-reference and cross-field invariants that JSON Schema alone cannot express.
+
+### 2.1 One hypothesis is one complete candidate world
+
+A NetworkHypothesis contains:
+
+- a unique hypothesis identity and whole-world probability;
+- exactly one assignment record for every event in the set;
+- explicit null assignment for events left unassociated;
+- candidate asset instances and their event membership;
+- optional geometry-claim references;
+- candidate nodes and their associated candidate assets;
+- evidence-supported relations between nodes.
+
+A candidate identifier is local and non-authoritative. It is not a MUDDI ObjectID, owner-system SystemID or utility-owner asset identifier.
+
+### 2.2 Mutually exclusive world mass
+
+The probability invariant is:
+
+sum(P(hypothesis_i)) + P(residual_unknown) = 1
+
+within a fixed numerical tolerance.
+
+The residual is not a negative detection, absence probability or permission to redistribute probability among the listed hypotheses. It represents unenumerated or unresolved possible worlds.
+
+The fixture contains three alternatives:
+
+| World | Probability | Interpretation |
+|---|---:|---|
+| world-one-utility | 0.62 | Two events belong to one candidate utility |
+| world-two-utilities | 0.23 | The events belong to distinct candidate utilities |
+| world-crossing-unresolved | 0.10 | Two distinct assets have an unresolved crossing relation |
+| Unenumerated worlds | 0.05 | Explicit residual unknown mass |
+
+The values are deliberately illustrative, not learned or calibrated.
+
+### 2.3 Evidence closure
+
+Every event has a source-evidence reference. Every assigned event must be represented in its candidate asset's event membership and supported by that exact source evidence. Every node and relation must resolve its references and carry admitted evidence.
+
+A null event assignment is a valid explicit abstention. It is not silently converted into an absent utility.
+
+### 2.4 Topology is not visual intersection
+
+The relation types distinguish continuation, junction, unresolved crossing and unresolved near-intersection.
+
+An unresolved crossing is not a graph edge establishing physical connection. It remains a spatial relationship awaiting evidence.
+
+### 2.5 Calibration status is separate from structural validity
+
+The validator can check that a calibration receipt identifier was supplied when a caller claims that one is referenced. It cannot authenticate that receipt or establish that the probabilities are calibrated.
+
+The code deliberately does not derive a posterior from event marginals or multiply cross-modal likelihoods.
+
+## 3. Asset-cluster scoring is now executable
+
+A separate event-to-asset evaluator is implemented in `sol-atlas-core/src/utility_reconstruction_metrics.rs`, with CLI `utility_reconstruction_eval`.
+
+It reports B-cubed precision/recall/F1, pairwise true-positive pairs, explicit overmerge/oversplit pairs, candidate false assets, missed truth assets, abstention and false association of adjudicated clutter. It scores only structured independent survey and reviewed trench-image truth. Owner-record-only, conflicted and insufficient truth are separately counted, not converted to negative examples.
+
+Every reference event requires exactly one prediction disposition: candidate asset or explicit abstention. Missing predictions are rejected. Clutter and abstention are singletons in their respective partitions. The committed fixture and pinned baseline are synthetic only.
+
+# EARTH-OBSERVABILITY-JOINT-NETWORK-HYPOTHESES-001
+## Joint posterior hypotheses for evidence-qualified utility-network reconstruction v0.1
+
+**Parent:** Sol-Atlas #771 — EARTH-OBSERVABILITY-QUAL-002  
+**Implementation branch:** research/earth-observability-joint-network-hypotheses-v0-1  
+**Status:** Rust structural contract and deterministic analytic fixture added; probability calibration, graph scoring and physical validation NOT_RUN  
+**Date:** 2026-11-14  
+**Claim ceiling:** The fixture is abstract and non-geographic. It does not represent a real utility, field survey, calibrated posterior, qualified network geometry or excavation clearance.
+
+---
+
+## 1. Research proposition: infer a distribution over worlds, not one best-looking map
+
+The current candidate-graph contract permits multiple event-to-asset association marginals and explicit abstention. That is useful, but independently meaningful marginal probabilities do not necessarily form a coherent joint network.
+
+For example, separate edge probabilities can each look plausible while their combination creates an impossible network: a single event is assigned to two incompatible assets, a crossing is treated as a junction, or two mutually exclusive asset partitions are simultaneously represented as facts.
+
+The next abstraction is a **joint network hypothesis set**:
+
+- one immutable evidence snapshot and one investigation scope;
+- a finite set of mutually exclusive candidate network worlds;
+- one complete event disposition per observed event in every world;
+- candidate assets, geometry claims, nodes and relations that are internally coherent within each world;
+- a probability for each whole world;
+- explicit residual probability for worlds not enumerated.
+
+This is not a claim that a Bayesian posterior has been calibrated. It is a data and validation contract that makes the intended probability semantics explicit and testable.
+
+The decision product becomes:
+
+> Here are the plausible physical network configurations, their relative support, the evidence that separates them, and the observation most likely to change the engineering decision.
+
+## 2. Contract semantics
+
+The executable contract is in `sol-atlas-core/src/network_hypotheses.rs`; the strict JSON Schema Draft 2020-12 interchange profile is `research/earth-observability/NETWORK_HYPOTHESES_V0_1.schema.json`. The Rust validator enforces cross-reference and cross-field invariants that JSON Schema alone cannot express.
+
+### 2.1 One hypothesis is one complete candidate world
+
+A NetworkHypothesis contains:
+
+- a unique hypothesis identity and whole-world probability;
+- exactly one assignment record for every event in the set;
+- explicit null assignment for events left unassociated;
+- candidate asset instances and their event membership;
+- optional geometry-claim references;
+- candidate nodes and their associated candidate assets;
+- evidence-supported relations between nodes.
+
+A candidate identifier is local and non-authoritative. It is not a MUDDI ObjectID, owner-system SystemID or utility-owner asset identifier.
+
+### 2.2 Mutually exclusive world mass
+
+The probability invariant is:
+
+sum(P(hypothesis_i)) + P(residual_unknown) = 1
+
+within a fixed numerical tolerance.
+
+The residual is not a negative detection, absence probability or permission to redistribute probability among the listed hypotheses. It represents unenumerated or unresolved possible worlds.
+
+The fixture contains three alternatives:
+
+| World | Probability | Interpretation |
+|---|---:|---|
+| world-one-utility | 0.62 | Two events belong to one candidate utility |
+| world-two-utilities | 0.23 | The events belong to distinct candidate utilities |
+| world-crossing-unresolved | 0.10 | Two distinct assets have an unresolved crossing relation |
+| Unenumerated worlds | 0.05 | Explicit residual unknown mass |
+
+The values are deliberately illustrative, not learned or calibrated.
+
+### 2.3 Evidence closure
+
+Every event has a source-evidence reference. Every assigned event must be represented in its candidate asset's event membership and supported by that exact source evidence. Every node and relation must resolve its references and carry admitted evidence.
+
+A null event assignment is a valid explicit abstention. It is not silently converted into an absent utility.
+
+### 2.4 Topology is not visual intersection
+
+The relation types distinguish continuation, junction, unresolved crossing and unresolved near-intersection.
+
+An unresolved crossing is not a graph edge establishing physical connection. It remains a spatial relationship awaiting evidence.
+
+### 2.5 Calibration status is separate from structural validity
+
+The validator can check that a calibration receipt identifier was supplied when a caller claims that one is referenced. It cannot authenticate that receipt or establish that the probabilities are calibrated.
+
+The code deliberately does not derive a posterior from event marginals or multiply cross-modal likelihoods.
+
+## 3. Asset-cluster scoring is now executable
+
+A separate event-to-asset evaluator is implemented in `sol-atlas-core/src/utility_reconstruction_metrics.rs`, with CLI `utility_reconstruction_eval`.
+
+It reports B-cubed precision/recall/F1, pairwise true-positive pairs, explicit overmerge/oversplit pairs, candidate false assets, missed truth assets, abstention and false association of adjudicated clutter. It scores only structured independent survey and reviewed trench-image truth. Owner-record-only, conflicted and insufficient truth are separately counted, not converted to negative examples.
+
+Every reference event requires exactly one prediction disposition: candidate asset or explicit abstention. Missing predictions are rejected. Clutter and abstention are singletons in their respective partitions. The committed fixture and pinned baseline are synthetic only.
+
+# EARTH-OBSERVABILITY-JOINT-NETWORK-HYPOTHESES-001
+## Joint posterior hypotheses for evidence-qualified utility-network reconstruction v0.1
+
+**Parent:** Sol-Atlas #771 — EARTH-OBSERVABILITY-QUAL-002  
+**Implementation branch:** research/earth-observability-joint-network-hypotheses-v0-1  
+**Status:** Rust structural contract and deterministic analytic fixture added; probability calibration, graph scoring and physical validation NOT_RUN  
+**Date:** 2026-11-14  
+**Claim ceiling:** The fixture is abstract and non-geographic. It does not represent a real utility, field survey, calibrated posterior, qualified network geometry or excavation clearance.
+
+---
+
+## 1. Research proposition: infer a distribution over worlds, not one best-looking map
+
+The current candidate-graph contract permits multiple event-to-asset association marginals and explicit abstention. That is useful, but independently meaningful marginal probabilities do not necessarily form a coherent joint network.
+
+For example, separate edge probabilities can each look plausible while their combination creates an impossible network: a single event is assigned to two incompatible assets, a crossing is treated as a junction, or two mutually exclusive asset partitions are simultaneously represented as facts.
+
+The next abstraction is a **joint network hypothesis set**:
+
+- one immutable evidence snapshot and one investigation scope;
+- a finite set of mutually exclusive candidate network worlds;
+- one complete event disposition per observed event in every world;
+- candidate assets, geometry claims, nodes and relations that are internally coherent within each world;
+- a probability for each whole world;
+- explicit residual probability for worlds not enumerated.
+
+This is not a claim that a Bayesian posterior has been calibrated. It is a data and validation contract that makes the intended probability semantics explicit and testable.
+
+The decision product becomes:
+
+> Here are the plausible physical network configurations, their relative support, the evidence that separates them, and the observation most likely to change the engineering decision.
+
+## 2. Contract semantics
+
+The executable contract is in `sol-atlas-core/src/network_hypotheses.rs`; the strict JSON Schema Draft 2020-12 interchange profile is `research/earth-observability/NETWORK_HYPOTHESES_V0_1.schema.json`. The Rust validator enforces cross-reference and cross-field invariants that JSON Schema alone cannot express.
+
+### 2.1 One hypothesis is one complete candidate world
+
+A NetworkHypothesis contains:
+
+- a unique hypothesis identity and whole-world probability;
+- exactly one assignment record for every event in the set;
+- explicit null assignment for events left unassociated;
+- candidate asset instances and their event membership;
+- optional geometry-claim references;
+- candidate nodes and their associated candidate assets;
+- evidence-supported relations between nodes.
+
+A candidate identifier is local and non-authoritative. It is not a MUDDI ObjectID, owner-system SystemID or utility-owner asset identifier.
+
+### 2.2 Mutually exclusive world mass
+
+The probability invariant is:
+
+sum(P(hypothesis_i)) + P(residual_unknown) = 1
+
+within a fixed numerical tolerance.
+
+The residual is not a negative detection, absence probability or permission to redistribute probability among the listed hypotheses. It represents unenumerated or unresolved possible worlds.
+
+The fixture contains three alternatives:
+
+| World | Probability | Interpretation |
+|---|---:|---|
+| world-one-utility | 0.62 | Two events belong to one candidate utility |
+| world-two-utilities | 0.23 | The events belong to distinct candidate utilities |
+| world-crossing-unresolved | 0.10 | Two distinct assets have an unresolved crossing relation |
+| Unenumerated worlds | 0.05 | Explicit residual unknown mass |
+
+The values are deliberately illustrative, not learned or calibrated.
+
+### 2.3 Evidence closure
+
+Every event has a source-evidence reference. Every assigned event must be represented in its candidate asset's event membership and supported by that exact source evidence. Every node and relation must resolve its references and carry admitted evidence.
+
+A null event assignment is a valid explicit abstention. It is not silently converted into an absent utility.
+
+### 2.4 Topology is not visual intersection
+
+The relation types distinguish continuation, junction, unresolved crossing and unresolved near-intersection.
+
+An unresolved crossing is not a graph edge establishing physical connection. It remains a spatial relationship awaiting evidence.
+
+### 2.5 Calibration status is separate from structural validity
+
+The validator can check that a calibration receipt identifier was supplied when a caller claims that one is referenced. It cannot authenticate that receipt or establish that the probabilities are calibrated.
+
+The code deliberately does not derive a posterior from event marginals or multiply cross-modal likelihoods.
+
+## 3. Asset-cluster scoring is now executable
+
+A separate event-to-asset evaluator is implemented in `sol-atlas-core/src/utility_reconstruction_metrics.rs`, with CLI `utility_reconstruction_eval`.
+
+It reports B-cubed precision/recall/F1, pairwise true-positive pairs, explicit overmerge/oversplit pairs, candidate false assets, missed truth assets, abstention and false association of adjudicated clutter. It scores only structured independent survey and reviewed trench-image truth. Owner-record-only, conflicted and insufficient truth are separately counted, not converted to negative examples.
+
+Every reference event requires exactly one prediction disposition: candidate asset or explicit abstention. Missing predictions are rejected. Clutter and abstention are singletons in their respective partitions. The committed fixture and pinned baseline are synthetic only.
+
+# EARTH-OBSERVABILITY-JOINT-NETWORK-HYPOTHESES-001
+## Joint posterior hypotheses for evidence-qualified utility-network reconstruction v0.1
+
+**Parent:** Sol-Atlas #771 — EARTH-OBSERVABILITY-QUAL-002  
+**Implementation branch:** research/earth-observability-joint-network-hypotheses-v0-1  
+**Status:** Rust structural contract and deterministic analytic fixture added; probability calibration, graph scoring and physical validation NOT_RUN  
+**Date:** 2026-11-14  
+**Claim ceiling:** The fixture is abstract and non-geographic. It does not represent a real utility, field survey, calibrated posterior, qualified network geometry or excavation clearance.
+
+---
+
+## 1. Research proposition: infer a distribution over worlds, not one best-looking map
+
+The current candidate-graph contract permits multiple event-to-asset association marginals and explicit abstention. That is useful, but independently meaningful marginal probabilities do not necessarily form a coherent joint network.
+
+For example, separate edge probabilities can each look plausible while their combination creates an impossible network: a single event is assigned to two incompatible assets, a crossing is treated as a junction, or two mutually exclusive asset partitions are simultaneously represented as facts.
+
+The next abstraction is a **joint network hypothesis set**:
+
+- one immutable evidence snapshot and one investigation scope;
+- a finite set of mutually exclusive candidate network worlds;
+- one complete event disposition per observed event in every world;
+- candidate assets, geometry claims, nodes and relations that are internally coherent within each world;
+- a probability for each whole world;
+- explicit residual probability for worlds not enumerated.
+
+This is not a claim that a Bayesian posterior has been calibrated. It is a data and validation contract that makes the intended probability semantics explicit and testable.
+
+The decision product becomes:
+
+> Here are the plausible physical network configurations, their relative support, the evidence that separates them, and the observation most likely to change the engineering decision.
+
+## 2. Contract semantics
+
+The executable contract is in `sol-atlas-core/src/network_hypotheses.rs`; the strict JSON Schema Draft 2020-12 interchange profile is `research/earth-observability/NETWORK_HYPOTHESES_V0_1.schema.json`. The Rust validator enforces cross-reference and cross-field invariants that JSON Schema alone cannot express.
+
+### 2.1 One hypothesis is one complete candidate world
+
+A NetworkHypothesis contains:
+
+- a unique hypothesis identity and whole-world probability;
+- exactly one assignment record for every event in the set;
+- explicit null assignment for events left unassociated;
+- candidate asset instances and their event membership;
+- optional geometry-claim references;
+- candidate nodes and their associated candidate assets;
+- evidence-supported relations between nodes.
+
+A candidate identifier is local and non-authoritative. It is not a MUDDI ObjectID, owner-system SystemID or utility-owner asset identifier.
+
+### 2.2 Mutually exclusive world mass
+
+The probability invariant is:
+
+sum(P(hypothesis_i)) + P(residual_unknown) = 1
+
+within a fixed numerical tolerance.
+
+The residual is not a negative detection, absence probability or permission to redistribute probability among the listed hypotheses. It represents unenumerated or unresolved possible worlds.
+
+The fixture contains three alternatives:
+
+| World | Probability | Interpretation |
+|---|---:|---|
+| world-one-utility | 0.62 | Two events belong to one candidate utility |
+| world-two-utilities | 0.23 | The events belong to distinct candidate utilities |
+| world-crossing-unresolved | 0.10 | Two distinct assets have an unresolved crossing relation |
+| Unenumerated worlds | 0.05 | Explicit residual unknown mass |
+
+The values are deliberately illustrative, not learned or calibrated.
+
+### 2.3 Evidence closure
+
+Every event has a source-evidence reference. Every assigned event must be represented in its candidate asset's event membership and supported by that exact source evidence. Every node and relation must resolve its references and carry admitted evidence.
+
+A null event assignment is a valid explicit abstention. It is not silently converted into an absent utility.
+
+### 2.4 Topology is not visual intersection
+
+The relation types distinguish continuation, junction, unresolved crossing and unresolved near-intersection.
+
+An unresolved crossing is not a graph edge establishing physical connection. It remains a spatial relationship awaiting evidence.
+
+### 2.5 Calibration status is separate from structural validity
+
+The validator can check that a calibration receipt identifier was supplied when a caller claims that one is referenced. It cannot authenticate that receipt or establish that the probabilities are calibrated.
+
+The code deliberately does not derive a posterior from event marginals or multiply cross-modal likelihoods.
+
+## 3. Asset-cluster scoring is now executable
+
+A separate event-to-asset evaluator is implemented in `sol-atlas-core/src/utility_reconstruction_metrics.rs`, with CLI `utility_reconstruction_eval`.
+
+It reports B-cubed precision/recall/F1, pairwise true-positive pairs, explicit overmerge/oversplit pairs, candidate false assets, missed truth assets, abstention and false association of adjudicated clutter. It scores only structured independent survey and reviewed trench-image truth. Owner-record-only, conflicted and insufficient truth are separately counted, not converted to negative examples.
+
+Every reference event requires exactly one prediction disposition: candidate asset or explicit abstention. Missing predictions are rejected. Clutter and abstention are singletons in their respective partitions. The committed fixture and pinned baseline are synthetic only.
+
+# EARTH-OBSERVABILITY-JOINT-NETWORK-HYPOTHESES-001
+## Joint posterior hypotheses for evidence-qualified utility-network reconstruction v0.1
+
+**Parent:** Sol-Atlas #771 — EARTH-OBSERVABILITY-QUAL-002  
+**Implementation branch:** research/earth-observability-joint-network-hypotheses-v0-1  
+**Status:** Rust structural contract and deterministic analytic fixture added; probability calibration, graph scoring and physical validation NOT_RUN  
+**Date:** 2026-11-14  
+**Claim ceiling:** The fixture is abstract and non-geographic. It does not represent a real utility, field survey, calibrated posterior, qualified network geometry or excavation clearance.
+
+---
+
+## 1. Research proposition: infer a distribution over worlds, not one best-looking map
+
+The current candidate-graph contract permits multiple event-to-asset association marginals and explicit abstention. That is useful, but independently meaningful marginal probabilities do not necessarily form a coherent joint network.
+
+For example, separate edge probabilities can each look plausible while their combination creates an impossible network: a single event is assigned to two incompatible assets, a crossing is treated as a junction, or two mutually exclusive asset partitions are simultaneously represented as facts.
+
+The next abstraction is a **joint network hypothesis set**:
+
+- one immutable evidence snapshot and one investigation scope;
+- a finite set of mutually exclusive candidate network worlds;
+- one complete event disposition per observed event in every world;
+- candidate assets, geometry claims, nodes and relations that are internally coherent within each world;
+- a probability for each whole world;
+- explicit residual probability for worlds not enumerated.
+
+This is not a claim that a Bayesian posterior has been calibrated. It is a data and validation contract that makes the intended probability semantics explicit and testable.
+
+The decision product becomes:
+
+> Here are the plausible physical network configurations, their relative support, the evidence that separates them, and the observation most likely to change the engineering decision.
+
+## 2. Contract semantics
+
+The executable contract is in `sol-atlas-core/src/network_hypotheses.rs`; the strict JSON Schema Draft 2020-12 interchange profile is `research/earth-observability/NETWORK_HYPOTHESES_V0_1.schema.json`. The Rust validator enforces cross-reference and cross-field invariants that JSON Schema alone cannot express.
+
+### 2.1 One hypothesis is one complete candidate world
+
+A NetworkHypothesis contains:
+
+- a unique hypothesis identity and whole-world probability;
+- exactly one assignment record for every event in the set;
+- explicit null assignment for events left unassociated;
+- candidate asset instances and their event membership;
+- optional geometry-claim references;
+- candidate nodes and their associated candidate assets;
+- evidence-supported relations between nodes.
+
+A candidate identifier is local and non-authoritative. It is not a MUDDI ObjectID, owner-system SystemID or utility-owner asset identifier.
+
+### 2.2 Mutually exclusive world mass
+
+The probability invariant is:
+
+sum(P(hypothesis_i)) + P(residual_unknown) = 1
+
+within a fixed numerical tolerance.
+
+The residual is not a negative detection, absence probability or permission to redistribute probability among the listed hypotheses. It represents unenumerated or unresolved possible worlds.
+
+The fixture contains three alternatives:
+
+| World | Probability | Interpretation |
+|---|---:|---|
+| world-one-utility | 0.62 | Two events belong to one candidate utility |
+| world-two-utilities | 0.23 | The events belong to distinct candidate utilities |
+| world-crossing-unresolved | 0.10 | Two distinct assets have an unresolved crossing relation |
+| Unenumerated worlds | 0.05 | Explicit residual unknown mass |
+
+The values are deliberately illustrative, not learned or calibrated.
+
+### 2.3 Evidence closure
+
+Every event has a source-evidence reference. Every assigned event must be represented in its candidate asset's event membership and supported by that exact source evidence. Every node and relation must resolve its references and carry admitted evidence.
+
+A null event assignment is a valid explicit abstention. It is not silently converted into an absent utility.
+
+### 2.4 Topology is not visual intersection
+
+The relation types distinguish continuation, junction, unresolved crossing and unresolved near-intersection.
+
+An unresolved crossing is not a graph edge establishing physical connection. It remains a spatial relationship awaiting evidence.
+
+### 2.5 Calibration status is separate from structural validity
+
+The validator can check that a calibration receipt identifier was supplied when a caller claims that one is referenced. It cannot authenticate that receipt or establish that the probabilities are calibrated.
+
+The code deliberately does not derive a posterior from event marginals or multiply cross-modal likelihoods.
+
+## 3. Asset-cluster scoring is now executable
+
+A separate event-to-asset evaluator is implemented in `sol-atlas-core/src/utility_reconstruction_metrics.rs`, with CLI `utility_reconstruction_eval`.
+
+It reports B-cubed precision/recall/F1, pairwise true-positive pairs, explicit overmerge/oversplit pairs, candidate false assets, missed truth assets, abstention and false association of adjudicated clutter. It scores only structured independent survey and reviewed trench-image truth. Owner-record-only, conflicted and insufficient truth are separately counted, not converted to negative examples.
+
+Every reference event requires exactly one prediction disposition: candidate asset or explicit abstention. Missing predictions are rejected. Clutter and abstention are singletons in their respective partitions. The committed fixture and pinned baseline are synthetic only.
+
+# EARTH-OBSERVABILITY-JOINT-NETWORK-HYPOTHESES-001
+## Joint posterior hypotheses for evidence-qualified utility-network reconstruction v0.1
+
+**Parent:** Sol-Atlas #771 — EARTH-OBSERVABILITY-QUAL-002  
+**Implementation branch:** research/earth-observability-joint-network-hypotheses-v0-1  
+**Status:** Rust structural contract and deterministic analytic fixture added; probability calibration, graph scoring and physical validation NOT_RUN  
+**Date:** 2026-11-14  
+**Claim ceiling:** The fixture is abstract and non-geographic. It does not represent a real utility, field survey, calibrated posterior, qualified network geometry or excavation clearance.
+
+---
+
+## 1. Research proposition: infer a distribution over worlds, not one best-looking map
+
+The current candidate-graph contract permits multiple event-to-asset association marginals and explicit abstention. That is useful, but independently meaningful marginal probabilities do not necessarily form a coherent joint network.
+
+For example, separate edge probabilities can each look plausible while their combination creates an impossible network: a single event is assigned to two incompatible assets, a crossing is treated as a junction, or two mutually exclusive asset partitions are simultaneously represented as facts.
+
+The next abstraction is a **joint network hypothesis set**:
+
+- one immutable evidence snapshot and one investigation scope;
+- a finite set of mutually exclusive candidate network worlds;
+- one complete event disposition per observed event in every world;
+- candidate assets, geometry claims, nodes and relations that are internally coherent within each world;
+- a probability for each whole world;
+- explicit residual probability for worlds not enumerated.
+
+This is not a claim that a Bayesian posterior has been calibrated. It is a data and validation contract that makes the intended probability semantics explicit and testable.
+
+The decision product becomes:
+
+> Here are the plausible physical network configurations, their relative support, the evidence that separates them, and the observation most likely to change the engineering decision.
+
+## 2. Contract semantics
+
+The executable contract is in `sol-atlas-core/src/network_hypotheses.rs`; the strict JSON Schema Draft 2020-12 interchange profile is `research/earth-observability/NETWORK_HYPOTHESES_V0_1.schema.json`. The Rust validator enforces cross-reference and cross-field invariants that JSON Schema alone cannot express.
+
+### 2.1 One hypothesis is one complete candidate world
+
+A NetworkHypothesis contains:
+
+- a unique hypothesis identity and whole-world probability;
+- exactly one assignment record for every event in the set;
+- explicit null assignment for events left unassociated;
+- candidate asset instances and their event membership;
+- optional geometry-claim references;
+- candidate nodes and their associated candidate assets;
+- evidence-supported relations between nodes.
+
+A candidate identifier is local and non-authoritative. It is not a MUDDI ObjectID, owner-system SystemID or utility-owner asset identifier.
+
+### 2.2 Mutually exclusive world mass
+
+The probability invariant is:
+
+sum(P(hypothesis_i)) + P(residual_unknown) = 1
+
+within a fixed numerical tolerance.
+
+The residual is not a negative detection, absence probability or permission to redistribute probability among the listed hypotheses. It represents unenumerated or unresolved possible worlds.
+
+The fixture contains three alternatives:
+
+| World | Probability | Interpretation |
+|---|---:|---|
+| world-one-utility | 0.62 | Two events belong to one candidate utility |
+| world-two-utilities | 0.23 | The events belong to distinct candidate utilities |
+| world-crossing-unresolved | 0.10 | Two distinct assets have an unresolved crossing relation |
+| Unenumerated worlds | 0.05 | Explicit residual unknown mass |
+
+The values are deliberately illustrative, not learned or calibrated.
+
+### 2.3 Evidence closure
+
+Every event has a source-evidence reference. Every assigned event must be represented in its candidate asset's event membership and supported by that exact source evidence. Every node and relation must resolve its references and carry admitted evidence.
+
+A null event assignment is a valid explicit abstention. It is not silently converted into an absent utility.
+
+### 2.4 Topology is not visual intersection
+
+The relation types distinguish continuation, junction, unresolved crossing and unresolved near-intersection.
+
+An unresolved crossing is not a graph edge establishing physical connection. It remains a spatial relationship awaiting evidence.
+
+### 2.5 Calibration status is separate from structural validity
+
+The validator can check that a calibration receipt identifier was supplied when a caller claims that one is referenced. It cannot authenticate that receipt or establish that the probabilities are calibrated.
+
+The code deliberately does not derive a posterior from event marginals or multiply cross-modal likelihoods.
+
+## 3. Asset-cluster scoring is now executable
+
+A separate event-to-asset evaluator is implemented in `sol-atlas-core/src/utility_reconstruction_metrics.rs`, with CLI `utility_reconstruction_eval`.
+
+It reports B-cubed precision/recall/F1, pairwise true-positive pairs, explicit overmerge/oversplit pairs, candidate false assets, missed truth assets, abstention and false association of adjudicated clutter. It scores only structured independent survey and reviewed trench-image truth. Owner-record-only, conflicted and insufficient truth are separately counted, not converted to negative examples.
+
+Every reference event requires exactly one prediction disposition: candidate asset or explicit abstention. Missing predictions are rejected. Clutter and abstention are singletons in their respective partitions. The committed fixture and pinned baseline are synthetic only.
+
+# EARTH-OBSERVABILITY-JOINT-NETWORK-HYPOTHESES-001
+## Joint posterior hypotheses for evidence-qualified utility-network reconstruction v0.1
+
+**Parent:** Sol-Atlas #771 — EARTH-OBSERVABILITY-QUAL-002  
+**Implementation branch:** research/earth-observability-joint-network-hypotheses-v0-1  
+**Status:** Rust structural contract and deterministic analytic fixture added; probability calibration, graph scoring and physical validation NOT_RUN  
+**Date:** 2026-11-14  
+**Claim ceiling:** The fixture is abstract and non-geographic. It does not represent a real utility, field survey, calibrated posterior, qualified network geometry or excavation clearance.
+
+---
+
+## 1. Research proposition: infer a distribution over worlds, not one best-looking map
+
+The current candidate-graph contract permits multiple event-to-asset association marginals and explicit abstention. That is useful, but independently meaningful marginal probabilities do not necessarily form a coherent joint network.
+
+For example, separate edge probabilities can each look plausible while their combination creates an impossible network: a single event is assigned to two incompatible assets, a crossing is treated as a junction, or two mutually exclusive asset partitions are simultaneously represented as facts.
+
+The next abstraction is a **joint network hypothesis set**:
+
+- one immutable evidence snapshot and one investigation scope;
+- a finite set of mutually exclusive candidate network worlds;
+- one complete event disposition per observed event in every world;
+- candidate assets, geometry claims, nodes and relations that are internally coherent within each world;
+- a probability for each whole world;
+- explicit residual probability for worlds not enumerated.
+
+This is not a claim that a Bayesian posterior has been calibrated. It is a data and validation contract that makes the intended probability semantics explicit and testable.
+
+The decision product becomes:
+
+> Here are the plausible physical network configurations, their relative support, the evidence that separates them, and the observation most likely to change the engineering decision.
+
+## 2. Contract semantics
+
+The executable contract is in `sol-atlas-core/src/network_hypotheses.rs`; the strict JSON Schema Draft 2020-12 interchange profile is `research/earth-observability/NETWORK_HYPOTHESES_V0_1.schema.json`. The Rust validator enforces cross-reference and cross-field invariants that JSON Schema alone cannot express.
+
+### 2.1 One hypothesis is one complete candidate world
+
+A NetworkHypothesis contains:
+
+- a unique hypothesis identity and whole-world probability;
+- exactly one assignment record for every event in the set;
+- explicit null assignment for events left unassociated;
+- candidate asset instances and their event membership;
+- optional geometry-claim references;
+- candidate nodes and their associated candidate assets;
+- evidence-supported relations between nodes.
+
+A candidate identifier is local and non-authoritative. It is not a MUDDI ObjectID, owner-system SystemID or utility-owner asset identifier.
+
+### 2.2 Mutually exclusive world mass
+
+The probability invariant is:
+
+sum(P(hypothesis_i)) + P(residual_unknown) = 1
+
+within a fixed numerical tolerance.
+
+The residual is not a negative detection, absence probability or permission to redistribute probability among the listed hypotheses. It represents unenumerated or unresolved possible worlds.
+
+The fixture contains three alternatives:
+
+| World | Probability | Interpretation |
+|---|---:|---|
+| world-one-utility | 0.62 | Two events belong to one candidate utility |
+| world-two-utilities | 0.23 | The events belong to distinct candidate utilities |
+| world-crossing-unresolved | 0.10 | Two distinct assets have an unresolved crossing relation |
+| Unenumerated worlds | 0.05 | Explicit residual unknown mass |
+
+The values are deliberately illustrative, not learned or calibrated.
+
+### 2.3 Evidence closure
+
+Every event has a source-evidence reference. Every assigned event must be represented in its candidate asset's event membership and supported by that exact source evidence. Every node and relation must resolve its references and carry admitted evidence.
+
+A null event assignment is a valid explicit abstention. It is not silently converted into an absent utility.
+
+### 2.4 Topology is not visual intersection
+
+The relation types distinguish continuation, junction, unresolved crossing and unresolved near-intersection.
+
+An unresolved crossing is not a graph edge establishing physical connection. It remains a spatial relationship awaiting evidence.
+
+### 2.5 Calibration status is separate from structural validity
+
+The validator can check that a calibration receipt identifier was supplied when a caller claims that one is referenced. It cannot authenticate that receipt or establish that the probabilities are calibrated.
+
+The code deliberately does not derive a posterior from event marginals or multiply cross-modal likelihoods.
+
+## 3. Asset-cluster scoring is now executable
+
+A separate event-to-asset evaluator is implemented in `sol-atlas-core/src/utility_reconstruction_metrics.rs`, with CLI `utility_reconstruction_eval`.
+
+It reports B-cubed precision/recall/F1, pairwise true-positive pairs, explicit overmerge/oversplit pairs, candidate false assets, missed truth assets, abstention and false association of adjudicated clutter. It scores only structured independent survey and reviewed trench-image truth. Owner-record-only, conflicted and insufficient truth are separately counted, not converted to negative examples.
+
+Every reference event requires exactly one prediction disposition: candidate asset or explicit abstention. Missing predictions are rejected. Clutter and abstention are singletons in their respective partitions. The committed fixture and pinned baseline are synthetic only.
+
+# EARTH-OBSERVABILITY-JOINT-NETWORK-HYPOTHESES-001
+## Joint posterior hypotheses for evidence-qualified utility-network reconstruction v0.1
+
+**Parent:** Sol-Atlas #771 — EARTH-OBSERVABILITY-QUAL-002  
+**Implementation branch:** research/earth-observability-joint-network-hypotheses-v0-1  
+**Status:** Rust structural contract and deterministic analytic fixture added; probability calibration, graph scoring and physical validation NOT_RUN  
+**Date:** 2026-11-14  
+**Claim ceiling:** The fixture is abstract and non-geographic. It does not represent a real utility, field survey, calibrated posterior, qualified network geometry or excavation clearance.
+
+---
+
+## 1. Research proposition: infer a distribution over worlds, not one best-looking map
+
+The current candidate-graph contract permits multiple event-to-asset association marginals and explicit abstention. That is useful, but independently meaningful marginal probabilities do not necessarily form a coherent joint network.
+
+For example, separate edge probabilities can each look plausible while their combination creates an impossible network: a single event is assigned to two incompatible assets, a crossing is treated as a junction, or two mutually exclusive asset partitions are simultaneously represented as facts.
+
+The next abstraction is a **joint network hypothesis set**:
+
+- one immutable evidence snapshot and one investigation scope;
+- a finite set of mutually exclusive candidate network worlds;
+- one complete event disposition per observed event in every world;
+- candidate assets, geometry claims, nodes and relations that are internally coherent within each world;
+- a probability for each whole world;
+- explicit residual probability for worlds not enumerated.
+
+This is not a claim that a Bayesian posterior has been calibrated. It is a data and validation contract that makes the intended probability semantics explicit and testable.
+
+The decision product becomes:
+
+> Here are the plausible physical network configurations, their relative support, the evidence that separates them, and the observation most likely to change the engineering decision.
+
+## 2. Contract semantics
+
+The executable contract is in `sol-atlas-core/src/network_hypotheses.rs`; the strict JSON Schema Draft 2020-12 interchange profile is `research/earth-observability/NETWORK_HYPOTHESES_V0_1.schema.json`. The Rust validator enforces cross-reference and cross-field invariants that JSON Schema alone cannot express.
+
+### 2.1 One hypothesis is one complete candidate world
+
+A NetworkHypothesis contains:
+
+- a unique hypothesis identity and whole-world probability;
+- exactly one assignment record for every event in the set;
+- explicit null assignment for events left unassociated;
+- candidate asset instances and their event membership;
+- optional geometry-claim references;
+- candidate nodes and their associated candidate assets;
+- evidence-supported relations between nodes.
+
+A candidate identifier is local and non-authoritative. It is not a MUDDI ObjectID, owner-system SystemID or utility-owner asset identifier.
+
+### 2.2 Mutually exclusive world mass
+
+The probability invariant is:
+
+sum(P(hypothesis_i)) + P(residual_unknown) = 1
+
+within a fixed numerical tolerance.
+
+The residual is not a negative detection, absence probability or permission to redistribute probability among the listed hypotheses. It represents unenumerated or unresolved possible worlds.
+
+The fixture contains three alternatives:
+
+| World | Probability | Interpretation |
+|---|---:|---|
+| world-one-utility | 0.62 | Two events belong to one candidate utility |
+| world-two-utilities | 0.23 | The events belong to distinct candidate utilities |
+| world-crossing-unresolved | 0.10 | Two distinct assets have an unresolved crossing relation |
+| Unenumerated worlds | 0.05 | Explicit residual unknown mass |
+
+The values are deliberately illustrative, not learned or calibrated.
+
+### 2.3 Evidence closure
+
+Every event has a source-evidence reference. Every assigned event must be represented in its candidate asset's event membership and supported by that exact source evidence. Every node and relation must resolve its references and carry admitted evidence.
+
+A null event assignment is a valid explicit abstention. It is not silently converted into an absent utility.
+
+### 2.4 Topology is not visual intersection
+
+The relation types distinguish continuation, junction, unresolved crossing and unresolved near-intersection.
+
+An unresolved crossing is not a graph edge establishing physical connection. It remains a spatial relationship awaiting evidence.
+
+### 2.5 Calibration status is separate from structural validity
+
+The validator can check that a calibration receipt identifier was supplied when a caller claims that one is referenced. It cannot authenticate that receipt or establish that the probabilities are calibrated.
+
+The code deliberately does not derive a posterior from event marginals or multiply cross-modal likelihoods.
+
+## 3. Asset-cluster scoring is now executable
+
+A separate event-to-asset evaluator is implemented in `sol-atlas-core/src/utility_reconstruction_metrics.rs`, with CLI `utility_reconstruction_eval`.
+
+It reports B-cubed precision/recall/F1, pairwise true-positive pairs, explicit overmerge/oversplit pairs, candidate false assets, missed truth assets, abstention and false association of adjudicated clutter. It scores only structured independent survey and reviewed trench-image truth. Owner-record-only, conflicted and insufficient truth are separately counted, not converted to negative examples.
+
+Every reference event requires exactly one prediction disposition: candidate asset or explicit abstention. Missing predictions are rejected. Clutter and abstention are singletons in their respective partitions. The committed fixture and pinned baseline are synthetic only.
+
+# EARTH-OBSERVABILITY-JOINT-NETWORK-HYPOTHESES-001
+## Joint posterior hypotheses for evidence-qualified utility-network reconstruction v0.1
+
+**Parent:** Sol-Atlas #771 — EARTH-OBSERVABILITY-QUAL-002  
+**Implementation branch:** research/earth-observability-joint-network-hypotheses-v0-1  
+**Status:** Rust structural contract and deterministic analytic fixture added; probability calibration, graph scoring and physical validation NOT_RUN  
+**Date:** 2026-11-14  
+**Claim ceiling:** The fixture is abstract and non-geographic. It does not represent a real utility, field survey, calibrated posterior, qualified network geometry or excavation clearance.
+
+---
+
+## 1. Research proposition: infer a distribution over worlds, not one best-looking map
+
+The current candidate-graph contract permits multiple event-to-asset association marginals and explicit abstention. That is useful, but independently meaningful marginal probabilities do not necessarily form a coherent joint network.
+
+For example, separate edge probabilities can each look plausible while their combination creates an impossible network: a single event is assigned to two incompatible assets, a crossing is treated as a junction, or two mutually exclusive asset partitions are simultaneously represented as facts.
+
+The next abstraction is a **joint network hypothesis set**:
+
+- one immutable evidence snapshot and one investigation scope;
+- a finite set of mutually exclusive candidate network worlds;
+- one complete event disposition per observed event in every world;
+- candidate assets, geometry claims, nodes and relations that are internally coherent within each world;
+- a probability for each whole world;
+- explicit residual probability for worlds not enumerated.
+
+This is not a claim that a Bayesian posterior has been calibrated. It is a data and validation contract that makes the intended probability semantics explicit and testable.
+
+The decision product becomes:
+
+> Here are the plausible physical network configurations, their relative support, the evidence that separates them, and the observation most likely to change the engineering decision.
+
+## 2. Contract semantics
+
+The executable contract is in `sol-atlas-core/src/network_hypotheses.rs`; the strict JSON Schema Draft 2020-12 interchange profile is `research/earth-observability/NETWORK_HYPOTHESES_V0_1.schema.json`. The Rust validator enforces cross-reference and cross-field invariants that JSON Schema alone cannot express.
+
+### 2.1 One hypothesis is one complete candidate world
+
+A NetworkHypothesis contains:
+
+- a unique hypothesis identity and whole-world probability;
+- exactly one assignment record for every event in the set;
+- explicit null assignment for events left unassociated;
+- candidate asset instances and their event membership;
+- optional geometry-claim references;
+- candidate nodes and their associated candidate assets;
+- evidence-supported relations between nodes.
+
+A candidate identifier is local and non-authoritative. It is not a MUDDI ObjectID, owner-system SystemID or utility-owner asset identifier.
+
+### 2.2 Mutually exclusive world mass
+
+The probability invariant is:
+
+sum(P(hypothesis_i)) + P(residual_unknown) = 1
+
+within a fixed numerical tolerance.
+
+The residual is not a negative detection, absence probability or permission to redistribute probability among the listed hypotheses. It represents unenumerated or unresolved possible worlds.
+
+The fixture contains three alternatives:
+
+| World | Probability | Interpretation |
+|---|---:|---|
+| world-one-utility | 0.62 | Two events belong to one candidate utility |
+| world-two-utilities | 0.23 | The events belong to distinct candidate utilities |
+| world-crossing-unresolved | 0.10 | Two distinct assets have an unresolved crossing relation |
+| Unenumerated worlds | 0.05 | Explicit residual unknown mass |
+
+The values are deliberately illustrative, not learned or calibrated.
+
+### 2.3 Evidence closure
+
+Every event has a source-evidence reference. Every assigned event must be represented in its candidate asset's event membership and supported by that exact source evidence. Every node and relation must resolve its references and carry admitted evidence.
+
+A null event assignment is a valid explicit abstention. It is not silently converted into an absent utility.
+
+### 2.4 Topology is not visual intersection
+
+The relation types distinguish continuation, junction, unresolved crossing and unresolved near-intersection.
+
+An unresolved crossing is not a graph edge establishing physical connection. It remains a spatial relationship awaiting evidence.
+
+### 2.5 Calibration status is separate from structural validity
+
+The validator can check that a calibration receipt identifier was supplied when a caller claims that one is referenced. It cannot authenticate that receipt or establish that the probabilities are calibrated.
+
+The code deliberately does not derive a posterior from event marginals or multiply cross-modal likelihoods.
+
+## 3. Asset-cluster scoring is now executable
+
+A separate event-to-asset evaluator is implemented in `sol-atlas-core/src/utility_reconstruction_metrics.rs`, with CLI `utility_reconstruction_eval`.
+
+It reports B-cubed precision/recall/F1, pairwise true-positive pairs, explicit overmerge/oversplit pairs, candidate false assets, missed truth assets, abstention and false association of adjudicated clutter. It scores only structured independent survey and reviewed trench-image truth. Owner-record-only, conflicted and insufficient truth are separately counted, not converted to negative examples.
+
+Every reference event requires exactly one prediction disposition: candidate asset or explicit abstention. Missing predictions are rejected. Clutter and abstention are singletons in their respective partitions. The committed fixture and pinned baseline are synthetic only.
+
+# EARTH-OBSERVABILITY-JOINT-NETWORK-HYPOTHESES-001
+## Joint posterior hypotheses for evidence-qualified utility-network reconstruction v0.1
+
+**Parent:** Sol-Atlas #771 — EARTH-OBSERVABILITY-QUAL-002  
+**Implementation branch:** research/earth-observability-joint-network-hypotheses-v0-1  
+**Status:** Rust structural contract and deterministic analytic fixture added; probability calibration, graph scoring and physical validation NOT_RUN  
+**Date:** 2026-11-14  
+**Claim ceiling:** The fixture is abstract and non-geographic. It does not represent a real utility, field survey, calibrated posterior, qualified network geometry or excavation clearance.
+
+---
+
+## 1. Research proposition: infer a distribution over worlds, not one best-looking map
+
+The current candidate-graph contract permits multiple event-to-asset association marginals and explicit abstention. That is useful, but independently meaningful marginal probabilities do not necessarily form a coherent joint network.
+
+For example, separate edge probabilities can each look plausible while their combination creates an impossible network: a single event is assigned to two incompatible assets, a crossing is treated as a junction, or two mutually exclusive asset partitions are simultaneously represented as facts.
+
+The next abstraction is a **joint network hypothesis set**:
+
+- one immutable evidence snapshot and one investigation scope;
+- a finite set of mutually exclusive candidate network worlds;
+- one complete event disposition per observed event in every world;
+- candidate assets, geometry claims, nodes and relations that are internally coherent within each world;
+- a probability for each whole world;
+- explicit residual probability for worlds not enumerated.
+
+This is not a claim that a Bayesian posterior has been calibrated. It is a data and validation contract that makes the intended probability semantics explicit and testable.
+
+The decision product becomes:
+
+> Here are the plausible physical network configurations, their relative support, the evidence that separates them, and the observation most likely to change the engineering decision.
+
+## 2. Contract semantics
+
+The executable contract is in `sol-atlas-core/src/network_hypotheses.rs`; the strict JSON Schema Draft 2020-12 interchange profile is `research/earth-observability/NETWORK_HYPOTHESES_V0_1.schema.json`. The Rust validator enforces cross-reference and cross-field invariants that JSON Schema alone cannot express.
+
+### 2.1 One hypothesis is one complete candidate world
+
+A NetworkHypothesis contains:
+
+- a unique hypothesis identity and whole-world probability;
+- exactly one assignment record for every event in the set;
+- explicit null assignment for events left unassociated;
+- candidate asset instances and their event membership;
+- optional geometry-claim references;
+- candidate nodes and their associated candidate assets;
+- evidence-supported relations between nodes.
+
+A candidate identifier is local and non-authoritative. It is not a MUDDI ObjectID, owner-system SystemID or utility-owner asset identifier.
+
+### 2.2 Mutually exclusive world mass
+
+The probability invariant is:
+
+sum(P(hypothesis_i)) + P(residual_unknown) = 1
+
+within a fixed numerical tolerance.
+
+The residual is not a negative detection, absence probability or permission to redistribute probability among the listed hypotheses. It represents unenumerated or unresolved possible worlds.
+
+The fixture contains three alternatives:
+
+| World | Probability | Interpretation |
+|---|---:|---|
+| world-one-utility | 0.62 | Two events belong to one candidate utility |
+| world-two-utilities | 0.23 | The events belong to distinct candidate utilities |
+| world-crossing-unresolved | 0.10 | Two distinct assets have an unresolved crossing relation |
+| Unenumerated worlds | 0.05 | Explicit residual unknown mass |
+
+The values are deliberately illustrative, not learned or calibrated.
+
+### 2.3 Evidence closure
+
+Every event has a source-evidence reference. Every assigned event must be represented in its candidate asset's event membership and supported by that exact source evidence. Every node and relation must resolve its references and carry admitted evidence.
+
+A null event assignment is a valid explicit abstention. It is not silently converted into an absent utility.
+
+### 2.4 Topology is not visual intersection
+
+The relation types distinguish continuation, junction, unresolved crossing and unresolved near-intersection.
+
+An unresolved crossing is not a graph edge establishing physical connection. It remains a spatial relationship awaiting evidence.
+
+### 2.5 Calibration status is separate from structural validity
+
+The validator can check that a calibration receipt identifier was supplied when a caller claims that one is referenced. It cannot authenticate that receipt or establish that the probabilities are calibrated.
+
+The code deliberately does not derive a posterior from event marginals or multiply cross-modal likelihoods.
+
+## 3. Asset-cluster scoring is now executable
+
+A separate event-to-asset evaluator is implemented in `sol-atlas-core/src/utility_reconstruction_metrics.rs`, with CLI `utility_reconstruction_eval`.
+
+It reports B-cubed precision/recall/F1, pairwise true-positive pairs, explicit overmerge/oversplit pairs, candidate false assets, missed truth assets, abstention and false association of adjudicated clutter. It scores only structured independent survey and reviewed trench-image truth. Owner-record-only, conflicted and insufficient truth are separately counted, not converted to negative examples.
+
+Every reference event requires exactly one prediction disposition: candidate asset or explicit abstention. Missing predictions are rejected. Clutter and abstention are singletons in their respective partitions. The committed fixture and pinned baseline are synthetic only.
+
+# EARTH-OBSERVABILITY-JOINT-NETWORK-HYPOTHESES-001
+## Joint posterior hypotheses for evidence-qualified utility-network reconstruction v0.1
+
+**Parent:** Sol-Atlas #771 — EARTH-OBSERVABILITY-QUAL-002  
+**Implementation branch:** research/earth-observability-joint-network-hypotheses-v0-1  
+**Status:** Rust structural contract and deterministic analytic fixture added; probability calibration, graph scoring and physical validation NOT_RUN  
+**Date:** 2026-11-14  
+**Claim ceiling:** The fixture is abstract and non-geographic. It does not represent a real utility, field survey, calibrated posterior, qualified network geometry or excavation clearance.
+
+---
+
+## 1. Research proposition: infer a distribution over worlds, not one best-looking map
+
+The current candidate-graph contract permits multiple event-to-asset association marginals and explicit abstention. That is useful, but independently meaningful marginal probabilities do not necessarily form a coherent joint network.
+
+For example, separate edge probabilities can each look plausible while their combination creates an impossible network: a single event is assigned to two incompatible assets, a crossing is treated as a junction, or two mutually exclusive asset partitions are simultaneously represented as facts.
+
+The next abstraction is a **joint network hypothesis set**:
+
+- one immutable evidence snapshot and one investigation scope;
+- a finite set of mutually exclusive candidate network worlds;
+- one complete event disposition per observed event in every world;
+- candidate assets, geometry claims, nodes and relations that are internally coherent within each world;
+- a probability for each whole world;
+- explicit residual probability for worlds not enumerated.
+
+This is not a claim that a Bayesian posterior has been calibrated. It is a data and validation contract that makes the intended probability semantics explicit and testable.
+
+The decision product becomes:
+
+> Here are the plausible physical network configurations, their relative support, the evidence that separates them, and the observation most likely to change the engineering decision.
+
+## 2. Contract semantics
+
+The executable contract is in `sol-atlas-core/src/network_hypotheses.rs`; the strict JSON Schema Draft 2020-12 interchange profile is `research/earth-observability/NETWORK_HYPOTHESES_V0_1.schema.json`. The Rust validator enforces cross-reference and cross-field invariants that JSON Schema alone cannot express.
+
+### 2.1 One hypothesis is one complete candidate world
+
+A NetworkHypothesis contains:
+
+- a unique hypothesis identity and whole-world probability;
+- exactly one assignment record for every event in the set;
+- explicit null assignment for events left unassociated;
+- candidate asset instances and their event membership;
+- optional geometry-claim references;
+- candidate nodes and their associated candidate assets;
+- evidence-supported relations between nodes.
+
+A candidate identifier is local and non-authoritative. It is not a MUDDI ObjectID, owner-system SystemID or utility-owner asset identifier.
+
+### 2.2 Mutually exclusive world mass
+
+The probability invariant is:
+
+sum(P(hypothesis_i)) + P(residual_unknown) = 1
+
+within a fixed numerical tolerance.
+
+The residual is not a negative detection, absence probability or permission to redistribute probability among the listed hypotheses. It represents unenumerated or unresolved possible worlds.
+
+The fixture contains three alternatives:
+
+| World | Probability | Interpretation |
+|---|---:|---|
+| world-one-utility | 0.62 | Two events belong to one candidate utility |
+| world-two-utilities | 0.23 | The events belong to distinct candidate utilities |
+| world-crossing-unresolved | 0.10 | Two distinct assets have an unresolved crossing relation |
+| Unenumerated worlds | 0.05 | Explicit residual unknown mass |
+
+The values are deliberately illustrative, not learned or calibrated.
+
+### 2.3 Evidence closure
+
+Every event has a source-evidence reference. Every assigned event must be represented in its candidate asset's event membership and supported by that exact source evidence. Every node and relation must resolve its references and carry admitted evidence.
+
+A null event assignment is a valid explicit abstention. It is not silently converted into an absent utility.
+
+### 2.4 Topology is not visual intersection
+
+The relation types distinguish continuation, junction, unresolved crossing and unresolved near-intersection.
+
+An unresolved crossing is not a graph edge establishing physical connection. It remains a spatial relationship awaiting evidence.
+
+### 2.5 Calibration status is separate from structural validity
+
+The validator can check that a calibration receipt identifier was supplied when a caller claims that one is referenced. It cannot authenticate that receipt or establish that the probabilities are calibrated.
+
+The code deliberately does not derive a posterior from event marginals or multiply cross-modal likelihoods.
+
+## 3. Asset-cluster scoring is now executable
+
+A separate event-to-asset evaluator is implemented in `sol-atlas-core/src/utility_reconstruction_metrics.rs`, with CLI `utility_reconstruction_eval`.
+
+It reports B-cubed precision/recall/F1, pairwise true-positive pairs, explicit overmerge/oversplit pairs, candidate false assets, missed truth assets, abstention and false association of adjudicated clutter. It scores only structured independent survey and reviewed trench-image truth. Owner-record-only, conflicted and insufficient truth are separately counted, not converted to negative examples.
+
+Every reference event requires exactly one prediction disposition: candidate asset or explicit abstention. Missing predictions are rejected. Clutter and abstention are singletons in their respective partitions. The committed fixture and pinned baseline are synthetic only.
+
+# EARTH-OBSERVABILITY-JOINT-NETWORK-HYPOTHESES-001
+## Joint posterior hypotheses for evidence-qualified utility-network reconstruction v0.1
+
+**Parent:** Sol-Atlas #771 — EARTH-OBSERVABILITY-QUAL-002  
+**Implementation branch:** research/earth-observability-joint-network-hypotheses-v0-1  
+**Status:** Rust structural contract and deterministic analytic fixture added; probability calibration, graph scoring and physical validation NOT_RUN  
+**Date:** 2026-11-14  
+**Claim ceiling:** The fixture is abstract and non-geographic. It does not represent a real utility, field survey, calibrated posterior, qualified network geometry or excavation clearance.
+
+---
+
+## 1. Research proposition: infer a distribution over worlds, not one best-looking map
+
+The current candidate-graph contract permits multiple event-to-asset association marginals and explicit abstention. That is useful, but independently meaningful marginal probabilities do not necessarily form a coherent joint network.
+
+For example, separate edge probabilities can each look plausible while their combination creates an impossible network: a single event is assigned to two incompatible assets, a crossing is treated as a junction, or two mutually exclusive asset partitions are simultaneously represented as facts.
+
+The next abstraction is a **joint network hypothesis set**:
+
+- one immutable evidence snapshot and one investigation scope;
+- a finite set of mutually exclusive candidate network worlds;
+- one complete event disposition per observed event in every world;
+- candidate assets, geometry claims, nodes and relations that are internally coherent within each world;
+- a probability for each whole world;
+- explicit residual probability for worlds not enumerated.
+
+This is not a claim that a Bayesian posterior has been calibrated. It is a data and validation contract that makes the intended probability semantics explicit and testable.
+
+The decision product becomes:
+
+> Here are the plausible physical network configurations, their relative support, the evidence that separates them, and the observation most likely to change the engineering decision.
+
+## 2. Contract semantics
+
+The executable contract is in `sol-atlas-core/src/network_hypotheses.rs`; the strict JSON Schema Draft 2020-12 interchange profile is `research/earth-observability/NETWORK_HYPOTHESES_V0_1.schema.json`. The Rust validator enforces cross-reference and cross-field invariants that JSON Schema alone cannot express.
+
+### 2.1 One hypothesis is one complete candidate world
+
+A NetworkHypothesis contains:
+
+- a unique hypothesis identity and whole-world probability;
+- exactly one assignment record for every event in the set;
+- explicit null assignment for events left unassociated;
+- candidate asset instances and their event membership;
+- optional geometry-claim references;
+- candidate nodes and their associated candidate assets;
+- evidence-supported relations between nodes.
+
+A candidate identifier is local and non-authoritative. It is not a MUDDI ObjectID, owner-system SystemID or utility-owner asset identifier.
+
+### 2.2 Mutually exclusive world mass
+
+The probability invariant is:
+
+sum(P(hypothesis_i)) + P(residual_unknown) = 1
+
+within a fixed numerical tolerance.
+
+The residual is not a negative detection, absence probability or permission to redistribute probability among the listed hypotheses. It represents unenumerated or unresolved possible worlds.
+
+The fixture contains three alternatives:
+
+| World | Probability | Interpretation |
+|---|---:|---|
+| world-one-utility | 0.62 | Two events belong to one candidate utility |
+| world-two-utilities | 0.23 | The events belong to distinct candidate utilities |
+| world-crossing-unresolved | 0.10 | Two distinct assets have an unresolved crossing relation |
+| Unenumerated worlds | 0.05 | Explicit residual unknown mass |
+
+The values are deliberately illustrative, not learned or calibrated.
+
+### 2.3 Evidence closure
+
+Every event has a source-evidence reference. Every assigned event must be represented in its candidate asset's event membership and supported by that exact source evidence. Every node and relation must resolve its references and carry admitted evidence.
+
+A null event assignment is a valid explicit abstention. It is not silently converted into an absent utility.
+
+### 2.4 Topology is not visual intersection
+
+The relation types distinguish continuation, junction, unresolved crossing and unresolved near-intersection.
+
+An unresolved crossing is not a graph edge establishing physical connection. It remains a spatial relationship awaiting evidence.
+
+### 2.5 Calibration status is separate from structural validity
+
+The validator can check that a calibration receipt identifier was supplied when a caller claims that one is referenced. It cannot authenticate that receipt or establish that the probabilities are calibrated.
+
+The code deliberately does not derive a posterior from event marginals or multiply cross-modal likelihoods.
+
+## 3. Asset-cluster scoring is now executable
+
+A separate event-to-asset evaluator is implemented in `sol-atlas-core/src/utility_reconstruction_metrics.rs`, with CLI `utility_reconstruction_eval`.
+
+It reports B-cubed precision/recall/F1, pairwise true-positive pairs, explicit overmerge/oversplit pairs, candidate false assets, missed truth assets, abstention and false association of adjudicated clutter. It scores only structured independent survey and reviewed trench-image truth. Owner-record-only, conflicted and insufficient truth are separately counted, not converted to negative examples.
+
+Every reference event requires exactly one prediction disposition: candidate asset or explicit abstention. Missing predictions are rejected. Clutter and abstention are singletons in their respective partitions. The committed fixture and pinned baseline are synthetic only.
+
+# EARTH-OBSERVABILITY-JOINT-NETWORK-HYPOTHESES-001
+## Joint posterior hypotheses for evidence-qualified utility-network reconstruction v0.1
+
+**Parent:** Sol-Atlas #771 — EARTH-OBSERVABILITY-QUAL-002  
+**Implementation branch:** research/earth-observability-joint-network-hypotheses-v0-1  
+**Status:** Rust structural contract and deterministic analytic fixture added; probability calibration, graph scoring and physical validation NOT_RUN  
+**Date:** 2026-11-14  
+**Claim ceiling:** The fixture is abstract and non-geographic. It does not represent a real utility, field survey, calibrated posterior, qualified network geometry or excavation clearance.
+
+---
+
+## 1. Research proposition: infer a distribution over worlds, not one best-looking map
+
+The current candidate-graph contract permits multiple event-to-asset association marginals and explicit abstention. That is useful, but independently meaningful marginal probabilities do not necessarily form a coherent joint network.
+
+For example, separate edge probabilities can each look plausible while their combination creates an impossible network: a single event is assigned to two incompatible assets, a crossing is treated as a junction, or two mutually exclusive asset partitions are simultaneously represented as facts.
+
+The next abstraction is a **joint network hypothesis set**:
+
+- one immutable evidence snapshot and one investigation scope;
+- a finite set of mutually exclusive candidate network worlds;
+- one complete event disposition per observed event in every world;
+- candidate assets, geometry claims, nodes and relations that are internally coherent within each world;
+- a probability for each whole world;
+- explicit residual probability for worlds not enumerated.
+
+This is not a claim that a Bayesian posterior has been calibrated. It is a data and validation contract that makes the intended probability semantics explicit and testable.
+
+The decision product becomes:
+
+> Here are the plausible physical network configurations, their relative support, the evidence that separates them, and the observation most likely to change the engineering decision.
+
+## 2. Contract semantics
+
+The executable contract is in `sol-atlas-core/src/network_hypotheses.rs`; the strict JSON Schema Draft 2020-12 interchange profile is `research/earth-observability/NETWORK_HYPOTHESES_V0_1.schema.json`. The Rust validator enforces cross-reference and cross-field invariants that JSON Schema alone cannot express.
+
+### 2.1 One hypothesis is one complete candidate world
+
+A NetworkHypothesis contains:
+
+- a unique hypothesis identity and whole-world probability;
+- exactly one assignment record for every event in the set;
+- explicit null assignment for events left unassociated;
+- candidate asset instances and their event membership;
+- optional geometry-claim references;
+- candidate nodes and their associated candidate assets;
+- evidence-supported relations between nodes.
+
+A candidate identifier is local and non-authoritative. It is not a MUDDI ObjectID, owner-system SystemID or utility-owner asset identifier.
+
+### 2.2 Mutually exclusive world mass
+
+The probability invariant is:
+
+sum(P(hypothesis_i)) + P(residual_unknown) = 1
+
+within a fixed numerical tolerance.
+
+The residual is not a negative detection, absence probability or permission to redistribute probability among the listed hypotheses. It represents unenumerated or unresolved possible worlds.
+
+The fixture contains three alternatives:
+
+| World | Probability | Interpretation |
+|---|---:|---|
+| world-one-utility | 0.62 | Two events belong to one candidate utility |
+| world-two-utilities | 0.23 | The events belong to distinct candidate utilities |
+| world-crossing-unresolved | 0.10 | Two distinct assets have an unresolved crossing relation |
+| Unenumerated worlds | 0.05 | Explicit residual unknown mass |
+
+The values are deliberately illustrative, not learned or calibrated.
+
+### 2.3 Evidence closure
+
+Every event has a source-evidence reference. Every assigned event must be represented in its candidate asset's event membership and supported by that exact source evidence. Every node and relation must resolve its references and carry admitted evidence.
+
+A null event assignment is a valid explicit abstention. It is not silently converted into an absent utility.
+
+### 2.4 Topology is not visual intersection
+
+The relation types distinguish continuation, junction, unresolved crossing and unresolved near-intersection.
+
+An unresolved crossing is not a graph edge establishing physical connection. It remains a spatial relationship awaiting evidence.
+
+### 2.5 Calibration status is separate from structural validity
+
+The validator can check that a calibration receipt identifier was supplied when a caller claims that one is referenced. It cannot authenticate that receipt or establish that the probabilities are calibrated.
+
+The code deliberately does not derive a posterior from event marginals or multiply cross-modal likelihoods.
+
+## 3. Asset-cluster scoring is now executable
+
+A separate event-to-asset evaluator is implemented in `sol-atlas-core/src/utility_reconstruction_metrics.rs`, with CLI `utility_reconstruction_eval`.
+
+It reports B-cubed precision/recall/F1, pairwise true-positive pairs, explicit overmerge/oversplit pairs, candidate false assets, missed truth assets, abstention and false association of adjudicated clutter. It scores only structured independent survey and reviewed trench-image truth. Owner-record-only, conflicted and insufficient truth are separately counted, not converted to negative examples.
+
+Every reference event requires exactly one prediction disposition: candidate asset or explicit abstention. Missing predictions are rejected. Clutter and abstention are singletons in their respective partitions. The committed fixture and pinned baseline are synthetic only.
+
+# EARTH-OBSERVABILITY-JOINT-NETWORK-HYPOTHESES-001
+## Joint posterior hypotheses for evidence-qualified utility-network reconstruction v0.1
+
+**Parent:** Sol-Atlas #771 — EARTH-OBSERVABILITY-QUAL-002  
+**Implementation branch:** research/earth-observability-joint-network-hypotheses-v0-1  
+**Status:** Rust structural contract and deterministic analytic fixture added; probability calibration, graph scoring and physical validation NOT_RUN  
+**Date:** 2026-11-14  
+**Claim ceiling:** The fixture is abstract and non-geographic. It does not represent a real utility, field survey, calibrated posterior, qualified network geometry or excavation clearance.
+
+---
+
+## 1. Research proposition: infer a distribution over worlds, not one best-looking map
+
+The current candidate-graph contract permits multiple event-to-asset association marginals and explicit abstention. That is useful, but independently meaningful marginal probabilities do not necessarily form a coherent joint network.
+
+For example, separate edge probabilities can each look plausible while their combination creates an impossible network: a single event is assigned to two incompatible assets, a crossing is treated as a junction, or two mutually exclusive asset partitions are simultaneously represented as facts.
+
+The next abstraction is a **joint network hypothesis set**:
+
+- one immutable evidence snapshot and one investigation scope;
+- a finite set of mutually exclusive candidate network worlds;
+- one complete event disposition per observed event in every world;
+- candidate assets, geometry claims, nodes and relations that are internally coherent within each world;
+- a probability for each whole world;
+- explicit residual probability for worlds not enumerated.
+
+This is not a claim that a Bayesian posterior has been calibrated. It is a data and validation contract that makes the intended probability semantics explicit and testable.
+
+The decision product becomes:
+
+> Here are the plausible physical network configurations, their relative support, the evidence that separates them, and the observation most likely to change the engineering decision.
+
+## 2. Contract semantics
+
+The executable contract is in `sol-atlas-core/src/network_hypotheses.rs`; the strict JSON Schema Draft 2020-12 interchange profile is `research/earth-observability/NETWORK_HYPOTHESES_V0_1.schema.json`. The Rust validator enforces cross-reference and cross-field invariants that JSON Schema alone cannot express.
+
+### 2.1 One hypothesis is one complete candidate world
+
+A NetworkHypothesis contains:
+
+- a unique hypothesis identity and whole-world probability;
+- exactly one assignment record for every event in the set;
+- explicit null assignment for events left unassociated;
+- candidate asset instances and their event membership;
+- optional geometry-claim references;
+- candidate nodes and their associated candidate assets;
+- evidence-supported relations between nodes.
+
+A candidate identifier is local and non-authoritative. It is not a MUDDI ObjectID, owner-system SystemID or utility-owner asset identifier.
+
+### 2.2 Mutually exclusive world mass
+
+The probability invariant is:
+
+sum(P(hypothesis_i)) + P(residual_unknown) = 1
+
+within a fixed numerical tolerance.
+
+The residual is not a negative detection, absence probability or permission to redistribute probability among the listed hypotheses. It represents unenumerated or unresolved possible worlds.
+
+The fixture contains three alternatives:
+
+| World | Probability | Interpretation |
+|---|---:|---|
+| world-one-utility | 0.62 | Two events belong to one candidate utility |
+| world-two-utilities | 0.23 | The events belong to distinct candidate utilities |
+| world-crossing-unresolved | 0.10 | Two distinct assets have an unresolved crossing relation |
+| Unenumerated worlds | 0.05 | Explicit residual unknown mass |
+
+The values are deliberately illustrative, not learned or calibrated.
+
+### 2.3 Evidence closure
+
+Every event has a source-evidence reference. Every assigned event must be represented in its candidate asset's event membership and supported by that exact source evidence. Every node and relation must resolve its references and carry admitted evidence.
+
+A null event assignment is a valid explicit abstention. It is not silently converted into an absent utility.
+
+### 2.4 Topology is not visual intersection
+
+The relation types distinguish continuation, junction, unresolved crossing and unresolved near-intersection.
+
+An unresolved crossing is not a graph edge establishing physical connection. It remains a spatial relationship awaiting evidence.
+
+### 2.5 Calibration status is separate from structural validity
+
+The validator can check that a calibration receipt identifier was supplied when a caller claims that one is referenced. It cannot authenticate that receipt or establish that the probabilities are calibrated.
+
+The code deliberately does not derive a posterior from event marginals or multiply cross-modal likelihoods.
+
+## 3. Asset-cluster scoring is now executable
+
+A separate event-to-asset evaluator is implemented in `sol-atlas-core/src/utility_reconstruction_metrics.rs`, with CLI `utility_reconstruction_eval`.
+
+It reports B-cubed precision/recall/F1, pairwise true-positive pairs, explicit overmerge/oversplit pairs, candidate false assets, missed truth assets, abstention and false association of adjudicated clutter. It scores only structured independent survey and reviewed trench-image truth. Owner-record-only, conflicted and insufficient truth are separately counted, not converted to negative examples.
+
+Every reference event requires exactly one prediction disposition: candidate asset or explicit abstention. Missing predictions are rejected. Clutter and abstention are singletons in their respective partitions. The committed fixture and pinned baseline are synthetic only.
+
+# EARTH-OBSERVABILITY-JOINT-NETWORK-HYPOTHESES-001
+## Joint posterior hypotheses for evidence-qualified utility-network reconstruction v0.1
+
+**Parent:** Sol-Atlas #771 — EARTH-OBSERVABILITY-QUAL-002  
+**Implementation branch:** research/earth-observability-joint-network-hypotheses-v0-1  
+**Status:** Rust structural contract and deterministic analytic fixture added; probability calibration, graph scoring and physical validation NOT_RUN  
+**Date:** 2026-11-14  
+**Claim ceiling:** The fixture is abstract and non-geographic. It does not represent a real utility, field survey, calibrated posterior, qualified network geometry or excavation clearance.
+
+---
+
+## 1. Research proposition: infer a distribution over worlds, not one best-looking map
+
+The current candidate-graph contract permits multiple event-to-asset association marginals and explicit abstention. That is useful, but independently meaningful marginal probabilities do not necessarily form a coherent joint network.
+
+For example, separate edge probabilities can each look plausible while their combination creates an impossible network: a single event is assigned to two incompatible assets, a crossing is treated as a junction, or two mutually exclusive asset partitions are simultaneously represented as facts.
+
+The next abstraction is a **joint network hypothesis set**:
+
+- one immutable evidence snapshot and one investigation scope;
+- a finite set of mutually exclusive candidate network worlds;
+- one complete event disposition per observed event in every world;
+- candidate assets, geometry claims, nodes and relations that are internally coherent within each world;
+- a probability for each whole world;
+- explicit residual probability for worlds not enumerated.
+
+This is not a claim that a Bayesian posterior has been calibrated. It is a data and validation contract that makes the intended probability semantics explicit and testable.
+
+The decision product becomes:
+
+> Here are the plausible physical network configurations, their relative support, the evidence that separates them, and the observation most likely to change the engineering decision.
+
+## 2. Contract semantics
+
+The executable contract is in `sol-atlas-core/src/network_hypotheses.rs`; the strict JSON Schema Draft 2020-12 interchange profile is `research/earth-observability/NETWORK_HYPOTHESES_V0_1.schema.json`. The Rust validator enforces cross-reference and cross-field invariants that JSON Schema alone cannot express.
+
+### 2.1 One hypothesis is one complete candidate world
+
+A NetworkHypothesis contains:
+
+- a unique hypothesis identity and whole-world probability;
+- exactly one assignment record for every event in the set;
+- explicit null assignment for events left unassociated;
+- candidate asset instances and their event membership;
+- optional geometry-claim references;
+- candidate nodes and their associated candidate assets;
+- evidence-supported relations between nodes.
+
+A candidate identifier is local and non-authoritative. It is not a MUDDI ObjectID, owner-system SystemID or utility-owner asset identifier.
+
+### 2.2 Mutually exclusive world mass
+
+The probability invariant is:
+
+sum(P(hypothesis_i)) + P(residual_unknown) = 1
+
+within a fixed numerical tolerance.
+
+The residual is not a negative detection, absence probability or permission to redistribute probability among the listed hypotheses. It represents unenumerated or unresolved possible worlds.
+
+The fixture contains three alternatives:
+
+| World | Probability | Interpretation |
+|---|---:|---|
+| world-one-utility | 0.62 | Two events belong to one candidate utility |
+| world-two-utilities | 0.23 | The events belong to distinct candidate utilities |
+| world-crossing-unresolved | 0.10 | Two distinct assets have an unresolved crossing relation |
+| Unenumerated worlds | 0.05 | Explicit residual unknown mass |
+
+The values are deliberately illustrative, not learned or calibrated.
+
+### 2.3 Evidence closure
+
+Every event has a source-evidence reference. Every assigned event must be represented in its candidate asset's event membership and supported by that exact source evidence. Every node and relation must resolve its references and carry admitted evidence.
+
+A null event assignment is a valid explicit abstention. It is not silently converted into an absent utility.
+
+### 2.4 Topology is not visual intersection
+
+The relation types distinguish continuation, junction, unresolved crossing and unresolved near-intersection.
+
+An unresolved crossing is not a graph edge establishing physical connection. It remains a spatial relationship awaiting evidence.
+
+### 2.5 Calibration status is separate from structural validity
+
+The validator can check that a calibration receipt identifier was supplied when a caller claims that one is referenced. It cannot authenticate that receipt or establish that the probabilities are calibrated.
+
+The code deliberately does not derive a posterior from event marginals or multiply cross-modal likelihoods.
+
+## 3. Asset-cluster scoring is now executable
+
+A separate event-to-asset evaluator is implemented in `sol-atlas-core/src/utility_reconstruction_metrics.rs`, with CLI `utility_reconstruction_eval`.
+
+It reports B-cubed precision/recall/F1, pairwise true-positive pairs, explicit overmerge/oversplit pairs, candidate false assets, missed truth assets, abstention and false association of adjudicated clutter. It scores only structured independent survey and reviewed trench-image truth. Owner-record-only, conflicted and insufficient truth are separately counted, not converted to negative examples.
+
+Every reference event requires exactly one prediction disposition: candidate asset or explicit abstention. Missing predictions are rejected. Clutter and abstention are singletons in their respective partitions. The committed fixture and pinned baseline are synthetic only.
+
+# EARTH-OBSERVABILITY-JOINT-NETWORK-HYPOTHESES-001
+## Joint posterior hypotheses for evidence-qualified utility-network reconstruction v0.1
+
+**Parent:** Sol-Atlas #771 — EARTH-OBSERVABILITY-QUAL-002  
+**Implementation branch:** research/earth-observability-joint-network-hypotheses-v0-1  
+**Status:** Rust structural contract and deterministic analytic fixture added; probability calibration, graph scoring and physical validation NOT_RUN  
+**Date:** 2026-11-14  
+**Claim ceiling:** The fixture is abstract and non-geographic. It does not represent a real utility, field survey, calibrated posterior, qualified network geometry or excavation clearance.
+
+---
+
+## 1. Research proposition: infer a distribution over worlds, not one best-looking map
+
+The current candidate-graph contract permits multiple event-to-asset association marginals and explicit abstention. That is useful, but independently meaningful marginal probabilities do not necessarily form a coherent joint network.
+
+For example, separate edge probabilities can each look plausible while their combination creates an impossible network: a single event is assigned to two incompatible assets, a crossing is treated as a junction, or two mutually exclusive asset partitions are simultaneously represented as facts.
+
+The next abstraction is a **joint network hypothesis set**:
+
+- one immutable evidence snapshot and one investigation scope;
+- a finite set of mutually exclusive candidate network worlds;
+- one complete event disposition per observed event in every world;
+- candidate assets, geometry claims, nodes and relations that are internally coherent within each world;
+- a probability for each whole world;
+- explicit residual probability for worlds not enumerated.
+
+This is not a claim that a Bayesian posterior has been calibrated. It is a data and validation contract that makes the intended probability semantics explicit and testable.
+
+The decision product becomes:
+
+> Here are the plausible physical network configurations, their relative support, the evidence that separates them, and the observation most likely to change the engineering decision.
+
+## 2. Contract semantics
+
+The executable contract is in `sol-atlas-core/src/network_hypotheses.rs`; the strict JSON Schema Draft 2020-12 interchange profile is `research/earth-observability/NETWORK_HYPOTHESES_V0_1.schema.json`. The Rust validator enforces cross-reference and cross-field invariants that JSON Schema alone cannot express.
+
+### 2.1 One hypothesis is one complete candidate world
+
+A NetworkHypothesis contains:
+
+- a unique hypothesis identity and whole-world probability;
+- exactly one assignment record for every event in the set;
+- explicit null assignment for events left unassociated;
+- candidate asset instances and their event membership;
+- optional geometry-claim references;
+- candidate nodes and their associated candidate assets;
+- evidence-supported relations between nodes.
+
+A candidate identifier is local and non-authoritative. It is not a MUDDI ObjectID, owner-system SystemID or utility-owner asset identifier.
+
+### 2.2 Mutually exclusive world mass
+
+The probability invariant is:
+
+sum(P(hypothesis_i)) + P(residual_unknown) = 1
+
+within a fixed numerical tolerance.
+
+The residual is not a negative detection, absence probability or permission to redistribute probability among the listed hypotheses. It represents unenumerated or unresolved possible worlds.
+
+The fixture contains three alternatives:
+
+| World | Probability | Interpretation |
+|---|---:|---|
+| world-one-utility | 0.62 | Two events belong to one candidate utility |
+| world-two-utilities | 0.23 | The events belong to distinct candidate utilities |
+| world-crossing-unresolved | 0.10 | Two distinct assets have an unresolved crossing relation |
+| Unenumerated worlds | 0.05 | Explicit residual unknown mass |
+
+The values are deliberately illustrative, not learned or calibrated.
+
+### 2.3 Evidence closure
+
+Every event has a source-evidence reference. Every assigned event must be represented in its candidate asset's event membership and supported by that exact source evidence. Every node and relation must resolve its references and carry admitted evidence.
+
+A null event assignment is a valid explicit abstention. It is not silently converted into an absent utility.
+
+### 2.4 Topology is not visual intersection
+
+The relation types distinguish continuation, junction, unresolved crossing and unresolved near-intersection.
+
+An unresolved crossing is not a graph edge establishing physical connection. It remains a spatial relationship awaiting evidence.
+
+### 2.5 Calibration status is separate from structural validity
+
+The validator can check that a calibration receipt identifier was supplied when a caller claims that one is referenced. It cannot authenticate that receipt or establish that the probabilities are calibrated.
+
+The code deliberately does not derive a posterior from event marginals or multiply cross-modal likelihoods.
+
+## 3. Asset-cluster scoring is now executable
+
+A separate event-to-asset evaluator is implemented in `sol-atlas-core/src/utility_reconstruction_metrics.rs`, with CLI `utility_reconstruction_eval`.
+
+It reports B-cubed precision/recall/F1, pairwise true-positive pairs, explicit overmerge/oversplit pairs, candidate false assets, missed truth assets, abstention and false association of adjudicated clutter. It scores only structured independent survey and reviewed trench-image truth. Owner-record-only, conflicted and insufficient truth are separately counted, not converted to negative examples.
+
+Every reference event requires exactly one prediction disposition: candidate asset or explicit abstention. Missing predictions are rejected. Clutter and abstention are singletons in their respective partitions. The committed fixture and pinned baseline are synthetic only.
+
+# EARTH-OBSERVABILITY-JOINT-NETWORK-HYPOTHESES-001
+## Joint posterior hypotheses for evidence-qualified utility-network reconstruction v0.1
+
+**Parent:** Sol-Atlas #771 — EARTH-OBSERVABILITY-QUAL-002  
+**Implementation branch:** research/earth-observability-joint-network-hypotheses-v0-1  
+**Status:** Rust structural contract and deterministic analytic fixture added; probability calibration, graph scoring and physical validation NOT_RUN  
+**Date:** 2026-11-14  
+**Claim ceiling:** The fixture is abstract and non-geographic. It does not represent a real utility, field survey, calibrated posterior, qualified network geometry or excavation clearance.
+
+---
+
+## 1. Research proposition: infer a distribution over worlds, not one best-looking map
+
+The current candidate-graph contract permits multiple event-to-asset association marginals and explicit abstention. That is useful, but independently meaningful marginal probabilities do not necessarily form a coherent joint network.
+
+For example, separate edge probabilities can each look plausible while their combination creates an impossible network: a single event is assigned to two incompatible assets, a crossing is treated as a junction, or two mutually exclusive asset partitions are simultaneously represented as facts.
+
+The next abstraction is a **joint network hypothesis set**:
+
+- one immutable evidence snapshot and one investigation scope;
+- a finite set of mutually exclusive candidate network worlds;
+- one complete event disposition per observed event in every world;
+- candidate assets, geometry claims, nodes and relations that are internally coherent within each world;
+- a probability for each whole world;
+- explicit residual probability for worlds not enumerated.
+
+This is not a claim that a Bayesian posterior has been calibrated. It is a data and validation contract that makes the intended probability semantics explicit and testable.
+
+The decision product becomes:
+
+> Here are the plausible physical network configurations, their relative support, the evidence that separates them, and the observation most likely to change the engineering decision.
+
+## 2. Contract semantics
+
+The executable contract is in `sol-atlas-core/src/network_hypotheses.rs`; the strict JSON Schema Draft 2020-12 interchange profile is `research/earth-observability/NETWORK_HYPOTHESES_V0_1.schema.json`. The Rust validator enforces cross-reference and cross-field invariants that JSON Schema alone cannot express.
+
+### 2.1 One hypothesis is one complete candidate world
+
+A NetworkHypothesis contains:
+
+- a unique hypothesis identity and whole-world probability;
+- exactly one assignment record for every event in the set;
+- explicit null assignment for events left unassociated;
+- candidate asset instances and their event membership;
+- optional geometry-claim references;
+- candidate nodes and their associated candidate assets;
+- evidence-supported relations between nodes.
+
+A candidate identifier is local and non-authoritative. It is not a MUDDI ObjectID, owner-system SystemID or utility-owner asset identifier.
+
+### 2.2 Mutually exclusive world mass
+
+The probability invariant is:
+
+sum(P(hypothesis_i)) + P(residual_unknown) = 1
+
+within a fixed numerical tolerance.
+
+The residual is not a negative detection, absence probability or permission to redistribute probability among the listed hypotheses. It represents unenumerated or unresolved possible worlds.
+
+The fixture contains three alternatives:
+
+| World | Probability | Interpretation |
+|---|---:|---|
+| world-one-utility | 0.62 | Two events belong to one candidate utility |
+| world-two-utilities | 0.23 | The events belong to distinct candidate utilities |
+| world-crossing-unresolved | 0.10 | Two distinct assets have an unresolved crossing relation |
+| Unenumerated worlds | 0.05 | Explicit residual unknown mass |
+
+The values are deliberately illustrative, not learned or calibrated.
+
+### 2.3 Evidence closure
+
+Every event has a source-evidence reference. Every assigned event must be represented in its candidate asset's event membership and supported by that exact source evidence. Every node and relation must resolve its references and carry admitted evidence.
+
+A null event assignment is a valid explicit abstention. It is not silently converted into an absent utility.
+
+### 2.4 Topology is not visual intersection
+
+The relation types distinguish continuation, junction, unresolved crossing and unresolved near-intersection.
+
+An unresolved crossing is not a graph edge establishing physical connection. It remains a spatial relationship awaiting evidence.
+
+### 2.5 Calibration status is separate from structural validity
+
+The validator can check that a calibration receipt identifier was supplied when a caller claims that one is referenced. It cannot authenticate that receipt or establish that the probabilities are calibrated.
+
+The code deliberately does not derive a posterior from event marginals or multiply cross-modal likelihoods.
+
+## 3. Asset-cluster scoring is now executable
+
+A separate event-to-asset evaluator is implemented in `sol-atlas-core/src/utility_reconstruction_metrics.rs`, with CLI `utility_reconstruction_eval`.
+
+It reports B-cubed precision/recall/F1, pairwise true-positive pairs, explicit overmerge/oversplit pairs, candidate false assets, missed truth assets, abstention and false association of adjudicated clutter. It scores only structured independent survey and reviewed trench-image truth. Owner-record-only, conflicted and insufficient truth are separately counted, not converted to negative examples.
+
+Every reference event requires exactly one prediction disposition: candidate asset or explicit abstention. Missing predictions are rejected. Clutter and abstention are singletons in their respective partitions. The committed fixture and pinned baseline are synthetic only.
+
+# EARTH-OBSERVABILITY-JOINT-NETWORK-HYPOTHESES-001
+## Joint posterior hypotheses for evidence-qualified utility-network reconstruction v0.1
+
+**Parent:** Sol-Atlas #771 — EARTH-OBSERVABILITY-QUAL-002  
+**Implementation branch:** research/earth-observability-joint-network-hypotheses-v0-1  
+**Status:** Rust structural contract and deterministic analytic fixture added; probability calibration, graph scoring and physical validation NOT_RUN  
+**Date:** 2026-11-14  
+**Claim ceiling:** The fixture is abstract and non-geographic. It does not represent a real utility, field survey, calibrated posterior, qualified network geometry or excavation clearance.
+
+---
+
+## 1. Research proposition: infer a distribution over worlds, not one best-looking map
+
+The current candidate-graph contract permits multiple event-to-asset association marginals and explicit abstention. That is useful, but independently meaningful marginal probabilities do not necessarily form a coherent joint network.
+
+For example, separate edge probabilities can each look plausible while their combination creates an impossible network: a single event is assigned to two incompatible assets, a crossing is treated as a junction, or two mutually exclusive asset partitions are simultaneously represented as facts.
+
+The next abstraction is a **joint network hypothesis set**:
+
+- one immutable evidence snapshot and one investigation scope;
+- a finite set of mutually exclusive candidate network worlds;
+- one complete event disposition per observed event in every world;
+- candidate assets, geometry claims, nodes and relations that are internally coherent within each world;
+- a probability for each whole world;
+- explicit residual probability for worlds not enumerated.
+
+This is not a claim that a Bayesian posterior has been calibrated. It is a data and validation contract that makes the intended probability semantics explicit and testable.
+
+The decision product becomes:
+
+> Here are the plausible physical network configurations, their relative support, the evidence that separates them, and the observation most likely to change the engineering decision.
+
+## 2. Contract semantics
+
+The executable contract is in `sol-atlas-core/src/network_hypotheses.rs`; the strict JSON Schema Draft 2020-12 interchange profile is `research/earth-observability/NETWORK_HYPOTHESES_V0_1.schema.json`. The Rust validator enforces cross-reference and cross-field invariants that JSON Schema alone cannot express.
+
+### 2.1 One hypothesis is one complete candidate world
+
+A NetworkHypothesis contains:
+
+- a unique hypothesis identity and whole-world probability;
+- exactly one assignment record for every event in the set;
+- explicit null assignment for events left unassociated;
+- candidate asset instances and their event membership;
+- optional geometry-claim references;
+- candidate nodes and their associated candidate assets;
+- evidence-supported relations between nodes.
+
+A candidate identifier is local and non-authoritative. It is not a MUDDI ObjectID, owner-system SystemID or utility-owner asset identifier.
+
+### 2.2 Mutually exclusive world mass
+
+The probability invariant is:
+
+sum(P(hypothesis_i)) + P(residual_unknown) = 1
+
+within a fixed numerical tolerance.
+
+The residual is not a negative detection, absence probability or permission to redistribute probability among the listed hypotheses. It represents unenumerated or unresolved possible worlds.
+
+The fixture contains three alternatives:
+
+| World | Probability | Interpretation |
+|---|---:|---|
+| world-one-utility | 0.62 | Two events belong to one candidate utility |
+| world-two-utilities | 0.23 | The events belong to distinct candidate utilities |
+| world-crossing-unresolved | 0.10 | Two distinct assets have an unresolved crossing relation |
+| Unenumerated worlds | 0.05 | Explicit residual unknown mass |
+
+The values are deliberately illustrative, not learned or calibrated.
+
+### 2.3 Evidence closure
+
+Every event has a source-evidence reference. Every assigned event must be represented in its candidate asset's event membership and supported by that exact source evidence. Every node and relation must resolve its references and carry admitted evidence.
+
+A null event assignment is a valid explicit abstention. It is not silently converted into an absent utility.
+
+### 2.4 Topology is not visual intersection
+
+The relation types distinguish continuation, junction, unresolved crossing and unresolved near-intersection.
+
+An unresolved crossing is not a graph edge establishing physical connection. It remains a spatial relationship awaiting evidence.
+
+### 2.5 Calibration status is separate from structural validity
+
+The validator can check that a calibration receipt identifier was supplied when a caller claims that one is referenced. It cannot authenticate that receipt or establish that the probabilities are calibrated.
+
+The code deliberately does not derive a posterior from event marginals or multiply cross-modal likelihoods.
+
+## 3. Asset-cluster scoring is now executable
+
+A separate event-to-asset evaluator is implemented in `sol-atlas-core/src/utility_reconstruction_metrics.rs`, with CLI `utility_reconstruction_eval`.
+
+It reports B-cubed precision/recall/F1, pairwise true-positive pairs, explicit overmerge/oversplit pairs, candidate false assets, missed truth assets, abstention and false association of adjudicated clutter. It scores only structured independent survey and reviewed trench-image truth. Owner-record-only, conflicted and insufficient truth are separately counted, not converted to negative examples.
+
+Every reference event requires exactly one prediction disposition: candidate asset or explicit abstention. Missing predictions are rejected. Clutter and abstention are singletons in their respective partitions. The committed fixture and pinned baseline are synthetic only.
+
+# EARTH-OBSERVABILITY-JOINT-NETWORK-HYPOTHESES-001
+## Joint posterior hypotheses for evidence-qualified utility-network reconstruction v0.1
+
+**Parent:** Sol-Atlas #771 — EARTH-OBSERVABILITY-QUAL-002  
+**Implementation branch:** research/earth-observability-joint-network-hypotheses-v0-1  
+**Status:** Rust structural contract and deterministic analytic fixture added; probability calibration, graph scoring and physical validation NOT_RUN  
+**Date:** 2026-11-14  
+**Claim ceiling:** The fixture is abstract and non-geographic. It does not represent a real utility, field survey, calibrated posterior, qualified network geometry or excavation clearance.
+
+---
+
+## 1. Research proposition: infer a distribution over worlds, not one best-looking map
+
+The current candidate-graph contract permits multiple event-to-asset association marginals and explicit abstention. That is useful, but independently meaningful marginal probabilities do not necessarily form a coherent joint network.
+
+For example, separate edge probabilities can each look plausible while their combination creates an impossible network: a single event is assigned to two incompatible assets, a crossing is treated as a junction, or two mutually exclusive asset partitions are simultaneously represented as facts.
+
+The next abstraction is a **joint network hypothesis set**:
+
+- one immutable evidence snapshot and one investigation scope;
+- a finite set of mutually exclusive candidate network worlds;
+- one complete event disposition per observed event in every world;
+- candidate assets, geometry claims, nodes and relations that are internally coherent within each world;
+- a probability for each whole world;
+- explicit residual probability for worlds not enumerated.
+
+This is not a claim that a Bayesian posterior has been calibrated. It is a data and validation contract that makes the intended probability semantics explicit and testable.
+
+The decision product becomes:
+
+> Here are the plausible physical network configurations, their relative support, the evidence that separates them, and the observation most likely to change the engineering decision.
+
+## 2. Contract semantics
+
+The executable contract is in `sol-atlas-core/src/network_hypotheses.rs`; the strict JSON Schema Draft 2020-12 interchange profile is `research/earth-observability/NETWORK_HYPOTHESES_V0_1.schema.json`. The Rust validator enforces cross-reference and cross-field invariants that JSON Schema alone cannot express.
+
+### 2.1 One hypothesis is one complete candidate world
+
+A NetworkHypothesis contains:
+
+- a unique hypothesis identity and whole-world probability;
+- exactly one assignment record for every event in the set;
+- explicit null assignment for events left unassociated;
+- candidate asset instances and their event membership;
+- optional geometry-claim references;
+- candidate nodes and their associated candidate assets;
+- evidence-supported relations between nodes.
+
+A candidate identifier is local and non-authoritative. It is not a MUDDI ObjectID, owner-system SystemID or utility-owner asset identifier.
+
+### 2.2 Mutually exclusive world mass
+
+The probability invariant is:
+
+sum(P(hypothesis_i)) + P(residual_unknown) = 1
+
+within a fixed numerical tolerance.
+
+The residual is not a negative detection, absence probability or permission to redistribute probability among the listed hypotheses. It represents unenumerated or unresolved possible worlds.
+
+The fixture contains three alternatives:
+
+| World | Probability | Interpretation |
+|---|---:|---|
+| world-one-utility | 0.62 | Two events belong to one candidate utility |
+| world-two-utilities | 0.23 | The events belong to distinct candidate utilities |
+| world-crossing-unresolved | 0.10 | Two distinct assets have an unresolved crossing relation |
+| Unenumerated worlds | 0.05 | Explicit residual unknown mass |
+
+The values are deliberately illustrative, not learned or calibrated.
+
+### 2.3 Evidence closure
+
+Every event has a source-evidence reference. Every assigned event must be represented in its candidate asset's event membership and supported by that exact source evidence. Every node and relation must resolve its references and carry admitted evidence.
+
+A null event assignment is a valid explicit abstention. It is not silently converted into an absent utility.
+
+### 2.4 Topology is not visual intersection
+
+The relation types distinguish continuation, junction, unresolved crossing and unresolved near-intersection.
+
+An unresolved crossing is not a graph edge establishing physical connection. It remains a spatial relationship awaiting evidence.
+
+### 2.5 Calibration status is separate from structural validity
+
+The validator can check that a calibration receipt identifier was supplied when a caller claims that one is referenced. It cannot authenticate that receipt or establish that the probabilities are calibrated.
+
+The code deliberately does not derive a posterior from event marginals or multiply cross-modal likelihoods.
+
+## 3. Asset-cluster scoring is now executable
+
+A separate event-to-asset evaluator is implemented in `sol-atlas-core/src/utility_reconstruction_metrics.rs`, with CLI `utility_reconstruction_eval`.
+
+It reports B-cubed precision/recall/F1, pairwise true-positive pairs, explicit overmerge/oversplit pairs, candidate false assets, missed truth assets, abstention and false association of adjudicated clutter. It scores only structured independent survey and reviewed trench-image truth. Owner-record-only, conflicted and insufficient truth are separately counted, not converted to negative examples.
+
+Every reference event requires exactly one prediction disposition: candidate asset or explicit abstention. Missing predictions are rejected. Clutter and abstention are singletons in their respective partitions. The committed fixture and pinned baseline are synthetic only.
+
+# EARTH-OBSERVABILITY-JOINT-NETWORK-HYPOTHESES-001
+## Joint posterior hypotheses for evidence-qualified utility-network reconstruction v0.1
+
+**Parent:** Sol-Atlas #771 — EARTH-OBSERVABILITY-QUAL-002  
+**Implementation branch:** research/earth-observability-joint-network-hypotheses-v0-1  
+**Status:** Rust structural contract and deterministic analytic fixture added; probability calibration, graph scoring and physical validation NOT_RUN  
+**Date:** 2026-11-14  
+**Claim ceiling:** The fixture is abstract and non-geographic. It does not represent a real utility, field survey, calibrated posterior, qualified network geometry or excavation clearance.
+
+---
+
+## 1. Research proposition: infer a distribution over worlds, not one best-looking map
+
+The current candidate-graph contract permits multiple event-to-asset association marginals and explicit abstention. That is useful, but independently meaningful marginal probabilities do not necessarily form a coherent joint network.
+
+For example, separate edge probabilities can each look plausible while their combination creates an impossible network: a single event is assigned to two incompatible assets, a crossing is treated as a junction, or two mutually exclusive asset partitions are simultaneously represented as facts.
+
+The next abstraction is a **joint network hypothesis set**:
+
+- one immutable evidence snapshot and one investigation scope;
+- a finite set of mutually exclusive candidate network worlds;
+- one complete event disposition per observed event in every world;
+- candidate assets, geometry claims, nodes and relations that are internally coherent within each world;
+- a probability for each whole world;
+- explicit residual probability for worlds not enumerated.
+
+This is not a claim that a Bayesian posterior has been calibrated. It is a data and validation contract that makes the intended probability semantics explicit and testable.
+
+The decision product becomes:
+
+> Here are the plausible physical network configurations, their relative support, the evidence that separates them, and the observation most likely to change the engineering decision.
+
+## 2. Contract semantics
+
+The executable contract is in `sol-atlas-core/src/network_hypotheses.rs`; the strict JSON Schema Draft 2020-12 interchange profile is `research/earth-observability/NETWORK_HYPOTHESES_V0_1.schema.json`. The Rust validator enforces cross-reference and cross-field invariants that JSON Schema alone cannot express.
+
+### 2.1 One hypothesis is one complete candidate world
+
+A NetworkHypothesis contains:
+
+- a unique hypothesis identity and whole-world probability;
+- exactly one assignment record for every event in the set;
+- explicit null assignment for events left unassociated;
+- candidate asset instances and their event membership;
+- optional geometry-claim references;
+- candidate nodes and their associated candidate assets;
+- evidence-supported relations between nodes.
+
+A candidate identifier is local and non-authoritative. It is not a MUDDI ObjectID, owner-system SystemID or utility-owner asset identifier.
+
+### 2.2 Mutually exclusive world mass
+
+The probability invariant is:
+
+sum(P(hypothesis_i)) + P(residual_unknown) = 1
+
+within a fixed numerical tolerance.
+
+The residual is not a negative detection, absence probability or permission to redistribute probability among the listed hypotheses. It represents unenumerated or unresolved possible worlds.
+
+The fixture contains three alternatives:
+
+| World | Probability | Interpretation |
+|---|---:|---|
+| world-one-utility | 0.62 | Two events belong to one candidate utility |
+| world-two-utilities | 0.23 | The events belong to distinct candidate utilities |
+| world-crossing-unresolved | 0.10 | Two distinct assets have an unresolved crossing relation |
+| Unenumerated worlds | 0.05 | Explicit residual unknown mass |
+
+The values are deliberately illustrative, not learned or calibrated.
+
+### 2.3 Evidence closure
+
+Every event has a source-evidence reference. Every assigned event must be represented in its candidate asset's event membership and supported by that exact source evidence. Every node and relation must resolve its references and carry admitted evidence.
+
+A null event assignment is a valid explicit abstention. It is not silently converted into an absent utility.
+
+### 2.4 Topology is not visual intersection
+
+The relation types distinguish continuation, junction, unresolved crossing and unresolved near-intersection.
+
+An unresolved crossing is not a graph edge establishing physical connection. It remains a spatial relationship awaiting evidence.
+
+### 2.5 Calibration status is separate from structural validity
+
+The validator can check that a calibration receipt identifier was supplied when a caller claims that one is referenced. It cannot authenticate that receipt or establish that the probabilities are calibrated.
+
+The code deliberately does not derive a posterior from event marginals or multiply cross-modal likelihoods.
+
+## 3. Asset-cluster scoring is now executable
+
+A separate event-to-asset evaluator is implemented in `sol-atlas-core/src/utility_reconstruction_metrics.rs`, with CLI `utility_reconstruction_eval`.
+
+It reports B-cubed precision/recall/F1, pairwise true-positive pairs, explicit overmerge/oversplit pairs, candidate false assets, missed truth assets, abstention and false association of adjudicated clutter. It scores only structured independent survey and reviewed trench-image truth. Owner-record-only, conflicted and insufficient truth are separately counted, not converted to negative examples.
+
+Every reference event requires exactly one prediction disposition: candidate asset or explicit abstention. Missing predictions are rejected. Clutter and abstention are singletons in their respective partitions. The committed fixture and pinned baseline are synthetic only.
+
+# EARTH-OBSERVABILITY-JOINT-NETWORK-HYPOTHESES-001
+## Joint posterior hypotheses for evidence-qualified utility-network reconstruction v0.1
+
+**Parent:** Sol-Atlas #771 — EARTH-OBSERVABILITY-QUAL-002  
+**Implementation branch:** research/earth-observability-joint-network-hypotheses-v0-1  
+**Status:** Rust structural contract and deterministic analytic fixture added; probability calibration, graph scoring and physical validation NOT_RUN  
+**Date:** 2026-11-14  
+**Claim ceiling:** The fixture is abstract and non-geographic. It does not represent a real utility, field survey, calibrated posterior, qualified network geometry or excavation clearance.
+
+---
+
+## 1. Research proposition: infer a distribution over worlds, not one best-looking map
+
+The current candidate-graph contract permits multiple event-to-asset association marginals and explicit abstention. That is useful, but independently meaningful marginal probabilities do not necessarily form a coherent joint network.
+
+For example, separate edge probabilities can each look plausible while their combination creates an impossible network: a single event is assigned to two incompatible assets, a crossing is treated as a junction, or two mutually exclusive asset partitions are simultaneously represented as facts.
+
+The next abstraction is a **joint network hypothesis set**:
+
+- one immutable evidence snapshot and one investigation scope;
+- a finite set of mutually exclusive candidate network worlds;
+- one complete event disposition per observed event in every world;
+- candidate assets, geometry claims, nodes and relations that are internally coherent within each world;
+- a probability for each whole world;
+- explicit residual probability for worlds not enumerated.
+
+This is not a claim that a Bayesian posterior has been calibrated. It is a data and validation contract that makes the intended probability semantics explicit and testable.
+
+The decision product becomes:
+
+> Here are the plausible physical network configurations, their relative support, the evidence that separates them, and the observation most likely to change the engineering decision.
+
+## 2. Contract semantics
+
+The executable contract is in `sol-atlas-core/src/network_hypotheses.rs`; the strict JSON Schema Draft 2020-12 interchange profile is `research/earth-observability/NETWORK_HYPOTHESES_V0_1.schema.json`. The Rust validator enforces cross-reference and cross-field invariants that JSON Schema alone cannot express.
+
+### 2.1 One hypothesis is one complete candidate world
+
+A NetworkHypothesis contains:
+
+- a unique hypothesis identity and whole-world probability;
+- exactly one assignment record for every event in the set;
+- explicit null assignment for events left unassociated;
+- candidate asset instances and their event membership;
+- optional geometry-claim references;
+- candidate nodes and their associated candidate assets;
+- evidence-supported relations between nodes.
+
+A candidate identifier is local and non-authoritative. It is not a MUDDI ObjectID, owner-system SystemID or utility-owner asset identifier.
+
+### 2.2 Mutually exclusive world mass
+
+The probability invariant is:
+
+sum(P(hypothesis_i)) + P(residual_unknown) = 1
+
+within a fixed numerical tolerance.
+
+The residual is not a negative detection, absence probability or permission to redistribute probability among the listed hypotheses. It represents unenumerated or unresolved possible worlds.
+
+The fixture contains three alternatives:
+
+| World | Probability | Interpretation |
+|---|---:|---|
+| world-one-utility | 0.62 | Two events belong to one candidate utility |
+| world-two-utilities | 0.23 | The events belong to distinct candidate utilities |
+| world-crossing-unresolved | 0.10 | Two distinct assets have an unresolved crossing relation |
+| Unenumerated worlds | 0.05 | Explicit residual unknown mass |
+
+The values are deliberately illustrative, not learned or calibrated.
+
+### 2.3 Evidence closure
+
+Every event has a source-evidence reference. Every assigned event must be represented in its candidate asset's event membership and supported by that exact source evidence. Every node and relation must resolve its references and carry admitted evidence.
+
+A null event assignment is a valid explicit abstention. It is not silently converted into an absent utility.
+
+### 2.4 Topology is not visual intersection
+
+The relation types distinguish continuation, junction, unresolved crossing and unresolved near-intersection.
+
+An unresolved crossing is not a graph edge establishing physical connection. It remains a spatial relationship awaiting evidence.
+
+### 2.5 Calibration status is separate from structural validity
+
+The validator can check that a calibration receipt identifier was supplied when a caller claims that one is referenced. It cannot authenticate that receipt or establish that the probabilities are calibrated.
+
+The code deliberately does not derive a posterior from event marginals or multiply cross-modal likelihoods.
+
+## 3. Asset-cluster scoring is now executable
+
+A separate event-to-asset evaluator is implemented in `sol-atlas-core/src/utility_reconstruction_metrics.rs`, with CLI `utility_reconstruction_eval`.
+
+It reports B-cubed precision/recall/F1, pairwise true-positive pairs, explicit overmerge/oversplit pairs, candidate false assets, missed truth assets, abstention and false association of adjudicated clutter. It scores only structured independent survey and reviewed trench-image truth. Owner-record-only, conflicted and insufficient truth are separately counted, not converted to negative examples.
+
+Every reference event requires exactly one prediction disposition: candidate asset or explicit abstention. Missing predictions are rejected. Clutter and abstention are singletons in their respective partitions. The committed fixture and pinned baseline are synthetic only.
+
+# EARTH-OBSERVABILITY-JOINT-NETWORK-HYPOTHESES-001
+## Joint posterior hypotheses for evidence-qualified utility-network reconstruction v0.1
+
+**Parent:** Sol-Atlas #771 — EARTH-OBSERVABILITY-QUAL-002  
+**Implementation branch:** research/earth-observability-joint-network-hypotheses-v0-1  
+**Status:** Rust structural contract and deterministic analytic fixture added; probability calibration, graph scoring and physical validation NOT_RUN  
+**Date:** 2026-11-14  
+**Claim ceiling:** The fixture is abstract and non-geographic. It does not represent a real utility, field survey, calibrated posterior, qualified network geometry or excavation clearance.
+
+---
+
+## 1. Research proposition: infer a distribution over worlds, not one best-looking map
+
+The current candidate-graph contract permits multiple event-to-asset association marginals and explicit abstention. That is useful, but independently meaningful marginal probabilities do not necessarily form a coherent joint network.
+
+For example, separate edge probabilities can each look plausible while their combination creates an impossible network: a single event is assigned to two incompatible assets, a crossing is treated as a junction, or two mutually exclusive asset partitions are simultaneously represented as facts.
+
+The next abstraction is a **joint network hypothesis set**:
+
+- one immutable evidence snapshot and one investigation scope;
+- a finite set of mutually exclusive candidate network worlds;
+- one complete event disposition per observed event in every world;
+- candidate assets, geometry claims, nodes and relations that are internally coherent within each world;
+- a probability for each whole world;
+- explicit residual probability for worlds not enumerated.
+
+This is not a claim that a Bayesian posterior has been calibrated. It is a data and validation contract that makes the intended probability semantics explicit and testable.
+
+The decision product becomes:
+
+> Here are the plausible physical network configurations, their relative support, the evidence that separates them, and the observation most likely to change the engineering decision.
+
+## 2. Contract semantics
+
+The executable contract is in `sol-atlas-core/src/network_hypotheses.rs`; the strict JSON Schema Draft 2020-12 interchange profile is `research/earth-observability/NETWORK_HYPOTHESES_V0_1.schema.json`. The Rust validator enforces cross-reference and cross-field invariants that JSON Schema alone cannot express.
+
+### 2.1 One hypothesis is one complete candidate world
+
+A NetworkHypothesis contains:
+
+- a unique hypothesis identity and whole-world probability;
+- exactly one assignment record for every event in the set;
+- explicit null assignment for events left unassociated;
+- candidate asset instances and their event membership;
+- optional geometry-claim references;
+- candidate nodes and their associated candidate assets;
+- evidence-supported relations between nodes.
+
+A candidate identifier is local and non-authoritative. It is not a MUDDI ObjectID, owner-system SystemID or utility-owner asset identifier.
+
+### 2.2 Mutually exclusive world mass
+
+The probability invariant is:
+
+sum(P(hypothesis_i)) + P(residual_unknown) = 1
+
+within a fixed numerical tolerance.
+
+The residual is not a negative detection, absence probability or permission to redistribute probability among the listed hypotheses. It represents unenumerated or unresolved possible worlds.
+
+The fixture contains three alternatives:
+
+| World | Probability | Interpretation |
+|---|---:|---|
+| world-one-utility | 0.62 | Two events belong to one candidate utility |
+| world-two-utilities | 0.23 | The events belong to distinct candidate utilities |
+| world-crossing-unresolved | 0.10 | Two distinct assets have an unresolved crossing relation |
+| Unenumerated worlds | 0.05 | Explicit residual unknown mass |
+
+The values are deliberately illustrative, not learned or calibrated.
+
+### 2.3 Evidence closure
+
+Every event has a source-evidence reference. Every assigned event must be represented in its candidate asset's event membership and supported by that exact source evidence. Every node and relation must resolve its references and carry admitted evidence.
+
+A null event assignment is a valid explicit abstention. It is not silently converted into an absent utility.
+
+### 2.4 Topology is not visual intersection
+
+The relation types distinguish continuation, junction, unresolved crossing and unresolved near-intersection.
+
+An unresolved crossing is not a graph edge establishing physical connection. It remains a spatial relationship awaiting evidence.
+
+### 2.5 Calibration status is separate from structural validity
+
+The validator can check that a calibration receipt identifier was supplied when a caller claims that one is referenced. It cannot authenticate that receipt or establish that the probabilities are calibrated.
+
+The code deliberately does not derive a posterior from event marginals or multiply cross-modal likelihoods.
+
+## 3. Asset-cluster scoring is now executable
+
+A separate event-to-asset evaluator is implemented in `sol-atlas-core/src/utility_reconstruction_metrics.rs`, with CLI `utility_reconstruction_eval`.
+
+It reports B-cubed precision/recall/F1, pairwise true-positive pairs, explicit overmerge/oversplit pairs, candidate false assets, missed truth assets, abstention and false association of adjudicated clutter. It scores only structured independent survey and reviewed trench-image truth. Owner-record-only, conflicted and insufficient truth are separately counted, not converted to negative examples.
+
+Every reference event requires exactly one prediction disposition: candidate asset or explicit abstention. Missing predictions are rejected. Clutter and abstention are singletons in their respective partitions. The committed fixture and pinned baseline are synthetic only.
+
+# EARTH-OBSERVABILITY-JOINT-NETWORK-HYPOTHESES-001
+## Joint posterior hypotheses for evidence-qualified utility-network reconstruction v0.1
+
+**Parent:** Sol-Atlas #771 — EARTH-OBSERVABILITY-QUAL-002  
+**Implementation branch:** research/earth-observability-joint-network-hypotheses-v0-1  
+**Status:** Rust structural contract and deterministic analytic fixture added; probability calibration, graph scoring and physical validation NOT_RUN  
+**Date:** 2026-11-14  
+**Claim ceiling:** The fixture is abstract and non-geographic. It does not represent a real utility, field survey, calibrated posterior, qualified network geometry or excavation clearance.
+
+---
+
+## 1. Research proposition: infer a distribution over worlds, not one best-looking map
+
+The current candidate-graph contract permits multiple event-to-asset association marginals and explicit abstention. That is useful, but independently meaningful marginal probabilities do not necessarily form a coherent joint network.
+
+For example, separate edge probabilities can each look plausible while their combination creates an impossible network: a single event is assigned to two incompatible assets, a crossing is treated as a junction, or two mutually exclusive asset partitions are simultaneously represented as facts.
+
+The next abstraction is a **joint network hypothesis set**:
+
+- one immutable evidence snapshot and one investigation scope;
+- a finite set of mutually exclusive candidate network worlds;
+- one complete event disposition per observed event in every world;
+- candidate assets, geometry claims, nodes and relations that are internally coherent within each world;
+- a probability for each whole world;
+- explicit residual probability for worlds not enumerated.
+
+This is not a claim that a Bayesian posterior has been calibrated. It is a data and validation contract that makes the intended probability semantics explicit and testable.
+
+The decision product becomes:
+
+> Here are the plausible physical network configurations, their relative support, the evidence that separates them, and the observation most likely to change the engineering decision.
+
+## 2. Contract semantics
+
+The executable contract is in `sol-atlas-core/src/network_hypotheses.rs`; the strict JSON Schema Draft 2020-12 interchange profile is `research/earth-observability/NETWORK_HYPOTHESES_V0_1.schema.json`. The Rust validator enforces cross-reference and cross-field invariants that JSON Schema alone cannot express.
+
+### 2.1 One hypothesis is one complete candidate world
+
+A NetworkHypothesis contains:
+
+- a unique hypothesis identity and whole-world probability;
+- exactly one assignment record for every event in the set;
+- explicit null assignment for events left unassociated;
+- candidate asset instances and their event membership;
+- optional geometry-claim references;
+- candidate nodes and their associated candidate assets;
+- evidence-supported relations between nodes.
+
+A candidate identifier is local and non-authoritative. It is not a MUDDI ObjectID, owner-system SystemID or utility-owner asset identifier.
+
+### 2.2 Mutually exclusive world mass
+
+The probability invariant is:
+
+sum(P(hypothesis_i)) + P(residual_unknown) = 1
+
+within a fixed numerical tolerance.
+
+The residual is not a negative detection, absence probability or permission to redistribute probability among the listed hypotheses. It represents unenumerated or unresolved possible worlds.
+
+The fixture contains three alternatives:
+
+| World | Probability | Interpretation |
+|---|---:|---|
+| world-one-utility | 0.62 | Two events belong to one candidate utility |
+| world-two-utilities | 0.23 | The events belong to distinct candidate utilities |
+| world-crossing-unresolved | 0.10 | Two distinct assets have an unresolved crossing relation |
+| Unenumerated worlds | 0.05 | Explicit residual unknown mass |
+
+The values are deliberately illustrative, not learned or calibrated.
+
+### 2.3 Evidence closure
+
+Every event has a source-evidence reference. Every assigned event must be represented in its candidate asset's event membership and supported by that exact source evidence. Every node and relation must resolve its references and carry admitted evidence.
+
+A null event assignment is a valid explicit abstention. It is not silently converted into an absent utility.
+
+### 2.4 Topology is not visual intersection
+
+The relation types distinguish continuation, junction, unresolved crossing and unresolved near-intersection.
+
+An unresolved crossing is not a graph edge establishing physical connection. It remains a spatial relationship awaiting evidence.
+
+### 2.5 Calibration status is separate from structural validity
+
+The validator can check that a calibration receipt identifier was supplied when a caller claims that one is referenced. It cannot authenticate that receipt or establish that the probabilities are calibrated.
+
+The code deliberately does not derive a posterior from event marginals or multiply cross-modal likelihoods.
+
+## 3. Asset-cluster scoring is now executable
+
+A separate event-to-asset evaluator is implemented in `sol-atlas-core/src/utility_reconstruction_metrics.rs`, with CLI `utility_reconstruction_eval`.
+
+It reports B-cubed precision/recall/F1, pairwise true-positive pairs, explicit overmerge/oversplit pairs, candidate false assets, missed truth assets, abstention and false association of adjudicated clutter. It scores only structured independent survey and reviewed trench-image truth. Owner-record-only, conflicted and insufficient truth are separately counted, not converted to negative examples.
+
+Every reference event requires exactly one prediction disposition: candidate asset or explicit abstention. Missing predictions are rejected. Clutter and abstention are singletons in their respective partitions. The committed fixture and pinned baseline are synthetic only.
+
+# EARTH-OBSERVABILITY-JOINT-NETWORK-HYPOTHESES-001
+## Joint posterior hypotheses for evidence-qualified utility-network reconstruction v0.1
+
+**Parent:** Sol-Atlas #771 — EARTH-OBSERVABILITY-QUAL-002  
+**Implementation branch:** research/earth-observability-joint-network-hypotheses-v0-1  
+**Status:** Rust structural contract and deterministic analytic fixture added; probability calibration, graph scoring and physical validation NOT_RUN  
+**Date:** 2026-11-14  
+**Claim ceiling:** The fixture is abstract and non-geographic. It does not represent a real utility, field survey, calibrated posterior, qualified network geometry or excavation clearance.
+
+---
+
+## 1. Research proposition: infer a distribution over worlds, not one best-looking map
+
+The current candidate-graph contract permits multiple event-to-asset association marginals and explicit abstention. That is useful, but independently meaningful marginal probabilities do not necessarily form a coherent joint network.
+
+For example, separate edge probabilities can each look plausible while their combination creates an impossible network: a single event is assigned to two incompatible assets, a crossing is treated as a junction, or two mutually exclusive asset partitions are simultaneously represented as facts.
+
+The next abstraction is a **joint network hypothesis set**:
+
+- one immutable evidence snapshot and one investigation scope;
+- a finite set of mutually exclusive candidate network worlds;
+- one complete event disposition per observed event in every world;
+- candidate assets, geometry claims, nodes and relations that are internally coherent within each world;
+- a probability for each whole world;
+- explicit residual probability for worlds not enumerated.
+
+This is not a claim that a Bayesian posterior has been calibrated. It is a data and validation contract that makes the intended probability semantics explicit and testable.
+
+The decision product becomes:
+
+> Here are the plausible physical network configurations, their relative support, the evidence that separates them, and the observation most likely to change the engineering decision.
+
+## 2. Contract semantics
+
+The executable contract is in `sol-atlas-core/src/network_hypotheses.rs`; the strict JSON Schema Draft 2020-12 interchange profile is `research/earth-observability/NETWORK_HYPOTHESES_V0_1.schema.json`. The Rust validator enforces cross-reference and cross-field invariants that JSON Schema alone cannot express.
+
+### 2.1 One hypothesis is one complete candidate world
+
+A NetworkHypothesis contains:
+
+- a unique hypothesis identity and whole-world probability;
+- exactly one assignment record for every event in the set;
+- explicit null assignment for events left unassociated;
+- candidate asset instances and their event membership;
+- optional geometry-claim references;
+- candidate nodes and their associated candidate assets;
+- evidence-supported relations between nodes.
+
+A candidate identifier is local and non-authoritative. It is not a MUDDI ObjectID, owner-system SystemID or utility-owner asset identifier.
+
+### 2.2 Mutually exclusive world mass
+
+The probability invariant is:
+
+sum(P(hypothesis_i)) + P(residual_unknown) = 1
+
+within a fixed numerical tolerance.
+
+The residual is not a negative detection, absence probability or permission to redistribute probability among the listed hypotheses. It represents unenumerated or unresolved possible worlds.
+
+The fixture contains three alternatives:
+
+| World | Probability | Interpretation |
+|---|---:|---|
+| world-one-utility | 0.62 | Two events belong to one candidate utility |
+| world-two-utilities | 0.23 | The events belong to distinct candidate utilities |
+| world-crossing-unresolved | 0.10 | Two distinct assets have an unresolved crossing relation |
+| Unenumerated worlds | 0.05 | Explicit residual unknown mass |
+
+The values are deliberately illustrative, not learned or calibrated.
+
+### 2.3 Evidence closure
+
+Every event has a source-evidence reference. Every assigned event must be represented in its candidate asset's event membership and supported by that exact source evidence. Every node and relation must resolve its references and carry admitted evidence.
+
+A null event assignment is a valid explicit abstention. It is not silently converted into an absent utility.
+
+### 2.4 Topology is not visual intersection
+
+The relation types distinguish continuation, junction, unresolved crossing and unresolved near-intersection.
+
+An unresolved crossing is not a graph edge establishing physical connection. It remains a spatial relationship awaiting evidence.
+
+### 2.5 Calibration status is separate from structural validity
+
+The validator can check that a calibration receipt identifier was supplied when a caller claims that one is referenced. It cannot authenticate that receipt or establish that the probabilities are calibrated.
+
+The code deliberately does not derive a posterior from event marginals or multiply cross-modal likelihoods.
+
+## 3. Asset-cluster scoring is now executable
+
+A separate event-to-asset evaluator is implemented in `sol-atlas-core/src/utility_reconstruction_metrics.rs`, with CLI `utility_reconstruction_eval`.
+
+It reports B-cubed precision/recall/F1, pairwise true-positive pairs, explicit overmerge/oversplit pairs, candidate false assets, missed truth assets, abstention and false association of adjudicated clutter. It scores only structured independent survey and reviewed trench-image truth. Owner-record-only, conflicted and insufficient truth are separately counted, not converted to negative examples.
+
+Every reference event requires exactly one prediction disposition: candidate asset or explicit abstention. Missing predictions are rejected. Clutter and abstention are singletons in their respective partitions. The committed fixture and pinned baseline are synthetic only.
+
+# EARTH-OBSERVABILITY-JOINT-NETWORK-HYPOTHESES-001
+## Joint posterior hypotheses for evidence-qualified utility-network reconstruction v0.1
+
+**Parent:** Sol-Atlas #771 — EARTH-OBSERVABILITY-QUAL-002  
+**Implementation branch:** research/earth-observability-joint-network-hypotheses-v0-1  
+**Status:** Rust structural contract and deterministic analytic fixture added; probability calibration, graph scoring and physical validation NOT_RUN  
+**Date:** 2026-11-14  
+**Claim ceiling:** The fixture is abstract and non-geographic. It does not represent a real utility, field survey, calibrated posterior, qualified network geometry or excavation clearance.
+
+---
+
+## 1. Research proposition: infer a distribution over worlds, not one best-looking map
+
+The current candidate-graph contract permits multiple event-to-asset association marginals and explicit abstention. That is useful, but independently meaningful marginal probabilities do not necessarily form a coherent joint network.
+
+For example, separate edge probabilities can each look plausible while their combination creates an impossible network: a single event is assigned to two incompatible assets, a crossing is treated as a junction, or two mutually exclusive asset partitions are simultaneously represented as facts.
+
+The next abstraction is a **joint network hypothesis set**:
+
+- one immutable evidence snapshot and one investigation scope;
+- a finite set of mutually exclusive candidate network worlds;
+- one complete event disposition per observed event in every world;
+- candidate assets, geometry claims, nodes and relations that are internally coherent within each world;
+- a probability for each whole world;
+- explicit residual probability for worlds not enumerated.
+
+This is not a claim that a Bayesian posterior has been calibrated. It is a data and validation contract that makes the intended probability semantics explicit and testable.
+
+The decision product becomes:
+
+> Here are the plausible physical network configurations, their relative support, the evidence that separates them, and the observation most likely to change the engineering decision.
+
+## 2. Contract semantics
+
+The executable contract is in `sol-atlas-core/src/network_hypotheses.rs`; the strict JSON Schema Draft 2020-12 interchange profile is `research/earth-observability/NETWORK_HYPOTHESES_V0_1.schema.json`. The Rust validator enforces cross-reference and cross-field invariants that JSON Schema alone cannot express.
+
+### 2.1 One hypothesis is one complete candidate world
+
+A NetworkHypothesis contains:
+
+- a unique hypothesis identity and whole-world probability;
+- exactly one assignment record for every event in the set;
+- explicit null assignment for events left unassociated;
+- candidate asset instances and their event membership;
+- optional geometry-claim references;
+- candidate nodes and their associated candidate assets;
+- evidence-supported relations between nodes.
+
+A candidate identifier is local and non-authoritative. It is not a MUDDI ObjectID, owner-system SystemID or utility-owner asset identifier.
+
+### 2.2 Mutually exclusive world mass
+
+The probability invariant is:
+
+sum(P(hypothesis_i)) + P(residual_unknown) = 1
+
+within a fixed numerical tolerance.
+
+The residual is not a negative detection, absence probability or permission to redistribute probability among the listed hypotheses. It represents unenumerated or unresolved possible worlds.
+
+The fixture contains three alternatives:
+
+| World | Probability | Interpretation |
+|---|---:|---|
+| world-one-utility | 0.62 | Two events belong to one candidate utility |
+| world-two-utilities | 0.23 | The events belong to distinct candidate utilities |
+| world-crossing-unresolved | 0.10 | Two distinct assets have an unresolved crossing relation |
+| Unenumerated worlds | 0.05 | Explicit residual unknown mass |
+
+The values are deliberately illustrative, not learned or calibrated.
+
+### 2.3 Evidence closure
+
+Every event has a source-evidence reference. Every assigned event must be represented in its candidate asset's event membership and supported by that exact source evidence. Every node and relation must resolve its references and carry admitted evidence.
+
+A null event assignment is a valid explicit abstention. It is not silently converted into an absent utility.
+
+### 2.4 Topology is not visual intersection
+
+The relation types distinguish continuation, junction, unresolved crossing and unresolved near-intersection.
+
+An unresolved crossing is not a graph edge establishing physical connection. It remains a spatial relationship awaiting evidence.
+
+### 2.5 Calibration status is separate from structural validity
+
+The validator can check that a calibration receipt identifier was supplied when a caller claims that one is referenced. It cannot authenticate that receipt or establish that the probabilities are calibrated.
+
+The code deliberately does not derive a posterior from event marginals or multiply cross-modal likelihoods.
+
+## 3. Asset-cluster scoring is now executable
+
+A separate event-to-asset evaluator is implemented in `sol-atlas-core/src/utility_reconstruction_metrics.rs`, with CLI `utility_reconstruction_eval`.
+
+It reports B-cubed precision/recall/F1, pairwise true-positive pairs, explicit overmerge/oversplit pairs, candidate false assets, missed truth assets, abstention and false association of adjudicated clutter. It scores only structured independent survey and reviewed trench-image truth. Owner-record-only, conflicted and insufficient truth are separately counted, not converted to negative examples.
+
+Every reference event requires exactly one prediction disposition: candidate asset or explicit abstention. Missing predictions are rejected. Clutter and abstention are singletons in their respective partitions. The committed fixture and pinned baseline are synthetic only.
+
+# EARTH-OBSERVABILITY-JOINT-NETWORK-HYPOTHESES-001
+## Joint posterior hypotheses for evidence-qualified utility-network reconstruction v0.1
+
+**Parent:** Sol-Atlas #771 — EARTH-OBSERVABILITY-QUAL-002  
+**Implementation branch:** research/earth-observability-joint-network-hypotheses-v0-1  
+**Status:** Rust structural contract and deterministic analytic fixture added; probability calibration, graph scoring and physical validation NOT_RUN  
+**Date:** 2026-11-14  
+**Claim ceiling:** The fixture is abstract and non-geographic. It does not represent a real utility, field survey, calibrated posterior, qualified network geometry or excavation clearance.
+
+---
+
+## 1. Research proposition: infer a distribution over worlds, not one best-looking map
+
+The current candidate-graph contract permits multiple event-to-asset association marginals and explicit abstention. That is useful, but independently meaningful marginal probabilities do not necessarily form a coherent joint network.
+
+For example, separate edge probabilities can each look plausible while their combination creates an impossible network: a single event is assigned to two incompatible assets, a crossing is treated as a junction, or two mutually exclusive asset partitions are simultaneously represented as facts.
+
+The next abstraction is a **joint network hypothesis set**:
+
+- one immutable evidence snapshot and one investigation scope;
+- a finite set of mutually exclusive candidate network worlds;
+- one complete event disposition per observed event in every world;
+- candidate assets, geometry claims, nodes and relations that are internally coherent within each world;
+- a probability for each whole world;
+- explicit residual probability for worlds not enumerated.
+
+This is not a claim that a Bayesian posterior has been calibrated. It is a data and validation contract that makes the intended probability semantics explicit and testable.
+
+The decision product becomes:
+
+> Here are the plausible physical network configurations, their relative support, the evidence that separates them, and the observation most likely to change the engineering decision.
+
+## 2. Contract semantics
+
+The executable contract is in `sol-atlas-core/src/network_hypotheses.rs`; the strict JSON Schema Draft 2020-12 interchange profile is `research/earth-observability/NETWORK_HYPOTHESES_V0_1.schema.json`. The Rust validator enforces cross-reference and cross-field invariants that JSON Schema alone cannot express.
+
+### 2.1 One hypothesis is one complete candidate world
+
+A NetworkHypothesis contains:
+
+- a unique hypothesis identity and whole-world probability;
+- exactly one assignment record for every event in the set;
+- explicit null assignment for events left unassociated;
+- candidate asset instances and their event membership;
+- optional geometry-claim references;
+- candidate nodes and their associated candidate assets;
+- evidence-supported relations between nodes.
+
+A candidate identifier is local and non-authoritative. It is not a MUDDI ObjectID, owner-system SystemID or utility-owner asset identifier.
+
+### 2.2 Mutually exclusive world mass
+
+The probability invariant is:
+
+sum(P(hypothesis_i)) + P(residual_unknown) = 1
+
+within a fixed numerical tolerance.
+
+The residual is not a negative detection, absence probability or permission to redistribute probability among the listed hypotheses. It represents unenumerated or unresolved possible worlds.
+
+The fixture contains three alternatives:
+
+| World | Probability | Interpretation |
+|---|---:|---|
+| world-one-utility | 0.62 | Two events belong to one candidate utility |
+| world-two-utilities | 0.23 | The events belong to distinct candidate utilities |
+| world-crossing-unresolved | 0.10 | Two distinct assets have an unresolved crossing relation |
+| Unenumerated worlds | 0.05 | Explicit residual unknown mass |
+
+The values are deliberately illustrative, not learned or calibrated.
+
+### 2.3 Evidence closure
+
+Every event has a source-evidence reference. Every assigned event must be represented in its candidate asset's event membership and supported by that exact source evidence. Every node and relation must resolve its references and carry admitted evidence.
+
+A null event assignment is a valid explicit abstention. It is not silently converted into an absent utility.
+
+### 2.4 Topology is not visual intersection
+
+The relation types distinguish continuation, junction, unresolved crossing and unresolved near-intersection.
+
+An unresolved crossing is not a graph edge establishing physical connection. It remains a spatial relationship awaiting evidence.
+
+### 2.5 Calibration status is separate from structural validity
+
+The validator can check that a calibration receipt identifier was supplied when a caller claims that one is referenced. It cannot authenticate that receipt or establish that the probabilities are calibrated.
+
+The code deliberately does not derive a posterior from event marginals or multiply cross-modal likelihoods.
+
+## 3. Asset-cluster scoring is now executable
+
+A separate event-to-asset evaluator is implemented in `sol-atlas-core/src/utility_reconstruction_metrics.rs`, with CLI `utility_reconstruction_eval`.
+
+It reports B-cubed precision/recall/F1, pairwise true-positive pairs, explicit overmerge/oversplit pairs, candidate false assets, missed truth assets, abstention and false association of adjudicated clutter. It scores only structured independent survey and reviewed trench-image truth. Owner-record-only, conflicted and insufficient truth are separately counted, not converted to negative examples.
+
+Every reference event requires exactly one prediction disposition: candidate asset or explicit abstention. Missing predictions are rejected. Clutter and abstention are singletons in their respective partitions. The committed fixture and pinned baseline are synthetic only.
+
+# EARTH-OBSERVABILITY-JOINT-NETWORK-HYPOTHESES-001
+## Joint posterior hypotheses for evidence-qualified utility-network reconstruction v0.1
+
+**Parent:** Sol-Atlas #771 — EARTH-OBSERVABILITY-QUAL-002  
+**Implementation branch:** research/earth-observability-joint-network-hypotheses-v0-1  
+**Status:** Rust structural contract and deterministic analytic fixture added; probability calibration, graph scoring and physical validation NOT_RUN  
+**Date:** 2026-11-14  
+**Claim ceiling:** The fixture is abstract and non-geographic. It does not represent a real utility, field survey, calibrated posterior, qualified network geometry or excavation clearance.
+
+---
+
+## 1. Research proposition: infer a distribution over worlds, not one best-looking map
+
+The current candidate-graph contract permits multiple event-to-asset association marginals and explicit abstention. That is useful, but independently meaningful marginal probabilities do not necessarily form a coherent joint network.
+
+For example, separate edge probabilities can each look plausible while their combination creates an impossible network: a single event is assigned to two incompatible assets, a crossing is treated as a junction, or two mutually exclusive asset partitions are simultaneously represented as facts.
+
+The next abstraction is a **joint network hypothesis set**:
+
+- one immutable evidence snapshot and one investigation scope;
+- a finite set of mutually exclusive candidate network worlds;
+- one complete event disposition per observed event in every world;
+- candidate assets, geometry claims, nodes and relations that are internally coherent within each world;
+- a probability for each whole world;
+- explicit residual probability for worlds not enumerated.
+
+This is not a claim that a Bayesian posterior has been calibrated. It is a data and validation contract that makes the intended probability semantics explicit and testable.
+
+The decision product becomes:
+
+> Here are the plausible physical network configurations, their relative support, the evidence that separates them, and the observation most likely to change the engineering decision.
+
+## 2. Contract semantics
+
+The executable contract is in `sol-atlas-core/src/network_hypotheses.rs`; the strict JSON Schema Draft 2020-12 interchange profile is `research/earth-observability/NETWORK_HYPOTHESES_V0_1.schema.json`. The Rust validator enforces cross-reference and cross-field invariants that JSON Schema alone cannot express.
+
+### 2.1 One hypothesis is one complete candidate world
+
+A NetworkHypothesis contains:
+
+- a unique hypothesis identity and whole-world probability;
+- exactly one assignment record for every event in the set;
+- explicit null assignment for events left unassociated;
+- candidate asset instances and their event membership;
+- optional geometry-claim references;
+- candidate nodes and their associated candidate assets;
+- evidence-supported relations between nodes.
+
+A candidate identifier is local and non-authoritative. It is not a MUDDI ObjectID, owner-system SystemID or utility-owner asset identifier.
+
+### 2.2 Mutually exclusive world mass
+
+The probability invariant is:
+
+sum(P(hypothesis_i)) + P(residual_unknown) = 1
+
+within a fixed numerical tolerance.
+
+The residual is not a negative detection, absence probability or permission to redistribute probability among the listed hypotheses. It represents unenumerated or unresolved possible worlds.
+
+The fixture contains three alternatives:
+
+| World | Probability | Interpretation |
+|---|---:|---|
+| world-one-utility | 0.62 | Two events belong to one candidate utility |
+| world-two-utilities | 0.23 | The events belong to distinct candidate utilities |
+| world-crossing-unresolved | 0.10 | Two distinct assets have an unresolved crossing relation |
+| Unenumerated worlds | 0.05 | Explicit residual unknown mass |
+
+The values are deliberately illustrative, not learned or calibrated.
+
+### 2.3 Evidence closure
+
+Every event has a source-evidence reference. Every assigned event must be represented in its candidate asset's event membership and supported by that exact source evidence. Every node and relation must resolve its references and carry admitted evidence.
+
+A null event assignment is a valid explicit abstention. It is not silently converted into an absent utility.
+
+### 2.4 Topology is not visual intersection
+
+The relation types distinguish continuation, junction, unresolved crossing and unresolved near-intersection.
+
+An unresolved crossing is not a graph edge establishing physical connection. It remains a spatial relationship awaiting evidence.
+
+### 2.5 Calibration status is separate from structural validity
+
+The validator can check that a calibration receipt identifier was supplied when a caller claims that one is referenced. It cannot authenticate that receipt or establish that the probabilities are calibrated.
+
+The code deliberately does not derive a posterior from event marginals or multiply cross-modal likelihoods.
+
+## 3. Asset-cluster scoring is now executable
+
+A separate event-to-asset evaluator is implemented in `sol-atlas-core/src/utility_reconstruction_metrics.rs`, with CLI `utility_reconstruction_eval`.
+
+It reports B-cubed precision/recall/F1, pairwise true-positive pairs, explicit overmerge/oversplit pairs, candidate false assets, missed truth assets, abstention and false association of adjudicated clutter. It scores only structured independent survey and reviewed trench-image truth. Owner-record-only, conflicted and insufficient truth are separately counted, not converted to negative examples.
+
+Every reference event requires exactly one prediction disposition: candidate asset or explicit abstention. Missing predictions are rejected. Clutter and abstention are singletons in their respective partitions. The committed fixture and pinned baseline are synthetic only.
+
+# EARTH-OBSERVABILITY-JOINT-NETWORK-HYPOTHESES-001
+## Joint posterior hypotheses for evidence-qualified utility-network reconstruction v0.1
+
+**Parent:** Sol-Atlas #771 — EARTH-OBSERVABILITY-QUAL-002  
+**Implementation branch:** research/earth-observability-joint-network-hypotheses-v0-1  
+**Status:** Rust structural contract and deterministic analytic fixture added; probability calibration, graph scoring and physical validation NOT_RUN  
+**Date:** 2026-11-14  
+**Claim ceiling:** The fixture is abstract and non-geographic. It does not represent a real utility, field survey, calibrated posterior, qualified network geometry or excavation clearance.
+
+---
+
+## 1. Research proposition: infer a distribution over worlds, not one best-looking map
+
+The current candidate-graph contract permits multiple event-to-asset association marginals and explicit abstention. That is useful, but independently meaningful marginal probabilities do not necessarily form a coherent joint network.
+
+For example, separate edge probabilities can each look plausible while their combination creates an impossible network: a single event is assigned to two incompatible assets, a crossing is treated as a junction, or two mutually exclusive asset partitions are simultaneously represented as facts.
+
+The next abstraction is a **joint network hypothesis set**:
+
+- one immutable evidence snapshot and one investigation scope;
+- a finite set of mutually exclusive candidate network worlds;
+- one complete event disposition per observed event in every world;
+- candidate assets, geometry claims, nodes and relations that are internally coherent within each world;
+- a probability for each whole world;
+- explicit residual probability for worlds not enumerated.
+
+This is not a claim that a Bayesian posterior has been calibrated. It is a data and validation contract that makes the intended probability semantics explicit and testable.
+
+The decision product becomes:
+
+> Here are the plausible physical network configurations, their relative support, the evidence that separates them, and the observation most likely to change the engineering decision.
+
+## 2. Contract semantics
+
+The executable contract is in `sol-atlas-core/src/network_hypotheses.rs`; the strict JSON Schema Draft 2020-12 interchange profile is `research/earth-observability/NETWORK_HYPOTHESES_V0_1.schema.json`. The Rust validator enforces cross-reference and cross-field invariants that JSON Schema alone cannot express.
+
+### 2.1 One hypothesis is one complete candidate world
+
+A NetworkHypothesis contains:
+
+- a unique hypothesis identity and whole-world probability;
+- exactly one assignment record for every event in the set;
+- explicit null assignment for events left unassociated;
+- candidate asset instances and their event membership;
+- optional geometry-claim references;
+- candidate nodes and their associated candidate assets;
+- evidence-supported relations between nodes.
+
+A candidate identifier is local and non-authoritative. It is not a MUDDI ObjectID, owner-system SystemID or utility-owner asset identifier.
+
+### 2.2 Mutually exclusive world mass
+
+The probability invariant is:
+
+sum(P(hypothesis_i)) + P(residual_unknown) = 1
+
+within a fixed numerical tolerance.
+
+The residual is not a negative detection, absence probability or permission to redistribute probability among the listed hypotheses. It represents unenumerated or unresolved possible worlds.
+
+The fixture contains three alternatives:
+
+| World | Probability | Interpretation |
+|---|---:|---|
+| world-one-utility | 0.62 | Two events belong to one candidate utility |
+| world-two-utilities | 0.23 | The events belong to distinct candidate utilities |
+| world-crossing-unresolved | 0.10 | Two distinct assets have an unresolved crossing relation |
+| Unenumerated worlds | 0.05 | Explicit residual unknown mass |
+
+The values are deliberately illustrative, not learned or calibrated.
+
+### 2.3 Evidence closure
+
+Every event has a source-evidence reference. Every assigned event must be represented in its candidate asset's event membership and supported by that exact source evidence. Every node and relation must resolve its references and carry admitted evidence.
+
+A null event assignment is a valid explicit abstention. It is not silently converted into an absent utility.
+
+### 2.4 Topology is not visual intersection
+
+The relation types distinguish continuation, junction, unresolved crossing and unresolved near-intersection.
+
+An unresolved crossing is not a graph edge establishing physical connection. It remains a spatial relationship awaiting evidence.
+
+### 2.5 Calibration status is separate from structural validity
+
+The validator can check that a calibration receipt identifier was supplied when a caller claims that one is referenced. It cannot authenticate that receipt or establish that the probabilities are calibrated.
+
+The code deliberately does not derive a posterior from event marginals or multiply cross-modal likelihoods.
+
+## 3. Asset-cluster scoring is now executable
+
+A separate event-to-asset evaluator is implemented in `sol-atlas-core/src/utility_reconstruction_metrics.rs`, with CLI `utility_reconstruction_eval`.
+
+It reports B-cubed precision/recall/F1, pairwise true-positive pairs, explicit overmerge/oversplit pairs, candidate false assets, missed truth assets, abstention and false association of adjudicated clutter. It scores only structured independent survey and reviewed trench-image truth. Owner-record-only, conflicted and insufficient truth are separately counted, not converted to negative examples.
+
+Every reference event requires exactly one prediction disposition: candidate asset or explicit abstention. Missing predictions are rejected. Clutter and abstention are singletons in their respective partitions. The committed fixture and pinned baseline are synthetic only.
+
+# EARTH-OBSERVABILITY-JOINT-NETWORK-HYPOTHESES-001
+## Joint posterior hypotheses for evidence-qualified utility-network reconstruction v0.1
+
+**Parent:** Sol-Atlas #771 — EARTH-OBSERVABILITY-QUAL-002  
+**Implementation branch:** research/earth-observability-joint-network-hypotheses-v0-1  
+**Status:** Rust structural contract and deterministic analytic fixture added; probability calibration, graph scoring and physical validation NOT_RUN  
+**Date:** 2026-11-14  
+**Claim ceiling:** The fixture is abstract and non-geographic. It does not represent a real utility, field survey, calibrated posterior, qualified network geometry or excavation clearance.
+
+---
+
+## 1. Research proposition: infer a distribution over worlds, not one best-looking map
+
+The current candidate-graph contract permits multiple event-to-asset association marginals and explicit abstention. That is useful, but independently meaningful marginal probabilities do not necessarily form a coherent joint network.
+
+For example, separate edge probabilities can each look plausible while their combination creates an impossible network: a single event is assigned to two incompatible assets, a crossing is treated as a junction, or two mutually exclusive asset partitions are simultaneously represented as facts.
+
+The next abstraction is a **joint network hypothesis set**:
+
+- one immutable evidence snapshot and one investigation scope;
+- a finite set of mutually exclusive candidate network worlds;
+- one complete event disposition per observed event in every world;
+- candidate assets, geometry claims, nodes and relations that are internally coherent within each world;
+- a probability for each whole world;
+- explicit residual probability for worlds not enumerated.
+
+This is not a claim that a Bayesian posterior has been calibrated. It is a data and validation contract that makes the intended probability semantics explicit and testable.
+
+The decision product becomes:
+
+> Here are the plausible physical network configurations, their relative support, the evidence that separates them, and the observation most likely to change the engineering decision.
+
+## 2. Contract semantics
+
+The executable contract is in `sol-atlas-core/src/network_hypotheses.rs`; the strict JSON Schema Draft 2020-12 interchange profile is `research/earth-observability/NETWORK_HYPOTHESES_V0_1.schema.json`. The Rust validator enforces cross-reference and cross-field invariants that JSON Schema alone cannot express.
+
+### 2.1 One hypothesis is one complete candidate world
+
+A NetworkHypothesis contains:
+
+- a unique hypothesis identity and whole-world probability;
+- exactly one assignment record for every event in the set;
+- explicit null assignment for events left unassociated;
+- candidate asset instances and their event membership;
+- optional geometry-claim references;
+- candidate nodes and their associated candidate assets;
+- evidence-supported relations between nodes.
+
+A candidate identifier is local and non-authoritative. It is not a MUDDI ObjectID, owner-system SystemID or utility-owner asset identifier.
+
+### 2.2 Mutually exclusive world mass
+
+The probability invariant is:
+
+sum(P(hypothesis_i)) + P(residual_unknown) = 1
+
+within a fixed numerical tolerance.
+
+The residual is not a negative detection, absence probability or permission to redistribute probability among the listed hypotheses. It represents unenumerated or unresolved possible worlds.
+
+The fixture contains three alternatives:
+
+| World | Probability | Interpretation |
+|---|---:|---|
+| world-one-utility | 0.62 | Two events belong to one candidate utility |
+| world-two-utilities | 0.23 | The events belong to distinct candidate utilities |
+| world-crossing-unresolved | 0.10 | Two distinct assets have an unresolved crossing relation |
+| Unenumerated worlds | 0.05 | Explicit residual unknown mass |
+
+The values are deliberately illustrative, not learned or calibrated.
+
+### 2.3 Evidence closure
+
+Every event has a source-evidence reference. Every assigned event must be represented in its candidate asset's event membership and supported by that exact source evidence. Every node and relation must resolve its references and carry admitted evidence.
+
+A null event assignment is a valid explicit abstention. It is not silently converted into an absent utility.
+
+### 2.4 Topology is not visual intersection
+
+The relation types distinguish continuation, junction, unresolved crossing and unresolved near-intersection.
+
+An unresolved crossing is not a graph edge establishing physical connection. It remains a spatial relationship awaiting evidence.
+
+### 2.5 Calibration status is separate from structural validity
+
+The validator can check that a calibration receipt identifier was supplied when a caller claims that one is referenced. It cannot authenticate that receipt or establish that the probabilities are calibrated.
+
+The code deliberately does not derive a posterior from event marginals or multiply cross-modal likelihoods.
+
+## 3. Asset-cluster scoring is now executable
+
+A separate event-to-asset evaluator is implemented in `sol-atlas-core/src/utility_reconstruction_metrics.rs`, with CLI `utility_reconstruction_eval`.
+
+It reports B-cubed precision/recall/F1, pairwise true-positive pairs, explicit overmerge/oversplit pairs, candidate false assets, missed truth assets, abstention and false association of adjudicated clutter. It scores only structured independent survey and reviewed trench-image truth. Owner-record-only, conflicted and insufficient truth are separately counted, not converted to negative examples.
+
+Every reference event requires exactly one prediction disposition: candidate asset or explicit abstention. Missing predictions are rejected. Clutter and abstention are singletons in their respective partitions. The committed fixture and pinned baseline are synthetic only.
+
+# EARTH-OBSERVABILITY-JOINT-NETWORK-HYPOTHESES-001
+## Joint posterior hypotheses for evidence-qualified utility-network reconstruction v0.1
+
+**Parent:** Sol-Atlas #771 — EARTH-OBSERVABILITY-QUAL-002  
+**Implementation branch:** research/earth-observability-joint-network-hypotheses-v0-1  
+**Status:** Rust structural contract and deterministic analytic fixture added; probability calibration, graph scoring and physical validation NOT_RUN  
+**Date:** 2026-11-14  
+**Claim ceiling:** The fixture is abstract and non-geographic. It does not represent a real utility, field survey, calibrated posterior, qualified network geometry or excavation clearance.
+
+---
+
+## 1. Research proposition: infer a distribution over worlds, not one best-looking map
+
+The current candidate-graph contract permits multiple event-to-asset association marginals and explicit abstention. That is useful, but independently meaningful marginal probabilities do not necessarily form a coherent joint network.
+
+For example, separate edge probabilities can each look plausible while their combination creates an impossible network: a single event is assigned to two incompatible assets, a crossing is treated as a junction, or two mutually exclusive asset partitions are simultaneously represented as facts.
+
+The next abstraction is a **joint network hypothesis set**:
+
+- one immutable evidence snapshot and one investigation scope;
+- a finite set of mutually exclusive candidate network worlds;
+- one complete event disposition per observed event in every world;
+- candidate assets, geometry claims, nodes and relations that are internally coherent within each world;
+- a probability for each whole world;
+- explicit residual probability for worlds not enumerated.
+
+This is not a claim that a Bayesian posterior has been calibrated. It is a data and validation contract that makes the intended probability semantics explicit and testable.
+
+The decision product becomes:
+
+> Here are the plausible physical network configurations, their relative support, the evidence that separates them, and the observation most likely to change the engineering decision.
+
+## 2. Contract semantics
+
+The executable contract is in `sol-atlas-core/src/network_hypotheses.rs`; the strict JSON Schema Draft 2020-12 interchange profile is `research/earth-observability/NETWORK_HYPOTHESES_V0_1.schema.json`. The Rust validator enforces cross-reference and cross-field invariants that JSON Schema alone cannot express.
+
+### 2.1 One hypothesis is one complete candidate world
+
+A NetworkHypothesis contains:
+
+- a unique hypothesis identity and whole-world probability;
+- exactly one assignment record for every event in the set;
+- explicit null assignment for events left unassociated;
+- candidate asset instances and their event membership;
+- optional geometry-claim references;
+- candidate nodes and their associated candidate assets;
+- evidence-supported relations between nodes.
+
+A candidate identifier is local and non-authoritative. It is not a MUDDI ObjectID, owner-system SystemID or utility-owner asset identifier.
+
+### 2.2 Mutually exclusive world mass
+
+The probability invariant is:
+
+sum(P(hypothesis_i)) + P(residual_unknown) = 1
+
+within a fixed numerical tolerance.
+
+The residual is not a negative detection, absence probability or permission to redistribute probability among the listed hypotheses. It represents unenumerated or unresolved possible worlds.
+
+The fixture contains three alternatives:
+
+| World | Probability | Interpretation |
+|---|---:|---|
+| world-one-utility | 0.62 | Two events belong to one candidate utility |
+| world-two-utilities | 0.23 | The events belong to distinct candidate utilities |
+| world-crossing-unresolved | 0.10 | Two distinct assets have an unresolved crossing relation |
+| Unenumerated worlds | 0.05 | Explicit residual unknown mass |
+
+The values are deliberately illustrative, not learned or calibrated.
+
+### 2.3 Evidence closure
+
+Every event has a source-evidence reference. Every assigned event must be represented in its candidate asset's event membership and supported by that exact source evidence. Every node and relation must resolve its references and carry admitted evidence.
+
+A null event assignment is a valid explicit abstention. It is not silently converted into an absent utility.
+
+### 2.4 Topology is not visual intersection
+
+The relation types distinguish continuation, junction, unresolved crossing and unresolved near-intersection.
+
+An unresolved crossing is not a graph edge establishing physical connection. It remains a spatial relationship awaiting evidence.
+
+### 2.5 Calibration status is separate from structural validity
+
+The validator can check that a calibration receipt identifier was supplied when a caller claims that one is referenced. It cannot authenticate that receipt or establish that the probabilities are calibrated.
+
+The code deliberately does not derive a posterior from event marginals or multiply cross-modal likelihoods.
+
+## 3. Asset-cluster scoring is now executable
+
+A separate event-to-asset evaluator is implemented in `sol-atlas-core/src/utility_reconstruction_metrics.rs`, with CLI `utility_reconstruction_eval`.
+
+It reports B-cubed precision/recall/F1, pairwise true-positive pairs, explicit overmerge/oversplit pairs, candidate false assets, missed truth assets, abstention and false association of adjudicated clutter. It scores only structured independent survey and reviewed trench-image truth. Owner-record-only, conflicted and insufficient truth are separately counted, not converted to negative examples.
+
+Every reference event requires exactly one prediction disposition: candidate asset or explicit abstention. Missing predictions are rejected. Clutter and abstention are singletons in their respective partitions. The committed fixture and pinned baseline are synthetic only.
+
+# EARTH-OBSERVABILITY-JOINT-NETWORK-HYPOTHESES-001
+## Joint posterior hypotheses for evidence-qualified utility-network reconstruction v0.1
+
+**Parent:** Sol-Atlas #771 — EARTH-OBSERVABILITY-QUAL-002  
+**Implementation branch:** research/earth-observability-joint-network-hypotheses-v0-1  
+**Status:** Rust structural contract and deterministic analytic fixture added; probability calibration, graph scoring and physical validation NOT_RUN  
+**Date:** 2026-11-14  
+**Claim ceiling:** The fixture is abstract and non-geographic. It does not represent a real utility, field survey, calibrated posterior, qualified network geometry or excavation clearance.
+
+---
+
+## 1. Research proposition: infer a distribution over worlds, not one best-looking map
+
+The current candidate-graph contract permits multiple event-to-asset association marginals and explicit abstention. That is useful, but independently meaningful marginal probabilities do not necessarily form a coherent joint network.
+
+For example, separate edge probabilities can each look plausible while their combination creates an impossible network: a single event is assigned to two incompatible assets, a crossing is treated as a junction, or two mutually exclusive asset partitions are simultaneously represented as facts.
+
+The next abstraction is a **joint network hypothesis set**:
+
+- one immutable evidence snapshot and one investigation scope;
+- a finite set of mutually exclusive candidate network worlds;
+- one complete event disposition per observed event in every world;
+- candidate assets, geometry claims, nodes and relations that are internally coherent within each world;
+- a probability for each whole world;
+- explicit residual probability for worlds not enumerated.
+
+This is not a claim that a Bayesian posterior has been calibrated. It is a data and validation contract that makes the intended probability semantics explicit and testable.
+
+The decision product becomes:
+
+> Here are the plausible physical network configurations, their relative support, the evidence that separates them, and the observation most likely to change the engineering decision.
+
+## 2. Contract semantics
+
+The executable contract is in `sol-atlas-core/src/network_hypotheses.rs`; the strict JSON Schema Draft 2020-12 interchange profile is `research/earth-observability/NETWORK_HYPOTHESES_V0_1.schema.json`. The Rust validator enforces cross-reference and cross-field invariants that JSON Schema alone cannot express.
+
+### 2.1 One hypothesis is one complete candidate world
+
+A NetworkHypothesis contains:
+
+- a unique hypothesis identity and whole-world probability;
+- exactly one assignment record for every event in the set;
+- explicit null assignment for events left unassociated;
+- candidate asset instances and their event membership;
+- optional geometry-claim references;
+- candidate nodes and their associated candidate assets;
+- evidence-supported relations between nodes.
+
+A candidate identifier is local and non-authoritative. It is not a MUDDI ObjectID, owner-system SystemID or utility-owner asset identifier.
+
+### 2.2 Mutually exclusive world mass
+
+The probability invariant is:
+
+sum(P(hypothesis_i)) + P(residual_unknown) = 1
+
+within a fixed numerical tolerance.
+
+The residual is not a negative detection, absence probability or permission to redistribute probability among the listed hypotheses. It represents unenumerated or unresolved possible worlds.
+
+The fixture contains three alternatives:
+
+| World | Probability | Interpretation |
+|---|---:|---|
+| world-one-utility | 0.62 | Two events belong to one candidate utility |
+| world-two-utilities | 0.23 | The events belong to distinct candidate utilities |
+| world-crossing-unresolved | 0.10 | Two distinct assets have an unresolved crossing relation |
+| Unenumerated worlds | 0.05 | Explicit residual unknown mass |
+
+The values are deliberately illustrative, not learned or calibrated.
+
+### 2.3 Evidence closure
+
+Every event has a source-evidence reference. Every assigned event must be represented in its candidate asset's event membership and supported by that exact source evidence. Every node and relation must resolve its references and carry admitted evidence.
+
+A null event assignment is a valid explicit abstention. It is not silently converted into an absent utility.
+
+### 2.4 Topology is not visual intersection
+
+The relation types distinguish continuation, junction, unresolved crossing and unresolved near-intersection.
+
+An unresolved crossing is not a graph edge establishing physical connection. It remains a spatial relationship awaiting evidence.
+
+### 2.5 Calibration status is separate from structural validity
+
+The validator can check that a calibration receipt identifier was supplied when a caller claims that one is referenced. It cannot authenticate that receipt or establish that the probabilities are calibrated.
+
+The code deliberately does not derive a posterior from event marginals or multiply cross-modal likelihoods.
+
+## 3. Asset-cluster scoring is now executable
+
+A separate event-to-asset evaluator is implemented in `sol-atlas-core/src/utility_reconstruction_metrics.rs`, with CLI `utility_reconstruction_eval`.
+
+It reports B-cubed precision/recall/F1, pairwise true-positive pairs, explicit overmerge/oversplit pairs, candidate false assets, missed truth assets, abstention and false association of adjudicated clutter. It scores only structured independent survey and reviewed trench-image truth. Owner-record-only, conflicted and insufficient truth are separately counted, not converted to negative examples.
+
+Every reference event requires exactly one prediction disposition: candidate asset or explicit abstention. Missing predictions are rejected. Clutter and abstention are singletons in their respective partitions. The committed fixture and pinned baseline are synthetic only.
+
+# EARTH-OBSERVABILITY-JOINT-NETWORK-HYPOTHESES-001
+## Joint posterior hypotheses for evidence-qualified utility-network reconstruction v0.1
+
+**Parent:** Sol-Atlas #771 — EARTH-OBSERVABILITY-QUAL-002  
+**Implementation branch:** research/earth-observability-joint-network-hypotheses-v0-1  
+**Status:** Rust structural contract and deterministic analytic fixture added; probability calibration, graph scoring and physical validation NOT_RUN  
+**Date:** 2026-11-14  
+**Claim ceiling:** The fixture is abstract and non-geographic. It does not represent a real utility, field survey, calibrated posterior, qualified network geometry or excavation clearance.
+
+---
+
+## 1. Research proposition: infer a distribution over worlds, not one best-looking map
+
+The current candidate-graph contract permits multiple event-to-asset association marginals and explicit abstention. That is useful, but independently meaningful marginal probabilities do not necessarily form a coherent joint network.
+
+For example, separate edge probabilities can each look plausible while their combination creates an impossible network: a single event is assigned to two incompatible assets, a crossing is treated as a junction, or two mutually exclusive asset partitions are simultaneously represented as facts.
+
+The next abstraction is a **joint network hypothesis set**:
+
+- one immutable evidence snapshot and one investigation scope;
+- a finite set of mutually exclusive candidate network worlds;
+- one complete event disposition per observed event in every world;
+- candidate assets, geometry claims, nodes and relations that are internally coherent within each world;
+- a probability for each whole world;
+- explicit residual probability for worlds not enumerated.
+
+This is not a claim that a Bayesian posterior has been calibrated. It is a data and validation contract that makes the intended probability semantics explicit and testable.
+
+The decision product becomes:
+
+> Here are the plausible physical network configurations, their relative support, the evidence that separates them, and the observation most likely to change the engineering decision.
+
+## 2. Contract semantics
+
+The executable contract is in `sol-atlas-core/src/network_hypotheses.rs`; the strict JSON Schema Draft 2020-12 interchange profile is `research/earth-observability/NETWORK_HYPOTHESES_V0_1.schema.json`. The Rust validator enforces cross-reference and cross-field invariants that JSON Schema alone cannot express.
+
+### 2.1 One hypothesis is one complete candidate world
+
+A NetworkHypothesis contains:
+
+- a unique hypothesis identity and whole-world probability;
+- exactly one assignment record for every event in the set;
+- explicit null assignment for events left unassociated;
+- candidate asset instances and their event membership;
+- optional geometry-claim references;
+- candidate nodes and their associated candidate assets;
+- evidence-supported relations between nodes.
+
+A candidate identifier is local and non-authoritative. It is not a MUDDI ObjectID, owner-system SystemID or utility-owner asset identifier.
+
+### 2.2 Mutually exclusive world mass
+
+The probability invariant is:
+
+sum(P(hypothesis_i)) + P(residual_unknown) = 1
+
+within a fixed numerical tolerance.
+
+The residual is not a negative detection, absence probability or permission to redistribute probability among the listed hypotheses. It represents unenumerated or unresolved possible worlds.
+
+The fixture contains three alternatives:
+
+| World | Probability | Interpretation |
+|---|---:|---|
+| world-one-utility | 0.62 | Two events belong to one candidate utility |
+| world-two-utilities | 0.23 | The events belong to distinct candidate utilities |
+| world-crossing-unresolved | 0.10 | Two distinct assets have an unresolved crossing relation |
+| Unenumerated worlds | 0.05 | Explicit residual unknown mass |
+
+The values are deliberately illustrative, not learned or calibrated.
+
+### 2.3 Evidence closure
+
+Every event has a source-evidence reference. Every assigned event must be represented in its candidate asset's event membership and supported by that exact source evidence. Every node and relation must resolve its references and carry admitted evidence.
+
+A null event assignment is a valid explicit abstention. It is not silently converted into an absent utility.
+
+### 2.4 Topology is not visual intersection
+
+The relation types distinguish continuation, junction, unresolved crossing and unresolved near-intersection.
+
+An unresolved crossing is not a graph edge establishing physical connection. It remains a spatial relationship awaiting evidence.
+
+### 2.5 Calibration status is separate from structural validity
+
+The validator can check that a calibration receipt identifier was supplied when a caller claims that one is referenced. It cannot authenticate that receipt or establish that the probabilities are calibrated.
+
+The code deliberately does not derive a posterior from event marginals or multiply cross-modal likelihoods.
+
+## 3. Asset-cluster scoring is now executable
+
+A separate event-to-asset evaluator is implemented in `sol-atlas-core/src/utility_reconstruction_metrics.rs`, with CLI `utility_reconstruction_eval`.
+
+It reports B-cubed precision/recall/F1, pairwise true-positive pairs, explicit overmerge/oversplit pairs, candidate false assets, missed truth assets, abstention and false association of adjudicated clutter. It scores only structured independent survey and reviewed trench-image truth. Owner-record-only, conflicted and insufficient truth are separately counted, not converted to negative examples.
+
+Every reference event requires exactly one prediction disposition: candidate asset or explicit abstention. Missing predictions are rejected. Clutter and abstention are singletons in their respective partitions. The committed fixture and pinned baseline are synthetic only.
+
+# EARTH-OBSERVABILITY-JOINT-NETWORK-HYPOTHESES-001
+## Joint posterior hypotheses for evidence-qualified utility-network reconstruction v0.1
+
+**Parent:** Sol-Atlas #771 — EARTH-OBSERVABILITY-QUAL-002  
+**Implementation branch:** research/earth-observability-joint-network-hypotheses-v0-1  
+**Status:** Rust structural contract and deterministic analytic fixture added; probability calibration, graph scoring and physical validation NOT_RUN  
+**Date:** 2026-11-14  
+**Claim ceiling:** The fixture is abstract and non-geographic. It does not represent a real utility, field survey, calibrated posterior, qualified network geometry or excavation clearance.
+
+---
+
+## 1. Research proposition: infer a distribution over worlds, not one best-looking map
+
+The current candidate-graph contract permits multiple event-to-asset association marginals and explicit abstention. That is useful, but independently meaningful marginal probabilities do not necessarily form a coherent joint network.
+
+For example, separate edge probabilities can each look plausible while their combination creates an impossible network: a single event is assigned to two incompatible assets, a crossing is treated as a junction, or two mutually exclusive asset partitions are simultaneously represented as facts.
+
+The next abstraction is a **joint network hypothesis set**:
+
+- one immutable evidence snapshot and one investigation scope;
+- a finite set of mutually exclusive candidate network worlds;
+- one complete event disposition per observed event in every world;
+- candidate assets, geometry claims, nodes and relations that are internally coherent within each world;
+- a probability for each whole world;
+- explicit residual probability for worlds not enumerated.
+
+This is not a claim that a Bayesian posterior has been calibrated. It is a data and validation contract that makes the intended probability semantics explicit and testable.
+
+The decision product becomes:
+
+> Here are the plausible physical network configurations, their relative support, the evidence that separates them, and the observation most likely to change the engineering decision.
+
+## 2. Contract semantics
+
+The executable contract is in `sol-atlas-core/src/network_hypotheses.rs`; the strict JSON Schema Draft 2020-12 interchange profile is `research/earth-observability/NETWORK_HYPOTHESES_V0_1.schema.json`. The Rust validator enforces cross-reference and cross-field invariants that JSON Schema alone cannot express.
+
+### 2.1 One hypothesis is one complete candidate world
+
+A NetworkHypothesis contains:
+
+- a unique hypothesis identity and whole-world probability;
+- exactly one assignment record for every event in the set;
+- explicit null assignment for events left unassociated;
+- candidate asset instances and their event membership;
+- optional geometry-claim references;
+- candidate nodes and their associated candidate assets;
+- evidence-supported relations between nodes.
+
+A candidate identifier is local and non-authoritative. It is not a MUDDI ObjectID, owner-system SystemID or utility-owner asset identifier.
+
+### 2.2 Mutually exclusive world mass
+
+The probability invariant is:
+
+sum(P(hypothesis_i)) + P(residual_unknown) = 1
+
+within a fixed numerical tolerance.
+
+The residual is not a negative detection, absence probability or permission to redistribute probability among the listed hypotheses. It represents unenumerated or unresolved possible worlds.
+
+The fixture contains three alternatives:
+
+| World | Probability | Interpretation |
+|---|---:|---|
+| world-one-utility | 0.62 | Two events belong to one candidate utility |
+| world-two-utilities | 0.23 | The events belong to distinct candidate utilities |
+| world-crossing-unresolved | 0.10 | Two distinct assets have an unresolved crossing relation |
+| Unenumerated worlds | 0.05 | Explicit residual unknown mass |
+
+The values are deliberately illustrative, not learned or calibrated.
+
+### 2.3 Evidence closure
+
+Every event has a source-evidence reference. Every assigned event must be represented in its candidate asset's event membership and supported by that exact source evidence. Every node and relation must resolve its references and carry admitted evidence.
+
+A null event assignment is a valid explicit abstention. It is not silently converted into an absent utility.
+
+### 2.4 Topology is not visual intersection
+
+The relation types distinguish continuation, junction, unresolved crossing and unresolved near-intersection.
+
+An unresolved crossing is not a graph edge establishing physical connection. It remains a spatial relationship awaiting evidence.
+
+### 2.5 Calibration status is separate from structural validity
+
+The validator can check that a calibration receipt identifier was supplied when a caller claims that one is referenced. It cannot authenticate that receipt or establish that the probabilities are calibrated.
+
+The code deliberately does not derive a posterior from event marginals or multiply cross-modal likelihoods.
+
+## 3. Asset-cluster scoring is now executable
+
+A separate event-to-asset evaluator is implemented in `sol-atlas-core/src/utility_reconstruction_metrics.rs`, with CLI `utility_reconstruction_eval`.
+
+It reports B-cubed precision/recall/F1, pairwise true-positive pairs, explicit overmerge/oversplit pairs, candidate false assets, missed truth assets, abstention and false association of adjudicated clutter. It scores only structured independent survey and reviewed trench-image truth. Owner-record-only, conflicted and insufficient truth are separately counted, not converted to negative examples.
+
+Every reference event requires exactly one prediction disposition: candidate asset or explicit abstention. Missing predictions are rejected. Clutter and abstention are singletons in their respective partitions. The committed fixture and pinned baseline are synthetic only.
+
+# EARTH-OBSERVABILITY-JOINT-NETWORK-HYPOTHESES-001
+## Joint posterior hypotheses for evidence-qualified utility-network reconstruction v0.1
+
+**Parent:** Sol-Atlas #771 — EARTH-OBSERVABILITY-QUAL-002  
+**Implementation branch:** research/earth-observability-joint-network-hypotheses-v0-1  
+**Status:** Rust structural contract and deterministic analytic fixture added; probability calibration, graph scoring and physical validation NOT_RUN  
+**Date:** 2026-11-14  
+**Claim ceiling:** The fixture is abstract and non-geographic. It does not represent a real utility, field survey, calibrated posterior, qualified network geometry or excavation clearance.
+
+---
+
+## 1. Research proposition: infer a distribution over worlds, not one best-looking map
+
+The current candidate-graph contract permits multiple event-to-asset association marginals and explicit abstention. That is useful, but independently meaningful marginal probabilities do not necessarily form a coherent joint network.
+
+For example, separate edge probabilities can each look plausible while their combination creates an impossible network: a single event is assigned to two incompatible assets, a crossing is treated as a junction, or two mutually exclusive asset partitions are simultaneously represented as facts.
+
+The next abstraction is a **joint network hypothesis set**:
+
+- one immutable evidence snapshot and one investigation scope;
+- a finite set of mutually exclusive candidate network worlds;
+- one complete event disposition per observed event in every world;
+- candidate assets, geometry claims, nodes and relations that are internally coherent within each world;
+- a probability for each whole world;
+- explicit residual probability for worlds not enumerated.
+
+This is not a claim that a Bayesian posterior has been calibrated. It is a data and validation contract that makes the intended probability semantics explicit and testable.
+
+The decision product becomes:
+
+> Here are the plausible physical network configurations, their relative support, the evidence that separates them, and the observation most likely to change the engineering decision.
+
+## 2. Contract semantics
+
+The executable contract is in `sol-atlas-core/src/network_hypotheses.rs`; the strict JSON Schema Draft 2020-12 interchange profile is `research/earth-observability/NETWORK_HYPOTHESES_V0_1.schema.json`. The Rust validator enforces cross-reference and cross-field invariants that JSON Schema alone cannot express.
+
+### 2.1 One hypothesis is one complete candidate world
+
+A NetworkHypothesis contains:
+
+- a unique hypothesis identity and whole-world probability;
+- exactly one assignment record for every event in the set;
+- explicit null assignment for events left unassociated;
+- candidate asset instances and their event membership;
+- optional geometry-claim references;
+- candidate nodes and their associated candidate assets;
+- evidence-supported relations between nodes.
+
+A candidate identifier is local and non-authoritative. It is not a MUDDI ObjectID, owner-system SystemID or utility-owner asset identifier.
+
+### 2.2 Mutually exclusive world mass
+
+The probability invariant is:
+
+sum(P(hypothesis_i)) + P(residual_unknown) = 1
+
+within a fixed numerical tolerance.
+
+The residual is not a negative detection, absence probability or permission to redistribute probability among the listed hypotheses. It represents unenumerated or unresolved possible worlds.
+
+The fixture contains three alternatives:
+
+| World | Probability | Interpretation |
+|---|---:|---|
+| world-one-utility | 0.62 | Two events belong to one candidate utility |
+| world-two-utilities | 0.23 | The events belong to distinct candidate utilities |
+| world-crossing-unresolved | 0.10 | Two distinct assets have an unresolved crossing relation |
+| Unenumerated worlds | 0.05 | Explicit residual unknown mass |
+
+The values are deliberately illustrative, not learned or calibrated.
+
+### 2.3 Evidence closure
+
+Every event has a source-evidence reference. Every assigned event must be represented in its candidate asset's event membership and supported by that exact source evidence. Every node and relation must resolve its references and carry admitted evidence.
+
+A null event assignment is a valid explicit abstention. It is not silently converted into an absent utility.
+
+### 2.4 Topology is not visual intersection
+
+The relation types distinguish continuation, junction, unresolved crossing and unresolved near-intersection.
+
+An unresolved crossing is not a graph edge establishing physical connection. It remains a spatial relationship awaiting evidence.
+
+### 2.5 Calibration status is separate from structural validity
+
+The validator can check that a calibration receipt identifier was supplied when a caller claims that one is referenced. It cannot authenticate that receipt or establish that the probabilities are calibrated.
+
+The code deliberately does not derive a posterior from event marginals or multiply cross-modal likelihoods.
+
+## 3. Asset-cluster scoring is now executable
+
+A separate event-to-asset evaluator is implemented in `sol-atlas-core/src/utility_reconstruction_metrics.rs`, with CLI `utility_reconstruction_eval`.
+
+It reports B-cubed precision/recall/F1, pairwise true-positive pairs, explicit overmerge/oversplit pairs, candidate false assets, missed truth assets, abstention and false association of adjudicated clutter. It scores only structured independent survey and reviewed trench-image truth. Owner-record-only, conflicted and insufficient truth are separately counted, not converted to negative examples.
+
+Every reference event requires exactly one prediction disposition: candidate asset or explicit abstention. Missing predictions are rejected. Clutter and abstention are singletons in their respective partitions. The committed fixture and pinned baseline are synthetic only.
+
+# EARTH-OBSERVABILITY-JOINT-NETWORK-HYPOTHESES-001
+## Joint posterior hypotheses for evidence-qualified utility-network reconstruction v0.1
+
+**Parent:** Sol-Atlas #771 — EARTH-OBSERVABILITY-QUAL-002  
+**Implementation branch:** research/earth-observability-joint-network-hypotheses-v0-1  
+**Status:** Rust structural contract and deterministic analytic fixture added; probability calibration, graph scoring and physical validation NOT_RUN  
+**Date:** 2026-11-14  
+**Claim ceiling:** The fixture is abstract and non-geographic. It does not represent a real utility, field survey, calibrated posterior, qualified network geometry or excavation clearance.
+
+---
+
+## 1. Research proposition: infer a distribution over worlds, not one best-looking map
+
+The current candidate-graph contract permits multiple event-to-asset association marginals and explicit abstention. That is useful, but independently meaningful marginal probabilities do not necessarily form a coherent joint network.
+
+For example, separate edge probabilities can each look plausible while their combination creates an impossible network: a single event is assigned to two incompatible assets, a crossing is treated as a junction, or two mutually exclusive asset partitions are simultaneously represented as facts.
+
+The next abstraction is a **joint network hypothesis set**:
+
+- one immutable evidence snapshot and one investigation scope;
+- a finite set of mutually exclusive candidate network worlds;
+- one complete event disposition per observed event in every world;
+- candidate assets, geometry claims, nodes and relations that are internally coherent within each world;
+- a probability for each whole world;
+- explicit residual probability for worlds not enumerated.
+
+This is not a claim that a Bayesian posterior has been calibrated. It is a data and validation contract that makes the intended probability semantics explicit and testable.
+
+The decision product becomes:
+
+> Here are the plausible physical network configurations, their relative support, the evidence that separates them, and the observation most likely to change the engineering decision.
+
+## 2. Contract semantics
+
+The executable contract is in `sol-atlas-core/src/network_hypotheses.rs`; the strict JSON Schema Draft 2020-12 interchange profile is `research/earth-observability/NETWORK_HYPOTHESES_V0_1.schema.json`. The Rust validator enforces cross-reference and cross-field invariants that JSON Schema alone cannot express.
+
+### 2.1 One hypothesis is one complete candidate world
+
+A NetworkHypothesis contains:
+
+- a unique hypothesis identity and whole-world probability;
+- exactly one assignment record for every event in the set;
+- explicit null assignment for events left unassociated;
+- candidate asset instances and their event membership;
+- optional geometry-claim references;
+- candidate nodes and their associated candidate assets;
+- evidence-supported relations between nodes.
+
+A candidate identifier is local and non-authoritative. It is not a MUDDI ObjectID, owner-system SystemID or utility-owner asset identifier.
+
+### 2.2 Mutually exclusive world mass
+
+The probability invariant is:
+
+sum(P(hypothesis_i)) + P(residual_unknown) = 1
+
+within a fixed numerical tolerance.
+
+The residual is not a negative detection, absence probability or permission to redistribute probability among the listed hypotheses. It represents unenumerated or unresolved possible worlds.
+
+The fixture contains three alternatives:
+
+| World | Probability | Interpretation |
+|---|---:|---|
+| world-one-utility | 0.62 | Two events belong to one candidate utility |
+| world-two-utilities | 0.23 | The events belong to distinct candidate utilities |
+| world-crossing-unresolved | 0.10 | Two distinct assets have an unresolved crossing relation |
+| Unenumerated worlds | 0.05 | Explicit residual unknown mass |
+
+The values are deliberately illustrative, not learned or calibrated.
+
+### 2.3 Evidence closure
+
+Every event has a source-evidence reference. Every assigned event must be represented in its candidate asset's event membership and supported by that exact source evidence. Every node and relation must resolve its references and carry admitted evidence.
+
+A null event assignment is a valid explicit abstention. It is not silently converted into an absent utility.
+
+### 2.4 Topology is not visual intersection
+
+The relation types distinguish continuation, junction, unresolved crossing and unresolved near-intersection.
+
+An unresolved crossing is not a graph edge establishing physical connection. It remains a spatial relationship awaiting evidence.
+
+### 2.5 Calibration status is separate from structural validity
+
+The validator can check that a calibration receipt identifier was supplied when a caller claims that one is referenced. It cannot authenticate that receipt or establish that the probabilities are calibrated.
+
+The code deliberately does not derive a posterior from event marginals or multiply cross-modal likelihoods.
+
+## 3. Asset-cluster scoring is now executable
+
+A separate event-to-asset evaluator is implemented in `sol-atlas-core/src/utility_reconstruction_metrics.rs`, with CLI `utility_reconstruction_eval`.
+
+It reports B-cubed precision/recall/F1, pairwise true-positive pairs, explicit overmerge/oversplit pairs, candidate false assets, missed truth assets, abstention and false association of adjudicated clutter. It scores only structured independent survey and reviewed trench-image truth. Owner-record-only, conflicted and insufficient truth are separately counted, not converted to negative examples.
+
+Every reference event requires exactly one prediction disposition: candidate asset or explicit abstention. Missing predictions are rejected. Clutter and abstention are singletons in their respective partitions. The committed fixture and pinned baseline are synthetic only.
+
+# EARTH-OBSERVABILITY-JOINT-NETWORK-HYPOTHESES-001
+## Joint posterior hypotheses for evidence-qualified utility-network reconstruction v0.1
+
+**Parent:** Sol-Atlas #771 — EARTH-OBSERVABILITY-QUAL-002  
+**Implementation branch:** research/earth-observability-joint-network-hypotheses-v0-1  
+**Status:** Rust structural contract and deterministic analytic fixture added; probability calibration, graph scoring and physical validation NOT_RUN  
+**Date:** 2026-11-14  
+**Claim ceiling:** The fixture is abstract and non-geographic. It does not represent a real utility, field survey, calibrated posterior, qualified network geometry or excavation clearance.
+
+---
+
+## 1. Research proposition: infer a distribution over worlds, not one best-looking map
+
+The current candidate-graph contract permits multiple event-to-asset association marginals and explicit abstention. That is useful, but independently meaningful marginal probabilities do not necessarily form a coherent joint network.
+
+For example, separate edge probabilities can each look plausible while their combination creates an impossible network: a single event is assigned to two incompatible assets, a crossing is treated as a junction, or two mutually exclusive asset partitions are simultaneously represented as facts.
+
+The next abstraction is a **joint network hypothesis set**:
+
+- one immutable evidence snapshot and one investigation scope;
+- a finite set of mutually exclusive candidate network worlds;
+- one complete event disposition per observed event in every world;
+- candidate assets, geometry claims, nodes and relations that are internally coherent within each world;
+- a probability for each whole world;
+- explicit residual probability for worlds not enumerated.
+
+This is not a claim that a Bayesian posterior has been calibrated. It is a data and validation contract that makes the intended probability semantics explicit and testable.
+
+The decision product becomes:
+
+> Here are the plausible physical network configurations, their relative support, the evidence that separates them, and the observation most likely to change the engineering decision.
+
+## 2. Contract semantics
+
+The executable contract is in `sol-atlas-core/src/network_hypotheses.rs`; the strict JSON Schema Draft 2020-12 interchange profile is `research/earth-observability/NETWORK_HYPOTHESES_V0_1.schema.json`. The Rust validator enforces cross-reference and cross-field invariants that JSON Schema alone cannot express.
+
+### 2.1 One hypothesis is one complete candidate world
+
+A NetworkHypothesis contains:
+
+- a unique hypothesis identity and whole-world probability;
+- exactly one assignment record for every event in the set;
+- explicit null assignment for events left unassociated;
+- candidate asset instances and their event membership;
+- optional geometry-claim references;
+- candidate nodes and their associated candidate assets;
+- evidence-supported relations between nodes.
+
+A candidate identifier is local and non-authoritative. It is not a MUDDI ObjectID, owner-system SystemID or utility-owner asset identifier.
+
+### 2.2 Mutually exclusive world mass
+
+The probability invariant is:
+
+sum(P(hypothesis_i)) + P(residual_unknown) = 1
+
+within a fixed numerical tolerance.
+
+The residual is not a negative detection, absence probability or permission to redistribute probability among the listed hypotheses. It represents unenumerated or unresolved possible worlds.
+
+The fixture contains three alternatives:
+
+| World | Probability | Interpretation |
+|---|---:|---|
+| world-one-utility | 0.62 | Two events belong to one candidate utility |
+| world-two-utilities | 0.23 | The events belong to distinct candidate utilities |
+| world-crossing-unresolved | 0.10 | Two distinct assets have an unresolved crossing relation |
+| Unenumerated worlds | 0.05 | Explicit residual unknown mass |
+
+The values are deliberately illustrative, not learned or calibrated.
+
+### 2.3 Evidence closure
+
+Every event has a source-evidence reference. Every assigned event must be represented in its candidate asset's event membership and supported by that exact source evidence. Every node and relation must resolve its references and carry admitted evidence.
+
+A null event assignment is a valid explicit abstention. It is not silently converted into an absent utility.
+
+### 2.4 Topology is not visual intersection
+
+The relation types distinguish continuation, junction, unresolved crossing and unresolved near-intersection.
+
+An unresolved crossing is not a graph edge establishing physical connection. It remains a spatial relationship awaiting evidence.
+
+### 2.5 Calibration status is separate from structural validity
+
+The validator can check that a calibration receipt identifier was supplied when a caller claims that one is referenced. It cannot authenticate that receipt or establish that the probabilities are calibrated.
+
+The code deliberately does not derive a posterior from event marginals or multiply cross-modal likelihoods.
+
+## 3. Asset-cluster scoring is now executable
+
+A separate event-to-asset evaluator is implemented in `sol-atlas-core/src/utility_reconstruction_metrics.rs`, with CLI `utility_reconstruction_eval`.
+
+It reports B-cubed precision/recall/F1, pairwise true-positive pairs, explicit overmerge/oversplit pairs, candidate false assets, missed truth assets, abstention and false association of adjudicated clutter. It scores only structured independent survey and reviewed trench-image truth. Owner-record-only, conflicted and insufficient truth are separately counted, not converted to negative examples.
+
+Every reference event requires exactly one prediction disposition: candidate asset or explicit abstention. Missing predictions are rejected. Clutter and abstention are singletons in their respective partitions. The committed fixture and pinned baseline are synthetic only.
+
+# EARTH-OBSERVABILITY-JOINT-NETWORK-HYPOTHESES-001
+## Joint posterior hypotheses for evidence-qualified utility-network reconstruction v0.1
+
+**Parent:** Sol-Atlas #771 — EARTH-OBSERVABILITY-QUAL-002  
+**Implementation branch:** research/earth-observability-joint-network-hypotheses-v0-1  
+**Status:** Rust structural contract and deterministic analytic fixture added; probability calibration, graph scoring and physical validation NOT_RUN  
+**Date:** 2026-11-14  
+**Claim ceiling:** The fixture is abstract and non-geographic. It does not represent a real utility, field survey, calibrated posterior, qualified network geometry or excavation clearance.
+
+---
+
+## 1. Research proposition: infer a distribution over worlds, not one best-looking map
+
+The current candidate-graph contract permits multiple event-to-asset association marginals and explicit abstention. That is useful, but independently meaningful marginal probabilities do not necessarily form a coherent joint network.
+
+For example, separate edge probabilities can each look plausible while their combination creates an impossible network: a single event is assigned to two incompatible assets, a crossing is treated as a junction, or two mutually exclusive asset partitions are simultaneously represented as facts.
+
+The next abstraction is a **joint network hypothesis set**:
+
+- one immutable evidence snapshot and one investigation scope;
+- a finite set of mutually exclusive candidate network worlds;
+- one complete event disposition per observed event in every world;
+- candidate assets, geometry claims, nodes and relations that are internally coherent within each world;
+- a probability for each whole world;
+- explicit residual probability for worlds not enumerated.
+
+This is not a claim that a Bayesian posterior has been calibrated. It is a data and validation contract that makes the intended probability semantics explicit and testable.
+
+The decision product becomes:
+
+> Here are the plausible physical network configurations, their relative support, the evidence that separates them, and the observation most likely to change the engineering decision.
+
+## 2. Contract semantics
+
+The executable contract is in `sol-atlas-core/src/network_hypotheses.rs`; the strict JSON Schema Draft 2020-12 interchange profile is `research/earth-observability/NETWORK_HYPOTHESES_V0_1.schema.json`. The Rust validator enforces cross-reference and cross-field invariants that JSON Schema alone cannot express.
+
+### 2.1 One hypothesis is one complete candidate world
+
+A NetworkHypothesis contains:
+
+- a unique hypothesis identity and whole-world probability;
+- exactly one assignment record for every event in the set;
+- explicit null assignment for events left unassociated;
+- candidate asset instances and their event membership;
+- optional geometry-claim references;
+- candidate nodes and their associated candidate assets;
+- evidence-supported relations between nodes.
+
+A candidate identifier is local and non-authoritative. It is not a MUDDI ObjectID, owner-system SystemID or utility-owner asset identifier.
+
+### 2.2 Mutually exclusive world mass
+
+The probability invariant is:
+
+sum(P(hypothesis_i)) + P(residual_unknown) = 1
+
+within a fixed numerical tolerance.
+
+The residual is not a negative detection, absence probability or permission to redistribute probability among the listed hypotheses. It represents unenumerated or unresolved possible worlds.
+
+The fixture contains three alternatives:
+
+| World | Probability | Interpretation |
+|---|---:|---|
+| world-one-utility | 0.62 | Two events belong to one candidate utility |
+| world-two-utilities | 0.23 | The events belong to distinct candidate utilities |
+| world-crossing-unresolved | 0.10 | Two distinct assets have an unresolved crossing relation |
+| Unenumerated worlds | 0.05 | Explicit residual unknown mass |
+
+The values are deliberately illustrative, not learned or calibrated.
+
+### 2.3 Evidence closure
+
+Every event has a source-evidence reference. Every assigned event must be represented in its candidate asset's event membership and supported by that exact source evidence. Every node and relation must resolve its references and carry admitted evidence.
+
+A null event assignment is a valid explicit abstention. It is not silently converted into an absent utility.
+
+### 2.4 Topology is not visual intersection
+
+The relation types distinguish continuation, junction, unresolved crossing and unresolved near-intersection.
+
+An unresolved crossing is not a graph edge establishing physical connection. It remains a spatial relationship awaiting evidence.
+
+### 2.5 Calibration status is separate from structural validity
+
+The validator can check that a calibration receipt identifier was supplied when a caller claims that one is referenced. It cannot authenticate that receipt or establish that the probabilities are calibrated.
+
+The code deliberately does not derive a posterior from event marginals or multiply cross-modal likelihoods.
+
+## 3. Asset-cluster scoring is now executable
+
+A separate event-to-asset evaluator is implemented in `sol-atlas-core/src/utility_reconstruction_metrics.rs`, with CLI `utility_reconstruction_eval`.
+
+It reports B-cubed precision/recall/F1, pairwise true-positive pairs, explicit overmerge/oversplit pairs, candidate false assets, missed truth assets, abstention and false association of adjudicated clutter. It scores only structured independent survey and reviewed trench-image truth. Owner-record-only, conflicted and insufficient truth are separately counted, not converted to negative examples.
+
+Every reference event requires exactly one prediction disposition: candidate asset or explicit abstention. Missing predictions are rejected. Clutter and abstention are singletons in their respective partitions. The committed fixture and pinned baseline are synthetic only.
+
+# EARTH-OBSERVABILITY-JOINT-NETWORK-HYPOTHESES-001
+## Joint posterior hypotheses for evidence-qualified utility-network reconstruction v0.1
+
+**Parent:** Sol-Atlas #771 — EARTH-OBSERVABILITY-QUAL-002  
+**Implementation branch:** research/earth-observability-joint-network-hypotheses-v0-1  
+**Status:** Rust structural contract and deterministic analytic fixture added; probability calibration, graph scoring and physical validation NOT_RUN  
+**Date:** 2026-11-14  
+**Claim ceiling:** The fixture is abstract and non-geographic. It does not represent a real utility, field survey, calibrated posterior, qualified network geometry or excavation clearance.
+
+---
+
+## 1. Research proposition: infer a distribution over worlds, not one best-looking map
+
+The current candidate-graph contract permits multiple event-to-asset association marginals and explicit abstention. That is useful, but independently meaningful marginal probabilities do not necessarily form a coherent joint network.
+
+For example, separate edge probabilities can each look plausible while their combination creates an impossible network: a single event is assigned to two incompatible assets, a crossing is treated as a junction, or two mutually exclusive asset partitions are simultaneously represented as facts.
+
+The next abstraction is a **joint network hypothesis set**:
+
+- one immutable evidence snapshot and one investigation scope;
+- a finite set of mutually exclusive candidate network worlds;
+- one complete event disposition per observed event in every world;
+- candidate assets, geometry claims, nodes and relations that are internally coherent within each world;
+- a probability for each whole world;
+- explicit residual probability for worlds not enumerated.
+
+This is not a claim that a Bayesian posterior has been calibrated. It is a data and validation contract that makes the intended probability semantics explicit and testable.
+
+The decision product becomes:
+
+> Here are the plausible physical network configurations, their relative support, the evidence that separates them, and the observation most likely to change the engineering decision.
+
+## 2. Contract semantics
+
+The executable contract is in `sol-atlas-core/src/network_hypotheses.rs`; the strict JSON Schema Draft 2020-12 interchange profile is `research/earth-observability/NETWORK_HYPOTHESES_V0_1.schema.json`. The Rust validator enforces cross-reference and cross-field invariants that JSON Schema alone cannot express.
+
+### 2.1 One hypothesis is one complete candidate world
+
+A NetworkHypothesis contains:
+
+- a unique hypothesis identity and whole-world probability;
+- exactly one assignment record for every event in the set;
+- explicit null assignment for events left unassociated;
+- candidate asset instances and their event membership;
+- optional geometry-claim references;
+- candidate nodes and their associated candidate assets;
+- evidence-supported relations between nodes.
+
+A candidate identifier is local and non-authoritative. It is not a MUDDI ObjectID, owner-system SystemID or utility-owner asset identifier.
+
+### 2.2 Mutually exclusive world mass
+
+The probability invariant is:
+
+sum(P(hypothesis_i)) + P(residual_unknown) = 1
+
+within a fixed numerical tolerance.
+
+The residual is not a negative detection, absence probability or permission to redistribute probability among the listed hypotheses. It represents unenumerated or unresolved possible worlds.
+
+The fixture contains three alternatives:
+
+| World | Probability | Interpretation |
+|---|---:|---|
+| world-one-utility | 0.62 | Two events belong to one candidate utility |
+| world-two-utilities | 0.23 | The events belong to distinct candidate utilities |
+| world-crossing-unresolved | 0.10 | Two distinct assets have an unresolved crossing relation |
+| Unenumerated worlds | 0.05 | Explicit residual unknown mass |
+
+The values are deliberately illustrative, not learned or calibrated.
+
+### 2.3 Evidence closure
+
+Every event has a source-evidence reference. Every assigned event must be represented in its candidate asset's event membership and supported by that exact source evidence. Every node and relation must resolve its references and carry admitted evidence.
+
+A null event assignment is a valid explicit abstention. It is not silently converted into an absent utility.
+
+### 2.4 Topology is not visual intersection
+
+The relation types distinguish continuation, junction, unresolved crossing and unresolved near-intersection.
+
+An unresolved crossing is not a graph edge establishing physical connection. It remains a spatial relationship awaiting evidence.
+
+### 2.5 Calibration status is separate from structural validity
+
+The validator can check that a calibration receipt identifier was supplied when a caller claims that one is referenced. It cannot authenticate that receipt or establish that the probabilities are calibrated.
+
+The code deliberately does not derive a posterior from event marginals or multiply cross-modal likelihoods.
+
+## 3. Asset-cluster scoring is now executable
+
+A separate event-to-asset evaluator is implemented in `sol-atlas-core/src/utility_reconstruction_metrics.rs`, with CLI `utility_reconstruction_eval`.
+
+It reports B-cubed precision/recall/F1, pairwise true-positive pairs, explicit overmerge/oversplit pairs, candidate false assets, missed truth assets, abstention and false association of adjudicated clutter. It scores only structured independent survey and reviewed trench-image truth. Owner-record-only, conflicted and insufficient truth are separately counted, not converted to negative examples.
+
+Every reference event requires exactly one prediction disposition: candidate asset or explicit abstention. Missing predictions are rejected. Clutter and abstention are singletons in their respective partitions. The committed fixture and pinned baseline are synthetic only.
+
+# EARTH-OBSERVABILITY-JOINT-NETWORK-HYPOTHESES-001
+## Joint posterior hypotheses for evidence-qualified utility-network reconstruction v0.1
+
+**Parent:** Sol-Atlas #771 — EARTH-OBSERVABILITY-QUAL-002  
+**Implementation branch:** research/earth-observability-joint-network-hypotheses-v0-1  
+**Status:** Rust structural contract and deterministic analytic fixture added; probability calibration, graph scoring and physical validation NOT_RUN  
+**Date:** 2026-11-14  
+**Claim ceiling:** The fixture is abstract and non-geographic. It does not represent a real utility, field survey, calibrated posterior, qualified network geometry or excavation clearance.
+
+---
+
+## 1. Research proposition: infer a distribution over worlds, not one best-looking map
+
+The current candidate-graph contract permits multiple event-to-asset association marginals and explicit abstention. That is useful, but independently meaningful marginal probabilities do not necessarily form a coherent joint network.
+
+For example, separate edge probabilities can each look plausible while their combination creates an impossible network: a single event is assigned to two incompatible assets, a crossing is treated as a junction, or two mutually exclusive asset partitions are simultaneously represented as facts.
+
+The next abstraction is a **joint network hypothesis set**:
+
+- one immutable evidence snapshot and one investigation scope;
+- a finite set of mutually exclusive candidate network worlds;
+- one complete event disposition per observed event in every world;
+- candidate assets, geometry claims, nodes and relations that are internally coherent within each world;
+- a probability for each whole world;
+- explicit residual probability for worlds not enumerated.
+
+This is not a claim that a Bayesian posterior has been calibrated. It is a data and validation contract that makes the intended probability semantics explicit and testable.
+
+The decision product becomes:
+
+> Here are the plausible physical network configurations, their relative support, the evidence that separates them, and the observation most likely to change the engineering decision.
+
+## 2. Contract semantics
+
+The executable contract is in `sol-atlas-core/src/network_hypotheses.rs`; the strict JSON Schema Draft 2020-12 interchange profile is `research/earth-observability/NETWORK_HYPOTHESES_V0_1.schema.json`. The Rust validator enforces cross-reference and cross-field invariants that JSON Schema alone cannot express.
+
+### 2.1 One hypothesis is one complete candidate world
+
+A NetworkHypothesis contains:
+
+- a unique hypothesis identity and whole-world probability;
+- exactly one assignment record for every event in the set;
+- explicit null assignment for events left unassociated;
+- candidate asset instances and their event membership;
+- optional geometry-claim references;
+- candidate nodes and their associated candidate assets;
+- evidence-supported relations between nodes.
+
+A candidate identifier is local and non-authoritative. It is not a MUDDI ObjectID, owner-system SystemID or utility-owner asset identifier.
+
+### 2.2 Mutually exclusive world mass
+
+The probability invariant is:
+
+sum(P(hypothesis_i)) + P(residual_unknown) = 1
+
+within a fixed numerical tolerance.
+
+The residual is not a negative detection, absence probability or permission to redistribute probability among the listed hypotheses. It represents unenumerated or unresolved possible worlds.
+
+The fixture contains three alternatives:
+
+| World | Probability | Interpretation |
+|---|---:|---|
+| world-one-utility | 0.62 | Two events belong to one candidate utility |
+| world-two-utilities | 0.23 | The events belong to distinct candidate utilities |
+| world-crossing-unresolved | 0.10 | Two distinct assets have an unresolved crossing relation |
+| Unenumerated worlds | 0.05 | Explicit residual unknown mass |
+
+The values are deliberately illustrative, not learned or calibrated.
+
+### 2.3 Evidence closure
+
+Every event has a source-evidence reference. Every assigned event must be represented in its candidate asset's event membership and supported by that exact source evidence. Every node and relation must resolve its references and carry admitted evidence.
+
+A null event assignment is a valid explicit abstention. It is not silently converted into an absent utility.
+
+### 2.4 Topology is not visual intersection
+
+The relation types distinguish continuation, junction, unresolved crossing and unresolved near-intersection.
+
+An unresolved crossing is not a graph edge establishing physical connection. It remains a spatial relationship awaiting evidence.
+
+### 2.5 Calibration status is separate from structural validity
+
+The validator can check that a calibration receipt identifier was supplied when a caller claims that one is referenced. It cannot authenticate that receipt or establish that the probabilities are calibrated.
+
+The code deliberately does not derive a posterior from event marginals or multiply cross-modal likelihoods.
+
+## 3. Asset-cluster scoring is now executable
+
+A separate event-to-asset evaluator is implemented in `sol-atlas-core/src/utility_reconstruction_metrics.rs`, with CLI `utility_reconstruction_eval`.
+
+It reports B-cubed precision/recall/F1, pairwise true-positive pairs, explicit overmerge/oversplit pairs, candidate false assets, missed truth assets, abstention and false association of adjudicated clutter. It scores only structured independent survey and reviewed trench-image truth. Owner-record-only, conflicted and insufficient truth are separately counted, not converted to negative examples.
+
+Every reference event requires exactly one prediction disposition: candidate asset or explicit abstention. Missing predictions are rejected. Clutter and abstention are singletons in their respective partitions. The committed fixture and pinned baseline are synthetic only.
+
+# EARTH-OBSERVABILITY-JOINT-NETWORK-HYPOTHESES-001
+## Joint posterior hypotheses for evidence-qualified utility-network reconstruction v0.1
+
+**Parent:** Sol-Atlas #771 — EARTH-OBSERVABILITY-QUAL-002  
+**Implementation branch:** research/earth-observability-joint-network-hypotheses-v0-1  
+**Status:** Rust structural contract and deterministic analytic fixture added; probability calibration, graph scoring and physical validation NOT_RUN  
+**Date:** 2026-11-14  
+**Claim ceiling:** The fixture is abstract and non-geographic. It does not represent a real utility, field survey, calibrated posterior, qualified network geometry or excavation clearance.
+
+---
+
+## 1. Research proposition: infer a distribution over worlds, not one best-looking map
+
+The current candidate-graph contract permits multiple event-to-asset association marginals and explicit abstention. That is useful, but independently meaningful marginal probabilities do not necessarily form a coherent joint network.
+
+For example, separate edge probabilities can each look plausible while their combination creates an impossible network: a single event is assigned to two incompatible assets, a crossing is treated as a junction, or two mutually exclusive asset partitions are simultaneously represented as facts.
+
+The next abstraction is a **joint network hypothesis set**:
+
+- one immutable evidence snapshot and one investigation scope;
+- a finite set of mutually exclusive candidate network worlds;
+- one complete event disposition per observed event in every world;
+- candidate assets, geometry claims, nodes and relations that are internally coherent within each world;
+- a probability for each whole world;
+- explicit residual probability for worlds not enumerated.
+
+This is not a claim that a Bayesian posterior has been calibrated. It is a data and validation contract that makes the intended probability semantics explicit and testable.
+
+The decision product becomes:
+
+> Here are the plausible physical network configurations, their relative support, the evidence that separates them, and the observation most likely to change the engineering decision.
+
+## 2. Contract semantics
+
+The executable contract is in `sol-atlas-core/src/network_hypotheses.rs`; the strict JSON Schema Draft 2020-12 interchange profile is `research/earth-observability/NETWORK_HYPOTHESES_V0_1.schema.json`. The Rust validator enforces cross-reference and cross-field invariants that JSON Schema alone cannot express.
+
+### 2.1 One hypothesis is one complete candidate world
+
+A NetworkHypothesis contains:
+
+- a unique hypothesis identity and whole-world probability;
+- exactly one assignment record for every event in the set;
+- explicit null assignment for events left unassociated;
+- candidate asset instances and their event membership;
+- optional geometry-claim references;
+- candidate nodes and their associated candidate assets;
+- evidence-supported relations between nodes.
+
+A candidate identifier is local and non-authoritative. It is not a MUDDI ObjectID, owner-system SystemID or utility-owner asset identifier.
+
+### 2.2 Mutually exclusive world mass
+
+The probability invariant is:
+
+sum(P(hypothesis_i)) + P(residual_unknown) = 1
+
+within a fixed numerical tolerance.
+
+The residual is not a negative detection, absence probability or permission to redistribute probability among the listed hypotheses. It represents unenumerated or unresolved possible worlds.
+
+The fixture contains three alternatives:
+
+| World | Probability | Interpretation |
+|---|---:|---|
+| world-one-utility | 0.62 | Two events belong to one candidate utility |
+| world-two-utilities | 0.23 | The events belong to distinct candidate utilities |
+| world-crossing-unresolved | 0.10 | Two distinct assets have an unresolved crossing relation |
+| Unenumerated worlds | 0.05 | Explicit residual unknown mass |
+
+The values are deliberately illustrative, not learned or calibrated.
+
+### 2.3 Evidence closure
+
+Every event has a source-evidence reference. Every assigned event must be represented in its candidate asset's event membership and supported by that exact source evidence. Every node and relation must resolve its references and carry admitted evidence.
+
+A null event assignment is a valid explicit abstention. It is not silently converted into an absent utility.
+
+### 2.4 Topology is not visual intersection
+
+The relation types distinguish continuation, junction, unresolved crossing and unresolved near-intersection.
+
+An unresolved crossing is not a graph edge establishing physical connection. It remains a spatial relationship awaiting evidence.
+
+### 2.5 Calibration status is separate from structural validity
+
+The validator can check that a calibration receipt identifier was supplied when a caller claims that one is referenced. It cannot authenticate that receipt or establish that the probabilities are calibrated.
+
+The code deliberately does not derive a posterior from event marginals or multiply cross-modal likelihoods.
+
+## 3. Asset-cluster scoring is now executable
+
+A separate event-to-asset evaluator is implemented in `sol-atlas-core/src/utility_reconstruction_metrics.rs`, with CLI `utility_reconstruction_eval`.
+
+It reports B-cubed precision/recall/F1, pairwise true-positive pairs, explicit overmerge/oversplit pairs, candidate false assets, missed truth assets, abstention and false association of adjudicated clutter. It scores only structured independent survey and reviewed trench-image truth. Owner-record-only, conflicted and insufficient truth are separately counted, not converted to negative examples.
+
+Every reference event requires exactly one prediction disposition: candidate asset or explicit abstention. Missing predictions are rejected. Clutter and abstention are singletons in their respective partitions. The committed fixture and pinned baseline are synthetic only.
+
+# EARTH-OBSERVABILITY-JOINT-NETWORK-HYPOTHESES-001
+## Joint posterior hypotheses for evidence-qualified utility-network reconstruction v0.1
+
+**Parent:** Sol-Atlas #771 — EARTH-OBSERVABILITY-QUAL-002  
+**Implementation branch:** research/earth-observability-joint-network-hypotheses-v0-1  
+**Status:** Rust structural contract and deterministic analytic fixture added; probability calibration, graph scoring and physical validation NOT_RUN  
+**Date:** 2026-11-14  
+**Claim ceiling:** The fixture is abstract and non-geographic. It does not represent a real utility, field survey, calibrated posterior, qualified network geometry or excavation clearance.
+
+---
+
+## 1. Research proposition: infer a distribution over worlds, not one best-looking map
+
+The current candidate-graph contract permits multiple event-to-asset association marginals and explicit abstention. That is useful, but independently meaningful marginal probabilities do not necessarily form a coherent joint network.
+
+For example, separate edge probabilities can each look plausible while their combination creates an impossible network: a single event is assigned to two incompatible assets, a crossing is treated as a junction, or two mutually exclusive asset partitions are simultaneously represented as facts.
+
+The next abstraction is a **joint network hypothesis set**:
+
+- one immutable evidence snapshot and one investigation scope;
+- a finite set of mutually exclusive candidate network worlds;
+- one complete event disposition per observed event in every world;
+- candidate assets, geometry claims, nodes and relations that are internally coherent within each world;
+- a probability for each whole world;
+- explicit residual probability for worlds not enumerated.
+
+This is not a claim that a Bayesian posterior has been calibrated. It is a data and validation contract that makes the intended probability semantics explicit and testable.
+
+The decision product becomes:
+
+> Here are the plausible physical network configurations, their relative support, the evidence that separates them, and the observation most likely to change the engineering decision.
+
+## 2. Contract semantics
+
+The executable contract is in `sol-atlas-core/src/network_hypotheses.rs`; the strict JSON Schema Draft 2020-12 interchange profile is `research/earth-observability/NETWORK_HYPOTHESES_V0_1.schema.json`. The Rust validator enforces cross-reference and cross-field invariants that JSON Schema alone cannot express.
+
+### 2.1 One hypothesis is one complete candidate world
+
+A NetworkHypothesis contains:
+
+- a unique hypothesis identity and whole-world probability;
+- exactly one assignment record for every event in the set;
+- explicit null assignment for events left unassociated;
+- candidate asset instances and their event membership;
+- optional geometry-claim references;
+- candidate nodes and their associated candidate assets;
+- evidence-supported relations between nodes.
+
+A candidate identifier is local and non-authoritative. It is not a MUDDI ObjectID, owner-system SystemID or utility-owner asset identifier.
+
+### 2.2 Mutually exclusive world mass
+
+The probability invariant is:
+
+sum(P(hypothesis_i)) + P(residual_unknown) = 1
+
+within a fixed numerical tolerance.
+
+The residual is not a negative detection, absence probability or permission to redistribute probability among the listed hypotheses. It represents unenumerated or unresolved possible worlds.
+
+The fixture contains three alternatives:
+
+| World | Probability | Interpretation |
+|---|---:|---|
+| world-one-utility | 0.62 | Two events belong to one candidate utility |
+| world-two-utilities | 0.23 | The events belong to distinct candidate utilities |
+| world-crossing-unresolved | 0.10 | Two distinct assets have an unresolved crossing relation |
+| Unenumerated worlds | 0.05 | Explicit residual unknown mass |
+
+The values are deliberately illustrative, not learned or calibrated.
+
+### 2.3 Evidence closure
+
+Every event has a source-evidence reference. Every assigned event must be represented in its candidate asset's event membership and supported by that exact source evidence. Every node and relation must resolve its references and carry admitted evidence.
+
+A null event assignment is a valid explicit abstention. It is not silently converted into an absent utility.
+
+### 2.4 Topology is not visual intersection
+
+The relation types distinguish continuation, junction, unresolved crossing and unresolved near-intersection.
+
+An unresolved crossing is not a graph edge establishing physical connection. It remains a spatial relationship awaiting evidence.
+
+### 2.5 Calibration status is separate from structural validity
+
+The validator can check that a calibration receipt identifier was supplied when a caller claims that one is referenced. It cannot authenticate that receipt or establish that the probabilities are calibrated.
+
+The code deliberately does not derive a posterior from event marginals or multiply cross-modal likelihoods.
+
+## 3. Asset-cluster scoring is now executable
+
+A separate event-to-asset evaluator is implemented in `sol-atlas-core/src/utility_reconstruction_metrics.rs`, with CLI `utility_reconstruction_eval`.
+
+It reports B-cubed precision/recall/F1, pairwise true-positive pairs, explicit overmerge/oversplit pairs, candidate false assets, missed truth assets, abstention and false association of adjudicated clutter. It scores only structured independent survey and reviewed trench-image truth. Owner-record-only, conflicted and insufficient truth are separately counted, not converted to negative examples.
+
+Every reference event requires exactly one prediction disposition: candidate asset or explicit abstention. Missing predictions are rejected. Clutter and abstention are singletons in their respective partitions. The committed fixture and pinned baseline are synthetic only.
+
+# EARTH-OBSERVABILITY-JOINT-NETWORK-HYPOTHESES-001
+## Joint posterior hypotheses for evidence-qualified utility-network reconstruction v0.1
+
+**Parent:** Sol-Atlas #771 — EARTH-OBSERVABILITY-QUAL-002  
+**Implementation branch:** research/earth-observability-joint-network-hypotheses-v0-1  
+**Status:** Rust structural contract and deterministic analytic fixture added; probability calibration, graph scoring and physical validation NOT_RUN  
+**Date:** 2026-11-14  
+**Claim ceiling:** The fixture is abstract and non-geographic. It does not represent a real utility, field survey, calibrated posterior, qualified network geometry or excavation clearance.
+
+---
+
+## 1. Research proposition: infer a distribution over worlds, not one best-looking map
+
+The current candidate-graph contract permits multiple event-to-asset association marginals and explicit abstention. That is useful, but independently meaningful marginal probabilities do not necessarily form a coherent joint network.
+
+For example, separate edge probabilities can each look plausible while their combination creates an impossible network: a single event is assigned to two incompatible assets, a crossing is treated as a junction, or two mutually exclusive asset partitions are simultaneously represented as facts.
+
+The next abstraction is a **joint network hypothesis set**:
+
+- one immutable evidence snapshot and one investigation scope;
+- a finite set of mutually exclusive candidate network worlds;
+- one complete event disposition per observed event in every world;
+- candidate assets, geometry claims, nodes and relations that are internally coherent within each world;
+- a probability for each whole world;
+- explicit residual probability for worlds not enumerated.
+
+This is not a claim that a Bayesian posterior has been calibrated. It is a data and validation contract that makes the intended probability semantics explicit and testable.
+
+The decision product becomes:
+
+> Here are the plausible physical network configurations, their relative support, the evidence that separates them, and the observation most likely to change the engineering decision.
+
+## 2. Contract semantics
+
+The executable contract is in `sol-atlas-core/src/network_hypotheses.rs`; the strict JSON Schema Draft 2020-12 interchange profile is `research/earth-observability/NETWORK_HYPOTHESES_V0_1.schema.json`. The Rust validator enforces cross-reference and cross-field invariants that JSON Schema alone cannot express.
+
+### 2.1 One hypothesis is one complete candidate world
+
+A NetworkHypothesis contains:
+
+- a unique hypothesis identity and whole-world probability;
+- exactly one assignment record for every event in the set;
+- explicit null assignment for events left unassociated;
+- candidate asset instances and their event membership;
+- optional geometry-claim references;
+- candidate nodes and their associated candidate assets;
+- evidence-supported relations between nodes.
+
+A candidate identifier is local and non-authoritative. It is not a MUDDI ObjectID, owner-system SystemID or utility-owner asset identifier.
+
+### 2.2 Mutually exclusive world mass
+
+The probability invariant is:
+
+sum(P(hypothesis_i)) + P(residual_unknown) = 1
+
+within a fixed numerical tolerance.
+
+The residual is not a negative detection, absence probability or permission to redistribute probability among the listed hypotheses. It represents unenumerated or unresolved possible worlds.
+
+The fixture contains three alternatives:
+
+| World | Probability | Interpretation |
+|---|---:|---|
+| world-one-utility | 0.62 | Two events belong to one candidate utility |
+| world-two-utilities | 0.23 | The events belong to distinct candidate utilities |
+| world-crossing-unresolved | 0.10 | Two distinct assets have an unresolved crossing relation |
+| Unenumerated worlds | 0.05 | Explicit residual unknown mass |
+
+The values are deliberately illustrative, not learned or calibrated.
+
+### 2.3 Evidence closure
+
+Every event has a source-evidence reference. Every assigned event must be represented in its candidate asset's event membership and supported by that exact source evidence. Every node and relation must resolve its references and carry admitted evidence.
+
+A null event assignment is a valid explicit abstention. It is not silently converted into an absent utility.
+
+### 2.4 Topology is not visual intersection
+
+The relation types distinguish continuation, junction, unresolved crossing and unresolved near-intersection.
+
+An unresolved crossing is not a graph edge establishing physical connection. It remains a spatial relationship awaiting evidence.
+
+### 2.5 Calibration status is separate from structural validity
+
+The validator can check that a calibration receipt identifier was supplied when a caller claims that one is referenced. It cannot authenticate that receipt or establish that the probabilities are calibrated.
+
+The code deliberately does not derive a posterior from event marginals or multiply cross-modal likelihoods.
+
+## 3. Asset-cluster scoring is now executable
+
+A separate event-to-asset evaluator is implemented in `sol-atlas-core/src/utility_reconstruction_metrics.rs`, with CLI `utility_reconstruction_eval`.
+
+It reports B-cubed precision/recall/F1, pairwise true-positive pairs, explicit overmerge/oversplit pairs, candidate false assets, missed truth assets, abstention and false association of adjudicated clutter. It scores only structured independent survey and reviewed trench-image truth. Owner-record-only, conflicted and insufficient truth are separately counted, not converted to negative examples.
+
+Every reference event requires exactly one prediction disposition: candidate asset or explicit abstention. Missing predictions are rejected. Clutter and abstention are singletons in their respective partitions. The committed fixture and pinned baseline are synthetic only.
+
+# EARTH-OBSERVABILITY-JOINT-NETWORK-HYPOTHESES-001
+## Joint posterior hypotheses for evidence-qualified utility-network reconstruction v0.1
+
+**Parent:** Sol-Atlas #771 — EARTH-OBSERVABILITY-QUAL-002  
+**Implementation branch:** research/earth-observability-joint-network-hypotheses-v0-1  
+**Status:** Rust structural contract and deterministic analytic fixture added; probability calibration, graph scoring and physical validation NOT_RUN  
+**Date:** 2026-11-14  
+**Claim ceiling:** The fixture is abstract and non-geographic. It does not represent a real utility, field survey, calibrated posterior, qualified network geometry or excavation clearance.
+
+---
+
+## 1. Research proposition: infer a distribution over worlds, not one best-looking map
+
+The current candidate-graph contract permits multiple event-to-asset association marginals and explicit abstention. That is useful, but independently meaningful marginal probabilities do not necessarily form a coherent joint network.
+
+For example, separate edge probabilities can each look plausible while their combination creates an impossible network: a single event is assigned to two incompatible assets, a crossing is treated as a junction, or two mutually exclusive asset partitions are simultaneously represented as facts.
+
+The next abstraction is a **joint network hypothesis set**:
+
+- one immutable evidence snapshot and one investigation scope;
+- a finite set of mutually exclusive candidate network worlds;
+- one complete event disposition per observed event in every world;
+- candidate assets, geometry claims, nodes and relations that are internally coherent within each world;
+- a probability for each whole world;
+- explicit residual probability for worlds not enumerated.
+
+This is not a claim that a Bayesian posterior has been calibrated. It is a data and validation contract that makes the intended probability semantics explicit and testable.
+
+The decision product becomes:
+
+> Here are the plausible physical network configurations, their relative support, the evidence that separates them, and the observation most likely to change the engineering decision.
+
+## 2. Contract semantics
+
+The executable contract is in `sol-atlas-core/src/network_hypotheses.rs`; the strict JSON Schema Draft 2020-12 interchange profile is `research/earth-observability/NETWORK_HYPOTHESES_V0_1.schema.json`. The Rust validator enforces cross-reference and cross-field invariants that JSON Schema alone cannot express.
+
+### 2.1 One hypothesis is one complete candidate world
+
+A NetworkHypothesis contains:
+
+- a unique hypothesis identity and whole-world probability;
+- exactly one assignment record for every event in the set;
+- explicit null assignment for events left unassociated;
+- candidate asset instances and their event membership;
+- optional geometry-claim references;
+- candidate nodes and their associated candidate assets;
+- evidence-supported relations between nodes.
+
+A candidate identifier is local and non-authoritative. It is not a MUDDI ObjectID, owner-system SystemID or utility-owner asset identifier.
+
+### 2.2 Mutually exclusive world mass
+
+The probability invariant is:
+
+sum(P(hypothesis_i)) + P(residual_unknown) = 1
+
+within a fixed numerical tolerance.
+
+The residual is not a negative detection, absence probability or permission to redistribute probability among the listed hypotheses. It represents unenumerated or unresolved possible worlds.
+
+The fixture contains three alternatives:
+
+| World | Probability | Interpretation |
+|---|---:|---|
+| world-one-utility | 0.62 | Two events belong to one candidate utility |
+| world-two-utilities | 0.23 | The events belong to distinct candidate utilities |
+| world-crossing-unresolved | 0.10 | Two distinct assets have an unresolved crossing relation |
+| Unenumerated worlds | 0.05 | Explicit residual unknown mass |
+
+The values are deliberately illustrative, not learned or calibrated.
+
+### 2.3 Evidence closure
+
+Every event has a source-evidence reference. Every assigned event must be represented in its candidate asset's event membership and supported by that exact source evidence. Every node and relation must resolve its references and carry admitted evidence.
+
+A null event assignment is a valid explicit abstention. It is not silently converted into an absent utility.
+
+### 2.4 Topology is not visual intersection
+
+The relation types distinguish continuation, junction, unresolved crossing and unresolved near-intersection.
+
+An unresolved crossing is not a graph edge establishing physical connection. It remains a spatial relationship awaiting evidence.
+
+### 2.5 Calibration status is separate from structural validity
+
+The validator can check that a calibration receipt identifier was supplied when a caller claims that one is referenced. It cannot authenticate that receipt or establish that the probabilities are calibrated.
+
+The code deliberately does not derive a posterior from event marginals or multiply cross-modal likelihoods.
+
+## 3. Asset-cluster scoring is now executable
+
+A separate event-to-asset evaluator is implemented in `sol-atlas-core/src/utility_reconstruction_metrics.rs`, with CLI `utility_reconstruction_eval`.
+
+It reports B-cubed precision/recall/F1, pairwise true-positive pairs, explicit overmerge/oversplit pairs, candidate false assets, missed truth assets, abstention and false association of adjudicated clutter. It scores only structured independent survey and reviewed trench-image truth. Owner-record-only, conflicted and insufficient truth are separately counted, not converted to negative examples.
+
+Every reference event requires exactly one prediction disposition: candidate asset or explicit abstention. Missing predictions are rejected. Clutter and abstention are singletons in their respective partitions. The committed fixture and pinned baseline are synthetic only.
+
+# EARTH-OBSERVABILITY-JOINT-NETWORK-HYPOTHESES-001
+## Joint posterior hypotheses for evidence-qualified utility-network reconstruction v0.1
+
+**Parent:** Sol-Atlas #771 — EARTH-OBSERVABILITY-QUAL-002  
+**Implementation branch:** research/earth-observability-joint-network-hypotheses-v0-1  
+**Status:** Rust structural contract and deterministic analytic fixture added; probability calibration, graph scoring and physical validation NOT_RUN  
+**Date:** 2026-11-14  
+**Claim ceiling:** The fixture is abstract and non-geographic. It does not represent a real utility, field survey, calibrated posterior, qualified network geometry or excavation clearance.
+
+---
+
+## 1. Research proposition: infer a distribution over worlds, not one best-looking map
+
+The current candidate-graph contract permits multiple event-to-asset association marginals and explicit abstention. That is useful, but independently meaningful marginal probabilities do not necessarily form a coherent joint network.
+
+For example, separate edge probabilities can each look plausible while their combination creates an impossible network: a single event is assigned to two incompatible assets, a crossing is treated as a junction, or two mutually exclusive asset partitions are simultaneously represented as facts.
+
+The next abstraction is a **joint network hypothesis set**:
+
+- one immutable evidence snapshot and one investigation scope;
+- a finite set of mutually exclusive candidate network worlds;
+- one complete event disposition per observed event in every world;
+- candidate assets, geometry claims, nodes and relations that are internally coherent within each world;
+- a probability for each whole world;
+- explicit residual probability for worlds not enumerated.
+
+This is not a claim that a Bayesian posterior has been calibrated. It is a data and validation contract that makes the intended probability semantics explicit and testable.
+
+The decision product becomes:
+
+> Here are the plausible physical network configurations, their relative support, the evidence that separates them, and the observation most likely to change the engineering decision.
+
+## 2. Contract semantics
+
+The executable contract is in `sol-atlas-core/src/network_hypotheses.rs`; the strict JSON Schema Draft 2020-12 interchange profile is `research/earth-observability/NETWORK_HYPOTHESES_V0_1.schema.json`. The Rust validator enforces cross-reference and cross-field invariants that JSON Schema alone cannot express.
+
+### 2.1 One hypothesis is one complete candidate world
+
+A NetworkHypothesis contains:
+
+- a unique hypothesis identity and whole-world probability;
+- exactly one assignment record for every event in the set;
+- explicit null assignment for events left unassociated;
+- candidate asset instances and their event membership;
+- optional geometry-claim references;
+- candidate nodes and their associated candidate assets;
+- evidence-supported relations between nodes.
+
+A candidate identifier is local and non-authoritative. It is not a MUDDI ObjectID, owner-system SystemID or utility-owner asset identifier.
+
+### 2.2 Mutually exclusive world mass
+
+The probability invariant is:
+
+sum(P(hypothesis_i)) + P(residual_unknown) = 1
+
+within a fixed numerical tolerance.
+
+The residual is not a negative detection, absence probability or permission to redistribute probability among the listed hypotheses. It represents unenumerated or unresolved possible worlds.
+
+The fixture contains three alternatives:
+
+| World | Probability | Interpretation |
+|---|---:|---|
+| world-one-utility | 0.62 | Two events belong to one candidate utility |
+| world-two-utilities | 0.23 | The events belong to distinct candidate utilities |
+| world-crossing-unresolved | 0.10 | Two distinct assets have an unresolved crossing relation |
+| Unenumerated worlds | 0.05 | Explicit residual unknown mass |
+
+The values are deliberately illustrative, not learned or calibrated.
+
+### 2.3 Evidence closure
+
+Every event has a source-evidence reference. Every assigned event must be represented in its candidate asset's event membership and supported by that exact source evidence. Every node and relation must resolve its references and carry admitted evidence.
+
+A null event assignment is a valid explicit abstention. It is not silently converted into an absent utility.
+
+### 2.4 Topology is not visual intersection
+
+The relation types distinguish continuation, junction, unresolved crossing and unresolved near-intersection.
+
+An unresolved crossing is not a graph edge establishing physical connection. It remains a spatial relationship awaiting evidence.
+
+### 2.5 Calibration status is separate from structural validity
+
+The validator can check that a calibration receipt identifier was supplied when a caller claims that one is referenced. It cannot authenticate that receipt or establish that the probabilities are calibrated.
+
+The code deliberately does not derive a posterior from event marginals or multiply cross-modal likelihoods.
+
+## 3. Asset-cluster scoring is now executable
+
+A separate event-to-asset evaluator is implemented in `sol-atlas-core/src/utility_reconstruction_metrics.rs`, with CLI `utility_reconstruction_eval`.
+
+It reports B-cubed precision/recall/F1, pairwise true-positive pairs, explicit overmerge/oversplit pairs, candidate false assets, missed truth assets, abstention and false association of adjudicated clutter. It scores only structured independent survey and reviewed trench-image truth. Owner-record-only, conflicted and insufficient truth are separately counted, not converted to negative examples.
+
+Every reference event requires exactly one prediction disposition: candidate asset or explicit abstention. Missing predictions are rejected. Clutter and abstention are singletons in their respective partitions. The committed fixture and pinned baseline are synthetic only.
+
+# EARTH-OBSERVABILITY-JOINT-NETWORK-HYPOTHESES-001
+## Joint posterior hypotheses for evidence-qualified utility-network reconstruction v0.1
+
+**Parent:** Sol-Atlas #771 — EARTH-OBSERVABILITY-QUAL-002  
+**Implementation branch:** research/earth-observability-joint-network-hypotheses-v0-1  
+**Status:** Rust structural contract and deterministic analytic fixture added; probability calibration, graph scoring and physical validation NOT_RUN  
+**Date:** 2026-11-14  
+**Claim ceiling:** The fixture is abstract and non-geographic. It does not represent a real utility, field survey, calibrated posterior, qualified network geometry or excavation clearance.
+
+---
+
+## 1. Research proposition: infer a distribution over worlds, not one best-looking map
+
+The current candidate-graph contract permits multiple event-to-asset association marginals and explicit abstention. That is useful, but independently meaningful marginal probabilities do not necessarily form a coherent joint network.
+
+For example, separate edge probabilities can each look plausible while their combination creates an impossible network: a single event is assigned to two incompatible assets, a crossing is treated as a junction, or two mutually exclusive asset partitions are simultaneously represented as facts.
+
+The next abstraction is a **joint network hypothesis set**:
+
+- one immutable evidence snapshot and one investigation scope;
+- a finite set of mutually exclusive candidate network worlds;
+- one complete event disposition per observed event in every world;
+- candidate assets, geometry claims, nodes and relations that are internally coherent within each world;
+- a probability for each whole world;
+- explicit residual probability for worlds not enumerated.
+
+This is not a claim that a Bayesian posterior has been calibrated. It is a data and validation contract that makes the intended probability semantics explicit and testable.
+
+The decision product becomes:
+
+> Here are the plausible physical network configurations, their relative support, the evidence that separates them, and the observation most likely to change the engineering decision.
+
+## 2. Contract semantics
+
+The executable contract is in `sol-atlas-core/src/network_hypotheses.rs`; the strict JSON Schema Draft 2020-12 interchange profile is `research/earth-observability/NETWORK_HYPOTHESES_V0_1.schema.json`. The Rust validator enforces cross-reference and cross-field invariants that JSON Schema alone cannot express.
+
+### 2.1 One hypothesis is one complete candidate world
+
+A NetworkHypothesis contains:
+
+- a unique hypothesis identity and whole-world probability;
+- exactly one assignment record for every event in the set;
+- explicit null assignment for events left unassociated;
+- candidate asset instances and their event membership;
+- optional geometry-claim references;
+- candidate nodes and their associated candidate assets;
+- evidence-supported relations between nodes.
+
+A candidate identifier is local and non-authoritative. It is not a MUDDI ObjectID, owner-system SystemID or utility-owner asset identifier.
+
+### 2.2 Mutually exclusive world mass
+
+The probability invariant is:
+
+sum(P(hypothesis_i)) + P(residual_unknown) = 1
+
+within a fixed numerical tolerance.
+
+The residual is not a negative detection, absence probability or permission to redistribute probability among the listed hypotheses. It represents unenumerated or unresolved possible worlds.
+
+The fixture contains three alternatives:
+
+| World | Probability | Interpretation |
+|---|---:|---|
+| world-one-utility | 0.62 | Two events belong to one candidate utility |
+| world-two-utilities | 0.23 | The events belong to distinct candidate utilities |
+| world-crossing-unresolved | 0.10 | Two distinct assets have an unresolved crossing relation |
+| Unenumerated worlds | 0.05 | Explicit residual unknown mass |
+
+The values are deliberately illustrative, not learned or calibrated.
+
+### 2.3 Evidence closure
+
+Every event has a source-evidence reference. Every assigned event must be represented in its candidate asset's event membership and supported by that exact source evidence. Every node and relation must resolve its references and carry admitted evidence.
+
+A null event assignment is a valid explicit abstention. It is not silently converted into an absent utility.
+
+### 2.4 Topology is not visual intersection
+
+The relation types distinguish continuation, junction, unresolved crossing and unresolved near-intersection.
+
+An unresolved crossing is not a graph edge establishing physical connection. It remains a spatial relationship awaiting evidence.
+
+### 2.5 Calibration status is separate from structural validity
+
+The validator can check that a calibration receipt identifier was supplied when a caller claims that one is referenced. It cannot authenticate that receipt or establish that the probabilities are calibrated.
+
+The code deliberately does not derive a posterior from event marginals or multiply cross-modal likelihoods.
+
+## 3. Asset-cluster scoring is now executable
+
+A separate event-to-asset evaluator is implemented in `sol-atlas-core/src/utility_reconstruction_metrics.rs`, with CLI `utility_reconstruction_eval`.
+
+It reports B-cubed precision/recall/F1, pairwise true-positive pairs, explicit overmerge/oversplit pairs, candidate false assets, missed truth assets, abstention and false association of adjudicated clutter. It scores only structured independent survey and reviewed trench-image truth. Owner-record-only, conflicted and insufficient truth are separately counted, not converted to negative examples.
+
+Every reference event requires exactly one prediction disposition: candidate asset or explicit abstention. Missing predictions are rejected. Clutter and abstention are singletons in their respective partitions. The committed fixture and pinned baseline are synthetic only.
+
+## 11. The benchmark should score whole worlds and their components
 
 A single graph-edit score is not sufficient. A nearly correct map can still contain a dangerous false connection, and an accurate event detector can still over-split one utility into several assets.
 
