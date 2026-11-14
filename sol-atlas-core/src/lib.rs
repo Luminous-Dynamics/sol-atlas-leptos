@@ -9,12 +9,16 @@
 //! between rendering backends (web-sys, glam/nalgebra).
 
 pub mod aesthetics;
+pub mod ags_preflight;
+pub mod bgs_sobi;
 pub mod confluence;
 pub mod constants;
 pub mod data;
+pub mod earth_observation;
+pub mod earth_observability;
+pub mod earth_observability_synthetic;
 pub mod economics;
 pub mod energy_trading;
-pub mod earth_observation;
 pub mod geo;
 pub mod geospatial_assets;
 pub mod lod;
@@ -25,7 +29,6 @@ pub mod math;
 pub mod picking;
 pub mod simulation;
 pub mod solar_system;
-pub mod stac;
 pub mod timeline;
 pub mod types;
 pub mod visual_validation;
