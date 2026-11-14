@@ -447,6 +447,111 @@ pub fn validate_network_hypothesis_set(set: &NetworkHypothesisSet) -> Vec<Networ
     errors
 }
 
+/// Adjudicated truth for one evaluation case. The residual class is selected
+/// only when the reference world is not represented by any listed hypothesis.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum NetworkHypothesisTruth<'a> {
+    Listed(&'a str),
+    ResidualUnknown,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum NetworkHypothesisScoreError {
+    InvalidHypothesisSet(Vec<NetworkHypothesisError>),
+    UnknownTruthHypothesis(String),
+    ZeroProbabilityTruth(String),
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct NetworkHypothesisScore {
+    pub truth_category: String,
+    pub category_count: usize,
+    /// Natural-log loss (-ln assigned probability); lower is better.
+    pub negative_log_probability: f64,
+    /// Multiclass Brier score over all listed worlds plus residual unknown.
+    /// No category is dropped or renormalized away.
+    pub multiclass_brier_score: f64,
+}
+
+/// Score one adjudicated world against a submitted finite joint distribution.
+///
+/// The caller must assign the reference world either to an exact listed
+/// hypothesis or to the residual-unknown category. A zero-probability truth
+/// returns an explicit error (infinite log loss) rather than being silently
+/// floored. This scorer evaluates submitted probabilities; it does not
+/// establish their calibration or the quality of the reference adjudication.
+pub fn score_network_hypothesis_set(
+    set: &NetworkHypothesisSet,
+    truth: NetworkHypothesisTruth<'_>,
+) -> Result<NetworkHypothesisScore, NetworkHypothesisScoreError> {
+    let validation_errors = validate_network_hypothesis_set(set);
+    if !validation_errors.is_empty() {
+        return Err(NetworkHypothesisScoreError::InvalidHypothesisSet(
+            validation_errors,
+        ));
+    }
+
+    let truth_category = match truth {
+        NetworkHypothesisTruth::Listed(hypothesis_id) => {
+            if !set
+                .hypotheses
+                .iter()
+                .any(|hypothesis| hypothesis.hypothesis_id == hypothesis_id)
+            {
+                return Err(NetworkHypothesisScoreError::UnknownTruthHypothesis(
+                    hypothesis_id.to_string(),
+                ));
+            }
+            format!("hypothesis:{hypothesis_id}")
+        }
+        NetworkHypothesisTruth::ResidualUnknown => "residual_unknown".to_string(),
+    };
+
+    let truth_probability = match truth {
+        NetworkHypothesisTruth::Listed(hypothesis_id) => set
+            .hypotheses
+            .iter()
+            .find(|hypothesis| hypothesis.hypothesis_id == hypothesis_id)
+            .map(|hypothesis| hypothesis.probability)
+            .unwrap_or(0.0),
+        NetworkHypothesisTruth::ResidualUnknown => set.residual_unknown_probability,
+    };
+
+    if truth_probability == 0.0 {
+        return Err(NetworkHypothesisScoreError::ZeroProbabilityTruth(
+            truth_category,
+        ));
+    }
+
+    let mut brier = 0.0;
+    for hypothesis in &set.hypotheses {
+        let outcome = match truth {
+            NetworkHypothesisTruth::Listed(hypothesis_id) => {
+                hypothesis.hypothesis_id == hypothesis_id
+            }
+            NetworkHypothesisTruth::ResidualUnknown => false,
+        };
+        let observed = if outcome { 1.0 } else { 0.0 };
+        let error = hypothesis.probability - observed;
+        brier += error * error;
+    }
+
+    let residual_observed = if matches!(truth, NetworkHypothesisTruth::ResidualUnknown) {
+        1.0
+    } else {
+        0.0
+    };
+    let residual_error = set.residual_unknown_probability - residual_observed;
+    brier += residual_error * residual_error;
+
+    Ok(NetworkHypothesisScore {
+        truth_category,
+        category_count: set.hypotheses.len() + 1,
+        negative_log_probability: -truth_probability.ln(),
+        multiclass_brier_score: brier,
+    })
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -535,4 +640,59 @@ mod tests {
                 .contains(&NetworkHypothesisError::CalibrationReceiptMissing)
         );
     }
+
+    #[test]
+    fn joint_world_scorer_scores_a_listed_world_without_renormalizing() {
+        let set = fixture();
+        let score = score_network_hypothesis_set(
+            &set,
+            NetworkHypothesisTruth::Listed("world-one-utility"),
+        )
+        .unwrap();
+        assert_eq!(score.truth_category, "hypothesis:world-one-utility");
+        assert_eq!(score.category_count, 4);
+        assert!((score.negative_log_probability - -0.62_f64.ln()).abs() < 1e-12);
+        assert!((score.multiclass_brier_score - 0.2098).abs() < 1e-12);
+    }
+
+    #[test]
+    fn joint_world_scorer_scores_the_residual_unknown_category() {
+        let set = fixture();
+        let score =
+            score_network_hypothesis_set(&set, NetworkHypothesisTruth::ResidualUnknown).unwrap();
+        assert_eq!(score.truth_category, "residual_unknown");
+        assert!((score.negative_log_probability - -0.05_f64.ln()).abs() < 1e-12);
+        assert!((score.multiclass_brier_score - 1.3498).abs() < 1e-12);
+    }
+
+    #[test]
+    fn joint_world_scorer_rejects_zero_probability_truth() {
+        let mut set = fixture();
+        set.hypotheses[0].probability = 0.0;
+        set.hypotheses[1].probability = 0.85;
+        assert_eq!(
+            score_network_hypothesis_set(
+                &set,
+                NetworkHypothesisTruth::Listed("world-one-utility"),
+            ),
+            Err(NetworkHypothesisScoreError::ZeroProbabilityTruth(
+                "hypothesis:world-one-utility".to_string(),
+            ))
+        );
+    }
+
+    #[test]
+    fn joint_world_scorer_rejects_unknown_truth_labels() {
+        let set = fixture();
+        assert_eq!(
+            score_network_hypothesis_set(
+                &set,
+                NetworkHypothesisTruth::Listed("world-not-in-submission"),
+            ),
+            Err(NetworkHypothesisScoreError::UnknownTruthHypothesis(
+                "world-not-in-submission".to_string(),
+            ))
+        );
+    }
+
 }
