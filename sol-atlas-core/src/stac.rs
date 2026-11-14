@@ -56,8 +56,12 @@ pub struct StacSensorIdentity {
 }
 
 impl StacSensorIdentity {
-    pub fn value(&self) -> Option<&str> { self.value.as_deref() }
-    pub fn origin(&self) -> StacSensorIdentityOrigin { self.origin }
+    pub fn value(&self) -> Option<&str> {
+        self.value.as_deref()
+    }
+    pub fn origin(&self) -> StacSensorIdentityOrigin {
+        self.origin
+    }
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -114,14 +118,30 @@ impl StacObservationIdentity {
 }
 
 impl StacSourceProfile {
-    pub fn profile_version(&self) -> u32 { self.profile_version }
-    pub fn collection_id(&self) -> Option<&str> { self.collection_id.as_deref() }
-    pub fn platform(&self) -> Option<&str> { self.platform.as_deref() }
-    pub fn constellation(&self) -> Option<&str> { self.constellation.as_deref() }
-    pub fn instruments(&self) -> &[String] { &self.instruments }
-    pub fn provider_sensor_id(&self) -> Option<&str> { self.provider_sensor_id.as_deref() }
-    pub fn sensor_identity(&self) -> &StacSensorIdentity { &self.sensor_identity }
-    pub fn processing_fields(&self) -> &BTreeMap<String, Value> { &self.processing_fields }
+    pub fn profile_version(&self) -> u32 {
+        self.profile_version
+    }
+    pub fn collection_id(&self) -> Option<&str> {
+        self.collection_id.as_deref()
+    }
+    pub fn platform(&self) -> Option<&str> {
+        self.platform.as_deref()
+    }
+    pub fn constellation(&self) -> Option<&str> {
+        self.constellation.as_deref()
+    }
+    pub fn instruments(&self) -> &[String] {
+        &self.instruments
+    }
+    pub fn provider_sensor_id(&self) -> Option<&str> {
+        self.provider_sensor_id.as_deref()
+    }
+    pub fn sensor_identity(&self) -> &StacSensorIdentity {
+        &self.sensor_identity
+    }
+    pub fn processing_fields(&self) -> &BTreeMap<String, Value> {
+        &self.processing_fields
+    }
 
     /// Build the observation identity only when platform and sensor identity
     /// are unambiguous. Unknown/multiple-instrument cases remain unresolved.
@@ -140,8 +160,7 @@ impl StacSourceProfile {
             }
             StacSensorIdentityOrigin::Unknown => return None,
         };
-        let instrument_id = (self.instruments.len() == 1)
-            .then(|| self.instruments[0].clone());
+        let instrument_id = (self.instruments.len() == 1).then(|| self.instruments[0].clone());
         let processing_baseline = [
             "s2:processing_baseline",
             "processing:version",
@@ -173,10 +192,13 @@ pub struct StacAssetProfile {
 }
 
 impl StacAssetProfile {
-    pub fn asset_key(&self) -> &str { &self.asset_key }
-    pub fn extension_fields(&self) -> &BTreeMap<String, Value> { &self.extension_fields }
+    pub fn asset_key(&self) -> &str {
+        &self.asset_key
+    }
+    pub fn extension_fields(&self) -> &BTreeMap<String, Value> {
+        &self.extension_fields
+    }
 }
-
 
 /// Result of importing one STAC Item.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -277,7 +299,6 @@ pub fn import_item_json(input: &str) -> Result<StacItemImport, String> {
     let observation_time = parse_observation_time(properties)?;
     let licence = parse_licence(object)?;
     let source_profile = parse_source_profile(object, properties)?;
-
 
     // A BTreeMap is not guaranteed by serde_json's configuration, so sort keys
     // explicitly to make the report stable regardless of input object ordering.
@@ -382,7 +403,9 @@ fn parse_source_profile(
         optional_nonempty_text(properties.get("constellation"), "properties.constellation")?;
     let instruments = parse_string_array(properties.get("instruments"), "properties.instruments")?;
     let provider_sensor_id = optional_nonempty_text(
-        properties.get("sensor").or_else(|| properties.get("sensor_id")),
+        properties
+            .get("sensor")
+            .or_else(|| properties.get("sensor_id")),
         "properties.sensor",
     )?;
 
@@ -461,10 +484,7 @@ fn parse_string_array(value: Option<&Value>, label: &str) -> Result<Vec<String>,
     Ok(output)
 }
 
-fn parse_asset_profile(
-    asset_key: &str,
-    asset: &Map<String, Value>,
-) -> StacAssetProfile {
+fn parse_asset_profile(asset_key: &str, asset: &Map<String, Value>) -> StacAssetProfile {
     let source_native_keys = [
         "eo:bands",
         "raster:bands",
@@ -1078,10 +1098,18 @@ mod tests {
         assert_eq!(identity.collection_id.as_deref(), Some("sentinel-2-l2a"));
         assert_eq!(identity.processing_baseline.as_deref(), Some("04.00"));
 
-        let b04 = result.asset_profiles().iter().find(|a| a.asset_key() == "B04").unwrap();
+        let b04 = result
+            .asset_profiles()
+            .iter()
+            .find(|a| a.asset_key() == "B04")
+            .unwrap();
         assert!(b04.extension_fields().contains_key("eo:bands"));
         assert!(b04.extension_fields().contains_key("raster:bands"));
-        let vh = result.asset_profiles().iter().find(|a| a.asset_key() == "VH").unwrap();
+        let vh = result
+            .asset_profiles()
+            .iter()
+            .find(|a| a.asset_key() == "VH")
+            .unwrap();
         assert_eq!(
             vh.extension_fields().get("sar:polarizations"),
             Some(&serde_json::json!(["VV", "VH"]))
@@ -1107,11 +1135,23 @@ mod tests {
             profile.sensor_identity().value(),
             Some("derived:c2VudGluZWwtMmE:TVNJ")
         );
-        assert!(profile.processing_fields().contains_key("s2:processing_baseline"));
+        assert!(
+            profile
+                .processing_fields()
+                .contains_key("s2:processing_baseline")
+        );
         assert!(result.raw_item_json().contains("vendor:unmodeled_field"));
         assert_eq!(result.asset_profiles().len(), 2);
-        let b04 = result.asset_profiles().iter().find(|asset| asset.asset_key() == "B04").unwrap();
-        let vh = result.asset_profiles().iter().find(|asset| asset.asset_key() == "VH").unwrap();
+        let b04 = result
+            .asset_profiles()
+            .iter()
+            .find(|asset| asset.asset_key() == "B04")
+            .unwrap();
+        let vh = result
+            .asset_profiles()
+            .iter()
+            .find(|asset| asset.asset_key() == "VH")
+            .unwrap();
         assert!(b04.extension_fields().contains_key("eo:bands"));
         assert!(!b04.extension_fields().contains_key("sar:polarizations"));
         assert!(vh.extension_fields().contains_key("sar:polarizations"));
@@ -1130,29 +1170,33 @@ mod tests {
         let encoded_import = serde_json::to_string(&result).unwrap();
         let decoded_import: StacItemImport = serde_json::from_str(&encoded_import).unwrap();
         assert_eq!(decoded_import, result);
-        let mapped = identity.into_observation_record(
-            "mapped-observation",
-            AssetId::new("stac:fixture:asset").unwrap(),
-            "fixture-source-registry",
-            "b".repeat(64),
-            "c".repeat(64),
-            Some("d".repeat(64)),
-            RightsReceiptRef::new(
-                "fixture-subject",
-                "internal-evaluation",
+        let mapped = identity
+            .into_observation_record(
+                "mapped-observation",
+                AssetId::new("stac:fixture:asset").unwrap(),
                 "fixture-source-registry",
-                "stac:fixture:asset",
-                "a".repeat(64),
-            ).unwrap(),
-            "support-sentinel-a",
-            ObservationTime::new(
-                ObservationTimeKind::Instant,
-                Some("2025-01-01T00:00:00Z".into()),
-                None,
-            ).unwrap(),
-            ObservationModality::Optical,
-            ObservationQuality::QualifiedUsable,
-        ).unwrap();
+                "b".repeat(64),
+                "c".repeat(64),
+                Some("d".repeat(64)),
+                RightsReceiptRef::new(
+                    "fixture-subject",
+                    "internal-evaluation",
+                    "fixture-source-registry",
+                    "stac:fixture:asset",
+                    "a".repeat(64),
+                )
+                .unwrap(),
+                "support-sentinel-a",
+                ObservationTime::new(
+                    ObservationTimeKind::Instant,
+                    Some("2025-01-01T00:00:00Z".into()),
+                    None,
+                )
+                .unwrap(),
+                ObservationModality::Optical,
+                ObservationQuality::QualifiedUsable,
+            )
+            .unwrap();
         assert_eq!(mapped.platform_id(), "sentinel-2a");
         assert_eq!(mapped.sensor_id(), "derived:c2VudGluZWwtMmE:TVNJ");
         assert_eq!(
@@ -1184,7 +1228,10 @@ mod tests {
         let result = import_item_json(item).unwrap();
         let identity = result.source_profile().observation_identity().unwrap();
         assert_eq!(identity.sensor_id, "provider-sensor-id");
-        assert_eq!(identity.sensor_identity_origin, SensorIdentityOrigin::ProviderDeclared);
+        assert_eq!(
+            identity.sensor_identity_origin,
+            SensorIdentityOrigin::ProviderDeclared
+        );
     }
 
     #[test]
@@ -1249,7 +1296,11 @@ mod tests {
           },
           "assets":{"visual":{"href":"fixture:visual","type":"image/jpeg"}}
         }"#;
-        assert!(import_item_json(duplicate).unwrap_err().contains("duplicate"));
+        assert!(
+            import_item_json(duplicate)
+                .unwrap_err()
+                .contains("duplicate")
+        );
 
         let malformed = r#"{
           "type":"Feature",
@@ -1261,7 +1312,11 @@ mod tests {
           },
           "assets":{"visual":{"href":"fixture:visual","type":"image/jpeg"}}
         }"#;
-        assert!(import_item_json(malformed).unwrap_err().contains("array of strings"));
+        assert!(
+            import_item_json(malformed)
+                .unwrap_err()
+                .contains("array of strings")
+        );
     }
 
     #[test]
@@ -1288,15 +1343,25 @@ mod tests {
         }"#;
         let result = import_item_json(item).unwrap();
         assert_eq!(
-            result.source_profile().processing_fields().get("landsat:collection_number"),
+            result
+                .source_profile()
+                .processing_fields()
+                .get("landsat:collection_number"),
             Some(&serde_json::json!(2))
         );
         assert_eq!(
-            result.source_profile().processing_fields().get("landsat:processing_level"),
+            result
+                .source_profile()
+                .processing_fields()
+                .get("landsat:processing_level"),
             Some(&Value::String("L2SP".into()))
         );
         assert_eq!(result.asset_profiles()[0].asset_key(), "analytic");
-        assert!(result.asset_profiles()[0].extension_fields().contains_key("eo:bands"));
+        assert!(
+            result.asset_profiles()[0]
+                .extension_fields()
+                .contains_key("eo:bands")
+        );
     }
 
     #[test]
@@ -1307,8 +1372,15 @@ mod tests {
         let right = import_item_json(b).unwrap();
         assert_eq!(left.source_profile(), right.source_profile());
         assert_eq!(
-            left.asset_profiles().iter().map(|a| a.asset_key()).collect::<Vec<_>>(),
-            right.asset_profiles().iter().map(|a| a.asset_key()).collect::<Vec<_>>()
+            left.asset_profiles()
+                .iter()
+                .map(|a| a.asset_key())
+                .collect::<Vec<_>>(),
+            right
+                .asset_profiles()
+                .iter()
+                .map(|a| a.asset_key())
+                .collect::<Vec<_>>()
         );
         assert_ne!(left.raw_item_json(), right.raw_item_json());
     }
