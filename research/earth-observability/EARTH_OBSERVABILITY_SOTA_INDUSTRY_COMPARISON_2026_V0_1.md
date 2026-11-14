@@ -40,7 +40,20 @@ Arvas & Çınar, *Detection of underground objects from GPR data using a lightwe
 
 **Sol-Atlas interpretation:** a strong candidate for reproducing the lightweight detector/latency frontier and a useful small-object ablation baseline. However, mixed-source image aggregation does not by itself establish a physically controlled held-out-site evaluation when acquisition metadata and source lineage are incomplete. This should be treated as an image-level detector track, not utility-asset topology or physical POD qualification.
 
-### 1.3 Probabilistic localization baseline — Bayesian forward model, January 2026
+### 1.3 Detector architecture comparator — YOLOv12 + denoising AE + CBAM, February 2026
+
+Do et al., *Ground Penetrating Radar Image Analysis for Underground Barrier Detection by Combining YOLOv12 with Channel-wise Attention and Denoising Auto-Encoder*, ACM RACS proceedings, published 4 February 2026, DOI 10.1145/3769002.3769961.
+
+- Combines a denoising autoencoder to suppress clutter while preserving hyperbolic signatures with channel/spatial attention (CBAM) over a YOLOv12 detector.
+- Evaluates real GPR datasets of gas pipelines and reports higher precision, recall and mAP@50 than baseline YOLOv12 in its abstract.
+- The accessible publication abstract does not disclose the numerical metric values needed for a directly comparable scorecard.
+- The official implementation repository describes a company-provided, private B-scan dataset with four pipeline classes (water, sewage, rain and gas), but says the paper experiment focuses on gas pipelines.
+
+**Sol-Atlas interpretation:** this is a valuable architecture/reproduction comparator for denoising + attention + detector ablations. It is not presently an independently reproducible numeric SOTA baseline because the data are private and accessible headline metrics are not available in the abstract. Do not invent or infer scores. The correct experiment is to reproduce the AE/CBAM ablations on a permissioned matched GPR corpus and compare detection, calibration, latency and failure modes—not assume that preprocessing improvement transfers to field utility reconstruction.
+
+Sources: ACM record https://doi.org/10.1145/3769002.3769961; authors' implementation https://github.com/NSLab-CUK/GPR-YOLOv12.
+
+### 1.4 Probabilistic localization baseline — Bayesian forward model, January 2026
 
 Zhang & Cai, *Uncertainty-aware localization and orientation estimation of underground pipelines from GPR data*, Advanced Engineering Informatics, January 2026, DOI 10.1016/j.aei.2025.104093.
 
@@ -51,7 +64,7 @@ The work develops a domain-informed 3D pipe forward model and Bayesian inference
 
 **Sol-Atlas interpretation:** the field/simulation coverage gap is a major warning about uncertainty under model mismatch. Sol-Atlas should compare posterior coverage and interval width on independent physical field data, stratified by site and acquisition domain. A 97.5% simulation coverage headline is not a physical qualification result.
 
-### 1.4 Survey and processing optimization baseline — Leica DS2000, April 2026
+### 1.5 Survey and processing optimization baseline — Leica DS2000, April 2026
 
 Marjetič et al., *Multicriteria Statistical Optimization of GPR Survey and Processing for Underground Utility Mapping: Case Study of the Leica DS2000 System*, Remote Sensing 18(7), 1092, 5 April 2026, DOI 10.3390/rs18071092.
 
@@ -66,7 +79,7 @@ The study:
 
 **Sol-Atlas interpretation:** this is a useful operational baseline for survey-parameter optimization. It demonstrates that acquisition and processing should be selected jointly and conditionally, not fixed globally. It is not a broad transfer benchmark: three lines, one DS2000 system and favourable conditions do not characterize wet clay, rough terrain, multiple instruments or network topology.
 
-### 1.5 Field data benchmark — UT-Gold-D, 2023/2024
+### 1.6 Field data benchmark — UT-Gold-D, 2023/2024
 
 ter Huurne, Olde Scholtenhuis & Dorée, *Ground penetrating radar at work: A realistic perspective on utility surveying in the Netherlands through a comprehensive ground-truth dataset*, Data in Brief 54, 110329 (2024), DOI 10.1016/j.dib.2024.110329. Dataset DOI 10.4121/96303227-5886-41c9-8607-70fdd2cfe7c1.
 
