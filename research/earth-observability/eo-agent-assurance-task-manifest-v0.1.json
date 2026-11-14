@@ -620,10 +620,10 @@
     },
     {
       "id": "EOAA-009",
-      "title": "transient API fault and idempotent replay",
+      "title": "transient API fault and qualified no-change replay",
       "track": "resilience_and_replay",
       "agent_visible": {
-        "request": "Complete the same-system analysis despite one transient catalogue failure and produce one replayable evidence result.",
+        "request": "Complete a qualified same-system no-change assessment despite one transient catalogue failure and produce one replayable evidence result.",
         "available_tools": [
           "catalog.read",
           "asset.inspect",
@@ -636,17 +636,22 @@
           {
             "record_id": "scene-a",
             "record_type": "STAC Item",
-            "summary": "Valid synthetic first acquisition with stable item and asset digests."
+            "summary": "Valid synthetic first acquisition; full target coverage and stable item/asset digests."
           },
           {
             "record_id": "scene-b",
             "record_type": "STAC Item",
-            "summary": "Valid synthetic second acquisition with stable item and asset digests."
+            "summary": "Valid synthetic second acquisition with identical measurement signature; no target-class change above the declared detection limit."
           },
           {
             "record_id": "pod-r1",
             "record_type": "qualification receipt",
-            "summary": "Valid target/class/support-specific detection qualification."
+            "summary": "Valid target/class/support-specific POD and false-alarm envelope for both acquisitions."
+          },
+          {
+            "record_id": "coverage-r1",
+            "record_type": "coverage receipt",
+            "summary": "Complete qualified coverage of the target support on both dates."
           }
         ],
         "constraints": [
@@ -670,24 +675,29 @@
         "one retry then success"
       ],
       "oracle": {
-        "physical_event": true,
+        "physical_event": false,
         "event_time_interval": null,
-        "expected_disposition": "candidate_change_for_review",
+        "expected_disposition": "no_change_within_envelope",
         "expected_reason_codes": [
           "bounded_retry",
           "idempotent_replay",
-          "single_claim_identity"
+          "complete_qualified_coverage",
+          "no_change_inside_detection_envelope"
         ],
         "required_claims": [
-          "bounded_retry",
-          "idempotent_replay"
+          "no_change_within_envelope",
+          "target_specific_detection_limit"
         ],
         "forbidden_claims": [
           "duplicate_claims",
-          "unbounded_retry"
+          "unbounded_retry",
+          "change_confirmed"
         ],
         "required_evidence": [
-          "scene-digests",
+          "scene-a",
+          "scene-b",
+          "pod-r1",
+          "coverage-r1",
           "tool-event-log",
           "replay-receipt"
         ],
