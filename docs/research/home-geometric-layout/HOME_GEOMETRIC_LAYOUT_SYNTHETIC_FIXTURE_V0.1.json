@@ -1,0 +1,61 @@
+{
+  "schema_version": "0.1.0",
+  "study_id": "HOME-GEOMETRIC-LAYOUT-SYNTHETIC-001",
+  "maturity": "SYNTHETIC",
+  "execution_status": "SYNTHETIC_FIXTURE_NOT_FIELD_EVALUATED",
+  "coordinate_system": {
+    "unit": "MILLIMETRE",
+    "origin": "BUILDABLE_ENVELOPE_SOUTH_WEST",
+    "x_axis": "EAST",
+    "y_axis": "NORTH",
+    "integer_grid_mm": 1
+  },
+  "buildable_envelope": {
+    "geometry": "AXIS_ALIGNED_RECTANGLE",
+    "width_mm": 13750,
+    "height_mm": 8500,
+    "state": "SYNTHETIC_ENVELOPE_NOT_SURVEYED_OR_AUTHORITY_CONFIRMED"
+  },
+  "layout_candidates": [
+    {
+      "candidate_id": "GEOM-HV-B-01",
+      "source_graph_candidate_id": "GRAPH-HV-B",
+      "geometry_state": "SYNTHETIC_GEOMETRY_NOT_BUILDABLE",
+      "physical_verification_state": "UNKNOWN",
+      "rooms": [
+        { "space_id": "B-KITCHEN-01", "space_type": "INDOOR", "floor_index": 0, "x_mm": 0, "y_mm": 0, "width_mm": 4000, "height_mm": 2000 },
+        { "space_id": "B-YARD-01", "space_type": "OUTDOOR", "floor_index": 0, "x_mm": 4000, "y_mm": 0, "width_mm": 4000, "height_mm": 2000 },
+        { "space_id": "B-LIVING-01", "space_type": "INDOOR", "floor_index": 0, "x_mm": 0, "y_mm": 2000, "width_mm": 5750, "height_mm": 4000 },
+        { "space_id": "B-BED-02", "space_type": "INDOOR", "floor_index": 0, "x_mm": 0, "y_mm": 6000, "width_mm": 4000, "height_mm": 2500 },
+        { "space_id": "B-BED-01", "space_type": "INDOOR", "floor_index": 0, "x_mm": 5750, "y_mm": 2000, "width_mm": 4000, "height_mm": 3000 },
+        { "space_id": "B-WORK-01", "space_type": "INDOOR", "floor_index": 0, "x_mm": 9750, "y_mm": 2000, "width_mm": 3500, "height_mm": 2000 },
+        { "space_id": "B-BATH-01", "space_type": "INDOOR", "floor_index": 0, "x_mm": 5750, "y_mm": 5000, "width_mm": 2500, "height_mm": 2000 },
+        { "space_id": "B-UTILITY-01", "space_type": "INDOOR", "floor_index": 0, "x_mm": 8250, "y_mm": 5000, "width_mm": 2000, "height_mm": 2000 },
+        { "space_id": "B-CIRC-01", "space_type": "INDOOR", "floor_index": 0, "x_mm": 10250, "y_mm": 4000, "width_mm": 2000, "height_mm": 3000 },
+        { "space_id": "B-STORAGE-01", "space_type": "INDOOR", "floor_index": 0, "x_mm": 12250, "y_mm": 5000, "width_mm": 1500, "height_mm": 2000 }
+      ],
+      "openings": [
+        { "opening_id": "D-KITCHEN-LIVING", "from_space_id": "B-KITCHEN-01", "to_space_id": "B-LIVING-01", "axis": "HORIZONTAL", "coordinate_mm": 2000, "span_start_mm": 500, "span_end_mm": 1500 },
+        { "opening_id": "D-KITCHEN-YARD", "from_space_id": "B-KITCHEN-01", "to_space_id": "B-YARD-01", "axis": "VERTICAL", "coordinate_mm": 4000, "span_start_mm": 500, "span_end_mm": 1400 },
+        { "opening_id": "D-LIVING-BED2", "from_space_id": "B-LIVING-01", "to_space_id": "B-BED-02", "axis": "HORIZONTAL", "coordinate_mm": 6000, "span_start_mm": 500, "span_end_mm": 1400 },
+        { "opening_id": "D-LIVING-BED1", "from_space_id": "B-LIVING-01", "to_space_id": "B-BED-01", "axis": "VERTICAL", "coordinate_mm": 5750, "span_start_mm": 3000, "span_end_mm": 3900 },
+        { "opening_id": "D-BED1-BATH", "from_space_id": "B-BED-01", "to_space_id": "B-BATH-01", "axis": "HORIZONTAL", "coordinate_mm": 5000, "span_start_mm": 6500, "span_end_mm": 7400 },
+        { "opening_id": "D-BATH-UTILITY", "from_space_id": "B-BATH-01", "to_space_id": "B-UTILITY-01", "axis": "VERTICAL", "coordinate_mm": 8250, "span_start_mm": 5500, "span_end_mm": 6400 },
+        { "opening_id": "D-UTILITY-CIRC", "from_space_id": "B-UTILITY-01", "to_space_id": "B-CIRC-01", "axis": "VERTICAL", "coordinate_mm": 10250, "span_start_mm": 5500, "span_end_mm": 6400 },
+        { "opening_id": "D-CIRC-WORK", "from_space_id": "B-CIRC-01", "to_space_id": "B-WORK-01", "axis": "HORIZONTAL", "coordinate_mm": 4000, "span_start_mm": 10800, "span_end_mm": 11700 },
+        { "opening_id": "D-WORK-BED1", "from_space_id": "B-WORK-01", "to_space_id": "B-BED-01", "axis": "VERTICAL", "coordinate_mm": 9750, "span_start_mm": 2300, "span_end_mm": 3200 },
+        { "opening_id": "D-CIRC-STORAGE", "from_space_id": "B-CIRC-01", "to_space_id": "B-STORAGE-01", "axis": "VERTICAL", "coordinate_mm": 12250, "span_start_mm": 5500, "span_end_mm": 6400 }
+      ],
+      "access_routes": [
+        { "route_id": "B-ENTRY-BATH", "from_space_id": "B-CIRC-01", "to_space_id": "B-BATH-01" },
+        { "route_id": "B-ENTRY-BED", "from_space_id": "B-CIRC-01", "to_space_id": "B-BED-01" }
+      ]
+    }
+  ],
+  "comparison_policy": {
+    "ranking_state": "UNRANKED",
+    "scalar_score": null,
+    "resident_choice_required": true
+  },
+  "claim_ceiling": "Synthetic 2D orthogonal geometry consistency only. No site, code, professional, physical performance, cost, buildability or approval claim."
+}
