@@ -1,12 +1,15 @@
-name: Home multi-family synthetic qualifier
+name: Home multi-family synthetic qualifiers
 
 on:
   pull_request:
     paths:
       - "src/bin/home-multifamily-qualifier.rs"
+      - "src/bin/home-multifamily-service-qualifier.rs"
       - "docs/research/home-delivery-systems/multifamily-building.schema.json"
       - "docs/research/home-delivery-systems/multifamily-building-synthetic-v0.1.json"
       - "docs/research/home-delivery-systems/multifamily-adversarial-corpus-v0.1.json"
+      - "docs/research/home-delivery-systems/multifamily-service-distribution.schema.json"
+      - "docs/research/home-delivery-systems/multifamily-service-distribution-synthetic-v0.1.json"
       - ".github/workflows/home-multifamily-qualifier.yml"
   workflow_dispatch:
 
@@ -19,7 +22,7 @@ concurrency:
 
 jobs:
   format:
-    name: rustfmt (qualifier only)
+    name: rustfmt (multi-family qualifiers)
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -29,17 +32,23 @@ jobs:
         with:
           components: rustfmt
       - name: Check qualifier formatting
-        run: rustfmt --edition 2024 --check src/bin/home-multifamily-qualifier.rs
+        run: |
+          rustfmt --edition 2024 --check src/bin/home-multifamily-qualifier.rs
+          rustfmt --edition 2024 --check src/bin/home-multifamily-service-qualifier.rs
 
   native:
-    name: native qualifier tests and replay
+    name: native multi-family qualifier tests and replay
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@stable
-      - name: Run focused tests
+      - name: Test building geometry qualifier
         run: cargo test --locked --bin home-multifamily-qualifier
-      - name: Run frozen fixture replay
+      - name: Replay building geometry fixture
         run: cargo run --locked --bin home-multifamily-qualifier -- --self-test
+      - name: Test shared-service qualifier
+        run: cargo test --locked --bin home-multifamily-service-qualifier
+      - name: Replay shared-service fixture
+        run: cargo run --locked --bin home-multifamily-service-qualifier -- --self-test
