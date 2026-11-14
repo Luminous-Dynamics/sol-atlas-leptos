@@ -177,6 +177,23 @@ Use the published EarthShift splits/results as an external reference when datase
 
 **Proposed SOTA challenge:** improve effective robustness on the hardest geography/scale/sensor/source shifts without sacrificing ID task quality or calibration. A pooled mean gain that worsens the weakest shift does not pass. No EarthShift reproduction or improvement is claimed by this protocol update.
 
+### Shifted calibration and confidently-wrong controls (2026)
+
+Lehmann et al. (17 August 2026, arXiv:2608.16614) evaluated 16 frozen geospatial encoders across four classification and five segmentation datasets under corruption shifts. Every encoder degraded as corruption intensified; under shift, GeoFM encoders became more overconfident than ImageNet-pretrained encoders. Their tests found that temperature scaling and deep ensembles did not remove this degradation. A Gaussian-process probe reduced ECE under severe cloud but sharply worsened clean ECE, and confidence-based abstention did not reliably defer confidently wrong predictions.
+
+The scorecard must therefore include, for each shift axis and severity:
+- Brier score, negative log-likelihood, classwise/adaptive ECE and reliability diagrams;
+- calibration slope/intercept and confidence-conditioned error, including confidently wrong examples;
+- risk–coverage curves and AURC; selective risk at fixed coverage and coverage at fixed risk;
+- abstention/OTHER outcomes with explicit abstention cost, not merely excluded from the denominator;
+- source-only calibration, no-target-label transfer, and small target-label calibration budgets;
+- paired confidence intervals, repeated runs, worst-region and worst-severity reporting;
+- separate results for temperature scaling, deep ensembles, Gaussian-process/structured uncertainty and model-native uncertainty.
+
+Do not promote a calibration method because it improves one severe-corruption ECE point while damaging clean calibration or another shift family. The target is lower decision risk under shift, with a reliable abstention boundary—not confidence preservation.
+
+**Proposed calibration gate:** no shift family may exhibit a statistically significant increase in confidently-wrong high-confidence predictions without a corresponding explicit abstention or uncertainty escalation. This is a proposed gate; no empirical result is claimed.
+
 ## 7A. Rights-aware federation scorecard
 
 Treat discovery, read, processing, derivative creation, redistribution, retention and publication as distinct operations. Compare:
