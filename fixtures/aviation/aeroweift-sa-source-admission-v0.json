@@ -289,6 +289,151 @@
         "may_emit_legal_permission_boolean": false,
         "may_authorize_flight": false
       }
+    },
+    {
+      "id": "bvlos-versus-brlos-regulatory-scope",
+      "synthetic_record": true,
+      "source_family": "REGULATORY_OPERATION_SCOPE",
+      "publisher_label": "SACAA and South African Government Gazette",
+      "checked_date": "2026-11-14",
+      "source_claims": [
+        {
+          "locator": "https://www.caa.co.za/industry-information/uas/",
+          "claim": "The SACAA UAS page lists R-VLOS, VLOS, EVLOS and BVLOS under its Radio line-of-sight (RLOS) section; it says current UAS operations are limited to RLOS and BRLOS is reserved for future use.",
+          "authority_scope": "regulator-summary-page",
+          "content_digest": {
+            "value": null,
+            "status": "NOT_SUPPLIED_FIXTURE_ONLY"
+          }
+        },
+        {
+          "locator": "https://www.gov.za/sites/default/files/gcis_document/202303/48228rg11556gon3170.pdf",
+          "claim": "Official Gazette 48228 / Notice R.3170 substitutes Part 101 regulation 101.05.11: B-VLOS requires Director approval in a UASOC operations manual, satisfaction of SA-CATS 101, and approved operations are in VMC below 400 ft AGL unless otherwise approved.",
+          "authority_scope": "official-regulation-amendment",
+          "printed_page": 194,
+          "pdf_page_index": 140,
+          "content_digest": {
+            "value": null,
+            "status": "NOT_SUPPLIED_FIXTURE_ONLY"
+          }
+        },
+        {
+          "locator": "https://www.gov.za/sites/default/files/gcis_document/202608/55226gon7844.pdf",
+          "claim": "The Thirty-Third Amendment / Notice 7844 substitutes Part 101 regulation 101.01.2 for private operations: R-VLOS only, Class 1A or 1B RPA, and no dangerous goods aboard a UA.",
+          "authority_scope": "official-regulation-amendment-private-operation-only",
+          "publication_date": "2026-08-21",
+          "content_digest": {
+            "value": null,
+            "status": "NOT_SUPPLIED_FIXTURE_ONLY"
+          }
+        }
+      ],
+      "semantic_dimensions": {
+        "visual_operation_rule": [
+          "R-VLOS",
+          "VLOS",
+          "EVLOS",
+          "BVLOS",
+          "unknown"
+        ],
+        "radio_link_scope": [
+          "RLOS",
+          "BRLOS",
+          "unknown"
+        ],
+        "operator_category": [
+          "commercial",
+          "corporate",
+          "non-profit",
+          "private",
+          "unknown"
+        ],
+        "aircraft_class": [
+          "Class 1A",
+          "Class 1B",
+          "other",
+          "unknown"
+        ],
+        "uasoc_and_opspec_status": [
+          "valid",
+          "missing",
+          "unknown"
+        ],
+        "director_bvlos_approval": [
+          "present",
+          "absent",
+          "unknown"
+        ],
+        "sa_cats_101_evidence": [
+          "complete",
+          "incomplete",
+          "unknown"
+        ],
+        "payload_dangerous_goods": [
+          "yes",
+          "no",
+          "unknown"
+        ]
+      },
+      "expected": {
+        "admission_state": "SOURCE_VERIFIED_SCOPE_REVIEW_REQUIRED",
+        "core_invariant": "BVLOS and BRLOS are separate dimensions; a BVLOS approval is not a BRLOS approval.",
+        "cases": [
+          {
+            "id": "private-bvlos-with-r-los",
+            "operator_category": "private",
+            "visual_operation_rule": "BVLOS",
+            "radio_link_scope": "RLOS",
+            "aircraft_class": "Class 1A",
+            "director_bvlos_approval": "present",
+            "expected_disposition": "REJECTED_FOR_PRIVATE_SCOPE",
+            "reason": "The 2026 private-operation rule requires R-VLOS; a general BVLOS approval path does not override that private-operation restriction."
+          },
+          {
+            "id": "commercial-bvlos-without-director-approval",
+            "operator_category": "commercial",
+            "visual_operation_rule": "BVLOS",
+            "radio_link_scope": "RLOS",
+            "uasoc_and_opspec_status": "valid",
+            "director_bvlos_approval": "unknown",
+            "sa_cats_101_evidence": "complete",
+            "expected_disposition": "UNRESOLVED",
+            "reason": "The B-VLOS approval is not evidenced; UASOC alone is not an approval."
+          },
+          {
+            "id": "commercial-bvlos-with-director-approval",
+            "operator_category": "commercial",
+            "visual_operation_rule": "BVLOS",
+            "radio_link_scope": "RLOS",
+            "uasoc_and_opspec_status": "valid",
+            "director_bvlos_approval": "present",
+            "sa_cats_101_evidence": "complete",
+            "expected_disposition": "CONDITIONAL_PATH_EVIDENCED_REQUIRES_OPERATION_SPECIFIC_REVIEW",
+            "reason": "The rule describes a conditional approval path; this fixture does not decide any other permissions, payload, airworthiness, site, airspace or operation-specific requirements."
+          },
+          {
+            "id": "brlos-request",
+            "operator_category": "commercial",
+            "visual_operation_rule": "BVLOS",
+            "radio_link_scope": "BRLOS",
+            "expected_disposition": "UNSUPPORTED_OR_UNRESOLVED",
+            "reason": "A visual-BVLOS approval must not be used to infer beyond-radio-line-of-sight support."
+          },
+          {
+            "id": "private-rvlos-dangerous-goods",
+            "operator_category": "private",
+            "visual_operation_rule": "R-VLOS",
+            "radio_link_scope": "RLOS",
+            "aircraft_class": "Class 1A",
+            "payload_dangerous_goods": "yes",
+            "expected_disposition": "REJECTED_FOR_PRIVATE_SCOPE",
+            "reason": "The 2026 private-operation provision prohibits dangerous goods aboard a UA."
+          }
+        ],
+        "may_emit_blanket_bvlos_allowed_boolean": false,
+        "may_infer_brlos_from_bvlos": false,
+        "may_authorize_flight": false
+      }
     }
   ],
   "required_mutations": [
@@ -298,7 +443,11 @@
     "Remove the authenticated-service access agreement; no automated acquisition is admitted.",
     "Replace the unknown vertical datum with a conflicting datum; 3D use remains not-assessable until a qualified transformation is supplied.",
     "Set a mapped site's geometry to valid while keeping capacity/status unknown; no capacity or landing permission may be inferred.",
-    "Change the regulation's proposed operation from private R-VLOS to commercial BVLOS; legal applicability must remain pending."
+    "Change the regulation's proposed operation from private R-VLOS to commercial BVLOS; legal applicability must remain pending.",
+    "Change a private operator's visual rule from R-VLOS to BVLOS while keeping radio link RLOS; the private-operation case must be rejected.",
+    "Change a BVLOS operation's radio-link scope from RLOS to BRLOS; the evaluator must not reuse the BVLOS approval as BRLOS permission.",
+    "Remove Director approval from a commercial B-VLOS case; disposition must be unresolved/rejected, not approved.",
+    "Change a private payload from non-dangerous to dangerous goods; the private-operation case must be rejected."
   ],
   "invariants": [
     "Public visibility, authenticity, freshness, completeness, reuse rights, geometric validity and operational applicability are separate claims.",
@@ -307,6 +456,10 @@
     "A geometry record does not establish site operations, capacity, suitability or permission.",
     "A regulatory publication or excerpt does not establish applicability to a specific operation or payload.",
     "Every derived claim retains exact source identity, retrieval time, validity, coverage, rights and transformation lineage.",
-    "No live or protected source bytes, credentials, personal information or operational data are included."
+    "No live or protected source bytes, credentials, personal information or operational data are included.",
+    "BVLOS (visual line-of-sight rule) and BRLOS (radio-link scope) are separate semantic dimensions.",
+    "The conditional Part 101.05.11 B-VLOS approval path does not make all B-VLOS operations permitted.",
+    "The 2026 Part 101.01.2 private-operation restrictions apply to private operations and are not generalized to all commercial or corporate operations.",
+    "A UASOC, B-VLOS Director approval, RLOS link scope, payload eligibility, site permission and airspace permission are separate evidence claims."
   ]
 }
