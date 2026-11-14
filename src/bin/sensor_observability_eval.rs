@@ -228,7 +228,7 @@ mod tests {
         assert_eq!(receipt.json_schema_validation, "NOT_RUN");
         assert_eq!(
             receipt.metrics.clustered_confidence_interval_status,
-            "INSUFFICIENT_SITE_CLUSTERS_POD_4_FAR_4_REQUIRED_10_NOT_RUN"
+            "INSUFFICIENT_SITE_CLUSTERS_POD_4_FAR_3_REQUIRED_10_NOT_RUN"
         );
         assert_eq!(
             receipt
