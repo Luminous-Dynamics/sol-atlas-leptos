@@ -1,0 +1,2233 @@
+{
+  "schema_version": "0.1.0",
+  "map_id": "sol-atlas:demo-cargo-core-projection:2026-11-14",
+  "repository": {
+    "canonical_name": "Luminous-Dynamics/sol-atlas-leptos",
+    "visibility": "public",
+    "default_branch": "main"
+  },
+  "snapshot": {
+    "revision": "1af10d891410cce31c1d4037e7c7129c16db5834",
+    "tree_digest": "513c8e2b65e68c730d092efe12f9452b3414785e",
+    "tree_digest_algorithm": "git_tree_oid_sha1",
+    "observed_at": "2026-11-14T09:05:00.000Z",
+    "parent_snapshot": null,
+    "source_event_high_watermark": null,
+    "configuration_world": {
+      "map_kind": "read_only_source_projection",
+      "source_scope": [
+        "DEMO.md",
+        "Cargo.toml",
+        "sol-atlas-core/src/lib.rs"
+      ]
+    }
+  },
+  "extractor": {
+    "name": "manual-readonly-demo-manifest-module-projection",
+    "version": "0.1.0",
+    "build_digest": null
+  },
+  "nodes": [
+    {
+      "id": "solatlas:project",
+      "type": "project",
+      "claim_state": "observed",
+      "label": "Sol Atlas / Terra Atlas",
+      "attributes": {
+        "declared_description": "Planetary energy transition visualization",
+        "presentation": "Interactive 3D globe",
+        "repository_root_readme": "absent; DEMO.md used as project narrative",
+        "declared_live_url": "https://atlas.luminousdynamics.io"
+      },
+      "provenance": {
+        "authority": "source_declared",
+        "sources": [
+          {
+            "kind": "repository_file",
+            "uri": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/blob/1af10d891410cce31c1d4037e7c7129c16db5834/DEMO.md#L1-L5",
+            "path": "DEMO.md",
+            "line_start": 1,
+            "line_end": 5,
+            "digest": "ae87d09a4c47992df40b707a74f9fef419c39c93"
+          }
+        ],
+        "extracted_by": {
+          "name": "manual-readonly-demo-manifest-module-projection",
+          "version": "0.1.0",
+          "digest": null
+        },
+        "observed_at": "2026-11-14T09:05:00.000Z",
+        "valid_for_revision": "1af10d891410cce31c1d4037e7c7129c16db5834",
+        "valid_for_world": "DEMO.md-Cargo.toml-sol-atlas-core-src-lib.rs-only",
+        "limitations": [
+          "Project description and live URL are source-declared; service availability was not independently checked."
+        ]
+      },
+      "lifecycle": {
+        "state": "current",
+        "supersedes": null,
+        "invalidated_by": null,
+        "reason": "Current only for the exact pinned source revision."
+      }
+    },
+    {
+      "id": "solatlas:crate:leptos-app",
+      "type": "crate",
+      "claim_state": "observed",
+      "label": "sol-atlas-leptos",
+      "attributes": {
+        "version": "0.1.0",
+        "package_description": "Leptos WebGL globe for Sol Atlas — energy infrastructure, Resontia vaults, maglev corridors",
+        "declared_rendering_stack": [
+          "Leptos CSR",
+          "WebGL2",
+          "WASM"
+        ]
+      },
+      "provenance": {
+        "authority": "source_declared",
+        "sources": [
+          {
+            "kind": "repository_file",
+            "uri": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/blob/1af10d891410cce31c1d4037e7c7129c16db5834/Cargo.toml#L1-L29",
+            "path": "Cargo.toml",
+            "line_start": 1,
+            "line_end": 29,
+            "digest": "427e7745cc9e6495004af9c9a490fd775a37812e"
+          }
+        ],
+        "extracted_by": {
+          "name": "manual-readonly-demo-manifest-module-projection",
+          "version": "0.1.0",
+          "digest": null
+        },
+        "observed_at": "2026-11-14T09:05:00.000Z",
+        "valid_for_revision": "1af10d891410cce31c1d4037e7c7129c16db5834",
+        "valid_for_world": "DEMO.md-Cargo.toml-sol-atlas-core-src-lib.rs-only",
+        "limitations": [
+          "Cargo manifest declares dependencies/features; no compilation or browser execution was performed."
+        ]
+      },
+      "lifecycle": {
+        "state": "current",
+        "supersedes": null,
+        "invalidated_by": null,
+        "reason": "Current only for the exact pinned source revision."
+      }
+    },
+    {
+      "id": "solatlas:crate:core",
+      "type": "crate",
+      "claim_state": "observed",
+      "label": "sol-atlas-core",
+      "attributes": {
+        "role": "Shared Rust types, math, economics and domain modules",
+        "source_scope": "public module declarations in lib.rs"
+      },
+      "provenance": {
+        "authority": "source_declared",
+        "sources": [
+          {
+            "kind": "repository_file",
+            "uri": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/blob/1af10d891410cce31c1d4037e7c7129c16db5834/sol-atlas-core/src/lib.rs#L1-L30",
+            "path": "sol-atlas-core/src/lib.rs",
+            "line_start": 1,
+            "line_end": 30,
+            "digest": "7407357e8e78a3b158065a825de5aacb857c886d"
+          }
+        ],
+        "extracted_by": {
+          "name": "manual-readonly-demo-manifest-module-projection",
+          "version": "0.1.0",
+          "digest": null
+        },
+        "observed_at": "2026-11-14T09:05:00.000Z",
+        "valid_for_revision": "1af10d891410cce31c1d4037e7c7129c16db5834",
+        "valid_for_world": "DEMO.md-Cargo.toml-sol-atlas-core-src-lib.rs-only",
+        "limitations": [
+          "Module exports are source declarations, not proof that all modules compile or meet their domain claims."
+        ]
+      },
+      "lifecycle": {
+        "state": "current",
+        "supersedes": null,
+        "invalidated_by": null,
+        "reason": "Current only for the exact pinned source revision."
+      }
+    },
+    {
+      "id": "solatlas:capability:geological-clock",
+      "type": "capability",
+      "claim_state": "observed",
+      "label": "Geological reserve visualization",
+      "attributes": {
+        "reported_deposits": 73,
+        "reported_sources": [
+          "EIA",
+          "USGS",
+          "BP Statistical Review"
+        ],
+        "reported_marker_scale": "logarithmic by proven reserves (million barrels of oil equivalent)"
+      },
+      "provenance": {
+        "authority": "source_declared",
+        "sources": [
+          {
+            "kind": "repository_file",
+            "uri": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/blob/1af10d891410cce31c1d4037e7c7129c16db5834/DEMO.md#L9-L11",
+            "path": "DEMO.md",
+            "line_start": 9,
+            "line_end": 11,
+            "digest": "ae87d09a4c47992df40b707a74f9fef419c39c93"
+          }
+        ],
+        "extracted_by": {
+          "name": "manual-readonly-demo-manifest-module-projection",
+          "version": "0.1.0",
+          "digest": null
+        },
+        "observed_at": "2026-11-14T09:05:00.000Z",
+        "valid_for_revision": "1af10d891410cce31c1d4037e7c7129c16db5834",
+        "valid_for_world": "DEMO.md-Cargo.toml-sol-atlas-core-src-lib.rs-only",
+        "limitations": [
+          "Deposit inventory, coordinate accuracy, source versions, licence and reserve values have not been independently audited."
+        ]
+      },
+      "lifecycle": {
+        "state": "current",
+        "supersedes": null,
+        "invalidated_by": null,
+        "reason": "Current only for the exact pinned source revision."
+      }
+    },
+    {
+      "id": "solatlas:capability:thermodynamic-clock",
+      "type": "capability",
+      "claim_state": "observed",
+      "label": "EROI visualization and depletion timeline",
+      "attributes": {
+        "reported_eroi_bands": {
+          "green": ">12:1",
+          "amber": "5-12:1",
+          "red": "3-5:1",
+          "dark_red": "<3:1"
+        },
+        "reported_depletion_rates": {
+          "oil": "2%/year",
+          "tar_sands": "3%/year"
+        },
+        "declared_timeline": "1950 through 2060+"
+      },
+      "provenance": {
+        "authority": "source_declared",
+        "sources": [
+          {
+            "kind": "repository_file",
+            "uri": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/blob/1af10d891410cce31c1d4037e7c7129c16db5834/DEMO.md#L12-L19",
+            "path": "DEMO.md",
+            "line_start": 12,
+            "line_end": 19,
+            "digest": "ae87d09a4c47992df40b707a74f9fef419c39c93"
+          }
+        ],
+        "extracted_by": {
+          "name": "manual-readonly-demo-manifest-module-projection",
+          "version": "0.1.0",
+          "digest": null
+        },
+        "observed_at": "2026-11-14T09:05:00.000Z",
+        "valid_for_revision": "1af10d891410cce31c1d4037e7c7129c16db5834",
+        "valid_for_world": "DEMO.md-Cargo.toml-sol-atlas-core-src-lib.rs-only",
+        "limitations": [
+          "EROI thresholds, depletion rates, fields and projected time evolution remain demo-declared; no primary data or model validation is included."
+        ]
+      },
+      "lifecycle": {
+        "state": "current",
+        "supersedes": null,
+        "invalidated_by": null,
+        "reason": "Current only for the exact pinned source revision."
+      }
+    },
+    {
+      "id": "solatlas:capability:atmospheric-clock",
+      "type": "capability",
+      "claim_state": "observed",
+      "label": "Carbon emissions and stranded-asset economics",
+      "attributes": {
+        "declared_emissions_formula": "production × emission factor per fuel type",
+        "reported_social_cost_of_carbon_usd_per_ton": 51,
+        "reported_source": "EPA 2024 central estimate"
+      },
+      "provenance": {
+        "authority": "source_declared",
+        "sources": [
+          {
+            "kind": "repository_file",
+            "uri": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/blob/1af10d891410cce31c1d4037e7c7129c16db5834/DEMO.md#L21-L25",
+            "path": "DEMO.md",
+            "line_start": 21,
+            "line_end": 25,
+            "digest": "ae87d09a4c47992df40b707a74f9fef419c39c93"
+          }
+        ],
+        "extracted_by": {
+          "name": "manual-readonly-demo-manifest-module-projection",
+          "version": "0.1.0",
+          "digest": null
+        },
+        "observed_at": "2026-11-14T09:05:00.000Z",
+        "valid_for_revision": "1af10d891410cce31c1d4037e7c7129c16db5834",
+        "valid_for_world": "DEMO.md-Cargo.toml-sol-atlas-core-src-lib.rs-only",
+        "limitations": [
+          "Emission factors, cost assumptions and carbon-price calculations require separate source and model verification."
+        ]
+      },
+      "lifecycle": {
+        "state": "current",
+        "supersedes": null,
+        "invalidated_by": null,
+        "reason": "Current only for the exact pinned source revision."
+      }
+    },
+    {
+      "id": "solatlas:capability:data-layers",
+      "type": "capability",
+      "claim_state": "observed",
+      "label": "Toggleable planetary infrastructure layers",
+      "attributes": {
+        "reported_layer_counts": [
+          {
+            "name": "Energy Sites",
+            "count": 70,
+            "source": "EIA, clustered"
+          },
+          {
+            "name": "Geothermal Nodes",
+            "count": 18,
+            "source": "Global survey"
+          },
+          {
+            "name": "Maglev Corridors",
+            "count": 15,
+            "source": "Planned routes"
+          },
+          {
+            "name": "Terra Lumina Sites",
+            "count": 12,
+            "source": "Renewable mega-sites"
+          },
+          {
+            "name": "Resontia Vaults",
+            "count": 12,
+            "source": "Underground infrastructure"
+          },
+          {
+            "name": "Fossil Deposits",
+            "count": 73,
+            "source": "EIA, USGS, BP"
+          },
+          {
+            "name": "Nuclear / SMR",
+            "count": 50,
+            "source": "IAEA, planned SMR pipeline"
+          }
+        ]
+      },
+      "provenance": {
+        "authority": "source_declared",
+        "sources": [
+          {
+            "kind": "repository_file",
+            "uri": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/blob/1af10d891410cce31c1d4037e7c7129c16db5834/DEMO.md#L27-L37",
+            "path": "DEMO.md",
+            "line_start": 27,
+            "line_end": 37,
+            "digest": "ae87d09a4c47992df40b707a74f9fef419c39c93"
+          }
+        ],
+        "extracted_by": {
+          "name": "manual-readonly-demo-manifest-module-projection",
+          "version": "0.1.0",
+          "digest": null
+        },
+        "observed_at": "2026-11-14T09:05:00.000Z",
+        "valid_for_revision": "1af10d891410cce31c1d4037e7c7129c16db5834",
+        "valid_for_world": "DEMO.md-Cargo.toml-sol-atlas-core-src-lib.rs-only",
+        "limitations": [
+          "Counts and source names are reported by DEMO.md; no item-level dataset manifests or digests were checked."
+        ]
+      },
+      "lifecycle": {
+        "state": "current",
+        "supersedes": null,
+        "invalidated_by": null,
+        "reason": "Current only for the exact pinned source revision."
+      }
+    },
+    {
+      "id": "solatlas:capability:transition-timeline",
+      "type": "capability",
+      "claim_state": "observed",
+      "label": "Interactive 300-year transition narrative",
+      "attributes": {
+        "declared_time_range": "Year 0 to Year 300",
+        "reported_milestones": [
+          0,
+          50,
+          100,
+          150,
+          300
+        ]
+      },
+      "provenance": {
+        "authority": "source_declared",
+        "sources": [
+          {
+            "kind": "repository_file",
+            "uri": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/blob/1af10d891410cce31c1d4037e7c7129c16db5834/DEMO.md#L39-L46",
+            "path": "DEMO.md",
+            "line_start": 39,
+            "line_end": 46,
+            "digest": "ae87d09a4c47992df40b707a74f9fef419c39c93"
+          }
+        ],
+        "extracted_by": {
+          "name": "manual-readonly-demo-manifest-module-projection",
+          "version": "0.1.0",
+          "digest": null
+        },
+        "observed_at": "2026-11-14T09:05:00.000Z",
+        "valid_for_revision": "1af10d891410cce31c1d4037e7c7129c16db5834",
+        "valid_for_world": "DEMO.md-Cargo.toml-sol-atlas-core-src-lib.rs-only",
+        "limitations": [
+          "Narrative is a scenario declaration, not a forecast with validated uncertainty."
+        ]
+      },
+      "lifecycle": {
+        "state": "current",
+        "supersedes": null,
+        "invalidated_by": null,
+        "reason": "Current only for the exact pinned source revision."
+      }
+    },
+    {
+      "id": "solatlas:capability:grid-stress",
+      "type": "capability",
+      "claim_state": "observed",
+      "label": "Grid stress overlay using FEP framing",
+      "attributes": {
+        "reported_population_centers": 16,
+        "declared_measure": "allostatic load / grid fragility",
+        "reported_examples": [
+          "Lagos",
+          "Cairo",
+          "Tokyo",
+          "Seoul"
+        ],
+        "sample_values": "0.7-0.8 high stress for some regions"
+      },
+      "provenance": {
+        "authority": "source_declared",
+        "sources": [
+          {
+            "kind": "repository_file",
+            "uri": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/blob/1af10d891410cce31c1d4037e7c7129c16db5834/DEMO.md#L48-L55",
+            "path": "DEMO.md",
+            "line_start": 48,
+            "line_end": 55,
+            "digest": "ae87d09a4c47992df40b707a74f9fef419c39c93"
+          }
+        ],
+        "extracted_by": {
+          "name": "manual-readonly-demo-manifest-module-projection",
+          "version": "0.1.0",
+          "digest": null
+        },
+        "observed_at": "2026-11-14T09:05:00.000Z",
+        "valid_for_revision": "1af10d891410cce31c1d4037e7c7129c16db5834",
+        "valid_for_world": "DEMO.md-Cargo.toml-sol-atlas-core-src-lib.rs-only",
+        "limitations": [
+          "Grid-stress values and FEP interpretation are demo claims; no demand, asset, outage or calibration data were admitted."
+        ]
+      },
+      "lifecycle": {
+        "state": "current",
+        "supersedes": null,
+        "invalidated_by": null,
+        "reason": "Current only for the exact pinned source revision."
+      }
+    },
+    {
+      "id": "solatlas:capability:p2p-energy",
+      "type": "capability",
+      "claim_state": "observed",
+      "label": "Peer-to-peer energy trading visualization",
+      "attributes": {
+        "declared_visualization": "simulated green arcs showing surplus solar kWh flow between neighborhoods",
+        "declared_runtime_condition": "when a Holochain conductor is running, arcs are described as real trades"
+      },
+      "provenance": {
+        "authority": "source_declared",
+        "sources": [
+          {
+            "kind": "repository_file",
+            "uri": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/blob/1af10d891410cce31c1d4037e7c7129c16db5834/DEMO.md#L57-L59",
+            "path": "DEMO.md",
+            "line_start": 57,
+            "line_end": 59,
+            "digest": "ae87d09a4c47992df40b707a74f9fef419c39c93"
+          }
+        ],
+        "extracted_by": {
+          "name": "manual-readonly-demo-manifest-module-projection",
+          "version": "0.1.0",
+          "digest": null
+        },
+        "observed_at": "2026-11-14T09:05:00.000Z",
+        "valid_for_revision": "1af10d891410cce31c1d4037e7c7129c16db5834",
+        "valid_for_world": "DEMO.md-Cargo.toml-sol-atlas-core-src-lib.rs-only",
+        "limitations": [
+          "Visualized simulated trades are not evidence of actual energy delivery, settlement, metering or live network operation."
+        ]
+      },
+      "lifecycle": {
+        "state": "current",
+        "supersedes": null,
+        "invalidated_by": null,
+        "reason": "Current only for the exact pinned source revision."
+      }
+    },
+    {
+      "id": "solatlas:capability:economics",
+      "type": "capability",
+      "claim_state": "observed",
+      "label": "Per-deposit energy economics engine",
+      "attributes": {
+        "declared_outputs": [
+          "annual revenue",
+          "extraction cost",
+          "carbon cost",
+          "ROI with/without carbon pricing",
+          "breakeven carbon price",
+          "IRR via Newton-Raphson",
+          "years to depletion"
+        ],
+        "reported_tar_sands_case": {
+          "extraction_cost_usd_per_boe": 45,
+          "emission_factor_tco2_per_boe": 0.58,
+          "reported_break_even_carbon_usd_per_ton": 17
+        }
+      },
+      "provenance": {
+        "authority": "source_declared",
+        "sources": [
+          {
+            "kind": "repository_file",
+            "uri": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/blob/1af10d891410cce31c1d4037e7c7129c16db5834/DEMO.md#L72-L81",
+            "path": "DEMO.md",
+            "line_start": 72,
+            "line_end": 81,
+            "digest": "ae87d09a4c47992df40b707a74f9fef419c39c93"
+          }
+        ],
+        "extracted_by": {
+          "name": "manual-readonly-demo-manifest-module-projection",
+          "version": "0.1.0",
+          "digest": null
+        },
+        "observed_at": "2026-11-14T09:05:00.000Z",
+        "valid_for_revision": "1af10d891410cce31c1d4037e7c7129c16db5834",
+        "valid_for_world": "DEMO.md-Cargo.toml-sol-atlas-core-src-lib.rs-only",
+        "limitations": [
+          "Economic formulas and case outputs have not been independently recomputed; assumptions and source data remain unverified."
+        ]
+      },
+      "lifecycle": {
+        "state": "current",
+        "supersedes": null,
+        "invalidated_by": null,
+        "reason": "Current only for the exact pinned source revision."
+      }
+    },
+    {
+      "id": "solatlas:app:leptos-webgl",
+      "type": "application",
+      "claim_state": "observed",
+      "label": "Leptos WebGL2 planetary renderer",
+      "attributes": {
+        "declared_status": "live at atlas.luminousdynamics.io",
+        "declared_stack": [
+          "Leptos",
+          "WASM",
+          "WebGL2"
+        ]
+      },
+      "provenance": {
+        "authority": "source_declared",
+        "sources": [
+          {
+            "kind": "repository_file",
+            "uri": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/blob/1af10d891410cce31c1d4037e7c7129c16db5834/DEMO.md#L61-L69",
+            "path": "DEMO.md",
+            "line_start": 61,
+            "line_end": 69,
+            "digest": "ae87d09a4c47992df40b707a74f9fef419c39c93"
+          }
+        ],
+        "extracted_by": {
+          "name": "manual-readonly-demo-manifest-module-projection",
+          "version": "0.1.0",
+          "digest": null
+        },
+        "observed_at": "2026-11-14T09:05:00.000Z",
+        "valid_for_revision": "1af10d891410cce31c1d4037e7c7129c16db5834",
+        "valid_for_world": "DEMO.md-Cargo.toml-sol-atlas-core-src-lib.rs-only",
+        "limitations": [
+          "Demo document states the renderer is live; current service status and current deployed revision were not checked."
+        ]
+      },
+      "lifecycle": {
+        "state": "current",
+        "supersedes": null,
+        "invalidated_by": null,
+        "reason": "Current only for the exact pinned source revision."
+      }
+    },
+    {
+      "id": "solatlas:app:bevy",
+      "type": "application",
+      "claim_state": "observed",
+      "label": "Bevy renderer integration",
+      "attributes": {
+        "declared_renderer": "terra-atlas-bevy",
+        "declared_framework_version": "Bevy 0.18",
+        "declared_host_integration": "embedded in Symtropy game"
+      },
+      "provenance": {
+        "authority": "source_declared",
+        "sources": [
+          {
+            "kind": "repository_file",
+            "uri": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/blob/1af10d891410cce31c1d4037e7c7129c16db5834/DEMO.md#L61-L69",
+            "path": "DEMO.md",
+            "line_start": 61,
+            "line_end": 69,
+            "digest": "ae87d09a4c47992df40b707a74f9fef419c39c93"
+          }
+        ],
+        "extracted_by": {
+          "name": "manual-readonly-demo-manifest-module-projection",
+          "version": "0.1.0",
+          "digest": null
+        },
+        "observed_at": "2026-11-14T09:05:00.000Z",
+        "valid_for_revision": "1af10d891410cce31c1d4037e7c7129c16db5834",
+        "valid_for_world": "DEMO.md-Cargo.toml-sol-atlas-core-src-lib.rs-only",
+        "limitations": [
+          "Integration is source-declared; no Symtropy contract or successful embed build was verified."
+        ]
+      },
+      "lifecycle": {
+        "state": "current",
+        "supersedes": null,
+        "invalidated_by": null,
+        "reason": "Current only for the exact pinned source revision."
+      }
+    },
+    {
+      "id": "solatlas:app:mycelix-holochain",
+      "type": "application",
+      "claim_state": "observed",
+      "label": "Mycelix Holochain DHT bridge",
+      "attributes": {
+        "declared_component": "mycelix-atlas",
+        "declared_storage_scope": "DHT storage for data layers",
+        "declared_bridge_status": "feature-gated"
+      },
+      "provenance": {
+        "authority": "source_declared",
+        "sources": [
+          {
+            "kind": "repository_file",
+            "uri": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/blob/1af10d891410cce31c1d4037e7c7129c16db5834/DEMO.md#L61-L69",
+            "path": "DEMO.md",
+            "line_start": 61,
+            "line_end": 69,
+            "digest": "ae87d09a4c47992df40b707a74f9fef419c39c93"
+          }
+        ],
+        "extracted_by": {
+          "name": "manual-readonly-demo-manifest-module-projection",
+          "version": "0.1.0",
+          "digest": null
+        },
+        "observed_at": "2026-11-14T09:05:00.000Z",
+        "valid_for_revision": "1af10d891410cce31c1d4037e7c7129c16db5834",
+        "valid_for_world": "DEMO.md-Cargo.toml-sol-atlas-core-src-lib.rs-only",
+        "limitations": [
+          "DHT integration is source-declared; no conductor, zome, transaction or data layer was exercised."
+        ]
+      },
+      "lifecycle": {
+        "state": "current",
+        "supersedes": null,
+        "invalidated_by": null,
+        "reason": "Current only for the exact pinned source revision."
+      }
+    },
+    {
+      "id": "solatlas:module:economics",
+      "type": "module",
+      "claim_state": "observed",
+      "label": "economics",
+      "attributes": {},
+      "provenance": {
+        "authority": "source_declared",
+        "sources": [
+          {
+            "kind": "repository_file",
+            "uri": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/blob/1af10d891410cce31c1d4037e7c7129c16db5834/sol-atlas-core/src/lib.rs#L11-L30",
+            "path": "sol-atlas-core/src/lib.rs",
+            "line_start": 11,
+            "line_end": 30,
+            "digest": "7407357e8e78a3b158065a825de5aacb857c886d"
+          }
+        ],
+        "extracted_by": {
+          "name": "manual-readonly-demo-manifest-module-projection",
+          "version": "0.1.0",
+          "digest": null
+        },
+        "observed_at": "2026-11-14T09:05:00.000Z",
+        "valid_for_revision": "1af10d891410cce31c1d4037e7c7129c16db5834",
+        "valid_for_world": "DEMO.md-Cargo.toml-sol-atlas-core-src-lib.rs-only",
+        "limitations": []
+      },
+      "lifecycle": {
+        "state": "current",
+        "supersedes": null,
+        "invalidated_by": null,
+        "reason": "Current only for the exact pinned source revision."
+      }
+    },
+    {
+      "id": "solatlas:module:energy-trading",
+      "type": "module",
+      "claim_state": "observed",
+      "label": "energy_trading",
+      "attributes": {},
+      "provenance": {
+        "authority": "source_declared",
+        "sources": [
+          {
+            "kind": "repository_file",
+            "uri": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/blob/1af10d891410cce31c1d4037e7c7129c16db5834/sol-atlas-core/src/lib.rs#L11-L30",
+            "path": "sol-atlas-core/src/lib.rs",
+            "line_start": 11,
+            "line_end": 30,
+            "digest": "7407357e8e78a3b158065a825de5aacb857c886d"
+          }
+        ],
+        "extracted_by": {
+          "name": "manual-readonly-demo-manifest-module-projection",
+          "version": "0.1.0",
+          "digest": null
+        },
+        "observed_at": "2026-11-14T09:05:00.000Z",
+        "valid_for_revision": "1af10d891410cce31c1d4037e7c7129c16db5834",
+        "valid_for_world": "DEMO.md-Cargo.toml-sol-atlas-core-src-lib.rs-only",
+        "limitations": []
+      },
+      "lifecycle": {
+        "state": "current",
+        "supersedes": null,
+        "invalidated_by": null,
+        "reason": "Current only for the exact pinned source revision."
+      }
+    },
+    {
+      "id": "solatlas:module:geo",
+      "type": "module",
+      "claim_state": "observed",
+      "label": "geo",
+      "attributes": {},
+      "provenance": {
+        "authority": "source_declared",
+        "sources": [
+          {
+            "kind": "repository_file",
+            "uri": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/blob/1af10d891410cce31c1d4037e7c7129c16db5834/sol-atlas-core/src/lib.rs#L11-L30",
+            "path": "sol-atlas-core/src/lib.rs",
+            "line_start": 11,
+            "line_end": 30,
+            "digest": "7407357e8e78a3b158065a825de5aacb857c886d"
+          }
+        ],
+        "extracted_by": {
+          "name": "manual-readonly-demo-manifest-module-projection",
+          "version": "0.1.0",
+          "digest": null
+        },
+        "observed_at": "2026-11-14T09:05:00.000Z",
+        "valid_for_revision": "1af10d891410cce31c1d4037e7c7129c16db5834",
+        "valid_for_world": "DEMO.md-Cargo.toml-sol-atlas-core-src-lib.rs-only",
+        "limitations": []
+      },
+      "lifecycle": {
+        "state": "current",
+        "supersedes": null,
+        "invalidated_by": null,
+        "reason": "Current only for the exact pinned source revision."
+      }
+    },
+    {
+      "id": "solatlas:module:simulation",
+      "type": "module",
+      "claim_state": "observed",
+      "label": "simulation",
+      "attributes": {},
+      "provenance": {
+        "authority": "source_declared",
+        "sources": [
+          {
+            "kind": "repository_file",
+            "uri": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/blob/1af10d891410cce31c1d4037e7c7129c16db5834/sol-atlas-core/src/lib.rs#L11-L30",
+            "path": "sol-atlas-core/src/lib.rs",
+            "line_start": 11,
+            "line_end": 30,
+            "digest": "7407357e8e78a3b158065a825de5aacb857c886d"
+          }
+        ],
+        "extracted_by": {
+          "name": "manual-readonly-demo-manifest-module-projection",
+          "version": "0.1.0",
+          "digest": null
+        },
+        "observed_at": "2026-11-14T09:05:00.000Z",
+        "valid_for_revision": "1af10d891410cce31c1d4037e7c7129c16db5834",
+        "valid_for_world": "DEMO.md-Cargo.toml-sol-atlas-core-src-lib.rs-only",
+        "limitations": []
+      },
+      "lifecycle": {
+        "state": "current",
+        "supersedes": null,
+        "invalidated_by": null,
+        "reason": "Current only for the exact pinned source revision."
+      }
+    },
+    {
+      "id": "solatlas:module:timeline",
+      "type": "module",
+      "claim_state": "observed",
+      "label": "timeline",
+      "attributes": {},
+      "provenance": {
+        "authority": "source_declared",
+        "sources": [
+          {
+            "kind": "repository_file",
+            "uri": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/blob/1af10d891410cce31c1d4037e7c7129c16db5834/sol-atlas-core/src/lib.rs#L11-L30",
+            "path": "sol-atlas-core/src/lib.rs",
+            "line_start": 11,
+            "line_end": 30,
+            "digest": "7407357e8e78a3b158065a825de5aacb857c886d"
+          }
+        ],
+        "extracted_by": {
+          "name": "manual-readonly-demo-manifest-module-projection",
+          "version": "0.1.0",
+          "digest": null
+        },
+        "observed_at": "2026-11-14T09:05:00.000Z",
+        "valid_for_revision": "1af10d891410cce31c1d4037e7c7129c16db5834",
+        "valid_for_world": "DEMO.md-Cargo.toml-sol-atlas-core-src-lib.rs-only",
+        "limitations": []
+      },
+      "lifecycle": {
+        "state": "current",
+        "supersedes": null,
+        "invalidated_by": null,
+        "reason": "Current only for the exact pinned source revision."
+      }
+    },
+    {
+      "id": "solatlas:module:visual-validation",
+      "type": "module",
+      "claim_state": "observed",
+      "label": "visual_validation",
+      "attributes": {},
+      "provenance": {
+        "authority": "source_declared",
+        "sources": [
+          {
+            "kind": "repository_file",
+            "uri": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/blob/1af10d891410cce31c1d4037e7c7129c16db5834/sol-atlas-core/src/lib.rs#L11-L30",
+            "path": "sol-atlas-core/src/lib.rs",
+            "line_start": 11,
+            "line_end": 30,
+            "digest": "7407357e8e78a3b158065a825de5aacb857c886d"
+          }
+        ],
+        "extracted_by": {
+          "name": "manual-readonly-demo-manifest-module-projection",
+          "version": "0.1.0",
+          "digest": null
+        },
+        "observed_at": "2026-11-14T09:05:00.000Z",
+        "valid_for_revision": "1af10d891410cce31c1d4037e7c7129c16db5834",
+        "valid_for_world": "DEMO.md-Cargo.toml-sol-atlas-core-src-lib.rs-only",
+        "limitations": []
+      },
+      "lifecycle": {
+        "state": "current",
+        "supersedes": null,
+        "invalidated_by": null,
+        "reason": "Current only for the exact pinned source revision."
+      }
+    },
+    {
+      "id": "solatlas:external:symtropy",
+      "type": "external_system",
+      "claim_state": "observed",
+      "label": "Symtropy",
+      "attributes": {
+        "relationship_claim": "DEMO.md declares terra-atlas-bevy embedded in Symtropy game.",
+        "integration_status": "source_declared_not_contract_verified"
+      },
+      "provenance": {
+        "authority": "source_declared",
+        "sources": [
+          {
+            "kind": "repository_file",
+            "uri": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/blob/1af10d891410cce31c1d4037e7c7129c16db5834/DEMO.md#L61-L69",
+            "path": "DEMO.md",
+            "line_start": 61,
+            "line_end": 69,
+            "digest": "ae87d09a4c47992df40b707a74f9fef419c39c93"
+          }
+        ],
+        "extracted_by": {
+          "name": "manual-readonly-demo-manifest-module-projection",
+          "version": "0.1.0",
+          "digest": null
+        },
+        "observed_at": "2026-11-14T09:05:00.000Z",
+        "valid_for_revision": "1af10d891410cce31c1d4037e7c7129c16db5834",
+        "valid_for_world": "DEMO.md-Cargo.toml-sol-atlas-core-src-lib.rs-only",
+        "limitations": [
+          "No exact API/version/compatibility receipt was inspected."
+        ]
+      },
+      "lifecycle": {
+        "state": "current",
+        "supersedes": null,
+        "invalidated_by": null,
+        "reason": "Current only for the exact pinned source revision."
+      }
+    },
+    {
+      "id": "solatlas:external:mycelix",
+      "type": "external_system",
+      "claim_state": "observed",
+      "label": "Mycelix",
+      "attributes": {
+        "relationship_claim": "DEMO.md declares mycelix-atlas Holochain DHT storage and describes simulated vs real trade arcs.",
+        "integration_status": "source_declared_not_runtime_verified"
+      },
+      "provenance": {
+        "authority": "source_declared",
+        "sources": [
+          {
+            "kind": "repository_file",
+            "uri": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/blob/1af10d891410cce31c1d4037e7c7129c16db5834/DEMO.md#L57-L69",
+            "path": "DEMO.md",
+            "line_start": 57,
+            "line_end": 69,
+            "digest": "ae87d09a4c47992df40b707a74f9fef419c39c93"
+          }
+        ],
+        "extracted_by": {
+          "name": "manual-readonly-demo-manifest-module-projection",
+          "version": "0.1.0",
+          "digest": null
+        },
+        "observed_at": "2026-11-14T09:05:00.000Z",
+        "valid_for_revision": "1af10d891410cce31c1d4037e7c7129c16db5834",
+        "valid_for_world": "DEMO.md-Cargo.toml-sol-atlas-core-src-lib.rs-only",
+        "limitations": [
+          "No live conductor, DHT data, transaction or settlement evidence was inspected."
+        ]
+      },
+      "lifecycle": {
+        "state": "current",
+        "supersedes": null,
+        "invalidated_by": null,
+        "reason": "Current only for the exact pinned source revision."
+      }
+    },
+    {
+      "id": "solatlas:evidence:core-test-count",
+      "type": "evidence",
+      "claim_state": "observed",
+      "label": "Demo-reported sol-atlas-core test count",
+      "attributes": {
+        "reported_count": 51,
+        "test_scope": "51 tests in shared core (as stated in demo architecture section)"
+      },
+      "provenance": {
+        "authority": "source_declared",
+        "sources": [
+          {
+            "kind": "repository_file",
+            "uri": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/blob/1af10d891410cce31c1d4037e7c7129c16db5834/DEMO.md#L61-L69",
+            "path": "DEMO.md",
+            "line_start": 61,
+            "line_end": 69,
+            "digest": "ae87d09a4c47992df40b707a74f9fef419c39c93"
+          }
+        ],
+        "extracted_by": {
+          "name": "manual-readonly-demo-manifest-module-projection",
+          "version": "0.1.0",
+          "digest": null
+        },
+        "observed_at": "2026-11-14T09:05:00.000Z",
+        "valid_for_revision": "1af10d891410cce31c1d4037e7c7129c16db5834",
+        "valid_for_world": "DEMO.md-Cargo.toml-sol-atlas-core-src-lib.rs-only",
+        "limitations": [
+          "README/demo aggregate only; no test execution or test inventory was performed."
+        ]
+      },
+      "lifecycle": {
+        "state": "current",
+        "supersedes": null,
+        "invalidated_by": null,
+        "reason": "Current only for the exact pinned source revision."
+      }
+    },
+    {
+      "id": "solatlas:evidence:live-url",
+      "type": "evidence",
+      "claim_state": "observed",
+      "label": "Demo-reported live globe URL",
+      "attributes": {
+        "url": "https://atlas.luminousdynamics.io",
+        "status": "source_declared"
+      },
+      "provenance": {
+        "authority": "source_declared",
+        "sources": [
+          {
+            "kind": "repository_file",
+            "uri": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/blob/1af10d891410cce31c1d4037e7c7129c16db5834/DEMO.md#L3-L3",
+            "path": "DEMO.md",
+            "line_start": 3,
+            "line_end": 3,
+            "digest": "ae87d09a4c47992df40b707a74f9fef419c39c93"
+          }
+        ],
+        "extracted_by": {
+          "name": "manual-readonly-demo-manifest-module-projection",
+          "version": "0.1.0",
+          "digest": null
+        },
+        "observed_at": "2026-11-14T09:05:00.000Z",
+        "valid_for_revision": "1af10d891410cce31c1d4037e7c7129c16db5834",
+        "valid_for_world": "DEMO.md-Cargo.toml-sol-atlas-core-src-lib.rs-only",
+        "limitations": [
+          "URL was not opened or health-checked in this projection."
+        ]
+      },
+      "lifecycle": {
+        "state": "current",
+        "supersedes": null,
+        "invalidated_by": null,
+        "reason": "Current only for the exact pinned source revision."
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "solatlas:edge:001",
+      "from": "solatlas:project",
+      "relation": "contains",
+      "to": "solatlas:crate:leptos-app",
+      "attributes": {},
+      "provenance": {
+        "authority": "source_declared",
+        "sources": [
+          {
+            "kind": "repository_file",
+            "uri": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/blob/1af10d891410cce31c1d4037e7c7129c16db5834/Cargo.toml#L1-L29",
+            "path": "Cargo.toml",
+            "line_start": 1,
+            "line_end": 29,
+            "digest": "427e7745cc9e6495004af9c9a490fd775a37812e"
+          }
+        ],
+        "extracted_by": {
+          "name": "manual-readonly-demo-manifest-module-projection",
+          "version": "0.1.0",
+          "digest": null
+        },
+        "observed_at": "2026-11-14T09:05:00.000Z",
+        "valid_for_revision": "1af10d891410cce31c1d4037e7c7129c16db5834",
+        "valid_for_world": "DEMO.md-Cargo.toml-sol-atlas-core-src-lib.rs-only",
+        "limitations": [
+          "Cargo manifest declares dependencies/features; no compilation or browser execution was performed."
+        ]
+      },
+      "lifecycle": {
+        "state": "current",
+        "supersedes": null,
+        "invalidated_by": null,
+        "reason": "Current only for the exact pinned source revision."
+      }
+    },
+    {
+      "id": "solatlas:edge:002",
+      "from": "solatlas:project",
+      "relation": "contains",
+      "to": "solatlas:crate:core",
+      "attributes": {},
+      "provenance": {
+        "authority": "source_declared",
+        "sources": [
+          {
+            "kind": "repository_file",
+            "uri": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/blob/1af10d891410cce31c1d4037e7c7129c16db5834/sol-atlas-core/src/lib.rs#L1-L30",
+            "path": "sol-atlas-core/src/lib.rs",
+            "line_start": 1,
+            "line_end": 30,
+            "digest": "7407357e8e78a3b158065a825de5aacb857c886d"
+          }
+        ],
+        "extracted_by": {
+          "name": "manual-readonly-demo-manifest-module-projection",
+          "version": "0.1.0",
+          "digest": null
+        },
+        "observed_at": "2026-11-14T09:05:00.000Z",
+        "valid_for_revision": "1af10d891410cce31c1d4037e7c7129c16db5834",
+        "valid_for_world": "DEMO.md-Cargo.toml-sol-atlas-core-src-lib.rs-only",
+        "limitations": [
+          "Module exports are source declarations, not proof that all modules compile or meet their domain claims."
+        ]
+      },
+      "lifecycle": {
+        "state": "current",
+        "supersedes": null,
+        "invalidated_by": null,
+        "reason": "Current only for the exact pinned source revision."
+      }
+    },
+    {
+      "id": "solatlas:edge:003",
+      "from": "solatlas:project",
+      "relation": "contains",
+      "to": "solatlas:capability:geological-clock",
+      "attributes": {},
+      "provenance": {
+        "authority": "source_declared",
+        "sources": [
+          {
+            "kind": "repository_file",
+            "uri": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/blob/1af10d891410cce31c1d4037e7c7129c16db5834/DEMO.md#L9-L11",
+            "path": "DEMO.md",
+            "line_start": 9,
+            "line_end": 11,
+            "digest": "ae87d09a4c47992df40b707a74f9fef419c39c93"
+          }
+        ],
+        "extracted_by": {
+          "name": "manual-readonly-demo-manifest-module-projection",
+          "version": "0.1.0",
+          "digest": null
+        },
+        "observed_at": "2026-11-14T09:05:00.000Z",
+        "valid_for_revision": "1af10d891410cce31c1d4037e7c7129c16db5834",
+        "valid_for_world": "DEMO.md-Cargo.toml-sol-atlas-core-src-lib.rs-only",
+        "limitations": [
+          "Deposit inventory, coordinate accuracy, source versions, licence and reserve values have not been independently audited."
+        ]
+      },
+      "lifecycle": {
+        "state": "current",
+        "supersedes": null,
+        "invalidated_by": null,
+        "reason": "Current only for the exact pinned source revision."
+      }
+    },
+    {
+      "id": "solatlas:edge:004",
+      "from": "solatlas:project",
+      "relation": "contains",
+      "to": "solatlas:capability:thermodynamic-clock",
+      "attributes": {},
+      "provenance": {
+        "authority": "source_declared",
+        "sources": [
+          {
+            "kind": "repository_file",
+            "uri": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/blob/1af10d891410cce31c1d4037e7c7129c16db5834/DEMO.md#L12-L19",
+            "path": "DEMO.md",
+            "line_start": 12,
+            "line_end": 19,
+            "digest": "ae87d09a4c47992df40b707a74f9fef419c39c93"
+          }
+        ],
+        "extracted_by": {
+          "name": "manual-readonly-demo-manifest-module-projection",
+          "version": "0.1.0",
+          "digest": null
+        },
+        "observed_at": "2026-11-14T09:05:00.000Z",
+        "valid_for_revision": "1af10d891410cce31c1d4037e7c7129c16db5834",
+        "valid_for_world": "DEMO.md-Cargo.toml-sol-atlas-core-src-lib.rs-only",
+        "limitations": [
+          "EROI thresholds, depletion rates, fields and projected time evolution remain demo-declared; no primary data or model validation is included."
+        ]
+      },
+      "lifecycle": {
+        "state": "current",
+        "supersedes": null,
+        "invalidated_by": null,
+        "reason": "Current only for the exact pinned source revision."
+      }
+    },
+    {
+      "id": "solatlas:edge:005",
+      "from": "solatlas:project",
+      "relation": "contains",
+      "to": "solatlas:capability:atmospheric-clock",
+      "attributes": {},
+      "provenance": {
+        "authority": "source_declared",
+        "sources": [
+          {
+            "kind": "repository_file",
+            "uri": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/blob/1af10d891410cce31c1d4037e7c7129c16db5834/DEMO.md#L21-L25",
+            "path": "DEMO.md",
+            "line_start": 21,
+            "line_end": 25,
+            "digest": "ae87d09a4c47992df40b707a74f9fef419c39c93"
+          }
+        ],
+        "extracted_by": {
+          "name": "manual-readonly-demo-manifest-module-projection",
+          "version": "0.1.0",
+          "digest": null
+        },
+        "observed_at": "2026-11-14T09:05:00.000Z",
+        "valid_for_revision": "1af10d891410cce31c1d4037e7c7129c16db5834",
+        "valid_for_world": "DEMO.md-Cargo.toml-sol-atlas-core-src-lib.rs-only",
+        "limitations": [
+          "Emission factors, cost assumptions and carbon-price calculations require separate source and model verification."
+        ]
+      },
+      "lifecycle": {
+        "state": "current",
+        "supersedes": null,
+        "invalidated_by": null,
+        "reason": "Current only for the exact pinned source revision."
+      }
+    },
+    {
+      "id": "solatlas:edge:006",
+      "from": "solatlas:project",
+      "relation": "contains",
+      "to": "solatlas:capability:data-layers",
+      "attributes": {},
+      "provenance": {
+        "authority": "source_declared",
+        "sources": [
+          {
+            "kind": "repository_file",
+            "uri": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/blob/1af10d891410cce31c1d4037e7c7129c16db5834/DEMO.md#L27-L37",
+            "path": "DEMO.md",
+            "line_start": 27,
+            "line_end": 37,
+            "digest": "ae87d09a4c47992df40b707a74f9fef419c39c93"
+          }
+        ],
+        "extracted_by": {
+          "name": "manual-readonly-demo-manifest-module-projection",
+          "version": "0.1.0",
+          "digest": null
+        },
+        "observed_at": "2026-11-14T09:05:00.000Z",
+        "valid_for_revision": "1af10d891410cce31c1d4037e7c7129c16db5834",
+        "valid_for_world": "DEMO.md-Cargo.toml-sol-atlas-core-src-lib.rs-only",
+        "limitations": [
+          "Counts and source names are reported by DEMO.md; no item-level dataset manifests or digests were checked."
+        ]
+      },
+      "lifecycle": {
+        "state": "current",
+        "supersedes": null,
+        "invalidated_by": null,
+        "reason": "Current only for the exact pinned source revision."
+      }
+    },
+    {
+      "id": "solatlas:edge:007",
+      "from": "solatlas:project",
+      "relation": "contains",
+      "to": "solatlas:capability:transition-timeline",
+      "attributes": {},
+      "provenance": {
+        "authority": "source_declared",
+        "sources": [
+          {
+            "kind": "repository_file",
+            "uri": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/blob/1af10d891410cce31c1d4037e7c7129c16db5834/DEMO.md#L39-L46",
+            "path": "DEMO.md",
+            "line_start": 39,
+            "line_end": 46,
+            "digest": "ae87d09a4c47992df40b707a74f9fef419c39c93"
+          }
+        ],
+        "extracted_by": {
+          "name": "manual-readonly-demo-manifest-module-projection",
+          "version": "0.1.0",
+          "digest": null
+        },
+        "observed_at": "2026-11-14T09:05:00.000Z",
+        "valid_for_revision": "1af10d891410cce31c1d4037e7c7129c16db5834",
+        "valid_for_world": "DEMO.md-Cargo.toml-sol-atlas-core-src-lib.rs-only",
+        "limitations": [
+          "Narrative is a scenario declaration, not a forecast with validated uncertainty."
+        ]
+      },
+      "lifecycle": {
+        "state": "current",
+        "supersedes": null,
+        "invalidated_by": null,
+        "reason": "Current only for the exact pinned source revision."
+      }
+    },
+    {
+      "id": "solatlas:edge:008",
+      "from": "solatlas:project",
+      "relation": "contains",
+      "to": "solatlas:capability:grid-stress",
+      "attributes": {},
+      "provenance": {
+        "authority": "source_declared",
+        "sources": [
+          {
+            "kind": "repository_file",
+            "uri": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/blob/1af10d891410cce31c1d4037e7c7129c16db5834/DEMO.md#L48-L55",
+            "path": "DEMO.md",
+            "line_start": 48,
+            "line_end": 55,
+            "digest": "ae87d09a4c47992df40b707a74f9fef419c39c93"
+          }
+        ],
+        "extracted_by": {
+          "name": "manual-readonly-demo-manifest-module-projection",
+          "version": "0.1.0",
+          "digest": null
+        },
+        "observed_at": "2026-11-14T09:05:00.000Z",
+        "valid_for_revision": "1af10d891410cce31c1d4037e7c7129c16db5834",
+        "valid_for_world": "DEMO.md-Cargo.toml-sol-atlas-core-src-lib.rs-only",
+        "limitations": [
+          "Grid-stress values and FEP interpretation are demo claims; no demand, asset, outage or calibration data were admitted."
+        ]
+      },
+      "lifecycle": {
+        "state": "current",
+        "supersedes": null,
+        "invalidated_by": null,
+        "reason": "Current only for the exact pinned source revision."
+      }
+    },
+    {
+      "id": "solatlas:edge:009",
+      "from": "solatlas:project",
+      "relation": "contains",
+      "to": "solatlas:capability:p2p-energy",
+      "attributes": {},
+      "provenance": {
+        "authority": "source_declared",
+        "sources": [
+          {
+            "kind": "repository_file",
+            "uri": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/blob/1af10d891410cce31c1d4037e7c7129c16db5834/DEMO.md#L57-L59",
+            "path": "DEMO.md",
+            "line_start": 57,
+            "line_end": 59,
+            "digest": "ae87d09a4c47992df40b707a74f9fef419c39c93"
+          }
+        ],
+        "extracted_by": {
+          "name": "manual-readonly-demo-manifest-module-projection",
+          "version": "0.1.0",
+          "digest": null
+        },
+        "observed_at": "2026-11-14T09:05:00.000Z",
+        "valid_for_revision": "1af10d891410cce31c1d4037e7c7129c16db5834",
+        "valid_for_world": "DEMO.md-Cargo.toml-sol-atlas-core-src-lib.rs-only",
+        "limitations": [
+          "Visualized simulated trades are not evidence of actual energy delivery, settlement, metering or live network operation."
+        ]
+      },
+      "lifecycle": {
+        "state": "current",
+        "supersedes": null,
+        "invalidated_by": null,
+        "reason": "Current only for the exact pinned source revision."
+      }
+    },
+    {
+      "id": "solatlas:edge:010",
+      "from": "solatlas:project",
+      "relation": "contains",
+      "to": "solatlas:capability:economics",
+      "attributes": {},
+      "provenance": {
+        "authority": "source_declared",
+        "sources": [
+          {
+            "kind": "repository_file",
+            "uri": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/blob/1af10d891410cce31c1d4037e7c7129c16db5834/DEMO.md#L72-L81",
+            "path": "DEMO.md",
+            "line_start": 72,
+            "line_end": 81,
+            "digest": "ae87d09a4c47992df40b707a74f9fef419c39c93"
+          }
+        ],
+        "extracted_by": {
+          "name": "manual-readonly-demo-manifest-module-projection",
+          "version": "0.1.0",
+          "digest": null
+        },
+        "observed_at": "2026-11-14T09:05:00.000Z",
+        "valid_for_revision": "1af10d891410cce31c1d4037e7c7129c16db5834",
+        "valid_for_world": "DEMO.md-Cargo.toml-sol-atlas-core-src-lib.rs-only",
+        "limitations": [
+          "Economic formulas and case outputs have not been independently recomputed; assumptions and source data remain unverified."
+        ]
+      },
+      "lifecycle": {
+        "state": "current",
+        "supersedes": null,
+        "invalidated_by": null,
+        "reason": "Current only for the exact pinned source revision."
+      }
+    },
+    {
+      "id": "solatlas:edge:011",
+      "from": "solatlas:project",
+      "relation": "contains",
+      "to": "solatlas:app:leptos-webgl",
+      "attributes": {},
+      "provenance": {
+        "authority": "source_declared",
+        "sources": [
+          {
+            "kind": "repository_file",
+            "uri": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/blob/1af10d891410cce31c1d4037e7c7129c16db5834/DEMO.md#L61-L69",
+            "path": "DEMO.md",
+            "line_start": 61,
+            "line_end": 69,
+            "digest": "ae87d09a4c47992df40b707a74f9fef419c39c93"
+          }
+        ],
+        "extracted_by": {
+          "name": "manual-readonly-demo-manifest-module-projection",
+          "version": "0.1.0",
+          "digest": null
+        },
+        "observed_at": "2026-11-14T09:05:00.000Z",
+        "valid_for_revision": "1af10d891410cce31c1d4037e7c7129c16db5834",
+        "valid_for_world": "DEMO.md-Cargo.toml-sol-atlas-core-src-lib.rs-only",
+        "limitations": [
+          "Demo document states the renderer is live; current service status and current deployed revision were not checked."
+        ]
+      },
+      "lifecycle": {
+        "state": "current",
+        "supersedes": null,
+        "invalidated_by": null,
+        "reason": "Current only for the exact pinned source revision."
+      }
+    },
+    {
+      "id": "solatlas:edge:012",
+      "from": "solatlas:project",
+      "relation": "contains",
+      "to": "solatlas:app:bevy",
+      "attributes": {},
+      "provenance": {
+        "authority": "source_declared",
+        "sources": [
+          {
+            "kind": "repository_file",
+            "uri": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/blob/1af10d891410cce31c1d4037e7c7129c16db5834/DEMO.md#L61-L69",
+            "path": "DEMO.md",
+            "line_start": 61,
+            "line_end": 69,
+            "digest": "ae87d09a4c47992df40b707a74f9fef419c39c93"
+          }
+        ],
+        "extracted_by": {
+          "name": "manual-readonly-demo-manifest-module-projection",
+          "version": "0.1.0",
+          "digest": null
+        },
+        "observed_at": "2026-11-14T09:05:00.000Z",
+        "valid_for_revision": "1af10d891410cce31c1d4037e7c7129c16db5834",
+        "valid_for_world": "DEMO.md-Cargo.toml-sol-atlas-core-src-lib.rs-only",
+        "limitations": [
+          "Integration is source-declared; no Symtropy contract or successful embed build was verified."
+        ]
+      },
+      "lifecycle": {
+        "state": "current",
+        "supersedes": null,
+        "invalidated_by": null,
+        "reason": "Current only for the exact pinned source revision."
+      }
+    },
+    {
+      "id": "solatlas:edge:013",
+      "from": "solatlas:project",
+      "relation": "contains",
+      "to": "solatlas:app:mycelix-holochain",
+      "attributes": {},
+      "provenance": {
+        "authority": "source_declared",
+        "sources": [
+          {
+            "kind": "repository_file",
+            "uri": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/blob/1af10d891410cce31c1d4037e7c7129c16db5834/DEMO.md#L61-L69",
+            "path": "DEMO.md",
+            "line_start": 61,
+            "line_end": 69,
+            "digest": "ae87d09a4c47992df40b707a74f9fef419c39c93"
+          }
+        ],
+        "extracted_by": {
+          "name": "manual-readonly-demo-manifest-module-projection",
+          "version": "0.1.0",
+          "digest": null
+        },
+        "observed_at": "2026-11-14T09:05:00.000Z",
+        "valid_for_revision": "1af10d891410cce31c1d4037e7c7129c16db5834",
+        "valid_for_world": "DEMO.md-Cargo.toml-sol-atlas-core-src-lib.rs-only",
+        "limitations": [
+          "DHT integration is source-declared; no conductor, zome, transaction or data layer was exercised."
+        ]
+      },
+      "lifecycle": {
+        "state": "current",
+        "supersedes": null,
+        "invalidated_by": null,
+        "reason": "Current only for the exact pinned source revision."
+      }
+    },
+    {
+      "id": "solatlas:edge:014",
+      "from": "solatlas:project",
+      "relation": "contains",
+      "to": "solatlas:module:economics",
+      "attributes": {},
+      "provenance": {
+        "authority": "source_declared",
+        "sources": [
+          {
+            "kind": "repository_file",
+            "uri": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/blob/1af10d891410cce31c1d4037e7c7129c16db5834/sol-atlas-core/src/lib.rs#L11-L30",
+            "path": "sol-atlas-core/src/lib.rs",
+            "line_start": 11,
+            "line_end": 30,
+            "digest": "7407357e8e78a3b158065a825de5aacb857c886d"
+          }
+        ],
+        "extracted_by": {
+          "name": "manual-readonly-demo-manifest-module-projection",
+          "version": "0.1.0",
+          "digest": null
+        },
+        "observed_at": "2026-11-14T09:05:00.000Z",
+        "valid_for_revision": "1af10d891410cce31c1d4037e7c7129c16db5834",
+        "valid_for_world": "DEMO.md-Cargo.toml-sol-atlas-core-src-lib.rs-only",
+        "limitations": []
+      },
+      "lifecycle": {
+        "state": "current",
+        "supersedes": null,
+        "invalidated_by": null,
+        "reason": "Current only for the exact pinned source revision."
+      }
+    },
+    {
+      "id": "solatlas:edge:015",
+      "from": "solatlas:project",
+      "relation": "contains",
+      "to": "solatlas:module:energy-trading",
+      "attributes": {},
+      "provenance": {
+        "authority": "source_declared",
+        "sources": [
+          {
+            "kind": "repository_file",
+            "uri": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/blob/1af10d891410cce31c1d4037e7c7129c16db5834/sol-atlas-core/src/lib.rs#L11-L30",
+            "path": "sol-atlas-core/src/lib.rs",
+            "line_start": 11,
+            "line_end": 30,
+            "digest": "7407357e8e78a3b158065a825de5aacb857c886d"
+          }
+        ],
+        "extracted_by": {
+          "name": "manual-readonly-demo-manifest-module-projection",
+          "version": "0.1.0",
+          "digest": null
+        },
+        "observed_at": "2026-11-14T09:05:00.000Z",
+        "valid_for_revision": "1af10d891410cce31c1d4037e7c7129c16db5834",
+        "valid_for_world": "DEMO.md-Cargo.toml-sol-atlas-core-src-lib.rs-only",
+        "limitations": []
+      },
+      "lifecycle": {
+        "state": "current",
+        "supersedes": null,
+        "invalidated_by": null,
+        "reason": "Current only for the exact pinned source revision."
+      }
+    },
+    {
+      "id": "solatlas:edge:016",
+      "from": "solatlas:project",
+      "relation": "contains",
+      "to": "solatlas:module:geo",
+      "attributes": {},
+      "provenance": {
+        "authority": "source_declared",
+        "sources": [
+          {
+            "kind": "repository_file",
+            "uri": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/blob/1af10d891410cce31c1d4037e7c7129c16db5834/sol-atlas-core/src/lib.rs#L11-L30",
+            "path": "sol-atlas-core/src/lib.rs",
+            "line_start": 11,
+            "line_end": 30,
+            "digest": "7407357e8e78a3b158065a825de5aacb857c886d"
+          }
+        ],
+        "extracted_by": {
+          "name": "manual-readonly-demo-manifest-module-projection",
+          "version": "0.1.0",
+          "digest": null
+        },
+        "observed_at": "2026-11-14T09:05:00.000Z",
+        "valid_for_revision": "1af10d891410cce31c1d4037e7c7129c16db5834",
+        "valid_for_world": "DEMO.md-Cargo.toml-sol-atlas-core-src-lib.rs-only",
+        "limitations": []
+      },
+      "lifecycle": {
+        "state": "current",
+        "supersedes": null,
+        "invalidated_by": null,
+        "reason": "Current only for the exact pinned source revision."
+      }
+    },
+    {
+      "id": "solatlas:edge:017",
+      "from": "solatlas:project",
+      "relation": "contains",
+      "to": "solatlas:module:simulation",
+      "attributes": {},
+      "provenance": {
+        "authority": "source_declared",
+        "sources": [
+          {
+            "kind": "repository_file",
+            "uri": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/blob/1af10d891410cce31c1d4037e7c7129c16db5834/sol-atlas-core/src/lib.rs#L11-L30",
+            "path": "sol-atlas-core/src/lib.rs",
+            "line_start": 11,
+            "line_end": 30,
+            "digest": "7407357e8e78a3b158065a825de5aacb857c886d"
+          }
+        ],
+        "extracted_by": {
+          "name": "manual-readonly-demo-manifest-module-projection",
+          "version": "0.1.0",
+          "digest": null
+        },
+        "observed_at": "2026-11-14T09:05:00.000Z",
+        "valid_for_revision": "1af10d891410cce31c1d4037e7c7129c16db5834",
+        "valid_for_world": "DEMO.md-Cargo.toml-sol-atlas-core-src-lib.rs-only",
+        "limitations": []
+      },
+      "lifecycle": {
+        "state": "current",
+        "supersedes": null,
+        "invalidated_by": null,
+        "reason": "Current only for the exact pinned source revision."
+      }
+    },
+    {
+      "id": "solatlas:edge:018",
+      "from": "solatlas:project",
+      "relation": "contains",
+      "to": "solatlas:module:timeline",
+      "attributes": {},
+      "provenance": {
+        "authority": "source_declared",
+        "sources": [
+          {
+            "kind": "repository_file",
+            "uri": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/blob/1af10d891410cce31c1d4037e7c7129c16db5834/sol-atlas-core/src/lib.rs#L11-L30",
+            "path": "sol-atlas-core/src/lib.rs",
+            "line_start": 11,
+            "line_end": 30,
+            "digest": "7407357e8e78a3b158065a825de5aacb857c886d"
+          }
+        ],
+        "extracted_by": {
+          "name": "manual-readonly-demo-manifest-module-projection",
+          "version": "0.1.0",
+          "digest": null
+        },
+        "observed_at": "2026-11-14T09:05:00.000Z",
+        "valid_for_revision": "1af10d891410cce31c1d4037e7c7129c16db5834",
+        "valid_for_world": "DEMO.md-Cargo.toml-sol-atlas-core-src-lib.rs-only",
+        "limitations": []
+      },
+      "lifecycle": {
+        "state": "current",
+        "supersedes": null,
+        "invalidated_by": null,
+        "reason": "Current only for the exact pinned source revision."
+      }
+    },
+    {
+      "id": "solatlas:edge:019",
+      "from": "solatlas:project",
+      "relation": "contains",
+      "to": "solatlas:module:visual-validation",
+      "attributes": {},
+      "provenance": {
+        "authority": "source_declared",
+        "sources": [
+          {
+            "kind": "repository_file",
+            "uri": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/blob/1af10d891410cce31c1d4037e7c7129c16db5834/sol-atlas-core/src/lib.rs#L11-L30",
+            "path": "sol-atlas-core/src/lib.rs",
+            "line_start": 11,
+            "line_end": 30,
+            "digest": "7407357e8e78a3b158065a825de5aacb857c886d"
+          }
+        ],
+        "extracted_by": {
+          "name": "manual-readonly-demo-manifest-module-projection",
+          "version": "0.1.0",
+          "digest": null
+        },
+        "observed_at": "2026-11-14T09:05:00.000Z",
+        "valid_for_revision": "1af10d891410cce31c1d4037e7c7129c16db5834",
+        "valid_for_world": "DEMO.md-Cargo.toml-sol-atlas-core-src-lib.rs-only",
+        "limitations": []
+      },
+      "lifecycle": {
+        "state": "current",
+        "supersedes": null,
+        "invalidated_by": null,
+        "reason": "Current only for the exact pinned source revision."
+      }
+    },
+    {
+      "id": "solatlas:edge:020",
+      "from": "solatlas:project",
+      "relation": "contains",
+      "to": "solatlas:external:symtropy",
+      "attributes": {},
+      "provenance": {
+        "authority": "source_declared",
+        "sources": [
+          {
+            "kind": "repository_file",
+            "uri": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/blob/1af10d891410cce31c1d4037e7c7129c16db5834/DEMO.md#L61-L69",
+            "path": "DEMO.md",
+            "line_start": 61,
+            "line_end": 69,
+            "digest": "ae87d09a4c47992df40b707a74f9fef419c39c93"
+          }
+        ],
+        "extracted_by": {
+          "name": "manual-readonly-demo-manifest-module-projection",
+          "version": "0.1.0",
+          "digest": null
+        },
+        "observed_at": "2026-11-14T09:05:00.000Z",
+        "valid_for_revision": "1af10d891410cce31c1d4037e7c7129c16db5834",
+        "valid_for_world": "DEMO.md-Cargo.toml-sol-atlas-core-src-lib.rs-only",
+        "limitations": [
+          "No exact API/version/compatibility receipt was inspected."
+        ]
+      },
+      "lifecycle": {
+        "state": "current",
+        "supersedes": null,
+        "invalidated_by": null,
+        "reason": "Current only for the exact pinned source revision."
+      }
+    },
+    {
+      "id": "solatlas:edge:021",
+      "from": "solatlas:project",
+      "relation": "contains",
+      "to": "solatlas:external:mycelix",
+      "attributes": {},
+      "provenance": {
+        "authority": "source_declared",
+        "sources": [
+          {
+            "kind": "repository_file",
+            "uri": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/blob/1af10d891410cce31c1d4037e7c7129c16db5834/DEMO.md#L57-L69",
+            "path": "DEMO.md",
+            "line_start": 57,
+            "line_end": 69,
+            "digest": "ae87d09a4c47992df40b707a74f9fef419c39c93"
+          }
+        ],
+        "extracted_by": {
+          "name": "manual-readonly-demo-manifest-module-projection",
+          "version": "0.1.0",
+          "digest": null
+        },
+        "observed_at": "2026-11-14T09:05:00.000Z",
+        "valid_for_revision": "1af10d891410cce31c1d4037e7c7129c16db5834",
+        "valid_for_world": "DEMO.md-Cargo.toml-sol-atlas-core-src-lib.rs-only",
+        "limitations": [
+          "No live conductor, DHT data, transaction or settlement evidence was inspected."
+        ]
+      },
+      "lifecycle": {
+        "state": "current",
+        "supersedes": null,
+        "invalidated_by": null,
+        "reason": "Current only for the exact pinned source revision."
+      }
+    },
+    {
+      "id": "solatlas:edge:022",
+      "from": "solatlas:project",
+      "relation": "contains",
+      "to": "solatlas:evidence:core-test-count",
+      "attributes": {},
+      "provenance": {
+        "authority": "source_declared",
+        "sources": [
+          {
+            "kind": "repository_file",
+            "uri": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/blob/1af10d891410cce31c1d4037e7c7129c16db5834/DEMO.md#L61-L69",
+            "path": "DEMO.md",
+            "line_start": 61,
+            "line_end": 69,
+            "digest": "ae87d09a4c47992df40b707a74f9fef419c39c93"
+          }
+        ],
+        "extracted_by": {
+          "name": "manual-readonly-demo-manifest-module-projection",
+          "version": "0.1.0",
+          "digest": null
+        },
+        "observed_at": "2026-11-14T09:05:00.000Z",
+        "valid_for_revision": "1af10d891410cce31c1d4037e7c7129c16db5834",
+        "valid_for_world": "DEMO.md-Cargo.toml-sol-atlas-core-src-lib.rs-only",
+        "limitations": [
+          "README/demo aggregate only; no test execution or test inventory was performed."
+        ]
+      },
+      "lifecycle": {
+        "state": "current",
+        "supersedes": null,
+        "invalidated_by": null,
+        "reason": "Current only for the exact pinned source revision."
+      }
+    },
+    {
+      "id": "solatlas:edge:023",
+      "from": "solatlas:project",
+      "relation": "contains",
+      "to": "solatlas:evidence:live-url",
+      "attributes": {},
+      "provenance": {
+        "authority": "source_declared",
+        "sources": [
+          {
+            "kind": "repository_file",
+            "uri": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/blob/1af10d891410cce31c1d4037e7c7129c16db5834/DEMO.md#L3-L3",
+            "path": "DEMO.md",
+            "line_start": 3,
+            "line_end": 3,
+            "digest": "ae87d09a4c47992df40b707a74f9fef419c39c93"
+          }
+        ],
+        "extracted_by": {
+          "name": "manual-readonly-demo-manifest-module-projection",
+          "version": "0.1.0",
+          "digest": null
+        },
+        "observed_at": "2026-11-14T09:05:00.000Z",
+        "valid_for_revision": "1af10d891410cce31c1d4037e7c7129c16db5834",
+        "valid_for_world": "DEMO.md-Cargo.toml-sol-atlas-core-src-lib.rs-only",
+        "limitations": [
+          "URL was not opened or health-checked in this projection."
+        ]
+      },
+      "lifecycle": {
+        "state": "current",
+        "supersedes": null,
+        "invalidated_by": null,
+        "reason": "Current only for the exact pinned source revision."
+      }
+    },
+    {
+      "id": "solatlas:edge:024",
+      "from": "solatlas:crate:leptos-app",
+      "relation": "depends_on",
+      "to": "solatlas:crate:core",
+      "attributes": {
+        "source_statement": "Cargo.toml path dependency sol-atlas-core"
+      },
+      "provenance": {
+        "authority": "source_declared",
+        "sources": [
+          {
+            "kind": "repository_file",
+            "uri": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/blob/1af10d891410cce31c1d4037e7c7129c16db5834/Cargo.toml#L7-L8",
+            "path": "Cargo.toml",
+            "line_start": 7,
+            "line_end": 8,
+            "digest": "427e7745cc9e6495004af9c9a490fd775a37812e"
+          }
+        ],
+        "extracted_by": {
+          "name": "manual-readonly-demo-manifest-module-projection",
+          "version": "0.1.0",
+          "digest": null
+        },
+        "observed_at": "2026-11-14T09:05:00.000Z",
+        "valid_for_revision": "1af10d891410cce31c1d4037e7c7129c16db5834",
+        "valid_for_world": "DEMO.md-Cargo.toml-sol-atlas-core-src-lib.rs-only",
+        "limitations": []
+      },
+      "lifecycle": {
+        "state": "current",
+        "supersedes": null,
+        "invalidated_by": null,
+        "reason": "Current only for the exact pinned source revision."
+      }
+    },
+    {
+      "id": "solatlas:edge:025",
+      "from": "solatlas:crate:core",
+      "relation": "contains",
+      "to": "solatlas:module:economics",
+      "attributes": {
+        "module_export": true
+      },
+      "provenance": {
+        "authority": "source_declared",
+        "sources": [
+          {
+            "kind": "repository_file",
+            "uri": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/blob/1af10d891410cce31c1d4037e7c7129c16db5834/sol-atlas-core/src/lib.rs#L14-L15",
+            "path": "sol-atlas-core/src/lib.rs",
+            "line_start": 14,
+            "line_end": 15,
+            "digest": "7407357e8e78a3b158065a825de5aacb857c886d"
+          }
+        ],
+        "extracted_by": {
+          "name": "manual-readonly-demo-manifest-module-projection",
+          "version": "0.1.0",
+          "digest": null
+        },
+        "observed_at": "2026-11-14T09:05:00.000Z",
+        "valid_for_revision": "1af10d891410cce31c1d4037e7c7129c16db5834",
+        "valid_for_world": "DEMO.md-Cargo.toml-sol-atlas-core-src-lib.rs-only",
+        "limitations": []
+      },
+      "lifecycle": {
+        "state": "current",
+        "supersedes": null,
+        "invalidated_by": null,
+        "reason": "Current only for the exact pinned source revision."
+      }
+    },
+    {
+      "id": "solatlas:edge:026",
+      "from": "solatlas:crate:core",
+      "relation": "contains",
+      "to": "solatlas:module:energy-trading",
+      "attributes": {
+        "module_export": true
+      },
+      "provenance": {
+        "authority": "source_declared",
+        "sources": [
+          {
+            "kind": "repository_file",
+            "uri": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/blob/1af10d891410cce31c1d4037e7c7129c16db5834/sol-atlas-core/src/lib.rs#L15-L16",
+            "path": "sol-atlas-core/src/lib.rs",
+            "line_start": 15,
+            "line_end": 16,
+            "digest": "7407357e8e78a3b158065a825de5aacb857c886d"
+          }
+        ],
+        "extracted_by": {
+          "name": "manual-readonly-demo-manifest-module-projection",
+          "version": "0.1.0",
+          "digest": null
+        },
+        "observed_at": "2026-11-14T09:05:00.000Z",
+        "valid_for_revision": "1af10d891410cce31c1d4037e7c7129c16db5834",
+        "valid_for_world": "DEMO.md-Cargo.toml-sol-atlas-core-src-lib.rs-only",
+        "limitations": []
+      },
+      "lifecycle": {
+        "state": "current",
+        "supersedes": null,
+        "invalidated_by": null,
+        "reason": "Current only for the exact pinned source revision."
+      }
+    },
+    {
+      "id": "solatlas:edge:027",
+      "from": "solatlas:crate:core",
+      "relation": "contains",
+      "to": "solatlas:module:geo",
+      "attributes": {
+        "module_export": true
+      },
+      "provenance": {
+        "authority": "source_declared",
+        "sources": [
+          {
+            "kind": "repository_file",
+            "uri": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/blob/1af10d891410cce31c1d4037e7c7129c16db5834/sol-atlas-core/src/lib.rs#L16-L17",
+            "path": "sol-atlas-core/src/lib.rs",
+            "line_start": 16,
+            "line_end": 17,
+            "digest": "7407357e8e78a3b158065a825de5aacb857c886d"
+          }
+        ],
+        "extracted_by": {
+          "name": "manual-readonly-demo-manifest-module-projection",
+          "version": "0.1.0",
+          "digest": null
+        },
+        "observed_at": "2026-11-14T09:05:00.000Z",
+        "valid_for_revision": "1af10d891410cce31c1d4037e7c7129c16db5834",
+        "valid_for_world": "DEMO.md-Cargo.toml-sol-atlas-core-src-lib.rs-only",
+        "limitations": []
+      },
+      "lifecycle": {
+        "state": "current",
+        "supersedes": null,
+        "invalidated_by": null,
+        "reason": "Current only for the exact pinned source revision."
+      }
+    },
+    {
+      "id": "solatlas:edge:028",
+      "from": "solatlas:crate:core",
+      "relation": "contains",
+      "to": "solatlas:module:simulation",
+      "attributes": {
+        "module_export": true
+      },
+      "provenance": {
+        "authority": "source_declared",
+        "sources": [
+          {
+            "kind": "repository_file",
+            "uri": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/blob/1af10d891410cce31c1d4037e7c7129c16db5834/sol-atlas-core/src/lib.rs#L23-L24",
+            "path": "sol-atlas-core/src/lib.rs",
+            "line_start": 23,
+            "line_end": 24,
+            "digest": "7407357e8e78a3b158065a825de5aacb857c886d"
+          }
+        ],
+        "extracted_by": {
+          "name": "manual-readonly-demo-manifest-module-projection",
+          "version": "0.1.0",
+          "digest": null
+        },
+        "observed_at": "2026-11-14T09:05:00.000Z",
+        "valid_for_revision": "1af10d891410cce31c1d4037e7c7129c16db5834",
+        "valid_for_world": "DEMO.md-Cargo.toml-sol-atlas-core-src-lib.rs-only",
+        "limitations": []
+      },
+      "lifecycle": {
+        "state": "current",
+        "supersedes": null,
+        "invalidated_by": null,
+        "reason": "Current only for the exact pinned source revision."
+      }
+    },
+    {
+      "id": "solatlas:edge:029",
+      "from": "solatlas:crate:core",
+      "relation": "contains",
+      "to": "solatlas:module:timeline",
+      "attributes": {
+        "module_export": true
+      },
+      "provenance": {
+        "authority": "source_declared",
+        "sources": [
+          {
+            "kind": "repository_file",
+            "uri": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/blob/1af10d891410cce31c1d4037e7c7129c16db5834/sol-atlas-core/src/lib.rs#L24-L25",
+            "path": "sol-atlas-core/src/lib.rs",
+            "line_start": 24,
+            "line_end": 25,
+            "digest": "7407357e8e78a3b158065a825de5aacb857c886d"
+          }
+        ],
+        "extracted_by": {
+          "name": "manual-readonly-demo-manifest-module-projection",
+          "version": "0.1.0",
+          "digest": null
+        },
+        "observed_at": "2026-11-14T09:05:00.000Z",
+        "valid_for_revision": "1af10d891410cce31c1d4037e7c7129c16db5834",
+        "valid_for_world": "DEMO.md-Cargo.toml-sol-atlas-core-src-lib.rs-only",
+        "limitations": []
+      },
+      "lifecycle": {
+        "state": "current",
+        "supersedes": null,
+        "invalidated_by": null,
+        "reason": "Current only for the exact pinned source revision."
+      }
+    },
+    {
+      "id": "solatlas:edge:030",
+      "from": "solatlas:crate:core",
+      "relation": "contains",
+      "to": "solatlas:module:visual-validation",
+      "attributes": {
+        "module_export": true
+      },
+      "provenance": {
+        "authority": "source_declared",
+        "sources": [
+          {
+            "kind": "repository_file",
+            "uri": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/blob/1af10d891410cce31c1d4037e7c7129c16db5834/sol-atlas-core/src/lib.rs#L27-L28",
+            "path": "sol-atlas-core/src/lib.rs",
+            "line_start": 27,
+            "line_end": 28,
+            "digest": "7407357e8e78a3b158065a825de5aacb857c886d"
+          }
+        ],
+        "extracted_by": {
+          "name": "manual-readonly-demo-manifest-module-projection",
+          "version": "0.1.0",
+          "digest": null
+        },
+        "observed_at": "2026-11-14T09:05:00.000Z",
+        "valid_for_revision": "1af10d891410cce31c1d4037e7c7129c16db5834",
+        "valid_for_world": "DEMO.md-Cargo.toml-sol-atlas-core-src-lib.rs-only",
+        "limitations": []
+      },
+      "lifecycle": {
+        "state": "current",
+        "supersedes": null,
+        "invalidated_by": null,
+        "reason": "Current only for the exact pinned source revision."
+      }
+    },
+    {
+      "id": "solatlas:edge:031",
+      "from": "solatlas:app:bevy",
+      "relation": "compatible_with",
+      "to": "solatlas:external:symtropy",
+      "attributes": {
+        "relationship_status": "source_declared_only"
+      },
+      "provenance": {
+        "authority": "source_declared",
+        "sources": [
+          {
+            "kind": "repository_file",
+            "uri": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/blob/1af10d891410cce31c1d4037e7c7129c16db5834/DEMO.md#L61-L69",
+            "path": "DEMO.md",
+            "line_start": 61,
+            "line_end": 69,
+            "digest": "ae87d09a4c47992df40b707a74f9fef419c39c93"
+          }
+        ],
+        "extracted_by": {
+          "name": "manual-readonly-demo-manifest-module-projection",
+          "version": "0.1.0",
+          "digest": null
+        },
+        "observed_at": "2026-11-14T09:05:00.000Z",
+        "valid_for_revision": "1af10d891410cce31c1d4037e7c7129c16db5834",
+        "valid_for_world": "DEMO.md-Cargo.toml-sol-atlas-core-src-lib.rs-only",
+        "limitations": []
+      },
+      "lifecycle": {
+        "state": "current",
+        "supersedes": null,
+        "invalidated_by": null,
+        "reason": "Current only for the exact pinned source revision."
+      }
+    },
+    {
+      "id": "solatlas:edge:032",
+      "from": "solatlas:app:mycelix-holochain",
+      "relation": "compatible_with",
+      "to": "solatlas:external:mycelix",
+      "attributes": {
+        "relationship_status": "source_declared_only"
+      },
+      "provenance": {
+        "authority": "source_declared",
+        "sources": [
+          {
+            "kind": "repository_file",
+            "uri": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/blob/1af10d891410cce31c1d4037e7c7129c16db5834/DEMO.md#L61-L69",
+            "path": "DEMO.md",
+            "line_start": 61,
+            "line_end": 69,
+            "digest": "ae87d09a4c47992df40b707a74f9fef419c39c93"
+          }
+        ],
+        "extracted_by": {
+          "name": "manual-readonly-demo-manifest-module-projection",
+          "version": "0.1.0",
+          "digest": null
+        },
+        "observed_at": "2026-11-14T09:05:00.000Z",
+        "valid_for_revision": "1af10d891410cce31c1d4037e7c7129c16db5834",
+        "valid_for_world": "DEMO.md-Cargo.toml-sol-atlas-core-src-lib.rs-only",
+        "limitations": []
+      },
+      "lifecycle": {
+        "state": "current",
+        "supersedes": null,
+        "invalidated_by": null,
+        "reason": "Current only for the exact pinned source revision."
+      }
+    }
+  ],
+  "limitations": [
+    "This repository has no root README.md; the projection uses DEMO.md, Cargo.toml and sol-atlas-core/src/lib.rs.",
+    "All claims remain source_declared; no data ingestion, data download, licence review, build, tests, WebAssembly compilation, WebGL execution, network operation or deployment observation was performed.",
+    "DEMO.md reserve counts, EROI thresholds, depletion rates, emission factors, social cost of carbon, grid stress, P2P trading, breakeven prices and transition narrative are not independently validated.",
+    "The data-layer counts have no item-level source file, version, digest or rights manifest in this bounded projection.",
+    "The live URL statement was not health-checked or tied to the pinned source revision.",
+    "Bevy/Symtropy and Holochain/Mycelix integration claims are source-declared only; no exact contract/version or runtime receipt was inspected.",
+    "51 shared core tests are a demo-reported count, not an exact-head test pass."
+  ]
+}
