@@ -144,8 +144,8 @@ fn evaluate(case: &Value) -> Result<Value, Vec<String>> {
         if objective=="POOL_HEAT_RECOVERY" {
             if time=="UNKNOWN" || demand<0.0 || headroom<0.0 {
                 reasons.push("HEAT_RECOVERY_INPUT_INVALID".to_owned());
-            } else if text_at(item,"heat_recovery_hx_state")!="QUALIFIED"
-                || text_at(&item["evidence_refs"],"heat_exchanger").is_none()
+            } else if text_at(item, "heat_recovery_hx_state") != Some("QUALIFIED")
+                || text_at(&item["evidence_refs"], "heat_exchanger").is_none()
             {
                 reasons.push("ISOLATED_HEAT_EXCHANGER_NOT_QUALIFIED".to_owned());
             } else if demand>0.0 && headroom>0.0 {
