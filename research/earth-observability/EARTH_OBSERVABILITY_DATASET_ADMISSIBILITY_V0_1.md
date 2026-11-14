@@ -107,7 +107,42 @@ The associated 2025 Data in Brief article is CC BY-NC. Distinguish the article l
 
 The 2026 Gao & Hu review discusses the synthetic/field gap and event–utility mismatch. Its reported non-utility detections from cited case studies must not be copied into the Sol-Atlas baseline as a universal false-positive rate.
 
-## 4. Ingestion protocol
+## 4. Per-activity metric eligibility is now executable
+
+The Rust contract `sol-atlas-core/src/field_activity_admission.rs` and CLI `field_activity_admission_eval` classify each activity independently for five tracks:
+
+1. signal/event detection;
+2. event-to-target association;
+3. spatial localization;
+4. 2D/local geometry;
+5. 3D network topology.
+
+A single activity can be eligible for signal/event detection while remaining ineligible for localization or geometry. The report includes a separate disposition and reason for every track.
+
+The contract explicitly captures:
+- truth tier (structured independent survey, reviewed trench-image interpretation, owner record only, conflicted, insufficient);
+- target truth (present, absent within inspected support, unknown, conflicted);
+- review of the event-to-trench/target linkage and evidence IDs;
+- raw radargram digest;
+- positioning source (GNSS RTK, wheel encoder only, mixed, missing);
+- trace-aligned position availability, calibration receipt and horizontal position uncertainty;
+- wheel-contact status;
+- spatial support/CRS qualification;
+- geometry reference and trench-image registration receipt;
+- 3D geometry and connected-topology reference.
+
+Promotion rules:
+- Signal/event detection needs raw radargram bytes, independently admissible truth, a known present/absent-within-inspected-support state, and reviewed truth linkage.
+- Event-to-target association additionally requires an explicit target/reference ID.
+- Localization requires qualified spatial support, trace-aligned positions, a declared positioning source, a calibration receipt and positive documented uncertainty. Wheel-encoder-only positioning also requires verified wheel contact.
+- 2D geometry requires a geometry reference; image-interpreted trench geometry additionally needs a reviewed registration receipt.
+- 3D network topology requires structured independent survey truth, actual 3D reference geometry and a connected-topology reference. UT-Gold-D's GPR acquisition itself is not 3D and trench images alone do not meet this gate.
+
+A negative reference state is eligible only as `absent_within_inspected_support` with a named, independently reviewed inspected support. It does not mean the entire route, project or surrounding volume is empty.
+
+The committed six-activity synthetic fixture demonstrates these different dispositions. Its pinned JSON and Rust tests are structural contract evidence only; no real UT-Gold-D metadata has yet been imported. This is not a sensor-performance score.
+
+## 5. Ingestion protocol
 
 1. Resolve the exact 4TU dataset version and freeze the repository metadata, licence record, file inventory and per-file cryptographic digests.
 2. Download raw and processed data into a controlled, read-only research cache; preserve originals and all source metadata.
@@ -120,7 +155,7 @@ The 2026 Gao & Hu review discusses the synthetic/field gap and event–utility m
 9. Inspect precise location and critical-infrastructure disclosure risk before publishing any derived data. CC0 does not mean that Sol-Atlas should expose operationally sensitive utility coordinates.
 10. Emit a data-admission receipt with source digest, licence evidence, file inventory, parser version, transform identities, truth tier, exclusions and split manifest.
 
-## 5. Required ingestion outputs
+## 6. Required ingestion outputs
 
 - Dataset source manifest with version and per-file SHA-256.
 - Rights/admissibility receipt with exact repository licence and third-party exclusions.
@@ -131,7 +166,7 @@ The 2026 Gao & Hu review discusses the synthetic/field gap and event–utility m
 - Data-quality report with missingness, unsupported attributes and selection bias.
 - Explicit NOT_RUN markers for any unverified files, parser paths, transformations or physical assumptions.
 
-## 6. Recommended first experiment
+## 7. Recommended first experiment
 
 Start with a deliberately narrow experiment on UT-Gold-D:
 
