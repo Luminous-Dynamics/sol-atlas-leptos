@@ -421,6 +421,7 @@ pub struct ChangeClaim {
     contradicting_observation_ids: Vec<String>,
     coverage: CoverageState,
     coverage_receipt_sha256: Option<String>,
+    detection_qualification_receipt_sha256: Option<String>,
     detection_limit: Option<DetectionLimit>,
 }
 
@@ -439,6 +440,7 @@ struct ChangeClaimWire {
     contradicting_observation_ids: Vec<String>,
     coverage: CoverageState,
     coverage_receipt_sha256: Option<String>,
+    detection_qualification_receipt_sha256: Option<String>,
     detection_limit: Option<DetectionLimit>,
 }
 
@@ -457,6 +459,7 @@ impl ChangeClaim {
         contradicting_observation_ids: Vec<String>,
         coverage: CoverageState,
         coverage_receipt_sha256: Option<String>,
+        detection_qualification_receipt_sha256: Option<String>,
         detection_limit: Option<DetectionLimit>,
     ) -> Result<Self, String> {
         let claim_id = claim_id.into();
@@ -486,6 +489,9 @@ impl ChangeClaim {
         let coverage_receipt_sha256 = coverage_receipt_sha256
             .map(|value| normalize_sha256(value, "coverage receipt"))
             .transpose()?;
+        let detection_qualification_receipt_sha256 = detection_qualification_receipt_sha256
+            .map(|value| normalize_sha256(value, "detection qualification receipt"))
+            .transpose()?;
 
         if coverage == CoverageState::CompleteQualified && coverage_receipt_sha256.is_none() {
             return Err("complete qualified coverage requires a coverage receipt digest".into());
@@ -501,6 +507,9 @@ impl ChangeClaim {
                 }
                 if detection_limit.is_none() {
                     return Err("no-change claim requires an explicit detection limit".into());
+                }
+                if detection_qualification_receipt_sha256.is_none() {
+                    return Err("no-change claim requires an exact target/sensor detection-qualification receipt".into());
                 }
                 if supporting_observation_ids.len() < 2 {
                     return Err("no-change claim requires at least two supporting observations".into());
@@ -541,6 +550,7 @@ impl ChangeClaim {
             contradicting_observation_ids,
             coverage,
             coverage_receipt_sha256,
+            detection_qualification_receipt_sha256,
             detection_limit,
         })
     }
@@ -632,6 +642,7 @@ impl TryFrom<ChangeClaimWire> for ChangeClaim {
             wire.contradicting_observation_ids,
             wire.coverage,
             wire.coverage_receipt_sha256,
+            wire.detection_qualification_receipt_sha256,
             wire.detection_limit,
         )
     }
@@ -809,6 +820,7 @@ mod tests {
             vec![],
             CoverageState::CompleteQualified,
             Some(digest(b'd')),
+            Some(digest(b'e')),
             Some(DetectionLimit::new("minimum-change", 0.05, "fraction").unwrap()),
         )
         .unwrap()
@@ -821,7 +833,7 @@ mod tests {
             TimeWindow::new("2024-01-01", "2025-01-01").unwrap(),
             ChangeDisposition::NoChangeWithinEnvelope, None,
             vec!["a".into(), "b".into()], vec!["a".into(), "b".into()], vec![],
-            CoverageState::Partial, None,
+            CoverageState::Partial, None, Some(digest(b'e')),
             Some(DetectionLimit::new("min-change", 1.0, "unit").unwrap())
         ).is_err());
     }
@@ -948,7 +960,7 @@ mod tests {
             TimeWindow::new("2024-01-01", "2025-01-01").unwrap(),
             ChangeDisposition::CandidateChange, None,
             vec!["absent".into()], vec!["absent".into()], vec![],
-            CoverageState::Unknown, None, None
+            CoverageState::Unknown, None, None, None
         ).unwrap();
         assert!(EvidenceBundle::new(vec![], vec![missing]).is_err());
 
@@ -957,7 +969,7 @@ mod tests {
             TimeWindow::new("2024-01-01", "2025-01-01").unwrap(),
             ChangeDisposition::CandidateChange, None,
             vec!["obs-b".into()], vec!["obs-b".into()], vec![],
-            CoverageState::Unknown, None, None
+            CoverageState::Unknown, None, None, None
         ).unwrap();
         let other_support = ObservationRecord::new(
             "obs-b", AssetId::new("fixture:obs-b").unwrap(), digest(b'b'), digest(b'c'),
