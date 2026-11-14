@@ -1341,8 +1341,8 @@ mod tests {
             "ontology-v1",
         ).unwrap();
         assert_eq!(
-            receipt.observation_ids(),
-            &["obs-a".to_string(), "obs-b".to_string()]
+            receipt.observation_ids().iter().map(String::as_str).collect::<Vec<_>>(),
+            vec!["obs-a", "obs-b"]
         );
     }
 
@@ -1781,8 +1781,8 @@ mod tests {
         let claim = &bundle.claims()[0];
         let receipt = claim.cross_system_comparability_receipt().unwrap();
         assert_eq!(
-            receipt.observation_ids(),
-            &["obs-2024".to_string(), "obs-2025".to_string()]
+            receipt.observation_ids().iter().map(String::as_str).collect::<Vec<_>>(),
+            vec!["obs-2024", "obs-2025"]
         );
         assert_eq!(receipt.support_id(), "support-jukskei-synthetic");
         assert_eq!(receipt.target_class_id(), "vegetation-loss");
