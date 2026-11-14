@@ -24,6 +24,7 @@ pub mod mycelix_flows;
 // pub mod relativity_viz;
 pub mod geometry;
 pub mod math;
+pub mod network_hypotheses;
 pub mod picking;
 pub mod sensor_evsi_bridge;
 pub mod sensor_observability;
