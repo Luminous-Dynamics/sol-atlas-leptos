@@ -1,0 +1,12 @@
+{
+  "benchmark_id": "SOL-ATLAS-SITE-INVESTIGATION-VOI-001",
+  "version": "0.1.0",
+  "fixture_path": "docs/research/fixtures/site-investigation-voi-benchmark-v0.1.jsonl",
+  "fixture_git_blob_sha": "e7b7827c70efd1f73e33be6fb8b14b0f9255a387",
+  "fixture_character_count": 1996,
+  "records": 3,
+  "investigations": 3,
+  "as_of_date": "2026-10-17",
+  "provenance": "Synthetic states, losses, prior probabilities, investigation costs, and outcome likelihoods only. The example numbers do not describe a real site or actual cost/risk estimates.",
+  "claim_ceiling": "Tests discrete EVSI policy arithmetic only. It does not validate priors, geotechnical models, site investigations, loss assumptions, safety, or professional engineering decisions."
+}
