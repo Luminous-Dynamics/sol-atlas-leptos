@@ -155,7 +155,7 @@ fn evaluate(case: &Value) -> Result<Value, Vec<String>> {
                 reasons.push("NO_ACTIVE_POOL_HEATING_DEMAND_OR_HEADROOM".to_owned());
             }
         } else if objective=="DAYTIME_SOLAR_PROTECTION" && time=="DAY" {
-            if text_at(item,"shade_mechanism_state")!="QUALIFIED" {
+            if text_at(item, "shade_mechanism_state") != Some("QUALIFIED") {
                 reasons.push("SHADE_MECHANISM_NOT_QUALIFIED".to_owned());
             } else if solar-solar_u95>0.0 {
                 mode="SHADE_ONLY_SOLAR_PROTECTION";
@@ -164,9 +164,9 @@ fn evaluate(case: &Value) -> Result<Value, Vec<String>> {
                 reasons.push("SOLAR_GAIN_LOWER_BOUND_NOT_POSITIVE".to_owned());
             }
         } else if objective=="POOL_BUFFER_REGENERATION" && time=="NIGHT" {
-            if text_at(item,"sky_view_state")!="QUALIFIED" {
+            if text_at(item, "sky_view_state") != Some("QUALIFIED") {
                 reasons.push("SKY_VIEW_NOT_QUALIFIED".to_owned());
-            } else if text_at(item,"water_rights_state")=="PROHIBITED" || budget<=0.0 {
+            } else if text_at(item, "water_rights_state") == Some("PROHIBITED") || budget<=0.0 {
                 mode="COVERED_WATER_CONSERVATION";
                 reasons.push("DISCRETIONARY_EVAPORATION_NOT_PERMITTED".to_owned());
             } else if pool_temp<=regen_target {
