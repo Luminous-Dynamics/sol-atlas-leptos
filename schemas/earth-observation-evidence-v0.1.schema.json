@@ -560,7 +560,8 @@
         "observation_ids",
         "support_id",
         "target_class_id",
-        "ontology_version"
+        "ontology_version",
+        "system_signatures"
       ],
       "properties": {
         "receipt_sha256": {
@@ -583,9 +584,80 @@
         },
         "ontology_version": {
           "$ref": "#/$defs/identifier"
+        },
+        "system_signatures": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/observation_system_signature"
+          },
+          "description": "Exact distinct measurement-system signatures for all observation_ids in the claim."
         }
       },
       "description": "Structural reference to external comparability qualification. Rust rechecks exact observation-set and support/class/ontology binding; an authoritative verifier must authenticate the receipt contents."
+    },
+    "observation_system_signature": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "source_id",
+        "platform_id",
+        "sensor_id",
+        "sensor_identity_origin",
+        "instrument_id",
+        "modality",
+        "collection_id",
+        "processing_baseline",
+        "measurement_profile_sha256"
+      ],
+      "properties": {
+        "source_id": {
+          "$ref": "#/$defs/identifier"
+        },
+        "platform_id": {
+          "$ref": "#/$defs/identifier"
+        },
+        "sensor_id": {
+          "$ref": "#/$defs/identifier"
+        },
+        "sensor_identity_origin": {
+          "enum": [
+            "provider_declared",
+            "derived_from_platform_and_instrument",
+            "unknown"
+          ]
+        },
+        "instrument_id": {
+          "$ref": "#/$defs/nullableIdentifier"
+        },
+        "modality": {
+          "enum": [
+            "optical",
+            "synthetic_aperture_radar",
+            "thermal_infrared",
+            "hyperspectral",
+            "multispectral",
+            "other"
+          ]
+        },
+        "collection_id": {
+          "$ref": "#/$defs/nullableIdentifier"
+        },
+        "processing_baseline": {
+          "$ref": "#/$defs/nullableIdentifier"
+        },
+        "measurement_profile_sha256": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/sha256"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      }
     }
   }
 }
