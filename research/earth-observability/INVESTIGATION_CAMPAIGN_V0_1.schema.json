@@ -1,0 +1,297 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/blob/research/earth-observability-investigation-tournament-v0-1/research/earth-observability/INVESTIGATION_CAMPAIGN_V0_1.schema.json",
+  "title": "Project-clustered investigation tournament campaign v0.1",
+  "description": "A campaign groups project-specific tournament cases. Rust validation enforces snapshot/budget/policy equality, project identity and per-case feasibility. This schema does not authenticate physical truth or independent projects.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "campaign_id",
+    "dataset_snapshot_id",
+    "common_budget",
+    "project_cases"
+  ],
+  "properties": {
+    "campaign_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "dataset_snapshot_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "common_budget": {
+      "$ref": "#/$defs/budget"
+    },
+    "project_cases": {
+      "type": "array",
+      "minItems": 2,
+      "items": {
+        "$ref": "#/$defs/projectCase"
+      }
+    }
+  },
+  "$defs": {
+    "disturbance": {
+      "enum": [
+        "low",
+        "moderate",
+        "high"
+      ]
+    },
+    "budget": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "currency",
+        "max_cost",
+        "max_crew_hours",
+        "maximum_disturbance"
+      ],
+      "properties": {
+        "currency": {
+          "type": "string",
+          "minLength": 1
+        },
+        "max_cost": {
+          "type": "number",
+          "minimum": 0
+        },
+        "max_crew_hours": {
+          "type": "number",
+          "minimum": 0
+        },
+        "maximum_disturbance": {
+          "$ref": "#/$defs/disturbance"
+        }
+      }
+    },
+    "authority": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "land_access_authorized",
+        "method_authorized",
+        "required_permits_satisfied",
+        "rights_satisfied",
+        "safety_review_satisfied",
+        "custodial_review_required",
+        "custodial_review_completed"
+      ],
+      "properties": {
+        "land_access_authorized": {
+          "type": "boolean"
+        },
+        "method_authorized": {
+          "type": "boolean"
+        },
+        "required_permits_satisfied": {
+          "type": "boolean"
+        },
+        "rights_satisfied": {
+          "type": "boolean"
+        },
+        "safety_review_satisfied": {
+          "type": "boolean"
+        },
+        "custodial_review_required": {
+          "type": "boolean"
+        },
+        "custodial_review_completed": {
+          "type": "boolean"
+        }
+      }
+    },
+    "action": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "action_id",
+        "support_id",
+        "modality",
+        "currency",
+        "direct_cost",
+        "crew_hours",
+        "disturbance",
+        "predicted_information_gain",
+        "authority"
+      ],
+      "properties": {
+        "action_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "support_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "modality": {
+          "type": "string",
+          "minLength": 1
+        },
+        "currency": {
+          "type": "string",
+          "minLength": 1
+        },
+        "direct_cost": {
+          "type": "number",
+          "minimum": 0
+        },
+        "crew_hours": {
+          "type": "number",
+          "minimum": 0
+        },
+        "disturbance": {
+          "$ref": "#/$defs/disturbance"
+        },
+        "predicted_information_gain": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "maximum": 1
+        },
+        "authority": {
+          "$ref": "#/$defs/authority"
+        }
+      }
+    },
+    "loss": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "truth_state_id",
+        "decision_id",
+        "loss"
+      ],
+      "properties": {
+        "truth_state_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "decision_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "loss": {
+          "type": "number",
+          "minimum": 0
+        }
+      }
+    },
+    "plan": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "policy_id",
+        "policy_kind",
+        "is_oracle_upper_bound",
+        "selected_action_ids",
+        "chosen_decision_id"
+      ],
+      "properties": {
+        "policy_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "policy_kind": {
+          "enum": [
+            "expert",
+            "fixed_grid",
+            "random_eligible",
+            "cost_only",
+            "entropy_greedy",
+            "expected_value_of_information",
+            "learned",
+            "oracle_upper_bound",
+            "other"
+          ]
+        },
+        "is_oracle_upper_bound": {
+          "type": "boolean"
+        },
+        "selected_action_ids": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true
+        },
+        "chosen_decision_id": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "projectCase": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "project_id",
+        "case"
+      ],
+      "properties": {
+        "project_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "case": {
+          "$ref": "#/$defs/case"
+        }
+      }
+    },
+    "case": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "evaluation_id",
+        "dataset_snapshot_id",
+        "adjudicated_truth_state_id",
+        "budget",
+        "action_catalogue",
+        "decision_losses",
+        "policy_plans"
+      ],
+      "properties": {
+        "evaluation_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "dataset_snapshot_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "adjudicated_truth_state_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "budget": {
+          "$ref": "#/$defs/budget"
+        },
+        "action_catalogue": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/action"
+          }
+        },
+        "decision_losses": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/loss"
+          }
+        },
+        "policy_plans": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/plan"
+          }
+        }
+      }
+    }
+  }
+}
