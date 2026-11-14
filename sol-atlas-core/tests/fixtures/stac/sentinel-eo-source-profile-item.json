@@ -1,0 +1,51 @@
+{
+  "type": "Feature",
+  "stac_version": "1.0.0",
+  "stac_extensions": [
+    "https://stac-extensions.github.io/eo/v2.0.0/schema.json",
+    "https://stac-extensions.github.io/instrument/v1.0.0/schema.json"
+  ],
+  "id": "sentinel-2a/source-profile-001",
+  "collection": "sentinel-2-l2a",
+  "properties": {
+    "datetime": "2025-01-01T00:00:00Z",
+    "platform": "sentinel-2a",
+    "constellation": "sentinel-2",
+    "instruments": [
+      "MSI"
+    ],
+    "s2:processing_baseline": "04.00",
+    "processing:version": "Sen2Cor-2.11",
+    "vendor:unmodeled_field": {
+      "preserve": true
+    }
+  },
+  "assets": {
+    "B04": {
+      "href": "fixture:B04.tif",
+      "type": "image/tiff; application=geotiff",
+      "eo:bands": [
+        {
+          "name": "B04",
+          "common_name": "red",
+          "center_wavelength": 0.665
+        }
+      ],
+      "raster:bands": [
+        {
+          "raster:spatial_resolution": 10
+        }
+      ]
+    },
+    "VH": {
+      "href": "fixture:VH.tif",
+      "type": "image/tiff; application=geotiff",
+      "sar:polarizations": [
+        "VV",
+        "VH"
+      ],
+      "sar:frequency_band": "C",
+      "sar:instrument_mode": "IW"
+    }
+  }
+}
