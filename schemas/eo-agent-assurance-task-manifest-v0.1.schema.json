@@ -297,6 +297,17 @@
                 },
                 "must_not_claim_statistical_significance": {
                   "type": "boolean"
+                },
+                "retry_count_exact": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "unique_claim_id_count": {
+                  "type": "integer",
+                  "minimum": 1
+                },
+                "prior_claim_revalidation_required": {
+                  "type": "boolean"
                 }
               }
             }
