@@ -8,6 +8,9 @@ const CASE: &str = include_str!(
 const SCHEMA: &str = include_str!(
     "../../docs/research/highveld-neighborhood-commons/REFUGE_NETWORK_FLOW_CASE_V0.1.schema.json"
 );
+const MAX_DEMAND_AREAS: usize = 64;
+const MAX_REFUGE_SITES: usize = 64;
+const MAX_AGGREGATE_PLACES: u64 = 1_000_000;
 
 #[derive(Clone)]
 struct FlowEdge {
@@ -214,6 +217,9 @@ fn evaluate(case: &Value) -> Result<Value, Vec<String>> {
     if areas.is_empty() || sites.is_empty() {
         errors.push("at least one demand area and site are required".to_owned());
     }
+    if areas.len() > MAX_DEMAND_AREAS || sites.len() > MAX_REFUGE_SITES {
+        errors.push("input exceeds the bounded area/site envelope".to_owned());
+    }
     checked_unique_ids(&areas, "area_id")?;
     checked_unique_ids(&sites, "site_id")?;
     areas.sort_by_key(|area| text_at(area, "area_id").unwrap_or_default().to_owned());
@@ -228,11 +234,19 @@ fn evaluate(case: &Value) -> Result<Value, Vec<String>> {
     let mut demand_accessible = Vec::new();
     let mut demand_general = Vec::new();
     let mut route_rejections = Vec::new();
+    let mut accessibility_rejections = Vec::new();
+    let mut aggregate_places = 0_u64;
 
     for area in &areas {
         let area_id = text_at(area, "area_id").unwrap_or_default().to_owned();
         let total = int_at(area, "total_places").unwrap_or(0);
         let accessible = int_at(area, "accessible_places").unwrap_or(u64::MAX);
+        aggregate_places = aggregate_places
+            .checked_add(total)
+            .ok_or_else(|| vec!["aggregate place demand overflowed".to_owned()])?;
+        if aggregate_places > MAX_AGGREGATE_PLACES {
+            errors.push("aggregate place demand exceeds the bounded oracle envelope".to_owned());
+        }
         if total == 0 || accessible > total {
             errors.push(format!("{area_id}: invalid total/accessible demand"));
             continue;
@@ -281,6 +295,12 @@ fn evaluate(case: &Value) -> Result<Value, Vec<String>> {
                     .entry(area_id.clone())
                     .or_default()
                     .insert(site_id.to_owned());
+            } else {
+                accessibility_rejections.push(json!({
+                    "area_id": area_id,
+                    "site_id": site_id,
+                    "reason": "ACCESSIBILITY_NOT_QUALIFIED_OR_UNEVIDENCED"
+                }));
             }
         }
     }
@@ -288,7 +308,6 @@ fn evaluate(case: &Value) -> Result<Value, Vec<String>> {
     let mut accessible_caps = BTreeMap::new();
     let mut general_caps = BTreeMap::new();
     let mut site_water = BTreeMap::new();
-    let mut site_non_access_capacity = BTreeMap::new();
     for site in &sites {
         let site_id = text_at(site, "site_id").unwrap_or_default().to_owned();
         let total = int_at(site, "free_total_places").unwrap_or(0);
@@ -317,7 +336,6 @@ fn evaluate(case: &Value) -> Result<Value, Vec<String>> {
         let general_cap = non_accessible.min(water_places);
         accessible_caps.insert(site_id.clone(), accessible_cap);
         general_caps.insert(site_id.clone(), general_cap);
-        site_non_access_capacity.insert(site_id.clone(), non_accessible);
         site_water.insert(site_id, water);
     }
 
@@ -453,6 +471,7 @@ fn evaluate(case: &Value) -> Result<Value, Vec<String>> {
         "area_results":area_report,
         "site_results":site_report,
         "route_rejections":route_rejections,
+        "accessibility_rejections":accessibility_rejections,
         "accessible_flow_total":accessible_served,
         "general_flow_total":general_served,
         "execution_status":"SYNTHETIC_AGGREGATE_ORACLE_ONLY",
