@@ -413,3 +413,27 @@ Benchmark additions:
 - resident choice and tradeable preferences remain distinct from hard constraints.
 
 This contract is the programme input to layout generation; it does not establish room suitability, accessibility, affordability or resident satisfaction.
+
+
+## 19. Unit-interior geometry and resident activity placement
+
+P0 room-layout artifacts:
+- `multifamily-unit-layout.schema.json`;
+- `multifamily-unit-layout-synthetic-v0.1.json`;
+- `src/bin/home-multifamily-unit-layout-qualifier.rs`.
+
+The synthetic fixture contains four apartment layouts, seven rooms per unit (28 total), 24 activity assignments, seven resident relationship mappings and 32 everyday portals. Each unit-local 6,000 × 8,000 mm rectangle is exactly partitioned with zero room overlaps; every room is inside its unit envelope; the unit-local-to-building transform matches its exact dwelling footprint; and all rooms are reachable through the declared everyday portal graph.
+
+Every resident activity maps exactly once to a room or an explicit shared-space target, and every requirement/preference relationship preserves its exact activity and target binding. The hygiene rooms use private privacy zones to respect the declared synthetic private-activity requirement; this does not certify acoustic or visual privacy performance.
+
+The qualifier explicitly rejects fabricated portal clear widths and door swings. Everyday graph connectivity does not prove step-free access, accessibility, emergency egress, fire safety or code compliance.
+
+Hard gates:
+- 100% resident activity assignment coverage and zero orphan target;
+- 100% exact relationship-ID and activity-scope preservation;
+- zero room overlap, out-of-envelope geometry or unallocated unit-envelope area;
+- zero unqualified door clear-width/swing promotion;
+- zero everyday-topology promotion to accessibility or emergency egress;
+- 100% exact unit/footprint/floor transform binding.
+
+The current Rust source has 15 authored tests (one positive fixture and 14 negative controls). Hosted test/rustfmt evidence remains exact-head gated.
