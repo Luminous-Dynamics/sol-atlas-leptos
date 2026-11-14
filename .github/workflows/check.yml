@@ -84,6 +84,10 @@ jobs:
         run: cargo test --bin project_split_eval
       - name: Emit project split calibration sensitivity sweep
         run: cargo run --bin project_split_eval -- --sensitivity-sweep
+      - name: Test evidence revalidation closure
+        run: cargo test --bin evidence_revalidation_eval
+      - name: Verify pinned evidence revalidation plan
+        run: cargo run --bin evidence_revalidation_eval -- --check-pinned
       - name: Test sensor observability scoring CLI
         run: cargo test --bin sensor_observability_eval
       - name: Verify pinned analytic sensor observability receipt
