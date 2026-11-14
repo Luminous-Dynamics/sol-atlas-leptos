@@ -256,7 +256,7 @@
           {
             "truth_state_id": "two-separate-utilities",
             "decision_id": "declare-junction",
-            "loss": 100
+            "loss": 80
           },
           {
             "truth_state_id": "two-separate-utilities",
@@ -410,7 +410,7 @@
           {
             "truth_state_id": "two-separate-utilities",
             "decision_id": "declare-junction",
-            "loss": 100
+            "loss": 60
           },
           {
             "truth_state_id": "two-separate-utilities",
