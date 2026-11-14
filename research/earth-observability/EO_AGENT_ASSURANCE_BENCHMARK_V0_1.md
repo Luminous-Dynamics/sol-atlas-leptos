@@ -230,7 +230,7 @@ This benchmark does not certify a satellite product, model, causal explanation, 
 
 ## 9. Executable scorer and agent-view projection
 
-The repository's Rust binary is `src/bin/eo_agent_assurance_scorer.rs`. It is part of the root Cargo package and uses the already-locked SHA-256 implementation.
+The repository's Rust binary is `src/bin/eo-agent-assurance-scorer.rs`. It is part of the root Cargo package and uses the already-locked SHA-256 implementation.
 
 First export the agent-visible projection. This deliberately excludes the evaluator oracle and the runtime fault schedule:
 
@@ -254,6 +254,6 @@ cargo run --bin eo-agent-assurance-scorer -- \\
   /tmp/eo-agent-score-v0.1.json
 ```
 
-The submitted result must conform to [`eo-agent-assurance-result-v0.1.schema.json`](../../schemas/eo-agent-assurance-result-v0.1.schema.json). `manifest_sha256` binds the result to the exact manifest file bytes. Task correctness and hard-gate compliance are reported separately. A syntactically valid run may legitimately score poorly; inspect `benchmark_score_eligible`, `hard_gate_violations`, per-task failures and the task success rate rather than interpreting process exit status as agent success.
+The exported projection must conform to [`eo-agent-assurance-agent-view-v0.1.schema.json`](../../schemas/eo-agent-assurance-agent-view-v0.1.schema.json). The submitted result must conform to [`eo-agent-assurance-result-v0.1.schema.json`](../../schemas/eo-agent-assurance-result-v0.1.schema.json). `manifest_sha256` binds the result to the exact manifest file bytes. Task correctness and hard-gate compliance are reported separately. A syntactically valid run may legitimately score poorly; inspect `benchmark_score_eligible`, `hard_gate_violations`, per-task failures and the task success rate rather than interpreting process exit status as agent success.
 
 The scorer includes unit tests for positive control, claim provenance, prohibited-purpose use, unsupported no-change promotion, digest mismatch and attempted consequential action. These tests validate scorer logic, not model capability or real-world Earth-observation performance.
