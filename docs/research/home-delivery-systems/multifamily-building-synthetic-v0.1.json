@@ -4,9 +4,9 @@
   "maturity": "synthetic_contract",
   "source_binding": {
     "resident_programme_ref": {
-      "kind": "synthetic_resident_programme",
-      "id": "urn:synthetic:resident-programme:unbound",
-      "revision": null,
+      "kind": "synthetic_multi_family_resident_programme",
+      "id": "SYN-MF-RESIDENT-PROGRAMME-001",
+      "revision": "0.1",
       "digest": null
     },
     "site_context_ref": {
@@ -465,28 +465,48 @@
     {
       "unit_id": "U-001",
       "space_id": "U-001",
-      "resident_programme_ref": null,
+      "resident_programme_ref": {
+        "kind": "synthetic_resident_unit_programme",
+        "id": "SYN-UNIT-PROGRAMME-U-001",
+        "revision": "0.1",
+        "digest": null
+      },
       "requirement_refs": [],
       "programme_state": "unknown"
     },
     {
       "unit_id": "U-002",
       "space_id": "U-002",
-      "resident_programme_ref": null,
+      "resident_programme_ref": {
+        "kind": "synthetic_resident_unit_programme",
+        "id": "SYN-UNIT-PROGRAMME-U-002",
+        "revision": "0.1",
+        "digest": null
+      },
       "requirement_refs": [],
       "programme_state": "unknown"
     },
     {
       "unit_id": "U-003",
       "space_id": "U-003",
-      "resident_programme_ref": null,
+      "resident_programme_ref": {
+        "kind": "synthetic_resident_unit_programme",
+        "id": "SYN-UNIT-PROGRAMME-U-003",
+        "revision": "0.1",
+        "digest": null
+      },
       "requirement_refs": [],
       "programme_state": "unknown"
     },
     {
       "unit_id": "U-004",
       "space_id": "U-004",
-      "resident_programme_ref": null,
+      "resident_programme_ref": {
+        "kind": "synthetic_resident_unit_programme",
+        "id": "SYN-UNIT-PROGRAMME-U-004",
+        "revision": "0.1",
+        "digest": null
+      },
       "requirement_refs": [],
       "programme_state": "unknown"
     }
