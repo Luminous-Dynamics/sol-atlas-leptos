@@ -61,6 +61,30 @@ Issue #791 already starts a source-attributed planetary energy map projection an
 
 **Important branch boundary:** PR #67, PR #429/#430 and PR #775 are not merged into the observed main snapshot. A design or implementation visible on those branches is not a default-branch capability. This audit does not claim that these branches are invalid; it says they need review and exact-head qualification before being treated as integrated.
 
+## 3.1 Cross-project programme audit — important existing work
+
+A broader repository search found that the satellite-specific programme must be composed with several already-active workstreams. These are not optional future ideas; they are existing issues/draft PRs and materially change the integration plan.
+
+| Existing work | Current owner and scope | How this satellite programme composes |
+|---|---|---|
+| Sol-Atlas #761 / draft PR #762 — EARTH-OBSERVABILITY-QUAL-001 | Multimodal terrestrial/subsurface observability; coordinate/datum/source contracts, non-detection semantics, synthetic cases, POD/abstention, BGS/AGS/UK Geo data handoffs, rights-aware federation and investigation evaluation. The issue documents seven tracks and an 18-case challenge manifest. | Reuse the qualification, source, uncertainty, missingness, evidence-tier and decision principles. Satellite optical/SAR likelihoods, temporal semantics and change labels need their own modality-specific profile; do not reuse the current GPR/ERT / borehole transfer rates as satellite detection performance. |
+| Sol-Atlas #798 — SCI-OBS-EARTH-001 | Mapping contract between Sol-Atlas Earth/terrestrial evidence and the federated Mycelix scientific-observability fabric. | Treat this as the Sol-Atlas↔Mycelix integration parent. The satellite programme is a modality-specific child, not a competing cross-project bridge. |
+| Sol-Atlas #783 — UT-Gold-D admission | Blinded retrospective GPR field dataset admission, truth tiers, site-level split and rights/disclosure constraints. | Reuse its label-tier and cluster-leakage discipline. It is not satellite imagery ground truth and its GPR observations do not qualify optical/SAR change detection. |
+| Symthaea #194 — Planetary Perception / Wetland Watch | Locked Sentinel evaluation witness: content-addressed data manifest, spatial/time holdouts, training/calibration/evaluation separation, fitted-artifact and model-selection integrity, custody/reveal controls, classic baselines and coverage-aware scores. | This is the existing Sentinel benchmark acceptance authority. Reuse its split, fit, selection and custody manifests; do not create a second evaluation-leakage framework. The present EO claim module is an input/claim contract, not a substitute for that locked witness. |
+| Symthaea #12075 — SCI-OBS-SYM-001 | Evidence-bound anomaly triage, competing hypotheses, testable predictions and recommendation of admissible follow-up observations. | Symthaea owns reasoning and hypothesis competition. Sol-Atlas supplies qualified spatial/time claims and benchmark evidence; it must not implement another generic hypothesis engine. |
+| Mycelix #6141 / draft PR #6142 — SCI-OBS-001 | Domain-neutral federated scientific-event provenance, evidence artifacts, ownership, custody, rights, signed events, dependency-aware corroboration, corrections/retractions and federation. | Mycelix owns the shared provenance/federation and authority layer. Sol-Atlas owns native Earth spatial semantics, observation support, change claims and EO evaluation; keep imagery payloads with source owners where possible. |
+| Symtropy #1760 / #1728 — GEO-OBS / GEO-SIM | Active observation design and known-truth geophysical inverse-problem tests for the Earth Interior Observatory. | Reuse the general experimental-design and non-identifiability principles where relevant. These are geodynamo/geophysical inverse problems, not remote-sensing change-detection baselines. |
+
+### Updated ownership map
+
+- **Sol-Atlas:** native EO assets/observation references, spatial support, temporal/change claims, source-to-claim traceability, split manifests, metrics/receipts and map/timeline presentation.
+- **Symthaea:** anomaly triage, competing causal hypotheses, predictions, model criticism and follow-up ranking; consume only qualified evidence and preserve abstention.
+- **Symtropy:** modality- and domain-specific physical forward models, model applicability, simulation/measurement discrepancy and post-intervention outcome prediction; never turn simulation output into observation.
+- **Mycelix:** signed scientific-event/provenance envelope, source rights/custody, subject/purpose authorization, actor/organization authority, dependency-aware corroboration and correction/retraction.
+- **Planet / Copernicus / USGS / GEE / Microsoft Planetary Computer / other source platforms:** source data, imagery, discovery or compute as licensed; none becomes the sole truth authority.
+
+The practical consequence: first complete the Sol-Atlas asset/STAC/rights and Sentinel evaluation contracts already in flight, then connect the narrow EO claims to them. The new satellite work should not absorb Mycelix's shared event ledger, Symthaea's investigation engine, Symtropy's physics models, or Sol-Atlas's existing geophysical sensor qualification.
+
 ## 4. What the EO programme should add
 
 The EO-specific delta is much narrower than a second infrastructure stack:
