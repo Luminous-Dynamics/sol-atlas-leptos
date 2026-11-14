@@ -5,6 +5,9 @@ use std::{env, process};
 const CASE: &str = include_str!(
     "../../docs/research/highveld-neighborhood-commons/REFUGE_NETWORK_FLOW_CASE_V0.1.json"
 );
+const PRIMARY_CASE: &str = include_str!(
+    "../../docs/research/highveld-neighborhood-commons/REFUGE_NETWORK_FEASIBILITY_CASE_V0.1.json"
+);
 const SCHEMA: &str = include_str!(
     "../../docs/research/highveld-neighborhood-commons/REFUGE_NETWORK_FLOW_CASE_V0.1.schema.json"
 );
@@ -174,6 +177,235 @@ fn run_flow(
     (flow, allocations)
 }
 
+fn freshness_is_qualified(owner: &Value, key: &str) -> bool {
+    let Some(freshness) = owner.get(key) else {
+        return false;
+    };
+    let age = number_at(freshness, "age_elapsed_s");
+    let maximum = number_at(freshness, "max_valid_age_s");
+    age.is_some_and(|value| value >= 0.0)
+        && maximum.is_some_and(|value| value >= 0.0)
+        && age.zip(maximum).is_some_and(|(age, maximum)| age <= maximum)
+        && text_at(freshness, "source_event_id").is_some()
+        && text_at(freshness, "max_age_policy_ref").is_some()
+}
+
+fn adapt_primary_network_case(primary: &Value) -> Result<Value, Vec<String>> {
+    if text_at(primary, "study_id") != Some("HIGHVELD-REFUGE-NETWORK-FEASIBILITY-001")
+        || text_at(primary, "maturity") != Some("SYNTHETIC_KNOWN_ANSWER")
+    {
+        return Err(vec!["primary fixture identity or maturity is invalid".to_owned()]);
+    }
+
+    let water_per_person = number_at(primary, "safe_water_l_per_place")
+        .filter(|value| *value > 0.0)
+        .ok_or_else(|| vec!["primary fixture water basis is invalid".to_owned()])?;
+    let cohorts = primary["cohorts"]
+        .as_array()
+        .ok_or_else(|| vec!["primary fixture cohorts must be an array".to_owned()])?;
+    let source_sites = primary["sites"]
+        .as_array()
+        .ok_or_else(|| vec!["primary fixture sites must be an array".to_owned()])?;
+    let source_routes = primary["routes"]
+        .as_array()
+        .ok_or_else(|| vec!["primary fixture routes must be an array".to_owned()])?;
+
+    let mut sites = Vec::new();
+    let mut eligible_site_ids = BTreeSet::new();
+    let mut excluded_sites = Vec::new();
+
+    for site in source_sites {
+        let site_id = text_at(site, "site_id").unwrap_or("<missing-site-id>");
+        let mut reasons = Vec::new();
+        for (key, expected, reason) in [
+            ("operating_window_state", "OPEN_FOR_REQUIRED_WINDOW", "OPERATING_WINDOW_NOT_QUALIFIED"),
+            ("thermal_service_state", "QUALIFIED", "THERMAL_SERVICE_NOT_QUALIFIED"),
+            ("ventilation_state", "QUALIFIED", "VENTILATION_NOT_QUALIFIED"),
+            ("safe_water_service_state", "QUALIFIED", "SAFE_WATER_SERVICE_NOT_QUALIFIED"),
+            ("safe_water_rights_state", "QUALIFIED", "SAFE_WATER_RIGHTS_NOT_QUALIFIED"),
+            ("safe_water_quality_state", "QUALIFIED", "SAFE_WATER_QUALITY_NOT_QUALIFIED"),
+            ("staffing_maintenance_state", "QUALIFIED", "STAFFING_MAINTENANCE_NOT_QUALIFIED"),
+        ] {
+            if text_at(site, key) != Some(expected) {
+                reasons.push(reason.to_owned());
+            }
+        }
+        for key in [
+            "site_status_freshness",
+            "capacity_freshness",
+            "service_freshness",
+            "water_freshness",
+        ] {
+            if !freshness_is_qualified(site, key) {
+                reasons.push(format!("FRESHNESS_NOT_QUALIFIED_{key}"));
+            }
+        }
+        for key in [
+            "capacity_evidence_ref",
+            "service_evidence_ref",
+            "water_evidence_ref",
+        ] {
+            if text_at(site, key).is_none() {
+                reasons.push(format!("MISSING_EVIDENCE_{key}"));
+            }
+        }
+
+        let total = int_at(site, "total_capacity");
+        let occupied = int_at(site, "current_occupancy");
+        let committed = int_at(site, "committed_reserve");
+        let accessible = int_at(site, "accessible_capacity");
+        let accessible_occupied = int_at(site, "accessible_occupancy");
+        let accessible_committed = int_at(site, "accessible_committed_reserve");
+        let free_water = match (
+            number_at(site, "safe_water_available_l"),
+            number_at(site, "safe_water_committed_l"),
+            number_at(site, "safe_water_protected_reserve_l"),
+        ) {
+            (Some(available), Some(committed), Some(reserve))
+                if available >= 0.0
+                    && committed >= 0.0
+                    && reserve >= 0.0
+                    && available >= committed + reserve =>
+            {
+                Some(available - committed - reserve)
+            }
+            _ => {
+                reasons.push("WATER_ACCOUNT_NOT_QUALIFIED".to_owned());
+                None
+            }
+        };
+
+        let (free_total, free_accessible) = match (
+            total,
+            occupied,
+            committed,
+            accessible,
+            accessible_occupied,
+            accessible_committed,
+        ) {
+            (Some(total), Some(occupied), Some(committed), Some(accessible),
+                Some(accessible_occupied), Some(accessible_committed))
+                if occupied <= total
+                    && committed <= total.saturating_sub(occupied)
+                    && accessible <= total
+                    && accessible_occupied <= accessible
+                    && accessible_committed <= accessible.saturating_sub(accessible_occupied)
+                    && accessible_occupied <= occupied
+                    && accessible_committed <= committed =>
+            {
+                (
+                    Some(total - occupied - committed),
+                    Some(accessible - accessible_occupied - accessible_committed),
+                )
+            }
+            _ => {
+                reasons.push("CAPACITY_ACCOUNTING_NOT_QUALIFIED".to_owned());
+                (None, None)
+            }
+        };
+
+        match (free_total, free_accessible, free_water) {
+            (Some(free_total), Some(free_accessible), Some(free_water))
+                if free_accessible <= free_total && reasons.is_empty() =>
+            {
+                eligible_site_ids.insert(site_id.to_owned());
+                sites.push(json!({
+                    "site_id":site_id,
+                    "availability_state":"ELIGIBLE",
+                    "free_total_places":free_total,
+                    "free_accessible_places":free_accessible,
+                    "free_safe_water_l":free_water,
+                    "availability_evidence_ref":text_at(site,"site_status_freshness")
+                        .and_then(|f|text_at(f,"source_event_id")).unwrap_or_default(),
+                    "capacity_evidence_ref":text_at(site,"capacity_evidence_ref").unwrap_or_default(),
+                    "water_evidence_ref":text_at(site,"water_evidence_ref").unwrap_or_default()
+                }));
+            }
+            _ => excluded_sites.push(json!({
+                "site_id":site_id,
+                "reasons":reasons
+            })),
+        }
+    }
+
+    let mut demand_areas = Vec::new();
+    for cohort in cohorts {
+        let area_id = text_at(cohort, "cohort_id").unwrap_or("<missing-cohort-id>");
+        let total = int_at(cohort, "total_places_requested")
+            .ok_or_else(|| vec![format!("{area_id}: total demand is missing")])?;
+        let accessible = int_at(cohort, "accessible_places_requested")
+            .ok_or_else(|| vec![format!("{area_id}: accessible demand is missing")])?;
+        let maximum_route = number_at(cohort, "maximum_route_travel_time_s")
+            .ok_or_else(|| vec![format!("{area_id}: maximum route travel time is missing")])?;
+        let mut route_options = Vec::new();
+
+        for route in source_routes.iter().filter(|route| {
+            text_at(route, "cohort_id") == Some(area_id)
+        }) {
+            let site_id = text_at(route, "site_id").unwrap_or("<missing-site-id>");
+            if !eligible_site_ids.contains(site_id) {
+                continue;
+            }
+            let route_fresh = freshness_is_qualified(route, "route_freshness");
+            let accessibility_fresh = freshness_is_qualified(route, "accessibility_freshness");
+            let route_state = if route_fresh {
+                text_at(route, "route_state").unwrap_or("UNKNOWN")
+            } else {
+                "UNKNOWN"
+            };
+            let accessibility_state = if accessibility_fresh {
+                text_at(route, "accessibility_state").unwrap_or("UNKNOWN")
+            } else {
+                "UNKNOWN"
+            };
+            route_options.push(json!({
+                "site_id":site_id,
+                "route_state":route_state,
+                "accessibility_state":accessibility_state,
+                "travel_time_s":number_at(route,"travel_time_s").unwrap_or(f64::INFINITY),
+                "route_evidence_ref":text_at(route,"route_evidence_ref").unwrap_or_default(),
+                "accessibility_evidence_ref":text_at(route,"accessibility_evidence_ref").unwrap_or_default()
+            }));
+        }
+
+        demand_areas.push(json!({
+            "area_id":area_id,
+            "total_places":total,
+            "accessible_places":accessible,
+            "maximum_route_travel_time_s":maximum_route,
+            "route_options":route_options
+        }));
+    }
+
+    let max_route = cohorts
+        .iter()
+        .filter_map(|cohort| number_at(cohort, "maximum_route_travel_time_s"))
+        .fold(0.0_f64, f64::max);
+    Ok(json!({
+        "schema_version":"0.1",
+        "study_id":"HIGHVELD-REFUGE-NETWORK-FLOW-001",
+        "case_id":"CROSS_ORACLE_ADAPTED_PRIMARY_REFUGE_CASE_001",
+        "maturity":"SYNTHETIC_KNOWN_ANSWER",
+        "execution_status":"NO_REAL_DEMAND_OR_ROUTE_DATA",
+        "allocation_policy":"ACCESSIBLE_FIRST_THEN_GENERAL_REMAINDER_OF_SHARED_SITE_CAPACITY",
+        "water_l_per_person":water_per_person,
+        "maximum_route_travel_time_s":max_route,
+        "oracle_revision":"DINIC_BIPARTITE_MAX_FLOW_V0_1",
+        "demand_areas":demand_areas,
+        "sites":sites,
+        "demand_evidence_ref":text_at(primary,"case_id").unwrap_or("PRIMARY_FIXTURE"),
+        "independent_oracle_ref":"CROSS_ORACLE_PRIMARY_FIXTURE_ADAPTER_V0_1",
+        "source_adapter":{
+            "source_study_id":text_at(primary,"study_id").unwrap_or_default(),
+            "source_case_id":text_at(primary,"case_id").unwrap_or_default(),
+            "eligible_site_ids":eligible_site_ids,
+            "excluded_sites":excluded_sites,
+            "route_freshness_owner":text_at(primary,"freshness_assessment_owner").unwrap_or("SYMTROPY"),
+            "adapter_revision":"PRIMARY_REFUGE_CASE_TO_REFERENCE_FLOW_V0_1"
+        }
+    }))
+}
+
 fn evaluate(case: &Value) -> Result<Value, Vec<String>> {
     let schema: Value = serde_json::from_str(SCHEMA)
         .map_err(|error| vec![format!("schema JSON parse failed: {error}")])?;
@@ -185,7 +417,7 @@ fn evaluate(case: &Value) -> Result<Value, Vec<String>> {
         || text_at(case, "maturity") != Some("SYNTHETIC_KNOWN_ANSWER")
         || text_at(case, "execution_status") != Some("NO_REAL_DEMAND_OR_ROUTE_DATA")
         || text_at(case, "allocation_policy")
-            != Some("ACCESSIBLE_FIRST_THEN_GENERAL_NO_CROSS_CLASS_SUBSTITUTION")
+            != Some("ACCESSIBLE_FIRST_THEN_GENERAL_REMAINDER_OF_SHARED_SITE_CAPACITY")
     {
         errors.push("study identity, maturity or allocation policy is invalid".to_owned());
     }
@@ -241,6 +473,11 @@ fn evaluate(case: &Value) -> Result<Value, Vec<String>> {
         let area_id = text_at(area, "area_id").unwrap_or_default().to_owned();
         let total = int_at(area, "total_places").unwrap_or(0);
         let accessible = int_at(area, "accessible_places").unwrap_or(u64::MAX);
+        let area_max_travel = number_at(area, "maximum_route_travel_time_s")
+            .unwrap_or(max_travel);
+        if !area_max_travel.is_finite() || area_max_travel <= 0.0 {
+            errors.push(format!("{area_id}: maximum route travel time is invalid"));
+        }
         aggregate_places = aggregate_places
             .checked_add(total)
             .ok_or_else(|| vec!["aggregate place demand overflowed".to_owned()])?;
@@ -273,7 +510,7 @@ fn evaluate(case: &Value) -> Result<Value, Vec<String>> {
             }
             let travel = number_at(route, "travel_time_s");
             let route_ok = text_at(route, "route_state") == Some("REACHABLE")
-                && travel.is_some_and(|seconds| seconds <= max_travel)
+                && travel.is_some_and(|seconds| seconds <= area_max_travel)
                 && text_at(route, "route_evidence_ref").is_some();
             if route_ok {
                 routes_general
@@ -331,11 +568,10 @@ fn evaluate(case: &Value) -> Result<Value, Vec<String>> {
             continue;
         }
         let water_places = (water / water_per_person).floor() as u64;
-        let accessible_cap = accessible.min(water_places);
-        let non_accessible = total - accessible;
-        let general_cap = non_accessible.min(water_places);
+        let effective_total = total.min(water_places);
+        let accessible_cap = accessible.min(effective_total);
         accessible_caps.insert(site_id.clone(), accessible_cap);
-        general_caps.insert(site_id.clone(), general_cap);
+        general_caps.insert(site_id.clone(), effective_total);
         site_water.insert(site_id, water);
     }
 
@@ -352,10 +588,19 @@ fn evaluate(case: &Value) -> Result<Value, Vec<String>> {
     }
     let mut remaining_general_caps = BTreeMap::new();
     for (site_id, capacity) in &general_caps {
+        let accessible_used = accessible_allocations
+            .iter()
+            .filter(|((_, allocated_site), _)| allocated_site == site_id)
+            .map(|(_, places)| *places)
+            .sum::<u64>();
+        let remaining_total_capacity = capacity.saturating_sub(accessible_used);
         let water_places = (water_after_accessible.get(site_id).copied().unwrap_or(0.0)
             / water_per_person)
             .floor() as u64;
-        remaining_general_caps.insert(site_id.clone(), (*capacity).min(water_places));
+        remaining_general_caps.insert(
+            site_id.clone(),
+            remaining_total_capacity.min(water_places),
+        );
     }
     let (general_served, general_allocations) =
         run_flow(&demand_general, &remaining_general_caps, &routes_general);
@@ -453,9 +698,10 @@ fn evaluate(case: &Value) -> Result<Value, Vec<String>> {
         "audit_state":"NETWORK_FLOW_COMPLETE",
         "study_id":"HIGHVELD-REFUGE-NETWORK-FLOW-001",
         "case_id":text_at(case,"case_id").unwrap_or_default(),
-        "allocation_policy":"ACCESSIBLE_FIRST_THEN_GENERAL_NO_CROSS_CLASS_SUBSTITUTION",
+        "allocation_policy":"ACCESSIBLE_FIRST_THEN_GENERAL_REMAINDER_OF_SHARED_SITE_CAPACITY",
         "demand_evidence_ref":text_at(case,"demand_evidence_ref").unwrap_or_default(),
         "independent_oracle_ref":text_at(case,"independent_oracle_ref").unwrap_or_default(),
+        "source_adapter":case.get("source_adapter").cloned().unwrap_or(Value::Null),
         "total_requested":total_requested,
         "total_served":total_served,
         "total_unmet":total_unmet,
@@ -579,6 +825,27 @@ mod tests {
             .unwrap();
         assert!(hub["total_places_used"].as_u64().unwrap() <= 2);
         assert!(hub["free_safe_water_remaining_l"].as_f64().unwrap() >= 0.0);
+    }
+
+    #[test]
+    fn primary_refuge_fixture_replays_same_max_throughput_through_independent_oracle() {
+        let primary: Value =
+            serde_json::from_str(PRIMARY_CASE).expect("primary refuge network fixture JSON");
+        let adapted = adapt_primary_network_case(&primary)
+            .expect("primary fixture adapter must produce the reference case");
+        let report = evaluate(&adapted).expect("adapted primary network case must qualify");
+        assert_eq!(report["total_requested"], 20);
+        assert_eq!(report["accessible_requested"], 6);
+        assert_eq!(report["accessible_served"], 6);
+        assert_eq!(report["general_requested"], 14);
+        assert_eq!(report["source_adapter"]["source_case_id"], "SYNTHETIC_MULTI_ZONE_PARTITIONED_REFUGE_NETWORK_001");
+        assert_eq!(report["source_adapter"]["eligible_site_ids"].as_array().unwrap().len(), 2);
+        // Exact-head parity reference from highveld-refuge-network-feasibility
+        // self-test: 6 accessible + 6 general = 12 max-throughput places.
+        assert_eq!(report["accessible_served"], 6);
+        assert_eq!(report["general_served"], 6);
+        assert_eq!(report["total_served"], 12);
+        assert_eq!(report["total_unmet"], 8);
     }
 
     #[test]
