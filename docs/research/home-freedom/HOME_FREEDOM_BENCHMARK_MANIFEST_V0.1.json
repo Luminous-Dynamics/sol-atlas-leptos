@@ -141,6 +141,11 @@
       "scope": "Use supported thermal, energy and water models within their documented applicability."
     },
     {
+      "id": "BOPTEST",
+      "role": "Building control comparison harness",
+      "scope": "Use published emulator cases and matched traces for controller comparisons where the dwelling system and model scope are supported; do not claim a dedicated outdoor-pool/neighbourhood entitlement case."
+    },
+    {
       "id": "LOCAL_BUILD_WORKFLOW",
       "role": "Local delivery baseline",
       "scope": "Local quantity surveyor, trades and supplier workflow; measure labour, availability, rework and variance."
