@@ -5,16 +5,26 @@
   "description": "Versioned observation and change-claim contract. Structural validation only; external rights and scientific qualification receipts must be independently verified.",
   "type": "object",
   "additionalProperties": false,
-  "required": ["schema_version", "observations", "claims"],
+  "required": [
+    "schema_version",
+    "observations",
+    "claims"
+  ],
   "properties": {
-    "schema_version": { "const": 1 },
+    "schema_version": {
+      "const": 1
+    },
     "observations": {
       "type": "array",
-      "items": { "$ref": "#/$defs/observation" }
+      "items": {
+        "$ref": "#/$defs/observation"
+      }
     },
     "claims": {
       "type": "array",
-      "items": { "$ref": "#/$defs/change_claim" }
+      "items": {
+        "$ref": "#/$defs/change_claim"
+      }
     }
   },
   "$defs": {
@@ -31,116 +41,414 @@
     "time_window": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["start", "end"],
+      "required": [
+        "start",
+        "end"
+      ],
       "properties": {
-        "start": { "type": "string", "minLength": 1 },
-        "end": { "type": "string", "minLength": 1 }
+        "start": {
+          "type": "string",
+          "minLength": 1
+        },
+        "end": {
+          "type": "string",
+          "minLength": 1
+        }
       }
     },
     "rights_binding": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["purpose_id", "state", "decision_receipt_sha256"],
+      "required": [
+        "purpose_id",
+        "state",
+        "decision_receipt_sha256"
+      ],
       "properties": {
-        "purpose_id": { "$ref": "#/$defs/identifier" },
+        "purpose_id": {
+          "$ref": "#/$defs/identifier"
+        },
         "state": {
-          "enum": ["granted_for_purpose", "unknown", "denied", "revoked"]
+          "enum": [
+            "granted_for_purpose",
+            "unknown",
+            "denied",
+            "revoked"
+          ]
         },
         "decision_receipt_sha256": {
-          "oneOf": [{ "$ref": "#/$defs/sha256" }, { "type": "null" }]
+          "oneOf": [
+            {
+              "$ref": "#/$defs/sha256"
+            },
+            {
+              "type": "null"
+            }
+          ]
         }
-      }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "state": {
+                "not": {
+                  "const": "unknown"
+                }
+              }
+            },
+            "required": [
+              "state"
+            ]
+          },
+          "then": {
+            "properties": {
+              "decision_receipt_sha256": {
+                "$ref": "#/$defs/sha256"
+              }
+            }
+          }
+        }
+      ]
     },
     "observation_time": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["kind", "datetime", "start", "end"],
+      "required": [
+        "kind",
+        "datetime",
+        "start",
+        "end"
+      ],
       "properties": {
-        "kind": { "enum": ["unknown", "instant", "interval", "approximate"] },
-        "datetime": { "oneOf": [{ "type": "string", "minLength": 1 }, { "type": "null" }] },
-        "start": { "oneOf": [{ "type": "string", "minLength": 1 }, { "type": "null" }] },
-        "end": { "oneOf": [{ "type": "string", "minLength": 1 }, { "type": "null" }] }
+        "kind": {
+          "enum": [
+            "unknown",
+            "instant",
+            "interval",
+            "approximate"
+          ]
+        },
+        "datetime": {
+          "oneOf": [
+            {
+              "type": "string",
+              "minLength": 1
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "start": {
+          "oneOf": [
+            {
+              "type": "string",
+              "minLength": 1
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "end": {
+          "oneOf": [
+            {
+              "type": "string",
+              "minLength": 1
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
       }
     },
     "observation": {
       "type": "object",
       "additionalProperties": false,
       "required": [
-        "observation_id", "asset_id", "source_asset_receipt_sha256",
-        "processing_receipt_sha256", "rights", "support_id", "acquisition",
-        "modality", "quality"
+        "observation_id",
+        "asset_id",
+        "source_asset_receipt_sha256",
+        "processing_receipt_sha256",
+        "rights",
+        "support_id",
+        "acquisition",
+        "modality",
+        "quality"
       ],
       "properties": {
-        "observation_id": { "$ref": "#/$defs/identifier" },
-        "asset_id": { "$ref": "#/$defs/identifier" },
-        "source_asset_receipt_sha256": { "$ref": "#/$defs/sha256" },
-        "processing_receipt_sha256": { "$ref": "#/$defs/sha256" },
-        "rights": { "$ref": "#/$defs/rights_binding" },
-        "support_id": { "$ref": "#/$defs/identifier" },
-        "acquisition": { "$ref": "#/$defs/observation_time" },
+        "observation_id": {
+          "$ref": "#/$defs/identifier"
+        },
+        "asset_id": {
+          "$ref": "#/$defs/identifier"
+        },
+        "source_asset_receipt_sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "processing_receipt_sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "rights": {
+          "$ref": "#/$defs/rights_binding"
+        },
+        "support_id": {
+          "$ref": "#/$defs/identifier"
+        },
+        "acquisition": {
+          "$ref": "#/$defs/observation_time"
+        },
         "modality": {
-          "enum": ["optical", "synthetic_aperture_radar", "thermal_infrared", "hyperspectral", "multispectral", "other"]
+          "enum": [
+            "optical",
+            "synthetic_aperture_radar",
+            "thermal_infrared",
+            "hyperspectral",
+            "multispectral",
+            "other"
+          ]
         },
         "quality": {
-          "enum": ["qualified_usable", "partially_obscured", "obscured", "invalid", "unobserved", "below_detection_limit", "out_of_domain", "conflicted"]
+          "enum": [
+            "qualified_usable",
+            "partially_obscured",
+            "obscured",
+            "invalid",
+            "unobserved",
+            "below_detection_limit",
+            "out_of_domain",
+            "conflicted"
+          ]
         }
       }
     },
     "detection_limit": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["metric", "value", "unit"],
+      "required": [
+        "metric",
+        "value",
+        "unit"
+      ],
       "properties": {
-        "metric": { "$ref": "#/$defs/identifier" },
-        "value": { "type": "number", "exclusiveMinimum": 0 },
-        "unit": { "$ref": "#/$defs/identifier" }
+        "metric": {
+          "$ref": "#/$defs/identifier"
+        },
+        "value": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "unit": {
+          "$ref": "#/$defs/identifier"
+        }
       }
     },
     "change_claim": {
       "type": "object",
       "additionalProperties": false,
       "required": [
-        "claim_id", "target_class_id", "ontology_version", "support_id",
-        "observation_window", "disposition", "event_time_bounds",
-        "observation_ids", "supporting_observation_ids",
-        "contradicting_observation_ids", "coverage", "coverage_receipt_sha256",
+        "claim_id",
+        "target_class_id",
+        "ontology_version",
+        "support_id",
+        "observation_window",
+        "disposition",
+        "event_time_bounds",
+        "observation_ids",
+        "supporting_observation_ids",
+        "contradicting_observation_ids",
+        "coverage",
+        "coverage_receipt_sha256",
         "detection_limit"
       ],
       "properties": {
-        "claim_id": { "$ref": "#/$defs/identifier" },
-        "target_class_id": { "$ref": "#/$defs/identifier" },
-        "ontology_version": { "$ref": "#/$defs/identifier" },
-        "support_id": { "$ref": "#/$defs/identifier" },
-        "observation_window": { "$ref": "#/$defs/time_window" },
+        "claim_id": {
+          "$ref": "#/$defs/identifier"
+        },
+        "target_class_id": {
+          "$ref": "#/$defs/identifier"
+        },
+        "ontology_version": {
+          "$ref": "#/$defs/identifier"
+        },
+        "support_id": {
+          "$ref": "#/$defs/identifier"
+        },
+        "observation_window": {
+          "$ref": "#/$defs/time_window"
+        },
         "disposition": {
-          "enum": ["candidate_change", "supported_change", "no_change_within_envelope", "unresolved"]
+          "enum": [
+            "candidate_change",
+            "supported_change",
+            "no_change_within_envelope",
+            "unresolved"
+          ]
         },
         "event_time_bounds": {
-          "oneOf": [{ "$ref": "#/$defs/time_window" }, { "type": "null" }]
+          "oneOf": [
+            {
+              "$ref": "#/$defs/time_window"
+            },
+            {
+              "type": "null"
+            }
+          ]
         },
         "observation_ids": {
           "type": "array",
-          "items": { "$ref": "#/$defs/identifier" },
+          "items": {
+            "$ref": "#/$defs/identifier"
+          },
           "uniqueItems": true
         },
         "supporting_observation_ids": {
           "type": "array",
-          "items": { "$ref": "#/$defs/identifier" },
+          "items": {
+            "$ref": "#/$defs/identifier"
+          },
           "uniqueItems": true
         },
         "contradicting_observation_ids": {
           "type": "array",
-          "items": { "$ref": "#/$defs/identifier" },
+          "items": {
+            "$ref": "#/$defs/identifier"
+          },
           "uniqueItems": true
         },
-        "coverage": { "enum": ["complete_qualified", "partial", "unknown"] },
+        "coverage": {
+          "enum": [
+            "complete_qualified",
+            "partial",
+            "unknown"
+          ]
+        },
         "coverage_receipt_sha256": {
-          "oneOf": [{ "$ref": "#/$defs/sha256" }, { "type": "null" }]
+          "oneOf": [
+            {
+              "$ref": "#/$defs/sha256"
+            },
+            {
+              "type": "null"
+            }
+          ]
         },
         "detection_limit": {
-          "oneOf": [{ "$ref": "#/$defs/detection_limit" }, { "type": "null" }]
+          "oneOf": [
+            {
+              "$ref": "#/$defs/detection_limit"
+            },
+            {
+              "type": "null"
+            }
+          ]
         }
-      }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "coverage": {
+                "const": "complete_qualified"
+              }
+            },
+            "required": [
+              "coverage"
+            ]
+          },
+          "then": {
+            "properties": {
+              "coverage_receipt_sha256": {
+                "$ref": "#/$defs/sha256"
+              }
+            }
+          },
+          "else": {
+            "properties": {
+              "coverage_receipt_sha256": {
+                "type": "null"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "disposition": {
+                "const": "no_change_within_envelope"
+              }
+            },
+            "required": [
+              "disposition"
+            ]
+          },
+          "then": {
+            "properties": {
+              "coverage": {
+                "const": "complete_qualified"
+              },
+              "coverage_receipt_sha256": {
+                "$ref": "#/$defs/sha256"
+              },
+              "detection_limit": {
+                "$ref": "#/$defs/detection_limit"
+              },
+              "event_time_bounds": {
+                "type": "null"
+              },
+              "supporting_observation_ids": {
+                "minItems": 2
+              },
+              "contradicting_observation_ids": {
+                "maxItems": 0
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "disposition": {
+                "const": "supported_change"
+              }
+            },
+            "required": [
+              "disposition"
+            ]
+          },
+          "then": {
+            "properties": {
+              "supporting_observation_ids": {
+                "minItems": 1
+              },
+              "event_time_bounds": {
+                "$ref": "#/$defs/time_window"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "disposition": {
+                "const": "candidate_change"
+              }
+            },
+            "required": [
+              "disposition"
+            ]
+          },
+          "then": {
+            "properties": {
+              "supporting_observation_ids": {
+                "minItems": 1
+              }
+            }
+          }
+        }
+      ]
     }
   }
 }
