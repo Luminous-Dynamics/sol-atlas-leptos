@@ -430,7 +430,11 @@
             "quality_evidence_withdrawal",
             "maintenance_isolation",
             "communications_failure",
-            "recovery"
+            "recovery",
+            "reserve_exhaustion",
+            "allocation_policy_change",
+            "repair_delay",
+            "network_partition"
           ]
         },
         "start_s": {
