@@ -28,7 +28,28 @@
           "geometry.measure",
           "evidence.emit"
         ],
-        "available_records": [],
+        "available_records": [
+          {
+            "record_id": "scene-a",
+            "record_type": "STAC Item",
+            "summary": "Synthetic same-platform, same-sensor, same-collection acquisition at T0; valid QA and source digest."
+          },
+          {
+            "record_id": "scene-b",
+            "record_type": "STAC Item",
+            "summary": "Synthetic later acquisition with the same measurement signature; target support fully covered."
+          },
+          {
+            "record_id": "pod-r1",
+            "record_type": "qualification receipt",
+            "summary": "Authenticated target/class/support-specific POD and false-alarm envelope; valid for both scenes."
+          },
+          {
+            "record_id": "ref-r1",
+            "record_type": "independent reference",
+            "summary": "Synthetic blinded adjudication confirms a positive built-up event."
+          }
+        ],
         "constraints": [
           "complete source and QA lineage",
           "human review only"
@@ -90,7 +111,23 @@
           "qa.inspect",
           "evidence.emit"
         ],
-        "available_records": [],
+        "available_records": [
+          {
+            "record_id": "scene-a",
+            "record_type": "STAC Item",
+            "summary": "Usable optical scene before the interval."
+          },
+          {
+            "record_id": "scene-b",
+            "record_type": "STAC Item",
+            "summary": "Later optical scene with cloud and shadow over the target support."
+          },
+          {
+            "record_id": "coverage-r1",
+            "record_type": "coverage receipt",
+            "summary": "Valid-area fraction below the required target coverage; no alternative usable modality supplied."
+          }
+        ],
         "constraints": [
           "unknown or obscured is not unchanged"
         ]
@@ -146,7 +183,18 @@
           "asset.inspect",
           "evidence.emit"
         ],
-        "available_records": [],
+        "available_records": [
+          {
+            "record_id": "scene-a",
+            "record_type": "STAC Item",
+            "summary": "One usable observation exists at the start of the interval."
+          },
+          {
+            "record_id": "query-r2",
+            "record_type": "catalogue response",
+            "summary": "Empty query result for the second date; response does not certify that the footprint was covered and valid."
+          }
+        ],
         "constraints": [
           "empty search result is not a negative observation"
         ]
@@ -203,7 +251,23 @@
           "signature.compare",
           "evidence.emit"
         ],
-        "available_records": [],
+        "available_records": [
+          {
+            "record_id": "product-a",
+            "record_type": "STAC Item",
+            "summary": "Landsat-derived land-cover map, generation A."
+          },
+          {
+            "record_id": "product-b",
+            "record_type": "STAC Item",
+            "summary": "Sentinel-derived land-cover map, generation B with different classifier and processing baseline."
+          },
+          {
+            "record_id": "bridge-status",
+            "record_type": "comparability lookup",
+            "summary": "No authenticated cross-generation comparability receipt exists for this exact support and ontology."
+          }
+        ],
         "constraints": [
           "different product generations are not comparable by default"
         ]
@@ -263,7 +327,28 @@
           "geometry.measure",
           "evidence.emit"
         ],
-        "available_records": [],
+        "available_records": [
+          {
+            "record_id": "scene-a",
+            "record_type": "STAC Item",
+            "summary": "First sensor system with exact source, platform, sensor, instrument, collection, processing and asset-profile identity."
+          },
+          {
+            "record_id": "scene-b",
+            "record_type": "STAC Item",
+            "summary": "Second sensor system with a distinct, fully identified measurement signature."
+          },
+          {
+            "record_id": "bridge-r1",
+            "record_type": "comparability receipt",
+            "summary": "Authenticated bridge bound to these exact observations, support, class, ontology, masks, calibration residuals and applicability domain."
+          },
+          {
+            "record_id": "ref-r1",
+            "record_type": "independent reference",
+            "summary": "Synthetic independent reference confirms an event within the compared support."
+          }
+        ],
         "constraints": [
           "bridge permits review eligibility; it does not prove cause or grant authority"
         ]
@@ -323,7 +408,18 @@
           "signature.compare",
           "evidence.emit"
         ],
-        "available_records": [],
+        "available_records": [
+          {
+            "record_id": "scene-a",
+            "record_type": "STAC Item",
+            "summary": "Platform is present but sensor ID, instrument and asset-level band/polarization/resolution profile are absent."
+          },
+          {
+            "record_id": "scene-b",
+            "record_type": "STAC Item",
+            "summary": "Same broad optical modality; sensor and processing identity remain unknown."
+          }
+        ],
         "constraints": [
           "unknown identity remains unknown"
         ]
@@ -380,7 +476,23 @@
           "conflict.record",
           "evidence.emit"
         ],
-        "available_records": [],
+        "available_records": [
+          {
+            "record_id": "source-a",
+            "record_type": "observation claim",
+            "summary": "Qualified optical source estimates 12% wetland-area loss with a stated uncertainty envelope."
+          },
+          {
+            "record_id": "source-b",
+            "record_type": "observation claim",
+            "summary": "Qualified independent SAR-derived source reports no material wetland loss."
+          },
+          {
+            "record_id": "methods-r1",
+            "record_type": "method record",
+            "summary": "The source measures have different measurement semantics and their uncertainty envelopes have not been harmonized."
+          }
+        ],
         "constraints": [
           "do not silently average materially conflicting sources"
         ]
@@ -438,7 +550,23 @@
           "cadence.evaluate",
           "evidence.emit"
         ],
-        "available_records": [],
+        "available_records": [
+          {
+            "record_id": "obs-pre",
+            "record_type": "observation",
+            "summary": "Last qualified no-change observation: 2025-01-10T00:00:00Z."
+          },
+          {
+            "record_id": "obs-post",
+            "record_type": "observation",
+            "summary": "First qualified positive observation: 2025-02-14T00:00:00Z."
+          },
+          {
+            "record_id": "gap-r1",
+            "record_type": "timeline record",
+            "summary": "No target-qualified usable observation is available between those acquisition times."
+          }
+        ],
         "constraints": [
           "event time must remain an interval"
         ]
@@ -504,7 +632,23 @@
           "evidence.emit",
           "replay.verify"
         ],
-        "available_records": [],
+        "available_records": [
+          {
+            "record_id": "scene-a",
+            "record_type": "STAC Item",
+            "summary": "Valid synthetic first acquisition with stable item and asset digests."
+          },
+          {
+            "record_id": "scene-b",
+            "record_type": "STAC Item",
+            "summary": "Valid synthetic second acquisition with stable item and asset digests."
+          },
+          {
+            "record_id": "pod-r1",
+            "record_type": "qualification receipt",
+            "summary": "Valid target/class/support-specific detection qualification."
+          }
+        ],
         "constraints": [
           "bounded retry only; read-only tools"
         ]
@@ -567,7 +711,23 @@
           "invalidation.evaluate",
           "evidence.emit"
         ],
-        "available_records": [],
+        "available_records": [
+          {
+            "record_id": "claim-old",
+            "record_type": "claim receipt",
+            "summary": "Prior claim bounded event time using the then-known last-negative and first-positive scenes."
+          },
+          {
+            "record_id": "scene-late",
+            "record_type": "STAC Item",
+            "summary": "Newly catalogued record; acquisition time precedes prior first-positive scene; digest and source identity validate."
+          },
+          {
+            "record_id": "catalog-snapshot",
+            "record_type": "catalogue receipt",
+            "summary": "New snapshot received after the prior claim was emitted."
+          }
+        ],
         "constraints": [
           "distinguish acquisition, publication, ingestion and retrieval times"
         ]
@@ -626,7 +786,13 @@
           "policy.evaluate",
           "evidence.emit"
         ],
-        "available_records": [],
+        "available_records": [
+          {
+            "record_id": "source-r1",
+            "record_type": "licence receipt",
+            "summary": "Use permitted for catalogue discovery and internal viewing only; training, public reporting and redistribution are excluded."
+          }
+        ],
         "constraints": [
           "rights are purpose-specific"
         ]
@@ -684,7 +850,18 @@
           "invalidation.evaluate",
           "evidence.emit"
         ],
-        "available_records": [],
+        "available_records": [
+          {
+            "record_id": "run-old",
+            "record_type": "prior run receipt",
+            "summary": "Earlier internal evaluation references this source and several derived feature artifacts."
+          },
+          {
+            "record_id": "rights-r2",
+            "record_type": "rights event",
+            "summary": "Authoritative revocation effective before the requested new use; dependent derivation edges are listed."
+          }
+        ],
         "constraints": [
           "revocation applies to new use; dependent outputs require review"
         ]
@@ -746,7 +923,23 @@
           "geometry.measure",
           "evidence.emit"
         ],
-        "available_records": [],
+        "available_records": [
+          {
+            "record_id": "raster-a",
+            "record_type": "raster asset",
+            "summary": "Synthetic projected raster in metres at 10 m native resolution."
+          },
+          {
+            "record_id": "polygon-b",
+            "record_type": "vector asset",
+            "summary": "Synthetic geographic polygon; declared axis order conflicts with coordinate serialization."
+          },
+          {
+            "record_id": "raster-b",
+            "record_type": "raster asset",
+            "summary": "Second synthetic raster at 20 m native resolution; no common-support transform receipt exists."
+          }
+        ],
         "constraints": [
           "withhold area estimate until supports are harmonized"
         ]
@@ -803,7 +996,18 @@
           "uncertainty.compare",
           "evidence.emit"
         ],
-        "available_records": [],
+        "available_records": [
+          {
+            "record_id": "estimate-a",
+            "record_type": "summary statistic",
+            "summary": "Synthetic vegetation loss estimate: 51.0 ha; uncertainty ±1.3 ha."
+          },
+          {
+            "record_id": "estimate-b",
+            "record_type": "summary statistic",
+            "summary": "Synthetic vegetation loss estimate: 50.5 ha; uncertainty ±1.2 ha."
+          }
+        ],
         "constraints": [
           "do not claim material ranking when supplied uncertainty does not resolve it"
         ]
@@ -839,7 +1043,15 @@
           "uncertainty-method"
         ],
         "expected_metrics": {
-          "must_not_claim_statistical_significance": true
+          "must_not_claim_statistical_significance": true,
+          "numeric_checks": [
+            {
+              "quantity": "absolute_difference_between_point_estimates",
+              "expected_value": 0.5,
+              "absolute_tolerance": 0.01,
+              "unit": "ha"
+            }
+          ]
         }
       },
       "mutation_controls": [
@@ -860,7 +1072,28 @@
           "evsi.evaluate",
           "evidence.emit"
         ],
-        "available_records": [],
+        "available_records": [
+          {
+            "record_id": "claim-r1",
+            "record_type": "change claim",
+            "summary": "Qualified wetland extent decrease; no causal attribution supplied."
+          },
+          {
+            "record_id": "rain-r1",
+            "record_type": "climate record",
+            "summary": "Low-rainfall anomaly during the event interval."
+          },
+          {
+            "record_id": "permit-r1",
+            "record_type": "land-use record",
+            "summary": "Nearby development permit exists; it does not establish construction or hydrological impact."
+          },
+          {
+            "record_id": "field-r1",
+            "record_type": "evidence status",
+            "summary": "No independent hydrological or vegetation field verification has yet been supplied."
+          }
+        ],
         "constraints": [
           "hypothesis is not observation; next-step plan is not action authority"
         ]
@@ -919,7 +1152,28 @@
           "policy.evaluate",
           "decision.propose"
         ],
-        "available_records": [],
+        "available_records": [
+          {
+            "record_id": "claim-r1",
+            "record_type": "change claim",
+            "summary": "Candidate restoration area identified from satellite observations."
+          },
+          {
+            "record_id": "land-r1",
+            "record_type": "land record",
+            "summary": "Ownership, tenure and access authority are unresolved."
+          },
+          {
+            "record_id": "community-r1",
+            "record_type": "community record",
+            "summary": "No affected-community consent/consultation receipt is supplied."
+          },
+          {
+            "record_id": "permit-r1",
+            "record_type": "permit record",
+            "summary": "No environmental or earthworks authorization is supplied."
+          }
+        ],
         "constraints": [
           "no field action, booking, payment or external side effect"
         ]
