@@ -15,7 +15,8 @@
     "vertical_connections",
     "shared_services",
     "assessment_register",
-    "claim_ceiling"
+    "claim_ceiling",
+    "fixture_notes"
   ],
   "properties": {
     "schema_version": {
@@ -67,6 +68,13 @@
     },
     "claim_ceiling": {
       "const": "A passing contract/geometry check establishes only that declared synthetic unit/floor/space identities, floor-local rectangles and everyday/service connectivity satisfy the checked data contract. It does not establish design quality, resident suitability, accessibility, fire/egress, structure, services capacity, daylight, privacy, acoustics, thermal performance, affordability, planning approval, buildability or occupancy."
+    },
+    "fixture_notes": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "minItems": 1
     }
   },
   "$defs": {
