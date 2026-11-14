@@ -123,6 +123,10 @@ jobs:
         run: cargo test --bin highveld-pool-water-feature-qualifier
       - name: Execute pool and water feature thermal audit
         run: cargo run --bin highveld-pool-water-feature-qualifier -- --self-test
+      - name: Test non-actuating pool cover policy governor
+        run: cargo test --bin highveld-pool-cover-policy-governor
+      - name: Execute non-actuating pool cover policy governor
+        run: cargo run --bin highveld-pool-cover-policy-governor -- --self-test
       - name: Test pool heat-recovery conservation ledger
         run: cargo test --bin highveld-pool-heat-recovery-ledger
       - name: Execute pool heat-recovery conservation ledger
