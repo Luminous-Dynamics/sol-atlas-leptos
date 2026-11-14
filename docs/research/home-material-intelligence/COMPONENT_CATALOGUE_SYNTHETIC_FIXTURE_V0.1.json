@@ -1,0 +1,457 @@
+{
+  "schema_version": "0.1.0",
+  "catalogue_id": "SYNTH-HIGHVELD-COMPONENTS-001",
+  "maturity": "SYNTHETIC_FIXTURE",
+  "decision_date": "2026-11-14",
+  "jurisdiction": "JOHANNESBURG_METRO_SYNTHETIC_NOT_A_REAL_SITE",
+  "components": [
+    {
+      "component_id": "SYNTH-PANEL-A",
+      "manufacturer_ref": "SYNTH-MFR-SYNTH-PANEL-A",
+      "product_family": "Synthetic WALL_PANEL SYNTH-PANEL-A",
+      "product_revision": "REV-A1",
+      "component_role": "WALL_PANEL",
+      "unit": "m2",
+      "interfaces": [
+        {
+          "interface_id": "EXT-WALL-PLANE-01",
+          "revision": "1"
+        }
+      ],
+      "properties": [
+        {
+          "property_id": "FIRE_RESISTANCE_MINUTES",
+          "value": 60,
+          "unit": "min",
+          "comparison": "MINIMUM",
+          "status": "SYNTHETIC_PASS",
+          "evidence_ref": "SYNTH-EVIDENCE-A"
+        },
+        {
+          "property_id": "THERMAL_TRANSMITTANCE",
+          "value": 0.3,
+          "unit": "W/(m2.K)",
+          "comparison": "MAXIMUM",
+          "status": "SYNTHETIC_PASS",
+          "evidence_ref": "SYNTH-EVIDENCE-A"
+        },
+        {
+          "property_id": "STRUCTURAL_CAPACITY",
+          "value": 30,
+          "unit": "kN/m",
+          "comparison": "MINIMUM",
+          "status": "SYNTHETIC_PASS",
+          "evidence_ref": "SYNTH-EVIDENCE-A"
+        },
+        {
+          "property_id": "AIRBORNE_SOUND_REDUCTION",
+          "value": 48,
+          "unit": "dB",
+          "comparison": "MINIMUM",
+          "status": "SYNTHETIC_PASS",
+          "evidence_ref": "SYNTH-EVIDENCE-A"
+        }
+      ],
+      "certification": {
+        "state": "SYNTHETIC_NOT_ASSESSED",
+        "certificate_id": null,
+        "product_revision": null,
+        "scope_ref": null,
+        "valid_through": null
+      },
+      "supplier_coverage": [
+        {
+          "supplier_ref": "SYNTH-SUPPLIER-A",
+          "region": "JOHANNESBURG_METRO_SYNTHETIC",
+          "availability_state": "SYNTHETIC_AVAILABLE",
+          "lead_time_days": 7
+        }
+      ],
+      "circularity": {
+        "recycled_content_fraction": null,
+        "repairability_state": "UNKNOWN",
+        "disassembly_state": "UNKNOWN",
+        "epd_ref": null
+      },
+      "evidence_class": "SYNTHETIC_FIXTURE"
+    },
+    {
+      "component_id": "SYNTH-PANEL-C",
+      "manufacturer_ref": "SYNTH-MFR-SYNTH-PANEL-C",
+      "product_family": "Synthetic WALL_PANEL SYNTH-PANEL-C",
+      "product_revision": "REV-C1",
+      "component_role": "WALL_PANEL",
+      "unit": "m2",
+      "interfaces": [
+        {
+          "interface_id": "EXT-WALL-PLANE-01",
+          "revision": "1"
+        }
+      ],
+      "properties": [
+        {
+          "property_id": "FIRE_RESISTANCE_MINUTES",
+          "value": 60,
+          "unit": "min",
+          "comparison": "MINIMUM",
+          "status": "SYNTHETIC_PASS",
+          "evidence_ref": "SYNTH-EVIDENCE-C"
+        },
+        {
+          "property_id": "THERMAL_TRANSMITTANCE",
+          "value": 0.32,
+          "unit": "W/(m2.K)",
+          "comparison": "MAXIMUM",
+          "status": "SYNTHETIC_PASS",
+          "evidence_ref": "SYNTH-EVIDENCE-C"
+        },
+        {
+          "property_id": "STRUCTURAL_CAPACITY",
+          "value": 28,
+          "unit": "kN/m",
+          "comparison": "MINIMUM",
+          "status": "SYNTHETIC_PASS",
+          "evidence_ref": "SYNTH-EVIDENCE-C"
+        },
+        {
+          "property_id": "AIRBORNE_SOUND_REDUCTION",
+          "value": 46,
+          "unit": "dB",
+          "comparison": "MINIMUM",
+          "status": "SYNTHETIC_PASS",
+          "evidence_ref": "SYNTH-EVIDENCE-C"
+        }
+      ],
+      "certification": {
+        "state": "SYNTHETIC_NOT_ASSESSED",
+        "certificate_id": null,
+        "product_revision": null,
+        "scope_ref": null,
+        "valid_through": null
+      },
+      "supplier_coverage": [
+        {
+          "supplier_ref": "SYNTH-SUPPLIER-C",
+          "region": "JOHANNESBURG_METRO_SYNTHETIC",
+          "availability_state": "SYNTHETIC_AVAILABLE",
+          "lead_time_days": 7
+        }
+      ],
+      "circularity": {
+        "recycled_content_fraction": null,
+        "repairability_state": "UNKNOWN",
+        "disassembly_state": "UNKNOWN",
+        "epd_ref": null
+      },
+      "evidence_class": "SYNTHETIC_FIXTURE"
+    },
+    {
+      "component_id": "SYNTH-PANEL-B",
+      "manufacturer_ref": "SYNTH-MFR-SYNTH-PANEL-B",
+      "product_family": "Synthetic WALL_PANEL SYNTH-PANEL-B",
+      "product_revision": "REV-B1",
+      "component_role": "WALL_PANEL",
+      "unit": "m2",
+      "interfaces": [
+        {
+          "interface_id": "EXT-WALL-PLANE-01",
+          "revision": "1"
+        }
+      ],
+      "properties": [
+        {
+          "property_id": "FIRE_RESISTANCE_MINUTES",
+          "value": null,
+          "unit": "min",
+          "comparison": "MINIMUM",
+          "status": "UNKNOWN",
+          "evidence_ref": null
+        },
+        {
+          "property_id": "THERMAL_TRANSMITTANCE",
+          "value": 0.32,
+          "unit": "W/(m2.K)",
+          "comparison": "MAXIMUM",
+          "status": "SYNTHETIC_PASS",
+          "evidence_ref": "SYNTH-EVIDENCE-C"
+        },
+        {
+          "property_id": "STRUCTURAL_CAPACITY",
+          "value": 28,
+          "unit": "kN/m",
+          "comparison": "MINIMUM",
+          "status": "SYNTHETIC_PASS",
+          "evidence_ref": "SYNTH-EVIDENCE-C"
+        },
+        {
+          "property_id": "AIRBORNE_SOUND_REDUCTION",
+          "value": 46,
+          "unit": "dB",
+          "comparison": "MINIMUM",
+          "status": "SYNTHETIC_PASS",
+          "evidence_ref": "SYNTH-EVIDENCE-C"
+        }
+      ],
+      "certification": {
+        "state": "SYNTHETIC_NOT_ASSESSED",
+        "certificate_id": null,
+        "product_revision": null,
+        "scope_ref": null,
+        "valid_through": null
+      },
+      "supplier_coverage": [
+        {
+          "supplier_ref": "SYNTH-SUPPLIER-B",
+          "region": "JOHANNESBURG_METRO_SYNTHETIC",
+          "availability_state": "UNKNOWN",
+          "lead_time_days": null
+        }
+      ],
+      "circularity": {
+        "recycled_content_fraction": null,
+        "repairability_state": "UNKNOWN",
+        "disassembly_state": "UNKNOWN",
+        "epd_ref": null
+      },
+      "evidence_class": "SYNTHETIC_FIXTURE"
+    },
+    {
+      "component_id": "SYNTH-PANEL-D",
+      "manufacturer_ref": "SYNTH-MFR-SYNTH-PANEL-D",
+      "product_family": "Synthetic WALL_PANEL SYNTH-PANEL-D",
+      "product_revision": "REV-D1",
+      "component_role": "WALL_PANEL",
+      "unit": "m2",
+      "interfaces": [
+        {
+          "interface_id": "EXT-WALL-PLANE-01",
+          "revision": "1"
+        }
+      ],
+      "properties": [
+        {
+          "property_id": "FIRE_RESISTANCE_MINUTES",
+          "value": 30,
+          "unit": "min",
+          "comparison": "MINIMUM",
+          "status": "SYNTHETIC_PASS",
+          "evidence_ref": "SYNTH-EVIDENCE-D"
+        },
+        {
+          "property_id": "THERMAL_TRANSMITTANCE",
+          "value": 0.32,
+          "unit": "W/(m2.K)",
+          "comparison": "MAXIMUM",
+          "status": "SYNTHETIC_PASS",
+          "evidence_ref": "SYNTH-EVIDENCE-C"
+        },
+        {
+          "property_id": "STRUCTURAL_CAPACITY",
+          "value": 28,
+          "unit": "kN/m",
+          "comparison": "MINIMUM",
+          "status": "SYNTHETIC_PASS",
+          "evidence_ref": "SYNTH-EVIDENCE-C"
+        },
+        {
+          "property_id": "AIRBORNE_SOUND_REDUCTION",
+          "value": 46,
+          "unit": "dB",
+          "comparison": "MINIMUM",
+          "status": "SYNTHETIC_PASS",
+          "evidence_ref": "SYNTH-EVIDENCE-C"
+        }
+      ],
+      "certification": {
+        "state": "SYNTHETIC_NOT_ASSESSED",
+        "certificate_id": null,
+        "product_revision": null,
+        "scope_ref": null,
+        "valid_through": null
+      },
+      "supplier_coverage": [
+        {
+          "supplier_ref": "SYNTH-SUPPLIER-D",
+          "region": "JOHANNESBURG_METRO_SYNTHETIC",
+          "availability_state": "SYNTHETIC_AVAILABLE",
+          "lead_time_days": 7
+        }
+      ],
+      "circularity": {
+        "recycled_content_fraction": null,
+        "repairability_state": "UNKNOWN",
+        "disassembly_state": "UNKNOWN",
+        "epd_ref": null
+      },
+      "evidence_class": "SYNTHETIC_FIXTURE"
+    },
+    {
+      "component_id": "SYNTH-INSULATION-A",
+      "manufacturer_ref": "SYNTH-MFR-SYNTH-INSULATION-A",
+      "product_family": "Synthetic INSULATION SYNTH-INSULATION-A",
+      "product_revision": "REV-I1",
+      "component_role": "INSULATION",
+      "unit": "m2",
+      "interfaces": [
+        {
+          "interface_id": "WALL-CAVITY-120",
+          "revision": "1"
+        }
+      ],
+      "properties": [],
+      "certification": {
+        "state": "SYNTHETIC_NOT_ASSESSED",
+        "certificate_id": null,
+        "product_revision": null,
+        "scope_ref": null,
+        "valid_through": null
+      },
+      "supplier_coverage": [
+        {
+          "supplier_ref": "SYNTH-SUPPLIER-I",
+          "region": "JOHANNESBURG_METRO_SYNTHETIC",
+          "availability_state": "SYNTHETIC_AVAILABLE",
+          "lead_time_days": 7
+        }
+      ],
+      "circularity": {
+        "recycled_content_fraction": null,
+        "repairability_state": "UNKNOWN",
+        "disassembly_state": "UNKNOWN",
+        "epd_ref": null
+      },
+      "evidence_class": "SYNTHETIC_FIXTURE"
+    },
+    {
+      "component_id": "SYNTH-FASTENER-A",
+      "manufacturer_ref": "SYNTH-MFR-SYNTH-FASTENER-A",
+      "product_family": "Synthetic FASTENER SYNTH-FASTENER-A",
+      "product_revision": "REV-F1",
+      "component_role": "FASTENER",
+      "unit": "each",
+      "interfaces": [
+        {
+          "interface_id": "PANEL-TRACK-FIX-01",
+          "revision": "1"
+        }
+      ],
+      "properties": [],
+      "certification": {
+        "state": "SYNTHETIC_NOT_ASSESSED",
+        "certificate_id": null,
+        "product_revision": null,
+        "scope_ref": null,
+        "valid_through": null
+      },
+      "supplier_coverage": [
+        {
+          "supplier_ref": "SYNTH-SUPPLIER-F",
+          "region": "JOHANNESBURG_METRO_SYNTHETIC",
+          "availability_state": "SYNTHETIC_AVAILABLE",
+          "lead_time_days": 7
+        }
+      ],
+      "circularity": {
+        "recycled_content_fraction": null,
+        "repairability_state": "UNKNOWN",
+        "disassembly_state": "UNKNOWN",
+        "epd_ref": null
+      },
+      "evidence_class": "SYNTHETIC_FIXTURE"
+    }
+  ],
+  "assemblies": [
+    {
+      "assembly_id": "SYNTH-EXT-WALL-001",
+      "assembly_revision": "REV-1",
+      "unit": "m2",
+      "components": [
+        {
+          "component_id": "SYNTH-PANEL-A",
+          "quantity": 1,
+          "unit": "m2"
+        },
+        {
+          "component_id": "SYNTH-INSULATION-A",
+          "quantity": 1,
+          "unit": "m2"
+        },
+        {
+          "component_id": "SYNTH-FASTENER-A",
+          "quantity": 12,
+          "unit": "each"
+        }
+      ],
+      "required_properties": [
+        {
+          "property_id": "FIRE_RESISTANCE_MINUTES",
+          "threshold": 60,
+          "unit": "min",
+          "comparison": "MINIMUM"
+        },
+        {
+          "property_id": "THERMAL_TRANSMITTANCE",
+          "threshold": 0.35,
+          "unit": "W/(m2.K)",
+          "comparison": "MAXIMUM"
+        },
+        {
+          "property_id": "STRUCTURAL_CAPACITY",
+          "threshold": 25,
+          "unit": "kN/m",
+          "comparison": "MINIMUM"
+        },
+        {
+          "property_id": "AIRBORNE_SOUND_REDUCTION",
+          "threshold": 45,
+          "unit": "dB",
+          "comparison": "MINIMUM"
+        }
+      ],
+      "qualification_state": "SYNTHETIC_ONLY"
+    }
+  ],
+  "supplier_quotes": [
+    {
+      "quote_id": "SYNTH-QUOTE-A-001",
+      "component_id": "SYNTH-PANEL-A",
+      "supplier_ref": "SYNTH-SUPPLIER-A",
+      "region": "JOHANNESBURG_METRO_SYNTHETIC",
+      "quote_date": "2026-11-10",
+      "valid_through": "2026-11-30",
+      "unit_rate": 950,
+      "currency": "ZAR",
+      "unit": "m2",
+      "vat_state": "EXCLUSIVE",
+      "delivery_state": "EXCLUDED",
+      "evidence_class": "SYNTHETIC_FIXTURE"
+    },
+    {
+      "quote_id": "SYNTH-QUOTE-C-001",
+      "component_id": "SYNTH-PANEL-C",
+      "supplier_ref": "SYNTH-SUPPLIER-C",
+      "region": "JOHANNESBURG_METRO_SYNTHETIC",
+      "quote_date": "2026-11-10",
+      "valid_through": "2026-11-30",
+      "unit_rate": 900,
+      "currency": "ZAR",
+      "unit": "m2",
+      "vat_state": "EXCLUSIVE",
+      "delivery_state": "EXCLUDED",
+      "evidence_class": "SYNTHETIC_FIXTURE"
+    }
+  ],
+  "public_price_indices": [
+    {
+      "index_id": "STATS-SA-P0151.1-CIPI-TOTAL-2026-09",
+      "publisher": "Statistics South Africa",
+      "period": "2026-09",
+      "base_period": "2023-12=100",
+      "index_value": 113.6,
+      "annual_change_percent": 7.7,
+      "source_ref": "https://www.statssa.gov.za/publications/P01511/P01511September2026.pdf",
+      "use_restriction": "ESCALATION_SENSITIVITY_ONLY_NOT_A_UNIT_PRICE"
+    }
+  ],
+  "claim_ceiling": "All component, quote, availability and property values are synthetic. The Stats SA index is a real public escalation reference, not a supplier quote."
+}

@@ -1,0 +1,427 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Home component catalogue v0.1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "catalogue_id",
+    "maturity",
+    "decision_date",
+    "jurisdiction",
+    "components",
+    "assemblies",
+    "supplier_quotes",
+    "public_price_indices",
+    "claim_ceiling"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "0.1.0"
+    },
+    "catalogue_id": {
+      "type": "string"
+    },
+    "maturity": {
+      "const": "SYNTHETIC_FIXTURE"
+    },
+    "decision_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "jurisdiction": {
+      "type": "string"
+    },
+    "components": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "component_id",
+          "manufacturer_ref",
+          "product_family",
+          "product_revision",
+          "component_role",
+          "unit",
+          "interfaces",
+          "properties",
+          "certification",
+          "supplier_coverage",
+          "circularity",
+          "evidence_class"
+        ],
+        "properties": {
+          "component_id": {
+            "type": "string"
+          },
+          "manufacturer_ref": {
+            "type": "string"
+          },
+          "product_family": {
+            "type": "string"
+          },
+          "product_revision": {
+            "type": "string"
+          },
+          "component_role": {
+            "type": "string"
+          },
+          "unit": {
+            "type": "string"
+          },
+          "interfaces": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "interface_id",
+                "revision"
+              ],
+              "properties": {
+                "interface_id": {
+                  "type": "string"
+                },
+                "revision": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "properties": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "property_id",
+                "value",
+                "unit",
+                "comparison",
+                "status",
+                "evidence_ref"
+              ],
+              "properties": {
+                "property_id": {
+                  "type": "string"
+                },
+                "value": {
+                  "type": [
+                    "number",
+                    "null"
+                  ]
+                },
+                "unit": {
+                  "type": "string"
+                },
+                "comparison": {
+                  "enum": [
+                    "MINIMUM",
+                    "MAXIMUM"
+                  ]
+                },
+                "status": {
+                  "enum": [
+                    "SYNTHETIC_PASS",
+                    "QUALIFIED_IN_SCOPE",
+                    "UNKNOWN",
+                    "FAILED"
+                  ]
+                },
+                "evidence_ref": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                }
+              }
+            }
+          },
+          "certification": {
+            "type": "object",
+            "required": [
+              "state",
+              "certificate_id",
+              "product_revision",
+              "scope_ref",
+              "valid_through"
+            ],
+            "properties": {
+              "state": {
+                "type": "string"
+              },
+              "certificate_id": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "product_revision": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "scope_ref": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "valid_through": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            }
+          },
+          "supplier_coverage": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "supplier_ref",
+                "region",
+                "availability_state",
+                "lead_time_days"
+              ],
+              "properties": {
+                "supplier_ref": {
+                  "type": "string"
+                },
+                "region": {
+                  "type": "string"
+                },
+                "availability_state": {
+                  "type": "string"
+                },
+                "lead_time_days": {
+                  "type": [
+                    "integer",
+                    "null"
+                  ]
+                }
+              }
+            }
+          },
+          "circularity": {
+            "type": "object",
+            "required": [
+              "recycled_content_fraction",
+              "repairability_state",
+              "disassembly_state",
+              "epd_ref"
+            ],
+            "properties": {
+              "recycled_content_fraction": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              },
+              "repairability_state": {
+                "type": "string"
+              },
+              "disassembly_state": {
+                "type": "string"
+              },
+              "epd_ref": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            }
+          },
+          "evidence_class": {
+            "const": "SYNTHETIC_FIXTURE"
+          }
+        }
+      }
+    },
+    "assemblies": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": [
+          "assembly_id",
+          "assembly_revision",
+          "unit",
+          "components",
+          "required_properties",
+          "qualification_state"
+        ],
+        "properties": {
+          "assembly_id": {
+            "type": "string"
+          },
+          "assembly_revision": {
+            "type": "string"
+          },
+          "unit": {
+            "type": "string"
+          },
+          "components": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "component_id",
+                "quantity",
+                "unit"
+              ],
+              "properties": {
+                "component_id": {
+                  "type": "string"
+                },
+                "quantity": {
+                  "type": "number"
+                },
+                "unit": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "required_properties": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "property_id",
+                "threshold",
+                "unit",
+                "comparison"
+              ],
+              "properties": {
+                "property_id": {
+                  "type": "string"
+                },
+                "threshold": {
+                  "type": "number"
+                },
+                "unit": {
+                  "type": "string"
+                },
+                "comparison": {
+                  "enum": [
+                    "MINIMUM",
+                    "MAXIMUM"
+                  ]
+                }
+              }
+            }
+          },
+          "qualification_state": {
+            "const": "SYNTHETIC_ONLY"
+          }
+        }
+      }
+    },
+    "supplier_quotes": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "quote_id",
+          "component_id",
+          "supplier_ref",
+          "region",
+          "quote_date",
+          "valid_through",
+          "unit_rate",
+          "currency",
+          "unit",
+          "vat_state",
+          "delivery_state",
+          "evidence_class"
+        ],
+        "properties": {
+          "quote_id": {
+            "type": "string"
+          },
+          "component_id": {
+            "type": "string"
+          },
+          "supplier_ref": {
+            "type": "string"
+          },
+          "region": {
+            "type": "string"
+          },
+          "quote_date": {
+            "type": "string"
+          },
+          "valid_through": {
+            "type": "string"
+          },
+          "unit_rate": {
+            "type": "number"
+          },
+          "currency": {
+            "type": "string"
+          },
+          "unit": {
+            "type": "string"
+          },
+          "vat_state": {
+            "type": "string"
+          },
+          "delivery_state": {
+            "type": "string"
+          },
+          "evidence_class": {
+            "const": "SYNTHETIC_FIXTURE"
+          }
+        }
+      }
+    },
+    "public_price_indices": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "index_id",
+          "publisher",
+          "period",
+          "base_period",
+          "index_value",
+          "annual_change_percent",
+          "source_ref",
+          "use_restriction"
+        ],
+        "properties": {
+          "index_id": {
+            "type": "string"
+          },
+          "publisher": {
+            "type": "string"
+          },
+          "period": {
+            "type": "string"
+          },
+          "base_period": {
+            "type": "string"
+          },
+          "index_value": {
+            "type": "number"
+          },
+          "annual_change_percent": {
+            "type": "number"
+          },
+          "source_ref": {
+            "type": "string"
+          },
+          "use_restriction": {
+            "const": "ESCALATION_SENSITIVITY_ONLY_NOT_A_UNIT_PRICE"
+          }
+        }
+      }
+    },
+    "claim_ceiling": {
+      "type": "string"
+    }
+  }
+}

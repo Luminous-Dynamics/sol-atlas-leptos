@@ -1,0 +1,47 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Dependency invalidation manifest v0.1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "study_id",
+    "maturity",
+    "mutation_type",
+    "invalidates",
+    "required_behavior",
+    "claim_ceiling"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "0.1.0"
+    },
+    "study_id": {
+      "const": "HOME-MATERIAL-INTELLIGENCE-001"
+    },
+    "maturity": {
+      "const": "SYNTHETIC_FIXTURE"
+    },
+    "mutation_type": {
+      "const": "COMPONENT_REVISION_OR_SUBSTITUTION"
+    },
+    "invalidates": {
+      "type": "array",
+      "minItems": 10,
+      "uniqueItems": true,
+      "items": {
+        "type": "string"
+      }
+    },
+    "required_behavior": {
+      "type": "array",
+      "minItems": 5,
+      "items": {
+        "type": "string"
+      }
+    },
+    "claim_ceiling": {
+      "type": "string"
+    }
+  }
+}
