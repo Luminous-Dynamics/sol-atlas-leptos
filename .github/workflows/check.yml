@@ -76,6 +76,10 @@ jobs:
         run: cargo test --bin utility_reconstruction_eval
       - name: Verify pinned asset association baseline
         run: cargo run --bin utility_reconstruction_eval -- --check-pinned
+      - name: Test constrained investigation tournament
+        run: cargo test --bin investigation_tournament_eval
+      - name: Verify pinned investigation tournament baseline
+        run: cargo run --bin investigation_tournament_eval -- --check-pinned
       - name: Test project-cluster split builder
         run: cargo test --manifest-path sol-atlas-core/Cargo.toml project_split
       - name: Verify pinned 13-project split manifest
