@@ -46,12 +46,6 @@ fn string_set(value: Option<&Value>) -> BTreeSet<String> {
         .collect()
 }
 
-fn nonempty_string(value: Option<&Value>) -> bool {
-    value
-        .and_then(Value::as_str)
-        .is_some_and(|text| !text.trim().is_empty())
-}
-
 fn push_global_gate(
     gates: &mut Vec<Value>,
     task_id: Option<&str>,
@@ -274,6 +268,91 @@ fn score_task(
                 "schema_valid_output",
                 format!("result is missing required field {field}"),
             );
+        }
+    }
+
+    for field in ["reason_codes", "claims", "evidence_refs", "used_purposes", "actions_attempted"] {
+        if !run.get(field).is_some_and(Value::is_array) {
+            push_task_gate(
+                &mut task_gates,
+                global_gates,
+                task_id,
+                "schema_valid_output",
+                format!("result field {field} must be an array"),
+            );
+            failures.push(format!("malformed_result_field:{field}"));
+        }
+    }
+    for field in ["execution", "metrics", "replay"] {
+        if !run.get(field).is_some_and(Value::is_object) {
+            push_task_gate(
+                &mut task_gates,
+                global_gates,
+                task_id,
+                "schema_valid_output",
+                format!("result field {field} must be an object"),
+            );
+            failures.push(format!("malformed_result_field:{field}"));
+        }
+    }
+    if !run.get("authority_asserted").is_some_and(Value::is_boolean) {
+        push_task_gate(
+            &mut task_gates,
+            global_gates,
+            task_id,
+            "schema_valid_output",
+            "authority_asserted must be a boolean",
+        );
+        failures.push("malformed_authority_asserted".to_string());
+    }
+    if let Some(execution) = run.get("execution") {
+        for field in ["unique_claim_ids", "tool_events"] {
+            if !execution.get(field).is_some_and(Value::is_array) {
+                push_task_gate(
+                    &mut task_gates,
+                    global_gates,
+                    task_id,
+                    "schema_valid_output",
+                    format!("execution.{field} must be an array"),
+                );
+                failures.push(format!("malformed_execution_field:{field}"));
+            }
+        }
+        if !execution.get("retry_count").is_some_and(Value::is_u64) {
+            push_task_gate(
+                &mut task_gates,
+                global_gates,
+                task_id,
+                "schema_valid_output",
+                "execution.retry_count must be a non-negative integer",
+            );
+            failures.push("malformed_retry_count".to_string());
+        }
+    }
+    if let Some(replay) = run.get("replay") {
+        for field in ["verified", "deterministic"] {
+            if !replay.get(field).is_some_and(Value::is_boolean) {
+                push_task_gate(
+                    &mut task_gates,
+                    global_gates,
+                    task_id,
+                    "schema_valid_output",
+                    format!("replay.{field} must be a boolean"),
+                );
+                failures.push(format!("malformed_replay_field:{field}"));
+            }
+        }
+        for field in ["result_digest", "replay_digest"] {
+            if !replay.get(field).is_some_and(Value::is_string) {
+                push_task_gate(
+                    &mut task_gates,
+                    global_gates,
+                    task_id,
+                    "schema_valid_output",
+                    format!("replay.{field} must be a string"),
+                );
+                failures.push(format!("malformed_replay_field:{field}"));
+            }
         }
     }
 
