@@ -117,7 +117,10 @@
         "delivered_at_unix_ms",
         "assessment",
         "coverage_qualification_receipt_sha256",
-        "detection_qualification_receipt_sha256"
+        "detection_qualification_receipt_sha256",
+        "assessment_target_class_id",
+        "assessment_ontology_version",
+        "detection_qualification"
       ],
       "properties": {
         "opportunity_id": {
@@ -191,6 +194,22 @@
         },
         "detection_qualification_receipt_sha256": {
           "$ref": "#/$defs/nullableSha256"
+        },
+        "assessment_target_class_id": {
+          "$ref": "#/$defs/nullableIdentifier"
+        },
+        "assessment_ontology_version": {
+          "$ref": "#/$defs/nullableIdentifier"
+        },
+        "detection_qualification": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/detection_qualification"
+            },
+            {
+              "type": "null"
+            }
+          ]
         }
       },
       "allOf": [
@@ -229,6 +248,15 @@
                 "type": "null"
               },
               "detection_qualification_receipt_sha256": {
+                "type": "null"
+              },
+              "assessment_target_class_id": {
+                "type": "null"
+              },
+              "assessment_ontology_version": {
+                "type": "null"
+              },
+              "detection_qualification": {
                 "type": "null"
               }
             }
@@ -283,6 +311,15 @@
               },
               "detection_qualification_receipt_sha256": {
                 "$ref": "#/$defs/sha256"
+              },
+              "assessment_target_class_id": {
+                "$ref": "#/$defs/identifier"
+              },
+              "assessment_ontology_version": {
+                "$ref": "#/$defs/identifier"
+              },
+              "detection_qualification": {
+                "$ref": "#/$defs/detection_qualification"
               }
             }
           }
@@ -305,11 +342,104 @@
               },
               "detection_qualification_receipt_sha256": {
                 "$ref": "#/$defs/sha256"
+              },
+              "assessment_target_class_id": {
+                "$ref": "#/$defs/identifier"
+              },
+              "assessment_ontology_version": {
+                "$ref": "#/$defs/identifier"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "assessment": {
+                "type": "null"
+              }
+            },
+            "required": [
+              "assessment"
+            ]
+          },
+          "then": {
+            "properties": {
+              "assessment_target_class_id": {
+                "type": "null"
+              },
+              "assessment_ontology_version": {
+                "type": "null"
+              },
+              "detection_qualification": {
+                "type": "null"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "assessment": {
+                "const": "unresolved"
+              }
+            },
+            "required": [
+              "assessment"
+            ]
+          },
+          "then": {
+            "properties": {
+              "assessment_target_class_id": {
+                "$ref": "#/$defs/identifier"
+              },
+              "assessment_ontology_version": {
+                "$ref": "#/$defs/identifier"
               }
             }
           }
         }
       ]
+    },
+    "detection_qualification": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "footprint_covers_target",
+        "calibration_valid",
+        "target_in_validated_domain",
+        "probability_of_detection",
+        "minimum_required_probability"
+      ],
+      "properties": {
+        "footprint_covers_target": {
+          "type": "boolean"
+        },
+        "calibration_valid": {
+          "type": "boolean"
+        },
+        "target_in_validated_domain": {
+          "type": "boolean"
+        },
+        "probability_of_detection": {
+          "oneOf": [
+            {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "minimum_required_probability": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        }
+      },
+      "description": "Shared Sol-Atlas target-conditional DetectionQualification DTO. Rust validation applies classify_non_detection; JSON Schema validates shape and ranges."
     }
   }
 }
