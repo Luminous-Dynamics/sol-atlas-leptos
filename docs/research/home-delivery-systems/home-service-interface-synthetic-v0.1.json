@@ -1,0 +1,133 @@
+{
+  "schema_version": "home-service-interface/0.1",
+  "profile_id": "SYN-HOME-SERVICE-STACK-001",
+  "maturity": "synthetic_contract",
+  "source_binding": {
+    "resident_brief": {
+      "kind": "synthetic_resident_brief",
+      "id": "urn:synthetic:home-freedom:resident-brief:unbound",
+      "revision": null,
+      "digest": null
+    },
+    "candidate_design": {
+      "kind": "synthetic_home_candidate",
+      "id": "urn:synthetic:home-freedom:candidate:unbound",
+      "revision": null,
+      "digest": null
+    },
+    "design_revision": {
+      "kind": "synthetic_design_revision",
+      "id": "urn:synthetic:home-freedom:revision:unbound",
+      "revision": null,
+      "digest": null
+    },
+    "jurisdiction_profile": {
+      "kind": "jurisdiction_profile",
+      "id": "urn:synthetic:jurisdiction:unselected",
+      "revision": null,
+      "digest": null
+    }
+  },
+  "service_profiles": [
+    {
+      "profile_id": "SYN-SERVICE-WAREWASHING-001",
+      "service": "warewashing",
+      "owner_reference": "https://github.com/Luminous-Dynamics/symthaea/issues/10326",
+      "product_identity_state": "unknown",
+      "functional_unit": {
+        "state": "unknown",
+        "basis": "resident_defined",
+        "quantity": null,
+        "unit": null,
+        "resident_definition_ref": null
+      },
+      "expected_interfaces": [
+        "spatial",
+        "electrical",
+        "water",
+        "drainage",
+        "thermal",
+        "acoustic",
+        "controls",
+        "consumables",
+        "service_access"
+      ]
+    },
+    {
+      "profile_id": "SYN-SERVICE-WATER-CONTINUITY-001",
+      "service": "water_continuity",
+      "owner_reference": "https://github.com/Luminous-Dynamics/symthaea/issues/10323",
+      "product_identity_state": "unknown",
+      "functional_unit": {
+        "state": "unknown",
+        "basis": "resident_defined",
+        "quantity": null,
+        "unit": null,
+        "resident_definition_ref": null
+      },
+      "expected_interfaces": [
+        "spatial",
+        "electrical",
+        "water",
+        "water_quality",
+        "drainage",
+        "controls",
+        "consumables",
+        "service_access"
+      ]
+    },
+    {
+      "profile_id": "SYN-SERVICE-HOT-WATER-001",
+      "service": "hot_water",
+      "owner_reference": "https://github.com/Luminous-Dynamics/symthaea/issues/10329",
+      "product_identity_state": "unknown",
+      "functional_unit": {
+        "state": "unknown",
+        "basis": "resident_defined",
+        "quantity": null,
+        "unit": null,
+        "resident_definition_ref": null
+      },
+      "expected_interfaces": [
+        "spatial",
+        "electrical",
+        "water",
+        "drainage",
+        "thermal",
+        "acoustic",
+        "controls",
+        "consumables",
+        "service_access"
+      ]
+    },
+    {
+      "profile_id": "SYN-SERVICE-VENTILATION-001",
+      "service": "ventilation_filtration",
+      "owner_reference": "https://github.com/Luminous-Dynamics/symthaea/issues/10330",
+      "product_identity_state": "unknown",
+      "functional_unit": {
+        "state": "unknown",
+        "basis": "resident_defined",
+        "quantity": null,
+        "unit": null,
+        "resident_definition_ref": null
+      },
+      "expected_interfaces": [
+        "spatial",
+        "electrical",
+        "thermal",
+        "air",
+        "acoustic",
+        "controls",
+        "consumables",
+        "service_access"
+      ]
+    }
+  ],
+  "fixture_notes": [
+    "Synthetic interface inventory only; no specific resident brief, candidate dwelling or appliance model is bound.",
+    "Every product identity, utility property, service level, functional-unit quantity and measurement remains unknown.",
+    "The fixture is not evidence of product safety, energy or water performance, water quality, ventilation adequacy, code compliance, demand or market suitability.",
+    "Potable and non-potable water paths must remain distinct; no treatment or potable-use claim is represented."
+  ]
+}
