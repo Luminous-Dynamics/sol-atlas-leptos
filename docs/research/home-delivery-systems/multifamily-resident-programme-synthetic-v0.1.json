@@ -1,0 +1,827 @@
+{
+  "schema_version": "multifamily-resident-programme/0.1",
+  "programme_id": "SYN-MF-RESIDENT-PROGRAMME-001",
+  "maturity": "synthetic_scenario_only",
+  "source_scope": "synthetic_scenario_authoring_not_real_resident_data",
+  "building_candidate_ref": {
+    "kind": "synthetic_multi_family_building",
+    "id": "SYN-MF-COURTYARD-004",
+    "revision": null,
+    "digest": null
+  },
+  "programme_revision_ref": {
+    "kind": "synthetic_resident_programme_revision",
+    "id": "SYN-MF-RESIDENT-PROGRAMME-001-v0.1",
+    "revision": "0.1",
+    "digest": null
+  },
+  "unit_programmes": [
+    {
+      "unit_id": "U-001",
+      "unit_programme_id": "SYN-UNIT-PROGRAMME-U-001",
+      "source_scope": "synthetic_scenario_authoring_not_real_resident_data",
+      "occupancy_state": "not_supplied",
+      "concurrent_people": null,
+      "activities": [
+        {
+          "activity_id": "U-001-QUIET-WORK-ACT-01",
+          "statement": "sleep and personal retreat",
+          "frequency": "daily",
+          "concurrency_state": "not_supplied",
+          "concurrent_people": null,
+          "dedicated_space_required": true,
+          "privacy_requirement": "private",
+          "space_relationship_tags": [],
+          "spatial_limits": {
+            "state": "not_supplied",
+            "minimum_width_mm": null,
+            "preferred_width_mm": null,
+            "minimum_area_mm2": null,
+            "preferred_area_mm2": null
+          },
+          "equipment_refs": []
+        },
+        {
+          "activity_id": "U-001-QUIET-WORK-ACT-02",
+          "statement": "prepare food and eat",
+          "frequency": "daily",
+          "concurrency_state": "not_supplied",
+          "concurrent_people": null,
+          "dedicated_space_required": true,
+          "privacy_requirement": "semi_private",
+          "space_relationship_tags": [],
+          "spatial_limits": {
+            "state": "not_supplied",
+            "minimum_width_mm": null,
+            "preferred_width_mm": null,
+            "minimum_area_mm2": null,
+            "preferred_area_mm2": null
+          },
+          "equipment_refs": []
+        },
+        {
+          "activity_id": "U-001-QUIET-WORK-ACT-03",
+          "statement": "quiet remote work",
+          "frequency": "daily",
+          "concurrency_state": "not_supplied",
+          "concurrent_people": null,
+          "dedicated_space_required": true,
+          "privacy_requirement": "private",
+          "space_relationship_tags": [
+            "acoustically_separate"
+          ],
+          "spatial_limits": {
+            "state": "not_supplied",
+            "minimum_width_mm": null,
+            "preferred_width_mm": null,
+            "minimum_area_mm2": null,
+            "preferred_area_mm2": null
+          },
+          "equipment_refs": []
+        },
+        {
+          "activity_id": "U-001-QUIET-WORK-ACT-04",
+          "statement": "host occasional guests",
+          "frequency": "occasional",
+          "concurrency_state": "not_supplied",
+          "concurrent_people": null,
+          "dedicated_space_required": false,
+          "privacy_requirement": "semi_private",
+          "space_relationship_tags": [],
+          "spatial_limits": {
+            "state": "not_supplied",
+            "minimum_width_mm": null,
+            "preferred_width_mm": null,
+            "minimum_area_mm2": null,
+            "preferred_area_mm2": null
+          },
+          "equipment_refs": []
+        },
+        {
+          "activity_id": "U-001-QUIET-WORK-ACT-05",
+          "statement": "store household goods and tools",
+          "frequency": "daily",
+          "concurrency_state": "not_supplied",
+          "concurrent_people": null,
+          "dedicated_space_required": false,
+          "privacy_requirement": "service",
+          "space_relationship_tags": [],
+          "spatial_limits": {
+            "state": "not_supplied",
+            "minimum_width_mm": null,
+            "preferred_width_mm": null,
+            "minimum_area_mm2": null,
+            "preferred_area_mm2": null
+          },
+          "equipment_refs": []
+        }
+      ],
+      "relationships": [
+        {
+          "relationship_id": "U-001-QUIET-WORK-REL-01",
+          "from_activity_id": "U-001-QUIET-WORK-ACT-03",
+          "to_activity_id": "U-001-QUIET-WORK-ACT-02",
+          "relationship": "acoustically_separate",
+          "strength": "non_negotiable"
+        }
+      ],
+      "requirements": [
+        {
+          "requirement_id": "U-001-REQ-01",
+          "statement": "Keep the quiet work activity separate from the primary cooking/living noise source.",
+          "domain": "acoustic",
+          "severity": "non_negotiable",
+          "source_scope": "synthetic_scenario_authoring",
+          "inferred": false,
+          "resident_confirmation_state": "synthetic_not_real_resident"
+        },
+        {
+          "requirement_id": "U-001-REQ-02",
+          "statement": "Preserve a private sleeping/retreat activity.",
+          "domain": "privacy",
+          "severity": "non_negotiable",
+          "source_scope": "synthetic_scenario_authoring",
+          "inferred": false,
+          "resident_confirmation_state": "synthetic_not_real_resident"
+        }
+      ],
+      "preferences": [
+        {
+          "preference_id": "U-001-PREF-01",
+          "statement": "Prefer a flexible guest-hosting arrangement.",
+          "priority_state": "not_supplied",
+          "priority": null,
+          "tradeable": null,
+          "source_scope": "synthetic_scenario_authoring",
+          "inferred": false
+        },
+        {
+          "preference_id": "U-001-PREF-02",
+          "statement": "Prefer household storage near the service zone.",
+          "priority_state": "not_supplied",
+          "priority": null,
+          "tradeable": null,
+          "source_scope": "synthetic_scenario_authoring",
+          "inferred": false
+        }
+      ],
+      "access_requirement_state": "not_stated",
+      "access_requirements": [],
+      "service_requirements": [
+        {
+          "service_requirement_id": "U-001-SERVICE-1",
+          "service_kind": "potable_water",
+          "state": "not_supplied",
+          "functional_unit": null,
+          "quantity": null,
+          "unit": null,
+          "quality_requirement_state": "not_supplied"
+        },
+        {
+          "service_requirement_id": "U-001-SERVICE-2",
+          "service_kind": "electricity",
+          "state": "not_supplied",
+          "functional_unit": null,
+          "quantity": null,
+          "unit": null,
+          "quality_requirement_state": "not_supplied"
+        },
+        {
+          "service_requirement_id": "U-001-SERVICE-3",
+          "service_kind": "useful_thermal",
+          "state": "not_supplied",
+          "functional_unit": null,
+          "quantity": null,
+          "unit": null,
+          "quality_requirement_state": "not_supplied"
+        },
+        {
+          "service_requirement_id": "U-001-SERVICE-4",
+          "service_kind": "ventilation",
+          "state": "not_supplied",
+          "functional_unit": null,
+          "quantity": null,
+          "unit": null,
+          "quality_requirement_state": "not_supplied"
+        },
+        {
+          "service_requirement_id": "U-001-SERVICE-5",
+          "service_kind": "wastewater",
+          "state": "not_supplied",
+          "functional_unit": null,
+          "quantity": null,
+          "unit": null,
+          "quality_requirement_state": "not_supplied"
+        }
+      ],
+      "shared_amenity_preferences": [],
+      "claim_ceiling": "Synthetic activity/requirement structure only; no real resident input, dimensional requirement, access need, service demand or suitability is asserted."
+    },
+    {
+      "unit_id": "U-002",
+      "unit_programme_id": "SYN-UNIT-PROGRAMME-U-002",
+      "source_scope": "synthetic_scenario_authoring_not_real_resident_data",
+      "occupancy_state": "not_supplied",
+      "concurrent_people": null,
+      "activities": [
+        {
+          "activity_id": "U-002-SHARED-MAKING-ACT-01",
+          "statement": "sleep and personal retreat",
+          "frequency": "daily",
+          "concurrency_state": "not_supplied",
+          "concurrent_people": null,
+          "dedicated_space_required": true,
+          "privacy_requirement": "private",
+          "space_relationship_tags": [],
+          "spatial_limits": {
+            "state": "not_supplied",
+            "minimum_width_mm": null,
+            "preferred_width_mm": null,
+            "minimum_area_mm2": null,
+            "preferred_area_mm2": null
+          },
+          "equipment_refs": []
+        },
+        {
+          "activity_id": "U-002-SHARED-MAKING-ACT-02",
+          "statement": "focused making and repair activity",
+          "frequency": "weekly",
+          "concurrency_state": "not_supplied",
+          "concurrent_people": null,
+          "dedicated_space_required": true,
+          "privacy_requirement": "private",
+          "space_relationship_tags": [
+            "acoustically_separate"
+          ],
+          "spatial_limits": {
+            "state": "not_supplied",
+            "minimum_width_mm": null,
+            "preferred_width_mm": null,
+            "minimum_area_mm2": null,
+            "preferred_area_mm2": null
+          },
+          "equipment_refs": []
+        },
+        {
+          "activity_id": "U-002-SHARED-MAKING-ACT-03",
+          "statement": "prepare and share meals",
+          "frequency": "daily",
+          "concurrency_state": "not_supplied",
+          "concurrent_people": null,
+          "dedicated_space_required": true,
+          "privacy_requirement": "semi_private",
+          "space_relationship_tags": [],
+          "spatial_limits": {
+            "state": "not_supplied",
+            "minimum_width_mm": null,
+            "preferred_width_mm": null,
+            "minimum_area_mm2": null,
+            "preferred_area_mm2": null
+          },
+          "equipment_refs": []
+        },
+        {
+          "activity_id": "U-002-SHARED-MAKING-ACT-04",
+          "statement": "quiet reading and study",
+          "frequency": "daily",
+          "concurrency_state": "not_supplied",
+          "concurrent_people": null,
+          "dedicated_space_required": false,
+          "privacy_requirement": "private",
+          "space_relationship_tags": [],
+          "spatial_limits": {
+            "state": "not_supplied",
+            "minimum_width_mm": null,
+            "preferred_width_mm": null,
+            "minimum_area_mm2": null,
+            "preferred_area_mm2": null
+          },
+          "equipment_refs": []
+        },
+        {
+          "activity_id": "U-002-SHARED-MAKING-ACT-05",
+          "statement": "store tools and making materials",
+          "frequency": "weekly",
+          "concurrency_state": "not_supplied",
+          "concurrent_people": null,
+          "dedicated_space_required": false,
+          "privacy_requirement": "service",
+          "space_relationship_tags": [],
+          "spatial_limits": {
+            "state": "not_supplied",
+            "minimum_width_mm": null,
+            "preferred_width_mm": null,
+            "minimum_area_mm2": null,
+            "preferred_area_mm2": null
+          },
+          "equipment_refs": []
+        }
+      ],
+      "relationships": [
+        {
+          "relationship_id": "U-002-SHARED-MAKING-REL-01",
+          "from_activity_id": "U-002-SHARED-MAKING-ACT-02",
+          "to_activity_id": "U-002-SHARED-MAKING-ACT-03",
+          "relationship": "acoustically_separate",
+          "strength": "preference"
+        },
+        {
+          "relationship_id": "U-002-SHARED-MAKING-REL-02",
+          "from_activity_id": "U-002-SHARED-MAKING-ACT-02",
+          "to_activity_id": "U-002-SHARED-MAKING-ACT-05",
+          "relationship": "near",
+          "strength": "preference"
+        }
+      ],
+      "requirements": [
+        {
+          "requirement_id": "U-002-REQ-01",
+          "statement": "Preserve a private sleeping/retreat activity.",
+          "domain": "privacy",
+          "severity": "non_negotiable",
+          "source_scope": "synthetic_scenario_authoring",
+          "inferred": false,
+          "resident_confirmation_state": "synthetic_not_real_resident"
+        },
+        {
+          "requirement_id": "U-002-REQ-02",
+          "statement": "Provide a declared place for safe storage of resident-supplied making equipment.",
+          "domain": "storage",
+          "severity": "preference",
+          "source_scope": "synthetic_scenario_authoring",
+          "inferred": false,
+          "resident_confirmation_state": "synthetic_not_real_resident"
+        }
+      ],
+      "preferences": [
+        {
+          "preference_id": "U-002-PREF-01",
+          "statement": "Prefer a flexible work/making layout.",
+          "priority_state": "not_supplied",
+          "priority": null,
+          "tradeable": null,
+          "source_scope": "synthetic_scenario_authoring",
+          "inferred": false
+        },
+        {
+          "preference_id": "U-002-PREF-02",
+          "statement": "Prefer separation between focused activity and shared meal activity.",
+          "priority_state": "not_supplied",
+          "priority": null,
+          "tradeable": null,
+          "source_scope": "synthetic_scenario_authoring",
+          "inferred": false
+        }
+      ],
+      "access_requirement_state": "not_stated",
+      "access_requirements": [],
+      "service_requirements": [
+        {
+          "service_requirement_id": "U-002-SERVICE-1",
+          "service_kind": "potable_water",
+          "state": "not_supplied",
+          "functional_unit": null,
+          "quantity": null,
+          "unit": null,
+          "quality_requirement_state": "not_supplied"
+        },
+        {
+          "service_requirement_id": "U-002-SERVICE-2",
+          "service_kind": "electricity",
+          "state": "not_supplied",
+          "functional_unit": null,
+          "quantity": null,
+          "unit": null,
+          "quality_requirement_state": "not_supplied"
+        },
+        {
+          "service_requirement_id": "U-002-SERVICE-3",
+          "service_kind": "useful_thermal",
+          "state": "not_supplied",
+          "functional_unit": null,
+          "quantity": null,
+          "unit": null,
+          "quality_requirement_state": "not_supplied"
+        },
+        {
+          "service_requirement_id": "U-002-SERVICE-4",
+          "service_kind": "ventilation",
+          "state": "not_supplied",
+          "functional_unit": null,
+          "quantity": null,
+          "unit": null,
+          "quality_requirement_state": "not_supplied"
+        },
+        {
+          "service_requirement_id": "U-002-SERVICE-5",
+          "service_kind": "wastewater",
+          "state": "not_supplied",
+          "functional_unit": null,
+          "quantity": null,
+          "unit": null,
+          "quality_requirement_state": "not_supplied"
+        }
+      ],
+      "shared_amenity_preferences": [],
+      "claim_ceiling": "Synthetic activity/requirement structure only; no real resident input, dimensional requirement, access need, service demand or suitability is asserted."
+    },
+    {
+      "unit_id": "U-003",
+      "unit_programme_id": "SYN-UNIT-PROGRAMME-U-003",
+      "source_scope": "synthetic_scenario_authoring_not_real_resident_data",
+      "occupancy_state": "not_supplied",
+      "concurrent_people": null,
+      "activities": [
+        {
+          "activity_id": "U-003-FLEXIBLE-CARE-ACT-01",
+          "statement": "sleep and personal retreat",
+          "frequency": "daily",
+          "concurrency_state": "not_supplied",
+          "concurrent_people": null,
+          "dedicated_space_required": true,
+          "privacy_requirement": "private",
+          "space_relationship_tags": [],
+          "spatial_limits": {
+            "state": "not_supplied",
+            "minimum_width_mm": null,
+            "preferred_width_mm": null,
+            "minimum_area_mm2": null,
+            "preferred_area_mm2": null
+          },
+          "equipment_refs": []
+        },
+        {
+          "activity_id": "U-003-FLEXIBLE-CARE-ACT-02",
+          "statement": "provide quiet study or focused work",
+          "frequency": "daily",
+          "concurrency_state": "not_supplied",
+          "concurrent_people": null,
+          "dedicated_space_required": false,
+          "privacy_requirement": "private",
+          "space_relationship_tags": [],
+          "spatial_limits": {
+            "state": "not_supplied",
+            "minimum_width_mm": null,
+            "preferred_width_mm": null,
+            "minimum_area_mm2": null,
+            "preferred_area_mm2": null
+          },
+          "equipment_refs": []
+        },
+        {
+          "activity_id": "U-003-FLEXIBLE-CARE-ACT-03",
+          "statement": "prepare food and shared meals",
+          "frequency": "daily",
+          "concurrency_state": "not_supplied",
+          "concurrent_people": null,
+          "dedicated_space_required": true,
+          "privacy_requirement": "semi_private",
+          "space_relationship_tags": [],
+          "spatial_limits": {
+            "state": "not_supplied",
+            "minimum_width_mm": null,
+            "preferred_width_mm": null,
+            "minimum_area_mm2": null,
+            "preferred_area_mm2": null
+          },
+          "equipment_refs": []
+        },
+        {
+          "activity_id": "U-003-FLEXIBLE-CARE-ACT-04",
+          "statement": "provide household care and support activities",
+          "frequency": "daily",
+          "concurrency_state": "not_supplied",
+          "concurrent_people": null,
+          "dedicated_space_required": false,
+          "privacy_requirement": "semi_private",
+          "space_relationship_tags": [],
+          "spatial_limits": {
+            "state": "not_supplied",
+            "minimum_width_mm": null,
+            "preferred_width_mm": null,
+            "minimum_area_mm2": null,
+            "preferred_area_mm2": null
+          },
+          "equipment_refs": []
+        },
+        {
+          "activity_id": "U-003-FLEXIBLE-CARE-ACT-05",
+          "statement": "access shared outdoor space when desired",
+          "frequency": "occasional",
+          "concurrency_state": "not_supplied",
+          "concurrent_people": null,
+          "dedicated_space_required": false,
+          "privacy_requirement": "shared",
+          "space_relationship_tags": [
+            "shared_access",
+            "outdoor_connection"
+          ],
+          "spatial_limits": {
+            "state": "not_supplied",
+            "minimum_width_mm": null,
+            "preferred_width_mm": null,
+            "minimum_area_mm2": null,
+            "preferred_area_mm2": null
+          },
+          "equipment_refs": []
+        }
+      ],
+      "relationships": [
+        {
+          "relationship_id": "U-003-FLEXIBLE-CARE-REL-01",
+          "from_activity_id": "U-003-FLEXIBLE-CARE-ACT-01",
+          "to_activity_id": "U-003-FLEXIBLE-CARE-ACT-02",
+          "relationship": "separate",
+          "strength": "preference"
+        },
+        {
+          "relationship_id": "U-003-FLEXIBLE-CARE-REL-02",
+          "from_activity_id": "U-003-FLEXIBLE-CARE-ACT-03",
+          "to_activity_id": "U-003-FLEXIBLE-CARE-ACT-05",
+          "relationship": "near",
+          "strength": "preference"
+        }
+      ],
+      "requirements": [
+        {
+          "requirement_id": "U-003-REQ-01",
+          "statement": "Preserve privacy for the sleeping/retreat activity.",
+          "domain": "privacy",
+          "severity": "non_negotiable",
+          "source_scope": "synthetic_scenario_authoring",
+          "inferred": false,
+          "resident_confirmation_state": "synthetic_not_real_resident"
+        }
+      ],
+      "preferences": [
+        {
+          "preference_id": "U-003-PREF-01",
+          "statement": "Prefer adaptable shared living and care activities.",
+          "priority_state": "not_supplied",
+          "priority": null,
+          "tradeable": null,
+          "source_scope": "synthetic_scenario_authoring",
+          "inferred": false
+        },
+        {
+          "preference_id": "U-003-PREF-02",
+          "statement": "Prefer voluntary access to shared outdoor space.",
+          "priority_state": "not_supplied",
+          "priority": null,
+          "tradeable": null,
+          "source_scope": "synthetic_scenario_authoring",
+          "inferred": false
+        }
+      ],
+      "access_requirement_state": "not_stated",
+      "access_requirements": [],
+      "service_requirements": [
+        {
+          "service_requirement_id": "U-003-SERVICE-1",
+          "service_kind": "potable_water",
+          "state": "not_supplied",
+          "functional_unit": null,
+          "quantity": null,
+          "unit": null,
+          "quality_requirement_state": "not_supplied"
+        },
+        {
+          "service_requirement_id": "U-003-SERVICE-2",
+          "service_kind": "electricity",
+          "state": "not_supplied",
+          "functional_unit": null,
+          "quantity": null,
+          "unit": null,
+          "quality_requirement_state": "not_supplied"
+        },
+        {
+          "service_requirement_id": "U-003-SERVICE-3",
+          "service_kind": "useful_thermal",
+          "state": "not_supplied",
+          "functional_unit": null,
+          "quantity": null,
+          "unit": null,
+          "quality_requirement_state": "not_supplied"
+        },
+        {
+          "service_requirement_id": "U-003-SERVICE-4",
+          "service_kind": "ventilation",
+          "state": "not_supplied",
+          "functional_unit": null,
+          "quantity": null,
+          "unit": null,
+          "quality_requirement_state": "not_supplied"
+        },
+        {
+          "service_requirement_id": "U-003-SERVICE-5",
+          "service_kind": "wastewater",
+          "state": "not_supplied",
+          "functional_unit": null,
+          "quantity": null,
+          "unit": null,
+          "quality_requirement_state": "not_supplied"
+        }
+      ],
+      "shared_amenity_preferences": [],
+      "claim_ceiling": "Synthetic activity/requirement structure only; no real resident input, dimensional requirement, access need, service demand or suitability is asserted."
+    },
+    {
+      "unit_id": "U-004",
+      "unit_programme_id": "SYN-UNIT-PROGRAMME-U-004",
+      "source_scope": "synthetic_scenario_authoring_not_real_resident_data",
+      "occupancy_state": "not_supplied",
+      "concurrent_people": null,
+      "activities": [
+        {
+          "activity_id": "U-004-REST-AND-ACCESS-ACT-01",
+          "statement": "sleep and personal retreat",
+          "frequency": "daily",
+          "concurrency_state": "not_supplied",
+          "concurrent_people": null,
+          "dedicated_space_required": true,
+          "privacy_requirement": "private",
+          "space_relationship_tags": [],
+          "spatial_limits": {
+            "state": "not_supplied",
+            "minimum_width_mm": null,
+            "preferred_width_mm": null,
+            "minimum_area_mm2": null,
+            "preferred_area_mm2": null
+          },
+          "equipment_refs": []
+        },
+        {
+          "activity_id": "U-004-REST-AND-ACCESS-ACT-02",
+          "statement": "read and pursue quiet leisure",
+          "frequency": "daily",
+          "concurrency_state": "not_supplied",
+          "concurrent_people": null,
+          "dedicated_space_required": false,
+          "privacy_requirement": "private",
+          "space_relationship_tags": [],
+          "spatial_limits": {
+            "state": "not_supplied",
+            "minimum_width_mm": null,
+            "preferred_width_mm": null,
+            "minimum_area_mm2": null,
+            "preferred_area_mm2": null
+          },
+          "equipment_refs": []
+        },
+        {
+          "activity_id": "U-004-REST-AND-ACCESS-ACT-03",
+          "statement": "prepare food",
+          "frequency": "daily",
+          "concurrency_state": "not_supplied",
+          "concurrent_people": null,
+          "dedicated_space_required": true,
+          "privacy_requirement": "semi_private",
+          "space_relationship_tags": [],
+          "spatial_limits": {
+            "state": "not_supplied",
+            "minimum_width_mm": null,
+            "preferred_width_mm": null,
+            "minimum_area_mm2": null,
+            "preferred_area_mm2": null
+          },
+          "equipment_refs": []
+        },
+        {
+          "activity_id": "U-004-REST-AND-ACCESS-ACT-04",
+          "statement": "complete household administration or remote tasks",
+          "frequency": "weekly",
+          "concurrency_state": "not_supplied",
+          "concurrent_people": null,
+          "dedicated_space_required": false,
+          "privacy_requirement": "private",
+          "space_relationship_tags": [],
+          "spatial_limits": {
+            "state": "not_supplied",
+            "minimum_width_mm": null,
+            "preferred_width_mm": null,
+            "minimum_area_mm2": null,
+            "preferred_area_mm2": null
+          },
+          "equipment_refs": []
+        },
+        {
+          "activity_id": "U-004-REST-AND-ACCESS-ACT-05",
+          "statement": "host occasional guests",
+          "frequency": "occasional",
+          "concurrency_state": "not_supplied",
+          "concurrent_people": null,
+          "dedicated_space_required": false,
+          "privacy_requirement": "semi_private",
+          "space_relationship_tags": [],
+          "spatial_limits": {
+            "state": "not_supplied",
+            "minimum_width_mm": null,
+            "preferred_width_mm": null,
+            "minimum_area_mm2": null,
+            "preferred_area_mm2": null
+          },
+          "equipment_refs": []
+        }
+      ],
+      "relationships": [
+        {
+          "relationship_id": "U-004-REST-AND-ACCESS-REL-01",
+          "from_activity_id": "U-004-REST-AND-ACCESS-ACT-01",
+          "to_activity_id": "U-004-REST-AND-ACCESS-ACT-02",
+          "relationship": "near",
+          "strength": "preference"
+        },
+        {
+          "relationship_id": "U-004-REST-AND-ACCESS-REL-02",
+          "from_activity_id": "U-004-REST-AND-ACCESS-ACT-02",
+          "to_activity_id": "U-004-REST-AND-ACCESS-ACT-04",
+          "relationship": "acoustically_separate",
+          "strength": "preference"
+        }
+      ],
+      "requirements": [
+        {
+          "requirement_id": "U-004-REQ-01",
+          "statement": "Preserve a private sleeping/retreat activity.",
+          "domain": "privacy",
+          "severity": "non_negotiable",
+          "source_scope": "synthetic_scenario_authoring",
+          "inferred": false,
+          "resident_confirmation_state": "synthetic_not_real_resident"
+        }
+      ],
+      "preferences": [
+        {
+          "preference_id": "U-004-PREF-01",
+          "statement": "Prefer a calm low-noise retreat space.",
+          "priority_state": "not_supplied",
+          "priority": null,
+          "tradeable": null,
+          "source_scope": "synthetic_scenario_authoring",
+          "inferred": false
+        },
+        {
+          "preference_id": "U-004-PREF-02",
+          "statement": "Prefer flexible guest use without sacrificing private areas.",
+          "priority_state": "not_supplied",
+          "priority": null,
+          "tradeable": null,
+          "source_scope": "synthetic_scenario_authoring",
+          "inferred": false
+        }
+      ],
+      "access_requirement_state": "not_stated",
+      "access_requirements": [],
+      "service_requirements": [
+        {
+          "service_requirement_id": "U-004-SERVICE-1",
+          "service_kind": "potable_water",
+          "state": "not_supplied",
+          "functional_unit": null,
+          "quantity": null,
+          "unit": null,
+          "quality_requirement_state": "not_supplied"
+        },
+        {
+          "service_requirement_id": "U-004-SERVICE-2",
+          "service_kind": "electricity",
+          "state": "not_supplied",
+          "functional_unit": null,
+          "quantity": null,
+          "unit": null,
+          "quality_requirement_state": "not_supplied"
+        },
+        {
+          "service_requirement_id": "U-004-SERVICE-3",
+          "service_kind": "useful_thermal",
+          "state": "not_supplied",
+          "functional_unit": null,
+          "quantity": null,
+          "unit": null,
+          "quality_requirement_state": "not_supplied"
+        },
+        {
+          "service_requirement_id": "U-004-SERVICE-4",
+          "service_kind": "ventilation",
+          "state": "not_supplied",
+          "functional_unit": null,
+          "quantity": null,
+          "unit": null,
+          "quality_requirement_state": "not_supplied"
+        },
+        {
+          "service_requirement_id": "U-004-SERVICE-5",
+          "service_kind": "wastewater",
+          "state": "not_supplied",
+          "functional_unit": null,
+          "quantity": null,
+          "unit": null,
+          "quality_requirement_state": "not_supplied"
+        }
+      ],
+      "shared_amenity_preferences": [],
+      "claim_ceiling": "Synthetic activity/requirement structure only; no real resident input, dimensional requirement, access need, service demand or suitability is asserted."
+    }
+  ],
+  "claim_ceiling": "This synthetic programme exercises unit/activity/requirement traceability only. It does not represent real residents, household demographics, required dimensions, accessibility needs, service demand, room suitability, or resident acceptance."
+}
