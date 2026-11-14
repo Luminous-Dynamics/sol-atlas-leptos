@@ -780,7 +780,9 @@
           "late-scene-acquisition-time",
           "catalogue-snapshot"
         ],
-        "expected_metrics": {}
+        "expected_metrics": {
+          "prior_claim_revalidation_required": true
+        }
       },
       "mutation_controls": [
         "sort only by ingestion timestamp",
@@ -915,7 +917,9 @@
           "revocation-event",
           "derivative-lineage"
         ],
-        "expected_metrics": {}
+        "expected_metrics": {
+          "derivative_lineage_review_required": true
+        }
       },
       "mutation_controls": [
         "move revocation effective time after new run",
