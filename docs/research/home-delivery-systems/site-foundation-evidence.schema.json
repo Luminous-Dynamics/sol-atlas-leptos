@@ -1,0 +1,617 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/Luminous-Dynamics/sol-atlas-leptos/main/docs/research/home-delivery-systems/site-foundation-evidence.schema.json",
+  "title": "Site-to-Foundation Evidence Record v0.1",
+  "description": "Evidence-linkage contract for site context, geotechnical investigation, professional foundation design, construction hold points and as-built records. It is not a geotechnical or structural calculation or approval.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "profile_id",
+    "maturity",
+    "site_binding",
+    "design_binding",
+    "screening_sources",
+    "investigation",
+    "professional_review",
+    "foundation_design",
+    "construction_hold_points",
+    "as_built",
+    "revision_dependencies",
+    "fixture_notes",
+    "claim_ceiling"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "site-foundation-evidence/0.1"
+    },
+    "profile_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "maturity": {
+      "enum": [
+        "synthetic_contract",
+        "screening_only",
+        "investigation_recorded",
+        "professional_review_recorded",
+        "construction_records_present",
+        "as_built_recorded",
+        "disputed"
+      ]
+    },
+    "site_binding": {
+      "$ref": "#/$defs/siteBinding"
+    },
+    "design_binding": {
+      "$ref": "#/$defs/designBinding"
+    },
+    "screening_sources": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/screeningSource"
+      }
+    },
+    "investigation": {
+      "$ref": "#/$defs/investigation"
+    },
+    "professional_review": {
+      "$ref": "#/$defs/professionalReview"
+    },
+    "foundation_design": {
+      "$ref": "#/$defs/foundationDesign"
+    },
+    "construction_hold_points": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/holdPoint"
+      }
+    },
+    "as_built": {
+      "$ref": "#/$defs/asBuilt"
+    },
+    "revision_dependencies": {
+      "type": "array",
+      "items": {
+        "enum": [
+          "site_boundary",
+          "survey_revision",
+          "coordinate_reference",
+          "site_levels",
+          "surface_drainage",
+          "cut_fill",
+          "groundwater",
+          "ground_investigation",
+          "geotechnical_interpretation",
+          "architectural_revision",
+          "structural_load_envelope",
+          "foundation_geometry",
+          "foundation_materials",
+          "construction_method",
+          "workmanship",
+          "stormwater_design",
+          "jurisdictional_rule_edition"
+        ]
+      },
+      "uniqueItems": true
+    },
+    "fixture_notes": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "claim_ceiling": {
+      "const": "This record checks evidence linkage and declared review/hold-point state only. It does not determine ground conditions, site suitability, foundation type or adequacy, structural safety, code compliance, inspection acceptance, construction release or occupancy."
+    }
+  },
+  "$defs": {
+    "reference": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "id",
+        "revision",
+        "digest"
+      ],
+      "properties": {
+        "kind": {
+          "type": "string",
+          "minLength": 1
+        },
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "revision": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "digest": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+    "siteBinding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "boundary_ref",
+        "survey_ref",
+        "coordinate_context"
+      ],
+      "properties": {
+        "boundary_ref": {
+          "$ref": "#/$defs/reference"
+        },
+        "survey_ref": {
+          "$ref": "#/$defs/reference"
+        },
+        "coordinate_context": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "horizontal_crs",
+            "axis_order",
+            "vertical_datum",
+            "linear_unit",
+            "coordinate_epoch",
+            "survey_time",
+            "coverage_state",
+            "uncertainty_state"
+          ],
+          "properties": {
+            "horizontal_crs": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "axis_order": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "vertical_datum": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "linear_unit": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "coordinate_epoch": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "survey_time": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "coverage_state": {
+              "enum": [
+                "known",
+                "unknown",
+                "partial",
+                "disputed"
+              ]
+            },
+            "uncertainty_state": {
+              "enum": [
+                "quantified",
+                "declared_without_quantification",
+                "unknown",
+                "disputed"
+              ]
+            }
+          }
+        }
+      }
+    },
+    "designBinding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "candidate_ref",
+        "architectural_revision_ref",
+        "structural_load_envelope_ref",
+        "geometry_ref",
+        "jurisdiction_profile_ref"
+      ],
+      "properties": {
+        "candidate_ref": {
+          "$ref": "#/$defs/reference"
+        },
+        "architectural_revision_ref": {
+          "$ref": "#/$defs/reference"
+        },
+        "structural_load_envelope_ref": {
+          "$ref": "#/$defs/reference"
+        },
+        "geometry_ref": {
+          "$ref": "#/$defs/reference"
+        },
+        "jurisdiction_profile_ref": {
+          "$ref": "#/$defs/reference"
+        }
+      }
+    },
+    "screeningSource": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "source_ref",
+        "role",
+        "state",
+        "claim_ceiling"
+      ],
+      "properties": {
+        "source_ref": {
+          "$ref": "#/$defs/reference"
+        },
+        "role": {
+          "enum": [
+            "regional_geology",
+            "terrain",
+            "flood_or_watercourse",
+            "drainage",
+            "historical_land_use",
+            "other"
+          ]
+        },
+        "state": {
+          "enum": [
+            "available",
+            "unknown",
+            "not_available",
+            "disputed",
+            "superseded"
+          ]
+        },
+        "claim_ceiling": {
+          "const": "screening_only; not a geotechnical investigation or site-suitability conclusion"
+        }
+      }
+    },
+    "investigation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "state",
+        "scope_ref",
+        "report_ref",
+        "coverage_state",
+        "observations"
+      ],
+      "properties": {
+        "state": {
+          "enum": [
+            "not_provided",
+            "planned",
+            "in_progress",
+            "completed",
+            "disputed",
+            "superseded"
+          ]
+        },
+        "scope_ref": {
+          "$ref": "#/$defs/reference"
+        },
+        "report_ref": {
+          "$ref": "#/$defs/reference"
+        },
+        "coverage_state": {
+          "enum": [
+            "not_assessed",
+            "declared",
+            "professionally_assessed",
+            "unknown",
+            "disputed"
+          ]
+        },
+        "observations": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/observation"
+          }
+        }
+      }
+    },
+    "observation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "observation_id",
+        "category",
+        "method_ref",
+        "location_ref",
+        "observed_at",
+        "record_ref",
+        "performed_by_ref",
+        "state"
+      ],
+      "properties": {
+        "observation_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "category": {
+          "enum": [
+            "borehole",
+            "test_pit",
+            "penetration_test",
+            "groundwater_observation",
+            "laboratory_test",
+            "fill_or_compaction_record",
+            "survey_observation",
+            "other"
+          ]
+        },
+        "method_ref": {
+          "$ref": "#/$defs/reference"
+        },
+        "location_ref": {
+          "$ref": "#/$defs/reference"
+        },
+        "observed_at": {
+          "type": "string",
+          "minLength": 1
+        },
+        "record_ref": {
+          "$ref": "#/$defs/reference"
+        },
+        "performed_by_ref": {
+          "$ref": "#/$defs/reference"
+        },
+        "state": {
+          "enum": [
+            "recorded",
+            "incomplete",
+            "unknown",
+            "disputed",
+            "superseded"
+          ]
+        }
+      }
+    },
+    "professionalReview": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "state",
+        "reviewer_ref",
+        "review_record_ref",
+        "review_scope",
+        "recorded_at",
+        "limitations"
+      ],
+      "properties": {
+        "state": {
+          "enum": [
+            "not_requested",
+            "pending",
+            "recorded",
+            "disputed",
+            "superseded"
+          ]
+        },
+        "reviewer_ref": {
+          "$ref": "#/$defs/reference"
+        },
+        "review_record_ref": {
+          "$ref": "#/$defs/reference"
+        },
+        "review_scope": {
+          "type": "string",
+          "minLength": 1
+        },
+        "recorded_at": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "limitations": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "foundationDesign": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "state",
+        "drawing_ref",
+        "design_revision_ref",
+        "geotechnical_report_ref",
+        "load_envelope_ref",
+        "rule_refs",
+        "responsible_professional_ref",
+        "limitations"
+      ],
+      "properties": {
+        "state": {
+          "enum": [
+            "not_provided",
+            "draft",
+            "issued_for_review",
+            "review_recorded",
+            "superseded",
+            "disputed"
+          ]
+        },
+        "drawing_ref": {
+          "$ref": "#/$defs/reference"
+        },
+        "design_revision_ref": {
+          "$ref": "#/$defs/reference"
+        },
+        "geotechnical_report_ref": {
+          "$ref": "#/$defs/reference"
+        },
+        "load_envelope_ref": {
+          "$ref": "#/$defs/reference"
+        },
+        "rule_refs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/reference"
+          }
+        },
+        "responsible_professional_ref": {
+          "$ref": "#/$defs/reference"
+        },
+        "limitations": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "holdPoint": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "hold_point_id",
+        "stage",
+        "required_by_design",
+        "state",
+        "inspection_ref",
+        "inspector_ref",
+        "event_time",
+        "deviation_ref",
+        "disposition_ref"
+      ],
+      "properties": {
+        "hold_point_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "stage": {
+          "enum": [
+            "excavation_and_founding_horizon",
+            "fill_and_compaction",
+            "reinforcement_before_concrete",
+            "concrete_material_and_placement",
+            "damp_proofing_and_drainage",
+            "as_built_survey",
+            "other"
+          ]
+        },
+        "required_by_design": {
+          "type": "boolean"
+        },
+        "state": {
+          "enum": [
+            "not_scheduled",
+            "awaiting_inspection",
+            "inspected_pending_disposition",
+            "disposition_recorded",
+            "failed",
+            "disputed"
+          ]
+        },
+        "inspection_ref": {
+          "$ref": "#/$defs/reference"
+        },
+        "inspector_ref": {
+          "$ref": "#/$defs/reference"
+        },
+        "event_time": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "deviation_ref": {
+          "$ref": "#/$defs/reference"
+        },
+        "disposition_ref": {
+          "$ref": "#/$defs/reference"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "state": {
+                "const": "disposition_recorded"
+              }
+            },
+            "required": [
+              "state"
+            ]
+          },
+          "then": {
+            "properties": {
+              "inspection_ref": {
+                "$ref": "#/$defs/reference"
+              },
+              "inspector_ref": {
+                "$ref": "#/$defs/reference"
+              },
+              "event_time": {
+                "type": "string",
+                "minLength": 1
+              },
+              "disposition_ref": {
+                "$ref": "#/$defs/reference"
+              }
+            }
+          }
+        }
+      ]
+    },
+    "asBuilt": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "state",
+        "survey_ref",
+        "installed_revision_ref",
+        "deviation_refs"
+      ],
+      "properties": {
+        "state": {
+          "enum": [
+            "not_started",
+            "in_progress",
+            "recorded",
+            "disputed"
+          ]
+        },
+        "survey_ref": {
+          "$ref": "#/$defs/reference"
+        },
+        "installed_revision_ref": {
+          "$ref": "#/$defs/reference"
+        },
+        "deviation_refs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/reference"
+          }
+        }
+      }
+    }
+  }
+}

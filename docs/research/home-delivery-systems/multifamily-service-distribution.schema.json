@@ -1,0 +1,670 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/Luminous-Dynamics/sol-atlas-leptos/main/docs/research/home-delivery-systems/multifamily-service-distribution.schema.json",
+  "title": "Multi-family Shared Service Distribution v0.1",
+  "description": "Synthetic-first contract linking shared building service sources, plant, zones, risers, meters and apartment-boundary service trajectories. It is not a hydraulic/electrical/thermal solver, utility controller or service availability certificate.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "profile_id",
+    "maturity",
+    "source_binding",
+    "resources",
+    "nodes",
+    "edges",
+    "unit_services",
+    "events",
+    "allocation_policy",
+    "accounting",
+    "claim_ceiling",
+    "fixture_notes"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "multifamily-service-distribution/0.1"
+    },
+    "profile_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "maturity": {
+      "enum": [
+        "synthetic_contract",
+        "topology_declared",
+        "metered",
+        "professionally_assessed",
+        "operational_observed"
+      ]
+    },
+    "source_binding": {
+      "$ref": "#/$defs/sourceBinding"
+    },
+    "resources": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/resource"
+      }
+    },
+    "nodes": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/node"
+      }
+    },
+    "edges": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/edge"
+      }
+    },
+    "unit_services": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/unitService"
+      }
+    },
+    "events": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/event"
+      }
+    },
+    "allocation_policy": {
+      "$ref": "#/$defs/allocationPolicy"
+    },
+    "accounting": {
+      "$ref": "#/$defs/accounting"
+    },
+    "claim_ceiling": {
+      "const": "This record establishes only declared synthetic service topology and boundary identities. It does not establish source capacity, water quality/potability, pressure/flow, electrical safety/capacity, useful thermal delivery, apartment service availability, fairness, code compliance or operational resilience."
+    },
+    "fixture_notes": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "string"
+      }
+    }
+  },
+  "$defs": {
+    "reference": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "id",
+        "revision",
+        "digest"
+      ],
+      "properties": {
+        "kind": {
+          "type": "string",
+          "minLength": 1
+        },
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "revision": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "digest": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+    "nullableRef": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/reference"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "sourceBinding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "building_candidate_ref",
+        "design_revision_ref",
+        "jurisdiction_profile_ref"
+      ],
+      "properties": {
+        "building_candidate_ref": {
+          "$ref": "#/$defs/reference"
+        },
+        "design_revision_ref": {
+          "$ref": "#/$defs/reference"
+        },
+        "jurisdiction_profile_ref": {
+          "$ref": "#/$defs/reference"
+        }
+      }
+    },
+    "resource": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "resource_id",
+        "resource_class",
+        "state",
+        "quality_state",
+        "base_unit",
+        "owner_ref",
+        "evidence_refs"
+      ],
+      "properties": {
+        "resource_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "resource_class": {
+          "enum": [
+            "potable_water",
+            "non_potable_water",
+            "electricity",
+            "useful_thermal",
+            "wastewater",
+            "communications"
+          ]
+        },
+        "state": {
+          "enum": [
+            "unknown",
+            "declared",
+            "measured",
+            "disputed",
+            "not_available"
+          ]
+        },
+        "quality_state": {
+          "enum": [
+            "unknown",
+            "qualified",
+            "failed",
+            "not_applicable",
+            "disputed"
+          ]
+        },
+        "base_unit": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "owner_ref": {
+          "$ref": "#/$defs/nullableRef"
+        },
+        "evidence_refs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/reference"
+          }
+        }
+      }
+    },
+    "node": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "node_id",
+        "node_kind",
+        "resource_id",
+        "floor_id",
+        "unit_id",
+        "state",
+        "capacity",
+        "measurement_ref",
+        "evidence_refs"
+      ],
+      "properties": {
+        "node_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "node_kind": {
+          "enum": [
+            "source",
+            "storage",
+            "plant",
+            "distribution_zone",
+            "riser",
+            "branch",
+            "meter",
+            "unit_boundary",
+            "equipment",
+            "other"
+          ]
+        },
+        "resource_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "floor_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "unit_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "state": {
+          "enum": [
+            "unknown",
+            "declared",
+            "measured",
+            "disputed",
+            "isolated",
+            "out_of_service"
+          ]
+        },
+        "capacity": {
+          "$ref": "#/$defs/quantity"
+        },
+        "measurement_ref": {
+          "$ref": "#/$defs/nullableRef"
+        },
+        "evidence_refs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/reference"
+          }
+        }
+      }
+    },
+    "edge": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "edge_id",
+        "from_node_id",
+        "to_node_id",
+        "relation",
+        "state",
+        "loss"
+      ],
+      "properties": {
+        "edge_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "from_node_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "to_node_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "relation": {
+          "enum": [
+            "resource_flow",
+            "power_dependency",
+            "control_dependency",
+            "measurement_of",
+            "isolation_of"
+          ]
+        },
+        "state": {
+          "enum": [
+            "unknown",
+            "declared",
+            "measured",
+            "disputed"
+          ]
+        },
+        "loss": {
+          "$ref": "#/$defs/quantity"
+        }
+      }
+    },
+    "unitService": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "unit_id",
+        "service_id",
+        "resource_id",
+        "boundary_node_id",
+        "demand",
+        "delivered",
+        "service_floor",
+        "quality_state",
+        "evidence_refs"
+      ],
+      "properties": {
+        "unit_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "service_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "resource_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "boundary_node_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "demand": {
+          "$ref": "#/$defs/quantity"
+        },
+        "delivered": {
+          "$ref": "#/$defs/quantity"
+        },
+        "service_floor": {
+          "enum": [
+            "unknown",
+            "resident_defined",
+            "professional_requirement",
+            "not_applicable",
+            "disputed"
+          ]
+        },
+        "quality_state": {
+          "enum": [
+            "unknown",
+            "qualified",
+            "failed",
+            "not_applicable",
+            "disputed"
+          ]
+        },
+        "evidence_refs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/reference"
+          }
+        }
+      }
+    },
+    "event": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "event_id",
+        "scenario_id",
+        "event_kind",
+        "start_s",
+        "duration_s",
+        "affected_node_ids",
+        "state",
+        "probability"
+      ],
+      "properties": {
+        "event_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "scenario_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "event_kind": {
+          "enum": [
+            "baseline",
+            "source_interruption",
+            "plant_failure",
+            "power_interruption",
+            "riser_isolation",
+            "quality_evidence_withdrawal",
+            "maintenance_isolation",
+            "communications_failure",
+            "recovery",
+            "reserve_exhaustion",
+            "allocation_policy_change",
+            "repair_delay",
+            "network_partition"
+          ]
+        },
+        "start_s": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "duration_s": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "affected_node_ids": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true
+        },
+        "state": {
+          "const": "declared_synthetic"
+        },
+        "probability": {
+          "const": null
+        }
+      }
+    },
+    "allocationPolicy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "policy_id",
+        "state",
+        "authority_ref",
+        "resident_notice_state",
+        "rules_ref"
+      ],
+      "properties": {
+        "policy_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "state": {
+          "enum": [
+            "unknown",
+            "draft",
+            "authorized",
+            "disputed",
+            "not_applicable"
+          ]
+        },
+        "authority_ref": {
+          "$ref": "#/$defs/nullableRef"
+        },
+        "resident_notice_state": {
+          "enum": [
+            "unknown",
+            "declared",
+            "not_applicable"
+          ]
+        },
+        "rules_ref": {
+          "$ref": "#/$defs/nullableRef"
+        }
+      }
+    },
+    "accounting": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "resource_id",
+        "observation_window",
+        "source_input",
+        "storage_change",
+        "unit_delivered",
+        "declared_loss",
+        "unresolved_residual",
+        "conservation_state"
+      ],
+      "properties": {
+        "resource_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "observation_window": {
+          "$ref": "#/$defs/nullableRef"
+        },
+        "source_input": {
+          "$ref": "#/$defs/quantity"
+        },
+        "storage_change": {
+          "$ref": "#/$defs/quantity"
+        },
+        "unit_delivered": {
+          "$ref": "#/$defs/quantity"
+        },
+        "declared_loss": {
+          "$ref": "#/$defs/quantity"
+        },
+        "unresolved_residual": {
+          "$ref": "#/$defs/quantity"
+        },
+        "conservation_state": {
+          "enum": [
+            "unknown",
+            "not_computed",
+            "reconciled",
+            "disputed"
+          ]
+        }
+      }
+    },
+    "quantity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "state",
+        "lower",
+        "upper",
+        "unit",
+        "boundary_ref",
+        "evidence_ref"
+      ],
+      "properties": {
+        "state": {
+          "enum": [
+            "unknown",
+            "not_computed",
+            "measured",
+            "estimated",
+            "disputed",
+            "not_applicable"
+          ]
+        },
+        "lower": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "upper": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "unit": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "boundary_ref": {
+          "$ref": "#/$defs/nullableRef"
+        },
+        "evidence_ref": {
+          "$ref": "#/$defs/nullableRef"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "state": {
+                "enum": [
+                  "unknown",
+                  "not_computed",
+                  "not_applicable",
+                  "disputed"
+                ]
+              }
+            },
+            "required": [
+              "state"
+            ]
+          },
+          "then": {
+            "properties": {
+              "lower": {
+                "type": "null"
+              },
+              "upper": {
+                "type": "null"
+              },
+              "unit": {
+                "type": "null"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "state": {
+                "enum": [
+                  "measured",
+                  "estimated"
+                ]
+              }
+            },
+            "required": [
+              "state"
+            ]
+          },
+          "then": {
+            "properties": {
+              "lower": {
+                "type": "number"
+              },
+              "upper": {
+                "type": "number"
+              },
+              "unit": {
+                "type": "string",
+                "minLength": 1
+              },
+              "boundary_ref": {
+                "$ref": "#/$defs/reference"
+              },
+              "evidence_ref": {
+                "$ref": "#/$defs/reference"
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

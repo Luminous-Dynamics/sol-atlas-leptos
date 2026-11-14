@@ -1,0 +1,668 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/Luminous-Dynamics/sol-atlas-leptos/main/docs/research/home-delivery-systems/multifamily-building.schema.json",
+  "title": "Multi-family Building Candidate v0.1",
+  "description": "Synthetic-first evidence and geometry contract for apartments and multi-family buildings. Geometry is limited to floor-local orthogonal rectangles and declared everyday/service connectivity; it is not an architectural, fire, accessibility, structural or code verifier.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "candidate_id",
+    "maturity",
+    "source_binding",
+    "building",
+    "unit_programmes",
+    "vertical_connections",
+    "shared_services",
+    "assessment_register",
+    "claim_ceiling",
+    "fixture_notes"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "multi-family-building/0.1"
+    },
+    "candidate_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "maturity": {
+      "enum": [
+        "synthetic_contract",
+        "spatial_candidate",
+        "specialist_evidence_linked",
+        "professionally_reviewed",
+        "as_built_recorded"
+      ]
+    },
+    "source_binding": {
+      "$ref": "#/$defs/sourceBinding"
+    },
+    "building": {
+      "$ref": "#/$defs/building"
+    },
+    "unit_programmes": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/unitProgramme"
+      },
+      "minItems": 1
+    },
+    "vertical_connections": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/verticalConnection"
+      }
+    },
+    "shared_services": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/sharedService"
+      }
+    },
+    "assessment_register": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/assessment"
+      }
+    },
+    "claim_ceiling": {
+      "const": "A passing contract/geometry check establishes only that declared synthetic unit/floor/space identities, floor-local rectangles and everyday/service connectivity satisfy the checked data contract. It does not establish design quality, resident suitability, accessibility, fire/egress, structure, services capacity, daylight, privacy, acoustics, thermal performance, affordability, planning approval, buildability or occupancy."
+    },
+    "fixture_notes": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "minItems": 1
+    }
+  },
+  "$defs": {
+    "reference": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "id",
+        "revision",
+        "digest"
+      ],
+      "properties": {
+        "kind": {
+          "type": "string",
+          "minLength": 1
+        },
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "revision": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "digest": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+    "sourceBinding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "resident_programme_ref",
+        "site_context_ref",
+        "jurisdiction_profile_ref",
+        "design_revision_ref"
+      ],
+      "properties": {
+        "resident_programme_ref": {
+          "$ref": "#/$defs/reference"
+        },
+        "site_context_ref": {
+          "$ref": "#/$defs/reference"
+        },
+        "jurisdiction_profile_ref": {
+          "$ref": "#/$defs/reference"
+        },
+        "design_revision_ref": {
+          "$ref": "#/$defs/reference"
+        }
+      }
+    },
+    "building": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "building_id",
+        "coordinate_unit",
+        "origin_rule",
+        "envelope",
+        "floors",
+        "spaces",
+        "everyday_connections",
+        "vertical_cores"
+      ],
+      "properties": {
+        "building_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "coordinate_unit": {
+          "const": "millimetre"
+        },
+        "origin_rule": {
+          "const": "synthetic/local building-plan origin; coordinate reference must be bound separately before real-site use"
+        },
+        "envelope": {
+          "$ref": "#/$defs/rectangle"
+        },
+        "floors": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/floor"
+          }
+        },
+        "spaces": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/buildingSpace"
+          }
+        },
+        "everyday_connections": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/connection"
+          }
+        },
+        "vertical_cores": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/verticalCore"
+          }
+        }
+      }
+    },
+    "rectangle": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "x_mm",
+        "y_mm",
+        "width_mm",
+        "height_mm"
+      ],
+      "properties": {
+        "x_mm": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "y_mm": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "width_mm": {
+          "type": "integer",
+          "exclusiveMinimum": 0
+        },
+        "height_mm": {
+          "type": "integer",
+          "exclusiveMinimum": 0
+        }
+      }
+    },
+    "floor": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "floor_id",
+        "floor_index",
+        "elevation_mm",
+        "floor_envelope"
+      ],
+      "properties": {
+        "floor_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "floor_index": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "elevation_mm": {
+          "type": "integer"
+        },
+        "floor_envelope": {
+          "$ref": "#/$defs/rectangle"
+        }
+      }
+    },
+    "buildingSpace": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "space_id",
+        "floor_id",
+        "space_kind",
+        "unit_id",
+        "footprint",
+        "resident_programme_ref",
+        "geometry_state"
+      ],
+      "properties": {
+        "space_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "floor_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "space_kind": {
+          "enum": [
+            "dwelling_unit",
+            "corridor",
+            "lobby",
+            "stair",
+            "lift",
+            "shared_amenity",
+            "courtyard",
+            "service_plant",
+            "refuse",
+            "storage",
+            "service_access",
+            "other"
+          ]
+        },
+        "unit_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "footprint": {
+          "$ref": "#/$defs/rectangle"
+        },
+        "resident_programme_ref": {
+          "$ref": "#/$defs/nullableReference"
+        },
+        "geometry_state": {
+          "enum": [
+            "synthetic",
+            "declared",
+            "unknown",
+            "disputed"
+          ]
+        }
+      }
+    },
+    "nullableReference": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/reference"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "connection": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "connection_id",
+        "floor_id",
+        "from_space_id",
+        "to_space_id",
+        "connection_kind",
+        "state",
+        "portal"
+      ],
+      "properties": {
+        "connection_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "floor_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "from_space_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "to_space_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "connection_kind": {
+          "enum": [
+            "everyday_access",
+            "shared_amenity_access",
+            "service_access"
+          ]
+        },
+        "state": {
+          "enum": [
+            "declared",
+            "unknown",
+            "disputed"
+          ]
+        },
+        "portal": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "orientation",
+            "coordinate_mm",
+            "start_mm",
+            "end_mm"
+          ],
+          "properties": {
+            "orientation": {
+              "enum": [
+                "horizontal",
+                "vertical"
+              ]
+            },
+            "coordinate_mm": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "start_mm": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "end_mm": {
+              "type": "integer",
+              "minimum": 0
+            }
+          }
+        }
+      }
+    },
+    "verticalCore": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "core_id",
+        "core_kind",
+        "floor_ids",
+        "space_ids",
+        "availability_state",
+        "assessment_ref"
+      ],
+      "properties": {
+        "core_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "core_kind": {
+          "enum": [
+            "stair",
+            "lift",
+            "ramp",
+            "other"
+          ]
+        },
+        "floor_ids": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "minItems": 2,
+          "uniqueItems": true
+        },
+        "space_ids": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "minItems": 2,
+          "uniqueItems": true
+        },
+        "availability_state": {
+          "enum": [
+            "unknown",
+            "declared",
+            "out_of_service",
+            "disputed"
+          ]
+        },
+        "assessment_ref": {
+          "$ref": "#/$defs/nullableReference"
+        }
+      }
+    },
+    "unitProgramme": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "unit_id",
+        "space_id",
+        "resident_programme_ref",
+        "requirement_refs",
+        "programme_state"
+      ],
+      "properties": {
+        "unit_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "space_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "resident_programme_ref": {
+          "$ref": "#/$defs/nullableReference"
+        },
+        "requirement_refs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/reference"
+          }
+        },
+        "programme_state": {
+          "enum": [
+            "unknown",
+            "resident_authored",
+            "partially_mapped",
+            "disputed"
+          ]
+        }
+      }
+    },
+    "verticalConnection": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "connection_id",
+        "core_id",
+        "from_floor_id",
+        "to_floor_id",
+        "connection_kind",
+        "state"
+      ],
+      "properties": {
+        "connection_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "core_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "from_floor_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "to_floor_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "connection_kind": {
+          "enum": [
+            "everyday_vertical",
+            "service_vertical"
+          ]
+        },
+        "state": {
+          "enum": [
+            "declared",
+            "unknown",
+            "disputed"
+          ]
+        }
+      }
+    },
+    "sharedService": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "service_id",
+        "service_kind",
+        "owner_ref",
+        "served_unit_ids",
+        "topology_state",
+        "capacity_state",
+        "capacity_evidence_ref",
+        "measurement_refs",
+        "governance_ref",
+        "claim_ceiling"
+      ],
+      "properties": {
+        "service_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "service_kind": {
+          "enum": [
+            "water",
+            "potable_water",
+            "non_potable_water",
+            "wastewater",
+            "electricity",
+            "thermal",
+            "ventilation",
+            "communications",
+            "waste",
+            "maintenance",
+            "delivery",
+            "other"
+          ]
+        },
+        "owner_ref": {
+          "$ref": "#/$defs/reference"
+        },
+        "served_unit_ids": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true
+        },
+        "topology_state": {
+          "enum": [
+            "unknown",
+            "declared",
+            "partially_mapped",
+            "disputed"
+          ]
+        },
+        "capacity_state": {
+          "enum": [
+            "unknown",
+            "measured",
+            "professionally_assessed",
+            "modelled",
+            "disputed"
+          ]
+        },
+        "capacity_evidence_ref": {
+          "$ref": "#/$defs/nullableReference"
+        },
+        "measurement_refs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/reference"
+          }
+        },
+        "governance_ref": {
+          "$ref": "#/$defs/nullableReference"
+        },
+        "claim_ceiling": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "assessment": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "domain",
+        "status",
+        "owner_ref",
+        "evidence_refs",
+        "scope"
+      ],
+      "properties": {
+        "domain": {
+          "enum": [
+            "planning",
+            "structure",
+            "foundation",
+            "fire_life_safety",
+            "accessibility",
+            "daylight",
+            "view",
+            "visual_privacy",
+            "acoustics",
+            "thermal",
+            "ventilation",
+            "water",
+            "energy",
+            "waste",
+            "cost_of_place",
+            "construction",
+            "operations",
+            "resident_acceptance"
+          ]
+        },
+        "status": {
+          "enum": [
+            "not_assessed",
+            "unknown",
+            "evidence_incomplete",
+            "in_review",
+            "qualified",
+            "rejected",
+            "disputed"
+          ]
+        },
+        "owner_ref": {
+          "$ref": "#/$defs/nullableReference"
+        },
+        "evidence_refs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/reference"
+          }
+        },
+        "scope": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    }
+  }
+}
