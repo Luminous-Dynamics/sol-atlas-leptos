@@ -71,7 +71,7 @@
   ],
   "nodes": [
     {
-      "node_id": "SRC-MUNICIPAL-POTABLE",
+      "node_id": "SRC-MUNICIPAL-WATER-UNQUALIFIED",
       "node_kind": "source",
       "resource_id": "R-POTABLE-WATER",
       "floor_id": null,
@@ -470,7 +470,7 @@
   "edges": [
     {
       "edge_id": "E-WATER-SOURCE-STORAGE",
-      "from_node_id": "SRC-MUNICIPAL-POTABLE",
+      "from_node_id": "SRC-MUNICIPAL-WATER-UNQUALIFIED",
       "to_node_id": "STORAGE-POTABLE",
       "relation": "resource_flow",
       "state": "declared",
@@ -1104,7 +1104,7 @@
       "start_s": 3600,
       "duration_s": 7200,
       "affected_node_ids": [
-        "SRC-MUNICIPAL-POTABLE"
+        "SRC-MUNICIPAL-WATER-UNQUALIFIED"
       ],
       "state": "declared_synthetic",
       "probability": null
@@ -1155,7 +1155,7 @@
       "start_s": 18000,
       "duration_s": null,
       "affected_node_ids": [
-        "SRC-MUNICIPAL-POTABLE",
+        "SRC-MUNICIPAL-WATER-UNQUALIFIED",
         "STORAGE-POTABLE"
       ],
       "state": "declared_synthetic",
@@ -1214,5 +1214,13 @@
     },
     "conservation_state": "unknown"
   },
-  "claim_ceiling": "This record establishes only declared synthetic service topology and boundary identities. It does not establish source capacity, water quality/potability, pressure/flow, electrical safety/capacity, useful thermal delivery, apartment service availability, fairness, code compliance or operational resilience."
+  "claim_ceiling": "This record establishes only declared synthetic service topology and boundary identities. It does not establish source capacity, water quality/potability, pressure/flow, electrical safety/capacity, useful thermal delivery, apartment service availability, fairness, code compliance or operational resilience.",
+  "fixture_notes": [
+    "All source capacities, storage quantities, pump ratings, pressure, flow, unit demand, delivered service and losses remain UNKNOWN.",
+    "R-POTABLE-WATER is an intended circuit/resource class only. The source node is named unqualified, and quality_state UNKNOWN means no potability or treatment claim is made.",
+    "R-NONPOTABLE-WATER is reserved as a separate resource class; no treatment, source, distribution path or unit use is represented or qualified in this fixture.",
+    "Electrical input and useful thermal output remain separate resource classes and are never numerically substituted.",
+    "The six event timings are synthetic relative test inputs, not measured outage frequencies, probability estimates or a forecast for any city or utility.",
+    "Allocation policy, resident service floors, ownership and tariffs remain UNKNOWN; this fixture makes no allocation or fairness claim."
+  ]
 }
