@@ -18,6 +18,7 @@ pub mod earth_observability;
 pub mod earth_observability_synthetic;
 pub mod evidence_revalidation;
 pub mod field_activity_admission;
+pub mod investigation_tournament;
 pub mod economics;
 pub mod energy_trading;
 pub mod geo;
