@@ -27,7 +27,20 @@ Senousy et al., *YOLO vs. diffusion networks for underground pipe detection: a c
 
 **Sol-Atlas interpretation:** this is a strong current event-box/latency baseline, not an asset reconstruction result. A 20-image test set and single industrial site do not establish transfer to another site, instrument, geology or survey practice. The 0.94 test mAP50 is a useful reproduction target, not proof that a system has mapped utilities correctly.
 
-### 1.2 Probabilistic localization baseline — Bayesian forward model, January 2026
+### 1.2 Lightweight detector baseline — Ghost-YOLOv8n, July 2026
+
+Arvas & Çınar, *Detection of underground objects from GPR data using a lightweight YOLO-based approach*, Scientific Reports, published 5 July 2026.
+
+- Starts from YOLOv8n and replaces selected Conv/C2f stages with GhostConv/C3Ghost, with a single high-resolution detection head for small radargram targets.
+- Uses four Roboflow sources (GEO, GPR_data, AAAA Radargram Dataset, Deep Helder Fresh) individually and as a combined multi-source image set.
+- Uses 70/15/15 train/validation/test partitions. The combined dataset is described as a diversity/generalization experiment, not a newly established physical benchmark.
+- On the integrated dataset, the paper reports mAP@0.5 = 0.756, mAP@0.5:0.95 = 0.363 and 24.3 ms/frame. Relative to its standard YOLOv8n baseline, the reported gains are 5.73% in mAP@0.5 and 5.88% in F1.
+- The model is reported faster than the compared RT-DETR configuration (24.3 versus 118.6 ms/frame).
+- The authors explicitly note that detailed acquisition metadata—including antenna frequency, burial depth, soil composition, moisture and radar hardware—are not consistently available across the Roboflow source sets. Their future work identifies validation on newly acquired field GPR data as necessary.
+
+**Sol-Atlas interpretation:** a strong candidate for reproducing the lightweight detector/latency frontier and a useful small-object ablation baseline. However, mixed-source image aggregation does not by itself establish a physically controlled held-out-site evaluation when acquisition metadata and source lineage are incomplete. This should be treated as an image-level detector track, not utility-asset topology or physical POD qualification.
+
+### 1.3 Probabilistic localization baseline — Bayesian forward model, January 2026
 
 Zhang & Cai, *Uncertainty-aware localization and orientation estimation of underground pipelines from GPR data*, Advanced Engineering Informatics, January 2026, DOI 10.1016/j.aei.2025.104093.
 
@@ -38,7 +51,7 @@ The work develops a domain-informed 3D pipe forward model and Bayesian inference
 
 **Sol-Atlas interpretation:** the field/simulation coverage gap is a major warning about uncertainty under model mismatch. Sol-Atlas should compare posterior coverage and interval width on independent physical field data, stratified by site and acquisition domain. A 97.5% simulation coverage headline is not a physical qualification result.
 
-### 1.3 Survey and processing optimization baseline — Leica DS2000, April 2026
+### 1.4 Survey and processing optimization baseline — Leica DS2000, April 2026
 
 Marjetič et al., *Multicriteria Statistical Optimization of GPR Survey and Processing for Underground Utility Mapping: Case Study of the Leica DS2000 System*, Remote Sensing 18(7), 1092, 5 April 2026, DOI 10.3390/rs18071092.
 
@@ -53,7 +66,7 @@ The study:
 
 **Sol-Atlas interpretation:** this is a useful operational baseline for survey-parameter optimization. It demonstrates that acquisition and processing should be selected jointly and conditionally, not fixed globally. It is not a broad transfer benchmark: three lines, one DS2000 system and favourable conditions do not characterize wet clay, rough terrain, multiple instruments or network topology.
 
-### 1.4 Field data benchmark — UT-Gold-D, 2023/2024
+### 1.5 Field data benchmark — UT-Gold-D, 2023/2024
 
 ter Huurne, Olde Scholtenhuis & Dorée, *Ground penetrating radar at work: A realistic perspective on utility surveying in the Netherlands through a comprehensive ground-truth dataset*, Data in Brief 54, 110329 (2024), DOI 10.1016/j.dib.2024.110329. Dataset DOI 10.4121/96303227-5886-41c9-8607-70fdd2cfe7c1.
 
@@ -74,7 +87,7 @@ The paper identifies important limitations: several SEG-Y files lack georeferenc
 
 | Track | Strong current comparator | Sol-Atlas target |
 |---|---|---|
-| Event detection | YOLO-family 0.94 mAP50 on small single-site test | Reproduce on the same data if rights permit; then evaluate on independent projects/sites and target strata |
+| Event detection | YOLOv12n 0.94 mAP50 on 20-image single-site test; Ghost-YOLOv8n 0.756 mAP@0.5 and 24.3 ms/frame on a mixed Roboflow image set | Reproduce both on their own splits where rights permit; then evaluate on physically controlled independent projects/sites and target strata |
 | Localization | Bayesian physics-informed GPR inversion | Match or exceed field interval calibration while reducing interval width and controlling depth/position bias |
 | Survey optimization | 128-configuration DS2000 study and TOPSIS workflow | Equal-budget, multi-domain action selection using explicit decision loss and EVSI |
 | Sensor qualification | POD/PFA and hit/miss methods | Target-conditional curves with independent site-cluster uncertainty and validated operating envelope |
