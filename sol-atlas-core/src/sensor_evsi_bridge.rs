@@ -100,6 +100,7 @@ pub enum DetectionLikelihoodError {
     SensorConfigurationMismatch,
     DomainMismatch,
     PoissonProcessNotQualified,
+    LikelihoodComplementMismatch(&'static str),
 }
 
 fn valid_probability(value: f64) -> bool {
@@ -236,6 +237,47 @@ impl DetectionLikelihoodEvidence {
 }
 
 impl BinaryDetectionLikelihoods {
+    fn validate_internal_probabilities(&self) -> Result<(), DetectionLikelihoodError> {
+        for (field, value) in [
+            ("probability_of_detection", self.probability_of_detection),
+            (
+                "probability_of_no_detection_given_target",
+                self.probability_of_no_detection_given_target,
+            ),
+            (
+                "probability_of_false_alarm",
+                self.probability_of_false_alarm,
+            ),
+            (
+                "probability_of_no_alarm_given_absence",
+                self.probability_of_no_alarm_given_absence,
+            ),
+        ] {
+            if !valid_probability(value) {
+                return Err(DetectionLikelihoodError::InvalidProbability(field));
+            }
+        }
+
+        if (self.probability_of_no_detection_given_target - (1.0 - self.probability_of_detection))
+            .abs()
+            > 1e-12
+        {
+            return Err(DetectionLikelihoodError::LikelihoodComplementMismatch(
+                "probability_of_no_detection_given_target",
+            ));
+        }
+        if (self.probability_of_no_alarm_given_absence - (1.0 - self.probability_of_false_alarm))
+            .abs()
+            > 1e-12
+        {
+            return Err(DetectionLikelihoodError::LikelihoodComplementMismatch(
+                "probability_of_no_alarm_given_absence",
+            ));
+        }
+
+        Ok(())
+    }
+
     /// Convert to the map shape consumed by the existing discrete EVSI kernel:
     /// outcome -> latent state -> P(outcome | state).
     pub fn as_evsi_outcome_likelihoods(&self) -> BTreeMap<String, BTreeMap<String, f64>> {
@@ -270,6 +312,7 @@ impl BinaryDetectionLikelihoods {
         &self,
         target_prevalence: f64,
     ) -> Result<f64, DetectionLikelihoodError> {
+        self.validate_internal_probabilities()?;
         if !valid_probability(target_prevalence) {
             return Err(DetectionLikelihoodError::InvalidProbability(
                 "target_prevalence",
@@ -283,6 +326,30 @@ impl BinaryDetectionLikelihoods {
             ));
         }
         Ok(self.probability_of_detection * target_prevalence / hit_probability)
+    }
+
+    /// Posterior target probability after a non-detection under an explicitly
+    /// declared prevalence and one qualified search opportunity. A high
+    /// posterior is not an absence claim; a low posterior is not a survey
+    /// certification. The caller retains the target and opportunity scope.
+    pub fn posterior_target_probability_given_no_hit(
+        &self,
+        target_prevalence: f64,
+    ) -> Result<f64, DetectionLikelihoodError> {
+        self.validate_internal_probabilities()?;
+        if !valid_probability(target_prevalence) {
+            return Err(DetectionLikelihoodError::InvalidProbability(
+                "target_prevalence",
+            ));
+        }
+        let no_hit_probability = self.probability_of_no_detection_given_target * target_prevalence
+            + self.probability_of_no_alarm_given_absence * (1.0 - target_prevalence);
+        if no_hit_probability <= f64::EPSILON {
+            return Err(DetectionLikelihoodError::InvalidProbability(
+                "zero_probability_no_hit",
+            ));
+        }
+        Ok(self.probability_of_no_detection_given_target * target_prevalence / no_hit_probability)
     }
 }
 
@@ -325,13 +392,98 @@ mod tests {
         let result = model.to_binary_likelihoods().unwrap();
         let table = result.as_evsi_outcome_likelihoods();
         assert_eq!(table["hit"]["target_present"], 0.95);
-        assert_eq!(table["no_hit"]["target_present"], 0.05);
+        assert!((table["no_hit"]["target_present"] - 0.05).abs() < 1e-12);
         assert_eq!(table["hit"]["target_absent"], 0.02);
         assert_eq!(table["no_hit"]["target_absent"], 0.98);
         for state in ["target_present", "target_absent"] {
             let total: f64 = table.values().map(|outcome| outcome[state]).sum();
             assert!((total - 1.0).abs() < 1e-12);
         }
+    }
+
+    #[test]
+    fn no_hit_posterior_uses_explicit_prevalence_and_both_likelihoods() {
+        let model = evidence(
+            0.95,
+            0.02,
+            LikelihoodEvidenceStatus::IndependentlyQualifiedForDeclaredDomain,
+        )
+        .to_binary_likelihoods()
+        .unwrap();
+        let posterior = model
+            .posterior_target_probability_given_no_hit(0.5)
+            .unwrap();
+        assert!((posterior - (0.05 * 0.5) / (0.05 * 0.5 + 0.98 * 0.5)).abs() < 1e-12);
+    }
+
+    #[test]
+    fn no_hit_posterior_does_not_default_target_prevalence() {
+        let model = evidence(0.95, 0.02, LikelihoodEvidenceStatus::ResearchPointEstimate)
+            .to_binary_likelihoods()
+            .unwrap();
+        let low_prevalence = model
+            .posterior_target_probability_given_no_hit(0.01)
+            .unwrap();
+        let high_prevalence = model
+            .posterior_target_probability_given_no_hit(0.5)
+            .unwrap();
+        assert!(low_prevalence < high_prevalence);
+    }
+
+    #[test]
+    fn no_hit_posterior_rejects_invalid_deserialized_likelihood_value() {
+        let mut model = evidence(0.95, 0.02, LikelihoodEvidenceStatus::ResearchPointEstimate)
+            .to_binary_likelihoods()
+            .unwrap();
+        model.probability_of_no_detection_given_target = 1.5;
+        assert_eq!(
+            model.posterior_target_probability_given_no_hit(0.5),
+            Err(DetectionLikelihoodError::InvalidProbability(
+                "probability_of_no_detection_given_target"
+            ))
+        );
+    }
+
+    #[test]
+    fn no_hit_posterior_rejects_inconsistent_complement_pair() {
+        let mut model = evidence(0.95, 0.02, LikelihoodEvidenceStatus::ResearchPointEstimate)
+            .to_binary_likelihoods()
+            .unwrap();
+        model.probability_of_no_detection_given_target = 0.10;
+        assert_eq!(
+            model.posterior_target_probability_given_no_hit(0.5),
+            Err(DetectionLikelihoodError::LikelihoodComplementMismatch(
+                "probability_of_no_detection_given_target"
+            ))
+        );
+    }
+
+    #[test]
+    fn no_hit_posterior_rejects_invalid_prevalence() {
+        let model = evidence(0.95, 0.02, LikelihoodEvidenceStatus::ResearchPointEstimate)
+            .to_binary_likelihoods()
+            .unwrap();
+        assert_eq!(
+            model.posterior_target_probability_given_no_hit(f64::NAN),
+            Err(DetectionLikelihoodError::InvalidProbability(
+                "target_prevalence"
+            ))
+        );
+    }
+
+    #[test]
+    fn impossible_no_hit_is_rejected_instead_of_silently_defaulted() {
+        let mut model = evidence(1.0, 1.0, LikelihoodEvidenceStatus::ResearchPointEstimate)
+            .to_binary_likelihoods()
+            .unwrap();
+        model.probability_of_no_detection_given_target = 0.0;
+        model.probability_of_no_alarm_given_absence = 0.0;
+        assert_eq!(
+            model.posterior_target_probability_given_no_hit(0.5),
+            Err(DetectionLikelihoodError::InvalidProbability(
+                "zero_probability_no_hit"
+            ))
+        );
     }
 
     #[test]

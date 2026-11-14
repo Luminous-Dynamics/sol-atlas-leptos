@@ -71,6 +71,27 @@ jobs:
         run: cargo test --manifest-path sol-atlas-core/Cargo.toml sensor_evsi_bridge
       - name: Test candidate utility inference graph
         run: cargo test --manifest-path sol-atlas-core/Cargo.toml utility_inference
+
+      - name: Test asset reconstruction metrics
+        run: cargo test --bin utility_reconstruction_eval
+      - name: Verify pinned asset association baseline
+        run: cargo run --bin utility_reconstruction_eval -- --check-pinned
+      - name: Test project-cluster split builder
+        run: cargo test --manifest-path sol-atlas-core/Cargo.toml project_split
+      - name: Verify pinned 13-project split manifest
+        run: cargo run --bin project_split_eval -- --check-pinned
+      - name: Test project split CLI sensitivity sweep
+        run: cargo test --bin project_split_eval
+      - name: Emit project split calibration sensitivity sweep
+        run: cargo run --bin project_split_eval -- --sensitivity-sweep
+      - name: Test evidence revalidation closure
+        run: cargo test --bin evidence_revalidation_eval
+      - name: Verify pinned evidence revalidation plan
+        run: cargo run --bin evidence_revalidation_eval -- --check-pinned
+      - name: Test per-activity field metric admission
+        run: cargo test --bin field_activity_admission_eval
+      - name: Verify pinned field activity admission baseline
+        run: cargo run --bin field_activity_admission_eval -- --check-pinned
       - name: Test sensor observability scoring CLI
         run: cargo test --bin sensor_observability_eval
       - name: Verify pinned analytic sensor observability receipt

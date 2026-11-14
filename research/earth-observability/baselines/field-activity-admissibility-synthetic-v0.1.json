@@ -1,0 +1,131 @@
+[
+  {
+    "activity_id": "activity-trench-image",
+    "signal_event_detection": {
+      "status": "eligible"
+    },
+    "event_to_target_association": {
+      "status": "eligible"
+    },
+    "localization": {
+      "status": "eligible"
+    },
+    "geometry_2d": {
+      "status": "ineligible",
+      "reason": "trench_geometry_registration_missing"
+    },
+    "network_topology_3d": {
+      "status": "ineligible",
+      "reason": "structured_independent_topology_truth_required"
+    },
+    "claim_boundary": "Per-activity metric eligibility only. Eligibility does not establish detection performance, geometry accuracy, complete truth, sensor qualification or engineering acceptance."
+  },
+  {
+    "activity_id": "activity-wheel-compromised",
+    "signal_event_detection": {
+      "status": "eligible"
+    },
+    "event_to_target_association": {
+      "status": "eligible"
+    },
+    "localization": {
+      "status": "ineligible",
+      "reason": "wheel_contact_not_verified"
+    },
+    "geometry_2d": {
+      "status": "ineligible",
+      "reason": "wheel_contact_not_verified"
+    },
+    "network_topology_3d": {
+      "status": "ineligible",
+      "reason": "wheel_contact_not_verified"
+    },
+    "claim_boundary": "Per-activity metric eligibility only. Eligibility does not establish detection performance, geometry accuracy, complete truth, sensor qualification or engineering acceptance."
+  },
+  {
+    "activity_id": "activity-positionless-radargram",
+    "signal_event_detection": {
+      "status": "eligible"
+    },
+    "event_to_target_association": {
+      "status": "eligible"
+    },
+    "localization": {
+      "status": "ineligible",
+      "reason": "spatial_support_missing"
+    },
+    "geometry_2d": {
+      "status": "ineligible",
+      "reason": "spatial_support_missing"
+    },
+    "network_topology_3d": {
+      "status": "ineligible",
+      "reason": "spatial_support_missing"
+    },
+    "claim_boundary": "Per-activity metric eligibility only. Eligibility does not establish detection performance, geometry accuracy, complete truth, sensor qualification or engineering acceptance."
+  },
+  {
+    "activity_id": "activity-owner-record-only",
+    "signal_event_detection": {
+      "status": "ineligible",
+      "reason": "truth_not_independent"
+    },
+    "event_to_target_association": {
+      "status": "ineligible",
+      "reason": "truth_not_independent"
+    },
+    "localization": {
+      "status": "ineligible",
+      "reason": "truth_not_independent"
+    },
+    "geometry_2d": {
+      "status": "ineligible",
+      "reason": "truth_not_independent"
+    },
+    "network_topology_3d": {
+      "status": "ineligible",
+      "reason": "truth_not_independent"
+    },
+    "claim_boundary": "Per-activity metric eligibility only. Eligibility does not establish detection performance, geometry accuracy, complete truth, sensor qualification or engineering acceptance."
+  },
+  {
+    "activity_id": "activity-structured-3d-reference",
+    "signal_event_detection": {
+      "status": "eligible"
+    },
+    "event_to_target_association": {
+      "status": "eligible"
+    },
+    "localization": {
+      "status": "eligible"
+    },
+    "geometry_2d": {
+      "status": "eligible"
+    },
+    "network_topology_3d": {
+      "status": "eligible"
+    },
+    "claim_boundary": "Per-activity metric eligibility only. Eligibility does not establish detection performance, geometry accuracy, complete truth, sensor qualification or engineering acceptance."
+  },
+  {
+    "activity_id": "activity-inspected-negative-support",
+    "signal_event_detection": {
+      "status": "eligible"
+    },
+    "event_to_target_association": {
+      "status": "eligible"
+    },
+    "localization": {
+      "status": "eligible"
+    },
+    "geometry_2d": {
+      "status": "ineligible",
+      "reason": "geometry_reference_missing"
+    },
+    "network_topology_3d": {
+      "status": "ineligible",
+      "reason": "structured_3d_geometry_missing"
+    },
+    "claim_boundary": "Per-activity metric eligibility only. Eligibility does not establish detection performance, geometry accuracy, complete truth, sensor qualification or engineering acceptance."
+  }
+]

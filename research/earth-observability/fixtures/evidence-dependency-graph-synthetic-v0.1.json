@@ -1,0 +1,91 @@
+{
+  "graph_id": "earth-observability-dependency-graph-synthetic-001",
+  "snapshot_id": "synthetic-snapshot-2026-11-14-a",
+  "nodes": [
+    {
+      "node_id": "source:gpr-survey-a",
+      "node_kind": "source_evidence",
+      "revision_id": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "dependency_ids": [],
+      "status": "current"
+    },
+    {
+      "node_id": "transform:route-a",
+      "node_kind": "spatial_transform",
+      "revision_id": "transform-v1",
+      "dependency_ids": [
+        "source:gpr-survey-a"
+      ],
+      "status": "current"
+    },
+    {
+      "node_id": "calibration:gpr-400mhz-a",
+      "node_kind": "sensor_calibration",
+      "revision_id": "calibration-v1",
+      "dependency_ids": [],
+      "status": "current"
+    },
+    {
+      "node_id": "observation:gpr-a",
+      "node_kind": "observation",
+      "revision_id": "observation-v1",
+      "dependency_ids": [
+        "transform:route-a",
+        "calibration:gpr-400mhz-a"
+      ],
+      "status": "current"
+    },
+    {
+      "node_id": "event:reflection-a",
+      "node_kind": "event",
+      "revision_id": "event-v1",
+      "dependency_ids": [
+        "observation:gpr-a"
+      ],
+      "status": "current"
+    },
+    {
+      "node_id": "asset:candidate-utility-a",
+      "node_kind": "asset_hypothesis",
+      "revision_id": "asset-hypothesis-v1",
+      "dependency_ids": [
+        "event:reflection-a"
+      ],
+      "status": "current"
+    },
+    {
+      "node_id": "network:hypotheses-a",
+      "node_kind": "network_hypothesis",
+      "revision_id": "network-hypothesis-v1",
+      "dependency_ids": [
+        "asset:candidate-utility-a"
+      ],
+      "status": "current"
+    },
+    {
+      "node_id": "decision:survey-plan-a",
+      "node_kind": "decision",
+      "revision_id": "decision-v1",
+      "dependency_ids": [
+        "network:hypotheses-a"
+      ],
+      "status": "current"
+    },
+    {
+      "node_id": "export:partner-view-a",
+      "node_kind": "export",
+      "revision_id": "export-v1",
+      "dependency_ids": [
+        "decision:survey-plan-a"
+      ],
+      "status": "current"
+    },
+    {
+      "node_id": "source:unrelated",
+      "node_kind": "source_evidence",
+      "revision_id": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "dependency_ids": [],
+      "status": "current"
+    }
+  ]
+}

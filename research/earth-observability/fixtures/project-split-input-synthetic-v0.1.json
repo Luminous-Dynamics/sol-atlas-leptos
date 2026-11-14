@@ -1,0 +1,96 @@
+{
+  "dataset_id": "ut-gold-d-synthetic-index",
+  "projects": [
+    {
+      "project_id": "project-01",
+      "activity_ids": [
+        "activity-01-a",
+        "activity-01-b"
+      ]
+    },
+    {
+      "project_id": "project-02",
+      "activity_ids": [
+        "activity-02-a",
+        "activity-02-b"
+      ]
+    },
+    {
+      "project_id": "project-03",
+      "activity_ids": [
+        "activity-03-a",
+        "activity-03-b"
+      ]
+    },
+    {
+      "project_id": "project-04",
+      "activity_ids": [
+        "activity-04-a",
+        "activity-04-b"
+      ]
+    },
+    {
+      "project_id": "project-05",
+      "activity_ids": [
+        "activity-05-a",
+        "activity-05-b"
+      ]
+    },
+    {
+      "project_id": "project-06",
+      "activity_ids": [
+        "activity-06-a",
+        "activity-06-b"
+      ]
+    },
+    {
+      "project_id": "project-07",
+      "activity_ids": [
+        "activity-07-a",
+        "activity-07-b"
+      ]
+    },
+    {
+      "project_id": "project-08",
+      "activity_ids": [
+        "activity-08-a",
+        "activity-08-b"
+      ]
+    },
+    {
+      "project_id": "project-09",
+      "activity_ids": [
+        "activity-09-a",
+        "activity-09-b"
+      ]
+    },
+    {
+      "project_id": "project-10",
+      "activity_ids": [
+        "activity-10-a",
+        "activity-10-b"
+      ]
+    },
+    {
+      "project_id": "project-11",
+      "activity_ids": [
+        "activity-11-a",
+        "activity-11-b"
+      ]
+    },
+    {
+      "project_id": "project-12",
+      "activity_ids": [
+        "activity-12-a",
+        "activity-12-b"
+      ]
+    },
+    {
+      "project_id": "project-13",
+      "activity_ids": [
+        "activity-13-a",
+        "activity-13-b"
+      ]
+    }
+  ]
+}
