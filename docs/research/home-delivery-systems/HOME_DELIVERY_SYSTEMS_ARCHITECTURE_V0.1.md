@@ -184,7 +184,7 @@ A 2026 buildingSMART survey highlights IDS implementation consistency as an inte
 New machine-readable artifacts:
 - `multifamily-service-distribution.schema.json`: shared source/plant/zone/riser/meter/unit-boundary, quantity, event, allocation and accounting contract.
 - `multifamily-service-distribution-synthetic-v0.1.json`: six resource classes, 24 nodes, 21 edges, 12 per-unit service records and six declared fixture events. Capacities, demand, delivered quantities, quality, allocation, losses and conservation remain UNKNOWN.
-- `multifamily-service-stress-corpus-v0.1.json`: 16 development scenarios (one positive topology-only control and 15 adversarial stress cases), containing 20 deterministic synthetic event entries. All event probabilities are null; zero cases are executed or sealed.
+- `multifamily-service-stress-corpus.schema.json` and `multifamily-service-stress-corpus-v0.1.json`: 16 development scenarios (one positive topology-only control and 15 adversarial stress cases), containing 20 deterministic synthetic event entries. All event probabilities are null; zero cases are executed or sealed.
 - `src/bin/home-multifamily-service-qualifier.rs`: P0 Rust contract qualifier for carrier-consistent resource-flow edges, boundary identity, source/node/resource references, event references, quantity/evidence states, allocation authority and conservation claim prerequisites.
 - `.github/workflows/home-multifamily-qualifier.yml`: focused native test/replay and rustfmt for both apartment qualifiers; it also triggers on the shared-service stress manifest.
 
