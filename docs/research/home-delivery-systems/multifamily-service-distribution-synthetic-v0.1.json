@@ -67,6 +67,15 @@
       "base_unit": null,
       "owner_ref": null,
       "evidence_refs": []
+    },
+    {
+      "resource_id": "R-COMMUNICATIONS",
+      "resource_class": "communications",
+      "state": "unknown",
+      "quality_state": "not_applicable",
+      "base_unit": null,
+      "owner_ref": null,
+      "evidence_refs": []
     }
   ],
   "nodes": [
@@ -454,6 +463,24 @@
       "resource_id": "R-USEFUL-THERMAL",
       "floor_id": "F1",
       "unit_id": "U-004",
+      "state": "unknown",
+      "capacity": {
+        "state": "unknown",
+        "lower": null,
+        "upper": null,
+        "unit": null,
+        "boundary_ref": null,
+        "evidence_ref": null
+      },
+      "measurement_ref": null,
+      "evidence_refs": []
+    },
+    {
+      "node_id": "GATEWAY-OPTIONAL-CONTROL",
+      "node_kind": "equipment",
+      "resource_id": "R-COMMUNICATIONS",
+      "floor_id": null,
+      "unit_id": null,
       "state": "unknown",
       "capacity": {
         "state": "unknown",
@@ -1221,6 +1248,7 @@
     "R-NONPOTABLE-WATER is reserved as a separate resource class; no treatment, source, distribution path or unit use is represented or qualified in this fixture.",
     "Electrical input and useful thermal output remain separate resource classes and are never numerically substituted.",
     "The six event timings are synthetic relative test inputs, not measured outage frequencies, probability estimates or a forecast for any city or utility.",
-    "Allocation policy, resident service floors, ownership and tariffs remain UNKNOWN; this fixture makes no allocation or fairness claim."
+    "Allocation policy, resident service floors, ownership and tariffs remain UNKNOWN; this fixture makes no allocation or fairness claim.",
+    "GATEWAY-OPTIONAL-CONTROL is only a synthetic identity for a possible communications/control dependency. No appliance or safety function is asserted to require it; the dependency state remains unknown."
   ]
 }
