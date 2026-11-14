@@ -241,6 +241,7 @@ struct ObservationRecordWire {
 pub struct CrossSystemComparabilityReceiptRef {
     receipt_sha256: String,
     observation_ids: Vec<String>,
+    system_signatures: Vec<ObservationSystemSignature>,
     support_id: String,
     target_class_id: String,
     ontology_version: String,
@@ -251,6 +252,7 @@ pub struct CrossSystemComparabilityReceiptRef {
 struct CrossSystemComparabilityReceiptRefWire {
     receipt_sha256: String,
     observation_ids: Vec<String>,
+    system_signatures: Vec<ObservationSystemSignature>,
     support_id: String,
     target_class_id: String,
     ontology_version: String,
@@ -260,6 +262,7 @@ impl CrossSystemComparabilityReceiptRef {
     pub fn new(
         receipt_sha256: impl Into<String>,
         observation_ids: Vec<String>,
+        system_signatures: Vec<ObservationSystemSignature>,
         support_id: impl Into<String>,
         target_class_id: impl Into<String>,
         ontology_version: impl Into<String>,
@@ -274,6 +277,12 @@ impl CrossSystemComparabilityReceiptRef {
             validate_identifier(id, "comparability observation reference")?;
         }
         observation_ids.sort();
+        let mut system_signatures = system_signatures;
+        system_signatures.sort();
+        let unique_system_signatures = system_signatures.iter().cloned().collect::<BTreeSet<_>>();
+        if system_signatures.is_empty() || unique_system_signatures.len() != system_signatures.len() {
+            return Err("comparability receipt requires a non-empty, duplicate-free system-signature set".into());
+        }
         let support_id = support_id.into();
         let target_class_id = target_class_id.into();
         let ontology_version = ontology_version.into();
@@ -283,6 +292,7 @@ impl CrossSystemComparabilityReceiptRef {
         Ok(Self {
             receipt_sha256,
             observation_ids,
+            system_signatures,
             support_id,
             target_class_id,
             ontology_version,
@@ -291,6 +301,7 @@ impl CrossSystemComparabilityReceiptRef {
 
     pub fn receipt_sha256(&self) -> &str { &self.receipt_sha256 }
     pub fn observation_ids(&self) -> &[String] { &self.observation_ids }
+    pub fn system_signatures(&self) -> &[ObservationSystemSignature] { &self.system_signatures }
     pub fn support_id(&self) -> &str { &self.support_id }
     pub fn target_class_id(&self) -> &str { &self.target_class_id }
     pub fn ontology_version(&self) -> &str { &self.ontology_version }
@@ -303,6 +314,7 @@ impl TryFrom<CrossSystemComparabilityReceiptRefWire> for CrossSystemComparabilit
         Self::new(
             wire.receipt_sha256,
             wire.observation_ids,
+            wire.system_signatures,
             wire.support_id,
             wire.target_class_id,
             wire.ontology_version,
@@ -922,6 +934,10 @@ impl ChangeClaim {
                 if receipt_observation_ids != claim_observation_ids {
                     return Err("cross-system comparability receipt observation set does not exactly match the claim".into());
                 }
+                let receipt_signatures = receipt.system_signatures.iter().cloned().collect::<BTreeSet<_>>();
+                if receipt_signatures != system_signatures || receipt_signatures.len() != receipt.system_signatures.len() {
+                    return Err("cross-system comparability receipt measurement-system signatures do not exactly match current observations".into());
+                }
                 if receipt.support_id != self.support_id
                     || receipt.target_class_id != self.target_class_id
                     || receipt.ontology_version != self.ontology_version
@@ -1353,6 +1369,7 @@ mod tests {
         let obs_a = observation("obs-a", "2024-01-01", ObservationQuality::QualifiedUsable);
         let mut obs_b = observation("obs-b", "2025-01-01", ObservationQuality::QualifiedUsable);
         obs_b.processing_baseline = Some("fixture-baseline-v2".into());
+        let bridge_signatures = vec![obs_a.system_signature(), obs_b.system_signature()];
 
         // Same target/support and high POD are not enough when the processing generation changed.
         let claim_without_bridge = no_change_claim();
@@ -1364,6 +1381,7 @@ mod tests {
             CrossSystemComparabilityReceiptRef::new(
                 digest(b'f'),
                 vec!["obs-a".into(), "obs-b".into()],
+                bridge_signatures.clone(),
                 "support-a",
                 "vegetation-loss",
                 "fixture-ontology-v1",
@@ -1377,6 +1395,7 @@ mod tests {
             CrossSystemComparabilityReceiptRef::new(
                 digest(b'f'),
                 vec!["obs-a".into()],
+                bridge_signatures.clone(),
                 "support-a",
                 "vegetation-loss",
                 "fixture-ontology-v1",
@@ -1390,6 +1409,7 @@ mod tests {
             CrossSystemComparabilityReceiptRef::new(
                 digest(b'f'),
                 vec!["obs-a".into(), "obs-b".into()],
+                bridge_signatures.clone(),
                 "support-a",
                 "built-up-expansion",
                 "fixture-ontology-v1",
@@ -1403,6 +1423,7 @@ mod tests {
             CrossSystemComparabilityReceiptRef::new(
                 digest(b'f'),
                 vec!["obs-a".into(), "obs-b".into()],
+                bridge_signatures.clone(),
                 "other-support",
                 "vegetation-loss",
                 "fixture-ontology-v1",
@@ -1416,6 +1437,7 @@ mod tests {
             CrossSystemComparabilityReceiptRef::new(
                 digest(b'f'),
                 vec!["obs-a".into(), "obs-b".into()],
+                bridge_signatures.clone(),
                 "support-a",
                 "vegetation-loss",
                 "fixture-ontology-v2",
@@ -1446,6 +1468,7 @@ mod tests {
             CrossSystemComparabilityReceiptRef::new(
                 digest(b'g'),
                 vec!["obs-a".into(), "obs-b".into()],
+                bridge_signatures.clone(),
                 "support-a",
                 "vegetation-loss",
                 "fixture-ontology-v1",
@@ -1469,6 +1492,7 @@ mod tests {
             CrossSystemComparabilityReceiptRef::new(
                 digest(b"u"),
                 vec!["obs-a".into(), "obs-b".into()],
+                bridge_signatures.clone(),
                 "support-a",
                 "vegetation-loss",
                 "fixture-ontology-v1",
@@ -1500,6 +1524,7 @@ mod tests {
             CrossSystemComparabilityReceiptRef::new(
                 digest(b'f'),
                 vec!["obs-a".into(), "obs-b".into()],
+                bridge_signatures.clone(),
                 "support-a",
                 "vegetation-loss",
                 "fixture-ontology-v1",
