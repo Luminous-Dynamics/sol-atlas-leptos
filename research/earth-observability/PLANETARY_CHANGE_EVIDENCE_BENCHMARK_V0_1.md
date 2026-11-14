@@ -228,6 +228,32 @@ Use actual usable observations, not nominal orbital cadence, to measure change-t
 
 Compose with [#804 — EO-USABLE-CADENCE-001](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/804), which owns the irregular/censored observation timeline corpus and equal-budget cadence-policy tournament.
 
+### EO-H — Measurement-system comparability and false-change assurance
+
+The benchmark must test whether a system can tell a change in the Earth from a change in the instrument, product, processing chain or measurement configuration.
+
+A measurement-system signature is not merely "optical" or "SAR". It includes the source registry, platform, source-qualified sensor and identity origin, instrument, modality, product collection, processing baseline/version and a digest of the asset-level measurement profile (bands, polarization, resolution/configuration metadata). Missing measurement-profile identity is unresolved evidence, not an implicit match.
+
+For a claim that spans more than one signature—or contains observations whose measurement profile is unresolved—require an external cross-system comparability receipt. The local receipt reference must bind the exact complete observation-ID set, spatial support, target class and ontology version. The receipt digest is only an identifier: the authoritative verifier must authenticate the payload, its source/asset identities, its scope, and its qualification. Receipt presence alone does not prove harmonization.
+
+The external comparability payload should carry geometric co-registration residuals, radiometric/spectral harmonization method and uncertainty, target-specific minimum mapping unit, temporal/seasonal applicability, QA and masks, acquisition geometry, independent calibration/reference samples, and domain/invalidation conditions.
+
+Required scenarios:
+1. Landsat-to-Sentinel transition with no physical event;
+2. same Sentinel platform but different processing baseline;
+3. same sensor but different product collection;
+4. same platform with different instrument or modality;
+5. different per-asset bands or SAR polarizations under otherwise identical platform metadata;
+6. missing asset measurement-profile fingerprint;
+7. genuine physical event across a system transition with a qualified bridge;
+8. stale, wrong-observation-set, wrong-support, wrong-target or wrong-ontology receipt;
+9. a receipt attached to a single fully identified system, which should be rejected as unnecessary;
+10. independent field/reference evidence that contradicts a plausible-looking cross-sensor map transition.
+
+Report false physical-change claim rate on no-event measurement transitions, correct unresolved/abstention rate, true-event recall after qualified bridging, bridge-coverage rate, bridge invalidation rate, and the worst source/platform/sensor/collection/baseline/configuration domain. The synthetic shift-only corpus has a hard target of **zero promoted physical-change claims without a valid exact-scope bridge**. Do not turn that synthetic contract target into an unmeasured field-performance claim.
+
+Compose with [#829 — EO-SYSTEM-COMPARABILITY-001](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/829), which owns the typed claim-bound comparability receipt.
+
 ## 6. Baselines and industry comparison
 
 Reproduce relevant baselines on identical source versions, spatial/temporal splits, labels, compute budgets and scoring code.
@@ -250,10 +276,12 @@ Do not assume a larger or newer foundation model is automatically better. Recent
 - A 2026 calibration study evaluates sixteen frozen encoders across classification and segmentation tasks and reports overconfidence under corruption/shift. Temperature scaling and deep ensembles did not arrest the degradation; a Gaussian-process probe improved ECE under severe cloud but worsened clean-condition ECE, and confidence-based abstention could not reliably defer confidently wrong predictions. Calibration and abstention methods are therefore necessary diagnostics, not a complete safety case.
 - **CrossCD-Eval** (October 2026) compares five recent change-detection architectures across CLCD, HRSCD and LEVIR-CD under in-domain, cross-domain and few-shot adaptation. Its domain-aware feature-normalization results are a useful comparator for adaptation, including repeated 10-shot draws; Sol-Atlas should test this against frozen, leakage-resistant geographic/time/sensor holdouts rather than assume test-time feature alignment is always admissible.
 - A 2026 remote-sensing change-detection meta-analysis reports high scores on popular datasets but also performance saturation and diminishing returns from parameter scaling. Treat LEVIR-CD/WHU-CD leaderboards as narrow task references, not proof of field transfer.
-- **VHR-Bench** (November 2026 preprint) tests ten very-high-resolution datasets at 1.5 m GSD or finer and twelve encoders. Its reported results show that relative performance depends on label fraction and pretraining regime; Sentinel-scale pretraining alone transfers least well under RGB input in its VHR setting.
+- **VHR-Bench** (November 5, 2026 preprint) tests ten very-high-resolution datasets at 1.5 m GSD or finer, five task families, eight application domains and twelve encoders. SkySense leads in its 10% label regime; DINOv3 ViT-L slightly leads at full labels, while Sentinel-scale-only encoders transfer least well under RGB input. This is a warning against selecting a model from its native-resolution leaderboard when the application is VHR.
 - **GeoAnalystBench** provides 50 expert-validated geoprocessing workflow/code-generation tasks. It is a useful static workflow comparator, but it does not by itself establish that a geospatial claim is true.
 - **GeoAgentBench** (published online October 1, 2026) evaluates dynamic GIS-agent execution with 117 atomic tools and 53 tasks across six GIS domains. It is useful for parameter selection, runtime recovery and tool-chain correctness; its execution score still needs to be paired with independent source/label validation.
 - **GISAgentBench** (August 2026 preprint) provides 349 practitioner-sourced multi-step tasks with executable reference trajectories and exact ground-truth output files. Its six-model evaluation reports a best strict, tolerance-aware task completion of 32.7%, illustrating how difficult exact multi-step GIS correctness remains. Its strict output matching is a valuable model for Sol-Atlas deterministic workflow receipts, though its task set and geography remain benchmark-scoped.
+- **GEO-Bench-2** is the capability-aware fine-tuning comparator: 19 permissively licensed datasets spanning modalities, temporal contexts and downstream applications, organized by capability rather than a single flattened score. It reports no universal winner across all tasks; use it to select matched encoders, not to infer operational trustworthiness.
+- Named representation baselines should include **TerraMind** (any-to-any multimodal, nine EO modalities), **Prithvi-EO-2.0** (300M/600M multitemporal HLS models trained on 4.2M time-series samples), and **AlphaEarth Foundations** (annual 64-dimensional satellite embeddings on a 10 m grid integrating optical, radar, LiDAR and other public sources). AlphaEarth's reported 24% average lower error is Google-reported against its own tested comparators, not a common independent benchmark result; benchmark its embeddings as a feature baseline when data terms permit, not as a directly comparable change detector.
 
 ### Platform and industry comparators
 
@@ -316,6 +344,8 @@ These are proposed gates and stretch hypotheses, not measured results.
 | In-domain retention | Always report matched in-domain result | No more than 2 percentage points loss while improving worst-domain error |
 | Calibration | Cluster-aware calibration and coverage reported with intervals and widths | Preregistered 90%/95% coverage on independent clusters, with useful selective-risk/coverage trade-off |
 | Efficiency | Parameters, peak memory, latency/km², cost/scene and data-volume reported | Pareto improvement in quality, latency and cost |
+| Measurement-system drift | False physical-change claims, bridge eligibility, unresolved sensor/configuration cases, and per-signature results | 0 promoted synthetic shift-only claims without an exact-scope comparability receipt |
+| Source-configuration completeness | Fraction of promoted claims with source-qualified platform/sensor/instrument/collection/baseline and asset measurement-profile fingerprint | 100% or explicit abstention / qualified bridge |
 | Decision value | Equal-budget regret, expected loss, costs, abstentions and constraints reported | ≥20% lower held-out expected decision loss at equal eligible budget |
 | Outcome | Predicted vs measured result and adverse effects recorded | Repeated prospective improvement across independent cases |
 
@@ -388,3 +418,10 @@ Sensitive locations, community-held data, private land information and infrastru
 11. Al Aghbari et al. (2026), [Beyond Accuracy: Trustworthiness and Assurance for Multimodal Foundation Models in Earth Observation](https://doi.org/10.3389/frsen.2026.1986933); Elkholy et al. (2026), [CrossCD-Eval](https://doi.org/10.1038/s41598-026-70914-7); and Kola et al. (2026), [From architectural evolution to foundation driven paradigms](https://doi.org/10.1186/s43067-026-00367-5).
 12. Mawasha (2022), [Detecting land use and land cover change for the past 28-years using multi-temporal Landsat satellite images in the Jukskei River catchment, Gauteng, South Africa](https://sajg.org.za/index.php/sajg/article/view/823/0).
 13. Department of Forestry, Fisheries and the Environment, [Draft 9th National Greenhouse Gas Inventory Report for South Africa](https://www.dffe.gov.za/sites/default/files/legislations/unfccc_greenhousegasinventoryreport9_g50607gon4772.pdf), Government Gazette No. 50607 (2024-05-02), SANLC accuracy and Landsat/Sentinel interpretation comparison; [SAEOSS SANLC catalogue record](https://saeoss.sansa.org.za/dataset/?organization=dffe&tags=Boundaries&tags=Climatology-Meteorology-Atmosphere&tags=SPOT&tags=land+cover&tags=land+use).
+
+14. Simumba et al. (2025/2026), [GEO-Bench-2: From Performance to Capability](https://arxiv.org/abs/2511.15658) and [benchmark site / leaderboard](https://the-ai-alliance.github.io/GEO-Bench-2/).
+15. Jakubik et al. (ICCV 2025), [TerraMind: Large-Scale Generative Multimodality for Earth Observation](https://openaccess.thecvf.com/content/ICCV2025/html/Jakubik_TerraMind_Large-Scale_Generative_Multimodality_for_Earth_Observation_ICCV_2025_paper.html).
+16. Szwarcman et al. (2025/2026), [Prithvi-EO-2.0](https://arxiv.org/abs/2412.02732), trained on 4.2M global HLS time-series samples.
+17. Google DeepMind (2025), [AlphaEarth Foundations](https://deepmind.google/blog/alphaearth-foundations-helps-map-our-planet-in-unprecedented-detail/); reported 64-dimensional annual embeddings at 10 m and a vendor-reported average error reduction against its own tested comparators.
+18. Sharma et al. (2026-11-05), [VHR-Bench](https://arxiv.org/abs/2611.08003), ten datasets at 1.5 m or finer.
+
