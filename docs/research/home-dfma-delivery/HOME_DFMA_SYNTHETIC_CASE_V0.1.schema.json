@@ -1,0 +1,209 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Home DfMA synthetic delivery case v0.1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "study_id",
+    "maturity",
+    "execution_status",
+    "design_revision",
+    "assembly_revision",
+    "site_reference",
+    "common_unknowns",
+    "release_state",
+    "delivery_candidates",
+    "dependency_invalidation",
+    "claim_ceiling"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "0.1.0"
+    },
+    "study_id": {
+      "const": "HOME-DfMA-DELIVERY-001"
+    },
+    "maturity": {
+      "const": "SYNTHETIC_FIXTURE"
+    },
+    "execution_status": {
+      "const": "NOT_RELEASED"
+    },
+    "design_revision": {
+      "type": "string"
+    },
+    "assembly_revision": {
+      "type": "string"
+    },
+    "site_reference": {
+      "type": "string"
+    },
+    "common_unknowns": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "string"
+      }
+    },
+    "release_state": {
+      "const": "NOT_RELEASED"
+    },
+    "component_manifest_ref": {
+      "type": "string"
+    },
+    "delivery_candidates": {
+      "type": "array",
+      "minItems": 4,
+      "items": {
+        "type": "object",
+        "required": [
+          "mode_id",
+          "disposition",
+          "manufacturing_readiness",
+          "design_for_manufacture_review",
+          "fabrication_route",
+          "design_freeze_state",
+          "quantity_and_cost_state",
+          "factory_labour_hours",
+          "site_labour_hours",
+          "end_to_end_days",
+          "installed_cost_zar",
+          "waste_kg",
+          "transport_state",
+          "transport_envelope",
+          "lifting_state",
+          "lift_plan_ref",
+          "tolerance_state",
+          "qa_state",
+          "batch_genealogy_state",
+          "occupied_phase_safe_state",
+          "blocking_unknowns"
+        ],
+        "properties": {
+          "mode_id": {
+            "type": "string"
+          },
+          "disposition": {
+            "const": "NOT_EVALUATED"
+          },
+          "manufacturing_readiness": {
+            "type": "string"
+          },
+          "design_for_manufacture_review": {
+            "type": "string"
+          },
+          "fabrication_route": {
+            "type": "string"
+          },
+          "design_freeze_state": {
+            "type": "string"
+          },
+          "quantity_and_cost_state": {
+            "type": "string"
+          },
+          "factory_labour_hours": {
+            "type": "null"
+          },
+          "site_labour_hours": {
+            "type": "null"
+          },
+          "end_to_end_days": {
+            "type": "null"
+          },
+          "installed_cost_zar": {
+            "type": "null"
+          },
+          "waste_kg": {
+            "type": "null"
+          },
+          "transport_state": {
+            "type": "string"
+          },
+          "transport_envelope": {
+            "type": "object",
+            "required": [
+              "length_mm",
+              "width_mm",
+              "height_mm",
+              "mass_kg",
+              "centre_of_gravity_ref",
+              "route_clearance_ref"
+            ],
+            "properties": {
+              "length_mm": {
+                "type": "null"
+              },
+              "width_mm": {
+                "type": "null"
+              },
+              "height_mm": {
+                "type": "null"
+              },
+              "mass_kg": {
+                "type": "null"
+              },
+              "centre_of_gravity_ref": {
+                "type": "null"
+              },
+              "route_clearance_ref": {
+                "type": "null"
+              }
+            }
+          },
+          "lifting_state": {
+            "type": "string"
+          },
+          "lift_plan_ref": {
+            "type": "null"
+          },
+          "tolerance_state": {
+            "type": "string"
+          },
+          "qa_state": {
+            "type": "string"
+          },
+          "batch_genealogy_state": {
+            "type": "string"
+          },
+          "occupied_phase_safe_state": {
+            "type": "string"
+          },
+          "blocking_unknowns": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "dependency_invalidation": {
+      "type": "object",
+      "required": [
+        "trigger",
+        "invalidates",
+        "no_inherited_receipts_without_exact_revision_rebind"
+      ],
+      "properties": {
+        "trigger": {
+          "type": "string"
+        },
+        "invalidates": {
+          "type": "array",
+          "minItems": 10,
+          "items": {
+            "type": "string"
+          }
+        },
+        "no_inherited_receipts_without_exact_revision_rebind": {
+          "const": true
+        }
+      }
+    },
+    "claim_ceiling": {
+      "type": "string"
+    }
+  }
+}
