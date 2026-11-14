@@ -1,0 +1,451 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://luminousdynamics.io/schemas/black-hole-observation-projection-v1.schema.json",
+  "title": "Black-Hole Observation Projection V1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "schema_version",
+    "projection_id",
+    "layer_type",
+    "source",
+    "evidence",
+    "observation_context",
+    "value_metadata",
+    "uncertainty",
+    "verification",
+    "claim_ceiling",
+    "model"
+  ],
+  "properties": {
+    "schema": {
+      "const": "luminous.black-hole-observation-projection"
+    },
+    "schema_version": {
+      "const": 1
+    },
+    "projection_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "layer_type": {
+      "type": "string",
+      "enum": [
+        "detector_measurement",
+        "data_quality",
+        "reconstructed_component",
+        "inferred_parameter",
+        "numerical_simulation",
+        "analytic_prediction",
+        "surrogate_prediction",
+        "model_residual",
+        "news_observable",
+        "telescope_measurement",
+        "reconstructed_image"
+      ]
+    },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "archive",
+        "product_id",
+        "release_version",
+        "locator",
+        "artifact_digest"
+      ],
+      "properties": {
+        "archive": {
+          "type": "string",
+          "minLength": 1
+        },
+        "product_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "release_version": {
+          "type": "string",
+          "minLength": 1
+        },
+        "locator": {
+          "type": "string",
+          "format": "uri"
+        },
+        "artifact_digest": {
+          "type": "string",
+          "pattern": "^[0-9a-fA-F]{64}$"
+        },
+        "license": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+    "evidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "mycelix_claim_ids",
+        "evidence_artifact_ids",
+        "qualification_status"
+      ],
+      "properties": {
+        "mycelix_claim_ids": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "evidence_artifact_ids": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "qualification_status": {
+          "type": "string",
+          "enum": [
+            "unreviewed",
+            "published",
+            "reproduced",
+            "replicated",
+            "disputed",
+            "failed",
+            "inconclusive"
+          ]
+        }
+      }
+    },
+    "observation_context": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "target_id",
+        "time_coordinate",
+        "reference_frame"
+      ],
+      "properties": {
+        "target_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "event_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "simulation_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "observation_epoch": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "time_coordinate": {
+          "type": "string",
+          "minLength": 1
+        },
+        "time_unit": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "reference_frame": {
+          "type": "string",
+          "minLength": 1
+        },
+        "coordinate_chart": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "coordinate_order": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "metric_signature": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "enum": [
+            "-+++",
+            "+---",
+            "not_applicable",
+            null
+          ]
+        }
+      }
+    },
+    "model": {
+      "type": [
+        "object",
+        "null"
+      ],
+      "additionalProperties": false,
+      "required": [
+        "model_id",
+        "version",
+        "revision",
+        "applicability_domain"
+      ],
+      "properties": {
+        "model_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "version": {
+          "type": "string",
+          "minLength": 1
+        },
+        "revision": {
+          "type": "string",
+          "minLength": 1
+        },
+        "license": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "applicability_domain": {
+          "type": "string",
+          "minLength": 1
+        },
+        "out_of_domain": {
+          "type": "boolean"
+        }
+      }
+    },
+    "value_metadata": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "representation",
+        "x_unit",
+        "y_unit"
+      ],
+      "properties": {
+        "representation": {
+          "type": "string",
+          "enum": [
+            "time_series",
+            "frequency_series",
+            "posterior_samples",
+            "sky_map",
+            "image",
+            "visibility",
+            "scalar",
+            "table"
+          ]
+        },
+        "x_unit": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "y_unit": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "polarization_convention": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "whitening_or_conditioning": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "calibration_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "payload_artifact_id": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "uncertainty": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "representation",
+        "statistical",
+        "numerical",
+        "calibration",
+        "model_form"
+      ],
+      "properties": {
+        "representation": {
+          "type": "string",
+          "enum": [
+            "samples",
+            "credible_interval",
+            "covariance",
+            "error_band",
+            "not_provided"
+          ]
+        },
+        "statistical": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "numerical": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "calibration": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "model_form": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "data_quality": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+    "verification": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "status",
+        "protocol_reference"
+      ],
+      "properties": {
+        "status": {
+          "type": "string",
+          "enum": [
+            "not_attempted",
+            "in_progress",
+            "reproduced",
+            "replicated",
+            "failed",
+            "inconclusive",
+            "disputed"
+          ]
+        },
+        "protocol_reference": {
+          "type": "string",
+          "minLength": 1
+        },
+        "verifier_revision": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "negative_control_status": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+    "claim_ceiling": {
+      "type": "string",
+      "minLength": 1
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "layer_type": {
+            "const": "detector_measurement"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "model": {
+            "type": "null"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "layer_type": {
+            "enum": [
+              "numerical_simulation",
+              "analytic_prediction",
+              "surrogate_prediction"
+            ]
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "model": {
+            "type": "object"
+          }
+        },
+        "required": [
+          "model"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "layer_type": {
+            "const": "surrogate_prediction"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "model": {
+            "properties": {
+              "out_of_domain": {
+                "const": false
+              }
+            },
+            "required": [
+              "out_of_domain"
+            ]
+          }
+        }
+      }
+    }
+  ]
+}
