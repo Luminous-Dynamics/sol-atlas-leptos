@@ -4,10 +4,10 @@
   "case_id": "SYNTHETIC_TWO_AREA_TWO_SITE_FLOW_001",
   "maturity": "SYNTHETIC_KNOWN_ANSWER",
   "execution_status": "NO_REAL_DEMAND_OR_ROUTE_DATA",
-  "allocation_policy": "ACCESSIBLE_FIRST_THEN_GENERAL_NO_CROSS_CLASS_SUBSTITUTION",
+  "allocation_policy": "ACCESSIBLE_FIRST_THEN_GENERAL_REMAINDER_OF_SHARED_SITE_CAPACITY",
   "water_l_per_person": 2,
   "maximum_route_travel_time_s": 1800,
-  "oracle_revision": "DINIC_BIPARTITE_MAX_FLOW_V0_1",
+  "oracle_revision": "EDMONDS_KARP_BIPARTITE_MAX_FLOW_V0_1",
   "demand_areas": [
     {
       "area_id": "AREA_A",
@@ -30,7 +30,8 @@
           "route_evidence_ref": "SYNTH_ROUTE_A_POD",
           "accessibility_evidence_ref": "SYNTH_ACCESS_A_POD"
         }
-      ]
+      ],
+      "maximum_route_travel_time_s": 1800
     },
     {
       "area_id": "AREA_B",
@@ -53,7 +54,8 @@
           "route_evidence_ref": "SYNTH_ROUTE_B_POD",
           "accessibility_evidence_ref": "SYNTH_ACCESS_B_POD"
         }
-      ]
+      ],
+      "maximum_route_travel_time_s": 1800
     }
   ],
   "sites": [
