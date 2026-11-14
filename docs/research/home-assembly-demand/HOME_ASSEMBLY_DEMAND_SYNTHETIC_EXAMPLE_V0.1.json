@@ -1,0 +1,1193 @@
+{
+  "schema_version": "0.1.0",
+  "study_id": "HOME-ASSEMBLY-DEMAND-001",
+  "maturity": "SYNTHETIC_REQUIREMENTS_ONLY",
+  "execution_status": "NOT_GEOMETRY_BOUND",
+  "source_design": {
+    "brief_id": "SYNTH-HV-FAMILY-001",
+    "candidate_set_id": "SYNTH-HV-CASE-001",
+    "design_revision": "HFC-SYNTH-REV-0",
+    "source_pr": 801
+  },
+  "candidate_ids": [
+    "SYNTH-HV-A",
+    "SYNTH-HV-B"
+  ],
+  "assemblies": [
+    {
+      "assembly_id": "SYNTH-HV-A_WALL",
+      "candidate_id": "SYNTH-HV-A",
+      "building_layer": "ENVELOPE",
+      "assembly_role": "Opaque wall / envelope assembly",
+      "component_roles": [
+        {
+          "role_id": "SYNTH-HV-A_WALL_ROLE_01",
+          "role": "primary wall substrate",
+          "product_selection_state": "UNSELECTED",
+          "product_ref": null
+        },
+        {
+          "role_id": "SYNTH-HV-A_WALL_ROLE_02",
+          "role": "weather control layer",
+          "product_selection_state": "UNSELECTED",
+          "product_ref": null
+        },
+        {
+          "role_id": "SYNTH-HV-A_WALL_ROLE_03",
+          "role": "thermal control layer",
+          "product_selection_state": "UNSELECTED",
+          "product_ref": null
+        },
+        {
+          "role_id": "SYNTH-HV-A_WALL_ROLE_04",
+          "role": "internal finish",
+          "product_selection_state": "UNSELECTED",
+          "product_ref": null
+        },
+        {
+          "role_id": "SYNTH-HV-A_WALL_ROLE_05",
+          "role": "connection and fixing",
+          "product_selection_state": "UNSELECTED",
+          "product_ref": null
+        }
+      ],
+      "required_properties": [
+        {
+          "property_id": "SYNTH-HV-A_WALL_PROP_01",
+          "domain": "WEATHER",
+          "requirement_ref": "SYNTHETIC_REQUIREMENT_WEATHER_ENVELOPE_PERFORMANCE",
+          "evidence_owner": "Sol-Atlas #604 / applicable professional or authority owner; exact applicability not admitted",
+          "state": "UNKNOWN",
+          "target_value": null,
+          "unit": null,
+          "evidence_refs": []
+        },
+        {
+          "property_id": "SYNTH-HV-A_WALL_PROP_02",
+          "domain": "FIRE",
+          "requirement_ref": "SYNTHETIC_REQUIREMENT_FIRE_PERFORMANCE_SCOPE",
+          "evidence_owner": "Sol-Atlas #604 / applicable professional or authority owner; exact applicability not admitted",
+          "state": "UNKNOWN",
+          "target_value": null,
+          "unit": null,
+          "evidence_refs": []
+        },
+        {
+          "property_id": "SYNTH-HV-A_WALL_PROP_03",
+          "domain": "THERMAL",
+          "requirement_ref": "SYNTHETIC_REQUIREMENT_THERMAL_ENVELOPE_PERFORMANCE",
+          "evidence_owner": "Sol-Atlas #604 / applicable professional or authority owner; exact applicability not admitted",
+          "state": "UNKNOWN",
+          "target_value": null,
+          "unit": null,
+          "evidence_refs": []
+        },
+        {
+          "property_id": "SYNTH-HV-A_WALL_PROP_04",
+          "domain": "MOISTURE",
+          "requirement_ref": "SYNTHETIC_REQUIREMENT_MOISTURE_CONTROL_PERFORMANCE",
+          "evidence_owner": "Sol-Atlas #604 / applicable professional or authority owner; exact applicability not admitted",
+          "state": "UNKNOWN",
+          "target_value": null,
+          "unit": null,
+          "evidence_refs": []
+        },
+        {
+          "property_id": "SYNTH-HV-A_WALL_PROP_05",
+          "domain": "ACOUSTIC",
+          "requirement_ref": "SYNTHETIC_REQUIREMENT_ACOUSTIC_SEPARATION_PERFORMANCE",
+          "evidence_owner": "Sol-Atlas #604 / applicable professional or authority owner; exact applicability not admitted",
+          "state": "UNKNOWN",
+          "target_value": null,
+          "unit": null,
+          "evidence_refs": []
+        },
+        {
+          "property_id": "SYNTH-HV-A_WALL_PROP_06",
+          "domain": "DURABILITY",
+          "requirement_ref": "SYNTHETIC_REQUIREMENT_DURABILITY_AND_MAINTENANCE",
+          "evidence_owner": "Sol-Atlas #604 / applicable professional or authority owner; exact applicability not admitted",
+          "state": "UNKNOWN",
+          "target_value": null,
+          "unit": null,
+          "evidence_refs": []
+        }
+      ],
+      "quantity": {
+        "state": "NOT_COMPUTED",
+        "measured_quantity": null,
+        "unit": null,
+        "geometry_ref": null,
+        "takeoff_method_ref": null
+      },
+      "product_selection": {
+        "state": "UNSELECTED",
+        "product_refs": []
+      },
+      "approval": {
+        "state": "NOT_CHECKED",
+        "owner_ref": "Sol-Atlas #604; exact jurisdictional review required",
+        "evidence_refs": []
+      },
+      "manufacturing": {
+        "state": "NOT_ASSESSED",
+        "capability_ref": null,
+        "process_ref": null,
+        "evidence_refs": []
+      },
+      "local_supply": {
+        "state": "UNKNOWN",
+        "region_profile": "JOHANNESBURG_HIGHVELD_SYNTHETIC_NO_SUPPLIER_SEARCH",
+        "supplier_refs": [],
+        "lead_time_days": null
+      },
+      "cost": {
+        "state": "NOT_ESTIMATED",
+        "currency": "ZAR",
+        "amount": null,
+        "quote_ref": null
+      },
+      "repair": {
+        "state": "UNKNOWN",
+        "requirements": [
+          "Inspection access to concealed layers must be defined.",
+          "A repair or replacement method must preserve the validated weather/fire/thermal interfaces."
+        ],
+        "evidence_refs": []
+      },
+      "substitution": {
+        "state": "NOT_ASSESSED",
+        "equivalence_rule": "REQUALIFY_ALL_DEPENDENT_CLAIMS",
+        "dependency_claim_ids": [
+          "SYNTH-HV-A_WALL_CLAIM_01",
+          "SYNTH-HV-A_WALL_CLAIM_02",
+          "SYNTH-HV-A_WALL_CLAIM_03",
+          "SYNTH-HV-A_WALL_CLAIM_04",
+          "SYNTH-HV-A_WALL_CLAIM_05",
+          "SYNTH-HV-A_WALL_CLAIM_06"
+        ]
+      },
+      "claim_ceiling": "Assembly requirements only; no product, quantity, approval, local supply, fabrication or performance is established."
+    },
+    {
+      "assembly_id": "SYNTH-HV-A_ROOF",
+      "candidate_id": "SYNTH-HV-A",
+      "building_layer": "ROOF",
+      "assembly_role": "Roof, ceiling and drainage assembly",
+      "component_roles": [
+        {
+          "role_id": "SYNTH-HV-A_ROOF_ROLE_01",
+          "role": "roof support system",
+          "product_selection_state": "UNSELECTED",
+          "product_ref": null
+        },
+        {
+          "role_id": "SYNTH-HV-A_ROOF_ROLE_02",
+          "role": "weather skin",
+          "product_selection_state": "UNSELECTED",
+          "product_ref": null
+        },
+        {
+          "role_id": "SYNTH-HV-A_ROOF_ROLE_03",
+          "role": "thermal ceiling layer",
+          "product_selection_state": "UNSELECTED",
+          "product_ref": null
+        },
+        {
+          "role_id": "SYNTH-HV-A_ROOF_ROLE_04",
+          "role": "rainwater drainage",
+          "product_selection_state": "UNSELECTED",
+          "product_ref": null
+        },
+        {
+          "role_id": "SYNTH-HV-A_ROOF_ROLE_05",
+          "role": "access and fixings",
+          "product_selection_state": "UNSELECTED",
+          "product_ref": null
+        }
+      ],
+      "required_properties": [
+        {
+          "property_id": "SYNTH-HV-A_ROOF_PROP_01",
+          "domain": "STRUCTURAL",
+          "requirement_ref": "SYNTHETIC_REQUIREMENT_ROOF_LOAD_AND_SUPPORT_SCOPE",
+          "evidence_owner": "Sol-Atlas #604 / applicable professional or authority owner; exact applicability not admitted",
+          "state": "UNKNOWN",
+          "target_value": null,
+          "unit": null,
+          "evidence_refs": []
+        },
+        {
+          "property_id": "SYNTH-HV-A_ROOF_PROP_02",
+          "domain": "FIRE",
+          "requirement_ref": "SYNTHETIC_REQUIREMENT_ROOF_FIRE_PERFORMANCE_SCOPE",
+          "evidence_owner": "Sol-Atlas #604 / applicable professional or authority owner; exact applicability not admitted",
+          "state": "UNKNOWN",
+          "target_value": null,
+          "unit": null,
+          "evidence_refs": []
+        },
+        {
+          "property_id": "SYNTH-HV-A_ROOF_PROP_03",
+          "domain": "WEATHER",
+          "requirement_ref": "SYNTHETIC_REQUIREMENT_RAIN_AND_WIND_RESISTANCE",
+          "evidence_owner": "Sol-Atlas #604 / applicable professional or authority owner; exact applicability not admitted",
+          "state": "UNKNOWN",
+          "target_value": null,
+          "unit": null,
+          "evidence_refs": []
+        },
+        {
+          "property_id": "SYNTH-HV-A_ROOF_PROP_04",
+          "domain": "THERMAL",
+          "requirement_ref": "SYNTHETIC_REQUIREMENT_ROOF_THERMAL_PERFORMANCE",
+          "evidence_owner": "Sol-Atlas #604 / applicable professional or authority owner; exact applicability not admitted",
+          "state": "UNKNOWN",
+          "target_value": null,
+          "unit": null,
+          "evidence_refs": []
+        },
+        {
+          "property_id": "SYNTH-HV-A_ROOF_PROP_05",
+          "domain": "DURABILITY",
+          "requirement_ref": "SYNTHETIC_REQUIREMENT_ROOF_DURABILITY_AND_REPAIR",
+          "evidence_owner": "Sol-Atlas #604 / applicable professional or authority owner; exact applicability not admitted",
+          "state": "UNKNOWN",
+          "target_value": null,
+          "unit": null,
+          "evidence_refs": []
+        }
+      ],
+      "quantity": {
+        "state": "NOT_COMPUTED",
+        "measured_quantity": null,
+        "unit": null,
+        "geometry_ref": null,
+        "takeoff_method_ref": null
+      },
+      "product_selection": {
+        "state": "UNSELECTED",
+        "product_refs": []
+      },
+      "approval": {
+        "state": "NOT_CHECKED",
+        "owner_ref": "Sol-Atlas #604; exact jurisdictional review required",
+        "evidence_refs": []
+      },
+      "manufacturing": {
+        "state": "NOT_ASSESSED",
+        "capability_ref": null,
+        "process_ref": null,
+        "evidence_refs": []
+      },
+      "local_supply": {
+        "state": "UNKNOWN",
+        "region_profile": "JOHANNESBURG_HIGHVELD_SYNTHETIC_NO_SUPPLIER_SEARCH",
+        "supplier_refs": [],
+        "lead_time_days": null
+      },
+      "cost": {
+        "state": "NOT_ESTIMATED",
+        "currency": "ZAR",
+        "amount": null,
+        "quote_ref": null
+      },
+      "repair": {
+        "state": "UNKNOWN",
+        "requirements": [
+          "Roof and drainage inspection/replacement access must be defined.",
+          "A replacement roof layer must requalify fixings, water shedding and affected thermal/fire claims."
+        ],
+        "evidence_refs": []
+      },
+      "substitution": {
+        "state": "NOT_ASSESSED",
+        "equivalence_rule": "REQUALIFY_ALL_DEPENDENT_CLAIMS",
+        "dependency_claim_ids": [
+          "SYNTH-HV-A_ROOF_CLAIM_01",
+          "SYNTH-HV-A_ROOF_CLAIM_02",
+          "SYNTH-HV-A_ROOF_CLAIM_03",
+          "SYNTH-HV-A_ROOF_CLAIM_04",
+          "SYNTH-HV-A_ROOF_CLAIM_05"
+        ]
+      },
+      "claim_ceiling": "Assembly requirements only; no product, quantity, approval, local supply, fabrication or performance is established."
+    },
+    {
+      "assembly_id": "SYNTH-HV-A_OPENINGS",
+      "candidate_id": "SYNTH-HV-A",
+      "building_layer": "OPENINGS",
+      "assembly_role": "Windows, doors and external shading assembly",
+      "component_roles": [
+        {
+          "role_id": "SYNTH-HV-A_OPENINGS_ROLE_01",
+          "role": "opening frame and leaf",
+          "product_selection_state": "UNSELECTED",
+          "product_ref": null
+        },
+        {
+          "role_id": "SYNTH-HV-A_OPENINGS_ROLE_02",
+          "role": "glazing or opaque infill",
+          "product_selection_state": "UNSELECTED",
+          "product_ref": null
+        },
+        {
+          "role_id": "SYNTH-HV-A_OPENINGS_ROLE_03",
+          "role": "weather seals",
+          "product_selection_state": "UNSELECTED",
+          "product_ref": null
+        },
+        {
+          "role_id": "SYNTH-HV-A_OPENINGS_ROLE_04",
+          "role": "external shading",
+          "product_selection_state": "UNSELECTED",
+          "product_ref": null
+        },
+        {
+          "role_id": "SYNTH-HV-A_OPENINGS_ROLE_05",
+          "role": "operable hardware",
+          "product_selection_state": "UNSELECTED",
+          "product_ref": null
+        }
+      ],
+      "required_properties": [
+        {
+          "property_id": "SYNTH-HV-A_OPENINGS_PROP_01",
+          "domain": "WEATHER",
+          "requirement_ref": "SYNTHETIC_REQUIREMENT_OPENING_AIR_AND_WATER_RESISTANCE",
+          "evidence_owner": "Sol-Atlas #604 / applicable professional or authority owner; exact applicability not admitted",
+          "state": "UNKNOWN",
+          "target_value": null,
+          "unit": null,
+          "evidence_refs": []
+        },
+        {
+          "property_id": "SYNTH-HV-A_OPENINGS_PROP_02",
+          "domain": "THERMAL",
+          "requirement_ref": "SYNTHETIC_REQUIREMENT_SOLAR_AND_THERMAL_CONTROL",
+          "evidence_owner": "Sol-Atlas #604 / applicable professional or authority owner; exact applicability not admitted",
+          "state": "UNKNOWN",
+          "target_value": null,
+          "unit": null,
+          "evidence_refs": []
+        },
+        {
+          "property_id": "SYNTH-HV-A_OPENINGS_PROP_03",
+          "domain": "FIRE",
+          "requirement_ref": "SYNTHETIC_REQUIREMENT_OPENING_FIRE_AND_ESCAPE_SCOPE",
+          "evidence_owner": "Sol-Atlas #604 / applicable professional or authority owner; exact applicability not admitted",
+          "state": "UNKNOWN",
+          "target_value": null,
+          "unit": null,
+          "evidence_refs": []
+        },
+        {
+          "property_id": "SYNTH-HV-A_OPENINGS_PROP_04",
+          "domain": "ACCESSIBILITY",
+          "requirement_ref": "SYNTHETIC_REQUIREMENT_ACCESSIBLE_OPERATION_AND_CLEARANCE",
+          "evidence_owner": "Sol-Atlas #604 / applicable professional or authority owner; exact applicability not admitted",
+          "state": "UNKNOWN",
+          "target_value": null,
+          "unit": null,
+          "evidence_refs": []
+        },
+        {
+          "property_id": "SYNTH-HV-A_OPENINGS_PROP_05",
+          "domain": "DURABILITY",
+          "requirement_ref": "SYNTHETIC_REQUIREMENT_HARDWARE_REPLACEMENT_AND_MAINTENANCE",
+          "evidence_owner": "Sol-Atlas #604 / applicable professional or authority owner; exact applicability not admitted",
+          "state": "UNKNOWN",
+          "target_value": null,
+          "unit": null,
+          "evidence_refs": []
+        }
+      ],
+      "quantity": {
+        "state": "NOT_COMPUTED",
+        "measured_quantity": null,
+        "unit": null,
+        "geometry_ref": null,
+        "takeoff_method_ref": null
+      },
+      "product_selection": {
+        "state": "UNSELECTED",
+        "product_refs": []
+      },
+      "approval": {
+        "state": "NOT_CHECKED",
+        "owner_ref": "Sol-Atlas #604; exact jurisdictional review required",
+        "evidence_refs": []
+      },
+      "manufacturing": {
+        "state": "NOT_ASSESSED",
+        "capability_ref": null,
+        "process_ref": null,
+        "evidence_refs": []
+      },
+      "local_supply": {
+        "state": "UNKNOWN",
+        "region_profile": "JOHANNESBURG_HIGHVELD_SYNTHETIC_NO_SUPPLIER_SEARCH",
+        "supplier_refs": [],
+        "lead_time_days": null
+      },
+      "cost": {
+        "state": "NOT_ESTIMATED",
+        "currency": "ZAR",
+        "amount": null,
+        "quote_ref": null
+      },
+      "repair": {
+        "state": "UNKNOWN",
+        "requirements": [
+          "Seals and hardware must be replaceable without damaging surrounding envelope layers.",
+          "Shading replacement must preserve the checked attachment and weather interfaces."
+        ],
+        "evidence_refs": []
+      },
+      "substitution": {
+        "state": "NOT_ASSESSED",
+        "equivalence_rule": "REQUALIFY_ALL_DEPENDENT_CLAIMS",
+        "dependency_claim_ids": [
+          "SYNTH-HV-A_OPENINGS_CLAIM_01",
+          "SYNTH-HV-A_OPENINGS_CLAIM_02",
+          "SYNTH-HV-A_OPENINGS_CLAIM_03",
+          "SYNTH-HV-A_OPENINGS_CLAIM_04",
+          "SYNTH-HV-A_OPENINGS_CLAIM_05"
+        ]
+      },
+      "claim_ceiling": "Assembly requirements only; no product, quantity, approval, local supply, fabrication or performance is established."
+    },
+    {
+      "assembly_id": "SYNTH-HV-A_WET",
+      "candidate_id": "SYNTH-HV-A",
+      "building_layer": "SERVICES",
+      "assembly_role": "Wet-service and sanitation core",
+      "component_roles": [
+        {
+          "role_id": "SYNTH-HV-A_WET_ROLE_01",
+          "role": "potable water distribution",
+          "product_selection_state": "UNSELECTED",
+          "product_ref": null
+        },
+        {
+          "role_id": "SYNTH-HV-A_WET_ROLE_02",
+          "role": "non potable separation and backflow",
+          "product_selection_state": "UNSELECTED",
+          "product_ref": null
+        },
+        {
+          "role_id": "SYNTH-HV-A_WET_ROLE_03",
+          "role": "sanitary drainage",
+          "product_selection_state": "UNSELECTED",
+          "product_ref": null
+        },
+        {
+          "role_id": "SYNTH-HV-A_WET_ROLE_04",
+          "role": "fixtures and access panels",
+          "product_selection_state": "UNSELECTED",
+          "product_ref": null
+        },
+        {
+          "role_id": "SYNTH-HV-A_WET_ROLE_05",
+          "role": "leak isolation and maintenance",
+          "product_selection_state": "UNSELECTED",
+          "product_ref": null
+        }
+      ],
+      "required_properties": [
+        {
+          "property_id": "SYNTH-HV-A_WET_PROP_01",
+          "domain": "WATER",
+          "requirement_ref": "SYNTHETIC_REQUIREMENT_POTABLE_AND_NONPOTABLE_SEPARATION",
+          "evidence_owner": "Sol-Atlas #604 / applicable professional or authority owner; exact applicability not admitted",
+          "state": "UNKNOWN",
+          "target_value": null,
+          "unit": null,
+          "evidence_refs": []
+        },
+        {
+          "property_id": "SYNTH-HV-A_WET_PROP_02",
+          "domain": "WATER",
+          "requirement_ref": "SYNTHETIC_REQUIREMENT_WATER_QUALITY_AND_BACKFLOW_SCOPE",
+          "evidence_owner": "Sol-Atlas #604 / applicable professional or authority owner; exact applicability not admitted",
+          "state": "UNKNOWN",
+          "target_value": null,
+          "unit": null,
+          "evidence_refs": []
+        },
+        {
+          "property_id": "SYNTH-HV-A_WET_PROP_03",
+          "domain": "STRUCTURAL",
+          "requirement_ref": "SYNTHETIC_REQUIREMENT_SERVICE_SUPPORT_AND_PENETRATION_SCOPE",
+          "evidence_owner": "Sol-Atlas #604 / applicable professional or authority owner; exact applicability not admitted",
+          "state": "UNKNOWN",
+          "target_value": null,
+          "unit": null,
+          "evidence_refs": []
+        },
+        {
+          "property_id": "SYNTH-HV-A_WET_PROP_04",
+          "domain": "DURABILITY",
+          "requirement_ref": "SYNTHETIC_REQUIREMENT_LEAK_INSPECTION_AND_REPAIR_ACCESS",
+          "evidence_owner": "Sol-Atlas #604 / applicable professional or authority owner; exact applicability not admitted",
+          "state": "UNKNOWN",
+          "target_value": null,
+          "unit": null,
+          "evidence_refs": []
+        },
+        {
+          "property_id": "SYNTH-HV-A_WET_PROP_05",
+          "domain": "ACCESSIBILITY",
+          "requirement_ref": "SYNTHETIC_REQUIREMENT_ACCESSIBLE_FIXTURE_USE",
+          "evidence_owner": "Sol-Atlas #604 / applicable professional or authority owner; exact applicability not admitted",
+          "state": "UNKNOWN",
+          "target_value": null,
+          "unit": null,
+          "evidence_refs": []
+        }
+      ],
+      "quantity": {
+        "state": "NOT_COMPUTED",
+        "measured_quantity": null,
+        "unit": null,
+        "geometry_ref": null,
+        "takeoff_method_ref": null
+      },
+      "product_selection": {
+        "state": "UNSELECTED",
+        "product_refs": []
+      },
+      "approval": {
+        "state": "NOT_CHECKED",
+        "owner_ref": "Sol-Atlas #604; exact jurisdictional review required",
+        "evidence_refs": []
+      },
+      "manufacturing": {
+        "state": "NOT_ASSESSED",
+        "capability_ref": null,
+        "process_ref": null,
+        "evidence_refs": []
+      },
+      "local_supply": {
+        "state": "UNKNOWN",
+        "region_profile": "JOHANNESBURG_HIGHVELD_SYNTHETIC_NO_SUPPLIER_SEARCH",
+        "supplier_refs": [],
+        "lead_time_days": null
+      },
+      "cost": {
+        "state": "NOT_ESTIMATED",
+        "currency": "ZAR",
+        "amount": null,
+        "quote_ref": null
+      },
+      "repair": {
+        "state": "UNKNOWN",
+        "requirements": [
+          "Isolation, inspection and replacement access must be present in the final design.",
+          "Any service substitution must requalify pressure, compatibility, water-quality and backflow claims."
+        ],
+        "evidence_refs": []
+      },
+      "substitution": {
+        "state": "NOT_ASSESSED",
+        "equivalence_rule": "REQUALIFY_ALL_DEPENDENT_CLAIMS",
+        "dependency_claim_ids": [
+          "SYNTH-HV-A_WET_CLAIM_01",
+          "SYNTH-HV-A_WET_CLAIM_02",
+          "SYNTH-HV-A_WET_CLAIM_03",
+          "SYNTH-HV-A_WET_CLAIM_04",
+          "SYNTH-HV-A_WET_CLAIM_05"
+        ]
+      },
+      "claim_ceiling": "Assembly requirements only; no product, quantity, approval, local supply, fabrication or performance is established."
+    },
+    {
+      "assembly_id": "SYNTH-HV-B_WALL",
+      "candidate_id": "SYNTH-HV-B",
+      "building_layer": "ENVELOPE",
+      "assembly_role": "Opaque wall / envelope assembly",
+      "component_roles": [
+        {
+          "role_id": "SYNTH-HV-B_WALL_ROLE_01",
+          "role": "primary wall substrate",
+          "product_selection_state": "UNSELECTED",
+          "product_ref": null
+        },
+        {
+          "role_id": "SYNTH-HV-B_WALL_ROLE_02",
+          "role": "weather control layer",
+          "product_selection_state": "UNSELECTED",
+          "product_ref": null
+        },
+        {
+          "role_id": "SYNTH-HV-B_WALL_ROLE_03",
+          "role": "thermal control layer",
+          "product_selection_state": "UNSELECTED",
+          "product_ref": null
+        },
+        {
+          "role_id": "SYNTH-HV-B_WALL_ROLE_04",
+          "role": "internal finish",
+          "product_selection_state": "UNSELECTED",
+          "product_ref": null
+        },
+        {
+          "role_id": "SYNTH-HV-B_WALL_ROLE_05",
+          "role": "connection and fixing",
+          "product_selection_state": "UNSELECTED",
+          "product_ref": null
+        }
+      ],
+      "required_properties": [
+        {
+          "property_id": "SYNTH-HV-B_WALL_PROP_01",
+          "domain": "WEATHER",
+          "requirement_ref": "SYNTHETIC_REQUIREMENT_WEATHER_ENVELOPE_PERFORMANCE",
+          "evidence_owner": "Sol-Atlas #604 / applicable professional or authority owner; exact applicability not admitted",
+          "state": "UNKNOWN",
+          "target_value": null,
+          "unit": null,
+          "evidence_refs": []
+        },
+        {
+          "property_id": "SYNTH-HV-B_WALL_PROP_02",
+          "domain": "FIRE",
+          "requirement_ref": "SYNTHETIC_REQUIREMENT_FIRE_PERFORMANCE_SCOPE",
+          "evidence_owner": "Sol-Atlas #604 / applicable professional or authority owner; exact applicability not admitted",
+          "state": "UNKNOWN",
+          "target_value": null,
+          "unit": null,
+          "evidence_refs": []
+        },
+        {
+          "property_id": "SYNTH-HV-B_WALL_PROP_03",
+          "domain": "THERMAL",
+          "requirement_ref": "SYNTHETIC_REQUIREMENT_THERMAL_ENVELOPE_PERFORMANCE",
+          "evidence_owner": "Sol-Atlas #604 / applicable professional or authority owner; exact applicability not admitted",
+          "state": "UNKNOWN",
+          "target_value": null,
+          "unit": null,
+          "evidence_refs": []
+        },
+        {
+          "property_id": "SYNTH-HV-B_WALL_PROP_04",
+          "domain": "MOISTURE",
+          "requirement_ref": "SYNTHETIC_REQUIREMENT_MOISTURE_CONTROL_PERFORMANCE",
+          "evidence_owner": "Sol-Atlas #604 / applicable professional or authority owner; exact applicability not admitted",
+          "state": "UNKNOWN",
+          "target_value": null,
+          "unit": null,
+          "evidence_refs": []
+        },
+        {
+          "property_id": "SYNTH-HV-B_WALL_PROP_05",
+          "domain": "ACOUSTIC",
+          "requirement_ref": "SYNTHETIC_REQUIREMENT_ACOUSTIC_SEPARATION_PERFORMANCE",
+          "evidence_owner": "Sol-Atlas #604 / applicable professional or authority owner; exact applicability not admitted",
+          "state": "UNKNOWN",
+          "target_value": null,
+          "unit": null,
+          "evidence_refs": []
+        },
+        {
+          "property_id": "SYNTH-HV-B_WALL_PROP_06",
+          "domain": "DURABILITY",
+          "requirement_ref": "SYNTHETIC_REQUIREMENT_DURABILITY_AND_MAINTENANCE",
+          "evidence_owner": "Sol-Atlas #604 / applicable professional or authority owner; exact applicability not admitted",
+          "state": "UNKNOWN",
+          "target_value": null,
+          "unit": null,
+          "evidence_refs": []
+        }
+      ],
+      "quantity": {
+        "state": "NOT_COMPUTED",
+        "measured_quantity": null,
+        "unit": null,
+        "geometry_ref": null,
+        "takeoff_method_ref": null
+      },
+      "product_selection": {
+        "state": "UNSELECTED",
+        "product_refs": []
+      },
+      "approval": {
+        "state": "NOT_CHECKED",
+        "owner_ref": "Sol-Atlas #604; exact jurisdictional review required",
+        "evidence_refs": []
+      },
+      "manufacturing": {
+        "state": "NOT_ASSESSED",
+        "capability_ref": null,
+        "process_ref": null,
+        "evidence_refs": []
+      },
+      "local_supply": {
+        "state": "UNKNOWN",
+        "region_profile": "JOHANNESBURG_HIGHVELD_SYNTHETIC_NO_SUPPLIER_SEARCH",
+        "supplier_refs": [],
+        "lead_time_days": null
+      },
+      "cost": {
+        "state": "NOT_ESTIMATED",
+        "currency": "ZAR",
+        "amount": null,
+        "quote_ref": null
+      },
+      "repair": {
+        "state": "UNKNOWN",
+        "requirements": [
+          "Inspection access to concealed layers must be defined.",
+          "A repair or replacement method must preserve the validated weather/fire/thermal interfaces."
+        ],
+        "evidence_refs": []
+      },
+      "substitution": {
+        "state": "NOT_ASSESSED",
+        "equivalence_rule": "REQUALIFY_ALL_DEPENDENT_CLAIMS",
+        "dependency_claim_ids": [
+          "SYNTH-HV-B_WALL_CLAIM_01",
+          "SYNTH-HV-B_WALL_CLAIM_02",
+          "SYNTH-HV-B_WALL_CLAIM_03",
+          "SYNTH-HV-B_WALL_CLAIM_04",
+          "SYNTH-HV-B_WALL_CLAIM_05",
+          "SYNTH-HV-B_WALL_CLAIM_06"
+        ]
+      },
+      "claim_ceiling": "Assembly requirements only; no product, quantity, approval, local supply, fabrication or performance is established."
+    },
+    {
+      "assembly_id": "SYNTH-HV-B_ROOF",
+      "candidate_id": "SYNTH-HV-B",
+      "building_layer": "ROOF",
+      "assembly_role": "Roof, ceiling and drainage assembly",
+      "component_roles": [
+        {
+          "role_id": "SYNTH-HV-B_ROOF_ROLE_01",
+          "role": "roof support system",
+          "product_selection_state": "UNSELECTED",
+          "product_ref": null
+        },
+        {
+          "role_id": "SYNTH-HV-B_ROOF_ROLE_02",
+          "role": "weather skin",
+          "product_selection_state": "UNSELECTED",
+          "product_ref": null
+        },
+        {
+          "role_id": "SYNTH-HV-B_ROOF_ROLE_03",
+          "role": "thermal ceiling layer",
+          "product_selection_state": "UNSELECTED",
+          "product_ref": null
+        },
+        {
+          "role_id": "SYNTH-HV-B_ROOF_ROLE_04",
+          "role": "rainwater drainage",
+          "product_selection_state": "UNSELECTED",
+          "product_ref": null
+        },
+        {
+          "role_id": "SYNTH-HV-B_ROOF_ROLE_05",
+          "role": "access and fixings",
+          "product_selection_state": "UNSELECTED",
+          "product_ref": null
+        }
+      ],
+      "required_properties": [
+        {
+          "property_id": "SYNTH-HV-B_ROOF_PROP_01",
+          "domain": "STRUCTURAL",
+          "requirement_ref": "SYNTHETIC_REQUIREMENT_ROOF_LOAD_AND_SUPPORT_SCOPE",
+          "evidence_owner": "Sol-Atlas #604 / applicable professional or authority owner; exact applicability not admitted",
+          "state": "UNKNOWN",
+          "target_value": null,
+          "unit": null,
+          "evidence_refs": []
+        },
+        {
+          "property_id": "SYNTH-HV-B_ROOF_PROP_02",
+          "domain": "FIRE",
+          "requirement_ref": "SYNTHETIC_REQUIREMENT_ROOF_FIRE_PERFORMANCE_SCOPE",
+          "evidence_owner": "Sol-Atlas #604 / applicable professional or authority owner; exact applicability not admitted",
+          "state": "UNKNOWN",
+          "target_value": null,
+          "unit": null,
+          "evidence_refs": []
+        },
+        {
+          "property_id": "SYNTH-HV-B_ROOF_PROP_03",
+          "domain": "WEATHER",
+          "requirement_ref": "SYNTHETIC_REQUIREMENT_RAIN_AND_WIND_RESISTANCE",
+          "evidence_owner": "Sol-Atlas #604 / applicable professional or authority owner; exact applicability not admitted",
+          "state": "UNKNOWN",
+          "target_value": null,
+          "unit": null,
+          "evidence_refs": []
+        },
+        {
+          "property_id": "SYNTH-HV-B_ROOF_PROP_04",
+          "domain": "THERMAL",
+          "requirement_ref": "SYNTHETIC_REQUIREMENT_ROOF_THERMAL_PERFORMANCE",
+          "evidence_owner": "Sol-Atlas #604 / applicable professional or authority owner; exact applicability not admitted",
+          "state": "UNKNOWN",
+          "target_value": null,
+          "unit": null,
+          "evidence_refs": []
+        },
+        {
+          "property_id": "SYNTH-HV-B_ROOF_PROP_05",
+          "domain": "DURABILITY",
+          "requirement_ref": "SYNTHETIC_REQUIREMENT_ROOF_DURABILITY_AND_REPAIR",
+          "evidence_owner": "Sol-Atlas #604 / applicable professional or authority owner; exact applicability not admitted",
+          "state": "UNKNOWN",
+          "target_value": null,
+          "unit": null,
+          "evidence_refs": []
+        }
+      ],
+      "quantity": {
+        "state": "NOT_COMPUTED",
+        "measured_quantity": null,
+        "unit": null,
+        "geometry_ref": null,
+        "takeoff_method_ref": null
+      },
+      "product_selection": {
+        "state": "UNSELECTED",
+        "product_refs": []
+      },
+      "approval": {
+        "state": "NOT_CHECKED",
+        "owner_ref": "Sol-Atlas #604; exact jurisdictional review required",
+        "evidence_refs": []
+      },
+      "manufacturing": {
+        "state": "NOT_ASSESSED",
+        "capability_ref": null,
+        "process_ref": null,
+        "evidence_refs": []
+      },
+      "local_supply": {
+        "state": "UNKNOWN",
+        "region_profile": "JOHANNESBURG_HIGHVELD_SYNTHETIC_NO_SUPPLIER_SEARCH",
+        "supplier_refs": [],
+        "lead_time_days": null
+      },
+      "cost": {
+        "state": "NOT_ESTIMATED",
+        "currency": "ZAR",
+        "amount": null,
+        "quote_ref": null
+      },
+      "repair": {
+        "state": "UNKNOWN",
+        "requirements": [
+          "Roof and drainage inspection/replacement access must be defined.",
+          "A replacement roof layer must requalify fixings, water shedding and affected thermal/fire claims."
+        ],
+        "evidence_refs": []
+      },
+      "substitution": {
+        "state": "NOT_ASSESSED",
+        "equivalence_rule": "REQUALIFY_ALL_DEPENDENT_CLAIMS",
+        "dependency_claim_ids": [
+          "SYNTH-HV-B_ROOF_CLAIM_01",
+          "SYNTH-HV-B_ROOF_CLAIM_02",
+          "SYNTH-HV-B_ROOF_CLAIM_03",
+          "SYNTH-HV-B_ROOF_CLAIM_04",
+          "SYNTH-HV-B_ROOF_CLAIM_05"
+        ]
+      },
+      "claim_ceiling": "Assembly requirements only; no product, quantity, approval, local supply, fabrication or performance is established."
+    },
+    {
+      "assembly_id": "SYNTH-HV-B_OPENINGS",
+      "candidate_id": "SYNTH-HV-B",
+      "building_layer": "OPENINGS",
+      "assembly_role": "Windows, doors and external shading assembly",
+      "component_roles": [
+        {
+          "role_id": "SYNTH-HV-B_OPENINGS_ROLE_01",
+          "role": "opening frame and leaf",
+          "product_selection_state": "UNSELECTED",
+          "product_ref": null
+        },
+        {
+          "role_id": "SYNTH-HV-B_OPENINGS_ROLE_02",
+          "role": "glazing or opaque infill",
+          "product_selection_state": "UNSELECTED",
+          "product_ref": null
+        },
+        {
+          "role_id": "SYNTH-HV-B_OPENINGS_ROLE_03",
+          "role": "weather seals",
+          "product_selection_state": "UNSELECTED",
+          "product_ref": null
+        },
+        {
+          "role_id": "SYNTH-HV-B_OPENINGS_ROLE_04",
+          "role": "external shading",
+          "product_selection_state": "UNSELECTED",
+          "product_ref": null
+        },
+        {
+          "role_id": "SYNTH-HV-B_OPENINGS_ROLE_05",
+          "role": "operable hardware",
+          "product_selection_state": "UNSELECTED",
+          "product_ref": null
+        }
+      ],
+      "required_properties": [
+        {
+          "property_id": "SYNTH-HV-B_OPENINGS_PROP_01",
+          "domain": "WEATHER",
+          "requirement_ref": "SYNTHETIC_REQUIREMENT_OPENING_AIR_AND_WATER_RESISTANCE",
+          "evidence_owner": "Sol-Atlas #604 / applicable professional or authority owner; exact applicability not admitted",
+          "state": "UNKNOWN",
+          "target_value": null,
+          "unit": null,
+          "evidence_refs": []
+        },
+        {
+          "property_id": "SYNTH-HV-B_OPENINGS_PROP_02",
+          "domain": "THERMAL",
+          "requirement_ref": "SYNTHETIC_REQUIREMENT_SOLAR_AND_THERMAL_CONTROL",
+          "evidence_owner": "Sol-Atlas #604 / applicable professional or authority owner; exact applicability not admitted",
+          "state": "UNKNOWN",
+          "target_value": null,
+          "unit": null,
+          "evidence_refs": []
+        },
+        {
+          "property_id": "SYNTH-HV-B_OPENINGS_PROP_03",
+          "domain": "FIRE",
+          "requirement_ref": "SYNTHETIC_REQUIREMENT_OPENING_FIRE_AND_ESCAPE_SCOPE",
+          "evidence_owner": "Sol-Atlas #604 / applicable professional or authority owner; exact applicability not admitted",
+          "state": "UNKNOWN",
+          "target_value": null,
+          "unit": null,
+          "evidence_refs": []
+        },
+        {
+          "property_id": "SYNTH-HV-B_OPENINGS_PROP_04",
+          "domain": "ACCESSIBILITY",
+          "requirement_ref": "SYNTHETIC_REQUIREMENT_ACCESSIBLE_OPERATION_AND_CLEARANCE",
+          "evidence_owner": "Sol-Atlas #604 / applicable professional or authority owner; exact applicability not admitted",
+          "state": "UNKNOWN",
+          "target_value": null,
+          "unit": null,
+          "evidence_refs": []
+        },
+        {
+          "property_id": "SYNTH-HV-B_OPENINGS_PROP_05",
+          "domain": "DURABILITY",
+          "requirement_ref": "SYNTHETIC_REQUIREMENT_HARDWARE_REPLACEMENT_AND_MAINTENANCE",
+          "evidence_owner": "Sol-Atlas #604 / applicable professional or authority owner; exact applicability not admitted",
+          "state": "UNKNOWN",
+          "target_value": null,
+          "unit": null,
+          "evidence_refs": []
+        }
+      ],
+      "quantity": {
+        "state": "NOT_COMPUTED",
+        "measured_quantity": null,
+        "unit": null,
+        "geometry_ref": null,
+        "takeoff_method_ref": null
+      },
+      "product_selection": {
+        "state": "UNSELECTED",
+        "product_refs": []
+      },
+      "approval": {
+        "state": "NOT_CHECKED",
+        "owner_ref": "Sol-Atlas #604; exact jurisdictional review required",
+        "evidence_refs": []
+      },
+      "manufacturing": {
+        "state": "NOT_ASSESSED",
+        "capability_ref": null,
+        "process_ref": null,
+        "evidence_refs": []
+      },
+      "local_supply": {
+        "state": "UNKNOWN",
+        "region_profile": "JOHANNESBURG_HIGHVELD_SYNTHETIC_NO_SUPPLIER_SEARCH",
+        "supplier_refs": [],
+        "lead_time_days": null
+      },
+      "cost": {
+        "state": "NOT_ESTIMATED",
+        "currency": "ZAR",
+        "amount": null,
+        "quote_ref": null
+      },
+      "repair": {
+        "state": "UNKNOWN",
+        "requirements": [
+          "Seals and hardware must be replaceable without damaging surrounding envelope layers.",
+          "Shading replacement must preserve the checked attachment and weather interfaces."
+        ],
+        "evidence_refs": []
+      },
+      "substitution": {
+        "state": "NOT_ASSESSED",
+        "equivalence_rule": "REQUALIFY_ALL_DEPENDENT_CLAIMS",
+        "dependency_claim_ids": [
+          "SYNTH-HV-B_OPENINGS_CLAIM_01",
+          "SYNTH-HV-B_OPENINGS_CLAIM_02",
+          "SYNTH-HV-B_OPENINGS_CLAIM_03",
+          "SYNTH-HV-B_OPENINGS_CLAIM_04",
+          "SYNTH-HV-B_OPENINGS_CLAIM_05"
+        ]
+      },
+      "claim_ceiling": "Assembly requirements only; no product, quantity, approval, local supply, fabrication or performance is established."
+    },
+    {
+      "assembly_id": "SYNTH-HV-B_WET",
+      "candidate_id": "SYNTH-HV-B",
+      "building_layer": "SERVICES",
+      "assembly_role": "Wet-service and sanitation core",
+      "component_roles": [
+        {
+          "role_id": "SYNTH-HV-B_WET_ROLE_01",
+          "role": "potable water distribution",
+          "product_selection_state": "UNSELECTED",
+          "product_ref": null
+        },
+        {
+          "role_id": "SYNTH-HV-B_WET_ROLE_02",
+          "role": "non potable separation and backflow",
+          "product_selection_state": "UNSELECTED",
+          "product_ref": null
+        },
+        {
+          "role_id": "SYNTH-HV-B_WET_ROLE_03",
+          "role": "sanitary drainage",
+          "product_selection_state": "UNSELECTED",
+          "product_ref": null
+        },
+        {
+          "role_id": "SYNTH-HV-B_WET_ROLE_04",
+          "role": "fixtures and access panels",
+          "product_selection_state": "UNSELECTED",
+          "product_ref": null
+        },
+        {
+          "role_id": "SYNTH-HV-B_WET_ROLE_05",
+          "role": "leak isolation and maintenance",
+          "product_selection_state": "UNSELECTED",
+          "product_ref": null
+        }
+      ],
+      "required_properties": [
+        {
+          "property_id": "SYNTH-HV-B_WET_PROP_01",
+          "domain": "WATER",
+          "requirement_ref": "SYNTHETIC_REQUIREMENT_POTABLE_AND_NONPOTABLE_SEPARATION",
+          "evidence_owner": "Sol-Atlas #604 / applicable professional or authority owner; exact applicability not admitted",
+          "state": "UNKNOWN",
+          "target_value": null,
+          "unit": null,
+          "evidence_refs": []
+        },
+        {
+          "property_id": "SYNTH-HV-B_WET_PROP_02",
+          "domain": "WATER",
+          "requirement_ref": "SYNTHETIC_REQUIREMENT_WATER_QUALITY_AND_BACKFLOW_SCOPE",
+          "evidence_owner": "Sol-Atlas #604 / applicable professional or authority owner; exact applicability not admitted",
+          "state": "UNKNOWN",
+          "target_value": null,
+          "unit": null,
+          "evidence_refs": []
+        },
+        {
+          "property_id": "SYNTH-HV-B_WET_PROP_03",
+          "domain": "STRUCTURAL",
+          "requirement_ref": "SYNTHETIC_REQUIREMENT_SERVICE_SUPPORT_AND_PENETRATION_SCOPE",
+          "evidence_owner": "Sol-Atlas #604 / applicable professional or authority owner; exact applicability not admitted",
+          "state": "UNKNOWN",
+          "target_value": null,
+          "unit": null,
+          "evidence_refs": []
+        },
+        {
+          "property_id": "SYNTH-HV-B_WET_PROP_04",
+          "domain": "DURABILITY",
+          "requirement_ref": "SYNTHETIC_REQUIREMENT_LEAK_INSPECTION_AND_REPAIR_ACCESS",
+          "evidence_owner": "Sol-Atlas #604 / applicable professional or authority owner; exact applicability not admitted",
+          "state": "UNKNOWN",
+          "target_value": null,
+          "unit": null,
+          "evidence_refs": []
+        },
+        {
+          "property_id": "SYNTH-HV-B_WET_PROP_05",
+          "domain": "ACCESSIBILITY",
+          "requirement_ref": "SYNTHETIC_REQUIREMENT_ACCESSIBLE_FIXTURE_USE",
+          "evidence_owner": "Sol-Atlas #604 / applicable professional or authority owner; exact applicability not admitted",
+          "state": "UNKNOWN",
+          "target_value": null,
+          "unit": null,
+          "evidence_refs": []
+        }
+      ],
+      "quantity": {
+        "state": "NOT_COMPUTED",
+        "measured_quantity": null,
+        "unit": null,
+        "geometry_ref": null,
+        "takeoff_method_ref": null
+      },
+      "product_selection": {
+        "state": "UNSELECTED",
+        "product_refs": []
+      },
+      "approval": {
+        "state": "NOT_CHECKED",
+        "owner_ref": "Sol-Atlas #604; exact jurisdictional review required",
+        "evidence_refs": []
+      },
+      "manufacturing": {
+        "state": "NOT_ASSESSED",
+        "capability_ref": null,
+        "process_ref": null,
+        "evidence_refs": []
+      },
+      "local_supply": {
+        "state": "UNKNOWN",
+        "region_profile": "JOHANNESBURG_HIGHVELD_SYNTHETIC_NO_SUPPLIER_SEARCH",
+        "supplier_refs": [],
+        "lead_time_days": null
+      },
+      "cost": {
+        "state": "NOT_ESTIMATED",
+        "currency": "ZAR",
+        "amount": null,
+        "quote_ref": null
+      },
+      "repair": {
+        "state": "UNKNOWN",
+        "requirements": [
+          "Isolation, inspection and replacement access must be present in the final design.",
+          "Any service substitution must requalify pressure, compatibility, water-quality and backflow claims."
+        ],
+        "evidence_refs": []
+      },
+      "substitution": {
+        "state": "NOT_ASSESSED",
+        "equivalence_rule": "REQUALIFY_ALL_DEPENDENT_CLAIMS",
+        "dependency_claim_ids": [
+          "SYNTH-HV-B_WET_CLAIM_01",
+          "SYNTH-HV-B_WET_CLAIM_02",
+          "SYNTH-HV-B_WET_CLAIM_03",
+          "SYNTH-HV-B_WET_CLAIM_04",
+          "SYNTH-HV-B_WET_CLAIM_05"
+        ]
+      },
+      "claim_ceiling": "Assembly requirements only; no product, quantity, approval, local supply, fabrication or performance is established."
+    }
+  ],
+  "claim_ceiling": "Synthetic assembly-demand interface only. No selected product, product approval, takeoff quantity, local supply, price, engineering rating, manufacturing capability or physical acceptance is included."
+}
