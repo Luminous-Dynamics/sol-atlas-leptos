@@ -41,6 +41,7 @@ These are not one linear certainty ladder. The compiler should retain parallel a
 | Spatial intent | [Spatial intent graph PR #827](https://github.com/Luminous-Dynamics/sol-atlas-leptos/pull/827); [resident spatial programme #833](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/833) | Activity, relationship, privacy and resident-stated functional constraints |
 | Geometric qualification | [Geometric layout PR #831](https://github.com/Luminous-Dynamics/sol-atlas-leptos/pull/831) | Current scope is synthetic orthogonal 2D geometry, integer millimetres, openings as connectivity portals; not architectural or code approval |
 | Multi-family housing | [Multi-family compiler #840](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/840); [benchmark protocol](MULTIFAMILY_HOUSING_BENCHMARK_V0.1.md); [building schema](multifamily-building.schema.json) | First synthetic multi-floor / multi-unit interface; no fire, accessibility, daylight, acoustic, structural or service-capacity authority |
+| Multi-family shared services | [Per-unit shared-service allocation #844](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/844); Symtropy #1848 and Symthaea #10445/#10474/#10486 | Connects shared plant/riser/zone topology to per-unit service trajectories; no utility, safety or building-controls authority |
 | Whole-home revision impact | [Revision impact #832](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/832) | Typed change events and evidence-specific dependency invalidation |
 | Site / ground / foundations | [Site-to-foundation qualification #836](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/836); [site-investigation EVSI #134](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/134) | Evidence intake, sampling decision support, revision binding and hold-point records; no geotechnical or structural calculation authority |
 | Assembly demand | [Home assembly demand #803](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/803) | Declares what assemblies a design requires; does not invent quantities, products or approvals |
@@ -160,7 +161,7 @@ Professional design, controlled standards, qualified inspections, product-specif
 
 ## 11. Multi-family qualification and shared programme owners
 
-The apartment programme is now [#840](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/840). Its benchmark is in [MULTIFAMILY_HOUSING_BENCHMARK_V0.1.md](MULTIFAMILY_HOUSING_BENCHMARK_V0.1.md); its synthetic building and adversarial corpus are machine-readable in the adjacent schema/fixture/manifest files.
+The apartment programme is now [#840](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/840). Its benchmark is in [MULTIFAMILY_HOUSING_BENCHMARK_V0.1.md](MULTIFAMILY_HOUSING_BENCHMARK_V0.1.md); its synthetic building and adversarial corpus are machine-readable in the adjacent schema/fixture/manifest files. A per-unit shared-infrastructure adapter is now [#844](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/844), and the apartment-to-DfMA assembly interface is in [MULTIFAMILY_DFMA_INTERFACE_V0.1.md](MULTIFAMILY_DFMA_INTERFACE_V0.1.md).
 
 Compose existing programmes rather than duplicate them:
 - [#617] 2026 AEC commercial and human-led benchmarking;
