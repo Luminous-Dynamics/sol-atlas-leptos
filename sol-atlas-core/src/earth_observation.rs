@@ -15,7 +15,7 @@
 //! rights-unresolved observation is never equivalent to "no change".
 
 use crate::earth_observability::{
-    classify_non_detection, DetectionQualification, EvidenceState, NonDetectionDisposition,
+    DetectionQualification, EvidenceState, NonDetectionDisposition, classify_non_detection,
 };
 use crate::geospatial_assets::{AssetId, ObservationTime, ObservationTimeKind};
 use serde::{Deserialize, Serialize};
@@ -126,10 +126,8 @@ impl RightsReceiptRef {
         validate_identifier(&purpose_id, "rights purpose ID")?;
         validate_identifier(&source_id, "rights source ID")?;
         validate_identifier(&asset_id, "rights asset ID")?;
-        let decision_receipt_sha256 = normalize_sha256(
-            decision_receipt_sha256.into(),
-            "rights decision receipt",
-        )?;
+        let decision_receipt_sha256 =
+            normalize_sha256(decision_receipt_sha256.into(), "rights decision receipt")?;
         Ok(Self {
             subject_id,
             purpose_id,
@@ -261,17 +259,23 @@ impl ObservationRecord {
         match sensor_identity_origin {
             SensorIdentityOrigin::ProviderDeclared => {
                 if sensor_id == "unknown" || sensor_id.starts_with("derived:") {
-                    return Err("provider-declared sensor ID cannot use unknown/derived sentinel".into());
+                    return Err(
+                        "provider-declared sensor ID cannot use unknown/derived sentinel".into(),
+                    );
                 }
             }
             SensorIdentityOrigin::DerivedFromPlatformAndInstrument => {
                 if instrument_id.is_none() || !sensor_id.starts_with("derived:") {
-                    return Err("derived sensor identity requires an instrument and derived: ID".into());
+                    return Err(
+                        "derived sensor identity requires an instrument and derived: ID".into(),
+                    );
                 }
             }
             SensorIdentityOrigin::Unknown => {
                 if sensor_id != "unknown" {
-                    return Err("unknown sensor identity must use the explicit unknown sentinel".into());
+                    return Err(
+                        "unknown sensor identity must use the explicit unknown sentinel".into(),
+                    );
                 }
             }
         }
@@ -396,12 +400,14 @@ impl ObservationRecord {
         if self.acquisition.kind() == ObservationTimeKind::Unknown {
             return None;
         }
-        Some(format!(
-            "{:?}|{}|{}",
-            self.acquisition.kind(),
-            self.acquisition.datetime().unwrap_or(""),
-            self.acquisition.start().unwrap_or("")
-        ) + &format!("|{}", self.acquisition.end().unwrap_or("")))
+        Some(
+            format!(
+                "{:?}|{}|{}",
+                self.acquisition.kind(),
+                self.acquisition.datetime().unwrap_or(""),
+                self.acquisition.start().unwrap_or("")
+            ) + &format!("|{}", self.acquisition.end().unwrap_or("")),
+        )
     }
 }
 
@@ -467,7 +473,11 @@ impl DetectionLimit {
         if !value.is_finite() || value <= 0.0 {
             return Err("detection limit must be finite and greater than zero".into());
         }
-        Ok(Self { metric, value, unit })
+        Ok(Self {
+            metric,
+            value,
+            unit,
+        })
     }
 
     pub fn metric(&self) -> &str {
@@ -616,15 +626,23 @@ impl ChangeClaim {
         validate_identifier(&ontology_version, "ontology version")?;
         validate_identifier(&support_id, "claim support ID")?;
         validate_unique_ids(&observation_ids, "observation reference")?;
-        validate_unique_ids(&supporting_observation_ids, "supporting observation reference")?;
-        validate_unique_ids(&contradicting_observation_ids, "contradicting observation reference")?;
+        validate_unique_ids(
+            &supporting_observation_ids,
+            "supporting observation reference",
+        )?;
+        validate_unique_ids(
+            &contradicting_observation_ids,
+            "contradicting observation reference",
+        )?;
 
         for id in supporting_observation_ids
             .iter()
             .chain(contradicting_observation_ids.iter())
         {
             if !observation_ids.contains(id) {
-                return Err("supporting/contradicting observation must be in observation_ids".into());
+                return Err(
+                    "supporting/contradicting observation must be in observation_ids".into(),
+                );
             }
         }
         for id in &observation_ids {
@@ -642,13 +660,17 @@ impl ChangeClaim {
             return Err("complete qualified coverage requires a coverage receipt digest".into());
         }
         if coverage != CoverageState::CompleteQualified && coverage_receipt_sha256.is_some() {
-            return Err("coverage receipt is only admissible for complete qualified coverage".into());
+            return Err(
+                "coverage receipt is only admissible for complete qualified coverage".into(),
+            );
         }
 
         match disposition {
             ChangeDisposition::NoChangeWithinEnvelope => {
                 if coverage != CoverageState::CompleteQualified {
-                    return Err("no-change claim requires complete qualified observation coverage".into());
+                    return Err(
+                        "no-change claim requires complete qualified observation coverage".into(),
+                    );
                 }
                 if detection_limit.is_none() {
                     return Err("no-change claim requires an explicit detection limit".into());
@@ -657,7 +679,8 @@ impl ChangeClaim {
                     return Err("no-change claim requires an exact target/sensor detection-qualification receipt".into());
                 }
                 let qualification = detection_qualification.ok_or_else(|| {
-                    "no-change claim requires the structured detection-qualification result".to_string()
+                    "no-change claim requires the structured detection-qualification result"
+                        .to_string()
                 })?;
                 if classify_non_detection(qualification)
                     != NonDetectionDisposition::AbsenceEvidenceEligible
@@ -665,13 +688,18 @@ impl ChangeClaim {
                     return Err("no-change claim requires target coverage, valid calibration, in-domain applicability and sufficient qualified probability of detection".into());
                 }
                 if supporting_observation_ids.len() < 2 {
-                    return Err("no-change claim requires at least two supporting observations".into());
+                    return Err(
+                        "no-change claim requires at least two supporting observations".into(),
+                    );
                 }
                 if !contradicting_observation_ids.is_empty() {
                     return Err("no-change claim cannot contain contradicting observations".into());
                 }
                 if event_time_bounds.is_some() {
-                    return Err("no-change claim uses an observation window, not an event-time interval".into());
+                    return Err(
+                        "no-change claim uses an observation window, not an event-time interval"
+                            .into(),
+                    );
                 }
             }
             ChangeDisposition::SupportedChange => {
@@ -679,12 +707,17 @@ impl ChangeClaim {
                     return Err("supported-change claim requires supporting observations".into());
                 }
                 if event_time_bounds.is_none() {
-                    return Err("supported-change claim requires bounded event-time evidence".into());
+                    return Err(
+                        "supported-change claim requires bounded event-time evidence".into(),
+                    );
                 }
             }
             ChangeDisposition::CandidateChange => {
                 if supporting_observation_ids.is_empty() {
-                    return Err("candidate-change claim requires at least one supporting observation".into());
+                    return Err(
+                        "candidate-change claim requires at least one supporting observation"
+                            .into(),
+                    );
                 }
             }
             ChangeDisposition::Unresolved => {}
@@ -730,7 +763,10 @@ impl ChangeClaim {
     pub fn validate_against(&self, observations: &[ObservationRecord]) -> Result<(), String> {
         let mut by_id = BTreeMap::new();
         for observation in observations {
-            if by_id.insert(observation.observation_id(), observation).is_some() {
+            if by_id
+                .insert(observation.observation_id(), observation)
+                .is_some()
+            {
                 return Err("duplicate observation ID in evidence bundle".into());
             }
         }
@@ -758,27 +794,31 @@ impl ChangeClaim {
                 return Err(format!("observation {id} is not EO-qualified usable"));
             }
             if !observation.has_qualified_source_identity() {
-                return Err(format!("observation {id} has unknown source sensor identity"));
+                return Err(format!(
+                    "observation {id} has unknown source sensor identity"
+                ));
             }
         }
 
         if self.disposition == ChangeDisposition::NoChangeWithinEnvelope {
-            if referenced
-                .iter()
-                .any(|observation| {
-                    !observation.is_usable_observation()
-                        || !observation.has_qualified_source_identity()
-                })
-            {
+            if referenced.iter().any(|observation| {
+                !observation.is_usable_observation() || !observation.has_qualified_source_identity()
+            }) {
                 return Err("no-change claim includes an EO-unusable or source-identity-unresolved observation".into());
             }
             let unique_acquisitions = self
                 .supporting_observation_ids
                 .iter()
-                .filter_map(|id| by_id.get(id.as_str()).and_then(|o| o.acquisition_signature()))
+                .filter_map(|id| {
+                    by_id
+                        .get(id.as_str())
+                        .and_then(|o| o.acquisition_signature())
+                })
                 .collect::<BTreeSet<_>>();
             if unique_acquisitions.len() < 2 {
-                return Err("no-change claim requires two distinct declared acquisition times".into());
+                return Err(
+                    "no-change claim requires two distinct declared acquisition times".into(),
+                );
             }
         }
         Ok(())
@@ -905,7 +945,9 @@ fn validate_identifier(value: &str, label: &str) -> Result<(), String> {
             .bytes()
             .all(|byte| byte.is_ascii_alphanumeric() || matches!(byte, b'-' | b'_' | b'.' | b':'))
     {
-        return Err(format!("{label} must be 1-128 trimmed ASCII token characters"));
+        return Err(format!(
+            "{label} must be 1-128 trimmed ASCII token characters"
+        ));
     }
     Ok(())
 }
@@ -962,12 +1004,8 @@ mod tests {
             digest(b'c'),
             rights(&format!("fixture:{id}")),
             "support-a",
-            ObservationTime::new(
-                ObservationTimeKind::Instant,
-                Some(date.to_string()),
-                None,
-            )
-            .unwrap(),
+            ObservationTime::new(ObservationTimeKind::Instant, Some(date.to_string()), None)
+                .unwrap(),
             ObservationModality::Optical,
             quality,
         )
@@ -1003,30 +1041,50 @@ mod tests {
 
     #[test]
     fn no_change_requires_complete_coverage_receipt_and_detection_limit() {
-        assert!(ChangeClaim::new(
-            "claim", "class", "ontology-v1", "support",
-            TimeWindow::new("2024-01-01", "2025-01-01").unwrap(),
-            ChangeDisposition::NoChangeWithinEnvelope, None,
-            vec!["a".into(), "b".into()], vec!["a".into(), "b".into()], vec![],
-            CoverageState::Partial, None, Some(digest(b'e')), None,
-            Some(DetectionLimit::new("min-change", 1.0, "unit").unwrap())
-        ).is_err());
+        assert!(
+            ChangeClaim::new(
+                "claim",
+                "class",
+                "ontology-v1",
+                "support",
+                TimeWindow::new("2024-01-01", "2025-01-01").unwrap(),
+                ChangeDisposition::NoChangeWithinEnvelope,
+                None,
+                vec!["a".into(), "b".into()],
+                vec!["a".into(), "b".into()],
+                vec![],
+                CoverageState::Partial,
+                None,
+                Some(digest(b'e')),
+                None,
+                Some(DetectionLimit::new("min-change", 1.0, "unit").unwrap())
+            )
+            .is_err()
+        );
     }
 
     #[test]
     fn no_change_requires_target_sensor_detection_qualification_receipt() {
-        assert!(ChangeClaim::new(
-            "claim", "class", "ontology-v1", "support-a",
-            TimeWindow::new("2024-01-01", "2025-01-01").unwrap(),
-            ChangeDisposition::NoChangeWithinEnvelope, None,
-            vec!["obs-a".into(), "obs-b".into()],
-            vec!["obs-a".into(), "obs-b".into()], vec![],
-            CoverageState::CompleteQualified,
-            Some(digest(b'd')),
-            None,
-            None,
-            Some(DetectionLimit::new("min-change", 0.05, "fraction").unwrap())
-        ).is_err());
+        assert!(
+            ChangeClaim::new(
+                "claim",
+                "class",
+                "ontology-v1",
+                "support-a",
+                TimeWindow::new("2024-01-01", "2025-01-01").unwrap(),
+                ChangeDisposition::NoChangeWithinEnvelope,
+                None,
+                vec!["obs-a".into(), "obs-b".into()],
+                vec!["obs-a".into(), "obs-b".into()],
+                vec![],
+                CoverageState::CompleteQualified,
+                Some(digest(b'd')),
+                None,
+                None,
+                Some(DetectionLimit::new("min-change", 0.05, "fraction").unwrap())
+            )
+            .is_err()
+        );
     }
 
     #[test]
@@ -1062,18 +1120,26 @@ mod tests {
             },
         ] {
             let result = ChangeClaim::new(
-                "claim", "class", "ontology-v1", "support-a",
+                "claim",
+                "class",
+                "ontology-v1",
+                "support-a",
                 TimeWindow::new("2024-01-01", "2025-01-01").unwrap(),
-                ChangeDisposition::NoChangeWithinEnvelope, None,
+                ChangeDisposition::NoChangeWithinEnvelope,
+                None,
                 vec!["obs-a".into(), "obs-b".into()],
-                vec!["obs-a".into(), "obs-b".into()], vec![],
+                vec!["obs-a".into(), "obs-b".into()],
+                vec![],
                 CoverageState::CompleteQualified,
                 Some(digest(b'd')),
                 Some(digest(b'e')),
                 Some(qualification),
                 Some(DetectionLimit::new("minimum-change", 0.05, "fraction").unwrap()),
             );
-            assert!(result.is_err(), "unqualified POD result was accepted as no-change");
+            assert!(
+                result.is_err(),
+                "unqualified POD result was accepted as no-change"
+            );
         }
     }
 
@@ -1122,7 +1188,10 @@ mod tests {
                 ],
                 vec![no_change_claim()],
             );
-            assert!(bundle.is_err(), "quality {quality:?} was promoted to no-change");
+            assert!(
+                bundle.is_err(),
+                "quality {quality:?} was promoted to no-change"
+            );
         }
     }
 
@@ -1135,34 +1204,42 @@ mod tests {
             ],
             vec![no_change_claim()],
         );
-        assert!(bundle.unwrap_err().contains("two distinct declared acquisition times"));
+        assert!(
+            bundle
+                .unwrap_err()
+                .contains("two distinct declared acquisition times")
+        );
     }
 
     #[test]
     fn rights_receipt_must_bind_the_exact_asset_and_bundle_scope() {
         let wrong_asset_rights = rights("fixture:some-other-asset");
-        assert!(ObservationRecord::new(
-            "obs-a",
-            AssetId::new("fixture:obs-a").unwrap(),
-            "fixture-source",
-            "fixture-platform",
-            "fixture-sensor",
-            SensorIdentityOrigin::ProviderDeclared,
-            Some("fixture-instrument".into()),
-            Some("fixture-collection".into()),
-            Some("fixture-baseline".into()),
-            digest(b'b'),
-            digest(b'c'),
-            wrong_asset_rights,
-            "support-a",
-            ObservationTime::new(
-                ObservationTimeKind::Instant,
-                Some("2024-01-01".into()),
-                None
-            ).unwrap(),
-            ObservationModality::Optical,
-            ObservationQuality::QualifiedUsable,
-        ).is_err());
+        assert!(
+            ObservationRecord::new(
+                "obs-a",
+                AssetId::new("fixture:obs-a").unwrap(),
+                "fixture-source",
+                "fixture-platform",
+                "fixture-sensor",
+                SensorIdentityOrigin::ProviderDeclared,
+                Some("fixture-instrument".into()),
+                Some("fixture-collection".into()),
+                Some("fixture-baseline".into()),
+                digest(b'b'),
+                digest(b'c'),
+                wrong_asset_rights,
+                "support-a",
+                ObservationTime::new(
+                    ObservationTimeKind::Instant,
+                    Some("2024-01-01".into()),
+                    None
+                )
+                .unwrap(),
+                ObservationModality::Optical,
+                ObservationQuality::QualifiedUsable,
+            )
+            .is_err()
+        );
 
         let wrong_source_rights = RightsReceiptRef::new(
             "fixture-subject",
@@ -1170,29 +1247,34 @@ mod tests {
             "different-source",
             "fixture:obs-a",
             digest(b'a'),
-        ).unwrap();
-        assert!(ObservationRecord::new(
-            "obs-a",
-            AssetId::new("fixture:obs-a").unwrap(),
-            "fixture-source",
-            "fixture-platform",
-            "fixture-sensor",
-            SensorIdentityOrigin::ProviderDeclared,
-            Some("fixture-instrument".into()),
-            Some("fixture-collection".into()),
-            Some("fixture-baseline".into()),
-            digest(b'b'),
-            digest(b'c'),
-            wrong_source_rights,
-            "support-a",
-            ObservationTime::new(
-                ObservationTimeKind::Instant,
-                Some("2024-01-01".into()),
-                None
-            ).unwrap(),
-            ObservationModality::Optical,
-            ObservationQuality::QualifiedUsable,
-        ).is_err());
+        )
+        .unwrap();
+        assert!(
+            ObservationRecord::new(
+                "obs-a",
+                AssetId::new("fixture:obs-a").unwrap(),
+                "fixture-source",
+                "fixture-platform",
+                "fixture-sensor",
+                SensorIdentityOrigin::ProviderDeclared,
+                Some("fixture-instrument".into()),
+                Some("fixture-collection".into()),
+                Some("fixture-baseline".into()),
+                digest(b'b'),
+                digest(b'c'),
+                wrong_source_rights,
+                "support-a",
+                ObservationTime::new(
+                    ObservationTimeKind::Instant,
+                    Some("2024-01-01".into()),
+                    None
+                )
+                .unwrap(),
+                ObservationModality::Optical,
+                ObservationQuality::QualifiedUsable,
+            )
+            .is_err()
+        );
 
         let mismatched_scope = ObservationRecord::new(
             "obs-b",
@@ -1212,23 +1294,29 @@ mod tests {
                 "fixture-source",
                 "fixture:obs-b",
                 digest(b'a'),
-            ).unwrap(),
+            )
+            .unwrap(),
             "support-a",
             ObservationTime::new(
                 ObservationTimeKind::Instant,
                 Some("2025-01-01".into()),
-                None
-            ).unwrap(),
+                None,
+            )
+            .unwrap(),
             ObservationModality::Optical,
             ObservationQuality::QualifiedUsable,
-        ).unwrap();
-        assert!(EvidenceBundle::new(
-            vec![
-                observation("obs-a", "2024-01-01", ObservationQuality::QualifiedUsable),
-                mismatched_scope
-            ],
-            vec![]
-        ).is_err());
+        )
+        .unwrap();
+        assert!(
+            EvidenceBundle::new(
+                vec![
+                    observation("obs-a", "2024-01-01", ObservationQuality::QualifiedUsable),
+                    mismatched_scope
+                ],
+                vec![]
+            )
+            .is_err()
+        );
     }
 
     #[test]
@@ -1247,10 +1335,16 @@ mod tests {
             digest(b'c'),
             rights("fixture:obs-unknown-sensor"),
             "support-a",
-            ObservationTime::new(ObservationTimeKind::Instant, Some("2024-01-01".into()), None).unwrap(),
+            ObservationTime::new(
+                ObservationTimeKind::Instant,
+                Some("2024-01-01".into()),
+                None,
+            )
+            .unwrap(),
             ObservationModality::Optical,
             ObservationQuality::QualifiedUsable,
-        ).unwrap();
+        )
+        .unwrap();
         assert!(!unknown.has_qualified_source_identity());
         let unresolved_claim = ChangeClaim::new(
             "claim-unknown-sensor",
@@ -1268,7 +1362,8 @@ mod tests {
             None,
             None,
             None,
-        ).unwrap();
+        )
+        .unwrap();
         assert!(EvidenceBundle::new(vec![unknown], vec![unresolved_claim]).is_err());
 
         let derived = ObservationRecord::new(
@@ -1285,69 +1380,107 @@ mod tests {
             digest(b'c'),
             rights("fixture:obs-derived-sensor"),
             "support-a",
-            ObservationTime::new(ObservationTimeKind::Instant, Some("2024-01-01".into()), None).unwrap(),
+            ObservationTime::new(
+                ObservationTimeKind::Instant,
+                Some("2024-01-01".into()),
+                None,
+            )
+            .unwrap(),
             ObservationModality::Optical,
             ObservationQuality::QualifiedUsable,
-        ).unwrap();
+        )
+        .unwrap();
         assert!(derived.has_qualified_source_identity());
         assert_eq!(
             derived.sensor_identity_origin(),
             SensorIdentityOrigin::DerivedFromPlatformAndInstrument
         );
-        assert!(ObservationRecord::new(
-            "obs-invalid-derived",
-            AssetId::new("fixture:obs-invalid-derived").unwrap(),
-            "fixture-source",
-            "sentinel-2a",
-            "sentinel-2a:MSI",
-            SensorIdentityOrigin::DerivedFromPlatformAndInstrument,
-            None,
-            Some("sentinel-2-l2a".into()),
-            Some("04.00".into()),
-            digest(b'b'),
-            digest(b'c'),
-            rights("fixture:obs-invalid-derived"),
-            "support-a",
-            ObservationTime::new(ObservationTimeKind::Instant, Some("2024-01-01".into()), None).unwrap(),
-            ObservationModality::Optical,
-            ObservationQuality::QualifiedUsable,
-        ).is_err());
+        assert!(
+            ObservationRecord::new(
+                "obs-invalid-derived",
+                AssetId::new("fixture:obs-invalid-derived").unwrap(),
+                "fixture-source",
+                "sentinel-2a",
+                "sentinel-2a:MSI",
+                SensorIdentityOrigin::DerivedFromPlatformAndInstrument,
+                None,
+                Some("sentinel-2-l2a".into()),
+                Some("04.00".into()),
+                digest(b'b'),
+                digest(b'c'),
+                rights("fixture:obs-invalid-derived"),
+                "support-a",
+                ObservationTime::new(
+                    ObservationTimeKind::Instant,
+                    Some("2024-01-01".into()),
+                    None
+                )
+                .unwrap(),
+                ObservationModality::Optical,
+                ObservationQuality::QualifiedUsable,
+            )
+            .is_err()
+        );
     }
 
     #[test]
     fn provider_native_platform_and_sensor_identity_are_required() {
-        assert!(ObservationRecord::new(
-            "obs-invalid-sensor",
-            AssetId::new("fixture:obs-invalid-sensor").unwrap(),
-            "fixture-source",
-            " ",
-            "fixture-sensor",
-            SensorIdentityOrigin::ProviderDeclared,
-            Some("fixture-instrument".into()),
-            Some("fixture-collection".into()),
-            Some("fixture-baseline".into()),
-            digest(b'b'),
-            digest(b'c'),
-            rights("fixture:obs-invalid-sensor"),
-            "support-a",
-            ObservationTime::new(
-                ObservationTimeKind::Instant,
-                Some("2024-01-01".into()),
-                None
-            ).unwrap(),
-            ObservationModality::Optical,
-            ObservationQuality::QualifiedUsable,
-        ).is_err());
+        assert!(
+            ObservationRecord::new(
+                "obs-invalid-sensor",
+                AssetId::new("fixture:obs-invalid-sensor").unwrap(),
+                "fixture-source",
+                " ",
+                "fixture-sensor",
+                SensorIdentityOrigin::ProviderDeclared,
+                Some("fixture-instrument".into()),
+                Some("fixture-collection".into()),
+                Some("fixture-baseline".into()),
+                digest(b'b'),
+                digest(b'c'),
+                rights("fixture:obs-invalid-sensor"),
+                "support-a",
+                ObservationTime::new(
+                    ObservationTimeKind::Instant,
+                    Some("2024-01-01".into()),
+                    None
+                )
+                .unwrap(),
+                ObservationModality::Optical,
+                ObservationQuality::QualifiedUsable,
+            )
+            .is_err()
+        );
     }
 
     #[test]
     fn mismatched_support_and_missing_receipt_digests_fail() {
-        assert!(ObservationRecord::new(
-            "obs-b", AssetId::new("fixture:obs-b").unwrap(), "fixture-source", "fixture-platform", "fixture-sensor", SensorIdentityOrigin::ProviderDeclared, Some("fixture-instrument".into()), Some("fixture-collection".into()), Some("fixture-baseline".into()), "not-a-digest", digest(b'c'),
-            rights("fixture:obs-b"), "support-a",
-            ObservationTime::new(ObservationTimeKind::Instant, Some("2024-01-01".into()), None).unwrap(),
-            ObservationModality::Optical, ObservationQuality::QualifiedUsable
-        ).is_err());
+        assert!(
+            ObservationRecord::new(
+                "obs-b",
+                AssetId::new("fixture:obs-b").unwrap(),
+                "fixture-source",
+                "fixture-platform",
+                "fixture-sensor",
+                SensorIdentityOrigin::ProviderDeclared,
+                Some("fixture-instrument".into()),
+                Some("fixture-collection".into()),
+                Some("fixture-baseline".into()),
+                "not-a-digest",
+                digest(b'c'),
+                rights("fixture:obs-b"),
+                "support-a",
+                ObservationTime::new(
+                    ObservationTimeKind::Instant,
+                    Some("2024-01-01".into()),
+                    None
+                )
+                .unwrap(),
+                ObservationModality::Optical,
+                ObservationQuality::QualifiedUsable
+            )
+            .is_err()
+        );
     }
 
     #[test]
@@ -1358,7 +1491,8 @@ mod tests {
                 observation("obs-b", "2025-01-01", ObservationQuality::QualifiedUsable),
             ],
             vec![no_change_claim()],
-        ).unwrap();
+        )
+        .unwrap();
         let json = serde_json::to_string(&valid).unwrap();
         let decoded: EvidenceBundle = serde_json::from_str(&json).unwrap();
         assert_eq!(decoded, valid);
@@ -1368,9 +1502,18 @@ mod tests {
             decoded.observations()[0].sensor_identity_origin(),
             SensorIdentityOrigin::ProviderDeclared
         );
-        assert_eq!(decoded.observations()[0].instrument_id(), Some("fixture-instrument"));
-        assert_eq!(decoded.observations()[0].collection_id(), Some("fixture-collection"));
-        assert_eq!(decoded.observations()[0].processing_baseline(), Some("fixture-baseline"));
+        assert_eq!(
+            decoded.observations()[0].instrument_id(),
+            Some("fixture-instrument")
+        );
+        assert_eq!(
+            decoded.observations()[0].collection_id(),
+            Some("fixture-collection")
+        );
+        assert_eq!(
+            decoded.observations()[0].processing_baseline(),
+            Some("fixture-baseline")
+        );
 
         let mut value: serde_json::Value = serde_json::from_str(&json).unwrap();
         value["observations"][0]["quality"] = serde_json::json!("cloud_contaminated");
@@ -1381,33 +1524,74 @@ mod tests {
     #[test]
     fn claim_reference_must_exist_and_be_in_the_same_support() {
         let missing = ChangeClaim::new(
-            "candidate", "built-up-change", "ontology-v1", "support-a",
+            "candidate",
+            "built-up-change",
+            "ontology-v1",
+            "support-a",
             TimeWindow::new("2024-01-01", "2025-01-01").unwrap(),
-            ChangeDisposition::CandidateChange, None,
-            vec!["absent".into()], vec!["absent".into()], vec![],
-            CoverageState::Unknown, None, None, None, None
-        ).unwrap();
+            ChangeDisposition::CandidateChange,
+            None,
+            vec!["absent".into()],
+            vec!["absent".into()],
+            vec![],
+            CoverageState::Unknown,
+            None,
+            None,
+            None,
+            None,
+        )
+        .unwrap();
         assert!(EvidenceBundle::new(vec![], vec![missing]).is_err());
 
         let claim = ChangeClaim::new(
-            "candidate", "built-up-change", "ontology-v1", "support-a",
+            "candidate",
+            "built-up-change",
+            "ontology-v1",
+            "support-a",
             TimeWindow::new("2024-01-01", "2025-01-01").unwrap(),
-            ChangeDisposition::CandidateChange, None,
-            vec!["obs-b".into()], vec!["obs-b".into()], vec![],
-            CoverageState::Unknown, None, None, None, None
-        ).unwrap();
+            ChangeDisposition::CandidateChange,
+            None,
+            vec!["obs-b".into()],
+            vec!["obs-b".into()],
+            vec![],
+            CoverageState::Unknown,
+            None,
+            None,
+            None,
+            None,
+        )
+        .unwrap();
         let other_support = ObservationRecord::new(
-            "obs-b", AssetId::new("fixture:obs-b").unwrap(), "fixture-source", "fixture-platform", "fixture-sensor", SensorIdentityOrigin::ProviderDeclared, Some("fixture-instrument".into()), Some("fixture-collection".into()), Some("fixture-baseline".into()), digest(b'b'), digest(b'c'),
-            rights("fixture:obs-b"), "support-b",
-            ObservationTime::new(ObservationTimeKind::Instant, Some("2024-01-01".into()), None).unwrap(),
-            ObservationModality::Optical, ObservationQuality::QualifiedUsable
-        ).unwrap();
+            "obs-b",
+            AssetId::new("fixture:obs-b").unwrap(),
+            "fixture-source",
+            "fixture-platform",
+            "fixture-sensor",
+            SensorIdentityOrigin::ProviderDeclared,
+            Some("fixture-instrument".into()),
+            Some("fixture-collection".into()),
+            Some("fixture-baseline".into()),
+            digest(b'b'),
+            digest(b'c'),
+            rights("fixture:obs-b"),
+            "support-b",
+            ObservationTime::new(
+                ObservationTimeKind::Instant,
+                Some("2024-01-01".into()),
+                None,
+            )
+            .unwrap(),
+            ObservationModality::Optical,
+            ObservationQuality::QualifiedUsable,
+        )
+        .unwrap();
         assert!(EvidenceBundle::new(vec![other_support], vec![claim]).is_err());
     }
 
     #[test]
     fn checked_in_no_change_fixture_deserializes_and_revalidates() {
-        let fixture = include_str!("../tests/fixtures/earth_observation/valid_no_change_bundle.json");
+        let fixture =
+            include_str!("../tests/fixtures/earth_observation/valid_no_change_bundle.json");
         let bundle: EvidenceBundle = serde_json::from_str(fixture).unwrap();
         assert_eq!(bundle.schema_version(), EARTH_OBSERVATION_SCHEMA_VERSION);
         assert_eq!(bundle.observations().len(), 2);
@@ -1426,7 +1610,8 @@ mod tests {
                 observation("obs-b", "2025-01-01", ObservationQuality::QualifiedUsable),
             ],
             vec![no_change_claim()],
-        ).unwrap();
+        )
+        .unwrap();
         let mut value: serde_json::Value =
             serde_json::from_str(&serde_json::to_string(&valid).unwrap()).unwrap();
         value["schema_version"] = serde_json::json!(99);
