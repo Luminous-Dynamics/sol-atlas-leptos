@@ -436,7 +436,7 @@ Hard gates:
 - zero everyday-topology promotion to accessibility or emergency egress;
 - 100% exact unit/footprint/floor transform binding.
 
-The current Rust source has 15 authored tests (one positive fixture and 14 negative controls). Hosted test/rustfmt evidence remains exact-head gated.
+The unit-layout Rust source has 18 authored tests (one positive fixture and 17 negative controls). The authored corpus contains 24 cases (one positive and 23 adversarial development controls, none sealed or executed); the qualifier validates manifest identity/split but does not yet run every adversarial mutation as an automated scenario. Hosted test/rustfmt evidence remains exact-head gated.
 
 
 ## 20. Shared household-service distribution and apartment-boundary resilience
@@ -460,3 +460,12 @@ Industry integration must consume specialist tools rather than replace them. EPA
 
 Johannesburg Water's October 2026 reports of constrained reservoirs/towers, low pressure and intermittent supply reinforce why apartment service must be measured at the actual floor/unit boundary, rather than inferred from the presence of storage or booster equipment.
 
+
+## 20. Unit-layout mutation corpus and schema
+
+- `multifamily-unit-layout-corpus.schema.json`
+- `multifamily-unit-layout-corpus-v0.1.json`
+
+The corpus contains 24 authored cases: one positive topology-only control and 23 adversarial development controls. It covers unit identity and transforms, room overlap/containment/partition, activity assignment and room mapping, shared-space references, privacy compatibility, relationship IDs/targets, portal boundary/span, everyday graph connectivity and forbidden clear-width/door-swing/access/egress promotion.
+
+All case states are `not_executed`; probabilities are null; calibration and sealed confirmation splits are empty. The Rust unit-layout qualifier validates the manifest's identity/count/split/expected disposition and base-fixture binding, but does not yet automatically mutate and execute all 23 cases. The 18 authored Rust unit tests provide an initial, separate negative-control set. No blind or independent benchmark pass is claimed.
