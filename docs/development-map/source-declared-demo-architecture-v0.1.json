@@ -1,6 +1,6 @@
 {
   "schema_version": "0.1.0",
-  "map_id": "sol-atlas:demo-cargo-core-projection:2026-11-14",
+  "map_id": "sol-atlas:source-declared-demo-decision-evidence-projection:2026-11-14",
   "repository": {
     "canonical_name": "Luminous-Dynamics/sol-atlas-leptos",
     "visibility": "public",
@@ -10,7 +10,7 @@
     "revision": "1af10d891410cce31c1d4037e7c7129c16db5834",
     "tree_digest": "513c8e2b65e68c730d092efe12f9452b3414785e",
     "tree_digest_algorithm": "git_tree_oid_sha1",
-    "observed_at": "2026-11-14T09:05:00.000Z",
+    "observed_at": "2026-11-14T11:50:00.000Z",
     "parent_snapshot": null,
     "source_event_high_watermark": null,
     "configuration_world": {
@@ -18,7 +18,16 @@
       "source_scope": [
         "DEMO.md",
         "Cargo.toml",
-        "sol-atlas-core/src/lib.rs"
+        "sol-atlas-core/src/lib.rs",
+        "src/app.rs",
+        "src/data/static_data.rs",
+        "src/data/holochain.rs",
+        "src/state/data_state.rs",
+        "src/components/reactor_twin_demo.rs",
+        "src/vitality/mod.rs",
+        "docs/research/IEAC_DECISION_RELIANCE_CONTINUITY_V0.1.md",
+        "docs/industry/IEAC_TUF_CHANNEL_FRESHNESS_V0.1.md",
+        "research/earth-observability/EARTH_OBSERVABILITY_DETECTION_TO_DECISION_V0_1.md"
       ]
     }
   },
@@ -1044,6 +1053,748 @@
         "supersedes": null,
         "invalidated_by": null,
         "reason": "Current only for the exact pinned source revision."
+      }
+    },
+    {
+      "id": "solatlas:app:routing",
+      "type": "application",
+      "claim_state": "observed",
+      "label": "Leptos application routes and globe composition",
+      "attributes": {
+        "routes": [
+          "/",
+          "/labs/reactor-twin"
+        ],
+        "components": [
+          "GlobeCanvas",
+          "Hud",
+          "LayerPanel",
+          "Timeline",
+          "Whisper",
+          "Tooltip",
+          "InfoPanel",
+          "PlanetNav"
+        ],
+        "rendering": "Leptos CSR application"
+      },
+      "provenance": {
+        "authority": "source_declared",
+        "sources": [
+          {
+            "kind": "repository_file",
+            "uri": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/blob/1af10d891410cce31c1d4037e7c7129c16db5834/src/app.rs#L21-L117",
+            "path": "src/app.rs",
+            "line_start": 21,
+            "line_end": 117,
+            "digest": "9fdb1fe4d1d31c468b73af9c337725ceafdd853a"
+          }
+        ],
+        "extracted_by": {
+          "name": "manual-source-attributed-map",
+          "version": "0.1.0",
+          "digest": null
+        },
+        "observed_at": "2026-11-14T11:50:00.000Z",
+        "valid_for_revision": "1af10d891410cce31c1d4037e7c7129c16db5834",
+        "valid_for_world": "source_documents_and_selected_Rust_paths_only",
+        "limitations": [
+          "Source shape only; no WASM build or browser runtime was run."
+        ]
+      },
+      "lifecycle": {
+        "state": "current",
+        "supersedes": null,
+        "invalidated_by": null,
+        "reason": "Current only for the pinned Sol Atlas source revision."
+      }
+    },
+    {
+      "id": "solatlas:data:static-loader",
+      "type": "module",
+      "claim_state": "observed",
+      "label": "Static data loading path",
+      "attributes": {
+        "source_files": [
+          "assets/data/sites-clustered.json",
+          "assets/data/maglev-network.json",
+          "assets/data/resontia-vaults.json",
+          "assets/data/terra-lumina-sites.json",
+          "assets/data/earth-regions.json",
+          "assets/data/supply-routes.json"
+        ],
+        "behavior": "compile-time include_str! JSON inputs delegated to sol-atlas-core"
+      },
+      "provenance": {
+        "authority": "source_declared",
+        "sources": [
+          {
+            "kind": "repository_file",
+            "uri": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/blob/1af10d891410cce31c1d4037e7c7129c16db5834/src/data/static_data.rs#L5-L52",
+            "path": "src/data/static_data.rs",
+            "line_start": 5,
+            "line_end": 52,
+            "digest": "b5e00634b999df8959cffb0ef2f17323f245f2dc"
+          }
+        ],
+        "extracted_by": {
+          "name": "manual-source-attributed-map",
+          "version": "0.1.0",
+          "digest": null
+        },
+        "observed_at": "2026-11-14T11:50:00.000Z",
+        "valid_for_revision": "1af10d891410cce31c1d4037e7c7129c16db5834",
+        "valid_for_world": "source_documents_and_selected_Rust_paths_only",
+        "limitations": [
+          "This maps the static loader source, not the truth, freshness, licence or completeness of included datasets."
+        ]
+      },
+      "lifecycle": {
+        "state": "current",
+        "supersedes": null,
+        "invalidated_by": null,
+        "reason": "Current only for the pinned Sol Atlas source revision."
+      }
+    },
+    {
+      "id": "solatlas:data:holochain-adapter",
+      "type": "module",
+      "claim_state": "observed",
+      "label": "Optional Holochain data adapter",
+      "attributes": {
+        "feature_gated": true,
+        "behavior": "Holochain zome call wrappers; empty vectors without feature, static data fallback",
+        "systems": [
+          "atlas-sites",
+          "geothermal",
+          "maglev",
+          "vaults",
+          "terra-lumina",
+          "fossil-deposits"
+        ]
+      },
+      "provenance": {
+        "authority": "source_declared",
+        "sources": [
+          {
+            "kind": "repository_file",
+            "uri": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/blob/1af10d891410cce31c1d4037e7c7129c16db5834/src/data/holochain.rs#L5-L166",
+            "path": "src/data/holochain.rs",
+            "line_start": 5,
+            "line_end": 166,
+            "digest": "16a60a23d9bdf4ad1ceca5c4f68afc982b57dd8a"
+          }
+        ],
+        "extracted_by": {
+          "name": "manual-source-attributed-map",
+          "version": "0.1.0",
+          "digest": null
+        },
+        "observed_at": "2026-11-14T11:50:00.000Z",
+        "valid_for_revision": "1af10d891410cce31c1d4037e7c7129c16db5834",
+        "valid_for_world": "source_documents_and_selected_Rust_paths_only",
+        "limitations": [
+          "No Holochain conductor, network call, DNA compatibility or live retrieval was executed."
+        ]
+      },
+      "lifecycle": {
+        "state": "current",
+        "supersedes": null,
+        "invalidated_by": null,
+        "reason": "Current only for the pinned Sol Atlas source revision."
+      }
+    },
+    {
+      "id": "solatlas:data:reactive-state",
+      "type": "module",
+      "claim_state": "observed",
+      "label": "Reactive data-state model",
+      "attributes": {
+        "state_collections": [
+          "sites",
+          "geothermal_nodes",
+          "maglev_corridors",
+          "resontia_vaults",
+          "terra_lumina_sites",
+          "fossil_deposits",
+          "nuclear_sites"
+        ]
+      },
+      "provenance": {
+        "authority": "source_declared",
+        "sources": [
+          {
+            "kind": "repository_file",
+            "uri": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/blob/1af10d891410cce31c1d4037e7c7129c16db5834/src/state/data_state.rs#L8-L98",
+            "path": "src/state/data_state.rs",
+            "line_start": 8,
+            "line_end": 98,
+            "digest": "a501d9224474d06f0f39bd039da5b520d8e08e63"
+          }
+        ],
+        "extracted_by": {
+          "name": "manual-source-attributed-map",
+          "version": "0.1.0",
+          "digest": null
+        },
+        "observed_at": "2026-11-14T11:50:00.000Z",
+        "valid_for_revision": "1af10d891410cce31c1d4037e7c7129c16db5834",
+        "valid_for_world": "source_documents_and_selected_Rust_paths_only",
+        "limitations": [
+          "State declarations only; no browser runtime or source freshness evaluation."
+        ]
+      },
+      "lifecycle": {
+        "state": "current",
+        "supersedes": null,
+        "invalidated_by": null,
+        "reason": "Current only for the pinned Sol Atlas source revision."
+      }
+    },
+    {
+      "id": "solatlas:capability:decision-reliance",
+      "type": "capability",
+      "claim_state": "observed",
+      "label": "Decision reliance continuity",
+      "attributes": {
+        "source_status": "first standalone Rust composition evaluator and schemas implemented",
+        "qualification_status": "exact-head Rust, schema and executable-fixture qualification pending",
+        "owner_native_issue": 509,
+        "views": [
+          "historical_knowledge_at_decision",
+          "retrospective_at_decision_with_current_knowledge",
+          "current_reliance"
+        ],
+        "role": "composition evaluator; not a trust registry, source inventory, lifecycle engine, graph or authorization service"
+      },
+      "provenance": {
+        "authority": "source_declared",
+        "sources": [
+          {
+            "kind": "repository_file",
+            "uri": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/blob/1af10d891410cce31c1d4037e7c7129c16db5834/docs/research/IEAC_DECISION_RELIANCE_CONTINUITY_V0.1.md#L1-L68",
+            "path": "docs/research/IEAC_DECISION_RELIANCE_CONTINUITY_V0.1.md",
+            "line_start": 1,
+            "line_end": 68,
+            "digest": "2e33bcaab58379368d956daaddbf521a65bc8bea"
+          }
+        ],
+        "extracted_by": {
+          "name": "manual-source-attributed-map",
+          "version": "0.1.0",
+          "digest": null
+        },
+        "observed_at": "2026-11-14T11:50:00.000Z",
+        "valid_for_revision": "1af10d891410cce31c1d4037e7c7129c16db5834",
+        "valid_for_world": "source_documents_and_selected_Rust_paths_only",
+        "limitations": [
+          "Status is transcribed from the research document. No Rust compilation, exact-head tests, schema validation or executable fixtures were run."
+        ]
+      },
+      "lifecycle": {
+        "state": "current",
+        "supersedes": null,
+        "invalidated_by": null,
+        "reason": "Current only for the pinned Sol Atlas source revision."
+      }
+    },
+    {
+      "id": "solatlas:capability:historical-knowledge-view",
+      "type": "capability",
+      "claim_state": "observed",
+      "label": "Historical knowledge view",
+      "attributes": {
+        "temporal_view": "decision-time valid time and decision-time knowledge cutoff",
+        "question": "What evidence had actually arrived and been admitted when the decision was made?"
+      },
+      "provenance": {
+        "authority": "source_declared",
+        "sources": [
+          {
+            "kind": "repository_file",
+            "uri": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/blob/1af10d891410cce31c1d4037e7c7129c16db5834/docs/research/IEAC_DECISION_RELIANCE_CONTINUITY_V0.1.md#L19-L32",
+            "path": "docs/research/IEAC_DECISION_RELIANCE_CONTINUITY_V0.1.md",
+            "line_start": 19,
+            "line_end": 32,
+            "digest": "2e33bcaab58379368d956daaddbf521a65bc8bea"
+          }
+        ],
+        "extracted_by": {
+          "name": "manual-source-attributed-map",
+          "version": "0.1.0",
+          "digest": null
+        },
+        "observed_at": "2026-11-14T11:50:00.000Z",
+        "valid_for_revision": "1af10d891410cce31c1d4037e7c7129c16db5834",
+        "valid_for_world": "source_documents_and_selected_Rust_paths_only",
+        "limitations": [
+          "This is a documented evaluator view, not an executed historical reconstruction."
+        ]
+      },
+      "lifecycle": {
+        "state": "current",
+        "supersedes": null,
+        "invalidated_by": null,
+        "reason": "Current only for the pinned Sol Atlas source revision."
+      }
+    },
+    {
+      "id": "solatlas:capability:retrospective-view",
+      "type": "capability",
+      "claim_state": "observed",
+      "label": "Retrospective-at-decision view",
+      "attributes": {
+        "temporal_view": "decision-time valid time and current evaluation knowledge cutoff",
+        "question": "What do we now know about the state of the world at decision time, including later corrections?"
+      },
+      "provenance": {
+        "authority": "source_declared",
+        "sources": [
+          {
+            "kind": "repository_file",
+            "uri": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/blob/1af10d891410cce31c1d4037e7c7129c16db5834/docs/research/IEAC_DECISION_RELIANCE_CONTINUITY_V0.1.md#L19-L32",
+            "path": "docs/research/IEAC_DECISION_RELIANCE_CONTINUITY_V0.1.md",
+            "line_start": 19,
+            "line_end": 32,
+            "digest": "2e33bcaab58379368d956daaddbf521a65bc8bea"
+          }
+        ],
+        "extracted_by": {
+          "name": "manual-source-attributed-map",
+          "version": "0.1.0",
+          "digest": null
+        },
+        "observed_at": "2026-11-14T11:50:00.000Z",
+        "valid_for_revision": "1af10d891410cce31c1d4037e7c7129c16db5834",
+        "valid_for_world": "source_documents_and_selected_Rust_paths_only",
+        "limitations": [
+          "Late evidence and asserted effective time require their own admissibility/authority proof; no correction was adjudicated here."
+        ]
+      },
+      "lifecycle": {
+        "state": "current",
+        "supersedes": null,
+        "invalidated_by": null,
+        "reason": "Current only for the pinned Sol Atlas source revision."
+      }
+    },
+    {
+      "id": "solatlas:capability:current-reliance-view",
+      "type": "capability",
+      "claim_state": "observed",
+      "label": "Current reliance view",
+      "attributes": {
+        "temporal_view": "current valid time and current knowledge",
+        "question": "Which claims remain usable now, and which require revalidation, quarantine or withdrawal?"
+      },
+      "provenance": {
+        "authority": "source_declared",
+        "sources": [
+          {
+            "kind": "repository_file",
+            "uri": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/blob/1af10d891410cce31c1d4037e7c7129c16db5834/docs/research/IEAC_DECISION_RELIANCE_CONTINUITY_V0.1.md#L19-L32",
+            "path": "docs/research/IEAC_DECISION_RELIANCE_CONTINUITY_V0.1.md",
+            "line_start": 19,
+            "line_end": 32,
+            "digest": "2e33bcaab58379368d956daaddbf521a65bc8bea"
+          }
+        ],
+        "extracted_by": {
+          "name": "manual-source-attributed-map",
+          "version": "0.1.0",
+          "digest": null
+        },
+        "observed_at": "2026-11-14T11:50:00.000Z",
+        "valid_for_revision": "1af10d891410cce31c1d4037e7c7129c16db5834",
+        "valid_for_world": "source_documents_and_selected_Rust_paths_only",
+        "limitations": [
+          "Documented view only; no actual relying-party decision was evaluated."
+        ]
+      },
+      "lifecycle": {
+        "state": "current",
+        "supersedes": null,
+        "invalidated_by": null,
+        "reason": "Current only for the pinned Sol Atlas source revision."
+      }
+    },
+    {
+      "id": "solatlas:capability:tuf-freshness",
+      "type": "capability",
+      "claim_state": "observed",
+      "label": "TUF channel freshness and anti-rollback adapter",
+      "attributes": {
+        "source_status": "consumer-side TUF freshness adapter, Rust auditor and synthetic high-water corpus",
+        "explicit_non_claims": [
+          "not a TUF client",
+          "not a signature verifier",
+          "does not implement root rotation cryptography, delegation verification or metadata parsing"
+        ],
+        "consumes": "external TUF verifier report and separately provisioned policy/high-water state"
+      },
+      "provenance": {
+        "authority": "source_declared",
+        "sources": [
+          {
+            "kind": "repository_file",
+            "uri": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/blob/1af10d891410cce31c1d4037e7c7129c16db5834/docs/industry/IEAC_TUF_CHANNEL_FRESHNESS_V0.1.md#L1-L13",
+            "path": "docs/industry/IEAC_TUF_CHANNEL_FRESHNESS_V0.1.md",
+            "line_start": 1,
+            "line_end": 13,
+            "digest": "f59a0fbc4562605a9fbbb6d01c873fbe35c3ed5c"
+          }
+        ],
+        "extracted_by": {
+          "name": "manual-source-attributed-map",
+          "version": "0.1.0",
+          "digest": null
+        },
+        "observed_at": "2026-11-14T11:50:00.000Z",
+        "valid_for_revision": "1af10d891410cce31c1d4037e7c7129c16db5834",
+        "valid_for_world": "source_documents_and_selected_Rust_paths_only",
+        "limitations": [
+          "The document explicitly limits the adapter's role. No TUF signatures, metadata, high-water storage or external verifier was exercised."
+        ]
+      },
+      "lifecycle": {
+        "state": "current",
+        "supersedes": null,
+        "invalidated_by": null,
+        "reason": "Current only for the pinned Sol Atlas source revision."
+      }
+    },
+    {
+      "id": "solatlas:capability:earth-observability-bridge",
+      "type": "capability",
+      "claim_state": "observed",
+      "label": "Earth-observability detection-to-decision bridge",
+      "attributes": {
+        "source_status": "integration protocol",
+        "adapter_status": "not implemented",
+        "physical_likelihood_qualification": "not implemented",
+        "owners": {
+          "sol_atlas": "sensor/evidence contract",
+          "symtropy": "physical likelihood and calibration",
+          "symthaea": "decision analysis and investigation planning",
+          "mycelix": "authority, rights and custody"
+        },
+        "output_contract": "target-conditional measurement likelihoods to existing EVSI kernel"
+      },
+      "provenance": {
+        "authority": "source_declared",
+        "sources": [
+          {
+            "kind": "repository_file",
+            "uri": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/blob/1af10d891410cce31c1d4037e7c7129c16db5834/research/earth-observability/EARTH_OBSERVABILITY_DETECTION_TO_DECISION_V0_1.md#L1-L9",
+            "path": "research/earth-observability/EARTH_OBSERVABILITY_DETECTION_TO_DECISION_V0_1.md",
+            "line_start": 1,
+            "line_end": 9,
+            "digest": "65a9d33974894873d5cffbd87614dd3d5ad105ab"
+          }
+        ],
+        "extracted_by": {
+          "name": "manual-source-attributed-map",
+          "version": "0.1.0",
+          "digest": null
+        },
+        "observed_at": "2026-11-14T11:50:00.000Z",
+        "valid_for_revision": "1af10d891410cce31c1d4037e7c7129c16db5834",
+        "valid_for_world": "source_documents_and_selected_Rust_paths_only",
+        "limitations": [
+          "Protocol only; does not establish calibrated POD/PFA, EVSI validity, survey readiness or authorization."
+        ]
+      },
+      "lifecycle": {
+        "state": "current",
+        "supersedes": null,
+        "invalidated_by": null,
+        "reason": "Current only for the pinned Sol Atlas source revision."
+      }
+    },
+    {
+      "id": "solatlas:invariant:pod-pfa-separation",
+      "type": "invariant",
+      "claim_state": "observed",
+      "label": "Detection probability and false-alarm probability remain distinct",
+      "attributes": {
+        "invariant": "P(Hit|Target present) and P(Hit|Target absent) are separate conditional likelihoods.",
+        "prohibition": "false alarms per route-kilometre cannot be silently converted to per-target PFA without a qualified point-process model."
+      },
+      "provenance": {
+        "authority": "source_declared",
+        "sources": [
+          {
+            "kind": "repository_file",
+            "uri": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/blob/1af10d891410cce31c1d4037e7c7129c16db5834/research/earth-observability/EARTH_OBSERVABILITY_DETECTION_TO_DECISION_V0_1.md#L31-L77",
+            "path": "research/earth-observability/EARTH_OBSERVABILITY_DETECTION_TO_DECISION_V0_1.md",
+            "line_start": 31,
+            "line_end": 77,
+            "digest": "65a9d33974894873d5cffbd87614dd3d5ad105ab"
+          }
+        ],
+        "extracted_by": {
+          "name": "manual-source-attributed-map",
+          "version": "0.1.0",
+          "digest": null
+        },
+        "observed_at": "2026-11-14T11:50:00.000Z",
+        "valid_for_revision": "1af10d891410cce31c1d4037e7c7129c16db5834",
+        "valid_for_world": "source_documents_and_selected_Rust_paths_only",
+        "limitations": [
+          "This is a specified statistical precondition, not an empirical calibration result."
+        ]
+      },
+      "lifecycle": {
+        "state": "current",
+        "supersedes": null,
+        "invalidated_by": null,
+        "reason": "Current only for the pinned Sol Atlas source revision."
+      }
+    },
+    {
+      "id": "solatlas:invariant:sensor-dependence",
+      "type": "invariant",
+      "claim_state": "observed",
+      "label": "Correlated sensor errors must not be treated as independent by default",
+      "attributes": {
+        "invariant": "Joint likelihoods or qualified dependence models are required where modalities share environmental, processing or registration causes."
+      },
+      "provenance": {
+        "authority": "source_declared",
+        "sources": [
+          {
+            "kind": "repository_file",
+            "uri": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/blob/1af10d891410cce31c1d4037e7c7129c16db5834/research/earth-observability/EARTH_OBSERVABILITY_DETECTION_TO_DECISION_V0_1.md#L94-L114",
+            "path": "research/earth-observability/EARTH_OBSERVABILITY_DETECTION_TO_DECISION_V0_1.md",
+            "line_start": 94,
+            "line_end": 114,
+            "digest": "65a9d33974894873d5cffbd87614dd3d5ad105ab"
+          }
+        ],
+        "extracted_by": {
+          "name": "manual-source-attributed-map",
+          "version": "0.1.0",
+          "digest": null
+        },
+        "observed_at": "2026-11-14T11:50:00.000Z",
+        "valid_for_revision": "1af10d891410cce31c1d4037e7c7129c16db5834",
+        "valid_for_world": "source_documents_and_selected_Rust_paths_only",
+        "limitations": [
+          "Specification only; no field calibration or dependence test was performed."
+        ]
+      },
+      "lifecycle": {
+        "state": "current",
+        "supersedes": null,
+        "invalidated_by": null,
+        "reason": "Current only for the pinned Sol Atlas source revision."
+      }
+    },
+    {
+      "id": "solatlas:authority-boundary:evsi",
+      "type": "authority_boundary",
+      "claim_state": "observed",
+      "label": "EVSI arithmetic remains with existing owner",
+      "attributes": {
+        "owner": "Sol Atlas existing site-investigation EVSI kernel",
+        "integration_boundary": "observation model supplies qualified likelihoods; this bridge does not fork EVSI arithmetic"
+      },
+      "provenance": {
+        "authority": "source_declared",
+        "sources": [
+          {
+            "kind": "repository_file",
+            "uri": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/blob/1af10d891410cce31c1d4037e7c7129c16db5834/research/earth-observability/EARTH_OBSERVABILITY_DETECTION_TO_DECISION_V0_1.md#L13-L30",
+            "path": "research/earth-observability/EARTH_OBSERVABILITY_DETECTION_TO_DECISION_V0_1.md",
+            "line_start": 13,
+            "line_end": 30,
+            "digest": "65a9d33974894873d5cffbd87614dd3d5ad105ab"
+          }
+        ],
+        "extracted_by": {
+          "name": "manual-source-attributed-map",
+          "version": "0.1.0",
+          "digest": null
+        },
+        "observed_at": "2026-11-14T11:50:00.000Z",
+        "valid_for_revision": "1af10d891410cce31c1d4037e7c7129c16db5834",
+        "valid_for_world": "source_documents_and_selected_Rust_paths_only",
+        "limitations": [
+          "Ownership boundary as documented; no EVSI execution performed."
+        ]
+      },
+      "lifecycle": {
+        "state": "current",
+        "supersedes": null,
+        "invalidated_by": null,
+        "reason": "Current only for the pinned Sol Atlas source revision."
+      }
+    },
+    {
+      "id": "solatlas:app:reactor-twin-demo",
+      "type": "application",
+      "claim_state": "observed",
+      "label": "Reactor digital-twin replay demo",
+      "attributes": {
+        "route": "/labs/reactor-twin",
+        "data_mode": "static pre-recorded run replayed client-side",
+        "source_system": "Symthaea FissionTwin research simulator",
+        "safety_display_boundary": "explicitly separate from real operating plant layer"
+      },
+      "provenance": {
+        "authority": "source_declared",
+        "sources": [
+          {
+            "kind": "repository_file",
+            "uri": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/blob/1af10d891410cce31c1d4037e7c7129c16db5834/src/components/reactor_twin_demo.rs#L5-L18",
+            "path": "src/components/reactor_twin_demo.rs",
+            "line_start": 5,
+            "line_end": 18,
+            "digest": "c5a5cf7850226ee24b1c64de3c3dcd146114d53b"
+          }
+        ],
+        "extracted_by": {
+          "name": "manual-source-attributed-map",
+          "version": "0.1.0",
+          "digest": null
+        },
+        "observed_at": "2026-11-14T11:50:00.000Z",
+        "valid_for_revision": "1af10d891410cce31c1d4037e7c7129c16db5834",
+        "valid_for_world": "source_documents_and_selected_Rust_paths_only",
+        "limitations": [
+          "This is a pre-recorded simulator demonstration, not live reactor telemetry or plant control."
+        ]
+      },
+      "lifecycle": {
+        "state": "current",
+        "supersedes": null,
+        "invalidated_by": null,
+        "reason": "Current only for the pinned Sol Atlas source revision."
+      }
+    },
+    {
+      "id": "solatlas:evidence:reactor-synthetic-capstone",
+      "type": "evidence",
+      "claim_state": "observed",
+      "label": "Synthetic reactor demo capstone tick",
+      "attributes": {
+        "source_claim": "last tick is hand-built capstone; the steady-state scenario did not reach Orange on its own",
+        "synthetic_flag": "true on capstone data row",
+        "interpretation": "demonstration-only synthetic item; not a real reactor observation"
+      },
+      "provenance": {
+        "authority": "source_declared",
+        "sources": [
+          {
+            "kind": "repository_file",
+            "uri": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/blob/1af10d891410cce31c1d4037e7c7129c16db5834/src/components/reactor_twin_demo.rs#L15-L18",
+            "path": "src/components/reactor_twin_demo.rs",
+            "line_start": 15,
+            "line_end": 18,
+            "digest": "c5a5cf7850226ee24b1c64de3c3dcd146114d53b"
+          }
+        ],
+        "extracted_by": {
+          "name": "manual-source-attributed-map",
+          "version": "0.1.0",
+          "digest": null
+        },
+        "observed_at": "2026-11-14T11:50:00.000Z",
+        "valid_for_revision": "1af10d891410cce31c1d4037e7c7129c16db5834",
+        "valid_for_world": "source_documents_and_selected_Rust_paths_only",
+        "limitations": [
+          "The checked UI source explicitly labels the capstone synthetic. The static data file was not executed or independently inspected in this pass."
+        ]
+      },
+      "lifecycle": {
+        "state": "current",
+        "supersedes": null,
+        "invalidated_by": null,
+        "reason": "Current only for the pinned Sol Atlas source revision."
+      }
+    },
+    {
+      "id": "solatlas:module:vitality",
+      "type": "module",
+      "claim_state": "observed",
+      "label": "Client-side vitality subsystem",
+      "attributes": {
+        "components": [
+          "circadian",
+          "homeostasis",
+          "thermodynamic"
+        ],
+        "transport": "documented as zero-transport; no Holochain or network"
+      },
+      "provenance": {
+        "authority": "source_declared",
+        "sources": [
+          {
+            "kind": "repository_file",
+            "uri": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/blob/1af10d891410cce31c1d4037e7c7129c16db5834/src/vitality/mod.rs#L5-L26",
+            "path": "src/vitality/mod.rs",
+            "line_start": 5,
+            "line_end": 26,
+            "digest": "64e72bf40d53c5ed6d7399937d25fbe808bfb99f"
+          }
+        ],
+        "extracted_by": {
+          "name": "manual-source-attributed-map",
+          "version": "0.1.0",
+          "digest": null
+        },
+        "observed_at": "2026-11-14T11:50:00.000Z",
+        "valid_for_revision": "1af10d891410cce31c1d4037e7c7129c16db5834",
+        "valid_for_world": "source_documents_and_selected_Rust_paths_only",
+        "limitations": [
+          "Source-declared UI adaptation; no physiology or biological-state claim is implied."
+        ]
+      },
+      "lifecycle": {
+        "state": "current",
+        "supersedes": null,
+        "invalidated_by": null,
+        "reason": "Current only for the pinned Sol Atlas source revision."
+      }
+    },
+    {
+      "id": "solatlas:external:symthaea",
+      "type": "external_system",
+      "claim_state": "observed",
+      "label": "Symthaea decision-analysis and investigation planning",
+      "attributes": {
+        "interface_status": "cross-project ownership described in research protocol",
+        "contract_version": "not pinned by this projection",
+        "compatibility_status": "not independently verified"
+      },
+      "provenance": {
+        "authority": "source_declared",
+        "sources": [
+          {
+            "kind": "repository_file",
+            "uri": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/blob/1af10d891410cce31c1d4037e7c7129c16db5834/research/earth-observability/EARTH_OBSERVABILITY_DETECTION_TO_DECISION_V0_1.md#L4-L9",
+            "path": "research/earth-observability/EARTH_OBSERVABILITY_DETECTION_TO_DECISION_V0_1.md",
+            "line_start": 4,
+            "line_end": 9,
+            "digest": "65a9d33974894873d5cffbd87614dd3d5ad105ab"
+          }
+        ],
+        "extracted_by": {
+          "name": "manual-source-attributed-map",
+          "version": "0.1.0",
+          "digest": null
+        },
+        "observed_at": "2026-11-14T11:50:00.000Z",
+        "valid_for_revision": "1af10d891410cce31c1d4037e7c7129c16db5834",
+        "valid_for_world": "source_documents_and_selected_Rust_paths_only",
+        "limitations": [
+          "Cross-project responsibility declaration only; not an API compatibility result."
+        ]
+      },
+      "lifecycle": {
+        "state": "current",
+        "supersedes": null,
+        "invalidated_by": null,
+        "reason": "Current only for the pinned Sol Atlas source revision."
       }
     }
   ],
@@ -2219,6 +2970,709 @@
         "invalidated_by": null,
         "reason": "Current only for the exact pinned source revision."
       }
+    },
+    {
+      "id": "solatlas:edge:extended:033",
+      "from": "solatlas:project",
+      "relation": "contains",
+      "to": "solatlas:app:routing",
+      "attributes": {
+        "cross_project_status": "source_declared_only"
+      },
+      "provenance": {
+        "authority": "source_declared",
+        "sources": [
+          {
+            "kind": "repository_file",
+            "uri": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/blob/1af10d891410cce31c1d4037e7c7129c16db5834/src/app.rs#L21-L117",
+            "path": "src/app.rs",
+            "line_start": 21,
+            "line_end": 117,
+            "digest": "9fdb1fe4d1d31c468b73af9c337725ceafdd853a"
+          }
+        ],
+        "extracted_by": {
+          "name": "manual-source-attributed-map",
+          "version": "0.1.0",
+          "digest": null
+        },
+        "observed_at": "2026-11-14T11:50:00.000Z",
+        "valid_for_revision": "1af10d891410cce31c1d4037e7c7129c16db5834",
+        "valid_for_world": "source_documents_and_selected_Rust_paths_only",
+        "limitations": []
+      },
+      "lifecycle": {
+        "state": "current",
+        "supersedes": null,
+        "invalidated_by": null,
+        "reason": "Current only for the pinned Sol Atlas source revision."
+      }
+    },
+    {
+      "id": "solatlas:edge:extended:034",
+      "from": "solatlas:project",
+      "relation": "contains",
+      "to": "solatlas:data:static-loader",
+      "attributes": {
+        "cross_project_status": "source_declared_only"
+      },
+      "provenance": {
+        "authority": "source_declared",
+        "sources": [
+          {
+            "kind": "repository_file",
+            "uri": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/blob/1af10d891410cce31c1d4037e7c7129c16db5834/src/data/static_data.rs#L5-L52",
+            "path": "src/data/static_data.rs",
+            "line_start": 5,
+            "line_end": 52,
+            "digest": "b5e00634b999df8959cffb0ef2f17323f245f2dc"
+          }
+        ],
+        "extracted_by": {
+          "name": "manual-source-attributed-map",
+          "version": "0.1.0",
+          "digest": null
+        },
+        "observed_at": "2026-11-14T11:50:00.000Z",
+        "valid_for_revision": "1af10d891410cce31c1d4037e7c7129c16db5834",
+        "valid_for_world": "source_documents_and_selected_Rust_paths_only",
+        "limitations": []
+      },
+      "lifecycle": {
+        "state": "current",
+        "supersedes": null,
+        "invalidated_by": null,
+        "reason": "Current only for the pinned Sol Atlas source revision."
+      }
+    },
+    {
+      "id": "solatlas:edge:extended:035",
+      "from": "solatlas:project",
+      "relation": "contains",
+      "to": "solatlas:data:holochain-adapter",
+      "attributes": {
+        "cross_project_status": "source_declared_only"
+      },
+      "provenance": {
+        "authority": "source_declared",
+        "sources": [
+          {
+            "kind": "repository_file",
+            "uri": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/blob/1af10d891410cce31c1d4037e7c7129c16db5834/src/data/holochain.rs#L5-L166",
+            "path": "src/data/holochain.rs",
+            "line_start": 5,
+            "line_end": 166,
+            "digest": "16a60a23d9bdf4ad1ceca5c4f68afc982b57dd8a"
+          }
+        ],
+        "extracted_by": {
+          "name": "manual-source-attributed-map",
+          "version": "0.1.0",
+          "digest": null
+        },
+        "observed_at": "2026-11-14T11:50:00.000Z",
+        "valid_for_revision": "1af10d891410cce31c1d4037e7c7129c16db5834",
+        "valid_for_world": "source_documents_and_selected_Rust_paths_only",
+        "limitations": []
+      },
+      "lifecycle": {
+        "state": "current",
+        "supersedes": null,
+        "invalidated_by": null,
+        "reason": "Current only for the pinned Sol Atlas source revision."
+      }
+    },
+    {
+      "id": "solatlas:edge:extended:036",
+      "from": "solatlas:project",
+      "relation": "contains",
+      "to": "solatlas:data:reactive-state",
+      "attributes": {
+        "cross_project_status": "source_declared_only"
+      },
+      "provenance": {
+        "authority": "source_declared",
+        "sources": [
+          {
+            "kind": "repository_file",
+            "uri": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/blob/1af10d891410cce31c1d4037e7c7129c16db5834/src/state/data_state.rs#L8-L98",
+            "path": "src/state/data_state.rs",
+            "line_start": 8,
+            "line_end": 98,
+            "digest": "a501d9224474d06f0f39bd039da5b520d8e08e63"
+          }
+        ],
+        "extracted_by": {
+          "name": "manual-source-attributed-map",
+          "version": "0.1.0",
+          "digest": null
+        },
+        "observed_at": "2026-11-14T11:50:00.000Z",
+        "valid_for_revision": "1af10d891410cce31c1d4037e7c7129c16db5834",
+        "valid_for_world": "source_documents_and_selected_Rust_paths_only",
+        "limitations": []
+      },
+      "lifecycle": {
+        "state": "current",
+        "supersedes": null,
+        "invalidated_by": null,
+        "reason": "Current only for the pinned Sol Atlas source revision."
+      }
+    },
+    {
+      "id": "solatlas:edge:extended:037",
+      "from": "solatlas:project",
+      "relation": "implements",
+      "to": "solatlas:capability:decision-reliance",
+      "attributes": {
+        "cross_project_status": "source_declared_only"
+      },
+      "provenance": {
+        "authority": "source_declared",
+        "sources": [
+          {
+            "kind": "repository_file",
+            "uri": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/blob/1af10d891410cce31c1d4037e7c7129c16db5834/docs/research/IEAC_DECISION_RELIANCE_CONTINUITY_V0.1.md#L1-L68",
+            "path": "docs/research/IEAC_DECISION_RELIANCE_CONTINUITY_V0.1.md",
+            "line_start": 1,
+            "line_end": 68,
+            "digest": "2e33bcaab58379368d956daaddbf521a65bc8bea"
+          }
+        ],
+        "extracted_by": {
+          "name": "manual-source-attributed-map",
+          "version": "0.1.0",
+          "digest": null
+        },
+        "observed_at": "2026-11-14T11:50:00.000Z",
+        "valid_for_revision": "1af10d891410cce31c1d4037e7c7129c16db5834",
+        "valid_for_world": "source_documents_and_selected_Rust_paths_only",
+        "limitations": []
+      },
+      "lifecycle": {
+        "state": "current",
+        "supersedes": null,
+        "invalidated_by": null,
+        "reason": "Current only for the pinned Sol Atlas source revision."
+      }
+    },
+    {
+      "id": "solatlas:edge:extended:038",
+      "from": "solatlas:capability:decision-reliance",
+      "relation": "contains",
+      "to": "solatlas:capability:historical-knowledge-view",
+      "attributes": {
+        "cross_project_status": "source_declared_only"
+      },
+      "provenance": {
+        "authority": "source_declared",
+        "sources": [
+          {
+            "kind": "repository_file",
+            "uri": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/blob/1af10d891410cce31c1d4037e7c7129c16db5834/docs/research/IEAC_DECISION_RELIANCE_CONTINUITY_V0.1.md#L19-L32",
+            "path": "docs/research/IEAC_DECISION_RELIANCE_CONTINUITY_V0.1.md",
+            "line_start": 19,
+            "line_end": 32,
+            "digest": "2e33bcaab58379368d956daaddbf521a65bc8bea"
+          }
+        ],
+        "extracted_by": {
+          "name": "manual-source-attributed-map",
+          "version": "0.1.0",
+          "digest": null
+        },
+        "observed_at": "2026-11-14T11:50:00.000Z",
+        "valid_for_revision": "1af10d891410cce31c1d4037e7c7129c16db5834",
+        "valid_for_world": "source_documents_and_selected_Rust_paths_only",
+        "limitations": []
+      },
+      "lifecycle": {
+        "state": "current",
+        "supersedes": null,
+        "invalidated_by": null,
+        "reason": "Current only for the pinned Sol Atlas source revision."
+      }
+    },
+    {
+      "id": "solatlas:edge:extended:039",
+      "from": "solatlas:capability:decision-reliance",
+      "relation": "contains",
+      "to": "solatlas:capability:retrospective-view",
+      "attributes": {
+        "cross_project_status": "source_declared_only"
+      },
+      "provenance": {
+        "authority": "source_declared",
+        "sources": [
+          {
+            "kind": "repository_file",
+            "uri": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/blob/1af10d891410cce31c1d4037e7c7129c16db5834/docs/research/IEAC_DECISION_RELIANCE_CONTINUITY_V0.1.md#L19-L32",
+            "path": "docs/research/IEAC_DECISION_RELIANCE_CONTINUITY_V0.1.md",
+            "line_start": 19,
+            "line_end": 32,
+            "digest": "2e33bcaab58379368d956daaddbf521a65bc8bea"
+          }
+        ],
+        "extracted_by": {
+          "name": "manual-source-attributed-map",
+          "version": "0.1.0",
+          "digest": null
+        },
+        "observed_at": "2026-11-14T11:50:00.000Z",
+        "valid_for_revision": "1af10d891410cce31c1d4037e7c7129c16db5834",
+        "valid_for_world": "source_documents_and_selected_Rust_paths_only",
+        "limitations": []
+      },
+      "lifecycle": {
+        "state": "current",
+        "supersedes": null,
+        "invalidated_by": null,
+        "reason": "Current only for the pinned Sol Atlas source revision."
+      }
+    },
+    {
+      "id": "solatlas:edge:extended:040",
+      "from": "solatlas:capability:decision-reliance",
+      "relation": "contains",
+      "to": "solatlas:capability:current-reliance-view",
+      "attributes": {
+        "cross_project_status": "source_declared_only"
+      },
+      "provenance": {
+        "authority": "source_declared",
+        "sources": [
+          {
+            "kind": "repository_file",
+            "uri": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/blob/1af10d891410cce31c1d4037e7c7129c16db5834/docs/research/IEAC_DECISION_RELIANCE_CONTINUITY_V0.1.md#L19-L32",
+            "path": "docs/research/IEAC_DECISION_RELIANCE_CONTINUITY_V0.1.md",
+            "line_start": 19,
+            "line_end": 32,
+            "digest": "2e33bcaab58379368d956daaddbf521a65bc8bea"
+          }
+        ],
+        "extracted_by": {
+          "name": "manual-source-attributed-map",
+          "version": "0.1.0",
+          "digest": null
+        },
+        "observed_at": "2026-11-14T11:50:00.000Z",
+        "valid_for_revision": "1af10d891410cce31c1d4037e7c7129c16db5834",
+        "valid_for_world": "source_documents_and_selected_Rust_paths_only",
+        "limitations": []
+      },
+      "lifecycle": {
+        "state": "current",
+        "supersedes": null,
+        "invalidated_by": null,
+        "reason": "Current only for the pinned Sol Atlas source revision."
+      }
+    },
+    {
+      "id": "solatlas:edge:extended:041",
+      "from": "solatlas:project",
+      "relation": "implements",
+      "to": "solatlas:capability:tuf-freshness",
+      "attributes": {
+        "cross_project_status": "source_declared_only"
+      },
+      "provenance": {
+        "authority": "source_declared",
+        "sources": [
+          {
+            "kind": "repository_file",
+            "uri": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/blob/1af10d891410cce31c1d4037e7c7129c16db5834/docs/industry/IEAC_TUF_CHANNEL_FRESHNESS_V0.1.md#L1-L13",
+            "path": "docs/industry/IEAC_TUF_CHANNEL_FRESHNESS_V0.1.md",
+            "line_start": 1,
+            "line_end": 13,
+            "digest": "f59a0fbc4562605a9fbbb6d01c873fbe35c3ed5c"
+          }
+        ],
+        "extracted_by": {
+          "name": "manual-source-attributed-map",
+          "version": "0.1.0",
+          "digest": null
+        },
+        "observed_at": "2026-11-14T11:50:00.000Z",
+        "valid_for_revision": "1af10d891410cce31c1d4037e7c7129c16db5834",
+        "valid_for_world": "source_documents_and_selected_Rust_paths_only",
+        "limitations": []
+      },
+      "lifecycle": {
+        "state": "current",
+        "supersedes": null,
+        "invalidated_by": null,
+        "reason": "Current only for the pinned Sol Atlas source revision."
+      }
+    },
+    {
+      "id": "solatlas:edge:extended:042",
+      "from": "solatlas:project",
+      "relation": "implements",
+      "to": "solatlas:capability:earth-observability-bridge",
+      "attributes": {
+        "cross_project_status": "source_declared_only"
+      },
+      "provenance": {
+        "authority": "source_declared",
+        "sources": [
+          {
+            "kind": "repository_file",
+            "uri": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/blob/1af10d891410cce31c1d4037e7c7129c16db5834/research/earth-observability/EARTH_OBSERVABILITY_DETECTION_TO_DECISION_V0_1.md#L1-L9",
+            "path": "research/earth-observability/EARTH_OBSERVABILITY_DETECTION_TO_DECISION_V0_1.md",
+            "line_start": 1,
+            "line_end": 9,
+            "digest": "65a9d33974894873d5cffbd87614dd3d5ad105ab"
+          }
+        ],
+        "extracted_by": {
+          "name": "manual-source-attributed-map",
+          "version": "0.1.0",
+          "digest": null
+        },
+        "observed_at": "2026-11-14T11:50:00.000Z",
+        "valid_for_revision": "1af10d891410cce31c1d4037e7c7129c16db5834",
+        "valid_for_world": "source_documents_and_selected_Rust_paths_only",
+        "limitations": []
+      },
+      "lifecycle": {
+        "state": "current",
+        "supersedes": null,
+        "invalidated_by": null,
+        "reason": "Current only for the pinned Sol Atlas source revision."
+      }
+    },
+    {
+      "id": "solatlas:edge:extended:043",
+      "from": "solatlas:capability:earth-observability-bridge",
+      "relation": "requires",
+      "to": "solatlas:invariant:pod-pfa-separation",
+      "attributes": {
+        "cross_project_status": "source_declared_only"
+      },
+      "provenance": {
+        "authority": "source_declared",
+        "sources": [
+          {
+            "kind": "repository_file",
+            "uri": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/blob/1af10d891410cce31c1d4037e7c7129c16db5834/research/earth-observability/EARTH_OBSERVABILITY_DETECTION_TO_DECISION_V0_1.md#L31-L77",
+            "path": "research/earth-observability/EARTH_OBSERVABILITY_DETECTION_TO_DECISION_V0_1.md",
+            "line_start": 31,
+            "line_end": 77,
+            "digest": "65a9d33974894873d5cffbd87614dd3d5ad105ab"
+          }
+        ],
+        "extracted_by": {
+          "name": "manual-source-attributed-map",
+          "version": "0.1.0",
+          "digest": null
+        },
+        "observed_at": "2026-11-14T11:50:00.000Z",
+        "valid_for_revision": "1af10d891410cce31c1d4037e7c7129c16db5834",
+        "valid_for_world": "source_documents_and_selected_Rust_paths_only",
+        "limitations": []
+      },
+      "lifecycle": {
+        "state": "current",
+        "supersedes": null,
+        "invalidated_by": null,
+        "reason": "Current only for the pinned Sol Atlas source revision."
+      }
+    },
+    {
+      "id": "solatlas:edge:extended:044",
+      "from": "solatlas:capability:earth-observability-bridge",
+      "relation": "requires",
+      "to": "solatlas:invariant:sensor-dependence",
+      "attributes": {
+        "cross_project_status": "source_declared_only"
+      },
+      "provenance": {
+        "authority": "source_declared",
+        "sources": [
+          {
+            "kind": "repository_file",
+            "uri": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/blob/1af10d891410cce31c1d4037e7c7129c16db5834/research/earth-observability/EARTH_OBSERVABILITY_DETECTION_TO_DECISION_V0_1.md#L94-L114",
+            "path": "research/earth-observability/EARTH_OBSERVABILITY_DETECTION_TO_DECISION_V0_1.md",
+            "line_start": 94,
+            "line_end": 114,
+            "digest": "65a9d33974894873d5cffbd87614dd3d5ad105ab"
+          }
+        ],
+        "extracted_by": {
+          "name": "manual-source-attributed-map",
+          "version": "0.1.0",
+          "digest": null
+        },
+        "observed_at": "2026-11-14T11:50:00.000Z",
+        "valid_for_revision": "1af10d891410cce31c1d4037e7c7129c16db5834",
+        "valid_for_world": "source_documents_and_selected_Rust_paths_only",
+        "limitations": []
+      },
+      "lifecycle": {
+        "state": "current",
+        "supersedes": null,
+        "invalidated_by": null,
+        "reason": "Current only for the pinned Sol Atlas source revision."
+      }
+    },
+    {
+      "id": "solatlas:edge:extended:045",
+      "from": "solatlas:capability:earth-observability-bridge",
+      "relation": "depends_on",
+      "to": "solatlas:authority-boundary:evsi",
+      "attributes": {
+        "cross_project_status": "source_declared_only"
+      },
+      "provenance": {
+        "authority": "source_declared",
+        "sources": [
+          {
+            "kind": "repository_file",
+            "uri": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/blob/1af10d891410cce31c1d4037e7c7129c16db5834/research/earth-observability/EARTH_OBSERVABILITY_DETECTION_TO_DECISION_V0_1.md#L13-L30",
+            "path": "research/earth-observability/EARTH_OBSERVABILITY_DETECTION_TO_DECISION_V0_1.md",
+            "line_start": 13,
+            "line_end": 30,
+            "digest": "65a9d33974894873d5cffbd87614dd3d5ad105ab"
+          }
+        ],
+        "extracted_by": {
+          "name": "manual-source-attributed-map",
+          "version": "0.1.0",
+          "digest": null
+        },
+        "observed_at": "2026-11-14T11:50:00.000Z",
+        "valid_for_revision": "1af10d891410cce31c1d4037e7c7129c16db5834",
+        "valid_for_world": "source_documents_and_selected_Rust_paths_only",
+        "limitations": []
+      },
+      "lifecycle": {
+        "state": "current",
+        "supersedes": null,
+        "invalidated_by": null,
+        "reason": "Current only for the pinned Sol Atlas source revision."
+      }
+    },
+    {
+      "id": "solatlas:edge:extended:046",
+      "from": "solatlas:project",
+      "relation": "contains",
+      "to": "solatlas:app:reactor-twin-demo",
+      "attributes": {
+        "cross_project_status": "source_declared_only"
+      },
+      "provenance": {
+        "authority": "source_declared",
+        "sources": [
+          {
+            "kind": "repository_file",
+            "uri": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/blob/1af10d891410cce31c1d4037e7c7129c16db5834/src/components/reactor_twin_demo.rs#L5-L18",
+            "path": "src/components/reactor_twin_demo.rs",
+            "line_start": 5,
+            "line_end": 18,
+            "digest": "c5a5cf7850226ee24b1c64de3c3dcd146114d53b"
+          }
+        ],
+        "extracted_by": {
+          "name": "manual-source-attributed-map",
+          "version": "0.1.0",
+          "digest": null
+        },
+        "observed_at": "2026-11-14T11:50:00.000Z",
+        "valid_for_revision": "1af10d891410cce31c1d4037e7c7129c16db5834",
+        "valid_for_world": "source_documents_and_selected_Rust_paths_only",
+        "limitations": []
+      },
+      "lifecycle": {
+        "state": "current",
+        "supersedes": null,
+        "invalidated_by": null,
+        "reason": "Current only for the pinned Sol Atlas source revision."
+      }
+    },
+    {
+      "id": "solatlas:edge:extended:047",
+      "from": "solatlas:app:reactor-twin-demo",
+      "relation": "contains",
+      "to": "solatlas:evidence:reactor-synthetic-capstone",
+      "attributes": {
+        "cross_project_status": "source_declared_only"
+      },
+      "provenance": {
+        "authority": "source_declared",
+        "sources": [
+          {
+            "kind": "repository_file",
+            "uri": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/blob/1af10d891410cce31c1d4037e7c7129c16db5834/src/components/reactor_twin_demo.rs#L15-L18",
+            "path": "src/components/reactor_twin_demo.rs",
+            "line_start": 15,
+            "line_end": 18,
+            "digest": "c5a5cf7850226ee24b1c64de3c3dcd146114d53b"
+          }
+        ],
+        "extracted_by": {
+          "name": "manual-source-attributed-map",
+          "version": "0.1.0",
+          "digest": null
+        },
+        "observed_at": "2026-11-14T11:50:00.000Z",
+        "valid_for_revision": "1af10d891410cce31c1d4037e7c7129c16db5834",
+        "valid_for_world": "source_documents_and_selected_Rust_paths_only",
+        "limitations": []
+      },
+      "lifecycle": {
+        "state": "current",
+        "supersedes": null,
+        "invalidated_by": null,
+        "reason": "Current only for the pinned Sol Atlas source revision."
+      }
+    },
+    {
+      "id": "solatlas:edge:extended:048",
+      "from": "solatlas:project",
+      "relation": "contains",
+      "to": "solatlas:module:vitality",
+      "attributes": {
+        "cross_project_status": "source_declared_only"
+      },
+      "provenance": {
+        "authority": "source_declared",
+        "sources": [
+          {
+            "kind": "repository_file",
+            "uri": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/blob/1af10d891410cce31c1d4037e7c7129c16db5834/src/vitality/mod.rs#L5-L26",
+            "path": "src/vitality/mod.rs",
+            "line_start": 5,
+            "line_end": 26,
+            "digest": "64e72bf40d53c5ed6d7399937d25fbe808bfb99f"
+          }
+        ],
+        "extracted_by": {
+          "name": "manual-source-attributed-map",
+          "version": "0.1.0",
+          "digest": null
+        },
+        "observed_at": "2026-11-14T11:50:00.000Z",
+        "valid_for_revision": "1af10d891410cce31c1d4037e7c7129c16db5834",
+        "valid_for_world": "source_documents_and_selected_Rust_paths_only",
+        "limitations": []
+      },
+      "lifecycle": {
+        "state": "current",
+        "supersedes": null,
+        "invalidated_by": null,
+        "reason": "Current only for the pinned Sol Atlas source revision."
+      }
+    },
+    {
+      "id": "solatlas:edge:extended:049",
+      "from": "solatlas:capability:earth-observability-bridge",
+      "relation": "compatible_with",
+      "to": "solatlas:external:symtropy",
+      "attributes": {
+        "cross_project_status": "source_declared_only"
+      },
+      "provenance": {
+        "authority": "source_declared",
+        "sources": [
+          {
+            "kind": "repository_file",
+            "uri": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/blob/1af10d891410cce31c1d4037e7c7129c16db5834/research/earth-observability/EARTH_OBSERVABILITY_DETECTION_TO_DECISION_V0_1.md#L4-L9",
+            "path": "research/earth-observability/EARTH_OBSERVABILITY_DETECTION_TO_DECISION_V0_1.md",
+            "line_start": 4,
+            "line_end": 9,
+            "digest": "65a9d33974894873d5cffbd87614dd3d5ad105ab"
+          }
+        ],
+        "extracted_by": {
+          "name": "manual-source-attributed-map",
+          "version": "0.1.0",
+          "digest": null
+        },
+        "observed_at": "2026-11-14T11:50:00.000Z",
+        "valid_for_revision": "1af10d891410cce31c1d4037e7c7129c16db5834",
+        "valid_for_world": "source_documents_and_selected_Rust_paths_only",
+        "limitations": []
+      },
+      "lifecycle": {
+        "state": "current",
+        "supersedes": null,
+        "invalidated_by": null,
+        "reason": "Current only for the pinned Sol Atlas source revision."
+      }
+    },
+    {
+      "id": "solatlas:edge:extended:050",
+      "from": "solatlas:capability:earth-observability-bridge",
+      "relation": "compatible_with",
+      "to": "solatlas:external:symthaea",
+      "attributes": {
+        "cross_project_status": "source_declared_only"
+      },
+      "provenance": {
+        "authority": "source_declared",
+        "sources": [
+          {
+            "kind": "repository_file",
+            "uri": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/blob/1af10d891410cce31c1d4037e7c7129c16db5834/research/earth-observability/EARTH_OBSERVABILITY_DETECTION_TO_DECISION_V0_1.md#L4-L9",
+            "path": "research/earth-observability/EARTH_OBSERVABILITY_DETECTION_TO_DECISION_V0_1.md",
+            "line_start": 4,
+            "line_end": 9,
+            "digest": "65a9d33974894873d5cffbd87614dd3d5ad105ab"
+          }
+        ],
+        "extracted_by": {
+          "name": "manual-source-attributed-map",
+          "version": "0.1.0",
+          "digest": null
+        },
+        "observed_at": "2026-11-14T11:50:00.000Z",
+        "valid_for_revision": "1af10d891410cce31c1d4037e7c7129c16db5834",
+        "valid_for_world": "source_documents_and_selected_Rust_paths_only",
+        "limitations": []
+      },
+      "lifecycle": {
+        "state": "current",
+        "supersedes": null,
+        "invalidated_by": null,
+        "reason": "Current only for the pinned Sol Atlas source revision."
+      }
+    },
+    {
+      "id": "solatlas:edge:extended:051",
+      "from": "solatlas:capability:earth-observability-bridge",
+      "relation": "compatible_with",
+      "to": "solatlas:external:mycelix",
+      "attributes": {
+        "cross_project_status": "source_declared_only"
+      },
+      "provenance": {
+        "authority": "source_declared",
+        "sources": [
+          {
+            "kind": "repository_file",
+            "uri": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/blob/1af10d891410cce31c1d4037e7c7129c16db5834/research/earth-observability/EARTH_OBSERVABILITY_DETECTION_TO_DECISION_V0_1.md#L4-L9",
+            "path": "research/earth-observability/EARTH_OBSERVABILITY_DETECTION_TO_DECISION_V0_1.md",
+            "line_start": 4,
+            "line_end": 9,
+            "digest": "65a9d33974894873d5cffbd87614dd3d5ad105ab"
+          }
+        ],
+        "extracted_by": {
+          "name": "manual-source-attributed-map",
+          "version": "0.1.0",
+          "digest": null
+        },
+        "observed_at": "2026-11-14T11:50:00.000Z",
+        "valid_for_revision": "1af10d891410cce31c1d4037e7c7129c16db5834",
+        "valid_for_world": "source_documents_and_selected_Rust_paths_only",
+        "limitations": []
+      },
+      "lifecycle": {
+        "state": "current",
+        "supersedes": null,
+        "invalidated_by": null,
+        "reason": "Current only for the pinned Sol Atlas source revision."
+      }
     }
   ],
   "limitations": [
@@ -2228,6 +3682,12 @@
     "The data-layer counts have no item-level source file, version, digest or rights manifest in this bounded projection.",
     "The live URL statement was not health-checked or tied to the pinned source revision.",
     "Bevy/Symtropy and Holochain/Mycelix integration claims are source-declared only; no exact contract/version or runtime receipt was inspected.",
-    "51 shared core tests are a demo-reported count, not an exact-head test pass."
+    "51 shared core tests are a demo-reported count, not an exact-head test pass.",
+    "Expanded projection adds decision-reliance, TUF freshness, earth-observability, static/Holochain data paths and reactor-twin disclaimer sources. It remains a source projection; no evaluator, schema, TUF, sensor, Holochain or simulation code was executed.",
+    "Decision-reliance documentation states its evaluator and schemas are implemented but exact-head Rust/schema/executable-fixture qualification is pending; do not promote it to qualified.",
+    "The TUF freshness module is explicitly a consumer-side adapter and not a TUF client or signature verifier.",
+    "The Earth-observability bridge is explicitly a protocol with adapter and physical likelihood qualification not implemented; POD and PFA, sensor dependence and prevalence remain separate statistical concerns.",
+    "The reactor-twin demo explicitly replays a static recorded FissionTwin run, labels its capstone tick synthetic, and separates this simulation from real named operating plants.",
+    "Cross-project ownership statements do not verify compatibility, physical calibration, decision correctness, authority, rights or custody."
   ]
 }
