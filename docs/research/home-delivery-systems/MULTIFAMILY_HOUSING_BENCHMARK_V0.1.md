@@ -103,6 +103,7 @@ Each is a candidate family, not a preferred solution. A site may justify one, se
 Artifacts:
 - `multifamily-building.schema.json`
 - `multifamily-building-synthetic-v0.1.json`
+- `multifamily-adversarial-corpus-v0.1.json` (46 authored cases: one positive control and 45 adversarial development controls; none are sealed or executed).
 
 The first fixture describes a synthetic two-floor, four-unit building with floor-local integer-millimetre rectangles, corridors, a stair, a lift, shared courtyard/terrace spaces, declared everyday portals and vertical links.
 
