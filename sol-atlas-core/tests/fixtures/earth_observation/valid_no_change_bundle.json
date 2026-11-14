@@ -96,7 +96,7 @@
         "probability_of_detection": 0.99,
         "minimum_required_probability": 0.95
       },
-      "cross_system_comparability_receipt_sha256": null
+      "cross_system_comparability_receipt": null
     }
   ]
 }
