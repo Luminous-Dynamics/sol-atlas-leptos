@@ -564,6 +564,7 @@ impl TryFrom<ObservationRecordWire> for ObservationRecord {
     type Error = String;
 
     fn try_from(wire: ObservationRecordWire) -> Result<Self, Self::Error> {
+        let measurement_profile_sha256 = wire.measurement_profile_sha256;
         Self::new(
             wire.observation_id,
             wire.asset_id,
@@ -581,7 +582,8 @@ impl TryFrom<ObservationRecordWire> for ObservationRecord {
             wire.acquisition,
             wire.modality,
             wire.quality,
-        )
+        )?
+        .with_measurement_profile_sha256(measurement_profile_sha256)
     }
 }
 
