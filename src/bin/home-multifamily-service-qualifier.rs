@@ -250,7 +250,9 @@ fn build_stress_impact_preview(
                 } else {
                     "NO_QUALITY_CREDIT_FROM_TOPOLOGY"
                 };
-                let allocation_state = if kind == "allocation_policy_change" {
+                let allocation_state = if kind == "allocation_policy_change"
+                    && affected.iter().any(|id| id == boundary)
+                {
                     "POLICY_REQUIRES_AUTHORITY_AND_RESIDENT_GOVERNANCE"
                 } else {
                     "UNKNOWN"
@@ -870,6 +872,8 @@ mod tests {
         assert_eq!(report["event_count"], 16);
         assert_eq!(report["stress_scenario_count"], 16);
         assert_eq!(report["stress_event_count"], 20);
+        assert_eq!(report["topology_impact_event_count"], 20);
+        assert_eq!(report["stress_impact_preview"].as_array().unwrap().len(), 16);
         assert_eq!(report["physical_delivery"], "UNKNOWN");
     }
 
