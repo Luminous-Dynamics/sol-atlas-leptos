@@ -69,3 +69,7 @@ jobs:
         run: cargo test --bin home-freedom-qualifier
       - name: Audit the paired synthetic home case
         run: cargo run --bin home-freedom-qualifier -- --self-test
+      - name: Test home assembly demand qualifier
+        run: cargo test --bin home-assembly-demand-qualifier
+      - name: Audit the paired synthetic assembly demand
+        run: cargo run --bin home-assembly-demand-qualifier -- --self-test
