@@ -261,7 +261,7 @@
           {
             "truth_state_id": "two-separate-utilities",
             "decision_id": "keep-crossing-unresolved",
-            "loss": 10
+            "loss": 15
           },
           {
             "truth_state_id": "two-separate-utilities",
@@ -415,7 +415,7 @@
           {
             "truth_state_id": "two-separate-utilities",
             "decision_id": "keep-crossing-unresolved",
-            "loss": 10
+            "loss": 20
           },
           {
             "truth_state_id": "two-separate-utilities",
