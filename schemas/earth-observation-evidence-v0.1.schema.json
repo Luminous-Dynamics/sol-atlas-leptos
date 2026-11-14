@@ -128,7 +128,6 @@
         "instrument_id",
         "collection_id",
         "processing_baseline",
-        "sensor_identity_origin",
         "sensor_identity_origin"
       ],
       "properties": {
@@ -203,7 +202,7 @@
             "derived_from_platform_and_instrument",
             "unknown"
           ],
-          "description": "Provenance of the source-qualified sensor identity. Unknown source identity cannot support a promoted change/no-change claim."
+          "description": "Provenance of the source-qualified sensor identity. Unknown source identity cannot support promoted change/no-change claims."
         }
       }
     },
