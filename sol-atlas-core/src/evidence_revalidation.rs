@@ -173,10 +173,10 @@ fn topological_order(
         order.push(node_id.to_string());
         if let Some(descendants) = children.get(node_id) {
             for child_id in descendants {
-                if let Some(degree) = indegree.get_mut(child_id) {
+                if let Some(degree) = indegree.get_mut(*child_id) {
                     *degree -= 1;
                     if *degree == 0 {
-                        ready.insert(child_id);
+                        ready.insert(*child_id);
                     }
                 }
             }
