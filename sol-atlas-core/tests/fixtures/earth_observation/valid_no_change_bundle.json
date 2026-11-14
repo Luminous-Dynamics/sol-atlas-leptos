@@ -7,8 +7,10 @@
       "source_asset_receipt_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
       "processing_receipt_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
       "rights": {
+        "subject_id": "fixture-subject",
         "purpose_id": "internal-evaluation",
-        "state": "granted_for_purpose",
+        "source_id": "fixture-source",
+        "asset_id": "fixture:asset-2024",
         "decision_receipt_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
       },
       "support_id": "support-jukskei-synthetic",
@@ -27,8 +29,10 @@
       "source_asset_receipt_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
       "processing_receipt_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
       "rights": {
+        "subject_id": "fixture-subject",
         "purpose_id": "internal-evaluation",
-        "state": "granted_for_purpose",
+        "source_id": "fixture-source",
+        "asset_id": "fixture:asset-2025",
         "decision_receipt_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
       },
       "support_id": "support-jukskei-synthetic",
