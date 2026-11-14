@@ -28,7 +28,7 @@ The current typed signature includes:
 7. processing baseline/version;
 8. SHA-256 fingerprint of the exact asset-level measurement profile (e.g. bands, polarization, instrument mode and relevant acquisition configuration).
 
-A missing measurement-profile fingerprint is incomplete identity and forces a comparability receipt or abstention. A missing processing baseline on one side differs from a known baseline on the other; it must never be silently treated as equal.
+A missing product collection, processing baseline or measurement-profile fingerprint is incomplete identity and forces a comparability receipt or abstention. Two missing values do not prove equivalence. A missing processing baseline on one side differs from a known baseline on the other; it must never be silently treated as equal.
 
 ## Synthetic control matrix
 
@@ -40,6 +40,7 @@ A missing measurement-profile fingerprint is incomplete identity and forces a co
 | MS-004 | No event | Same platform/sensor but different product collection | Absent | Block promotion |
 | MS-005 | No event | Same platform/product but different bands or SAR polarization profile | Absent | Block promotion |
 | MS-006 | Unknown | Asset measurement-profile fingerprint missing | Absent | Block or unresolved; never assume same system |
+| MS-013 | Unknown | Processing baseline missing on both observations | Absent | Block or unresolved; two unknowns do not establish equality |
 | MS-007 | True event | Sensor/platform transition with an independently qualified bridge | Exact receipt present | Eligible for expert review, not automatic truth |
 | MS-008 | No event | Cross-sensor transition | Receipt references wrong observation set | Block promotion |
 | MS-009 | No event | Cross-sensor transition | Receipt has wrong support/class/ontology | Block promotion |
