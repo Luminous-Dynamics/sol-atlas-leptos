@@ -174,13 +174,24 @@ fn evaluate(case: &Value) -> Result<Value, Vec<String>> {
                 Some(access_occupied),
                 Some(access_committed),
             ) => {
-                let invalid = occupied > cap
-                    || committed > cap - occupied
-                    || access_occupied > access_cap
-                    || access_committed > access_cap - access_occupied
-                    || access_cap > cap
-                    || access_occupied > occupied
-                    || access_committed > committed;
+                let valid_total = occupied <= cap
+                    && committed <= cap.saturating_sub(occupied);
+                let valid_accessible = access_cap <= cap
+                    && access_occupied <= access_cap
+                    && access_committed <= access_cap.saturating_sub(access_occupied)
+                    && access_occupied <= occupied
+                    && access_committed <= committed;
+                let valid_non_accessible = if valid_total && valid_accessible {
+                    let non_accessible_capacity = cap - access_cap;
+                    let non_accessible_occupied = occupied - access_occupied;
+                    let non_accessible_committed = committed - access_committed;
+                    non_accessible_occupied <= non_accessible_capacity
+                        && non_accessible_committed
+                            <= non_accessible_capacity.saturating_sub(non_accessible_occupied)
+                } else {
+                    false
+                };
+                let invalid = !valid_total || !valid_accessible || !valid_non_accessible;
                 if invalid {
                     reasons.push("CAPACITY_ACCOUNTING_INVALID".to_owned());
                     (0_u64, 0_u64)
@@ -407,6 +418,26 @@ mod tests {
                 .unwrap()
                 .iter()
                 .any(|reason| reason == "INSUFFICIENT_FREE_ACCESSIBLE_CAPACITY")
+        );
+    }
+
+    #[test]
+    fn non_accessible_occupancy_and_commitments_cannot_overbook_non_accessible_seats() {
+        let mut case = sample();
+        case["sites"][0]["committed_reserve"] = json!(8);
+        let report = evaluate(&case).unwrap();
+        let site = report["unavailable_sites"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .find(|site| site["site_id"] == "SYNTHETIC_LOCAL_POD_A")
+            .unwrap();
+        assert!(
+            site["reasons"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .any(|reason| reason == "CAPACITY_ACCOUNTING_INVALID")
         );
     }
 
