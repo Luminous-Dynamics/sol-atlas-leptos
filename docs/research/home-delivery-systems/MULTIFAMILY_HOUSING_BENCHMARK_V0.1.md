@@ -333,3 +333,64 @@ The workflow tests the qualifier separately from the existing stacked geometry P
 The apartment-specific interface to existing DfMA owners is documented in [MULTIFAMILY_DFMA_INTERFACE_V0.1.md](MULTIFAMILY_DFMA_INTERFACE_V0.1.md). It maps party walls/floors, facade/shading cassettes, wet cores, service risers, plant skids, vertical-core components and demountable interior systems to exact design revisions, product evidence, factory capability, transport, lifting, installation, inspection, as-built, repair and replacement records.
 
 The current P0 geometry fixture does not contain internal rooms, wall thickness, real shafts, facade details, exact products or assemblies. Consequently, all assembly takeoffs, BOMs, factory capacity, tolerances, logistics, local supplier availability and installed cost remain `NOT_COMPUTED` or `UNKNOWN`. The interface is not a fabrication release and does not authorize construction.
+
+
+## 17. Per-unit shared service delivery benchmark
+
+The apartment-specific service-distribution contract is owned by [#844](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/844) and is designed to compose:
+- [#752 Thermal Service Refuge](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/752);
+- [#816 Cost of Place](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/816);
+- Symtropy [#1848 Spatial Resilience](https://github.com/Luminous-Dynamics/symtropy/issues/1848), [#1739 Settlement Time](https://github.com/Luminous-Dynamics/symtropy/issues/1739), [#1752 Settlement Policy](https://github.com/Luminous-Dynamics/symtropy/issues/1752);
+- Symthaea [#10445 Home Service Continuity](https://github.com/Luminous-Dynamics/symthaea/issues/10445), [#10474 service deficit arithmetic](https://github.com/Luminous-Dynamics/symthaea/issues/10474), [#10486 electrical/thermal carrier typing](https://github.com/Luminous-Dynamics/symthaea/issues/10486), [#10341 metrology](https://github.com/Luminous-Dynamics/symthaea/issues/10341).
+
+### Registered P0 artifacts
+
+- `multifamily-service-distribution.schema.json` and `multifamily-service-distribution-synthetic-v0.1.json`: six resource classes, 24 nodes, 21 edges, 12 per-unit service records and six sample event entries.
+- `multifamily-service-stress-corpus-v0.1.json`: 16 authored scenarios with 20 deterministic synthetic event entries (one positive topology-only control and 15 adversarial stress controls). None are executed, calibrated or sealed.
+- `src/bin/home-multifamily-service-qualifier.rs`: validates typed resource-flow edges, exact apartment boundary mappings, event/node identities, quantity/evidence claim states, allocation authority prerequisites, and the minimum evidence conditions for any resource-conservation reconciliation.
+- The focused workflow runs both `home-multifamily-qualifier` and `home-multifamily-service-qualifier`, including rustfmt checks.
+
+### Scenario families
+
+The 16 cases cover:
+1. baseline topology-only positive control;
+2. municipal water source interruption with unknown storage capacity;
+3. common water pump failure affecting both floor zones;
+4. common electrical interruption affecting shared plant;
+5. floor-specific riser isolation;
+6. floor-specific maintenance isolation;
+7. withdrawal of potable-quality evidence;
+8. reserve exhaustion when storage and demand remain unknown;
+9. allocation-policy change without authority/rules evidence;
+10. compound water and electricity interruption;
+11. communications/control gateway failure with dependency still unknown;
+12. pump failure followed by unknown repair/spare delay;
+13. apparent restoration followed by recurrence before stable recovery;
+14. unqualified non-potable source with no treatment or unit-use evidence;
+15. concurrent isolation of both floor risers;
+16. hot-water plant maintenance interruption with useful thermal delivery unknown.
+
+### Hard measurement boundary
+
+A valid topology does not prove resource delivery. The per-unit benchmark must eventually receive:
+- exact unit-boundary flow/power/thermal measurements, with units and observation windows;
+- source class and quality-specific qualification for water;
+- pressure/flow or electrical/thermal capacity evidence from the responsible engineering owner;
+- calibration, uncertainty, missingness and meter revision;
+- storage change, distribution losses and delivered quantities on one consistent resource/time basis;
+- common stress traces and stable-recovery criteria.
+
+Until these exist, all demands, deliveries, capacities, reserve depletion, allocations and conservation states remain UNKNOWN or NOT_COMPUTED. There is no service-availability or fairness result in the current synthetic fixtures.
+
+### Additional acceptance gates
+
+- Zero unit service PASS from building-level nameplate or aggregate storage alone.
+- Zero resource-flow edges that cross resource/carrier classes.
+- Zero potable-use credit from the non-potable or unqualified source identity.
+- Zero double allocation or resource conservation claim from unknown quantities.
+- Zero authorized allocation state without exact authority and rules references.
+- Zero service trajectory promoted from a synthetic event manifest.
+- 100% of stress event times are explicit, ordered within each scenario and shared across matched architecture variants; failure probabilities remain unknown unless independently evidenced.
+- Report worst-served unit, unit/floor/zone deficit minutes, reserve depletion, stable recovery and allocation incidence separately; never let the building mean hide an apartment-level service-floor breach.
+
+The current qualifier contains 15 authored tests (one positive and 14 negative). It validates data/claim boundaries and manifest consistency; it does not execute the 16 stress scenarios or model physical service trajectories.
