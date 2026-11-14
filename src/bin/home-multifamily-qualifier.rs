@@ -873,7 +873,7 @@ mod tests {
         assert_eq!(report["space_count"], 14);
         assert_eq!(report["unit_count"], 4);
         assert_eq!(report["resident_programme_unit_count"], 4);
-        assert_eq!(report["resident_activity_count"], 20);
+        assert_eq!(report["resident_activity_count"], 24);
         assert_eq!(report["resident_requirement_count"], 6);
         assert_eq!(report["resident_preference_count"], 8);
         assert_eq!(report["everyday_connection_count"], 12);
