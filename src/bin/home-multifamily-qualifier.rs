@@ -457,6 +457,9 @@ fn validate(fixture: &Value, corpus: &Value) -> Result<Value, Vec<String>> {
             ) {
                 errors.push(format!("connection {id} has an invalid connection_kind"));
             }
+            if text_at(row, "state") != Some("declared") {
+                errors.push(format!("connection {id} is not explicitly declared"));
+            }
             if !portal_matches_shared_boundary(from.rect, to.rect, row.get("portal").unwrap_or(&Value::Null)) {
                 errors.push(format!("connection {id} portal is not on a shared boundary span"));
             }
@@ -508,11 +511,24 @@ fn validate(fixture: &Value, corpus: &Value) -> Result<Value, Vec<String>> {
             cores.insert(id, (kind, floor_refs, space_refs));
         }
     }
-    for connection in array_at(fixture, "vertical_connections").into_iter().flatten() {
+    let vertical_rows = array_at(fixture, "vertical_connections");
+    let _vertical_ids = unique_text_rows(
+        vertical_rows,
+        "connection_id",
+        "vertical_connections",
+        &mut errors,
+    );
+    for connection in vertical_rows.into_iter().flatten() {
         let id = text_at(connection, "connection_id").unwrap_or("<missing-vertical-link>");
         let core_id = text_at(connection, "core_id").unwrap_or("<missing-core-id>");
         let from_floor = text_at(connection, "from_floor_id").unwrap_or("<missing-from-floor>");
         let to_floor = text_at(connection, "to_floor_id").unwrap_or("<missing-to-floor>");
+        if !matches!(text_at(connection, "connection_kind"), Some("everyday_vertical" | "service_vertical")) {
+            errors.push(format!("vertical connection {id} has invalid connection_kind"));
+        }
+        if text_at(connection, "state") != Some("declared") {
+            errors.push(format!("vertical connection {id} is not explicitly declared"));
+        }
         match cores.get(core_id) {
             Some((_, floors, _))
                 if floors.contains(from_floor)
@@ -558,12 +574,44 @@ fn validate(fixture: &Value, corpus: &Value) -> Result<Value, Vec<String>> {
             } else {
                 errors.push(format!("shared service {service_id} has no served_unit_ids array"));
             }
-            let capacity_state = text_at(row, "capacity_state").unwrap_or("unknown");
+            let topology_state = text_at(row, "topology_state").unwrap_or("<missing>");
+            if !matches!(topology_state, "unknown" | "declared" | "partially_mapped" | "disputed") {
+                errors.push(format!("shared service {service_id} has invalid topology_state"));
+            }
+            let capacity_state = text_at(row, "capacity_state").unwrap_or("<missing>");
+            if !matches!(capacity_state, "unknown" | "measured" | "professionally_assessed" | "modelled" | "disputed") {
+                errors.push(format!("shared service {service_id} has invalid capacity_state"));
+            }
             if capacity_state != "unknown"
                 && row.get("capacity_evidence_ref").is_none_or(Value::is_null)
             {
                 errors.push(format!("shared service {service_id} promotes capacity without evidence"));
             }
+            if matches!(capacity_state, "measured" | "professionally_assessed" | "modelled")
+                && array_at(row, "measurement_refs").is_none_or(Vec::is_empty)
+                && row.get("capacity_evidence_ref").is_none_or(Value::is_null)
+            {
+                errors.push(format!("shared service {service_id} has no capacity evidence record"));
+            }
+        }
+    }
+
+    let assessment_rows = array_at(fixture, "assessment_register");
+    if assessment_rows.is_none() {
+        errors.push("assessment_register array is missing".to_owned());
+    }
+    for assessment in assessment_rows.into_iter().flatten() {
+        let domain = text_at(assessment, "domain").unwrap_or("<missing-domain>");
+        let status = text_at(assessment, "status").unwrap_or("<missing-status>");
+        if status != "not_assessed" {
+            errors.push(format!(
+                "synthetic assessment {domain} cannot be promoted beyond not_assessed"
+            ));
+        }
+        if array_at(assessment, "evidence_refs").is_none_or(|refs| !refs.is_empty()) {
+            errors.push(format!(
+                "synthetic assessment {domain} must not claim specialist evidence"
+            ));
         }
     }
 
@@ -689,6 +737,27 @@ mod tests {
     fn professional_promotion_of_synthetic_fixture_is_rejected() {
         let (mut fixture, corpus) = load_fixture();
         fixture["maturity"] = json!("professionally_reviewed");
+        assert!(validate(&fixture, &corpus).is_err());
+    }
+
+    #[test]
+    fn specialist_assessment_promotion_is_rejected() {
+        let (mut fixture, corpus) = load_fixture();
+        fixture["assessment_register"][0]["status"] = json!("qualified");
+        assert!(validate(&fixture, &corpus).is_err());
+    }
+
+    #[test]
+    fn shared_service_capacity_without_evidence_is_rejected() {
+        let (mut fixture, corpus) = load_fixture();
+        fixture["shared_services"][0]["capacity_state"] = json!("measured");
+        assert!(validate(&fixture, &corpus).is_err());
+    }
+
+    #[test]
+    fn undeclared_everyday_connection_is_rejected() {
+        let (mut fixture, corpus) = load_fixture();
+        fixture["building"]["everyday_connections"][0]["state"] = json!("unknown");
         assert!(validate(&fixture, &corpus).is_err());
     }
 
