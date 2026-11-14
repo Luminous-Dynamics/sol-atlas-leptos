@@ -1455,6 +1455,29 @@ mod tests {
     }
 
     #[test]
+    fn two_unknown_processing_baselines_are_not_assumed_to_match() {
+        let mut a = observation("obs-a", "2024-01-01", ObservationQuality::QualifiedUsable);
+        let mut b = observation("obs-b", "2025-01-01", ObservationQuality::QualifiedUsable);
+        a.processing_baseline = None;
+        b.processing_baseline = None;
+        assert_eq!(a.system_signature(), b.system_signature());
+        let blocked = EvidenceBundle::new(vec![a.clone(), b.clone()], vec![no_change_claim()]);
+        assert!(blocked.unwrap_err().contains("incompletely identified measurement systems"));
+
+        let mut claim = no_change_claim();
+        claim.cross_system_comparability_receipt = Some(
+            CrossSystemComparabilityReceiptRef::new(
+                digest(b"u"),
+                vec!["obs-a".into(), "obs-b".into()],
+                "support-a",
+                "vegetation-loss",
+                "fixture-ontology-v1",
+            ).unwrap()
+        );
+        assert!(EvidenceBundle::new(vec![a,b], vec![claim]).is_ok());
+    }
+
+    #[test]
     fn cross_platform_and_collection_changes_are_distinct_system_signatures() {
         let mut obs_b = observation("obs-b", "2025-01-01", ObservationQuality::QualifiedUsable);
         obs_b.platform_id = "fixture-platform-b".into();
