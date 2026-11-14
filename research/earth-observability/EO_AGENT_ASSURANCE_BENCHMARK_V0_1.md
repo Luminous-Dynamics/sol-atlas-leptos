@@ -176,25 +176,33 @@ Sixteen tasks are a smoke-test corpus, not a statistically defensible leaderboar
 
 ## 6. Fair comparison with industry and research
 
-Use GISAgentBench for executable GIS outputs; GeoNatureAgent for structured real-API tasks; TerraBench for heterogeneous Earth-system reasoning; ESA-EO-Bench for policy/text + visual workflows; GeoAgentBench for dynamic GIS execution; and conventional spectral-index, classical-classifier, established change-detector and expert-GIS baselines for the underlying analytics.
+The November 2026 comparison set has advanced beyond the initial v0.1 draft. Preserve benchmark revision, dataset revision, licence, task regime, model, harness, tool limits and scoring method for every comparison.
 
-Fair-match rules:
-- identical requests, input versions, geographic/time supports and allowed tools;
-- same labels, rights and known-answer oracle;
-- matched model access, context limits, retry budgets, compute/time caps and attempts;
-- disclose model/harness/prompt/tool versions, reasoning settings, seeds, data digests, cost method and scoring code;
-- compare output correctness separately from tool-trace efficiency and explanation quality;
-- never compare headline scores from different task sets;
-- mark non-public code, unclear data rights and vendor-reported claims as reference-only.
+| Comparator | Publicly reported scope / result | What it tests | What it does not establish for Sol-Atlas |
+|---|---|---|---|
+| GISAgentBench | 349 practitioner-sourced GIS tasks; published strict completion results are task- and setup-specific | Executable GIS workflows and exact outputs | Rights, common-cause evidence independence, authority or longitudinal intervention outcomes |
+| GeoNatureAgent | 93 structured-tool tasks; reported leading result around 60.8% in the referenced study | Environmental API task execution | Independent source truth, rights revocation or field outcome validity |
+| TerraBench | 403 tasks, 8 application domains, 24,500 verified execution steps | Heterogeneous EO, gridded data, GIS, simulators and document-grounded verification | Complete rights/authority and longitudinal intervention assurance |
+| ESA-EO-Bench | 294 tasks, 10 authenticated MCP servers, 70 tools; includes 84 cross-agent synthesis tasks and 29 scope-awareness tasks | Multi-agent orchestration, cross-domain synthesis and abstention | Independent validation of every scientific claim or permission for consequential action |
+| Earth-Agent / Earth-Bench | ICLR 2026; original Earth-Bench has 248 task cores and 13,729 images; 104 specialist tools across five kits | RGB, spectral and product analysis; tool trajectory and final outcome | Rights-aware evidence transactions and real-world outcome validation |
+| Earth-Bench V2 | Corrected 248 task cores / 496 instruction-following and autonomous-planning entries; dataset card declares CC BY-NC 4.0 | Prepared-input EO agent evaluation | Open commercial reuse; its licence must be respected |
+| Earth-Agent-Pro / Earth-Bench-Pro | September 2026 preprint: 248 task cores across three regimes, including 248 open-world execution questions; authors report 66.13% LLM-as-Judge accuracy for their GPT-5 setup | Full-chain open-world acquisition, preparation, execution and evidence-grounded answers | Independently audited field truth, rights/authority compliance or intervention impact |
+| Axis Spatial Geospatial Agent Index | Third-party methodology snapshot dated 14 November 2026; one attempt per task, code-checked artifacts, spatial/numeric tolerances, trace review and cost/time reporting | Comparable agent/harness performance across selected geospatial tasks | A peer-reviewed benchmark or directly interchangeable score |
 
-### 6.1 Initial hypotheses, not results
+These numbers are not a common leaderboard. Different tasks, data, agent regimes, judges, licences and execution conditions make direct score comparisons invalid.
 
-- The deterministic scorer should achieve 100% known-answer agreement on its own authored fixtures before stochastic-agent runs.
-- Agents should achieve zero hard-gate violations; one violation disqualifies the run from an overall capability score.
-- On an expanded matched workflow corpus, target at least a 10 percentage-point improvement in strict adjudicable end-to-end task success over the strongest reproducible baseline, without worse hard-gate performance.
-- Report quality/cost/latency/review-time Pareto frontiers rather than optimizing a single accuracy number.
+Use matched subsets and publish a Pareto frontier across:
+- final task success;
+- hard-gate violations;
+- claim-level provenance completeness;
+- calibrated selective risk;
+- artifact reproducibility;
+- cost and latency;
+- human-review burden.
 
-The 10-point improvement is a research hypothesis, not a current result. Revisit it after baseline variance, task difficulty and power are measured.
+Do not optimize only tool trajectory accuracy. ESA's evaluation finds that stronger orchestration does not necessarily improve final answer accuracy. Earth-Agent-Pro is an important next comparator because it moves from prepared inputs toward open-world execution and workflow repair. Our differentiator must therefore be the validity of the evidence transaction and its authority/rights/outcome semantics, not merely full-chain tool access.
+
+Reproduce public baselines only on matched tasks, source versions, tool limits, data rights and scoring rules. Record model, harness, prompt, tools, compute, temperature/seeds, API versions, cost and exact output digests. Treat third-party leaderboard scores as contextual until independently reproduced.
 
 ## 7. Execution plan
 
