@@ -73,3 +73,7 @@ jobs:
         run: cargo test --bin home-assembly-demand-qualifier
       - name: Audit the paired synthetic assembly demand
         run: cargo run --bin home-assembly-demand-qualifier -- --self-test
+      - name: Test home assembly substitution qualifier
+        run: cargo test --bin home-assembly-substitution-qualifier
+      - name: Audit the synthetic substitution blast-radius corpus
+        run: cargo run --bin home-assembly-substitution-qualifier -- --self-test
