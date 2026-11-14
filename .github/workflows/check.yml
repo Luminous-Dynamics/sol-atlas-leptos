@@ -71,6 +71,11 @@ jobs:
         run: cargo test --manifest-path sol-atlas-core/Cargo.toml sensor_evsi_bridge
       - name: Test candidate utility inference graph
         run: cargo test --manifest-path sol-atlas-core/Cargo.toml utility_inference
+
+      - name: Test asset reconstruction metrics
+        run: cargo test --bin utility_reconstruction_eval
+      - name: Verify pinned asset association baseline
+        run: cargo run --bin utility_reconstruction_eval -- --check-pinned
       - name: Test sensor observability scoring CLI
         run: cargo test --bin sensor_observability_eval
       - name: Verify pinned analytic sensor observability receipt
