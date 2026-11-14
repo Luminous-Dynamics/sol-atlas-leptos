@@ -1,0 +1,369 @@
+{
+  "schema_version": "0.1.0",
+  "study_id": "HOME-FREEDOM-COMPILER-001",
+  "candidate_set_id": "SYNTH-HV-CASE-001",
+  "brief_id": "SYNTH-HV-FAMILY-001",
+  "maturity": "SYNTHETIC_SCREENING_ONLY",
+  "execution_status": "NOT_SIMULATED",
+  "design_revision": "HFC-SYNTH-REV-0",
+  "common_unknowns": [
+    "No real parcel, surveyed boundary, title/servitude or zoning evidence is included.",
+    "No soil/geotechnical investigation or structural design is included.",
+    "No municipal authority profile, building-control interpretation or current plan approval is included.",
+    "No local supplier quotations, labour rates, bill of materials or cost model is admitted.",
+    "No site weather file, measured microclimate, EnergyPlus run or thermal comfort calculation is included.",
+    "No measured water source, entitlement or quality evidence is included.",
+    "No professional fire, accessibility, sanitation, electrical or moisture review is included."
+  ],
+  "candidates": [
+    {
+      "candidate_id": "SYNTH-HV-A",
+      "archetype_id": "COURTYARD_SOLAR",
+      "name": "Courtyard home with shaded outdoor room",
+      "disposition": "CONDITIONAL_CONCEPT_ONLY",
+      "space_program_state": "SYMBOLIC_ROOM_PROGRAM_NOT_GEOMETRY",
+      "floor_area_m2": 82,
+      "private_outdoor_area_m2": 14,
+      "room_program": [
+        {
+          "space_id": "A-BED-01",
+          "function": "Primary sleeping room",
+          "target_area_m2": 12,
+          "privacy": "PRIVATE"
+        },
+        {
+          "space_id": "A-BED-02",
+          "function": "Second sleeping room",
+          "target_area_m2": 11,
+          "privacy": "PRIVATE"
+        },
+        {
+          "space_id": "A-LIVING-01",
+          "function": "Combined living and dining",
+          "target_area_m2": 22,
+          "privacy": "SEMI_PRIVATE"
+        },
+        {
+          "space_id": "A-KITCHEN-01",
+          "function": "Kitchen",
+          "target_area_m2": 8,
+          "privacy": "SEMI_PRIVATE"
+        },
+        {
+          "space_id": "A-WORK-01",
+          "function": "Quiet work room",
+          "target_area_m2": 7,
+          "privacy": "PRIVATE"
+        },
+        {
+          "space_id": "A-BATH-01",
+          "function": "Bathroom",
+          "target_area_m2": 5,
+          "privacy": "SERVICE"
+        },
+        {
+          "space_id": "A-UTILITY-01",
+          "function": "Laundry and utility",
+          "target_area_m2": 4,
+          "privacy": "SERVICE"
+        },
+        {
+          "space_id": "A-STORAGE-01",
+          "function": "General storage",
+          "target_area_m2": 4,
+          "privacy": "SERVICE"
+        },
+        {
+          "space_id": "A-CIRC-01",
+          "function": "Circulation and internal walls allowance",
+          "target_area_m2": 9,
+          "privacy": "SERVICE"
+        }
+      ],
+      "design_moves": [
+        "Place a shaded private courtyard beside the living/dining zone as an outdoor room.",
+        "Keep the quiet work room away from the kitchen/living noise path.",
+        "Use a compact service band for bathroom, laundry and utility routes.",
+        "Test winter solar access and summer external shading as a matched seasonal pair.",
+        "Keep the courtyard dry/planting-capable by default; no pool or evaporative feature is assumed."
+      ],
+      "hard_gate_results": [
+        {
+          "gate_id": "C_SLEEP_02",
+          "state": "UNKNOWN",
+          "reason": "Unverified at symbolic room-program stage; no site, code, geometry or professional evidence is attached.",
+          "evidence_ref": null
+        },
+        {
+          "gate_id": "C_WORK_01",
+          "state": "UNKNOWN",
+          "reason": "Unverified at symbolic room-program stage; no site, code, geometry or professional evidence is attached.",
+          "evidence_ref": null
+        },
+        {
+          "gate_id": "C_ACCESS_01",
+          "state": "UNKNOWN",
+          "reason": "Unverified at symbolic room-program stage; no site, code, geometry or professional evidence is attached.",
+          "evidence_ref": null
+        },
+        {
+          "gate_id": "C_PHASE_01",
+          "state": "UNKNOWN",
+          "reason": "Unverified at symbolic room-program stage; no site, code, geometry or professional evidence is attached.",
+          "evidence_ref": null
+        },
+        {
+          "gate_id": "C_WATER_01",
+          "state": "UNKNOWN",
+          "reason": "Unverified at symbolic room-program stage; no site, code, geometry or professional evidence is attached.",
+          "evidence_ref": null
+        },
+        {
+          "gate_id": "SITE_RIGHTS",
+          "state": "UNKNOWN",
+          "reason": "Unverified at symbolic room-program stage; no site, code, geometry or professional evidence is attached.",
+          "evidence_ref": null
+        },
+        {
+          "gate_id": "AUTHORITY_CODE",
+          "state": "UNKNOWN",
+          "reason": "Unverified at symbolic room-program stage; no site, code, geometry or professional evidence is attached.",
+          "evidence_ref": null
+        },
+        {
+          "gate_id": "STRUCTURE_FIRE",
+          "state": "UNKNOWN",
+          "reason": "Unverified at symbolic room-program stage; no site, code, geometry or professional evidence is attached.",
+          "evidence_ref": null
+        },
+        {
+          "gate_id": "MOISTURE_DRAINAGE",
+          "state": "UNKNOWN",
+          "reason": "Unverified at symbolic room-program stage; no site, code, geometry or professional evidence is attached.",
+          "evidence_ref": null
+        },
+        {
+          "gate_id": "COST_LOCAL_SUPPLY",
+          "state": "UNKNOWN",
+          "reason": "Unverified at symbolic room-program stage; no site, code, geometry or professional evidence is attached.",
+          "evidence_ref": null
+        }
+      ],
+      "cost_state": {
+        "state": "NOT_ESTIMATED",
+        "currency": "ZAR",
+        "low_estimate": null,
+        "high_estimate": null,
+        "rate_evidence_ref": null
+      },
+      "thermal_state": {
+        "state": "NOT_SIMULATED",
+        "baseline": "NO_WATER_PASSIVE_BASELINE_REQUIRED",
+        "notes": [
+          "A competent no-water baseline must be simulated first.",
+          "Operative temperature, mean radiant temperature, winter night conditions and humidity remain unknown."
+        ]
+      },
+      "future_change_state": {
+        "state": "RESERVED_SPACE_ONLY",
+        "candidate_change": "Possible third sleeping room, subject to site and structure.",
+        "required_rechecks": [
+          "Structure and foundations",
+          "Escape and fire separation",
+          "Daylight and ventilation",
+          "Drainage and roof water",
+          "Water/sanitation/electrical capacity",
+          "Neighbour privacy and rights",
+          "Professional and authority approval"
+        ]
+      },
+      "tradeoffs": [
+        "Courtyard improves private outdoor use but consumes land that could otherwise be built or planted.",
+        "Courtyard shade, wind and daylight depend on proportions, orientation and adjacent buildings.",
+        "A dedicated work room increases functional separation but can increase floor area and cost."
+      ],
+      "blocking_unknowns": [
+        "The narrow-site fit is not established.",
+        "The assumed 82 m² internal area is a synthetic programme target, not a design or code-compliant plan."
+      ]
+    },
+    {
+      "candidate_id": "SYNTH-HV-B",
+      "archetype_id": "ROW_SERVICE_YARD",
+      "name": "Compact row home with private service yard",
+      "disposition": "CONDITIONAL_CONCEPT_ONLY",
+      "space_program_state": "SYMBOLIC_ROOM_PROGRAM_NOT_GEOMETRY",
+      "floor_area_m2": 78,
+      "private_outdoor_area_m2": 8,
+      "room_program": [
+        {
+          "space_id": "B-BED-01",
+          "function": "Primary sleeping room",
+          "target_area_m2": 12,
+          "privacy": "PRIVATE"
+        },
+        {
+          "space_id": "B-BED-02",
+          "function": "Second sleeping room",
+          "target_area_m2": 10,
+          "privacy": "PRIVATE"
+        },
+        {
+          "space_id": "B-LIVING-01",
+          "function": "Combined living and dining",
+          "target_area_m2": 23,
+          "privacy": "SEMI_PRIVATE"
+        },
+        {
+          "space_id": "B-KITCHEN-01",
+          "function": "Kitchen",
+          "target_area_m2": 8,
+          "privacy": "SEMI_PRIVATE"
+        },
+        {
+          "space_id": "B-WORK-01",
+          "function": "Quiet work room",
+          "target_area_m2": 7,
+          "privacy": "PRIVATE"
+        },
+        {
+          "space_id": "B-BATH-01",
+          "function": "Bathroom",
+          "target_area_m2": 5,
+          "privacy": "SERVICE"
+        },
+        {
+          "space_id": "B-UTILITY-01",
+          "function": "Laundry and utility",
+          "target_area_m2": 4,
+          "privacy": "SERVICE"
+        },
+        {
+          "space_id": "B-STORAGE-01",
+          "function": "General storage",
+          "target_area_m2": 3,
+          "privacy": "SERVICE"
+        },
+        {
+          "space_id": "B-CIRC-01",
+          "function": "Circulation and internal walls allowance",
+          "target_area_m2": 6,
+          "privacy": "SERVICE"
+        }
+      ],
+      "design_moves": [
+        "Use attached party walls where lawful and structurally appropriate to reduce exposed envelope area.",
+        "Keep bedrooms and quiet work room on a privacy-protected side of the plan.",
+        "Use a rear service yard for laundry, repair access and drying rather than placing these functions in the main living room.",
+        "Use repeatable structural and service interfaces only after local structural, fire and acoustic checks.",
+        "Keep the first occupied stage complete; any future third room is a separately reviewed phase."
+      ],
+      "hard_gate_results": [
+        {
+          "gate_id": "C_SLEEP_02",
+          "state": "UNKNOWN",
+          "reason": "Unverified at symbolic room-program stage; party-wall, fire, acoustic, orientation and site constraints have not been checked.",
+          "evidence_ref": null
+        },
+        {
+          "gate_id": "C_WORK_01",
+          "state": "UNKNOWN",
+          "reason": "Unverified at symbolic room-program stage; party-wall, fire, acoustic, orientation and site constraints have not been checked.",
+          "evidence_ref": null
+        },
+        {
+          "gate_id": "C_ACCESS_01",
+          "state": "UNKNOWN",
+          "reason": "Unverified at symbolic room-program stage; party-wall, fire, acoustic, orientation and site constraints have not been checked.",
+          "evidence_ref": null
+        },
+        {
+          "gate_id": "C_PHASE_01",
+          "state": "UNKNOWN",
+          "reason": "Unverified at symbolic room-program stage; party-wall, fire, acoustic, orientation and site constraints have not been checked.",
+          "evidence_ref": null
+        },
+        {
+          "gate_id": "C_WATER_01",
+          "state": "UNKNOWN",
+          "reason": "Unverified at symbolic room-program stage; party-wall, fire, acoustic, orientation and site constraints have not been checked.",
+          "evidence_ref": null
+        },
+        {
+          "gate_id": "SITE_RIGHTS",
+          "state": "UNKNOWN",
+          "reason": "Unverified at symbolic room-program stage; party-wall, fire, acoustic, orientation and site constraints have not been checked.",
+          "evidence_ref": null
+        },
+        {
+          "gate_id": "AUTHORITY_CODE",
+          "state": "UNKNOWN",
+          "reason": "Unverified at symbolic room-program stage; party-wall, fire, acoustic, orientation and site constraints have not been checked.",
+          "evidence_ref": null
+        },
+        {
+          "gate_id": "STRUCTURE_FIRE",
+          "state": "UNKNOWN",
+          "reason": "Unverified at symbolic room-program stage; party-wall, fire, acoustic, orientation and site constraints have not been checked.",
+          "evidence_ref": null
+        },
+        {
+          "gate_id": "MOISTURE_DRAINAGE",
+          "state": "UNKNOWN",
+          "reason": "Unverified at symbolic room-program stage; party-wall, fire, acoustic, orientation and site constraints have not been checked.",
+          "evidence_ref": null
+        },
+        {
+          "gate_id": "COST_LOCAL_SUPPLY",
+          "state": "UNKNOWN",
+          "reason": "Unverified at symbolic room-program stage; party-wall, fire, acoustic, orientation and site constraints have not been checked.",
+          "evidence_ref": null
+        }
+      ],
+      "cost_state": {
+        "state": "NOT_ESTIMATED",
+        "currency": "ZAR",
+        "low_estimate": null,
+        "high_estimate": null,
+        "rate_evidence_ref": null
+      },
+      "thermal_state": {
+        "state": "NOT_SIMULATED",
+        "baseline": "NO_WATER_PASSIVE_BASELINE_REQUIRED",
+        "notes": [
+          "Compare reduced exposed envelope against courtyard daylight and ventilation performance.",
+          "Do not infer annual thermal performance from party walls alone."
+        ]
+      },
+      "future_change_state": {
+        "state": "RESERVED_SPACE_ONLY",
+        "candidate_change": "Possible third sleeping room in future rear/side zone, subject to lawful rights and services.",
+        "required_rechecks": [
+          "Party-wall ownership and fire performance",
+          "Structure and foundations",
+          "Escape and fire access",
+          "Daylight and ventilation",
+          "Drainage and roof water",
+          "Water/sanitation/electrical capacity",
+          "Neighbour privacy and rights",
+          "Professional and authority approval"
+        ]
+      },
+      "tradeoffs": [
+        "Smaller private outdoor area than the courtyard option.",
+        "Potentially lower exposed envelope area, but party-wall and daylight performance are unknown.",
+        "More efficient use of a narrow plot is a hypothesis until plot dimensions and local rights are admitted."
+      ],
+      "blocking_unknowns": [
+        "No surveyed plot width, frontage, setback or servitude is available.",
+        "No lawful party-wall arrangement, fire or acoustic performance is established."
+      ]
+    }
+  ],
+  "comparison_policy": {
+    "ranking_state": "UNRANKED_PARETO_CANDIDATES",
+    "scalar_score": null,
+    "resident_choice_required": true
+  },
+  "claim_ceiling": "Synthetic symbolic room programmes only. No buildable floor plans, code/structure/fire/accessibility approval, quotations, EnergyPlus/CFD simulation, measured performance or resident outcomes are present."
+}
