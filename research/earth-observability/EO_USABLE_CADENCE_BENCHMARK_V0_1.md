@@ -1,7 +1,7 @@
 # EO-USABLE-CADENCE-001 — usable observation cadence benchmark v0.1
 
 **Parent:** [Sol-Atlas #804 — EO-USABLE-CADENCE-001](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/804)  
-**Integration:** [SATELLITE-CHANGE-EVIDENCE-001 / #795](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/795), [EO claim contract / PR #799](https://github.com/Luminous-Dynamics/sol-atlas-leptos/pull/799), [Symthaea locked Sentinel witness / #194](https://github.com/Luminous-Dynamics/symthaea/issues/194)  
+**Integration:** [SATELLITE-CHANGE-EVIDENCE-001 / #795](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/795), [satellite EO claim contract / PR #810](https://github.com/Luminous-Dynamics/sol-atlas-leptos/pull/810), [Symthaea locked Sentinel witness / #194](https://github.com/Luminous-Dynamics/symthaea/issues/194)  
 **Status:** v0.1 offline timeline model and synthetic tests drafted; Rust/schema CI not run  
 **Claim ceiling:** structural/synthetic cadence semantics only; no real-world cadence, cloud statistics, sensor performance or actionable-detection advantage is claimed.
 
@@ -26,10 +26,11 @@ The Rust timeline binds each opportunity to:
 - canonical AssetId and source-native event identity, where acquired;
 - acquisition/quality outcome;
 - delivery/availability time, distinct from acquisition time;
-- optional observation assessment;
-- external coverage and detection-qualification receipt digests for promoted claims.
+- optional observation assessment with an explicit target-class ID and ontology version;
+- external coverage and target/sensor detection-qualification receipt digests for promoted claims;
+- the shared Sol-Atlas structured DetectionQualification result for no-change assessments.
 
-`RightsBlocked` is an upstream disposition from the authorized rights/custody adapter. The cadence scorer does not interpret licences or authorize use. `NoAcquisition` is distinct from cloud contamination, processing invalidity, out-of-domain, rights restriction and late delivery. Duplicate source-event identities are rejected so a mirrored/late catalogue row cannot shorten apparent revisit time.
+`RightsBlocked` is an upstream disposition from the authorized rights/custody adapter. The cadence scorer does not interpret licences or authorize use. `NoAcquisition` is distinct from cloud contamination, processing invalidity, out-of-domain, rights restriction and late delivery. Duplicate source-event identities are rejected within a source namespace, while identical provider-local IDs from different source registries do not collide. A mirrored/late catalogue row therefore cannot shorten apparent revisit time.
 
 Unix milliseconds are a normalized comparison representation only. Raw provider timestamps, time scale, conversion and time-normalization receipt remain in the source/processing evidence. The timeline does not authenticate those timestamps.
 
@@ -55,7 +56,8 @@ Report the same gap families over the combined set, clearly named as portfolio m
 A missing expected schedule is not a zero revisit gap and is not silently synthesized from nominal constellation marketing.
 
 ### Event-time resolution
-For each first positive change assessment, locate the latest prior qualified `NoChangeWithinEnvelope` assessment on the same support. Emit:
+For each positive change assessment, locate the latest prior qualified `NoChangeWithinEnvelope` assessment on the same support **and the same target-class ID and ontology version**. Do not join a vegetation-stability claim to a built-up-expansion event, or claims generated under different class semantics. Emit:
+- target class and ontology version;
 - exclusive lower bound: completion of that last qualified no-change acquisition;
 - inclusive upper bound: start of the first qualified positive acquisition;
 - interval width.
@@ -90,6 +92,9 @@ The executable tests cover:
 - SAR providing a distinct usable observation in that optical gap;
 - event-time bounds using only qualified no-change and positive evidence;
 - missing coverage/detection qualification blocking a no-change assessment;
+- failure of the shared target-conditional POD classifier (insufficient POD, invalid calibration, target not covered, or out-of-domain) blocking no-change;
+- event-time intervals not joining different target classes or ontology versions;
+- source-event deduplication scoped to exact source identity.
 - duplicate/replayed source-event identity rejection;
 - rights-blocked and no-acquisition opportunities excluded from usable cadence;
 - delivery latency kept separate from revisit;
@@ -101,7 +106,8 @@ The next fixtures should cover seasonal phenology, false changes across sensor/p
 ## 6. Qualification boundaries and follow-on work
 
 - Sol-Atlas owns timeline, support, source references, cadence metrics and event-time bounds.
-- The EO claim contract (#799) carries source/processing/rights references and binds the independently qualified detection envelope.
+- The satellite EO claim contract [PR #810](https://github.com/Luminous-Dynamics/sol-atlas-leptos/pull/810) carries source/processing/rights references and binds the independently qualified detection envelope.
+- This cadence module reuses shared `ObservationModality`, `DetectionQualification` and `classify_non_detection`; it does not define its own modality enum or a parallel POD classifier. No-change assessments require the shared classifier to return `AbsenceEvidenceEligible`.
 - Symthaea #194 remains the authority for Sentinel data manifests, spatial/time splits, fitted artifacts, candidate selection and evaluation custody.
 - Symthaea #12075 owns competing hypotheses and follow-up investigation.
 - Symtropy qualifies applicable sensor/physical models and model discrepancy.
@@ -112,12 +118,13 @@ This module does not authenticate the rights decision or detection-qualification
 ## 7. Next benchmark gates (targets, not results)
 
 1. 100% deterministic replay of the frozen synthetic timeline corpus.
-2. 0 no-change assessment accepted without coverage and target/sensor detection qualification receipts.
-3. 0 duplicate/replayed source events counted as independent acquisitions.
-4. 0 no-acquisition, obscured, invalid, out-of-domain or rights-blocked opportunities counted as usable.
-5. Report nominal/expected, actual, per-sensor usable and fused-portfolio cadence separately.
-6. On hidden-event fixtures, every emitted interval must contain the planted onset; report interval width, unresolved-event rate and transient-miss rate.
-7. Compare nominal scheduling, quality-aware scheduling, event-risk scheduling, entropy/EIG and existing EVSI/ENBS only under equal feasible action sets and equal eligible budget.
-8. Proposed stretch hypothesis: reduce P90 time-to-actionable-claim by at least 20% versus nominal schedule at equal eligible cost, after baseline variance and statistical power are measured.
+2. 0 no-change assessment accepted without coverage and target/sensor detection qualification receipts and a shared `AbsenceEvidenceEligible` POD disposition.
+3. 0 duplicate/replayed source events within the same source counted as independent acquisitions.
+4. 0 event-time intervals formed across different target classes or ontology versions.
+5. 0 no-acquisition, obscured, invalid, out-of-domain or rights-blocked opportunities counted as usable.
+6. Report nominal/expected, actual, per-sensor usable and fused-portfolio cadence separately.
+7. On hidden-event fixtures, every emitted interval must contain the planted onset; report interval width, unresolved-event rate and transient-miss rate.
+8. Compare nominal scheduling, quality-aware scheduling, event-risk scheduling, entropy/EIG and existing EVSI/ENBS only under equal feasible action sets and equal eligible budget.
+9. Proposed stretch hypothesis: reduce P90 time-to-actionable-claim by at least 20% versus nominal schedule at equal eligible cost, after baseline variance and statistical power are measured.
 
 No superiority claim is promoted from this synthetic corpus. Retrospective/real Sentinel evaluation must use the locked Symthaea #194 protocol and independently admitted data/labels.
