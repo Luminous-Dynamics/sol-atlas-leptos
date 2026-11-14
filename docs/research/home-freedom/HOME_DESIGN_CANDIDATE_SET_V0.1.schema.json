@@ -1,0 +1,321 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/blob/main/docs/research/home-freedom/HOME_DESIGN_CANDIDATE_SET_V0.1.schema.json",
+  "title": "Home design candidate set v0.1",
+  "description": "Screening-level, resident-brief-linked candidate options. Not construction documents or evidence of compliance.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "study_id",
+    "candidate_set_id",
+    "brief_id",
+    "maturity",
+    "execution_status",
+    "design_revision",
+    "common_unknowns",
+    "candidates",
+    "comparison_policy",
+    "claim_ceiling"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "0.1.0"
+    },
+    "study_id": {
+      "const": "HOME-FREEDOM-COMPILER-001"
+    },
+    "candidate_set_id": {
+      "type": "string",
+      "pattern": "^[A-Z0-9_-]{3,64}$"
+    },
+    "brief_id": {
+      "type": "string",
+      "pattern": "^[A-Z0-9][A-Z0-9_-]{2,63}$"
+    },
+    "maturity": {
+      "const": "SYNTHETIC_SCREENING_ONLY"
+    },
+    "execution_status": {
+      "const": "NOT_SIMULATED"
+    },
+    "design_revision": {
+      "type": "string",
+      "minLength": 1
+    },
+    "common_unknowns": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "string"
+      }
+    },
+    "candidates": {
+      "type": "array",
+      "minItems": 2,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "candidate_id",
+          "archetype_id",
+          "name",
+          "disposition",
+          "space_program_state",
+          "floor_area_m2",
+          "private_outdoor_area_m2",
+          "room_program",
+          "design_moves",
+          "hard_gate_results",
+          "cost_state",
+          "thermal_state",
+          "future_change_state",
+          "tradeoffs",
+          "blocking_unknowns"
+        ],
+        "properties": {
+          "candidate_id": {
+            "type": "string",
+            "pattern": "^[A-Z0-9_-]{3,64}$"
+          },
+          "archetype_id": {
+            "type": "string",
+            "pattern": "^[A-Z0-9_]+$"
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1
+          },
+          "disposition": {
+            "const": "CONDITIONAL_CONCEPT_ONLY"
+          },
+          "space_program_state": {
+            "const": "SYMBOLIC_ROOM_PROGRAM_NOT_GEOMETRY"
+          },
+          "floor_area_m2": {
+            "type": "number",
+            "exclusiveMinimum": 0
+          },
+          "private_outdoor_area_m2": {
+            "type": "number",
+            "minimum": 0
+          },
+          "room_program": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "space_id",
+                "function",
+                "target_area_m2",
+                "privacy"
+              ],
+              "properties": {
+                "space_id": {
+                  "type": "string"
+                },
+                "function": {
+                  "type": "string"
+                },
+                "target_area_m2": {
+                  "type": "number",
+                  "exclusiveMinimum": 0
+                },
+                "privacy": {
+                  "enum": [
+                    "OPEN",
+                    "SEMI_PRIVATE",
+                    "PRIVATE",
+                    "SERVICE"
+                  ]
+                }
+              }
+            }
+          },
+          "design_moves": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "string"
+            }
+          },
+          "hard_gate_results": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "gate_id",
+                "state",
+                "reason"
+              ],
+              "properties": {
+                "gate_id": {
+                  "type": "string"
+                },
+                "state": {
+                  "enum": [
+                    "PASS",
+                    "FAIL",
+                    "UNKNOWN",
+                    "NOT_APPLICABLE"
+                  ]
+                },
+                "reason": {
+                  "type": "string"
+                },
+                "evidence_ref": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                }
+              }
+            }
+          },
+          "cost_state": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "state",
+              "currency",
+              "low_estimate",
+              "high_estimate",
+              "rate_evidence_ref"
+            ],
+            "properties": {
+              "state": {
+                "enum": [
+                  "NOT_ESTIMATED",
+                  "SCREENING_RANGE",
+                  "QUOTED",
+                  "INDEPENDENTLY_REVIEWED"
+                ]
+              },
+              "currency": {
+                "type": "string",
+                "pattern": "^[A-Z]{3}$"
+              },
+              "low_estimate": {
+                "type": [
+                  "number",
+                  "null"
+                ],
+                "minimum": 0
+              },
+              "high_estimate": {
+                "type": [
+                  "number",
+                  "null"
+                ],
+                "minimum": 0
+              },
+              "rate_evidence_ref": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            }
+          },
+          "thermal_state": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "state",
+              "baseline",
+              "notes"
+            ],
+            "properties": {
+              "state": {
+                "enum": [
+                  "NOT_SIMULATED",
+                  "SCREENING",
+                  "SPECIALIST_MODELLED",
+                  "FIELD_VALIDATED"
+                ]
+              },
+              "baseline": {
+                "const": "NO_WATER_PASSIVE_BASELINE_REQUIRED"
+              },
+              "notes": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "future_change_state": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "state",
+              "candidate_change",
+              "required_rechecks"
+            ],
+            "properties": {
+              "state": {
+                "enum": [
+                  "NOT_CHECKED",
+                  "RESERVED_SPACE_ONLY",
+                  "ENGINEERED_INTERFACE",
+                  "PROFESSIONALLY_REVIEWED"
+                ]
+              },
+              "candidate_change": {
+                "type": "string"
+              },
+              "required_rechecks": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "tradeoffs": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "blocking_unknowns": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "comparison_policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "ranking_state",
+        "scalar_score",
+        "resident_choice_required"
+      ],
+      "properties": {
+        "ranking_state": {
+          "const": "UNRANKED_PARETO_CANDIDATES"
+        },
+        "scalar_score": {
+          "type": "null"
+        },
+        "resident_choice_required": {
+          "const": true
+        }
+      }
+    },
+    "claim_ceiling": {
+      "type": "string",
+      "minLength": 1
+    }
+  }
+}
