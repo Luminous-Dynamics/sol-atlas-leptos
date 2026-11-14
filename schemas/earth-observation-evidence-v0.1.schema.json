@@ -115,6 +115,7 @@
       "required": [
         "observation_id",
         "asset_id",
+        "source_id",
         "source_asset_receipt_sha256",
         "processing_receipt_sha256",
         "rights",
@@ -169,6 +170,10 @@
             "out_of_domain",
             "conflicted"
           ]
+        },
+        "source_id": {
+          "$ref": "#/$defs/identifier",
+          "description": "Canonical source registry identity; must match the source identity bound by the rights decision receipt."
         }
       }
     },
