@@ -36,6 +36,10 @@ fn number_at(value: &Value, key: &str) -> Option<f64> {
     value.get(key).and_then(Value::as_f64)
 }
 
+fn integer_at(value: &Value, key: &str) -> Option<i64> {
+    value.get(key).and_then(Value::as_i64)
+}
+
 fn non_null_ref(value: &Value, key: &str) -> bool {
     value.get(key).is_some_and(|reference| {
         !reference.is_null()
