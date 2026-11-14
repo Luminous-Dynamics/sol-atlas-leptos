@@ -928,9 +928,34 @@ mod tests {
             ObservationQuality::QualifiedUsable,
         ).is_err());
 
+        let wrong_source_rights = RightsReceiptRef::new(
+            "fixture-subject",
+            "internal-evaluation",
+            "different-source",
+            "fixture:obs-a",
+            digest(b'a'),
+        ).unwrap();
+        assert!(ObservationRecord::new(
+            "obs-a",
+            AssetId::new("fixture:obs-a").unwrap(),
+            "fixture-source",
+            digest(b'b'),
+            digest(b'c'),
+            wrong_source_rights,
+            "support-a",
+            ObservationTime::new(
+                ObservationTimeKind::Instant,
+                Some("2024-01-01".into()),
+                None
+            ).unwrap(),
+            ObservationModality::Optical,
+            ObservationQuality::QualifiedUsable,
+        ).is_err());
+
         let mismatched_scope = ObservationRecord::new(
             "obs-b",
             AssetId::new("fixture:obs-b").unwrap(),
+            "fixture-source",
             digest(b'b'),
             digest(b'c'),
             RightsReceiptRef::new(
@@ -961,7 +986,7 @@ mod tests {
     #[test]
     fn mismatched_support_and_missing_receipt_digests_fail() {
         assert!(ObservationRecord::new(
-            "obs-b", AssetId::new("fixture:obs-b").unwrap(), "not-a-digest", digest(b'c'),
+            "obs-b", AssetId::new("fixture:obs-b").unwrap(), "fixture-source", "not-a-digest", digest(b'c'),
             rights("fixture:obs-b"), "support-a",
             ObservationTime::new(ObservationTimeKind::Instant, Some("2024-01-01".into()), None).unwrap(),
             ObservationModality::Optical, ObservationQuality::QualifiedUsable
