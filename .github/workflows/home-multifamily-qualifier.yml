@@ -1,4 +1,4 @@
-name: Home multi-family synthetic qualifiers
+name: Home multi-family synthetic qualifiers and stress manifest
 
 on:
   pull_request:
