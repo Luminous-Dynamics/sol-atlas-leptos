@@ -37,7 +37,7 @@
       "const": "NO_REAL_DEMAND_OR_ROUTE_DATA"
     },
     "allocation_policy": {
-      "const": "ACCESSIBLE_FIRST_THEN_GENERAL_NO_CROSS_CLASS_SUBSTITUTION"
+      "const": "ACCESSIBLE_FIRST_THEN_GENERAL_REMAINDER_OF_SHARED_SITE_CAPACITY"
     },
     "water_l_per_person": {
       "type": "number",
@@ -48,7 +48,7 @@
       "exclusiveMinimum": 0
     },
     "oracle_revision": {
-      "const": "DINIC_BIPARTITE_MAX_FLOW_V0_1"
+      "const": "EDMONDS_KARP_BIPARTITE_MAX_FLOW_V0_1"
     },
     "demand_areas": {
       "type": "array",
@@ -124,6 +124,10 @@
                 }
               }
             }
+          },
+          "maximum_route_travel_time_s": {
+            "type": "number",
+            "exclusiveMinimum": 0
           }
         }
       },
