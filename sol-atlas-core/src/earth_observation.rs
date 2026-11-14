@@ -1393,6 +1393,16 @@ mod tests {
         let admitted_reference = EvidenceBundle::new(vec![obs_a.clone(), obs_b.clone()], vec![claim_with_bridge.clone()]);
         assert!(admitted_reference.is_ok());
 
+        // Reusing the same observation IDs after platform/sensor/profile metadata
+        // changes must invalidate the stale bridge.
+        let mut altered_observation = obs_b.clone();
+        altered_observation.sensor_id = "different-sensor".into();
+        let stale_bridge = EvidenceBundle::new(
+            vec![obs_a.clone(), altered_observation],
+            vec![claim_with_bridge.clone()],
+        );
+        assert!(stale_bridge.unwrap_err().contains("measurement-system signatures"));
+
         let mut wrong_observation_set = claim_with_bridge.clone();
         wrong_observation_set.cross_system_comparability_receipt = Some(
             CrossSystemComparabilityReceiptRef::new(
@@ -1844,6 +1854,11 @@ mod tests {
         assert_eq!(receipt.support_id(), "support-jukskei-synthetic");
         assert_eq!(receipt.target_class_id(), "vegetation-loss");
         assert_eq!(receipt.ontology_version(), "fixture-ontology-v1");
+        assert_eq!(receipt.system_signatures().len(), 2);
+        assert_eq!(
+            receipt.system_signatures()[1].platform_id(),
+            "sentinel-2b"
+        );
         assert_eq!(
             bundle.observations()[1].system_signature().platform_id(),
             "sentinel-2b"
