@@ -839,6 +839,21 @@ mod tests {
     }
 
     #[test]
+    fn no_change_requires_target_sensor_detection_qualification_receipt() {
+        assert!(ChangeClaim::new(
+            "claim", "class", "ontology-v1", "support-a",
+            TimeWindow::new("2024-01-01", "2025-01-01").unwrap(),
+            ChangeDisposition::NoChangeWithinEnvelope, None,
+            vec!["obs-a".into(), "obs-b".into()],
+            vec!["obs-a".into(), "obs-b".into()], vec![],
+            CoverageState::CompleteQualified,
+            Some(digest(b'd')),
+            None,
+            Some(DetectionLimit::new("min-change", 0.05, "fraction").unwrap())
+        ).is_err());
+    }
+
+    #[test]
     fn non_usable_eo_quality_cannot_be_no_change() {
         for quality in [
             ObservationQuality::CloudContaminated,
