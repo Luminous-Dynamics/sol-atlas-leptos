@@ -47,6 +47,11 @@ pub struct StacSensorIdentity {
     origin: StacSensorIdentityOrigin,
 }
 
+impl StacSensorIdentity {
+    pub fn value(&self) -> Option<&str> { self.value.as_deref() }
+    pub fn origin(&self) -> StacSensorIdentityOrigin { self.origin }
+}
+
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct StacObservationIdentity {
     pub platform_id: String,
@@ -1027,6 +1032,39 @@ mod tests {
         );
         assert!(!b04.extension_fields().contains_key("sar:polarizations"));
         assert!(result.raw_item_json().contains("vendor:opaque_extension"));
+    }
+
+    #[test]
+    fn frozen_sentinel_source_profile_fixture_preserves_namespaced_metadata() {
+        let fixture = include_str!("../tests/fixtures/stac/sentinel-eo-source-profile-item.json");
+        let result = import_item_json(fixture).unwrap();
+        let profile = result.source_profile();
+        assert_eq!(profile.collection_id(), Some("sentinel-2-l2a"));
+        assert_eq!(profile.platform(), Some("sentinel-2a"));
+        assert_eq!(profile.constellation(), Some("sentinel-2"));
+        assert_eq!(profile.instruments(), &["MSI".to_string()]);
+        assert_eq!(
+            profile.sensor_identity().origin(),
+            StacSensorIdentityOrigin::DerivedFromPlatformAndInstrument
+        );
+        assert_eq!(
+            profile.sensor_identity().value(),
+            Some("derived:c2VudGluZWwtMmE:TVNJ")
+        );
+        assert!(profile.processing_fields().contains_key("s2:processing_baseline"));
+        assert!(result.raw_item_json().contains("vendor:unmodeled_field"));
+        assert_eq!(result.asset_profiles().len(), 2);
+        let b04 = result.asset_profiles().iter().find(|asset| asset.asset_key() == "B04").unwrap();
+        let vh = result.asset_profiles().iter().find(|asset| asset.asset_key() == "VH").unwrap();
+        assert!(b04.extension_fields().contains_key("eo:bands"));
+        assert!(!b04.extension_fields().contains_key("sar:polarizations"));
+        assert!(vh.extension_fields().contains_key("sar:polarizations"));
+        assert!(!vh.extension_fields().contains_key("eo:bands"));
+        let identity = profile.observation_identity().unwrap();
+        assert_eq!(
+            identity.sensor_identity_origin,
+            SensorIdentityOrigin::DerivedFromPlatformAndInstrument
+        );
     }
 
     #[test]
