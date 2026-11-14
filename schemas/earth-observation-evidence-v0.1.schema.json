@@ -245,7 +245,8 @@
         "coverage_receipt_sha256",
         "detection_limit",
         "detection_qualification_receipt_sha256",
-        "detection_qualification"
+        "detection_qualification",
+        "cross_system_comparability_receipt_sha256"
       ],
       "properties": {
         "claim_id": {
@@ -349,6 +350,17 @@
               "type": "null"
             }
           ]
+        },
+        "cross_system_comparability_receipt_sha256": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/sha256"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Required by Rust cross-record validation when the referenced observations have multiple source/platform/sensor/collection/processing signatures."
         }
       },
       "allOf": [
