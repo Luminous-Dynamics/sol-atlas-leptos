@@ -595,7 +595,7 @@
           "description": "Exact distinct measurement-system signatures for all observation_ids in the claim."
         }
       },
-      "description": "Structural reference to external comparability qualification. Rust rechecks exact observation-set and support/class/ontology binding; an authoritative verifier must authenticate the receipt contents."
+      "description": "Structural reference to external comparability qualification. Rust rechecks the exact observation-ID set, current measurement-system signatures, and support/class/ontology binding; an authoritative verifier must authenticate the receipt contents and scientific qualification."
     },
     "observation_system_signature": {
       "type": "object",
