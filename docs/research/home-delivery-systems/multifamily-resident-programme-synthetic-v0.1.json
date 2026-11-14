@@ -114,6 +114,24 @@
             "preferred_area_mm2": null
           },
           "equipment_refs": []
+        },
+        {
+          "activity_id": "U-001-HYGIENE-ACT-01",
+          "statement": "personal hygiene and household washing",
+          "frequency": "daily",
+          "concurrency_state": "not_supplied",
+          "concurrent_people": null,
+          "dedicated_space_required": true,
+          "privacy_requirement": "private",
+          "space_relationship_tags": [],
+          "spatial_limits": {
+            "state": "not_supplied",
+            "minimum_width_mm": null,
+            "preferred_width_mm": null,
+            "minimum_area_mm2": null,
+            "preferred_area_mm2": null
+          },
+          "equipment_refs": []
         }
       ],
       "relationships": [
@@ -319,6 +337,24 @@
           "concurrent_people": null,
           "dedicated_space_required": false,
           "privacy_requirement": "service",
+          "space_relationship_tags": [],
+          "spatial_limits": {
+            "state": "not_supplied",
+            "minimum_width_mm": null,
+            "preferred_width_mm": null,
+            "minimum_area_mm2": null,
+            "preferred_area_mm2": null
+          },
+          "equipment_refs": []
+        },
+        {
+          "activity_id": "U-002-HYGIENE-ACT-01",
+          "statement": "personal hygiene and household washing",
+          "frequency": "daily",
+          "concurrency_state": "not_supplied",
+          "concurrent_people": null,
+          "dedicated_space_required": true,
+          "privacy_requirement": "private",
           "space_relationship_tags": [],
           "spatial_limits": {
             "state": "not_supplied",
@@ -551,6 +587,24 @@
             "preferred_area_mm2": null
           },
           "equipment_refs": []
+        },
+        {
+          "activity_id": "U-003-HYGIENE-ACT-01",
+          "statement": "personal hygiene and household washing",
+          "frequency": "daily",
+          "concurrency_state": "not_supplied",
+          "concurrent_people": null,
+          "dedicated_space_required": true,
+          "privacy_requirement": "private",
+          "space_relationship_tags": [],
+          "spatial_limits": {
+            "state": "not_supplied",
+            "minimum_width_mm": null,
+            "preferred_width_mm": null,
+            "minimum_area_mm2": null,
+            "preferred_area_mm2": null
+          },
+          "equipment_refs": []
         }
       ],
       "relationships": [
@@ -749,6 +803,24 @@
           "concurrent_people": null,
           "dedicated_space_required": false,
           "privacy_requirement": "semi_private",
+          "space_relationship_tags": [],
+          "spatial_limits": {
+            "state": "not_supplied",
+            "minimum_width_mm": null,
+            "preferred_width_mm": null,
+            "minimum_area_mm2": null,
+            "preferred_area_mm2": null
+          },
+          "equipment_refs": []
+        },
+        {
+          "activity_id": "U-004-HYGIENE-ACT-01",
+          "statement": "personal hygiene and household washing",
+          "frequency": "daily",
+          "concurrency_state": "not_supplied",
+          "concurrent_people": null,
+          "dedicated_space_required": true,
+          "privacy_requirement": "private",
           "space_relationship_tags": [],
           "spatial_limits": {
             "state": "not_supplied",
