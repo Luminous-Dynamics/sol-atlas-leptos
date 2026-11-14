@@ -1,0 +1,222 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/blob/research/stac-eo-profile-v0-1/schemas/stac-eo-source-profile-v0.1.schema.json",
+  "title": "Sol-Atlas STAC Earth-observation source profile v0.1",
+  "description": "Loss-aware typed projection of source-native STAC platform, instrument, collection and processing metadata. The original STAC Item JSON remains attached; this profile does not establish source authenticity, rights or scientific truth.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "profile_version",
+    "collection_id",
+    "platform",
+    "constellation",
+    "instruments",
+    "provider_sensor_id",
+    "sensor_identity",
+    "processing_fields"
+  ],
+  "properties": {
+    "profile_version": {
+      "const": 1
+    },
+    "collection_id": {
+      "$ref": "#/$defs/nullableText"
+    },
+    "platform": {
+      "$ref": "#/$defs/nullableText"
+    },
+    "constellation": {
+      "$ref": "#/$defs/nullableText"
+    },
+    "instruments": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/nonemptyText"
+      },
+      "uniqueItems": true
+    },
+    "provider_sensor_id": {
+      "$ref": "#/$defs/nullableText"
+    },
+    "sensor_identity": {
+      "$ref": "#/$defs/sensor_identity"
+    },
+    "processing_fields": {
+      "type": "object",
+      "description": "Source-namespaced, recognized processing properties. Values retain original JSON types and names.",
+      "additionalProperties": true
+    }
+  },
+  "$defs": {
+    "nonemptyText": {
+      "type": "string",
+      "minLength": 1
+    },
+    "nullableText": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/nonemptyText"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "sensor_identity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "value",
+        "origin"
+      ],
+      "properties": {
+        "value": {
+          "$ref": "#/$defs/nullableText"
+        },
+        "origin": {
+          "enum": [
+            "provider_declared",
+            "derived_from_platform_and_instrument",
+            "unknown"
+          ]
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "origin": {
+                "const": "unknown"
+              }
+            },
+            "required": [
+              "origin"
+            ]
+          },
+          "then": {
+            "properties": {
+              "value": {
+                "type": "null"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "origin": {
+                "enum": [
+                  "provider_declared",
+                  "derived_from_platform_and_instrument"
+                ]
+              }
+            },
+            "required": [
+              "origin"
+            ]
+          },
+          "then": {
+            "properties": {
+              "value": {
+                "$ref": "#/$defs/nonemptyText"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "origin": {
+                "const": "derived_from_platform_and_instrument"
+              }
+            },
+            "required": [
+              "origin"
+            ]
+          },
+          "then": {
+            "properties": {
+              "value": {
+                "type": "string",
+                "pattern": "^derived:[A-Za-z0-9_-]+:[A-Za-z0-9_-]+$"
+              }
+            }
+          }
+        }
+      ]
+    },
+    "asset_profile": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "asset_key",
+        "extension_fields"
+      ],
+      "properties": {
+        "asset_key": {
+          "$ref": "#/$defs/nonemptyText"
+        },
+        "extension_fields": {
+          "type": "object",
+          "description": "Asset-scoped STAC extension fields such as eo:bands, raster:bands and sar:polarizations.",
+          "additionalProperties": true
+        }
+      }
+    },
+    "observation_identity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "platform_id",
+        "sensor_id",
+        "sensor_identity_origin",
+        "instrument_id",
+        "collection_id",
+        "processing_baseline"
+      ],
+      "properties": {
+        "platform_id": {
+          "$ref": "#/$defs/nonemptyText"
+        },
+        "sensor_id": {
+          "$ref": "#/$defs/nonemptyText"
+        },
+        "sensor_identity_origin": {
+          "enum": [
+            "provider_declared",
+            "derived_from_platform_and_instrument"
+          ]
+        },
+        "instrument_id": {
+          "$ref": "#/$defs/nullableText"
+        },
+        "collection_id": {
+          "$ref": "#/$defs/nullableText"
+        },
+        "processing_baseline": {
+          "$ref": "#/$defs/nullableText"
+        }
+      }
+    }
+  },
+  "examples": [
+    {
+      "profile_version": 1,
+      "collection_id": "sentinel-2-l2a",
+      "platform": "sentinel-2a",
+      "constellation": "sentinel-2",
+      "instruments": [
+        "MSI"
+      ],
+      "provider_sensor_id": null,
+      "sensor_identity": {
+        "value": "derived:c2VudGluZWwtMmE:TVNJ",
+        "origin": "derived_from_platform_and_instrument"
+      },
+      "processing_fields": {
+        "s2:processing_baseline": "04.00",
+        "processing:version": "Sen2Cor-2.11"
+      }
+    }
+  ]
+}
