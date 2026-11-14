@@ -1373,6 +1373,23 @@ mod tests {
     }
 
     #[test]
+    fn comparability_receipt_rejects_duplicate_system_signatures() {
+        let signature = observation(
+            "obs-a",
+            "2024-01-01",
+            ObservationQuality::QualifiedUsable,
+        ).system_signature();
+        assert!(CrossSystemComparabilityReceiptRef::new(
+            digest(b'r'),
+            vec!["obs-a".into(), "obs-b".into()],
+            vec![signature.clone(), signature],
+            "support-a",
+            "vegetation-loss",
+            "ontology-v1",
+        ).is_err());
+    }
+
+    #[test]
     fn cross_processing_generation_claim_requires_comparability_receipt() {
         let obs_a = observation("obs-a", "2024-01-01", ObservationQuality::QualifiedUsable);
         let mut obs_b = observation("obs-b", "2025-01-01", ObservationQuality::QualifiedUsable);
