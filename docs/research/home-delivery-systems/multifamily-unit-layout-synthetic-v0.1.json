@@ -176,6 +176,7 @@
       ],
       "relationship_mappings": [
         {
+          "relationship_id": "U-001-QUIET-WORK-REL-01",
           "from_activity_id": "U-001-QUIET-WORK-ACT-03",
           "to_activity_id": "U-001-QUIET-WORK-ACT-02",
           "relationship": "acoustically_separate",
@@ -436,6 +437,7 @@
       ],
       "relationship_mappings": [
         {
+          "relationship_id": "U-002-SHARED-MAKING-REL-01",
           "from_activity_id": "U-002-SHARED-MAKING-ACT-02",
           "to_activity_id": "U-002-SHARED-MAKING-ACT-03",
           "relationship": "acoustically_separate",
@@ -443,6 +445,7 @@
           "to_target_id": "U-002-ROOM-FOOD"
         },
         {
+          "relationship_id": "U-002-SHARED-MAKING-REL-02",
           "from_activity_id": "U-002-SHARED-MAKING-ACT-02",
           "to_activity_id": "U-002-SHARED-MAKING-ACT-05",
           "relationship": "near",
@@ -702,6 +705,7 @@
       ],
       "relationship_mappings": [
         {
+          "relationship_id": "U-003-FLEXIBLE-CARE-REL-01",
           "from_activity_id": "U-003-FLEXIBLE-CARE-ACT-01",
           "to_activity_id": "U-003-FLEXIBLE-CARE-ACT-02",
           "relationship": "separate",
@@ -709,6 +713,7 @@
           "to_target_id": "U-003-ROOM-WORK"
         },
         {
+          "relationship_id": "U-003-FLEXIBLE-CARE-REL-02",
           "from_activity_id": "U-003-FLEXIBLE-CARE-ACT-03",
           "to_activity_id": "U-003-FLEXIBLE-CARE-ACT-05",
           "relationship": "near",
@@ -969,14 +974,16 @@
       ],
       "relationship_mappings": [
         {
+          "relationship_id": "U-004-REST-AND-ACCESS-REL-01",
           "from_activity_id": "U-004-REST-AND-ACCESS-ACT-01",
-          "to_activity_id": "U-004-REST-AND-ACCESS-ACT-01",
+          "to_activity_id": "U-004-REST-AND-ACCESS-ACT-02",
           "relationship": "near",
           "from_target_id": "U-004-ROOM-BED",
           "to_target_id": "U-004-ROOM-BED"
         },
         {
-          "from_activity_id": "U-004-REST-AND-ACCESS-ACT-01",
+          "relationship_id": "U-004-REST-AND-ACCESS-REL-02",
+          "from_activity_id": "U-004-REST-AND-ACCESS-ACT-02",
           "to_activity_id": "U-004-REST-AND-ACCESS-ACT-04",
           "relationship": "acoustically_separate",
           "from_target_id": "U-004-ROOM-BED",
