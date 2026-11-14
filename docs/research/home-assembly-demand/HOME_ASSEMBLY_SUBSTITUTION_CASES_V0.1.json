@@ -1,0 +1,1087 @@
+{
+  "schema_version": "0.1.0",
+  "study_id": "HOME-ASSEMBLY-SUBSTITUTION-001",
+  "maturity": "SYNTHETIC_KNOWN_ANSWER",
+  "execution_status": "NO_PRODUCT_EQUIVALENCE_DECISION",
+  "algorithm": "DEPENDENCY_INTERSECTION_INVALIDATION_V0.1",
+  "cases": [
+    {
+      "case_id": "SUB-001-NOOP",
+      "assembly_id": "SYNTH-ASSEMBLY-SUB-001-NOOP",
+      "original_product_ref": "SYNTH-PRODUCT-A",
+      "replacement_product_ref": "SYNTH-PRODUCT-A",
+      "dependency_catalog": [
+        "PRODUCT_IDENTITY",
+        "LAYOUT",
+        "ACCESSIBILITY"
+      ],
+      "changes": [],
+      "claims": [
+        {
+          "claim_id": "CLAIM-PRODUCT-IDENTITY",
+          "dependency_ids": [
+            "PRODUCT_IDENTITY"
+          ],
+          "state_before": "QUALIFIED_IN_ORIGINAL_SCOPE"
+        },
+        {
+          "claim_id": "CLAIM-LAYOUT",
+          "dependency_ids": [
+            "LAYOUT"
+          ],
+          "state_before": "QUALIFIED_IN_ORIGINAL_SCOPE"
+        },
+        {
+          "claim_id": "CLAIM-ACCESS",
+          "dependency_ids": [
+            "ACCESSIBILITY"
+          ],
+          "state_before": "QUALIFIED_IN_ORIGINAL_SCOPE"
+        }
+      ],
+      "expected_invalidated_claim_ids": [],
+      "expected_preserved_claim_ids": [
+        "CLAIM-PRODUCT-IDENTITY",
+        "CLAIM-LAYOUT",
+        "CLAIM-ACCESS"
+      ],
+      "expected_disposition": "NO_DEPENDENCY_CHANGE",
+      "claim_ceiling": "Synthetic dependency propagation only; no product equivalence or physical performance decision."
+    },
+    {
+      "case_id": "SUB-002-SKU-CHANGE",
+      "assembly_id": "SYNTH-ASSEMBLY-SUB-002-SKU-CHANGE",
+      "original_product_ref": "SYNTH-SKU-A",
+      "replacement_product_ref": "SYNTH-SKU-B",
+      "dependency_catalog": [
+        "PRODUCT_IDENTITY",
+        "FIRE_CERTIFICATE",
+        "THERMAL_RESULT",
+        "ROOM_LAYOUT"
+      ],
+      "changes": [
+        {
+          "dependency_id": "PRODUCT_IDENTITY",
+          "before_state": "SYNTH-SKU-A",
+          "after_state": "SYNTH-SKU-B",
+          "treatment": "CHANGED"
+        }
+      ],
+      "claims": [
+        {
+          "claim_id": "CLAIM-SKU-SPEC",
+          "dependency_ids": [
+            "PRODUCT_IDENTITY"
+          ],
+          "state_before": "QUALIFIED_IN_ORIGINAL_SCOPE"
+        },
+        {
+          "claim_id": "CLAIM-FIRE-TEST",
+          "dependency_ids": [
+            "PRODUCT_IDENTITY",
+            "FIRE_CERTIFICATE"
+          ],
+          "state_before": "QUALIFIED_IN_ORIGINAL_SCOPE"
+        },
+        {
+          "claim_id": "CLAIM-THERMAL-TEST",
+          "dependency_ids": [
+            "PRODUCT_IDENTITY",
+            "THERMAL_RESULT"
+          ],
+          "state_before": "QUALIFIED_IN_ORIGINAL_SCOPE"
+        },
+        {
+          "claim_id": "CLAIM-ROOM-LAYOUT",
+          "dependency_ids": [
+            "ROOM_LAYOUT"
+          ],
+          "state_before": "QUALIFIED_IN_ORIGINAL_SCOPE"
+        }
+      ],
+      "expected_invalidated_claim_ids": [
+        "CLAIM-FIRE-TEST",
+        "CLAIM-SKU-SPEC",
+        "CLAIM-THERMAL-TEST"
+      ],
+      "expected_preserved_claim_ids": [
+        "CLAIM-ROOM-LAYOUT"
+      ],
+      "expected_disposition": "REQUALIFICATION_REQUIRED",
+      "claim_ceiling": "Synthetic dependency propagation only; no product equivalence or physical performance decision."
+    },
+    {
+      "case_id": "SUB-003-FIRE-CERT-REV",
+      "assembly_id": "SYNTH-ASSEMBLY-SUB-003-FIRE-CERT-REV",
+      "original_product_ref": "SYNTH-PRODUCT-A",
+      "replacement_product_ref": "SYNTH-PRODUCT-A",
+      "dependency_catalog": [
+        "FIRE_CERTIFICATE",
+        "THERMAL_RESULT",
+        "ACOUSTIC_RESULT"
+      ],
+      "changes": [
+        {
+          "dependency_id": "FIRE_CERTIFICATE",
+          "before_state": "CERT-R1",
+          "after_state": "CERT-R2",
+          "treatment": "CHANGED"
+        }
+      ],
+      "claims": [
+        {
+          "claim_id": "CLAIM-FIRE-RATING",
+          "dependency_ids": [
+            "FIRE_CERTIFICATE"
+          ],
+          "state_before": "QUALIFIED_IN_ORIGINAL_SCOPE"
+        },
+        {
+          "claim_id": "CLAIM-COMPARTMENTATION",
+          "dependency_ids": [
+            "FIRE_CERTIFICATE"
+          ],
+          "state_before": "QUALIFIED_IN_ORIGINAL_SCOPE"
+        },
+        {
+          "claim_id": "CLAIM-THERMAL",
+          "dependency_ids": [
+            "THERMAL_RESULT"
+          ],
+          "state_before": "QUALIFIED_IN_ORIGINAL_SCOPE"
+        },
+        {
+          "claim_id": "CLAIM-ACOUSTIC",
+          "dependency_ids": [
+            "ACOUSTIC_RESULT"
+          ],
+          "state_before": "QUALIFIED_IN_ORIGINAL_SCOPE"
+        }
+      ],
+      "expected_invalidated_claim_ids": [
+        "CLAIM-COMPARTMENTATION",
+        "CLAIM-FIRE-RATING"
+      ],
+      "expected_preserved_claim_ids": [
+        "CLAIM-ACOUSTIC",
+        "CLAIM-THERMAL"
+      ],
+      "expected_disposition": "REQUALIFICATION_REQUIRED",
+      "claim_ceiling": "Synthetic dependency propagation only; no product equivalence or physical performance decision."
+    },
+    {
+      "case_id": "SUB-004-INTERFACE-TOLERANCE",
+      "assembly_id": "SYNTH-ASSEMBLY-SUB-004-INTERFACE-TOLERANCE",
+      "original_product_ref": "SYNTH-PANEL-A",
+      "replacement_product_ref": "SYNTH-PANEL-A",
+      "dependency_catalog": [
+        "INTERFACE_TOLERANCE",
+        "FIXING_PATTERN",
+        "WEATHER_SEAL",
+        "THERMAL_RESULT"
+      ],
+      "changes": [
+        {
+          "dependency_id": "INTERFACE_TOLERANCE",
+          "before_state": "TOL-01",
+          "after_state": "TOL-02",
+          "treatment": "CHANGED"
+        },
+        {
+          "dependency_id": "FIXING_PATTERN",
+          "before_state": "PATTERN-A",
+          "after_state": "PATTERN-B",
+          "treatment": "CHANGED"
+        }
+      ],
+      "claims": [
+        {
+          "claim_id": "CLAIM-INTERFACE-FIT",
+          "dependency_ids": [
+            "INTERFACE_TOLERANCE"
+          ],
+          "state_before": "QUALIFIED_IN_ORIGINAL_SCOPE"
+        },
+        {
+          "claim_id": "CLAIM-FIXING-CAPACITY",
+          "dependency_ids": [
+            "FIXING_PATTERN"
+          ],
+          "state_before": "QUALIFIED_IN_ORIGINAL_SCOPE"
+        },
+        {
+          "claim_id": "CLAIM-WEATHER-SEAL",
+          "dependency_ids": [
+            "INTERFACE_TOLERANCE",
+            "WEATHER_SEAL"
+          ],
+          "state_before": "QUALIFIED_IN_ORIGINAL_SCOPE"
+        },
+        {
+          "claim_id": "CLAIM-THERMAL-TEST",
+          "dependency_ids": [
+            "THERMAL_RESULT"
+          ],
+          "state_before": "QUALIFIED_IN_ORIGINAL_SCOPE"
+        }
+      ],
+      "expected_invalidated_claim_ids": [
+        "CLAIM-FIXING-CAPACITY",
+        "CLAIM-INTERFACE-FIT",
+        "CLAIM-WEATHER-SEAL"
+      ],
+      "expected_preserved_claim_ids": [
+        "CLAIM-THERMAL-TEST"
+      ],
+      "expected_disposition": "REQUALIFICATION_REQUIRED",
+      "claim_ceiling": "Synthetic dependency propagation only; no product equivalence or physical performance decision."
+    },
+    {
+      "case_id": "SUB-005-APPROVAL-SCOPE",
+      "assembly_id": "SYNTH-ASSEMBLY-SUB-005-APPROVAL-SCOPE",
+      "original_product_ref": "SYNTH-PRODUCT-A",
+      "replacement_product_ref": "SYNTH-PRODUCT-A",
+      "dependency_catalog": [
+        "APPROVAL_SCOPE",
+        "FIRE_CERTIFICATE",
+        "MATERIAL_COMPOSITION"
+      ],
+      "changes": [
+        {
+          "dependency_id": "APPROVAL_SCOPE",
+          "before_state": "PRIVATE_LOW_RISE",
+          "after_state": "PUBLIC_MULTI_STOREY",
+          "treatment": "CHANGED"
+        }
+      ],
+      "claims": [
+        {
+          "claim_id": "CLAIM-PROJECT-APPROVAL",
+          "dependency_ids": [
+            "APPROVAL_SCOPE"
+          ],
+          "state_before": "QUALIFIED_IN_ORIGINAL_SCOPE"
+        },
+        {
+          "claim_id": "CLAIM-APPLICATION-SCOPE",
+          "dependency_ids": [
+            "APPROVAL_SCOPE",
+            "FIRE_CERTIFICATE"
+          ],
+          "state_before": "QUALIFIED_IN_ORIGINAL_SCOPE"
+        },
+        {
+          "claim_id": "CLAIM-MATERIAL-IDENTITY",
+          "dependency_ids": [
+            "MATERIAL_COMPOSITION"
+          ],
+          "state_before": "QUALIFIED_IN_ORIGINAL_SCOPE"
+        }
+      ],
+      "expected_invalidated_claim_ids": [
+        "CLAIM-APPLICATION-SCOPE",
+        "CLAIM-PROJECT-APPROVAL"
+      ],
+      "expected_preserved_claim_ids": [
+        "CLAIM-MATERIAL-IDENTITY"
+      ],
+      "expected_disposition": "REQUALIFICATION_REQUIRED",
+      "claim_ceiling": "Synthetic dependency propagation only; no product equivalence or physical performance decision."
+    },
+    {
+      "case_id": "SUB-006-THERMAL-RESULT",
+      "assembly_id": "SYNTH-ASSEMBLY-SUB-006-THERMAL-RESULT",
+      "original_product_ref": "SYNTH-PRODUCT-A",
+      "replacement_product_ref": "SYNTH-PRODUCT-A",
+      "dependency_catalog": [
+        "THERMAL_RESULT",
+        "MOISTURE_RESULT",
+        "GEOMETRY_REVISION"
+      ],
+      "changes": [
+        {
+          "dependency_id": "THERMAL_RESULT",
+          "before_state": "R_VALUE_CLASS_1",
+          "after_state": "R_VALUE_CLASS_2",
+          "treatment": "CHANGED"
+        }
+      ],
+      "claims": [
+        {
+          "claim_id": "CLAIM-THERMAL-COMPLIANCE",
+          "dependency_ids": [
+            "THERMAL_RESULT"
+          ],
+          "state_before": "QUALIFIED_IN_ORIGINAL_SCOPE"
+        },
+        {
+          "claim_id": "CLAIM-ENERGY-MODEL",
+          "dependency_ids": [
+            "THERMAL_RESULT",
+            "GEOMETRY_REVISION"
+          ],
+          "state_before": "QUALIFIED_IN_ORIGINAL_SCOPE"
+        },
+        {
+          "claim_id": "CLAIM-MOISTURE-CONTROL",
+          "dependency_ids": [
+            "MOISTURE_RESULT"
+          ],
+          "state_before": "QUALIFIED_IN_ORIGINAL_SCOPE"
+        }
+      ],
+      "expected_invalidated_claim_ids": [
+        "CLAIM-ENERGY-MODEL",
+        "CLAIM-THERMAL-COMPLIANCE"
+      ],
+      "expected_preserved_claim_ids": [
+        "CLAIM-MOISTURE-CONTROL"
+      ],
+      "expected_disposition": "REQUALIFICATION_REQUIRED",
+      "claim_ceiling": "Synthetic dependency propagation only; no product equivalence or physical performance decision."
+    },
+    {
+      "case_id": "SUB-007-MOISTURE-RESULT",
+      "assembly_id": "SYNTH-ASSEMBLY-SUB-007-MOISTURE-RESULT",
+      "original_product_ref": "SYNTH-PRODUCT-A",
+      "replacement_product_ref": "SYNTH-PRODUCT-A",
+      "dependency_catalog": [
+        "MOISTURE_RESULT",
+        "THERMAL_RESULT",
+        "DURABILITY_RESULT"
+      ],
+      "changes": [
+        {
+          "dependency_id": "MOISTURE_RESULT",
+          "before_state": "VAPOUR_CLASS_A",
+          "after_state": "VAPOUR_CLASS_B",
+          "treatment": "CHANGED"
+        }
+      ],
+      "claims": [
+        {
+          "claim_id": "CLAIM-MOISTURE-RISK",
+          "dependency_ids": [
+            "MOISTURE_RESULT"
+          ],
+          "state_before": "QUALIFIED_IN_ORIGINAL_SCOPE"
+        },
+        {
+          "claim_id": "CLAIM-DURABILITY",
+          "dependency_ids": [
+            "MOISTURE_RESULT",
+            "DURABILITY_RESULT"
+          ],
+          "state_before": "QUALIFIED_IN_ORIGINAL_SCOPE"
+        },
+        {
+          "claim_id": "CLAIM-THERMAL",
+          "dependency_ids": [
+            "THERMAL_RESULT"
+          ],
+          "state_before": "QUALIFIED_IN_ORIGINAL_SCOPE"
+        }
+      ],
+      "expected_invalidated_claim_ids": [
+        "CLAIM-DURABILITY",
+        "CLAIM-MOISTURE-RISK"
+      ],
+      "expected_preserved_claim_ids": [
+        "CLAIM-THERMAL"
+      ],
+      "expected_disposition": "REQUALIFICATION_REQUIRED",
+      "claim_ceiling": "Synthetic dependency propagation only; no product equivalence or physical performance decision."
+    },
+    {
+      "case_id": "SUB-008-ACOUSTIC-RESULT",
+      "assembly_id": "SYNTH-ASSEMBLY-SUB-008-ACOUSTIC-RESULT",
+      "original_product_ref": "SYNTH-DOOR-A",
+      "replacement_product_ref": "SYNTH-DOOR-A",
+      "dependency_catalog": [
+        "ACOUSTIC_RESULT",
+        "DAYLIGHT_RESULT",
+        "ACCESSIBILITY_OPERATION"
+      ],
+      "changes": [
+        {
+          "dependency_id": "ACOUSTIC_RESULT",
+          "before_state": "STC-LOW",
+          "after_state": "STC-HIGH",
+          "treatment": "CHANGED"
+        }
+      ],
+      "claims": [
+        {
+          "claim_id": "CLAIM-ROOM-ACOUSTIC-PRIVACY",
+          "dependency_ids": [
+            "ACOUSTIC_RESULT"
+          ],
+          "state_before": "QUALIFIED_IN_ORIGINAL_SCOPE"
+        },
+        {
+          "claim_id": "CLAIM-ACOUSTIC-SEPARATION",
+          "dependency_ids": [
+            "ACOUSTIC_RESULT"
+          ],
+          "state_before": "QUALIFIED_IN_ORIGINAL_SCOPE"
+        },
+        {
+          "claim_id": "CLAIM-DAYLIGHT",
+          "dependency_ids": [
+            "DAYLIGHT_RESULT"
+          ],
+          "state_before": "QUALIFIED_IN_ORIGINAL_SCOPE"
+        },
+        {
+          "claim_id": "CLAIM-DOOR-ACCESS",
+          "dependency_ids": [
+            "ACCESSIBILITY_OPERATION"
+          ],
+          "state_before": "QUALIFIED_IN_ORIGINAL_SCOPE"
+        }
+      ],
+      "expected_invalidated_claim_ids": [
+        "CLAIM-ACOUSTIC-SEPARATION",
+        "CLAIM-ROOM-ACOUSTIC-PRIVACY"
+      ],
+      "expected_preserved_claim_ids": [
+        "CLAIM-DAYLIGHT",
+        "CLAIM-DOOR-ACCESS"
+      ],
+      "expected_disposition": "REQUALIFICATION_REQUIRED",
+      "claim_ceiling": "Synthetic dependency propagation only; no product equivalence or physical performance decision."
+    },
+    {
+      "case_id": "SUB-009-BATCH-CHANGE",
+      "assembly_id": "SYNTH-ASSEMBLY-SUB-009-BATCH-CHANGE",
+      "original_product_ref": "SYNTH-PRODUCT-A",
+      "replacement_product_ref": "SYNTH-PRODUCT-A",
+      "dependency_catalog": [
+        "PRODUCT_BATCH",
+        "RECEIVING_INSPECTION",
+        "WARRANTY_SCOPE",
+        "PRODUCT_IDENTITY"
+      ],
+      "changes": [
+        {
+          "dependency_id": "PRODUCT_BATCH",
+          "before_state": "BATCH-001",
+          "after_state": "BATCH-002",
+          "treatment": "CHANGED"
+        }
+      ],
+      "claims": [
+        {
+          "claim_id": "CLAIM-LOT-TRACE",
+          "dependency_ids": [
+            "PRODUCT_BATCH"
+          ],
+          "state_before": "QUALIFIED_IN_ORIGINAL_SCOPE"
+        },
+        {
+          "claim_id": "CLAIM-RECEIVING-ACCEPTANCE",
+          "dependency_ids": [
+            "PRODUCT_BATCH",
+            "RECEIVING_INSPECTION"
+          ],
+          "state_before": "QUALIFIED_IN_ORIGINAL_SCOPE"
+        },
+        {
+          "claim_id": "CLAIM-WARRANTY",
+          "dependency_ids": [
+            "PRODUCT_BATCH",
+            "WARRANTY_SCOPE"
+          ],
+          "state_before": "QUALIFIED_IN_ORIGINAL_SCOPE"
+        },
+        {
+          "claim_id": "CLAIM-PRODUCT-DATASHEET",
+          "dependency_ids": [
+            "PRODUCT_IDENTITY"
+          ],
+          "state_before": "QUALIFIED_IN_ORIGINAL_SCOPE"
+        }
+      ],
+      "expected_invalidated_claim_ids": [
+        "CLAIM-LOT-TRACE",
+        "CLAIM-RECEIVING-ACCEPTANCE",
+        "CLAIM-WARRANTY"
+      ],
+      "expected_preserved_claim_ids": [
+        "CLAIM-PRODUCT-DATASHEET"
+      ],
+      "expected_disposition": "REQUALIFICATION_REQUIRED",
+      "claim_ceiling": "Synthetic dependency propagation only; no product equivalence or physical performance decision."
+    },
+    {
+      "case_id": "SUB-010-LOCAL-AVAILABILITY",
+      "assembly_id": "SYNTH-ASSEMBLY-SUB-010-LOCAL-AVAILABILITY",
+      "original_product_ref": "SYNTH-PRODUCT-A",
+      "replacement_product_ref": "SYNTH-PRODUCT-A",
+      "dependency_catalog": [
+        "LOCAL_AVAILABILITY",
+        "LEAD_TIME",
+        "THERMAL_RESULT",
+        "FIRE_CERTIFICATE"
+      ],
+      "changes": [
+        {
+          "dependency_id": "LOCAL_AVAILABILITY",
+          "before_state": "AVAILABLE",
+          "after_state": "UNKNOWN",
+          "treatment": "UNKNOWN"
+        },
+        {
+          "dependency_id": "LEAD_TIME",
+          "before_state": "14_DAYS",
+          "after_state": "UNKNOWN",
+          "treatment": "UNKNOWN"
+        }
+      ],
+      "claims": [
+        {
+          "claim_id": "CLAIM-DELIVERY-SCHEDULE",
+          "dependency_ids": [
+            "LOCAL_AVAILABILITY",
+            "LEAD_TIME"
+          ],
+          "state_before": "QUALIFIED_IN_ORIGINAL_SCOPE"
+        },
+        {
+          "claim_id": "CLAIM-LOCAL-SOURCE",
+          "dependency_ids": [
+            "LOCAL_AVAILABILITY"
+          ],
+          "state_before": "QUALIFIED_IN_ORIGINAL_SCOPE"
+        },
+        {
+          "claim_id": "CLAIM-THERMAL",
+          "dependency_ids": [
+            "THERMAL_RESULT"
+          ],
+          "state_before": "QUALIFIED_IN_ORIGINAL_SCOPE"
+        },
+        {
+          "claim_id": "CLAIM-FIRE",
+          "dependency_ids": [
+            "FIRE_CERTIFICATE"
+          ],
+          "state_before": "QUALIFIED_IN_ORIGINAL_SCOPE"
+        }
+      ],
+      "expected_invalidated_claim_ids": [
+        "CLAIM-DELIVERY-SCHEDULE",
+        "CLAIM-LOCAL-SOURCE"
+      ],
+      "expected_preserved_claim_ids": [
+        "CLAIM-FIRE",
+        "CLAIM-THERMAL"
+      ],
+      "expected_disposition": "REQUALIFICATION_REQUIRED",
+      "claim_ceiling": "Synthetic dependency propagation only; no product equivalence or physical performance decision."
+    },
+    {
+      "case_id": "SUB-011-PRICE-QUOTE",
+      "assembly_id": "SYNTH-ASSEMBLY-SUB-011-PRICE-QUOTE",
+      "original_product_ref": "SYNTH-PRODUCT-A",
+      "replacement_product_ref": "SYNTH-PRODUCT-A",
+      "dependency_catalog": [
+        "PRICE_QUOTE",
+        "TAX_SCOPE",
+        "FIRE_CERTIFICATE",
+        "THERMAL_RESULT"
+      ],
+      "changes": [
+        {
+          "dependency_id": "PRICE_QUOTE",
+          "before_state": "QUOTE-OLD",
+          "after_state": "QUOTE-NEW",
+          "treatment": "CHANGED"
+        },
+        {
+          "dependency_id": "TAX_SCOPE",
+          "before_state": "EX_VAT",
+          "after_state": "INC_VAT",
+          "treatment": "CHANGED"
+        }
+      ],
+      "claims": [
+        {
+          "claim_id": "CLAIM-CAPITAL-COST",
+          "dependency_ids": [
+            "PRICE_QUOTE",
+            "TAX_SCOPE"
+          ],
+          "state_before": "QUALIFIED_IN_ORIGINAL_SCOPE"
+        },
+        {
+          "claim_id": "CLAIM-AFFORDABILITY",
+          "dependency_ids": [
+            "PRICE_QUOTE"
+          ],
+          "state_before": "QUALIFIED_IN_ORIGINAL_SCOPE"
+        },
+        {
+          "claim_id": "CLAIM-FIRE",
+          "dependency_ids": [
+            "FIRE_CERTIFICATE"
+          ],
+          "state_before": "QUALIFIED_IN_ORIGINAL_SCOPE"
+        },
+        {
+          "claim_id": "CLAIM-THERMAL",
+          "dependency_ids": [
+            "THERMAL_RESULT"
+          ],
+          "state_before": "QUALIFIED_IN_ORIGINAL_SCOPE"
+        }
+      ],
+      "expected_invalidated_claim_ids": [
+        "CLAIM-AFFORDABILITY",
+        "CLAIM-CAPITAL-COST"
+      ],
+      "expected_preserved_claim_ids": [
+        "CLAIM-FIRE",
+        "CLAIM-THERMAL"
+      ],
+      "expected_disposition": "REQUALIFICATION_REQUIRED",
+      "claim_ceiling": "Synthetic dependency propagation only; no product equivalence or physical performance decision."
+    },
+    {
+      "case_id": "SUB-012-MANUFACTURING-PROCESS",
+      "assembly_id": "SYNTH-ASSEMBLY-SUB-012-MANUFACTURING-PROCESS",
+      "original_product_ref": "SYNTH-PANEL-A",
+      "replacement_product_ref": "SYNTH-PANEL-A",
+      "dependency_catalog": [
+        "MANUFACTURING_PROCESS",
+        "TOOLING_CAPABILITY",
+        "PRODUCT_IDENTITY",
+        "FIRE_CERTIFICATE"
+      ],
+      "changes": [
+        {
+          "dependency_id": "MANUFACTURING_PROCESS",
+          "before_state": "MANUAL_ASSEMBLY",
+          "after_state": "ROBOT_ASSISTED",
+          "treatment": "CHANGED"
+        }
+      ],
+      "claims": [
+        {
+          "claim_id": "CLAIM-WORKPACKAGE",
+          "dependency_ids": [
+            "MANUFACTURING_PROCESS",
+            "TOOLING_CAPABILITY"
+          ],
+          "state_before": "QUALIFIED_IN_ORIGINAL_SCOPE"
+        },
+        {
+          "claim_id": "CLAIM-TOOL-ELIGIBILITY",
+          "dependency_ids": [
+            "MANUFACTURING_PROCESS",
+            "TOOLING_CAPABILITY"
+          ],
+          "state_before": "QUALIFIED_IN_ORIGINAL_SCOPE"
+        },
+        {
+          "claim_id": "CLAIM-FIRE-CERT",
+          "dependency_ids": [
+            "FIRE_CERTIFICATE"
+          ],
+          "state_before": "QUALIFIED_IN_ORIGINAL_SCOPE"
+        },
+        {
+          "claim_id": "CLAIM-PRODUCT-ID",
+          "dependency_ids": [
+            "PRODUCT_IDENTITY"
+          ],
+          "state_before": "QUALIFIED_IN_ORIGINAL_SCOPE"
+        }
+      ],
+      "expected_invalidated_claim_ids": [
+        "CLAIM-TOOL-ELIGIBILITY",
+        "CLAIM-WORKPACKAGE"
+      ],
+      "expected_preserved_claim_ids": [
+        "CLAIM-FIRE-CERT",
+        "CLAIM-PRODUCT-ID"
+      ],
+      "expected_disposition": "REQUALIFICATION_REQUIRED",
+      "claim_ceiling": "Synthetic dependency propagation only; no product equivalence or physical performance decision."
+    },
+    {
+      "case_id": "SUB-013-REPAIRABILITY",
+      "assembly_id": "SYNTH-ASSEMBLY-SUB-013-REPAIRABILITY",
+      "original_product_ref": "SYNTH-PANEL-A",
+      "replacement_product_ref": "SYNTH-PANEL-A",
+      "dependency_catalog": [
+        "REPAIR_METHOD",
+        "DISASSEMBLY_INTERFACE",
+        "THERMAL_RESULT"
+      ],
+      "changes": [
+        {
+          "dependency_id": "REPAIR_METHOD",
+          "before_state": "REPAIRABLE",
+          "after_state": "NO_DEFINED_REPAIR",
+          "treatment": "CHANGED"
+        }
+      ],
+      "claims": [
+        {
+          "claim_id": "CLAIM-REPAIRABILITY",
+          "dependency_ids": [
+            "REPAIR_METHOD"
+          ],
+          "state_before": "QUALIFIED_IN_ORIGINAL_SCOPE"
+        },
+        {
+          "claim_id": "CLAIM-RECOVERY",
+          "dependency_ids": [
+            "REPAIR_METHOD",
+            "DISASSEMBLY_INTERFACE"
+          ],
+          "state_before": "QUALIFIED_IN_ORIGINAL_SCOPE"
+        },
+        {
+          "claim_id": "CLAIM-THERMAL",
+          "dependency_ids": [
+            "THERMAL_RESULT"
+          ],
+          "state_before": "QUALIFIED_IN_ORIGINAL_SCOPE"
+        }
+      ],
+      "expected_invalidated_claim_ids": [
+        "CLAIM-RECOVERY",
+        "CLAIM-REPAIRABILITY"
+      ],
+      "expected_preserved_claim_ids": [
+        "CLAIM-THERMAL"
+      ],
+      "expected_disposition": "REQUALIFICATION_REQUIRED",
+      "claim_ceiling": "Synthetic dependency propagation only; no product equivalence or physical performance decision."
+    },
+    {
+      "case_id": "SUB-014-MULTI-CHANGE",
+      "assembly_id": "SYNTH-ASSEMBLY-SUB-014-MULTI-CHANGE",
+      "original_product_ref": "SYNTH-SYSTEM-A",
+      "replacement_product_ref": "SYNTH-SYSTEM-B",
+      "dependency_catalog": [
+        "PRODUCT_IDENTITY",
+        "FIRE_CERTIFICATE",
+        "INTERFACE_TOLERANCE",
+        "LOCAL_AVAILABILITY",
+        "ROOM_LAYOUT"
+      ],
+      "changes": [
+        {
+          "dependency_id": "PRODUCT_IDENTITY",
+          "before_state": "SYNTH-SYSTEM-A",
+          "after_state": "SYNTH-SYSTEM-B",
+          "treatment": "CHANGED"
+        },
+        {
+          "dependency_id": "FIRE_CERTIFICATE",
+          "before_state": "FIRE-A",
+          "after_state": "FIRE-B",
+          "treatment": "CHANGED"
+        },
+        {
+          "dependency_id": "INTERFACE_TOLERANCE",
+          "before_state": "IF-A",
+          "after_state": "IF-B",
+          "treatment": "CHANGED"
+        },
+        {
+          "dependency_id": "LOCAL_AVAILABILITY",
+          "before_state": "AVAILABLE",
+          "after_state": "UNKNOWN",
+          "treatment": "UNKNOWN"
+        }
+      ],
+      "claims": [
+        {
+          "claim_id": "CLAIM-FIRE",
+          "dependency_ids": [
+            "PRODUCT_IDENTITY",
+            "FIRE_CERTIFICATE"
+          ],
+          "state_before": "QUALIFIED_IN_ORIGINAL_SCOPE"
+        },
+        {
+          "claim_id": "CLAIM-CONNECTION",
+          "dependency_ids": [
+            "PRODUCT_IDENTITY",
+            "INTERFACE_TOLERANCE"
+          ],
+          "state_before": "QUALIFIED_IN_ORIGINAL_SCOPE"
+        },
+        {
+          "claim_id": "CLAIM-DELIVERY",
+          "dependency_ids": [
+            "LOCAL_AVAILABILITY"
+          ],
+          "state_before": "QUALIFIED_IN_ORIGINAL_SCOPE"
+        },
+        {
+          "claim_id": "CLAIM-ROOM-LAYOUT",
+          "dependency_ids": [
+            "ROOM_LAYOUT"
+          ],
+          "state_before": "QUALIFIED_IN_ORIGINAL_SCOPE"
+        }
+      ],
+      "expected_invalidated_claim_ids": [
+        "CLAIM-CONNECTION",
+        "CLAIM-DELIVERY",
+        "CLAIM-FIRE"
+      ],
+      "expected_preserved_claim_ids": [
+        "CLAIM-ROOM-LAYOUT"
+      ],
+      "expected_disposition": "REQUALIFICATION_REQUIRED",
+      "claim_ceiling": "Synthetic dependency propagation only; no product equivalence or physical performance decision."
+    },
+    {
+      "case_id": "SUB-015-UNKNOWN-EVIDENCE",
+      "assembly_id": "SYNTH-ASSEMBLY-SUB-015-UNKNOWN-EVIDENCE",
+      "original_product_ref": "SYNTH-MEMBRANE-A",
+      "replacement_product_ref": "SYNTH-MEMBRANE-A",
+      "dependency_catalog": [
+        "FIRE_CERTIFICATE",
+        "WEATHER_TEST",
+        "THERMAL_RESULT"
+      ],
+      "changes": [
+        {
+          "dependency_id": "FIRE_CERTIFICATE",
+          "before_state": "CURRENT",
+          "after_state": "UNKNOWN",
+          "treatment": "UNKNOWN"
+        }
+      ],
+      "claims": [
+        {
+          "claim_id": "CLAIM-FIRE-PERFORMANCE",
+          "dependency_ids": [
+            "FIRE_CERTIFICATE"
+          ],
+          "state_before": "QUALIFIED_IN_ORIGINAL_SCOPE"
+        },
+        {
+          "claim_id": "CLAIM-WEATHER",
+          "dependency_ids": [
+            "WEATHER_TEST"
+          ],
+          "state_before": "QUALIFIED_IN_ORIGINAL_SCOPE"
+        },
+        {
+          "claim_id": "CLAIM-THERMAL",
+          "dependency_ids": [
+            "THERMAL_RESULT"
+          ],
+          "state_before": "QUALIFIED_IN_ORIGINAL_SCOPE"
+        }
+      ],
+      "expected_invalidated_claim_ids": [
+        "CLAIM-FIRE-PERFORMANCE"
+      ],
+      "expected_preserved_claim_ids": [
+        "CLAIM-THERMAL",
+        "CLAIM-WEATHER"
+      ],
+      "expected_disposition": "REQUALIFICATION_REQUIRED",
+      "claim_ceiling": "Synthetic dependency propagation only; no product equivalence or physical performance decision."
+    },
+    {
+      "case_id": "SUB-016-GEOMETRY-REVISION",
+      "assembly_id": "SYNTH-ASSEMBLY-SUB-016-GEOMETRY-REVISION",
+      "original_product_ref": "SYNTH-WINDOW-A",
+      "replacement_product_ref": "SYNTH-WINDOW-A",
+      "dependency_catalog": [
+        "GEOMETRY_REVISION",
+        "TAKEOFF_METHOD",
+        "PRODUCT_IDENTITY",
+        "FIRE_CERTIFICATE"
+      ],
+      "changes": [
+        {
+          "dependency_id": "GEOMETRY_REVISION",
+          "before_state": "MODEL-REV-01",
+          "after_state": "MODEL-REV-02",
+          "treatment": "CHANGED"
+        }
+      ],
+      "claims": [
+        {
+          "claim_id": "CLAIM-QUANTITY-TAKEOFF",
+          "dependency_ids": [
+            "GEOMETRY_REVISION",
+            "TAKEOFF_METHOD"
+          ],
+          "state_before": "QUALIFIED_IN_ORIGINAL_SCOPE"
+        },
+        {
+          "claim_id": "CLAIM-OPENING-FIT",
+          "dependency_ids": [
+            "GEOMETRY_REVISION"
+          ],
+          "state_before": "QUALIFIED_IN_ORIGINAL_SCOPE"
+        },
+        {
+          "claim_id": "CLAIM-FIRE-CERT",
+          "dependency_ids": [
+            "FIRE_CERTIFICATE"
+          ],
+          "state_before": "QUALIFIED_IN_ORIGINAL_SCOPE"
+        },
+        {
+          "claim_id": "CLAIM-PRODUCT-ID",
+          "dependency_ids": [
+            "PRODUCT_IDENTITY"
+          ],
+          "state_before": "QUALIFIED_IN_ORIGINAL_SCOPE"
+        }
+      ],
+      "expected_invalidated_claim_ids": [
+        "CLAIM-OPENING-FIT",
+        "CLAIM-QUANTITY-TAKEOFF"
+      ],
+      "expected_preserved_claim_ids": [
+        "CLAIM-FIRE-CERT",
+        "CLAIM-PRODUCT-ID"
+      ],
+      "expected_disposition": "REQUALIFICATION_REQUIRED",
+      "claim_ceiling": "Synthetic dependency propagation only; no product equivalence or physical performance decision."
+    },
+    {
+      "case_id": "SUB-017-SUPPLIER-REGION",
+      "assembly_id": "SYNTH-ASSEMBLY-SUB-017-SUPPLIER-REGION",
+      "original_product_ref": "SYNTH-PRODUCT-A",
+      "replacement_product_ref": "SYNTH-PRODUCT-A",
+      "dependency_catalog": [
+        "SUPPLIER_REGION",
+        "LEAD_TIME",
+        "PRODUCT_IDENTITY",
+        "FIRE_CERTIFICATE"
+      ],
+      "changes": [
+        {
+          "dependency_id": "SUPPLIER_REGION",
+          "before_state": "JOHANNESBURG",
+          "after_state": "PRETORIA",
+          "treatment": "CHANGED"
+        },
+        {
+          "dependency_id": "LEAD_TIME",
+          "before_state": "14_DAYS",
+          "after_state": "UNKNOWN",
+          "treatment": "UNKNOWN"
+        }
+      ],
+      "claims": [
+        {
+          "claim_id": "CLAIM-LOCAL-AVAILABILITY",
+          "dependency_ids": [
+            "SUPPLIER_REGION"
+          ],
+          "state_before": "QUALIFIED_IN_ORIGINAL_SCOPE"
+        },
+        {
+          "claim_id": "CLAIM-DELIVERY",
+          "dependency_ids": [
+            "SUPPLIER_REGION",
+            "LEAD_TIME"
+          ],
+          "state_before": "QUALIFIED_IN_ORIGINAL_SCOPE"
+        },
+        {
+          "claim_id": "CLAIM-PRODUCT-ID",
+          "dependency_ids": [
+            "PRODUCT_IDENTITY"
+          ],
+          "state_before": "QUALIFIED_IN_ORIGINAL_SCOPE"
+        },
+        {
+          "claim_id": "CLAIM-FIRE",
+          "dependency_ids": [
+            "FIRE_CERTIFICATE"
+          ],
+          "state_before": "QUALIFIED_IN_ORIGINAL_SCOPE"
+        }
+      ],
+      "expected_invalidated_claim_ids": [
+        "CLAIM-DELIVERY",
+        "CLAIM-LOCAL-AVAILABILITY"
+      ],
+      "expected_preserved_claim_ids": [
+        "CLAIM-FIRE",
+        "CLAIM-PRODUCT-ID"
+      ],
+      "expected_disposition": "REQUALIFICATION_REQUIRED",
+      "claim_ceiling": "Synthetic dependency propagation only; no product equivalence or physical performance decision."
+    },
+    {
+      "case_id": "SUB-018-EPD-REVISION",
+      "assembly_id": "SYNTH-ASSEMBLY-SUB-018-EPD-REVISION",
+      "original_product_ref": "SYNTH-INSULATION-A",
+      "replacement_product_ref": "SYNTH-INSULATION-A",
+      "dependency_catalog": [
+        "EPD_REVISION",
+        "EMBODIED_CARBON_MODEL",
+        "THERMAL_RESULT",
+        "FIRE_CERTIFICATE"
+      ],
+      "changes": [
+        {
+          "dependency_id": "EPD_REVISION",
+          "before_state": "EPD-R1",
+          "after_state": "EPD-R2",
+          "treatment": "CHANGED"
+        }
+      ],
+      "claims": [
+        {
+          "claim_id": "CLAIM-EMBODIED-CARBON",
+          "dependency_ids": [
+            "EPD_REVISION",
+            "EMBODIED_CARBON_MODEL"
+          ],
+          "state_before": "QUALIFIED_IN_ORIGINAL_SCOPE"
+        },
+        {
+          "claim_id": "CLAIM-LIFECYCLE-IMPACT",
+          "dependency_ids": [
+            "EPD_REVISION"
+          ],
+          "state_before": "QUALIFIED_IN_ORIGINAL_SCOPE"
+        },
+        {
+          "claim_id": "CLAIM-THERMAL",
+          "dependency_ids": [
+            "THERMAL_RESULT"
+          ],
+          "state_before": "QUALIFIED_IN_ORIGINAL_SCOPE"
+        },
+        {
+          "claim_id": "CLAIM-FIRE",
+          "dependency_ids": [
+            "FIRE_CERTIFICATE"
+          ],
+          "state_before": "QUALIFIED_IN_ORIGINAL_SCOPE"
+        }
+      ],
+      "expected_invalidated_claim_ids": [
+        "CLAIM-EMBODIED-CARBON",
+        "CLAIM-LIFECYCLE-IMPACT"
+      ],
+      "expected_preserved_claim_ids": [
+        "CLAIM-FIRE",
+        "CLAIM-THERMAL"
+      ],
+      "expected_disposition": "REQUALIFICATION_REQUIRED",
+      "claim_ceiling": "Synthetic dependency propagation only; no product equivalence or physical performance decision."
+    }
+  ],
+  "claim_ceiling": "Dependency propagation only; does not decide equivalence, approval, safety, availability, manufacturability or cost-effectiveness."
+}

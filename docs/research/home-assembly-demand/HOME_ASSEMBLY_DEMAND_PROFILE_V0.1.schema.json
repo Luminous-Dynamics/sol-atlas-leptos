@@ -1,0 +1,404 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/blob/main/docs/research/home-assembly-demand/HOME_ASSEMBLY_DEMAND_PROFILE_V0.1.schema.json",
+  "title": "Home assembly demand profile v0.1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "study_id",
+    "maturity",
+    "execution_status",
+    "source_design",
+    "candidate_ids",
+    "assemblies",
+    "claim_ceiling"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "0.1.0"
+    },
+    "study_id": {
+      "const": "HOME-ASSEMBLY-DEMAND-001"
+    },
+    "maturity": {
+      "const": "SYNTHETIC_REQUIREMENTS_ONLY"
+    },
+    "execution_status": {
+      "const": "NOT_GEOMETRY_BOUND"
+    },
+    "source_design": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "brief_id",
+        "candidate_set_id",
+        "design_revision",
+        "source_pr"
+      ],
+      "properties": {
+        "brief_id": {
+          "type": "string"
+        },
+        "candidate_set_id": {
+          "type": "string"
+        },
+        "design_revision": {
+          "type": "string"
+        },
+        "source_pr": {
+          "const": 801
+        }
+      }
+    },
+    "candidate_ids": {
+      "type": "array",
+      "minItems": 2,
+      "uniqueItems": true,
+      "items": {
+        "type": "string"
+      }
+    },
+    "assemblies": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "assembly_id",
+          "candidate_id",
+          "building_layer",
+          "assembly_role",
+          "component_roles",
+          "required_properties",
+          "quantity",
+          "product_selection",
+          "approval",
+          "manufacturing",
+          "local_supply",
+          "cost",
+          "repair",
+          "substitution",
+          "claim_ceiling"
+        ],
+        "properties": {
+          "assembly_id": {
+            "type": "string",
+            "pattern": "^[A-Z0-9_-]{3,64}$"
+          },
+          "candidate_id": {
+            "type": "string"
+          },
+          "building_layer": {
+            "enum": [
+              "STRUCTURE",
+              "ENVELOPE",
+              "ROOF",
+              "OPENINGS",
+              "SERVICES",
+              "INTERNAL",
+              "EXTERNAL_REALM"
+            ]
+          },
+          "assembly_role": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 160
+          },
+          "component_roles": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "role_id",
+                "role",
+                "product_selection_state",
+                "product_ref"
+              ],
+              "properties": {
+                "role_id": {
+                  "type": "string",
+                  "pattern": "^[A-Z0-9_-]{2,64}$"
+                },
+                "role": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 160
+                },
+                "product_selection_state": {
+                  "const": "UNSELECTED"
+                },
+                "product_ref": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                }
+              }
+            }
+          },
+          "required_properties": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "property_id",
+                "domain",
+                "requirement_ref",
+                "evidence_owner",
+                "state",
+                "target_value",
+                "unit",
+                "evidence_refs"
+              ],
+              "properties": {
+                "property_id": {
+                  "type": "string",
+                  "pattern": "^[A-Z0-9_-]{2,64}$"
+                },
+                "domain": {
+                  "enum": [
+                    "STRUCTURAL",
+                    "FIRE",
+                    "WEATHER",
+                    "WATER",
+                    "THERMAL",
+                    "MOISTURE",
+                    "ACOUSTIC",
+                    "ACCESSIBILITY",
+                    "DURABILITY",
+                    "MAINTENANCE",
+                    "EMBODIED_IMPACT",
+                    "OTHER"
+                  ]
+                },
+                "requirement_ref": {
+                  "type": "string"
+                },
+                "evidence_owner": {
+                  "type": "string"
+                },
+                "state": {
+                  "const": "UNKNOWN"
+                },
+                "target_value": {
+                  "type": "null"
+                },
+                "unit": {
+                  "type": "null"
+                },
+                "evidence_refs": {
+                  "type": "array",
+                  "maxItems": 0
+                }
+              }
+            }
+          },
+          "quantity": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "state",
+              "measured_quantity",
+              "unit",
+              "geometry_ref",
+              "takeoff_method_ref"
+            ],
+            "properties": {
+              "state": {
+                "const": "NOT_COMPUTED"
+              },
+              "measured_quantity": {
+                "type": "null"
+              },
+              "unit": {
+                "type": "null"
+              },
+              "geometry_ref": {
+                "type": "null"
+              },
+              "takeoff_method_ref": {
+                "type": "null"
+              }
+            }
+          },
+          "product_selection": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "state",
+              "product_refs"
+            ],
+            "properties": {
+              "state": {
+                "const": "UNSELECTED"
+              },
+              "product_refs": {
+                "type": "array",
+                "maxItems": 0
+              }
+            }
+          },
+          "approval": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "state",
+              "owner_ref",
+              "evidence_refs"
+            ],
+            "properties": {
+              "state": {
+                "const": "NOT_CHECKED"
+              },
+              "owner_ref": {
+                "type": "string"
+              },
+              "evidence_refs": {
+                "type": "array",
+                "maxItems": 0
+              }
+            }
+          },
+          "manufacturing": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "state",
+              "capability_ref",
+              "process_ref",
+              "evidence_refs"
+            ],
+            "properties": {
+              "state": {
+                "const": "NOT_ASSESSED"
+              },
+              "capability_ref": {
+                "type": "null"
+              },
+              "process_ref": {
+                "type": "null"
+              },
+              "evidence_refs": {
+                "type": "array",
+                "maxItems": 0
+              }
+            }
+          },
+          "local_supply": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "state",
+              "region_profile",
+              "supplier_refs",
+              "lead_time_days"
+            ],
+            "properties": {
+              "state": {
+                "const": "UNKNOWN"
+              },
+              "region_profile": {
+                "type": "string"
+              },
+              "supplier_refs": {
+                "type": "array",
+                "maxItems": 0
+              },
+              "lead_time_days": {
+                "type": "null"
+              }
+            }
+          },
+          "cost": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "state",
+              "currency",
+              "amount",
+              "quote_ref"
+            ],
+            "properties": {
+              "state": {
+                "const": "NOT_ESTIMATED"
+              },
+              "currency": {
+                "const": "ZAR"
+              },
+              "amount": {
+                "type": "null"
+              },
+              "quote_ref": {
+                "type": "null"
+              }
+            }
+          },
+          "repair": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "state",
+              "requirements",
+              "evidence_refs"
+            ],
+            "properties": {
+              "state": {
+                "const": "UNKNOWN"
+              },
+              "requirements": {
+                "type": "array",
+                "minItems": 1,
+                "items": {
+                  "type": "string"
+                }
+              },
+              "evidence_refs": {
+                "type": "array",
+                "maxItems": 0
+              }
+            }
+          },
+          "substitution": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "state",
+              "equivalence_rule",
+              "dependency_claim_ids"
+            ],
+            "properties": {
+              "state": {
+                "const": "NOT_ASSESSED"
+              },
+              "equivalence_rule": {
+                "const": "REQUALIFY_ALL_DEPENDENT_CLAIMS"
+              },
+              "dependency_claim_ids": {
+                "type": "array",
+                "minItems": 1,
+                "uniqueItems": true,
+                "items": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "claim_ceiling": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    },
+    "claim_ceiling": {
+      "type": "string",
+      "minLength": 1
+    }
+  }
+}

@@ -1,0 +1,164 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/blob/main/docs/research/home-assembly-demand/HOME_ASSEMBLY_SUBSTITUTION_CASES_V0.1.schema.json",
+  "title": "Home assembly substitution known-answer cases v0.1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "study_id",
+    "maturity",
+    "execution_status",
+    "algorithm",
+    "cases",
+    "claim_ceiling"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "0.1.0"
+    },
+    "study_id": {
+      "const": "HOME-ASSEMBLY-SUBSTITUTION-001"
+    },
+    "maturity": {
+      "const": "SYNTHETIC_KNOWN_ANSWER"
+    },
+    "execution_status": {
+      "const": "NO_PRODUCT_EQUIVALENCE_DECISION"
+    },
+    "algorithm": {
+      "const": "DEPENDENCY_INTERSECTION_INVALIDATION_V0.1"
+    },
+    "cases": {
+      "type": "array",
+      "minItems": 12,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "case_id",
+          "assembly_id",
+          "original_product_ref",
+          "replacement_product_ref",
+          "dependency_catalog",
+          "changes",
+          "claims",
+          "expected_invalidated_claim_ids",
+          "expected_preserved_claim_ids",
+          "expected_disposition",
+          "claim_ceiling"
+        ],
+        "properties": {
+          "case_id": {
+            "type": "string"
+          },
+          "assembly_id": {
+            "type": "string"
+          },
+          "original_product_ref": {
+            "type": "string"
+          },
+          "replacement_product_ref": {
+            "type": "string"
+          },
+          "dependency_catalog": {
+            "type": "array",
+            "minItems": 1,
+            "uniqueItems": true,
+            "items": {
+              "type": "string"
+            }
+          },
+          "changes": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "dependency_id",
+                "before_state",
+                "after_state",
+                "treatment"
+              ],
+              "properties": {
+                "dependency_id": {
+                  "type": "string"
+                },
+                "before_state": {
+                  "type": "string"
+                },
+                "after_state": {
+                  "type": "string"
+                },
+                "treatment": {
+                  "enum": [
+                    "CHANGED",
+                    "UNKNOWN"
+                  ]
+                }
+              }
+            }
+          },
+          "claims": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "claim_id",
+                "dependency_ids",
+                "state_before"
+              ],
+              "properties": {
+                "claim_id": {
+                  "type": "string"
+                },
+                "dependency_ids": {
+                  "type": "array",
+                  "minItems": 1,
+                  "uniqueItems": true,
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "state_before": {
+                  "enum": [
+                    "QUALIFIED_IN_ORIGINAL_SCOPE",
+                    "UNKNOWN_IN_ORIGINAL_SCOPE"
+                  ]
+                }
+              }
+            }
+          },
+          "expected_invalidated_claim_ids": {
+            "type": "array",
+            "uniqueItems": true,
+            "items": {
+              "type": "string"
+            }
+          },
+          "expected_preserved_claim_ids": {
+            "type": "array",
+            "uniqueItems": true,
+            "items": {
+              "type": "string"
+            }
+          },
+          "expected_disposition": {
+            "enum": [
+              "NO_DEPENDENCY_CHANGE",
+              "REQUALIFICATION_REQUIRED"
+            ]
+          },
+          "claim_ceiling": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "claim_ceiling": {
+      "type": "string"
+    }
+  }
+}
