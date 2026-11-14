@@ -103,9 +103,9 @@ Each is a candidate family, not a preferred solution. A site may justify one, se
 Artifacts:
 - `multifamily-building.schema.json`
 - `multifamily-building-synthetic-v0.1.json`
-- `multifamily-adversarial-corpus-v0.1.json` (46 authored cases: one positive control and 45 adversarial development controls; none are sealed or executed).
+- `multifamily-adversarial-corpus-v0.1.json` (47 authored cases: one positive control and 46 adversarial development controls; none are sealed or executed).
 
-The first fixture describes a synthetic two-floor, four-unit building with floor-local integer-millimetre rectangles, corridors, a stair, a lift, shared courtyard/terrace spaces, declared everyday portals and vertical links.
+The first fixture describes a synthetic two-floor, four-unit building with floor-local integer-millimetre rectangles, corridors, a stair, a lift, shared courtyard/terrace spaces, declared everyday portals and vertical links. Each floor envelope is fully accounted for by declared synthetic spaces in the baseline fixture; the adversarial corpus separately tests unallocated floor regions.
 
 P0 does not model internal apartment rooms, wall thickness, structure, shafts, detailed doors/windows, parking, site setbacks, multiple blocks, fire compartments or specialist engineering. Its connections are for everyday/shared/service topology, **never emergency egress**. A lift identity is not step-free qualification. A stair identity is not an evacuation strategy.
 
