@@ -1,0 +1,719 @@
+{
+  "schema_version": "multi-family-building/0.1",
+  "candidate_id": "SYN-MF-COURTYARD-004",
+  "maturity": "synthetic_contract",
+  "source_binding": {
+    "resident_programme_ref": {
+      "kind": "synthetic_resident_programme",
+      "id": "urn:synthetic:resident-programme:unbound",
+      "revision": null,
+      "digest": null
+    },
+    "site_context_ref": {
+      "kind": "synthetic_site",
+      "id": "urn:synthetic:site:unbound",
+      "revision": null,
+      "digest": null
+    },
+    "jurisdiction_profile_ref": {
+      "kind": "jurisdiction_profile",
+      "id": "urn:synthetic:jurisdiction:unselected",
+      "revision": null,
+      "digest": null
+    },
+    "design_revision_ref": {
+      "kind": "design_revision",
+      "id": "urn:synthetic:multi-family:revision:unbound",
+      "revision": null,
+      "digest": null
+    }
+  },
+  "building": {
+    "building_id": "SYN-BUILDING-COURTYARD-01",
+    "coordinate_unit": "millimetre",
+    "origin_rule": "synthetic/local building-plan origin; coordinate reference must be bound separately before real-site use",
+    "envelope": {
+      "x_mm": 0,
+      "y_mm": 0,
+      "width_mm": 12000,
+      "height_mm": 18000
+    },
+    "floors": [
+      {
+        "floor_id": "F0",
+        "floor_index": 0,
+        "elevation_mm": 0,
+        "floor_envelope": {
+          "x_mm": 0,
+          "y_mm": 0,
+          "width_mm": 12000,
+          "height_mm": 18000
+        }
+      },
+      {
+        "floor_id": "F1",
+        "floor_index": 1,
+        "elevation_mm": 3000,
+        "floor_envelope": {
+          "x_mm": 0,
+          "y_mm": 0,
+          "width_mm": 12000,
+          "height_mm": 18000
+        }
+      }
+    ],
+    "spaces": [
+      {
+        "space_id": "U-001",
+        "floor_id": "F0",
+        "space_kind": "dwelling_unit",
+        "unit_id": "U-001",
+        "footprint": {
+          "x_mm": 0,
+          "y_mm": 0,
+          "width_mm": 6000,
+          "height_mm": 8000
+        },
+        "resident_programme_ref": null,
+        "geometry_state": "synthetic"
+      },
+      {
+        "space_id": "U-002",
+        "floor_id": "F0",
+        "space_kind": "dwelling_unit",
+        "unit_id": "U-002",
+        "footprint": {
+          "x_mm": 6000,
+          "y_mm": 0,
+          "width_mm": 6000,
+          "height_mm": 8000
+        },
+        "resident_programme_ref": null,
+        "geometry_state": "synthetic"
+      },
+      {
+        "space_id": "COR-0",
+        "floor_id": "F0",
+        "space_kind": "corridor",
+        "unit_id": null,
+        "footprint": {
+          "x_mm": 0,
+          "y_mm": 8000,
+          "width_mm": 12000,
+          "height_mm": 2000
+        },
+        "resident_programme_ref": null,
+        "geometry_state": "synthetic"
+      },
+      {
+        "space_id": "STAIR-0",
+        "floor_id": "F0",
+        "space_kind": "stair",
+        "unit_id": null,
+        "footprint": {
+          "x_mm": 0,
+          "y_mm": 10000,
+          "width_mm": 2500,
+          "height_mm": 4000
+        },
+        "resident_programme_ref": null,
+        "geometry_state": "synthetic"
+      },
+      {
+        "space_id": "LIFT-0",
+        "floor_id": "F0",
+        "space_kind": "lift",
+        "unit_id": null,
+        "footprint": {
+          "x_mm": 2500,
+          "y_mm": 10000,
+          "width_mm": 2000,
+          "height_mm": 4000
+        },
+        "resident_programme_ref": null,
+        "geometry_state": "synthetic"
+      },
+      {
+        "space_id": "COURT-0",
+        "floor_id": "F0",
+        "space_kind": "courtyard",
+        "unit_id": null,
+        "footprint": {
+          "x_mm": 4500,
+          "y_mm": 10000,
+          "width_mm": 7500,
+          "height_mm": 8000
+        },
+        "resident_programme_ref": null,
+        "geometry_state": "synthetic"
+      },
+      {
+        "space_id": "U-003",
+        "floor_id": "F1",
+        "space_kind": "dwelling_unit",
+        "unit_id": "U-003",
+        "footprint": {
+          "x_mm": 0,
+          "y_mm": 0,
+          "width_mm": 6000,
+          "height_mm": 8000
+        },
+        "resident_programme_ref": null,
+        "geometry_state": "synthetic"
+      },
+      {
+        "space_id": "U-004",
+        "floor_id": "F1",
+        "space_kind": "dwelling_unit",
+        "unit_id": "U-004",
+        "footprint": {
+          "x_mm": 6000,
+          "y_mm": 0,
+          "width_mm": 6000,
+          "height_mm": 8000
+        },
+        "resident_programme_ref": null,
+        "geometry_state": "synthetic"
+      },
+      {
+        "space_id": "COR-1",
+        "floor_id": "F1",
+        "space_kind": "corridor",
+        "unit_id": null,
+        "footprint": {
+          "x_mm": 0,
+          "y_mm": 8000,
+          "width_mm": 12000,
+          "height_mm": 2000
+        },
+        "resident_programme_ref": null,
+        "geometry_state": "synthetic"
+      },
+      {
+        "space_id": "STAIR-1",
+        "floor_id": "F1",
+        "space_kind": "stair",
+        "unit_id": null,
+        "footprint": {
+          "x_mm": 0,
+          "y_mm": 10000,
+          "width_mm": 2500,
+          "height_mm": 4000
+        },
+        "resident_programme_ref": null,
+        "geometry_state": "synthetic"
+      },
+      {
+        "space_id": "LIFT-1",
+        "floor_id": "F1",
+        "space_kind": "lift",
+        "unit_id": null,
+        "footprint": {
+          "x_mm": 2500,
+          "y_mm": 10000,
+          "width_mm": 2000,
+          "height_mm": 4000
+        },
+        "resident_programme_ref": null,
+        "geometry_state": "synthetic"
+      },
+      {
+        "space_id": "TERRACE-1",
+        "floor_id": "F1",
+        "space_kind": "shared_amenity",
+        "unit_id": null,
+        "footprint": {
+          "x_mm": 4500,
+          "y_mm": 10000,
+          "width_mm": 7500,
+          "height_mm": 8000
+        },
+        "resident_programme_ref": null,
+        "geometry_state": "synthetic"
+      }
+    ],
+    "everyday_connections": [
+      {
+        "connection_id": "0-U1-COR",
+        "floor_id": "F0",
+        "from_space_id": "U-001",
+        "to_space_id": "COR-0",
+        "connection_kind": "everyday_access",
+        "state": "declared",
+        "portal": {
+          "orientation": "horizontal",
+          "coordinate_mm": 8000,
+          "start_mm": 2500,
+          "end_mm": 3500
+        }
+      },
+      {
+        "connection_id": "0-U2-COR",
+        "floor_id": "F0",
+        "from_space_id": "U-002",
+        "to_space_id": "COR-0",
+        "connection_kind": "everyday_access",
+        "state": "declared",
+        "portal": {
+          "orientation": "horizontal",
+          "coordinate_mm": 8000,
+          "start_mm": 8500,
+          "end_mm": 9500
+        }
+      },
+      {
+        "connection_id": "0-COR-STAIR",
+        "floor_id": "F0",
+        "from_space_id": "COR-0",
+        "to_space_id": "STAIR-0",
+        "connection_kind": "everyday_access",
+        "state": "declared",
+        "portal": {
+          "orientation": "horizontal",
+          "coordinate_mm": 10000,
+          "start_mm": 500,
+          "end_mm": 1500
+        }
+      },
+      {
+        "connection_id": "0-COR-LIFT",
+        "floor_id": "F0",
+        "from_space_id": "COR-0",
+        "to_space_id": "LIFT-0",
+        "connection_kind": "everyday_access",
+        "state": "declared",
+        "portal": {
+          "orientation": "horizontal",
+          "coordinate_mm": 10000,
+          "start_mm": 3000,
+          "end_mm": 4000
+        }
+      },
+      {
+        "connection_id": "0-COR-AMENITY",
+        "floor_id": "F0",
+        "from_space_id": "COR-0",
+        "to_space_id": "COURT-0",
+        "connection_kind": "shared_amenity_access",
+        "state": "declared",
+        "portal": {
+          "orientation": "horizontal",
+          "coordinate_mm": 10000,
+          "start_mm": 6000,
+          "end_mm": 8000
+        }
+      },
+      {
+        "connection_id": "1-U1-COR",
+        "floor_id": "F1",
+        "from_space_id": "U-003",
+        "to_space_id": "COR-1",
+        "connection_kind": "everyday_access",
+        "state": "declared",
+        "portal": {
+          "orientation": "horizontal",
+          "coordinate_mm": 8000,
+          "start_mm": 2500,
+          "end_mm": 3500
+        }
+      },
+      {
+        "connection_id": "1-U2-COR",
+        "floor_id": "F1",
+        "from_space_id": "U-004",
+        "to_space_id": "COR-1",
+        "connection_kind": "everyday_access",
+        "state": "declared",
+        "portal": {
+          "orientation": "horizontal",
+          "coordinate_mm": 8000,
+          "start_mm": 8500,
+          "end_mm": 9500
+        }
+      },
+      {
+        "connection_id": "1-COR-STAIR",
+        "floor_id": "F1",
+        "from_space_id": "COR-1",
+        "to_space_id": "STAIR-1",
+        "connection_kind": "everyday_access",
+        "state": "declared",
+        "portal": {
+          "orientation": "horizontal",
+          "coordinate_mm": 10000,
+          "start_mm": 500,
+          "end_mm": 1500
+        }
+      },
+      {
+        "connection_id": "1-COR-LIFT",
+        "floor_id": "F1",
+        "from_space_id": "COR-1",
+        "to_space_id": "LIFT-1",
+        "connection_kind": "everyday_access",
+        "state": "declared",
+        "portal": {
+          "orientation": "horizontal",
+          "coordinate_mm": 10000,
+          "start_mm": 3000,
+          "end_mm": 4000
+        }
+      },
+      {
+        "connection_id": "1-COR-AMENITY",
+        "floor_id": "F1",
+        "from_space_id": "COR-1",
+        "to_space_id": "TERRACE-1",
+        "connection_kind": "shared_amenity_access",
+        "state": "declared",
+        "portal": {
+          "orientation": "horizontal",
+          "coordinate_mm": 10000,
+          "start_mm": 6000,
+          "end_mm": 8000
+        }
+      }
+    ],
+    "vertical_cores": [
+      {
+        "core_id": "CORE-STAIR-A",
+        "core_kind": "stair",
+        "floor_ids": [
+          "F0",
+          "F1"
+        ],
+        "space_ids": [
+          "STAIR-0",
+          "STAIR-1"
+        ],
+        "availability_state": "unknown",
+        "assessment_ref": null
+      },
+      {
+        "core_id": "CORE-LIFT-A",
+        "core_kind": "lift",
+        "floor_ids": [
+          "F0",
+          "F1"
+        ],
+        "space_ids": [
+          "LIFT-0",
+          "LIFT-1"
+        ],
+        "availability_state": "unknown",
+        "assessment_ref": null
+      }
+    ]
+  },
+  "unit_programmes": [
+    {
+      "unit_id": "U-001",
+      "space_id": "U-001",
+      "resident_programme_ref": null,
+      "requirement_refs": [],
+      "programme_state": "unknown"
+    },
+    {
+      "unit_id": "U-002",
+      "space_id": "U-002",
+      "resident_programme_ref": null,
+      "requirement_refs": [],
+      "programme_state": "unknown"
+    },
+    {
+      "unit_id": "U-003",
+      "space_id": "U-003",
+      "resident_programme_ref": null,
+      "requirement_refs": [],
+      "programme_state": "unknown"
+    },
+    {
+      "unit_id": "U-004",
+      "space_id": "U-004",
+      "resident_programme_ref": null,
+      "requirement_refs": [],
+      "programme_state": "unknown"
+    }
+  ],
+  "vertical_connections": [
+    {
+      "connection_id": "STAIR-VERTICAL-0-1",
+      "core_id": "CORE-STAIR-A",
+      "from_floor_id": "F0",
+      "to_floor_id": "F1",
+      "connection_kind": "everyday_vertical",
+      "state": "declared"
+    },
+    {
+      "connection_id": "LIFT-VERTICAL-0-1",
+      "core_id": "CORE-LIFT-A",
+      "from_floor_id": "F0",
+      "to_floor_id": "F1",
+      "connection_kind": "everyday_vertical",
+      "state": "declared"
+    }
+  ],
+  "shared_services": [
+    {
+      "service_id": "SYN-SHARED-WATER",
+      "service_kind": "water",
+      "owner_ref": {
+        "kind": "service_owner",
+        "id": "urn:synthetic:service-owner:water",
+        "revision": null,
+        "digest": null
+      },
+      "served_unit_ids": [
+        "U-001",
+        "U-002",
+        "U-003",
+        "U-004"
+      ],
+      "topology_state": "unknown",
+      "capacity_state": "unknown",
+      "capacity_evidence_ref": null,
+      "measurement_refs": [],
+      "governance_ref": null,
+      "claim_ceiling": "Unknown capacity and service quality; no shared-service adequacy or continuity claim."
+    },
+    {
+      "service_id": "SYN-SHARED-ELECTRICITY",
+      "service_kind": "electricity",
+      "owner_ref": {
+        "kind": "service_owner",
+        "id": "urn:synthetic:service-owner:electricity",
+        "revision": null,
+        "digest": null
+      },
+      "served_unit_ids": [
+        "U-001",
+        "U-002",
+        "U-003",
+        "U-004"
+      ],
+      "topology_state": "unknown",
+      "capacity_state": "unknown",
+      "capacity_evidence_ref": null,
+      "measurement_refs": [],
+      "governance_ref": null,
+      "claim_ceiling": "Unknown capacity and service quality; no shared-service adequacy or continuity claim."
+    },
+    {
+      "service_id": "SYN-SHARED-WASTEWATER",
+      "service_kind": "wastewater",
+      "owner_ref": {
+        "kind": "service_owner",
+        "id": "urn:synthetic:service-owner:wastewater",
+        "revision": null,
+        "digest": null
+      },
+      "served_unit_ids": [
+        "U-001",
+        "U-002",
+        "U-003",
+        "U-004"
+      ],
+      "topology_state": "unknown",
+      "capacity_state": "unknown",
+      "capacity_evidence_ref": null,
+      "measurement_refs": [],
+      "governance_ref": null,
+      "claim_ceiling": "Unknown capacity and service quality; no shared-service adequacy or continuity claim."
+    },
+    {
+      "service_id": "SYN-SHARED-COMMUNICATIONS",
+      "service_kind": "communications",
+      "owner_ref": {
+        "kind": "service_owner",
+        "id": "urn:synthetic:service-owner:communications",
+        "revision": null,
+        "digest": null
+      },
+      "served_unit_ids": [
+        "U-001",
+        "U-002",
+        "U-003",
+        "U-004"
+      ],
+      "topology_state": "unknown",
+      "capacity_state": "unknown",
+      "capacity_evidence_ref": null,
+      "measurement_refs": [],
+      "governance_ref": null,
+      "claim_ceiling": "Unknown capacity and service quality; no shared-service adequacy or continuity claim."
+    },
+    {
+      "service_id": "SYN-SHARED-WASTE",
+      "service_kind": "waste",
+      "owner_ref": {
+        "kind": "service_owner",
+        "id": "urn:synthetic:service-owner:waste",
+        "revision": null,
+        "digest": null
+      },
+      "served_unit_ids": [
+        "U-001",
+        "U-002",
+        "U-003",
+        "U-004"
+      ],
+      "topology_state": "unknown",
+      "capacity_state": "unknown",
+      "capacity_evidence_ref": null,
+      "measurement_refs": [],
+      "governance_ref": null,
+      "claim_ceiling": "Unknown capacity and service quality; no shared-service adequacy or continuity claim."
+    },
+    {
+      "service_id": "SYN-SHARED-MAINTENANCE",
+      "service_kind": "maintenance",
+      "owner_ref": {
+        "kind": "service_owner",
+        "id": "urn:synthetic:service-owner:maintenance",
+        "revision": null,
+        "digest": null
+      },
+      "served_unit_ids": [
+        "U-001",
+        "U-002",
+        "U-003",
+        "U-004"
+      ],
+      "topology_state": "unknown",
+      "capacity_state": "unknown",
+      "capacity_evidence_ref": null,
+      "measurement_refs": [],
+      "governance_ref": null,
+      "claim_ceiling": "Unknown capacity and service quality; no shared-service adequacy or continuity claim."
+    }
+  ],
+  "assessment_register": [
+    {
+      "domain": "planning",
+      "status": "not_assessed",
+      "owner_ref": null,
+      "evidence_refs": [],
+      "scope": "No real site, professional design or measured building evidence is bound in this synthetic contract fixture."
+    },
+    {
+      "domain": "structure",
+      "status": "not_assessed",
+      "owner_ref": null,
+      "evidence_refs": [],
+      "scope": "No real site, professional design or measured building evidence is bound in this synthetic contract fixture."
+    },
+    {
+      "domain": "foundation",
+      "status": "not_assessed",
+      "owner_ref": null,
+      "evidence_refs": [],
+      "scope": "No real site, professional design or measured building evidence is bound in this synthetic contract fixture."
+    },
+    {
+      "domain": "fire_life_safety",
+      "status": "not_assessed",
+      "owner_ref": null,
+      "evidence_refs": [],
+      "scope": "No real site, professional design or measured building evidence is bound in this synthetic contract fixture."
+    },
+    {
+      "domain": "accessibility",
+      "status": "not_assessed",
+      "owner_ref": null,
+      "evidence_refs": [],
+      "scope": "No real site, professional design or measured building evidence is bound in this synthetic contract fixture."
+    },
+    {
+      "domain": "daylight",
+      "status": "not_assessed",
+      "owner_ref": null,
+      "evidence_refs": [],
+      "scope": "No real site, professional design or measured building evidence is bound in this synthetic contract fixture."
+    },
+    {
+      "domain": "view",
+      "status": "not_assessed",
+      "owner_ref": null,
+      "evidence_refs": [],
+      "scope": "No real site, professional design or measured building evidence is bound in this synthetic contract fixture."
+    },
+    {
+      "domain": "visual_privacy",
+      "status": "not_assessed",
+      "owner_ref": null,
+      "evidence_refs": [],
+      "scope": "No real site, professional design or measured building evidence is bound in this synthetic contract fixture."
+    },
+    {
+      "domain": "acoustics",
+      "status": "not_assessed",
+      "owner_ref": null,
+      "evidence_refs": [],
+      "scope": "No real site, professional design or measured building evidence is bound in this synthetic contract fixture."
+    },
+    {
+      "domain": "thermal",
+      "status": "not_assessed",
+      "owner_ref": null,
+      "evidence_refs": [],
+      "scope": "No real site, professional design or measured building evidence is bound in this synthetic contract fixture."
+    },
+    {
+      "domain": "ventilation",
+      "status": "not_assessed",
+      "owner_ref": null,
+      "evidence_refs": [],
+      "scope": "No real site, professional design or measured building evidence is bound in this synthetic contract fixture."
+    },
+    {
+      "domain": "water",
+      "status": "not_assessed",
+      "owner_ref": null,
+      "evidence_refs": [],
+      "scope": "No real site, professional design or measured building evidence is bound in this synthetic contract fixture."
+    },
+    {
+      "domain": "energy",
+      "status": "not_assessed",
+      "owner_ref": null,
+      "evidence_refs": [],
+      "scope": "No real site, professional design or measured building evidence is bound in this synthetic contract fixture."
+    },
+    {
+      "domain": "waste",
+      "status": "not_assessed",
+      "owner_ref": null,
+      "evidence_refs": [],
+      "scope": "No real site, professional design or measured building evidence is bound in this synthetic contract fixture."
+    },
+    {
+      "domain": "cost_of_place",
+      "status": "not_assessed",
+      "owner_ref": null,
+      "evidence_refs": [],
+      "scope": "No real site, professional design or measured building evidence is bound in this synthetic contract fixture."
+    },
+    {
+      "domain": "construction",
+      "status": "not_assessed",
+      "owner_ref": null,
+      "evidence_refs": [],
+      "scope": "No real site, professional design or measured building evidence is bound in this synthetic contract fixture."
+    },
+    {
+      "domain": "operations",
+      "status": "not_assessed",
+      "owner_ref": null,
+      "evidence_refs": [],
+      "scope": "No real site, professional design or measured building evidence is bound in this synthetic contract fixture."
+    },
+    {
+      "domain": "resident_acceptance",
+      "status": "not_assessed",
+      "owner_ref": null,
+      "evidence_refs": [],
+      "scope": "No real site, professional design or measured building evidence is bound in this synthetic contract fixture."
+    }
+  ],
+  "claim_ceiling": "A passing contract/geometry check establishes only that declared synthetic unit/floor/space identities, floor-local rectangles and everyday/service connectivity satisfy the checked data contract. It does not establish design quality, resident suitability, accessibility, fire/egress, structure, services capacity, daylight, privacy, acoustics, thermal performance, affordability, planning approval, buildability or occupancy."
+}
