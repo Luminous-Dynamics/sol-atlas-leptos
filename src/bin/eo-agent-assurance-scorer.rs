@@ -373,7 +373,13 @@ fn validate_run_schema(run: &Value) -> Vec<String> {
         errors.push("claims must be an array".to_string());
     }
     if let Some(claims) = claims {
+        let mut seen_claim_ids = BTreeSet::new();
         for (index, claim) in claims.iter().enumerate() {
+            if let Some(claim_id) = claim.get("claim_id").and_then(Value::as_str) {
+                if !seen_claim_ids.insert(claim_id.to_string()) {
+                    errors.push(format!("claim[{index}] duplicates claim_id {claim_id}"));
+                }
+            }
             if !has_exact_keys(
                 claim,
                 &[
@@ -592,6 +598,19 @@ fn score_task(
         "request_more_evidence",
         "reopen_for_revalidation",
     ];
+    if expected_disposition == "no_change_within_envelope"
+        && actual_disposition == "candidate_change_for_review"
+    {
+        push_task_gate(
+            &mut task_gates,
+            global_gates,
+            task_id,
+            "zero_invalid_or_unobserved_evidence_promotions",
+            "candidate change was promoted despite a qualified no-change oracle",
+        );
+        failures.push("false_change_promotion_against_no_change_control".to_string());
+    }
+
     if cautious_dispositions.contains(&expected_disposition)
         && promotion_dispositions.contains(&actual_disposition)
     {
@@ -1333,6 +1352,60 @@ mod tests {
             .expect("array")
             .iter()
             .any(|item| item["code"] == "zero_invalid_or_unobserved_evidence_promotions"));
+    }
+
+    #[test]
+    fn rejects_candidate_change_against_qualified_no_change_oracle() {
+        let manifest = sample_manifest(
+            "no_change_within_envelope",
+            "no_change_within_envelope",
+            "change_confirmed",
+            "evidence-1",
+            "internal_analysis",
+            "training",
+        );
+        let bytes = serde_json::to_vec(&manifest).expect("manifest serializes");
+        let mut submitted = valid_result(&manifest, &bytes, "no_change_within_envelope");
+        submitted["runs"][0]["disposition"] = json!("candidate_change_for_review");
+        let digest = run_payload_digest(&submitted["runs"][0]).expect("run hashes");
+        submitted["runs"][0]["replay"]["result_digest"] = json!(digest);
+        submitted["runs"][0]["replay"]["replay_digest"] = json!(digest);
+        let report = score(&manifest, &submitted, &bytes).expect("score is emitted");
+        assert_eq!(report["hard_gate_pass"], false);
+        assert!(report["hard_gate_violations"]
+            .as_array()
+            .expect("array")
+            .iter()
+            .any(|item| item["code"] == "zero_invalid_or_unobserved_evidence_promotions"));
+    }
+
+    #[test]
+    fn rejects_duplicate_claim_ids() {
+        let manifest = sample_manifest(
+            "candidate_change_for_review",
+            "change_candidate",
+            "cause_established",
+            "evidence-1",
+            "internal_analysis",
+            "training",
+        );
+        let bytes = serde_json::to_vec(&manifest).expect("manifest serializes");
+        let mut submitted = valid_result(&manifest, &bytes, "change_candidate");
+        let duplicate = submitted["runs"][0]["claims"][0].clone();
+        submitted["runs"][0]["claims"]
+            .as_array_mut()
+            .expect("claims array")
+            .push(duplicate);
+        let digest = run_payload_digest(&submitted["runs"][0]).expect("run hashes");
+        submitted["runs"][0]["replay"]["result_digest"] = json!(digest);
+        submitted["runs"][0]["replay"]["replay_digest"] = json!(digest);
+        let report = score(&manifest, &submitted, &bytes).expect("score is emitted");
+        assert_eq!(report["hard_gate_pass"], false);
+        assert!(report["hard_gate_violations"]
+            .as_array()
+            .expect("array")
+            .iter()
+            .any(|item| item["code"] == "schema_valid_output"));
     }
 
     #[test]
