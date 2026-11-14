@@ -1,0 +1,197 @@
+{
+  "schema_version": "0.1.0",
+  "study_id": "HOME-DfMA-DELIVERY-001",
+  "maturity": "PROPOSED_NOT_EVALUATED",
+  "execution_status": "NOT_EXECUTED",
+  "region_profile": "JOHANNESBURG_HIGHVELD_FIRST_PROFILE",
+  "functional_unit": "one dwelling design revision and its declared assembly/BOM, built to identical service and quality requirements over one stated delivery scope",
+  "delivery_modes": [
+    {
+      "id": "CONVENTIONAL_SITE_BUILT",
+      "description": "Material delivery and assembly at the residential plot.",
+      "scope": "Include material procurement, site storage, onsite labour, plant, temporary works, waste, inspection and rework."
+    },
+    {
+      "id": "LOCAL_PANELIZED",
+      "description": "Panels and subassemblies fabricated in a local workshop and installed onsite.",
+      "scope": "Include design-for-manufacture, factory labour/overhead, QA, packaging, transport, offload, lifting, site closure and inspections."
+    },
+    {
+      "id": "VOLUMETRIC_MODULAR",
+      "description": "Three-dimensional modules manufactured offsite and joined onsite.",
+      "scope": "Include factory production, module fit-out, route/oversize constraints, transport, cranes, foundations/interfaces, commissioning and warranty."
+    },
+    {
+      "id": "HYBRID_COMPONENT_KIT",
+      "description": "Precision or repetitive components fabricated offsite; site-specific foundations, closures and services completed onsite.",
+      "scope": "Include both factory and site labour, interfaces, logistics, sequence and all duplicated/temporary activities."
+    }
+  ],
+  "scenario_families": [
+    {
+      "id": "NORMAL_MATCHED_BASELINE",
+      "mutation": "Use the same frozen dwelling, BOM, site envelope, brief and quality plan.",
+      "expected": "COMPARABLE"
+    },
+    {
+      "id": "SUPPLIER_FAILURE",
+      "mutation": "Remove a critical supplier after the initial design release.",
+      "expected": "NO_UNQUALIFIED_SUBSTITUTION"
+    },
+    {
+      "id": "LATE_DESIGN_CHANGE",
+      "mutation": "Change a safety-critical interface after fabrication release.",
+      "expected": "INVALIDATE_DEPENDENT_CLAIMS"
+    },
+    {
+      "id": "TOLERANCE_STACK_UP",
+      "mutation": "Seed cumulative dimensional deviations across two or more interfaces.",
+      "expected": "BLOCK_UNTIL_REVIEW"
+    },
+    {
+      "id": "TRANSPORT_ENVELOPE",
+      "mutation": "Exceed a declared road/turning/bridge/height envelope or leave it UNKNOWN.",
+      "expected": "BLOCK_TRANSPORT_CLAIM"
+    },
+    {
+      "id": "LIFTING_CAPACITY",
+      "mutation": "Remove crane/lift-plan capacity or certified lift-point evidence.",
+      "expected": "BLOCK_LIFT_RELEASE"
+    },
+    {
+      "id": "SITE_ACCESS_CONSTRAINT",
+      "mutation": "Constrain plot access, laydown, turning or offload area.",
+      "expected": "BLOCK_OR_REPLAN"
+    },
+    {
+      "id": "WEATHER_STORAGE",
+      "mutation": "Expose uninstalled components to an unqualified weather/storage state.",
+      "expected": "HOLD_AND_INSPECT"
+    },
+    {
+      "id": "CREW_SKILL_GAP",
+      "mutation": "Assign a crew without the declared task qualification.",
+      "expected": "BLOCK_INSTALL_RELEASE"
+    },
+    {
+      "id": "FACTORY_QA_FAILURE",
+      "mutation": "Seed a failed incoming, in-process or final inspection.",
+      "expected": "QUARANTINE_BATCH"
+    },
+    {
+      "id": "TRANSPORT_DAMAGE",
+      "mutation": "Damage a panel/module or lose batch genealogy during transport.",
+      "expected": "QUARANTINE_AND_REQUALIFY"
+    },
+    {
+      "id": "ESSENTIAL_SERVICE_PHASE",
+      "mutation": "Interrupt water, sanitation, fire safety, access or thermal service during occupied phasing.",
+      "expected": "BLOCK_OCCUPANCY"
+    }
+  ],
+  "hard_gates": [
+    {
+      "id": "DESIGN_RELEASE_BINDING",
+      "target": 1,
+      "meaning": "Every production item binds exact design, assembly and component revisions."
+    },
+    {
+      "id": "BATCH_TRACEABILITY",
+      "target": 1,
+      "meaning": "Every manufactured and installed item binds a source and batch/lot."
+    },
+    {
+      "id": "QA_HOLD_POINT_COMPLETENESS",
+      "target": 1,
+      "meaning": "No release without required incoming, in-process and final inspection evidence."
+    },
+    {
+      "id": "TRANSPORT_AND_LIFT_EVIDENCE",
+      "target": 0,
+      "meaning": "No unqualified transport or lifting feasibility claim."
+    },
+    {
+      "id": "UNSAFE_OCCUPIED_PHASES",
+      "target": 0,
+      "meaning": "No occupied phase breaches essential safety or service floors."
+    },
+    {
+      "id": "CHANGE_IMPACT_COMPLETENESS",
+      "target": 1,
+      "meaning": "Post-release changes invalidate all dependent stock, QA, cost and installation claims."
+    },
+    {
+      "id": "POSITIVE_CONTROL_PRESERVATION",
+      "target": 1,
+      "meaning": "At least one valid positive-control delivery path remains admissible."
+    }
+  ],
+  "metrics": [
+    {
+      "id": "TOTAL_INSTALLED_COST",
+      "unit": "ZAR_per_functional_unit_and_dwelling",
+      "direction": "MINIMIZE"
+    },
+    {
+      "id": "END_TO_END_DURATION",
+      "unit": "calendar_days_p50_p95",
+      "direction": "MINIMIZE"
+    },
+    {
+      "id": "FACTORY_LABOUR",
+      "unit": "person_hours",
+      "direction": "REPORT"
+    },
+    {
+      "id": "SITE_LABOUR",
+      "unit": "person_hours",
+      "direction": "REPORT"
+    },
+    {
+      "id": "FIRST_TIME_RIGHT",
+      "unit": "fraction_of_installation_items",
+      "direction": "MAXIMIZE"
+    },
+    {
+      "id": "TOLERANCE_NONCONFORMANCE",
+      "unit": "deviations_by_interface_and_severity",
+      "direction": "MINIMIZE"
+    },
+    {
+      "id": "MATERIAL_WASTE",
+      "unit": "kg_and_fraction_by_material",
+      "direction": "MINIMIZE"
+    },
+    {
+      "id": "TRANSPORT_DAMAGE",
+      "unit": "damaged_items_per_shipment",
+      "direction": "MINIMIZE"
+    },
+    {
+      "id": "QA_COMPLETENESS",
+      "unit": "fraction_of_required_hold_points_with_receipts",
+      "direction": "MAXIMIZE"
+    },
+    {
+      "id": "REWORK_BURDEN",
+      "unit": "person_hours_and_ZAR",
+      "direction": "MINIMIZE"
+    },
+    {
+      "id": "CHANGE_ORDER_IMPACT",
+      "unit": "days_and_ZAR_after_design_freeze",
+      "direction": "MINIMIZE"
+    },
+    {
+      "id": "MAINTENANCE_AND_REPAIR",
+      "unit": "hours_parts_cost_and_downtime",
+      "direction": "MINIMIZE"
+    },
+    {
+      "id": "EMBODIED_CARBON",
+      "unit": "kgCO2e_declared_scope",
+      "direction": "REPORT"
+    }
+  ],
+  "claim_ceiling": "Synthetic delivery contract only. No factory, route, lift, cost, schedule or built-performance evidence is admitted."
+}
