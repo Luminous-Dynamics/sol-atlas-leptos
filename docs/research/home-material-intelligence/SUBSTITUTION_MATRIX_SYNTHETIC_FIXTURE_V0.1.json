@@ -1,0 +1,94 @@
+{
+  "schema_version": "0.1.0",
+  "study_id": "HOME-MATERIAL-INTELLIGENCE-001",
+  "maturity": "SYNTHETIC_FIXTURE",
+  "decision_date": "2026-11-14",
+  "assembly_id": "SYNTH-EXT-WALL-001",
+  "substitutions": [
+    {
+      "substitution_id": "SUB-POSITIVE-001",
+      "from_component_id": "SYNTH-PANEL-A",
+      "to_component_id": "SYNTH-PANEL-C",
+      "required_interface_id": "EXT-WALL-PLANE-01",
+      "required_properties": [
+        "FIRE_RESISTANCE_MINUTES",
+        "THERMAL_TRANSMITTANCE",
+        "STRUCTURAL_CAPACITY",
+        "AIRBORNE_SOUND_REDUCTION"
+      ],
+      "expected_disposition": "QUALIFIED_IN_SCOPE",
+      "invalidation_set": [
+        "BILL_OF_MATERIALS",
+        "COST_ESTIMATE",
+        "STRUCTURAL_CONNECTION_REVIEW",
+        "FIRE_STRATEGY_REVIEW",
+        "THERMAL_MODEL",
+        "MOISTURE_AND_CONDENSATION_REVIEW",
+        "ACOUSTIC_REVIEW",
+        "CERTIFICATION_SCOPE",
+        "WARRANTY_AND_INSTALLATION_METHOD",
+        "MAINTENANCE_AND_REPAIR_PLAN",
+        "EPD_AND_LIFECYCLE_ASSESSMENT",
+        "CONSTRUCTION_SEQUENCE"
+      ],
+      "evidence_class": "SYNTHETIC_FIXTURE"
+    },
+    {
+      "substitution_id": "SUB-UNKNOWN-001",
+      "from_component_id": "SYNTH-PANEL-A",
+      "to_component_id": "SYNTH-PANEL-B",
+      "required_interface_id": "EXT-WALL-PLANE-01",
+      "required_properties": [
+        "FIRE_RESISTANCE_MINUTES",
+        "THERMAL_TRANSMITTANCE",
+        "STRUCTURAL_CAPACITY",
+        "AIRBORNE_SOUND_REDUCTION"
+      ],
+      "expected_disposition": "BLOCKED_UNKNOWN",
+      "invalidation_set": [
+        "BILL_OF_MATERIALS",
+        "COST_ESTIMATE",
+        "STRUCTURAL_CONNECTION_REVIEW",
+        "FIRE_STRATEGY_REVIEW",
+        "THERMAL_MODEL",
+        "MOISTURE_AND_CONDENSATION_REVIEW",
+        "ACOUSTIC_REVIEW",
+        "CERTIFICATION_SCOPE",
+        "WARRANTY_AND_INSTALLATION_METHOD",
+        "MAINTENANCE_AND_REPAIR_PLAN",
+        "EPD_AND_LIFECYCLE_ASSESSMENT",
+        "CONSTRUCTION_SEQUENCE"
+      ],
+      "evidence_class": "SYNTHETIC_FIXTURE"
+    },
+    {
+      "substitution_id": "SUB-REJECT-001",
+      "from_component_id": "SYNTH-PANEL-A",
+      "to_component_id": "SYNTH-PANEL-D",
+      "required_interface_id": "EXT-WALL-PLANE-01",
+      "required_properties": [
+        "FIRE_RESISTANCE_MINUTES",
+        "THERMAL_TRANSMITTANCE",
+        "STRUCTURAL_CAPACITY",
+        "AIRBORNE_SOUND_REDUCTION"
+      ],
+      "expected_disposition": "REJECTED",
+      "invalidation_set": [
+        "BILL_OF_MATERIALS",
+        "COST_ESTIMATE",
+        "STRUCTURAL_CONNECTION_REVIEW",
+        "FIRE_STRATEGY_REVIEW",
+        "THERMAL_MODEL",
+        "MOISTURE_AND_CONDENSATION_REVIEW",
+        "ACOUSTIC_REVIEW",
+        "CERTIFICATION_SCOPE",
+        "WARRANTY_AND_INSTALLATION_METHOD",
+        "MAINTENANCE_AND_REPAIR_PLAN",
+        "EPD_AND_LIFECYCLE_ASSESSMENT",
+        "CONSTRUCTION_SEQUENCE"
+      ],
+      "evidence_class": "SYNTHETIC_FIXTURE"
+    }
+  ],
+  "claim_ceiling": "Synthetic rule fixtures only; no physical material equivalence or construction approval."
+}
