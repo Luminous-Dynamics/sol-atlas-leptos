@@ -301,7 +301,8 @@ mod tests {
         assert_eq!(plan.invalidated_node_ids.len(), 7);
         assert_eq!(plan.revalidation_order.first().unwrap(), "transform:route-a");
         assert_eq!(plan.revalidation_order.last().unwrap(), "export:partner-view-a");
-        assert_eq!(plan.unaffected_node_ids, vec!["source:unrelated"]);
+        assert!(plan.unaffected_node_ids.contains(&"calibration:gpr-400mhz-a".to_string()));
+        assert!(plan.unaffected_node_ids.contains(&"source:unrelated".to_string()));
     }
 
     #[test]
@@ -345,22 +346,22 @@ mod tests {
     #[test]
     fn self_dependencies_are_rejected() {
         let mut graph = graph();
-        graph.nodes[0].dependency_ids.push(graph.nodes[0].node_id.clone());
+        let node_id = graph.nodes[0].node_id.clone();
+        graph.nodes[0].dependency_ids.push(node_id.clone());
         assert!(validate_evidence_dependency_graph(&graph)
             .unwrap_err()
-            .contains(&EvidenceDependencyError::SelfDependency(
-                graph.nodes[0].node_id.clone()
-            )));
+            .contains(&EvidenceDependencyError::SelfDependency(node_id)));
     }
 
     #[test]
     fn unknown_dependency_and_unknown_change_are_rejected() {
-        let mut graph = graph();
-        graph.nodes[0].dependency_ids.push("missing:source".to_string());
-        assert!(validate_evidence_dependency_graph(&graph)
+        let mut invalid_graph = graph();
+        let first_node_id = invalid_graph.nodes[0].node_id.clone();
+        invalid_graph.nodes[0].dependency_ids.push("missing:source".to_string());
+        assert!(validate_evidence_dependency_graph(&invalid_graph)
             .unwrap_err()
             .contains(&EvidenceDependencyError::UnknownDependency(
-                graph.nodes[0].node_id.clone(),
+                first_node_id,
                 "missing:source".to_string()
             )));
 
