@@ -326,9 +326,11 @@ fn validate_candidate(
         let step_free_targets = step_free_route_targets
             .iter()
             .filter_map(|target| {
-                array_at(candidate, "space_nodes")?.iter().find(|space| {
-                    text_at(space, "space_id") == Some(target.as_str())
-                })
+                array_at(candidate, "space_nodes")?
+                    .iter()
+                    .find(|space| {
+                        text_at(space, "space_id") == Some(target.as_str())
+                    })
             })
             .collect::<Vec<_>>();
         let reaches_bathroom = step_free_targets.iter().any(|space| {
@@ -352,7 +354,9 @@ fn validate_candidate(
     let mut bound_constraints = BTreeSet::new();
     if let Some(bindings) = array_at(candidate, "hard_constraint_bindings") {
         for binding in bindings {
-            let id = text_at(binding, "constraint_id").unwrap_or("<missing>").to_owned();
+            let id = text_at(binding, "constraint_id")
+                .unwrap_or("<missing>")
+                .to_owned();
             if !brief_constraint_ids.contains(&id) {
                 errors.push(format!(
                     "{candidate_id}: unknown hard-constraint binding {id}"
@@ -387,9 +391,7 @@ fn validate_candidate(
         ));
     }
 
-    if text_at(candidate, "water_dependency_state")
-        != Some("NO_DISCRETIONARY_WATER_ASSUMED")
-    {
+    if text_at(candidate, "water_dependency_state") != Some("NO_DISCRETIONARY_WATER_ASSUMED") {
         errors.push(format!(
             "{candidate_id}: discretionary water cannot be assumed for essential comfort"
         ));
@@ -419,7 +421,9 @@ fn validate_candidate(
             ));
         }
     } else {
-        errors.push(format!("{candidate_id}: future_change_bindings array is missing"));
+        errors.push(format!(
+            "{candidate_id}: future_change_bindings array is missing"
+        ));
     }
 
     if errors.is_empty() {
@@ -461,8 +465,7 @@ fn validate(brief: &Value, graph: &Value, schema: &Value) -> Result<Value, Vec<S
             BTreeMap::new()
         }
     };
-    let brief_activities: BTreeSet<String> =
-        brief_activity_specs.keys().cloned().collect();
+    let brief_activities: BTreeSet<String> = brief_activity_specs.keys().cloned().collect();
     let mut graph_activity_ids = BTreeSet::new();
     if let Some(nodes) = array_at(graph, "activity_nodes") {
         for node in nodes {
@@ -525,19 +528,26 @@ fn validate(brief: &Value, graph: &Value, schema: &Value) -> Result<Value, Vec<S
     let policy = graph.get("comparison_policy").unwrap_or(&Value::Null);
     if text_at(policy, "ranking_state") != Some("UNRANKED")
         || !policy.get("scalar_score").is_some_and(Value::is_null)
-        || policy.get("resident_choice_required").and_then(Value::as_bool) != Some(true)
+        || policy
+            .get("resident_choice_required")
+            .and_then(Value::as_bool)
+            != Some(true)
     {
         errors.push("spatial candidates must remain unranked with resident choice".to_owned());
     }
 
-    let candidates = array_at(graph, "candidate_graphs").cloned().unwrap_or_default();
+    let candidates = array_at(graph, "candidate_graphs")
+        .cloned()
+        .unwrap_or_default();
     if candidates.len() < 2 {
         errors.push("at least two candidate topologies are required".to_owned());
     }
     let mut candidate_ids = BTreeSet::new();
     let mut reports = Vec::new();
     for candidate in &candidates {
-        let id = text_at(candidate, "candidate_id").unwrap_or("<missing>").to_owned();
+        let id = text_at(candidate, "candidate_id")
+            .unwrap_or("<missing>")
+            .to_owned();
         if !candidate_ids.insert(id.clone()) {
             errors.push(format!("duplicate candidate graph ID {id}"));
             continue;
@@ -590,7 +600,10 @@ fn main() {
     let (brief, graph, schema) = fixture();
     match validate(&brief, &graph, &schema) {
         Ok(report) => {
-            println!("{}", serde_json::to_string_pretty(&report).unwrap_or_default());
+            println!(
+                "{}",
+                serde_json::to_string_pretty(&report).unwrap_or_default()
+            );
         }
         Err(errors) => {
             eprintln!("HOME_SPATIAL_INTENT_GRAPH_FAIL: {}", errors.join("; "));
@@ -606,8 +619,8 @@ mod tests {
     #[test]
     fn paired_symbolic_graphs_preserve_resident_intent() {
         let (brief, graph, schema) = fixture();
-        let report = validate(&brief, &graph, &schema)
-            .expect("paired symbolic graphs must qualify");
+        let report =
+            validate(&brief, &graph, &schema).expect("paired symbolic graphs must qualify");
         assert_eq!(report["activity_count"], 6);
         assert_eq!(report["relationship_requirement_count"], 4);
         assert_eq!(report["hard_constraint_count"], 5);
@@ -655,8 +668,7 @@ mod tests {
     #[test]
     fn relationship_cannot_be_promoted_to_physically_verified() {
         let (brief, mut graph, schema) = fixture();
-        graph["candidate_graphs"][0]["relationships"][0]["verification_state"] =
-            json!("VERIFIED");
+        graph["candidate_graphs"][0]["relationships"][0]["verification_state"] = json!("VERIFIED");
         assert!(validate(&brief, &graph, &schema).is_err());
     }
 
@@ -673,8 +685,7 @@ mod tests {
     #[test]
     fn access_route_cannot_reference_unknown_space() {
         let (brief, mut graph, schema) = fixture();
-        graph["candidate_graphs"][0]["access_routes"][0]["to_space_id"] =
-            json!("UNKNOWN_SPACE");
+        graph["candidate_graphs"][0]["access_routes"][0]["to_space_id"] = json!("UNKNOWN_SPACE");
         assert!(validate(&brief, &graph, &schema).is_err());
     }
 
@@ -728,8 +739,7 @@ mod tests {
     #[test]
     fn physical_relationship_states_remain_unknown() {
         let (brief, mut graph, schema) = fixture();
-        graph["candidate_graphs"][1]["access_routes"][0]["verification_state"] =
-            json!("PASS");
+        graph["candidate_graphs"][1]["access_routes"][0]["verification_state"] = json!("PASS");
         assert!(validate(&brief, &graph, &schema).is_err());
     }
 }
