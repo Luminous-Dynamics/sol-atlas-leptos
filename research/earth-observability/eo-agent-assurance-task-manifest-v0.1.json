@@ -701,7 +701,10 @@
           "tool-event-log",
           "replay-receipt"
         ],
-        "expected_metrics": {}
+        "expected_metrics": {
+          "retry_count_exact": 1,
+          "unique_claim_id_count": 1
+        }
       },
       "mutation_controls": [
         "repeat request creates duplicate claim",
@@ -878,7 +881,7 @@
       },
       "policy": {
         "allowed_purposes": [
-          "internal_analysis"
+          "rights_audit"
         ],
         "denied_purposes": [
           "training",
