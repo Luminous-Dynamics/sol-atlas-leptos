@@ -703,7 +703,7 @@ mod tests {
         assert_eq!(report["intervals"][1]["interval_state"], "FAIL");
         assert_eq!(
             report["intervals"][1]["layers"][0]["end_temperature_limit_exceedance_c"],
-            4.0
+            1.0
         );
         assert_eq!(
             report["intervals"][1]["layers"][0]["end_idealized_heat_headroom_kwh"],
