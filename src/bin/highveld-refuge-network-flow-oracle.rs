@@ -348,7 +348,8 @@ fn adapt_primary_network_case(primary: &Value) -> Result<Value, Vec<String>> {
             }
             let route_fresh = freshness_is_qualified(route, "route_freshness");
             let accessibility_fresh = freshness_is_qualified(route, "accessibility_freshness");
-            let route_state = if route_fresh {
+            let travel_time = number_at(route, "travel_time_s");
+            let route_state = if route_fresh && travel_time.is_some() {
                 text_at(route, "route_state").unwrap_or("UNKNOWN")
             } else {
                 "UNKNOWN"
@@ -362,7 +363,7 @@ fn adapt_primary_network_case(primary: &Value) -> Result<Value, Vec<String>> {
                 "site_id":site_id,
                 "route_state":route_state,
                 "accessibility_state":accessibility_state,
-                "travel_time_s":number_at(route,"travel_time_s").unwrap_or(f64::INFINITY),
+                "travel_time_s":travel_time.unwrap_or(0.0),
                 "route_evidence_ref":text_at(route,"route_evidence_ref").unwrap_or_default(),
                 "accessibility_evidence_ref":text_at(route,"accessibility_evidence_ref").unwrap_or_default()
             }));
@@ -846,6 +847,39 @@ mod tests {
         assert_eq!(report["general_served"], 6);
         assert_eq!(report["total_served"], 12);
         assert_eq!(report["total_unmet"], 8);
+    }
+
+    #[test]
+    fn unused_accessible_capacity_is_released_after_accessible_demand() {
+        let mut case = sample();
+        case["demand_areas"] = json!([{
+            "area_id":"ONLY_AREA",
+            "total_places":10,
+            "accessible_places":1,
+            "maximum_route_travel_time_s":600,
+            "route_options":[{
+                "site_id":"HUB_1",
+                "route_state":"REACHABLE",
+                "accessibility_state":"QUALIFIED",
+                "travel_time_s":100,
+                "route_evidence_ref":"SYNTH_ROUTE_ONLY",
+                "accessibility_evidence_ref":"SYNTH_ACCESS_ONLY"
+            }]
+        }]);
+        case["sites"] = json!([{
+            "site_id":"HUB_1",
+            "availability_state":"ELIGIBLE",
+            "free_total_places":10,
+            "free_accessible_places":4,
+            "free_safe_water_l":20.0,
+            "availability_evidence_ref":"SYNTH_AVAIL_ONLY",
+            "capacity_evidence_ref":"SYNTH_CAP_ONLY",
+            "water_evidence_ref":"SYNTH_WATER_ONLY"
+        }]);
+        let report = evaluate(&case).unwrap();
+        assert_eq!(report["accessible_served"], 1);
+        assert_eq!(report["general_served"], 9);
+        assert_eq!(report["total_served"], 10);
     }
 
     #[test]
