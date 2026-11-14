@@ -221,3 +221,15 @@ It contains four unit-local layouts, 28 room rectangles, 24 activity assignments
 Portal clear widths remain `NOT_COMPUTED`; door swings are `NOT_MODELLED`. A connected everyday graph is not an accessible route, stair/lift qualification or emergency egress graph. Wall thickness, door leaves, windows, shafts, fire compartments and specialist room performance remain outside P0.
 
 The Rust unit-layout qualifier has 15 authored tests (one positive and 14 negative controls). The focused apartment workflow now runs rustfmt, native tests and fixture replay for all three qualifiers: building geometry/resident programme, shared services and unit-interior room geometry. No Rust or CI pass is claimed until exact-head hosted results complete.
+
+
+## 15. Apartment shared-service resilience and hydraulic integration
+
+The apartment programme now has a dedicated per-unit shared-service track [#844](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/844), machine-readable topology/stress contracts, a Rust qualifier and the protocol [MULTIFAMILY_SHARED_SERVICE_BENCHMARK_V0.1.md](MULTIFAMILY_SHARED_SERVICE_BENCHMARK_V0.1.md).
+
+The synthetic model contains 6 resource classes, 34 nodes, 30 typed edges, 16 unit-service boundaries, 16 synthetic events and a separately authored 16-case / 20-event stress corpus. It requires directed service paths to each apartment boundary and preserves unknown quality/capacity/demand/delivery states. It explicitly separates non-potable from potable water and power dependencies from resource flow.
+
+The service qualifier is an evidence/topology layer, not a hydraulic engine. Compose EPA EPANET 2.2, Bentley OpenFlows Water and qualified equipment/vendor design outputs through exact, versioned adapters and independent measured validation. Do not claim to beat their hydraulic solvers. The differentiated research target is per-unit resident service traceability, dependency/failure propagation, resource accounting, evidence invalidation and resident-governed scarcity allocation.
+
+The focused CI now includes Draft 2020-12 validation for the building, service-distribution, service-stress, resident-programme, unit-layout and unit-layout-corpus schema/fixture pairs, in addition to native Rust qualifiers and rustfmt. All hosted results remain exact-head gated.
+
