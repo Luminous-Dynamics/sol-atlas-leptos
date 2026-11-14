@@ -326,3 +326,10 @@ P0 checks:
 The qualifier consumes the synthetic fixture and the 47-case authored manifest. It does not execute all 46 adversarial mutations yet; its unit tests are the initial executable negative controls. It does not evaluate internal apartment rooms, door swings, wall thickness, egress, accessibility, fire, daylight, view/privacy, acoustics, thermal/ventilation, utility capacity, cost, planning or physical buildability.
 
 The workflow tests the qualifier separately from the existing stacked geometry PR. A queued workflow is not a pass; preserve exact-head run/commit identity in every status update.
+
+
+## 16. Apartment design-to-manufacture and lifecycle interface
+
+The apartment-specific interface to existing DfMA owners is documented in [MULTIFAMILY_DFMA_INTERFACE_V0.1.md](MULTIFAMILY_DFMA_INTERFACE_V0.1.md). It maps party walls/floors, facade/shading cassettes, wet cores, service risers, plant skids, vertical-core components and demountable interior systems to exact design revisions, product evidence, factory capability, transport, lifting, installation, inspection, as-built, repair and replacement records.
+
+The current P0 geometry fixture does not contain internal rooms, wall thickness, real shafts, facade details, exact products or assemblies. Consequently, all assembly takeoffs, BOMs, factory capacity, tolerances, logistics, local supplier availability and installed cost remain `NOT_COMPUTED` or `UNKNOWN`. The interface is not a fabrication release and does not authorize construction.
