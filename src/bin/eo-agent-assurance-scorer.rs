@@ -288,9 +288,48 @@ fn is_task_id(value: Option<&Value>) -> bool {
 }
 
 fn is_utc_timestamp(value: Option<&Value>) -> bool {
-    value.and_then(Value::as_str).is_some_and(|text| {
-        text.len() >= 20 && text.contains('T') && text.ends_with('Z')
-    })
+    let Some(text) = value.and_then(Value::as_str) else {
+        return false;
+    };
+    let bytes = text.as_bytes();
+    if bytes.len() < 20
+        || bytes.get(4) != Some(&b'-')
+        || bytes.get(7) != Some(&b'-')
+        || bytes.get(10) != Some(&b'T')
+        || bytes.get(13) != Some(&b':')
+        || bytes.get(16) != Some(&b':')
+        || bytes.last() != Some(&b'Z')
+    {
+        return false;
+    }
+    let digits = |range: std::ops::Range<usize>| {
+        bytes
+            .get(range)
+            .is_some_and(|slice| slice.iter().all(u8::is_ascii_digit))
+    };
+    if !digits(0..4) || !digits(5..7) || !digits(8..10)
+        || !digits(11..13) || !digits(14..16) || !digits(17..19)
+    {
+        return false;
+    }
+    if bytes.len() > 20 {
+        if bytes[19] != b'.'
+            || bytes[20..bytes.len() - 1].is_empty()
+            || !bytes[20..bytes.len() - 1].iter().all(u8::is_ascii_digit)
+        {
+            return false;
+        }
+    }
+    let year = text[0..4].parse::<u16>().ok();
+    let month = text[5..7].parse::<u8>().ok();
+    let day = text[8..10].parse::<u8>().ok();
+    let hour = text[11..13].parse::<u8>().ok();
+    let minute = text[14..16].parse::<u8>().ok();
+    let second = text[17..19].parse::<u8>().ok();
+    matches!((year, month, day, hour, minute, second),
+        (Some(year), Some(month), Some(day), Some(hour), Some(minute), Some(second))
+            if year > 0 && (1..=12).contains(&month) && (1..=31).contains(&day)
+                && hour <= 23 && minute <= 59 && second <= 59)
 }
 
 fn validate_run_schema(run: &Value) -> Vec<String> {
@@ -1470,6 +1509,35 @@ mod tests {
             .expect("array")
             .iter()
             .any(|item| item["code"] == "zero_prohibited_purpose_use"));
+    }
+
+    #[test]
+    fn rejects_unknown_result_fields_and_malformed_utc_timestamps() {
+        let manifest = sample_manifest(
+            "candidate_change_for_review",
+            "change_candidate",
+            "cause_established",
+            "evidence-1",
+            "internal_analysis",
+            "training",
+        );
+        let bytes = serde_json::to_vec(&manifest).expect("manifest serializes");
+        let mut submitted = valid_result(&manifest, &bytes, "change_candidate");
+        submitted["runs"][0]["unexpected"] = json!(true);
+        submitted["runs"][0]["metrics"]["event_time_interval"] = json!({
+            "start": "not-a-timestamp",
+            "end": "also-not-a-timestamp"
+        });
+        let digest = run_payload_digest(&submitted["runs"][0]).expect("run hashes");
+        submitted["runs"][0]["replay"]["result_digest"] = json!(digest);
+        submitted["runs"][0]["replay"]["replay_digest"] = json!(digest);
+        let report = score(&manifest, &submitted, &bytes).expect("score is emitted");
+        assert_eq!(report["hard_gate_pass"], false);
+        assert!(report["hard_gate_violations"]
+            .as_array()
+            .expect("array")
+            .iter()
+            .any(|item| item["code"] == "schema_valid_output"));
     }
 
     #[test]
