@@ -15,6 +15,7 @@ Recent 2026 work establishes useful baselines, but measures different parts of t
 | Work | Scope and published scale | Useful comparator | Limitation for this programme |
 |---|---|---|---|
 | [GISAgentBench](https://arxiv.org/abs/2608.01645) | 349 practitioner-sourced GIS tasks; executable references and exact output files; reported best strict completion 32.7% | Deterministic tolerance-aware spatial outputs | Not an EO rights, sensor qualification or authority benchmark |
+| [Earth-Agent / Earth-Bench](https://github.com/opendatalab/Earth-Agent) | 104 specialist tools across five kits; Earth-Bench advertises 13K+ samples, 14 task types and multi-step scientific workflows | Multimodal/spectral EO, tool planning and trajectory diagnostics | Does not replace rights, authority, common-cause independence or post-intervention assurance |
 | [GeoNatureAgent](https://arxiv.org/abs/2606.12821) | 93 structured-tool tasks over a self-hostable environmental API; reported leader 60.8% | Real-API interaction, tool recovery and close comparisons | Does not establish comprehensive sensor provenance or intervention outcomes |
 | [TerraBench](https://arxiv.org/abs/2606.13148) | 403 heterogeneous Earth-system tasks and 24,500 verified execution steps | EO + gridded data + GIS + simulation + document-grounded reasoning | Does not replace the Sol-Atlas rights, measurement-comparability or authority contracts |
 | [ESA-EO-Bench project](https://cin.philab.esa.int/databases/projects/agentic-ai-for-earth-observation-evaluation-and-benchmarking-of-llms) | ESA project reports 294 tasks, 10 authenticated MCP servers and 70 tools | Multimodal EO plus policy/text reasoning and multi-agent orchestration | ESA reports tool-orchestration gains do not consistently translate into higher end-to-end answer accuracy |
@@ -35,6 +36,7 @@ This is an assurance benchmark over existing infrastructure, not a new productio
 | Observation state, detection qualification and claims | Sol-Atlas #797/#810 | Test shared evidence-state and POD usage |
 | Cadence and interval-censored event time | Sol-Atlas #804/#823 | Test interval honesty and no false precision |
 | Measurement-system comparability | Sol-Atlas #829/#830 | Test exact-scope receipt binding and shift-only negative controls |
+| Common-cause evidence independence | Sol-Atlas #406/#407 and #423 | Test registry-backed dependency closure and independence credit; do not create a second independence graph |
 | Competing hypotheses and investigation planning | Symthaea #12075; existing Sol-Atlas EVSI work | Test alternative explanations and discriminating evidence requests |
 | Environmental/physical models | Symtropy | Treat model outputs as model evidence, not observation truth |
 | Custody, consent and authority | Mycelix | Test the handoff boundary; never authorize an action in this benchmark |
@@ -94,7 +96,7 @@ The machine-readable corpus contains exactly 16 synthetic tasks in `eo-agent-ass
 | EOAA-004 | Processing-generation shift | Block physical-change promotion without comparability |
 | EOAA-005 | True cross-system event with exact bridge | Permit reviewable candidate, not cause or authority |
 | EOAA-006 | Unknown sensor/profile | Keep identity unknown and abstain |
-| EOAA-007 | Conflicting sources | Preserve conflict and request discriminating evidence |
+| EOAA-007 | Conflicting sources | Preserve conflict, detect shared upstream calibration/processing dependencies and request genuinely independent evidence |
 | EOAA-008 | Irregular cadence | Report interval-censored event time |
 | EOAA-009 | Transient API failure | Bounded retry and idempotent replay |
 | EOAA-010 | Late-arriving scene | Reopen or supersede prior temporal claim |
@@ -174,25 +176,33 @@ Sixteen tasks are a smoke-test corpus, not a statistically defensible leaderboar
 
 ## 6. Fair comparison with industry and research
 
-Use GISAgentBench for executable GIS outputs; GeoNatureAgent for structured real-API tasks; TerraBench for heterogeneous Earth-system reasoning; ESA-EO-Bench for policy/text + visual workflows; GeoAgentBench for dynamic GIS execution; and conventional spectral-index, classical-classifier, established change-detector and expert-GIS baselines for the underlying analytics.
+The November 2026 comparison set has advanced beyond the initial v0.1 draft. Preserve benchmark revision, dataset revision, licence, task regime, model, harness, tool limits and scoring method for every comparison.
 
-Fair-match rules:
-- identical requests, input versions, geographic/time supports and allowed tools;
-- same labels, rights and known-answer oracle;
-- matched model access, context limits, retry budgets, compute/time caps and attempts;
-- disclose model/harness/prompt/tool versions, reasoning settings, seeds, data digests, cost method and scoring code;
-- compare output correctness separately from tool-trace efficiency and explanation quality;
-- never compare headline scores from different task sets;
-- mark non-public code, unclear data rights and vendor-reported claims as reference-only.
+| Comparator | Publicly reported scope / result | What it tests | What it does not establish for Sol-Atlas |
+|---|---|---|---|
+| GISAgentBench | 349 practitioner-sourced GIS tasks; published strict completion results are task- and setup-specific | Executable GIS workflows and exact outputs | Rights, common-cause evidence independence, authority or longitudinal intervention outcomes |
+| GeoNatureAgent | 93 structured-tool tasks; reported leading result around 60.8% in the referenced study | Environmental API task execution | Independent source truth, rights revocation or field outcome validity |
+| TerraBench | 403 tasks, 8 application domains, 24,500 verified execution steps | Heterogeneous EO, gridded data, GIS, simulators and document-grounded verification | Complete rights/authority and longitudinal intervention assurance |
+| ESA-EO-Bench | 294 tasks, 10 authenticated MCP servers, 70 tools; includes 84 cross-agent synthesis tasks and 29 scope-awareness tasks | Multi-agent orchestration, cross-domain synthesis and abstention | Independent validation of every scientific claim or permission for consequential action |
+| Earth-Agent / Earth-Bench | ICLR 2026; original Earth-Bench has 248 task cores and 13,729 images; 104 specialist tools across five kits | RGB, spectral and product analysis; tool trajectory and final outcome | Rights-aware evidence transactions and real-world outcome validation |
+| Earth-Bench V2 | Corrected 248 task cores / 496 instruction-following and autonomous-planning entries; dataset card declares CC BY-NC 4.0 | Prepared-input EO agent evaluation | Open commercial reuse; its licence must be respected |
+| Earth-Agent-Pro / Earth-Bench-Pro | September 2026 preprint: 248 task cores across three regimes, including 248 open-world execution questions; authors report 66.13% LLM-as-Judge accuracy for their GPT-5 setup | Full-chain open-world acquisition, preparation, execution and evidence-grounded answers | Independently audited field truth, rights/authority compliance or intervention impact |
+| Axis Spatial Geospatial Agent Index | Third-party methodology snapshot dated 14 November 2026; one attempt per task, code-checked artifacts, spatial/numeric tolerances, trace review and cost/time reporting | Comparable agent/harness performance across selected geospatial tasks | A peer-reviewed benchmark or directly interchangeable score |
 
-### 6.1 Initial hypotheses, not results
+These numbers are not a common leaderboard. Different tasks, data, agent regimes, judges, licences and execution conditions make direct score comparisons invalid.
 
-- The deterministic scorer should achieve 100% known-answer agreement on its own authored fixtures before stochastic-agent runs.
-- Agents should achieve zero hard-gate violations; one violation disqualifies the run from an overall capability score.
-- On an expanded matched workflow corpus, target at least a 10 percentage-point improvement in strict adjudicable end-to-end task success over the strongest reproducible baseline, without worse hard-gate performance.
-- Report quality/cost/latency/review-time Pareto frontiers rather than optimizing a single accuracy number.
+Use matched subsets and publish a Pareto frontier across:
+- final task success;
+- hard-gate violations;
+- claim-level provenance completeness;
+- calibrated selective risk;
+- artifact reproducibility;
+- cost and latency;
+- human-review burden.
 
-The 10-point improvement is a research hypothesis, not a current result. Revisit it after baseline variance, task difficulty and power are measured.
+Do not optimize only tool trajectory accuracy. ESA's evaluation finds that stronger orchestration does not necessarily improve final answer accuracy. Earth-Agent-Pro is an important next comparator because it moves from prepared inputs toward open-world execution and workflow repair. Our differentiator must therefore be the validity of the evidence transaction and its authority/rights/outcome semantics, not merely full-chain tool access.
+
+Reproduce public baselines only on matched tasks, source versions, tool limits, data rights and scoring rules. Record model, harness, prompt, tools, compute, temperature/seeds, API versions, cost and exact output digests. Treat third-party leaderboard scores as contextual until independently reproduced.
 
 ## 7. Execution plan
 
@@ -223,3 +233,35 @@ This benchmark does not certify a satellite product, model, causal explanation, 
 4. ESA Φ-lab (2026), [Agentic AI for Earth Observation](https://cin.philab.esa.int/databases/projects/agentic-ai-for-earth-observation-evaluation-and-benchmarking-of-llms).
 5. [GeoAgentBench](https://doi.org/10.1080/10095020.2026.2736957), published online 2026-10-01.
 6. Sol-Atlas, [Planetary Change Evidence Benchmark v0.1](./PLANETARY_CHANGE_EVIDENCE_BENCHMARK_V0_1.md) and [interface audit](./SOL_ATLAS_EO_INTERFACE_AUDIT_V0_1.md).
+7. Feng et al. (ICLR 2026), [Earth-Agent / Earth-Bench](https://github.com/opendatalab/Earth-Agent).
+8. Sol-Atlas common-cause assurance: [#406 / PR #407](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/406) and [#423](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/423).
+
+## 9. Executable scorer and agent-view projection
+
+The repository's Rust binary is `src/bin/eo-agent-assurance-scorer.rs`. It is part of the root Cargo package and uses the already-locked SHA-256 implementation.
+
+First export the agent-visible projection. This deliberately excludes the evaluator oracle and the runtime fault schedule:
+
+```sh
+cargo run --bin eo-agent-assurance-scorer -- \\
+  --emit-agent-view \\
+  research/earth-observability/eo-agent-assurance-task-manifest-v0.1.json \\
+  /tmp/eo-agent-view-v0.1.json
+```
+
+Give the evaluated agent only the exported view and the read-only tools for that run. The checked-in 16-case development corpus and its oracle are public, so this corpus is **not blind** and must not be used to claim held-out performance. Keep future blind/evaluation oracles outside the agent's accessible environment.
+
+After the harness captures the agent result, the trusted runner must independently replay the recorded deterministic tool inputs against the frozen fixture world and append the `replay` receipt. The receipt contains `verified`, `deterministic`, `result_digest` and `replay_digest`. The scorer recomputes the canonical SHA-256 of each task payload with its `replay` member omitted, checks both digests, and rejects a mismatch. The scorer itself does not rerun tools or authenticate an external runner signature; the harness/CI artifact boundary is responsible for protecting the runner-produced receipt.
+
+Score the complete result envelope:
+
+```sh
+cargo run --bin eo-agent-assurance-scorer -- \\
+  research/earth-observability/eo-agent-assurance-task-manifest-v0.1.json \\
+  /tmp/eo-agent-results-v0.1.json \\
+  /tmp/eo-agent-score-v0.1.json
+```
+
+The exported projection must conform to [`eo-agent-assurance-agent-view-v0.1.schema.json`](../../schemas/eo-agent-assurance-agent-view-v0.1.schema.json). The submitted result must conform to [`eo-agent-assurance-result-v0.1.schema.json`](../../schemas/eo-agent-assurance-result-v0.1.schema.json). Each claim's source and evidence references must also be present in the run-level `source_refs` and `evidence_refs` sets. Event intervals use canonical second-resolution UTC timestamps (`YYYY-MM-DDTHH:MM:SSZ`) so containment comparisons do not mix offsets or precision. `manifest_sha256` binds the result to the exact manifest file bytes. Task correctness and hard-gate compliance are reported separately. A syntactically valid run may legitimately score poorly; inspect `benchmark_score_eligible`, `hard_gate_violations`, per-task failures and the task success rate rather than interpreting process exit status as agent success.
+
+The scorer includes unit tests for positive control, claim provenance, prohibited-purpose use, unsupported no-change promotion, digest mismatch and attempted consequential action. These tests validate scorer logic, not model capability or real-world Earth-observation performance.

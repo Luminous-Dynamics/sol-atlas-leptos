@@ -491,6 +491,11 @@
             "record_id": "methods-r1",
             "record_type": "method record",
             "summary": "The source measures have different measurement semantics and their uncertainty envelopes have not been harmonized."
+          },
+          {
+            "record_id": "dependency-r1",
+            "record_type": "common-cause dependency receipt",
+            "summary": "The sources have different publishers but share an upstream calibration and processing lineage. The dependency registry marks independence credit as unavailable until the exact dependency closure is authenticated."
           }
         ],
         "constraints": [
@@ -516,26 +521,30 @@
         "expected_disposition": "request_more_evidence",
         "expected_reason_codes": [
           "material_source_conflict",
-          "measurement-semantics-not-reconciled"
+          "measurement-semantics-not-reconciled",
+          "shared_upstream_dependency"
         ],
         "required_claims": [
           "material_source_conflict",
-          "measurement-semantics-not-reconciled"
+          "measurement-semantics-not-reconciled",
+          "shared_common_cause_not_independent"
         ],
         "forbidden_claims": [
           "single_consensus-value",
           "confirmed_cause"
         ],
         "required_evidence": [
-          "source-A",
-          "source-B",
-          "method-error-envelopes"
+          "source-a",
+          "source-b",
+          "methods-r1",
+          "dependency-r1"
         ],
         "expected_metrics": {}
       },
       "mutation_controls": [
         "hide one contradicting source",
-        "treat correlated sources as independent"
+        "treat correlated sources as independent",
+        "count sources as independent because publisher names differ despite intersecting dependency closure"
       ]
     },
     {
@@ -701,7 +710,10 @@
           "tool-event-log",
           "replay-receipt"
         ],
-        "expected_metrics": {}
+        "expected_metrics": {
+          "retry_count_exact": 1,
+          "unique_claim_id_count": 1
+        }
       },
       "mutation_controls": [
         "repeat request creates duplicate claim",
@@ -777,7 +789,9 @@
           "late-scene-acquisition-time",
           "catalogue-snapshot"
         ],
-        "expected_metrics": {}
+        "expected_metrics": {
+          "prior_claim_revalidation_required": true
+        }
       },
       "mutation_controls": [
         "sort only by ingestion timestamp",
@@ -878,7 +892,7 @@
       },
       "policy": {
         "allowed_purposes": [
-          "internal_analysis"
+          "rights_audit"
         ],
         "denied_purposes": [
           "training",
@@ -912,7 +926,9 @@
           "revocation-event",
           "derivative-lineage"
         ],
-        "expected_metrics": {}
+        "expected_metrics": {
+          "derivative_lineage_review_required": true
+        }
       },
       "mutation_controls": [
         "move revocation effective time after new run",
