@@ -5,7 +5,8 @@
 **Status:** synthetic controls and structural claim contract; no real-data run.
 
 **Machine-readable cases:** [EO_SYSTEM_SHIFT_CONTROL_MATRIX_V0_1.json](./EO_SYSTEM_SHIFT_CONTROL_MATRIX_V0_1.json)  
-**Schema:** [eo-system-shift-control-matrix-v0.1.schema.json](../../schemas/eo-system-shift-control-matrix-v0.1.schema.json)
+**Schema:** [eo-system-shift-control-matrix-v0.1.schema.json](../../schemas/eo-system-shift-control-matrix-v0.1.schema.json)  
+**Benchmark protocol:** [Planetary Change Evidence Benchmark v0.1](./PLANETARY_CHANGE_EVIDENCE_BENCHMARK_V0_1.md)
 
 ## Purpose
 
@@ -91,3 +92,5 @@ Do not begin T2/T3 scoring until:
 6. exact code, schemas, data manifests, model weights, transforms, scorer and environment digests are frozen.
 
 Unresolved records are retained for investigation: the contract permits an explicitly `Unresolved` mixed-system claim without a comparability receipt, but does not permit CandidateChange, SupportedChange or NoChangeWithinEnvelope promotion without an exact-scope bridge.
+
+An explicitly unresolved record may retain mixed-system observations without a bridge for later investigation. It is not eligible to support a candidate, supported-change or no-change promotion. Any promoted claim must carry a receipt whose observation IDs, complete system-signature set, support, class and ontology all match the current records exactly.
