@@ -73,7 +73,7 @@ Asset profiles are sorted deterministically by asset key. Band and polarization 
 - exact purpose-bound rights receipt;
 - spatial support, acquisition time, modality and EO quality state.
 
-The measurement-profile fingerprint is supplied by the caller/asset-manifest authority; the STAC importer does not invent a cryptographic hash. If it is unavailable, the observation records an unresolved measurement configuration and promoted claims require a cross-system comparability receipt or abstention. The importer does not create or authenticate the source/processing/rights receipts. The rights decision remains under the Mycelix/custodian authority.
+The measurement-profile fingerprint is supplied by the caller/asset-manifest authority; the STAC importer does not invent a cryptographic hash. If it is unavailable—or if collection or processing-baseline identity is missing—the observation records an incomplete measurement configuration and promoted claims require a cross-system comparability receipt or abstention. The importer does not create or authenticate the source/processing/rights receipts. The rights decision remains under the Mycelix/custodian authority.
 
 ## Conformance cases
 
