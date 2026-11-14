@@ -116,6 +116,25 @@ fn validate_top_level(
     }
 
     let manifest_digest = sha256_hex(manifest_bytes);
+    if !has_exact_keys(
+        submitted,
+        &["schema_version", "benchmark_id", "manifest_sha256", "runs"],
+    ) {
+        push_global_gate(
+            global_gates,
+            None,
+            "schema_valid_output",
+            "submitted result has unknown or missing top-level fields",
+        );
+    }
+    if !is_sha256_hex(submitted.get("manifest_sha256")) {
+        push_global_gate(
+            global_gates,
+            None,
+            "schema_valid_output",
+            "manifest_sha256 must be lowercase SHA-256 hex",
+        );
+    }
     let mut expected = Vec::with_capacity(manifest_tasks.len());
     let mut expected_ids = BTreeSet::new();
 
@@ -1098,7 +1117,7 @@ mod tests {
                 "schema_valid_output"
             ],
             "tasks": [{
-                "id": "EOAA-TEST",
+                "id": "EOAA-999",
                 "oracle": {
                     "expected_disposition": expected_disposition,
                     "expected_reason_codes": ["reason-expected"],
