@@ -32,7 +32,7 @@ The decision product becomes:
 
 ## 2. Contract semantics
 
-The executable contract is in sol-atlas-core/src/network_hypotheses.rs.
+The executable contract is in `sol-atlas-core/src/network_hypotheses.rs`; the strict JSON Schema Draft 2020-12 interchange profile is `research/earth-observability/NETWORK_HYPOTHESES_V0_1.schema.json`. The Rust validator enforces cross-reference and cross-field invariants that JSON Schema alone cannot express.
 
 ### 2.1 One hypothesis is one complete candidate world
 
