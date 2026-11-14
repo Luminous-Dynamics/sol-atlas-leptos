@@ -231,6 +231,10 @@ fn validate_candidate(
                 errors.push(format!("{candidate_id}: duplicate geometric room {id}"));
                 continue;
             }
+            if int_at(row, "floor_index") != Some(0) {
+                errors.push(format!("{candidate_id}: {id} must be on floor index 0 in v0.1"));
+                continue;
+            }
             let room = Room {
                 id: id.clone(),
                 space_type: text_at(row, "space_type").unwrap_or("").to_owned(),
@@ -239,6 +243,10 @@ fn validate_candidate(
                 width: int_at(row, "width_mm").unwrap_or(0),
                 height: int_at(row, "height_mm").unwrap_or(0),
             };
+            if !matches!(room.space_type.as_str(), "INDOOR" | "OUTDOOR") {
+                errors.push(format!("{candidate_id}: {id} has an unknown space_type"));
+                continue;
+            }
             if room.x < 0 || room.y < 0 || room.width <= 0 || room.height <= 0 {
                 errors.push(format!("{candidate_id}: {id} has invalid coordinates or dimensions"));
                 continue;
@@ -284,8 +292,10 @@ fn validate_candidate(
             errors.push(format!("{candidate_id}: source space {id} has no geometric room"));
         }
     }
-    for id in seen_ids.difference(&source_by_id.keys().cloned().collect()) {
-        errors.push(format!("{candidate_id}: unregistered geometric room {id}"));
+    for id in &seen_ids {
+        if !source_by_id.contains_key(id) {
+            errors.push(format!("{candidate_id}: unregistered geometric room {id}"));
+        }
     }
 
     let room_values = rooms.values().collect::<Vec<_>>();
@@ -380,10 +390,17 @@ fn validate(fixture: &Value, graph: &Value) -> Result<(), Vec<String>> {
     {
         errors.push("fixture identity or maturity is invalid".to_owned());
     }
-    if text_at(fixture.get("coordinate_system").unwrap_or(&Value::Null), "unit")
-        != Some("MILLIMETRE")
+    let coordinate = fixture.get("coordinate_system").unwrap_or(&Value::Null);
+    if text_at(coordinate, "unit") != Some("MILLIMETRE")
+        || text_at(coordinate, "origin") != Some("BUILDABLE_ENVELOPE_SOUTH_WEST")
+        || text_at(coordinate, "x_axis") != Some("EAST")
+        || text_at(coordinate, "y_axis") != Some("NORTH")
+        || int_at(coordinate, "integer_grid_mm") != Some(1)
     {
-        errors.push("coordinate system must use integer millimetres".to_owned());
+        errors.push("coordinate system must use the frozen integer-millimetre convention".to_owned());
+    }
+    if text_at(envelope, "geometry") != Some("AXIS_ALIGNED_RECTANGLE") {
+        errors.push("v0.1 supports only an axis-aligned rectangular envelope".to_owned());
     }
     if text_at(envelope, "state")
         != Some("SYNTHETIC_ENVELOPE_NOT_SURVEYED_OR_AUTHORITY_CONFIRMED")
@@ -405,6 +422,9 @@ fn validate(fixture: &Value, graph: &Value) -> Result<(), Vec<String>> {
 
     let candidates = array_at(fixture, "layout_candidates");
     if let Some(candidates) = candidates {
+        if candidates.is_empty() {
+            errors.push("at least one layout candidate is required".to_owned());
+        }
         let mut ids = BTreeSet::new();
         for candidate in candidates {
             let id = text_at(candidate, "candidate_id").unwrap_or("<missing-candidate-id>");
@@ -588,6 +608,20 @@ mod tests {
     fn scalar_score_is_rejected() {
         let (mut fixture, graph) = inputs();
         fixture["comparison_policy"]["scalar_score"] = json!(0.9);
+        assert!(validate(&fixture, &graph).is_err());
+    }
+
+    #[test]
+    fn nonzero_floor_index_is_rejected() {
+        let (mut fixture, graph) = inputs();
+        first_candidate_mut(&mut fixture)["rooms"][0]["floor_index"] = json!(1);
+        assert!(validate(&fixture, &graph).is_err());
+    }
+
+    #[test]
+    fn coordinate_origin_drift_is_rejected() {
+        let (mut fixture, graph) = inputs();
+        fixture["coordinate_system"]["origin"] = json!("UNKNOWN");
         assert!(validate(&fixture, &graph).is_err());
     }
 
