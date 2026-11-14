@@ -14,6 +14,9 @@
 //! A missing, obscured, invalid, below-limit, out-of-domain, conflicted, or
 //! rights-unresolved observation is never equivalent to "no change".
 
+use crate::earth_observability::{
+    classify_non_detection, DetectionQualification, EvidenceState, NonDetectionDisposition,
+};
 use crate::geospatial_assets::{AssetId, ObservationTime, ObservationTimeKind};
 use serde::{Deserialize, Serialize};
 use std::collections::{BTreeMap, BTreeSet};
@@ -50,6 +53,27 @@ pub enum ObservationQuality {
     BelowDetectionLimit,
     OutOfDomain,
     Conflicted,
+}
+
+impl ObservationQuality {
+    /// Project the EO-specific sensor-quality result into the shared evidence
+    /// state vocabulary. This is a one-way classification, not a second
+    /// independent status field that can contradict the quality flags.
+    pub fn evidence_state(self) -> EvidenceState {
+        match self {
+            Self::QualifiedUsable => EvidenceState::Present,
+            Self::CloudContaminated
+            | Self::ShadowContaminated
+            | Self::HazeOrSmokeContaminated
+            | Self::IncompleteCoverage
+            | Self::BelowDetectionLimit => EvidenceState::Partial,
+            Self::Saturated | Self::RadiometricInvalid | Self::GeometricInvalid => {
+                EvidenceState::Invalid
+            }
+            Self::OutOfDomain => EvidenceState::OutOfDomain,
+            Self::Conflicted => EvidenceState::Conflicted,
+        }
+    }
 }
 
 /// Reference to an external purpose-specific rights decision.
@@ -439,6 +463,7 @@ pub struct ChangeClaim {
     coverage: CoverageState,
     coverage_receipt_sha256: Option<String>,
     detection_qualification_receipt_sha256: Option<String>,
+    detection_qualification: Option<DetectionQualification>,
     detection_limit: Option<DetectionLimit>,
 }
 
@@ -458,6 +483,7 @@ struct ChangeClaimWire {
     coverage: CoverageState,
     coverage_receipt_sha256: Option<String>,
     detection_qualification_receipt_sha256: Option<String>,
+    detection_qualification: Option<DetectionQualification>,
     detection_limit: Option<DetectionLimit>,
 }
 
@@ -477,6 +503,7 @@ impl ChangeClaim {
         coverage: CoverageState,
         coverage_receipt_sha256: Option<String>,
         detection_qualification_receipt_sha256: Option<String>,
+        detection_qualification: Option<DetectionQualification>,
         detection_limit: Option<DetectionLimit>,
     ) -> Result<Self, String> {
         let claim_id = claim_id.into();
@@ -528,6 +555,14 @@ impl ChangeClaim {
                 if detection_qualification_receipt_sha256.is_none() {
                     return Err("no-change claim requires an exact target/sensor detection-qualification receipt".into());
                 }
+                let qualification = detection_qualification.ok_or_else(|| {
+                    "no-change claim requires the structured detection-qualification result".to_string()
+                })?;
+                if classify_non_detection(qualification)
+                    != NonDetectionDisposition::AbsenceEvidenceEligible
+                {
+                    return Err("no-change claim requires target coverage, valid calibration, in-domain applicability and sufficient qualified probability of detection".into());
+                }
                 if supporting_observation_ids.len() < 2 {
                     return Err("no-change claim requires at least two supporting observations".into());
                 }
@@ -568,6 +603,7 @@ impl ChangeClaim {
             coverage,
             coverage_receipt_sha256,
             detection_qualification_receipt_sha256,
+            detection_qualification,
             detection_limit,
         })
     }
@@ -660,6 +696,7 @@ impl TryFrom<ChangeClaimWire> for ChangeClaim {
             wire.coverage,
             wire.coverage_receipt_sha256,
             wire.detection_qualification_receipt_sha256,
+            wire.detection_qualification,
             wire.detection_limit,
         )
     }
@@ -839,6 +876,13 @@ mod tests {
             CoverageState::CompleteQualified,
             Some(digest(b'd')),
             Some(digest(b'e')),
+            Some(DetectionQualification {
+                footprint_covers_target: true,
+                calibration_valid: true,
+                target_in_validated_domain: true,
+                probability_of_detection: Some(0.99),
+                minimum_required_probability: 0.95,
+            }),
             Some(DetectionLimit::new("minimum-change", 0.05, "fraction").unwrap()),
         )
         .unwrap()
@@ -851,7 +895,7 @@ mod tests {
             TimeWindow::new("2024-01-01", "2025-01-01").unwrap(),
             ChangeDisposition::NoChangeWithinEnvelope, None,
             vec!["a".into(), "b".into()], vec!["a".into(), "b".into()], vec![],
-            CoverageState::Partial, None, Some(digest(b'e')),
+            CoverageState::Partial, None, Some(digest(b'e')), None,
             Some(DetectionLimit::new("min-change", 1.0, "unit").unwrap())
         ).is_err());
     }
@@ -867,8 +911,81 @@ mod tests {
             CoverageState::CompleteQualified,
             Some(digest(b'd')),
             None,
+            None,
             Some(DetectionLimit::new("min-change", 0.05, "fraction").unwrap())
         ).is_err());
+    }
+
+    #[test]
+    fn no_change_requires_absence_eligible_shared_detection_qualification() {
+        for qualification in [
+            DetectionQualification {
+                footprint_covers_target: false,
+                calibration_valid: true,
+                target_in_validated_domain: true,
+                probability_of_detection: Some(0.99),
+                minimum_required_probability: 0.95,
+            },
+            DetectionQualification {
+                footprint_covers_target: true,
+                calibration_valid: false,
+                target_in_validated_domain: true,
+                probability_of_detection: Some(0.99),
+                minimum_required_probability: 0.95,
+            },
+            DetectionQualification {
+                footprint_covers_target: true,
+                calibration_valid: true,
+                target_in_validated_domain: false,
+                probability_of_detection: Some(0.99),
+                minimum_required_probability: 0.95,
+            },
+            DetectionQualification {
+                footprint_covers_target: true,
+                calibration_valid: true,
+                target_in_validated_domain: true,
+                probability_of_detection: Some(0.70),
+                minimum_required_probability: 0.95,
+            },
+        ] {
+            let result = ChangeClaim::new(
+                "claim", "class", "ontology-v1", "support-a",
+                TimeWindow::new("2024-01-01", "2025-01-01").unwrap(),
+                ChangeDisposition::NoChangeWithinEnvelope, None,
+                vec!["obs-a".into(), "obs-b".into()],
+                vec!["obs-a".into(), "obs-b".into()], vec![],
+                CoverageState::CompleteQualified,
+                Some(digest(b'd')),
+                Some(digest(b'e')),
+                Some(qualification),
+                Some(DetectionLimit::new("minimum-change", 0.05, "fraction").unwrap()),
+            );
+            assert!(result.is_err(), "unqualified POD result was accepted as no-change");
+        }
+    }
+
+    #[test]
+    fn eo_quality_maps_into_shared_evidence_state_without_parallel_state_field() {
+        assert_eq!(
+            ObservationQuality::QualifiedUsable.evidence_state(),
+            EvidenceState::Present
+        );
+        assert_eq!(
+            ObservationQuality::CloudContaminated.evidence_state(),
+            EvidenceState::Partial
+        );
+        assert_eq!(
+            ObservationQuality::RadiometricInvalid.evidence_state(),
+            EvidenceState::Invalid
+        );
+        assert_eq!(
+            ObservationQuality::OutOfDomain.evidence_state(),
+            EvidenceState::OutOfDomain
+        );
+        assert_eq!(
+            ObservationQuality::Conflicted.evidence_state(),
+            EvidenceState::Conflicted
+        );
     }
 
     #[test]
@@ -1019,7 +1136,7 @@ mod tests {
             TimeWindow::new("2024-01-01", "2025-01-01").unwrap(),
             ChangeDisposition::CandidateChange, None,
             vec!["absent".into()], vec!["absent".into()], vec![],
-            CoverageState::Unknown, None, None, None
+            CoverageState::Unknown, None, None, None, None
         ).unwrap();
         assert!(EvidenceBundle::new(vec![], vec![missing]).is_err());
 
