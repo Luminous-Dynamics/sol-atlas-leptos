@@ -196,6 +196,9 @@ pub struct ObservationRecord {
     collection_id: Option<String>,
     /// Provider-native processing baseline/version; absent remains unknown.
     processing_baseline: Option<String>,
+    /// Digest of the exact asset-level band/polarization/measurement profile.
+    /// Missing means the source measurement configuration is not fully identified.
+    measurement_profile_sha256: Option<String>,
     source_asset_receipt_sha256: String,
     processing_receipt_sha256: String,
     rights: RightsReceiptRef,
@@ -218,6 +221,8 @@ struct ObservationRecordWire {
     instrument_id: Option<String>,
     collection_id: Option<String>,
     processing_baseline: Option<String>,
+    #[serde(default)]
+    measurement_profile_sha256: Option<String>,
     source_asset_receipt_sha256: String,
     processing_receipt_sha256: String,
     rights: RightsReceiptRef,
@@ -316,6 +321,7 @@ pub struct ObservationSystemSignature {
     modality: ObservationModality,
     collection_id: Option<String>,
     processing_baseline: Option<String>,
+    measurement_profile_sha256: Option<String>,
 }
 
 impl ObservationSystemSignature {
@@ -327,6 +333,7 @@ impl ObservationSystemSignature {
     pub fn modality(&self) -> ObservationModality { self.modality }
     pub fn collection_id(&self) -> Option<&str> { self.collection_id.as_deref() }
     pub fn processing_baseline(&self) -> Option<&str> { self.processing_baseline.as_deref() }
+    pub fn measurement_profile_sha256(&self) -> Option<&str> { self.measurement_profile_sha256.as_deref() }
 }
 
 impl ObservationRecord {
@@ -400,6 +407,7 @@ impl ObservationRecord {
             instrument_id,
             collection_id,
             processing_baseline,
+            measurement_profile_sha256: None,
             source_asset_receipt_sha256: normalize_sha256(
                 source_asset_receipt_sha256.into(),
                 "source asset receipt",
@@ -453,6 +461,23 @@ impl ObservationRecord {
         self.processing_baseline.as_deref()
     }
 
+    pub fn measurement_profile_sha256(&self) -> Option<&str> {
+        self.measurement_profile_sha256.as_deref()
+    }
+
+    /// Bind an externally computed, canonical fingerprint of this exact asset's
+    /// band/polarization/measurement configuration. The caller must compute it
+    /// from the frozen source profile; Sol-Atlas does not guess missing bands.
+    pub fn with_measurement_profile_sha256(
+        mut self,
+        value: Option<String>,
+    ) -> Result<Self, String> {
+        self.measurement_profile_sha256 = value
+            .map(|digest| normalize_sha256(digest, "measurement profile"))
+            .transpose()?;
+        Ok(self)
+    }
+
     pub fn system_signature(&self) -> ObservationSystemSignature {
         ObservationSystemSignature {
             source_id: self.source_id.clone(),
@@ -463,6 +488,7 @@ impl ObservationRecord {
             modality: self.modality,
             collection_id: self.collection_id.clone(),
             processing_baseline: self.processing_baseline.clone(),
+            measurement_profile_sha256: self.measurement_profile_sha256.clone(),
         }
     }
 
@@ -875,14 +901,18 @@ impl ChangeClaim {
             .iter()
             .map(|observation| observation.system_signature())
             .collect::<BTreeSet<_>>();
-        match (&self.cross_system_comparability_receipt, system_signatures.len()) {
-            (None, count) if count > 1 => {
-                return Err("claim combines distinct source/platform/sensor/collection/processing systems without a cross-system comparability receipt".into());
+        let missing_measurement_profile = referenced
+            .iter()
+            .any(|observation| observation.measurement_profile_sha256.is_none());
+        match (&self.cross_system_comparability_receipt, system_signatures.len(), missing_measurement_profile) {
+            (None, count, false) if count <= 1 => {}
+            (None, _, _) => {
+                return Err("claim combines distinct or incompletely identified measurement systems without a cross-system comparability receipt".into());
             }
-            (Some(_), count) if count <= 1 => {
-                return Err("cross-system comparability receipt is present but the claim references only one observation-system signature".into());
+            (Some(_), count, false) if count <= 1 => {
+                return Err("cross-system comparability receipt is present but the claim references one fully identified observation-system signature".into());
             }
-            (Some(receipt), _) => {
+            (Some(receipt), _, _) => {
                 let claim_observation_ids = self.observation_ids.iter().cloned().collect::<BTreeSet<_>>();
                 let receipt_observation_ids = receipt.observation_ids.iter().cloned().collect::<BTreeSet<_>>();
                 if receipt_observation_ids != claim_observation_ids {
@@ -1120,7 +1150,9 @@ mod tests {
                 Some(date.to_string()),
                 None,
             )
-            .unwrap(),
+            .unwrap()
+        .with_measurement_profile_sha256(Some(digest(b'm')))
+        .unwrap(),
             ObservationModality::Optical,
             quality,
         )
@@ -1331,6 +1363,35 @@ mod tests {
         );
         assert!(EvidenceBundle::new(vec![obs_a, obs_b], vec![wrong_target])
             .unwrap_err().contains("scope"));
+    }
+
+    #[test]
+    fn asset_band_or_polarization_profile_changes_the_measurement_system_signature() {
+        let a = observation("obs-a", "2024-01-01", ObservationQuality::QualifiedUsable);
+        let mut b = observation("obs-b", "2025-01-01", ObservationQuality::QualifiedUsable);
+        b.measurement_profile_sha256 = Some(digest(b"different-bands"));
+        assert_ne!(a.system_signature(), b.system_signature());
+    }
+
+    #[test]
+    fn missing_asset_measurement_profile_requires_comparability_receipt() {
+        let mut a = observation("obs-a", "2024-01-01", ObservationQuality::QualifiedUsable);
+        let b = observation("obs-b", "2025-01-01", ObservationQuality::QualifiedUsable);
+        a.measurement_profile_sha256 = None;
+        let result = EvidenceBundle::new(vec![a.clone(), b.clone()], vec![no_change_claim()]);
+        assert!(result.unwrap_err().contains("incompletely identified measurement systems"));
+
+        let mut claim = no_change_claim();
+        claim.cross_system_comparability_receipt = Some(
+            CrossSystemComparabilityReceiptRef::new(
+                digest(b"bridge-missing-profile"),
+                vec!["obs-a".into(), "obs-b".into()],
+                "support-a",
+                "vegetation-loss",
+                "fixture-ontology-v1",
+            ).unwrap()
+        );
+        assert!(EvidenceBundle::new(vec![a,b], vec![claim]).is_ok());
     }
 
     #[test]
