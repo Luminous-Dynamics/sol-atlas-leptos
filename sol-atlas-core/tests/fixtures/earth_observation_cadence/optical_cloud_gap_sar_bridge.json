@@ -1,0 +1,80 @@
+{
+  "schema_version": 1,
+  "timeline_id": "synthetic-cadence-cloud-sar-v0-1",
+  "support_id": "support-synthetic-catchment-001",
+  "opportunities": [
+    {
+      "opportunity_id": "s2-clear-day-000",
+      "support_id": "support-synthetic-catchment-001",
+      "source_id": "fixture-source",
+      "sensor_id": "sentinel-2-fixture",
+      "modality": "optical",
+      "expected_at_unix_ms": 1000,
+      "acquisition": {
+        "start_unix_ms": 1000,
+        "end_unix_ms": 2000
+      },
+      "asset_id": "fixture:asset-s2-clear-000",
+      "source_event_id": "fixture-event-s2-clear-000",
+      "state": "qualified_usable",
+      "delivered_at_unix_ms": 3000,
+      "assessment": null,
+      "coverage_qualification_receipt_sha256": null,
+      "detection_qualification_receipt_sha256": null
+    },
+    {
+      "opportunity_id": "s2-cloud-day-005",
+      "support_id": "support-synthetic-catchment-001",
+      "source_id": "fixture-source",
+      "sensor_id": "sentinel-2-fixture",
+      "modality": "optical",
+      "expected_at_unix_ms": 432001000,
+      "acquisition": {
+        "start_unix_ms": 432001000,
+        "end_unix_ms": 432002000
+      },
+      "asset_id": "fixture:asset-s2-cloud-005",
+      "source_event_id": "fixture-event-s2-cloud-005",
+      "state": "cloud_contaminated",
+      "delivered_at_unix_ms": 432005000,
+      "assessment": null,
+      "coverage_qualification_receipt_sha256": null,
+      "detection_qualification_receipt_sha256": null
+    },
+    {
+      "opportunity_id": "s1-usable-day-006",
+      "support_id": "support-synthetic-catchment-001",
+      "source_id": "fixture-source",
+      "sensor_id": "sentinel-1-fixture",
+      "modality": "synthetic_aperture_radar",
+      "expected_at_unix_ms": 518401000,
+      "acquisition": {
+        "start_unix_ms": 518401000,
+        "end_unix_ms": 518402000
+      },
+      "asset_id": "fixture:asset-s1-usable-006",
+      "source_event_id": "fixture-event-s1-usable-006",
+      "state": "qualified_usable",
+      "delivered_at_unix_ms": 518404000,
+      "assessment": null,
+      "coverage_qualification_receipt_sha256": null,
+      "detection_qualification_receipt_sha256": null
+    },
+    {
+      "opportunity_id": "s2-no-acquisition-day-010",
+      "support_id": "support-synthetic-catchment-001",
+      "source_id": "fixture-source",
+      "sensor_id": "sentinel-2-fixture",
+      "modality": "optical",
+      "expected_at_unix_ms": 864001000,
+      "acquisition": null,
+      "asset_id": null,
+      "source_event_id": null,
+      "state": "no_acquisition",
+      "delivered_at_unix_ms": null,
+      "assessment": null,
+      "coverage_qualification_receipt_sha256": null,
+      "detection_qualification_receipt_sha256": null
+    }
+  ]
+}
