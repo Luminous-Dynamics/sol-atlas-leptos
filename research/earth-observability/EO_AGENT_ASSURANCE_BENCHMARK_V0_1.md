@@ -223,3 +223,33 @@ This benchmark does not certify a satellite product, model, causal explanation, 
 4. ESA Φ-lab (2026), [Agentic AI for Earth Observation](https://cin.philab.esa.int/databases/projects/agentic-ai-for-earth-observation-evaluation-and-benchmarking-of-llms).
 5. [GeoAgentBench](https://doi.org/10.1080/10095020.2026.2736957), published online 2026-10-01.
 6. Sol-Atlas, [Planetary Change Evidence Benchmark v0.1](./PLANETARY_CHANGE_EVIDENCE_BENCHMARK_V0_1.md) and [interface audit](./SOL_ATLAS_EO_INTERFACE_AUDIT_V0_1.md).
+
+## 9. Executable scorer and agent-view projection
+
+The repository's Rust binary is `src/bin/eo_agent_assurance_scorer.rs`. It is part of the root Cargo package and uses the already-locked SHA-256 implementation.
+
+First export the agent-visible projection. This deliberately excludes the evaluator oracle and the runtime fault schedule:
+
+```sh
+cargo run --bin eo-agent-assurance-scorer -- \\
+  --emit-agent-view \\
+  research/earth-observability/eo-agent-assurance-task-manifest-v0.1.json \\
+  /tmp/eo-agent-view-v0.1.json
+```
+
+Give the evaluated agent only the exported view and the read-only tools for that run. The checked-in 16-case development corpus and its oracle are public, so this corpus is **not blind** and must not be used to claim held-out performance. Keep future blind/evaluation oracles outside the agent's accessible environment.
+
+After the harness captures the agent result, the trusted runner must independently replay the recorded deterministic tool inputs against the frozen fixture world and append the `replay` receipt. The receipt contains `verified`, `deterministic`, `result_digest` and `replay_digest`. The scorer recomputes the canonical SHA-256 of each task payload with its `replay` member omitted, checks both digests, and rejects a mismatch. The scorer itself does not rerun tools or authenticate an external runner signature; the harness/CI artifact boundary is responsible for protecting the runner-produced receipt.
+
+Score the complete result envelope:
+
+```sh
+cargo run --bin eo-agent-assurance-scorer -- \\
+  research/earth-observability/eo-agent-assurance-task-manifest-v0.1.json \\
+  /tmp/eo-agent-results-v0.1.json \\
+  /tmp/eo-agent-score-v0.1.json
+```
+
+The submitted result must conform to [`eo-agent-assurance-result-v0.1.schema.json`](../../schemas/eo-agent-assurance-result-v0.1.schema.json). `manifest_sha256` binds the result to the exact manifest file bytes. Task correctness and hard-gate compliance are reported separately. A syntactically valid run may legitimately score poorly; inspect `benchmark_score_eligible`, `hard_gate_violations`, per-task failures and the task success rate rather than interpreting process exit status as agent success.
+
+The scorer includes unit tests for positive control, claim provenance, prohibited-purpose use, unsupported no-change promotion, digest mismatch and attempted consequential action. These tests validate scorer logic, not model capability or real-world Earth-observation performance.
