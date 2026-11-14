@@ -81,3 +81,7 @@ jobs:
         run: cargo test --bin home-intent-spatial-qualifier
       - name: Audit the owner-review spatial crosswalk
         run: cargo run --bin home-intent-spatial-qualifier -- --self-test
+      - name: Test home geometric layout qualifier
+        run: cargo test --bin home-geometric-layout-qualifier
+      - name: Audit synthetic geometric layout
+        run: cargo run --bin home-geometric-layout-qualifier -- --self-test
