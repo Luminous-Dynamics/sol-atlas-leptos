@@ -10,7 +10,7 @@
 //! safety, appliance performance, utility capacity, manufacturing or suitability.
 
 use serde_json::{Value, json};
-use std::{collections::{BTreeMap, BTreeSet}, env, process};
+use std::{collections::BTreeSet, env, process};
 
 const FIXTURE: &str = include_str!(
     "../../docs/research/home-delivery-systems/home-service-interface-synthetic-v0.1.json"
@@ -117,9 +117,12 @@ fn validate_profile(profile: &Value, shared_binding: &Value, errors: &mut Vec<St
 
     let interface_rows = rows(profile, "interfaces");
     let interface_ids = unique_ids(interface_rows, "kind", &format!("{id}.interfaces"), errors);
-    let expected = expected_profile.unwrap_or_default();
-    let actual = interface_ids.iter().map(String::as_str).collect::<BTreeSet<_>>();
-    if actual != expected {
+    let expected = expected_profile
+        .unwrap_or_default()
+        .into_iter()
+        .map(str::to_owned)
+        .collect::<BTreeSet<String>>();
+    if interface_ids != expected {
         errors.push(format!("{id}: interface set differs from the service contract"));
     }
     for interface in interface_rows.into_iter().flatten() {
@@ -197,14 +200,17 @@ fn validate(stack: &Value) -> Result<Value, Vec<String>> {
     let services = profiles
         .into_iter()
         .flatten()
-        .filter_map(|p| text_at(p, "service"))
-        .collect::<BTreeSet<_>>();
-    let expected_services = BTreeSet::from([
+        .filter_map(|p| text_at(p, "service").map(str::to_owned))
+        .collect::<BTreeSet<String>>();
+    let expected_services = [
         "warewashing",
         "water_continuity",
         "hot_water",
         "ventilation_filtration",
-    ]);
+    ]
+    .into_iter()
+    .map(str::to_owned)
+    .collect::<BTreeSet<String>>();
     if services != expected_services || profile_ids.len() != 4 {
         errors.push("synthetic stack must contain exactly the four declared service profiles".to_owned());
     }
