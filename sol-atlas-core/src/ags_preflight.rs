@@ -257,9 +257,8 @@ fn parse_quoted_row(line: &[u8]) -> Result<Vec<String>, AgsPreflightError> {
     let mut index = 0usize;
 
     // Canonical AGS4 v4.1.1 quotes every cell, including the DATA DESCRIPTOR.
-    // Retain compatibility with the unquoted-descriptor variant already used
-    // by some exchange fixtures, while keeping every value cell strictly
-    // quoted in either form.
+    // Retain compatibility with unquoted descriptors found in some exchange
+    // fixtures, while keeping all value cells strictly quoted in either form.
     if line.first() != Some(&b'"') {
         let descriptor_end = line
             .iter()
@@ -329,8 +328,9 @@ fn parse_quoted_row(line: &[u8]) -> Result<Vec<String>, AgsPreflightError> {
 
 /// Parse AGS4's quoted group-row envelope.
 ///
-/// The parser enforces ASCII, CRLF-delimited rows, quoted cells, GROUP/HEADING/
-/// UNIT/TYPE order and field-width consistency. It does not validate the AGS
+/// The parser enforces ASCII, CRLF-delimited rows, canonical fully quoted AGS4
+/// cells (plus a compatible unquoted-descriptor form), GROUP/HEADING/UNIT/TYPE
+/// order and field-width consistency. It does not validate the AGS
 /// standard dictionary, units, geotechnical data, parent references, BGS
 /// submission rules, coordinate frames, or the correctness of any measurement.
 pub fn parse_ags4_preflight(bytes: &[u8]) -> Result<AgsDocument, AgsPreflightError> {
