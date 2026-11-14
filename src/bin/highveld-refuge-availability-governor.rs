@@ -174,8 +174,7 @@ fn evaluate(case: &Value) -> Result<Value, Vec<String>> {
                 Some(access_occupied),
                 Some(access_committed),
             ) => {
-                let valid_total = occupied <= cap
-                    && committed <= cap.saturating_sub(occupied);
+                let valid_total = occupied <= cap && committed <= cap.saturating_sub(occupied);
                 let valid_accessible = access_cap <= cap
                     && access_occupied <= access_cap
                     && access_committed <= access_cap.saturating_sub(access_occupied)
