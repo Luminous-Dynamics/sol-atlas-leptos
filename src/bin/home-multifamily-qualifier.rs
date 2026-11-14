@@ -21,6 +21,9 @@ const FIXTURE: &str = include_str!(
 const CORPUS: &str = include_str!(
     "../../docs/research/home-delivery-systems/multifamily-adversarial-corpus-v0.1.json"
 );
+const RESIDENT_PROGRAMME: &str = include_str!(
+    "../../docs/research/home-delivery-systems/multifamily-resident-programme-synthetic-v0.1.json"
+);
 
 #[derive(Clone, Copy, Debug)]
 struct Rect {
@@ -257,7 +260,180 @@ fn validate_case_manifest(corpus: &Value, errors: &mut Vec<String>) -> usize {
     case_ids.len()
 }
 
-fn validate(fixture: &Value, corpus: &Value) -> Result<Value, Vec<String>> {
+fn validate_resident_programme(
+    building: &Value,
+    programme: &Value,
+    building_unit_ids: &BTreeSet<String>,
+    errors: &mut Vec<String>,
+) -> (usize, usize, usize, usize) {
+    if text_at(programme, "schema_version") != Some("multifamily-resident-programme/0.1") {
+        errors.push("resident programme has unsupported schema_version".to_owned());
+    }
+    if text_at(programme, "maturity") != Some("synthetic_scenario_only")
+        || text_at(programme, "source_scope") != Some("synthetic_scenario_authoring_not_real_resident_data")
+    {
+        errors.push("resident programme must remain a synthetic, non-personal scenario".to_owned());
+    }
+    let programme_id = text_at(programme, "programme_id").unwrap_or("<missing-programme-id>");
+    let root_ref = building
+        .get("source_binding")
+        .and_then(|value| value.get("resident_programme_ref"))
+        .unwrap_or(&Value::Null);
+    if text_at(root_ref, "id") != Some(programme_id) {
+        errors.push("building does not bind the exact resident programme identity".to_owned());
+    }
+
+    let unit_rows = array_at(programme, "unit_programmes");
+    let programme_unit_ids = unique_text_rows(unit_rows, "unit_id", "resident_programme.unit_programmes", errors);
+    if &programme_unit_ids != building_unit_ids {
+        errors.push("resident programme unit IDs do not exactly match the building units".to_owned());
+    }
+
+    let building_rows = array_at(building, "unit_programmes");
+    let mut expected_refs = BTreeMap::<String, String>::new();
+    if let Some(rows) = building_rows {
+        for row in rows {
+            let unit_id = text_at(row, "unit_id").unwrap_or("<missing-unit>");
+            let programme_ref = row.get("resident_programme_ref").unwrap_or(&Value::Null);
+            let programme_ref_id = text_at(programme_ref, "id").unwrap_or("<missing-programme-ref>");
+            if expected_refs.insert(unit_id.to_owned(), programme_ref_id.to_owned()).is_some() {
+                errors.push(format!("building has duplicate unit programme binding for {unit_id}"));
+            }
+        }
+    }
+
+    let mut activity_ids = BTreeSet::new();
+    let mut relationship_ids = BTreeSet::new();
+    let mut requirement_ids = BTreeSet::new();
+    let mut preference_ids = BTreeSet::new();
+    let mut activity_count = 0usize;
+    let mut requirement_count = 0usize;
+    let mut preference_count = 0usize;
+
+    if let Some(units) = unit_rows {
+        for unit in units {
+            let unit_id = text_at(unit, "unit_id").unwrap_or("<missing-unit>");
+            let unit_programme_id = text_at(unit, "unit_programme_id").unwrap_or("<missing-unit-programme>");
+            if expected_refs.get(unit_id).map(String::as_str) != Some(unit_programme_id) {
+                errors.push(format!("building unit {unit_id} is not bound to exact resident unit programme {unit_programme_id}"));
+            }
+            if text_at(unit, "source_scope") != Some("synthetic_scenario_authoring_not_real_resident_data") {
+                errors.push(format!("unit {unit_id} has an invalid source_scope"));
+            }
+            if text_at(unit, "occupancy_state") != Some("not_supplied")
+                || !unit.get("concurrent_people").is_some_and(Value::is_null)
+            {
+                errors.push(format!("synthetic unit {unit_id} must not invent occupancy or concurrent population"));
+            }
+
+            let activities = array_at(unit, "activities");
+            if activities.is_none_or(Vec::is_empty) {
+                errors.push(format!("unit {unit_id} has no activity programme"));
+            }
+            let mut local_activity_ids = BTreeSet::new();
+            for activity in activities.into_iter().flatten() {
+                activity_count += 1;
+                let id = text_at(activity, "activity_id").unwrap_or("<missing-activity-id>");
+                if !activity_ids.insert(id.to_owned()) || !local_activity_ids.insert(id.to_owned()) {
+                    errors.push(format!("duplicate resident activity ID {id}"));
+                }
+                if text_at(activity, "statement").is_none_or(str::is_empty) {
+                    errors.push(format!("activity {id} has no resident-facing statement"));
+                }
+                if !matches!(text_at(activity, "frequency"), Some("daily" | "weekly" | "occasional" | "seasonal" | "unknown")) {
+                    errors.push(format!("activity {id} has invalid frequency"));
+                }
+                if text_at(activity, "concurrency_state") != Some("not_supplied")
+                    || !activity.get("concurrent_people").is_some_and(Value::is_null)
+                {
+                    errors.push(format!("synthetic activity {id} must not invent concurrency"));
+                }
+                if activity.get("dedicated_space_required").is_some_and(|v| !v.is_null() && !v.is_boolean()) {
+                    errors.push(format!("activity {id} has invalid dedicated-space requirement"));
+                }
+                if !matches!(text_at(activity, "privacy_requirement"), Some("private" | "semi_private" | "shared" | "public" | "service" | "not_stated")) {
+                    errors.push(format!("activity {id} has invalid privacy_requirement"));
+                }
+                let dimensions = activity.get("spatial_limits").unwrap_or(&Value::Null);
+                if text_at(dimensions, "state") != Some("not_supplied")
+                    || ["minimum_width_mm", "preferred_width_mm", "minimum_area_mm2", "preferred_area_mm2"]
+                        .iter()
+                        .any(|key| !dimensions.get(*key).is_some_and(Value::is_null))
+                {
+                    errors.push(format!("synthetic activity {id} must keep all dimensional limits NOT_SUPPLIED"));
+                }
+                if array_at(activity, "equipment_refs").is_none_or(|refs| !refs.is_empty()) {
+                    errors.push(format!("synthetic activity {id} must not claim unqualified equipment envelopes"));
+                }
+            }
+
+            let relationships = array_at(unit, "relationships");
+            for relationship in relationships.into_iter().flatten() {
+                let id = text_at(relationship, "relationship_id").unwrap_or("<missing-relationship-id>");
+                if !relationship_ids.insert(id.to_owned()) {
+                    errors.push(format!("duplicate resident relationship ID {id}"));
+                }
+                let from = text_at(relationship, "from_activity_id").unwrap_or("<missing-from-activity>");
+                let to = text_at(relationship, "to_activity_id").unwrap_or("<missing-to-activity>");
+                if !local_activity_ids.contains(from) || !local_activity_ids.contains(to) || from == to {
+                    errors.push(format!("resident relationship {id} has invalid activity bindings"));
+                }
+                if !matches!(text_at(relationship, "strength"), Some("non_negotiable" | "preference" | "unknown")) {
+                    errors.push(format!("resident relationship {id} has invalid strength"));
+                }
+            }
+
+            for requirement in array_at(unit, "requirements").into_iter().flatten() {
+                requirement_count += 1;
+                let id = text_at(requirement, "requirement_id").unwrap_or("<missing-requirement-id>");
+                if !requirement_ids.insert(id.to_owned()) {
+                    errors.push(format!("duplicate resident requirement ID {id}"));
+                }
+                if text_at(requirement, "source_scope") != Some("synthetic_scenario_authoring")
+                    || requirement.get("inferred").and_then(Value::as_bool) != Some(false)
+                    || text_at(requirement, "resident_confirmation_state") != Some("synthetic_not_real_resident")
+                {
+                    errors.push(format!("requirement {id} has invalid provenance or inference state"));
+                }
+            }
+
+            for preference in array_at(unit, "preferences").into_iter().flatten() {
+                preference_count += 1;
+                let id = text_at(preference, "preference_id").unwrap_or("<missing-preference-id>");
+                if !preference_ids.insert(id.to_owned()) {
+                    errors.push(format!("duplicate resident preference ID {id}"));
+                }
+                if text_at(preference, "source_scope") != Some("synthetic_scenario_authoring")
+                    || preference.get("inferred").and_then(Value::as_bool) != Some(false)
+                    || text_at(preference, "priority_state") != Some("not_supplied")
+                    || !preference.get("priority").is_some_and(Value::is_null)
+                    || !preference.get("tradeable").is_some_and(Value::is_null)
+                {
+                    errors.push(format!("synthetic preference {id} must not invent inference or priority"));
+                }
+            }
+
+            if text_at(unit, "access_requirement_state") != Some("not_stated")
+                || array_at(unit, "access_requirements").is_none_or(|requirements| !requirements.is_empty())
+            {
+                errors.push(format!("synthetic unit {unit_id} must not infer access requirements"));
+            }
+            for service in array_at(unit, "service_requirements").into_iter().flatten() {
+                if text_at(service, "state") != Some("not_supplied")
+                    || !service.get("quantity").is_some_and(Value::is_null)
+                    || !service.get("unit").is_some_and(Value::is_null)
+                    || text_at(service, "quality_requirement_state") != Some("not_supplied")
+                {
+                    errors.push(format!("synthetic unit {unit_id} must not invent service demand or quality targets"));
+                }
+            }
+        }
+    }
+
+    (programme_unit_ids.len(), activity_count, requirement_count, preference_count)
+}
+
+fn validate(fixture: &Value, corpus: &Value, programme: &Value) -> Result<Value, Vec<String>> {
     let mut errors = Vec::new();
     let candidate_id = text_at(fixture, "candidate_id").unwrap_or("<missing-candidate-id>");
     if text_at(fixture, "schema_version") != Some("multi-family-building/0.1") {
@@ -430,6 +606,8 @@ fn validate(fixture: &Value, corpus: &Value) -> Result<Value, Vec<String>> {
             }
         }
     }
+    let (resident_programme_unit_count, resident_activity_count, resident_requirement_count, resident_preference_count) =
+        validate_resident_programme(fixture, programme, &unit_ids, &mut errors);
 
     let connection_rows = array_at(building, "everyday_connections");
     let connection_ids = unique_text_rows(
@@ -621,6 +799,10 @@ fn validate(fixture: &Value, corpus: &Value) -> Result<Value, Vec<String>> {
         "floor_count": floor_ids.len(),
         "space_count": space_ids.len(),
         "unit_count": unit_ids.len(),
+        "resident_programme_unit_count": resident_programme_unit_count,
+        "resident_activity_count": resident_activity_count,
+        "resident_requirement_count": resident_requirement_count,
+        "resident_preference_count": resident_preference_count,
         "everyday_connection_count": connection_ids.len(),
         "vertical_core_count": core_ids.len(),
         "shared_service_count": shared_service_ids.len(),
@@ -635,10 +817,11 @@ fn validate(fixture: &Value, corpus: &Value) -> Result<Value, Vec<String>> {
     }
 }
 
-fn load_fixture() -> (Value, Value) {
+fn load_fixture() -> (Value, Value, Value) {
     (
         serde_json::from_str(FIXTURE).expect("multi-family fixture JSON must parse"),
         serde_json::from_str(CORPUS).expect("multi-family corpus JSON must parse"),
+        serde_json::from_str(RESIDENT_PROGRAMME).expect("resident programme JSON must parse"),
     )
 }
 
@@ -648,8 +831,8 @@ fn main() {
         println!("home-multifamily-qualifier [--self-test]");
         return;
     }
-    let (fixture, corpus) = load_fixture();
-    match validate(&fixture, &corpus) {
+    let (fixture, corpus, programme) = load_fixture();
+    match validate(&fixture, &corpus, &programme) {
         Ok(report) => println!("{}", serde_json::to_string_pretty(&report).unwrap_or_default()),
         Err(errors) => {
             eprintln!("HOME_MULTIFAMILY_QUALIFIER_FAIL: {}", errors.join("; "));
@@ -669,6 +852,10 @@ mod tests {
         assert_eq!(report["floor_count"], 2);
         assert_eq!(report["space_count"], 14);
         assert_eq!(report["unit_count"], 4);
+        assert_eq!(report["resident_programme_unit_count"], 4);
+        assert_eq!(report["resident_activity_count"], 20);
+        assert_eq!(report["resident_requirement_count"], 6);
+        assert_eq!(report["resident_preference_count"], 8);
         assert_eq!(report["everyday_connection_count"], 12);
         assert_eq!(report["vertical_core_count"], 2);
         assert_eq!(report["authored_development_case_count"], 47);
@@ -677,7 +864,7 @@ mod tests {
 
     #[test]
     fn duplicate_space_identity_is_rejected() {
-        let (mut fixture, corpus) = load_fixture();
+        let (mut fixture, corpus, programme) = load_fixture();
         fixture["building"]["spaces"][1]["space_id"] = json!("U-001");
         assert!(validate(&fixture, &corpus).is_err());
     }
@@ -760,8 +947,44 @@ mod tests {
     }
 
     #[test]
+    fn unit_programme_binding_mismatch_is_rejected() {
+        let (mut fixture, corpus, programme) = load_fixture();
+        fixture["unit_programmes"][0]["resident_programme_ref"] = Value::Null;
+        assert!(validate(&fixture, &corpus, &programme).is_err());
+    }
+
+    #[test]
+    fn inferred_requirement_is_rejected() {
+        let (fixture, corpus, mut programme) = load_fixture();
+        programme["unit_programmes"][0]["requirements"][0]["inferred"] = json!(true);
+        assert!(validate(&fixture, &corpus, &programme).is_err());
+    }
+
+    #[test]
+    fn fabricated_spatial_dimension_is_rejected_in_synthetic_programme() {
+        let (fixture, corpus, mut programme) = load_fixture();
+        programme["unit_programmes"][0]["activities"][0]["spatial_limits"]["minimum_width_mm"] = json!(900);
+        assert!(validate(&fixture, &corpus, &programme).is_err());
+    }
+
+    #[test]
+    fn duplicate_activity_identity_is_rejected() {
+        let (fixture, corpus, mut programme) = load_fixture();
+        let duplicate_id = programme["unit_programmes"][0]["activities"][0]["activity_id"].clone();
+        programme["unit_programmes"][0]["activities"][1]["activity_id"] = duplicate_id;
+        assert!(validate(&fixture, &corpus, &programme).is_err());
+    }
+
+    #[test]
+    fn inferred_access_requirement_is_rejected() {
+        let (fixture, corpus, mut programme) = load_fixture();
+        programme["unit_programmes"][0]["access_requirement_state"] = json!("synthetic_scenario_declared");
+        assert!(validate(&fixture, &corpus, &programme).is_err());
+    }
+
+    #[test]
     fn duplicate_manifest_case_identity_is_rejected() {
-        let (fixture, mut corpus) = load_fixture();
+        let (fixture, mut corpus, programme) = load_fixture();
         corpus["cases"][1]["case_id"] = corpus["cases"][0]["case_id"].clone();
         assert!(validate(&fixture, &corpus).is_err());
     }
