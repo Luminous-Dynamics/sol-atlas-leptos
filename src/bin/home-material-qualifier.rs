@@ -402,7 +402,8 @@ mod tests {
 
     #[test]
     fn unit_mismatch_blocks_equivalence() {
-        let (c,mut s,d,cs,ss,ds)=fixture();
+        let (mut c,mut s,d,cs,ss,ds)=fixture();
+        c["components"][1]["properties"][0]["unit"]=json!("hours");
         s["substitutions"][0]["expected_disposition"]=json!("NOT_COMPARABLE");
         let report=validate(&c,&s,&d,&cs,&ss,&ds);
         assert!(report.is_ok());
