@@ -1,0 +1,799 @@
+{
+  "schema_version": "0.1.0",
+  "benchmark_id": "PCIT-SYNTHETIC-CORPUS-0.1",
+  "purpose": "synthetic_protocol_qualification",
+  "non_claims": [
+    "Cases are synthetic fixtures and do not represent observed Earth conditions.",
+    "Passing the corpus does not establish field accuracy, sensor harmonization or scientific validity.",
+    "The corpus is not evidence that any current Sol-Atlas binary or CI workflow has passed."
+  ],
+  "cases": [
+    {
+      "case_id": "PCIT-SYN-001",
+      "family": "physical_change_positive",
+      "truth_state": "physical_change",
+      "truth_note": "A persistent class-area change occurs above the preregistered minimum detectable effect; acquisition and interpretation profiles are held constant.",
+      "target_estimand": {
+        "quantity": "class_area_fraction",
+        "support": "subcatchment",
+        "unit": "fraction",
+        "nominal_resolution_m": 30,
+        "minimum_mapping_unit_m2": 900,
+        "minimum_detectable_effect": 0.08,
+        "temporal_support": "season-matched annual composite"
+      },
+      "measurement_profiles": [
+        {
+          "profile_id": "LS8-OLI-C2-A",
+          "sensor_family": "Landsat 8",
+          "instrument": "OLI",
+          "spatial_resolution_m": 30,
+          "spectral_profile": "OLI reflective bands",
+          "processing_baseline": "Collection 2 Level-2",
+          "season_window": "same dry-season window",
+          "harmonization_profile": null,
+          "grid_id": "GRID-30-A"
+        },
+        {
+          "profile_id": "LS8-OLI-C2-B",
+          "sensor_family": "Landsat 8",
+          "instrument": "OLI",
+          "spatial_resolution_m": 30,
+          "spectral_profile": "OLI reflective bands",
+          "processing_baseline": "Collection 2 Level-2",
+          "season_window": "same dry-season window",
+          "harmonization_profile": null,
+          "grid_id": "GRID-30-A"
+        }
+      ],
+      "perturbations": [
+        {
+          "axis": "processing",
+          "transformation": "Repeat with byte-identical processing profile and fixed grid",
+          "admissibility": "admissible",
+          "expected_effect": "estimand_preserved",
+          "tolerance": 0.01,
+          "rationale": "Same sensor, processing and target support isolate target-state change."
+        }
+      ],
+      "reference_design": {
+        "availability": "independent_sample",
+        "independence": "independent",
+        "rights_status": "cleared_synthetic",
+        "design_note": "Synthetic probability sample drawn independently of the classifier."
+      },
+      "expected_disposition": "PHYSICAL_CHANGE_SUPPORTED_WITHIN_ENVELOPE",
+      "hard_invariants": [
+        "Promote only if independent reference supports the direction and magnitude within uncertainty.",
+        "No claim outside the named subcatchment, dates or 30 m support."
+      ]
+    },
+    {
+      "case_id": "PCIT-SYN-002",
+      "family": "sensor_shift",
+      "truth_state": "no_physical_change",
+      "truth_note": "The latent surface is unchanged; sensor spectral response creates a class score shift that naïve differencing interprets as change.",
+      "target_estimand": {
+        "quantity": "class_area_fraction",
+        "support": "subcatchment",
+        "unit": "fraction",
+        "nominal_resolution_m": 30,
+        "minimum_mapping_unit_m2": 900,
+        "minimum_detectable_effect": 0.05,
+        "temporal_support": "near-contemporaneous paired acquisitions"
+      },
+      "measurement_profiles": [
+        {
+          "profile_id": "SENSOR-A-NATIVE",
+          "sensor_family": "Sensor family A",
+          "instrument": "Instrument A",
+          "spatial_resolution_m": 30,
+          "spectral_profile": "spectral response A",
+          "processing_baseline": "baseline A",
+          "season_window": "same day",
+          "harmonization_profile": null,
+          "grid_id": "GRID-30-A"
+        },
+        {
+          "profile_id": "SENSOR-B-NATIVE",
+          "sensor_family": "Sensor family B",
+          "instrument": "Instrument B",
+          "spatial_resolution_m": 30,
+          "spectral_profile": "spectral response B",
+          "processing_baseline": "baseline B",
+          "season_window": "same day",
+          "harmonization_profile": null,
+          "grid_id": "GRID-30-A"
+        }
+      ],
+      "perturbations": [
+        {
+          "axis": "spectral_response",
+          "transformation": "Swap sensor spectral response while holding latent reflectance fixed",
+          "admissibility": "negative_control",
+          "expected_effect": "apparent_change_without_target_change",
+          "rationale": "Sensor response is the only changed factor."
+        }
+      ],
+      "reference_design": {
+        "availability": "independent_sample",
+        "independence": "independent",
+        "rights_status": "cleared_synthetic",
+        "design_note": "Known unchanged latent surface plus independent synthetic reflectance reference."
+      },
+      "expected_disposition": "MEASUREMENT_SHIFT_EXPLAINS_APPARENT_CHANGE",
+      "hard_invariants": [
+        "Must not promote physical change from raw cross-sensor differencing alone."
+      ]
+    },
+    {
+      "case_id": "PCIT-SYN-003",
+      "family": "processing_shift",
+      "truth_state": "no_physical_change",
+      "truth_note": "The same acquisition is reprocessed with a changed correction baseline; no target-state change occurred.",
+      "target_estimand": {
+        "quantity": "persistent_vegetation_fraction",
+        "support": "local_window",
+        "unit": "fraction",
+        "nominal_resolution_m": 30,
+        "minimum_mapping_unit_m2": 900,
+        "minimum_detectable_effect": 0.05,
+        "temporal_support": "same acquisition; processing comparison"
+      },
+      "measurement_profiles": [
+        {
+          "profile_id": "PROC-BASE-OLD",
+          "sensor_family": "Landsat",
+          "instrument": "OLI",
+          "spatial_resolution_m": 30,
+          "spectral_profile": "same OLI bands",
+          "processing_baseline": "baseline-1",
+          "season_window": "same acquisition",
+          "harmonization_profile": null,
+          "grid_id": "GRID-30-A"
+        },
+        {
+          "profile_id": "PROC-BASE-NEW",
+          "sensor_family": "Landsat",
+          "instrument": "OLI",
+          "spatial_resolution_m": 30,
+          "spectral_profile": "same OLI bands",
+          "processing_baseline": "baseline-2",
+          "season_window": "same acquisition",
+          "harmonization_profile": null,
+          "grid_id": "GRID-30-A"
+        }
+      ],
+      "perturbations": [
+        {
+          "axis": "processing",
+          "transformation": "Reprocess one acquisition under a different atmospheric/QA baseline",
+          "admissibility": "negative_control",
+          "expected_effect": "apparent_change_without_target_change",
+          "rationale": "The physical input is byte-identical; only processing differs."
+        }
+      ],
+      "reference_design": {
+        "availability": "independent_sample",
+        "independence": "independent",
+        "rights_status": "cleared_synthetic",
+        "design_note": "Known scene state and independent synthetic target labels."
+      },
+      "expected_disposition": "MEASUREMENT_SHIFT_EXPLAINS_APPARENT_CHANGE",
+      "hard_invariants": [
+        "Same acquisition reprocessing must not count as an independent observation."
+      ]
+    },
+    {
+      "case_id": "PCIT-SYN-004",
+      "family": "seasonal_shift",
+      "truth_state": "no_physical_change",
+      "truth_note": "Persistent land-cover class is unchanged, but phenology differs between the selected seasonal windows.",
+      "target_estimand": {
+        "quantity": "persistent_vegetation_fraction",
+        "support": "subcatchment",
+        "unit": "fraction",
+        "nominal_resolution_m": 30,
+        "minimum_mapping_unit_m2": 900,
+        "minimum_detectable_effect": 0.06,
+        "temporal_support": "persistent land-cover state; season-matched"
+      },
+      "measurement_profiles": [
+        {
+          "profile_id": "SEASON-WET",
+          "sensor_family": "Same sensor family",
+          "instrument": "Instrument A",
+          "spatial_resolution_m": 30,
+          "spectral_profile": "same spectral bands",
+          "processing_baseline": "same baseline",
+          "season_window": "wet-season peak",
+          "harmonization_profile": null,
+          "grid_id": "GRID-30-A"
+        },
+        {
+          "profile_id": "SEASON-DRY",
+          "sensor_family": "Same sensor family",
+          "instrument": "Instrument A",
+          "spatial_resolution_m": 30,
+          "spectral_profile": "same spectral bands",
+          "processing_baseline": "same baseline",
+          "season_window": "dry-season minimum",
+          "harmonization_profile": null,
+          "grid_id": "GRID-30-A"
+        }
+      ],
+      "perturbations": [
+        {
+          "axis": "season",
+          "transformation": "Replace season-matched observation with dry/wet seasonal pair",
+          "admissibility": "negative_control",
+          "expected_effect": "apparent_change_without_target_change",
+          "rationale": "The estimand is persistent land cover, not seasonal vegetation state."
+        }
+      ],
+      "reference_design": {
+        "availability": "independent_sample",
+        "independence": "independent",
+        "rights_status": "cleared_synthetic",
+        "design_note": "Independent reference records persistent class and phenological state separately."
+      },
+      "expected_disposition": "MEASUREMENT_SHIFT_EXPLAINS_APPARENT_CHANGE",
+      "hard_invariants": [
+        "Do not erase seasonality; classify it as a confounder only for the persistent-land-cover estimand."
+      ]
+    },
+    {
+      "case_id": "PCIT-SYN-005",
+      "family": "spatial_support_shift",
+      "truth_state": "not_identifiable",
+      "truth_note": "A narrow feature is smaller than the coarse sensor's effective support; aggregation mixes it with surrounding land cover.",
+      "target_estimand": {
+        "quantity": "object_presence",
+        "support": "object",
+        "unit": "binary",
+        "nominal_resolution_m": 30,
+        "minimum_mapping_unit_m2": 400,
+        "minimum_detectable_effect": 1,
+        "temporal_support": "same season; object persistence"
+      },
+      "measurement_profiles": [
+        {
+          "profile_id": "FINE-10M",
+          "sensor_family": "Fine-resolution optical",
+          "instrument": "Instrument F",
+          "spatial_resolution_m": 10,
+          "spectral_profile": "fine spectral profile",
+          "processing_baseline": "baseline F",
+          "season_window": "same season",
+          "harmonization_profile": null,
+          "grid_id": "GRID-10-A"
+        },
+        {
+          "profile_id": "COARSE-30M",
+          "sensor_family": "Coarse-resolution optical",
+          "instrument": "Instrument C",
+          "spatial_resolution_m": 30,
+          "spectral_profile": "coarse spectral profile",
+          "processing_baseline": "baseline C",
+          "season_window": "same season",
+          "harmonization_profile": null,
+          "grid_id": "GRID-30-A"
+        }
+      ],
+      "perturbations": [
+        {
+          "axis": "spatial_support",
+          "transformation": "Aggregate 10 m support to 30 m with area-weighted resampling",
+          "admissibility": "stress_only",
+          "expected_effect": "observability_reduced",
+          "rationale": "The object can disappear into a mixed pixel; object-presence estimand is not support-invariant."
+        }
+      ],
+      "reference_design": {
+        "availability": "independent_sample",
+        "independence": "independent",
+        "rights_status": "cleared_synthetic",
+        "design_note": "Reference locates object precisely, but coarse-sensor detection is not guaranteed."
+      },
+      "expected_disposition": "INSUFFICIENT_OBSERVABILITY",
+      "hard_invariants": [
+        "Do not interpret object absence at coarse support as evidence of physical removal."
+      ]
+    },
+    {
+      "case_id": "PCIT-SYN-006",
+      "family": "georegistration_shift",
+      "truth_state": "no_physical_change",
+      "truth_note": "A fixed boundary is shifted relative to the grid, generating edge differences without target-state change.",
+      "target_estimand": {
+        "quantity": "boundary_displacement",
+        "support": "object",
+        "unit": "metres",
+        "nominal_resolution_m": 10,
+        "minimum_mapping_unit_m2": 100,
+        "minimum_detectable_effect": 5,
+        "temporal_support": "same acquisition; grid-alignment stress"
+      },
+      "measurement_profiles": [
+        {
+          "profile_id": "GRID-ORIGIN-A",
+          "sensor_family": "Same sensor",
+          "instrument": "Instrument A",
+          "spatial_resolution_m": 10,
+          "spectral_profile": "same",
+          "processing_baseline": "same",
+          "season_window": "same acquisition",
+          "harmonization_profile": null,
+          "grid_id": "GRID-10-ORIGIN-A"
+        },
+        {
+          "profile_id": "GRID-ORIGIN-B",
+          "sensor_family": "Same sensor",
+          "instrument": "Instrument A",
+          "spatial_resolution_m": 10,
+          "spectral_profile": "same",
+          "processing_baseline": "same",
+          "season_window": "same acquisition",
+          "harmonization_profile": null,
+          "grid_id": "GRID-10-ORIGIN-B"
+        }
+      ],
+      "perturbations": [
+        {
+          "axis": "georegistration",
+          "transformation": "Apply controlled half-pixel and one-pixel translations",
+          "admissibility": "negative_control",
+          "expected_effect": "apparent_change_without_target_change",
+          "rationale": "The scene is unchanged; only grid registration is perturbed."
+        }
+      ],
+      "reference_design": {
+        "availability": "independent_sample",
+        "independence": "independent",
+        "rights_status": "cleared_synthetic",
+        "design_note": "Known fixed boundary and independent coordinate reference."
+      },
+      "expected_disposition": "MEASUREMENT_SHIFT_EXPLAINS_APPARENT_CHANGE",
+      "hard_invariants": [
+        "Report georegistration error in physical units and compare with the minimum detectable effect."
+      ]
+    },
+    {
+      "case_id": "PCIT-SYN-007",
+      "family": "class_ontology_shift",
+      "truth_state": "no_physical_change",
+      "truth_note": "The legend splits one class into two subclasses between map versions; a naïve transition matrix reports change.",
+      "target_estimand": {
+        "quantity": "class_area_fraction",
+        "support": "catchment",
+        "unit": "fraction",
+        "nominal_resolution_m": 20,
+        "minimum_mapping_unit_m2": 400,
+        "minimum_detectable_effect": 0.04,
+        "temporal_support": "same period; ontology comparison"
+      },
+      "measurement_profiles": [
+        {
+          "profile_id": "LEGEND-V1",
+          "sensor_family": "same scene",
+          "instrument": "same acquisition",
+          "spatial_resolution_m": 20,
+          "spectral_profile": "same",
+          "processing_baseline": "same",
+          "season_window": "same acquisition",
+          "harmonization_profile": null,
+          "grid_id": "GRID-20-A"
+        },
+        {
+          "profile_id": "LEGEND-V2",
+          "sensor_family": "same scene",
+          "instrument": "same acquisition",
+          "spatial_resolution_m": 20,
+          "spectral_profile": "same",
+          "processing_baseline": "same",
+          "season_window": "same acquisition",
+          "harmonization_profile": null,
+          "grid_id": "GRID-20-A"
+        }
+      ],
+      "perturbations": [
+        {
+          "axis": "class_ontology",
+          "transformation": "Replace a coarse class with two fine classes without changing the observed pixels",
+          "admissibility": "negative_control",
+          "expected_effect": "apparent_change_without_target_change",
+          "rationale": "Ontology refinement changes labels, not the physical target."
+        }
+      ],
+      "reference_design": {
+        "availability": "independent_sample",
+        "independence": "independent",
+        "rights_status": "cleared_synthetic",
+        "design_note": "Independent crosswalk audit with explicit ambiguous/unmapped class handling."
+      },
+      "expected_disposition": "MEASUREMENT_SHIFT_EXPLAINS_APPARENT_CHANGE",
+      "hard_invariants": [
+        "Crosswalk information loss must be visible; no silent forced mapping."
+      ]
+    },
+    {
+      "case_id": "PCIT-SYN-008",
+      "family": "physical_measurement_interaction",
+      "truth_state": "physical_change",
+      "truth_note": "A real change coincides with a sensor transition; qualified calibration and independent references recover the target estimand.",
+      "target_estimand": {
+        "quantity": "class_transition_fraction",
+        "support": "subcatchment",
+        "unit": "fraction",
+        "nominal_resolution_m": 30,
+        "minimum_mapping_unit_m2": 900,
+        "minimum_detectable_effect": 0.07,
+        "temporal_support": "season-matched; crossed sensor reference"
+      },
+      "measurement_profiles": [
+        {
+          "profile_id": "PAIR-SENSOR-A",
+          "sensor_family": "Sensor A",
+          "instrument": "Instrument A",
+          "spatial_resolution_m": 30,
+          "spectral_profile": "profile A",
+          "processing_baseline": "pinned A",
+          "season_window": "matched season",
+          "harmonization_profile": null,
+          "grid_id": "GRID-30-C"
+        },
+        {
+          "profile_id": "PAIR-SENSOR-B",
+          "sensor_family": "Sensor B",
+          "instrument": "Instrument B",
+          "spatial_resolution_m": 30,
+          "spectral_profile": "profile B",
+          "processing_baseline": "pinned B",
+          "season_window": "matched season",
+          "harmonization_profile": "qualified-case-specific-profile",
+          "grid_id": "GRID-30-C"
+        }
+      ],
+      "perturbations": [
+        {
+          "axis": "sensor",
+          "transformation": "Evaluate sensor transition with case-specific calibration and matched support",
+          "admissibility": "admissible",
+          "expected_effect": "estimand_preserved",
+          "tolerance": 0.02,
+          "rationale": "Calibration is qualified on independent reference spectra and the target support is held fixed."
+        }
+      ],
+      "reference_design": {
+        "availability": "independent_sample",
+        "independence": "independent",
+        "rights_status": "cleared_synthetic",
+        "design_note": "Independent reference sample covers both pre- and post-change periods."
+      },
+      "expected_disposition": "PHYSICAL_CHANGE_SUPPORTED_WITHIN_ENVELOPE",
+      "hard_invariants": [
+        "Report the sensor × class interaction; do not assert general harmonization beyond this fixture."
+      ]
+    },
+    {
+      "case_id": "PCIT-SYN-009",
+      "family": "common_cause_dependency",
+      "truth_state": "not_identifiable",
+      "truth_note": "Five derivative products and two reports share one acquisition and classifier; apparent corroboration is not independent.",
+      "target_estimand": {
+        "quantity": "class_area_fraction",
+        "support": "subcatchment",
+        "unit": "fraction",
+        "nominal_resolution_m": 30,
+        "minimum_mapping_unit_m2": 900,
+        "minimum_detectable_effect": 0.05,
+        "temporal_support": "one acquisition family"
+      },
+      "measurement_profiles": [
+        {
+          "profile_id": "COMMON-SOURCE-ROOT",
+          "sensor_family": "Landsat",
+          "instrument": "OLI",
+          "spatial_resolution_m": 30,
+          "spectral_profile": "same acquisition",
+          "processing_baseline": "same processing lineage",
+          "season_window": "same acquisition date",
+          "harmonization_profile": null,
+          "grid_id": "GRID-30-A"
+        }
+      ],
+      "perturbations": [
+        {
+          "axis": "evidence_dependency",
+          "transformation": "Add five derivative maps and two reports that all descend from the same acquisition and classifier",
+          "admissibility": "negative_control",
+          "expected_effect": "corroboration_reduced",
+          "rationale": "Count source roots and shared processing/training dependencies rather than documents."
+        }
+      ],
+      "evidence_dependencies": [
+        {
+          "evidence_id": "DERIVATIVE-1",
+          "depends_on": [
+            "ACQUISITION-ROOT",
+            "CLASSIFIER-ROOT"
+          ]
+        },
+        {
+          "evidence_id": "DERIVATIVE-2",
+          "depends_on": [
+            "ACQUISITION-ROOT",
+            "CLASSIFIER-ROOT"
+          ]
+        },
+        {
+          "evidence_id": "DERIVATIVE-3",
+          "depends_on": [
+            "ACQUISITION-ROOT",
+            "CLASSIFIER-ROOT"
+          ]
+        },
+        {
+          "evidence_id": "REPORT-1",
+          "depends_on": [
+            "DERIVATIVE-1",
+            "CLASSIFIER-ROOT"
+          ]
+        },
+        {
+          "evidence_id": "REPORT-2",
+          "depends_on": [
+            "DERIVATIVE-2",
+            "CLASSIFIER-ROOT"
+          ]
+        }
+      ],
+      "reference_design": {
+        "availability": "derivative_product",
+        "independence": "dependent",
+        "rights_status": "cleared_synthetic",
+        "design_note": "All derivative products trace to the same upstream observation and label/model family."
+      },
+      "expected_disposition": "UNRESOLVED_CONFOUNDING",
+      "hard_invariants": [
+        "Never count derivative products or reports as independent acquisitions.",
+        "Expose the minimal common-cause cut set."
+      ]
+    },
+    {
+      "case_id": "PCIT-SYN-010",
+      "family": "reference_leakage",
+      "truth_state": "not_identifiable",
+      "truth_note": "The evaluated classifier's training labels overlap the nominal validation reference sample.",
+      "target_estimand": {
+        "quantity": "class_transition_fraction",
+        "support": "local_window",
+        "unit": "fraction",
+        "nominal_resolution_m": 10,
+        "minimum_mapping_unit_m2": 100,
+        "minimum_detectable_effect": 0.05,
+        "temporal_support": "held-out evaluation interval"
+      },
+      "measurement_profiles": [
+        {
+          "profile_id": "LEAKAGE-TEST",
+          "sensor_family": "Sentinel-2",
+          "instrument": "MSI",
+          "spatial_resolution_m": 10,
+          "spectral_profile": "MSI profile",
+          "processing_baseline": "pinned",
+          "season_window": "season matched",
+          "harmonization_profile": null,
+          "grid_id": "GRID-10-A"
+        }
+      ],
+      "perturbations": [
+        {
+          "axis": "reference_lineage",
+          "transformation": "Inject validation labels into the classifier training/reference path",
+          "admissibility": "negative_control",
+          "expected_effect": "reference_independence_broken",
+          "rationale": "A leaked reference cannot provide independent accuracy evidence."
+        }
+      ],
+      "reference_design": {
+        "availability": "leaked_labels",
+        "independence": "dependent",
+        "rights_status": "cleared_synthetic",
+        "design_note": "Known overlap in source sample IDs; evaluation must reject promotion."
+      },
+      "expected_disposition": "INSUFFICIENT_OBSERVABILITY",
+      "hard_invariants": [
+        "Reject the reference design even if apparent accuracy is perfect."
+      ]
+    },
+    {
+      "case_id": "PCIT-SYN-011",
+      "family": "insufficient_reference",
+      "truth_state": "not_identifiable",
+      "truth_note": "The observation series is sparse and no independent reference sample is available to distinguish change from an observation-system effect.",
+      "target_estimand": {
+        "quantity": "persistent_vegetation_fraction",
+        "support": "catchment",
+        "unit": "fraction",
+        "nominal_resolution_m": 30,
+        "minimum_mapping_unit_m2": 900,
+        "minimum_detectable_effect": 0.05,
+        "temporal_support": "two temporally separated seasonal composites"
+      },
+      "measurement_profiles": [
+        {
+          "profile_id": "OBS-SPARSE-1",
+          "sensor_family": "unknown",
+          "instrument": "unknown",
+          "spatial_resolution_m": 30,
+          "spectral_profile": "unknown",
+          "processing_baseline": "unknown",
+          "season_window": "unknown",
+          "harmonization_profile": null,
+          "grid_id": null
+        },
+        {
+          "profile_id": "OBS-SPARSE-2",
+          "sensor_family": "unknown",
+          "instrument": "unknown",
+          "spatial_resolution_m": 30,
+          "spectral_profile": "unknown",
+          "processing_baseline": "unknown",
+          "season_window": "unknown",
+          "harmonization_profile": null,
+          "grid_id": null
+        }
+      ],
+      "perturbations": [
+        {
+          "axis": "reference_lineage",
+          "transformation": "Remove independent reference samples and exact acquisition metadata",
+          "admissibility": "out_of_envelope",
+          "expected_effect": "not_identifiable",
+          "rationale": "No evidence remains to estimate the relevant measurement confounding or validation error."
+        }
+      ],
+      "reference_design": {
+        "availability": "absent",
+        "independence": "unknown",
+        "rights_status": "unknown",
+        "design_note": "No independent sample, no verified source identity and unresolved data rights."
+      },
+      "expected_disposition": "INSUFFICIENT_OBSERVABILITY",
+      "hard_invariants": [
+        "Abstain; do not translate unknown measurement profile into a no-change result.",
+        "Do not use unlicensed data for redistribution or training."
+      ]
+    },
+    {
+      "case_id": "PCIT-SYN-012",
+      "family": "null_stable_control",
+      "truth_state": "no_physical_change",
+      "truth_note": "A stable target is observed with the same qualified sensor, processing, support and class ontology.",
+      "target_estimand": {
+        "quantity": "class_area_fraction",
+        "support": "catchment",
+        "unit": "fraction",
+        "nominal_resolution_m": 30,
+        "minimum_mapping_unit_m2": 900,
+        "minimum_detectable_effect": 0.04,
+        "temporal_support": "season-matched interval"
+      },
+      "measurement_profiles": [
+        {
+          "profile_id": "NULL-PROFILE-A",
+          "sensor_family": "Landsat 8",
+          "instrument": "OLI",
+          "spatial_resolution_m": 30,
+          "spectral_profile": "OLI",
+          "processing_baseline": "Collection 2 Level-2",
+          "season_window": "same season",
+          "harmonization_profile": null,
+          "grid_id": "GRID-30-A"
+        },
+        {
+          "profile_id": "NULL-PROFILE-B",
+          "sensor_family": "Landsat 8",
+          "instrument": "OLI",
+          "spatial_resolution_m": 30,
+          "spectral_profile": "OLI",
+          "processing_baseline": "Collection 2 Level-2",
+          "season_window": "same season",
+          "harmonization_profile": null,
+          "grid_id": "GRID-30-A"
+        }
+      ],
+      "perturbations": [
+        {
+          "axis": "processing",
+          "transformation": "Repeat same-sensor pipeline with frozen inputs and deterministic processing",
+          "admissibility": "admissible",
+          "expected_effect": "estimand_preserved",
+          "tolerance": 0.01,
+          "rationale": "No physical change and no declared measurement shift."
+        }
+      ],
+      "reference_design": {
+        "availability": "independent_sample",
+        "independence": "independent",
+        "rights_status": "cleared_synthetic",
+        "design_note": "Independent stable-control reference with known unchanged state."
+      },
+      "expected_disposition": "NO_CHANGE_DETECTED_WITHIN_ENVELOPE",
+      "hard_invariants": [
+        "Report the minimum detectable effect and avoid interpreting non-detection as absolute absence."
+      ]
+    },
+    {
+      "case_id": "PCIT-SYN-013",
+      "family": "unsupported_harmonization",
+      "truth_state": "not_identifiable",
+      "truth_note": "An analyst applies an L8/Sentinel harmonization profile to an older MSS/TM/OLI sequence outside the declared supported sensor pair.",
+      "target_estimand": {
+        "quantity": "class_area_fraction",
+        "support": "catchment",
+        "unit": "fraction",
+        "nominal_resolution_m": 30,
+        "minimum_mapping_unit_m2": 900,
+        "minimum_detectable_effect": 0.06,
+        "temporal_support": "long-term historical series"
+      },
+      "measurement_profiles": [
+        {
+          "profile_id": "JUKSKEI-1987-MSS",
+          "sensor_family": "Landsat 5",
+          "instrument": "MSS",
+          "spatial_resolution_m": 80,
+          "spectral_profile": "4-band MSS",
+          "processing_baseline": "historical source product",
+          "season_window": "unverified",
+          "harmonization_profile": "HLS-not-supported",
+          "grid_id": null
+        },
+        {
+          "profile_id": "JUKSKEI-2001-TM",
+          "sensor_family": "Landsat 5",
+          "instrument": "TM",
+          "spatial_resolution_m": 30,
+          "spectral_profile": "7-band TM",
+          "processing_baseline": "historical source product",
+          "season_window": "unverified",
+          "harmonization_profile": "HLS-not-supported",
+          "grid_id": null
+        },
+        {
+          "profile_id": "JUKSKEI-2015-OLI",
+          "sensor_family": "Landsat 8",
+          "instrument": "OLI",
+          "spatial_resolution_m": 30,
+          "spectral_profile": "OLI profile",
+          "processing_baseline": "historical source product",
+          "season_window": "unverified",
+          "harmonization_profile": "HLS-not-supported",
+          "grid_id": null
+        }
+      ],
+      "perturbations": [
+        {
+          "axis": "sensor",
+          "transformation": "Misapply HLS OLI/Sentinel-2 harmonization to MSS/TM/OLI series",
+          "admissibility": "out_of_envelope",
+          "expected_effect": "not_identifiable",
+          "rationale": "HLS product support does not include this historical sensor sequence."
+        }
+      ],
+      "reference_design": {
+        "availability": "absent",
+        "independence": "unknown",
+        "rights_status": "unknown",
+        "design_note": "This is a synthetic guard case. Actual Jukskei source metadata, reference sample and data rights must be established separately."
+      },
+      "expected_disposition": "INSUFFICIENT_OBSERVABILITY",
+      "hard_invariants": [
+        "Do not treat HLS as a universal Landsat cross-generation correction.",
+        "Require sensor-specific profiles and source-native observation identities."
+      ]
+    }
+  ]
+}
