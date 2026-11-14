@@ -76,8 +76,8 @@ The declared 13,750 mm × 8,500 mm envelope is synthetic and is not a survey, pl
 
 ## Qualifier tests
 
-The Rust binary authors positive and adversarial controls for:
-1. a valid synthetic geometry candidate;
+The Rust binary authors 16 unit tests:
+1. valid synthetic geometry candidate;
 2. positive-area room overlap;
 3. a room outside the envelope;
 4. zero room width;
@@ -90,7 +90,9 @@ The Rust binary authors positive and adversarial controls for:
 11. disconnected access route;
 12. physical maturity promotion;
 13. scalar score introduction;
-14. unknown source graph candidate.
+14. nonzero floor-index promotion;
+15. coordinate-origin drift;
+16. unknown source graph candidate.
 
 The evaluator uses integer arithmetic and checked addition/multiplication for rectangle coordinates and area. It does not use floating-point area tolerances.
 
