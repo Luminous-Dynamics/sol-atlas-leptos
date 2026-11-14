@@ -69,10 +69,11 @@ Asset profiles are sorted deterministically by asset key. Band and polarization 
 - canonical AssetId;
 - canonical source-registry ID;
 - source-asset and processing receipt digests;
+- an optional SHA-256 fingerprint of the exact asset-level measurement profile (for example, the frozen `eo:bands`, `raster:bands` or SAR polarization/mode fields);
 - exact purpose-bound rights receipt;
 - spatial support, acquisition time, modality and EO quality state.
 
-The importer does not create or authenticate any of those external receipts. A caller must supply them. The rights decision remains under the Mycelix/custodian authority.
+The measurement-profile fingerprint is supplied by the caller/asset-manifest authority; the STAC importer does not invent a cryptographic hash. If it is unavailable, the observation records an unresolved measurement configuration and promoted claims require a cross-system comparability receipt or abstention. The importer does not create or authenticate the source/processing/rights receipts. The rights decision remains under the Mycelix/custodian authority.
 
 ## Conformance cases
 
@@ -92,4 +93,4 @@ The current fixture/tests cover:
 
 ## Claim boundary
 
-This profile improves identity preservation and evaluation split integrity only. It does not prove the source publisher is authentic, verify bytes, grant rights, establish sensor calibration, determine detection probability, validate a physical change, or establish benchmark superiority.
+This profile improves identity preservation and evaluation split integrity only. Asset-level measurement-profile fingerprints are part of the downstream observation-system signature; missing fingerprints are not assumed to match. Cross-system comparability and claim-bound receipts are specified in [EO-SYSTEM-COMPARABILITY-001 / #829](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/829). It does not prove the source publisher is authentic, verify bytes, grant rights, establish sensor calibration, determine detection probability, validate a physical change, or establish benchmark superiority.
