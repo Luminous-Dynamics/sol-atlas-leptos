@@ -1,0 +1,23 @@
+{
+  "evaluated_events": 4,
+  "excluded_owner_record_only_events": 1,
+  "excluded_conflicted_events": 0,
+  "excluded_insufficient_truth_events": 0,
+  "truth_utility_asset_count": 2,
+  "predicted_candidate_asset_count": 2,
+  "false_candidate_asset_count": 0,
+  "missed_truth_asset_count": 0,
+  "assigned_event_count": 3,
+  "abstained_event_count": 1,
+  "abstention_rate": 0.25,
+  "false_association_clutter_events": 0,
+  "abstained_utility_events": 0,
+  "b_cubed_precision": 1,
+  "b_cubed_recall": 1,
+  "b_cubed_f1": 1,
+  "pairwise_true_positive_pairs": 1,
+  "overmerge_pairs": 0,
+  "oversplit_pairs": 0,
+  "pairwise_precision": 1,
+  "pairwise_recall": 1
+}
