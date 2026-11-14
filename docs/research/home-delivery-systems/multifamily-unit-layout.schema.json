@@ -1,0 +1,388 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/Luminous-Dynamics/sol-atlas-leptos/main/docs/research/home-delivery-systems/multifamily-unit-layout.schema.json",
+  "title": "Multi-family Unit Interior Layout v0.1",
+  "description": "Synthetic-first unit-local orthogonal room geometry with activity assignment and everyday portal topology. It is not an architectural, acoustic, accessibility, fire, daylight, service or code verifier.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "layout_id",
+    "maturity",
+    "source_binding",
+    "unit_layouts",
+    "claim_ceiling"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "multifamily-unit-layout/0.1"
+    },
+    "layout_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "maturity": {
+      "const": "synthetic_room_rectangles_only"
+    },
+    "source_binding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "building_candidate_ref",
+        "resident_programme_ref",
+        "layout_revision_ref"
+      ],
+      "properties": {
+        "building_candidate_ref": {
+          "$ref": "#/$defs/reference"
+        },
+        "resident_programme_ref": {
+          "$ref": "#/$defs/reference"
+        },
+        "layout_revision_ref": {
+          "$ref": "#/$defs/reference"
+        }
+      }
+    },
+    "unit_layouts": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/unitLayout"
+      }
+    },
+    "claim_ceiling": {
+      "const": "A pass establishes only exact unit-local rectangle partition, unit/building transform identity, activity-to-room/shared-space mappings, room relationship mapping and everyday portal graph connectivity. It does not establish room suitability, usable clear dimensions, door clear width/swing, accessibility, fire/egress, structure, daylight, view/privacy, acoustics, thermal/ventilation, services, cost, planning, buildability or occupancy."
+    }
+  },
+  "$defs": {
+    "reference": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "id",
+        "revision",
+        "digest"
+      ],
+      "properties": {
+        "kind": {
+          "type": "string",
+          "minLength": 1
+        },
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "revision": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "digest": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+    "unitLayout": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "unit_id",
+        "unit_space_id",
+        "floor_id",
+        "unit_footprint_ref",
+        "unit_transform",
+        "unit_envelope_local",
+        "rooms",
+        "activity_assignments",
+        "relationship_mappings",
+        "portals",
+        "everyday_root_room_id",
+        "claim_ceiling"
+      ],
+      "properties": {
+        "unit_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "unit_space_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "floor_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "unit_footprint_ref": {
+          "$ref": "#/$defs/reference"
+        },
+        "unit_transform": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "translation_x_mm",
+            "translation_y_mm",
+            "coordinate_basis"
+          ],
+          "properties": {
+            "translation_x_mm": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "translation_y_mm": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "coordinate_basis": {
+              "const": "unit-local lower-left origin translated into building floor-plan coordinates"
+            }
+          }
+        },
+        "unit_envelope_local": {
+          "$ref": "#/$defs/rectangle"
+        },
+        "rooms": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/room"
+          }
+        },
+        "activity_assignments": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/activityAssignment"
+          }
+        },
+        "relationship_mappings": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/relationshipMapping"
+          }
+        },
+        "portals": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/portal"
+          }
+        },
+        "everyday_root_room_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "claim_ceiling": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "rectangle": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "x_mm",
+        "y_mm",
+        "width_mm",
+        "height_mm"
+      ],
+      "properties": {
+        "x_mm": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "y_mm": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "width_mm": {
+          "type": "integer",
+          "exclusiveMinimum": 0
+        },
+        "height_mm": {
+          "type": "integer",
+          "exclusiveMinimum": 0
+        }
+      }
+    },
+    "room": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "room_id",
+        "room_kind",
+        "privacy_zone",
+        "footprint_local_mm",
+        "activity_ids"
+      ],
+      "properties": {
+        "room_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "room_kind": {
+          "enum": [
+            "sleeping",
+            "food_preparation",
+            "work_study",
+            "making",
+            "living_guest",
+            "hygiene_laundry",
+            "storage",
+            "circulation_entry",
+            "other"
+          ]
+        },
+        "privacy_zone": {
+          "enum": [
+            "private",
+            "semi_private",
+            "service",
+            "shared",
+            "public",
+            "unknown"
+          ]
+        },
+        "footprint_local_mm": {
+          "$ref": "#/$defs/rectangle"
+        },
+        "activity_ids": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true
+        }
+      }
+    },
+    "activityAssignment": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "activity_id",
+        "target_kind",
+        "target_id"
+      ],
+      "properties": {
+        "activity_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "target_kind": {
+          "enum": [
+            "unit_room",
+            "building_shared_space"
+          ]
+        },
+        "target_id": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "relationshipMapping": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "from_activity_id",
+        "to_activity_id",
+        "relationship",
+        "from_target_id",
+        "to_target_id"
+      ],
+      "properties": {
+        "from_activity_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "to_activity_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "relationship": {
+          "enum": [
+            "near",
+            "adjacent",
+            "separate",
+            "direct_access",
+            "acoustically_separate",
+            "visually_private",
+            "outdoor_connection",
+            "shared_access"
+          ]
+        },
+        "from_target_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "to_target_id": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "portal": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "portal_id",
+        "from_room_id",
+        "to_room_id",
+        "orientation",
+        "coordinate_mm",
+        "start_mm",
+        "end_mm",
+        "clear_width_state",
+        "clear_width_mm",
+        "door_swing_state"
+      ],
+      "properties": {
+        "portal_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "from_room_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "to_room_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "orientation": {
+          "enum": [
+            "horizontal",
+            "vertical"
+          ]
+        },
+        "coordinate_mm": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "start_mm": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "end_mm": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "clear_width_state": {
+          "const": "not_computed"
+        },
+        "clear_width_mm": {
+          "type": "null"
+        },
+        "door_swing_state": {
+          "const": "not_modelled"
+        }
+      }
+    }
+  }
+}
