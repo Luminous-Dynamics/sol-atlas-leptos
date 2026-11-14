@@ -84,6 +84,7 @@ impl StacObservationIdentity {
         source_id: impl Into<String>,
         source_asset_receipt_sha256: impl Into<String>,
         processing_receipt_sha256: impl Into<String>,
+        measurement_profile_sha256: Option<String>,
         rights: RightsReceiptRef,
         support_id: impl Into<String>,
         acquisition: ObservationTime,
@@ -107,7 +108,8 @@ impl StacObservationIdentity {
             acquisition,
             modality,
             quality,
-        )
+        )?
+        .with_measurement_profile_sha256(measurement_profile_sha256)
     }
 }
 
@@ -1134,6 +1136,7 @@ mod tests {
             "fixture-source-registry",
             "b".repeat(64),
             "c".repeat(64),
+            Some("d".repeat(64)),
             RightsReceiptRef::new(
                 "fixture-subject",
                 "internal-evaluation",
@@ -1158,6 +1161,10 @@ mod tests {
         );
         assert_eq!(mapped.instrument_id(), Some("MSI"));
         assert_eq!(mapped.processing_baseline(), Some("04.00"));
+        assert_eq!(
+            mapped.measurement_profile_sha256(),
+            Some("dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd")
+        );
     }
 
     #[test]
