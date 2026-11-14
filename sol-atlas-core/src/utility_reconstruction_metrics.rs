@@ -378,7 +378,8 @@ pub fn score_asset_association(
         .filter(|candidate_id| {
             predicted_asset_truth_members
                 .get(*candidate_id)
-                .is_none_or(BTreeSet::is_empty)
+                .map(|truth_assets| truth_assets.is_empty())
+                .unwrap_or(true)
         })
         .count();
     let missed_truth_assets = truth_asset_ids
