@@ -298,6 +298,7 @@ The following work has been added to PR #741 without changing PR #736's frozen t
 | Finite thermal-store ledger | Interval heat balance, state bounds, per-sink rejection and cycle closure | Synthetic known-answer ledger; no physical store validation |
 | Thermal service and refuge benchmark | 7 building interventions × 8 operating scenarios + 4 refuge topologies × 6 failures = 80 cases | Registered matrix; no site, route, refuge or resident data admitted |
 | Refuge availability governor | Site opening, thermal/ventilation/safe-water service, route accessibility, total/accessibility capacity and water reserves | Synthetic eligibility controls only; no real route/site/booking or occupant assignment |
+| Refuge network max-throughput reference | Independent accessible-first/general-second max-flow baseline against the richer fairness/time-series engine | Synthetic reference comparator only; not the primary policy engine |
 | Refuge temporal continuity ledger | Baseline service ratio, first degradation, time to baseline recovery, longest degraded episode, total below-baseline hours and unresolved end gaps per anonymous cohort | Synthetic duration-relative sequence only; no native timestamps or real service evidence |
 | Courtyard instrument package | 35 template channels, including long-wave/radiative panel/loop sensors | Instrument identities/calibration remain unassigned; template only |
 | Pool pedestrian microclimate attribution | Six matched arms × six weather regimes, six spatial stations and four heights | Dry-shade matched-control protocol and structural qualifier; no field experiment or microclimate effect admitted |
@@ -305,6 +306,22 @@ The following work has been added to PR #741 without changing PR #736's frozen t
 The refuge network sequence oracle now complements cumulative unmet place-hours with a cohort resilience curve: it fixes first-snapshot baseline ratios and reports time to return to baseline, longest/total degradation duration, episode count and unresolved gaps. Cohort identities and owner-approved tie-break ranks must remain stable across timepoints; elapsed hours come only from the declared interval durations.
 
 The thermal-store ledger reports peak input/rejection rate as well as energy, and marks each interval FAIL when its own balance, capacity or continuity checks fail. The thermal service/refuge qualifier requires the 80-case registration and preserves the distinction between ASHRAE comfort and local heat-health safety. Its refuge claim rules reject unknown dependencies, inaccessible routes and exhausted capacity.
+
+## 16. Refuge network engines: keep objective and evidence role explicit
+
+The active branch now separates five related but non-interchangeable questions:
+
+| Tool | Question answered | Exactness / output boundary |
+|---|---|---|
+| highveld-refuge-availability-governor | Is one site eligible for human capacity planning at this time? | Deterministic site eligibility, no allocation |
+| highveld-refuge-network-flow-oracle | What is the maximum aggregate throughput in a small frozen network under an accessible-first policy? | Independent Edmonds–Karp reference, no fairness/temporal policy |
+| highveld-refuge-network-feasibility | How much service can the network sustain across cohorts and event-time states, under a progressive max-min policy? | Shared-capacity flow plus temporal service debt, degradation/recovery and freshness |
+| highveld-refuge-capacity-oracle | Does a complete bounded group-level feasibility witness exist? | Exact bounded search; node-limit exhaustion is indeterminate |
+| highveld-refuge-shared-capacity-audit | Does a proposed group-level plan overcommit shared site resources? | Independent plan audit, not an optimizer |
+
+The simple max-flow comparator is not a second main allocator. Its value is methodological: it gives a conventional throughput reference against which the fairness-aware and time-series engines can be compared on the same frozen input. Do not interpret its higher total flow as a superior service policy if it worsens minimum cohort service or accessible unmet demand.
+
+Future acceptance should include a shared fixture/adapter so each tool consumes one common route/capacity/resource graph, plus an independent replay that compares total throughput, accessible service, minimum cohort coverage, per-area unmet demand, time-integrated place-hours, water headroom and recovery chronology.
 
 ## 15. What a defensible SOTA win would look like now
 
