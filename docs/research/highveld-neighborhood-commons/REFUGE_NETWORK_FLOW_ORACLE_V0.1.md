@@ -41,6 +41,17 @@ The reference oracle reproduces those totals on the adapted case. The primary pr
 
 Hosted native CI run #7548 passed the primary-fixture replay regression alongside the reference oracle tests. This is a synthetic cross-binary parity check for one snapshot. It is not yet a broad corpus, physical route validation, or temporal replay. Time-series identity/order/freshness remains owned by Symtropy and the primary engine.
 
+### 3.1 Exhaustive small-graph verification
+
+The Edmonds–Karp implementation is now compared against an independent brute-force assignment enumerator on every 2-demand-area × 2-site topology with:
+- all 16 possible route-edge masks;
+- each site's capacity independently set to 0, 1 or 2 places;
+- each demand area's request fixed at 2 places.
+
+This produces 144 generated networks. The brute-force oracle enumerates every integral edge-flow combination and independently enforces demand and site-capacity constraints. Every reference result must agree exactly and remain under aggregate demand and site capacity.
+
+Additional metamorphic controls verify that adding a route or increasing site capacity cannot reduce maximum throughput, while removing a route or reducing capacity cannot increase it. These tests qualify the reference algorithm; they do not establish real-world route, site, demand or operating-state truth.
+
 ## 4. Input and finite envelope
 
 The input contains:
