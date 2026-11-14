@@ -9,9 +9,13 @@
 //! Unsupported display assets are returned as explicit skip records instead
 //! of disappearing silently.
 
+use crate::earth_observation::{
+    ObservationModality, ObservationQuality, ObservationRecord, RightsReceiptRef,
+    SensorIdentityOrigin,
+};
 use crate::geospatial_assets::{
     AssetId, AssetKind, AssetRecord, AssetSource, GeoFootprint, LicenceMetadata, LicenceReview,
-    ObservationTime, ObservationTimeKind, SensorIdentityOrigin, SpatialResolution,
+    ObservationTime, ObservationTimeKind, SpatialResolution,
 };
 use serde_json::{Map, Value};
 use std::collections::BTreeMap;
@@ -62,6 +66,46 @@ pub struct StacObservationIdentity {
     pub processing_baseline: Option<String>,
 }
 
+impl StacObservationIdentity {
+    /// Bind the source-native STAC identity into the satellite observation
+    /// contract. Asset identity, source registry ID, integrity receipts and
+    /// purpose-bound rights decision are supplied by their authoritative
+    /// adapters; this method does not invent or authenticate them.
+    #[allow(clippy::too_many_arguments)]
+    pub fn into_observation_record(
+        self,
+        observation_id: impl Into<String>,
+        asset_id: AssetId,
+        source_id: impl Into<String>,
+        source_asset_receipt_sha256: impl Into<String>,
+        processing_receipt_sha256: impl Into<String>,
+        rights: RightsReceiptRef,
+        support_id: impl Into<String>,
+        acquisition: ObservationTime,
+        modality: ObservationModality,
+        quality: ObservationQuality,
+    ) -> Result<ObservationRecord, String> {
+        ObservationRecord::new(
+            observation_id,
+            asset_id,
+            source_id,
+            self.platform_id,
+            self.sensor_id,
+            self.sensor_identity_origin,
+            self.instrument_id,
+            self.collection_id,
+            self.processing_baseline,
+            source_asset_receipt_sha256,
+            processing_receipt_sha256,
+            rights,
+            support_id,
+            acquisition,
+            modality,
+            quality,
+        )
+    }
+}
+
 impl StacSourceProfile {
     pub fn profile_version(&self) -> u32 { self.profile_version }
     pub fn collection_id(&self) -> Option<&str> { self.collection_id.as_deref() }
@@ -92,10 +136,9 @@ impl StacSourceProfile {
             "processing:baseline",
         ]
         .iter()
-        .find_map(|key| self.processing_fields.get(*key))
-        .and_then(|value| match value {
-            Value::String(text) if !text.trim().is_empty() => Some(text.clone()),
-            Value::Number(number) => Some(number.to_string()),
+        .find_map(|key| match self.processing_fields.get(*key) {
+            Some(Value::String(text)) if !text.trim().is_empty() => Some(text.clone()),
+            Some(Value::Number(number)) => Some(number.to_string()),
             _ => None,
         });
         Some(StacObservationIdentity {
@@ -1065,6 +1108,36 @@ mod tests {
             identity.sensor_identity_origin,
             SensorIdentityOrigin::DerivedFromPlatformAndInstrument
         );
+        let mapped = identity.into_observation_record(
+            "mapped-observation",
+            AssetId::new("stac:fixture:asset").unwrap(),
+            "fixture-source-registry",
+            "b".repeat(64),
+            "c".repeat(64),
+            RightsReceiptRef::new(
+                "fixture-subject",
+                "internal-evaluation",
+                "fixture-source-registry",
+                "stac:fixture:asset",
+                "a".repeat(64),
+            ).unwrap(),
+            "support-sentinel-a",
+            ObservationTime::new(
+                ObservationTimeKind::Instant,
+                Some("2025-01-01T00:00:00Z".into()),
+                None,
+            ).unwrap(),
+            ObservationModality::Optical,
+            ObservationQuality::QualifiedUsable,
+        ).unwrap();
+        assert_eq!(mapped.platform_id(), "sentinel-2a");
+        assert_eq!(mapped.sensor_id(), "derived:c2VudGluZWwtMmE:TVNJ");
+        assert_eq!(
+            mapped.sensor_identity_origin(),
+            SensorIdentityOrigin::DerivedFromPlatformAndInstrument
+        );
+        assert_eq!(mapped.instrument_id(), Some("MSI"));
+        assert_eq!(mapped.processing_baseline(), Some("04.00"));
     }
 
     #[test]
