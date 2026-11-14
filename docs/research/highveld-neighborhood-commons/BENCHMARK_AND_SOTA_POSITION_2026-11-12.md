@@ -653,3 +653,56 @@ The simple max-flow comparator is not a second main allocator. Its value is meth
 
 Future acceptance should include a shared fixture/adapter so each tool consumes one common route/capacity/resource graph, plus an independent replay that compares total throughput, accessible service, minimum cohort coverage, per-area unmet demand, time-integrated place-hours, water headroom and recovery chronology.
 
+
+
+## 16. 14 November 2026 research update: pool-cover pathways, transferability and reference verification
+
+### Specialist-model boundary
+
+EnergyPlus 26.2's SwimmingPool:Indoor represents an indoor pool coupled to a zone and plant loop. Its heat balance has separate convective, evaporative, radiative, bottom-conduction, makeup-water and plant-heating terms. The cover schedule also separates cover effects on evaporation, convection, short-wave radiation and long-wave radiation. This is a useful indoor-pool baseline; it is not an outdoor pool, courtyard CFD or neighborhood microclimate model.
+
+Sources:
+- [EnergyPlus 26.2 Indoor Swimming Pool Engineering Reference](https://energyplus.readthedocs.io/en/v26.2.0/guides/engineering-reference/17.3-indoor-swimming-pool.html)
+- [EnergyPlus 26.2 SwimmingPool:Indoor object reference](https://energyplus.readthedocs.io/en/v26.2.0/guides/input-output-reference/1.14-group-internal-gains-people-lights-other-internal-zone-equipment.html)
+
+A 2025 Norwegian indoor-pool study measured up to 70% evaporation reduction for an unoccupied indoor pool when a movable floor acted as a cover. This is a facility-specific result, not an outdoor pool coefficient or Johannesburg guarantee. Its useful lesson is to measure cover performance instead of assuming a generic evaporation factor.
+
+Source:
+- [Quantifying the Influence of the Pool Cover on the Water Evaporation Rate in Indoor Swimming Halls, IBPSA 2025](https://publications.ibpsa.org/conference/paper/?id=bs2025_1871)
+
+### Outdoor water-channel and blue-space scale limits
+
+An August 2026 CFD study of traditional water channels reports up to 2.40 °C PET reduction in its narrow-channel cases, but finds canyon confinement and wind more influential than surface area; multiple channels can worsen daytime comfort through long-wave radiation. It tests 14 alleyway configurations × 27 environmental conditions × 3 simulation hours (1,134 cases). These are modeled arid-alley results, not measured Highveld effects.
+
+A September 2026 Nanjing park field/model study reports a 1.30 °C park-average air-temperature reduction versus built-up surroundings while all measured internal activity points still experienced at least strong UTCI heat stress; point air temperatures differed by up to 2.22 °C. This is a strong warning against using a park/courtyard mean to claim a resident-level comfort benefit.
+
+A February 2026 dense-urban water-body study reports a 3.41 ha threshold for isolated water bodies under its study conditions. This is not a backyard-pool or courtyard design rule; do not scale it by area ratio.
+
+Sources:
+- [Traditional water-channel cooling and canyon configuration study, 15 August 2026](https://www.sciencedirect.com/science/article/pii/S2210670726004038)
+- [From Park-Wide Cooling to Heat Stress Across Activity Spaces, 6 September 2026](https://www.mdpi.com/2071-1050/18/17/9141)
+- [Regulation of water body cooling effects in dense Urban Areas, 1 February 2026](https://www.sciencedirect.com/science/article/pii/S2210670726000363)
+- [Passive cooling for the built environment, Nature Reviews Clean Technology, 2 July 2026](https://www.nature.com/articles/s44359-026-00177-y)
+
+### Current comparative benchmark position
+
+The new work now separates:
+- first-law pool/water balance and each heat path;
+- second-law temperature-grade exergy and idealized headroom;
+- pool cover, heat recovery and passive regeneration;
+- pedestrian microclimate causal attribution against matched dry shade;
+- cross-scale claim promotion;
+- refuge availability, shared capacity, maximum-throughput reference, progressive max-min service and ordered supply/demand degradation.
+
+The refuge max-flow oracle now checks all 144 small two-area/two-site route/capacity configurations against a separate brute-force integral assignment enumerator, plus monotonicity of throughput under route and capacity changes. The pool exergy ledger adds property-based checks for non-negativity, monotonicity with temperature distance, linear scaling with mass/specific heat and invalid absolute-temperature rejection.
+
+### What would constitute a real SOTA advance
+
+1. **Matched physical baseline:** use the EnergyPlus indoor pool object only for applicable indoor cases; use a separately qualified outdoor boundary/CFD/field method for pools, rills and courtyards.
+2. **Adaptive cover test:** compare covered, shaded-exposed and night-open schedules across a complete diurnal/seasonal cycle, with measured short-wave, long-wave, convection, evaporation, pool temperature and water use.
+3. **Robust sink regeneration:** require the lower uncertainty bound of predicted heat rejection to be positive and the upper uncertainty bound of evaporative loss to fit inside an admitted discretionary water budget before recommending exposure for regeneration.
+4. **Causal pedestrian outcomes:** paired upwind, feature-edge, near-field, downwind and matched dry-shade measurements at occupied heights, with MRT/globe/UTCI inputs and multi-day weather blocks.
+5. **Cross-scale evidence discipline:** no water-surface result becomes a pedestrian claim; no pedestrian result becomes an indoor cooling claim; no blue-space map becomes a thermal-refuge service claim without the next evidence tier.
+6. **Temporal service comparison:** compare P50/P90/P95 and worst-group service continuity, accessible unmet demand, water reserve headroom, thermal store drift and recovery time under the same compound heat/grid/water traces.
+
+These are research targets. No outdoor pool performance, cover optimum, microclimate improvement, building energy saving or neighborhood cooling result has been measured for Johannesburg. The strongest differentiator remains the independently replayable integration of specialist physics, water entitlements, finite thermal storage, human-service outcomes and scale-correct evidence.
