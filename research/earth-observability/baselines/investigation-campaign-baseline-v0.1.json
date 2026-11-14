@@ -1,7 +1,7 @@
 [
   {
-    "policy_id": "entropy-greedy",
-    "policy_kind": "entropy_greedy",
+    "policy_id": "cost-only",
+    "policy_kind": "cost_only",
     "is_oracle_upper_bound": false,
     "project_count": 3,
     "macro_mean_decision_loss": 80,
@@ -10,11 +10,11 @@
     "worst_project_loss_id": "project-a",
     "worst_project_decision_regret": 100,
     "worst_project_regret_id": "project-a",
-    "macro_mean_cost": 120,
-    "maximum_project_cost": 120,
-    "macro_mean_crew_hours": 3,
-    "maximum_project_crew_hours": 3,
-    "macro_mean_information_gain": 0.95
+    "macro_mean_cost": 20,
+    "maximum_project_cost": 20,
+    "macro_mean_crew_hours": 1,
+    "maximum_project_crew_hours": 1,
+    "macro_mean_information_gain": 0.20000000000000004
   },
   {
     "policy_id": "decision-aware",
@@ -34,6 +34,23 @@
     "macro_mean_information_gain": 0.55
   },
   {
+    "policy_id": "entropy-greedy",
+    "policy_kind": "entropy_greedy",
+    "is_oracle_upper_bound": false,
+    "project_count": 3,
+    "macro_mean_decision_loss": 80,
+    "macro_mean_decision_regret": 80,
+    "worst_project_decision_loss": 100,
+    "worst_project_loss_id": "project-a",
+    "worst_project_decision_regret": 100,
+    "worst_project_regret_id": "project-a",
+    "macro_mean_cost": 120,
+    "maximum_project_cost": 120,
+    "macro_mean_crew_hours": 3,
+    "maximum_project_crew_hours": 3,
+    "macro_mean_information_gain": 0.9499999999999998
+  },
+  {
     "policy_id": "expert-baseline",
     "policy_kind": "expert",
     "is_oracle_upper_bound": false,
@@ -48,24 +65,7 @@
     "maximum_project_cost": 20,
     "macro_mean_crew_hours": 1,
     "maximum_project_crew_hours": 1,
-    "macro_mean_information_gain": 0.2
-  },
-  {
-    "policy_id": "cost-only",
-    "policy_kind": "cost_only",
-    "is_oracle_upper_bound": false,
-    "project_count": 3,
-    "macro_mean_decision_loss": 80,
-    "macro_mean_decision_regret": 80,
-    "worst_project_decision_loss": 100,
-    "worst_project_loss_id": "project-a",
-    "worst_project_decision_regret": 100,
-    "worst_project_regret_id": "project-a",
-    "macro_mean_cost": 20,
-    "maximum_project_cost": 20,
-    "macro_mean_crew_hours": 1,
-    "maximum_project_crew_hours": 1,
-    "macro_mean_information_gain": 0.2
+    "macro_mean_information_gain": 0.20000000000000004
   },
   {
     "policy_id": "hidden-truth-oracle",
@@ -75,9 +75,9 @@
     "macro_mean_decision_loss": 0,
     "macro_mean_decision_regret": 0,
     "worst_project_decision_loss": 0,
-    "worst_project_loss_id": "project-c",
+    "worst_project_loss_id": "project-a",
     "worst_project_decision_regret": 0,
-    "worst_project_regret_id": "project-c",
+    "worst_project_regret_id": "project-a",
     "macro_mean_cost": 0,
     "maximum_project_cost": 0,
     "macro_mean_crew_hours": 0,
