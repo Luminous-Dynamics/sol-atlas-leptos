@@ -133,7 +133,8 @@
                     "type": "string"
                   }
                 }
-              }
+              },
+              "minItems": 1
             },
             "constraints": {
               "type": "array",
