@@ -920,6 +920,19 @@ mod tests {
     }
 
     #[test]
+    fn checked_in_no_change_fixture_deserializes_and_revalidates() {
+        let fixture = include_str!("../tests/fixtures/earth_observation/valid_no_change_bundle.json");
+        let bundle: EvidenceBundle = serde_json::from_str(fixture).unwrap();
+        assert_eq!(bundle.schema_version(), EARTH_OBSERVATION_SCHEMA_VERSION);
+        assert_eq!(bundle.observations().len(), 2);
+        assert_eq!(bundle.claims().len(), 1);
+        assert_eq!(
+            bundle.claims()[0].disposition(),
+            ChangeDisposition::NoChangeWithinEnvelope
+        );
+    }
+
+    #[test]
     fn strict_wire_contract_rejects_unknown_fields_and_wrong_schema_version() {
         let valid = EvidenceBundle::new(
             vec![
