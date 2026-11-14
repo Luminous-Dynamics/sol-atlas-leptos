@@ -59,7 +59,7 @@ pub enum RightsDecisionState {
     Revoked,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(try_from = "RightsBindingWire")]
 pub struct RightsBinding {
     purpose_id: String,
@@ -131,7 +131,7 @@ impl TryFrom<RightsBindingWire> for RightsBinding {
 /// A single observation of a declared support. The source asset and receipts
 /// are references to canonical Sol-Atlas / external records, not copied claims
 /// about source authenticity.
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(try_from = "ObservationRecordWire")]
 pub struct ObservationRecord {
     observation_id: String,
@@ -280,7 +280,7 @@ pub enum CoverageState {
     Unknown,
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(try_from = "DetectionLimitWire")]
 pub struct DetectionLimit {
     metric: String,
@@ -344,7 +344,7 @@ pub enum ChangeDisposition {
 
 /// A declared time window for a change claim. Values are retained as supplied;
 /// this type does not authenticate timestamps or infer their ordering.
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(try_from = "TimeWindowWire")]
 pub struct TimeWindow {
     start: String,
@@ -390,7 +390,7 @@ impl TryFrom<TimeWindowWire> for TimeWindow {
 }
 
 /// Evidence claim over one declared spatial support and time window.
-#[derive(Debug, Clone, PartialEq, Serialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(try_from = "ChangeClaimWire")]
 pub struct ChangeClaim {
     claim_id: String,
@@ -626,7 +626,7 @@ impl TryFrom<ChangeClaimWire> for ChangeClaim {
 
 /// Cross-record validated evidence package. Its deserialization path validates
 /// claim references and the no-change negative-control invariants.
-#[derive(Debug, Clone, PartialEq, Serialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(try_from = "EvidenceBundleWire")]
 pub struct EvidenceBundle {
     schema_version: u32,
