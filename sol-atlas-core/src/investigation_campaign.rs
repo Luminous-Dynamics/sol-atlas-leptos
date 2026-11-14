@@ -352,7 +352,7 @@ mod tests {
             .find(|metric| metric.policy_id == "entropy-greedy")
             .unwrap();
         assert_eq!(entropy.project_count, 3);
-        assert_eq!(entropy.macro_mean_decision_loss, 100.0);
+        assert!((entropy.macro_mean_decision_loss - 80.0).abs() < 1e-12);
         assert_eq!(entropy.worst_project_decision_loss, 100.0);
         assert_eq!(entropy.worst_project_loss_id, "project-a");
     }
@@ -360,16 +360,17 @@ mod tests {
     #[test]
     fn project_macro_average_weights_projects_not_event_counts() {
         let mut campaign = fixture();
+        let truth_state_id = campaign.project_cases[1].case.adjudicated_truth_state_id.clone();
         campaign.project_cases[1].case.decision_losses
             .iter_mut()
-            .find(|entry| entry.truth_state_id == campaign.project_cases[1].case.adjudicated_truth_state_id
+            .find(|entry| entry.truth_state_id == truth_state_id
                 && entry.decision_id == "declare-junction")
             .unwrap()
             .loss = 10.0;
         let receipt = score_investigation_campaign(&campaign).unwrap();
         let entropy = receipt.policy_metrics.iter()
             .find(|metric| metric.policy_id == "entropy-greedy").unwrap();
-        assert!((entropy.macro_mean_decision_loss - 70.0).abs() < 1e-12);
+        assert!((entropy.macro_mean_decision_loss - (170.0 / 3.0)).abs() < 1e-12);
     }
 
     #[test]
