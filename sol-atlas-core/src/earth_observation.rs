@@ -148,6 +148,8 @@ impl TryFrom<RightsReceiptRefWire> for RightsReceiptRef {
 pub struct ObservationRecord {
     observation_id: String,
     asset_id: AssetId,
+    /// Stable source identity reference in the canonical Sol-Atlas / custodian source registry.
+    source_id: String,
     source_asset_receipt_sha256: String,
     processing_receipt_sha256: String,
     rights: RightsReceiptRef,
@@ -162,6 +164,8 @@ pub struct ObservationRecord {
 struct ObservationRecordWire {
     observation_id: String,
     asset_id: AssetId,
+    /// Stable source identity reference in the canonical Sol-Atlas / custodian source registry.
+    source_id: String,
     source_asset_receipt_sha256: String,
     processing_receipt_sha256: String,
     rights: RightsReceiptRef,
@@ -176,6 +180,7 @@ impl ObservationRecord {
     pub fn new(
         observation_id: impl Into<String>,
         asset_id: AssetId,
+        source_id: impl Into<String>,
         source_asset_receipt_sha256: impl Into<String>,
         processing_receipt_sha256: impl Into<String>,
         rights: RightsReceiptRef,
@@ -185,8 +190,10 @@ impl ObservationRecord {
         quality: ObservationQuality,
     ) -> Result<Self, String> {
         let observation_id = observation_id.into();
+        let source_id = source_id.into();
         let support_id = support_id.into();
         validate_identifier(&observation_id, "observation ID")?;
+        validate_identifier(&source_id, "source ID")?;
         validate_identifier(&support_id, "support ID")?;
         if acquisition.kind() == ObservationTimeKind::Unknown
             && quality == ObservationQuality::QualifiedUsable
@@ -196,9 +203,13 @@ impl ObservationRecord {
         if rights.asset_id() != asset_id.as_str() {
             return Err("rights decision receipt must bind the exact observation asset ID".into());
         }
+        if rights.source_id() != source_id {
+            return Err("rights decision receipt must bind the exact observation source ID".into());
+        }
         Ok(Self {
             observation_id,
             asset_id,
+            source_id,
             source_asset_receipt_sha256: normalize_sha256(
                 source_asset_receipt_sha256.into(),
                 "source asset receipt",
@@ -221,6 +232,11 @@ impl ObservationRecord {
 
     pub fn asset_id(&self) -> &AssetId {
         &self.asset_id
+    }
+
+    /// Canonical source registry identity referenced by this observation.
+    pub fn source_id(&self) -> &str {
+        &self.source_id
     }
 
     pub fn source_asset_receipt_sha256(&self) -> &str {
@@ -277,6 +293,7 @@ impl TryFrom<ObservationRecordWire> for ObservationRecord {
         Self::new(
             wire.observation_id,
             wire.asset_id,
+            wire.source_id,
             wire.source_asset_receipt_sha256,
             wire.processing_receipt_sha256,
             wire.rights,
@@ -790,6 +807,7 @@ mod tests {
         ObservationRecord::new(
             id,
             AssetId::new(format!("fixture:{id}")).unwrap(),
+            "fixture-source",
             digest(b'b'),
             digest(b'c'),
             rights(&format!("fixture:{id}")),
@@ -896,6 +914,7 @@ mod tests {
         assert!(ObservationRecord::new(
             "obs-a",
             AssetId::new("fixture:obs-a").unwrap(),
+            "fixture-source",
             digest(b'b'),
             digest(b'c'),
             wrong_asset_rights,
@@ -987,7 +1006,7 @@ mod tests {
             CoverageState::Unknown, None, None, None
         ).unwrap();
         let other_support = ObservationRecord::new(
-            "obs-b", AssetId::new("fixture:obs-b").unwrap(), digest(b'b'), digest(b'c'),
+            "obs-b", AssetId::new("fixture:obs-b").unwrap(), "fixture-source", digest(b'b'), digest(b'c'),
             rights("fixture:obs-b"), "support-b",
             ObservationTime::new(ObservationTimeKind::Instant, Some("2024-01-01".into()), None).unwrap(),
             ObservationModality::Optical, ObservationQuality::QualifiedUsable
