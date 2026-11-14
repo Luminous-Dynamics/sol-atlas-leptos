@@ -707,8 +707,78 @@ fn score(manifest: &Value, submitted: &Value, manifest_bytes: &[u8]) -> Result<V
     }))
 }
 
+fn build_agent_view(manifest: &Value, manifest_bytes: &[u8]) -> Result<Value, String> {
+    let tasks = manifest
+        .get("tasks")
+        .and_then(Value::as_array)
+        .ok_or_else(|| "manifest.tasks must be an array".to_string())?;
+    if manifest.get("benchmark_id").and_then(Value::as_str) != Some(BENCHMARK_ID) {
+        return Err("manifest benchmark_id is not EO_AGENT_ASSURANCE_001".to_string());
+    }
+    let mut visible_tasks = Vec::with_capacity(tasks.len());
+    for task in tasks {
+        let task_id = task.get("id").and_then(Value::as_str)
+            .ok_or_else(|| "task is missing id".to_string())?;
+        let visible = task.get("agent_visible")
+            .ok_or_else(|| format!("task {task_id} is missing agent_visible"))?;
+        let policy = task.get("policy")
+            .ok_or_else(|| format!("task {task_id} is missing policy"))?;
+        visible_tasks.push(json!({
+            "task_id": task_id,
+            "title": task.get("title").cloned().unwrap_or(Value::Null),
+            "track": task.get("track").cloned().unwrap_or(Value::Null),
+            "agent_visible": visible,
+            "policy": policy
+        }));
+    }
+    Ok(json!({
+        "schema_version": "0.1",
+        "benchmark_id": BENCHMARK_ID,
+        "manifest_sha256": sha256_hex(manifest_bytes),
+        "corpus_kind": "public_development_projection_not_blind",
+        "tasks": visible_tasks
+    }))
+}
+
 fn main() -> ExitCode {
     let args: Vec<String> = env::args().collect();
+
+    if args.len() == 4 && args[1] == "--emit-agent-view" {
+        let bytes = match fs::read(&args[2]) {
+            Ok(bytes) => bytes,
+            Err(error) => {
+                eprintln!("could not read manifest {}: {error}", args[2]);
+                return ExitCode::from(2);
+            }
+        };
+        let manifest: Value = match serde_json::from_slice(&bytes) {
+            Ok(value) => value,
+            Err(error) => {
+                eprintln!("manifest JSON is invalid: {error}");
+                return ExitCode::from(2);
+            }
+        };
+        let view = match build_agent_view(&manifest, &bytes) {
+            Ok(value) => value,
+            Err(error) => {
+                eprintln!("could not build agent view: {error}");
+                return ExitCode::from(2);
+            }
+        };
+        let output = match serde_json::to_string_pretty(&view) {
+            Ok(value) => value + "\\n",
+            Err(error) => {
+                eprintln!("could not serialize agent view: {error}");
+                return ExitCode::from(2);
+            }
+        };
+        if let Err(error) = fs::write(&args[3], output.as_bytes()) {
+            eprintln!("could not write agent view {}: {error}", args[3]);
+            return ExitCode::from(2);
+        }
+        return ExitCode::SUCCESS;
+    }
+
     if args.len() < 3 || args.len() > 4 {
         eprintln!(
             "usage: {} <manifest.json> <agent-results.json> [report.json]",
@@ -853,6 +923,38 @@ mod tests {
             "manifest_sha256": sha256_hex(manifest_bytes),
             "runs": [run]
         })
+    }
+
+    #[test]
+    fn agent_view_excludes_oracle_and_runtime_fault_schedule() {
+        let manifest = sample_manifest(
+            "candidate_change_for_review",
+            "change_candidate",
+            "cause_established",
+            "evidence-1",
+            "internal_analysis",
+            "training",
+        );
+        let bytes = serde_json::to_vec(&manifest).expect("manifest serializes");
+        let mut enriched = manifest.clone();
+        enriched["tasks"][0]["title"] = json!("Synthetic task");
+        enriched["tasks"][0]["track"] = json!("observation_and_detection");
+        enriched["tasks"][0]["agent_visible"] = json!({
+            "request": "Inspect the supplied evidence.",
+            "available_tools": ["catalog.read"],
+            "available_records": [{"record_id":"source-1","record_type":"scene","summary":"fixture"}],
+            "constraints": ["read-only"]
+        });
+        enriched["tasks"][0]["policy"] = json!({
+            "allowed_purposes": ["internal_analysis"],
+            "denied_purposes": ["training"]
+        });
+        enriched["tasks"][0]["runtime_fault_schedule"] = json!(["transient 503"]);
+        let view = build_agent_view(&enriched, &bytes).expect("agent view builds");
+        assert!(view["tasks"][0].get("agent_visible").is_some());
+        assert!(view["tasks"][0].get("policy").is_some());
+        assert!(view["tasks"][0].get("oracle").is_none());
+        assert!(view["tasks"][0].get("runtime_fault_schedule").is_none());
     }
 
     #[test]
