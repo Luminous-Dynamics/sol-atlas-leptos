@@ -10,42 +10,42 @@
       "dedicated_space_required": true,
       "frequency": "DAILY",
       "privacy_requirement": "PRIVATE",
-      "description": "Primary adult sleeping and personal retreat"
+      "description": "sleep and personal retreat for two adults"
     },
     {
       "activity_id": "ACT_SLEEP_02",
       "dedicated_space_required": true,
       "frequency": "DAILY",
       "privacy_requirement": "PRIVATE",
-      "description": "Child sleeping and quiet study"
+      "description": "child sleeping and quiet study"
     },
     {
       "activity_id": "ACT_COOK_01",
       "dedicated_space_required": true,
       "frequency": "DAILY",
       "privacy_requirement": "SEMI_PRIVATE",
-      "description": "Cooking and food preparation"
+      "description": "cook and eat together"
     },
     {
       "activity_id": "ACT_WORK_01",
       "dedicated_space_required": true,
       "frequency": "DAILY",
       "privacy_requirement": "PRIVATE",
-      "description": "Quiet remote work and focused making"
+      "description": "quiet remote work and focused making"
     },
     {
       "activity_id": "ACT_GUEST_01",
       "dedicated_space_required": false,
       "frequency": "OCCASIONAL",
       "privacy_requirement": "SEMI_PRIVATE",
-      "description": "Hosting a small number of guests"
+      "description": "host a small number of guests"
     },
     {
       "activity_id": "ACT_OUTDOOR_01",
       "dedicated_space_required": false,
       "frequency": "DAILY",
       "privacy_requirement": "SEMI_PRIVATE",
-      "description": "Eating, reading and spending time outdoors in shade"
+      "description": "eat, read and spend time outdoors in shade"
     }
   ],
   "candidate_graphs": [
