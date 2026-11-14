@@ -791,6 +791,21 @@ mod tests {
     }
 
     #[test]
+    fn committed_fixture_separates_optical_gap_from_sar_usability() {
+        let fixture = include_str!("../tests/fixtures/earth_observation_cadence/optical_cloud_gap_sar_bridge.json");
+        let timeline: CadenceTimeline = serde_json::from_str(fixture).unwrap();
+        let report = timeline.report();
+        assert_eq!(report.opportunity_count, 4);
+        assert_eq!(report.acquired_count, 3);
+        assert_eq!(report.qualified_usable_count, 2);
+        assert_eq!(report.no_acquisition_count, 1);
+        assert_eq!(report.usable_fraction_of_expected, Some(0.5));
+        assert_eq!(report.per_sensor.len(), 2);
+        assert_eq!(report.usable_revisit_gaps.gap_count, 1);
+        assert_eq!(report.usable_revisit_gaps.maximum_ms, Some(518_400_000));
+    }
+
+    #[test]
     fn deserialized_timeline_revalidates_duplicate_and_receipt_invariants() {
         let valid = CadenceTimeline::new(
             "timeline-serialize",
