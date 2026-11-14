@@ -297,7 +297,8 @@
           "verification_state": "UNKNOWN",
           "evidence_ref": null
         }
-      ]
+      ],
+      "water_dependency_state": "NO_DISCRETIONARY_WATER_ASSUMED"
     },
     {
       "candidate_id": "GRAPH-HV-B",
@@ -547,7 +548,8 @@
           "verification_state": "UNKNOWN",
           "evidence_ref": null
         }
-      ]
+      ],
+      "water_dependency_state": "NO_DISCRETIONARY_WATER_ASSUMED"
     }
   ],
   "comparison_policy": {
