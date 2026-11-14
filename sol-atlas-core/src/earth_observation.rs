@@ -227,6 +227,82 @@ struct ObservationRecordWire {
     quality: ObservationQuality,
 }
 
+/// Structural reference to an independently qualified cross-system comparison.
+/// The receipt digest identifies the external qualification payload; the copied
+/// scope fields are checked against the local claim before the reference is accepted.
+/// Hash presence alone does not authenticate or qualify the external receipt.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(try_from = "CrossSystemComparabilityReceiptRefWire")]
+pub struct CrossSystemComparabilityReceiptRef {
+    receipt_sha256: String,
+    observation_ids: Vec<String>,
+    support_id: String,
+    target_class_id: String,
+    ontology_version: String,
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(deny_unknown_fields)]
+struct CrossSystemComparabilityReceiptRefWire {
+    receipt_sha256: String,
+    observation_ids: Vec<String>,
+    support_id: String,
+    target_class_id: String,
+    ontology_version: String,
+}
+
+impl CrossSystemComparabilityReceiptRef {
+    pub fn new(
+        receipt_sha256: impl Into<String>,
+        observation_ids: Vec<String>,
+        support_id: impl Into<String>,
+        target_class_id: impl Into<String>,
+        ontology_version: impl Into<String>,
+    ) -> Result<Self, String> {
+        let receipt_sha256 = normalize_sha256(receipt_sha256.into(), "cross-system comparability receipt")?;
+        validate_unique_ids(&observation_ids, "comparability observation reference")?;
+        if observation_ids.is_empty() {
+            return Err("cross-system comparability receipt requires at least one observation ID".into());
+        }
+        for id in &observation_ids {
+            validate_identifier(id, "comparability observation reference")?;
+        }
+        let support_id = support_id.into();
+        let target_class_id = target_class_id.into();
+        let ontology_version = ontology_version.into();
+        validate_identifier(&support_id, "comparability support ID")?;
+        validate_identifier(&target_class_id, "comparability target class ID")?;
+        validate_identifier(&ontology_version, "comparability ontology version")?;
+        Ok(Self {
+            receipt_sha256,
+            observation_ids,
+            support_id,
+            target_class_id,
+            ontology_version,
+        })
+    }
+
+    pub fn receipt_sha256(&self) -> &str { &self.receipt_sha256 }
+    pub fn observation_ids(&self) -> &[String] { &self.observation_ids }
+    pub fn support_id(&self) -> &str { &self.support_id }
+    pub fn target_class_id(&self) -> &str { &self.target_class_id }
+    pub fn ontology_version(&self) -> &str { &self.ontology_version }
+}
+
+impl TryFrom<CrossSystemComparabilityReceiptRefWire> for CrossSystemComparabilityReceiptRef {
+    type Error = String;
+
+    fn try_from(wire: CrossSystemComparabilityReceiptRefWire) -> Result<Self, Self::Error> {
+        Self::new(
+            wire.receipt_sha256,
+            wire.observation_ids,
+            wire.support_id,
+            wire.target_class_id,
+            wire.ontology_version,
+        )
+    }
+}
+
 /// Deterministic signature of the measurement system that produced an observation.
 /// This is a comparison key, not a sensor registry or proof of cross-system equivalence.
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
@@ -604,7 +680,7 @@ pub struct ChangeClaim {
     coverage_receipt_sha256: Option<String>,
     detection_qualification_receipt_sha256: Option<String>,
     /// Required when one claim combines distinct source/platform/sensor/product/processing systems.
-    cross_system_comparability_receipt_sha256: Option<String>,
+    cross_system_comparability_receipt: Option<CrossSystemComparabilityReceiptRef>,
     detection_qualification: Option<DetectionQualification>,
     detection_limit: Option<DetectionLimit>,
 }
@@ -625,7 +701,7 @@ struct ChangeClaimWire {
     coverage: CoverageState,
     coverage_receipt_sha256: Option<String>,
     detection_qualification_receipt_sha256: Option<String>,
-    cross_system_comparability_receipt_sha256: Option<String>,
+    cross_system_comparability_receipt: Option<CrossSystemComparabilityReceiptRef>,
     detection_qualification: Option<DetectionQualification>,
     detection_limit: Option<DetectionLimit>,
 }
@@ -646,7 +722,7 @@ impl ChangeClaim {
         coverage: CoverageState,
         coverage_receipt_sha256: Option<String>,
         detection_qualification_receipt_sha256: Option<String>,
-        cross_system_comparability_receipt_sha256: Option<String>,
+        cross_system_comparability_receipt: Option<CrossSystemComparabilityReceiptRef>,
         detection_qualification: Option<DetectionQualification>,
         detection_limit: Option<DetectionLimit>,
     ) -> Result<Self, String> {
@@ -680,9 +756,7 @@ impl ChangeClaim {
         let detection_qualification_receipt_sha256 = detection_qualification_receipt_sha256
             .map(|value| normalize_sha256(value, "detection qualification receipt"))
             .transpose()?;
-        let cross_system_comparability_receipt_sha256 = cross_system_comparability_receipt_sha256
-            .map(|value| normalize_sha256(value, "cross-system comparability receipt"))
-            .transpose()?;
+
 
         if coverage == CoverageState::CompleteQualified && coverage_receipt_sha256.is_none() {
             return Err("complete qualified coverage requires a coverage receipt digest".into());
@@ -750,7 +824,7 @@ impl ChangeClaim {
             coverage,
             coverage_receipt_sha256,
             detection_qualification_receipt_sha256,
-            cross_system_comparability_receipt_sha256,
+            cross_system_comparability_receipt,
             detection_qualification,
             detection_limit,
         })
@@ -772,8 +846,8 @@ impl ChangeClaim {
         &self.observation_ids
     }
 
-    pub fn cross_system_comparability_receipt_sha256(&self) -> Option<&str> {
-        self.cross_system_comparability_receipt_sha256.as_deref()
+    pub fn cross_system_comparability_receipt(&self) -> Option<&CrossSystemComparabilityReceiptRef> {
+        self.cross_system_comparability_receipt.as_ref()
     }
 
     /// Validate references and evidence admissibility against the exact
@@ -801,15 +875,27 @@ impl ChangeClaim {
             .iter()
             .map(|observation| observation.system_signature())
             .collect::<BTreeSet<_>>();
-        if system_signatures.len() > 1
-            && self.cross_system_comparability_receipt_sha256.is_none()
-        {
-            return Err("claim combines distinct source/platform/sensor/collection/processing systems without a cross-system comparability receipt".into());
-        }
-        if system_signatures.len() <= 1
-            && self.cross_system_comparability_receipt_sha256.is_some()
-        {
-            return Err("cross-system comparability receipt is present but the claim references only one observation-system signature".into());
+        match (&self.cross_system_comparability_receipt, system_signatures.len()) {
+            (None, count) if count > 1 => {
+                return Err("claim combines distinct source/platform/sensor/collection/processing systems without a cross-system comparability receipt".into());
+            }
+            (Some(_), count) if count <= 1 => {
+                return Err("cross-system comparability receipt is present but the claim references only one observation-system signature".into());
+            }
+            (Some(receipt), _) => {
+                let claim_observation_ids = self.observation_ids.iter().cloned().collect::<BTreeSet<_>>();
+                let receipt_observation_ids = receipt.observation_ids.iter().cloned().collect::<BTreeSet<_>>();
+                if receipt_observation_ids != claim_observation_ids {
+                    return Err("cross-system comparability receipt observation set does not exactly match the claim".into());
+                }
+                if receipt.support_id != self.support_id
+                    || receipt.target_class_id != self.target_class_id
+                    || receipt.ontology_version != self.ontology_version
+                {
+                    return Err("cross-system comparability receipt scope does not match claim support/class/ontology".into());
+                }
+            }
+            _ => {}
         }
 
         for id in self
@@ -869,7 +955,7 @@ impl TryFrom<ChangeClaimWire> for ChangeClaim {
             wire.coverage,
             wire.coverage_receipt_sha256,
             wire.detection_qualification_receipt_sha256,
-            wire.cross_system_comparability_receipt_sha256,
+            wire.cross_system_comparability_receipt,
             wire.detection_qualification,
             wire.detection_limit,
         )
@@ -1208,9 +1294,43 @@ mod tests {
         assert!(blocked.unwrap_err().contains("cross-system comparability receipt"));
 
         let mut claim_with_bridge = no_change_claim();
-        claim_with_bridge.cross_system_comparability_receipt_sha256 = Some(digest(b'f'));
-        let admitted_reference = EvidenceBundle::new(vec![obs_a.clone(), obs_b.clone()], vec![claim_with_bridge]);
+        claim_with_bridge.cross_system_comparability_receipt = Some(
+            CrossSystemComparabilityReceiptRef::new(
+                digest(b'f'),
+                vec!["obs-a".into(), "obs-b".into()],
+                "support-a",
+                "vegetation-loss",
+                "fixture-ontology-v1",
+            ).unwrap()
+        );
+        let admitted_reference = EvidenceBundle::new(vec![obs_a.clone(), obs_b.clone()], vec![claim_with_bridge.clone()]);
         assert!(admitted_reference.is_ok());
+
+        let mut wrong_observation_set = claim_with_bridge.clone();
+        wrong_observation_set.cross_system_comparability_receipt = Some(
+            CrossSystemComparabilityReceiptRef::new(
+                digest(b'f'),
+                vec!["obs-a".into()],
+                "support-a",
+                "vegetation-loss",
+                "fixture-ontology-v1",
+            ).unwrap()
+        );
+        assert!(EvidenceBundle::new(vec![obs_a.clone(), obs_b.clone()], vec![wrong_observation_set])
+            .unwrap_err().contains("observation set"));
+
+        let mut wrong_target = claim_with_bridge.clone();
+        wrong_target.cross_system_comparability_receipt = Some(
+            CrossSystemComparabilityReceiptRef::new(
+                digest(b'f'),
+                vec!["obs-a".into(), "obs-b".into()],
+                "support-a",
+                "built-up-expansion",
+                "fixture-ontology-v1",
+            ).unwrap()
+        );
+        assert!(EvidenceBundle::new(vec![obs_a, obs_b], vec![wrong_target])
+            .unwrap_err().contains("scope"));
     }
 
     #[test]
@@ -1232,7 +1352,15 @@ mod tests {
     #[test]
     fn same_system_claim_rejects_unnecessary_cross_system_receipt() {
         let mut claim = no_change_claim();
-        claim.cross_system_comparability_receipt_sha256 = Some(digest(b'f'));
+        claim.cross_system_comparability_receipt = Some(
+            CrossSystemComparabilityReceiptRef::new(
+                digest(b'f'),
+                vec!["obs-a".into(), "obs-b".into()],
+                "support-a",
+                "vegetation-loss",
+                "fixture-ontology-v1",
+            ).unwrap()
+        );
         let observations = vec![
             observation("obs-a", "2024-01-01", ObservationQuality::QualifiedUsable),
             observation("obs-b", "2025-01-01", ObservationQuality::QualifiedUsable),
