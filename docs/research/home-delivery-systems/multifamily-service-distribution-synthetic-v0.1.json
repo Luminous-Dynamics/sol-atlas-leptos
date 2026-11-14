@@ -492,6 +492,24 @@
       },
       "measurement_ref": null,
       "evidence_refs": []
+    },
+    {
+      "node_id": "SRC-NONPOTABLE-UNQUALIFIED",
+      "node_kind": "source",
+      "resource_id": "R-NONPOTABLE-WATER",
+      "floor_id": null,
+      "unit_id": null,
+      "state": "unknown",
+      "capacity": {
+        "state": "unknown",
+        "lower": null,
+        "upper": null,
+        "unit": null,
+        "boundary_ref": null,
+        "evidence_ref": null
+      },
+      "measurement_ref": null,
+      "evidence_refs": []
     }
   ],
   "edges": [
@@ -1245,7 +1263,7 @@
   "fixture_notes": [
     "All source capacities, storage quantities, pump ratings, pressure, flow, unit demand, delivered service and losses remain UNKNOWN.",
     "R-POTABLE-WATER is an intended circuit/resource class only. The source node is named unqualified, and quality_state UNKNOWN means no potability or treatment claim is made.",
-    "R-NONPOTABLE-WATER is reserved as a separate resource class; no treatment, source, distribution path or unit use is represented or qualified in this fixture.",
+    "R-NONPOTABLE-WATER has only an unqualified source identity; no treatment, distribution edge, unit-use path, quality evidence or potable-use claim is represented.",
     "Electrical input and useful thermal output remain separate resource classes and are never numerically substituted.",
     "The six event timings are synthetic relative test inputs, not measured outage frequencies, probability estimates or a forecast for any city or utility.",
     "Allocation policy, resident service floors, ownership and tariffs remain UNKNOWN; this fixture makes no allocation or fairness claim.",
