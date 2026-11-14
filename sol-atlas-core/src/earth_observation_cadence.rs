@@ -14,21 +14,14 @@
 //! A no-change or change assessment must reference an independently qualified
 //! detection-envelope receipt. Digests are references, not authentication.
 
+use crate::earth_observation::ObservationModality;
+use crate::earth_observability::{
+    classify_non_detection, DetectionQualification, NonDetectionDisposition,
+};
 use serde::{Deserialize, Serialize};
 use std::collections::{BTreeMap, BTreeSet};
 
 pub const CADENCE_SCHEMA_VERSION: u32 = 1;
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
-#[serde(rename_all = "snake_case")]
-pub enum ObservationModality {
-    Optical,
-    SyntheticApertureRadar,
-    ThermalInfrared,
-    Hyperspectral,
-    Multispectral,
-    Other,
-}
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
@@ -102,7 +95,7 @@ impl AcquisitionWindow {
 /// One expected acquisition opportunity or actual scene for one spatial support.
 /// expected_at is optional: absence means no defensible acquisition schedule was
 /// available; it must not be fabricated from nominal constellation marketing.
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(try_from = "CadenceOpportunityWire")]
 pub struct CadenceOpportunity {
     pub opportunity_id: String,
@@ -119,11 +112,15 @@ pub struct CadenceOpportunity {
     /// Time the qualified product became available to the analysis pipeline.
     pub delivered_at_unix_ms: Option<i64>,
     pub assessment: Option<ObservationAssessment>,
-    /// Required for NoChangeWithinEnvelope: proves declared coverage over its
-    /// support/window when authenticated by the responsible evidence owner.
+    /// The phenomenon being assessed. Required whenever assessment is present.
+    pub assessment_target_class_id: Option<String>,
+    /// Version of the target-class ontology used for this assessment.
+    pub assessment_ontology_version: Option<String>,
+    /// Shared target-conditional POD qualification. Required for no-change claims.
+    pub detection_qualification: Option<DetectionQualification>,
+    /// Required for NoChangeWithinEnvelope: qualified coverage over support/window.
     pub coverage_qualification_receipt_sha256: Option<String>,
-    /// Required for both positive and negative promoted assessments: binds the
-    /// target/support/sensor/platform/configuration detection envelope.
+    /// Required for promoted change/no-change assessments.
     pub detection_qualification_receipt_sha256: Option<String>,
 }
 
@@ -142,6 +139,9 @@ struct CadenceOpportunityWire {
     state: OpportunityState,
     delivered_at_unix_ms: Option<i64>,
     assessment: Option<ObservationAssessment>,
+    assessment_target_class_id: Option<String>,
+    assessment_ontology_version: Option<String>,
+    detection_qualification: Option<DetectionQualification>,
     coverage_qualification_receipt_sha256: Option<String>,
     detection_qualification_receipt_sha256: Option<String>,
 }
@@ -163,6 +163,9 @@ impl TryFrom<CadenceOpportunityWire> for CadenceOpportunity {
             state: wire.state,
             delivered_at_unix_ms: wire.delivered_at_unix_ms,
             assessment: wire.assessment,
+            assessment_target_class_id: wire.assessment_target_class_id,
+            assessment_ontology_version: wire.assessment_ontology_version,
+            detection_qualification: wire.detection_qualification,
             coverage_qualification_receipt_sha256: wire.coverage_qualification_receipt_sha256,
             detection_qualification_receipt_sha256: wire.detection_qualification_receipt_sha256,
         };
@@ -194,6 +197,9 @@ impl CadenceOpportunity {
                 || self.source_event_id.is_some()
                 || self.delivered_at_unix_ms.is_some()
                 || self.assessment.is_some()
+                || self.assessment_target_class_id.is_some()
+                || self.assessment_ontology_version.is_some()
+                || self.detection_qualification.is_some()
                 || self.coverage_qualification_receipt_sha256.is_some()
                 || self.detection_qualification_receipt_sha256.is_some()
             {
@@ -231,13 +237,34 @@ impl CadenceOpportunity {
             if self.state != OpportunityState::QualifiedUsable {
                 return Err("only a qualified usable observation may carry an assessment".into());
             }
+            validate_optional_identifier(
+                self.assessment_target_class_id.as_deref(),
+                "assessment target class ID",
+            )?;
+            validate_optional_identifier(
+                self.assessment_ontology_version.as_deref(),
+                "assessment ontology version",
+            )?;
+            if self.assessment_target_class_id.is_none()
+                || self.assessment_ontology_version.is_none()
+            {
+                return Err("every assessment requires an explicit target class and ontology version".into());
+            }
             match assessment {
                 ObservationAssessment::NoChangeWithinEnvelope => {
                     if self.coverage_qualification_receipt_sha256.is_none() {
                         return Err("no-change assessment requires a coverage qualification receipt".into());
                     }
                     if self.detection_qualification_receipt_sha256.is_none() {
-                        return Err("no-change assessment requires a detection qualification receipt".into());
+                        return Err("no-change assessment requires a target/sensor detection qualification receipt".into());
+                    }
+                    let qualification = self.detection_qualification.ok_or_else(|| {
+                        "no-change assessment requires the shared structured DetectionQualification".to_string()
+                    })?;
+                    if classify_non_detection(qualification)
+                        != NonDetectionDisposition::AbsenceEvidenceEligible
+                    {
+                        return Err("no-change assessment requires target coverage, valid calibration, in-domain applicability and sufficient qualified POD".into());
                     }
                 }
                 ObservationAssessment::ChangeDetected => {
@@ -247,10 +274,13 @@ impl CadenceOpportunity {
                 }
                 ObservationAssessment::Unresolved => {}
             }
-        } else if self.coverage_qualification_receipt_sha256.is_some()
+        } else if self.assessment_target_class_id.is_some()
+            || self.assessment_ontology_version.is_some()
+            || self.detection_qualification.is_some()
+            || self.coverage_qualification_receipt_sha256.is_some()
             || self.detection_qualification_receipt_sha256.is_some()
         {
-            return Err("qualification receipts require an explicit observation assessment".into());
+            return Err("assessment metadata and qualification receipts require an explicit observation assessment".into());
         }
 
         validate_optional_sha256(
@@ -273,7 +303,7 @@ impl CadenceOpportunity {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(try_from = "CadenceTimelineWire")]
 pub struct CadenceTimeline {
     pub schema_version: u32,
@@ -320,7 +350,7 @@ impl CadenceTimeline {
         }
 
         let mut opportunity_ids: BTreeSet<String> = BTreeSet::new();
-        let mut source_event_ids: BTreeSet<String> = BTreeSet::new();
+        let mut source_event_ids: BTreeSet<(String, String)> = BTreeSet::new();
         for opportunity in &opportunities {
             opportunity.validate()?;
             if opportunity.support_id != support_id {
@@ -330,8 +360,8 @@ impl CadenceTimeline {
                 return Err("duplicate opportunity ID".into());
             }
             if let Some(event_id) = opportunity.source_event_id.as_deref() {
-                if !source_event_ids.insert(event_id.to_string()) {
-                    return Err("duplicate/replayed source event would inflate cadence".into());
+                if !source_event_ids.insert((opportunity.source_id.clone(), event_id.to_string())) {
+                    return Err("duplicate/replayed source event within one source would inflate cadence".into());
                 }
             }
         }
@@ -504,10 +534,22 @@ impl CadenceTimeline {
 
         let mut intervals = Vec::new();
         for (change, change_start) in changes {
+            let target_class_id = change
+                .assessment_target_class_id
+                .as_deref()
+                .expect("validated change assessment has a target class");
+            let ontology_version = change
+                .assessment_ontology_version
+                .as_deref()
+                .expect("validated change assessment has an ontology version");
             let prior_no_change = self
                 .opportunities
                 .iter()
-                .filter(|item| item.assessment == Some(ObservationAssessment::NoChangeWithinEnvelope))
+                .filter(|item| {
+                    item.assessment == Some(ObservationAssessment::NoChangeWithinEnvelope)
+                        && item.assessment_target_class_id.as_deref() == Some(target_class_id)
+                        && item.assessment_ontology_version.as_deref() == Some(ontology_version)
+                })
                 .filter_map(|item| {
                     let window = item.acquisition?;
                     (window.end_unix_ms < change_start)
@@ -517,6 +559,8 @@ impl CadenceTimeline {
 
             if let Some((no_change, lower)) = prior_no_change {
                 intervals.push(CensoredEventInterval {
+                    target_class_id: target_class_id.to_string(),
+                    ontology_version: ontology_version.to_string(),
                     last_qualified_no_change_opportunity_id: no_change.opportunity_id.clone(),
                     first_qualified_change_opportunity_id: change.opportunity_id.clone(),
                     lower_bound_exclusive_unix_ms: lower,
@@ -568,6 +612,8 @@ pub struct SensorCadenceSummary {
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct CensoredEventInterval {
+    pub target_class_id: String,
+    pub ontology_version: String,
     pub last_qualified_no_change_opportunity_id: String,
     pub first_qualified_change_opportunity_id: String,
     pub lower_bound_exclusive_unix_ms: i64,
@@ -705,6 +751,15 @@ mod tests {
             state,
             delivered_at_unix_ms: delivered,
             assessment,
+            assessment_target_class_id: assessment.map(|_| "land-cover-change".to_string()),
+            assessment_ontology_version: assessment.map(|_| "fixture-ontology-v1".to_string()),
+            detection_qualification: is_no_change.then_some(DetectionQualification {
+                footprint_covers_target: true,
+                calibration_valid: true,
+                target_in_validated_domain: true,
+                probability_of_detection: Some(0.99),
+                minimum_required_probability: 0.95,
+            }),
             coverage_qualification_receipt_sha256: is_no_change.then(|| "d".repeat(64)),
             detection_qualification_receipt_sha256: is_claim.then(|| "e".repeat(64)),
         }
@@ -771,6 +826,82 @@ mod tests {
         let mut invalid = item("clean", "sensor-a", ObservationModality::Optical, Some(0), Some((0, 10)), OpportunityState::QualifiedUsable, Some(ObservationAssessment::NoChangeWithinEnvelope), Some(20));
         invalid.detection_qualification_receipt_sha256 = None;
         assert!(CadenceTimeline::new("bad", "support-a", vec![invalid]).is_err());
+    }
+
+    #[test]
+    fn no_change_assessment_rejects_unqualified_shared_pod_result() {
+        let mut invalid = item(
+            "clean",
+            "sensor-a",
+            ObservationModality::Optical,
+            Some(0),
+            Some((0, 10)),
+            OpportunityState::QualifiedUsable,
+            Some(ObservationAssessment::NoChangeWithinEnvelope),
+            Some(20),
+        );
+        invalid.detection_qualification = Some(DetectionQualification {
+            footprint_covers_target: true,
+            calibration_valid: true,
+            target_in_validated_domain: true,
+            probability_of_detection: Some(0.70),
+            minimum_required_probability: 0.95,
+        });
+        assert!(CadenceTimeline::new("bad-pod", "support-a", vec![invalid]).is_err());
+    }
+
+    #[test]
+    fn event_time_bounds_never_join_different_target_classes_or_ontologies() {
+        let clean = item(
+            "clean",
+            "sensor-a",
+            ObservationModality::Optical,
+            Some(0),
+            Some((0, 10)),
+            OpportunityState::QualifiedUsable,
+            Some(ObservationAssessment::NoChangeWithinEnvelope),
+            Some(20),
+        );
+        let mut changed_class = item(
+            "positive",
+            "sensor-a",
+            ObservationModality::Optical,
+            Some(2 * DAY),
+            Some((2 * DAY, 2 * DAY + 10)),
+            OpportunityState::QualifiedUsable,
+            Some(ObservationAssessment::ChangeDetected),
+            Some(2 * DAY + 20),
+        );
+        changed_class.assessment_target_class_id = Some("built-up-expansion".into());
+        assert!(CadenceTimeline::new("different-class", "support-a", vec![clean.clone(), changed_class])
+            .unwrap()
+            .interval_censored_event_times()
+            .is_empty());
+
+        let mut changed_ontology = item(
+            "positive-v2",
+            "sensor-a",
+            ObservationModality::Optical,
+            Some(2 * DAY),
+            Some((2 * DAY, 2 * DAY + 10)),
+            OpportunityState::QualifiedUsable,
+            Some(ObservationAssessment::ChangeDetected),
+            Some(2 * DAY + 20),
+        );
+        changed_ontology.assessment_ontology_version = Some("fixture-ontology-v2".into());
+        assert!(CadenceTimeline::new("different-ontology", "support-a", vec![clean, changed_ontology])
+            .unwrap()
+            .interval_censored_event_times()
+            .is_empty());
+    }
+
+    #[test]
+    fn source_event_identity_is_scoped_to_its_source() {
+        let first = item("scene-a", "sensor-a", ObservationModality::Optical, Some(0), Some((0, 0)), OpportunityState::QualifiedUsable, None, Some(0));
+        let mut other_source = item("scene-b", "sensor-b", ObservationModality::Optical, Some(DAY), Some((DAY, DAY)), OpportunityState::QualifiedUsable, None, Some(DAY));
+        other_source.source_id = "source-b".into();
+        other_source.source_event_id = first.source_event_id.clone();
+        assert!(CadenceTimeline::new("distinct-sources", "support-a", vec![first, other_source]).is_ok());
     }
 
     #[test]
