@@ -796,7 +796,7 @@ mod tests {
         assert_eq!(report.rights_blocked_count, 1);
         assert_eq!(report.no_acquisition_count, 1);
         assert_eq!(report.usable_fraction_of_expected, Some(0.0));
-        assert!(report.usable_revisit_gaps.p50_ms.is_none());
+        assert!(report.portfolio_usable_observation_gaps.p50_ms.is_none());
     }
 
     #[test]
@@ -813,7 +813,7 @@ mod tests {
         assert_eq!(report.delivery_latency.sample_count, 2);
         assert_eq!(report.delivery_latency.p90_ms, Some(3 * 60 * 60 * 1000));
         assert_eq!(report.delivery_latency.maximum_ms, Some(3 * 60 * 60 * 1000));
-        assert_eq!(report.usable_revisit_gaps.p50_ms, Some(DAY + DAY / 2));
+        assert_eq!(report.portfolio_usable_observation_gaps.p50_ms, Some(DAY + DAY / 2));
         assert_eq!(report.first_actionable_claim_at_unix_ms, Some(DAY + 3 * 60 * 60 * 1000));
     }
 
@@ -842,7 +842,7 @@ mod tests {
         assert_eq!(report.usable_fraction_of_expected, Some(0.5));
         assert_eq!(report.per_sensor.len(), 2);
         assert_eq!(report.portfolio_usable_observation_gaps.gap_count, 1);
-        assert_eq!(report.usable_revisit_gaps.maximum_ms, Some(518_400_000));
+        assert_eq!(report.portfolio_usable_observation_gaps.maximum_ms, Some(518_400_000));
     }
 
     #[test]
