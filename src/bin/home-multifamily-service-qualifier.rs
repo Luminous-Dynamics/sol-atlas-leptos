@@ -554,7 +554,7 @@ mod tests {
 
     #[test]
     fn synthetic_service_topology_qualifies_without_performance_claims() {
-        let (fixture, building) = load_fixtures();
+        let (fixture, building, stress) = load_fixtures();
         let report = validate(&fixture, &building, &stress).expect("service distribution fixture");
         assert_eq!(report["resource_count"], 6);
         assert_eq!(report["node_count"], 24);
@@ -572,70 +572,70 @@ mod tests {
         let (mut fixture, building, stress) = load_fixtures();
         let duplicate_id = fixture["nodes"][0]["node_id"].clone();
         fixture["nodes"][1]["node_id"] = duplicate_id;
-        assert!(validate(&fixture, &building).is_err());
+        assert!(validate(&fixture, &building, &stress).is_err());
     }
 
     #[test]
     fn orphan_edge_endpoint_is_rejected() {
-        let (mut fixture, building) = load_fixtures();
+        let (mut fixture, building, stress) = load_fixtures();
         fixture["edges"][0]["to_node_id"] = json!("NO-SUCH-NODE");
-        assert!(validate(&fixture, &building).is_err());
+        assert!(validate(&fixture, &building, &stress).is_err());
     }
 
     #[test]
     fn cross_carrier_resource_flow_is_rejected() {
-        let (mut fixture, building) = load_fixtures();
+        let (mut fixture, building, stress) = load_fixtures();
         fixture["edges"][5]["to_node_id"] = json!("BOUNDARY-U-001-ELECTRICITY");
-        assert!(validate(&fixture, &building).is_err());
+        assert!(validate(&fixture, &building, &stress).is_err());
     }
 
     #[test]
     fn wrong_unit_boundary_is_rejected() {
-        let (mut fixture, building) = load_fixtures();
+        let (mut fixture, building, stress) = load_fixtures();
         fixture["unit_services"][0]["boundary_node_id"] = json!("BOUNDARY-U-002-WATER");
-        assert!(validate(&fixture, &building).is_err());
+        assert!(validate(&fixture, &building, &stress).is_err());
     }
 
     #[test]
     fn unqualified_water_cannot_be_promoted_to_quality_pass() {
-        let (mut fixture, building) = load_fixtures();
+        let (mut fixture, building, stress) = load_fixtures();
         fixture["resources"][0]["quality_state"] = json!("qualified");
-        assert!(validate(&fixture, &building).is_err());
+        assert!(validate(&fixture, &building, &stress).is_err());
     }
 
     #[test]
     fn unsupported_unit_quality_cannot_be_promoted() {
-        let (mut fixture, building) = load_fixtures();
+        let (mut fixture, building, stress) = load_fixtures();
         fixture["unit_services"][0]["quality_state"] = json!("qualified");
-        assert!(validate(&fixture, &building).is_err());
+        assert!(validate(&fixture, &building, &stress).is_err());
     }
 
     #[test]
     fn measured_capacity_without_boundary_evidence_is_rejected() {
-        let (mut fixture, building) = load_fixtures();
+        let (mut fixture, building, stress) = load_fixtures();
         fixture["nodes"][0]["capacity"]["state"] = json!("measured");
-        assert!(validate(&fixture, &building).is_err());
+        assert!(validate(&fixture, &building, &stress).is_err());
     }
 
     #[test]
     fn unknown_event_node_is_rejected() {
-        let (mut fixture, building) = load_fixtures();
+        let (mut fixture, building, stress) = load_fixtures();
         fixture["events"][0]["affected_node_ids"] = json!(["NO-SUCH-NODE"]);
-        assert!(validate(&fixture, &building).is_err());
+        assert!(validate(&fixture, &building, &stress).is_err());
     }
 
     #[test]
     fn authorized_allocation_requires_authority_and_rules() {
-        let (mut fixture, building) = load_fixtures();
+        let (mut fixture, building, stress) = load_fixtures();
         fixture["allocation_policy"]["state"] = json!("authorized");
-        assert!(validate(&fixture, &building).is_err());
+        assert!(validate(&fixture, &building, &stress).is_err());
     }
 
     #[test]
     fn conservation_cannot_be_reconciled_from_unknown_quantities() {
-        let (mut fixture, building) = load_fixtures();
+        let (mut fixture, building, stress) = load_fixtures();
         fixture["accounting"]["conservation_state"] = json!("reconciled");
-        assert!(validate(&fixture, &building).is_err());
+        assert!(validate(&fixture, &building, &stress).is_err());
     }
 
     #[test]
@@ -662,11 +662,11 @@ mod tests {
 
     #[test]
     fn duplicate_service_per_unit_is_rejected() {
-        let (mut fixture, building) = load_fixtures();
+        let (mut fixture, building, stress) = load_fixtures();
         let duplicate_service = fixture["unit_services"][0]["service_id"].clone();
         let duplicate_unit = fixture["unit_services"][0]["unit_id"].clone();
         fixture["unit_services"][1]["service_id"] = duplicate_service;
         fixture["unit_services"][1]["unit_id"] = duplicate_unit;
-        assert!(validate(&fixture, &building).is_err());
+        assert!(validate(&fixture, &building, &stress).is_err());
     }
 }
