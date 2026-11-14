@@ -793,6 +793,94 @@ mod tests {
         serde_json::from_str(CASE).expect("case JSON")
     }
 
+    fn brute_force_two_by_two(edge_mask: u8, capacity_0: u64, capacity_1: u64) -> u64 {
+        let mut best = 0_u64;
+        for flow_00 in 0..=2_u64 {
+            for flow_01 in 0..=2_u64 {
+                for flow_10 in 0..=2_u64 {
+                    for flow_11 in 0..=2_u64 {
+                        let flows = [flow_00, flow_01, flow_10, flow_11];
+                        if (0..4).any(|edge| edge_mask & (1 << edge) == 0 && flows[edge] != 0) {
+                            continue;
+                        }
+                        if flow_00 + flow_01 > 2 || flow_10 + flow_11 > 2 {
+                            continue;
+                        }
+                        if flow_00 + flow_10 > capacity_0
+                            || flow_01 + flow_11 > capacity_1
+                        {
+                            continue;
+                        }
+                        best = best.max(flows.into_iter().sum());
+                    }
+                }
+            }
+        }
+        best
+    }
+
+    fn two_by_two_flow(edge_mask: u8, capacity_0: u64, capacity_1: u64) -> u64 {
+        let source = 0;
+        let demand_0 = 1;
+        let demand_1 = 2;
+        let site_0 = 3;
+        let site_1 = 4;
+        let sink = 5;
+        let mut graph = FlowGraph::new(6);
+        graph.add_edge(source, demand_0, 2);
+        graph.add_edge(source, demand_1, 2);
+        if edge_mask & (1 << 0) != 0 {
+            graph.add_edge(demand_0, site_0, 2);
+        }
+        if edge_mask & (1 << 1) != 0 {
+            graph.add_edge(demand_0, site_1, 2);
+        }
+        if edge_mask & (1 << 2) != 0 {
+            graph.add_edge(demand_1, site_0, 2);
+        }
+        if edge_mask & (1 << 3) != 0 {
+            graph.add_edge(demand_1, site_1, 2);
+        }
+        graph.add_edge(site_0, sink, capacity_0);
+        graph.add_edge(site_1, sink, capacity_1);
+        graph.max_flow(source, sink)
+    }
+
+    #[test]
+    fn edmonds_karp_matches_exhaustive_assignment_oracle_on_all_small_two_by_two_graphs() {
+        let mut checked_networks = 0;
+        for edge_mask in 0_u8..16 {
+            for capacity_0 in 0_u64..=2 {
+                for capacity_1 in 0_u64..=2 {
+                    let actual = two_by_two_flow(edge_mask, capacity_0, capacity_1);
+                    let expected = brute_force_two_by_two(edge_mask, capacity_0, capacity_1);
+                    assert_eq!(
+                        actual,
+                        expected,
+                        "edge_mask={edge_mask:04b}, capacities=({capacity_0},{capacity_1})"
+                    );
+                    assert!(actual <= 4);
+                    assert!(actual <= capacity_0 + capacity_1);
+                    checked_networks += 1;
+                }
+            }
+        }
+        assert_eq!(checked_networks, 144);
+    }
+
+    #[test]
+    fn max_flow_obeys_route_and_capacity_monotonicity() {
+        let base = two_by_two_flow(0b0111, 2, 1);
+        let with_added_route = two_by_two_flow(0b1111, 2, 1);
+        let with_removed_route = two_by_two_flow(0b0011, 2, 1);
+        let with_more_site_capacity = two_by_two_flow(0b0111, 3, 1);
+        let with_less_site_capacity = two_by_two_flow(0b0111, 1, 1);
+        assert!(with_added_route >= base);
+        assert!(with_removed_route <= base);
+        assert!(with_more_site_capacity >= base);
+        assert!(with_less_site_capacity <= base);
+    }
+
     #[test]
     fn synthetic_flow_serves_all_accessible_and_ten_of_eleven_general_requests() {
         let report = evaluate(&sample()).expect("flow case evaluates");
