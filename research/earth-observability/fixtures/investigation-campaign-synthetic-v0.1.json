@@ -1,0 +1,474 @@
+{
+  "campaign_id": "investigation-campaign-synthetic-001",
+  "dataset_snapshot_id": "abstract-decision-world-v0.1",
+  "common_budget": {
+    "currency": "USD",
+    "max_cost": 150,
+    "max_crew_hours": 4,
+    "maximum_disturbance": "moderate"
+  },
+  "project_cases": [
+    {
+      "project_id": "project-a",
+      "case": {
+        "evaluation_id": "project-a-case",
+        "dataset_snapshot_id": "abstract-decision-world-v0.1",
+        "adjudicated_truth_state_id": "two-separate-utilities",
+        "budget": {
+          "currency": "USD",
+          "max_cost": 150,
+          "max_crew_hours": 4,
+          "maximum_disturbance": "moderate"
+        },
+        "action_catalogue": [
+          {
+            "action_id": "wide-area-gpr",
+            "support_id": "corridor-east",
+            "modality": "gpr_wide_area",
+            "currency": "USD",
+            "direct_cost": 120,
+            "crew_hours": 3,
+            "disturbance": "low",
+            "predicted_information_gain": 0.95,
+            "authority": {
+              "land_access_authorized": true,
+              "method_authorized": true,
+              "required_permits_satisfied": true,
+              "rights_satisfied": true,
+              "safety_review_satisfied": true,
+              "custodial_review_required": false,
+              "custodial_review_completed": false
+            }
+          },
+          {
+            "action_id": "targeted-crossline-em",
+            "support_id": "crossing-east",
+            "modality": "electromagnetic_crossline",
+            "currency": "USD",
+            "direct_cost": 100,
+            "crew_hours": 2,
+            "disturbance": "low",
+            "predicted_information_gain": 0.55,
+            "authority": {
+              "land_access_authorized": true,
+              "method_authorized": true,
+              "required_permits_satisfied": true,
+              "rights_satisfied": true,
+              "safety_review_satisfied": true,
+              "custodial_review_required": true,
+              "custodial_review_completed": true
+            }
+          },
+          {
+            "action_id": "archival-record-review",
+            "support_id": "corridor-east",
+            "modality": "owner_record_review",
+            "currency": "USD",
+            "direct_cost": 20,
+            "crew_hours": 1,
+            "disturbance": "low",
+            "predicted_information_gain": 0.2,
+            "authority": {
+              "land_access_authorized": true,
+              "method_authorized": true,
+              "required_permits_satisfied": true,
+              "rights_satisfied": true,
+              "safety_review_satisfied": true,
+              "custodial_review_required": false,
+              "custodial_review_completed": false
+            }
+          },
+          {
+            "action_id": "prohibited-trial-hole",
+            "support_id": "crossing-east",
+            "modality": "trial_hole",
+            "currency": "USD",
+            "direct_cost": 500,
+            "crew_hours": 8,
+            "disturbance": "high",
+            "predicted_information_gain": 0.99,
+            "authority": {
+              "land_access_authorized": false,
+              "method_authorized": false,
+              "required_permits_satisfied": false,
+              "rights_satisfied": true,
+              "safety_review_satisfied": false,
+              "custodial_review_required": true,
+              "custodial_review_completed": false
+            }
+          }
+        ],
+        "decision_losses": [
+          {
+            "truth_state_id": "two-separate-utilities",
+            "decision_id": "declare-junction",
+            "loss": 100
+          },
+          {
+            "truth_state_id": "two-separate-utilities",
+            "decision_id": "keep-crossing-unresolved",
+            "loss": 10
+          },
+          {
+            "truth_state_id": "two-separate-utilities",
+            "decision_id": "separate-assets",
+            "loss": 0
+          }
+        ],
+        "policy_plans": [
+          {
+            "policy_id": "entropy-greedy",
+            "policy_kind": "entropy_greedy",
+            "is_oracle_upper_bound": false,
+            "selected_action_ids": [
+              "wide-area-gpr"
+            ],
+            "chosen_decision_id": "declare-junction"
+          },
+          {
+            "policy_id": "decision-aware",
+            "policy_kind": "expected_value_of_information",
+            "is_oracle_upper_bound": false,
+            "selected_action_ids": [
+              "targeted-crossline-em"
+            ],
+            "chosen_decision_id": "keep-crossing-unresolved"
+          },
+          {
+            "policy_id": "expert-baseline",
+            "policy_kind": "expert",
+            "is_oracle_upper_bound": false,
+            "selected_action_ids": [
+              "archival-record-review"
+            ],
+            "chosen_decision_id": "keep-crossing-unresolved"
+          },
+          {
+            "policy_id": "cost-only",
+            "policy_kind": "cost_only",
+            "is_oracle_upper_bound": false,
+            "selected_action_ids": [
+              "archival-record-review"
+            ],
+            "chosen_decision_id": "declare-junction"
+          },
+          {
+            "policy_id": "hidden-truth-oracle",
+            "policy_kind": "oracle_upper_bound",
+            "is_oracle_upper_bound": true,
+            "selected_action_ids": [],
+            "chosen_decision_id": "separate-assets"
+          }
+        ]
+      }
+    },
+    {
+      "project_id": "project-b",
+      "case": {
+        "evaluation_id": "project-b-case",
+        "dataset_snapshot_id": "abstract-decision-world-v0.1",
+        "adjudicated_truth_state_id": "two-separate-utilities",
+        "budget": {
+          "currency": "USD",
+          "max_cost": 150,
+          "max_crew_hours": 4,
+          "maximum_disturbance": "moderate"
+        },
+        "action_catalogue": [
+          {
+            "action_id": "wide-area-gpr",
+            "support_id": "corridor-east",
+            "modality": "gpr_wide_area",
+            "currency": "USD",
+            "direct_cost": 120,
+            "crew_hours": 3,
+            "disturbance": "low",
+            "predicted_information_gain": 0.95,
+            "authority": {
+              "land_access_authorized": true,
+              "method_authorized": true,
+              "required_permits_satisfied": true,
+              "rights_satisfied": true,
+              "safety_review_satisfied": true,
+              "custodial_review_required": false,
+              "custodial_review_completed": false
+            }
+          },
+          {
+            "action_id": "targeted-crossline-em",
+            "support_id": "crossing-east",
+            "modality": "electromagnetic_crossline",
+            "currency": "USD",
+            "direct_cost": 100,
+            "crew_hours": 2,
+            "disturbance": "low",
+            "predicted_information_gain": 0.55,
+            "authority": {
+              "land_access_authorized": true,
+              "method_authorized": true,
+              "required_permits_satisfied": true,
+              "rights_satisfied": true,
+              "safety_review_satisfied": true,
+              "custodial_review_required": true,
+              "custodial_review_completed": true
+            }
+          },
+          {
+            "action_id": "archival-record-review",
+            "support_id": "corridor-east",
+            "modality": "owner_record_review",
+            "currency": "USD",
+            "direct_cost": 20,
+            "crew_hours": 1,
+            "disturbance": "low",
+            "predicted_information_gain": 0.2,
+            "authority": {
+              "land_access_authorized": true,
+              "method_authorized": true,
+              "required_permits_satisfied": true,
+              "rights_satisfied": true,
+              "safety_review_satisfied": true,
+              "custodial_review_required": false,
+              "custodial_review_completed": false
+            }
+          },
+          {
+            "action_id": "prohibited-trial-hole",
+            "support_id": "crossing-east",
+            "modality": "trial_hole",
+            "currency": "USD",
+            "direct_cost": 500,
+            "crew_hours": 8,
+            "disturbance": "high",
+            "predicted_information_gain": 0.99,
+            "authority": {
+              "land_access_authorized": false,
+              "method_authorized": false,
+              "required_permits_satisfied": false,
+              "rights_satisfied": true,
+              "safety_review_satisfied": false,
+              "custodial_review_required": true,
+              "custodial_review_completed": false
+            }
+          }
+        ],
+        "decision_losses": [
+          {
+            "truth_state_id": "two-separate-utilities",
+            "decision_id": "declare-junction",
+            "loss": 100
+          },
+          {
+            "truth_state_id": "two-separate-utilities",
+            "decision_id": "keep-crossing-unresolved",
+            "loss": 10
+          },
+          {
+            "truth_state_id": "two-separate-utilities",
+            "decision_id": "separate-assets",
+            "loss": 0
+          }
+        ],
+        "policy_plans": [
+          {
+            "policy_id": "entropy-greedy",
+            "policy_kind": "entropy_greedy",
+            "is_oracle_upper_bound": false,
+            "selected_action_ids": [
+              "wide-area-gpr"
+            ],
+            "chosen_decision_id": "declare-junction"
+          },
+          {
+            "policy_id": "decision-aware",
+            "policy_kind": "expected_value_of_information",
+            "is_oracle_upper_bound": false,
+            "selected_action_ids": [
+              "targeted-crossline-em"
+            ],
+            "chosen_decision_id": "keep-crossing-unresolved"
+          },
+          {
+            "policy_id": "expert-baseline",
+            "policy_kind": "expert",
+            "is_oracle_upper_bound": false,
+            "selected_action_ids": [
+              "archival-record-review"
+            ],
+            "chosen_decision_id": "keep-crossing-unresolved"
+          },
+          {
+            "policy_id": "cost-only",
+            "policy_kind": "cost_only",
+            "is_oracle_upper_bound": false,
+            "selected_action_ids": [
+              "archival-record-review"
+            ],
+            "chosen_decision_id": "declare-junction"
+          },
+          {
+            "policy_id": "hidden-truth-oracle",
+            "policy_kind": "oracle_upper_bound",
+            "is_oracle_upper_bound": true,
+            "selected_action_ids": [],
+            "chosen_decision_id": "separate-assets"
+          }
+        ]
+      }
+    },
+    {
+      "project_id": "project-c",
+      "case": {
+        "evaluation_id": "project-c-case",
+        "dataset_snapshot_id": "abstract-decision-world-v0.1",
+        "adjudicated_truth_state_id": "two-separate-utilities",
+        "budget": {
+          "currency": "USD",
+          "max_cost": 150,
+          "max_crew_hours": 4,
+          "maximum_disturbance": "moderate"
+        },
+        "action_catalogue": [
+          {
+            "action_id": "wide-area-gpr",
+            "support_id": "corridor-east",
+            "modality": "gpr_wide_area",
+            "currency": "USD",
+            "direct_cost": 120,
+            "crew_hours": 3,
+            "disturbance": "low",
+            "predicted_information_gain": 0.95,
+            "authority": {
+              "land_access_authorized": true,
+              "method_authorized": true,
+              "required_permits_satisfied": true,
+              "rights_satisfied": true,
+              "safety_review_satisfied": true,
+              "custodial_review_required": false,
+              "custodial_review_completed": false
+            }
+          },
+          {
+            "action_id": "targeted-crossline-em",
+            "support_id": "crossing-east",
+            "modality": "electromagnetic_crossline",
+            "currency": "USD",
+            "direct_cost": 100,
+            "crew_hours": 2,
+            "disturbance": "low",
+            "predicted_information_gain": 0.55,
+            "authority": {
+              "land_access_authorized": true,
+              "method_authorized": true,
+              "required_permits_satisfied": true,
+              "rights_satisfied": true,
+              "safety_review_satisfied": true,
+              "custodial_review_required": true,
+              "custodial_review_completed": true
+            }
+          },
+          {
+            "action_id": "archival-record-review",
+            "support_id": "corridor-east",
+            "modality": "owner_record_review",
+            "currency": "USD",
+            "direct_cost": 20,
+            "crew_hours": 1,
+            "disturbance": "low",
+            "predicted_information_gain": 0.2,
+            "authority": {
+              "land_access_authorized": true,
+              "method_authorized": true,
+              "required_permits_satisfied": true,
+              "rights_satisfied": true,
+              "safety_review_satisfied": true,
+              "custodial_review_required": false,
+              "custodial_review_completed": false
+            }
+          },
+          {
+            "action_id": "prohibited-trial-hole",
+            "support_id": "crossing-east",
+            "modality": "trial_hole",
+            "currency": "USD",
+            "direct_cost": 500,
+            "crew_hours": 8,
+            "disturbance": "high",
+            "predicted_information_gain": 0.99,
+            "authority": {
+              "land_access_authorized": false,
+              "method_authorized": false,
+              "required_permits_satisfied": false,
+              "rights_satisfied": true,
+              "safety_review_satisfied": false,
+              "custodial_review_required": true,
+              "custodial_review_completed": false
+            }
+          }
+        ],
+        "decision_losses": [
+          {
+            "truth_state_id": "two-separate-utilities",
+            "decision_id": "declare-junction",
+            "loss": 100
+          },
+          {
+            "truth_state_id": "two-separate-utilities",
+            "decision_id": "keep-crossing-unresolved",
+            "loss": 10
+          },
+          {
+            "truth_state_id": "two-separate-utilities",
+            "decision_id": "separate-assets",
+            "loss": 0
+          }
+        ],
+        "policy_plans": [
+          {
+            "policy_id": "entropy-greedy",
+            "policy_kind": "entropy_greedy",
+            "is_oracle_upper_bound": false,
+            "selected_action_ids": [
+              "wide-area-gpr"
+            ],
+            "chosen_decision_id": "declare-junction"
+          },
+          {
+            "policy_id": "decision-aware",
+            "policy_kind": "expected_value_of_information",
+            "is_oracle_upper_bound": false,
+            "selected_action_ids": [
+              "targeted-crossline-em"
+            ],
+            "chosen_decision_id": "keep-crossing-unresolved"
+          },
+          {
+            "policy_id": "expert-baseline",
+            "policy_kind": "expert",
+            "is_oracle_upper_bound": false,
+            "selected_action_ids": [
+              "archival-record-review"
+            ],
+            "chosen_decision_id": "keep-crossing-unresolved"
+          },
+          {
+            "policy_id": "cost-only",
+            "policy_kind": "cost_only",
+            "is_oracle_upper_bound": false,
+            "selected_action_ids": [
+              "archival-record-review"
+            ],
+            "chosen_decision_id": "declare-junction"
+          },
+          {
+            "policy_id": "hidden-truth-oracle",
+            "policy_kind": "oracle_upper_bound",
+            "is_oracle_upper_bound": true,
+            "selected_action_ids": [],
+            "chosen_decision_id": "separate-assets"
+          }
+        ]
+      }
+    }
+  ]
+}
