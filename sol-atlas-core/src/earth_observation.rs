@@ -903,10 +903,12 @@ impl ChangeClaim {
             .iter()
             .map(|observation| observation.system_signature())
             .collect::<BTreeSet<_>>();
-        let missing_measurement_profile = referenced
-            .iter()
-            .any(|observation| observation.measurement_profile_sha256.is_none());
-        match (&self.cross_system_comparability_receipt, system_signatures.len(), missing_measurement_profile) {
+        let incomplete_measurement_identity = referenced.iter().any(|observation| {
+            observation.collection_id.is_none()
+                || observation.processing_baseline.is_none()
+                || observation.measurement_profile_sha256.is_none()
+        });
+        match (&self.cross_system_comparability_receipt, system_signatures.len(), incomplete_measurement_identity) {
             (None, count, false) if count <= 1 => {}
             (None, _, _) => {
                 return Err("claim combines distinct or incompletely identified measurement systems without a cross-system comparability receipt".into());
