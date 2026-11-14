@@ -203,6 +203,17 @@
             "unknown"
           ],
           "description": "Provenance of the source-qualified sensor identity. Unknown source identity cannot support promoted change/no-change claims."
+        },
+        "measurement_profile_sha256": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/sha256"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Digest of exact source-asset band/polarization/measurement configuration. Null means unresolved and requires an external cross-system comparability receipt for promoted claims."
         }
       }
     },
