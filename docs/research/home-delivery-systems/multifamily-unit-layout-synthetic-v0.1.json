@@ -104,7 +104,7 @@
         {
           "room_id": "U-001-ROOM-HYGIENE",
           "room_kind": "hygiene_laundry",
-          "privacy_zone": "service",
+          "privacy_zone": "private",
           "footprint_local_mm": {
             "x_mm": 0,
             "y_mm": 6000,
@@ -365,7 +365,7 @@
         {
           "room_id": "U-002-ROOM-HYGIENE",
           "room_kind": "hygiene_laundry",
-          "privacy_zone": "service",
+          "privacy_zone": "private",
           "footprint_local_mm": {
             "x_mm": 0,
             "y_mm": 6000,
@@ -635,7 +635,7 @@
         {
           "room_id": "U-003-ROOM-HYGIENE",
           "room_kind": "hygiene_laundry",
-          "privacy_zone": "service",
+          "privacy_zone": "private",
           "footprint_local_mm": {
             "x_mm": 0,
             "y_mm": 6000,
@@ -904,7 +904,7 @@
         {
           "room_id": "U-004-ROOM-HYGIENE",
           "room_kind": "hygiene_laundry",
-          "privacy_zone": "service",
+          "privacy_zone": "private",
           "footprint_local_mm": {
             "x_mm": 0,
             "y_mm": 6000,
