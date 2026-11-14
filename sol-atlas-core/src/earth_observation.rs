@@ -174,6 +174,16 @@ pub struct ObservationRecord {
     asset_id: AssetId,
     /// Stable source identity reference in the canonical Sol-Atlas / custodian source registry.
     source_id: String,
+    /// Provider-native platform/satellite identifier.
+    platform_id: String,
+    /// Provider-native sensor identity, such as S2A_MSI or S1A_C-SAR.
+    sensor_id: String,
+    /// Provider-native instrument identifier where distinct from sensor ID.
+    instrument_id: Option<String>,
+    /// Provider-native STAC collection or product-family identifier.
+    collection_id: Option<String>,
+    /// Provider-native processing baseline/version; absent remains unknown.
+    processing_baseline: Option<String>,
     source_asset_receipt_sha256: String,
     processing_receipt_sha256: String,
     rights: RightsReceiptRef,
@@ -190,6 +200,11 @@ struct ObservationRecordWire {
     asset_id: AssetId,
     /// Stable source identity reference in the canonical Sol-Atlas / custodian source registry.
     source_id: String,
+    platform_id: String,
+    sensor_id: String,
+    instrument_id: Option<String>,
+    collection_id: Option<String>,
+    processing_baseline: Option<String>,
     source_asset_receipt_sha256: String,
     processing_receipt_sha256: String,
     rights: RightsReceiptRef,
@@ -205,6 +220,11 @@ impl ObservationRecord {
         observation_id: impl Into<String>,
         asset_id: AssetId,
         source_id: impl Into<String>,
+        platform_id: impl Into<String>,
+        sensor_id: impl Into<String>,
+        instrument_id: Option<String>,
+        collection_id: Option<String>,
+        processing_baseline: Option<String>,
         source_asset_receipt_sha256: impl Into<String>,
         processing_receipt_sha256: impl Into<String>,
         rights: RightsReceiptRef,
@@ -215,10 +235,17 @@ impl ObservationRecord {
     ) -> Result<Self, String> {
         let observation_id = observation_id.into();
         let source_id = source_id.into();
+        let platform_id = platform_id.into();
+        let sensor_id = sensor_id.into();
         let support_id = support_id.into();
         validate_identifier(&observation_id, "observation ID")?;
         validate_identifier(&source_id, "source ID")?;
+        validate_identifier(&platform_id, "platform ID")?;
+        validate_identifier(&sensor_id, "sensor ID")?;
         validate_identifier(&support_id, "support ID")?;
+        validate_optional_identifier(instrument_id.as_deref(), "instrument ID")?;
+        validate_optional_identifier(collection_id.as_deref(), "collection ID")?;
+        validate_optional_identifier(processing_baseline.as_deref(), "processing baseline")?;
         if acquisition.kind() == ObservationTimeKind::Unknown
             && quality == ObservationQuality::QualifiedUsable
         {
@@ -234,6 +261,11 @@ impl ObservationRecord {
             observation_id,
             asset_id,
             source_id,
+            platform_id,
+            sensor_id,
+            instrument_id,
+            collection_id,
+            processing_baseline,
             source_asset_receipt_sha256: normalize_sha256(
                 source_asset_receipt_sha256.into(),
                 "source asset receipt",
@@ -261,6 +293,26 @@ impl ObservationRecord {
     /// Canonical source registry identity referenced by this observation.
     pub fn source_id(&self) -> &str {
         &self.source_id
+    }
+
+    pub fn platform_id(&self) -> &str {
+        &self.platform_id
+    }
+
+    pub fn sensor_id(&self) -> &str {
+        &self.sensor_id
+    }
+
+    pub fn instrument_id(&self) -> Option<&str> {
+        self.instrument_id.as_deref()
+    }
+
+    pub fn collection_id(&self) -> Option<&str> {
+        self.collection_id.as_deref()
+    }
+
+    pub fn processing_baseline(&self) -> Option<&str> {
+        self.processing_baseline.as_deref()
     }
 
     pub fn source_asset_receipt_sha256(&self) -> &str {
@@ -318,6 +370,11 @@ impl TryFrom<ObservationRecordWire> for ObservationRecord {
             wire.observation_id,
             wire.asset_id,
             wire.source_id,
+            wire.platform_id,
+            wire.sensor_id,
+            wire.instrument_id,
+            wire.collection_id,
+            wire.processing_baseline,
             wire.source_asset_receipt_sha256,
             wire.processing_receipt_sha256,
             wire.rights,
@@ -845,6 +902,11 @@ mod tests {
             id,
             AssetId::new(format!("fixture:{id}")).unwrap(),
             "fixture-source",
+            "fixture-platform",
+            "fixture-sensor",
+            Some("fixture-instrument".into()),
+            Some("fixture-collection".into()),
+            Some("fixture-baseline".into()),
             digest(b'b'),
             digest(b'c'),
             rights(&format!("fixture:{id}")),
@@ -1032,6 +1094,11 @@ mod tests {
             "obs-a",
             AssetId::new("fixture:obs-a").unwrap(),
             "fixture-source",
+            "fixture-platform",
+            "fixture-sensor",
+            Some("fixture-instrument".into()),
+            Some("fixture-collection".into()),
+            Some("fixture-baseline".into()),
             digest(b'b'),
             digest(b'c'),
             wrong_asset_rights,
@@ -1056,6 +1123,11 @@ mod tests {
             "obs-a",
             AssetId::new("fixture:obs-a").unwrap(),
             "fixture-source",
+            "fixture-platform",
+            "fixture-sensor",
+            Some("fixture-instrument".into()),
+            Some("fixture-collection".into()),
+            Some("fixture-baseline".into()),
             digest(b'b'),
             digest(b'c'),
             wrong_source_rights,
@@ -1073,6 +1145,11 @@ mod tests {
             "obs-b",
             AssetId::new("fixture:obs-b").unwrap(),
             "fixture-source",
+            "fixture-platform",
+            "fixture-sensor",
+            Some("fixture-instrument".into()),
+            Some("fixture-collection".into()),
+            Some("fixture-baseline".into()),
             digest(b'b'),
             digest(b'c'),
             RightsReceiptRef::new(
@@ -1101,9 +1178,34 @@ mod tests {
     }
 
     #[test]
+    fn provider_native_platform_and_sensor_identity_are_required() {
+        assert!(ObservationRecord::new(
+            "obs-invalid-sensor",
+            AssetId::new("fixture:obs-invalid-sensor").unwrap(),
+            "fixture-source",
+            " ",
+            "fixture-sensor",
+            Some("fixture-instrument".into()),
+            Some("fixture-collection".into()),
+            Some("fixture-baseline".into()),
+            digest(b'b'),
+            digest(b'c'),
+            rights("fixture:obs-invalid-sensor"),
+            "support-a",
+            ObservationTime::new(
+                ObservationTimeKind::Instant,
+                Some("2024-01-01".into()),
+                None
+            ).unwrap(),
+            ObservationModality::Optical,
+            ObservationQuality::QualifiedUsable,
+        ).is_err());
+    }
+
+    #[test]
     fn mismatched_support_and_missing_receipt_digests_fail() {
         assert!(ObservationRecord::new(
-            "obs-b", AssetId::new("fixture:obs-b").unwrap(), "fixture-source", "not-a-digest", digest(b'c'),
+            "obs-b", AssetId::new("fixture:obs-b").unwrap(), "fixture-source", "fixture-platform", "fixture-sensor", Some("fixture-instrument".into()), Some("fixture-collection".into()), Some("fixture-baseline".into()), "not-a-digest", digest(b'c'),
             rights("fixture:obs-b"), "support-a",
             ObservationTime::new(ObservationTimeKind::Instant, Some("2024-01-01".into()), None).unwrap(),
             ObservationModality::Optical, ObservationQuality::QualifiedUsable
@@ -1148,7 +1250,7 @@ mod tests {
             CoverageState::Unknown, None, None, None, None
         ).unwrap();
         let other_support = ObservationRecord::new(
-            "obs-b", AssetId::new("fixture:obs-b").unwrap(), "fixture-source", digest(b'b'), digest(b'c'),
+            "obs-b", AssetId::new("fixture:obs-b").unwrap(), "fixture-source", "fixture-platform", "fixture-sensor", Some("fixture-instrument".into()), Some("fixture-collection".into()), Some("fixture-baseline".into()), digest(b'b'), digest(b'c'),
             rights("fixture:obs-b"), "support-b",
             ObservationTime::new(ObservationTimeKind::Instant, Some("2024-01-01".into()), None).unwrap(),
             ObservationModality::Optical, ObservationQuality::QualifiedUsable
