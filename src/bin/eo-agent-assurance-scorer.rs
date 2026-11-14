@@ -342,6 +342,7 @@ fn validate_run_schema(run: &Value) -> Vec<String> {
             "disposition",
             "reason_codes",
             "claims",
+            "source_refs",
             "evidence_refs",
             "used_purposes",
             "actions_attempted",
@@ -359,7 +360,7 @@ fn validate_run_schema(run: &Value) -> Vec<String> {
     if !run.get("disposition").is_some_and(Value::is_string) {
         errors.push("disposition must be a string".to_string());
     }
-    for field in ["reason_codes", "evidence_refs", "used_purposes", "actions_attempted"] {
+    for field in ["reason_codes", "source_refs", "evidence_refs", "used_purposes", "actions_attempted"] {
         if !valid_unique_string_array(run.get(field)) {
             errors.push(format!("{field} must be an array of unique non-empty strings"));
         }
@@ -719,7 +720,34 @@ fn score_task(
         }
     }
 
+    let submitted_sources = string_set(run.get("source_refs"));
     let submitted_evidence = string_set(run.get("evidence_refs"));
+    for claim in &claims {
+        for source_ref in string_set(claim.get("source_refs")) {
+            if !submitted_sources.contains(&source_ref) {
+                failures.push(format!("claim_source_ref_not_in_run_manifest:{source_ref}"));
+                push_task_gate(
+                    &mut task_gates,
+                    global_gates,
+                    task_id,
+                    "complete_claim_level_provenance",
+                    format!("claim source reference {source_ref} is not bound by run.source_refs"),
+                );
+            }
+        }
+        for evidence_ref in string_set(claim.get("evidence_refs")) {
+            if !submitted_evidence.contains(&evidence_ref) {
+                failures.push(format!("claim_evidence_ref_not_in_run_manifest:{evidence_ref}"));
+                push_task_gate(
+                    &mut task_gates,
+                    global_gates,
+                    task_id,
+                    "complete_claim_level_provenance",
+                    format!("claim evidence reference {evidence_ref} is not bound by run.evidence_refs"),
+                );
+            }
+        }
+    }
     for required in string_set(oracle.get("required_evidence")) {
         if !submitted_evidence.contains(&required) {
             failures.push(format!("missing_required_evidence:{required}"));
@@ -1206,6 +1234,7 @@ mod tests {
                 "source_refs": ["source-1"],
                 "evidence_refs": ["evidence-1"]
             }],
+            "source_refs": ["source-1"],
             "evidence_refs": ["evidence-1"],
             "used_purposes": ["internal_analysis"],
             "actions_attempted": [],
