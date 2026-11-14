@@ -236,5 +236,5 @@ This makes several failure modes directly testable:
 - a recovery label cannot reinstate service without measured recommissioning evidence;
 - a building-average topology result cannot hide which apartment boundaries are disconnected.
 
-The Rust source currently contains 24 authored unit tests across positive, negative, boundary identity, resource class, path connectivity, dependency and recovery claim controls. This is authored code, not a hosted Rust test pass: the exact-head native/rustfmt/schema workflows must still complete. The topology-impact preview itself does not validate the stress corpus against hydraulic or physical measurements.
+The Rust source currently contains 27 authored unit tests across positive, negative, boundary identity, resource class, path connectivity, dependency propagation, quality withdrawal, allocation scope and recovery claim controls. This is authored code, not a hosted Rust test pass: the exact-head native/rustfmt/schema workflows must still complete. The topology-impact preview itself does not validate the stress corpus against hydraulic or physical measurements.
 
