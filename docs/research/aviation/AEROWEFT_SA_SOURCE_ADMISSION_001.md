@@ -66,6 +66,37 @@ This is not the entire Part 101 regime, not blanket commercial or BVLOS permissi
 
 AeroWeft should store regulation references, amendment date, effective date, jurisdiction, affected provision and review state as versioned legal-context records. It should not attempt to render a generic "allowed" result from a regulation title or one excerpt.
 
+### 2.4 Visual line-of-sight versus radio line-of-sight
+
+A checked SACAA UAS information page lists R-VLOS, VLOS, EVLOS and BVLOS as operating modes under its **Radio line-of-sight (RLOS)** heading. It describes RLOS as a direct electronic point-to-point link and says that BRLOS (beyond radio line-of-sight) is reserved for future use.
+
+This must be read alongside, not substituted for, the regulation text:
+
+- The official Government Gazette 48228 / Notice R.3170 (17 March 2023), which substitutes Part 101 regulation 101.05.11, states that a UA must not be operated BVLOS unless otherwise approved by the Director in a UASOC's operations manual; the Director may approve B-VLOS subject to SA-CATS 101; approved B-VLOS is limited to VMC and below 400 ft above surface level unless otherwise approved. See the official Gazette PDF, printed page 194 / PDF page 141: https://www.gov.za/sites/default/files/gcis_document/202303/48228rg11556gon3170.pdf
+- The Thirty-Third Amendment (Gazette 55226 / Notice 7844, 21 August 2026) separately substitutes regulation 101.01.2: **private operations** are limited to R-VLOS with a Class 1A or 1B RPA, and dangerous goods may not be carried aboard a UA. This private-operation carve-out must not be generalized to all commercial/corporate/non-profit operations, nor treated as a general BVLOS authorization.
+- SACAA's current UAS information page lists approval requirements by operation type, including UASOC and Air Service Licence requirements for commercial operations. The page is a summary; applicability, exact current consolidated text, OpSpecs, approvals and payload classification still require provision-level review and SACAA/legal confirmation.
+
+**Critical semantic distinction: BVLOS is not synonymous with BRLOS.** A flight can be beyond the remote pilot's visual line of sight while remaining within the declared radio-link line-of-sight conditions. Conversely, a network relay or beyond-radio-link concept cannot be inferred to be permitted merely because a BVLOS approval path exists.
+
+**Admission state:** SOURCE_VERIFIED / OPERATION_SCOPE_REVIEW_REQUIRED. Preserve separate fields for:
+- visual operation rule: R-VLOS / VLOS / EVLOS / BVLOS;
+- radio-link scope: RLOS / BRLOS / unknown;
+- operator category: commercial / corporate / non-profit / private;
+- aircraft class and applicable Part 101 scope;
+- UASOC and OpSpec identity/status;
+- Director approval and operations-manual scope;
+- SA-CATS 101 conditions;
+- applicable weather, altitude, airspace and payload restrictions;
+- source edition/effective date and legal review result.
+
+Do not return a single boolean "BVLOS allowed". Do not convert a missing radio-link classification or approval record into permission. The private-operation R-VLOS/Class 1A/1B/dangerous-goods restrictions must remain scoped to private operations under the 2026 amendment.
+
+Sources checked 14 November 2026:
+- SACAA UAS information: https://www.caa.co.za/industry-information/uas/
+- Official Government Gazette 48228 / 26th Amendment (Part 101.05.11 B-VLOS approval path): https://www.gov.za/sites/default/files/gcis_document/202303/48228rg11556gon3170.pdf
+- Official Government Gazette 48228 / Notice R.3170 / 26th Amendment (Part 101.05.11): https://www.gov.za/sites/default/files/gcis_document/202303/48228rg11556gon3170.pdf
+- Official Government Gazette 55226 / Notice 7844 / 33rd Amendment (private-operation rule): https://www.gov.za/sites/default/files/gcis_document/202608/55226gon7844.pdf
+
 ## 3. Candidate sources not yet admitted
 
 | Source family | Candidate owner | Needed review | Current state |
@@ -111,7 +142,9 @@ Add no live operational data in V0.1. Use fictional records for:
 4. a protected briefing service with access and permission unknown;
 5. a geometry record with an unknown vertical datum;
 6. a mapped aerodrome with unknown operational status/capacity;
-7. a regulation excerpt with a known provision but unresolved applicability to a proposed commercial cargo operation.
+7. a regulation excerpt with a known provision but unresolved applicability to a proposed commercial cargo operation;
+8. a visually-BVLOS operation whose radio-link state is RLOS, with separate private/commercial operator scopes and approval status;
+9. a BRLOS request incorrectly inferred from a BVLOS approval, which must remain unsupported/unqualified.
 
 Expected outcomes should be frozen and independently checked.
 
@@ -123,6 +156,9 @@ Expected outcomes should be frozen and independently checked.
 - No missing restriction is interpreted as an unrestricted volume.
 - No geometry implies operational status, permission or capacity.
 - No regulation excerpt becomes a legal permission without provision-level applicability review.
+- BVLOS and BRLOS are stored as distinct visual-rule and radio-link dimensions.
+- A BVLOS approval is never interpreted as a BRLOS authorization.
+- The 2026 private-operation R-VLOS/Class 1A or 1B/dangerous-goods restrictions are not generalized to every operator category.
 - All outputs reproduce from exact source bytes, parser revision and manifest.
 - Each downstream field retains the source/claim scope and unresolved dependencies.
 
