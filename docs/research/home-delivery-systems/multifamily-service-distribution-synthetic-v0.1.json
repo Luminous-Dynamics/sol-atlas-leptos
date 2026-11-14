@@ -76,6 +76,15 @@
       "base_unit": null,
       "owner_ref": null,
       "evidence_refs": []
+    },
+    {
+      "resource_id": "R-COMMUNICATIONS",
+      "resource_class": "communications",
+      "state": "unknown",
+      "quality_state": "not_applicable",
+      "base_unit": null,
+      "owner_ref": null,
+      "evidence_refs": []
     }
   ],
   "nodes": [
@@ -510,6 +519,204 @@
       },
       "measurement_ref": null,
       "evidence_refs": []
+    },
+    {
+      "node_id": "SRC-NONPOTABLE-UNKNOWN",
+      "node_kind": "source",
+      "resource_id": "R-NONPOTABLE-WATER",
+      "floor_id": null,
+      "unit_id": null,
+      "state": "unknown",
+      "capacity": {
+        "state": "unknown",
+        "lower": null,
+        "upper": null,
+        "unit": null,
+        "boundary_ref": null,
+        "evidence_ref": null
+      },
+      "measurement_ref": null,
+      "evidence_refs": []
+    },
+    {
+      "node_id": "STORAGE-NONPOTABLE-UNKNOWN",
+      "node_kind": "storage",
+      "resource_id": "R-NONPOTABLE-WATER",
+      "floor_id": null,
+      "unit_id": null,
+      "state": "unknown",
+      "capacity": {
+        "state": "unknown",
+        "lower": null,
+        "upper": null,
+        "unit": null,
+        "boundary_ref": null,
+        "evidence_ref": null
+      },
+      "measurement_ref": null,
+      "evidence_refs": []
+    },
+    {
+      "node_id": "TREAT-NONPOTABLE-UNKNOWN",
+      "node_kind": "plant",
+      "resource_id": "R-NONPOTABLE-WATER",
+      "floor_id": null,
+      "unit_id": null,
+      "state": "unknown",
+      "capacity": {
+        "state": "unknown",
+        "lower": null,
+        "upper": null,
+        "unit": null,
+        "boundary_ref": null,
+        "evidence_ref": null
+      },
+      "measurement_ref": null,
+      "evidence_refs": []
+    },
+    {
+      "node_id": "COLLECTOR-WASTEWATER",
+      "node_kind": "branch",
+      "resource_id": "R-WASTEWATER",
+      "floor_id": null,
+      "unit_id": null,
+      "state": "unknown",
+      "capacity": {
+        "state": "unknown",
+        "lower": null,
+        "upper": null,
+        "unit": null,
+        "boundary_ref": null,
+        "evidence_ref": null
+      },
+      "measurement_ref": null,
+      "evidence_refs": []
+    },
+    {
+      "node_id": "OUTFALL-WASTEWATER-UNKNOWN",
+      "node_kind": "other",
+      "resource_id": "R-WASTEWATER",
+      "floor_id": null,
+      "unit_id": null,
+      "state": "unknown",
+      "capacity": {
+        "state": "unknown",
+        "lower": null,
+        "upper": null,
+        "unit": null,
+        "boundary_ref": null,
+        "evidence_ref": null
+      },
+      "measurement_ref": null,
+      "evidence_refs": []
+    },
+    {
+      "node_id": "SRC-COMMUNICATIONS-UNKNOWN",
+      "node_kind": "source",
+      "resource_id": "R-COMMUNICATIONS",
+      "floor_id": null,
+      "unit_id": null,
+      "state": "unknown",
+      "capacity": {
+        "state": "unknown",
+        "lower": null,
+        "upper": null,
+        "unit": null,
+        "boundary_ref": null,
+        "evidence_ref": null
+      },
+      "measurement_ref": null,
+      "evidence_refs": []
+    },
+    {
+      "node_id": "CTRL-WATER-PUMP-UNKNOWN",
+      "node_kind": "equipment",
+      "resource_id": "R-COMMUNICATIONS",
+      "floor_id": null,
+      "unit_id": null,
+      "state": "unknown",
+      "capacity": {
+        "state": "unknown",
+        "lower": null,
+        "upper": null,
+        "unit": null,
+        "boundary_ref": null,
+        "evidence_ref": null
+      },
+      "measurement_ref": null,
+      "evidence_refs": []
+    },
+    {
+      "node_id": "BOUNDARY-U-001-WASTEWATER",
+      "node_kind": "unit_boundary",
+      "resource_id": "R-WASTEWATER",
+      "floor_id": "F0",
+      "unit_id": "U-001",
+      "state": "unknown",
+      "capacity": {
+        "state": "unknown",
+        "lower": null,
+        "upper": null,
+        "unit": null,
+        "boundary_ref": null,
+        "evidence_ref": null
+      },
+      "measurement_ref": null,
+      "evidence_refs": []
+    },
+    {
+      "node_id": "BOUNDARY-U-002-WASTEWATER",
+      "node_kind": "unit_boundary",
+      "resource_id": "R-WASTEWATER",
+      "floor_id": "F0",
+      "unit_id": "U-002",
+      "state": "unknown",
+      "capacity": {
+        "state": "unknown",
+        "lower": null,
+        "upper": null,
+        "unit": null,
+        "boundary_ref": null,
+        "evidence_ref": null
+      },
+      "measurement_ref": null,
+      "evidence_refs": []
+    },
+    {
+      "node_id": "BOUNDARY-U-003-WASTEWATER",
+      "node_kind": "unit_boundary",
+      "resource_id": "R-WASTEWATER",
+      "floor_id": "F1",
+      "unit_id": "U-003",
+      "state": "unknown",
+      "capacity": {
+        "state": "unknown",
+        "lower": null,
+        "upper": null,
+        "unit": null,
+        "boundary_ref": null,
+        "evidence_ref": null
+      },
+      "measurement_ref": null,
+      "evidence_refs": []
+    },
+    {
+      "node_id": "BOUNDARY-U-004-WASTEWATER",
+      "node_kind": "unit_boundary",
+      "resource_id": "R-WASTEWATER",
+      "floor_id": "F1",
+      "unit_id": "U-004",
+      "state": "unknown",
+      "capacity": {
+        "state": "unknown",
+        "lower": null,
+        "upper": null,
+        "unit": null,
+        "boundary_ref": null,
+        "evidence_ref": null
+      },
+      "measurement_ref": null,
+      "evidence_refs": []
     }
   ],
   "edges": [
@@ -827,6 +1034,141 @@
         "boundary_ref": null,
         "evidence_ref": null
       }
+    },
+    {
+      "edge_id": "E-NONPOTABLE-SOURCE-STORAGE",
+      "from_node_id": "SRC-NONPOTABLE-UNKNOWN",
+      "to_node_id": "STORAGE-NONPOTABLE-UNKNOWN",
+      "relation": "resource_flow",
+      "state": "declared",
+      "loss": {
+        "state": "unknown",
+        "lower": null,
+        "upper": null,
+        "unit": null,
+        "boundary_ref": null,
+        "evidence_ref": null
+      }
+    },
+    {
+      "edge_id": "E-NONPOTABLE-STORAGE-TREATMENT",
+      "from_node_id": "STORAGE-NONPOTABLE-UNKNOWN",
+      "to_node_id": "TREAT-NONPOTABLE-UNKNOWN",
+      "relation": "resource_flow",
+      "state": "declared",
+      "loss": {
+        "state": "unknown",
+        "lower": null,
+        "upper": null,
+        "unit": null,
+        "boundary_ref": null,
+        "evidence_ref": null
+      }
+    },
+    {
+      "edge_id": "E-COMMS-WATER-CONTROL",
+      "from_node_id": "SRC-COMMUNICATIONS-UNKNOWN",
+      "to_node_id": "CTRL-WATER-PUMP-UNKNOWN",
+      "relation": "control_dependency",
+      "state": "declared",
+      "loss": {
+        "state": "unknown",
+        "lower": null,
+        "upper": null,
+        "unit": null,
+        "boundary_ref": null,
+        "evidence_ref": null
+      }
+    },
+    {
+      "edge_id": "E-CONTROL-WATER-PUMP",
+      "from_node_id": "CTRL-WATER-PUMP-UNKNOWN",
+      "to_node_id": "PLANT-WATER-PUMP",
+      "relation": "control_dependency",
+      "state": "declared",
+      "loss": {
+        "state": "unknown",
+        "lower": null,
+        "upper": null,
+        "unit": null,
+        "boundary_ref": null,
+        "evidence_ref": null
+      }
+    },
+    {
+      "edge_id": "E-WASTEWATER-U-001",
+      "from_node_id": "BOUNDARY-U-001-WASTEWATER",
+      "to_node_id": "COLLECTOR-WASTEWATER",
+      "relation": "resource_flow",
+      "state": "declared",
+      "loss": {
+        "state": "unknown",
+        "lower": null,
+        "upper": null,
+        "unit": null,
+        "boundary_ref": null,
+        "evidence_ref": null
+      }
+    },
+    {
+      "edge_id": "E-WASTEWATER-U-002",
+      "from_node_id": "BOUNDARY-U-002-WASTEWATER",
+      "to_node_id": "COLLECTOR-WASTEWATER",
+      "relation": "resource_flow",
+      "state": "declared",
+      "loss": {
+        "state": "unknown",
+        "lower": null,
+        "upper": null,
+        "unit": null,
+        "boundary_ref": null,
+        "evidence_ref": null
+      }
+    },
+    {
+      "edge_id": "E-WASTEWATER-U-003",
+      "from_node_id": "BOUNDARY-U-003-WASTEWATER",
+      "to_node_id": "COLLECTOR-WASTEWATER",
+      "relation": "resource_flow",
+      "state": "declared",
+      "loss": {
+        "state": "unknown",
+        "lower": null,
+        "upper": null,
+        "unit": null,
+        "boundary_ref": null,
+        "evidence_ref": null
+      }
+    },
+    {
+      "edge_id": "E-WASTEWATER-U-004",
+      "from_node_id": "BOUNDARY-U-004-WASTEWATER",
+      "to_node_id": "COLLECTOR-WASTEWATER",
+      "relation": "resource_flow",
+      "state": "declared",
+      "loss": {
+        "state": "unknown",
+        "lower": null,
+        "upper": null,
+        "unit": null,
+        "boundary_ref": null,
+        "evidence_ref": null
+      }
+    },
+    {
+      "edge_id": "E-WASTEWATER-COLLECTOR-OUTFALL",
+      "from_node_id": "COLLECTOR-WASTEWATER",
+      "to_node_id": "OUTFALL-WASTEWATER-UNKNOWN",
+      "relation": "resource_flow",
+      "state": "declared",
+      "loss": {
+        "state": "unknown",
+        "lower": null,
+        "upper": null,
+        "unit": null,
+        "boundary_ref": null,
+        "evidence_ref": null
+      }
     }
   ],
   "unit_services": [
@@ -1129,6 +1471,106 @@
       "service_floor": "unknown",
       "quality_state": "unknown",
       "evidence_refs": []
+    },
+    {
+      "unit_id": "U-001",
+      "service_id": "WASTEWATER-REMOVAL",
+      "resource_id": "R-WASTEWATER",
+      "boundary_node_id": "BOUNDARY-U-001-WASTEWATER",
+      "demand": {
+        "state": "unknown",
+        "lower": null,
+        "upper": null,
+        "unit": null,
+        "boundary_ref": null,
+        "evidence_ref": null
+      },
+      "delivered": {
+        "state": "unknown",
+        "lower": null,
+        "upper": null,
+        "unit": null,
+        "boundary_ref": null,
+        "evidence_ref": null
+      },
+      "service_floor": "unknown",
+      "quality_state": "unknown",
+      "evidence_refs": []
+    },
+    {
+      "unit_id": "U-002",
+      "service_id": "WASTEWATER-REMOVAL",
+      "resource_id": "R-WASTEWATER",
+      "boundary_node_id": "BOUNDARY-U-002-WASTEWATER",
+      "demand": {
+        "state": "unknown",
+        "lower": null,
+        "upper": null,
+        "unit": null,
+        "boundary_ref": null,
+        "evidence_ref": null
+      },
+      "delivered": {
+        "state": "unknown",
+        "lower": null,
+        "upper": null,
+        "unit": null,
+        "boundary_ref": null,
+        "evidence_ref": null
+      },
+      "service_floor": "unknown",
+      "quality_state": "unknown",
+      "evidence_refs": []
+    },
+    {
+      "unit_id": "U-003",
+      "service_id": "WASTEWATER-REMOVAL",
+      "resource_id": "R-WASTEWATER",
+      "boundary_node_id": "BOUNDARY-U-003-WASTEWATER",
+      "demand": {
+        "state": "unknown",
+        "lower": null,
+        "upper": null,
+        "unit": null,
+        "boundary_ref": null,
+        "evidence_ref": null
+      },
+      "delivered": {
+        "state": "unknown",
+        "lower": null,
+        "upper": null,
+        "unit": null,
+        "boundary_ref": null,
+        "evidence_ref": null
+      },
+      "service_floor": "unknown",
+      "quality_state": "unknown",
+      "evidence_refs": []
+    },
+    {
+      "unit_id": "U-004",
+      "service_id": "WASTEWATER-REMOVAL",
+      "resource_id": "R-WASTEWATER",
+      "boundary_node_id": "BOUNDARY-U-004-WASTEWATER",
+      "demand": {
+        "state": "unknown",
+        "lower": null,
+        "upper": null,
+        "unit": null,
+        "boundary_ref": null,
+        "evidence_ref": null
+      },
+      "delivered": {
+        "state": "unknown",
+        "lower": null,
+        "upper": null,
+        "unit": null,
+        "boundary_ref": null,
+        "evidence_ref": null
+      },
+      "service_floor": "unknown",
+      "quality_state": "unknown",
+      "evidence_refs": []
     }
   ],
   "events": [
@@ -1149,7 +1591,7 @@
       "start_s": 3600,
       "duration_s": 7200,
       "affected_node_ids": [
-        "SRC-MUNICIPAL-WATER-UNQUALIFIED"
+        "SRC-MUNICIPAL-POTABLE"
       ],
       "state": "declared_synthetic",
       "probability": null
@@ -1188,7 +1630,9 @@
       "start_s": 14400,
       "duration_s": 3600,
       "affected_node_ids": [
-        "RISER-F0-WATER"
+        "RISER-F0-WATER",
+        "BOUNDARY-U-001-WATER",
+        "BOUNDARY-U-002-WATER"
       ],
       "state": "declared_synthetic",
       "probability": null
@@ -1200,8 +1644,139 @@
       "start_s": 18000,
       "duration_s": null,
       "affected_node_ids": [
-        "SRC-MUNICIPAL-WATER-UNQUALIFIED",
+        "SRC-MUNICIPAL-POTABLE",
         "STORAGE-POTABLE"
+      ],
+      "state": "declared_synthetic",
+      "probability": null
+    },
+    {
+      "event_id": "EV-NONPOTABLE-TREATMENT-001",
+      "scenario_id": "SCENARIO-NONPOTABLE-TREATMENT-UNAVAILABLE",
+      "event_kind": "equipment_outage",
+      "start_s": 21600,
+      "duration_s": 3600,
+      "affected_node_ids": [
+        "TREAT-NONPOTABLE-UNKNOWN"
+      ],
+      "state": "declared_synthetic",
+      "probability": null
+    },
+    {
+      "event_id": "EV-STORAGE-METER-OBSERVABILITY-001",
+      "scenario_id": "SCENARIO-STORAGE-METER-OBSERVABILITY-LOSS",
+      "event_kind": "measurement_failure",
+      "start_s": 25200,
+      "duration_s": 1800,
+      "affected_node_ids": [
+        "STORAGE-POTABLE",
+        "METER-BUILDING-ELECTRICITY"
+      ],
+      "state": "declared_synthetic",
+      "probability": null
+    },
+    {
+      "event_id": "EV-F1-ZONE-FAILURE-001",
+      "scenario_id": "SCENARIO-UPPER-FLOOR-ZONE-FAILURE",
+      "event_kind": "equipment_outage",
+      "start_s": 27000,
+      "duration_s": 3600,
+      "affected_node_ids": [
+        "ZONE-F1-WATER",
+        "RISER-F1-WATER",
+        "BOUNDARY-U-003-WATER",
+        "BOUNDARY-U-004-WATER"
+      ],
+      "state": "declared_synthetic",
+      "probability": null
+    },
+    {
+      "event_id": "EV-ALLOCATION-CHANGE-001",
+      "scenario_id": "SCENARIO-ALLOCATION-POLICY-CHANGE",
+      "event_kind": "allocation_policy_change",
+      "start_s": 30600,
+      "duration_s": 0,
+      "affected_node_ids": [
+        "BOUNDARY-U-001-WATER",
+        "BOUNDARY-U-002-WATER",
+        "BOUNDARY-U-003-WATER",
+        "BOUNDARY-U-004-WATER"
+      ],
+      "state": "declared_synthetic",
+      "probability": null
+    },
+    {
+      "event_id": "EV-COMMS-FAILURE-001",
+      "scenario_id": "SCENARIO-COMMON-COMMS-FAILURE",
+      "event_kind": "communications_failure",
+      "start_s": 30600,
+      "duration_s": 3600,
+      "affected_node_ids": [
+        "SRC-COMMUNICATIONS-UNKNOWN",
+        "CTRL-WATER-PUMP-UNKNOWN"
+      ],
+      "state": "declared_synthetic",
+      "probability": null
+    },
+    {
+      "event_id": "EV-PUMP-MAINTENANCE-001",
+      "scenario_id": "SCENARIO-PUMP-MAINTENANCE-ISOLATION",
+      "event_kind": "maintenance_isolation",
+      "start_s": 34200,
+      "duration_s": 7200,
+      "affected_node_ids": [
+        "PLANT-WATER-PUMP"
+      ],
+      "state": "declared_synthetic",
+      "probability": null
+    },
+    {
+      "event_id": "EV-F0-RISER-MAINTENANCE-001",
+      "scenario_id": "SCENARIO-F0-RISER-MAINTENANCE",
+      "event_kind": "maintenance_isolation",
+      "start_s": 41400,
+      "duration_s": 1800,
+      "affected_node_ids": [
+        "RISER-F0-WATER"
+      ],
+      "state": "declared_synthetic",
+      "probability": null
+    },
+    {
+      "event_id": "EV-PUMP-SPARE-DELAY-001",
+      "scenario_id": "SCENARIO-PUMP-SPARE-DELAY",
+      "event_kind": "spare_delay",
+      "start_s": 43200,
+      "duration_s": 86400,
+      "affected_node_ids": [
+        "PLANT-WATER-PUMP"
+      ],
+      "state": "declared_synthetic",
+      "probability": null
+    },
+    {
+      "event_id": "EV-RECOVERY-001",
+      "scenario_id": "SCENARIO-RESTORATION",
+      "event_kind": "recovery",
+      "start_s": 129600,
+      "duration_s": 3600,
+      "affected_node_ids": [
+        "SRC-MUNICIPAL-POTABLE",
+        "PLANT-WATER-PUMP",
+        "ZONE-F0-WATER",
+        "ZONE-F1-WATER"
+      ],
+      "state": "declared_synthetic",
+      "probability": null
+    },
+    {
+      "event_id": "EV-RECURRENT-OUTAGE-001",
+      "scenario_id": "SCENARIO-RECURRENT-OUTAGE-BEFORE-STABLE-RECOVERY",
+      "event_kind": "source_interruption",
+      "start_s": 133200,
+      "duration_s": 3600,
+      "affected_node_ids": [
+        "SRC-MUNICIPAL-POTABLE"
       ],
       "state": "declared_synthetic",
       "probability": null
@@ -1267,6 +1842,11 @@
     "Electrical input and useful thermal output remain separate resource classes and are never numerically substituted.",
     "The six event timings are synthetic relative test inputs, not measured outage frequencies, probability estimates or a forecast for any city or utility.",
     "Allocation policy, resident service floors, ownership and tariffs remain UNKNOWN; this fixture makes no allocation or fairness claim.",
-    "GATEWAY-OPTIONAL-CONTROL is only a synthetic identity for a possible communications/control dependency. No appliance or safety function is asserted to require it; the dependency state remains unknown."
+    "GATEWAY-OPTIONAL-CONTROL is only a synthetic identity for a possible communications/control dependency. No appliance or safety function is asserted to require it; the dependency state remains unknown.",
+    "The non-potable path is represented as source -> storage -> unqualified treatment node only. No node or edge connects it to potable-water nodes, no potable credit is given, and no non-potable unit use is claimed.",
+    "Wastewater is represented as four unit-boundary sources flowing to a shared collector and an unqualified outfall identity. No drainage capacity or environmental discharge approval is represented.",
+    "Communications dependency is synthetic and unknown; it does not assert actual pump controls, cloud dependence, fail-safe behavior or operational availability.",
+    "Sixteen synthetic event records define comparative stress cases only. Event timing, duration and affected identities are not failure probabilities or service predictions.",
+    "All capacity, demand, delivery, loss, reserve, quality and accounting values remain UNKNOWN."
   ]
 }
