@@ -534,9 +534,9 @@
           "confirmed_cause"
         ],
         "required_evidence": [
-          "source-A",
-          "source-B",
-          "method-error-envelopes",
+          "source-a",
+          "source-b",
+          "methods-r1",
           "dependency-r1"
         ],
         "expected_metrics": {}
