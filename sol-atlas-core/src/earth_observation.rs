@@ -265,6 +265,7 @@ impl CrossSystemComparabilityReceiptRef {
         ontology_version: impl Into<String>,
     ) -> Result<Self, String> {
         let receipt_sha256 = normalize_sha256(receipt_sha256.into(), "cross-system comparability receipt")?;
+        let mut observation_ids = observation_ids;
         validate_unique_ids(&observation_ids, "comparability observation reference")?;
         if observation_ids.is_empty() {
             return Err("cross-system comparability receipt requires at least one observation ID".into());
@@ -272,6 +273,7 @@ impl CrossSystemComparabilityReceiptRef {
         for id in &observation_ids {
             validate_identifier(id, "comparability observation reference")?;
         }
+        observation_ids.sort();
         let support_id = support_id.into();
         let target_class_id = target_class_id.into();
         let ontology_version = ontology_version.into();
@@ -1313,6 +1315,35 @@ mod tests {
             );
             assert!(bundle.is_err(), "quality {quality:?} was promoted to no-change");
         }
+    }
+
+    #[test]
+    fn comparability_receipt_rejects_bad_digest_duplicate_ids_and_sorts_ids() {
+        assert!(CrossSystemComparabilityReceiptRef::new(
+            "not-a-sha256",
+            vec!["obs-a".into()],
+            "support-a",
+            "vegetation-loss",
+            "ontology-v1",
+        ).is_err());
+        assert!(CrossSystemComparabilityReceiptRef::new(
+            digest(b"receipt"),
+            vec!["obs-a".into(), "obs-a".into()],
+            "support-a",
+            "vegetation-loss",
+            "ontology-v1",
+        ).is_err());
+        let receipt = CrossSystemComparabilityReceiptRef::new(
+            digest(b"receipt"),
+            vec!["obs-b".into(), "obs-a".into()],
+            "support-a",
+            "vegetation-loss",
+            "ontology-v1",
+        ).unwrap();
+        assert_eq!(
+            receipt.observation_ids(),
+            &["obs-a".to_string(), "obs-b".to_string()]
+        );
     }
 
     #[test]
