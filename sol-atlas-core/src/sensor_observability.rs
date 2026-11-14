@@ -1109,7 +1109,7 @@ mod tests {
         assert!(result.localization_p95_error_m.is_some());
         assert_eq!(
             result.qualification_status,
-            "NOT_QUALIFIED_POINT_ESTIMATES_ONLY"
+            "NOT_QUALIFIED_CLUSTERED_INTERVALS_NOT_RUN"
         );
     }
 
