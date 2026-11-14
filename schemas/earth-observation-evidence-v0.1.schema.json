@@ -246,7 +246,7 @@
         "detection_limit",
         "detection_qualification_receipt_sha256",
         "detection_qualification",
-        "cross_system_comparability_receipt_sha256"
+        "cross_system_comparability_receipt"
       ],
       "properties": {
         "claim_id": {
@@ -351,16 +351,15 @@
             }
           ]
         },
-        "cross_system_comparability_receipt_sha256": {
+        "cross_system_comparability_receipt": {
           "oneOf": [
             {
-              "$ref": "#/$defs/sha256"
+              "$ref": "#/$defs/cross_system_comparability_receipt_ref"
             },
             {
               "type": "null"
             }
-          ],
-          "description": "Required by Rust cross-record validation when the referenced observations have multiple source/platform/sensor/collection/processing signatures."
+          ]
         }
       },
       "allOf": [
@@ -541,6 +540,41 @@
         }
       },
       "description": "Structured target-conditional POD preconditions; the referenced receipt separately binds sensor, target, configuration, calibration and applicability evidence."
+    },
+    "cross_system_comparability_receipt_ref": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "receipt_sha256",
+        "observation_ids",
+        "support_id",
+        "target_class_id",
+        "ontology_version"
+      ],
+      "properties": {
+        "receipt_sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "observation_ids": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/identifier"
+          },
+          "description": "Exact complete observation_ids set of the claim, not merely the positive/supporting subset."
+        },
+        "support_id": {
+          "$ref": "#/$defs/identifier"
+        },
+        "target_class_id": {
+          "$ref": "#/$defs/identifier"
+        },
+        "ontology_version": {
+          "$ref": "#/$defs/identifier"
+        }
+      },
+      "description": "Structural reference to external comparability qualification. Rust rechecks exact observation-set and support/class/ontology binding; an authoritative verifier must authenticate the receipt contents."
     }
   }
 }
