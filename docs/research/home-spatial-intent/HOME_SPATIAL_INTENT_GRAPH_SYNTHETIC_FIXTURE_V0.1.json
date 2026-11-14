@@ -96,7 +96,7 @@
             "COOKING"
           ],
           "area_m2": 8,
-          "privacy_zone": "SERVICE",
+          "privacy_zone": "SEMI_PRIVATE",
           "capacity": 2
         },
         {
@@ -278,7 +278,26 @@
           "evidence_ref": null
         }
       ],
-      "verification_state": "SYMBOLIC_STRUCTURE_ONLY"
+      "verification_state": "SYMBOLIC_STRUCTURE_ONLY",
+      "future_change_bindings": [
+        {
+          "change_id": "FUTURE_THIRD_BEDROOM",
+          "state": "RESERVED_SPACE_ONLY",
+          "affected_constraint_ids": [
+            "C_PHASE_01"
+          ],
+          "required_rechecks": [
+            "STRUCTURE_AND_FOUNDATIONS",
+            "FIRE_AND_EGRESS",
+            "DAYLIGHT_AND_VENTILATION",
+            "DRAINAGE",
+            "WATER_SANITATION_ELECTRICAL_CAPACITY",
+            "NEIGHBOUR_PRIVACY"
+          ],
+          "verification_state": "UNKNOWN",
+          "evidence_ref": null
+        }
+      ]
     },
     {
       "candidate_id": "GRAPH-HV-B",
@@ -327,7 +346,7 @@
             "COOKING"
           ],
           "area_m2": 8,
-          "privacy_zone": "SERVICE",
+          "privacy_zone": "SEMI_PRIVATE",
           "capacity": 2
         },
         {
@@ -509,7 +528,26 @@
           "evidence_ref": null
         }
       ],
-      "verification_state": "SYMBOLIC_STRUCTURE_ONLY"
+      "verification_state": "SYMBOLIC_STRUCTURE_ONLY",
+      "future_change_bindings": [
+        {
+          "change_id": "FUTURE_THIRD_BEDROOM",
+          "state": "RESERVED_SPACE_ONLY",
+          "affected_constraint_ids": [
+            "C_PHASE_01"
+          ],
+          "required_rechecks": [
+            "STRUCTURE_AND_FOUNDATIONS",
+            "FIRE_AND_EGRESS",
+            "DAYLIGHT_AND_VENTILATION",
+            "DRAINAGE",
+            "WATER_SANITATION_ELECTRICAL_CAPACITY",
+            "NEIGHBOUR_PRIVACY"
+          ],
+          "verification_state": "UNKNOWN",
+          "evidence_ref": null
+        }
+      ]
     }
   ],
   "comparison_policy": {
