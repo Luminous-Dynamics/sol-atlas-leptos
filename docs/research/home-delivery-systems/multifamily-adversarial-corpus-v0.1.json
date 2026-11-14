@@ -4,7 +4,7 @@
   "maturity": "authored_manifest_not_executed",
   "parent_issue": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/840",
   "base_fixture": "multifamily-building-synthetic-v0.1.json",
-  "case_count": 46,
+  "case_count": 47,
   "case_split": {
     "development_cases": [
       "MF-POS-001",
@@ -52,7 +52,8 @@
       "MF-OPS-001",
       "MF-RETROFIT-001",
       "MF-PLANNING-001",
-      "MF-REV-002"
+      "MF-REV-002",
+      "MF-GEO-008"
     ],
     "calibration_cases": [],
     "sealed_confirmation_cases": [],
@@ -564,6 +565,17 @@
       "oracle_invariant": "Relevant graph/design changes invalidate their transitive dependent evidence.",
       "scope": "synthetic_contract_only",
       "expected_physical_claim": "none"
+    },
+    {
+      "case_id": "MF-GEO-008",
+      "family": "geometry",
+      "case_kind": "adversarial_control",
+      "base_fixture": "multifamily-building-synthetic-v0.1.json",
+      "mutation": "a non-void region of the declared floor envelope is left unrepresented by any declared space",
+      "expected_disposition": "REJECT",
+      "oracle_invariant": "Every floor-envelope region must be accounted for by a declared space or an explicitly typed void/exclusion; no silent unallocated floor region.",
+      "scope": "synthetic_contract_only",
+      "expected_physical_claim": "none"
     }
   ],
   "scoring_rules": [
@@ -571,7 +583,8 @@
     "Every adversarial mutation must be rejected, abstained, invalidated or blocked from promotion exactly as declared.",
     "A hard safety/rights/authority failure cannot be compensated by yield, cost, density or average quality.",
     "Missing evidence remains UNKNOWN or NOT_ASSESSED; it is not a low-risk or favourable score.",
-    "Case manifest authorship is not execution evidence."
+    "Case manifest authorship is not execution evidence.",
+    "Floor-envelope partitioning must distinguish declared occupied/shared space from explicit void/exclusion; unallocated geometry is never silently ignored."
   ],
   "claim_ceiling": "This manifest defines intended synthetic dispositions. It has not been executed by a Rust qualifier, professionally adjudicated or evaluated against a real building."
 }
