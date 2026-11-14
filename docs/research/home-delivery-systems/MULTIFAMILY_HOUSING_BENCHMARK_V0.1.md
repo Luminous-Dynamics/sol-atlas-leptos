@@ -400,7 +400,7 @@ The current qualifier contains 15 authored tests (one positive and 14 negative).
 
 The apartment unit geometry now binds to [multifamily-resident-programme.schema.json](multifamily-resident-programme.schema.json) and [multifamily-resident-programme-synthetic-v0.1.json](multifamily-resident-programme-synthetic-v0.1.json), composing resident spatial programme #833.
 
-The P0 fixture covers four synthetic unit programmes, 20 activity nodes, six synthetic requirements, eight preferences and within-unit relationships. Every requirement and preference references the activity IDs it affects. It keeps occupancy, concurrence, required/preferred dimensions, equipment envelopes, access needs, service demand and preference priority NOT_SUPPLIED. It contains no real resident, demographic or household data.
+The P0 fixture covers four synthetic unit programmes, 24 activity nodes, six synthetic requirements, eight preferences and within-unit relationships. Every requirement and preference references the activity IDs it affects. It keeps occupancy, concurrence, required/preferred dimensions, equipment envelopes, access needs, service demand and preference priority NOT_SUPPLIED. It contains no real resident, demographic or household data.
 
 The Rust apartment qualifier now checks aggregate and per-unit programme identity, exact unit mapping, activity/relationship identity, synthetic provenance, non-inference, and the absence of fabricated physical requirements. The current source has 19 authored tests (one positive fixture and 18 negative controls); test execution remains subject to exact-head hosted validation.
 
