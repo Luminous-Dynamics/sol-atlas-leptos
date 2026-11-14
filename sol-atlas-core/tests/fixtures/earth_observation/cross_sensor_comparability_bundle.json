@@ -1,0 +1,137 @@
+{
+  "schema_version": 1,
+  "observations": [
+    {
+      "observation_id": "obs-2024",
+      "asset_id": "fixture:asset-2024",
+      "source_asset_receipt_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "processing_receipt_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+      "rights": {
+        "subject_id": "fixture-subject",
+        "purpose_id": "internal-evaluation",
+        "source_id": "fixture-source",
+        "asset_id": "fixture:asset-2024",
+        "decision_receipt_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      },
+      "support_id": "support-jukskei-synthetic",
+      "acquisition": {
+        "kind": "instant",
+        "datetime": "2024-01-01T00:00:00Z",
+        "start": null,
+        "end": null
+      },
+      "modality": "optical",
+      "quality": "qualified_usable",
+      "source_id": "fixture-source",
+      "platform_id": "fixture-platform",
+      "sensor_id": "fixture-sensor",
+      "instrument_id": "fixture-instrument",
+      "collection_id": "fixture-collection",
+      "processing_baseline": "fixture-baseline",
+      "sensor_identity_origin": "provider_declared",
+      "measurement_profile_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    },
+    {
+      "observation_id": "obs-2025",
+      "asset_id": "fixture:asset-2025",
+      "source_asset_receipt_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "processing_receipt_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+      "rights": {
+        "subject_id": "fixture-subject",
+        "purpose_id": "internal-evaluation",
+        "source_id": "fixture-source",
+        "asset_id": "fixture:asset-2025",
+        "decision_receipt_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      },
+      "support_id": "support-jukskei-synthetic",
+      "acquisition": {
+        "kind": "instant",
+        "datetime": "2025-01-01T00:00:00Z",
+        "start": null,
+        "end": null
+      },
+      "modality": "optical",
+      "quality": "qualified_usable",
+      "source_id": "fixture-source",
+      "platform_id": "sentinel-2b",
+      "sensor_id": "derived:c2VudGluZWwtMmI:TVNJ",
+      "instrument_id": "MSI",
+      "collection_id": "sentinel-2-l2a",
+      "processing_baseline": "05.00",
+      "sensor_identity_origin": "derived_from_platform_and_instrument",
+      "measurement_profile_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+    }
+  ],
+  "claims": [
+    {
+      "claim_id": "claim-no-change",
+      "target_class_id": "vegetation-loss",
+      "ontology_version": "fixture-ontology-v1",
+      "support_id": "support-jukskei-synthetic",
+      "observation_window": {
+        "start": "2024-01-01T00:00:00Z",
+        "end": "2025-01-01T00:00:00Z"
+      },
+      "disposition": "no_change_within_envelope",
+      "event_time_bounds": null,
+      "observation_ids": [
+        "obs-2024",
+        "obs-2025"
+      ],
+      "supporting_observation_ids": [
+        "obs-2024",
+        "obs-2025"
+      ],
+      "contradicting_observation_ids": [],
+      "coverage": "complete_qualified",
+      "coverage_receipt_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+      "detection_limit": {
+        "metric": "minimum-change-fraction",
+        "value": 0.05,
+        "unit": "fraction"
+      },
+      "detection_qualification_receipt_sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+      "detection_qualification": {
+        "footprint_covers_target": true,
+        "calibration_valid": true,
+        "target_in_validated_domain": true,
+        "probability_of_detection": 0.99,
+        "minimum_required_probability": 0.95
+      },
+      "cross_system_comparability_receipt": {
+        "receipt_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+        "observation_ids": [
+          "obs-2024",
+          "obs-2025"
+        ],
+        "support_id": "support-jukskei-synthetic",
+        "target_class_id": "vegetation-loss",
+        "ontology_version": "fixture-ontology-v1",
+        "system_signatures": [
+          {
+            "source_id": "fixture-source",
+            "platform_id": "fixture-platform",
+            "sensor_id": "fixture-sensor",
+            "sensor_identity_origin": "provider_declared",
+            "instrument_id": "fixture-instrument",
+            "modality": "optical",
+            "collection_id": "fixture-collection",
+            "processing_baseline": "fixture-baseline",
+            "measurement_profile_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+          },
+          {
+            "source_id": "fixture-source",
+            "platform_id": "sentinel-2b",
+            "sensor_id": "derived:c2VudGluZWwtMmI:TVNJ",
+            "sensor_identity_origin": "derived_from_platform_and_instrument",
+            "instrument_id": "MSI",
+            "modality": "optical",
+            "collection_id": "sentinel-2-l2a",
+            "processing_baseline": "05.00",
+            "measurement_profile_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+          }
+        ]
+      }
+    }
+  ]
+}

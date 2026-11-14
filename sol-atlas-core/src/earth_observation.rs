@@ -26,7 +26,7 @@ pub const EARTH_OBSERVATION_SCHEMA_VERSION: u32 = 1;
 
 /// The EO sensor family. Provider-specific sensor and product identifiers
 /// remain attached to the referenced asset/processing receipts.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum ObservationModality {
     Optical,
@@ -39,7 +39,7 @@ pub enum ObservationModality {
 
 /// Declares how the source-qualified sensor identity was obtained.
 /// This is provenance about identity resolution, not an independent sensor registry.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum SensorIdentityOrigin {
     ProviderDeclared,
@@ -196,6 +196,9 @@ pub struct ObservationRecord {
     collection_id: Option<String>,
     /// Provider-native processing baseline/version; absent remains unknown.
     processing_baseline: Option<String>,
+    /// Digest of the exact asset-level band/polarization/measurement profile.
+    /// Missing means the source measurement configuration is not fully identified.
+    measurement_profile_sha256: Option<String>,
     source_asset_receipt_sha256: String,
     processing_receipt_sha256: String,
     rights: RightsReceiptRef,
@@ -218,6 +221,8 @@ struct ObservationRecordWire {
     instrument_id: Option<String>,
     collection_id: Option<String>,
     processing_baseline: Option<String>,
+    #[serde(default)]
+    measurement_profile_sha256: Option<String>,
     source_asset_receipt_sha256: String,
     processing_receipt_sha256: String,
     rights: RightsReceiptRef,
@@ -225,6 +230,124 @@ struct ObservationRecordWire {
     acquisition: ObservationTime,
     modality: ObservationModality,
     quality: ObservationQuality,
+}
+
+/// Structural reference to an independently qualified cross-system comparison.
+/// The receipt digest identifies the external qualification payload; the copied
+/// scope fields are checked against the local claim before the reference is accepted.
+/// Hash presence alone does not authenticate or qualify the external receipt.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(try_from = "CrossSystemComparabilityReceiptRefWire")]
+pub struct CrossSystemComparabilityReceiptRef {
+    receipt_sha256: String,
+    observation_ids: Vec<String>,
+    system_signatures: Vec<ObservationSystemSignature>,
+    support_id: String,
+    target_class_id: String,
+    ontology_version: String,
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(deny_unknown_fields)]
+struct CrossSystemComparabilityReceiptRefWire {
+    receipt_sha256: String,
+    observation_ids: Vec<String>,
+    system_signatures: Vec<ObservationSystemSignature>,
+    support_id: String,
+    target_class_id: String,
+    ontology_version: String,
+}
+
+impl CrossSystemComparabilityReceiptRef {
+    pub fn new(
+        receipt_sha256: impl Into<String>,
+        observation_ids: Vec<String>,
+        system_signatures: Vec<ObservationSystemSignature>,
+        support_id: impl Into<String>,
+        target_class_id: impl Into<String>,
+        ontology_version: impl Into<String>,
+    ) -> Result<Self, String> {
+        let receipt_sha256 = normalize_sha256(receipt_sha256.into(), "cross-system comparability receipt")?;
+        let mut observation_ids = observation_ids;
+        validate_unique_ids(&observation_ids, "comparability observation reference")?;
+        if observation_ids.is_empty() {
+            return Err("cross-system comparability receipt requires at least one observation ID".into());
+        }
+        for id in &observation_ids {
+            validate_identifier(id, "comparability observation reference")?;
+        }
+        observation_ids.sort();
+        let mut system_signatures = system_signatures;
+        system_signatures.sort();
+        let unique_system_signatures = system_signatures.iter().cloned().collect::<BTreeSet<_>>();
+        if system_signatures.is_empty() || unique_system_signatures.len() != system_signatures.len() {
+            return Err("comparability receipt requires a non-empty, duplicate-free system-signature set".into());
+        }
+        let support_id = support_id.into();
+        let target_class_id = target_class_id.into();
+        let ontology_version = ontology_version.into();
+        validate_identifier(&support_id, "comparability support ID")?;
+        validate_identifier(&target_class_id, "comparability target class ID")?;
+        validate_identifier(&ontology_version, "comparability ontology version")?;
+        Ok(Self {
+            receipt_sha256,
+            observation_ids,
+            system_signatures,
+            support_id,
+            target_class_id,
+            ontology_version,
+        })
+    }
+
+    pub fn receipt_sha256(&self) -> &str { &self.receipt_sha256 }
+    pub fn observation_ids(&self) -> &[String] { &self.observation_ids }
+    pub fn system_signatures(&self) -> &[ObservationSystemSignature] { &self.system_signatures }
+    pub fn support_id(&self) -> &str { &self.support_id }
+    pub fn target_class_id(&self) -> &str { &self.target_class_id }
+    pub fn ontology_version(&self) -> &str { &self.ontology_version }
+}
+
+impl TryFrom<CrossSystemComparabilityReceiptRefWire> for CrossSystemComparabilityReceiptRef {
+    type Error = String;
+
+    fn try_from(wire: CrossSystemComparabilityReceiptRefWire) -> Result<Self, Self::Error> {
+        Self::new(
+            wire.receipt_sha256,
+            wire.observation_ids,
+            wire.system_signatures,
+            wire.support_id,
+            wire.target_class_id,
+            wire.ontology_version,
+        )
+    }
+}
+
+/// Deterministic signature of the measurement system that produced an observation.
+/// This is a comparison key, not a sensor registry or proof of cross-system equivalence.
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct ObservationSystemSignature {
+    source_id: String,
+    platform_id: String,
+    sensor_id: String,
+    sensor_identity_origin: SensorIdentityOrigin,
+    instrument_id: Option<String>,
+    modality: ObservationModality,
+    collection_id: Option<String>,
+    processing_baseline: Option<String>,
+    measurement_profile_sha256: Option<String>,
+}
+
+impl ObservationSystemSignature {
+    pub fn source_id(&self) -> &str { &self.source_id }
+    pub fn platform_id(&self) -> &str { &self.platform_id }
+    pub fn sensor_id(&self) -> &str { &self.sensor_id }
+    pub fn sensor_identity_origin(&self) -> SensorIdentityOrigin { self.sensor_identity_origin }
+    pub fn instrument_id(&self) -> Option<&str> { self.instrument_id.as_deref() }
+    pub fn modality(&self) -> ObservationModality { self.modality }
+    pub fn collection_id(&self) -> Option<&str> { self.collection_id.as_deref() }
+    pub fn processing_baseline(&self) -> Option<&str> { self.processing_baseline.as_deref() }
+    pub fn measurement_profile_sha256(&self) -> Option<&str> { self.measurement_profile_sha256.as_deref() }
 }
 
 impl ObservationRecord {
@@ -298,6 +421,7 @@ impl ObservationRecord {
             instrument_id,
             collection_id,
             processing_baseline,
+            measurement_profile_sha256: None,
             source_asset_receipt_sha256: normalize_sha256(
                 source_asset_receipt_sha256.into(),
                 "source asset receipt",
@@ -349,6 +473,37 @@ impl ObservationRecord {
 
     pub fn processing_baseline(&self) -> Option<&str> {
         self.processing_baseline.as_deref()
+    }
+
+    pub fn measurement_profile_sha256(&self) -> Option<&str> {
+        self.measurement_profile_sha256.as_deref()
+    }
+
+    /// Bind an externally computed, canonical fingerprint of this exact asset's
+    /// band/polarization/measurement configuration. The caller must compute it
+    /// from the frozen source profile; Sol-Atlas does not guess missing bands.
+    pub fn with_measurement_profile_sha256(
+        mut self,
+        value: Option<String>,
+    ) -> Result<Self, String> {
+        self.measurement_profile_sha256 = value
+            .map(|digest| normalize_sha256(digest, "measurement profile"))
+            .transpose()?;
+        Ok(self)
+    }
+
+    pub fn system_signature(&self) -> ObservationSystemSignature {
+        ObservationSystemSignature {
+            source_id: self.source_id.clone(),
+            platform_id: self.platform_id.clone(),
+            sensor_id: self.sensor_id.clone(),
+            sensor_identity_origin: self.sensor_identity_origin,
+            instrument_id: self.instrument_id.clone(),
+            modality: self.modality,
+            collection_id: self.collection_id.clone(),
+            processing_baseline: self.processing_baseline.clone(),
+            measurement_profile_sha256: self.measurement_profile_sha256.clone(),
+        }
     }
 
     pub fn source_asset_receipt_sha256(&self) -> &str {
@@ -409,6 +564,7 @@ impl TryFrom<ObservationRecordWire> for ObservationRecord {
     type Error = String;
 
     fn try_from(wire: ObservationRecordWire) -> Result<Self, Self::Error> {
+        let measurement_profile_sha256 = wire.measurement_profile_sha256;
         Self::new(
             wire.observation_id,
             wire.asset_id,
@@ -426,7 +582,8 @@ impl TryFrom<ObservationRecordWire> for ObservationRecord {
             wire.acquisition,
             wire.modality,
             wire.quality,
-        )
+        )?
+        .with_measurement_profile_sha256(measurement_profile_sha256)
     }
 }
 
@@ -564,6 +721,8 @@ pub struct ChangeClaim {
     coverage: CoverageState,
     coverage_receipt_sha256: Option<String>,
     detection_qualification_receipt_sha256: Option<String>,
+    /// Required when one claim combines distinct source/platform/sensor/product/processing systems.
+    cross_system_comparability_receipt: Option<CrossSystemComparabilityReceiptRef>,
     detection_qualification: Option<DetectionQualification>,
     detection_limit: Option<DetectionLimit>,
 }
@@ -584,6 +743,7 @@ struct ChangeClaimWire {
     coverage: CoverageState,
     coverage_receipt_sha256: Option<String>,
     detection_qualification_receipt_sha256: Option<String>,
+    cross_system_comparability_receipt: Option<CrossSystemComparabilityReceiptRef>,
     detection_qualification: Option<DetectionQualification>,
     detection_limit: Option<DetectionLimit>,
 }
@@ -604,6 +764,7 @@ impl ChangeClaim {
         coverage: CoverageState,
         coverage_receipt_sha256: Option<String>,
         detection_qualification_receipt_sha256: Option<String>,
+        cross_system_comparability_receipt: Option<CrossSystemComparabilityReceiptRef>,
         detection_qualification: Option<DetectionQualification>,
         detection_limit: Option<DetectionLimit>,
     ) -> Result<Self, String> {
@@ -637,6 +798,7 @@ impl ChangeClaim {
         let detection_qualification_receipt_sha256 = detection_qualification_receipt_sha256
             .map(|value| normalize_sha256(value, "detection qualification receipt"))
             .transpose()?;
+
 
         if coverage == CoverageState::CompleteQualified && coverage_receipt_sha256.is_none() {
             return Err("complete qualified coverage requires a coverage receipt digest".into());
@@ -704,6 +866,7 @@ impl ChangeClaim {
             coverage,
             coverage_receipt_sha256,
             detection_qualification_receipt_sha256,
+            cross_system_comparability_receipt,
             detection_qualification,
             detection_limit,
         })
@@ -725,6 +888,10 @@ impl ChangeClaim {
         &self.observation_ids
     }
 
+    pub fn cross_system_comparability_receipt(&self) -> Option<&CrossSystemComparabilityReceiptRef> {
+        self.cross_system_comparability_receipt.as_ref()
+    }
+
     /// Validate references and evidence admissibility against the exact
     /// observation records in the bundle.
     pub fn validate_against(&self, observations: &[ObservationRecord]) -> Result<(), String> {
@@ -744,6 +911,48 @@ impl ChangeClaim {
                 return Err(format!("observation {id} has a different spatial support"));
             }
             referenced.push(*observation);
+        }
+
+        let system_signatures = referenced
+            .iter()
+            .map(|observation| observation.system_signature())
+            .collect::<BTreeSet<_>>();
+        let incomplete_measurement_identity = referenced.iter().any(|observation| {
+            observation.collection_id.is_none()
+                || observation.processing_baseline.is_none()
+                || observation.measurement_profile_sha256.is_none()
+        });
+        let claim_is_unresolved = self.disposition == ChangeDisposition::Unresolved;
+        match (&self.cross_system_comparability_receipt, system_signatures.len(), incomplete_measurement_identity) {
+            (None, count, false) if count <= 1 => {}
+            (None, _, _) if claim_is_unresolved => {
+                // Preserve an explicitly unresolved record for investigation.
+                // It is not eligible to support or promote a physical-change claim.
+            }
+            (None, _, _) => {
+                return Err("claim combines distinct or incompletely identified measurement systems without a cross-system comparability receipt".into());
+            }
+            (Some(_), count, false) if count <= 1 => {
+                return Err("cross-system comparability receipt is present but the claim references one fully identified observation-system signature".into());
+            }
+            (Some(receipt), _, _) => {
+                let claim_observation_ids = self.observation_ids.iter().cloned().collect::<BTreeSet<_>>();
+                let receipt_observation_ids = receipt.observation_ids.iter().cloned().collect::<BTreeSet<_>>();
+                if receipt_observation_ids != claim_observation_ids {
+                    return Err("cross-system comparability receipt observation set does not exactly match the claim".into());
+                }
+                let receipt_signatures = receipt.system_signatures.iter().cloned().collect::<BTreeSet<_>>();
+                if receipt_signatures != system_signatures || receipt_signatures.len() != receipt.system_signatures.len() {
+                    return Err("cross-system comparability receipt measurement-system signatures do not exactly match current observations".into());
+                }
+                if receipt.support_id != self.support_id
+                    || receipt.target_class_id != self.target_class_id
+                    || receipt.ontology_version != self.ontology_version
+                {
+                    return Err("cross-system comparability receipt scope does not match claim support/class/ontology".into());
+                }
+            }
+            _ => {}
         }
 
         for id in self
@@ -803,6 +1012,7 @@ impl TryFrom<ChangeClaimWire> for ChangeClaim {
             wire.coverage,
             wire.coverage_receipt_sha256,
             wire.detection_qualification_receipt_sha256,
+            wire.cross_system_comparability_receipt,
             wire.detection_qualification,
             wire.detection_limit,
         )
@@ -972,7 +1182,10 @@ mod tests {
             quality,
         )
         .unwrap()
+        .with_measurement_profile_sha256(Some(digest(b'm')))
+        .unwrap()
     }
+
 
     fn no_change_claim() -> ChangeClaim {
         ChangeClaim::new(
@@ -989,6 +1202,7 @@ mod tests {
             CoverageState::CompleteQualified,
             Some(digest(b'd')),
             Some(digest(b'e')),
+            None,
             Some(DetectionQualification {
                 footprint_covers_target: true,
                 calibration_valid: true,
@@ -1008,7 +1222,7 @@ mod tests {
             TimeWindow::new("2024-01-01", "2025-01-01").unwrap(),
             ChangeDisposition::NoChangeWithinEnvelope, None,
             vec!["a".into(), "b".into()], vec!["a".into(), "b".into()], vec![],
-            CoverageState::Partial, None, Some(digest(b'e')), None,
+            CoverageState::Partial, None, Some(digest(b'e')), None, None,
             Some(DetectionLimit::new("min-change", 1.0, "unit").unwrap())
         ).is_err());
     }
@@ -1023,6 +1237,7 @@ mod tests {
             vec!["obs-a".into(), "obs-b".into()], vec![],
             CoverageState::CompleteQualified,
             Some(digest(b'd')),
+            None,
             None,
             None,
             Some(DetectionLimit::new("min-change", 0.05, "fraction").unwrap())
@@ -1070,6 +1285,7 @@ mod tests {
                 CoverageState::CompleteQualified,
                 Some(digest(b'd')),
                 Some(digest(b'e')),
+                None,
                 Some(qualification),
                 Some(DetectionLimit::new("minimum-change", 0.05, "fraction").unwrap()),
             );
@@ -1125,6 +1341,290 @@ mod tests {
             assert!(bundle.is_err(), "quality {quality:?} was promoted to no-change");
         }
     }
+
+    #[test]
+    fn comparability_receipt_rejects_bad_digest_duplicate_ids_and_sorts_ids() {
+        assert!(CrossSystemComparabilityReceiptRef::new(
+            "not-a-sha256",
+            vec!["obs-a".into()],
+            vec![observation("obs-a", "2024-01-01", ObservationQuality::QualifiedUsable).system_signature()],
+            "support-a",
+            "vegetation-loss",
+            "ontology-v1",
+        ).is_err());
+        assert!(CrossSystemComparabilityReceiptRef::new(
+            digest(b'r'),
+            vec!["obs-a".into(), "obs-a".into()],
+            vec![observation("obs-a", "2024-01-01", ObservationQuality::QualifiedUsable).system_signature()],
+            "support-a",
+            "vegetation-loss",
+            "ontology-v1",
+        ).is_err());
+        let receipt = CrossSystemComparabilityReceiptRef::new(
+            digest(b'r'),
+            vec!["obs-b".into(), "obs-a".into()],
+            vec![observation("obs-a", "2024-01-01", ObservationQuality::QualifiedUsable).system_signature()],
+            "support-a",
+            "vegetation-loss",
+            "ontology-v1",
+        ).unwrap();
+        assert_eq!(
+            receipt.observation_ids().iter().map(String::as_str).collect::<Vec<_>>(),
+            vec!["obs-a", "obs-b"]
+        );
+    }
+
+    #[test]
+    fn comparability_receipt_rejects_duplicate_system_signatures() {
+        let signature = observation(
+            "obs-a",
+            "2024-01-01",
+            ObservationQuality::QualifiedUsable,
+        ).system_signature();
+        assert!(CrossSystemComparabilityReceiptRef::new(
+            digest(b'r'),
+            vec!["obs-a".into(), "obs-b".into()],
+            vec![signature.clone(), signature],
+            "support-a",
+            "vegetation-loss",
+            "ontology-v1",
+        ).is_err());
+    }
+
+    #[test]
+    fn cross_processing_generation_claim_requires_comparability_receipt() {
+        let obs_a = observation("obs-a", "2024-01-01", ObservationQuality::QualifiedUsable);
+        let mut obs_b = observation("obs-b", "2025-01-01", ObservationQuality::QualifiedUsable);
+        obs_b.processing_baseline = Some("fixture-baseline-v2".into());
+        let bridge_signatures = vec![obs_a.system_signature(), obs_b.system_signature()];
+
+        // Same target/support and high POD are not enough when the processing generation changed.
+        let claim_without_bridge = no_change_claim();
+        let blocked = EvidenceBundle::new(vec![obs_a.clone(), obs_b.clone()], vec![claim_without_bridge]);
+        assert!(blocked.unwrap_err().contains("cross-system comparability receipt"));
+
+        let mut claim_with_bridge = no_change_claim();
+        claim_with_bridge.cross_system_comparability_receipt = Some(
+            CrossSystemComparabilityReceiptRef::new(
+                digest(b'f'),
+                vec!["obs-a".into(), "obs-b".into()],
+                bridge_signatures.clone(),
+                "support-a",
+                "vegetation-loss",
+                "fixture-ontology-v1",
+            ).unwrap()
+        );
+        let admitted_reference = EvidenceBundle::new(vec![obs_a.clone(), obs_b.clone()], vec![claim_with_bridge.clone()]);
+        assert!(admitted_reference.is_ok());
+
+        // Reusing the same observation IDs after platform/sensor/profile metadata
+        // changes must invalidate the stale bridge.
+        let mut altered_observation = obs_b.clone();
+        altered_observation.sensor_id = "different-sensor".into();
+        let stale_bridge = EvidenceBundle::new(
+            vec![obs_a.clone(), altered_observation],
+            vec![claim_with_bridge.clone()],
+        );
+        assert!(stale_bridge.unwrap_err().contains("measurement-system signatures"));
+
+        let mut wrong_observation_set = claim_with_bridge.clone();
+        wrong_observation_set.cross_system_comparability_receipt = Some(
+            CrossSystemComparabilityReceiptRef::new(
+                digest(b'f'),
+                vec!["obs-a".into()],
+                bridge_signatures.clone(),
+                "support-a",
+                "vegetation-loss",
+                "fixture-ontology-v1",
+            ).unwrap()
+        );
+        assert!(EvidenceBundle::new(vec![obs_a.clone(), obs_b.clone()], vec![wrong_observation_set])
+            .unwrap_err().contains("observation set"));
+
+        let mut wrong_target = claim_with_bridge.clone();
+        wrong_target.cross_system_comparability_receipt = Some(
+            CrossSystemComparabilityReceiptRef::new(
+                digest(b'f'),
+                vec!["obs-a".into(), "obs-b".into()],
+                bridge_signatures.clone(),
+                "support-a",
+                "built-up-expansion",
+                "fixture-ontology-v1",
+            ).unwrap()
+        );
+        assert!(EvidenceBundle::new(vec![obs_a.clone(), obs_b.clone()], vec![wrong_target])
+            .unwrap_err().contains("scope"));
+
+        let mut wrong_support = claim_with_bridge.clone();
+        wrong_support.cross_system_comparability_receipt = Some(
+            CrossSystemComparabilityReceiptRef::new(
+                digest(b'f'),
+                vec!["obs-a".into(), "obs-b".into()],
+                bridge_signatures.clone(),
+                "other-support",
+                "vegetation-loss",
+                "fixture-ontology-v1",
+            ).unwrap()
+        );
+        assert!(EvidenceBundle::new(vec![obs_a.clone(), obs_b.clone()], vec![wrong_support])
+            .unwrap_err().contains("scope"));
+
+        let mut wrong_ontology = claim_with_bridge;
+        wrong_ontology.cross_system_comparability_receipt = Some(
+            CrossSystemComparabilityReceiptRef::new(
+                digest(b'f'),
+                vec!["obs-a".into(), "obs-b".into()],
+                bridge_signatures.clone(),
+                "support-a",
+                "vegetation-loss",
+                "fixture-ontology-v2",
+            ).unwrap()
+        );
+        assert!(EvidenceBundle::new(vec![obs_a, obs_b], vec![wrong_ontology])
+            .unwrap_err().contains("scope"));
+    }
+
+    #[test]
+    fn asset_band_or_polarization_profile_changes_the_measurement_system_signature() {
+        let a = observation("obs-a", "2024-01-01", ObservationQuality::QualifiedUsable);
+        let mut b = observation("obs-b", "2025-01-01", ObservationQuality::QualifiedUsable);
+        b.measurement_profile_sha256 = Some(digest(b'x'));
+        assert_ne!(a.system_signature(), b.system_signature());
+    }
+
+    #[test]
+    fn missing_asset_measurement_profile_requires_comparability_receipt() {
+        let mut a = observation("obs-a", "2024-01-01", ObservationQuality::QualifiedUsable);
+        let b = observation("obs-b", "2025-01-01", ObservationQuality::QualifiedUsable);
+        a.measurement_profile_sha256 = None;
+        let result = EvidenceBundle::new(vec![a.clone(), b.clone()], vec![no_change_claim()]);
+        assert!(result.unwrap_err().contains("incompletely identified measurement systems"));
+
+        let bridge_signatures = vec![a.system_signature(), b.system_signature()];
+        let mut claim = no_change_claim();
+        claim.cross_system_comparability_receipt = Some(
+            CrossSystemComparabilityReceiptRef::new(
+                digest(b'g'),
+                vec!["obs-a".into(), "obs-b".into()],
+                bridge_signatures,
+                "support-a",
+                "vegetation-loss",
+                "fixture-ontology-v1",
+            ).unwrap()
+        );
+        assert!(EvidenceBundle::new(vec![a,b], vec![claim]).is_ok());
+    }
+
+    #[test]
+    fn two_unknown_processing_baselines_are_not_assumed_to_match() {
+        let mut a = observation("obs-a", "2024-01-01", ObservationQuality::QualifiedUsable);
+        let mut b = observation("obs-b", "2025-01-01", ObservationQuality::QualifiedUsable);
+        a.processing_baseline = None;
+        b.processing_baseline = None;
+        assert_eq!(a.system_signature(), b.system_signature());
+        let blocked = EvidenceBundle::new(vec![a.clone(), b.clone()], vec![no_change_claim()]);
+        assert!(blocked.unwrap_err().contains("incompletely identified measurement systems"));
+
+        let bridge_signatures = vec![a.system_signature(), b.system_signature()];
+        let mut claim = no_change_claim();
+        claim.cross_system_comparability_receipt = Some(
+            CrossSystemComparabilityReceiptRef::new(
+                digest(b'u'),
+                vec!["obs-a".into(), "obs-b".into()],
+                bridge_signatures,
+                "support-a",
+                "vegetation-loss",
+                "fixture-ontology-v1",
+            ).unwrap()
+        );
+        assert!(EvidenceBundle::new(vec![a,b], vec![claim]).is_ok());
+    }
+
+    #[test]
+    fn unresolved_mixed_system_record_is_retained_but_candidate_promotion_is_blocked() {
+        let obs_a = observation("obs-a", "2024-01-01", ObservationQuality::QualifiedUsable);
+        let mut obs_b = observation("obs-b", "2025-01-01", ObservationQuality::QualifiedUsable);
+        obs_b.platform_id = "platform-b".into();
+        let unresolved = ChangeClaim::new(
+            "unresolved-cross-system",
+            "vegetation-loss",
+            "fixture-ontology-v1",
+            "support-a",
+            TimeWindow::new("2024-01-01", "2025-01-01").unwrap(),
+            ChangeDisposition::Unresolved,
+            None,
+            vec!["obs-a".into(), "obs-b".into()],
+            vec![],
+            vec![],
+            CoverageState::Unknown,
+            None,
+            None,
+            None,
+            None,
+            None,
+        ).unwrap();
+        assert!(EvidenceBundle::new(vec![obs_a.clone(), obs_b.clone()], vec![unresolved]).is_ok());
+
+        let candidate = ChangeClaim::new(
+            "candidate-cross-system",
+            "vegetation-loss",
+            "fixture-ontology-v1",
+            "support-a",
+            TimeWindow::new("2024-01-01", "2025-01-01").unwrap(),
+            ChangeDisposition::CandidateChange,
+            None,
+            vec!["obs-a".into(), "obs-b".into()],
+            vec!["obs-a".into(), "obs-b".into()],
+            vec![],
+            CoverageState::Unknown,
+            None,
+            None,
+            None,
+            None,
+            None,
+        ).unwrap();
+        assert!(EvidenceBundle::new(vec![obs_a, obs_b], vec![candidate])
+            .unwrap_err().contains("cross-system comparability receipt"));
+    }
+
+    #[test]
+    fn cross_platform_and_collection_changes_are_distinct_system_signatures() {
+        let mut obs_b = observation("obs-b", "2025-01-01", ObservationQuality::QualifiedUsable);
+        obs_b.platform_id = "fixture-platform-b".into();
+        obs_b.collection_id = Some("fixture-collection-v2".into());
+        let signatures = [
+            observation("obs-a", "2024-01-01", ObservationQuality::QualifiedUsable).system_signature(),
+            obs_b.system_signature()
+        ].into_iter().collect::<BTreeSet<_>>();
+        assert_eq!(signatures.len(), 2);
+        assert_ne!(
+            signatures.iter().next().unwrap(),
+            signatures.iter().next_back().unwrap()
+        );
+    }
+
+    #[test]
+    fn same_system_claim_rejects_unnecessary_cross_system_receipt() {
+        let observations = vec![
+            observation("obs-a", "2024-01-01", ObservationQuality::QualifiedUsable),
+            observation("obs-b", "2025-01-01", ObservationQuality::QualifiedUsable),
+        ];
+        let system_signatures = vec![observations[0].system_signature()];
+        let mut claim = no_change_claim();
+        claim.cross_system_comparability_receipt = Some(
+            CrossSystemComparabilityReceiptRef::new(
+                digest(b'f'),
+                vec!["obs-a".into(), "obs-b".into()],
+                system_signatures,
+                "support-a",
+                "vegetation-loss",
+                "fixture-ontology-v1",
+            ).unwrap()
+        );
+        let result = EvidenceBundle::new(observations, vec![claim]);
+        assert!(result.unwrap_err().contains("one fully identified observation-system signature"));
+    }
+
 
     #[test]
     fn no_change_requires_two_distinct_acquisition_times() {
@@ -1268,8 +1768,49 @@ mod tests {
             None,
             None,
             None,
+            None,
         ).unwrap();
-        assert!(EvidenceBundle::new(vec![unknown], vec![unresolved_claim]).is_err());
+        assert!(EvidenceBundle::new(vec![unknown.clone()], vec![unresolved_claim]).is_err());
+
+        // An exact bridge does not manufacture a missing sensor identity.
+        let known = observation(
+            "obs-known",
+            "2025-01-01",
+            ObservationQuality::QualifiedUsable,
+        );
+        let unknown = unknown
+            .with_measurement_profile_sha256(Some(digest(b'u')))
+            .unwrap();
+        let mut bridged_candidate = ChangeClaim::new(
+            "candidate-unknown-sensor",
+            "vegetation-loss",
+            "fixture-ontology-v1",
+            "support-a",
+            TimeWindow::new("2024-01-01", "2025-01-01").unwrap(),
+            ChangeDisposition::CandidateChange,
+            None,
+            vec!["obs-unknown-sensor".into(), "obs-known".into()],
+            vec!["obs-unknown-sensor".into(), "obs-known".into()],
+            vec![],
+            CoverageState::Unknown,
+            None,
+            None,
+            None,
+            None,
+            None,
+        ).unwrap();
+        bridged_candidate.cross_system_comparability_receipt = Some(
+            CrossSystemComparabilityReceiptRef::new(
+                digest(b'z'),
+                vec!["obs-unknown-sensor".into(), "obs-known".into()],
+                vec![unknown.system_signature(), known.system_signature()],
+                "support-a",
+                "vegetation-loss",
+                "fixture-ontology-v1",
+            ).unwrap()
+        );
+        assert!(EvidenceBundle::new(vec![unknown, known], vec![bridged_candidate])
+            .unwrap_err().contains("unknown source sensor identity"));
 
         let derived = ObservationRecord::new(
             "obs-derived-sensor",
@@ -1371,6 +1912,10 @@ mod tests {
         assert_eq!(decoded.observations()[0].instrument_id(), Some("fixture-instrument"));
         assert_eq!(decoded.observations()[0].collection_id(), Some("fixture-collection"));
         assert_eq!(decoded.observations()[0].processing_baseline(), Some("fixture-baseline"));
+        assert_eq!(
+            decoded.observations()[0].measurement_profile_sha256(),
+            Some("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")
+        );
 
         let mut value: serde_json::Value = serde_json::from_str(&json).unwrap();
         value["observations"][0]["quality"] = serde_json::json!("cloud_contaminated");
@@ -1385,7 +1930,7 @@ mod tests {
             TimeWindow::new("2024-01-01", "2025-01-01").unwrap(),
             ChangeDisposition::CandidateChange, None,
             vec!["absent".into()], vec!["absent".into()], vec![],
-            CoverageState::Unknown, None, None, None, None
+            CoverageState::Unknown, None, None, None, None, None
         ).unwrap();
         assert!(EvidenceBundle::new(vec![], vec![missing]).is_err());
 
@@ -1394,7 +1939,7 @@ mod tests {
             TimeWindow::new("2024-01-01", "2025-01-01").unwrap(),
             ChangeDisposition::CandidateChange, None,
             vec!["obs-b".into()], vec!["obs-b".into()], vec![],
-            CoverageState::Unknown, None, None, None, None
+            CoverageState::Unknown, None, None, None, None, None
         ).unwrap();
         let other_support = ObservationRecord::new(
             "obs-b", AssetId::new("fixture:obs-b").unwrap(), "fixture-source", "fixture-platform", "fixture-sensor", SensorIdentityOrigin::ProviderDeclared, Some("fixture-instrument".into()), Some("fixture-collection".into()), Some("fixture-baseline".into()), digest(b'b'), digest(b'c'),
@@ -1403,6 +1948,32 @@ mod tests {
             ObservationModality::Optical, ObservationQuality::QualifiedUsable
         ).unwrap();
         assert!(EvidenceBundle::new(vec![other_support], vec![claim]).is_err());
+    }
+
+    #[test]
+    fn checked_in_cross_sensor_bridge_fixture_deserializes_and_revalidates() {
+        let fixture = include_str!("../tests/fixtures/earth_observation/cross_sensor_comparability_bundle.json");
+        let bundle: EvidenceBundle = serde_json::from_str(fixture).unwrap();
+        assert_eq!(bundle.observations().len(), 2);
+        assert_eq!(bundle.claims().len(), 1);
+        let claim = &bundle.claims()[0];
+        let receipt = claim.cross_system_comparability_receipt().unwrap();
+        assert_eq!(
+            receipt.observation_ids().iter().map(String::as_str).collect::<Vec<_>>(),
+            vec!["obs-2024", "obs-2025"]
+        );
+        assert_eq!(receipt.support_id(), "support-jukskei-synthetic");
+        assert_eq!(receipt.target_class_id(), "vegetation-loss");
+        assert_eq!(receipt.ontology_version(), "fixture-ontology-v1");
+        assert_eq!(receipt.system_signatures().len(), 2);
+        assert_eq!(
+            receipt.system_signatures()[1].platform_id(),
+            "sentinel-2b"
+        );
+        assert_eq!(
+            bundle.observations()[1].system_signature().platform_id(),
+            "sentinel-2b"
+        );
     }
 
     #[test]

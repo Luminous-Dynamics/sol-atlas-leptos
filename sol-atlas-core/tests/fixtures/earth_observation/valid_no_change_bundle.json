@@ -28,7 +28,8 @@
       "instrument_id": "fixture-instrument",
       "collection_id": "fixture-collection",
       "processing_baseline": "fixture-baseline",
-      "sensor_identity_origin": "provider_declared"
+      "sensor_identity_origin": "provider_declared",
+      "measurement_profile_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
     },
     {
       "observation_id": "obs-2025",
@@ -57,7 +58,8 @@
       "instrument_id": "fixture-instrument",
       "collection_id": "fixture-collection",
       "processing_baseline": "fixture-baseline",
-      "sensor_identity_origin": "provider_declared"
+      "sensor_identity_origin": "provider_declared",
+      "measurement_profile_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
     }
   ],
   "claims": [
@@ -95,7 +97,8 @@
         "target_in_validated_domain": true,
         "probability_of_detection": 0.99,
         "minimum_required_probability": 0.95
-      }
+      },
+      "cross_system_comparability_receipt": null
     }
   ]
 }

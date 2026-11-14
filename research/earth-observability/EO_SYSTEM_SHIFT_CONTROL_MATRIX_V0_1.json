@@ -1,0 +1,435 @@
+{
+  "schema_version": "0.1",
+  "benchmark": "EO_SYSTEM_SHIFT_CONTROL_MATRIX",
+  "status": "synthetic_control_specification_not_executed",
+  "claim_ceiling": "Case definitions and expected structural dispositions only; no real imagery or model benchmark has been executed.",
+  "signature_fields": [
+    "source_id",
+    "platform_id",
+    "sensor_id",
+    "sensor_identity_origin",
+    "instrument_id",
+    "modality",
+    "collection_id",
+    "processing_baseline",
+    "measurement_profile_sha256"
+  ],
+  "scenarios": [
+    {
+      "id": "MS-001",
+      "title": "same fully identified measurement system",
+      "physical_event": false,
+      "system_a": {
+        "source_id": "source-a",
+        "platform_id": "platform-a",
+        "sensor_id": "sensor-a",
+        "sensor_identity_origin": "provider_declared",
+        "instrument_id": "instrument-a",
+        "modality": "optical",
+        "collection_id": "collection-a",
+        "processing_baseline": "baseline-1",
+        "measurement_profile_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      },
+      "system_b": {
+        "source_id": "source-a",
+        "platform_id": "platform-a",
+        "sensor_id": "sensor-a",
+        "sensor_identity_origin": "provider_declared",
+        "instrument_id": "instrument-a",
+        "modality": "optical",
+        "collection_id": "collection-a",
+        "processing_baseline": "baseline-1",
+        "measurement_profile_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      },
+      "bridge": "not_required",
+      "expected": "same_system_path",
+      "score_tags": [
+        "same_system_control"
+      ]
+    },
+    {
+      "id": "MS-002",
+      "title": "processing baseline transition without physical event",
+      "physical_event": false,
+      "system_a": {
+        "source_id": "source-a",
+        "platform_id": "sentinel-2a",
+        "sensor_id": "sensor-a",
+        "sensor_identity_origin": "provider_declared",
+        "instrument_id": "MSI",
+        "modality": "optical",
+        "collection_id": "sentinel-2-l2a",
+        "processing_baseline": "04.00",
+        "measurement_profile_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      },
+      "system_b": {
+        "source_id": "source-a",
+        "platform_id": "sentinel-2a",
+        "sensor_id": "sensor-a",
+        "sensor_identity_origin": "provider_declared",
+        "instrument_id": "MSI",
+        "modality": "optical",
+        "collection_id": "sentinel-2-l2a",
+        "processing_baseline": "05.00",
+        "measurement_profile_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      },
+      "bridge": "absent",
+      "expected": "blocked",
+      "score_tags": [
+        "false_change_control",
+        "processing_shift"
+      ]
+    },
+    {
+      "id": "MS-003",
+      "title": "Landsat to Sentinel platform and instrument transition",
+      "physical_event": false,
+      "system_a": {
+        "source_id": "landsat-source",
+        "platform_id": "landsat-9",
+        "sensor_id": "oli-2",
+        "sensor_identity_origin": "provider_declared",
+        "instrument_id": "OLI-2",
+        "modality": "optical",
+        "collection_id": "landsat-c2-l2",
+        "processing_baseline": "L2SP",
+        "measurement_profile_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+      },
+      "system_b": {
+        "source_id": "sentinel-source",
+        "platform_id": "sentinel-2a",
+        "sensor_id": "derived:sentinel-2a:MSI",
+        "sensor_identity_origin": "derived_from_platform_and_instrument",
+        "instrument_id": "MSI",
+        "modality": "optical",
+        "collection_id": "sentinel-2-l2a",
+        "processing_baseline": "04.00",
+        "measurement_profile_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      },
+      "bridge": "absent",
+      "expected": "blocked",
+      "score_tags": [
+        "false_change_control",
+        "platform_shift",
+        "instrument_shift"
+      ]
+    },
+    {
+      "id": "MS-004",
+      "title": "same sensor with different product collection",
+      "physical_event": false,
+      "system_a": {
+        "source_id": "source-a",
+        "platform_id": "platform-a",
+        "sensor_id": "sensor-a",
+        "sensor_identity_origin": "provider_declared",
+        "instrument_id": "instrument-a",
+        "modality": "optical",
+        "collection_id": "collection-v1",
+        "processing_baseline": "baseline-1",
+        "measurement_profile_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      },
+      "system_b": {
+        "source_id": "source-a",
+        "platform_id": "platform-a",
+        "sensor_id": "sensor-a",
+        "sensor_identity_origin": "provider_declared",
+        "instrument_id": "instrument-a",
+        "modality": "optical",
+        "collection_id": "collection-v2",
+        "processing_baseline": "baseline-1",
+        "measurement_profile_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      },
+      "bridge": "absent",
+      "expected": "blocked",
+      "score_tags": [
+        "false_change_control",
+        "collection_shift"
+      ]
+    },
+    {
+      "id": "MS-005",
+      "title": "asset band or SAR polarization profile changed",
+      "physical_event": false,
+      "system_a": {
+        "source_id": "source-a",
+        "platform_id": "platform-a",
+        "sensor_id": "sensor-a",
+        "sensor_identity_origin": "provider_declared",
+        "instrument_id": "instrument-a",
+        "modality": "synthetic_aperture_radar",
+        "collection_id": "collection-a",
+        "processing_baseline": "baseline-1",
+        "measurement_profile_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      },
+      "system_b": {
+        "source_id": "source-a",
+        "platform_id": "platform-a",
+        "sensor_id": "sensor-a",
+        "sensor_identity_origin": "provider_declared",
+        "instrument_id": "instrument-a",
+        "modality": "synthetic_aperture_radar",
+        "collection_id": "collection-a",
+        "processing_baseline": "baseline-1",
+        "measurement_profile_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+      },
+      "bridge": "absent",
+      "expected": "blocked",
+      "score_tags": [
+        "false_change_control",
+        "asset_profile_shift"
+      ]
+    },
+    {
+      "id": "MS-006",
+      "title": "asset measurement profile missing",
+      "physical_event": null,
+      "system_a": {
+        "source_id": "source-a",
+        "platform_id": "platform-a",
+        "sensor_id": "sensor-a",
+        "sensor_identity_origin": "provider_declared",
+        "instrument_id": "instrument-a",
+        "modality": "optical",
+        "collection_id": "collection-a",
+        "processing_baseline": "baseline-1",
+        "measurement_profile_sha256": null
+      },
+      "system_b": {
+        "source_id": "source-a",
+        "platform_id": "platform-a",
+        "sensor_id": "sensor-a",
+        "sensor_identity_origin": "provider_declared",
+        "instrument_id": "instrument-a",
+        "modality": "optical",
+        "collection_id": "collection-a",
+        "processing_baseline": "baseline-1",
+        "measurement_profile_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      },
+      "bridge": "absent",
+      "expected": "unresolved_or_blocked",
+      "score_tags": [
+        "incomplete_identity",
+        "abstention"
+      ]
+    },
+    {
+      "id": "MS-007",
+      "title": "genuine event across systems with qualified bridge",
+      "physical_event": true,
+      "system_a": {
+        "source_id": "source-a",
+        "platform_id": "platform-a",
+        "sensor_id": "sensor-a",
+        "sensor_identity_origin": "provider_declared",
+        "instrument_id": "instrument-a",
+        "modality": "optical",
+        "collection_id": "collection-a",
+        "processing_baseline": "baseline-1",
+        "measurement_profile_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      },
+      "system_b": {
+        "source_id": "source-b",
+        "platform_id": "platform-b",
+        "sensor_id": "sensor-b",
+        "sensor_identity_origin": "provider_declared",
+        "instrument_id": "instrument-b",
+        "modality": "optical",
+        "collection_id": "collection-b",
+        "processing_baseline": "baseline-2",
+        "measurement_profile_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+      },
+      "bridge": "externally_qualified_exact_scope",
+      "expected": "eligible_for_review",
+      "score_tags": [
+        "true_event_after_bridge",
+        "human_adjudication"
+      ]
+    },
+    {
+      "id": "MS-008",
+      "title": "bridge references wrong observation set",
+      "physical_event": false,
+      "system_a": {
+        "source_id": "source-a",
+        "platform_id": "platform-a",
+        "sensor_id": "sensor-a",
+        "sensor_identity_origin": "provider_declared",
+        "instrument_id": "instrument-a",
+        "modality": "optical",
+        "collection_id": "collection-a",
+        "processing_baseline": "baseline-1",
+        "measurement_profile_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      },
+      "system_b": {
+        "source_id": "source-b",
+        "platform_id": "platform-b",
+        "sensor_id": "sensor-b",
+        "sensor_identity_origin": "provider_declared",
+        "instrument_id": "instrument-b",
+        "modality": "optical",
+        "collection_id": "collection-b",
+        "processing_baseline": "baseline-2",
+        "measurement_profile_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+      },
+      "bridge": "wrong_observation_set",
+      "expected": "blocked",
+      "score_tags": [
+        "receipt_binding_negative_control"
+      ]
+    },
+    {
+      "id": "MS-009",
+      "title": "bridge has wrong support target or ontology",
+      "physical_event": false,
+      "system_a": {
+        "source_id": "source-a",
+        "platform_id": "platform-a",
+        "sensor_id": "sensor-a",
+        "sensor_identity_origin": "provider_declared",
+        "instrument_id": "instrument-a",
+        "modality": "optical",
+        "collection_id": "collection-a",
+        "processing_baseline": "baseline-1",
+        "measurement_profile_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      },
+      "system_b": {
+        "source_id": "source-b",
+        "platform_id": "platform-b",
+        "sensor_id": "sensor-b",
+        "sensor_identity_origin": "provider_declared",
+        "instrument_id": "instrument-b",
+        "modality": "optical",
+        "collection_id": "collection-b",
+        "processing_baseline": "baseline-2",
+        "measurement_profile_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+      },
+      "bridge": "wrong_claim_scope",
+      "expected": "blocked",
+      "score_tags": [
+        "receipt_binding_negative_control"
+      ]
+    },
+    {
+      "id": "MS-010",
+      "title": "unnecessary bridge on one fully identified system",
+      "physical_event": null,
+      "system_a": {
+        "source_id": "source-a",
+        "platform_id": "platform-a",
+        "sensor_id": "sensor-a",
+        "sensor_identity_origin": "provider_declared",
+        "instrument_id": "instrument-a",
+        "modality": "optical",
+        "collection_id": "collection-a",
+        "processing_baseline": "baseline-1",
+        "measurement_profile_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      },
+      "system_b": {
+        "source_id": "source-a",
+        "platform_id": "platform-a",
+        "sensor_id": "sensor-a",
+        "sensor_identity_origin": "provider_declared",
+        "instrument_id": "instrument-a",
+        "modality": "optical",
+        "collection_id": "collection-a",
+        "processing_baseline": "baseline-1",
+        "measurement_profile_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      },
+      "bridge": "present_but_unnecessary",
+      "expected": "reject_unnecessary_receipt",
+      "score_tags": [
+        "same_system_control"
+      ]
+    },
+    {
+      "id": "MS-011",
+      "title": "multi instrument or unknown sensor identity",
+      "physical_event": null,
+      "system_a": {
+        "source_id": "source-a",
+        "platform_id": "platform-a",
+        "sensor_id": "unknown",
+        "sensor_identity_origin": "unknown",
+        "instrument_id": null,
+        "modality": "optical",
+        "collection_id": "collection-a",
+        "processing_baseline": "baseline-1",
+        "measurement_profile_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      },
+      "system_b": null,
+      "bridge": "present_or_absent",
+      "expected": "unresolved",
+      "score_tags": [
+        "identity_ambiguity",
+        "abstention"
+      ]
+    },
+    {
+      "id": "MS-012",
+      "title": "shared common mode registration or calibration bias",
+      "physical_event": null,
+      "system_a": {
+        "source_id": "source-a",
+        "platform_id": "platform-a",
+        "sensor_id": "sensor-a",
+        "sensor_identity_origin": "provider_declared",
+        "instrument_id": "instrument-a",
+        "modality": "optical",
+        "collection_id": "collection-a",
+        "processing_baseline": "baseline-1",
+        "measurement_profile_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      },
+      "system_b": {
+        "source_id": "source-b",
+        "platform_id": "platform-b",
+        "sensor_id": "sensor-b",
+        "sensor_identity_origin": "provider_declared",
+        "instrument_id": "instrument-b",
+        "modality": "optical",
+        "collection_id": "collection-b",
+        "processing_baseline": "baseline-1",
+        "measurement_profile_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+      },
+      "bridge": "bridge_must_include_common_mode_control",
+      "expected": "unresolved_if_common_mode_not_excluded",
+      "score_tags": [
+        "common_mode_error",
+        "independent_validation"
+      ]
+    },
+    {
+      "id": "MS-013",
+      "title": "both processing baselines unknown",
+      "physical_event": null,
+      "system_a": {
+        "source_id": "source-a",
+        "platform_id": "platform-a",
+        "sensor_id": "sensor-a",
+        "sensor_identity_origin": "provider_declared",
+        "instrument_id": "instrument-a",
+        "modality": "optical",
+        "collection_id": "collection-a",
+        "processing_baseline": null,
+        "measurement_profile_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      },
+      "system_b": {
+        "source_id": "source-a",
+        "platform_id": "platform-a",
+        "sensor_id": "sensor-a",
+        "sensor_identity_origin": "provider_declared",
+        "instrument_id": "instrument-a",
+        "modality": "optical",
+        "collection_id": "collection-a",
+        "processing_baseline": null,
+        "measurement_profile_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      },
+      "bridge": "absent",
+      "expected": "unresolved_or_blocked",
+      "score_tags": [
+        "incomplete_identity",
+        "unknown_baseline"
+      ]
+    }
+  ]
+}
