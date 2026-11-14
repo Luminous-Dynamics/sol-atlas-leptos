@@ -1,0 +1,160 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/Luminous-Dynamics/sol-atlas-leptos/main/docs/research/home-delivery-systems/multifamily-unit-layout-option-set.schema.json",
+  "title": "Multi-family Unit Layout Option Set v0.1",
+  "description": "A resident-intent-preserving set of distinct synthetic apartment room arrangements. It is not a ranking, optimisation result or professional design decision.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "option_set_id",
+    "maturity",
+    "source_binding",
+    "unit_ids",
+    "alternatives",
+    "comparison_policy",
+    "claim_ceiling"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "multifamily-unit-layout-option-set/0.1"
+    },
+    "option_set_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "maturity": {
+      "const": "synthetic_alternative_pair_only"
+    },
+    "source_binding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "building_candidate_ref",
+        "resident_programme_ref"
+      ],
+      "properties": {
+        "building_candidate_ref": {
+          "$ref": "#/$defs/reference"
+        },
+        "resident_programme_ref": {
+          "$ref": "#/$defs/reference"
+        }
+      }
+    },
+    "unit_ids": {
+      "type": "array",
+      "minItems": 4,
+      "maxItems": 4,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "alternatives": {
+      "type": "array",
+      "minItems": 2,
+      "maxItems": 2,
+      "items": {
+        "$ref": "#/$defs/alternative"
+      }
+    },
+    "comparison_policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "ranking_state",
+        "scalar_score",
+        "resident_choice_required",
+        "professional_review_state",
+        "performance_evidence_state"
+      ],
+      "properties": {
+        "ranking_state": {
+          "const": "UNRANKED"
+        },
+        "scalar_score": {
+          "type": "null"
+        },
+        "resident_choice_required": {
+          "const": true
+        },
+        "professional_review_state": {
+          "const": "NOT_ASSESSED"
+        },
+        "performance_evidence_state": {
+          "const": "NOT_ASSESSED"
+        }
+      }
+    },
+    "claim_ceiling": {
+      "const": "This option set demonstrates two distinct synthetic room-rectangle arrangements preserving the same declared apartment unit/activity/relationship identities. It does not rank alternatives or establish resident suitability, room quality, accessibility, fire, structure, daylight, privacy, acoustics, thermal performance, services, cost, buildability or approval."
+    }
+  },
+  "$defs": {
+    "reference": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "id",
+        "revision",
+        "digest"
+      ],
+      "properties": {
+        "kind": {
+          "type": "string",
+          "minLength": 1
+        },
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "revision": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "digest": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+    "alternative": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "candidate_id",
+        "layout_id",
+        "artifact_path",
+        "layout_revision_ref",
+        "maturity"
+      ],
+      "properties": {
+        "candidate_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "layout_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "artifact_path": {
+          "type": "string",
+          "minLength": 1
+        },
+        "layout_revision_ref": {
+          "$ref": "#/$defs/reference"
+        },
+        "maturity": {
+          "const": "synthetic_room_rectangles_only"
+        }
+      }
+    }
+  }
+}
