@@ -76,15 +76,6 @@
       "base_unit": null,
       "owner_ref": null,
       "evidence_refs": []
-    },
-    {
-      "resource_id": "R-COMMUNICATIONS",
-      "resource_class": "communications",
-      "state": "unknown",
-      "quality_state": "not_applicable",
-      "base_unit": null,
-      "owner_ref": null,
-      "evidence_refs": []
     }
   ],
   "nodes": [
