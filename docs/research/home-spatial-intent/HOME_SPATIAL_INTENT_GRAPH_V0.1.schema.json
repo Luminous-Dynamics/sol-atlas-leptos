@@ -275,6 +275,48 @@
           },
           "verification_state": {
             "const": "SYMBOLIC_STRUCTURE_ONLY"
+          },
+          "future_change_bindings": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "object",
+              "required": [
+                "change_id",
+                "state",
+                "affected_constraint_ids",
+                "required_rechecks",
+                "verification_state",
+                "evidence_ref"
+              ],
+              "properties": {
+                "change_id": {
+                  "type": "string"
+                },
+                "state": {
+                  "const": "RESERVED_SPACE_ONLY"
+                },
+                "affected_constraint_ids": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "required_rechecks": {
+                  "type": "array",
+                  "minItems": 1,
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "verification_state": {
+                  "const": "UNKNOWN"
+                },
+                "evidence_ref": {
+                  "type": "null"
+                }
+              }
+            }
           }
         }
       }
