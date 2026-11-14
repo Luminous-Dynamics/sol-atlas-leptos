@@ -776,8 +776,8 @@
       "changes": [
         {
           "dependency_id": "PRODUCT_IDENTITY",
-          "before_state": "SYS-A",
-          "after_state": "SYS-B",
+          "before_state": "SYNTH-SYSTEM-A",
+          "after_state": "SYNTH-SYSTEM-B",
           "treatment": "CHANGED"
         },
         {
