@@ -4,8 +4,8 @@
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 use sol_atlas_core::project_split::{
-    build_leave_one_project_out, validate_project_split_manifest, ProjectDatasetIndex,
-    ProjectSplitManifest,
+    ProjectDatasetIndex, ProjectSplitManifest, build_leave_one_project_out,
+    validate_project_split_manifest,
 };
 use std::env;
 use std::fs;
@@ -69,18 +69,16 @@ fn main() {
     let mut args = env::args().skip(1);
     let input_path = match args.next() {
         Some(value) if value != "--check-pinned" => value,
-        Some(_) => {
-            match check_pinned() {
-                Ok(()) => {
-                    println!("PINNED_PROJECT_SPLIT_PASS");
-                    return;
-                }
-                Err(error) => {
-                    eprintln!("{error}");
-                    std::process::exit(1);
-                }
+        Some(_) => match check_pinned() {
+            Ok(()) => {
+                println!("PINNED_PROJECT_SPLIT_PASS");
+                return;
             }
-        }
+            Err(error) => {
+                eprintln!("{error}");
+                std::process::exit(1);
+            }
+        },
         None => {
             eprintln!("usage: project_split_eval <project-index.json> | --check-pinned");
             std::process::exit(2);
@@ -124,7 +122,11 @@ mod tests {
             assert_eq!(fold.fit_project_ids.len(), 9);
             assert_eq!(fold.calibration_project_ids.len(), 3);
             assert!(!fold.fit_project_ids.contains(&fold.blind_project_id));
-            assert!(!fold.calibration_project_ids.contains(&fold.blind_project_id));
+            assert!(
+                !fold
+                    .calibration_project_ids
+                    .contains(&fold.blind_project_id)
+            );
         }
     }
 
