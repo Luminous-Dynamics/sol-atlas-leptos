@@ -76,6 +76,10 @@ jobs:
         run: cargo test --bin utility_reconstruction_eval
       - name: Verify pinned asset association baseline
         run: cargo run --bin utility_reconstruction_eval -- --check-pinned
+      - name: Test project-cluster split builder
+        run: cargo test --manifest-path sol-atlas-core/Cargo.toml project_split
+      - name: Verify pinned 13-project split manifest
+        run: cargo run --bin project_split_eval -- --check-pinned
       - name: Test sensor observability scoring CLI
         run: cargo test --bin sensor_observability_eval
       - name: Verify pinned analytic sensor observability receipt
