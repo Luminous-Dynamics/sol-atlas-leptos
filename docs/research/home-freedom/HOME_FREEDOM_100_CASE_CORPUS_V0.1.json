@@ -1,0 +1,6865 @@
+{
+  "schema_version": "0.1.0",
+  "study_id": "HOME-FREEDOM-100-CASE-CORPUS-001",
+  "maturity": "SYNTHETIC_FROZEN_CORPUS",
+  "execution_status": "NOT_EXECUTED",
+  "functional_unit": "one synthetic resident brief crossed with one synthetic site/authority/service scenario",
+  "expected_case_count": 100,
+  "disposition_definitions": {
+    "SCREENING_ELIGIBLE": "P0 inputs are sufficiently qualified to proceed to the next screening layer; not a buildability or approval result.",
+    "CONDITIONAL_CONCEPT_ONLY": "Unknown inputs remain explicit blocking conditions; concept exploration may continue without promoting the unknowns.",
+    "BLOCKED": "A known failure violates a required hard constraint for this household brief.",
+    "NOT_COMPARABLE": "Required gate evidence is missing, duplicated, malformed or outside the declared scope."
+  },
+  "household_profiles": [
+    {
+      "id": "H01_COMPACT_SINGLE",
+      "label": "Compact single-occupant home",
+      "occupants": 1,
+      "step_free": false,
+      "priorities": [
+        "PRIVATE_SLEEP",
+        "LOW_MAINTENANCE",
+        "STORAGE"
+      ],
+      "adaptation": "FLEXIBLE_WORKSPACE",
+      "required_gate_ids": [
+        "SITE_SURVEY",
+        "LAND_RIGHTS",
+        "SOIL_GEOTECH",
+        "CODE_PROFILE",
+        "FIRE_ACCESS",
+        "PRIMARY_ACCESS_ROUTE",
+        "WATER_CAPACITY",
+        "ELECTRICITY_CAPACITY",
+        "SANITATION_SERVICE",
+        "CLIMATE_APPLICABILITY"
+      ]
+    },
+    {
+      "id": "H02_COURTYARD_COUPLE",
+      "label": "Couple with courtyard/outdoor preference",
+      "occupants": 2,
+      "step_free": false,
+      "priorities": [
+        "PRIVATE_SLEEP",
+        "COOK_AND_EAT",
+        "SHADED_OUTDOOR"
+      ],
+      "adaptation": "COURTYARD_SCREENING",
+      "required_gate_ids": [
+        "SITE_SURVEY",
+        "LAND_RIGHTS",
+        "SOIL_GEOTECH",
+        "CODE_PROFILE",
+        "FIRE_ACCESS",
+        "PRIMARY_ACCESS_ROUTE",
+        "WATER_CAPACITY",
+        "ELECTRICITY_CAPACITY",
+        "SANITATION_SERVICE",
+        "CLIMATE_APPLICABILITY"
+      ]
+    },
+    {
+      "id": "H03_FAMILY_HOME",
+      "label": "Family home with separate quiet zones",
+      "occupants": 4,
+      "step_free": false,
+      "priorities": [
+        "SLEEPING_ZONES",
+        "CHILD_STUDY",
+        "QUIET_WORK",
+        "OUTDOOR_PLAY"
+      ],
+      "adaptation": "FUTURE_ROOM",
+      "required_gate_ids": [
+        "SITE_SURVEY",
+        "LAND_RIGHTS",
+        "SOIL_GEOTECH",
+        "CODE_PROFILE",
+        "FIRE_ACCESS",
+        "PRIMARY_ACCESS_ROUTE",
+        "WATER_CAPACITY",
+        "ELECTRICITY_CAPACITY",
+        "SANITATION_SERVICE",
+        "CLIMATE_APPLICABILITY"
+      ]
+    },
+    {
+      "id": "H04_MULTIGENERATIONAL",
+      "label": "Multigenerational home",
+      "occupants": 4,
+      "step_free": true,
+      "priorities": [
+        "PRIVACY_ZONES",
+        "SHARED_KITCHEN",
+        "STEP_FREE_ROUTE",
+        "QUIET_SLEEP"
+      ],
+      "adaptation": "INDEPENDENT_LIVING_ZONE",
+      "required_gate_ids": [
+        "SITE_SURVEY",
+        "LAND_RIGHTS",
+        "SOIL_GEOTECH",
+        "CODE_PROFILE",
+        "FIRE_ACCESS",
+        "PRIMARY_ACCESS_ROUTE",
+        "WATER_CAPACITY",
+        "ELECTRICITY_CAPACITY",
+        "SANITATION_SERVICE",
+        "CLIMATE_APPLICABILITY",
+        "STEP_FREE_INTERNAL_ROUTE"
+      ]
+    },
+    {
+      "id": "H05_STEP_FREE_FIRST",
+      "label": "Resident-requested step-free home",
+      "occupants": 2,
+      "step_free": true,
+      "priorities": [
+        "STEP_FREE_ENTRY",
+        "STEP_FREE_BATHROOM",
+        "STEP_FREE_SLEEPING_ROOM"
+      ],
+      "adaptation": "ADAPTABLE_BATHROOM",
+      "required_gate_ids": [
+        "SITE_SURVEY",
+        "LAND_RIGHTS",
+        "SOIL_GEOTECH",
+        "CODE_PROFILE",
+        "FIRE_ACCESS",
+        "PRIMARY_ACCESS_ROUTE",
+        "WATER_CAPACITY",
+        "ELECTRICITY_CAPACITY",
+        "SANITATION_SERVICE",
+        "CLIMATE_APPLICABILITY",
+        "STEP_FREE_INTERNAL_ROUTE"
+      ]
+    },
+    {
+      "id": "H06_LIVE_WORK",
+      "label": "Live-work / maker home",
+      "occupants": 2,
+      "step_free": false,
+      "priorities": [
+        "ACOUSTIC_SEPARATION",
+        "WORKSPACE",
+        "STORAGE",
+        "FIRE_SEPARATION"
+      ],
+      "adaptation": "WORKSHOP_GROWTH",
+      "required_gate_ids": [
+        "SITE_SURVEY",
+        "LAND_RIGHTS",
+        "SOIL_GEOTECH",
+        "CODE_PROFILE",
+        "FIRE_ACCESS",
+        "PRIMARY_ACCESS_ROUTE",
+        "WATER_CAPACITY",
+        "ELECTRICITY_CAPACITY",
+        "SANITATION_SERVICE",
+        "CLIMATE_APPLICABILITY"
+      ]
+    },
+    {
+      "id": "H07_SHARED_COOP",
+      "label": "Small shared/cooperative home",
+      "occupants": 4,
+      "step_free": false,
+      "priorities": [
+        "PRIVATE_SLEEP",
+        "SHARED_COMMONS",
+        "SECURE_STORAGE"
+      ],
+      "adaptation": "SHARED_AMENITY",
+      "required_gate_ids": [
+        "SITE_SURVEY",
+        "LAND_RIGHTS",
+        "SOIL_GEOTECH",
+        "CODE_PROFILE",
+        "FIRE_ACCESS",
+        "PRIMARY_ACCESS_ROUTE",
+        "WATER_CAPACITY",
+        "ELECTRICITY_CAPACITY",
+        "SANITATION_SERVICE",
+        "CLIMATE_APPLICABILITY"
+      ]
+    },
+    {
+      "id": "H08_CARE_GUEST",
+      "label": "Home with care and guest flexibility",
+      "occupants": 3,
+      "step_free": true,
+      "priorities": [
+        "STEP_FREE_ROUTE",
+        "GUEST_SPACE",
+        "CARE_PRIVACY",
+        "ACCESSIBLE_BATHROOM"
+      ],
+      "adaptation": "FLEXIBLE_GUEST_ROOM",
+      "required_gate_ids": [
+        "SITE_SURVEY",
+        "LAND_RIGHTS",
+        "SOIL_GEOTECH",
+        "CODE_PROFILE",
+        "FIRE_ACCESS",
+        "PRIMARY_ACCESS_ROUTE",
+        "WATER_CAPACITY",
+        "ELECTRICITY_CAPACITY",
+        "SANITATION_SERVICE",
+        "CLIMATE_APPLICABILITY",
+        "STEP_FREE_INTERNAL_ROUTE"
+      ]
+    },
+    {
+      "id": "H09_RURAL_RESOURCE",
+      "label": "Rural resource-resilient home",
+      "occupants": 3,
+      "step_free": false,
+      "priorities": [
+        "WATER_SECURITY",
+        "SANITATION",
+        "REPAIRABILITY",
+        "ENERGY_RESILIENCE"
+      ],
+      "adaptation": "LOCAL_MATERIAL_REPAIR",
+      "required_gate_ids": [
+        "SITE_SURVEY",
+        "LAND_RIGHTS",
+        "SOIL_GEOTECH",
+        "CODE_PROFILE",
+        "FIRE_ACCESS",
+        "PRIMARY_ACCESS_ROUTE",
+        "WATER_CAPACITY",
+        "ELECTRICITY_CAPACITY",
+        "SANITATION_SERVICE",
+        "CLIMATE_APPLICABILITY"
+      ]
+    },
+    {
+      "id": "H10_REPAIR_FIRST",
+      "label": "Repair / retrofit-first home",
+      "occupants": 2,
+      "step_free": false,
+      "priorities": [
+        "RETAIN_EXISTING",
+        "SAFE_REPAIR",
+        "LOW_DISRUPTION"
+      ],
+      "adaptation": "PHASED_RETROFIT",
+      "required_gate_ids": [
+        "SITE_SURVEY",
+        "LAND_RIGHTS",
+        "SOIL_GEOTECH",
+        "CODE_PROFILE",
+        "FIRE_ACCESS",
+        "PRIMARY_ACCESS_ROUTE",
+        "WATER_CAPACITY",
+        "ELECTRICITY_CAPACITY",
+        "SANITATION_SERVICE",
+        "CLIMATE_APPLICABILITY"
+      ]
+    }
+  ],
+  "site_scenarios": [
+    {
+      "id": "S01_COMPLETE_REFERENCE",
+      "description": "All required site and service evidence is qualified.",
+      "observations": {
+        "SITE_SURVEY": "PASS",
+        "LAND_RIGHTS": "PASS",
+        "SOIL_GEOTECH": "PASS",
+        "CODE_PROFILE": "PASS",
+        "FIRE_ACCESS": "PASS",
+        "PRIMARY_ACCESS_ROUTE": "PASS",
+        "STEP_FREE_INTERNAL_ROUTE": "PASS",
+        "WATER_CAPACITY": "PASS",
+        "ELECTRICITY_CAPACITY": "PASS",
+        "SANITATION_SERVICE": "PASS",
+        "CLIMATE_APPLICABILITY": "PASS"
+      }
+    },
+    {
+      "id": "S02_SURVEY_UNKNOWN",
+      "description": "Survey/boundary evidence is unknown.",
+      "observations": {
+        "SITE_SURVEY": "UNKNOWN",
+        "LAND_RIGHTS": "PASS",
+        "SOIL_GEOTECH": "PASS",
+        "CODE_PROFILE": "PASS",
+        "FIRE_ACCESS": "PASS",
+        "PRIMARY_ACCESS_ROUTE": "PASS",
+        "STEP_FREE_INTERNAL_ROUTE": "PASS",
+        "WATER_CAPACITY": "PASS",
+        "ELECTRICITY_CAPACITY": "PASS",
+        "SANITATION_SERVICE": "PASS",
+        "CLIMATE_APPLICABILITY": "PASS"
+      }
+    },
+    {
+      "id": "S03_RIGHTS_UNKNOWN",
+      "description": "Title, use-right or servitude status is unknown.",
+      "observations": {
+        "SITE_SURVEY": "PASS",
+        "LAND_RIGHTS": "UNKNOWN",
+        "SOIL_GEOTECH": "PASS",
+        "CODE_PROFILE": "PASS",
+        "FIRE_ACCESS": "PASS",
+        "PRIMARY_ACCESS_ROUTE": "PASS",
+        "STEP_FREE_INTERNAL_ROUTE": "PASS",
+        "WATER_CAPACITY": "PASS",
+        "ELECTRICITY_CAPACITY": "PASS",
+        "SANITATION_SERVICE": "PASS",
+        "CLIMATE_APPLICABILITY": "PASS"
+      }
+    },
+    {
+      "id": "S04_SOIL_UNKNOWN",
+      "description": "Geotechnical applicability/evidence is unknown.",
+      "observations": {
+        "SITE_SURVEY": "PASS",
+        "LAND_RIGHTS": "PASS",
+        "SOIL_GEOTECH": "UNKNOWN",
+        "CODE_PROFILE": "PASS",
+        "FIRE_ACCESS": "PASS",
+        "PRIMARY_ACCESS_ROUTE": "PASS",
+        "STEP_FREE_INTERNAL_ROUTE": "PASS",
+        "WATER_CAPACITY": "PASS",
+        "ELECTRICITY_CAPACITY": "PASS",
+        "SANITATION_SERVICE": "PASS",
+        "CLIMATE_APPLICABILITY": "PASS"
+      }
+    },
+    {
+      "id": "S05_CODE_PROFILE_UNKNOWN",
+      "description": "Applicable municipal/code profile is unknown.",
+      "observations": {
+        "SITE_SURVEY": "PASS",
+        "LAND_RIGHTS": "PASS",
+        "SOIL_GEOTECH": "PASS",
+        "CODE_PROFILE": "UNKNOWN",
+        "FIRE_ACCESS": "PASS",
+        "PRIMARY_ACCESS_ROUTE": "PASS",
+        "STEP_FREE_INTERNAL_ROUTE": "PASS",
+        "WATER_CAPACITY": "PASS",
+        "ELECTRICITY_CAPACITY": "PASS",
+        "SANITATION_SERVICE": "PASS",
+        "CLIMATE_APPLICABILITY": "PASS"
+      }
+    },
+    {
+      "id": "S06_FIRE_ACCESS_FAILED",
+      "description": "Declared fire/rescue access constraint fails.",
+      "observations": {
+        "SITE_SURVEY": "PASS",
+        "LAND_RIGHTS": "PASS",
+        "SOIL_GEOTECH": "PASS",
+        "CODE_PROFILE": "PASS",
+        "FIRE_ACCESS": "FAIL",
+        "PRIMARY_ACCESS_ROUTE": "PASS",
+        "STEP_FREE_INTERNAL_ROUTE": "PASS",
+        "WATER_CAPACITY": "PASS",
+        "ELECTRICITY_CAPACITY": "PASS",
+        "SANITATION_SERVICE": "PASS",
+        "CLIMATE_APPLICABILITY": "PASS"
+      }
+    },
+    {
+      "id": "S07_STEP_FREE_FAILED",
+      "description": "Required step-free route cannot be achieved in this scenario.",
+      "observations": {
+        "SITE_SURVEY": "PASS",
+        "LAND_RIGHTS": "PASS",
+        "SOIL_GEOTECH": "PASS",
+        "CODE_PROFILE": "PASS",
+        "FIRE_ACCESS": "PASS",
+        "PRIMARY_ACCESS_ROUTE": "PASS",
+        "STEP_FREE_INTERNAL_ROUTE": "FAIL",
+        "WATER_CAPACITY": "PASS",
+        "ELECTRICITY_CAPACITY": "PASS",
+        "SANITATION_SERVICE": "PASS",
+        "CLIMATE_APPLICABILITY": "PASS"
+      }
+    },
+    {
+      "id": "S08_UTILITY_CAPACITY_UNKNOWN",
+      "description": "Water and electrical connection capacity are unknown.",
+      "observations": {
+        "SITE_SURVEY": "PASS",
+        "LAND_RIGHTS": "PASS",
+        "SOIL_GEOTECH": "PASS",
+        "CODE_PROFILE": "PASS",
+        "FIRE_ACCESS": "PASS",
+        "PRIMARY_ACCESS_ROUTE": "PASS",
+        "STEP_FREE_INTERNAL_ROUTE": "PASS",
+        "WATER_CAPACITY": "UNKNOWN",
+        "ELECTRICITY_CAPACITY": "UNKNOWN",
+        "SANITATION_SERVICE": "PASS",
+        "CLIMATE_APPLICABILITY": "PASS"
+      }
+    },
+    {
+      "id": "S09_SANITATION_FAILED",
+      "description": "Required sanitation service cannot be provided.",
+      "observations": {
+        "SITE_SURVEY": "PASS",
+        "LAND_RIGHTS": "PASS",
+        "SOIL_GEOTECH": "PASS",
+        "CODE_PROFILE": "PASS",
+        "FIRE_ACCESS": "PASS",
+        "PRIMARY_ACCESS_ROUTE": "PASS",
+        "STEP_FREE_INTERNAL_ROUTE": "PASS",
+        "WATER_CAPACITY": "PASS",
+        "ELECTRICITY_CAPACITY": "PASS",
+        "SANITATION_SERVICE": "FAIL",
+        "CLIMATE_APPLICABILITY": "PASS"
+      }
+    },
+    {
+      "id": "S10_CLIMATE_OUT_OF_DOMAIN",
+      "description": "Climate/weather applicability is outside the declared envelope.",
+      "observations": {
+        "SITE_SURVEY": "PASS",
+        "LAND_RIGHTS": "PASS",
+        "SOIL_GEOTECH": "PASS",
+        "CODE_PROFILE": "PASS",
+        "FIRE_ACCESS": "PASS",
+        "PRIMARY_ACCESS_ROUTE": "PASS",
+        "STEP_FREE_INTERNAL_ROUTE": "PASS",
+        "WATER_CAPACITY": "PASS",
+        "ELECTRICITY_CAPACITY": "PASS",
+        "SANITATION_SERVICE": "PASS",
+        "CLIMATE_APPLICABILITY": "UNKNOWN"
+      }
+    }
+  ],
+  "cases": [
+    {
+      "case_id": "H01_COMPACT_SINGLE__S01_COMPLETE_REFERENCE",
+      "household_profile_id": "H01_COMPACT_SINGLE",
+      "site_scenario_id": "S01_COMPLETE_REFERENCE",
+      "required_gate_ids": [
+        "SITE_SURVEY",
+        "LAND_RIGHTS",
+        "SOIL_GEOTECH",
+        "CODE_PROFILE",
+        "FIRE_ACCESS",
+        "PRIMARY_ACCESS_ROUTE",
+        "WATER_CAPACITY",
+        "ELECTRICITY_CAPACITY",
+        "SANITATION_SERVICE",
+        "CLIMATE_APPLICABILITY"
+      ],
+      "gate_observations": [
+        {
+          "gate_id": "SITE_SURVEY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "LAND_RIGHTS",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "SOIL_GEOTECH",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "CODE_PROFILE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "FIRE_ACCESS",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "PRIMARY_ACCESS_ROUTE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "WATER_CAPACITY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "ELECTRICITY_CAPACITY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "SANITATION_SERVICE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "CLIMATE_APPLICABILITY",
+          "state": "PASS"
+        }
+      ],
+      "expected_disposition": "SCREENING_ELIGIBLE",
+      "expected_reason_codes": []
+    },
+    {
+      "case_id": "H01_COMPACT_SINGLE__S02_SURVEY_UNKNOWN",
+      "household_profile_id": "H01_COMPACT_SINGLE",
+      "site_scenario_id": "S02_SURVEY_UNKNOWN",
+      "required_gate_ids": [
+        "SITE_SURVEY",
+        "LAND_RIGHTS",
+        "SOIL_GEOTECH",
+        "CODE_PROFILE",
+        "FIRE_ACCESS",
+        "PRIMARY_ACCESS_ROUTE",
+        "WATER_CAPACITY",
+        "ELECTRICITY_CAPACITY",
+        "SANITATION_SERVICE",
+        "CLIMATE_APPLICABILITY"
+      ],
+      "gate_observations": [
+        {
+          "gate_id": "SITE_SURVEY",
+          "state": "UNKNOWN"
+        },
+        {
+          "gate_id": "LAND_RIGHTS",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "SOIL_GEOTECH",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "CODE_PROFILE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "FIRE_ACCESS",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "PRIMARY_ACCESS_ROUTE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "WATER_CAPACITY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "ELECTRICITY_CAPACITY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "SANITATION_SERVICE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "CLIMATE_APPLICABILITY",
+          "state": "PASS"
+        }
+      ],
+      "expected_disposition": "CONDITIONAL_CONCEPT_ONLY",
+      "expected_reason_codes": [
+        "SITE_SURVEY_UNKNOWN"
+      ]
+    },
+    {
+      "case_id": "H01_COMPACT_SINGLE__S03_RIGHTS_UNKNOWN",
+      "household_profile_id": "H01_COMPACT_SINGLE",
+      "site_scenario_id": "S03_RIGHTS_UNKNOWN",
+      "required_gate_ids": [
+        "SITE_SURVEY",
+        "LAND_RIGHTS",
+        "SOIL_GEOTECH",
+        "CODE_PROFILE",
+        "FIRE_ACCESS",
+        "PRIMARY_ACCESS_ROUTE",
+        "WATER_CAPACITY",
+        "ELECTRICITY_CAPACITY",
+        "SANITATION_SERVICE",
+        "CLIMATE_APPLICABILITY"
+      ],
+      "gate_observations": [
+        {
+          "gate_id": "SITE_SURVEY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "LAND_RIGHTS",
+          "state": "UNKNOWN"
+        },
+        {
+          "gate_id": "SOIL_GEOTECH",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "CODE_PROFILE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "FIRE_ACCESS",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "PRIMARY_ACCESS_ROUTE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "WATER_CAPACITY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "ELECTRICITY_CAPACITY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "SANITATION_SERVICE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "CLIMATE_APPLICABILITY",
+          "state": "PASS"
+        }
+      ],
+      "expected_disposition": "CONDITIONAL_CONCEPT_ONLY",
+      "expected_reason_codes": [
+        "LAND_RIGHTS_UNKNOWN"
+      ]
+    },
+    {
+      "case_id": "H01_COMPACT_SINGLE__S04_SOIL_UNKNOWN",
+      "household_profile_id": "H01_COMPACT_SINGLE",
+      "site_scenario_id": "S04_SOIL_UNKNOWN",
+      "required_gate_ids": [
+        "SITE_SURVEY",
+        "LAND_RIGHTS",
+        "SOIL_GEOTECH",
+        "CODE_PROFILE",
+        "FIRE_ACCESS",
+        "PRIMARY_ACCESS_ROUTE",
+        "WATER_CAPACITY",
+        "ELECTRICITY_CAPACITY",
+        "SANITATION_SERVICE",
+        "CLIMATE_APPLICABILITY"
+      ],
+      "gate_observations": [
+        {
+          "gate_id": "SITE_SURVEY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "LAND_RIGHTS",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "SOIL_GEOTECH",
+          "state": "UNKNOWN"
+        },
+        {
+          "gate_id": "CODE_PROFILE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "FIRE_ACCESS",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "PRIMARY_ACCESS_ROUTE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "WATER_CAPACITY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "ELECTRICITY_CAPACITY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "SANITATION_SERVICE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "CLIMATE_APPLICABILITY",
+          "state": "PASS"
+        }
+      ],
+      "expected_disposition": "CONDITIONAL_CONCEPT_ONLY",
+      "expected_reason_codes": [
+        "SOIL_GEOTECH_UNKNOWN"
+      ]
+    },
+    {
+      "case_id": "H01_COMPACT_SINGLE__S05_CODE_PROFILE_UNKNOWN",
+      "household_profile_id": "H01_COMPACT_SINGLE",
+      "site_scenario_id": "S05_CODE_PROFILE_UNKNOWN",
+      "required_gate_ids": [
+        "SITE_SURVEY",
+        "LAND_RIGHTS",
+        "SOIL_GEOTECH",
+        "CODE_PROFILE",
+        "FIRE_ACCESS",
+        "PRIMARY_ACCESS_ROUTE",
+        "WATER_CAPACITY",
+        "ELECTRICITY_CAPACITY",
+        "SANITATION_SERVICE",
+        "CLIMATE_APPLICABILITY"
+      ],
+      "gate_observations": [
+        {
+          "gate_id": "SITE_SURVEY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "LAND_RIGHTS",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "SOIL_GEOTECH",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "CODE_PROFILE",
+          "state": "UNKNOWN"
+        },
+        {
+          "gate_id": "FIRE_ACCESS",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "PRIMARY_ACCESS_ROUTE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "WATER_CAPACITY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "ELECTRICITY_CAPACITY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "SANITATION_SERVICE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "CLIMATE_APPLICABILITY",
+          "state": "PASS"
+        }
+      ],
+      "expected_disposition": "CONDITIONAL_CONCEPT_ONLY",
+      "expected_reason_codes": [
+        "CODE_PROFILE_UNKNOWN"
+      ]
+    },
+    {
+      "case_id": "H01_COMPACT_SINGLE__S06_FIRE_ACCESS_FAILED",
+      "household_profile_id": "H01_COMPACT_SINGLE",
+      "site_scenario_id": "S06_FIRE_ACCESS_FAILED",
+      "required_gate_ids": [
+        "SITE_SURVEY",
+        "LAND_RIGHTS",
+        "SOIL_GEOTECH",
+        "CODE_PROFILE",
+        "FIRE_ACCESS",
+        "PRIMARY_ACCESS_ROUTE",
+        "WATER_CAPACITY",
+        "ELECTRICITY_CAPACITY",
+        "SANITATION_SERVICE",
+        "CLIMATE_APPLICABILITY"
+      ],
+      "gate_observations": [
+        {
+          "gate_id": "SITE_SURVEY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "LAND_RIGHTS",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "SOIL_GEOTECH",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "CODE_PROFILE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "FIRE_ACCESS",
+          "state": "FAIL"
+        },
+        {
+          "gate_id": "PRIMARY_ACCESS_ROUTE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "WATER_CAPACITY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "ELECTRICITY_CAPACITY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "SANITATION_SERVICE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "CLIMATE_APPLICABILITY",
+          "state": "PASS"
+        }
+      ],
+      "expected_disposition": "BLOCKED",
+      "expected_reason_codes": [
+        "FIRE_ACCESS_FAIL"
+      ]
+    },
+    {
+      "case_id": "H01_COMPACT_SINGLE__S07_STEP_FREE_FAILED",
+      "household_profile_id": "H01_COMPACT_SINGLE",
+      "site_scenario_id": "S07_STEP_FREE_FAILED",
+      "required_gate_ids": [
+        "SITE_SURVEY",
+        "LAND_RIGHTS",
+        "SOIL_GEOTECH",
+        "CODE_PROFILE",
+        "FIRE_ACCESS",
+        "PRIMARY_ACCESS_ROUTE",
+        "WATER_CAPACITY",
+        "ELECTRICITY_CAPACITY",
+        "SANITATION_SERVICE",
+        "CLIMATE_APPLICABILITY"
+      ],
+      "gate_observations": [
+        {
+          "gate_id": "SITE_SURVEY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "LAND_RIGHTS",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "SOIL_GEOTECH",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "CODE_PROFILE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "FIRE_ACCESS",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "PRIMARY_ACCESS_ROUTE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "WATER_CAPACITY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "ELECTRICITY_CAPACITY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "SANITATION_SERVICE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "CLIMATE_APPLICABILITY",
+          "state": "PASS"
+        }
+      ],
+      "expected_disposition": "SCREENING_ELIGIBLE",
+      "expected_reason_codes": []
+    },
+    {
+      "case_id": "H01_COMPACT_SINGLE__S08_UTILITY_CAPACITY_UNKNOWN",
+      "household_profile_id": "H01_COMPACT_SINGLE",
+      "site_scenario_id": "S08_UTILITY_CAPACITY_UNKNOWN",
+      "required_gate_ids": [
+        "SITE_SURVEY",
+        "LAND_RIGHTS",
+        "SOIL_GEOTECH",
+        "CODE_PROFILE",
+        "FIRE_ACCESS",
+        "PRIMARY_ACCESS_ROUTE",
+        "WATER_CAPACITY",
+        "ELECTRICITY_CAPACITY",
+        "SANITATION_SERVICE",
+        "CLIMATE_APPLICABILITY"
+      ],
+      "gate_observations": [
+        {
+          "gate_id": "SITE_SURVEY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "LAND_RIGHTS",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "SOIL_GEOTECH",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "CODE_PROFILE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "FIRE_ACCESS",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "PRIMARY_ACCESS_ROUTE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "WATER_CAPACITY",
+          "state": "UNKNOWN"
+        },
+        {
+          "gate_id": "ELECTRICITY_CAPACITY",
+          "state": "UNKNOWN"
+        },
+        {
+          "gate_id": "SANITATION_SERVICE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "CLIMATE_APPLICABILITY",
+          "state": "PASS"
+        }
+      ],
+      "expected_disposition": "CONDITIONAL_CONCEPT_ONLY",
+      "expected_reason_codes": [
+        "WATER_CAPACITY_UNKNOWN",
+        "ELECTRICITY_CAPACITY_UNKNOWN"
+      ]
+    },
+    {
+      "case_id": "H01_COMPACT_SINGLE__S09_SANITATION_FAILED",
+      "household_profile_id": "H01_COMPACT_SINGLE",
+      "site_scenario_id": "S09_SANITATION_FAILED",
+      "required_gate_ids": [
+        "SITE_SURVEY",
+        "LAND_RIGHTS",
+        "SOIL_GEOTECH",
+        "CODE_PROFILE",
+        "FIRE_ACCESS",
+        "PRIMARY_ACCESS_ROUTE",
+        "WATER_CAPACITY",
+        "ELECTRICITY_CAPACITY",
+        "SANITATION_SERVICE",
+        "CLIMATE_APPLICABILITY"
+      ],
+      "gate_observations": [
+        {
+          "gate_id": "SITE_SURVEY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "LAND_RIGHTS",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "SOIL_GEOTECH",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "CODE_PROFILE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "FIRE_ACCESS",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "PRIMARY_ACCESS_ROUTE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "WATER_CAPACITY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "ELECTRICITY_CAPACITY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "SANITATION_SERVICE",
+          "state": "FAIL"
+        },
+        {
+          "gate_id": "CLIMATE_APPLICABILITY",
+          "state": "PASS"
+        }
+      ],
+      "expected_disposition": "BLOCKED",
+      "expected_reason_codes": [
+        "SANITATION_SERVICE_FAIL"
+      ]
+    },
+    {
+      "case_id": "H01_COMPACT_SINGLE__S10_CLIMATE_OUT_OF_DOMAIN",
+      "household_profile_id": "H01_COMPACT_SINGLE",
+      "site_scenario_id": "S10_CLIMATE_OUT_OF_DOMAIN",
+      "required_gate_ids": [
+        "SITE_SURVEY",
+        "LAND_RIGHTS",
+        "SOIL_GEOTECH",
+        "CODE_PROFILE",
+        "FIRE_ACCESS",
+        "PRIMARY_ACCESS_ROUTE",
+        "WATER_CAPACITY",
+        "ELECTRICITY_CAPACITY",
+        "SANITATION_SERVICE",
+        "CLIMATE_APPLICABILITY"
+      ],
+      "gate_observations": [
+        {
+          "gate_id": "SITE_SURVEY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "LAND_RIGHTS",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "SOIL_GEOTECH",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "CODE_PROFILE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "FIRE_ACCESS",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "PRIMARY_ACCESS_ROUTE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "WATER_CAPACITY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "ELECTRICITY_CAPACITY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "SANITATION_SERVICE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "CLIMATE_APPLICABILITY",
+          "state": "UNKNOWN"
+        }
+      ],
+      "expected_disposition": "CONDITIONAL_CONCEPT_ONLY",
+      "expected_reason_codes": [
+        "CLIMATE_APPLICABILITY_UNKNOWN"
+      ]
+    },
+    {
+      "case_id": "H02_COURTYARD_COUPLE__S01_COMPLETE_REFERENCE",
+      "household_profile_id": "H02_COURTYARD_COUPLE",
+      "site_scenario_id": "S01_COMPLETE_REFERENCE",
+      "required_gate_ids": [
+        "SITE_SURVEY",
+        "LAND_RIGHTS",
+        "SOIL_GEOTECH",
+        "CODE_PROFILE",
+        "FIRE_ACCESS",
+        "PRIMARY_ACCESS_ROUTE",
+        "WATER_CAPACITY",
+        "ELECTRICITY_CAPACITY",
+        "SANITATION_SERVICE",
+        "CLIMATE_APPLICABILITY"
+      ],
+      "gate_observations": [
+        {
+          "gate_id": "SITE_SURVEY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "LAND_RIGHTS",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "SOIL_GEOTECH",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "CODE_PROFILE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "FIRE_ACCESS",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "PRIMARY_ACCESS_ROUTE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "WATER_CAPACITY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "ELECTRICITY_CAPACITY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "SANITATION_SERVICE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "CLIMATE_APPLICABILITY",
+          "state": "PASS"
+        }
+      ],
+      "expected_disposition": "SCREENING_ELIGIBLE",
+      "expected_reason_codes": []
+    },
+    {
+      "case_id": "H02_COURTYARD_COUPLE__S02_SURVEY_UNKNOWN",
+      "household_profile_id": "H02_COURTYARD_COUPLE",
+      "site_scenario_id": "S02_SURVEY_UNKNOWN",
+      "required_gate_ids": [
+        "SITE_SURVEY",
+        "LAND_RIGHTS",
+        "SOIL_GEOTECH",
+        "CODE_PROFILE",
+        "FIRE_ACCESS",
+        "PRIMARY_ACCESS_ROUTE",
+        "WATER_CAPACITY",
+        "ELECTRICITY_CAPACITY",
+        "SANITATION_SERVICE",
+        "CLIMATE_APPLICABILITY"
+      ],
+      "gate_observations": [
+        {
+          "gate_id": "SITE_SURVEY",
+          "state": "UNKNOWN"
+        },
+        {
+          "gate_id": "LAND_RIGHTS",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "SOIL_GEOTECH",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "CODE_PROFILE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "FIRE_ACCESS",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "PRIMARY_ACCESS_ROUTE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "WATER_CAPACITY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "ELECTRICITY_CAPACITY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "SANITATION_SERVICE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "CLIMATE_APPLICABILITY",
+          "state": "PASS"
+        }
+      ],
+      "expected_disposition": "CONDITIONAL_CONCEPT_ONLY",
+      "expected_reason_codes": [
+        "SITE_SURVEY_UNKNOWN"
+      ]
+    },
+    {
+      "case_id": "H02_COURTYARD_COUPLE__S03_RIGHTS_UNKNOWN",
+      "household_profile_id": "H02_COURTYARD_COUPLE",
+      "site_scenario_id": "S03_RIGHTS_UNKNOWN",
+      "required_gate_ids": [
+        "SITE_SURVEY",
+        "LAND_RIGHTS",
+        "SOIL_GEOTECH",
+        "CODE_PROFILE",
+        "FIRE_ACCESS",
+        "PRIMARY_ACCESS_ROUTE",
+        "WATER_CAPACITY",
+        "ELECTRICITY_CAPACITY",
+        "SANITATION_SERVICE",
+        "CLIMATE_APPLICABILITY"
+      ],
+      "gate_observations": [
+        {
+          "gate_id": "SITE_SURVEY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "LAND_RIGHTS",
+          "state": "UNKNOWN"
+        },
+        {
+          "gate_id": "SOIL_GEOTECH",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "CODE_PROFILE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "FIRE_ACCESS",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "PRIMARY_ACCESS_ROUTE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "WATER_CAPACITY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "ELECTRICITY_CAPACITY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "SANITATION_SERVICE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "CLIMATE_APPLICABILITY",
+          "state": "PASS"
+        }
+      ],
+      "expected_disposition": "CONDITIONAL_CONCEPT_ONLY",
+      "expected_reason_codes": [
+        "LAND_RIGHTS_UNKNOWN"
+      ]
+    },
+    {
+      "case_id": "H02_COURTYARD_COUPLE__S04_SOIL_UNKNOWN",
+      "household_profile_id": "H02_COURTYARD_COUPLE",
+      "site_scenario_id": "S04_SOIL_UNKNOWN",
+      "required_gate_ids": [
+        "SITE_SURVEY",
+        "LAND_RIGHTS",
+        "SOIL_GEOTECH",
+        "CODE_PROFILE",
+        "FIRE_ACCESS",
+        "PRIMARY_ACCESS_ROUTE",
+        "WATER_CAPACITY",
+        "ELECTRICITY_CAPACITY",
+        "SANITATION_SERVICE",
+        "CLIMATE_APPLICABILITY"
+      ],
+      "gate_observations": [
+        {
+          "gate_id": "SITE_SURVEY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "LAND_RIGHTS",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "SOIL_GEOTECH",
+          "state": "UNKNOWN"
+        },
+        {
+          "gate_id": "CODE_PROFILE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "FIRE_ACCESS",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "PRIMARY_ACCESS_ROUTE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "WATER_CAPACITY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "ELECTRICITY_CAPACITY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "SANITATION_SERVICE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "CLIMATE_APPLICABILITY",
+          "state": "PASS"
+        }
+      ],
+      "expected_disposition": "CONDITIONAL_CONCEPT_ONLY",
+      "expected_reason_codes": [
+        "SOIL_GEOTECH_UNKNOWN"
+      ]
+    },
+    {
+      "case_id": "H02_COURTYARD_COUPLE__S05_CODE_PROFILE_UNKNOWN",
+      "household_profile_id": "H02_COURTYARD_COUPLE",
+      "site_scenario_id": "S05_CODE_PROFILE_UNKNOWN",
+      "required_gate_ids": [
+        "SITE_SURVEY",
+        "LAND_RIGHTS",
+        "SOIL_GEOTECH",
+        "CODE_PROFILE",
+        "FIRE_ACCESS",
+        "PRIMARY_ACCESS_ROUTE",
+        "WATER_CAPACITY",
+        "ELECTRICITY_CAPACITY",
+        "SANITATION_SERVICE",
+        "CLIMATE_APPLICABILITY"
+      ],
+      "gate_observations": [
+        {
+          "gate_id": "SITE_SURVEY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "LAND_RIGHTS",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "SOIL_GEOTECH",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "CODE_PROFILE",
+          "state": "UNKNOWN"
+        },
+        {
+          "gate_id": "FIRE_ACCESS",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "PRIMARY_ACCESS_ROUTE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "WATER_CAPACITY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "ELECTRICITY_CAPACITY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "SANITATION_SERVICE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "CLIMATE_APPLICABILITY",
+          "state": "PASS"
+        }
+      ],
+      "expected_disposition": "CONDITIONAL_CONCEPT_ONLY",
+      "expected_reason_codes": [
+        "CODE_PROFILE_UNKNOWN"
+      ]
+    },
+    {
+      "case_id": "H02_COURTYARD_COUPLE__S06_FIRE_ACCESS_FAILED",
+      "household_profile_id": "H02_COURTYARD_COUPLE",
+      "site_scenario_id": "S06_FIRE_ACCESS_FAILED",
+      "required_gate_ids": [
+        "SITE_SURVEY",
+        "LAND_RIGHTS",
+        "SOIL_GEOTECH",
+        "CODE_PROFILE",
+        "FIRE_ACCESS",
+        "PRIMARY_ACCESS_ROUTE",
+        "WATER_CAPACITY",
+        "ELECTRICITY_CAPACITY",
+        "SANITATION_SERVICE",
+        "CLIMATE_APPLICABILITY"
+      ],
+      "gate_observations": [
+        {
+          "gate_id": "SITE_SURVEY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "LAND_RIGHTS",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "SOIL_GEOTECH",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "CODE_PROFILE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "FIRE_ACCESS",
+          "state": "FAIL"
+        },
+        {
+          "gate_id": "PRIMARY_ACCESS_ROUTE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "WATER_CAPACITY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "ELECTRICITY_CAPACITY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "SANITATION_SERVICE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "CLIMATE_APPLICABILITY",
+          "state": "PASS"
+        }
+      ],
+      "expected_disposition": "BLOCKED",
+      "expected_reason_codes": [
+        "FIRE_ACCESS_FAIL"
+      ]
+    },
+    {
+      "case_id": "H02_COURTYARD_COUPLE__S07_STEP_FREE_FAILED",
+      "household_profile_id": "H02_COURTYARD_COUPLE",
+      "site_scenario_id": "S07_STEP_FREE_FAILED",
+      "required_gate_ids": [
+        "SITE_SURVEY",
+        "LAND_RIGHTS",
+        "SOIL_GEOTECH",
+        "CODE_PROFILE",
+        "FIRE_ACCESS",
+        "PRIMARY_ACCESS_ROUTE",
+        "WATER_CAPACITY",
+        "ELECTRICITY_CAPACITY",
+        "SANITATION_SERVICE",
+        "CLIMATE_APPLICABILITY"
+      ],
+      "gate_observations": [
+        {
+          "gate_id": "SITE_SURVEY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "LAND_RIGHTS",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "SOIL_GEOTECH",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "CODE_PROFILE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "FIRE_ACCESS",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "PRIMARY_ACCESS_ROUTE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "WATER_CAPACITY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "ELECTRICITY_CAPACITY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "SANITATION_SERVICE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "CLIMATE_APPLICABILITY",
+          "state": "PASS"
+        }
+      ],
+      "expected_disposition": "SCREENING_ELIGIBLE",
+      "expected_reason_codes": []
+    },
+    {
+      "case_id": "H02_COURTYARD_COUPLE__S08_UTILITY_CAPACITY_UNKNOWN",
+      "household_profile_id": "H02_COURTYARD_COUPLE",
+      "site_scenario_id": "S08_UTILITY_CAPACITY_UNKNOWN",
+      "required_gate_ids": [
+        "SITE_SURVEY",
+        "LAND_RIGHTS",
+        "SOIL_GEOTECH",
+        "CODE_PROFILE",
+        "FIRE_ACCESS",
+        "PRIMARY_ACCESS_ROUTE",
+        "WATER_CAPACITY",
+        "ELECTRICITY_CAPACITY",
+        "SANITATION_SERVICE",
+        "CLIMATE_APPLICABILITY"
+      ],
+      "gate_observations": [
+        {
+          "gate_id": "SITE_SURVEY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "LAND_RIGHTS",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "SOIL_GEOTECH",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "CODE_PROFILE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "FIRE_ACCESS",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "PRIMARY_ACCESS_ROUTE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "WATER_CAPACITY",
+          "state": "UNKNOWN"
+        },
+        {
+          "gate_id": "ELECTRICITY_CAPACITY",
+          "state": "UNKNOWN"
+        },
+        {
+          "gate_id": "SANITATION_SERVICE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "CLIMATE_APPLICABILITY",
+          "state": "PASS"
+        }
+      ],
+      "expected_disposition": "CONDITIONAL_CONCEPT_ONLY",
+      "expected_reason_codes": [
+        "WATER_CAPACITY_UNKNOWN",
+        "ELECTRICITY_CAPACITY_UNKNOWN"
+      ]
+    },
+    {
+      "case_id": "H02_COURTYARD_COUPLE__S09_SANITATION_FAILED",
+      "household_profile_id": "H02_COURTYARD_COUPLE",
+      "site_scenario_id": "S09_SANITATION_FAILED",
+      "required_gate_ids": [
+        "SITE_SURVEY",
+        "LAND_RIGHTS",
+        "SOIL_GEOTECH",
+        "CODE_PROFILE",
+        "FIRE_ACCESS",
+        "PRIMARY_ACCESS_ROUTE",
+        "WATER_CAPACITY",
+        "ELECTRICITY_CAPACITY",
+        "SANITATION_SERVICE",
+        "CLIMATE_APPLICABILITY"
+      ],
+      "gate_observations": [
+        {
+          "gate_id": "SITE_SURVEY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "LAND_RIGHTS",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "SOIL_GEOTECH",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "CODE_PROFILE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "FIRE_ACCESS",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "PRIMARY_ACCESS_ROUTE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "WATER_CAPACITY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "ELECTRICITY_CAPACITY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "SANITATION_SERVICE",
+          "state": "FAIL"
+        },
+        {
+          "gate_id": "CLIMATE_APPLICABILITY",
+          "state": "PASS"
+        }
+      ],
+      "expected_disposition": "BLOCKED",
+      "expected_reason_codes": [
+        "SANITATION_SERVICE_FAIL"
+      ]
+    },
+    {
+      "case_id": "H02_COURTYARD_COUPLE__S10_CLIMATE_OUT_OF_DOMAIN",
+      "household_profile_id": "H02_COURTYARD_COUPLE",
+      "site_scenario_id": "S10_CLIMATE_OUT_OF_DOMAIN",
+      "required_gate_ids": [
+        "SITE_SURVEY",
+        "LAND_RIGHTS",
+        "SOIL_GEOTECH",
+        "CODE_PROFILE",
+        "FIRE_ACCESS",
+        "PRIMARY_ACCESS_ROUTE",
+        "WATER_CAPACITY",
+        "ELECTRICITY_CAPACITY",
+        "SANITATION_SERVICE",
+        "CLIMATE_APPLICABILITY"
+      ],
+      "gate_observations": [
+        {
+          "gate_id": "SITE_SURVEY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "LAND_RIGHTS",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "SOIL_GEOTECH",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "CODE_PROFILE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "FIRE_ACCESS",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "PRIMARY_ACCESS_ROUTE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "WATER_CAPACITY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "ELECTRICITY_CAPACITY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "SANITATION_SERVICE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "CLIMATE_APPLICABILITY",
+          "state": "UNKNOWN"
+        }
+      ],
+      "expected_disposition": "CONDITIONAL_CONCEPT_ONLY",
+      "expected_reason_codes": [
+        "CLIMATE_APPLICABILITY_UNKNOWN"
+      ]
+    },
+    {
+      "case_id": "H03_FAMILY_HOME__S01_COMPLETE_REFERENCE",
+      "household_profile_id": "H03_FAMILY_HOME",
+      "site_scenario_id": "S01_COMPLETE_REFERENCE",
+      "required_gate_ids": [
+        "SITE_SURVEY",
+        "LAND_RIGHTS",
+        "SOIL_GEOTECH",
+        "CODE_PROFILE",
+        "FIRE_ACCESS",
+        "PRIMARY_ACCESS_ROUTE",
+        "WATER_CAPACITY",
+        "ELECTRICITY_CAPACITY",
+        "SANITATION_SERVICE",
+        "CLIMATE_APPLICABILITY"
+      ],
+      "gate_observations": [
+        {
+          "gate_id": "SITE_SURVEY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "LAND_RIGHTS",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "SOIL_GEOTECH",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "CODE_PROFILE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "FIRE_ACCESS",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "PRIMARY_ACCESS_ROUTE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "WATER_CAPACITY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "ELECTRICITY_CAPACITY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "SANITATION_SERVICE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "CLIMATE_APPLICABILITY",
+          "state": "PASS"
+        }
+      ],
+      "expected_disposition": "SCREENING_ELIGIBLE",
+      "expected_reason_codes": []
+    },
+    {
+      "case_id": "H03_FAMILY_HOME__S02_SURVEY_UNKNOWN",
+      "household_profile_id": "H03_FAMILY_HOME",
+      "site_scenario_id": "S02_SURVEY_UNKNOWN",
+      "required_gate_ids": [
+        "SITE_SURVEY",
+        "LAND_RIGHTS",
+        "SOIL_GEOTECH",
+        "CODE_PROFILE",
+        "FIRE_ACCESS",
+        "PRIMARY_ACCESS_ROUTE",
+        "WATER_CAPACITY",
+        "ELECTRICITY_CAPACITY",
+        "SANITATION_SERVICE",
+        "CLIMATE_APPLICABILITY"
+      ],
+      "gate_observations": [
+        {
+          "gate_id": "SITE_SURVEY",
+          "state": "UNKNOWN"
+        },
+        {
+          "gate_id": "LAND_RIGHTS",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "SOIL_GEOTECH",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "CODE_PROFILE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "FIRE_ACCESS",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "PRIMARY_ACCESS_ROUTE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "WATER_CAPACITY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "ELECTRICITY_CAPACITY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "SANITATION_SERVICE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "CLIMATE_APPLICABILITY",
+          "state": "PASS"
+        }
+      ],
+      "expected_disposition": "CONDITIONAL_CONCEPT_ONLY",
+      "expected_reason_codes": [
+        "SITE_SURVEY_UNKNOWN"
+      ]
+    },
+    {
+      "case_id": "H03_FAMILY_HOME__S03_RIGHTS_UNKNOWN",
+      "household_profile_id": "H03_FAMILY_HOME",
+      "site_scenario_id": "S03_RIGHTS_UNKNOWN",
+      "required_gate_ids": [
+        "SITE_SURVEY",
+        "LAND_RIGHTS",
+        "SOIL_GEOTECH",
+        "CODE_PROFILE",
+        "FIRE_ACCESS",
+        "PRIMARY_ACCESS_ROUTE",
+        "WATER_CAPACITY",
+        "ELECTRICITY_CAPACITY",
+        "SANITATION_SERVICE",
+        "CLIMATE_APPLICABILITY"
+      ],
+      "gate_observations": [
+        {
+          "gate_id": "SITE_SURVEY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "LAND_RIGHTS",
+          "state": "UNKNOWN"
+        },
+        {
+          "gate_id": "SOIL_GEOTECH",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "CODE_PROFILE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "FIRE_ACCESS",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "PRIMARY_ACCESS_ROUTE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "WATER_CAPACITY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "ELECTRICITY_CAPACITY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "SANITATION_SERVICE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "CLIMATE_APPLICABILITY",
+          "state": "PASS"
+        }
+      ],
+      "expected_disposition": "CONDITIONAL_CONCEPT_ONLY",
+      "expected_reason_codes": [
+        "LAND_RIGHTS_UNKNOWN"
+      ]
+    },
+    {
+      "case_id": "H03_FAMILY_HOME__S04_SOIL_UNKNOWN",
+      "household_profile_id": "H03_FAMILY_HOME",
+      "site_scenario_id": "S04_SOIL_UNKNOWN",
+      "required_gate_ids": [
+        "SITE_SURVEY",
+        "LAND_RIGHTS",
+        "SOIL_GEOTECH",
+        "CODE_PROFILE",
+        "FIRE_ACCESS",
+        "PRIMARY_ACCESS_ROUTE",
+        "WATER_CAPACITY",
+        "ELECTRICITY_CAPACITY",
+        "SANITATION_SERVICE",
+        "CLIMATE_APPLICABILITY"
+      ],
+      "gate_observations": [
+        {
+          "gate_id": "SITE_SURVEY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "LAND_RIGHTS",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "SOIL_GEOTECH",
+          "state": "UNKNOWN"
+        },
+        {
+          "gate_id": "CODE_PROFILE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "FIRE_ACCESS",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "PRIMARY_ACCESS_ROUTE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "WATER_CAPACITY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "ELECTRICITY_CAPACITY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "SANITATION_SERVICE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "CLIMATE_APPLICABILITY",
+          "state": "PASS"
+        }
+      ],
+      "expected_disposition": "CONDITIONAL_CONCEPT_ONLY",
+      "expected_reason_codes": [
+        "SOIL_GEOTECH_UNKNOWN"
+      ]
+    },
+    {
+      "case_id": "H03_FAMILY_HOME__S05_CODE_PROFILE_UNKNOWN",
+      "household_profile_id": "H03_FAMILY_HOME",
+      "site_scenario_id": "S05_CODE_PROFILE_UNKNOWN",
+      "required_gate_ids": [
+        "SITE_SURVEY",
+        "LAND_RIGHTS",
+        "SOIL_GEOTECH",
+        "CODE_PROFILE",
+        "FIRE_ACCESS",
+        "PRIMARY_ACCESS_ROUTE",
+        "WATER_CAPACITY",
+        "ELECTRICITY_CAPACITY",
+        "SANITATION_SERVICE",
+        "CLIMATE_APPLICABILITY"
+      ],
+      "gate_observations": [
+        {
+          "gate_id": "SITE_SURVEY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "LAND_RIGHTS",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "SOIL_GEOTECH",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "CODE_PROFILE",
+          "state": "UNKNOWN"
+        },
+        {
+          "gate_id": "FIRE_ACCESS",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "PRIMARY_ACCESS_ROUTE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "WATER_CAPACITY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "ELECTRICITY_CAPACITY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "SANITATION_SERVICE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "CLIMATE_APPLICABILITY",
+          "state": "PASS"
+        }
+      ],
+      "expected_disposition": "CONDITIONAL_CONCEPT_ONLY",
+      "expected_reason_codes": [
+        "CODE_PROFILE_UNKNOWN"
+      ]
+    },
+    {
+      "case_id": "H03_FAMILY_HOME__S06_FIRE_ACCESS_FAILED",
+      "household_profile_id": "H03_FAMILY_HOME",
+      "site_scenario_id": "S06_FIRE_ACCESS_FAILED",
+      "required_gate_ids": [
+        "SITE_SURVEY",
+        "LAND_RIGHTS",
+        "SOIL_GEOTECH",
+        "CODE_PROFILE",
+        "FIRE_ACCESS",
+        "PRIMARY_ACCESS_ROUTE",
+        "WATER_CAPACITY",
+        "ELECTRICITY_CAPACITY",
+        "SANITATION_SERVICE",
+        "CLIMATE_APPLICABILITY"
+      ],
+      "gate_observations": [
+        {
+          "gate_id": "SITE_SURVEY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "LAND_RIGHTS",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "SOIL_GEOTECH",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "CODE_PROFILE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "FIRE_ACCESS",
+          "state": "FAIL"
+        },
+        {
+          "gate_id": "PRIMARY_ACCESS_ROUTE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "WATER_CAPACITY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "ELECTRICITY_CAPACITY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "SANITATION_SERVICE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "CLIMATE_APPLICABILITY",
+          "state": "PASS"
+        }
+      ],
+      "expected_disposition": "BLOCKED",
+      "expected_reason_codes": [
+        "FIRE_ACCESS_FAIL"
+      ]
+    },
+    {
+      "case_id": "H03_FAMILY_HOME__S07_STEP_FREE_FAILED",
+      "household_profile_id": "H03_FAMILY_HOME",
+      "site_scenario_id": "S07_STEP_FREE_FAILED",
+      "required_gate_ids": [
+        "SITE_SURVEY",
+        "LAND_RIGHTS",
+        "SOIL_GEOTECH",
+        "CODE_PROFILE",
+        "FIRE_ACCESS",
+        "PRIMARY_ACCESS_ROUTE",
+        "WATER_CAPACITY",
+        "ELECTRICITY_CAPACITY",
+        "SANITATION_SERVICE",
+        "CLIMATE_APPLICABILITY"
+      ],
+      "gate_observations": [
+        {
+          "gate_id": "SITE_SURVEY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "LAND_RIGHTS",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "SOIL_GEOTECH",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "CODE_PROFILE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "FIRE_ACCESS",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "PRIMARY_ACCESS_ROUTE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "WATER_CAPACITY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "ELECTRICITY_CAPACITY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "SANITATION_SERVICE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "CLIMATE_APPLICABILITY",
+          "state": "PASS"
+        }
+      ],
+      "expected_disposition": "SCREENING_ELIGIBLE",
+      "expected_reason_codes": []
+    },
+    {
+      "case_id": "H03_FAMILY_HOME__S08_UTILITY_CAPACITY_UNKNOWN",
+      "household_profile_id": "H03_FAMILY_HOME",
+      "site_scenario_id": "S08_UTILITY_CAPACITY_UNKNOWN",
+      "required_gate_ids": [
+        "SITE_SURVEY",
+        "LAND_RIGHTS",
+        "SOIL_GEOTECH",
+        "CODE_PROFILE",
+        "FIRE_ACCESS",
+        "PRIMARY_ACCESS_ROUTE",
+        "WATER_CAPACITY",
+        "ELECTRICITY_CAPACITY",
+        "SANITATION_SERVICE",
+        "CLIMATE_APPLICABILITY"
+      ],
+      "gate_observations": [
+        {
+          "gate_id": "SITE_SURVEY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "LAND_RIGHTS",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "SOIL_GEOTECH",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "CODE_PROFILE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "FIRE_ACCESS",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "PRIMARY_ACCESS_ROUTE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "WATER_CAPACITY",
+          "state": "UNKNOWN"
+        },
+        {
+          "gate_id": "ELECTRICITY_CAPACITY",
+          "state": "UNKNOWN"
+        },
+        {
+          "gate_id": "SANITATION_SERVICE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "CLIMATE_APPLICABILITY",
+          "state": "PASS"
+        }
+      ],
+      "expected_disposition": "CONDITIONAL_CONCEPT_ONLY",
+      "expected_reason_codes": [
+        "WATER_CAPACITY_UNKNOWN",
+        "ELECTRICITY_CAPACITY_UNKNOWN"
+      ]
+    },
+    {
+      "case_id": "H03_FAMILY_HOME__S09_SANITATION_FAILED",
+      "household_profile_id": "H03_FAMILY_HOME",
+      "site_scenario_id": "S09_SANITATION_FAILED",
+      "required_gate_ids": [
+        "SITE_SURVEY",
+        "LAND_RIGHTS",
+        "SOIL_GEOTECH",
+        "CODE_PROFILE",
+        "FIRE_ACCESS",
+        "PRIMARY_ACCESS_ROUTE",
+        "WATER_CAPACITY",
+        "ELECTRICITY_CAPACITY",
+        "SANITATION_SERVICE",
+        "CLIMATE_APPLICABILITY"
+      ],
+      "gate_observations": [
+        {
+          "gate_id": "SITE_SURVEY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "LAND_RIGHTS",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "SOIL_GEOTECH",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "CODE_PROFILE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "FIRE_ACCESS",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "PRIMARY_ACCESS_ROUTE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "WATER_CAPACITY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "ELECTRICITY_CAPACITY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "SANITATION_SERVICE",
+          "state": "FAIL"
+        },
+        {
+          "gate_id": "CLIMATE_APPLICABILITY",
+          "state": "PASS"
+        }
+      ],
+      "expected_disposition": "BLOCKED",
+      "expected_reason_codes": [
+        "SANITATION_SERVICE_FAIL"
+      ]
+    },
+    {
+      "case_id": "H03_FAMILY_HOME__S10_CLIMATE_OUT_OF_DOMAIN",
+      "household_profile_id": "H03_FAMILY_HOME",
+      "site_scenario_id": "S10_CLIMATE_OUT_OF_DOMAIN",
+      "required_gate_ids": [
+        "SITE_SURVEY",
+        "LAND_RIGHTS",
+        "SOIL_GEOTECH",
+        "CODE_PROFILE",
+        "FIRE_ACCESS",
+        "PRIMARY_ACCESS_ROUTE",
+        "WATER_CAPACITY",
+        "ELECTRICITY_CAPACITY",
+        "SANITATION_SERVICE",
+        "CLIMATE_APPLICABILITY"
+      ],
+      "gate_observations": [
+        {
+          "gate_id": "SITE_SURVEY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "LAND_RIGHTS",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "SOIL_GEOTECH",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "CODE_PROFILE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "FIRE_ACCESS",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "PRIMARY_ACCESS_ROUTE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "WATER_CAPACITY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "ELECTRICITY_CAPACITY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "SANITATION_SERVICE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "CLIMATE_APPLICABILITY",
+          "state": "UNKNOWN"
+        }
+      ],
+      "expected_disposition": "CONDITIONAL_CONCEPT_ONLY",
+      "expected_reason_codes": [
+        "CLIMATE_APPLICABILITY_UNKNOWN"
+      ]
+    },
+    {
+      "case_id": "H04_MULTIGENERATIONAL__S01_COMPLETE_REFERENCE",
+      "household_profile_id": "H04_MULTIGENERATIONAL",
+      "site_scenario_id": "S01_COMPLETE_REFERENCE",
+      "required_gate_ids": [
+        "SITE_SURVEY",
+        "LAND_RIGHTS",
+        "SOIL_GEOTECH",
+        "CODE_PROFILE",
+        "FIRE_ACCESS",
+        "PRIMARY_ACCESS_ROUTE",
+        "WATER_CAPACITY",
+        "ELECTRICITY_CAPACITY",
+        "SANITATION_SERVICE",
+        "CLIMATE_APPLICABILITY",
+        "STEP_FREE_INTERNAL_ROUTE"
+      ],
+      "gate_observations": [
+        {
+          "gate_id": "SITE_SURVEY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "LAND_RIGHTS",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "SOIL_GEOTECH",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "CODE_PROFILE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "FIRE_ACCESS",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "PRIMARY_ACCESS_ROUTE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "WATER_CAPACITY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "ELECTRICITY_CAPACITY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "SANITATION_SERVICE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "CLIMATE_APPLICABILITY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "STEP_FREE_INTERNAL_ROUTE",
+          "state": "PASS"
+        }
+      ],
+      "expected_disposition": "SCREENING_ELIGIBLE",
+      "expected_reason_codes": []
+    },
+    {
+      "case_id": "H04_MULTIGENERATIONAL__S02_SURVEY_UNKNOWN",
+      "household_profile_id": "H04_MULTIGENERATIONAL",
+      "site_scenario_id": "S02_SURVEY_UNKNOWN",
+      "required_gate_ids": [
+        "SITE_SURVEY",
+        "LAND_RIGHTS",
+        "SOIL_GEOTECH",
+        "CODE_PROFILE",
+        "FIRE_ACCESS",
+        "PRIMARY_ACCESS_ROUTE",
+        "WATER_CAPACITY",
+        "ELECTRICITY_CAPACITY",
+        "SANITATION_SERVICE",
+        "CLIMATE_APPLICABILITY",
+        "STEP_FREE_INTERNAL_ROUTE"
+      ],
+      "gate_observations": [
+        {
+          "gate_id": "SITE_SURVEY",
+          "state": "UNKNOWN"
+        },
+        {
+          "gate_id": "LAND_RIGHTS",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "SOIL_GEOTECH",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "CODE_PROFILE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "FIRE_ACCESS",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "PRIMARY_ACCESS_ROUTE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "WATER_CAPACITY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "ELECTRICITY_CAPACITY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "SANITATION_SERVICE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "CLIMATE_APPLICABILITY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "STEP_FREE_INTERNAL_ROUTE",
+          "state": "PASS"
+        }
+      ],
+      "expected_disposition": "CONDITIONAL_CONCEPT_ONLY",
+      "expected_reason_codes": [
+        "SITE_SURVEY_UNKNOWN"
+      ]
+    },
+    {
+      "case_id": "H04_MULTIGENERATIONAL__S03_RIGHTS_UNKNOWN",
+      "household_profile_id": "H04_MULTIGENERATIONAL",
+      "site_scenario_id": "S03_RIGHTS_UNKNOWN",
+      "required_gate_ids": [
+        "SITE_SURVEY",
+        "LAND_RIGHTS",
+        "SOIL_GEOTECH",
+        "CODE_PROFILE",
+        "FIRE_ACCESS",
+        "PRIMARY_ACCESS_ROUTE",
+        "WATER_CAPACITY",
+        "ELECTRICITY_CAPACITY",
+        "SANITATION_SERVICE",
+        "CLIMATE_APPLICABILITY",
+        "STEP_FREE_INTERNAL_ROUTE"
+      ],
+      "gate_observations": [
+        {
+          "gate_id": "SITE_SURVEY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "LAND_RIGHTS",
+          "state": "UNKNOWN"
+        },
+        {
+          "gate_id": "SOIL_GEOTECH",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "CODE_PROFILE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "FIRE_ACCESS",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "PRIMARY_ACCESS_ROUTE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "WATER_CAPACITY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "ELECTRICITY_CAPACITY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "SANITATION_SERVICE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "CLIMATE_APPLICABILITY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "STEP_FREE_INTERNAL_ROUTE",
+          "state": "PASS"
+        }
+      ],
+      "expected_disposition": "CONDITIONAL_CONCEPT_ONLY",
+      "expected_reason_codes": [
+        "LAND_RIGHTS_UNKNOWN"
+      ]
+    },
+    {
+      "case_id": "H04_MULTIGENERATIONAL__S04_SOIL_UNKNOWN",
+      "household_profile_id": "H04_MULTIGENERATIONAL",
+      "site_scenario_id": "S04_SOIL_UNKNOWN",
+      "required_gate_ids": [
+        "SITE_SURVEY",
+        "LAND_RIGHTS",
+        "SOIL_GEOTECH",
+        "CODE_PROFILE",
+        "FIRE_ACCESS",
+        "PRIMARY_ACCESS_ROUTE",
+        "WATER_CAPACITY",
+        "ELECTRICITY_CAPACITY",
+        "SANITATION_SERVICE",
+        "CLIMATE_APPLICABILITY",
+        "STEP_FREE_INTERNAL_ROUTE"
+      ],
+      "gate_observations": [
+        {
+          "gate_id": "SITE_SURVEY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "LAND_RIGHTS",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "SOIL_GEOTECH",
+          "state": "UNKNOWN"
+        },
+        {
+          "gate_id": "CODE_PROFILE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "FIRE_ACCESS",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "PRIMARY_ACCESS_ROUTE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "WATER_CAPACITY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "ELECTRICITY_CAPACITY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "SANITATION_SERVICE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "CLIMATE_APPLICABILITY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "STEP_FREE_INTERNAL_ROUTE",
+          "state": "PASS"
+        }
+      ],
+      "expected_disposition": "CONDITIONAL_CONCEPT_ONLY",
+      "expected_reason_codes": [
+        "SOIL_GEOTECH_UNKNOWN"
+      ]
+    },
+    {
+      "case_id": "H04_MULTIGENERATIONAL__S05_CODE_PROFILE_UNKNOWN",
+      "household_profile_id": "H04_MULTIGENERATIONAL",
+      "site_scenario_id": "S05_CODE_PROFILE_UNKNOWN",
+      "required_gate_ids": [
+        "SITE_SURVEY",
+        "LAND_RIGHTS",
+        "SOIL_GEOTECH",
+        "CODE_PROFILE",
+        "FIRE_ACCESS",
+        "PRIMARY_ACCESS_ROUTE",
+        "WATER_CAPACITY",
+        "ELECTRICITY_CAPACITY",
+        "SANITATION_SERVICE",
+        "CLIMATE_APPLICABILITY",
+        "STEP_FREE_INTERNAL_ROUTE"
+      ],
+      "gate_observations": [
+        {
+          "gate_id": "SITE_SURVEY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "LAND_RIGHTS",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "SOIL_GEOTECH",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "CODE_PROFILE",
+          "state": "UNKNOWN"
+        },
+        {
+          "gate_id": "FIRE_ACCESS",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "PRIMARY_ACCESS_ROUTE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "WATER_CAPACITY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "ELECTRICITY_CAPACITY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "SANITATION_SERVICE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "CLIMATE_APPLICABILITY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "STEP_FREE_INTERNAL_ROUTE",
+          "state": "PASS"
+        }
+      ],
+      "expected_disposition": "CONDITIONAL_CONCEPT_ONLY",
+      "expected_reason_codes": [
+        "CODE_PROFILE_UNKNOWN"
+      ]
+    },
+    {
+      "case_id": "H04_MULTIGENERATIONAL__S06_FIRE_ACCESS_FAILED",
+      "household_profile_id": "H04_MULTIGENERATIONAL",
+      "site_scenario_id": "S06_FIRE_ACCESS_FAILED",
+      "required_gate_ids": [
+        "SITE_SURVEY",
+        "LAND_RIGHTS",
+        "SOIL_GEOTECH",
+        "CODE_PROFILE",
+        "FIRE_ACCESS",
+        "PRIMARY_ACCESS_ROUTE",
+        "WATER_CAPACITY",
+        "ELECTRICITY_CAPACITY",
+        "SANITATION_SERVICE",
+        "CLIMATE_APPLICABILITY",
+        "STEP_FREE_INTERNAL_ROUTE"
+      ],
+      "gate_observations": [
+        {
+          "gate_id": "SITE_SURVEY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "LAND_RIGHTS",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "SOIL_GEOTECH",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "CODE_PROFILE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "FIRE_ACCESS",
+          "state": "FAIL"
+        },
+        {
+          "gate_id": "PRIMARY_ACCESS_ROUTE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "WATER_CAPACITY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "ELECTRICITY_CAPACITY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "SANITATION_SERVICE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "CLIMATE_APPLICABILITY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "STEP_FREE_INTERNAL_ROUTE",
+          "state": "PASS"
+        }
+      ],
+      "expected_disposition": "BLOCKED",
+      "expected_reason_codes": [
+        "FIRE_ACCESS_FAIL"
+      ]
+    },
+    {
+      "case_id": "H04_MULTIGENERATIONAL__S07_STEP_FREE_FAILED",
+      "household_profile_id": "H04_MULTIGENERATIONAL",
+      "site_scenario_id": "S07_STEP_FREE_FAILED",
+      "required_gate_ids": [
+        "SITE_SURVEY",
+        "LAND_RIGHTS",
+        "SOIL_GEOTECH",
+        "CODE_PROFILE",
+        "FIRE_ACCESS",
+        "PRIMARY_ACCESS_ROUTE",
+        "WATER_CAPACITY",
+        "ELECTRICITY_CAPACITY",
+        "SANITATION_SERVICE",
+        "CLIMATE_APPLICABILITY",
+        "STEP_FREE_INTERNAL_ROUTE"
+      ],
+      "gate_observations": [
+        {
+          "gate_id": "SITE_SURVEY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "LAND_RIGHTS",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "SOIL_GEOTECH",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "CODE_PROFILE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "FIRE_ACCESS",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "PRIMARY_ACCESS_ROUTE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "WATER_CAPACITY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "ELECTRICITY_CAPACITY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "SANITATION_SERVICE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "CLIMATE_APPLICABILITY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "STEP_FREE_INTERNAL_ROUTE",
+          "state": "FAIL"
+        }
+      ],
+      "expected_disposition": "BLOCKED",
+      "expected_reason_codes": [
+        "STEP_FREE_INTERNAL_ROUTE_FAIL"
+      ]
+    },
+    {
+      "case_id": "H04_MULTIGENERATIONAL__S08_UTILITY_CAPACITY_UNKNOWN",
+      "household_profile_id": "H04_MULTIGENERATIONAL",
+      "site_scenario_id": "S08_UTILITY_CAPACITY_UNKNOWN",
+      "required_gate_ids": [
+        "SITE_SURVEY",
+        "LAND_RIGHTS",
+        "SOIL_GEOTECH",
+        "CODE_PROFILE",
+        "FIRE_ACCESS",
+        "PRIMARY_ACCESS_ROUTE",
+        "WATER_CAPACITY",
+        "ELECTRICITY_CAPACITY",
+        "SANITATION_SERVICE",
+        "CLIMATE_APPLICABILITY",
+        "STEP_FREE_INTERNAL_ROUTE"
+      ],
+      "gate_observations": [
+        {
+          "gate_id": "SITE_SURVEY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "LAND_RIGHTS",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "SOIL_GEOTECH",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "CODE_PROFILE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "FIRE_ACCESS",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "PRIMARY_ACCESS_ROUTE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "WATER_CAPACITY",
+          "state": "UNKNOWN"
+        },
+        {
+          "gate_id": "ELECTRICITY_CAPACITY",
+          "state": "UNKNOWN"
+        },
+        {
+          "gate_id": "SANITATION_SERVICE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "CLIMATE_APPLICABILITY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "STEP_FREE_INTERNAL_ROUTE",
+          "state": "PASS"
+        }
+      ],
+      "expected_disposition": "CONDITIONAL_CONCEPT_ONLY",
+      "expected_reason_codes": [
+        "WATER_CAPACITY_UNKNOWN",
+        "ELECTRICITY_CAPACITY_UNKNOWN"
+      ]
+    },
+    {
+      "case_id": "H04_MULTIGENERATIONAL__S09_SANITATION_FAILED",
+      "household_profile_id": "H04_MULTIGENERATIONAL",
+      "site_scenario_id": "S09_SANITATION_FAILED",
+      "required_gate_ids": [
+        "SITE_SURVEY",
+        "LAND_RIGHTS",
+        "SOIL_GEOTECH",
+        "CODE_PROFILE",
+        "FIRE_ACCESS",
+        "PRIMARY_ACCESS_ROUTE",
+        "WATER_CAPACITY",
+        "ELECTRICITY_CAPACITY",
+        "SANITATION_SERVICE",
+        "CLIMATE_APPLICABILITY",
+        "STEP_FREE_INTERNAL_ROUTE"
+      ],
+      "gate_observations": [
+        {
+          "gate_id": "SITE_SURVEY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "LAND_RIGHTS",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "SOIL_GEOTECH",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "CODE_PROFILE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "FIRE_ACCESS",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "PRIMARY_ACCESS_ROUTE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "WATER_CAPACITY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "ELECTRICITY_CAPACITY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "SANITATION_SERVICE",
+          "state": "FAIL"
+        },
+        {
+          "gate_id": "CLIMATE_APPLICABILITY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "STEP_FREE_INTERNAL_ROUTE",
+          "state": "PASS"
+        }
+      ],
+      "expected_disposition": "BLOCKED",
+      "expected_reason_codes": [
+        "SANITATION_SERVICE_FAIL"
+      ]
+    },
+    {
+      "case_id": "H04_MULTIGENERATIONAL__S10_CLIMATE_OUT_OF_DOMAIN",
+      "household_profile_id": "H04_MULTIGENERATIONAL",
+      "site_scenario_id": "S10_CLIMATE_OUT_OF_DOMAIN",
+      "required_gate_ids": [
+        "SITE_SURVEY",
+        "LAND_RIGHTS",
+        "SOIL_GEOTECH",
+        "CODE_PROFILE",
+        "FIRE_ACCESS",
+        "PRIMARY_ACCESS_ROUTE",
+        "WATER_CAPACITY",
+        "ELECTRICITY_CAPACITY",
+        "SANITATION_SERVICE",
+        "CLIMATE_APPLICABILITY",
+        "STEP_FREE_INTERNAL_ROUTE"
+      ],
+      "gate_observations": [
+        {
+          "gate_id": "SITE_SURVEY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "LAND_RIGHTS",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "SOIL_GEOTECH",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "CODE_PROFILE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "FIRE_ACCESS",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "PRIMARY_ACCESS_ROUTE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "WATER_CAPACITY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "ELECTRICITY_CAPACITY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "SANITATION_SERVICE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "CLIMATE_APPLICABILITY",
+          "state": "UNKNOWN"
+        },
+        {
+          "gate_id": "STEP_FREE_INTERNAL_ROUTE",
+          "state": "PASS"
+        }
+      ],
+      "expected_disposition": "CONDITIONAL_CONCEPT_ONLY",
+      "expected_reason_codes": [
+        "CLIMATE_APPLICABILITY_UNKNOWN"
+      ]
+    },
+    {
+      "case_id": "H05_STEP_FREE_FIRST__S01_COMPLETE_REFERENCE",
+      "household_profile_id": "H05_STEP_FREE_FIRST",
+      "site_scenario_id": "S01_COMPLETE_REFERENCE",
+      "required_gate_ids": [
+        "SITE_SURVEY",
+        "LAND_RIGHTS",
+        "SOIL_GEOTECH",
+        "CODE_PROFILE",
+        "FIRE_ACCESS",
+        "PRIMARY_ACCESS_ROUTE",
+        "WATER_CAPACITY",
+        "ELECTRICITY_CAPACITY",
+        "SANITATION_SERVICE",
+        "CLIMATE_APPLICABILITY",
+        "STEP_FREE_INTERNAL_ROUTE"
+      ],
+      "gate_observations": [
+        {
+          "gate_id": "SITE_SURVEY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "LAND_RIGHTS",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "SOIL_GEOTECH",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "CODE_PROFILE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "FIRE_ACCESS",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "PRIMARY_ACCESS_ROUTE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "WATER_CAPACITY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "ELECTRICITY_CAPACITY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "SANITATION_SERVICE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "CLIMATE_APPLICABILITY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "STEP_FREE_INTERNAL_ROUTE",
+          "state": "PASS"
+        }
+      ],
+      "expected_disposition": "SCREENING_ELIGIBLE",
+      "expected_reason_codes": []
+    },
+    {
+      "case_id": "H05_STEP_FREE_FIRST__S02_SURVEY_UNKNOWN",
+      "household_profile_id": "H05_STEP_FREE_FIRST",
+      "site_scenario_id": "S02_SURVEY_UNKNOWN",
+      "required_gate_ids": [
+        "SITE_SURVEY",
+        "LAND_RIGHTS",
+        "SOIL_GEOTECH",
+        "CODE_PROFILE",
+        "FIRE_ACCESS",
+        "PRIMARY_ACCESS_ROUTE",
+        "WATER_CAPACITY",
+        "ELECTRICITY_CAPACITY",
+        "SANITATION_SERVICE",
+        "CLIMATE_APPLICABILITY",
+        "STEP_FREE_INTERNAL_ROUTE"
+      ],
+      "gate_observations": [
+        {
+          "gate_id": "SITE_SURVEY",
+          "state": "UNKNOWN"
+        },
+        {
+          "gate_id": "LAND_RIGHTS",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "SOIL_GEOTECH",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "CODE_PROFILE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "FIRE_ACCESS",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "PRIMARY_ACCESS_ROUTE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "WATER_CAPACITY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "ELECTRICITY_CAPACITY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "SANITATION_SERVICE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "CLIMATE_APPLICABILITY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "STEP_FREE_INTERNAL_ROUTE",
+          "state": "PASS"
+        }
+      ],
+      "expected_disposition": "CONDITIONAL_CONCEPT_ONLY",
+      "expected_reason_codes": [
+        "SITE_SURVEY_UNKNOWN"
+      ]
+    },
+    {
+      "case_id": "H05_STEP_FREE_FIRST__S03_RIGHTS_UNKNOWN",
+      "household_profile_id": "H05_STEP_FREE_FIRST",
+      "site_scenario_id": "S03_RIGHTS_UNKNOWN",
+      "required_gate_ids": [
+        "SITE_SURVEY",
+        "LAND_RIGHTS",
+        "SOIL_GEOTECH",
+        "CODE_PROFILE",
+        "FIRE_ACCESS",
+        "PRIMARY_ACCESS_ROUTE",
+        "WATER_CAPACITY",
+        "ELECTRICITY_CAPACITY",
+        "SANITATION_SERVICE",
+        "CLIMATE_APPLICABILITY",
+        "STEP_FREE_INTERNAL_ROUTE"
+      ],
+      "gate_observations": [
+        {
+          "gate_id": "SITE_SURVEY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "LAND_RIGHTS",
+          "state": "UNKNOWN"
+        },
+        {
+          "gate_id": "SOIL_GEOTECH",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "CODE_PROFILE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "FIRE_ACCESS",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "PRIMARY_ACCESS_ROUTE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "WATER_CAPACITY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "ELECTRICITY_CAPACITY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "SANITATION_SERVICE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "CLIMATE_APPLICABILITY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "STEP_FREE_INTERNAL_ROUTE",
+          "state": "PASS"
+        }
+      ],
+      "expected_disposition": "CONDITIONAL_CONCEPT_ONLY",
+      "expected_reason_codes": [
+        "LAND_RIGHTS_UNKNOWN"
+      ]
+    },
+    {
+      "case_id": "H05_STEP_FREE_FIRST__S04_SOIL_UNKNOWN",
+      "household_profile_id": "H05_STEP_FREE_FIRST",
+      "site_scenario_id": "S04_SOIL_UNKNOWN",
+      "required_gate_ids": [
+        "SITE_SURVEY",
+        "LAND_RIGHTS",
+        "SOIL_GEOTECH",
+        "CODE_PROFILE",
+        "FIRE_ACCESS",
+        "PRIMARY_ACCESS_ROUTE",
+        "WATER_CAPACITY",
+        "ELECTRICITY_CAPACITY",
+        "SANITATION_SERVICE",
+        "CLIMATE_APPLICABILITY",
+        "STEP_FREE_INTERNAL_ROUTE"
+      ],
+      "gate_observations": [
+        {
+          "gate_id": "SITE_SURVEY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "LAND_RIGHTS",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "SOIL_GEOTECH",
+          "state": "UNKNOWN"
+        },
+        {
+          "gate_id": "CODE_PROFILE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "FIRE_ACCESS",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "PRIMARY_ACCESS_ROUTE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "WATER_CAPACITY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "ELECTRICITY_CAPACITY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "SANITATION_SERVICE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "CLIMATE_APPLICABILITY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "STEP_FREE_INTERNAL_ROUTE",
+          "state": "PASS"
+        }
+      ],
+      "expected_disposition": "CONDITIONAL_CONCEPT_ONLY",
+      "expected_reason_codes": [
+        "SOIL_GEOTECH_UNKNOWN"
+      ]
+    },
+    {
+      "case_id": "H05_STEP_FREE_FIRST__S05_CODE_PROFILE_UNKNOWN",
+      "household_profile_id": "H05_STEP_FREE_FIRST",
+      "site_scenario_id": "S05_CODE_PROFILE_UNKNOWN",
+      "required_gate_ids": [
+        "SITE_SURVEY",
+        "LAND_RIGHTS",
+        "SOIL_GEOTECH",
+        "CODE_PROFILE",
+        "FIRE_ACCESS",
+        "PRIMARY_ACCESS_ROUTE",
+        "WATER_CAPACITY",
+        "ELECTRICITY_CAPACITY",
+        "SANITATION_SERVICE",
+        "CLIMATE_APPLICABILITY",
+        "STEP_FREE_INTERNAL_ROUTE"
+      ],
+      "gate_observations": [
+        {
+          "gate_id": "SITE_SURVEY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "LAND_RIGHTS",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "SOIL_GEOTECH",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "CODE_PROFILE",
+          "state": "UNKNOWN"
+        },
+        {
+          "gate_id": "FIRE_ACCESS",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "PRIMARY_ACCESS_ROUTE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "WATER_CAPACITY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "ELECTRICITY_CAPACITY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "SANITATION_SERVICE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "CLIMATE_APPLICABILITY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "STEP_FREE_INTERNAL_ROUTE",
+          "state": "PASS"
+        }
+      ],
+      "expected_disposition": "CONDITIONAL_CONCEPT_ONLY",
+      "expected_reason_codes": [
+        "CODE_PROFILE_UNKNOWN"
+      ]
+    },
+    {
+      "case_id": "H05_STEP_FREE_FIRST__S06_FIRE_ACCESS_FAILED",
+      "household_profile_id": "H05_STEP_FREE_FIRST",
+      "site_scenario_id": "S06_FIRE_ACCESS_FAILED",
+      "required_gate_ids": [
+        "SITE_SURVEY",
+        "LAND_RIGHTS",
+        "SOIL_GEOTECH",
+        "CODE_PROFILE",
+        "FIRE_ACCESS",
+        "PRIMARY_ACCESS_ROUTE",
+        "WATER_CAPACITY",
+        "ELECTRICITY_CAPACITY",
+        "SANITATION_SERVICE",
+        "CLIMATE_APPLICABILITY",
+        "STEP_FREE_INTERNAL_ROUTE"
+      ],
+      "gate_observations": [
+        {
+          "gate_id": "SITE_SURVEY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "LAND_RIGHTS",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "SOIL_GEOTECH",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "CODE_PROFILE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "FIRE_ACCESS",
+          "state": "FAIL"
+        },
+        {
+          "gate_id": "PRIMARY_ACCESS_ROUTE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "WATER_CAPACITY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "ELECTRICITY_CAPACITY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "SANITATION_SERVICE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "CLIMATE_APPLICABILITY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "STEP_FREE_INTERNAL_ROUTE",
+          "state": "PASS"
+        }
+      ],
+      "expected_disposition": "BLOCKED",
+      "expected_reason_codes": [
+        "FIRE_ACCESS_FAIL"
+      ]
+    },
+    {
+      "case_id": "H05_STEP_FREE_FIRST__S07_STEP_FREE_FAILED",
+      "household_profile_id": "H05_STEP_FREE_FIRST",
+      "site_scenario_id": "S07_STEP_FREE_FAILED",
+      "required_gate_ids": [
+        "SITE_SURVEY",
+        "LAND_RIGHTS",
+        "SOIL_GEOTECH",
+        "CODE_PROFILE",
+        "FIRE_ACCESS",
+        "PRIMARY_ACCESS_ROUTE",
+        "WATER_CAPACITY",
+        "ELECTRICITY_CAPACITY",
+        "SANITATION_SERVICE",
+        "CLIMATE_APPLICABILITY",
+        "STEP_FREE_INTERNAL_ROUTE"
+      ],
+      "gate_observations": [
+        {
+          "gate_id": "SITE_SURVEY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "LAND_RIGHTS",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "SOIL_GEOTECH",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "CODE_PROFILE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "FIRE_ACCESS",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "PRIMARY_ACCESS_ROUTE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "WATER_CAPACITY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "ELECTRICITY_CAPACITY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "SANITATION_SERVICE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "CLIMATE_APPLICABILITY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "STEP_FREE_INTERNAL_ROUTE",
+          "state": "FAIL"
+        }
+      ],
+      "expected_disposition": "BLOCKED",
+      "expected_reason_codes": [
+        "STEP_FREE_INTERNAL_ROUTE_FAIL"
+      ]
+    },
+    {
+      "case_id": "H05_STEP_FREE_FIRST__S08_UTILITY_CAPACITY_UNKNOWN",
+      "household_profile_id": "H05_STEP_FREE_FIRST",
+      "site_scenario_id": "S08_UTILITY_CAPACITY_UNKNOWN",
+      "required_gate_ids": [
+        "SITE_SURVEY",
+        "LAND_RIGHTS",
+        "SOIL_GEOTECH",
+        "CODE_PROFILE",
+        "FIRE_ACCESS",
+        "PRIMARY_ACCESS_ROUTE",
+        "WATER_CAPACITY",
+        "ELECTRICITY_CAPACITY",
+        "SANITATION_SERVICE",
+        "CLIMATE_APPLICABILITY",
+        "STEP_FREE_INTERNAL_ROUTE"
+      ],
+      "gate_observations": [
+        {
+          "gate_id": "SITE_SURVEY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "LAND_RIGHTS",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "SOIL_GEOTECH",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "CODE_PROFILE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "FIRE_ACCESS",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "PRIMARY_ACCESS_ROUTE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "WATER_CAPACITY",
+          "state": "UNKNOWN"
+        },
+        {
+          "gate_id": "ELECTRICITY_CAPACITY",
+          "state": "UNKNOWN"
+        },
+        {
+          "gate_id": "SANITATION_SERVICE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "CLIMATE_APPLICABILITY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "STEP_FREE_INTERNAL_ROUTE",
+          "state": "PASS"
+        }
+      ],
+      "expected_disposition": "CONDITIONAL_CONCEPT_ONLY",
+      "expected_reason_codes": [
+        "WATER_CAPACITY_UNKNOWN",
+        "ELECTRICITY_CAPACITY_UNKNOWN"
+      ]
+    },
+    {
+      "case_id": "H05_STEP_FREE_FIRST__S09_SANITATION_FAILED",
+      "household_profile_id": "H05_STEP_FREE_FIRST",
+      "site_scenario_id": "S09_SANITATION_FAILED",
+      "required_gate_ids": [
+        "SITE_SURVEY",
+        "LAND_RIGHTS",
+        "SOIL_GEOTECH",
+        "CODE_PROFILE",
+        "FIRE_ACCESS",
+        "PRIMARY_ACCESS_ROUTE",
+        "WATER_CAPACITY",
+        "ELECTRICITY_CAPACITY",
+        "SANITATION_SERVICE",
+        "CLIMATE_APPLICABILITY",
+        "STEP_FREE_INTERNAL_ROUTE"
+      ],
+      "gate_observations": [
+        {
+          "gate_id": "SITE_SURVEY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "LAND_RIGHTS",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "SOIL_GEOTECH",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "CODE_PROFILE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "FIRE_ACCESS",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "PRIMARY_ACCESS_ROUTE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "WATER_CAPACITY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "ELECTRICITY_CAPACITY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "SANITATION_SERVICE",
+          "state": "FAIL"
+        },
+        {
+          "gate_id": "CLIMATE_APPLICABILITY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "STEP_FREE_INTERNAL_ROUTE",
+          "state": "PASS"
+        }
+      ],
+      "expected_disposition": "BLOCKED",
+      "expected_reason_codes": [
+        "SANITATION_SERVICE_FAIL"
+      ]
+    },
+    {
+      "case_id": "H05_STEP_FREE_FIRST__S10_CLIMATE_OUT_OF_DOMAIN",
+      "household_profile_id": "H05_STEP_FREE_FIRST",
+      "site_scenario_id": "S10_CLIMATE_OUT_OF_DOMAIN",
+      "required_gate_ids": [
+        "SITE_SURVEY",
+        "LAND_RIGHTS",
+        "SOIL_GEOTECH",
+        "CODE_PROFILE",
+        "FIRE_ACCESS",
+        "PRIMARY_ACCESS_ROUTE",
+        "WATER_CAPACITY",
+        "ELECTRICITY_CAPACITY",
+        "SANITATION_SERVICE",
+        "CLIMATE_APPLICABILITY",
+        "STEP_FREE_INTERNAL_ROUTE"
+      ],
+      "gate_observations": [
+        {
+          "gate_id": "SITE_SURVEY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "LAND_RIGHTS",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "SOIL_GEOTECH",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "CODE_PROFILE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "FIRE_ACCESS",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "PRIMARY_ACCESS_ROUTE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "WATER_CAPACITY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "ELECTRICITY_CAPACITY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "SANITATION_SERVICE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "CLIMATE_APPLICABILITY",
+          "state": "UNKNOWN"
+        },
+        {
+          "gate_id": "STEP_FREE_INTERNAL_ROUTE",
+          "state": "PASS"
+        }
+      ],
+      "expected_disposition": "CONDITIONAL_CONCEPT_ONLY",
+      "expected_reason_codes": [
+        "CLIMATE_APPLICABILITY_UNKNOWN"
+      ]
+    },
+    {
+      "case_id": "H06_LIVE_WORK__S01_COMPLETE_REFERENCE",
+      "household_profile_id": "H06_LIVE_WORK",
+      "site_scenario_id": "S01_COMPLETE_REFERENCE",
+      "required_gate_ids": [
+        "SITE_SURVEY",
+        "LAND_RIGHTS",
+        "SOIL_GEOTECH",
+        "CODE_PROFILE",
+        "FIRE_ACCESS",
+        "PRIMARY_ACCESS_ROUTE",
+        "WATER_CAPACITY",
+        "ELECTRICITY_CAPACITY",
+        "SANITATION_SERVICE",
+        "CLIMATE_APPLICABILITY"
+      ],
+      "gate_observations": [
+        {
+          "gate_id": "SITE_SURVEY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "LAND_RIGHTS",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "SOIL_GEOTECH",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "CODE_PROFILE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "FIRE_ACCESS",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "PRIMARY_ACCESS_ROUTE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "WATER_CAPACITY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "ELECTRICITY_CAPACITY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "SANITATION_SERVICE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "CLIMATE_APPLICABILITY",
+          "state": "PASS"
+        }
+      ],
+      "expected_disposition": "SCREENING_ELIGIBLE",
+      "expected_reason_codes": []
+    },
+    {
+      "case_id": "H06_LIVE_WORK__S02_SURVEY_UNKNOWN",
+      "household_profile_id": "H06_LIVE_WORK",
+      "site_scenario_id": "S02_SURVEY_UNKNOWN",
+      "required_gate_ids": [
+        "SITE_SURVEY",
+        "LAND_RIGHTS",
+        "SOIL_GEOTECH",
+        "CODE_PROFILE",
+        "FIRE_ACCESS",
+        "PRIMARY_ACCESS_ROUTE",
+        "WATER_CAPACITY",
+        "ELECTRICITY_CAPACITY",
+        "SANITATION_SERVICE",
+        "CLIMATE_APPLICABILITY"
+      ],
+      "gate_observations": [
+        {
+          "gate_id": "SITE_SURVEY",
+          "state": "UNKNOWN"
+        },
+        {
+          "gate_id": "LAND_RIGHTS",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "SOIL_GEOTECH",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "CODE_PROFILE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "FIRE_ACCESS",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "PRIMARY_ACCESS_ROUTE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "WATER_CAPACITY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "ELECTRICITY_CAPACITY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "SANITATION_SERVICE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "CLIMATE_APPLICABILITY",
+          "state": "PASS"
+        }
+      ],
+      "expected_disposition": "CONDITIONAL_CONCEPT_ONLY",
+      "expected_reason_codes": [
+        "SITE_SURVEY_UNKNOWN"
+      ]
+    },
+    {
+      "case_id": "H06_LIVE_WORK__S03_RIGHTS_UNKNOWN",
+      "household_profile_id": "H06_LIVE_WORK",
+      "site_scenario_id": "S03_RIGHTS_UNKNOWN",
+      "required_gate_ids": [
+        "SITE_SURVEY",
+        "LAND_RIGHTS",
+        "SOIL_GEOTECH",
+        "CODE_PROFILE",
+        "FIRE_ACCESS",
+        "PRIMARY_ACCESS_ROUTE",
+        "WATER_CAPACITY",
+        "ELECTRICITY_CAPACITY",
+        "SANITATION_SERVICE",
+        "CLIMATE_APPLICABILITY"
+      ],
+      "gate_observations": [
+        {
+          "gate_id": "SITE_SURVEY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "LAND_RIGHTS",
+          "state": "UNKNOWN"
+        },
+        {
+          "gate_id": "SOIL_GEOTECH",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "CODE_PROFILE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "FIRE_ACCESS",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "PRIMARY_ACCESS_ROUTE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "WATER_CAPACITY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "ELECTRICITY_CAPACITY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "SANITATION_SERVICE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "CLIMATE_APPLICABILITY",
+          "state": "PASS"
+        }
+      ],
+      "expected_disposition": "CONDITIONAL_CONCEPT_ONLY",
+      "expected_reason_codes": [
+        "LAND_RIGHTS_UNKNOWN"
+      ]
+    },
+    {
+      "case_id": "H06_LIVE_WORK__S04_SOIL_UNKNOWN",
+      "household_profile_id": "H06_LIVE_WORK",
+      "site_scenario_id": "S04_SOIL_UNKNOWN",
+      "required_gate_ids": [
+        "SITE_SURVEY",
+        "LAND_RIGHTS",
+        "SOIL_GEOTECH",
+        "CODE_PROFILE",
+        "FIRE_ACCESS",
+        "PRIMARY_ACCESS_ROUTE",
+        "WATER_CAPACITY",
+        "ELECTRICITY_CAPACITY",
+        "SANITATION_SERVICE",
+        "CLIMATE_APPLICABILITY"
+      ],
+      "gate_observations": [
+        {
+          "gate_id": "SITE_SURVEY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "LAND_RIGHTS",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "SOIL_GEOTECH",
+          "state": "UNKNOWN"
+        },
+        {
+          "gate_id": "CODE_PROFILE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "FIRE_ACCESS",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "PRIMARY_ACCESS_ROUTE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "WATER_CAPACITY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "ELECTRICITY_CAPACITY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "SANITATION_SERVICE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "CLIMATE_APPLICABILITY",
+          "state": "PASS"
+        }
+      ],
+      "expected_disposition": "CONDITIONAL_CONCEPT_ONLY",
+      "expected_reason_codes": [
+        "SOIL_GEOTECH_UNKNOWN"
+      ]
+    },
+    {
+      "case_id": "H06_LIVE_WORK__S05_CODE_PROFILE_UNKNOWN",
+      "household_profile_id": "H06_LIVE_WORK",
+      "site_scenario_id": "S05_CODE_PROFILE_UNKNOWN",
+      "required_gate_ids": [
+        "SITE_SURVEY",
+        "LAND_RIGHTS",
+        "SOIL_GEOTECH",
+        "CODE_PROFILE",
+        "FIRE_ACCESS",
+        "PRIMARY_ACCESS_ROUTE",
+        "WATER_CAPACITY",
+        "ELECTRICITY_CAPACITY",
+        "SANITATION_SERVICE",
+        "CLIMATE_APPLICABILITY"
+      ],
+      "gate_observations": [
+        {
+          "gate_id": "SITE_SURVEY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "LAND_RIGHTS",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "SOIL_GEOTECH",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "CODE_PROFILE",
+          "state": "UNKNOWN"
+        },
+        {
+          "gate_id": "FIRE_ACCESS",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "PRIMARY_ACCESS_ROUTE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "WATER_CAPACITY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "ELECTRICITY_CAPACITY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "SANITATION_SERVICE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "CLIMATE_APPLICABILITY",
+          "state": "PASS"
+        }
+      ],
+      "expected_disposition": "CONDITIONAL_CONCEPT_ONLY",
+      "expected_reason_codes": [
+        "CODE_PROFILE_UNKNOWN"
+      ]
+    },
+    {
+      "case_id": "H06_LIVE_WORK__S06_FIRE_ACCESS_FAILED",
+      "household_profile_id": "H06_LIVE_WORK",
+      "site_scenario_id": "S06_FIRE_ACCESS_FAILED",
+      "required_gate_ids": [
+        "SITE_SURVEY",
+        "LAND_RIGHTS",
+        "SOIL_GEOTECH",
+        "CODE_PROFILE",
+        "FIRE_ACCESS",
+        "PRIMARY_ACCESS_ROUTE",
+        "WATER_CAPACITY",
+        "ELECTRICITY_CAPACITY",
+        "SANITATION_SERVICE",
+        "CLIMATE_APPLICABILITY"
+      ],
+      "gate_observations": [
+        {
+          "gate_id": "SITE_SURVEY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "LAND_RIGHTS",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "SOIL_GEOTECH",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "CODE_PROFILE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "FIRE_ACCESS",
+          "state": "FAIL"
+        },
+        {
+          "gate_id": "PRIMARY_ACCESS_ROUTE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "WATER_CAPACITY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "ELECTRICITY_CAPACITY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "SANITATION_SERVICE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "CLIMATE_APPLICABILITY",
+          "state": "PASS"
+        }
+      ],
+      "expected_disposition": "BLOCKED",
+      "expected_reason_codes": [
+        "FIRE_ACCESS_FAIL"
+      ]
+    },
+    {
+      "case_id": "H06_LIVE_WORK__S07_STEP_FREE_FAILED",
+      "household_profile_id": "H06_LIVE_WORK",
+      "site_scenario_id": "S07_STEP_FREE_FAILED",
+      "required_gate_ids": [
+        "SITE_SURVEY",
+        "LAND_RIGHTS",
+        "SOIL_GEOTECH",
+        "CODE_PROFILE",
+        "FIRE_ACCESS",
+        "PRIMARY_ACCESS_ROUTE",
+        "WATER_CAPACITY",
+        "ELECTRICITY_CAPACITY",
+        "SANITATION_SERVICE",
+        "CLIMATE_APPLICABILITY"
+      ],
+      "gate_observations": [
+        {
+          "gate_id": "SITE_SURVEY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "LAND_RIGHTS",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "SOIL_GEOTECH",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "CODE_PROFILE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "FIRE_ACCESS",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "PRIMARY_ACCESS_ROUTE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "WATER_CAPACITY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "ELECTRICITY_CAPACITY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "SANITATION_SERVICE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "CLIMATE_APPLICABILITY",
+          "state": "PASS"
+        }
+      ],
+      "expected_disposition": "SCREENING_ELIGIBLE",
+      "expected_reason_codes": []
+    },
+    {
+      "case_id": "H06_LIVE_WORK__S08_UTILITY_CAPACITY_UNKNOWN",
+      "household_profile_id": "H06_LIVE_WORK",
+      "site_scenario_id": "S08_UTILITY_CAPACITY_UNKNOWN",
+      "required_gate_ids": [
+        "SITE_SURVEY",
+        "LAND_RIGHTS",
+        "SOIL_GEOTECH",
+        "CODE_PROFILE",
+        "FIRE_ACCESS",
+        "PRIMARY_ACCESS_ROUTE",
+        "WATER_CAPACITY",
+        "ELECTRICITY_CAPACITY",
+        "SANITATION_SERVICE",
+        "CLIMATE_APPLICABILITY"
+      ],
+      "gate_observations": [
+        {
+          "gate_id": "SITE_SURVEY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "LAND_RIGHTS",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "SOIL_GEOTECH",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "CODE_PROFILE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "FIRE_ACCESS",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "PRIMARY_ACCESS_ROUTE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "WATER_CAPACITY",
+          "state": "UNKNOWN"
+        },
+        {
+          "gate_id": "ELECTRICITY_CAPACITY",
+          "state": "UNKNOWN"
+        },
+        {
+          "gate_id": "SANITATION_SERVICE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "CLIMATE_APPLICABILITY",
+          "state": "PASS"
+        }
+      ],
+      "expected_disposition": "CONDITIONAL_CONCEPT_ONLY",
+      "expected_reason_codes": [
+        "WATER_CAPACITY_UNKNOWN",
+        "ELECTRICITY_CAPACITY_UNKNOWN"
+      ]
+    },
+    {
+      "case_id": "H06_LIVE_WORK__S09_SANITATION_FAILED",
+      "household_profile_id": "H06_LIVE_WORK",
+      "site_scenario_id": "S09_SANITATION_FAILED",
+      "required_gate_ids": [
+        "SITE_SURVEY",
+        "LAND_RIGHTS",
+        "SOIL_GEOTECH",
+        "CODE_PROFILE",
+        "FIRE_ACCESS",
+        "PRIMARY_ACCESS_ROUTE",
+        "WATER_CAPACITY",
+        "ELECTRICITY_CAPACITY",
+        "SANITATION_SERVICE",
+        "CLIMATE_APPLICABILITY"
+      ],
+      "gate_observations": [
+        {
+          "gate_id": "SITE_SURVEY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "LAND_RIGHTS",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "SOIL_GEOTECH",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "CODE_PROFILE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "FIRE_ACCESS",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "PRIMARY_ACCESS_ROUTE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "WATER_CAPACITY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "ELECTRICITY_CAPACITY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "SANITATION_SERVICE",
+          "state": "FAIL"
+        },
+        {
+          "gate_id": "CLIMATE_APPLICABILITY",
+          "state": "PASS"
+        }
+      ],
+      "expected_disposition": "BLOCKED",
+      "expected_reason_codes": [
+        "SANITATION_SERVICE_FAIL"
+      ]
+    },
+    {
+      "case_id": "H06_LIVE_WORK__S10_CLIMATE_OUT_OF_DOMAIN",
+      "household_profile_id": "H06_LIVE_WORK",
+      "site_scenario_id": "S10_CLIMATE_OUT_OF_DOMAIN",
+      "required_gate_ids": [
+        "SITE_SURVEY",
+        "LAND_RIGHTS",
+        "SOIL_GEOTECH",
+        "CODE_PROFILE",
+        "FIRE_ACCESS",
+        "PRIMARY_ACCESS_ROUTE",
+        "WATER_CAPACITY",
+        "ELECTRICITY_CAPACITY",
+        "SANITATION_SERVICE",
+        "CLIMATE_APPLICABILITY"
+      ],
+      "gate_observations": [
+        {
+          "gate_id": "SITE_SURVEY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "LAND_RIGHTS",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "SOIL_GEOTECH",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "CODE_PROFILE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "FIRE_ACCESS",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "PRIMARY_ACCESS_ROUTE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "WATER_CAPACITY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "ELECTRICITY_CAPACITY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "SANITATION_SERVICE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "CLIMATE_APPLICABILITY",
+          "state": "UNKNOWN"
+        }
+      ],
+      "expected_disposition": "CONDITIONAL_CONCEPT_ONLY",
+      "expected_reason_codes": [
+        "CLIMATE_APPLICABILITY_UNKNOWN"
+      ]
+    },
+    {
+      "case_id": "H07_SHARED_COOP__S01_COMPLETE_REFERENCE",
+      "household_profile_id": "H07_SHARED_COOP",
+      "site_scenario_id": "S01_COMPLETE_REFERENCE",
+      "required_gate_ids": [
+        "SITE_SURVEY",
+        "LAND_RIGHTS",
+        "SOIL_GEOTECH",
+        "CODE_PROFILE",
+        "FIRE_ACCESS",
+        "PRIMARY_ACCESS_ROUTE",
+        "WATER_CAPACITY",
+        "ELECTRICITY_CAPACITY",
+        "SANITATION_SERVICE",
+        "CLIMATE_APPLICABILITY"
+      ],
+      "gate_observations": [
+        {
+          "gate_id": "SITE_SURVEY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "LAND_RIGHTS",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "SOIL_GEOTECH",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "CODE_PROFILE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "FIRE_ACCESS",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "PRIMARY_ACCESS_ROUTE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "WATER_CAPACITY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "ELECTRICITY_CAPACITY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "SANITATION_SERVICE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "CLIMATE_APPLICABILITY",
+          "state": "PASS"
+        }
+      ],
+      "expected_disposition": "SCREENING_ELIGIBLE",
+      "expected_reason_codes": []
+    },
+    {
+      "case_id": "H07_SHARED_COOP__S02_SURVEY_UNKNOWN",
+      "household_profile_id": "H07_SHARED_COOP",
+      "site_scenario_id": "S02_SURVEY_UNKNOWN",
+      "required_gate_ids": [
+        "SITE_SURVEY",
+        "LAND_RIGHTS",
+        "SOIL_GEOTECH",
+        "CODE_PROFILE",
+        "FIRE_ACCESS",
+        "PRIMARY_ACCESS_ROUTE",
+        "WATER_CAPACITY",
+        "ELECTRICITY_CAPACITY",
+        "SANITATION_SERVICE",
+        "CLIMATE_APPLICABILITY"
+      ],
+      "gate_observations": [
+        {
+          "gate_id": "SITE_SURVEY",
+          "state": "UNKNOWN"
+        },
+        {
+          "gate_id": "LAND_RIGHTS",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "SOIL_GEOTECH",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "CODE_PROFILE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "FIRE_ACCESS",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "PRIMARY_ACCESS_ROUTE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "WATER_CAPACITY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "ELECTRICITY_CAPACITY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "SANITATION_SERVICE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "CLIMATE_APPLICABILITY",
+          "state": "PASS"
+        }
+      ],
+      "expected_disposition": "CONDITIONAL_CONCEPT_ONLY",
+      "expected_reason_codes": [
+        "SITE_SURVEY_UNKNOWN"
+      ]
+    },
+    {
+      "case_id": "H07_SHARED_COOP__S03_RIGHTS_UNKNOWN",
+      "household_profile_id": "H07_SHARED_COOP",
+      "site_scenario_id": "S03_RIGHTS_UNKNOWN",
+      "required_gate_ids": [
+        "SITE_SURVEY",
+        "LAND_RIGHTS",
+        "SOIL_GEOTECH",
+        "CODE_PROFILE",
+        "FIRE_ACCESS",
+        "PRIMARY_ACCESS_ROUTE",
+        "WATER_CAPACITY",
+        "ELECTRICITY_CAPACITY",
+        "SANITATION_SERVICE",
+        "CLIMATE_APPLICABILITY"
+      ],
+      "gate_observations": [
+        {
+          "gate_id": "SITE_SURVEY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "LAND_RIGHTS",
+          "state": "UNKNOWN"
+        },
+        {
+          "gate_id": "SOIL_GEOTECH",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "CODE_PROFILE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "FIRE_ACCESS",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "PRIMARY_ACCESS_ROUTE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "WATER_CAPACITY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "ELECTRICITY_CAPACITY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "SANITATION_SERVICE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "CLIMATE_APPLICABILITY",
+          "state": "PASS"
+        }
+      ],
+      "expected_disposition": "CONDITIONAL_CONCEPT_ONLY",
+      "expected_reason_codes": [
+        "LAND_RIGHTS_UNKNOWN"
+      ]
+    },
+    {
+      "case_id": "H07_SHARED_COOP__S04_SOIL_UNKNOWN",
+      "household_profile_id": "H07_SHARED_COOP",
+      "site_scenario_id": "S04_SOIL_UNKNOWN",
+      "required_gate_ids": [
+        "SITE_SURVEY",
+        "LAND_RIGHTS",
+        "SOIL_GEOTECH",
+        "CODE_PROFILE",
+        "FIRE_ACCESS",
+        "PRIMARY_ACCESS_ROUTE",
+        "WATER_CAPACITY",
+        "ELECTRICITY_CAPACITY",
+        "SANITATION_SERVICE",
+        "CLIMATE_APPLICABILITY"
+      ],
+      "gate_observations": [
+        {
+          "gate_id": "SITE_SURVEY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "LAND_RIGHTS",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "SOIL_GEOTECH",
+          "state": "UNKNOWN"
+        },
+        {
+          "gate_id": "CODE_PROFILE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "FIRE_ACCESS",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "PRIMARY_ACCESS_ROUTE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "WATER_CAPACITY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "ELECTRICITY_CAPACITY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "SANITATION_SERVICE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "CLIMATE_APPLICABILITY",
+          "state": "PASS"
+        }
+      ],
+      "expected_disposition": "CONDITIONAL_CONCEPT_ONLY",
+      "expected_reason_codes": [
+        "SOIL_GEOTECH_UNKNOWN"
+      ]
+    },
+    {
+      "case_id": "H07_SHARED_COOP__S05_CODE_PROFILE_UNKNOWN",
+      "household_profile_id": "H07_SHARED_COOP",
+      "site_scenario_id": "S05_CODE_PROFILE_UNKNOWN",
+      "required_gate_ids": [
+        "SITE_SURVEY",
+        "LAND_RIGHTS",
+        "SOIL_GEOTECH",
+        "CODE_PROFILE",
+        "FIRE_ACCESS",
+        "PRIMARY_ACCESS_ROUTE",
+        "WATER_CAPACITY",
+        "ELECTRICITY_CAPACITY",
+        "SANITATION_SERVICE",
+        "CLIMATE_APPLICABILITY"
+      ],
+      "gate_observations": [
+        {
+          "gate_id": "SITE_SURVEY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "LAND_RIGHTS",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "SOIL_GEOTECH",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "CODE_PROFILE",
+          "state": "UNKNOWN"
+        },
+        {
+          "gate_id": "FIRE_ACCESS",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "PRIMARY_ACCESS_ROUTE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "WATER_CAPACITY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "ELECTRICITY_CAPACITY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "SANITATION_SERVICE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "CLIMATE_APPLICABILITY",
+          "state": "PASS"
+        }
+      ],
+      "expected_disposition": "CONDITIONAL_CONCEPT_ONLY",
+      "expected_reason_codes": [
+        "CODE_PROFILE_UNKNOWN"
+      ]
+    },
+    {
+      "case_id": "H07_SHARED_COOP__S06_FIRE_ACCESS_FAILED",
+      "household_profile_id": "H07_SHARED_COOP",
+      "site_scenario_id": "S06_FIRE_ACCESS_FAILED",
+      "required_gate_ids": [
+        "SITE_SURVEY",
+        "LAND_RIGHTS",
+        "SOIL_GEOTECH",
+        "CODE_PROFILE",
+        "FIRE_ACCESS",
+        "PRIMARY_ACCESS_ROUTE",
+        "WATER_CAPACITY",
+        "ELECTRICITY_CAPACITY",
+        "SANITATION_SERVICE",
+        "CLIMATE_APPLICABILITY"
+      ],
+      "gate_observations": [
+        {
+          "gate_id": "SITE_SURVEY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "LAND_RIGHTS",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "SOIL_GEOTECH",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "CODE_PROFILE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "FIRE_ACCESS",
+          "state": "FAIL"
+        },
+        {
+          "gate_id": "PRIMARY_ACCESS_ROUTE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "WATER_CAPACITY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "ELECTRICITY_CAPACITY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "SANITATION_SERVICE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "CLIMATE_APPLICABILITY",
+          "state": "PASS"
+        }
+      ],
+      "expected_disposition": "BLOCKED",
+      "expected_reason_codes": [
+        "FIRE_ACCESS_FAIL"
+      ]
+    },
+    {
+      "case_id": "H07_SHARED_COOP__S07_STEP_FREE_FAILED",
+      "household_profile_id": "H07_SHARED_COOP",
+      "site_scenario_id": "S07_STEP_FREE_FAILED",
+      "required_gate_ids": [
+        "SITE_SURVEY",
+        "LAND_RIGHTS",
+        "SOIL_GEOTECH",
+        "CODE_PROFILE",
+        "FIRE_ACCESS",
+        "PRIMARY_ACCESS_ROUTE",
+        "WATER_CAPACITY",
+        "ELECTRICITY_CAPACITY",
+        "SANITATION_SERVICE",
+        "CLIMATE_APPLICABILITY"
+      ],
+      "gate_observations": [
+        {
+          "gate_id": "SITE_SURVEY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "LAND_RIGHTS",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "SOIL_GEOTECH",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "CODE_PROFILE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "FIRE_ACCESS",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "PRIMARY_ACCESS_ROUTE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "WATER_CAPACITY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "ELECTRICITY_CAPACITY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "SANITATION_SERVICE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "CLIMATE_APPLICABILITY",
+          "state": "PASS"
+        }
+      ],
+      "expected_disposition": "SCREENING_ELIGIBLE",
+      "expected_reason_codes": []
+    },
+    {
+      "case_id": "H07_SHARED_COOP__S08_UTILITY_CAPACITY_UNKNOWN",
+      "household_profile_id": "H07_SHARED_COOP",
+      "site_scenario_id": "S08_UTILITY_CAPACITY_UNKNOWN",
+      "required_gate_ids": [
+        "SITE_SURVEY",
+        "LAND_RIGHTS",
+        "SOIL_GEOTECH",
+        "CODE_PROFILE",
+        "FIRE_ACCESS",
+        "PRIMARY_ACCESS_ROUTE",
+        "WATER_CAPACITY",
+        "ELECTRICITY_CAPACITY",
+        "SANITATION_SERVICE",
+        "CLIMATE_APPLICABILITY"
+      ],
+      "gate_observations": [
+        {
+          "gate_id": "SITE_SURVEY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "LAND_RIGHTS",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "SOIL_GEOTECH",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "CODE_PROFILE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "FIRE_ACCESS",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "PRIMARY_ACCESS_ROUTE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "WATER_CAPACITY",
+          "state": "UNKNOWN"
+        },
+        {
+          "gate_id": "ELECTRICITY_CAPACITY",
+          "state": "UNKNOWN"
+        },
+        {
+          "gate_id": "SANITATION_SERVICE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "CLIMATE_APPLICABILITY",
+          "state": "PASS"
+        }
+      ],
+      "expected_disposition": "CONDITIONAL_CONCEPT_ONLY",
+      "expected_reason_codes": [
+        "WATER_CAPACITY_UNKNOWN",
+        "ELECTRICITY_CAPACITY_UNKNOWN"
+      ]
+    },
+    {
+      "case_id": "H07_SHARED_COOP__S09_SANITATION_FAILED",
+      "household_profile_id": "H07_SHARED_COOP",
+      "site_scenario_id": "S09_SANITATION_FAILED",
+      "required_gate_ids": [
+        "SITE_SURVEY",
+        "LAND_RIGHTS",
+        "SOIL_GEOTECH",
+        "CODE_PROFILE",
+        "FIRE_ACCESS",
+        "PRIMARY_ACCESS_ROUTE",
+        "WATER_CAPACITY",
+        "ELECTRICITY_CAPACITY",
+        "SANITATION_SERVICE",
+        "CLIMATE_APPLICABILITY"
+      ],
+      "gate_observations": [
+        {
+          "gate_id": "SITE_SURVEY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "LAND_RIGHTS",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "SOIL_GEOTECH",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "CODE_PROFILE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "FIRE_ACCESS",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "PRIMARY_ACCESS_ROUTE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "WATER_CAPACITY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "ELECTRICITY_CAPACITY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "SANITATION_SERVICE",
+          "state": "FAIL"
+        },
+        {
+          "gate_id": "CLIMATE_APPLICABILITY",
+          "state": "PASS"
+        }
+      ],
+      "expected_disposition": "BLOCKED",
+      "expected_reason_codes": [
+        "SANITATION_SERVICE_FAIL"
+      ]
+    },
+    {
+      "case_id": "H07_SHARED_COOP__S10_CLIMATE_OUT_OF_DOMAIN",
+      "household_profile_id": "H07_SHARED_COOP",
+      "site_scenario_id": "S10_CLIMATE_OUT_OF_DOMAIN",
+      "required_gate_ids": [
+        "SITE_SURVEY",
+        "LAND_RIGHTS",
+        "SOIL_GEOTECH",
+        "CODE_PROFILE",
+        "FIRE_ACCESS",
+        "PRIMARY_ACCESS_ROUTE",
+        "WATER_CAPACITY",
+        "ELECTRICITY_CAPACITY",
+        "SANITATION_SERVICE",
+        "CLIMATE_APPLICABILITY"
+      ],
+      "gate_observations": [
+        {
+          "gate_id": "SITE_SURVEY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "LAND_RIGHTS",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "SOIL_GEOTECH",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "CODE_PROFILE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "FIRE_ACCESS",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "PRIMARY_ACCESS_ROUTE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "WATER_CAPACITY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "ELECTRICITY_CAPACITY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "SANITATION_SERVICE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "CLIMATE_APPLICABILITY",
+          "state": "UNKNOWN"
+        }
+      ],
+      "expected_disposition": "CONDITIONAL_CONCEPT_ONLY",
+      "expected_reason_codes": [
+        "CLIMATE_APPLICABILITY_UNKNOWN"
+      ]
+    },
+    {
+      "case_id": "H08_CARE_GUEST__S01_COMPLETE_REFERENCE",
+      "household_profile_id": "H08_CARE_GUEST",
+      "site_scenario_id": "S01_COMPLETE_REFERENCE",
+      "required_gate_ids": [
+        "SITE_SURVEY",
+        "LAND_RIGHTS",
+        "SOIL_GEOTECH",
+        "CODE_PROFILE",
+        "FIRE_ACCESS",
+        "PRIMARY_ACCESS_ROUTE",
+        "WATER_CAPACITY",
+        "ELECTRICITY_CAPACITY",
+        "SANITATION_SERVICE",
+        "CLIMATE_APPLICABILITY",
+        "STEP_FREE_INTERNAL_ROUTE"
+      ],
+      "gate_observations": [
+        {
+          "gate_id": "SITE_SURVEY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "LAND_RIGHTS",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "SOIL_GEOTECH",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "CODE_PROFILE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "FIRE_ACCESS",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "PRIMARY_ACCESS_ROUTE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "WATER_CAPACITY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "ELECTRICITY_CAPACITY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "SANITATION_SERVICE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "CLIMATE_APPLICABILITY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "STEP_FREE_INTERNAL_ROUTE",
+          "state": "PASS"
+        }
+      ],
+      "expected_disposition": "SCREENING_ELIGIBLE",
+      "expected_reason_codes": []
+    },
+    {
+      "case_id": "H08_CARE_GUEST__S02_SURVEY_UNKNOWN",
+      "household_profile_id": "H08_CARE_GUEST",
+      "site_scenario_id": "S02_SURVEY_UNKNOWN",
+      "required_gate_ids": [
+        "SITE_SURVEY",
+        "LAND_RIGHTS",
+        "SOIL_GEOTECH",
+        "CODE_PROFILE",
+        "FIRE_ACCESS",
+        "PRIMARY_ACCESS_ROUTE",
+        "WATER_CAPACITY",
+        "ELECTRICITY_CAPACITY",
+        "SANITATION_SERVICE",
+        "CLIMATE_APPLICABILITY",
+        "STEP_FREE_INTERNAL_ROUTE"
+      ],
+      "gate_observations": [
+        {
+          "gate_id": "SITE_SURVEY",
+          "state": "UNKNOWN"
+        },
+        {
+          "gate_id": "LAND_RIGHTS",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "SOIL_GEOTECH",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "CODE_PROFILE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "FIRE_ACCESS",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "PRIMARY_ACCESS_ROUTE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "WATER_CAPACITY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "ELECTRICITY_CAPACITY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "SANITATION_SERVICE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "CLIMATE_APPLICABILITY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "STEP_FREE_INTERNAL_ROUTE",
+          "state": "PASS"
+        }
+      ],
+      "expected_disposition": "CONDITIONAL_CONCEPT_ONLY",
+      "expected_reason_codes": [
+        "SITE_SURVEY_UNKNOWN"
+      ]
+    },
+    {
+      "case_id": "H08_CARE_GUEST__S03_RIGHTS_UNKNOWN",
+      "household_profile_id": "H08_CARE_GUEST",
+      "site_scenario_id": "S03_RIGHTS_UNKNOWN",
+      "required_gate_ids": [
+        "SITE_SURVEY",
+        "LAND_RIGHTS",
+        "SOIL_GEOTECH",
+        "CODE_PROFILE",
+        "FIRE_ACCESS",
+        "PRIMARY_ACCESS_ROUTE",
+        "WATER_CAPACITY",
+        "ELECTRICITY_CAPACITY",
+        "SANITATION_SERVICE",
+        "CLIMATE_APPLICABILITY",
+        "STEP_FREE_INTERNAL_ROUTE"
+      ],
+      "gate_observations": [
+        {
+          "gate_id": "SITE_SURVEY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "LAND_RIGHTS",
+          "state": "UNKNOWN"
+        },
+        {
+          "gate_id": "SOIL_GEOTECH",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "CODE_PROFILE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "FIRE_ACCESS",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "PRIMARY_ACCESS_ROUTE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "WATER_CAPACITY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "ELECTRICITY_CAPACITY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "SANITATION_SERVICE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "CLIMATE_APPLICABILITY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "STEP_FREE_INTERNAL_ROUTE",
+          "state": "PASS"
+        }
+      ],
+      "expected_disposition": "CONDITIONAL_CONCEPT_ONLY",
+      "expected_reason_codes": [
+        "LAND_RIGHTS_UNKNOWN"
+      ]
+    },
+    {
+      "case_id": "H08_CARE_GUEST__S04_SOIL_UNKNOWN",
+      "household_profile_id": "H08_CARE_GUEST",
+      "site_scenario_id": "S04_SOIL_UNKNOWN",
+      "required_gate_ids": [
+        "SITE_SURVEY",
+        "LAND_RIGHTS",
+        "SOIL_GEOTECH",
+        "CODE_PROFILE",
+        "FIRE_ACCESS",
+        "PRIMARY_ACCESS_ROUTE",
+        "WATER_CAPACITY",
+        "ELECTRICITY_CAPACITY",
+        "SANITATION_SERVICE",
+        "CLIMATE_APPLICABILITY",
+        "STEP_FREE_INTERNAL_ROUTE"
+      ],
+      "gate_observations": [
+        {
+          "gate_id": "SITE_SURVEY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "LAND_RIGHTS",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "SOIL_GEOTECH",
+          "state": "UNKNOWN"
+        },
+        {
+          "gate_id": "CODE_PROFILE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "FIRE_ACCESS",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "PRIMARY_ACCESS_ROUTE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "WATER_CAPACITY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "ELECTRICITY_CAPACITY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "SANITATION_SERVICE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "CLIMATE_APPLICABILITY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "STEP_FREE_INTERNAL_ROUTE",
+          "state": "PASS"
+        }
+      ],
+      "expected_disposition": "CONDITIONAL_CONCEPT_ONLY",
+      "expected_reason_codes": [
+        "SOIL_GEOTECH_UNKNOWN"
+      ]
+    },
+    {
+      "case_id": "H08_CARE_GUEST__S05_CODE_PROFILE_UNKNOWN",
+      "household_profile_id": "H08_CARE_GUEST",
+      "site_scenario_id": "S05_CODE_PROFILE_UNKNOWN",
+      "required_gate_ids": [
+        "SITE_SURVEY",
+        "LAND_RIGHTS",
+        "SOIL_GEOTECH",
+        "CODE_PROFILE",
+        "FIRE_ACCESS",
+        "PRIMARY_ACCESS_ROUTE",
+        "WATER_CAPACITY",
+        "ELECTRICITY_CAPACITY",
+        "SANITATION_SERVICE",
+        "CLIMATE_APPLICABILITY",
+        "STEP_FREE_INTERNAL_ROUTE"
+      ],
+      "gate_observations": [
+        {
+          "gate_id": "SITE_SURVEY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "LAND_RIGHTS",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "SOIL_GEOTECH",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "CODE_PROFILE",
+          "state": "UNKNOWN"
+        },
+        {
+          "gate_id": "FIRE_ACCESS",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "PRIMARY_ACCESS_ROUTE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "WATER_CAPACITY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "ELECTRICITY_CAPACITY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "SANITATION_SERVICE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "CLIMATE_APPLICABILITY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "STEP_FREE_INTERNAL_ROUTE",
+          "state": "PASS"
+        }
+      ],
+      "expected_disposition": "CONDITIONAL_CONCEPT_ONLY",
+      "expected_reason_codes": [
+        "CODE_PROFILE_UNKNOWN"
+      ]
+    },
+    {
+      "case_id": "H08_CARE_GUEST__S06_FIRE_ACCESS_FAILED",
+      "household_profile_id": "H08_CARE_GUEST",
+      "site_scenario_id": "S06_FIRE_ACCESS_FAILED",
+      "required_gate_ids": [
+        "SITE_SURVEY",
+        "LAND_RIGHTS",
+        "SOIL_GEOTECH",
+        "CODE_PROFILE",
+        "FIRE_ACCESS",
+        "PRIMARY_ACCESS_ROUTE",
+        "WATER_CAPACITY",
+        "ELECTRICITY_CAPACITY",
+        "SANITATION_SERVICE",
+        "CLIMATE_APPLICABILITY",
+        "STEP_FREE_INTERNAL_ROUTE"
+      ],
+      "gate_observations": [
+        {
+          "gate_id": "SITE_SURVEY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "LAND_RIGHTS",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "SOIL_GEOTECH",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "CODE_PROFILE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "FIRE_ACCESS",
+          "state": "FAIL"
+        },
+        {
+          "gate_id": "PRIMARY_ACCESS_ROUTE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "WATER_CAPACITY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "ELECTRICITY_CAPACITY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "SANITATION_SERVICE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "CLIMATE_APPLICABILITY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "STEP_FREE_INTERNAL_ROUTE",
+          "state": "PASS"
+        }
+      ],
+      "expected_disposition": "BLOCKED",
+      "expected_reason_codes": [
+        "FIRE_ACCESS_FAIL"
+      ]
+    },
+    {
+      "case_id": "H08_CARE_GUEST__S07_STEP_FREE_FAILED",
+      "household_profile_id": "H08_CARE_GUEST",
+      "site_scenario_id": "S07_STEP_FREE_FAILED",
+      "required_gate_ids": [
+        "SITE_SURVEY",
+        "LAND_RIGHTS",
+        "SOIL_GEOTECH",
+        "CODE_PROFILE",
+        "FIRE_ACCESS",
+        "PRIMARY_ACCESS_ROUTE",
+        "WATER_CAPACITY",
+        "ELECTRICITY_CAPACITY",
+        "SANITATION_SERVICE",
+        "CLIMATE_APPLICABILITY",
+        "STEP_FREE_INTERNAL_ROUTE"
+      ],
+      "gate_observations": [
+        {
+          "gate_id": "SITE_SURVEY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "LAND_RIGHTS",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "SOIL_GEOTECH",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "CODE_PROFILE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "FIRE_ACCESS",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "PRIMARY_ACCESS_ROUTE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "WATER_CAPACITY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "ELECTRICITY_CAPACITY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "SANITATION_SERVICE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "CLIMATE_APPLICABILITY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "STEP_FREE_INTERNAL_ROUTE",
+          "state": "FAIL"
+        }
+      ],
+      "expected_disposition": "BLOCKED",
+      "expected_reason_codes": [
+        "STEP_FREE_INTERNAL_ROUTE_FAIL"
+      ]
+    },
+    {
+      "case_id": "H08_CARE_GUEST__S08_UTILITY_CAPACITY_UNKNOWN",
+      "household_profile_id": "H08_CARE_GUEST",
+      "site_scenario_id": "S08_UTILITY_CAPACITY_UNKNOWN",
+      "required_gate_ids": [
+        "SITE_SURVEY",
+        "LAND_RIGHTS",
+        "SOIL_GEOTECH",
+        "CODE_PROFILE",
+        "FIRE_ACCESS",
+        "PRIMARY_ACCESS_ROUTE",
+        "WATER_CAPACITY",
+        "ELECTRICITY_CAPACITY",
+        "SANITATION_SERVICE",
+        "CLIMATE_APPLICABILITY",
+        "STEP_FREE_INTERNAL_ROUTE"
+      ],
+      "gate_observations": [
+        {
+          "gate_id": "SITE_SURVEY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "LAND_RIGHTS",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "SOIL_GEOTECH",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "CODE_PROFILE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "FIRE_ACCESS",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "PRIMARY_ACCESS_ROUTE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "WATER_CAPACITY",
+          "state": "UNKNOWN"
+        },
+        {
+          "gate_id": "ELECTRICITY_CAPACITY",
+          "state": "UNKNOWN"
+        },
+        {
+          "gate_id": "SANITATION_SERVICE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "CLIMATE_APPLICABILITY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "STEP_FREE_INTERNAL_ROUTE",
+          "state": "PASS"
+        }
+      ],
+      "expected_disposition": "CONDITIONAL_CONCEPT_ONLY",
+      "expected_reason_codes": [
+        "WATER_CAPACITY_UNKNOWN",
+        "ELECTRICITY_CAPACITY_UNKNOWN"
+      ]
+    },
+    {
+      "case_id": "H08_CARE_GUEST__S09_SANITATION_FAILED",
+      "household_profile_id": "H08_CARE_GUEST",
+      "site_scenario_id": "S09_SANITATION_FAILED",
+      "required_gate_ids": [
+        "SITE_SURVEY",
+        "LAND_RIGHTS",
+        "SOIL_GEOTECH",
+        "CODE_PROFILE",
+        "FIRE_ACCESS",
+        "PRIMARY_ACCESS_ROUTE",
+        "WATER_CAPACITY",
+        "ELECTRICITY_CAPACITY",
+        "SANITATION_SERVICE",
+        "CLIMATE_APPLICABILITY",
+        "STEP_FREE_INTERNAL_ROUTE"
+      ],
+      "gate_observations": [
+        {
+          "gate_id": "SITE_SURVEY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "LAND_RIGHTS",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "SOIL_GEOTECH",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "CODE_PROFILE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "FIRE_ACCESS",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "PRIMARY_ACCESS_ROUTE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "WATER_CAPACITY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "ELECTRICITY_CAPACITY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "SANITATION_SERVICE",
+          "state": "FAIL"
+        },
+        {
+          "gate_id": "CLIMATE_APPLICABILITY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "STEP_FREE_INTERNAL_ROUTE",
+          "state": "PASS"
+        }
+      ],
+      "expected_disposition": "BLOCKED",
+      "expected_reason_codes": [
+        "SANITATION_SERVICE_FAIL"
+      ]
+    },
+    {
+      "case_id": "H08_CARE_GUEST__S10_CLIMATE_OUT_OF_DOMAIN",
+      "household_profile_id": "H08_CARE_GUEST",
+      "site_scenario_id": "S10_CLIMATE_OUT_OF_DOMAIN",
+      "required_gate_ids": [
+        "SITE_SURVEY",
+        "LAND_RIGHTS",
+        "SOIL_GEOTECH",
+        "CODE_PROFILE",
+        "FIRE_ACCESS",
+        "PRIMARY_ACCESS_ROUTE",
+        "WATER_CAPACITY",
+        "ELECTRICITY_CAPACITY",
+        "SANITATION_SERVICE",
+        "CLIMATE_APPLICABILITY",
+        "STEP_FREE_INTERNAL_ROUTE"
+      ],
+      "gate_observations": [
+        {
+          "gate_id": "SITE_SURVEY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "LAND_RIGHTS",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "SOIL_GEOTECH",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "CODE_PROFILE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "FIRE_ACCESS",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "PRIMARY_ACCESS_ROUTE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "WATER_CAPACITY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "ELECTRICITY_CAPACITY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "SANITATION_SERVICE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "CLIMATE_APPLICABILITY",
+          "state": "UNKNOWN"
+        },
+        {
+          "gate_id": "STEP_FREE_INTERNAL_ROUTE",
+          "state": "PASS"
+        }
+      ],
+      "expected_disposition": "CONDITIONAL_CONCEPT_ONLY",
+      "expected_reason_codes": [
+        "CLIMATE_APPLICABILITY_UNKNOWN"
+      ]
+    },
+    {
+      "case_id": "H09_RURAL_RESOURCE__S01_COMPLETE_REFERENCE",
+      "household_profile_id": "H09_RURAL_RESOURCE",
+      "site_scenario_id": "S01_COMPLETE_REFERENCE",
+      "required_gate_ids": [
+        "SITE_SURVEY",
+        "LAND_RIGHTS",
+        "SOIL_GEOTECH",
+        "CODE_PROFILE",
+        "FIRE_ACCESS",
+        "PRIMARY_ACCESS_ROUTE",
+        "WATER_CAPACITY",
+        "ELECTRICITY_CAPACITY",
+        "SANITATION_SERVICE",
+        "CLIMATE_APPLICABILITY"
+      ],
+      "gate_observations": [
+        {
+          "gate_id": "SITE_SURVEY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "LAND_RIGHTS",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "SOIL_GEOTECH",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "CODE_PROFILE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "FIRE_ACCESS",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "PRIMARY_ACCESS_ROUTE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "WATER_CAPACITY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "ELECTRICITY_CAPACITY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "SANITATION_SERVICE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "CLIMATE_APPLICABILITY",
+          "state": "PASS"
+        }
+      ],
+      "expected_disposition": "SCREENING_ELIGIBLE",
+      "expected_reason_codes": []
+    },
+    {
+      "case_id": "H09_RURAL_RESOURCE__S02_SURVEY_UNKNOWN",
+      "household_profile_id": "H09_RURAL_RESOURCE",
+      "site_scenario_id": "S02_SURVEY_UNKNOWN",
+      "required_gate_ids": [
+        "SITE_SURVEY",
+        "LAND_RIGHTS",
+        "SOIL_GEOTECH",
+        "CODE_PROFILE",
+        "FIRE_ACCESS",
+        "PRIMARY_ACCESS_ROUTE",
+        "WATER_CAPACITY",
+        "ELECTRICITY_CAPACITY",
+        "SANITATION_SERVICE",
+        "CLIMATE_APPLICABILITY"
+      ],
+      "gate_observations": [
+        {
+          "gate_id": "SITE_SURVEY",
+          "state": "UNKNOWN"
+        },
+        {
+          "gate_id": "LAND_RIGHTS",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "SOIL_GEOTECH",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "CODE_PROFILE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "FIRE_ACCESS",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "PRIMARY_ACCESS_ROUTE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "WATER_CAPACITY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "ELECTRICITY_CAPACITY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "SANITATION_SERVICE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "CLIMATE_APPLICABILITY",
+          "state": "PASS"
+        }
+      ],
+      "expected_disposition": "CONDITIONAL_CONCEPT_ONLY",
+      "expected_reason_codes": [
+        "SITE_SURVEY_UNKNOWN"
+      ]
+    },
+    {
+      "case_id": "H09_RURAL_RESOURCE__S03_RIGHTS_UNKNOWN",
+      "household_profile_id": "H09_RURAL_RESOURCE",
+      "site_scenario_id": "S03_RIGHTS_UNKNOWN",
+      "required_gate_ids": [
+        "SITE_SURVEY",
+        "LAND_RIGHTS",
+        "SOIL_GEOTECH",
+        "CODE_PROFILE",
+        "FIRE_ACCESS",
+        "PRIMARY_ACCESS_ROUTE",
+        "WATER_CAPACITY",
+        "ELECTRICITY_CAPACITY",
+        "SANITATION_SERVICE",
+        "CLIMATE_APPLICABILITY"
+      ],
+      "gate_observations": [
+        {
+          "gate_id": "SITE_SURVEY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "LAND_RIGHTS",
+          "state": "UNKNOWN"
+        },
+        {
+          "gate_id": "SOIL_GEOTECH",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "CODE_PROFILE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "FIRE_ACCESS",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "PRIMARY_ACCESS_ROUTE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "WATER_CAPACITY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "ELECTRICITY_CAPACITY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "SANITATION_SERVICE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "CLIMATE_APPLICABILITY",
+          "state": "PASS"
+        }
+      ],
+      "expected_disposition": "CONDITIONAL_CONCEPT_ONLY",
+      "expected_reason_codes": [
+        "LAND_RIGHTS_UNKNOWN"
+      ]
+    },
+    {
+      "case_id": "H09_RURAL_RESOURCE__S04_SOIL_UNKNOWN",
+      "household_profile_id": "H09_RURAL_RESOURCE",
+      "site_scenario_id": "S04_SOIL_UNKNOWN",
+      "required_gate_ids": [
+        "SITE_SURVEY",
+        "LAND_RIGHTS",
+        "SOIL_GEOTECH",
+        "CODE_PROFILE",
+        "FIRE_ACCESS",
+        "PRIMARY_ACCESS_ROUTE",
+        "WATER_CAPACITY",
+        "ELECTRICITY_CAPACITY",
+        "SANITATION_SERVICE",
+        "CLIMATE_APPLICABILITY"
+      ],
+      "gate_observations": [
+        {
+          "gate_id": "SITE_SURVEY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "LAND_RIGHTS",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "SOIL_GEOTECH",
+          "state": "UNKNOWN"
+        },
+        {
+          "gate_id": "CODE_PROFILE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "FIRE_ACCESS",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "PRIMARY_ACCESS_ROUTE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "WATER_CAPACITY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "ELECTRICITY_CAPACITY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "SANITATION_SERVICE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "CLIMATE_APPLICABILITY",
+          "state": "PASS"
+        }
+      ],
+      "expected_disposition": "CONDITIONAL_CONCEPT_ONLY",
+      "expected_reason_codes": [
+        "SOIL_GEOTECH_UNKNOWN"
+      ]
+    },
+    {
+      "case_id": "H09_RURAL_RESOURCE__S05_CODE_PROFILE_UNKNOWN",
+      "household_profile_id": "H09_RURAL_RESOURCE",
+      "site_scenario_id": "S05_CODE_PROFILE_UNKNOWN",
+      "required_gate_ids": [
+        "SITE_SURVEY",
+        "LAND_RIGHTS",
+        "SOIL_GEOTECH",
+        "CODE_PROFILE",
+        "FIRE_ACCESS",
+        "PRIMARY_ACCESS_ROUTE",
+        "WATER_CAPACITY",
+        "ELECTRICITY_CAPACITY",
+        "SANITATION_SERVICE",
+        "CLIMATE_APPLICABILITY"
+      ],
+      "gate_observations": [
+        {
+          "gate_id": "SITE_SURVEY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "LAND_RIGHTS",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "SOIL_GEOTECH",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "CODE_PROFILE",
+          "state": "UNKNOWN"
+        },
+        {
+          "gate_id": "FIRE_ACCESS",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "PRIMARY_ACCESS_ROUTE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "WATER_CAPACITY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "ELECTRICITY_CAPACITY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "SANITATION_SERVICE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "CLIMATE_APPLICABILITY",
+          "state": "PASS"
+        }
+      ],
+      "expected_disposition": "CONDITIONAL_CONCEPT_ONLY",
+      "expected_reason_codes": [
+        "CODE_PROFILE_UNKNOWN"
+      ]
+    },
+    {
+      "case_id": "H09_RURAL_RESOURCE__S06_FIRE_ACCESS_FAILED",
+      "household_profile_id": "H09_RURAL_RESOURCE",
+      "site_scenario_id": "S06_FIRE_ACCESS_FAILED",
+      "required_gate_ids": [
+        "SITE_SURVEY",
+        "LAND_RIGHTS",
+        "SOIL_GEOTECH",
+        "CODE_PROFILE",
+        "FIRE_ACCESS",
+        "PRIMARY_ACCESS_ROUTE",
+        "WATER_CAPACITY",
+        "ELECTRICITY_CAPACITY",
+        "SANITATION_SERVICE",
+        "CLIMATE_APPLICABILITY"
+      ],
+      "gate_observations": [
+        {
+          "gate_id": "SITE_SURVEY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "LAND_RIGHTS",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "SOIL_GEOTECH",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "CODE_PROFILE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "FIRE_ACCESS",
+          "state": "FAIL"
+        },
+        {
+          "gate_id": "PRIMARY_ACCESS_ROUTE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "WATER_CAPACITY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "ELECTRICITY_CAPACITY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "SANITATION_SERVICE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "CLIMATE_APPLICABILITY",
+          "state": "PASS"
+        }
+      ],
+      "expected_disposition": "BLOCKED",
+      "expected_reason_codes": [
+        "FIRE_ACCESS_FAIL"
+      ]
+    },
+    {
+      "case_id": "H09_RURAL_RESOURCE__S07_STEP_FREE_FAILED",
+      "household_profile_id": "H09_RURAL_RESOURCE",
+      "site_scenario_id": "S07_STEP_FREE_FAILED",
+      "required_gate_ids": [
+        "SITE_SURVEY",
+        "LAND_RIGHTS",
+        "SOIL_GEOTECH",
+        "CODE_PROFILE",
+        "FIRE_ACCESS",
+        "PRIMARY_ACCESS_ROUTE",
+        "WATER_CAPACITY",
+        "ELECTRICITY_CAPACITY",
+        "SANITATION_SERVICE",
+        "CLIMATE_APPLICABILITY"
+      ],
+      "gate_observations": [
+        {
+          "gate_id": "SITE_SURVEY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "LAND_RIGHTS",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "SOIL_GEOTECH",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "CODE_PROFILE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "FIRE_ACCESS",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "PRIMARY_ACCESS_ROUTE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "WATER_CAPACITY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "ELECTRICITY_CAPACITY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "SANITATION_SERVICE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "CLIMATE_APPLICABILITY",
+          "state": "PASS"
+        }
+      ],
+      "expected_disposition": "SCREENING_ELIGIBLE",
+      "expected_reason_codes": []
+    },
+    {
+      "case_id": "H09_RURAL_RESOURCE__S08_UTILITY_CAPACITY_UNKNOWN",
+      "household_profile_id": "H09_RURAL_RESOURCE",
+      "site_scenario_id": "S08_UTILITY_CAPACITY_UNKNOWN",
+      "required_gate_ids": [
+        "SITE_SURVEY",
+        "LAND_RIGHTS",
+        "SOIL_GEOTECH",
+        "CODE_PROFILE",
+        "FIRE_ACCESS",
+        "PRIMARY_ACCESS_ROUTE",
+        "WATER_CAPACITY",
+        "ELECTRICITY_CAPACITY",
+        "SANITATION_SERVICE",
+        "CLIMATE_APPLICABILITY"
+      ],
+      "gate_observations": [
+        {
+          "gate_id": "SITE_SURVEY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "LAND_RIGHTS",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "SOIL_GEOTECH",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "CODE_PROFILE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "FIRE_ACCESS",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "PRIMARY_ACCESS_ROUTE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "WATER_CAPACITY",
+          "state": "UNKNOWN"
+        },
+        {
+          "gate_id": "ELECTRICITY_CAPACITY",
+          "state": "UNKNOWN"
+        },
+        {
+          "gate_id": "SANITATION_SERVICE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "CLIMATE_APPLICABILITY",
+          "state": "PASS"
+        }
+      ],
+      "expected_disposition": "CONDITIONAL_CONCEPT_ONLY",
+      "expected_reason_codes": [
+        "WATER_CAPACITY_UNKNOWN",
+        "ELECTRICITY_CAPACITY_UNKNOWN"
+      ]
+    },
+    {
+      "case_id": "H09_RURAL_RESOURCE__S09_SANITATION_FAILED",
+      "household_profile_id": "H09_RURAL_RESOURCE",
+      "site_scenario_id": "S09_SANITATION_FAILED",
+      "required_gate_ids": [
+        "SITE_SURVEY",
+        "LAND_RIGHTS",
+        "SOIL_GEOTECH",
+        "CODE_PROFILE",
+        "FIRE_ACCESS",
+        "PRIMARY_ACCESS_ROUTE",
+        "WATER_CAPACITY",
+        "ELECTRICITY_CAPACITY",
+        "SANITATION_SERVICE",
+        "CLIMATE_APPLICABILITY"
+      ],
+      "gate_observations": [
+        {
+          "gate_id": "SITE_SURVEY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "LAND_RIGHTS",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "SOIL_GEOTECH",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "CODE_PROFILE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "FIRE_ACCESS",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "PRIMARY_ACCESS_ROUTE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "WATER_CAPACITY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "ELECTRICITY_CAPACITY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "SANITATION_SERVICE",
+          "state": "FAIL"
+        },
+        {
+          "gate_id": "CLIMATE_APPLICABILITY",
+          "state": "PASS"
+        }
+      ],
+      "expected_disposition": "BLOCKED",
+      "expected_reason_codes": [
+        "SANITATION_SERVICE_FAIL"
+      ]
+    },
+    {
+      "case_id": "H09_RURAL_RESOURCE__S10_CLIMATE_OUT_OF_DOMAIN",
+      "household_profile_id": "H09_RURAL_RESOURCE",
+      "site_scenario_id": "S10_CLIMATE_OUT_OF_DOMAIN",
+      "required_gate_ids": [
+        "SITE_SURVEY",
+        "LAND_RIGHTS",
+        "SOIL_GEOTECH",
+        "CODE_PROFILE",
+        "FIRE_ACCESS",
+        "PRIMARY_ACCESS_ROUTE",
+        "WATER_CAPACITY",
+        "ELECTRICITY_CAPACITY",
+        "SANITATION_SERVICE",
+        "CLIMATE_APPLICABILITY"
+      ],
+      "gate_observations": [
+        {
+          "gate_id": "SITE_SURVEY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "LAND_RIGHTS",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "SOIL_GEOTECH",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "CODE_PROFILE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "FIRE_ACCESS",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "PRIMARY_ACCESS_ROUTE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "WATER_CAPACITY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "ELECTRICITY_CAPACITY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "SANITATION_SERVICE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "CLIMATE_APPLICABILITY",
+          "state": "UNKNOWN"
+        }
+      ],
+      "expected_disposition": "CONDITIONAL_CONCEPT_ONLY",
+      "expected_reason_codes": [
+        "CLIMATE_APPLICABILITY_UNKNOWN"
+      ]
+    },
+    {
+      "case_id": "H10_REPAIR_FIRST__S01_COMPLETE_REFERENCE",
+      "household_profile_id": "H10_REPAIR_FIRST",
+      "site_scenario_id": "S01_COMPLETE_REFERENCE",
+      "required_gate_ids": [
+        "SITE_SURVEY",
+        "LAND_RIGHTS",
+        "SOIL_GEOTECH",
+        "CODE_PROFILE",
+        "FIRE_ACCESS",
+        "PRIMARY_ACCESS_ROUTE",
+        "WATER_CAPACITY",
+        "ELECTRICITY_CAPACITY",
+        "SANITATION_SERVICE",
+        "CLIMATE_APPLICABILITY"
+      ],
+      "gate_observations": [
+        {
+          "gate_id": "SITE_SURVEY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "LAND_RIGHTS",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "SOIL_GEOTECH",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "CODE_PROFILE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "FIRE_ACCESS",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "PRIMARY_ACCESS_ROUTE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "WATER_CAPACITY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "ELECTRICITY_CAPACITY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "SANITATION_SERVICE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "CLIMATE_APPLICABILITY",
+          "state": "PASS"
+        }
+      ],
+      "expected_disposition": "SCREENING_ELIGIBLE",
+      "expected_reason_codes": []
+    },
+    {
+      "case_id": "H10_REPAIR_FIRST__S02_SURVEY_UNKNOWN",
+      "household_profile_id": "H10_REPAIR_FIRST",
+      "site_scenario_id": "S02_SURVEY_UNKNOWN",
+      "required_gate_ids": [
+        "SITE_SURVEY",
+        "LAND_RIGHTS",
+        "SOIL_GEOTECH",
+        "CODE_PROFILE",
+        "FIRE_ACCESS",
+        "PRIMARY_ACCESS_ROUTE",
+        "WATER_CAPACITY",
+        "ELECTRICITY_CAPACITY",
+        "SANITATION_SERVICE",
+        "CLIMATE_APPLICABILITY"
+      ],
+      "gate_observations": [
+        {
+          "gate_id": "SITE_SURVEY",
+          "state": "UNKNOWN"
+        },
+        {
+          "gate_id": "LAND_RIGHTS",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "SOIL_GEOTECH",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "CODE_PROFILE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "FIRE_ACCESS",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "PRIMARY_ACCESS_ROUTE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "WATER_CAPACITY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "ELECTRICITY_CAPACITY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "SANITATION_SERVICE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "CLIMATE_APPLICABILITY",
+          "state": "PASS"
+        }
+      ],
+      "expected_disposition": "CONDITIONAL_CONCEPT_ONLY",
+      "expected_reason_codes": [
+        "SITE_SURVEY_UNKNOWN"
+      ]
+    },
+    {
+      "case_id": "H10_REPAIR_FIRST__S03_RIGHTS_UNKNOWN",
+      "household_profile_id": "H10_REPAIR_FIRST",
+      "site_scenario_id": "S03_RIGHTS_UNKNOWN",
+      "required_gate_ids": [
+        "SITE_SURVEY",
+        "LAND_RIGHTS",
+        "SOIL_GEOTECH",
+        "CODE_PROFILE",
+        "FIRE_ACCESS",
+        "PRIMARY_ACCESS_ROUTE",
+        "WATER_CAPACITY",
+        "ELECTRICITY_CAPACITY",
+        "SANITATION_SERVICE",
+        "CLIMATE_APPLICABILITY"
+      ],
+      "gate_observations": [
+        {
+          "gate_id": "SITE_SURVEY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "LAND_RIGHTS",
+          "state": "UNKNOWN"
+        },
+        {
+          "gate_id": "SOIL_GEOTECH",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "CODE_PROFILE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "FIRE_ACCESS",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "PRIMARY_ACCESS_ROUTE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "WATER_CAPACITY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "ELECTRICITY_CAPACITY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "SANITATION_SERVICE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "CLIMATE_APPLICABILITY",
+          "state": "PASS"
+        }
+      ],
+      "expected_disposition": "CONDITIONAL_CONCEPT_ONLY",
+      "expected_reason_codes": [
+        "LAND_RIGHTS_UNKNOWN"
+      ]
+    },
+    {
+      "case_id": "H10_REPAIR_FIRST__S04_SOIL_UNKNOWN",
+      "household_profile_id": "H10_REPAIR_FIRST",
+      "site_scenario_id": "S04_SOIL_UNKNOWN",
+      "required_gate_ids": [
+        "SITE_SURVEY",
+        "LAND_RIGHTS",
+        "SOIL_GEOTECH",
+        "CODE_PROFILE",
+        "FIRE_ACCESS",
+        "PRIMARY_ACCESS_ROUTE",
+        "WATER_CAPACITY",
+        "ELECTRICITY_CAPACITY",
+        "SANITATION_SERVICE",
+        "CLIMATE_APPLICABILITY"
+      ],
+      "gate_observations": [
+        {
+          "gate_id": "SITE_SURVEY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "LAND_RIGHTS",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "SOIL_GEOTECH",
+          "state": "UNKNOWN"
+        },
+        {
+          "gate_id": "CODE_PROFILE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "FIRE_ACCESS",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "PRIMARY_ACCESS_ROUTE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "WATER_CAPACITY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "ELECTRICITY_CAPACITY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "SANITATION_SERVICE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "CLIMATE_APPLICABILITY",
+          "state": "PASS"
+        }
+      ],
+      "expected_disposition": "CONDITIONAL_CONCEPT_ONLY",
+      "expected_reason_codes": [
+        "SOIL_GEOTECH_UNKNOWN"
+      ]
+    },
+    {
+      "case_id": "H10_REPAIR_FIRST__S05_CODE_PROFILE_UNKNOWN",
+      "household_profile_id": "H10_REPAIR_FIRST",
+      "site_scenario_id": "S05_CODE_PROFILE_UNKNOWN",
+      "required_gate_ids": [
+        "SITE_SURVEY",
+        "LAND_RIGHTS",
+        "SOIL_GEOTECH",
+        "CODE_PROFILE",
+        "FIRE_ACCESS",
+        "PRIMARY_ACCESS_ROUTE",
+        "WATER_CAPACITY",
+        "ELECTRICITY_CAPACITY",
+        "SANITATION_SERVICE",
+        "CLIMATE_APPLICABILITY"
+      ],
+      "gate_observations": [
+        {
+          "gate_id": "SITE_SURVEY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "LAND_RIGHTS",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "SOIL_GEOTECH",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "CODE_PROFILE",
+          "state": "UNKNOWN"
+        },
+        {
+          "gate_id": "FIRE_ACCESS",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "PRIMARY_ACCESS_ROUTE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "WATER_CAPACITY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "ELECTRICITY_CAPACITY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "SANITATION_SERVICE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "CLIMATE_APPLICABILITY",
+          "state": "PASS"
+        }
+      ],
+      "expected_disposition": "CONDITIONAL_CONCEPT_ONLY",
+      "expected_reason_codes": [
+        "CODE_PROFILE_UNKNOWN"
+      ]
+    },
+    {
+      "case_id": "H10_REPAIR_FIRST__S06_FIRE_ACCESS_FAILED",
+      "household_profile_id": "H10_REPAIR_FIRST",
+      "site_scenario_id": "S06_FIRE_ACCESS_FAILED",
+      "required_gate_ids": [
+        "SITE_SURVEY",
+        "LAND_RIGHTS",
+        "SOIL_GEOTECH",
+        "CODE_PROFILE",
+        "FIRE_ACCESS",
+        "PRIMARY_ACCESS_ROUTE",
+        "WATER_CAPACITY",
+        "ELECTRICITY_CAPACITY",
+        "SANITATION_SERVICE",
+        "CLIMATE_APPLICABILITY"
+      ],
+      "gate_observations": [
+        {
+          "gate_id": "SITE_SURVEY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "LAND_RIGHTS",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "SOIL_GEOTECH",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "CODE_PROFILE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "FIRE_ACCESS",
+          "state": "FAIL"
+        },
+        {
+          "gate_id": "PRIMARY_ACCESS_ROUTE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "WATER_CAPACITY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "ELECTRICITY_CAPACITY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "SANITATION_SERVICE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "CLIMATE_APPLICABILITY",
+          "state": "PASS"
+        }
+      ],
+      "expected_disposition": "BLOCKED",
+      "expected_reason_codes": [
+        "FIRE_ACCESS_FAIL"
+      ]
+    },
+    {
+      "case_id": "H10_REPAIR_FIRST__S07_STEP_FREE_FAILED",
+      "household_profile_id": "H10_REPAIR_FIRST",
+      "site_scenario_id": "S07_STEP_FREE_FAILED",
+      "required_gate_ids": [
+        "SITE_SURVEY",
+        "LAND_RIGHTS",
+        "SOIL_GEOTECH",
+        "CODE_PROFILE",
+        "FIRE_ACCESS",
+        "PRIMARY_ACCESS_ROUTE",
+        "WATER_CAPACITY",
+        "ELECTRICITY_CAPACITY",
+        "SANITATION_SERVICE",
+        "CLIMATE_APPLICABILITY"
+      ],
+      "gate_observations": [
+        {
+          "gate_id": "SITE_SURVEY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "LAND_RIGHTS",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "SOIL_GEOTECH",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "CODE_PROFILE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "FIRE_ACCESS",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "PRIMARY_ACCESS_ROUTE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "WATER_CAPACITY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "ELECTRICITY_CAPACITY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "SANITATION_SERVICE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "CLIMATE_APPLICABILITY",
+          "state": "PASS"
+        }
+      ],
+      "expected_disposition": "SCREENING_ELIGIBLE",
+      "expected_reason_codes": []
+    },
+    {
+      "case_id": "H10_REPAIR_FIRST__S08_UTILITY_CAPACITY_UNKNOWN",
+      "household_profile_id": "H10_REPAIR_FIRST",
+      "site_scenario_id": "S08_UTILITY_CAPACITY_UNKNOWN",
+      "required_gate_ids": [
+        "SITE_SURVEY",
+        "LAND_RIGHTS",
+        "SOIL_GEOTECH",
+        "CODE_PROFILE",
+        "FIRE_ACCESS",
+        "PRIMARY_ACCESS_ROUTE",
+        "WATER_CAPACITY",
+        "ELECTRICITY_CAPACITY",
+        "SANITATION_SERVICE",
+        "CLIMATE_APPLICABILITY"
+      ],
+      "gate_observations": [
+        {
+          "gate_id": "SITE_SURVEY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "LAND_RIGHTS",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "SOIL_GEOTECH",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "CODE_PROFILE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "FIRE_ACCESS",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "PRIMARY_ACCESS_ROUTE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "WATER_CAPACITY",
+          "state": "UNKNOWN"
+        },
+        {
+          "gate_id": "ELECTRICITY_CAPACITY",
+          "state": "UNKNOWN"
+        },
+        {
+          "gate_id": "SANITATION_SERVICE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "CLIMATE_APPLICABILITY",
+          "state": "PASS"
+        }
+      ],
+      "expected_disposition": "CONDITIONAL_CONCEPT_ONLY",
+      "expected_reason_codes": [
+        "WATER_CAPACITY_UNKNOWN",
+        "ELECTRICITY_CAPACITY_UNKNOWN"
+      ]
+    },
+    {
+      "case_id": "H10_REPAIR_FIRST__S09_SANITATION_FAILED",
+      "household_profile_id": "H10_REPAIR_FIRST",
+      "site_scenario_id": "S09_SANITATION_FAILED",
+      "required_gate_ids": [
+        "SITE_SURVEY",
+        "LAND_RIGHTS",
+        "SOIL_GEOTECH",
+        "CODE_PROFILE",
+        "FIRE_ACCESS",
+        "PRIMARY_ACCESS_ROUTE",
+        "WATER_CAPACITY",
+        "ELECTRICITY_CAPACITY",
+        "SANITATION_SERVICE",
+        "CLIMATE_APPLICABILITY"
+      ],
+      "gate_observations": [
+        {
+          "gate_id": "SITE_SURVEY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "LAND_RIGHTS",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "SOIL_GEOTECH",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "CODE_PROFILE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "FIRE_ACCESS",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "PRIMARY_ACCESS_ROUTE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "WATER_CAPACITY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "ELECTRICITY_CAPACITY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "SANITATION_SERVICE",
+          "state": "FAIL"
+        },
+        {
+          "gate_id": "CLIMATE_APPLICABILITY",
+          "state": "PASS"
+        }
+      ],
+      "expected_disposition": "BLOCKED",
+      "expected_reason_codes": [
+        "SANITATION_SERVICE_FAIL"
+      ]
+    },
+    {
+      "case_id": "H10_REPAIR_FIRST__S10_CLIMATE_OUT_OF_DOMAIN",
+      "household_profile_id": "H10_REPAIR_FIRST",
+      "site_scenario_id": "S10_CLIMATE_OUT_OF_DOMAIN",
+      "required_gate_ids": [
+        "SITE_SURVEY",
+        "LAND_RIGHTS",
+        "SOIL_GEOTECH",
+        "CODE_PROFILE",
+        "FIRE_ACCESS",
+        "PRIMARY_ACCESS_ROUTE",
+        "WATER_CAPACITY",
+        "ELECTRICITY_CAPACITY",
+        "SANITATION_SERVICE",
+        "CLIMATE_APPLICABILITY"
+      ],
+      "gate_observations": [
+        {
+          "gate_id": "SITE_SURVEY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "LAND_RIGHTS",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "SOIL_GEOTECH",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "CODE_PROFILE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "FIRE_ACCESS",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "PRIMARY_ACCESS_ROUTE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "WATER_CAPACITY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "ELECTRICITY_CAPACITY",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "SANITATION_SERVICE",
+          "state": "PASS"
+        },
+        {
+          "gate_id": "CLIMATE_APPLICABILITY",
+          "state": "UNKNOWN"
+        }
+      ],
+      "expected_disposition": "CONDITIONAL_CONCEPT_ONLY",
+      "expected_reason_codes": [
+        "CLIMATE_APPLICABILITY_UNKNOWN"
+      ]
+    }
+  ],
+  "claim_ceiling": "Synthetic feasibility-disposition corpus only. No real design, code compliance, site readiness, safety, affordability or resident outcome is established."
+}
