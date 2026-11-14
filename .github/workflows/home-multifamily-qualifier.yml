@@ -7,6 +7,8 @@ on:
       - "src/bin/home-multifamily-service-qualifier.rs"
       - "docs/research/home-delivery-systems/multifamily-building.schema.json"
       - "docs/research/home-delivery-systems/multifamily-building-synthetic-v0.1.json"
+      - "docs/research/home-delivery-systems/multifamily-resident-programme.schema.json"
+      - "docs/research/home-delivery-systems/multifamily-resident-programme-synthetic-v0.1.json"
       - "docs/research/home-delivery-systems/multifamily-adversarial-corpus-v0.1.json"
       - "docs/research/home-delivery-systems/multifamily-service-distribution.schema.json"
       - "docs/research/home-delivery-systems/multifamily-service-distribution-synthetic-v0.1.json"
