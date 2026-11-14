@@ -1409,6 +1409,31 @@ mod tests {
     }
 
     #[test]
+    fn rejects_claim_references_not_bound_by_run_manifest() {
+        let manifest = sample_manifest(
+            "candidate_change_for_review",
+            "change_candidate",
+            "cause_established",
+            "evidence-1",
+            "internal_analysis",
+            "training",
+        );
+        let bytes = serde_json::to_vec(&manifest).expect("manifest serializes");
+        let mut submitted = valid_result(&manifest, &bytes, "change_candidate");
+        submitted["runs"][0]["claims"][0]["source_refs"] = json!(["unbound-source"]);
+        let digest = run_payload_digest(&submitted["runs"][0]).expect("run hashes");
+        submitted["runs"][0]["replay"]["result_digest"] = json!(digest);
+        submitted["runs"][0]["replay"]["replay_digest"] = json!(digest);
+        let report = score(&manifest, &submitted, &bytes).expect("score is emitted");
+        assert_eq!(report["hard_gate_pass"], false);
+        assert!(report["hard_gate_violations"]
+            .as_array()
+            .expect("array")
+            .iter()
+            .any(|item| item["code"] == "complete_claim_level_provenance"));
+    }
+
+    #[test]
     fn rejects_duplicate_claim_ids() {
         let manifest = sample_manifest(
             "candidate_change_for_review",
