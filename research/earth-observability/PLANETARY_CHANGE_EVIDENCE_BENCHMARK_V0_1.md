@@ -147,7 +147,11 @@ Evaluate separately:
 - object/segment localization and boundary quality;
 - change magnitude and area-estimation bias;
 - earliest/latest plausible event interval and detection delay;
+- nominal revisit versus actual and quality-qualified usable-observation cadence;
+- time-to-first-qualified observation and time-to-first-actionable claim;
 - abstention and unresolved/insufficient-observation outcomes.
+
+The effective revisit is the interval between usable, target-relevant observations, not the satellite's advertised orbital repeat cycle. See [#804 — EO-USABLE-CADENCE-001](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/804) for interval-censored event-time and quality-conditioned cadence qualification.
 
 For each class, define the relevant minimum mapping unit, spatial tolerance, temporal window and consequence of omission/commission before evaluating.
 
@@ -216,6 +220,12 @@ Measure end-to-end time and cost to produce a reviewable claim, including source
 
 The benchmark is not complete when a model emits a map. It is complete only when the claim can be inspected, challenged, reproduced and compared with later evidence.
 
+### EO-G — Temporal observability and interval-censored event time
+
+Use actual usable observations, not nominal orbital cadence, to measure change-time resolution and actionable latency. Preserve the last qualified no-change observation, first qualified positive observation, intervening unusable acquisitions and resulting event-time interval. Score interval coverage, interval width/sharpness, unresolved fraction, time-to-first-qualified claim and delay under weather, quality, sensor and rights outages. A change that occurs and reverses between usable observations must remain a possible missed event, not be relabelled no-change.
+
+Compose with [#804 — EO-USABLE-CADENCE-001](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/804), which owns the irregular/censored observation timeline corpus and equal-budget cadence-policy tournament.
+
 ## 6. Baselines and industry comparison
 
 Reproduce relevant baselines on identical source versions, spatial/temporal splits, labels, compute budgets and scoring code.
@@ -235,7 +245,9 @@ Do not assume a larger or newer foundation model is automatically better. Recent
 
 - The **FAIR-EO** 2026 preprint compares ten representative architectures over ten heterogeneous change-detection datasets under a common protocol and measures inference efficiency as well as predictive performance. It reports that optimized Siamese U-Nets can beat more complex models when efficiency is included, and that pretraining can help without additional inference cost.
 - **EarthShift** evaluates eight geospatial foundation models over eleven tasks and five realistic distribution shifts. Its reported results show roughly 20% out-of-distribution degradation; its paired geography/time/sensor/source splits are directly relevant to deployment robustness.
-- A 2026 calibration study evaluates sixteen frozen encoders across classification and segmentation tasks and reports overconfidence under corruption/shift. Calibration and abstention methods do not automatically solve confidently wrong predictions.
+- A 2026 calibration study evaluates sixteen frozen encoders across classification and segmentation tasks and reports overconfidence under corruption/shift. Temperature scaling and deep ensembles did not arrest the degradation; a Gaussian-process probe improved ECE under severe cloud but worsened clean-condition ECE, and confidence-based abstention could not reliably defer confidently wrong predictions. Calibration and abstention methods are therefore necessary diagnostics, not a complete safety case.
+- **CrossCD-Eval** (October 2026) compares five recent change-detection architectures across CLCD, HRSCD and LEVIR-CD under in-domain, cross-domain and few-shot adaptation. Its domain-aware feature-normalization results are a useful comparator for adaptation, including repeated 10-shot draws; Sol-Atlas should test this against frozen, leakage-resistant geographic/time/sensor holdouts rather than assume test-time feature alignment is always admissible.
+- A 2026 remote-sensing change-detection meta-analysis reports high scores on popular datasets but also performance saturation and diminishing returns from parameter scaling. Treat LEVIR-CD/WHU-CD leaderboards as narrow task references, not proof of field transfer.
 - **VHR-Bench** (November 2026 preprint) tests ten very-high-resolution datasets at 1.5 m GSD or finer and twelve encoders. Its reported results show that relative performance depends on label fraction and pretraining regime; Sentinel-scale pretraining alone transfers least well under RGB input in its VHR setting.
 - **GeoAnalystBench** provides 50 expert-validated geoprocessing workflow/code-generation tasks. It is a useful static workflow comparator, but it does not by itself establish that a geospatial claim is true.
 - **GeoAgentBench** (published online October 1, 2026) evaluates dynamic GIS-agent execution with 117 atomic tools and 53 tasks across six GIS domains. It is useful for parameter selection, runtime recovery and tool-chain correctness; its execution score still needs to be paired with independent source/label validation.
@@ -255,7 +267,7 @@ The strategic objective is not to beat all of these platforms at catalog size, c
 
 A Planet Labs comparison should separate product capability from independent model qualification. Planet's November 5, 2026 Planet AI application emphasizes natural-language discovery over its imagery archive, temporal exploration, agent-assisted analysis and scheduled reporting. This is a useful discovery/workflow reference, not an independent geospatial truth benchmark.
 
-**Planet AI terms boundary:** the Planet AI terms effective November 5, 2026 prohibit using its Licensed Materials or Derivative Products to develop, train, fine-tune, validate or benchmark AI/ML systems. The default Enterprise-use category also restricts external publication/distribution of outputs. Do not feed Planet AI outputs into Luminous training, validation or benchmark corpora. Planet's separate Data, Catalog, Orders, Subscriptions and Basemaps APIs are different products and require review of the exact applicable contract and data rights before integration.
+**Planet AI terms boundary:** the Planet AI terms published and effective November 5, 2026 prohibit using Planet AI Licensed Materials (the service, Planet Content and Outputs) or Derivative Products to develop, train, fine-tune, validate, benchmark or otherwise improve AI/ML systems or competing products. Enterprise users are limited to internal, noncommercial business use and may not externally publish or distribute those materials/derivations. Do not feed Planet AI Licensed Materials, Outputs or Derivative Products into Luminous training, validation or benchmark corpora. Planet AI's defined Third-Party Content (for example, Landsat or Sentinel surfaced through the app) is subject to separate source terms; do not assume the Planet AI restrictions either replace or grant rights to that underlying data. Planet's separate Data, Catalog, Orders, Subscriptions and Basemaps products also require review of the exact applicable contract and data rights before integration.
 
 ## 7. Initial data strategy
 
@@ -264,7 +276,7 @@ A Planet Labs comparison should separate product capability from independent mod
 Start with data whose exact product and use rights can be established without a commercial agreement:
 
 - **USGS Landsat Collection 2:** the USGS states that its no-cost open-data policy remains in place and Landsat products are public domain; it requests source acknowledgement. Product-level processing, metadata and QA must still be preserved.
-- **Copernicus Sentinel-2:** the Copernicus Data Space states Sentinel data are available free of charge and supports optical land monitoring. Sentinel-2 has thirteen spectral bands at 10 m, 20 m and 60 m resolutions; the two-satellite mission design provides a nominal five-day revisit at the equator. Confirm the exact data legal notice and the selected product/collection before use.
+- **Copernicus Sentinel-2:** the Copernicus Data Space states Sentinel data are available free of charge and supports optical land monitoring. Sentinel-2 has thirteen spectral bands at 10 m, 20 m and 60 m resolutions; the two-satellite constellation has a nominal five-day revisit at the equator. Apply the separate Sentinel Data Legal Notice to the imagery; portal documentation and other portal content have their own terms. A five-day nominal revisit is not a five-day usable revisit at every target.
 - Public benchmark datasets such as EarthShift / FAIR-EO where the dataset licences, label provenance and permitted uses are documented.
 
 Do not assume that an open imagery licence grants rights to unrelated labels, web-portal material, uploaded user data or sensitive derived geometries. Maintain separate permissions for access, processing, model training, evaluation, public display and redistribution.
@@ -366,8 +378,9 @@ Sensitive locations, community-held data, private land information and infrastru
 5. Sharma et al. (2026), [When GeoFMs Meet VHR: Benchmarking Foundation Models on Very High Resolution Earth Observation Imagery](https://arxiv.org/abs/2611.08003).
 6. [GeoAnalystBench](https://doi.org/10.1111/tgis.70135), first published 2025-10-13; [GeoAgentBench](https://doi.org/10.1080/10095020.2026.2736957), published online 2026-10-01; and [GISAgentBench](https://arxiv.org/abs/2608.01645), August 2026 preprint.
 7. USGS, [Landsat Collection 2](https://www.usgs.gov/landsat-missions/landsat-collection-2) and [Landsat public-domain status](https://www.usgs.gov/faqs/are-landsat-data-cloud-still-considered-be-within-public-domain).
-8. Copernicus Data Space, [Sentinel-2 mission and products](https://dataspace.copernicus.eu/data-collections/copernicus-sentinel-missions/sentinel-2) and [terms and conditions](https://dataspace.copernicus.eu/terms-and-conditions).
-9. Planet, [Introducing the Planet AI App: Search. Explore. Act.](https://www.planet.com/pulse/introducing-the-planet-ai-app-search-explore-act/) (2026-11-05), [Planet AI Terms of Use](https://ai.planet.com/terms-of-use/) (effective 2026-11-05) and [PlanetScope product documentation](https://docs.planet.com/data/imagery/planetscope/).
+8. Copernicus Data Space, [Sentinel-2 mission and products](https://dataspace.copernicus.eu/data-collections/copernicus-sentinel-missions/sentinel-2) and [terms and conditions](https://dataspace.copernicus.eu/terms-and-conditions); ESA, [Sentinel-2 facts and figures](https://www.esa.int/Applications/Observing_the_Earth/Copernicus/Sentinel-2/Facts_and_figures).
+9. Planet, [Introducing the Planet AI App: Search. Explore. Act.](https://www.planet.com/pulse/introducing-the-planet-ai-app-search-explore-act/) (2026-11-05), [Planet AI Terms of Use](https://ai.planet.com/terms-of-use/) (effective 2026-11-05; user-category terms and Third-Party Content distinctions) and [PlanetScope product documentation](https://docs.planet.com/data/imagery/planetscope/).
 10. [Google Earth Engine](https://developers.google.com/earth-engine/), [Microsoft Planetary Computer](https://planetarycomputer.microsoft.com/docs/), [Esri November 2026 imagery update](https://www.esri.com/arcgis-blog/products/arcgis-online/imagery/whats-new-in-imagery-in-arcgis-online-november-2026), and [Airbus Earth-observation imagery / OneAtlas](https://www.airbus.com/en/products-services/space/earth-observation/satellite-imagery).
-11. Mawasha (2022), [Detecting land use and land cover change for the past 28-years using multi-temporal Landsat satellite images in the Jukskei River catchment, Gauteng, South Africa](https://sajg.org.za/index.php/sajg/article/view/823/0).
-12. [South African National Land Cover 2020 catalogue record](https://saeoss.sansa.org.za/dataset/?organization=dffe&tags=Boundaries&tags=Climatology-Meteorology-Atmosphere&tags=SPOT&tags=land+cover&tags=land+use) and [SANLC 2020 accuracy summary](https://www.statssa.gov.za/documents/NCA2022/Computer_Automated_Land_Cover_Zak_Oumar.pdf).
+11. Al Aghbari et al. (2026), [Beyond Accuracy: Trustworthiness and Assurance for Multimodal Foundation Models in Earth Observation](https://doi.org/10.3389/frsen.2026.1986933); Elkholy et al. (2026), [CrossCD-Eval](https://doi.org/10.1038/s41598-026-70914-7); and Kola et al. (2026), [From architectural evolution to foundation driven paradigms](https://doi.org/10.1186/s43067-026-00367-5).
+12. Mawasha (2022), [Detecting land use and land cover change for the past 28-years using multi-temporal Landsat satellite images in the Jukskei River catchment, Gauteng, South Africa](https://sajg.org.za/index.php/sajg/article/view/823/0).
+13. [South African National Land Cover 2020 catalogue record](https://saeoss.sansa.org.za/dataset/?organization=dffe&tags=Boundaries&tags=Climatology-Meteorology-Atmosphere&tags=SPOT&tags=land+cover&tags=land+use) and [SANLC 2020 accuracy summary](https://www.statssa.gov.za/documents/NCA2022/Computer_Automated_Land_Cover_Zak_Oumar.pdf).
