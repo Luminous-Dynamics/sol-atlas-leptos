@@ -1,0 +1,305 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Resident spatial intent graph v0.1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "study_id",
+    "maturity",
+    "execution_status",
+    "brief_id",
+    "activity_nodes",
+    "candidate_graphs",
+    "comparison_policy",
+    "claim_ceiling"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "0.1.0"
+    },
+    "study_id": {
+      "const": "HOME-SPATIAL-INTENT-GRAPH-001"
+    },
+    "maturity": {
+      "const": "SYNTHETIC_SYMBOLIC_GRAPH_ONLY"
+    },
+    "execution_status": {
+      "const": "NOT_GEOMETRICALLY_VERIFIED"
+    },
+    "brief_id": {
+      "type": "string"
+    },
+    "activity_nodes": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": [
+          "activity_id",
+          "dedicated_space_required",
+          "frequency",
+          "privacy_requirement",
+          "description"
+        ],
+        "properties": {
+          "activity_id": {
+            "type": "string"
+          },
+          "dedicated_space_required": {
+            "type": "boolean"
+          },
+          "frequency": {
+            "type": "string"
+          },
+          "privacy_requirement": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "candidate_graphs": {
+      "type": "array",
+      "minItems": 2,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "candidate_id",
+          "archetype_id",
+          "topology_state",
+          "internal_floor_area_m2",
+          "outdoor_area_m2",
+          "space_nodes",
+          "activity_assignments",
+          "relationships",
+          "access_routes",
+          "hard_constraint_bindings",
+          "verification_state"
+        ],
+        "properties": {
+          "candidate_id": {
+            "type": "string"
+          },
+          "archetype_id": {
+            "type": "string"
+          },
+          "topology_state": {
+            "const": "SYMBOLIC_TOPOLOGY_NOT_GEOMETRY"
+          },
+          "internal_floor_area_m2": {
+            "type": "number",
+            "exclusiveMinimum": 0
+          },
+          "outdoor_area_m2": {
+            "type": "number",
+            "minimum": 0
+          },
+          "space_nodes": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "object",
+              "required": [
+                "space_id",
+                "space_type",
+                "functions",
+                "area_m2",
+                "privacy_zone",
+                "capacity"
+              ],
+              "properties": {
+                "space_id": {
+                  "type": "string"
+                },
+                "space_type": {
+                  "enum": [
+                    "INDOOR",
+                    "OUTDOOR"
+                  ]
+                },
+                "functions": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "area_m2": {
+                  "type": "number",
+                  "minimum": 0
+                },
+                "privacy_zone": {
+                  "enum": [
+                    "PUBLIC",
+                    "SEMI_PRIVATE",
+                    "PRIVATE",
+                    "SERVICE"
+                  ]
+                },
+                "capacity": {
+                  "type": "integer",
+                  "minimum": 0
+                }
+              }
+            }
+          },
+          "activity_assignments": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "activity_id",
+                "space_id"
+              ],
+              "properties": {
+                "activity_id": {
+                  "type": "string"
+                },
+                "space_id": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "relationships": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "from_activity_id",
+                "to_activity_id",
+                "from_space_id",
+                "to_space_id",
+                "relationship",
+                "verification_state",
+                "evidence_ref"
+              ],
+              "properties": {
+                "from_activity_id": {
+                  "type": "string"
+                },
+                "to_activity_id": {
+                  "type": "string"
+                },
+                "from_space_id": {
+                  "type": "string"
+                },
+                "to_space_id": {
+                  "type": "string"
+                },
+                "relationship": {
+                  "enum": [
+                    "ADJACENT",
+                    "NEAR",
+                    "SEPARATE",
+                    "DIRECT_ACCESS",
+                    "ACOUSTICALLY_SEPARATE",
+                    "VISUALLY_PRIVATE",
+                    "STEP_FREE_ROUTE",
+                    "SHARED_SERVICE",
+                    "OUTDOOR_CONNECTION",
+                    "NO_REQUIREMENT"
+                  ]
+                },
+                "verification_state": {
+                  "const": "UNKNOWN"
+                },
+                "evidence_ref": {
+                  "type": "null"
+                }
+              }
+            }
+          },
+          "access_routes": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "route_id",
+                "from_space_id",
+                "to_space_id",
+                "step_free_required",
+                "verification_state",
+                "evidence_ref"
+              ],
+              "properties": {
+                "route_id": {
+                  "type": "string"
+                },
+                "from_space_id": {
+                  "type": "string"
+                },
+                "to_space_id": {
+                  "type": "string"
+                },
+                "step_free_required": {
+                  "type": "boolean"
+                },
+                "verification_state": {
+                  "const": "UNKNOWN"
+                },
+                "evidence_ref": {
+                  "type": "null"
+                }
+              }
+            }
+          },
+          "hard_constraint_bindings": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "constraint_id",
+                "represented",
+                "verification_state",
+                "evidence_ref"
+              ],
+              "properties": {
+                "constraint_id": {
+                  "type": "string"
+                },
+                "represented": {
+                  "const": true
+                },
+                "verification_state": {
+                  "const": "UNKNOWN"
+                },
+                "evidence_ref": {
+                  "type": "null"
+                }
+              }
+            }
+          },
+          "verification_state": {
+            "const": "SYMBOLIC_STRUCTURE_ONLY"
+          }
+        }
+      }
+    },
+    "comparison_policy": {
+      "type": "object",
+      "required": [
+        "ranking_state",
+        "scalar_score",
+        "resident_choice_required"
+      ],
+      "properties": {
+        "ranking_state": {
+          "const": "UNRANKED"
+        },
+        "scalar_score": {
+          "type": "null"
+        },
+        "resident_choice_required": {
+          "const": true
+        }
+      }
+    },
+    "claim_ceiling": {
+      "type": "string"
+    }
+  }
+}
