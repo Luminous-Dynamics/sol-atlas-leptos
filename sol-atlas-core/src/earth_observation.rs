@@ -1362,7 +1362,33 @@ mod tests {
                 "fixture-ontology-v1",
             ).unwrap()
         );
-        assert!(EvidenceBundle::new(vec![obs_a, obs_b], vec![wrong_target])
+        assert!(EvidenceBundle::new(vec![obs_a.clone(), obs_b.clone()], vec![wrong_target])
+            .unwrap_err().contains("scope"));
+
+        let mut wrong_support = claim_with_bridge.clone();
+        wrong_support.cross_system_comparability_receipt = Some(
+            CrossSystemComparabilityReceiptRef::new(
+                digest(b'f'),
+                vec!["obs-a".into(), "obs-b".into()],
+                "other-support",
+                "vegetation-loss",
+                "fixture-ontology-v1",
+            ).unwrap()
+        );
+        assert!(EvidenceBundle::new(vec![obs_a.clone(), obs_b.clone()], vec![wrong_support])
+            .unwrap_err().contains("scope"));
+
+        let mut wrong_ontology = claim_with_bridge;
+        wrong_ontology.cross_system_comparability_receipt = Some(
+            CrossSystemComparabilityReceiptRef::new(
+                digest(b'f'),
+                vec!["obs-a".into(), "obs-b".into()],
+                "support-a",
+                "vegetation-loss",
+                "fixture-ontology-v2",
+            ).unwrap()
+        );
+        assert!(EvidenceBundle::new(vec![obs_a, obs_b], vec![wrong_ontology])
             .unwrap_err().contains("scope"));
     }
 
@@ -1677,6 +1703,10 @@ mod tests {
         assert_eq!(decoded.observations()[0].instrument_id(), Some("fixture-instrument"));
         assert_eq!(decoded.observations()[0].collection_id(), Some("fixture-collection"));
         assert_eq!(decoded.observations()[0].processing_baseline(), Some("fixture-baseline"));
+        assert_eq!(
+            decoded.observations()[0].measurement_profile_sha256(),
+            Some("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")
+        );
 
         let mut value: serde_json::Value = serde_json::from_str(&json).unwrap();
         value["observations"][0]["quality"] = serde_json::json!("cloud_contaminated");
