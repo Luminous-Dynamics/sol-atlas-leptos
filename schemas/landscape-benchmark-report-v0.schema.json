@@ -1,0 +1,299 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://luminousdynamics.io/schemas/landscape-benchmark-report-v0.schema.json",
+  "title": "Luminous Landscape Native Benchmark Report v0",
+  "description": "Native document-kernel timings only; not browser rendering or environmental outcomes.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "report_schema",
+    "schema_uri",
+    "benchmark_kind",
+    "manifest_version",
+    "created_at_unix_s",
+    "git_commit_sha",
+    "configuration",
+    "environment",
+    "results",
+    "interpretation_limits"
+  ],
+  "properties": {
+    "report_schema": {
+      "const": "luminous.landscape-benchmark-report-v0"
+    },
+    "schema_uri": {
+      "const": "https://luminousdynamics.io/schemas/landscape-benchmark-report-v0.schema.json"
+    },
+    "benchmark_kind": {
+      "const": "native-landscape-document-kernel"
+    },
+    "manifest_version": {
+      "const": "landscape-editor-benchmark-v0"
+    },
+    "created_at_unix_s": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "git_commit_sha": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "pattern": "^[0-9a-f]{40}$"
+    },
+    "configuration": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "feature_counts",
+        "samples_per_count",
+        "seed",
+        "coordinate_frame"
+      ],
+      "properties": {
+        "feature_counts": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 100000
+          }
+        },
+        "samples_per_count": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 1000
+        },
+        "seed": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 4294967295
+        },
+        "coordinate_frame": {
+          "const": "LOCAL_CARTESIAN_DRAWING_UNITS"
+        }
+      }
+    },
+    "environment": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "os",
+        "architecture",
+        "build_profile",
+        "rustc_version",
+        "machine_label",
+        "cpu_model",
+        "ram_bytes",
+        "gpu_label",
+        "gpu_used_by_this_benchmark"
+      ],
+      "properties": {
+        "os": {
+          "type": "string",
+          "minLength": 1
+        },
+        "architecture": {
+          "type": "string",
+          "minLength": 1
+        },
+        "build_profile": {
+          "enum": [
+            "debug",
+            "release"
+          ]
+        },
+        "rustc_version": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "machine_label": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "cpu_model": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "ram_bytes": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "gpu_label": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "gpu_used_by_this_benchmark": {
+          "const": false
+        }
+      }
+    },
+    "results": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "feature_count",
+          "sample_count",
+          "snapshot_bytes",
+          "normalized_snapshot_sha256",
+          "latency_ns",
+          "raw_samples"
+        ],
+        "properties": {
+          "feature_count": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 100000
+          },
+          "sample_count": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 1000
+          },
+          "snapshot_bytes": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "normalized_snapshot_sha256": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          },
+          "latency_ns": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "generation",
+              "validation",
+              "serialization",
+              "sha256",
+              "total_kernel"
+            ],
+            "properties": {
+              "generation": {
+                "$ref": "#/$defs/latencySummary"
+              },
+              "validation": {
+                "$ref": "#/$defs/latencySummary"
+              },
+              "serialization": {
+                "$ref": "#/$defs/latencySummary"
+              },
+              "sha256": {
+                "$ref": "#/$defs/latencySummary"
+              },
+              "total_kernel": {
+                "$ref": "#/$defs/latencySummary"
+              }
+            }
+          },
+          "raw_samples": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "sample_index",
+                "generation_ns",
+                "validation_ns",
+                "serialization_ns",
+                "sha256_ns",
+                "total_kernel_ns",
+                "snapshot_bytes",
+                "snapshot_sha256"
+              ],
+              "properties": {
+                "sample_index": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "generation_ns": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "validation_ns": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "serialization_ns": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "sha256_ns": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "total_kernel_ns": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "snapshot_bytes": {
+                  "type": "integer",
+                  "minimum": 1
+                },
+                "snapshot_sha256": {
+                  "type": "string",
+                  "pattern": "^[0-9a-f]{64}$"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "interpretation_limits": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    }
+  },
+  "$defs": {
+    "latencySummary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "min_ns",
+        "p50_ns",
+        "p95_ns",
+        "max_ns"
+      ],
+      "properties": {
+        "min_ns": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "p50_ns": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "p95_ns": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "max_ns": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    }
+  }
+}

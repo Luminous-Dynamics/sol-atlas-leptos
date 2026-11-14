@@ -1,0 +1,434 @@
+{
+  "registry_version": "landscape-performance-registry-v0",
+  "status": "specification-only-no-field-values",
+  "principles": [
+    "No metric value without a declared unit, method, scale, input digest, source or model version, evidence class, and uncertainty statement.",
+    "Missing or inapplicable inputs yield unknown/not-computable, never zero or favorable.",
+    "Targets and weighting belong to explicit project/participant/authority decisions, not hidden global defaults.",
+    "Distinct outcomes remain a vector of evidence; no universal sustainability score is emitted.",
+    "Schematic symbol anchors are not footprints, species inventories, surveyed geometry, or simulation-ready domains."
+  ],
+  "evidence_classes": [
+    "observed",
+    "curated",
+    "synthetic",
+    "modelled",
+    "assumed",
+    "missing"
+  ],
+  "metrics": [
+    {
+      "id": "heat.shade_fraction_at_declared_time",
+      "version": 1,
+      "family": "heat-and-comfort",
+      "label": "Shade fraction at a declared time",
+      "unit": "percent_of_area",
+      "semantic_type": "spatial_ratio",
+      "formula": "100 * area(union_of_valid_projected_shadow_polygons intersect area_of_interest) / area_of_interest",
+      "required_inputs": [
+        "georeferenced area of interest with area-preserving CRS or qualified area method",
+        "terrain and obstacle geometry with source and resolution",
+        "solar position inputs: latitude/longitude, date, local time and time zone",
+        "declared shadow algorithm/model version"
+      ],
+      "valid_scales": [
+        "site-parcel",
+        "district"
+      ],
+      "v0_status": "not-computable",
+      "failure_modes": [
+        "local schematic frame has no geographic location",
+        "missing terrain/building/canopy geometry",
+        "solar/timezone metadata absent",
+        "shadow model outside validity envelope"
+      ],
+      "uncertainty_requirements": [
+        "input geometry accuracy",
+        "terrain resolution",
+        "time/date uncertainty",
+        "model validation range"
+      ],
+      "target_policy": "set by project objectives and required time windows; never silently assume noon represents all heat exposure",
+      "external_references": [
+        "https://www.landscapeperformance.org/guide-to-evaluate-performance"
+      ],
+      "candidate_sources": [
+        {
+          "source_id": "terrain.copernicus-dem-glo30",
+          "role": "terrain-context",
+          "limitation": "A 30 m digital surface model is regional terrain context, not a site-grade terrain or building/canopy model; exact tile CRS, vertical datum, quality and terms must be verified."
+        },
+        {
+          "source_id": "imagery.sentinel-2-l2a",
+          "role": "land-cover-context",
+          "limitation": "10–60 m bands and seasonal/cloud effects do not provide accurate individual-tree crowns, obstacle heights or surveyed shadows."
+        },
+        {
+          "source_id": "ngi.cdngi-topo-orthophoto",
+          "role": "local-map-candidate",
+          "limitation": "Exact orthophoto/topographic product, acquisition date, CRS, map scale and redistribution rights must be checked; it is not presumed to be a survey."
+        }
+      ],
+      "unprovided_inputs": [
+        "Georeferenced area-of-interest geometry and qualified area method",
+        "Current surveyed or validated 3D obstacles/canopy geometry",
+        "Latitude/longitude, date, local time and time-zone inputs",
+        "Validated shadow algorithm and independent reference checks"
+      ]
+    },
+    {
+      "id": "water.event_runoff_volume",
+      "version": 1,
+      "family": "water",
+      "label": "Runoff volume for a named rainfall event",
+      "unit": "m3_per_event",
+      "semantic_type": "physical_quantity",
+      "formula": "integral(outflow_discharge(t) dt) over the explicitly named event and model boundary",
+      "required_inputs": [
+        "event rainfall hyetograph or calibrated design storm and provenance",
+        "catchment boundary and area",
+        "surface and soil/infiltration properties",
+        "drainage connectivity and initial conditions",
+        "versioned hydrological model and calibration/validation record"
+      ],
+      "valid_scales": [
+        "site-parcel",
+        "district",
+        "watershed"
+      ],
+      "v0_status": "not-computable",
+      "failure_modes": [
+        "catchment boundaries invented from a schematic canvas",
+        "missing rainfall or soils",
+        "unvalidated solver or missing calibration",
+        "unknown downstream boundary conditions"
+      ],
+      "uncertainty_requirements": [
+        "rainfall uncertainty",
+        "parameter ranges",
+        "model residuals",
+        "spatial resolution and boundary assumptions"
+      ],
+      "target_policy": "compare named baseline and proposal under identical event inputs; do not infer runoff reduction from green-colored drawing symbols",
+      "external_references": [
+        "https://www.landscapeperformance.org/guide-to-evaluate-performance"
+      ],
+      "candidate_sources": [
+        {
+          "source_id": "climate.chirps-v3-daily-reanalysis",
+          "role": "rainfall-context",
+          "limitation": "Daily 0.05-degree rainfall context is not a design-storm hyetograph, local gauge record or calibrated runoff boundary condition."
+        },
+        {
+          "source_id": "terrain.copernicus-dem-glo30",
+          "role": "terrain-context",
+          "limitation": "A 30 m surface model may include buildings and vegetation; it cannot establish small-site drainage paths or invert elevations."
+        },
+        {
+          "source_id": "ngi.cdngi-topo-orthophoto",
+          "role": "topographic-context",
+          "limitation": "Exact product scale, date, contour/elevation availability, vertical reference, licence and accuracy must be checked."
+        }
+      ],
+      "unprovided_inputs": [
+        "Site catchment and drainage network geometry",
+        "Soil/infiltration and imperviousness measurements",
+        "Local rainfall intensity-duration-frequency data or validated event hyetograph",
+        "Initial conditions, calibrated model and independent discharge/volume reference"
+      ]
+    },
+    {
+      "id": "ecology.canopy_cover_fraction",
+      "version": 1,
+      "family": "ecology",
+      "label": "Tree canopy cover fraction",
+      "unit": "percent_of_area",
+      "semantic_type": "spatial_ratio",
+      "formula": "100 * area(union_of_valid_tree_crown_footprints intersect area_of_interest) / area_of_interest",
+      "required_inputs": [
+        "area of interest with valid spatial frame",
+        "observed crown polygons or species/age-specific validated crown models",
+        "tree establishment and temporal assumptions",
+        "source, date, resolution and overlap handling"
+      ],
+      "valid_scales": [
+        "site-parcel",
+        "district",
+        "watershed",
+        "bioregion"
+      ],
+      "v0_status": "not-computable",
+      "failure_modes": [
+        "using rendered tree glyph extents as crown geometry",
+        "overlap double-counted",
+        "future crown assumed without species and age evidence",
+        "mixed-resolution data presented as parcel precision"
+      ],
+      "uncertainty_requirements": [
+        "crown geometry error",
+        "growth scenario range",
+        "imagery/source date and resolution"
+      ],
+      "target_policy": "state target and time horizon separately from existing observed canopy",
+      "external_references": [
+        "https://www.landscapeperformance.org/guide-to-evaluate-performance"
+      ],
+      "candidate_sources": [
+        {
+          "source_id": "imagery.sentinel-2-l2a",
+          "role": "vegetation-context",
+          "limitation": "Multispectral 10–60 m imagery supports broader vegetation screening but is not itself an individual-tree crown footprint inventory."
+        },
+        {
+          "source_id": "ngi.cdngi-topo-orthophoto",
+          "role": "aerial-image-candidate",
+          "limitation": "Exact orthophoto product/resolution/date and rights must be verified; crown delineation and field validation are still required."
+        }
+      ],
+      "unprovided_inputs": [
+        "Valid area of interest and spatial frame",
+        "Observed tree-crown polygons or validated species/age-specific crown models",
+        "Tree establishment date and growth assumptions",
+        "Overlap union method, source dates and independent crown reference"
+      ]
+    },
+    {
+      "id": "ecology.species_evidence_completeness",
+      "version": 1,
+      "family": "ecology",
+      "label": "Planting elements with verified species evidence",
+      "unit": "percent_of_species_identified_planting_elements",
+      "semantic_type": "evidence_completeness_ratio",
+      "formula": "100 * planting elements with species identity plus qualifying source/method evidence / planting elements whose species identity is required and known",
+      "required_inputs": [
+        "species-level planting schedule",
+        "taxonomy/reference list and version",
+        "source for origin/ecoregion suitability claim",
+        "declared treatment of unknown and not-applicable cases"
+      ],
+      "valid_scales": [
+        "site-parcel",
+        "district",
+        "watershed",
+        "bioregion"
+      ],
+      "v0_status": "not-computable",
+      "failure_modes": [
+        "counting decorative planting-bed symbols as species",
+        "assuming native status from a common name alone",
+        "unknown plants silently removed from denominator"
+      ],
+      "uncertainty_requirements": [
+        "taxonomic confidence",
+        "source coverage and locality",
+        "ecoregion/reference version"
+      ],
+      "target_policy": "species appropriateness and biodiversity effects require separate metrics; completeness is not a biodiversity gain score",
+      "external_references": [
+        "https://doi.org/10.1016/j.landurbplan.2024.105215"
+      ],
+      "candidate_sources": [
+        {
+          "source_id": "sanbi.gauteng-cplan-v4",
+          "role": "ecological-constraint-context",
+          "limitation": "Regional CBA/ESA planning classes are not a taxonomic species inventory or proof of native status for a planting list."
+        },
+        {
+          "source_id": "sanbi.national-biodiversity-priority-areas-2023",
+          "role": "biodiversity-priority-context",
+          "limitation": "Priority-area layers guide screening; they do not identify the species in the authored planting schedule."
+        }
+      ],
+      "unprovided_inputs": [
+        "Species-level planting schedule",
+        "Versioned taxonomic reference",
+        "Local flora/native-origin source at the target ecoregion",
+        "Field or curator verification and explicit treatment of unknown species"
+      ]
+    },
+    {
+      "id": "access.maximum_path_grade",
+      "version": 1,
+      "family": "access-and-equity",
+      "label": "Maximum longitudinal grade along a declared accessible route",
+      "unit": "percent_grade",
+      "semantic_type": "maximum_over_geometry",
+      "formula": "100 * max(abs(change_in_elevation) / horizontal_run) across validated path segments",
+      "required_inputs": [
+        "path centerline geometry, not a rendered stroke",
+        "elevation profile with vertical/horizontal units and accuracy",
+        "declared jurisdiction/accessibility standard version",
+        "route continuity and surface assumptions"
+      ],
+      "valid_scales": [
+        "site-parcel",
+        "district"
+      ],
+      "v0_status": "not-computable",
+      "failure_modes": [
+        "symbol stroke interpreted as route centerline",
+        "vertical datum missing",
+        "segment too short for stable grade estimation",
+        "applicable standard not declared"
+      ],
+      "uncertainty_requirements": [
+        "elevation error",
+        "survey density",
+        "segment length and calculation method"
+      ],
+      "target_policy": "threshold is jurisdiction/project-specific; do not claim compliance without the applicable standard and complete required checks",
+      "external_references": [],
+      "candidate_sources": [
+        {
+          "source_id": "base.osm-vector",
+          "role": "route-context",
+          "limitation": "OSM road/trail geometry may be incomplete or stale and does not establish route grade, surface condition or accessibility compliance."
+        },
+        {
+          "source_id": "ngi.cdngi-topo-orthophoto",
+          "role": "topographic-context",
+          "limitation": "Product scale/elevation data and rights are unqualified until the exact map or orthophoto asset and metadata are selected."
+        }
+      ],
+      "unprovided_inputs": [
+        "Designed or surveyed path centerline (not rendered stroke width)",
+        "Elevation profile with vertical/horizontal units and accuracy",
+        "Applicable jurisdictional accessibility standard and version",
+        "Surface, route continuity and landing/cross-slope checks required by that standard"
+      ]
+    },
+    {
+      "id": "materials.embodied_carbon_total",
+      "version": 1,
+      "family": "materials-and-lifecycle",
+      "label": "Embodied carbon total for a declared scope",
+      "unit": "kgCO2e",
+      "semantic_type": "lifecycle_inventory_sum",
+      "formula": "sum(material_quantity_i * declared_emission_factor_i) for all in-scope material items, lifecycle stages, and system boundaries",
+      "required_inputs": [
+        "quantity take-off with units and uncertainty",
+        "material/product-specific EPD or declared LCI factor",
+        "factor dataset/version, geography and declared lifecycle stages",
+        "scope boundary and biogenic-carbon treatment"
+      ],
+      "valid_scales": [
+        "site-parcel",
+        "district",
+        "watershed",
+        "bioregion"
+      ],
+      "v0_status": "not-computable",
+      "failure_modes": [
+        "inferring quantities from schematic icons",
+        "double-counting reuse/recycled flows",
+        "mixing incompatible lifecycle boundaries or factor years",
+        "treating missing EPD as zero carbon"
+      ],
+      "uncertainty_requirements": [
+        "quantity ranges",
+        "factor variability",
+        "substitution assumptions",
+        "system-boundary sensitivity"
+      ],
+      "target_policy": "report range and per-scope breakdown; compare alternatives under the same boundary and dataset versions",
+      "external_references": [
+        "https://app-help.vectorworks.net/2026/eng/VW2026_Guide/Sustainability/The_Sustainability_Dashboard.htm"
+      ],
+      "candidate_sources": [],
+      "unprovided_inputs": [
+        "Versioned material/product EPD or declared lifecycle-inventory factors",
+        "Quantity take-off tied to real geometry and units",
+        "Geographic/year validity of emission factors",
+        "Explicit lifecycle stages, reuse/substitution and biogenic-carbon accounting boundaries"
+      ]
+    },
+    {
+      "id": "stewardship.maintenance_assignment_coverage",
+      "version": 1,
+      "family": "resilience-and-stewardship",
+      "label": "Required maintenance obligations with an assigned responsible party and cadence",
+      "unit": "percent_of_defined_obligations",
+      "semantic_type": "governance_coverage_ratio",
+      "formula": "100 * obligations with an accepted responsible party, cadence, and review trigger / all obligations in the approved project maintenance plan",
+      "required_inputs": [
+        "versioned maintenance-plan obligation list",
+        "accepted role/authority or agreement reference",
+        "cadence and trigger definitions",
+        "consent/access policy for responsible-party records"
+      ],
+      "valid_scales": [
+        "site-parcel",
+        "district",
+        "watershed",
+        "bioregion"
+      ],
+      "v0_status": "requires-myclix-stewardship-contract",
+      "failure_modes": [
+        "assuming identity implies authority",
+        "counting an unaccepted assignment as complete",
+        "no expiry/review state",
+        "publishing private contact or land data by default"
+      ],
+      "uncertainty_requirements": [
+        "commitment status",
+        "verification date",
+        "known funding/resource gaps"
+      ],
+      "target_policy": "coverage does not prove maintenance execution or survival; report observed completion separately",
+      "external_references": [],
+      "candidate_sources": [],
+      "unprovided_inputs": [
+        "Versioned maintenance obligations and accepted assignments",
+        "Mycelix consent/role/authority record reference",
+        "Monitoring cadence, trigger and review/expiry policy",
+        "Privacy policy for people, land and sensitive ecology records"
+      ]
+    },
+    {
+      "id": "economics.lifecycle_cost_range",
+      "version": 1,
+      "family": "economics-and-community",
+      "label": "Lifecycle cost range over a declared analysis horizon",
+      "unit": "currency_in_declared_base_year",
+      "semantic_type": "range",
+      "formula": "Sum of capital, operations, maintenance, replacement, and end-of-life cashflows over a declared analysis horizon, with declared discount and scenario conventions.",
+      "required_inputs": [
+        "quantity take-off and rates with source date/geography",
+        "operations/maintenance schedule",
+        "replacement and end-of-life assumptions",
+        "analysis horizon, base year, inflation and discount conventions"
+      ],
+      "valid_scales": [
+        "site-parcel",
+        "district",
+        "watershed",
+        "bioregion"
+      ],
+      "v0_status": "not-computable",
+      "failure_modes": [
+        "icon counts used as bill of quantities",
+        "local and imported cost rates mixed without explanation",
+        "future costs expressed in inconsistent currency/base years",
+        "discount rate hidden"
+      ],
+      "uncertainty_requirements": [
+        "rate source variability",
+        "maintenance/replacement scenario ranges",
+        "discount and horizon sensitivity"
+      ],
+      "target_policy": "publish low/base/high range with assumptions; do not merge cost with ecology or equity into an opaque scalar",
+      "external_references": [
+        "https://www.landscapeperformance.org/guide-to-evaluate-performance"
+      ],
+      "candidate_sources": [],
+      "unprovided_inputs": [
+        "Geometric quantity take-off and local supplier/labour rates",
+        "Source geography, currency and price base year",
+        "Operations/maintenance/replacement schedule",
+        "Analysis horizon, inflation and discounting conventions"
+      ]
+    }
+  ],
+  "schema": "luminous.landscape-performance-registry.v0",
+  "schema_uri": "https://luminousdynamics.io/schemas/landscape-performance-registry-v0.schema.json"
+}
