@@ -230,6 +230,34 @@
         },
         "resident_programme_ref": null,
         "geometry_state": "synthetic"
+      },
+      {
+        "space_id": "COMMON-COURT-0",
+        "floor_id": "F0",
+        "space_kind": "courtyard",
+        "unit_id": null,
+        "footprint": {
+          "x_mm": 0,
+          "y_mm": 14000,
+          "width_mm": 4500,
+          "height_mm": 4000
+        },
+        "resident_programme_ref": null,
+        "geometry_state": "synthetic"
+      },
+      {
+        "space_id": "COMMON-TERRACE-1",
+        "floor_id": "F1",
+        "space_kind": "shared_amenity",
+        "unit_id": null,
+        "footprint": {
+          "x_mm": 0,
+          "y_mm": 14000,
+          "width_mm": 4500,
+          "height_mm": 4000
+        },
+        "resident_programme_ref": null,
+        "geometry_state": "synthetic"
       }
     ],
     "everyday_connections": [
@@ -371,6 +399,34 @@
           "coordinate_mm": 10000,
           "start_mm": 6000,
           "end_mm": 8000
+        }
+      },
+      {
+        "connection_id": "F0-STAIR-OPEN-SPACE",
+        "floor_id": "F0",
+        "from_space_id": "STAIR-0",
+        "to_space_id": "COMMON-COURT-0",
+        "connection_kind": "shared_amenity_access",
+        "state": "declared",
+        "portal": {
+          "orientation": "horizontal",
+          "coordinate_mm": 14000,
+          "start_mm": 500,
+          "end_mm": 1500
+        }
+      },
+      {
+        "connection_id": "F1-STAIR-OPEN-SPACE",
+        "floor_id": "F1",
+        "from_space_id": "STAIR-1",
+        "to_space_id": "COMMON-TERRACE-1",
+        "connection_kind": "shared_amenity_access",
+        "state": "declared",
+        "portal": {
+          "orientation": "horizontal",
+          "coordinate_mm": 14000,
+          "start_mm": 500,
+          "end_mm": 1500
         }
       }
     ],
@@ -715,5 +771,11 @@
       "scope": "No real site, professional design or measured building evidence is bound in this synthetic contract fixture."
     }
   ],
-  "claim_ceiling": "A passing contract/geometry check establishes only that declared synthetic unit/floor/space identities, floor-local rectangles and everyday/service connectivity satisfy the checked data contract. It does not establish design quality, resident suitability, accessibility, fire/egress, structure, services capacity, daylight, privacy, acoustics, thermal performance, affordability, planning approval, buildability or occupancy."
+  "claim_ceiling": "A passing contract/geometry check establishes only that declared synthetic unit/floor/space identities, floor-local rectangles and everyday/service connectivity satisfy the checked data contract. It does not establish design quality, resident suitability, accessibility, fire/egress, structure, services capacity, daylight, privacy, acoustics, thermal performance, affordability, planning approval, buildability or occupancy.",
+  "fixture_notes": [
+    "Synthetic fixture only; no real parcel, resident programme, jurisdiction, product or building design is bound.",
+    "Every square millimetre of each rectangular floor envelope is accounted for by an explicit synthetic space in this fixture; this is a fixture-partition invariant, not a claim that the schema supports all void geometries.",
+    "Courtyard and terrace spaces represent open/shared areas, not qualified daylight, privacy, fire, accessibility, amenity access or resident acceptance.",
+    "Every shared service capacity and topology remains UNKNOWN; all specialist assessments remain NOT_ASSESSED."
+  ]
 }
