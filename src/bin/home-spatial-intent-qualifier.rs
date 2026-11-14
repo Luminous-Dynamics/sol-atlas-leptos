@@ -29,24 +29,31 @@ fn parse_json(source: &str, label: &str) -> Result<Value, String> {
         .map_err(|error| format!("{label} JSON parse failed: {error}"))
 }
 
-fn activity_ids(brief: &Value) -> Result<BTreeSet<String>, Vec<String>> {
+fn activity_specs(brief: &Value) -> Result<BTreeMap<String, Value>, Vec<String>> {
     let mut errors = Vec::new();
-    let mut ids = BTreeSet::new();
+    let mut specs = BTreeMap::new();
     let activities = array_at(brief.get("intent").unwrap_or(&Value::Null), "activities");
     if let Some(activities) = activities {
         for activity in activities {
             let id = text_at(activity, "activity_id")
                 .unwrap_or("<missing-activity-id>")
                 .to_owned();
-            if !ids.insert(id.clone()) {
+            if specs.insert(id.clone(), activity.clone()).is_some() {
                 errors.push(format!("duplicate activity ID {id}"));
+            }
+            if activity
+                .get("dedicated_space_required")
+                .and_then(Value::as_bool)
+                .is_none()
+            {
+                errors.push(format!("{id}: dedicated_space_required must be explicit"));
             }
         }
     } else {
         errors.push("resident brief has no intent.activities array".to_owned());
     }
     if errors.is_empty() {
-        Ok(ids)
+        Ok(specs)
     } else {
         Err(errors)
     }
@@ -62,11 +69,12 @@ fn relationship_key(value: &Value) -> Option<(String, String, String)> {
 
 fn validate_candidate(
     candidate: &Value,
-    brief_activity_ids: &BTreeSet<String>,
+    brief_activity_specs: &BTreeMap<String, Value>,
     brief_relationships: &BTreeSet<(String, String, String)>,
     brief_constraint_ids: &BTreeSet<String>,
 ) -> Result<Value, Vec<String>> {
     let mut errors = Vec::new();
+    let brief_activity_ids = brief_activity_specs.keys().cloned().collect::<BTreeSet<_>>();
     let candidate_id = text_at(candidate, "candidate_id")
         .unwrap_or("<missing-candidate-id>")
         .to_owned();
@@ -154,11 +162,48 @@ fn validate_candidate(
     } else {
         errors.push(format!("{candidate_id}: activity_assignments array is missing"));
     }
-    for activity_id in brief_activity_ids {
+    for activity_id in &brief_activity_ids {
         if !assignments.contains_key(activity_id) {
             errors.push(format!(
                 "{candidate_id}: resident activity {activity_id} is unassigned"
             ));
+        }
+    }
+
+    let mut dedicated_space_owners = BTreeMap::<String, String>::new();
+    for (activity_id, space_id) in &assignments {
+        let Some(spec) = brief_activity_specs.get(activity_id) else {
+            continue;
+        };
+        let dedicated = spec
+            .get("dedicated_space_required")
+            .and_then(Value::as_bool)
+            .unwrap_or(false);
+        let privacy_requirement = text_at(spec, "privacy_requirement").unwrap_or("NOT_STATED");
+        if let Some(space) = array_at(candidate, "space_nodes").and_then(|spaces| {
+            spaces.iter().find(|space| text_at(space, "space_id") == Some(space_id))
+        }) {
+            let privacy_zone = text_at(space, "privacy_zone").unwrap_or("UNKNOWN");
+            let privacy_satisfied = match privacy_requirement {
+                "PRIVATE" => privacy_zone == "PRIVATE",
+                "SEMI_PRIVATE" => matches!(privacy_zone, "SEMI_PRIVATE" | "PRIVATE"),
+                "OPEN" | "NOT_STATED" => true,
+                _ => false,
+            };
+            if !privacy_satisfied {
+                errors.push(format!(
+                    "{candidate_id}: {activity_id} privacy requirement {privacy_requirement} is not represented by {privacy_zone}"
+                ));
+            }
+        }
+        if dedicated {
+            if let Some(previous) =
+                dedicated_space_owners.insert(space_id.clone(), activity_id.clone())
+            {
+                errors.push(format!(
+                    "{candidate_id}: dedicated activities {previous} and {activity_id} share {space_id}"
+                ));
+            }
         }
     }
 
@@ -217,6 +262,7 @@ fn validate_candidate(
         ));
     }
 
+    let mut step_free_route_targets = BTreeSet::<String>::new();
     if let Some(routes) = array_at(candidate, "access_routes") {
         let mut route_ids = BTreeSet::new();
         for route in routes {
@@ -232,6 +278,10 @@ fn validate_candidate(
                     ));
                 }
             }
+            let to_space = text_at(route, "to_space_id").unwrap_or("<missing-space-id>");
+            if route.get("step_free_required").and_then(Value::as_bool) == Some(true) {
+                step_free_route_targets.insert(to_space.to_owned());
+            }
             if text_at(route, "verification_state") != Some("UNKNOWN")
                 || !route.get("evidence_ref").is_some_and(Value::is_null)
             {
@@ -242,6 +292,32 @@ fn validate_candidate(
         }
     } else {
         errors.push(format!("{candidate_id}: access_routes array is missing"));
+    }
+    if brief_constraint_ids.contains("C_ACCESS_01") {
+        let step_free_targets = step_free_route_targets
+            .iter()
+            .filter_map(|target| {
+                array_at(candidate, "space_nodes")?.iter().find(|space| {
+                    text_at(space, "space_id") == Some(target.as_str())
+                })
+            })
+            .collect::<Vec<_>>();
+        let reaches_bathroom = step_free_targets.iter().any(|space| {
+            array_at(space, "functions")
+                .is_some_and(|functions| functions.iter().any(|value| value == "BATHROOM"))
+        });
+        let reaches_sleeping = step_free_targets.iter().any(|space| {
+            array_at(space, "functions").is_some_and(|functions| {
+                functions.iter().any(|value| {
+                    value == "PRIMARY_SLEEP" || value == "SECONDARY_SLEEP"
+                })
+            })
+        });
+        if !reaches_bathroom || !reaches_sleeping {
+            errors.push(format!(
+                "{candidate_id}: C_ACCESS_01 lacks a step-free route to bathroom and sleeping space"
+            ));
+        }
     }
 
     let mut bound_constraints = BTreeSet::new();
@@ -282,6 +358,41 @@ fn validate_candidate(
         ));
     }
 
+    if text_at(candidate, "water_dependency_state")
+        != Some("NO_DISCRETIONARY_WATER_ASSUMED")
+    {
+        errors.push(format!(
+            "{candidate_id}: discretionary water cannot be assumed for essential comfort"
+        ));
+    }
+
+    let future_bindings = array_at(candidate, "future_change_bindings");
+    if let Some(bindings) = future_bindings {
+        let mut found_phase = false;
+        for binding in bindings {
+            if text_at(binding, "state") != Some("RESERVED_SPACE_ONLY")
+                || text_at(binding, "verification_state") != Some("UNKNOWN")
+                || !binding.get("evidence_ref").is_some_and(Value::is_null)
+            {
+                errors.push(format!(
+                    "{candidate_id}: future change cannot be promoted beyond reserved/unknown"
+                ));
+            }
+            if array_at(binding, "affected_constraint_ids")
+                .is_some_and(|ids| ids.iter().any(|id| id == "C_PHASE_01"))
+            {
+                found_phase = true;
+            }
+        }
+        if !found_phase {
+            errors.push(format!(
+                "{candidate_id}: no future-change binding preserves C_PHASE_01"
+            ));
+        }
+    } else {
+        errors.push(format!("{candidate_id}: future_change_bindings array is missing"));
+    }
+
     if errors.is_empty() {
         Ok(json!({
             "candidate_id":candidate_id,
@@ -314,20 +425,46 @@ fn validate(brief: &Value, graph: &Value, schema: &Value) -> Result<Value, Vec<S
         errors.push("spatial graph identity or maturity is invalid".to_owned());
     }
 
-    let brief_activities = match activity_ids(brief) {
-        Ok(ids) => ids,
+    let brief_activity_specs = match activity_specs(brief) {
+        Ok(specs) => specs,
         Err(activity_errors) => {
             errors.extend(activity_errors);
-            BTreeSet::new()
+            BTreeMap::new()
         }
     };
-    let graph_activities: BTreeSet<String> = array_at(graph, "activity_nodes")
-        .into_iter()
-        .flatten()
-        .filter_map(|activity| text_at(activity, "activity_id"))
-        .map(str::to_owned)
-        .collect();
-    if brief_activities != graph_activities {
+    let brief_activities: BTreeSet<String> =
+        brief_activity_specs.keys().cloned().collect();
+    let mut graph_activity_ids = BTreeSet::new();
+    if let Some(nodes) = array_at(graph, "activity_nodes") {
+        for node in nodes {
+            let id = text_at(node, "activity_id")
+                .unwrap_or("<missing-activity-id>")
+                .to_owned();
+            if !graph_activity_ids.insert(id.clone()) {
+                errors.push(format!("duplicate graph activity ID {id}"));
+                continue;
+            }
+            if let Some(spec) = brief_activity_specs.get(&id) {
+                for key in [
+                    "dedicated_space_required",
+                    "frequency",
+                    "privacy_requirement",
+                    "description",
+                ] {
+                    if node.get(key) != spec.get(key) {
+                        errors.push(format!(
+                            "activity node {id} changes resident brief field {key}"
+                        ));
+                    }
+                }
+            } else {
+                errors.push(format!("graph contains undeclared activity {id}"));
+            }
+        }
+    } else {
+        errors.push("activity_nodes array is missing".to_owned());
+    }
+    if brief_activities != graph_activity_ids {
         errors.push("activity nodes do not exactly match the resident brief".to_owned());
     }
 
@@ -376,7 +513,7 @@ fn validate(brief: &Value, graph: &Value, schema: &Value) -> Result<Value, Vec<S
         }
         match validate_candidate(
             candidate,
-            &brief_activities,
+            &brief_activity_specs,
             &brief_relationships,
             &brief_constraint_ids,
         ) {
@@ -507,6 +644,38 @@ mod tests {
         let (brief, mut graph, schema) = fixture();
         graph["candidate_graphs"][0]["access_routes"][0]["to_space_id"] =
             json!("UNKNOWN_SPACE");
+        assert!(validate(&brief, &graph, &schema).is_err());
+    }
+
+    #[test]
+    fn dedicated_activities_cannot_share_one_space() {
+        let (brief, mut graph, schema) = fixture();
+        graph["candidate_graphs"][0]["activity_assignments"]
+            .as_array_mut()
+            .unwrap()
+            .iter_mut()
+            .find(|row| row["activity_id"] == "ACT_WORK_01")
+            .unwrap()["space_id"] = json!("A-BED-01");
+        assert!(validate(&brief, &graph, &schema).is_err());
+    }
+
+    #[test]
+    fn resident_activity_privacy_cannot_be_silently_weakened() {
+        let (brief, mut graph, schema) = fixture();
+        graph["candidate_graphs"][0]["space_nodes"]
+            .as_array_mut()
+            .unwrap()
+            .iter_mut()
+            .find(|space| space["space_id"] == "A-WORK-01")
+            .unwrap()["privacy_zone"] = json!("PUBLIC");
+        assert!(validate(&brief, &graph, &schema).is_err());
+    }
+
+    #[test]
+    fn future_change_is_not_promoted_to_buildable() {
+        let (brief, mut graph, schema) = fixture();
+        graph["candidate_graphs"][0]["future_change_bindings"][0]["state"] =
+            json!("PROFESSIONALLY_REVIEWED");
         assert!(validate(&brief, &graph, &schema).is_err());
     }
 
