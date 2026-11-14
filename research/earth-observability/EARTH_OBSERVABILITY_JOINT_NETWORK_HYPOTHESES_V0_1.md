@@ -157,7 +157,27 @@ The most important ablation is number 5 versus number 6. It isolates whether coh
 
 Do not compare an asset-level result to a paper reporting only hyperbola or pixel-level detection accuracy.
 
-## 6. Decision-oriented survey selection
+## 6. Industry and standards positioning
+
+Sol-Atlas should not attempt to replace established geotechnical databases, geological modelling packages, authoritative GIS network registries or utility-survey standards.
+
+| Existing capability | Strong incumbent role | Sol-Atlas relationship |
+|---|---|---|
+| Bentley OpenGround | Geotechnical factual-data management, AGS/DIGGS exchange, field/lab workflows, reporting and APIs | Ingest qualified borehole/geotechnical records and return evidence-linked interpretations; do not rebuild the factual-data warehouse |
+| Seequent Leapfrog Works | 3D implicit geological modelling and integration of borehole/geophysical evidence | Exchange geological surfaces/volumes and uncertainty; preserve competing subsurface interpretations and provenance |
+| ArcGIS Utility Network | Authoritative network asset representation, connectivity/associations, topology rules, validation and tracing | Deliver candidate, qualified evidence with lineage and confidence for owner review; never turn a candidate into an authoritative asset automatically |
+| OGC MUDDI | Shared conceptual model for underground infrastructure evidence and assets | Use as the interoperability target for the utility evidence graph; do not claim conformance or become a second owner registry |
+| PAS 128:2022 | Survey types D/C/B/A and utility survey quality levels tied to survey method, accuracy, confidence and supporting evidence | Map local evidence and verification scope to the relevant quality-level vocabulary; do not issue a PAS quality claim without required qualified survey process |
+| ASCE/UESI/CI 38-22 | Investigation and documentation of existing utilities; quality-level outcomes and professional judgement over investigation sequence/scope | Support professional investigation planning with evidence, uncertainty and EVSI; do not replace the responsible utility professional's judgement |
+| ASCE/UESI/CI 75-22 | Utility infrastructure recording/exchange data standards | Evaluate an export adapter alongside MUDDI and owner-specific GIS schemas |
+
+The competitive gap is not that these systems lack maps or 3D models. It is the absence of a single evidence-qualified reasoning layer that can preserve multiple plausible physical worlds, local observability limits, unresolved conflicts, evidence lineage and the expected value of a new survey action before any candidate is promoted into an owner-controlled system.
+
+A particularly important implementation rule is that quality is **segment-local and claim-specific**. A single utility route can have sections supported by records, geophysical detection, visual reconnaissance and physical exposure. Do not assign one blanket confidence or quality level to an entire asset when its evidence varies along the route. Keep survey type, quality vocabulary, position/depth uncertainty, evidence, method and validity interval attached to the supported section.
+
+Sources: OGC MUDDI Part 1 v1.0; PAS 128:2022; ASCE/UESI/CI 38-22 and 75-22; Bentley OpenGround; Seequent Leapfrog Works; ArcGIS Utility Network. Standards alignment is an interchange and evidence-mapping objective, not certification.
+
+## 7. Decision-oriented survey selection
 
 The hypothesis set should be passed to the existing Sol-Atlas EVSI engine rather than starting another decision engine.
 
@@ -177,7 +197,7 @@ Include a case where an action has high information gain but cannot change the d
 
 Access, permits, owner rights, safety obligations and ecological constraints remain hard feasibility filters, not soft rewards.
 
-## 7. Data and physical validation ladder
+## 8. Data and physical validation ladder
 
 - T0: structural contract, serialization and negative-control tests.
 - T1: deterministic analytic worlds with exact known topology.
@@ -189,7 +209,7 @@ A solver comparison is not ground truth. A synthetic radargram is not a physical
 
 Use gprMax as a possible GPR forward-model partner, but preserve its distinction between analytical validation, inter-code comparison, backend consistency and regression testing. Symtropy remains the owner of physical forward-model assumptions and sensor qualification.
 
-## 8. Proposed acceptance gates
+## 9. Proposed acceptance gates
 
 ### Structural gates — deterministic
 
@@ -216,7 +236,7 @@ Retain the programme's existing hypothesis: at least 20% lower out-of-sample exp
 
 This is a future target. It is not an achieved result.
 
-## 9. Execution state
+## 10. Execution state
 
 Implemented in this increment:
 
