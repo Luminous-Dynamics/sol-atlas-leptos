@@ -4,6 +4,9 @@
 **Implementation:** [draft PR #830](https://github.com/Luminous-Dynamics/sol-atlas-leptos/pull/830)  
 **Status:** synthetic controls and structural claim contract; no real-data run.
 
+**Machine-readable cases:** [EO_SYSTEM_SHIFT_CONTROL_MATRIX_V0_1.json](./EO_SYSTEM_SHIFT_CONTROL_MATRIX_V0_1.json)  
+**Schema:** [eo-system-shift-control-matrix-v0.1.schema.json](../../schemas/eo-system-shift-control-matrix-v0.1.schema.json)
+
 ## Purpose
 
 This matrix isolates the measurement-system confounder from the physical-change problem. Each scenario holds geography/support and target semantics constant while varying exactly one source, sensor, collection, processing or asset-measurement dimension.
@@ -86,3 +89,5 @@ Do not begin T2/T3 scoring until:
 4. independent reference data are defined and not derived from the same model/source;
 5. the cross-system bridge qualification procedure and blind adjudicator are preregistered;
 6. exact code, schemas, data manifests, model weights, transforms, scorer and environment digests are frozen.
+
+Unresolved records are retained for investigation: the contract permits an explicitly `Unresolved` mixed-system claim without a comparability receipt, but does not permit CandidateChange, SupportedChange or NoChangeWithinEnvelope promotion without an exact-scope bridge.
