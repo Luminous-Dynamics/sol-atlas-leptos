@@ -1119,6 +1119,15 @@ mod tests {
             identity.sensor_identity_origin,
             SensorIdentityOrigin::DerivedFromPlatformAndInstrument
         );
+        let encoded_profile = serde_json::to_string(profile).unwrap();
+        let decoded_profile: StacSourceProfile = serde_json::from_str(&encoded_profile).unwrap();
+        assert_eq!(&decoded_profile, profile);
+        let encoded_asset = serde_json::to_string(b04).unwrap();
+        let decoded_asset: StacAssetProfile = serde_json::from_str(&encoded_asset).unwrap();
+        assert_eq!(&decoded_asset, b04);
+        let encoded_import = serde_json::to_string(&result).unwrap();
+        let decoded_import: StacItemImport = serde_json::from_str(&encoded_import).unwrap();
+        assert_eq!(decoded_import, result);
         let mapped = identity.into_observation_record(
             "mapped-observation",
             AssetId::new("stac:fixture:asset").unwrap(),
