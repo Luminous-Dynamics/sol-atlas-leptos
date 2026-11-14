@@ -20,6 +20,9 @@ const FIXTURE: &str = include_str!(
 const BUILDING: &str = include_str!(
     "../../docs/research/home-delivery-systems/multifamily-building-synthetic-v0.1.json"
 );
+const STRESS_CORPUS: &str = include_str!(
+    "../../docs/research/home-delivery-systems/multifamily-service-stress-corpus-v0.1.json"
+);
 
 fn text_at<'a>(value: &'a Value, key: &str) -> Option<&'a str> {
     value.get(key).and_then(Value::as_str)
@@ -94,7 +97,148 @@ fn validate_quantity(value: &Value, label: &str, errors: &mut Vec<String>) {
     }
 }
 
-fn validate(fixture: &Value, building: &Value) -> Result<Value, Vec<String>> {
+fn validate_stress_corpus(
+    corpus: &Value,
+    known_node_ids: &BTreeSet<String>,
+    errors: &mut Vec<String>,
+) -> (usize, usize) {
+    if text_at(corpus, "schema_version") != Some("multifamily-service-stress-corpus/0.1") {
+        errors.push("service stress corpus has unsupported schema_version".to_owned());
+    }
+    if text_at(corpus, "maturity") != Some("authored_manifest_not_executed") {
+        errors.push("service stress corpus must remain explicitly unexecuted".to_owned());
+    }
+    if text_at(corpus, "base_fixture")
+        != Some("multifamily-service-distribution-synthetic-v0.1.json")
+    {
+        errors.push("service stress corpus is not bound to the exact distribution fixture".to_owned());
+    }
+    if integer_at(corpus, "executed_cases") != Some(0) {
+        errors.push("service stress corpus cannot claim executed cases in this authored fixture".to_owned());
+    }
+
+    let rows = array_at(corpus, "cases");
+    let case_ids = unique_ids(rows, "case_id", "stress cases", errors);
+    let declared_count = integer_at(corpus, "case_count").unwrap_or(-1);
+    if declared_count != 16 || case_ids.len() != 16 || declared_count != case_ids.len() as i64 {
+        errors.push(format!(
+            "v0.1 stress corpus requires 16 cases; declared {declared_count}, found {}",
+            case_ids.len()
+        ));
+    }
+
+    let mut positive_count = 0usize;
+    let mut adversarial_count = 0usize;
+    let mut all_event_ids = BTreeSet::new();
+    let mut event_count = 0usize;
+    if let Some(rows) = rows {
+        for case in rows {
+            let case_id = text_at(case, "case_id").unwrap_or("<missing-case>");
+            if text_at(case, "base_fixture")
+                != Some("multifamily-service-distribution-synthetic-v0.1.json")
+            {
+                errors.push(format!("stress case {case_id} has the wrong base fixture"));
+            }
+            if text_at(case, "execution_state") != Some("not_executed") {
+                errors.push(format!("stress case {case_id} is promoted beyond not_executed"));
+            }
+            if !case.get("probability").is_some_and(Value::is_null) {
+                errors.push(format!("stress case {case_id} must not assert a probability"));
+            }
+            if text_at(case, "expected_disposition").is_none() {
+                errors.push(format!("stress case {case_id} has no expected disposition"));
+            }
+            match text_at(case, "case_kind") {
+                Some("positive_control") => positive_count += 1,
+                Some("adversarial_stress_control") => adversarial_count += 1,
+                _ => errors.push(format!("stress case {case_id} has invalid case_kind")),
+            }
+
+            let events = array_at(case, "events");
+            if events.is_none_or(Vec::is_empty) {
+                errors.push(format!("stress case {case_id} has no event sequence"));
+                continue;
+            }
+            let mut prior_start = -1_i64;
+            for event in events.into_iter().flatten() {
+                event_count += 1;
+                let event_id = text_at(event, "event_id").unwrap_or("<missing-event>");
+                if !all_event_ids.insert(event_id.to_owned()) {
+                    errors.push(format!("stress corpus has duplicate event_id {event_id}"));
+                }
+                if text_at(event, "state") != Some("declared_synthetic") {
+                    errors.push(format!("stress event {event_id} is not explicitly synthetic"));
+                }
+                if !event.get("probability").is_some_and(Value::is_null) {
+                    errors.push(format!("stress event {event_id} asserts a probability"));
+                }
+                let kind = text_at(event, "event_kind").unwrap_or("<missing-kind>");
+                if !matches!(
+                    kind,
+                    "baseline"
+                        | "source_interruption"
+                        | "plant_failure"
+                        | "power_interruption"
+                        | "riser_isolation"
+                        | "quality_evidence_withdrawal"
+                        | "maintenance_isolation"
+                        | "communications_failure"
+                        | "recovery"
+                        | "reserve_exhaustion"
+                        | "allocation_policy_change"
+                        | "repair_delay"
+                        | "network_partition"
+                ) {
+                    errors.push(format!("stress event {event_id} has invalid event_kind {kind}"));
+                }
+                let start = integer_at(event, "start_s").unwrap_or(-1);
+                if start < 0 || start < prior_start {
+                    errors.push(format!("stress case {case_id} has invalid or unordered event times"));
+                }
+                prior_start = start;
+                if integer_at(event, "duration_s").is_some_and(|duration| duration < 0) {
+                    errors.push(format!("stress event {event_id} has negative duration"));
+                }
+                for node_id in array_at(event, "affected_node_ids")
+                    .into_iter()
+                    .flatten()
+                    .filter_map(Value::as_str)
+                {
+                    if !known_node_ids.contains(node_id) {
+                        errors.push(format!("stress event {event_id} references unknown node {node_id}"));
+                    }
+                }
+            }
+        }
+    }
+    if positive_count != 1 || adversarial_count != 15 {
+        errors.push(format!(
+            "stress corpus must contain one positive and 15 adversarial cases; found {positive_count} and {adversarial_count}"
+        ));
+    }
+
+    if let Some(split) = corpus.get("case_split") {
+        let development_ids = array_at(split, "development_cases")
+            .into_iter()
+            .flatten()
+            .filter_map(Value::as_str)
+            .map(str::to_owned)
+            .collect::<BTreeSet<_>>();
+        if development_ids != case_ids {
+            errors.push("stress development split does not exactly match the case IDs".to_owned());
+        }
+        if !array_at(split, "calibration_cases").is_some_and(Vec::is_empty)
+            || !array_at(split, "sealed_confirmation_cases").is_some_and(Vec::is_empty)
+        {
+            errors.push("v0.1 stress corpus must not claim calibration or sealed cases".to_owned());
+        }
+    } else {
+        errors.push("stress corpus has no case_split".to_owned());
+    }
+    (case_ids.len(), event_count)
+}
+
+fn validate(fixture: &Value, building: &Value, stress: &Value) -> Result<Value, Vec<String>> {
     let mut errors = Vec::new();
     if text_at(fixture, "schema_version") != Some("multifamily-service-distribution/0.1") {
         errors.push("service-distribution fixture has unsupported schema_version".to_owned());
@@ -153,6 +297,8 @@ fn validate(fixture: &Value, building: &Value) -> Result<Value, Vec<String>> {
 
     let nodes = array_at(fixture, "nodes");
     let node_ids = unique_ids(nodes, "node_id", "nodes", &mut errors);
+    let (stress_case_count, stress_event_count) =
+        validate_stress_corpus(stress, &node_ids, &mut errors);
     let mut node_records = BTreeMap::<String, (String, String, Option<String>, Option<String>)>::new();
     if let Some(nodes) = nodes {
         for node in nodes {
@@ -285,6 +431,25 @@ fn validate(fixture: &Value, building: &Value) -> Result<Value, Vec<String>> {
             if text_at(event, "state") != Some("declared_synthetic") {
                 errors.push(format!("event {id} is not explicitly marked synthetic"));
             }
+            let event_kind = text_at(event, "event_kind").unwrap_or("<missing-kind>");
+            if !matches!(
+                event_kind,
+                "baseline"
+                    | "source_interruption"
+                    | "plant_failure"
+                    | "power_interruption"
+                    | "riser_isolation"
+                    | "quality_evidence_withdrawal"
+                    | "maintenance_isolation"
+                    | "communications_failure"
+                    | "recovery"
+                    | "reserve_exhaustion"
+                    | "allocation_policy_change"
+                    | "repair_delay"
+                    | "network_partition"
+            ) {
+                errors.push(format!("event {id} has invalid event_kind {event_kind}"));
+            }
             if !event.get("probability").is_some_and(Value::is_null) {
                 errors.push(format!("event {id} must not claim a failure probability"));
             }
@@ -345,6 +510,8 @@ fn validate(fixture: &Value, building: &Value) -> Result<Value, Vec<String>> {
         "unit_count": building_unit_ids.len(),
         "unit_service_count": service_keys.len(),
         "event_count": event_ids.len(),
+        "stress_scenario_count": stress_case_count,
+        "stress_event_count": stress_event_count,
         "physical_delivery": "UNKNOWN",
         "resource_conservation": conservation_state,
         "allocation_policy": policy_state,
@@ -357,10 +524,11 @@ fn validate(fixture: &Value, building: &Value) -> Result<Value, Vec<String>> {
     }
 }
 
-fn load_fixtures() -> (Value, Value) {
+fn load_fixtures() -> (Value, Value, Value) {
     (
         serde_json::from_str(FIXTURE).expect("service distribution fixture JSON"),
         serde_json::from_str(BUILDING).expect("multi-family building fixture JSON"),
+        serde_json::from_str(STRESS_CORPUS).expect("service stress corpus JSON"),
     )
 }
 
@@ -370,8 +538,8 @@ fn main() {
         println!("home-multifamily-service-qualifier [--self-test]");
         return;
     }
-    let (fixture, building) = load_fixtures();
-    match validate(&fixture, &building) {
+    let (fixture, building, stress) = load_fixtures();
+    match validate(&fixture, &building, &stress) {
         Ok(report) => println!("{}", serde_json::to_string_pretty(&report).unwrap_or_default()),
         Err(errors) => {
             eprintln!("HOME_MULTIFAMILY_SERVICE_QUALIFIER_FAIL: {}", errors.join("; "));
@@ -387,19 +555,21 @@ mod tests {
     #[test]
     fn synthetic_service_topology_qualifies_without_performance_claims() {
         let (fixture, building) = load_fixtures();
-        let report = validate(&fixture, &building).expect("service distribution fixture");
-        assert_eq!(report["resource_count"], 5);
-        assert_eq!(report["node_count"], 22);
+        let report = validate(&fixture, &building, &stress).expect("service distribution fixture");
+        assert_eq!(report["resource_count"], 6);
+        assert_eq!(report["node_count"], 24);
         assert_eq!(report["edge_count"], 21);
         assert_eq!(report["unit_count"], 4);
         assert_eq!(report["unit_service_count"], 12);
         assert_eq!(report["event_count"], 6);
+        assert_eq!(report["stress_scenario_count"], 16);
+        assert_eq!(report["stress_event_count"], 20);
         assert_eq!(report["physical_delivery"], "UNKNOWN");
     }
 
     #[test]
     fn duplicate_node_identity_is_rejected() {
-        let (mut fixture, building) = load_fixtures();
+        let (mut fixture, building, stress) = load_fixtures();
         let duplicate_id = fixture["nodes"][0]["node_id"].clone();
         fixture["nodes"][1]["node_id"] = duplicate_id;
         assert!(validate(&fixture, &building).is_err());
@@ -466,6 +636,28 @@ mod tests {
         let (mut fixture, building) = load_fixtures();
         fixture["accounting"]["conservation_state"] = json!("reconciled");
         assert!(validate(&fixture, &building).is_err());
+    }
+
+    #[test]
+    fn duplicate_stress_scenario_identity_is_rejected() {
+        let (fixture, building, mut stress) = load_fixtures();
+        stress["cases"][1]["case_id"] = stress["cases"][0]["case_id"].clone();
+        assert!(validate(&fixture, &building, &stress).is_err());
+    }
+
+    #[test]
+    fn stress_event_unknown_node_is_rejected() {
+        let (fixture, building, mut stress) = load_fixtures();
+        stress["cases"][1]["events"][0]["affected_node_ids"] = json!(["UNKNOWN-NODE"]);
+        assert!(validate(&fixture, &building, &stress).is_err());
+    }
+
+    #[test]
+    fn stress_corpus_cannot_claim_execution_or_probability() {
+        let (fixture, building, mut stress) = load_fixtures();
+        stress["executed_cases"] = json!(16);
+        stress["cases"][1]["events"][0]["probability"] = json!(0.5);
+        assert!(validate(&fixture, &building, &stress).is_err());
     }
 
     #[test]
