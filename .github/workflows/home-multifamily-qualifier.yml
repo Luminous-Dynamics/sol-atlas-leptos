@@ -100,8 +100,22 @@ jobs:
           import json
           from pathlib import Path
           from jsonschema import Draft202012Validator
+          from referencing import Registry, Resource
 
           root = Path("docs/research/home-delivery-systems")
+          registry = Registry()
+          schema_documents = {}
+          for schema_path in root.glob("*.schema.json"):
+              schema_document = json.loads(schema_path.read_text(encoding="utf-8"))
+              Draft202012Validator.check_schema(schema_document)
+              schema_documents[schema_path.name] = schema_document
+              schema_id = schema_document.get("$id")
+              if schema_id:
+                  registry = registry.with_resource(
+                      schema_id,
+                      Resource.from_contents(schema_document),
+                  )
+
           pairs = [
               ("multifamily-building.schema.json", "multifamily-building-synthetic-v0.1.json"),
               ("multifamily-service-distribution.schema.json", "multifamily-service-distribution-synthetic-v0.1.json"),
@@ -114,10 +128,9 @@ jobs:
           ]
 
           for schema_name, fixture_name in pairs:
-              schema = json.loads((root / schema_name).read_text(encoding="utf-8"))
+              schema = schema_documents[schema_name]
               fixture = json.loads((root / fixture_name).read_text(encoding="utf-8"))
-              Draft202012Validator.check_schema(schema)
-              validator = Draft202012Validator(schema)
+              validator = Draft202012Validator(schema, registry=registry)
               errors = sorted(validator.iter_errors(fixture), key=lambda e: list(e.absolute_path))
               if errors:
                   rendered = "\\n".join(
@@ -128,10 +141,9 @@ jobs:
               print(f"PASS Draft 2020-12: {fixture_name} against {schema_name}")
 
           # Validate each appliance profile against its dedicated child schema.
-          interface_schema = json.loads((root / "home-service-interface.schema.json").read_text(encoding="utf-8"))
-          Draft202012Validator.check_schema(interface_schema)
+          interface_schema = schema_documents["home-service-interface.schema.json"]
           stack_fixture = json.loads((root / "home-service-interface-synthetic-v0.1.json").read_text(encoding="utf-8"))
-          child_validator = Draft202012Validator(interface_schema)
+          child_validator = Draft202012Validator(interface_schema, registry=registry)
           for profile in stack_fixture["service_profiles"]:
               errors = sorted(child_validator.iter_errors(profile), key=lambda e: list(e.absolute_path))
               if errors:
