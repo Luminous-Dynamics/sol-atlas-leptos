@@ -133,7 +133,11 @@
           "severity": "non_negotiable",
           "source_scope": "synthetic_scenario_authoring",
           "inferred": false,
-          "resident_confirmation_state": "synthetic_not_real_resident"
+          "resident_confirmation_state": "synthetic_not_real_resident",
+          "activity_ids": [
+            "U-001-QUIET-WORK-ACT-03",
+            "U-001-QUIET-WORK-ACT-02"
+          ]
         },
         {
           "requirement_id": "U-001-REQ-02",
@@ -142,7 +146,10 @@
           "severity": "non_negotiable",
           "source_scope": "synthetic_scenario_authoring",
           "inferred": false,
-          "resident_confirmation_state": "synthetic_not_real_resident"
+          "resident_confirmation_state": "synthetic_not_real_resident",
+          "activity_ids": [
+            "U-001-QUIET-WORK-ACT-01"
+          ]
         }
       ],
       "preferences": [
@@ -153,7 +160,10 @@
           "priority": null,
           "tradeable": null,
           "source_scope": "synthetic_scenario_authoring",
-          "inferred": false
+          "inferred": false,
+          "activity_ids": [
+            "U-001-QUIET-WORK-ACT-04"
+          ]
         },
         {
           "preference_id": "U-001-PREF-02",
@@ -162,7 +172,10 @@
           "priority": null,
           "tradeable": null,
           "source_scope": "synthetic_scenario_authoring",
-          "inferred": false
+          "inferred": false,
+          "activity_ids": [
+            "U-001-QUIET-WORK-ACT-05"
+          ]
         }
       ],
       "access_requirement_state": "not_stated",
@@ -341,7 +354,10 @@
           "severity": "non_negotiable",
           "source_scope": "synthetic_scenario_authoring",
           "inferred": false,
-          "resident_confirmation_state": "synthetic_not_real_resident"
+          "resident_confirmation_state": "synthetic_not_real_resident",
+          "activity_ids": [
+            "U-002-SHARED-MAKING-ACT-01"
+          ]
         },
         {
           "requirement_id": "U-002-REQ-02",
@@ -350,7 +366,10 @@
           "severity": "preference",
           "source_scope": "synthetic_scenario_authoring",
           "inferred": false,
-          "resident_confirmation_state": "synthetic_not_real_resident"
+          "resident_confirmation_state": "synthetic_not_real_resident",
+          "activity_ids": [
+            "U-002-SHARED-MAKING-ACT-05"
+          ]
         }
       ],
       "preferences": [
@@ -361,7 +380,11 @@
           "priority": null,
           "tradeable": null,
           "source_scope": "synthetic_scenario_authoring",
-          "inferred": false
+          "inferred": false,
+          "activity_ids": [
+            "U-002-SHARED-MAKING-ACT-02",
+            "U-002-SHARED-MAKING-ACT-03"
+          ]
         },
         {
           "preference_id": "U-002-PREF-02",
@@ -370,7 +393,11 @@
           "priority": null,
           "tradeable": null,
           "source_scope": "synthetic_scenario_authoring",
-          "inferred": false
+          "inferred": false,
+          "activity_ids": [
+            "U-002-SHARED-MAKING-ACT-02",
+            "U-002-SHARED-MAKING-ACT-03"
+          ]
         }
       ],
       "access_requirement_state": "not_stated",
@@ -550,7 +577,10 @@
           "severity": "non_negotiable",
           "source_scope": "synthetic_scenario_authoring",
           "inferred": false,
-          "resident_confirmation_state": "synthetic_not_real_resident"
+          "resident_confirmation_state": "synthetic_not_real_resident",
+          "activity_ids": [
+            "U-003-FLEXIBLE-CARE-ACT-01"
+          ]
         }
       ],
       "preferences": [
@@ -561,7 +591,11 @@
           "priority": null,
           "tradeable": null,
           "source_scope": "synthetic_scenario_authoring",
-          "inferred": false
+          "inferred": false,
+          "activity_ids": [
+            "U-003-FLEXIBLE-CARE-ACT-03",
+            "U-003-FLEXIBLE-CARE-ACT-04"
+          ]
         },
         {
           "preference_id": "U-003-PREF-02",
@@ -570,7 +604,10 @@
           "priority": null,
           "tradeable": null,
           "source_scope": "synthetic_scenario_authoring",
-          "inferred": false
+          "inferred": false,
+          "activity_ids": [
+            "U-003-FLEXIBLE-CARE-ACT-05"
+          ]
         }
       ],
       "access_requirement_state": "not_stated",
@@ -747,7 +784,10 @@
           "severity": "non_negotiable",
           "source_scope": "synthetic_scenario_authoring",
           "inferred": false,
-          "resident_confirmation_state": "synthetic_not_real_resident"
+          "resident_confirmation_state": "synthetic_not_real_resident",
+          "activity_ids": [
+            "U-004-REST-AND-ACCESS-ACT-01"
+          ]
         }
       ],
       "preferences": [
@@ -758,7 +798,11 @@
           "priority": null,
           "tradeable": null,
           "source_scope": "synthetic_scenario_authoring",
-          "inferred": false
+          "inferred": false,
+          "activity_ids": [
+            "U-004-REST-AND-ACCESS-ACT-01",
+            "U-004-REST-AND-ACCESS-ACT-02"
+          ]
         },
         {
           "preference_id": "U-004-PREF-02",
@@ -767,7 +811,10 @@
           "priority": null,
           "tradeable": null,
           "source_scope": "synthetic_scenario_authoring",
-          "inferred": false
+          "inferred": false,
+          "activity_ids": [
+            "U-004-REST-AND-ACCESS-ACT-05"
+          ]
         }
       ],
       "access_requirement_state": "not_stated",
