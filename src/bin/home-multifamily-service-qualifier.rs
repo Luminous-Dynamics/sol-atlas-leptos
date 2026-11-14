@@ -101,6 +101,31 @@ fn validate_quantity(value: &Value, label: &str, errors: &mut Vec<String>) {
     }
 }
 
+fn has_resource_path(
+    start: &str,
+    goal: &str,
+    resource_id: &str,
+    node_records: &BTreeMap<String, (String, String, Option<String>, Option<String>)>,
+    adjacency: &BTreeMap<String, Vec<String>>,
+) -> bool {
+    let mut pending = vec![start.to_owned()];
+    let mut visited = BTreeSet::new();
+    while let Some(current) = pending.pop() {
+        if current == goal {
+            return node_records
+                .get(&current)
+                .is_some_and(|record| record.1 == resource_id);
+        }
+        if !visited.insert(current.clone()) {
+            continue;
+        }
+        if let Some(next) = adjacency.get(&current) {
+            pending.extend(next.iter().cloned());
+        }
+    }
+    false
+}
+
 fn validate_stress_corpus(
     corpus: &Value,
     known_node_ids: &BTreeSet<String>,
@@ -352,6 +377,7 @@ fn validate(fixture: &Value, building: &Value, stress: &Value) -> Result<Value, 
 
     let edges = array_at(fixture, "edges");
     let edge_ids = unique_ids(edges, "edge_id", "edges", &mut errors);
+    let mut resource_flow = BTreeMap::<String, Vec<String>>::new();
     if let Some(edges) = edges {
         for edge in edges {
             let id = text_at(edge, "edge_id").unwrap_or("<missing-edge>");
@@ -369,8 +395,12 @@ fn validate(fixture: &Value, building: &Value, stress: &Value) -> Result<Value, 
             if !matches!(state, "unknown" | "declared" | "measured" | "disputed") {
                 errors.push(format!("edge {id} has invalid state"));
             }
-            if relation == "resource_flow" && from_node.1 != to_node.1 {
-                errors.push(format!("edge {id} crosses resource classes on a resource_flow edge"));
+            if relation == "resource_flow" {
+                if from_node.1 != to_node.1 {
+                    errors.push(format!("edge {id} crosses resource classes on a resource_flow edge"));
+                } else {
+                    resource_flow.entry(from.to_owned()).or_default().push(to.to_owned());
+                }
             }
             if relation == "power_dependency"
                 && resource_classes.get(&from_node.1).is_none_or(|class| class != "electricity")
@@ -402,6 +432,16 @@ fn validate(fixture: &Value, building: &Value, stress: &Value) -> Result<Value, 
         if !resource_ids.contains(resource_id) {
             errors.push(format!("unit service {key} references unknown resource"));
         }
+        let expected_class = match service_id {
+            "POTABLE-WATER-DELIVERY" => Some("potable_water"),
+            "ELECTRICITY-DELIVERY" => Some("electricity"),
+            "USEFUL-HOT-WATER" => Some("useful_thermal"),
+            "WASTEWATER-REMOVAL" => Some("wastewater"),
+            _ => None,
+        };
+        if expected_class.is_none_or(|expected| resource_classes.get(resource_id).map(String::as_str) != Some(expected)) {
+            errors.push(format!("unit service {key} uses a resource class inconsistent with its service identity"));
+        }
         match node_records.get(boundary_id) {
             Some((kind, node_resource, _, node_unit))
                 if kind == "unit_boundary"
@@ -423,8 +463,8 @@ fn validate(fixture: &Value, building: &Value, stress: &Value) -> Result<Value, 
             errors.push(format!("unit service {key} promotes quality without evidence"));
         }
     }
-    if service_keys.len() != building_unit_ids.len() * 3 {
-        errors.push(format!("P0 synthetic fixture expected three service classes per unit; found {} unit-service rows", service_keys.len()));
+    if service_keys.len() != building_unit_ids.len() * 4 {
+        errors.push(format!("P0 synthetic fixture expected four service classes per unit; found {} unit-service rows", service_keys.len()));
     }
 
     let events = array_at(fixture, "events");
@@ -446,6 +486,9 @@ fn validate(fixture: &Value, building: &Value, stress: &Value) -> Result<Value, 
                     | "quality_evidence_withdrawal"
                     | "maintenance_isolation"
                     | "communications_failure"
+                    | "measurement_failure"
+                    | "equipment_outage"
+                    | "spare_delay"
                     | "recovery"
                     | "reserve_exhaustion"
                     | "allocation_policy_change"
@@ -474,15 +517,61 @@ fn validate(fixture: &Value, building: &Value, stress: &Value) -> Result<Value, 
         }
     }
 
+    // Check declared directed service paths without assigning any physical capacity.
+    for unit_id in &["U-001", "U-002", "U-003", "U-004"] {
+        for (resource_id, start, suffix) in [
+            ("R-POTABLE-WATER", "SRC-MUNICIPAL-POTABLE", "WATER"),
+            ("R-ELECTRICITY", "SRC-ELECTRICITY", "ELECTRICITY"),
+            ("R-USEFUL-THERMAL", "PLANT-HOT-WATER", "THERMAL"),
+        ] {
+            let goal = format!("BOUNDARY-{unit_id}-{suffix}");
+            if !has_resource_path(start, &goal, resource_id, &node_records, &resource_flow) {
+                errors.push(format!("no declared {resource_id} path from {start} to {goal}"));
+            }
+        }
+        let wastewater_start = format!("BOUNDARY-{unit_id}-WASTEWATER");
+        if !has_resource_path(
+            &wastewater_start,
+            "OUTFALL-WASTEWATER-UNKNOWN",
+            "R-WASTEWATER",
+            &node_records,
+            &resource_flow,
+        ) {
+            errors.push(format!("no declared wastewater removal path from {wastewater_start}"));
+        }
+    }
+    if !has_resource_path(
+        "SRC-NONPOTABLE-UNKNOWN",
+        "TREAT-NONPOTABLE-UNKNOWN",
+        "R-NONPOTABLE-WATER",
+        &node_records,
+        &resource_flow,
+    ) {
+        errors.push("non-potable source/storage/treatment path is incomplete".to_owned());
+    }
+    for node_id in node_records.keys().filter(|id| id.starts_with("BOUNDARY-") && id.ends_with("-WATER")) {
+        if has_resource_path(
+            "SRC-NONPOTABLE-UNKNOWN",
+            node_id,
+            "R-NONPOTABLE-WATER",
+            &node_records,
+            &resource_flow,
+        ) {
+            errors.push(format!("non-potable source unexpectedly reaches potable boundary {node_id}"));
+        }
+    }
+
     let policy = fixture.get("allocation_policy").unwrap_or(&Value::Null);
     let policy_state = text_at(policy, "state").unwrap_or("<missing>");
     if !matches!(policy_state, "unknown" | "draft" | "authorized" | "disputed" | "not_applicable") {
         errors.push("allocation policy has invalid state".to_owned());
     }
     if policy_state == "authorized"
-        && (!non_null_ref(policy, "authority_ref") || !non_null_ref(policy, "rules_ref"))
+        && (!non_null_ref(policy, "authority_ref")
+            || !non_null_ref(policy, "rules_ref")
+            || text_at(policy, "resident_notice_state") != Some("declared"))
     {
-        errors.push("authorized allocation policy lacks authority/rules evidence".to_owned());
+        errors.push("authorized allocation policy lacks authority, rules or resident-notice evidence".to_owned());
     }
 
     let accounting = fixture.get("accounting").unwrap_or(&Value::Null);
@@ -561,11 +650,11 @@ mod tests {
         let (fixture, building, stress) = load_fixtures();
         let report = validate(&fixture, &building, &stress).expect("service distribution fixture");
         assert_eq!(report["resource_count"], 6);
-        assert_eq!(report["node_count"], 24);
-        assert_eq!(report["edge_count"], 21);
+        assert_eq!(report["node_count"], 35);
+        assert_eq!(report["edge_count"], 30);
         assert_eq!(report["unit_count"], 4);
-        assert_eq!(report["unit_service_count"], 12);
-        assert_eq!(report["event_count"], 6);
+        assert_eq!(report["unit_service_count"], 16);
+        assert_eq!(report["event_count"], 16);
         assert_eq!(report["stress_scenario_count"], 16);
         assert_eq!(report["stress_event_count"], 20);
         assert_eq!(report["physical_delivery"], "UNKNOWN");
@@ -662,6 +751,63 @@ mod tests {
         let (fixture, building, mut stress) = load_fixtures();
         stress["executed_cases"] = json!(16);
         stress["cases"][1]["events"][0]["probability"] = json!(0.5);
+        assert!(validate(&fixture, &building, &stress).is_err());
+    }
+
+    #[test]
+    fn every_apartment_has_four_service_boundaries() {
+        let (fixture, building, stress) = load_fixtures();
+        let _ = validate(&fixture, &building, &stress).expect("complete synthetic topology");
+        for unit in ["U-001", "U-002", "U-003", "U-004"] {
+            let count = array_at(&fixture, "unit_services")
+                .unwrap()
+                .iter()
+                .filter(|service| text_at(service, "unit_id") == Some(unit))
+                .count();
+            assert_eq!(count, 4);
+        }
+    }
+
+    #[test]
+    fn non_potable_water_never_flows_into_a_potable_resource() {
+        let (mut fixture, building, stress) = load_fixtures();
+        let edge = fixture["edges"]
+            .as_array_mut()
+            .unwrap()
+            .iter_mut()
+            .find(|edge| text_at(edge, "edge_id") == Some("E-NONPOTABLE-STORAGE-TREATMENT"))
+            .unwrap();
+        edge["to_node_id"] = json!("STORAGE-POTABLE");
+        assert!(validate(&fixture, &building, &stress).is_err());
+    }
+
+    #[test]
+    fn directed_path_to_each_unit_boundary_is_required() {
+        let (mut fixture, building, stress) = load_fixtures();
+        fixture["edges"]
+            .as_array_mut()
+            .unwrap()
+            .retain(|edge| text_at(edge, "edge_id") != Some("E-F1-U-004"));
+        assert!(validate(&fixture, &building, &stress).is_err());
+    }
+
+    #[test]
+    fn service_identity_cannot_be_rebound_to_another_resource_class() {
+        let (mut fixture, building, stress) = load_fixtures();
+        fixture["unit_services"][0]["resource_id"] = json!("R-ELECTRICITY");
+        assert!(validate(&fixture, &building, &stress).is_err());
+    }
+
+    #[test]
+    fn communications_dependency_is_not_a_resource_flow() {
+        let (mut fixture, building, stress) = load_fixtures();
+        let edge = fixture["edges"]
+            .as_array_mut()
+            .unwrap()
+            .iter_mut()
+            .find(|edge| text_at(edge, "edge_id") == Some("E-COMMS-WATER-CONTROL"))
+            .unwrap();
+        edge["relation"] = json!("resource_flow");
         assert!(validate(&fixture, &building, &stress).is_err());
     }
 
