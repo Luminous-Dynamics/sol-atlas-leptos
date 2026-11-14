@@ -175,3 +175,21 @@ The new P0 Rust binary `src/bin/home-multifamily-qualifier.rs` checks only floor
 
 A 2026 buildingSMART survey highlights IDS implementation consistency as an interoperability issue. The apartment benchmark now includes a checker-parity experiment for IDS 1.0 and a separate geometry oracle; IDS must not be credited with geometry checks. A 2026 industrialised-housing review reports highly variable outcomes, including both cost savings and cost increases, so DfMA claims remain matched, whole-workflow hypotheses rather than fixed savings assumptions.
 
+
+
+## 12. Multi-family shared-service distribution and stress qualification
+
+[Issue #844](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/844) owns the apartment-specific adapter from shared plant/riser/zone topology to service at each unit boundary. It composes Symtropy #1848/#1739/#1752 and Symthaea #10445/#10474/#10486 rather than duplicating the event-time, service-deficit or carrier-typing engines.
+
+New machine-readable artifacts:
+- `multifamily-service-distribution.schema.json`: shared source/plant/zone/riser/meter/unit-boundary, quantity, event, allocation and accounting contract.
+- `multifamily-service-distribution-synthetic-v0.1.json`: six resource classes, 24 nodes, 21 edges, 12 per-unit service records and six declared fixture events. Capacities, demand, delivered quantities, quality, allocation, losses and conservation remain UNKNOWN.
+- `multifamily-service-stress-corpus-v0.1.json`: 16 development scenarios (one positive topology-only control and 15 adversarial stress cases), containing 20 deterministic synthetic event entries. All event probabilities are null; zero cases are executed or sealed.
+- `src/bin/home-multifamily-service-qualifier.rs`: P0 Rust contract qualifier for carrier-consistent resource-flow edges, boundary identity, source/node/resource references, event references, quantity/evidence states, allocation authority and conservation claim prerequisites.
+- `.github/workflows/home-multifamily-qualifier.yml`: focused native test/replay and rustfmt for both apartment qualifiers; it also triggers on the shared-service stress manifest.
+
+The service qualifier currently contains 15 authored tests: one positive control and 14 negative controls. Independent structural checks confirm 33 local schema references resolve, all edge endpoints and resource-flow carrier classes agree, all 12 apartment service records bind to the four building units and matching boundary nodes, and all 20 stress events reference declared nodes. These are static fixture/contract checks only. Rust compilation/test execution, full Draft 2020-12 validation, physical metering, potability, pressure, electrical/thermal adequacy, allocation fairness and service continuity remain NOT_RUN.
+
+The P0 stress cases include municipal source interruption, common pump and power outages, floor-specific riser isolation, quality evidence withdrawal, reserve exhaustion with unknown storage, allocation change without authority, compound failures, optional communications/control uncertainty, repair delay and interrupted recovery. They define conservative expected dispositions; they do not simulate actual service trajectories or assign failure probabilities.
+
+**Claim ceiling:** no positive apartment service result may be inferred from aggregate building capacity or declared topology. Service availability requires exact unit-boundary metering, quality/qualification evidence, common time traces and the owner-native Symtropy/Symthaea evaluators. A topology PASS is not a service PASS.
