@@ -26,6 +26,9 @@ const BUILDING: &str = include_str!(
 const PROGRAMME: &str = include_str!(
     "../../docs/research/home-delivery-systems/multifamily-resident-programme-synthetic-v0.1.json"
 );
+const CORPUS: &str = include_str!(
+    "../../docs/research/home-delivery-systems/multifamily-unit-layout-corpus-v0.1.json"
+);
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 struct Rect {
@@ -187,12 +190,88 @@ fn privacy_compatible(requirement: &str, target_kind: &str, target_zone: Option<
     }
 }
 
+fn validate_corpus(corpus: &Value, errors: &mut Vec<String>) -> usize {
+    if text_at(corpus, "schema_version") != Some("multifamily-unit-layout-corpus/0.1") {
+        errors.push("unit-layout corpus has unsupported schema_version".to_owned());
+    }
+    if text_at(corpus, "maturity") != Some("authored_manifest_not_executed")
+        || integer_at(corpus, "executed_cases") != Some(0)
+    {
+        errors.push("unit-layout corpus must remain explicitly unexecuted".to_owned());
+    }
+    if text_at(corpus, "base_fixture") != Some("multifamily-unit-layout-synthetic-v0.1.json") {
+        errors.push("unit-layout corpus is not bound to the exact base fixture".to_owned());
+    }
+    let rows = array_at(corpus, "cases");
+    let case_ids = unique_ids(rows, "case_id", "unit-layout cases", errors);
+    let declared = integer_at(corpus, "case_count").unwrap_or(-1);
+    if declared != 24 || case_ids.len() != 24 || declared != case_ids.len() as i64 {
+        errors.push(format!("unit-layout corpus requires 24 cases; declared {declared}, found {}", case_ids.len()));
+    }
+    let mut positive = 0usize;
+    let mut adversarial = 0usize;
+    if let Some(rows) = rows {
+        for case in rows {
+            let id = text_at(case, "case_id").unwrap_or("<missing-case>");
+            if text_at(case, "base_fixture") != Some("multifamily-unit-layout-synthetic-v0.1.json") {
+                errors.push(format!("unit-layout case {id} has wrong base fixture"));
+            }
+            if text_at(case, "scope") != Some("synthetic_geometry_only")
+                || text_at(case, "execution_state") != Some("not_executed")
+                || !case.get("probability").is_some_and(Value::is_null)
+            {
+                errors.push(format!("unit-layout case {id} has invalid scope/execution/probability"));
+            }
+            if text_at(case, "mutation").is_none_or(str::is_empty)
+                || text_at(case, "oracle_invariant").is_none_or(str::is_empty)
+            {
+                errors.push(format!("unit-layout case {id} lacks mutation or oracle invariant"));
+            }
+            match text_at(case, "case_kind") {
+                Some("positive_control") => {
+                    positive += 1;
+                    if text_at(case, "expected_disposition") != Some("PASS_SYNTHETIC_TOPOLOGY_ONLY") {
+                        errors.push(format!("positive unit-layout case {id} has incorrect disposition"));
+                    }
+                }
+                Some("adversarial_control") => {
+                    adversarial += 1;
+                    if !matches!(text_at(case, "expected_disposition"), Some("REJECT" | "REJECT_PROMOTION")) {
+                        errors.push(format!("adversarial unit-layout case {id} is not reject/block"));
+                    }
+                }
+                _ => errors.push(format!("unit-layout case {id} has invalid case_kind")),
+            }
+        }
+    }
+    if positive != 1 || adversarial != 23 {
+        errors.push(format!("unit-layout corpus must contain one positive and 23 adversarial cases; found {positive} and {adversarial}"));
+    }
+    if let Some(split) = corpus.get("case_split") {
+        let development = array_at(split, "development_cases")
+            .into_iter().flatten().filter_map(Value::as_str).map(str::to_owned).collect::<BTreeSet<_>>();
+        if development != case_ids {
+            errors.push("unit-layout development split does not equal case IDs".to_owned());
+        }
+        if !array_at(split, "calibration_cases").is_some_and(Vec::is_empty)
+            || !array_at(split, "sealed_confirmation_cases").is_some_and(Vec::is_empty)
+        {
+            errors.push("unit-layout corpus must not claim calibration or sealed cases".to_owned());
+        }
+    } else {
+        errors.push("unit-layout corpus has no case_split".to_owned());
+    }
+    case_ids.len()
+}
+
 fn validate(
     layout: &Value,
     building: &Value,
     programme: &Value,
+    corpus: &Value,
 ) -> Result<Value, Vec<String>> {
     let mut errors = Vec::new();
+    let corpus_case_count = validate_corpus(corpus, &mut errors);
     if text_at(layout, "schema_version") != Some("multifamily-unit-layout/0.1") {
         errors.push("unit layout has unsupported schema_version".to_owned());
     }
@@ -580,6 +659,7 @@ fn validate(
     let report = json!({
         "audit_state": if errors.is_empty() { "MULTIFAMILY_SYNTHETIC_UNIT_LAYOUT_PASS" } else { "MULTIFAMILY_SYNTHETIC_UNIT_LAYOUT_FAIL" },
         "unit_count": report_units,
+        "authored_development_case_count": corpus_case_count,
         "room_count": total_rooms,
         "activity_assignment_count": total_activities,
         "relationship_count": total_relationships,
@@ -594,11 +674,12 @@ fn validate(
     if errors.is_empty() { Ok(report) } else { Err(errors) }
 }
 
-fn load_fixtures() -> (Value, Value, Value) {
+fn load_fixtures() -> (Value, Value, Value, Value) {
     (
         serde_json::from_str(LAYOUT).expect("unit layout fixture JSON"),
         serde_json::from_str(BUILDING).expect("building fixture JSON"),
         serde_json::from_str(PROGRAMME).expect("resident programme fixture JSON"),
+        serde_json::from_str(CORPUS).expect("unit layout corpus JSON"),
     )
 }
 
@@ -608,8 +689,8 @@ fn main() {
         println!("home-multifamily-unit-layout-qualifier [--self-test]");
         return;
     }
-    let (layout, building, programme) = load_fixtures();
-    match validate(&layout, &building, &programme) {
+    let (layout, building, programme, corpus) = load_fixtures();
+    match validate(&layout, &building, &programme, &corpus) {
         Ok(report) => println!("{}", serde_json::to_string_pretty(&report).unwrap_or_default()),
         Err(errors) => {
             eprintln!("HOME_MULTIFAMILY_UNIT_LAYOUT_FAIL: {}", errors.join("; "));
@@ -631,13 +712,37 @@ mod tests {
         assert_eq!(report["activity_assignment_count"], 24);
         assert_eq!(report["relationship_count"], 7);
         assert_eq!(report["portal_count"], 32);
+        assert_eq!(report["authored_development_case_count"], 24);
         assert_eq!(report["clear_widths"], "UNKNOWN");
         assert_eq!(report["accessibility"], "UNKNOWN");
     }
 
     #[test]
+    fn duplicate_corpus_case_identity_is_rejected() {
+        let (layout, building, programme, mut corpus) = load_fixtures();
+        let duplicate_id = corpus["cases"][0]["case_id"].clone();
+        corpus["cases"][1]["case_id"] = duplicate_id;
+        assert!(validate(&layout, &building, &programme, &corpus).is_err());
+    }
+
+    #[test]
+    fn unit_layout_corpus_cannot_claim_execution_or_sealed_cases() {
+        let (layout, building, programme, mut corpus) = load_fixtures();
+        corpus["executed_cases"] = json!(24);
+        corpus["case_split"]["sealed_confirmation_cases"] = json!(["UL-SEALED-001"]);
+        assert!(validate(&layout, &building, &programme, &corpus).is_err());
+    }
+
+    #[test]
+    fn unit_layout_corpus_split_must_match_case_ids() {
+        let (layout, building, programme, mut corpus) = load_fixtures();
+        corpus["case_split"]["development_cases"][0] = json!("ORPHAN-CASE");
+        assert!(validate(&layout, &building, &programme, &corpus).is_err());
+    }
+
+    #[test]
     fn room_overlap_is_rejected() {
-        let (mut layout, building, programme) = load_fixtures();
+        let (mut layout, building, programme, corpus) = load_fixtures();
         layout["unit_layouts"][0]["rooms"][1]["footprint_local_mm"]["x_mm"] = json!(2900);
         assert!(validate(&layout, &building, &programme).is_err());
     }
