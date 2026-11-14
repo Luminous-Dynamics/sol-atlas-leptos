@@ -70,6 +70,9 @@ Known-answer tests verify:
 - equal nominal heat capacity at different temperature grades produces different exergy;
 - layer mass fractions that do not close to one are rejected;
 - missing property/reference evidence, non-positive absolute temperature or temperature-limit breach cannot qualify.
+- non-negative exergy across the tested temperature range and strict monotonic increase with temperature distance from the environmental reference, separately on cold and hot sides;
+- linear scaling with water mass and supplied specific heat under the constant-property screening model;
+- rejection of negative mass, non-positive specific heat, non-finite temperatures and absolute temperatures at or below zero Kelvin.
 
 ## 6. Cross-ledger identity and state reconciliation
 
