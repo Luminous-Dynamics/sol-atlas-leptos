@@ -15,6 +15,7 @@ pub mod data;
 pub mod economics;
 pub mod energy_trading;
 pub mod earth_observation;
+pub mod earth_observation_cadence;
 pub mod geo;
 pub mod geospatial_assets;
 pub mod lod;
