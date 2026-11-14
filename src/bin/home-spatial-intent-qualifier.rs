@@ -181,7 +181,9 @@ fn validate_candidate(
             .unwrap_or(false);
         let privacy_requirement = text_at(spec, "privacy_requirement").unwrap_or("NOT_STATED");
         if let Some(space) = array_at(candidate, "space_nodes").and_then(|spaces| {
-            spaces.iter().find(|space| text_at(space, "space_id") == Some(space_id))
+            spaces
+                .iter()
+                .find(|space| text_at(space, "space_id") == Some(space_id.as_str()))
         }) {
             let privacy_zone = text_at(space, "privacy_zone").unwrap_or("UNKNOWN");
             let privacy_satisfied = match privacy_requirement {
@@ -225,6 +227,33 @@ fn validate_candidate(
             if !relationship_rows.insert(key.clone()) {
                 errors.push(format!(
                     "{candidate_id}: duplicate relationship {:?}",
+                    key
+                ));
+            }
+            if matches!(
+                key.2.as_str(),
+                "ADJACENT"
+                    | "NEAR"
+                    | "SEPARATE"
+                    | "DIRECT_ACCESS"
+                    | "ACOUSTICALLY_SEPARATE"
+                    | "VISUALLY_PRIVATE"
+                    | "STEP_FREE_ROUTE"
+                    | "OUTDOOR_CONNECTION"
+            ) && key.0 == key.1
+            {
+                errors.push(format!(
+                    "{candidate_id}: relationship {:?} cannot connect an activity to itself",
+                    key
+                ));
+            }
+            if matches!(
+                key.2.as_str(),
+                "SEPARATE" | "ACOUSTICALLY_SEPARATE" | "VISUALLY_PRIVATE"
+            ) && text_at(row, "from_space_id") == text_at(row, "to_space_id")
+            {
+                errors.push(format!(
+                    "{candidate_id}: relationship {:?} is not represented by distinct spaces",
                     key
                 ));
             }
@@ -668,6 +697,14 @@ mod tests {
             .iter_mut()
             .find(|space| space["space_id"] == "A-WORK-01")
             .unwrap()["privacy_zone"] = json!("PUBLIC");
+        assert!(validate(&brief, &graph, &schema).is_err());
+    }
+
+    #[test]
+    fn discretionary_water_cannot_be_assumed_for_essential_comfort() {
+        let (brief, mut graph, schema) = fixture();
+        graph["candidate_graphs"][0]["water_dependency_state"] =
+            json!("WATER_FEATURE_REQUIRED_FOR_COMFORT");
         assert!(validate(&brief, &graph, &schema).is_err());
     }
 
