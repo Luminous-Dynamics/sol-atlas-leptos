@@ -387,6 +387,10 @@ impl CadenceTimeline {
         let expected_count = expected_times.len();
         let acquired_count = self.opportunities.iter().filter(|item| item.is_acquired()).count();
         let usable_count = self.opportunities.iter().filter(|item| item.is_usable()).count();
+        let usable_with_known_expected_count = self.opportunities
+            .iter()
+            .filter(|item| item.is_usable() && item.expected_at_unix_ms.is_some())
+            .count();
         let no_acquisition_count = self
             .opportunities
             .iter()
@@ -399,7 +403,7 @@ impl CadenceTimeline {
             .count();
 
         let usable_fraction_of_expected = (expected_count > 0)
-            .then_some(usable_count as f64 / expected_count as f64);
+            .then_some(usable_with_known_expected_count as f64 / expected_count as f64);
         let usable_fraction_of_acquired =
             (acquired_count > 0).then_some(usable_count as f64 / acquired_count as f64);
 
@@ -461,7 +465,7 @@ impl CadenceTimeline {
             nominal_schedule_gaps: summarize_gaps(expected_times),
             actual_acquisition_gaps: summarize_gaps(acquired_times),
             usable_revisit_gaps: summarize_gaps(usable_times),
-            delivery_latency: summarize_gaps(delivery_latencies),
+            delivery_latency: summarize_durations(delivery_latencies),
             first_actionable_claim_at_unix_ms,
             event_time_intervals: self.interval_censored_event_times(),
             per_sensor,
@@ -530,6 +534,15 @@ pub struct GapSummary {
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
+pub struct DurationSummary {
+    pub sample_count: usize,
+    pub p50_ms: Option<i64>,
+    pub p90_ms: Option<i64>,
+    pub maximum_ms: Option<i64>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct SensorCadenceSummary {
     pub sensor_id: String,
     pub acquired_count: usize,
@@ -565,7 +578,7 @@ pub struct CadenceReport {
     pub actual_acquisition_gaps: GapSummary,
     pub usable_revisit_gaps: GapSummary,
     /// Arrival delay distribution in milliseconds, not physical revisit.
-    pub delivery_latency: GapSummary,
+    pub delivery_latency: DurationSummary,
     pub first_actionable_claim_at_unix_ms: Option<i64>,
     pub event_time_intervals: Vec<CensoredEventInterval>,
     pub per_sensor: Vec<SensorCadenceSummary>,
@@ -584,6 +597,16 @@ fn summarize_gaps(mut times: Vec<i64>) -> GapSummary {
         p50_ms: percentile_nearest_rank(&gaps, 50),
         p90_ms: percentile_nearest_rank(&gaps, 90),
         maximum_ms: gaps.last().copied(),
+    }
+}
+
+fn summarize_durations(mut durations: Vec<i64>) -> DurationSummary {
+    durations.sort_unstable();
+    DurationSummary {
+        sample_count: durations.len(),
+        p50_ms: percentile_nearest_rank(&durations, 50),
+        p90_ms: percentile_nearest_rank(&durations, 90),
+        maximum_ms: durations.last().copied(),
     }
 }
 
@@ -772,6 +795,8 @@ mod tests {
             ],
         ).unwrap();
         let report = timeline.report();
+        assert_eq!(report.delivery_latency.sample_count, 2);
+        assert_eq!(report.delivery_latency.p90_ms, Some(3 * 60 * 60 * 1000));
         assert_eq!(report.delivery_latency.maximum_ms, Some(3 * 60 * 60 * 1000));
         assert_eq!(report.usable_revisit_gaps.p50_ms, Some(DAY + DAY / 2));
         assert_eq!(report.first_actionable_claim_at_unix_ms, Some(DAY + 3 * 60 * 60 * 1000));
