@@ -1,0 +1,179 @@
+{
+  "schema_version": "site-foundation-evidence/0.1",
+  "profile_id": "SYN-SITE-FOUNDATION-EMPTY-001",
+  "maturity": "synthetic_contract",
+  "site_binding": {
+    "boundary_ref": {
+      "kind": "synthetic_site_boundary",
+      "id": "urn:synthetic:site:boundary:unbound",
+      "revision": null,
+      "digest": null
+    },
+    "survey_ref": {
+      "kind": "survey",
+      "id": "urn:synthetic:site:survey:unbound",
+      "revision": null,
+      "digest": null
+    },
+    "coordinate_context": {
+      "horizontal_crs": null,
+      "axis_order": null,
+      "vertical_datum": null,
+      "linear_unit": null,
+      "coordinate_epoch": null,
+      "survey_time": null,
+      "coverage_state": "unknown",
+      "uncertainty_state": "unknown"
+    }
+  },
+  "design_binding": {
+    "candidate_ref": {
+      "kind": "home_candidate",
+      "id": "urn:synthetic:home:candidate:unbound",
+      "revision": null,
+      "digest": null
+    },
+    "architectural_revision_ref": {
+      "kind": "architectural_revision",
+      "id": "urn:synthetic:home:architecture:unbound",
+      "revision": null,
+      "digest": null
+    },
+    "structural_load_envelope_ref": {
+      "kind": "structural_load_envelope",
+      "id": "urn:synthetic:home:loads:unbound",
+      "revision": null,
+      "digest": null
+    },
+    "geometry_ref": {
+      "kind": "geometric_candidate",
+      "id": "urn:synthetic:home:geometry:unbound",
+      "revision": null,
+      "digest": null
+    },
+    "jurisdiction_profile_ref": {
+      "kind": "jurisdiction_profile",
+      "id": "urn:synthetic:jurisdiction:unselected",
+      "revision": null,
+      "digest": null
+    }
+  },
+  "screening_sources": [],
+  "investigation": {
+    "state": "not_provided",
+    "scope_ref": {
+      "kind": "investigation_scope",
+      "id": "urn:synthetic:investigation:scope:unbound",
+      "revision": null,
+      "digest": null
+    },
+    "report_ref": {
+      "kind": "geotechnical_report",
+      "id": "urn:synthetic:geotechnical-report:not-provided",
+      "revision": null,
+      "digest": null
+    },
+    "coverage_state": "unknown",
+    "observations": []
+  },
+  "professional_review": {
+    "state": "not_requested",
+    "reviewer_ref": {
+      "kind": "professional",
+      "id": "urn:synthetic:professional:unassigned",
+      "revision": null,
+      "digest": null
+    },
+    "review_record_ref": {
+      "kind": "professional_review",
+      "id": "urn:synthetic:review:not-requested",
+      "revision": null,
+      "digest": null
+    },
+    "review_scope": "No real site or foundation design is bound in this synthetic fixture.",
+    "recorded_at": null,
+    "limitations": [
+      "No geotechnical interpretation or foundation design exists in this fixture."
+    ]
+  },
+  "foundation_design": {
+    "state": "not_provided",
+    "drawing_ref": {
+      "kind": "foundation_drawing",
+      "id": "urn:synthetic:foundation-drawing:not-provided",
+      "revision": null,
+      "digest": null
+    },
+    "design_revision_ref": {
+      "kind": "design_revision",
+      "id": "urn:synthetic:foundation-design:unbound",
+      "revision": null,
+      "digest": null
+    },
+    "geotechnical_report_ref": {
+      "kind": "geotechnical_report",
+      "id": "urn:synthetic:geotechnical-report:not-provided",
+      "revision": null,
+      "digest": null
+    },
+    "load_envelope_ref": {
+      "kind": "structural_load_envelope",
+      "id": "urn:synthetic:home:loads:unbound",
+      "revision": null,
+      "digest": null
+    },
+    "rule_refs": [],
+    "responsible_professional_ref": {
+      "kind": "professional",
+      "id": "urn:synthetic:professional:unassigned",
+      "revision": null,
+      "digest": null
+    },
+    "limitations": [
+      "No foundation type, dimensions, reinforcement, bearing capacity or settlement values are supplied."
+    ]
+  },
+  "construction_hold_points": [],
+  "as_built": {
+    "state": "not_started",
+    "survey_ref": {
+      "kind": "as_built_survey",
+      "id": "urn:synthetic:as-built:not-started",
+      "revision": null,
+      "digest": null
+    },
+    "installed_revision_ref": {
+      "kind": "installed_design_revision",
+      "id": "urn:synthetic:installed-revision:unknown",
+      "revision": null,
+      "digest": null
+    },
+    "deviation_refs": []
+  },
+  "revision_dependencies": [
+    "site_boundary",
+    "survey_revision",
+    "coordinate_reference",
+    "site_levels",
+    "surface_drainage",
+    "cut_fill",
+    "groundwater",
+    "ground_investigation",
+    "geotechnical_interpretation",
+    "architectural_revision",
+    "structural_load_envelope",
+    "foundation_geometry",
+    "foundation_materials",
+    "construction_method",
+    "workmanship",
+    "stormwater_design",
+    "jurisdictional_rule_edition"
+  ],
+  "fixture_notes": [
+    "Synthetic evidence-linkage fixture only; no actual parcel, survey, soil investigation, professional report, foundation design or construction inspection is represented.",
+    "Regional geology or terrain screening, if later supplied, remains screening only.",
+    "An empty hold-point list means no project-specific hold points have yet been supplied by the responsible design owner; it does not mean none are required.",
+    "No design, construction, inspection, enrolment, permit or occupancy authority is represented."
+  ],
+  "claim_ceiling": "This record checks evidence linkage and declared review/hold-point state only. It does not determine ground conditions, site suitability, foundation type or adequacy, structural safety, code compliance, inspection acceptance, construction release or occupancy."
+}
