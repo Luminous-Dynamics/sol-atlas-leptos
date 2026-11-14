@@ -69,11 +69,13 @@
           },
           "total_places": {
             "type": "integer",
-            "minimum": 1
+            "minimum": 1,
+            "maximum": 1000000
           },
           "accessible_places": {
             "type": "integer",
-            "minimum": 0
+            "minimum": 0,
+            "maximum": 1000000
           },
           "route_options": {
             "type": "array",
@@ -124,7 +126,8 @@
             }
           }
         }
-      }
+      },
+      "maxItems": 64
     },
     "sites": {
       "type": "array",
@@ -156,11 +159,13 @@
           },
           "free_total_places": {
             "type": "integer",
-            "minimum": 0
+            "minimum": 0,
+            "maximum": 1000000
           },
           "free_accessible_places": {
             "type": "integer",
-            "minimum": 0
+            "minimum": 0,
+            "maximum": 1000000
           },
           "free_safe_water_l": {
             "type": "number",
@@ -179,7 +184,8 @@
             "minLength": 1
           }
         }
-      }
+      },
+      "maxItems": 64
     },
     "demand_evidence_ref": {
       "type": "string",
