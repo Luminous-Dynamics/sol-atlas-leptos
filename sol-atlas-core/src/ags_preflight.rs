@@ -319,7 +319,11 @@ fn parse_quoted_row(line: &[u8]) -> Result<Vec<String>, AgsPreflightError> {
         }
     }
 
-    if fields.first().map(|value| value.trim().is_empty()).unwrap_or(true) {
+    if fields
+        .first()
+        .map(|value| value.trim().is_empty())
+        .unwrap_or(true)
+    {
         return Err(AgsPreflightError::EmptyLine);
     }
 
