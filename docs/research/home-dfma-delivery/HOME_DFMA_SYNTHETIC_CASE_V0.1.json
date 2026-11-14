@@ -1,0 +1,168 @@
+{
+  "schema_version": "0.1.0",
+  "study_id": "HOME-DfMA-DELIVERY-001",
+  "maturity": "SYNTHETIC_FIXTURE",
+  "execution_status": "NOT_RELEASED",
+  "design_revision": "SYNTH-HOME-REV-0",
+  "assembly_revision": "SYNTH-EXT-WALL-REV-1",
+  "site_reference": "SYNTH-JOHANNESBURG-PLOT-NOT-A-REAL-SITE",
+  "common_unknowns": [
+    "No real site boundary, access route, turning geometry, laydown area or overhead clearance is supplied.",
+    "No factory, machine, production capacity, labour roster or process capability is admitted.",
+    "No structural engineering, temporary works, crane or lift-plan evidence is supplied.",
+    "No local transport quotes, permit requirements, module dimensions or mass have been verified.",
+    "No material certificates, calibration records or inspection receipts are admitted.",
+    "No real supplier, component batch, stock state, delivery slot or product price is represented."
+  ],
+  "release_state": "NOT_RELEASED",
+  "component_manifest_ref": "../home-material-intelligence/COMPONENT_CATALOGUE_SYNTHETIC_FIXTURE_V0.1.json",
+  "delivery_candidates": [
+    {
+      "mode_id": "CONVENTIONAL_SITE_BUILT",
+      "disposition": "NOT_EVALUATED",
+      "manufacturing_readiness": "UNKNOWN",
+      "design_for_manufacture_review": "UNKNOWN",
+      "fabrication_route": "NOT_DEFINED",
+      "design_freeze_state": "NOT_RELEASED",
+      "quantity_and_cost_state": "NOT_ESTIMATED",
+      "factory_labour_hours": null,
+      "site_labour_hours": null,
+      "end_to_end_days": null,
+      "installed_cost_zar": null,
+      "waste_kg": null,
+      "transport_state": "UNKNOWN",
+      "transport_envelope": {
+        "length_mm": null,
+        "width_mm": null,
+        "height_mm": null,
+        "mass_kg": null,
+        "centre_of_gravity_ref": null,
+        "route_clearance_ref": null
+      },
+      "lifting_state": "UNKNOWN",
+      "lift_plan_ref": null,
+      "tolerance_state": "UNKNOWN",
+      "qa_state": "UNKNOWN",
+      "batch_genealogy_state": "NOT_CREATED",
+      "occupied_phase_safe_state": "UNKNOWN",
+      "blocking_unknowns": [
+        "No source-native manufacturing, supplier, route, lift, quality or professional evidence is admitted."
+      ]
+    },
+    {
+      "mode_id": "LOCAL_PANELIZED",
+      "disposition": "NOT_EVALUATED",
+      "manufacturing_readiness": "UNKNOWN",
+      "design_for_manufacture_review": "UNKNOWN",
+      "fabrication_route": "NOT_DEFINED",
+      "design_freeze_state": "NOT_RELEASED",
+      "quantity_and_cost_state": "NOT_ESTIMATED",
+      "factory_labour_hours": null,
+      "site_labour_hours": null,
+      "end_to_end_days": null,
+      "installed_cost_zar": null,
+      "waste_kg": null,
+      "transport_state": "UNKNOWN",
+      "transport_envelope": {
+        "length_mm": null,
+        "width_mm": null,
+        "height_mm": null,
+        "mass_kg": null,
+        "centre_of_gravity_ref": null,
+        "route_clearance_ref": null
+      },
+      "lifting_state": "UNKNOWN",
+      "lift_plan_ref": null,
+      "tolerance_state": "UNKNOWN",
+      "qa_state": "UNKNOWN",
+      "batch_genealogy_state": "NOT_CREATED",
+      "occupied_phase_safe_state": "UNKNOWN",
+      "blocking_unknowns": [
+        "No source-native manufacturing, supplier, route, lift, quality or professional evidence is admitted."
+      ]
+    },
+    {
+      "mode_id": "VOLUMETRIC_MODULAR",
+      "disposition": "NOT_EVALUATED",
+      "manufacturing_readiness": "UNKNOWN",
+      "design_for_manufacture_review": "UNKNOWN",
+      "fabrication_route": "NOT_DEFINED",
+      "design_freeze_state": "NOT_RELEASED",
+      "quantity_and_cost_state": "NOT_ESTIMATED",
+      "factory_labour_hours": null,
+      "site_labour_hours": null,
+      "end_to_end_days": null,
+      "installed_cost_zar": null,
+      "waste_kg": null,
+      "transport_state": "UNKNOWN",
+      "transport_envelope": {
+        "length_mm": null,
+        "width_mm": null,
+        "height_mm": null,
+        "mass_kg": null,
+        "centre_of_gravity_ref": null,
+        "route_clearance_ref": null
+      },
+      "lifting_state": "UNKNOWN",
+      "lift_plan_ref": null,
+      "tolerance_state": "UNKNOWN",
+      "qa_state": "UNKNOWN",
+      "batch_genealogy_state": "NOT_CREATED",
+      "occupied_phase_safe_state": "UNKNOWN",
+      "blocking_unknowns": [
+        "No source-native manufacturing, supplier, route, lift, quality or professional evidence is admitted."
+      ]
+    },
+    {
+      "mode_id": "HYBRID_COMPONENT_KIT",
+      "disposition": "NOT_EVALUATED",
+      "manufacturing_readiness": "UNKNOWN",
+      "design_for_manufacture_review": "UNKNOWN",
+      "fabrication_route": "NOT_DEFINED",
+      "design_freeze_state": "NOT_RELEASED",
+      "quantity_and_cost_state": "NOT_ESTIMATED",
+      "factory_labour_hours": null,
+      "site_labour_hours": null,
+      "end_to_end_days": null,
+      "installed_cost_zar": null,
+      "waste_kg": null,
+      "transport_state": "UNKNOWN",
+      "transport_envelope": {
+        "length_mm": null,
+        "width_mm": null,
+        "height_mm": null,
+        "mass_kg": null,
+        "centre_of_gravity_ref": null,
+        "route_clearance_ref": null
+      },
+      "lifting_state": "UNKNOWN",
+      "lift_plan_ref": null,
+      "tolerance_state": "UNKNOWN",
+      "qa_state": "UNKNOWN",
+      "batch_genealogy_state": "NOT_CREATED",
+      "occupied_phase_safe_state": "UNKNOWN",
+      "blocking_unknowns": [
+        "No source-native manufacturing, supplier, route, lift, quality or professional evidence is admitted."
+      ]
+    }
+  ],
+  "dependency_invalidation": {
+    "trigger": "POST_RELEASE_DESIGN_OR_COMPONENT_REVISION",
+    "invalidates": [
+      "DESIGN_RELEASE",
+      "BOM_AND_STOCK",
+      "FABRICATION_ROUTING",
+      "TOLERANCE_AND_QA",
+      "BATCH_GENEALOGY",
+      "COST_AND_QUOTE",
+      "PACKAGING_AND_TRANSPORT",
+      "LIFT_PLAN_AND_TEMPORARY_WORKS",
+      "SITE_SEQUENCE_AND_CREW",
+      "INSPECTION_AND_COMMISSIONING",
+      "WARRANTY_AND_MAINTENANCE",
+      "AS_BUILT_RECORD"
+    ],
+    "no_inherited_receipts_without_exact_revision_rebind": true
+  },
+  "claim_ceiling": "Four delivery modes are defined as hypotheses only. No production release, transport/lift feasibility, cost, duration, quality or safety result is established."
+}
