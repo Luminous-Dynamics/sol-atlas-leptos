@@ -400,7 +400,8 @@ mod tests {
     #[test]
     fn duplicate_node_identity_is_rejected() {
         let (mut fixture, building) = load_fixtures();
-        fixture["nodes"][1]["node_id"] = fixture["nodes"][0]["node_id"].clone();
+        let duplicate_id = fixture["nodes"][0]["node_id"].clone();
+        fixture["nodes"][1]["node_id"] = duplicate_id;
         assert!(validate(&fixture, &building).is_err());
     }
 
@@ -470,8 +471,10 @@ mod tests {
     #[test]
     fn duplicate_service_per_unit_is_rejected() {
         let (mut fixture, building) = load_fixtures();
-        fixture["unit_services"][1]["service_id"] = fixture["unit_services"][0]["service_id"].clone();
-        fixture["unit_services"][1]["unit_id"] = fixture["unit_services"][0]["unit_id"].clone();
+        let duplicate_service = fixture["unit_services"][0]["service_id"].clone();
+        let duplicate_unit = fixture["unit_services"][0]["unit_id"].clone();
+        fixture["unit_services"][1]["service_id"] = duplicate_service;
+        fixture["unit_services"][1]["unit_id"] = duplicate_unit;
         assert!(validate(&fixture, &building).is_err());
     }
 }
