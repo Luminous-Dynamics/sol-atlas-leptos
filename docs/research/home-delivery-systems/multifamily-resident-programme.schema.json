@@ -1,0 +1,537 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/Luminous-Dynamics/sol-atlas-leptos/main/docs/research/home-delivery-systems/multifamily-resident-programme.schema.json",
+  "title": "Multi-family Resident Programme v0.1",
+  "description": "Synthetic-first apartment activity, relationship, requirement, preference and service-intent contract. It does not infer real resident needs or physical dimensions.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "programme_id",
+    "maturity",
+    "source_scope",
+    "building_candidate_ref",
+    "programme_revision_ref",
+    "unit_programmes",
+    "claim_ceiling"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "multifamily-resident-programme/0.1"
+    },
+    "programme_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "maturity": {
+      "const": "synthetic_scenario_only"
+    },
+    "source_scope": {
+      "const": "synthetic_scenario_authoring_not_real_resident_data"
+    },
+    "building_candidate_ref": {
+      "$ref": "#/$defs/reference"
+    },
+    "programme_revision_ref": {
+      "$ref": "#/$defs/reference"
+    },
+    "unit_programmes": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/unitProgramme"
+      }
+    },
+    "claim_ceiling": {
+      "const": "This synthetic programme exercises unit/activity/requirement traceability only. It does not represent real residents, household demographics, required dimensions, accessibility needs, service demand, room suitability, or resident acceptance."
+    }
+  },
+  "$defs": {
+    "reference": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "id",
+        "revision",
+        "digest"
+      ],
+      "properties": {
+        "kind": {
+          "type": "string",
+          "minLength": 1
+        },
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "revision": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "digest": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+    "spatialLimits": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "state",
+        "minimum_width_mm",
+        "preferred_width_mm",
+        "minimum_area_mm2",
+        "preferred_area_mm2"
+      ],
+      "properties": {
+        "state": {
+          "enum": [
+            "not_supplied",
+            "unknown",
+            "resident_declared",
+            "professionally_required"
+          ]
+        },
+        "minimum_width_mm": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "preferred_width_mm": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "minimum_area_mm2": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "preferred_area_mm2": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 0
+        }
+      }
+    },
+    "activity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "activity_id",
+        "statement",
+        "frequency",
+        "concurrency_state",
+        "concurrent_people",
+        "dedicated_space_required",
+        "privacy_requirement",
+        "space_relationship_tags",
+        "spatial_limits",
+        "equipment_refs"
+      ],
+      "properties": {
+        "activity_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "statement": {
+          "type": "string",
+          "minLength": 1
+        },
+        "frequency": {
+          "enum": [
+            "daily",
+            "weekly",
+            "occasional",
+            "seasonal",
+            "unknown"
+          ]
+        },
+        "concurrency_state": {
+          "enum": [
+            "not_supplied",
+            "unknown",
+            "synthetic_scenario_declared"
+          ]
+        },
+        "concurrent_people": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 1
+        },
+        "dedicated_space_required": {
+          "type": [
+            "boolean",
+            "null"
+          ]
+        },
+        "privacy_requirement": {
+          "enum": [
+            "private",
+            "semi_private",
+            "shared",
+            "public",
+            "service",
+            "not_stated"
+          ]
+        },
+        "space_relationship_tags": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "enum": [
+              "near",
+              "adjacent",
+              "separate",
+              "direct_access",
+              "acoustically_separate",
+              "visually_private",
+              "outdoor_connection",
+              "shared_access"
+            ]
+          }
+        },
+        "spatial_limits": {
+          "$ref": "#/$defs/spatialLimits"
+        },
+        "equipment_refs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/reference"
+          }
+        }
+      }
+    },
+    "relationship": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "relationship_id",
+        "from_activity_id",
+        "to_activity_id",
+        "relationship",
+        "strength"
+      ],
+      "properties": {
+        "relationship_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "from_activity_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "to_activity_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "relationship": {
+          "enum": [
+            "near",
+            "adjacent",
+            "separate",
+            "direct_access",
+            "acoustically_separate",
+            "visually_private",
+            "outdoor_connection",
+            "shared_access"
+          ]
+        },
+        "strength": {
+          "enum": [
+            "non_negotiable",
+            "preference",
+            "unknown"
+          ]
+        }
+      }
+    },
+    "requirement": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "requirement_id",
+        "statement",
+        "domain",
+        "severity",
+        "source_scope",
+        "inferred",
+        "resident_confirmation_state"
+      ],
+      "properties": {
+        "requirement_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "statement": {
+          "type": "string",
+          "minLength": 1
+        },
+        "domain": {
+          "enum": [
+            "function",
+            "privacy",
+            "acoustic",
+            "access",
+            "storage",
+            "outdoor",
+            "environment",
+            "service",
+            "adaptability",
+            "other"
+          ]
+        },
+        "severity": {
+          "enum": [
+            "non_negotiable",
+            "preference",
+            "unknown"
+          ]
+        },
+        "source_scope": {
+          "const": "synthetic_scenario_authoring"
+        },
+        "inferred": {
+          "const": false
+        },
+        "resident_confirmation_state": {
+          "const": "synthetic_not_real_resident"
+        }
+      }
+    },
+    "preference": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "preference_id",
+        "statement",
+        "priority_state",
+        "priority",
+        "tradeable",
+        "source_scope",
+        "inferred"
+      ],
+      "properties": {
+        "preference_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "statement": {
+          "type": "string",
+          "minLength": 1
+        },
+        "priority_state": {
+          "enum": [
+            "not_supplied",
+            "unknown",
+            "declared"
+          ]
+        },
+        "priority": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 1,
+          "maximum": 5
+        },
+        "tradeable": {
+          "type": [
+            "boolean",
+            "null"
+          ]
+        },
+        "source_scope": {
+          "const": "synthetic_scenario_authoring"
+        },
+        "inferred": {
+          "const": false
+        }
+      }
+    },
+    "serviceRequirement": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "service_requirement_id",
+        "service_kind",
+        "state",
+        "functional_unit",
+        "quantity",
+        "unit",
+        "quality_requirement_state"
+      ],
+      "properties": {
+        "service_requirement_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "service_kind": {
+          "enum": [
+            "potable_water",
+            "non_potable_water",
+            "electricity",
+            "useful_thermal",
+            "ventilation",
+            "wastewater",
+            "communications",
+            "other"
+          ]
+        },
+        "state": {
+          "enum": [
+            "not_supplied",
+            "unknown",
+            "synthetic_scenario_declared",
+            "professional_requirement"
+          ]
+        },
+        "functional_unit": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "quantity": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "unit": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "quality_requirement_state": {
+          "enum": [
+            "not_supplied",
+            "unknown",
+            "declared",
+            "professional_review_required"
+          ]
+        }
+      }
+    },
+    "unitProgramme": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "unit_id",
+        "unit_programme_id",
+        "source_scope",
+        "occupancy_state",
+        "concurrent_people",
+        "activities",
+        "relationships",
+        "requirements",
+        "preferences",
+        "access_requirement_state",
+        "access_requirements",
+        "service_requirements",
+        "shared_amenity_preferences",
+        "claim_ceiling"
+      ],
+      "properties": {
+        "unit_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "unit_programme_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "source_scope": {
+          "const": "synthetic_scenario_authoring_not_real_resident_data"
+        },
+        "occupancy_state": {
+          "enum": [
+            "not_supplied",
+            "unknown",
+            "synthetic_scenario_declared"
+          ]
+        },
+        "concurrent_people": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 1
+        },
+        "activities": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/activity"
+          }
+        },
+        "relationships": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/relationship"
+          }
+        },
+        "requirements": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/requirement"
+          }
+        },
+        "preferences": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/preference"
+          }
+        },
+        "access_requirement_state": {
+          "enum": [
+            "not_stated",
+            "synthetic_scenario_declared",
+            "professional_input_required",
+            "unknown"
+          ]
+        },
+        "access_requirements": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/requirement"
+          }
+        },
+        "service_requirements": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/serviceRequirement"
+          }
+        },
+        "shared_amenity_preferences": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "claim_ceiling": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    }
+  }
+}
