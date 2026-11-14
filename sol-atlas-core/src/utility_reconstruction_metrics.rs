@@ -262,7 +262,6 @@ pub fn score_asset_association(
     let mut truth_asset_ids = BTreeSet::new();
     let mut candidate_asset_ids = BTreeSet::new();
     let mut predicted_asset_truth_members: BTreeMap<String, BTreeSet<String>> = BTreeMap::new();
-    let mut true_asset_has_prediction: BTreeMap<String, bool> = BTreeMap::new();
 
     let mut assigned_events = 0usize;
     let mut abstained_events = 0usize;
@@ -273,7 +272,6 @@ pub fn score_asset_association(
         let truth_key = match event.truth_asset_id.as_deref() {
             Some(asset_id) => {
                 truth_asset_ids.insert(asset_id.to_string());
-                true_asset_has_prediction.entry(asset_id.to_string()).or_insert(false);
                 ClusterKey::Utility(asset_id.to_string())
             }
             None => ClusterKey::Singleton(format!("truth-clutter:{}", event.event_id)),
@@ -285,7 +283,6 @@ pub fn score_asset_association(
                 assigned_events += 1;
                 candidate_asset_ids.insert(candidate_asset_id.clone());
                 if let Some(truth_asset_id) = event.truth_asset_id.as_deref() {
-                    true_asset_has_prediction.insert(truth_asset_id.to_string(), true);
                     predicted_asset_truth_members
                         .entry(candidate_asset_id.clone())
                         .or_default()
