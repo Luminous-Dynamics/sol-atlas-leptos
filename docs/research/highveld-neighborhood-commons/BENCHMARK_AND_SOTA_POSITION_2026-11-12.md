@@ -307,22 +307,6 @@ The refuge network sequence oracle now complements cumulative unmet place-hours 
 
 The thermal-store ledger reports peak input/rejection rate as well as energy, and marks each interval FAIL when its own balance, capacity or continuity checks fail. The thermal service/refuge qualifier requires the 80-case registration and preserves the distinction between ASHRAE comfort and local heat-health safety. Its refuge claim rules reject unknown dependencies, inaccessible routes and exhausted capacity.
 
-## 16. Refuge network engines: keep objective and evidence role explicit
-
-The active branch now separates five related but non-interchangeable questions:
-
-| Tool | Question answered | Exactness / output boundary |
-|---|---|---|
-| highveld-refuge-availability-governor | Is one site eligible for human capacity planning at this time? | Deterministic site eligibility, no allocation |
-| highveld-refuge-network-flow-oracle | What is the maximum aggregate throughput in a small frozen network under an accessible-first policy? | Independent Edmonds–Karp reference, no fairness/temporal policy |
-| highveld-refuge-network-feasibility | How much service can the network sustain across cohorts and event-time states, under a progressive max-min policy? | Shared-capacity flow plus temporal service debt, degradation/recovery and freshness |
-| highveld-refuge-capacity-oracle | Does a complete bounded group-level feasibility witness exist? | Exact bounded search; node-limit exhaustion is indeterminate |
-| highveld-refuge-shared-capacity-audit | Does a proposed group-level plan overcommit shared site resources? | Independent plan audit, not an optimizer |
-
-The simple max-flow comparator is not a second main allocator. Its value is methodological: it gives a conventional throughput reference against which the fairness-aware and time-series engines can be compared on the same frozen input. Do not interpret its higher total flow as a superior service policy if it worsens minimum cohort service or accessible unmet demand.
-
-Future acceptance should include a shared fixture/adapter so each tool consumes one common route/capacity/resource graph, plus an independent replay that compares total throughput, accessible service, minimum cohort coverage, per-area unmet demand, time-integrated place-hours, water headroom and recovery chronology.
-
 ## 15. What a defensible SOTA win would look like now
 
 A credible Highveld result should demonstrate all of the following on the same frozen, held-out traces:
@@ -652,3 +636,20 @@ The arms isolate: dry shade/ventilation; mechanical refuge; radiant-water loop w
 The test contract requires occupied-zone operative/radiant conditions, useful heat removed by a real building-side path, layered store state and night recovery, pump/fan electricity, full water source/loss accounting and outdoor spatial microclimate controls. It prohibits automatic aerosol operation, hidden essential-water reserve use, and treating thermal comfort as a health safety guarantee.
 
 **Status:** 36 registered comparisons, not executed. The Qanat field values are stored only as a Seville reference and explicitly marked non-transferable to Highveld.
+
+## 21. Refuge network engines: keep objective and evidence role explicit
+
+The active branch now separates five related but non-interchangeable questions:
+
+| Tool | Question answered | Exactness / output boundary |
+|---|---|---|
+| highveld-refuge-availability-governor | Is one site eligible for human capacity planning at this time? | Deterministic site eligibility, no allocation |
+| highveld-refuge-network-flow-oracle | What is the maximum aggregate throughput in a small frozen network under an accessible-first policy? | Independent Edmonds–Karp reference, no fairness/temporal policy |
+| highveld-refuge-network-feasibility | How much service can the network sustain across cohorts and event-time states, under a progressive max-min policy? | Shared-capacity flow plus temporal service debt, degradation/recovery and freshness |
+| highveld-refuge-capacity-oracle | Does a complete bounded group-level feasibility witness exist? | Exact bounded search; node-limit exhaustion is indeterminate |
+| highveld-refuge-shared-capacity-audit | Does a proposed group-level plan overcommit shared site resources? | Independent plan audit, not an optimizer |
+
+The simple max-flow comparator is not a second main allocator. Its value is methodological: it gives a conventional throughput reference against which the fairness-aware and time-series engines can be compared on the same frozen input. Do not interpret its higher total flow as a superior service policy if it worsens minimum cohort service or accessible unmet demand.
+
+Future acceptance should include a shared fixture/adapter so each tool consumes one common route/capacity/resource graph, plus an independent replay that compares total throughput, accessible service, minimum cohort coverage, per-area unmet demand, time-integrated place-hours, water headroom and recovery chronology.
+
