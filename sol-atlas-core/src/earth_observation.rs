@@ -37,6 +37,16 @@ pub enum ObservationModality {
     Other,
 }
 
+/// Declares how the source-qualified sensor identity was obtained.
+/// This is provenance about identity resolution, not an independent sensor registry.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum SensorIdentityOrigin {
+    ProviderDeclared,
+    DerivedFromPlatformAndInstrument,
+    Unknown,
+}
+
 /// Quality/observability state for the declared spatial and temporal support.
 /// This is not a source-rights or authorization state.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
@@ -178,6 +188,8 @@ pub struct ObservationRecord {
     platform_id: String,
     /// Source-registry-qualified sensor identity, preserving its provider namespace.
     sensor_id: String,
+    /// Whether sensor_id was provider-declared, derived from source fields, or unresolved.
+    sensor_identity_origin: SensorIdentityOrigin,
     /// Provider-native instrument identifier where distinct from sensor ID.
     instrument_id: Option<String>,
     /// Provider-native STAC collection or product-family identifier.
@@ -202,6 +214,7 @@ struct ObservationRecordWire {
     source_id: String,
     platform_id: String,
     sensor_id: String,
+    sensor_identity_origin: SensorIdentityOrigin,
     instrument_id: Option<String>,
     collection_id: Option<String>,
     processing_baseline: Option<String>,
@@ -222,6 +235,7 @@ impl ObservationRecord {
         source_id: impl Into<String>,
         platform_id: impl Into<String>,
         sensor_id: impl Into<String>,
+        sensor_identity_origin: SensorIdentityOrigin,
         instrument_id: Option<String>,
         collection_id: Option<String>,
         processing_baseline: Option<String>,
@@ -244,6 +258,23 @@ impl ObservationRecord {
         validate_identifier(&sensor_id, "sensor ID")?;
         validate_identifier(&support_id, "support ID")?;
         validate_optional_identifier(instrument_id.as_deref(), "instrument ID")?;
+        match sensor_identity_origin {
+            SensorIdentityOrigin::ProviderDeclared => {
+                if sensor_id == "unknown" || sensor_id.starts_with("derived:") {
+                    return Err("provider-declared sensor ID cannot use unknown/derived sentinel".into());
+                }
+            }
+            SensorIdentityOrigin::DerivedFromPlatformAndInstrument => {
+                if instrument_id.is_none() || !sensor_id.starts_with("derived:") {
+                    return Err("derived sensor identity requires an instrument and derived: ID".into());
+                }
+            }
+            SensorIdentityOrigin::Unknown => {
+                if sensor_id != "unknown" {
+                    return Err("unknown sensor identity must use the explicit unknown sentinel".into());
+                }
+            }
+        }
         validate_optional_identifier(collection_id.as_deref(), "collection ID")?;
         validate_optional_identifier(processing_baseline.as_deref(), "processing baseline")?;
         if acquisition.kind() == ObservationTimeKind::Unknown
@@ -263,6 +294,7 @@ impl ObservationRecord {
             source_id,
             platform_id,
             sensor_id,
+            sensor_identity_origin,
             instrument_id,
             collection_id,
             processing_baseline,
@@ -301,6 +333,10 @@ impl ObservationRecord {
 
     pub fn sensor_id(&self) -> &str {
         &self.sensor_id
+    }
+
+    pub fn sensor_identity_origin(&self) -> SensorIdentityOrigin {
+        self.sensor_identity_origin
     }
 
     pub fn instrument_id(&self) -> Option<&str> {
@@ -349,6 +385,13 @@ impl ObservationRecord {
         self.quality == ObservationQuality::QualifiedUsable
     }
 
+    /// True only when an actual source-qualified sensor identity is available.
+    /// Unknown sensor identity can be retained in the evidence bundle, but
+    /// cannot support a promoted detection/change claim.
+    pub fn has_qualified_source_identity(&self) -> bool {
+        self.sensor_identity_origin != SensorIdentityOrigin::Unknown
+    }
+
     fn acquisition_signature(&self) -> Option<String> {
         if self.acquisition.kind() == ObservationTimeKind::Unknown {
             return None;
@@ -372,6 +415,7 @@ impl TryFrom<ObservationRecordWire> for ObservationRecord {
             wire.source_id,
             wire.platform_id,
             wire.sensor_id,
+            wire.sensor_identity_origin,
             wire.instrument_id,
             wire.collection_id,
             wire.processing_baseline,
@@ -713,14 +757,20 @@ impl ChangeClaim {
             if !observation.is_usable_observation() {
                 return Err(format!("observation {id} is not EO-qualified usable"));
             }
+            if !observation.has_qualified_source_identity() {
+                return Err(format!("observation {id} has unknown source sensor identity"));
+            }
         }
 
         if self.disposition == ChangeDisposition::NoChangeWithinEnvelope {
             if referenced
                 .iter()
-                .any(|observation| !observation.is_usable_observation())
+                .any(|observation| {
+                    !observation.is_usable_observation()
+                        || !observation.has_qualified_source_identity()
+                })
             {
-                return Err("no-change claim includes an EO-unusable observation".into());
+                return Err("no-change claim includes an EO-unusable or source-identity-unresolved observation".into());
             }
             let unique_acquisitions = self
                 .supporting_observation_ids
@@ -904,6 +954,7 @@ mod tests {
             "fixture-source",
             "fixture-platform",
             "fixture-sensor",
+            SensorIdentityOrigin::ProviderDeclared,
             Some("fixture-instrument".into()),
             Some("fixture-collection".into()),
             Some("fixture-baseline".into()),
@@ -1096,6 +1147,7 @@ mod tests {
             "fixture-source",
             "fixture-platform",
             "fixture-sensor",
+            SensorIdentityOrigin::ProviderDeclared,
             Some("fixture-instrument".into()),
             Some("fixture-collection".into()),
             Some("fixture-baseline".into()),
@@ -1125,6 +1177,7 @@ mod tests {
             "fixture-source",
             "fixture-platform",
             "fixture-sensor",
+            SensorIdentityOrigin::ProviderDeclared,
             Some("fixture-instrument".into()),
             Some("fixture-collection".into()),
             Some("fixture-baseline".into()),
@@ -1147,6 +1200,7 @@ mod tests {
             "fixture-source",
             "fixture-platform",
             "fixture-sensor",
+            SensorIdentityOrigin::ProviderDeclared,
             Some("fixture-instrument".into()),
             Some("fixture-collection".into()),
             Some("fixture-baseline".into()),
@@ -1178,6 +1232,89 @@ mod tests {
     }
 
     #[test]
+    fn sensor_identity_origin_is_preserved_and_unknown_cannot_support_a_claim() {
+        let unknown = ObservationRecord::new(
+            "obs-unknown-sensor",
+            AssetId::new("fixture:obs-unknown-sensor").unwrap(),
+            "fixture-source",
+            "fixture-platform",
+            "unknown",
+            SensorIdentityOrigin::Unknown,
+            None,
+            Some("fixture-collection".into()),
+            None,
+            digest(b'b'),
+            digest(b'c'),
+            rights("fixture:obs-unknown-sensor"),
+            "support-a",
+            ObservationTime::new(ObservationTimeKind::Instant, Some("2024-01-01".into()), None).unwrap(),
+            ObservationModality::Optical,
+            ObservationQuality::QualifiedUsable,
+        ).unwrap();
+        assert!(!unknown.has_qualified_source_identity());
+        let unresolved_claim = ChangeClaim::new(
+            "claim-unknown-sensor",
+            "vegetation-loss",
+            "fixture-ontology-v1",
+            "support-a",
+            TimeWindow::new("2024-01-01", "2025-01-01").unwrap(),
+            ChangeDisposition::CandidateChange,
+            None,
+            vec!["obs-unknown-sensor".into()],
+            vec!["obs-unknown-sensor".into()],
+            vec![],
+            CoverageState::Unknown,
+            None,
+            None,
+            None,
+            None,
+        ).unwrap();
+        assert!(EvidenceBundle::new(vec![unknown], vec![unresolved_claim]).is_err());
+
+        let derived = ObservationRecord::new(
+            "obs-derived-sensor",
+            AssetId::new("fixture:obs-derived-sensor").unwrap(),
+            "fixture-source",
+            "sentinel-2a",
+            "derived:c2VudGluZWwtMmE:TVNJ",
+            SensorIdentityOrigin::DerivedFromPlatformAndInstrument,
+            Some("MSI".into()),
+            Some("sentinel-2-l2a".into()),
+            Some("04.00".into()),
+            digest(b'b'),
+            digest(b'c'),
+            rights("fixture:obs-derived-sensor"),
+            "support-a",
+            ObservationTime::new(ObservationTimeKind::Instant, Some("2024-01-01".into()), None).unwrap(),
+            ObservationModality::Optical,
+            ObservationQuality::QualifiedUsable,
+        ).unwrap();
+        assert!(derived.has_qualified_source_identity());
+        assert_eq!(
+            derived.sensor_identity_origin(),
+            SensorIdentityOrigin::DerivedFromPlatformAndInstrument
+        );
+        assert!(ObservationRecord::new(
+            "obs-invalid-derived",
+            AssetId::new("fixture:obs-invalid-derived").unwrap(),
+            "fixture-source",
+            "sentinel-2a",
+            "sentinel-2a:MSI",
+            SensorIdentityOrigin::DerivedFromPlatformAndInstrument,
+            None,
+            Some("sentinel-2-l2a".into()),
+            Some("04.00".into()),
+            digest(b'b'),
+            digest(b'c'),
+            rights("fixture:obs-invalid-derived"),
+            "support-a",
+            ObservationTime::new(ObservationTimeKind::Instant, Some("2024-01-01".into()), None).unwrap(),
+            ObservationModality::Optical,
+            ObservationQuality::QualifiedUsable,
+        ).is_err());
+    }
+
+    #[test]
     fn provider_native_platform_and_sensor_identity_are_required() {
         assert!(ObservationRecord::new(
             "obs-invalid-sensor",
@@ -1185,6 +1322,7 @@ mod tests {
             "fixture-source",
             " ",
             "fixture-sensor",
+            SensorIdentityOrigin::ProviderDeclared,
             Some("fixture-instrument".into()),
             Some("fixture-collection".into()),
             Some("fixture-baseline".into()),
@@ -1205,7 +1343,7 @@ mod tests {
     #[test]
     fn mismatched_support_and_missing_receipt_digests_fail() {
         assert!(ObservationRecord::new(
-            "obs-b", AssetId::new("fixture:obs-b").unwrap(), "fixture-source", "fixture-platform", "fixture-sensor", Some("fixture-instrument".into()), Some("fixture-collection".into()), Some("fixture-baseline".into()), "not-a-digest", digest(b'c'),
+            "obs-b", AssetId::new("fixture:obs-b").unwrap(), "fixture-source", "fixture-platform", "fixture-sensor", SensorIdentityOrigin::ProviderDeclared, Some("fixture-instrument".into()), Some("fixture-collection".into()), Some("fixture-baseline".into()), "not-a-digest", digest(b'c'),
             rights("fixture:obs-b"), "support-a",
             ObservationTime::new(ObservationTimeKind::Instant, Some("2024-01-01".into()), None).unwrap(),
             ObservationModality::Optical, ObservationQuality::QualifiedUsable
@@ -1226,6 +1364,10 @@ mod tests {
         assert_eq!(decoded, valid);
         assert_eq!(decoded.observations()[0].platform_id(), "fixture-platform");
         assert_eq!(decoded.observations()[0].sensor_id(), "fixture-sensor");
+        assert_eq!(
+            decoded.observations()[0].sensor_identity_origin(),
+            SensorIdentityOrigin::ProviderDeclared
+        );
         assert_eq!(decoded.observations()[0].instrument_id(), Some("fixture-instrument"));
         assert_eq!(decoded.observations()[0].collection_id(), Some("fixture-collection"));
         assert_eq!(decoded.observations()[0].processing_baseline(), Some("fixture-baseline"));
@@ -1255,7 +1397,7 @@ mod tests {
             CoverageState::Unknown, None, None, None, None
         ).unwrap();
         let other_support = ObservationRecord::new(
-            "obs-b", AssetId::new("fixture:obs-b").unwrap(), "fixture-source", "fixture-platform", "fixture-sensor", Some("fixture-instrument".into()), Some("fixture-collection".into()), Some("fixture-baseline".into()), digest(b'b'), digest(b'c'),
+            "obs-b", AssetId::new("fixture:obs-b").unwrap(), "fixture-source", "fixture-platform", "fixture-sensor", SensorIdentityOrigin::ProviderDeclared, Some("fixture-instrument".into()), Some("fixture-collection".into()), Some("fixture-baseline".into()), digest(b'b'), digest(b'c'),
             rights("fixture:obs-b"), "support-b",
             ObservationTime::new(ObservationTimeKind::Instant, Some("2024-01-01".into()), None).unwrap(),
             ObservationModality::Optical, ObservationQuality::QualifiedUsable

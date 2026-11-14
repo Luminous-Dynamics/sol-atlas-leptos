@@ -127,7 +127,8 @@
         "sensor_id",
         "instrument_id",
         "collection_id",
-        "processing_baseline"
+        "processing_baseline",
+        "sensor_identity_origin"
       ],
       "properties": {
         "observation_id": {
@@ -194,6 +195,14 @@
         },
         "processing_baseline": {
           "$ref": "#/$defs/nullableIdentifier"
+        },
+        "sensor_identity_origin": {
+          "enum": [
+            "provider_declared",
+            "derived_from_platform_and_instrument",
+            "unknown"
+          ],
+          "description": "Provenance of the source-qualified sensor identity. Unknown source identity cannot support promoted change/no-change claims."
         }
       }
     },

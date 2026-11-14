@@ -27,7 +27,8 @@
       "sensor_id": "fixture-sensor",
       "instrument_id": "fixture-instrument",
       "collection_id": "fixture-collection",
-      "processing_baseline": "fixture-baseline"
+      "processing_baseline": "fixture-baseline",
+      "sensor_identity_origin": "provider_declared"
     },
     {
       "observation_id": "obs-2025",
@@ -55,7 +56,8 @@
       "sensor_id": "fixture-sensor",
       "instrument_id": "fixture-instrument",
       "collection_id": "fixture-collection",
-      "processing_baseline": "fixture-baseline"
+      "processing_baseline": "fixture-baseline",
+      "sensor_identity_origin": "provider_declared"
     }
   ],
   "claims": [
