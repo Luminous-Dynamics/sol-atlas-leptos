@@ -209,7 +209,8 @@
         "contradicting_observation_ids",
         "coverage",
         "coverage_receipt_sha256",
-        "detection_limit"
+        "detection_limit",
+        "detection_qualification_receipt_sha256"
       ],
       "properties": {
         "claim_id": {
@@ -292,6 +293,17 @@
               "type": "null"
             }
           ]
+        },
+        "detection_qualification_receipt_sha256": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/sha256"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Reference to an independently qualified target/sensor/configuration detection envelope. This schema validates only its digest shape."
         }
       },
       "allOf": [
@@ -351,6 +363,9 @@
               },
               "contradicting_observation_ids": {
                 "maxItems": 0
+              },
+              "detection_qualification_receipt_sha256": {
+                "$ref": "#/$defs/sha256"
               }
             }
           }
