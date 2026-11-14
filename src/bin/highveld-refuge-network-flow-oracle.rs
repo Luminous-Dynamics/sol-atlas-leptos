@@ -185,7 +185,9 @@ fn freshness_is_qualified(owner: &Value, key: &str) -> bool {
     let maximum = number_at(freshness, "max_valid_age_s");
     age.is_some_and(|value| value >= 0.0)
         && maximum.is_some_and(|value| value >= 0.0)
-        && age.zip(maximum).is_some_and(|(age, maximum)| age <= maximum)
+        && age
+            .zip(maximum)
+            .is_some_and(|(age, maximum)| age <= maximum)
         && text_at(freshness, "source_event_id").is_some()
         && text_at(freshness, "max_age_policy_ref").is_some()
 }
@@ -194,7 +196,9 @@ fn adapt_primary_network_case(primary: &Value) -> Result<Value, Vec<String>> {
     if text_at(primary, "study_id") != Some("HIGHVELD-REFUGE-NETWORK-FEASIBILITY-001")
         || text_at(primary, "maturity") != Some("SYNTHETIC_KNOWN_ANSWER")
     {
-        return Err(vec!["primary fixture identity or maturity is invalid".to_owned()]);
+        return Err(vec![
+            "primary fixture identity or maturity is invalid".to_owned(),
+        ]);
     }
 
     let water_per_person = number_at(primary, "safe_water_l_per_place")
@@ -218,13 +222,41 @@ fn adapt_primary_network_case(primary: &Value) -> Result<Value, Vec<String>> {
         let site_id = text_at(site, "site_id").unwrap_or("<missing-site-id>");
         let mut reasons = Vec::new();
         for (key, expected, reason) in [
-            ("operating_window_state", "OPEN_FOR_REQUIRED_WINDOW", "OPERATING_WINDOW_NOT_QUALIFIED"),
-            ("thermal_service_state", "QUALIFIED", "THERMAL_SERVICE_NOT_QUALIFIED"),
-            ("ventilation_state", "QUALIFIED", "VENTILATION_NOT_QUALIFIED"),
-            ("safe_water_service_state", "QUALIFIED", "SAFE_WATER_SERVICE_NOT_QUALIFIED"),
-            ("safe_water_rights_state", "QUALIFIED", "SAFE_WATER_RIGHTS_NOT_QUALIFIED"),
-            ("safe_water_quality_state", "QUALIFIED", "SAFE_WATER_QUALITY_NOT_QUALIFIED"),
-            ("staffing_maintenance_state", "QUALIFIED", "STAFFING_MAINTENANCE_NOT_QUALIFIED"),
+            (
+                "operating_window_state",
+                "OPEN_FOR_REQUIRED_WINDOW",
+                "OPERATING_WINDOW_NOT_QUALIFIED",
+            ),
+            (
+                "thermal_service_state",
+                "QUALIFIED",
+                "THERMAL_SERVICE_NOT_QUALIFIED",
+            ),
+            (
+                "ventilation_state",
+                "QUALIFIED",
+                "VENTILATION_NOT_QUALIFIED",
+            ),
+            (
+                "safe_water_service_state",
+                "QUALIFIED",
+                "SAFE_WATER_SERVICE_NOT_QUALIFIED",
+            ),
+            (
+                "safe_water_rights_state",
+                "QUALIFIED",
+                "SAFE_WATER_RIGHTS_NOT_QUALIFIED",
+            ),
+            (
+                "safe_water_quality_state",
+                "QUALIFIED",
+                "SAFE_WATER_QUALITY_NOT_QUALIFIED",
+            ),
+            (
+                "staffing_maintenance_state",
+                "QUALIFIED",
+                "STAFFING_MAINTENANCE_NOT_QUALIFIED",
+            ),
         ] {
             if text_at(site, key) != Some(expected) {
                 reasons.push(reason.to_owned());
@@ -283,15 +315,20 @@ fn adapt_primary_network_case(primary: &Value) -> Result<Value, Vec<String>> {
             accessible_occupied,
             accessible_committed,
         ) {
-            (Some(total), Some(occupied), Some(committed), Some(accessible),
-                Some(accessible_occupied), Some(accessible_committed))
-                if occupied <= total
-                    && committed <= total.saturating_sub(occupied)
-                    && accessible <= total
-                    && accessible_occupied <= accessible
-                    && accessible_committed <= accessible.saturating_sub(accessible_occupied)
-                    && accessible_occupied <= occupied
-                    && accessible_committed <= committed =>
+            (
+                Some(total),
+                Some(occupied),
+                Some(committed),
+                Some(accessible),
+                Some(accessible_occupied),
+                Some(accessible_committed),
+            ) if occupied <= total
+                && committed <= total.saturating_sub(occupied)
+                && accessible <= total
+                && accessible_occupied <= accessible
+                && accessible_committed <= accessible.saturating_sub(accessible_occupied)
+                && accessible_occupied <= occupied
+                && accessible_committed <= committed =>
             {
                 (
                     Some(total - occupied - committed),
@@ -339,9 +376,10 @@ fn adapt_primary_network_case(primary: &Value) -> Result<Value, Vec<String>> {
             .ok_or_else(|| vec![format!("{area_id}: maximum route travel time is missing")])?;
         let mut route_options = Vec::new();
 
-        for route in source_routes.iter().filter(|route| {
-            text_at(route, "cohort_id") == Some(area_id)
-        }) {
+        for route in source_routes
+            .iter()
+            .filter(|route| text_at(route, "cohort_id") == Some(area_id))
+        {
             let site_id = text_at(route, "site_id").unwrap_or("<missing-site-id>");
             if !eligible_site_ids.contains(site_id) {
                 continue;
@@ -419,8 +457,7 @@ fn evaluate(case: &Value) -> Result<Value, Vec<String>> {
         || text_at(case, "execution_status") != Some("NO_REAL_DEMAND_OR_ROUTE_DATA")
         || text_at(case, "allocation_policy")
             != Some("ACCESSIBLE_FIRST_THEN_GENERAL_REMAINDER_OF_SHARED_SITE_CAPACITY")
-        || text_at(case, "oracle_revision")
-            != Some("EDMONDS_KARP_BIPARTITE_MAX_FLOW_V0_1")
+        || text_at(case, "oracle_revision") != Some("EDMONDS_KARP_BIPARTITE_MAX_FLOW_V0_1")
     {
         errors.push("study identity, maturity or allocation policy is invalid".to_owned());
     }
@@ -476,8 +513,7 @@ fn evaluate(case: &Value) -> Result<Value, Vec<String>> {
         let area_id = text_at(area, "area_id").unwrap_or_default().to_owned();
         let total = int_at(area, "total_places").unwrap_or(0);
         let accessible = int_at(area, "accessible_places").unwrap_or(u64::MAX);
-        let area_max_travel = number_at(area, "maximum_route_travel_time_s")
-            .unwrap_or(max_travel);
+        let area_max_travel = number_at(area, "maximum_route_travel_time_s").unwrap_or(max_travel);
         if !area_max_travel.is_finite() || area_max_travel <= 0.0 {
             errors.push(format!("{area_id}: maximum route travel time is invalid"));
         }
@@ -600,10 +636,7 @@ fn evaluate(case: &Value) -> Result<Value, Vec<String>> {
         let water_places = (water_after_accessible.get(site_id).copied().unwrap_or(0.0)
             / water_per_person)
             .floor() as u64;
-        remaining_general_caps.insert(
-            site_id.clone(),
-            remaining_total_capacity.min(water_places),
-        );
+        remaining_general_caps.insert(site_id.clone(), remaining_total_capacity.min(water_places));
     }
     let (general_served, general_allocations) =
         run_flow(&demand_general, &remaining_general_caps, &routes_general);
@@ -845,7 +878,13 @@ mod tests {
             report["source_adapter"]["source_case_id"],
             "SYNTHETIC_MULTI_ZONE_PARTITIONED_REFUGE_NETWORK_001"
         );
-        assert_eq!(report["source_adapter"]["eligible_site_ids"].as_array().unwrap().len(), 2);
+        assert_eq!(
+            report["source_adapter"]["eligible_site_ids"]
+                .as_array()
+                .unwrap()
+                .len(),
+            2
+        );
         // Exact-head parity reference from highveld-refuge-network-feasibility
         // self-test: 6 accessible + 6 general = 12 max-throughput places.
         assert_eq!(report["accessible_served"], 6);
