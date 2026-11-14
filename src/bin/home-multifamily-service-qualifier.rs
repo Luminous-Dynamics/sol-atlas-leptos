@@ -520,7 +520,7 @@ fn validate(fixture: &Value, building: &Value, stress: &Value) -> Result<Value, 
     // Check declared directed service paths without assigning any physical capacity.
     for unit_id in &["U-001", "U-002", "U-003", "U-004"] {
         for (resource_id, start, suffix) in [
-            ("R-POTABLE-WATER", "SRC-MUNICIPAL-POTABLE", "WATER"),
+            ("R-POTABLE-WATER", "SRC-MUNICIPAL-WATER-UNQUALIFIED", "WATER"),
             ("R-ELECTRICITY", "SRC-ELECTRICITY", "ELECTRICITY"),
             ("R-USEFUL-THERMAL", "PLANT-HOT-WATER", "THERMAL"),
         ] {
