@@ -101,9 +101,7 @@ fn canonical_projects(
             if !local_activities.insert(activity_id.clone())
                 || !activity_ids.insert(activity_id.clone())
             {
-                errors.push(ProjectSplitError::DuplicateActivity(
-                    activity_id.clone(),
-                ));
+                errors.push(ProjectSplitError::DuplicateActivity(activity_id.clone()));
             }
         }
     }
@@ -148,10 +146,8 @@ pub fn build_leave_one_project_out(
         let calibration_project_ids: Vec<String> = (1..=calibration_projects_per_fold)
             .map(|offset| project_ids[(blind_index + offset) % count].clone())
             .collect();
-        let calibration_set: BTreeSet<&str> = calibration_project_ids
-            .iter()
-            .map(String::as_str)
-            .collect();
+        let calibration_set: BTreeSet<&str> =
+            calibration_project_ids.iter().map(String::as_str).collect();
         let fit_project_ids: Vec<String> = project_ids
             .iter()
             .filter(|project_id| {
@@ -209,9 +205,7 @@ pub fn validate_project_split_manifest(
     {
         errors.push(ProjectSplitError::InvalidCalibrationProjectCount);
     }
-    if manifest.project_count != project_ids.len()
-        || manifest.folds.len() != project_ids.len()
-    {
+    if manifest.project_count != project_ids.len() || manifest.folds.len() != project_ids.len() {
         errors.push(ProjectSplitError::FoldCountMismatch);
     }
 
@@ -260,9 +254,7 @@ pub fn validate_project_split_manifest(
         if assigned.len() != project_ids.len() {
             for project_id in &project_ids {
                 if !assigned.contains(project_id.as_str()) {
-                    errors.push(ProjectSplitError::ProjectNotAssigned(
-                        project_id.clone(),
-                    ));
+                    errors.push(ProjectSplitError::ProjectNotAssigned(project_id.clone()));
                 }
             }
         }
@@ -314,7 +306,11 @@ mod tests {
             assert_eq!(fold.fit_project_ids.len(), 9);
             assert_eq!(fold.calibration_project_ids.len(), 3);
             assert!(!fold.fit_project_ids.contains(&fold.blind_project_id));
-            assert!(!fold.calibration_project_ids.contains(&fold.blind_project_id));
+            assert!(
+                !fold
+                    .calibration_project_ids
+                    .contains(&fold.blind_project_id)
+            );
             assert!(
                 fold.fit_project_ids
                     .iter()
@@ -335,7 +331,11 @@ mod tests {
         assert_eq!(blind.len(), PROJECT_COUNT);
         assert_eq!(
             blind,
-            index.projects.iter().map(|project| project.project_id.as_str()).collect()
+            index
+                .projects
+                .iter()
+                .map(|project| project.project_id.as_str())
+                .collect()
         );
     }
 
@@ -343,11 +343,9 @@ mod tests {
     fn duplicate_activity_across_projects_is_rejected() {
         let mut index = index();
         index.projects[1].activity_ids[0] = index.projects[0].activity_ids[0].clone();
-        assert!(canonical_projects(&index)
-            .unwrap_err()
-            .contains(&ProjectSplitError::DuplicateActivity(
-                "activity-01-a".to_string()
-            )));
+        assert!(canonical_projects(&index).unwrap_err().contains(
+            &ProjectSplitError::DuplicateActivity("activity-01-a".to_string())
+        ));
     }
 
     #[test]
@@ -374,11 +372,15 @@ mod tests {
         let index = index();
         let mut manifest = build_leave_one_project_out(&index, 3).unwrap();
         let blind_project_id = manifest.folds[0].blind_project_id.clone();
-        manifest.folds[0].fit_project_ids.push(blind_project_id.clone());
+        manifest.folds[0]
+            .fit_project_ids
+            .push(blind_project_id.clone());
         assert!(
             validate_project_split_manifest(&index, &manifest)
                 .unwrap_err()
-                .contains(&ProjectSplitError::ProjectAssignedMultipleRoles(blind_project_id))
+                .contains(&ProjectSplitError::ProjectAssignedMultipleRoles(
+                    blind_project_id
+                ))
         );
     }
 }

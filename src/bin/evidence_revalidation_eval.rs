@@ -4,7 +4,7 @@
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 use sol_atlas_core::evidence_revalidation::{
-    build_revalidation_plan, EvidenceDependencyGraph, RevalidationPlan,
+    EvidenceDependencyGraph, RevalidationPlan, build_revalidation_plan,
 };
 use std::env;
 use std::fs;
@@ -80,7 +80,9 @@ fn main() {
     let input_path = match first {
         Some(value) => value,
         None => {
-            eprintln!("usage: evidence_revalidation_eval <graph.json> <changed_node_id> [more_changed_ids...] | --check-pinned");
+            eprintln!(
+                "usage: evidence_revalidation_eval <graph.json> <changed_node_id> [more_changed_ids...] | --check-pinned"
+            );
             std::process::exit(2);
         }
     };
@@ -117,10 +119,7 @@ mod tests {
     fn source_change_emits_pinned_downstream_invalidation_receipt() {
         let receipt = build_receipt(FIXTURE, &["source:gpr-survey-a".to_string()])
             .expect("source change produces plan");
-        assert_eq!(
-            receipt.benchmark_id,
-            "EARTH-OBSERVABILITY-REVALIDATION-001"
-        );
+        assert_eq!(receipt.benchmark_id, "EARTH-OBSERVABILITY-REVALIDATION-001");
         assert_eq!(receipt.input_sha256, sha256_hex(FIXTURE));
         assert_eq!(receipt.plan.invalidated_node_ids.len(), 7);
         assert_eq!(
@@ -136,12 +135,10 @@ mod tests {
 
     #[test]
     fn receipt_binds_exact_graph_bytes() {
-        let original =
-            build_receipt(FIXTURE, &["source:gpr-survey-a".to_string()]).unwrap();
+        let original = build_receipt(FIXTURE, &["source:gpr-survey-a".to_string()]).unwrap();
         let mut changed = FIXTURE.to_vec();
         changed.push(b' ');
-        let revised =
-            build_receipt(&changed, &["source:gpr-survey-a".to_string()]).unwrap();
+        let revised = build_receipt(&changed, &["source:gpr-survey-a".to_string()]).unwrap();
         assert_ne!(original.input_sha256, revised.input_sha256);
     }
 

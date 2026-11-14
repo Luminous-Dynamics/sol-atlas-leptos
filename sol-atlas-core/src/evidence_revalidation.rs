@@ -116,16 +116,16 @@ fn topological_order(
             errors.push(EvidenceDependencyError::EmptyIdentifier("revision_id"));
         }
         if nodes.insert(node.node_id.as_str(), node).is_some() {
-            errors.push(EvidenceDependencyError::DuplicateNode(
-                node.node_id.clone(),
-            ));
+            errors.push(EvidenceDependencyError::DuplicateNode(node.node_id.clone()));
         }
     }
 
     let mut indegree: BTreeMap<&str, usize> =
         nodes.keys().map(|node_id| (*node_id, 0usize)).collect();
-    let mut children: BTreeMap<&str, BTreeSet<&str>> =
-        nodes.keys().map(|node_id| (*node_id, BTreeSet::new())).collect();
+    let mut children: BTreeMap<&str, BTreeSet<&str>> = nodes
+        .keys()
+        .map(|node_id| (*node_id, BTreeSet::new()))
+        .collect();
 
     for node in &graph.nodes {
         let mut local_dependencies = BTreeSet::new();
@@ -188,9 +188,7 @@ fn topological_order(
             .iter()
             .filter_map(|(node_id, degree)| (*degree > 0).then_some((*node_id).to_string()))
             .collect();
-        return Err(vec![EvidenceDependencyError::DependencyCycle(
-            cyclic_nodes,
-        )]);
+        return Err(vec![EvidenceDependencyError::DependencyCycle(cyclic_nodes)]);
     }
 
     Ok(order)
@@ -214,8 +212,11 @@ pub fn build_revalidation_plan(
     changed_node_ids: &[String],
 ) -> Result<RevalidationPlan, Vec<EvidenceDependencyError>> {
     let order = topological_order(graph)?;
-    let node_ids: BTreeSet<String> =
-        graph.nodes.iter().map(|node| node.node_id.clone()).collect();
+    let node_ids: BTreeSet<String> = graph
+        .nodes
+        .iter()
+        .map(|node| node.node_id.clone())
+        .collect();
 
     let mut errors = Vec::new();
     let mut changed = BTreeSet::new();
@@ -229,9 +230,7 @@ pub fn build_revalidation_plan(
         }
     }
     if changed.is_empty() && errors.is_empty() {
-        errors.push(EvidenceDependencyError::EmptyIdentifier(
-            "changed_node_ids",
-        ));
+        errors.push(EvidenceDependencyError::EmptyIdentifier("changed_node_ids"));
     }
     if !errors.is_empty() {
         return Err(errors);
@@ -304,22 +303,41 @@ mod tests {
         let graph = graph();
         let plan = build_revalidation_plan(&graph, &["source:gpr-survey-a".to_string()]).unwrap();
         assert_eq!(plan.invalidated_node_ids.len(), 7);
-        assert_eq!(plan.revalidation_order.first().unwrap(), "transform:route-a");
-        assert_eq!(plan.revalidation_order.last().unwrap(), "export:partner-view-a");
-        assert!(plan.unaffected_node_ids.contains(&"calibration:gpr-400mhz-a".to_string()));
-        assert!(plan.unaffected_node_ids.contains(&"source:unrelated".to_string()));
+        assert_eq!(
+            plan.revalidation_order.first().unwrap(),
+            "transform:route-a"
+        );
+        assert_eq!(
+            plan.revalidation_order.last().unwrap(),
+            "export:partner-view-a"
+        );
+        assert!(
+            plan.unaffected_node_ids
+                .contains(&"calibration:gpr-400mhz-a".to_string())
+        );
+        assert!(
+            plan.unaffected_node_ids
+                .contains(&"source:unrelated".to_string())
+        );
     }
 
     #[test]
     fn calibration_change_invalidates_observations_but_not_spatial_transform() {
-        let plan = build_revalidation_plan(
-            &graph(),
-            &["calibration:gpr-400mhz-a".to_string()],
-        )
-        .unwrap();
-        assert!(!plan.invalidated_node_ids.contains(&"transform:route-a".to_string()));
-        assert!(plan.invalidated_node_ids.contains(&"observation:gpr-a".to_string()));
-        assert!(plan.invalidated_node_ids.contains(&"decision:survey-plan-a".to_string()));
+        let plan =
+            build_revalidation_plan(&graph(), &["calibration:gpr-400mhz-a".to_string()]).unwrap();
+        assert!(
+            !plan
+                .invalidated_node_ids
+                .contains(&"transform:route-a".to_string())
+        );
+        assert!(
+            plan.invalidated_node_ids
+                .contains(&"observation:gpr-a".to_string())
+        );
+        assert!(
+            plan.invalidated_node_ids
+                .contains(&"decision:survey-plan-a".to_string())
+        );
     }
 
     #[test]
@@ -332,25 +350,35 @@ mod tests {
             ],
         )
         .unwrap();
-        let unique: BTreeSet<&str> =
-            plan.invalidated_node_ids.iter().map(String::as_str).collect();
+        let unique: BTreeSet<&str> = plan
+            .invalidated_node_ids
+            .iter()
+            .map(String::as_str)
+            .collect();
         assert_eq!(unique.len(), plan.invalidated_node_ids.len());
-        assert!(plan.invalidated_node_ids.contains(&"decision:survey-plan-a".to_string()));
+        assert!(
+            plan.invalidated_node_ids
+                .contains(&"decision:survey-plan-a".to_string())
+        );
     }
 
     #[test]
     fn empty_dependency_graph_is_rejected() {
         let mut graph = graph();
         graph.nodes.clear();
-        assert!(validate_evidence_dependency_graph(&graph)
-            .unwrap_err()
-            .contains(&EvidenceDependencyError::EmptyGraph));
+        assert!(
+            validate_evidence_dependency_graph(&graph)
+                .unwrap_err()
+                .contains(&EvidenceDependencyError::EmptyGraph)
+        );
     }
 
     #[test]
     fn cycles_are_rejected() {
         let mut graph = graph();
-        graph.nodes[0].dependency_ids.push("export:partner-view-a".to_string());
+        graph.nodes[0]
+            .dependency_ids
+            .push("export:partner-view-a".to_string());
         assert!(matches!(
             validate_evidence_dependency_graph(&graph),
             Err(errors) if errors.iter().any(|error| matches!(error, EvidenceDependencyError::DependencyCycle(_)))
@@ -362,22 +390,28 @@ mod tests {
         let mut graph = graph();
         let node_id = graph.nodes[0].node_id.clone();
         graph.nodes[0].dependency_ids.push(node_id.clone());
-        assert!(validate_evidence_dependency_graph(&graph)
-            .unwrap_err()
-            .contains(&EvidenceDependencyError::SelfDependency(node_id)));
+        assert!(
+            validate_evidence_dependency_graph(&graph)
+                .unwrap_err()
+                .contains(&EvidenceDependencyError::SelfDependency(node_id))
+        );
     }
 
     #[test]
     fn unknown_dependency_and_unknown_change_are_rejected() {
         let mut invalid_graph = graph();
         let first_node_id = invalid_graph.nodes[0].node_id.clone();
-        invalid_graph.nodes[0].dependency_ids.push("missing:source".to_string());
-        assert!(validate_evidence_dependency_graph(&invalid_graph)
-            .unwrap_err()
-            .contains(&EvidenceDependencyError::UnknownDependency(
-                first_node_id,
-                "missing:source".to_string()
-            )));
+        invalid_graph.nodes[0]
+            .dependency_ids
+            .push("missing:source".to_string());
+        assert!(
+            validate_evidence_dependency_graph(&invalid_graph)
+                .unwrap_err()
+                .contains(&EvidenceDependencyError::UnknownDependency(
+                    first_node_id,
+                    "missing:source".to_string()
+                ))
+        );
 
         assert_eq!(
             build_revalidation_plan(&graph(), &["missing:node".to_string()]),

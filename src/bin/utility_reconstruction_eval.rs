@@ -4,7 +4,7 @@
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 use sol_atlas_core::utility_reconstruction_metrics::{
-    score_asset_association, AssetAssociationEvaluation, AssetAssociationMetrics,
+    AssetAssociationEvaluation, AssetAssociationMetrics, score_asset_association,
 };
 use std::env;
 use std::fs;
@@ -69,18 +69,16 @@ fn main() {
     let mut args = env::args().skip(1);
     let input_path = match args.next() {
         Some(value) if value != "--check-pinned" => value,
-        Some(_) => {
-            match check_pinned_fixture() {
-                Ok(()) => {
-                    println!("PINNED_ASSET_ASSOCIATION_BASELINE_PASS");
-                    return;
-                }
-                Err(error) => {
-                    eprintln!("{error}");
-                    std::process::exit(1);
-                }
+        Some(_) => match check_pinned_fixture() {
+            Ok(()) => {
+                println!("PINNED_ASSET_ASSOCIATION_BASELINE_PASS");
+                return;
             }
-        }
+            Err(error) => {
+                eprintln!("{error}");
+                std::process::exit(1);
+            }
+        },
         None => {
             eprintln!("usage: utility_reconstruction_eval <evaluation.json> | --check-pinned");
             std::process::exit(2);

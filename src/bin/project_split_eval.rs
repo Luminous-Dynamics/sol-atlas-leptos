@@ -4,8 +4,8 @@
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 use sol_atlas_core::project_split::{
-    build_leave_one_project_out, validate_project_split_manifest, ProjectDatasetIndex,
-    ProjectSplitManifest,
+    ProjectDatasetIndex, ProjectSplitManifest, build_leave_one_project_out,
+    validate_project_split_manifest,
 };
 use std::env;
 use std::fs;
@@ -163,12 +163,17 @@ fn main() {
     }
     if first.as_deref() == Some("--sensitivity-sweep") {
         if args.next().is_some() {
-            eprintln!("--sensitivity-sweep uses the committed synthetic index and accepts no extra arguments");
+            eprintln!(
+                "--sensitivity-sweep uses the committed synthetic index and accepts no extra arguments"
+            );
             std::process::exit(2);
         }
         match build_sensitivity_receipt(INDEX) {
             Ok(receipt) => {
-                println!("{}", serde_json::to_string_pretty(&receipt).expect("sweep serialization"));
+                println!(
+                    "{}",
+                    serde_json::to_string_pretty(&receipt).expect("sweep serialization")
+                );
                 return;
             }
             Err(error) => {
@@ -180,7 +185,9 @@ fn main() {
     let input_path = match first {
         Some(value) => value,
         None => {
-            eprintln!("usage: project_split_eval <project-index.json> | --check-pinned | --sensitivity-sweep");
+            eprintln!(
+                "usage: project_split_eval <project-index.json> | --check-pinned | --sensitivity-sweep"
+            );
             std::process::exit(2);
         }
     };
@@ -222,7 +229,11 @@ mod tests {
             assert_eq!(fold.fit_project_ids.len(), 9);
             assert_eq!(fold.calibration_project_ids.len(), 3);
             assert!(!fold.fit_project_ids.contains(&fold.blind_project_id));
-            assert!(!fold.calibration_project_ids.contains(&fold.blind_project_id));
+            assert!(
+                !fold
+                    .calibration_project_ids
+                    .contains(&fold.blind_project_id)
+            );
         }
     }
 
@@ -246,7 +257,11 @@ mod tests {
             .collect();
         assert_eq!(values, vec![1, 2, 3]);
         assert_eq!(
-            sweep.calibration_sensitivity.iter().map(|row| row.fit_projects_per_fold).collect::<Vec<_>>(),
+            sweep
+                .calibration_sensitivity
+                .iter()
+                .map(|row| row.fit_projects_per_fold)
+                .collect::<Vec<_>>(),
             vec![11, 10, 9]
         );
         assert!(

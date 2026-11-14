@@ -244,7 +244,10 @@ impl BinaryDetectionLikelihoods {
                 "probability_of_no_detection_given_target",
                 self.probability_of_no_detection_given_target,
             ),
-            ("probability_of_false_alarm", self.probability_of_false_alarm),
+            (
+                "probability_of_false_alarm",
+                self.probability_of_false_alarm,
+            ),
             (
                 "probability_of_no_alarm_given_absence",
                 self.probability_of_no_alarm_given_absence,
@@ -255,8 +258,7 @@ impl BinaryDetectionLikelihoods {
             }
         }
 
-        if (self.probability_of_no_detection_given_target
-            - (1.0 - self.probability_of_detection))
+        if (self.probability_of_no_detection_given_target - (1.0 - self.probability_of_detection))
             .abs()
             > 1e-12
         {
@@ -264,8 +266,7 @@ impl BinaryDetectionLikelihoods {
                 "probability_of_no_detection_given_target",
             ));
         }
-        if (self.probability_of_no_alarm_given_absence
-            - (1.0 - self.probability_of_false_alarm))
+        if (self.probability_of_no_alarm_given_absence - (1.0 - self.probability_of_false_alarm))
             .abs()
             > 1e-12
         {
@@ -341,16 +342,14 @@ impl BinaryDetectionLikelihoods {
                 "target_prevalence",
             ));
         }
-        let no_hit_probability = self.probability_of_no_detection_given_target
-            * target_prevalence
+        let no_hit_probability = self.probability_of_no_detection_given_target * target_prevalence
             + self.probability_of_no_alarm_given_absence * (1.0 - target_prevalence);
         if no_hit_probability <= f64::EPSILON {
             return Err(DetectionLikelihoodError::InvalidProbability(
                 "zero_probability_no_hit",
             ));
         }
-        Ok(self.probability_of_no_detection_given_target * target_prevalence
-            / no_hit_probability)
+        Ok(self.probability_of_no_detection_given_target * target_prevalence / no_hit_probability)
     }
 }
 
@@ -466,7 +465,9 @@ mod tests {
             .unwrap();
         assert_eq!(
             model.posterior_target_probability_given_no_hit(f64::NAN),
-            Err(DetectionLikelihoodError::InvalidProbability("target_prevalence"))
+            Err(DetectionLikelihoodError::InvalidProbability(
+                "target_prevalence"
+            ))
         );
     }
 
@@ -479,7 +480,9 @@ mod tests {
         model.probability_of_no_alarm_given_absence = 0.0;
         assert_eq!(
             model.posterior_target_probability_given_no_hit(0.5),
-            Err(DetectionLikelihoodError::InvalidProbability("zero_probability_no_hit"))
+            Err(DetectionLikelihoodError::InvalidProbability(
+                "zero_probability_no_hit"
+            ))
         );
     }
 
