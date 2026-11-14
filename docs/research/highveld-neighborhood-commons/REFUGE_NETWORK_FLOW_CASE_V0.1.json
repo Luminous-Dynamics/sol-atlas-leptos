@@ -1,0 +1,85 @@
+{
+  "schema_version": "0.1",
+  "study_id": "HIGHVELD-REFUGE-NETWORK-FLOW-001",
+  "case_id": "SYNTHETIC_TWO_AREA_TWO_SITE_FLOW_001",
+  "maturity": "SYNTHETIC_KNOWN_ANSWER",
+  "execution_status": "NO_REAL_DEMAND_OR_ROUTE_DATA",
+  "allocation_policy": "ACCESSIBLE_FIRST_THEN_GENERAL_REMAINDER_OF_SHARED_SITE_CAPACITY",
+  "water_l_per_person": 2,
+  "maximum_route_travel_time_s": 1800,
+  "oracle_revision": "EDMONDS_KARP_BIPARTITE_MAX_FLOW_V0_1",
+  "demand_areas": [
+    {
+      "area_id": "AREA_A",
+      "total_places": 8,
+      "accessible_places": 2,
+      "route_options": [
+        {
+          "site_id": "HUB_1",
+          "route_state": "REACHABLE",
+          "accessibility_state": "QUALIFIED",
+          "travel_time_s": 600,
+          "route_evidence_ref": "SYNTH_ROUTE_A_HUB",
+          "accessibility_evidence_ref": "SYNTH_ACCESS_A_HUB"
+        },
+        {
+          "site_id": "POD_2",
+          "route_state": "REACHABLE",
+          "accessibility_state": "QUALIFIED",
+          "travel_time_s": 900,
+          "route_evidence_ref": "SYNTH_ROUTE_A_POD",
+          "accessibility_evidence_ref": "SYNTH_ACCESS_A_POD"
+        }
+      ],
+      "maximum_route_travel_time_s": 1800
+    },
+    {
+      "area_id": "AREA_B",
+      "total_places": 7,
+      "accessible_places": 2,
+      "route_options": [
+        {
+          "site_id": "HUB_1",
+          "route_state": "REACHABLE",
+          "accessibility_state": "QUALIFIED",
+          "travel_time_s": 700,
+          "route_evidence_ref": "SYNTH_ROUTE_B_HUB",
+          "accessibility_evidence_ref": "SYNTH_ACCESS_B_HUB"
+        },
+        {
+          "site_id": "POD_2",
+          "route_state": "REACHABLE",
+          "accessibility_state": "FAILED",
+          "travel_time_s": 2400,
+          "route_evidence_ref": "SYNTH_ROUTE_B_POD",
+          "accessibility_evidence_ref": "SYNTH_ACCESS_B_POD"
+        }
+      ],
+      "maximum_route_travel_time_s": 1800
+    }
+  ],
+  "sites": [
+    {
+      "site_id": "HUB_1",
+      "availability_state": "ELIGIBLE",
+      "free_total_places": 8,
+      "free_accessible_places": 2,
+      "free_safe_water_l": 20,
+      "availability_evidence_ref": "SYNTH_AVAIL_HUB",
+      "capacity_evidence_ref": "SYNTH_CAP_HUB",
+      "water_evidence_ref": "SYNTH_WATER_HUB"
+    },
+    {
+      "site_id": "POD_2",
+      "availability_state": "ELIGIBLE",
+      "free_total_places": 6,
+      "free_accessible_places": 2,
+      "free_safe_water_l": 20,
+      "availability_evidence_ref": "SYNTH_AVAIL_POD",
+      "capacity_evidence_ref": "SYNTH_CAP_POD",
+      "water_evidence_ref": "SYNTH_WATER_POD"
+    }
+  ],
+  "demand_evidence_ref": "SYNTH_AGGREGATE_DEMAND",
+  "independent_oracle_ref": "SYNTHETIC_MAX_FLOW_ORACLE"
+}

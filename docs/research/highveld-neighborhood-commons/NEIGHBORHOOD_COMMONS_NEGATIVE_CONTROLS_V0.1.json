@@ -1,0 +1,240 @@
+{
+  "schema_version": "0.1.0",
+  "benchmark_id": "HIGHVELD-NEIGHBORHOOD-COMMONS-QUALIFIER",
+  "maturity": "PROPOSED_NOT_EVALUATED",
+  "evidence_class": "SyntheticNegativeControls",
+  "claim_ceiling": "Known-answer control definitions only; not a neighborhood population sample or evidence of physical service outcomes.",
+  "controls": [
+    {
+      "control_id": "hub_outage_local_floor",
+      "description": "Hub unavailable; household reserve remains independent",
+      "expected_code": "LOCAL_FALLBACK_DEPENDS_ON_COMMONS",
+      "expected_disposition": "BLOCK",
+      "evidence_class": "SyntheticNegativeControl"
+    },
+    {
+      "control_id": "shared_failure_domain",
+      "description": "Commons provider and fallback share one failure domain",
+      "expected_code": "LOCAL_FALLBACK_COMMON_CAUSE",
+      "expected_disposition": "BLOCK",
+      "evidence_class": "SyntheticNegativeControl"
+    },
+    {
+      "control_id": "unqualified_access",
+      "description": "Access path is unknown but service allocation is enabled",
+      "expected_code": "UNQUALIFIED_ACCESS_ALLOCATED",
+      "expected_disposition": "BLOCK",
+      "evidence_class": "SyntheticNegativeControl"
+    },
+    {
+      "control_id": "queue_exceeds_floor",
+      "description": "Queue maximum exceeds one household's declared max wait",
+      "expected_code": "QUEUE_EXCEEDS_RESIDENT_FLOOR",
+      "expected_disposition": "BLOCK",
+      "evidence_class": "SyntheticNegativeControl"
+    },
+    {
+      "control_id": "capacity_overcommit",
+      "description": "Peak demand exceeds provider capacity without queue semantics",
+      "expected_code": "CAPACITY_OVERCOMMIT_UNMODELED",
+      "expected_disposition": "BLOCK",
+      "evidence_class": "SyntheticNegativeControl"
+    },
+    {
+      "control_id": "allocation_capture",
+      "description": "Automated system has final allocation authority",
+      "expected_code": "ALLOCATION_GOVERNANCE_NOT_QUALIFIED",
+      "expected_disposition": "BLOCK",
+      "evidence_class": "SyntheticNegativeControl"
+    },
+    {
+      "control_id": "pending_policy",
+      "description": "Allocation enabled while policy approval remains pending",
+      "expected_code": "ALLOCATION_GOVERNANCE_NOT_QUALIFIED",
+      "expected_disposition": "BLOCK",
+      "evidence_class": "SyntheticNegativeControl"
+    },
+    {
+      "control_id": "reserve_breach",
+      "description": "Committed outflow would breach protected reserve",
+      "expected_code": "RESOURCE_RESERVE_BREACH",
+      "expected_disposition": "BLOCK",
+      "evidence_class": "SyntheticNegativeControl"
+    },
+    {
+      "control_id": "duplicate_source_event",
+      "description": "One meter/notice event is ingested twice",
+      "expected_code": "DUPLICATE_RESOURCE_SOURCE_EVENT",
+      "expected_disposition": "BLOCK",
+      "evidence_class": "SyntheticNegativeControl"
+    },
+    {
+      "control_id": "unit_mismatch",
+      "description": "Transfer unit differs from source/destination ledger units",
+      "expected_code": "RESOURCE_TRANSFER_UNIT_MISMATCH",
+      "expected_disposition": "BLOCK",
+      "evidence_class": "SyntheticNegativeControl"
+    },
+    {
+      "control_id": "unknown_provider",
+      "description": "Service contract points to an unregistered asset",
+      "expected_code": "UNKNOWN_SERVICE_PROVIDER",
+      "expected_disposition": "BLOCK",
+      "evidence_class": "SyntheticNegativeControl"
+    },
+    {
+      "control_id": "commons_fallback",
+      "description": "Shared commons asset is presented as household-local fallback",
+      "expected_code": "FALLBACK_IS_COMMONS_ASSET",
+      "expected_disposition": "BLOCK",
+      "evidence_class": "SyntheticNegativeControl"
+    },
+    {
+      "control_id": "claim_escalation",
+      "description": "Candidate status is changed to EVALUATED without promotion gates",
+      "expected_code": "MATURITY_CLAIM_ESCALATION",
+      "expected_disposition": "BLOCK",
+      "evidence_class": "SyntheticNegativeControl"
+    },
+    {
+      "control_id": "network_isolation_local_fallback",
+      "description": "External network and hub coordination are unavailable; local manual fallback is required.",
+      "expected_code": "LOCAL_FALLBACK_DEPENDS_ON_NETWORK",
+      "expected_disposition": "BLOCK",
+      "evidence_class": "SyntheticNegativeControl"
+    },
+    {
+      "control_id": "no_manual_degraded_mode",
+      "description": "Household fallback requires remote automation and has no declared manual degraded mode.",
+      "expected_code": "LOCAL_FALLBACK_NO_MANUAL_MODE",
+      "expected_disposition": "BLOCK",
+      "evidence_class": "SyntheticNegativeControl"
+    },
+    {
+      "control_id": "spares_unknown",
+      "description": "Commons service is allocated while critical spare-part availability is unknown.",
+      "expected_code": "MAINTENANCE_CONTRACT_NOT_QUALIFIED",
+      "expected_disposition": "BLOCK",
+      "evidence_class": "SyntheticNegativeControl"
+    },
+    {
+      "control_id": "maintenance_access_blocked",
+      "description": "Commons service is allocated while maintainers cannot access the shared plant.",
+      "expected_code": "MAINTENANCE_CONTRACT_NOT_QUALIFIED",
+      "expected_disposition": "BLOCK",
+      "evidence_class": "SyntheticNegativeControl"
+    },
+    {
+      "control_id": "missing_household_outcome",
+      "description": "A declared household essential-service floor has no corresponding per-household outcome row.",
+      "expected_code": "ESSENTIAL_FLOOR_OUTCOME_MISSING",
+      "expected_disposition": "BLOCK",
+      "evidence_class": "SyntheticNegativeControl"
+    },
+    {
+      "control_id": "false_satisfied_partial_delivery",
+      "description": "A household service is marked SATISFIED despite partial or unmet delivery.",
+      "expected_code": "HOUSEHOLD_FLOOR_FALSE_SATISFIED",
+      "expected_disposition": "BLOCK",
+      "evidence_class": "SyntheticNegativeControl"
+    },
+    {
+      "control_id": "unit_mismatch_outcome",
+      "description": "A per-household delivered quantity uses a unit different from its service contract.",
+      "expected_code": "OUTCOME_UNIT_MISMATCH",
+      "expected_disposition": "BLOCK",
+      "evidence_class": "SyntheticNegativeControl"
+    },
+    {
+      "control_id": "neighborhood_average_masks_household",
+      "description": "A household floor breach is omitted because neighborhood aggregate availability looks acceptable.",
+      "expected_code": "HOUSEHOLD_FLOOR_FALSE_SATISFIED",
+      "expected_disposition": "BLOCK",
+      "evidence_class": "SyntheticNegativeControl"
+    },
+    {
+      "control_id": "missing_household_consent",
+      "description": "Household telemetry is accessed when no matching consent record exists.",
+      "expected_code": "HOUSEHOLD_DATA_CONSENT_MISSING_OR_AMBIGUOUS",
+      "expected_disposition": "BLOCK",
+      "evidence_class": "SyntheticNegativeControl"
+    },
+    {
+      "control_id": "consent_revoked_before_use",
+      "description": "Household data is accessed after the matching consent has been revoked.",
+      "expected_code": "HOUSEHOLD_DATA_ACCESS_AFTER_REVOCATION",
+      "expected_disposition": "BLOCK",
+      "evidence_class": "SyntheticNegativeControl"
+    },
+    {
+      "control_id": "purpose_mismatch",
+      "description": "Data is reused for a purpose not authorized by the household.",
+      "expected_code": "HOUSEHOLD_DATA_CONSENT_MISSING_OR_AMBIGUOUS",
+      "expected_disposition": "BLOCK",
+      "evidence_class": "SyntheticNegativeControl"
+    },
+    {
+      "control_id": "service_scope_mismatch",
+      "description": "Consent for one service is reused for a different shared service.",
+      "expected_code": "HOUSEHOLD_DATA_CONSENT_MISSING_OR_AMBIGUOUS",
+      "expected_disposition": "BLOCK",
+      "evidence_class": "SyntheticNegativeControl"
+    },
+    {
+      "control_id": "pre_grant_access",
+      "description": "Household data is accessed before the recorded grant time.",
+      "expected_code": "HOUSEHOLD_DATA_ACCESS_BEFORE_GRANT",
+      "expected_disposition": "BLOCK",
+      "evidence_class": "SyntheticNegativeControl"
+    },
+    {
+      "control_id": "invalid_consent_time_order",
+      "description": "Consent revocation timestamp precedes the recorded grant timestamp.",
+      "expected_code": "HOUSEHOLD_DATA_CONSENT_STATE_INVALID",
+      "expected_disposition": "BLOCK",
+      "evidence_class": "SyntheticNegativeControl"
+    },
+    {
+      "control_id": "wrong_service_consent_scope",
+      "description": "A household grant for one service is reused for a different service.",
+      "expected_code": "HOUSEHOLD_DATA_CONSENT_MISSING_OR_AMBIGUOUS",
+      "expected_disposition": "BLOCK",
+      "evidence_class": "SyntheticNegativeControl"
+    },
+    {
+      "control_id": "ambiguous_duplicate_consent",
+      "description": "Two matching consent records make authorization ambiguous.",
+      "expected_code": "HOUSEHOLD_DATA_CONSENT_MISSING_OR_AMBIGUOUS",
+      "expected_disposition": "BLOCK",
+      "evidence_class": "SyntheticNegativeControl"
+    },
+    {
+      "control_id": "screening_model_authorizes_service_claim",
+      "description": "A fast screening surrogate is used to support an essential household-service claim.",
+      "expected_code": "MODEL_TIER_EXCEEDED",
+      "expected_disposition": "BLOCK",
+      "evidence_class": "SyntheticNegativeControl"
+    },
+    {
+      "control_id": "decision_support_missing_vvuq",
+      "description": "A reversible design decision is made without model validation, uncertainty evidence or independent review.",
+      "expected_code": "MODEL_VVUQ_EVIDENCE_INCOMPLETE",
+      "expected_disposition": "BLOCK",
+      "evidence_class": "SyntheticNegativeControl"
+    },
+    {
+      "control_id": "service_critical_without_measurement_reference",
+      "description": "A service-critical claim is made without a held-out measurement reference.",
+      "expected_code": "MODEL_SERVICE_CRITICAL_EVIDENCE_INCOMPLETE",
+      "expected_disposition": "BLOCK",
+      "evidence_class": "SyntheticNegativeControl"
+    },
+    {
+      "control_id": "model_out_of_domain",
+      "description": "A model result is used outside its declared applicability domain.",
+      "expected_code": "MODEL_APPLICABILITY_UNQUALIFIED",
+      "expected_disposition": "BLOCK",
+      "evidence_class": "SyntheticNegativeControl"
+    }
+  ]
+}

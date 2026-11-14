@@ -1,0 +1,171 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://luminousdynamics.io/schemas/highveld-passive-cooling-study-v0.1.schema.json",
+  "title": "Highveld passive cooling and water integration study manifest v0.1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "format_version",
+    "study_id",
+    "parent_candidate",
+    "maturity",
+    "climate_context",
+    "municipal_restriction_reference",
+    "baseline_required",
+    "archetypes",
+    "comparison_modes",
+    "matched_inputs_required",
+    "metered_water_terms",
+    "thermal_terms",
+    "required_outcomes",
+    "negative_controls",
+    "safety_and_governance_gates",
+    "physics_owner",
+    "event_and_trajectory_owner",
+    "geometry_and_configuration_owner",
+    "rights_and_water_account_owner",
+    "execution_status"
+  ],
+  "properties": {
+    "format_version": {
+      "const": "0.1"
+    },
+    "study_id": {
+      "const": "HIGHVELD-PASSIVE-COOLING-WATER-001"
+    },
+    "parent_candidate": {
+      "const": "NEIGHBORHOOD_RESILIENCE_COMMONS"
+    },
+    "maturity": {
+      "const": "DESIGN_HYPOTHESES_NOT_PHYSICALLY_EVALUATED"
+    },
+    "climate_context": {
+      "const": "JOHANNESBURG_HIGHVELD"
+    },
+    "municipal_restriction_reference": {
+      "type": "string",
+      "minLength": 1
+    },
+    "baseline_required": {
+      "const": "NO_WATER_PASSIVE_BASELINE"
+    },
+    "archetypes": {
+      "type": "array",
+      "minItems": 7,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "mechanism",
+          "water_mode",
+          "role",
+          "expected_claim"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "mechanism": {
+            "type": "string",
+            "minLength": 1
+          },
+          "water_mode": {
+            "type": "string",
+            "minLength": 1
+          },
+          "role": {
+            "enum": [
+              "PRIMARY_CONTROL",
+              "TEST_ARM",
+              "NEGATIVE_CONTROL"
+            ]
+          },
+          "expected_claim": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    },
+    "comparison_modes": {
+      "type": "array",
+      "minItems": 6,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "matched_inputs_required": {
+      "type": "array",
+      "minItems": 9,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "metered_water_terms": {
+      "type": "array",
+      "minItems": 10,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "thermal_terms": {
+      "type": "array",
+      "minItems": 8,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "required_outcomes": {
+      "type": "array",
+      "minItems": 10,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "negative_controls": {
+      "type": "array",
+      "minItems": 10,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "safety_and_governance_gates": {
+      "type": "array",
+      "minItems": 8,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "physics_owner": {
+      "const": "SPECIALIST_BUILDING_AIRFLOW_HYDRAULIC_SOLVERS"
+    },
+    "event_and_trajectory_owner": {
+      "const": "SYMTROPY"
+    },
+    "geometry_and_configuration_owner": {
+      "const": "SOL_ATLAS"
+    },
+    "rights_and_water_account_owner": {
+      "const": "MYCELIX"
+    },
+    "execution_status": {
+      "const": "NOT_EXECUTED"
+    }
+  }
+}

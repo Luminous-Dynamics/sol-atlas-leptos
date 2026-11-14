@@ -1,0 +1,179 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://luminousdynamics.io/schemas/highveld-thermal-store-ledger-v0.1.schema.json",
+  "title": "Highveld finite thermal-store trajectory case v0.1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "study_id",
+    "case_id",
+    "maturity",
+    "execution_status",
+    "store_energy_basis",
+    "store_capacity_kwh",
+    "minimum_usable_energy_kwh",
+    "initial_store_energy_kwh",
+    "cycle_closure_required",
+    "cycle_closure_tolerance_u95_kwh",
+    "intervals",
+    "source_bundle_ref",
+    "uncertainty_method_ref",
+    "independent_oracle_ref"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "0.1"
+    },
+    "study_id": {
+      "const": "HIGHVELD-THERMAL-STORE-LEDGER-001"
+    },
+    "case_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "maturity": {
+      "const": "SYNTHETIC_KNOWN_ANSWER"
+    },
+    "execution_status": {
+      "const": "NO_PHYSICAL_SIMULATION"
+    },
+    "store_energy_basis": {
+      "const": "USABLE_THERMAL_ENERGY_ABOVE_DECLARED_REFERENCE_STATE"
+    },
+    "store_capacity_kwh": {
+      "type": "number",
+      "exclusiveMinimum": 0
+    },
+    "minimum_usable_energy_kwh": {
+      "type": "number",
+      "minimum": 0
+    },
+    "initial_store_energy_kwh": {
+      "type": "number",
+      "minimum": 0
+    },
+    "cycle_closure_required": {
+      "type": "boolean"
+    },
+    "cycle_closure_tolerance_u95_kwh": {
+      "type": "number",
+      "minimum": 0
+    },
+    "intervals": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "interval_id",
+          "duration_h",
+          "store_energy_start_kwh",
+          "building_heat_input_kwh",
+          "other_heat_input_kwh",
+          "rejection_by_sink",
+          "store_energy_end_kwh",
+          "interval_balance_u95_kwh",
+          "parasitic_electricity_kwh",
+          "water_makeup_l",
+          "store_state_evidence_ref",
+          "heat_input_evidence_ref",
+          "sink_rejection_evidence_ref",
+          "uncertainty_evidence_ref"
+        ],
+        "properties": {
+          "interval_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "duration_h": {
+            "type": "number",
+            "exclusiveMinimum": 0
+          },
+          "store_energy_start_kwh": {
+            "type": "number",
+            "minimum": 0
+          },
+          "building_heat_input_kwh": {
+            "type": "number",
+            "minimum": 0
+          },
+          "other_heat_input_kwh": {
+            "type": "number",
+            "minimum": 0
+          },
+          "rejection_by_sink": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "sink_path",
+                "energy_rejected_kwh"
+              ],
+              "properties": {
+                "sink_path": {
+                  "enum": [
+                    "RADIATIVE_SKY_PANEL",
+                    "DRY_AIR_COOLER",
+                    "GROUND_HEAT_EXCHANGER",
+                    "CONDITIONAL_EVAPORATIVE_REGENERATION"
+                  ]
+                },
+                "energy_rejected_kwh": {
+                  "type": "number",
+                  "minimum": 0
+                }
+              }
+            }
+          },
+          "store_energy_end_kwh": {
+            "type": "number",
+            "minimum": 0
+          },
+          "interval_balance_u95_kwh": {
+            "type": "number",
+            "minimum": 0
+          },
+          "parasitic_electricity_kwh": {
+            "type": "number",
+            "minimum": 0
+          },
+          "water_makeup_l": {
+            "type": "number",
+            "minimum": 0
+          },
+          "store_state_evidence_ref": {
+            "type": "string",
+            "minLength": 1
+          },
+          "heat_input_evidence_ref": {
+            "type": "string",
+            "minLength": 1
+          },
+          "sink_rejection_evidence_ref": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uncertainty_evidence_ref": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    },
+    "source_bundle_ref": {
+      "type": "string",
+      "minLength": 1
+    },
+    "uncertainty_method_ref": {
+      "type": "string",
+      "minLength": 1
+    },
+    "independent_oracle_ref": {
+      "type": "string",
+      "minLength": 1
+    }
+  }
+}

@@ -1,0 +1,128 @@
+{
+  "format_version": "0.1",
+  "study_id": "HIGHVELD-RADIATIVE-SKY-SINK-001",
+  "parent_study": "HIGHVELD-THERMAL-SINK-CASCADE-001",
+  "maturity": "BENCHMARK_PROTOCOL_NOT_EXECUTED",
+  "execution_status": "NOT_EXECUTED",
+  "literature_reference_envelope": {
+    "source": "2026-07-21 review; performance ranges are literature summaries, not a single common-condition product rating",
+    "solar_reflectance_range": [
+      0.95,
+      0.98
+    ],
+    "mid_infrared_emittance_range": [
+      0.9,
+      0.96
+    ],
+    "daytime_subambient_temperature_drop_c_range": [
+      4.5,
+      4.9
+    ],
+    "reported_net_cooling_power_w_m2_range": [
+      93,
+      117
+    ],
+    "applicability": "FAVORABLE_CLEAR_SKY_REPORTED_SYSTEMS_ONLY_NOT_JOHANNESBURG_TARGET"
+  },
+  "comparison_arms": [
+    {
+      "id": "R0_NO_ADDED_RADIATIVE_PANEL",
+      "role": "PRIMARY_REFERENCE"
+    },
+    {
+      "id": "R1_REFERENCE_PANEL",
+      "role": "REFERENCE_COMPONENT"
+    },
+    {
+      "id": "R2_CANDIDATE_PANEL",
+      "role": "CANDIDATE_COMPONENT"
+    },
+    {
+      "id": "R3_PANEL_PLUS_THERMAL_STORE",
+      "role": "COUPLED_SYSTEM"
+    },
+    {
+      "id": "R4_LAYERED_SINK_CASCADE",
+      "role": "COUPLED_SYSTEM"
+    },
+    {
+      "id": "R5_SOLAR_ABSORBING_NEGATIVE_CONTROL",
+      "role": "NEGATIVE_CONTROL"
+    },
+    {
+      "id": "R6_INFINITE_SKY_NEGATIVE_CONTROL",
+      "role": "NEGATIVE_CONTROL"
+    }
+  ],
+  "scenarios": [
+    "CLEAR_DRY_HIGH_SKY_VIEW",
+    "CLOUDY_HUMID_HIGH_LONGWAVE",
+    "HOT_DAY_HIGH_SOLAR_LOAD",
+    "WINDY_NIGHT_CONVECTIVE_COUPLING",
+    "SOILED_OR_WET_PANEL",
+    "PARTIAL_SKY_OBSTRUCTION_URBAN_CANYON",
+    "COLD_CLEAR_NIGHT_OVERCOOLING_RISK"
+  ],
+  "frozen_inputs_required": [
+    "panel_material_and_bom_revision_digest",
+    "optical_measurement_method_and_certificate_digest",
+    "panel_area_tilt_azimuth_and_backing_digest",
+    "sky_view_and_horizon_geometry_digest",
+    "weather_and_longwave_boundary_digest",
+    "loop_and_heat_exchanger_configuration_digest",
+    "store_initial_state_and_stratification_digest",
+    "load_profile_and_occupancy_digest",
+    "pump_fan_power_and_controller_digest",
+    "instrument_calibration_and_uncertainty_digest",
+    "independent_component_energy_balance_oracle_id"
+  ],
+  "required_measurements": [
+    "spectral_solar_reflectance",
+    "spectral_longwave_emittance",
+    "panel_surface_temperature",
+    "downwelling_longwave_or_qualified_sky_boundary",
+    "global_direct_diffuse_solar",
+    "air_temperature_humidity_dewpoint",
+    "wind_speed_direction_and_exposure",
+    "sky_view_factor_and_horizon",
+    "loop_flow_and_inlet_outlet_temperature",
+    "pump_fan_electricity",
+    "store_stratification_initial_final",
+    "occupied_zone_comfort_when_claimed"
+  ],
+  "required_metrics": [
+    "net_panel_heat_rejection_w_m2",
+    "integrated_heat_rejected_by_weather_bin",
+    "loop_heat_transfer_kw",
+    "parasitic_electricity",
+    "rejection_to_parasitic_electricity_ratio",
+    "usable_store_capacity_and_cycle_drift",
+    "occupied_zone_useful_cooling",
+    "operative_temperature_and_discomfort_degree_hours",
+    "water_consumption_if_any_by_source_class",
+    "balance_residuals_and_uncertainty",
+    "heldout_prediction_interval_coverage",
+    "soiling_aging_and_fault_recovery"
+  ],
+  "hard_gates": {
+    "material_to_building_claim_leakage": 0,
+    "useful_cooling_without_zone_path_evidence": 0,
+    "missing_radiative_boundary_claimed_as_valid": 0,
+    "ignored_soiling_or_wetness_state": 0,
+    "accepted_infinite_sky_assumption": 0,
+    "unclosed_component_balance_outside_uncertainty": 0,
+    "water_floor_violations": 0,
+    "unknown_out_of_domain_as_pass": 0,
+    "traceability_percent": 100,
+    "finite_oracle_agreement_percent": 100
+  },
+  "claim_ceiling": "Published literature ranges are context only; no local panel or system performance claim is admitted.",
+  "owners": {
+    "geometry_and_configuration": "SOL_ATLAS",
+    "native_time_and_trajectories": "SYMTROPY",
+    "water_rights_and_instrument_admission": "MYCELIX",
+    "building_plant_physics": "ENERGYPLUS_AND_MODELICA",
+    "outdoor_radiative_and_airflow_physics": "QUALIFIED_SPECIALIST_MODEL",
+    "independent_energy_balance": "INDEPENDENT"
+  }
+}

@@ -1,0 +1,76 @@
+{
+  "schema_version": "0.1",
+  "input_id": "SYNTHETIC-GOVERNOR-CASE-001",
+  "model_applicability": "IN_DOMAIN",
+  "instrument_state": "QUALIFIED",
+  "local_control_state": "AVAILABLE",
+  "network_state": "PARTITIONED",
+  "manual_safe_mode_available": true,
+  "water_account": {
+    "rights_state": "QUALIFIED",
+    "quality_state": "QUALIFIED",
+    "restriction_state": "PROHIBITS",
+    "account_available_l": 120,
+    "committed_l": 10,
+    "essential_reserve_l": 100
+  },
+  "aerosol_controls_state": "QUALIFIED",
+  "humidity_state": "WITHIN_LIMIT",
+  "sink_paths": [
+    {
+      "id": "RADIATIVE_SKY_PANEL",
+      "qualification_state": "QUALIFIED",
+      "sensor_state": "QUALIFIED",
+      "effective_sink_temperature_c": 15,
+      "store_temperature_c": 21,
+      "minimum_approach_k": 3,
+      "available_heat_rejection_kw": 4,
+      "requested_heat_rejection_kw": 2.5,
+      "auxiliary_power_available_kw": 0.5,
+      "auxiliary_power_required_kw": 0.1,
+      "water_draw_l": 0
+    },
+    {
+      "id": "DRY_AIR_COOLER",
+      "qualification_state": "QUALIFIED",
+      "sensor_state": "QUALIFIED",
+      "effective_sink_temperature_c": 18,
+      "store_temperature_c": 21,
+      "minimum_approach_k": 4,
+      "available_heat_rejection_kw": 4,
+      "requested_heat_rejection_kw": 2.5,
+      "auxiliary_power_available_kw": 0.5,
+      "auxiliary_power_required_kw": 0.1,
+      "water_draw_l": 0
+    },
+    {
+      "id": "CONDITIONAL_EVAPORATIVE_REGENERATION",
+      "qualification_state": "QUALIFIED",
+      "sensor_state": "QUALIFIED",
+      "effective_sink_temperature_c": 10,
+      "store_temperature_c": 21,
+      "minimum_approach_k": 2,
+      "available_heat_rejection_kw": 5,
+      "requested_heat_rejection_kw": 2.5,
+      "auxiliary_power_available_kw": 0.7,
+      "auxiliary_power_required_kw": 0.2,
+      "water_draw_l": 20
+    }
+  ],
+  "store_charge_path": {
+    "id": "BUILDING_LOAD_TO_STORE",
+    "qualification_state": "QUALIFIED",
+    "sensor_state": "QUALIFIED",
+    "source_return_temperature_c": 31,
+    "store_temperature_c": 22,
+    "minimum_approach_k": 3,
+    "available_heat_transfer_kw": 3,
+    "requested_heat_transfer_kw": 1.5,
+    "requested_duration_h": 2,
+    "store_capacity_kwh": 10,
+    "store_energy_kwh": 6,
+    "load_boundary_evidence_ref": "SYNTHETIC_BUILDING_LOAD_BOUNDARY_001",
+    "store_state_evidence_ref": "SYNTHETIC_STORE_STATE_001",
+    "heat_exchanger_evidence_ref": "SYNTHETIC_LOAD_STORE_HX_001"
+  }
+}

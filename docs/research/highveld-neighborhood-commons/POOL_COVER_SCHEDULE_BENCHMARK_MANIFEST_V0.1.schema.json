@@ -1,0 +1,229 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://luminousdynamics.io/schemas/highveld-pool-cover-schedule-v0.1.schema.json",
+  "title": "Highveld pool cover and shade schedule benchmark v0.1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "format_version",
+    "study_id",
+    "parent_studies",
+    "maturity",
+    "execution_status",
+    "arms",
+    "scenarios",
+    "case_expansion",
+    "exchange_pathways",
+    "cover_factors_required",
+    "robust_adaptive_gates",
+    "required_measurements",
+    "model_scope",
+    "hard_gates",
+    "claim_ceiling"
+  ],
+  "properties": {
+    "format_version": {
+      "const": "0.1"
+    },
+    "study_id": {
+      "const": "HIGHVELD-POOL-COVER-SCHEDULE-001"
+    },
+    "parent_studies": {
+      "type": "array",
+      "minItems": 2,
+      "uniqueItems": true,
+      "items": {
+        "type": "string"
+      }
+    },
+    "maturity": {
+      "const": "BENCHMARK_PROTOCOL_NOT_EXECUTED"
+    },
+    "execution_status": {
+      "const": "NOT_EXECUTED"
+    },
+    "arms": {
+      "type": "array",
+      "minItems": 4,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "role"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "role": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    },
+    "scenarios": {
+      "type": "array",
+      "minItems": 6,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "case_expansion": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "arms",
+        "scenarios",
+        "cases",
+        "state"
+      ],
+      "properties": {
+        "arms": {
+          "const": 4
+        },
+        "scenarios": {
+          "const": 6
+        },
+        "cases": {
+          "const": 24
+        },
+        "state": {
+          "const": "REGISTERED_NOT_EXECUTED"
+        }
+      }
+    },
+    "exchange_pathways": {
+      "type": "array",
+      "minItems": 4,
+      "uniqueItems": true,
+      "items": {
+        "type": "string"
+      }
+    },
+    "cover_factors_required": {
+      "type": "array",
+      "minItems": 4,
+      "uniqueItems": true,
+      "items": {
+        "type": "string"
+      }
+    },
+    "robust_adaptive_gates": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "net_heat_rejection_lower_bound_kw_positive",
+        "evaporation_upper_bound_within_discretionary_budget",
+        "qualified_water_rights_and_quality",
+        "pool_temperature_inside_owner_limits",
+        "cover_and_manual_override_qualified",
+        "no_conflict_with_active_pool_heat_recovery",
+        "unknown_critical_input_means_hold_review"
+      ],
+      "properties": {
+        "net_heat_rejection_lower_bound_kw_positive": {
+          "const": true
+        },
+        "evaporation_upper_bound_within_discretionary_budget": {
+          "const": true
+        },
+        "qualified_water_rights_and_quality": {
+          "const": true
+        },
+        "pool_temperature_inside_owner_limits": {
+          "const": true
+        },
+        "cover_and_manual_override_qualified": {
+          "const": true
+        },
+        "no_conflict_with_active_pool_heat_recovery": {
+          "const": true
+        },
+        "unknown_critical_input_means_hold_review": {
+          "const": true
+        }
+      }
+    },
+    "required_measurements": {
+      "type": "array",
+      "minItems": 10,
+      "uniqueItems": true,
+      "items": {
+        "type": "string"
+      }
+    },
+    "model_scope": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "indoor_pool_baseline",
+        "outdoor_pool",
+        "no_cross_scope_promotion"
+      ],
+      "properties": {
+        "indoor_pool_baseline": {
+          "const": "ENERGYPLUS_26_2_SWIMMINGPOOL_INDOOR_ONLY"
+        },
+        "outdoor_pool": {
+          "const": "SPECIALIST_OUTDOOR_BOUNDARY_MODEL_AND_FIELD_VALIDATION_REQUIRED"
+        },
+        "no_cross_scope_promotion": {
+          "const": true
+        }
+      }
+    },
+    "hard_gates": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "water_rights_or_quality_violations",
+        "protected_essential_water_reserve_violations",
+        "pool_temperature_limit_violations",
+        "regeneration_with_nonpositive_lower_heat_rejection_bound",
+        "exposure_with_evaporation_upper_bound_above_budget",
+        "missing_required_cover_pathway_factors",
+        "indoor_pool_model_claimed_as_outdoor_validation",
+        "untraceable_schedule_cases",
+        "hard_floor_failures_hidden_by_weighted_score"
+      ],
+      "properties": {
+        "water_rights_or_quality_violations": {
+          "const": 0
+        },
+        "protected_essential_water_reserve_violations": {
+          "const": 0
+        },
+        "pool_temperature_limit_violations": {
+          "const": 0
+        },
+        "regeneration_with_nonpositive_lower_heat_rejection_bound": {
+          "const": 0
+        },
+        "exposure_with_evaporation_upper_bound_above_budget": {
+          "const": 0
+        },
+        "missing_required_cover_pathway_factors": {
+          "const": 0
+        },
+        "indoor_pool_model_claimed_as_outdoor_validation": {
+          "const": 0
+        },
+        "untraceable_schedule_cases": {
+          "const": 0
+        },
+        "hard_floor_failures_hidden_by_weighted_score": {
+          "const": 0
+        }
+      }
+    },
+    "claim_ceiling": {
+      "type": "string",
+      "minLength": 40
+    }
+  }
+}

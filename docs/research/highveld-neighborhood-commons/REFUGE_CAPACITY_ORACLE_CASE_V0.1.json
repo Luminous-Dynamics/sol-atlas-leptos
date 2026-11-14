@@ -1,0 +1,108 @@
+{
+  "schema_version": "0.1",
+  "study_id": "HIGHVELD-REFUGE-CAPACITY-ORACLE-001",
+  "case_id": "SYNTHETIC_PARTITIONED_TWO_SITE_COMPLETE_COVERAGE_001",
+  "maturity": "SYNTHETIC_KNOWN_ANSWER",
+  "execution_status": "NO_REAL_REFUGE_OR_DEMAND_DATA",
+  "network_state": "PARTITIONED",
+  "local_refuge_directory_state": "QUALIFIED",
+  "search_node_limit": 100000,
+  "demands": [
+    {
+      "cohort_id": "CELL_A",
+      "total_places": 3,
+      "accessible_places": 1,
+      "safe_water_ml_per_place": 2000,
+      "maximum_route_travel_time_s": 1200,
+      "routes": [
+        {
+          "site_id": "POD_A",
+          "route_state": "REACHABLE",
+          "travel_time_s": 500,
+          "accessible_route_state": "QUALIFIED",
+          "route_evidence_ref": "SYNTHETIC_ROUTE_A_TO_A",
+          "accessibility_evidence_ref": "SYNTHETIC_ACCESS_A_TO_A"
+        },
+        {
+          "site_id": "POD_B",
+          "route_state": "REACHABLE",
+          "travel_time_s": 700,
+          "accessible_route_state": "QUALIFIED",
+          "route_evidence_ref": "SYNTHETIC_ROUTE_A_TO_B",
+          "accessibility_evidence_ref": "SYNTHETIC_ACCESS_A_TO_B"
+        }
+      ]
+    },
+    {
+      "cohort_id": "CELL_B",
+      "total_places": 3,
+      "accessible_places": 1,
+      "safe_water_ml_per_place": 2500,
+      "maximum_route_travel_time_s": 1200,
+      "routes": [
+        {
+          "site_id": "POD_A",
+          "route_state": "REACHABLE",
+          "travel_time_s": 600,
+          "accessible_route_state": "QUALIFIED",
+          "route_evidence_ref": "SYNTHETIC_ROUTE_B_TO_A",
+          "accessibility_evidence_ref": "SYNTHETIC_ACCESS_B_TO_A"
+        },
+        {
+          "site_id": "POD_B",
+          "route_state": "REACHABLE",
+          "travel_time_s": 800,
+          "accessible_route_state": "QUALIFIED",
+          "route_evidence_ref": "SYNTHETIC_ROUTE_B_TO_B",
+          "accessibility_evidence_ref": "SYNTHETIC_ACCESS_B_TO_B"
+        }
+      ]
+    }
+  ],
+  "sites": [
+    {
+      "site_id": "POD_A",
+      "operating_window_state": "OPEN_FOR_REQUIRED_WINDOW",
+      "thermal_service_state": "QUALIFIED",
+      "ventilation_state": "QUALIFIED",
+      "safe_water_service_state": "QUALIFIED",
+      "safe_water_rights_state": "QUALIFIED",
+      "safe_water_quality_state": "QUALIFIED",
+      "staffing_maintenance_state": "QUALIFIED",
+      "total_capacity": 5,
+      "current_occupancy": 1,
+      "committed_reserve": 0,
+      "accessible_capacity": 2,
+      "accessible_occupancy": 0,
+      "accessible_committed_reserve": 0,
+      "safe_water_available_ml": 12000,
+      "safe_water_committed_ml": 1000,
+      "safe_water_protected_reserve_ml": 1000,
+      "capacity_evidence_ref": "SYNTHETIC_CAPACITY_A",
+      "service_evidence_ref": "SYNTHETIC_SERVICE_A",
+      "water_evidence_ref": "SYNTHETIC_WATER_A"
+    },
+    {
+      "site_id": "POD_B",
+      "operating_window_state": "OPEN_FOR_REQUIRED_WINDOW",
+      "thermal_service_state": "QUALIFIED",
+      "ventilation_state": "QUALIFIED",
+      "safe_water_service_state": "QUALIFIED",
+      "safe_water_rights_state": "QUALIFIED",
+      "safe_water_quality_state": "QUALIFIED",
+      "staffing_maintenance_state": "QUALIFIED",
+      "total_capacity": 4,
+      "current_occupancy": 0,
+      "committed_reserve": 0,
+      "accessible_capacity": 2,
+      "accessible_occupancy": 0,
+      "accessible_committed_reserve": 0,
+      "safe_water_available_ml": 12000,
+      "safe_water_committed_ml": 1000,
+      "safe_water_protected_reserve_ml": 1000,
+      "capacity_evidence_ref": "SYNTHETIC_CAPACITY_B",
+      "service_evidence_ref": "SYNTHETIC_SERVICE_B",
+      "water_evidence_ref": "SYNTHETIC_WATER_B"
+    }
+  ]
+}

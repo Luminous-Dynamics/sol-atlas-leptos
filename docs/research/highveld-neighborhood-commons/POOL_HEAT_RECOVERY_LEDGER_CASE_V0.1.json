@@ -1,0 +1,47 @@
+{
+  "schema_version": "0.1",
+  "study_id": "HIGHVELD-POOL-HEAT-RECOVERY-LEDGER-001",
+  "case_id": "SYNTHETIC_POOL_HEAT_RECOVERY_BALANCE_001",
+  "maturity": "SYNTHETIC_KNOWN_ANSWER",
+  "execution_status": "NO_PHYSICAL_SIMULATION",
+  "evidence_refs": {
+    "source_bundle_ref": "SYNTHETIC_POOL_HEAT_SOURCE_BUNDLE_001",
+    "building_heat_meter_ref": "SYNTHETIC_BUILDING_HEAT_METER_001",
+    "compressor_electric_meter_ref": "SYNTHETIC_COMPRESSOR_ELECTRIC_METER_001",
+    "compressor_loss_method_ref": "SYNTHETIC_COMPRESSOR_LOSS_METHOD_001",
+    "condenser_heat_meter_ref": "SYNTHETIC_CONDENSER_METER_001",
+    "pool_demand_headroom_ref": "SYNTHETIC_POOL_DEMAND_HEADROOM_001",
+    "isolated_heat_exchanger_ref": "SYNTHETIC_ISOLATED_HX_001",
+    "pool_heat_transfer_meter_ref": "SYNTHETIC_POOL_HEAT_METER_001",
+    "fallback_sink_meter_ref": "SYNTHETIC_FALLBACK_SINK_METER_001",
+    "distribution_loss_method_ref": "SYNTHETIC_DISTRIBUTION_LOSS_001",
+    "uncertainty_method_ref": "SYNTHETIC_U95_METHOD_001",
+    "independent_oracle_ref": "SYNTHETIC_POOL_HEAT_RECOVERY_ORACLE_001",
+    "displaced_heater_meter_ref": "SYNTHETIC_BASELINE_POOL_HEATER_METER_001",
+    "displaced_heater_counterfactual_ref": "SYNTHETIC_POOL_HEATER_COUNTERFACTUAL_001"
+  },
+  "refrigeration_circuit": {
+    "building_side_heat_removed_kwh": 10,
+    "compressor_electrical_work_kwh": 3,
+    "compressor_ambient_loss_kwh": 0.2,
+    "measured_condenser_heat_output_kwh": 12.8,
+    "balance_u95_kwh": 0.25
+  },
+  "heat_disposition": {
+    "pool_heating_demand_kwh": 6,
+    "pool_thermal_headroom_kwh": 5,
+    "pool_temperature_c": 26,
+    "pool_maximum_temperature_c": 28,
+    "isolated_heat_exchanger_state": "QUALIFIED",
+    "pool_heat_recovered_kwh": 5,
+    "fallback_sink_state": "QUALIFIED",
+    "fallback_sink_capacity_kwh": 8,
+    "fallback_heat_rejected_kwh": 7.5,
+    "distribution_losses_kwh": 0.3,
+    "disposition_balance_u95_kwh": 0.25
+  },
+  "displaced_pool_heater": {
+    "measured_displaced_heater_input_kwh": 4.5,
+    "evidence_state": "QUALIFIED"
+  }
+}

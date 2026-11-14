@@ -1,0 +1,219 @@
+{
+  "format_version": "0.1",
+  "study_id": "HIGHVELD-JOHANNESBURG-WEATHER-PACKAGE-001",
+  "parent_study": "HIGHVELD-PASSIVE-COOLING-WATER-001",
+  "climate_context": "JOHANNESBURG_HIGHVELD",
+  "maturity": "WEATHER_SOURCE_REGISTER_ONLY_NOT_ADMITTED",
+  "acquisition_status": "NOT_ACQUIRED",
+  "site_definition_status": "OWNER_SITE_NOT_SELECTED",
+  "candidate_sources": [
+    {
+      "id": "SAWS_STATION_ARCHIVE",
+      "provider": "SOUTH_AFRICAN_WEATHER_SERVICE",
+      "data_type": "MEASURED_STATION",
+      "candidate_variables": [
+        "DRY_BULB_TEMPERATURE",
+        "RELATIVE_HUMIDITY",
+        "WIND_SPEED",
+        "WIND_DIRECTION",
+        "PRESSURE",
+        "SUNSHINE_OR_SOLAR"
+      ],
+      "nominal_resolution": "HOURLY_WHERE_AVAILABLE",
+      "candidate_period": "STATION_DEPENDENT_ARCHIVE_FROM_1950",
+      "access_state": "LICENCE_REQUIRED",
+      "commercial_use_state": "TERMS_AND_FEES_MUST_BE_CONFIRMED",
+      "not_for_resale": true,
+      "role": "PRIMARY_STATION_CANDIDATE"
+    },
+    {
+      "id": "ARC_AGROMET_STATIONS",
+      "provider": "AGRICULTURAL_RESEARCH_COUNCIL",
+      "data_type": "MEASURED_STATION",
+      "candidate_variables": [
+        "TEMPERATURE",
+        "RAINFALL",
+        "WIND_WHERE_INSTRUMENTED",
+        "HUMIDITY_WHERE_INSTRUMENTED",
+        "EVAPOTRANSPIRATION_WHERE_AVAILABLE"
+      ],
+      "nominal_resolution": "HOURLY_TO_ANNUAL_PRODUCT_DEPENDENT",
+      "candidate_period": "STATION_DEPENDENT_ARCHIVE",
+      "access_state": "PAID_ADHOC_OR_SUBSCRIPTION",
+      "commercial_use_state": "TERMS_AND_FEES_MUST_BE_CONFIRMED",
+      "role": "INDEPENDENT_STATION_CANDIDATE"
+    },
+    {
+      "id": "DWS_HYDROLOGICAL_STATIONS",
+      "provider": "DEPARTMENT_OF_WATER_AND_SANITATION",
+      "data_type": "MEASURED_HYDROLOGICAL_STATION",
+      "candidate_variables": [
+        "DAILY_RAINFALL",
+        "PAN_EVAPORATION"
+      ],
+      "nominal_resolution": "DAILY",
+      "candidate_period": "STATION_DEPENDENT",
+      "access_state": "WRO_LISTED_FREE_CANDIDATE",
+      "commercial_use_state": "VERIFY_SOURCE_TERMS",
+      "role": "HYDROLOGICAL_CONTEXT_ONLY"
+    },
+    {
+      "id": "WRO_SAAACA_1950_1999",
+      "provider": "WATER_RESEARCH_OBSERVATORY",
+      "data_type": "CATCHMENT_CLIMATE_GRID",
+      "candidate_variables": [
+        "DAILY_CLIMATE_VARIABLES"
+      ],
+      "nominal_resolution": "DAILY",
+      "candidate_period": "1950_TO_1999",
+      "access_state": "WRO_HOSTED_FREE_CANDIDATE",
+      "commercial_use_state": "VERIFY_DATASET_TERMS",
+      "role": "HISTORICAL_CONTEXT_NOT_SITE_VALIDATION"
+    },
+    {
+      "id": "WRO_DATASET_CATALOGUE",
+      "provider": "WATER_RESEARCH_OBSERVATORY",
+      "data_type": "DATASET_DISCOVERY_CATALOGUE",
+      "candidate_variables": [
+        "MULTI_PROVIDER_METADATA"
+      ],
+      "nominal_resolution": "CATALOGUE_DEPENDENT",
+      "candidate_period": "CATALOGUE_DEPENDENT",
+      "access_state": "PUBLIC_DISCOVERY_FREE_REGISTRATION_FOR_DOWNLOADS",
+      "commercial_use_state": "CHECK_EACH_DATASET_TERMS",
+      "role": "SOURCE_DISCOVERY"
+    },
+    {
+      "id": "NOAA_GHCN_DAILY_ISD",
+      "provider": "NOAA_NCEI",
+      "data_type": "INDEPENDENT_GLOBAL_STATION_ARCHIVE",
+      "candidate_variables": [
+        "DAILY_TEMPERATURE",
+        "DAILY_PRECIPITATION",
+        "HOURLY_METEOROLOGY_WHERE_ISD_STATION_SUPPORTS"
+      ],
+      "nominal_resolution": "DAILY_OR_HOURLY_DATASET_DEPENDENT",
+      "candidate_period": "STATION_DEPENDENT",
+      "access_state": "PUBLIC_CANDIDATE",
+      "commercial_use_state": "VERIFY_DATASET_TERMS",
+      "role": "CROSS_CHECK_ONLY"
+    },
+    {
+      "id": "CHIRPS_PRECIPITATION",
+      "provider": "CHIRPS",
+      "data_type": "SATELLITE_GRIDDed_PRECIPITATION",
+      "candidate_variables": [
+        "PRECIPITATION"
+      ],
+      "nominal_resolution": "DAILY",
+      "candidate_period": "1981_TO_PRESENT_PRODUCT_DEPENDENT",
+      "access_state": "PUBLIC_CANDIDATE",
+      "commercial_use_state": "VERIFY_PRODUCT_TERMS",
+      "role": "RAINFALL_CROSS_CHECK_ONLY"
+    },
+    {
+      "id": "NASA_POWER_MERRA2_REANALYSIS",
+      "provider": "NASA_POWER_MERRA2",
+      "data_type": "GRIDDED_REANALYSIS",
+      "candidate_variables": [
+        "TEMPERATURE",
+        "HUMIDITY",
+        "WIND",
+        "RADIATION_PRODUCT_DEPENDENT"
+      ],
+      "nominal_resolution": "GRIDDED_HOURLY_OR_DAILY_PRODUCT_DEPENDENT",
+      "candidate_period": "PRODUCT_DEPENDENT",
+      "access_state": "PUBLIC_CANDIDATE",
+      "commercial_use_state": "VERIFY_PRODUCT_TERMS",
+      "role": "CONTEXT_AND_GAP_CANDIDATE_NOT_SITE_TRUTH"
+    },
+    {
+      "id": "ERA5_REANALYSIS",
+      "provider": "ECMWF_COPERNICUS",
+      "data_type": "GRIDDED_REANALYSIS",
+      "candidate_variables": [
+        "TEMPERATURE",
+        "HUMIDITY",
+        "WIND",
+        "RADIATION",
+        "CLOUD_PRODUCT_DEPENDENT"
+      ],
+      "nominal_resolution": "HOURLY_GRIDDED",
+      "candidate_period": "PRODUCT_DEPENDENT",
+      "access_state": "PUBLIC_CANDIDATE",
+      "commercial_use_state": "VERIFY_PRODUCT_TERMS",
+      "role": "CONTEXT_AND_GAP_CANDIDATE_NOT_SITE_TRUTH"
+    },
+    {
+      "id": "EPW_TMY_DERIVATIVE",
+      "provider": "EPW_COMPILATION_SOURCE_DEPENDENT",
+      "data_type": "SIMULATION_WEATHER_DERIVATIVE",
+      "candidate_variables": [
+        "BUILDING_SIMULATION_WEATHER_FIELDS"
+      ],
+      "nominal_resolution": "HOURLY",
+      "candidate_period": "TYPICAL_YEAR_METHOD_DEPENDENT",
+      "access_state": "SOURCE_DEPENDENT",
+      "commercial_use_state": "SOURCE_AND_DERIVATION_TERMS_REQUIRED",
+      "role": "REPRODUCIBLE_DESIGN_CASE_NOT_RAW_OBSERVATION"
+    }
+  ],
+  "required_temporal_packages": [
+    "PINNED_TMY_EPW_WITH_ORIGIN_METADATA",
+    "RECENT_ACTUAL_METEOROLOGICAL_YEAR",
+    "PREREGISTERED_HISTORIC_HOT_TAIL",
+    "MULTIDAY_HEATWAVE_AND_HOT_NIGHT_EVENTS",
+    "FUTURE_CLIMATE_SERIES_WITH_SCENARIO_AND_HORIZON",
+    "LOCAL_COURTYARD_MEASUREMENT_SERIES"
+  ],
+  "required_variables": [
+    "DRY_BULB_TEMPERATURE",
+    "RELATIVE_HUMIDITY_OR_DEW_POINT",
+    "BAROMETRIC_PRESSURE",
+    "WIND_SPEED_AND_DIRECTION_WITH_EXPOSURE",
+    "GLOBAL_SOLAR_IRRADIANCE",
+    "DIFFUSE_OR_DIRECT_SOLAR_WHERE_AVAILABLE",
+    "PRECIPITATION",
+    "CLOUD_OR_LONGWAVE_DOWNWELLING_FOR_RADIATIVE_SINK",
+    "SITE_SKY_VIEW_FACTOR_AND_HORIZON",
+    "LOCAL_WATER_SURFACE_AND_RADIATOR_TEMPERATURES"
+  ],
+  "source_admission_fields": [
+    "provider_and_dataset_id",
+    "station_or_grid_cell_id",
+    "coordinates_and_elevation",
+    "siting_and_exposure",
+    "variables_units_and_aggregation",
+    "timezone_and_timestamp_convention",
+    "instrument_and_breakpoint_history",
+    "raw_file_sha256",
+    "licence_terms_sha256",
+    "acquisition_receipt",
+    "quality_flags_and_missingness",
+    "gap_fill_lineage",
+    "uncertainty_and_holdout_split_ids",
+    "permitted_use_and_redistribution"
+  ],
+  "holdout_design": {
+    "temporal_split": "BLOCKED_BY_SEASON_AND_EVENT",
+    "spatial_holdout_station_required_where_available": true,
+    "preserve_raw_files_and_transforms": true,
+    "no_random_hourly_shuffle_as_independent_validation": true,
+    "candidate_outcome_blind_hot_tail_selection": true
+  },
+  "hard_gates": {
+    "unlicensed_use": 0,
+    "grid_data_relabelled_as_site_measurements": 0,
+    "hidden_critical_variable_imputation": 0,
+    "future_weather_in_causal_controller": 0,
+    "untraceable_source_transforms": 0,
+    "required_claims_without_representative_weather": 0
+  },
+  "owner_roles": {
+    "site_geometry_and_representativeness": "SOL_ATLAS",
+    "licence_and_source_admission": "MYCELIX",
+    "time_lineage_and_replay": "SYMTROPY",
+    "weather_boundary_physics": "SPECIALIST_SOLVERS"
+  },
+  "claim_ceiling": "Source register only; no station selected, no licence acquired, no weather observations admitted, and no weather model validated."
+}

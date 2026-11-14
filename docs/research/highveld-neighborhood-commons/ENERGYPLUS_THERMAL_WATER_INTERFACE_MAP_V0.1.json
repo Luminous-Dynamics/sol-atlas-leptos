@@ -1,0 +1,124 @@
+{
+  "format_version": "0.1",
+  "study_id": "HIGHVELD-PASSIVE-COOLING-WATER-001",
+  "model_engine": "EnergyPlus",
+  "model_engine_version": "26.2.0",
+  "maturity": "INTERFACE_MAP_NOT_EXECUTED",
+  "object_bindings": [
+    {
+      "object": "SwimmingPool:Indoor",
+      "role": "INDOOR_POOL_ZONE_HEAT_AND_MOISTURE_BALANCE",
+      "use_when": "Indoor pool whose geometry and linked-surface assumptions match the documented object",
+      "do_not_infer": [
+        "outdoor_pool_physics",
+        "courtyard_microclimate",
+        "partial_floor_coverage",
+        "radiant_slab_compatibility"
+      ],
+      "external_validation_required": true
+    },
+    {
+      "object": "WaterUse:RainCollector",
+      "role": "ROOF_RAIN_CAPTURE_ACCOUNTING",
+      "use_when": "Rainwater capture quantity into a water-use system",
+      "do_not_infer": [
+        "water_quality",
+        "potable_status",
+        "legal_rights",
+        "household_delivery"
+      ],
+      "external_validation_required": true
+    },
+    {
+      "object": "WaterUse:Storage",
+      "role": "WATER_USE_STORAGE_ACCOUNTING",
+      "use_when": "Water-use storage volume and schedule-driven stored-water temperature coupling",
+      "do_not_infer": [
+        "dynamic_pool_thermal_model",
+        "stratified_tank_physics",
+        "source_rights_or_quality"
+      ],
+      "external_validation_required": true
+    },
+    {
+      "object": "WaterUse:Connections",
+      "role": "WATER_USE_PLANT_CONNECTIONS",
+      "use_when": "Connect water-use equipment, supply, storage and end-use demand",
+      "do_not_infer": [
+        "resident_received_service",
+        "rights_or_quality_qualification"
+      ],
+      "external_validation_required": true
+    },
+    {
+      "object": "ThermalStorage:ChilledWater:Stratified",
+      "role": "STRATIFIED_CHILLED_WATER_THERMAL_STORAGE",
+      "use_when": "Dedicated stratified chilled-water tank",
+      "do_not_infer": [
+        "arbitrary_pool_equivalence",
+        "outdoor_courtyard_cfd"
+      ],
+      "external_validation_required": true
+    },
+    {
+      "object": "ThermalStorage:ChilledWater:Mixed",
+      "role": "MIXED_CHILLED_WATER_THERMAL_STORAGE",
+      "use_when": "Dedicated well-mixed chilled-water tank sensitivity",
+      "do_not_infer": [
+        "stratification",
+        "pool_equivalence"
+      ],
+      "external_validation_required": true
+    },
+    {
+      "object": "EvaporativeCooler:Direct:* / EvaporativeCooler:Indirect:*",
+      "role": "AIR_SIDE_EVAPORATIVE_COOLING",
+      "use_when": "Packaged direct or indirect evaporative air-side plant within object assumptions",
+      "do_not_infer": [
+        "open_courtyard_surface_flow",
+        "unmetered_water_cost"
+      ],
+      "external_validation_required": true
+    },
+    {
+      "object": "ZoneCoolTower:Shower",
+      "role": "ZONE_COOL_TOWER_AIR_PATH",
+      "use_when": "Specific zone-coupled cool-tower/shower arrangement",
+      "do_not_infer": [
+        "generic_rill_or_pool"
+      ],
+      "external_validation_required": true
+    },
+    {
+      "object": "HeatExchanger:FluidToFluid",
+      "role": "LOOP_TO_LOOP_HEAT_TRANSFER",
+      "use_when": "Declared heat exchange between plant loops with specified flow/control",
+      "do_not_infer": [
+        "infinite_heat_sink",
+        "net_building_cooling_without_zone_measurement"
+      ],
+      "external_validation_required": true
+    }
+  ],
+  "outdoor_feature_boundary": {
+    "dedicated_swimmingpool_outdoor_object_found_in_inspected_v26_2_index": false,
+    "interpretation": "SCOPED_DOCUMENTATION_OBSERVATION_NOT_ABSOLUTE_CAPABILITY_CLAIM",
+    "required_external_model": "QUALIFIED_CFD_OR_VALIDATED_REDUCED_ORDER_AIRFLOW_RADIATION_WATER_SURFACE_MODEL",
+    "coupling_requirements": [
+      "versioned_geometry",
+      "declared_boundary_variables",
+      "time_synchronisation",
+      "unit_contract",
+      "energy_and_moisture_conservation_check",
+      "held_out_validation"
+    ]
+  },
+  "governance_owners": {
+    "geometry": "SOL_ATLAS",
+    "events_and_trajectories": "SYMTROPY",
+    "rights_water_quality_and_instruments": "MYCELIX",
+    "building_physics": "ENERGYPLUS",
+    "outdoor_airflow_and_surface_physics": "SPECIALIST_SOLVER"
+  },
+  "execution_status": "NOT_EXECUTED"
+}

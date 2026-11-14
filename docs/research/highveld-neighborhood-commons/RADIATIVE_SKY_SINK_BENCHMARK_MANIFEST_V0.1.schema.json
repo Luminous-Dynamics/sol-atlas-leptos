@@ -1,0 +1,264 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://luminousdynamics.io/schemas/highveld-radiative-sky-sink-benchmark-v0.1.schema.json",
+  "title": "Highveld radiative sky-sink validation benchmark v0.1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "format_version",
+    "study_id",
+    "parent_study",
+    "maturity",
+    "execution_status",
+    "literature_reference_envelope",
+    "comparison_arms",
+    "scenarios",
+    "frozen_inputs_required",
+    "required_measurements",
+    "required_metrics",
+    "hard_gates",
+    "claim_ceiling",
+    "owners"
+  ],
+  "properties": {
+    "format_version": {
+      "const": "0.1"
+    },
+    "study_id": {
+      "const": "HIGHVELD-RADIATIVE-SKY-SINK-001"
+    },
+    "parent_study": {
+      "const": "HIGHVELD-THERMAL-SINK-CASCADE-001"
+    },
+    "maturity": {
+      "const": "BENCHMARK_PROTOCOL_NOT_EXECUTED"
+    },
+    "execution_status": {
+      "const": "NOT_EXECUTED"
+    },
+    "literature_reference_envelope": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "source",
+        "solar_reflectance_range",
+        "mid_infrared_emittance_range",
+        "daytime_subambient_temperature_drop_c_range",
+        "reported_net_cooling_power_w_m2_range",
+        "applicability"
+      ],
+      "properties": {
+        "source": {
+          "type": "string",
+          "minLength": 1
+        },
+        "solar_reflectance_range": {
+          "type": "array",
+          "prefixItems": [
+            {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1
+            },
+            {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1
+            }
+          ],
+          "minItems": 2,
+          "maxItems": 2
+        },
+        "mid_infrared_emittance_range": {
+          "type": "array",
+          "prefixItems": [
+            {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1
+            },
+            {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1
+            }
+          ],
+          "minItems": 2,
+          "maxItems": 2
+        },
+        "daytime_subambient_temperature_drop_c_range": {
+          "type": "array",
+          "prefixItems": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "number"
+            }
+          ],
+          "minItems": 2,
+          "maxItems": 2
+        },
+        "reported_net_cooling_power_w_m2_range": {
+          "type": "array",
+          "prefixItems": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "number"
+            }
+          ],
+          "minItems": 2,
+          "maxItems": 2
+        },
+        "applicability": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "comparison_arms": {
+      "type": "array",
+      "minItems": 7,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "role"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "role": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    },
+    "scenarios": {
+      "type": "array",
+      "minItems": 7,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "frozen_inputs_required": {
+      "type": "array",
+      "minItems": 10,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "required_measurements": {
+      "type": "array",
+      "minItems": 10,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "required_metrics": {
+      "type": "array",
+      "minItems": 10,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "hard_gates": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "material_to_building_claim_leakage",
+        "useful_cooling_without_zone_path_evidence",
+        "missing_radiative_boundary_claimed_as_valid",
+        "ignored_soiling_or_wetness_state",
+        "accepted_infinite_sky_assumption",
+        "unclosed_component_balance_outside_uncertainty",
+        "water_floor_violations",
+        "unknown_out_of_domain_as_pass",
+        "traceability_percent",
+        "finite_oracle_agreement_percent"
+      ],
+      "properties": {
+        "material_to_building_claim_leakage": {
+          "const": 0
+        },
+        "useful_cooling_without_zone_path_evidence": {
+          "const": 0
+        },
+        "missing_radiative_boundary_claimed_as_valid": {
+          "const": 0
+        },
+        "ignored_soiling_or_wetness_state": {
+          "const": 0
+        },
+        "accepted_infinite_sky_assumption": {
+          "const": 0
+        },
+        "unclosed_component_balance_outside_uncertainty": {
+          "const": 0
+        },
+        "water_floor_violations": {
+          "const": 0
+        },
+        "unknown_out_of_domain_as_pass": {
+          "const": 0
+        },
+        "traceability_percent": {
+          "const": 100
+        },
+        "finite_oracle_agreement_percent": {
+          "const": 100
+        }
+      }
+    },
+    "claim_ceiling": {
+      "type": "string",
+      "minLength": 40
+    },
+    "owners": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "geometry_and_configuration",
+        "native_time_and_trajectories",
+        "water_rights_and_instrument_admission",
+        "building_plant_physics",
+        "outdoor_radiative_and_airflow_physics",
+        "independent_energy_balance"
+      ],
+      "properties": {
+        "geometry_and_configuration": {
+          "const": "SOL_ATLAS"
+        },
+        "native_time_and_trajectories": {
+          "const": "SYMTROPY"
+        },
+        "water_rights_and_instrument_admission": {
+          "const": "MYCELIX"
+        },
+        "building_plant_physics": {
+          "const": "ENERGYPLUS_AND_MODELICA"
+        },
+        "outdoor_radiative_and_airflow_physics": {
+          "const": "QUALIFIED_SPECIALIST_MODEL"
+        },
+        "independent_energy_balance": {
+          "const": "INDEPENDENT"
+        }
+      }
+    }
+  }
+}
