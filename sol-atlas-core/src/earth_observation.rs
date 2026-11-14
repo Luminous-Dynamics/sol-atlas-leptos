@@ -1340,6 +1340,7 @@ mod tests {
         assert!(CrossSystemComparabilityReceiptRef::new(
             "not-a-sha256",
             vec!["obs-a".into()],
+            vec![observation("obs-a", "2024-01-01", ObservationQuality::QualifiedUsable).system_signature()],
             "support-a",
             "vegetation-loss",
             "ontology-v1",
@@ -1347,6 +1348,7 @@ mod tests {
         assert!(CrossSystemComparabilityReceiptRef::new(
             digest(b'r'),
             vec!["obs-a".into(), "obs-a".into()],
+            vec![observation("obs-a", "2024-01-01", ObservationQuality::QualifiedUsable).system_signature()],
             "support-a",
             "vegetation-loss",
             "ontology-v1",
@@ -1354,6 +1356,7 @@ mod tests {
         let receipt = CrossSystemComparabilityReceiptRef::new(
             digest(b'r'),
             vec!["obs-b".into(), "obs-a".into()],
+            vec![observation("obs-a", "2024-01-01", ObservationQuality::QualifiedUsable).system_signature()],
             "support-a",
             "vegetation-loss",
             "ontology-v1",
@@ -1463,12 +1466,13 @@ mod tests {
         let result = EvidenceBundle::new(vec![a.clone(), b.clone()], vec![no_change_claim()]);
         assert!(result.unwrap_err().contains("incompletely identified measurement systems"));
 
+        let bridge_signatures = vec![a.system_signature(), b.system_signature()];
         let mut claim = no_change_claim();
         claim.cross_system_comparability_receipt = Some(
             CrossSystemComparabilityReceiptRef::new(
                 digest(b'g'),
                 vec!["obs-a".into(), "obs-b".into()],
-                bridge_signatures.clone(),
+                bridge_signatures,
                 "support-a",
                 "vegetation-loss",
                 "fixture-ontology-v1",
@@ -1487,12 +1491,13 @@ mod tests {
         let blocked = EvidenceBundle::new(vec![a.clone(), b.clone()], vec![no_change_claim()]);
         assert!(blocked.unwrap_err().contains("incompletely identified measurement systems"));
 
+        let bridge_signatures = vec![a.system_signature(), b.system_signature()];
         let mut claim = no_change_claim();
         claim.cross_system_comparability_receipt = Some(
             CrossSystemComparabilityReceiptRef::new(
-                digest(b"u"),
+                digest(b'u'),
                 vec!["obs-a".into(), "obs-b".into()],
-                bridge_signatures.clone(),
+                bridge_signatures,
                 "support-a",
                 "vegetation-loss",
                 "fixture-ontology-v1",
@@ -1519,24 +1524,26 @@ mod tests {
 
     #[test]
     fn same_system_claim_rejects_unnecessary_cross_system_receipt() {
+        let observations = vec![
+            observation("obs-a", "2024-01-01", ObservationQuality::QualifiedUsable),
+            observation("obs-b", "2025-01-01", ObservationQuality::QualifiedUsable),
+        ];
+        let system_signatures = vec![observations[0].system_signature()];
         let mut claim = no_change_claim();
         claim.cross_system_comparability_receipt = Some(
             CrossSystemComparabilityReceiptRef::new(
                 digest(b'f'),
                 vec!["obs-a".into(), "obs-b".into()],
-                bridge_signatures.clone(),
+                system_signatures,
                 "support-a",
                 "vegetation-loss",
                 "fixture-ontology-v1",
             ).unwrap()
         );
-        let observations = vec![
-            observation("obs-a", "2024-01-01", ObservationQuality::QualifiedUsable),
-            observation("obs-b", "2025-01-01", ObservationQuality::QualifiedUsable),
-        ];
         let result = EvidenceBundle::new(observations, vec![claim]);
-        assert!(result.unwrap_err().contains("only one observation-system signature"));
+        assert!(result.unwrap_err().contains("one fully identified observation-system signature"));
     }
+
 
     #[test]
     fn no_change_requires_two_distinct_acquisition_times() {
