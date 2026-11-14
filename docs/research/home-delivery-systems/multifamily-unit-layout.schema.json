@@ -294,7 +294,8 @@
         "to_activity_id",
         "relationship",
         "from_target_id",
-        "to_target_id"
+        "to_target_id",
+        "relationship_id"
       ],
       "properties": {
         "from_activity_id": {
@@ -322,6 +323,10 @@
           "minLength": 1
         },
         "to_target_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "relationship_id": {
           "type": "string",
           "minLength": 1
         }
