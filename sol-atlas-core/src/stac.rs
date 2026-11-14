@@ -119,6 +119,11 @@ impl StacSourceProfile {
     /// Build the observation identity only when platform and sensor identity
     /// are unambiguous. Unknown/multiple-instrument cases remain unresolved.
     pub fn observation_identity(&self) -> Option<StacObservationIdentity> {
+        // ObservationRecord V1 is a single-instrument profile. Preserve
+        // multi-instrument STAC source metadata, but do not silently select one.
+        if self.instruments.len() > 1 {
+            return None;
+        }
         let platform_id = self.platform.clone()?;
         let sensor_id = self.sensor_identity.value.clone()?;
         let sensor_identity_origin = match self.sensor_identity.origin {
@@ -1176,6 +1181,24 @@ mod tests {
         assert_eq!(
             result.source_profile().sensor_identity().origin,
             StacSensorIdentityOrigin::Unknown
+        );
+        assert!(result.source_profile().observation_identity().is_none());
+
+        let multiple_with_provider_sensor = r#"{
+          "type":"Feature",
+          "id":"multiple-instruments-provider-sensor",
+          "properties":{
+            "datetime":"2025-01-01T00:00:00Z",
+            "platform":"platform-a",
+            "instruments":["instrument-a","instrument-b"],
+            "sensor":"provider-sensor-id"
+          },
+          "assets":{"visual":{"href":"fixture:visual","type":"image/jpeg"}}
+        }"#;
+        let result = import_item_json(multiple_with_provider_sensor).unwrap();
+        assert_eq!(
+            result.source_profile().sensor_identity().origin,
+            StacSensorIdentityOrigin::ProviderDeclared
         );
         assert!(result.source_profile().observation_identity().is_none());
 
