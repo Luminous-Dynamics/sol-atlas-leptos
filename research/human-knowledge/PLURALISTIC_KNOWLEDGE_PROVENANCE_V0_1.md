@@ -92,3 +92,21 @@ Do not score traditions by popularity, number of documents, or degree of conform
 ## 8. Claim boundary
 
 This protocol defines requirements and quality measures. It does not claim that Sol-Atlas currently contains comprehensive religious/cultural knowledge, that a community has authorized collection, or that its present interface enforces these requirements.
+
+
+## 9. Interaction and plurality-integrity handoff
+
+Sol-Atlas provenance is an input to the system-level [Plurality Integrity under Interaction (PIB)](https://github.com/Luminous-Dynamics/symthaea/blob/research/human-meaning-pluralism-v0-1/docs/research/PLURALITY_INTEGRITY_BENCHMARK_V0_1.md) benchmark. The benchmark asks whether a multi-agent system preserves situated perspectives through interaction, and distinguishes evidence-supported convergence from false consensus, status pressure and dissent erasure.
+
+For any future Sol-Atlas record supplied to a PIB episode, the evidence handoff must retain:
+- source/claim ID and exact revision or digest;
+- speaker/voice type and the limited scope that attribution supports;
+- language, translation status and unresolved semantic mappings;
+- temporal/geographic scope and the time of the source;
+- rights/permission decision for each requested operation;
+- corrections, supersession and unresolved disagreement;
+- whether a perspective is a direct source account, an interpretation, or an analyst-created summary.
+
+The atlas must not infer that two records describe the same cultural category just because they share a country, language, broad tradition label or translated word. "Not comparable" and "scope unknown" are valid values. A majority, model-generated synthesis or simulated agent vote cannot overwrite a source record or turn its attributed statement into a community-wide position.
+
+**Status:** interface and provenance requirements only. No PIB corpus, human interaction data, Sol-Atlas-to-Symtropy export adapter or empirical validation is implemented.
