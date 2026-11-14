@@ -1,0 +1,56 @@
+name: Energy source registry conformance
+
+on:
+  pull_request:
+    branches:
+      - research/sa-energy-resource-envelope-v0.1
+    paths:
+      - "tools/energy-resource-registry-auditor/**"
+      - "schemas/energy-resource-source-registry-v0.1.schema.json"
+      - "docs/research/energy/SA_ENERGY_RESOURCE_SOURCE_REGISTER_V0_1.json"
+      - ".github/workflows/energy-source-registry-audit.yml"
+  push:
+    branches:
+      - research/energy-source-registry-auditor-v0.1
+    paths:
+      - "tools/energy-resource-registry-auditor/**"
+      - "schemas/energy-resource-source-registry-v0.1.schema.json"
+      - "docs/research/energy/SA_ENERGY_RESOURCE_SOURCE_REGISTER_V0_1.json"
+      - ".github/workflows/energy-source-registry-audit.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  source-registry-audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check out exact event revision
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+
+      - name: Install Rust stable
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+
+      - name: Format check
+        run: cargo fmt --manifest-path tools/energy-resource-registry-auditor/Cargo.toml --all -- --check
+
+      - name: Unit and hostile-input tests
+        run: cargo test --manifest-path tools/energy-resource-registry-auditor/Cargo.toml --locked
+
+      - name: Strict Clippy
+        run: cargo clippy --manifest-path tools/energy-resource-registry-auditor/Cargo.toml --all-targets --locked -- -D warnings
+
+      - name: Audit checked-in source registry
+        run: |
+          cargo run --release --manifest-path tools/energy-resource-registry-auditor/Cargo.toml --locked -- \
+            schemas/energy-resource-source-registry-v0.1.schema.json \
+            docs/research/energy/SA_ENERGY_RESOURCE_SOURCE_REGISTER_V0_1.json \
+            /tmp/energy-source-registry-audit.json
+          test -s /tmp/energy-source-registry-audit.json
+          cat /tmp/energy-source-registry-audit.json

@@ -1,0 +1,221 @@
+{
+  "schema_version": "0.1.0",
+  "as_of": "2026-11-09",
+  "purpose": "Freeze the current external comparator versions and state their appropriate problem boundaries. This is a benchmark planning lock, not a claim that any comparison has been run.",
+  "comparators": [
+    {
+      "name": "NLR System Advisor Model",
+      "artifact": "SAM",
+      "pinned_release": "2026.7.3",
+      "companion_engine": "SSC 308",
+      "release_date": "2026-07-03",
+      "role": [
+        "PV plant modeling",
+        "PV-battery and battery manual dispatch",
+        "CSP",
+        "geothermal plant model"
+      ],
+      "important_limits": [
+        "SAM does not provide a standalone battery CLI model; a battery can be evaluated through Generic System with plant losses configured appropriately.",
+        "SAM includes voltage, temperature and degradation detail not present in the simplified Symthaea grid-physics Battery model.",
+        "Only variables and boundaries that can be mapped exactly may enter differential validation."
+      ],
+      "pin_policy": "Record installer/build identifier, SSC version, exact SAM case file, inputs, system configuration and output channel names.",
+      "references": [
+        "https://sam.nlr.gov/docman/sam-versions.html",
+        "https://sam.nrel.gov/index.php?Itemid=360&id=94&option=com_content&view=article"
+      ]
+    },
+    {
+      "name": "REopt",
+      "artifact": "REopt API / REopt.jl",
+      "pinned_release": "API v3 stable; REopt.jl package/commit must be pinned per run",
+      "companion_engine": "REopt.jl",
+      "release_date": null,
+      "role": [
+        "distributed energy resource sizing",
+        "facility/campus/community microgrid optimization",
+        "resilience and techno-economic assessment"
+      ],
+      "important_limits": [
+        "REopt API v3 uses REopt.jl as its optimization engine.",
+        "A short-horizon dispatch-only oracle is not comparable to a full technology-sizing/resilience run unless system boundary, costs, incentives, outage windows and objective are matched."
+      ],
+      "pin_policy": "Record API route version, REopt.jl exact package version and manifest, optimizer/version, complete request JSON, response JSON and solve status.",
+      "references": [
+        "https://developer.nlr.gov/docs/energy-optimization/reopt/",
+        "https://developer.nlr.gov/docs/energy-optimization/reopt/v3/"
+      ]
+    },
+    {
+      "name": "PyPSA",
+      "artifact": "PyPSA",
+      "pinned_release": "1.4.0",
+      "companion_engine": null,
+      "release_date": "2026-10-09",
+      "role": [
+        "multi-carrier energy system optimization",
+        "economic dispatch and unit commitment",
+        "network-constrained linear OPF",
+        "rolling-horizon and stochastic planning",
+        "capacity expansion"
+      ],
+      "important_limits": [
+        "PyPSA 1.4.0 includes correctness fixes to rolling-horizon unit commitment and security-constrained optimization; these behavior changes make the exact version important.",
+        "PyPSA 1.3.0 introduced piecewise-linear cost and efficiency curves and maintenance scheduling; verify exact availability and configuration at the selected release.",
+        "A linear or DC network formulation is not AC-OPF and must be labelled separately."
+      ],
+      "pin_policy": "Pin PyPSA v1.4.0, Python/environment lock, Linopy and solver versions, network snapshot hashes, time weights, network formulation and all custom constraints.",
+      "references": [
+        "https://github.com/PyPSA/PyPSA/releases/tag/v1.4.0",
+        "https://docs.pypsa.org/latest/release-notes/"
+      ]
+    },
+    {
+      "name": "GenX",
+      "artifact": "GenX.jl",
+      "pinned_release": "v0.4.5",
+      "companion_engine": "Julia / JuMP / selected solver",
+      "release_date": "2026-07-11",
+      "role": [
+        "long-run electricity capacity expansion",
+        "generation and storage planning",
+        "transmission and operational planning"
+      ],
+      "important_limits": [
+        "The GitHub release list exposed v0.4.5 as the latest published release during this check; the repository README refers to v0.4.6. Pin the actual release tag/commit and do not assume main-branch code and released package are interchangeable.",
+        "GenX is a planning model, not a substitute for detailed component physics or project-specific site validation."
+      ],
+      "pin_policy": "Use the immutable v0.4.5 tag/commit for a baseline; separately record any v0.4.6 development-branch run as unreleased.",
+      "references": [
+        "https://github.com/GenXProject/GenX.jl/releases",
+        "https://github.com/GenXProject/GenX.jl"
+      ]
+    },
+    {
+      "name": "NLR Annual Technology Baseline",
+      "artifact": "NLR ATB Electricity",
+      "pinned_release": "2025 edition (latest published edition confirmed in this check; recheck before execution)",
+      "companion_engine": null,
+      "release_date": "2025",
+      "role": [
+        "technology cost and performance assumptions",
+        "PV, wind, CSP, geothermal, hydropower, storage and hybrid system reference ranges"
+      ],
+      "important_limits": [
+        "The 2025 utility battery ATB includes LFP systems with 2, 4, 6, 8 and 10 hour durations for a 60 MW reference system, based on bottom-up pack, inverter and balance-of-system costs.",
+        "ATB values are standardized U.S. reference assumptions; they must not be transferred directly to South Africa without local currency, financing, supply chain, tax, grid and construction adjustments."
+      ],
+      "pin_policy": "Capture the exact technology page, scenario, financial assumptions, currency/base year, system size and downloaded data file.",
+      "references": [
+        "https://atb.nlr.gov/electricity/2025/utility-scale_battery_storage"
+      ]
+    },
+    {
+      "name": "PGLib-OPF",
+      "artifact": "Power Grid Library — Optimal Power Flow",
+      "pinned_release": "v23.07",
+      "companion_engine": "MATPOWER / PowerModels.jl or another pinned reference implementation",
+      "release_date": "2023-07",
+      "role": [
+        "network optimal power flow",
+        "AC-OPF and declared DC-OPF cases",
+        "small network feasibility and solver comparison"
+      ],
+      "important_limits": [
+        "The library cases were curated primarily for AC-OPF; a DC formulation is a separate benchmark and must be declared.",
+        "Solver optimality status, non-convex local optimum and global certificate are distinct claims."
+      ],
+      "pin_policy": "Pin immutable repository commit, exact case files, parser, per-unit/base-MVA mapping, solver and tolerances.",
+      "references": [
+        "https://github.com/power-grid-lib/pglib-opf"
+      ]
+    },
+    {
+      "name": "IEC PV monitoring",
+      "artifact": "IEC 61724-1",
+      "pinned_release": "2021 Edition 2.0",
+      "companion_engine": null,
+      "release_date": "2021-07-21",
+      "role": [
+        "PV monitoring measurement classes",
+        "performance monitoring and analysis",
+        "soiling and bifacial monitoring"
+      ],
+      "important_limits": [
+        "Edition 3.0 is under development with forecast publication date 2027-07-30; do not describe it as an approved published standard as of this lock."
+      ],
+      "pin_policy": "Record edition, corrigenda, monitoring class, sensor calibration and the exact measurement plan.",
+      "references": [
+        "https://webstore.iec.ch/en/publication/65561"
+      ]
+    },
+    {
+      "name": "IEC wind power performance",
+      "artifact": "IEC 61400-12-1",
+      "pinned_release": "2022 Edition 3.0 + COR1:2025",
+      "companion_engine": null,
+      "release_date": "2022-09-05; corrigendum 2025-05-23",
+      "role": [
+        "single turbine power performance measurement",
+        "small wind turbine measurement",
+        "uncertainty in measured power curves and derived energy production"
+      ],
+      "important_limits": [
+        "A modelled wind atlas or generic turbine curve is not a measured IEC power-performance test."
+      ],
+      "pin_policy": "Record edition, corrigenda, turbine configuration, met mast/lidar data, site calibration, uncertainty budget and test campaign.",
+      "references": [
+        "https://webstore.iec.ch/en/publication/68499"
+      ]
+    },
+    {
+      "name": "South African Wholesale Electricity Market Code",
+      "artifact": "SAWEM Market Code",
+      "pinned_release": "Revision 2.3",
+      "companion_engine": null,
+      "release_date": "2026-02",
+      "role": [
+        "wholesale trading and settlement rule context",
+        "market participation and balance responsibility assumptions"
+      ],
+      "important_limits": [
+        "A market-code document does not itself prove operational market readiness, participant registration, creditworthiness or any project's dispatch/settlement access."
+      ],
+      "pin_policy": "Pin Market Code Rev 2.3 and the applicable Rule 1-4 documents; record legal effective status and operator licensing dependencies before modelling market participation.",
+      "references": [
+        "https://www.ntcsa.co.za/wholesale-market-code/"
+      ]
+    },
+    {
+      "name": "IRENA Renewable Power Generation Costs",
+      "artifact": "Renewable Power Generation Costs in 2025",
+      "pinned_release": "2026 report, 2025 project data / 2025 USD",
+      "companion_engine": null,
+      "release_date": "2026-07",
+      "role": [
+        "global renewable plant-level LCOE reference",
+        "global cost/performance trend baseline"
+      ],
+      "important_limits": [
+        "Global weighted-average LCOE values are plant-boundary cost comparisons, not a like-for-like firm-delivered electricity or grid-integration comparison.",
+        "IRENA notes that LCOE omits transmission and distribution expenditures beyond plant boundaries, assumes generation at maximum load factor, and does not capture the full economic value of dispatchability.",
+        "Global weighted averages are not South African project costs; do not transfer them without local financing, tax, labour, logistics, grid and resource adjustments."
+      ],
+      "reported_2025_global_weighted_lcoe_usd_per_mwh": {
+        "onshore_wind": 33,
+        "solar_pv": 44,
+        "offshore_wind": 78,
+        "hydropower": 62,
+        "geothermal": 89,
+        "concentrating_solar_power": 115
+      },
+      "context": "IRENA states that more than 90% of utility-scale renewable projects commissioned in 2025 delivered power below the cost of the cheapest new fossil-fuel plant built in their market.",
+      "pin_policy": "Pin the report PDF and annex/database release, source date, commissioning cohort, 2025 USD basis and exact technology/boundary definition. Keep plant-gate values separate from delivered-service, storage, transmission and resilience costs.",
+      "references": [
+        "https://www.irena.org/Publications/2026/Jul/Renewable-Power-Generation-Costs-in-2025",
+        "https://www.irena.org/-/media/Files/IRENA/Agency/Publication/2026/Jul/IRENA_TEC_RPGC_in_2025_2026.pdf"
+      ]
+    }
+  ]
+}
