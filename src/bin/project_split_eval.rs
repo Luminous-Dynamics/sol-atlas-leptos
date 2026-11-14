@@ -20,6 +20,27 @@ const CALIBRATION_PROJECTS_PER_FOLD: usize = 3;
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
+struct ProjectSplitSensitivityRow {
+    calibration_projects_per_fold: usize,
+    fit_projects_per_fold: usize,
+    blind_projects_per_fold: usize,
+    fold_count: usize,
+    every_project_blind_once: bool,
+    roles_disjoint_in_every_fold: bool,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+struct ProjectSplitSensitivityReceipt {
+    benchmark_id: String,
+    input_sha256: String,
+    calibration_sensitivity: Vec<ProjectSplitSensitivityRow>,
+    status: String,
+    claim_boundary: String,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 struct ProjectSplitReceipt {
     benchmark_id: String,
     evaluator_version: String,
@@ -52,6 +73,62 @@ fn build_receipt(input: &[u8]) -> Result<ProjectSplitReceipt, String> {
     })
 }
 
+fn build_sensitivity_receipt(input: &[u8]) -> Result<ProjectSplitSensitivityReceipt, String> {
+    let index: ProjectDatasetIndex =
+        serde_json::from_slice(input).map_err(|error| format!("project index JSON: {error}"))?;
+    let project_count = index.projects.len();
+    if project_count < 4 {
+        return Err("sensitivity sweep requires at least four project clusters".to_string());
+    }
+
+    let mut rows = Vec::new();
+    for calibration_count in [1usize, 2, 3] {
+        if calibration_count >= project_count.saturating_sub(1) {
+            continue;
+        }
+        let manifest = build_leave_one_project_out(&index, calibration_count)
+            .map_err(|errors| format!("project split invalid: {errors:?}"))?;
+        validate_project_split_manifest(&index, &manifest)
+            .map_err(|errors| format!("project split manifest invalid: {errors:?}"))?;
+
+        let blind_ids: std::collections::BTreeSet<&str> = manifest
+            .folds
+            .iter()
+            .map(|fold| fold.blind_project_id.as_str())
+            .collect();
+        let roles_disjoint = manifest.folds.iter().all(|fold| {
+            let fit: std::collections::BTreeSet<&str> =
+                fold.fit_project_ids.iter().map(String::as_str).collect();
+            let calibration: std::collections::BTreeSet<&str> = fold
+                .calibration_project_ids
+                .iter()
+                .map(String::as_str)
+                .collect();
+            !fit.contains(fold.blind_project_id.as_str())
+                && !calibration.contains(fold.blind_project_id.as_str())
+                && fit.is_disjoint(&calibration)
+                && fit.len() + calibration.len() + 1 == project_count
+        });
+
+        rows.push(ProjectSplitSensitivityRow {
+            calibration_projects_per_fold: calibration_count,
+            fit_projects_per_fold: project_count - calibration_count - 1,
+            blind_projects_per_fold: 1,
+            fold_count: manifest.folds.len(),
+            every_project_blind_once: blind_ids.len() == project_count,
+            roles_disjoint_in_every_fold: roles_disjoint,
+        });
+    }
+
+    Ok(ProjectSplitSensitivityReceipt {
+        benchmark_id: "EARTH-OBSERVABILITY-PROJECT-SPLIT-SENSITIVITY-001".to_string(),
+        input_sha256: sha256_hex(input),
+        calibration_sensitivity: rows,
+        status: "synthetic_split_allocation_sensitivity_not_model_performance".to_string(),
+        claim_boundary: "This sweep compares deterministic project-role allocation only. It does not estimate calibration quality, statistical power, field generalization or model performance.".to_string(),
+    })
+}
+
 fn check_pinned() -> Result<(), String> {
     let receipt = build_receipt(INDEX)?;
     let expected: ProjectSplitManifest =
@@ -67,22 +144,43 @@ fn check_pinned() -> Result<(), String> {
 
 fn main() {
     let mut args = env::args().skip(1);
-    let input_path = match args.next() {
-        Some(value) if value != "--check-pinned" => value,
-        Some(_) => {
-            match check_pinned() {
-                Ok(()) => {
-                    println!("PINNED_PROJECT_SPLIT_PASS");
-                    return;
-                }
-                Err(error) => {
-                    eprintln!("{error}");
-                    std::process::exit(1);
-                }
+    let first = args.next();
+    if first.as_deref() == Some("--check-pinned") {
+        if args.next().is_some() {
+            eprintln!("--check-pinned accepts no extra arguments");
+            std::process::exit(2);
+        }
+        match check_pinned() {
+            Ok(()) => {
+                println!("PINNED_PROJECT_SPLIT_PASS");
+                return;
+            }
+            Err(error) => {
+                eprintln!("{error}");
+                std::process::exit(1);
             }
         }
+    }
+    if first.as_deref() == Some("--sensitivity-sweep") {
+        if args.next().is_some() {
+            eprintln!("--sensitivity-sweep uses the committed synthetic index and accepts no extra arguments");
+            std::process::exit(2);
+        }
+        match build_sensitivity_receipt(INDEX) {
+            Ok(receipt) => {
+                println!("{}", serde_json::to_string_pretty(&receipt).expect("sweep serialization"));
+                return;
+            }
+            Err(error) => {
+                eprintln!("{error}");
+                std::process::exit(1);
+            }
+        }
+    }
+    let input_path = match first {
+        Some(value) => value,
         None => {
-            eprintln!("usage: project_split_eval <project-index.json> | --check-pinned");
+            eprintln!("usage: project_split_eval <project-index.json> | --check-pinned | --sensitivity-sweep");
             std::process::exit(2);
         }
     };
@@ -136,6 +234,27 @@ mod tests {
         changed.push(b' ');
         let changed_receipt = build_receipt(&changed).expect("trailing whitespace parses");
         assert_ne!(receipt.input_sha256, changed_receipt.input_sha256);
+    }
+
+    #[test]
+    fn calibration_cluster_sensitivity_sweep_reports_one_two_three() {
+        let sweep = build_sensitivity_receipt(INDEX).unwrap();
+        let values: Vec<usize> = sweep
+            .calibration_sensitivity
+            .iter()
+            .map(|row| row.calibration_projects_per_fold)
+            .collect();
+        assert_eq!(values, vec![1, 2, 3]);
+        assert_eq!(
+            sweep.calibration_sensitivity.iter().map(|row| row.fit_projects_per_fold).collect::<Vec<_>>(),
+            vec![11, 10, 9]
+        );
+        assert!(
+            sweep
+                .calibration_sensitivity
+                .iter()
+                .all(|row| row.every_project_blind_once && row.roles_disjoint_in_every_fold)
+        );
     }
 
     #[test]
