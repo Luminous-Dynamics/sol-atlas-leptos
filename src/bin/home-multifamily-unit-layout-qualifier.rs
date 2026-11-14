@@ -705,8 +705,8 @@ mod tests {
 
     #[test]
     fn synthetic_four_unit_room_layout_qualifies() {
-        let (layout, building, programme) = load_fixtures();
-        let report = validate(&layout, &building, &programme).expect("synthetic room layout");
+        let (layout, building, programme, corpus) = load_fixtures();
+        let report = validate(&layout, &building, &programme, &corpus).expect("synthetic room layout");
         assert_eq!(report["unit_count"], 4);
         assert_eq!(report["room_count"], 28);
         assert_eq!(report["activity_assignment_count"], 24);
@@ -744,100 +744,100 @@ mod tests {
     fn room_overlap_is_rejected() {
         let (mut layout, building, programme, corpus) = load_fixtures();
         layout["unit_layouts"][0]["rooms"][1]["footprint_local_mm"]["x_mm"] = json!(2900);
-        assert!(validate(&layout, &building, &programme).is_err());
+        assert!(validate(&layout, &building, &programme, &corpus).is_err());
     }
 
     #[test]
     fn room_outside_unit_envelope_is_rejected() {
-        let (mut layout, building, programme) = load_fixtures();
+        let (mut layout, building, programme, corpus) = load_fixtures();
         layout["unit_layouts"][0]["rooms"][0]["footprint_local_mm"]["x_mm"] = json!(5900);
-        assert!(validate(&layout, &building, &programme).is_err());
+        assert!(validate(&layout, &building, &programme, &corpus).is_err());
     }
 
     #[test]
     fn unallocated_room_region_is_rejected() {
-        let (mut layout, building, programme) = load_fixtures();
+        let (mut layout, building, programme, corpus) = load_fixtures();
         layout["unit_layouts"][0]["rooms"][6]["footprint_local_mm"]["width_mm"] = json!(2000);
-        assert!(validate(&layout, &building, &programme).is_err());
+        assert!(validate(&layout, &building, &programme, &corpus).is_err());
     }
 
     #[test]
     fn room_activity_binding_mismatch_is_rejected() {
-        let (mut layout, building, programme) = load_fixtures();
+        let (mut layout, building, programme, corpus) = load_fixtures();
         layout["unit_layouts"][0]["rooms"][0]["activity_ids"][0] = json!("UNKNOWN-ACTIVITY");
-        assert!(validate(&layout, &building, &programme).is_err());
+        assert!(validate(&layout, &building, &programme, &corpus).is_err());
     }
 
     #[test]
     fn duplicate_activity_assignment_is_rejected() {
-        let (mut layout, building, programme) = load_fixtures();
+        let (mut layout, building, programme, corpus) = load_fixtures();
         layout["unit_layouts"][0]["activity_assignments"][1]["activity_id"] =
             layout["unit_layouts"][0]["activity_assignments"][0]["activity_id"].clone();
-        assert!(validate(&layout, &building, &programme).is_err());
+        assert!(validate(&layout, &building, &programme, &corpus).is_err());
     }
 
     #[test]
     fn shared_space_target_must_exist_on_same_floor() {
-        let (mut layout, building, programme) = load_fixtures();
+        let (mut layout, building, programme, corpus) = load_fixtures();
         layout["unit_layouts"][2]["activity_assignments"][4]["target_id"] = json!("NOT-A-SHARED-SPACE");
-        assert!(validate(&layout, &building, &programme).is_err());
+        assert!(validate(&layout, &building, &programme, &corpus).is_err());
     }
 
     #[test]
     fn portal_off_shared_boundary_is_rejected() {
-        let (mut layout, building, programme) = load_fixtures();
+        let (mut layout, building, programme, corpus) = load_fixtures();
         layout["unit_layouts"][0]["portals"][0]["coordinate_mm"] = json!(2999);
-        assert!(validate(&layout, &building, &programme).is_err());
+        assert!(validate(&layout, &building, &programme, &corpus).is_err());
     }
 
     #[test]
     fn disconnected_room_graph_is_rejected() {
-        let (mut layout, building, programme) = load_fixtures();
+        let (mut layout, building, programme, corpus) = load_fixtures();
         layout["unit_layouts"][0]["portals"].pop();
-        assert!(validate(&layout, &building, &programme).is_err());
+        assert!(validate(&layout, &building, &programme, &corpus).is_err());
     }
 
     #[test]
     fn door_clear_width_promotion_is_rejected() {
-        let (mut layout, building, programme) = load_fixtures();
+        let (mut layout, building, programme, corpus) = load_fixtures();
         layout["unit_layouts"][0]["portals"][0]["clear_width_mm"] = json!(900);
-        assert!(validate(&layout, &building, &programme).is_err());
+        assert!(validate(&layout, &building, &programme, &corpus).is_err());
     }
 
     #[test]
     fn door_swing_promotion_is_rejected() {
-        let (mut layout, building, programme) = load_fixtures();
+        let (mut layout, building, programme, corpus) = load_fixtures();
         layout["unit_layouts"][0]["portals"][0]["door_swing_state"] = json!("modelled");
-        assert!(validate(&layout, &building, &programme).is_err());
+        assert!(validate(&layout, &building, &programme, &corpus).is_err());
     }
 
     #[test]
     fn stale_unit_transform_is_rejected() {
-        let (mut layout, building, programme) = load_fixtures();
+        let (mut layout, building, programme, corpus) = load_fixtures();
         layout["unit_layouts"][0]["unit_transform"]["translation_x_mm"] = json!(1);
-        assert!(validate(&layout, &building, &programme).is_err());
+        assert!(validate(&layout, &building, &programme, &corpus).is_err());
     }
 
     #[test]
     fn privacy_zone_downgrade_is_rejected() {
-        let (mut layout, building, programme) = load_fixtures();
+        let (mut layout, building, programme, corpus) = load_fixtures();
         layout["unit_layouts"][0]["rooms"][0]["privacy_zone"] = json!("public");
-        assert!(validate(&layout, &building, &programme).is_err());
+        assert!(validate(&layout, &building, &programme, &corpus).is_err());
     }
 
     #[test]
     fn relationship_activity_binding_drift_is_rejected() {
-        let (mut layout, building, programme) = load_fixtures();
+        let (mut layout, building, programme, corpus) = load_fixtures();
         layout["unit_layouts"][0]["relationship_mappings"][0]["from_activity_id"] =
             json!("UNKNOWN-ACTIVITY");
-        assert!(validate(&layout, &building, &programme).is_err());
+        assert!(validate(&layout, &building, &programme, &corpus).is_err());
     }
 
     #[test]
     fn separation_relationship_cannot_map_to_one_room() {
-        let (mut layout, building, programme) = load_fixtures();
+        let (mut layout, building, programme, corpus) = load_fixtures();
         layout["unit_layouts"][0]["relationship_mappings"][0]["to_target_id"] =
             layout["unit_layouts"][0]["relationship_mappings"][0]["from_target_id"].clone();
-        assert!(validate(&layout, &building, &programme).is_err());
+        assert!(validate(&layout, &building, &programme, &corpus).is_err());
     }
 }
