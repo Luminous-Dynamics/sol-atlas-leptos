@@ -116,7 +116,9 @@ The separate corpus covers:
 
 A valid synthetic positive control proves only that the authored topology is internally connected and typed. It does not show that a litre of water, watt-hour or joule of heat has ever been delivered.
 
-The Rust qualifier currently checks the authored stress-corpus identity, case split, event identity/order, event-to-node references and claim ceiling. It does not yet mutate and execute all 15 adversarial stress cases. That is a distinct next test-harness increment; do not label the manifest executed until the runner actually replays each case against the independent oracle.
+The Rust qualifier checks the authored stress-corpus identity, case split, event identity/order, event-to-node references and claim ceiling. It now also produces a deterministic **topology impact preview** for each of the 16 cases / 20 events. For each event it accumulates declared unavailable nodes, propagates explicitly declared power/control dependencies, and reports which unit-service paths remain topologically connected or become disconnected. It reports only the affected apartment/unit/service identities.
+
+A `recovery` event does not restore availability. Only a separate, exact, measured and commissioned restoration record could do that. Connectivity is labelled `CONNECTED_ONLY_NOT_SERVICE_PASS`; it never becomes a utility service PASS. The preview does not use pressure, flow, quality, quantities, duration-based recovery, probabilities or demand. It is a graph-impact replay, not a hydraulic simulation or execution of real utility events. The corpus remains `authored_manifest_not_executed`; no sealed or independent validation is claimed.
 
 ## 7. Hard qualification gates
 
@@ -220,3 +222,19 @@ A permissioned pilot must have:
 ## 12. Claim ceiling
 
 The current schemas, fixture and authored stress corpus establish no capacity, pressure, flow, potability, quality, delivery, service continuity, outage probability, fair allocation, energy efficiency, cost savings, compliance or resident outcome. The Rust qualifier is a topology/evidence-integrity check only. No hydraulic or building-services calculation, live control, isolation, load shedding, installation or operational change is authorized.
+
+
+## 13. Executable topology-impact preview
+
+The service qualifier now emits one impact report per authored stress case and a stepwise report per event. It computes reachability on the exact declared resource-flow graph after marking each event's listed assets unavailable. Power and communications dependencies propagate only across explicitly declared typed edges. The report lists affected apartment service boundaries and cumulative unavailable asset identities.
+
+This makes several failure modes directly testable:
+- a pressure-zone/riser isolation can be shown to affect U-001/U-002 without incorrectly affecting U-003/U-004;
+- a shared electrical interruption can propagate to the pump and hot-water plant when the dependency edges are declared;
+- a water-quality evidence withdrawal cannot be turned into continued potable quality credit merely because the graph remains connected;
+- a scarcity/allocation change cannot become authorized without authority, rules and resident notice;
+- a recovery label cannot reinstate service without measured recommissioning evidence;
+- a building-average topology result cannot hide which apartment boundaries are disconnected.
+
+The Rust source currently contains 24 authored unit tests across positive, negative, boundary identity, resource class, path connectivity, dependency and recovery claim controls. This is authored code, not a hosted Rust test pass: the exact-head native/rustfmt/schema workflows must still complete. The topology-impact preview itself does not validate the stress corpus against hydraulic or physical measurements.
+
