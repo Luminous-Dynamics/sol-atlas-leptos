@@ -447,9 +447,11 @@ mod tests {
     #[test]
     fn duplicate_changed_dependency_is_rejected() {
         let (mut manifest, schema) = fixture();
-        manifest["cases"][3]["changes"].as_array_mut().unwrap().push(
-            manifest["cases"][3]["changes"][0].clone()
-        );
+        let duplicate = manifest["cases"][3]["changes"][0].clone();
+        manifest["cases"][3]["changes"]
+            .as_array_mut()
+            .unwrap()
+            .push(duplicate);
         assert!(validate(&manifest, &schema).is_err());
     }
 
@@ -480,7 +482,8 @@ mod tests {
     #[test]
     fn duplicate_case_identity_is_rejected() {
         let (mut manifest, schema) = fixture();
-        manifest["cases"][1]["case_id"] = manifest["cases"][0]["case_id"].clone();
+        let duplicate_id = manifest["cases"][0]["case_id"].clone();
+        manifest["cases"][1]["case_id"] = duplicate_id;
         assert!(validate(&manifest, &schema).is_err());
     }
 
