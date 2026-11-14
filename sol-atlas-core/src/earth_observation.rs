@@ -1150,14 +1150,15 @@ mod tests {
                 Some(date.to_string()),
                 None,
             )
-            .unwrap()
-        .with_measurement_profile_sha256(Some(digest(b'm')))
-        .unwrap(),
+            .unwrap(),
             ObservationModality::Optical,
             quality,
         )
         .unwrap()
+        .with_measurement_profile_sha256(Some(digest(b'm')))
+        .unwrap()
     }
+
 
     fn no_change_claim() -> ChangeClaim {
         ChangeClaim::new(
