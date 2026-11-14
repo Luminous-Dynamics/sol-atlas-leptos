@@ -1,0 +1,521 @@
+{
+  "schema_version": "0.1.0",
+  "study_id": "HOME-SPATIAL-INTENT-GRAPH-001",
+  "maturity": "SYNTHETIC_SYMBOLIC_GRAPH_ONLY",
+  "execution_status": "NOT_GEOMETRICALLY_VERIFIED",
+  "brief_id": "SYNTH-HV-FAMILY-001",
+  "activity_nodes": [
+    {
+      "activity_id": "ACT_SLEEP_01",
+      "dedicated_space_required": true,
+      "frequency": "DAILY",
+      "privacy_requirement": "PRIVATE",
+      "description": "Primary adult sleeping and personal retreat"
+    },
+    {
+      "activity_id": "ACT_SLEEP_02",
+      "dedicated_space_required": true,
+      "frequency": "DAILY",
+      "privacy_requirement": "PRIVATE",
+      "description": "Child sleeping and quiet study"
+    },
+    {
+      "activity_id": "ACT_COOK_01",
+      "dedicated_space_required": true,
+      "frequency": "DAILY",
+      "privacy_requirement": "SEMI_PRIVATE",
+      "description": "Cooking and food preparation"
+    },
+    {
+      "activity_id": "ACT_WORK_01",
+      "dedicated_space_required": true,
+      "frequency": "DAILY",
+      "privacy_requirement": "PRIVATE",
+      "description": "Quiet remote work and focused making"
+    },
+    {
+      "activity_id": "ACT_GUEST_01",
+      "dedicated_space_required": false,
+      "frequency": "OCCASIONAL",
+      "privacy_requirement": "SEMI_PRIVATE",
+      "description": "Hosting a small number of guests"
+    },
+    {
+      "activity_id": "ACT_OUTDOOR_01",
+      "dedicated_space_required": false,
+      "frequency": "DAILY",
+      "privacy_requirement": "SEMI_PRIVATE",
+      "description": "Eating, reading and spending time outdoors in shade"
+    }
+  ],
+  "candidate_graphs": [
+    {
+      "candidate_id": "GRAPH-HV-A",
+      "archetype_id": "COURTYARD_SOLAR",
+      "topology_state": "SYMBOLIC_TOPOLOGY_NOT_GEOMETRY",
+      "internal_floor_area_m2": 82,
+      "outdoor_area_m2": 14,
+      "space_nodes": [
+        {
+          "space_id": "A-BED-01",
+          "space_type": "INDOOR",
+          "functions": [
+            "PRIMARY_SLEEP"
+          ],
+          "area_m2": 12,
+          "privacy_zone": "PRIVATE",
+          "capacity": 2
+        },
+        {
+          "space_id": "A-BED-02",
+          "space_type": "INDOOR",
+          "functions": [
+            "SECONDARY_SLEEP",
+            "QUIET_STUDY"
+          ],
+          "area_m2": 11,
+          "privacy_zone": "PRIVATE",
+          "capacity": 1
+        },
+        {
+          "space_id": "A-LIVING-01",
+          "space_type": "INDOOR",
+          "functions": [
+            "LIVING",
+            "DINING",
+            "GUEST_HOSTING"
+          ],
+          "area_m2": 22,
+          "privacy_zone": "SEMI_PRIVATE",
+          "capacity": 4
+        },
+        {
+          "space_id": "A-KITCHEN-01",
+          "space_type": "INDOOR",
+          "functions": [
+            "COOKING"
+          ],
+          "area_m2": 8,
+          "privacy_zone": "SERVICE",
+          "capacity": 2
+        },
+        {
+          "space_id": "A-WORK-01",
+          "space_type": "INDOOR",
+          "functions": [
+            "QUIET_WORK",
+            "FOCUSED_MAKING"
+          ],
+          "area_m2": 7,
+          "privacy_zone": "PRIVATE",
+          "capacity": 1
+        },
+        {
+          "space_id": "A-BATH-01",
+          "space_type": "INDOOR",
+          "functions": [
+            "BATHROOM"
+          ],
+          "area_m2": 5,
+          "privacy_zone": "SERVICE",
+          "capacity": 2
+        },
+        {
+          "space_id": "A-UTILITY-01",
+          "space_type": "INDOOR",
+          "functions": [
+            "LAUNDRY",
+            "UTILITY"
+          ],
+          "area_m2": 4,
+          "privacy_zone": "SERVICE",
+          "capacity": 1
+        },
+        {
+          "space_id": "A-STORAGE-01",
+          "space_type": "INDOOR",
+          "functions": [
+            "STORAGE"
+          ],
+          "area_m2": 4,
+          "privacy_zone": "SERVICE",
+          "capacity": 1
+        },
+        {
+          "space_id": "A-CIRC-01",
+          "space_type": "INDOOR",
+          "functions": [
+            "CIRCULATION"
+          ],
+          "area_m2": 9,
+          "privacy_zone": "SERVICE",
+          "capacity": 3
+        },
+        {
+          "space_id": "A-COURT-01",
+          "space_type": "OUTDOOR",
+          "functions": [
+            "SHADED_OUTDOOR",
+            "EATING",
+            "READING"
+          ],
+          "area_m2": 14,
+          "privacy_zone": "SEMI_PRIVATE",
+          "capacity": 4
+        }
+      ],
+      "activity_assignments": [
+        {
+          "activity_id": "ACT_SLEEP_01",
+          "space_id": "A-BED-01"
+        },
+        {
+          "activity_id": "ACT_SLEEP_02",
+          "space_id": "A-BED-02"
+        },
+        {
+          "activity_id": "ACT_COOK_01",
+          "space_id": "A-KITCHEN-01"
+        },
+        {
+          "activity_id": "ACT_WORK_01",
+          "space_id": "A-WORK-01"
+        },
+        {
+          "activity_id": "ACT_GUEST_01",
+          "space_id": "A-LIVING-01"
+        },
+        {
+          "activity_id": "ACT_OUTDOOR_01",
+          "space_id": "A-COURT-01"
+        }
+      ],
+      "relationships": [
+        {
+          "from_activity_id": "ACT_WORK_01",
+          "to_activity_id": "ACT_COOK_01",
+          "from_space_id": "A-WORK-01",
+          "to_space_id": "A-KITCHEN-01",
+          "relationship": "ACOUSTICALLY_SEPARATE",
+          "verification_state": "UNKNOWN",
+          "evidence_ref": null
+        },
+        {
+          "from_activity_id": "ACT_SLEEP_01",
+          "to_activity_id": "ACT_SLEEP_02",
+          "from_space_id": "A-BED-01",
+          "to_space_id": "A-BED-02",
+          "relationship": "VISUALLY_PRIVATE",
+          "verification_state": "UNKNOWN",
+          "evidence_ref": null
+        },
+        {
+          "from_activity_id": "ACT_OUTDOOR_01",
+          "to_activity_id": "ACT_COOK_01",
+          "from_space_id": "A-COURT-01",
+          "to_space_id": "A-KITCHEN-01",
+          "relationship": "DIRECT_ACCESS",
+          "verification_state": "UNKNOWN",
+          "evidence_ref": null
+        },
+        {
+          "from_activity_id": "ACT_GUEST_01",
+          "to_activity_id": "ACT_SLEEP_01",
+          "from_space_id": "A-LIVING-01",
+          "to_space_id": "A-BED-01",
+          "relationship": "SEPARATE",
+          "verification_state": "UNKNOWN",
+          "evidence_ref": null
+        }
+      ],
+      "access_routes": [
+        {
+          "route_id": "A-ENTRY-BATH",
+          "from_space_id": "A-CIRC-01",
+          "to_space_id": "A-BATH-01",
+          "step_free_required": true,
+          "verification_state": "UNKNOWN",
+          "evidence_ref": null
+        },
+        {
+          "route_id": "A-ENTRY-BED",
+          "from_space_id": "A-CIRC-01",
+          "to_space_id": "A-BED-01",
+          "step_free_required": true,
+          "verification_state": "UNKNOWN",
+          "evidence_ref": null
+        }
+      ],
+      "hard_constraint_bindings": [
+        {
+          "constraint_id": "C_SLEEP_02",
+          "represented": true,
+          "verification_state": "UNKNOWN",
+          "evidence_ref": null
+        },
+        {
+          "constraint_id": "C_WORK_01",
+          "represented": true,
+          "verification_state": "UNKNOWN",
+          "evidence_ref": null
+        },
+        {
+          "constraint_id": "C_ACCESS_01",
+          "represented": true,
+          "verification_state": "UNKNOWN",
+          "evidence_ref": null
+        },
+        {
+          "constraint_id": "C_PHASE_01",
+          "represented": true,
+          "verification_state": "UNKNOWN",
+          "evidence_ref": null
+        },
+        {
+          "constraint_id": "C_WATER_01",
+          "represented": true,
+          "verification_state": "UNKNOWN",
+          "evidence_ref": null
+        }
+      ],
+      "verification_state": "SYMBOLIC_STRUCTURE_ONLY"
+    },
+    {
+      "candidate_id": "GRAPH-HV-B",
+      "archetype_id": "ROW_SERVICE_YARD",
+      "topology_state": "SYMBOLIC_TOPOLOGY_NOT_GEOMETRY",
+      "internal_floor_area_m2": 78,
+      "outdoor_area_m2": 8,
+      "space_nodes": [
+        {
+          "space_id": "B-BED-01",
+          "space_type": "INDOOR",
+          "functions": [
+            "PRIMARY_SLEEP"
+          ],
+          "area_m2": 12,
+          "privacy_zone": "PRIVATE",
+          "capacity": 2
+        },
+        {
+          "space_id": "B-BED-02",
+          "space_type": "INDOOR",
+          "functions": [
+            "SECONDARY_SLEEP",
+            "QUIET_STUDY"
+          ],
+          "area_m2": 10,
+          "privacy_zone": "PRIVATE",
+          "capacity": 1
+        },
+        {
+          "space_id": "B-LIVING-01",
+          "space_type": "INDOOR",
+          "functions": [
+            "LIVING",
+            "DINING",
+            "GUEST_HOSTING"
+          ],
+          "area_m2": 23,
+          "privacy_zone": "SEMI_PRIVATE",
+          "capacity": 4
+        },
+        {
+          "space_id": "B-KITCHEN-01",
+          "space_type": "INDOOR",
+          "functions": [
+            "COOKING"
+          ],
+          "area_m2": 8,
+          "privacy_zone": "SERVICE",
+          "capacity": 2
+        },
+        {
+          "space_id": "B-WORK-01",
+          "space_type": "INDOOR",
+          "functions": [
+            "QUIET_WORK",
+            "FOCUSED_MAKING"
+          ],
+          "area_m2": 7,
+          "privacy_zone": "PRIVATE",
+          "capacity": 1
+        },
+        {
+          "space_id": "B-BATH-01",
+          "space_type": "INDOOR",
+          "functions": [
+            "BATHROOM"
+          ],
+          "area_m2": 5,
+          "privacy_zone": "SERVICE",
+          "capacity": 2
+        },
+        {
+          "space_id": "B-UTILITY-01",
+          "space_type": "INDOOR",
+          "functions": [
+            "LAUNDRY",
+            "UTILITY"
+          ],
+          "area_m2": 4,
+          "privacy_zone": "SERVICE",
+          "capacity": 1
+        },
+        {
+          "space_id": "B-STORAGE-01",
+          "space_type": "INDOOR",
+          "functions": [
+            "STORAGE"
+          ],
+          "area_m2": 3,
+          "privacy_zone": "SERVICE",
+          "capacity": 1
+        },
+        {
+          "space_id": "B-CIRC-01",
+          "space_type": "INDOOR",
+          "functions": [
+            "CIRCULATION"
+          ],
+          "area_m2": 6,
+          "privacy_zone": "SERVICE",
+          "capacity": 3
+        },
+        {
+          "space_id": "B-YARD-01",
+          "space_type": "OUTDOOR",
+          "functions": [
+            "SERVICE_YARD",
+            "OUTDOOR_EATING",
+            "DRYING"
+          ],
+          "area_m2": 8,
+          "privacy_zone": "SEMI_PRIVATE",
+          "capacity": 3
+        }
+      ],
+      "activity_assignments": [
+        {
+          "activity_id": "ACT_SLEEP_01",
+          "space_id": "B-BED-01"
+        },
+        {
+          "activity_id": "ACT_SLEEP_02",
+          "space_id": "B-BED-02"
+        },
+        {
+          "activity_id": "ACT_COOK_01",
+          "space_id": "B-KITCHEN-01"
+        },
+        {
+          "activity_id": "ACT_WORK_01",
+          "space_id": "B-WORK-01"
+        },
+        {
+          "activity_id": "ACT_GUEST_01",
+          "space_id": "B-LIVING-01"
+        },
+        {
+          "activity_id": "ACT_OUTDOOR_01",
+          "space_id": "B-YARD-01"
+        }
+      ],
+      "relationships": [
+        {
+          "from_activity_id": "ACT_WORK_01",
+          "to_activity_id": "ACT_COOK_01",
+          "from_space_id": "B-WORK-01",
+          "to_space_id": "B-KITCHEN-01",
+          "relationship": "ACOUSTICALLY_SEPARATE",
+          "verification_state": "UNKNOWN",
+          "evidence_ref": null
+        },
+        {
+          "from_activity_id": "ACT_SLEEP_01",
+          "to_activity_id": "ACT_SLEEP_02",
+          "from_space_id": "B-BED-01",
+          "to_space_id": "B-BED-02",
+          "relationship": "VISUALLY_PRIVATE",
+          "verification_state": "UNKNOWN",
+          "evidence_ref": null
+        },
+        {
+          "from_activity_id": "ACT_OUTDOOR_01",
+          "to_activity_id": "ACT_COOK_01",
+          "from_space_id": "B-YARD-01",
+          "to_space_id": "B-KITCHEN-01",
+          "relationship": "DIRECT_ACCESS",
+          "verification_state": "UNKNOWN",
+          "evidence_ref": null
+        },
+        {
+          "from_activity_id": "ACT_GUEST_01",
+          "to_activity_id": "ACT_SLEEP_01",
+          "from_space_id": "B-LIVING-01",
+          "to_space_id": "B-BED-01",
+          "relationship": "SEPARATE",
+          "verification_state": "UNKNOWN",
+          "evidence_ref": null
+        }
+      ],
+      "access_routes": [
+        {
+          "route_id": "B-ENTRY-BATH",
+          "from_space_id": "B-CIRC-01",
+          "to_space_id": "B-BATH-01",
+          "step_free_required": true,
+          "verification_state": "UNKNOWN",
+          "evidence_ref": null
+        },
+        {
+          "route_id": "B-ENTRY-BED",
+          "from_space_id": "B-CIRC-01",
+          "to_space_id": "B-BED-01",
+          "step_free_required": true,
+          "verification_state": "UNKNOWN",
+          "evidence_ref": null
+        }
+      ],
+      "hard_constraint_bindings": [
+        {
+          "constraint_id": "C_SLEEP_02",
+          "represented": true,
+          "verification_state": "UNKNOWN",
+          "evidence_ref": null
+        },
+        {
+          "constraint_id": "C_WORK_01",
+          "represented": true,
+          "verification_state": "UNKNOWN",
+          "evidence_ref": null
+        },
+        {
+          "constraint_id": "C_ACCESS_01",
+          "represented": true,
+          "verification_state": "UNKNOWN",
+          "evidence_ref": null
+        },
+        {
+          "constraint_id": "C_PHASE_01",
+          "represented": true,
+          "verification_state": "UNKNOWN",
+          "evidence_ref": null
+        },
+        {
+          "constraint_id": "C_WATER_01",
+          "represented": true,
+          "verification_state": "UNKNOWN",
+          "evidence_ref": null
+        }
+      ],
+      "verification_state": "SYMBOLIC_STRUCTURE_ONLY"
+    }
+  ],
+  "comparison_policy": {
+    "ranking_state": "UNRANKED",
+    "scalar_score": null,
+    "resident_choice_required": true
+  },
+  "claim_ceiling": "Symbolic activity/space graph only. No physical adjacency, dimensions, access, acoustic, daylight, fire or code result is verified."
+}
