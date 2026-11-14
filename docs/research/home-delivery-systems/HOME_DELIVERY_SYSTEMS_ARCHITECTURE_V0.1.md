@@ -207,3 +207,17 @@ The synthetic fixture contains four unit programmes, 24 activities, six explicit
 This is a synthetic scenario fixture, not a survey of actual residents and not a demographic or housing-demand model. The Rust multi-family qualifier now binds the aggregate programme and each exact per-unit programme reference, checks all 24 activity identities, relationship endpoints and requirement/preference activity scopes, and rejects inferred requirements or fabricated dimensional/access/service values. It does not generate room layouts, assess suitability or prove resident acceptance.
 
 This is the intended bridge from [resident spatial programme #833](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/833) into [multi-family compiler #840](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/840): resident intent becomes a typed apartment-level input before geometry generation, not a room template inferred from a unit label.
+
+
+## 14. Apartment room geometry and everyday circulation
+
+The first room-level apartment candidate is in:
+- `multifamily-unit-layout.schema.json`;
+- `multifamily-unit-layout-synthetic-v0.1.json`;
+- `src/bin/home-multifamily-unit-layout-qualifier.rs`.
+
+It contains four unit-local layouts, 28 room rectangles, 24 activity assignments, seven resident relationship mappings and 32 everyday portals. Each 6,000 × 8,000 mm synthetic unit envelope is exactly partitioned by non-overlapping room rectangles. The apartment's exact building-floor transform and footprint identity are bound; activities map to a room or the explicitly shared terrace, and every room is reachable from its declared everyday root room.
+
+Portal clear widths remain `NOT_COMPUTED`; door swings are `NOT_MODELLED`. A connected everyday graph is not an accessible route, stair/lift qualification or emergency egress graph. Wall thickness, door leaves, windows, shafts, fire compartments and specialist room performance remain outside P0.
+
+The Rust unit-layout qualifier has 15 authored tests (one positive and 14 negative controls). The focused apartment workflow now runs rustfmt, native tests and fixture replay for all three qualifiers: building geometry/resident programme, shared services and unit-interior room geometry. No Rust or CI pass is claimed until exact-head hosted results complete.
