@@ -1,4 +1,4 @@
-# Highveld refuge network max-throughput reference oracle v0.2
+# Highveld refuge network max-throughput reference oracle v0.1
 
 **Study ID:** HIGHVELD-REFUGE-NETWORK-FLOW-001  
 **Parent:** HIGHVELD-THERMAL-SERVICE-REFUGE-001 / HIGHVELD-REFUGE-AVAILABILITY-001  
@@ -37,9 +37,9 @@ The current primary fixture's independently observed max-throughput reference is
 - accessible: 6 of 6;
 - general: 6 of 14.
 
-The reference oracle must reproduce those totals on the adapted case. The primary progressive max-min policy's separate cohort vector is not expected to match maximum-throughput cohort distribution; that difference is a benchmark result, not a defect.
+The reference oracle reproduces those totals on the adapted case. The primary progressive max-min policy's separate cohort vector is not expected to match maximum-throughput cohort distribution; that difference is a benchmark result, not a defect. The adapter carries per-cohort travel-time limits, site and route freshness receipts, accessibility evidence, shared capacity and safe-water commitments. It excludes the site's unknown thermal-service state from the eligible graph.
 
-This is a synthetic cross-binary parity test for one snapshot. It is not yet a broad corpus, physical route validation, or temporal replay. Time-series identity/order/freshness remains owned by Symtropy and the primary engine.
+Hosted native CI run #7548 passed the primary-fixture replay regression alongside the reference oracle tests. This is a synthetic cross-binary parity check for one snapshot. It is not yet a broad corpus, physical route validation, or temporal replay. Time-series identity/order/freshness remains owned by Symtropy and the primary engine.
 
 ## 4. Input and finite envelope
 
