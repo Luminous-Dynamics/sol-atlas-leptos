@@ -108,6 +108,7 @@ The active public programme is deliberately separated from the shipped globe:
 
 - [Issue #771 — Decision-grade Earth observability](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/771): parent research and implementation programme.
 - [PR #779 — Joint utility-network hypotheses](https://github.com/Luminous-Dynamics/sol-atlas-leptos/pull/779): draft work on competing network worlds, asset-association scoring, project-level split validation and sensor-to-decision reasoning.
+- [PR #793 — Constrained investigation tournament scorer](https://github.com/Luminous-Dynamics/sol-atlas-leptos/pull/793): draft evaluator for equal-budget policy submissions, hard authority constraints and realized decision regret; planner-reported information gain is kept separate from decision value.
 - [Issue #783 — UT-Gold-D retrospective field benchmark](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/783): dataset admission and leakage-resistant physical-data evaluation.
 - [Issue #785 — Forward-model validation](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/785): analytical, numerical-convergence, inter-code and physical validation ladder.
 - [PR #780 — AGS4 quoted-descriptor compatibility](https://github.com/Luminous-Dynamics/sol-atlas-leptos/pull/780) and [PR #781 — sensor test corrections](https://github.com/Luminous-Dynamics/sol-atlas-leptos/pull/781): separate draft compatibility/test fixes.
