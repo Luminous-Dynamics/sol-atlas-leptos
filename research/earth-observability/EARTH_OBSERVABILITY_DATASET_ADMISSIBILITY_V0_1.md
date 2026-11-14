@@ -31,6 +31,23 @@
 
 The University of Twente dataset catalogue identifies CC0 1.0 Universal for the repository dataset. Preserve the exact dataset version, landing-page metadata and file hashes in the eventual source manifest. A dataset-level catalogue licence does not waive the need to inspect third-party material, site confidentiality and any sensitive infrastructure disclosure constraints.
 
+### Additional acquisition limitations from the published article
+
+The publication explicitly reports two limitations that change the ingestion design:
+
+- Several SEG-Y files lack georeferencing. GNSS obstruction meant some GPR measurements relied on the measuring-wheel encoder alone.
+- On rough terrain, the wheel did not always maintain consistent ground contact, which compromised data throughput and overall data quality.
+
+These are not incidental missing-data notes. They are benchmark strata and qualification constraints:
+
+- Record whether each trace/file is GNSS RTK georeferenced, wheel-encoder-only, mixed, or spatially unresolved.
+- Preserve positioning-method identity and documented uncertainty; do not silently assign GNSS-grade accuracy to encoder-only routes.
+- Preserve rough-terrain and wheel-contact quality flags. Do not infer a precise route from intervals where encoder contact is unverified.
+- A file without admissible spatial support may still contribute to signal/event detection evaluation, but it cannot contribute to localization, asset geometry or topology scoring.
+- Report the full file/activity denominator and the counts excluded from each spatial metric.
+
+Source: ter Huurne, Olde Scholtenhuis & Dorée (2024), Data in Brief 54, 110329, https://doi.org/10.1016/j.dib.2024.110329; article full text: https://pmc.ncbi.nlm.nih.gov/articles/PMC10973596/.
+
 ### What it can and cannot establish
 
 This is a strong first external physical-data candidate because it contains field radargrams and trench-based reference material.
