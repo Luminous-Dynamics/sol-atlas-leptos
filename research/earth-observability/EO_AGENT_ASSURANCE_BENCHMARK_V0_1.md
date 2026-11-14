@@ -15,6 +15,7 @@ Recent 2026 work establishes useful baselines, but measures different parts of t
 | Work | Scope and published scale | Useful comparator | Limitation for this programme |
 |---|---|---|---|
 | [GISAgentBench](https://arxiv.org/abs/2608.01645) | 349 practitioner-sourced GIS tasks; executable references and exact output files; reported best strict completion 32.7% | Deterministic tolerance-aware spatial outputs | Not an EO rights, sensor qualification or authority benchmark |
+| [Earth-Agent / Earth-Bench](https://github.com/opendatalab/Earth-Agent) | 104 specialist tools across five kits; Earth-Bench advertises 13K+ samples, 14 task types and multi-step scientific workflows | Multimodal/spectral EO, tool planning and trajectory diagnostics | Does not replace rights, authority, common-cause independence or post-intervention assurance |
 | [GeoNatureAgent](https://arxiv.org/abs/2606.12821) | 93 structured-tool tasks over a self-hostable environmental API; reported leader 60.8% | Real-API interaction, tool recovery and close comparisons | Does not establish comprehensive sensor provenance or intervention outcomes |
 | [TerraBench](https://arxiv.org/abs/2606.13148) | 403 heterogeneous Earth-system tasks and 24,500 verified execution steps | EO + gridded data + GIS + simulation + document-grounded reasoning | Does not replace the Sol-Atlas rights, measurement-comparability or authority contracts |
 | [ESA-EO-Bench project](https://cin.philab.esa.int/databases/projects/agentic-ai-for-earth-observation-evaluation-and-benchmarking-of-llms) | ESA project reports 294 tasks, 10 authenticated MCP servers and 70 tools | Multimodal EO plus policy/text reasoning and multi-agent orchestration | ESA reports tool-orchestration gains do not consistently translate into higher end-to-end answer accuracy |
@@ -35,6 +36,7 @@ This is an assurance benchmark over existing infrastructure, not a new productio
 | Observation state, detection qualification and claims | Sol-Atlas #797/#810 | Test shared evidence-state and POD usage |
 | Cadence and interval-censored event time | Sol-Atlas #804/#823 | Test interval honesty and no false precision |
 | Measurement-system comparability | Sol-Atlas #829/#830 | Test exact-scope receipt binding and shift-only negative controls |
+| Common-cause evidence independence | Sol-Atlas #406/#407 and #423 | Test registry-backed dependency closure and independence credit; do not create a second independence graph |
 | Competing hypotheses and investigation planning | Symthaea #12075; existing Sol-Atlas EVSI work | Test alternative explanations and discriminating evidence requests |
 | Environmental/physical models | Symtropy | Treat model outputs as model evidence, not observation truth |
 | Custody, consent and authority | Mycelix | Test the handoff boundary; never authorize an action in this benchmark |
@@ -94,7 +96,7 @@ The machine-readable corpus contains exactly 16 synthetic tasks in `eo-agent-ass
 | EOAA-004 | Processing-generation shift | Block physical-change promotion without comparability |
 | EOAA-005 | True cross-system event with exact bridge | Permit reviewable candidate, not cause or authority |
 | EOAA-006 | Unknown sensor/profile | Keep identity unknown and abstain |
-| EOAA-007 | Conflicting sources | Preserve conflict and request discriminating evidence |
+| EOAA-007 | Conflicting sources | Preserve conflict, detect shared upstream calibration/processing dependencies and request genuinely independent evidence |
 | EOAA-008 | Irregular cadence | Report interval-censored event time |
 | EOAA-009 | Transient API failure | Bounded retry and idempotent replay |
 | EOAA-010 | Late-arriving scene | Reopen or supersede prior temporal claim |
@@ -223,6 +225,8 @@ This benchmark does not certify a satellite product, model, causal explanation, 
 4. ESA Φ-lab (2026), [Agentic AI for Earth Observation](https://cin.philab.esa.int/databases/projects/agentic-ai-for-earth-observation-evaluation-and-benchmarking-of-llms).
 5. [GeoAgentBench](https://doi.org/10.1080/10095020.2026.2736957), published online 2026-10-01.
 6. Sol-Atlas, [Planetary Change Evidence Benchmark v0.1](./PLANETARY_CHANGE_EVIDENCE_BENCHMARK_V0_1.md) and [interface audit](./SOL_ATLAS_EO_INTERFACE_AUDIT_V0_1.md).
+7. Feng et al. (ICLR 2026), [Earth-Agent / Earth-Bench](https://github.com/opendatalab/Earth-Agent).
+8. Sol-Atlas common-cause assurance: [#406 / PR #407](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/406) and [#423](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/423).
 
 ## 9. Executable scorer and agent-view projection
 
