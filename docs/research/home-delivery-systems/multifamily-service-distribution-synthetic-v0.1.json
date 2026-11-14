@@ -1582,7 +1582,7 @@
       "start_s": 3600,
       "duration_s": 7200,
       "affected_node_ids": [
-        "SRC-MUNICIPAL-POTABLE"
+        "SRC-MUNICIPAL-WATER-UNQUALIFIED"
       ],
       "state": "declared_synthetic",
       "probability": null
@@ -1635,7 +1635,7 @@
       "start_s": 18000,
       "duration_s": null,
       "affected_node_ids": [
-        "SRC-MUNICIPAL-POTABLE",
+        "SRC-MUNICIPAL-WATER-UNQUALIFIED",
         "STORAGE-POTABLE"
       ],
       "state": "declared_synthetic",
@@ -1752,7 +1752,7 @@
       "start_s": 129600,
       "duration_s": 3600,
       "affected_node_ids": [
-        "SRC-MUNICIPAL-POTABLE",
+        "SRC-MUNICIPAL-WATER-UNQUALIFIED",
         "PLANT-WATER-PUMP",
         "ZONE-F0-WATER",
         "ZONE-F1-WATER"
@@ -1767,7 +1767,7 @@
       "start_s": 133200,
       "duration_s": 3600,
       "affected_node_ids": [
-        "SRC-MUNICIPAL-POTABLE"
+        "SRC-MUNICIPAL-WATER-UNQUALIFIED"
       ],
       "state": "declared_synthetic",
       "probability": null
