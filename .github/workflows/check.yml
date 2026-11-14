@@ -76,6 +76,10 @@ jobs:
         run: cargo test --bin utility_reconstruction_eval
       - name: Verify pinned asset association baseline
         run: cargo run --bin utility_reconstruction_eval -- --check-pinned
+      - name: Test project-level investigation campaign
+        run: cargo test --bin investigation_campaign_eval
+      - name: Verify pinned project campaign baseline
+        run: cargo run --bin investigation_campaign_eval -- --check-pinned
       - name: Test constrained investigation tournament
         run: cargo test --bin investigation_tournament_eval
       - name: Verify pinned investigation tournament baseline
