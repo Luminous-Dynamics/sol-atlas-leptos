@@ -247,7 +247,8 @@ pub fn score_asset_association(
 
     for event in &evaluation.reference_events {
         match event.truth_tier {
-            AssetTruthTier::StructuredIndependentSurvey | AssetTruthTier::TrenchImageInterpreted => {
+            AssetTruthTier::StructuredIndependentSurvey
+            | AssetTruthTier::TrenchImageInterpreted => {
                 eligible.push(event);
             }
             AssetTruthTier::OwnerRecordOnly => excluded_owner += 1,
@@ -309,9 +310,7 @@ pub fn score_asset_association(
             .entry(truth_key.clone())
             .or_default()
             .push(event.event_id.as_str());
-        *contingency
-            .entry((predicted_key, truth_key))
-            .or_insert(0) += 1;
+        *contingency.entry((predicted_key, truth_key)).or_insert(0) += 1;
     }
 
     let mut b3_precision_sum = 0.0;
@@ -405,8 +404,7 @@ pub fn score_asset_association(
         evaluated_events: count_u64(eligible.len()).map_err(|error| vec![error])?,
         excluded_owner_record_only_events: count_u64(excluded_owner)
             .map_err(|error| vec![error])?,
-        excluded_conflicted_events: count_u64(excluded_conflicted)
-            .map_err(|error| vec![error])?,
+        excluded_conflicted_events: count_u64(excluded_conflicted).map_err(|error| vec![error])?,
         excluded_insufficient_truth_events: count_u64(excluded_insufficient)
             .map_err(|error| vec![error])?,
         truth_utility_asset_count: count_u64(truth_asset_ids.len()).map_err(|error| vec![error])?,
@@ -520,10 +518,9 @@ mod tests {
     #[test]
     fn merging_clutter_into_a_real_asset_is_counted_as_overmerge() {
         let mut evaluation = evaluation();
-        evaluation.predictions[2].disposition =
-            PredictedEventDisposition::CandidateAsset {
-                candidate_asset_id: "candidate:utility-a".to_string(),
-            };
+        evaluation.predictions[2].disposition = PredictedEventDisposition::CandidateAsset {
+            candidate_asset_id: "candidate:utility-a".to_string(),
+        };
         let metrics = score_asset_association(&evaluation).unwrap();
         assert_eq!(metrics.overmerge_pairs, 2);
         assert_eq!(metrics.false_association_clutter_events, 1);
@@ -533,10 +530,9 @@ mod tests {
     #[test]
     fn splitting_one_truth_asset_is_counted_as_oversplit() {
         let mut evaluation = evaluation();
-        evaluation.predictions[1].disposition =
-            PredictedEventDisposition::CandidateAsset {
-                candidate_asset_id: "candidate:utility-b".to_string(),
-            };
+        evaluation.predictions[1].disposition = PredictedEventDisposition::CandidateAsset {
+            candidate_asset_id: "candidate:utility-b".to_string(),
+        };
         let metrics = score_asset_association(&evaluation).unwrap();
         assert_eq!(metrics.overmerge_pairs, 0);
         assert_eq!(metrics.oversplit_pairs, 1);
@@ -579,19 +575,17 @@ mod tests {
     fn missing_predictions_are_not_silently_treated_as_abstentions() {
         let mut evaluation = evaluation();
         evaluation.predictions.pop();
-        assert!(validate_asset_association_evaluation(&evaluation)
-            .contains(&AssetAssociationError::MissingPrediction(
-                "event-clutter".to_string()
-            )));
+        assert!(validate_asset_association_evaluation(&evaluation).contains(
+            &AssetAssociationError::MissingPrediction("event-clutter".to_string())
+        ));
     }
 
     #[test]
     fn unreviewed_truth_cannot_be_promoted_to_a_negative_example() {
         let mut evaluation = evaluation();
         evaluation.reference_events[0].truth_tier = AssetTruthTier::Conflicted;
-        assert!(validate_asset_association_evaluation(&evaluation)
-            .contains(&AssetAssociationError::InvalidTruthAssetForTier(
-                "event-1".to_string()
-            )));
+        assert!(validate_asset_association_evaluation(&evaluation).contains(
+            &AssetAssociationError::InvalidTruthAssetForTier("event-1".to_string())
+        ));
     }
 }
