@@ -1770,7 +1770,47 @@ mod tests {
             None,
             None,
         ).unwrap();
-        assert!(EvidenceBundle::new(vec![unknown], vec![unresolved_claim]).is_err());
+        assert!(EvidenceBundle::new(vec![unknown.clone()], vec![unresolved_claim]).is_err());
+
+        // An exact bridge does not manufacture a missing sensor identity.
+        let known = observation(
+            "obs-known",
+            "2025-01-01",
+            ObservationQuality::QualifiedUsable,
+        );
+        let unknown = unknown
+            .with_measurement_profile_sha256(Some(digest(b'u')))
+            .unwrap();
+        let mut bridged_candidate = ChangeClaim::new(
+            "candidate-unknown-sensor",
+            "vegetation-loss",
+            "fixture-ontology-v1",
+            "support-a",
+            TimeWindow::new("2024-01-01", "2025-01-01").unwrap(),
+            ChangeDisposition::CandidateChange,
+            None,
+            vec!["obs-unknown-sensor".into(), "obs-known".into()],
+            vec!["obs-unknown-sensor".into(), "obs-known".into()],
+            vec![],
+            CoverageState::Unknown,
+            None,
+            None,
+            None,
+            None,
+            None,
+        ).unwrap();
+        bridged_candidate.cross_system_comparability_receipt = Some(
+            CrossSystemComparabilityReceiptRef::new(
+                digest(b'z'),
+                vec!["obs-unknown-sensor".into(), "obs-known".into()],
+                vec![unknown.system_signature(), known.system_signature()],
+                "support-a",
+                "vegetation-loss",
+                "fixture-ontology-v1",
+            ).unwrap()
+        );
+        assert!(EvidenceBundle::new(vec![unknown, known], vec![bridged_candidate])
+            .unwrap_err().contains("unknown source sensor identity"));
 
         let derived = ObservationRecord::new(
             "obs-derived-sensor",
