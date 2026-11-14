@@ -226,7 +226,7 @@ Implemented in this increment:
 - evidence-reference and topology-reference guards;
 - explicit residual probability;
 - deterministic analytic fixture with three mutually exclusive network alternatives;
-- unit tests for mass conservation, assignment completeness, source evidence, asset membership, topology references and calibration-receipt declarations.
+- eleven Rust unit tests for mass conservation, assignment completeness, source-evidence binding, asset membership, topology references, calibration-receipt declaration, joint-world log/Brier scoring, residual-category scoring, unknown-truth rejection and zero-probability rejection.
 
 Not implemented or qualified by this increment:
 
