@@ -19,6 +19,13 @@ on:
       - "docs/research/home-delivery-systems/multifamily-service-distribution-synthetic-v0.1.json"
       - "docs/research/home-delivery-systems/multifamily-service-stress-corpus-v0.1.json"
       - "docs/research/home-delivery-systems/multifamily-service-stress-corpus.schema.json"
+      - "src/bin/home-site-foundation-qualifier.rs"
+      - "src/bin/home-service-stack-qualifier.rs"
+      - "docs/research/home-delivery-systems/site-foundation-evidence.schema.json"
+      - "docs/research/home-delivery-systems/site-foundation-evidence-synthetic-v0.1.json"
+      - "docs/research/home-delivery-systems/home-service-interface.schema.json"
+      - "docs/research/home-delivery-systems/home-service-stack.schema.json"
+      - "docs/research/home-delivery-systems/home-service-interface-synthetic-v0.1.json"
       - ".github/workflows/home-multifamily-qualifier.yml"
   workflow_dispatch:
 
@@ -66,6 +73,14 @@ jobs:
         run: cargo test --locked --bin home-multifamily-unit-layout-qualifier
       - name: Replay apartment room geometry fixture
         run: cargo run --locked --bin home-multifamily-unit-layout-qualifier -- --self-test
+      - name: Test site foundation evidence qualifier
+        run: cargo test --locked --bin home-site-foundation-qualifier
+      - name: Replay site foundation evidence fixture
+        run: cargo run --locked --bin home-site-foundation-qualifier -- --self-test
+      - name: Test home service stack qualifier
+        run: cargo test --locked --bin home-service-stack-qualifier
+      - name: Replay household service stack fixture
+        run: cargo run --locked --bin home-service-stack-qualifier -- --self-test
 
   schema-validation:
     name: Draft 2020-12 schemas and synthetic fixtures
@@ -94,6 +109,8 @@ jobs:
               ("multifamily-resident-programme.schema.json", "multifamily-resident-programme-synthetic-v0.1.json"),
               ("multifamily-unit-layout.schema.json", "multifamily-unit-layout-synthetic-v0.1.json"),
               ("multifamily-unit-layout-corpus.schema.json", "multifamily-unit-layout-corpus-v0.1.json"),
+              ("site-foundation-evidence.schema.json", "site-foundation-evidence-synthetic-v0.1.json"),
+              ("home-service-stack.schema.json", "home-service-interface-synthetic-v0.1.json"),
           ]
 
           for schema_name, fixture_name in pairs:
@@ -109,4 +126,19 @@ jobs:
                   )
                   raise SystemExit(rendered)
               print(f"PASS Draft 2020-12: {fixture_name} against {schema_name}")
+
+          # Validate each appliance profile against its dedicated child schema.
+          interface_schema = json.loads((root / "home-service-interface.schema.json").read_text(encoding="utf-8"))
+          Draft202012Validator.check_schema(interface_schema)
+          stack_fixture = json.loads((root / "home-service-interface-synthetic-v0.1.json").read_text(encoding="utf-8"))
+          child_validator = Draft202012Validator(interface_schema)
+          for profile in stack_fixture["service_profiles"]:
+              errors = sorted(child_validator.iter_errors(profile), key=lambda e: list(e.absolute_path))
+              if errors:
+                  rendered = "\\n".join(
+                      f"home-service-interface.schema.json -> {profile.get('profile_id')} at {list(err.absolute_path)}: {err.message}"
+                      for err in errors
+                  )
+                  raise SystemExit(rendered)
+              print(f"PASS Draft 2020-12: {profile['profile_id']} against home-service-interface.schema.json")
           PY
