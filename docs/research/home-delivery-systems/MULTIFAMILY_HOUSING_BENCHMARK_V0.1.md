@@ -394,3 +394,21 @@ Until these exist, all demands, deliveries, capacities, reserve depletion, alloc
 - Report worst-served unit, unit/floor/zone deficit minutes, reserve depletion, stable recovery and allocation incidence separately; never let the building mean hide an apartment-level service-floor breach.
 
 The current qualifier contains 15 authored tests (one positive and 14 negative). It validates data/claim boundaries and manifest consistency; it does not execute the 16 stress scenarios or model physical service trajectories.
+
+
+## 18. Resident programme traceability across apartment units
+
+The apartment unit geometry now binds to [multifamily-resident-programme.schema.json](multifamily-resident-programme.schema.json) and [multifamily-resident-programme-synthetic-v0.1.json](multifamily-resident-programme-synthetic-v0.1.json), composing resident spatial programme #833.
+
+The P0 fixture covers four synthetic unit programmes, 20 activity nodes, six synthetic requirements, eight preferences and within-unit relationships. It keeps occupancy, concurrence, required/preferred dimensions, equipment envelopes, access needs, service demand and preference priority NOT_SUPPLIED. It contains no real resident, demographic or household data.
+
+The Rust apartment qualifier now checks aggregate and per-unit programme identity, exact unit mapping, activity/relationship identity, synthetic provenance, non-inference, and the absence of fabricated physical requirements. The current source has 19 authored tests (one positive fixture and 18 negative controls); test execution remains subject to exact-head hosted validation.
+
+Benchmark additions:
+- 100% of each unit's resident activities and hard requirements must remain traceable through programme -> unit -> spaces -> generated layout -> downstream evidence;
+- zero inferred demographic or household requirements;
+- zero preference-to-hard-requirement promotion without explicit resident change;
+- zero dimensions, access requirements, service demand or equipment envelope promoted from NOT_SUPPLIED;
+- resident choice and tradeable preferences remain distinct from hard constraints.
+
+This contract is the programme input to layout generation; it does not establish room suitability, accessibility, affordability or resident satisfaction.
