@@ -319,18 +319,18 @@ impl CadenceTimeline {
             return Err("cadence timeline must contain at least one opportunity".into());
         }
 
-        let mut opportunity_ids = BTreeSet::new();
-        let mut source_event_ids = BTreeSet::new();
+        let mut opportunity_ids: BTreeSet<String> = BTreeSet::new();
+        let mut source_event_ids: BTreeSet<String> = BTreeSet::new();
         for opportunity in &opportunities {
             opportunity.validate()?;
             if opportunity.support_id != support_id {
                 return Err("cadence timeline mixes spatial supports".into());
             }
-            if !opportunity_ids.insert(opportunity.opportunity_id.as_str()) {
+            if !opportunity_ids.insert(opportunity.opportunity_id.clone()) {
                 return Err("duplicate opportunity ID".into());
             }
             if let Some(event_id) = opportunity.source_event_id.as_deref() {
-                if !source_event_ids.insert(event_id) {
+                if !source_event_ids.insert(event_id.to_string()) {
                     return Err("duplicate/replayed source event would inflate cadence".into());
                 }
             }
