@@ -252,7 +252,7 @@ Required scenarios:
 
 Report false physical-change claim rate on no-event measurement transitions, correct unresolved/abstention rate, true-event recall after qualified bridging, bridge-coverage rate, bridge invalidation rate, and the worst source/platform/sensor/collection/baseline/configuration domain. The synthetic shift-only corpus has a hard target of **zero promoted physical-change claims without a valid exact-scope bridge**. Do not turn that synthetic contract target into an unmeasured field-performance claim.
 
-Compose with [#829 — EO-SYSTEM-COMPARABILITY-001](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/829), which owns the typed claim-bound comparability receipt.
+Compose with [#829 — EO-SYSTEM-COMPARABILITY-001](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/829), which owns the typed claim-bound comparability receipt, and the [machine-readable 13-case shift-control matrix](https://github.com/Luminous-Dynamics/sol-atlas-leptos/blob/research/eo-system-comparability-v0-1/research/earth-observability/EO_SYSTEM_SHIFT_CONTROL_MATRIX_V0_1.json) with its [JSON Schema](https://github.com/Luminous-Dynamics/sol-atlas-leptos/blob/research/eo-system-comparability-v0-1/schemas/eo-system-shift-control-matrix-v0.1.schema.json).
 
 ## 6. Baselines and industry comparison
 
