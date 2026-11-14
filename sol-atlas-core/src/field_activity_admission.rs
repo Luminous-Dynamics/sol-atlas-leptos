@@ -311,7 +311,7 @@ fn localization_reason(activity: &FieldActivityAdmission) -> Option<TrackIneligi
         PositioningSource::Missing => {
             return Some(TrackIneligibilityReason::PositioningSourceMissing);
         }
-        PositioningSource::WheelEncoderOnly
+        PositioningSource::WheelEncoderOnly | PositioningSource::Mixed
             if activity.wheel_contact_status != WheelContactStatus::Verified =>
         {
             return Some(TrackIneligibilityReason::WheelContactNotVerified);
@@ -443,6 +443,18 @@ mod tests {
         assert_eq!(result.localization, TrackEligibility::Ineligible(
             TrackIneligibilityReason::SpatialSupportMissing
         ));
+    }
+
+    #[test]
+    fn mixed_positioning_with_unverified_wheel_contact_is_not_localization_eligible() {
+        let mut activity = fixture()[4].clone();
+        activity.positioning_source = PositioningSource::Mixed;
+        activity.wheel_contact_status = WheelContactStatus::Compromised;
+        let result = assess_field_activity(&activity).unwrap();
+        assert_eq!(
+            result.localization,
+            TrackEligibility::Ineligible(TrackIneligibilityReason::WheelContactNotVerified)
+        );
     }
 
     #[test]
