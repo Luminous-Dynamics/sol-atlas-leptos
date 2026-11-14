@@ -391,7 +391,7 @@ fn adapt_primary_network_case(primary: &Value) -> Result<Value, Vec<String>> {
         "allocation_policy":"ACCESSIBLE_FIRST_THEN_GENERAL_REMAINDER_OF_SHARED_SITE_CAPACITY",
         "water_l_per_person":water_per_person,
         "maximum_route_travel_time_s":max_route,
-        "oracle_revision":"DINIC_BIPARTITE_MAX_FLOW_V0_1",
+        "oracle_revision":"EDMONDS_KARP_BIPARTITE_MAX_FLOW_V0_1",
         "demand_areas":demand_areas,
         "sites":sites,
         "demand_evidence_ref":text_at(primary,"case_id").unwrap_or("PRIMARY_FIXTURE"),
@@ -419,6 +419,8 @@ fn evaluate(case: &Value) -> Result<Value, Vec<String>> {
         || text_at(case, "execution_status") != Some("NO_REAL_DEMAND_OR_ROUTE_DATA")
         || text_at(case, "allocation_policy")
             != Some("ACCESSIBLE_FIRST_THEN_GENERAL_REMAINDER_OF_SHARED_SITE_CAPACITY")
+        || text_at(case, "oracle_revision")
+            != Some("EDMONDS_KARP_BIPARTITE_MAX_FLOW_V0_1")
     {
         errors.push("study identity, maturity or allocation policy is invalid".to_owned());
     }
@@ -839,7 +841,10 @@ mod tests {
         assert_eq!(report["accessible_requested"], 6);
         assert_eq!(report["accessible_served"], 6);
         assert_eq!(report["general_requested"], 14);
-        assert_eq!(report["source_adapter"]["source_case_id"], "SYNTHETIC_MULTI_ZONE_PARTITIONED_REFUGE_NETWORK_001");
+        assert_eq!(
+            report["source_adapter"]["source_case_id"],
+            "SYNTHETIC_MULTI_ZONE_PARTITIONED_REFUGE_NETWORK_001"
+        );
         assert_eq!(report["source_adapter"]["eligible_site_ids"].as_array().unwrap().len(), 2);
         // Exact-head parity reference from highveld-refuge-network-feasibility
         // self-test: 6 accessible + 6 general = 12 max-throughput places.
