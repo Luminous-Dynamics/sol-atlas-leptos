@@ -65,6 +65,10 @@ jobs:
       # (renderer::hex, sol-atlas-core). Must target the bin explicitly:
       # `cargo test --lib` fails with "no library targets found".
       - run: cargo test --bin sol-atlas-leptos
+      - name: Test home spatial intent graph qualifier
+        run: cargo test --bin home-spatial-intent-qualifier
+      - name: Audit paired symbolic home graphs
+        run: cargo run --bin home-spatial-intent-qualifier -- --self-test
       - name: Test home-freedom synthetic qualifier
         run: cargo test --bin home-freedom-qualifier
       - name: Audit the paired synthetic home case
