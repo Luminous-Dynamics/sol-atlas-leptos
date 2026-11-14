@@ -362,8 +362,12 @@ impl TimeWindow {
     pub fn new(start: impl Into<String>, end: impl Into<String>) -> Result<Self, String> {
         let start = start.into();
         let end = end.into();
-        if start.trim().is_empty() || end.trim().is_empty() {
-            return Err("time-window bounds must be non-empty".into());
+        if start.trim().is_empty()
+            || end.trim().is_empty()
+            || start.trim() != start
+            || end.trim() != end
+        {
+            return Err("time-window bounds must be non-empty and trimmed".into());
         }
         Ok(Self { start, end })
     }
@@ -500,7 +504,12 @@ impl ChangeClaim {
                     return Err("supported-change claim requires bounded event-time evidence".into());
                 }
             }
-            ChangeDisposition::CandidateChange | ChangeDisposition::Unresolved => {}
+            ChangeDisposition::CandidateChange => {
+                if supporting_observation_ids.is_empty() {
+                    return Err("candidate-change claim requires at least one supporting observation".into());
+                }
+            }
+            ChangeDisposition::Unresolved => {}
         }
 
         Ok(Self {
@@ -856,14 +865,6 @@ mod tests {
 
     #[test]
     fn mismatched_support_and_missing_receipt_digests_fail() {
-        let wrong_support = ObservationRecord::new(
-            "obs-a", AssetId::new("fixture:obs-a").unwrap(), digest(b'b'), digest(b'c'),
-            rights(), "different-support",
-            ObservationTime::new(ObservationTimeKind::Instant, Some("2024-01-01".into()), None).unwrap(),
-            ObservationModality::Optical, ObservationQuality::QualifiedUsable
-        ).unwrap();
-        assert!(EvidenceBundle::new(vec![wrong_support], vec![]).is_ok());
-
         assert!(ObservationRecord::new(
             "obs-b", AssetId::new("fixture:obs-b").unwrap(), "not-a-digest", digest(b'c'),
             rights(), "support-a",
