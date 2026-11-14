@@ -141,7 +141,7 @@ The potential differentiator is **continuous evidence continuity across the whol
 1. Keep PR #831's exact-head validation separate from new tracks. Current exact head at the time this architecture was created: `9ab240c639a81b1d0b8afe393cab846b61b79961`; hosted Check run was queued, with native tests, WASM and format jobs queued. No Rust or CI pass is claimed here.
 2. Implement #833 resident dimensional/service programme and #832 typed revision invalidation.
 3. Add machine-readable evidence intake and independent synthetic qualifier for #836 site/foundation records.
-4. Add #837 HomeServiceInterface schema and four-product synthetic composition using the owner-native Symthaea contracts.
+4. Opened #837 and drafted the first machine-readable HomeServiceInterface and household-stack schemas plus a four-service synthetic fixture (warewashing, water continuity, hot water and ventilation). Product identity, dimensions, utilities, demand and performance remain UNKNOWN. JSON syntax and required-field/interface-enum shape checks were run against the committed artifacts; full Draft 2020-12 validation and a Rust qualifier remain NOT_RUN.
 5. Bridge #803 assembly demand and #814 delivery with #622/#3773 accepted panel/fabrication evidence.
 6. Extend geometry only after the current contract is stable: wall thickness, doors/windows, irregular polygons, structural grids, multiple floors and service voids should be separate maturity levels with independent expected results.
 7. Export/import through IFC/IDS with explicit semantic-loss and revision receipts.
