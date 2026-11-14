@@ -315,10 +315,14 @@ fn validate(fixture: &Value, building: &Value, stress: &Value) -> Result<Value, 
             if !matches!(text_at(resource, "quality_state"), Some("unknown" | "qualified" | "failed" | "not_applicable" | "disputed")) {
                 errors.push(format!("resource {id} has invalid quality_state"));
             }
-            if text_at(resource, "quality_state") == Some("qualified")
+            let quality_state = text_at(resource, "quality_state").unwrap_or("<missing>");
+            if quality_state == "qualified"
                 && array_at(resource, "evidence_refs").is_none_or(Vec::is_empty)
             {
                 errors.push(format!("resource {id} promotes quality without evidence"));
+            }
+            if matches!(class, "potable_water" | "non_potable_water") && quality_state != "unknown" {
+                errors.push(format!("synthetic water resource {id} must retain unknown quality"));
             }
             resource_classes.insert(id.to_owned(), class.to_owned());
         }
@@ -407,6 +411,14 @@ fn validate(fixture: &Value, building: &Value, stress: &Value) -> Result<Value, 
             {
                 errors.push(format!("edge {id} power_dependency must originate at an electricity resource"));
             }
+            if relation == "control_dependency"
+                && resource_classes.get(&from_node.1).is_none_or(|class| class != "communications")
+            {
+                errors.push(format!("edge {id} control_dependency must originate at a communications resource"));
+            }
+            if relation == "resource_flow" && state != "declared" {
+                errors.push(format!("synthetic resource flow edge {id} must be declared"));
+            }
             let loss = edge.get("loss").unwrap_or(&Value::Null);
             validate_quantity(loss, &format!("edge {id} loss"), &mut errors);
         }
@@ -462,6 +474,9 @@ fn validate(fixture: &Value, building: &Value, stress: &Value) -> Result<Value, 
         if quality_state == "qualified" && array_at(service, "evidence_refs").is_none_or(Vec::is_empty) {
             errors.push(format!("unit service {key} promotes quality without evidence"));
         }
+        if service_id == "POTABLE-WATER-DELIVERY" && quality_state != "unknown" {
+            errors.push(format!("synthetic potable service {key} must retain unknown quality"));
+        }
     }
     if service_keys.len() != building_unit_ids.len() * 4 {
         errors.push(format!("P0 synthetic fixture expected four service classes per unit; found {} unit-service rows", service_keys.len()));
@@ -469,7 +484,11 @@ fn validate(fixture: &Value, building: &Value, stress: &Value) -> Result<Value, 
 
     let events = array_at(fixture, "events");
     let event_ids = unique_ids(events, "event_id", "events", &mut errors);
+    if event_ids.len() != 16 {
+        errors.push(format!("P0 service fixture expects 16 synthetic event records; found {}", event_ids.len()));
+    }
     if let Some(events) = events {
+        let mut prior_start = -1_i64;
         for event in events {
             let id = text_at(event, "event_id").unwrap_or("<missing-event>");
             if text_at(event, "state") != Some("declared_synthetic") {
@@ -501,9 +520,10 @@ fn validate(fixture: &Value, building: &Value, stress: &Value) -> Result<Value, 
                 errors.push(format!("event {id} must not claim a failure probability"));
             }
             let start = event.get("start_s").and_then(Value::as_i64).unwrap_or(-1);
-            if start < 0 {
-                errors.push(format!("event {id} has invalid start_s"));
+            if start < 0 || start < prior_start {
+                errors.push(format!("event {id} has invalid or unordered start_s"));
             }
+            prior_start = start;
             if let Some(duration) = event.get("duration_s").and_then(Value::as_i64) {
                 if duration < 0 {
                     errors.push(format!("event {id} has negative duration_s"));
