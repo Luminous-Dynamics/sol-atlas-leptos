@@ -541,7 +541,7 @@ fn validate(fixture: &Value, building: &Value, stress: &Value) -> Result<Value, 
         }
     }
     if !has_resource_path(
-        "SRC-NONPOTABLE-UNKNOWN",
+        "SRC-NONPOTABLE-UNQUALIFIED",
         "TREAT-NONPOTABLE-UNKNOWN",
         "R-NONPOTABLE-WATER",
         &node_records,
@@ -551,7 +551,7 @@ fn validate(fixture: &Value, building: &Value, stress: &Value) -> Result<Value, 
     }
     for node_id in node_records.keys().filter(|id| id.starts_with("BOUNDARY-") && id.ends_with("-WATER")) {
         if has_resource_path(
-            "SRC-NONPOTABLE-UNKNOWN",
+            "SRC-NONPOTABLE-UNQUALIFIED",
             node_id,
             "R-NONPOTABLE-WATER",
             &node_records,
@@ -650,7 +650,7 @@ mod tests {
         let (fixture, building, stress) = load_fixtures();
         let report = validate(&fixture, &building, &stress).expect("service distribution fixture");
         assert_eq!(report["resource_count"], 6);
-        assert_eq!(report["node_count"], 35);
+        assert_eq!(report["node_count"], 34);
         assert_eq!(report["edge_count"], 30);
         assert_eq!(report["unit_count"], 4);
         assert_eq!(report["unit_service_count"], 16);
