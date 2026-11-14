@@ -155,6 +155,39 @@ fn has_resource_path_avoiding(
     false
 }
 
+fn resource_path_intersects(
+    start: &str,
+    goal: &str,
+    resource_id: &str,
+    node_records: &BTreeMap<String, (String, String, Option<String>, Option<String>)>,
+    adjacency: &BTreeMap<String, Vec<String>>,
+    affected: &BTreeSet<String>,
+) -> bool {
+    let mut pending = vec![(start.to_owned(), BTreeSet::from([start.to_owned()]))];
+    let mut visited = BTreeSet::new();
+    while let Some((current, path)) = pending.pop() {
+        if current == goal {
+            let resource_matches = node_records
+                .get(&current)
+                .is_some_and(|record| record.1 == resource_id);
+            return resource_matches && path.iter().any(|node| affected.contains(node));
+        }
+        if !visited.insert(current.clone()) {
+            continue;
+        }
+        if let Some(next) = adjacency.get(&current) {
+            for target in next {
+                if !visited.contains(target) {
+                    let mut next_path = path.clone();
+                    next_path.insert(target.clone());
+                    pending.push((target.clone(), next_path));
+                }
+            }
+        }
+    }
+    false
+}
+
 fn propagate_dependencies(
     unavailable: &mut BTreeSet<String>,
     edges: &[Value],
@@ -243,9 +276,17 @@ fn build_stress_impact_preview(
                     resource_flow,
                     &unavailable,
                 );
-                let quality_credit = if kind == "quality_evidence_withdrawal"
-                    && matches!(resource, "R-POTABLE-WATER" | "R-NONPOTABLE-WATER")
-                {
+                let affected_set = affected.iter().cloned().collect::<BTreeSet<_>>();
+                let quality_withdrawal_applies = kind == "quality_evidence_withdrawal"
+                    && resource_path_intersects(
+                        start,
+                        goal,
+                        resource,
+                        node_records,
+                        resource_flow,
+                        &affected_set,
+                    );
+                let quality_credit = if quality_withdrawal_applies {
                     "WITHDRAWN_OR_UNKNOWN"
                 } else {
                     "NO_QUALITY_CREDIT_FROM_TOPOLOGY"
@@ -1017,6 +1058,19 @@ mod tests {
             .iter()
             .filter(|service| service["service_id"] == "POTABLE-WATER-DELIVERY");
         assert!(potable.into_iter().all(|service| service["quality_credit"] == "WITHDRAWN_OR_UNKNOWN"));
+    }
+
+    #[test]
+    fn nonpotable_quality_withdrawal_does_not_mark_potable_paths_affected() {
+        let (fixture, building, stress) = load_fixtures();
+        let report = validate(&fixture, &building, &stress).expect("non-potable quality event preview");
+        let cases = report["stress_impact_preview"].as_array().unwrap();
+        let case = cases.iter().find(|case| case["case_id"] == "MF-SVC-014").unwrap();
+        let event = &case["events"][0];
+        let potable = event["service_paths"].as_array().unwrap()
+            .iter()
+            .filter(|service| service["service_id"] == "POTABLE-WATER-DELIVERY");
+        assert!(potable.into_iter().all(|service| service["quality_credit"] == "NO_QUALITY_CREDIT_FROM_TOPOLOGY"));
     }
 
     #[test]
