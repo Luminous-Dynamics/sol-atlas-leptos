@@ -1327,14 +1327,14 @@ mod tests {
             "ontology-v1",
         ).is_err());
         assert!(CrossSystemComparabilityReceiptRef::new(
-            digest(b"receipt"),
+            digest(b'r'),
             vec!["obs-a".into(), "obs-a".into()],
             "support-a",
             "vegetation-loss",
             "ontology-v1",
         ).is_err());
         let receipt = CrossSystemComparabilityReceiptRef::new(
-            digest(b"receipt"),
+            digest(b'r'),
             vec!["obs-b".into(), "obs-a".into()],
             "support-a",
             "vegetation-loss",
@@ -1427,7 +1427,7 @@ mod tests {
     fn asset_band_or_polarization_profile_changes_the_measurement_system_signature() {
         let a = observation("obs-a", "2024-01-01", ObservationQuality::QualifiedUsable);
         let mut b = observation("obs-b", "2025-01-01", ObservationQuality::QualifiedUsable);
-        b.measurement_profile_sha256 = Some(digest(b"different-bands"));
+        b.measurement_profile_sha256 = Some(digest(b'x'));
         assert_ne!(a.system_signature(), b.system_signature());
     }
 
@@ -1442,7 +1442,7 @@ mod tests {
         let mut claim = no_change_claim();
         claim.cross_system_comparability_receipt = Some(
             CrossSystemComparabilityReceiptRef::new(
-                digest(b"bridge-missing-profile"),
+                digest(b'g'),
                 vec!["obs-a".into(), "obs-b".into()],
                 "support-a",
                 "vegetation-loss",
