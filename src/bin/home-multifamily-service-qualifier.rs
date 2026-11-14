@@ -645,7 +645,8 @@ mod tests {
     #[test]
     fn duplicate_stress_scenario_identity_is_rejected() {
         let (fixture, building, mut stress) = load_fixtures();
-        stress["cases"][1]["case_id"] = stress["cases"][0]["case_id"].clone();
+        let duplicate_id = stress["cases"][0]["case_id"].clone();
+        stress["cases"][1]["case_id"] = duplicate_id;
         assert!(validate(&fixture, &building, &stress).is_err());
     }
 
