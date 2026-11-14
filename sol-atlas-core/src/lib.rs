@@ -26,6 +26,7 @@ pub mod geometry;
 pub mod math;
 pub mod network_hypotheses;
 pub mod picking;
+pub mod project_split;
 pub mod sensor_evsi_bridge;
 pub mod sensor_observability;
 pub mod simulation;
