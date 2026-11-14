@@ -920,8 +920,13 @@ impl ChangeClaim {
                 || observation.processing_baseline.is_none()
                 || observation.measurement_profile_sha256.is_none()
         });
+        let claim_is_unresolved = self.disposition == ChangeDisposition::Unresolved;
         match (&self.cross_system_comparability_receipt, system_signatures.len(), incomplete_measurement_identity) {
             (None, count, false) if count <= 1 => {}
+            (None, _, _) if claim_is_unresolved => {
+                // Preserve an explicitly unresolved record for investigation.
+                // It is not eligible to support or promote a physical-change claim.
+            }
             (None, _, _) => {
                 return Err("claim combines distinct or incompletely identified measurement systems without a cross-system comparability receipt".into());
             }
@@ -1514,6 +1519,53 @@ mod tests {
             ).unwrap()
         );
         assert!(EvidenceBundle::new(vec![a,b], vec![claim]).is_ok());
+    }
+
+    #[test]
+    fn unresolved_mixed_system_record_is_retained_but_candidate_promotion_is_blocked() {
+        let obs_a = observation("obs-a", "2024-01-01", ObservationQuality::QualifiedUsable);
+        let mut obs_b = observation("obs-b", "2025-01-01", ObservationQuality::QualifiedUsable);
+        obs_b.platform_id = "platform-b".into();
+        let unresolved = ChangeClaim::new(
+            "unresolved-cross-system",
+            "vegetation-loss",
+            "fixture-ontology-v1",
+            "support-a",
+            TimeWindow::new("2024-01-01", "2025-01-01").unwrap(),
+            ChangeDisposition::Unresolved,
+            None,
+            vec!["obs-a".into(), "obs-b".into()],
+            vec![],
+            vec![],
+            CoverageState::Unknown,
+            None,
+            None,
+            None,
+            None,
+            None,
+        ).unwrap();
+        assert!(EvidenceBundle::new(vec![obs_a.clone(), obs_b.clone()], vec![unresolved]).is_ok());
+
+        let candidate = ChangeClaim::new(
+            "candidate-cross-system",
+            "vegetation-loss",
+            "fixture-ontology-v1",
+            "support-a",
+            TimeWindow::new("2024-01-01", "2025-01-01").unwrap(),
+            ChangeDisposition::CandidateChange,
+            None,
+            vec!["obs-a".into(), "obs-b".into()],
+            vec!["obs-a".into(), "obs-b".into()],
+            vec![],
+            CoverageState::Unknown,
+            None,
+            None,
+            None,
+            None,
+            None,
+        ).unwrap();
+        assert!(EvidenceBundle::new(vec![obs_a, obs_b], vec![candidate])
+            .unwrap_err().contains("cross-system comparability receipt"));
     }
 
     #[test]
