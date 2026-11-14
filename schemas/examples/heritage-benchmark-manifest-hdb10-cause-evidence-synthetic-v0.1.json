@@ -1,0 +1,72 @@
+{
+  "schema_version": "luminous.heritage-benchmark-manifest.v0.1",
+  "benchmark_id": "HDB-10-CAUSE-EVIDENCE-SYNTHETIC",
+  "benchmark_version": "0.1.0",
+  "task_id": "HDB-10",
+  "created_at": "2026-11-02T10:00:00Z",
+  "dataset_inventory_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "split_protocol": "held_out_site",
+  "splits": [
+    {
+      "split_id": "synthetic-held-out-site-v1",
+      "train_site_ids": [
+        "synthetic-site-a"
+      ],
+      "validation_site_ids": [
+        "synthetic-site-b"
+      ],
+      "test_site_ids": [
+        "synthetic-site-c"
+      ],
+      "spatial_buffer_m": 500,
+      "estimated_spatial_dependence_m": 250,
+      "split_manifest_digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+    }
+  ],
+  "evaluation": {
+    "primary_metric": "unsupported_asserted_cause_rate_at_matched_coverage",
+    "review_budget": {
+      "unit": "analyst_hours",
+      "limit": 4
+    },
+    "metrics": [
+      "per_cause_brier",
+      "per_cause_reliability",
+      "macro_f1",
+      "false_archaeological_claims_per_100_covered",
+      "unsupported_asserted_cause_rate",
+      "independent_support_count",
+      "independent_contradiction_count",
+      "counter_evidence_retention",
+      "double_count_robustness",
+      "abstention_risk_coverage",
+      "cross_polarity_conflict_count"
+    ],
+    "confidence_interval_method": "site_level_bootstrap_with_locked_cause_adjudications",
+    "bootstrap_unit": "site",
+    "blind_labels": true,
+    "evaluation_code_revision": "synthetic-commit",
+    "environment_digest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+    "cause_taxonomy_version": "luminous.heritage-change-causes.v0.1",
+    "evidence_manifest_digest": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+    "cause_evidence_policy_ref": "urn:synthetic:cause-evidence-policy:v1",
+    "independence_policy_ref": "urn:synthetic:source-and-acquisition-independence:v1",
+    "counter_evidence_required": true,
+    "non_detection_detectability_required": true,
+    "multilabel_cause_predictions": true,
+    "cause_evidence_metrics": [
+      "per_cause_brier",
+      "per_cause_reliability",
+      "macro_f1",
+      "false_archaeological_claims_per_100_covered",
+      "unsupported_asserted_cause_rate",
+      "independent_support_count",
+      "independent_contradiction_count",
+      "counter_evidence_retention",
+      "double_count_robustness",
+      "abstention_risk_coverage",
+      "cross_polarity_conflict_count"
+    ]
+  },
+  "notes": "Synthetic HDB-10 fixture. Cause probabilities and evidence records are fictional; no archaeological claims."
+}

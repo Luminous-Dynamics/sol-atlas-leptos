@@ -1,0 +1,507 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://luminousdynamics.io/schemas/heritage-candidate-v0.1.schema.json",
+  "title": "Sol-Atlas Heritage Candidate",
+  "description": "A reviewable, evidence-linked archaeological research candidate. This record does not itself establish archaeological age, cultural attribution, significance, ownership, or legal status.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "candidate_id",
+    "created_at",
+    "lifecycle_state",
+    "morphology",
+    "location",
+    "evidence",
+    "hypotheses",
+    "model_assessments",
+    "rights",
+    "provenance"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "luminous.heritage-candidate.v0.1"
+    },
+    "candidate_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "lifecycle_state": {
+      "enum": [
+        "unreviewed",
+        "desk_reviewed",
+        "field_assessed",
+        "archaeologically_validated",
+        "rejected",
+        "deferred"
+      ]
+    },
+    "morphology": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "feature_family",
+        "description"
+      ],
+      "properties": {
+        "feature_family": {
+          "enum": [
+            "built_structure",
+            "earthwork",
+            "field_system",
+            "water_management",
+            "transport_corridor",
+            "extractive_landscape",
+            "burial_or_memorial",
+            "rock_art_or_surface_marking",
+            "maritime_or_submerged",
+            "other",
+            "unknown"
+          ]
+        },
+        "description": {
+          "type": "string",
+          "minLength": 1
+        },
+        "local_classifications": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "label",
+              "language",
+              "source_ref"
+            ],
+            "properties": {
+              "label": {
+                "type": "string",
+                "minLength": 1
+              },
+              "language": {
+                "type": "string",
+                "minLength": 2
+              },
+              "source_ref": {
+                "type": "string",
+                "minLength": 1
+              },
+              "mapping_status": {
+                "enum": [
+                  "unmapped",
+                  "proposed",
+                  "reviewed",
+                  "rejected"
+                ]
+              },
+              "shared_concept_uri": {
+                "type": "string",
+                "format": "uri"
+              }
+            }
+          }
+        }
+      }
+    },
+    "location": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "geometry_access_tier",
+        "positional_uncertainty_m"
+      ],
+      "properties": {
+        "private_geometry": {
+          "type": [
+            "object",
+            "null"
+          ],
+          "description": "Exact geometry. Store and serve only under the access policy; never assume this can be published."
+        },
+        "public_geometry": {
+          "type": [
+            "object",
+            "null"
+          ],
+          "description": "Separately generalised geometry approved for public release. Omit or null when disclosure is not approved."
+        },
+        "geometry_access_tier": {
+          "enum": [
+            "restricted",
+            "custodial",
+            "approved_research",
+            "public_generalised",
+            "withheld"
+          ]
+        },
+        "positional_uncertainty_m": {
+          "type": "number",
+          "minimum": 0
+        },
+        "crs_uri": {
+          "type": "string",
+          "format": "uri"
+        },
+        "vertical_datum": {
+          "type": "string"
+        },
+        "geometry_notes": {
+          "type": "string"
+        }
+      }
+    },
+    "evidence": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "evidence_id",
+          "modality",
+          "observed_at",
+          "asset_ref",
+          "observation_role",
+          "quality_state"
+        ],
+        "properties": {
+          "evidence_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "modality": {
+            "enum": [
+              "airborne_lidar",
+              "drone_lidar",
+              "spaceborne_lidar",
+              "sar",
+              "optical_multispectral",
+              "hyperspectral",
+              "thermal",
+              "dem",
+              "historical_aerial",
+              "historical_map",
+              "photogrammetry",
+              "ground_penetrating_radar",
+              "magnetometry",
+              "electrical_resistivity",
+              "field_survey",
+              "oral_or_community_history",
+              "other"
+            ]
+          },
+          "observed_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "asset_ref": {
+            "type": "string",
+            "minLength": 1
+          },
+          "observation_role": {
+            "enum": [
+              "supports_hypothesis",
+              "contradicts_hypothesis",
+              "context_only",
+              "unknown"
+            ]
+          },
+          "quality_state": {
+            "enum": [
+              "usable",
+              "degraded",
+              "partially_obscured",
+              "misregistered",
+              "unknown"
+            ]
+          },
+          "spatial_resolution_m": {
+            "type": "number",
+            "exclusiveMinimum": 0
+          },
+          "coverage_fraction": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1
+          },
+          "sensor_metadata": {
+            "type": "object",
+            "description": "Preserve modality-specific acquisition fields such as sensor, platform, band, polarisation, orbit direction, incidence angle, point density and scan settings."
+          },
+          "observation_notes": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "hypotheses": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "hypothesis_id",
+          "interpretation",
+          "status",
+          "evidence_refs"
+        ],
+        "properties": {
+          "hypothesis_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "interpretation": {
+            "type": "string",
+            "minLength": 1
+          },
+          "status": {
+            "enum": [
+              "proposed",
+              "supported",
+              "contested",
+              "rejected",
+              "unresolved"
+            ]
+          },
+          "evidence_refs": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "uniqueItems": true
+          },
+          "alternative_explanations": {
+            "type": "array",
+            "items": {
+              "enum": [
+                "natural_geology",
+                "erosion_or_mass_wasting",
+                "modern_agriculture",
+                "modern_infrastructure",
+                "recent_extraction_or_quarrying",
+                "vegetation_or_shadow",
+                "sensor_or_processing_artifact",
+                "other",
+                "unknown"
+              ]
+            },
+            "uniqueItems": true
+          }
+        }
+      }
+    },
+    "model_assessments": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "model_id",
+          "model_digest",
+          "output_kind",
+          "score",
+          "calibration_state",
+          "inference_config_digest"
+        ],
+        "properties": {
+          "model_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "model_version": {
+            "type": "string"
+          },
+          "model_digest": {
+            "type": "string",
+            "pattern": "^[a-fA-F0-9]{64}$"
+          },
+          "output_kind": {
+            "enum": [
+              "raw_logit",
+              "ranking_score",
+              "anomaly_score",
+              "uncalibrated_probability",
+              "calibrated_probability"
+            ]
+          },
+          "score": {
+            "type": "number"
+          },
+          "calibration_state": {
+            "enum": [
+              "not_calibrated",
+              "calibrated",
+              "calibration_unknown"
+            ]
+          },
+          "calibration_method": {
+            "type": "string"
+          },
+          "calibration_dataset_ref": {
+            "type": "string"
+          },
+          "training_domain": {
+            "type": "string"
+          },
+          "inference_config_digest": {
+            "type": "string",
+            "pattern": "^[a-fA-F0-9]{64}$"
+          }
+        }
+      }
+    },
+    "review_history": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "review_id",
+          "reviewed_at",
+          "reviewer_role",
+          "decision"
+        ],
+        "properties": {
+          "review_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "reviewed_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "reviewer_role": {
+            "enum": [
+              "archaeologist",
+              "heritage_authority",
+              "descendant_or_community_steward",
+              "landholder_or_custodian",
+              "geospatial_reviewer",
+              "other"
+            ]
+          },
+          "decision": {
+            "enum": [
+              "accept_for_further_review",
+              "field_assessed",
+              "archaeologically_validated",
+              "reject",
+              "defer",
+              "request_more_evidence"
+            ]
+          },
+          "evidence_refs": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "uniqueItems": true
+          },
+          "decision_notes_ref": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "rights": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "state",
+        "permitted_uses",
+        "exact_geometry_policy"
+      ],
+      "properties": {
+        "state": {
+          "enum": [
+            "verified",
+            "pending",
+            "denied",
+            "unknown"
+          ]
+        },
+        "basis_ref": {
+          "type": "string"
+        },
+        "licence_uri": {
+          "type": "string",
+          "format": "uri"
+        },
+        "permitted_uses": {
+          "type": "array",
+          "items": {
+            "enum": [
+              "view",
+              "research",
+              "training",
+              "evaluation",
+              "publication",
+              "redistribution",
+              "commercial"
+            ]
+          },
+          "uniqueItems": true
+        },
+        "exact_geometry_policy": {
+          "enum": [
+            "restricted",
+            "custodial_approval_required",
+            "approved_research_only",
+            "public_approved",
+            "withheld"
+          ]
+        },
+        "jurisdiction": {
+          "type": "string"
+        },
+        "review_due_at": {
+          "type": "string",
+          "format": "date-time"
+        }
+      }
+    },
+    "provenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "pipeline_id",
+        "pipeline_version",
+        "input_digests",
+        "output_digest"
+      ],
+      "properties": {
+        "pipeline_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "pipeline_version": {
+          "type": "string",
+          "minLength": 1
+        },
+        "input_digests": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^[a-fA-F0-9]{64}$"
+          },
+          "minItems": 1
+        },
+        "output_digest": {
+          "type": "string",
+          "pattern": "^[a-fA-F0-9]{64}$"
+        },
+        "processing_manifest_ref": {
+          "type": "string"
+        },
+        "created_by_system": {
+          "type": "string"
+        }
+      }
+    }
+  }
+}

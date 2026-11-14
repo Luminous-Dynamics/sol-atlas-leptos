@@ -1,0 +1,78 @@
+{
+  "schema_version": "luminous.heritage-benchmark-manifest.v0.1",
+  "benchmark_id": "HDB-9-TEMPORAL-INTERVAL-SYNTHETIC",
+  "benchmark_version": "0.1.0",
+  "task_id": "HDB-9",
+  "created_at": "2026-11-02T10:00:00Z",
+  "dataset_inventory_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "split_protocol": "held_out_site",
+  "splits": [
+    {
+      "split_id": "synthetic-held-out-site-v1",
+      "train_site_ids": [
+        "synthetic-site-a"
+      ],
+      "validation_site_ids": [
+        "synthetic-site-b"
+      ],
+      "test_site_ids": [
+        "synthetic-site-c"
+      ],
+      "spatial_buffer_m": 500,
+      "estimated_spatial_dependence_m": 250,
+      "split_manifest_digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+    }
+  ],
+  "evaluation": {
+    "primary_metric": "negative_log_interval_likelihood",
+    "review_budget": {
+      "unit": "analyst_hours",
+      "limit": 4
+    },
+    "metrics": [
+      "interval_probability_mass",
+      "negative_log_interval_likelihood",
+      "map_to_interval_distance_months",
+      "recall_at_k_interval",
+      "pairwise_order_brier",
+      "pairwise_order_accuracy",
+      "ambiguous_interval_pair_count",
+      "watch_recall_at_k_symmetric_margin",
+      "watch_recall_at_k_directional_margin"
+    ],
+    "confidence_interval_method": "site_level_bootstrap_with_locked_event_intervals",
+    "bootstrap_unit": "site",
+    "blind_labels": true,
+    "evaluation_code_revision": "synthetic-commit",
+    "environment_digest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+    "temporal_ground_truth_unit": "interval_censored",
+    "event_time_probability_unit": "month_ordinal",
+    "temporal_baselines": [
+      "watch_ted",
+      "watch_sscd",
+      "watch_weakly_supervised",
+      "watch_symmetric_margin",
+      "watch_directional_margin",
+      "peak_score_month",
+      "nearest_observation_midpoint",
+      "uniform_admissible_interval",
+      "random_uniform_interval"
+    ],
+    "temporal_uncertainty_metrics": [
+      "interval_probability_mass",
+      "negative_log_interval_likelihood",
+      "map_to_interval_distance",
+      "recall_at_k_interval",
+      "pairwise_order_brier"
+    ],
+    "chronology_metrics": [
+      "pairwise_order_brier",
+      "pairwise_order_accuracy",
+      "ambiguous_pair_count"
+    ],
+    "observation_cadence_ref": "urn:synthetic:observation-cadence:v1",
+    "event_adjudication_protocol_ref": "urn:synthetic:interval-adjudication:v1",
+    "cause_classification_separate": true
+  },
+  "notes": "Synthetic HDB-9 fixture. Interval labels, monthly posterior distributions and event IDs are fictional."
+}

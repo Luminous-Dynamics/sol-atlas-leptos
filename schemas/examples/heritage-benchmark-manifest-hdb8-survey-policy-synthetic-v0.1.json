@@ -1,0 +1,62 @@
+{
+  "schema_version": "luminous.heritage-benchmark-manifest.v0.1",
+  "benchmark_id": "HDB-8-SURVEY-POLICY-SYNTHETIC",
+  "benchmark_version": "0.1.0",
+  "task_id": "HDB-8",
+  "created_at": "2026-11-02T10:00:00Z",
+  "dataset_inventory_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "split_protocol": "held_out_site",
+  "splits": [
+    {
+      "split_id": "synthetic-held-out-site-v1",
+      "train_site_ids": [
+        "synthetic-site-a"
+      ],
+      "validation_site_ids": [
+        "synthetic-site-b"
+      ],
+      "test_site_ids": [
+        "synthetic-site-c"
+      ],
+      "spatial_buffer_m": 500,
+      "estimated_spatial_dependence_m": 250,
+      "split_manifest_digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+    }
+  ],
+  "evaluation": {
+    "primary_metric": "cumulative_cost_to_preregistered_entropy_threshold",
+    "review_budget": {
+      "unit": "survey_cost",
+      "limit": 100
+    },
+    "metrics": [
+      "predicted_eig_vs_realized_entropy_reduction",
+      "policy_regret",
+      "cumulative_cost_to_entropy_threshold",
+      "hours_to_entropy_threshold",
+      "validated_candidate_recall_at_matched_budget",
+      "maximum_disturbance_observed",
+      "excluded_unauthorized_action_count",
+      "likelihood_calibration_error"
+    ],
+    "confidence_interval_method": "landscape_clustered_policy_bootstrap_after_joint_design_review",
+    "bootstrap_unit": "landscape",
+    "blind_labels": true,
+    "evaluation_code_revision": "synthetic-commit",
+    "environment_digest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+    "decision_horizon_steps": 3,
+    "policy_baselines": [
+      "random",
+      "uniform_grid",
+      "expert_prioritized",
+      "highest_anomaly_first",
+      "cost_only",
+      "myopic_eig",
+      "finite_horizon_eig"
+    ],
+    "likelihood_model_inventory_digest": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+    "authorization_policy_ref": "urn:synthetic:heritage-noninvasive-authorization-policy:v1",
+    "non_invasive_only": true
+  },
+  "notes": "Synthetic HDB-8 fixture. Likelihoods and actions are invented solely to validate the contract."
+}

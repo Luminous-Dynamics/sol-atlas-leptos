@@ -1,0 +1,333 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://luminousdynamics.io/schemas/heritage-source-asset-v0.1.schema.json",
+  "title": "Sol-Atlas Heritage Source Asset",
+  "description": "A rights-aware registry record for one source asset or asset collection. A record is not proof that the source may be redistributed or used for model training.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "source_id",
+    "provider",
+    "asset",
+    "modality",
+    "acquisition",
+    "spatial",
+    "rights",
+    "provenance"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "luminous.heritage-source-asset.v0.1"
+    },
+    "source_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "provider": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "provider_id",
+        "name"
+      ],
+      "properties": {
+        "provider_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "homepage": {
+          "type": "string",
+          "format": "uri"
+        },
+        "contact_ref": {
+          "type": "string"
+        }
+      }
+    },
+    "asset": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "asset_ref",
+        "media_type"
+      ],
+      "properties": {
+        "asset_ref": {
+          "type": "string",
+          "minLength": 1
+        },
+        "stac_item_uri": {
+          "type": "string",
+          "format": "uri"
+        },
+        "stac_asset_key": {
+          "type": "string"
+        },
+        "media_type": {
+          "type": "string",
+          "minLength": 1
+        },
+        "upstream_asset_id": {
+          "type": "string"
+        },
+        "content_sha256": {
+          "type": "string",
+          "pattern": "^[a-fA-F0-9]{64}$"
+        },
+        "byte_length": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    },
+    "modality": {
+      "enum": [
+        "airborne_lidar",
+        "drone_lidar",
+        "spaceborne_lidar",
+        "sar",
+        "optical_multispectral",
+        "hyperspectral",
+        "thermal",
+        "dem",
+        "historical_aerial",
+        "historical_map",
+        "photogrammetry",
+        "ground_penetrating_radar",
+        "magnetometry",
+        "electrical_resistivity",
+        "field_survey",
+        "oral_or_community_history",
+        "other"
+      ]
+    },
+    "acquisition": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "start_at",
+        "end_at"
+      ],
+      "properties": {
+        "start_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "end_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "platform": {
+          "type": "string"
+        },
+        "sensor": {
+          "type": "string"
+        },
+        "product_level": {
+          "type": "string"
+        },
+        "bands_or_polarisations": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "uniqueItems": true
+        },
+        "orbit_direction": {
+          "enum": [
+            "ascending",
+            "descending",
+            "not_applicable",
+            "unknown"
+          ]
+        },
+        "acquisition_notes": {
+          "type": "string"
+        }
+      }
+    },
+    "spatial": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "crs_uri",
+        "geometry_access_tier"
+      ],
+      "properties": {
+        "bbox": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          },
+          "minItems": 4,
+          "maxItems": 6
+        },
+        "crs_uri": {
+          "type": "string",
+          "format": "uri"
+        },
+        "vertical_datum": {
+          "type": "string"
+        },
+        "native_resolution_m": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "point_density_points_per_m2": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "positional_accuracy_m": {
+          "type": "number",
+          "minimum": 0
+        },
+        "geometry_access_tier": {
+          "enum": [
+            "restricted",
+            "custodial",
+            "approved_research",
+            "public_generalised",
+            "withheld"
+          ]
+        },
+        "coverage_notes": {
+          "type": "string"
+        }
+      }
+    },
+    "quality": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "cloud_fraction": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "nodata_fraction": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "registration_error_m": {
+          "type": "number",
+          "minimum": 0
+        },
+        "known_issues": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "rights": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "state",
+        "permitted_uses",
+        "access_tier"
+      ],
+      "properties": {
+        "state": {
+          "enum": [
+            "verified",
+            "pending",
+            "denied",
+            "unknown"
+          ]
+        },
+        "permitted_uses": {
+          "type": "array",
+          "items": {
+            "enum": [
+              "view",
+              "research",
+              "training",
+              "evaluation",
+              "publication",
+              "redistribution",
+              "commercial"
+            ]
+          },
+          "uniqueItems": true
+        },
+        "access_tier": {
+          "enum": [
+            "public",
+            "registered",
+            "approved_research",
+            "custodial",
+            "restricted",
+            "withheld"
+          ]
+        },
+        "licence_uri": {
+          "type": "string",
+          "format": "uri"
+        },
+        "attribution_text": {
+          "type": "string"
+        },
+        "consent_or_authority_ref": {
+          "type": "string"
+        },
+        "jurisdiction": {
+          "type": "string"
+        },
+        "review_due_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "restrictions": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "provenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "ingested_at",
+        "ingestion_pipeline_id",
+        "ingestion_pipeline_version"
+      ],
+      "properties": {
+        "upstream_dataset_version": {
+          "type": "string"
+        },
+        "ingested_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "ingestion_pipeline_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "ingestion_pipeline_version": {
+          "type": "string",
+          "minLength": 1
+        },
+        "ingestion_manifest_ref": {
+          "type": "string"
+        },
+        "retrieval_receipt_ref": {
+          "type": "string"
+        },
+        "content_sha256": {
+          "type": "string",
+          "pattern": "^[a-fA-F0-9]{64}$"
+        }
+      }
+    }
+  }
+}

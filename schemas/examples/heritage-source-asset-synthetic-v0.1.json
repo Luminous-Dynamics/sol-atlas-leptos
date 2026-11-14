@@ -1,0 +1,73 @@
+{
+  "schema_version": "luminous.heritage-source-asset.v0.1",
+  "source_id": "urn:synthetic:heritage:source:lidar-01",
+  "provider": {
+    "provider_id": "synthetic-provider",
+    "name": "Synthetic Test Provider",
+    "homepage": "https://example.invalid"
+  },
+  "asset": {
+    "asset_ref": "urn:synthetic:asset:lidar:01",
+    "stac_item_uri": "https://example.invalid/stac/items/synthetic-lidar-01",
+    "stac_asset_key": "dem",
+    "media_type": "image/tiff; application=geotiff; profile=cloud-optimized",
+    "upstream_asset_id": "synthetic-lidar-asset",
+    "content_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "byte_length": 12345
+  },
+  "modality": "airborne_lidar",
+  "acquisition": {
+    "start_at": "2026-10-01T00:00:00Z",
+    "end_at": "2026-10-01T00:10:00Z",
+    "platform": "synthetic-aircraft",
+    "sensor": "synthetic-lidar",
+    "product_level": "synthetic-ground-model",
+    "bands_or_polarisations": [],
+    "orbit_direction": "not_applicable"
+  },
+  "spatial": {
+    "bbox": [
+      0.1,
+      0.1,
+      0.2,
+      0.2
+    ],
+    "crs_uri": "https://www.opengis.net/def/crs/OGC/1.3/CRS84",
+    "vertical_datum": "synthetic-only",
+    "native_resolution_m": 0.1,
+    "point_density_points_per_m2": 12,
+    "positional_accuracy_m": 0.1,
+    "geometry_access_tier": "restricted",
+    "coverage_notes": "Synthetic bbox; no real place."
+  },
+  "quality": {
+    "cloud_fraction": 0,
+    "nodata_fraction": 0.01,
+    "registration_error_m": 0.05,
+    "known_issues": []
+  },
+  "rights": {
+    "state": "verified",
+    "permitted_uses": [
+      "view",
+      "research",
+      "training",
+      "evaluation"
+    ],
+    "access_tier": "restricted",
+    "attribution_text": "Synthetic fixture only",
+    "jurisdiction": "synthetic",
+    "restrictions": [
+      "Not a real dataset; do not use as evidence."
+    ]
+  },
+  "provenance": {
+    "upstream_dataset_version": "synthetic-v0",
+    "ingested_at": "2026-11-02T10:00:00Z",
+    "ingestion_pipeline_id": "synthetic-asset-ingestor",
+    "ingestion_pipeline_version": "0.1.0",
+    "ingestion_manifest_ref": "urn:synthetic:manifest:source-01",
+    "retrieval_receipt_ref": "urn:synthetic:receipt:source-01",
+    "content_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+  }
+}
