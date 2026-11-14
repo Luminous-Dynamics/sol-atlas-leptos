@@ -100,6 +100,30 @@ fn evaluate(case: &Value) -> Result<Value, Vec<String>> {
         let solar=solar.unwrap();
         let solar_u95=solar_u95.unwrap();
 
+        if rejection_u95 < 0.0
+            || evaporation < 0.0
+            || evaporation_u95 < 0.0
+            || budget < 0.0
+            || demand < 0.0
+            || headroom < 0.0
+            || solar < 0.0
+            || solar_u95 < 0.0
+            || pool_temp <= -273.15
+            || regen_target <= -273.15
+            || max_temp <= -273.15
+            || regen_target > max_temp
+        {
+            reasons.push("INVALID_NUMERIC_BOUNDS_OR_OWNER_LIMIT_RELATION".to_owned());
+            results.push(json!({
+                "case_id":id,
+                "recommended_mode":"HOLD_FOR_HUMAN_REVIEW",
+                "reasons":reasons,
+                "actuation":"NONE",
+                "state":"INVALID_INPUT_REQUIRES_REVIEW"
+            }));
+            continue;
+        }
+
         if pool_temp>max_temp {
             reasons.push("OWNER_TEMPERATURE_LIMIT_BREACH".to_owned());
         }
@@ -239,6 +263,21 @@ mod tests {
         let report=evaluate(&sample()).unwrap();
         assert_eq!(result(&report,"UNKNOWN_WATER_RIGHTS_REQUIRES_REVIEW")["recommended_mode"],"HOLD_FOR_HUMAN_REVIEW");
         assert_eq!(result(&report,"POOL_OVER_OWNER_TEMPERATURE_LIMIT")["recommended_mode"],"HOLD_FOR_HUMAN_REVIEW");
+    }
+
+    #[test]
+    fn negative_uncertainty_cannot_create_false_regeneration_margin() {
+        let mut case = sample();
+        case["cases"][0]["net_heat_rejection_u95_kw"] = json!(-1.0);
+        let report = evaluate(&case).unwrap();
+        assert_eq!(
+            result(&report, "NIGHT_REGENERATION_QUALIFIED")["recommended_mode"],
+            "HOLD_FOR_HUMAN_REVIEW"
+        );
+        assert_eq!(
+            result(&report, "NIGHT_REGENERATION_QUALIFIED")["state"],
+            "INVALID_INPUT_REQUIRES_REVIEW"
+        );
     }
 
     #[test]
