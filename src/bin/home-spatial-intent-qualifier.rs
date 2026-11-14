@@ -474,17 +474,19 @@ fn validate(brief: &Value, graph: &Value, schema: &Value) -> Result<Value, Vec<S
                 continue;
             }
             if let Some(spec) = brief_activity_specs.get(&id) {
-                for key in [
-                    "dedicated_space_required",
-                    "frequency",
-                    "privacy_requirement",
-                    "description",
-                ] {
+                for key in ["dedicated_space_required", "frequency", "privacy_requirement"] {
                     if node.get(key) != spec.get(key) {
                         errors.push(format!(
                             "activity node {id} changes resident brief field {key}"
                         ));
                     }
+                }
+                // The source brief calls this field "activity"; the graph exposes the
+                // exact resident wording as "description". Preserve the text verbatim.
+                if text_at(node, "description") != text_at(spec, "activity") {
+                    errors.push(format!(
+                        "activity node {id} changes resident brief field activity"
+                    ));
                 }
             } else {
                 errors.push(format!("graph contains undeclared activity {id}"));
