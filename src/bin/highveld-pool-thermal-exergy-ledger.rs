@@ -718,6 +718,47 @@ mod tests {
     }
 
     #[test]
+    fn exergy_is_nonnegative_and_increases_with_temperature_distance_from_ambient() {
+        let ambient = 25.0;
+        let cold_temperatures = [24.0, 20.0, 15.0, 10.0];
+        let hot_temperatures = [26.0, 30.0, 35.0, 40.0];
+
+        let cold_values = cold_temperatures
+            .map(|temperature| sensible_exergy_kwh(1000.0, 4.18, temperature, ambient).unwrap());
+        let hot_values = hot_temperatures
+            .map(|temperature| sensible_exergy_kwh(1000.0, 4.18, temperature, ambient).unwrap());
+
+        assert!(cold_values.iter().all(|value| *value >= 0.0));
+        assert!(hot_values.iter().all(|value| *value >= 0.0));
+        assert!(cold_values.windows(2).all(|pair| pair[0] < pair[1]));
+        assert!(hot_values.windows(2).all(|pair| pair[0] < pair[1]));
+
+        for temperature in 5..=45 {
+            let value = sensible_exergy_kwh(1000.0, 4.18, f64::from(temperature), ambient)
+                .expect("positive absolute temperatures must yield finite exergy");
+            assert!(value >= 0.0);
+        }
+    }
+
+    #[test]
+    fn sensible_exergy_scales_linearly_with_mass_and_specific_heat() {
+        let baseline = sensible_exergy_kwh(1000.0, 4.18, 15.0, 30.0).unwrap();
+        let double_mass = sensible_exergy_kwh(2000.0, 4.18, 15.0, 30.0).unwrap();
+        let double_specific_heat = sensible_exergy_kwh(1000.0, 8.36, 15.0, 30.0).unwrap();
+        assert!((double_mass - 2.0 * baseline).abs() < 1e-12);
+        assert!((double_specific_heat - 2.0 * baseline).abs() < 1e-12);
+    }
+
+    #[test]
+    fn exergy_rejects_invalid_mass_property_and_absolute_temperature() {
+        assert!(sensible_exergy_kwh(-1.0, 4.18, 20.0, 25.0).is_none());
+        assert!(sensible_exergy_kwh(1.0, 0.0, 20.0, 25.0).is_none());
+        assert!(sensible_exergy_kwh(1.0, 4.18, -273.15, 25.0).is_none());
+        assert!(sensible_exergy_kwh(1.0, 4.18, 20.0, -273.15).is_none());
+        assert!(sensible_exergy_kwh(1.0, 4.18, f64::NAN, 25.0).is_none());
+    }
+
+    #[test]
     fn numerical_exergy_is_zero_at_the_reference_temperature() {
         let value = sensible_exergy_kwh(5000.0, 4.18, 32.0, 32.0).unwrap();
         assert_eq!(value, 0.0);
