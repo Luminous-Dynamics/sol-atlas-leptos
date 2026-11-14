@@ -1224,6 +1224,11 @@ mod tests {
         let json = serde_json::to_string(&valid).unwrap();
         let decoded: EvidenceBundle = serde_json::from_str(&json).unwrap();
         assert_eq!(decoded, valid);
+        assert_eq!(decoded.observations()[0].platform_id(), "fixture-platform");
+        assert_eq!(decoded.observations()[0].sensor_id(), "fixture-sensor");
+        assert_eq!(decoded.observations()[0].instrument_id(), Some("fixture-instrument"));
+        assert_eq!(decoded.observations()[0].collection_id(), Some("fixture-collection"));
+        assert_eq!(decoded.observations()[0].processing_baseline(), Some("fixture-baseline"));
 
         let mut value: serde_json::Value = serde_json::from_str(&json).unwrap();
         value["observations"][0]["quality"] = serde_json::json!("cloud_contaminated");
