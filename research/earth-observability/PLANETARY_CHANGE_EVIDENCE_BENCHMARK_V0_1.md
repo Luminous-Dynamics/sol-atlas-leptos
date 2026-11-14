@@ -83,6 +83,8 @@ The following states must remain distinct at the evidence boundary:
 
 A missing tile, empty search result, cloud-covered pixel or absent feature must never be silently converted into a negative observation.
 
+For a promoted `no_change_within_envelope` claim, complete coverage and a numeric minimum-change threshold are necessary but not sufficient. The claim must also bind an **independent, target/support/sensor/platform/acquisition-configuration-specific detection-qualification receipt**. That receipt must identify the qualified applicability domain and the detection/false-alarm envelope at the stated threshold (including calibration and test configuration). Sol-Atlas records the exact receipt digest; the appropriate modality/sensor qualification owner authenticates and interprets it. This contract must not infer detectability from a model confidence score, a generic sensor label or two successful acquisitions.
+
 ### 3.3 Time is an interval and a lineage
 
 Do not flatten time into one timestamp. Keep separate:
