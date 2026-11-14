@@ -6,21 +6,17 @@ use serde_json::{Value, json};
 use std::collections::{BTreeMap, BTreeSet};
 use std::{env, fs, process};
 
-const BRIEF_FIXTURE: &str = include_str!(
-    "../../docs/research/home-freedom/HOME_DESIGN_BRIEF_SYNTHETIC_EXAMPLE_V0.1.json"
-);
+const BRIEF_FIXTURE: &str =
+    include_str!("../../docs/research/home-freedom/HOME_DESIGN_BRIEF_SYNTHETIC_EXAMPLE_V0.1.json");
 const CANDIDATE_FIXTURE: &str = include_str!(
     "../../docs/research/home-freedom/HOME_DESIGN_CANDIDATE_SET_SYNTHETIC_EXAMPLE_V0.1.json"
 );
-const MANIFEST_FIXTURE: &str = include_str!(
-    "../../docs/research/home-freedom/HOME_FREEDOM_BENCHMARK_MANIFEST_V0.1.json"
-);
-const BRIEF_SCHEMA: &str = include_str!(
-    "../../docs/research/home-freedom/HOME_DESIGN_BRIEF_PROFILE_V0.1.schema.json"
-);
-const CANDIDATE_SCHEMA: &str = include_str!(
-    "../../docs/research/home-freedom/HOME_DESIGN_CANDIDATE_SET_V0.1.schema.json"
-);
+const MANIFEST_FIXTURE: &str =
+    include_str!("../../docs/research/home-freedom/HOME_FREEDOM_BENCHMARK_MANIFEST_V0.1.json");
+const BRIEF_SCHEMA: &str =
+    include_str!("../../docs/research/home-freedom/HOME_DESIGN_BRIEF_PROFILE_V0.1.schema.json");
+const CANDIDATE_SCHEMA: &str =
+    include_str!("../../docs/research/home-freedom/HOME_DESIGN_CANDIDATE_SET_V0.1.schema.json");
 const MANIFEST_SCHEMA: &str = include_str!(
     "../../docs/research/home-freedom/HOME_FREEDOM_BENCHMARK_MANIFEST_V0.1.schema.json"
 );
@@ -52,10 +48,10 @@ fn validate_schema_headers(
         ("candidate-set", candidate_schema),
         ("manifest", manifest_schema),
     ] {
-        if text_at(schema, "$schema")
-            != Some("https://json-schema.org/draft/2020-12/schema")
-        {
-            errors.push(format!("{label} schema does not declare JSON Schema Draft 2020-12"));
+        if text_at(schema, "$schema") != Some("https://json-schema.org/draft/2020-12/schema") {
+            errors.push(format!(
+                "{label} schema does not declare JSON Schema Draft 2020-12"
+            ));
         }
         if text_at(schema, "type") != Some("object") {
             errors.push(format!("{label} schema root must be an object"));
@@ -86,12 +82,15 @@ fn validate(
     if text_at(candidate_set, "maturity") != Some("SYNTHETIC_SCREENING_ONLY")
         || text_at(candidate_set, "execution_status") != Some("NOT_SIMULATED")
     {
-        errors.push("candidate set must remain SYNTHETIC_SCREENING_ONLY / NOT_SIMULATED".to_owned());
+        errors
+            .push("candidate set must remain SYNTHETIC_SCREENING_ONLY / NOT_SIMULATED".to_owned());
     }
     if text_at(manifest, "maturity") != Some("PROPOSED_NOT_EVALUATED")
         || text_at(manifest, "execution_status") != Some("NOT_EXECUTED")
     {
-        errors.push("benchmark manifest must remain PROPOSED_NOT_EVALUATED / NOT_EXECUTED".to_owned());
+        errors.push(
+            "benchmark manifest must remain PROPOSED_NOT_EVALUATED / NOT_EXECUTED".to_owned(),
+        );
     }
 
     let brief_id = text_at(brief, "brief_id").unwrap_or_default();
@@ -100,7 +99,10 @@ fn validate(
     }
 
     let privacy = brief.get("privacy").unwrap_or(&Value::Null);
-    if privacy.get("contains_direct_identifiers").and_then(Value::as_bool) != Some(false)
+    if privacy
+        .get("contains_direct_identifiers")
+        .and_then(Value::as_bool)
+        != Some(false)
         || text_at(privacy, "redaction_status") != Some("REVIEWED_NO_DIRECT_IDENTIFIERS")
         || text_at(privacy, "data_sharing_mode") != Some("SYNTHETIC_PUBLIC")
     {
@@ -165,7 +167,9 @@ fn validate(
         errors.push("benchmark manifest is missing archetypes".to_owned());
     }
 
-    let candidates = array_at(candidate_set, "candidates").cloned().unwrap_or_default();
+    let candidates = array_at(candidate_set, "candidates")
+        .cloned()
+        .unwrap_or_default();
     if candidates.len() < 2 {
         errors.push("candidate set must preserve at least two alternatives".to_owned());
     }
@@ -180,17 +184,23 @@ fn validate(
         }
         let archetype = text_at(candidate, "archetype_id").unwrap_or_default();
         if !manifest_archetypes.contains(archetype) {
-            errors.push(format!("{id}: archetype {archetype} is absent from the benchmark manifest"));
+            errors.push(format!(
+                "{id}: archetype {archetype} is absent from the benchmark manifest"
+            ));
         }
         if text_at(candidate, "disposition") != Some("CONDITIONAL_CONCEPT_ONLY")
             || text_at(candidate, "space_program_state")
                 != Some("SYMBOLIC_ROOM_PROGRAM_NOT_GEOMETRY")
         {
-            errors.push(format!("{id}: candidate was promoted above symbolic concept maturity"));
+            errors.push(format!(
+                "{id}: candidate was promoted above symbolic concept maturity"
+            ));
         }
 
         let floor_area = number_at(candidate, "floor_area_m2").unwrap_or(f64::NAN);
-        let room_program = array_at(candidate, "room_program").cloned().unwrap_or_default();
+        let room_program = array_at(candidate, "room_program")
+            .cloned()
+            .unwrap_or_default();
         let room_sum: f64 = room_program
             .iter()
             .map(|space| number_at(space, "target_area_m2").unwrap_or(f64::NAN))
@@ -216,7 +226,10 @@ fn validate(
                     errors.push(format!("{id}: hard-gate row has no gate_id"));
                     continue;
                 }
-                if present_gates.insert(gate_id.clone(), state.clone()).is_some() {
+                if present_gates
+                    .insert(gate_id.clone(), state.clone())
+                    .is_some()
+                {
                     errors.push(format!("{id}: duplicate gate row {gate_id}"));
                 }
                 if state != "UNKNOWN" {
@@ -225,7 +238,9 @@ fn validate(
                     ));
                 }
                 if gate.get("evidence_ref").is_some_and(|v| !v.is_null()) {
-                    errors.push(format!("{id}: UNKNOWN gate {gate_id} must not attach invented evidence"));
+                    errors.push(format!(
+                        "{id}: UNKNOWN gate {gate_id} must not attach invented evidence"
+                    ));
                 }
                 gate_rows_checked += 1;
             }
@@ -246,31 +261,47 @@ fn validate(
             || !cost.get("high_estimate").is_some_and(Value::is_null)
             || !cost.get("rate_evidence_ref").is_some_and(Value::is_null)
         {
-            errors.push(format!("{id}: unpriced synthetic case must preserve unknown cost as null"));
+            errors.push(format!(
+                "{id}: unpriced synthetic case must preserve unknown cost as null"
+            ));
         }
         if text_at(cost, "currency") != Some("ZAR") {
-            errors.push(format!("{id}: currency must match the synthetic Johannesburg profile (ZAR)"));
+            errors.push(format!(
+                "{id}: currency must match the synthetic Johannesburg profile (ZAR)"
+            ));
         }
 
         let thermal = candidate.get("thermal_state").unwrap_or(&Value::Null);
         if text_at(thermal, "state") != Some("NOT_SIMULATED")
             || text_at(thermal, "baseline") != Some("NO_WATER_PASSIVE_BASELINE_REQUIRED")
         {
-            errors.push(format!("{id}: thermal outcome cannot be inferred or simulated in this fixture"));
+            errors.push(format!(
+                "{id}: thermal outcome cannot be inferred or simulated in this fixture"
+            ));
         }
 
         let future = candidate.get("future_change_state").unwrap_or(&Value::Null);
         if text_at(future, "state") != Some("RESERVED_SPACE_ONLY") {
-            errors.push(format!("{id}: future extension is not a qualified engineered interface"));
+            errors.push(format!(
+                "{id}: future extension is not a qualified engineered interface"
+            ));
         }
     }
 
-    let policy = candidate_set.get("comparison_policy").unwrap_or(&Value::Null);
+    let policy = candidate_set
+        .get("comparison_policy")
+        .unwrap_or(&Value::Null);
     if text_at(policy, "ranking_state") != Some("UNRANKED_PARETO_CANDIDATES")
         || !policy.get("scalar_score").is_some_and(Value::is_null)
-        || policy.get("resident_choice_required").and_then(Value::as_bool) != Some(true)
+        || policy
+            .get("resident_choice_required")
+            .and_then(Value::as_bool)
+            != Some(true)
     {
-        errors.push("candidate set must remain unranked with resident choice and no scalar score".to_owned());
+        errors.push(
+            "candidate set must remain unranked with resident choice and no scalar score"
+                .to_owned(),
+        );
     }
     if array_at(candidate_set, "common_unknowns").is_none_or(Vec::is_empty) {
         errors.push("candidate set must disclose common unknowns".to_owned());
@@ -363,7 +394,10 @@ fn main() {
     let args = env::args().skip(1).collect::<Vec<_>>();
     match run(&args) {
         Ok(report) => {
-            println!("{}", serde_json::to_string_pretty(&report).unwrap_or_default());
+            println!(
+                "{}",
+                serde_json::to_string_pretty(&report).unwrap_or_default()
+            );
             if text_at(&report, "audit_state") == Some("HOME_FREEDOM_SCREEN_PASS") {
                 return;
             }
@@ -465,7 +499,8 @@ mod tests {
     #[test]
     fn a_future_extension_is_not_promoted_without_requalification() {
         let (brief, mut candidates, manifest, bs, cs, ms) = fixture();
-        candidates["candidates"][0]["future_change_state"]["state"] = json!("PROFESSIONALLY_REVIEWED");
+        candidates["candidates"][0]["future_change_state"]["state"] =
+            json!("PROFESSIONALLY_REVIEWED");
         assert!(validate(&brief, &candidates, &manifest, &bs, &cs, &ms).is_err());
     }
 }
