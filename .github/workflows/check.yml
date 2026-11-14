@@ -80,6 +80,10 @@ jobs:
         run: cargo test --manifest-path sol-atlas-core/Cargo.toml project_split
       - name: Verify pinned 13-project split manifest
         run: cargo run --bin project_split_eval -- --check-pinned
+      - name: Test project split CLI sensitivity sweep
+        run: cargo test --bin project_split_eval
+      - name: Emit project split calibration sensitivity sweep
+        run: cargo run --bin project_split_eval -- --sensitivity-sweep
       - name: Test sensor observability scoring CLI
         run: cargo test --bin sensor_observability_eval
       - name: Verify pinned analytic sensor observability receipt
