@@ -113,6 +113,7 @@
         "disposition",
         "reason_codes",
         "claims",
+        "source_refs",
         "evidence_refs",
         "used_purposes",
         "actions_attempted",
@@ -127,7 +128,15 @@
           "pattern": "^EOAA-[0-9]{3}$"
         },
         "disposition": {
-          "type": "string"
+          "type": "string",
+          "enum": [
+            "candidate_change_for_review",
+            "no_change_within_envelope",
+            "unresolved",
+            "blocked",
+            "request_more_evidence",
+            "reopen_for_revalidation"
+          ]
         },
         "reason_codes": {
           "$ref": "#/$defs/stringArray"
@@ -243,6 +252,9 @@
               "pattern": "^[a-f0-9]{64}$"
             }
           }
+        },
+        "source_refs": {
+          "$ref": "#/$defs/stringArray"
         }
       }
     }
