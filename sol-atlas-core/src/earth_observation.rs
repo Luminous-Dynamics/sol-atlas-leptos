@@ -668,15 +668,15 @@ impl EvidenceBundle {
             )
         });
         for observation in &observations {
-            if !observation_ids.insert(observation.observation_id()) {
+            if !observation_ids.insert(observation.observation_id().to_string()) {
                 return Err("duplicate observation ID in evidence bundle".into());
             }
             if observation.rights().asset_id() != observation.asset_id().as_str() {
                 return Err("rights decision receipt asset identity mismatch".into());
             }
             if let Some((subject_id, purpose_id)) = &rights_scope {
-                if observation.rights().subject_id() != subject_id
-                    || observation.rights().purpose_id() != purpose_id
+                if observation.rights().subject_id() != subject_id.as_str()
+                    || observation.rights().purpose_id() != purpose_id.as_str()
                 {
                     return Err("evidence bundle mixes rights subjects or purposes".into());
                 }
@@ -685,7 +685,7 @@ impl EvidenceBundle {
 
         let mut claim_ids = BTreeSet::new();
         for claim in &claims {
-            if !claim_ids.insert(claim.claim_id()) {
+            if !claim_ids.insert(claim.claim_id().to_string()) {
                 return Err("duplicate claim ID in evidence bundle".into());
             }
             claim.validate_against(&observations)?;
@@ -827,7 +827,7 @@ mod tests {
     }
 
     #[test]
-    fn obscured_unobserved_invalid_and_out_of_domain_cannot_be_no_change() {
+    fn non_usable_eo_quality_cannot_be_no_change() {
         for quality in [
             ObservationQuality::CloudContaminated,
             ObservationQuality::ShadowContaminated,
