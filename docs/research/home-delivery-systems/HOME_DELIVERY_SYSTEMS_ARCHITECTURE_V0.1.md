@@ -156,3 +156,21 @@ The potential differentiator is **continuous evidence continuity across the whol
 This architecture and its synthetic tests do not prove site suitability, soil conditions, foundation adequacy, building-code compliance, fire or accessibility compliance, structural safety, product safety, energy savings, water quality, manufacturability, local supplier capacity, affordability, construction savings or resident satisfaction.
 
 Professional design, controlled standards, qualified inspections, product-specific safety tests, permits and measured as-built/operational evidence remain separate obligations.
+
+
+## 11. Multi-family qualification and shared programme owners
+
+The apartment programme is now [#840](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/840). Its benchmark is in [MULTIFAMILY_HOUSING_BENCHMARK_V0.1.md](MULTIFAMILY_HOUSING_BENCHMARK_V0.1.md); its synthetic building and adversarial corpus are machine-readable in the adjacent schema/fixture/manifest files.
+
+Compose existing programmes rather than duplicate them:
+- [#617] 2026 AEC commercial and human-led benchmarking;
+- [#816] whole-household cost-of-place;
+- [#752] heat/water/power thermal-service trajectories and refuge;
+- [Symtropy #1848] design habitability under common outage/climate stress traces;
+- [#819] resident-intent × site feasibility corpus;
+- [#338] pre-registered benchmark run manifest.
+
+The new P0 Rust binary `src/bin/home-multifamily-qualifier.rs` checks only floor-local orthogonal rectangle identity/containment/partition, non-overlap, unit-to-space identity, declared everyday portals, vertical-core references, shared-service unit references and unexecuted case-manifest shape. Focused CI is defined in `.github/workflows/home-multifamily-qualifier.yml`. Native test and rustfmt status must be read from the exact current head; source authorship is not a pass.
+
+A 2026 buildingSMART survey highlights IDS implementation consistency as an interoperability issue. The apartment benchmark now includes a checker-parity experiment for IDS 1.0 and a separate geometry oracle; IDS must not be credited with geometry checks. A 2026 industrialised-housing review reports highly variable outcomes, including both cost savings and cost increases, so DfMA claims remain matched, whole-workflow hypotheses rather than fixed savings assumptions.
+
