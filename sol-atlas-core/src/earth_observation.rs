@@ -6,8 +6,10 @@
 //! This module deliberately sits above the canonical geospatial asset model.
 //! It references AssetId and source/processing receipts; it does not introduce
 //! another asset catalog, fetch imagery, establish data rights, or infer
-//! scientific truth. Cross-record validation is performed when constructing
-//! or deserializing an EvidenceBundle.
+//! scientific truth. RightsReceiptRef binds an external decision receipt but
+//! does not interpret or authenticate it; Mycelix / the custodian owns that
+//! authority check. Cross-record validation is performed when constructing or
+//! deserializing an EvidenceBundle.
 //!
 //! A missing, obscured, invalid, below-limit, out-of-domain, conflicted, or
 //! rights-unresolved observation is never equivalent to "no change".
@@ -38,91 +40,101 @@ pub enum ObservationModality {
 #[serde(rename_all = "snake_case")]
 pub enum ObservationQuality {
     QualifiedUsable,
-    PartiallyObscured,
-    Obscured,
-    Invalid,
-    Unobserved,
+    CloudContaminated,
+    ShadowContaminated,
+    HazeOrSmokeContaminated,
+    Saturated,
+    RadiometricInvalid,
+    GeometricInvalid,
+    IncompleteCoverage,
     BelowDetectionLimit,
     OutOfDomain,
     Conflicted,
 }
 
-/// Snapshot of an external purpose-specific rights decision.
-/// Mycelix (or the authoritative rights provider) remains the grant authority;
-/// this record only binds the EO evidence to the exact decision receipt.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(rename_all = "snake_case")]
-pub enum RightsDecisionState {
-    GrantedForPurpose,
-    Unknown,
-    Denied,
-    Revoked,
-}
-
+/// Reference to an external purpose-specific rights decision.
+/// This is a locator/binding only: Sol-Atlas does not interpret the decision
+/// or authenticate its issuer. Mycelix / the authoritative custodian owns that
+/// decision and must verify it before any use, export or action.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(try_from = "RightsBindingWire")]
-pub struct RightsBinding {
+#[serde(try_from = "RightsReceiptRefWire")]
+pub struct RightsReceiptRef {
+    subject_id: String,
     purpose_id: String,
-    state: RightsDecisionState,
-    decision_receipt_sha256: Option<String>,
+    source_id: String,
+    asset_id: String,
+    decision_receipt_sha256: String,
 }
 
 #[derive(Debug, Deserialize)]
 #[serde(deny_unknown_fields)]
-struct RightsBindingWire {
+struct RightsReceiptRefWire {
+    subject_id: String,
     purpose_id: String,
-    state: RightsDecisionState,
-    decision_receipt_sha256: Option<String>,
+    source_id: String,
+    asset_id: String,
+    decision_receipt_sha256: String,
 }
 
-impl RightsBinding {
+impl RightsReceiptRef {
     pub fn new(
+        subject_id: impl Into<String>,
         purpose_id: impl Into<String>,
-        state: RightsDecisionState,
-        decision_receipt_sha256: Option<String>,
+        source_id: impl Into<String>,
+        asset_id: impl Into<String>,
+        decision_receipt_sha256: impl Into<String>,
     ) -> Result<Self, String> {
+        let subject_id = subject_id.into();
         let purpose_id = purpose_id.into();
-        if purpose_id.trim().is_empty() || purpose_id.trim() != purpose_id {
-            return Err("rights purpose ID must be non-empty and trimmed".into());
-        }
-        let decision_receipt_sha256 = decision_receipt_sha256
-            .map(|value| normalize_sha256(value, "rights decision receipt"))
-            .transpose()?;
-        if state != RightsDecisionState::Unknown && decision_receipt_sha256.is_none() {
-            return Err("non-unknown rights state requires an exact decision receipt digest".into());
-        }
+        let source_id = source_id.into();
+        let asset_id = asset_id.into();
+        validate_identifier(&subject_id, "rights subject ID")?;
+        validate_identifier(&purpose_id, "rights purpose ID")?;
+        validate_identifier(&source_id, "rights source ID")?;
+        validate_identifier(&asset_id, "rights asset ID")?;
+        let decision_receipt_sha256 = normalize_sha256(
+            decision_receipt_sha256.into(),
+            "rights decision receipt",
+        )?;
         Ok(Self {
+            subject_id,
             purpose_id,
-            state,
+            source_id,
+            asset_id,
             decision_receipt_sha256,
         })
+    }
+
+    pub fn subject_id(&self) -> &str {
+        &self.subject_id
     }
 
     pub fn purpose_id(&self) -> &str {
         &self.purpose_id
     }
 
-    pub fn state(&self) -> RightsDecisionState {
-        self.state
+    pub fn source_id(&self) -> &str {
+        &self.source_id
     }
 
-    pub fn decision_receipt_sha256(&self) -> Option<&str> {
-        self.decision_receipt_sha256.as_deref()
+    pub fn asset_id(&self) -> &str {
+        &self.asset_id
     }
 
-    pub fn is_granted_for_purpose(&self) -> bool {
-        self.state == RightsDecisionState::GrantedForPurpose
-            && self.decision_receipt_sha256.is_some()
+    pub fn decision_receipt_sha256(&self) -> &str {
+        &self.decision_receipt_sha256
     }
 }
 
-impl TryFrom<RightsBindingWire> for RightsBinding {
+impl TryFrom<RightsReceiptRefWire> for RightsReceiptRef {
     type Error = String;
 
-    fn try_from(wire: RightsBindingWire) -> Result<Self, Self::Error> {
+    fn try_from(wire: RightsReceiptRefWire) -> Result<Self, Self::Error> {
         Self::new(
+            wire.subject_id,
             wire.purpose_id,
-            wire.state,
+            wire.source_id,
+            wire.asset_id,
             wire.decision_receipt_sha256,
         )
     }
@@ -138,7 +150,7 @@ pub struct ObservationRecord {
     asset_id: AssetId,
     source_asset_receipt_sha256: String,
     processing_receipt_sha256: String,
-    rights: RightsBinding,
+    rights: RightsReceiptRef,
     support_id: String,
     acquisition: ObservationTime,
     modality: ObservationModality,
@@ -152,7 +164,7 @@ struct ObservationRecordWire {
     asset_id: AssetId,
     source_asset_receipt_sha256: String,
     processing_receipt_sha256: String,
-    rights: RightsBinding,
+    rights: RightsReceiptRef,
     support_id: String,
     acquisition: ObservationTime,
     modality: ObservationModality,
@@ -166,7 +178,7 @@ impl ObservationRecord {
         asset_id: AssetId,
         source_asset_receipt_sha256: impl Into<String>,
         processing_receipt_sha256: impl Into<String>,
-        rights: RightsBinding,
+        rights: RightsReceiptRef,
         support_id: impl Into<String>,
         acquisition: ObservationTime,
         modality: ObservationModality,
@@ -180,6 +192,9 @@ impl ObservationRecord {
             && quality == ObservationQuality::QualifiedUsable
         {
             return Err("qualified usable observation requires declared acquisition time".into());
+        }
+        if rights.asset_id() != asset_id.as_str() {
+            return Err("rights decision receipt must bind the exact observation asset ID".into());
         }
         Ok(Self {
             observation_id,
@@ -216,7 +231,7 @@ impl ObservationRecord {
         &self.processing_receipt_sha256
     }
 
-    pub fn rights(&self) -> &RightsBinding {
+    pub fn rights(&self) -> &RightsReceiptRef {
         &self.rights
     }
 
@@ -236,9 +251,10 @@ impl ObservationRecord {
         self.quality
     }
 
-    pub fn is_admissible_observation(&self) -> bool {
+    /// EO-quality check only. Rights decisions are external references and
+    /// must be authenticated by the Mycelix / custodian verification boundary.
+    pub fn is_usable_observation(&self) -> bool {
         self.quality == ObservationQuality::QualifiedUsable
-            && self.rights.is_granted_for_purpose()
     }
 
     fn acquisition_signature(&self) -> Option<String> {
@@ -563,9 +579,6 @@ impl ChangeClaim {
             if observation.support_id() != self.support_id {
                 return Err(format!("observation {id} has a different spatial support"));
             }
-            if !observation.rights().is_granted_for_purpose() {
-                return Err(format!("observation {id} lacks a granted purpose-specific rights receipt"));
-            }
             referenced.push(*observation);
         }
 
@@ -577,17 +590,17 @@ impl ChangeClaim {
             let observation = by_id
                 .get(id.as_str())
                 .ok_or_else(|| format!("missing referenced observation: {id}"))?;
-            if !observation.is_admissible_observation() {
-                return Err(format!("observation {id} is not qualified-usable and rights-admitted"));
+            if !observation.is_usable_observation() {
+                return Err(format!("observation {id} is not EO-qualified usable"));
             }
         }
 
         if self.disposition == ChangeDisposition::NoChangeWithinEnvelope {
             if referenced
                 .iter()
-                .any(|observation| !observation.is_admissible_observation())
+                .any(|observation| !observation.is_usable_observation())
             {
-                return Err("no-change claim includes an unusable or non-admitted observation".into());
+                return Err("no-change claim includes an EO-unusable observation".into());
             }
             let unique_acquisitions = self
                 .supporting_observation_ids
@@ -648,9 +661,25 @@ impl EvidenceBundle {
         claims: Vec<ChangeClaim>,
     ) -> Result<Self, String> {
         let mut observation_ids = BTreeSet::new();
+        let rights_scope = observations.first().map(|observation| {
+            (
+                observation.rights().subject_id().to_string(),
+                observation.rights().purpose_id().to_string(),
+            )
+        });
         for observation in &observations {
             if !observation_ids.insert(observation.observation_id()) {
                 return Err("duplicate observation ID in evidence bundle".into());
+            }
+            if observation.rights().asset_id() != observation.asset_id().as_str() {
+                return Err("rights decision receipt asset identity mismatch".into());
+            }
+            if let Some((subject_id, purpose_id)) = &rights_scope {
+                if observation.rights().subject_id() != subject_id
+                    || observation.rights().purpose_id() != purpose_id
+                {
+                    return Err("evidence bundle mixes rights subjects or purposes".into());
+                }
             }
         }
 
@@ -735,11 +764,13 @@ mod tests {
         std::iter::repeat_n(byte as char, 64).collect()
     }
 
-    fn rights() -> RightsBinding {
-        RightsBinding::new(
+    fn rights(asset_id: &str) -> RightsReceiptRef {
+        RightsReceiptRef::new(
+            "fixture-subject",
             "internal-evaluation",
-            RightsDecisionState::GrantedForPurpose,
-            Some(digest(b'a')),
+            "fixture-source",
+            asset_id,
+            digest(b'a'),
         )
         .unwrap()
     }
@@ -750,7 +781,7 @@ mod tests {
             AssetId::new(format!("fixture:{id}")).unwrap(),
             digest(b'b'),
             digest(b'c'),
-            rights(),
+            rights(&format!("fixture:{id}")),
             "support-a",
             ObservationTime::new(
                 ObservationTimeKind::Instant,
@@ -798,10 +829,13 @@ mod tests {
     #[test]
     fn obscured_unobserved_invalid_and_out_of_domain_cannot_be_no_change() {
         for quality in [
-            ObservationQuality::PartiallyObscured,
-            ObservationQuality::Obscured,
-            ObservationQuality::Invalid,
-            ObservationQuality::Unobserved,
+            ObservationQuality::CloudContaminated,
+            ObservationQuality::ShadowContaminated,
+            ObservationQuality::HazeOrSmokeContaminated,
+            ObservationQuality::Saturated,
+            ObservationQuality::RadiometricInvalid,
+            ObservationQuality::GeometricInvalid,
+            ObservationQuality::IncompleteCoverage,
             ObservationQuality::BelowDetectionLimit,
             ObservationQuality::OutOfDomain,
             ObservationQuality::Conflicted,
@@ -830,44 +864,59 @@ mod tests {
     }
 
     #[test]
-    fn unknown_denied_and_revoked_rights_cannot_support_claims() {
-        for state in [
-            RightsDecisionState::Unknown,
-            RightsDecisionState::Denied,
-            RightsDecisionState::Revoked,
-        ] {
-            let binding = RightsBinding::new(
+    fn rights_receipt_must_bind_the_exact_asset_and_bundle_scope() {
+        let wrong_asset_rights = rights("fixture:some-other-asset");
+        assert!(ObservationRecord::new(
+            "obs-a",
+            AssetId::new("fixture:obs-a").unwrap(),
+            digest(b'b'),
+            digest(b'c'),
+            wrong_asset_rights,
+            "support-a",
+            ObservationTime::new(
+                ObservationTimeKind::Instant,
+                Some("2024-01-01".into()),
+                None
+            ).unwrap(),
+            ObservationModality::Optical,
+            ObservationQuality::QualifiedUsable,
+        ).is_err());
+
+        let mismatched_scope = ObservationRecord::new(
+            "obs-b",
+            AssetId::new("fixture:obs-b").unwrap(),
+            digest(b'b'),
+            digest(b'c'),
+            RightsReceiptRef::new(
+                "different-subject",
                 "internal-evaluation",
-                state,
-                if state == RightsDecisionState::Unknown { None } else { Some(digest(b'e')) },
-            ).unwrap();
-            let restricted = ObservationRecord::new(
-                "obs-a",
-                AssetId::new("fixture:obs-a").unwrap(),
-                digest(b'b'),
-                digest(b'c'),
-                binding,
-                "support-a",
-                ObservationTime::new(ObservationTimeKind::Instant, Some("2024-01-01".into()), None).unwrap(),
-                ObservationModality::Optical,
-                ObservationQuality::QualifiedUsable,
-            ).unwrap();
-            let claim = ChangeClaim::new(
-                "candidate", "built-up-change", "ontology-v1", "support-a",
-                TimeWindow::new("2024-01-01", "2025-01-01").unwrap(),
-                ChangeDisposition::CandidateChange, None,
-                vec!["obs-a".into()], vec!["obs-a".into()], vec![],
-                CoverageState::Unknown, None, None
-            ).unwrap();
-            assert!(EvidenceBundle::new(vec![restricted], vec![claim]).is_err());
-        }
+                "fixture-source",
+                "fixture:obs-b",
+                digest(b'a'),
+            ).unwrap(),
+            "support-a",
+            ObservationTime::new(
+                ObservationTimeKind::Instant,
+                Some("2025-01-01".into()),
+                None
+            ).unwrap(),
+            ObservationModality::Optical,
+            ObservationQuality::QualifiedUsable,
+        ).unwrap();
+        assert!(EvidenceBundle::new(
+            vec![
+                observation("obs-a", "2024-01-01", ObservationQuality::QualifiedUsable),
+                mismatched_scope
+            ],
+            vec![]
+        ).is_err());
     }
 
     #[test]
     fn mismatched_support_and_missing_receipt_digests_fail() {
         assert!(ObservationRecord::new(
             "obs-b", AssetId::new("fixture:obs-b").unwrap(), "not-a-digest", digest(b'c'),
-            rights(), "support-a",
+            rights("fixture:obs-b"), "support-a",
             ObservationTime::new(ObservationTimeKind::Instant, Some("2024-01-01".into()), None).unwrap(),
             ObservationModality::Optical, ObservationQuality::QualifiedUsable
         ).is_err());
@@ -912,7 +961,7 @@ mod tests {
         ).unwrap();
         let other_support = ObservationRecord::new(
             "obs-b", AssetId::new("fixture:obs-b").unwrap(), digest(b'b'), digest(b'c'),
-            rights(), "support-b",
+            rights("fixture:obs-b"), "support-b",
             ObservationTime::new(ObservationTimeKind::Instant, Some("2024-01-01".into()), None).unwrap(),
             ObservationModality::Optical, ObservationQuality::QualifiedUsable
         ).unwrap();
