@@ -251,7 +251,7 @@ fn build_stress_impact_preview(
                     "NO_QUALITY_CREDIT_FROM_TOPOLOGY"
                 };
                 let allocation_state = if kind == "allocation_policy_change"
-                    && affected.iter().any(|id| id == boundary)
+                    && affected.iter().any(|id| id.as_str() == boundary)
                 {
                     "POLICY_REQUIRES_AUTHORITY_AND_RESIDENT_GOVERNANCE"
                 } else {
@@ -1004,6 +1004,43 @@ mod tests {
         let case = cases.iter().find(|case| case["case_id"] == "MF-SVC-013").unwrap();
         let recovery = &case["events"][0];
         assert_eq!(recovery["recovery_state"], "RESTORATION_NOT_ESTABLISHED_WITHOUT_MEASURED_RECOMMISSIONING");
+    }
+
+    #[test]
+    fn quality_withdrawal_never_creates_potable_quality_credit() {
+        let (fixture, building, stress) = load_fixtures();
+        let report = validate(&fixture, &building, &stress).expect("quality withdrawal preview");
+        let cases = report["stress_impact_preview"].as_array().unwrap();
+        let case = cases.iter().find(|case| case["case_id"] == "MF-SVC-007").unwrap();
+        let event = &case["events"][0];
+        let potable = event["service_paths"].as_array().unwrap()
+            .iter()
+            .filter(|service| service["service_id"] == "POTABLE-WATER-DELIVERY");
+        assert!(potable.into_iter().all(|service| service["quality_credit"] == "WITHDRAWN_OR_UNKNOWN"));
+    }
+
+    #[test]
+    fn allocation_change_is_scoped_to_affected_water_boundaries() {
+        let (fixture, building, stress) = load_fixtures();
+        let report = validate(&fixture, &building, &stress).expect("allocation change preview");
+        let cases = report["stress_impact_preview"].as_array().unwrap();
+        let case = cases.iter().find(|case| case["case_id"] == "MF-SVC-009").unwrap();
+        let event = &case["events"][0];
+        let rows = event["service_paths"].as_array().unwrap();
+        let governed = rows.iter().filter(|row| row["allocation_state"] == "POLICY_REQUIRES_AUTHORITY_AND_RESIDENT_GOVERNANCE").count();
+        assert_eq!(governed, 4);
+    }
+
+    #[test]
+    fn simultaneous_floor_riser_isolation_identifies_all_four_units() {
+        let (fixture, building, stress) = load_fixtures();
+        let report = validate(&fixture, &building, &stress).expect("simultaneous riser isolation preview");
+        let cases = report["stress_impact_preview"].as_array().unwrap();
+        let case = cases.iter().find(|case| case["case_id"] == "MF-SVC-015").unwrap();
+        let event = &case["events"][1];
+        let affected = event["affected_unit_ids"].as_array().unwrap()
+            .iter().filter_map(Value::as_str).collect::<BTreeSet<_>>();
+        assert_eq!(affected, BTreeSet::from(["U-001", "U-002", "U-003", "U-004"]));
     }
 
     #[test]
