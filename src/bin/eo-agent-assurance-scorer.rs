@@ -1650,6 +1650,20 @@ mod tests {
     }
 
     #[test]
+    fn accepts_calendar_valid_utc_days_and_rejects_invalid_dates() {
+        let leap_day = json!("2024-02-29T12:30:00Z");
+        let ordinary_day = json!("2025-02-28T12:30:00Z");
+        let invalid_leap_day = json!("2025-02-29T12:30:00Z");
+        let invalid_month_day = json!("2025-04-31T12:30:00Z");
+        let fractional = json!("2025-04-30T12:30:00.100Z");
+        assert!(is_utc_timestamp(Some(&leap_day)));
+        assert!(is_utc_timestamp(Some(&ordinary_day)));
+        assert!(!is_utc_timestamp(Some(&invalid_leap_day)));
+        assert!(!is_utc_timestamp(Some(&invalid_month_day)));
+        assert!(!is_utc_timestamp(Some(&fractional)));
+    }
+
+    #[test]
     fn rejects_unknown_result_fields_and_malformed_utc_timestamps() {
         let manifest = sample_manifest(
             "candidate_change_for_review",
