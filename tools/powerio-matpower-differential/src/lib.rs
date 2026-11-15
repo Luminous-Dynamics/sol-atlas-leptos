@@ -358,9 +358,32 @@ fn compare_projection(
             expected.line_charging_susceptance_pu,
             observed.b,
         );
-        cmp.number("branch", &label, "rate_a_mva", expected.rate_a_mva, observed.rate_a);
-        cmp.number("branch", &label, "rate_b_mva", expected.rate_b_mva, observed.rate_b);
-        cmp.number("branch", &label, "rate_c_mva", expected.rate_c_mva, observed.rate_c);
+        // MATPOWER uses zero to mean an unlimited thermal rating; PowerIO
+        // canonicalizes this semantic value as positive infinity.
+        let unlimited_to_infinity = |rating: f64| {
+            if rating == 0.0 { f64::INFINITY } else { rating }
+        };
+        cmp.number(
+            "branch",
+            &label,
+            "rate_a_mva_semantic",
+            unlimited_to_infinity(expected.rate_a_mva),
+            observed.rate_a,
+        );
+        cmp.number(
+            "branch",
+            &label,
+            "rate_b_mva_semantic",
+            unlimited_to_infinity(expected.rate_b_mva),
+            observed.rate_b,
+        );
+        cmp.number(
+            "branch",
+            &label,
+            "rate_c_mva_semantic",
+            unlimited_to_infinity(expected.rate_c_mva),
+            observed.rate_c,
+        );
         cmp.number("branch", &label, "tap_ratio", expected.tap_ratio, observed.tap);
         cmp.number("branch", &label, "phase_shift_degrees", expected.phase_shift_degrees, observed.shift);
         cmp.boolean("branch", &label, "in_service", expected.in_service, observed.in_service);
@@ -368,7 +391,6 @@ fn compare_projection(
         cmp.number("branch", &label, "angle_max_degrees", expected.angle_max_degrees, observed.angmax);
     }
 
-    let mut powerio_cost_rows = 0usize;
     for (row, (expected, observed)) in projection
         .costs
         .iter()
@@ -378,7 +400,6 @@ fn compare_projection(
         let label = format!("row-{}", row + 1);
         match &observed.cost {
             Some(cost) => {
-                powerio_cost_rows += 1;
                 cmp.integer("gencost", &label, "model", expected.model as i64, cost.model as i64);
                 cmp.number("gencost", &label, "startup", expected.startup_cost, cost.startup);
                 cmp.number("gencost", &label, "shutdown", expected.shutdown_cost, cost.shutdown);
@@ -416,7 +437,10 @@ fn compare_projection(
             }
         }
     }
-    let _powerio_cost_row_count = powerio_generators.iter().filter(|generator| generator.cost.is_some()).count();
+    let powerio_cost_rows = powerio_generators
+        .iter()
+        .filter(|generator| generator.cost.is_some())
+        .count();
     cmp.integer(
         "generator_cost",
         "case",
