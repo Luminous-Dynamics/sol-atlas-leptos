@@ -1,0 +1,510 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/Luminous-Dynamics/sol-atlas-leptos/main/docs/research/home-delivery-systems/multifamily-lifecycle.schema.json",
+  "title": "Multi-family Lifecycle Evidence Continuity v0.1",
+  "description": "Synthetic-first apartment/unit/asset lifecycle identity, revision, event and claim-state adapter. It does not establish a real as-built state, occupation, measurement, safety, commissioning or resident outcome.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "profile_id",
+    "maturity",
+    "source_bindings",
+    "building_id",
+    "unit_ids",
+    "revisions",
+    "asset_bindings",
+    "events",
+    "unit_timelines",
+    "claims",
+    "claim_ceiling"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "multifamily-lifecycle/0.1"
+    },
+    "profile_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "maturity": {
+      "const": "synthetic_scenario_only"
+    },
+    "source_bindings": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "building_ref",
+        "resident_programme_ref",
+        "unit_layout_ref",
+        "service_topology_ref"
+      ],
+      "properties": {
+        "building_ref": {
+          "$ref": "#/$defs/reference"
+        },
+        "resident_programme_ref": {
+          "$ref": "#/$defs/reference"
+        },
+        "unit_layout_ref": {
+          "$ref": "#/$defs/reference"
+        },
+        "service_topology_ref": {
+          "$ref": "#/$defs/reference"
+        }
+      }
+    },
+    "building_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "unit_ids": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "revisions": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/revision"
+      }
+    },
+    "asset_bindings": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/assetBinding"
+      }
+    },
+    "events": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/event"
+      }
+    },
+    "unit_timelines": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/unitTimeline"
+      }
+    },
+    "claims": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/claim"
+      }
+    },
+    "claim_ceiling": {
+      "const": "This synthetic record establishes only apartment/asset identity, revision lineage, logical event ordering and non-contradictory claim lifecycle. It does not establish real construction, as-built condition, commissioning, occupation, resident experience, measurement, repair, service restoration, safety, code compliance or building performance."
+    }
+  },
+  "$defs": {
+    "reference": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "id",
+        "revision",
+        "digest"
+      ],
+      "properties": {
+        "kind": {
+          "type": "string",
+          "minLength": 1
+        },
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "revision": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "digest": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+    "nullableRef": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/reference"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "revision": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "revision_id",
+        "unit_id",
+        "parent_revision_id",
+        "revision_kind",
+        "revision_state",
+        "artifact_ref",
+        "change_kind"
+      ],
+      "properties": {
+        "revision_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "unit_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "parent_revision_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "revision_kind": {
+          "enum": [
+            "design",
+            "adaptation",
+            "as_built",
+            "commissioned",
+            "as_operated",
+            "repair_state"
+          ]
+        },
+        "revision_state": {
+          "const": "synthetic_identity_only"
+        },
+        "artifact_ref": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/reference"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "change_kind": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+    "assetBinding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "asset_id",
+        "asset_kind",
+        "source_ref",
+        "served_unit_ids",
+        "identity_state",
+        "current_revision_id",
+        "evidence_state"
+      ],
+      "properties": {
+        "asset_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "asset_kind": {
+          "enum": [
+            "water_riser",
+            "water_pump",
+            "hot_water_plant",
+            "lift",
+            "facade_module",
+            "service_riser",
+            "other"
+          ]
+        },
+        "source_ref": {
+          "$ref": "#/$defs/reference"
+        },
+        "served_unit_ids": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "string"
+          }
+        },
+        "identity_state": {
+          "const": "identity_only_synthetic"
+        },
+        "current_revision_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "evidence_state": {
+          "const": "unknown"
+        }
+      }
+    },
+    "event": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "event_id",
+        "event_kind",
+        "event_order",
+        "unit_ids",
+        "asset_ids",
+        "from_revision_id",
+        "to_revision_id",
+        "change_kind",
+        "event_time_state",
+        "occurred_at",
+        "record_time_state",
+        "recorded_at",
+        "execution_state",
+        "data_scope",
+        "resident_data_state",
+        "consent_state",
+        "evidence_refs",
+        "change_impact_state",
+        "change_impact_ref",
+        "invalidated_claim_ids"
+      ],
+      "properties": {
+        "event_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "event_kind": {
+          "enum": [
+            "design_issue",
+            "design_change",
+            "fabrication_release",
+            "installation",
+            "as_built_capture",
+            "commissioning",
+            "occupancy_start",
+            "post_occupancy_observation",
+            "maintenance",
+            "repair",
+            "adaptation",
+            "reinspection",
+            "recommissioning",
+            "shared_asset_maintenance",
+            "shared_asset_repair",
+            "retirement"
+          ]
+        },
+        "event_order": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "unit_ids": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "asset_ids": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "from_revision_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "to_revision_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "change_kind": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "event_time_state": {
+          "const": "not_supplied"
+        },
+        "occurred_at": {
+          "type": "null"
+        },
+        "record_time_state": {
+          "const": "not_supplied"
+        },
+        "recorded_at": {
+          "type": "null"
+        },
+        "execution_state": {
+          "const": "authored_not_executed"
+        },
+        "data_scope": {
+          "const": "synthetic_structure_only"
+        },
+        "resident_data_state": {
+          "const": "no_personal_data"
+        },
+        "consent_state": {
+          "const": "not_applicable"
+        },
+        "evidence_refs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/reference"
+          }
+        },
+        "change_impact_state": {
+          "enum": [
+            "not_applicable",
+            "not_computed",
+            "owner_receipt_attached"
+          ]
+        },
+        "change_impact_ref": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/reference"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "invalidated_claim_ids": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    },
+    "unitTimeline": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "unit_id",
+        "baseline_revision_id",
+        "current_revision_id",
+        "event_ids"
+      ],
+      "properties": {
+        "unit_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "baseline_revision_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "current_revision_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "event_ids": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    },
+    "claim": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "claim_id",
+        "unit_id",
+        "domain",
+        "revision_id",
+        "claim_state",
+        "invalidated_by_event_id",
+        "evidence_refs",
+        "claim_scope"
+      ],
+      "properties": {
+        "claim_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "unit_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "domain": {
+          "enum": [
+            "unit_layout",
+            "privacy_relationship",
+            "assembly",
+            "as_built",
+            "commissioning",
+            "in_use_service",
+            "resident_experience",
+            "maintenance",
+            "repair",
+            "adaptation",
+            "other"
+          ]
+        },
+        "revision_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "claim_state": {
+          "enum": [
+            "not_assessed",
+            "unknown",
+            "pass",
+            "fail",
+            "invalidated",
+            "superseded",
+            "revoked"
+          ]
+        },
+        "invalidated_by_event_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "evidence_refs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/reference"
+          }
+        },
+        "claim_scope": {
+          "const": "synthetic_claim_identity_only"
+        }
+      }
+    }
+  }
+}
