@@ -4,6 +4,8 @@
 //! adapter, engineering approval service, manufacturing release system, or
 //! robot-authority component. Provisional labels never produce qualification.
 
+pub mod bridge;
+
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 use std::collections::{BTreeMap, BTreeSet};
