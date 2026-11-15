@@ -591,8 +591,8 @@ mod tests {
         let (evidence, service, building, stress) = complete_run();
         let report = validate(&evidence, &service, &building, &stress).expect("completed modelled result contract");
         assert_eq!(report["execution_state"], "completed");
-        assert_eq!(report["bound_mapping_count"], 2);
-        assert_eq!(report["result_series_count"], 1);
+        assert_eq!(report["bound_mapping_count"], 5);
+        assert_eq!(report["result_series_count"], 4);
         assert_eq!(report["potable_quality_credit"], "NONE_FROM_SOLVER_OUTPUT");
     }
 
