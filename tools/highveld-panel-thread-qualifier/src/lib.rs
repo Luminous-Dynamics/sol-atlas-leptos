@@ -911,11 +911,9 @@ mod tests {
     #[test]
     fn corpus_rejects_github_url_without_issue_or_pull_identity() {
         let mut raw = serde_json::from_str::<serde_json::Value>(CORPUS_JSON).unwrap();
-        raw["owner_refs"][0]["references"][0] =
-            serde_json::Value::String(
-                "https://github.com/Luminous-Dynamics/sol-atlas-leptos/wiki/Highveld"
-                    .to_owned(),
-            );
+        raw["owner_refs"][0]["references"][0] = serde_json::Value::String(
+            "https://github.com/Luminous-Dynamics/sol-atlas-leptos/wiki/Highveld".to_owned(),
+        );
         let submission = exact_submission(&corpus());
 
         let error = evaluate_bytes(&encode(&raw), &encode(&submission)).unwrap_err();
