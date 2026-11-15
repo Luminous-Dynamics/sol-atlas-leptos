@@ -93,8 +93,13 @@ fn valid_revision_transition(parent_kind: &str, child_kind: &str) -> bool {
 }
 
 fn downstream_served_units(source_node_id: &str, service_topology: &Value) -> BTreeSet<String> {
-    let nodes = array_at(service_topology, "nodes").cloned().unwrap_or_default();
-    let Some(source) = nodes.iter().find(|node| text_at(node, "node_id") == Some(source_node_id)) else {
+    let nodes = array_at(service_topology, "nodes")
+        .cloned()
+        .unwrap_or_default();
+    let Some(source) = nodes
+        .iter()
+        .find(|node| text_at(node, "node_id") == Some(source_node_id))
+    else {
         return BTreeSet::new();
     };
     let Some(resource_id) = text_at(source, "resource_id") else {
@@ -117,7 +122,10 @@ fn downstream_served_units(source_node_id: &str, service_topology: &Value) -> BT
             .find(|node| text_at(node, "node_id") == Some(to))
             .and_then(|node| text_at(node, "resource_id"));
         if from_resource == Some(resource_id) && to_resource == Some(resource_id) {
-            adjacency.entry(from.to_owned()).or_default().push(to.to_owned());
+            adjacency
+                .entry(from.to_owned())
+                .or_default()
+                .push(to.to_owned());
         }
     }
 
@@ -153,7 +161,9 @@ fn event_revision_transition_is_valid(
 ) -> bool {
     match event_kind {
         "design_issue" => from_revision == to_revision && to_kind == "design",
-        "design_change" => from_revision != to_revision && matches!(to_kind, "design" | "adaptation"),
+        "design_change" => {
+            from_revision != to_revision && matches!(to_kind, "design" | "adaptation")
+        }
         "adaptation" => from_revision != to_revision && to_kind == "adaptation",
         "as_built_capture" => from_revision != to_revision && to_kind == "as_built",
         "commissioning" => from_revision != to_revision && to_kind == "commissioned",
@@ -329,7 +339,9 @@ fn validate(
                 )),
             }
         } else if child_kind != "design" {
-            errors.push(format!("root revision {revision_id} must have revision_kind design"));
+            errors.push(format!(
+                "root revision {revision_id} must have revision_kind design"
+            ));
         }
         let mut visited = BTreeSet::new();
         let mut cursor = Some(revision_id.clone());
@@ -342,7 +354,9 @@ fn validate(
         }
     }
 
-    let service_node_records = array_at(service_topology, "nodes").cloned().unwrap_or_default();
+    let service_node_records = array_at(service_topology, "nodes")
+        .cloned()
+        .unwrap_or_default();
     let service_nodes = service_node_records
         .iter()
         .filter_map(|node| text_at(node, "node_id"))
@@ -378,7 +392,9 @@ fn validate(
             if expected_node_kind.is_none_or(|expected| {
                 source_node.and_then(|node| text_at(node, "node_kind")) != Some(expected)
             }) {
-                errors.push(format!("asset {asset_id} asset_kind does not match its source node kind"));
+                errors.push(format!(
+                    "asset {asset_id} asset_kind does not match its source node kind"
+                ));
             }
             if text_at(asset, "identity_state") != Some("identity_only_synthetic")
                 || text_at(asset, "evidence_state") != Some("unknown")
@@ -528,7 +544,9 @@ fn validate(
                         &from_record.2,
                         &to_record.2,
                     ) {
-                        errors.push(format!("event {id} kind does not match its revision transition"));
+                        errors.push(format!(
+                            "event {id} kind does not match its revision transition"
+                        ));
                     }
                     if from == to && event_kind == "adaptation" {
                         errors.push(format!(
