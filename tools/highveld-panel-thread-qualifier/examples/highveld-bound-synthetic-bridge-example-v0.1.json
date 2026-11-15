@@ -1,0 +1,195 @@
+{
+  "profile_id": "luminous.highveld.evidence-campaign-bridge.v0.1",
+  "version": "0.1.0",
+  "status": "SYNTHETIC_BRIDGE_CONTRACT_ONLY",
+  "claim_ceiling": "NON_AUTHORIZING_SYNTHETIC_EVALUATION",
+  "episode": {
+    "binding": {
+      "owner": "mycelix",
+      "repository": "Luminous-Dynamics/mycelix",
+      "commit_sha": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "artifact_path": "fixtures/synthetic/mycelix/episode.json",
+      "artifact_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "profile_id": "synthetic.mycelix.decision-episode",
+      "profile_version": "0.1.0",
+      "adapter_id": "synthetic.mycelix.highveld.adapter.v0.1",
+      "adapter_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+      "available_at_unix": 1794740000,
+      "mapping_status": "BOUND",
+      "mapping_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+      "owner_approval_ref": "SYNTHETIC-TEST-ONLY:MYCELIX-APPROVAL-NOT-REAL"
+    },
+    "episode_id": "HIGHVELD-SYNTHETIC-EPISODE-001",
+    "as_of_unix": 1794744000,
+    "context": {
+      "project_context_sha256": "1111111111111111111111111111111111111111111111111111111111111111",
+      "functional_contract_sha256": "2222222222222222222222222222222222222222222222222222222222222222",
+      "option_design_sha256": "3333333333333333333333333333333333333333333333333333333333333333",
+      "site_epoch": "HIGHVELD-SYNTHETIC-SITE-EPOCH-1",
+      "coordinate_frame_id": "PANEL-LAB-LOCAL-ENU",
+      "clock_domain": "SYNTHETIC-UTC",
+      "currency": "USD"
+    },
+    "unresolved_obligation_ids": [
+      "OBLIGATION-DESIGN-AUTHORITY-001",
+      "OBLIGATION-PANEL-METROLOGY-002"
+    ]
+  },
+  "acquisitions": [
+    {
+      "binding": {
+        "owner": "mycelix",
+        "repository": "Luminous-Dynamics/mycelix",
+        "commit_sha": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "artifact_path": "fixtures/synthetic/mycelix/acquisition-remote.json",
+        "artifact_sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+        "profile_id": "synthetic.mycelix.decision-episode",
+        "profile_version": "0.1.0",
+        "adapter_id": "synthetic.mycelix.highveld.adapter.v0.1",
+        "adapter_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "available_at_unix": 1794740000,
+        "mapping_status": "BOUND",
+        "mapping_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+        "owner_approval_ref": "SYNTHETIC-TEST-ONLY:MYCELIX-APPROVAL-NOT-REAL"
+      },
+      "acquisition_id": "ACQUISITION-REMOTE-REVIEW-001",
+      "episode_id": "HIGHVELD-SYNTHETIC-EPISODE-001",
+      "context": {
+        "project_context_sha256": "1111111111111111111111111111111111111111111111111111111111111111",
+        "functional_contract_sha256": "2222222222222222222222222222222222222222222222222222222222222222",
+        "option_design_sha256": "3333333333333333333333333333333333333333333333333333333333333333",
+        "site_epoch": "HIGHVELD-SYNTHETIC-SITE-EPOCH-1",
+        "coordinate_frame_id": "PANEL-LAB-LOCAL-ENU",
+        "clock_domain": "SYNTHETIC-UTC",
+        "currency": "USD"
+      },
+      "kind": "REMOTE",
+      "covers_obligation_ids": [
+        "OBLIGATION-DESIGN-AUTHORITY-001"
+      ],
+      "gates": {
+        "authority": "ALLOWED",
+        "rights_source_use": "ALLOWED",
+        "safety": "NOT_APPLICABLE",
+        "schedule": "ALLOWED",
+        "physical_realizability": "NOT_APPLICABLE",
+        "data_access": "ALLOWED",
+        "source_competence": "ALLOWED"
+      }
+    },
+    {
+      "binding": {
+        "owner": "mycelix",
+        "repository": "Luminous-Dynamics/mycelix",
+        "commit_sha": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "artifact_path": "fixtures/synthetic/mycelix/acquisition-physical.json",
+        "artifact_sha256": "9999999999999999999999999999999999999999999999999999999999999999",
+        "profile_id": "synthetic.mycelix.decision-episode",
+        "profile_version": "0.1.0",
+        "adapter_id": "synthetic.mycelix.highveld.adapter.v0.1",
+        "adapter_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "available_at_unix": 1794740000,
+        "mapping_status": "BOUND",
+        "mapping_sha256": "8888888888888888888888888888888888888888888888888888888888888888",
+        "owner_approval_ref": "SYNTHETIC-TEST-ONLY:MYCELIX-APPROVAL-NOT-REAL"
+      },
+      "acquisition_id": "ACQUISITION-PHYSICAL-METROLOGY-002",
+      "episode_id": "HIGHVELD-SYNTHETIC-EPISODE-001",
+      "context": {
+        "project_context_sha256": "1111111111111111111111111111111111111111111111111111111111111111",
+        "functional_contract_sha256": "2222222222222222222222222222222222222222222222222222222222222222",
+        "option_design_sha256": "3333333333333333333333333333333333333333333333333333333333333333",
+        "site_epoch": "HIGHVELD-SYNTHETIC-SITE-EPOCH-1",
+        "coordinate_frame_id": "PANEL-LAB-LOCAL-ENU",
+        "clock_domain": "SYNTHETIC-UTC",
+        "currency": "USD"
+      },
+      "kind": "PHYSICAL",
+      "covers_obligation_ids": [
+        "OBLIGATION-PANEL-METROLOGY-002"
+      ],
+      "gates": {
+        "authority": "ALLOWED",
+        "rights_source_use": "ALLOWED",
+        "safety": "ALLOWED",
+        "schedule": "ALLOWED",
+        "physical_realizability": "ALLOWED",
+        "data_access": "ALLOWED",
+        "source_competence": "ALLOWED"
+      }
+    }
+  ],
+  "campaigns": [
+    {
+      "binding": {
+        "owner": "symtropy",
+        "repository": "Luminous-Dynamics/symtropy",
+        "commit_sha": "1111111111111111111111111111111111111111",
+        "artifact_path": "fixtures/synthetic/symtropy/option-campaign.json",
+        "artifact_sha256": "2222222222222222222222222222222222222222222222222222222222222222",
+        "profile_id": "synthetic.symtropy.option-campaign",
+        "profile_version": "0.1.0",
+        "adapter_id": "synthetic.symtropy.highveld.adapter.v0.1",
+        "adapter_sha256": "3333333333333333333333333333333333333333333333333333333333333333",
+        "available_at_unix": 1794741000,
+        "mapping_status": "BOUND",
+        "mapping_sha256": "4444444444444444444444444444444444444444444444444444444444444444",
+        "owner_approval_ref": "SYNTHETIC-TEST-ONLY:SYMTROPY-APPROVAL-NOT-REAL"
+      },
+      "package_id": "OPTION-EVIDENCE-PACKAGE-001",
+      "context": {
+        "project_context_sha256": "1111111111111111111111111111111111111111111111111111111111111111",
+        "functional_contract_sha256": "2222222222222222222222222222222222222222222222222222222222222222",
+        "option_design_sha256": "3333333333333333333333333333333333333333333333333333333333333333",
+        "site_epoch": "HIGHVELD-SYNTHETIC-SITE-EPOCH-1",
+        "coordinate_frame_id": "PANEL-LAB-LOCAL-ENU",
+        "clock_domain": "SYNTHETIC-UTC",
+        "currency": "USD"
+      },
+      "search_status": "COMPLETE_OPTIMAL",
+      "actions": [
+        {
+          "action_id": "PANEL-METROLOGY-SCAN-001",
+          "context": {
+            "project_context_sha256": "1111111111111111111111111111111111111111111111111111111111111111",
+            "functional_contract_sha256": "2222222222222222222222222222222222222222222222222222222222222222",
+            "option_design_sha256": "3333333333333333333333333333333333333333333333333333333333333333",
+            "site_epoch": "HIGHVELD-SYNTHETIC-SITE-EPOCH-1",
+            "coordinate_frame_id": "PANEL-LAB-LOCAL-ENU",
+            "clock_domain": "SYNTHETIC-UTC",
+            "currency": "USD"
+          },
+          "covers_obligation_ids": [
+            "OBLIGATION-PANEL-METROLOGY-002"
+          ]
+        }
+      ]
+    }
+  ],
+  "physical_bindings": [
+    {
+      "mapping_id": "SYNTHETIC-BILATERAL-MAPPING-001",
+      "acquisition_id": "ACQUISITION-PHYSICAL-METROLOGY-002",
+      "episode_id": "HIGHVELD-SYNTHETIC-EPISODE-001",
+      "campaign_package_id": "OPTION-EVIDENCE-PACKAGE-001",
+      "action_id": "PANEL-METROLOGY-SCAN-001",
+      "context": {
+        "project_context_sha256": "1111111111111111111111111111111111111111111111111111111111111111",
+        "functional_contract_sha256": "2222222222222222222222222222222222222222222222222222222222222222",
+        "option_design_sha256": "3333333333333333333333333333333333333333333333333333333333333333",
+        "site_epoch": "HIGHVELD-SYNTHETIC-SITE-EPOCH-1",
+        "coordinate_frame_id": "PANEL-LAB-LOCAL-ENU",
+        "clock_domain": "SYNTHETIC-UTC",
+        "currency": "USD"
+      },
+      "review": {
+        "status": "BOUND",
+        "mapping_sha256": "5555555555555555555555555555555555555555555555555555555555555555",
+        "mycelix_approval_ref": "SYNTHETIC-TEST-ONLY:MYCELIX-MAPPING-REVIEW",
+        "symtropy_approval_ref": "SYNTHETIC-TEST-ONLY:SYMTROPY-MAPPING-REVIEW",
+        "reviewed_at_unix": 1794742000,
+        "reviewed_by": "synthetic-benchmark-fixture"
+      }
+    }
+  ]
+}

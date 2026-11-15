@@ -1,0 +1,209 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://luminousdynamics.io/schemas/highveld-evidence-campaign-bridge-report-v0.1.schema.json",
+  "title": "Highveld Synthetic Evidence-Campaign Bridge Report v0.1",
+  "description": "Non-authorizing report produced from a caller-supplied synthetic bridge envelope. A planned acquisition is not an observation or qualified evidence.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "report_profile_id",
+    "input_sha256",
+    "evaluation_status",
+    "selection_policy",
+    "episode_id",
+    "obligation_results",
+    "obligations_with_admissible_acquisition_route",
+    "unresolved_proof_obligations",
+    "obligations_without_admissible_route",
+    "source_bytes_verified",
+    "signatures_verified",
+    "owner_outputs_authenticated",
+    "physical_observations",
+    "qualified_obligations",
+    "authority_effects",
+    "claim_ceiling"
+  ],
+  "properties": {
+    "report_profile_id": {
+      "const": "luminous.highveld.evidence-campaign-bridge-report.v0.1"
+    },
+    "input_sha256": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "evaluation_status": {
+      "const": "SYNTHETIC_BRIDGE_EVALUATION_ONLY"
+    },
+    "episode_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "obligation_results": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/obligationResult"
+      }
+    },
+    "source_bytes_verified": {
+      "const": false
+    },
+    "signatures_verified": {
+      "const": false
+    },
+    "physical_observations": {
+      "const": 0
+    },
+    "qualified_obligations": {
+      "const": 0
+    },
+    "authority_effects": {
+      "const": "NONE"
+    },
+    "claim_ceiling": {
+      "const": "NON_AUTHORIZING_SYNTHETIC_EVALUATION"
+    },
+    "selection_policy": {
+      "const": "LEXICOGRAPHIC_REPRESENTATIVE_ONLY_NO_COST_OR_PREFERENCE_OPTIMIZATION"
+    },
+    "obligations_with_admissible_acquisition_route": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "unresolved_proof_obligations": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "obligations_without_admissible_route": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "owner_outputs_authenticated": {
+      "const": false
+    }
+  },
+  "$defs": {
+    "disposition": {
+      "enum": [
+        "PLANNED_REMOTE_ACQUISITION",
+        "PLANNED_PHYSICAL_OBSERVATION_OWNER_REPORTS_OPTIMAL",
+        "PLANNED_PHYSICAL_OBSERVATION_OWNER_REPORTS_FEASIBLE_NOT_OPTIMALITY_PROVEN",
+        "BLOCKED_ADMISSIBILITY",
+        "UNKNOWN_ADMISSIBILITY",
+        "UNBOUND",
+        "CONTEXT_MISMATCH",
+        "CAMPAIGN_INCOMPLETE",
+        "CAMPAIGN_INFEASIBLE",
+        "CAMPAIGN_SEARCH_INCOMPLETE",
+        "NOT_PLANNED"
+      ]
+    },
+    "rejectedAlternative": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "acquisition_id",
+        "mapping_id",
+        "disposition",
+        "reason_codes"
+      ],
+      "properties": {
+        "acquisition_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "mapping_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "disposition": {
+          "$ref": "#/$defs/disposition"
+        },
+        "reason_codes": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    },
+    "obligationResult": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "obligation_id",
+        "disposition",
+        "evidence_state",
+        "candidate_acquisition_ids",
+        "campaign_package_ids",
+        "symtropy_campaign_search_status",
+        "symtropy_reports_optimality_proven",
+        "reason_codes",
+        "rejected_alternatives"
+      ],
+      "properties": {
+        "obligation_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "disposition": {
+          "$ref": "#/$defs/disposition"
+        },
+        "evidence_state": {
+          "const": "PLANNED_NOT_OBSERVED"
+        },
+        "campaign_package_ids": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "reason_codes": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "rejected_alternatives": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/rejectedAlternative"
+          }
+        },
+        "symtropy_campaign_search_status": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/campaignSearchStatus"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "symtropy_reports_optimality_proven": {
+          "type": "boolean"
+        },
+        "candidate_acquisition_ids": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    },
+    "campaignSearchStatus": {
+      "enum": [
+        "COMPLETE_OPTIMAL",
+        "COMPLETE_FEASIBLE_NOT_OPTIMAL",
+        "INCOMPLETE",
+        "PROVEN_INFEASIBLE",
+        "SEARCH_INCOMPLETE"
+      ]
+    }
+  }
+}

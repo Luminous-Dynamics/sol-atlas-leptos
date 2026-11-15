@@ -1,0 +1,36 @@
+name: Highveld Panel Thread Qualifier
+
+on:
+  push:
+    branches:
+      - research/highveld-panel-thread-qualifier-v0-1
+    paths:
+      - "Cargo.toml"
+      - "Cargo.lock"
+      - "tools/highveld-panel-thread-qualifier/Cargo.lock"
+      - "tools/highveld-panel-thread-qualifier/**"
+      - "docs/research/highveld-keep/HIGHVELD_KEEP_PANEL_THREAD_CORPUS_V0_1.json"
+  pull_request:
+    paths:
+      - "Cargo.toml"
+      - "Cargo.lock"
+      - "tools/highveld-panel-thread-qualifier/**"
+      - "docs/research/highveld-keep/HIGHVELD_KEEP_PANEL_THREAD_CORPUS_V0_1.json"
+
+permissions:
+  contents: read
+
+jobs:
+  qualify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+      - name: Check formatting
+        run: cargo fmt --manifest-path tools/highveld-panel-thread-qualifier/Cargo.toml -- --check
+      - name: Run qualifier tests
+        run: cargo test --manifest-path tools/highveld-panel-thread-qualifier/Cargo.toml --locked
+      - name: Run strict Clippy
+        run: cargo clippy --manifest-path tools/highveld-panel-thread-qualifier/Cargo.toml --all-targets --locked -- -D warnings
