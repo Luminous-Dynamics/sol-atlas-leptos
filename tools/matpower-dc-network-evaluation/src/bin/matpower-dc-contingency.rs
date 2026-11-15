@@ -13,8 +13,7 @@ fn run() -> Result<(), String> {
         .nth(1)
         .ok_or_else(|| "usage: matpower-dc-contingency <case.m>".to_owned())?;
     let bytes = fs::read(&path).map_err(|error| format!("read {path}: {error}"))?;
-    let source = std::str::from_utf8(&bytes)
-        .map_err(|_| format!("source {path} is not UTF-8"))?;
+    let source = std::str::from_utf8(&bytes).map_err(|_| format!("source {path} is not UTF-8"))?;
     let evaluation = sweep_matpower_dc_case(source, SolveOptions::default(), 256)
         .map_err(|error| error.to_string())?;
     println!("{}", evaluation.to_json());
