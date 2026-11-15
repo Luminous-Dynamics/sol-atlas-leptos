@@ -190,6 +190,15 @@ pub struct ObligationResult {
     pub campaign_package_ids: Vec<String>,
     pub optimality_proven: bool,
     pub reason_codes: Vec<String>,
+    pub rejected_alternatives: Vec<RejectedAlternative>,
+}
+
+#[derive(Debug, Clone, Serialize)]
+pub struct RejectedAlternative {
+    pub acquisition_id: String,
+    pub mapping_id: Option<String>,
+    pub disposition: BridgeDisposition,
+    pub reason_codes: Vec<String>,
 }
 
 #[derive(Debug, Clone, Serialize, PartialEq, Eq)]
@@ -602,29 +611,65 @@ fn evaluate_obligation(
         return Ok(unplanned_result(obligation_id));
     }
 
-    let mut attempts = Vec::new();
-    for acquisition in acquisitions {
-        attempts.push(evaluate_acquisition(input, obligation_id, acquisition)?);
-    }
-
-    if let Some(success) = attempts.iter().find(|attempt| is_planned(&attempt.disposition)) {
-        return Ok(success.clone());
-    }
-
-    attempts.sort_by_key(|attempt| {
-        (
-            disposition_priority(&attempt.disposition),
-            attempt
-                .covered_by_acquisition_ids
-                .first()
-                .cloned()
-                .unwrap_or_default(),
-        )
+    let mut ordered_acquisitions = acquisitions.to_vec();
+    ordered_acquisitions.sort_by(|left, right| {
+        left.acquisition_id.cmp(&right.acquisition_id)
     });
-    let mut selected = attempts
-        .into_iter()
-        .next()
-        .unwrap_or_else(|| unplanned_result(obligation_id));
+
+    let mut attempts = Vec::with_capacity(ordered_acquisitions.len());
+    for acquisition in ordered_acquisitions {
+        attempts.push((
+            acquisition.acquisition_id.clone(),
+            evaluate_acquisition(input, obligation_id, acquisition)?,
+        ));
+    }
+
+    let selected_index = attempts
+        .iter()
+        .position(|(_, attempt)| is_planned(&attempt.disposition))
+        .or_else(|| {
+            attempts
+                .iter()
+                .enumerate()
+                .min_by_key(|(_, (acquisition_id, attempt))| {
+                    (
+                        disposition_priority(&attempt.disposition),
+                        acquisition_id.as_str(),
+                    )
+                })
+                .map(|(index, _)| index)
+        });
+
+    let Some(selected_index) = selected_index else {
+        return Ok(unplanned_result(obligation_id));
+    };
+    let (_, mut selected) = attempts.remove(selected_index);
+
+    for (acquisition_id, attempt) in attempts {
+        selected
+            .rejected_alternatives
+            .extend(attempt.rejected_alternatives);
+        if !is_planned(&attempt.disposition) {
+            selected.rejected_alternatives.push(RejectedAlternative {
+                acquisition_id,
+                mapping_id: None,
+                disposition: attempt.disposition,
+                reason_codes: attempt.reason_codes,
+            });
+        }
+    }
+    selected.rejected_alternatives.sort_by(|left, right| {
+        (
+            left.acquisition_id.as_str(),
+            left.mapping_id.as_deref().unwrap_or(""),
+            disposition_priority(&left.disposition),
+        )
+            .cmp(&(
+                right.acquisition_id.as_str(),
+                right.mapping_id.as_deref().unwrap_or(""),
+                disposition_priority(&right.disposition),
+            ))
+    });
     selected.obligation_id = obligation_id.to_owned();
     Ok(selected)
 }
@@ -642,6 +687,7 @@ fn evaluate_acquisition(
         campaign_package_ids: Vec::new(),
         optimality_proven: false,
         reason_codes: Vec::new(),
+        rejected_alternatives: Vec::new(),
     };
 
     if input.episode.binding.mapping_status == BindingState::Unbound
@@ -692,35 +738,65 @@ fn evaluate_acquisition(
                 return Ok(result);
             }
 
-            let mut physical_attempts = Vec::new();
-            for relation in relations {
-                physical_attempts.push(evaluate_physical_relation(
-                    input,
-                    obligation_id,
-                    acquisition,
-                    relation,
-                )?);
+            let mut ordered_relations = relations;
+            ordered_relations.sort_by(|left, right| left.mapping_id.cmp(&right.mapping_id));
+            let mut physical_attempts = Vec::with_capacity(ordered_relations.len());
+            for relation in ordered_relations {
+                physical_attempts.push((
+                    relation.mapping_id.clone(),
+                    evaluate_physical_relation(
+                        input,
+                        obligation_id,
+                        acquisition,
+                        relation,
+                    )?,
+                ));
             }
-            if let Some(success) = physical_attempts
+            let selected_index = physical_attempts
                 .iter()
-                .find(|attempt| is_planned(&attempt.disposition))
-            {
-                return Ok(success.clone());
+                .position(|(_, attempt)| is_planned(&attempt.disposition))
+                .or_else(|| {
+                    physical_attempts
+                        .iter()
+                        .enumerate()
+                        .min_by_key(|(_, (mapping_id, attempt))| {
+                            (
+                                disposition_priority(&attempt.disposition),
+                                mapping_id.as_str(),
+                            )
+                        })
+                        .map(|(index, _)| index)
+                });
+            let Some(selected_index) = selected_index else {
+                return Ok(result);
+            };
+            let (_, mut selected) = physical_attempts.remove(selected_index);
+            for (mapping_id, attempt) in physical_attempts {
+                selected
+                    .rejected_alternatives
+                    .extend(attempt.rejected_alternatives);
+                if !is_planned(&attempt.disposition) {
+                    selected.rejected_alternatives.push(RejectedAlternative {
+                        acquisition_id: acquisition.acquisition_id.clone(),
+                        mapping_id: Some(mapping_id),
+                        disposition: attempt.disposition,
+                        reason_codes: attempt.reason_codes,
+                    });
+                }
             }
-            physical_attempts.sort_by_key(|attempt| {
+            selected.rejected_alternatives.sort_by(|left, right| {
                 (
-                    disposition_priority(&attempt.disposition),
-                    attempt
-                        .campaign_package_ids
-                        .first()
-                        .cloned()
-                        .unwrap_or_default(),
+                    left.acquisition_id.as_str(),
+                    left.mapping_id.as_deref().unwrap_or(""),
+                    disposition_priority(&left.disposition),
                 )
+                    .cmp(&(
+                        right.acquisition_id.as_str(),
+                        right.mapping_id.as_deref().unwrap_or(""),
+                        disposition_priority(&right.disposition),
+                    ))
             });
-            Ok(physical_attempts
-                .into_iter()
-                .next()
-                .unwrap_or(result))
+            Ok(selected)
         }
     }
 }
@@ -911,6 +987,7 @@ fn unplanned_result(obligation_id: &str) -> ObligationResult {
         campaign_package_ids: Vec::new(),
         optimality_proven: false,
         reason_codes: vec!["NO_DECLARED_ACQUISITION_FOR_OBLIGATION".to_owned()],
+        rejected_alternatives: Vec::new(),
     }
 }
 
@@ -1280,6 +1357,91 @@ mod tests {
         assert!(!report.signatures_verified);
         assert_eq!(report.physical_observations, 0);
         assert_eq!(report.qualified_obligations, 0);
+    }
+
+
+    #[test]
+    fn rejected_acquisition_alternatives_are_preserved_when_another_path_is_admissible() {
+        let mut input = base_input(AcquisitionKind::Remote);
+        input.acquisitions[0].acquisition_id = "ACQUISITION-Z-ALLOWED".to_owned();
+        let mut blocked = input.acquisitions[0].clone();
+        blocked.acquisition_id = "ACQUISITION-A-BLOCKED".to_owned();
+        blocked.gates.authority = GateState::Blocked;
+        input.acquisitions.push(blocked);
+
+        let report = evaluate(&input);
+        let result = one_result(&report);
+        assert_eq!(result.disposition, BridgeDisposition::PlannedRemoteAcquisition);
+        assert_eq!(result.rejected_alternatives.len(), 1);
+        assert_eq!(
+            result.rejected_alternatives[0].acquisition_id,
+            "ACQUISITION-A-BLOCKED"
+        );
+        assert_eq!(
+            result.rejected_alternatives[0].disposition,
+            BridgeDisposition::BlockedAdmissibility
+        );
+    }
+
+    #[test]
+    fn acquisition_input_permutation_preserves_selected_path_and_rejections() {
+        let mut input = base_input(AcquisitionKind::Remote);
+        input.acquisitions[0].acquisition_id = "ACQUISITION-Z-ALLOWED".to_owned();
+        let mut blocked = input.acquisitions[0].clone();
+        blocked.acquisition_id = "ACQUISITION-A-BLOCKED".to_owned();
+        blocked.gates.rights_source_use = GateState::Blocked;
+        input.acquisitions.push(blocked);
+
+        let first = evaluate(&input);
+        input.acquisitions.reverse();
+        let second = evaluate(&input);
+
+        assert_eq!(first.planned_obligations, second.planned_obligations);
+        assert_eq!(
+            first.obligation_results[0].covered_by_acquisition_ids,
+            second.obligation_results[0].covered_by_acquisition_ids
+        );
+        assert_eq!(
+            first.obligation_results[0].rejected_alternatives[0].acquisition_id,
+            second.obligation_results[0].rejected_alternatives[0].acquisition_id
+        );
+        assert_ne!(first.input_sha256, second.input_sha256);
+    }
+
+    #[test]
+    fn rejected_physical_mapping_is_preserved_when_another_mapping_is_bound() {
+        let mut input = base_input(AcquisitionKind::Physical);
+        add_complete_campaign(&mut input, CampaignSearchStatus::CompleteOptimal);
+
+        let mut other_campaign = input.campaigns[0].clone();
+        other_campaign.package_id = "OPTION-PACKAGE-002".to_owned();
+        other_campaign.actions[0].action_id = "OBSERVATION-ACTION-002".to_owned();
+        input.campaigns.push(other_campaign);
+
+        let mut rejected_mapping = input.physical_bindings[0].clone();
+        rejected_mapping.mapping_id = "UNBOUND-SECOND-MAPPING".to_owned();
+        rejected_mapping.campaign_package_id = "OPTION-PACKAGE-002".to_owned();
+        rejected_mapping.action_id = "OBSERVATION-ACTION-002".to_owned();
+        rejected_mapping.review.status = BindingState::Unbound;
+        rejected_mapping.review.mapping_sha256 = None;
+        rejected_mapping.review.owner_approval_ref = None;
+        rejected_mapping.review.reviewed_by = None;
+        input.physical_bindings.push(rejected_mapping);
+
+        let result = one_result(&evaluate(&input));
+        assert_eq!(
+            result.disposition,
+            BridgeDisposition::PlannedPhysicalObservationOptimal
+        );
+        assert_eq!(result.rejected_alternatives.len(), 1);
+        assert_eq!(
+            result.rejected_alternatives[0].mapping_id.as_deref(),
+            Some("UNBOUND-SECOND-MAPPING")
+        );
+        assert_eq!(
+            result.rejected_alternatives[0].disposition,
+            BridgeDisposition::Unbound
+        );
     }
 
     #[test]
