@@ -1,0 +1,12 @@
+[package]
+name = "dc-power-flow-independent-auditor"
+version = "0.1.0"
+edition = "2024"
+license = "AGPL-3.0-or-later"
+description = "Independent checker for small-network DC power-flow result receipts"
+
+[lib]
+path = "src/lib.rs"
+
+[dependencies]
+dc-power-flow-reference = { path = "../dc-power-flow-reference" }
