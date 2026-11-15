@@ -1603,6 +1603,49 @@ mod tests {
     }
 
     #[test]
+    fn runnable_bound_synthetic_example_reports_routes_without_proof_closure() {
+        let input = include_str!(
+            "../examples/highveld-bound-synthetic-bridge-example-v0.1.json"
+        );
+        let report = evaluate_bridge_bytes(input.as_bytes()).unwrap();
+
+        assert_eq!(report.obligations_with_admissible_acquisition_route, 2);
+        assert_eq!(report.unresolved_proof_obligations, 2);
+        assert_eq!(report.obligations_without_admissible_route, 0);
+        assert_eq!(report.qualified_obligations, 0);
+        assert_eq!(report.physical_observations, 0);
+        assert!(!report.source_bytes_verified);
+        assert!(!report.signatures_verified);
+        assert!(!report.owner_outputs_authenticated);
+        assert_eq!(report.authority_effects, "NONE");
+
+        let remote = report
+            .obligation_results
+            .iter()
+            .find(|result| result.obligation_id == "OBLIGATION-DESIGN-AUTHORITY-001")
+            .unwrap();
+        assert_eq!(
+            remote.disposition,
+            BridgeDisposition::PlannedRemoteAcquisition
+        );
+
+        let physical = report
+            .obligation_results
+            .iter()
+            .find(|result| result.obligation_id == "OBLIGATION-PANEL-METROLOGY-002")
+            .unwrap();
+        assert_eq!(
+            physical.disposition,
+            BridgeDisposition::PlannedPhysicalObservationOwnerReportsOptimal
+        );
+        assert_eq!(
+            physical.symtropy_campaign_search_status,
+            Some(CampaignSearchStatus::CompleteOptimal)
+        );
+        assert!(physical.symtropy_reports_optimality_proven);
+    }
+
+    #[test]
     fn current_owner_profiles_remain_unbound_until_exact_contracts_are_published() {
         let input = include_str!("../examples/highveld-current-owner-bindings-unbound-v0.1.json");
         let report = evaluate_bridge_bytes(input.as_bytes()).unwrap();
