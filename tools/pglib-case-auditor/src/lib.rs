@@ -512,10 +512,20 @@ pub struct MatpowerDcGenerator {
     pub p_min_mw: f64,
 }
 
+/// Original MATPOWER generator-cost row retained for independent field comparisons.
+#[derive(Debug, Clone, PartialEq)]
+pub struct MatpowerDcCost {
+    pub source_row: usize,
+    pub model: u8,
+    pub startup_cost: f64,
+    pub shutdown_cost: f64,
+    pub point_or_coefficient_count: usize,
+    pub coefficients: Vec<f64>,
+}
+
 /// Source-bound, typed projection for fixed-injection linear DC power-flow work.
 ///
-/// Bus, generator and branch source fields are retained. Generator costs and
-/// legacy area metadata are structurally audited but are not used by DC flow.
+/// Bus, generator, branch and generator-cost source fields are retained.
 /// Fields retained for audit may not be enforced by the downstream DC solver;
 /// see `limitations`.
 #[derive(Debug, Clone, PartialEq)]
@@ -527,6 +537,7 @@ pub struct MatpowerDcProjection {
     pub buses: Vec<MatpowerDcBus>,
     pub generators: Vec<MatpowerDcGenerator>,
     pub branches: Vec<MatpowerDcBranch>,
+    pub costs: Vec<MatpowerDcCost>,
     pub cost_row_count: usize,
     pub has_areas_metadata: bool,
     pub limitations: &'static [&'static str],
@@ -548,6 +559,7 @@ pub fn project_matpower_dc_case(source: &str) -> Result<MatpowerDcProjection, St
     let buses = parsed.matrices.get("bus").ok_or("missing mpc.bus")?;
     let generators = parsed.matrices.get("gen").ok_or("missing mpc.gen")?;
     let branches = parsed.matrices.get("branch").ok_or("missing mpc.branch")?;
+    let cost_rows = parsed.matrices.get("gencost").ok_or("missing mpc.gencost")?;
 
     let mut generation_by_bus = BTreeMap::<i64, (f64, f64, f64)>::new();
     let mut projected_generators = Vec::with_capacity(generators.len());
@@ -634,6 +646,23 @@ pub fn project_matpower_dc_case(source: &str) -> Result<MatpowerDcProjection, St
         });
     }
 
+    let mut projected_costs = Vec::with_capacity(cost_rows.len());
+    for (index, cost) in cost_rows.iter().enumerate() {
+        let model = u8::try_from(parse_integer(cost[0], "gencost model")?)
+            .map_err(|_| format!("gencost model is out of range at row {}", index + 1))?;
+        let point_or_coefficient_count =
+            usize::try_from(parse_integer(cost[3], "gencost point/coefficient count")?)
+                .map_err(|_| format!("gencost count is out of range at row {}", index + 1))?;
+        projected_costs.push(MatpowerDcCost {
+            source_row: index + 1,
+            model,
+            startup_cost: cost[1],
+            shutdown_cost: cost[2],
+            point_or_coefficient_count,
+            coefficients: cost[4..].to_vec(),
+        });
+    }
+
     let mut projected_branches = Vec::with_capacity(branches.len());
     for (index, branch) in branches.iter().enumerate() {
         let in_service = validate_binary_status(branch[10], "branch status")?;
@@ -681,6 +710,7 @@ pub fn project_matpower_dc_case(source: &str) -> Result<MatpowerDcProjection, St
         buses: projected_buses,
         generators: projected_generators,
         branches: projected_branches,
+        costs: projected_costs,
         cost_row_count: summary.cost_row_count,
         has_areas_metadata: parsed.matrices.contains_key("areas"),
         limitations: &[
@@ -695,7 +725,7 @@ pub fn project_matpower_dc_case(source: &str) -> Result<MatpowerDcProjection, St
             "bus_voltage_setpoints_and_limits_are_retained_but_not_enforced",
             "generator_q_fields_and_voltage_setpoints_are_retained_but_not_enforced",
             "generator_p_bounds_are_not_enforced_after_projection",
-            "gencost_is_structurally_audited_but_not_used_by_dc_power_flow",
+            "gencost_is_retained_but_not_used_by_dc_power_flow",
             "legacy_areas_metadata_is_structurally_audited_but_not_projected",
             "not_ac_power_flow_or_security_constrained_opf",
         ],
@@ -1069,6 +1099,14 @@ end
         assert_eq!(branch.angle_max_degrees, 30.0);
         assert!(branch.in_service);
         assert_eq!(projection.generators.len(), 1);
+        assert_eq!(projection.costs.len(), 1);
+        let cost = &projection.costs[0];
+        assert_eq!(cost.source_row, 1);
+        assert_eq!(cost.model, 2);
+        assert_eq!(cost.startup_cost, 0.0);
+        assert_eq!(cost.shutdown_cost, 0.0);
+        assert_eq!(cost.point_or_coefficient_count, 3);
+        assert_eq!(cost.coefficients, vec![0.01, 2.0, 0.0]);
         let generator = &projection.generators[0];
         assert_eq!(generator.source_row, 1);
         assert_eq!(generator.bus_id, 1);
@@ -1208,6 +1246,13 @@ end
             assert_eq!(projection.source_git_blob_sha1, expected_digest);
             assert_eq!(projection.buses.len(), buses);
             assert_eq!(projection.branches.len(), branches);
+            assert_eq!(projection.costs.len(), projection.cost_row_count);
+            assert!(
+                projection
+                    .costs
+                    .iter()
+                    .all(|cost| cost.coefficients.len() > 0)
+            );
             assert_eq!(
                 projection
                     .buses
