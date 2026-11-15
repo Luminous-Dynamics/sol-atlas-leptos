@@ -379,7 +379,8 @@ fn validate(
                     }
                 }
                 "bound" => {
-                    let mapping_evidence = mapping.get("mapping_evidence_ref").unwrap_or(&Value::Null);
+                    let mapping_evidence =
+                        mapping.get("mapping_evidence_ref").unwrap_or(&Value::Null);
                     if solver_entity_id.as_deref().is_none_or(str::is_empty)
                         || !non_null_ref(Some(mapping_evidence))
                         || text_at(mapping_evidence, "revision").is_none_or(str::is_empty)
