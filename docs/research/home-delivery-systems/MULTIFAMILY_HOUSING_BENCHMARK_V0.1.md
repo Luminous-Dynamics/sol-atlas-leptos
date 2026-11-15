@@ -34,7 +34,7 @@ The comparison must be specific and fair about product capability and maturity.
 
 | Comparator | Publicly described capability | What it does not establish by itself |
 |---|---|---|
-| Autodesk Forma Building Layout Explorer | Autodesk's October 2026 announcement describes experimental multifamily layout exploration against unit mix, circulation and core placement. Autodesk characterizes current output as a starting point for exploration. | Resident acceptance, fire/accessibility compliance, construction release, real-site entitlement or whole-life service performance. |
+| Autodesk Forma Building Layout Explorer / Building Design | The experimental Layout Explorer generates multifamily floor-plan options from massing; Forma Building Design also supports floor-plan/facade editing, unit-mix/area metrics and integrated sun-hours, daylight-potential and embodied-carbon analysis. | Layout Explorer is an early workflow, not a compliance authority. Performance indicators do not by themselves establish resident acceptance, project entitlement, construction release, as-built results or in-use service performance. |
 | TestFit Site Planning / Site Solver | Multifamily and mixed-use site planning, unit mix, parking, setbacks, zoning/site constraints, feasibility metrics and Revit/CAD-style hand-off. | Exact current South African legal applicability, physical performance, professionally approved design or final cost certainty. |
 | Finch | Residential/high-rise layout exploration, firm standards and plan libraries, unit distribution, BIM geometry and interoperability claims. | Independent validation of generated outputs, local project compliance, physical acceptance or resident outcomes. |
 | Revit / Archicad + specialist tools | Detailed authoring and coordinated engineering workflows, subject to the selected toolchain and professional team. | Automatic preservation of every resident preference, cross-system evidence freshness or independently measured lifecycle outcome. |
@@ -43,6 +43,7 @@ The comparison must be specific and fair about product capability and maturity.
 
 Public product sources:
 - Autodesk AU 2026: https://blogs.autodesk.com/forma/2026/10/14/what-autodesk-forma-announced-au-2026/
+- Forma Building Design capabilities: https://www.autodesk.com/products/forma-building-design/overview
 - TestFit Site Planning AI: https://www.testfit.io/product/site-planning-ai
 - TestFit Site Solver: https://www.testfit.io/product/site-solver
 - Finch product: https://www.finch3d.com/product
@@ -477,3 +478,42 @@ The apartment programme now includes [#849 lifecycle and adaptation continuity](
 The P0 synthetic adapter links exact building, resident-programme, room-layout and shared-service source identities to 13 unit-scoped configuration revisions, two shared-asset bindings, 24 authored lifecycle events, four unit timelines and seven claim records. The U-001 adaptation invalidates two baseline claims. All times, as-built observations, commissioning evidence, post-occupancy results, resident data, repairs and physical outcomes remain UNKNOWN/not supplied. All events remain authored/not executed.
 
 The Rust qualifier covers revision ancestry, asset/unit scope, logical event order, bitemporal unknown-time preservation, exact timeline-event coverage and stale claim rejection. It does not replace #832's general dependency invalidation or #633's post-occupancy/outcome evaluation.
+
+
+## 22. Premise plumbing and in-use evidence: expand the service definition
+
+Two new owner-linked research tracks close gaps that are material for apartment housing:
+
+- [#857 Hydraulic Evidence Bridge](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/857): exact, versioned, calibrated/validated solver evidence mapped to apartment service boundaries. EPANET/OpenFlows remain the hydraulic engines; their outputs stay MODELLED/CALIBRATED_MODELLED and cannot become measurements.
+- [#863 Premise Plumbing Evidence](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/863): water-quality, stagnation, treatment, temperature and use-point evidence linked to the same apartment/asset/revision graph.
+- [#864 In-Use Outcome Crosswalk](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/864): resident-authorized post-occupancy evidence mapped into #633 City In-Use Outcomes and #849 lifecycle identity, without creating a sensor-surveillance or survey platform.
+
+### New evidence: premise plumbing
+
+A 2026 *Water Research* review of premise plumbing systems (Vol. 293, article 125437, DOI 10.1016/j.watres.2026.125437) identifies oversizing, stagnation and energy–health trade-offs as ongoing problems. It highlights the limits of static demand assumptions and the underuse of digital modelling/full-scale integration:
+- https://www.sciencedirect.com/science/article/pii/S0043135426001193
+
+The implication is important: an apartment water system cannot be considered qualified just because its pipes/pumps meet a hydraulic calculation. The design/operation evidence must also identify use points, treatment, branch/dead-leg geometry where known, time/temperature, residence or water-age modelling, maintenance and exact laboratory sampling. Modelled water age is not a potable-quality result; a sample result applies only to its exact boundary, collection time, method and chain of custody.
+
+### New evidence: post-occupancy feedback
+
+A 2025 *Building Research & Information* review on bringing POE forward into residential energy-efficiency design reports that static, linear project delivery and a lack of standardized/continuous evidence contribute to performance gaps. Its findings support defining measurement and user-engagement plans at design time rather than waiting until handover:
+- https://www.tandfonline.com/doi/full/10.1080/09613218.2025.2538167
+
+The apartment benchmark now treats the resident as a rights-holder and participant, not a passive sensor. Technical measurement, professional assessment and resident self-report must remain distinct evidence types. No continuous occupancy/audio/video or fine-grained behaviour collection is a default.
+
+### Additional benchmark dimensions
+
+Report these independently, not as a single housing-quality score:
+- use-point water age / residence model and exact measured sample coverage;
+- water quality results by sample boundary/time/method, with no cross-unit extrapolation;
+- treatment/filtration/disinfection maintenance and filter replacement evidence;
+- measured water temperature at exact points and instruments, against project-specific controlled requirements;
+- water/energy used by treatment, recirculation and flushing;
+- measured in-use service at each apartment boundary and service-deficit duration;
+- objective environmental observations versus resident-reported comfort, noise, privacy and satisfaction;
+- missingness, calibration uncertainty, resident burden, consent/withdrawal and data minimisation;
+- time from a measured anomaly or resident report to a validated maintenance/design decision.
+
+These outcomes compose #633, #849, #844, #857 and #863. No universal litres/person/day, temperature, stagnation duration or microbial threshold is invented here; applicable controlled standards, water-service authority and specialist review determine project-specific requirements.
+
