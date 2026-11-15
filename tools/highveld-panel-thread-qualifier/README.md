@@ -37,7 +37,7 @@ The library also exposes a benchmark-only bridge verifier for a normalized envel
 - a Mycelix decision episode and its exact unresolved obligation IDs;
 - a Mycelix acquisition candidate and its separate non-compensatory authority, rights, safety, schedule, physical-realizability, data-access and source-competence gates;
 - a Symtropy option/campaign package and its exact selected action; and
-- an owner-reviewed acquisition-to-action mapping.
+- a bilaterally reviewed Mycelix-to-Symtropy acquisition-to-action mapping.
 
 It is **not** a Mycelix or Symtropy production schema/adapter. All actual owner mappings remain UNBOUND until the owners publish versioned profiles and approve the mapping. The bridge never schedules or optimizes campaigns, creates reservations, recalculates Pareto frontiers, fetches/authenticates source bytes, verifies signatures, or converts a plan into observed or qualified evidence.
 
