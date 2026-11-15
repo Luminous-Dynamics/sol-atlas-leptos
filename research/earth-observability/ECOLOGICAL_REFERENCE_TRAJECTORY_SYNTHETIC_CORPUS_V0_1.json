@@ -3191,7 +3191,8 @@
         "reference_model_qualified": false,
         "overall_claim_permitted": true,
         "expected_blockers": [
-          "reference_supersession_review_incomplete"
+          "reference_supersession_review_incomplete",
+          "assessment_reference_model_version_mismatch"
         ]
       },
       "hard_invariants": [
