@@ -38,6 +38,15 @@
       "document_status": "methodology_page",
       "source_url": "https://www.dws.gov.za/iwqs/rhp/indices.html",
       "relevant_scope": "Explains the role of river geomorphology, hydrology, water quality, habitat and biological communities as time-integrated indicators."
+    },
+    {
+      "source_id": "DWS-RHP-2015-JUKSKEI",
+      "publisher": "Department of Water and Sanitation, North West Regional Office",
+      "title": "River Health Programme in Crocodile West Marico WMA, Technical Report 3",
+      "publication_date": "2015-07-31",
+      "document_status": "legacy_rhp_assessment",
+      "source_url": "https://www.dws.gov.za/iwqs/rhp/state_of_rivers/Crocodile_West_Marico_WMA_technical_report_3_FINAL.pdf",
+      "relevant_scope": "Legacy RHP assessment of Jukskei catchment and reach A21C-01167 / site A2JUKS-DIENR using 2013-2015 monitoring and earlier MIRAI datasets."
     }
   ],
   "sampling_semantics": {
@@ -329,5 +338,137 @@
     "This crosswalk does not establish that DWS REMP monitoring data are available for the Jukskei catchment or overlap a SUNCASA intervention reach.",
     "The crosswalk describes framework semantics and candidate coverage, not measurement equivalence or a new universal restoration score.",
     "No Jukskei river condition, REMP Ecological Category, biodiversity trend or intervention effect is asserted by this synthetic mapping."
-  ]
+  ],
+  "legacy_jukskei_assessment": {
+    "source_id": "DWS-RHP-2015-JUKSKEI",
+    "programme": "legacy_RHP",
+    "report_id": "WP 10592 Technical Report 3",
+    "report_title": "River Health Programme in Crocodile West Marico WMA — Technical Report 3",
+    "final_date": "2015-07-31",
+    "publisher": "Department of Water and Sanitation, North West Regional Office",
+    "overall_condition": {
+      "reported_category": "D",
+      "description": "The report describes overall Jukskei ecological condition as highly modified, with large loss of habitat, biota and ecosystem functioning.",
+      "claim_scope": "catchment_level_report_summary"
+    },
+    "sub_quaternary_reaches": [
+      {
+        "reach_id": "A21C-01269",
+        "assessment_method": "Desktop Habitat Integrity assessment using Google Earth imagery for sub-quaternary reaches.",
+        "sensitivity_note": "The report says this desktop assessment was not sensitive enough to pick up deterioration within an ecological category."
+      },
+      {
+        "reach_id": "A21C-01232",
+        "assessment_method": "Desktop Habitat Integrity assessment using Google Earth imagery for sub-quaternary reaches.",
+        "sensitivity_note": "The report says this desktop assessment was not sensitive enough to pick up deterioration within an ecological category."
+      },
+      {
+        "reach_id": "A21C-01215",
+        "assessment_method": "Desktop Habitat Integrity assessment using Google Earth imagery for sub-quaternary reaches.",
+        "sensitivity_note": "The report says this desktop assessment was not sensitive enough to pick up deterioration within an ecological category."
+      },
+      {
+        "reach_id": "A21C-01183",
+        "assessment_method": "Desktop Habitat Integrity assessment using Google Earth imagery for sub-quaternary reaches.",
+        "sensitivity_note": "The report says this desktop assessment was not sensitive enough to pick up deterioration within an ecological category."
+      },
+      {
+        "reach_id": "A21C-01167",
+        "assessment_method": "Desktop Habitat Integrity assessment using Google Earth imagery for sub-quaternary reaches.",
+        "sensitivity_note": "The report says this desktop assessment was not sensitive enough to pick up deterioration within an ecological category."
+      }
+    ],
+    "monitoring_site": {
+      "site_id": "A2JUKS-DIENR",
+      "reach_id": "A21C-01167",
+      "location_description": "The monitored site is described downstream of Lanseria International Airport, sand mining, road crossings including the N14, urban development and Diepsloot.",
+      "site_results_scope": "single_monitored_site_not_all_five_reaches",
+      "coordinate_status": "not_yet_recovered"
+    },
+    "indicator_summaries": [
+      {
+        "indicator": "fish_PES_EC",
+        "reported_status": "55.9% / category D, reported stable across 2013-2015.",
+        "period": "2013-2015",
+        "measurement_status": "reported_summary",
+        "notes": "Field surveys are reported for April 2013 and June 2014; later high-flow and health-risk visits were visual surveys."
+      },
+      {
+        "indicator": "macroinvertebrate_MIRAI_EC",
+        "reported_status": "Category D in 2013, declining to D/E in 2014; 2015 result carried forward from 2014.",
+        "period": "Four data sets with data from 2007-2014",
+        "measurement_status": "derived_from_prior_data",
+        "notes": "No 2015 macroinvertebrate sampling was done because of high flow. The report attributes the D to D/E change to flow, habitat and water-quality metrics."
+      },
+      {
+        "indicator": "riparian_vegetation_EC",
+        "reported_status": "Category D.",
+        "period": "2013-2015 report assessment",
+        "measurement_status": "reported_summary",
+        "notes": "The narrative describes bank asymmetry, disturbed areas, exotic species and deposited sand; raw vegetation field sheets remain outstanding."
+      }
+    ],
+    "sampling_events": [
+      {
+        "date": "2013-04",
+        "date_precision": "month",
+        "event_type": "field_survey",
+        "reason": "Fish site surveyed; report lists this as a survey month."
+      },
+      {
+        "date": "2013-08",
+        "date_precision": "month",
+        "event_type": "visual_survey",
+        "reason": "Visual survey due to high flows."
+      },
+      {
+        "date": "2014-06",
+        "date_precision": "month",
+        "event_type": "field_survey",
+        "reason": "Fish site surveyed; report lists this as a survey month."
+      },
+      {
+        "date": "2014-09",
+        "date_precision": "month",
+        "event_type": "visual_survey",
+        "reason": "Visual survey due to high flows."
+      },
+      {
+        "date": "2015-03",
+        "date_precision": "month",
+        "event_type": "visual_survey",
+        "reason": "Visual survey due to high flow and sewage input posing a health risk."
+      },
+      {
+        "date": "2015",
+        "date_precision": "year",
+        "event_type": "not_sampled",
+        "reason": "No macroinvertebrate sample was collected in 2015 due to high flow; the 2014 MIRAI category was carried forward."
+      }
+    ],
+    "reported_pressures": [
+      "Urban stormwater runoff and pollution.",
+      "Wastewater treatment works and effluent return flows.",
+      "Industrial and agricultural smallholding pressures.",
+      "Sand mining and road crossings.",
+      "Dams, weirs, abstraction and flow modification.",
+      "Sedimentation, nutrient enrichment and water-quality deterioration.",
+      "Vaal interbasin transfer and altered flow regime."
+    ],
+    "method_limitations": [
+      "The report is legacy RHP, not current REMP, because DWS replaced RHP with REMP in 2016.",
+      "A2JUKS-DIENR is one monitored site; its biological findings must not be generalized to all five reaches.",
+      "Desktop Google Earth Habitat Integrity assessment of the sub-quaternary reaches was not sensitive enough to detect within-category deterioration.",
+      "No 2015 macroinvertebrate sample was collected; a carried-forward category is not a new 2015 observation.",
+      "The published report summary is not the raw taxa, fish, vegetation or field-sheet data."
+    ],
+    "admission_status": "published_report_summary_raw_records_pending",
+    "reconciliation_requirements": [
+      "Recover the source-native DWS RHP site registry record, station code and exact coordinates for A2JUKS-DIENR.",
+      "Recover raw fish and macroinvertebrate field sheets, species/taxa lists, sampling effort and surveyor records.",
+      "Recover MIRAI calculation workbooks and all four supporting data sets, including exact dates and source observations.",
+      "Recover riparian vegetation observations, habitat-integrity forms, desktop imagery and processing/version metadata.",
+      "Resolve site location and geometry against current REMP sites, the 2021 Alexandra study, SUNCASA intervention polygons and EcoFilter monitoring assets."
+    ]
+  }
 }
