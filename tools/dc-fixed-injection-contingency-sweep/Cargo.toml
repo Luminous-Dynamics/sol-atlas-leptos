@@ -1,0 +1,13 @@
+[package]
+name = "dc-fixed-injection-contingency-sweep"
+version = "0.1.0"
+edition = "2024"
+license = "AGPL-3.0-or-later"
+description = "Audited fixed-injection single-branch outage screening for small DC networks"
+
+[lib]
+path = "src/lib.rs"
+
+[dependencies]
+dc-power-flow-reference = { path = "../dc-power-flow-reference" }
+dc-power-flow-independent-auditor = { path = "../dc-power-flow-independent-auditor" }

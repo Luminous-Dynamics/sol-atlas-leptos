@@ -1,0 +1,20 @@
+version = 4
+
+[[package]]
+name = "dc-fixed-injection-contingency-sweep"
+version = "0.1.0"
+dependencies = [
+ "dc-power-flow-independent-auditor",
+ "dc-power-flow-reference",
+]
+
+[[package]]
+name = "dc-power-flow-independent-auditor"
+version = "0.1.0"
+dependencies = [
+ "dc-power-flow-reference",
+]
+
+[[package]]
+name = "dc-power-flow-reference"
+version = "0.1.0"
