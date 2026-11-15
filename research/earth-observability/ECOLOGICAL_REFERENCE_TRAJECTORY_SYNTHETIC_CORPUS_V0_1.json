@@ -795,7 +795,7 @@
             "evidence_count": 3
           }
         ],
-        "overall_claim": "positive_recovery"
+        "overall_claim": "unresolved"
       },
       "expected_audit": {
         "reference_model_qualified": false,
@@ -1197,7 +1197,7 @@
             "evidence_count": 3
           }
         ],
-        "overall_claim": "positive_recovery"
+        "overall_claim": "unresolved"
       },
       "expected_audit": {
         "reference_model_qualified": false,
@@ -1598,7 +1598,7 @@
             "evidence_count": 3
           }
         ],
-        "overall_claim": "positive_recovery"
+        "overall_claim": "unresolved"
       },
       "expected_audit": {
         "reference_model_qualified": false,
@@ -2372,7 +2372,7 @@
             "evidence_count": 3
           }
         ],
-        "overall_claim": "positive_recovery"
+        "overall_claim": "unresolved"
       },
       "expected_audit": {
         "reference_model_qualified": false,
@@ -2736,7 +2736,8 @@
             "consent_status": "restricted",
             "permitted_purposes": [
               "community-led restoration planning"
-            ]
+            ],
+            "requested_purpose": "model_training"
           }
         ],
         "rights_status": "restricted"
@@ -2782,13 +2783,14 @@
             "evidence_count": 3
           }
         ],
-        "overall_claim": "positive_recovery"
+        "overall_claim": "unresolved"
       },
       "expected_audit": {
         "reference_model_qualified": false,
         "overall_claim_permitted": false,
         "expected_blockers": [
-          "knowledge_source_consent_or_purpose_block"
+          "knowledge_source_consent_or_purpose_block",
+          "reference_model_rights_not_cleared"
         ]
       },
       "hard_invariants": [
@@ -3183,7 +3185,7 @@
             "evidence_count": 3
           }
         ],
-        "overall_claim": "positive_recovery"
+        "overall_claim": "unresolved"
       },
       "expected_audit": {
         "reference_model_qualified": false,
@@ -3584,7 +3586,7 @@
             "evidence_count": 3
           }
         ],
-        "overall_claim": "positive_recovery"
+        "overall_claim": "unresolved"
       },
       "expected_audit": {
         "reference_model_qualified": false,
