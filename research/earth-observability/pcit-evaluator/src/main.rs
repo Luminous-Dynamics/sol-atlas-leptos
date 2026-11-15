@@ -1209,7 +1209,9 @@ mod tests {
                 .as_array()
                 .expect("non-equivalence rules")
                 .iter()
-                .any(|rule| rule.as_str().is_some_and(|text| text.contains("SER Five-star")))
+                .any(|rule| rule
+                    .as_str()
+                    .is_some_and(|text| text.contains("SER Five-star")))
         );
     }
 
