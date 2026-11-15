@@ -1,6 +1,14 @@
 version = 4
 
 [[package]]
+name = "dc-fixed-injection-contingency-sweep"
+version = "0.1.0"
+dependencies = [
+ "dc-power-flow-independent-auditor",
+ "dc-power-flow-reference",
+]
+
+[[package]]
 name = "dc-power-flow-independent-auditor"
 version = "0.1.0"
 dependencies = [
@@ -15,6 +23,7 @@ version = "0.1.0"
 name = "matpower-dc-network-evaluation"
 version = "0.1.0"
 dependencies = [
+ "dc-fixed-injection-contingency-sweep",
  "dc-power-flow-independent-auditor",
  "dc-power-flow-reference",
  "pglib-case-auditor",
