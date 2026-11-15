@@ -1,0 +1,769 @@
+{
+  "schema_version": "0.1.0",
+  "benchmark_id": "IOEQ-SYNTHETIC-CORPUS-0.1",
+  "purpose": "synthetic_claim_class_qualification",
+  "non_claims": [
+    "This corpus is synthetic and is not a measurement of SUNCASA or Jukskei environmental outcomes.",
+    "Passing the corpus does not establish EcoFilter treatment efficacy, tree survival or causal restoration impact.",
+    "Project-reported totals and modeled benefit projections are represented only as synthetic source-record fixtures.",
+    "The corpus is public development data, not a blind or held-out evaluation set."
+  ],
+  "cases": [
+    {
+      "case_id": "IOEQ-SYN-001",
+      "family": "published_total_scope_reconciliation",
+      "claim_under_review": {
+        "class": "ATTRIBUTABLE_INTERVENTION_EFFECT",
+        "text": "SUNCASA restored 489 ha and planted 47,600 trees, proving a catchment-wide ecological improvement."
+      },
+      "source_records": [
+        {
+          "record_id": "IISD-SAVI-2026-03",
+          "publisher": "IISD",
+          "source_url": "https://www.iisd.org/publications/report/nature-based-solutions-johannesburg",
+          "source_kind": "valuation_report",
+          "published_at": "2026-03-18",
+          "as_of_date": "2026-03-18",
+          "geographic_scope": "Jukskei catchment; intervention boundary version not provided in fixture",
+          "measurement_nature": "reported_implementation_output",
+          "method_status": "partially_documented",
+          "rights_status": "cleared_synthetic",
+          "measurements": [
+            {
+              "metric": "riparian restoration",
+              "value": 469,
+              "unit": "ha",
+              "evidence_type": "area",
+              "uncertainty_status": "not_reported"
+            },
+            {
+              "metric": "trees planted",
+              "value": 46000,
+              "unit": "trees",
+              "evidence_type": "count",
+              "uncertainty_status": "not_reported"
+            }
+          ]
+        },
+        {
+          "record_id": "CITY-SUNCASA-CLOSE-2026-08",
+          "publisher": "City of Johannesburg",
+          "source_url": "https://joburg.org.za/media_/Newsroom/Pages/2026-News-Articles/Johannesburg-concludes-multimillion-dollar-SUNCASA-climate-resilience-project.aspx",
+          "source_kind": "project_summary",
+          "published_at": "2026-08-26",
+          "as_of_date": "2026-08-26",
+          "geographic_scope": "Jukskei catchment; reported closing totals",
+          "measurement_nature": "reported_implementation_output",
+          "method_status": "partially_documented",
+          "rights_status": "cleared_synthetic",
+          "measurements": [
+            {
+              "metric": "restoration",
+              "value": 489,
+              "unit": "ha",
+              "evidence_type": "area",
+              "uncertainty_status": "not_reported"
+            },
+            {
+              "metric": "trees planted",
+              "value": 47600,
+              "unit": "trees",
+              "evidence_type": "count",
+              "uncertainty_status": "not_reported"
+            }
+          ]
+        }
+      ],
+      "intervention_exposure": {
+        "intervention_id": "SUNCASA-JUKSKEI",
+        "activity_type": "riparian restoration and urban planting",
+        "geometry_status": "approximate",
+        "timing_status": "verified",
+        "intensity_status": "reported",
+        "overlap_status": "unknown"
+      },
+      "evidence_design": {
+        "baseline_status": "unknown",
+        "comparator_status": "unknown",
+        "reference_status": "absent",
+        "reference_independence": "unknown",
+        "measurement_profile_status": "partial",
+        "calibration_status": "unknown",
+        "confounder_status": "unknown",
+        "spillover_status": "not_assessed",
+        "rights_status": "cleared_synthetic"
+      },
+      "expected_max_claim_class": "IMPLEMENTATION_OUTPUT",
+      "expected_disposition": "UNRESOLVED_SCOPE",
+      "hard_invariants": [
+        "Do not average, add or label the source-reported 469/489 ha and 46,000/47,600 tree values contradictory until scope, as-of date and definitions reconcile.",
+        "Implementation outputs do not establish ecological or causal impact."
+      ]
+    },
+    {
+      "case_id": "IOEQ-SYN-002",
+      "family": "modelled_benefit_projection",
+      "claim_under_review": {
+        "class": "OBSERVED_PHYSICAL_OUTCOME",
+        "text": "The Jukskei has already received USD 8.6m of realized environmental benefit."
+      },
+      "source_records": [
+        {
+          "record_id": "SAVI-25Y-FORECAST",
+          "publisher": "IISD SAVi",
+          "source_url": "https://www.iisd.org/publications/report/nature-based-solutions-johannesburg",
+          "source_kind": "model_output",
+          "published_at": "2026-03-18",
+          "as_of_date": "2026-03-18",
+          "geographic_scope": "Jukskei catchment; 25-year model horizon",
+          "measurement_nature": "modelled_projection",
+          "method_status": "documented",
+          "rights_status": "cleared_synthetic",
+          "measurements": [
+            {
+              "metric": "net benefit",
+              "value": 8.6,
+              "unit": "USD million over 25 years",
+              "evidence_type": "economic_projection",
+              "uncertainty_status": "qualitative_only"
+            },
+            {
+              "metric": "combined return",
+              "value": 3.06,
+              "unit": "USD per USD invested",
+              "evidence_type": "economic_projection",
+              "uncertainty_status": "qualitative_only"
+            }
+          ]
+        }
+      ],
+      "intervention_exposure": {
+        "intervention_id": "SUNCASA-JUKSKEI",
+        "activity_type": "nature-based solutions",
+        "geometry_status": "approximate",
+        "timing_status": "verified",
+        "intensity_status": "reported",
+        "overlap_status": "unknown"
+      },
+      "evidence_design": {
+        "baseline_status": "not_required_for_class",
+        "comparator_status": "not_applicable",
+        "reference_status": "absent",
+        "reference_independence": "not_applicable",
+        "measurement_profile_status": "not_applicable",
+        "calibration_status": "not_applicable",
+        "confounder_status": "not_applicable",
+        "spillover_status": "not_applicable",
+        "rights_status": "cleared_synthetic"
+      },
+      "expected_max_claim_class": "MODELLED_BENEFIT_PROJECTION",
+      "expected_disposition": "DOWNGRADE_TO_SUPPORTED_CLASS",
+      "hard_invariants": [
+        "A modeled future benefit cannot be relabeled as realized physical outcome or observed cash flow.",
+        "Preserve model horizon, scenario and assumption dependency."
+      ]
+    },
+    {
+      "case_id": "IOEQ-SYN-003",
+      "family": "asset_installation_without_performance",
+      "claim_under_review": {
+        "class": "OBSERVED_PHYSICAL_OUTCOME",
+        "text": "Installing the EcoFilter proves that Jukskei water quality improved."
+      },
+      "source_records": [
+        {
+          "record_id": "ECOFILTER-CITY-ANNOUNCEMENT",
+          "publisher": "City of Johannesburg",
+          "source_url": "https://joburg.org.za/media_/Newsroom/Pages/2026-News-Articles/Joburg-launches-innovative-eco-filter-system-to-address-pollution-in-Jukskei-River.aspx",
+          "source_kind": "project_summary",
+          "published_at": "2026-04-24",
+          "as_of_date": "2026-04-24",
+          "geographic_scope": "Upper Jukskei EcoFilter site",
+          "measurement_nature": "reported_implementation_output",
+          "method_status": "partially_documented",
+          "rights_status": "cleared_synthetic",
+          "measurements": [
+            {
+              "metric": "treatment-cell volume",
+              "value": 800,
+              "unit": "litres per module",
+              "evidence_type": "count",
+              "uncertainty_status": "not_reported"
+            },
+            {
+              "metric": "continuous monitoring",
+              "value": "installed",
+              "unit": "status",
+              "evidence_type": "other",
+              "uncertainty_status": "not_reported"
+            }
+          ]
+        }
+      ],
+      "intervention_exposure": {
+        "intervention_id": "ECOFILTER-UPPER-JUKSKEI",
+        "activity_type": "nature-based treatment cells",
+        "geometry_status": "approximate",
+        "timing_status": "verified",
+        "intensity_status": "reported",
+        "overlap_status": "unknown"
+      },
+      "evidence_design": {
+        "baseline_status": "absent",
+        "comparator_status": "no_control",
+        "reference_status": "absent",
+        "reference_independence": "unknown",
+        "measurement_profile_status": "partial",
+        "calibration_status": "unknown",
+        "confounder_status": "unmeasured",
+        "spillover_status": "not_assessed",
+        "rights_status": "cleared_synthetic"
+      },
+      "expected_max_claim_class": "IMPLEMENTATION_OUTPUT",
+      "expected_disposition": "DOWNGRADE_TO_SUPPORTED_CLASS",
+      "hard_invariants": [
+        "Installation and nominal monitoring capability do not establish treatment performance.",
+        "No potable-water or catchment-wide improvement claim is allowed."
+      ]
+    },
+    {
+      "case_id": "IOEQ-SYN-004",
+      "family": "planting_without_survival",
+      "claim_under_review": {
+        "class": "OBSERVED_PHYSICAL_OUTCOME",
+        "text": "Forty-five wild olive trees planted at Jukskei Park 3 have survived and restored riparian canopy."
+      },
+      "source_records": [
+        {
+          "record_id": "ALEXNEWS-TREE-PLANTING-2026-10",
+          "publisher": "Alex News",
+          "source_url": "https://www.citizen.co.za/alex-news/news-headlines/local-news/2026/11/13/volunteers-plant-45-wild-olive-trees-along-the-jukskei-river-in-alexandra/",
+          "source_kind": "planting_register",
+          "published_at": "2026-11-13",
+          "as_of_date": "2026-10-25",
+          "geographic_scope": "Jukskei Park 3, Alexandra",
+          "measurement_nature": "reported_implementation_output",
+          "method_status": "partially_documented",
+          "rights_status": "cleared_synthetic",
+          "measurements": [
+            {
+              "metric": "wild olive trees planted",
+              "value": 45,
+              "unit": "trees",
+              "evidence_type": "count",
+              "uncertainty_status": "not_reported"
+            }
+          ]
+        }
+      ],
+      "intervention_exposure": {
+        "intervention_id": "JUKSKEI-PARK3-OLIVE-2026-10-25",
+        "activity_type": "wild olive planting",
+        "geometry_status": "approximate",
+        "timing_status": "verified",
+        "intensity_status": "reported",
+        "overlap_status": "checked_no_overlap"
+      },
+      "evidence_design": {
+        "baseline_status": "not_required_for_class",
+        "comparator_status": "not_applicable",
+        "reference_status": "absent",
+        "reference_independence": "unknown",
+        "measurement_profile_status": "unqualified",
+        "calibration_status": "not_applicable",
+        "confounder_status": "unknown",
+        "spillover_status": "not_applicable",
+        "rights_status": "cleared_synthetic"
+      },
+      "expected_max_claim_class": "IMPLEMENTATION_OUTPUT",
+      "expected_disposition": "DOWNGRADE_TO_SUPPORTED_CLASS",
+      "hard_invariants": [
+        "Do not infer survival, growth or canopy establishment from a planting count.",
+        "Replacement trees must not be counted as original cohort survivors."
+      ]
+    },
+    {
+      "case_id": "IOEQ-SYN-005",
+      "family": "before_after_without_control",
+      "claim_under_review": {
+        "class": "ATTRIBUTABLE_INTERVENTION_EFFECT",
+        "text": "Vegetation increased after the intervention, therefore restoration caused the increase."
+      },
+      "source_records": [
+        {
+          "record_id": "POST-ONLY-EO",
+          "publisher": "Synthetic EO processor",
+          "source_kind": "remote_sensing_product",
+          "published_at": "2026-11-01",
+          "as_of_date": "2026-11-01",
+          "geographic_scope": "single treated reach",
+          "measurement_nature": "derived_measurement",
+          "method_status": "documented",
+          "rights_status": "cleared_synthetic",
+          "measurements": [
+            {
+              "metric": "vegetation fraction",
+              "value": 0.62,
+              "unit": "fraction",
+              "evidence_type": "concentration",
+              "uncertainty_status": "quantified"
+            }
+          ]
+        },
+        {
+          "record_id": "PRE-EO",
+          "publisher": "Synthetic EO processor",
+          "source_kind": "remote_sensing_product",
+          "published_at": "2025-11-01",
+          "as_of_date": "2025-11-01",
+          "geographic_scope": "single treated reach",
+          "measurement_nature": "derived_measurement",
+          "method_status": "documented",
+          "rights_status": "cleared_synthetic",
+          "measurements": [
+            {
+              "metric": "vegetation fraction",
+              "value": 0.54,
+              "unit": "fraction",
+              "evidence_type": "concentration",
+              "uncertainty_status": "quantified"
+            }
+          ]
+        }
+      ],
+      "intervention_exposure": {
+        "intervention_id": "SYN-RESTORATION-A",
+        "activity_type": "riparian restoration",
+        "geometry_status": "verified",
+        "timing_status": "verified",
+        "intensity_status": "reported",
+        "overlap_status": "unknown"
+      },
+      "evidence_design": {
+        "baseline_status": "partial",
+        "comparator_status": "no_control",
+        "reference_status": "direct_instrument_record",
+        "reference_independence": "independent",
+        "measurement_profile_status": "qualified",
+        "calibration_status": "current_and_traceable",
+        "confounder_status": "unmeasured",
+        "spillover_status": "not_assessed",
+        "rights_status": "cleared_synthetic"
+      },
+      "expected_max_claim_class": "OBSERVED_PHYSICAL_OUTCOME",
+      "expected_disposition": "CAUSALITY_NOT_IDENTIFIED",
+      "hard_invariants": [
+        "A before/after difference without credible counterfactual is descriptive or associational, not causal.",
+        "The claim must disclose season, rainfall, concurrent work and sensor comparability."
+      ]
+    },
+    {
+      "case_id": "IOEQ-SYN-006",
+      "family": "valid_counterfactual_design",
+      "claim_under_review": {
+        "class": "ATTRIBUTABLE_INTERVENTION_EFFECT",
+        "text": "The intervention increased riparian survival by 12 percentage points versus matched controls."
+      },
+      "source_records": [
+        {
+          "record_id": "BACI-IMPACT",
+          "publisher": "Synthetic independent field team",
+          "source_kind": "field_survey",
+          "published_at": "2026-11-01",
+          "as_of_date": "2026-11-01",
+          "geographic_scope": "replicated impact reaches",
+          "measurement_nature": "direct_measurement",
+          "method_status": "documented",
+          "rights_status": "cleared_synthetic",
+          "measurements": [
+            {
+              "metric": "survival difference-in-differences",
+              "value": 0.12,
+              "unit": "percentage-point fraction",
+              "evidence_type": "rate",
+              "uncertainty_status": "quantified"
+            }
+          ]
+        },
+        {
+          "record_id": "BACI-CONTROL",
+          "publisher": "Synthetic independent field team",
+          "source_kind": "field_survey",
+          "published_at": "2026-11-01",
+          "as_of_date": "2026-11-01",
+          "geographic_scope": "replicated matched control reaches",
+          "measurement_nature": "direct_measurement",
+          "method_status": "documented",
+          "rights_status": "cleared_synthetic",
+          "measurements": [
+            {
+              "metric": "pre/post survival",
+              "value": "paired panel",
+              "unit": "design",
+              "evidence_type": "other",
+              "uncertainty_status": "quantified"
+            }
+          ]
+        }
+      ],
+      "intervention_exposure": {
+        "intervention_id": "SYN-RESTORATION-B",
+        "activity_type": "riparian planting and maintenance",
+        "geometry_status": "verified",
+        "timing_status": "verified",
+        "intensity_status": "measured",
+        "overlap_status": "checked_no_overlap"
+      },
+      "evidence_design": {
+        "baseline_status": "adequate",
+        "comparator_status": "credible_control",
+        "reference_status": "independent_sample",
+        "reference_independence": "independent",
+        "measurement_profile_status": "qualified",
+        "calibration_status": "current_and_traceable",
+        "confounder_status": "measured_and_addressed",
+        "spillover_status": "assessed_and_low",
+        "rights_status": "cleared_synthetic"
+      },
+      "expected_max_claim_class": "ATTRIBUTABLE_INTERVENTION_EFFECT",
+      "expected_disposition": "ACCEPT_AT_SUBMITTED_CLASS",
+      "hard_invariants": [
+        "Causal effect is accepted only within the synthetic design's defined population, interval and assumptions.",
+        "Independent replication and sensitivity still required before generalizing to other catchments."
+      ]
+    },
+    {
+      "case_id": "IOEQ-SYN-007",
+      "family": "control_spillover",
+      "claim_under_review": {
+        "class": "ATTRIBUTABLE_INTERVENTION_EFFECT",
+        "text": "The treated reach improved relative to the control reach, establishing intervention impact."
+      },
+      "source_records": [
+        {
+          "record_id": "SPILLOVER-MONITOR",
+          "publisher": "Synthetic field campaign",
+          "source_kind": "sensor_telemetry",
+          "published_at": "2026-11-01",
+          "as_of_date": "2026-11-01",
+          "geographic_scope": "treated and control reaches",
+          "measurement_nature": "direct_measurement",
+          "method_status": "documented",
+          "rights_status": "cleared_synthetic",
+          "measurements": [
+            {
+              "metric": "downstream signal",
+              "value": "both reaches exposed",
+              "unit": "status",
+              "evidence_type": "other",
+              "uncertainty_status": "quantified"
+            }
+          ]
+        }
+      ],
+      "intervention_exposure": {
+        "intervention_id": "SYN-RESTORATION-C",
+        "activity_type": "upstream restoration",
+        "geometry_status": "verified",
+        "timing_status": "verified",
+        "intensity_status": "measured",
+        "overlap_status": "known_overlap"
+      },
+      "evidence_design": {
+        "baseline_status": "adequate",
+        "comparator_status": "contaminated_control",
+        "reference_status": "independent_sample",
+        "reference_independence": "independent",
+        "measurement_profile_status": "qualified",
+        "calibration_status": "current_and_traceable",
+        "confounder_status": "partially_addressed",
+        "spillover_status": "known",
+        "rights_status": "cleared_synthetic"
+      },
+      "expected_max_claim_class": "OBSERVED_PHYSICAL_OUTCOME",
+      "expected_disposition": "CAUSALITY_NOT_IDENTIFIED",
+      "hard_invariants": [
+        "A control contaminated by treatment spillover cannot be treated as an unaffected counterfactual.",
+        "Do not use a clean-looking difference-in-differences estimate if the control violates design assumptions."
+      ]
+    },
+    {
+      "case_id": "IOEQ-SYN-008",
+      "family": "measurement_shift_confounding",
+      "claim_under_review": {
+        "class": "OBSERVED_PHYSICAL_OUTCOME",
+        "text": "A vegetation increase is a restoration outcome."
+      },
+      "source_records": [
+        {
+          "record_id": "SENSOR-SEASON-SHIFT",
+          "publisher": "Synthetic EO processor",
+          "source_kind": "remote_sensing_product",
+          "published_at": "2026-11-01",
+          "as_of_date": "2026-11-01",
+          "geographic_scope": "same reach, two sensor/season profiles",
+          "measurement_nature": "derived_measurement",
+          "method_status": "documented",
+          "rights_status": "cleared_synthetic",
+          "measurements": [
+            {
+              "metric": "vegetation index",
+              "value": 0.1,
+              "unit": "index difference",
+              "evidence_type": "other",
+              "uncertainty_status": "quantified"
+            }
+          ]
+        }
+      ],
+      "intervention_exposure": {
+        "intervention_id": "SYN-RESTORATION-D",
+        "activity_type": "invasive species removal",
+        "geometry_status": "verified",
+        "timing_status": "approximate",
+        "intensity_status": "reported",
+        "overlap_status": "unknown"
+      },
+      "evidence_design": {
+        "baseline_status": "partial",
+        "comparator_status": "no_control",
+        "reference_status": "dependent_derivative",
+        "reference_independence": "dependent",
+        "measurement_profile_status": "unqualified",
+        "calibration_status": "unknown",
+        "confounder_status": "unmeasured",
+        "spillover_status": "not_assessed",
+        "rights_status": "cleared_synthetic"
+      },
+      "expected_max_claim_class": "IMPLEMENTATION_OUTPUT",
+      "expected_disposition": "INSUFFICIENT_OBSERVABILITY",
+      "hard_invariants": [
+        "A sensor, processing or season shift must not be promoted to an intervention outcome.",
+        "Compose with PCIT and keep measurement uncertainty distinct from physical outcome."
+      ]
+    },
+    {
+      "case_id": "IOEQ-SYN-009",
+      "family": "rights_or_provenance_unknown",
+      "claim_under_review": {
+        "class": "OBSERVED_PHYSICAL_OUTCOME",
+        "text": "A restricted monitoring dataset proves improved river quality and can be redistributed for model training."
+      },
+      "source_records": [
+        {
+          "record_id": "RESTRICTED-RAW",
+          "publisher": "Unidentified data holder",
+          "source_kind": "sensor_telemetry",
+          "published_at": null,
+          "as_of_date": null,
+          "geographic_scope": "unknown monitoring site",
+          "measurement_nature": "direct_measurement",
+          "method_status": "unknown",
+          "rights_status": "unknown",
+          "measurements": []
+        }
+      ],
+      "intervention_exposure": {
+        "intervention_id": "UNKNOWN-INTERVENTION",
+        "activity_type": "unknown",
+        "geometry_status": "missing",
+        "timing_status": "missing",
+        "intensity_status": "unknown",
+        "overlap_status": "unknown"
+      },
+      "evidence_design": {
+        "baseline_status": "unknown",
+        "comparator_status": "unknown",
+        "reference_status": "unknown",
+        "reference_independence": "unknown",
+        "measurement_profile_status": "unknown",
+        "calibration_status": "unknown",
+        "confounder_status": "unknown",
+        "spillover_status": "unknown",
+        "rights_status": "unknown"
+      },
+      "expected_max_claim_class": "IMPLEMENTATION_OUTPUT",
+      "expected_disposition": "RIGHTS_OR_PROVENANCE_BLOCK",
+      "hard_invariants": [
+        "Unknown rights do not authorize redistribution, commercial use or model training.",
+        "Unknown source identity and calibration block promotion to observed physical outcome."
+      ]
+    },
+    {
+      "case_id": "IOEQ-SYN-010",
+      "family": "dependent_reference",
+      "claim_under_review": {
+        "class": "ATTRIBUTABLE_INTERVENTION_EFFECT",
+        "text": "A derivative map from the same imagery/classifier independently confirms the restoration effect."
+      },
+      "source_records": [
+        {
+          "record_id": "MAP-A",
+          "publisher": "Processor A",
+          "source_kind": "remote_sensing_product",
+          "published_at": "2026-11-01",
+          "as_of_date": "2026-11-01",
+          "geographic_scope": "same AOI",
+          "measurement_nature": "derived_measurement",
+          "method_status": "documented",
+          "rights_status": "cleared_synthetic",
+          "measurements": []
+        },
+        {
+          "record_id": "MAP-B",
+          "publisher": "Processor B",
+          "source_kind": "remote_sensing_product",
+          "published_at": "2026-11-02",
+          "as_of_date": "2026-11-02",
+          "geographic_scope": "same AOI",
+          "measurement_nature": "derived_measurement",
+          "method_status": "documented",
+          "rights_status": "cleared_synthetic",
+          "measurements": []
+        }
+      ],
+      "intervention_exposure": {
+        "intervention_id": "SYN-RESTORATION-E",
+        "activity_type": "riparian restoration",
+        "geometry_status": "verified",
+        "timing_status": "verified",
+        "intensity_status": "reported",
+        "overlap_status": "unknown"
+      },
+      "evidence_design": {
+        "baseline_status": "adequate",
+        "comparator_status": "credible_control",
+        "reference_status": "dependent_derivative",
+        "reference_independence": "dependent",
+        "measurement_profile_status": "partial",
+        "calibration_status": "unknown",
+        "confounder_status": "partially_addressed",
+        "spillover_status": "unknown",
+        "rights_status": "cleared_synthetic"
+      },
+      "expected_max_claim_class": "OBSERVED_PHYSICAL_OUTCOME",
+      "expected_disposition": "CAUSALITY_NOT_IDENTIFIED",
+      "hard_invariants": [
+        "Different publishers or filenames do not establish independent evidence when acquisition, labels or model lineage are shared.",
+        "Common-cause dependencies must be traversed before claiming independent corroboration."
+      ]
+    },
+    {
+      "case_id": "IOEQ-SYN-011",
+      "family": "adverse_outcome_suppression",
+      "claim_under_review": {
+        "class": "OBSERVED_PHYSICAL_OUTCOME",
+        "text": "Overall restoration performance is positive; omit the water-quality analyte that worsened."
+      },
+      "source_records": [
+        {
+          "record_id": "MULTI-ANALYTE-RESULT",
+          "publisher": "Synthetic independent lab",
+          "source_kind": "laboratory_record",
+          "published_at": "2026-11-01",
+          "as_of_date": "2026-11-01",
+          "geographic_scope": "EcoFilter site; paired sample interval",
+          "measurement_nature": "direct_measurement",
+          "method_status": "documented",
+          "rights_status": "cleared_synthetic",
+          "measurements": [
+            {
+              "metric": "turbidity",
+              "value": -0.12,
+              "unit": "normalized change",
+              "evidence_type": "rate",
+              "uncertainty_status": "quantified"
+            },
+            {
+              "metric": "nutrient concentration",
+              "value": 0.18,
+              "unit": "normalized change",
+              "evidence_type": "rate",
+              "uncertainty_status": "quantified"
+            }
+          ]
+        }
+      ],
+      "intervention_exposure": {
+        "intervention_id": "SYN-ECOFILTER-F",
+        "activity_type": "water treatment",
+        "geometry_status": "verified",
+        "timing_status": "verified",
+        "intensity_status": "measured",
+        "overlap_status": "checked_no_overlap"
+      },
+      "evidence_design": {
+        "baseline_status": "adequate",
+        "comparator_status": "matched_comparator",
+        "reference_status": "independent_sample",
+        "reference_independence": "independent",
+        "measurement_profile_status": "qualified",
+        "calibration_status": "current_and_traceable",
+        "confounder_status": "measured_and_addressed",
+        "spillover_status": "assessed_and_low",
+        "rights_status": "cleared_synthetic"
+      },
+      "expected_max_claim_class": "OBSERVED_PHYSICAL_OUTCOME",
+      "expected_disposition": "PRESERVE_ADVERSE_OUTCOME",
+      "hard_invariants": [
+        "Report all preregistered analytes, including adverse or unchanged results.",
+        "Do not compress a mixed outcome into an unsupported positive aggregate."
+      ]
+    },
+    {
+      "case_id": "IOEQ-SYN-012",
+      "family": "insufficient_baseline",
+      "claim_under_review": {
+        "class": "ATTRIBUTABLE_INTERVENTION_EFFECT",
+        "text": "A catchment-wide restoration effect has been demonstrated from one post-intervention map."
+      },
+      "source_records": [
+        {
+          "record_id": "POST-ONLY-MAP",
+          "publisher": "Synthetic processor",
+          "source_kind": "remote_sensing_product",
+          "published_at": "2026-11-01",
+          "as_of_date": "2026-11-01",
+          "geographic_scope": "partial Jukskei reach",
+          "measurement_nature": "derived_measurement",
+          "method_status": "partially_documented",
+          "rights_status": "cleared_synthetic",
+          "measurements": [
+            {
+              "metric": "vegetation index",
+              "value": 0.6,
+              "unit": "index",
+              "evidence_type": "other",
+              "uncertainty_status": "not_reported"
+            }
+          ]
+        }
+      ],
+      "intervention_exposure": {
+        "intervention_id": "SYN-RESTORATION-G",
+        "activity_type": "catchment restoration",
+        "geometry_status": "missing",
+        "timing_status": "missing",
+        "intensity_status": "unknown",
+        "overlap_status": "unknown"
+      },
+      "evidence_design": {
+        "baseline_status": "absent",
+        "comparator_status": "no_control",
+        "reference_status": "absent",
+        "reference_independence": "unknown",
+        "measurement_profile_status": "partial",
+        "calibration_status": "unknown",
+        "confounder_status": "unmeasured",
+        "spillover_status": "not_assessed",
+        "rights_status": "cleared_synthetic"
+      },
+      "expected_max_claim_class": "IMPLEMENTATION_OUTPUT",
+      "expected_disposition": "INSUFFICIENT_OBSERVABILITY",
+      "hard_invariants": [
+        "One post-intervention map cannot identify a causal effect or catchment-wide result.",
+        "The system must preserve the partial AOI and unknown baseline rather than extrapolate."
+      ]
+    }
+  ]
+}
