@@ -1,0 +1,50 @@
+name: Highveld Search Eval
+
+on:
+  push:
+    paths:
+      - "tools/highveld-search-eval/**"
+      - ".github/workflows/highveld-search-eval.yml"
+  pull_request:
+    paths:
+      - "tools/highveld-search-eval/**"
+      - ".github/workflows/highveld-search-eval.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: highveld-search-eval-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  mathematical-benchmark-e1:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install stable Rust and rustfmt
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt
+      - name: Cache isolated Cargo dependencies and build output
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            tools/highveld-search-eval/target/
+          key: ${{ runner.os }}-cargo-highveld-search-eval-${{ hashFiles('tools/highveld-search-eval/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-highveld-search-eval-
+            ${{ runner.os }}-cargo-highveld-contract-
+            ${{ runner.os }}-cargo-native-
+      - name: Check package formatting
+        run: cargo fmt --manifest-path tools/highveld-search-eval/Cargo.toml --all -- --check
+      - name: Fetch the exact locked dependency graph
+        run: cargo fetch --locked --manifest-path tools/highveld-search-eval/Cargo.toml
+      - name: Run locked offline mathematical auditor tests
+        run: cargo test --locked --offline --manifest-path tools/highveld-search-eval/Cargo.toml
+      - name: Audit exact mathematical fixture
+        run: cargo run --locked --offline --manifest-path tools/highveld-search-eval/Cargo.toml -- tools/highveld-search-eval/fixtures/mathematical-reference-v0.1.json
