@@ -460,6 +460,13 @@ pub struct MatpowerDcBus {
     pub reactive_demand_mvar: f64,
     pub shunt_conductance_mw: f64,
     pub shunt_susceptance_mvar: f64,
+    pub area: i64,
+    pub voltage_magnitude_initial_pu: f64,
+    pub voltage_angle_initial_degrees: f64,
+    pub base_kv: f64,
+    pub zone: i64,
+    pub voltage_max_pu: f64,
+    pub voltage_min_pu: f64,
     pub online_generation_mw: f64,
     pub online_generation_p_min_mw: f64,
     pub online_generation_p_max_mw: f64,
@@ -489,10 +496,28 @@ pub struct MatpowerDcBranch {
     pub angle_max_degrees: f64,
 }
 
+/// Original MATPOWER generator row retained by the bounded DC projection.
+#[derive(Debug, Clone, PartialEq)]
+pub struct MatpowerDcGenerator {
+    pub source_row: usize,
+    pub bus_id: i64,
+    pub pg_mw: f64,
+    pub qg_mvar: f64,
+    pub q_max_mvar: f64,
+    pub q_min_mvar: f64,
+    pub voltage_setpoint_pu: f64,
+    pub m_base_mva: f64,
+    pub in_service: bool,
+    pub p_max_mw: f64,
+    pub p_min_mw: f64,
+}
+
 /// Source-bound, typed projection for fixed-injection linear DC power-flow work.
 ///
-/// This is not a complete MATPOWER network model. Fields retained for audit may
-/// not be enforced by the downstream DC solver. See `limitations`.
+/// Bus, generator and branch source fields are retained. Generator costs and
+/// legacy area metadata are structurally audited but are not used by DC flow.
+/// Fields retained for audit may not be enforced by the downstream DC solver;
+/// see `limitations`.
 #[derive(Debug, Clone, PartialEq)]
 pub struct MatpowerDcProjection {
     pub source_git_blob_sha1: String,
@@ -500,7 +525,10 @@ pub struct MatpowerDcProjection {
     pub matpower_version: String,
     pub base_mva: f64,
     pub buses: Vec<MatpowerDcBus>,
+    pub generators: Vec<MatpowerDcGenerator>,
     pub branches: Vec<MatpowerDcBranch>,
+    pub cost_row_count: usize,
+    pub has_areas_metadata: bool,
     pub limitations: &'static [&'static str],
     pub claim_ceiling: &'static str,
 }
@@ -522,14 +550,27 @@ pub fn project_matpower_dc_case(source: &str) -> Result<MatpowerDcProjection, St
     let branches = parsed.matrices.get("branch").ok_or("missing mpc.branch")?;
 
     let mut generation_by_bus = BTreeMap::<i64, (f64, f64, f64)>::new();
+    let mut projected_generators = Vec::with_capacity(generators.len());
     for (index, generator) in generators.iter().enumerate() {
         let bus_id = parse_integer(generator[0], "generator bus identifier")?;
         let in_service = validate_binary_status(generator[7], "generator status")?;
+        let pg = generator[1];
+        projected_generators.push(MatpowerDcGenerator {
+            source_row: index + 1,
+            bus_id,
+            pg_mw: pg,
+            qg_mvar: generator[2],
+            q_max_mvar: generator[3],
+            q_min_mvar: generator[4],
+            voltage_setpoint_pu: generator[5],
+            m_base_mva: generator[6],
+            in_service,
+            p_max_mw: generator[8],
+            p_min_mw: generator[9],
+        });
         if !in_service {
             continue;
         }
-
-        let pg = generator[1];
         let p_max = generator[8];
         let p_min = generator[9];
         if pg < p_min || pg > p_max {
@@ -579,6 +620,13 @@ pub fn project_matpower_dc_case(source: &str) -> Result<MatpowerDcProjection, St
             reactive_demand_mvar: bus[3],
             shunt_conductance_mw: bus[4],
             shunt_susceptance_mvar: bus[5],
+            area: parse_integer(bus[6], "bus area")?,
+            voltage_magnitude_initial_pu: bus[7],
+            voltage_angle_initial_degrees: bus[8],
+            base_kv: bus[9],
+            zone: parse_integer(bus[10], "bus zone")?,
+            voltage_max_pu: bus[11],
+            voltage_min_pu: bus[12],
             online_generation_mw,
             online_generation_p_min_mw: p_min,
             online_generation_p_max_mw: p_max,
@@ -631,7 +679,10 @@ pub fn project_matpower_dc_case(source: &str) -> Result<MatpowerDcProjection, St
         matpower_version: summary.matpower_version,
         base_mva: summary.base_mva,
         buses: projected_buses,
+        generators: projected_generators,
         branches: projected_branches,
+        cost_row_count: summary.cost_row_count,
+        has_areas_metadata: parsed.matrices.contains_key("areas"),
         limitations: &[
             "fixed_non_reference_generation_and_demand",
             "reference_bus_generation_is_balancing_not_pmax_pmin_checked_after_solve",
@@ -641,6 +692,11 @@ pub fn project_matpower_dc_case(source: &str) -> Result<MatpowerDcProjection, St
             "rate_a_is_the_only_branch_rating_exposed_to_the_dc_solver",
             "branch_angle_difference_limits_are_retained_but_not_enforced",
             "bus_shunt_fields_are_retained_but_not_enforced",
+            "bus_voltage_setpoints_and_limits_are_retained_but_not_enforced",
+            "generator_q_fields_and_voltage_setpoints_are_retained_but_not_enforced",
+            "generator_p_bounds_are_not_enforced_after_projection",
+            "gencost_is_structurally_audited_but_not_used_by_dc_power_flow",
+            "legacy_areas_metadata_is_structurally_audited_but_not_projected",
             "not_ac_power_flow_or_security_constrained_opf",
         ],
         claim_ceiling: "source_bound_fixed_injection_dc_projection_only",
