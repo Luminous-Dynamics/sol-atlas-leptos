@@ -9,7 +9,7 @@
 Three existing owners already cover most of the planning problem. The Highveld integration must preserve those boundaries.
 
 - **Mycelix #6247** is designing the typed decision episode / assurance graph: canonical decision scope, source snapshots, artifact digests, typed claims and proof obligations. Highveld consumes the exact episode and obligation references; it must not reconstruct this graph.
-- **Mycelix #6252** is designing assurance-obligation evidence acquisition: which unresolved proof obligations a candidate task can address, and whether it is admissible under authority, rights/source-use, safety, schedule, physical-realizability and data-access gates. The plan only identifies tasks capable of producing evidence; it does not mean evidence has been acquired or accepted. Both Mycelix issues are open research work; no completed production integration is claimed.
+- **Mycelix #6252** is designing assurance-obligation evidence acquisition: which unresolved proof obligations a candidate task can address, and whether it is admissible under authority, rights/source-use, safety, schedule, physical-realizability and data-access gates. The plan only identifies tasks capable of producing evidence; it does not mean evidence has been acquired or accepted. The obligation remains unresolved until a separate observation/source-acquisition step produces evidence and the competent claim owner independently verifies it. The Highveld bridge's `obligations_with_admissible_acquisition_route` is not a count of resolved proof obligations; `unresolved_proof_obligations` always retains every obligation in the decision episode. Both Mycelix issues are open research work; no completed production integration is claimed.
 - **Symtropy PR #5240** owns the bounded resource- and space-time-constrained observation campaign solver. Symtropy issue #5164 remains a related observation-portfolio programme; do not infer that every branch or issue with a similar title is the same exact implementation.
 - **Symtropy #5250 / draft PR #5260** already owns the **production-option plus option-specific evidence-campaign composition and joint Pareto layer**. PR #5260 calls the existing optioneering engine #5238 and observation-campaign engine #5240; its issue explicitly says not to duplicate option gates, set-cover search, scheduler, reservation calendar, occupancy logic or accepted-output ledger. Its current issue record describes a Rust implementation and 14 synthetic tests, but the referenced exact-head CI was still pending in the last status recorded there.
 
@@ -140,8 +140,9 @@ If any mapping or proof obligation is absent, the corresponding obligation remai
 
 The bridge report records:
 - original Mycelix obligation and acquisition disposition, including all hard-gate reasons;
+- obligations with an admissible acquisition route separately from the full unresolved-proof-obligation denominator; a planned route never closes a proof obligation;
 - exact relation to the Symtropy option-evidence package and observation action, or UNBOUND;
-- Symtropy option/campaign identity, feasibility, completeness, optimality proof status and owner-computed objective fields;
+- Symtropy option/campaign identity, owner-reported feasibility/completeness/search status and owner-computed objective fields; the bridge does not authenticate the owner output or independently verify its optimality;
 - obligations still uncovered after admissibility gating;
 - new physical evidence still required and who owns its acquisition/verification;
 - exact source/profile/commit/digest and adapter identities.
