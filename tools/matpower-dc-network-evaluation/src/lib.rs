@@ -9,9 +9,7 @@
 use dc_fixed_injection_contingency_sweep::{
     ContingencySweepReport, SweepOptions, sweep_fixed_injection_single_branch_outages,
 };
-use dc_power_flow_independent_auditor::{
-    AuditOptions, AuditReport, audit_dc_power_flow,
-};
+use dc_power_flow_independent_auditor::{AuditOptions, AuditReport, audit_dc_power_flow};
 use dc_power_flow_reference::{
     DcBranch, DcBus, DcNetwork, DcPowerFlowResult, SolveOptions, solve_dc_power_flow,
 };
@@ -25,7 +23,10 @@ pub struct EvaluationError {
 
 impl EvaluationError {
     fn new(stage: &'static str, reason: impl Into<String>) -> Self {
-        Self { stage, reason: reason.into() }
+        Self {
+            stage,
+            reason: reason.into(),
+        }
     }
 }
 
@@ -51,67 +52,99 @@ pub struct MatpowerDcEvaluation {
 
 fn map_projection(projection: &MatpowerDcProjection) -> Result<DcNetwork, EvaluationError> {
     if projection.source_git_blob_sha1.len() != 40
-        || !projection.source_git_blob_sha1.chars().all(|c| c.is_ascii_hexdigit())
+        || !projection
+            .source_git_blob_sha1
+            .chars()
+            .all(|c| c.is_ascii_hexdigit())
     {
-        return Err(EvaluationError::new("projection", "source Git blob SHA-1 is malformed"));
+        return Err(EvaluationError::new(
+            "projection",
+            "source Git blob SHA-1 is malformed",
+        ));
     }
     if !projection.base_mva.is_finite() || projection.base_mva <= 0.0 {
-        return Err(EvaluationError::new("projection", "base MVA must be finite and positive"));
+        return Err(EvaluationError::new(
+            "projection",
+            "base MVA must be finite and positive",
+        ));
     }
     if projection.buses.is_empty() {
-        return Err(EvaluationError::new("projection", "projection contains no buses"));
+        return Err(EvaluationError::new(
+            "projection",
+            "projection contains no buses",
+        ));
     }
 
-    let buses = projection.buses.iter().map(|bus| {
-        if bus.bus_type == 4 {
-            return Err(EvaluationError::new(
-                "projection",
-                format!("isolated type-4 bus {} is unsupported", bus.id),
-            ));
-        }
-        let specified_injection_mw = match (bus.bus_type, bus.specified_injection_mw) {
-            (3, None) => None,
-            (3, Some(_)) => {
+    let buses = projection
+        .buses
+        .iter()
+        .map(|bus| {
+            if bus.bus_type == 4 {
                 return Err(EvaluationError::new(
                     "projection",
-                    format!("type-3 reference bus {} must have unspecified injection", bus.id),
+                    format!("isolated type-4 bus {} is unsupported", bus.id),
                 ));
             }
-            (1 | 2, Some(value)) if value.is_finite() => Some(value),
-            (1 | 2, _) => {
-                return Err(EvaluationError::new(
-                    "projection",
-                    format!("non-reference bus {} requires a finite specified injection", bus.id),
-                ));
-            }
-            (unsupported, _) => {
-                return Err(EvaluationError::new(
-                    "projection",
-                    format!("unsupported MATPOWER bus type {unsupported} at bus {}", bus.id),
-                ));
-            }
-        };
-        Ok(DcBus { id: bus.id, specified_injection_mw })
-    }).collect::<Result<Vec<_>, EvaluationError>>()?;
-
-    let branches = projection.branches.iter().map(|branch| {
-        if !branch.rate_a_mva.is_finite() || branch.rate_a_mva < 0.0 {
-            return Err(EvaluationError::new(
-                "projection",
-                format!("invalid Rate A at source branch row {}", branch.source_row),
-            ));
-        }
-        let rate_a_mva = (branch.rate_a_mva > 0.0).then_some(branch.rate_a_mva);
-        Ok(DcBranch {
-            from_bus: branch.from_bus,
-            to_bus: branch.to_bus,
-            reactance_pu: branch.reactance_pu,
-            tap_ratio: branch.tap_ratio,
-            phase_shift_degrees: branch.phase_shift_degrees,
-            rate_a_mva,
-            in_service: branch.in_service,
+            let specified_injection_mw = match (bus.bus_type, bus.specified_injection_mw) {
+                (3, None) => None,
+                (3, Some(_)) => {
+                    return Err(EvaluationError::new(
+                        "projection",
+                        format!(
+                            "type-3 reference bus {} must have unspecified injection",
+                            bus.id
+                        ),
+                    ));
+                }
+                (1 | 2, Some(value)) if value.is_finite() => Some(value),
+                (1 | 2, _) => {
+                    return Err(EvaluationError::new(
+                        "projection",
+                        format!(
+                            "non-reference bus {} requires a finite specified injection",
+                            bus.id
+                        ),
+                    ));
+                }
+                (unsupported, _) => {
+                    return Err(EvaluationError::new(
+                        "projection",
+                        format!(
+                            "unsupported MATPOWER bus type {unsupported} at bus {}",
+                            bus.id
+                        ),
+                    ));
+                }
+            };
+            Ok(DcBus {
+                id: bus.id,
+                specified_injection_mw,
+            })
         })
-    }).collect::<Result<Vec<_>, EvaluationError>>()?;
+        .collect::<Result<Vec<_>, EvaluationError>>()?;
+
+    let branches = projection
+        .branches
+        .iter()
+        .map(|branch| {
+            if !branch.rate_a_mva.is_finite() || branch.rate_a_mva < 0.0 {
+                return Err(EvaluationError::new(
+                    "projection",
+                    format!("invalid Rate A at source branch row {}", branch.source_row),
+                ));
+            }
+            let rate_a_mva = (branch.rate_a_mva > 0.0).then_some(branch.rate_a_mva);
+            Ok(DcBranch {
+                from_bus: branch.from_bus,
+                to_bus: branch.to_bus,
+                reactance_pu: branch.reactance_pu,
+                tap_ratio: branch.tap_ratio,
+                phase_shift_degrees: branch.phase_shift_degrees,
+                rate_a_mva,
+                in_service: branch.in_service,
+            })
+        })
+        .collect::<Result<Vec<_>, EvaluationError>>()?;
 
     Ok(DcNetwork {
         base_mva: projection.base_mva,
@@ -186,47 +219,68 @@ fn json_quote(value: &str) -> String {
 }
 
 fn number(value: f64) -> String {
-    if value == 0.0 { "0".to_owned() } else { value.to_string() }
+    if value == 0.0 {
+        "0".to_owned()
+    } else {
+        value.to_string()
+    }
 }
 
 impl MatpowerDcEvaluation {
     /// Deterministic dependency-free JSON evidence receipt.
     pub fn to_json(&self) -> String {
-        let bus_states = self.solution.bus_states.iter().map(|bus| {
-            format!(
-                concat!(
-                    "{{\"bus_id\":{},\"angle_rad\":{},",
-                    "\"net_injection_mw\":{},\"net_outflow_mw\":{},",
-                    "\"nodal_residual_mw\":{},\"reference_bus\":{}}}"
-                ),
-                bus.bus_id,
-                number(bus.voltage_angle_rad),
-                number(bus.net_injection_mw),
-                number(bus.calculated_net_outflow_mw),
-                number(bus.nodal_residual_mw),
-                bus.is_reference_bus
-            )
-        }).collect::<Vec<_>>().join(",");
+        let bus_states = self
+            .solution
+            .bus_states
+            .iter()
+            .map(|bus| {
+                format!(
+                    concat!(
+                        "{{\"bus_id\":{},\"angle_rad\":{},",
+                        "\"net_injection_mw\":{},\"net_outflow_mw\":{},",
+                        "\"nodal_residual_mw\":{},\"reference_bus\":{}}}"
+                    ),
+                    bus.bus_id,
+                    number(bus.voltage_angle_rad),
+                    number(bus.net_injection_mw),
+                    number(bus.calculated_net_outflow_mw),
+                    number(bus.nodal_residual_mw),
+                    bus.is_reference_bus
+                )
+            })
+            .collect::<Vec<_>>()
+            .join(",");
 
-        let branch_flows = self.solution.branch_flows.iter().map(|branch| {
-            let rate = branch.rate_a_limit_mw.map(number).unwrap_or_else(|| "null".to_owned());
-            format!(
-                concat!(
-                    "{{\"branch_index\":{},\"from_bus\":{},\"to_bus\":{},",
-                    "\"in_service\":{},\"flow_from_to_mw\":{},",
-                    "\"rate_a_limit_mw\":{},\"overload_mw\":{}}}"
-                ),
-                branch.branch_index,
-                branch.from_bus,
-                branch.to_bus,
-                branch.in_service,
-                number(branch.flow_from_to_mw),
-                rate,
-                number(branch.overload_mw)
-            )
-        }).collect::<Vec<_>>().join(",");
+        let branch_flows = self
+            .solution
+            .branch_flows
+            .iter()
+            .map(|branch| {
+                let rate = branch
+                    .rate_a_limit_mw
+                    .map(number)
+                    .unwrap_or_else(|| "null".to_owned());
+                format!(
+                    concat!(
+                        "{{\"branch_index\":{},\"from_bus\":{},\"to_bus\":{},",
+                        "\"in_service\":{},\"flow_from_to_mw\":{},",
+                        "\"rate_a_limit_mw\":{},\"overload_mw\":{}}}"
+                    ),
+                    branch.branch_index,
+                    branch.from_bus,
+                    branch.to_bus,
+                    branch.in_service,
+                    number(branch.flow_from_to_mw),
+                    rate,
+                    number(branch.overload_mw)
+                )
+            })
+            .collect::<Vec<_>>()
+            .join(",");
 
-        let limitations = self.limitations.iter()
+        let limitations = self
+            .limitations
+            .iter()
             .map(|limitation| json_quote(limitation))
             .collect::<Vec<_>>()
             .join(",");
@@ -346,12 +400,10 @@ impl MatpowerDcContingencyEvaluation {
 mod tests {
     use super::*;
 
-    const CASE14: &str =
-        include_str!("../../pglib-case-auditor/fixtures/pglib_opf_case14_ieee.m");
+    const CASE14: &str = include_str!("../../pglib-case-auditor/fixtures/pglib_opf_case14_ieee.m");
     const CASE24: &str =
         include_str!("../../pglib-case-auditor/fixtures/pglib_opf_case24_ieee_rts.m");
-    const CASE57: &str =
-        include_str!("../../pglib-case-auditor/fixtures/pglib_opf_case57_ieee.m");
+    const CASE57: &str = include_str!("../../pglib-case-auditor/fixtures/pglib_opf_case57_ieee.m");
 
     fn evaluate(source: &str) -> MatpowerDcEvaluation {
         evaluate_matpower_dc_case(source, SolveOptions::default())
@@ -361,7 +413,10 @@ mod tests {
     #[test]
     fn ieee_14_bus_projection_solves_and_receipt_is_independently_audited() {
         let result = evaluate(CASE14);
-        assert_eq!(result.source_git_blob_sha1, "2c8260fff0311c902c3d36dcabcbe861576fc97c");
+        assert_eq!(
+            result.source_git_blob_sha1,
+            "2c8260fff0311c902c3d36dcabcbe861576fc97c"
+        );
         assert_eq!(result.source_function_name, "pglib_opf_case14_ieee");
         assert_eq!(result.network.buses.len(), 14);
         assert_eq!(result.network.branches.len(), 20);
@@ -374,7 +429,10 @@ mod tests {
     #[test]
     fn ieee_rts_24_bus_projection_solves_and_receipt_is_independently_audited() {
         let result = evaluate(CASE24);
-        assert_eq!(result.source_git_blob_sha1, "00b024c2e583b82452392514d2c22881c708ba7c");
+        assert_eq!(
+            result.source_git_blob_sha1,
+            "00b024c2e583b82452392514d2c22881c708ba7c"
+        );
         assert_eq!(result.source_function_name, "pglib_opf_case24_ieee_rts");
         assert_eq!(result.network.buses.len(), 24);
         assert_eq!(result.network.branches.len(), 38);
@@ -387,7 +445,10 @@ mod tests {
     #[test]
     fn ieee_57_bus_projection_solves_and_receipt_is_independently_audited() {
         let result = evaluate(CASE57);
-        assert_eq!(result.source_git_blob_sha1, "d8b0c9e8b45265e57f52b7ab96880ad3a874cde5");
+        assert_eq!(
+            result.source_git_blob_sha1,
+            "d8b0c9e8b45265e57f52b7ab96880ad3a874cde5"
+        );
         assert_eq!(result.source_function_name, "pglib_opf_case57_ieee");
         assert_eq!(result.network.buses.len(), 57);
         assert_eq!(result.network.branches.len(), 80);
@@ -415,7 +476,6 @@ mod tests {
         assert!(error.reason.contains("unsupported statement"));
     }
 
-
     fn sweep(source: &str) -> MatpowerDcContingencyEvaluation {
         sweep_matpower_dc_case(source, SolveOptions::default(), 256)
             .expect("PGLib fixed-injection DC contingency sweep should complete")
@@ -440,21 +500,30 @@ mod tests {
     #[test]
     fn ieee_14_bus_runs_complete_independently_audited_branch_outage_panel() {
         let result = sweep(CASE14);
-        assert_eq!(result.source_git_blob_sha1, "2c8260fff0311c902c3d36dcabcbe861576fc97c");
+        assert_eq!(
+            result.source_git_blob_sha1,
+            "2c8260fff0311c902c3d36dcabcbe861576fc97c"
+        );
         assert_complete_audited_panel(&result, 20);
     }
 
     #[test]
     fn ieee_rts_24_bus_runs_complete_independently_audited_branch_outage_panel() {
         let result = sweep(CASE24);
-        assert_eq!(result.source_git_blob_sha1, "00b024c2e583b82452392514d2c22881c708ba7c");
+        assert_eq!(
+            result.source_git_blob_sha1,
+            "00b024c2e583b82452392514d2c22881c708ba7c"
+        );
         assert_complete_audited_panel(&result, 38);
     }
 
     #[test]
     fn ieee_57_bus_runs_complete_independently_audited_branch_outage_panel() {
         let result = sweep(CASE57);
-        assert_eq!(result.source_git_blob_sha1, "d8b0c9e8b45265e57f52b7ab96880ad3a874cde5");
+        assert_eq!(
+            result.source_git_blob_sha1,
+            "d8b0c9e8b45265e57f52b7ab96880ad3a874cde5"
+        );
         assert_complete_audited_panel(&result, 80);
     }
 
