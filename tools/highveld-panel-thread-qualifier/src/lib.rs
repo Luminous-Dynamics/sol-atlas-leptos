@@ -386,7 +386,8 @@ fn is_supported_owner_reference(owner: &str, reference: &str) -> bool {
         && matches!(segments[0], "issues" | "pull")
         && !segments[1].is_empty()
         && segments[1].bytes().all(|byte| byte.is_ascii_digit())
-        && !reference.contains(['?', '#'])
+        && !reference.contains('?')
+        && !reference.contains('#')
 }
 
 fn is_case_id(value: &str) -> bool {
