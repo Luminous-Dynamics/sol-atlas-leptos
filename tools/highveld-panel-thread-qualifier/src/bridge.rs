@@ -566,12 +566,12 @@ fn validate_owner_binding(
         ("adapter_sha256", binding.adapter_sha256.as_deref(), 64usize),
         ("mapping_sha256", binding.mapping_sha256.as_deref(), 64usize),
     ] {
-        if let Some(value) = value {
-            if !is_lower_hex(value, length) {
-                return Err(format!(
-                    "{path}.{field} is not {length}-character lowercase hex"
-                ));
-            }
+        if let Some(value) = value
+            && !is_lower_hex(value, length)
+        {
+            return Err(format!(
+                "{path}.{field} is not {length}-character lowercase hex"
+            ));
         }
     }
     if binding.mapping_status == BindingState::Bound {
@@ -632,10 +632,10 @@ fn validate_mapping_review(
     mapping_id: &str,
     as_of_unix: u64,
 ) -> Result<(), String> {
-    if let Some(digest) = review.mapping_sha256.as_deref() {
-        if !is_lower_hex(digest, 64) {
-            return Err(format!("{mapping_id}.review.mapping_sha256 is invalid"));
-        }
+    if let Some(digest) = review.mapping_sha256.as_deref()
+        && !is_lower_hex(digest, 64)
+    {
+        return Err(format!("{mapping_id}.review.mapping_sha256 is invalid"));
     }
     if review.status == BindingState::Bound {
         require_text(
@@ -1223,7 +1223,7 @@ mod tests {
                 acquisition_id: "ACQUISITION-001".to_owned(),
                 episode_id: "EPISODE-HPT-001".to_owned(),
                 context: ctx.clone(),
-                kind: kind.clone(),
+                kind,
                 covers_obligation_ids: vec!["OBLIGATION-METROLOGY-001".to_owned()],
                 gates: allowed_gates(kind),
             }],
