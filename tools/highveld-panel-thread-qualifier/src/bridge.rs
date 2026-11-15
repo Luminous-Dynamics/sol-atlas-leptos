@@ -1604,9 +1604,7 @@ mod tests {
 
     #[test]
     fn runnable_bound_synthetic_example_reports_routes_without_proof_closure() {
-        let input = include_str!(
-            "../examples/highveld-bound-synthetic-bridge-example-v0.1.json"
-        );
+        let input = include_str!("../examples/highveld-bound-synthetic-bridge-example-v0.1.json");
         let report = evaluate_bridge_bytes(input.as_bytes()).unwrap();
 
         assert_eq!(report.obligations_with_admissible_acquisition_route, 2);
