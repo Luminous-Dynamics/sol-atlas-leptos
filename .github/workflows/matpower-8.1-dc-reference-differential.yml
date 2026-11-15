@@ -45,7 +45,8 @@ jobs:
         shell: bash
         run: |
           test "$(git -C vendor/matpower rev-parse HEAD)" = "1a828c7af590714499284e36ee9c81273388c594"
-          test "$(git -C vendor/matpower describe --tags --exact-match)" = "8.1"
+          git -C vendor/matpower fetch --depth=1 origin refs/tags/8.1:refs/tags/8.1
+          test "$(git -C vendor/matpower rev-parse '8.1^{}')" = "1a828c7af590714499284e36ee9c81273388c594"
 
       - name: Install GNU Octave
         run: |
