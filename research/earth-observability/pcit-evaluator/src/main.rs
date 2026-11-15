@@ -450,7 +450,6 @@ fn score_results(corpus: &Value, submitted: &Value, actual_corpus_digest: &str) 
     })
 }
 
-
 fn reference_audit_case(case: &Value) -> Value {
     let model = &case["reference_model"];
     let recovery = &case["recovery_assessment"];
@@ -461,7 +460,10 @@ fn reference_audit_case(case: &Value) -> Value {
         model_blockers.insert("reference_model_not_qualified".to_string());
     }
 
-    let sites = model["reference_sites"].as_array().cloned().unwrap_or_default();
+    let sites = model["reference_sites"]
+        .as_array()
+        .cloned()
+        .unwrap_or_default();
     let included: Vec<&Value> = sites
         .iter()
         .filter(|site| site["included_in_model"].as_bool() == Some(true))
@@ -541,11 +543,7 @@ fn reference_audit_case(case: &Value) -> Value {
         model_blockers.insert("assessment_reference_model_version_mismatch".to_string());
     }
 
-    for source in model["knowledge_sources"]
-        .as_array()
-        .into_iter()
-        .flatten()
-    {
+    for source in model["knowledge_sources"].as_array().into_iter().flatten() {
         let consent = source["consent_status"].as_str().unwrap_or("unknown");
         let purpose = source["requested_purpose"].as_str().unwrap_or("");
         let permitted = source["permitted_purposes"]
@@ -571,15 +569,16 @@ fn reference_audit_case(case: &Value) -> Value {
     let mut worsening_attributes = Vec::<String>::new();
     let mut unobserved_attributes = Vec::<String>::new();
     for item in &attribute_states {
-        let attribute = item["attribute"].as_str().unwrap_or("<missing>").to_string();
+        let attribute = item["attribute"]
+            .as_str()
+            .unwrap_or("<missing>")
+            .to_string();
         seen_attributes.insert(attribute.clone());
         if item["state"].as_str() == Some("worsening") {
             worsening_attributes.push(attribute.clone());
         }
-        if matches!(
-            item["state"].as_str(),
-            Some("unknown") | None
-        ) || item["coverage_status"].as_str() == Some("unobserved")
+        if matches!(item["state"].as_str(), Some("unknown") | None)
+            || item["coverage_status"].as_str() == Some("unobserved")
         {
             unobserved_attributes.push(attribute);
         }
@@ -600,12 +599,13 @@ fn reference_audit_case(case: &Value) -> Value {
             claim_blockers.insert("unobserved_attribute_in_positive_recovery_claim".to_string());
         }
         if !model_blockers.is_empty() {
-            claim_blockers.insert("positive_recovery_claim_without_qualified_reference_model".to_string());
+            claim_blockers
+                .insert("positive_recovery_claim_without_qualified_reference_model".to_string());
         }
     }
 
-    let reference_model_qualified = model["status"].as_str() == Some("qualified")
-        && model_blockers.is_empty();
+    let reference_model_qualified =
+        model["status"].as_str() == Some("qualified") && model_blockers.is_empty();
     let overall_claim_permitted = overall_claim != "positive_recovery"
         || (reference_model_qualified && claim_blockers.is_empty());
 
@@ -629,7 +629,10 @@ fn reference_audit_case(case: &Value) -> Value {
     })
 }
 
-fn build_reference_agent_view(corpus: &Value, corpus_digest: &str) -> Result<Value, Box<dyn Error>> {
+fn build_reference_agent_view(
+    corpus: &Value,
+    corpus_digest: &str,
+) -> Result<Value, Box<dyn Error>> {
     let cases = corpus
         .get("cases")
         .and_then(Value::as_array)
@@ -665,11 +668,7 @@ fn build_reference_agent_view(corpus: &Value, corpus_digest: &str) -> Result<Val
 
 fn audit_reference_corpus(corpus: &Value, corpus_digest: &str) -> Value {
     let mut cases = corpus["cases"].as_array().cloned().unwrap_or_default();
-    cases.sort_by(|a, b| {
-        a["case_id"]
-            .as_str()
-            .cmp(&b["case_id"].as_str())
-    });
+    cases.sort_by(|a, b| a["case_id"].as_str().cmp(&b["case_id"].as_str()));
     let audits: Vec<Value> = cases.iter().map(reference_audit_case).collect();
     let mut blocker_counts = BTreeMap::<String, u64>::new();
     let mut qualified_models = 0_u64;
@@ -1205,7 +1204,8 @@ mod tests {
                 .map(str::to_owned)
                 .collect();
             assert_eq!(
-                actual, expected,
+                actual,
+                expected,
                 "blocker mismatch for {}",
                 case["case_id"].as_str().unwrap_or("<unknown>")
             );
@@ -1264,7 +1264,10 @@ mod tests {
             "non_compensatory_attribute_regression"
         );
         assert_eq!(
-            audit["worsening_attributes"].as_array().expect("worsening").len(),
+            audit["worsening_attributes"]
+                .as_array()
+                .expect("worsening")
+                .len(),
             1
         );
     }
@@ -1282,11 +1285,13 @@ mod tests {
         let audit = reference_audit_case(case);
         assert_eq!(audit["reference_model_qualified"], true);
         assert_eq!(audit["overall_claim_permitted"], false);
-        assert!(audit["blockers"]
-            .as_array()
-            .expect("blockers")
-            .iter()
-            .any(|item| item == "unobserved_attribute_in_positive_recovery_claim"));
+        assert!(
+            audit["blockers"]
+                .as_array()
+                .expect("blockers")
+                .iter()
+                .any(|item| item == "unobserved_attribute_in_positive_recovery_claim")
+        );
     }
 
     #[test]
@@ -1301,5 +1306,4 @@ mod tests {
             serde_json::to_vec(&second).expect("serialize second")
         );
     }
-
 }
