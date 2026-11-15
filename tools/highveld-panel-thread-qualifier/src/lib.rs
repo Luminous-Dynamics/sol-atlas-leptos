@@ -591,9 +591,7 @@ mod tests {
         let corpus = corpus();
         let mut submission = exact_submission(&corpus);
         let duplicate_code = submission.case_results[0].reason_codes[0].clone();
-        submission.case_results[0]
-            .reason_codes
-            .push(duplicate_code);
+        submission.case_results[0].reason_codes.push(duplicate_code);
 
         let error = evaluate_bytes(CORPUS_JSON.as_bytes(), &encode(&submission)).unwrap_err();
         assert!(error.contains("duplicate value"));
