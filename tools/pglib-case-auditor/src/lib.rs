@@ -563,9 +563,11 @@ pub fn audit_matpower_case(source: &str) -> Result<AuditSummary, String> {
         if points <= 0 {
             return Err(format!("gencost row {} has non-positive count", index + 1));
         }
-        let expected = match model {
-            1 => 4 + (points as usize) * 2,
-            2 => 4 + points as usize,
+        let point_count = usize::try_from(points)
+            .map_err(|_| format!("gencost count exceeds platform size at row {}", index + 1))?;
+        let variable_columns = match model {
+            1 => point_count.checked_mul(2),
+            2 => Some(point_count),
             _ => {
                 return Err(format!(
                     "unsupported gencost model {model} at row {}",
@@ -573,6 +575,9 @@ pub fn audit_matpower_case(source: &str) -> Result<AuditSummary, String> {
                 ));
             }
         };
+        let expected = variable_columns
+            .and_then(|columns| columns.checked_add(4))
+            .ok_or_else(|| format!("gencost column count overflow at row {}", index + 1))?;
         if cost.len() != expected {
             return Err(format!(
                 "gencost row {} has {} columns; model {model} with count {points} requires {expected}",
