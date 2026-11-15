@@ -192,7 +192,7 @@ pub struct ObligationResult {
     pub obligation_id: String,
     pub disposition: BridgeDisposition,
     pub evidence_state: &'static str,
-    pub covered_by_acquisition_ids: Vec<String>,
+    pub candidate_acquisition_ids: Vec<String>,
     pub campaign_package_ids: Vec<String>,
     pub symtropy_campaign_search_status: Option<CampaignSearchStatus>,
     pub symtropy_reports_optimality_proven: bool,
@@ -802,7 +802,7 @@ fn evaluate_acquisition(
         obligation_id: obligation_id.to_owned(),
         disposition: BridgeDisposition::NotPlanned,
         evidence_state: "PLANNED_NOT_OBSERVED",
-        covered_by_acquisition_ids: vec![acquisition.acquisition_id.clone()],
+        candidate_acquisition_ids: vec![acquisition.acquisition_id.clone()],
         campaign_package_ids: Vec::new(),
         symtropy_campaign_search_status: None,
         symtropy_reports_optimality_proven: false,
@@ -985,7 +985,7 @@ fn evaluate_physical_relation(
         obligation_id: obligation_id.to_owned(),
         disposition: BridgeDisposition::NotPlanned,
         evidence_state: "PLANNED_NOT_OBSERVED",
-        covered_by_acquisition_ids: vec![acquisition.acquisition_id.clone()],
+        candidate_acquisition_ids: vec![acquisition.acquisition_id.clone()],
         campaign_package_ids: vec![relation.campaign_package_id.clone()],
         symtropy_campaign_search_status: None,
         symtropy_reports_optimality_proven: false,
@@ -1133,7 +1133,7 @@ fn unplanned_result(obligation_id: &str) -> ObligationResult {
         obligation_id: obligation_id.to_owned(),
         disposition: BridgeDisposition::NotPlanned,
         evidence_state: "PLANNED_NOT_OBSERVED",
-        covered_by_acquisition_ids: Vec::new(),
+        candidate_acquisition_ids: Vec::new(),
         campaign_package_ids: Vec::new(),
         symtropy_campaign_search_status: None,
         symtropy_reports_optimality_proven: false,
@@ -1618,8 +1618,8 @@ mod tests {
 
         assert_eq!(first.planned_obligations, second.planned_obligations);
         assert_eq!(
-            first.obligation_results[0].covered_by_acquisition_ids,
-            second.obligation_results[0].covered_by_acquisition_ids
+            first.obligation_results[0].candidate_acquisition_ids,
+            second.obligation_results[0].candidate_acquisition_ids
         );
         assert_eq!(
             first.obligation_results[0].rejected_alternatives[0].acquisition_id,
