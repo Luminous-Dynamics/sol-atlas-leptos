@@ -136,7 +136,7 @@
         "obligation_id",
         "disposition",
         "evidence_state",
-        "covered_by_acquisition_ids",
+        "candidate_acquisition_ids",
         "campaign_package_ids",
         "symtropy_campaign_search_status",
         "symtropy_reports_optimality_proven",
@@ -153,13 +153,6 @@
         },
         "evidence_state": {
           "const": "PLANNED_NOT_OBSERVED"
-        },
-        "covered_by_acquisition_ids": {
-          "type": "array",
-          "items": {
-            "type": "string",
-            "minLength": 1
-          }
         },
         "campaign_package_ids": {
           "type": "array",
@@ -193,6 +186,13 @@
         },
         "symtropy_reports_optimality_proven": {
           "type": "boolean"
+        },
+        "candidate_acquisition_ids": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
         }
       }
     },
