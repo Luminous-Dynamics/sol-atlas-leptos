@@ -445,6 +445,7 @@ mod tests {
     #[test]
     fn modelled_water_quality_observation_does_not_create_potable_credit() {
         let (mut fixture, building, service, hydraulic) = fixtures();
+        fixture["collection_policy"]["retention_state"] = json!("approved");
         fixture["observations"] = json!([{
             "observation_id":"MODEL-WATER-AGE-U001",
             "use_point_id":"U-001-KITCHEN-SINK",
