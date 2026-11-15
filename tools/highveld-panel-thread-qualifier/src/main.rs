@@ -34,8 +34,8 @@ fn run() -> Result<(), String> {
 
     let cases_path = cases_path.ok_or_else(|| usage().to_owned())?;
     let submission_path = submission_path.ok_or_else(|| usage().to_owned())?;
-    let cases = fs::read(&cases_path)
-        .map_err(|error| format!("cannot read {cases_path}: {error}"))?;
+    let cases =
+        fs::read(&cases_path).map_err(|error| format!("cannot read {cases_path}: {error}"))?;
     let submission = fs::read(&submission_path)
         .map_err(|error| format!("cannot read {submission_path}: {error}"))?;
 
@@ -46,10 +46,12 @@ fn run() -> Result<(), String> {
     encoded.push(b'\n');
 
     if let Some(path) = output_path {
-        fs::write(&path, &encoded)
-            .map_err(|error| format!("cannot write {path}: {error}"))?;
+        fs::write(&path, &encoded).map_err(|error| format!("cannot write {path}: {error}"))?;
     } else {
-        print!("{}", String::from_utf8(encoded).map_err(|error| error.to_string())?);
+        print!(
+            "{}",
+            String::from_utf8(encoded).map_err(|error| error.to_string())?
+        );
     }
     Ok(())
 }
