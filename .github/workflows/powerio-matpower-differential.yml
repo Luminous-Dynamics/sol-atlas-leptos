@@ -1,0 +1,50 @@
+name: PowerIO MATPOWER differential
+
+on:
+  pull_request:
+    paths:
+      - "tools/pglib-case-auditor/**"
+      - "tools/powerio-matpower-differential/**"
+      - ".github/workflows/powerio-matpower-differential.yml"
+  push:
+    paths:
+      - "tools/pglib-case-auditor/**"
+      - "tools/powerio-matpower-differential/**"
+      - ".github/workflows/powerio-matpower-differential.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: powerio-matpower-differential
+  cancel-in-progress: true
+
+jobs:
+  compare:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+      - name: Strict formatting
+        run: cargo fmt --manifest-path tools/powerio-matpower-differential/Cargo.toml -- --check
+      - name: Resolve pinned comparator and run differential tests
+        run: cargo test --manifest-path tools/powerio-matpower-differential/Cargo.toml
+      - name: Publish resolved Cargo lockfile for pin review
+        uses: actions/upload-artifact@v4
+        with:
+          name: powerio-matpower-differential-cargo-lock
+          path: tools/powerio-matpower-differential/Cargo.lock
+          if-no-files-found: error
+      - name: Parse differential receipts
+        run: |
+          for case in \
+            tools/pglib-case-auditor/fixtures/pglib_opf_case14_ieee.m \
+            tools/pglib-case-auditor/fixtures/pglib_opf_case24_ieee_rts.m \
+            tools/pglib-case-auditor/fixtures/pglib_opf_case57_ieee.m; do
+            cargo run --manifest-path tools/powerio-matpower-differential/Cargo.toml -- "$case" | jq -e .
+          done
+      - name: Strict Clippy
+        run: cargo clippy --manifest-path tools/powerio-matpower-differential/Cargo.toml --all-targets -- -D warnings
