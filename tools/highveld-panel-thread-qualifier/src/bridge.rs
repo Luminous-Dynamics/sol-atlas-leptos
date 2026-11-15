@@ -46,14 +46,14 @@ pub struct OwnerBinding {
     pub owner_approval_ref: Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 pub enum BindingState {
     Bound,
     Unbound,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 pub enum GateState {
     Allowed,
@@ -96,7 +96,7 @@ pub struct Acquisition {
     pub gates: AdmissibilityGates,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 pub enum AcquisitionKind {
     Remote,
@@ -125,7 +125,7 @@ pub struct Campaign {
     pub actions: Vec<CampaignAction>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 pub enum CampaignSearchStatus {
     CompleteOptimal,
@@ -606,7 +606,16 @@ fn evaluate_obligation(
         return Ok(success.clone());
     }
 
-    attempts.sort_by_key(|attempt| disposition_priority(&attempt.disposition));
+    attempts.sort_by_key(|attempt| {
+        (
+            disposition_priority(&attempt.disposition),
+            attempt
+                .covered_by_acquisition_ids
+                .first()
+                .cloned()
+                .unwrap_or_default(),
+        )
+    });
     let mut selected = attempts
         .into_iter()
         .next()
@@ -693,7 +702,16 @@ fn evaluate_acquisition(
             {
                 return Ok(success.clone());
             }
-            physical_attempts.sort_by_key(|attempt| disposition_priority(&attempt.disposition));
+            physical_attempts.sort_by_key(|attempt| {
+                (
+                    disposition_priority(&attempt.disposition),
+                    attempt
+                        .campaign_package_ids
+                        .first()
+                        .cloned()
+                        .unwrap_or_default(),
+                )
+            });
             Ok(physical_attempts
                 .into_iter()
                 .next()
