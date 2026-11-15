@@ -798,11 +798,25 @@ fn run(args: &[String]) -> Result<(), Box<dyn Error>> {
             let (corpus_bytes, corpus) = load_json(corpus_path)?;
             validate_schema_document(&schema, schema_path)?;
             validate_instance(&schema, &corpus, corpus_path)?;
+            let collection_counts: BTreeMap<String, usize> = [
+                "cases",
+                "indices",
+                "ser_attribute_crosswalk",
+                "sources",
+                "adversarial_controls",
+            ]
+            .into_iter()
+            .filter_map(|key| {
+                corpus[key]
+                    .as_array()
+                    .map(|items| (key.to_string(), items.len()))
+            })
+            .collect();
             let report = json!({
                 "valid": true,
                 "schema_sha256": sha256_hex(&schema_bytes),
                 "corpus_sha256": sha256_hex(&corpus_bytes),
-                "case_count": corpus["cases"].as_array().map_or(0, Vec::len),
+                "collection_counts": collection_counts,
                 "schema_draft": "2020-12"
             });
             write_json("-", &report)?;
@@ -1212,6 +1226,36 @@ mod tests {
                 .any(|rule| rule
                     .as_str()
                     .is_some_and(|text| text.contains("SER Five-star")))
+        );
+
+        let legacy = &crosswalk["legacy_jukskei_assessment"];
+        assert_eq!(legacy["programme"], "legacy_RHP");
+        assert_eq!(legacy["overall_condition"]["reported_category"], "D");
+        assert_eq!(
+            legacy["sub_quaternary_reaches"]
+                .as_array()
+                .expect("legacy reaches")
+                .len(),
+            5
+        );
+        assert_eq!(legacy["monitoring_site"]["site_id"], "A2JUKS-DIENR");
+        assert_eq!(legacy["monitoring_site"]["reach_id"], "A21C-01167");
+        assert_eq!(legacy["admission_status"], "published_report_summary_raw_records_pending");
+        assert!(
+            legacy["sampling_events"]
+                .as_array()
+                .expect("sampling events")
+                .iter()
+                .any(|event| event["event_type"] == "not_sampled"
+                    && event["date"] == "2015")
+        );
+        assert!(
+            legacy["indicator_summaries"]
+                .as_array()
+                .expect("indicator summaries")
+                .iter()
+                .any(|item| item["indicator"] == "macroinvertebrate_MIRAI_EC"
+                    && item["measurement_status"] == "derived_from_prior_data")
         );
     }
 
