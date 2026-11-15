@@ -253,7 +253,7 @@ fn parse_matrix(name: &str, content: &str) -> Result<Vec<Vec<f64>>, String> {
 
 fn parse_case_source(source: &str) -> Result<CaseTables, String> {
     let mut parsed = CaseTables::default();
-    let mut state = ParseState::Ready;
+    let mut collecting: Option<(String, String)> = None;
 
     for (line_index, raw_line) in source.lines().enumerate() {
         let line_number = line_index + 1;
@@ -262,114 +262,118 @@ fn parse_case_source(source: &str) -> Result<CaseTables, String> {
         if line.is_empty() {
             continue;
         }
+        if parsed.saw_end {
+            return Err(format!("unexpected statement after function end at line {line_number}"));
+        }
 
-        match &mut state {
-            ParseState::Matrix { name, content } => {
-                if let Some(close) = line.find("];") {
-                    content.push_str(&line[..close]);
-                    if !line[close + 2..].trim().is_empty() {
-                        return Err(format!("unexpected text after mpc.{name} matrix at line {line_number}"));
-                    }
-                    let matrix = parse_matrix(name, content)?;
-                    if parsed.matrices.insert(name.clone(), matrix).is_some() {
-                        return Err(format!("duplicate mpc.{name} matrix"));
-                    }
-                    state = ParseState::Ready;
-                } else {
-                    if line.contains(']') {
-                        return Err(format!("malformed matrix terminator at line {line_number}"));
-                    }
-                    content.push_str(line);
-                    content.push('\n');
+        if let Some((name, mut content)) = collecting.take() {
+            if let Some(close) = line.find("];") {
+                content.push_str(&line[..close]);
+                if !line[close + 2..].trim().is_empty() {
+                    return Err(format!(
+                        "unexpected text after mpc.{name} matrix at line {line_number}"
+                    ));
                 }
-            }
-            ParseState::Ready => {
-                if let Some(rest) = line.strip_prefix("function mpc = ") {
-                    if parsed.function_name.is_some() {
-                        return Err(format!("duplicate function declaration at line {line_number}"));
-                    }
-                    let name = rest.trim();
-                    if name.is_empty()
-                        || !name
-                            .chars()
-                            .all(|ch| ch.is_ascii_alphanumeric() || ch == '_')
-                    {
-                        return Err(format!("unsupported function declaration at line {line_number}"));
-                    }
-                    parsed.function_name = Some(name.to_owned());
-                } else if line.starts_with("mpc.version") {
-                    if parsed.version.is_some() {
-                        return Err(format!("duplicate mpc.version assignment at line {line_number}"));
-                    }
-                    let rest = line
-                        .strip_prefix("mpc.version")
-                        .unwrap()
-                        .trim()
-                        .strip_prefix('=')
-                        .ok_or_else(|| format!("invalid version assignment at line {line_number}"))?
-                        .trim()
-                        .trim_end_matches(';')
-                        .trim();
-                    let version = rest
-                        .strip_prefix('\'')
-                        .and_then(|value| value.strip_suffix('\''))
-                        .ok_or_else(|| format!("version must be a quoted string at line {line_number}"))?;
-                    if version != "2" {
-                        return Err(format!("only MATPOWER case format version 2 is supported, got '{version}'"));
-                    }
-                    parsed.version = Some(version.to_owned());
-                } else if line.starts_with("mpc.baseMVA") {
-                    if parsed.base_mva.is_some() {
-                        return Err(format!("duplicate mpc.baseMVA assignment at line {line_number}"));
-                    }
-                    parsed.base_mva = Some(parse_assignment_number(line, "baseMVA")?);
-                } else if ["bus", "gen", "branch", "gencost"]
-                    .iter()
-                    .any(|name| line.starts_with(&format!("mpc.{name}")))
-                {
-                    let name = ["bus", "gen", "branch", "gencost"]
-                        .into_iter()
-                        .find(|name| line.starts_with(&format!("mpc.{name}")))
-                        .unwrap();
-                    let prefix = format!("mpc.{name}");
-                    let rest = line
-                        .strip_prefix(&prefix)
-                        .unwrap()
-                        .trim()
-                        .strip_prefix('=')
-                        .ok_or_else(|| format!("invalid mpc.{name} assignment at line {line_number}"))?
-                        .trim();
-                    let rest = rest
-                        .strip_prefix('[')
-                        .ok_or_else(|| format!("mpc.{name} must be a literal matrix at line {line_number}"))?;
-                    if parsed.matrices.contains_key(name) {
-                        return Err(format!("duplicate mpc.{name} matrix"));
-                    }
-                    if let Some(close) = rest.find("];") {
-                        if !rest[close + 2..].trim().is_empty() {
-                            return Err(format!("unexpected text after mpc.{name} matrix at line {line_number}"));
-                        }
-                        let matrix = parse_matrix(name, &rest[..close])?;
-                        parsed.matrices.insert(name.to_owned(), matrix);
-                    } else {
-                        if rest.contains(']') {
-                            return Err(format!("malformed matrix terminator at line {line_number}"));
-                        }
-                        state = ParseState::Matrix {
-                            name: name.to_owned(),
-                            content: format!("{rest}\n"),
-                        };
-                    }
-                } else if line == "end" {
-                    parsed.saw_end = true;
-                } else {
-                    return Err(format!("unsupported statement at line {line_number}: {line}"));
+                let matrix = parse_matrix(&name, &content)?;
+                if parsed.matrices.insert(name.clone(), matrix).is_some() {
+                    return Err(format!("duplicate mpc.{name} matrix"));
                 }
+            } else {
+                if line.contains(']') {
+                    return Err(format!("malformed matrix terminator at line {line_number}"));
+                }
+                content.push_str(line);
+                content.push('\n');
+                collecting = Some((name, content));
             }
+            continue;
+        }
+
+        if let Some(rest) = line.strip_prefix("function mpc = ") {
+            if parsed.function_name.is_some() {
+                return Err(format!("duplicate function declaration at line {line_number}"));
+            }
+            let name = rest.trim();
+            if name.is_empty()
+                || !name
+                    .chars()
+                    .all(|ch| ch.is_ascii_alphanumeric() || ch == '_')
+            {
+                return Err(format!("unsupported function declaration at line {line_number}"));
+            }
+            parsed.function_name = Some(name.to_owned());
+        } else if line.starts_with("mpc.version") {
+            if parsed.version.is_some() {
+                return Err(format!("duplicate mpc.version assignment at line {line_number}"));
+            }
+            let rest = line
+                .strip_prefix("mpc.version")
+                .unwrap()
+                .trim()
+                .strip_prefix('=')
+                .ok_or_else(|| format!("invalid version assignment at line {line_number}"))?
+                .trim()
+                .trim_end_matches(';')
+                .trim();
+            let version = rest
+                .strip_prefix('\'')
+                .and_then(|value| value.strip_suffix('\''))
+                .ok_or_else(|| format!("version must be a quoted string at line {line_number}"))?;
+            if version != "2" {
+                return Err(format!(
+                    "only MATPOWER case format version 2 is supported, got '{version}'"
+                ));
+            }
+            parsed.version = Some(version.to_owned());
+        } else if line.starts_with("mpc.baseMVA") {
+            if parsed.base_mva.is_some() {
+                return Err(format!("duplicate mpc.baseMVA assignment at line {line_number}"));
+            }
+            parsed.base_mva = Some(parse_assignment_number(line, "baseMVA")?);
+        } else if ["gencost", "branch", "bus", "gen"]
+            .iter()
+            .any(|name| line.starts_with(&format!("mpc.{name}")))
+        {
+            let name = ["gencost", "branch", "bus", "gen"]
+                .into_iter()
+                .find(|name| line.starts_with(&format!("mpc.{name}")))
+                .unwrap();
+            let prefix = format!("mpc.{name}");
+            let rest = line
+                .strip_prefix(&prefix)
+                .unwrap()
+                .trim()
+                .strip_prefix('=')
+                .ok_or_else(|| format!("invalid mpc.{name} assignment at line {line_number}"))?
+                .trim();
+            let rest = rest.strip_prefix('[').ok_or_else(|| {
+                format!("mpc.{name} must be a literal matrix at line {line_number}")
+            })?;
+            if parsed.matrices.contains_key(name) {
+                return Err(format!("duplicate mpc.{name} matrix"));
+            }
+            if let Some(close) = rest.find("];") {
+                if !rest[close + 2..].trim().is_empty() {
+                    return Err(format!(
+                        "unexpected text after mpc.{name} matrix at line {line_number}"
+                    ));
+                }
+                let matrix = parse_matrix(name, &rest[..close])?;
+                parsed.matrices.insert(name.to_owned(), matrix);
+            } else {
+                if rest.contains(']') {
+                    return Err(format!("malformed matrix terminator at line {line_number}"));
+                }
+                collecting = Some((name.to_owned(), format!("{rest}\n")));
+            }
+        } else if line == "end" {
+            parsed.saw_end = true;
+        } else {
+            return Err(format!("unsupported statement at line {line_number}: {line}"));
         }
     }
 
-    if let ParseState::Matrix { name, .. } = state {
+    if let Some((name, _)) = collecting {
         return Err(format!("unterminated mpc.{name} matrix"));
     }
     if !parsed.saw_end {
