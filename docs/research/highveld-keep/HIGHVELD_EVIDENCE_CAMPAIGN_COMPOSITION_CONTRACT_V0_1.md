@@ -2,14 +2,15 @@
 
 **Status:** proposed benchmark-only interface; no production owner schema binding claimed  
 **Parent:** [HPT-CROSS-OWNER-REPLAY-001 #878](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/878)  
-**Related owners:** Symtropy [#5164](https://github.com/Luminous-Dynamics/symtropy/issues/5164), Mycelix [#6252](https://github.com/Luminous-Dynamics/mycelix/issues/6252), Symthaea [#12046](https://github.com/Luminous-Dynamics/symthaea/issues/12046)
+**Related owners:** Mycelix [#6247](https://github.com/Luminous-Dynamics/mycelix/issues/6247) (decision episode / assurance graph) and [#6252](https://github.com/Luminous-Dynamics/mycelix/issues/6252) (acquisition/admissibility); Symtropy [#5164](https://github.com/Luminous-Dynamics/symtropy/issues/5164), [#5240](https://github.com/Luminous-Dynamics/symtropy/pull/5240) and [#5250](https://github.com/Luminous-Dynamics/symtropy/issues/5250); Symthaea [#10543](https://github.com/Luminous-Dynamics/symthaea/issues/10543), [#12046](https://github.com/Luminous-Dynamics/symthaea/issues/12046) and [#6040](https://github.com/Luminous-Dynamics/symthaea/issues/6040).
 
 ## 1. Why this contract exists
 
 Three existing owners already cover most of the planning problem. The Highveld integration must preserve those boundaries.
 
-- **Mycelix #6252** is designing assurance-obligation evidence acquisition: which unresolved proof obligations a candidate task can address, and whether it is admissible under authority, rights/source-use, safety, schedule, physical-realizability and data-access gates. The plan only identifies tasks capable of producing evidence; it does not mean evidence has been acquired or accepted. The issue is open research work; no completed production integration is claimed.
-- **Symtropy #5164 / PR #5240** owns resource- and space-time-constrained observation campaign planning, including bounded exact set-cover and its existing reservation/occupancy owners.
+- **Mycelix #6247** is designing the typed decision episode / assurance graph: canonical decision scope, source snapshots, artifact digests, typed claims and proof obligations. Highveld consumes the exact episode and obligation references; it must not reconstruct this graph.
+- **Mycelix #6252** is designing assurance-obligation evidence acquisition: which unresolved proof obligations a candidate task can address, and whether it is admissible under authority, rights/source-use, safety, schedule, physical-realizability and data-access gates. The plan only identifies tasks capable of producing evidence; it does not mean evidence has been acquired or accepted. Both Mycelix issues are open research work; no completed production integration is claimed.
+- **Symtropy PR #5240** owns the bounded resource- and space-time-constrained observation campaign solver. Symtropy issue #5164 remains a related observation-portfolio programme; do not infer that every branch or issue with a similar title is the same exact implementation.
 - **Symtropy #5250 / draft PR #5260** already owns the **production-option plus option-specific evidence-campaign composition and joint Pareto layer**. PR #5260 calls the existing optioneering engine #5238 and observation-campaign engine #5240; its issue explicitly says not to duplicate option gates, set-cover search, scheduler, reservation calendar, occupancy logic or accepted-output ledger. Its current issue record describes a Rust implementation and 14 synthetic tests, but the referenced exact-head CI was still pending in the last status recorded there.
 
 The Highveld integration must therefore **not build another campaign optimizer, option-evidence package evaluator or joint Pareto layer**.
@@ -40,9 +41,11 @@ No values in this contract authorize an inspection, resource booking, site entry
 
 ## 3. The owner-preserving composition model
 
-### Layer A — assurance-obligation admissibility (Mycelix #6252)
+### Layer A — decision episode and assurance-obligation admissibility (Mycelix #6247 / #6252)
 
-For each unresolved proof obligation, consume the Mycelix owner's result about candidate acquisition tasks. Preserve the independent gate dispositions and source evidence:
+First consume the exact decision episode, scope tuple, canonical claim/proof-obligation IDs and source/artifact references owned by Mycelix #6247. The episode must bind its own profile/schema version and source commit/digest. If that profile is not published and pinned, the episode mapping remains UNBOUND.
+
+Then, for each unresolved proof obligation, consume the Mycelix #6252 owner's result about candidate acquisition tasks. Preserve the independent gate dispositions and source evidence:
 - obligation coverage / relevance and exact decision scope;
 - authority and signer scope;
 - legal rights and permitted source use;
@@ -84,11 +87,11 @@ No additional joint Pareto frontier or campaign selector belongs in Sol-Atlas. T
 
 ## 4. Benchmark-only normalized envelope
 
-The following are semantic concepts for test fixtures, not asserted fields in Symtropy or Mycelix production schemas.
+The following are semantic concepts for test fixtures, not asserted fields in Symtropy or Mycelix production schemas. The decision episode / claim graph belongs to Mycelix #6247, acquisition admissibility belongs to Mycelix #6252, and option/campaign composition belongs to Symtropy #5250/#5260.
 
 | Concept | Purpose | Authority / owner |
 |---|---|---|
-| Decision episode | Exact decision scope and cutoff time | Decision owner; source refs only |
+| Decision episode | Exact decision scope, cutoff time, typed claim graph and obligation IDs | Mycelix #6247; exact source refs only |
 | Unresolved obligation | Claim/proof-obligation ID, criticality, exact subject/revision and missing evidence type | Mycelix |
 | Candidate acquisition | How evidence might be obtained; cost/currency; prerequisites; source and scope | Mycelix |
 | Acquisition admissibility | Separate gate dispositions and reasons; Unknown remains Unknown | Mycelix |
