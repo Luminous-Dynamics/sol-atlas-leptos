@@ -325,7 +325,7 @@ mod tests {
         let result = model.to_binary_likelihoods().unwrap();
         let table = result.as_evsi_outcome_likelihoods();
         assert_eq!(table["hit"]["target_present"], 0.95);
-        assert_eq!(table["no_hit"]["target_present"], 0.05);
+        assert!((table["no_hit"]["target_present"] - 0.05).abs() < 1e-12);
         assert_eq!(table["hit"]["target_absent"], 0.02);
         assert_eq!(table["no_hit"]["target_absent"], 0.98);
         for state in ["target_present", "target_absent"] {
