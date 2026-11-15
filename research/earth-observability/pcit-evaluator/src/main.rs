@@ -13,6 +13,10 @@ const CORPUS_SCHEMA: &str = include_str!("../../../../schemas/pcit-case-manifest
 const RESULT_SCHEMA: &str =
     include_str!("../../../../schemas/pcit-result-envelope-v0.1.schema.json");
 const LOCKED_CORPUS: &str = include_str!("../../PCIT_SYNTHETIC_CORPUS_V0_1.json");
+const REFERENCE_SCHEMA: &str =
+    include_str!("../../../../schemas/ecological-reference-trajectory-v0.1.schema.json");
+const REFERENCE_CORPUS: &str =
+    include_str!("../../ECOLOGICAL_REFERENCE_TRAJECTORY_SYNTHETIC_CORPUS_V0_1.json");
 
 fn sha256_hex(bytes: &[u8]) -> String {
     const HEX: &[u8; 16] = b"0123456789abcdef";
@@ -439,6 +443,262 @@ fn score_results(corpus: &Value, submitted: &Value, actual_corpus_digest: &str) 
         "hard_gate_counts": hard_gate_counts,
         "confusion_matrix": confusion,
         "case_results": case_results
+    })
+}
+
+
+fn reference_audit_case(case: &Value) -> Value {
+    let model = &case["reference_model"];
+    let recovery = &case["recovery_assessment"];
+    let mut model_blockers = BTreeSet::<String>::new();
+    let mut claim_blockers = BTreeSet::<String>::new();
+
+    if model["status"].as_str() != Some("qualified") {
+        model_blockers.insert("reference_model_not_qualified".to_string());
+    }
+
+    let sites = model["reference_sites"].as_array().cloned().unwrap_or_default();
+    let included: Vec<&Value> = sites
+        .iter()
+        .filter(|site| site["included_in_model"].as_bool() == Some(true))
+        .collect();
+    if included.len() < 2 {
+        model_blockers.insert("insufficient_independent_reference_sites".to_string());
+    }
+    for site in &included {
+        match site["degradation_screening"].as_str().unwrap_or("unknown") {
+            "screened_low_degradation" => {}
+            "degraded" => {
+                model_blockers.insert("included_reference_site_degraded".to_string());
+            }
+            _ => {
+                model_blockers.insert("included_reference_site_degradation_unknown".to_string());
+            }
+        }
+    }
+
+    let attributes = model["indicators_by_attribute"].as_object();
+    const REQUIRED_ATTRIBUTES: &[&str] = &[
+        "absence_of_threats",
+        "physical_conditions",
+        "species_composition",
+        "structural_diversity",
+        "ecosystem_function",
+        "external_exchanges",
+    ];
+    let mut indicator_counts = BTreeMap::<String, usize>::new();
+    for attribute in REQUIRED_ATTRIBUTES {
+        let count = attributes
+            .and_then(|items| items.get(*attribute))
+            .and_then(Value::as_array)
+            .map_or(0, Vec::len);
+        indicator_counts.insert((*attribute).to_string(), count);
+        if count < 3 {
+            model_blockers.insert("reference_attribute_indicator_undercoverage".to_string());
+        }
+    }
+
+    if model["shifting_baseline"]["assessment_status"].as_str() != Some("assessed") {
+        model_blockers.insert("shifting_baseline_not_assessed".to_string());
+    }
+
+    let climate = &model["climate_context"];
+    if climate["assessment_status"].as_str() != Some("assessed") {
+        model_blockers.insert("environmental_change_not_assessed".to_string());
+    }
+    if climate["nonstationarity_detected"].as_bool() == Some(true)
+        && !matches!(
+            climate["adjustment_status"].as_str(),
+            Some("adjusted") | Some("sensitivity_only")
+        )
+    {
+        model_blockers.insert("climate_nonstationarity_unadjusted".to_string());
+    }
+    if climate["hydrological_regime_included"].as_bool() != Some(true) {
+        model_blockers.insert("hydrological_regime_missing_from_reference".to_string());
+    }
+
+    let succession = &model["succession_context"];
+    if succession["dynamics_included"].as_bool() != Some(true) {
+        model_blockers.insert("successional_dynamics_missing".to_string());
+    }
+    let required_paths = succession["alternative_state_count"].as_u64().unwrap_or(1) as usize;
+    let represented_paths = succession["paths"].as_array().map_or(0, Vec::len);
+    if represented_paths < required_paths {
+        model_blockers.insert("alternative_trajectories_underrepresented".to_string());
+    }
+
+    if model["supersedes_model_id"].is_string()
+        && model["supersession_review_status"].as_str() != Some("complete")
+    {
+        model_blockers.insert("reference_supersession_review_incomplete".to_string());
+    }
+    if recovery["reference_model_version"].as_str() != model["model_version"].as_str() {
+        model_blockers.insert("assessment_reference_model_version_mismatch".to_string());
+    }
+
+    for source in model["knowledge_sources"]
+        .as_array()
+        .into_iter()
+        .flatten()
+    {
+        let consent = source["consent_status"].as_str().unwrap_or("unknown");
+        let purpose = source["requested_purpose"].as_str().unwrap_or("");
+        let permitted = source["permitted_purposes"]
+            .as_array()
+            .is_some_and(|items| items.iter().any(|item| item.as_str() == Some(purpose)));
+        if matches!(consent, "restricted" | "unknown") && !permitted {
+            model_blockers.insert("knowledge_source_consent_or_purpose_block".to_string());
+        }
+    }
+    if !matches!(
+        model["rights_status"].as_str(),
+        Some("cleared_for_declared_purpose") | Some("cleared_synthetic")
+    ) {
+        model_blockers.insert("reference_model_rights_not_cleared".to_string());
+    }
+
+    let overall_claim = recovery["overall_claim"].as_str().unwrap_or("unresolved");
+    let attribute_states = recovery["attribute_states"]
+        .as_array()
+        .cloned()
+        .unwrap_or_default();
+    let mut seen_attributes = BTreeSet::<String>::new();
+    let mut worsening_attributes = Vec::<String>::new();
+    let mut unobserved_attributes = Vec::<String>::new();
+    for item in &attribute_states {
+        let attribute = item["attribute"].as_str().unwrap_or("<missing>").to_string();
+        seen_attributes.insert(attribute.clone());
+        if item["state"].as_str() == Some("worsening") {
+            worsening_attributes.push(attribute.clone());
+        }
+        if matches!(
+            item["state"].as_str(),
+            Some("unknown") | None
+        ) || item["coverage_status"].as_str() == Some("unobserved")
+        {
+            unobserved_attributes.push(attribute);
+        }
+    }
+    if seen_attributes.len() != REQUIRED_ATTRIBUTES.len()
+        || REQUIRED_ATTRIBUTES
+            .iter()
+            .any(|attribute| !seen_attributes.contains(*attribute))
+    {
+        claim_blockers.insert("six_attribute_coverage_incomplete".to_string());
+    }
+
+    if overall_claim == "positive_recovery" {
+        if !worsening_attributes.is_empty() {
+            claim_blockers.insert("non_compensatory_attribute_regression".to_string());
+        }
+        if !unobserved_attributes.is_empty() {
+            claim_blockers.insert("unobserved_attribute_in_positive_recovery_claim".to_string());
+        }
+        if !model_blockers.is_empty() {
+            claim_blockers.insert("positive_recovery_claim_without_qualified_reference_model".to_string());
+        }
+    }
+
+    let reference_model_qualified = model["status"].as_str() == Some("qualified")
+        && model_blockers.is_empty();
+    let overall_claim_permitted = overall_claim != "positive_recovery"
+        || (reference_model_qualified && claim_blockers.is_empty());
+
+    let mut all_blockers = model_blockers.clone();
+    all_blockers.extend(claim_blockers.clone());
+
+    json!({
+        "case_id": case["case_id"],
+        "reference_model_qualified": reference_model_qualified,
+        "overall_claim": overall_claim,
+        "overall_claim_permitted": overall_claim_permitted,
+        "included_reference_site_count": included.len(),
+        "indicator_counts_by_attribute": indicator_counts,
+        "trajectory_path_count": represented_paths,
+        "required_trajectory_path_count": required_paths,
+        "worsening_attributes": worsening_attributes,
+        "unobserved_attributes": unobserved_attributes,
+        "model_blockers": model_blockers,
+        "claim_blockers": claim_blockers,
+        "blockers": all_blockers
+    })
+}
+
+fn build_reference_agent_view(corpus: &Value, corpus_digest: &str) -> Result<Value, Box<dyn Error>> {
+    let cases = corpus
+        .get("cases")
+        .and_then(Value::as_array)
+        .ok_or("reference corpus.cases must be an array")?;
+    let mut visible = Vec::with_capacity(cases.len());
+    for case in cases {
+        visible.push(json!({
+            "case_id": optional_clone(case, "case_id"),
+            "ecosystem_context": optional_clone(case, "ecosystem_context"),
+            "reference_model": optional_clone(case, "reference_model"),
+            "recovery_assessment": optional_clone(case, "recovery_assessment")
+        }));
+    }
+    visible.sort_by(|a, b| {
+        a.get("case_id")
+            .and_then(Value::as_str)
+            .cmp(&b.get("case_id").and_then(Value::as_str))
+    });
+    Ok(json!({
+        "schema_version": "0.1.0",
+        "benchmark_id": "ECOLOGICAL-REFERENCE-TRAJECTORY-SYNTHETIC-0.1",
+        "purpose": "synthetic_reference_qualification_agent_view",
+        "metadata_only": true,
+        "source_corpus_sha256": corpus_digest,
+        "limitations": [
+            "All indicator definitions and values in this public corpus are synthetic.",
+            "This view contains no satellite pixels, raw field data, laboratory files, reference-site coordinates or authenticated community knowledge records.",
+            "The corpus is public development data, not a blind or held-out scientific benchmark."
+        ],
+        "cases": visible
+    }))
+}
+
+fn audit_reference_corpus(corpus: &Value, corpus_digest: &str) -> Value {
+    let mut cases = corpus["cases"].as_array().cloned().unwrap_or_default();
+    cases.sort_by(|a, b| {
+        a["case_id"]
+            .as_str()
+            .cmp(&b["case_id"].as_str())
+    });
+    let audits: Vec<Value> = cases.iter().map(reference_audit_case).collect();
+    let mut blocker_counts = BTreeMap::<String, u64>::new();
+    let mut qualified_models = 0_u64;
+    let mut permitted_positive_claims = 0_u64;
+    for audit in &audits {
+        if audit["reference_model_qualified"].as_bool() == Some(true) {
+            qualified_models += 1;
+        }
+        if audit["overall_claim_permitted"].as_bool() == Some(true) {
+            permitted_positive_claims += 1;
+        }
+        for blocker in audit["blockers"].as_array().into_iter().flatten() {
+            if let Some(code) = blocker.as_str() {
+                *blocker_counts.entry(code.to_string()).or_insert(0) += 1;
+            }
+        }
+    }
+    let total = audits.len() as u64;
+    json!({
+        "schema_version": "0.1.0",
+        "benchmark_id": "ECOLOGICAL-REFERENCE-TRAJECTORY-SYNTHETIC-0.1",
+        "evaluator_version": EVALUATOR_VERSION,
+        "metadata_only": true,
+        "claim_ceiling": "synthetic reference-model and recovery-claim contract audit; not ecological field assessment",
+        "integrity": {"corpus_sha256": corpus_digest},
+        "summary": {
+            "cases_total": total,
+            "reference_models_qualified": qualified_models,
+            "overall_claims_permitted": permitted_positive_claims,
+            "cases_with_blockers": audits.iter().filter(|a| a["blockers"].as_array().is_some_and(|v| !v.is_empty())).count(),
+            "blocker_counts": blocker_counts
+        },
+        "case_audits": audits
     })
 }
 
