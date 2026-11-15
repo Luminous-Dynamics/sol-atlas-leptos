@@ -1,0 +1,118 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "City Habitat Service Composition Corpus v0.1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_id",
+    "schema_version",
+    "corpus_id",
+    "classification",
+    "policy_note",
+    "claim_ceiling",
+    "cases"
+  ],
+  "properties": {
+    "schema_id": {
+      "const": "org.luminousdynamics.city-habitat-service-composition.corpus"
+    },
+    "schema_version": {
+      "const": "0.1.0"
+    },
+    "corpus_id": {
+      "const": "CITY-HABITAT-SERVICE-COMPOSITION-CORPUS-V0.1"
+    },
+    "classification": {
+      "const": "synthetic_fixture_only"
+    },
+    "policy_note": {
+      "type": "string",
+      "minLength": 1
+    },
+    "claim_ceiling": {
+      "const": "synthetic cross-owner service evidence composition only"
+    },
+    "cases": {
+      "type": "array",
+      "minItems": 24,
+      "maxItems": 24,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "case_id",
+          "evaluation_scope",
+          "evaluation_cut",
+          "scope_sha256",
+          "owners",
+          "expected"
+        ],
+        "properties": {
+          "case_id": {
+            "type": "string",
+            "pattern": "^HSC-[0-9]{3}$"
+          },
+          "evaluation_scope": {
+            "type": "object",
+            "required": [
+              "service_id",
+              "service_contract_id",
+              "service_contract_revision",
+              "subject_id",
+              "subject_digest",
+              "functional_unit",
+              "population_frame_id",
+              "group_id",
+              "scenario_id",
+              "time_window",
+              "demand",
+              "operational_requirement",
+              "minimum_stable_ticks",
+              "owner_scope_digests"
+            ]
+          },
+          "evaluation_cut": {
+            "type": "object",
+            "required": [
+              "valid_tick",
+              "recorded_tick",
+              "registered_tick",
+              "ingested_tick"
+            ]
+          },
+          "scope_sha256": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          },
+          "owners": {
+            "type": "array",
+            "minItems": 2,
+            "items": {
+              "type": "object",
+              "required": [
+                "role",
+                "receipt",
+                "scope_binding",
+                "result"
+              ]
+            }
+          },
+          "expected": {
+            "type": "object",
+            "required": [
+              "case_id",
+              "disposition",
+              "restoration_state",
+              "access_state",
+              "operational_delivery_state",
+              "realized_use_state",
+              "reason_codes",
+              "action_authority",
+              "claim_ceiling"
+            ]
+          }
+        }
+      }
+    }
+  }
+}
