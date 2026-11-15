@@ -569,6 +569,57 @@ mod tests {
     }
 
     #[test]
+    fn full_locked_corpus_oracle_answers_pass_without_gate_violations() {
+        let corpus: Value = serde_json::from_str(LOCKED_CORPUS).expect("corpus parses");
+        let results: Vec<Value> = corpus["cases"]
+            .as_array()
+            .expect("cases")
+            .iter()
+            .map(|case| {
+                sample_result(
+                    case["case_id"].as_str().expect("case id"),
+                    case["expected_disposition"].as_str().expect("expected disposition"),
+                )
+            })
+            .collect();
+        let digest = sha256_hex(LOCKED_CORPUS.as_bytes());
+        let submitted = sample_envelope(&digest, results);
+        let report = score_results(&corpus, &submitted, &digest);
+        assert_eq!(report["summary"]["cases_total"], 15);
+        assert_eq!(report["summary"]["correct_dispositions"], 15);
+        assert_eq!(report["summary"]["hard_gate_violation_count"], 0);
+        assert_eq!(report["summary"]["qualification_pass"], true);
+    }
+
+    #[test]
+    fn dependent_reference_blocks_state_promotion() {
+        let mut case = sample_case(
+            "PCIT-SYN-009", "no_physical_change", "MEASUREMENT_SHIFT_EXPLAINS_APPARENT_CHANGE"
+        );
+        case["reference_design"]["availability"] = json!("derivative_product");
+        case["reference_design"]["independence"] = json!("dependent");
+        let corpus = sample_corpus(vec![case]);
+        let results = sample_envelope(&"9".repeat(64), vec![sample_result(
+            "PCIT-SYN-009", "NO_CHANGE_DETECTED_WITHIN_ENVELOPE"
+        )]);
+        let report = score_results(&corpus, &results, &"9".repeat(64));
+        assert_eq!(report["summary"]["hard_gate_pass"], false);
+        assert!(report["hard_gate_counts"].get("independent_reference_not_qualified").is_some());
+    }
+
+    #[test]
+    fn result_schema_rejects_oracle_fields_in_agent_submission() {
+        let schema: Value = serde_json::from_str(RESULT_SCHEMA).expect("result schema parses");
+        let mut envelope = sample_envelope(&"a".repeat(64), vec![sample_result(
+            "PCIT-SYN-001",
+            "PHYSICAL_CHANGE_SUPPORTED_WITHIN_ENVELOPE"
+        )]);
+        envelope["results"][0]["expected_disposition"] =
+            json!("PHYSICAL_CHANGE_SUPPORTED_WITHIN_ENVELOPE");
+        assert!(validate_instance(&schema, &envelope, "leaky result envelope").is_err());
+    }
+
+    #[test]
     fn known_answer_scores_and_replays_deterministically() {
         let corpus = sample_corpus(vec![sample_case(
             "PCIT-SYN-001", "physical_change", "PHYSICAL_CHANGE_SUPPORTED_WITHIN_ENVELOPE"
