@@ -25,7 +25,9 @@ fn rows<'a>(value: &'a Value, key: &str) -> Option<&'a Vec<Value>> {
 }
 
 fn nonempty(value: Option<&Value>) -> bool {
-    value.and_then(Value::as_str).is_some_and(|s| !s.trim().is_empty())
+    value
+        .and_then(Value::as_str)
+        .is_some_and(|s| !s.trim().is_empty())
 }
 
 fn one_of(value: Option<&str>, allowed: &[&str]) -> bool {
@@ -48,22 +50,13 @@ fn has_evidence_reference(value: Option<&Value>) -> bool {
         && !text_at(value, "id").unwrap_or("").contains("unselected")
 }
 
-fn push_if_missing(
-    errors: &mut Vec<String>,
-    ok: bool,
-    message: impl Into<String>,
-) {
+fn push_if_missing(errors: &mut Vec<String>, ok: bool, message: impl Into<String>) {
     if !ok {
         errors.push(message.into());
     }
 }
 
-fn validate_reference_pair(
-    value: &Value,
-    key: &str,
-    label: &str,
-    errors: &mut Vec<String>,
-) {
+fn validate_reference_pair(value: &Value, key: &str, label: &str, errors: &mut Vec<String>) {
     push_if_missing(
         errors,
         has_reference(value.get(key)),
@@ -94,7 +87,12 @@ fn validate_completed_investigation(investigation: &Value, errors: &mut Vec<Stri
     );
     for (i, observation) in observations.into_iter().flatten().enumerate() {
         let label = format!("investigation.observations[{i}]");
-        for field in ["method_ref", "location_ref", "record_ref", "performed_by_ref"] {
+        for field in [
+            "method_ref",
+            "location_ref",
+            "record_ref",
+            "performed_by_ref",
+        ] {
             push_if_missing(
                 errors,
                 has_evidence_reference(observation.get(field)),
@@ -221,9 +219,8 @@ fn validate_as_built(as_built: &Value, errors: &mut Vec<String>) {
     }
     push_if_missing(
         errors,
-        rows(as_built, "deviation_refs").is_some_and(|refs| {
-            refs.iter().all(|r| has_evidence_reference(Some(r)))
-        }),
+        rows(as_built, "deviation_refs")
+            .is_some_and(|refs| refs.iter().all(|r| has_evidence_reference(Some(r)))),
         "as_built deviation_refs are incomplete",
     );
 }
@@ -235,24 +232,73 @@ fn validate(fixture: &Value) -> Result<Value, Vec<String>> {
     }
     if !one_of(
         text_at(fixture, "maturity"),
-        &["synthetic_contract", "screening_only", "investigation_recorded", "professional_review_recorded", "construction_records_present", "as_built_recorded", "disputed"],
+        &[
+            "synthetic_contract",
+            "screening_only",
+            "investigation_recorded",
+            "professional_review_recorded",
+            "construction_records_present",
+            "as_built_recorded",
+            "disputed",
+        ],
     ) {
         errors.push("unsupported site-foundation maturity".to_owned());
     }
-    let investigation_state = text_at(fixture.get("investigation").unwrap_or(&Value::Null), "state");
-    if !one_of(investigation_state, &["not_provided", "planned", "in_progress", "completed", "disputed", "superseded"]) {
+    let investigation_state = text_at(
+        fixture.get("investigation").unwrap_or(&Value::Null),
+        "state",
+    );
+    if !one_of(
+        investigation_state,
+        &[
+            "not_provided",
+            "planned",
+            "in_progress",
+            "completed",
+            "disputed",
+            "superseded",
+        ],
+    ) {
         errors.push("invalid investigation state".to_owned());
     }
-    let professional_state = text_at(fixture.get("professional_review").unwrap_or(&Value::Null), "state");
-    if !one_of(professional_state, &["not_requested", "pending", "recorded", "disputed", "superseded"]) {
+    let professional_state = text_at(
+        fixture.get("professional_review").unwrap_or(&Value::Null),
+        "state",
+    );
+    if !one_of(
+        professional_state,
+        &[
+            "not_requested",
+            "pending",
+            "recorded",
+            "disputed",
+            "superseded",
+        ],
+    ) {
         errors.push("invalid professional_review state".to_owned());
     }
-    let foundation_state = text_at(fixture.get("foundation_design").unwrap_or(&Value::Null), "state");
-    if !one_of(foundation_state, &["not_provided", "draft", "issued_for_review", "review_recorded", "superseded", "disputed"]) {
+    let foundation_state = text_at(
+        fixture.get("foundation_design").unwrap_or(&Value::Null),
+        "state",
+    );
+    if !one_of(
+        foundation_state,
+        &[
+            "not_provided",
+            "draft",
+            "issued_for_review",
+            "review_recorded",
+            "superseded",
+            "disputed",
+        ],
+    ) {
         errors.push("invalid foundation_design state".to_owned());
     }
     let as_built_state = text_at(fixture.get("as_built").unwrap_or(&Value::Null), "state");
-    if !one_of(as_built_state, &["not_started", "in_progress", "recorded", "disputed"]) {
+    if !one_of(
+        as_built_state,
+        &["not_started", "in_progress", "recorded", "disputed"],
+    ) {
         errors.push("invalid as_built state".to_owned());
     }
     if text_at(fixture, "maturity") == Some("synthetic_contract") {
@@ -266,9 +312,16 @@ fn validate(fixture: &Value) -> Result<Value, Vec<String>> {
         let coordinate = site.get("coordinate_context").unwrap_or(&Value::Null);
         push_if_missing(
             &mut errors,
-            ["horizontal_crs", "axis_order", "vertical_datum", "linear_unit", "coordinate_epoch", "survey_time"]
-                .iter()
-                .all(|field| coordinate.get(*field).is_some_and(Value::is_null))
+            [
+                "horizontal_crs",
+                "axis_order",
+                "vertical_datum",
+                "linear_unit",
+                "coordinate_epoch",
+                "survey_time",
+            ]
+            .iter()
+            .all(|field| coordinate.get(*field).is_some_and(Value::is_null))
                 && text_at(coordinate, "coverage_state") == Some("unknown")
                 && text_at(coordinate, "uncertainty_state") == Some("unknown"),
             "synthetic fixture must retain unknown coordinate reference, datum, survey time and uncertainty",
@@ -278,20 +331,27 @@ fn validate(fixture: &Value) -> Result<Value, Vec<String>> {
             &mut errors,
             text_at(investigation, "state") == Some("not_provided")
                 && rows(investigation, "observations").is_some_and(Vec::is_empty)
-                && text_at(investigation.get("report_ref").unwrap_or(&Value::Null), "id")
-                    .is_some_and(|id| id.contains("not-provided")),
+                && text_at(
+                    investigation.get("report_ref").unwrap_or(&Value::Null),
+                    "id",
+                )
+                .is_some_and(|id| id.contains("not-provided")),
             "synthetic fixture must keep investigation explicitly not_provided",
         );
         push_if_missing(
             &mut errors,
-            text_at(fixture.get("professional_review").unwrap_or(&Value::Null), "state")
-                == Some("not_requested"),
+            text_at(
+                fixture.get("professional_review").unwrap_or(&Value::Null),
+                "state",
+            ) == Some("not_requested"),
             "synthetic fixture must keep professional review not_requested",
         );
         push_if_missing(
             &mut errors,
-            text_at(fixture.get("foundation_design").unwrap_or(&Value::Null), "state")
-                == Some("not_provided"),
+            text_at(
+                fixture.get("foundation_design").unwrap_or(&Value::Null),
+                "state",
+            ) == Some("not_provided"),
             "synthetic fixture must keep foundation design not_provided",
         );
         push_if_missing(
@@ -351,9 +411,13 @@ fn validate(fixture: &Value) -> Result<Value, Vec<String>> {
             let role = text_at(source, "role").unwrap_or("<missing-role>");
             if text_at(source, "state") == Some("available")
                 && text_at(source, "claim_ceiling")
-                    != Some("screening_only; not a geotechnical investigation or site-suitability conclusion")
+                    != Some(
+                        "screening_only; not a geotechnical investigation or site-suitability conclusion",
+                    )
             {
-                errors.push(format!("screening source {i} ({role}) overstates its claim ceiling"));
+                errors.push(format!(
+                    "screening source {i} ({role}) overstates its claim ceiling"
+                ));
             }
         }
     }
@@ -364,10 +428,7 @@ fn validate(fixture: &Value) -> Result<Value, Vec<String>> {
     validate_professional_review(professional_review, &mut errors);
     let foundation_design = fixture.get("foundation_design").unwrap_or(&Value::Null);
     validate_foundation_design(foundation_design, professional_review, &mut errors);
-    let hold_points = validate_hold_points(
-        rows(fixture, "construction_hold_points"),
-        &mut errors,
-    );
+    let hold_points = validate_hold_points(rows(fixture, "construction_hold_points"), &mut errors);
     let as_built = fixture.get("as_built").unwrap_or(&Value::Null);
     validate_as_built(as_built, &mut errors);
 
@@ -395,7 +456,11 @@ fn validate(fixture: &Value) -> Result<Value, Vec<String>> {
         "construction_authority": "NOT_GRANTED",
         "claim_ceiling": "EVIDENCE_LINKAGE_AND_PROMOTION_GATES_ONLY"
     });
-    if errors.is_empty() { Ok(report) } else { Err(errors) }
+    if errors.is_empty() {
+        Ok(report)
+    } else {
+        Err(errors)
+    }
 }
 
 fn load_fixture() -> Value {
@@ -410,7 +475,10 @@ fn main() {
     }
     let fixture = load_fixture();
     match validate(&fixture) {
-        Ok(report) => println!("{}", serde_json::to_string_pretty(&report).unwrap_or_default()),
+        Ok(report) => println!(
+            "{}",
+            serde_json::to_string_pretty(&report).unwrap_or_default()
+        ),
         Err(errors) => {
             eprintln!("HOME_SITE_FOUNDATION_QUALIFIER_FAIL: {}", errors.join("; "));
             process::exit(1);
@@ -451,8 +519,10 @@ mod tests {
     fn completed_investigation_requires_exact_report_and_observations() {
         let mut fixture = load_fixture();
         fixture["investigation"]["state"] = json!("completed");
-        fixture["investigation"]["scope_ref"] = json!({"kind":"scope","id":"SCOPE-01","revision":"1","digest":"sha256:scope"});
-        fixture["investigation"]["report_ref"] = json!({"kind":"report","id":"REPORT-01","revision":"1","digest":"sha256:report"});
+        fixture["investigation"]["scope_ref"] =
+            json!({"kind":"scope","id":"SCOPE-01","revision":"1","digest":"sha256:scope"});
+        fixture["investigation"]["report_ref"] =
+            json!({"kind":"report","id":"REPORT-01","revision":"1","digest":"sha256:report"});
         assert!(validate(&fixture).is_err());
     }
 
@@ -511,7 +581,8 @@ mod tests {
     fn synthetic_coordinate_reference_and_datum_cannot_be_filled_by_guess() {
         let mut fixture = load_fixture();
         fixture["site_binding"]["coordinate_context"]["horizontal_crs"] = json!("EPSG:4326");
-        fixture["site_binding"]["coordinate_context"]["vertical_datum"] = json!("assumed-local-datum");
+        fixture["site_binding"]["coordinate_context"]["vertical_datum"] =
+            json!("assumed-local-datum");
         assert!(validate(&fixture).is_err());
     }
 
@@ -547,7 +618,8 @@ mod tests {
             "deviation_ref":null,
             "disposition_ref":null
         }]);
-        let report = validate(&fixture).expect("failed hold point is a recorded state, not acceptance");
+        let report =
+            validate(&fixture).expect("failed hold point is a recorded state, not acceptance");
         assert_eq!(report["construction_hold_point_count"], 1);
         assert_eq!(report["construction_authority"], "NOT_GRANTED");
     }

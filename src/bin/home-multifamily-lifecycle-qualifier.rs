@@ -87,36 +87,55 @@ fn validate(
         errors.push("unsupported multifamily lifecycle schema_version".to_owned());
     }
     if text_at(fixture, "maturity") != Some("synthetic_scenario_only") {
-        errors.push("lifecycle fixture cannot be promoted beyond synthetic_scenario_only".to_owned());
+        errors
+            .push("lifecycle fixture cannot be promoted beyond synthetic_scenario_only".to_owned());
     }
     if text_at(fixture, "building_id") != text_at(building, "candidate_id")
         || text_at(
-            fixture.get("source_bindings").unwrap_or(&Value::Null).get("building_ref").unwrap_or(&Value::Null),
+            fixture
+                .get("source_bindings")
+                .unwrap_or(&Value::Null)
+                .get("building_ref")
+                .unwrap_or(&Value::Null),
             "id",
         ) != text_at(building, "candidate_id")
     {
         errors.push("lifecycle fixture is not bound to the exact building identity".to_owned());
     }
     if text_at(
-        fixture.get("source_bindings").unwrap_or(&Value::Null).get("resident_programme_ref").unwrap_or(&Value::Null),
+        fixture
+            .get("source_bindings")
+            .unwrap_or(&Value::Null)
+            .get("resident_programme_ref")
+            .unwrap_or(&Value::Null),
         "id",
     ) != text_at(programme, "programme_id")
     {
         errors.push("lifecycle fixture is not bound to the exact resident programme".to_owned());
     }
     if text_at(
-        fixture.get("source_bindings").unwrap_or(&Value::Null).get("unit_layout_ref").unwrap_or(&Value::Null),
+        fixture
+            .get("source_bindings")
+            .unwrap_or(&Value::Null)
+            .get("unit_layout_ref")
+            .unwrap_or(&Value::Null),
         "id",
     ) != text_at(unit_layout, "layout_id")
     {
         errors.push("lifecycle fixture is not bound to the exact unit-layout identity".to_owned());
     }
     if text_at(
-        fixture.get("source_bindings").unwrap_or(&Value::Null).get("service_topology_ref").unwrap_or(&Value::Null),
+        fixture
+            .get("source_bindings")
+            .unwrap_or(&Value::Null)
+            .get("service_topology_ref")
+            .unwrap_or(&Value::Null),
         "id",
     ) != text_at(service_topology, "profile_id")
     {
-        errors.push("lifecycle fixture is not bound to the exact service-topology identity".to_owned());
+        errors.push(
+            "lifecycle fixture is not bound to the exact service-topology identity".to_owned(),
+        );
     }
     if text_at(fixture, "claim_ceiling").is_none() {
         errors.push("lifecycle claim_ceiling is missing".to_owned());
@@ -166,14 +185,26 @@ fn validate(
             if !building_units.contains(unit_id) {
                 errors.push(format!("revision {id} references unknown unit {unit_id}"));
             }
-            if !matches!(kind, "design" | "adaptation" | "as_built" | "commissioned" | "as_operated" | "repair_state") {
+            if !matches!(
+                kind,
+                "design"
+                    | "adaptation"
+                    | "as_built"
+                    | "commissioned"
+                    | "as_operated"
+                    | "repair_state"
+            ) {
                 errors.push(format!("revision {id} has invalid revision_kind {kind}"));
             }
             if text_at(row, "revision_state") != Some("synthetic_identity_only") {
-                errors.push(format!("revision {id} is promoted beyond synthetic identity"));
+                errors.push(format!(
+                    "revision {id} is promoted beyond synthetic identity"
+                ));
             }
             if !is_null(row.get("artifact_ref")) {
-                errors.push(format!("synthetic revision {id} cannot claim a real artifact reference"));
+                errors.push(format!(
+                    "synthetic revision {id} cannot claim a real artifact reference"
+                ));
             }
             if let Some(parent_id) = &parent {
                 if parent_id == id {
@@ -188,8 +219,12 @@ fn validate(
         if let Some(parent_id) = parent {
             match revisions.get(parent_id) {
                 Some((parent_unit, _, _)) if parent_unit == unit_id => {}
-                Some(_) => errors.push(format!("revision {revision_id} parent belongs to a different unit")),
-                None => errors.push(format!("revision {revision_id} references missing parent {parent_id}")),
+                Some(_) => errors.push(format!(
+                    "revision {revision_id} parent belongs to a different unit"
+                )),
+                None => errors.push(format!(
+                    "revision {revision_id} references missing parent {parent_id}"
+                )),
             }
         }
         let mut visited = BTreeSet::new();
@@ -221,13 +256,17 @@ fn validate(
                 || text_at(source_ref, "kind") != Some("service_node")
                 || !text_at(source_ref, "id").is_some_and(|id| service_nodes.contains(id))
             {
-                errors.push(format!("asset {asset_id} does not bind to an exact service-topology node"));
+                errors.push(format!(
+                    "asset {asset_id} does not bind to an exact service-topology node"
+                ));
             }
             if text_at(asset, "identity_state") != Some("identity_only_synthetic")
                 || text_at(asset, "evidence_state") != Some("unknown")
                 || !is_null(asset.get("current_revision_id"))
             {
-                errors.push(format!("asset {asset_id} overstates synthetic asset or evidence maturity"));
+                errors.push(format!(
+                    "asset {asset_id} overstates synthetic asset or evidence maturity"
+                ));
             }
             let served = array_at(asset, "served_unit_ids")
                 .into_iter()
@@ -236,7 +275,9 @@ fn validate(
                 .map(str::to_owned)
                 .collect::<BTreeSet<_>>();
             if served.is_empty() || served.iter().any(|unit| !building_units.contains(unit)) {
-                errors.push(format!("asset {asset_id} has an empty or unknown served-unit set"));
+                errors.push(format!(
+                    "asset {asset_id} has an empty or unknown served-unit set"
+                ));
             }
             assets.insert(asset_id.to_owned(), served);
         }
@@ -245,25 +286,42 @@ fn validate(
     let event_rows = array_at(fixture, "events");
     let event_ids = unique_ids(event_rows, "event_id", "events", &mut errors);
     let mut event_order_ids = BTreeSet::new();
-    let mut event_records = BTreeMap::<String, (BTreeSet<String>, BTreeSet<String>, BTreeSet<String>, i64)>::new();
+    let mut event_records =
+        BTreeMap::<String, (BTreeSet<String>, BTreeSet<String>, BTreeSet<String>, i64)>::new();
     let mut prior_order = 0_i64;
     if let Some(rows) = event_rows {
         for event in rows {
             let id = text_at(event, "event_id").unwrap_or("<missing-event>");
-            let order = event.get("event_order").and_then(Value::as_i64).unwrap_or(-1);
+            let order = event
+                .get("event_order")
+                .and_then(Value::as_i64)
+                .unwrap_or(-1);
             if order <= 0 || order <= prior_order || !event_order_ids.insert(order) {
-                errors.push(format!("event {id} has duplicate, invalid or unordered event_order"));
+                errors.push(format!(
+                    "event {id} has duplicate, invalid or unordered event_order"
+                ));
             }
             prior_order = order;
 
             let event_kind = text_at(event, "event_kind").unwrap_or("<missing-kind>");
             if !matches!(
                 event_kind,
-                "design_issue" | "design_change" | "fabrication_release" | "installation"
-                    | "as_built_capture" | "commissioning" | "occupancy_start"
-                    | "post_occupancy_observation" | "maintenance" | "repair" | "adaptation"
-                    | "reinspection" | "recommissioning" | "shared_asset_maintenance"
-                    | "shared_asset_repair" | "retirement"
+                "design_issue"
+                    | "design_change"
+                    | "fabrication_release"
+                    | "installation"
+                    | "as_built_capture"
+                    | "commissioning"
+                    | "occupancy_start"
+                    | "post_occupancy_observation"
+                    | "maintenance"
+                    | "repair"
+                    | "adaptation"
+                    | "reinspection"
+                    | "recommissioning"
+                    | "shared_asset_maintenance"
+                    | "shared_asset_repair"
+                    | "retirement"
             ) {
                 errors.push(format!("event {id} has invalid event_kind {event_kind}"));
             }
@@ -273,16 +331,22 @@ fn validate(
                 || text_at(event, "record_time_state") != Some("not_supplied")
                 || !is_null(event.get("recorded_at"))
             {
-                errors.push(format!("synthetic event {id} claims execution or an actual event/record time"));
+                errors.push(format!(
+                    "synthetic event {id} claims execution or an actual event/record time"
+                ));
             }
             if text_at(event, "data_scope") != Some("synthetic_structure_only")
                 || text_at(event, "resident_data_state") != Some("no_personal_data")
                 || text_at(event, "consent_state") != Some("not_applicable")
             {
-                errors.push(format!("synthetic event {id} promotes personal/resident data or consent"));
+                errors.push(format!(
+                    "synthetic event {id} promotes personal/resident data or consent"
+                ));
             }
             if array_at(event, "evidence_refs").is_none_or(|refs| !refs.is_empty()) {
-                errors.push(format!("synthetic event {id} cannot claim real evidence references"));
+                errors.push(format!(
+                    "synthetic event {id} cannot claim real evidence references"
+                ));
             }
 
             let units = array_at(event, "unit_ids")
@@ -303,8 +367,12 @@ fn validate(
             for asset_id in &event_assets {
                 match assets.get(asset_id) {
                     Some(served) if units.is_subset(served) => {}
-                    Some(_) => errors.push(format!("event {id} affects a unit outside asset {asset_id}'s served-unit set")),
-                    None => errors.push(format!("event {id} references unknown shared asset {asset_id}")),
+                    Some(_) => errors.push(format!(
+                        "event {id} affects a unit outside asset {asset_id}'s served-unit set"
+                    )),
+                    None => errors.push(format!(
+                        "event {id} references unknown shared asset {asset_id}"
+                    )),
                 }
             }
 
@@ -312,18 +380,25 @@ fn validate(
             let to_id = text_at(event, "to_revision_id");
             match (from_id, to_id) {
                 (Some(from), Some(to)) => {
-                    let (Some(from_record), Some(to_record)) = (revisions.get(from), revisions.get(to)) else {
+                    let (Some(from_record), Some(to_record)) =
+                        (revisions.get(from), revisions.get(to))
+                    else {
                         errors.push(format!("event {id} references an unknown revision"));
                         continue;
                     };
-                    if from_record.0 != to_record.0 || !units.contains(&from_record.0) || units.len() != 1 {
+                    if from_record.0 != to_record.0
+                        || !units.contains(&from_record.0)
+                        || units.len() != 1
+                    {
                         errors.push(format!("event {id} revision transition is not bound to exactly one matching unit"));
                     }
                     if from != to && to_record.1.as_deref() != Some(from) {
                         errors.push(format!("event {id} transition does not follow the declared parent-revision edge"));
                     }
                     if from == to && text_at(event, "event_kind") == Some("adaptation") {
-                        errors.push(format!("adaptation event {id} does not create a new configuration revision"));
+                        errors.push(format!(
+                            "adaptation event {id} does not create a new configuration revision"
+                        ));
                     }
                 }
                 (None, None) => {
@@ -331,14 +406,19 @@ fn validate(
                         text_at(event, "event_kind"),
                         Some("shared_asset_maintenance" | "shared_asset_repair")
                     ) {
-                        errors.push(format!("event {id} is missing its unit-scoped revision transition"));
+                        errors.push(format!(
+                            "event {id} is missing its unit-scoped revision transition"
+                        ));
                     }
                 }
-                _ => errors.push(format!("event {id} has only one side of a revision transition")),
+                _ => errors.push(format!(
+                    "event {id} has only one side of a revision transition"
+                )),
             }
 
             let kind = text_at(event, "event_kind").unwrap_or("<missing-kind>");
-            let impact_state = text_at(event, "change_impact_state").unwrap_or("<missing-impact-state>");
+            let impact_state =
+                text_at(event, "change_impact_state").unwrap_or("<missing-impact-state>");
             if matches!(kind, "adaptation" | "design_change") {
                 if !matches!(impact_state, "not_computed" | "owner_receipt_attached") {
                     errors.push(format!("change event {id} has invalid change-impact state"));
@@ -347,13 +427,22 @@ fn validate(
                     errors.push(format!("change event {id} has no typed change_kind"));
                 }
             } else if impact_state != "not_applicable" {
-                errors.push(format!("non-change event {id} incorrectly claims change-impact evaluation"));
+                errors.push(format!(
+                    "non-change event {id} incorrectly claims change-impact evaluation"
+                ));
             }
-            if impact_state == "owner_receipt_attached" && !valid_reference(event.get("change_impact_ref").unwrap_or(&Value::Null)) {
-                errors.push(format!("event {id} claims an owner change-impact receipt without a valid reference"));
+            if impact_state == "owner_receipt_attached"
+                && !valid_reference(event.get("change_impact_ref").unwrap_or(&Value::Null))
+            {
+                errors.push(format!(
+                    "event {id} claims an owner change-impact receipt without a valid reference"
+                ));
             }
-            if impact_state != "owner_receipt_attached" && !is_null(event.get("change_impact_ref")) {
-                errors.push(format!("event {id} attaches a change-impact receipt in an incompatible state"));
+            if impact_state != "owner_receipt_attached" && !is_null(event.get("change_impact_ref"))
+            {
+                errors.push(format!(
+                    "event {id} attaches a change-impact receipt in an incompatible state"
+                ));
             }
 
             let invalidated = array_at(event, "invalidated_claim_ids")
@@ -375,15 +464,21 @@ fn validate(
     if let Some(rows) = timeline_rows {
         for timeline in rows {
             let unit_id = text_at(timeline, "unit_id").unwrap_or("<missing-unit>");
-            let baseline_id = text_at(timeline, "baseline_revision_id").unwrap_or("<missing-baseline>");
-            let current_id = text_at(timeline, "current_revision_id").unwrap_or("<missing-current>");
+            let baseline_id =
+                text_at(timeline, "baseline_revision_id").unwrap_or("<missing-baseline>");
+            let current_id =
+                text_at(timeline, "current_revision_id").unwrap_or("<missing-current>");
             match revisions.get(baseline_id) {
                 Some((revision_unit, None, _)) if revision_unit == unit_id => {}
-                _ => errors.push(format!("unit {unit_id} baseline revision is not an exact root revision")),
+                _ => errors.push(format!(
+                    "unit {unit_id} baseline revision is not an exact root revision"
+                )),
             }
             match revisions.get(current_id) {
                 Some((revision_unit, _, _)) if revision_unit == unit_id => {}
-                _ => errors.push(format!("unit {unit_id} current revision does not belong to the unit")),
+                _ => errors.push(format!(
+                    "unit {unit_id} current revision does not belong to the unit"
+                )),
             }
             let authored_timeline_event_ids = array_at(timeline, "event_ids")
                 .into_iter()
@@ -391,7 +486,10 @@ fn validate(
                 .filter_map(Value::as_str)
                 .map(str::to_owned)
                 .collect::<Vec<_>>();
-            let timeline_event_ids = authored_timeline_event_ids.iter().cloned().collect::<BTreeSet<_>>();
+            let timeline_event_ids = authored_timeline_event_ids
+                .iter()
+                .cloned()
+                .collect::<BTreeSet<_>>();
             if timeline_event_ids.len() != authored_timeline_event_ids.len() {
                 errors.push(format!("unit {unit_id} timeline duplicates an event ID"));
             }
@@ -401,7 +499,9 @@ fn validate(
                 .map(|(event_id, _)| event_id.clone())
                 .collect::<BTreeSet<_>>();
             if timeline_event_ids != expected_event_ids {
-                errors.push(format!("unit {unit_id} timeline does not contain its exact event scope"));
+                errors.push(format!(
+                    "unit {unit_id} timeline does not contain its exact event scope"
+                ));
             }
             let mut prior_event_order = 0_i64;
             let mut last_revision = None::<String>;
@@ -413,7 +513,9 @@ fn validate(
                 match event_records.get(event_id) {
                     Some((units, _, _, event_order)) if units.contains(unit_id) => {
                         if *event_order <= prior_event_order {
-                            errors.push(format!("unit {unit_id} timeline event order is not strictly increasing"));
+                            errors.push(format!(
+                                "unit {unit_id} timeline event order is not strictly increasing"
+                            ));
                         }
                         prior_event_order = *event_order;
                         if let Some(event) = event_rows
@@ -426,8 +528,12 @@ fn validate(
                             }
                         }
                     }
-                    Some(_) => errors.push(format!("unit {unit_id} references an event outside its scope")),
-                    None => errors.push(format!("unit {unit_id} references missing event {event_id}")),
+                    Some(_) => errors.push(format!(
+                        "unit {unit_id} references an event outside its scope"
+                    )),
+                    None => errors.push(format!(
+                        "unit {unit_id} references missing event {event_id}"
+                    )),
                 }
             }
             if last_revision.as_deref() != Some(current_id) {
@@ -452,32 +558,55 @@ fn validate(
             }
             match revisions.get(revision_id) {
                 Some((revision_unit, _, _)) if revision_unit == unit_id => {}
-                _ => errors.push(format!("claim {id} revision is missing or belongs to another unit")),
+                _ => errors.push(format!(
+                    "claim {id} revision is missing or belongs to another unit"
+                )),
             }
             if text_at(claim, "claim_scope") != Some("synthetic_claim_identity_only") {
-                errors.push(format!("claim {id} is promoted beyond synthetic identity scope"));
+                errors.push(format!(
+                    "claim {id} is promoted beyond synthetic identity scope"
+                ));
             }
             if array_at(claim, "evidence_refs").is_none_or(Vec::is_empty)
-                && !matches!(state, "not_assessed" | "unknown" | "invalidated" | "superseded" | "revoked")
+                && !matches!(
+                    state,
+                    "not_assessed" | "unknown" | "invalidated" | "superseded" | "revoked"
+                )
             {
                 errors.push(format!("claim {id} promotes a result without evidence"));
             }
             if matches!(state, "pass" | "fail") {
-                errors.push(format!("synthetic lifecycle fixture cannot claim PASS or FAIL for {id}"));
+                errors.push(format!(
+                    "synthetic lifecycle fixture cannot claim PASS or FAIL for {id}"
+                ));
             }
             if state == "invalidated" {
                 if invalidated_by.is_none() {
                     errors.push(format!("invalidated claim {id} has no invalidating event"));
                 }
             } else if invalidated_by.is_some() {
-                errors.push(format!("non-invalidated claim {id} carries invalidated_by_event_id"));
+                errors.push(format!(
+                    "non-invalidated claim {id} carries invalidated_by_event_id"
+                ));
             }
             if let Some(current) = current_revisions.get(unit_id) {
-                if current != revision_id && !matches!(state, "invalidated" | "superseded" | "revoked") {
-                    errors.push(format!("stale claim {id} is not invalidated/superseded/revoked"));
+                if current != revision_id
+                    && !matches!(state, "invalidated" | "superseded" | "revoked")
+                {
+                    errors.push(format!(
+                        "stale claim {id} is not invalidated/superseded/revoked"
+                    ));
                 }
             }
-            claim_records.insert(id.to_owned(), (unit_id.to_owned(), revision_id.to_owned(), state.to_owned(), invalidated_by));
+            claim_records.insert(
+                id.to_owned(),
+                (
+                    unit_id.to_owned(),
+                    revision_id.to_owned(),
+                    state.to_owned(),
+                    invalidated_by,
+                ),
+            );
         }
     }
 
@@ -488,18 +617,29 @@ fn validate(
                     if units.contains(unit_id)
                         && state == "invalidated"
                         && invalidated_by.as_deref() == Some(event_id.as_str())
-                        && current_revisions.get(unit_id).is_some_and(|current| current != revision_id) => {}
-                Some(_) => errors.push(format!("event {event_id} invalidation list disagrees with claim {claim_id}")),
-                None => errors.push(format!("event {event_id} invalidates unknown claim {claim_id}")),
+                        && current_revisions
+                            .get(unit_id)
+                            .is_some_and(|current| current != revision_id) => {}
+                Some(_) => errors.push(format!(
+                    "event {event_id} invalidation list disagrees with claim {claim_id}"
+                )),
+                None => errors.push(format!(
+                    "event {event_id} invalidates unknown claim {claim_id}"
+                )),
             }
         }
     }
     for (claim_id, (unit_id, _, state, invalidated_by)) in &claim_records {
         if state == "invalidated" {
-            match invalidated_by.as_ref().and_then(|event_id| event_records.get(event_id).map(|record| (event_id, record))) {
+            match invalidated_by
+                .as_ref()
+                .and_then(|event_id| event_records.get(event_id).map(|record| (event_id, record)))
+            {
                 Some((event_id, (units, _, invalidated, _)))
                     if units.contains(unit_id) && invalidated.contains(claim_id) => {}
-                _ => errors.push(format!("invalidated claim {claim_id} has no reciprocal event record")),
+                _ => errors.push(format!(
+                    "invalidated claim {claim_id} has no reciprocal event record"
+                )),
             }
         }
     }
@@ -545,10 +685,22 @@ fn main() {
         return;
     }
     let (fixture, building, programme, unit_layout, service_topology) = load_fixtures();
-    match validate(&fixture, &building, &programme, &unit_layout, &service_topology) {
-        Ok(report) => println!("{}", serde_json::to_string_pretty(&report).unwrap_or_default()),
+    match validate(
+        &fixture,
+        &building,
+        &programme,
+        &unit_layout,
+        &service_topology,
+    ) {
+        Ok(report) => println!(
+            "{}",
+            serde_json::to_string_pretty(&report).unwrap_or_default()
+        ),
         Err(errors) => {
-            eprintln!("HOME_MULTIFAMILY_LIFECYCLE_QUALIFIER_FAIL: {}", errors.join("; "));
+            eprintln!(
+                "HOME_MULTIFAMILY_LIFECYCLE_QUALIFIER_FAIL: {}",
+                errors.join("; ")
+            );
             process::exit(1);
         }
     }
@@ -653,14 +805,20 @@ mod tests {
     #[test]
     fn unit_timeline_cannot_omit_an_authored_event() {
         let (mut fixture, building, programme, layout, services) = load_fixtures();
-        fixture["unit_timelines"][0]["event_ids"].as_array_mut().unwrap().remove(1);
+        fixture["unit_timelines"][0]["event_ids"]
+            .as_array_mut()
+            .unwrap()
+            .remove(1);
         assert!(validate(&fixture, &building, &programme, &layout, &services).is_err());
     }
 
     #[test]
     fn unit_timeline_must_cover_every_scoped_event() {
         let (mut fixture, building, programme, layout, services) = load_fixtures();
-        fixture["unit_timelines"][0]["event_ids"].as_array_mut().unwrap().remove(1);
+        fixture["unit_timelines"][0]["event_ids"]
+            .as_array_mut()
+            .unwrap()
+            .remove(1);
         assert!(validate(&fixture, &building, &programme, &layout, &services).is_err());
     }
 

@@ -108,7 +108,9 @@ fn parse_rect(value: &Value, label: &str, errors: &mut Vec<String>) -> Option<Re
     };
 
     if x < 0 || y < 0 || width <= 0 || height <= 0 {
-        errors.push(format!("{label}: coordinates must be non-negative and dimensions positive"));
+        errors.push(format!(
+            "{label}: coordinates must be non-negative and dimensions positive"
+        ));
         return None;
     }
     if x.checked_add(width).is_none() || y.checked_add(height).is_none() {
@@ -172,14 +174,20 @@ fn portal_matches_shared_boundary(a: Rect, b: Rect, portal: &Value) -> bool {
             let common_boundary = (a.bottom() == Some(b.y) && coordinate == b.y)
                 || (b.bottom() == Some(a.y) && coordinate == a.y);
             let low = a.x.max(b.x);
-            let high = a.right().unwrap_or(i64::MIN).min(b.right().unwrap_or(i64::MIN));
+            let high = a
+                .right()
+                .unwrap_or(i64::MIN)
+                .min(b.right().unwrap_or(i64::MIN));
             common_boundary && start >= low && end <= high && end > start
         }
         "vertical" => {
             let common_boundary = (a.right() == Some(b.x) && coordinate == b.x)
                 || (b.right() == Some(a.x) && coordinate == a.x);
             let low = a.y.max(b.y);
-            let high = a.bottom().unwrap_or(i64::MIN).min(b.bottom().unwrap_or(i64::MIN));
+            let high = a
+                .bottom()
+                .unwrap_or(i64::MIN)
+                .min(b.bottom().unwrap_or(i64::MIN));
             common_boundary && start >= low && end <= high && end > start
         }
         _ => false,
@@ -234,10 +242,13 @@ fn validate_case_manifest(corpus: &Value, errors: &mut Vec<String>) -> usize {
         }
     }
     if positive != 1 {
-        errors.push(format!("case manifest must contain exactly one positive control; found {positive}"));
+        errors.push(format!(
+            "case manifest must contain exactly one positive control; found {positive}"
+        ));
     }
     if positive + adversarial != case_ids.len() {
-        errors.push("case manifest includes cases outside the development-control split".to_owned());
+        errors
+            .push("case manifest includes cases outside the development-control split".to_owned());
     }
 
     if let Some(split) = corpus.get("case_split") {
@@ -270,7 +281,8 @@ fn validate_resident_programme(
         errors.push("resident programme has unsupported schema_version".to_owned());
     }
     if text_at(programme, "maturity") != Some("synthetic_scenario_only")
-        || text_at(programme, "source_scope") != Some("synthetic_scenario_authoring_not_real_resident_data")
+        || text_at(programme, "source_scope")
+            != Some("synthetic_scenario_authoring_not_real_resident_data")
     {
         errors.push("resident programme must remain a synthetic, non-personal scenario".to_owned());
     }
@@ -284,9 +296,15 @@ fn validate_resident_programme(
     }
 
     let unit_rows = array_at(programme, "unit_programmes");
-    let programme_unit_ids = unique_text_rows(unit_rows, "unit_id", "resident_programme.unit_programmes", errors);
+    let programme_unit_ids = unique_text_rows(
+        unit_rows,
+        "unit_id",
+        "resident_programme.unit_programmes",
+        errors,
+    );
     if &programme_unit_ids != building_unit_ids {
-        errors.push("resident programme unit IDs do not exactly match the building units".to_owned());
+        errors
+            .push("resident programme unit IDs do not exactly match the building units".to_owned());
     }
 
     let building_rows = array_at(building, "unit_programmes");
@@ -295,9 +313,15 @@ fn validate_resident_programme(
         for row in rows {
             let unit_id = text_at(row, "unit_id").unwrap_or("<missing-unit>");
             let programme_ref = row.get("resident_programme_ref").unwrap_or(&Value::Null);
-            let programme_ref_id = text_at(programme_ref, "id").unwrap_or("<missing-programme-ref>");
-            if expected_refs.insert(unit_id.to_owned(), programme_ref_id.to_owned()).is_some() {
-                errors.push(format!("building has duplicate unit programme binding for {unit_id}"));
+            let programme_ref_id =
+                text_at(programme_ref, "id").unwrap_or("<missing-programme-ref>");
+            if expected_refs
+                .insert(unit_id.to_owned(), programme_ref_id.to_owned())
+                .is_some()
+            {
+                errors.push(format!(
+                    "building has duplicate unit programme binding for {unit_id}"
+                ));
             }
         }
     }
@@ -313,17 +337,22 @@ fn validate_resident_programme(
     if let Some(units) = unit_rows {
         for unit in units {
             let unit_id = text_at(unit, "unit_id").unwrap_or("<missing-unit>");
-            let unit_programme_id = text_at(unit, "unit_programme_id").unwrap_or("<missing-unit-programme>");
+            let unit_programme_id =
+                text_at(unit, "unit_programme_id").unwrap_or("<missing-unit-programme>");
             if expected_refs.get(unit_id).map(String::as_str) != Some(unit_programme_id) {
                 errors.push(format!("building unit {unit_id} is not bound to exact resident unit programme {unit_programme_id}"));
             }
-            if text_at(unit, "source_scope") != Some("synthetic_scenario_authoring_not_real_resident_data") {
+            if text_at(unit, "source_scope")
+                != Some("synthetic_scenario_authoring_not_real_resident_data")
+            {
                 errors.push(format!("unit {unit_id} has an invalid source_scope"));
             }
             if text_at(unit, "occupancy_state") != Some("not_supplied")
                 || !unit.get("concurrent_people").is_some_and(Value::is_null)
             {
-                errors.push(format!("synthetic unit {unit_id} must not invent occupancy or concurrent population"));
+                errors.push(format!(
+                    "synthetic unit {unit_id} must not invent occupancy or concurrent population"
+                ));
             }
 
             let activities = array_at(unit, "activities");
@@ -334,74 +363,121 @@ fn validate_resident_programme(
             for activity in activities.into_iter().flatten() {
                 activity_count += 1;
                 let id = text_at(activity, "activity_id").unwrap_or("<missing-activity-id>");
-                if !activity_ids.insert(id.to_owned()) || !local_activity_ids.insert(id.to_owned()) {
+                if !activity_ids.insert(id.to_owned()) || !local_activity_ids.insert(id.to_owned())
+                {
                     errors.push(format!("duplicate resident activity ID {id}"));
                 }
                 if text_at(activity, "statement").is_none_or(str::is_empty) {
                     errors.push(format!("activity {id} has no resident-facing statement"));
                 }
-                if !matches!(text_at(activity, "frequency"), Some("daily" | "weekly" | "occasional" | "seasonal" | "unknown")) {
+                if !matches!(
+                    text_at(activity, "frequency"),
+                    Some("daily" | "weekly" | "occasional" | "seasonal" | "unknown")
+                ) {
                     errors.push(format!("activity {id} has invalid frequency"));
                 }
                 if text_at(activity, "concurrency_state") != Some("not_supplied")
-                    || !activity.get("concurrent_people").is_some_and(Value::is_null)
+                    || !activity
+                        .get("concurrent_people")
+                        .is_some_and(Value::is_null)
                 {
-                    errors.push(format!("synthetic activity {id} must not invent concurrency"));
+                    errors.push(format!(
+                        "synthetic activity {id} must not invent concurrency"
+                    ));
                 }
-                if activity.get("dedicated_space_required").is_some_and(|v| !v.is_null() && !v.is_boolean()) {
-                    errors.push(format!("activity {id} has invalid dedicated-space requirement"));
+                if activity
+                    .get("dedicated_space_required")
+                    .is_some_and(|v| !v.is_null() && !v.is_boolean())
+                {
+                    errors.push(format!(
+                        "activity {id} has invalid dedicated-space requirement"
+                    ));
                 }
-                if !matches!(text_at(activity, "privacy_requirement"), Some("private" | "semi_private" | "shared" | "public" | "service" | "not_stated")) {
+                if !matches!(
+                    text_at(activity, "privacy_requirement"),
+                    Some(
+                        "private" | "semi_private" | "shared" | "public" | "service" | "not_stated"
+                    )
+                ) {
                     errors.push(format!("activity {id} has invalid privacy_requirement"));
                 }
                 let dimensions = activity.get("spatial_limits").unwrap_or(&Value::Null);
                 if text_at(dimensions, "state") != Some("not_supplied")
-                    || ["minimum_width_mm", "preferred_width_mm", "minimum_area_mm2", "preferred_area_mm2"]
-                        .iter()
-                        .any(|key| !dimensions.get(*key).is_some_and(Value::is_null))
+                    || [
+                        "minimum_width_mm",
+                        "preferred_width_mm",
+                        "minimum_area_mm2",
+                        "preferred_area_mm2",
+                    ]
+                    .iter()
+                    .any(|key| !dimensions.get(*key).is_some_and(Value::is_null))
                 {
-                    errors.push(format!("synthetic activity {id} must keep all dimensional limits NOT_SUPPLIED"));
+                    errors.push(format!(
+                        "synthetic activity {id} must keep all dimensional limits NOT_SUPPLIED"
+                    ));
                 }
                 if array_at(activity, "equipment_refs").is_none_or(|refs| !refs.is_empty()) {
-                    errors.push(format!("synthetic activity {id} must not claim unqualified equipment envelopes"));
+                    errors.push(format!(
+                        "synthetic activity {id} must not claim unqualified equipment envelopes"
+                    ));
                 }
             }
 
             let relationships = array_at(unit, "relationships");
             for relationship in relationships.into_iter().flatten() {
-                let id = text_at(relationship, "relationship_id").unwrap_or("<missing-relationship-id>");
+                let id =
+                    text_at(relationship, "relationship_id").unwrap_or("<missing-relationship-id>");
                 if !relationship_ids.insert(id.to_owned()) {
                     errors.push(format!("duplicate resident relationship ID {id}"));
                 }
-                let from = text_at(relationship, "from_activity_id").unwrap_or("<missing-from-activity>");
+                let from =
+                    text_at(relationship, "from_activity_id").unwrap_or("<missing-from-activity>");
                 let to = text_at(relationship, "to_activity_id").unwrap_or("<missing-to-activity>");
-                if !local_activity_ids.contains(from) || !local_activity_ids.contains(to) || from == to {
-                    errors.push(format!("resident relationship {id} has invalid activity bindings"));
+                if !local_activity_ids.contains(from)
+                    || !local_activity_ids.contains(to)
+                    || from == to
+                {
+                    errors.push(format!(
+                        "resident relationship {id} has invalid activity bindings"
+                    ));
                 }
-                if !matches!(text_at(relationship, "strength"), Some("non_negotiable" | "preference" | "unknown")) {
+                if !matches!(
+                    text_at(relationship, "strength"),
+                    Some("non_negotiable" | "preference" | "unknown")
+                ) {
                     errors.push(format!("resident relationship {id} has invalid strength"));
                 }
             }
 
             for requirement in array_at(unit, "requirements").into_iter().flatten() {
                 requirement_count += 1;
-                let id = text_at(requirement, "requirement_id").unwrap_or("<missing-requirement-id>");
+                let id =
+                    text_at(requirement, "requirement_id").unwrap_or("<missing-requirement-id>");
                 if !requirement_ids.insert(id.to_owned()) {
                     errors.push(format!("duplicate resident requirement ID {id}"));
                 }
                 if text_at(requirement, "source_scope") != Some("synthetic_scenario_authoring")
                     || requirement.get("inferred").and_then(Value::as_bool) != Some(false)
-                    || text_at(requirement, "resident_confirmation_state") != Some("synthetic_not_real_resident")
+                    || text_at(requirement, "resident_confirmation_state")
+                        != Some("synthetic_not_real_resident")
                 {
-                    errors.push(format!("requirement {id} has invalid provenance or inference state"));
+                    errors.push(format!(
+                        "requirement {id} has invalid provenance or inference state"
+                    ));
                 }
                 let activity_scope = array_at(requirement, "activity_ids");
                 if activity_scope.is_none_or(Vec::is_empty) {
                     errors.push(format!("requirement {id} is not scoped to an activity"));
                 }
                 let mut scoped_ids = BTreeSet::new();
-                for activity_id in activity_scope.into_iter().flatten().filter_map(Value::as_str) {
-                    if !local_activity_ids.contains(activity_id) || !scoped_ids.insert(activity_id.to_owned()) {
+                for activity_id in activity_scope
+                    .into_iter()
+                    .flatten()
+                    .filter_map(Value::as_str)
+                {
+                    if !local_activity_ids.contains(activity_id)
+                        || !scoped_ids.insert(activity_id.to_owned())
+                    {
                         errors.push(format!("requirement {id} has an invalid or duplicate activity binding {activity_id}"));
                     }
                 }
@@ -419,24 +495,35 @@ fn validate_resident_programme(
                     || !preference.get("priority").is_some_and(Value::is_null)
                     || !preference.get("tradeable").is_some_and(Value::is_null)
                 {
-                    errors.push(format!("synthetic preference {id} must not invent inference or priority"));
+                    errors.push(format!(
+                        "synthetic preference {id} must not invent inference or priority"
+                    ));
                 }
                 let activity_scope = array_at(preference, "activity_ids");
                 if activity_scope.is_none_or(Vec::is_empty) {
                     errors.push(format!("preference {id} is not scoped to an activity"));
                 }
                 let mut scoped_ids = BTreeSet::new();
-                for activity_id in activity_scope.into_iter().flatten().filter_map(Value::as_str) {
-                    if !local_activity_ids.contains(activity_id) || !scoped_ids.insert(activity_id.to_owned()) {
+                for activity_id in activity_scope
+                    .into_iter()
+                    .flatten()
+                    .filter_map(Value::as_str)
+                {
+                    if !local_activity_ids.contains(activity_id)
+                        || !scoped_ids.insert(activity_id.to_owned())
+                    {
                         errors.push(format!("preference {id} has an invalid or duplicate activity binding {activity_id}"));
                     }
                 }
             }
 
             if text_at(unit, "access_requirement_state") != Some("not_stated")
-                || array_at(unit, "access_requirements").is_none_or(|requirements| !requirements.is_empty())
+                || array_at(unit, "access_requirements")
+                    .is_none_or(|requirements| !requirements.is_empty())
             {
-                errors.push(format!("synthetic unit {unit_id} must not infer access requirements"));
+                errors.push(format!(
+                    "synthetic unit {unit_id} must not infer access requirements"
+                ));
             }
             for service in array_at(unit, "service_requirements").into_iter().flatten() {
                 if text_at(service, "state") != Some("not_supplied")
@@ -444,13 +531,20 @@ fn validate_resident_programme(
                     || !service.get("unit").is_some_and(Value::is_null)
                     || text_at(service, "quality_requirement_state") != Some("not_supplied")
                 {
-                    errors.push(format!("synthetic unit {unit_id} must not invent service demand or quality targets"));
+                    errors.push(format!(
+                        "synthetic unit {unit_id} must not invent service demand or quality targets"
+                    ));
                 }
             }
         }
     }
 
-    (programme_unit_ids.len(), activity_count, requirement_count, preference_count)
+    (
+        programme_unit_ids.len(),
+        activity_count,
+        requirement_count,
+        preference_count,
+    )
 }
 
 fn validate(fixture: &Value, corpus: &Value, programme: &Value) -> Result<Value, Vec<String>> {
@@ -460,7 +554,10 @@ fn validate(fixture: &Value, corpus: &Value, programme: &Value) -> Result<Value,
         errors.push("fixture has an unsupported schema_version".to_owned());
     }
     if text_at(fixture, "maturity") != Some("synthetic_contract") {
-        errors.push("synthetic fixture cannot be promoted to a professional or physical maturity".to_owned());
+        errors.push(
+            "synthetic fixture cannot be promoted to a professional or physical maturity"
+                .to_owned(),
+        );
     }
 
     let case_count = validate_case_manifest(corpus, &mut errors);
@@ -485,7 +582,9 @@ fn validate(fixture: &Value, corpus: &Value, programme: &Value) -> Result<Value,
     let mut elevations = BTreeSet::new();
     if let Some(floors) = floors_rows {
         for floor in floors {
-            let id = text_at(floor, "floor_id").unwrap_or("<missing-floor-id>").to_owned();
+            let id = text_at(floor, "floor_id")
+                .unwrap_or("<missing-floor-id>")
+                .to_owned();
             let Some(index) = integer_at(floor, "floor_index") else {
                 errors.push(format!("{id}: floor_index must be an integer"));
                 continue;
@@ -507,7 +606,9 @@ fn validate(fixture: &Value, corpus: &Value, programme: &Value) -> Result<Value,
                 continue;
             };
             if !building_envelope.contains(rect) {
-                errors.push(format!("floor {id} envelope is outside the building envelope"));
+                errors.push(format!(
+                    "floor {id} envelope is outside the building envelope"
+                ));
             }
             floor_envelopes.insert(id, rect);
         }
@@ -521,9 +622,15 @@ fn validate(fixture: &Value, corpus: &Value, programme: &Value) -> Result<Value,
     let mut spaces = BTreeMap::<String, Space>::new();
     if let Some(rows) = space_rows {
         for row in rows {
-            let id = text_at(row, "space_id").unwrap_or("<missing-space-id>").to_owned();
-            let floor_id = text_at(row, "floor_id").unwrap_or("<missing-floor-id>").to_owned();
-            let kind = text_at(row, "space_kind").unwrap_or("<missing-space-kind>").to_owned();
+            let id = text_at(row, "space_id")
+                .unwrap_or("<missing-space-id>")
+                .to_owned();
+            let floor_id = text_at(row, "floor_id")
+                .unwrap_or("<missing-floor-id>")
+                .to_owned();
+            let kind = text_at(row, "space_kind")
+                .unwrap_or("<missing-space-kind>")
+                .to_owned();
             let unit_id = text_at(row, "unit_id").map(str::to_owned);
             let Some(rect) = row
                 .get("footprint")
@@ -536,7 +643,9 @@ fn validate(fixture: &Value, corpus: &Value, programme: &Value) -> Result<Value,
                 continue;
             };
             if !floor_rect.contains(rect) {
-                errors.push(format!("space {id} footprint is outside floor {floor_id} envelope"));
+                errors.push(format!(
+                    "space {id} footprint is outside floor {floor_id} envelope"
+                ));
             }
             if !matches!(
                 kind.as_str(),
@@ -577,7 +686,11 @@ fn validate(fixture: &Value, corpus: &Value, programme: &Value) -> Result<Value,
             .collect::<Vec<_>>();
         let mut area_sum = 0_i64;
         for (index, (id, space)) in same_floor.iter().enumerate() {
-            match space.rect.area().and_then(|area| area_sum.checked_add(area)) {
+            match space
+                .rect
+                .area()
+                .and_then(|area| area_sum.checked_add(area))
+            {
                 Some(next) => area_sum = next,
                 None => errors.push(format!("floor {floor_id}: space area sum overflows i64")),
             }
@@ -605,7 +718,9 @@ fn validate(fixture: &Value, corpus: &Value, programme: &Value) -> Result<Value,
             let unit_id = text_at(row, "unit_id").unwrap_or("<missing-unit-id>");
             let space_id = text_at(row, "space_id").unwrap_or("<missing-space-id>");
             if !unit_spaces.insert(space_id.to_owned()) {
-                errors.push(format!("multiple unit programmes reference space {space_id}"));
+                errors.push(format!(
+                    "multiple unit programmes reference space {space_id}"
+                ));
             }
             match spaces.get(space_id) {
                 Some(space)
@@ -614,7 +729,9 @@ fn validate(fixture: &Value, corpus: &Value, programme: &Value) -> Result<Value,
                 Some(_) => errors.push(format!(
                     "unit {unit_id} does not match dwelling-space identity {space_id}"
                 )),
-                None => errors.push(format!("unit {unit_id} references missing space {space_id}")),
+                None => errors.push(format!(
+                    "unit {unit_id} references missing space {space_id}"
+                )),
             }
         }
     }
@@ -622,12 +739,18 @@ fn validate(fixture: &Value, corpus: &Value, programme: &Value) -> Result<Value,
         if space.kind == "dwelling_unit" {
             match space.unit_id.as_deref() {
                 Some(unit_id) if unit_ids.contains(unit_id) && unit_spaces.contains(space_id) => {}
-                _ => errors.push(format!("dwelling space {space_id} has no exact unit programme")),
+                _ => errors.push(format!(
+                    "dwelling space {space_id} has no exact unit programme"
+                )),
             }
         }
     }
-    let (resident_programme_unit_count, resident_activity_count, resident_requirement_count, resident_preference_count) =
-        validate_resident_programme(fixture, programme, &unit_ids, &mut errors);
+    let (
+        resident_programme_unit_count,
+        resident_activity_count,
+        resident_requirement_count,
+        resident_preference_count,
+    ) = validate_resident_programme(fixture, programme, &unit_ids, &mut errors);
 
     let connection_rows = array_at(building, "everyday_connections");
     let connection_ids = unique_text_rows(
@@ -658,8 +781,14 @@ fn validate(fixture: &Value, corpus: &Value, programme: &Value) -> Result<Value,
             if text_at(row, "state") != Some("declared") {
                 errors.push(format!("connection {id} is not explicitly declared"));
             }
-            if !portal_matches_shared_boundary(from.rect, to.rect, row.get("portal").unwrap_or(&Value::Null)) {
-                errors.push(format!("connection {id} portal is not on a shared boundary span"));
+            if !portal_matches_shared_boundary(
+                from.rect,
+                to.rect,
+                row.get("portal").unwrap_or(&Value::Null),
+            ) {
+                errors.push(format!(
+                    "connection {id} portal is not on a shared boundary span"
+                ));
             }
         }
     }
@@ -669,8 +798,12 @@ fn validate(fixture: &Value, corpus: &Value, programme: &Value) -> Result<Value,
     let mut cores = BTreeMap::<String, (String, BTreeSet<String>, BTreeSet<String>)>::new();
     if let Some(rows) = core_rows {
         for row in rows {
-            let id = text_at(row, "core_id").unwrap_or("<missing-core-id>").to_owned();
-            let kind = text_at(row, "core_kind").unwrap_or("<missing-core-kind>").to_owned();
+            let id = text_at(row, "core_id")
+                .unwrap_or("<missing-core-id>")
+                .to_owned();
+            let kind = text_at(row, "core_kind")
+                .unwrap_or("<missing-core-kind>")
+                .to_owned();
             let floor_refs = array_at(row, "floor_ids")
                 .into_iter()
                 .flatten()
@@ -684,7 +817,9 @@ fn validate(fixture: &Value, corpus: &Value, programme: &Value) -> Result<Value,
                 .map(str::to_owned)
                 .collect::<BTreeSet<_>>();
             if floor_refs.len() < 2 || space_refs.len() < 2 {
-                errors.push(format!("vertical core {id} must reference at least two floors and spaces"));
+                errors.push(format!(
+                    "vertical core {id} must reference at least two floors and spaces"
+                ));
             }
             if floor_refs.iter().any(|floor| !floor_ids.contains(floor)) {
                 errors.push(format!("vertical core {id} references an unknown floor"));
@@ -702,8 +837,12 @@ fn validate(fixture: &Value, corpus: &Value, programme: &Value) -> Result<Value,
                             && floor_refs.contains(&space.floor_id)
                             && (space.kind == expected_kind
                                 || (kind == "ramp" && space.kind == "service_access")) => {}
-                    Some(_) => errors.push(format!("vertical core {id} space {space_id} has mismatched kind/floor")),
-                    None => errors.push(format!("vertical core {id} references missing space {space_id}")),
+                    Some(_) => errors.push(format!(
+                        "vertical core {id} space {space_id} has mismatched kind/floor"
+                    )),
+                    None => errors.push(format!(
+                        "vertical core {id} references missing space {space_id}"
+                    )),
                 }
             }
             cores.insert(id, (kind, floor_refs, space_refs));
@@ -721,11 +860,18 @@ fn validate(fixture: &Value, corpus: &Value, programme: &Value) -> Result<Value,
         let core_id = text_at(connection, "core_id").unwrap_or("<missing-core-id>");
         let from_floor = text_at(connection, "from_floor_id").unwrap_or("<missing-from-floor>");
         let to_floor = text_at(connection, "to_floor_id").unwrap_or("<missing-to-floor>");
-        if !matches!(text_at(connection, "connection_kind"), Some("everyday_vertical" | "service_vertical")) {
-            errors.push(format!("vertical connection {id} has invalid connection_kind"));
+        if !matches!(
+            text_at(connection, "connection_kind"),
+            Some("everyday_vertical" | "service_vertical")
+        ) {
+            errors.push(format!(
+                "vertical connection {id} has invalid connection_kind"
+            ));
         }
         if text_at(connection, "state") != Some("declared") {
-            errors.push(format!("vertical connection {id} is not explicitly declared"));
+            errors.push(format!(
+                "vertical connection {id} is not explicitly declared"
+            ));
         }
         match cores.get(core_id) {
             Some((_, floors, _))
@@ -734,8 +880,12 @@ fn validate(fixture: &Value, corpus: &Value, programme: &Value) -> Result<Value,
                     && from_floor != to_floor
                     && floor_ids.contains(from_floor)
                     && floor_ids.contains(to_floor) => {}
-            Some(_) => errors.push(format!("vertical connection {id} disagrees with core floor identity")),
-            None => errors.push(format!("vertical connection {id} references missing core {core_id}")),
+            Some(_) => errors.push(format!(
+                "vertical connection {id} disagrees with core floor identity"
+            )),
+            None => errors.push(format!(
+                "vertical connection {id} references missing core {core_id}"
+            )),
         }
     }
 
@@ -752,44 +902,77 @@ fn validate(fixture: &Value, corpus: &Value, programme: &Value) -> Result<Value,
             let kind = text_at(row, "service_kind").unwrap_or("<missing-service-kind>");
             if !matches!(
                 kind,
-                "water" | "potable_water" | "non_potable_water" | "wastewater"
-                    | "electricity" | "thermal" | "ventilation" | "communications"
-                    | "waste" | "maintenance" | "delivery" | "other"
+                "water"
+                    | "potable_water"
+                    | "non_potable_water"
+                    | "wastewater"
+                    | "electricity"
+                    | "thermal"
+                    | "ventilation"
+                    | "communications"
+                    | "waste"
+                    | "maintenance"
+                    | "delivery"
+                    | "other"
             ) {
-                errors.push(format!("shared service {service_id} has invalid service_kind"));
+                errors.push(format!(
+                    "shared service {service_id} has invalid service_kind"
+                ));
             }
             let served = array_at(row, "served_unit_ids");
             if let Some(served) = served {
                 let mut seen = BTreeSet::new();
                 for unit in served.iter().filter_map(Value::as_str) {
                     if !seen.insert(unit.to_owned()) {
-                        errors.push(format!("shared service {service_id} duplicates served unit {unit}"));
+                        errors.push(format!(
+                            "shared service {service_id} duplicates served unit {unit}"
+                        ));
                     }
                     if !unit_ids.contains(unit) {
-                        errors.push(format!("shared service {service_id} references unknown unit {unit}"));
+                        errors.push(format!(
+                            "shared service {service_id} references unknown unit {unit}"
+                        ));
                     }
                 }
             } else {
-                errors.push(format!("shared service {service_id} has no served_unit_ids array"));
+                errors.push(format!(
+                    "shared service {service_id} has no served_unit_ids array"
+                ));
             }
             let topology_state = text_at(row, "topology_state").unwrap_or("<missing>");
-            if !matches!(topology_state, "unknown" | "declared" | "partially_mapped" | "disputed") {
-                errors.push(format!("shared service {service_id} has invalid topology_state"));
+            if !matches!(
+                topology_state,
+                "unknown" | "declared" | "partially_mapped" | "disputed"
+            ) {
+                errors.push(format!(
+                    "shared service {service_id} has invalid topology_state"
+                ));
             }
             let capacity_state = text_at(row, "capacity_state").unwrap_or("<missing>");
-            if !matches!(capacity_state, "unknown" | "measured" | "professionally_assessed" | "modelled" | "disputed") {
-                errors.push(format!("shared service {service_id} has invalid capacity_state"));
+            if !matches!(
+                capacity_state,
+                "unknown" | "measured" | "professionally_assessed" | "modelled" | "disputed"
+            ) {
+                errors.push(format!(
+                    "shared service {service_id} has invalid capacity_state"
+                ));
             }
             if capacity_state != "unknown"
                 && row.get("capacity_evidence_ref").is_none_or(Value::is_null)
             {
-                errors.push(format!("shared service {service_id} promotes capacity without evidence"));
+                errors.push(format!(
+                    "shared service {service_id} promotes capacity without evidence"
+                ));
             }
-            if matches!(capacity_state, "measured" | "professionally_assessed" | "modelled")
-                && array_at(row, "measurement_refs").is_none_or(Vec::is_empty)
+            if matches!(
+                capacity_state,
+                "measured" | "professionally_assessed" | "modelled"
+            ) && array_at(row, "measurement_refs").is_none_or(Vec::is_empty)
                 && row.get("capacity_evidence_ref").is_none_or(Value::is_null)
             {
-                errors.push(format!("shared service {service_id} has no capacity evidence record"));
+                errors.push(format!(
+                    "shared service {service_id} has no capacity evidence record"
+                ));
             }
         }
     }
@@ -853,7 +1036,10 @@ fn main() {
     }
     let (fixture, corpus, programme) = load_fixture();
     match validate(&fixture, &corpus, &programme) {
-        Ok(report) => println!("{}", serde_json::to_string_pretty(&report).unwrap_or_default()),
+        Ok(report) => println!(
+            "{}",
+            serde_json::to_string_pretty(&report).unwrap_or_default()
+        ),
         Err(errors) => {
             eprintln!("HOME_MULTIFAMILY_QUALIFIER_FAIL: {}", errors.join("; "));
             process::exit(1);
@@ -868,7 +1054,8 @@ mod tests {
     #[test]
     fn exact_synthetic_multi_floor_fixture_qualifies() {
         let (fixture, corpus, programme) = load_fixture();
-        let report = validate(&fixture, &corpus, &programme).expect("synthetic multi-family fixture");
+        let report =
+            validate(&fixture, &corpus, &programme).expect("synthetic multi-family fixture");
         assert_eq!(report["floor_count"], 2);
         assert_eq!(report["space_count"], 14);
         assert_eq!(report["unit_count"], 4);
@@ -983,7 +1170,8 @@ mod tests {
     #[test]
     fn fabricated_spatial_dimension_is_rejected_in_synthetic_programme() {
         let (fixture, corpus, mut programme) = load_fixture();
-        programme["unit_programmes"][0]["activities"][0]["spatial_limits"]["minimum_width_mm"] = json!(900);
+        programme["unit_programmes"][0]["activities"][0]["spatial_limits"]["minimum_width_mm"] =
+            json!(900);
         assert!(validate(&fixture, &corpus, &programme).is_err());
     }
 
@@ -998,14 +1186,16 @@ mod tests {
     #[test]
     fn requirement_activity_scope_must_resolve_within_unit() {
         let (fixture, corpus, mut programme) = load_fixture();
-        programme["unit_programmes"][0]["requirements"][0]["activity_ids"][0] = json!("UNKNOWN-ACTIVITY");
+        programme["unit_programmes"][0]["requirements"][0]["activity_ids"][0] =
+            json!("UNKNOWN-ACTIVITY");
         assert!(validate(&fixture, &corpus, &programme).is_err());
     }
 
     #[test]
     fn inferred_access_requirement_is_rejected() {
         let (fixture, corpus, mut programme) = load_fixture();
-        programme["unit_programmes"][0]["access_requirement_state"] = json!("synthetic_scenario_declared");
+        programme["unit_programmes"][0]["access_requirement_state"] =
+            json!("synthetic_scenario_declared");
         assert!(validate(&fixture, &corpus, &programme).is_err());
     }
 

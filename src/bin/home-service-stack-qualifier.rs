@@ -63,10 +63,48 @@ fn exact_reference_pair(left: &Value, right: &Value, key: &str) -> bool {
 
 fn expected_interfaces(service: &str) -> Option<BTreeSet<&'static str>> {
     let values: &[&str] = match service {
-        "warewashing" => &["spatial", "electrical", "water", "drainage", "thermal", "acoustic", "controls", "consumables", "service_access"],
-        "water_continuity" => &["spatial", "electrical", "water", "water_quality", "drainage", "controls", "consumables", "service_access"],
-        "hot_water" => &["spatial", "electrical", "water", "drainage", "thermal", "acoustic", "controls", "consumables", "service_access"],
-        "ventilation_filtration" => &["spatial", "electrical", "thermal", "air", "acoustic", "controls", "consumables", "service_access"],
+        "warewashing" => &[
+            "spatial",
+            "electrical",
+            "water",
+            "drainage",
+            "thermal",
+            "acoustic",
+            "controls",
+            "consumables",
+            "service_access",
+        ],
+        "water_continuity" => &[
+            "spatial",
+            "electrical",
+            "water",
+            "water_quality",
+            "drainage",
+            "controls",
+            "consumables",
+            "service_access",
+        ],
+        "hot_water" => &[
+            "spatial",
+            "electrical",
+            "water",
+            "drainage",
+            "thermal",
+            "acoustic",
+            "controls",
+            "consumables",
+            "service_access",
+        ],
+        "ventilation_filtration" => &[
+            "spatial",
+            "electrical",
+            "thermal",
+            "air",
+            "acoustic",
+            "controls",
+            "consumables",
+            "service_access",
+        ],
         _ => return None,
     };
     Some(values.iter().copied().collect())
@@ -75,10 +113,14 @@ fn expected_interfaces(service: &str) -> Option<BTreeSet<&'static str>> {
 fn validate_profile(profile: &Value, shared_binding: &Value, errors: &mut Vec<String>) {
     let id = text_at(profile, "profile_id").unwrap_or("<missing-profile>");
     if text_at(profile, "schema_version") != Some("home-service-interface/0.1") {
-        errors.push(format!("{id}: unsupported home-service-interface schema version"));
+        errors.push(format!(
+            "{id}: unsupported home-service-interface schema version"
+        ));
     }
     if text_at(profile, "maturity") != Some("synthetic_contract") {
-        errors.push(format!("{id}: synthetic appliance profile cannot be promoted to production maturity"));
+        errors.push(format!(
+            "{id}: synthetic appliance profile cannot be promoted to production maturity"
+        ));
     }
 
     let service = text_at(profile, "service").unwrap_or("<missing-service>");
@@ -86,9 +128,20 @@ fn validate_profile(profile: &Value, shared_binding: &Value, errors: &mut Vec<St
     if expected_profile.is_none() {
         errors.push(format!("{id}: unsupported service {service}"));
     }
-    for key in ["resident_brief", "candidate_design", "design_revision", "jurisdiction_profile"] {
-        if !exact_reference_pair(shared_binding, profile.get("source_binding").unwrap_or(&Value::Null), key) {
-            errors.push(format!("{id}: source_binding.{key} does not match the enclosing stack"));
+    for key in [
+        "resident_brief",
+        "candidate_design",
+        "design_revision",
+        "jurisdiction_profile",
+    ] {
+        if !exact_reference_pair(
+            shared_binding,
+            profile.get("source_binding").unwrap_or(&Value::Null),
+            key,
+        ) {
+            errors.push(format!(
+                "{id}: source_binding.{key} does not match the enclosing stack"
+            ));
         }
     }
 
@@ -98,7 +151,9 @@ fn validate_profile(profile: &Value, shared_binding: &Value, errors: &mut Vec<St
         || !is_null(functional.get("unit"))
         || !is_null(functional.get("resident_definition_ref"))
     {
-        errors.push(format!("{id}: synthetic functional unit must remain UNKNOWN with no quantity/unit"));
+        errors.push(format!(
+            "{id}: synthetic functional unit must remain UNKNOWN with no quantity/unit"
+        ));
     }
 
     let implementation = profile.get("implementation").unwrap_or(&Value::Null);
@@ -109,7 +164,9 @@ fn validate_profile(profile: &Value, shared_binding: &Value, errors: &mut Vec<St
         || !is_null(implementation.get("firmware_revision"))
         || !is_null(implementation.get("component_bom_revision"))
     {
-        errors.push(format!("{id}: synthetic product identity/configuration must remain unbound"));
+        errors.push(format!(
+            "{id}: synthetic product identity/configuration must remain unbound"
+        ));
     }
     if text_at(implementation, "owner_reference").is_none() {
         errors.push(format!("{id}: service profile lacks its owner reference"));
@@ -123,16 +180,22 @@ fn validate_profile(profile: &Value, shared_binding: &Value, errors: &mut Vec<St
         .map(str::to_owned)
         .collect::<BTreeSet<String>>();
     if interface_ids != expected {
-        errors.push(format!("{id}: interface set differs from the service contract"));
+        errors.push(format!(
+            "{id}: interface set differs from the service contract"
+        ));
     }
     for interface in interface_rows.into_iter().flatten() {
         let kind = text_at(interface, "kind").unwrap_or("<missing-interface>");
         if text_at(interface, "state") != Some("unknown") {
-            errors.push(format!("{id}.{kind}: synthetic interface state must remain unknown"));
+            errors.push(format!(
+                "{id}.{kind}: synthetic interface state must remain unknown"
+            ));
         }
         for key in ["requirements", "measurements", "evidence_refs"] {
             if rows(interface, key).is_none_or(|values| !values.is_empty()) {
-                errors.push(format!("{id}.{kind}: synthetic interface {key} must remain empty"));
+                errors.push(format!(
+                    "{id}.{kind}: synthetic interface {key} must remain empty"
+                ));
             }
         }
     }
@@ -149,7 +212,9 @@ fn validate_profile(profile: &Value, shared_binding: &Value, errors: &mut Vec<St
         }
     }
     if !is_null(operation.get("safety_interlock_owner_ref")) {
-        errors.push(format!("{id}: synthetic safety interlock owner must remain unbound"));
+        errors.push(format!(
+            "{id}: synthetic safety interlock owner must remain unbound"
+        ));
     }
 
     let maintenance = profile.get("maintenance").unwrap_or(&Value::Null);
@@ -165,25 +230,34 @@ fn validate_profile(profile: &Value, shared_binding: &Value, errors: &mut Vec<St
         }
     }
     if !is_null(maintenance.get("instructions_ref")) {
-        errors.push(format!("{id}: synthetic maintenance instructions must remain unbound"));
+        errors.push(format!(
+            "{id}: synthetic maintenance instructions must remain unbound"
+        ));
     }
 
     let qualification = profile.get("qualification").unwrap_or(&Value::Null);
     if text_at(qualification, "status") != Some("not_assessed") {
-        errors.push(format!("{id}: synthetic product cannot be professionally or physically qualified"));
+        errors.push(format!(
+            "{id}: synthetic product cannot be professionally or physically qualified"
+        ));
     }
     if rows(qualification, "authority_refs").is_none_or(|refs| !refs.is_empty()) {
-        errors.push(format!("{id}: synthetic qualification authority_refs must be empty"));
+        errors.push(format!(
+            "{id}: synthetic qualification authority_refs must be empty"
+        ));
     }
     let limitations = rows(qualification, "limitations");
     if limitations.is_none_or(|items| items.len() < 3) {
-        errors.push(format!("{id}: synthetic profile must retain explicit limitation statements"));
+        errors.push(format!(
+            "{id}: synthetic profile must retain explicit limitation statements"
+        ));
     }
     if !text_at(profile, "claim_ceiling").is_some_and(|claim| {
-        claim.contains("does not establish product safety")
-            && claim.contains("does not establish")
+        claim.contains("does not establish product safety") && claim.contains("does not establish")
     }) {
-        errors.push(format!("{id}: claim ceiling omits product-safety/performance boundary"));
+        errors.push(format!(
+            "{id}: claim ceiling omits product-safety/performance boundary"
+        ));
     }
 }
 
@@ -193,7 +267,8 @@ fn validate(stack: &Value) -> Result<Value, Vec<String>> {
         errors.push("unsupported home-service-stack schema_version".to_owned());
     }
     if text_at(stack, "maturity") != Some("synthetic_contract") {
-        errors.push("synthetic appliance stack cannot be promoted to production maturity".to_owned());
+        errors
+            .push("synthetic appliance stack cannot be promoted to production maturity".to_owned());
     }
     let profiles = rows(stack, "service_profiles");
     let profile_ids = unique_ids(profiles, "profile_id", "service_profiles", &mut errors);
@@ -212,7 +287,9 @@ fn validate(stack: &Value) -> Result<Value, Vec<String>> {
     .map(str::to_owned)
     .collect::<BTreeSet<String>>();
     if services != expected_services || profile_ids.len() != 4 {
-        errors.push("synthetic stack must contain exactly the four declared service profiles".to_owned());
+        errors.push(
+            "synthetic stack must contain exactly the four declared service profiles".to_owned(),
+        );
     }
 
     let binding = stack.get("source_binding").unwrap_or(&Value::Null);
@@ -225,7 +302,10 @@ fn validate(stack: &Value) -> Result<Value, Vec<String>> {
             && claim.contains("no product identity")
             && claim.contains("no performance")
     }) {
-        errors.push("stack claim ceiling does not preserve synthetic product/requirement boundary".to_owned());
+        errors.push(
+            "stack claim ceiling does not preserve synthetic product/requirement boundary"
+                .to_owned(),
+        );
     }
     let notes = rows(stack, "fixture_notes");
     if notes.is_none_or(|items| items.len() < 3) {
@@ -244,7 +324,11 @@ fn validate(stack: &Value) -> Result<Value, Vec<String>> {
         "physical_product_safety": "NOT_EVALUATED",
         "claim_ceiling": "INTERFACE_SET_AND_UNKNOWN_STATE_INTEGRITY_ONLY"
     });
-    if errors.is_empty() { Ok(report) } else { Err(errors) }
+    if errors.is_empty() {
+        Ok(report)
+    } else {
+        Err(errors)
+    }
 }
 
 fn load_fixture() -> Value {
@@ -258,7 +342,10 @@ fn main() {
         return;
     }
     match validate(&load_fixture()) {
-        Ok(report) => println!("{}", serde_json::to_string_pretty(&report).unwrap_or_default()),
+        Ok(report) => println!(
+            "{}",
+            serde_json::to_string_pretty(&report).unwrap_or_default()
+        ),
         Err(errors) => {
             eprintln!("HOME_SERVICE_STACK_QUALIFIER_FAIL: {}", errors.join("; "));
             process::exit(1);
@@ -289,7 +376,8 @@ mod tests {
     #[test]
     fn duplicate_service_profile_identity_is_rejected() {
         let mut stack = load_fixture();
-        stack["service_profiles"][1]["profile_id"] = stack["service_profiles"][0]["profile_id"].clone();
+        stack["service_profiles"][1]["profile_id"] =
+            stack["service_profiles"][0]["profile_id"].clone();
         assert!(validate(&stack).is_err());
     }
 
@@ -342,14 +430,16 @@ mod tests {
     #[test]
     fn source_binding_cannot_drift_from_stack_revision() {
         let mut stack = load_fixture();
-        stack["service_profiles"][0]["source_binding"]["design_revision"]["id"] = json!("DIFFERENT-REVISION");
+        stack["service_profiles"][0]["source_binding"]["design_revision"]["id"] =
+            json!("DIFFERENT-REVISION");
         assert!(validate(&stack).is_err());
     }
 
     #[test]
     fn network_loss_behavior_cannot_be_assumed() {
         let mut stack = load_fixture();
-        stack["service_profiles"][3]["local_operation"]["network_loss_behavior"] = json!("continues_locally");
+        stack["service_profiles"][3]["local_operation"]["network_loss_behavior"] =
+            json!("continues_locally");
         assert!(validate(&stack).is_err());
     }
 
