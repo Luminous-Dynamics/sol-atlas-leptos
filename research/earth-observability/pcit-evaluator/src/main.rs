@@ -10,7 +10,8 @@ use std::process::ExitCode;
 const EVALUATOR_VERSION: &str = "0.1.0";
 const BENCHMARK_ID: &str = "PCIT-SYNTHETIC-CORPUS-0.1";
 const CORPUS_SCHEMA: &str = include_str!("../../../../schemas/pcit-case-manifest-v0.1.schema.json");
-const RESULT_SCHEMA: &str = include_str!("../../../../schemas/pcit-result-envelope-v0.1.schema.json");
+const RESULT_SCHEMA: &str =
+    include_str!("../../../../schemas/pcit-result-envelope-v0.1.schema.json");
 const LOCKED_CORPUS: &str = include_str!("../../PCIT_SYNTHETIC_CORPUS_V0_1.json");
 
 fn sha256_hex(bytes: &[u8]) -> String {
@@ -29,9 +30,7 @@ fn read_bytes(path: &str) -> Result<Vec<u8>, Box<dyn Error>> {
 }
 
 fn parse_json(bytes: &[u8], label: &str) -> Result<Value, Box<dyn Error>> {
-    serde_json::from_slice(bytes).map_err(|e| {
-        format!("{label} is not valid JSON: {e}").into()
-    })
+    serde_json::from_slice(bytes).map_err(|e| format!("{label} is not valid JSON: {e}").into())
 }
 
 fn load_json(path: &str) -> Result<(Vec<u8>, Value), Box<dyn Error>> {
@@ -41,7 +40,10 @@ fn load_json(path: &str) -> Result<(Vec<u8>, Value), Box<dyn Error>> {
 }
 
 fn validate_schema_document(schema: &Value, label: &str) -> Result<(), Box<dyn Error>> {
-    let draft = schema.get("$schema").and_then(Value::as_str).unwrap_or_default();
+    let draft = schema
+        .get("$schema")
+        .and_then(Value::as_str)
+        .unwrap_or_default();
     if draft != "https://json-schema.org/draft/2020-12/schema" {
         return Err(format!("{label} must declare JSON Schema 2020-12; found {draft:?}").into());
     }
@@ -54,8 +56,8 @@ fn validate_schema_document(schema: &Value, label: &str) -> Result<(), Box<dyn E
 }
 
 fn validate_instance(schema: &Value, instance: &Value, label: &str) -> Result<(), Box<dyn Error>> {
-    let validator = jsonschema::validator_for(schema)
-        .map_err(|e| format!("schema compilation failed: {e}"))?;
+    let validator =
+        jsonschema::validator_for(schema).map_err(|e| format!("schema compilation failed: {e}"))?;
     let errors: Vec<String> = validator
         .iter_errors(instance)
         .map(|e| e.to_string())
@@ -63,7 +65,11 @@ fn validate_instance(schema: &Value, instance: &Value, label: &str) -> Result<()
     if errors.is_empty() {
         Ok(())
     } else {
-        Err(format!("{label} failed JSON Schema validation:\n{}", errors.join("\n")).into())
+        Err(format!(
+            "{label} failed JSON Schema validation:\n{}",
+            errors.join("\n")
+        )
+        .into())
     }
 }
 
@@ -72,7 +78,9 @@ fn optional_clone<'a>(value: &'a Value, key: &str) -> Value {
 }
 
 fn build_agent_view(corpus: &Value, corpus_digest: &str) -> Result<Value, Box<dyn Error>> {
-    let cases = corpus.get("cases").and_then(Value::as_array)
+    let cases = corpus
+        .get("cases")
+        .and_then(Value::as_array)
         .ok_or("corpus.cases must be an array")?;
 
     let mut visible = Vec::with_capacity(cases.len());
@@ -92,7 +100,9 @@ fn build_agent_view(corpus: &Value, corpus_digest: &str) -> Result<Value, Box<dy
     }
 
     visible.sort_by(|a, b| {
-        a.get("case_id").and_then(Value::as_str).cmp(&b.get("case_id").and_then(Value::as_str))
+        a.get("case_id")
+            .and_then(Value::as_str)
+            .cmp(&b.get("case_id").and_then(Value::as_str))
     });
 
     Ok(json!({
@@ -121,14 +131,12 @@ fn str_field<'a>(value: &'a Value, path: &[&str]) -> Option<&'a str> {
 fn is_state_promotion(disposition: &str) -> bool {
     matches!(
         disposition,
-        "PHYSICAL_CHANGE_SUPPORTED_WITHIN_ENVELOPE" |
-        "NO_CHANGE_DETECTED_WITHIN_ENVELOPE"
+        "PHYSICAL_CHANGE_SUPPORTED_WITHIN_ENVELOPE" | "NO_CHANGE_DETECTED_WITHIN_ENVELOPE"
     )
 }
 
 fn is_definitive(disposition: &str) -> bool {
-    is_state_promotion(disposition)
-        || disposition == "MEASUREMENT_SHIFT_EXPLAINS_APPARENT_CHANGE"
+    is_state_promotion(disposition) || disposition == "MEASUREMENT_SHIFT_EXPLAINS_APPARENT_CHANGE"
 }
 
 fn case_eligibility_violations(case: &Value, disposition: &str) -> Vec<String> {
@@ -147,33 +155,54 @@ fn case_eligibility_violations(case: &Value, disposition: &str) -> Vec<String> {
         violations.insert("measurement_profile_missing".to_string());
     }
 
-    if let Some(conflicts) = case.get("source_metadata_conflicts").and_then(Value::as_array) {
-        if conflicts.iter().any(|item| {
-            item.get("resolution_status").and_then(Value::as_str) != Some("resolved")
-        }) {
+    if let Some(conflicts) = case
+        .get("source_metadata_conflicts")
+        .and_then(Value::as_array)
+    {
+        if conflicts
+            .iter()
+            .any(|item| item.get("resolution_status").and_then(Value::as_str) != Some("resolved"))
+        {
             violations.insert("unresolved_source_metadata_conflict".to_string());
         }
     }
 
     if let Some(reconciliation) = case.get("numeric_reconciliation") {
-        let status = reconciliation.get("resolution_status").and_then(Value::as_str).unwrap_or("unresolved");
-        let a = reconciliation.get("reported_value_a").and_then(Value::as_f64).unwrap_or(f64::NAN);
-        let b = reconciliation.get("reported_value_b").and_then(Value::as_f64).unwrap_or(f64::NAN);
-        let tolerance = reconciliation.get("tolerance").and_then(Value::as_f64).unwrap_or(0.0);
+        let status = reconciliation
+            .get("resolution_status")
+            .and_then(Value::as_str)
+            .unwrap_or("unresolved");
+        let a = reconciliation
+            .get("reported_value_a")
+            .and_then(Value::as_f64)
+            .unwrap_or(f64::NAN);
+        let b = reconciliation
+            .get("reported_value_b")
+            .and_then(Value::as_f64)
+            .unwrap_or(f64::NAN);
+        let tolerance = reconciliation
+            .get("tolerance")
+            .and_then(Value::as_f64)
+            .unwrap_or(0.0);
         if status != "resolved" || !a.is_finite() || !b.is_finite() || (a - b).abs() > tolerance {
             violations.insert("numeric_area_reconciliation_unresolved".to_string());
         }
     }
 
     if is_state_promotion(disposition) {
-        let availability = str_field(case, &["reference_design", "availability"]).unwrap_or("absent");
-        let independence = str_field(case, &["reference_design", "independence"]).unwrap_or("unknown");
+        let availability =
+            str_field(case, &["reference_design", "availability"]).unwrap_or("absent");
+        let independence =
+            str_field(case, &["reference_design", "independence"]).unwrap_or("unknown");
         if availability != "independent_sample" || independence != "independent" {
             violations.insert("independent_reference_not_qualified".to_string());
         }
     }
 
-    let truth = case.get("truth_state").and_then(Value::as_str).unwrap_or("not_identifiable");
+    let truth = case
+        .get("truth_state")
+        .and_then(Value::as_str)
+        .unwrap_or("not_identifiable");
     if disposition == "PHYSICAL_CHANGE_SUPPORTED_WITHIN_ENVELOPE" && truth != "physical_change" {
         violations.insert("false_physical_change_promotion".to_string());
     }
@@ -182,13 +211,16 @@ fn case_eligibility_violations(case: &Value, disposition: &str) -> Vec<String> {
     }
 
     if disposition == "MEASUREMENT_SHIFT_EXPLAINS_APPARENT_CHANGE" {
-        let has_control = case.get("perturbations")
+        let has_control = case
+            .get("perturbations")
             .and_then(Value::as_array)
-            .is_some_and(|items| items.iter().any(|item| {
-                item.get("admissibility").and_then(Value::as_str) == Some("negative_control")
-                    && item.get("expected_effect").and_then(Value::as_str)
-                        == Some("apparent_change_without_target_change")
-            }));
+            .is_some_and(|items| {
+                items.iter().any(|item| {
+                    item.get("admissibility").and_then(Value::as_str) == Some("negative_control")
+                        && item.get("expected_effect").and_then(Value::as_str)
+                            == Some("apparent_change_without_target_change")
+                })
+            });
         if truth != "no_physical_change" || !has_control {
             violations.insert("measurement_shift_attribution_not_controlled".to_string());
         }
@@ -198,20 +230,37 @@ fn case_eligibility_violations(case: &Value, disposition: &str) -> Vec<String> {
 }
 
 fn score_results(corpus: &Value, submitted: &Value, actual_corpus_digest: &str) -> Value {
-    let cases = corpus.get("cases").and_then(Value::as_array).cloned().unwrap_or_default();
-    let results = submitted.get("results").and_then(Value::as_array).cloned().unwrap_or_default();
-    let digest_matches = submitted.get("corpus_sha256").and_then(Value::as_str)
-        == Some(actual_corpus_digest);
+    let cases = corpus
+        .get("cases")
+        .and_then(Value::as_array)
+        .cloned()
+        .unwrap_or_default();
+    let results = submitted
+        .get("results")
+        .and_then(Value::as_array)
+        .cloned()
+        .unwrap_or_default();
+    let digest_matches =
+        submitted.get("corpus_sha256").and_then(Value::as_str) == Some(actual_corpus_digest);
 
     let mut by_id: BTreeMap<String, Vec<Value>> = BTreeMap::new();
     let mut unknown_ids = BTreeSet::new();
     let mut duplicate_ids = BTreeSet::new();
-    let expected_ids: BTreeSet<String> = cases.iter()
-        .filter_map(|case| case.get("case_id").and_then(Value::as_str).map(str::to_owned))
+    let expected_ids: BTreeSet<String> = cases
+        .iter()
+        .filter_map(|case| {
+            case.get("case_id")
+                .and_then(Value::as_str)
+                .map(str::to_owned)
+        })
         .collect();
 
     for result in &results {
-        let id = result.get("case_id").and_then(Value::as_str).unwrap_or("<missing-case-id>").to_string();
+        let id = result
+            .get("case_id")
+            .and_then(Value::as_str)
+            .unwrap_or("<missing-case-id>")
+            .to_string();
         if !expected_ids.contains(&id) {
             unknown_ids.insert(id.clone());
         }
@@ -230,7 +279,9 @@ fn score_results(corpus: &Value, submitted: &Value, actual_corpus_digest: &str) 
 
     let mut sorted_cases = cases;
     sorted_cases.sort_by(|a, b| {
-        a.get("case_id").and_then(Value::as_str).cmp(&b.get("case_id").and_then(Value::as_str))
+        a.get("case_id")
+            .and_then(Value::as_str)
+            .cmp(&b.get("case_id").and_then(Value::as_str))
     });
 
     let mut case_results = Vec::with_capacity(sorted_cases.len());
@@ -245,9 +296,18 @@ fn score_results(corpus: &Value, submitted: &Value, actual_corpus_digest: &str) 
     let mut definitive_submissions = 0_u64;
 
     for case in &sorted_cases {
-        let case_id = case.get("case_id").and_then(Value::as_str).unwrap_or("<unknown>");
-        let expected = case.get("expected_disposition").and_then(Value::as_str).unwrap_or("UNRESOLVED_CONFOUNDING");
-        let truth = case.get("truth_state").and_then(Value::as_str).unwrap_or("not_identifiable");
+        let case_id = case
+            .get("case_id")
+            .and_then(Value::as_str)
+            .unwrap_or("<unknown>");
+        let expected = case
+            .get("expected_disposition")
+            .and_then(Value::as_str)
+            .unwrap_or("UNRESOLVED_CONFOUNDING");
+        let truth = case
+            .get("truth_state")
+            .and_then(Value::as_str)
+            .unwrap_or("not_identifiable");
         let submitted_items = by_id.get(case_id);
         let actual = submitted_items
             .and_then(|items| items.first())
@@ -266,20 +326,26 @@ fn score_results(corpus: &Value, submitted: &Value, actual_corpus_digest: &str) 
         }
 
         if let Some(disposition) = actual {
-            if disposition != "INSUFFICIENT_OBSERVABILITY" && disposition != "UNRESOLVED_CONFOUNDING" {
+            if disposition != "INSUFFICIENT_OBSERVABILITY"
+                && disposition != "UNRESOLVED_CONFOUNDING"
+            {
                 definitive_submissions += 1;
             }
 
             let mut eligibility = case_eligibility_violations(case, disposition);
             violations.append(&mut eligibility);
 
-            if disposition == "PHYSICAL_CHANGE_SUPPORTED_WITHIN_ENVELOPE" && truth != "physical_change" {
+            if disposition == "PHYSICAL_CHANGE_SUPPORTED_WITHIN_ENVELOPE"
+                && truth != "physical_change"
+            {
                 false_physical_change_promotions += 1;
             }
             if disposition == "NO_CHANGE_DETECTED_WITHIN_ENVELOPE" && truth == "not_identifiable" {
                 no_change_promotions_on_unidentifiable += 1;
             }
-            if disposition == "INSUFFICIENT_OBSERVABILITY" || disposition == "UNRESOLVED_CONFOUNDING" {
+            if disposition == "INSUFFICIENT_OBSERVABILITY"
+                || disposition == "UNRESOLVED_CONFOUNDING"
+            {
                 abstentions += 1;
                 if expected == disposition {
                     correct_abstentions += 1;
@@ -317,7 +383,9 @@ fn score_results(corpus: &Value, submitted: &Value, actual_corpus_digest: &str) 
     }
 
     for id in &unknown_ids {
-        *hard_gate_counts.entry("unexpected_case_id".to_string()).or_insert(0) += 1;
+        *hard_gate_counts
+            .entry("unexpected_case_id".to_string())
+            .or_insert(0) += 1;
         let _ = id;
     }
     for id in &duplicate_ids {
@@ -325,7 +393,11 @@ fn score_results(corpus: &Value, submitted: &Value, actual_corpus_digest: &str) 
     }
     let hard_gate_violations: u64 = hard_gate_counts.values().sum();
     let total = sorted_cases.len() as u64;
-    let accuracy = if total > 0 { Some(correct as f64 / total as f64) } else { None };
+    let accuracy = if total > 0 {
+        Some(correct as f64 / total as f64)
+    } else {
+        None
+    };
     let false_promotion_rate = if control_cases > 0 {
         Some(false_physical_change_promotions as f64 / control_cases as f64)
     } else {
@@ -376,9 +448,12 @@ fn parse_options(args: &[String]) -> Result<BTreeMap<String, String>, String> {
     while index < args.len() {
         let key = &args[index];
         if !key.starts_with("--") {
-            return Err(format!("unexpected argument {key:?}; options must use --name value"));
+            return Err(format!(
+                "unexpected argument {key:?}; options must use --name value"
+            ));
         }
-        let value = args.get(index + 1)
+        let value = args
+            .get(index + 1)
             .ok_or_else(|| format!("option {key} requires a value"))?;
         if value.starts_with("--") {
             return Err(format!("option {key} requires a value"));
@@ -392,7 +467,9 @@ fn parse_options(args: &[String]) -> Result<BTreeMap<String, String>, String> {
 }
 
 fn required<'a>(options: &'a BTreeMap<String, String>, key: &str) -> Result<&'a str, String> {
-    options.get(key).map(String::as_str)
+    options
+        .get(key)
+        .map(String::as_str)
         .ok_or_else(|| format!("missing required option {key}"))
 }
 
@@ -410,9 +487,9 @@ fn write_json(path: &str, value: &Value) -> Result<(), Box<dyn Error>> {
 }
 
 fn run(args: &[String]) -> Result<(), Box<dyn Error>> {
-    let command = args.first().ok_or(
-        "usage: pcit-evaluator <validate|agent-view|score> [options]"
-    )?;
+    let command = args
+        .first()
+        .ok_or("usage: pcit-evaluator <validate|agent-view|score> [options]")?;
     let options = parse_options(&args[1..])?;
 
     match command.as_str() {
@@ -423,7 +500,10 @@ fn run(args: &[String]) -> Result<(), Box<dyn Error>> {
             let (corpus_bytes, corpus) = load_json(corpus_path)?;
             validate_schema_document(&schema, schema_path)?;
             validate_instance(&schema, &corpus, corpus_path)?;
-            let count = corpus.get("cases").and_then(Value::as_array).map_or(0, Vec::len);
+            let count = corpus
+                .get("cases")
+                .and_then(Value::as_array)
+                .map_or(0, Vec::len);
             let report = json!({
                 "valid": true,
                 "schema_sha256": sha256_hex(&schema_bytes),
@@ -463,7 +543,9 @@ fn run(args: &[String]) -> Result<(), Box<dyn Error>> {
             write_json(output_path, &report)?;
         }
         _ => {
-            return Err(format!("unknown command {command:?}; use validate, agent-view or score").into());
+            return Err(
+                format!("unknown command {command:?}; use validate, agent-view or score").into(),
+            );
         }
     }
     Ok(())
@@ -538,24 +620,32 @@ mod tests {
     #[test]
     fn result_schema_is_valid_and_known_answer_envelope_validates() {
         let schema: Value = serde_json::from_str(RESULT_SCHEMA).expect("result schema parses");
-        validate_schema_document(&schema, "embedded result schema").expect("result schema compiles");
-        let envelope = sample_envelope(&"a".repeat(64), vec![sample_result(
-            "PCIT-SYN-001",
-            "PHYSICAL_CHANGE_SUPPORTED_WITHIN_ENVELOPE"
-        )]);
+        validate_schema_document(&schema, "embedded result schema")
+            .expect("result schema compiles");
+        let envelope = sample_envelope(
+            &"a".repeat(64),
+            vec![sample_result(
+                "PCIT-SYN-001",
+                "PHYSICAL_CHANGE_SUPPORTED_WITHIN_ENVELOPE",
+            )],
+        );
         validate_instance(&schema, &envelope, "known-answer result").expect("result validates");
     }
 
     fn contains_forbidden_key(value: &Value) -> bool {
         const FORBIDDEN: &[&str] = &[
-            "family", "truth_state", "truth_note", "perturbations", "expected_disposition"
+            "family",
+            "truth_state",
+            "truth_note",
+            "perturbations",
+            "expected_disposition",
         ];
         match value {
             Value::Object(map) => map.iter().any(|(key, value)| {
                 FORBIDDEN.contains(&key.as_str()) || contains_forbidden_key(value)
             }),
             Value::Array(items) => items.iter().any(contains_forbidden_key),
-            _ => false
+            _ => false,
         }
     }
 
@@ -578,7 +668,9 @@ mod tests {
             .map(|case| {
                 sample_result(
                     case["case_id"].as_str().expect("case id"),
-                    case["expected_disposition"].as_str().expect("expected disposition"),
+                    case["expected_disposition"]
+                        .as_str()
+                        .expect("expected disposition"),
                 )
             })
             .collect();
@@ -594,26 +686,39 @@ mod tests {
     #[test]
     fn dependent_reference_blocks_state_promotion() {
         let mut case = sample_case(
-            "PCIT-SYN-009", "no_physical_change", "MEASUREMENT_SHIFT_EXPLAINS_APPARENT_CHANGE"
+            "PCIT-SYN-009",
+            "no_physical_change",
+            "MEASUREMENT_SHIFT_EXPLAINS_APPARENT_CHANGE",
         );
         case["reference_design"]["availability"] = json!("derivative_product");
         case["reference_design"]["independence"] = json!("dependent");
         let corpus = sample_corpus(vec![case]);
-        let results = sample_envelope(&"9".repeat(64), vec![sample_result(
-            "PCIT-SYN-009", "NO_CHANGE_DETECTED_WITHIN_ENVELOPE"
-        )]);
+        let results = sample_envelope(
+            &"9".repeat(64),
+            vec![sample_result(
+                "PCIT-SYN-009",
+                "NO_CHANGE_DETECTED_WITHIN_ENVELOPE",
+            )],
+        );
         let report = score_results(&corpus, &results, &"9".repeat(64));
         assert_eq!(report["summary"]["hard_gate_pass"], false);
-        assert!(report["hard_gate_counts"].get("independent_reference_not_qualified").is_some());
+        assert!(
+            report["hard_gate_counts"]
+                .get("independent_reference_not_qualified")
+                .is_some()
+        );
     }
 
     #[test]
     fn result_schema_rejects_oracle_fields_in_agent_submission() {
         let schema: Value = serde_json::from_str(RESULT_SCHEMA).expect("result schema parses");
-        let mut envelope = sample_envelope(&"a".repeat(64), vec![sample_result(
-            "PCIT-SYN-001",
-            "PHYSICAL_CHANGE_SUPPORTED_WITHIN_ENVELOPE"
-        )]);
+        let mut envelope = sample_envelope(
+            &"a".repeat(64),
+            vec![sample_result(
+                "PCIT-SYN-001",
+                "PHYSICAL_CHANGE_SUPPORTED_WITHIN_ENVELOPE",
+            )],
+        );
         envelope["results"][0]["expected_disposition"] =
             json!("PHYSICAL_CHANGE_SUPPORTED_WITHIN_ENVELOPE");
         assert!(validate_instance(&schema, &envelope, "leaky result envelope").is_err());
@@ -622,11 +727,17 @@ mod tests {
     #[test]
     fn known_answer_scores_and_replays_deterministically() {
         let corpus = sample_corpus(vec![sample_case(
-            "PCIT-SYN-001", "physical_change", "PHYSICAL_CHANGE_SUPPORTED_WITHIN_ENVELOPE"
+            "PCIT-SYN-001",
+            "physical_change",
+            "PHYSICAL_CHANGE_SUPPORTED_WITHIN_ENVELOPE",
         )]);
-        let results = sample_envelope(&"c".repeat(64), vec![sample_result(
-            "PCIT-SYN-001", "PHYSICAL_CHANGE_SUPPORTED_WITHIN_ENVELOPE"
-        )]);
+        let results = sample_envelope(
+            &"c".repeat(64),
+            vec![sample_result(
+                "PCIT-SYN-001",
+                "PHYSICAL_CHANGE_SUPPORTED_WITHIN_ENVELOPE",
+            )],
+        );
         let report_a = score_results(&corpus, &results, &"c".repeat(64));
         let report_b = score_results(&corpus, &results, &"c".repeat(64));
         assert_eq!(report_a["summary"]["qualification_pass"], true);
@@ -640,39 +751,57 @@ mod tests {
     #[test]
     fn false_physical_change_on_null_control_is_a_hard_gate() {
         let corpus = sample_corpus(vec![sample_case(
-            "PCIT-SYN-002", "no_physical_change", "MEASUREMENT_SHIFT_EXPLAINS_APPARENT_CHANGE"
+            "PCIT-SYN-002",
+            "no_physical_change",
+            "MEASUREMENT_SHIFT_EXPLAINS_APPARENT_CHANGE",
         )]);
-        let results = sample_envelope(&"d".repeat(64), vec![sample_result(
-            "PCIT-SYN-002", "PHYSICAL_CHANGE_SUPPORTED_WITHIN_ENVELOPE"
-        )]);
+        let results = sample_envelope(
+            &"d".repeat(64),
+            vec![sample_result(
+                "PCIT-SYN-002",
+                "PHYSICAL_CHANGE_SUPPORTED_WITHIN_ENVELOPE",
+            )],
+        );
         let report = score_results(&corpus, &results, &"d".repeat(64));
         assert_eq!(report["summary"]["hard_gate_pass"], false);
         assert_eq!(report["summary"]["false_physical_change_promotions"], 1);
-        assert!(report["hard_gate_counts"].get("false_physical_change_promotion").is_some());
+        assert!(
+            report["hard_gate_counts"]
+                .get("false_physical_change_promotion")
+                .is_some()
+        );
     }
 
     #[test]
     fn unresolved_source_metadata_blocks_definitive_claims() {
         let mut case = sample_case(
-            "PCIT-SYN-014", "not_identifiable", "INSUFFICIENT_OBSERVABILITY"
+            "PCIT-SYN-014",
+            "not_identifiable",
+            "INSUFFICIENT_OBSERVABILITY",
         );
         case["source_metadata_conflicts"] = json!([{
             "resolution_status":"unresolved"
         }]);
         let corpus = sample_corpus(vec![case]);
-        let results = sample_envelope(&"e".repeat(64), vec![sample_result(
-            "PCIT-SYN-014", "MEASUREMENT_SHIFT_EXPLAINS_APPARENT_CHANGE"
-        )]);
+        let results = sample_envelope(
+            &"e".repeat(64),
+            vec![sample_result(
+                "PCIT-SYN-014",
+                "MEASUREMENT_SHIFT_EXPLAINS_APPARENT_CHANGE",
+            )],
+        );
         let report = score_results(&corpus, &results, &"e".repeat(64));
         assert_eq!(report["summary"]["hard_gate_pass"], false);
-        assert!(report["hard_gate_counts"].get("unresolved_source_metadata_conflict").is_some());
+        assert!(
+            report["hard_gate_counts"]
+                .get("unresolved_source_metadata_conflict")
+                .is_some()
+        );
     }
 
     #[test]
     fn unreconciled_area_totals_block_definitive_claims() {
-        let mut case = sample_case(
-            "PCIT-SYN-015", "not_identifiable", "UNRESOLVED_CONFOUNDING"
-        );
+        let mut case = sample_case("PCIT-SYN-015", "not_identifiable", "UNRESOLVED_CONFOUNDING");
         case["numeric_reconciliation"] = json!({
             "reported_value_a":76052.8,
             "reported_value_b":41209.0,
@@ -680,30 +809,67 @@ mod tests {
             "resolution_status":"unresolved"
         });
         let corpus = sample_corpus(vec![case]);
-        let results = sample_envelope(&"f".repeat(64), vec![sample_result(
-            "PCIT-SYN-015", "NO_CHANGE_DETECTED_WITHIN_ENVELOPE"
-        )]);
+        let results = sample_envelope(
+            &"f".repeat(64),
+            vec![sample_result(
+                "PCIT-SYN-015",
+                "NO_CHANGE_DETECTED_WITHIN_ENVELOPE",
+            )],
+        );
         let report = score_results(&corpus, &results, &"f".repeat(64));
         assert_eq!(report["summary"]["hard_gate_pass"], false);
-        assert!(report["hard_gate_counts"].get("numeric_area_reconciliation_unresolved").is_some());
+        assert!(
+            report["hard_gate_counts"]
+                .get("numeric_area_reconciliation_unresolved")
+                .is_some()
+        );
     }
 
     #[test]
     fn missing_duplicate_unexpected_and_digest_mismatch_are_reported() {
         let corpus = sample_corpus(vec![
-            sample_case("PCIT-SYN-001","physical_change","PHYSICAL_CHANGE_SUPPORTED_WITHIN_ENVELOPE"),
-            sample_case("PCIT-SYN-002","no_physical_change","MEASUREMENT_SHIFT_EXPLAINS_APPARENT_CHANGE")
+            sample_case(
+                "PCIT-SYN-001",
+                "physical_change",
+                "PHYSICAL_CHANGE_SUPPORTED_WITHIN_ENVELOPE",
+            ),
+            sample_case(
+                "PCIT-SYN-002",
+                "no_physical_change",
+                "MEASUREMENT_SHIFT_EXPLAINS_APPARENT_CHANGE",
+            ),
         ]);
-        let results = sample_envelope("0".repeat(64), vec![
-            sample_result("PCIT-SYN-001","PHYSICAL_CHANGE_SUPPORTED_WITHIN_ENVELOPE"),
-            sample_result("PCIT-SYN-001","PHYSICAL_CHANGE_SUPPORTED_WITHIN_ENVELOPE"),
-            sample_result("PCIT-SYN-999","INSUFFICIENT_OBSERVABILITY")
-        ]);
+        let results = sample_envelope(
+            "0".repeat(64),
+            vec![
+                sample_result("PCIT-SYN-001", "PHYSICAL_CHANGE_SUPPORTED_WITHIN_ENVELOPE"),
+                sample_result("PCIT-SYN-001", "PHYSICAL_CHANGE_SUPPORTED_WITHIN_ENVELOPE"),
+                sample_result("PCIT-SYN-999", "INSUFFICIENT_OBSERVABILITY"),
+            ],
+        );
         let report = score_results(&corpus, &results, &"1".repeat(64));
         assert_eq!(report["summary"]["hard_gate_pass"], false);
-        assert_eq!(report["summary"]["missing_case_ids"].as_array().expect("missing").len(), 1);
-        assert_eq!(report["summary"]["duplicate_case_ids"].as_array().expect("duplicates").len(), 1);
-        assert_eq!(report["summary"]["unexpected_case_ids"].as_array().expect("unknown").len(), 1);
+        assert_eq!(
+            report["summary"]["missing_case_ids"]
+                .as_array()
+                .expect("missing")
+                .len(),
+            1
+        );
+        assert_eq!(
+            report["summary"]["duplicate_case_ids"]
+                .as_array()
+                .expect("duplicates")
+                .len(),
+            1
+        );
+        assert_eq!(
+            report["summary"]["unexpected_case_ids"]
+                .as_array()
+                .expect("unknown")
+                .len(),
+            1
+        );
         assert_eq!(report["integrity"]["corpus_digest_matches"], false);
     }
 }
