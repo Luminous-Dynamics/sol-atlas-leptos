@@ -1,0 +1,79 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://luminousdynamics.io/schemas/highveld-panel-thread-corpus-v0.1.schema.json",
+  "title": "Highveld Panel Thread Composition Benchmark v0.1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["profile_id", "version", "status", "claim_ceiling", "owner_refs", "cases"],
+  "properties": {
+    "profile_id": {"const": "luminous.highveld.panel-thread-composition.v0.1"},
+    "version": {"const": "0.1.0"},
+    "status": {"const": "synthetic_specification_unadjudicated"},
+    "claim_ceiling": {"type": "string", "minLength": 20},
+    "owner_refs": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["owner", "repository", "references", "responsibility"],
+        "properties": {
+          "owner": {"enum": ["sol_atlas", "symthaea", "symtropy", "mycelix", "external_standard"]},
+          "repository": {"type": "string", "minLength": 1},
+          "references": {
+            "type": "array",
+            "minItems": 1,
+            "items": {"type": "string", "pattern": "^(https://github\\.com/|ISO |NIST )"}
+          },
+          "responsibility": {"type": "string", "minLength": 10}
+        }
+      }
+    },
+    "cases": {
+      "type": "array",
+      "minItems": 20,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "case_id", "title", "category", "criticality", "preconditions",
+          "mutation", "expected_disposition", "expected_reason_codes",
+          "expected_requalification_domains", "authority_ceiling"
+        ],
+        "properties": {
+          "case_id": {"type": "string", "pattern": "^HPT-[0-9]{3}$"},
+          "title": {"type": "string", "minLength": 5},
+          "category": {
+            "enum": [
+              "nominal", "identity", "model_projection", "material_custody",
+              "manufacturing_capability", "robot_capability", "metrology",
+              "as_built", "change_management", "authority", "rights",
+              "dependence", "site_context", "repairability", "safety"
+            ]
+          },
+          "criticality": {"enum": ["critical", "major", "informational"]},
+          "preconditions": {
+            "type": "array",
+            "items": {"type": "string", "minLength": 5}
+          },
+          "mutation": {"type": "string", "minLength": 5},
+          "expected_disposition": {
+            "enum": ["REVIEW_ONLY", "REQUALIFICATION_REQUIRED", "BLOCKED_UNKNOWN", "BLOCKED_CONFLICT", "BLOCKED_AUTHORITY"]
+          },
+          "expected_reason_codes": {
+            "type": "array",
+            "minItems": 1,
+            "uniqueItems": true,
+            "items": {"type": "string", "pattern": "^[A-Z][A-Z0-9_]{2,63}$"}
+          },
+          "expected_requalification_domains": {
+            "type": "array",
+            "uniqueItems": true,
+            "items": {"type": "string", "minLength": 2}
+          },
+          "authority_ceiling": {"const": "NON_AUTHORIZING_SYNTHETIC_EVALUATION"}
+        }
+      }
+    }
+  }
+}
