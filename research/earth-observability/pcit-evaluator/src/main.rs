@@ -17,10 +17,6 @@ const REFERENCE_SCHEMA: &str =
     include_str!("../../../../schemas/ecological-reference-trajectory-v0.1.schema.json");
 const REFERENCE_CORPUS: &str =
     include_str!("../../ECOLOGICAL_REFERENCE_TRAJECTORY_SYNTHETIC_CORPUS_V0_1.json");
-const REFERENCE_SCHEMA: &str =
-    include_str!("../../../../schemas/ecological-reference-trajectory-v0.1.schema.json");
-const REFERENCE_CORPUS: &str =
-    include_str!("../../ECOLOGICAL_REFERENCE_TRAJECTORY_SYNTHETIC_CORPUS_V0_1.json");
 
 fn sha256_hex(bytes: &[u8]) -> String {
     const HEX: &[u8; 16] = b"0123456789abcdef";
