@@ -211,7 +211,15 @@ The following owners already exist and should be treated as the implementation g
 
 **First data rule:** classify every infrastructure and maglev record as observed, proposed, derived, curated or synthetic. A visually plausible route or cost estimate is not an operating asset, a feasibility study or an approved project.
 
-## 10. Claim ceiling
+## 10. Starter machine-readable scenario register
+
+The branch now includes:
+- [Deep-Time Scenario Register v0.1](DEEP_TIME_SCENARIO_REGISTER_V0_1.json): eight source-qualified records spanning present-day land-ice equivalent, IPCC 2100/2300 cases, three competing Cretaceous reconstruction families, synthetic +200 m, and next-supercontinent climate boundary conditions.
+- [Scenario Register JSON Schema v0.1](DEEP_TIME_SCENARIO_REGISTER_V0_1.schema.json): a strict Draft 2020-12 structural contract.
+
+The register is deliberately a **source catalogue, not a forecast ensemble**. Values from different physical quantities and reference periods must not be directly compared or blended. In particular, geological reconstructions preserve their publication-specific age semantics and uncertainty rather than being converted into a synthetic modern coastline. The initial JSON was parsed and checked for required fields, enumerations, unique scenario IDs and non-empty source/limitation records; full schema-validation integration and independent review remain pending.
+
+## 11. Claim ceiling
 
 A passing synthetic benchmark proves only the tested contract and calculation behavior. It does not establish climate forecast skill, paleogeographic truth, navigability, local water availability, geotechnical safety, ecological acceptability, community consent, legal authority, financing or engineering feasibility. Site-specific work requires qualified professionals, lawful rights-holders, affected communities and competent authorities.
 
