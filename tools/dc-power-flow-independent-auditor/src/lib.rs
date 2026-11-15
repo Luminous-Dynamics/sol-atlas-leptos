@@ -130,7 +130,10 @@ fn validate_options(options: AuditOptions) -> Result<(), AuditError> {
         ("value_tolerance_mw", options.value_tolerance_mw),
         ("angle_tolerance_rad", options.angle_tolerance_rad),
         ("residual_tolerance_mw", options.residual_tolerance_mw),
-        ("branch_limit_tolerance_mw", options.branch_limit_tolerance_mw),
+        (
+            "branch_limit_tolerance_mw",
+            options.branch_limit_tolerance_mw,
+        ),
     ] {
         if !value.is_finite() || value < 0.0 {
             return Err(AuditError::new(format!(
@@ -168,7 +171,9 @@ pub fn audit_dc_power_flow(
         )));
     }
     if !network.base_mva.is_finite() || network.base_mva <= 0.0 {
-        return Err(AuditError::new("network base MVA must be finite and positive"));
+        return Err(AuditError::new(
+            "network base MVA must be finite and positive",
+        ));
     }
     if candidate.bus_states.len() != network.buses.len() {
         return Err(AuditError::new(format!(
@@ -194,7 +199,10 @@ pub fn audit_dc_power_flow(
             )));
         }
         if bus_index.insert(bus.id, index).is_some() {
-            return Err(AuditError::new(format!("duplicate network bus ID {}", bus.id)));
+            return Err(AuditError::new(format!(
+                "duplicate network bus ID {}",
+                bus.id
+            )));
         }
         if let Some(injection) = bus.specified_injection_mw
             && !injection.is_finite()
@@ -298,10 +306,7 @@ pub fn audit_dc_power_flow(
             )));
         }
         expected_slack_by_bus[reference] = Some(slack_injection);
-        expected_slack_records.insert(
-            network.buses[reference].id,
-            (island_index, slack_injection),
-        );
+        expected_slack_records.insert(network.buses[reference].id, (island_index, slack_injection));
     }
 
     if candidate.energized_island_count != components.len() {
@@ -389,9 +394,7 @@ pub fn audit_dc_power_flow(
             }
             recomputed_outflow[from] += flow;
             recomputed_outflow[to] -= flow;
-            if !recomputed_outflow[from].is_finite()
-                || !recomputed_outflow[to].is_finite()
-            {
+            if !recomputed_outflow[from].is_finite() || !recomputed_outflow[to].is_finite() {
                 return Err(AuditError::new(format!(
                     "recomputed nodal outflow became non-finite at branch {branch_index}"
                 )));
@@ -475,9 +478,7 @@ pub fn audit_dc_power_flow(
             expected_residual,
             options.value_tolerance_mw,
         )?;
-        max_abs_nodal_residual_mw =
-            max_abs_nodal_residual_mw.max(expected_residual.abs());
-
+        max_abs_nodal_residual_mw = max_abs_nodal_residual_mw.max(expected_residual.abs());
     }
 
     if candidate.slack_injections.len() != expected_slack_records.len() {
@@ -531,10 +532,8 @@ pub fn audit_dc_power_flow(
         options.value_tolerance_mw,
     )?;
 
-    let within_nodal_tolerance =
-        max_abs_nodal_residual_mw <= options.residual_tolerance_mw;
-    let within_declared_branch_limits =
-        max_branch_overload_mw <= options.branch_limit_tolerance_mw;
+    let within_nodal_tolerance = max_abs_nodal_residual_mw <= options.residual_tolerance_mw;
+    let within_declared_branch_limits = max_branch_overload_mw <= options.branch_limit_tolerance_mw;
     let independently_feasible_under_declared_checks =
         within_nodal_tolerance && within_declared_branch_limits;
 
@@ -628,24 +627,20 @@ mod tests {
                     is_reference_bus: false,
                 },
             ],
-            branch_flows: vec![
-                dc_power_flow_reference::BranchFlow {
-                    branch_index: 0,
-                    from_bus: 1,
-                    to_bus: 2,
-                    in_service: true,
-                    flow_from_to_mw: 50.0,
-                    rate_a_limit_mw: None,
-                    overload_mw: 0.0,
-                },
-            ],
-            slack_injections: vec![
-                dc_power_flow_reference::SlackInjection {
-                    bus_id: 1,
-                    island_index: 0,
-                    injection_mw: 50.0,
-                },
-            ],
+            branch_flows: vec![dc_power_flow_reference::BranchFlow {
+                branch_index: 0,
+                from_bus: 1,
+                to_bus: 2,
+                in_service: true,
+                flow_from_to_mw: 50.0,
+                rate_a_limit_mw: None,
+                overload_mw: 0.0,
+            }],
+            slack_injections: vec![dc_power_flow_reference::SlackInjection {
+                bus_id: 1,
+                island_index: 0,
+                injection_mw: 50.0,
+            }],
             energized_island_count: 1,
             max_abs_nodal_residual_mw: 0.0,
             max_branch_overload_mw: 0.0,
@@ -784,10 +779,12 @@ mod tests {
         let network = two_bus(None);
         let mut result = solve(&network);
         result.branch_flows[0].flow_from_to_mw += 1.0;
-        assert!(audit_dc_power_flow(&network, &result, AuditOptions::default())
-            .unwrap_err()
-            .reason
-            .contains("branch 0 flow mismatch"));
+        assert!(
+            audit_dc_power_flow(&network, &result, AuditOptions::default())
+                .unwrap_err()
+                .reason
+                .contains("branch 0 flow mismatch")
+        );
     }
 
     #[test]
@@ -808,10 +805,12 @@ mod tests {
         let network = two_bus(None);
         let mut result = solve(&network);
         result.slack_injections[0].injection_mw += 5.0;
-        assert!(audit_dc_power_flow(&network, &result, AuditOptions::default())
-            .unwrap_err()
-            .reason
-            .contains("slack injection"));
+        assert!(
+            audit_dc_power_flow(&network, &result, AuditOptions::default())
+                .unwrap_err()
+                .reason
+                .contains("slack injection")
+        );
     }
 
     #[test]
@@ -821,10 +820,12 @@ mod tests {
         assert!(!result.feasible_under_declared_checks);
         result.within_declared_branch_limits = true;
         result.feasible_under_declared_checks = true;
-        assert!(audit_dc_power_flow(&network, &result, AuditOptions::default())
-            .unwrap_err()
-            .reason
-            .contains("within_declared_branch_limits flag"));
+        assert!(
+            audit_dc_power_flow(&network, &result, AuditOptions::default())
+                .unwrap_err()
+                .reason
+                .contains("within_declared_branch_limits flag")
+        );
     }
 
     #[test]
@@ -832,10 +833,12 @@ mod tests {
         let network = two_bus(None);
         let mut result = solve(&network);
         result.branch_flows[0].to_bus = 3;
-        assert!(audit_dc_power_flow(&network, &result, AuditOptions::default())
-            .unwrap_err()
-            .reason
-            .contains("branch-flow identity mismatch"));
+        assert!(
+            audit_dc_power_flow(&network, &result, AuditOptions::default())
+                .unwrap_err()
+                .reason
+                .contains("branch-flow identity mismatch")
+        );
     }
 
     #[test]
@@ -843,10 +846,12 @@ mod tests {
         let network = two_bus(None);
         let mut result = solve(&network);
         result.bus_states[1].calculated_net_outflow_mw += 2.0;
-        assert!(audit_dc_power_flow(&network, &result, AuditOptions::default())
-            .unwrap_err()
-            .reason
-            .contains("calculated net outflow mismatch"));
+        assert!(
+            audit_dc_power_flow(&network, &result, AuditOptions::default())
+                .unwrap_err()
+                .reason
+                .contains("calculated net outflow mismatch")
+        );
     }
 
     #[test]
@@ -854,9 +859,11 @@ mod tests {
         let network = two_bus(None);
         let mut result = solve(&network);
         result.bus_states[0].is_reference_bus = false;
-        assert!(audit_dc_power_flow(&network, &result, AuditOptions::default())
-            .unwrap_err()
-            .reason
-            .contains("reference-bus flag"));
+        assert!(
+            audit_dc_power_flow(&network, &result, AuditOptions::default())
+                .unwrap_err()
+                .reason
+                .contains("reference-bus flag")
+        );
     }
 }
