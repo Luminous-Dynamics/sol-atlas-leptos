@@ -267,7 +267,10 @@ fn validate_corpus(corpus: &Corpus) -> Result<(), String> {
             ));
         }
         if case.title.chars().count() < 5 {
-            return Err(format!("{} title is shorter than five characters", case.case_id));
+            return Err(format!(
+                "{} title is shorter than five characters",
+                case.case_id
+            ));
         }
         if !VALID_CATEGORIES.contains(&case.category.as_str()) {
             return Err(format!(
@@ -366,9 +369,7 @@ fn is_reason_code(value: &str) -> bool {
         && bytes
             .iter()
             .skip(1)
-            .all(|byte| {
-                byte.is_ascii_uppercase() || byte.is_ascii_digit() || *byte == b'_'
-            })
+            .all(|byte| byte.is_ascii_uppercase() || byte.is_ascii_digit() || *byte == b'_')
 }
 
 fn validate_submission(submission: &Submission, corpus: &Corpus) -> Result<(), String> {
