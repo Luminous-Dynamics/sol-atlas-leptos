@@ -131,7 +131,7 @@ fn validate(
     let assets = rows(fixture, "assets");
     let asset_ids = unique_ids(assets, "asset_id", "assets", &mut errors);
     let mut asset_records =
-        BTreeMap::<String, (String, Option<String>, Option<String>, BTreeSet<String>)>::new();
+        BTreeMap::<String, (String, String, Option<String>, BTreeSet<String>)>::new();
     for asset in assets.into_iter().flatten() {
         let id = text_at(asset, "asset_id").unwrap_or("<missing-asset>");
         let kind = text_at(asset, "asset_kind").unwrap_or("<missing-kind>");
