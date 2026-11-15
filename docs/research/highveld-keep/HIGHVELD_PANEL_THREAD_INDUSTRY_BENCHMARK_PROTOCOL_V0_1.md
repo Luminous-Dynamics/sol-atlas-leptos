@@ -84,15 +84,29 @@ This is a useful market signal: the differentiator is not one successful prefabr
 
 Reference: https://www.autodesk.com/design-make/articles/2026-state-of-design-make-spotlight-on-industrialized-construction
 
+### Construction-robotics evidence gap and field-work envelope
+
+A June 2026 PRISMA-based systematic review synthesizes 375 construction-robotics papers published from 2023–2025. It reports that applications are concentrated in structural-construction tasks, with planning, maintenance and demolition comparatively underexplored; operator-led workflows remain prevalent. The review is a map of published research, not a census of commercially deployed robots or a validated productivity leaderboard.
+
+This suggests a stronger research opportunity than another structural automation demonstration: a **continuous product-to-service loop** that links design-for-assembly and robotic inspectability to installation, condition observation, repair, disassembly and re-verification. The benchmark should cover pre-construction planning, manufacturing, installation and service/repair—not just the robot's primary task.
+
+Source: Xu et al., *Construction robotics: a systematic review of robot types, applications and human robot collaborations*, Results in Engineering, June 2026, DOI: https://doi.org/10.1016/j.rineng.2026.110406
+
+NIOSH's 7 October 2026 construction-robotics bulletin identifies dynamic workspaces, overlapping trades, uneven terrain, weather, dust, changing light, visual obstructions, dropped/unstable loads, sensor degradation, communications failures, software/firmware changes and recovery behavior as material hazards. These conditions differ from stable manufacturing cells.
+
+Source: https://www.cdc.gov/niosh/bulletin/2026/safety-in-construction-robotics.html
+
+**Benchmark boundary:** the first physical Highveld panel demonstrator remains a guarded, non-occupied, non-load-bearing cell. The dynamic-site cases belong in a separate digital/controlled test suite and later approved field pilot. They must not be used to imply that an indoor cell qualification transfers to mobile, public, occupied or work-at-height operations.
+
 ### NIST test and measurement precedents
 
 The NIST Smart Manufacturing Systems Test Bed connects CAD, CAM, inspection, product-data management, CNC equipment, CMM/digital micrometers and MTConnect data. It provides a practical reference for connecting design, fabrication and inspection data in one measured workflow: https://www.nist.gov/laboratories/tools-instruments/smart-manufacturing-systems-sms-test-bed
 
 NIST's collaborative robotics work emphasizes task decomposition, coordination, role allocation, communication, situational awareness and collective human/robot performance—not just robot speed: https://www.nist.gov/programs-projects/performance-collaborative-robot-systems. NIST's robotic performance-assessment work also points to system-level assembly-performance models and test methods rather than isolated robot component speed: https://www.nist.gov/programs-projects/performance-assessment-framework-robotic-systems
 
-NIST's 2026 Super Intelligence for Manufacturing initiative organizes work around trustworthy manufacturing intelligence, human-machine teaming, data contextualization, integration/benchmark studies and digital-twin VVUQ. NIST's 2026 report on uncertainty quantification calls for risk-based credibility assessment scaled to model influence and decision consequence.
+NIST's 2026 Super Intelligence for Manufacturing initiative organizes work around TIDAL (Teamed, Integrated, DT-assured and Layered Intelligence), with research on trustworthy intelligence, human-machine teaming, contextualized industrial data, integration/benchmark studies and digital-twin VVUQ. Its planned integration test bench explicitly compares alternative information architectures (including UNS/MQTT, knowledge graphs/type models, I3X and OPC UA profiles), beginning with Tennessee Eastman Process and planning extensions to physical NIST Digital Twin and Additive Manufacturing Data Integration Lab equipment. NIST's 2026 AI/ML roadmap also identifies heterogeneous industrial data, sensing/control integration and trustworthy, explainable, reliable operation as deployment barriers.
 
-These are methodological comparators, not certification programmes. We should reproduce the spirit of physical measurement and task-level metrology, not imply that a synthetic corpus is equivalent to a test bed or that passing our benchmark establishes ISO conformity.
+These are methodological comparators, not certification programmes. Our differentiation should not be a novel architecture acronym or a generic knowledge graph. It should be independent, reproducible evidence that a cross-owner workflow improves decision correctness, traceability, requalification and accepted physical outcomes under adversarial change. We should reproduce the spirit of physical measurement and task-level metrology, not imply that a synthetic corpus is equivalent to a test bed or that passing our benchmark establishes ISO conformity.
 
 ## 3. Cross-repository owners — reuse, do not duplicate
 
