@@ -222,7 +222,15 @@ These are challenge targets, not predictions. Pre-register sample sizes and unce
 
 Hard gates remain separate from economic benefit. A safety, legal, rights, authority or material-origin failure cannot be compensated by throughput.
 
-## 7. Statistical design and claim thresholds
+## 7. Independent adjudication materials
+
+Two review artifacts have been added:
+- `HIGHVELD_KEEP_PANEL_THREAD_REVIEW_PACKET_V0_1.json` removes the provisional expected disposition, reason codes, requalification domains and criticality labels from each scenario.
+- `HIGHVELD_PANEL_THREAD_ADJUDICATION_WORKSHEET_V0_1.md` provides separate first-pass registers for two independent reviewers and a third-party disagreement resolver.
+
+The redacted packet is a convenience to reduce accidental anchoring, **not a hidden benchmark**: the source gold-label corpus remains public and retrievable. The adjudication protocol must state this limitation. True blind evaluation requires an access-controlled holdout or trusted external custodian, and a signed adjudication manifest that binds final labels to exact source and packet digests. The Rust evaluator deliberately does not trust a free-form corpus status string.
+
+## 8. Statistical design and claim thresholds
 
 1. **Development:** the public 24-case #870 corpus; visible and unadjudicated. Use it for implementation debugging only.
 2. **Adjudicated validation:** at least 300 cases, two independent reviewers, third-person adjudication of disagreements, frozen gold labels and an explicit disagreement log.
@@ -240,7 +248,7 @@ The benchmark must preregister:
 - baseline versions and service/configuration cost;
 - statistical analysis and exclusions.
 
-## 8. Implementation and execution gates
+## 9. Implementation and execution gates
 
 - **P0 — corpus and exact-head software:** closed schemas, 24-case corpus, deterministic evaluator, mutation controls and pinned owner refs.
 - **P1 — independent label adjudication:** no candidate-independent pass status until a signed adjudication manifest binds reviewers, protocol, case labels and corpus digest.
@@ -251,7 +259,7 @@ The benchmark must preregister:
 
 A phase is not complete because a CI job is queued, skipped or absent. Each gate requires exact repository and commit identity, fixture digests, toolchain, test result and independent evidence appropriate to the claim.
 
-## 9. The SOTA strategy
+## 10. The SOTA strategy
 
 Do not claim to beat Autodesk at building-operations visualization, Bentley at infrastructure geospatial composition, Siemens at factory simulation, PTC at PLM workflows or Dassault at integrated product/industrial design.
 
@@ -267,6 +275,6 @@ Aim to outperform a **matched incumbent workflow** on the cross-system tasks tho
 
 Build the independent evaluator, open challenge corpus, adapters and evidence protocol. Buy or integrate specialist CAD/BIM/PLM/CAE/MES/QMS/robot products where they are superior. An open, independently replayable assurance layer can complement proprietary execution suites without claiming to replace their engineering depth.
 
-## 10. Claim ceiling
+## 11. Claim ceiling
 
 A benchmark pass establishes agreement with an independently adjudicated, frozen test set under its declared environment. It does not, by itself, establish physical material properties, structural adequacy, production capability, certified robot safety, statutory building compliance, professional sign-off, construction permission or occupancy. Those remain distinct owner and professional-authority decisions.
