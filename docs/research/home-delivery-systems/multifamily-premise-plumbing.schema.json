@@ -1,0 +1,583 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/Luminous-Dynamics/sol-atlas-leptos/main/docs/research/home-delivery-systems/multifamily-premise-plumbing.schema.json",
+  "title": "Multi-family Premise Plumbing Evidence v0.1",
+  "description": "Apartment plumbing asset/use-point identity, sampling and observation provenance contract. It is not a hydraulic, microbial-risk, treatment or potable-water certification engine.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "profile_id",
+    "maturity",
+    "source_bindings",
+    "assets",
+    "use_points",
+    "observation_plan",
+    "observations",
+    "water_quality_claims",
+    "collection_policy",
+    "claim_ceiling"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "multifamily-premise-plumbing/0.1"
+    },
+    "profile_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "maturity": {
+      "const": "synthetic_contract"
+    },
+    "source_bindings": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "building_ref",
+        "service_topology_ref",
+        "hydraulic_evidence_ref",
+        "design_revision_ref",
+        "jurisdiction_profile_ref"
+      ],
+      "properties": {
+        "building_ref": {
+          "$ref": "#/$defs/reference"
+        },
+        "service_topology_ref": {
+          "$ref": "#/$defs/reference"
+        },
+        "hydraulic_evidence_ref": {
+          "$ref": "#/$defs/reference"
+        },
+        "design_revision_ref": {
+          "$ref": "#/$defs/reference"
+        },
+        "jurisdiction_profile_ref": {
+          "$ref": "#/$defs/reference"
+        }
+      }
+    },
+    "assets": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/asset"
+      }
+    },
+    "use_points": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/usePoint"
+      }
+    },
+    "observation_plan": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/plan"
+      }
+    },
+    "observations": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/observation"
+      }
+    },
+    "water_quality_claims": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/qualityClaim"
+      }
+    },
+    "collection_policy": {
+      "$ref": "#/$defs/collectionPolicy"
+    },
+    "claim_ceiling": {
+      "const": "This record establishes only synthetic plumbing asset/use-point identity, planned observation scope and evidence-state contract integrity. It does not establish water quality, potability, microbial safety, stagnation acceptability, delivered pressure/flow, treatment efficacy, temperature safety, code compliance or health outcomes."
+    }
+  },
+  "$defs": {
+    "reference": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "id",
+        "revision",
+        "digest"
+      ],
+      "properties": {
+        "kind": {
+          "type": "string",
+          "minLength": 1
+        },
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "revision": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "digest": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+    "nullableReference": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/reference"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "asset": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "asset_id",
+        "asset_kind",
+        "resource_class",
+        "unit_id",
+        "floor_id",
+        "parent_asset_ids",
+        "served_unit_ids",
+        "state",
+        "volume_state",
+        "volume_l",
+        "geometry_ref",
+        "product_ref",
+        "maintenance_state",
+        "evidence_refs"
+      ],
+      "properties": {
+        "asset_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "asset_kind": {
+          "enum": [
+            "incoming_service",
+            "storage",
+            "cold_pipe",
+            "hot_pipe",
+            "recirculation_loop",
+            "pump",
+            "treatment",
+            "filter",
+            "mixing_valve",
+            "meter",
+            "isolation_valve",
+            "fixture",
+            "sampling_port",
+            "other"
+          ]
+        },
+        "resource_class": {
+          "enum": [
+            "potable_water",
+            "non_potable_water",
+            "wastewater"
+          ]
+        },
+        "unit_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "floor_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "parent_asset_ids": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "uniqueItems": true
+        },
+        "served_unit_ids": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "uniqueItems": true
+        },
+        "state": {
+          "enum": [
+            "unknown",
+            "declared",
+            "measured",
+            "disputed",
+            "out_of_service"
+          ]
+        },
+        "volume_state": {
+          "enum": [
+            "unknown",
+            "not_computed",
+            "measured",
+            "modelled",
+            "disputed"
+          ]
+        },
+        "volume_l": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "geometry_ref": {
+          "$ref": "#/$defs/nullableReference"
+        },
+        "product_ref": {
+          "$ref": "#/$defs/nullableReference"
+        },
+        "maintenance_state": {
+          "enum": [
+            "unknown",
+            "not_due",
+            "scheduled",
+            "performed",
+            "overdue",
+            "disputed"
+          ]
+        },
+        "evidence_refs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/reference"
+          }
+        }
+      }
+    },
+    "usePoint": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "use_point_id",
+        "unit_id",
+        "floor_id",
+        "fixture_kind",
+        "resource_class",
+        "asset_ids",
+        "space_ref",
+        "state",
+        "resident_scope"
+      ],
+      "properties": {
+        "use_point_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "unit_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "floor_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "fixture_kind": {
+          "enum": [
+            "kitchen_sink",
+            "bathroom_basin",
+            "shower",
+            "bath",
+            "laundry_point",
+            "water_heater_outlet",
+            "other"
+          ]
+        },
+        "resource_class": {
+          "enum": [
+            "potable_water",
+            "non_potable_water"
+          ]
+        },
+        "asset_ids": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "uniqueItems": true
+        },
+        "space_ref": {
+          "$ref": "#/$defs/nullableReference"
+        },
+        "state": {
+          "enum": [
+            "unknown",
+            "declared",
+            "measured",
+            "disputed",
+            "out_of_service"
+          ]
+        },
+        "resident_scope": {
+          "const": "synthetic_identity_only"
+        }
+      }
+    },
+    "plan": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "plan_id",
+        "use_point_id",
+        "observation_kind",
+        "purpose",
+        "schedule_state",
+        "instrument_ref",
+        "method_ref",
+        "collection_authority_ref",
+        "privacy_scope"
+      ],
+      "properties": {
+        "plan_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "use_point_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "observation_kind": {
+          "enum": [
+            "water_temperature",
+            "water_quality_sample",
+            "flow",
+            "pressure",
+            "use_event",
+            "stagnation_event",
+            "treatment_state",
+            "maintenance",
+            "resident_report"
+          ]
+        },
+        "purpose": {
+          "type": "string",
+          "minLength": 1
+        },
+        "schedule_state": {
+          "enum": [
+            "not_scheduled",
+            "draft",
+            "approved",
+            "withdrawn",
+            "disputed"
+          ]
+        },
+        "instrument_ref": {
+          "$ref": "#/$defs/nullableReference"
+        },
+        "method_ref": {
+          "$ref": "#/$defs/nullableReference"
+        },
+        "collection_authority_ref": {
+          "$ref": "#/$defs/nullableReference"
+        },
+        "privacy_scope": {
+          "enum": [
+            "no_personal_data",
+            "resident_opt_in",
+            "operator_asset_data",
+            "unknown"
+          ]
+        }
+      }
+    },
+    "observation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "observation_id",
+        "use_point_id",
+        "observation_kind",
+        "evidence_state",
+        "observed_at",
+        "value",
+        "unit",
+        "uncertainty",
+        "instrument_ref",
+        "calibration_ref",
+        "lab_ref",
+        "method_ref",
+        "chain_of_custody_ref",
+        "consent_ref",
+        "evidence_ref"
+      ],
+      "properties": {
+        "observation_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "use_point_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "observation_kind": {
+          "enum": [
+            "water_temperature",
+            "water_quality_sample",
+            "flow",
+            "pressure",
+            "use_event",
+            "stagnation_event",
+            "treatment_state",
+            "maintenance",
+            "resident_report"
+          ]
+        },
+        "evidence_state": {
+          "enum": [
+            "modelled",
+            "measured",
+            "lab_reported",
+            "self_reported",
+            "professionally_assessed",
+            "disputed",
+            "invalidated"
+          ]
+        },
+        "observed_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "value": {
+          "type": [
+            "number",
+            "string",
+            "null"
+          ]
+        },
+        "unit": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "uncertainty": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "instrument_ref": {
+          "$ref": "#/$defs/nullableReference"
+        },
+        "calibration_ref": {
+          "$ref": "#/$defs/nullableReference"
+        },
+        "lab_ref": {
+          "$ref": "#/$defs/nullableReference"
+        },
+        "method_ref": {
+          "$ref": "#/$defs/nullableReference"
+        },
+        "chain_of_custody_ref": {
+          "$ref": "#/$defs/nullableReference"
+        },
+        "consent_ref": {
+          "$ref": "#/$defs/nullableReference"
+        },
+        "evidence_ref": {
+          "$ref": "#/$defs/nullableReference"
+        }
+      }
+    },
+    "qualityClaim": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "claim_id",
+        "use_point_id",
+        "claim_state",
+        "potable_credit",
+        "basis",
+        "evidence_refs"
+      ],
+      "properties": {
+        "claim_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "use_point_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "claim_state": {
+          "enum": [
+            "unknown",
+            "not_assessed",
+            "disputed",
+            "invalidated"
+          ]
+        },
+        "potable_credit": {
+          "const": "none"
+        },
+        "basis": {
+          "const": "no_water_quality_adjudication"
+        },
+        "evidence_refs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/reference"
+          }
+        }
+      }
+    },
+    "collectionPolicy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "policy_id",
+        "default_collection",
+        "audio_video_allowed",
+        "continuous_occupancy_allowed",
+        "resident_withdrawal_supported",
+        "retention_state"
+      ],
+      "properties": {
+        "policy_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "default_collection": {
+          "const": "none"
+        },
+        "audio_video_allowed": {
+          "const": false
+        },
+        "continuous_occupancy_allowed": {
+          "const": false
+        },
+        "resident_withdrawal_supported": {
+          "const": true
+        },
+        "retention_state": {
+          "enum": [
+            "not_defined",
+            "draft",
+            "approved",
+            "disputed"
+          ]
+        }
+      }
+    }
+  }
+}
