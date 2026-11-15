@@ -385,6 +385,7 @@ fn validate_bridge_input(input: &BridgeInput) -> Result<(), String> {
     }
 
     let mut campaign_ids = BTreeSet::new();
+    let mut symtropy_contract: Option<&OwnerBinding> = None;
     for campaign in &input.campaigns {
         let mut action_ids = BTreeSet::new();
         if campaign.package_id.trim().is_empty() {
@@ -411,6 +412,18 @@ fn validate_bridge_input(input: &BridgeInput) -> Result<(), String> {
             input.episode.as_of_unix,
             &format!("{}.binding", campaign.package_id),
         )?;
+        if campaign.binding.mapping_status == BindingState::Bound {
+            if let Some(previous_contract) = symtropy_contract {
+                if !same_owner_contract(previous_contract, &campaign.binding) {
+                    return Err(format!(
+                        "{} uses a different Symtropy commit/profile/adapter than the other campaign packages in this episode",
+                        campaign.package_id
+                    ));
+                }
+            } else {
+                symtropy_contract = Some(&campaign.binding);
+            }
+        }
         for action in &campaign.actions {
             if action.action_id.trim().is_empty() {
                 return Err(format!(
@@ -1697,6 +1710,26 @@ mod tests {
             result.rejected_alternatives[0].disposition,
             BridgeDisposition::Unbound
         );
+    }
+
+    #[test]
+    fn campaign_packages_from_different_symtropy_snapshots_are_rejected() {
+        let mut input = base_input(AcquisitionKind::Physical);
+        add_complete_campaign(&mut input, CampaignSearchStatus::CompleteOptimal);
+
+        let mut second_campaign = input.campaigns[0].clone();
+        second_campaign.package_id = "OPTION-PACKAGE-002".to_owned();
+        second_campaign.binding.commit_sha = Some("f".repeat(40));
+        input.campaigns.push(second_campaign);
+
+        let mut second_mapping = input.physical_bindings[0].clone();
+        second_mapping.mapping_id = "MAPPING-002".to_owned();
+        second_mapping.campaign_package_id = "OPTION-PACKAGE-002".to_owned();
+        input.physical_bindings.push(second_mapping);
+
+        assert!(evaluate_bridge_bytes(&serde_json::to_vec(&input).unwrap())
+            .unwrap_err()
+            .contains("different Symtropy commit/profile/adapter"));
     }
 
     #[test]
