@@ -27,6 +27,7 @@ on:
       - "src/bin/home-site-foundation-qualifier.rs"
       - "src/bin/home-service-stack-qualifier.rs"
       - "src/bin/home-multifamily-hydraulic-evidence-qualifier.rs"
+      - "src/bin/home-multifamily-premise-plumbing-qualifier.rs"
       - "docs/research/home-delivery-systems/site-foundation-evidence.schema.json"
       - "docs/research/home-delivery-systems/site-foundation-evidence-synthetic-v0.1.json"
       - "docs/research/home-delivery-systems/home-service-interface.schema.json"
@@ -34,6 +35,8 @@ on:
       - "docs/research/home-delivery-systems/home-service-interface-synthetic-v0.1.json"
       - "docs/research/home-delivery-systems/multifamily-hydraulic-run-evidence.schema.json"
       - "docs/research/home-delivery-systems/multifamily-hydraulic-run-evidence-synthetic-v0.1.json"
+      - "docs/research/home-delivery-systems/multifamily-premise-plumbing.schema.json"
+      - "docs/research/home-delivery-systems/multifamily-premise-plumbing-synthetic-v0.1.json"
       - ".github/workflows/home-multifamily-qualifier.yml"
   workflow_dispatch:
 
@@ -66,12 +69,13 @@ jobs:
           rustfmt --edition 2024 src/bin/home-site-foundation-qualifier.rs
           rustfmt --edition 2024 src/bin/home-service-stack-qualifier.rs
           rustfmt --edition 2024 src/bin/home-multifamily-hydraulic-evidence-qualifier.rs
+          rustfmt --edition 2024 src/bin/home-multifamily-premise-plumbing-qualifier.rs
       - name: Commit formatter-only changes to same-repository PR branch
         if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository
         env:
           HEAD_REF: ${{ github.head_ref }}
         run: |
-          if git diff --quiet -- src/bin/home-multifamily-qualifier.rs src/bin/home-multifamily-service-qualifier.rs src/bin/home-multifamily-unit-layout-qualifier.rs src/bin/home-multifamily-lifecycle-qualifier.rs src/bin/home-site-foundation-qualifier.rs src/bin/home-service-stack-qualifier.rs src/bin/home-multifamily-hydraulic-evidence-qualifier.rs; then
+          if git diff --quiet -- src/bin/home-multifamily-qualifier.rs src/bin/home-multifamily-service-qualifier.rs src/bin/home-multifamily-unit-layout-qualifier.rs src/bin/home-multifamily-lifecycle-qualifier.rs src/bin/home-site-foundation-qualifier.rs src/bin/home-service-stack-qualifier.rs src/bin/home-multifamily-hydraulic-evidence-qualifier.rs; then src/bin/home-multifamily-premise-plumbing-qualifier.rs;
             echo "All six home qualifiers already match rustfmt."
             exit 0
           fi
@@ -117,6 +121,10 @@ jobs:
         run: cargo test --locked --bin home-multifamily-hydraulic-evidence-qualifier
       - name: Replay hydraulic solver evidence fixture
         run: cargo run --locked --bin home-multifamily-hydraulic-evidence-qualifier -- --self-test
+      - name: Test premise-plumbing evidence qualifier
+        run: cargo test --locked --bin home-multifamily-premise-plumbing-qualifier
+      - name: Replay premise-plumbing evidence fixture
+        run: cargo run --locked --bin home-multifamily-premise-plumbing-qualifier -- --self-test
 
   schema-validation:
     name: Draft 2020-12 schemas and synthetic fixtures
@@ -164,6 +172,7 @@ jobs:
               ("site-foundation-evidence.schema.json", "site-foundation-evidence-synthetic-v0.1.json"),
               ("home-service-stack.schema.json", "home-service-interface-synthetic-v0.1.json"),
               ("multifamily-hydraulic-run-evidence.schema.json", "multifamily-hydraulic-run-evidence-synthetic-v0.1.json"),
+              ("multifamily-premise-plumbing.schema.json", "multifamily-premise-plumbing-synthetic-v0.1.json"),
           ]
 
           for schema_name, fixture_name in pairs:
