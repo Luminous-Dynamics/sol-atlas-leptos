@@ -1276,26 +1276,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "mycelix-leptos-core"
-version = "0.1.0"
-dependencies = [
- "gloo-timers",
- "js-sys",
- "leptos 0.8.20",
- "leptos_router",
- "mycelix-leptos-client",
- "mycelix-leptos-ui",
- "personal-leptos-types",
- "send_wrapper",
- "serde",
- "serde_json",
- "sovereign-profile",
- "wasm-bindgen",
- "wasm-bindgen-futures",
- "web-sys",
-]
-
-[[package]]
 name = "mycelix-leptos-ui"
 version = "0.1.0"
 dependencies = [
@@ -2027,7 +2007,6 @@ dependencies = [
  "leptos_meta",
  "leptos_router",
  "log",
- "mycelix-leptos-core",
  "serde",
  "serde_json",
  "sol-atlas-core",
