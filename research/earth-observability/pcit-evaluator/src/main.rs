@@ -840,7 +840,7 @@ mod tests {
             ),
         ]);
         let results = sample_envelope(
-            "0".repeat(64),
+            &"0".repeat(64),
             vec![
                 sample_result("PCIT-SYN-001", "PHYSICAL_CHANGE_SUPPORTED_WITHIN_ENVELOPE"),
                 sample_result("PCIT-SYN-001", "PHYSICAL_CHANGE_SUPPORTED_WITHIN_ENVELOPE"),
