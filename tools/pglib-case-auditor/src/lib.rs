@@ -116,7 +116,7 @@ fn sha1(input: &[u8]) -> [u8; 20] {
     let mut h3 = 0x10325476_u32;
     let mut h4 = 0xc3d2e1f0_u32;
 
-    for chunk in message.chunks_exact(64) {
+    for chunk in message.as_chunks::<64>().0 {
         let mut w = [0_u32; 80];
         for (index, word) in w.iter_mut().take(16).enumerate() {
             let offset = index * 4;
@@ -238,13 +238,13 @@ fn parse_matrix(name: &str, content: &str) -> Result<Vec<Vec<f64>>, String> {
         if values.is_empty() {
             continue;
         }
-        if let Some(expected) = rows.first().map(Vec::len) {
-            if values.len() != expected {
-                return Err(format!(
-                    "inconsistent row width in mpc.{name}: expected {expected}, got {}",
-                    values.len()
-                ));
-            }
+        if let Some(expected) = rows.first().map(Vec::len)
+            && values.len() != expected
+        {
+            return Err(format!(
+                "inconsistent row width in mpc.{name}: expected {expected}, got {}",
+                values.len()
+            ));
         }
         rows.push(values);
     }
