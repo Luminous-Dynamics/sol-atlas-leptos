@@ -215,9 +215,19 @@ Zero failures on a finite synthetic suite is a corpus acceptance criterion, not 
 
 ## 9. Jukskei qualification implications
 
-The Jukskei study by Mawasha (2022) reports a 1987–2001–2015 Landsat time series and four broad classes. The article abstract describes Landsat-5 MSS for 1987, Landsat-5 TM for 2001 and Landsat-8 OLI for 2015. This sequence is not a single homogeneous sensor series: MSS and TM differ substantially in bands and spatial sampling, while OLI is another instrument generation. Confirm the exact scene/product IDs, acquisition dates and processing levels from source-native metadata before reproducing any result.
+The Jukskei study by Mawasha and Britz (2022) reports a 1987–2001–2015 Landsat time series and four broad classes. A source audit found a material record conflict: the journal HTML abstract/index says Landsat-5 MSS for 1987, but the **downloadable full-paper PDF abstract and Table 1 both say Landsat-5 TM** for 1987 and 2001. Table 1 gives path/row 170/078, acquisition dates 6 January 1987 and 13 February 2001, 30 m resolution and seven spectral bands for each TM image; it lists Landsat-8 OLI for 20 February 2015, 30 m and eleven bands. Treat 1987 as document-conflicted with TM the provisional full-PDF interpretation, not as settled source identity. Verify original USGS scene/product IDs, metadata and processing levels before reproducing the study.
 
-NASA's Harmonized Landsat Sentinel-2 (HLS) process harmonizes Landsat 8/9 OLI and Sentinel-2 MSI through atmospheric correction, cloud/shadow masking, BRDF normalization, spectral bandpass adjustment and common gridding. It is **not** a drop-in harmonization for the Jukskei 1987 MSS → 2001 TM → 2015 OLI series. The older pairings need their own qualification or a more conservative comparison.
+NASA's Harmonized Landsat Sentinel-2 (HLS) process harmonizes Landsat 8/9 OLI and Sentinel-2 MSI through atmospheric correction, cloud/shadow masking, BRDF normalization, spectral bandpass adjustment and common gridding. It is **not** a drop-in harmonization for the Jukskei Landsat-5 TM → Landsat-8 OLI transition. The 1987/2001 TM pair can be evaluated as a same-instrument candidate only after source-native IDs and processing comparability are established; the 2001 TM → 2015 OLI comparison needs its own bridge or a more conservative claim ceiling.
+
+### 9.1 Publication-integrity audit required before reproducing the Jukskei result
+
+The downloadable paper states that accuracy assessment used stratified random sampling with 50 points per class (200 points per classified image), and references a 1:25,000 aerial photo mosaic, invariant feature points and topographic sheets. The raw sample records, inclusion probabilities, temporal alignment, adjudication protocol, class-wise confusion matrices and uncertainty outputs still need inspection. The reported overall accuracies are literature comparators, not a locally reproducible validation dataset.
+
+The paper's Table 4 reports 76,052.8 ha total mapped area for 1987, 2001 and 2015. Its Table 6 transition matrix sums to 41,209 ha. The unexplained difference is 34,843.8 ha. Do not reproduce Table 6 as a catchment-wide transition matrix until any mask, NoData domain or transcription issue is reconciled.
+
+The abstract's 56.2%, 8.2%, 9.8% and 25.8% figures correspond to the 2015 share of total mapped area for built-up, bare surface, intact vegetation and sparse vegetation. Table 4's net 1987–2015 relative changes are +48.8%, +78.7%, −53.9% and −29.1%, respectively. Keep final class share, absolute hectare difference and relative change as distinct quantities.
+
+These conflicts are now represented by synthetic PCIT cases PCIT-SYN-014 (source metadata conflict) and PCIT-SYN-015 (area non-closure). They test evaluator policy only; they do not resolve the original source.
 
 The 2025 CEOS WGCV Land Cover and Change Map Accuracy Assessment and Area Estimation Good Practices Protocol is the methodological reference for reference sampling and area estimation. Use the study's published accuracies as literature comparators only until the reference sample, design, independence and reuse rights have been inspected. Preserve #842's separate rights gate: catalogue availability is not a licence grant.
 
