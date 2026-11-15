@@ -1470,7 +1470,8 @@ mod tests {
         rejected_mapping.action_id = "OBSERVATION-ACTION-002".to_owned();
         rejected_mapping.review.status = BindingState::Unbound;
         rejected_mapping.review.mapping_sha256 = None;
-        rejected_mapping.review.owner_approval_ref = None;
+        rejected_mapping.review.mycelix_approval_ref = None;
+        rejected_mapping.review.symtropy_approval_ref = None;
         rejected_mapping.review.reviewed_by = None;
         input.physical_bindings.push(rejected_mapping);
 
