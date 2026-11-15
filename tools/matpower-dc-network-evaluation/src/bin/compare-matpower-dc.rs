@@ -71,9 +71,7 @@ impl Checker {
     ) -> f64 {
         self.field_comparison_count += 1;
         let absolute_error = (sol_atlas_value - matpower_value).abs();
-        if !sol_atlas_value.is_finite()
-            || !matpower_value.is_finite()
-            || absolute_error > tolerance
+        if !sol_atlas_value.is_finite() || !matpower_value.is_finite() || absolute_error > tolerance
         {
             self.mismatches.push(Mismatch {
                 element: element.to_owned(),
@@ -110,22 +108,27 @@ impl ComparisonReport {
     }
 
     fn to_json(&self) -> String {
-        let mismatches = self.mismatches.iter().map(|mismatch| {
-            format!(
-                concat!(
-                    "{{\"element\":{},\"identity\":{},\"field\":{},",
-                    "\"sol_atlas_value\":{},\"matpower_value\":{},",
-                    "\"absolute_error\":{},\"tolerance\":{}}}"
-                ),
-                quote(&mismatch.element),
-                quote(&mismatch.identity),
-                quote(&mismatch.field),
-                number(mismatch.sol_atlas_value),
-                number(mismatch.matpower_value),
-                number(mismatch.absolute_error),
-                number(mismatch.tolerance)
-            )
-        }).collect::<Vec<_>>().join(",");
+        let mismatches = self
+            .mismatches
+            .iter()
+            .map(|mismatch| {
+                format!(
+                    concat!(
+                        "{{\"element\":{},\"identity\":{},\"field\":{},",
+                        "\"sol_atlas_value\":{},\"matpower_value\":{},",
+                        "\"absolute_error\":{},\"tolerance\":{}}}"
+                    ),
+                    quote(&mismatch.element),
+                    quote(&mismatch.identity),
+                    quote(&mismatch.field),
+                    number(mismatch.sol_atlas_value),
+                    number(mismatch.matpower_value),
+                    number(mismatch.absolute_error),
+                    number(mismatch.tolerance)
+                )
+            })
+            .collect::<Vec<_>>()
+            .join(",");
         format!(
             concat!(
                 "{{",
@@ -189,7 +192,8 @@ fn number(value: f64) -> String {
 }
 
 fn parse_float(value: &str, context: &str) -> Result<f64, String> {
-    let parsed = value.parse::<f64>()
+    let parsed = value
+        .parse::<f64>()
         .map_err(|error| format!("invalid {context} '{value}': {error}"))?;
     if !parsed.is_finite() {
         return Err(format!("non-finite {context} '{value}'"));
@@ -198,7 +202,8 @@ fn parse_float(value: &str, context: &str) -> Result<f64, String> {
 }
 
 fn parse_i64(value: &str, context: &str) -> Result<i64, String> {
-    value.parse::<i64>()
+    value
+        .parse::<i64>()
         .map_err(|error| format!("invalid {context} '{value}': {error}"))
 }
 
@@ -226,20 +231,32 @@ fn parse_reference_tsv(source: &str) -> Result<ReferenceResult, String> {
                 }
                 "matpower_version" => {
                     if matpower_version.replace(fields[2].to_owned()).is_some() {
-                        return Err(format!("duplicate MATPOWER version at TSV line {line_number}"));
+                        return Err(format!(
+                            "duplicate MATPOWER version at TSV line {line_number}"
+                        ));
                     }
                 }
                 "base_mva" => {
-                    if base_mva.replace(parse_float(fields[2], "base MVA")?).is_some() {
+                    if base_mva
+                        .replace(parse_float(fields[2], "base MVA")?)
+                        .is_some()
+                    {
                         return Err(format!("duplicate base MVA at TSV line {line_number}"));
                     }
                 }
                 "reference_bus" => {
-                    if reference_bus.replace(parse_i64(fields[2], "reference bus")?).is_some() {
+                    if reference_bus
+                        .replace(parse_i64(fields[2], "reference bus")?)
+                        .is_some()
+                    {
                         return Err(format!("duplicate reference bus at TSV line {line_number}"));
                     }
                 }
-                unknown => return Err(format!("unknown META key '{unknown}' at TSV line {line_number}")),
+                unknown => {
+                    return Err(format!(
+                        "unknown META key '{unknown}' at TSV line {line_number}"
+                    ));
+                }
             },
             Some("BUS") if fields.len() == 4 => {
                 let id = parse_i64(fields[1], "bus ID")?;
@@ -255,11 +272,15 @@ fn parse_reference_tsv(source: &str) -> Result<ReferenceResult, String> {
                 let row = usize::try_from(parse_i64(fields[1], "branch row")?)
                     .map_err(|_| format!("negative branch row at TSV line {line_number}"))?;
                 if row == 0 || !branch_rows.insert(row) {
-                    return Err(format!("invalid or duplicate branch row {row} at TSV line {line_number}"));
+                    return Err(format!(
+                        "invalid or duplicate branch row {row} at TSV line {line_number}"
+                    ));
                 }
                 let status = parse_i64(fields[4], "branch status")?;
                 if !matches!(status, 0 | 1) {
-                    return Err(format!("branch status must be 0 or 1 at TSV line {line_number}"));
+                    return Err(format!(
+                        "branch status must be 0 or 1 at TSV line {line_number}"
+                    ));
                 }
                 branches.push(ReferenceBranch {
                     row,
@@ -270,7 +291,11 @@ fn parse_reference_tsv(source: &str) -> Result<ReferenceResult, String> {
                     pt_mw: parse_float(fields[6], "branch to flow")?,
                 });
             }
-            Some(kind) => return Err(format!("malformed or unknown TSV row '{kind}' at line {line_number}")),
+            Some(kind) => {
+                return Err(format!(
+                    "malformed or unknown TSV row '{kind}' at line {line_number}"
+                ));
+            }
             None => return Err(format!("empty TSV record at line {line_number}")),
         }
     }
@@ -333,7 +358,10 @@ fn compare(source: &str, reference_tsv: &str) -> Result<ComparisonReport, String
         BASE_MVA_TOLERANCE,
     );
 
-    let our_buses = evaluation.solution.bus_states.iter()
+    let our_buses = evaluation
+        .solution
+        .bus_states
+        .iter()
         .map(|bus| (bus.bus_id, bus))
         .collect::<BTreeMap<_, _>>();
     if our_buses.len() != evaluation.solution.bus_states.len()
@@ -345,21 +373,26 @@ fn compare(source: &str, reference_tsv: &str) -> Result<ComparisonReport, String
             reference.buses.len()
         ));
     }
-    let our_reference_buses = evaluation.solution.bus_states.iter()
+    let our_reference_buses = evaluation
+        .solution
+        .bus_states
+        .iter()
         .filter(|bus| bus.is_reference_bus)
         .collect::<Vec<_>>();
-    if our_reference_buses.len() != 1
-        || our_reference_buses[0].bus_id != reference.reference_bus
-    {
+    if our_reference_buses.len() != 1 || our_reference_buses[0].bus_id != reference.reference_bus {
         return Err(format!(
             "reference-bus mismatch: Sol-Atlas {:?}, MATPOWER {}",
-            our_reference_buses.iter().map(|bus| bus.bus_id).collect::<Vec<_>>(),
+            our_reference_buses
+                .iter()
+                .map(|bus| bus.bus_id)
+                .collect::<Vec<_>>(),
             reference.reference_bus
         ));
     }
 
     for (bus_id, expected) in &reference.buses {
-        let observed = our_buses.get(bus_id)
+        let observed = our_buses
+            .get(bus_id)
             .ok_or_else(|| format!("MATPOWER bus {bus_id} is missing from Sol-Atlas"))?;
         let angle = observed.voltage_angle_rad.to_degrees();
         let angle_error = (angle - expected.angle_degrees).abs();
@@ -393,11 +426,15 @@ fn compare(source: &str, reference_tsv: &str) -> Result<ComparisonReport, String
     }
     for branch in &evaluation.solution.branch_flows {
         let source_row = branch.branch_index + 1;
-        let expected = reference.branches.iter()
+        let expected = reference
+            .branches
+            .iter()
             .find(|candidate| candidate.row == source_row)
             .ok_or_else(|| format!("MATPOWER branch row {source_row} is missing"))?;
         if branch.from_bus != expected.from_bus || branch.to_bus != expected.to_bus {
-            return Err(format!("branch row {source_row} endpoint identity mismatch"));
+            return Err(format!(
+                "branch row {source_row} endpoint identity mismatch"
+            ));
         }
         if branch.in_service != expected.in_service {
             return Err(format!("branch row {source_row} status mismatch"));
@@ -442,17 +479,19 @@ fn compare(source: &str, reference_tsv: &str) -> Result<ComparisonReport, String
 
 fn run() -> Result<ComparisonReport, String> {
     let mut args = env::args().skip(1);
-    let case_path = args.next()
+    let case_path = args
+        .next()
         .ok_or_else(|| "usage: compare-matpower-dc <case.m> <matpower-reference.tsv>".to_owned())?;
-    let reference_path = args.next()
+    let reference_path = args
+        .next()
         .ok_or_else(|| "missing MATPOWER reference TSV path".to_owned())?;
     if args.next().is_some() {
         return Err("too many command-line arguments".to_owned());
     }
-    let source_bytes = fs::read(&case_path)
-        .map_err(|error| format!("read {case_path}: {error}"))?;
-    let source = std::str::from_utf8(&source_bytes)
-        .map_err(|_| format!("{case_path} is not UTF-8"))?;
+    let source_bytes =
+        fs::read(&case_path).map_err(|error| format!("read {case_path}: {error}"))?;
+    let source =
+        std::str::from_utf8(&source_bytes).map_err(|_| format!("{case_path} is not UTF-8"))?;
     let reference = fs::read_to_string(&reference_path)
         .map_err(|error| format!("read {reference_path}: {error}"))?;
     compare(source, &reference)
@@ -462,7 +501,11 @@ fn main() -> ExitCode {
     match run() {
         Ok(report) => {
             println!("{}", report.to_json());
-            if report.passed() { ExitCode::SUCCESS } else { ExitCode::FAILURE }
+            if report.passed() {
+                ExitCode::SUCCESS
+            } else {
+                ExitCode::FAILURE
+            }
         }
         Err(error) => {
             eprintln!("compare-matpower-dc: {error}");
@@ -502,7 +545,11 @@ mod tests {
             "BUS\t1\t0\t0\n",
             "BUS\t1\t0\t0\n"
         );
-        assert!(parse_reference_tsv(duplicate_bus).unwrap_err().contains("duplicate bus ID"));
+        assert!(
+            parse_reference_tsv(duplicate_bus)
+                .unwrap_err()
+                .contains("duplicate bus ID")
+        );
 
         let duplicate_branch = concat!(
             "META\tsource_git_blob_sha1\t2c8260fff0311c902c3d36dcabcbe861576fc97c\n",
@@ -513,7 +560,11 @@ mod tests {
             "BRANCH\t1\t1\t1\t1\t0\t0\n",
             "BRANCH\t1\t1\t1\t1\t0\t0\n"
         );
-        assert!(parse_reference_tsv(duplicate_branch).unwrap_err().contains("invalid or duplicate branch row"));
+        assert!(
+            parse_reference_tsv(duplicate_branch)
+                .unwrap_err()
+                .contains("invalid or duplicate branch row")
+        );
 
         let unknown = concat!(
             "META\tsource_git_blob_sha1\t2c8260fff0311c902c3d36dcabcbe861576fc97c\n",
@@ -522,6 +573,10 @@ mod tests {
             "META\treference_bus\t1\n",
             "BOGUS\t1\n"
         );
-        assert!(parse_reference_tsv(unknown).unwrap_err().contains("unknown TSV row"));
+        assert!(
+            parse_reference_tsv(unknown)
+                .unwrap_err()
+                .contains("unknown TSV row")
+        );
     }
 }
