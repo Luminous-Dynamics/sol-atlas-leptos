@@ -1,0 +1,3125 @@
+{
+  "schema": "city-change-impact-corpus/0.1",
+  "schema_version": "0.1.0",
+  "classification": "synthetic_fixture_only",
+  "purpose": "Synthetic known-answer cases for city-level change impact, evidence applicability and selective requalification.",
+  "normative_notice": "Every node, revision, digest, timestamp, event, edge and claim is synthetic. No fixture represents real engineering, legal, supplier, asset, district or operating data. The evaluator validates the owner impact report binding and projects its claim findings; it does not recompute an authoritative cross-domain dependency graph.",
+  "applicability_states": [
+    "applicable_current",
+    "revalidation_required",
+    "invalid_evidence",
+    "insufficient_evidence",
+    "not_affected"
+  ],
+  "temporal_fields": [
+    "effective_at",
+    "recorded_at",
+    "trusted_at",
+    "evaluation_at"
+  ],
+  "precedence": [
+    "An untrusted event cannot invalidate or supersede a claim; it produces insufficient_evidence when the change authority is required.",
+    "A qualified impact path creates revalidation_required unless an exact post-change revalidation receipt discharges that claim.",
+    "An authoritative revocation or invalid input produces invalid_evidence for exact dependent claims.",
+    "not_affected requires qualified complete coverage of the declared dependency scope; missing edges or excluded domains produce insufficient_evidence.",
+    "Late-arriving events preserve prior historical knowledge views while affecting present reliance when applicable.",
+    "No status grants action, release, professional or operational authority."
+  ],
+  "cases": [
+    {
+      "id": "CI-01",
+      "name": "Unrelated design field change",
+      "change_class": "design_property",
+      "evidence_class": "synthetic",
+      "input": {
+        "event": {
+          "event_id": "SYN-EVENT-CI-01",
+          "subject_node_id": "SUBJECT-01",
+          "change_class": "design_property",
+          "source_owner": "synthetic-owner",
+          "source_revision_before": "R1",
+          "source_revision_after": "R2",
+          "authority_state": "authorized",
+          "effective_at": 1000,
+          "recorded_at": 1010,
+          "trusted_at": 1020,
+          "time_basis": "UTC_UNIX_SECONDS"
+        },
+        "query": {
+          "evaluation_at": 1500,
+          "historical_evaluation_at": null,
+          "time_basis": "UTC_UNIX_SECONDS",
+          "scope_id": "SYNTHETIC-DISTRICT-01",
+          "functional_unit": "synthetic-city-claim",
+          "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+        },
+        "graph": {
+          "snapshot_id": "SYN-GRAPH-CI-01",
+          "snapshot_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "coverage_state": "complete",
+          "excluded_domains": [],
+          "edges": [],
+          "impact_report": {
+            "report_id": "SYN-IMPACT-CI-01",
+            "report_state": "qualified",
+            "graph_snapshot_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "impacted_claim_ids": [],
+            "query_boundary": "declared_fixture_graph",
+            "event_id": "SYN-EVENT-CI-01",
+            "scope_id": "SYNTHETIC-DISTRICT-01",
+            "coverage_receipt_id": "SYN-COVERAGE-CI-01",
+            "base_graph_snapshot_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "claim_findings": [
+              {
+                "claim_id": "claim_panel_thermal",
+                "disposition": "no_impact",
+                "reason_codes": [
+                  "COMPLETE_NO_IMPACT_PATH"
+                ],
+                "dependency_path": [],
+                "coverage_proof_id": "SYN-PROOF-CI-01-claim_panel_thermal"
+              }
+            ],
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+          }
+        },
+        "claims": [
+          {
+            "claim_id": "claim_panel_thermal",
+            "dependency_subjects": [
+              "UNRELATED-claim_panel_thermal"
+            ],
+            "historical_status": "applicable_current",
+            "scope_id": "SYNTHETIC-DISTRICT-01",
+            "functional_unit": "synthetic-city-claim",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+          }
+        ],
+        "revalidation_receipts": []
+      },
+      "expected": {
+        "claim_applicability": [
+          {
+            "claim_id": "claim_panel_thermal",
+            "state": "not_affected",
+            "reason_codes": [
+              "COMPLETE_NO_IMPACT_PATH"
+            ]
+          }
+        ]
+      },
+      "expected_behavior": "Unrelated design field change"
+    },
+    {
+      "id": "CI-02",
+      "name": "Panel geometry change reaches manufacture and fit",
+      "change_class": "design_geometry",
+      "evidence_class": "synthetic",
+      "input": {
+        "event": {
+          "event_id": "SYN-EVENT-CI-02",
+          "subject_node_id": "SUBJECT-02",
+          "change_class": "design_geometry",
+          "source_owner": "synthetic-owner",
+          "source_revision_before": "R1",
+          "source_revision_after": "R2",
+          "authority_state": "authorized",
+          "effective_at": 1010,
+          "recorded_at": 1020,
+          "trusted_at": 1030,
+          "time_basis": "UTC_UNIX_SECONDS"
+        },
+        "query": {
+          "evaluation_at": 1500,
+          "historical_evaluation_at": null,
+          "time_basis": "UTC_UNIX_SECONDS",
+          "scope_id": "SYNTHETIC-DISTRICT-01",
+          "functional_unit": "synthetic-city-claim",
+          "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+        },
+        "graph": {
+          "snapshot_id": "SYN-GRAPH-CI-02",
+          "snapshot_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "coverage_state": "complete",
+          "excluded_domains": [],
+          "edges": [
+            {
+              "from": "SUBJECT-02",
+              "to": "claim_panel_fit",
+              "relation": "depends_on_exact_subject_revision"
+            },
+            {
+              "from": "SUBJECT-02",
+              "to": "claim_panel_manufacture",
+              "relation": "depends_on_exact_subject_revision"
+            }
+          ],
+          "impact_report": {
+            "report_id": "SYN-IMPACT-CI-02",
+            "report_state": "qualified",
+            "graph_snapshot_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "impacted_claim_ids": [
+              "claim_panel_fit",
+              "claim_panel_manufacture"
+            ],
+            "query_boundary": "declared_fixture_graph",
+            "event_id": "SYN-EVENT-CI-02",
+            "scope_id": "SYNTHETIC-DISTRICT-01",
+            "coverage_receipt_id": "SYN-COVERAGE-CI-02",
+            "base_graph_snapshot_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "claim_findings": [
+              {
+                "claim_id": "claim_panel_fit",
+                "disposition": "revalidate",
+                "reason_codes": [
+                  "GEOMETRY_DEPENDENCY_CHANGED"
+                ],
+                "dependency_path": [
+                  "SUBJECT-02",
+                  "claim_panel_fit"
+                ],
+                "coverage_proof_id": null
+              },
+              {
+                "claim_id": "claim_panel_manufacture",
+                "disposition": "revalidate",
+                "reason_codes": [
+                  "DESIGN_INPUT_CHANGED"
+                ],
+                "dependency_path": [
+                  "SUBJECT-02",
+                  "claim_panel_manufacture"
+                ],
+                "coverage_proof_id": null
+              }
+            ],
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+          }
+        },
+        "claims": [
+          {
+            "claim_id": "claim_panel_fit",
+            "dependency_subjects": [
+              "SUBJECT-02"
+            ],
+            "historical_status": "applicable_current",
+            "scope_id": "SYNTHETIC-DISTRICT-01",
+            "functional_unit": "synthetic-city-claim",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+          },
+          {
+            "claim_id": "claim_panel_manufacture",
+            "dependency_subjects": [
+              "SUBJECT-02"
+            ],
+            "historical_status": "applicable_current",
+            "scope_id": "SYNTHETIC-DISTRICT-01",
+            "functional_unit": "synthetic-city-claim",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+          }
+        ],
+        "revalidation_receipts": []
+      },
+      "expected": {
+        "claim_applicability": [
+          {
+            "claim_id": "claim_panel_fit",
+            "state": "revalidation_required",
+            "reason_codes": [
+              "GEOMETRY_DEPENDENCY_CHANGED"
+            ]
+          },
+          {
+            "claim_id": "claim_panel_manufacture",
+            "state": "revalidation_required",
+            "reason_codes": [
+              "DESIGN_INPUT_CHANGED"
+            ]
+          }
+        ]
+      },
+      "expected_behavior": "Panel geometry change reaches manufacture and fit"
+    },
+    {
+      "id": "CI-03",
+      "name": "Service cassette port revision",
+      "change_class": "product_interface",
+      "evidence_class": "synthetic",
+      "input": {
+        "event": {
+          "event_id": "SYN-EVENT-CI-03",
+          "subject_node_id": "SUBJECT-03",
+          "change_class": "product_interface",
+          "source_owner": "synthetic-owner",
+          "source_revision_before": "R1",
+          "source_revision_after": "R2",
+          "authority_state": "authorized",
+          "effective_at": 1020,
+          "recorded_at": 1030,
+          "trusted_at": 1040,
+          "time_basis": "UTC_UNIX_SECONDS"
+        },
+        "query": {
+          "evaluation_at": 1500,
+          "historical_evaluation_at": null,
+          "time_basis": "UTC_UNIX_SECONDS",
+          "scope_id": "SYNTHETIC-DISTRICT-01",
+          "functional_unit": "synthetic-city-claim",
+          "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+        },
+        "graph": {
+          "snapshot_id": "SYN-GRAPH-CI-03",
+          "snapshot_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "coverage_state": "complete",
+          "excluded_domains": [],
+          "edges": [
+            {
+              "from": "SUBJECT-03",
+              "to": "claim_cassette_interface",
+              "relation": "depends_on_exact_subject_revision"
+            },
+            {
+              "from": "SUBJECT-03",
+              "to": "claim_cassette_commissioning",
+              "relation": "depends_on_exact_subject_revision"
+            }
+          ],
+          "impact_report": {
+            "report_id": "SYN-IMPACT-CI-03",
+            "report_state": "qualified",
+            "graph_snapshot_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "impacted_claim_ids": [
+              "claim_cassette_interface",
+              "claim_cassette_commissioning"
+            ],
+            "query_boundary": "declared_fixture_graph",
+            "event_id": "SYN-EVENT-CI-03",
+            "scope_id": "SYNTHETIC-DISTRICT-01",
+            "coverage_receipt_id": "SYN-COVERAGE-CI-03",
+            "base_graph_snapshot_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "claim_findings": [
+              {
+                "claim_id": "claim_cassette_interface",
+                "disposition": "revalidate",
+                "reason_codes": [
+                  "INTERFACE_REVISION_CHANGED"
+                ],
+                "dependency_path": [
+                  "SUBJECT-03",
+                  "claim_cassette_interface"
+                ],
+                "coverage_proof_id": null
+              },
+              {
+                "claim_id": "claim_cassette_commissioning",
+                "disposition": "revalidate",
+                "reason_codes": [
+                  "UPSTREAM_INTERFACE_CHANGED"
+                ],
+                "dependency_path": [
+                  "SUBJECT-03",
+                  "claim_cassette_commissioning"
+                ],
+                "coverage_proof_id": null
+              }
+            ],
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+          }
+        },
+        "claims": [
+          {
+            "claim_id": "claim_cassette_interface",
+            "dependency_subjects": [
+              "SUBJECT-03"
+            ],
+            "historical_status": "applicable_current",
+            "scope_id": "SYNTHETIC-DISTRICT-01",
+            "functional_unit": "synthetic-city-claim",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+          },
+          {
+            "claim_id": "claim_cassette_commissioning",
+            "dependency_subjects": [
+              "SUBJECT-03"
+            ],
+            "historical_status": "applicable_current",
+            "scope_id": "SYNTHETIC-DISTRICT-01",
+            "functional_unit": "synthetic-city-claim",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+          }
+        ],
+        "revalidation_receipts": []
+      },
+      "expected": {
+        "claim_applicability": [
+          {
+            "claim_id": "claim_cassette_interface",
+            "state": "revalidation_required",
+            "reason_codes": [
+              "INTERFACE_REVISION_CHANGED"
+            ]
+          },
+          {
+            "claim_id": "claim_cassette_commissioning",
+            "state": "revalidation_required",
+            "reason_codes": [
+              "UPSTREAM_INTERFACE_CHANGED"
+            ]
+          }
+        ]
+      },
+      "expected_behavior": "Service cassette port revision"
+    },
+    {
+      "id": "CI-04",
+      "name": "BOM revision affects exact consuming assemblies",
+      "change_class": "bom_revision",
+      "evidence_class": "synthetic",
+      "input": {
+        "event": {
+          "event_id": "SYN-EVENT-CI-04",
+          "subject_node_id": "SUBJECT-04",
+          "change_class": "bom_revision",
+          "source_owner": "synthetic-owner",
+          "source_revision_before": "R1",
+          "source_revision_after": "R2",
+          "authority_state": "authorized",
+          "effective_at": 1030,
+          "recorded_at": 1040,
+          "trusted_at": 1050,
+          "time_basis": "UTC_UNIX_SECONDS"
+        },
+        "query": {
+          "evaluation_at": 1500,
+          "historical_evaluation_at": null,
+          "time_basis": "UTC_UNIX_SECONDS",
+          "scope_id": "SYNTHETIC-DISTRICT-01",
+          "functional_unit": "synthetic-city-claim",
+          "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+        },
+        "graph": {
+          "snapshot_id": "SYN-GRAPH-CI-04",
+          "snapshot_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "coverage_state": "complete",
+          "excluded_domains": [],
+          "edges": [
+            {
+              "from": "SUBJECT-04",
+              "to": "claim_panel_batch_A",
+              "relation": "depends_on_exact_subject_revision"
+            }
+          ],
+          "impact_report": {
+            "report_id": "SYN-IMPACT-CI-04",
+            "report_state": "qualified",
+            "graph_snapshot_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "impacted_claim_ids": [
+              "claim_panel_batch_A"
+            ],
+            "query_boundary": "declared_fixture_graph",
+            "event_id": "SYN-EVENT-CI-04",
+            "scope_id": "SYNTHETIC-DISTRICT-01",
+            "coverage_receipt_id": "SYN-COVERAGE-CI-04",
+            "base_graph_snapshot_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "claim_findings": [
+              {
+                "claim_id": "claim_panel_batch_A",
+                "disposition": "revalidate",
+                "reason_codes": [
+                  "BOM_REVISION_CHANGED"
+                ],
+                "dependency_path": [
+                  "SUBJECT-04",
+                  "claim_panel_batch_A"
+                ],
+                "coverage_proof_id": null
+              },
+              {
+                "claim_id": "claim_panel_batch_B",
+                "disposition": "no_impact",
+                "reason_codes": [
+                  "DIFFERENT_BOM_DEPENDENCY"
+                ],
+                "dependency_path": [],
+                "coverage_proof_id": "SYN-PROOF-CI-04-claim_panel_batch_B"
+              }
+            ],
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+          }
+        },
+        "claims": [
+          {
+            "claim_id": "claim_panel_batch_A",
+            "dependency_subjects": [
+              "SUBJECT-04"
+            ],
+            "historical_status": "applicable_current",
+            "scope_id": "SYNTHETIC-DISTRICT-01",
+            "functional_unit": "synthetic-city-claim",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+          },
+          {
+            "claim_id": "claim_panel_batch_B",
+            "dependency_subjects": [
+              "UNRELATED-claim_panel_batch_B"
+            ],
+            "historical_status": "applicable_current",
+            "scope_id": "SYNTHETIC-DISTRICT-01",
+            "functional_unit": "synthetic-city-claim",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+          }
+        ],
+        "revalidation_receipts": []
+      },
+      "expected": {
+        "claim_applicability": [
+          {
+            "claim_id": "claim_panel_batch_A",
+            "state": "revalidation_required",
+            "reason_codes": [
+              "BOM_REVISION_CHANGED"
+            ]
+          },
+          {
+            "claim_id": "claim_panel_batch_B",
+            "state": "not_affected",
+            "reason_codes": [
+              "DIFFERENT_BOM_DEPENDENCY"
+            ]
+          }
+        ]
+      },
+      "expected_behavior": "BOM revision affects exact consuming assemblies"
+    },
+    {
+      "id": "CI-05",
+      "name": "Exact material lot is revoked",
+      "change_class": "lot_revocation",
+      "evidence_class": "synthetic",
+      "input": {
+        "event": {
+          "event_id": "SYN-EVENT-CI-05",
+          "subject_node_id": "SUBJECT-05-LOT-A",
+          "change_class": "lot_revocation",
+          "source_owner": "synthetic-owner",
+          "source_revision_before": "R1",
+          "source_revision_after": "R2",
+          "authority_state": "authorized",
+          "effective_at": 1040,
+          "recorded_at": 1050,
+          "trusted_at": 1060,
+          "time_basis": "UTC_UNIX_SECONDS"
+        },
+        "query": {
+          "evaluation_at": 1500,
+          "historical_evaluation_at": null,
+          "time_basis": "UTC_UNIX_SECONDS",
+          "scope_id": "SYNTHETIC-DISTRICT-01",
+          "functional_unit": "synthetic-city-claim",
+          "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+        },
+        "graph": {
+          "snapshot_id": "SYN-GRAPH-CI-05",
+          "snapshot_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "coverage_state": "complete",
+          "excluded_domains": [],
+          "edges": [
+            {
+              "from": "SUBJECT-05-LOT-A",
+              "to": "claim_asset_uses_lot_A",
+              "relation": "depends_on_exact_subject_revision"
+            },
+            {
+              "from": "SUBJECT-05-LOT-B",
+              "to": "claim_asset_uses_lot_B",
+              "relation": "depends_on_exact_subject_revision"
+            }
+          ],
+          "impact_report": {
+            "report_id": "SYN-IMPACT-CI-05",
+            "report_state": "qualified",
+            "graph_snapshot_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "impacted_claim_ids": [
+              "claim_asset_uses_lot_A"
+            ],
+            "query_boundary": "declared_fixture_graph",
+            "event_id": "SYN-EVENT-CI-05",
+            "scope_id": "SYNTHETIC-DISTRICT-01",
+            "coverage_receipt_id": "SYN-COVERAGE-CI-05",
+            "base_graph_snapshot_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "claim_findings": [
+              {
+                "claim_id": "claim_asset_uses_lot_A",
+                "disposition": "invalidate",
+                "reason_codes": [
+                  "LOT_REVOKED"
+                ],
+                "dependency_path": [
+                  "SUBJECT-05-LOT-A",
+                  "claim_asset_uses_lot_A"
+                ],
+                "coverage_proof_id": null
+              },
+              {
+                "claim_id": "claim_asset_uses_lot_B",
+                "disposition": "no_impact",
+                "reason_codes": [
+                  "DIFFERENT_LOT_ID"
+                ],
+                "dependency_path": [],
+                "coverage_proof_id": "SYN-PROOF-CI-05-claim_asset_uses_lot_B"
+              }
+            ],
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+          }
+        },
+        "claims": [
+          {
+            "claim_id": "claim_asset_uses_lot_A",
+            "dependency_subjects": [
+              "SUBJECT-05-LOT-A"
+            ],
+            "historical_status": "applicable_current",
+            "scope_id": "SYNTHETIC-DISTRICT-01",
+            "functional_unit": "synthetic-city-claim",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+          },
+          {
+            "claim_id": "claim_asset_uses_lot_B",
+            "dependency_subjects": [
+              "SUBJECT-05-LOT-B"
+            ],
+            "historical_status": "applicable_current",
+            "scope_id": "SYNTHETIC-DISTRICT-01",
+            "functional_unit": "synthetic-city-claim",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+          }
+        ],
+        "revalidation_receipts": []
+      },
+      "expected": {
+        "claim_applicability": [
+          {
+            "claim_id": "claim_asset_uses_lot_A",
+            "state": "invalid_evidence",
+            "reason_codes": [
+              "LOT_REVOKED"
+            ]
+          },
+          {
+            "claim_id": "claim_asset_uses_lot_B",
+            "state": "not_affected",
+            "reason_codes": [
+              "DIFFERENT_LOT_ID"
+            ]
+          }
+        ]
+      },
+      "expected_behavior": "Exact material lot is revoked"
+    },
+    {
+      "id": "CI-06",
+      "name": "Supplier capacity reduction only affects future delivery",
+      "change_class": "supplier_capacity",
+      "evidence_class": "synthetic",
+      "input": {
+        "event": {
+          "event_id": "SYN-EVENT-CI-06",
+          "subject_node_id": "SUBJECT-06",
+          "change_class": "supplier_capacity",
+          "source_owner": "synthetic-owner",
+          "source_revision_before": "R1",
+          "source_revision_after": "R2",
+          "authority_state": "authorized",
+          "effective_at": 1050,
+          "recorded_at": 1060,
+          "trusted_at": 1070,
+          "time_basis": "UTC_UNIX_SECONDS"
+        },
+        "query": {
+          "evaluation_at": 1500,
+          "historical_evaluation_at": null,
+          "time_basis": "UTC_UNIX_SECONDS",
+          "scope_id": "SYNTHETIC-DISTRICT-01",
+          "functional_unit": "synthetic-city-claim",
+          "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+        },
+        "graph": {
+          "snapshot_id": "SYN-GRAPH-CI-06",
+          "snapshot_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "coverage_state": "complete",
+          "excluded_domains": [],
+          "edges": [
+            {
+              "from": "SUBJECT-06",
+              "to": "claim_open_delivery_plan",
+              "relation": "depends_on_exact_subject_revision"
+            }
+          ],
+          "impact_report": {
+            "report_id": "SYN-IMPACT-CI-06",
+            "report_state": "qualified",
+            "graph_snapshot_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "impacted_claim_ids": [
+              "claim_open_delivery_plan"
+            ],
+            "query_boundary": "declared_fixture_graph",
+            "event_id": "SYN-EVENT-CI-06",
+            "scope_id": "SYNTHETIC-DISTRICT-01",
+            "coverage_receipt_id": "SYN-COVERAGE-CI-06",
+            "base_graph_snapshot_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "claim_findings": [
+              {
+                "claim_id": "claim_open_delivery_plan",
+                "disposition": "revalidate",
+                "reason_codes": [
+                  "FUTURE_SUPPLY_CAPACITY_CHANGED"
+                ],
+                "dependency_path": [
+                  "SUBJECT-06",
+                  "claim_open_delivery_plan"
+                ],
+                "coverage_proof_id": null
+              },
+              {
+                "claim_id": "claim_installed_panel_test",
+                "disposition": "no_impact",
+                "reason_codes": [
+                  "INSTALLED_TEST_HAS_NO_SUPPLIER_CAPACITY_DEPENDENCY"
+                ],
+                "dependency_path": [],
+                "coverage_proof_id": "SYN-PROOF-CI-06-claim_installed_panel_test"
+              }
+            ],
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+          }
+        },
+        "claims": [
+          {
+            "claim_id": "claim_open_delivery_plan",
+            "dependency_subjects": [
+              "SUBJECT-06"
+            ],
+            "historical_status": "applicable_current",
+            "scope_id": "SYNTHETIC-DISTRICT-01",
+            "functional_unit": "synthetic-city-claim",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+          },
+          {
+            "claim_id": "claim_installed_panel_test",
+            "dependency_subjects": [
+              "UNRELATED-claim_installed_panel_test"
+            ],
+            "historical_status": "applicable_current",
+            "scope_id": "SYNTHETIC-DISTRICT-01",
+            "functional_unit": "synthetic-city-claim",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+          }
+        ],
+        "revalidation_receipts": []
+      },
+      "expected": {
+        "claim_applicability": [
+          {
+            "claim_id": "claim_open_delivery_plan",
+            "state": "revalidation_required",
+            "reason_codes": [
+              "FUTURE_SUPPLY_CAPACITY_CHANGED"
+            ]
+          },
+          {
+            "claim_id": "claim_installed_panel_test",
+            "state": "not_affected",
+            "reason_codes": [
+              "INSTALLED_TEST_HAS_NO_SUPPLIER_CAPACITY_DEPENDENCY"
+            ]
+          }
+        ]
+      },
+      "expected_behavior": "Supplier capacity reduction only affects future delivery"
+    },
+    {
+      "id": "CI-07",
+      "name": "Supplier ownership change lacks authenticated authority",
+      "change_class": "supplier_identity",
+      "evidence_class": "synthetic",
+      "input": {
+        "event": {
+          "event_id": "SYN-EVENT-CI-07",
+          "subject_node_id": "SUBJECT-07",
+          "change_class": "supplier_identity",
+          "source_owner": "synthetic-owner",
+          "source_revision_before": "R1",
+          "source_revision_after": "R2",
+          "authority_state": "unverified",
+          "effective_at": 1060,
+          "recorded_at": 1070,
+          "trusted_at": null,
+          "time_basis": "UTC_UNIX_SECONDS"
+        },
+        "query": {
+          "evaluation_at": 1500,
+          "historical_evaluation_at": null,
+          "time_basis": "UTC_UNIX_SECONDS",
+          "scope_id": "SYNTHETIC-DISTRICT-01",
+          "functional_unit": "synthetic-city-claim",
+          "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+        },
+        "graph": {
+          "snapshot_id": "SYN-GRAPH-CI-07",
+          "snapshot_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "coverage_state": "complete",
+          "excluded_domains": [],
+          "edges": [
+            {
+              "from": "SUBJECT-07",
+              "to": "claim_supplier_approval",
+              "relation": "depends_on_exact_subject_revision"
+            }
+          ],
+          "impact_report": {
+            "report_id": "SYN-IMPACT-CI-07",
+            "report_state": "qualified",
+            "graph_snapshot_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "impacted_claim_ids": [],
+            "query_boundary": "declared_fixture_graph",
+            "event_id": "SYN-EVENT-CI-07",
+            "scope_id": "SYNTHETIC-DISTRICT-01",
+            "coverage_receipt_id": "SYN-COVERAGE-CI-07",
+            "base_graph_snapshot_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "claim_findings": [
+              {
+                "claim_id": "claim_supplier_approval",
+                "disposition": "insufficient",
+                "reason_codes": [
+                  "CHANGE_AUTHORITY_UNVERIFIED"
+                ],
+                "dependency_path": [
+                  "SUBJECT-07",
+                  "claim_supplier_approval"
+                ],
+                "coverage_proof_id": null
+              }
+            ],
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+          }
+        },
+        "claims": [
+          {
+            "claim_id": "claim_supplier_approval",
+            "dependency_subjects": [
+              "SUBJECT-07"
+            ],
+            "historical_status": "applicable_current",
+            "scope_id": "SYNTHETIC-DISTRICT-01",
+            "functional_unit": "synthetic-city-claim",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+          }
+        ],
+        "revalidation_receipts": []
+      },
+      "expected": {
+        "claim_applicability": [
+          {
+            "claim_id": "claim_supplier_approval",
+            "state": "insufficient_evidence",
+            "reason_codes": [
+              "CHANGE_AUTHORITY_UNVERIFIED"
+            ]
+          }
+        ]
+      },
+      "expected_behavior": "Supplier ownership change lacks authenticated authority"
+    },
+    {
+      "id": "CI-08",
+      "name": "Calibration expires after an historical measurement",
+      "change_class": "calibration_expiry",
+      "evidence_class": "synthetic",
+      "input": {
+        "event": {
+          "event_id": "SYN-EVENT-CI-08",
+          "subject_node_id": "SUBJECT-08",
+          "change_class": "calibration_expiry",
+          "source_owner": "synthetic-owner",
+          "source_revision_before": "R1",
+          "source_revision_after": "R2",
+          "authority_state": "authorized",
+          "effective_at": 1070,
+          "recorded_at": 1080,
+          "trusted_at": 1090,
+          "time_basis": "UTC_UNIX_SECONDS"
+        },
+        "query": {
+          "evaluation_at": 1500,
+          "historical_evaluation_at": null,
+          "time_basis": "UTC_UNIX_SECONDS",
+          "scope_id": "SYNTHETIC-DISTRICT-01",
+          "functional_unit": "synthetic-city-claim",
+          "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+        },
+        "graph": {
+          "snapshot_id": "SYN-GRAPH-CI-08",
+          "snapshot_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "coverage_state": "complete",
+          "excluded_domains": [],
+          "edges": [
+            {
+              "from": "SUBJECT-08",
+              "to": "claim_prior_measurement",
+              "relation": "depends_on_exact_subject_revision"
+            },
+            {
+              "from": "SUBJECT-08",
+              "to": "claim_future_measurement",
+              "relation": "depends_on_exact_subject_revision"
+            }
+          ],
+          "impact_report": {
+            "report_id": "SYN-IMPACT-CI-08",
+            "report_state": "qualified",
+            "graph_snapshot_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "impacted_claim_ids": [
+              "claim_future_measurement"
+            ],
+            "query_boundary": "declared_fixture_graph",
+            "event_id": "SYN-EVENT-CI-08",
+            "scope_id": "SYNTHETIC-DISTRICT-01",
+            "coverage_receipt_id": "SYN-COVERAGE-CI-08",
+            "base_graph_snapshot_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "claim_findings": [
+              {
+                "claim_id": "claim_prior_measurement",
+                "disposition": "no_impact",
+                "reason_codes": [
+                  "CALIBRATION_VALID_AT_MEASUREMENT"
+                ],
+                "dependency_path": [],
+                "coverage_proof_id": "SYN-PROOF-CI-08-claim_prior_measurement"
+              },
+              {
+                "claim_id": "claim_future_measurement",
+                "disposition": "revalidate",
+                "reason_codes": [
+                  "CALIBRATION_NOT_VALID_FOR_FUTURE_MEASUREMENT"
+                ],
+                "dependency_path": [
+                  "SUBJECT-08",
+                  "claim_future_measurement"
+                ],
+                "coverage_proof_id": null
+              }
+            ],
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+          }
+        },
+        "claims": [
+          {
+            "claim_id": "claim_prior_measurement",
+            "dependency_subjects": [
+              "SUBJECT-08"
+            ],
+            "historical_status": "applicable_current",
+            "scope_id": "SYNTHETIC-DISTRICT-01",
+            "functional_unit": "synthetic-city-claim",
+            "measurement_at": 1050,
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+          },
+          {
+            "claim_id": "claim_future_measurement",
+            "dependency_subjects": [
+              "SUBJECT-08"
+            ],
+            "historical_status": "applicable_current",
+            "scope_id": "SYNTHETIC-DISTRICT-01",
+            "functional_unit": "synthetic-city-claim",
+            "measurement_at": 2000,
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+          }
+        ],
+        "revalidation_receipts": []
+      },
+      "expected": {
+        "claim_applicability": [
+          {
+            "claim_id": "claim_prior_measurement",
+            "state": "not_affected",
+            "reason_codes": [
+              "CALIBRATION_VALID_AT_MEASUREMENT"
+            ]
+          },
+          {
+            "claim_id": "claim_future_measurement",
+            "state": "revalidation_required",
+            "reason_codes": [
+              "CALIBRATION_NOT_VALID_FOR_FUTURE_MEASUREMENT"
+            ]
+          }
+        ]
+      },
+      "expected_behavior": "Calibration expires after an historical measurement"
+    },
+    {
+      "id": "CI-09",
+      "name": "Calibration expired before measurement",
+      "change_class": "calibration_expiry",
+      "evidence_class": "synthetic",
+      "input": {
+        "event": {
+          "event_id": "SYN-EVENT-CI-09",
+          "subject_node_id": "SUBJECT-09",
+          "change_class": "calibration_expiry",
+          "source_owner": "synthetic-owner",
+          "source_revision_before": "R1",
+          "source_revision_after": "R2",
+          "authority_state": "authorized",
+          "effective_at": 1080,
+          "recorded_at": 1090,
+          "trusted_at": 1100,
+          "time_basis": "UTC_UNIX_SECONDS"
+        },
+        "query": {
+          "evaluation_at": 1500,
+          "historical_evaluation_at": null,
+          "time_basis": "UTC_UNIX_SECONDS",
+          "scope_id": "SYNTHETIC-DISTRICT-01",
+          "functional_unit": "synthetic-city-claim",
+          "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+        },
+        "graph": {
+          "snapshot_id": "SYN-GRAPH-CI-09",
+          "snapshot_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "coverage_state": "complete",
+          "excluded_domains": [],
+          "edges": [
+            {
+              "from": "SUBJECT-09",
+              "to": "claim_measurement_result",
+              "relation": "depends_on_exact_subject_revision"
+            }
+          ],
+          "impact_report": {
+            "report_id": "SYN-IMPACT-CI-09",
+            "report_state": "qualified",
+            "graph_snapshot_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "impacted_claim_ids": [
+              "claim_measurement_result"
+            ],
+            "query_boundary": "declared_fixture_graph",
+            "event_id": "SYN-EVENT-CI-09",
+            "scope_id": "SYNTHETIC-DISTRICT-01",
+            "coverage_receipt_id": "SYN-COVERAGE-CI-09",
+            "base_graph_snapshot_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "claim_findings": [
+              {
+                "claim_id": "claim_measurement_result",
+                "disposition": "invalidate",
+                "reason_codes": [
+                  "CALIBRATION_INVALID_AT_MEASUREMENT"
+                ],
+                "dependency_path": [
+                  "SUBJECT-09",
+                  "claim_measurement_result"
+                ],
+                "coverage_proof_id": null
+              }
+            ],
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+          }
+        },
+        "claims": [
+          {
+            "claim_id": "claim_measurement_result",
+            "dependency_subjects": [
+              "SUBJECT-09"
+            ],
+            "historical_status": "applicable_current",
+            "scope_id": "SYNTHETIC-DISTRICT-01",
+            "functional_unit": "synthetic-city-claim",
+            "measurement_at": 1090,
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+          }
+        ],
+        "revalidation_receipts": []
+      },
+      "expected": {
+        "claim_applicability": [
+          {
+            "claim_id": "claim_measurement_result",
+            "state": "invalid_evidence",
+            "reason_codes": [
+              "CALIBRATION_INVALID_AT_MEASUREMENT"
+            ]
+          }
+        ]
+      },
+      "expected_behavior": "Calibration expired before measurement"
+    },
+    {
+      "id": "CI-10",
+      "name": "Robot firmware changes task qualification",
+      "change_class": "robot_firmware",
+      "evidence_class": "synthetic",
+      "input": {
+        "event": {
+          "event_id": "SYN-EVENT-CI-10",
+          "subject_node_id": "SUBJECT-10",
+          "change_class": "robot_firmware",
+          "source_owner": "synthetic-owner",
+          "source_revision_before": "R1",
+          "source_revision_after": "R2",
+          "authority_state": "authorized",
+          "effective_at": 1090,
+          "recorded_at": 1100,
+          "trusted_at": 1110,
+          "time_basis": "UTC_UNIX_SECONDS"
+        },
+        "query": {
+          "evaluation_at": 1500,
+          "historical_evaluation_at": null,
+          "time_basis": "UTC_UNIX_SECONDS",
+          "scope_id": "SYNTHETIC-DISTRICT-01",
+          "functional_unit": "synthetic-city-claim",
+          "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+        },
+        "graph": {
+          "snapshot_id": "SYN-GRAPH-CI-10",
+          "snapshot_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "coverage_state": "complete",
+          "excluded_domains": [],
+          "edges": [
+            {
+              "from": "SUBJECT-10",
+              "to": "claim_robot_task_qualification",
+              "relation": "depends_on_exact_subject_revision"
+            }
+          ],
+          "impact_report": {
+            "report_id": "SYN-IMPACT-CI-10",
+            "report_state": "qualified",
+            "graph_snapshot_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "impacted_claim_ids": [
+              "claim_robot_task_qualification"
+            ],
+            "query_boundary": "declared_fixture_graph",
+            "event_id": "SYN-EVENT-CI-10",
+            "scope_id": "SYNTHETIC-DISTRICT-01",
+            "coverage_receipt_id": "SYN-COVERAGE-CI-10",
+            "base_graph_snapshot_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "claim_findings": [
+              {
+                "claim_id": "claim_robot_task_qualification",
+                "disposition": "revalidate",
+                "reason_codes": [
+                  "FIRMWARE_CONFIGURATION_CHANGED"
+                ],
+                "dependency_path": [
+                  "SUBJECT-10",
+                  "claim_robot_task_qualification"
+                ],
+                "coverage_proof_id": null
+              },
+              {
+                "claim_id": "claim_panel_geometry",
+                "disposition": "no_impact",
+                "reason_codes": [
+                  "NO_FIRMWARE_DEPENDENCY"
+                ],
+                "dependency_path": [],
+                "coverage_proof_id": "SYN-PROOF-CI-10-claim_panel_geometry"
+              }
+            ],
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+          }
+        },
+        "claims": [
+          {
+            "claim_id": "claim_robot_task_qualification",
+            "dependency_subjects": [
+              "SUBJECT-10"
+            ],
+            "historical_status": "applicable_current",
+            "scope_id": "SYNTHETIC-DISTRICT-01",
+            "functional_unit": "synthetic-city-claim",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+          },
+          {
+            "claim_id": "claim_panel_geometry",
+            "dependency_subjects": [
+              "UNRELATED-claim_panel_geometry"
+            ],
+            "historical_status": "applicable_current",
+            "scope_id": "SYNTHETIC-DISTRICT-01",
+            "functional_unit": "synthetic-city-claim",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+          }
+        ],
+        "revalidation_receipts": []
+      },
+      "expected": {
+        "claim_applicability": [
+          {
+            "claim_id": "claim_robot_task_qualification",
+            "state": "revalidation_required",
+            "reason_codes": [
+              "FIRMWARE_CONFIGURATION_CHANGED"
+            ]
+          },
+          {
+            "claim_id": "claim_panel_geometry",
+            "state": "not_affected",
+            "reason_codes": [
+              "NO_FIRMWARE_DEPENDENCY"
+            ]
+          }
+        ]
+      },
+      "expected_behavior": "Robot firmware changes task qualification"
+    },
+    {
+      "id": "CI-11",
+      "name": "Manufacturing fixture replaced without equivalence evidence",
+      "change_class": "manufacturing_fixture",
+      "evidence_class": "synthetic",
+      "input": {
+        "event": {
+          "event_id": "SYN-EVENT-CI-11",
+          "subject_node_id": "SUBJECT-11",
+          "change_class": "manufacturing_fixture",
+          "source_owner": "synthetic-owner",
+          "source_revision_before": "R1",
+          "source_revision_after": "R2",
+          "authority_state": "authorized",
+          "effective_at": 1100,
+          "recorded_at": 1110,
+          "trusted_at": 1120,
+          "time_basis": "UTC_UNIX_SECONDS"
+        },
+        "query": {
+          "evaluation_at": 1500,
+          "historical_evaluation_at": null,
+          "time_basis": "UTC_UNIX_SECONDS",
+          "scope_id": "SYNTHETIC-DISTRICT-01",
+          "functional_unit": "synthetic-city-claim",
+          "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+        },
+        "graph": {
+          "snapshot_id": "SYN-GRAPH-CI-11",
+          "snapshot_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "coverage_state": "complete",
+          "excluded_domains": [],
+          "edges": [
+            {
+              "from": "SUBJECT-11",
+              "to": "claim_process_qualification",
+              "relation": "depends_on_exact_subject_revision"
+            }
+          ],
+          "impact_report": {
+            "report_id": "SYN-IMPACT-CI-11",
+            "report_state": "qualified",
+            "graph_snapshot_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "impacted_claim_ids": [
+              "claim_process_qualification"
+            ],
+            "query_boundary": "declared_fixture_graph",
+            "event_id": "SYN-EVENT-CI-11",
+            "scope_id": "SYNTHETIC-DISTRICT-01",
+            "coverage_receipt_id": "SYN-COVERAGE-CI-11",
+            "base_graph_snapshot_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "claim_findings": [
+              {
+                "claim_id": "claim_process_qualification",
+                "disposition": "revalidate",
+                "reason_codes": [
+                  "PROCESS_CONFIGURATION_CHANGED"
+                ],
+                "dependency_path": [
+                  "SUBJECT-11",
+                  "claim_process_qualification"
+                ],
+                "coverage_proof_id": null
+              }
+            ],
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+          }
+        },
+        "claims": [
+          {
+            "claim_id": "claim_process_qualification",
+            "dependency_subjects": [
+              "SUBJECT-11"
+            ],
+            "historical_status": "applicable_current",
+            "scope_id": "SYNTHETIC-DISTRICT-01",
+            "functional_unit": "synthetic-city-claim",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+          }
+        ],
+        "revalidation_receipts": []
+      },
+      "expected": {
+        "claim_applicability": [
+          {
+            "claim_id": "claim_process_qualification",
+            "state": "revalidation_required",
+            "reason_codes": [
+              "PROCESS_CONFIGURATION_CHANGED"
+            ]
+          }
+        ]
+      },
+      "expected_behavior": "Manufacturing fixture replaced without equivalence evidence"
+    },
+    {
+      "id": "CI-12",
+      "name": "As-built clearance correction",
+      "change_class": "as_built_measurement",
+      "evidence_class": "synthetic",
+      "input": {
+        "event": {
+          "event_id": "SYN-EVENT-CI-12",
+          "subject_node_id": "SUBJECT-12",
+          "change_class": "as_built_measurement",
+          "source_owner": "synthetic-owner",
+          "source_revision_before": "R1",
+          "source_revision_after": "R2",
+          "authority_state": "authorized",
+          "effective_at": 1110,
+          "recorded_at": 1120,
+          "trusted_at": 1130,
+          "time_basis": "UTC_UNIX_SECONDS"
+        },
+        "query": {
+          "evaluation_at": 1500,
+          "historical_evaluation_at": null,
+          "time_basis": "UTC_UNIX_SECONDS",
+          "scope_id": "SYNTHETIC-DISTRICT-01",
+          "functional_unit": "synthetic-city-claim",
+          "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+        },
+        "graph": {
+          "snapshot_id": "SYN-GRAPH-CI-12",
+          "snapshot_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "coverage_state": "complete",
+          "excluded_domains": [],
+          "edges": [
+            {
+              "from": "SUBJECT-12",
+              "to": "claim_maintenance_access",
+              "relation": "depends_on_exact_subject_revision"
+            }
+          ],
+          "impact_report": {
+            "report_id": "SYN-IMPACT-CI-12",
+            "report_state": "qualified",
+            "graph_snapshot_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "impacted_claim_ids": [
+              "claim_maintenance_access"
+            ],
+            "query_boundary": "declared_fixture_graph",
+            "event_id": "SYN-EVENT-CI-12",
+            "scope_id": "SYNTHETIC-DISTRICT-01",
+            "coverage_receipt_id": "SYN-COVERAGE-CI-12",
+            "base_graph_snapshot_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "claim_findings": [
+              {
+                "claim_id": "claim_maintenance_access",
+                "disposition": "revalidate",
+                "reason_codes": [
+                  "AS_BUILT_CLEARANCE_CHANGED"
+                ],
+                "dependency_path": [
+                  "SUBJECT-12",
+                  "claim_maintenance_access"
+                ],
+                "coverage_proof_id": null
+              },
+              {
+                "claim_id": "claim_district_population",
+                "disposition": "no_impact",
+                "reason_codes": [
+                  "NO_ASSET_LEVEL_GEOMETRY_DEPENDENCY"
+                ],
+                "dependency_path": [],
+                "coverage_proof_id": "SYN-PROOF-CI-12-claim_district_population"
+              }
+            ],
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+          }
+        },
+        "claims": [
+          {
+            "claim_id": "claim_maintenance_access",
+            "dependency_subjects": [
+              "SUBJECT-12"
+            ],
+            "historical_status": "applicable_current",
+            "scope_id": "SYNTHETIC-DISTRICT-01",
+            "functional_unit": "synthetic-city-claim",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+          },
+          {
+            "claim_id": "claim_district_population",
+            "dependency_subjects": [
+              "UNRELATED-claim_district_population"
+            ],
+            "historical_status": "applicable_current",
+            "scope_id": "SYNTHETIC-DISTRICT-01",
+            "functional_unit": "synthetic-city-claim",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+          }
+        ],
+        "revalidation_receipts": []
+      },
+      "expected": {
+        "claim_applicability": [
+          {
+            "claim_id": "claim_maintenance_access",
+            "state": "revalidation_required",
+            "reason_codes": [
+              "AS_BUILT_CLEARANCE_CHANGED"
+            ]
+          },
+          {
+            "claim_id": "claim_district_population",
+            "state": "not_affected",
+            "reason_codes": [
+              "NO_ASSET_LEVEL_GEOMETRY_DEPENDENCY"
+            ]
+          }
+        ]
+      },
+      "expected_behavior": "As-built clearance correction"
+    },
+    {
+      "id": "CI-13",
+      "name": "Coordinate frame changed with ambiguous transform",
+      "change_class": "coordinate_frame",
+      "evidence_class": "synthetic",
+      "input": {
+        "event": {
+          "event_id": "SYN-EVENT-CI-13",
+          "subject_node_id": "SUBJECT-13",
+          "change_class": "coordinate_frame",
+          "source_owner": "synthetic-owner",
+          "source_revision_before": "R1",
+          "source_revision_after": "R2",
+          "authority_state": "unknown",
+          "effective_at": 1120,
+          "recorded_at": 1130,
+          "trusted_at": null,
+          "time_basis": "UTC_UNIX_SECONDS",
+          "transform_state": "ambiguous"
+        },
+        "query": {
+          "evaluation_at": 1500,
+          "historical_evaluation_at": null,
+          "time_basis": "UTC_UNIX_SECONDS",
+          "scope_id": "SYNTHETIC-DISTRICT-01",
+          "functional_unit": "synthetic-city-claim",
+          "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+        },
+        "graph": {
+          "snapshot_id": "SYN-GRAPH-CI-13",
+          "snapshot_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "coverage_state": "incomplete",
+          "excluded_domains": [
+            "unresolved-owner-domain"
+          ],
+          "edges": [
+            {
+              "from": "SUBJECT-13",
+              "to": "claim_spatial_access",
+              "relation": "depends_on_exact_subject_revision"
+            }
+          ],
+          "impact_report": {
+            "report_id": "SYN-IMPACT-CI-13",
+            "report_state": "coverage_incomplete",
+            "graph_snapshot_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "impacted_claim_ids": [],
+            "query_boundary": "declared_fixture_graph",
+            "event_id": "SYN-EVENT-CI-13",
+            "scope_id": "SYNTHETIC-DISTRICT-01",
+            "coverage_receipt_id": "SYN-COVERAGE-CI-13",
+            "base_graph_snapshot_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "claim_findings": [
+              {
+                "claim_id": "claim_spatial_access",
+                "disposition": "insufficient",
+                "reason_codes": [
+                  "COORDINATE_TRANSFORM_AMBIGUOUS",
+                  "GRAPH_COVERAGE_INCOMPLETE"
+                ],
+                "dependency_path": [
+                  "SUBJECT-13",
+                  "claim_spatial_access"
+                ],
+                "coverage_proof_id": null
+              }
+            ],
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+          }
+        },
+        "claims": [
+          {
+            "claim_id": "claim_spatial_access",
+            "dependency_subjects": [
+              "SUBJECT-13"
+            ],
+            "historical_status": "applicable_current",
+            "scope_id": "SYNTHETIC-DISTRICT-01",
+            "functional_unit": "synthetic-city-claim",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+          }
+        ],
+        "revalidation_receipts": []
+      },
+      "expected": {
+        "claim_applicability": [
+          {
+            "claim_id": "claim_spatial_access",
+            "state": "insufficient_evidence",
+            "reason_codes": [
+              "COORDINATE_TRANSFORM_AMBIGUOUS",
+              "GRAPH_COVERAGE_INCOMPLETE"
+            ]
+          }
+        ]
+      },
+      "expected_behavior": "Coordinate frame changed with ambiguous transform"
+    },
+    {
+      "id": "CI-14",
+      "name": "Weather source correction overlaps one region/time envelope",
+      "change_class": "weather_source_correction",
+      "evidence_class": "synthetic",
+      "input": {
+        "event": {
+          "event_id": "SYN-EVENT-CI-14",
+          "subject_node_id": "SUBJECT-14",
+          "change_class": "weather_source_correction",
+          "source_owner": "synthetic-owner",
+          "source_revision_before": "R1",
+          "source_revision_after": "R2",
+          "authority_state": "authorized",
+          "effective_at": 1130,
+          "recorded_at": 1140,
+          "trusted_at": 1150,
+          "time_basis": "UTC_UNIX_SECONDS"
+        },
+        "query": {
+          "evaluation_at": 1500,
+          "historical_evaluation_at": null,
+          "time_basis": "UTC_UNIX_SECONDS",
+          "scope_id": "SYNTHETIC-DISTRICT-01",
+          "functional_unit": "synthetic-city-claim",
+          "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+        },
+        "graph": {
+          "snapshot_id": "SYN-GRAPH-CI-14",
+          "snapshot_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "coverage_state": "complete",
+          "excluded_domains": [],
+          "edges": [
+            {
+              "from": "SUBJECT-14",
+              "to": "claim_highveld_heat_screen",
+              "relation": "depends_on_exact_subject_revision"
+            }
+          ],
+          "impact_report": {
+            "report_id": "SYN-IMPACT-CI-14",
+            "report_state": "qualified",
+            "graph_snapshot_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "impacted_claim_ids": [
+              "claim_highveld_heat_screen"
+            ],
+            "query_boundary": "declared_fixture_graph",
+            "event_id": "SYN-EVENT-CI-14",
+            "scope_id": "SYNTHETIC-DISTRICT-01",
+            "coverage_receipt_id": "SYN-COVERAGE-CI-14",
+            "base_graph_snapshot_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "claim_findings": [
+              {
+                "claim_id": "claim_highveld_heat_screen",
+                "disposition": "revalidate",
+                "reason_codes": [
+                  "SOURCE_CORRECTION_OVERLAPS_SCOPE"
+                ],
+                "dependency_path": [
+                  "SUBJECT-14",
+                  "claim_highveld_heat_screen"
+                ],
+                "coverage_proof_id": null
+              },
+              {
+                "claim_id": "claim_other_region_screen",
+                "disposition": "no_impact",
+                "reason_codes": [
+                  "OUTSIDE_SPATIAL_TEMPORAL_ENVELOPE"
+                ],
+                "dependency_path": [],
+                "coverage_proof_id": "SYN-PROOF-CI-14-claim_other_region_screen"
+              }
+            ],
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+          }
+        },
+        "claims": [
+          {
+            "claim_id": "claim_highveld_heat_screen",
+            "dependency_subjects": [
+              "SUBJECT-14"
+            ],
+            "historical_status": "applicable_current",
+            "scope_id": "SYNTHETIC-DISTRICT-01",
+            "functional_unit": "synthetic-city-claim",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+          },
+          {
+            "claim_id": "claim_other_region_screen",
+            "dependency_subjects": [
+              "UNRELATED-claim_other_region_screen"
+            ],
+            "historical_status": "applicable_current",
+            "scope_id": "SYNTHETIC-DISTRICT-01",
+            "functional_unit": "synthetic-city-claim",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+          }
+        ],
+        "revalidation_receipts": []
+      },
+      "expected": {
+        "claim_applicability": [
+          {
+            "claim_id": "claim_highveld_heat_screen",
+            "state": "revalidation_required",
+            "reason_codes": [
+              "SOURCE_CORRECTION_OVERLAPS_SCOPE"
+            ]
+          },
+          {
+            "claim_id": "claim_other_region_screen",
+            "state": "not_affected",
+            "reason_codes": [
+              "OUTSIDE_SPATIAL_TEMPORAL_ENVELOPE"
+            ]
+          }
+        ]
+      },
+      "expected_behavior": "Weather source correction overlaps one region/time envelope"
+    },
+    {
+      "id": "CI-15",
+      "name": "EPD revision affects lifecycle declaration only",
+      "change_class": "epd_revision",
+      "evidence_class": "synthetic",
+      "input": {
+        "event": {
+          "event_id": "SYN-EVENT-CI-15",
+          "subject_node_id": "SUBJECT-15",
+          "change_class": "epd_revision",
+          "source_owner": "synthetic-owner",
+          "source_revision_before": "R1",
+          "source_revision_after": "R2",
+          "authority_state": "authorized",
+          "effective_at": 1140,
+          "recorded_at": 1150,
+          "trusted_at": 1160,
+          "time_basis": "UTC_UNIX_SECONDS"
+        },
+        "query": {
+          "evaluation_at": 1500,
+          "historical_evaluation_at": null,
+          "time_basis": "UTC_UNIX_SECONDS",
+          "scope_id": "SYNTHETIC-DISTRICT-01",
+          "functional_unit": "synthetic-city-claim",
+          "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+        },
+        "graph": {
+          "snapshot_id": "SYN-GRAPH-CI-15",
+          "snapshot_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "coverage_state": "complete",
+          "excluded_domains": [],
+          "edges": [
+            {
+              "from": "SUBJECT-15",
+              "to": "claim_product_lca",
+              "relation": "depends_on_exact_subject_revision"
+            }
+          ],
+          "impact_report": {
+            "report_id": "SYN-IMPACT-CI-15",
+            "report_state": "qualified",
+            "graph_snapshot_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "impacted_claim_ids": [
+              "claim_product_lca"
+            ],
+            "query_boundary": "declared_fixture_graph",
+            "event_id": "SYN-EVENT-CI-15",
+            "scope_id": "SYNTHETIC-DISTRICT-01",
+            "coverage_receipt_id": "SYN-COVERAGE-CI-15",
+            "base_graph_snapshot_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "claim_findings": [
+              {
+                "claim_id": "claim_product_lca",
+                "disposition": "revalidate",
+                "reason_codes": [
+                  "EPD_REVISION_CHANGED"
+                ],
+                "dependency_path": [
+                  "SUBJECT-15",
+                  "claim_product_lca"
+                ],
+                "coverage_proof_id": null
+              },
+              {
+                "claim_id": "claim_cassette_commissioning",
+                "disposition": "no_impact",
+                "reason_codes": [
+                  "NO_ENVIRONMENTAL_DECLARATION_DEPENDENCY"
+                ],
+                "dependency_path": [],
+                "coverage_proof_id": "SYN-PROOF-CI-15-claim_cassette_commissioning"
+              }
+            ],
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+          }
+        },
+        "claims": [
+          {
+            "claim_id": "claim_product_lca",
+            "dependency_subjects": [
+              "SUBJECT-15"
+            ],
+            "historical_status": "applicable_current",
+            "scope_id": "SYNTHETIC-DISTRICT-01",
+            "functional_unit": "synthetic-city-claim",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+          },
+          {
+            "claim_id": "claim_cassette_commissioning",
+            "dependency_subjects": [
+              "UNRELATED-claim_cassette_commissioning"
+            ],
+            "historical_status": "applicable_current",
+            "scope_id": "SYNTHETIC-DISTRICT-01",
+            "functional_unit": "synthetic-city-claim",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+          }
+        ],
+        "revalidation_receipts": []
+      },
+      "expected": {
+        "claim_applicability": [
+          {
+            "claim_id": "claim_product_lca",
+            "state": "revalidation_required",
+            "reason_codes": [
+              "EPD_REVISION_CHANGED"
+            ]
+          },
+          {
+            "claim_id": "claim_cassette_commissioning",
+            "state": "not_affected",
+            "reason_codes": [
+              "NO_ENVIRONMENTAL_DECLARATION_DEPENDENCY"
+            ]
+          }
+        ]
+      },
+      "expected_behavior": "EPD revision affects lifecycle declaration only"
+    },
+    {
+      "id": "CI-16",
+      "name": "Future-effective standard is not applicable at evaluation time",
+      "change_class": "policy_update",
+      "evidence_class": "synthetic",
+      "input": {
+        "event": {
+          "event_id": "SYN-EVENT-CI-16",
+          "subject_node_id": "SUBJECT-16",
+          "change_class": "policy_update",
+          "source_owner": "synthetic-owner",
+          "source_revision_before": "R1",
+          "source_revision_after": "R2",
+          "authority_state": "authorized",
+          "effective_at": 2000,
+          "recorded_at": 1160,
+          "trusted_at": 1170,
+          "time_basis": "UTC_UNIX_SECONDS"
+        },
+        "query": {
+          "evaluation_at": 1500,
+          "historical_evaluation_at": null,
+          "time_basis": "UTC_UNIX_SECONDS",
+          "scope_id": "SYNTHETIC-DISTRICT-01",
+          "functional_unit": "synthetic-city-claim",
+          "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+        },
+        "graph": {
+          "snapshot_id": "SYN-GRAPH-CI-16",
+          "snapshot_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "coverage_state": "complete",
+          "excluded_domains": [],
+          "edges": [
+            {
+              "from": "SUBJECT-16",
+              "to": "claim_current_design_assessment",
+              "relation": "depends_on_exact_subject_revision"
+            }
+          ],
+          "impact_report": {
+            "report_id": "SYN-IMPACT-CI-16",
+            "report_state": "qualified",
+            "graph_snapshot_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "impacted_claim_ids": [],
+            "query_boundary": "declared_fixture_graph",
+            "event_id": "SYN-EVENT-CI-16",
+            "scope_id": "SYNTHETIC-DISTRICT-01",
+            "coverage_receipt_id": "SYN-COVERAGE-CI-16",
+            "base_graph_snapshot_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "claim_findings": [
+              {
+                "claim_id": "claim_current_design_assessment",
+                "disposition": "no_impact",
+                "reason_codes": [
+                  "NEW_EDITION_NOT_YET_EFFECTIVE"
+                ],
+                "dependency_path": [],
+                "coverage_proof_id": "SYN-PROOF-CI-16-claim_current_design_assessment"
+              }
+            ],
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+          }
+        },
+        "claims": [
+          {
+            "claim_id": "claim_current_design_assessment",
+            "dependency_subjects": [
+              "SUBJECT-16"
+            ],
+            "historical_status": "applicable_current",
+            "scope_id": "SYNTHETIC-DISTRICT-01",
+            "functional_unit": "synthetic-city-claim",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+          }
+        ],
+        "revalidation_receipts": []
+      },
+      "expected": {
+        "claim_applicability": [
+          {
+            "claim_id": "claim_current_design_assessment",
+            "state": "not_affected",
+            "reason_codes": [
+              "NEW_EDITION_NOT_YET_EFFECTIVE"
+            ]
+          }
+        ]
+      },
+      "expected_behavior": "Future-effective standard is not applicable at evaluation time"
+    },
+    {
+      "id": "CI-17",
+      "name": "Late correction changes current reliance but preserves prior knowledge state",
+      "change_class": "source_correction",
+      "evidence_class": "synthetic",
+      "input": {
+        "event": {
+          "event_id": "SYN-EVENT-CI-17",
+          "subject_node_id": "SUBJECT-17",
+          "change_class": "source_correction",
+          "source_owner": "synthetic-owner",
+          "source_revision_before": "R1",
+          "source_revision_after": "R2",
+          "authority_state": "authorized",
+          "effective_at": 1160,
+          "recorded_at": 1170,
+          "trusted_at": 1180,
+          "time_basis": "UTC_UNIX_SECONDS"
+        },
+        "query": {
+          "evaluation_at": 1500,
+          "historical_evaluation_at": 1005,
+          "time_basis": "UTC_UNIX_SECONDS",
+          "scope_id": "SYNTHETIC-DISTRICT-01",
+          "functional_unit": "synthetic-city-claim",
+          "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+        },
+        "graph": {
+          "snapshot_id": "SYN-GRAPH-CI-17",
+          "snapshot_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "coverage_state": "complete",
+          "excluded_domains": [],
+          "edges": [
+            {
+              "from": "SUBJECT-17",
+              "to": "claim_current_decision",
+              "relation": "depends_on_exact_subject_revision"
+            },
+            {
+              "from": "SUBJECT-17",
+              "to": "claim_historical_decision_view",
+              "relation": "depends_on_exact_subject_revision"
+            }
+          ],
+          "impact_report": {
+            "report_id": "SYN-IMPACT-CI-17",
+            "report_state": "qualified",
+            "graph_snapshot_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "impacted_claim_ids": [
+              "claim_current_decision"
+            ],
+            "query_boundary": "declared_fixture_graph",
+            "event_id": "SYN-EVENT-CI-17",
+            "scope_id": "SYNTHETIC-DISTRICT-01",
+            "coverage_receipt_id": "SYN-COVERAGE-CI-17",
+            "base_graph_snapshot_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "claim_findings": [
+              {
+                "claim_id": "claim_current_decision",
+                "disposition": "revalidate",
+                "reason_codes": [
+                  "LATE_CORRECTION_AFFECTS_CURRENT_RELIANCE"
+                ],
+                "dependency_path": [
+                  "SUBJECT-17",
+                  "claim_current_decision"
+                ],
+                "coverage_proof_id": null
+              },
+              {
+                "claim_id": "claim_historical_decision_view",
+                "disposition": "no_impact",
+                "reason_codes": [
+                  "NOT_KNOWN_AT_HISTORICAL_EVALUATION_TIME"
+                ],
+                "dependency_path": [],
+                "coverage_proof_id": "SYN-PROOF-CI-17-claim_historical_decision_view"
+              }
+            ],
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+          }
+        },
+        "claims": [
+          {
+            "claim_id": "claim_current_decision",
+            "dependency_subjects": [
+              "SUBJECT-17"
+            ],
+            "historical_status": "applicable_current",
+            "scope_id": "SYNTHETIC-DISTRICT-01",
+            "functional_unit": "synthetic-city-claim",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+          },
+          {
+            "claim_id": "claim_historical_decision_view",
+            "dependency_subjects": [
+              "SUBJECT-17"
+            ],
+            "historical_status": "applicable_current",
+            "scope_id": "SYNTHETIC-DISTRICT-01",
+            "functional_unit": "synthetic-city-claim",
+            "evaluation_mode": "historical",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+          }
+        ],
+        "revalidation_receipts": []
+      },
+      "expected": {
+        "claim_applicability": [
+          {
+            "claim_id": "claim_current_decision",
+            "state": "revalidation_required",
+            "reason_codes": [
+              "LATE_CORRECTION_AFFECTS_CURRENT_RELIANCE"
+            ]
+          },
+          {
+            "claim_id": "claim_historical_decision_view",
+            "state": "not_affected",
+            "reason_codes": [
+              "NOT_KNOWN_AT_HISTORICAL_EVALUATION_TIME"
+            ]
+          }
+        ]
+      },
+      "expected_behavior": "Late correction changes current reliance but preserves prior knowledge state"
+    },
+    {
+      "id": "CI-18",
+      "name": "Lot revocation statement is unsigned and untrusted",
+      "change_class": "lot_revocation",
+      "evidence_class": "synthetic",
+      "input": {
+        "event": {
+          "event_id": "SYN-EVENT-CI-18",
+          "subject_node_id": "SUBJECT-18",
+          "change_class": "lot_revocation",
+          "source_owner": "synthetic-owner",
+          "source_revision_before": "R1",
+          "source_revision_after": "R2",
+          "authority_state": "unverified",
+          "effective_at": 1170,
+          "recorded_at": 1180,
+          "trusted_at": null,
+          "time_basis": "UTC_UNIX_SECONDS"
+        },
+        "query": {
+          "evaluation_at": 1500,
+          "historical_evaluation_at": null,
+          "time_basis": "UTC_UNIX_SECONDS",
+          "scope_id": "SYNTHETIC-DISTRICT-01",
+          "functional_unit": "synthetic-city-claim",
+          "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+        },
+        "graph": {
+          "snapshot_id": "SYN-GRAPH-CI-18",
+          "snapshot_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "coverage_state": "complete",
+          "excluded_domains": [],
+          "edges": [
+            {
+              "from": "SUBJECT-18",
+              "to": "claim_asset_uses_lot",
+              "relation": "depends_on_exact_subject_revision"
+            }
+          ],
+          "impact_report": {
+            "report_id": "SYN-IMPACT-CI-18",
+            "report_state": "qualified",
+            "graph_snapshot_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "impacted_claim_ids": [],
+            "query_boundary": "declared_fixture_graph",
+            "event_id": "SYN-EVENT-CI-18",
+            "scope_id": "SYNTHETIC-DISTRICT-01",
+            "coverage_receipt_id": "SYN-COVERAGE-CI-18",
+            "base_graph_snapshot_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "claim_findings": [
+              {
+                "claim_id": "claim_asset_uses_lot",
+                "disposition": "insufficient",
+                "reason_codes": [
+                  "REVOCATION_AUTHORITY_UNVERIFIED"
+                ],
+                "dependency_path": [
+                  "SUBJECT-18",
+                  "claim_asset_uses_lot"
+                ],
+                "coverage_proof_id": null
+              }
+            ],
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+          }
+        },
+        "claims": [
+          {
+            "claim_id": "claim_asset_uses_lot",
+            "dependency_subjects": [
+              "SUBJECT-18"
+            ],
+            "historical_status": "applicable_current",
+            "scope_id": "SYNTHETIC-DISTRICT-01",
+            "functional_unit": "synthetic-city-claim",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+          }
+        ],
+        "revalidation_receipts": []
+      },
+      "expected": {
+        "claim_applicability": [
+          {
+            "claim_id": "claim_asset_uses_lot",
+            "state": "insufficient_evidence",
+            "reason_codes": [
+              "REVOCATION_AUTHORITY_UNVERIFIED"
+            ]
+          }
+        ]
+      },
+      "expected_behavior": "Lot revocation statement is unsigned and untrusted"
+    },
+    {
+      "id": "CI-19",
+      "name": "Digest declaration changes without payload-byte verification",
+      "change_class": "payload_digest_change",
+      "evidence_class": "synthetic",
+      "input": {
+        "event": {
+          "event_id": "SYN-EVENT-CI-19",
+          "subject_node_id": "SUBJECT-19",
+          "change_class": "payload_digest_change",
+          "source_owner": "synthetic-owner",
+          "source_revision_before": "R1",
+          "source_revision_after": "R2",
+          "authority_state": "authorized",
+          "effective_at": 1180,
+          "recorded_at": 1190,
+          "trusted_at": 1200,
+          "time_basis": "UTC_UNIX_SECONDS",
+          "payload_bytes_state": "unverified"
+        },
+        "query": {
+          "evaluation_at": 1500,
+          "historical_evaluation_at": null,
+          "time_basis": "UTC_UNIX_SECONDS",
+          "scope_id": "SYNTHETIC-DISTRICT-01",
+          "functional_unit": "synthetic-city-claim",
+          "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+        },
+        "graph": {
+          "snapshot_id": "SYN-GRAPH-CI-19",
+          "snapshot_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "coverage_state": "complete",
+          "excluded_domains": [],
+          "edges": [
+            {
+              "from": "SUBJECT-19",
+              "to": "claim_source_payload",
+              "relation": "depends_on_exact_subject_revision"
+            }
+          ],
+          "impact_report": {
+            "report_id": "SYN-IMPACT-CI-19",
+            "report_state": "qualified",
+            "graph_snapshot_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "impacted_claim_ids": [],
+            "query_boundary": "declared_fixture_graph",
+            "event_id": "SYN-EVENT-CI-19",
+            "scope_id": "SYNTHETIC-DISTRICT-01",
+            "coverage_receipt_id": "SYN-COVERAGE-CI-19",
+            "base_graph_snapshot_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "claim_findings": [
+              {
+                "claim_id": "claim_source_payload",
+                "disposition": "insufficient",
+                "reason_codes": [
+                  "PAYLOAD_BYTES_NOT_REVERIFIED"
+                ],
+                "dependency_path": [
+                  "SUBJECT-19",
+                  "claim_source_payload"
+                ],
+                "coverage_proof_id": null
+              }
+            ],
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+          }
+        },
+        "claims": [
+          {
+            "claim_id": "claim_source_payload",
+            "dependency_subjects": [
+              "SUBJECT-19"
+            ],
+            "historical_status": "applicable_current",
+            "scope_id": "SYNTHETIC-DISTRICT-01",
+            "functional_unit": "synthetic-city-claim",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+          }
+        ],
+        "revalidation_receipts": []
+      },
+      "expected": {
+        "claim_applicability": [
+          {
+            "claim_id": "claim_source_payload",
+            "state": "insufficient_evidence",
+            "reason_codes": [
+              "PAYLOAD_BYTES_NOT_REVERIFIED"
+            ]
+          }
+        ]
+      },
+      "expected_behavior": "Digest declaration changes without payload-byte verification"
+    },
+    {
+      "id": "CI-20",
+      "name": "Bytes verify but issuer/source authority is unknown",
+      "change_class": "payload_retrieval",
+      "evidence_class": "synthetic",
+      "input": {
+        "event": {
+          "event_id": "SYN-EVENT-CI-20",
+          "subject_node_id": "SUBJECT-20",
+          "change_class": "payload_retrieval",
+          "source_owner": "synthetic-owner",
+          "source_revision_before": "R1",
+          "source_revision_after": "R2",
+          "authority_state": "unverified",
+          "effective_at": 1190,
+          "recorded_at": 1200,
+          "trusted_at": null,
+          "time_basis": "UTC_UNIX_SECONDS",
+          "payload_bytes_state": "verified",
+          "source_authority_state": "unqualified"
+        },
+        "query": {
+          "evaluation_at": 1500,
+          "historical_evaluation_at": null,
+          "time_basis": "UTC_UNIX_SECONDS",
+          "scope_id": "SYNTHETIC-DISTRICT-01",
+          "functional_unit": "synthetic-city-claim",
+          "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+        },
+        "graph": {
+          "snapshot_id": "SYN-GRAPH-CI-20",
+          "snapshot_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "coverage_state": "complete",
+          "excluded_domains": [],
+          "edges": [
+            {
+              "from": "SUBJECT-20",
+              "to": "claim_source_payload",
+              "relation": "depends_on_exact_subject_revision"
+            }
+          ],
+          "impact_report": {
+            "report_id": "SYN-IMPACT-CI-20",
+            "report_state": "qualified",
+            "graph_snapshot_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "impacted_claim_ids": [],
+            "query_boundary": "declared_fixture_graph",
+            "event_id": "SYN-EVENT-CI-20",
+            "scope_id": "SYNTHETIC-DISTRICT-01",
+            "coverage_receipt_id": "SYN-COVERAGE-CI-20",
+            "base_graph_snapshot_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "claim_findings": [
+              {
+                "claim_id": "claim_source_payload",
+                "disposition": "insufficient",
+                "reason_codes": [
+                  "ISSUER_AUTHORITY_UNQUALIFIED"
+                ],
+                "dependency_path": [
+                  "SUBJECT-20",
+                  "claim_source_payload"
+                ],
+                "coverage_proof_id": null
+              }
+            ],
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+          }
+        },
+        "claims": [
+          {
+            "claim_id": "claim_source_payload",
+            "dependency_subjects": [
+              "SUBJECT-20"
+            ],
+            "historical_status": "applicable_current",
+            "scope_id": "SYNTHETIC-DISTRICT-01",
+            "functional_unit": "synthetic-city-claim",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+          }
+        ],
+        "revalidation_receipts": []
+      },
+      "expected": {
+        "claim_applicability": [
+          {
+            "claim_id": "claim_source_payload",
+            "state": "insufficient_evidence",
+            "reason_codes": [
+              "ISSUER_AUTHORITY_UNQUALIFIED"
+            ]
+          }
+        ]
+      },
+      "expected_behavior": "Bytes verify but issuer/source authority is unknown"
+    },
+    {
+      "id": "CI-21",
+      "name": "Dependency edge missing from supposedly complete impact graph",
+      "change_class": "dependency_coverage_gap",
+      "evidence_class": "synthetic",
+      "input": {
+        "event": {
+          "event_id": "SYN-EVENT-CI-21",
+          "subject_node_id": "SUBJECT-21",
+          "change_class": "dependency_coverage_gap",
+          "source_owner": "synthetic-owner",
+          "source_revision_before": "R1",
+          "source_revision_after": "R2",
+          "authority_state": "authorized",
+          "effective_at": 1200,
+          "recorded_at": 1210,
+          "trusted_at": 1220,
+          "time_basis": "UTC_UNIX_SECONDS"
+        },
+        "query": {
+          "evaluation_at": 1500,
+          "historical_evaluation_at": null,
+          "time_basis": "UTC_UNIX_SECONDS",
+          "scope_id": "SYNTHETIC-DISTRICT-01",
+          "functional_unit": "synthetic-city-claim",
+          "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+        },
+        "graph": {
+          "snapshot_id": "SYN-GRAPH-CI-21",
+          "snapshot_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "coverage_state": "incomplete",
+          "excluded_domains": [
+            "unresolved-owner-domain"
+          ],
+          "edges": [
+            {
+              "from": "SUBJECT-21",
+              "to": "claim_safety_assessment",
+              "relation": "depends_on_exact_subject_revision"
+            }
+          ],
+          "impact_report": {
+            "report_id": "SYN-IMPACT-CI-21",
+            "report_state": "coverage_incomplete",
+            "graph_snapshot_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "impacted_claim_ids": [],
+            "query_boundary": "declared_fixture_graph",
+            "event_id": "SYN-EVENT-CI-21",
+            "scope_id": "SYNTHETIC-DISTRICT-01",
+            "coverage_receipt_id": "SYN-COVERAGE-CI-21",
+            "base_graph_snapshot_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "claim_findings": [
+              {
+                "claim_id": "claim_safety_assessment",
+                "disposition": "insufficient",
+                "reason_codes": [
+                  "MANDATORY_DEPENDENCY_EDGE_UNRESOLVED"
+                ],
+                "dependency_path": [
+                  "SUBJECT-21",
+                  "claim_safety_assessment"
+                ],
+                "coverage_proof_id": null
+              }
+            ],
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+          }
+        },
+        "claims": [
+          {
+            "claim_id": "claim_safety_assessment",
+            "dependency_subjects": [
+              "SUBJECT-21"
+            ],
+            "historical_status": "applicable_current",
+            "scope_id": "SYNTHETIC-DISTRICT-01",
+            "functional_unit": "synthetic-city-claim",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+          }
+        ],
+        "revalidation_receipts": []
+      },
+      "expected": {
+        "claim_applicability": [
+          {
+            "claim_id": "claim_safety_assessment",
+            "state": "insufficient_evidence",
+            "reason_codes": [
+              "MANDATORY_DEPENDENCY_EDGE_UNRESOLVED"
+            ]
+          }
+        ]
+      },
+      "expected_behavior": "Dependency edge missing from supposedly complete impact graph"
+    },
+    {
+      "id": "CI-22",
+      "name": "Dependency graph contains a cycle",
+      "change_class": "graph_integrity_error",
+      "evidence_class": "synthetic",
+      "input": {
+        "event": {
+          "event_id": "SYN-EVENT-CI-22",
+          "subject_node_id": "SUBJECT-22",
+          "change_class": "graph_integrity_error",
+          "source_owner": "synthetic-owner",
+          "source_revision_before": "R1",
+          "source_revision_after": "R2",
+          "authority_state": "authorized",
+          "effective_at": 1210,
+          "recorded_at": 1220,
+          "trusted_at": 1230,
+          "time_basis": "UTC_UNIX_SECONDS"
+        },
+        "query": {
+          "evaluation_at": 1500,
+          "historical_evaluation_at": null,
+          "time_basis": "UTC_UNIX_SECONDS",
+          "scope_id": "SYNTHETIC-DISTRICT-01",
+          "functional_unit": "synthetic-city-claim",
+          "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+        },
+        "graph": {
+          "snapshot_id": "SYN-GRAPH-CI-22",
+          "snapshot_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "coverage_state": "complete",
+          "excluded_domains": [],
+          "edges": [
+            {
+              "from": "SUBJECT-22",
+              "to": "claim_dependent_decision",
+              "relation": "depends_on_exact_subject_revision"
+            },
+            {
+              "from": "claim_dependent_decision",
+              "to": "SUBJECT-22",
+              "relation": "synthetic_cycle_control"
+            }
+          ],
+          "impact_report": {
+            "report_id": "SYN-IMPACT-CI-22",
+            "report_state": "qualified",
+            "graph_snapshot_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "impacted_claim_ids": [
+              "claim_dependent_decision"
+            ],
+            "query_boundary": "declared_fixture_graph",
+            "event_id": "SYN-EVENT-CI-22",
+            "scope_id": "SYNTHETIC-DISTRICT-01",
+            "coverage_receipt_id": "SYN-COVERAGE-CI-22",
+            "base_graph_snapshot_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "claim_findings": [
+              {
+                "claim_id": "claim_dependent_decision",
+                "disposition": "invalidate",
+                "reason_codes": [
+                  "DEPENDENCY_GRAPH_CYCLE"
+                ],
+                "dependency_path": [
+                  "SUBJECT-22",
+                  "claim_dependent_decision"
+                ],
+                "coverage_proof_id": null
+              }
+            ],
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+          },
+          "integrity_state": "cycle_detected"
+        },
+        "claims": [
+          {
+            "claim_id": "claim_dependent_decision",
+            "dependency_subjects": [
+              "SUBJECT-22"
+            ],
+            "historical_status": "applicable_current",
+            "scope_id": "SYNTHETIC-DISTRICT-01",
+            "functional_unit": "synthetic-city-claim",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+          }
+        ],
+        "revalidation_receipts": []
+      },
+      "expected": {
+        "claim_applicability": [
+          {
+            "claim_id": "claim_dependent_decision",
+            "state": "invalid_evidence",
+            "reason_codes": [
+              "DEPENDENCY_GRAPH_CYCLE"
+            ]
+          }
+        ]
+      },
+      "expected_behavior": "Dependency graph contains a cycle"
+    },
+    {
+      "id": "CI-23",
+      "name": "Sparse impact delta is bound to the wrong base graph",
+      "change_class": "impact_delta",
+      "evidence_class": "synthetic",
+      "input": {
+        "event": {
+          "event_id": "SYN-EVENT-CI-23",
+          "subject_node_id": "SUBJECT-23",
+          "change_class": "impact_delta",
+          "source_owner": "synthetic-owner",
+          "source_revision_before": "R1",
+          "source_revision_after": "R2",
+          "authority_state": "authorized",
+          "effective_at": 1220,
+          "recorded_at": 1230,
+          "trusted_at": 1240,
+          "time_basis": "UTC_UNIX_SECONDS"
+        },
+        "query": {
+          "evaluation_at": 1500,
+          "historical_evaluation_at": null,
+          "time_basis": "UTC_UNIX_SECONDS",
+          "scope_id": "SYNTHETIC-DISTRICT-01",
+          "functional_unit": "synthetic-city-claim",
+          "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+        },
+        "graph": {
+          "snapshot_id": "SYN-GRAPH-CI-23",
+          "snapshot_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "coverage_state": "complete",
+          "excluded_domains": [],
+          "edges": [
+            {
+              "from": "SUBJECT-23",
+              "to": "claim_dependent_decision",
+              "relation": "depends_on_exact_subject_revision"
+            }
+          ],
+          "impact_report": {
+            "report_id": "SYN-IMPACT-CI-23",
+            "report_state": "qualified",
+            "graph_snapshot_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "impacted_claim_ids": [
+              "claim_dependent_decision"
+            ],
+            "query_boundary": "declared_fixture_graph",
+            "event_id": "SYN-EVENT-CI-23",
+            "scope_id": "SYNTHETIC-DISTRICT-01",
+            "coverage_receipt_id": "SYN-COVERAGE-CI-23",
+            "base_graph_snapshot_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "claim_findings": [
+              {
+                "claim_id": "claim_dependent_decision",
+                "disposition": "invalidate",
+                "reason_codes": [
+                  "IMPACT_DELTA_BASE_MISMATCH"
+                ],
+                "dependency_path": [
+                  "SUBJECT-23",
+                  "claim_dependent_decision"
+                ],
+                "coverage_proof_id": null
+              }
+            ],
+            "delta_base_snapshot_digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+          }
+        },
+        "claims": [
+          {
+            "claim_id": "claim_dependent_decision",
+            "dependency_subjects": [
+              "SUBJECT-23"
+            ],
+            "historical_status": "applicable_current",
+            "scope_id": "SYNTHETIC-DISTRICT-01",
+            "functional_unit": "synthetic-city-claim",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+          }
+        ],
+        "revalidation_receipts": []
+      },
+      "expected": {
+        "claim_applicability": [
+          {
+            "claim_id": "claim_dependent_decision",
+            "state": "invalid_evidence",
+            "reason_codes": [
+              "IMPACT_DELTA_BASE_MISMATCH"
+            ]
+          }
+        ]
+      },
+      "expected_behavior": "Sparse impact delta is bound to the wrong base graph"
+    },
+    {
+      "id": "CI-24",
+      "name": "Duplicate or out-of-order invalidation sequence",
+      "change_class": "invalidation_sequence",
+      "evidence_class": "synthetic",
+      "input": {
+        "event": {
+          "event_id": "SYN-EVENT-CI-24",
+          "subject_node_id": "SUBJECT-24",
+          "change_class": "invalidation_sequence",
+          "source_owner": "synthetic-owner",
+          "source_revision_before": "R1",
+          "source_revision_after": "R2",
+          "authority_state": "authorized",
+          "effective_at": 1230,
+          "recorded_at": 1240,
+          "trusted_at": 1250,
+          "time_basis": "UTC_UNIX_SECONDS",
+          "owner_sequence": 4
+        },
+        "query": {
+          "evaluation_at": 1500,
+          "historical_evaluation_at": null,
+          "time_basis": "UTC_UNIX_SECONDS",
+          "scope_id": "SYNTHETIC-DISTRICT-01",
+          "functional_unit": "synthetic-city-claim",
+          "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+        },
+        "graph": {
+          "snapshot_id": "SYN-GRAPH-CI-24",
+          "snapshot_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "coverage_state": "complete",
+          "excluded_domains": [],
+          "edges": [
+            {
+              "from": "SUBJECT-24",
+              "to": "claim_dependent_decision",
+              "relation": "depends_on_exact_subject_revision"
+            }
+          ],
+          "impact_report": {
+            "report_id": "SYN-IMPACT-CI-24",
+            "report_state": "qualified",
+            "graph_snapshot_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "impacted_claim_ids": [
+              "claim_dependent_decision"
+            ],
+            "query_boundary": "declared_fixture_graph",
+            "event_id": "SYN-EVENT-CI-24",
+            "scope_id": "SYNTHETIC-DISTRICT-01",
+            "coverage_receipt_id": "SYN-COVERAGE-CI-24",
+            "base_graph_snapshot_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "claim_findings": [
+              {
+                "claim_id": "claim_dependent_decision",
+                "disposition": "invalidate",
+                "reason_codes": [
+                  "EVENT_SEQUENCE_DUPLICATE_OR_OUT_OF_ORDER"
+                ],
+                "dependency_path": [
+                  "SUBJECT-24",
+                  "claim_dependent_decision"
+                ],
+                "coverage_proof_id": null
+              }
+            ],
+            "owner_sequence": 4,
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+          },
+          "last_owner_sequence": 5
+        },
+        "claims": [
+          {
+            "claim_id": "claim_dependent_decision",
+            "dependency_subjects": [
+              "SUBJECT-24"
+            ],
+            "historical_status": "applicable_current",
+            "scope_id": "SYNTHETIC-DISTRICT-01",
+            "functional_unit": "synthetic-city-claim",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+          }
+        ],
+        "revalidation_receipts": []
+      },
+      "expected": {
+        "claim_applicability": [
+          {
+            "claim_id": "claim_dependent_decision",
+            "state": "invalid_evidence",
+            "reason_codes": [
+              "EVENT_SEQUENCE_DUPLICATE_OR_OUT_OF_ORDER"
+            ]
+          }
+        ]
+      },
+      "expected_behavior": "Duplicate or out-of-order invalidation sequence"
+    },
+    {
+      "id": "CI-25",
+      "name": "One affected receipt is revalidated but dependent decision is not",
+      "change_class": "partial_revalidation",
+      "evidence_class": "synthetic",
+      "input": {
+        "event": {
+          "event_id": "SYN-EVENT-CI-25",
+          "subject_node_id": "SUBJECT-25",
+          "change_class": "partial_revalidation",
+          "source_owner": "synthetic-owner",
+          "source_revision_before": "R1",
+          "source_revision_after": "R2",
+          "authority_state": "authorized",
+          "effective_at": 1240,
+          "recorded_at": 1250,
+          "trusted_at": 1260,
+          "time_basis": "UTC_UNIX_SECONDS"
+        },
+        "query": {
+          "evaluation_at": 1500,
+          "historical_evaluation_at": null,
+          "time_basis": "UTC_UNIX_SECONDS",
+          "scope_id": "SYNTHETIC-DISTRICT-01",
+          "functional_unit": "synthetic-city-claim",
+          "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+        },
+        "graph": {
+          "snapshot_id": "SYN-GRAPH-CI-25",
+          "snapshot_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "coverage_state": "complete",
+          "excluded_domains": [],
+          "edges": [
+            {
+              "from": "SUBJECT-25",
+              "to": "claim_receipt",
+              "relation": "depends_on_exact_subject_revision"
+            },
+            {
+              "from": "SUBJECT-25",
+              "to": "claim_dependent_decision",
+              "relation": "depends_on_exact_subject_revision"
+            }
+          ],
+          "impact_report": {
+            "report_id": "SYN-IMPACT-CI-25",
+            "report_state": "qualified",
+            "graph_snapshot_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "impacted_claim_ids": [
+              "claim_receipt",
+              "claim_dependent_decision"
+            ],
+            "query_boundary": "declared_fixture_graph",
+            "event_id": "SYN-EVENT-CI-25",
+            "scope_id": "SYNTHETIC-DISTRICT-01",
+            "coverage_receipt_id": "SYN-COVERAGE-CI-25",
+            "base_graph_snapshot_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "claim_findings": [
+              {
+                "claim_id": "claim_receipt",
+                "reason_codes": [
+                  "EXACT_POST_CHANGE_REVALIDATION_ACCEPTED"
+                ],
+                "dependency_path": [
+                  "SUBJECT-25",
+                  "claim_receipt"
+                ],
+                "coverage_proof_id": null,
+                "disposition": "revalidate"
+              },
+              {
+                "claim_id": "claim_dependent_decision",
+                "disposition": "revalidate",
+                "reason_codes": [
+                  "DEPENDENT_DECISION_NOT_REVALIDATED"
+                ],
+                "dependency_path": [
+                  "SUBJECT-25",
+                  "claim_dependent_decision"
+                ],
+                "coverage_proof_id": null
+              }
+            ],
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+          }
+        },
+        "claims": [
+          {
+            "claim_id": "claim_receipt",
+            "dependency_subjects": [
+              "SUBJECT-25"
+            ],
+            "historical_status": "applicable_current",
+            "scope_id": "SYNTHETIC-DISTRICT-01",
+            "functional_unit": "synthetic-city-claim",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+          },
+          {
+            "claim_id": "claim_dependent_decision",
+            "dependency_subjects": [
+              "SUBJECT-25"
+            ],
+            "historical_status": "applicable_current",
+            "scope_id": "SYNTHETIC-DISTRICT-01",
+            "functional_unit": "synthetic-city-claim",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+          }
+        ],
+        "revalidation_receipts": [
+          {
+            "receipt_id": "SYN-REVAL-1",
+            "claim_id": "claim_receipt",
+            "subject_revision": "R2",
+            "scope_id": "SYNTHETIC-DISTRICT-01",
+            "state": "qualified",
+            "event_id": "SYN-EVENT-CI-25",
+            "report_id": "SYN-IMPACT-CI-25",
+            "graph_snapshot_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "trusted_at": 1400,
+            "evidence_state": "current",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+          }
+        ]
+      },
+      "expected": {
+        "claim_applicability": [
+          {
+            "claim_id": "claim_receipt",
+            "state": "applicable_current",
+            "reason_codes": [
+              "EXACT_POST_CHANGE_REVALIDATION_ACCEPTED"
+            ]
+          },
+          {
+            "claim_id": "claim_dependent_decision",
+            "state": "revalidation_required",
+            "reason_codes": [
+              "DEPENDENT_DECISION_NOT_REVALIDATED"
+            ]
+          }
+        ]
+      },
+      "expected_behavior": "One affected receipt is revalidated but dependent decision is not"
+    },
+    {
+      "id": "CI-26",
+      "name": "Revalidation receipt binds a stale design revision",
+      "change_class": "stale_revalidation",
+      "evidence_class": "synthetic",
+      "input": {
+        "event": {
+          "event_id": "SYN-EVENT-CI-26",
+          "subject_node_id": "SUBJECT-26",
+          "change_class": "stale_revalidation",
+          "source_owner": "synthetic-owner",
+          "source_revision_before": "R1",
+          "source_revision_after": "R2",
+          "authority_state": "authorized",
+          "effective_at": 1250,
+          "recorded_at": 1260,
+          "trusted_at": 1270,
+          "time_basis": "UTC_UNIX_SECONDS"
+        },
+        "query": {
+          "evaluation_at": 1500,
+          "historical_evaluation_at": null,
+          "time_basis": "UTC_UNIX_SECONDS",
+          "scope_id": "SYNTHETIC-DISTRICT-01",
+          "functional_unit": "synthetic-city-claim",
+          "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+        },
+        "graph": {
+          "snapshot_id": "SYN-GRAPH-CI-26",
+          "snapshot_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "coverage_state": "complete",
+          "excluded_domains": [],
+          "edges": [
+            {
+              "from": "SUBJECT-26",
+              "to": "claim_current_design_decision",
+              "relation": "depends_on_exact_subject_revision"
+            }
+          ],
+          "impact_report": {
+            "report_id": "SYN-IMPACT-CI-26",
+            "report_state": "qualified",
+            "graph_snapshot_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "impacted_claim_ids": [
+              "claim_current_design_decision"
+            ],
+            "query_boundary": "declared_fixture_graph",
+            "event_id": "SYN-EVENT-CI-26",
+            "scope_id": "SYNTHETIC-DISTRICT-01",
+            "coverage_receipt_id": "SYN-COVERAGE-CI-26",
+            "base_graph_snapshot_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "claim_findings": [
+              {
+                "claim_id": "claim_current_design_decision",
+                "disposition": "revalidate",
+                "reason_codes": [
+                  "REVALIDATION_REVISION_MISMATCH"
+                ],
+                "dependency_path": [
+                  "SUBJECT-26",
+                  "claim_current_design_decision"
+                ],
+                "coverage_proof_id": null
+              }
+            ],
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+          }
+        },
+        "claims": [
+          {
+            "claim_id": "claim_current_design_decision",
+            "dependency_subjects": [
+              "SUBJECT-26"
+            ],
+            "historical_status": "applicable_current",
+            "scope_id": "SYNTHETIC-DISTRICT-01",
+            "functional_unit": "synthetic-city-claim",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+          }
+        ],
+        "revalidation_receipts": [
+          {
+            "receipt_id": "SYN-REVAL-STALE",
+            "claim_id": "claim_current_design_decision",
+            "subject_revision": "R1",
+            "scope_id": "SYNTHETIC-DISTRICT-01",
+            "state": "qualified",
+            "event_id": "SYN-EVENT-CI-26",
+            "report_id": "SYN-IMPACT-CI-26",
+            "graph_snapshot_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "trusted_at": 1400,
+            "evidence_state": "current",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+          }
+        ]
+      },
+      "expected": {
+        "claim_applicability": [
+          {
+            "claim_id": "claim_current_design_decision",
+            "state": "revalidation_required",
+            "reason_codes": [
+              "REVALIDATION_REVISION_MISMATCH"
+            ]
+          }
+        ]
+      },
+      "expected_behavior": "Revalidation receipt binds a stale design revision"
+    },
+    {
+      "id": "CI-27",
+      "name": "Superseded decision remains historically replayable",
+      "change_class": "decision_supersession",
+      "evidence_class": "synthetic",
+      "input": {
+        "event": {
+          "event_id": "SYN-EVENT-CI-27",
+          "subject_node_id": "SUBJECT-27",
+          "change_class": "decision_supersession",
+          "source_owner": "synthetic-owner",
+          "source_revision_before": "R1",
+          "source_revision_after": "R2",
+          "authority_state": "authorized",
+          "effective_at": 1260,
+          "recorded_at": 1270,
+          "trusted_at": 1280,
+          "time_basis": "UTC_UNIX_SECONDS"
+        },
+        "query": {
+          "evaluation_at": 1500,
+          "historical_evaluation_at": null,
+          "time_basis": "UTC_UNIX_SECONDS",
+          "scope_id": "SYNTHETIC-DISTRICT-01",
+          "functional_unit": "synthetic-city-claim",
+          "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+        },
+        "graph": {
+          "snapshot_id": "SYN-GRAPH-CI-27",
+          "snapshot_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "coverage_state": "complete",
+          "excluded_domains": [],
+          "edges": [
+            {
+              "from": "SUBJECT-27",
+              "to": "claim_current_decision",
+              "relation": "depends_on_exact_subject_revision"
+            }
+          ],
+          "impact_report": {
+            "report_id": "SYN-IMPACT-CI-27",
+            "report_state": "qualified",
+            "graph_snapshot_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "impacted_claim_ids": [
+              "claim_current_decision"
+            ],
+            "query_boundary": "declared_fixture_graph",
+            "event_id": "SYN-EVENT-CI-27",
+            "scope_id": "SYNTHETIC-DISTRICT-01",
+            "coverage_receipt_id": "SYN-COVERAGE-CI-27",
+            "base_graph_snapshot_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "claim_findings": [
+              {
+                "claim_id": "claim_current_decision",
+                "disposition": "revalidate",
+                "reason_codes": [
+                  "DECISION_SUPERSEDED"
+                ],
+                "dependency_path": [
+                  "SUBJECT-27",
+                  "claim_current_decision"
+                ],
+                "coverage_proof_id": null
+              },
+              {
+                "claim_id": "claim_historical_receipt",
+                "reason_codes": [
+                  "HISTORICAL_RECORD_IMMUTABLE"
+                ],
+                "dependency_path": [
+                  "SUBJECT-27",
+                  "claim_historical_receipt"
+                ],
+                "coverage_proof_id": null,
+                "disposition": "no_impact"
+              }
+            ],
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+          }
+        },
+        "claims": [
+          {
+            "claim_id": "claim_current_decision",
+            "dependency_subjects": [
+              "SUBJECT-27"
+            ],
+            "historical_status": "applicable_current",
+            "scope_id": "SYNTHETIC-DISTRICT-01",
+            "functional_unit": "synthetic-city-claim",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+          },
+          {
+            "claim_id": "claim_historical_receipt",
+            "dependency_subjects": [
+              "UNRELATED-historical-record"
+            ],
+            "historical_status": "applicable_current",
+            "scope_id": "SYNTHETIC-DISTRICT-01",
+            "functional_unit": "synthetic-city-claim",
+            "record_class": "historical_record",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+          }
+        ],
+        "revalidation_receipts": []
+      },
+      "expected": {
+        "claim_applicability": [
+          {
+            "claim_id": "claim_current_decision",
+            "state": "revalidation_required",
+            "reason_codes": [
+              "DECISION_SUPERSEDED"
+            ]
+          },
+          {
+            "claim_id": "claim_historical_receipt",
+            "state": "applicable_current",
+            "reason_codes": [
+              "HISTORICAL_RECORD_IMMUTABLE"
+            ]
+          }
+        ]
+      },
+      "expected_behavior": "Superseded decision remains historically replayable"
+    },
+    {
+      "id": "CI-28",
+      "name": "Independent sibling claim remains current while one claim is affected",
+      "change_class": "mixed_sibling_dependencies",
+      "evidence_class": "synthetic",
+      "input": {
+        "event": {
+          "event_id": "SYN-EVENT-CI-28",
+          "subject_node_id": "SUBJECT-28",
+          "change_class": "mixed_sibling_dependencies",
+          "source_owner": "synthetic-owner",
+          "source_revision_before": "R1",
+          "source_revision_after": "R2",
+          "authority_state": "authorized",
+          "effective_at": 1270,
+          "recorded_at": 1280,
+          "trusted_at": 1290,
+          "time_basis": "UTC_UNIX_SECONDS"
+        },
+        "query": {
+          "evaluation_at": 1500,
+          "historical_evaluation_at": null,
+          "time_basis": "UTC_UNIX_SECONDS",
+          "scope_id": "SYNTHETIC-DISTRICT-01",
+          "functional_unit": "synthetic-city-claim",
+          "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+        },
+        "graph": {
+          "snapshot_id": "SYN-GRAPH-CI-28",
+          "snapshot_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "coverage_state": "complete",
+          "excluded_domains": [],
+          "edges": [
+            {
+              "from": "SUBJECT-28",
+              "to": "claim_panel_fit",
+              "relation": "depends_on_exact_subject_revision"
+            }
+          ],
+          "impact_report": {
+            "report_id": "SYN-IMPACT-CI-28",
+            "report_state": "qualified",
+            "graph_snapshot_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "impacted_claim_ids": [
+              "claim_panel_fit"
+            ],
+            "query_boundary": "declared_fixture_graph",
+            "event_id": "SYN-EVENT-CI-28",
+            "scope_id": "SYNTHETIC-DISTRICT-01",
+            "coverage_receipt_id": "SYN-COVERAGE-CI-28",
+            "base_graph_snapshot_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "claim_findings": [
+              {
+                "claim_id": "claim_panel_fit",
+                "disposition": "revalidate",
+                "reason_codes": [
+                  "PANEL_DEPENDENCY_CHANGED"
+                ],
+                "dependency_path": [
+                  "SUBJECT-28",
+                  "claim_panel_fit"
+                ],
+                "coverage_proof_id": null
+              },
+              {
+                "claim_id": "claim_unrelated_water_service",
+                "disposition": "no_impact",
+                "reason_codes": [
+                  "NO_SHARED_DEPENDENCY_PATH"
+                ],
+                "dependency_path": [],
+                "coverage_proof_id": "SYN-PROOF-CI-28-claim_unrelated_water_service"
+              }
+            ],
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+          }
+        },
+        "claims": [
+          {
+            "claim_id": "claim_panel_fit",
+            "dependency_subjects": [
+              "SUBJECT-28"
+            ],
+            "historical_status": "applicable_current",
+            "scope_id": "SYNTHETIC-DISTRICT-01",
+            "functional_unit": "synthetic-city-claim",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+          },
+          {
+            "claim_id": "claim_unrelated_water_service",
+            "dependency_subjects": [
+              "UNRELATED-claim_unrelated_water_service"
+            ],
+            "historical_status": "applicable_current",
+            "scope_id": "SYNTHETIC-DISTRICT-01",
+            "functional_unit": "synthetic-city-claim",
+            "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+          }
+        ],
+        "revalidation_receipts": []
+      },
+      "expected": {
+        "claim_applicability": [
+          {
+            "claim_id": "claim_panel_fit",
+            "state": "revalidation_required",
+            "reason_codes": [
+              "PANEL_DEPENDENCY_CHANGED"
+            ]
+          },
+          {
+            "claim_id": "claim_unrelated_water_service",
+            "state": "not_affected",
+            "reason_codes": [
+              "NO_SHARED_DEPENDENCY_PATH"
+            ]
+          }
+        ]
+      },
+      "expected_behavior": "Independent sibling claim remains current while one claim is affected"
+    }
+  ],
+  "corpus_profile": "owner_report_projection_v0.1"
+}

@@ -1,0 +1,629 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://luminousdynamics.io/schemas/city-change-impact-corpus-v0.1.schema.json",
+  "title": "CityMaker Change Impact Corpus v0.1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "schema_version",
+    "classification",
+    "purpose",
+    "normative_notice",
+    "applicability_states",
+    "temporal_fields",
+    "precedence",
+    "cases",
+    "corpus_profile"
+  ],
+  "properties": {
+    "schema": {
+      "const": "city-change-impact-corpus/0.1"
+    },
+    "schema_version": {
+      "const": "0.1.0"
+    },
+    "classification": {
+      "const": "synthetic_fixture_only"
+    },
+    "purpose": {
+      "type": "string",
+      "minLength": 1
+    },
+    "normative_notice": {
+      "type": "string",
+      "minLength": 1
+    },
+    "applicability_states": {
+      "type": "array",
+      "items": {
+        "enum": [
+          "applicable_current",
+          "revalidation_required",
+          "invalid_evidence",
+          "insufficient_evidence",
+          "not_affected"
+        ]
+      },
+      "minItems": 5,
+      "maxItems": 5,
+      "uniqueItems": true
+    },
+    "temporal_fields": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "minItems": 4
+    },
+    "precedence": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "minItems": 1
+    },
+    "cases": {
+      "type": "array",
+      "minItems": 28,
+      "maxItems": 28,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "name",
+          "change_class",
+          "evidence_class",
+          "input",
+          "expected",
+          "expected_behavior"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^CI-[0-9]{2}$"
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1
+          },
+          "change_class": {
+            "type": "string",
+            "minLength": 1
+          },
+          "evidence_class": {
+            "const": "synthetic"
+          },
+          "expected_behavior": {
+            "type": "string",
+            "minLength": 1
+          },
+          "input": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "event",
+              "query",
+              "graph",
+              "claims",
+              "revalidation_receipts"
+            ],
+            "properties": {
+              "event": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "event_id",
+                  "subject_node_id",
+                  "change_class",
+                  "source_owner",
+                  "source_revision_before",
+                  "source_revision_after",
+                  "authority_state",
+                  "effective_at",
+                  "recorded_at",
+                  "trusted_at",
+                  "time_basis"
+                ],
+                "properties": {
+                  "event_id": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "subject_node_id": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "change_class": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "source_owner": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "source_revision_before": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "source_revision_after": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "authority_state": {
+                    "enum": [
+                      "authorized",
+                      "unverified",
+                      "unknown",
+                      "revoked"
+                    ]
+                  },
+                  "effective_at": {
+                    "type": "integer",
+                    "minimum": 0
+                  },
+                  "recorded_at": {
+                    "type": "integer",
+                    "minimum": 0
+                  },
+                  "trusted_at": {
+                    "type": [
+                      "integer",
+                      "null"
+                    ],
+                    "minimum": 0
+                  },
+                  "time_basis": {
+                    "const": "UTC_UNIX_SECONDS"
+                  },
+                  "transform_state": {
+                    "enum": [
+                      "qualified",
+                      "ambiguous",
+                      "unknown"
+                    ]
+                  },
+                  "payload_bytes_state": {
+                    "enum": [
+                      "verified",
+                      "unverified",
+                      "unknown"
+                    ]
+                  },
+                  "source_authority_state": {
+                    "enum": [
+                      "qualified",
+                      "unqualified",
+                      "unknown"
+                    ]
+                  },
+                  "owner_sequence": {
+                    "type": "integer",
+                    "minimum": 0
+                  }
+                }
+              },
+              "query": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "evaluation_at",
+                  "historical_evaluation_at",
+                  "time_basis",
+                  "scope_id",
+                  "functional_unit",
+                  "scope_digest"
+                ],
+                "properties": {
+                  "evaluation_at": {
+                    "type": "integer",
+                    "minimum": 0
+                  },
+                  "historical_evaluation_at": {
+                    "type": [
+                      "integer",
+                      "null"
+                    ],
+                    "minimum": 0
+                  },
+                  "time_basis": {
+                    "const": "UTC_UNIX_SECONDS"
+                  },
+                  "scope_id": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "functional_unit": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "scope_digest": {
+                    "type": "string",
+                    "pattern": "^[0-9a-f]{64}$"
+                  }
+                }
+              },
+              "graph": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "snapshot_id",
+                  "snapshot_digest",
+                  "coverage_state",
+                  "excluded_domains",
+                  "edges",
+                  "impact_report"
+                ],
+                "properties": {
+                  "snapshot_id": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "snapshot_digest": {
+                    "type": "string",
+                    "pattern": "^[0-9a-f]{64}$"
+                  },
+                  "coverage_state": {
+                    "enum": [
+                      "complete",
+                      "incomplete",
+                      "unknown"
+                    ]
+                  },
+                  "excluded_domains": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "edges": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "additionalProperties": false,
+                      "required": [
+                        "from",
+                        "to",
+                        "relation"
+                      ],
+                      "properties": {
+                        "from": {
+                          "type": "string",
+                          "minLength": 1
+                        },
+                        "to": {
+                          "type": "string",
+                          "minLength": 1
+                        },
+                        "relation": {
+                          "type": "string",
+                          "minLength": 1
+                        }
+                      }
+                    }
+                  },
+                  "impact_report": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": [
+                      "report_id",
+                      "report_state",
+                      "graph_snapshot_digest",
+                      "impacted_claim_ids",
+                      "query_boundary",
+                      "event_id",
+                      "scope_id",
+                      "coverage_receipt_id",
+                      "base_graph_snapshot_digest",
+                      "claim_findings",
+                      "scope_digest"
+                    ],
+                    "properties": {
+                      "report_id": {
+                        "type": "string",
+                        "minLength": 1
+                      },
+                      "report_state": {
+                        "enum": [
+                          "qualified",
+                          "coverage_incomplete",
+                          "invalid",
+                          "unknown"
+                        ]
+                      },
+                      "graph_snapshot_digest": {
+                        "type": "string",
+                        "pattern": "^[0-9a-f]{64}$"
+                      },
+                      "impacted_claim_ids": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      },
+                      "query_boundary": {
+                        "type": "string",
+                        "minLength": 1
+                      },
+                      "event_id": {
+                        "type": "string",
+                        "minLength": 1
+                      },
+                      "scope_id": {
+                        "type": "string",
+                        "minLength": 1
+                      },
+                      "coverage_receipt_id": {
+                        "type": "string",
+                        "minLength": 1
+                      },
+                      "base_graph_snapshot_digest": {
+                        "type": "string",
+                        "pattern": "^[0-9a-f]{64}$"
+                      },
+                      "delta_base_snapshot_digest": {
+                        "type": "string",
+                        "pattern": "^[0-9a-f]{64}$"
+                      },
+                      "owner_sequence": {
+                        "type": "integer",
+                        "minimum": 0
+                      },
+                      "claim_findings": {
+                        "type": "array",
+                        "minItems": 1,
+                        "items": {
+                          "type": "object",
+                          "additionalProperties": false,
+                          "required": [
+                            "claim_id",
+                            "disposition",
+                            "reason_codes",
+                            "dependency_path",
+                            "coverage_proof_id"
+                          ],
+                          "properties": {
+                            "claim_id": {
+                              "type": "string",
+                              "minLength": 1
+                            },
+                            "disposition": {
+                              "enum": [
+                                "no_impact",
+                                "revalidate",
+                                "invalidate",
+                                "insufficient"
+                              ]
+                            },
+                            "reason_codes": {
+                              "type": "array",
+                              "minItems": 1,
+                              "items": {
+                                "type": "string",
+                                "minLength": 1
+                              }
+                            },
+                            "dependency_path": {
+                              "type": "array",
+                              "items": {
+                                "type": "string"
+                              }
+                            },
+                            "coverage_proof_id": {
+                              "type": [
+                                "string",
+                                "null"
+                              ]
+                            }
+                          }
+                        }
+                      },
+                      "scope_digest": {
+                        "type": "string",
+                        "pattern": "^[0-9a-f]{64}$"
+                      }
+                    }
+                  },
+                  "integrity_state": {
+                    "enum": [
+                      "qualified",
+                      "cycle_detected",
+                      "invalid",
+                      "unknown"
+                    ]
+                  },
+                  "last_owner_sequence": {
+                    "type": "integer",
+                    "minimum": 0
+                  }
+                }
+              },
+              "claims": {
+                "type": "array",
+                "minItems": 1,
+                "items": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "claim_id",
+                    "dependency_subjects",
+                    "historical_status",
+                    "scope_id",
+                    "functional_unit",
+                    "scope_digest"
+                  ],
+                  "properties": {
+                    "claim_id": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "dependency_subjects": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "historical_status": {
+                      "enum": [
+                        "applicable_current",
+                        "revalidation_required",
+                        "invalid_evidence",
+                        "insufficient_evidence",
+                        "not_affected"
+                      ]
+                    },
+                    "scope_id": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "functional_unit": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "measurement_at": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "evaluation_mode": {
+                      "enum": [
+                        "current",
+                        "historical"
+                      ]
+                    },
+                    "record_class": {
+                      "enum": [
+                        "current_claim",
+                        "historical_record"
+                      ]
+                    },
+                    "scope_digest": {
+                      "type": "string",
+                      "pattern": "^[0-9a-f]{64}$"
+                    }
+                  }
+                }
+              },
+              "revalidation_receipts": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "receipt_id",
+                    "claim_id",
+                    "subject_revision",
+                    "scope_id",
+                    "state",
+                    "scope_digest"
+                  ],
+                  "properties": {
+                    "receipt_id": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "claim_id": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "subject_revision": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "scope_id": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "state": {
+                      "enum": [
+                        "qualified",
+                        "unqualified",
+                        "stale",
+                        "rejected"
+                      ]
+                    },
+                    "event_id": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "report_id": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "graph_snapshot_digest": {
+                      "type": "string",
+                      "pattern": "^[0-9a-f]{64}$"
+                    },
+                    "trusted_at": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "evidence_state": {
+                      "enum": [
+                        "current",
+                        "stale",
+                        "unknown"
+                      ]
+                    },
+                    "scope_digest": {
+                      "type": "string",
+                      "pattern": "^[0-9a-f]{64}$"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "expected": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "claim_applicability"
+            ],
+            "properties": {
+              "claim_applicability": {
+                "type": "array",
+                "minItems": 1,
+                "items": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "claim_id",
+                    "state",
+                    "reason_codes"
+                  ],
+                  "properties": {
+                    "claim_id": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "state": {
+                      "enum": [
+                        "applicable_current",
+                        "revalidation_required",
+                        "invalid_evidence",
+                        "insufficient_evidence",
+                        "not_affected"
+                      ]
+                    },
+                    "reason_codes": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      },
+                      "minItems": 1
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "corpus_profile": {
+      "const": "owner_report_projection_v0.1"
+    }
+  }
+}
