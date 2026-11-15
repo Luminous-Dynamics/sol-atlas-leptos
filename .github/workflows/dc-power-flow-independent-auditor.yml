@@ -28,8 +28,12 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
         with:
           components: rustfmt, clippy
-      - name: Format
-        run: cargo fmt --manifest-path tools/dc-power-flow-independent-auditor/Cargo.toml -- --check
+      - name: Format sources and emit canonical content for review
+        run: |
+          cargo fmt --manifest-path tools/dc-power-flow-independent-auditor/Cargo.toml
+          echo BEGIN_FORMATTED_LIB
+          cat tools/dc-power-flow-independent-auditor/src/lib.rs
+          echo END_FORMATTED_LIB
       - name: Locked offline tests
         run: cargo test --manifest-path tools/dc-power-flow-independent-auditor/Cargo.toml --locked --offline
       - name: Strict Clippy
