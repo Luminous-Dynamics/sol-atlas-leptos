@@ -957,6 +957,193 @@ end
     }
 
     #[test]
+    fn synthetic_case_projects_fixed_injections_and_retains_dc_boundary_fields() {
+        let projection =
+            project_matpower_dc_case(SYNTHETIC_CASE).expect("synthetic case should project");
+
+        assert_eq!(
+            projection.source_git_blob_sha1,
+            git_blob_sha1(SYNTHETIC_CASE.as_bytes())
+        );
+        assert_eq!(projection.function_name, "tiny_case");
+        assert_eq!(projection.base_mva, 100.0);
+        assert_eq!(projection.buses.len(), 2);
+        assert_eq!(projection.branches.len(), 1);
+
+        let slack = projection
+            .buses
+            .iter()
+            .find(|bus| bus.id == 1)
+            .expect("slack bus");
+        assert_eq!(slack.bus_type, 3);
+        assert_eq!(slack.online_generation_mw, 50.0);
+        assert_eq!(slack.specified_injection_mw, None);
+        assert_eq!(slack.online_generation_p_min_mw, 0.0);
+        assert_eq!(slack.online_generation_p_max_mw, 100.0);
+
+        let load = projection
+            .buses
+            .iter()
+            .find(|bus| bus.id == 2)
+            .expect("load bus");
+        assert_eq!(load.demand_mw, 50.0);
+        assert_eq!(load.reactive_demand_mvar, 10.0);
+        assert_eq!(load.specified_injection_mw, Some(-50.0));
+
+        let branch = &projection.branches[0];
+        assert_eq!(branch.source_row, 1);
+        assert_eq!(branch.from_bus, 1);
+        assert_eq!(branch.to_bus, 2);
+        assert_eq!(branch.reactance_pu, 0.1);
+        assert_eq!(branch.tap_ratio, 0.0);
+        assert_eq!(branch.phase_shift_degrees, 0.0);
+        assert_eq!(branch.rate_a_mva, 100.0);
+        assert_eq!(branch.rate_b_mva, 100.0);
+        assert_eq!(branch.rate_c_mva, 100.0);
+        assert!(branch.in_service);
+        assert_eq!(
+            projection.claim_ceiling,
+            "source_bound_fixed_injection_dc_projection_only"
+        );
+        assert!(
+            projection
+                .limitations
+                .contains(&"branch_angle_difference_limits_are_retained_but_not_enforced")
+        );
+    }
+
+    #[test]
+    fn only_in_service_generators_contribute_to_non_reference_injection() {
+        let source = SYNTHETIC_CASE
+            .replace(
+                "  1 50 0 10 -10 1 100 1 100 0;",
+                concat!(
+                    "  1 50 0 10 -10 1 100 1 100 0;\\n",
+                    "  2 30 0 10 -10 1 100 1 50 0;\\n",
+                    "  2 90 0 10 -10 1 100 0 100 0;"
+                ),
+            )
+            .replace(
+                "  2 0 0 3 0.01 2 0;",
+                concat!(
+                    "  2 0 0 3 0.01 2 0;\\n",
+                    "  2 0 0 3 0.01 2 0;\\n",
+                    "  2 0 0 3 0.01 2 0;"
+                ),
+            );
+
+        let projection =
+            project_matpower_dc_case(&source).expect("generator projection should pass");
+        let load_bus = projection
+            .buses
+            .iter()
+            .find(|bus| bus.id == 2)
+            .expect("load bus");
+        assert_eq!(load_bus.online_generation_mw, 30.0);
+        assert_eq!(load_bus.online_generation_p_min_mw, 0.0);
+        assert_eq!(load_bus.online_generation_p_max_mw, 50.0);
+        assert_eq!(load_bus.specified_injection_mw, Some(-20.0));
+    }
+
+    #[test]
+    fn non_reference_generator_outside_base_p_bounds_is_rejected() {
+        let source = SYNTHETIC_CASE.replace(
+            "1 50 0 10 -10 1 100 1 100 0",
+            "1 120 0 10 -10 1 100 1 100 0",
+        );
+        assert!(
+            project_matpower_dc_case(&source)
+                .unwrap_err()
+                .contains("Pg outside its Pmin/Pmax bounds")
+        );
+    }
+
+    #[test]
+    fn negative_rate_a_is_rejected_by_dc_projection() {
+        let source = SYNTHETIC_CASE.replace(
+            "1 2 0.01 0.1 0 100 100 100 0 0 1 -30 30",
+            "1 2 0.01 0.1 0 -1 100 100 0 0 1 -30 30",
+        );
+        assert!(
+            project_matpower_dc_case(&source)
+                .unwrap_err()
+                .contains("negative branch rating")
+        );
+    }
+
+    #[test]
+    fn non_positive_in_service_branch_reactance_is_rejected() {
+        let source = SYNTHETIC_CASE.replace(
+            "1 2 0.01 0.1 0 100 100 100 0 0 1 -30 30",
+            "1 2 0.01 0 0 100 100 100 0 0 1 -30 30",
+        );
+        assert!(
+            project_matpower_dc_case(&source)
+                .unwrap_err()
+                .contains("non-positive reactance")
+        );
+    }
+
+    #[test]
+    fn out_of_service_branch_is_preserved_without_dc_reactance_admission() {
+        let source = SYNTHETIC_CASE.replace(
+            "1 2 0.01 0.1 0 100 100 100 0 0 1 -30 30",
+            "1 2 0.01 0 0 100 100 100 0 0 0 -30 30",
+        );
+        let projection =
+            project_matpower_dc_case(&source).expect("out-of-service branch remains metadata");
+        assert_eq!(projection.branches.len(), 1);
+        assert!(!projection.branches[0].in_service);
+        assert_eq!(projection.branches[0].reactance_pu, 0.0);
+    }
+
+    #[test]
+    fn pglib_fixtures_bind_projection_to_exact_source_bytes() {
+        let cases = [
+            (
+                PGLIB_CASE14,
+                "2c8260fff0311c902c3d36dcabcbe861576fc97c",
+                14,
+                20,
+            ),
+            (
+                PGLIB_CASE24,
+                "00b024c2e583b82452392514d2c22881c708ba7c",
+                24,
+                38,
+            ),
+            (
+                PGLIB_CASE57,
+                "d8b0c9e8b45265e57f52b7ab96880ad3a874cde5",
+                57,
+                80,
+            ),
+        ];
+
+        for (source, expected_digest, buses, branches) in cases {
+            let projection =
+                project_matpower_dc_case(source).expect("pinned PGLib case should project");
+            assert_eq!(projection.source_git_blob_sha1, expected_digest);
+            assert_eq!(projection.buses.len(), buses);
+            assert_eq!(projection.branches.len(), branches);
+            assert_eq!(
+                projection
+                    .buses
+                    .iter()
+                    .filter(|bus| bus.specified_injection_mw.is_none())
+                    .count(),
+                1
+            );
+            assert!(
+                projection
+                    .branches
+                    .iter()
+                    .all(|branch| !branch.in_service || branch.reactance_pu > 0.0)
+            );
+        }
+    }
+
+    #[test]
     fn area_reference_to_unknown_bus_is_rejected() {
         let source = PGLIB_CASE24.replace("2\t 3;", "2\t 999;");
         assert!(
