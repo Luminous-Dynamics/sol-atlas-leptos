@@ -1,0 +1,45 @@
+name: PGLib case importer audit
+
+on:
+  pull_request:
+    paths:
+      - "tools/pglib-case-auditor/**"
+      - ".github/workflows/pglib-case-auditor.yml"
+  push:
+    paths:
+      - "tools/pglib-case-auditor/**"
+      - ".github/workflows/pglib-case-auditor.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pglib-case-auditor
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+      - name: Format
+        run: cargo fmt --manifest-path tools/pglib-case-auditor/Cargo.toml -- --check
+      - name: Test offline and locked
+        run: cargo test --manifest-path tools/pglib-case-auditor/Cargo.toml --locked --offline
+      - name: Strict Clippy
+        run: cargo clippy --manifest-path tools/pglib-case-auditor/Cargo.toml --locked --offline --all-targets -- -D warnings
+      - name: Audit pinned PGLib fixture
+        run: |
+          cargo run --manifest-path tools/pglib-case-auditor/Cargo.toml --locked --offline -- \
+            tools/pglib-case-auditor/fixtures/pglib_opf_case14_ieee.m \
+            --expect-git-blob-sha1 2c8260fff0311c902c3d36dcabcbe861576fc97c \
+            > /tmp/pglib-case14-receipt.json
+          grep -q '"bus_count": 14' /tmp/pglib-case14-receipt.json
+          grep -q '"generator_count": 5' /tmp/pglib-case14-receipt.json
+          grep -q '"branch_count": 20' /tmp/pglib-case14-receipt.json
+          grep -q '"energized_island_count": 1' /tmp/pglib-case14-receipt.json
+          grep -q '"claim_ceiling": "structural_import_only"' /tmp/pglib-case14-receipt.json
