@@ -244,11 +244,22 @@ fn validate(
             if integer_at(configuration, "time_step_s").is_none_or(|step| step <= 0)
                 || integer_at(configuration, "duration_s").is_none_or(|duration| duration <= 0)
                 || integer_at(configuration, "end_elapsed_s").is_none_or(|end| end <= 0)
+                || integer_at(configuration, "start_elapsed_s").is_none_or(|start| start < 0)
+                || text_at(configuration, "flow_units").is_none_or(str::is_empty)
+                || text_at(configuration, "pressure_units").is_none_or(str::is_empty)
+                || text_at(configuration, "time_zone").is_none_or(str::is_empty)
+                || text_at(configuration, "model_coordinate_basis").is_none_or(str::is_empty)
+                || text_at(configuration, "vertical_datum").is_none_or(str::is_empty)
             {
-                errors.push(
-                    "completed execution requires positive time step, duration and end time"
-                        .to_owned(),
-                );
+                errors.push("completed execution requires explicit units, time zone, coordinate/datum basis and positive time range".to_owned());
+            }
+            for field in ["building_ref", "service_topology_ref", "design_revision_ref", "jurisdiction_profile_ref"] {
+                let reference = binding.get(field).unwrap_or(&Value::Null);
+                if text_at(reference, "revision").is_none_or(str::is_empty)
+                    || !valid_digest(reference.get("digest"))
+                {
+                    errors.push(format!("completed execution requires exact revision and digest for model_binding.{field}"));
+                }
             }
         }
         "failed" if !matches!(solver_status, "failed" | "non_converged") => {
@@ -552,6 +563,8 @@ fn validate(
             || text_at(calibration, "validation_window_id").is_none_or(str::is_empty)
             || text_at(calibration, "calibration_window_id")
                 == text_at(calibration, "validation_window_id")
+            || text_at(calibration.get("calibration_dataset_ref").unwrap_or(&Value::Null), "id")
+                == text_at(calibration.get("validation_dataset_ref").unwrap_or(&Value::Null), "id")
             || text_at(calibration, "residual_state") != Some("reported")
             || !non_null_ref(calibration.get("residual_evidence_ref"))
         {
@@ -672,12 +685,17 @@ mod tests {
         evidence["run_configuration"]["time_step_s"] = json!(60);
         evidence["run_configuration"]["duration_s"] = json!(3600);
         evidence["run_configuration"]["end_elapsed_s"] = json!(3600);
+        evidence["run_configuration"]["start_elapsed_s"] = json!(0);
         evidence["run_configuration"]["flow_units"] = json!("LPS");
         evidence["run_configuration"]["pressure_units"] = json!("kPa");
         evidence["run_configuration"]["time_zone"] = json!("Africa/Johannesburg");
         evidence["run_configuration"]["model_coordinate_basis"] =
             json!("synthetic local coordinate frame");
         evidence["run_configuration"]["vertical_datum"] = json!("synthetic datum");
+        for field in ["building_ref", "service_topology_ref", "design_revision_ref", "jurisdiction_profile_ref"] {
+            evidence["model_binding"][field]["revision"] = json!("0.1");
+            evidence["model_binding"][field]["digest"] = json!("cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc");
+        }
         let pump_mapping = &mut evidence["mappings"][1];
         pump_mapping["solver_entity_id"] = json!("P-PUMP");
         pump_mapping["mapping_state"] = json!("bound");
@@ -827,7 +845,7 @@ mod tests {
         evidence["calibration"]["calibration_dataset_ref"] =
             json!({"kind":"dataset","id":"D1","revision":"1","digest":null});
         evidence["calibration"]["validation_dataset_ref"] =
-            json!({"kind":"dataset","id":"D2","revision":"1","digest":null});
+            json!({"kind":"dataset","id":"D1","revision":"1","digest":null});
         evidence["calibration"]["calibration_window_id"] = json!("WINDOW-A");
         evidence["calibration"]["validation_window_id"] = json!("WINDOW-A");
         evidence["calibration"]["residual_state"] = json!("reported");
