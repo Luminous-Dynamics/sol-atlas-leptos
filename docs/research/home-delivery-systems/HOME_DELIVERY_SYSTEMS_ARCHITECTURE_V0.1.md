@@ -233,3 +233,14 @@ The service qualifier is an evidence/topology layer, not a hydraulic engine. It 
 
 The focused CI now includes Draft 2020-12 validation for the building, service-distribution, service-stress, resident-programme, unit-layout and unit-layout-corpus schema/fixture pairs, in addition to native Rust qualifiers and rustfmt. All hosted results remain exact-head gated.
 
+
+
+## 16. Multi-family lifecycle continuity and adaptation
+
+The apartment lifecycle adapter is now [#849 MULTIFAMILY-LIFECYCLE-ADAPTATION-001](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/849), with [MULTIFAMILY_LIFECYCLE_BENCHMARK_V0.1.md](MULTIFAMILY_LIFECYCLE_BENCHMARK_V0.1.md), a machine-readable schema/fixture and a Rust qualifier.
+
+The synthetic contract binds the exact building, resident programme, unit-layout and service-topology identities across four units, 13 unit-scoped revisions, two shared service assets, 24 authored lifecycle events, four unit timelines and seven claim records. The U-001 adaptation event explicitly invalidates two old-revision claims. Event and record time are unknown; all events are authored/not executed; evidence, real digests, scans, meters, commissioning, resident outcomes, repairs and costs remain absent/unknown.
+
+The new qualifier checks exact source/unit/asset identity, same-unit revision ancestry and cycle rejection, asset-to-service-node mapping, served-unit scope, event order, bitemporal unknown states, exact timeline coverage and reciprocal invalidation. It rejects stale PASS/FAIL and stale UNKNOWN claims that were not invalidated/superseded/revoked. It does not execute the general dependency closure owned by #832 or establish any real physical lifecycle state.
+
+It composes Sol-Atlas #832 (revision invalidation), #633 (post-occupancy/M&V/consent), #814 (DfMA/as-built/repair), #836/#837/#840/#844, Symtropy #4846/#4795/#4507/#1848/#4531 and Mycelix asset/construction provenance. It is not a new BMS, CMMS, digital-twin, scan-to-BIM or resident-surveillance platform.
