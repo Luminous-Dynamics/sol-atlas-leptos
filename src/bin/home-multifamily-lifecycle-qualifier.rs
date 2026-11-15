@@ -89,7 +89,12 @@ fn validate(
     if text_at(fixture, "maturity") != Some("synthetic_scenario_only") {
         errors.push("lifecycle fixture cannot be promoted beyond synthetic_scenario_only".to_owned());
     }
-    if text_at(fixture, "building_id") != text_at(building, "candidate_id") {
+    if text_at(fixture, "building_id") != text_at(building, "candidate_id")
+        || text_at(
+            fixture.get("source_bindings").unwrap_or(&Value::Null).get("building_ref").unwrap_or(&Value::Null),
+            "id",
+        ) != text_at(building, "candidate_id")
+    {
         errors.push("lifecycle fixture is not bound to the exact building identity".to_owned());
     }
     if text_at(
@@ -380,12 +385,16 @@ fn validate(
                 Some((revision_unit, _, _)) if revision_unit == unit_id => {}
                 _ => errors.push(format!("unit {unit_id} current revision does not belong to the unit")),
             }
-            let timeline_event_ids = array_at(timeline, "event_ids")
+            let authored_timeline_event_ids = array_at(timeline, "event_ids")
                 .into_iter()
                 .flatten()
                 .filter_map(Value::as_str)
                 .map(str::to_owned)
-                .collect::<BTreeSet<_>>();
+                .collect::<Vec<_>>();
+            let timeline_event_ids = authored_timeline_event_ids.iter().cloned().collect::<BTreeSet<_>>();
+            if timeline_event_ids.len() != authored_timeline_event_ids.len() {
+                errors.push(format!("unit {unit_id} timeline duplicates an event ID"));
+            }
             let expected_event_ids = event_records
                 .iter()
                 .filter(|(_, (units, _, _, _))| units.contains(unit_id))
