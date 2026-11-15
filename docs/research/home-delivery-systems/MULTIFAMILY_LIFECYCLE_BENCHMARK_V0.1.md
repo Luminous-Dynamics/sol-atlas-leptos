@@ -214,3 +214,21 @@ Never create an outage or safety defect to produce a benchmark trace in an occup
 ## 10. Claim ceiling
 
 The current schema, fixture and Rust qualifier establish only synthetic identity, revision lineage, logical event ordering, unit/asset scope and non-contradictory claim state. They do not prove as-built condition, actual construction, commissioning, occupation, resident comfort, service continuity, repair, compliance, safety, cost savings, adaptability performance or buildability. No physical or post-occupancy result is claimed.
+
+
+## 11. Frozen 30-case adversarial mutation corpus
+
+The P0 lifecycle programme now includes:
+- `multifamily-lifecycle-adversarial-corpus.schema.json`;
+- `multifamily-lifecycle-adversarial-corpus-v0.1.json`;
+- compile-time inclusion and deterministic replay in `src/bin/home-multifamily-lifecycle-qualifier.rs`;
+- full Draft 2020-12 schema/fixture validation in the focused workflow.
+
+The corpus has exactly 30 known-answer cases: one unmutated positive control and 29 negative mutations. The cases cover duplicate/broken/cross-unit/cyclic revisions; stale PASS/UNKNOWN; wrong or missing event/asset/unit scopes; served-unit disagreement with actual topology reachability; duplicate logical event order; invented event/record times; synthetic event execution promotion; omitted/duplicate timelines; wrong current revision; broken/incorrect reciprocal invalidation; source-topology mismatch; resident data promotion; untyped event; invalid root revision; cross-unit claim; revision/event transition mismatch; duplicate asset identity; synthetic evidence promotion and false asset physical state.
+
+Each case uses RFC 6901 JSON Pointer replacements against an independent copy of the exact base fixture. The positive control must be accepted and every adversarial mutation must be rejected by the same Rust validator. A missing pointer, duplicate pointer, unexpected accept/reject disposition, incorrect case split or claim of persisted execution fails the corpus replay.
+
+The corpus remains `authored_manifest_not_executed` with zero persisted executed cases and no calibration/sealed split. The Rust test/CLI executes the mutations when run; only a successful exact-head native test and replay can be reported as a hosted result. The case set is a development suite, not blind or independent confirmation.
+
+The lifecycle qualifier also now derives shared-asset served-unit membership from the downstream directed resource-flow graph. The declared U-001/U-002 service riser and four-unit shared pump must match the apartment unit boundaries actually reachable in the service topology. Asset-kind/source-node-kind consistency is checked, as are allowed revision-kind transitions (design -> adaptation/as-built -> commissioned) and event-kind/revision-kind compatibility. The authored fixture is not allowed to make the source's served-unit list authoritative by itself.
+
