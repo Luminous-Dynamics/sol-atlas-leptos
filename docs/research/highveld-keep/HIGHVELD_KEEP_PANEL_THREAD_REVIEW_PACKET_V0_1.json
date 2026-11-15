@@ -1,0 +1,242 @@
+{
+  "profile_id": "luminous.highveld.panel-thread-review-packet.v0.1",
+  "version": "0.1.0",
+  "status": "UNADJUDICATED_REVIEW_PACKET",
+  "source_corpus_version": "0.1.0",
+  "source_corpus_git_blob_sha": "f4a7819798d0d19b7114a9e41aa7ff1215f69410",
+  "claim_ceiling": "NON_AUTHORIZING_SYNTHETIC_EVALUATION",
+  "instructions": [
+    "Adjudicate only the synthetic scenario and supplied evidence scope.",
+    "Do not infer physical safety, material conformity, robot safety, statutory compliance, professional approval, construction authorization or occupancy.",
+    "Do not seek or inspect the public source corpus while making the independent first-pass labels.",
+    "Choose one disposition and record reason codes, missing proof obligations, requalification domains and the decisive evidence that would change the result.",
+    "Record ambiguity rather than inventing source fields, owner semantics or proof."
+  ],
+  "dispositions": [
+    "REVIEW_ONLY",
+    "REQUALIFICATION_REQUIRED",
+    "BLOCKED_UNKNOWN",
+    "BLOCKED_CONFLICT",
+    "BLOCKED_AUTHORITY"
+  ],
+  "cases": [
+    {
+      "case_id": "HPT-001",
+      "title": "Complete synthetic design-to-as-built reference chain",
+      "preconditions": [
+        "A single synthetic panel has exact design and component revision identities.",
+        "The IFC/IDS projection, geometry reference, process plan and material-lot references resolve to those exact revisions.",
+        "Tool/workcell capability, execution, independent metrology, installation and as-built references are present and current.",
+        "All owner-provided references state their own disposition and schema/profile revision."
+      ],
+      "mutation": "No adverse mutation; evaluate the complete reference trace as submitted."
+    },
+    {
+      "case_id": "HPT-002",
+      "title": "Panel design revision changes after process and inspection evidence",
+      "preconditions": [
+        "The original design revision has process, inspection and installation references.",
+        "A downstream manufacturing package is bound to the original design digest."
+      ],
+      "mutation": "Substitute a newer design revision while retaining process and inspection references from the prior generation."
+    },
+    {
+      "case_id": "HPT-003",
+      "title": "IDS information pass with a conflicting as-built geometry observation",
+      "preconditions": [
+        "Required IFC properties satisfy the declared IDS profile.",
+        "An independent survey observation reports a station or connection datum outside the declared geometric tolerance."
+      ],
+      "mutation": "Attempt to treat the IDS information pass as proof that physical geometry conforms."
+    },
+    {
+      "case_id": "HPT-004",
+      "title": "Lossy IFC or robot projection drops a critical datum or tolerance",
+      "preconditions": [
+        "The source design includes a datum, tolerance or connection requirement used by a downstream manufacturing or robot task.",
+        "The transformation declares a lossy or unsupported semantic projection."
+      ],
+      "mutation": "Remove the critical datum/tolerance from the projected work package while leaving the source model unchanged."
+    },
+    {
+      "case_id": "HPT-005",
+      "title": "Supplier lot identity differs from the approved material requirement",
+      "preconditions": [
+        "The work package requires an exact material grade and approved product/lot scope.",
+        "The supplier delivery or receiving record carries a different physical lot identity or grade."
+      ],
+      "mutation": "Substitute a same-named or same-family lot without an owner-qualified equivalence and approval reference."
+    },
+    {
+      "case_id": "HPT-006",
+      "title": "Material is delivered but custody or receiving acceptance is incomplete",
+      "preconditions": [
+        "A dispatch or delivery assertion exists.",
+        "A required custody handoff, receiving inspection or acceptance disposition is missing."
+      ],
+      "mutation": "Treat the delivery event as proof that the exact material lot and quantity are accepted inventory."
+    },
+    {
+      "case_id": "HPT-007",
+      "title": "Work package has complete bill of materials but no current reservation",
+      "preconditions": [
+        "The material lot and planned quantity are otherwise correctly identified.",
+        "No current owner-native reservation/availability evidence covers the exact site, quantity and execution window."
+      ],
+      "mutation": "Infer executable material readiness from the presence of a BOM and delivery event."
+    },
+    {
+      "case_id": "HPT-008",
+      "title": "Manufacturing process is named but cell capability is not qualified",
+      "preconditions": [
+        "A process plan references a named manufacturing process.",
+        "The actual machine/tool/workcell capability evidence does not cover a required tolerance, material, size or process condition."
+      ],
+      "mutation": "Treat a process label or generic machine family as proof that the exact operation is executable."
+    },
+    {
+      "case_id": "HPT-009",
+      "title": "Robot tool-center-point calibration is stale after tool exchange",
+      "preconditions": [
+        "A stationary manipulator and tool were previously qualified for a bounded task.",
+        "The tool was exchanged or repaired and the current calibration evidence is expired or bound to an older tool configuration."
+      ],
+      "mutation": "Reuse the previous capability receipt for the new tool/configuration generation."
+    },
+    {
+      "case_id": "HPT-010",
+      "title": "Robot reports task success but independent metrology is incomplete",
+      "preconditions": [
+        "An execution record reports task completion.",
+        "The required independent measurement coverage is incomplete or its uncertainty is outside the acceptance decision limit."
+      ],
+      "mutation": "Promote the controller or robot self-report to final product acceptance."
+    },
+    {
+      "case_id": "HPT-011",
+      "title": "Installed component identity does not match the released article",
+      "preconditions": [
+        "The released package references one exact component/article and revision.",
+        "The installed observation identifies a different article, variant or revision."
+      ],
+      "mutation": "Join the installed record to the released design by family name or nominal geometry rather than exact identity."
+    },
+    {
+      "case_id": "HPT-012",
+      "title": "Material substitution approval applies only to a superseded design revision",
+      "preconditions": [
+        "A material substitution was approved for one exact design revision.",
+        "The current work package uses a later design revision with a changed requirement or interface."
+      ],
+      "mutation": "Reuse the old substitution approval for the new design without an applicability witness."
+    },
+    {
+      "case_id": "HPT-013",
+      "title": "Inspection instrument calibration is outside its valid interval",
+      "preconditions": [
+        "A metrology observation is available.",
+        "The instrument calibration validity window does not cover the observation time or measurement context."
+      ],
+      "mutation": "Treat the measurement as current because the report file is present and its numeric value is plausible."
+    },
+    {
+      "case_id": "HPT-014",
+      "title": "Repair changes a connection but old commissioning evidence is reused",
+      "preconditions": [
+        "An installed panel has passed a bounded commissioning campaign.",
+        "A repair replaces or changes a connection, fixing or service interface."
+      ],
+      "mutation": "Retain the previous as-built configuration identity and reuse all commissioning evidence without change-impact assessment."
+    },
+    {
+      "case_id": "HPT-015",
+      "title": "Material certification is revoked before installation decision",
+      "preconditions": [
+        "A material certificate was valid at manufacturing time.",
+        "A qualified revocation record is available before the installation decision frontier."
+      ],
+      "mutation": "Use the historical certificate without evaluating revocation state at the decision time."
+    },
+    {
+      "case_id": "HPT-016",
+      "title": "Approval references correct component but signer lacks scoped authority",
+      "preconditions": [
+        "An approval or review receipt references the exact panel and revision.",
+        "The purported signer lacks the required role, scope, delegation or current authority evidence."
+      ],
+      "mutation": "Treat a valid signature or authenticated identity as sufficient professional or statutory approval."
+    },
+    {
+      "case_id": "HPT-017",
+      "title": "Manufacturer source data has unknown rights or permitted use",
+      "preconditions": [
+        "A source CAD, drawing or machine file is available.",
+        "Its rights or permitted use status is unknown."
+      ],
+      "mutation": "Redistribute or use the source payload in a public benchmark bundle solely because its digest is known."
+    },
+    {
+      "case_id": "HPT-018",
+      "title": "Two sensors share a common calibration or power dependency",
+      "preconditions": [
+        "Two measurements are presented as independent corroboration of a critical condition.",
+        "The sources share a calibration chain, sensor controller, clock or power dependency."
+      ],
+      "mutation": "Count both observations as independent evidence without recording their shared dependency."
+    },
+    {
+      "case_id": "HPT-019",
+      "title": "Site reference frame changes after panel layout approval",
+      "preconditions": [
+        "The panel layout and robot task are bound to an exact site/workcell coordinate frame.",
+        "A later survey changes the accepted reference frame or its uncertainty envelope."
+      ],
+      "mutation": "Continue using the previous layout and robot pose evidence without transforming and requalifying the affected relationships."
+    },
+    {
+      "case_id": "HPT-020",
+      "title": "Unknown fixture state or safety envelope before robot task",
+      "preconditions": [
+        "A robot work package is otherwise complete.",
+        "The exact fixture state, guarded zone, local safety condition or localization validity is Unknown."
+      ],
+      "mutation": "Allow the robot task to proceed because the planner produced a collision-free trajectory."
+    },
+    {
+      "case_id": "HPT-021",
+      "title": "As-built model is generated from design instead of observed installation",
+      "preconditions": [
+        "A design model and installation package exist.",
+        "No independent installation survey or direct observation is present."
+      ],
+      "mutation": "Copy the design geometry into an as-built record and represent it as measured reality."
+    },
+    {
+      "case_id": "HPT-022",
+      "title": "Rollback to prior design with changed calibration and new incident history",
+      "preconditions": [
+        "An exact prior design generation is restored.",
+        "Relevant tooling calibration, site conditions or incident history changed after the original evidence was gathered."
+      ],
+      "mutation": "Assume restoring the old design digest automatically restores all previous evidence applicability."
+    },
+    {
+      "case_id": "HPT-023",
+      "title": "Defect and near-miss history is deleted during repair",
+      "preconditions": [
+        "A defect or near-miss observation exists for the installed panel or workcell.",
+        "A repair or corrective action is proposed."
+      ],
+      "mutation": "Replace the prior event history with a clean post-repair status and omit the original negative evidence."
+    },
+    {
+      "case_id": "HPT-024",
+      "title": "Panel disassembly attempted without required temporary support or qualified tool",
+      "preconditions": [
+        "A panel disassembly or replacement procedure is requested.",
+        "The required temporary support, access, tool identity or removal-force limit is missing or invalid."
+      ],
+      "mutation": "Treat geometric access or nominal tool compatibility as sufficient evidence that removal is safe and feasible."
+    }
+  ]
+}
