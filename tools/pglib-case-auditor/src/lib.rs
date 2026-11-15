@@ -559,7 +559,10 @@ pub fn project_matpower_dc_case(source: &str) -> Result<MatpowerDcProjection, St
     let buses = parsed.matrices.get("bus").ok_or("missing mpc.bus")?;
     let generators = parsed.matrices.get("gen").ok_or("missing mpc.gen")?;
     let branches = parsed.matrices.get("branch").ok_or("missing mpc.branch")?;
-    let cost_rows = parsed.matrices.get("gencost").ok_or("missing mpc.gencost")?;
+    let cost_rows = parsed
+        .matrices
+        .get("gencost")
+        .ok_or("missing mpc.gencost")?;
 
     let mut generation_by_bus = BTreeMap::<i64, (f64, f64, f64)>::new();
     let mut projected_generators = Vec::with_capacity(generators.len());
@@ -613,8 +616,10 @@ pub fn project_matpower_dc_case(source: &str) -> Result<MatpowerDcProjection, St
                 index + 1
             ));
         }
-        let (online_generation_mw, p_min, p_max) =
-            generation_by_bus.get(&id).copied().unwrap_or((0.0, 0.0, 0.0));
+        let (online_generation_mw, p_min, p_max) = generation_by_bus
+            .get(&id)
+            .copied()
+            .unwrap_or((0.0, 0.0, 0.0));
         let demand_mw = bus[2];
         let specified_injection_mw = if bus_type == 3 {
             None
@@ -670,7 +675,10 @@ pub fn project_matpower_dc_case(source: &str) -> Result<MatpowerDcProjection, St
         let rate_b_mva = branch[6];
         let rate_c_mva = branch[7];
         if rate_a_mva < 0.0 || rate_b_mva < 0.0 || rate_c_mva < 0.0 {
-            return Err(format!("negative branch rating at branch row {}", index + 1));
+            return Err(format!(
+                "negative branch rating at branch row {}",
+                index + 1
+            ));
         }
         if in_service && branch[3] <= 0.0 {
             return Err(format!(
@@ -733,7 +741,6 @@ pub fn project_matpower_dc_case(source: &str) -> Result<MatpowerDcProjection, St
     })
 }
 
-
 fn projection_json_quote(value: &str) -> String {
     let mut output = String::from("\"");
     for character in value.chars() {
@@ -767,124 +774,149 @@ impl MatpowerDcProjection {
     /// The JSON is a projection audit surface, not a solver result. The exact
     /// source digest binds the input bytes; it does not prove source authenticity.
     pub fn to_json(&self) -> String {
-        let buses = self.buses.iter().map(|bus| {
-            let injection = bus.specified_injection_mw
-                .map(projection_json_number)
-                .unwrap_or_else(|| "null".to_owned());
-            format!(
-                concat!(
-                    "{{",
-                    "\"id\":{},\"bus_type\":{},",
-                    "\"demand_mw\":{},\"reactive_demand_mvar\":{},",
-                    "\"shunt_conductance_mw\":{},\"shunt_susceptance_mvar\":{},",
-                    "\"area\":{},\"voltage_magnitude_initial_pu\":{},",
-                    "\"voltage_angle_initial_degrees\":{},\"base_kv\":{},",
-                    "\"zone\":{},\"voltage_max_pu\":{},\"voltage_min_pu\":{},",
-                    "\"online_generation_mw\":{},",
-                    "\"online_generation_p_min_mw\":{},",
-                    "\"online_generation_p_max_mw\":{},",
-                    "\"specified_injection_mw\":{}",
-                    "}}"
-                ),
-                bus.id,
-                bus.bus_type,
-                projection_json_number(bus.demand_mw),
-                projection_json_number(bus.reactive_demand_mvar),
-                projection_json_number(bus.shunt_conductance_mw),
-                projection_json_number(bus.shunt_susceptance_mvar),
-                bus.area,
-                projection_json_number(bus.voltage_magnitude_initial_pu),
-                projection_json_number(bus.voltage_angle_initial_degrees),
-                projection_json_number(bus.base_kv),
-                bus.zone,
-                projection_json_number(bus.voltage_max_pu),
-                projection_json_number(bus.voltage_min_pu),
-                projection_json_number(bus.online_generation_mw),
-                projection_json_number(bus.online_generation_p_min_mw),
-                projection_json_number(bus.online_generation_p_max_mw),
-                injection
-            )
-        }).collect::<Vec<_>>().join(",");
+        let buses = self
+            .buses
+            .iter()
+            .map(|bus| {
+                let injection = bus
+                    .specified_injection_mw
+                    .map(projection_json_number)
+                    .unwrap_or_else(|| "null".to_owned());
+                format!(
+                    concat!(
+                        "{{",
+                        "\"id\":{},\"bus_type\":{},",
+                        "\"demand_mw\":{},\"reactive_demand_mvar\":{},",
+                        "\"shunt_conductance_mw\":{},\"shunt_susceptance_mvar\":{},",
+                        "\"area\":{},\"voltage_magnitude_initial_pu\":{},",
+                        "\"voltage_angle_initial_degrees\":{},\"base_kv\":{},",
+                        "\"zone\":{},\"voltage_max_pu\":{},\"voltage_min_pu\":{},",
+                        "\"online_generation_mw\":{},",
+                        "\"online_generation_p_min_mw\":{},",
+                        "\"online_generation_p_max_mw\":{},",
+                        "\"specified_injection_mw\":{}",
+                        "}}"
+                    ),
+                    bus.id,
+                    bus.bus_type,
+                    projection_json_number(bus.demand_mw),
+                    projection_json_number(bus.reactive_demand_mvar),
+                    projection_json_number(bus.shunt_conductance_mw),
+                    projection_json_number(bus.shunt_susceptance_mvar),
+                    bus.area,
+                    projection_json_number(bus.voltage_magnitude_initial_pu),
+                    projection_json_number(bus.voltage_angle_initial_degrees),
+                    projection_json_number(bus.base_kv),
+                    bus.zone,
+                    projection_json_number(bus.voltage_max_pu),
+                    projection_json_number(bus.voltage_min_pu),
+                    projection_json_number(bus.online_generation_mw),
+                    projection_json_number(bus.online_generation_p_min_mw),
+                    projection_json_number(bus.online_generation_p_max_mw),
+                    injection
+                )
+            })
+            .collect::<Vec<_>>()
+            .join(",");
 
-        let generators = self.generators.iter().map(|generator| {
-            format!(
-                concat!(
-                    "{{",
-                    "\"source_row\":{},\"bus_id\":{},",
-                    "\"pg_mw\":{},\"qg_mvar\":{},",
-                    "\"q_max_mvar\":{},\"q_min_mvar\":{},",
-                    "\"voltage_setpoint_pu\":{},\"m_base_mva\":{},",
-                    "\"in_service\":{},\"p_max_mw\":{},\"p_min_mw\":{}",
-                    "}}"
-                ),
-                generator.source_row,
-                generator.bus_id,
-                projection_json_number(generator.pg_mw),
-                projection_json_number(generator.qg_mvar),
-                projection_json_number(generator.q_max_mvar),
-                projection_json_number(generator.q_min_mvar),
-                projection_json_number(generator.voltage_setpoint_pu),
-                projection_json_number(generator.m_base_mva),
-                generator.in_service,
-                projection_json_number(generator.p_max_mw),
-                projection_json_number(generator.p_min_mw)
-            )
-        }).collect::<Vec<_>>().join(",");
+        let generators = self
+            .generators
+            .iter()
+            .map(|generator| {
+                format!(
+                    concat!(
+                        "{{",
+                        "\"source_row\":{},\"bus_id\":{},",
+                        "\"pg_mw\":{},\"qg_mvar\":{},",
+                        "\"q_max_mvar\":{},\"q_min_mvar\":{},",
+                        "\"voltage_setpoint_pu\":{},\"m_base_mva\":{},",
+                        "\"in_service\":{},\"p_max_mw\":{},\"p_min_mw\":{}",
+                        "}}"
+                    ),
+                    generator.source_row,
+                    generator.bus_id,
+                    projection_json_number(generator.pg_mw),
+                    projection_json_number(generator.qg_mvar),
+                    projection_json_number(generator.q_max_mvar),
+                    projection_json_number(generator.q_min_mvar),
+                    projection_json_number(generator.voltage_setpoint_pu),
+                    projection_json_number(generator.m_base_mva),
+                    generator.in_service,
+                    projection_json_number(generator.p_max_mw),
+                    projection_json_number(generator.p_min_mw)
+                )
+            })
+            .collect::<Vec<_>>()
+            .join(",");
 
-        let branches = self.branches.iter().map(|branch| {
-            format!(
-                concat!(
-                    "{{",
-                    "\"source_row\":{},\"from_bus\":{},\"to_bus\":{},",
-                    "\"resistance_pu\":{},\"reactance_pu\":{},",
-                    "\"line_charging_susceptance_pu\":{},",
-                    "\"rate_a_mva\":{},\"rate_b_mva\":{},\"rate_c_mva\":{},",
-                    "\"tap_ratio\":{},\"phase_shift_degrees\":{},",
-                    "\"in_service\":{},\"angle_min_degrees\":{},",
-                    "\"angle_max_degrees\":{}",
-                    "}}"
-                ),
-                branch.source_row,
-                branch.from_bus,
-                branch.to_bus,
-                projection_json_number(branch.resistance_pu),
-                projection_json_number(branch.reactance_pu),
-                projection_json_number(branch.line_charging_susceptance_pu),
-                projection_json_number(branch.rate_a_mva),
-                projection_json_number(branch.rate_b_mva),
-                projection_json_number(branch.rate_c_mva),
-                projection_json_number(branch.tap_ratio),
-                projection_json_number(branch.phase_shift_degrees),
-                branch.in_service,
-                projection_json_number(branch.angle_min_degrees),
-                projection_json_number(branch.angle_max_degrees)
-            )
-        }).collect::<Vec<_>>().join(",");
+        let branches = self
+            .branches
+            .iter()
+            .map(|branch| {
+                format!(
+                    concat!(
+                        "{{",
+                        "\"source_row\":{},\"from_bus\":{},\"to_bus\":{},",
+                        "\"resistance_pu\":{},\"reactance_pu\":{},",
+                        "\"line_charging_susceptance_pu\":{},",
+                        "\"rate_a_mva\":{},\"rate_b_mva\":{},\"rate_c_mva\":{},",
+                        "\"tap_ratio\":{},\"phase_shift_degrees\":{},",
+                        "\"in_service\":{},\"angle_min_degrees\":{},",
+                        "\"angle_max_degrees\":{}",
+                        "}}"
+                    ),
+                    branch.source_row,
+                    branch.from_bus,
+                    branch.to_bus,
+                    projection_json_number(branch.resistance_pu),
+                    projection_json_number(branch.reactance_pu),
+                    projection_json_number(branch.line_charging_susceptance_pu),
+                    projection_json_number(branch.rate_a_mva),
+                    projection_json_number(branch.rate_b_mva),
+                    projection_json_number(branch.rate_c_mva),
+                    projection_json_number(branch.tap_ratio),
+                    projection_json_number(branch.phase_shift_degrees),
+                    branch.in_service,
+                    projection_json_number(branch.angle_min_degrees),
+                    projection_json_number(branch.angle_max_degrees)
+                )
+            })
+            .collect::<Vec<_>>()
+            .join(",");
 
-        let costs = self.costs.iter().map(|cost| {
-            let coefficients = cost.coefficients.iter()
-                .map(|value| projection_json_number(*value))
-                .collect::<Vec<_>>()
-                .join(",");
-            format!(
-                concat!(
-                    "{{",
-                    "\"source_row\":{},\"model\":{},",
-                    "\"startup_cost\":{},\"shutdown_cost\":{},",
-                    "\"point_or_coefficient_count\":{},",
-                    "\"coefficients\":[{}]",
-                    "}}"
-                ),
-                cost.source_row,
-                cost.model,
-                projection_json_number(cost.startup_cost),
-                projection_json_number(cost.shutdown_cost),
-                cost.point_or_coefficient_count,
-                coefficients
-            )
-        }).collect::<Vec<_>>().join(",");
+        let costs = self
+            .costs
+            .iter()
+            .map(|cost| {
+                let coefficients = cost
+                    .coefficients
+                    .iter()
+                    .map(|value| projection_json_number(*value))
+                    .collect::<Vec<_>>()
+                    .join(",");
+                format!(
+                    concat!(
+                        "{{",
+                        "\"source_row\":{},\"model\":{},",
+                        "\"startup_cost\":{},\"shutdown_cost\":{},",
+                        "\"point_or_coefficient_count\":{},",
+                        "\"coefficients\":[{}]",
+                        "}}"
+                    ),
+                    cost.source_row,
+                    cost.model,
+                    projection_json_number(cost.startup_cost),
+                    projection_json_number(cost.shutdown_cost),
+                    cost.point_or_coefficient_count,
+                    coefficients
+                )
+            })
+            .collect::<Vec<_>>()
+            .join(",");
 
-        let limitations = self.limitations.iter()
+        let limitations = self
+            .limitations
+            .iter()
             .map(|limitation| projection_json_quote(limitation))
             .collect::<Vec<_>>()
             .join(",");
