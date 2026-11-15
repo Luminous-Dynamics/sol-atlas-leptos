@@ -267,6 +267,7 @@ pub fn audit_dc_power_flow(
     let components = connected_components(&adjacency);
     let mut reference_by_bus = vec![false; network.buses.len()];
     let mut expected_slack_by_bus = vec![None; network.buses.len()];
+    let mut expected_slack_records = BTreeMap::new();
     let mut reference_bus_ids = Vec::with_capacity(components.len());
 
     for (island_index, component) in components.iter().enumerate() {
@@ -297,6 +298,10 @@ pub fn audit_dc_power_flow(
             )));
         }
         expected_slack_by_bus[reference] = Some(slack_injection);
+        expected_slack_records.insert(
+            network.buses[reference].id,
+            (island_index, slack_injection),
+        );
     }
 
     if candidate.energized_island_count != components.len() {
@@ -480,27 +485,38 @@ pub fn audit_dc_power_flow(
         }
     }
 
-    if candidate.slack_injections.len() != expected_slacks.len() {
+    if candidate.slack_injections.len() != expected_slack_records.len() {
         return Err(AuditError::new(format!(
             "candidate slack-injection count {} differs from topology reference count {}",
             candidate.slack_injections.len(),
-            expected_slacks.len()
+            expected_slack_records.len()
         )));
     }
 
-    for (index, (supplied, (expected_bus, expected_injection))) in candidate
-        .slack_injections
-        .iter()
-        .zip(expected_slacks.iter())
-        .enumerate()
-    {
-        if supplied.bus_id != *expected_bus || supplied.island_index != index {
+    let mut seen_slack_buses = BTreeSet::new();
+    for supplied in &candidate.slack_injections {
+        let Some((expected_island_index, expected_injection)) =
+            expected_slack_records.get(&supplied.bus_id)
+        else {
             return Err(AuditError::new(format!(
-                "candidate slack record {index} has inconsistent bus/island identity"
+                "candidate slack record references non-reference bus {}",
+                supplied.bus_id
+            )));
+        };
+        if !seen_slack_buses.insert(supplied.bus_id) {
+            return Err(AuditError::new(format!(
+                "candidate contains duplicate slack record for bus {}",
+                supplied.bus_id
+            )));
+        }
+        if supplied.island_index != *expected_island_index {
+            return Err(AuditError::new(format!(
+                "candidate slack record for bus {} has island index {}, expected {}",
+                supplied.bus_id, supplied.island_index, expected_island_index
             )));
         }
         require_close(
-            &format!("slack injection at bus {}", expected_bus),
+            &format!("slack injection at bus {}", supplied.bus_id),
             supplied.injection_mw,
             *expected_injection,
             options.value_tolerance_mw,
@@ -645,6 +661,61 @@ mod tests {
         assert!((result.branch_flows[1].flow_from_to_mw + 10.0).abs() < 1.0e-9);
         let report = audit_dc_power_flow(&network, &result, AuditOptions::default()).unwrap();
         assert_eq!(report.checked_bus_count, 3);
+        assert!(report.independently_feasible_under_declared_checks);
+    }
+
+    #[test]
+    fn accepts_interleaved_bus_rows_across_disconnected_islands() {
+        // Island traversal order is A then B, while reference buses occur in
+        // source row order B then A. The checker must bind by bus ID, not list index.
+        let network = DcNetwork {
+            base_mva: 100.0,
+            buses: vec![
+                DcBus {
+                    id: 1,
+                    specified_injection_mw: Some(-25.0),
+                },
+                DcBus {
+                    id: 2,
+                    specified_injection_mw: None,
+                },
+                DcBus {
+                    id: 3,
+                    specified_injection_mw: None,
+                },
+                DcBus {
+                    id: 4,
+                    specified_injection_mw: Some(-10.0),
+                },
+            ],
+            branches: vec![
+                DcBranch {
+                    from_bus: 1,
+                    to_bus: 3,
+                    reactance_pu: 0.1,
+                    tap_ratio: 0.0,
+                    phase_shift_degrees: 0.0,
+                    rate_a_mva: None,
+                    in_service: true,
+                },
+                DcBranch {
+                    from_bus: 2,
+                    to_bus: 4,
+                    reactance_pu: 0.2,
+                    tap_ratio: 0.0,
+                    phase_shift_degrees: 0.0,
+                    rate_a_mva: None,
+                    in_service: true,
+                },
+            ],
+        };
+        let result = solve(&network);
+        assert_eq!(result.slack_injections[0].bus_id, 2);
+        assert_eq!(result.slack_injections[0].island_index, 1);
+        assert_eq!(result.slack_injections[1].bus_id, 3);
+        assert_eq!(result.slack_injections[1].island_index, 0);
+        let report = audit_dc_power_flow(&network, &result, AuditOptions::default()).unwrap();
+        assert_eq!(report.energized_island_count, 2);
         assert!(report.independently_feasible_under_declared_checks);
     }
 
