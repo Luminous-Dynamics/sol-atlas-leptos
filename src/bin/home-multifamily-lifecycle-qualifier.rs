@@ -830,26 +830,29 @@ fn replay_mutation_corpus(
     service_topology: &Value,
 ) -> Result<Value, Vec<String>> {
     let mut errors = Vec::new();
-    if text_at(corpus, "schema_version")
-        != Some("multifamily-lifecycle-adversarial-corpus/0.1")
-    {
+    if text_at(corpus, "schema_version") != Some("multifamily-lifecycle-adversarial-corpus/0.1") {
         errors.push("lifecycle mutation corpus has unsupported schema_version".to_owned());
     }
     if text_at(corpus, "maturity") != Some("authored_manifest_not_executed") {
-        errors.push("lifecycle mutation corpus must remain an authored development manifest".to_owned());
+        errors.push(
+            "lifecycle mutation corpus must remain an authored development manifest".to_owned(),
+        );
     }
-    if text_at(corpus, "base_fixture")
-        != Some("multifamily-lifecycle-synthetic-v0.1.json")
-    {
+    if text_at(corpus, "base_fixture") != Some("multifamily-lifecycle-synthetic-v0.1.json") {
         errors.push("lifecycle mutation corpus is not bound to the exact base fixture".to_owned());
     }
     if corpus.get("executed_cases").and_then(Value::as_u64) != Some(0) {
-        errors.push("authored lifecycle mutation corpus must not claim persisted execution".to_owned());
+        errors.push(
+            "authored lifecycle mutation corpus must not claim persisted execution".to_owned(),
+        );
     }
 
     let cases = array_at(corpus, "cases");
     let case_ids = unique_ids(cases, "case_id", "lifecycle mutation cases", &mut errors);
-    let declared_count = corpus.get("case_count").and_then(Value::as_u64).unwrap_or(0);
+    let declared_count = corpus
+        .get("case_count")
+        .and_then(Value::as_u64)
+        .unwrap_or(0);
     if declared_count != 30 || case_ids.len() != 30 {
         errors.push(format!(
             "lifecycle mutation corpus requires 30 cases; declared {declared_count}, found {}",
@@ -865,12 +868,16 @@ fn replay_mutation_corpus(
             .map(str::to_owned)
             .collect::<BTreeSet<_>>();
         if development_ids != case_ids {
-            errors.push("lifecycle mutation development split does not exactly match case IDs".to_owned());
+            errors.push(
+                "lifecycle mutation development split does not exactly match case IDs".to_owned(),
+            );
         }
         if !array_at(split, "calibration_cases").is_some_and(Vec::is_empty)
             || !array_at(split, "sealed_confirmation_cases").is_some_and(Vec::is_empty)
         {
-            errors.push("lifecycle mutation corpus must not claim calibration or sealed cases".to_owned());
+            errors.push(
+                "lifecycle mutation corpus must not claim calibration or sealed cases".to_owned(),
+            );
         }
     } else {
         errors.push("lifecycle mutation corpus has no case_split".to_owned());
@@ -893,12 +900,15 @@ fn replay_mutation_corpus(
             }
             let mutations = array_at(case, "mutations");
             let mutation_rows = mutations.cloned().unwrap_or_default();
-            let disposition = text_at(case, "expected_disposition").unwrap_or("<missing-disposition>");
+            let disposition =
+                text_at(case, "expected_disposition").unwrap_or("<missing-disposition>");
             match text_at(case, "case_kind") {
                 Some("positive_control") => {
                     positive_count += 1;
                     if disposition != "ACCEPT_SYNTHETIC_BASELINE" || !mutation_rows.is_empty() {
-                        errors.push(format!("positive lifecycle case {case_id} must be an unmutated accept control"));
+                        errors.push(format!(
+                            "positive lifecycle case {case_id} must be an unmutated accept control"
+                        ));
                     }
                 }
                 Some("adversarial_mutation") => {
@@ -907,7 +917,9 @@ fn replay_mutation_corpus(
                         errors.push(format!("adversarial lifecycle case {case_id} must contain mutations and expect rejection"));
                     }
                 }
-                _ => errors.push(format!("lifecycle mutation case {case_id} has invalid case_kind")),
+                _ => errors.push(format!(
+                    "lifecycle mutation case {case_id} has invalid case_kind"
+                )),
             }
 
             let mut candidate = fixture.clone();
@@ -915,11 +927,15 @@ fn replay_mutation_corpus(
             for mutation in &mutation_rows {
                 let pointer = text_at(mutation, "pointer").unwrap_or("");
                 if !pointer.starts_with("/") || !seen_pointers.insert(pointer.to_owned()) {
-                    errors.push(format!("lifecycle mutation case {case_id} has invalid or duplicate JSON pointer"));
+                    errors.push(format!(
+                        "lifecycle mutation case {case_id} has invalid or duplicate JSON pointer"
+                    ));
                     continue;
                 }
                 let Some(value) = mutation.get("value") else {
-                    errors.push(format!("lifecycle mutation case {case_id} mutation has no value"));
+                    errors.push(format!(
+                        "lifecycle mutation case {case_id} mutation has no value"
+                    ));
                     continue;
                 };
                 match candidate.pointer_mut(pointer) {
@@ -1071,15 +1087,9 @@ mod tests {
     fn frozen_30_case_mutation_corpus_matches_known_answers() {
         let (fixture, building, programme, layout, services) = load_fixtures();
         let corpus = load_mutation_corpus();
-        let report = replay_mutation_corpus(
-            &corpus,
-            &fixture,
-            &building,
-            &programme,
-            &layout,
-            &services,
-        )
-        .expect("30-case lifecycle mutation corpus");
+        let report =
+            replay_mutation_corpus(&corpus, &fixture, &building, &programme, &layout, &services)
+                .expect("30-case lifecycle mutation corpus");
         assert_eq!(report["case_count"], 30);
         assert_eq!(report["positive_control_count"], 1);
         assert_eq!(report["adversarial_control_count"], 29);
