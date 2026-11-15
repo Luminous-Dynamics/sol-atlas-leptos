@@ -20,7 +20,9 @@ The proposed breakthrough is **decision-sufficient, evidence-first engineering**
 - treat uncertainty, authority, rights and physical observation as separate dimensions;
 - plan evidence acquisition against the decision it can change;
 - minimize unnecessary requalification without retaining stale evidence;
-- optimize accepted physical output across the complete workflow rather than a subsystem's nominal cycle time.
+- optimize accepted physical output across the complete workflow rather than a subsystem's nominal cycle time;
+- **design for evidence (DfE):** design the product, interfaces, datums, labels, access and service strategy so that competent inspection, identity recovery, repair and requalification are planned properties—not expensive afterthoughts;
+- manage **evidence debt** explicitly: unresolved claims, unknown source mappings, missing metrology access and undocumented transformations remain visible as counts, owners and estimated resolution effort, never hidden in a single confidence score.
 
 The result is not a replacement digital twin. It is an independent assurance and decision layer over multiple digital twins and industrial systems.
 
@@ -196,6 +198,7 @@ The initial 24 scenarios in #870 are a seed, not a representative SOTA sample. E
 | S13 Active-sensing comparator | Reproduce fixed one-step observe-then-plan / VoI and compare with multi-obligation acquisition | Same information-gain observation cannot change the action; same expected opportunity loss with different admissibility; model confidence decay; outcome model misspecification; inconclusive observation |
 | S14 Information-architecture ablation | Compare native-only, standards exchange, contextual graph/UNS, OPC UA/I3X and exact-reference composition | Missing context, source discovery failure, semantic loss, unit/frame drift, false grounding, source dependency collapsed |
 | S12 Repair/disassembly | Service access, reversible joints, recovery path and material recovery | Missing removal capability, unqualified replacement, repair creates new configuration without retest |
+| S15 Design-for-evidence | Compare designs with the same function/acceptance contract but different inspectability, datum access, identity recovery, measurement access and requalification burden | Required surface cannot be measured in the intended workcell; datum is occluded; identifier is lost at replacement; proposed sensor/method is out of calibration scope; repair makes a new configuration without a new proof plan |
 
 Mutations must be generated from preregistered operators, then independently labelled. Keep scenario generation seed, corpus digest and adjudication record outside the candidate input. Report results separately by suite; aggregate accuracy must never mask a critical false-clear.
 
@@ -217,6 +220,7 @@ Mutations must be generated from preregistered operators, then independently lab
 
 - Decision-critical blocker identification accuracy.
 - Requests per defensible decision; unnecessary request count.
+- Evidence debt by owner and claim type: unresolved proof obligations, unbound source projections, missing physical measurement paths, undocumented transformations and independently estimated resolution labour-hours. Keep each dimension separate; do not turn debt into a scalar trust score.
 - Acquisition cost, latency, reviewer-hours and disclosure burden.
 - Percentage of candidate requests admissible under authority, rights, source competence, resource and safety constraints.
 - Decision regret, robust-safe action-set change and sensitivity to source dependence.
@@ -250,7 +254,8 @@ The panel-cell route comparison must consume the accepted-output and whole-workf
 - energy/material/water/transport per accepted panel;
 - downtime, availability, tool wear and recovery;
 - human exposure removed and new exposure introduced;
-- service access, repair time, replacement burden and recovered material.
+- service access, repair time, replacement burden and recovered material;
+- design-for-evidence measures: critical features with an accessible datum/measurement path, fraction of critical claims with an executable inspection method, metrology setup/changeover labour, blind/occluded geometry burden and time to re-establish configuration identity after repair.
 
 No physical target is a verified result until the same functional unit, input quality, acceptance predicate, task boundary, equipment envelope and independent metrology are used across routes.
 
