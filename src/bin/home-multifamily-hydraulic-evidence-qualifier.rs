@@ -34,6 +34,14 @@ fn rows<'a>(value: &'a Value, key: &str) -> Option<&'a Vec<Value>> {
     value.get(key).and_then(Value::as_array)
 }
 
+fn integer_at(value: &Value, key: &str) -> Option<i64> {
+    value.get(key).and_then(Value::as_i64)
+}
+
+fn is_null(value: Option<&Value>) -> bool {
+    value.is_none_or(Value::is_null)
+}
+
 fn non_null_ref(value: Option<&Value>) -> bool {
     value.is_some_and(|reference| {
         !reference.is_null()
@@ -71,16 +79,6 @@ fn valid_digest(value: Option<&Value>) -> bool {
     value
         .and_then(Value::as_str)
         .is_some_and(|digest| digest.len() == 64 && digest.bytes().all(|b| b.is_ascii_hexdigit()))
-}
-
-fn expected_unit_service_kind(service_id: &str) -> Option<&'static str> {
-    match service_id {
-        "POTABLE-WATER-DELIVERY" => Some("potable_water"),
-        "ELECTRICITY-DELIVERY" => Some("electricity"),
-        "USEFUL-HOT-WATER" => Some("useful_thermal"),
-        "WASTEWATER-REMOVAL" => Some("wastewater"),
-        _ => None,
-    }
 }
 
 fn valid_unit_for_quantity(kind: &str, unit: &str) -> bool {
@@ -533,34 +531,47 @@ mod tests {
         evidence["run_configuration"]["time_zone"] = json!("Africa/Johannesburg");
         evidence["run_configuration"]["model_coordinate_basis"] = json!("synthetic local coordinate frame");
         evidence["run_configuration"]["vertical_datum"] = json!("synthetic datum");
-        let mapping = &mut evidence["mappings"][1];
-        mapping["solver_entity_id"] = json!("J-PUMP");
-        mapping["mapping_state"] = json!("bound");
-        mapping["mapping_evidence_ref"] = json!({
+        let pump_mapping = &mut evidence["mappings"][1];
+        pump_mapping["solver_entity_id"] = json!("P-PUMP");
+        pump_mapping["mapping_state"] = json!("bound");
+        pump_mapping["mapping_evidence_ref"] = json!({
             "kind":"synthetic_mapping_record","id":"MAP-PUMP-EVIDENCE","revision":"0.1","digest":null
         });
-        let points = json!([
-            {"elapsed_s":0,"lower":99.0,"value":100.0,"upper":101.0},
-            {"elapsed_s":60,"lower":98.0,"value":99.0,"upper":100.0}
-        ]);
-        // Pressure result attached to a unit boundary mapping.
-        let boundary_mapping = &mut evidence["mappings"][6];
-        boundary_mapping["solver_entity_id"] = json!("J-U001");
-        boundary_mapping["mapping_state"] = json!("bound");
-        boundary_mapping["mapping_evidence_ref"] = json!({
-            "kind":"synthetic_mapping_record","id":"MAP-U001-EVIDENCE","revision":"0.1","digest":null
-        });
-        evidence["result_series"] = json!([{
-            "series_id":"SERIES-U001-PRESSURE",
-            "mapping_id":"MAP-U-001-BOUNDARY",
-            "solver_entity_id":"J-U001",
-            "quantity_kind":"pressure",
-            "unit":"kPa",
-            "value_state":"modelled",
-            "time_basis":"elapsed_seconds",
-            "points":points,
-            "evidence_ref":{"kind":"synthetic_solver_output","id":"RESULT-DIGEST-B","revision":"0.1","digest":null}
-        }]);
+        let mut series = Vec::new();
+        for (index, unit_id) in ["U-001", "U-002", "U-003", "U-004"].iter().enumerate() {
+            let mapping_index = 6 + index;
+            let mapping_id = format!("MAP-{unit_id}-BOUNDARY");
+            let solver_id = format!("J-{unit_id}");
+            let mapping = &mut evidence["mappings"][mapping_index];
+            mapping["solver_entity_id"] = json!(solver_id);
+            mapping["mapping_state"] = json!("bound");
+            mapping["mapping_evidence_ref"] = json!({
+                "kind":"synthetic_mapping_record",
+                "id":format!("MAP-{unit_id}-EVIDENCE"),
+                "revision":"0.1",
+                "digest":null
+            });
+            series.push(json!({
+                "series_id":format!("SERIES-{unit_id}-PRESSURE"),
+                "mapping_id":mapping_id,
+                "solver_entity_id":solver_id,
+                "quantity_kind":"pressure",
+                "unit":"kPa",
+                "value_state":"modelled",
+                "time_basis":"elapsed_seconds",
+                "points":[
+                    {"elapsed_s":0,"lower":99.0,"value":100.0,"upper":101.0},
+                    {"elapsed_s":60,"lower":98.0,"value":99.0,"upper":100.0}
+                ],
+                "evidence_ref":{
+                    "kind":"synthetic_solver_output",
+                    "id":format!("RESULT-{unit_id}"),
+                    "revision":"0.1",
+                    "digest":null
+                }
+            }));
+        }
+        evidence["result_series"] = Value::Array(series);
         (evidence, service, building, stress)
     }
 
@@ -707,7 +718,7 @@ mod tests {
         evidence["mappings"][6]["mapping_state"] = json!("planned");
         evidence["mappings"][6]["solver_entity_id"] = Value::Null;
         evidence["mappings"][6]["mapping_evidence_ref"] = Value::Null;
-        evidence["result_series"] = json!([]);
+        evidence["result_series"].as_array_mut().unwrap().remove(0);
         assert!(validate(&evidence, &service, &building, &stress).is_err());
     }
 }
