@@ -20,6 +20,8 @@ jobs:
         with:
           components: rustfmt
       - run: cargo fmt --all --check
+      - name: Check Highveld qualifier formatting
+        run: cargo fmt --manifest-path tools/highveld-panel-thread-qualifier/Cargo.toml -- --check
 
   check-wasm:
     runs-on: ubuntu-latest
