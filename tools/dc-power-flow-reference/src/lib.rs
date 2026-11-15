@@ -264,7 +264,7 @@ pub fn solve_dc_power_flow(
 
     let mut reduced_index = vec![None; bus_count];
     let mut reduced_bus_indices = Vec::with_capacity(bus_count - components.len());
-    for (bus_index, bus) in network.buses.iter().enumerate() {
+    for bus_index in 0..bus_count {
         if !reference_by_bus[bus_index] {
             reduced_index[bus_index] = Some(reduced_bus_indices.len());
             reduced_bus_indices.push(bus_index);
