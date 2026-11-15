@@ -200,7 +200,8 @@
         "source_id",
         "knowledge_type",
         "consent_status",
-        "permitted_purposes"
+        "permitted_purposes",
+        "requested_purpose"
       ],
       "properties": {
         "source_id": {
@@ -231,6 +232,10 @@
             "type": "string",
             "minLength": 1
           }
+        },
+        "requested_purpose": {
+          "type": "string",
+          "minLength": 1
         }
       }
     },
