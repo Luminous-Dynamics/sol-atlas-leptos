@@ -1,0 +1,48 @@
+name: DC fixed-injection contingency sweep
+
+on:
+  pull_request:
+    paths:
+      - "tools/dc-fixed-injection-contingency-sweep/**"
+      - "tools/dc-power-flow-reference/**"
+      - "tools/dc-power-flow-independent-auditor/**"
+      - ".github/workflows/dc-fixed-injection-contingency-sweep.yml"
+  push:
+    paths:
+      - "tools/dc-fixed-injection-contingency-sweep/**"
+      - "tools/dc-power-flow-reference/**"
+      - "tools/dc-power-flow-independent-auditor/**"
+      - ".github/workflows/dc-fixed-injection-contingency-sweep.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: dc-fixed-injection-contingency-sweep
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+      - name: Strict formatting
+        run: |
+          cargo fmt --manifest-path tools/dc-power-flow-reference/Cargo.toml --check
+          cargo fmt --manifest-path tools/dc-power-flow-independent-auditor/Cargo.toml --check
+          cargo fmt --manifest-path tools/dc-fixed-injection-contingency-sweep/Cargo.toml --check
+      - name: Reference solver tests
+        run: cargo test --manifest-path tools/dc-power-flow-reference/Cargo.toml --locked --offline
+      - name: Independent auditor tests
+        run: cargo test --manifest-path tools/dc-power-flow-independent-auditor/Cargo.toml --locked --offline
+      - name: Contingency sweep tests
+        run: cargo test --manifest-path tools/dc-fixed-injection-contingency-sweep/Cargo.toml --locked --offline
+      - name: Strict Clippy
+        run: |
+          cargo clippy --manifest-path tools/dc-power-flow-reference/Cargo.toml --locked --offline --all-targets -- -D warnings
+          cargo clippy --manifest-path tools/dc-power-flow-independent-auditor/Cargo.toml --locked --offline --all-targets -- -D warnings
+          cargo clippy --manifest-path tools/dc-fixed-injection-contingency-sweep/Cargo.toml --locked --offline --all-targets -- -D warnings
