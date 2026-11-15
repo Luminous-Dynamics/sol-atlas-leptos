@@ -1,0 +1,47 @@
+name: Energy Observation Shield Reference
+
+on:
+  pull_request:
+    paths:
+      - "research/energy-observation-shield/**"
+      - ".github/workflows/energy-observation-shield.yml"
+  push:
+    branches:
+      - "research/energy-observation-shield-reference-v0-1"
+    paths:
+      - "research/energy-observation-shield/**"
+      - ".github/workflows/energy-observation-shield.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  action-admission-reference:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    env:
+      CARGO_NET_OFFLINE: "true"
+      CARGO_TERM_COLOR: always
+      EXPECTED_SUBJECT_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
+      - name: Assert exact subject before execution
+        run: test "$(git rev-parse HEAD)" = "$EXPECTED_SUBJECT_SHA"
+      - uses: dtolnay/rust-toolchain@1.98.1
+        with:
+          components: rustfmt, clippy
+      - name: Check formatting
+        run: cargo fmt --manifest-path research/energy-observation-shield/Cargo.toml --check
+      - name: Check all targets with lockfile
+        run: cargo check --locked --all-targets --manifest-path research/energy-observation-shield/Cargo.toml
+      - name: Run finite action-admission adversarial tests
+        run: cargo test --locked --all-targets --manifest-path research/energy-observation-shield/Cargo.toml
+      - name: Run strict Clippy
+        run: cargo clippy --locked --all-targets --manifest-path research/energy-observation-shield/Cargo.toml -- -D warnings
+      - name: Assert exact subject and clean tracked source after execution
+        run: |
+          test "$(git rev-parse HEAD)" = "$EXPECTED_SUBJECT_SHA"
+          test -z "$(git status --porcelain --untracked-files=no)"
