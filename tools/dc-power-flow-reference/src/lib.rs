@@ -137,23 +137,40 @@ impl std::fmt::Display for DcPowerFlowError {
         match self {
             Self::EmptyNetwork => write!(formatter, "network has no buses"),
             Self::BusBudgetExceeded { count, maximum } => {
-                write!(formatter, "bus count {count} exceeds reference-kernel cap {maximum}")
+                write!(
+                    formatter,
+                    "bus count {count} exceeds reference-kernel cap {maximum}"
+                )
             }
             Self::BranchBudgetExceeded { count, maximum } => {
-                write!(formatter, "branch count {count} exceeds reference-kernel cap {maximum}")
+                write!(
+                    formatter,
+                    "branch count {count} exceeds reference-kernel cap {maximum}"
+                )
             }
             Self::InvalidBaseMva => write!(formatter, "base MVA must be finite and positive"),
-            Self::InvalidSolveTolerance => write!(formatter, "solve tolerances must be finite and non-negative"),
-            Self::InvalidBusId { bus_id } => write!(formatter, "bus ID must be positive, got {bus_id}"),
+            Self::InvalidSolveTolerance => write!(
+                formatter,
+                "solve tolerances must be finite and non-negative"
+            ),
+            Self::InvalidBusId { bus_id } => {
+                write!(formatter, "bus ID must be positive, got {bus_id}")
+            }
             Self::DuplicateBusId { bus_id } => write!(formatter, "duplicate bus ID {bus_id}"),
             Self::NonFiniteBusInjection { bus_id } => {
                 write!(formatter, "non-finite specified injection at bus {bus_id}")
             }
-            Self::IslandMustHaveExactlyOneReference { island_index, count } => write!(
+            Self::IslandMustHaveExactlyOneReference {
+                island_index,
+                count,
+            } => write!(
                 formatter,
                 "energized island {island_index} has {count} reference buses; exactly one is required"
             ),
-            Self::InvalidBranchEndpoint { branch_index, bus_id } => write!(
+            Self::InvalidBranchEndpoint {
+                branch_index,
+                bus_id,
+            } => write!(
                 formatter,
                 "branch {branch_index} references unknown bus {bus_id}"
             ),
@@ -161,22 +178,43 @@ impl std::fmt::Display for DcPowerFlowError {
                 write!(formatter, "branch {branch_index} connects a bus to itself")
             }
             Self::InvalidReactance { branch_index } => {
-                write!(formatter, "branch {branch_index} requires finite positive reactance")
+                write!(
+                    formatter,
+                    "branch {branch_index} requires finite positive reactance"
+                )
             }
             Self::InvalidTapRatio { branch_index } => {
-                write!(formatter, "branch {branch_index} tap ratio must be finite and non-negative")
+                write!(
+                    formatter,
+                    "branch {branch_index} tap ratio must be finite and non-negative"
+                )
             }
             Self::InvalidPhaseShift { branch_index } => {
-                write!(formatter, "branch {branch_index} phase shift must be finite")
+                write!(
+                    formatter,
+                    "branch {branch_index} phase shift must be finite"
+                )
             }
             Self::InvalidRateA { branch_index } => {
-                write!(formatter, "branch {branch_index} Rate A must be finite and non-negative")
+                write!(
+                    formatter,
+                    "branch {branch_index} Rate A must be finite and non-negative"
+                )
             }
             Self::NonFiniteNetworkCoefficient { branch_index } => {
-                write!(formatter, "branch {branch_index} produces a non-finite DC coefficient")
+                write!(
+                    formatter,
+                    "branch {branch_index} produces a non-finite DC coefficient"
+                )
             }
-            Self::SingularNetworkMatrix => write!(formatter, "reduced DC network matrix is singular or ill-conditioned"),
-            Self::NonFiniteSolution => write!(formatter, "DC power-flow solution contains non-finite values"),
+            Self::SingularNetworkMatrix => write!(
+                formatter,
+                "reduced DC network matrix is singular or ill-conditioned"
+            ),
+            Self::NonFiniteSolution => write!(
+                formatter,
+                "DC power-flow solution contains non-finite values"
+            ),
         }
     }
 }
@@ -210,18 +248,19 @@ pub fn solve_dc_power_flow(
 
     let mut adjacency = vec![Vec::<usize>::new(); bus_count];
     for (branch_index, branch) in network.branches.iter().enumerate() {
-        let from = *bus_index.get(&branch.from_bus).ok_or(
-            DcPowerFlowError::InvalidBranchEndpoint {
-                branch_index,
-                bus_id: branch.from_bus,
-            },
-        )?;
-        let to = *bus_index.get(&branch.to_bus).ok_or(
-            DcPowerFlowError::InvalidBranchEndpoint {
+        let from =
+            *bus_index
+                .get(&branch.from_bus)
+                .ok_or(DcPowerFlowError::InvalidBranchEndpoint {
+                    branch_index,
+                    bus_id: branch.from_bus,
+                })?;
+        let to = *bus_index
+            .get(&branch.to_bus)
+            .ok_or(DcPowerFlowError::InvalidBranchEndpoint {
                 branch_index,
                 bus_id: branch.to_bus,
-            },
-        )?;
+            })?;
         if from == to {
             return Err(DcPowerFlowError::SelfLoopBranch { branch_index });
         }
@@ -328,12 +367,15 @@ pub fn solve_dc_power_flow(
         let (flow, rate_limit) = if branch.in_service {
             let from = bus_index[&branch.from_bus];
             let to = bus_index[&branch.to_bus];
-            let tap = if branch.tap_ratio == 0.0 { 1.0 } else { branch.tap_ratio };
+            let tap = if branch.tap_ratio == 0.0 {
+                1.0
+            } else {
+                branch.tap_ratio
+            };
             let susceptance = 1.0 / (branch.reactance_pu * tap);
             let phase_shift_rad = branch.phase_shift_degrees.to_radians();
-            let value = susceptance
-                * network.base_mva
-                * (angles[from] - angles[to] - phase_shift_rad);
+            let value =
+                susceptance * network.base_mva * (angles[from] - angles[to] - phase_shift_rad);
             let limit = branch.rate_a_mva.filter(|rating| *rating > 0.0);
             if !value.is_finite() {
                 return Err(DcPowerFlowError::NonFiniteSolution);
@@ -373,7 +415,8 @@ pub fn solve_dc_power_flow(
         let injection = if is_reference {
             slack_injection_by_bus[index].expect("each island has one computed slack injection")
         } else {
-            bus.specified_injection_mw.expect("validated non-reference injection")
+            bus.specified_injection_mw
+                .expect("validated non-reference injection")
         };
         let residual = net_outflow[index] - injection;
         if !injection.is_finite()
@@ -403,10 +446,8 @@ pub fn solve_dc_power_flow(
         });
     }
 
-    let within_nodal_tolerance =
-        max_abs_nodal_residual_mw <= options.residual_tolerance_mw;
-    let within_declared_branch_limits =
-        max_branch_overload_mw <= options.branch_limit_tolerance_mw;
+    let within_nodal_tolerance = max_abs_nodal_residual_mw <= options.residual_tolerance_mw;
+    let within_declared_branch_limits = max_branch_overload_mw <= options.branch_limit_tolerance_mw;
     Ok(DcPowerFlowResult {
         bus_states,
         branch_flows,
@@ -420,10 +461,7 @@ pub fn solve_dc_power_flow(
     })
 }
 
-fn validate_input(
-    network: &DcNetwork,
-    options: SolveOptions,
-) -> Result<(), DcPowerFlowError> {
+fn validate_input(network: &DcNetwork, options: SolveOptions) -> Result<(), DcPowerFlowError> {
     if network.buses.is_empty() {
         return Err(DcPowerFlowError::EmptyNetwork);
     }
@@ -469,7 +507,10 @@ fn validate_input(
     for (branch_index, branch) in network.branches.iter().enumerate() {
         for bus_id in [branch.from_bus, branch.to_bus] {
             if !bus_ids.contains(&bus_id) {
-                return Err(DcPowerFlowError::InvalidBranchEndpoint { branch_index, bus_id });
+                return Err(DcPowerFlowError::InvalidBranchEndpoint {
+                    branch_index,
+                    bus_id,
+                });
             }
         }
         if branch.from_bus == branch.to_bus {
@@ -490,10 +531,12 @@ fn validate_input(
             if !branch.phase_shift_degrees.is_finite() {
                 return Err(DcPowerFlowError::InvalidPhaseShift { branch_index });
             }
-            let tap = if branch.tap_ratio == 0.0 { 1.0 } else { branch.tap_ratio };
-            if !(branch.reactance_pu * tap).is_finite()
-                || branch.reactance_pu * tap <= 0.0
-            {
+            let tap = if branch.tap_ratio == 0.0 {
+                1.0
+            } else {
+                branch.tap_ratio
+            };
+            if !(branch.reactance_pu * tap).is_finite() || branch.reactance_pu * tap <= 0.0 {
                 return Err(DcPowerFlowError::NonFiniteNetworkCoefficient { branch_index });
             }
         }
@@ -657,7 +700,11 @@ mod tests {
         let mut explicit_unity = two_bus(None);
         explicit_unity.branches[0].tap_ratio = 1.0;
         let unity = solve_dc_power_flow(&explicit_unity, SolveOptions::default()).unwrap();
-        assert!((zero_tap.branch_flows[0].flow_from_to_mw - unity.branch_flows[0].flow_from_to_mw).abs() < 1.0e-12);
+        assert!(
+            (zero_tap.branch_flows[0].flow_from_to_mw - unity.branch_flows[0].flow_from_to_mw)
+                .abs()
+                < 1.0e-12
+        );
     }
 
     #[test]
@@ -674,8 +721,14 @@ mod tests {
         let mut network = DcNetwork {
             base_mva: 100.0,
             buses: vec![
-                DcBus { id: 1, specified_injection_mw: None },
-                DcBus { id: 2, specified_injection_mw: Some(0.0) },
+                DcBus {
+                    id: 1,
+                    specified_injection_mw: None,
+                },
+                DcBus {
+                    id: 2,
+                    specified_injection_mw: Some(0.0),
+                },
             ],
             branches: vec![DcBranch {
                 from_bus: 1,
@@ -702,14 +755,42 @@ mod tests {
         let network = DcNetwork {
             base_mva: 100.0,
             buses: vec![
-                DcBus { id: 1, specified_injection_mw: None },
-                DcBus { id: 2, specified_injection_mw: Some(-25.0) },
-                DcBus { id: 3, specified_injection_mw: None },
-                DcBus { id: 4, specified_injection_mw: Some(-10.0) },
+                DcBus {
+                    id: 1,
+                    specified_injection_mw: None,
+                },
+                DcBus {
+                    id: 2,
+                    specified_injection_mw: Some(-25.0),
+                },
+                DcBus {
+                    id: 3,
+                    specified_injection_mw: None,
+                },
+                DcBus {
+                    id: 4,
+                    specified_injection_mw: Some(-10.0),
+                },
             ],
             branches: vec![
-                DcBranch { from_bus: 1, to_bus: 2, reactance_pu: 0.1, tap_ratio: 0.0, phase_shift_degrees: 0.0, rate_a_mva: None, in_service: true },
-                DcBranch { from_bus: 3, to_bus: 4, reactance_pu: 0.2, tap_ratio: 0.0, phase_shift_degrees: 0.0, rate_a_mva: None, in_service: true },
+                DcBranch {
+                    from_bus: 1,
+                    to_bus: 2,
+                    reactance_pu: 0.1,
+                    tap_ratio: 0.0,
+                    phase_shift_degrees: 0.0,
+                    rate_a_mva: None,
+                    in_service: true,
+                },
+                DcBranch {
+                    from_bus: 3,
+                    to_bus: 4,
+                    reactance_pu: 0.2,
+                    tap_ratio: 0.0,
+                    phase_shift_degrees: 0.0,
+                    rate_a_mva: None,
+                    in_service: true,
+                },
             ],
         };
         let result = solve_dc_power_flow(&network, SolveOptions::default()).unwrap();
