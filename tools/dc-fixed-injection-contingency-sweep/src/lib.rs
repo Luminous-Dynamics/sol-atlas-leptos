@@ -655,7 +655,7 @@ mod tests {
     #[test]
     fn json_receipt_is_deterministic_and_escapes_identity_labels() {
         let report = sweep_fixed_injection_single_branch_outages(
-            "case \"quoted\"\nline",
+            "case \"quoted\"\\path\nline",
             &triangle(),
             SweepOptions::default(),
         )
@@ -663,7 +663,7 @@ mod tests {
 
         let first = report.to_json();
         assert_eq!(first, report.to_json());
-        assert!(first.contains("case \\\"quoted\\\"\\nline"));
+        assert!(first.contains("case \\\"quoted\\\"\\\\path\\nline"));
         assert!(first.contains("audited_with_declared_violations"));
         assert!(first.contains("coverage_complete"));
         assert!(first.ends_with("}"));
