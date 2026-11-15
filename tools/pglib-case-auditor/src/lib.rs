@@ -174,11 +174,6 @@ struct CaseTables {
     saw_end: bool,
 }
 
-enum ParseState {
-    Ready,
-    Matrix { name: String, content: String },
-}
-
 fn strip_comment(line: &str) -> String {
     let mut quoted = false;
     for (index, ch) in line.char_indices() {
