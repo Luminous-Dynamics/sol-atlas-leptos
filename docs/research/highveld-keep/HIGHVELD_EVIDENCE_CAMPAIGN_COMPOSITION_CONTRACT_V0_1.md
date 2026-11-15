@@ -1,4 +1,4 @@
-# Highveld Evidence-Campaign Composition Contract v0.1
+# Highveld Assurance-to-Campaign Interoperability Contract v0.1
 
 **Status:** proposed benchmark-only interface; no production owner schema binding claimed  
 **Parent:** [HPT-CROSS-OWNER-REPLAY-001 #878](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/878)  
@@ -6,18 +6,21 @@
 
 ## 1. Why this contract exists
 
-Two active owners solve adjacent but different problems:
+Three existing owners already cover most of the planning problem. The Highveld integration must preserve those boundaries.
 
-- **Mycelix #6252** plans admissible acquisition of evidence for unresolved assurance obligations. Its hard gates include rights/source-use, authority, safety, schedule, physical realizability and data access. It distinguishes a task that is capable of producing evidence from evidence that is actually acquired, verified and accepted.
-- **Symtropy #5164** plans multiple physical observations under spatial, temporal and shared-resource constraints. It checks candidate actions against existing reservation and occupancy state and against one another, on scratch planning state. A selected observation plan does not clear work or prove coverage.
+- **Mycelix #6252** is designing assurance-obligation evidence acquisition: which unresolved proof obligations a candidate task can address, and whether it is admissible under authority, rights/source-use, safety, schedule, physical-realizability and data-access gates. The plan only identifies tasks capable of producing evidence; it does not mean evidence has been acquired or accepted. The issue is open research work; no completed production integration is claimed.
+- **Symtropy #5164 / PR #5240** owns resource- and space-time-constrained observation campaign planning, including bounded exact set-cover and its existing reservation/occupancy owners.
+- **Symtropy #5250 / draft PR #5260** already owns the **production-option plus option-specific evidence-campaign composition and joint Pareto layer**. PR #5260 calls the existing optioneering engine #5238 and observation-campaign engine #5240; its issue explicitly says not to duplicate option gates, set-cover search, scheduler, reservation calendar, occupancy logic or accepted-output ledger. Its current issue record describes a Rust implementation and 14 synthetic tests, but the referenced exact-head CI was still pending in the last status recorded there.
 
-These are complementary decision layers, not two competing next-best-scan implementations.
+The Highveld integration must therefore **not build another campaign optimizer, option-evidence package evaluator or joint Pareto layer**.
 
-The composition problem is:
+The remaining cross-owner problem is narrower:
 
-> Given unresolved proof obligations and candidate ways to resolve them, which admissible evidence-acquisition tasks should be selected, which of those require physical observation, can the corresponding observation campaign be scheduled feasibly, and what is the least-burden set of plans without disguising hard-gate failures or double-counting evidence?
+> Can Mycelix's assurance-obligation and acquisition-admissibility result be bound to the exact option-specific evidence needs and candidate acquisition tasks already handled by Symtropy #5260, so that a blocked, Unknown, rights-ineligible or unbound task is never presented as a valid route to satisfying a proof obligation?
 
-The benchmark must not replace either owner, copy either planner's internal records, or invent a common authority.
+When an admissible task requires a physical observation, its relation to the Symtropy campaign action must be explicit and owner-reviewed. Remote source audits, document review and authority review remain Mycelix tasks and must not be forced into a physical observation scheduler.
+
+The benchmark tests this **assurance-admissibility extension** and evidence lifecycle boundary. Symtropy #5260 remains the owner of option/campaign composition, objective ordering and its Pareto frontier. The Sol-Atlas layer preserves references, reports cross-owner mismatches and measures the resulting assurance outcome; it does not recalculate the frontier.
 
 ## 2. Non-goals and binding status
 
@@ -35,13 +38,12 @@ Until all of those are known, the projection is **UNBOUND**. A matching field na
 
 No values in this contract authorize an inspection, resource booking, site entry, material receipt, work release, robot command, acceptance decision, professional approval, construction or occupancy.
 
-## 3. The two-layer composition model
+## 3. The owner-preserving composition model
 
-### Layer A — assurance acquisition admissibility (Mycelix owner)
+### Layer A — assurance-obligation admissibility (Mycelix #6252)
 
-For each unresolved proof obligation, consume the Mycelix owner's result about candidate acquisition tasks. Preserve each independent gate and its original owner evidence:
-
-- obligation coverage / relevance;
+For each unresolved proof obligation, consume the Mycelix owner's result about candidate acquisition tasks. Preserve the independent gate dispositions and source evidence:
+- obligation coverage / relevance and exact decision scope;
 - authority and signer scope;
 - legal rights and permitted source use;
 - safety permission;
@@ -51,32 +53,34 @@ For each unresolved proof obligation, consume the Mycelix owner's result about c
 - prerequisite closure;
 - source competence and scope.
 
-Only a candidate whose required gates are affirmatively admissible can enter a complete candidate plan. A Blocked or Unknown task remains visible as rejected, with its owner-provided reason; it must not be made selectable by adding a cost or information-value bonus.
+A Blocked or Unknown task remains rejected with its owner-provided reason. It must not be made selectable by adding a cost or information-value bonus. Source review, clerical review and authority review may be non-physical acquisitions; keep them in the Mycelix layer.
 
-Some evidence tasks are not physical observations: for example a source audit, clerical review or authority review may be remote. They remain in the assurance-acquisition layer and do not need a Symtropy observation action unless the owner mapping proves that they do.
+### Layer B — option-specific evidence campaign (Symtropy #5250/#5260)
 
-### Layer B — physical observation feasibility (Symtropy owner)
+Consume the already-existing option-evidence package from Symtropy #5260. Its current design:
+- evaluates Avoid/Switch/Improve options before spending campaign search on infeasible options;
+- retains robust-feasible options whose evidence burden may alter the option-level Pareto set;
+- requires option-specific work needs and campaign inputs bound to functional contract, option/design digest, project context, floor, site epoch, coordinate frame, clock domain and currency;
+- invokes the existing bounded exact observation-campaign solver #5240 for each option;
+- delegates reservation/occupancy and action conflicts to existing owners;
+- distinguishes proven optimality, feasible-but-not-proven-optimal, proven infeasibility and search-budget exhaustion;
+- handles campaign-cost-included versus campaign-cost-additional explicitly;
+- computes the option/evidence Pareto frontier without collapsing distinct objectives.
 
-Only acquisition tasks that actually require field measurement or inspection are candidates for observation-action binding.
+The current implementation details are sourced from [Symtropy issue #5250](https://github.com/Luminous-Dynamics/symtropy/issues/5250) and [draft PR #5260](https://github.com/Luminous-Dynamics/symtropy/pull/5260). The Highveld integration must consume this owner result; it must not reimplement it.
 
-For those bound tasks, consume Symtropy's existing owner result for:
-- observation coverage against declared work needs / regions;
-- action/site/workcell / epoch identity;
-- time interval and uncertainty semantics;
-- crew, instrument, hoist and other resource requirements;
-- spatial occupancy and pairwise conflict;
-- declared cost currency/minor units, crew minutes, duration and energy;
-- search budget, nodes visited, completeness and optimality claim.
+### Highveld's cross-owner bridge
 
-Do not recalculate or weaken Symtropy's reservation or occupancy semantics in the Sol-Atlas composition layer. Do not mutate live reservation/occupancy books; the owner planner's scratch-state semantics remain authoritative.
+The proposed extension is only the reviewed binding between Mycelix proof obligations / admissible acquisition tasks and the option-specific evidence needs and campaign actions in Symtropy #5260.
 
-### The binding between layers
+- A remote acquisition stays in Mycelix and is not converted into a scan.
+- A physical acquisition may bind to a Symtropy observation action only through an exact owner-reviewed relation.
+- An option-evidence package remains identified by its functional contract, option design, project/site epoch, frame, clock and currency bindings.
+- The bridge preserves Mycelix gate results and Symtropy's campaign completeness/optimality result; it does not rewrite either.
+- If Mycelix rejects a task, that task cannot satisfy the linked obligation in the cross-owner replay. The affected option/evidence package must be re-evaluated by the owning Symtropy engine; Sol-Atlas must not patch its result locally.
+- If no exact mapping exists, the relation is UNBOUND and cannot count as obligation coverage.
 
-A physical evidence-acquisition task and a Symtropy observation action may be joined only by an explicit reviewed owner binding. The binding must preserve exact asset/component, design/configuration revision, site frame/epoch, measurement purpose, source, calibration/configuration and decision scope.
-
-A source-review task without a physical observation remains a Mycelix acquisition. A physical observation with no admissible assurance obligation may be useful operationally but cannot be counted as satisfying a proof obligation in this benchmark.
-
-An absent, ambiguous, many-to-one or stale binding is **UNBOUND / NOT COVERED** until resolved. Never synthesize a relationship from similar titles, IDs, timestamps or geometric proximity.
+No additional joint Pareto frontier or campaign selector belongs in Sol-Atlas. The relevant question is whether the owner-native package remains admissible and decision-sufficient after the assurance obligations, rights and authority constraints are attached.
 
 ## 4. Benchmark-only normalized envelope
 
@@ -97,56 +101,49 @@ The following are semantic concepts for test fixtures, not asserted fields in Sy
 
 The envelope carries references to these records; it does not copy or replace them. Exact property names, enumeration values, temporal conventions and identifiers must be mapped from pinned owner profiles before any non-synthetic adapter can exist.
 
-## 5. Planning and optimization semantics
+## 5. Assurance-admissibility and result semantics
 
 ### Hard gates first
 
-Hard-gate eligibility is non-compensatory. An action with an Unknown or Blocked authority, rights, safety, physical-realizability, schedule or data-access condition is excluded from the admissible set. It remains in the report with the owner's reason.
+Mycelix remains authoritative for the admissibility result it owns. An Unknown or Blocked authority, rights/source-use, safety, schedule, physical-realizability or data-access gate is non-compensatory. It cannot be overridden by an option score, lower campaign cost, greater information gain, higher coverage or a different Pareto position.
 
-Neither lower cost, higher information gain, criticality, nor increased coverage can compensate for a failed hard gate.
+The Highveld bridge reports the owner result; it does not reinterpret an Unknown as Allowed or merge gates into a weighted score.
 
-### Complete coverage
+### Preserve Symtropy's option/campaign Pareto output
 
-Let U be the set of unresolved assurance obligations. A candidate plan is **obligation-complete** only when its selected admissible acquisition tasks can cover all elements of U under the declared benchmark mapping.
+Symtropy #5260 already owns the production-option × evidence-campaign package and joint objective/Pareto computation. Keep its cost boundary, objective ordering, completeness and optimality proof status intact.
 
-This is planned obligation coverage only. It is not a successful measurement, evidence verification, claim satisfaction or acceptance.
+The Highveld evaluator must not:
+- schedule or replace observation actions;
+- recompute spatial occupancy or resource conflicts;
+- change campaign objective ordering or search budget;
+- combine money across different currencies;
+- add campaign cost twice;
+- create a second construction/observation Pareto frontier;
+- make an incomplete or budget-exhausted campaign appear proven optimal.
 
-Where a physical observation is necessary, the plan is complete only if the required owner binding exists and the selected Symtropy campaign is resource/space-time feasible. Do not count an unbound or infeasible observation as coverage.
+### Cross-owner obligation closure
 
-### Separate objective dimensions and expose the Pareto set
+Let U be the unresolved Mycelix obligation set for one exact decision episode. A benchmark package is **assurance-admissible** only if:
+1. each task claimed to address an obligation is explicitly mapped to that obligation by the Mycelix output or a reviewed adapter;
+2. the task passes every required Mycelix admissibility gate;
+3. any physical observation is bound to an exact Symtropy #5260/#5240 action and the option's same project/site/epoch/frame/clock/design context;
+4. the Symtropy owner result declares the corresponding work need covered by a feasible campaign;
+5. the evidence state remains **planned**, not observed, verified, accepted or qualified.
 
-Do not collapse different owners' objectives into an opaque weighted score.
+If any mapping or proof obligation is absent, the corresponding obligation remains unresolved. A campaign plan is not acquired evidence. An acquired observation is not automatically sufficient proof.
 
-Report separately:
-- evidence-acquisition cost by currency and minor units;
-- physical observation cost by currency and minor units;
-- crew minutes, separately by role where the owners expose them;
-- instrument / shared-resource occupancy;
-- elapsed campaign span;
-- energy;
-- number of acquisition tasks and observation actions;
-- uncovered obligations and rejected actions.
+### Report, do not re-optimize
 
-Never add costs across currencies. Convert currencies only with an explicitly versioned rate source, rate time, uncertainty and user-approved accounting basis; otherwise report separate ledgers.
+The bridge report records:
+- original Mycelix obligation and acquisition disposition, including all hard-gate reasons;
+- exact relation to the Symtropy option-evidence package and observation action, or UNBOUND;
+- Symtropy option/campaign identity, feasibility, completeness, optimality proof status and owner-computed objective fields;
+- obligations still uncovered after admissibility gating;
+- new physical evidence still required and who owns its acquisition/verification;
+- exact source/profile/commit/digest and adapter identities.
 
-For the joint finite benchmark, first exclude all hard-gate and resource-infeasible subsets, then return the **Pareto frontier** over the declared burden dimensions. Preserve tied and dominated plans with reasons. A single selected plan requires an explicit decision-owner objective or policy; the benchmark must not invent weights.
-
-The Pareto report complements—not replaces—the owners' own objective contracts:
-- Mycelix can report its minimum acquisition-cost and minimum acquisition-count optima over its declared universe.
-- Symtropy can report its existing lexicographic observation-campaign objective: complete coverage, crew minutes, same-currency observation cost, energy, wall-clock span, action count and stable IDs.
-- The composition evaluator reports the joint frontier and exact feasibility facts without silently rewriting either ordering.
-
-### Search truthfulness
-
-Distinguish:
-- complete plan found and optimality proven over the exact declared candidate universe;
-- complete plan found but search is incomplete / optimality not proven;
-- partial plan with explicit uncovered obligations;
-- no feasible complete plan in the exhaustively searched declared universe;
-- no admissible candidates;
-- input invalid or owner projection UNBOUND.
-
-A node-budget exhaustion is not infeasibility. A candidate universe not fully enumerated cannot support a global optimality claim.
+Keep acquisition cost, observation cost, crew time, energy, duration and source currency as separately reported owner dimensions. No cross-owner weighted scalar or new Pareto calculation is authorized by this contract.
 
 ## 6. Required adversarial fixtures
 
@@ -177,18 +174,18 @@ The first 15 form the v0.1 tiny-oracle minimum. Cases 16–20 expand to outcome-
 
 ## 7. Baseline arms and benchmark method
 
-Run the exact same frozen obligation set, candidate catalogue, rights/authority/safety dispositions, cost ledger, site/epoch and reservation books through:
+Run the same frozen decision episode, obligation set, option catalogue, source rights/authority/safety dispositions, project/site context and observation constraints through:
 
-- **B0:** no campaign / all obligations remain unresolved.
-- **B1:** Mycelix assurance-acquisition planner alone.
-- **B2:** Symtropy observation-campaign planner alone.
-- **B3:** sequential composition (Mycelix first, then Symtropy).
-- **B4:** joint exact exhaustive oracle for small finite fixtures.
-- **B5:** candidate joint system, with no access to oracle labels.
+- **B0 — no acquisition:** no admissible acquisition is selected; all obligations remain unresolved.
+- **B1 — Mycelix-only:** run the assurance-obligation acquisition planner without attaching a physical campaign.
+- **B2 — Symtropy-native:** run the existing #5260 option-evidence package evaluator with its #5238 option and #5240 observation campaign owners; no external Mycelix admissibility extension.
+- **B3 — sequential bridge:** obtain Mycelix admissibility first, then pass only reviewed, admissible option-evidence task bindings to the existing Symtropy #5260 package evaluator. Do not modify either owner engine.
+- **B4 — independent cross-owner oracle:** for tiny frozen fixtures, independently verify obligation-to-acquisition mapping, gate admissibility, physical-action binding and the expected owner package/remaining-obligation result.
+- **B5 — candidate bridge:** the proposed Highveld projection/evaluator, with no access to oracle labels.
 
-Use separately implemented oracle logic. The oracle must not call the same planner implementation's feasibility or objective functions to generate its expected answers. For small fixtures, enumerate all subsets independently and compare every selected/rejected action, objective vector, uncovered obligation and search-completeness state.
+The oracle must not call the same owner implementation's gate, feasibility or objective functions to generate its expected answer. For small fixtures, enumerate the cross-owner bindings and hard-gate dispositions independently, then compare exact mappings, rejected tasks, remaining obligations and the referenced Symtropy package status. Do not recompute Symtropy's Pareto objective in Sol-Atlas.
 
-Report performance by fixture family. Do not aggregate away a hard-gate violation.
+Report performance by fixture family. A single blocked/Unknown selection or false obligation closure is a hard failure and cannot be averaged away.
 
 ## 8. Metrics and prospective targets
 
@@ -196,35 +193,37 @@ These are proposed targets, not results.
 
 | Measure | Target |
 |---|---:|
-| Exact agreement with independent joint oracle on all tiny fixtures | 100% |
-| Blocked/Unknown/rights-ineligible acquisition selected | 0 |
-| Unbound physical acquisition/action relation counted as coverage | 0 |
-| Spatial/resource conflict selected | 0 |
-| Currency arithmetic across unlike currencies | 0 |
-| Search-budget exhaustion misreported as infeasible or optimal | 0 |
+| Exact agreement with independent cross-owner oracle on tiny fixtures | 100% |
+| Blocked/Unknown/rights-ineligible acquisition treated as admissible | 0 |
+| Unbound physical acquisition/action relation counted as obligation coverage | 0 |
+| Wrong option/design/site/epoch/frame/clock/currency binding accepted | 0 |
+| Search-budget exhaustion or incomplete Symtropy package presented as proven optimal | 0 |
 | Planned observation promoted to acquired evidence | 0 |
 | Acquired evidence promoted to qualified proof without verifier | 0 |
-| Production reservation/occupancy mutations from planning | 0 |
-| Same input, same semantic report under input permutation | 100% |
+| Owner-native reservation/occupancy mutations from planning | 0 |
+| Unresolved obligation silently removed from the denominator | 0 |
+| Same input, same semantic bridge report under input permutation | 100% |
 
 Also report:
-- exact joint Pareto-front agreement on tiny cases;
-- Pareto regret of sequential/greedy baselines against the independent oracle;
-- percentage of critical obligations with a genuinely admissible, feasible evidence path;
-- number of requests per defensible decision;
-- evidence-acquisition and observation labour/cost/energy separately;
-- proportion of acquired outcomes that are inconclusive, stale, rejected or not decision-sufficient;
-- time-to-defensible-decision, reviewer effort and rights/disclosure burden;
-- abstention correctness when no admissible, feasible plan exists.
+- Mycelix admissibility precision and recall against independently adjudicated obligations;
+- percentage of critical obligations with a genuinely admissible physical or non-physical acquisition route;
+- number of blocked/unknown tasks retained with explicit reasons;
+- percentage of physical tasks with exact owner-reviewed binding to Symtropy;
+- false obligation closure and evidence-laundering counts;
+- Symtropy option/campaign result completeness and search-proof status, as emitted by that owner;
+- decision time, expert review effort, rights/disclosure burden and evidence still missing;
+- accepted outcome rates only after actual evidence is acquired and independently verified.
+
+Do not score the Highveld bridge for generating a new Pareto frontier. That is already owned and benchmarked by Symtropy #5260. Benchmark the correctness of the assurance extension and the preservation of the owner result.
 
 ## 9. Execution sequence
 
-1. **Reference-only:** complete the benchmark envelope and tiny independent oracle without connecting production owner internals.
-2. **Owner mapping:** obtain exact Symtropy #5164 and Mycelix #6252 projection schemas, profile versions, branch/head commits and tests. Mark every unknown mapping UNBOUND.
-3. **Synthetic adapter replay:** map the same synthetic Highveld decision episode into the approved projections, consume owner results and record only their references/digests.
-4. **Composition tests:** run B0–B5 and compare to the independent joint oracle; verify no owner state mutation.
-5. **Adjudication:** independently review expected decisions and freeze gold labels and hidden holdout under a trusted custodian.
-6. **Physical observation:** only after a separate worksite/cell safety and competent metrology process; planning remains non-authorizing.
+1. **Review the existing Symtropy composition:** pin and review #5260's exact branch/head, option-evidence schema, objective contract, tests and CI. Do not recreate its option/campaign layer.
+2. **Review the acquisition owner:** inspect Mycelix #6252's E0 proposal and eventual implementation; pin exact schema/profile/commit, gate semantics, cost units and source references. Until implemented and pinned, mark it UNBOUND.
+3. **Approve the cross-owner mapping:** define reviewed obligation-to-acquisition and physical-acquisition-to-observation bindings without field-name inference.
+4. **Build synthetic replay fixtures:** replay the same Highveld panel decision episode through Mycelix and Symtropy owner outputs and the thin Highveld bridge. Preserve all original owner reasons and result statuses.
+5. **Run independent adjudication:** two reviewers label the cross-owner expected outcomes; a third resolves disagreements; freeze digests and hidden holdout with an access-controlled custodian.
+6. **Run controlled physical observation only afterward:** a separate competent workcell/site safety and metrology process is required. Planning remains non-authorizing.
 
 ## 10. Claim ceiling
 
