@@ -45,8 +45,7 @@ pub struct DifferentialReport {
 impl DifferentialReport {
     #[must_use]
     pub fn is_field_parity(&self) -> bool {
-        self.mismatch_count == 0
-            && self.powerio_diagnostic_count == 0
+        self.mismatch_count == 0 && self.powerio_diagnostic_count == 0
     }
 
     #[must_use]
@@ -163,10 +162,7 @@ fn powerio_bus_type(kind: powerio::BusType) -> i64 {
     }
 }
 
-fn add_to_bus_totals(
-    totals: &mut BTreeMap<i64, BusTotals>,
-    bus_id: i64,
-) -> &mut BusTotals {
+fn add_to_bus_totals(totals: &mut BTreeMap<i64, BusTotals>, bus_id: i64) -> &mut BusTotals {
     totals.entry(bus_id).or_default()
 }
 
@@ -228,7 +224,10 @@ fn compare_projection(
         total.load_p += load.p;
         total.load_q += load.q;
     }
-    for generator in powerio_generators.iter().filter(|generator| generator.in_service) {
+    for generator in powerio_generators
+        .iter()
+        .filter(|generator| generator.in_service)
+    {
         let total = add_to_bus_totals(&mut bus_totals, generator.bus.0 as i64);
         total.generation_p += generator.pg;
         total.generation_pmin += generator.pmin;
@@ -258,15 +257,45 @@ fn compare_projection(
             powerio_bus_type(observed.kind),
         );
         cmp.number("bus", &label, "base_kv", expected.base_kv, observed.base_kv);
-        cmp.number("bus", &label, "vm", expected.voltage_magnitude_initial_pu, observed.vm);
-        cmp.number("bus", &label, "va_degrees", expected.voltage_angle_initial_degrees, observed.va);
-        cmp.number("bus", &label, "vmax", expected.voltage_max_pu, observed.vmax);
-        cmp.number("bus", &label, "vmin", expected.voltage_min_pu, observed.vmin);
+        cmp.number(
+            "bus",
+            &label,
+            "vm",
+            expected.voltage_magnitude_initial_pu,
+            observed.vm,
+        );
+        cmp.number(
+            "bus",
+            &label,
+            "va_degrees",
+            expected.voltage_angle_initial_degrees,
+            observed.va,
+        );
+        cmp.number(
+            "bus",
+            &label,
+            "vmax",
+            expected.voltage_max_pu,
+            observed.vmax,
+        );
+        cmp.number(
+            "bus",
+            &label,
+            "vmin",
+            expected.voltage_min_pu,
+            observed.vmin,
+        );
         cmp.integer("bus", &label, "area", expected.area, observed.area as i64);
         cmp.integer("bus", &label, "zone", expected.zone, observed.zone as i64);
 
         let totals = bus_totals.get(&expected.id).cloned().unwrap_or_default();
-        cmp.number("bus", &label, "pd_aggregated", expected.demand_mw, totals.load_p);
+        cmp.number(
+            "bus",
+            &label,
+            "pd_aggregated",
+            expected.demand_mw,
+            totals.load_p,
+        );
         cmp.number(
             "bus",
             &label,
@@ -320,13 +349,43 @@ fn compare_projection(
         .take(row_generator_count)
     {
         let label = format!("row-{}", row + 1);
-        cmp.integer("generator", &label, "bus", expected.bus_id, observed.bus.0 as i64);
+        cmp.integer(
+            "generator",
+            &label,
+            "bus",
+            expected.bus_id,
+            observed.bus.0 as i64,
+        );
         cmp.number("generator", &label, "pg", expected.pg_mw, observed.pg);
         cmp.number("generator", &label, "qg", expected.qg_mvar, observed.qg);
-        cmp.number("generator", &label, "pmax", expected.p_max_mw, observed.pmax);
-        cmp.number("generator", &label, "pmin", expected.p_min_mw, observed.pmin);
-        cmp.number("generator", &label, "qmax", expected.q_max_mvar, observed.qmax);
-        cmp.number("generator", &label, "qmin", expected.q_min_mvar, observed.qmin);
+        cmp.number(
+            "generator",
+            &label,
+            "pmax",
+            expected.p_max_mw,
+            observed.pmax,
+        );
+        cmp.number(
+            "generator",
+            &label,
+            "pmin",
+            expected.p_min_mw,
+            observed.pmin,
+        );
+        cmp.number(
+            "generator",
+            &label,
+            "qmax",
+            expected.q_max_mvar,
+            observed.qmax,
+        );
+        cmp.number(
+            "generator",
+            &label,
+            "qmin",
+            expected.q_min_mvar,
+            observed.qmin,
+        );
         cmp.number(
             "generator",
             &label,
@@ -334,8 +393,20 @@ fn compare_projection(
             expected.voltage_setpoint_pu,
             observed.vg,
         );
-        cmp.number("generator", &label, "mbase", expected.m_base_mva, observed.mbase);
-        cmp.boolean("generator", &label, "in_service", expected.in_service, observed.in_service);
+        cmp.number(
+            "generator",
+            &label,
+            "mbase",
+            expected.m_base_mva,
+            observed.mbase,
+        );
+        cmp.boolean(
+            "generator",
+            &label,
+            "in_service",
+            expected.in_service,
+            observed.in_service,
+        );
     }
 
     let row_branch_count = projection.branches.len().min(powerio_branches.len());
@@ -347,10 +418,34 @@ fn compare_projection(
         .take(row_branch_count)
     {
         let label = format!("row-{}", row + 1);
-        cmp.integer("branch", &label, "from_bus", expected.from_bus, observed.from.0 as i64);
-        cmp.integer("branch", &label, "to_bus", expected.to_bus, observed.to.0 as i64);
-        cmp.number("branch", &label, "resistance_pu", expected.resistance_pu, observed.r);
-        cmp.number("branch", &label, "reactance_pu", expected.reactance_pu, observed.x);
+        cmp.integer(
+            "branch",
+            &label,
+            "from_bus",
+            expected.from_bus,
+            observed.from.0 as i64,
+        );
+        cmp.integer(
+            "branch",
+            &label,
+            "to_bus",
+            expected.to_bus,
+            observed.to.0 as i64,
+        );
+        cmp.number(
+            "branch",
+            &label,
+            "resistance_pu",
+            expected.resistance_pu,
+            observed.r,
+        );
+        cmp.number(
+            "branch",
+            &label,
+            "reactance_pu",
+            expected.reactance_pu,
+            observed.x,
+        );
         cmp.number(
             "branch",
             &label,
@@ -384,11 +479,41 @@ fn compare_projection(
             unlimited_to_infinity(expected.rate_c_mva),
             observed.rate_c,
         );
-        cmp.number("branch", &label, "tap_ratio", expected.tap_ratio, observed.tap);
-        cmp.number("branch", &label, "phase_shift_degrees", expected.phase_shift_degrees, observed.shift);
-        cmp.boolean("branch", &label, "in_service", expected.in_service, observed.in_service);
-        cmp.number("branch", &label, "angle_min_degrees", expected.angle_min_degrees, observed.angmin);
-        cmp.number("branch", &label, "angle_max_degrees", expected.angle_max_degrees, observed.angmax);
+        cmp.number(
+            "branch",
+            &label,
+            "tap_ratio",
+            expected.tap_ratio,
+            observed.tap,
+        );
+        cmp.number(
+            "branch",
+            &label,
+            "phase_shift_degrees",
+            expected.phase_shift_degrees,
+            observed.shift,
+        );
+        cmp.boolean(
+            "branch",
+            &label,
+            "in_service",
+            expected.in_service,
+            observed.in_service,
+        );
+        cmp.number(
+            "branch",
+            &label,
+            "angle_min_degrees",
+            expected.angle_min_degrees,
+            observed.angmin,
+        );
+        cmp.number(
+            "branch",
+            &label,
+            "angle_max_degrees",
+            expected.angle_max_degrees,
+            observed.angmax,
+        );
     }
 
     for (row, (expected, observed)) in projection
@@ -400,9 +525,27 @@ fn compare_projection(
         let label = format!("row-{}", row + 1);
         match &observed.cost {
             Some(cost) => {
-                cmp.integer("gencost", &label, "model", expected.model as i64, cost.model as i64);
-                cmp.number("gencost", &label, "startup", expected.startup_cost, cost.startup);
-                cmp.number("gencost", &label, "shutdown", expected.shutdown_cost, cost.shutdown);
+                cmp.integer(
+                    "gencost",
+                    &label,
+                    "model",
+                    expected.model as i64,
+                    cost.model as i64,
+                );
+                cmp.number(
+                    "gencost",
+                    &label,
+                    "startup",
+                    expected.startup_cost,
+                    cost.startup,
+                );
+                cmp.number(
+                    "gencost",
+                    &label,
+                    "shutdown",
+                    expected.shutdown_cost,
+                    cost.shutdown,
+                );
                 cmp.integer(
                     "gencost",
                     &label,
@@ -486,17 +629,18 @@ pub fn compare_matpower_source(source: &str) -> Result<DifferentialReport, Strin
 mod tests {
     use super::*;
 
-    const CASE14: &str =
-        include_str!("../../pglib-case-auditor/fixtures/pglib_opf_case14_ieee.m");
+    const CASE14: &str = include_str!("../../pglib-case-auditor/fixtures/pglib_opf_case14_ieee.m");
     const CASE24: &str =
         include_str!("../../pglib-case-auditor/fixtures/pglib_opf_case24_ieee_rts.m");
-    const CASE57: &str =
-        include_str!("../../pglib-case-auditor/fixtures/pglib_opf_case57_ieee.m");
+    const CASE57: &str = include_str!("../../pglib-case-auditor/fixtures/pglib_opf_case57_ieee.m");
 
     #[test]
     fn powerio_matches_all_declared_fields_for_ieee_14() {
         let report = compare_matpower_source(CASE14).expect("both parsers admit IEEE 14");
-        assert_eq!(report.source_git_blob_sha1, "2c8260fff0311c902c3d36dcabcbe861576fc97c");
+        assert_eq!(
+            report.source_git_blob_sha1,
+            "2c8260fff0311c902c3d36dcabcbe861576fc97c"
+        );
         assert!(report.field_comparison_count > 100);
         assert!(report.is_field_parity(), "{}", report.to_json());
     }
@@ -504,7 +648,10 @@ mod tests {
     #[test]
     fn powerio_matches_all_declared_fields_for_ieee_rts_24() {
         let report = compare_matpower_source(CASE24).expect("both parsers admit IEEE RTS 24");
-        assert_eq!(report.source_git_blob_sha1, "00b024c2e583b82452392514d2c22881c708ba7c");
+        assert_eq!(
+            report.source_git_blob_sha1,
+            "00b024c2e583b82452392514d2c22881c708ba7c"
+        );
         assert!(report.field_comparison_count > 250);
         assert!(report.is_field_parity(), "{}", report.to_json());
     }
@@ -512,7 +659,10 @@ mod tests {
     #[test]
     fn powerio_matches_all_declared_fields_for_ieee_57() {
         let report = compare_matpower_source(CASE57).expect("both parsers admit IEEE 57");
-        assert_eq!(report.source_git_blob_sha1, "d8b0c9e8b45265e57f52b7ab96880ad3a874cde5");
+        assert_eq!(
+            report.source_git_blob_sha1,
+            "d8b0c9e8b45265e57f52b7ab96880ad3a874cde5"
+        );
         assert!(report.field_comparison_count > 500);
         assert!(report.is_field_parity(), "{}", report.to_json());
     }
@@ -521,7 +671,10 @@ mod tests {
     fn source_byte_change_is_visible_in_cross_parser_receipt() {
         let changed = format!("{CASE14}\n% independent parser digest negative control\n");
         let report = compare_matpower_source(&changed).expect("modified comment still parses");
-        assert_ne!(report.source_git_blob_sha1, "2c8260fff0311c902c3d36dcabcbe861576fc97c");
+        assert_ne!(
+            report.source_git_blob_sha1,
+            "2c8260fff0311c902c3d36dcabcbe861576fc97c"
+        );
         assert!(report.is_field_parity());
     }
 
