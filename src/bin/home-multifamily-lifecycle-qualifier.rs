@@ -788,7 +788,7 @@ fn validate(
                 .as_ref()
                 .and_then(|event_id| event_records.get(event_id).map(|record| (event_id, record)))
             {
-                Some((event_id, (units, _, invalidated, _)))
+                Some((_event_id, (units, _, invalidated, _)))
                     if units.contains(unit_id) && invalidated.contains(claim_id) => {}
                 _ => errors.push(format!(
                     "invalidated claim {claim_id} has no reciprocal event record"
