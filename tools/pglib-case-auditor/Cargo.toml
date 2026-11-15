@@ -13,3 +13,7 @@ path = "src/main.rs"
 path = "src/lib.rs"
 
 [dependencies]
+
+[[bin]]
+name = "matpower-projection"
+path = "src/bin/matpower-projection.rs"
