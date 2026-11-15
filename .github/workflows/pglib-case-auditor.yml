@@ -26,15 +26,8 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
         with:
           components: rustfmt, clippy
-      - name: Format sources and emit canonical content for review
-        run: |
-          cargo fmt --manifest-path tools/pglib-case-auditor/Cargo.toml
-          echo BEGIN_FORMATTED_LIB
-          cat tools/pglib-case-auditor/src/lib.rs
-          echo END_FORMATTED_LIB
-          echo BEGIN_FORMATTED_MAIN
-          cat tools/pglib-case-auditor/src/main.rs
-          echo END_FORMATTED_MAIN
+      - name: Format
+        run: cargo fmt --manifest-path tools/pglib-case-auditor/Cargo.toml -- --check
       - name: Test offline and locked
         run: cargo test --manifest-path tools/pglib-case-auditor/Cargo.toml --locked --offline
       - name: Strict Clippy
