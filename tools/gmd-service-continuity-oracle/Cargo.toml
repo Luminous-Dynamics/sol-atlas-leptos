@@ -1,0 +1,10 @@
+[package]
+name = "gmd-service-continuity-oracle"
+version = "0.1.0"
+edition = "2024"
+publish = false
+description = "Dependency-free evaluator for essential-service continuity and restoration trajectories"
+
+[dependencies]
+
+[workspace]
