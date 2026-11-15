@@ -184,7 +184,7 @@
         "lower_m": 174,
         "upper_m": 217,
         "nominal_m": null,
-        "reference": "Reported Late Cretaceous highstand range relative to present-day level in the study.",
+        "reference": "Reported Cretaceous highstand estimates relative to present-day level in the study, including peak values at different geological ages.",
         "estimate_class": "published_reconstruction_range",
         "confidence": "Published reconstruction range; not a statistical confidence interval shared by all studies."
       },
@@ -199,8 +199,8 @@
         }
       ],
       "limitations": [
-        "Age and amplitude follow the paper's reconstruction and should not be collapsed with other curve families.",
-        "Range is a study-reported highstand range, not a universal ensemble interval.",
+        "The study reports Cretaceous highstands at different ages; do not label the entire 174–217 m range as Late Cretaceous.",
+        "Range is a study-reported reconstruction range, not a statistical confidence interval shared by all studies.",
         "Tectonic, basin-volume and glaciation assumptions require independent review."
       ],
       "allowed_use": "paleogeographic_comparison",
