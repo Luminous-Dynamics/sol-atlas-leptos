@@ -5,7 +5,8 @@
   "non_claims": [
     "Cases are synthetic fixtures and do not represent observed Earth conditions.",
     "Passing the corpus does not establish field accuracy, sensor harmonization or scientific validity.",
-    "The corpus is not evidence that any current Sol-Atlas binary or CI workflow has passed."
+    "The corpus is not evidence that any current Sol-Atlas binary or CI workflow has passed.",
+    "The Jukskei publication-derived sensor and area inconsistencies are synthetic test fixtures, not a resolution of the original source records."
   ],
   "cases": [
     {
@@ -729,7 +730,7 @@
       "case_id": "PCIT-SYN-013",
       "family": "unsupported_harmonization",
       "truth_state": "not_identifiable",
-      "truth_note": "An analyst applies an L8/Sentinel harmonization profile to an older MSS/TM/OLI sequence outside the declared supported sensor pair.",
+      "truth_note": "The Jukskei paper's journal HTML abstract labels the 1987 scene Landsat-5 MSS, but the downloadable full PDF abstract and Table 1 identify Landsat-5 TM for both 1987 and 2001, with Landsat-8 OLI for 2015. NASA HLS does not provide a generic TM-to-OLI historical harmonization. Native scene/product identity and processing metadata remain to be verified.",
       "target_estimand": {
         "quantity": "class_area_fraction",
         "support": "catchment",
@@ -741,14 +742,14 @@
       },
       "measurement_profiles": [
         {
-          "profile_id": "JUKSKEI-1987-MSS",
+          "profile_id": "JUKSKEI-1987-TM",
           "sensor_family": "Landsat 5",
-          "instrument": "MSS",
-          "spatial_resolution_m": 80,
-          "spectral_profile": "4-band MSS",
-          "processing_baseline": "historical source product",
-          "season_window": "unverified",
-          "harmonization_profile": "HLS-not-supported",
+          "instrument": "TM",
+          "spatial_resolution_m": 30,
+          "spectral_profile": "7 spectral bands per full-paper Table 1",
+          "processing_baseline": "not identified in publication",
+          "season_window": "1987-01-06; described as cloud-free summer",
+          "harmonization_profile": null,
           "grid_id": null
         },
         {
@@ -756,10 +757,10 @@
           "sensor_family": "Landsat 5",
           "instrument": "TM",
           "spatial_resolution_m": 30,
-          "spectral_profile": "7-band TM",
-          "processing_baseline": "historical source product",
-          "season_window": "unverified",
-          "harmonization_profile": "HLS-not-supported",
+          "spectral_profile": "7 spectral bands per full-paper Table 1",
+          "processing_baseline": "not identified in publication",
+          "season_window": "2001-02-13; described as cloud-free summer",
+          "harmonization_profile": null,
           "grid_id": null
         },
         {
@@ -767,20 +768,20 @@
           "sensor_family": "Landsat 8",
           "instrument": "OLI",
           "spatial_resolution_m": 30,
-          "spectral_profile": "OLI profile",
-          "processing_baseline": "historical source product",
-          "season_window": "unverified",
-          "harmonization_profile": "HLS-not-supported",
+          "spectral_profile": "11 spectral bands per full-paper Table 1",
+          "processing_baseline": "not identified in publication",
+          "season_window": "2015-02-20; described as cloud-free summer",
+          "harmonization_profile": null,
           "grid_id": null
         }
       ],
       "perturbations": [
         {
           "axis": "sensor",
-          "transformation": "Misapply HLS OLI/Sentinel-2 harmonization to MSS/TM/OLI series",
+          "transformation": "Attempt to use a generic harmonization profile outside its declared sensor support for the Landsat-5 TM to Landsat-8 OLI transition",
           "admissibility": "out_of_envelope",
           "expected_effect": "not_identifiable",
-          "rationale": "HLS product support does not include this historical sensor sequence."
+          "rationale": "The HLS OLI/Sentinel-2 MSI bridge does not qualify this TM-to-OLI historical pair."
         }
       ],
       "reference_design": {
@@ -791,8 +792,135 @@
       },
       "expected_disposition": "INSUFFICIENT_OBSERVABILITY",
       "hard_invariants": [
-        "Do not treat HLS as a universal Landsat cross-generation correction.",
-        "Require sensor-specific profiles and source-native observation identities."
+        "Do not describe the 1987 observation as MSS without reconciling the journal HTML abstract against the full PDF Table 1 and source-native USGS scene metadata.",
+        "Do not treat HLS as a universal Landsat TM-to-OLI correction.",
+        "Require the original scene/product IDs, acquisition dates, processing levels and source-native sensor identity."
+      ]
+    },
+    {
+      "case_id": "PCIT-SYN-014",
+      "family": "source_metadata_conflict",
+      "truth_state": "not_identifiable",
+      "truth_note": "Two records disagree about the 1987 instrument: a publication HTML abstract says MSS, while the full-text PDF abstract and acquisition table say TM. The source-native scene identifier has not been inspected, so the record-level contradiction remains unresolved.",
+      "target_estimand": {
+        "quantity": "class_area_fraction",
+        "support": "catchment",
+        "unit": "fraction",
+        "nominal_resolution_m": 30,
+        "minimum_mapping_unit_m2": 900,
+        "minimum_detectable_effect": 0.05,
+        "temporal_support": "historical acquisition identity qualification"
+      },
+      "measurement_profiles": [
+        {
+          "profile_id": "JUKSKEI-1987-CONFLICT",
+          "sensor_family": "Landsat 5",
+          "instrument": "unresolved MSS-vs-TM record conflict",
+          "spatial_resolution_m": 30,
+          "spectral_profile": "full PDF Table 1 lists seven TM bands; HTML abstract labels MSS",
+          "processing_baseline": "source-native product metadata not admitted",
+          "season_window": "publication table lists 1987-01-06",
+          "harmonization_profile": null,
+          "grid_id": null
+        }
+      ],
+      "perturbations": [
+        {
+          "axis": "source_metadata",
+          "transformation": "Reconcile conflicting journal HTML abstract and full-paper acquisition table against original USGS scene/product metadata",
+          "admissibility": "out_of_envelope",
+          "expected_effect": "source_metadata_conflict",
+          "rationale": "A sensor identity must not be inferred from an inconsistent secondary publication record."
+        }
+      ],
+      "reference_design": {
+        "availability": "absent",
+        "independence": "unknown",
+        "rights_status": "unknown",
+        "design_note": "No original scene ID, source-native metadata record or independent reference is supplied in this metadata-only fixture."
+      },
+      "source_metadata_conflicts": [
+        {
+          "field": "1987 sensor identity",
+          "record_a": "South African Journal of Geomatics HTML abstract",
+          "value_a": "Landsat-5 MSS",
+          "record_b": "Full-text PDF abstract and Table 1",
+          "value_b": "Landsat-5 TM",
+          "resolution_status": "unresolved",
+          "notes": "The PDF Table 1 is internally consistent with its abstract, but source-native USGS product identity has not been retrieved."
+        }
+      ],
+      "expected_disposition": "INSUFFICIENT_OBSERVABILITY",
+      "hard_invariants": [
+        "Do not silently select one secondary publication record as source-native truth.",
+        "Do not promote a sensor-specific comparability claim until original product metadata resolves the instrument identity."
+      ]
+    },
+    {
+      "case_id": "PCIT-SYN-015",
+      "family": "area_reconciliation_conflict",
+      "truth_state": "not_identifiable",
+      "truth_note": "The Jukskei paper's Table 4 reports total class area 76,052.8 ha for 1987 and 2015, while Table 6's 1987-to-2015 transition matrix sums to 41,209 ha on each axis. The published material inspected does not explain the 34,843.8 ha difference or declare a distinct mask/domain.",
+      "target_estimand": {
+        "quantity": "class_transition_fraction",
+        "support": "catchment",
+        "unit": "hectares",
+        "nominal_resolution_m": 30,
+        "minimum_mapping_unit_m2": 900,
+        "minimum_detectable_effect": 1,
+        "temporal_support": "1987-2015 reported area accounting"
+      },
+      "measurement_profiles": [
+        {
+          "profile_id": "JUKSKEI-TABLE4-AREA",
+          "sensor_family": "publication-derived statistic",
+          "instrument": "Table 4 class-area totals",
+          "spatial_resolution_m": 30,
+          "spectral_profile": "four reported LULC classes",
+          "processing_baseline": "publication table",
+          "season_window": "1987 and 2015",
+          "harmonization_profile": null,
+          "grid_id": null
+        },
+        {
+          "profile_id": "JUKSKEI-TABLE6-AREA",
+          "sensor_family": "publication-derived statistic",
+          "instrument": "Table 6 transition matrix",
+          "spatial_resolution_m": 30,
+          "spectral_profile": "four reported LULC classes",
+          "processing_baseline": "publication table",
+          "season_window": "1987 to 2015",
+          "harmonization_profile": null,
+          "grid_id": null
+        }
+      ],
+      "perturbations": [
+        {
+          "axis": "area_accounting",
+          "transformation": "Compare mapped-area totals from Table 4 with row/column totals from Table 6",
+          "admissibility": "negative_control",
+          "expected_effect": "area_total_nonclosure",
+          "rationale": "A transition matrix should reconcile to its declared common valid-data domain; unexplained loss of area blocks reproduction."
+        }
+      ],
+      "reference_design": {
+        "availability": "absent",
+        "independence": "unknown",
+        "rights_status": "not_applicable",
+        "design_note": "The case tests publication-table arithmetic only; no reference sample or source raster is provided."
+      },
+      "numeric_reconciliation": {
+        "metric": "Jukskei 1987-2015 total mapped area (ha)",
+        "reported_value_a": 76052.8,
+        "reported_value_b": 41209,
+        "tolerance": 0.5,
+        "resolution_status": "unresolved",
+        "notes": "Table 4 total versus Table 6 transition-matrix total; no common-domain mask explanation identified in the published table text inspected."
+      },
+      "expected_disposition": "UNRESOLVED_CONFOUNDING",
+      "hard_invariants": [
+        "Do not publish Table 6 transitions as catchment-wide totals until area closure is reconciled.",
+        "Do not treat percentage-of-total class shares as relative percentage changes from the initial period."
       ]
     }
   ]
