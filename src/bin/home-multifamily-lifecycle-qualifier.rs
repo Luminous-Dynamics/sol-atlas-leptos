@@ -35,7 +35,7 @@ fn text_at<'a>(value: &'a Value, key: &str) -> Option<&'a str> {
     value.get(key).and_then(Value::as_str)
 }
 
-fn rows<'a>(value: &'a Value, key: &str) -> Option<&'a Vec<Value>> {
+fn array_at<'a>(value: &'a Value, key: &str) -> Option<&'a Vec<Value>> {
     value.get(key).and_then(Value::as_array)
 }
 
@@ -117,25 +117,25 @@ fn validate(
         errors.push("lifecycle claim_ceiling is missing".to_owned());
     }
 
-    let building_units = rows(building, "unit_programmes")
+    let building_units = array_at(building, "unit_programmes")
         .into_iter()
         .flatten()
         .filter_map(|row| text_at(row, "unit_id"))
         .map(str::to_owned)
         .collect::<BTreeSet<_>>();
-    let programme_units = rows(programme, "unit_programmes")
+    let programme_units = array_at(programme, "unit_programmes")
         .into_iter()
         .flatten()
         .filter_map(|row| text_at(row, "unit_id"))
         .map(str::to_owned)
         .collect::<BTreeSet<_>>();
-    let layout_units = rows(unit_layout, "unit_layouts")
+    let layout_units = array_at(unit_layout, "unit_layouts")
         .into_iter()
         .flatten()
         .filter_map(|row| text_at(row, "unit_id"))
         .map(str::to_owned)
         .collect::<BTreeSet<_>>();
-    let fixture_unit_ids = rows(fixture, "unit_ids")
+    let fixture_unit_ids = array_at(fixture, "unit_ids")
         .into_iter()
         .flatten()
         .filter_map(Value::as_str)
@@ -149,7 +149,7 @@ fn validate(
         errors.push("building, resident-programme, unit-layout and lifecycle unit sets do not match exactly".to_owned());
     }
 
-    let revision_rows = rows(fixture, "revisions");
+    let revision_rows = array_at(fixture, "revisions");
     let revision_ids = unique_ids(revision_rows, "revision_id", "revisions", &mut errors);
     let mut revisions = BTreeMap::<String, (String, Option<String>, String)>::new();
     if let Some(rows) = revision_rows {
@@ -160,6 +160,9 @@ fn validate(
             let kind = text_at(row, "revision_kind").unwrap_or("<missing-kind>");
             if !building_units.contains(unit_id) {
                 errors.push(format!("revision {id} references unknown unit {unit_id}"));
+            }
+            if !matches!(kind, "design" | "adaptation" | "as_built" | "commissioned" | "as_operated" | "repair_state") {
+                errors.push(format!("revision {id} has invalid revision_kind {kind}"));
             }
             if text_at(row, "revision_state") != Some("synthetic_identity_only") {
                 errors.push(format!("revision {id} is promoted beyond synthetic identity"));
@@ -195,14 +198,14 @@ fn validate(
         }
     }
 
-    let service_nodes = rows(service_topology, "nodes")
+    let service_nodes = array_at(service_topology, "nodes")
         .into_iter()
         .flatten()
         .filter_map(|node| text_at(node, "node_id"))
         .map(str::to_owned)
         .collect::<BTreeSet<_>>();
 
-    let asset_rows = rows(fixture, "asset_bindings");
+    let asset_rows = array_at(fixture, "asset_bindings");
     let asset_ids = unique_ids(asset_rows, "asset_id", "asset_bindings", &mut errors);
     let mut assets = BTreeMap::<String, BTreeSet<String>>::new();
     if let Some(rows) = asset_rows {
@@ -234,7 +237,7 @@ fn validate(
         }
     }
 
-    let event_rows = rows(fixture, "events");
+    let event_rows = array_at(fixture, "events");
     let event_ids = unique_ids(event_rows, "event_id", "events", &mut errors);
     let mut event_order_ids = BTreeSet::new();
     let mut event_records = BTreeMap::<String, (BTreeSet<String>, BTreeSet<String>, BTreeSet<String>, i64)>::new();
@@ -248,6 +251,17 @@ fn validate(
             }
             prior_order = order;
 
+            let event_kind = text_at(event, "event_kind").unwrap_or("<missing-kind>");
+            if !matches!(
+                event_kind,
+                "design_issue" | "design_change" | "fabrication_release" | "installation"
+                    | "as_built_capture" | "commissioning" | "occupancy_start"
+                    | "post_occupancy_observation" | "maintenance" | "repair" | "adaptation"
+                    | "reinspection" | "recommissioning" | "shared_asset_maintenance"
+                    | "shared_asset_repair" | "retirement"
+            ) {
+                errors.push(format!("event {id} has invalid event_kind {event_kind}"));
+            }
             if text_at(event, "execution_state") != Some("authored_not_executed")
                 || text_at(event, "event_time_state") != Some("not_supplied")
                 || !is_null(event.get("occurred_at"))
@@ -262,7 +276,7 @@ fn validate(
             {
                 errors.push(format!("synthetic event {id} promotes personal/resident data or consent"));
             }
-            if rows(event, "evidence_refs").is_none_or(|refs| !refs.is_empty()) {
+            if array_at(event, "evidence_refs").is_none_or(|refs| !refs.is_empty()) {
                 errors.push(format!("synthetic event {id} cannot claim real evidence references"));
             }
 
@@ -347,7 +361,7 @@ fn validate(
         }
     }
 
-    let timeline_rows = rows(fixture, "unit_timelines");
+    let timeline_rows = array_at(fixture, "unit_timelines");
     let timeline_ids = unique_ids(timeline_rows, "unit_id", "unit_timelines", &mut errors);
     if timeline_ids != building_units {
         errors.push("unit_timelines do not exactly cover the building unit set".to_owned());
@@ -365,6 +379,20 @@ fn validate(
             match revisions.get(current_id) {
                 Some((revision_unit, _, _)) if revision_unit == unit_id => {}
                 _ => errors.push(format!("unit {unit_id} current revision does not belong to the unit")),
+            }
+            let timeline_event_ids = array_at(timeline, "event_ids")
+                .into_iter()
+                .flatten()
+                .filter_map(Value::as_str)
+                .map(str::to_owned)
+                .collect::<BTreeSet<_>>();
+            let expected_event_ids = event_records
+                .iter()
+                .filter(|(_, (units, _, _, _))| units.contains(unit_id))
+                .map(|(event_id, _)| event_id.clone())
+                .collect::<BTreeSet<_>>();
+            if timeline_event_ids != expected_event_ids {
+                errors.push(format!("unit {unit_id} timeline does not contain its exact event scope"));
             }
             let mut prior_event_order = 0_i64;
             let mut last_revision = None::<String>;
@@ -400,7 +428,7 @@ fn validate(
         }
     }
 
-    let claim_rows = rows(fixture, "claims");
+    let claim_rows = array_at(fixture, "claims");
     let claim_ids = unique_ids(claim_rows, "claim_id", "claims", &mut errors);
     let mut claim_records = BTreeMap::<String, (String, String, String, Option<String>)>::new();
     if let Some(rows) = claim_rows {
@@ -420,7 +448,7 @@ fn validate(
             if text_at(claim, "claim_scope") != Some("synthetic_claim_identity_only") {
                 errors.push(format!("claim {id} is promoted beyond synthetic identity scope"));
             }
-            if rows(claim, "evidence_refs").is_none_or(Vec::is_empty)
+            if array_at(claim, "evidence_refs").is_none_or(Vec::is_empty)
                 && !matches!(state, "not_assessed" | "unknown" | "invalidated" | "superseded" | "revoked")
             {
                 errors.push(format!("claim {id} promotes a result without evidence"));
@@ -617,6 +645,20 @@ mod tests {
     fn unit_timeline_cannot_omit_an_authored_event() {
         let (mut fixture, building, programme, layout, services) = load_fixtures();
         fixture["unit_timelines"][0]["event_ids"].as_array_mut().unwrap().remove(1);
+        assert!(validate(&fixture, &building, &programme, &layout, &services).is_err());
+    }
+
+    #[test]
+    fn unit_timeline_must_cover_every_scoped_event() {
+        let (mut fixture, building, programme, layout, services) = load_fixtures();
+        fixture["unit_timelines"][0]["event_ids"].as_array_mut().unwrap().remove(1);
+        assert!(validate(&fixture, &building, &programme, &layout, &services).is_err());
+    }
+
+    #[test]
+    fn unknown_event_kind_is_rejected() {
+        let (mut fixture, building, programme, layout, services) = load_fixtures();
+        fixture["events"][0]["event_kind"] = json!("some_untyped_event");
         assert!(validate(&fixture, &building, &programme, &layout, &services).is_err());
     }
 
