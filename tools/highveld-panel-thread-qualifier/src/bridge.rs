@@ -1248,6 +1248,24 @@ mod tests {
         assert_ne!(first.input_sha256, second.input_sha256);
     }
 
+
+    #[test]
+    fn current_owner_profiles_remain_unbound_until_exact_contracts_are_published() {
+        let input = include_str!("../examples/highveld-current-owner-bindings-unbound-v0.1.json");
+        let report = evaluate_bridge_bytes(input.as_bytes()).unwrap();
+
+        assert_eq!(report.planned_obligations, 0);
+        assert_eq!(report.unresolved_obligations, 1);
+        assert_eq!(
+            report.obligation_results[0].disposition,
+            BridgeDisposition::Unbound
+        );
+        assert_eq!(report.source_bytes_verified, false);
+        assert_eq!(report.signatures_verified, false);
+        assert_eq!(report.physical_observations, 0);
+        assert_eq!(report.qualified_obligations, 0);
+    }
+
     #[test]
     fn all_positive_results_remain_non_authorizing() {
         let mut input = base_input(AcquisitionKind::Physical);
