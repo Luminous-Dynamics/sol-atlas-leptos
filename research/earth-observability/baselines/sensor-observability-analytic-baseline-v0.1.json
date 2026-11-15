@@ -36,7 +36,7 @@
     "localization_p95_error_m": 0.28,
     "unique_site_clusters": 4,
     "unique_acquisition_clusters": 4,
-    "clustered_confidence_interval_status": "INSUFFICIENT_SITE_CLUSTERS_POD_4_FAR_4_REQUIRED_10_NOT_RUN",
+    "clustered_confidence_interval_status": "INSUFFICIENT_SITE_CLUSTERS_POD_4_FAR_3_REQUIRED_10_NOT_RUN",
     "point_estimates_meet_declared_requirements": false,
     "qualification_status": "NOT_QUALIFIED_CLUSTERED_INTERVALS_NOT_RUN",
     "per_site": [
