@@ -1727,9 +1727,11 @@ mod tests {
         second_mapping.campaign_package_id = "OPTION-PACKAGE-002".to_owned();
         input.physical_bindings.push(second_mapping);
 
-        assert!(evaluate_bridge_bytes(&serde_json::to_vec(&input).unwrap())
-            .unwrap_err()
-            .contains("different Symtropy commit/profile/adapter"));
+        assert!(
+            evaluate_bridge_bytes(&serde_json::to_vec(&input).unwrap())
+                .unwrap_err()
+                .contains("different Symtropy commit/profile/adapter")
+        );
     }
 
     #[test]
@@ -1749,10 +1751,7 @@ mod tests {
         input.physical_bindings.push(second_mapping);
 
         let report = evaluate(&input);
-        assert_eq!(
-            report.obligations_with_admissible_acquisition_route,
-            1
-        );
+        assert_eq!(report.obligations_with_admissible_acquisition_route, 1);
         assert_eq!(
             report.obligation_results[0].disposition,
             BridgeDisposition::PlannedPhysicalObservationOwnerReportsOptimal
