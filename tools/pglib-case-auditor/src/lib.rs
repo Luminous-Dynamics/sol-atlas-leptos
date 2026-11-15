@@ -1246,6 +1246,13 @@ end
             assert_eq!(projection.source_git_blob_sha1, expected_digest);
             assert_eq!(projection.buses.len(), buses);
             assert_eq!(projection.branches.len(), branches);
+            assert_eq!(projection.costs.len(), projection.cost_row_count);
+            assert!(
+                projection
+                    .costs
+                    .iter()
+                    .all(|cost| cost.coefficients.len() > 0)
+            );
             assert_eq!(
                 projection
                     .buses
