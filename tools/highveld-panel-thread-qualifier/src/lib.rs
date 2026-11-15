@@ -131,28 +131,6 @@ pub struct CaseScore {
     pub stale_false_current: bool,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Deserialize)]
-#[serde(rename_all = "SCREAMING_SNAKE_CASE")]
-enum Disposition {
-    ReviewOnly,
-    RequalificationRequired,
-    BlockedUnknown,
-    BlockedConflict,
-    BlockedAuthority,
-}
-
-impl Disposition {
-    fn as_str(self) -> &'static str {
-        match self {
-            Self::ReviewOnly => "REVIEW_ONLY",
-            Self::RequalificationRequired => "REQUALIFICATION_REQUIRED",
-            Self::BlockedUnknown => "BLOCKED_UNKNOWN",
-            Self::BlockedConflict => "BLOCKED_CONFLICT",
-            Self::BlockedAuthority => "BLOCKED_AUTHORITY",
-        }
-    }
-}
-
 pub fn sha256_hex(bytes: &[u8]) -> String {
     let digest = Sha256::digest(bytes);
     let mut output = String::with_capacity(digest.len() * 2);
