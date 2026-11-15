@@ -526,7 +526,6 @@ pub struct MatpowerDcCost {
 /// Source-bound, typed projection for fixed-injection linear DC power-flow work.
 ///
 /// Bus, generator, branch and generator-cost source fields are retained.
-—
 /// Fields retained for audit may not be enforced by the downstream DC solver;
 /// see `limitations`.
 #[derive(Debug, Clone, PartialEq)]
