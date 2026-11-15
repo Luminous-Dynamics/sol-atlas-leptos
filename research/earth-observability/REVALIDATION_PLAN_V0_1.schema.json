@@ -1,0 +1,68 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/blob/research/earth-observability-joint-network-hypotheses-v0-1/research/earth-observability/REVALIDATION_PLAN_V0_1.schema.json",
+  "title": "Evidence revalidation plan v0.1",
+  "description": "Structural output of dependency-closure planning. It is not a validation receipt or a mutation of the evidence store.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "graph_id",
+    "snapshot_id",
+    "changed_node_ids",
+    "invalidated_node_ids",
+    "revalidation_order",
+    "unaffected_node_ids",
+    "status",
+    "claim_boundary"
+  ],
+  "properties": {
+    "graph_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "snapshot_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "changed_node_ids": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "uniqueItems": true
+    },
+    "invalidated_node_ids": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "uniqueItems": true
+    },
+    "revalidation_order": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "uniqueItems": true
+    },
+    "unaffected_node_ids": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "uniqueItems": true
+    },
+    "status": {
+      "const": "revalidation_plan_structural_only_no_receipts_granted"
+    },
+    "claim_boundary": {
+      "type": "string",
+      "minLength": 20
+    }
+  }
+}

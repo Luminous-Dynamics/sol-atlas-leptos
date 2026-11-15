@@ -1,0 +1,117 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/blob/research/earth-observability-joint-network-hypotheses-v0-1/research/earth-observability/ASSET_ASSOCIATION_EVALUATION_V0_1.schema.json",
+  "title": "Sol-Atlas asset association evaluation input v0.1",
+  "description": "Evaluation input schema. Only structured independent survey and reviewed trench-image truth tiers are score-eligible; cross-field checks are performed by the Rust evaluator.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "evaluation_id",
+    "scope_id",
+    "reference_events",
+    "predictions"
+  ],
+  "properties": {
+    "evaluation_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "scope_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "reference_events": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/referenceEvent"
+      }
+    },
+    "predictions": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/prediction"
+      }
+    }
+  },
+  "$defs": {
+    "referenceEvent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "event_id",
+        "truth_asset_id",
+        "truth_tier",
+        "truth_evidence_id"
+      ],
+      "properties": {
+        "event_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "truth_asset_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "truth_tier": {
+          "enum": [
+            "structured_independent_survey",
+            "trench_image_interpreted",
+            "owner_record_only",
+            "conflicted",
+            "insufficient"
+          ]
+        },
+        "truth_evidence_id": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "prediction": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "event_id",
+            "disposition",
+            "candidate_asset_id"
+          ],
+          "properties": {
+            "event_id": {
+              "type": "string",
+              "minLength": 1
+            },
+            "disposition": {
+              "const": "candidate_asset"
+            },
+            "candidate_asset_id": {
+              "type": "string",
+              "pattern": "^candidate:.+"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "event_id",
+            "disposition"
+          ],
+          "properties": {
+            "event_id": {
+              "type": "string",
+              "minLength": 1
+            },
+            "disposition": {
+              "const": "abstain"
+            }
+          }
+        }
+      ]
+    }
+  }
+}

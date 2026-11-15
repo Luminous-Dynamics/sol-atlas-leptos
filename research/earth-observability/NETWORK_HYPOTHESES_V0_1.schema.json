@@ -1,0 +1,279 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/blob/research/earth-observability-joint-network-hypotheses-v0-1/research/earth-observability/NETWORK_HYPOTHESES_V0_1.schema.json",
+  "title": "Sol-Atlas joint network hypothesis set v0.1",
+  "description": "Structural interchange schema only. It does not authenticate evidence, calibrate probabilities, validate physical geometry, or establish utility truth.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "set_id",
+    "status",
+    "geography",
+    "scope_id",
+    "evidence_snapshot_id",
+    "calibration_receipt_id",
+    "observed_events",
+    "admitted_evidence_ids",
+    "hypotheses",
+    "residual_unknown_probability"
+  ],
+  "properties": {
+    "set_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "status": {
+      "enum": [
+        "synthetic_uncalibrated",
+        "research_uncalibrated",
+        "calibration_receipt_referenced"
+      ]
+    },
+    "geography": {
+      "const": "abstract_non_geographic"
+    },
+    "scope_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "evidence_snapshot_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "calibration_receipt_id": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "observed_events": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/observedEvent"
+      }
+    },
+    "admitted_evidence_ids": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "uniqueItems": true
+    },
+    "hypotheses": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/hypothesis"
+      }
+    },
+    "residual_unknown_probability": {
+      "$ref": "#/$defs/probability"
+    }
+  },
+  "$defs": {
+    "probability": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1
+    },
+    "observedEvent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "event_id",
+        "source_evidence_id"
+      ],
+      "properties": {
+        "event_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "source_evidence_id": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "assignment": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "event_id",
+        "candidate_asset_id"
+      ],
+      "properties": {
+        "event_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "candidate_asset_id": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "pattern": "^candidate:.+"
+        }
+      }
+    },
+    "asset": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "candidate_asset_id",
+        "event_ids",
+        "geometry_claim_id",
+        "supporting_evidence_ids"
+      ],
+      "properties": {
+        "candidate_asset_id": {
+          "type": "string",
+          "pattern": "^candidate:.+"
+        },
+        "event_ids": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true
+        },
+        "geometry_claim_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "supporting_evidence_ids": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        }
+      }
+    },
+    "node": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "candidate_node_id",
+        "candidate_asset_id",
+        "geometry_claim_id",
+        "supporting_evidence_ids"
+      ],
+      "properties": {
+        "candidate_node_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "candidate_asset_id": {
+          "type": "string",
+          "pattern": "^candidate:.+"
+        },
+        "geometry_claim_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "supporting_evidence_ids": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        }
+      }
+    },
+    "relation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "connection_id",
+        "from_node_candidate_id",
+        "to_node_candidate_id",
+        "relation",
+        "supporting_evidence_ids"
+      ],
+      "properties": {
+        "connection_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "from_node_candidate_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "to_node_candidate_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "relation": {
+          "enum": [
+            "continuation",
+            "junction",
+            "crossing_unresolved",
+            "near_intersection_unresolved"
+          ]
+        },
+        "supporting_evidence_ids": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        }
+      }
+    },
+    "hypothesis": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "hypothesis_id",
+        "probability",
+        "event_assignments",
+        "candidate_assets",
+        "candidate_nodes",
+        "candidate_connections"
+      ],
+      "properties": {
+        "hypothesis_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "probability": {
+          "$ref": "#/$defs/probability"
+        },
+        "event_assignments": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/assignment"
+          }
+        },
+        "candidate_assets": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/asset"
+          }
+        },
+        "candidate_nodes": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/node"
+          }
+        },
+        "candidate_connections": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/relation"
+          }
+        }
+      }
+    }
+  }
+}

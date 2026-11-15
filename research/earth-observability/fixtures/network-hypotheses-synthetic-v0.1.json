@@ -1,0 +1,181 @@
+{
+  "set_id": "joint-network-hypotheses-synthetic-001",
+  "status": "synthetic_uncalibrated",
+  "geography": "abstract_non_geographic",
+  "scope_id": "corridor-synthetic-a",
+  "evidence_snapshot_id": "sol-atlas-commit-7a90206de431849038e957965caee82f87cf7c54",
+  "calibration_receipt_id": null,
+  "observed_events": [
+    {
+      "event_id": "event-1",
+      "source_evidence_id": "gpr-evidence-1"
+    },
+    {
+      "event_id": "event-2",
+      "source_evidence_id": "gpr-evidence-2"
+    },
+    {
+      "event_id": "event-clutter",
+      "source_evidence_id": "gpr-evidence-clutter"
+    }
+  ],
+  "admitted_evidence_ids": [
+    "gpr-evidence-1",
+    "gpr-evidence-2",
+    "gpr-evidence-clutter"
+  ],
+  "hypotheses": [
+    {
+      "hypothesis_id": "world-one-utility",
+      "probability": 0.62,
+      "event_assignments": [
+        {
+          "event_id": "event-1",
+          "candidate_asset_id": "candidate:utility-a"
+        },
+        {
+          "event_id": "event-2",
+          "candidate_asset_id": "candidate:utility-a"
+        },
+        {
+          "event_id": "event-clutter",
+          "candidate_asset_id": null
+        }
+      ],
+      "candidate_assets": [
+        {
+          "candidate_asset_id": "candidate:utility-a",
+          "event_ids": ["event-1", "event-2"],
+          "geometry_claim_id": "geometry-claim-utility-a",
+          "supporting_evidence_ids": ["gpr-evidence-1", "gpr-evidence-2"]
+        }
+      ],
+      "candidate_nodes": [
+        {
+          "candidate_node_id": "candidate-node:a-west",
+          "candidate_asset_id": "candidate:utility-a",
+          "geometry_claim_id": "geometry-node-a-west",
+          "supporting_evidence_ids": ["gpr-evidence-1"]
+        },
+        {
+          "candidate_node_id": "candidate-node:a-east",
+          "candidate_asset_id": "candidate:utility-a",
+          "geometry_claim_id": "geometry-node-a-east",
+          "supporting_evidence_ids": ["gpr-evidence-2"]
+        }
+      ],
+      "candidate_connections": [
+        {
+          "connection_id": "connection-a-west-east",
+          "from_node_candidate_id": "candidate-node:a-west",
+          "to_node_candidate_id": "candidate-node:a-east",
+          "relation": "continuation",
+          "supporting_evidence_ids": ["gpr-evidence-1", "gpr-evidence-2"]
+        }
+      ]
+    },
+    {
+      "hypothesis_id": "world-two-utilities",
+      "probability": 0.23,
+      "event_assignments": [
+        {
+          "event_id": "event-1",
+          "candidate_asset_id": "candidate:utility-a"
+        },
+        {
+          "event_id": "event-2",
+          "candidate_asset_id": "candidate:utility-b"
+        },
+        {
+          "event_id": "event-clutter",
+          "candidate_asset_id": null
+        }
+      ],
+      "candidate_assets": [
+        {
+          "candidate_asset_id": "candidate:utility-a",
+          "event_ids": ["event-1"],
+          "geometry_claim_id": "geometry-claim-utility-a",
+          "supporting_evidence_ids": ["gpr-evidence-1"]
+        },
+        {
+          "candidate_asset_id": "candidate:utility-b",
+          "event_ids": ["event-2"],
+          "geometry_claim_id": "geometry-claim-utility-b",
+          "supporting_evidence_ids": ["gpr-evidence-2"]
+        }
+      ],
+      "candidate_nodes": [
+        {
+          "candidate_node_id": "candidate-node:a-only",
+          "candidate_asset_id": "candidate:utility-a",
+          "geometry_claim_id": "geometry-node-a",
+          "supporting_evidence_ids": ["gpr-evidence-1"]
+        },
+        {
+          "candidate_node_id": "candidate-node:b-only",
+          "candidate_asset_id": "candidate:utility-b",
+          "geometry_claim_id": "geometry-node-b",
+          "supporting_evidence_ids": ["gpr-evidence-2"]
+        }
+      ],
+      "candidate_connections": []
+    },
+    {
+      "hypothesis_id": "world-crossing-unresolved",
+      "probability": 0.10,
+      "event_assignments": [
+        {
+          "event_id": "event-1",
+          "candidate_asset_id": "candidate:utility-a"
+        },
+        {
+          "event_id": "event-2",
+          "candidate_asset_id": "candidate:utility-b"
+        },
+        {
+          "event_id": "event-clutter",
+          "candidate_asset_id": null
+        }
+      ],
+      "candidate_assets": [
+        {
+          "candidate_asset_id": "candidate:utility-a",
+          "event_ids": ["event-1"],
+          "geometry_claim_id": "geometry-claim-utility-a",
+          "supporting_evidence_ids": ["gpr-evidence-1"]
+        },
+        {
+          "candidate_asset_id": "candidate:utility-b",
+          "event_ids": ["event-2"],
+          "geometry_claim_id": "geometry-claim-utility-b",
+          "supporting_evidence_ids": ["gpr-evidence-2"]
+        }
+      ],
+      "candidate_nodes": [
+        {
+          "candidate_node_id": "candidate-node:a-cross",
+          "candidate_asset_id": "candidate:utility-a",
+          "geometry_claim_id": "geometry-node-a-cross",
+          "supporting_evidence_ids": ["gpr-evidence-1"]
+        },
+        {
+          "candidate_node_id": "candidate-node:b-cross",
+          "candidate_asset_id": "candidate:utility-b",
+          "geometry_claim_id": "geometry-node-b-cross",
+          "supporting_evidence_ids": ["gpr-evidence-2"]
+        }
+      ],
+      "candidate_connections": [
+        {
+          "connection_id": "relation-crossing-a-b",
+          "from_node_candidate_id": "candidate-node:a-cross",
+          "to_node_candidate_id": "candidate-node:b-cross",
+          "relation": "crossing_unresolved",
+          "supporting_evidence_ids": ["gpr-evidence-1", "gpr-evidence-2"]
+        }
+      ]
+    }
+  ],
+  "residual_unknown_probability": 0.05
+}

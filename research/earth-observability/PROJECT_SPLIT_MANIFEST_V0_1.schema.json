@@ -1,0 +1,82 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/blob/research/earth-observability-joint-network-hypotheses-v0-1/research/earth-observability/PROJECT_SPLIT_MANIFEST_V0_1.schema.json",
+  "title": "Project-grouped evaluation split manifest v0.1",
+  "description": "Structural schema for project-level fit, calibration and blind partitions. Cross-field role disjointness and exact coverage are checked by the Rust validator.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "manifest_id",
+    "dataset_id",
+    "split_policy",
+    "calibration_projects_per_fold",
+    "project_count",
+    "folds"
+  ],
+  "properties": {
+    "manifest_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "dataset_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "split_policy": {
+      "const": "leave_one_project_out_with_rotating_project_calibration"
+    },
+    "calibration_projects_per_fold": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "project_count": {
+      "type": "integer",
+      "minimum": 3
+    },
+    "folds": {
+      "type": "array",
+      "minItems": 3,
+      "items": {
+        "$ref": "#/$defs/fold"
+      }
+    }
+  },
+  "$defs": {
+    "fold": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "fold_id",
+        "fit_project_ids",
+        "calibration_project_ids",
+        "blind_project_id"
+      ],
+      "properties": {
+        "fold_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "fit_project_ids": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true
+        },
+        "calibration_project_ids": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true
+        },
+        "blind_project_id": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    }
+  }
+}

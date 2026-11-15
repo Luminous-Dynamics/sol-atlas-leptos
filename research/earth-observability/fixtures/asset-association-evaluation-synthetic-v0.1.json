@@ -1,0 +1,62 @@
+{
+  "evaluation_id": "asset-association-synthetic-001",
+  "scope_id": "abstract-corridor-a",
+  "reference_events": [
+    {
+      "event_id": "event-1",
+      "truth_asset_id": "truth:utility-a",
+      "truth_tier": "structured_independent_survey",
+      "truth_evidence_id": "truth-evidence-1"
+    },
+    {
+      "event_id": "event-2",
+      "truth_asset_id": "truth:utility-a",
+      "truth_tier": "trench_image_interpreted",
+      "truth_evidence_id": "truth-evidence-2"
+    },
+    {
+      "event_id": "event-3",
+      "truth_asset_id": "truth:utility-b",
+      "truth_tier": "structured_independent_survey",
+      "truth_evidence_id": "truth-evidence-3"
+    },
+    {
+      "event_id": "event-clutter",
+      "truth_asset_id": null,
+      "truth_tier": "structured_independent_survey",
+      "truth_evidence_id": "truth-evidence-clutter"
+    },
+    {
+      "event_id": "event-record-only",
+      "truth_asset_id": null,
+      "truth_tier": "owner_record_only",
+      "truth_evidence_id": "owner-record-reference-only"
+    }
+  ],
+  "predictions": [
+    {
+      "event_id": "event-1",
+      "disposition": "candidate_asset",
+      "candidate_asset_id": "candidate:utility-a"
+    },
+    {
+      "event_id": "event-2",
+      "disposition": "candidate_asset",
+      "candidate_asset_id": "candidate:utility-a"
+    },
+    {
+      "event_id": "event-3",
+      "disposition": "candidate_asset",
+      "candidate_asset_id": "candidate:utility-b"
+    },
+    {
+      "event_id": "event-clutter",
+      "disposition": "abstain"
+    },
+    {
+      "event_id": "event-record-only",
+      "disposition": "candidate_asset",
+      "candidate_asset_id": "candidate:unverified"
+    }
+  ]
+}

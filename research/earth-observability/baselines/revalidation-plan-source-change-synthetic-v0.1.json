@@ -1,0 +1,31 @@
+{
+  "graph_id": "earth-observability-dependency-graph-synthetic-001",
+  "snapshot_id": "synthetic-snapshot-2026-11-14-a",
+  "changed_node_ids": [
+    "source:gpr-survey-a"
+  ],
+  "invalidated_node_ids": [
+    "asset:candidate-utility-a",
+    "decision:survey-plan-a",
+    "event:reflection-a",
+    "export:partner-view-a",
+    "network:hypotheses-a",
+    "observation:gpr-a",
+    "transform:route-a"
+  ],
+  "revalidation_order": [
+    "transform:route-a",
+    "observation:gpr-a",
+    "event:reflection-a",
+    "asset:candidate-utility-a",
+    "network:hypotheses-a",
+    "decision:survey-plan-a",
+    "export:partner-view-a"
+  ],
+  "unaffected_node_ids": [
+    "calibration:gpr-400mhz-a",
+    "source:unrelated"
+  ],
+  "status": "revalidation_plan_structural_only_no_receipts_granted",
+  "claim_boundary": "This plan identifies descendants of changed declared inputs. It does not verify a replacement source revision, re-run a sensor/transform/model, approve a candidate claim, or authorize owner-system edits."
+}
