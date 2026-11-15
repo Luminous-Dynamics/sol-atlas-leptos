@@ -1,0 +1,13 @@
+[package]
+name = "city-restoration-outcome-bridge-reference"
+version = "0.1.0"
+edition = "2024"
+license = "AGPL-3.0-or-later"
+publish = false
+description = "Synthetic reference evaluator for owner-native service restoration composition"
+
+[dependencies]
+serde_json = "=1.0.149"
+sha2 = "=0.10.9"
+
+[workspace]
