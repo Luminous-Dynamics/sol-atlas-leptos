@@ -100,3 +100,11 @@ cargo run --manifest-path research/earth-observability/pcit-evaluator/Cargo.toml
 ```
 
 The crosswalk preserves DWS REMP driver and biological-response indices separately and maps their coverage to the six SER attributes as direct, partial proxy, or gap. It explicitly prohibits conversion of REMP integrated Eco-status to SER Five-star recovery or an attributable intervention effect. The crosswalk is framework metadata; it does not assert that any DWS REMP site or sample is available for the Jukskei.
+
+## Legacy Jukskei RHP baseline record
+
+The South African REMP/SER crosswalk also carries a separate 2015 legacy River Health Programme (RHP) assessment. It includes five Jukskei sub-quaternary reaches and one biological monitoring site (A2JUKS-DIENR, reach A21C-01167), with report-level 2013–2015 fish, macroinvertebrate and riparian-vegetation condition summaries.
+
+The source is explicitly typed as **legacy RHP**, not current REMP. The crosswalk and CI schema preserve the single-site scope, desktop assessment sensitivity limitation, high-flow visual surveys and the absence of a 2015 macroinvertebrate sample. Raw field records and DWS site coordinates remain pending.
+
+Validation output now reports top-level collection counts (for example, indices, sources, ser_attribute_crosswalk) instead of presenting a non-case crosswalk as case_count: 0.
