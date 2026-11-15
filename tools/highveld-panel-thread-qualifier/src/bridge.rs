@@ -175,10 +175,12 @@ pub struct BridgeReport {
     pub selection_policy: &'static str,
     pub episode_id: String,
     pub obligation_results: Vec<ObligationResult>,
-    pub planned_obligations: usize,
-    pub unresolved_obligations: usize,
+    pub obligations_with_admissible_acquisition_route: usize,
+    pub unresolved_proof_obligations: usize,
+    pub obligations_without_admissible_route: usize,
     pub source_bytes_verified: bool,
     pub signatures_verified: bool,
+    pub owner_outputs_authenticated: bool,
     pub physical_observations: usize,
     pub qualified_obligations: usize,
     pub authority_effects: &'static str,
@@ -192,7 +194,8 @@ pub struct ObligationResult {
     pub evidence_state: &'static str,
     pub covered_by_acquisition_ids: Vec<String>,
     pub campaign_package_ids: Vec<String>,
-    pub optimality_proven: bool,
+    pub symtropy_campaign_search_status: Option<CampaignSearchStatus>,
+    pub symtropy_reports_optimality_proven: bool,
     pub reason_codes: Vec<String>,
     pub rejected_alternatives: Vec<RejectedAlternative>,
 }
@@ -209,8 +212,8 @@ pub struct RejectedAlternative {
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 pub enum BridgeDisposition {
     PlannedRemoteAcquisition,
-    PlannedPhysicalObservationOptimal,
-    PlannedPhysicalObservationNotOptimalityProven,
+    PlannedPhysicalObservationOwnerReportsOptimal,
+    PlannedPhysicalObservationOwnerReportsFeasibleNotOptimalityProven,
     BlockedAdmissibility,
     UnknownAdmissibility,
     Unbound,
@@ -233,7 +236,7 @@ pub fn evaluate_bridge_bytes(input_bytes: &[u8]) -> Result<BridgeReport, String>
     validate_bridge_input(&input)?;
 
     let mut obligation_results = Vec::with_capacity(input.episode.unresolved_obligation_ids.len());
-    let mut planned_obligations = 0usize;
+    let mut obligations_with_admissible_acquisition_route = 0usize;
 
     for obligation_id in &input.episode.unresolved_obligation_ids {
         let candidates: Vec<&Acquisition> = input
@@ -244,13 +247,15 @@ pub fn evaluate_bridge_bytes(input_bytes: &[u8]) -> Result<BridgeReport, String>
 
         let result = evaluate_obligation(&input, obligation_id, &candidates)?;
         if is_planned(&result.disposition) {
-            planned_obligations += 1;
+            obligations_with_admissible_acquisition_route += 1;
         }
         obligation_results.push(result);
     }
 
     obligation_results.sort_by(|left, right| left.obligation_id.cmp(&right.obligation_id));
-    let unresolved_obligations = obligation_results.len().saturating_sub(planned_obligations);
+    let unresolved_proof_obligations = input.episode.unresolved_obligation_ids.len();
+    let obligations_without_admissible_route = unresolved_proof_obligations
+        .saturating_sub(obligations_with_admissible_acquisition_route);
 
     Ok(BridgeReport {
         report_profile_id: "luminous.highveld.evidence-campaign-bridge-report.v0.1",
@@ -259,10 +264,12 @@ pub fn evaluate_bridge_bytes(input_bytes: &[u8]) -> Result<BridgeReport, String>
         selection_policy: "LEXICOGRAPHIC_REPRESENTATIVE_ONLY_NO_COST_OR_PREFERENCE_OPTIMIZATION",
         episode_id: input.episode.episode_id,
         obligation_results,
-        planned_obligations,
-        unresolved_obligations,
+        obligations_with_admissible_acquisition_route,
+        unresolved_proof_obligations,
+        obligations_without_admissible_route,
         source_bytes_verified: false,
         signatures_verified: false,
+        owner_outputs_authenticated: false,
         physical_observations: 0,
         qualified_obligations: 0,
         authority_effects: "NONE",
@@ -797,7 +804,8 @@ fn evaluate_acquisition(
         evidence_state: "PLANNED_NOT_OBSERVED",
         covered_by_acquisition_ids: vec![acquisition.acquisition_id.clone()],
         campaign_package_ids: Vec::new(),
-        optimality_proven: false,
+        symtropy_campaign_search_status: None,
+        symtropy_reports_optimality_proven: false,
         reason_codes: Vec::new(),
         rejected_alternatives: Vec::new(),
     };
@@ -1056,16 +1064,18 @@ fn evaluate_physical_relation(
         return Ok(result);
     }
 
+    result.symtropy_campaign_search_status = Some(campaign.search_status);
     match campaign.search_status {
         CampaignSearchStatus::CompleteOptimal => {
-            result.disposition = BridgeDisposition::PlannedPhysicalObservationOptimal;
-            result.optimality_proven = true;
+            result.disposition = BridgeDisposition::PlannedPhysicalObservationOwnerReportsOptimal;
+            result.symtropy_reports_optimality_proven = true;
             result
                 .reason_codes
                 .push("FEASIBLE_COMPLETE_CAMPAIGN_OPTIMALITY_PROVEN".to_owned());
         }
         CampaignSearchStatus::CompleteFeasibleNotOptimal => {
-            result.disposition = BridgeDisposition::PlannedPhysicalObservationNotOptimalityProven;
+            result.disposition =
+                BridgeDisposition::PlannedPhysicalObservationOwnerReportsFeasibleNotOptimalityProven;
             result
                 .reason_codes
                 .push("FEASIBLE_COMPLETE_CAMPAIGN_OPTIMALITY_NOT_PROVEN".to_owned());
@@ -1096,8 +1106,8 @@ fn is_planned(disposition: &BridgeDisposition) -> bool {
     matches!(
         disposition,
         BridgeDisposition::PlannedRemoteAcquisition
-            | BridgeDisposition::PlannedPhysicalObservationOptimal
-            | BridgeDisposition::PlannedPhysicalObservationNotOptimalityProven
+            | BridgeDisposition::PlannedPhysicalObservationOwnerReportsOptimal
+            | BridgeDisposition::PlannedPhysicalObservationOwnerReportsFeasibleNotOptimalityProven
     )
 }
 
@@ -1112,8 +1122,8 @@ fn disposition_priority(disposition: &BridgeDisposition) -> u8 {
         BridgeDisposition::CampaignSearchIncomplete => 6,
         BridgeDisposition::NotPlanned => 7,
         BridgeDisposition::PlannedRemoteAcquisition
-        | BridgeDisposition::PlannedPhysicalObservationOptimal
-        | BridgeDisposition::PlannedPhysicalObservationNotOptimalityProven => 8,
+        | BridgeDisposition::PlannedPhysicalObservationOwnerReportsOptimal
+        | BridgeDisposition::PlannedPhysicalObservationOwnerReportsFeasibleNotOptimalityProven => 8,
     }
 }
 
@@ -1281,10 +1291,13 @@ mod tests {
         let report = evaluate(&input);
         assert_eq!(
             one_result(&report).disposition,
-            BridgeDisposition::PlannedPhysicalObservationOptimal
+            BridgeDisposition::PlannedPhysicalObservationOwnerReportsOptimal
         );
-        assert!(one_result(&report).optimality_proven);
-        assert_eq!(report.planned_obligations, 1);
+        assert!(one_result(&report).symtropy_reports_optimality_proven);
+        assert_eq!(report.obligations_with_admissible_acquisition_route, 1);
+        assert_eq!(report.unresolved_proof_obligations, 1);
+        assert_eq!(report.obligations_without_admissible_route, 0);
+        assert_eq!(report.qualified_obligations, 0);
     }
 
     #[test]
@@ -1294,9 +1307,9 @@ mod tests {
         let report = evaluate(&input);
         assert_eq!(
             one_result(&report).disposition,
-            BridgeDisposition::PlannedPhysicalObservationNotOptimalityProven
+            BridgeDisposition::PlannedPhysicalObservationOwnerReportsFeasibleNotOptimalityProven
         );
-        assert!(!one_result(&report).optimality_proven);
+        assert!(!one_result(&report).symtropy_reports_optimality_proven);
     }
 
     #[test]
@@ -1336,7 +1349,7 @@ mod tests {
         input.episode.binding = source_binding("mycelix", "Luminous-Dynamics/mycelix", false);
         let report = evaluate(&input);
         assert_eq!(one_result(&report).disposition, BridgeDisposition::Unbound);
-        assert_eq!(report.planned_obligations, 0);
+        assert_eq!(report.obligations_with_admissible_acquisition_route, 0);
     }
 
     #[test]
@@ -1548,14 +1561,16 @@ mod tests {
         let input = include_str!("../examples/highveld-current-owner-bindings-unbound-v0.1.json");
         let report = evaluate_bridge_bytes(input.as_bytes()).unwrap();
 
-        assert_eq!(report.planned_obligations, 0);
-        assert_eq!(report.unresolved_obligations, 1);
+        assert_eq!(report.obligations_with_admissible_acquisition_route, 0);
+        assert_eq!(report.unresolved_proof_obligations, 1);
+        assert_eq!(report.obligations_without_admissible_route, 1);
         assert_eq!(
             report.obligation_results[0].disposition,
             BridgeDisposition::Unbound
         );
         assert!(!report.source_bytes_verified);
         assert!(!report.signatures_verified);
+        assert!(!report.owner_outputs_authenticated);
         assert_eq!(report.physical_observations, 0);
         assert_eq!(report.qualified_obligations, 0);
     }
@@ -1635,7 +1650,7 @@ mod tests {
         let result = one_result(&evaluate(&input));
         assert_eq!(
             result.disposition,
-            BridgeDisposition::PlannedPhysicalObservationOptimal
+            BridgeDisposition::PlannedPhysicalObservationOwnerReportsOptimal
         );
         assert_eq!(result.rejected_alternatives.len(), 1);
         assert_eq!(
@@ -1659,5 +1674,20 @@ mod tests {
         assert_eq!(report.qualified_obligations, 0);
         assert_eq!(report.authority_effects, "NONE");
         assert_eq!(report.claim_ceiling, BRIDGE_CLAIM_CEILING);
+        assert_eq!(report.unresolved_proof_obligations, 1);
+        assert_eq!(report.obligations_with_admissible_acquisition_route, 1);
+        assert_eq!(report.qualified_obligations, 0);
+    }
+
+    #[test]
+    fn a_planned_acquisition_route_never_resolves_the_proof_obligation() {
+        let input = base_input(AcquisitionKind::Remote);
+        let report = evaluate(&input);
+
+        assert_eq!(report.obligations_with_admissible_acquisition_route, 1);
+        assert_eq!(report.unresolved_proof_obligations, 1);
+        assert_eq!(report.obligations_without_admissible_route, 0);
+        assert_eq!(report.physical_observations, 0);
+        assert_eq!(report.qualified_obligations, 0);
     }
 }
