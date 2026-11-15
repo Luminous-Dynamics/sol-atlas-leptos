@@ -451,6 +451,202 @@ fn connected_components(
     Ok(components)
 }
 
+/// MATPOWER bus data retained by the bounded fixed-injection DC projection.
+#[derive(Debug, Clone, PartialEq)]
+pub struct MatpowerDcBus {
+    pub id: i64,
+    pub bus_type: i64,
+    pub demand_mw: f64,
+    pub reactive_demand_mvar: f64,
+    pub shunt_conductance_mw: f64,
+    pub shunt_susceptance_mvar: f64,
+    pub online_generation_mw: f64,
+    pub online_generation_p_min_mw: f64,
+    pub online_generation_p_max_mw: f64,
+    /// None marks a MATPOWER type-3 reference bus whose injection is balanced by
+    /// the downstream DC solver. All non-reference injections are fixed at Pg-Pd.
+    pub specified_injection_mw: Option<f64>,
+}
+
+/// MATPOWER branch data retained by the bounded fixed-injection DC projection.
+#[derive(Debug, Clone, PartialEq)]
+pub struct MatpowerDcBranch {
+    /// One-based source row number, stable even if other branches are out of service.
+    pub source_row: usize,
+    pub from_bus: i64,
+    pub to_bus: i64,
+    pub resistance_pu: f64,
+    pub reactance_pu: f64,
+    pub line_charging_susceptance_pu: f64,
+    pub rate_a_mva: f64,
+    pub rate_b_mva: f64,
+    pub rate_c_mva: f64,
+    /// MATPOWER zero-tap convention is retained; downstream DC solver interprets zero as unity.
+    pub tap_ratio: f64,
+    pub phase_shift_degrees: f64,
+    pub in_service: bool,
+    pub angle_min_degrees: f64,
+    pub angle_max_degrees: f64,
+}
+
+/// Source-bound, typed projection for fixed-injection linear DC power-flow work.
+///
+/// This is not a complete MATPOWER network model. Fields retained for audit may
+/// not be enforced by the downstream DC solver. See `limitations`.
+#[derive(Debug, Clone, PartialEq)]
+pub struct MatpowerDcProjection {
+    pub source_git_blob_sha1: String,
+    pub function_name: String,
+    pub matpower_version: String,
+    pub base_mva: f64,
+    pub buses: Vec<MatpowerDcBus>,
+    pub branches: Vec<MatpowerDcBranch>,
+    pub limitations: &'static [&'static str],
+    pub claim_ceiling: &'static str,
+}
+
+/// Build a source-bound fixed-injection DC projection from an already-supported
+/// literal MATPOWER v2 file. No MATLAB code is executed.
+///
+/// Non-reference bus injections are the sum of in-service generator Pg minus Pd.
+/// Type-3 buses are left unspecified so a downstream reference solver can balance
+/// them. Generator P bounds are retained and the supplied base Pg is checked
+/// against them, but this projection does not define redispatch or enforce new
+/// post-contingency generator capability. Type-4 isolated buses are rejected
+/// because the current DC reference model has no isolated-bus representation.
+pub fn project_matpower_dc_case(source: &str) -> Result<MatpowerDcProjection, String> {
+    let summary = audit_matpower_case(source)?;
+    let parsed = parse_case_source(source)?;
+    let buses = parsed.matrices.get("bus").ok_or("missing mpc.bus")?;
+    let generators = parsed.matrices.get("gen").ok_or("missing mpc.gen")?;
+    let branches = parsed.matrices.get("branch").ok_or("missing mpc.branch")?;
+
+    let mut generation_by_bus = BTreeMap::<i64, (f64, f64, f64)>::new();
+    for (index, generator) in generators.iter().enumerate() {
+        let bus_id = parse_integer(generator[0], "generator bus identifier")?;
+        let in_service = validate_binary_status(generator[7], "generator status")?;
+        if !in_service {
+            continue;
+        }
+
+        let pg = generator[1];
+        let p_max = generator[8];
+        let p_min = generator[9];
+        if pg < p_min || pg > p_max {
+            return Err(format!(
+                "in-service generator row {} has Pg outside its Pmin/Pmax bounds",
+                index + 1
+            ));
+        }
+
+        let totals = generation_by_bus.entry(bus_id).or_insert((0.0, 0.0, 0.0));
+        totals.0 += pg;
+        totals.1 += p_min;
+        totals.2 += p_max;
+        if !totals.0.is_finite() || !totals.1.is_finite() || !totals.2.is_finite() {
+            return Err(format!(
+                "aggregated generator values became non-finite at bus {bus_id}"
+            ));
+        }
+    }
+
+    let mut projected_buses = Vec::with_capacity(buses.len());
+    for (index, bus) in buses.iter().enumerate() {
+        let id = parse_integer(bus[0], "bus identifier")?;
+        let bus_type = parse_integer(bus[1], "bus type")?;
+        if bus_type == 4 {
+            return Err(format!(
+                "MATPOWER type-4 isolated bus {id} is not representable in this DC projection (row {})",
+                index + 1
+            ));
+        }
+        let (online_generation_mw, p_min, p_max) =
+            generation_by_bus.get(&id).copied().unwrap_or((0.0, 0.0, 0.0));
+        let demand_mw = bus[2];
+        let specified_injection_mw = if bus_type == 3 {
+            None
+        } else {
+            let injection = online_generation_mw - demand_mw;
+            if !injection.is_finite() {
+                return Err(format!("net injection became non-finite at bus {id}"));
+            }
+            Some(injection)
+        };
+        projected_buses.push(MatpowerDcBus {
+            id,
+            bus_type,
+            demand_mw,
+            reactive_demand_mvar: bus[3],
+            shunt_conductance_mw: bus[4],
+            shunt_susceptance_mvar: bus[5],
+            online_generation_mw,
+            online_generation_p_min_mw: p_min,
+            online_generation_p_max_mw: p_max,
+            specified_injection_mw,
+        });
+    }
+
+    let mut projected_branches = Vec::with_capacity(branches.len());
+    for (index, branch) in branches.iter().enumerate() {
+        let in_service = validate_binary_status(branch[10], "branch status")?;
+        let rate_a_mva = branch[5];
+        let rate_b_mva = branch[6];
+        let rate_c_mva = branch[7];
+        if rate_a_mva < 0.0 || rate_b_mva < 0.0 || rate_c_mva < 0.0 {
+            return Err(format!("negative branch rating at branch row {}", index + 1));
+        }
+        if in_service && branch[3] <= 0.0 {
+            return Err(format!(
+                "in-service branch row {} has non-positive reactance",
+                index + 1
+            ));
+        }
+        if branch[11] > branch[12] {
+            return Err(format!(
+                "branch angle minimum exceeds maximum at row {}",
+                index + 1
+            ));
+        }
+        projected_branches.push(MatpowerDcBranch {
+            source_row: index + 1,
+            from_bus: parse_integer(branch[0], "branch from-bus")?,
+            to_bus: parse_integer(branch[1], "branch to-bus")?,
+            resistance_pu: branch[2],
+            reactance_pu: branch[3],
+            line_charging_susceptance_pu: branch[4],
+            rate_a_mva,
+            rate_b_mva,
+            rate_c_mva,
+            tap_ratio: branch[8],
+            phase_shift_degrees: branch[9],
+            in_service,
+            angle_min_degrees: branch[11],
+            angle_max_degrees: branch[12],
+        });
+    }
+
+    Ok(MatpowerDcProjection {
+        source_git_blob_sha1: git_blob_sha1(source.as_bytes()),
+        function_name: summary.function_name,
+        matpower_version: summary.matpower_version,
+        base_mva: summary.base_mva,
+        buses: projected_buses,
+        branches: projected_branches,
+        limitations: &[
+            "fixed_non_reference_generation_and_demand",
+            "reference_bus_generation_is_balancing_not_pmax_pmin_checked_after_solve",
+            "no_generator_redispatch_or_reserve_ramping_model",
+            "no_resistance_losses_or_branch_charging_in_dc_equations",
+            "no_reactive_power_or_voltage_magnitude_solution",
+            "rate_a_is_the_only_branch_rating_exposed_to_the_dc_solver",
+            "branch_angle_difference_limits_are_retained_but_not_enforced",
+            "bus_shunt_fields_are_retained_but_not_enforced",
+            "not_ac_power_flow_or_security_constrained_opf",
+        ],
+        claim_ceiling: "source_bound_fixed_injection_dc_projection_only",
+    })
+}
+
 /// Audit a literal classic MATPOWER v2 case file; no MATLAB code is executed.
 pub fn audit_matpower_case(source: &str) -> Result<AuditSummary, String> {
     let parsed = parse_case_source(source)?;
