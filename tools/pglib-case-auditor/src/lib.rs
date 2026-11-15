@@ -733,6 +733,195 @@ pub fn project_matpower_dc_case(source: &str) -> Result<MatpowerDcProjection, St
     })
 }
 
+
+fn projection_json_quote(value: &str) -> String {
+    let mut output = String::from("\"");
+    for character in value.chars() {
+        match character {
+            '"' => output.push_str("\\\""),
+            '\\' => output.push_str("\\\\"),
+            '\n' => output.push_str("\\n"),
+            '\r' => output.push_str("\\r"),
+            '\t' => output.push_str("\\t"),
+            control if control <= '\u{1f}' => {
+                output.push_str(&format!("\\u{:04x}", control as u32));
+            }
+            ordinary => output.push(ordinary),
+        }
+    }
+    output.push('"');
+    output
+}
+
+fn projection_json_number(value: f64) -> String {
+    if value == 0.0 {
+        "0".to_owned()
+    } else {
+        value.to_string()
+    }
+}
+
+impl MatpowerDcProjection {
+    /// Emit every retained MATPOWER source field as a deterministic JSON receipt.
+    ///
+    /// The JSON is a projection audit surface, not a solver result. The exact
+    /// source digest binds the input bytes; it does not prove source authenticity.
+    pub fn to_json(&self) -> String {
+        let buses = self.buses.iter().map(|bus| {
+            let injection = bus.specified_injection_mw
+                .map(projection_json_number)
+                .unwrap_or_else(|| "null".to_owned());
+            format!(
+                concat!(
+                    "{{",
+                    "\"id\":{},\"bus_type\":{},",
+                    "\"demand_mw\":{},\"reactive_demand_mvar\":{},",
+                    "\"shunt_conductance_mw\":{},\"shunt_susceptance_mvar\":{},",
+                    "\"area\":{},\"voltage_magnitude_initial_pu\":{},",
+                    "\"voltage_angle_initial_degrees\":{},\"base_kv\":{},",
+                    "\"zone\":{},\"voltage_max_pu\":{},\"voltage_min_pu\":{},",
+                    "\"online_generation_mw\":{},",
+                    "\"online_generation_p_min_mw\":{},",
+                    "\"online_generation_p_max_mw\":{},",
+                    "\"specified_injection_mw\":{}",
+                    "}}"
+                ),
+                bus.id,
+                bus.bus_type,
+                projection_json_number(bus.demand_mw),
+                projection_json_number(bus.reactive_demand_mvar),
+                projection_json_number(bus.shunt_conductance_mw),
+                projection_json_number(bus.shunt_susceptance_mvar),
+                bus.area,
+                projection_json_number(bus.voltage_magnitude_initial_pu),
+                projection_json_number(bus.voltage_angle_initial_degrees),
+                projection_json_number(bus.base_kv),
+                bus.zone,
+                projection_json_number(bus.voltage_max_pu),
+                projection_json_number(bus.voltage_min_pu),
+                projection_json_number(bus.online_generation_mw),
+                projection_json_number(bus.online_generation_p_min_mw),
+                projection_json_number(bus.online_generation_p_max_mw),
+                injection
+            )
+        }).collect::<Vec<_>>().join(",");
+
+        let generators = self.generators.iter().map(|generator| {
+            format!(
+                concat!(
+                    "{{",
+                    "\"source_row\":{},\"bus_id\":{},",
+                    "\"pg_mw\":{},\"qg_mvar\":{},",
+                    "\"q_max_mvar\":{},\"q_min_mvar\":{},",
+                    "\"voltage_setpoint_pu\":{},\"m_base_mva\":{},",
+                    "\"in_service\":{},\"p_max_mw\":{},\"p_min_mw\":{}",
+                    "}}"
+                ),
+                generator.source_row,
+                generator.bus_id,
+                projection_json_number(generator.pg_mw),
+                projection_json_number(generator.qg_mvar),
+                projection_json_number(generator.q_max_mvar),
+                projection_json_number(generator.q_min_mvar),
+                projection_json_number(generator.voltage_setpoint_pu),
+                projection_json_number(generator.m_base_mva),
+                generator.in_service,
+                projection_json_number(generator.p_max_mw),
+                projection_json_number(generator.p_min_mw)
+            )
+        }).collect::<Vec<_>>().join(",");
+
+        let branches = self.branches.iter().map(|branch| {
+            format!(
+                concat!(
+                    "{{",
+                    "\"source_row\":{},\"from_bus\":{},\"to_bus\":{},",
+                    "\"resistance_pu\":{},\"reactance_pu\":{},",
+                    "\"line_charging_susceptance_pu\":{},",
+                    "\"rate_a_mva\":{},\"rate_b_mva\":{},\"rate_c_mva\":{},",
+                    "\"tap_ratio\":{},\"phase_shift_degrees\":{},",
+                    "\"in_service\":{},\"angle_min_degrees\":{},",
+                    "\"angle_max_degrees\":{}",
+                    "}}"
+                ),
+                branch.source_row,
+                branch.from_bus,
+                branch.to_bus,
+                projection_json_number(branch.resistance_pu),
+                projection_json_number(branch.reactance_pu),
+                projection_json_number(branch.line_charging_susceptance_pu),
+                projection_json_number(branch.rate_a_mva),
+                projection_json_number(branch.rate_b_mva),
+                projection_json_number(branch.rate_c_mva),
+                projection_json_number(branch.tap_ratio),
+                projection_json_number(branch.phase_shift_degrees),
+                branch.in_service,
+                projection_json_number(branch.angle_min_degrees),
+                projection_json_number(branch.angle_max_degrees)
+            )
+        }).collect::<Vec<_>>().join(",");
+
+        let costs = self.costs.iter().map(|cost| {
+            let coefficients = cost.coefficients.iter()
+                .map(|value| projection_json_number(*value))
+                .collect::<Vec<_>>()
+                .join(",");
+            format!(
+                concat!(
+                    "{{",
+                    "\"source_row\":{},\"model\":{},",
+                    "\"startup_cost\":{},\"shutdown_cost\":{},",
+                    "\"point_or_coefficient_count\":{},",
+                    "\"coefficients\":[{}]",
+                    "}}"
+                ),
+                cost.source_row,
+                cost.model,
+                projection_json_number(cost.startup_cost),
+                projection_json_number(cost.shutdown_cost),
+                cost.point_or_coefficient_count,
+                coefficients
+            )
+        }).collect::<Vec<_>>().join(",");
+
+        let limitations = self.limitations.iter()
+            .map(|limitation| projection_json_quote(limitation))
+            .collect::<Vec<_>>()
+            .join(",");
+
+        format!(
+            concat!(
+                "{{",
+                "\"schema_version\":\"matpower-dc-projection.v0.1.0\",",
+                "\"source_git_blob_sha1\":{},",
+                "\"function_name\":{},\"matpower_version\":{},",
+                "\"base_mva\":{},\"bus_count\":{},\"generator_count\":{},",
+                "\"branch_count\":{},\"cost_row_count\":{},",
+                "\"has_areas_metadata\":{},",
+                "\"buses\":[{}],\"generators\":[{}],",
+                "\"branches\":[{}],\"costs\":[{}],",
+                "\"limitations\":[{}],\"claim_ceiling\":{}",
+                "}}"
+            ),
+            projection_json_quote(&self.source_git_blob_sha1),
+            projection_json_quote(&self.function_name),
+            projection_json_quote(&self.matpower_version),
+            projection_json_number(self.base_mva),
+            self.buses.len(),
+            self.generators.len(),
+            self.branches.len(),
+            self.cost_row_count,
+            self.has_areas_metadata,
+            buses,
+            generators,
+            branches,
+            costs,
+            limitations,
+            projection_json_quote(self.claim_ceiling)
+        )
+    }
+}
+
 /// Audit a literal classic MATPOWER v2 case file; no MATLAB code is executed.
 pub fn audit_matpower_case(source: &str) -> Result<AuditSummary, String> {
     let parsed = parse_case_source(source)?;
