@@ -253,7 +253,12 @@ fn validate(
             {
                 errors.push("completed execution requires explicit units, time zone, coordinate/datum basis and positive time range".to_owned());
             }
-            for field in ["building_ref", "service_topology_ref", "design_revision_ref", "jurisdiction_profile_ref"] {
+            for field in [
+                "building_ref",
+                "service_topology_ref",
+                "design_revision_ref",
+                "jurisdiction_profile_ref",
+            ] {
                 let reference = binding.get(field).unwrap_or(&Value::Null);
                 if text_at(reference, "revision").is_none_or(str::is_empty)
                     || !valid_digest(reference.get("digest"))
@@ -563,8 +568,17 @@ fn validate(
             || text_at(calibration, "validation_window_id").is_none_or(str::is_empty)
             || text_at(calibration, "calibration_window_id")
                 == text_at(calibration, "validation_window_id")
-            || text_at(calibration.get("calibration_dataset_ref").unwrap_or(&Value::Null), "id")
-                == text_at(calibration.get("validation_dataset_ref").unwrap_or(&Value::Null), "id")
+            || text_at(
+                calibration
+                    .get("calibration_dataset_ref")
+                    .unwrap_or(&Value::Null),
+                "id",
+            ) == text_at(
+                calibration
+                    .get("validation_dataset_ref")
+                    .unwrap_or(&Value::Null),
+                "id",
+            )
             || text_at(calibration, "residual_state") != Some("reported")
             || !non_null_ref(calibration.get("residual_evidence_ref"))
         {
@@ -692,9 +706,15 @@ mod tests {
         evidence["run_configuration"]["model_coordinate_basis"] =
             json!("synthetic local coordinate frame");
         evidence["run_configuration"]["vertical_datum"] = json!("synthetic datum");
-        for field in ["building_ref", "service_topology_ref", "design_revision_ref", "jurisdiction_profile_ref"] {
+        for field in [
+            "building_ref",
+            "service_topology_ref",
+            "design_revision_ref",
+            "jurisdiction_profile_ref",
+        ] {
             evidence["model_binding"][field]["revision"] = json!("0.1");
-            evidence["model_binding"][field]["digest"] = json!("cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc");
+            evidence["model_binding"][field]["digest"] =
+                json!("cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc");
         }
         let pump_mapping = &mut evidence["mappings"][1];
         pump_mapping["solver_entity_id"] = json!("P-PUMP");
