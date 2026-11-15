@@ -108,6 +108,40 @@ NIST's 2026 Super Intelligence for Manufacturing initiative organizes work aroun
 
 These are methodological comparators, not certification programmes. Our differentiation should not be a novel architecture acronym or a generic knowledge graph. It should be independent, reproducible evidence that a cross-owner workflow improves decision correctness, traceability, requalification and accepted physical outcomes under adversarial change. We should reproduce the spirit of physical measurement and task-level metrology, not imply that a synthetic corpus is equivalent to a test bed or that passing our benchmark establishes ISO conformity.
 
+### Direct SOTA comparator: decision-valued active sensing
+
+Li and Parlikad's peer-reviewed paper, *Value-Based Active Sensing for Improving Sampling Efficiency*, was published online 30 October 2026 in IEEE Transactions on Systems, Man, and Cybernetics: Systems (DOI 10.1109/TSMC.2026.3745855). It formulates sensing as an observe-then-plan problem, valuing observations by expected opportunity-loss reduction relative to acquisition cost. Its generalization adds a risk premium for opportunity-loss variability and an ignorance penalty as predictive-model confidence decays. The authors report real-world temperature-alert and CO₂-aware office use cases under a fixed, one-step downstream decision setting.
+
+References: [IEEE publisher record](https://doi.org/10.1109/TSMC.2026.3745855) · [Cambridge accepted manuscript](https://doi.org/10.17863/CAM.135881)
+
+This is a direct comparator for **single-decision value-aware sampling**. Highveld must not claim it beats that method merely because its own synthetic cases contain more fields. Reproduce the paper's stated objective and scenarios before comparing; use the published paper's exact baseline implementation if available, otherwise document a faithful independent reimplementation and its deviations.
+
+The falsifiable extension hypothesis is narrower:
+- multiple simultaneously unresolved proof obligations with heterogeneous criticality;
+- non-compensatory rights, authority, safety, data-access and physical-realizability gates;
+- source competence and common-cause evidence dependence;
+- resource- and space-time-constrained multi-observation campaigns;
+- explicit owner mapping between acquisition tasks and observation actions;
+- acquired-observation outcomes that may be inconclusive, stale or disqualified;
+- an independent verifier and a full lifecycle outcome rather than only a fixed one-step downstream action.
+
+Keep these as separate benchmark tracks: (A) reproduce one-step OTP/VoI; (B) multi-obligation admissible acquisition; (C) resource-constrained campaign composition; (D) sequential outcome-aware acquisition. Report each track separately. A superior result on B–D does not establish superiority on A unless A's published benchmark is reproduced under matched conditions.
+
+### NIST TIDAL alignment without copying its test bench
+
+Use NIST's planned SI-for-Manufacturing integration bench as a comparator and possible future interoperability target. In particular, its stated alternatives—UNS over MQTT with knowledge graphs/type models, I3X and OPC UA profiles—should become explicit data-federation arms in a later matched test. Its planned Tennessee Eastman Process start and future physical NIST Digital Twin / Additive Manufacturing Data Integration Lab work also reinforce that simulation and physical evidence must be separate benchmark strata.
+
+Our differentiator is not another contextualization stack. It is a decision-assurance layer that can preserve original source contracts and prove what a composed decision did and did not rely on. We should add an **information-architecture ablation**:
+1. native owner records only;
+2. standards exchange without contextual graph;
+3. UNS/MQTT + contextual type/knowledge graph;
+4. OPC UA or I3X owner profiles where available;
+5. Highveld exact-reference composition and independent replay.
+
+Measure task accuracy/critical false-clear, data discovery recall, grounding to exact source artifacts, semantic loss, context-change detection, latency, compute and integration labour. Only run arms where a real configuration and adapter exist; unavailable interfaces are NOT_TESTED, not presumed failures.
+
+
+
 ## 3. Cross-repository owners — reuse, do not duplicate
 
 | Concern | Existing owner | What Highveld consumes |
@@ -159,6 +193,8 @@ The initial 24 scenarios in #870 are a seed, not a representative SOTA sample. E
 | S9 Common cause | Independence of certificates, sensors, providers and review sources | Two records share one upstream source but are counted as independent |
 | S10 Decision/action boundary | Distinguish plan, recommendation, execution, observation, acceptance and authority | Planner output treated as execution; work-order completion treated as product acceptance |
 | S11 Evidence acquisition | Choose measurements/reviews that can change the current decision | High information gain but no decision leverage; rights-blocked request; impossible acquisition |
+| S13 Active-sensing comparator | Reproduce fixed one-step observe-then-plan / VoI and compare with multi-obligation acquisition | Same information-gain observation cannot change the action; same expected opportunity loss with different admissibility; model confidence decay; outcome model misspecification; inconclusive observation |
+| S14 Information-architecture ablation | Compare native-only, standards exchange, contextual graph/UNS, OPC UA/I3X and exact-reference composition | Missing context, source discovery failure, semantic loss, unit/frame drift, false grounding, source dependency collapsed |
 | S12 Repair/disassembly | Service access, reversible joints, recovery path and material recovery | Missing removal capability, unqualified replacement, repair creates new configuration without retest |
 
 Mutations must be generated from preregistered operators, then independently labelled. Keep scenario generation seed, corpus digest and adjudication record outside the candidate input. Report results separately by suite; aggregate accuracy must never mask a critical false-clear.
@@ -280,9 +316,10 @@ A phase is not complete because a CI job is queued, skipped or absent. Each gate
 
 Do not claim to beat Autodesk at building-operations visualization, Bentley at infrastructure geospatial composition, Siemens at factory simulation, PTC at PLM workflows or Dassault at integrated product/industrial design.
 
-Aim to outperform a **matched incumbent workflow** on the cross-system tasks those suites need to support but where success is not established by rendering, data connection or workflow completion alone:
+Aim to outperform a **matched incumbent workflow** on the cross-system tasks those suites need to support but where success is not established by rendering, data connection or workflow completion alone. For each comparator, reproduce its native task and objective before extending it; do not treat a different, larger problem as evidence of a win.
 
-1. fewer false identity and semantic joins;
+1. reproduce the one-step OTP/VoI comparator on its stated scenarios and objective before claiming a sensing-method improvement;
+2. fewer false identity and semantic joins;
 2. faster and more complete change-impact determination;
 3. zero critical stale/revoked evidence false-clears;
 4. lower evidence acquisition and requalification burden;
