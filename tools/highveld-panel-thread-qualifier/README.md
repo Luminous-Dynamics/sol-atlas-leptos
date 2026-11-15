@@ -49,7 +49,9 @@ Run the bridge fixture input through the dedicated CLI:
 cargo run --manifest-path tools/highveld-panel-thread-qualifier/Cargo.toml --locked --bin highveld-bridge-qualifier -- --input bridge-input.json --output bridge-report.json
 ```
 
-Positive results are only `PLANNED_NOT_OBSERVED`; report fields deliberately keep source-byte verification, signature verification, physical observations, qualified obligations and authority effects at false/zero/none.
+Positive results are only `PLANNED_NOT_OBSERVED`. The report keeps three counts separate: obligations with an admissible acquisition route, all unresolved proof obligations (which remain unresolved even when a route is planned), and obligations without an admissible route. A planned route never reduces the unresolved-proof count.
+
+For physical campaigns the bridge records the exact status that Symtropy reports, including whether Symtropy reports its search as optimal. It does **not** independently verify the owner output or its optimality: `owner_outputs_authenticated` remains false. Source-byte verification and signature verification remain false; physical observations and qualified obligations remain zero; authority effects remain none.
 
 ## Important benchmark limitation
 
