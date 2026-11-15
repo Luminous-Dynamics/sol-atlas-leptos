@@ -379,11 +379,14 @@ fn validate(
                     }
                 }
                 "bound" => {
+                    let mapping_evidence = mapping.get("mapping_evidence_ref").unwrap_or(&Value::Null);
                     if solver_entity_id.as_deref().is_none_or(str::is_empty)
-                        || !non_null_ref(mapping.get("mapping_evidence_ref"))
+                        || !non_null_ref(Some(mapping_evidence))
+                        || text_at(mapping_evidence, "revision").is_none_or(str::is_empty)
+                        || !valid_digest(mapping_evidence.get("digest"))
                     {
                         errors.push(format!(
-                            "bound mapping {mapping_id} requires solver entity and mapping evidence"
+                            "bound mapping {mapping_id} requires solver entity and exact mapping-evidence revision/digest"
                         ));
                     }
                     if let Some(entity) = &solver_entity_id {
@@ -485,11 +488,19 @@ fn validate(
                 "disputed" | "invalidated" => {}
                 _ => errors.push(format!("result series {series_id} has invalid value_state")),
             }
+            let output_ref = series.get("evidence_ref").unwrap_or(&Value::Null);
             if matches!(state, "modelled" | "calibrated_modelled")
-                && !non_null_ref(series.get("evidence_ref"))
+                && (!non_null_ref(Some(output_ref))
+                    || text_at(output_ref, "revision").is_none_or(str::is_empty)
+                    || !valid_digest(output_ref.get("digest")))
             {
                 errors.push(format!(
-                    "solver result series {series_id} lacks exact output evidence reference"
+                    "solver result series {series_id} lacks exact output evidence revision/digest"
+                ));
+            }
+            if text_at(series, "time_basis") != Some("elapsed_seconds") {
+                errors.push(format!(
+                    "result series {series_id} must use elapsed_seconds for its P0 elapsed_s points"
                 ));
             }
             let points = rows(series, "points");
@@ -695,6 +706,8 @@ mod tests {
             json!("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
         evidence["model_binding"]["result_digest"] =
             json!("bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb");
+        evidence["solver"]["build_digest"] =
+            json!("dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd");
         evidence["run_configuration"]["solver_status"] = json!("converged");
         evidence["run_configuration"]["time_step_s"] = json!(60);
         evidence["run_configuration"]["duration_s"] = json!(3600);
@@ -720,7 +733,7 @@ mod tests {
         pump_mapping["solver_entity_id"] = json!("P-PUMP");
         pump_mapping["mapping_state"] = json!("bound");
         pump_mapping["mapping_evidence_ref"] = json!({
-            "kind":"synthetic_mapping_record","id":"MAP-PUMP-EVIDENCE","revision":"0.1","digest":null
+            "kind":"synthetic_mapping_record","id":"MAP-PUMP-EVIDENCE","revision":"0.1","digest":"eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
         });
         let mut series = Vec::new();
         for (index, unit_id) in ["U-001", "U-002", "U-003", "U-004"].iter().enumerate() {
@@ -752,7 +765,7 @@ mod tests {
                     "kind":"synthetic_solver_output",
                     "id":format!("RESULT-{unit_id}"),
                     "revision":"0.1",
-                    "digest":null
+                    "digest":"ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
                 }
             }));
         }
