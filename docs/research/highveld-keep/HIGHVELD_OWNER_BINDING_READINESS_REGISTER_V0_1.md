@@ -134,7 +134,28 @@ Every future replay receipt must identify, at minimum, the repository, exact com
 
 If the owner profile or mapping is unavailable, record **UNBOUND** and do not score the corresponding obligation as covered. If the exact source bytes cannot be retrieved or verified, say so. A successful CI run validates the code it tested; it does not validate an unbound cross-owner mapping.
 
-## 9. Validated synthetic assurance-to-campaign bridge increment
+## 9. New Design-for-Evidence benchmark workstream
+
+[HIGHVELD-DESIGN-FOR-EVIDENCE-001 #885](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/885) is now open under the Highveld panel programme. It is a **research/specification workstream**, not an implemented optimizer or physical inspection capability.
+
+Its ownership map is intentionally compositional:
+- Symtropy #4165 supplies the DfI / inspectability-method precedent (aerospace-specific until a construction mapping is approved).
+- Symtropy #4043 supplies the as-built inspection / repair / reverification lifecycle owner.
+- Symtropy #5240 / #5250/#5260 own observation campaign and option/evidence composition.
+- Symtropy #3773 owns accepted-output and manual/assisted/robotic economics.
+- Sol-Atlas #149 / #814 supply reversible assembly and DfMA delivery concepts.
+- Symthaea #10543 / #12046 own engineering change applicability and decision-sufficient evidence requests.
+- Mycelix #5149 supplies provenance, material custody and scoped source/approval references.
+
+No second design optimizer, NDE engine, evidence scheduler, repair engine or authority graph is proposed. New adapters remain UNBOUND until the actual owner schema/profile and exact commit are published and reviewed.
+
+Research references used in the issue:
+- NASA DFI / Inspectability Metric (NTRS 20240003953 / 20240007593): a published aerospace methodology precedent for treating inspectability as a design variable; not reproduced or claimed equivalent.
+- ISO 20887:2020, confirmed current in 2025, for building design-for-disassembly/adaptability principles; it does not establish universal numeric performance levels.
+- NIST Smart Manufacturing Systems Test Bed for a later physical matched test combining CAx, CNC, CMM and MTConnect.
+- NIST 2026 SI-for-Manufacturing TIDAL programme for industrial architecture ablation and digital-twin assurance methodology.
+
+## 10. Validated synthetic assurance-to-campaign bridge increment
 
 **Exact validated head:** `d175f4d8bf9828c92f77b6847141a98573139120`  
 **Focused workflow:** [#43766996384](https://github.com/Luminous-Dynamics/sol-atlas-leptos/actions/runs/43766996384) — passed formatting, 49/49 Rust library tests and strict Clippy.  
