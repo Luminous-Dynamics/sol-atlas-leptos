@@ -91,7 +91,7 @@ fn valid_unit_for_quantity(kind: &str, unit: &str) -> bool {
         "pump_energy" => matches!(unit, "Wh" | "kWh" | "MWh"),
         "water_age" => matches!(unit, "s" | "min" | "h" | "d"),
         "constituent_concentration" => matches!(unit, "mg/L" | "ug/L" | "ppm"),
-        "source_fraction" => matches!(unit, "1" | "%" ),
+        "source_fraction" => matches!(unit, "1" | "%"),
         _ => false,
     }
 }
@@ -111,7 +111,10 @@ fn validate(
     }
 
     let execution_state = text_at(evidence, "execution_state").unwrap_or("<missing>");
-    if !matches!(execution_state, "not_executed" | "completed" | "failed" | "invalidated") {
+    if !matches!(
+        execution_state,
+        "not_executed" | "completed" | "failed" | "invalidated"
+    ) {
         errors.push(format!("invalid execution_state {execution_state}"));
     }
 
@@ -126,37 +129,71 @@ fn validate(
     {
         errors.push("solver product/vendor/version/adapter identity is incomplete".to_owned());
     }
-    if !matches!(text_at(solver, "product"), Some("EPANET" | "OpenFlows_Water" | "consultant_model" | "manufacturer_model" | "other")) {
+    if !matches!(
+        text_at(solver, "product"),
+        Some("EPANET" | "OpenFlows_Water" | "consultant_model" | "manufacturer_model" | "other")
+    ) {
         errors.push("unsupported hydraulic solver product".to_owned());
     }
-    if solver.get("build_digest").is_some_and(|v| !v.is_null()) && !valid_digest(solver.get("build_digest")) {
+    if solver.get("build_digest").is_some_and(|v| !v.is_null())
+        && !valid_digest(solver.get("build_digest"))
+    {
         errors.push("solver build_digest must be 64 hexadecimal characters or null".to_owned());
     }
 
     let binding = evidence.get("model_binding").unwrap_or(&Value::Null);
-    for field in ["building_ref", "service_topology_ref", "design_revision_ref", "jurisdiction_profile_ref"] {
+    for field in [
+        "building_ref",
+        "service_topology_ref",
+        "design_revision_ref",
+        "jurisdiction_profile_ref",
+    ] {
         if !non_null_ref(binding.get(field)) {
             errors.push(format!("model_binding.{field} is missing or malformed"));
         }
     }
     let expected_building = text_at(building, "candidate_id").unwrap_or("<missing-building>");
     let expected_topology = text_at(service, "profile_id").unwrap_or("<missing-service-profile>");
-    if text_at(binding.get("building_ref").unwrap_or(&Value::Null), "id") != Some(expected_building) {
+    if text_at(binding.get("building_ref").unwrap_or(&Value::Null), "id") != Some(expected_building)
+    {
         errors.push("hydraulic model is not bound to the exact building candidate".to_owned());
     }
-    if text_at(binding.get("service_topology_ref").unwrap_or(&Value::Null), "id") != Some(expected_topology) {
-        errors.push("hydraulic model is not bound to the exact service-topology profile".to_owned());
+    if text_at(
+        binding.get("service_topology_ref").unwrap_or(&Value::Null),
+        "id",
+    ) != Some(expected_topology)
+    {
+        errors
+            .push("hydraulic model is not bound to the exact service-topology profile".to_owned());
     }
     let source_binding = service.get("source_binding").unwrap_or(&Value::Null);
-    if text_at(binding.get("design_revision_ref").unwrap_or(&Value::Null), "id")
-        != text_at(source_binding.get("design_revision_ref").unwrap_or(&Value::Null), "id")
-    {
-        errors.push("hydraulic model design revision differs from the service topology binding".to_owned());
+    if text_at(
+        binding.get("design_revision_ref").unwrap_or(&Value::Null),
+        "id",
+    ) != text_at(
+        source_binding
+            .get("design_revision_ref")
+            .unwrap_or(&Value::Null),
+        "id",
+    ) {
+        errors.push(
+            "hydraulic model design revision differs from the service topology binding".to_owned(),
+        );
     }
-    if text_at(binding.get("jurisdiction_profile_ref").unwrap_or(&Value::Null), "id")
-        != text_at(source_binding.get("jurisdiction_profile_ref").unwrap_or(&Value::Null), "id")
-    {
-        errors.push("hydraulic model jurisdiction binding differs from the service topology".to_owned());
+    if text_at(
+        binding
+            .get("jurisdiction_profile_ref")
+            .unwrap_or(&Value::Null),
+        "id",
+    ) != text_at(
+        source_binding
+            .get("jurisdiction_profile_ref")
+            .unwrap_or(&Value::Null),
+        "id",
+    ) {
+        errors.push(
+            "hydraulic model jurisdiction binding differs from the service topology".to_owned(),
+        );
     }
     let scenario_id = text_at(binding, "scenario_id").unwrap_or("<missing-scenario>");
     let stress_case_ids = rows(stress, "cases")
@@ -165,12 +202,16 @@ fn validate(
         .filter_map(|case| text_at(case, "case_id"))
         .collect::<BTreeSet<_>>();
     if !stress_case_ids.contains(scenario_id) {
-        errors.push(format!("hydraulic model references unknown stress scenario {scenario_id}"));
+        errors.push(format!(
+            "hydraulic model references unknown stress scenario {scenario_id}"
+        ));
     }
     for key in ["input_model_digest", "result_digest"] {
         let digest = binding.get(key);
         if !is_null(digest) && !valid_digest(digest) {
-            errors.push(format!("model_binding.{key} must be 64 hexadecimal characters or null"));
+            errors.push(format!(
+                "model_binding.{key} must be 64 hexadecimal characters or null"
+            ));
         }
     }
 
@@ -181,8 +222,10 @@ fn validate(
             if solver_status != "not_run" {
                 errors.push("not_executed evidence must have solver_status=not_run".to_owned());
             }
-            if !is_null(binding.get("input_model_digest")) || !is_null(binding.get("result_digest")) {
-                errors.push("not_executed evidence cannot claim input or result digests".to_owned());
+            if !is_null(binding.get("input_model_digest")) || !is_null(binding.get("result_digest"))
+            {
+                errors
+                    .push("not_executed evidence cannot claim input or result digests".to_owned());
             }
             if rows(evidence, "result_series").is_some_and(|series| !series.is_empty()) {
                 errors.push("not_executed evidence cannot contain solver result series".to_owned());
@@ -192,18 +235,25 @@ fn validate(
             if solver_status != "converged" {
                 errors.push("completed execution requires solver_status=converged".to_owned());
             }
-            if !valid_digest(binding.get("input_model_digest")) || !valid_digest(binding.get("result_digest")) {
-                errors.push("completed execution requires exact input and result digests".to_owned());
+            if !valid_digest(binding.get("input_model_digest"))
+                || !valid_digest(binding.get("result_digest"))
+            {
+                errors
+                    .push("completed execution requires exact input and result digests".to_owned());
             }
             if integer_at(configuration, "time_step_s").is_none_or(|step| step <= 0)
                 || integer_at(configuration, "duration_s").is_none_or(|duration| duration <= 0)
                 || integer_at(configuration, "end_elapsed_s").is_none_or(|end| end <= 0)
             {
-                errors.push("completed execution requires positive time step, duration and end time".to_owned());
+                errors.push(
+                    "completed execution requires positive time step, duration and end time"
+                        .to_owned(),
+                );
             }
         }
         "failed" if !matches!(solver_status, "failed" | "non_converged") => {
-            errors.push("failed execution requires failed or non_converged solver_status".to_owned());
+            errors
+                .push("failed execution requires failed or non_converged solver_status".to_owned());
         }
         "invalidated" if solver_status != "invalidated" => {
             errors.push("invalidated execution requires solver_status=invalidated".to_owned());
@@ -214,8 +264,15 @@ fn validate(
     let node_rows = rows(service, "nodes");
     let mut node_records = BTreeMap::<String, (String, Option<String>)>::new();
     for node in node_rows.into_iter().flatten() {
-        if let (Some(id), Some(resource)) = (text_at(node, "node_id"), text_at(node, "resource_id")) {
-            node_records.insert(id.to_owned(), (resource.to_owned(), text_at(node, "unit_id").map(str::to_owned)));
+        if let (Some(id), Some(resource)) = (text_at(node, "node_id"), text_at(node, "resource_id"))
+        {
+            node_records.insert(
+                id.to_owned(),
+                (
+                    resource.to_owned(),
+                    text_at(node, "unit_id").map(str::to_owned),
+                ),
+            );
         }
     }
     let edge_rows = rows(service, "edges");
@@ -230,7 +287,8 @@ fn validate(
 
     let mappings = rows(evidence, "mappings");
     let mapping_ids = unique_ids(mappings, "mapping_id", "mappings", &mut errors);
-    let mut mapping_records = BTreeMap::<String, (Option<String>, String, String, String, Option<String>)>::new();
+    let mut mapping_records =
+        BTreeMap::<String, (Option<String>, String, String, String, Option<String>)>::new();
     let mut mapped_solver_entities = BTreeSet::new();
     let mut mapped_targets = BTreeSet::new();
     let mut bound_node_ids = BTreeSet::new();
@@ -244,7 +302,9 @@ fn validate(
             let resource_id = text_at(mapping, "resource_id").unwrap_or("<missing-resource>");
             let unit_id = text_at(mapping, "unit_id").map(str::to_owned);
             if node_id.is_some() == edge_id.is_some() {
-                errors.push(format!("mapping {mapping_id} must target exactly one service node or edge"));
+                errors.push(format!(
+                    "mapping {mapping_id} must target exactly one service node or edge"
+                ));
                 continue;
             }
             if node_id.is_some() {
@@ -252,32 +312,48 @@ fn validate(
                 match node_records.get(target) {
                     Some((resource, unit)) => {
                         if resource != resource_id {
-                            errors.push(format!("mapping {mapping_id} resource class does not match service node"));
+                            errors.push(format!(
+                                "mapping {mapping_id} resource class does not match service node"
+                            ));
                         }
                         if unit != &unit_id {
-                            errors.push(format!("mapping {mapping_id} unit identity does not match service node"));
+                            errors.push(format!(
+                                "mapping {mapping_id} unit identity does not match service node"
+                            ));
                         }
                         if !mapped_targets.insert(format!("node:{target}")) {
-                            errors.push(format!("multiple solver mappings target service node {target}"));
+                            errors.push(format!(
+                                "multiple solver mappings target service node {target}"
+                            ));
                         }
                         if state == "bound" {
                             bound_node_ids.insert(target.to_owned());
                         }
                     }
-                    None => errors.push(format!("mapping {mapping_id} references unknown service node {target}")),
+                    None => errors.push(format!(
+                        "mapping {mapping_id} references unknown service node {target}"
+                    )),
                 }
             } else if let Some(target) = edge_id {
                 match edge_records.get(target) {
                     Some(resource) if resource == resource_id => {
                         if unit_id.is_some() {
-                            errors.push(format!("mapping {mapping_id} edge-level mapping must not claim a unit"));
+                            errors.push(format!(
+                                "mapping {mapping_id} edge-level mapping must not claim a unit"
+                            ));
                         }
                         if !mapped_targets.insert(format!("edge:{target}")) {
-                            errors.push(format!("multiple solver mappings target service edge {target}"));
+                            errors.push(format!(
+                                "multiple solver mappings target service edge {target}"
+                            ));
                         }
                     }
-                    Some(_) => errors.push(format!("mapping {mapping_id} resource class does not match service edge")),
-                    None => errors.push(format!("mapping {mapping_id} references unknown service edge {target}")),
+                    Some(_) => errors.push(format!(
+                        "mapping {mapping_id} resource class does not match service edge"
+                    )),
+                    None => errors.push(format!(
+                        "mapping {mapping_id} references unknown service edge {target}"
+                    )),
                 }
             }
             match state {
@@ -290,7 +366,9 @@ fn validate(
                     if solver_entity_id.as_deref().is_none_or(str::is_empty)
                         || !non_null_ref(mapping.get("mapping_evidence_ref"))
                     {
-                        errors.push(format!("bound mapping {mapping_id} requires solver entity and mapping evidence"));
+                        errors.push(format!(
+                            "bound mapping {mapping_id} requires solver entity and mapping evidence"
+                        ));
                     }
                     if let Some(entity) = &solver_entity_id {
                         if !mapped_solver_entities.insert(entity.clone()) {
@@ -300,14 +378,24 @@ fn validate(
                 }
                 "ambiguous" | "excluded" | "unknown" => {
                     if solver_entity_id.is_some() {
-                        errors.push(format!("{state} mapping {mapping_id} cannot have a selected solver entity"));
+                        errors.push(format!(
+                            "{state} mapping {mapping_id} cannot have a selected solver entity"
+                        ));
                     }
                 }
-                _ => errors.push(format!("mapping {mapping_id} has invalid mapping_state {state}")),
+                _ => errors.push(format!(
+                    "mapping {mapping_id} has invalid mapping_state {state}"
+                )),
             }
             mapping_records.insert(
                 mapping_id.to_owned(),
-                (solver_entity_id, state.to_owned(), resource_id.to_owned(), node_id.unwrap_or(edge_id.unwrap_or("")).to_owned(), unit_id),
+                (
+                    solver_entity_id,
+                    state.to_owned(),
+                    resource_id.to_owned(),
+                    node_id.unwrap_or(edge_id.unwrap_or("")).to_owned(),
+                    unit_id,
+                ),
             );
         }
     }
@@ -319,7 +407,11 @@ fn validate(
             .filter_map(|unit| text_at(unit, "unit_id"))
             .collect::<BTreeSet<_>>();
         for (node_id, (resource, unit)) in &node_records {
-            if resource == "R-POTABLE-WATER" && unit.as_deref().is_some_and(|id| required_water_units.contains(id)) {
+            if resource == "R-POTABLE-WATER"
+                && unit
+                    .as_deref()
+                    .is_some_and(|id| required_water_units.contains(id))
+            {
                 if !bound_node_ids.contains(node_id) {
                     errors.push(format!("completed hydraulic run lacks a bound mapping for required water boundary {node_id}"));
                 }
@@ -334,16 +426,23 @@ fn validate(
         for series in series_rows {
             let series_id = text_at(series, "series_id").unwrap_or("<missing-series>");
             let mapping_id = text_at(series, "mapping_id").unwrap_or("<missing-mapping>");
-            let solver_entity_id = text_at(series, "solver_entity_id").unwrap_or("<missing-entity>");
+            let solver_entity_id =
+                text_at(series, "solver_entity_id").unwrap_or("<missing-entity>");
             let quantity_kind = text_at(series, "quantity_kind").unwrap_or("<missing-quantity>");
             let unit = text_at(series, "unit").unwrap_or("");
             let state = text_at(series, "value_state").unwrap_or("<missing-state>");
-            let Some((mapped_solver, mapping_state, resource, target, mapped_unit)) = mapping_records.get(mapping_id) else {
-                errors.push(format!("result series {series_id} references unknown mapping {mapping_id}"));
+            let Some((mapped_solver, mapping_state, resource, target, mapped_unit)) =
+                mapping_records.get(mapping_id)
+            else {
+                errors.push(format!(
+                    "result series {series_id} references unknown mapping {mapping_id}"
+                ));
                 continue;
             };
             if mapping_state != "bound" || mapped_solver.as_deref() != Some(solver_entity_id) {
-                errors.push(format!("result series {series_id} does not match an exact bound solver mapping"));
+                errors.push(format!(
+                    "result series {series_id} does not match an exact bound solver mapping"
+                ));
             }
             if !valid_unit_for_quantity(quantity_kind, unit) {
                 errors.push(format!("result series {series_id} has unsupported quantity/unit pair {quantity_kind}/{unit}"));
@@ -351,22 +450,31 @@ fn validate(
             match state {
                 "modelled" => {
                     if execution_state != "completed" {
-                        errors.push(format!("modelled series {series_id} requires completed solver execution"));
+                        errors.push(format!(
+                            "modelled series {series_id} requires completed solver execution"
+                        ));
                     }
                 }
                 "calibrated_modelled" => {
                     if execution_state != "completed"
-                        || text_at(evidence.get("calibration").unwrap_or(&Value::Null), "state") != Some("calibrated_model")
+                        || text_at(evidence.get("calibration").unwrap_or(&Value::Null), "state")
+                            != Some("calibrated_model")
                     {
                         errors.push(format!("calibrated series {series_id} lacks completed calibrated-model evidence"));
                     }
                 }
-                "measured" => errors.push(format!("solver result series {series_id} cannot be promoted to measured")),
+                "measured" => errors.push(format!(
+                    "solver result series {series_id} cannot be promoted to measured"
+                )),
                 "disputed" | "invalidated" => {}
                 _ => errors.push(format!("result series {series_id} has invalid value_state")),
             }
-            if matches!(state, "modelled" | "calibrated_modelled") && !non_null_ref(series.get("evidence_ref")) {
-                errors.push(format!("solver result series {series_id} lacks exact output evidence reference"));
+            if matches!(state, "modelled" | "calibrated_modelled")
+                && !non_null_ref(series.get("evidence_ref"))
+            {
+                errors.push(format!(
+                    "solver result series {series_id} lacks exact output evidence reference"
+                ));
             }
             let points = rows(series, "points");
             if points.is_none_or(Vec::is_empty) {
@@ -381,11 +489,14 @@ fn validate(
                 let upper = point.get("upper").and_then(Value::as_f64);
                 if let Some(time) = elapsed {
                     if prior_time.is_some_and(|prior| time <= prior) {
-                        errors.push(format!("result series {series_id} has duplicate or unordered timestamps"));
+                        errors.push(format!(
+                            "result series {series_id} has duplicate or unordered timestamps"
+                        ));
                     }
                     prior_time = Some(time);
                     if execution_state == "completed"
-                        && integer_at(configuration, "duration_s").is_some_and(|duration| time > duration)
+                        && integer_at(configuration, "duration_s")
+                            .is_some_and(|duration| time > duration)
                     {
                         errors.push(format!("result series {series_id} exceeds run duration"));
                     }
@@ -394,8 +505,14 @@ fn validate(
                 }
                 match (lower, value, upper) {
                     (Some(lo), Some(v), Some(hi))
-                        if lo.is_finite() && v.is_finite() && hi.is_finite() && lo <= v && v <= hi => {}
-                    _ => errors.push(format!("result series {series_id} has non-finite or unordered value bounds")),
+                        if lo.is_finite()
+                            && v.is_finite()
+                            && hi.is_finite()
+                            && lo <= v
+                            && v <= hi => {}
+                    _ => errors.push(format!(
+                        "result series {series_id} has non-finite or unordered value bounds"
+                    )),
                 }
             }
             if quantity_kind == "pressure" {
@@ -421,7 +538,10 @@ fn validate(
 
     let calibration = evidence.get("calibration").unwrap_or(&Value::Null);
     let calibration_state = text_at(calibration, "state").unwrap_or("<missing>");
-    if !matches!(calibration_state, "not_assessed" | "uncalibrated" | "calibrated_model" | "disputed") {
+    if !matches!(
+        calibration_state,
+        "not_assessed" | "uncalibrated" | "calibrated_model" | "disputed"
+    ) {
         errors.push("invalid calibration state".to_owned());
     }
     if calibration_state == "calibrated_model" {
@@ -430,7 +550,8 @@ fn validate(
             || !non_null_ref(calibration.get("validation_dataset_ref"))
             || text_at(calibration, "calibration_window_id").is_none_or(str::is_empty)
             || text_at(calibration, "validation_window_id").is_none_or(str::is_empty)
-            || text_at(calibration, "calibration_window_id") == text_at(calibration, "validation_window_id")
+            || text_at(calibration, "calibration_window_id")
+                == text_at(calibration, "validation_window_id")
             || text_at(calibration, "residual_state") != Some("reported")
             || !non_null_ref(calibration.get("residual_evidence_ref"))
         {
@@ -448,17 +569,30 @@ fn validate(
         if !sample_ids.insert(id.to_owned()) {
             errors.push(format!("duplicate laboratory sample identity {id}"));
         }
-        for field in ["sample_boundary_ref", "lab_ref", "method_ref", "chain_of_custody_ref"] {
+        for field in [
+            "sample_boundary_ref",
+            "lab_ref",
+            "method_ref",
+            "chain_of_custody_ref",
+        ] {
             if !non_null_ref(sample.get(field)) {
                 errors.push(format!("laboratory sample {id} lacks {field}"));
             }
         }
     }
     let has_quality_series = series_rows.into_iter().flatten().any(|series| {
-        matches!(text_at(series, "quantity_kind"), Some("water_age" | "constituent_concentration" | "source_fraction"))
+        matches!(
+            text_at(series, "quantity_kind"),
+            Some("water_age" | "constituent_concentration" | "source_fraction")
+        )
     });
-    if has_quality_series && text_at(quality, "model_output_scope") != Some("modelled_constituent_or_age_only") {
-        errors.push("water-quality solver series must remain labelled modelled_constituent_or_age_only".to_owned());
+    if has_quality_series
+        && text_at(quality, "model_output_scope") != Some("modelled_constituent_or_age_only")
+    {
+        errors.push(
+            "water-quality solver series must remain labelled modelled_constituent_or_age_only"
+                .to_owned(),
+        );
     }
 
     let warning_rows = rows(evidence, "warnings");
@@ -485,7 +619,11 @@ fn validate(
         "physical_hydraulic_result": "NOT_ESTABLISHED_BY_QUALIFIER",
         "claim_ceiling": "SOLVER_PROVENANCE_AND_TOPOLOGY_MAPPING_INTEGRITY_ONLY"
     });
-    if errors.is_empty() { Ok(report) } else { Err(errors) }
+    if errors.is_empty() {
+        Ok(report)
+    } else {
+        Err(errors)
+    }
 }
 
 fn load_fixtures() -> (Value, Value, Value, Value) {
@@ -505,9 +643,15 @@ fn main() {
     }
     let (evidence, service, building, stress) = load_fixtures();
     match validate(&evidence, &service, &building, &stress) {
-        Ok(report) => println!("{}", serde_json::to_string_pretty(&report).unwrap_or_default()),
+        Ok(report) => println!(
+            "{}",
+            serde_json::to_string_pretty(&report).unwrap_or_default()
+        ),
         Err(errors) => {
-            eprintln!("HOME_MULTIFAMILY_HYDRAULIC_EVIDENCE_QUALIFIER_FAIL: {}", errors.join("; "));
+            eprintln!(
+                "HOME_MULTIFAMILY_HYDRAULIC_EVIDENCE_QUALIFIER_FAIL: {}",
+                errors.join("; ")
+            );
             process::exit(1);
         }
     }
@@ -520,8 +664,10 @@ mod tests {
     fn complete_run() -> (Value, Value, Value, Value) {
         let (mut evidence, service, building, stress) = load_fixtures();
         evidence["execution_state"] = json!("completed");
-        evidence["model_binding"]["input_model_digest"] = json!("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
-        evidence["model_binding"]["result_digest"] = json!("bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb");
+        evidence["model_binding"]["input_model_digest"] =
+            json!("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
+        evidence["model_binding"]["result_digest"] =
+            json!("bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb");
         evidence["run_configuration"]["solver_status"] = json!("converged");
         evidence["run_configuration"]["time_step_s"] = json!(60);
         evidence["run_configuration"]["duration_s"] = json!(3600);
@@ -529,7 +675,8 @@ mod tests {
         evidence["run_configuration"]["flow_units"] = json!("LPS");
         evidence["run_configuration"]["pressure_units"] = json!("kPa");
         evidence["run_configuration"]["time_zone"] = json!("Africa/Johannesburg");
-        evidence["run_configuration"]["model_coordinate_basis"] = json!("synthetic local coordinate frame");
+        evidence["run_configuration"]["model_coordinate_basis"] =
+            json!("synthetic local coordinate frame");
         evidence["run_configuration"]["vertical_datum"] = json!("synthetic datum");
         let pump_mapping = &mut evidence["mappings"][1];
         pump_mapping["solver_entity_id"] = json!("P-PUMP");
@@ -578,18 +725,23 @@ mod tests {
     #[test]
     fn unexecuted_epanet_contract_fixture_qualifies_without_claiming_a_run() {
         let (evidence, service, building, stress) = load_fixtures();
-        let report = validate(&evidence, &service, &building, &stress).expect("not-executed fixture");
+        let report =
+            validate(&evidence, &service, &building, &stress).expect("not-executed fixture");
         assert_eq!(report["execution_state"], "not_executed");
         assert_eq!(report["service_mapping_count"], 10);
         assert_eq!(report["bound_mapping_count"], 0);
         assert_eq!(report["result_series_count"], 0);
-        assert_eq!(report["physical_hydraulic_result"], "NOT_ESTABLISHED_BY_QUALIFIER");
+        assert_eq!(
+            report["physical_hydraulic_result"],
+            "NOT_ESTABLISHED_BY_QUALIFIER"
+        );
     }
 
     #[test]
     fn exact_completed_model_result_mapping_contract_is_valid() {
         let (evidence, service, building, stress) = complete_run();
-        let report = validate(&evidence, &service, &building, &stress).expect("completed modelled result contract");
+        let report = validate(&evidence, &service, &building, &stress)
+            .expect("completed modelled result contract");
         assert_eq!(report["execution_state"], "completed");
         assert_eq!(report["bound_mapping_count"], 5);
         assert_eq!(report["result_series_count"], 4);
@@ -672,12 +824,15 @@ mod tests {
     fn calibration_and_validation_windows_must_be_distinct() {
         let (mut evidence, service, building, stress) = complete_run();
         evidence["calibration"]["state"] = json!("calibrated_model");
-        evidence["calibration"]["calibration_dataset_ref"] = json!({"kind":"dataset","id":"D1","revision":"1","digest":null});
-        evidence["calibration"]["validation_dataset_ref"] = json!({"kind":"dataset","id":"D2","revision":"1","digest":null});
+        evidence["calibration"]["calibration_dataset_ref"] =
+            json!({"kind":"dataset","id":"D1","revision":"1","digest":null});
+        evidence["calibration"]["validation_dataset_ref"] =
+            json!({"kind":"dataset","id":"D2","revision":"1","digest":null});
         evidence["calibration"]["calibration_window_id"] = json!("WINDOW-A");
         evidence["calibration"]["validation_window_id"] = json!("WINDOW-A");
         evidence["calibration"]["residual_state"] = json!("reported");
-        evidence["calibration"]["residual_evidence_ref"] = json!({"kind":"residual-report","id":"R1","revision":"1","digest":null});
+        evidence["calibration"]["residual_evidence_ref"] =
+            json!({"kind":"residual-report","id":"R1","revision":"1","digest":null});
         assert!(validate(&evidence, &service, &building, &stress).is_err());
     }
 
