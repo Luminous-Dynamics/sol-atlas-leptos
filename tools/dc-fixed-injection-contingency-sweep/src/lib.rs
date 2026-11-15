@@ -148,6 +148,151 @@ pub struct ContingencySweepReport {
     pub claim_ceiling: &'static str,
 }
 
+fn json_quote(value: &str) -> String {
+    let mut output = String::from("\"");
+    for character in value.chars() {
+        match character {
+            '"' => output.push_str("\\\""),
+            '\\\\' => output.push_str("\\\\\\\\"),
+            '\\n' => output.push_str("\\\\n"),
+            '\\r' => output.push_str("\\\\r"),
+            '\\t' => output.push_str("\\\\t"),
+            control if control <= '\\u{1f}' => {
+                output.push_str(&format!("\\\\u{:04x}", control as u32));
+            }
+            ordinary => output.push(ordinary),
+        }
+    }
+    output.push('"');
+    output
+}
+
+fn json_number(value: f64) -> String {
+    let rendered = format!("{value:.12}");
+    rendered.trim_end_matches('0').trim_end_matches('.').to_owned()
+}
+
+fn audit_to_json(audit: &AuditReport) -> String {
+    let reference_buses = audit
+        .reference_bus_ids
+        .iter()
+        .map(i64::to_string)
+        .collect::<Vec<_>>()
+        .join(", ");
+    format!(
+        concat!(
+            "{\\n",
+            "    \\\"checked_bus_count\\\": {},\\n",
+            "    \\\"checked_branch_count\\\": {},\\n",
+            "    \\\"energized_island_count\\\": {},\\n",
+            "    \\\"reference_bus_ids\\\": [{}],\\n",
+            "    \\\"max_branch_flow_error_mw\\\": {},\\n",
+            "    \\\"max_nodal_outflow_error_mw\\\": {},\\n",
+            "    \\\"max_abs_nodal_residual_mw\\\": {},\\n",
+            "    \\\"max_branch_overload_mw\\\": {},\\n",
+            "    \\\"within_nodal_tolerance\\\": {},\\n",
+            "    \\\"within_declared_branch_limits\\\": {},\\n",
+            "    \\\"independently_feasible_under_declared_checks\\\": {},\\n",
+            "    \\\"claim_ceiling\\\": {}\\n",
+            "  }}"
+        ),
+        audit.checked_bus_count,
+        audit.checked_branch_count,
+        audit.energized_island_count,
+        reference_buses,
+        json_number(audit.max_branch_flow_error_mw),
+        json_number(audit.max_nodal_outflow_error_mw),
+        json_number(audit.max_abs_nodal_residual_mw),
+        json_number(audit.max_branch_overload_mw),
+        audit.within_nodal_tolerance,
+        audit.within_declared_branch_limits,
+        audit.independently_feasible_under_declared_checks,
+        json_quote(audit.claim_ceiling)
+    )
+}
+
+fn scenario_to_json(scenario: &ScenarioResult) -> String {
+    let outage = match &scenario.outage {
+        None => "null".to_owned(),
+        Some(branch) => format!(
+            concat!(
+                "{{\\n",
+                "    \\\"branch_index\\\": {},\\n",
+                "    \\\"from_bus\\\": {},\\n",
+                "    \\\"to_bus\\\": {}\\n",
+                "  }}"
+            ),
+            branch.branch_index, branch.from_bus, branch.to_bus
+        ),
+    };
+    let disposition = match &scenario.disposition {
+        ScenarioDisposition::AuditedWithinDeclaredChecks { audit } => format!(
+            "{{\\n    \\\"status\\\": \\\"audited_within_declared_checks\\\",\\n    \\\"audit\\\": {}\\n  }}",
+            audit_to_json(audit)
+        ),
+        ScenarioDisposition::AuditedWithDeclaredViolations { audit } => format!(
+            "{{\\n    \\\"status\\\": \\\"audited_with_declared_violations\\\",\\n    \\\"audit\\\": {}\\n  }}",
+            audit_to_json(audit)
+        ),
+        ScenarioDisposition::SolverDidNotReturnCandidate { reason } => format!(
+            "{{\\n    \\\"status\\\": \\\"solver_did_not_return_candidate\\\",\\n    \\\"reason\\\": {}\\n  }}",
+            json_quote(reason)
+        ),
+        ScenarioDisposition::CandidateRejectedByAuditor { reason } => format!(
+            "{{\\n    \\\"status\\\": \\\"candidate_rejected_by_auditor\\\",\\n    \\\"reason\\\": {}\\n  }}",
+            json_quote(reason)
+        ),
+    };
+    format!(
+        "{{\\n  \\\"outage\\\": {},\\n  \\\"disposition\\\": {}\\n}}",
+        outage, disposition
+    )
+}
+
+impl ContingencySweepReport {
+    /// Deterministic JSON receipt. The caller must separately bind the network
+    /// label to exact source bytes, import receipt and model-profile version.
+    pub fn to_json(&self) -> String {
+        let contingencies = self
+            .branch_outages
+            .iter()
+            .map(scenario_to_json)
+            .collect::<Vec<_>>()
+            .join(",\\n");
+        format!(
+            concat!(
+                "{{\\n",
+                "  \\\"schema_version\\\": \\\"dc-fixed-injection-contingency-sweep.v0.1.0\\\",\\n",
+                "  \\\"network_identity_label\\\": {},\\n",
+                "  \\\"base_case\\\": {},\\n",
+                "  \\\"branch_outages\\\": [\\n{}\\n  ],\\n",
+                "  \\\"summary\\\": {{\\n",
+                "    \\\"expected_branch_outages\\\": {},\\n",
+                "    \\\"evaluated_branch_outages\\\": {},\\n",
+                "    \\\"audited_within_declared_checks\\\": {},\\n",
+                "    \\\"audited_with_declared_violations\\\": {},\\n",
+                "    \\\"solver_unknowns\\\": {},\\n",
+                "    \\\"auditor_rejections\\\": {},\\n",
+                "    \\\"coverage_complete\\\": {}\\n",
+                "  }},\\n",
+                "  \\\"claim_ceiling\\\": {}\\n",
+                "}}"
+            ),
+            json_quote(&self.network_identity_label),
+            scenario_to_json(&self.base_case),
+            contingencies,
+            self.summary.expected_branch_outages,
+            self.summary.evaluated_branch_outages,
+            self.summary.audited_within_declared_checks,
+            self.summary.audited_with_declared_violations,
+            self.summary.solver_unknowns,
+            self.summary.auditor_rejections,
+            self.summary.coverage_complete,
+            json_quote(self.claim_ceiling)
+        )
+    }
+}
+
 fn audit_options_for(solve: SolveOptions) -> AuditOptions {
     AuditOptions {
         value_tolerance_mw: solve.residual_tolerance_mw,
@@ -502,6 +647,23 @@ mod tests {
                 .collect::<Vec<_>>(),
             original_status
         );
+    }
+
+    #[test]
+    fn json_receipt_is_deterministic_and_escapes_identity_labels() {
+        let report = sweep_fixed_injection_single_branch_outages(
+            "case \\"quoted\\"\\nline",
+            &triangle(),
+            SweepOptions::default(),
+        )
+        .expect("bounded sweep");
+
+        let first = report.to_json();
+        assert_eq!(first, report.to_json());
+        assert!(first.contains("case \\\\"quoted\\\\\\"\\\\nline"));
+        assert!(first.contains("audited_with_declared_violations"));
+        assert!(first.contains("coverage_complete"));
+        assert!(first.ends_with("}"));
     }
 
     #[test]
