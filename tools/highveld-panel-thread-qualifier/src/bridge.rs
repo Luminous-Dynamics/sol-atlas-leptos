@@ -272,7 +272,10 @@ pub fn evaluate_bridge_bytes(input_bytes: &[u8]) -> Result<BridgeReport, String>
 
 fn validate_bridge_input(input: &BridgeInput) -> Result<(), String> {
     if input.profile_id != BRIDGE_PROFILE_ID {
-        return Err(format!("unsupported bridge profile_id: {}", input.profile_id));
+        return Err(format!(
+            "unsupported bridge profile_id: {}",
+            input.profile_id
+        ));
     }
     if input.version != BRIDGE_VERSION {
         return Err(format!("unsupported bridge version: {}", input.version));
@@ -386,7 +389,10 @@ fn validate_bridge_input(input: &BridgeInput) -> Result<(), String> {
                 campaign.package_id
             ));
         }
-        validate_context(&campaign.context, &format!("{}.context", campaign.package_id))?;
+        validate_context(
+            &campaign.context,
+            &format!("{}.context", campaign.package_id),
+        )?;
         validate_owner_binding(
             &campaign.binding,
             "symtropy",
@@ -406,11 +412,17 @@ fn validate_bridge_input(input: &BridgeInput) -> Result<(), String> {
                 ));
             }
             if !action_ids.insert(action.action_id.as_str()) {
-                return Err(format!("duplicate campaign action_id: {}", action.action_id));
+                return Err(format!(
+                    "duplicate campaign action_id: {}",
+                    action.action_id
+                ));
             }
             validate_unique_nonempty(
                 &action.covers_obligation_ids,
-                &format!("{}.{}.covers_obligation_ids", campaign.package_id, action.action_id),
+                &format!(
+                    "{}.{}.covers_obligation_ids",
+                    campaign.package_id, action.action_id
+                ),
             )?;
             for obligation_id in &action.covers_obligation_ids {
                 if !known_obligations.contains(obligation_id.as_str()) {
@@ -539,31 +551,51 @@ fn validate_owner_binding(
     }
     for (field, value, length) in [
         ("commit_sha", binding.commit_sha.as_deref(), 40usize),
-        ("artifact_sha256", binding.artifact_sha256.as_deref(), 64usize),
+        (
+            "artifact_sha256",
+            binding.artifact_sha256.as_deref(),
+            64usize,
+        ),
         ("adapter_sha256", binding.adapter_sha256.as_deref(), 64usize),
         ("mapping_sha256", binding.mapping_sha256.as_deref(), 64usize),
     ] {
         if let Some(value) = value {
             if !is_lower_hex(value, length) {
-                return Err(format!("{path}.{field} is not {length}-character lowercase hex"));
+                return Err(format!(
+                    "{path}.{field} is not {length}-character lowercase hex"
+                ));
             }
         }
     }
     if binding.mapping_status == BindingState::Bound {
         require_text(binding.commit_sha.as_deref(), &format!("{path}.commit_sha"))?;
-        require_text(binding.artifact_path.as_deref(), &format!("{path}.artifact_path"))?;
-        require_text(binding.artifact_sha256.as_deref(), &format!("{path}.artifact_sha256"))?;
+        require_text(
+            binding.artifact_path.as_deref(),
+            &format!("{path}.artifact_path"),
+        )?;
+        require_text(
+            binding.artifact_sha256.as_deref(),
+            &format!("{path}.artifact_sha256"),
+        )?;
         require_text(binding.profile_id.as_deref(), &format!("{path}.profile_id"))?;
         require_text(
             binding.profile_version.as_deref(),
             &format!("{path}.profile_version"),
         )?;
         require_text(binding.adapter_id.as_deref(), &format!("{path}.adapter_id"))?;
-        require_text(binding.adapter_sha256.as_deref(), &format!("{path}.adapter_sha256"))?;
+        require_text(
+            binding.adapter_sha256.as_deref(),
+            &format!("{path}.adapter_sha256"),
+        )?;
         if binding.available_at_unix.is_none() {
-            return Err(format!("{path}.available_at_unix is required for a BOUND source mapping"));
+            return Err(format!(
+                "{path}.available_at_unix is required for a BOUND source mapping"
+            ));
         }
-        require_text(binding.mapping_sha256.as_deref(), &format!("{path}.mapping_sha256"))?;
+        require_text(
+            binding.mapping_sha256.as_deref(),
+            &format!("{path}.mapping_sha256"),
+        )?;
         require_text(
             binding.owner_approval_ref.as_deref(),
             &format!("{path}.owner_approval_ref"),
@@ -582,9 +614,7 @@ fn validate_binding_as_of(
             format!("{path}.available_at_unix is required for a BOUND source mapping")
         })?;
         if available_at > as_of_unix {
-            return Err(format!(
-                "{path} became available after the decision cutoff"
-            ));
+            return Err(format!("{path} became available after the decision cutoff"));
         }
     }
     Ok(())
@@ -631,12 +661,18 @@ fn validate_mapping_review(
 
 fn validate_context(context: &DecisionContext, path: &str) -> Result<(), String> {
     for (field, digest) in [
-        ("project_context_sha256", context.project_context_sha256.as_str()),
+        (
+            "project_context_sha256",
+            context.project_context_sha256.as_str(),
+        ),
         (
             "functional_contract_sha256",
             context.functional_contract_sha256.as_str(),
         ),
-        ("option_design_sha256", context.option_design_sha256.as_str()),
+        (
+            "option_design_sha256",
+            context.option_design_sha256.as_str(),
+        ),
     ] {
         if !is_lower_hex(digest, 64) {
             return Err(format!("{path}.{field} is not a SHA-256 digest"));
@@ -692,9 +728,7 @@ fn evaluate_obligation(
     }
 
     let mut ordered_acquisitions = acquisitions.to_vec();
-    ordered_acquisitions.sort_by(|left, right| {
-        left.acquisition_id.cmp(&right.acquisition_id)
-    });
+    ordered_acquisitions.sort_by(|left, right| left.acquisition_id.cmp(&right.acquisition_id));
 
     let mut attempts = Vec::with_capacity(ordered_acquisitions.len());
     for acquisition in ordered_acquisitions {
@@ -712,14 +746,8 @@ fn evaluate_obligation(
                 .iter()
                 .enumerate()
                 .min_by(|(_, (left_id, left)), (_, (right_id, right))| {
-                    (
-                        disposition_priority(&left.disposition),
-                        left_id.as_str(),
-                    )
-                        .cmp(&(
-                            disposition_priority(&right.disposition),
-                            right_id.as_str(),
-                        ))
+                    (disposition_priority(&left.disposition), left_id.as_str())
+                        .cmp(&(disposition_priority(&right.disposition), right_id.as_str()))
                 })
                 .map(|(index, _)| index)
         });
@@ -778,7 +806,9 @@ fn evaluate_acquisition(
         || acquisition.binding.mapping_status == BindingState::Unbound
     {
         result.disposition = BridgeDisposition::Unbound;
-        result.reason_codes.push("OWNER_PROFILE_OR_ADAPTER_UNBOUND".to_owned());
+        result
+            .reason_codes
+            .push("OWNER_PROFILE_OR_ADAPTER_UNBOUND".to_owned());
         return Ok(result);
     }
 
@@ -786,7 +816,9 @@ fn evaluate_acquisition(
         || acquisition.context != input.episode.context
     {
         result.disposition = BridgeDisposition::ContextMismatch;
-        result.reason_codes.push("DECISION_EPISODE_OR_CONTEXT_MISMATCH".to_owned());
+        result
+            .reason_codes
+            .push("DECISION_EPISODE_OR_CONTEXT_MISMATCH".to_owned());
         return Ok(result);
     }
 
@@ -807,7 +839,9 @@ fn evaluate_acquisition(
     match acquisition.kind {
         AcquisitionKind::Remote => {
             result.disposition = BridgeDisposition::PlannedRemoteAcquisition;
-            result.reason_codes.push("ADMISSIBLE_NONPHYSICAL_ACQUISITION_PLANNED".to_owned());
+            result
+                .reason_codes
+                .push("ADMISSIBLE_NONPHYSICAL_ACQUISITION_PLANNED".to_owned());
             Ok(result)
         }
         AcquisitionKind::Physical => {
@@ -818,7 +852,9 @@ fn evaluate_acquisition(
                 .collect();
             if relations.is_empty() {
                 result.disposition = BridgeDisposition::Unbound;
-                result.reason_codes.push("PHYSICAL_ACQUISITION_ACTION_RELATION_UNBOUND".to_owned());
+                result
+                    .reason_codes
+                    .push("PHYSICAL_ACQUISITION_ACTION_RELATION_UNBOUND".to_owned());
                 return Ok(result);
             }
 
@@ -828,12 +864,7 @@ fn evaluate_acquisition(
             for relation in ordered_relations {
                 physical_attempts.push((
                     relation.mapping_id.clone(),
-                    evaluate_physical_relation(
-                        input,
-                        obligation_id,
-                        acquisition,
-                        relation,
-                    )?,
+                    evaluate_physical_relation(input, obligation_id, acquisition, relation)?,
                 ));
             }
             let selected_index = physical_attempts
@@ -844,14 +875,8 @@ fn evaluate_acquisition(
                         .iter()
                         .enumerate()
                         .min_by(|(_, (left_id, left)), (_, (right_id, right))| {
-                            (
-                                disposition_priority(&left.disposition),
-                                left_id.as_str(),
-                            )
-                                .cmp(&(
-                                    disposition_priority(&right.disposition),
-                                    right_id.as_str(),
-                                ))
+                            (disposition_priority(&left.disposition), left_id.as_str())
+                                .cmp(&(disposition_priority(&right.disposition), right_id.as_str()))
                         })
                         .map(|(index, _)| index)
                 });
@@ -964,12 +989,16 @@ fn evaluate_physical_relation(
         || relation.context != acquisition.context
     {
         result.disposition = BridgeDisposition::ContextMismatch;
-        result.reason_codes.push("PHYSICAL_BINDING_CONTEXT_MISMATCH".to_owned());
+        result
+            .reason_codes
+            .push("PHYSICAL_BINDING_CONTEXT_MISMATCH".to_owned());
         return Ok(result);
     }
     if relation.review.status == BindingState::Unbound {
         result.disposition = BridgeDisposition::Unbound;
-        result.reason_codes.push("OWNER_REVIEWED_ACQUISITION_ACTION_MAPPING_UNBOUND".to_owned());
+        result
+            .reason_codes
+            .push("OWNER_REVIEWED_ACQUISITION_ACTION_MAPPING_UNBOUND".to_owned());
         return Ok(result);
     }
 
@@ -985,12 +1014,16 @@ fn evaluate_physical_relation(
         })?;
     if campaign.binding.mapping_status == BindingState::Unbound {
         result.disposition = BridgeDisposition::Unbound;
-        result.reason_codes.push("SYMTROPY_CAMPAIGN_PROFILE_UNBOUND".to_owned());
+        result
+            .reason_codes
+            .push("SYMTROPY_CAMPAIGN_PROFILE_UNBOUND".to_owned());
         return Ok(result);
     }
     if campaign.context != input.episode.context {
         result.disposition = BridgeDisposition::ContextMismatch;
-        result.reason_codes.push("SYMTROPY_OPTION_OR_SITE_CONTEXT_MISMATCH".to_owned());
+        result
+            .reason_codes
+            .push("SYMTROPY_OPTION_OR_SITE_CONTEXT_MISMATCH".to_owned());
         return Ok(result);
     }
 
@@ -1006,12 +1039,20 @@ fn evaluate_physical_relation(
         })?;
     if action.context != input.episode.context {
         result.disposition = BridgeDisposition::ContextMismatch;
-        result.reason_codes.push("SYMTROPY_ACTION_CONTEXT_MISMATCH".to_owned());
+        result
+            .reason_codes
+            .push("SYMTROPY_ACTION_CONTEXT_MISMATCH".to_owned());
         return Ok(result);
     }
-    if !action.covers_obligation_ids.iter().any(|id| id == obligation_id) {
+    if !action
+        .covers_obligation_ids
+        .iter()
+        .any(|id| id == obligation_id)
+    {
         result.disposition = BridgeDisposition::NotPlanned;
-        result.reason_codes.push("CAMPAIGN_ACTION_DOES_NOT_COVER_OBLIGATION".to_owned());
+        result
+            .reason_codes
+            .push("CAMPAIGN_ACTION_DOES_NOT_COVER_OBLIGATION".to_owned());
         return Ok(result);
     }
 
@@ -1019,24 +1060,33 @@ fn evaluate_physical_relation(
         CampaignSearchStatus::CompleteOptimal => {
             result.disposition = BridgeDisposition::PlannedPhysicalObservationOptimal;
             result.optimality_proven = true;
-            result.reason_codes.push("FEASIBLE_COMPLETE_CAMPAIGN_OPTIMALITY_PROVEN".to_owned());
+            result
+                .reason_codes
+                .push("FEASIBLE_COMPLETE_CAMPAIGN_OPTIMALITY_PROVEN".to_owned());
         }
         CampaignSearchStatus::CompleteFeasibleNotOptimal => {
-            result.disposition =
-                BridgeDisposition::PlannedPhysicalObservationNotOptimalityProven;
-            result.reason_codes.push("FEASIBLE_COMPLETE_CAMPAIGN_OPTIMALITY_NOT_PROVEN".to_owned());
+            result.disposition = BridgeDisposition::PlannedPhysicalObservationNotOptimalityProven;
+            result
+                .reason_codes
+                .push("FEASIBLE_COMPLETE_CAMPAIGN_OPTIMALITY_NOT_PROVEN".to_owned());
         }
         CampaignSearchStatus::Incomplete => {
             result.disposition = BridgeDisposition::CampaignIncomplete;
-            result.reason_codes.push("CAMPAIGN_DOES_NOT_COVER_ALL_REQUIRED_WORK".to_owned());
+            result
+                .reason_codes
+                .push("CAMPAIGN_DOES_NOT_COVER_ALL_REQUIRED_WORK".to_owned());
         }
         CampaignSearchStatus::ProvenInfeasible => {
             result.disposition = BridgeDisposition::CampaignInfeasible;
-            result.reason_codes.push("CAMPAIGN_INFEASIBILITY_PROVEN".to_owned());
+            result
+                .reason_codes
+                .push("CAMPAIGN_INFEASIBILITY_PROVEN".to_owned());
         }
         CampaignSearchStatus::SearchIncomplete => {
             result.disposition = BridgeDisposition::CampaignSearchIncomplete;
-            result.reason_codes.push("CAMPAIGN_SEARCH_INCOMPLETE_NO_OPTIMALITY_CLAIM".to_owned());
+            result
+                .reason_codes
+                .push("CAMPAIGN_SEARCH_INCOMPLETE_NO_OPTIMALITY_CLAIM".to_owned());
         }
     }
     Ok(result)
@@ -1328,7 +1378,10 @@ mod tests {
             one_result(&evaluate(&input)).disposition,
             BridgeDisposition::CampaignIncomplete
         );
-        assert_eq!(one_result(&evaluate(&input)).evidence_state, "PLANNED_NOT_OBSERVED");
+        assert_eq!(
+            one_result(&evaluate(&input)).evidence_state,
+            "PLANNED_NOT_OBSERVED"
+        );
     }
 
     #[test]
@@ -1382,9 +1435,11 @@ mod tests {
     fn remote_acquisition_cannot_be_promoted_into_a_physical_scan() {
         let mut input = base_input(AcquisitionKind::Remote);
         add_complete_campaign(&mut input, CampaignSearchStatus::CompleteOptimal);
-        assert!(evaluate_bridge_bytes(&serde_json::to_vec(&input).unwrap())
-            .unwrap_err()
-            .contains("remote acquisition"));
+        assert!(
+            evaluate_bridge_bytes(&serde_json::to_vec(&input).unwrap())
+                .unwrap_err()
+                .contains("remote acquisition")
+        );
     }
 
     #[test]
@@ -1392,48 +1447,58 @@ mod tests {
         let mut input = base_input(AcquisitionKind::Remote);
         let duplicate = input.acquisitions[0].clone();
         input.acquisitions.push(duplicate);
-        assert!(evaluate_bridge_bytes(&serde_json::to_vec(&input).unwrap())
-            .unwrap_err()
-            .contains("duplicate acquisition_id"));
+        assert!(
+            evaluate_bridge_bytes(&serde_json::to_vec(&input).unwrap())
+                .unwrap_err()
+                .contains("duplicate acquisition_id")
+        );
     }
 
     #[test]
     fn unknown_obligation_references_are_rejected() {
         let mut input = base_input(AcquisitionKind::Remote);
-        input.acquisitions[0].covers_obligation_ids.push("NOT-IN-EPISODE".to_owned());
-        assert!(evaluate_bridge_bytes(&serde_json::to_vec(&input).unwrap())
-            .unwrap_err()
-            .contains("unknown obligation"));
+        input.acquisitions[0]
+            .covers_obligation_ids
+            .push("NOT-IN-EPISODE".to_owned());
+        assert!(
+            evaluate_bridge_bytes(&serde_json::to_vec(&input).unwrap())
+                .unwrap_err()
+                .contains("unknown obligation")
+        );
     }
 
     #[test]
     fn source_profile_available_after_episode_cutoff_is_rejected() {
         let mut input = base_input(AcquisitionKind::Remote);
-        input.acquisitions[0].binding.available_at_unix =
-            Some(input.episode.as_of_unix + 1);
-        assert!(evaluate_bridge_bytes(&serde_json::to_vec(&input).unwrap())
-            .unwrap_err()
-            .contains("became available after the decision cutoff"));
+        input.acquisitions[0].binding.available_at_unix = Some(input.episode.as_of_unix + 1);
+        assert!(
+            evaluate_bridge_bytes(&serde_json::to_vec(&input).unwrap())
+                .unwrap_err()
+                .contains("became available after the decision cutoff")
+        );
     }
 
     #[test]
     fn bilateral_mapping_review_after_episode_cutoff_is_rejected() {
         let mut input = base_input(AcquisitionKind::Physical);
         add_complete_campaign(&mut input, CampaignSearchStatus::CompleteOptimal);
-        input.physical_bindings[0].review.reviewed_at_unix =
-            Some(input.episode.as_of_unix + 1);
-        assert!(evaluate_bridge_bytes(&serde_json::to_vec(&input).unwrap())
-            .unwrap_err()
-            .contains("completed after the decision cutoff"));
+        input.physical_bindings[0].review.reviewed_at_unix = Some(input.episode.as_of_unix + 1);
+        assert!(
+            evaluate_bridge_bytes(&serde_json::to_vec(&input).unwrap())
+                .unwrap_err()
+                .contains("completed after the decision cutoff")
+        );
     }
 
     #[test]
     fn acquisition_from_different_mycelix_profile_snapshot_is_rejected() {
         let mut input = base_input(AcquisitionKind::Remote);
         input.acquisitions[0].binding.commit_sha = Some("f".repeat(40));
-        assert!(evaluate_bridge_bytes(&serde_json::to_vec(&input).unwrap())
-            .unwrap_err()
-            .contains("different Mycelix commit/profile/adapter"));
+        assert!(
+            evaluate_bridge_bytes(&serde_json::to_vec(&input).unwrap())
+                .unwrap_err()
+                .contains("different Mycelix commit/profile/adapter")
+        );
     }
 
     #[test]
@@ -1441,9 +1506,11 @@ mod tests {
         let mut input = base_input(AcquisitionKind::Physical);
         add_complete_campaign(&mut input, CampaignSearchStatus::CompleteOptimal);
         input.physical_bindings[0].review.symtropy_approval_ref = None;
-        assert!(evaluate_bridge_bytes(&serde_json::to_vec(&input).unwrap())
-            .unwrap_err()
-            .contains("review.symtropy_approval_ref is required"));
+        assert!(
+            evaluate_bridge_bytes(&serde_json::to_vec(&input).unwrap())
+                .unwrap_err()
+                .contains("review.symtropy_approval_ref is required")
+        );
     }
 
     #[test]
@@ -1451,9 +1518,11 @@ mod tests {
         let mut input = base_input(AcquisitionKind::Physical);
         add_complete_campaign(&mut input, CampaignSearchStatus::CompleteOptimal);
         input.campaigns[0].binding.repository = "Luminous-Dynamics/mycelix".to_owned();
-        assert!(evaluate_bridge_bytes(&serde_json::to_vec(&input).unwrap())
-            .unwrap_err()
-            .contains("repository"));
+        assert!(
+            evaluate_bridge_bytes(&serde_json::to_vec(&input).unwrap())
+                .unwrap_err()
+                .contains("repository")
+        );
     }
 
     #[test]
@@ -1474,7 +1543,6 @@ mod tests {
         assert_ne!(first.input_sha256, second.input_sha256);
     }
 
-
     #[test]
     fn current_owner_profiles_remain_unbound_until_exact_contracts_are_published() {
         let input = include_str!("../examples/highveld-current-owner-bindings-unbound-v0.1.json");
@@ -1492,7 +1560,6 @@ mod tests {
         assert_eq!(report.qualified_obligations, 0);
     }
 
-
     #[test]
     fn rejected_acquisition_alternatives_are_preserved_when_another_path_is_admissible() {
         let mut input = base_input(AcquisitionKind::Remote);
@@ -1504,7 +1571,10 @@ mod tests {
 
         let report = evaluate(&input);
         let result = one_result(&report);
-        assert_eq!(result.disposition, BridgeDisposition::PlannedRemoteAcquisition);
+        assert_eq!(
+            result.disposition,
+            BridgeDisposition::PlannedRemoteAcquisition
+        );
         assert_eq!(result.rejected_alternatives.len(), 1);
         assert_eq!(
             result.rejected_alternatives[0].acquisition_id,
