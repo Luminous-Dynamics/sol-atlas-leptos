@@ -1240,14 +1240,16 @@ mod tests {
         );
         assert_eq!(legacy["monitoring_site"]["site_id"], "A2JUKS-DIENR");
         assert_eq!(legacy["monitoring_site"]["reach_id"], "A21C-01167");
-        assert_eq!(legacy["admission_status"], "published_report_summary_raw_records_pending");
+        assert_eq!(
+            legacy["admission_status"],
+            "published_report_summary_raw_records_pending"
+        );
         assert!(
             legacy["sampling_events"]
                 .as_array()
                 .expect("sampling events")
                 .iter()
-                .any(|event| event["event_type"] == "not_sampled"
-                    && event["date"] == "2015")
+                .any(|event| event["event_type"] == "not_sampled" && event["date"] == "2015")
         );
         assert!(
             legacy["indicator_summaries"]
