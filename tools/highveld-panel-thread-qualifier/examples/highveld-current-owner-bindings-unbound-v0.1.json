@@ -16,7 +16,8 @@
       "adapter_sha256": null,
       "mapping_status": "UNBOUND",
       "mapping_sha256": null,
-      "owner_approval_ref": null
+      "owner_approval_ref": null,
+      "available_at_unix": null
     },
     "episode_id": "HIGHVELD-EPISODE-CURRENT-UNBOUND",
     "as_of_unix": 1794760000,
@@ -47,7 +48,8 @@
         "adapter_sha256": null,
         "mapping_status": "UNBOUND",
         "mapping_sha256": null,
-        "owner_approval_ref": null
+        "owner_approval_ref": null,
+        "available_at_unix": null
       },
       "acquisition_id": "MYCELIX-6252-REMOTE-AUDIT-UNBOUND",
       "episode_id": "HIGHVELD-EPISODE-CURRENT-UNBOUND",
@@ -87,7 +89,8 @@
         "adapter_sha256": null,
         "mapping_status": "UNBOUND",
         "mapping_sha256": null,
-        "owner_approval_ref": null
+        "owner_approval_ref": null,
+        "available_at_unix": null
       },
       "acquisition_id": "MYCELIX-6252-PHYSICAL-OBSERVATION-UNBOUND",
       "episode_id": "HIGHVELD-EPISODE-CURRENT-UNBOUND",
@@ -129,7 +132,8 @@
         "adapter_sha256": null,
         "mapping_status": "UNBOUND",
         "mapping_sha256": null,
-        "owner_approval_ref": null
+        "owner_approval_ref": null,
+        "available_at_unix": null
       },
       "package_id": "SYMTROPY-5260-OPTION-CAMPAIGN-UNBOUND",
       "context": {
@@ -182,7 +186,8 @@
         "mapping_sha256": null,
         "reviewed_by": null,
         "mycelix_approval_ref": null,
-        "symtropy_approval_ref": null
+        "symtropy_approval_ref": null,
+        "reviewed_at_unix": null
       }
     }
   ]
