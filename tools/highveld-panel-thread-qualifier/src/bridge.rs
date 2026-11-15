@@ -160,7 +160,8 @@ pub struct PhysicalBinding {
 pub struct MappingReview {
     pub status: BindingState,
     pub mapping_sha256: Option<String>,
-    pub owner_approval_ref: Option<String>,
+    pub mycelix_approval_ref: Option<String>,
+    pub symtropy_approval_ref: Option<String>,
     pub reviewed_by: Option<String>,
 }
 
@@ -348,6 +349,15 @@ fn validate_bridge_input(input: &BridgeInput) -> Result<(), String> {
             "Luminous-Dynamics/mycelix",
             &format!("{}.binding", acquisition.acquisition_id),
         )?;
+        if input.episode.binding.mapping_status == BindingState::Bound
+            && acquisition.binding.mapping_status == BindingState::Bound
+            && !same_owner_contract(&input.episode.binding, &acquisition.binding)
+        {
+            return Err(format!(
+                "{} was produced from a different Mycelix commit/profile/adapter than the decision episode",
+                acquisition.acquisition_id
+            ));
+        }
     }
 
     let mut campaign_ids = BTreeSet::new();
@@ -476,6 +486,16 @@ fn validate_bridge_input(input: &BridgeInput) -> Result<(), String> {
     Ok(())
 }
 
+fn same_owner_contract(left: &OwnerBinding, right: &OwnerBinding) -> bool {
+    left.owner == right.owner
+        && left.repository == right.repository
+        && left.commit_sha == right.commit_sha
+        && left.profile_id == right.profile_id
+        && left.profile_version == right.profile_version
+        && left.adapter_id == right.adapter_id
+        && left.adapter_sha256 == right.adapter_sha256
+}
+
 fn validate_owner_binding(
     binding: &OwnerBinding,
     expected_owner: &str,
@@ -538,8 +558,12 @@ fn validate_mapping_review(review: &MappingReview, mapping_id: &str) -> Result<(
             &format!("{mapping_id}.review.mapping_sha256"),
         )?;
         require_text(
-            review.owner_approval_ref.as_deref(),
-            &format!("{mapping_id}.review.owner_approval_ref"),
+            review.mycelix_approval_ref.as_deref(),
+            &format!("{mapping_id}.review.mycelix_approval_ref"),
+        )?;
+        require_text(
+            review.symtropy_approval_ref.as_deref(),
+            &format!("{mapping_id}.review.symtropy_approval_ref"),
         )?;
         require_text(
             review.reviewed_by.as_deref(),
@@ -648,7 +672,7 @@ fn evaluate_obligation(
     for (acquisition_id, attempt) in attempts {
         selected
             .rejected_alternatives
-            .extend(attempt.rejected_alternatives);
+            .extend(attempt.rejected_alternatives.clone());
         if !is_planned(&attempt.disposition) {
             selected.rejected_alternatives.push(RejectedAlternative {
                 acquisition_id,
@@ -774,7 +798,7 @@ fn evaluate_acquisition(
             for (mapping_id, attempt) in physical_attempts {
                 selected
                     .rejected_alternatives
-                    .extend(attempt.rejected_alternatives);
+                    .extend(attempt.rejected_alternatives.clone());
                 if !is_planned(&attempt.disposition) {
                     selected.rejected_alternatives.push(RejectedAlternative {
                         acquisition_id: acquisition.acquisition_id.clone(),
@@ -1104,7 +1128,8 @@ mod tests {
             review: MappingReview {
                 status: BindingState::Bound,
                 mapping_sha256: Some(digest('e')),
-                owner_approval_ref: Some("OWNER-APPROVAL-RELATION-001".to_owned()),
+                mycelix_approval_ref: Some("MYCELIX-APPROVAL-RELATION-001".to_owned()),
+                symtropy_approval_ref: Some("SYMTROPY-APPROVAL-RELATION-001".to_owned()),
                 reviewed_by: Some("test-owner-reviewer".to_owned()),
             },
         });
@@ -1278,7 +1303,8 @@ mod tests {
         add_complete_campaign(&mut input, CampaignSearchStatus::CompleteOptimal);
         input.physical_bindings[0].review.status = BindingState::Unbound;
         input.physical_bindings[0].review.mapping_sha256 = None;
-        input.physical_bindings[0].review.owner_approval_ref = None;
+        input.physical_bindings[0].review.mycelix_approval_ref = None;
+        input.physical_bindings[0].review.symtropy_approval_ref = None;
         input.physical_bindings[0].review.reviewed_by = None;
         assert_eq!(
             one_result(&evaluate(&input)).disposition,
@@ -1312,6 +1338,25 @@ mod tests {
         assert!(evaluate_bridge_bytes(&serde_json::to_vec(&input).unwrap())
             .unwrap_err()
             .contains("unknown obligation"));
+    }
+
+    #[test]
+    fn acquisition_from_different_mycelix_profile_snapshot_is_rejected() {
+        let mut input = base_input(AcquisitionKind::Remote);
+        input.acquisitions[0].binding.commit_sha = Some("f".repeat(40));
+        assert!(evaluate_bridge_bytes(&serde_json::to_vec(&input).unwrap())
+            .unwrap_err()
+            .contains("different Mycelix commit/profile/adapter"));
+    }
+
+    #[test]
+    fn bound_physical_mapping_requires_both_owner_approvals() {
+        let mut input = base_input(AcquisitionKind::Physical);
+        add_complete_campaign(&mut input, CampaignSearchStatus::CompleteOptimal);
+        input.physical_bindings[0].review.symtropy_approval_ref = None;
+        assert!(evaluate_bridge_bytes(&serde_json::to_vec(&input).unwrap())
+            .unwrap_err()
+            .contains("review.symtropy_approval_ref is required"));
     }
 
     #[test]
