@@ -1,0 +1,91 @@
+name: GMD observation catalogue rights oracle
+
+on:
+  pull_request:
+    paths:
+      - "tools/gmd-observation-catalog-oracle/**"
+      - "docs/research/gmd-observation-catalog/**"
+      - ".github/workflows/gmd-observation-catalog-oracle.yml"
+  push:
+    paths:
+      - "tools/gmd-observation-catalog-oracle/**"
+      - "docs/research/gmd-observation-catalog/**"
+      - ".github/workflows/gmd-observation-catalog-oracle.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: gmd-observation-catalog-oracle-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  oracle:
+    name: observation catalogue rights oracle
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout exact commit
+        uses: actions/checkout@v4
+      - name: Install stable Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+      - name: Validate catalogue fixtures
+        run: |
+          python3 - <<'PY'
+          import json
+          import pathlib
+
+          root = pathlib.Path("docs/research/gmd-observation-catalog")
+          schema = json.loads((root / "GMD_OBSERVATION_CATALOG_RECORD_V0.1.schema.json").read_text())
+          record = json.loads((root / "SANSA_SANDIMS_REPOSITORY_CATALOGUE_V0.1.json").read_text())
+          expected = json.loads((root / "SANSA_SANDIMS_EXPECTED_DISPOSITIONS_V0.1.json").read_text())
+
+          assert schema["$schema"] == "https://json-schema.org/draft/2020-12/schema"
+          assert record["record_scope"] == "RepositoryCatalog"
+          assert record["station"] is None and record["dataset"] is None
+          assert record["source_snapshot_sha256"] is None
+          assert record["evidence_class"] == "CatalogueMetadata"
+          assert record["record_id"] == expected["record_id"]
+          assert expected["record_scope"] == record["record_scope"]
+
+          assert len(record["instrument_classes"]) == len(set(record["instrument_classes"]))
+          assert len(record["searchable_metadata_fields"]) == len(set(record["searchable_metadata_fields"]))
+          rights = record["rights"]
+          purposes = [
+              ("MetadataDiscovery", "metadata_discovery", "Permitted"),
+              ("DatasetDownload", "dataset_download", "RegistrationRequired"),
+              ("AcademicAnalysis", "academic_analysis", "RegistrationRequired"),
+              ("CommercialIngestion", "commercial_ingestion", "AgreementRequired"),
+              ("ModelTraining", "model_training", "Unknown"),
+              ("DerivativeRedistribution", "derivative_redistribution", "Unknown"),
+          ]
+          decisions = expected["decisions"]
+          assert len(decisions) == len(purposes)
+          for decision, (purpose, key, declared) in zip(decisions, purposes):
+              assert decision["purpose"] == purpose
+              assert rights[key]["status"] == declared
+              assert decision["declared_right"] == declared
+              disposition = "Permitted" if purpose == "MetadataDiscovery" else "RequiresDatasetProduct"
+              assert decision["disposition"] == disposition
+              if declared != "Unknown":
+                  evidence = rights[key]["evidence_ref"]
+                  assert isinstance(evidence, str) and evidence.strip()
+                  assert evidence.startswith(("https://", "http://", "urn:"))
+
+          assert expected["station_inventory_claim"] == "none"
+          assert expected["dataset_availability_claim"] == "none"
+          assert expected["commercial_permission_claim"] == "none"
+          assert record["network_coverage_description"]
+          assert record["data_delivery_method"]
+          assert record["access_terms_summary"]
+
+          print("validated repository-level SANSA catalogue and six purpose-specific dispositions")
+          PY
+      - name: Check formatting
+        run: cargo fmt --manifest-path tools/gmd-observation-catalog-oracle/Cargo.toml -- --check
+      - name: Run offline tests
+        run: cargo test --manifest-path tools/gmd-observation-catalog-oracle/Cargo.toml --locked --offline
+      - name: Run Clippy
+        run: cargo clippy --manifest-path tools/gmd-observation-catalog-oracle/Cargo.toml --locked --offline --all-targets -- -D warnings

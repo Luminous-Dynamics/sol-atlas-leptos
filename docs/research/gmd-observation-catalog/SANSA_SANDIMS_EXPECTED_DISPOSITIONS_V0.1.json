@@ -1,0 +1,39 @@
+{
+  "record_id": "sansa-sandims-repository-catalogue",
+  "record_scope": "RepositoryCatalog",
+  "decisions": [
+    {
+      "purpose": "MetadataDiscovery",
+      "declared_right": "Permitted",
+      "disposition": "Permitted"
+    },
+    {
+      "purpose": "DatasetDownload",
+      "declared_right": "RegistrationRequired",
+      "disposition": "RequiresDatasetProduct"
+    },
+    {
+      "purpose": "AcademicAnalysis",
+      "declared_right": "RegistrationRequired",
+      "disposition": "RequiresDatasetProduct"
+    },
+    {
+      "purpose": "CommercialIngestion",
+      "declared_right": "AgreementRequired",
+      "disposition": "RequiresDatasetProduct"
+    },
+    {
+      "purpose": "ModelTraining",
+      "declared_right": "Unknown",
+      "disposition": "RequiresDatasetProduct"
+    },
+    {
+      "purpose": "DerivativeRedistribution",
+      "declared_right": "Unknown",
+      "disposition": "RequiresDatasetProduct"
+    }
+  ],
+  "station_inventory_claim": "none",
+  "dataset_availability_claim": "none",
+  "commercial_permission_claim": "none"
+}
