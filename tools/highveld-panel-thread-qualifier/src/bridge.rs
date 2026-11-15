@@ -868,6 +868,7 @@ fn evaluate_physical_relation(
         campaign_package_ids: vec![relation.campaign_package_id.clone()],
         optimality_proven: false,
         reason_codes: Vec::new(),
+        rejected_alternatives: Vec::new(),
     };
 
     if relation.episode_id != input.episode.episode_id
