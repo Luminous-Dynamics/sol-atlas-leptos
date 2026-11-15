@@ -31,6 +31,26 @@ cargo run --manifest-path tools/highveld-panel-thread-qualifier/Cargo.toml --loc
 
 The submission must contain exactly one result for every corpus case. See `HIGHVELD_PANEL_THREAD_SUBMISSION_SCHEMA_V0_1.json`.
 
+## Assurance-to-campaign bridge prototype
+
+The library also exposes a benchmark-only bridge verifier for a normalized envelope. It verifies the relationship between:
+- a Mycelix decision episode and its exact unresolved obligation IDs;
+- a Mycelix acquisition candidate and its separate non-compensatory authority, rights, safety, schedule, physical-realizability, data-access and source-competence gates;
+- a Symtropy option/campaign package and its exact selected action; and
+- an owner-reviewed acquisition-to-action mapping.
+
+It is **not** a Mycelix or Symtropy production schema/adapter. All actual owner mappings remain UNBOUND until the owners publish versioned profiles and approve the mapping. The bridge never schedules or optimizes campaigns, creates reservations, recalculates Pareto frontiers, fetches/authenticates source bytes, verifies signatures, or converts a plan into observed or qualified evidence.
+
+Schema: `HIGHVELD_EVIDENCE_CAMPAIGN_BRIDGE_SCHEMA_V0_1.json`.
+
+Run the bridge fixture input through the dedicated CLI:
+
+```bash
+cargo run --manifest-path tools/highveld-panel-thread-qualifier/Cargo.toml --locked --bin highveld-bridge-qualifier -- --input bridge-input.json --output bridge-report.json
+```
+
+Positive results are only `PLANNED_NOT_OBSERVED`; report fields deliberately keep source-byte verification, signature verification, physical observations, qualified obligations and authority effects at false/zero/none.
+
 ## Important benchmark limitation
 
 The checked-in v0.1 corpus status is `synthetic_specification_unadjudicated`. Expected dispositions are visible in the corpus and have not been independently adjudicated. The evaluator accepts only that unadjudicated status and **always reports a provisional status**, even when every provisional label matches. It has no adjudication-signature verifier and cannot issue a benchmark pass/fail qualification. This is not a blinded SOTA evaluation.
