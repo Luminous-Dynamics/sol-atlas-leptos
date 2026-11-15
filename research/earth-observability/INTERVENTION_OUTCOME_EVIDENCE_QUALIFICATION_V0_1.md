@@ -236,6 +236,11 @@ Reuse PCIT (#845/#846) for sensor/processing/season invariance and #771 for equa
 - Alex News, [45 wild olive trees planted at Jukskei Park 3](https://www.citizen.co.za/alex-news/news-headlines/local-news/2026/11/13/volunteers-plant-45-wild-olive-trees-along-the-jukskei-river-in-alexandra/), 13 November 2026.
 - [Best Practices for Monitoring and Assessing the Ecological Response to River Restoration](https://doi.org/10.3390/w13233352) (2021).
 - Smokorowski & Randall (2017), [Cautions on using the Before-After-Control-Impact design](https://doi.org/10.1139/facets-2016-0058).
+- Gann et al. (2026), [International principles and standards for the practice of ecological restoration, Third Edition](https://doi.org/10.1111/rec.70441), June 2026. Use the 2026 edition, not only the 2019 second edition.
+- IUCN (2025), [Second Edition of the Global Standard for Nature-based Solutions](https://iucn.org/press-release/202510/iucn-launches-second-edition-iucn-global-standard-nature-based-solutionstm), with eight criteria and 27 indicators.
+- FAO, [Framework for Ecosystem Restoration Monitoring (FERM)](https://www.fao.org/ecosystem-restoration-monitoring/ferm/en), official UN Decade restoration monitoring and initiative registry.
+- Wagner et al., USGS, [Guidelines and standard procedures for continuous water-quality monitors](https://doi.org/10.3133/tm1D3), Techniques and Methods 1-D3 (2006).
+- Conservation Measures Partnership (2025), [Open Standards for the Practice of Conservation, Version 5.0](https://www.conservationstandards.org/wp-content/uploads/2026/03/CMP-Open-Standards-Report-v5.0-FINAL-v.-2026-03-25.pdf), monitoring, evaluation and learning framework.
 
 ## 11. Non-claims
 
