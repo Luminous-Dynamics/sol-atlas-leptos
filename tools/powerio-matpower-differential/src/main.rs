@@ -12,8 +12,7 @@ fn run() -> Result<(), String> {
         .nth(1)
         .ok_or_else(|| "usage: powerio-matpower-differential <case.m>".to_owned())?;
     let bytes = fs::read(&path).map_err(|error| format!("read {path}: {error}"))?;
-    let source = std::str::from_utf8(&bytes)
-        .map_err(|_| format!("source {path} is not UTF-8"))?;
+    let source = std::str::from_utf8(&bytes).map_err(|_| format!("source {path} is not UTF-8"))?;
     let report = compare_matpower_source(source)?;
     println!("{}", report.to_json());
     Ok(())
