@@ -328,7 +328,12 @@
             "calibration_status",
             "confounder_status",
             "spillover_status",
-            "rights_status"
+            "rights_status",
+            "monitoring_type",
+            "reference_ecosystem_status",
+            "ecological_attributes_covered",
+            "indicators_preregistered",
+            "causal_design_status"
           ],
           "properties": {
             "baseline_status": {
@@ -409,6 +414,59 @@
                 "cleared_for_declared_purpose",
                 "restricted",
                 "unknown"
+              ]
+            },
+            "monitoring_type": {
+              "enum": [
+                "implementation_compliance",
+                "effectiveness_performance",
+                "impact",
+                "modelled_scenario",
+                "mixed",
+                "unknown"
+              ]
+            },
+            "reference_ecosystem_status": {
+              "enum": [
+                "qualified",
+                "provisional",
+                "absent",
+                "unknown",
+                "not_applicable"
+              ]
+            },
+            "ecological_attributes_covered": {
+              "type": "array",
+              "uniqueItems": true,
+              "items": {
+                "enum": [
+                  "absence_of_threats",
+                  "physical_conditions",
+                  "species_composition",
+                  "structural_diversity",
+                  "ecosystem_function",
+                  "external_exchanges"
+                ]
+              }
+            },
+            "indicators_preregistered": {
+              "enum": [
+                "yes",
+                "partial",
+                "no",
+                "not_applicable"
+              ]
+            },
+            "causal_design_status": {
+              "enum": [
+                "replicated_baci",
+                "difference_in_differences",
+                "interrupted_time_series",
+                "matched_control",
+                "synthetic_control",
+                "none",
+                "unknown",
+                "not_applicable"
               ]
             }
           }
