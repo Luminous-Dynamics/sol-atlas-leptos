@@ -180,8 +180,9 @@
       "review": {
         "status": "UNBOUND",
         "mapping_sha256": null,
-        "owner_approval_ref": null,
-        "reviewed_by": null
+        "reviewed_by": null,
+        "mycelix_approval_ref": null,
+        "symtropy_approval_ref": null
       }
     }
   ]
