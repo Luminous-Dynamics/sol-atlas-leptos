@@ -1220,7 +1220,8 @@ mod tests {
     #[test]
     fn duplicate_acquisition_ids_are_rejected() {
         let mut input = base_input(AcquisitionKind::Remote);
-        input.acquisitions.push(input.acquisitions[0].clone());
+        let duplicate = input.acquisitions[0].clone();
+        input.acquisitions.push(duplicate);
         assert!(evaluate_bridge_bytes(&serde_json::to_vec(&input).unwrap())
             .unwrap_err()
             .contains("duplicate acquisition_id"));
