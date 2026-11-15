@@ -9,14 +9,25 @@ use std::process::ExitCode;
 
 const EVALUATOR_VERSION: &str = "0.1.0";
 const BENCHMARK_ID: &str = "PCIT-SYNTHETIC-CORPUS-0.1";
+#[cfg(test)]
 const CORPUS_SCHEMA: &str = include_str!("../../../../schemas/pcit-case-manifest-v0.1.schema.json");
+#[cfg(test)]
 const RESULT_SCHEMA: &str =
     include_str!("../../../../schemas/pcit-result-envelope-v0.1.schema.json");
+#[cfg(test)]
 const LOCKED_CORPUS: &str = include_str!("../../PCIT_SYNTHETIC_CORPUS_V0_1.json");
+#[cfg(test)]
 const REFERENCE_SCHEMA: &str =
     include_str!("../../../../schemas/ecological-reference-trajectory-v0.1.schema.json");
+#[cfg(test)]
 const REFERENCE_CORPUS: &str =
     include_str!("../../ECOLOGICAL_REFERENCE_TRAJECTORY_SYNTHETIC_CORPUS_V0_1.json");
+#[cfg(test)]
+const REMP_CROSSWALK_SCHEMA: &str =
+    include_str!("../../../../schemas/south-african-river-ecostatus-crosswalk-v0.1.schema.json");
+#[cfg(test)]
+const REMP_CROSSWALK_CORPUS: &str =
+    include_str!("../../SOUTH_AFRICAN_RIVER_ECOSTATUS_CROSSWALK_V0_1.json");
 
 fn sha256_hex(bytes: &[u8]) -> String {
     const HEX: &[u8; 16] = b"0123456789abcdef";
@@ -1164,6 +1175,44 @@ mod tests {
             1
         );
         assert_eq!(report["integrity"]["corpus_digest_matches"], false);
+    }
+
+    #[test]
+    fn south_african_remp_crosswalk_validates_and_preserves_ser_attribute_gaps() {
+        let schema: Value =
+            serde_json::from_str(REMP_CROSSWALK_SCHEMA).expect("REMP crosswalk schema parses");
+        let crosswalk: Value =
+            serde_json::from_str(REMP_CROSSWALK_CORPUS).expect("REMP crosswalk corpus parses");
+        validate_schema_document(&schema, "embedded REMP crosswalk schema")
+            .expect("REMP crosswalk schema compiles");
+        validate_instance(&schema, &crosswalk, "embedded REMP crosswalk")
+            .expect("REMP crosswalk validates");
+
+        assert_eq!(crosswalk["indices"].as_array().expect("indices").len(), 9);
+        assert_eq!(
+            crosswalk["ser_attribute_crosswalk"]
+                .as_array()
+                .expect("SER attributes")
+                .len(),
+            6
+        );
+        assert!(
+            crosswalk["ser_attribute_crosswalk"]
+                .as_array()
+                .expect("SER attributes")
+                .iter()
+                .any(|item| item["ser_attribute"] == "ecosystem_function"
+                    && item["coverage_status"] == "partial_proxy")
+        );
+        assert!(
+            crosswalk["non_equivalence_rules"]
+                .as_array()
+                .expect("non-equivalence rules")
+                .iter()
+                .any(|rule| rule
+                    .as_str()
+                    .is_some_and(|text| text.contains("SER Five-star")))
+        );
     }
 
     #[test]

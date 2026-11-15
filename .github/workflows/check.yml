@@ -63,6 +63,8 @@ jobs:
         run: cargo run --manifest-path research/earth-observability/pcit-evaluator/Cargo.toml -- reference-validate --schema schemas/ecological-reference-trajectory-v0.1.schema.json --corpus research/earth-observability/ECOLOGICAL_REFERENCE_TRAJECTORY_SYNTHETIC_CORPUS_V0_1.json
       - name: Audit ecological reference trajectory blockers
         run: cargo run --manifest-path research/earth-observability/pcit-evaluator/Cargo.toml -- reference-audit --schema schemas/ecological-reference-trajectory-v0.1.schema.json --corpus research/earth-observability/ECOLOGICAL_REFERENCE_TRAJECTORY_SYNTHETIC_CORPUS_V0_1.json --out /tmp/ecological-reference-audit.json
+      - name: Validate South African REMP to SER crosswalk with JSON Schema 2020-12
+        run: cargo run --manifest-path research/earth-observability/pcit-evaluator/Cargo.toml -- reference-validate --schema schemas/south-african-river-ecostatus-crosswalk-v0.1.schema.json --corpus research/earth-observability/SOUTH_AFRICAN_RIVER_ECOSTATUS_CROSSWALK_V0_1.json
 
   test-native:
     runs-on: ubuntu-latest

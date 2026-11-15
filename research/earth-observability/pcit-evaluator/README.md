@@ -86,3 +86,17 @@ cargo run --manifest-path research/earth-observability/pcit-evaluator/Cargo.toml
 The audit checks included reference-site degradation screening, multiple reference sites, at least three synthetic indicators per attribute for a qualified model, shifting-baseline review, climate/nonstationarity adjustment, alternative succession-path coverage, reference-model supersession, rights/consent-purpose restrictions, six-attribute coverage and non-compensatory treatment of worsening/unobserved attributes.
 
 This audit scores only synthetic metadata contracts. It does not validate ecological field conditions, remote-sensing observations, climate projections, or restoration impact.
+
+
+## South African DWS REMP / SER interoperability
+
+The offline evaluator validates the machine-readable South African river Eco-status crosswalk:
+
+```sh
+cargo run --manifest-path research/earth-observability/pcit-evaluator/Cargo.toml -- \
+  reference-validate \
+  --schema schemas/south-african-river-ecostatus-crosswalk-v0.1.schema.json \
+  --corpus research/earth-observability/SOUTH_AFRICAN_RIVER_ECOSTATUS_CROSSWALK_V0_1.json
+```
+
+The crosswalk preserves DWS REMP driver and biological-response indices separately and maps their coverage to the six SER attributes as direct, partial proxy, or gap. It explicitly prohibits conversion of REMP integrated Eco-status to SER Five-star recovery or an attributable intervention effect. The crosswalk is framework metadata; it does not assert that any DWS REMP site or sample is available for the Jukskei.
