@@ -1,0 +1,113 @@
+name: GMD operator action-window oracle
+
+on:
+  pull_request:
+    paths:
+      - "tools/gmd-operator-action-window-oracle/**"
+      - "docs/research/gmd-action-window/**"
+      - ".github/workflows/gmd-operator-action-window-oracle.yml"
+  push:
+    paths:
+      - "tools/gmd-operator-action-window-oracle/**"
+      - "docs/research/gmd-action-window/**"
+      - ".github/workflows/gmd-operator-action-window-oracle.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: gmd-operator-action-window-oracle-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  oracle:
+    name: operator action-window oracle
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout exact commit
+        uses: actions/checkout@v4
+      - name: Install stable Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+      - name: Validate and recompute action-window fixture
+        run: |
+          python3 - <<'PY'
+          import json
+          import pathlib
+          import re
+
+          root = pathlib.Path("docs/research/gmd-action-window")
+          schema = json.loads((root / "GMD_ACTION_WINDOW_INPUT_V0.1.schema.json").read_text())
+          result_schema = json.loads((root / "GMD_ACTION_WINDOW_RESULT_V0.1.schema.json").read_text())
+          data = json.loads((root / "GMD_ACTION_WINDOW_SAMPLE_INPUT_V0.1.json").read_text())
+          expected = json.loads((root / "GMD_ACTION_WINDOW_SAMPLE_RESULT_V0.1.json").read_text())
+
+          assert schema["$schema"] == "https://json-schema.org/draft/2020-12/schema"
+          assert result_schema["$schema"] == "https://json-schema.org/draft/2020-12/schema"
+          assert result_schema["properties"]["execution_authorized"]["const"] is False
+          assert data["action_id"] == expected["action_id"]
+          assert re.fullmatch(r"[0-9a-f]{64}", data["procedure_sha256"])
+          assert re.fullmatch(r"[0-9a-f]{64}", data["forecast_sha256"])
+          assert data["earliest_impact_seconds"] > 0
+          assert data["latest_impact_seconds"] >= data["earliest_impact_seconds"]
+
+          stages = ["approval_duration", "preparation_duration", "mobilisation_duration", "execution_duration"]
+          minimum = maximum = 0
+          for stage in stages:
+              lo = data[stage]["minimum_seconds"]
+              hi = data[stage]["maximum_seconds"]
+              assert 0 <= lo <= hi
+              minimum += lo
+              maximum += hi
+
+          earliest_deadline = max(0, data["earliest_impact_seconds"] - data["safety_buffer_seconds"])
+          latest_deadline = max(0, data["latest_impact_seconds"] - data["safety_buffer_seconds"])
+          if maximum <= earliest_deadline:
+              timing = "ConservativeFit"
+          elif minimum <= latest_deadline:
+              timing = "ArrivalDependentAtRisk"
+          else:
+              timing = "MissedWindow"
+
+          if data["scope_state"] == "Conflict":
+              readiness = "ScopeConflict"
+          elif data["authority_state"] == "Denied":
+              readiness = "BlockedByAuthority"
+          elif data["resource_state"] == "Unavailable":
+              readiness = "BlockedByResources"
+          elif data["evidence_state"] == "Stale":
+              readiness = "StaleEvidence"
+          elif data["authority_state"] == "Pending":
+              readiness = "AwaitingHumanApproval"
+          elif any(data[key] == "Unknown" for key in (
+              "evidence_state", "authority_state", "resource_state", "scope_state"
+          )):
+              readiness = "Indeterminate"
+          else:
+              readiness = "ReadyForOperatorReview"
+
+          actual = {
+              "minimum_completion_seconds": minimum,
+              "maximum_completion_seconds": maximum,
+              "conservative_deadline_seconds": earliest_deadline,
+              "latest_safe_deadline_seconds": latest_deadline,
+              "readiness": readiness,
+              "timing": timing,
+              "evidence_state": data["evidence_state"],
+              "authority_state": data["authority_state"],
+              "resource_state": data["resource_state"],
+              "scope_state": data["scope_state"],
+              "execution_authorized": False,
+          }
+          for key, value in actual.items():
+              assert expected[key] == value, (key, expected[key], value)
+          print("recomputed action-window sample; no execution authority granted")
+          PY
+      - name: Check formatting
+        run: cargo fmt --manifest-path tools/gmd-operator-action-window-oracle/Cargo.toml -- --check
+      - name: Run offline tests
+        run: cargo test --manifest-path tools/gmd-operator-action-window-oracle/Cargo.toml --locked --offline
+      - name: Run Clippy
+        run: cargo clippy --manifest-path tools/gmd-operator-action-window-oracle/Cargo.toml --locked --offline --all-targets -- -D warnings

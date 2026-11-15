@@ -1,0 +1,38 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/blob/main/docs/research/gmd-action-window/GMD_ACTION_WINDOW_RESULT_V0.1.schema.json",
+  "title": "GMD Operator Action Window Result v0.1",
+  "description": "Non-authorizing action-window assessment. Readiness, timing and precondition states are separate; execution_authorized is always false.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "action_id", "action_class", "reversibility", "cost_band",
+    "minimum_completion_seconds", "maximum_completion_seconds",
+    "conservative_deadline_seconds", "latest_safe_deadline_seconds",
+    "evidence_state", "authority_state", "resource_state", "scope_state",
+    "readiness", "timing", "execution_authorized"
+  ],
+  "properties": {
+    "action_id": { "type": "string", "minLength": 1 },
+    "action_class": { "type": "string", "enum": ["Operational", "Maintenance", "Capital"] },
+    "reversibility": { "type": "string", "enum": ["Reversible", "ConditionallyReversible", "Irreversible", "Unknown"] },
+    "cost_band": { "type": "string", "enum": ["NoNewSpend", "Low", "Moderate", "High", "Unknown"] },
+    "minimum_completion_seconds": { "type": "integer", "minimum": 0 },
+    "maximum_completion_seconds": { "type": "integer", "minimum": 0 },
+    "conservative_deadline_seconds": { "type": "integer", "minimum": 0 },
+    "latest_safe_deadline_seconds": { "type": "integer", "minimum": 0 },
+    "evidence_state": { "type": "string", "enum": ["Fresh", "Stale", "Unknown"] },
+    "authority_state": { "type": "string", "enum": ["Approved", "Pending", "Denied", "Unknown"] },
+    "resource_state": { "type": "string", "enum": ["Available", "Unavailable", "Unknown"] },
+    "scope_state": { "type": "string", "enum": ["Verified", "Conflict", "Unknown"] },
+    "readiness": {
+      "type": "string",
+      "enum": ["ReadyForOperatorReview", "AwaitingHumanApproval", "BlockedByAuthority", "BlockedByResources", "StaleEvidence", "ScopeConflict", "Indeterminate"]
+    },
+    "timing": {
+      "type": "string",
+      "enum": ["ConservativeFit", "ArrivalDependentAtRisk", "MissedWindow"]
+    },
+    "execution_authorized": { "const": false }
+  }
+}

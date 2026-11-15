@@ -1,0 +1,49 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/blob/main/docs/research/gmd-action-window/GMD_ACTION_WINDOW_INPUT_V0.1.schema.json",
+  "title": "GMD Operator Action Window Input v0.1",
+  "description": "Candidate-action timing and precondition evidence. All times are elapsed seconds from decision reference t0; this input never authorizes actuation.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "action_id", "owner_ref", "procedure_revision", "procedure_sha256",
+    "forecast_ref", "forecast_sha256", "action_class", "reversibility",
+    "cost_band", "earliest_impact_seconds", "latest_impact_seconds",
+    "safety_buffer_seconds", "approval_duration", "preparation_duration",
+    "mobilisation_duration", "execution_duration", "evidence_state",
+    "authority_state", "resource_state", "scope_state"
+  ],
+  "properties": {
+    "action_id": { "type": "string", "minLength": 1 },
+    "owner_ref": { "type": "string", "minLength": 1 },
+    "procedure_revision": { "type": "string", "minLength": 1 },
+    "procedure_sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+    "forecast_ref": { "type": "string", "minLength": 1 },
+    "forecast_sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+    "action_class": { "type": "string", "enum": ["Operational", "Maintenance", "Capital"] },
+    "reversibility": { "type": "string", "enum": ["Reversible", "ConditionallyReversible", "Irreversible", "Unknown"] },
+    "cost_band": { "type": "string", "enum": ["NoNewSpend", "Low", "Moderate", "High", "Unknown"] },
+    "earliest_impact_seconds": { "type": "integer", "minimum": 1 },
+    "latest_impact_seconds": { "type": "integer", "minimum": 1 },
+    "safety_buffer_seconds": { "type": "integer", "minimum": 0 },
+    "approval_duration": { "$ref": "#/$defs/durationRange" },
+    "preparation_duration": { "$ref": "#/$defs/durationRange" },
+    "mobilisation_duration": { "$ref": "#/$defs/durationRange" },
+    "execution_duration": { "$ref": "#/$defs/durationRange" },
+    "evidence_state": { "type": "string", "enum": ["Fresh", "Stale", "Unknown"] },
+    "authority_state": { "type": "string", "enum": ["Approved", "Pending", "Denied", "Unknown"] },
+    "resource_state": { "type": "string", "enum": ["Available", "Unavailable", "Unknown"] },
+    "scope_state": { "type": "string", "enum": ["Verified", "Conflict", "Unknown"] }
+  },
+  "$defs": {
+    "durationRange": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["minimum_seconds", "maximum_seconds"],
+      "properties": {
+        "minimum_seconds": { "type": "integer", "minimum": 0 },
+        "maximum_seconds": { "type": "integer", "minimum": 0 }
+      }
+    }
+  }
+}
