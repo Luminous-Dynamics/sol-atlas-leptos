@@ -667,10 +667,19 @@ mod tests {
         let reordered_bytes = encode(&reordered);
         let reversed = evaluate_bytes(CORPUS_JSON.as_bytes(), &reordered_bytes).unwrap();
 
-        assert_eq!(original.exact_disposition_matches, reversed.exact_disposition_matches);
+        assert_eq!(
+            original.exact_disposition_matches,
+            reversed.exact_disposition_matches
+        );
         assert_eq!(original.disposition_accuracy, reversed.disposition_accuracy);
-        assert_eq!(original.critical_impact_recall, reversed.critical_impact_recall);
-        assert_eq!(original.disposition_confusion_matrix, reversed.disposition_confusion_matrix);
+        assert_eq!(
+            original.critical_impact_recall,
+            reversed.critical_impact_recall
+        );
+        assert_eq!(
+            original.disposition_confusion_matrix,
+            reversed.disposition_confusion_matrix
+        );
         assert_eq!(
             original
                 .case_scores
