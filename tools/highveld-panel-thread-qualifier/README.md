@@ -20,9 +20,10 @@ It rejects unknown JSON fields and never turns a benchmark result into engineeri
 From the repository root:
 
 ```bash
-cargo test -p highveld-panel-thread-qualifier --locked
-cargo clippy -p highveld-panel-thread-qualifier --all-targets --locked -- -D warnings
-cargo run -p highveld-panel-thread-qualifier --locked -- \
+cargo fmt --manifest-path tools/highveld-panel-thread-qualifier/Cargo.toml -- --check
+cargo test --manifest-path tools/highveld-panel-thread-qualifier/Cargo.toml --locked
+cargo clippy --manifest-path tools/highveld-panel-thread-qualifier/Cargo.toml --all-targets --locked -- -D warnings
+cargo run --manifest-path tools/highveld-panel-thread-qualifier/Cargo.toml --locked -- \
   --cases docs/research/highveld-keep/HIGHVELD_KEEP_PANEL_THREAD_CORPUS_V0_1.json \
   --submission candidate-submission.json \
   --output evaluation-report.json
