@@ -1,0 +1,333 @@
+{
+  "schema_version": "0.1.0",
+  "crosswalk_id": "DWS-REMP-SER-CROSSWALK-0.1",
+  "purpose": "framework_interoperability_not_measurement_equivalence",
+  "sources": [
+    {
+      "source_id": "DWS-REMP-BACKGROUND",
+      "publisher": "Department of Water and Sanitation, South Africa",
+      "title": "River Eco-status Monitoring Programme (REMP) background and reference condition",
+      "publication_date": null,
+      "document_status": "official_programme_page",
+      "source_url": "https://www.dws.gov.za/iwqs/rhp/rhp_background.aspx",
+      "relevant_scope": "Defines REMP, relative reference condition and abiotic drivers plus in-stream/riparian biotic responses."
+    },
+    {
+      "source_id": "DWS-NSOW-2024",
+      "publisher": "Department of Water and Sanitation, South Africa",
+      "title": "National State of Water Report 2024, section 2.2.4",
+      "publication_date": "2025-03-31",
+      "document_status": "final_national_report",
+      "source_url": "https://www.dws.gov.za/Projects/National%20State%20of%20Water%20Report/Documents/National%20State%20of%20Water%20Report%202024_Final%20%28002%29.pdf",
+      "relevant_scope": "Describes REMP objectives, reach/site unit, IHI/FRAI/MIRAI/VEGRAI/integrated Eco-status, quarterly monitoring and annual technical reports."
+    },
+    {
+      "source_id": "DWS-RIVER-RMG-2024",
+      "publisher": "Department of Water and Sanitation, South Africa",
+      "title": "Rehabilitation Management Guidelines for Rivers, Version 3.6",
+      "publication_date": "2024-04-16",
+      "document_status": "draft_guideline",
+      "source_url": "https://www.dws.gov.za/wem/documents/RMG_Draft%20River%20Guidelines_16Apr2024_V3.6.pdf",
+      "relevant_scope": "Describes REMP driver and response indices, including SASS, MIRAI, FRAI, VEGRAI, IHI, HAI, GAI and PAI."
+    },
+    {
+      "source_id": "DWS-RHP-INDICES",
+      "publisher": "Department of Water and Sanitation, South Africa",
+      "title": "River Health Programme indicators and indices",
+      "publication_date": null,
+      "document_status": "methodology_page",
+      "source_url": "https://www.dws.gov.za/iwqs/rhp/indices.html",
+      "relevant_scope": "Explains the role of river geomorphology, hydrology, water quality, habitat and biological communities as time-integrated indicators."
+    }
+  ],
+  "sampling_semantics": {
+    "programme_name": "River Eco-status Monitoring Programme (REMP)",
+    "programme_parent": "National Aquatic Ecosystem Health Monitoring Programme (NAEHMP)",
+    "monitoring_purpose": "Assess and report river ecological condition from system drivers and biological responses, detect spatial and temporal trends, and identify emerging problems for river management.",
+    "assessment_units": [
+      "sub_quaternary_catchment_reach",
+      "river_reach",
+      "site"
+    ],
+    "reported_frequency": "Quarterly monitoring is reported by the National State of Water Report 2024 for REMP; verify the cadence for each specific Jukskei site before assuming it applies locally.",
+    "reporting_frequency": "Technical reports are reported annually; report publication cadence is not sampling cadence.",
+    "relative_reference_condition": "Usually natural or close-to-natural relative reference condition derived from the best available information, tied to a defined reach or site and the time at which the baseline was established.",
+    "reference_drivers": [
+      "hydrology",
+      "geomorphology",
+      "physico_chemical_water_quality",
+      "habitat_template"
+    ],
+    "biotic_response_domains": [
+      "in_stream_biota",
+      "riparian_biota"
+    ],
+    "network_coverage_note": "The National State of Water Report 2024 describes national REMP coverage. These national site counts do not establish that a REMP station exists at a Jukskei intervention reach."
+  },
+  "indices": [
+    {
+      "index_id": "SASS",
+      "name": "South African Scoring System (SASS)",
+      "domain": "biological_response",
+      "assessment_target": "Macroinvertebrate community scoring for aquatic ecological assessment.",
+      "evidence_type": "field_biological_assessment",
+      "interpretation_limit": "Sampling season, habitat availability, taxonomic resolution, field protocol and assessor competence affect interpretation; a SASS score is not a complete ecosystem-function measurement.",
+      "source_ids": [
+        "DWS-RIVER-RMG-2024"
+      ]
+    },
+    {
+      "index_id": "MIRAI",
+      "name": "Macroinvertebrate Response Assessment Index (MIRAI)",
+      "domain": "biological_response",
+      "assessment_target": "Macroinvertebrate response to river drivers and habitat condition.",
+      "evidence_type": "field_biological_assessment",
+      "interpretation_limit": "Biological response is a time-integrated signal but is not a substitute for direct hydrology, chemistry or all ecosystem processes.",
+      "source_ids": [
+        "DWS-NSOW-2024",
+        "DWS-RIVER-RMG-2024",
+        "DWS-REMP-BACKGROUND"
+      ]
+    },
+    {
+      "index_id": "FRAI",
+      "name": "Fish Response Assessment Index (FRAI)",
+      "domain": "biological_response",
+      "assessment_target": "Fish community response to river condition and habitat/drivers.",
+      "evidence_type": "field_biological_assessment",
+      "interpretation_limit": "Requires site-appropriate fish sampling and interpretation; absence or low detectability must not automatically be treated as absence of a species or as a zero score.",
+      "source_ids": [
+        "DWS-NSOW-2024",
+        "DWS-RIVER-RMG-2024"
+      ]
+    },
+    {
+      "index_id": "VEGRAI",
+      "name": "Vegetation Response Assessment Index (VEGRAI)",
+      "domain": "biological_response",
+      "assessment_target": "Riparian vegetation response and condition.",
+      "evidence_type": "field_biological_assessment",
+      "interpretation_limit": "A vegetation response index is not interchangeable with satellite greenness, canopy fraction or native species composition derived from remote sensing alone.",
+      "source_ids": [
+        "DWS-NSOW-2024",
+        "DWS-RIVER-RMG-2024"
+      ]
+    },
+    {
+      "index_id": "IHI",
+      "name": "Index of Habitat Integrity (IHI)",
+      "domain": "driver",
+      "assessment_target": "Habitat integrity and relevant instream/riparian habitat pressures.",
+      "evidence_type": "habitat_assessment",
+      "interpretation_limit": "Habitat integrity is not an exhaustive assessment of species composition, ecological function or external connectivity.",
+      "source_ids": [
+        "DWS-NSOW-2024",
+        "DWS-RIVER-RMG-2024"
+      ]
+    },
+    {
+      "index_id": "HAI",
+      "name": "Hydrology Assessment Index (HAI)",
+      "domain": "driver",
+      "assessment_target": "Hydrological driver and flow-regime condition.",
+      "evidence_type": "hydrological_assessment",
+      "interpretation_limit": "A hydrological index must retain flow-gauge provenance, rating-curve/datum uncertainty, event windows and temporal coverage; do not infer ecological response from flow alone.",
+      "source_ids": [
+        "DWS-RIVER-RMG-2024"
+      ]
+    },
+    {
+      "index_id": "GAI",
+      "name": "Geomorphology Assessment Index (GAI)",
+      "domain": "driver",
+      "assessment_target": "Geomorphological driver and channel condition.",
+      "evidence_type": "geomorphological_assessment",
+      "interpretation_limit": "Reach-scale geomorphology does not alone establish floodplain exchange, habitat connectivity, sediment flux or biological recovery.",
+      "source_ids": [
+        "DWS-RIVER-RMG-2024"
+      ]
+    },
+    {
+      "index_id": "PAI",
+      "name": "Physico-Chemical Assessment Index (PAI)",
+      "domain": "driver",
+      "assessment_target": "Physico-chemical water-quality driver conditions.",
+      "evidence_type": "physico_chemical_assessment",
+      "interpretation_limit": "Retain analyte, unit, detection limit, method, accreditation, sampling time, flow context and laboratory chain of custody; an aggregate must not hide analyte-specific deterioration.",
+      "source_ids": [
+        "DWS-RIVER-RMG-2024"
+      ]
+    },
+    {
+      "index_id": "INTEGRATED_ECOSTATUS",
+      "name": "Integrated REMP Eco-status",
+      "domain": "integrated_summary",
+      "assessment_target": "Integrated river ecological-condition category assembled from applicable driver and biological response assessments.",
+      "evidence_type": "integrated_derived_category",
+      "interpretation_limit": "This is a framework-specific river ecological-condition summary, not SER's Five-star recovery score and not a causal estimate of intervention impact.",
+      "source_ids": [
+        "DWS-NSOW-2024",
+        "DWS-RIVER-RMG-2024"
+      ]
+    }
+  ],
+  "ser_attribute_crosswalk": [
+    {
+      "ser_attribute": "absence_of_threats",
+      "coverage_status": "partial_proxy",
+      "mapped_indices": [
+        "PAI",
+        "IHI",
+        "HAI",
+        "GAI"
+      ],
+      "uncovered_dimensions": [
+        "Explicit invasive-alien-species pressure inventory",
+        "Pollution source and toxicant register",
+        "Abstraction and flow-alteration pressure inventory",
+        "Physical barriers and direct disturbance register"
+      ],
+      "interpretation": "REMP driver indicators can reveal some threats and pressures, but a dedicated threat register is still required. Do not infer that all threats are absent from a favourable Eco-status category."
+    },
+    {
+      "ser_attribute": "physical_conditions",
+      "coverage_status": "direct",
+      "mapped_indices": [
+        "HAI",
+        "GAI",
+        "PAI",
+        "IHI"
+      ],
+      "uncovered_dimensions": [
+        "Site-specific soil/substrate and bank metrics where not included by local protocol",
+        "Microhabitat/thermal heterogeneity at scales not resolved by the selected survey"
+      ],
+      "interpretation": "REMP driver indices provide complementary direct assessment of hydrology, geomorphology, physico-chemical conditions and habitat. Retain each driver dimension and method-level uncertainty separately."
+    },
+    {
+      "ser_attribute": "species_composition",
+      "coverage_status": "direct",
+      "mapped_indices": [
+        "SASS",
+        "MIRAI",
+        "FRAI",
+        "VEGRAI"
+      ],
+      "uncovered_dimensions": [
+        "Taxa not covered by the chosen REMP protocol",
+        "Microbial and fungal communities unless separately sampled",
+        "Species-level resolution where the index uses coarser taxonomic groups"
+      ],
+      "interpretation": "These are biological-response assessments for macroinvertebrates, fish and riparian vegetation. Sampling effort, season, taxonomic resolution and detection probability remain explicit."
+    },
+    {
+      "ser_attribute": "structural_diversity",
+      "coverage_status": "partial_proxy",
+      "mapped_indices": [
+        "IHI",
+        "VEGRAI"
+      ],
+      "uncovered_dimensions": [
+        "Vertical vegetation structure where not measured",
+        "Woody age/size structure and deadwood",
+        "Channel-unit and riparian habitat complexity at unsampled reach segments"
+      ],
+      "interpretation": "Habitat integrity and vegetation response provide partial structure evidence. Add field habitat surveys and/or qualified lidar/drone structure products where the restoration goal requires finer detail."
+    },
+    {
+      "ser_attribute": "ecosystem_function",
+      "coverage_status": "partial_proxy",
+      "mapped_indices": [
+        "MIRAI",
+        "FRAI",
+        "VEGRAI",
+        "HAI",
+        "PAI"
+      ],
+      "uncovered_dimensions": [
+        "Primary productivity and trophic transfer where not measured",
+        "Decomposition and organic-matter processing",
+        "Nutrient cycling and retention rates",
+        "Denitrification or other biogeochemical process rates"
+      ],
+      "interpretation": "Biological communities and driver indices integrate some functional consequences, but they do not directly quantify every ecosystem function. Add process-specific indicators when those functions are part of the project objectives."
+    },
+    {
+      "ser_attribute": "external_exchanges",
+      "coverage_status": "partial_proxy",
+      "mapped_indices": [
+        "HAI",
+        "GAI",
+        "IHI",
+        "FRAI"
+      ],
+      "uncovered_dimensions": [
+        "Longitudinal fish passage and barrier permeability",
+        "Lateral floodplain/wetland exchange",
+        "Sediment and organic-matter flux",
+        "Riparian corridor connectivity beyond the assessed reach"
+      ],
+      "interpretation": "Flow, geomorphology, habitat integrity and fish response may inform connectivity, but explicit longitudinal, lateral and material-exchange measures are needed where relevant."
+    }
+  ],
+  "non_equivalence_rules": [
+    "REMP Ecological Category or integrated Eco-status must not be relabelled as SER Five-star recovery or an IOEQ attributable intervention effect.",
+    "A REMP relative reference condition is defined for a river reach or site and its time context; it must not be assumed to be a pristine historical state or a universal catchment reference.",
+    "Annual technical report publication does not mean the underlying observations were collected annually; preserve actual sampling dates and frequency.",
+    "Remote-sensing greenness or canopy metrics do not substitute for SASS, MIRAI, FRAI or VEGRAI biological field assessments.",
+    "An integrated Eco-status category must not conceal indicator-specific adverse change or replace the six separate SER attribute assessments.",
+    "National REMP site totals and indices do not prove that a particular Jukskei site or SUNCASA treatment reach was monitored."
+  ],
+  "admission_requirements": [
+    "Obtain the exact DWS REMP station/site identifier and confirm whether the record is associated with the Jukskei catchment and the relevant intervention reach.",
+    "Preserve the sub-quaternary catchment, reach/site geometry, CRS and the exact time interval for every REMP record.",
+    "Obtain indicator-specific raw values and assessment outputs, method/version, field protocol, effort, season, taxonomic resolution and assessor identity.",
+    "Obtain the relative reference-condition narrative, version, evidence base, reference-site selection and any Ecological Category/target rationale.",
+    "Record sampling frequency separately from technical-report publication frequency; preserve missing visits, site changes, and method transitions.",
+    "Record rights and permitted purposes for access, analysis, derivatives, publication, redistribution and model training separately.",
+    "Connect each observation to its sensor/field/lab calibration, QA/QC, uncertainty and common-cause evidence dependencies."
+  ],
+  "adversarial_controls": [
+    {
+      "control_id": "REMP-CTRL-001",
+      "fault": "An annual technical report is interpreted as proof that measurements were collected once each year.",
+      "expected_behavior": "Keep the reported quarterly observation cadence separate from annual report publication; use actual per-site sample dates to construct time series.",
+      "severity": "hard_gate"
+    },
+    {
+      "control_id": "REMP-CTRL-002",
+      "fault": "A composite REMP Eco-status category is relabelled as SER Five-star recovery or causal intervention impact.",
+      "expected_behavior": "Preserve framework-specific semantics and refuse any automatic conversion to recovery stars or causal effect.",
+      "severity": "hard_gate"
+    },
+    {
+      "control_id": "REMP-CTRL-003",
+      "fault": "A satellite vegetation index is substituted for VEGRAI or the macroinvertebrate/fish field indicators.",
+      "expected_behavior": "Classify remote sensing as complementary measurement and keep biological field evidence absent until its own sampling record is admitted.",
+      "severity": "hard_gate"
+    },
+    {
+      "control_id": "REMP-CTRL-004",
+      "fault": "A REMP site in the same broad catchment is treated as a control or treated site without geometry and hydrological-reach matching.",
+      "expected_behavior": "Require exact site/reach identity, geometry, upstream/downstream relation and intervention exposure before spatial comparison.",
+      "severity": "hard_gate"
+    },
+    {
+      "control_id": "REMP-CTRL-005",
+      "fault": "A DWS index or reference-method version changes and the resulting Ecological Category shift is promoted as physical ecosystem change.",
+      "expected_behavior": "Bind every result to method/version and sampling protocol; run PCIT comparability checks before longitudinal physical-change promotion.",
+      "severity": "hard_gate"
+    },
+    {
+      "control_id": "REMP-CTRL-006",
+      "fault": "An indicator gap in one SER attribute is hidden by a favourable integrated Eco-status value.",
+      "expected_behavior": "Keep six SER attributes distinct, report missing coverage, and do not infer ecosystem function or external connectivity from an aggregate category alone.",
+      "severity": "claim_downgrade"
+    }
+  ],
+  "non_claims": [
+    "This crosswalk does not establish that DWS REMP monitoring data are available for the Jukskei catchment or overlap a SUNCASA intervention reach.",
+    "The crosswalk describes framework semantics and candidate coverage, not measurement equivalence or a new universal restoration score.",
+    "No Jukskei river condition, REMP Ecological Category, biodiversity trend or intervention effect is asserted by this synthetic mapping."
+  ]
+}
