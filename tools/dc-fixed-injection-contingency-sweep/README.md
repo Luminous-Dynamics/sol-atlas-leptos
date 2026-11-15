@@ -18,6 +18,7 @@ This introduces a falsifiable contingency-screening baseline before adding redis
 
     cargo test --manifest-path tools/dc-fixed-injection-contingency-sweep/Cargo.toml --locked --offline
     cargo clippy --manifest-path tools/dc-fixed-injection-contingency-sweep/Cargo.toml --locked --offline --all-targets -- -D warnings
+    cargo run --manifest-path tools/dc-fixed-injection-contingency-sweep/Cargo.toml --locked --offline --bin emit-fixture | jq -e .
 
 ## Deliberate boundary
 
