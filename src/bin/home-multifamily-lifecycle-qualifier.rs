@@ -30,6 +30,9 @@ const UNIT_LAYOUT: &str = include_str!(
 const SERVICE_TOPOLOGY: &str = include_str!(
     "../../docs/research/home-delivery-systems/multifamily-service-distribution-synthetic-v0.1.json"
 );
+const MUTATION_CORPUS: &str = include_str!(
+    "../../docs/research/home-delivery-systems/multifamily-lifecycle-adversarial-corpus-v0.1.json"
+);
 
 fn text_at<'a>(value: &'a Value, key: &str) -> Option<&'a str> {
     value.get(key).and_then(Value::as_str)
@@ -72,6 +75,99 @@ fn valid_reference(value: &Value) -> bool {
         && text_at(value, "id").is_some()
         && value.get("revision").is_some()
         && value.get("digest").is_some()
+}
+
+fn valid_revision_transition(parent_kind: &str, child_kind: &str) -> bool {
+    match child_kind {
+        "design" => false,
+        "adaptation" => matches!(
+            parent_kind,
+            "design" | "adaptation" | "commissioned" | "as_operated" | "repair_state"
+        ),
+        "as_built" => matches!(parent_kind, "design" | "adaptation"),
+        "commissioned" => matches!(parent_kind, "as_built" | "repair_state"),
+        "as_operated" => matches!(parent_kind, "commissioned" | "as_operated" | "repair_state"),
+        "repair_state" => matches!(parent_kind, "commissioned" | "as_operated" | "repair_state"),
+        _ => false,
+    }
+}
+
+fn downstream_served_units(source_node_id: &str, service_topology: &Value) -> BTreeSet<String> {
+    let nodes = array_at(service_topology, "nodes").cloned().unwrap_or_default();
+    let Some(source) = nodes.iter().find(|node| text_at(node, "node_id") == Some(source_node_id)) else {
+        return BTreeSet::new();
+    };
+    let Some(resource_id) = text_at(source, "resource_id") else {
+        return BTreeSet::new();
+    };
+
+    let mut adjacency = BTreeMap::<String, Vec<String>>::new();
+    for edge in array_at(service_topology, "edges").into_iter().flatten() {
+        if text_at(edge, "relation") != Some("resource_flow") {
+            continue;
+        }
+        let from = text_at(edge, "from_node_id").unwrap_or("");
+        let to = text_at(edge, "to_node_id").unwrap_or("");
+        let from_resource = nodes
+            .iter()
+            .find(|node| text_at(node, "node_id") == Some(from))
+            .and_then(|node| text_at(node, "resource_id"));
+        let to_resource = nodes
+            .iter()
+            .find(|node| text_at(node, "node_id") == Some(to))
+            .and_then(|node| text_at(node, "resource_id"));
+        if from_resource == Some(resource_id) && to_resource == Some(resource_id) {
+            adjacency.entry(from.to_owned()).or_default().push(to.to_owned());
+        }
+    }
+
+    let mut pending = vec![source_node_id.to_owned()];
+    let mut visited = BTreeSet::new();
+    while let Some(node_id) = pending.pop() {
+        if !visited.insert(node_id.clone()) {
+            continue;
+        }
+        if let Some(next) = adjacency.get(&node_id) {
+            pending.extend(next.iter().cloned());
+        }
+    }
+
+    nodes
+        .iter()
+        .filter(|node| {
+            text_at(node, "node_kind") == Some("unit_boundary")
+                && text_at(node, "resource_id") == Some(resource_id)
+                && text_at(node, "node_id").is_some_and(|id| visited.contains(id))
+        })
+        .filter_map(|node| text_at(node, "unit_id"))
+        .map(str::to_owned)
+        .collect()
+}
+
+fn event_revision_transition_is_valid(
+    event_kind: &str,
+    from_revision: &str,
+    to_revision: &str,
+    from_kind: &str,
+    to_kind: &str,
+) -> bool {
+    match event_kind {
+        "design_issue" => from_revision == to_revision && to_kind == "design",
+        "design_change" => from_revision != to_revision && matches!(to_kind, "design" | "adaptation"),
+        "adaptation" => from_revision != to_revision && to_kind == "adaptation",
+        "as_built_capture" => from_revision != to_revision && to_kind == "as_built",
+        "commissioning" => from_revision != to_revision && to_kind == "commissioned",
+        "occupancy_start" | "post_occupancy_observation" | "maintenance" => {
+            from_revision == to_revision
+                && matches!(to_kind, "commissioned" | "as_operated" | "repair_state")
+        }
+        "repair" | "reinspection" | "recommissioning" => {
+            from_revision == to_revision
+                || (from_revision != to_revision
+                    && matches!(to_kind, "repair_state" | "commissioned" | "as_operated"))
+        }
+        _ => from_kind == to_kind || from_revision != to_revision,
+    }
 }
 
 fn validate(
@@ -215,10 +311,16 @@ fn validate(
         }
     }
 
-    for (revision_id, (unit_id, parent, _)) in &revisions {
+    for (revision_id, (unit_id, parent, child_kind)) in &revisions {
         if let Some(parent_id) = parent {
             match revisions.get(parent_id) {
-                Some((parent_unit, _, _)) if parent_unit == unit_id => {}
+                Some((parent_unit, _, parent_kind)) if parent_unit == unit_id => {
+                    if !valid_revision_transition(parent_kind, child_kind) {
+                        errors.push(format!(
+                            "revision {revision_id} has invalid transition {parent_kind} -> {child_kind}"
+                        ));
+                    }
+                }
                 Some(_) => errors.push(format!(
                     "revision {revision_id} parent belongs to a different unit"
                 )),
@@ -226,6 +328,8 @@ fn validate(
                     "revision {revision_id} references missing parent {parent_id}"
                 )),
             }
+        } else if child_kind != "design" {
+            errors.push(format!("root revision {revision_id} must have revision_kind design"));
         }
         let mut visited = BTreeSet::new();
         let mut cursor = Some(revision_id.clone());
@@ -238,9 +342,9 @@ fn validate(
         }
     }
 
-    let service_nodes = array_at(service_topology, "nodes")
-        .into_iter()
-        .flatten()
+    let service_node_records = array_at(service_topology, "nodes").cloned().unwrap_or_default();
+    let service_nodes = service_node_records
+        .iter()
         .filter_map(|node| text_at(node, "node_id"))
         .map(str::to_owned)
         .collect::<BTreeSet<_>>();
@@ -252,13 +356,29 @@ fn validate(
         for asset in rows {
             let asset_id = text_at(asset, "asset_id").unwrap_or("<missing-asset>");
             let source_ref = asset.get("source_ref").unwrap_or(&Value::Null);
+            let source_node_id = text_at(source_ref, "id").unwrap_or("");
+            let source_node = service_node_records
+                .iter()
+                .find(|node| text_at(node, "node_id") == Some(source_node_id));
             if !valid_reference(source_ref)
                 || text_at(source_ref, "kind") != Some("service_node")
-                || !text_at(source_ref, "id").is_some_and(|id| service_nodes.contains(id))
+                || !service_nodes.contains(source_node_id)
             {
                 errors.push(format!(
                     "asset {asset_id} does not bind to an exact service-topology node"
                 ));
+            }
+            let expected_node_kind = match text_at(asset, "asset_kind") {
+                Some("water_riser" | "service_riser") => Some("riser"),
+                Some("water_pump" | "hot_water_plant") => Some("plant"),
+                Some("lift") => Some("lift"),
+                Some("facade_module") => Some("other"),
+                _ => None,
+            };
+            if expected_node_kind.is_none_or(|expected| {
+                source_node.and_then(|node| text_at(node, "node_kind")) != Some(expected)
+            }) {
+                errors.push(format!("asset {asset_id} asset_kind does not match its source node kind"));
             }
             if text_at(asset, "identity_state") != Some("identity_only_synthetic")
                 || text_at(asset, "evidence_state") != Some("unknown")
@@ -277,6 +397,12 @@ fn validate(
             if served.is_empty() || served.iter().any(|unit| !building_units.contains(unit)) {
                 errors.push(format!(
                     "asset {asset_id} has an empty or unknown served-unit set"
+                ));
+            }
+            let topology_served = downstream_served_units(source_node_id, service_topology);
+            if served != topology_served {
+                errors.push(format!(
+                    "asset {asset_id} served-unit set disagrees with downstream service-topology reachability"
                 ));
             }
             assets.insert(asset_id.to_owned(), served);
@@ -395,7 +521,16 @@ fn validate(
                     if from != to && to_record.1.as_deref() != Some(from) {
                         errors.push(format!("event {id} transition does not follow the declared parent-revision edge"));
                     }
-                    if from == to && text_at(event, "event_kind") == Some("adaptation") {
+                    if !event_revision_transition_is_valid(
+                        event_kind,
+                        from,
+                        to,
+                        &from_record.2,
+                        &to_record.2,
+                    ) {
+                        errors.push(format!("event {id} kind does not match its revision transition"));
+                    }
+                    if from == to && event_kind == "adaptation" {
                         errors.push(format!(
                             "adaptation event {id} does not create a new configuration revision"
                         ));
