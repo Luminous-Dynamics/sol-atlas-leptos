@@ -44,6 +44,7 @@ The table identifies the correct comparison domain. These tools are complements,
 - RL2Grid is a complementary control benchmark built on RTE's Grid2Op framework. It standardizes tasks, state/action spaces and rewards, and includes operator-informed heuristics and safety constraints. It is a more relevant future comparator for sequential control than a static DC solver. Source: https://arxiv.org/abs/2503.23101 (29 March 2025).
 - REopt API v3 is the stable API line and uses REopt.jl as its optimization engine. Its stated scope includes buildings, campuses, communities and microgrids. Sources: https://developer.nlr.gov/docs/energy-optimization/reopt/v3/ and https://developer.nlr.gov/docs/energy-optimization/reopt/
 - SimBench provides 13 grid datasets spanning low to extra-high voltage; the University of Kassel project description states annual 15-minute time series for one year. The official download page specifies ODbL and Database Contents License terms for the datasets. Sources: https://simbench.de/en/download/datasets/ and https://www.uni-kassel.de/eecs/en/sections/sustainable-electrical-energy-systems/our-developments/data-and-models.html
+- A power-system digital-twin review highlights the lack of consensus fidelity standards, the sensitivity of results to sensor precision and temporal alignment, and recommends "known-fidelity" frameworks that declare acceptable errors and integration quality per application. Source: https://ietresearch.onlinelibrary.wiley.com/doi/full/10.1049/dgt2.70015
 
 ## 3. Paradigm shifts worth pursuing
 
