@@ -469,3 +469,11 @@ Johannesburg Water's October 2026 reports of constrained reservoirs/towers, low 
 The corpus contains 24 authored cases: one positive topology-only control and 23 adversarial development controls. It covers unit identity and transforms, room overlap/containment/partition, activity assignment and room mapping, shared-space references, privacy compatibility, relationship IDs/targets, portal boundary/span, everyday graph connectivity and forbidden clear-width/door-swing/access/egress promotion.
 
 All case states are `not_executed`; probabilities are null; calibration and sealed confirmation splits are empty. The Rust unit-layout qualifier validates the manifest's identity/count/split/expected disposition and base-fixture binding, but does not yet automatically mutate and execute all 23 cases. The 18 authored Rust unit tests provide an initial, separate negative-control set. No blind or independent benchmark pass is claimed.
+
+## Multi-family lifecycle / adaptation bridge
+
+The apartment programme now includes [#849 lifecycle and adaptation continuity](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/849). See [MULTIFAMILY_LIFECYCLE_BENCHMARK_V0.1.md](MULTIFAMILY_LIFECYCLE_BENCHMARK_V0.1.md).
+
+The P0 synthetic adapter links exact building, resident-programme, room-layout and shared-service source identities to 13 unit-scoped configuration revisions, two shared-asset bindings, 24 authored lifecycle events, four unit timelines and seven claim records. The U-001 adaptation invalidates two baseline claims. All times, as-built observations, commissioning evidence, post-occupancy results, resident data, repairs and physical outcomes remain UNKNOWN/not supplied. All events remain authored/not executed.
+
+The Rust qualifier covers revision ancestry, asset/unit scope, logical event order, bitemporal unknown-time preservation, exact timeline-event coverage and stale claim rejection. It does not replace #832's general dependency invalidation or #633's post-occupancy/outcome evaluation.
