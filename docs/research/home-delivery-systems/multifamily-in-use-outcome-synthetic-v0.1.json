@@ -1,0 +1,178 @@
+{
+  "schema_version": "multifamily-in-use-outcome/0.1",
+  "profile_id": "SYN-MF-IN-USE-OUTCOME-001",
+  "maturity": "synthetic_contract",
+  "source_bindings": {
+    "building_ref": {
+      "kind": "synthetic_multi_family_building",
+      "id": "SYN-MF-COURTYARD-004",
+      "revision": null,
+      "digest": null
+    },
+    "resident_programme_ref": {
+      "kind": "synthetic_resident_programme",
+      "id": "SYN-MF-RESIDENT-PROGRAMME-001",
+      "revision": null,
+      "digest": null
+    },
+    "lifecycle_ref": {
+      "kind": "synthetic_multifamily_lifecycle",
+      "id": "SYN-MF-LIFECYCLE-ADAPTATION-001",
+      "revision": null,
+      "digest": null
+    },
+    "service_topology_ref": {
+      "kind": "synthetic_multifamily_service_topology",
+      "id": "SYN-MF-SERVICE-DISTRIBUTION-001",
+      "revision": null,
+      "digest": null
+    },
+    "in_use_outcomes_owner_ref": {
+      "kind": "programme_issue",
+      "id": "633",
+      "revision": null,
+      "digest": null
+    }
+  },
+  "outcomes": [
+    {
+      "outcome_id": "SYN-OUTCOME-U-001-ACOUSTIC",
+      "unit_id": "U-001",
+      "domain": "acoustic",
+      "source_scope": "synthetic_resident_programme_not_real_resident",
+      "requirement_ids": [
+        "U-001-REQ-01"
+      ],
+      "preference_ids": [
+        "U-001-PREF-01"
+      ],
+      "activity_ids": [
+        "U-001-QUIET-WORK-ACT-03",
+        "U-001-QUIET-WORK-ACT-02"
+      ],
+      "priority_state": "unknown",
+      "claim_state": "intent_only_not_observed"
+    },
+    {
+      "outcome_id": "SYN-OUTCOME-U-002-PRIVACY",
+      "unit_id": "U-002",
+      "domain": "privacy",
+      "source_scope": "synthetic_resident_programme_not_real_resident",
+      "requirement_ids": [
+        "U-002-REQ-01"
+      ],
+      "preference_ids": [
+        "U-002-PREF-01"
+      ],
+      "activity_ids": [
+        "U-002-SHARED-MAKING-ACT-01",
+        "U-002-SHARED-MAKING-ACT-02"
+      ],
+      "priority_state": "unknown",
+      "claim_state": "intent_only_not_observed"
+    },
+    {
+      "outcome_id": "SYN-OUTCOME-U-003-PRIVACY",
+      "unit_id": "U-003",
+      "domain": "privacy",
+      "source_scope": "synthetic_resident_programme_not_real_resident",
+      "requirement_ids": [
+        "U-003-REQ-01"
+      ],
+      "preference_ids": [
+        "U-003-PREF-01"
+      ],
+      "activity_ids": [
+        "U-003-FLEXIBLE-CARE-ACT-01",
+        "U-003-FLEXIBLE-CARE-ACT-02"
+      ],
+      "priority_state": "unknown",
+      "claim_state": "intent_only_not_observed"
+    },
+    {
+      "outcome_id": "SYN-OUTCOME-U-004-PRIVACY",
+      "unit_id": "U-004",
+      "domain": "privacy",
+      "source_scope": "synthetic_resident_programme_not_real_resident",
+      "requirement_ids": [
+        "U-004-REQ-01"
+      ],
+      "preference_ids": [
+        "U-004-PREF-01"
+      ],
+      "activity_ids": [
+        "U-004-REST-AND-ACCESS-ACT-01",
+        "U-004-REST-AND-ACCESS-ACT-02"
+      ],
+      "priority_state": "unknown",
+      "claim_state": "intent_only_not_observed"
+    }
+  ],
+  "measurement_plans": [
+    {
+      "plan_id": "PLAN-SYN-OUTCOME-U-001-ACOUSTIC",
+      "outcome_id": "SYN-OUTCOME-U-001-ACOUSTIC",
+      "measurement_kind": "resident_self_report",
+      "method_state": "not_selected",
+      "method_ref": null,
+      "instrument_ref": null,
+      "schedule_state": "not_scheduled",
+      "sampling_window": null,
+      "consent_state": "not_requested",
+      "purpose": "future optional resident-authorized POE; no current data collection",
+      "data_minimisation": "no_personal_data"
+    },
+    {
+      "plan_id": "PLAN-SYN-OUTCOME-U-002-PRIVACY",
+      "outcome_id": "SYN-OUTCOME-U-002-PRIVACY",
+      "measurement_kind": "resident_self_report",
+      "method_state": "not_selected",
+      "method_ref": null,
+      "instrument_ref": null,
+      "schedule_state": "not_scheduled",
+      "sampling_window": null,
+      "consent_state": "not_requested",
+      "purpose": "future optional resident-authorized POE; no current data collection",
+      "data_minimisation": "no_personal_data"
+    },
+    {
+      "plan_id": "PLAN-SYN-OUTCOME-U-003-PRIVACY",
+      "outcome_id": "SYN-OUTCOME-U-003-PRIVACY",
+      "measurement_kind": "resident_self_report",
+      "method_state": "not_selected",
+      "method_ref": null,
+      "instrument_ref": null,
+      "schedule_state": "not_scheduled",
+      "sampling_window": null,
+      "consent_state": "not_requested",
+      "purpose": "future optional resident-authorized POE; no current data collection",
+      "data_minimisation": "no_personal_data"
+    },
+    {
+      "plan_id": "PLAN-SYN-OUTCOME-U-004-PRIVACY",
+      "outcome_id": "SYN-OUTCOME-U-004-PRIVACY",
+      "measurement_kind": "resident_self_report",
+      "method_state": "not_selected",
+      "method_ref": null,
+      "instrument_ref": null,
+      "schedule_state": "not_scheduled",
+      "sampling_window": null,
+      "consent_state": "not_requested",
+      "purpose": "future optional resident-authorized POE; no current data collection",
+      "data_minimisation": "no_personal_data"
+    }
+  ],
+  "observations": [],
+  "decision_links": [],
+  "collection_policy": {
+    "policy_id": "SYN-POE-NO-COLLECTION-DEFAULT",
+    "default_collection": "none",
+    "audio_video_allowed": false,
+    "continuous_occupancy_allowed": false,
+    "continuous_device_telemetry_allowed": false,
+    "resident_consent_required_for_self_report": true,
+    "resident_withdrawal_supported": true,
+    "retention_state": "not_defined"
+  },
+  "claim_ceiling": "This record establishes only synthetic outcome-to-resident-programme identity, measurement-plan provenance and collection-policy contract integrity. It does not establish comfort, privacy, accessibility, health, safety, energy/water performance, resident satisfaction, affordability, code compliance or causal impact."
+}
