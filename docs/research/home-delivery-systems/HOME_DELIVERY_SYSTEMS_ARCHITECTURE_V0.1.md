@@ -244,3 +244,16 @@ The synthetic contract binds the exact building, resident programme, unit-layout
 The new qualifier checks exact source/unit/asset identity, same-unit revision ancestry and cycle rejection, asset-to-service-node mapping, served-unit scope, event order, bitemporal unknown states, exact timeline coverage and reciprocal invalidation. It rejects stale PASS/FAIL and stale UNKNOWN claims that were not invalidated/superseded/revoked. It does not execute the general dependency closure owned by #832 or establish any real physical lifecycle state.
 
 It composes Sol-Atlas #832 (revision invalidation), #633 (post-occupancy/M&V/consent), #814 (DfMA/as-built/repair), #836/#837/#840/#844, Symtropy #4846/#4795/#4507/#1848/#4531 and Mycelix asset/construction provenance. It is not a new BMS, CMMS, digital-twin, scan-to-BIM or resident-surveillance platform.
+
+
+## 16. Hydraulic evidence, premise plumbing and post-occupancy feedback
+
+The multi-family branch now composes three additional bounded interfaces:
+- [#857 Hydraulic Evidence Bridge](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/857): provenance and exact apartment-boundary crosswalk for EPANET/OpenFlows results; no duplicate hydraulic solver.
+- [#863 Premise Plumbing Evidence](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/863): water quality, stagnation, treatment, temperature and fixture-use-point provenance; no microbial-risk or water-treatment solver.
+- [#864 In-Use Outcome Crosswalk](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/864): resident-authorized post-occupancy evidence mapped into #633 and #849; no new survey platform or resident surveillance system.
+
+The new research anchors are the 2026 *Water Research* review of premise plumbing (DOI 10.1016/j.watres.2026.125437), which identifies oversizing, stagnation and energy–health trade-offs, and the 2025 residential POE review (DOI 10.1080/09613218.2025.2538167), which motivates measurement/user engagement from the design phase onward.
+
+These tracks extend the core pipeline from design prediction to qualified in-use evidence while preserving distinct classes: MODELLED, CALIBRATED_MODELLED, MEASURED, LAB_REPORTED, SELF_REPORTED and PROFESSIONALLY_ASSESSED. No solver output or building-average result can silently become a household-level safety or comfort claim.
+
