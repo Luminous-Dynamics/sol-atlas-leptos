@@ -1427,15 +1427,24 @@ end
 
     #[test]
     fn out_of_service_branch_is_preserved_without_dc_reactance_admission() {
+        // Keep the two buses connected through an in-service parallel circuit,
+        // so the offline zero-reactance circuit tests branch admission only and
+        // does not accidentally create a second energized island without a
+        // reference bus.
         let source = SYNTHETIC_CASE.replace(
             "1 2 0.01 0.1 0 100 100 100 0 0 1 -30 30",
-            "1 2 0.01 0 0 100 100 100 0 0 0 -30 30",
+            concat!(
+                "1 2 0.01 0.1 0 100 100 100 0 0 1 -30 30;\n",
+                "1 2 0.01 0 0 100 100 100 0 0 0 -30 30"
+            ),
         );
         let projection =
             project_matpower_dc_case(&source).expect("out-of-service branch remains metadata");
-        assert_eq!(projection.branches.len(), 1);
-        assert!(!projection.branches[0].in_service);
-        assert_eq!(projection.branches[0].reactance_pu, 0.0);
+        assert_eq!(projection.branches.len(), 2);
+        assert!(projection.branches[0].in_service);
+        assert_eq!(projection.branches[0].reactance_pu, 0.1);
+        assert!(!projection.branches[1].in_service);
+        assert_eq!(projection.branches[1].reactance_pu, 0.0);
     }
 
     #[test]
