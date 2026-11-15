@@ -1,0 +1,100 @@
+name: City Service Access and Realized Outcome Composition Synthetic Oracle
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+    paths:
+      - "tools/city-service-access-outcome-composition-bench/**"
+      - "docs/research/city-service-access-outcome/**"
+      - ".github/workflows/city-service-access-outcome-composition.yml"
+  push:
+    branches: ["main", "research/city-service-access-outcome-composition-v0.1"]
+    paths:
+      - "tools/city-service-access-outcome-composition-bench/**"
+      - "docs/research/city-service-access-outcome/**"
+      - ".github/workflows/city-service-access-outcome-composition.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: city-service-access-outcome-composition-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  composition-oracle:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout immutable source revision
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
+      - name: Assert exact checked-out revision
+        env:
+          EXPECTED_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: test "$(git rev-parse HEAD)" = "$EXPECTED_SHA"
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: 1.96.0
+          components: rustfmt, clippy
+      - name: Formatting
+        run: cargo fmt --manifest-path tools/city-service-access-outcome-composition-bench/Cargo.toml --all -- --check
+      - name: Frozen corpus and negative controls
+        run: cargo test --locked --manifest-path tools/city-service-access-outcome-composition-bench/Cargo.toml
+      - name: Strict Clippy
+        run: cargo clippy --locked --manifest-path tools/city-service-access-outcome-composition-bench/Cargo.toml --all-targets -- -D warnings
+      - name: Install Draft 2020-12 validator
+        run: cargo install --locked jsonschema-cli --version 0.60.2 --root "$RUNNER_TEMP/jsonschema-cli"
+      - name: Validate the frozen corpus schema
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "$RUNNER_TEMP/jsonschema-cli/bin" >> "$GITHUB_PATH"
+          export PATH="$RUNNER_TEMP/jsonschema-cli/bin:$PATH"
+          curl --fail --location --retry 5 --retry-connrefused \
+            https://json-schema.org/draft/2020-12/schema \
+            -o "$RUNNER_TEMP/draft-2020-12-meta-schema.json"
+          jsonschema-cli validate --draft 2020 --assert-format \
+            "$RUNNER_TEMP/draft-2020-12-meta-schema.json" \
+            -i docs/research/city-service-access-outcome/CITY_SERVICE_ACCESS_OUTCOME_CORPUS_V0_1.schema.json
+          jsonschema-cli validate --draft 2020 --assert-format \
+            docs/research/city-service-access-outcome/CITY_SERVICE_ACCESS_OUTCOME_CORPUS_V0_1.schema.json \
+            -i docs/research/city-service-access-outcome/CITY_SERVICE_ACCESS_OUTCOME_CORPUS_V0_1.json
+      - name: Emit exact-head composition receipt
+        shell: bash
+        run: |
+          set -euo pipefail
+          source_commit="$(git rev-parse HEAD)"
+          test "$source_commit" = "${{ github.event.pull_request.head.sha || github.sha }}"
+          cargo run --locked --quiet \
+            --manifest-path tools/city-service-access-outcome-composition-bench/Cargo.toml -- \
+            docs/research/city-service-access-outcome/CITY_SERVICE_ACCESS_OUTCOME_CORPUS_V0_1.json \
+            docs/research/city-service-access-outcome/CITY_SERVICE_ACCESS_OUTCOME_CORPUS_V0_1.schema.json \
+            --source-commit "$source_commit" > city-service-access-outcome-composition-receipt.json
+          jq -e '
+            .result == "pass"
+            and .corpus_id == "CITY-SERVICE-ACCESS-OUTCOME-COMPOSITION-CORPUS-V0.1"
+            and .scenario_count == 30
+            and .failure_count == 0
+            and (.corpus_sha256 | test("^[0-9a-f]{64}$"))
+            and (.corpus_schema_sha256 | test("^[0-9a-f]{64}$"))
+            and (.source_commit | test("^[0-9a-f]{40}$"))
+            and .potential_access_is_actual_use == false
+            and .resident_experience_requires_consent == true
+            and .missing_demand_is_zero == false
+            and .zero_demand_is_divided == false
+            and .action_authority == "none"
+            and .claim_ceiling == "synthetic_cross_owner_composition_only"
+            and (.scenarios | length == 30)
+            and (.scenarios | all(.status == "pass"))
+          ' city-service-access-outcome-composition-receipt.json
+      - name: Upload exact-head composition receipt
+        uses: actions/upload-artifact@v4
+        with:
+          name: city-service-access-outcome-composition-reference-receipt
+          path: city-service-access-outcome-composition-receipt.json
+          if-no-files-found: error
+          retention-days: 90
