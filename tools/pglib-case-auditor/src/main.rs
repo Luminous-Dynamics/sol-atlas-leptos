@@ -53,13 +53,13 @@ fn run() -> Result<AuditSummary, String> {
     }
     let summary = audit_matpower_bytes(&bytes)?;
 
-    if let Some(expected) = expected_sha {
-        if !summary.source_git_blob_sha1.eq_ignore_ascii_case(&expected) {
-            return Err(format!(
-                "source Git blob SHA-1 mismatch: expected {}, got {}",
-                expected, summary.source_git_blob_sha1
-            ));
-        }
+    if let Some(expected) = expected_sha
+        && !summary.source_git_blob_sha1.eq_ignore_ascii_case(&expected)
+    {
+        return Err(format!(
+            "source Git blob SHA-1 mismatch: expected {}, got {}",
+            expected, summary.source_git_blob_sha1
+        ));
     }
 
     Ok(summary)
