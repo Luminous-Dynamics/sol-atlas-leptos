@@ -987,7 +987,8 @@ fn evaluate_physical_relation(
         evidence_state: "PLANNED_NOT_OBSERVED",
         covered_by_acquisition_ids: vec![acquisition.acquisition_id.clone()],
         campaign_package_ids: vec![relation.campaign_package_id.clone()],
-        optimality_proven: false,
+        symtropy_campaign_search_status: None,
+        symtropy_reports_optimality_proven: false,
         reason_codes: Vec::new(),
         rejected_alternatives: Vec::new(),
     };
@@ -1134,7 +1135,8 @@ fn unplanned_result(obligation_id: &str) -> ObligationResult {
         evidence_state: "PLANNED_NOT_OBSERVED",
         covered_by_acquisition_ids: Vec::new(),
         campaign_package_ids: Vec::new(),
-        optimality_proven: false,
+        symtropy_campaign_search_status: None,
+        symtropy_reports_optimality_proven: false,
         reason_codes: vec!["NO_DECLARED_ACQUISITION_FOR_OBLIGATION".to_owned()],
         rejected_alternatives: Vec::new(),
     }
@@ -1668,8 +1670,8 @@ mod tests {
         let mut input = base_input(AcquisitionKind::Physical);
         add_complete_campaign(&mut input, CampaignSearchStatus::CompleteOptimal);
         let report = evaluate(&input);
-        assert_eq!(report.source_bytes_verified, false);
-        assert_eq!(report.signatures_verified, false);
+        assert!(!report.source_bytes_verified);
+        assert!(!report.signatures_verified);
         assert_eq!(report.physical_observations, 0);
         assert_eq!(report.qualified_obligations, 0);
         assert_eq!(report.authority_effects, "NONE");
