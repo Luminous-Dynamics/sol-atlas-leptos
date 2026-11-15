@@ -1034,6 +1034,13 @@ end
         assert_eq!(slack.bus_type, 3);
         assert_eq!(slack.online_generation_mw, 50.0);
         assert_eq!(slack.specified_injection_mw, None);
+        assert_eq!(slack.area, 1);
+        assert_eq!(slack.voltage_magnitude_initial_pu, 1.0);
+        assert_eq!(slack.voltage_angle_initial_degrees, 0.0);
+        assert_eq!(slack.base_kv, 110.0);
+        assert_eq!(slack.zone, 1);
+        assert_eq!(slack.voltage_max_pu, 1.1);
+        assert_eq!(slack.voltage_min_pu, 0.9);
         assert_eq!(slack.online_generation_p_min_mw, 0.0);
         assert_eq!(slack.online_generation_p_max_mw, 100.0);
 
@@ -1056,7 +1063,26 @@ end
         assert_eq!(branch.rate_a_mva, 100.0);
         assert_eq!(branch.rate_b_mva, 100.0);
         assert_eq!(branch.rate_c_mva, 100.0);
+        assert_eq!(branch.resistance_pu, 0.01);
+        assert_eq!(branch.line_charging_susceptance_pu, 0.0);
+        assert_eq!(branch.angle_min_degrees, -30.0);
+        assert_eq!(branch.angle_max_degrees, 30.0);
         assert!(branch.in_service);
+        assert_eq!(projection.generators.len(), 1);
+        let generator = &projection.generators[0];
+        assert_eq!(generator.source_row, 1);
+        assert_eq!(generator.bus_id, 1);
+        assert_eq!(generator.pg_mw, 50.0);
+        assert_eq!(generator.qg_mvar, 0.0);
+        assert_eq!(generator.q_max_mvar, 10.0);
+        assert_eq!(generator.q_min_mvar, -10.0);
+        assert_eq!(generator.voltage_setpoint_pu, 1.0);
+        assert_eq!(generator.m_base_mva, 100.0);
+        assert!(generator.in_service);
+        assert_eq!(generator.p_max_mw, 100.0);
+        assert_eq!(generator.p_min_mw, 0.0);
+        assert_eq!(projection.cost_row_count, 1);
+        assert!(!projection.has_areas_metadata);
         assert_eq!(
             projection.claim_ceiling,
             "source_bound_fixed_injection_dc_projection_only"
