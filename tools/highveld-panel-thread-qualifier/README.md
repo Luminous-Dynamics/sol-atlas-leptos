@@ -41,14 +41,20 @@ The library also exposes a benchmark-only bridge verifier for a normalized envel
 
 It is **not** a Mycelix or Symtropy production schema/adapter. All actual owner mappings remain UNBOUND until the owners publish versioned profiles and approve the mapping. The bridge never schedules or optimizes campaigns, creates reservations, recalculates Pareto frontiers, fetches/authenticates source bytes, verifies signatures, or converts a plan into observed or qualified evidence.
 
-Schema: `HIGHVELD_EVIDENCE_CAMPAIGN_BRIDGE_SCHEMA_V0_1.json`.
+Input schema: `HIGHVELD_EVIDENCE_CAMPAIGN_BRIDGE_SCHEMA_V0_1.json`.  
+Report schema: `HIGHVELD_EVIDENCE_CAMPAIGN_BRIDGE_REPORT_SCHEMA_V0_1.json`.
 
-Run the bridge fixture input through the dedicated CLI:
+A positive synthetic end-to-end CLI example is included at `examples/highveld-bound-synthetic-bridge-example-v0.1.json`. It contains one remote source-review route and one physical observation route connected by a synthetic bilateral mapping. All owner commits, profiles, adapter IDs and review references in this file are **test-only placeholders**, not real Mycelix/Symtropy approvals or source artifacts.
+
+Run it from the repository root:
 
 ```bash
-cargo run --manifest-path tools/highveld-panel-thread-qualifier/Cargo.toml --locked --bin highveld-bridge-qualifier -- --input bridge-input.json --output bridge-report.json
+cargo run --manifest-path tools/highveld-panel-thread-qualifier/Cargo.toml --locked --bin highveld-bridge-qualifier -- --input tools/highveld-panel-thread-qualifier/examples/highveld-bound-synthetic-bridge-example-v0.1.json --output /tmp/highveld-bridge-report.json
 ```
 
+The expected semantics are two obligations with a candidate acquisition route, two still-unresolved proof obligations, zero qualified obligations, zero physical observations, no verified signatures/source bytes and no authority effects. The Symtropy campaign result is recorded as an owner-reported status, not an independently verified optimum.
+
+The current-owner negative control is at `examples/highveld-current-owner-bindings-unbound-v0.1.json`; it demonstrates the actual status snapshot in which the real owner projections remain UNBOUND.
 Positive results are only `PLANNED_NOT_OBSERVED`. The report keeps three counts separate: obligations with an admissible acquisition route, all unresolved proof obligations (which remain unresolved even when a route is planned), and obligations without an admissible route. A planned route never reduces the unresolved-proof count.
 
 For physical campaigns the bridge records the exact status that Symtropy reports, including whether Symtropy reports its search as optimal. It does **not** independently verify the owner output or its optimality: `owner_outputs_authenticated` remains false. Source-byte verification and signature verification remain false; physical observations and qualified obligations remain zero; authority effects remain none.
