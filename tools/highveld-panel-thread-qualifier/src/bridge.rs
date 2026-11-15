@@ -1544,19 +1544,47 @@ mod tests {
     fn input_order_does_not_change_semantic_result_but_changes_digest() {
         let mut input = base_input(AcquisitionKind::Physical);
         add_complete_campaign(&mut input, CampaignSearchStatus::CompleteOptimal);
+
+        let second_obligation = "OBLIGATION-DRAWING-002".to_owned();
+        input
+            .episode
+            .unresolved_obligation_ids
+            .push(second_obligation.clone());
+
+        let mut remote_acquisition = input.acquisitions[0].clone();
+        remote_acquisition.acquisition_id = "ACQUISITION-REMOTE-002".to_owned();
+        remote_acquisition.kind = AcquisitionKind::Remote;
+        remote_acquisition.covers_obligation_ids = vec![second_obligation];
+        remote_acquisition.gates = allowed_gates(AcquisitionKind::Remote);
+        input.acquisitions.push(remote_acquisition);
+
         let first = evaluate(&input);
 
+        input.episode.unresolved_obligation_ids.reverse();
         input.acquisitions.reverse();
         input.campaigns.reverse();
         input.physical_bindings.reverse();
         let second = evaluate(&input);
+
         assert_eq!(
             first.obligations_with_admissible_acquisition_route,
             second.obligations_with_admissible_acquisition_route
         );
         assert_eq!(
-            first.obligation_results[0].disposition,
-            second.obligation_results[0].disposition
+            first.unresolved_proof_obligations,
+            second.unresolved_proof_obligations
+        );
+        assert_eq!(
+            first
+                .obligation_results
+                .iter()
+                .map(|result| (result.obligation_id.as_str(), &result.disposition))
+                .collect::<Vec<_>>(),
+            second
+                .obligation_results
+                .iter()
+                .map(|result| (result.obligation_id.as_str(), &result.disposition))
+                .collect::<Vec<_>>()
         );
         assert_ne!(first.input_sha256, second.input_sha256);
     }
