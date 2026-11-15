@@ -1,0 +1,28 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://luminousdynamics.io/schemas/highveld-panel-thread-submission-v0.1.schema.json",
+  "title": "Highveld Panel Thread Candidate Submission v0.1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["profile_id", "candidate_id", "run_id", "case_results"],
+  "properties": {
+    "profile_id": {"const": "luminous.highveld.panel-thread-composition.v0.1"},
+    "candidate_id": {"type": "string", "minLength": 1},
+    "run_id": {"type": "string", "minLength": 1},
+    "case_results": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["case_id", "disposition", "reason_codes", "requalification_domains"],
+        "properties": {
+          "case_id": {"type": "string", "pattern": "^HPT-[0-9]{3}$"},
+          "disposition": {"enum": ["REVIEW_ONLY", "REQUALIFICATION_REQUIRED", "BLOCKED_UNKNOWN", "BLOCKED_CONFLICT", "BLOCKED_AUTHORITY"]},
+          "reason_codes": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+          "requalification_domains": {"type": "array", "uniqueItems": true, "items": {"type": "string", "minLength": 1}}
+        }
+      }
+    }
+  }
+}
