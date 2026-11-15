@@ -14,7 +14,7 @@ use std::collections::BTreeMap;
 use pglib_case_auditor::{MatpowerDcProjection, git_blob_sha1, project_matpower_dc_case};
 use powerio::{PioValue, Source, parse};
 
-#[derive(Clone, Debug, serde::Serialize, serde::Deserialize, PartialEq)]
+#[derive(Clone, Debug, serde::Serialize, PartialEq)]
 pub struct FieldMismatch {
     pub family: String,
     pub row: String,
@@ -56,7 +56,7 @@ impl DifferentialReport {
     }
 }
 
-#[derive(Default)]
+#[derive(Clone, Default)]
 struct BusTotals {
     load_p: f64,
     load_q: f64,
@@ -356,7 +356,6 @@ fn compare_projection(
     );
 
     let diagnostics = module.diagnostics().len();
-    let _source_bytes_are_same = source.as_bytes();
     Ok(DifferentialReport {
         source_git_blob_sha1: git_blob_sha1(source.as_bytes()),
         powerio_version: powerio::VERSION.to_owned(),
