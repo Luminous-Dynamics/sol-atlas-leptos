@@ -524,6 +524,9 @@ pub fn audit_matpower_case(source: &str) -> Result<AuditSummary, String> {
         return Err("case has no energized buses".to_owned());
     }
 
+    // MATPOWER v2 treats the legacy areas matrix as unused compatibility data.
+    // Preserve and structurally check its two-column shape, but do not assign it
+    // operational meaning or use it to alter electrical topology.
     if let Some(areas) = parsed.matrices.get("areas") {
         let mut area_ids = BTreeSet::new();
         for (index, area) in areas.iter().enumerate() {
@@ -535,25 +538,10 @@ pub fn audit_matpower_case(source: &str) -> Result<AuditSummary, String> {
             if !area_ids.insert(area_id) {
                 return Err(format!("duplicate area identifier {area_id}"));
             }
-            let Some(bus_type) = bus_types.get(&reference_bus) else {
+            if !bus_types.contains_key(&reference_bus) {
                 return Err(format!(
                     "area row {} references unknown bus {reference_bus}",
                     index + 1
-                ));
-            };
-            if *bus_type == 4 {
-                return Err(format!(
-                    "area row {} references isolated bus {reference_bus}",
-                    index + 1
-                ));
-            }
-        }
-        for bus in buses {
-            let area_id = parse_integer(bus[6], "bus area identifier")?;
-            if !area_ids.contains(&area_id) {
-                return Err(format!(
-                    "bus {} references undeclared area {area_id}",
-                    parse_integer(bus[0], "bus identifier")?
                 ));
             }
         }
@@ -739,6 +727,10 @@ end
     fn pglib_case24_ieee_rts_is_structurally_admitted() {
         let result = audit_matpower_bytes(PGLIB_CASE24.as_bytes())
             .expect("PGLib IEEE RTS 24-bus case should parse");
+        assert_eq!(
+            result.source_git_blob_sha1,
+            "00b024c2e583b82452392514d2c22881c708ba7c"
+        );
         assert_eq!(result.bus_count, 24);
         assert_eq!(result.generator_count, 33);
         assert_eq!(result.branch_count, 38);
@@ -752,6 +744,10 @@ end
     fn pglib_case57_ieee_is_structurally_admitted() {
         let result = audit_matpower_bytes(PGLIB_CASE57.as_bytes())
             .expect("PGLib IEEE 57-bus case should parse");
+        assert_eq!(
+            result.source_git_blob_sha1,
+            "d8b0c9e8b45265e57f52b7ab96880ad3a874cde5"
+        );
         assert_eq!(result.bus_count, 57);
         assert_eq!(result.generator_count, 7);
         assert_eq!(result.branch_count, 80);
