@@ -115,7 +115,8 @@ These are methodological comparators, not certification programmes. Our differen
 | Design intent, IFC/IDS projection, spatial context, exact source revisions | Sol-Atlas #622 and existing ITIP work; #870 corpus | Source-bound design and requirement references; no new BIM authority |
 | Engineering change impact and evidence applicability | Symthaea #10543 and #6040 | Affected configuration, evidence applicability and recom­missioning projection |
 | Decision-sufficient evidence acquisition | Symthaea #12046 | Candidate evidence requests, decision-critical blocker and abstention result |
-| Observation/measurement campaign planning under shared resources and spatial constraints | Symtropy #4988 / #5164 | A feasible multi-observation plan; plan coverage is not accepted evidence |
+| Observation/measurement campaign planning under shared resources and spatial constraints | Symtropy #4988 / #5164, implementation #5240 | Resource-/space-time-feasible multi-observation plan; plan coverage is not accepted evidence |
+| Production-option + option-specific evidence-campaign composition | Symtropy #5250 / draft PR #5260, consuming #5238 + #5240 | Existing owner-native option/evidence package and joint Pareto result; Highveld must not duplicate its optimizer |
 | Material lot/custody/quality/kit admission | Symtropy #5321 | Exact readiness result and its source evidence |
 | Manual / assisted / guarded robotic panel-cell production | Symtropy #3773 | Matched route inputs, whole-workflow labour and accepted panel outputs |
 | Robot inspection, as-built reconstruction, repair and re-verification | Symtropy #4043 | Inspection/repair observations and new configuration identity |
@@ -123,6 +124,8 @@ These are methodological comparators, not certification programmes. Our differen
 | Assurance-obligation acquisition / decision-conditioned value of information | Mycelix #6252 | Admissible evidence plans and decision-leverage estimates |
 
 This protocol does not invent field names for any owner package. Until a particular owner profile, schema and version are pinned, that projection is **UNBOUND** and the integration test must not infer semantics from a similar-looking field. The cross-stack envelope should carry exact references and digests, not copy source-of-truth records.
+
+**Important existing composition:** Symtropy #5260 already combines its own production optioneering (#5238) with the option-specific observation campaign planner (#5240) and computes the joint package/Pareto result. Highveld is not proposing a second such evaluator. Its new cross-repository research question is whether Mycelix #6252's proof-obligation coverage and admissibility gates (authority, rights/source-use, safety, schedule, physical realizability and data access) can be bound to those existing Symtropy option/evidence packages without weakening either owner's semantics. The current Mycelix #6252 record is an open research issue; do not claim a production bridge exists.
 
 The first integrated run should be a read-only, synthetic replay. It must not dispatch a robot, reserve an actual production resource, send a supplier request, accept material or authorize installation.
 
