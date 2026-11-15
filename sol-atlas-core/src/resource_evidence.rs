@@ -222,7 +222,7 @@ pub enum EvidenceBlocker {
     NoSupportedClaim,
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Serialize)]
 pub struct EvidenceAssessment {
     pub purpose: EvidencePurpose,
     pub admitted_for_purpose: bool,
@@ -325,7 +325,11 @@ fn claims_supported_by(envelope: &ResourceEvidenceEnvelope) -> Vec<ResourceClaim
         (
             EvidenceOrigin::ModelEstimate | EvidenceOrigin::Simulation,
             EvidenceQuantity::EstimatedPotentialMw,
-        ) => vec![ResourceClaim::EstimatedPotential],
+        ) if asset_specific => vec![ResourceClaim::EstimatedPotential],
+        (
+            EvidenceOrigin::ModelEstimate | EvidenceOrigin::Simulation,
+            EvidenceQuantity::EstimatedPotentialMw,
+        ) => vec![ResourceClaim::RegionalPotential],
         (EvidenceOrigin::PublicAggregate, EvidenceQuantity::EstimatedPotentialMw) => {
             vec![ResourceClaim::RegionalPotential]
         }
@@ -634,7 +638,7 @@ mod tests {
         assert!(assessment.admitted_for_purpose);
         assert_eq!(
             assessment.allowed_claims,
-            vec![ResourceClaim::EstimatedPotential]
+            vec![ResourceClaim::RegionalPotential]
         );
         assert!(!assessment.allowed_claims.contains(&ResourceClaim::RegisteredNameplateCapacity));
         assert!(!assessment.allowed_claims.contains(&ResourceClaim::ObservedGeneration));
