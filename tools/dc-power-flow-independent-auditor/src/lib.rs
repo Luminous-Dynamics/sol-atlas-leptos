@@ -440,8 +440,6 @@ pub fn audit_dc_power_flow(
 
     let mut max_nodal_outflow_error_mw = 0.0_f64;
     let mut max_abs_nodal_residual_mw = 0.0_f64;
-    let mut expected_slacks = Vec::with_capacity(components.len());
-
     for (index, (source_bus, state)) in network
         .buses
         .iter()
@@ -480,9 +478,6 @@ pub fn audit_dc_power_flow(
         max_abs_nodal_residual_mw =
             max_abs_nodal_residual_mw.max(expected_residual.abs());
 
-        if reference_by_bus[index] {
-            expected_slacks.push((source_bus.id, expected_injection));
-        }
     }
 
     if candidate.slack_injections.len() != expected_slack_records.len() {
