@@ -6,6 +6,9 @@
 //! This crate bridges the narrow MATPOWER v2 intake profile to the small-network
 //! DC reference solver. It is not DC-OPF, AC power flow or an operational controller.
 
+use dc_fixed_injection_contingency_sweep::{
+    ContingencySweepReport, SweepOptions, sweep_fixed_injection_single_branch_outages,
+};
 use dc_power_flow_independent_auditor::{
     AuditOptions, AuditReport, audit_dc_power_flow,
 };
@@ -270,6 +273,75 @@ impl MatpowerDcEvaluation {
     }
 }
 
+#[derive(Clone, Debug, PartialEq)]
+pub struct MatpowerDcContingencyEvaluation {
+    pub source_git_blob_sha1: String,
+    pub source_function_name: String,
+    pub matpower_version: String,
+    pub sweep: ContingencySweepReport,
+    pub claim_ceiling: &'static str,
+}
+
+/// Run the intact case and every in-service single-branch outage for an exact
+/// MATPOWER source. Each candidate is solved by the DC reference crate and
+/// independently audited by the contingency evaluator's separate auditor.
+///
+/// max_contingencies is a hard all-or-nothing bound. A budget failure returns
+/// no partial report. Solver failures and islanding remain explicit unknowns.
+pub fn sweep_matpower_dc_case(
+    source: &str,
+    solve: SolveOptions,
+    max_contingencies: usize,
+) -> Result<MatpowerDcContingencyEvaluation, EvaluationError> {
+    let projection = project_matpower_dc_case(source)
+        .map_err(|error| EvaluationError::new("matpower_projection", error))?;
+    let network = map_projection(&projection)?;
+    let identity = format!(
+        "{}:{}",
+        projection.function_name, projection.source_git_blob_sha1
+    );
+    let sweep = sweep_fixed_injection_single_branch_outages(
+        &identity,
+        &network,
+        SweepOptions {
+            solve_options: solve,
+            max_contingencies,
+        },
+    )
+    .map_err(|error| EvaluationError::new("contingency_sweep", error.to_string()))?;
+
+    Ok(MatpowerDcContingencyEvaluation {
+        source_git_blob_sha1: projection.source_git_blob_sha1,
+        source_function_name: projection.function_name,
+        matpower_version: projection.matpower_version,
+        sweep,
+        claim_ceiling: "audited_fixed_injection_dc_single_branch_outage_screening_only",
+    })
+}
+
+impl MatpowerDcContingencyEvaluation {
+    /// Deterministic JSON receipt with exact source identity and complete sweep.
+    pub fn to_json(&self) -> String {
+        format!(
+            concat!(
+                "{{",
+                "\"schema_version\":\"matpower-dc-contingency-evaluation.v0.1.0\",",
+                "\"source_git_blob_sha1\":{},",
+                "\"source_function_name\":{},",
+                "\"matpower_version\":{},",
+                "\"sweep\":{},",
+                "\"claim_ceiling\":{}",
+                "}}"
+            ),
+            json_quote(&self.source_git_blob_sha1),
+            json_quote(&self.source_function_name),
+            json_quote(&self.matpower_version),
+            self.sweep.to_json(),
+            json_quote(self.claim_ceiling)
+        )
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -341,6 +413,57 @@ mod tests {
             .expect_err("unknown MATPOWER extension must fail closed");
         assert_eq!(error.stage, "matpower_projection");
         assert!(error.reason.contains("unsupported statement"));
+    }
+
+
+    fn sweep(source: &str) -> MatpowerDcContingencyEvaluation {
+        sweep_matpower_dc_case(source, SolveOptions::default(), 256)
+            .expect("PGLib fixed-injection DC contingency sweep should complete")
+    }
+
+    fn assert_complete_audited_panel(result: &MatpowerDcContingencyEvaluation, branches: usize) {
+        assert!(result.sweep.base_case.disposition.is_audited());
+        assert_eq!(result.sweep.branch_outages.len(), branches);
+        assert_eq!(result.sweep.summary.expected_branch_outages, branches);
+        assert_eq!(result.sweep.summary.evaluated_branch_outages, branches);
+        assert!(result.sweep.summary.coverage_complete);
+        assert_eq!(result.sweep.summary.auditor_rejections, 0);
+        assert_eq!(
+            result.sweep.summary.audited_within_declared_checks
+                + result.sweep.summary.audited_with_declared_violations
+                + result.sweep.summary.solver_unknowns
+                + result.sweep.summary.auditor_rejections,
+            branches
+        );
+    }
+
+    #[test]
+    fn ieee_14_bus_runs_complete_independently_audited_branch_outage_panel() {
+        let result = sweep(CASE14);
+        assert_eq!(result.source_git_blob_sha1, "2c8260fff0311c902c3d36dcabcbe861576fc97c");
+        assert_complete_audited_panel(&result, 20);
+    }
+
+    #[test]
+    fn ieee_rts_24_bus_runs_complete_independently_audited_branch_outage_panel() {
+        let result = sweep(CASE24);
+        assert_eq!(result.source_git_blob_sha1, "00b024c2e583b82452392514d2c22881c708ba7c");
+        assert_complete_audited_panel(&result, 38);
+    }
+
+    #[test]
+    fn ieee_57_bus_runs_complete_independently_audited_branch_outage_panel() {
+        let result = sweep(CASE57);
+        assert_eq!(result.source_git_blob_sha1, "d8b0c9e8b45265e57f52b7ab96880ad3a874cde5");
+        assert_complete_audited_panel(&result, 80);
+    }
+
+    #[test]
+    fn contingency_budget_failure_returns_no_partial_evaluation() {
+        let error = sweep_matpower_dc_case(CASE14, SolveOptions::default(), 19)
+            .expect_err("20 in-service branches exceed a 19-case budget");
+        assert_eq!(error.stage, "contingency_sweep");
+        assert!(error.reason.contains("configured budget is 19"));
     }
 
     #[test]
