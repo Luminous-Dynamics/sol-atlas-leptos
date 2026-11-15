@@ -26,6 +26,21 @@ This is a projection contract, not full MATPOWER semantics. The downstream fixed
 
 The structural import audit and projection currently parse the same source independently in two passes inside the same crate. This does not count as independent parser parity; the second-parser comparison against MATPOWER/PowerModels remains a separate gate.
 
+## Fixed-injection DC projection
+
+The library also exposes `project_matpower_dc_case(source)`, a typed projection bound to the exact source bytes.
+
+It retains:
+- all 13 supported bus fields;
+- all 10 supported generator fields;
+- all 13 supported branch fields;
+- each supported `gencost` row's model, startup/shutdown cost, NCOST and exact coefficient vector;
+- the presence of optional legacy `areas` metadata (its operational semantics remain unused in MATPOWER v2).
+
+Non-reference bus injections are the sum of in-service generator Pg minus Pd. Type-3 buses remain unspecified for the downstream reference solver's balancing injection. Type-4 isolated buses are rejected because the current DC solver has no isolated-bus state.
+
+Generator costs are retained for independent comparison and future optimization work, but are not used by the current fixed-injection DC power-flow solver. The projection also explicitly lists model fields that are retained but not enforced by the downstream DC equations.
+
 ## What it does not establish
 
 This is **structural import only**. It does not execute MATLAB, parse every MATPOWER extension, establish source authenticity, solve power flow, solve AC/DC OPF, validate an electrical model against measurements, certify grid-code compliance, or authorize dispatch or switching. A digest establishes byte identity, not truth.
