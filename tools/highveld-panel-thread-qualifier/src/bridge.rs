@@ -1550,7 +1550,7 @@ mod tests {
         input.campaigns.reverse();
         input.physical_bindings.reverse();
         let second = evaluate(&input);
-        assert_eq!(first.planned_obligations, second.planned_obligations);
+        assert_eq!(first.obligations_with_admissible_acquisition_route, second.obligations_with_admissible_acquisition_route);
         assert_eq!(
             first.obligation_results[0].disposition,
             second.obligation_results[0].disposition
@@ -1616,7 +1616,7 @@ mod tests {
         input.acquisitions.reverse();
         let second = evaluate(&input);
 
-        assert_eq!(first.planned_obligations, second.planned_obligations);
+        assert_eq!(first.obligations_with_admissible_acquisition_route, second.obligations_with_admissible_acquisition_route);
         assert_eq!(
             first.obligation_results[0].candidate_acquisition_ids,
             second.obligation_results[0].candidate_acquisition_ids
@@ -1649,7 +1649,8 @@ mod tests {
         rejected_mapping.review.reviewed_by = None;
         input.physical_bindings.push(rejected_mapping);
 
-        let result = one_result(&evaluate(&input));
+        let report = evaluate(&input);
+        let result = one_result(&report);
         assert_eq!(
             result.disposition,
             BridgeDisposition::PlannedPhysicalObservationOwnerReportsOptimal
