@@ -49,3 +49,39 @@ PGLib-OPF v23.07 fixtures:
 - IEEE 57 bus: 57 buses, 7 generators, 80 branches.
 
 The tests require successful intact DC solves and independently audited complete single-branch outage coverage. They do not assert that every contingency satisfies Rate A, and they do not claim AC/OPF equivalence or full N-1 security.
+
+
+## Independent parser and numerical references
+
+The integration now has two external comparison paths, kept out of the production dependency graph.
+
+### PowerIO 0.12.1 — source-field differential
+
+The separate nested workspace at tools/powerio-matpower-differential parses the same original MATPOWER bytes with PowerIO 0.12.1 and compares the typed fields against Sol-Atlas' source-bound projection. It checks bus/generator/branch fields, bus-level demand and shunt aggregates, online generation bounds and generator-cost rows. The only explicit semantic conversion is MATPOWER zero branch rating = unlimited ↔ PowerIO +Infinity. Mismatches are evidence, not silently normalized.
+
+Run:
+
+    cargo test --manifest-path tools/powerio-matpower-differential/Cargo.toml
+
+This is a parser/model differential, not a numerical solver comparison or physical validation.
+
+### MATPOWER 8.1 — independent DC numerical reference
+
+The workflow .github/workflows/matpower-8.1-dc-reference-differential.yml pins MATPOWER commit 1a828c7af590714499284e36ee9c81273388c594 and invokes MATPOWER's own rundcpf on the unchanged PGLib source files. A separate Rust binary compares the output against the Sol-Atlas DC evaluation.
+
+It compares:
+- exact source Git blob SHA-1, base MVA and reference-bus identity;
+- every bus angle relative to the reference bus;
+- every bus net active injection, including the solved slack balancing injection;
+- branch row/endpoint identity and status;
+- branch PF and PT flow values.
+
+Initial tolerances are fixed at 1e-7 degrees for bus angle, 1e-6 MW for bus injection and branch flow, and 1e-10 MVA for system base. The workflow produces TSV and JSON comparison receipts for IEEE 14, IEEE RTS 24 and IEEE 57 cases.
+
+With MATPOWER 8.1 and Octave installed:
+
+    cargo build --manifest-path tools/matpower-dc-network-evaluation/Cargo.toml --locked --offline --bins
+    octave-cli --quiet --no-gui --eval "addpath('tools/matpower-reference-differential'); run_matpower_dc('tools/pglib-case-auditor/fixtures/pglib_opf_case14_ieee.m', '/tmp/case14.tsv', '/path/to/matpower-8.1', '$(git hash-object tools/pglib-case-auditor/fixtures/pglib_opf_case14_ieee.m)')"
+    tools/matpower-dc-network-evaluation/target/debug/compare-matpower-dc tools/pglib-case-auditor/fixtures/pglib_opf_case14_ieee.m /tmp/case14.tsv
+
+A zero mismatch is scoped to these exact inputs, MATPOWER version, fixed-injection DC equations, reported values and tolerances. It is not AC power-flow validation, AC-OPF parity, full N-1 security, physical calibration or operational authority.
