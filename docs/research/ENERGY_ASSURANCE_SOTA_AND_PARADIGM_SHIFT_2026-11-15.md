@@ -201,3 +201,43 @@ The goal is a Rust-owned evidence and assurance plane interoperating with the be
 ## 8. Explicit non-claims
 
 This strategy does not establish that current Sol-Atlas has AC-OPF, a full DC-OPF optimizer, calibrated grid twins, generator redispatch, N-1 security, field-validated models, South African grid truth, operational control or SOTA performance. The present DC kernel and branch-outage sweep are bounded research instruments. Each future capability must earn its own evidence tier and claim ceiling.
+
+
+## 9. Three-oracle qualification ladder (new implementation)
+
+The next qualification step is no longer to write more parser code. Sol-Atlas now has three intentionally separate evidence paths on the active integration branch:
+
+1. **Sol-Atlas internal path:** strict MATPOWER v2 admission → source-bound typed projection → fixed-injection DC reference kernel → separate receipt auditor → complete single-branch outage sweep.
+2. **Independent semantic parser oracle:** PowerIO 0.12.1 parses the exact original bytes independently. The Rust differential compares the supported bus, generator, branch and generator-cost fields, including loads/shunts re-aggregated to bus rows. The sole declared representation mapping in the comparator is MATPOWER zero-valued branch ratings ("unlimited") to PowerIO positive infinity; any other discrepancy must be surfaced and classified.
+3. **Independent numerical solver oracle:** MATPOWER 8.1 rundcpf loads the original .m file and computes a DC solution independently of the Sol-Atlas projection and solver. The comparator binds both results to the same Git blob SHA-1, compares base MVA and reference-bus identity, normalizes bus angles to the reference bus, compares per-bus net injections, and compares both PF/PT branch-end flows and branch identities.
+
+This splits three questions that must not be conflated:
+- **Did we interpret the source consistently?** The PowerIO field differential addresses the declared field inventory.
+- **Did our implementation solve the stated DC equations consistently?** The independent receipt auditor addresses the Sol-Atlas receipt.
+- **Did an independent implementation obtain the same declared DC solution?** MATPOWER 8.1 rundcpf addresses the numerical reference comparison.
+
+A zero-mismatch result from either external oracle is only scoped to the exact source files, parser/solver versions, declared fields, DC assumptions and tolerances. PowerIO is a parser/model interoperability oracle, not an independent physical measurement. MATPOWER's DC solve is a numerical reference, not AC validation or field telemetry.
+
+### Frozen initial solver-differential tolerances
+
+| Quantity | Initial tolerance |
+|---|---:|
+| Bus angle relative to reference | \(10^{-7}\) degrees |
+| Bus net active injection | \(10^{-6}\) MW |
+| Branch PF and PT | \(10^{-6}\) MW |
+| System base MVA | \(10^{-10}\) MVA |
+
+These tolerances are contract values for the first pinned IEEE 14/RTS 24/IEEE 57 panel, not claims about field-model accuracy. If any reference implementation produces a systematic difference, first investigate equation convention, phase-shift sign, tap interpretation, slack treatment, units, and output semantics. Do not loosen a threshold merely to make CI green.
+
+The MATPOWER reference workflow pins release commit 1a828c7af590714499284e36ee9c81273388c594. Its TSV input carries the original source digest, MATPOWER version, base MVA and reference bus. Its JSON output preserves every numerical mismatch and tolerance.
+
+### Next expansion after parity
+
+Once all three cases pass both external differentials:
+- extend the parser corpus with MATPOWER cases containing DC lines, multiple cost rows, switched shunts, generator capability columns, phase shifters, offline devices, multiple islands and unusual angle bounds;
+- add controlled one-field-at-a-time source mutations and require the strict importer to reject malformed or unsupported forms, while both external parsers' behavior is logged separately;
+- expand from three PGLib cases to a declared case matrix (including larger PGLib cases) and preserve per-case receipts;
+- add a separate DC-OPF objective/bound comparison. Do not infer OPF quality from DC power-flow parity;
+- only then move to AC and chronological / distribution / sequential-control domains.
+
+The promotion rule is strict: **source-field parity, receipt consistency and reference numerical parity are independent gates**. Passing one must never imply the other two.
