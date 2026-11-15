@@ -165,7 +165,10 @@ pub fn evaluate_bytes(
 
 fn validate_corpus(corpus: &Corpus) -> Result<(), String> {
     if corpus.profile_id != PROFILE_ID {
-        return Err(format!("unsupported corpus profile_id: {}", corpus.profile_id));
+        return Err(format!(
+            "unsupported corpus profile_id: {}",
+            corpus.profile_id
+        ));
     }
     if corpus.cases.is_empty() {
         return Err("corpus must contain at least one case".to_owned());
@@ -200,7 +203,11 @@ fn validate_corpus(corpus: &Corpus) -> Result<(), String> {
                 case.case_id
             ));
         }
-        let _ = unique_set(&case.expected_reason_codes, &case.case_id, "expected_reason_codes")?;
+        let _ = unique_set(
+            &case.expected_reason_codes,
+            &case.case_id,
+            "expected_reason_codes",
+        )?;
         let _ = unique_set(
             &case.expected_requalification_domains,
             &case.case_id,
@@ -237,7 +244,11 @@ fn validate_submission(submission: &Submission, corpus: &Corpus) -> Result<(), S
         ));
     }
 
-    let known: BTreeSet<&str> = corpus.cases.iter().map(|case| case.case_id.as_str()).collect();
+    let known: BTreeSet<&str> = corpus
+        .cases
+        .iter()
+        .map(|case| case.case_id.as_str())
+        .collect();
     let mut seen = BTreeSet::new();
 
     for result in &submission.case_results {
