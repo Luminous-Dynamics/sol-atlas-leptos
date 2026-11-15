@@ -61,3 +61,7 @@ opt-level = "z"
 lto = true
 codegen-units = 1
 strip = true
+
+[workspace]
+members = ["tools/highveld-panel-thread-qualifier"]
+resolver = "3"
