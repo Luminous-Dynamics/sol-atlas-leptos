@@ -1108,8 +1108,12 @@ mod tests {
         assert!(result.localization_median_error_m.is_some());
         assert!(result.localization_p95_error_m.is_some());
         assert_eq!(
+            result.clustered_confidence_interval_status,
+            "NOT_RUN_CLUSTER_AWARE_BOOTSTRAP_REQUIRED"
+        );
+        assert_eq!(
             result.qualification_status,
-            "NOT_QUALIFIED_POINT_ESTIMATES_ONLY"
+            "NOT_QUALIFIED_CLUSTERED_INTERVALS_NOT_RUN"
         );
     }
 
