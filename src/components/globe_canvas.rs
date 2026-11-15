@@ -832,8 +832,8 @@ fn update_renderer_data(
         let deposits = data_state.fossil_deposits.read();
         for deposit in deposits.iter() {
             let pos = geo::lat_lon_to_xyz(deposit.lat, deposit.lon, 1.005);
-            let eroi = sol_atlas_core::economics::compute_eroi(deposit).unwrap_or(5.0);
-            let c = sol_atlas_core::economics::eroi_color(eroi);
+            let eroi = sol_atlas_core::economics::compute_eroi(deposit);
+            let c = sol_atlas_core::evidence_visualization::eroi_color_or_unknown(eroi);
             let emissive = sol_atlas_core::geo::fossil_emissive_factor(&deposit.status);
             let scale = sol_atlas_core::geo::fossil_scale_factor(&deposit.status);
             let size = sol_atlas_core::geo::marker_size_from_reserves(deposit.proven_reserves_mboe)
