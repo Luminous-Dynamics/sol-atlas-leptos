@@ -254,8 +254,8 @@ pub fn evaluate_bridge_bytes(input_bytes: &[u8]) -> Result<BridgeReport, String>
 
     obligation_results.sort_by(|left, right| left.obligation_id.cmp(&right.obligation_id));
     let unresolved_proof_obligations = input.episode.unresolved_obligation_ids.len();
-    let obligations_without_admissible_route = unresolved_proof_obligations
-        .saturating_sub(obligations_with_admissible_acquisition_route);
+    let obligations_without_admissible_route =
+        unresolved_proof_obligations.saturating_sub(obligations_with_admissible_acquisition_route);
 
     Ok(BridgeReport {
         report_profile_id: "luminous.highveld.evidence-campaign-bridge-report.v0.1",
