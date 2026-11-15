@@ -173,14 +173,11 @@ fn validate_corpus(corpus: &Corpus) -> Result<(), String> {
     if corpus.claim_ceiling.trim().is_empty() {
         return Err("corpus claim_ceiling must not be empty".to_owned());
     }
-    if !matches!(
-        corpus.status.as_str(),
-        "synthetic_specification_unadjudicated" | "independently_adjudicated"
-    ) {
-        return Err(format!(
-            "unsupported corpus status {}; refusing to infer label authority",
-            corpus.status
-        ));
+    if corpus.status != "synthetic_specification_unadjudicated" {
+        return Err(
+            "this evaluator has no trusted adjudication-signature verifier; only              synthetic_specification_unadjudicated corpora are accepted"
+                .to_owned(),
+        );
     }
 
     let mut ids = BTreeSet::new();
@@ -387,8 +384,7 @@ fn score(
             .or_default() += 1;
 
         let critical_miss = gold.criticality == "critical"
-            && gold.expected_disposition != "REVIEW_ONLY"
-            && candidate.disposition == "REVIEW_ONLY";
+            && safety_floor(&candidate.disposition) < safety_floor(&gold.expected_disposition);
         if gold.criticality == "critical" && gold.expected_disposition != "REVIEW_ONLY" {
             critical_blocked_cases += 1;
         }
@@ -430,14 +426,13 @@ fn score(
         && hard_gates.complete_case_coverage
         && hard_gates.no_authority_effects;
 
-    // The current v0.1 corpus is explicitly unadjudicated. Even a perfect
-    // candidate score must remain provisional until independent labels exist.
-    let evaluation_status = if corpus.status != "independently_adjudicated" {
+    // This evaluator deliberately has no trusted adjudication-signature
+    // verifier. It therefore never emits a pass/fail qualification status.
+    // A perfect score on visible provisional labels is only label agreement.
+    let evaluation_status = if all_hard_gates {
         "PROVISIONAL_ONLY"
-    } else if all_hard_gates && metric(exact_matches, corpus.cases.len()) >= 0.95 {
-        "INDEPENDENTLY_ADJUDICATED_PASS"
     } else {
-        "INDEPENDENTLY_ADJUDICATED_FAIL"
+        "PROVISIONAL_ONLY_WITH_HARD_GATE_FAILURES"
     };
 
     Ok(EvaluationReport {
@@ -469,6 +464,16 @@ fn score(
         authority_effects: "NONE",
         case_scores,
     })
+}
+
+fn safety_floor(disposition: &str) -> u8 {
+    match disposition {
+        "REVIEW_ONLY" => 0,
+        "REQUALIFICATION_REQUIRED" => 1,
+        "BLOCKED_UNKNOWN" | "BLOCKED_CONFLICT" => 2,
+        "BLOCKED_AUTHORITY" => 3,
+        _ => 0,
+    }
 }
 
 fn difference(
@@ -591,6 +596,50 @@ mod tests {
             "authority":true
         }"#;
         assert!(serde_json::from_slice::<Submission>(raw).is_err());
+    }
+
+
+    #[test]
+    fn corpus_cannot_self_assert_independent_adjudication() {
+        let mut raw = serde_json::from_str::<serde_json::Value>(CORPUS_JSON).unwrap();
+        raw["status"] = serde_json::Value::String("independently_adjudicated".to_owned());
+        let tampered = serde_json::to_vec(&raw).unwrap();
+        let submission = exact_submission(&corpus());
+
+        let error = evaluate_bytes(&tampered, &encode(&submission)).unwrap_err();
+        assert!(error.contains("no trusted adjudication-signature verifier"));
+    }
+
+    #[test]
+    fn critical_underblocking_is_detected_beyond_review_only() {
+        let corpus = corpus();
+        let mut submission = exact_submission(&corpus);
+        let target = submission
+            .case_results
+            .iter_mut()
+            .find(|result| result.case_id == "HPT-008")
+            .unwrap();
+        target.disposition = "REQUALIFICATION_REQUIRED".to_owned();
+
+        let report = evaluate_bytes(CORPUS_JSON.as_bytes(), &encode(&submission)).unwrap();
+        assert_eq!(report.critical_false_negatives, 1);
+        assert!(!report.hard_gates.zero_critical_false_negatives);
+    }
+
+    #[test]
+    fn authority_block_cannot_be_downgraded_to_conflict_block() {
+        let corpus = corpus();
+        let mut submission = exact_submission(&corpus);
+        let target = submission
+            .case_results
+            .iter_mut()
+            .find(|result| result.case_id == "HPT-016")
+            .unwrap();
+        target.disposition = "BLOCKED_CONFLICT".to_owned();
+
+        let report = evaluate_bytes(CORPUS_JSON.as_bytes(), &encode(&submission)).unwrap();
+        assert_eq!(report.critical_false_negatives, 1);
+        assert!(!report.hard_gates.zero_critical_false_negatives);
     }
 
     #[test]
