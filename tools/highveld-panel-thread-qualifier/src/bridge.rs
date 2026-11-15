@@ -41,6 +41,7 @@ pub struct OwnerBinding {
     pub profile_version: Option<String>,
     pub adapter_id: Option<String>,
     pub adapter_sha256: Option<String>,
+    pub available_at_unix: Option<u64>,
     pub mapping_status: BindingState,
     pub mapping_sha256: Option<String>,
     pub owner_approval_ref: Option<String>,
@@ -162,6 +163,7 @@ pub struct MappingReview {
     pub mapping_sha256: Option<String>,
     pub mycelix_approval_ref: Option<String>,
     pub symtropy_approval_ref: Option<String>,
+    pub reviewed_at_unix: Option<u64>,
     pub reviewed_by: Option<String>,
 }
 
@@ -296,6 +298,11 @@ fn validate_bridge_input(input: &BridgeInput) -> Result<(), String> {
         "Luminous-Dynamics/mycelix",
         "episode.binding",
     )?;
+    validate_binding_as_of(
+        &input.episode.binding,
+        input.episode.as_of_unix,
+        "episode.binding",
+    )?;
 
     let known_obligations: BTreeSet<&str> = input
         .episode
@@ -349,6 +356,11 @@ fn validate_bridge_input(input: &BridgeInput) -> Result<(), String> {
             "Luminous-Dynamics/mycelix",
             &format!("{}.binding", acquisition.acquisition_id),
         )?;
+        validate_binding_as_of(
+            &acquisition.binding,
+            input.episode.as_of_unix,
+            &format!("{}.binding", acquisition.acquisition_id),
+        )?;
         if input.episode.binding.mapping_status == BindingState::Bound
             && acquisition.binding.mapping_status == BindingState::Bound
             && !same_owner_contract(&input.episode.binding, &acquisition.binding)
@@ -377,6 +389,11 @@ fn validate_bridge_input(input: &BridgeInput) -> Result<(), String> {
             &campaign.binding,
             "symtropy",
             "Luminous-Dynamics/symtropy",
+            &format!("{}.binding", campaign.package_id),
+        )?;
+        validate_binding_as_of(
+            &campaign.binding,
+            input.episode.as_of_unix,
             &format!("{}.binding", campaign.package_id),
         )?;
         for action in &campaign.actions {
@@ -466,7 +483,11 @@ fn validate_bridge_input(input: &BridgeInput) -> Result<(), String> {
             &physical_binding.context,
             &format!("{}.context", physical_binding.mapping_id),
         )?;
-        validate_mapping_review(&physical_binding.review, &physical_binding.mapping_id)?;
+        validate_mapping_review(
+            &physical_binding.review,
+            &physical_binding.mapping_id,
+            input.episode.as_of_unix,
+        )?;
     }
 
     for acquisition in &input.acquisitions {
@@ -537,6 +558,9 @@ fn validate_owner_binding(
         )?;
         require_text(binding.adapter_id.as_deref(), &format!("{path}.adapter_id"))?;
         require_text(binding.adapter_sha256.as_deref(), &format!("{path}.adapter_sha256"))?;
+        if binding.available_at_unix.is_none() {
+            return Err(format!("{path}.available_at_unix is required for a BOUND source mapping"));
+        }
         require_text(binding.mapping_sha256.as_deref(), &format!("{path}.mapping_sha256"))?;
         require_text(
             binding.owner_approval_ref.as_deref(),
@@ -546,7 +570,29 @@ fn validate_owner_binding(
     Ok(())
 }
 
-fn validate_mapping_review(review: &MappingReview, mapping_id: &str) -> Result<(), String> {
+fn validate_binding_as_of(
+    binding: &OwnerBinding,
+    as_of_unix: u64,
+    path: &str,
+) -> Result<(), String> {
+    if binding.mapping_status == BindingState::Bound {
+        let available_at = binding.available_at_unix.ok_or_else(|| {
+            format!("{path}.available_at_unix is required for a BOUND source mapping")
+        })?;
+        if available_at > as_of_unix {
+            return Err(format!(
+                "{path} became available after the decision cutoff"
+            ));
+        }
+    }
+    Ok(())
+}
+
+fn validate_mapping_review(
+    review: &MappingReview,
+    mapping_id: &str,
+    as_of_unix: u64,
+) -> Result<(), String> {
     if let Some(digest) = review.mapping_sha256.as_deref() {
         if !is_lower_hex(digest, 64) {
             return Err(format!("{mapping_id}.review.mapping_sha256 is invalid"));
@@ -565,6 +611,14 @@ fn validate_mapping_review(review: &MappingReview, mapping_id: &str) -> Result<(
             review.symtropy_approval_ref.as_deref(),
             &format!("{mapping_id}.review.symtropy_approval_ref"),
         )?;
+        let reviewed_at = review.reviewed_at_unix.ok_or_else(|| {
+            format!("{mapping_id}.review.reviewed_at_unix is required for a BOUND review")
+        })?;
+        if reviewed_at > as_of_unix {
+            return Err(format!(
+                "{mapping_id}.review was completed after the decision cutoff"
+            ));
+        }
         require_text(
             review.reviewed_by.as_deref(),
             &format!("{mapping_id}.review.reviewed_by"),
@@ -1043,6 +1097,7 @@ mod tests {
             profile_version: bound.then(|| "0.1.0".to_owned()),
             adapter_id: bound.then(|| "test.highveld.adapter".to_owned()),
             adapter_sha256: bound.then(|| digest('c')),
+            available_at_unix: bound.then_some(1_794_000_000),
             mapping_status: if bound {
                 BindingState::Bound
             } else {
@@ -1138,6 +1193,7 @@ mod tests {
                 mapping_sha256: Some(digest('e')),
                 mycelix_approval_ref: Some("MYCELIX-APPROVAL-RELATION-001".to_owned()),
                 symtropy_approval_ref: Some("SYMTROPY-APPROVAL-RELATION-001".to_owned()),
+                reviewed_at_unix: Some(1_794_200_000),
                 reviewed_by: Some("test-owner-reviewer".to_owned()),
             },
         });
@@ -1346,6 +1402,27 @@ mod tests {
         assert!(evaluate_bridge_bytes(&serde_json::to_vec(&input).unwrap())
             .unwrap_err()
             .contains("unknown obligation"));
+    }
+
+    #[test]
+    fn source_profile_available_after_episode_cutoff_is_rejected() {
+        let mut input = base_input(AcquisitionKind::Remote);
+        input.acquisitions[0].binding.available_at_unix =
+            Some(input.episode.as_of_unix + 1);
+        assert!(evaluate_bridge_bytes(&serde_json::to_vec(&input).unwrap())
+            .unwrap_err()
+            .contains("became available after the decision cutoff"));
+    }
+
+    #[test]
+    fn bilateral_mapping_review_after_episode_cutoff_is_rejected() {
+        let mut input = base_input(AcquisitionKind::Physical);
+        add_complete_campaign(&mut input, CampaignSearchStatus::CompleteOptimal);
+        input.physical_bindings[0].review.reviewed_at_unix =
+            Some(input.episode.as_of_unix + 1);
+        assert!(evaluate_bridge_bytes(&serde_json::to_vec(&input).unwrap())
+            .unwrap_err()
+            .contains("completed after the decision cutoff"));
     }
 
     #[test]
