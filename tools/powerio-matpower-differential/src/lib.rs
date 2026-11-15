@@ -24,7 +24,7 @@ pub struct FieldMismatch {
     pub absolute_error: Option<f64>,
 }
 
-#[derive(Clone, Debug, serde::Serialize, serde::Deserialize, PartialEq)]
+#[derive(Clone, Debug, serde::Serialize, PartialEq)]
 pub struct DifferentialReport {
     pub source_git_blob_sha1: String,
     pub powerio_version: String,
@@ -63,6 +63,8 @@ struct BusTotals {
     generation_p: f64,
     generation_pmin: f64,
     generation_pmax: f64,
+    shunt_g: f64,
+    shunt_b: f64,
 }
 
 struct Comparator {
@@ -196,6 +198,7 @@ fn compare_projection(
     let powerio_generators = network.generators();
     let powerio_branches = network.branches();
     let powerio_loads = network.loads();
+    let powerio_shunts = network.shunts();
 
     cmp.integer(
         "network",
@@ -230,6 +233,11 @@ fn compare_projection(
         total.generation_p += generator.pg;
         total.generation_pmin += generator.pmin;
         total.generation_pmax += generator.pmax;
+    }
+    for shunt in powerio_shunts.iter().filter(|shunt| shunt.in_service) {
+        let total = add_to_bus_totals(&mut bus_totals, shunt.bus.0 as i64);
+        total.shunt_g += shunt.g;
+        total.shunt_b += shunt.b;
     }
 
     let row_bus_count = projection.buses.len().min(powerio_buses.len());
@@ -286,6 +294,20 @@ fn compare_projection(
             "pmax_aggregated_online",
             expected.online_generation_p_max_mw,
             totals.generation_pmax,
+        );
+        cmp.number(
+            "bus",
+            &label,
+            "gs_aggregated",
+            expected.shunt_conductance_mw,
+            totals.shunt_g,
+        );
+        cmp.number(
+            "bus",
+            &label,
+            "bs_aggregated",
+            expected.shunt_susceptance_mvar,
+            totals.shunt_b,
         );
     }
 
@@ -346,7 +368,55 @@ fn compare_projection(
         cmp.number("branch", &label, "angle_max_degrees", expected.angle_max_degrees, observed.angmax);
     }
 
-    let powerio_cost_rows = powerio_generators.iter().filter(|generator| generator.cost.is_some()).count();
+    let mut powerio_cost_rows = 0usize;
+    for (row, (expected, observed)) in projection
+        .costs
+        .iter()
+        .zip(powerio_generators.iter())
+        .enumerate()
+    {
+        let label = format!("row-{}", row + 1);
+        match &observed.cost {
+            Some(cost) => {
+                powerio_cost_rows += 1;
+                cmp.integer("gencost", &label, "model", expected.model as i64, cost.model as i64);
+                cmp.number("gencost", &label, "startup", expected.startup_cost, cost.startup);
+                cmp.number("gencost", &label, "shutdown", expected.shutdown_cost, cost.shutdown);
+                cmp.integer(
+                    "gencost",
+                    &label,
+                    "ncost",
+                    expected.point_or_coefficient_count as i64,
+                    cost.ncost as i64,
+                );
+                cmp.integer(
+                    "gencost",
+                    &label,
+                    "coefficient_count",
+                    expected.coefficients.len() as i64,
+                    cost.coeffs.len() as i64,
+                );
+                for (coefficient, (sol_value, powerio_value)) in expected
+                    .coefficients
+                    .iter()
+                    .zip(cost.coeffs.iter())
+                    .enumerate()
+                {
+                    cmp.number(
+                        "gencost",
+                        &label,
+                        &format!("coefficient-{}", coefficient + 1),
+                        *sol_value,
+                        *powerio_value,
+                    );
+                }
+            }
+            None => {
+                cmp.integer("gencost", &label, "present", 1, 0);
+            }
+        }
+    }
+    let _powerio_cost_row_count = powerio_generators.iter().filter(|generator| generator.cost.is_some()).count();
     cmp.integer(
         "generator_cost",
         "case",
@@ -432,7 +502,7 @@ mod tests {
     }
 
     #[test]
-    fn unsupported_matpower_extension_fails_both_sides_closed() {
+    fn strict_sol_atlas_profile_rejects_unsupported_matpower_extensions() {
         let source = format!("{CASE14}\nmpc.unsupported = 7;\n");
         let error = compare_matpower_source(&source)
             .expect_err("the Sol-Atlas strict importer must reject unknown statements");
