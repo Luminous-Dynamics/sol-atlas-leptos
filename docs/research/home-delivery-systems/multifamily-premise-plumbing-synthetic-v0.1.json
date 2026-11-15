@@ -1,0 +1,485 @@
+{
+  "schema_version": "multifamily-premise-plumbing/0.1",
+  "profile_id": "SYN-MF-PREMISE-PLUMBING-001",
+  "maturity": "synthetic_contract",
+  "source_bindings": {
+    "building_ref": {
+      "kind": "synthetic_multi_family_building",
+      "id": "SYN-MF-COURTYARD-004",
+      "revision": null,
+      "digest": null
+    },
+    "service_topology_ref": {
+      "kind": "synthetic_multifamily_service_topology",
+      "id": "SYN-MF-SERVICE-DISTRIBUTION-001",
+      "revision": null,
+      "digest": null
+    },
+    "hydraulic_evidence_ref": {
+      "kind": "synthetic_hydraulic_run_evidence",
+      "id": "SYN-HYDRAULIC-RUN-EVIDENCE-001",
+      "revision": null,
+      "digest": null
+    },
+    "design_revision_ref": {
+      "kind": "synthetic_design_revision",
+      "id": "urn:synthetic:mf:design-revision:unbound",
+      "revision": null,
+      "digest": null
+    },
+    "jurisdiction_profile_ref": {
+      "kind": "jurisdiction_profile",
+      "id": "urn:synthetic:jurisdiction:unselected",
+      "revision": null,
+      "digest": null
+    }
+  },
+  "assets": [
+    {
+      "asset_id": "SYN-POTABLE-INCOMING",
+      "asset_kind": "incoming_service",
+      "resource_class": "potable_water",
+      "unit_id": null,
+      "floor_id": null,
+      "parent_asset_ids": [],
+      "served_unit_ids": [
+        "U-001",
+        "U-002",
+        "U-003",
+        "U-004"
+      ],
+      "state": "unknown",
+      "volume_state": "unknown",
+      "volume_l": null,
+      "geometry_ref": null,
+      "product_ref": null,
+      "maintenance_state": "unknown",
+      "evidence_refs": []
+    },
+    {
+      "asset_id": "SYN-POTABLE-STORAGE",
+      "asset_kind": "storage",
+      "resource_class": "potable_water",
+      "unit_id": null,
+      "floor_id": null,
+      "parent_asset_ids": [
+        "SYN-POTABLE-INCOMING"
+      ],
+      "served_unit_ids": [
+        "U-001",
+        "U-002",
+        "U-003",
+        "U-004"
+      ],
+      "state": "unknown",
+      "volume_state": "unknown",
+      "volume_l": null,
+      "geometry_ref": null,
+      "product_ref": null,
+      "maintenance_state": "unknown",
+      "evidence_refs": []
+    },
+    {
+      "asset_id": "SYN-POTABLE-TREATMENT",
+      "asset_kind": "treatment",
+      "resource_class": "potable_water",
+      "unit_id": null,
+      "floor_id": null,
+      "parent_asset_ids": [
+        "SYN-POTABLE-STORAGE"
+      ],
+      "served_unit_ids": [
+        "U-001",
+        "U-002",
+        "U-003",
+        "U-004"
+      ],
+      "state": "unknown",
+      "volume_state": "unknown",
+      "volume_l": null,
+      "geometry_ref": null,
+      "product_ref": null,
+      "maintenance_state": "unknown",
+      "evidence_refs": []
+    },
+    {
+      "asset_id": "SYN-HOT-WATER-PLANT",
+      "asset_kind": "storage",
+      "resource_class": "potable_water",
+      "unit_id": null,
+      "floor_id": null,
+      "parent_asset_ids": [
+        "SYN-POTABLE-TREATMENT"
+      ],
+      "served_unit_ids": [
+        "U-001",
+        "U-002",
+        "U-003",
+        "U-004"
+      ],
+      "state": "unknown",
+      "volume_state": "unknown",
+      "volume_l": null,
+      "geometry_ref": null,
+      "product_ref": null,
+      "maintenance_state": "unknown",
+      "evidence_refs": []
+    },
+    {
+      "asset_id": "SYN-U-001-FIXTURE-SET",
+      "asset_kind": "fixture",
+      "resource_class": "potable_water",
+      "unit_id": "U-001",
+      "floor_id": "F0",
+      "parent_asset_ids": [
+        "SYN-POTABLE-TREATMENT",
+        "SYN-HOT-WATER-PLANT"
+      ],
+      "served_unit_ids": [
+        "U-001"
+      ],
+      "state": "unknown",
+      "volume_state": "unknown",
+      "volume_l": null,
+      "geometry_ref": null,
+      "product_ref": null,
+      "maintenance_state": "unknown",
+      "evidence_refs": []
+    },
+    {
+      "asset_id": "SYN-U-002-FIXTURE-SET",
+      "asset_kind": "fixture",
+      "resource_class": "potable_water",
+      "unit_id": "U-002",
+      "floor_id": "F0",
+      "parent_asset_ids": [
+        "SYN-POTABLE-TREATMENT",
+        "SYN-HOT-WATER-PLANT"
+      ],
+      "served_unit_ids": [
+        "U-002"
+      ],
+      "state": "unknown",
+      "volume_state": "unknown",
+      "volume_l": null,
+      "geometry_ref": null,
+      "product_ref": null,
+      "maintenance_state": "unknown",
+      "evidence_refs": []
+    },
+    {
+      "asset_id": "SYN-U-003-FIXTURE-SET",
+      "asset_kind": "fixture",
+      "resource_class": "potable_water",
+      "unit_id": "U-003",
+      "floor_id": "F1",
+      "parent_asset_ids": [
+        "SYN-POTABLE-TREATMENT",
+        "SYN-HOT-WATER-PLANT"
+      ],
+      "served_unit_ids": [
+        "U-003"
+      ],
+      "state": "unknown",
+      "volume_state": "unknown",
+      "volume_l": null,
+      "geometry_ref": null,
+      "product_ref": null,
+      "maintenance_state": "unknown",
+      "evidence_refs": []
+    },
+    {
+      "asset_id": "SYN-U-004-FIXTURE-SET",
+      "asset_kind": "fixture",
+      "resource_class": "potable_water",
+      "unit_id": "U-004",
+      "floor_id": "F1",
+      "parent_asset_ids": [
+        "SYN-POTABLE-TREATMENT",
+        "SYN-HOT-WATER-PLANT"
+      ],
+      "served_unit_ids": [
+        "U-004"
+      ],
+      "state": "unknown",
+      "volume_state": "unknown",
+      "volume_l": null,
+      "geometry_ref": null,
+      "product_ref": null,
+      "maintenance_state": "unknown",
+      "evidence_refs": []
+    }
+  ],
+  "use_points": [
+    {
+      "use_point_id": "U-001-KITCHEN-SINK",
+      "unit_id": "U-001",
+      "floor_id": "F0",
+      "fixture_kind": "kitchen_sink",
+      "resource_class": "potable_water",
+      "asset_ids": [
+        "SYN-U-001-FIXTURE-SET"
+      ],
+      "space_ref": null,
+      "state": "unknown",
+      "resident_scope": "synthetic_identity_only"
+    },
+    {
+      "use_point_id": "U-001-SHOWER",
+      "unit_id": "U-001",
+      "floor_id": "F0",
+      "fixture_kind": "shower",
+      "resource_class": "potable_water",
+      "asset_ids": [
+        "SYN-U-001-FIXTURE-SET"
+      ],
+      "space_ref": null,
+      "state": "unknown",
+      "resident_scope": "synthetic_identity_only"
+    },
+    {
+      "use_point_id": "U-002-KITCHEN-SINK",
+      "unit_id": "U-002",
+      "floor_id": "F0",
+      "fixture_kind": "kitchen_sink",
+      "resource_class": "potable_water",
+      "asset_ids": [
+        "SYN-U-002-FIXTURE-SET"
+      ],
+      "space_ref": null,
+      "state": "unknown",
+      "resident_scope": "synthetic_identity_only"
+    },
+    {
+      "use_point_id": "U-002-SHOWER",
+      "unit_id": "U-002",
+      "floor_id": "F0",
+      "fixture_kind": "shower",
+      "resource_class": "potable_water",
+      "asset_ids": [
+        "SYN-U-002-FIXTURE-SET"
+      ],
+      "space_ref": null,
+      "state": "unknown",
+      "resident_scope": "synthetic_identity_only"
+    },
+    {
+      "use_point_id": "U-003-KITCHEN-SINK",
+      "unit_id": "U-003",
+      "floor_id": "F1",
+      "fixture_kind": "kitchen_sink",
+      "resource_class": "potable_water",
+      "asset_ids": [
+        "SYN-U-003-FIXTURE-SET"
+      ],
+      "space_ref": null,
+      "state": "unknown",
+      "resident_scope": "synthetic_identity_only"
+    },
+    {
+      "use_point_id": "U-003-SHOWER",
+      "unit_id": "U-003",
+      "floor_id": "F1",
+      "fixture_kind": "shower",
+      "resource_class": "potable_water",
+      "asset_ids": [
+        "SYN-U-003-FIXTURE-SET"
+      ],
+      "space_ref": null,
+      "state": "unknown",
+      "resident_scope": "synthetic_identity_only"
+    },
+    {
+      "use_point_id": "U-004-KITCHEN-SINK",
+      "unit_id": "U-004",
+      "floor_id": "F1",
+      "fixture_kind": "kitchen_sink",
+      "resource_class": "potable_water",
+      "asset_ids": [
+        "SYN-U-004-FIXTURE-SET"
+      ],
+      "space_ref": null,
+      "state": "unknown",
+      "resident_scope": "synthetic_identity_only"
+    },
+    {
+      "use_point_id": "U-004-SHOWER",
+      "unit_id": "U-004",
+      "floor_id": "F1",
+      "fixture_kind": "shower",
+      "resource_class": "potable_water",
+      "asset_ids": [
+        "SYN-U-004-FIXTURE-SET"
+      ],
+      "space_ref": null,
+      "state": "unknown",
+      "resident_scope": "synthetic_identity_only"
+    }
+  ],
+  "observation_plan": [
+    {
+      "plan_id": "PLAN-U-001-KITCHEN-SINK-TEMP",
+      "use_point_id": "U-001-KITCHEN-SINK",
+      "observation_kind": "water_temperature",
+      "purpose": "future professionally approved use-point temperature observation; no current collection",
+      "schedule_state": "not_scheduled",
+      "instrument_ref": null,
+      "method_ref": null,
+      "collection_authority_ref": null,
+      "privacy_scope": "no_personal_data"
+    },
+    {
+      "plan_id": "PLAN-U-001-SHOWER-TEMP",
+      "use_point_id": "U-001-SHOWER",
+      "observation_kind": "water_temperature",
+      "purpose": "future professionally approved use-point temperature observation; no current collection",
+      "schedule_state": "not_scheduled",
+      "instrument_ref": null,
+      "method_ref": null,
+      "collection_authority_ref": null,
+      "privacy_scope": "no_personal_data"
+    },
+    {
+      "plan_id": "PLAN-U-002-KITCHEN-SINK-TEMP",
+      "use_point_id": "U-002-KITCHEN-SINK",
+      "observation_kind": "water_temperature",
+      "purpose": "future professionally approved use-point temperature observation; no current collection",
+      "schedule_state": "not_scheduled",
+      "instrument_ref": null,
+      "method_ref": null,
+      "collection_authority_ref": null,
+      "privacy_scope": "no_personal_data"
+    },
+    {
+      "plan_id": "PLAN-U-002-SHOWER-TEMP",
+      "use_point_id": "U-002-SHOWER",
+      "observation_kind": "water_temperature",
+      "purpose": "future professionally approved use-point temperature observation; no current collection",
+      "schedule_state": "not_scheduled",
+      "instrument_ref": null,
+      "method_ref": null,
+      "collection_authority_ref": null,
+      "privacy_scope": "no_personal_data"
+    },
+    {
+      "plan_id": "PLAN-U-003-KITCHEN-SINK-TEMP",
+      "use_point_id": "U-003-KITCHEN-SINK",
+      "observation_kind": "water_temperature",
+      "purpose": "future professionally approved use-point temperature observation; no current collection",
+      "schedule_state": "not_scheduled",
+      "instrument_ref": null,
+      "method_ref": null,
+      "collection_authority_ref": null,
+      "privacy_scope": "no_personal_data"
+    },
+    {
+      "plan_id": "PLAN-U-003-SHOWER-TEMP",
+      "use_point_id": "U-003-SHOWER",
+      "observation_kind": "water_temperature",
+      "purpose": "future professionally approved use-point temperature observation; no current collection",
+      "schedule_state": "not_scheduled",
+      "instrument_ref": null,
+      "method_ref": null,
+      "collection_authority_ref": null,
+      "privacy_scope": "no_personal_data"
+    },
+    {
+      "plan_id": "PLAN-U-004-KITCHEN-SINK-TEMP",
+      "use_point_id": "U-004-KITCHEN-SINK",
+      "observation_kind": "water_temperature",
+      "purpose": "future professionally approved use-point temperature observation; no current collection",
+      "schedule_state": "not_scheduled",
+      "instrument_ref": null,
+      "method_ref": null,
+      "collection_authority_ref": null,
+      "privacy_scope": "no_personal_data"
+    },
+    {
+      "plan_id": "PLAN-U-004-SHOWER-TEMP",
+      "use_point_id": "U-004-SHOWER",
+      "observation_kind": "water_temperature",
+      "purpose": "future professionally approved use-point temperature observation; no current collection",
+      "schedule_state": "not_scheduled",
+      "instrument_ref": null,
+      "method_ref": null,
+      "collection_authority_ref": null,
+      "privacy_scope": "no_personal_data"
+    }
+  ],
+  "observations": [],
+  "water_quality_claims": [
+    {
+      "claim_id": "CLAIM-U-001-KITCHEN-SINK-POTABLE",
+      "use_point_id": "U-001-KITCHEN-SINK",
+      "claim_state": "not_assessed",
+      "potable_credit": "none",
+      "basis": "no_water_quality_adjudication",
+      "evidence_refs": []
+    },
+    {
+      "claim_id": "CLAIM-U-001-SHOWER-POTABLE",
+      "use_point_id": "U-001-SHOWER",
+      "claim_state": "not_assessed",
+      "potable_credit": "none",
+      "basis": "no_water_quality_adjudication",
+      "evidence_refs": []
+    },
+    {
+      "claim_id": "CLAIM-U-002-KITCHEN-SINK-POTABLE",
+      "use_point_id": "U-002-KITCHEN-SINK",
+      "claim_state": "not_assessed",
+      "potable_credit": "none",
+      "basis": "no_water_quality_adjudication",
+      "evidence_refs": []
+    },
+    {
+      "claim_id": "CLAIM-U-002-SHOWER-POTABLE",
+      "use_point_id": "U-002-SHOWER",
+      "claim_state": "not_assessed",
+      "potable_credit": "none",
+      "basis": "no_water_quality_adjudication",
+      "evidence_refs": []
+    },
+    {
+      "claim_id": "CLAIM-U-003-KITCHEN-SINK-POTABLE",
+      "use_point_id": "U-003-KITCHEN-SINK",
+      "claim_state": "not_assessed",
+      "potable_credit": "none",
+      "basis": "no_water_quality_adjudication",
+      "evidence_refs": []
+    },
+    {
+      "claim_id": "CLAIM-U-003-SHOWER-POTABLE",
+      "use_point_id": "U-003-SHOWER",
+      "claim_state": "not_assessed",
+      "potable_credit": "none",
+      "basis": "no_water_quality_adjudication",
+      "evidence_refs": []
+    },
+    {
+      "claim_id": "CLAIM-U-004-KITCHEN-SINK-POTABLE",
+      "use_point_id": "U-004-KITCHEN-SINK",
+      "claim_state": "not_assessed",
+      "potable_credit": "none",
+      "basis": "no_water_quality_adjudication",
+      "evidence_refs": []
+    },
+    {
+      "claim_id": "CLAIM-U-004-SHOWER-POTABLE",
+      "use_point_id": "U-004-SHOWER",
+      "claim_state": "not_assessed",
+      "potable_credit": "none",
+      "basis": "no_water_quality_adjudication",
+      "evidence_refs": []
+    }
+  ],
+  "collection_policy": {
+    "policy_id": "SYN-NO-COLLECTION-DEFAULT",
+    "default_collection": "none",
+    "audio_video_allowed": false,
+    "continuous_occupancy_allowed": false,
+    "resident_withdrawal_supported": true,
+    "retention_state": "not_defined"
+  },
+  "claim_ceiling": "This record establishes only synthetic plumbing asset/use-point identity, planned observation scope and evidence-state contract integrity. It does not establish water quality, potability, microbial safety, stagnation acceptability, delivered pressure/flow, treatment efficacy, temperature safety, code compliance or health outcomes."
+}
