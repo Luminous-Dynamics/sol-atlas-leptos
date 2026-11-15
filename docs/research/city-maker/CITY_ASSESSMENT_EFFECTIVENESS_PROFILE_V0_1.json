@@ -1,0 +1,564 @@
+{
+  "schema_id": "org.luminousdynamics.citymaker.assessment-effectiveness-profile",
+  "schema_version": "0.1.0",
+  "profile_id": "CITY-ASSESSMENT-EFFECTIVENESS-PROFILE-V0.1",
+  "classification": "research_reference_and_unvalidated_citymaker_profile",
+  "claim_ceiling": "This profile evaluates CityMaker as an assessment system. It does not rate district sustainability outcomes, validate a city, certify standards compliance or prescribe a single composite score.",
+  "research_basis": {
+    "title": "Beyond the Checklist: Meta-Indicators for Evaluating Effectiveness of Neighbourhood Sustainability Assessment Tools",
+    "authors": [
+      "Tayyaba Riaz",
+      "Tony Matthews",
+      "Aysin Dedekorkut-Howes"
+    ],
+    "first_published": "2026-08-27",
+    "doi": "10.1002/sd.71602",
+    "source_url": "https://doi.org/10.1002/sd.71602",
+    "conceptual_status": "document-based conceptual framework; not empirically validated as a rating tool",
+    "reference_standards": [
+      "ISO 37101:2016",
+      "ISO 37105:2019",
+      "ISO 37123:2019",
+      "ISO 37125:2022"
+    ],
+    "source_scope": "comparison of eight neighbourhood sustainability assessment tools",
+    "note": "The 13 meta-indicators are the paper's analytical framework, not indicators directly prescribed by the cited ISO standards."
+  },
+  "maturity_states": [
+    {
+      "id": "NotAddressed",
+      "meaning": "No evidence that the assessment system addresses this meta-indicator."
+    },
+    {
+      "id": "Mentioned",
+      "meaning": "The theme is named, but definitions, rules or implementation evidence are absent."
+    },
+    {
+      "id": "Defined",
+      "meaning": "A clear definition and evidence requirement exist, but operational use is not demonstrated."
+    },
+    {
+      "id": "Operationalized",
+      "meaning": "A repeatable procedure is used in at least one defined workflow or pilot."
+    },
+    {
+      "id": "Measured",
+      "meaning": "Observed implementation data and raw denominators are reported."
+    },
+    {
+      "id": "IndependentlyValidated",
+      "meaning": "Independent reviewers or replication support the reported result in the declared context."
+    }
+  ],
+  "dimensions": [
+    {
+      "dimension_id": "performance",
+      "indicator_count": 5,
+      "indicators": [
+        {
+          "id": "ME-01",
+          "name": "Sustainability Dimension Coverage",
+          "definition": "Whether the assessment covers environmental, social, economic, institutional and technological dimensions without hiding material omissions or overrepresentation.",
+          "assessment_questions": [
+            "Which sustainability dimensions are included?",
+            "Which are mandatory, optional, or absent?",
+            "What share of criteria or evidence burden is assigned to each dimension?",
+            "What material local priorities are not represented?"
+          ],
+          "measures": [
+            "coverage_matrix_by_dimension",
+            "criteria_count_and_share_by_dimension",
+            "mandatory_gap_count",
+            "unrepresented_priority_count"
+          ],
+          "evidence_required": [
+            "indicator_and_credit_catalogue",
+            "definitions_and_scoring_rules",
+            "local_priority_and_gap_analysis"
+          ],
+          "phases": [
+            "concept",
+            "design",
+            "procurement",
+            "construction",
+            "commissioning",
+            "operation",
+            "maintenance",
+            "adaptation",
+            "deconstruction"
+          ],
+          "current_citymaker_state": "Defined",
+          "limitation": "Coverage breadth is not evidence of actual outcome quality."
+        },
+        {
+          "id": "ME-02",
+          "name": "Resilience and Risk Integration",
+          "definition": "Whether climate, hazard, infrastructure, economic and social risks, preparedness, service continuity and recovery are embedded in decision criteria.",
+          "assessment_questions": [
+            "Are risks and continuity assessed as core or optional criteria?",
+            "Are local exposure and vulnerable groups represented?",
+            "Are event probabilities evidenced or merely assumed?",
+            "Are recovery and adaptation monitored?"
+          ],
+          "measures": [
+            "core_vs_optional_risk_criteria",
+            "risk_types_covered",
+            "group_disaggregation_coverage",
+            "continuity_and_recovery_evidence_coverage"
+          ],
+          "evidence_required": [
+            "risk_method_and_boundary",
+            "scenario_register",
+            "owner_native_hazard_and_service_receipts",
+            "recovery_observation_protocol"
+          ],
+          "phases": [
+            "concept",
+            "design",
+            "construction",
+            "commissioning",
+            "operation",
+            "maintenance",
+            "adaptation"
+          ],
+          "current_citymaker_state": "Operationalized",
+          "owner_refs": [
+            "Sol-Atlas #563",
+            "Symtropy CityKit #3768"
+          ],
+          "limitation": "Synthetic continuity oracle is not a local hazard or service reliability study."
+        },
+        {
+          "id": "ME-03",
+          "name": "Indicator Transparency and Clarity",
+          "definition": "Whether definitions, units, system boundaries, thresholds, calculation methods, uncertainty and evidence requirements are explicit and consistently interpretable.",
+          "assessment_questions": [
+            "Can a reviewer reproduce each metric?",
+            "Are units and functional units explicit?",
+            "Are thresholds and normalization disclosed?",
+            "Are unknowns, uncertainty and assessor discretion visible?"
+          ],
+          "measures": [
+            "definition_completeness_rate",
+            "unit_and_boundary_completeness_rate",
+            "independent_reproduction_rate",
+            "ambiguous_criterion_count"
+          ],
+          "evidence_required": [
+            "metric_registry",
+            "calculation_methods",
+            "source_and_revision_manifest",
+            "independent_replay_receipts"
+          ],
+          "phases": [
+            "all"
+          ],
+          "current_citymaker_state": "Operationalized",
+          "owner_refs": [
+            "Sol-Atlas #606",
+            "#623",
+            "#624"
+          ],
+          "limitation": "Schema and metadata completeness do not prove underlying physical truth."
+        },
+        {
+          "id": "ME-04",
+          "name": "Equity and Inclusion",
+          "definition": "Whether outcomes, burdens, access, affordability, accessibility, culture, displacement and decision participation are represented across relevant affected groups.",
+          "assessment_questions": [
+            "Which groups are represented and who is missing?",
+            "Are worst-served and distributional outcomes reported?",
+            "Are displacement and affordability safeguards hard constraints?",
+            "Can affected groups challenge assumptions and evidence?"
+          ],
+          "measures": [
+            "group_frame_coverage",
+            "disaggregated_outcome_coverage",
+            "worst_served_group_coverage",
+            "participation_influence_traceability",
+            "displacement_and_affordability_gate_coverage"
+          ],
+          "evidence_required": [
+            "population_frame_and_uncertainty",
+            "rights_cleared_disaggregated_evidence",
+            "consultation_and_response_records",
+            "hard_constraint_registry"
+          ],
+          "phases": [
+            "concept",
+            "design",
+            "construction",
+            "operation",
+            "adaptation"
+          ],
+          "current_citymaker_state": "Defined",
+          "owner_refs": [
+            "Sol-Atlas #555",
+            "#565",
+            "#628"
+          ],
+          "limitation": "No individual household geolocation or mobility surveillance is assumed."
+        },
+        {
+          "id": "ME-05",
+          "name": "Innovation and Technology Inclusion",
+          "definition": "Whether digital and technological methods contribute to measurable outcomes, accessibility, transparency, monitoring or adaptive management rather than being counted as innovation for its own sake.",
+          "assessment_questions": [
+            "Are technologies linked to stated outcome requirements?",
+            "Are offline/manual alternatives and failure modes represented?",
+            "Are privacy, cybersecurity, interoperability and maintenance included?",
+            "Does innovation improve local capability?"
+          ],
+          "measures": [
+            "technology_to_outcome_traceability",
+            "interoperability_test_coverage",
+            "offline_fallback_coverage",
+            "privacy_and_security_review_coverage"
+          ],
+          "evidence_required": [
+            "technology_use_case_register",
+            "interface_and_schema_specs",
+            "cyber_privacy_review",
+            "measured_outcome_and_maintenance_records"
+          ],
+          "phases": [
+            "design",
+            "procurement",
+            "construction",
+            "commissioning",
+            "operation",
+            "maintenance"
+          ],
+          "current_citymaker_state": "Defined",
+          "owner_refs": [
+            "Symthaea #6040",
+            "Sol-Atlas #606",
+            "#625"
+          ],
+          "limitation": "Presence of BIM, IoT, AI or a digital twin is not proof of better outcomes."
+        }
+      ]
+    },
+    {
+      "dimension_id": "applicability",
+      "indicator_count": 4,
+      "indicators": [
+        {
+          "id": "ME-06",
+          "name": "Governance and Policy Integration",
+          "definition": "Whether assessment requirements align with local planning and statutory processes, institutional responsibilities, budgets, decision rights and accountability.",
+          "assessment_questions": [
+            "Who is legally or operationally responsible for each decision?",
+            "Does the method map to actual planning and budgeting processes?",
+            "Are conflicts and approvals visible?",
+            "Are corrections and appeals traceable?"
+          ],
+          "measures": [
+            "owner_and_decision_right_coverage",
+            "planning_process_mapping_coverage",
+            "unresolved_policy_conflict_count",
+            "approval_and_correction_traceability"
+          ],
+          "evidence_required": [
+            "jurisdiction_and_policy_register",
+            "decision_rights_matrix",
+            "approval_and_appeal_process",
+            "municipal_and_professional_review"
+          ],
+          "phases": [
+            "concept",
+            "design",
+            "procurement",
+            "construction",
+            "commissioning",
+            "operation",
+            "adaptation"
+          ],
+          "current_citymaker_state": "Defined",
+          "owner_refs": [
+            "Sol-Atlas #606",
+            "#615",
+            "#628"
+          ],
+          "limitation": "No municipal endorsement or statutory compliance is inferred from a synthetic model."
+        },
+        {
+          "id": "ME-07",
+          "name": "Stakeholder Participation",
+          "definition": "Whether affected residents, workers, operators, institutions and marginalised groups can influence requirements, alternatives, evaluation criteria and corrective action.",
+          "assessment_questions": [
+            "Who is affected, invited, represented and absent?",
+            "At what stages can participants influence decisions?",
+            "How are dissent and competing claims recorded?",
+            "What changed because of participation?"
+          ],
+          "measures": [
+            "affected_group_identification_coverage",
+            "participation_stage_coverage",
+            "response_and_change_traceability",
+            "unresolved_dissent_register"
+          ],
+          "evidence_required": [
+            "stakeholder_map",
+            "participation_plan",
+            "accessible_meeting_and_submission_records",
+            "decision_response_log",
+            "consent_and_data_governance"
+          ],
+          "phases": [
+            "concept",
+            "design",
+            "construction",
+            "operation",
+            "adaptation"
+          ],
+          "current_citymaker_state": "Defined",
+          "limitation": "Attendance counts alone do not measure meaningful influence or consent."
+        },
+        {
+          "id": "ME-08",
+          "name": "Adaptability and Contextual Fit",
+          "definition": "Whether the method can adapt to local climate, informality, settlement pattern, institutional capacity, resource constraints, legal context and data availability while retaining a clear comparison boundary.",
+          "assessment_questions": [
+            "Which assumptions are context-specific?",
+            "Can methods operate with sparse or imperfect data without false confidence?",
+            "Are local methods additions disclosed?",
+            "Can the system distinguish local adaptation from changed metric definitions?"
+          ],
+          "measures": [
+            "context_parameter_coverage",
+            "local_method_extension_register",
+            "data_gap_abstention_rate",
+            "cross_context_replayability"
+          ],
+          "evidence_required": [
+            "context_profile",
+            "local_law_and_standard_register",
+            "source_readiness_register",
+            "adaptation_change_log"
+          ],
+          "phases": [
+            "concept",
+            "design",
+            "procurement",
+            "construction",
+            "operation",
+            "adaptation"
+          ],
+          "current_citymaker_state": "Defined",
+          "owner_refs": [
+            "Sol-Atlas #561",
+            "#615",
+            "#628"
+          ],
+          "limitation": "A synthetic Johannesburg template is not a validated Johannesburg model."
+        },
+        {
+          "id": "ME-09",
+          "name": "Cross-Sectoral Relevance",
+          "definition": "Whether essential urban systems and their interdependencies are assessed together rather than as disconnected silos.",
+          "assessment_questions": [
+            "Are housing, health, education, food, water, energy, mobility, ecology, materials and maintenance represented?",
+            "Are dependencies and common-cause failures explicit?",
+            "Can a service be traced to products, production, delivery, commissioning and maintenance?"
+          ],
+          "measures": [
+            "service_contract_coverage",
+            "cross_owner_dependency_coverage",
+            "lifecycle_chain_completeness",
+            "double_counting_negative_control_coverage"
+          ],
+          "evidence_required": [
+            "district_service_contracts",
+            "owner_contract_registry",
+            "shared_scope_receipts",
+            "interdependency_and_failure_scenarios"
+          ],
+          "phases": [
+            "concept",
+            "design",
+            "procurement",
+            "construction",
+            "commissioning",
+            "operation",
+            "maintenance",
+            "adaptation",
+            "deconstruction"
+          ],
+          "current_citymaker_state": "Operationalized",
+          "owner_refs": [
+            "Sol-Atlas #615",
+            "Symtropy #3768",
+            "#3773",
+            "#4150",
+            "Mycelix #5035"
+          ],
+          "limitation": "A composition manifest is not proof the district has the declared capacity."
+        }
+      ]
+    },
+    {
+      "dimension_id": "operational_efficiency",
+      "indicator_count": 4,
+      "indicators": [
+        {
+          "id": "ME-10",
+          "name": "Scalability and Usability",
+          "definition": "Whether assessment procedures remain usable, reproducible and proportionate across component, building, neighbourhood and city scales.",
+          "assessment_questions": [
+            "What expertise and infrastructure are required at each scale?",
+            "Which methods are reusable across scales?",
+            "Where does performance or reproducibility break down?",
+            "What proportion of work is manual or custom?"
+          ],
+          "measures": [
+            "scale_specific_replay_rate",
+            "configuration_effort_by_scale",
+            "custom_workflow_share",
+            "operator_completion_and_error_rate"
+          ],
+          "evidence_required": [
+            "scale_test_matrix",
+            "workflow_logs",
+            "replay_receipts",
+            "user_task_observations"
+          ],
+          "phases": [
+            "concept",
+            "design",
+            "construction",
+            "commissioning",
+            "operation"
+          ],
+          "current_citymaker_state": "Defined",
+          "limitation": "Passing a small synthetic crate is not production-scale throughput."
+        },
+        {
+          "id": "ME-11",
+          "name": "Training and Implementation Support",
+          "definition": "Whether assessor, planner, operator, tradesperson and community-facing roles can acquire and maintain the competence needed to apply the system correctly.",
+          "assessment_questions": [
+            "Which roles need training and how much?",
+            "Are competency requirements and support materials explicit?",
+            "Can local teams maintain the system?",
+            "Is specialist dependence a bottleneck?"
+          ],
+          "measures": [
+            "role_based_training_hours",
+            "competency_assessment_coverage",
+            "local_support_and_maintenance_coverage",
+            "specialist_dependency_count"
+          ],
+          "evidence_required": [
+            "role_and_skill_matrix",
+            "training_materials",
+            "competency_results",
+            "support_and_maintenance_plan"
+          ],
+          "phases": [
+            "design",
+            "construction",
+            "commissioning",
+            "operation",
+            "maintenance"
+          ],
+          "current_citymaker_state": "Defined",
+          "limitation": "No assumption that automation eliminates skilled trades or specialist review."
+        },
+        {
+          "id": "ME-12",
+          "name": "Cost and Time Efficiency",
+          "definition": "Whether the full cost and time required to collect evidence, model, consult, assess, review, update and monitor are visible and proportionate.",
+          "assessment_questions": [
+            "What data collection and analysis time is included?",
+            "Are licence, survey, consultation, reviewer, training and monitoring costs included?",
+            "Are cost base year, currency and scope explicit?",
+            "Are implementation burdens distributed fairly?"
+          ],
+          "measures": [
+            "full_assessment_cost_by_stage",
+            "elapsed_time_by_stage",
+            "cost_per_assessed_functional_unit",
+            "unpriced_or_excluded_work_share"
+          ],
+          "evidence_required": [
+            "cost_and_time_boundary",
+            "currency_and_base_year",
+            "staff_and_consultant_time_records",
+            "software_data_and_survey_costs"
+          ],
+          "phases": [
+            "all"
+          ],
+          "current_citymaker_state": "Defined",
+          "limitation": "No local prices or cost savings are asserted without source-backed evidence."
+        },
+        {
+          "id": "ME-13",
+          "name": "Monitoring and Post-Evaluation",
+          "definition": "Whether assessment results are revisited after commissioning and operation, with feedback into corrective action, maintenance and updated plans.",
+          "assessment_questions": [
+            "Are outcomes monitored after handover?",
+            "Are observation time, valid time, revisions and corrections retained?",
+            "Can assessed predictions be compared with measured outcomes?",
+            "Can communities report failures and observe corrective action?"
+          ],
+          "measures": [
+            "post_occupancy_monitoring_coverage",
+            "prediction_to_observation_link_rate",
+            "correction_and_reinspection_closure_rate",
+            "outcome_feedback_latency"
+          ],
+          "evidence_required": [
+            "commissioning_and_asset_register",
+            "time_valid_observation_receipts",
+            "corrective_action_and_reinspection_records",
+            "resident_operator_feedback"
+          ],
+          "phases": [
+            "commissioning",
+            "operation",
+            "maintenance",
+            "adaptation",
+            "deconstruction"
+          ],
+          "current_citymaker_state": "Operationalized",
+          "owner_refs": [
+            "Sol-Atlas #603",
+            "#625",
+            "Symtropy #4043"
+          ],
+          "limitation": "A complete digital thread is not causal proof that a particular intervention caused an outcome."
+        }
+      ]
+    }
+  ],
+  "maturity_policy": {
+    "ordinal_only": true,
+    "no_additive_composite_score": true,
+    "missing_evidence_state": "Unknown",
+    "not_found_in_manual": "Not evidence that a capability is absent; record as not evidenced and seek clarification",
+    "independent_validation_rule": "Requires independent reviewer/replay or separate replication in the declared context",
+    "context_binding": "Each observation binds tool/manual version, jurisdiction, project phase, evidence snapshot and assessor method"
+  },
+  "comparative_sample": [
+    "LEED for Neighbourhood Development",
+    "BREEAM Communities",
+    "Green Star Communities",
+    "DGNB Districts",
+    "CASBEE-UD",
+    "Green Mark for Districts",
+    "GBI Township",
+    "HK-BEAM Plus Neighbourhood"
+  ],
+  "evaluation_protocol": {
+    "freeze_manual_edition_and_retrieval_date": true,
+    "two_independent_reviewers": true,
+    "inter_rater_agreement_required": true,
+    "stakeholder_review_required": true,
+    "local_context_appendix_required": true,
+    "publish_disagreements": true,
+    "no_single_score_or_rank": true,
+    "conceptual_framework_empirical_validation_pending": true
+  }
+}
