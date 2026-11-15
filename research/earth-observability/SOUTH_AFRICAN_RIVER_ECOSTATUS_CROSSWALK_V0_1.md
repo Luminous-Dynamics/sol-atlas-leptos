@@ -79,7 +79,24 @@ The crosswalk adds six adverse controls:
 
 Benchmark direct-vs-proxy classification, indicator-gap disclosure, site/reach scope errors, method-shift false promotion and correct separation of monitoring versus reporting cadence.
 
-## 7. References
+## 7. Legacy Jukskei RHP evidence: a pre-SUNCASA baseline lead
+
+The crosswalk now contains a separate legacy River Health Programme (RHP) record from DWS North West Regional Office, *River Health Programme in Crocodile West Marico WMA — Technical Report 3*, Contract WP 10592, final 31 July 2015 ([official DWS PDF](https://www.dws.gov.za/iwqs/rhp/state_of_rivers/Crocodile_West_Marico_WMA_technical_report_3_FINAL.pdf)). This is RHP-era evidence, not current REMP; DWS states that REMP replaced RHP in 2016.
+
+The report identifies five Jukskei sub-quaternary reaches: `A21C-01269`, `A21C-01232`, `A21C-01215`, `A21C-01183`, and `A21C-01167`. The biological monitoring site is `A2JUKS-DIENR`, representing `A21C-01167`.
+
+The report's catchment-level Jukskei summary gives ecological category D (highly modified, with large loss of habitat, biota and ecosystem functioning). At the monitored site:
+- Fish PES/Ecological Category is reported as 55.9% / D and stable across 2013–2015.
+- Macroinvertebrate MIRAI is reported D in 2013 and D/E in 2014; no 2015 macroinvertebrate sample was collected due to high flow, so the 2014 category was carried forward.
+- Riparian vegetation is reported as D.
+- Fish visits included field surveys and visual-only surveys during high flow; March 2015 visual work also cites sewage input posing a health risk.
+- Desktop Google Earth Habitat Integrity assessment for sub-quaternary reaches was not sensitive enough to detect deterioration within an ecological category.
+
+Treat this as **report-level historical comparator evidence**, not raw biological samples. One site's biota must not be generalized to all five reaches. A stable category does not establish that no within-category deterioration occurred. The machine-readable `legacy_jukskei_assessment` object preserves the report date, programme identity, reach/site IDs, indicator summaries, sampling gaps, pressures and admission requirements.
+
+Required next evidence: original DWS RHP database rows, coordinates, field sheets, taxa lists, MIRAI calculations, fish/FROC records, riparian vegetation forms, habitat-integrity source imagery and method/version. Spatially reconcile this legacy site with current REMP, the 2021 Alexandra study, Water for the Future monitoring, SUNCASA intervention polygons and EcoFilter assets before comparing outcomes.
+
+## 8. References
 
 - DWS, [REMP background and reference condition](https://www.dws.gov.za/iwqs/rhp/rhp_background.aspx).
 - DWS, [National State of Water Report 2024, §2.2.4](https://www.dws.gov.za/Projects/National%20State%20of%20Water%20Report/Documents/National%20State%20of%20Water%20Report%202024_Final%20%28002%29.pdf).
@@ -87,7 +104,7 @@ Benchmark direct-vs-proxy classification, indicator-gap disclosure, site/reach s
 - DWS, [River Health indicators and indices](https://www.dws.gov.za/iwqs/rhp/indices.html).
 - SER, [International Principles and Standards for Ecological Restoration, Third Edition (June 2026)](https://doi.org/10.1111/rec.70441).
 
-## 8. Claim ceiling
+## 9. Claim ceiling
 
 This is an interoperability crosswalk. It does not assert that REMP data exist for Jukskei or Alexandra, that a REMP site overlaps a SUNCASA intervention, that any REMP ecological category improved, or that interventions caused any change.
 
