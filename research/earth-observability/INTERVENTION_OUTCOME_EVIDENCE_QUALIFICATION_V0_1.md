@@ -43,6 +43,37 @@ For each claim, record the highest class justified by the admitted evidence. The
 
 Do not hide the downgrade or delete the original submission. Preserve both with a reason code.
 
+## 2.2 Crosswalk to current international restoration and NbS standards
+
+The current external standards reinforce the distinction in this protocol and provide a disciplined way to make the outcome claim more useful.
+
+### Society for Ecological Restoration (SER), Third Edition, June 2026
+
+The SER third edition distinguishes three monitoring purposes:
+- **Implementation/compliance monitoring:** whether planned actions were delivered.
+- **Effectiveness/performance monitoring:** whether predefined objectives and indicators are being achieved.
+- **Impact monitoring:** longer-term ecological, cultural and socioeconomic effects.
+
+That maps naturally to the IOEQ claim classes, but causal attribution is an additional question: SER notes that comparing a restoration site with its baseline and reference model measures recovery, but does not by itself establish that the intervention caused it. For intervention effects, SER recommends pre/post data at a sufficient number of treated and control sites (BACI) and replication where possible. When this is infeasible, baseline change may be described, but not interpreted as causal without adequate design evidence.
+
+SER's Five-star / Ecological Recovery Wheel framework assesses six attributes separately: absence of threats, physical conditions, species composition, structural diversity, ecosystem function and external exchanges. It recommends reference models, baseline inventories, measurable indicators and time-bound recovery objectives. IOEQ therefore records which ecological attributes a case actually measures. Do not collapse them into a single project score that can hide an attribute that worsened. Different attributes may have different recovery trajectories and evidence quality.
+
+### IUCN Global Standard for Nature-based Solutions, Second Edition, October 2025
+
+The IUCN standard has eight criteria and 27 indicators spanning societal challenges, integrated systems, biodiversity/ecosystem integrity, financial feasibility, inclusive governance, trade-offs/safeguards, adaptive management and sustainability/mainstreaming. IOEQ should use it as a complementary **intervention-design and governance crosswalk**, not as a substitute for sensor calibration, reference sampling or causal identification. An NbS can be well-designed and socially inclusive while its physical effect remains unmeasured; conversely, a physical measurement alone cannot establish equitable governance or distribution of benefits.
+
+### FAO Framework for Ecosystem Restoration Monitoring (FERM)
+
+FERM is the UN Decade on Ecosystem Restoration's operational monitoring/reporting framework and provides a geospatial platform, initiative registry and good-practice discovery. It is a useful interoperability target for project identifiers, geometry, intervention types and harmonized indicators. FERM-scale reporting of area under restoration is not a causal evaluation and must not replace local outcome measurements.
+
+### Water-quality instrumentation
+
+For the EcoFilter, the USGS continuous water-quality monitor guidance is a strong methodological comparator for station selection, sensor inspection, cleaning, calibration, record computation, review and reporting. It is not a South African legal requirement; use it as a technical reference and reconcile it with applicable South African standards and the actual instruments/laboratories used.
+
+### Contract additions
+
+The IOEQ case schema now records monitoring type, reference-ecosystem status, the six ecosystem attributes measured, whether indicators were preregistered, and causal-design type. This makes a project summary, a telemetry dataset, a restoration assessment and a causal-effect study machine-distinguishable before scoring.
+
 ## 3. Jukskei as a real intervention qualification case
 
 The Jukskei catchment now offers several different intervention records:
