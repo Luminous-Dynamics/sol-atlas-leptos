@@ -533,7 +533,10 @@ pub fn audit_matpower_case(source: &str) -> Result<AuditSummary, String> {
             let area_id = parse_integer(area[0], "area identifier")?;
             let reference_bus = parse_integer(area[1], "area reference bus")?;
             if area_id <= 0 {
-                return Err(format!("area identifier must be positive at row {}", index + 1));
+                return Err(format!(
+                    "area identifier must be positive at row {}",
+                    index + 1
+                ));
             }
             if !area_ids.insert(area_id) {
                 return Err(format!("duplicate area identifier {area_id}"));
