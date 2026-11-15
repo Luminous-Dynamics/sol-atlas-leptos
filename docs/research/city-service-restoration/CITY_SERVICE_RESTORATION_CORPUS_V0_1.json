@@ -1,0 +1,462 @@
+{
+  "schema": "city-service-restoration-corpus/0.1",
+  "purpose": "Synthetic known-answer fixtures for validating proposed repair/restoration-plan feasibility and lifecycle-state separation.",
+  "evidence_class": "synthetic",
+  "normative_notice": "Every fixture is artificial. No values represent real inventory, capacity, safety, engineering, workforce, delivery or city-service evidence.",
+  "verdicts": {
+    "plan_readiness": [
+      "feasible",
+      "infeasible",
+      "unknown"
+    ],
+    "work_execution": [
+      "not_started",
+      "in_progress",
+      "failed",
+      "completed",
+      "unknown"
+    ],
+    "inspection_state": [
+      "not_performed",
+      "pass",
+      "fail",
+      "unknown"
+    ],
+    "commissioning_state": [
+      "not_performed",
+      "pass",
+      "fail",
+      "unknown"
+    ],
+    "service_state": [
+      "adequate",
+      "constrained",
+      "inaccessible",
+      "unknown"
+    ]
+  },
+  "precedence": [
+    "A proven hard contradiction makes plan_readiness=infeasible even when unrelated evidence is missing.",
+    "When no hard contradiction is proven, any missing or insufficient required evidence makes plan_readiness=unknown.",
+    "plan_readiness=feasible does not imply work execution, inspection, commissioning or service restoration.",
+    "Only the continuity owner can establish service_state and stable restoration."
+  ],
+  "cases": [
+    {
+      "id": "CSR-01",
+      "name": "Complete single-asset repair chain",
+      "case_type": "positive",
+      "expected": {
+        "plan_readiness": "feasible",
+        "work_execution": "not_started",
+        "inspection_state": "not_performed",
+        "commissioning_state": "not_performed",
+        "service_state": "unknown"
+      },
+      "expected_behavior": "All required current owner receipts, resource reservations, skills, tools, access, delivery and time windows are compatible."
+    },
+    {
+      "id": "CSR-02",
+      "name": "Required spare is authoritatively out of stock",
+      "case_type": "hard_conflict",
+      "expected": {
+        "plan_readiness": "infeasible",
+        "work_execution": "not_started",
+        "inspection_state": "not_performed",
+        "commissioning_state": "not_performed",
+        "service_state": "unknown"
+      },
+      "expected_behavior": "Owner-native inventory confirms zero available quantity for the permitted repair window."
+    },
+    {
+      "id": "CSR-03",
+      "name": "Spare has wrong product or BOM revision",
+      "case_type": "hard_conflict",
+      "expected": {
+        "plan_readiness": "infeasible",
+        "work_execution": "not_started",
+        "inspection_state": "not_performed",
+        "commissioning_state": "not_performed",
+        "service_state": "unknown"
+      },
+      "expected_behavior": "Exact product/configuration revision does not match the asset and interface contract."
+    },
+    {
+      "id": "CSR-04",
+      "name": "Correct part but material lot is revoked",
+      "case_type": "hard_conflict",
+      "expected": {
+        "plan_readiness": "infeasible",
+        "work_execution": "not_started",
+        "inspection_state": "not_performed",
+        "commissioning_state": "not_performed",
+        "service_state": "unknown"
+      },
+      "expected_behavior": "Authoritative provenance owner marks the exact lot revoked."
+    },
+    {
+      "id": "CSR-05",
+      "name": "Lot is qualified but custody/receiving acceptance is missing",
+      "case_type": "missing_evidence",
+      "expected": {
+        "plan_readiness": "unknown",
+        "work_execution": "not_started",
+        "inspection_state": "not_performed",
+        "commissioning_state": "not_performed",
+        "service_state": "unknown"
+      },
+      "expected_behavior": "Physical availability cannot be inferred without required custody and receiving acceptance."
+    },
+    {
+      "id": "CSR-06",
+      "name": "One lot is exclusively committed to two work packages",
+      "case_type": "hard_conflict",
+      "expected": {
+        "plan_readiness": "infeasible",
+        "work_execution": "not_started",
+        "inspection_state": "not_performed",
+        "commissioning_state": "not_performed",
+        "service_state": "unknown"
+      },
+      "expected_behavior": "Owner-native reservation facts prove an exclusive double allocation."
+    },
+    {
+      "id": "CSR-07",
+      "name": "Catalogue quantity exists but no owner reservation receipt",
+      "case_type": "missing_evidence",
+      "expected": {
+        "plan_readiness": "unknown",
+        "work_execution": "not_started",
+        "inspection_state": "not_performed",
+        "commissioning_state": "not_performed",
+        "service_state": "unknown"
+      },
+      "expected_behavior": "A catalogue listing is not proof of deployable, uncommitted stock."
+    },
+    {
+      "id": "CSR-08",
+      "name": "Substitute is named but not technically qualified",
+      "case_type": "missing_evidence",
+      "expected": {
+        "plan_readiness": "unknown",
+        "work_execution": "not_started",
+        "inspection_state": "not_performed",
+        "commissioning_state": "not_performed",
+        "service_state": "unknown"
+      },
+      "expected_behavior": "No approved equivalence/interface evidence exists for the substitute."
+    },
+    {
+      "id": "CSR-09",
+      "name": "Qualified substitute has exact lot and accepted custody",
+      "case_type": "positive",
+      "expected": {
+        "plan_readiness": "feasible",
+        "work_execution": "not_started",
+        "inspection_state": "not_performed",
+        "commissioning_state": "not_performed",
+        "service_state": "unknown"
+      },
+      "expected_behavior": "Substitution, compatibility, exact lot, custody and allocation are all owner-qualified."
+    },
+    {
+      "id": "CSR-10",
+      "name": "Nearby supplier has no time-bounded deliverable capacity evidence",
+      "case_type": "missing_evidence",
+      "expected": {
+        "plan_readiness": "unknown",
+        "work_execution": "not_started",
+        "inspection_state": "not_performed",
+        "commissioning_state": "not_performed",
+        "service_state": "unknown"
+      },
+      "expected_behavior": "Geographic proximity does not establish production or delivery capacity."
+    },
+    {
+      "id": "CSR-11",
+      "name": "Delivery route is closed throughout the allowed window",
+      "case_type": "hard_conflict",
+      "expected": {
+        "plan_readiness": "infeasible",
+        "work_execution": "not_started",
+        "inspection_state": "not_performed",
+        "commissioning_state": "not_performed",
+        "service_state": "unknown"
+      },
+      "expected_behavior": "Authoritative route evidence proves no permitted delivery path exists within the required interval."
+    },
+    {
+      "id": "CSR-12",
+      "name": "Delivery arrives after the allowed work window",
+      "case_type": "hard_conflict",
+      "expected": {
+        "plan_readiness": "infeasible",
+        "work_execution": "not_started",
+        "inspection_state": "not_performed",
+        "commissioning_state": "not_performed",
+        "service_state": "unknown"
+      },
+      "expected_behavior": "The earliest evidenced accepted-delivery time is later than the latest permitted start."
+    },
+    {
+      "id": "CSR-13",
+      "name": "Site unloading or laydown access is unavailable",
+      "case_type": "hard_conflict",
+      "expected": {
+        "plan_readiness": "infeasible",
+        "work_execution": "not_started",
+        "inspection_state": "not_performed",
+        "commissioning_state": "not_performed",
+        "service_state": "unknown"
+      },
+      "expected_behavior": "The declared delivery method cannot be received at the target site under the current access envelope."
+    },
+    {
+      "id": "CSR-14",
+      "name": "Required worker skill or authorization evidence is absent",
+      "case_type": "missing_evidence",
+      "expected": {
+        "plan_readiness": "unknown",
+        "work_execution": "not_started",
+        "inspection_state": "not_performed",
+        "commissioning_state": "not_performed",
+        "service_state": "unknown"
+      },
+      "expected_behavior": "No authoritative evidence supports the required role authorization for this task."
+    },
+    {
+      "id": "CSR-15",
+      "name": "Worker qualification expires before the work interval",
+      "case_type": "hard_conflict",
+      "expected": {
+        "plan_readiness": "infeasible",
+        "work_execution": "not_started",
+        "inspection_state": "not_performed",
+        "commissioning_state": "not_performed",
+        "service_state": "unknown"
+      },
+      "expected_behavior": "The evidenced qualification-validity interval does not cover the proposed work."
+    },
+    {
+      "id": "CSR-16",
+      "name": "Required crew-hours exceed confirmed available capacity",
+      "case_type": "hard_conflict",
+      "expected": {
+        "plan_readiness": "infeasible",
+        "work_execution": "not_started",
+        "inspection_state": "not_performed",
+        "commissioning_state": "not_performed",
+        "service_state": "unknown"
+      },
+      "expected_behavior": "Declared work demand exceeds the owner-confirmed capacity available in the work window."
+    },
+    {
+      "id": "CSR-17",
+      "name": "Concurrent failures contend for one exclusive crew, tool or part",
+      "case_type": "hard_conflict",
+      "expected": {
+        "plan_readiness": "infeasible",
+        "work_execution": "not_started",
+        "inspection_state": "not_performed",
+        "commissioning_state": "not_performed",
+        "service_state": "unknown"
+      },
+      "expected_behavior": "Two proposed work packages require the same exclusive resource in overlapping intervals."
+    },
+    {
+      "id": "CSR-18",
+      "name": "Required tool is unavailable in the proposed interval",
+      "case_type": "hard_conflict",
+      "expected": {
+        "plan_readiness": "infeasible",
+        "work_execution": "not_started",
+        "inspection_state": "not_performed",
+        "commissioning_state": "not_performed",
+        "service_state": "unknown"
+      },
+      "expected_behavior": "Owner evidence confirms the required tool/equipment is unavailable for the full work interval."
+    },
+    {
+      "id": "CSR-19",
+      "name": "Required measurement instrument has expired calibration",
+      "case_type": "hard_conflict",
+      "expected": {
+        "plan_readiness": "infeasible",
+        "work_execution": "not_started",
+        "inspection_state": "not_performed",
+        "commissioning_state": "not_performed",
+        "service_state": "unknown"
+      },
+      "expected_behavior": "Calibration validity does not cover the required measurement event."
+    },
+    {
+      "id": "CSR-20",
+      "name": "Work is ordered before its required isolation or prerequisite inspection",
+      "case_type": "hard_conflict",
+      "expected": {
+        "plan_readiness": "infeasible",
+        "work_execution": "not_started",
+        "inspection_state": "not_performed",
+        "commissioning_state": "not_performed",
+        "service_state": "unknown"
+      },
+      "expected_behavior": "The proposed sequence violates an explicit work-package precedence constraint."
+    },
+    {
+      "id": "CSR-21",
+      "name": "Procedure requires isolation but no valid isolation evidence is supplied",
+      "case_type": "missing_evidence",
+      "expected": {
+        "plan_readiness": "unknown",
+        "work_execution": "not_started",
+        "inspection_state": "not_performed",
+        "commissioning_state": "not_performed",
+        "service_state": "unknown"
+      },
+      "expected_behavior": "A required safety precondition is unproven; the evaluator must not infer isolation."
+    },
+    {
+      "id": "CSR-22",
+      "name": "Isolation interrupts a protected service without accepted mitigation",
+      "case_type": "hard_conflict",
+      "expected": {
+        "plan_readiness": "infeasible",
+        "work_execution": "not_started",
+        "inspection_state": "not_performed",
+        "commissioning_state": "not_performed",
+        "service_state": "unknown"
+      },
+      "expected_behavior": "The proposed isolation violates a declared non-compensatory service-protection constraint."
+    },
+    {
+      "id": "CSR-23",
+      "name": "Repair location is inaccessible under current access constraints",
+      "case_type": "hard_conflict",
+      "expected": {
+        "plan_readiness": "infeasible",
+        "work_execution": "not_started",
+        "inspection_state": "not_performed",
+        "commissioning_state": "not_performed",
+        "service_state": "unknown"
+      },
+      "expected_behavior": "Owner-native access evidence confirms the required work location cannot be reached."
+    },
+    {
+      "id": "CSR-24",
+      "name": "As-built datum exceeds qualified adjustment/buffer envelope",
+      "case_type": "hard_conflict",
+      "expected": {
+        "plan_readiness": "infeasible",
+        "work_execution": "not_started",
+        "inspection_state": "not_performed",
+        "commissioning_state": "not_performed",
+        "service_state": "unknown"
+      },
+      "expected_behavior": "Measured host/module tolerance stack exceeds the declared qualified adjustment range."
+    },
+    {
+      "id": "CSR-25",
+      "name": "Fault exceeds the permitted repair envelope",
+      "case_type": "hard_conflict",
+      "expected": {
+        "plan_readiness": "infeasible",
+        "work_execution": "not_started",
+        "inspection_state": "not_performed",
+        "commissioning_state": "not_performed",
+        "service_state": "unknown"
+      },
+      "expected_behavior": "The observed condition requires a different intervention and no approved disposition is supplied."
+    },
+    {
+      "id": "CSR-26",
+      "name": "Failed attempts or rework history is omitted and remaining scope is unknown",
+      "case_type": "missing_evidence",
+      "expected": {
+        "plan_readiness": "unknown",
+        "work_execution": "unknown",
+        "inspection_state": "unknown",
+        "commissioning_state": "unknown",
+        "service_state": "unknown"
+      },
+      "expected_behavior": "Unreported rework could change remaining labour, resource availability and the feasible time window."
+    },
+    {
+      "id": "CSR-27",
+      "name": "Work is completed but independent inspection is absent",
+      "case_type": "stage_separation",
+      "expected": {
+        "plan_readiness": "feasible",
+        "work_execution": "completed",
+        "inspection_state": "not_performed",
+        "commissioning_state": "not_performed",
+        "service_state": "unknown"
+      },
+      "expected_behavior": "Plan readiness and execution completion do not constitute independent acceptance."
+    },
+    {
+      "id": "CSR-28",
+      "name": "Inspection passes but commissioning has not occurred",
+      "case_type": "stage_separation",
+      "expected": {
+        "plan_readiness": "feasible",
+        "work_execution": "completed",
+        "inspection_state": "pass",
+        "commissioning_state": "not_performed",
+        "service_state": "unknown"
+      },
+      "expected_behavior": "An inspection pass does not establish integrated functional commissioning or service restoration."
+    },
+    {
+      "id": "CSR-29",
+      "name": "Commissioning passes but the continuity owner reports Unknown",
+      "case_type": "stage_separation",
+      "expected": {
+        "plan_readiness": "feasible",
+        "work_execution": "completed",
+        "inspection_state": "pass",
+        "commissioning_state": "pass",
+        "service_state": "unknown"
+      },
+      "expected_behavior": "Commissioning evidence cannot replace the time-dependent service-state owner."
+    },
+    {
+      "id": "CSR-30",
+      "name": "One adequate observation exists but stable-adequacy interval is not met",
+      "case_type": "stage_separation",
+      "expected": {
+        "plan_readiness": "feasible",
+        "work_execution": "completed",
+        "inspection_state": "pass",
+        "commissioning_state": "pass",
+        "service_state": "unknown"
+      },
+      "expected_behavior": "A single adequate sample does not satisfy the continuity owner's stable recovery predicate."
+    },
+    {
+      "id": "CSR-31",
+      "name": "Digest syntax exists but exact payload bytes are not independently verified",
+      "case_type": "missing_evidence",
+      "expected": {
+        "plan_readiness": "unknown",
+        "work_execution": "not_started",
+        "inspection_state": "not_performed",
+        "commissioning_state": "not_performed",
+        "service_state": "unknown"
+      },
+      "expected_behavior": "A declared digest is not proof that the resolved payload bytes match it."
+    },
+    {
+      "id": "CSR-32",
+      "name": "Bytes are verified but issuer identity, rights or technical validity is promoted",
+      "case_type": "overclaim_negative_control",
+      "expected": {
+        "plan_readiness": "unknown",
+        "work_execution": "not_started",
+        "inspection_state": "not_performed",
+        "commissioning_state": "not_performed",
+        "service_state": "unknown"
+      },
+      "expected_behavior": "Byte equality establishes neither issuer authentication, usage rights nor engineering correctness."
+    }
+  ]
+}
