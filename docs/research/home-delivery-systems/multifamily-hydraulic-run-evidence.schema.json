@@ -431,7 +431,81 @@
         "mapping_evidence_ref": {
           "$ref": "#/$defs/nullableReference"
         }
-      }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "mapping_state": {
+                "const": "bound"
+              }
+            },
+            "required": [
+              "mapping_state"
+            ]
+          },
+          "then": {
+            "required": [
+              "solver_entity_id",
+              "mapping_evidence_ref"
+            ],
+            "properties": {
+              "solver_entity_id": {
+                "type": "string",
+                "minLength": 1
+              },
+              "mapping_evidence_ref": {
+                "$ref": "#/$defs/reference"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "mapping_state": {
+                "const": "planned"
+              }
+            },
+            "required": [
+              "mapping_state"
+            ]
+          },
+          "then": {
+            "properties": {
+              "solver_entity_id": {
+                "type": "null"
+              },
+              "mapping_evidence_ref": {
+                "type": "null"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "mapping_state": {
+                "enum": [
+                  "ambiguous",
+                  "excluded",
+                  "unknown"
+                ]
+              }
+            },
+            "required": [
+              "mapping_state"
+            ]
+          },
+          "then": {
+            "properties": {
+              "solver_entity_id": {
+                "type": "null"
+              }
+            }
+          }
+        }
+      ]
     },
     "resultSeries": {
       "type": "object",
@@ -483,16 +557,13 @@
           "enum": [
             "modelled",
             "calibrated_modelled",
-            "measured",
             "disputed",
             "invalidated"
           ]
         },
         "time_basis": {
           "enum": [
-            "elapsed_seconds",
-            "utc_timestamp",
-            "local_timestamp_with_zone"
+            "elapsed_seconds"
           ]
         },
         "points": {
@@ -505,7 +576,50 @@
         "evidence_ref": {
           "$ref": "#/$defs/nullableReference"
         }
-      }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "value_state": {
+                "enum": [
+                  "modelled",
+                  "calibrated_modelled"
+                ]
+              }
+            },
+            "required": [
+              "value_state"
+            ]
+          },
+          "then": {
+            "properties": {
+              "evidence_ref": {
+                "$ref": "#/$defs/reference"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "value_state": {
+                "const": "calibrated_modelled"
+              }
+            },
+            "required": [
+              "value_state"
+            ]
+          },
+          "then": {
+            "properties": {
+              "value_state": {
+                "const": "calibrated_modelled"
+              }
+            }
+          }
+        }
+      ]
     },
     "point": {
       "type": "object",
@@ -692,5 +806,195 @@
         }
       }
     }
-  }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "execution_state": {
+            "const": "not_executed"
+          }
+        },
+        "required": [
+          "execution_state"
+        ]
+      },
+      "then": {
+        "properties": {
+          "run_configuration": {
+            "properties": {
+              "solver_status": {
+                "const": "not_run"
+              }
+            }
+          },
+          "model_binding": {
+            "properties": {
+              "input_model_digest": {
+                "type": "null"
+              },
+              "result_digest": {
+                "type": "null"
+              }
+            }
+          },
+          "result_series": {
+            "maxItems": 0
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "execution_state": {
+            "const": "completed"
+          }
+        },
+        "required": [
+          "execution_state"
+        ]
+      },
+      "then": {
+        "properties": {
+          "solver": {
+            "properties": {
+              "build_digest": {
+                "type": "string",
+                "minLength": 64,
+                "maxLength": 64,
+                "pattern": "^[a-f0-9]{64}$"
+              }
+            },
+            "required": [
+              "build_digest"
+            ]
+          },
+          "model_binding": {
+            "properties": {
+              "input_model_digest": {
+                "type": "string",
+                "minLength": 64,
+                "maxLength": 64,
+                "pattern": "^[a-f0-9]{64}$"
+              },
+              "result_digest": {
+                "type": "string",
+                "minLength": 64,
+                "maxLength": 64,
+                "pattern": "^[a-f0-9]{64}$"
+              },
+              "building_ref": {
+                "$ref": "#/$defs/reference"
+              },
+              "service_topology_ref": {
+                "$ref": "#/$defs/reference"
+              },
+              "design_revision_ref": {
+                "$ref": "#/$defs/reference"
+              },
+              "jurisdiction_profile_ref": {
+                "$ref": "#/$defs/reference"
+              }
+            }
+          },
+          "run_configuration": {
+            "properties": {
+              "solver_status": {
+                "const": "converged"
+              },
+              "flow_units": {
+                "type": "string",
+                "minLength": 1
+              },
+              "pressure_units": {
+                "type": "string",
+                "minLength": 1
+              },
+              "time_zone": {
+                "type": "string",
+                "minLength": 1
+              },
+              "start_elapsed_s": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "end_elapsed_s": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "time_step_s": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "duration_s": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "model_coordinate_basis": {
+                "type": "string",
+                "minLength": 1
+              },
+              "vertical_datum": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          },
+          "result_series": {
+            "minItems": 1
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "execution_state": {
+            "const": "failed"
+          }
+        },
+        "required": [
+          "execution_state"
+        ]
+      },
+      "then": {
+        "properties": {
+          "run_configuration": {
+            "properties": {
+              "solver_status": {
+                "enum": [
+                  "failed",
+                  "non_converged"
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "execution_state": {
+            "const": "invalidated"
+          }
+        },
+        "required": [
+          "execution_state"
+        ]
+      },
+      "then": {
+        "properties": {
+          "run_configuration": {
+            "properties": {
+              "solver_status": {
+                "const": "invalidated"
+              }
+            }
+          }
+        }
+      }
+    }
+  ]
 }
