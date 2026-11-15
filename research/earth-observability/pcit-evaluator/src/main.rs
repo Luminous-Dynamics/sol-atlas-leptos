@@ -17,6 +17,10 @@ const REFERENCE_SCHEMA: &str =
     include_str!("../../../../schemas/ecological-reference-trajectory-v0.1.schema.json");
 const REFERENCE_CORPUS: &str =
     include_str!("../../ECOLOGICAL_REFERENCE_TRAJECTORY_SYNTHETIC_CORPUS_V0_1.json");
+const REFERENCE_SCHEMA: &str =
+    include_str!("../../../../schemas/ecological-reference-trajectory-v0.1.schema.json");
+const REFERENCE_CORPUS: &str =
+    include_str!("../../ECOLOGICAL_REFERENCE_TRAJECTORY_SYNTHETIC_CORPUS_V0_1.json");
 
 fn sha256_hex(bytes: &[u8]) -> String {
     const HEX: &[u8; 16] = b"0123456789abcdef";
@@ -749,7 +753,7 @@ fn write_json(path: &str, value: &Value) -> Result<(), Box<dyn Error>> {
 fn run(args: &[String]) -> Result<(), Box<dyn Error>> {
     let command = args
         .first()
-        .ok_or("usage: pcit-evaluator <validate|agent-view|score> [options]")?;
+        .ok_or("usage: pcit-evaluator <validate|agent-view|score|reference-validate|reference-view|reference-audit> [options]")?;
     let options = parse_options(&args[1..])?;
 
     match command.as_str() {
@@ -781,6 +785,40 @@ fn run(args: &[String]) -> Result<(), Box<dyn Error>> {
             let view = build_agent_view(&corpus, &digest)?;
             write_json(output_path, &view)?;
         }
+        "reference-validate" => {
+            let schema_path = required(&options, "--schema")?;
+            let corpus_path = required(&options, "--corpus")?;
+            let (schema_bytes, schema) = load_json(schema_path)?;
+            let (corpus_bytes, corpus) = load_json(corpus_path)?;
+            validate_schema_document(&schema, schema_path)?;
+            validate_instance(&schema, &corpus, corpus_path)?;
+            let report = json!({
+                "valid": true,
+                "schema_sha256": sha256_hex(&schema_bytes),
+                "corpus_sha256": sha256_hex(&corpus_bytes),
+                "case_count": corpus["cases"].as_array().map_or(0, Vec::len),
+                "schema_draft": "2020-12"
+            });
+            write_json("-", &report)?;
+        }
+        "reference-view" => {
+            let corpus_path = required(&options, "--corpus")?;
+            let output_path = required(&options, "--out")?;
+            let (corpus_bytes, corpus) = load_json(corpus_path)?;
+            let view = build_reference_agent_view(&corpus, &sha256_hex(&corpus_bytes))?;
+            write_json(output_path, &view)?;
+        }
+        "reference-audit" => {
+            let schema_path = required(&options, "--schema")?;
+            let corpus_path = required(&options, "--corpus")?;
+            let output_path = required(&options, "--out")?;
+            let (corpus_bytes, corpus) = load_json(corpus_path)?;
+            let (_schema_bytes, schema) = load_json(schema_path)?;
+            validate_schema_document(&schema, schema_path)?;
+            validate_instance(&schema, &corpus, corpus_path)?;
+            let report = audit_reference_corpus(&corpus, &sha256_hex(&corpus_bytes));
+            write_json(output_path, &report)?;
+        }
         "score" => {
             let corpus_schema_path = required(&options, "--corpus-schema")?;
             let corpus_path = required(&options, "--corpus")?;
@@ -804,7 +842,7 @@ fn run(args: &[String]) -> Result<(), Box<dyn Error>> {
         }
         _ => {
             return Err(
-                format!("unknown command {command:?}; use validate, agent-view or score").into(),
+                format!("unknown command {command:?}; use validate, agent-view, score, reference-validate, reference-view or reference-audit").into(),
             );
         }
     }
@@ -1132,4 +1170,136 @@ mod tests {
         );
         assert_eq!(report["integrity"]["corpus_digest_matches"], false);
     }
+
+    #[test]
+    fn reference_schema_and_locked_corpus_validate_under_json_schema_2020_12() {
+        let schema: Value =
+            serde_json::from_str(REFERENCE_SCHEMA).expect("reference schema parses");
+        let corpus: Value =
+            serde_json::from_str(REFERENCE_CORPUS).expect("reference corpus parses");
+        validate_schema_document(&schema, "embedded reference schema")
+            .expect("reference schema compiles");
+        validate_instance(&schema, &corpus, "embedded reference corpus")
+            .expect("reference corpus validates");
+        assert_eq!(corpus["cases"].as_array().expect("cases").len(), 10);
+    }
+
+    #[test]
+    fn reference_audit_matches_all_locked_expected_blockers() {
+        let corpus: Value =
+            serde_json::from_str(REFERENCE_CORPUS).expect("reference corpus parses");
+        for case in corpus["cases"].as_array().expect("cases") {
+            let audit = reference_audit_case(case);
+            let expected: BTreeSet<String> = case["expected_audit"]["expected_blockers"]
+                .as_array()
+                .expect("expected blockers")
+                .iter()
+                .filter_map(Value::as_str)
+                .map(str::to_owned)
+                .collect();
+            let actual: BTreeSet<String> = audit["blockers"]
+                .as_array()
+                .expect("audit blockers")
+                .iter()
+                .filter_map(Value::as_str)
+                .map(str::to_owned)
+                .collect();
+            assert_eq!(
+                actual, expected,
+                "blocker mismatch for {}",
+                case["case_id"].as_str().unwrap_or("<unknown>")
+            );
+            assert_eq!(
+                audit["reference_model_qualified"],
+                case["expected_audit"]["reference_model_qualified"],
+                "reference qualification mismatch for {}",
+                case["case_id"].as_str().unwrap_or("<unknown>")
+            );
+            assert_eq!(
+                audit["overall_claim_permitted"],
+                case["expected_audit"]["overall_claim_permitted"],
+                "claim permission mismatch for {}",
+                case["case_id"].as_str().unwrap_or("<unknown>")
+            );
+        }
+    }
+
+    fn contains_reference_oracle_key(value: &Value) -> bool {
+        const FORBIDDEN: &[&str] = &["family", "expected_audit", "hard_invariants"];
+        match value {
+            Value::Object(map) => map.iter().any(|(key, value)| {
+                FORBIDDEN.contains(&key.as_str()) || contains_reference_oracle_key(value)
+            }),
+            Value::Array(items) => items.iter().any(contains_reference_oracle_key),
+            _ => false,
+        }
+    }
+
+    #[test]
+    fn reference_agent_view_excludes_oracle_fields_recursively() {
+        let corpus: Value =
+            serde_json::from_str(REFERENCE_CORPUS).expect("reference corpus parses");
+        let view = build_reference_agent_view(&corpus, &"a".repeat(64))
+            .expect("reference agent view builds");
+        assert_eq!(view["metadata_only"], true);
+        assert_eq!(view["cases"].as_array().expect("cases").len(), 10);
+        assert!(!contains_reference_oracle_key(&view));
+    }
+
+    #[test]
+    fn worsening_attribute_cannot_be_compensated_by_other_improvements() {
+        let corpus: Value =
+            serde_json::from_str(REFERENCE_CORPUS).expect("reference corpus parses");
+        let case = corpus["cases"]
+            .as_array()
+            .expect("cases")
+            .iter()
+            .find(|case| case["case_id"] == "REF-SYN-005")
+            .expect("tradeoff fixture");
+        let audit = reference_audit_case(case);
+        assert_eq!(audit["reference_model_qualified"], true);
+        assert_eq!(audit["overall_claim_permitted"], false);
+        assert_eq!(
+            audit["claim_blockers"][0],
+            "non_compensatory_attribute_regression"
+        );
+        assert_eq!(
+            audit["worsening_attributes"].as_array().expect("worsening").len(),
+            1
+        );
+    }
+
+    #[test]
+    fn unobserved_attribute_blocks_positive_overall_recovery_claim() {
+        let corpus: Value =
+            serde_json::from_str(REFERENCE_CORPUS).expect("reference corpus parses");
+        let case = corpus["cases"]
+            .as_array()
+            .expect("cases")
+            .iter()
+            .find(|case| case["case_id"] == "REF-SYN-010")
+            .expect("unobserved attribute fixture");
+        let audit = reference_audit_case(case);
+        assert_eq!(audit["reference_model_qualified"], true);
+        assert_eq!(audit["overall_claim_permitted"], false);
+        assert!(audit["blockers"]
+            .as_array()
+            .expect("blockers")
+            .iter()
+            .any(|item| item == "unobserved_attribute_in_positive_recovery_claim"));
+    }
+
+    #[test]
+    fn dynamic_reference_audit_is_deterministic() {
+        let corpus: Value =
+            serde_json::from_str(REFERENCE_CORPUS).expect("reference corpus parses");
+        let digest = sha256_hex(REFERENCE_CORPUS.as_bytes());
+        let first = audit_reference_corpus(&corpus, &digest);
+        let second = audit_reference_corpus(&corpus, &digest);
+        assert_eq!(
+            serde_json::to_vec(&first).expect("serialize first"),
+            serde_json::to_vec(&second).expect("serialize second")
+        );
+    }
+
 }
