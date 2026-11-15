@@ -225,10 +225,12 @@ fn validate_corpus(corpus: &Corpus) -> Result<(), String> {
                 owner_ref.owner
             ));
         }
-        if owner_ref.repository.trim().is_empty() {
+        let expected_repo = expected_repository(&owner_ref.owner)
+            .ok_or_else(|| format!("unsupported owner: {}", owner_ref.owner))?;
+        if owner_ref.repository != expected_repo {
             return Err(format!(
-                "{} owner reference has an empty repository",
-                owner_ref.owner
+                "{} owner is bound to {}, expected {}",
+                owner_ref.owner, owner_ref.repository, expected_repo
             ));
         }
         if owner_ref.references.is_empty() {
@@ -237,13 +239,13 @@ fn validate_corpus(corpus: &Corpus) -> Result<(), String> {
                 owner_ref.owner
             ));
         }
-        if owner_ref.references.iter().any(|reference| {
-            !(reference.starts_with("https://github.com/")
-                || reference.starts_with("ISO ")
-                || reference.starts_with("NIST "))
-        }) {
+        if owner_ref
+            .references
+            .iter()
+            .any(|reference| !is_supported_owner_reference(&owner_ref.owner, reference))
+        {
             return Err(format!(
-                "{} owner reference contains an unpinned or unsupported reference",
+                "{} owner reference contains an unsupported source-reference form",
                 owner_ref.owner
             ));
         }
@@ -353,6 +355,38 @@ fn validate_corpus(corpus: &Corpus) -> Result<(), String> {
         }
     }
     Ok(())
+}
+
+fn expected_repository(owner: &str) -> Option<&'static str> {
+    match owner {
+        "sol_atlas" => Some("Luminous-Dynamics/sol-atlas-leptos"),
+        "symthaea" => Some("Luminous-Dynamics/symthaea"),
+        "symtropy" => Some("Luminous-Dynamics/symtropy"),
+        "mycelix" => Some("Luminous-Dynamics/mycelix"),
+        "external_standard" => Some("external"),
+        _ => None,
+    }
+}
+
+fn is_supported_owner_reference(owner: &str, reference: &str) -> bool {
+    if owner == "external_standard" {
+        return (reference.starts_with("ISO ") || reference.starts_with("NIST "))
+            && reference.len() > 4;
+    }
+
+    let Some(repository) = expected_repository(owner) else {
+        return false;
+    };
+    let prefix = format!("https://github.com/{repository}/");
+    let Some(path) = reference.strip_prefix(&prefix) else {
+        return false;
+    };
+    let segments: Vec<&str> = path.split('/').collect();
+    segments.len() == 2
+        && matches!(segments[0], "issues" | "pull")
+        && !segments[1].is_empty()
+        && segments[1].bytes().all(|byte| byte.is_ascii_digit())
+        && !reference.contains(['?', '#'])
 }
 
 fn is_case_id(value: &str) -> bool {
@@ -852,14 +886,39 @@ mod tests {
     }
 
     #[test]
-    fn corpus_rejects_unpinned_owner_reference() {
+    fn corpus_rejects_unsupported_owner_reference_uri() {
         let mut raw = serde_json::from_str::<serde_json::Value>(CORPUS_JSON).unwrap();
         raw["owner_refs"][0]["references"][0] =
             serde_json::Value::String("ftp://example.invalid/evidence".to_owned());
         let submission = exact_submission(&corpus());
 
         let error = evaluate_bytes(&encode(&raw), &encode(&submission)).unwrap_err();
-        assert!(error.contains("unpinned or unsupported reference"));
+        assert!(error.contains("unsupported source-reference form"));
+    }
+
+    #[test]
+    fn corpus_rejects_owner_repository_misbinding() {
+        let mut raw = serde_json::from_str::<serde_json::Value>(CORPUS_JSON).unwrap();
+        raw["owner_refs"][2]["repository"] =
+            serde_json::Value::String("Luminous-Dynamics/mycelix".to_owned());
+        let submission = exact_submission(&corpus());
+
+        let error = evaluate_bytes(&encode(&raw), &encode(&submission)).unwrap_err();
+        assert!(error.contains("owner is bound to"));
+    }
+
+    #[test]
+    fn corpus_rejects_github_url_without_issue_or_pull_identity() {
+        let mut raw = serde_json::from_str::<serde_json::Value>(CORPUS_JSON).unwrap();
+        raw["owner_refs"][0]["references"][0] =
+            serde_json::Value::String(
+                "https://github.com/Luminous-Dynamics/sol-atlas-leptos/wiki/Highveld"
+                    .to_owned(),
+            );
+        let submission = exact_submission(&corpus());
+
+        let error = evaluate_bytes(&encode(&raw), &encode(&submission)).unwrap_err();
+        assert!(error.contains("unsupported source-reference form"));
     }
 
     #[test]
