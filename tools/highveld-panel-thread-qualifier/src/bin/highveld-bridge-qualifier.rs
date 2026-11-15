@@ -29,17 +29,16 @@ fn run() -> Result<(), String> {
     }
 
     let input_path = input_path.ok_or_else(|| usage().to_owned())?;
-    let input = fs::read(&input_path)
-        .map_err(|error| format!("cannot read {input_path}: {error}"))?;
-    let report = evaluate_bridge_bytes(&input)
-        .map_err(|error| format!("bridge input rejected: {error}"))?;
+    let input =
+        fs::read(&input_path).map_err(|error| format!("cannot read {input_path}: {error}"))?;
+    let report =
+        evaluate_bridge_bytes(&input).map_err(|error| format!("bridge input rejected: {error}"))?;
     let mut encoded = serde_json::to_vec_pretty(&report)
         .map_err(|error| format!("cannot encode bridge report: {error}"))?;
     encoded.push(b'\n');
 
     if let Some(path) = output_path {
-        fs::write(&path, &encoded)
-            .map_err(|error| format!("cannot write {path}: {error}"))?;
+        fs::write(&path, &encoded).map_err(|error| format!("cannot write {path}: {error}"))?;
     } else {
         print!(
             "{}",
