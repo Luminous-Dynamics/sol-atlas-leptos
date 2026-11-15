@@ -181,7 +181,7 @@ fn audit_to_json(audit: &AuditReport) -> String {
         .join(", ");
     format!(
         concat!(
-            "{\n",
+            "{{\n",
             "    \"checked_bus_count\": {},\n",
             "    \"checked_branch_count\": {},\n",
             "    \"energized_island_count\": {},\n",
@@ -216,7 +216,7 @@ fn scenario_to_json(scenario: &ScenarioResult) -> String {
         None => "null".to_owned(),
         Some(branch) => format!(
             concat!(
-                "{\n",
+                "{{\n",
                 "    \"branch_index\": {},\n",
                 "    \"from_bus\": {},\n",
                 "    \"to_bus\": {}\n",
@@ -261,7 +261,7 @@ impl ContingencySweepReport {
             .join(",\n");
         format!(
             concat!(
-                "{\n",
+                "{{\n",
                 "  \"schema_version\": \"dc-fixed-injection-contingency-sweep.v0.1.0\",\n",
                 "  \"network_identity_label\": {},\n",
                 "  \"base_case\": {},\n",
