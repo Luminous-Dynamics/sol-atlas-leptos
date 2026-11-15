@@ -40,7 +40,8 @@ The table identifies the correct comparison domain. These tools are complements,
 - PGLib-OPF v23.07 publishes PowerModels.jl / Ipopt baseline objectives. For the IEEE 14-bus case, its table reports DC objective $2,051.5/h and AC objective $2,178.1/h; for IEEE RTS 24-bus, $61,001/h and $63,352/h; and for IEEE 57-bus, $34,773/h and $37,589/h. These are reference objective values, not Sol-Atlas results. The table explicitly notes that solve-time figures exclude approximately 2–5 seconds of Julia JIT and use HSL MA27; a default linear solver is stated to be 2–6x slower. Do not use the published timings without those qualifications. Source: https://github.com/power-grid-lib/pglib-opf/blob/master/BASELINE.md
 - PyPSA 1.4.0 was released 9 October 2026. Its release notes include behavior changes affecting rolling-horizon unit commitment, ramp limits, and security-constrained optimization. A benchmark must pin the exact release and cannot treat "PyPSA" as a timeless result. Source: https://docs.pypsa.org/latest/release-notes/
 - pandapower's current documentation exposes power flow, contingency analysis, OPF, short-circuit and state-estimation functionality. Its 2026 release notes also describe an OpenDSS feeder converter and redispatch development in its PandaModels interface. Source: https://pandapower.readthedocs.io/en/latest/ and https://pandapower.readthedocs.io/en/stable/about/changelog.html
-- Grid2Op explicitly targets sequential power-grid decision-making and allows different power-flow backends; its documentation supports heuristic, optimization, MPC and learning-based agents. The GitHub release page lists 1.12.5 as its 2026 release. Sources: https://grid2op.readthedocs.io/en/latest/ and https://github.com/Grid2op/grid2op/releases
+- Grid2Op explicitly targets sequential power-grid decision-making and allows different power-flow backends; its documentation supports heuristic, optimization, MPC and learning-based agents. The GitHub release page lists 1.12.5 (12 June 2026) as its latest release at this snapshot. Sources: https://grid2op.readthedocs.io/en/latest/ and https://github.com/Grid2op/grid2op/releases
+- RL2Grid is a complementary control benchmark built on RTE's Grid2Op framework. It standardizes tasks, state/action spaces and rewards, and includes operator-informed heuristics and safety constraints. It is a more relevant future comparator for sequential control than a static DC solver. Source: https://arxiv.org/abs/2503.23101 (29 March 2025).
 - REopt API v3 is the stable API line and uses REopt.jl as its optimization engine. Its stated scope includes buildings, campuses, communities and microgrids. Sources: https://developer.nlr.gov/docs/energy-optimization/reopt/v3/ and https://developer.nlr.gov/docs/energy-optimization/reopt/
 - SimBench provides 13 grid datasets spanning low to extra-high voltage; the University of Kassel project description states annual 15-minute time series for one year. The official download page specifies ODbL and Database Contents License terms for the datasets. Sources: https://simbench.de/en/download/datasets/ and https://www.uni-kassel.de/eecs/en/sections/sustainable-electrical-energy-systems/our-developments/data-and-models.html
 
@@ -98,6 +99,21 @@ Publish per-beneficiary and per-community outcomes, essential unserved energy, l
 ### G. From one-way simulation to adversarial falsification
 
 The digital twin should actively search for the conditions under which its own recommendation stops being valid: line outages, islanding, stale sensors, topology changes, unit mistakes, time shifts, missing profiles, common-cause failures and out-of-distribution weather/load. Preserve negative controls and count false accepts, false rejects and abstentions.
+
+### H. From reward-shaped safety to an independent runtime shield
+
+A 2026 preprint on hierarchical grid control separates a high-level learned policy from a deterministic runtime safety shield. It evaluates nominal operation, forced line-outage stress and zero-shot transfer to an unseen grid. Its direction supports an architecture in which learning proposes abstract actions while an independent physical model and shield decide whether an action is admissible. This is a research comparator, not evidence that any particular shield is certified. Source: https://arxiv.org/abs/2604.14032 (15 April 2026).
+
+A November 2025 review of safe reinforcement learning for power-system control distinguishes safety layers from integrated optimization and examines frequency regulation, voltage control and energy management. This reinforces the need to measure safety as its own outcome rather than fold it into reward alone. Source: https://doi.org/10.1016/j.rser.2025.116022.
+
+For Sol-Atlas, benchmark the shield and policy separately:
+- **Proposal quality:** useful actions found, solve time, objective/service value and coverage of feasible alternatives.
+- **Shield correctness:** false-safe and false-reject rates against an independent frozen oracle, with zero false-safe as a promotion target on the declared finite panel.
+- **Abstention quality:** unsupported/out-of-envelope states correctly rejected, without counting abstention as success.
+- **Robustness:** unseen topology, N-1/N-k outages, forecast/sensor shift, stale or contradictory telemetry and common-cause failures.
+- **Recovery:** time and service deficit after fallback or replan; a controller that never violates limits but causes avoidable prolonged outages is not a sufficient result.
+
+Do not report "zero unsafe actions" without naming the independent oracle, finite scenario panel, physical model, tolerances, and untested conditions.
 
 ## 4. Benchmark ladder and target gates
 
