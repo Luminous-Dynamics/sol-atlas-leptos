@@ -63,7 +63,7 @@ pub struct GoldCase {
     pub authority_ceiling: String,
 }
 
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct Submission {
     pub profile_id: String,
@@ -72,7 +72,7 @@ pub struct Submission {
     pub case_results: Vec<CandidateCaseResult>,
 }
 
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct CandidateCaseResult {
     pub case_id: String,
@@ -260,7 +260,10 @@ fn validate_submission(submission: &Submission, corpus: &Corpus) -> Result<(), S
             "requalification_domains",
         )?;
         if result.reason_codes.is_empty() {
-            return Err(format!("{} must return at least one reason code", result.case_id));
+            return Err(format!(
+                "{} must return at least one reason code",
+                result.case_id
+            ));
         }
     }
     if seen.len() != known.len() {
@@ -280,7 +283,9 @@ fn unique_set<'a>(
             return Err(format!("{case_id}.{field} contains an empty value"));
         }
         if !set.insert(value.as_str()) {
-            return Err(format!("{case_id}.{field} contains duplicate value {value}"));
+            return Err(format!(
+                "{case_id}.{field} contains duplicate value {value}"
+            ));
         }
     }
     Ok(set)
@@ -294,7 +299,7 @@ fn is_stale_sensitive(case: &GoldCase) -> bool {
     })
 }
 
-fn metric( numerator: usize, denominator: usize) -> f64 {
+fn metric(numerator: usize, denominator: usize) -> f64 {
     if denominator == 0 {
         1.0
     } else {
@@ -344,11 +349,7 @@ fn score(
             &gold.case_id,
             "expected_reason_codes",
         )?;
-        let actual_reason = unique_set(
-            &candidate.reason_codes,
-            &gold.case_id,
-            "reason_codes",
-        )?;
+        let actual_reason = unique_set(&candidate.reason_codes, &gold.case_id, "reason_codes")?;
         let expected_domains = unique_set(
             &gold.expected_requalification_domains,
             &gold.case_id,
@@ -476,19 +477,19 @@ fn safety_floor(disposition: &str) -> u8 {
     }
 }
 
-fn difference(
-    left: &BTreeSet<&str>,
-    right: &BTreeSet<&str>,
-) -> Vec<String> {
-    left.difference(right).map(|value| (*value).to_owned()).collect()
+fn difference(left: &BTreeSet<&str>, right: &BTreeSet<&str>) -> Vec<String> {
+    left.difference(right)
+        .map(|value| (*value).to_owned())
+        .collect()
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
 
-    const CORPUS_JSON: &str =
-        include_str!("../../../docs/research/highveld-keep/HIGHVELD_KEEP_PANEL_THREAD_CORPUS_V0_1.json");
+    const CORPUS_JSON: &str = include_str!(
+        "../../../docs/research/highveld-keep/HIGHVELD_KEEP_PANEL_THREAD_CORPUS_V0_1.json"
+    );
 
     fn corpus() -> Corpus {
         serde_json::from_str(CORPUS_JSON).expect("checked-in corpus parses")
@@ -597,7 +598,6 @@ mod tests {
         }"#;
         assert!(serde_json::from_slice::<Submission>(raw).is_err());
     }
-
 
     #[test]
     fn corpus_cannot_self_assert_independent_adjudication() {
