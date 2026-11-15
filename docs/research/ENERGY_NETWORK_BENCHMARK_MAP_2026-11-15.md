@@ -175,3 +175,58 @@ A candidate is not "better" if it has a lower objective but misses essential loa
 8. Integrate the verified outputs with #352/#403/#420 and the Highveld service-floor work.
 
 **Claim ceiling:** this note specifies research and benchmark work. It does not claim that Sol-Atlas currently solves network AC/DC OPF, beats any named comparator, qualifies a South African grid model, or authorizes real grid operation.
+
+## 7. Research update: where current frontier work is moving
+
+The following papers sharpen the benchmark design. They are comparators and research signals—not evidence that Sol-Atlas currently outperforms them.
+
+### Runtime-safe sequential control is becoming an explicit architecture
+
+- **RL2Grid (29 March 2025)** was designed with transmission-system-operator collaboration. It standardizes tasks, state/action spaces, reward structures and operator-informed safety constraints on top of Grid2Op/RTE simulation. Sol-Atlas should include its tasks as a controller benchmark rather than treating a generic Grid2Op reward as sufficient. [RL2Grid paper](https://arxiv.org/abs/2503.23101)
+- **Hierarchical RL with Runtime Safety Shielding (15 April 2026)** separates high-level policy proposals from a deterministic action shield and reports Grid2Op line-outage stress plus zero-shot evaluation on an unseen large transmission grid. This is close to the architectural direction of issue #420. The meaningful differentiation is not a second learned safety penalty: it is a separately implemented monitor that checks fresh observations, uncertainty, proposal identity/expiry, multi-step essential-service viability, reserve and the action-to-observed-effect reconciliation chain. The paper is an arXiv preprint; reproduce its baseline before making a comparative claim. [Preprint](https://arxiv.org/abs/2604.14032)
+- A **November 2025 review of safe RL for power-system control** organizes methods into safety layers and integrated optimization, and covers frequency regulation, voltage control and energy management. Sol-Atlas should compare both classes: policy-integrated safe learning and independently deployed runtime admission. [Review](https://doi.org/10.1016/j.rser.2025.116022)
+
+### Learning-based OPF is moving from direct prediction toward hybrid solvers
+
+- A **November 2025 neural/optimization AC-OPF warm-start paper** reports more than 45% fewer solver iterations and over 44% computation-time reduction versus standalone model-based optimization on IEEE test systems, while reporting constraint satisfaction. This is a useful speed baseline, but it does not replace the need for matched hardware, identical formulations, reproducible solver settings, and independent feasibility checks. Sol-Atlas should compete with *verified warm-start acceleration*, not just compare a learned policy to an unassisted solver. [Paper](https://doi.org/10.1016/j.cpes.2025.09.001)
+- A **September 2026 AC-OPF generalization paper** proposes a heterogeneous message-passing GNN plus a scalar transformer, with physics-informed positional encoding, N-1 contingency evaluation and transfer from smaller to larger grids. This makes topology generalization and held-out contingency performance first-class metrics. [Paper](https://www.sciencedirect.com/science/article/pii/S2666546826001680)
+
+### Digital-twin claims need known-fidelity envelopes
+
+A **December 2025 power-system digital-twin review**, based on two lab-scale DC microgrid / EV-charger projects, reports fidelity variation across configurations and highlights temporal alignment, sensor precision, latency, abstraction level, model-selection rationale and cross-physics synchronization. Its lesson is that "high fidelity" needs a named measurement boundary and application-specific tolerances. Sol-Atlas should publish calibration and discrepancy envelopes, timestamp/latency error, observability gaps and out-of-domain abstention before calling any layer a live or high-fidelity twin. [Review](https://doi.org/10.1049/dgt2.70015)
+
+## 8. Proposed Sol-Atlas competitive bake-offs
+
+The following are the next high-value tournaments. These are proposed protocols; no result is claimed.
+
+| Tournament | Matched baselines | Sol-Atlas differentiator | Decisive measures |
+|---|---|---|---|
+| **Verified DC network flow** | MATPOWER DC PF, PowerModels DC PF, PyPSA linear PF | Small independent reference kernel and separate result checker | Field parity, angle/flow residuals, line-limit violations, island/slack semantics, determinism |
+| **Verified AC-OPF acceleration** | MATPOWER/PowerModels Ipopt baseline; learned warm-start paper's method where artifacts permit | Evidence-qualified warm starts, exact solver/constraint receipts, independent feasibility and objective recheck | Time-to-feasible, time-to-target gap, best bound, violation counts, calibration under topology shift |
+| **Topology-generalizing AC-OPF** | Heterogeneous GNN/transformer methods; conventional solver on each held-out case | Evidence-bound graph import, explicit unsupported-device handling, robust feasibility/abstention | Leave-case-size-out, leave-topology-out, N-1 transfer, worst-case constraint violation, latency |
+| **Sequential operator control** | RL2Grid baselines; Grid2Op/L2RPN agents; rule-based operator heuristics; learned hierarchical shield | Symthaea policy proposals plus independent #420 admission and multi-step reserve/service viability | False-safe admissions, unserved essential load, thermal overload duration, survival/recovery, abstention, compute cost |
+| **Digital-twin fidelity** | Reference simulator and available HIL traces | Source/clock/model discrepancy envelopes; known-fidelity status per sensor/physics/duty cycle | Time-aligned error, calibration, phase/clock error, latency and data loss, OOD coverage, uncertainty expansion |
+
+### The next SOTA target should be a *joint* scorecard, not one number
+
+Require each method to publish:
+1. **Model fidelity:** no silent input drops; independent source-field parity; explicit unsupported physics and source rights.
+2. **Optimization quality:** primal feasibility, valid lower/upper bounds, proof/duality gap, termination reason and time budget.
+3. **Operational safety:** zero false-safe on a frozen finite adversarial panel; hard floors preserved or classified unknown/infeasible; fresh state and independent action re-admission.
+4. **Generalization:** leave-size-out, leave-topology-out, N-1/N-k, forecast shift, sensor shift and geography/source shift, each separately reported.
+5. **Service outcomes:** essential service by community and time, longest deficit, recovery time and distributional gap; aggregate cost cannot compensate for a failed protected floor.
+6. **Resource efficiency:** wall-clock p50/p95/p99, compute budget, memory, solver calls, audit overhead, telemetry bandwidth and measured energy use when available.
+7. **Evidence reproducibility:** immutable manifests, data/model digests, deterministic receipts and independent replay.
+
+The strongest publishable result would be a Pareto improvement: match or improve solver quality while lowering false-safe risk, preserving service floors, increasing held-out topology robustness, and keeping compute/audit overhead inside the same declared budget. A faster but infeasible method is not a win; a safe method that abstains constantly is not a useful controller either.
+
+## 9. Concrete next implementation milestones
+
+- **M1 — Intake parity:** independently parse the three pinned PGLib cases and emit field-by-field comparison receipts. Include bus/gen/branch/cost/tap/phase-shift/area semantics, source SHAs and explicit unsupported fields.
+- **M2 — DC differential reference:** feed the same tiny cases to the Sol-Atlas reference kernel and a pinned independent implementation. Add a three-bus mesh, parallel branches, a phase-shifting loop, disconnected islands, and line-rating counterexamples.
+- **M3 — DC-OPF oracle:** bounded exact dispatch over a small network model; compare every candidate and objective with an independently coded checker; preserve the complete Pareto frontier on exhaustive cases.
+- **M4 — AC-OPF research lane:** add a separate nonlinear AC profile only after a pinned reference library can reproduce voltage, Q, thermal and transformer semantics. Keep local optimum and global bound distinct.
+- **M5 — Runtime-shield bake-off:** adapt #420 to the RL2Grid/Grid2Op action surface and compare fixed-schedule, MPC, one-step shield, viability shield and learned hierarchical shield on identical trajectories.
+- **M6 — Fidelity evidence:** add time/clock, sensor calibration, provenance and uncertainty envelopes before any live-twin language is used.
+
+The near-term engineering priority is M1/M2/M5. They create the independent evidence needed to trust subsequent optimizer and agent comparisons.
