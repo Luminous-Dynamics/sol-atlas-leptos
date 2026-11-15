@@ -1,0 +1,652 @@
+// Copyright (C) 2024-2026 Tristan Stoltz / Luminous Dynamics
+// SPDX-License-Identifier: AGPL-3.0-or-later
+// Commercial licensing: see COMMERCIAL_LICENSE.md at repository root
+
+//! Synthetic multi-family lifecycle identity and claim-lineage qualifier.
+//!
+//! This checks apartment/asset identity, revision ancestry, logical event order,
+//! unit-to-event scope, shared-asset served-unit membership and stale-claim
+//! rejection. It does not establish that construction, installation, occupation,
+//! observation, maintenance, repair or recommissioning actually occurred.
+
+use serde_json::{Value, json};
+use std::{
+    collections::{BTreeMap, BTreeSet},
+    env, process,
+};
+
+const FIXTURE: &str = include_str!(
+    "../../docs/research/home-delivery-systems/multifamily-lifecycle-synthetic-v0.1.json"
+);
+const BUILDING: &str = include_str!(
+    "../../docs/research/home-delivery-systems/multifamily-building-synthetic-v0.1.json"
+);
+const PROGRAMME: &str = include_str!(
+    "../../docs/research/home-delivery-systems/multifamily-resident-programme-synthetic-v0.1.json"
+);
+const UNIT_LAYOUT: &str = include_str!(
+    "../../docs/research/home-delivery-systems/multifamily-unit-layout-synthetic-v0.1.json"
+);
+const SERVICE_TOPOLOGY: &str = include_str!(
+    "../../docs/research/home-delivery-systems/multifamily-service-distribution-synthetic-v0.1.json"
+);
+
+fn text_at<'a>(value: &'a Value, key: &str) -> Option<&'a str> {
+    value.get(key).and_then(Value::as_str)
+}
+
+fn rows<'a>(value: &'a Value, key: &str) -> Option<&'a Vec<Value>> {
+    value.get(key).and_then(Value::as_array)
+}
+
+fn is_null(value: Option<&Value>) -> bool {
+    value.is_none_or(Value::is_null)
+}
+
+fn unique_ids(
+    items: Option<&Vec<Value>>,
+    key: &str,
+    label: &str,
+    errors: &mut Vec<String>,
+) -> BTreeSet<String> {
+    let mut ids = BTreeSet::new();
+    let Some(items) = items else {
+        errors.push(format!("{label}: array is missing"));
+        return ids;
+    };
+    for (index, item) in items.iter().enumerate() {
+        let Some(id) = text_at(item, key) else {
+            errors.push(format!("{label}[{index}]: {key} is missing"));
+            continue;
+        };
+        if !ids.insert(id.to_owned()) {
+            errors.push(format!("{label}: duplicate {key} {id}"));
+        }
+    }
+    ids
+}
+
+fn valid_reference(value: &Value) -> bool {
+    value.is_object()
+        && text_at(value, "kind").is_some()
+        && text_at(value, "id").is_some()
+        && value.get("revision").is_some()
+        && value.get("digest").is_some()
+}
+
+fn validate(
+    fixture: &Value,
+    building: &Value,
+    programme: &Value,
+    unit_layout: &Value,
+    service_topology: &Value,
+) -> Result<Value, Vec<String>> {
+    let mut errors = Vec::new();
+
+    if text_at(fixture, "schema_version") != Some("multifamily-lifecycle/0.1") {
+        errors.push("unsupported multifamily lifecycle schema_version".to_owned());
+    }
+    if text_at(fixture, "maturity") != Some("synthetic_scenario_only") {
+        errors.push("lifecycle fixture cannot be promoted beyond synthetic_scenario_only".to_owned());
+    }
+    if text_at(fixture, "building_id") != text_at(building, "candidate_id") {
+        errors.push("lifecycle fixture is not bound to the exact building identity".to_owned());
+    }
+    if text_at(
+        fixture.get("source_bindings").unwrap_or(&Value::Null).get("resident_programme_ref").unwrap_or(&Value::Null),
+        "id",
+    ) != text_at(programme, "programme_id")
+    {
+        errors.push("lifecycle fixture is not bound to the exact resident programme".to_owned());
+    }
+    if text_at(
+        fixture.get("source_bindings").unwrap_or(&Value::Null).get("unit_layout_ref").unwrap_or(&Value::Null),
+        "id",
+    ) != text_at(unit_layout, "layout_id")
+    {
+        errors.push("lifecycle fixture is not bound to the exact unit-layout identity".to_owned());
+    }
+    if text_at(
+        fixture.get("source_bindings").unwrap_or(&Value::Null).get("service_topology_ref").unwrap_or(&Value::Null),
+        "id",
+    ) != text_at(service_topology, "profile_id")
+    {
+        errors.push("lifecycle fixture is not bound to the exact service-topology identity".to_owned());
+    }
+    if text_at(fixture, "claim_ceiling").is_none() {
+        errors.push("lifecycle claim_ceiling is missing".to_owned());
+    }
+
+    let building_units = rows(building, "unit_programmes")
+        .into_iter()
+        .flatten()
+        .filter_map(|row| text_at(row, "unit_id"))
+        .map(str::to_owned)
+        .collect::<BTreeSet<_>>();
+    let programme_units = rows(programme, "unit_programmes")
+        .into_iter()
+        .flatten()
+        .filter_map(|row| text_at(row, "unit_id"))
+        .map(str::to_owned)
+        .collect::<BTreeSet<_>>();
+    let layout_units = rows(unit_layout, "unit_layouts")
+        .into_iter()
+        .flatten()
+        .filter_map(|row| text_at(row, "unit_id"))
+        .map(str::to_owned)
+        .collect::<BTreeSet<_>>();
+    let fixture_unit_ids = rows(fixture, "unit_ids")
+        .into_iter()
+        .flatten()
+        .filter_map(Value::as_str)
+        .map(str::to_owned)
+        .collect::<BTreeSet<_>>();
+    if building_units.is_empty()
+        || building_units != programme_units
+        || building_units != layout_units
+        || building_units != fixture_unit_ids
+    {
+        errors.push("building, resident-programme, unit-layout and lifecycle unit sets do not match exactly".to_owned());
+    }
+
+    let revision_rows = rows(fixture, "revisions");
+    let revision_ids = unique_ids(revision_rows, "revision_id", "revisions", &mut errors);
+    let mut revisions = BTreeMap::<String, (String, Option<String>, String)>::new();
+    if let Some(rows) = revision_rows {
+        for row in rows {
+            let id = text_at(row, "revision_id").unwrap_or("<missing-revision>");
+            let unit_id = text_at(row, "unit_id").unwrap_or("<missing-unit>");
+            let parent = text_at(row, "parent_revision_id").map(str::to_owned);
+            let kind = text_at(row, "revision_kind").unwrap_or("<missing-kind>");
+            if !building_units.contains(unit_id) {
+                errors.push(format!("revision {id} references unknown unit {unit_id}"));
+            }
+            if text_at(row, "revision_state") != Some("synthetic_identity_only") {
+                errors.push(format!("revision {id} is promoted beyond synthetic identity"));
+            }
+            if !is_null(row.get("artifact_ref")) {
+                errors.push(format!("synthetic revision {id} cannot claim a real artifact reference"));
+            }
+            if let Some(parent_id) = &parent {
+                if parent_id == id {
+                    errors.push(format!("revision {id} is its own parent"));
+                }
+            }
+            revisions.insert(id.to_owned(), (unit_id.to_owned(), parent, kind.to_owned()));
+        }
+    }
+
+    for (revision_id, (unit_id, parent, _)) in &revisions {
+        if let Some(parent_id) = parent {
+            match revisions.get(parent_id) {
+                Some((parent_unit, _, _)) if parent_unit == unit_id => {}
+                Some(_) => errors.push(format!("revision {revision_id} parent belongs to a different unit")),
+                None => errors.push(format!("revision {revision_id} references missing parent {parent_id}")),
+            }
+        }
+        let mut visited = BTreeSet::new();
+        let mut cursor = Some(revision_id.clone());
+        while let Some(id) = cursor {
+            if !visited.insert(id.clone()) {
+                errors.push(format!("revision ancestry cycle detected at {id}"));
+                break;
+            }
+            cursor = revisions.get(&id).and_then(|record| record.1.clone());
+        }
+    }
+
+    let service_nodes = rows(service_topology, "nodes")
+        .into_iter()
+        .flatten()
+        .filter_map(|node| text_at(node, "node_id"))
+        .map(str::to_owned)
+        .collect::<BTreeSet<_>>();
+
+    let asset_rows = rows(fixture, "asset_bindings");
+    let asset_ids = unique_ids(asset_rows, "asset_id", "asset_bindings", &mut errors);
+    let mut assets = BTreeMap::<String, BTreeSet<String>>::new();
+    if let Some(rows) = asset_rows {
+        for asset in rows {
+            let asset_id = text_at(asset, "asset_id").unwrap_or("<missing-asset>");
+            let source_ref = asset.get("source_ref").unwrap_or(&Value::Null);
+            if !valid_reference(source_ref)
+                || text_at(source_ref, "kind") != Some("service_node")
+                || !text_at(source_ref, "id").is_some_and(|id| service_nodes.contains(id))
+            {
+                errors.push(format!("asset {asset_id} does not bind to an exact service-topology node"));
+            }
+            if text_at(asset, "identity_state") != Some("identity_only_synthetic")
+                || text_at(asset, "evidence_state") != Some("unknown")
+                || !is_null(asset.get("current_revision_id"))
+            {
+                errors.push(format!("asset {asset_id} overstates synthetic asset or evidence maturity"));
+            }
+            let served = array_at(asset, "served_unit_ids")
+                .into_iter()
+                .flatten()
+                .filter_map(Value::as_str)
+                .map(str::to_owned)
+                .collect::<BTreeSet<_>>();
+            if served.is_empty() || served.iter().any(|unit| !building_units.contains(unit)) {
+                errors.push(format!("asset {asset_id} has an empty or unknown served-unit set"));
+            }
+            assets.insert(asset_id.to_owned(), served);
+        }
+    }
+
+    let event_rows = rows(fixture, "events");
+    let event_ids = unique_ids(event_rows, "event_id", "events", &mut errors);
+    let mut event_order_ids = BTreeSet::new();
+    let mut event_records = BTreeMap::<String, (BTreeSet<String>, BTreeSet<String>, BTreeSet<String>, i64)>::new();
+    let mut prior_order = 0_i64;
+    if let Some(rows) = event_rows {
+        for event in rows {
+            let id = text_at(event, "event_id").unwrap_or("<missing-event>");
+            let order = event.get("event_order").and_then(Value::as_i64).unwrap_or(-1);
+            if order <= 0 || order <= prior_order || !event_order_ids.insert(order) {
+                errors.push(format!("event {id} has duplicate, invalid or unordered event_order"));
+            }
+            prior_order = order;
+
+            if text_at(event, "execution_state") != Some("authored_not_executed")
+                || text_at(event, "event_time_state") != Some("not_supplied")
+                || !is_null(event.get("occurred_at"))
+                || text_at(event, "record_time_state") != Some("not_supplied")
+                || !is_null(event.get("recorded_at"))
+            {
+                errors.push(format!("synthetic event {id} claims execution or an actual event/record time"));
+            }
+            if text_at(event, "data_scope") != Some("synthetic_structure_only")
+                || text_at(event, "resident_data_state") != Some("no_personal_data")
+                || text_at(event, "consent_state") != Some("not_applicable")
+            {
+                errors.push(format!("synthetic event {id} promotes personal/resident data or consent"));
+            }
+            if rows(event, "evidence_refs").is_none_or(|refs| !refs.is_empty()) {
+                errors.push(format!("synthetic event {id} cannot claim real evidence references"));
+            }
+
+            let units = array_at(event, "unit_ids")
+                .into_iter()
+                .flatten()
+                .filter_map(Value::as_str)
+                .map(str::to_owned)
+                .collect::<BTreeSet<_>>();
+            let event_assets = array_at(event, "asset_ids")
+                .into_iter()
+                .flatten()
+                .filter_map(Value::as_str)
+                .map(str::to_owned)
+                .collect::<BTreeSet<_>>();
+            if units.is_empty() || units.iter().any(|unit| !building_units.contains(unit)) {
+                errors.push(format!("event {id} has an empty or unknown unit scope"));
+            }
+            for asset_id in &event_assets {
+                match assets.get(asset_id) {
+                    Some(served) if units.is_subset(served) => {}
+                    Some(_) => errors.push(format!("event {id} affects a unit outside asset {asset_id}'s served-unit set")),
+                    None => errors.push(format!("event {id} references unknown shared asset {asset_id}")),
+                }
+            }
+
+            let from_id = text_at(event, "from_revision_id");
+            let to_id = text_at(event, "to_revision_id");
+            match (from_id, to_id) {
+                (Some(from), Some(to)) => {
+                    let (Some(from_record), Some(to_record)) = (revisions.get(from), revisions.get(to)) else {
+                        errors.push(format!("event {id} references an unknown revision"));
+                        continue;
+                    };
+                    if from_record.0 != to_record.0 || !units.contains(&from_record.0) || units.len() != 1 {
+                        errors.push(format!("event {id} revision transition is not bound to exactly one matching unit"));
+                    }
+                    if from != to && to_record.1.as_deref() != Some(from) {
+                        errors.push(format!("event {id} transition does not follow the declared parent-revision edge"));
+                    }
+                    if from == to && text_at(event, "event_kind") == Some("adaptation") {
+                        errors.push(format!("adaptation event {id} does not create a new configuration revision"));
+                    }
+                }
+                (None, None) => {
+                    if !matches!(
+                        text_at(event, "event_kind"),
+                        Some("shared_asset_maintenance" | "shared_asset_repair")
+                    ) {
+                        errors.push(format!("event {id} is missing its unit-scoped revision transition"));
+                    }
+                }
+                _ => errors.push(format!("event {id} has only one side of a revision transition")),
+            }
+
+            let kind = text_at(event, "event_kind").unwrap_or("<missing-kind>");
+            let impact_state = text_at(event, "change_impact_state").unwrap_or("<missing-impact-state>");
+            if matches!(kind, "adaptation" | "design_change") {
+                if !matches!(impact_state, "not_computed" | "owner_receipt_attached") {
+                    errors.push(format!("change event {id} has invalid change-impact state"));
+                }
+                if text_at(event, "change_kind").is_none_or(str::is_empty) {
+                    errors.push(format!("change event {id} has no typed change_kind"));
+                }
+            } else if impact_state != "not_applicable" {
+                errors.push(format!("non-change event {id} incorrectly claims change-impact evaluation"));
+            }
+            if impact_state == "owner_receipt_attached" && !valid_reference(event.get("change_impact_ref").unwrap_or(&Value::Null)) {
+                errors.push(format!("event {id} claims an owner change-impact receipt without a valid reference"));
+            }
+            if impact_state != "owner_receipt_attached" && !is_null(event.get("change_impact_ref")) {
+                errors.push(format!("event {id} attaches a change-impact receipt in an incompatible state"));
+            }
+
+            let invalidated = array_at(event, "invalidated_claim_ids")
+                .into_iter()
+                .flatten()
+                .filter_map(Value::as_str)
+                .map(str::to_owned)
+                .collect::<BTreeSet<_>>();
+            event_records.insert(id.to_owned(), (units, event_assets, invalidated, order));
+        }
+    }
+
+    let timeline_rows = rows(fixture, "unit_timelines");
+    let timeline_ids = unique_ids(timeline_rows, "unit_id", "unit_timelines", &mut errors);
+    if timeline_ids != building_units {
+        errors.push("unit_timelines do not exactly cover the building unit set".to_owned());
+    }
+    let mut current_revisions = BTreeMap::<String, String>::new();
+    if let Some(rows) = timeline_rows {
+        for timeline in rows {
+            let unit_id = text_at(timeline, "unit_id").unwrap_or("<missing-unit>");
+            let baseline_id = text_at(timeline, "baseline_revision_id").unwrap_or("<missing-baseline>");
+            let current_id = text_at(timeline, "current_revision_id").unwrap_or("<missing-current>");
+            match revisions.get(baseline_id) {
+                Some((revision_unit, None, _)) if revision_unit == unit_id => {}
+                _ => errors.push(format!("unit {unit_id} baseline revision is not an exact root revision")),
+            }
+            match revisions.get(current_id) {
+                Some((revision_unit, _, _)) if revision_unit == unit_id => {}
+                _ => errors.push(format!("unit {unit_id} current revision does not belong to the unit")),
+            }
+            let mut prior_event_order = 0_i64;
+            let mut last_revision = None::<String>;
+            for event_id in array_at(timeline, "event_ids")
+                .into_iter()
+                .flatten()
+                .filter_map(Value::as_str)
+            {
+                match event_records.get(event_id) {
+                    Some((units, _, _, event_order)) if units.contains(unit_id) => {
+                        if *event_order <= prior_event_order {
+                            errors.push(format!("unit {unit_id} timeline event order is not strictly increasing"));
+                        }
+                        prior_event_order = *event_order;
+                        if let Some(event) = event_rows
+                            .into_iter()
+                            .flatten()
+                            .find(|event| text_at(event, "event_id") == Some(event_id))
+                        {
+                            if let Some(to) = text_at(event, "to_revision_id") {
+                                last_revision = Some(to.to_owned());
+                            }
+                        }
+                    }
+                    Some(_) => errors.push(format!("unit {unit_id} references an event outside its scope")),
+                    None => errors.push(format!("unit {unit_id} references missing event {event_id}")),
+                }
+            }
+            if last_revision.as_deref() != Some(current_id) {
+                errors.push(format!("unit {unit_id} current_revision_id does not match its latest timeline transition"));
+            }
+            current_revisions.insert(unit_id.to_owned(), current_id.to_owned());
+        }
+    }
+
+    let claim_rows = rows(fixture, "claims");
+    let claim_ids = unique_ids(claim_rows, "claim_id", "claims", &mut errors);
+    let mut claim_records = BTreeMap::<String, (String, String, String, Option<String>)>::new();
+    if let Some(rows) = claim_rows {
+        for claim in rows {
+            let id = text_at(claim, "claim_id").unwrap_or("<missing-claim>");
+            let unit_id = text_at(claim, "unit_id").unwrap_or("<missing-unit>");
+            let revision_id = text_at(claim, "revision_id").unwrap_or("<missing-revision>");
+            let state = text_at(claim, "claim_state").unwrap_or("<missing-state>");
+            let invalidated_by = text_at(claim, "invalidated_by_event_id").map(str::to_owned);
+            if !building_units.contains(unit_id) {
+                errors.push(format!("claim {id} references unknown unit {unit_id}"));
+            }
+            match revisions.get(revision_id) {
+                Some((revision_unit, _, _)) if revision_unit == unit_id => {}
+                _ => errors.push(format!("claim {id} revision is missing or belongs to another unit")),
+            }
+            if text_at(claim, "claim_scope") != Some("synthetic_claim_identity_only") {
+                errors.push(format!("claim {id} is promoted beyond synthetic identity scope"));
+            }
+            if rows(claim, "evidence_refs").is_none_or(Vec::is_empty)
+                && !matches!(state, "not_assessed" | "unknown" | "invalidated" | "superseded" | "revoked")
+            {
+                errors.push(format!("claim {id} promotes a result without evidence"));
+            }
+            if matches!(state, "pass" | "fail") {
+                errors.push(format!("synthetic lifecycle fixture cannot claim PASS or FAIL for {id}"));
+            }
+            if state == "invalidated" {
+                if invalidated_by.is_none() {
+                    errors.push(format!("invalidated claim {id} has no invalidating event"));
+                }
+            } else if invalidated_by.is_some() {
+                errors.push(format!("non-invalidated claim {id} carries invalidated_by_event_id"));
+            }
+            if let Some(current) = current_revisions.get(unit_id) {
+                if current != revision_id && !matches!(state, "invalidated" | "superseded" | "revoked") {
+                    errors.push(format!("stale claim {id} is not invalidated/superseded/revoked"));
+                }
+            }
+            claim_records.insert(id.to_owned(), (unit_id.to_owned(), revision_id.to_owned(), state.to_owned(), invalidated_by));
+        }
+    }
+
+    for (event_id, (units, _, invalidated_claim_ids, _)) in &event_records {
+        for claim_id in invalidated_claim_ids {
+            match claim_records.get(claim_id) {
+                Some((unit_id, revision_id, state, invalidated_by))
+                    if units.contains(unit_id)
+                        && state == "invalidated"
+                        && invalidated_by.as_deref() == Some(event_id.as_str())
+                        && current_revisions.get(unit_id).is_some_and(|current| current != revision_id) => {}
+                Some(_) => errors.push(format!("event {event_id} invalidation list disagrees with claim {claim_id}")),
+                None => errors.push(format!("event {event_id} invalidates unknown claim {claim_id}")),
+            }
+        }
+    }
+    for (claim_id, (unit_id, _, state, invalidated_by)) in &claim_records {
+        if state == "invalidated" {
+            match invalidated_by.as_ref().and_then(|event_id| event_records.get(event_id).map(|record| (event_id, record))) {
+                Some((event_id, (units, _, invalidated, _)))
+                    if units.contains(unit_id) && invalidated.contains(claim_id) => {}
+                _ => errors.push(format!("invalidated claim {claim_id} has no reciprocal event record")),
+            }
+        }
+    }
+
+    let report = json!({
+        "audit_state": if errors.is_empty() { "MULTIFAMILY_LIFECYCLE_IDENTITY_PASS" } else { "MULTIFAMILY_LIFECYCLE_IDENTITY_FAIL" },
+        "building_id": text_at(fixture, "building_id").unwrap_or("<missing>"),
+        "unit_count": building_units.len(),
+        "revision_count": revision_ids.len(),
+        "asset_binding_count": asset_ids.len(),
+        "event_count": event_ids.len(),
+        "unit_timeline_count": timeline_ids.len(),
+        "claim_count": claim_ids.len(),
+        "stale_pass_count": 0,
+        "physical_lifecycle": "NOT_ESTABLISHED",
+        "as_built_state": "UNKNOWN",
+        "commissioning_state": "UNKNOWN",
+        "post_occupancy_state": "UNKNOWN",
+        "repair_state": "UNKNOWN",
+        "claim_ceiling": "SYNTHETIC_IDENTITY_REVISION_EVENT_AND_CLAIM_STATE_ONLY"
+    });
+    if errors.is_empty() {
+        Ok(report)
+    } else {
+        Err(errors)
+    }
+}
+
+fn load_fixtures() -> (Value, Value, Value, Value, Value) {
+    (
+        serde_json::from_str(FIXTURE).expect("lifecycle fixture JSON must parse"),
+        serde_json::from_str(BUILDING).expect("building fixture JSON must parse"),
+        serde_json::from_str(PROGRAMME).expect("resident programme JSON must parse"),
+        serde_json::from_str(UNIT_LAYOUT).expect("unit layout JSON must parse"),
+        serde_json::from_str(SERVICE_TOPOLOGY).expect("service topology JSON must parse"),
+    )
+}
+
+fn main() {
+    let args = env::args().skip(1).collect::<Vec<_>>();
+    if args.iter().any(|arg| arg == "--help" || arg == "-h") {
+        println!("home-multifamily-lifecycle-qualifier [--self-test]");
+        return;
+    }
+    let (fixture, building, programme, unit_layout, service_topology) = load_fixtures();
+    match validate(&fixture, &building, &programme, &unit_layout, &service_topology) {
+        Ok(report) => println!("{}", serde_json::to_string_pretty(&report).unwrap_or_default()),
+        Err(errors) => {
+            eprintln!("HOME_MULTIFAMILY_LIFECYCLE_QUALIFIER_FAIL: {}", errors.join("; "));
+            process::exit(1);
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn synthetic_lifecycle_lineage_qualifies_without_physical_claims() {
+        let (fixture, building, programme, layout, services) = load_fixtures();
+        let report = validate(&fixture, &building, &programme, &layout, &services)
+            .expect("synthetic lifecycle identity fixture");
+        assert_eq!(report["unit_count"], 4);
+        assert_eq!(report["revision_count"], 13);
+        assert_eq!(report["asset_binding_count"], 2);
+        assert_eq!(report["event_count"], 24);
+        assert_eq!(report["unit_timeline_count"], 4);
+        assert_eq!(report["claim_count"], 7);
+        assert_eq!(report["physical_lifecycle"], "NOT_ESTABLISHED");
+    }
+
+    #[test]
+    fn duplicate_revision_identity_is_rejected() {
+        let (mut fixture, building, programme, layout, services) = load_fixtures();
+        fixture["revisions"][1]["revision_id"] = fixture["revisions"][0]["revision_id"].clone();
+        assert!(validate(&fixture, &building, &programme, &layout, &services).is_err());
+    }
+
+    #[test]
+    fn broken_parent_revision_chain_is_rejected() {
+        let (mut fixture, building, programme, layout, services) = load_fixtures();
+        fixture["revisions"][1]["parent_revision_id"] = json!("NO-SUCH-REVISION");
+        assert!(validate(&fixture, &building, &programme, &layout, &services).is_err());
+    }
+
+    #[test]
+    fn revision_ancestry_cycle_is_rejected() {
+        let (mut fixture, building, programme, layout, services) = load_fixtures();
+        fixture["revisions"][0]["parent_revision_id"] = json!("U-001-R1");
+        assert!(validate(&fixture, &building, &programme, &layout, &services).is_err());
+    }
+
+    #[test]
+    fn wrong_unit_event_scope_is_rejected() {
+        let (mut fixture, building, programme, layout, services) = load_fixtures();
+        fixture["events"][0]["unit_ids"] = json!(["U-999"]);
+        assert!(validate(&fixture, &building, &programme, &layout, &services).is_err());
+    }
+
+    #[test]
+    fn unknown_shared_asset_is_rejected() {
+        let (mut fixture, building, programme, layout, services) = load_fixtures();
+        fixture["events"][22]["asset_ids"] = json!(["ASSET-UNKNOWN"]);
+        assert!(validate(&fixture, &building, &programme, &layout, &services).is_err());
+    }
+
+    #[test]
+    fn shared_asset_cannot_be_applied_to_unserved_unit() {
+        let (mut fixture, building, programme, layout, services) = load_fixtures();
+        fixture["events"][22]["unit_ids"] = json!(["U-001", "U-003"]);
+        assert!(validate(&fixture, &building, &programme, &layout, &services).is_err());
+    }
+
+    #[test]
+    fn stale_pass_after_adaptation_is_rejected() {
+        let (mut fixture, building, programme, layout, services) = load_fixtures();
+        fixture["claims"][0]["claim_state"] = json!("pass");
+        fixture["claims"][0]["invalidated_by_event_id"] = json!(null);
+        assert!(validate(&fixture, &building, &programme, &layout, &services).is_err());
+    }
+
+    #[test]
+    fn missing_invalidation_reciprocity_is_rejected() {
+        let (mut fixture, building, programme, layout, services) = load_fixtures();
+        fixture["events"][1]["invalidated_claim_ids"] = json!([]);
+        assert!(validate(&fixture, &building, &programme, &layout, &services).is_err());
+    }
+
+    #[test]
+    fn event_time_or_record_time_cannot_be_inferred() {
+        let (mut fixture, building, programme, layout, services) = load_fixtures();
+        fixture["events"][0]["occurred_at"] = json!("2026-01-01T00:00:00Z");
+        assert!(validate(&fixture, &building, &programme, &layout, &services).is_err());
+    }
+
+    #[test]
+    fn synthetic_event_cannot_be_promoted_to_executed() {
+        let (mut fixture, building, programme, layout, services) = load_fixtures();
+        fixture["events"][0]["execution_state"] = json!("executed");
+        assert!(validate(&fixture, &building, &programme, &layout, &services).is_err());
+    }
+
+    #[test]
+    fn event_order_must_be_monotonic_and_unique() {
+        let (mut fixture, building, programme, layout, services) = load_fixtures();
+        fixture["events"][1]["event_order"] = json!(1);
+        assert!(validate(&fixture, &building, &programme, &layout, &services).is_err());
+    }
+
+    #[test]
+    fn unit_timeline_cannot_omit_an_authored_event() {
+        let (mut fixture, building, programme, layout, services) = load_fixtures();
+        fixture["unit_timelines"][0]["event_ids"].as_array_mut().unwrap().remove(1);
+        assert!(validate(&fixture, &building, &programme, &layout, &services).is_err());
+    }
+
+    #[test]
+    fn current_revision_must_match_last_timeline_transition() {
+        let (mut fixture, building, programme, layout, services) = load_fixtures();
+        fixture["unit_timelines"][0]["current_revision_id"] = json!("U-001-R1");
+        assert!(validate(&fixture, &building, &programme, &layout, &services).is_err());
+    }
+
+    #[test]
+    fn stale_unknown_claim_must_be_invalidated_or_superseded() {
+        let (mut fixture, building, programme, layout, services) = load_fixtures();
+        fixture["claims"][0]["claim_state"] = json!("unknown");
+        fixture["claims"][0]["invalidated_by_event_id"] = json!(null);
+        assert!(validate(&fixture, &building, &programme, &layout, &services).is_err());
+    }
+
+    #[test]
+    fn invalidated_claim_requires_a_matching_change_event() {
+        let (mut fixture, building, programme, layout, services) = load_fixtures();
+        fixture["claims"][0]["invalidated_by_event_id"] = json!("EV-U-001-DESIGN");
+        assert!(validate(&fixture, &building, &programme, &layout, &services).is_err());
+    }
+
+    #[test]
+    fn resident_data_cannot_be_smuggled_into_synthetic_lifecycle_fixture() {
+        let (mut fixture, building, programme, layout, services) = load_fixtures();
+        fixture["events"][5]["resident_data_state"] = json!("personal_data_present");
+        fixture["events"][5]["consent_state"] = json!("obtained");
+        assert!(validate(&fixture, &building, &programme, &layout, &services).is_err());
+    }
+}
