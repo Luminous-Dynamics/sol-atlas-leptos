@@ -238,3 +238,29 @@ This makes several failure modes directly testable:
 
 The Rust source currently contains 28 authored unit tests across positive, negative, boundary identity, resource class, path connectivity, dependency propagation, quality withdrawal, allocation scope and recovery claim controls. Quality withdrawal is scoped to the exact resource path containing the affected source/storage/treatment node; a non-potable quality withdrawal cannot be misreported as impacting potable apartment paths. The path-intersection check is safe in the presence of alternate graph paths. This is authored code, not a hosted Rust test pass: the exact-head native/rustfmt/schema workflows must still complete. The topology-impact preview itself does not validate the stress corpus against hydraulic or physical measurements.
 
+
+
+## 14. Premise plumbing and quality-at-use-point are a separate evidence domain
+
+The apartment service model now links to [#863 Premise Plumbing Evidence](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/863) and [#857 Hydraulic Evidence Bridge](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/857). The former adds use-point, treatment, temperature, stagnation and laboratory sampling provenance; the latter binds external hydraulic solver outputs to exact apartment boundaries.
+
+A 2026 *Water Research* review (Vol. 293, article 125437; DOI 10.1016/j.watres.2026.125437) identifies oversizing, stagnation and energy–health trade-offs as key premise-plumbing challenges, with static demand assumptions and underused full-scale digital modelling:
+- https://www.sciencedirect.com/science/article/pii/S0043135426001193
+
+Therefore, never equate:
+- hydraulic pressure/flow convergence with water-quality safety;
+- EPANET water-age/constituent output with potable water lab evidence;
+- sample quality at one fixture/time with all fixtures/future intervals;
+- maintenance completed with verified quality restoration.
+
+The evidence contract must bind every observation to the exact fixture/use point, apartment, plumbing/treatment asset, time, lab/method/chain of custody, instrument calibration, uncertainty and design revision. Modelled, measured, lab-reported, resident-reported and professionally assessed states remain separate.
+
+No microbiological safety model or water-treatment engine is duplicated. The qualifier only checks identity, provenance, applicability and revision invalidation. Exact SANS/SABS controlled editions and responsible water-service authority determine applicable limits and specialist review.
+
+## 15. In-use feedback without resident surveillance
+
+The apartment lifecycle now composes [#864 In-Use Outcome Crosswalk](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/864) with [#633 City In-Use Outcomes](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/633). A 2025 residential POE review reports performance gaps linked to static linear delivery, inadequate continuous data and insufficient stakeholder/user engagement:
+- https://www.tandfonline.com/doi/full/10.1080/09613218.2025.2538167
+
+Define outcome/measurement plans before handover. Collect objective technical measurements and resident self-reports as distinct, permissioned evidence types. Continuous occupancy/audio/video and fine-grained behaviour collection are not default. Unit-level outcomes must not be averaged in ways that conceal a resident's hard requirement or service breach. Resident withdrawal and data-minimisation rules must invalidate future collection where applicable, without erasing a safety incident record that must lawfully be retained.
+
