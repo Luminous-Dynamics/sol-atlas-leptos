@@ -16,7 +16,8 @@
     "non_equivalence_rules",
     "admission_requirements",
     "adversarial_controls",
-    "non_claims"
+    "non_claims",
+    "legacy_jukskei_assessment"
   ],
   "properties": {
     "schema_version": {
@@ -83,6 +84,9 @@
         "type": "string",
         "minLength": 12
       }
+    },
+    "legacy_jukskei_assessment": {
+      "$ref": "#/$defs/legacyJukskeiAssessment"
     }
   },
   "$defs": {
@@ -122,7 +126,8 @@
             "official_programme_page",
             "final_national_report",
             "draft_guideline",
-            "methodology_page"
+            "methodology_page",
+            "legacy_rhp_assessment"
           ]
         },
         "source_url": {
@@ -365,6 +370,241 @@
             "claim_downgrade",
             "scope_warning"
           ]
+        }
+      }
+    },
+    "legacyJukskeiAssessment": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "source_id",
+        "programme",
+        "report_id",
+        "report_title",
+        "final_date",
+        "publisher",
+        "overall_condition",
+        "sub_quaternary_reaches",
+        "monitoring_site",
+        "indicator_summaries",
+        "sampling_events",
+        "reported_pressures",
+        "method_limitations",
+        "admission_status",
+        "reconciliation_requirements"
+      ],
+      "properties": {
+        "source_id": {
+          "const": "DWS-RHP-2015-JUKSKEI"
+        },
+        "programme": {
+          "const": "legacy_RHP"
+        },
+        "report_id": {
+          "const": "WP 10592 Technical Report 3"
+        },
+        "report_title": {
+          "type": "string",
+          "minLength": 20
+        },
+        "final_date": {
+          "const": "2015-07-31"
+        },
+        "publisher": {
+          "const": "Department of Water and Sanitation, North West Regional Office"
+        },
+        "overall_condition": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "reported_category",
+            "description",
+            "claim_scope"
+          ],
+          "properties": {
+            "reported_category": {
+              "const": "D"
+            },
+            "description": {
+              "type": "string",
+              "minLength": 20
+            },
+            "claim_scope": {
+              "const": "catchment_level_report_summary"
+            }
+          }
+        },
+        "sub_quaternary_reaches": {
+          "type": "array",
+          "minItems": 5,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "reach_id",
+              "assessment_method",
+              "sensitivity_note"
+            ],
+            "properties": {
+              "reach_id": {
+                "enum": [
+                  "A21C-01269",
+                  "A21C-01232",
+                  "A21C-01215",
+                  "A21C-01183",
+                  "A21C-01167"
+                ]
+              },
+              "assessment_method": {
+                "type": "string",
+                "minLength": 12
+              },
+              "sensitivity_note": {
+                "type": "string",
+                "minLength": 20
+              }
+            }
+          }
+        },
+        "monitoring_site": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "site_id",
+            "reach_id",
+            "location_description",
+            "site_results_scope",
+            "coordinate_status"
+          ],
+          "properties": {
+            "site_id": {
+              "const": "A2JUKS-DIENR"
+            },
+            "reach_id": {
+              "const": "A21C-01167"
+            },
+            "location_description": {
+              "type": "string",
+              "minLength": 20
+            },
+            "site_results_scope": {
+              "const": "single_monitored_site_not_all_five_reaches"
+            },
+            "coordinate_status": {
+              "enum": [
+                "not_yet_recovered",
+                "verified"
+              ]
+            }
+          }
+        },
+        "indicator_summaries": {
+          "type": "array",
+          "minItems": 3,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "indicator",
+              "reported_status",
+              "period",
+              "measurement_status",
+              "notes"
+            ],
+            "properties": {
+              "indicator": {
+                "enum": [
+                  "fish_PES_EC",
+                  "macroinvertebrate_MIRAI_EC",
+                  "riparian_vegetation_EC"
+                ]
+              },
+              "reported_status": {
+                "type": "string",
+                "minLength": 1
+              },
+              "period": {
+                "type": "string",
+                "minLength": 1
+              },
+              "measurement_status": {
+                "enum": [
+                  "reported_summary",
+                  "derived_from_prior_data",
+                  "not_sampled"
+                ]
+              },
+              "notes": {
+                "type": "string",
+                "minLength": 20
+              }
+            }
+          }
+        },
+        "sampling_events": {
+          "type": "array",
+          "minItems": 4,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "date",
+              "date_precision",
+              "event_type",
+              "reason"
+            ],
+            "properties": {
+              "date": {
+                "type": "string",
+                "minLength": 4
+              },
+              "date_precision": {
+                "enum": [
+                  "month",
+                  "day",
+                  "year"
+                ]
+              },
+              "event_type": {
+                "enum": [
+                  "field_survey",
+                  "visual_survey",
+                  "not_sampled"
+                ]
+              },
+              "reason": {
+                "type": "string",
+                "minLength": 8
+              }
+            }
+          }
+        },
+        "reported_pressures": {
+          "type": "array",
+          "minItems": 5,
+          "items": {
+            "type": "string",
+            "minLength": 8
+          }
+        },
+        "method_limitations": {
+          "type": "array",
+          "minItems": 4,
+          "items": {
+            "type": "string",
+            "minLength": 12
+          }
+        },
+        "admission_status": {
+          "const": "published_report_summary_raw_records_pending"
+        },
+        "reconciliation_requirements": {
+          "type": "array",
+          "minItems": 5,
+          "items": {
+            "type": "string",
+            "minLength": 12
+          }
         }
       }
     }
