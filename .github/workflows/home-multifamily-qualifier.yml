@@ -12,6 +12,8 @@ on:
       - "docs/research/home-delivery-systems/multifamily-resident-programme.schema.json"
       - "docs/research/home-delivery-systems/multifamily-resident-programme-synthetic-v0.1.json"
       - "docs/research/home-delivery-systems/multifamily-lifecycle.schema.json"
+      - "docs/research/home-delivery-systems/multifamily-lifecycle-adversarial-corpus.schema.json"
+      - "docs/research/home-delivery-systems/multifamily-lifecycle-adversarial-corpus-v0.1.json"
       - "docs/research/home-delivery-systems/multifamily-lifecycle-synthetic-v0.1.json"
       - "docs/research/home-delivery-systems/multifamily-unit-layout.schema.json"
       - "docs/research/home-delivery-systems/multifamily-unit-layout-synthetic-v0.1.json"
@@ -148,6 +150,7 @@ jobs:
               ("multifamily-service-stress-corpus.schema.json", "multifamily-service-stress-corpus-v0.1.json"),
               ("multifamily-resident-programme.schema.json", "multifamily-resident-programme-synthetic-v0.1.json"),
               ("multifamily-lifecycle.schema.json", "multifamily-lifecycle-synthetic-v0.1.json"),
+              ("multifamily-lifecycle-adversarial-corpus.schema.json", "multifamily-lifecycle-adversarial-corpus-v0.1.json"),
               ("multifamily-unit-layout.schema.json", "multifamily-unit-layout-synthetic-v0.1.json"),
               ("multifamily-unit-layout-corpus.schema.json", "multifamily-unit-layout-corpus-v0.1.json"),
               ("site-foundation-evidence.schema.json", "site-foundation-evidence-synthetic-v0.1.json"),
