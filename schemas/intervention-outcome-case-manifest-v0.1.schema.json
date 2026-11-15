@@ -1,0 +1,434 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/blob/main/schemas/intervention-outcome-case-manifest-v0.1.schema.json",
+  "title": "Intervention Outcome Evidence Qualification v0.1",
+  "description": "Synthetic, metadata-only cases for distinguishing implementation outputs, operational performance, observed physical outcomes, causal effects and modelled benefit projections. Not field validation.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "benchmark_id",
+    "purpose",
+    "non_claims",
+    "cases"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "0.1.0"
+    },
+    "benchmark_id": {
+      "const": "IOEQ-SYNTHETIC-CORPUS-0.1"
+    },
+    "purpose": {
+      "const": "synthetic_claim_class_qualification"
+    },
+    "non_claims": {
+      "type": "array",
+      "minItems": 3,
+      "items": {
+        "type": "string",
+        "minLength": 12
+      }
+    },
+    "cases": {
+      "type": "array",
+      "minItems": 10,
+      "items": {
+        "$ref": "#/$defs/case"
+      }
+    }
+  },
+  "$defs": {
+    "claimClass": {
+      "enum": [
+        "IMPLEMENTATION_OUTPUT",
+        "OPERATIONAL_PERFORMANCE",
+        "OBSERVED_PHYSICAL_OUTCOME",
+        "ATTRIBUTABLE_INTERVENTION_EFFECT",
+        "MODELLED_BENEFIT_PROJECTION"
+      ]
+    },
+    "disposition": {
+      "enum": [
+        "ACCEPT_AT_SUBMITTED_CLASS",
+        "DOWNGRADE_TO_SUPPORTED_CLASS",
+        "UNRESOLVED_SCOPE",
+        "CAUSALITY_NOT_IDENTIFIED",
+        "INSUFFICIENT_OBSERVABILITY",
+        "RIGHTS_OR_PROVENANCE_BLOCK",
+        "REJECT_UNSUPPORTED_PROMOTION",
+        "PRESERVE_ADVERSE_OUTCOME"
+      ]
+    },
+    "sourceRecord": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "record_id",
+        "publisher",
+        "source_kind",
+        "published_at",
+        "as_of_date",
+        "geographic_scope",
+        "measurement_nature",
+        "rights_status"
+      ],
+      "properties": {
+        "record_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "publisher": {
+          "type": "string",
+          "minLength": 1
+        },
+        "source_url": {
+          "type": "string",
+          "format": "uri"
+        },
+        "source_kind": {
+          "enum": [
+            "project_summary",
+            "as_built_register",
+            "operations_log",
+            "sensor_telemetry",
+            "laboratory_record",
+            "field_survey",
+            "remote_sensing_product",
+            "model_output",
+            "valuation_report",
+            "planting_register"
+          ]
+        },
+        "published_at": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date"
+        },
+        "as_of_date": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date"
+        },
+        "geographic_scope": {
+          "type": "string",
+          "minLength": 1
+        },
+        "temporal_scope": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "measurement_nature": {
+          "enum": [
+            "reported_implementation_output",
+            "operational_record",
+            "direct_measurement",
+            "derived_measurement",
+            "modelled_projection",
+            "unknown"
+          ]
+        },
+        "method_status": {
+          "enum": [
+            "documented",
+            "partially_documented",
+            "unknown",
+            "not_applicable"
+          ]
+        },
+        "rights_status": {
+          "enum": [
+            "cleared_synthetic",
+            "cleared_public",
+            "restricted",
+            "unknown",
+            "not_applicable"
+          ]
+        },
+        "measurements": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "metric",
+              "value",
+              "unit",
+              "evidence_type"
+            ],
+            "properties": {
+              "metric": {
+                "type": "string",
+                "minLength": 1
+              },
+              "value": {
+                "type": [
+                  "number",
+                  "string"
+                ]
+              },
+              "unit": {
+                "type": "string",
+                "minLength": 1
+              },
+              "evidence_type": {
+                "enum": [
+                  "count",
+                  "area",
+                  "mass",
+                  "concentration",
+                  "rate",
+                  "economic_projection",
+                  "uptime",
+                  "other"
+                ]
+              },
+              "uncertainty_status": {
+                "enum": [
+                  "quantified",
+                  "qualitative_only",
+                  "not_reported",
+                  "not_applicable"
+                ]
+              },
+              "method_note": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+    },
+    "case": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "case_id",
+        "family",
+        "claim_under_review",
+        "source_records",
+        "intervention_exposure",
+        "evidence_design",
+        "expected_max_claim_class",
+        "expected_disposition",
+        "hard_invariants"
+      ],
+      "properties": {
+        "case_id": {
+          "type": "string",
+          "pattern": "^IOEQ-SYN-[0-9]{3}$"
+        },
+        "family": {
+          "enum": [
+            "published_total_scope_reconciliation",
+            "modelled_benefit_projection",
+            "asset_installation_without_performance",
+            "planting_without_survival",
+            "before_after_without_control",
+            "valid_counterfactual_design",
+            "control_spillover",
+            "measurement_shift_confounding",
+            "rights_or_provenance_unknown",
+            "dependent_reference",
+            "adverse_outcome_suppression",
+            "insufficient_baseline"
+          ]
+        },
+        "claim_under_review": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "class",
+            "text"
+          ],
+          "properties": {
+            "class": {
+              "$ref": "#/$defs/claimClass"
+            },
+            "text": {
+              "type": "string",
+              "minLength": 8
+            }
+          }
+        },
+        "source_records": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/sourceRecord"
+          }
+        },
+        "intervention_exposure": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "intervention_id",
+            "activity_type",
+            "geometry_status",
+            "timing_status",
+            "intensity_status"
+          ],
+          "properties": {
+            "intervention_id": {
+              "type": "string",
+              "minLength": 1
+            },
+            "activity_type": {
+              "type": "string",
+              "minLength": 1
+            },
+            "geometry_status": {
+              "enum": [
+                "verified",
+                "approximate",
+                "missing",
+                "conflicted"
+              ]
+            },
+            "timing_status": {
+              "enum": [
+                "verified",
+                "approximate",
+                "missing",
+                "conflicted"
+              ]
+            },
+            "intensity_status": {
+              "enum": [
+                "measured",
+                "reported",
+                "unknown"
+              ]
+            },
+            "overlap_status": {
+              "enum": [
+                "checked_no_overlap",
+                "possible_overlap",
+                "known_overlap",
+                "unknown"
+              ]
+            }
+          }
+        },
+        "evidence_design": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "baseline_status",
+            "comparator_status",
+            "reference_status",
+            "reference_independence",
+            "measurement_profile_status",
+            "calibration_status",
+            "confounder_status",
+            "spillover_status",
+            "rights_status"
+          ],
+          "properties": {
+            "baseline_status": {
+              "enum": [
+                "adequate",
+                "partial",
+                "absent",
+                "unknown",
+                "not_required_for_class"
+              ]
+            },
+            "comparator_status": {
+              "enum": [
+                "credible_control",
+                "matched_comparator",
+                "no_control",
+                "contaminated_control",
+                "not_applicable",
+                "unknown"
+              ]
+            },
+            "reference_status": {
+              "enum": [
+                "independent_sample",
+                "direct_instrument_record",
+                "dependent_derivative",
+                "absent",
+                "unknown"
+              ]
+            },
+            "reference_independence": {
+              "enum": [
+                "independent",
+                "partially_dependent",
+                "dependent",
+                "unknown",
+                "not_applicable"
+              ]
+            },
+            "measurement_profile_status": {
+              "enum": [
+                "qualified",
+                "partial",
+                "unqualified",
+                "unknown"
+              ]
+            },
+            "calibration_status": {
+              "enum": [
+                "current_and_traceable",
+                "documented_but_stale",
+                "absent",
+                "unknown",
+                "not_applicable"
+              ]
+            },
+            "confounder_status": {
+              "enum": [
+                "measured_and_addressed",
+                "partially_addressed",
+                "unmeasured",
+                "unknown",
+                "not_applicable"
+              ]
+            },
+            "spillover_status": {
+              "enum": [
+                "assessed_and_low",
+                "plausible",
+                "known",
+                "not_assessed",
+                "not_applicable"
+              ]
+            },
+            "rights_status": {
+              "enum": [
+                "cleared_synthetic",
+                "cleared_for_declared_purpose",
+                "restricted",
+                "unknown"
+              ]
+            }
+          }
+        },
+        "expected_max_claim_class": {
+          "$ref": "#/$defs/claimClass"
+        },
+        "expected_disposition": {
+          "$ref": "#/$defs/disposition"
+        },
+        "hard_invariants": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 8
+          }
+        }
+      }
+    }
+  }
+}
