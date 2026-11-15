@@ -385,7 +385,9 @@
       "type": "object",
       "additionalProperties": false,
       "required": [
-        "status"
+        "status",
+        "mycelix_approval_ref",
+        "symtropy_approval_ref"
       ],
       "properties": {
         "status": {
@@ -411,6 +413,18 @@
           ]
         },
         "reviewed_by": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "mycelix_approval_ref": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "symtropy_approval_ref": {
           "type": [
             "string",
             "null"
