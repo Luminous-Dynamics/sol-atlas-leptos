@@ -1018,16 +1018,16 @@ end
             .replace(
                 "  1 50 0 10 -10 1 100 1 100 0;",
                 concat!(
-                    "  1 50 0 10 -10 1 100 1 100 0;\\n",
-                    "  2 30 0 10 -10 1 100 1 50 0;\\n",
+                    "  1 50 0 10 -10 1 100 1 100 0;\n",
+                    "  2 30 0 10 -10 1 100 1 50 0;\n",
                     "  2 90 0 10 -10 1 100 0 100 0;"
                 ),
             )
             .replace(
                 "  2 0 0 3 0.01 2 0;",
                 concat!(
-                    "  2 0 0 3 0.01 2 0;\\n",
-                    "  2 0 0 3 0.01 2 0;\\n",
+                    "  2 0 0 3 0.01 2 0;\n",
+                    "  2 0 0 3 0.01 2 0;\n",
                     "  2 0 0 3 0.01 2 0;"
                 ),
             );
@@ -1046,7 +1046,7 @@ end
     }
 
     #[test]
-    fn non_reference_generator_outside_base_p_bounds_is_rejected() {
+    fn online_generator_outside_base_p_bounds_is_rejected() {
         let source = SYNTHETIC_CASE.replace(
             "1 50 0 10 -10 1 100 1 100 0",
             "1 120 0 10 -10 1 100 1 100 0",
