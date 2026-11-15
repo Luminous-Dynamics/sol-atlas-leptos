@@ -1550,7 +1550,10 @@ mod tests {
         input.campaigns.reverse();
         input.physical_bindings.reverse();
         let second = evaluate(&input);
-        assert_eq!(first.obligations_with_admissible_acquisition_route, second.obligations_with_admissible_acquisition_route);
+        assert_eq!(
+            first.obligations_with_admissible_acquisition_route,
+            second.obligations_with_admissible_acquisition_route
+        );
         assert_eq!(
             first.obligation_results[0].disposition,
             second.obligation_results[0].disposition
@@ -1616,7 +1619,10 @@ mod tests {
         input.acquisitions.reverse();
         let second = evaluate(&input);
 
-        assert_eq!(first.obligations_with_admissible_acquisition_route, second.obligations_with_admissible_acquisition_route);
+        assert_eq!(
+            first.obligations_with_admissible_acquisition_route,
+            second.obligations_with_admissible_acquisition_route
+        );
         assert_eq!(
             first.obligation_results[0].candidate_acquisition_ids,
             second.obligation_results[0].candidate_acquisition_ids
