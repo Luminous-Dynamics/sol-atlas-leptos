@@ -226,9 +226,11 @@ mod tests {
             "synthetic_analytic_scoring_not_physical_evidence"
         );
         assert_eq!(receipt.json_schema_validation, "NOT_RUN");
+        // Four sites contain eligible positive targets, but only three sites
+        // contribute in-domain negative-control route length for the FAR interval.
         assert_eq!(
             receipt.metrics.clustered_confidence_interval_status,
-            "INSUFFICIENT_SITE_CLUSTERS_POD_4_FAR_4_REQUIRED_10_NOT_RUN"
+            "INSUFFICIENT_SITE_CLUSTERS_POD_4_FAR_3_REQUIRED_10_NOT_RUN"
         );
         assert_eq!(
             receipt
