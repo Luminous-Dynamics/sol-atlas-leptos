@@ -36,6 +36,7 @@ The result is not a replacement digital twin. It is an independent assurance and
 | ISO/AWI 23247-8 — digital-twin VVUQ | Approved work item, development initiated 23 October 2026 | Design the VVUQ evidence and metrics now, but do not claim conformity to an unpublished standard |
 | IFC 4.3.2.0 / ISO 16739-1:2024 | Latest official IFC release identified by buildingSMART | Use IFC for exchangeable built-asset semantics and exact schema-version tests |
 | buildingSMART IDS 1.0 | Official buildingSMART standard since 1 June 2024 | Test machine-readable information requirements, but do not treat an IDS pass as geometry, material, installation or physical-performance proof |
+| ISO 10218-1:2025 / ISO 10218-2:2025 | Published February 2025; current editions | Use Part 1 for industrial robot safety and Part 2 for application/cell integration, commissioning, operation, maintenance and decommissioning; require competent integrator and safety review for the guarded cell |
 | NIST IR 8536 | Final 9 September 2026 | Align provenance composition with cryptographic linkage, selective disclosure, source-native records and cross-industry traceability |
 | NIST 2026 AI/ML Roadmap for Smart Manufacturing | Published 3 July 2026 | Include trustworthy AI, industrial data contextualization, robotics, sustainability, reliability and VVUQ |
 | NIST TIDAL / SI for Manufacturing research | Active research programme in 2026 | Benchmark layered intelligence, human-machine teaming, integration and digital-twin assurance; do not confuse research direction with a finalized standard |
@@ -48,8 +49,10 @@ Primary references:
 - IFC releases: https://standards.buildingsmart.org/
 - IDS: https://www.buildingsmart.org/standards/bsi-standards/information-delivery-specification-ids/
 - NIST IR 8536: https://csrc.nist.gov/pubs/ir/8536/final
+- ISO 10218-1:2025: https://www.iso.org/standard/73933.html
+- ISO 10218-2:2025: https://www.iso.org/standard/73934.html
 - NIST 2026 AI/ML roadmap: https://www.nist.gov/publications/2026-roadmap-artificial-intelligence-and-machine-learning-smart-manufacturing
-- NIST SI for Manufacturing / TIDAL: https://www.nist.gov/programs-projects/super-intelligence-si-manufacturing
+- NIST Super Intelligence for Manufacturing: https://www.nist.gov/programs-projects/super-intelligence-si-manufacturing
 - NIST Digital Twins Workshops Summary (NIST IR 8620): https://www.nist.gov/publications/digital-twins-workshops-summary-report
 
 ### What leading commercial platforms already do
@@ -73,15 +76,23 @@ References:
 
 Important: Siemens' public announcement reports customer deployment results, but the scenarios and baselines are not necessarily comparable to this panel-cell workload. Vendor-reported numbers must not be converted into a leaderboard. For all platforms, a capability not exposed in a given product/configuration should be recorded as **not exposed / not tested**, not presumed absent.
 
+### Industrialized construction adoption context
+
+Autodesk's 2026 Spotlight on Industrialized Construction reports that regular or standard use of productization, DfMA and prefabrication ranges from 37% to 40% among its respondents, while 70% expect industrialized construction to become standard. In supplemental Dodge research, traditional procurement was the leading barrier to wider DfMA/productization adoption (51%). The report describes a survey of 869 industry leaders and experts plus supplemental Dodge research; it is a vendor-sponsored industry survey, not a neutral measurement of all global construction activity or a matched comparison of technical performance.
+
+This is a useful market signal: the differentiator is not one successful prefabrication demo, but repeatable, procurement-compatible delivery with validated quality, traceability and predictable outcomes. Our benchmark should measure hand-offs, scope changes, supplier evidence and accepted output across multiple projects—not simply compare a robot cell's best cycle time.
+
+Reference: https://www.autodesk.com/design-make/articles/2026-state-of-design-make-spotlight-on-industrialized-construction
+
 ### NIST test and measurement precedents
 
 The NIST Smart Manufacturing Systems Test Bed connects CAD, CAM, inspection, product-data management, CNC equipment, CMM/digital micrometers and MTConnect data. It provides a practical reference for connecting design, fabrication and inspection data in one measured workflow: https://www.nist.gov/laboratories/tools-instruments/smart-manufacturing-systems-sms-test-bed
 
-NIST's collaborative robotics work emphasizes task decomposition, coordination, role allocation, communication, situational awareness and collective human/robot performance—not just robot speed: https://www.nist.gov/programs-projects/performance-collaborative-robot-systems
+NIST's collaborative robotics work emphasizes task decomposition, coordination, role allocation, communication, situational awareness and collective human/robot performance—not just robot speed: https://www.nist.gov/programs-projects/performance-collaborative-robot-systems. NIST's robotic performance-assessment work also points to system-level assembly-performance models and test methods rather than isolated robot component speed: https://www.nist.gov/programs-projects/performance-assessment-framework-robotic-systems
 
-NIST's 2026 report on uncertainty quantification calls for risk-based credibility assessment scaled to model influence and decision consequence: https://www.nist.gov/publications/methods-uncertainty-quantification-computational-modeling-and-simulation-harmonizing
+NIST's 2026 Super Intelligence for Manufacturing initiative organizes work around trustworthy manufacturing intelligence, human-machine teaming, data contextualization, integration/benchmark studies and digital-twin VVUQ. NIST's 2026 report on uncertainty quantification calls for risk-based credibility assessment scaled to model influence and decision consequence.
 
-These are the right methodological comparators. We should reproduce the spirit of physical measurement and task-level metrology, not imply that a synthetic corpus is equivalent to a test bed.
+These are methodological comparators, not certification programmes. We should reproduce the spirit of physical measurement and task-level metrology, not imply that a synthetic corpus is equivalent to a test bed or that passing our benchmark establishes ISO conformity.
 
 ## 3. Cross-repository owners — reuse, do not duplicate
 
