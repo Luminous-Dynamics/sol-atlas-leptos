@@ -72,3 +72,13 @@ Malformed, incomplete, duplicated or unknown input is rejected with exit code 2.
 ## Claim ceiling
 
 A score is agreement with the supplied synthetic benchmark labels only. It does not verify source artifact bytes, signer authenticity, material identity, real certificates, geometry, physics, robot safety, professional approval or physical performance.
+
+## Exact-head validation checkpoint
+
+The bridge and evaluator source at code head `d175f4d8bf9828c92f77b6847141a98573139120` passed:
+- Focused Highveld qualifier workflow [#43766996384](https://github.com/Luminous-Dynamics/sol-atlas-leptos/actions/runs/43766996384): formatting, 49/49 library tests and strict Clippy.
+- Repository Check [#43766996387](https://github.com/Luminous-Dynamics/sol-atlas-leptos/actions/runs/43766996387): formatting, 7/7 application tests, 49/49 qualifier library tests, strict Clippy and WASM check.
+
+The 49 library tests comprise 16 corpus/evaluator tests and 33 bridge tests. The exact current owner-binding/readiness register is `docs/research/highveld-keep/HIGHVELD_OWNER_BINDING_READINESS_REGISTER_V0_1.md`.
+
+A passing software suite validates only the declared synthetic fixtures and code path. It does not promote any real owner profile from UNBOUND, authenticate source artifacts, qualify physical observations, or grant engineering/operational authority.
