@@ -13,9 +13,7 @@
 //! voltage/reactive constraints, protection, stability, or operating authority.
 
 use dc_power_flow_independent_auditor::{AuditOptions, AuditReport, audit_dc_power_flow};
-use dc_power_flow_reference::{
-    DcNetwork, SolveOptions, solve_dc_power_flow,
-};
+use dc_power_flow_reference::{DcNetwork, SolveOptions, solve_dc_power_flow};
 
 const MAX_CONTINGENCIES: usize = 512;
 const AUDIT_ANGLE_TOLERANCE_RAD: f64 = 1.0e-9;
@@ -79,30 +77,21 @@ pub struct OutagedBranch {
 pub enum ScenarioDisposition {
     /// A separate auditor recomputed the declared DC equations and all reported
     /// values; no declared nodal or Rate A violation was found.
-    AuditedWithinDeclaredChecks {
-        audit: AuditReport,
-    },
+    AuditedWithinDeclaredChecks { audit: AuditReport },
     /// The candidate receipt was internally consistent, but the independent
     /// audit found a declared nodal or branch-limit violation.
-    AuditedWithDeclaredViolations {
-        audit: AuditReport,
-    },
+    AuditedWithDeclaredViolations { audit: AuditReport },
     /// The reference solver did not return a candidate. This is unknown, not pass.
-    SolverDidNotReturnCandidate {
-        reason: String,
-    },
+    SolverDidNotReturnCandidate { reason: String },
     /// The solver returned a candidate that the independent auditor rejected.
-    CandidateRejectedByAuditor {
-        reason: String,
-    },
+    CandidateRejectedByAuditor { reason: String },
 }
 
 impl ScenarioDisposition {
     pub fn is_audited(&self) -> bool {
         matches!(
             self,
-            Self::AuditedWithinDeclaredChecks { .. }
-                | Self::AuditedWithDeclaredViolations { .. }
+            Self::AuditedWithinDeclaredChecks { .. } | Self::AuditedWithDeclaredViolations { .. }
         )
     }
 
@@ -113,8 +102,7 @@ impl ScenarioDisposition {
     pub fn is_unknown(&self) -> bool {
         matches!(
             self,
-            Self::SolverDidNotReturnCandidate { .. }
-                | Self::CandidateRejectedByAuditor { .. }
+            Self::SolverDidNotReturnCandidate { .. } | Self::CandidateRejectedByAuditor { .. }
         )
     }
 }
@@ -319,22 +307,23 @@ fn evaluate_scenario(
         Err(error) => ScenarioDisposition::SolverDidNotReturnCandidate {
             reason: error.to_string(),
         },
-        Ok(candidate) => match audit_dc_power_flow(
-            &scenario_network,
-            &candidate,
-            audit_options_for(solve),
-        ) {
-            Err(error) => ScenarioDisposition::CandidateRejectedByAuditor {
-                reason: error.to_string(),
-            },
-            Ok(audit) if audit.independently_feasible_under_declared_checks => {
-                ScenarioDisposition::AuditedWithinDeclaredChecks { audit }
+        Ok(candidate) => {
+            match audit_dc_power_flow(&scenario_network, &candidate, audit_options_for(solve)) {
+                Err(error) => ScenarioDisposition::CandidateRejectedByAuditor {
+                    reason: error.to_string(),
+                },
+                Ok(audit) if audit.independently_feasible_under_declared_checks => {
+                    ScenarioDisposition::AuditedWithinDeclaredChecks { audit }
+                }
+                Ok(audit) => ScenarioDisposition::AuditedWithDeclaredViolations { audit },
             }
-            Ok(audit) => ScenarioDisposition::AuditedWithDeclaredViolations { audit },
-        },
+        }
     };
 
-    ScenarioResult { outage, disposition }
+    ScenarioResult {
+        outage,
+        disposition,
+    }
 }
 
 /// Evaluate the intact base case and every single in-service branch outage.
@@ -672,12 +661,8 @@ mod tests {
     #[test]
     fn empty_identity_label_is_rejected() {
         assert_eq!(
-            sweep_fixed_injection_single_branch_outages(
-                "  ",
-                &triangle(),
-                SweepOptions::default()
-            )
-            .expect_err("empty source label must fail closed"),
+            sweep_fixed_injection_single_branch_outages("  ", &triangle(), SweepOptions::default())
+                .expect_err("empty source label must fail closed"),
             SweepError::EmptyNetworkLabel
         );
     }
