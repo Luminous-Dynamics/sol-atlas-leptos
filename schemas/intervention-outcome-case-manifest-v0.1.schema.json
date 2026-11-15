@@ -378,7 +378,8 @@
                 "qualified",
                 "partial",
                 "unqualified",
-                "unknown"
+                "unknown",
+                "not_applicable"
               ]
             },
             "calibration_status": {
@@ -405,7 +406,8 @@
                 "plausible",
                 "known",
                 "not_assessed",
-                "not_applicable"
+                "not_applicable",
+                "unknown"
               ]
             },
             "rights_status": {
