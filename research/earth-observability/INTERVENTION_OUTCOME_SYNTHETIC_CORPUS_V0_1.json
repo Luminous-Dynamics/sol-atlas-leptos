@@ -91,7 +91,12 @@
         "calibration_status": "unknown",
         "confounder_status": "unknown",
         "spillover_status": "not_assessed",
-        "rights_status": "cleared_synthetic"
+        "rights_status": "cleared_synthetic",
+        "monitoring_type": "implementation_compliance",
+        "reference_ecosystem_status": "unknown",
+        "ecological_attributes_covered": [],
+        "indicators_preregistered": "no",
+        "causal_design_status": "unknown"
       },
       "expected_max_claim_class": "IMPLEMENTATION_OUTPUT",
       "expected_disposition": "UNRESOLVED_SCOPE",
@@ -154,7 +159,12 @@
         "calibration_status": "not_applicable",
         "confounder_status": "not_applicable",
         "spillover_status": "not_applicable",
-        "rights_status": "cleared_synthetic"
+        "rights_status": "cleared_synthetic",
+        "monitoring_type": "modelled_scenario",
+        "reference_ecosystem_status": "not_applicable",
+        "ecological_attributes_covered": [],
+        "indicators_preregistered": "not_applicable",
+        "causal_design_status": "not_applicable"
       },
       "expected_max_claim_class": "MODELLED_BENEFIT_PROJECTION",
       "expected_disposition": "DOWNGRADE_TO_SUPPORTED_CLASS",
@@ -217,7 +227,12 @@
         "calibration_status": "unknown",
         "confounder_status": "unmeasured",
         "spillover_status": "not_assessed",
-        "rights_status": "cleared_synthetic"
+        "rights_status": "cleared_synthetic",
+        "monitoring_type": "implementation_compliance",
+        "reference_ecosystem_status": "not_applicable",
+        "ecological_attributes_covered": [],
+        "indicators_preregistered": "no",
+        "causal_design_status": "not_applicable"
       },
       "expected_max_claim_class": "IMPLEMENTATION_OUTPUT",
       "expected_disposition": "DOWNGRADE_TO_SUPPORTED_CLASS",
@@ -273,7 +288,12 @@
         "calibration_status": "not_applicable",
         "confounder_status": "unknown",
         "spillover_status": "not_applicable",
-        "rights_status": "cleared_synthetic"
+        "rights_status": "cleared_synthetic",
+        "monitoring_type": "implementation_compliance",
+        "reference_ecosystem_status": "unknown",
+        "ecological_attributes_covered": [],
+        "indicators_preregistered": "no",
+        "causal_design_status": "not_applicable"
       },
       "expected_max_claim_class": "IMPLEMENTATION_OUTPUT",
       "expected_disposition": "DOWNGRADE_TO_SUPPORTED_CLASS",
@@ -348,7 +368,14 @@
         "calibration_status": "current_and_traceable",
         "confounder_status": "unmeasured",
         "spillover_status": "not_assessed",
-        "rights_status": "cleared_synthetic"
+        "rights_status": "cleared_synthetic",
+        "monitoring_type": "effectiveness_performance",
+        "reference_ecosystem_status": "provisional",
+        "ecological_attributes_covered": [
+          "species_composition"
+        ],
+        "indicators_preregistered": "partial",
+        "causal_design_status": "none"
       },
       "expected_max_claim_class": "OBSERVED_PHYSICAL_OUTCOME",
       "expected_disposition": "CAUSALITY_NOT_IDENTIFIED",
@@ -423,7 +450,15 @@
         "calibration_status": "current_and_traceable",
         "confounder_status": "measured_and_addressed",
         "spillover_status": "assessed_and_low",
-        "rights_status": "cleared_synthetic"
+        "rights_status": "cleared_synthetic",
+        "monitoring_type": "impact",
+        "reference_ecosystem_status": "qualified",
+        "ecological_attributes_covered": [
+          "species_composition",
+          "structural_diversity"
+        ],
+        "indicators_preregistered": "yes",
+        "causal_design_status": "replicated_baci"
       },
       "expected_max_claim_class": "ATTRIBUTABLE_INTERVENTION_EFFECT",
       "expected_disposition": "ACCEPT_AT_SUBMITTED_CLASS",
@@ -478,7 +513,14 @@
         "calibration_status": "current_and_traceable",
         "confounder_status": "partially_addressed",
         "spillover_status": "known",
-        "rights_status": "cleared_synthetic"
+        "rights_status": "cleared_synthetic",
+        "monitoring_type": "impact",
+        "reference_ecosystem_status": "provisional",
+        "ecological_attributes_covered": [
+          "physical_conditions"
+        ],
+        "indicators_preregistered": "partial",
+        "causal_design_status": "difference_in_differences"
       },
       "expected_max_claim_class": "OBSERVED_PHYSICAL_OUTCOME",
       "expected_disposition": "CAUSALITY_NOT_IDENTIFIED",
@@ -533,7 +575,14 @@
         "calibration_status": "unknown",
         "confounder_status": "unmeasured",
         "spillover_status": "not_assessed",
-        "rights_status": "cleared_synthetic"
+        "rights_status": "cleared_synthetic",
+        "monitoring_type": "effectiveness_performance",
+        "reference_ecosystem_status": "absent",
+        "ecological_attributes_covered": [
+          "species_composition"
+        ],
+        "indicators_preregistered": "partial",
+        "causal_design_status": "none"
       },
       "expected_max_claim_class": "IMPLEMENTATION_OUTPUT",
       "expected_disposition": "INSUFFICIENT_OBSERVABILITY",
@@ -580,7 +629,12 @@
         "calibration_status": "unknown",
         "confounder_status": "unknown",
         "spillover_status": "unknown",
-        "rights_status": "unknown"
+        "rights_status": "unknown",
+        "monitoring_type": "unknown",
+        "reference_ecosystem_status": "unknown",
+        "ecological_attributes_covered": [],
+        "indicators_preregistered": "no",
+        "causal_design_status": "unknown"
       },
       "expected_max_claim_class": "IMPLEMENTATION_OUTPUT",
       "expected_disposition": "RIGHTS_OR_PROVENANCE_BLOCK",
@@ -639,7 +693,15 @@
         "calibration_status": "unknown",
         "confounder_status": "partially_addressed",
         "spillover_status": "unknown",
-        "rights_status": "cleared_synthetic"
+        "rights_status": "cleared_synthetic",
+        "monitoring_type": "impact",
+        "reference_ecosystem_status": "provisional",
+        "ecological_attributes_covered": [
+          "species_composition",
+          "structural_diversity"
+        ],
+        "indicators_preregistered": "partial",
+        "causal_design_status": "difference_in_differences"
       },
       "expected_max_claim_class": "OBSERVED_PHYSICAL_OUTCOME",
       "expected_disposition": "CAUSALITY_NOT_IDENTIFIED",
@@ -701,7 +763,15 @@
         "calibration_status": "current_and_traceable",
         "confounder_status": "measured_and_addressed",
         "spillover_status": "assessed_and_low",
-        "rights_status": "cleared_synthetic"
+        "rights_status": "cleared_synthetic",
+        "monitoring_type": "impact",
+        "reference_ecosystem_status": "qualified",
+        "ecological_attributes_covered": [
+          "absence_of_threats",
+          "physical_conditions"
+        ],
+        "indicators_preregistered": "yes",
+        "causal_design_status": "matched_control"
       },
       "expected_max_claim_class": "OBSERVED_PHYSICAL_OUTCOME",
       "expected_disposition": "PRESERVE_ADVERSE_OUTCOME",
@@ -756,7 +826,12 @@
         "calibration_status": "unknown",
         "confounder_status": "unmeasured",
         "spillover_status": "not_assessed",
-        "rights_status": "cleared_synthetic"
+        "rights_status": "cleared_synthetic",
+        "monitoring_type": "effectiveness_performance",
+        "reference_ecosystem_status": "unknown",
+        "ecological_attributes_covered": [],
+        "indicators_preregistered": "no",
+        "causal_design_status": "none"
       },
       "expected_max_claim_class": "IMPLEMENTATION_OUTPUT",
       "expected_disposition": "INSUFFICIENT_OBSERVABILITY",
