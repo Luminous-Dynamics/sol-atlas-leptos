@@ -7,7 +7,7 @@
 //! publish and approve exact versioned source contracts.
 
 use serde::{Deserialize, Serialize};
-use std::collections::{BTreeMap, BTreeSet};
+use std::collections::BTreeSet;
 
 use crate::sha256_hex;
 
@@ -417,7 +417,12 @@ fn validate_bridge_input(input: &BridgeInput) -> Result<(), String> {
             .campaigns
             .iter()
             .find(|candidate| candidate.package_id == physical_binding.campaign_package_id)
-            .expect("campaign id was checked above");
+            .ok_or_else(|| {
+                format!(
+                    "{} references missing campaign {}",
+                    physical_binding.mapping_id, physical_binding.campaign_package_id
+                )
+            })?;
         if !campaign
             .actions
             .iter()
@@ -807,7 +812,12 @@ fn evaluate_physical_relation(
         .campaigns
         .iter()
         .find(|candidate| candidate.package_id == relation.campaign_package_id)
-        .expect("campaign reference validated");
+        .ok_or_else(|| {
+            format!(
+                "{} references missing campaign {}",
+                relation.mapping_id, relation.campaign_package_id
+            )
+        })?;
     if campaign.binding.mapping_status == BindingState::Unbound {
         result.disposition = BridgeDisposition::Unbound;
         result.reason_codes.push("SYMTROPY_CAMPAIGN_PROFILE_UNBOUND".to_owned());
@@ -823,7 +833,12 @@ fn evaluate_physical_relation(
         .actions
         .iter()
         .find(|candidate| candidate.action_id == relation.action_id)
-        .expect("action reference validated");
+        .ok_or_else(|| {
+            format!(
+                "{} references missing action {}",
+                relation.mapping_id, relation.action_id
+            )
+        })?;
     if action.context != input.episode.context {
         result.disposition = BridgeDisposition::ContextMismatch;
         result.reason_codes.push("SYMTROPY_ACTION_CONTEXT_MISMATCH".to_owned());
@@ -1260,8 +1275,8 @@ mod tests {
             report.obligation_results[0].disposition,
             BridgeDisposition::Unbound
         );
-        assert_eq!(report.source_bytes_verified, false);
-        assert_eq!(report.signatures_verified, false);
+        assert!(!report.source_bytes_verified);
+        assert!(!report.signatures_verified);
         assert_eq!(report.physical_observations, 0);
         assert_eq!(report.qualified_obligations, 0);
     }
