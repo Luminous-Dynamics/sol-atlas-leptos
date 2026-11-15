@@ -20,6 +20,33 @@ const VALID_DISPOSITIONS: &[&str] = &[
     "BLOCKED_AUTHORITY",
 ];
 
+const VALID_CATEGORIES: &[&str] = &[
+    "nominal",
+    "identity",
+    "model_projection",
+    "material_custody",
+    "manufacturing_capability",
+    "robot_capability",
+    "metrology",
+    "as_built",
+    "change_management",
+    "authority",
+    "rights",
+    "dependence",
+    "site_context",
+    "repairability",
+    "safety",
+];
+
+const VALID_CRITICALITIES: &[&str] = &["critical", "major", "informational"];
+const VALID_OWNERS: &[&str] = &[
+    "sol_atlas",
+    "symthaea",
+    "symtropy",
+    "mycelix",
+    "external_standard",
+];
+
 const STALE_REASON_FRAGMENTS: &[&str] = &[
     "STALE",
     "REVOKED",
@@ -170,11 +197,17 @@ fn validate_corpus(corpus: &Corpus) -> Result<(), String> {
             corpus.profile_id
         ));
     }
-    if corpus.cases.is_empty() {
-        return Err("corpus must contain at least one case".to_owned());
+    if corpus.version != "0.1.0" {
+        return Err(format!("unsupported corpus version: {}", corpus.version));
     }
-    if corpus.claim_ceiling.trim().is_empty() {
-        return Err("corpus claim_ceiling must not be empty".to_owned());
+    if corpus.cases.len() < 20 {
+        return Err(format!(
+            "corpus must contain at least 20 cases, received {}",
+            corpus.cases.len()
+        ));
+    }
+    if corpus.claim_ceiling.chars().count() < 20 {
+        return Err("corpus claim_ceiling must contain at least 20 characters".to_owned());
     }
     if corpus.status != "synthetic_specification_unadjudicated" {
         return Err(
@@ -182,14 +215,81 @@ fn validate_corpus(corpus: &Corpus) -> Result<(), String> {
                 .to_owned(),
         );
     }
+    if corpus.owner_refs.is_empty() {
+        return Err("corpus must contain at least one owner reference".to_owned());
+    }
+
+    for owner_ref in &corpus.owner_refs {
+        if !VALID_OWNERS.contains(&owner_ref.owner.as_str()) {
+            return Err(format!("unsupported owner reference owner: {}", owner_ref.owner));
+        }
+        if owner_ref.repository.trim().is_empty() {
+            return Err(format!(
+                "{} owner reference has an empty repository",
+                owner_ref.owner
+            ));
+        }
+        if owner_ref.references.is_empty() {
+            return Err(format!(
+                "{} owner reference has no source references",
+                owner_ref.owner
+            ));
+        }
+        if owner_ref.references.iter().any(|reference| {
+            !(reference.starts_with("https://github.com/")
+                || reference.starts_with("ISO ")
+                || reference.starts_with("NIST "))
+        }) {
+            return Err(format!(
+                "{} owner reference contains an unpinned or unsupported reference",
+                owner_ref.owner
+            ));
+        }
+        if owner_ref.responsibility.chars().count() < 10 {
+            return Err(format!(
+                "{} owner responsibility must contain at least 10 characters",
+                owner_ref.owner
+            ));
+        }
+    }
 
     let mut ids = BTreeSet::new();
     for case in &corpus.cases {
         if !ids.insert(case.case_id.as_str()) {
             return Err(format!("duplicate corpus case_id: {}", case.case_id));
         }
-        if case.case_id.trim().is_empty() {
-            return Err("case_id must not be empty".to_owned());
+        if !is_case_id(&case.case_id) {
+            return Err(format!(
+                "{} has invalid case_id; expected HPT- followed by exactly three digits",
+                case.case_id
+            ));
+        }
+        if case.title.chars().count() < 5 {
+            return Err(format!("{} title is shorter than five characters", case.case_id));
+        }
+        if !VALID_CATEGORIES.contains(&case.category.as_str()) {
+            return Err(format!(
+                "{} has unsupported category {}",
+                case.case_id, case.category
+            ));
+        }
+        if !VALID_CRITICALITIES.contains(&case.criticality.as_str()) {
+            return Err(format!(
+                "{} has unsupported criticality {}",
+                case.case_id, case.criticality
+            ));
+        }
+        if case.preconditions.iter().any(|value| value.chars().count() < 5) {
+            return Err(format!(
+                "{} contains a precondition shorter than five characters",
+                case.case_id
+            ));
+        }
+        if case.mutation.chars().count() < 5 {
+            return Err(format!(
+                "{} mutation is shorter than five characters",
+                case.case_id
+            ));
         }
         if !VALID_DISPOSITIONS.contains(&case.expected_disposition.as_str()) {
             return Err(format!(
@@ -216,6 +316,26 @@ fn validate_corpus(corpus: &Corpus) -> Result<(), String> {
         if case.expected_reason_codes.is_empty() {
             return Err(format!("{} has no expected reason codes", case.case_id));
         }
+        if case
+            .expected_reason_codes
+            .iter()
+            .any(|code| !is_reason_code(code))
+        {
+            return Err(format!(
+                "{} has an invalid expected reason code",
+                case.case_id
+            ));
+        }
+        if case
+            .expected_requalification_domains
+            .iter()
+            .any(|domain| domain.chars().count() < 2)
+        {
+            return Err(format!(
+                "{} has a requalification domain shorter than two characters",
+                case.case_id
+            ));
+        }
         if case.criticality == "critical" && case.expected_disposition == "REVIEW_ONLY" {
             return Err(format!(
                 "{} is critical but has a REVIEW_ONLY provisional label",
@@ -224,6 +344,21 @@ fn validate_corpus(corpus: &Corpus) -> Result<(), String> {
         }
     }
     Ok(())
+}
+
+fn is_case_id(value: &str) -> bool {
+    let bytes = value.as_bytes();
+    bytes.len() == 7 && bytes.starts_with(b"HPT-") && bytes[4..].iter().all(u8::is_ascii_digit)
+}
+
+fn is_reason_code(value: &str) -> bool {
+    let bytes = value.as_bytes();
+    (3..=64).contains(&bytes.len())
+        && bytes[0].is_ascii_uppercase()
+        && bytes
+            .iter()
+            .skip(1)
+            .all(|byte| byte.is_ascii_uppercase() || byte.is_ascii_digit() || *byte == b'_')
 }
 
 fn validate_submission(submission: &Submission, corpus: &Corpus) -> Result<(), String> {
@@ -693,6 +828,38 @@ mod tests {
                 .collect::<Vec<_>>()
         );
         assert_ne!(original.submission_sha256, reversed.submission_sha256);
+    }
+
+    #[test]
+    fn corpus_rejects_invalid_case_id_pattern() {
+        let mut raw = serde_json::from_str::<serde_json::Value>(CORPUS_JSON).unwrap();
+        raw["cases"][0]["case_id"] = serde_json::Value::String("HPT-X01".to_owned());
+        let submission = exact_submission(&corpus());
+
+        let error = evaluate_bytes(&encode(&raw), &encode(&submission)).unwrap_err();
+        assert!(error.contains("expected HPT- followed by exactly three digits"));
+    }
+
+    #[test]
+    fn corpus_rejects_unpinned_owner_reference() {
+        let mut raw = serde_json::from_str::<serde_json::Value>(CORPUS_JSON).unwrap();
+        raw["owner_refs"][0]["references"][0] =
+            serde_json::Value::String("ftp://example.invalid/evidence".to_owned());
+        let submission = exact_submission(&corpus());
+
+        let error = evaluate_bytes(&encode(&raw), &encode(&submission)).unwrap_err();
+        assert!(error.contains("unpinned or unsupported reference"));
+    }
+
+    #[test]
+    fn corpus_rejects_malformed_reason_code() {
+        let mut raw = serde_json::from_str::<serde_json::Value>(CORPUS_JSON).unwrap();
+        raw["cases"][0]["expected_reason_codes"][0] =
+            serde_json::Value::String("not a code".to_owned());
+        let submission = exact_submission(&corpus());
+
+        let error = evaluate_bytes(&encode(&raw), &encode(&submission)).unwrap_err();
+        assert!(error.contains("invalid expected reason code"));
     }
 
     #[test]
