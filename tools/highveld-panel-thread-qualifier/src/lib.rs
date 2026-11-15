@@ -211,8 +211,7 @@ fn validate_corpus(corpus: &Corpus) -> Result<(), String> {
     }
     if corpus.status != "synthetic_specification_unadjudicated" {
         return Err(
-            "this evaluator has no trusted adjudication-signature verifier; only              synthetic_specification_unadjudicated corpora are accepted"
-                .to_owned(),
+            "unverified adjudication status; expected synthetic unadjudicated corpus".to_owned(),
         );
     }
     if corpus.owner_refs.is_empty() {
@@ -221,7 +220,10 @@ fn validate_corpus(corpus: &Corpus) -> Result<(), String> {
 
     for owner_ref in &corpus.owner_refs {
         if !VALID_OWNERS.contains(&owner_ref.owner.as_str()) {
-            return Err(format!("unsupported owner reference owner: {}", owner_ref.owner));
+            return Err(format!(
+                "unsupported owner reference owner: {}",
+                owner_ref.owner
+            ));
         }
         if owner_ref.repository.trim().is_empty() {
             return Err(format!(
@@ -279,7 +281,11 @@ fn validate_corpus(corpus: &Corpus) -> Result<(), String> {
                 case.case_id, case.criticality
             ));
         }
-        if case.preconditions.iter().any(|value| value.chars().count() < 5) {
+        if case
+            .preconditions
+            .iter()
+            .any(|value| value.chars().count() < 5)
+        {
             return Err(format!(
                 "{} contains a precondition shorter than five characters",
                 case.case_id
@@ -348,7 +354,9 @@ fn validate_corpus(corpus: &Corpus) -> Result<(), String> {
 
 fn is_case_id(value: &str) -> bool {
     let bytes = value.as_bytes();
-    bytes.len() == 7 && bytes.starts_with(b"HPT-") && bytes[4..].iter().all(u8::is_ascii_digit)
+    bytes.len() == 7
+        && bytes.starts_with(b"HPT-")
+        && bytes[4..].iter().all(|byte| byte.is_ascii_digit())
 }
 
 fn is_reason_code(value: &str) -> bool {
@@ -358,7 +366,9 @@ fn is_reason_code(value: &str) -> bool {
         && bytes
             .iter()
             .skip(1)
-            .all(|byte| byte.is_ascii_uppercase() || byte.is_ascii_digit() || *byte == b'_')
+            .all(|byte| {
+                byte.is_ascii_uppercase() || byte.is_ascii_digit() || *byte == b'_'
+            })
 }
 
 fn validate_submission(submission: &Submission, corpus: &Corpus) -> Result<(), String> {
@@ -755,7 +765,7 @@ mod tests {
         let submission = exact_submission(&corpus());
 
         let error = evaluate_bytes(&tampered, &encode(&submission)).unwrap_err();
-        assert!(error.contains("no trusted adjudication-signature verifier"));
+        assert!(error.contains("unverified adjudication status"));
     }
 
     #[test]
