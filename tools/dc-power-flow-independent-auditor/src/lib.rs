@@ -607,6 +607,58 @@ mod tests {
     }
 
     #[test]
+    fn accepts_hand_authored_two_bus_known_answer_receipt() {
+        let network = two_bus(None);
+        let receipt = DcPowerFlowResult {
+            bus_states: vec![
+                dc_power_flow_reference::BusState {
+                    bus_id: 1,
+                    voltage_angle_rad: 0.0,
+                    net_injection_mw: 50.0,
+                    calculated_net_outflow_mw: 50.0,
+                    nodal_residual_mw: 0.0,
+                    is_reference_bus: true,
+                },
+                dc_power_flow_reference::BusState {
+                    bus_id: 2,
+                    voltage_angle_rad: -0.05,
+                    net_injection_mw: -50.0,
+                    calculated_net_outflow_mw: -50.0,
+                    nodal_residual_mw: 0.0,
+                    is_reference_bus: false,
+                },
+            ],
+            branch_flows: vec![
+                dc_power_flow_reference::BranchFlow {
+                    branch_index: 0,
+                    from_bus: 1,
+                    to_bus: 2,
+                    in_service: true,
+                    flow_from_to_mw: 50.0,
+                    rate_a_limit_mw: None,
+                    overload_mw: 0.0,
+                },
+            ],
+            slack_injections: vec![
+                dc_power_flow_reference::SlackInjection {
+                    bus_id: 1,
+                    island_index: 0,
+                    injection_mw: 50.0,
+                },
+            ],
+            energized_island_count: 1,
+            max_abs_nodal_residual_mw: 0.0,
+            max_branch_overload_mw: 0.0,
+            within_declared_branch_limits: true,
+            within_nodal_tolerance: true,
+            feasible_under_declared_checks: true,
+        };
+        let report = audit_dc_power_flow(&network, &receipt, AuditOptions::default()).unwrap();
+        assert!(report.independently_feasible_under_declared_checks);
+        assert_eq!(report.reference_bus_ids, vec![1]);
+    }
+
+    #[test]
     fn accepts_hand_calculated_two_bus_reference_result() {
         let network = two_bus(None);
         let result = solve(&network);
