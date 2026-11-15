@@ -146,6 +146,13 @@
             "string",
             "null"
           ]
+        },
+        "available_at_unix": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 0
         }
       }
     },
@@ -423,6 +430,13 @@
             "string",
             "null"
           ]
+        },
+        "reviewed_at_unix": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 0
         }
       }
     },
