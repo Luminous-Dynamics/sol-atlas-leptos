@@ -655,11 +655,15 @@ fn evaluate_obligation(
             attempts
                 .iter()
                 .enumerate()
-                .min_by_key(|(_, (acquisition_id, attempt))| {
+                .min_by(|(_, (left_id, left)), (_, (right_id, right))| {
                     (
-                        disposition_priority(&attempt.disposition),
-                        acquisition_id.as_str(),
+                        disposition_priority(&left.disposition),
+                        left_id.as_str(),
                     )
+                        .cmp(&(
+                            disposition_priority(&right.disposition),
+                            right_id.as_str(),
+                        ))
                 })
                 .map(|(index, _)| index)
         });
@@ -783,11 +787,15 @@ fn evaluate_acquisition(
                     physical_attempts
                         .iter()
                         .enumerate()
-                        .min_by_key(|(_, (mapping_id, attempt))| {
+                        .min_by(|(_, (left_id, left)), (_, (right_id, right))| {
                             (
-                                disposition_priority(&attempt.disposition),
-                                mapping_id.as_str(),
+                                disposition_priority(&left.disposition),
+                                left_id.as_str(),
                             )
+                                .cmp(&(
+                                    disposition_priority(&right.disposition),
+                                    right_id.as_str(),
+                                ))
                         })
                         .map(|(index, _)| index)
                 });
