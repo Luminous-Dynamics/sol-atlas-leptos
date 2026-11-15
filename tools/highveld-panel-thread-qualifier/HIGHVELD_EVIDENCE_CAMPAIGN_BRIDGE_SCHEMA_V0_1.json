@@ -1,0 +1,463 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://luminousdynamics.io/schemas/highveld-evidence-campaign-bridge-v0.1.schema.json",
+  "title": "Highveld Synthetic Evidence-Campaign Bridge Input v0.1",
+  "description": "Benchmark-only normalized envelope. It is not a Mycelix or Symtropy production schema and does not authorize observation, work, release or acceptance.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "profile_id",
+    "version",
+    "status",
+    "claim_ceiling",
+    "episode",
+    "acquisitions",
+    "campaigns",
+    "physical_bindings"
+  ],
+  "properties": {
+    "profile_id": {
+      "const": "luminous.highveld.evidence-campaign-bridge.v0.1"
+    },
+    "version": {
+      "const": "0.1.0"
+    },
+    "status": {
+      "const": "SYNTHETIC_BRIDGE_CONTRACT_ONLY"
+    },
+    "claim_ceiling": {
+      "const": "NON_AUTHORIZING_SYNTHETIC_EVALUATION"
+    },
+    "episode": {
+      "$ref": "#/$defs/episode"
+    },
+    "acquisitions": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/acquisition"
+      }
+    },
+    "campaigns": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/campaign"
+      }
+    },
+    "physical_bindings": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/physicalBinding"
+      }
+    }
+  },
+  "$defs": {
+    "sha256": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "ownerBinding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "owner",
+        "repository",
+        "mapping_status"
+      ],
+      "properties": {
+        "owner": {
+          "enum": [
+            "mycelix",
+            "symtropy"
+          ]
+        },
+        "repository": {
+          "type": "string",
+          "minLength": 1
+        },
+        "commit_sha": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "pattern": "^[a-f0-9]{40}$"
+        },
+        "artifact_path": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "artifact_sha256": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/sha256"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "profile_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "profile_version": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "adapter_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "adapter_sha256": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/sha256"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "mapping_status": {
+          "enum": [
+            "BOUND",
+            "UNBOUND"
+          ]
+        },
+        "mapping_sha256": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/sha256"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "owner_approval_ref": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+    "context": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "project_context_sha256",
+        "functional_contract_sha256",
+        "option_design_sha256",
+        "site_epoch",
+        "coordinate_frame_id",
+        "clock_domain",
+        "currency"
+      ],
+      "properties": {
+        "project_context_sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "functional_contract_sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "option_design_sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "site_epoch": {
+          "type": "string",
+          "minLength": 1
+        },
+        "coordinate_frame_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "clock_domain": {
+          "type": "string",
+          "minLength": 1
+        },
+        "currency": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "gate": {
+      "enum": [
+        "ALLOWED",
+        "BLOCKED",
+        "UNKNOWN",
+        "NOT_APPLICABLE"
+      ]
+    },
+    "gates": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "authority",
+        "rights_source_use",
+        "safety",
+        "schedule",
+        "physical_realizability",
+        "data_access",
+        "source_competence"
+      ],
+      "properties": {
+        "authority": {
+          "$ref": "#/$defs/gate"
+        },
+        "rights_source_use": {
+          "$ref": "#/$defs/gate"
+        },
+        "safety": {
+          "$ref": "#/$defs/gate"
+        },
+        "schedule": {
+          "$ref": "#/$defs/gate"
+        },
+        "physical_realizability": {
+          "$ref": "#/$defs/gate"
+        },
+        "data_access": {
+          "$ref": "#/$defs/gate"
+        },
+        "source_competence": {
+          "$ref": "#/$defs/gate"
+        }
+      }
+    },
+    "episode": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "binding",
+        "episode_id",
+        "as_of_unix",
+        "context",
+        "unresolved_obligation_ids"
+      ],
+      "properties": {
+        "binding": {
+          "$ref": "#/$defs/ownerBinding"
+        },
+        "episode_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "as_of_unix": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "context": {
+          "$ref": "#/$defs/context"
+        },
+        "unresolved_obligation_ids": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    },
+    "acquisition": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "binding",
+        "acquisition_id",
+        "episode_id",
+        "context",
+        "kind",
+        "covers_obligation_ids",
+        "gates"
+      ],
+      "properties": {
+        "binding": {
+          "$ref": "#/$defs/ownerBinding"
+        },
+        "acquisition_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "episode_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "context": {
+          "$ref": "#/$defs/context"
+        },
+        "kind": {
+          "enum": [
+            "REMOTE",
+            "PHYSICAL"
+          ]
+        },
+        "covers_obligation_ids": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "gates": {
+          "$ref": "#/$defs/gates"
+        }
+      }
+    },
+    "campaignAction": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "action_id",
+        "context",
+        "covers_obligation_ids"
+      ],
+      "properties": {
+        "action_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "context": {
+          "$ref": "#/$defs/context"
+        },
+        "covers_obligation_ids": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    },
+    "campaign": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "binding",
+        "package_id",
+        "context",
+        "search_status",
+        "actions"
+      ],
+      "properties": {
+        "binding": {
+          "$ref": "#/$defs/ownerBinding"
+        },
+        "package_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "context": {
+          "$ref": "#/$defs/context"
+        },
+        "search_status": {
+          "enum": [
+            "COMPLETE_OPTIMAL",
+            "COMPLETE_FEASIBLE_NOT_OPTIMAL",
+            "INCOMPLETE",
+            "PROVEN_INFEASIBLE",
+            "SEARCH_INCOMPLETE"
+          ]
+        },
+        "actions": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/campaignAction"
+          }
+        }
+      }
+    },
+    "mappingReview": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "status"
+      ],
+      "properties": {
+        "status": {
+          "enum": [
+            "BOUND",
+            "UNBOUND"
+          ]
+        },
+        "mapping_sha256": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/sha256"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "owner_approval_ref": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "reviewed_by": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+    "physicalBinding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "mapping_id",
+        "acquisition_id",
+        "episode_id",
+        "campaign_package_id",
+        "action_id",
+        "context",
+        "review"
+      ],
+      "properties": {
+        "mapping_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "acquisition_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "episode_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "campaign_package_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "action_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "context": {
+          "$ref": "#/$defs/context"
+        },
+        "review": {
+          "$ref": "#/$defs/mappingReview"
+        }
+      }
+    }
+  }
+}
