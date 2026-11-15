@@ -406,12 +406,6 @@
             }
           ]
         },
-        "owner_approval_ref": {
-          "type": [
-            "string",
-            "null"
-          ]
-        },
         "reviewed_by": {
           "type": [
             "string",
