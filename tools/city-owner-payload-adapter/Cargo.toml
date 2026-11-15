@@ -1,0 +1,13 @@
+[package]
+name = "city-owner-payload-adapter"
+version = "0.1.0"
+edition = "2024"
+license = "AGPL-3.0-or-later"
+publish = false
+description = "Read-only adapter between CityMaker owner envelopes and independently verified source payload reports"
+
+[dependencies]
+serde_json = "=1.0.149"
+sha2 = "=0.10.9"
+
+[workspace]
