@@ -338,11 +338,11 @@ fn parse_case_source(source: &str) -> Result<CaseTables, String> {
                 ));
             }
             parsed.base_mva = Some(parse_assignment_number(line, "baseMVA")?);
-        } else if ["gencost", "branch", "bus", "gen"]
+        } else if ["gencost", "branch", "bus", "gen", "areas"]
             .iter()
             .any(|name| line.starts_with(&format!("mpc.{name}")))
         {
-            let name = ["gencost", "branch", "bus", "gen"]
+            let name = ["gencost", "branch", "bus", "gen", "areas"]
                 .into_iter()
                 .find(|name| line.starts_with(&format!("mpc.{name}")))
                 .unwrap();
@@ -477,6 +477,9 @@ pub fn audit_matpower_case(source: &str) -> Result<AuditSummary, String> {
     validate_width(buses, BUS_COLUMNS, "bus")?;
     validate_width(generators, GEN_COLUMNS, "gen")?;
     validate_width(branches, BRANCH_COLUMNS, "branch")?;
+    if let Some(areas) = parsed.matrices.get("areas") {
+        validate_width(areas, 2, "areas")?;
+    }
     if costs.len() != generators.len() {
         return Err(format!(
             "gencost row count {} does not match generator row count {}",
@@ -519,6 +522,41 @@ pub fn audit_matpower_case(source: &str) -> Result<AuditSummary, String> {
 
     if active_buses.is_empty() {
         return Err("case has no energized buses".to_owned());
+    }
+
+    if let Some(areas) = parsed.matrices.get("areas") {
+        let mut area_ids = BTreeSet::new();
+        for (index, area) in areas.iter().enumerate() {
+            let area_id = parse_integer(area[0], "area identifier")?;
+            let reference_bus = parse_integer(area[1], "area reference bus")?;
+            if area_id <= 0 {
+                return Err(format!("area identifier must be positive at row {}", index + 1));
+            }
+            if !area_ids.insert(area_id) {
+                return Err(format!("duplicate area identifier {area_id}"));
+            }
+            let Some(bus_type) = bus_types.get(&reference_bus) else {
+                return Err(format!(
+                    "area row {} references unknown bus {reference_bus}",
+                    index + 1
+                ));
+            };
+            if *bus_type == 4 {
+                return Err(format!(
+                    "area row {} references isolated bus {reference_bus}",
+                    index + 1
+                ));
+            }
+        }
+        for bus in buses {
+            let area_id = parse_integer(bus[6], "bus area identifier")?;
+            if !area_ids.contains(&area_id) {
+                return Err(format!(
+                    "bus {} references undeclared area {area_id}",
+                    parse_integer(bus[0], "bus identifier")?
+                ));
+            }
+        }
     }
 
     let mut in_service_generator_count = 0usize;
@@ -654,6 +692,8 @@ mod tests {
     use super::*;
 
     const PGLIB_CASE14: &str = include_str!("../fixtures/pglib_opf_case14_ieee.m");
+    const PGLIB_CASE24: &str = include_str!("../fixtures/pglib_opf_case24_ieee_rts.m");
+    const PGLIB_CASE57: &str = include_str!("../fixtures/pglib_opf_case57_ieee.m");
     const SYNTHETIC_CASE: &str = r#"
 function mpc = tiny_case
 mpc.version = '2';
@@ -693,6 +733,42 @@ end
         assert_eq!(result.energized_island_count, 1);
         assert_eq!(result.reference_buses, vec![1]);
         assert_eq!(result.claim_ceiling, "structural_import_only");
+    }
+
+    #[test]
+    fn pglib_case24_ieee_rts_is_structurally_admitted() {
+        let result = audit_matpower_bytes(PGLIB_CASE24.as_bytes())
+            .expect("PGLib IEEE RTS 24-bus case should parse");
+        assert_eq!(result.bus_count, 24);
+        assert_eq!(result.generator_count, 33);
+        assert_eq!(result.branch_count, 38);
+        assert_eq!(result.cost_row_count, 33);
+        assert_eq!(result.energized_island_count, 1);
+        assert_eq!(result.reference_buses, vec![13]);
+        assert_eq!(result.claim_ceiling, "structural_import_only");
+    }
+
+    #[test]
+    fn pglib_case57_ieee_is_structurally_admitted() {
+        let result = audit_matpower_bytes(PGLIB_CASE57.as_bytes())
+            .expect("PGLib IEEE 57-bus case should parse");
+        assert_eq!(result.bus_count, 57);
+        assert_eq!(result.generator_count, 7);
+        assert_eq!(result.branch_count, 80);
+        assert_eq!(result.cost_row_count, 7);
+        assert_eq!(result.energized_island_count, 1);
+        assert_eq!(result.reference_buses, vec![1]);
+        assert_eq!(result.claim_ceiling, "structural_import_only");
+    }
+
+    #[test]
+    fn area_reference_to_unknown_bus_is_rejected() {
+        let source = PGLIB_CASE24.replace("2  3;", "2  999;");
+        assert!(
+            audit_matpower_case(&source)
+                .unwrap_err()
+                .contains("references unknown bus")
+        );
     }
 
     #[test]
