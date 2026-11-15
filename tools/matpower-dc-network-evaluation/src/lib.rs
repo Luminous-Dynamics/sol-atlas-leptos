@@ -38,7 +38,7 @@ impl std::fmt::Display for EvaluationError {
 
 impl std::error::Error for EvaluationError {}
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug)]
 pub struct MatpowerDcEvaluation {
     pub source_git_blob_sha1: String,
     pub source_function_name: String,
