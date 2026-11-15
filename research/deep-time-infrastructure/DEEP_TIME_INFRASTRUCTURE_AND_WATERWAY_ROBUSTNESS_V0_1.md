@@ -183,6 +183,21 @@ These are proposed promotion targets, not measured results.
 
 Use the existing owner-native components and issue tree; do not create a second GIS, asset registry, Pareto engine, EVSI kernel, physical solver or authority store.
 
+### Existing cross-stack work audited for composition
+
+The following owners already exist and should be treated as the implementation graph, not duplicated:
+
+| Owner | Existing work to compose | Boundary |
+|---|---|---|
+| Sol-Atlas | [Port-City Foundry #370](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/370), [contract #372](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/372), [geographic discovery #377](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/377), [corpus #378](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/378), [Maritime Atlas #115](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/115) | Spatial candidate context, alternative portfolios, source lineage, rights/coverage, Pareto and decision presentation |
+| Symtropy — water and morphology | [hydrology hierarchy #450](https://github.com/Luminous-Dynamics/symtropy/issues/450), [estuary/tide/salinity #451](https://github.com/Luminous-Dynamics/symtropy/issues/451), [coarse ocean #465](https://github.com/Luminous-Dynamics/symtropy/issues/465), [sediment/channel evolution #467](https://github.com/Luminous-Dynamics/symtropy/issues/467), [hydrology validation corpus #461](https://github.com/Luminous-Dynamics/symtropy/issues/461), [storm-to-ocean qualification cell #445](https://github.com/Luminous-Dynamics/symtropy/issues/445) | Conserved water and sediment histories, numerical profile qualification, estuary/coast exchange; no global forecast claim without the missing model layers |
+| Symtropy — canal and logistics operations | [inland lock operations #3347](https://github.com/Luminous-Dynamics/symtropy/issues/3347), [water-aware lock scheduling #3362](https://github.com/Luminous-Dynamics/symtropy/issues/3362), [coastal sediment/channel maintenance #3279](https://github.com/Luminous-Dynamics/symtropy/issues/3279), [coastal-to-inland service chain #3683](https://github.com/Luminous-Dynamics/symtropy/issues/3683), [port redundancy #3199](https://github.com/Luminous-Dynamics/symtropy/issues/3199), [multimodal transport #1601](https://github.com/Luminous-Dynamics/symtropy/issues/1601), [maritime scenarios #1612](https://github.com/Luminous-Dynamics/symtropy/issues/1612) | Lock-cycle accounting, scheduling, sediment maintenance, network service and common-mode failure evaluation |
+| Symtropy — scenario credibility | [deterministic engineering scenario/replay #1172](https://github.com/Luminous-Dynamics/symtropy/issues/1172), [model-suitability/credibility #1173](https://github.com/Luminous-Dynamics/symtropy/issues/1173) | Reproducible execution is not physical validation; model applicability must remain explicit |
+| Symthaea | [intent-to-design #7790](https://github.com/Luminous-Dynamics/symthaea/issues/7790), [transport engineering #6244](https://github.com/Luminous-Dynamics/symthaea/issues/6244), [marine freight #7444](https://github.com/Luminous-Dynamics/symthaea/issues/7444) | Candidate generation and decision analysis; no self-certification or invented evidence |
+| Mycelix | [construction provenance/approval #5149](https://github.com/Luminous-Dynamics/mycelix/issues/5149), [logistics commons #4901](https://github.com/Luminous-Dynamics/mycelix/issues/4901) | Authority, rights, consent, custody, commitments and review records; receipts do not grant permits or water allocations |
+
+**Integration gap owned here:** preserve deep-time scenario identity and time-dependent boundary conditions across these owner-native systems; compare whole service/adaptation pathways over explicitly bounded horizons; carry cross-owner uncertainty and model applicability into Sol-Atlas outputs. The deep-time work must not become a second hydraulic, sediment, lock, transport, GIS, optimizer or governance implementation.
+
 ## 9. First implementation sequence
 
 1. Define a typed time-horizon and scenario-family manifest that composes the existing port-alternative contract (#372).
