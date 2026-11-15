@@ -26,11 +26,14 @@ pub mod mycelix_flows;
 pub mod geometry;
 pub mod math;
 pub mod picking;
+pub mod sensor_evsi_bridge;
+pub mod sensor_observability;
 pub mod simulation;
 pub mod solar_system;
 pub mod stac;
 pub mod timeline;
 pub mod types;
+pub mod utility_inference;
 pub mod visual_validation;
 
 pub use types::*;

@@ -152,6 +152,48 @@ Perturbations:
 
 Report both performance degradation and whether the system correctly expands uncertainty or abstains. A model that keeps its confidence while failing under shift is a critical failure even when mean accuracy remains acceptable.
 
+### External geospatial OOD comparator: EarthShift (2026)
+
+EarthShift (Doerksen & Kerner, arXiv:2605.29330, 28 May 2026) is a useful external comparator for the **downstream geospatial ML** portion of this programme. It evaluates 8 geospatial foundation models across 11 tasks and five real distribution-shift families: spatial scale, temporal, geographic, sensor/modality and data source. The paper reports a 15–20% average OOD degradation. Its analysis finds temporal shift less damaging than geographic, scale, sensor and source shifts; geospatial pretraining does not provide a consistent robustness advantage over generic vision foundation models or fully supervised baselines. One task uses South Africa's Fields of the World season-to-season agricultural imagery.
+
+This is not a sensor-observability or POD benchmark. Do not mix EarthShift image-model scores with the conditional probability-of-detection contract above. Reuse its ID/OOD methodology and dataset shift taxonomy for the separate EO/change-detection and spatial-context models.
+
+Minimum EarthShift-aligned evaluation for the EO lane:
+- **Scale:** hold out spatial resolution / effective ground sampling distance; measure boundary error and object recall as well as pixel F1/IoU.
+- **Temporal:** hold out acquisition season and year; keep same-location sequence identity to avoid scene leakage.
+- **Geographic:** leave region/country/site out; report the worst region and geographic transfer distance/context.
+- **Sensor/modality:** leave platform/sensor or modality out (e.g., Sentinel-2 optical vs Sentinel-1 SAR); never imply band equivalence without an explicit adapter.
+- **Data source:** train and test on independently produced datasets for the same task, region, sensor and scale where possible; this isolates source/annotation/processing shift from purely geographic change.
+
+For each shift family, report:
+1. absolute ID and OOD results using the task-appropriate metric;
+2. the raw ID→OOD gap;
+3. effective robustness residual relative to the fitted ID-to-OOD baseline, following EarthShift's protocol;
+4. calibration, selective risk/coverage, false-change area and worst-domain behavior;
+5. adaptation setting (zero-shot, frozen-backbone, few-shot, full fine-tune) and labeled target budget;
+6. compute, memory, inference latency and energy where measurable.
+
+Use the published EarthShift splits/results as an external reference when dataset terms and task compatibility permit. Dataset availability is not a redistribution grant; verify each license and keep the original source/asset identifiers. For South African seasonal testing, keep the EarthShift dataset's published split intact and separately report any local dataset; do not blend the two.
+
+**Proposed SOTA challenge:** improve effective robustness on the hardest geography/scale/sensor/source shifts without sacrificing ID task quality or calibration. A pooled mean gain that worsens the weakest shift does not pass. No EarthShift reproduction or improvement is claimed by this protocol update.
+
+### Shifted calibration and confidently-wrong controls (2026)
+
+Lehmann et al. (17 August 2026, arXiv:2608.16614) evaluated 16 frozen geospatial encoders across four classification and five segmentation datasets under corruption shifts. Every encoder degraded as corruption intensified; under shift, GeoFM encoders became more overconfident than ImageNet-pretrained encoders. Their tests found that temperature scaling and deep ensembles did not remove this degradation. A Gaussian-process probe reduced ECE under severe cloud but sharply worsened clean ECE, and confidence-based abstention did not reliably defer confidently wrong predictions.
+
+The scorecard must therefore include, for each shift axis and severity:
+- Brier score, negative log-likelihood, classwise/adaptive ECE and reliability diagrams;
+- calibration slope/intercept and confidence-conditioned error, including confidently wrong examples;
+- risk–coverage curves and AURC; selective risk at fixed coverage and coverage at fixed risk;
+- abstention/OTHER outcomes with explicit abstention cost, not merely excluded from the denominator;
+- source-only calibration, no-target-label transfer, and small target-label calibration budgets;
+- paired confidence intervals, repeated runs, worst-region and worst-severity reporting;
+- separate results for temperature scaling, deep ensembles, Gaussian-process/structured uncertainty and model-native uncertainty.
+
+Do not promote a calibration method because it improves one severe-corruption ECE point while damaging clean calibration or another shift family. The target is lower decision risk under shift, with a reliable abstention boundary—not confidence preservation.
+
+**Proposed calibration gate:** no shift family may exhibit a statistically significant increase in confidently-wrong high-confidence predictions without a corresponding explicit abstention or uncertainty escalation. This is a proposed gate; no empirical result is claimed.
+
 ## 7A. Rights-aware federation scorecard
 
 Treat discovery, read, processing, derivative creation, redistribution, retention and publication as distinct operations. Compare:
