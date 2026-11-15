@@ -82,6 +82,8 @@ pub enum EvidencePurpose {
 #[serde(rename_all = "snake_case")]
 pub enum ResourceClaim {
     RegionalPotential,
+    ReportedRegionalCapacity,
+    ReportedRegionalReserves,
     EstimatedPotential,
     RegisteredNameplateCapacity,
     ObservedAvailableCapacity,
@@ -198,6 +200,7 @@ pub enum EvidenceBlocker {
     MissingAssetIdentity,
     MissingSourceIdentity,
     MissingSourceLocator,
+    MissingSpatialLocator,
     MalformedSourceDigest,
     RightsNotAdmitted,
     MissingLicence,
@@ -216,6 +219,7 @@ pub enum EvidenceBlocker {
     OperationalEvidenceNotMetered,
     OperationalEvidenceNotFieldValidated,
     OperationalEvidenceNotTimeBound,
+    NoSupportedClaim,
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -263,12 +267,19 @@ fn freshness_for(
 
     if envelope.source.retrieved_at_unix <= 0
         || envelope.source.retrieved_at_unix > policy.now_unix
+        || envelope
+            .source
+            .published_at_unix
+            .is_some_and(|published| published <= 0 || published > envelope.source.retrieved_at_unix)
     {
         blockers.push(EvidenceBlocker::InvalidSourceTime);
     }
 
     if let Some(observed) = envelope.observed_at_unix {
-        if observed <= 0 || observed > policy.now_unix {
+        if observed <= 0
+            || observed > policy.now_unix
+            || observed > envelope.source.retrieved_at_unix
+        {
             blockers.push(EvidenceBlocker::InvalidObservationTime);
         }
     }
@@ -311,10 +322,19 @@ fn claims_supported_by(envelope: &ResourceEvidenceEnvelope) -> Vec<ResourceClaim
     let asset_specific = has_asset_spatial_support(envelope.spatial_resolution);
 
     match (envelope.origin, measurement.quantity) {
-        (EvidenceOrigin::ModelEstimate | EvidenceOrigin::Simulation, _) => {
-            vec![ResourceClaim::EstimatedPotential]
+        (
+            EvidenceOrigin::ModelEstimate | EvidenceOrigin::Simulation,
+            EvidenceQuantity::EstimatedPotentialMw,
+        ) => vec![ResourceClaim::EstimatedPotential],
+        (EvidenceOrigin::PublicAggregate, EvidenceQuantity::EstimatedPotentialMw) => {
+            vec![ResourceClaim::RegionalPotential]
         }
-        (EvidenceOrigin::PublicAggregate, _) => vec![ResourceClaim::RegionalPotential],
+        (EvidenceOrigin::PublicAggregate, EvidenceQuantity::RegisteredNameplateMw) => {
+            vec![ResourceClaim::ReportedRegionalCapacity]
+        }
+        (EvidenceOrigin::PublicAggregate, EvidenceQuantity::FossilReservesMboe) => {
+            vec![ResourceClaim::ReportedRegionalReserves]
+        }
         (
             EvidenceOrigin::RegulatoryRecord,
             EvidenceQuantity::RegisteredNameplateMw,
@@ -353,11 +373,16 @@ fn claims_supported_by(envelope: &ResourceEvidenceEnvelope) -> Vec<ResourceClaim
         {
             vec![ResourceClaim::ReportedFossilReserves]
         }
-        (_, EvidenceQuantity::PhysicalEroiRatio)
-            if envelope.measurement.system_boundary.as_ref().is_some_and(|value| !value.trim().is_empty())
-                && envelope.measurement.period_start_unix.is_some()
-                && envelope.measurement.period_end_unix.is_some()
-                && envelope.verification >= VerificationLevel::CrossSourceCorroborated =>
+        (
+            EvidenceOrigin::MeterTelemetry | EvidenceOrigin::EngineeringSurvey,
+            EvidenceQuantity::PhysicalEroiRatio,
+        ) if measurement
+            .system_boundary
+            .as_ref()
+            .is_some_and(|value| !value.trim().is_empty())
+            && measurement.period_start_unix.is_some()
+            && measurement.period_end_unix.is_some()
+            && envelope.verification >= VerificationLevel::CrossSourceCorroborated =>
         {
             vec![ResourceClaim::PhysicalEroi]
         }
@@ -388,6 +413,9 @@ pub fn assess_resource_evidence(
     }
     if envelope.source.locator.trim().is_empty() {
         blockers.push(EvidenceBlocker::MissingSourceLocator);
+    }
+    if envelope.spatial_locator.trim().is_empty() {
+        blockers.push(EvidenceBlocker::MissingSpatialLocator);
     }
     if !valid_sha256(&envelope.source.content_sha256) {
         blockers.push(EvidenceBlocker::MalformedSourceDigest);
@@ -508,11 +536,8 @@ pub fn assess_resource_evidence(
         Vec::new()
     };
 
-    if policy.purpose == EvidencePurpose::EngineeringPlanning
-        && allowed_claims.is_empty()
-        && blockers.is_empty()
-    {
-        blockers.push(EvidenceBlocker::InsufficientVerification);
+    if allowed_claims.is_empty() && blockers.is_empty() {
+        blockers.push(EvidenceBlocker::NoSupportedClaim);
     }
     if policy.purpose == EvidencePurpose::OperationalEvidence
         && !allowed_claims.contains(&ResourceClaim::ObservedAvailableCapacity)
