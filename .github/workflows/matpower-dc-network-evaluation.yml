@@ -6,6 +6,7 @@ on:
       - "tools/pglib-case-auditor/**"
       - "tools/dc-power-flow-reference/**"
       - "tools/dc-power-flow-independent-auditor/**"
+      - "tools/dc-fixed-injection-contingency-sweep/**"
       - "tools/matpower-dc-network-evaluation/**"
       - ".github/workflows/matpower-dc-network-evaluation.yml"
   push:
@@ -13,6 +14,7 @@ on:
       - "tools/pglib-case-auditor/**"
       - "tools/dc-power-flow-reference/**"
       - "tools/dc-power-flow-independent-auditor/**"
+      - "tools/dc-fixed-injection-contingency-sweep/**"
       - "tools/matpower-dc-network-evaluation/**"
       - ".github/workflows/matpower-dc-network-evaluation.yml"
   workflow_dispatch:
@@ -37,24 +39,28 @@ jobs:
           cargo fmt --manifest-path tools/pglib-case-auditor/Cargo.toml -- --check
           cargo fmt --manifest-path tools/dc-power-flow-reference/Cargo.toml -- --check
           cargo fmt --manifest-path tools/dc-power-flow-independent-auditor/Cargo.toml -- --check
+          cargo fmt --manifest-path tools/dc-fixed-injection-contingency-sweep/Cargo.toml -- --check
           cargo fmt --manifest-path tools/matpower-dc-network-evaluation/Cargo.toml -- --check
       - name: Locked offline tests
         run: |
           cargo test --manifest-path tools/pglib-case-auditor/Cargo.toml --locked --offline
           cargo test --manifest-path tools/dc-power-flow-reference/Cargo.toml --locked --offline
           cargo test --manifest-path tools/dc-power-flow-independent-auditor/Cargo.toml --locked --offline
+          cargo test --manifest-path tools/dc-fixed-injection-contingency-sweep/Cargo.toml --locked --offline
           cargo test --manifest-path tools/matpower-dc-network-evaluation/Cargo.toml --locked --offline
-      - name: Parse PGLib evaluation receipts
+      - name: Parse intact and contingency PGLib receipts
         run: |
           for case in \
             tools/pglib-case-auditor/fixtures/pglib_opf_case14_ieee.m \
             tools/pglib-case-auditor/fixtures/pglib_opf_case24_ieee_rts.m \
             tools/pglib-case-auditor/fixtures/pglib_opf_case57_ieee.m; do
             cargo run --manifest-path tools/matpower-dc-network-evaluation/Cargo.toml --locked --offline -- "$case" | jq -e . >/dev/null
+            cargo run --manifest-path tools/matpower-dc-network-evaluation/Cargo.toml --locked --offline --bin matpower-dc-contingency -- "$case" | jq -e . >/dev/null
           done
       - name: Strict Clippy
         run: |
           cargo clippy --manifest-path tools/pglib-case-auditor/Cargo.toml --locked --offline --all-targets -- -D warnings
           cargo clippy --manifest-path tools/dc-power-flow-reference/Cargo.toml --locked --offline --all-targets -- -D warnings
           cargo clippy --manifest-path tools/dc-power-flow-independent-auditor/Cargo.toml --locked --offline --all-targets -- -D warnings
+          cargo clippy --manifest-path tools/dc-fixed-injection-contingency-sweep/Cargo.toml --locked --offline --all-targets -- -D warnings
           cargo clippy --manifest-path tools/matpower-dc-network-evaluation/Cargo.toml --locked --offline --all-targets -- -D warnings
