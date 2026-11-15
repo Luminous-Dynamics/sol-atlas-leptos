@@ -1481,7 +1481,7 @@ end
                 projection
                     .costs
                     .iter()
-                    .all(|cost| cost.coefficients.len() > 0)
+                    .all(|cost| !cost.coefficients.is_empty())
             );
             assert_eq!(
                 projection
