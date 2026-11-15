@@ -27,8 +27,7 @@ fn run() -> Result<(), String> {
     if bytes.len() as u64 > MAX_SOURCE_BYTES {
         return Err(format!("source exceeds {MAX_SOURCE_BYTES} byte limit"));
     }
-    let source = std::str::from_utf8(&bytes)
-        .map_err(|_| "source is not UTF-8".to_owned())?;
+    let source = std::str::from_utf8(&bytes).map_err(|_| "source is not UTF-8".to_owned())?;
     let projection = project_matpower_dc_case(source)?;
     println!("{}", projection.to_json());
     Ok(())
