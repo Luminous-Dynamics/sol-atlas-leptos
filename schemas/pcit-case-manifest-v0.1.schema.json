@@ -72,7 +72,9 @@
             "common_cause_dependency",
             "reference_leakage",
             "insufficient_reference",
-            "unsupported_harmonization"
+            "unsupported_harmonization",
+            "source_metadata_conflict",
+            "area_reconciliation_conflict"
           ]
         },
         "truth_state": {
@@ -219,7 +221,9 @@
                   "georegistration",
                   "class_ontology",
                   "evidence_dependency",
-                  "reference_lineage"
+                  "reference_lineage",
+                  "source_metadata",
+                  "area_accounting"
                 ]
               },
               "transformation": {
@@ -241,7 +245,9 @@
                   "apparent_change_without_target_change",
                   "reference_independence_broken",
                   "corroboration_reduced",
-                  "not_identifiable"
+                  "not_identifiable",
+                  "source_metadata_conflict",
+                  "area_total_nonclosure"
                 ]
               },
               "tolerance": {
@@ -339,6 +345,92 @@
             "minLength": 8
           },
           "uniqueItems": true
+        },
+        "source_metadata_conflicts": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "field",
+              "record_a",
+              "value_a",
+              "record_b",
+              "value_b",
+              "resolution_status",
+              "notes"
+            ],
+            "properties": {
+              "field": {
+                "type": "string",
+                "minLength": 1
+              },
+              "record_a": {
+                "type": "string",
+                "minLength": 1
+              },
+              "value_a": {
+                "type": "string",
+                "minLength": 1
+              },
+              "record_b": {
+                "type": "string",
+                "minLength": 1
+              },
+              "value_b": {
+                "type": "string",
+                "minLength": 1
+              },
+              "resolution_status": {
+                "enum": [
+                  "resolved",
+                  "unresolved"
+                ]
+              },
+              "notes": {
+                "type": "string",
+                "minLength": 8
+              }
+            }
+          }
+        },
+        "numeric_reconciliation": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "metric",
+            "reported_value_a",
+            "reported_value_b",
+            "tolerance",
+            "resolution_status",
+            "notes"
+          ],
+          "properties": {
+            "metric": {
+              "type": "string",
+              "minLength": 1
+            },
+            "reported_value_a": {
+              "type": "number"
+            },
+            "reported_value_b": {
+              "type": "number"
+            },
+            "tolerance": {
+              "type": "number",
+              "minimum": 0
+            },
+            "resolution_status": {
+              "enum": [
+                "resolved",
+                "unresolved"
+              ]
+            },
+            "notes": {
+              "type": "string",
+              "minLength": 8
+            }
+          }
         }
       }
     }

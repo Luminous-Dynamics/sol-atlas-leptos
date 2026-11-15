@@ -44,6 +44,20 @@ jobs:
       # would otherwise have shipped, 2026-07-10.
       - run: cargo check --target wasm32-unknown-unknown
 
+
+  test-pcit-evaluator:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt
+      - name: Check standalone PCIT evaluator formatting
+        run: cargo fmt --manifest-path research/earth-observability/pcit-evaluator/Cargo.toml -- --check
+      - name: Test standalone PCIT evaluator
+        run: cargo test --manifest-path research/earth-observability/pcit-evaluator/Cargo.toml
+
   test-native:
     runs-on: ubuntu-latest
     steps:
