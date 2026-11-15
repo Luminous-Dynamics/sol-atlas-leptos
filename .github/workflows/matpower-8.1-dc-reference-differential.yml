@@ -78,8 +78,8 @@ jobs:
             tools/pglib-case-auditor/fixtures/pglib_opf_case57_ieee.m; do
             name="$(basename "$case" .m)"
             digest="$(git hash-object "$case")"
-            reference="artifacts/matpower-8.1-dc-reference/\${name}.matpower.tsv"
-            report="artifacts/matpower-8.1-dc-reference/\${name}.comparison.json"
+            reference="artifacts/matpower-8.1-dc-reference/${name}.matpower.tsv"
+            report="artifacts/matpower-8.1-dc-reference/${name}.comparison.json"
             octave-cli --quiet --no-gui --eval \
               "addpath('tools/matpower-reference-differential'); run_matpower_dc('$case', '$reference', 'vendor/matpower', '$digest');"
             tools/matpower-dc-network-evaluation/target/debug/compare-matpower-dc \
