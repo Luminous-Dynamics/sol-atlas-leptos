@@ -60,7 +60,7 @@ jobs:
         uses: dtolnay/rust-toolchain@stable
         with:
           components: rustfmt
-      - name: Apply rustfmt to the six home qualifiers
+      - name: Apply rustfmt to the eight home qualifiers
         run: |
           rustfmt --edition 2024 src/bin/home-multifamily-qualifier.rs
           rustfmt --edition 2024 src/bin/home-multifamily-service-qualifier.rs
@@ -75,13 +75,13 @@ jobs:
         env:
           HEAD_REF: ${{ github.head_ref }}
         run: |
-          if git diff --quiet -- src/bin/home-multifamily-qualifier.rs src/bin/home-multifamily-service-qualifier.rs src/bin/home-multifamily-unit-layout-qualifier.rs src/bin/home-multifamily-lifecycle-qualifier.rs src/bin/home-site-foundation-qualifier.rs src/bin/home-service-stack-qualifier.rs src/bin/home-multifamily-hydraulic-evidence-qualifier.rs; then src/bin/home-multifamily-premise-plumbing-qualifier.rs;
-            echo "All six home qualifiers already match rustfmt."
+          if git diff --quiet -- src/bin/home-multifamily-qualifier.rs src/bin/home-multifamily-service-qualifier.rs src/bin/home-multifamily-unit-layout-qualifier.rs src/bin/home-multifamily-lifecycle-qualifier.rs src/bin/home-site-foundation-qualifier.rs src/bin/home-service-stack-qualifier.rs src/bin/home-multifamily-hydraulic-evidence-qualifier.rs src/bin/home-multifamily-premise-plumbing-qualifier.rs; then
+            echo "All eight home qualifiers already match rustfmt."
             exit 0
           fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add src/bin/home-multifamily-qualifier.rs src/bin/home-multifamily-service-qualifier.rs src/bin/home-multifamily-unit-layout-qualifier.rs src/bin/home-multifamily-lifecycle-qualifier.rs src/bin/home-site-foundation-qualifier.rs src/bin/home-service-stack-qualifier.rs src/bin/home-multifamily-hydraulic-evidence-qualifier.rs
+          git add src/bin/home-multifamily-qualifier.rs src/bin/home-multifamily-service-qualifier.rs src/bin/home-multifamily-unit-layout-qualifier.rs src/bin/home-multifamily-lifecycle-qualifier.rs src/bin/home-site-foundation-qualifier.rs src/bin/home-service-stack-qualifier.rs src/bin/home-multifamily-hydraulic-evidence-qualifier.rs src/bin/home-multifamily-premise-plumbing-qualifier.rs
           git commit -m "style(home): apply stable rustfmt to home qualifiers"
           git push origin "HEAD:${HEAD_REF}"
 
