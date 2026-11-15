@@ -41,6 +41,8 @@ jobs:
         run: cargo test --manifest-path tools/dc-power-flow-independent-auditor/Cargo.toml --locked --offline
       - name: Contingency sweep tests
         run: cargo test --manifest-path tools/dc-fixed-injection-contingency-sweep/Cargo.toml --locked --offline
+      - name: Validate deterministic JSON receipt
+        run: cargo run --manifest-path tools/dc-fixed-injection-contingency-sweep/Cargo.toml --locked --offline --bin emit-fixture | jq -e . >/dev/null
       - name: Strict Clippy
         run: |
           cargo clippy --manifest-path tools/dc-power-flow-reference/Cargo.toml --locked --offline --all-targets -- -D warnings
