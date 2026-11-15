@@ -557,7 +557,7 @@ mod tests {
         let report = evaluate_bytes(CORPUS_JSON.as_bytes(), &encode(&submission)).unwrap();
         assert_eq!(report.critical_false_negatives, 1);
         assert!(!report.hard_gates.zero_critical_false_negatives);
-        assert_eq!(report.evaluation_status, "PROVISIONAL_ONLY");
+        assert_eq!(report.evaluation_status, "PROVISIONAL_ONLY_WITH_HARD_GATE_FAILURES");
     }
 
     #[test]
