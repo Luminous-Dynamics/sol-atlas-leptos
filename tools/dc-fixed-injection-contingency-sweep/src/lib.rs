@@ -168,8 +168,11 @@ fn json_quote(value: &str) -> String {
 }
 
 fn json_number(value: f64) -> String {
-    let rendered = format!("{value:.12}");
-    rendered.trim_end_matches('0').trim_end_matches('.').to_owned()
+    if value == 0.0 {
+        "0".to_owned()
+    } else {
+        value.to_string()
+    }
 }
 
 fn audit_to_json(audit: &AuditReport) -> String {
@@ -516,7 +519,7 @@ mod tests {
         assert_eq!(report.summary.auditor_rejections, 0);
         for scenario in &report.branch_outages {
             assert!(matches!(
-                scenario.disposition,
+                &scenario.disposition,
                 ScenarioDisposition::AuditedWithDeclaredViolations { .. }
             ));
         }
