@@ -656,6 +656,37 @@ mod tests {
     }
 
     #[test]
+    fn candidate_case_order_does_not_change_scores() {
+        let corpus = corpus();
+        let submission = exact_submission(&corpus);
+        let original_bytes = encode(&submission);
+        let original = evaluate_bytes(CORPUS_JSON.as_bytes(), &original_bytes).unwrap();
+
+        let mut reordered = submission.clone();
+        reordered.case_results.reverse();
+        let reordered_bytes = encode(&reordered);
+        let reversed = evaluate_bytes(CORPUS_JSON.as_bytes(), &reordered_bytes).unwrap();
+
+        assert_eq!(original.exact_disposition_matches, reversed.exact_disposition_matches);
+        assert_eq!(original.disposition_accuracy, reversed.disposition_accuracy);
+        assert_eq!(original.critical_impact_recall, reversed.critical_impact_recall);
+        assert_eq!(original.disposition_confusion_matrix, reversed.disposition_confusion_matrix);
+        assert_eq!(
+            original
+                .case_scores
+                .iter()
+                .map(|score| score.case_id.as_str())
+                .collect::<Vec<_>>(),
+            reversed
+                .case_scores
+                .iter()
+                .map(|score| score.case_id.as_str())
+                .collect::<Vec<_>>()
+        );
+        assert_ne!(original.submission_sha256, reversed.submission_sha256);
+    }
+
+    #[test]
     fn input_hashes_are_sha256_hex() {
         let digest = sha256_hex(b"abc");
         assert_eq!(
