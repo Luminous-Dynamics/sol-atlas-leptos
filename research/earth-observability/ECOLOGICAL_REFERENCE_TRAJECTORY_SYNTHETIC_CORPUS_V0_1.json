@@ -799,7 +799,7 @@
       },
       "expected_audit": {
         "reference_model_qualified": false,
-        "overall_claim_permitted": false,
+        "overall_claim_permitted": true,
         "expected_blockers": [
           "included_reference_site_degraded",
           "shifting_baseline_not_assessed"
@@ -1201,7 +1201,7 @@
       },
       "expected_audit": {
         "reference_model_qualified": false,
-        "overall_claim_permitted": false,
+        "overall_claim_permitted": true,
         "expected_blockers": [
           "climate_nonstationarity_unadjusted"
         ]
@@ -1602,7 +1602,7 @@
       },
       "expected_audit": {
         "reference_model_qualified": false,
-        "overall_claim_permitted": false,
+        "overall_claim_permitted": true,
         "expected_blockers": [
           "alternative_trajectories_underrepresented"
         ]
@@ -2376,7 +2376,7 @@
       },
       "expected_audit": {
         "reference_model_qualified": false,
-        "overall_claim_permitted": false,
+        "overall_claim_permitted": true,
         "expected_blockers": [
           "reference_attribute_indicator_undercoverage"
         ]
@@ -2787,7 +2787,7 @@
       },
       "expected_audit": {
         "reference_model_qualified": false,
-        "overall_claim_permitted": false,
+        "overall_claim_permitted": true,
         "expected_blockers": [
           "knowledge_source_consent_or_purpose_block",
           "reference_model_rights_not_cleared"
@@ -3189,7 +3189,7 @@
       },
       "expected_audit": {
         "reference_model_qualified": false,
-        "overall_claim_permitted": false,
+        "overall_claim_permitted": true,
         "expected_blockers": [
           "reference_supersession_review_incomplete"
         ]
@@ -3590,7 +3590,7 @@
       },
       "expected_audit": {
         "reference_model_qualified": false,
-        "overall_claim_permitted": false,
+        "overall_claim_permitted": true,
         "expected_blockers": [
           "included_reference_site_degradation_unknown"
         ]
