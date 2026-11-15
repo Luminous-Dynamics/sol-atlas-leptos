@@ -763,7 +763,7 @@ end
 
     #[test]
     fn area_reference_to_unknown_bus_is_rejected() {
-        let source = PGLIB_CASE24.replace("2  3;", "2  999;");
+        let source = PGLIB_CASE24.replace("2\t 3;", "2\t 999;");
         assert!(
             audit_matpower_case(&source)
                 .unwrap_err()
