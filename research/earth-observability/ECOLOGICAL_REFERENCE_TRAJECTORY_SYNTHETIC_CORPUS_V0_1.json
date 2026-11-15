@@ -1,0 +1,4006 @@
+{
+  "schema_version": "0.1.0",
+  "benchmark_id": "ECOLOGICAL-REFERENCE-TRAJECTORY-SYNTHETIC-0.1",
+  "purpose": "synthetic_reference_model_qualification",
+  "non_claims": [
+    "This corpus contains synthetic reference models and invented indicator values; it is not a Jukskei ecosystem assessment.",
+    "A qualified synthetic reference record does not establish that any real reference site is intact or appropriate.",
+    "The corpus does not validate field calibration, biodiversity status, climate projections or restoration effects.",
+    "The six ecological attributes are not collapsed into a universal scalar score."
+  ],
+  "cases": [
+    {
+      "case_id": "REF-SYN-001",
+      "family": "qualified_dynamic_reference",
+      "ecosystem_context": {
+        "ecosystem_type": "synthetic urban riparian ecosystem",
+        "local_classification": "synthetic riparian corridor class",
+        "iucn_functional_group": "synthetic inland surface water ecosystem group",
+        "spatial_strata": [
+          "upper reach",
+          "middle reach"
+        ],
+        "environmental_drivers": [
+          "rainfall",
+          "flow regime",
+          "urban runoff",
+          "temperature",
+          "land-use pressure"
+        ]
+      },
+      "reference_model": {
+        "status": "qualified",
+        "model_id": "MODEL-REF-SYN-001",
+        "model_version": "1.0.0",
+        "supersedes_model_id": null,
+        "supersession_review_status": "not_applicable",
+        "model_type": "dynamic_ensemble",
+        "reference_sites": [
+          {
+            "site_id": "REF-SYN-001-A",
+            "included_in_model": true,
+            "degradation_screening": "screened_low_degradation",
+            "screening_method": "synthetic multi-pressure reference screening",
+            "dependency_group": "DEP-REF-SYN-001-A",
+            "source_record_ids": [
+              "SRC-REF-SYN-001-A"
+            ]
+          },
+          {
+            "site_id": "REF-SYN-001-B",
+            "included_in_model": true,
+            "degradation_screening": "screened_low_degradation",
+            "screening_method": "synthetic multi-pressure reference screening",
+            "dependency_group": "DEP-REF-SYN-001-B",
+            "source_record_ids": [
+              "SRC-REF-SYN-001-B"
+            ]
+          }
+        ],
+        "indicators_by_attribute": {
+          "absence_of_threats": [
+            {
+              "indicator_id": "ABSENCE_OF_THREATS-1",
+              "name": "Synthetic absence of threats indicator 1",
+              "unit": "synthetic_normalized_score",
+              "spatial_support": "reach",
+              "temporal_support": "annual_season_matched",
+              "method": "synthetic known-answer fixture",
+              "reference_lower": 0.7,
+              "reference_upper": 1,
+              "uncertainty_status": "quantified",
+              "source_record_ids": [
+                "SYN-REF-absence_of_threats-1"
+              ]
+            },
+            {
+              "indicator_id": "ABSENCE_OF_THREATS-2",
+              "name": "Synthetic absence of threats indicator 2",
+              "unit": "synthetic_normalized_score",
+              "spatial_support": "reach",
+              "temporal_support": "annual_season_matched",
+              "method": "synthetic known-answer fixture",
+              "reference_lower": 0.7,
+              "reference_upper": 1,
+              "uncertainty_status": "quantified",
+              "source_record_ids": [
+                "SYN-REF-absence_of_threats-2"
+              ]
+            },
+            {
+              "indicator_id": "ABSENCE_OF_THREATS-3",
+              "name": "Synthetic absence of threats indicator 3",
+              "unit": "synthetic_normalized_score",
+              "spatial_support": "reach",
+              "temporal_support": "annual_season_matched",
+              "method": "synthetic known-answer fixture",
+              "reference_lower": 0.7,
+              "reference_upper": 1,
+              "uncertainty_status": "quantified",
+              "source_record_ids": [
+                "SYN-REF-absence_of_threats-3"
+              ]
+            }
+          ],
+          "physical_conditions": [
+            {
+              "indicator_id": "PHYSICAL_CONDITIONS-1",
+              "name": "Synthetic physical conditions indicator 1",
+              "unit": "synthetic_normalized_score",
+              "spatial_support": "reach",
+              "temporal_support": "annual_season_matched",
+              "method": "synthetic known-answer fixture",
+              "reference_lower": 0.7,
+              "reference_upper": 1,
+              "uncertainty_status": "quantified",
+              "source_record_ids": [
+                "SYN-REF-physical_conditions-1"
+              ]
+            },
+            {
+              "indicator_id": "PHYSICAL_CONDITIONS-2",
+              "name": "Synthetic physical conditions indicator 2",
+              "unit": "synthetic_normalized_score",
+              "spatial_support": "reach",
+              "temporal_support": "annual_season_matched",
+              "method": "synthetic known-answer fixture",
+              "reference_lower": 0.7,
+              "reference_upper": 1,
+              "uncertainty_status": "quantified",
+              "source_record_ids": [
+                "SYN-REF-physical_conditions-2"
+              ]
+            },
+            {
+              "indicator_id": "PHYSICAL_CONDITIONS-3",
+              "name": "Synthetic physical conditions indicator 3",
+              "unit": "synthetic_normalized_score",
+              "spatial_support": "reach",
+              "temporal_support": "annual_season_matched",
+              "method": "synthetic known-answer fixture",
+              "reference_lower": 0.7,
+              "reference_upper": 1,
+              "uncertainty_status": "quantified",
+              "source_record_ids": [
+                "SYN-REF-physical_conditions-3"
+              ]
+            }
+          ],
+          "species_composition": [
+            {
+              "indicator_id": "SPECIES_COMPOSITION-1",
+              "name": "Synthetic species composition indicator 1",
+              "unit": "synthetic_normalized_score",
+              "spatial_support": "reach",
+              "temporal_support": "annual_season_matched",
+              "method": "synthetic known-answer fixture",
+              "reference_lower": 0.7,
+              "reference_upper": 1,
+              "uncertainty_status": "quantified",
+              "source_record_ids": [
+                "SYN-REF-species_composition-1"
+              ]
+            },
+            {
+              "indicator_id": "SPECIES_COMPOSITION-2",
+              "name": "Synthetic species composition indicator 2",
+              "unit": "synthetic_normalized_score",
+              "spatial_support": "reach",
+              "temporal_support": "annual_season_matched",
+              "method": "synthetic known-answer fixture",
+              "reference_lower": 0.7,
+              "reference_upper": 1,
+              "uncertainty_status": "quantified",
+              "source_record_ids": [
+                "SYN-REF-species_composition-2"
+              ]
+            },
+            {
+              "indicator_id": "SPECIES_COMPOSITION-3",
+              "name": "Synthetic species composition indicator 3",
+              "unit": "synthetic_normalized_score",
+              "spatial_support": "reach",
+              "temporal_support": "annual_season_matched",
+              "method": "synthetic known-answer fixture",
+              "reference_lower": 0.7,
+              "reference_upper": 1,
+              "uncertainty_status": "quantified",
+              "source_record_ids": [
+                "SYN-REF-species_composition-3"
+              ]
+            }
+          ],
+          "structural_diversity": [
+            {
+              "indicator_id": "STRUCTURAL_DIVERSITY-1",
+              "name": "Synthetic structural diversity indicator 1",
+              "unit": "synthetic_normalized_score",
+              "spatial_support": "reach",
+              "temporal_support": "annual_season_matched",
+              "method": "synthetic known-answer fixture",
+              "reference_lower": 0.7,
+              "reference_upper": 1,
+              "uncertainty_status": "quantified",
+              "source_record_ids": [
+                "SYN-REF-structural_diversity-1"
+              ]
+            },
+            {
+              "indicator_id": "STRUCTURAL_DIVERSITY-2",
+              "name": "Synthetic structural diversity indicator 2",
+              "unit": "synthetic_normalized_score",
+              "spatial_support": "reach",
+              "temporal_support": "annual_season_matched",
+              "method": "synthetic known-answer fixture",
+              "reference_lower": 0.7,
+              "reference_upper": 1,
+              "uncertainty_status": "quantified",
+              "source_record_ids": [
+                "SYN-REF-structural_diversity-2"
+              ]
+            },
+            {
+              "indicator_id": "STRUCTURAL_DIVERSITY-3",
+              "name": "Synthetic structural diversity indicator 3",
+              "unit": "synthetic_normalized_score",
+              "spatial_support": "reach",
+              "temporal_support": "annual_season_matched",
+              "method": "synthetic known-answer fixture",
+              "reference_lower": 0.7,
+              "reference_upper": 1,
+              "uncertainty_status": "quantified",
+              "source_record_ids": [
+                "SYN-REF-structural_diversity-3"
+              ]
+            }
+          ],
+          "ecosystem_function": [
+            {
+              "indicator_id": "ECOSYSTEM_FUNCTION-1",
+              "name": "Synthetic ecosystem function indicator 1",
+              "unit": "synthetic_normalized_score",
+              "spatial_support": "reach",
+              "temporal_support": "annual_season_matched",
+              "method": "synthetic known-answer fixture",
+              "reference_lower": 0.7,
+              "reference_upper": 1,
+              "uncertainty_status": "quantified",
+              "source_record_ids": [
+                "SYN-REF-ecosystem_function-1"
+              ]
+            },
+            {
+              "indicator_id": "ECOSYSTEM_FUNCTION-2",
+              "name": "Synthetic ecosystem function indicator 2",
+              "unit": "synthetic_normalized_score",
+              "spatial_support": "reach",
+              "temporal_support": "annual_season_matched",
+              "method": "synthetic known-answer fixture",
+              "reference_lower": 0.7,
+              "reference_upper": 1,
+              "uncertainty_status": "quantified",
+              "source_record_ids": [
+                "SYN-REF-ecosystem_function-2"
+              ]
+            },
+            {
+              "indicator_id": "ECOSYSTEM_FUNCTION-3",
+              "name": "Synthetic ecosystem function indicator 3",
+              "unit": "synthetic_normalized_score",
+              "spatial_support": "reach",
+              "temporal_support": "annual_season_matched",
+              "method": "synthetic known-answer fixture",
+              "reference_lower": 0.7,
+              "reference_upper": 1,
+              "uncertainty_status": "quantified",
+              "source_record_ids": [
+                "SYN-REF-ecosystem_function-3"
+              ]
+            }
+          ],
+          "external_exchanges": [
+            {
+              "indicator_id": "EXTERNAL_EXCHANGES-1",
+              "name": "Synthetic external exchanges indicator 1",
+              "unit": "synthetic_normalized_score",
+              "spatial_support": "reach",
+              "temporal_support": "annual_season_matched",
+              "method": "synthetic known-answer fixture",
+              "reference_lower": 0.7,
+              "reference_upper": 1,
+              "uncertainty_status": "quantified",
+              "source_record_ids": [
+                "SYN-REF-external_exchanges-1"
+              ]
+            },
+            {
+              "indicator_id": "EXTERNAL_EXCHANGES-2",
+              "name": "Synthetic external exchanges indicator 2",
+              "unit": "synthetic_normalized_score",
+              "spatial_support": "reach",
+              "temporal_support": "annual_season_matched",
+              "method": "synthetic known-answer fixture",
+              "reference_lower": 0.7,
+              "reference_upper": 1,
+              "uncertainty_status": "quantified",
+              "source_record_ids": [
+                "SYN-REF-external_exchanges-2"
+              ]
+            },
+            {
+              "indicator_id": "EXTERNAL_EXCHANGES-3",
+              "name": "Synthetic external exchanges indicator 3",
+              "unit": "synthetic_normalized_score",
+              "spatial_support": "reach",
+              "temporal_support": "annual_season_matched",
+              "method": "synthetic known-answer fixture",
+              "reference_lower": 0.7,
+              "reference_upper": 1,
+              "uncertainty_status": "quantified",
+              "source_record_ids": [
+                "SYN-REF-external_exchanges-3"
+              ]
+            }
+          ]
+        },
+        "climate_context": {
+          "assessment_status": "assessed",
+          "nonstationarity_detected": true,
+          "adjustment_status": "adjusted",
+          "scenario_ids": [
+            "SSP2-4.5",
+            "SSP5-8.5"
+          ],
+          "hydrological_regime_included": true
+        },
+        "succession_context": {
+          "dynamics_included": true,
+          "alternative_state_count": 1,
+          "paths": [
+            {
+              "path_id": "PATH-1",
+              "successional_stage": "established riparian mosaic",
+              "scenario_id": "SSP2-4.5",
+              "description": "Synthetic admissible dynamic recovery path.",
+              "plausibility": "supported"
+            }
+          ]
+        },
+        "shifting_baseline": {
+          "assessment_status": "assessed",
+          "risk_level": "low",
+          "historical_context_reviewed": true,
+          "degradation_screening_method": "synthetic historical / contemporary reference comparison"
+        },
+        "knowledge_sources": [],
+        "rights_status": "cleared_synthetic"
+      },
+      "recovery_assessment": {
+        "observation_window": "synthetic season-matched annual interval",
+        "reference_model_version": "1.0.0",
+        "attribute_states": [
+          {
+            "attribute": "absence_of_threats",
+            "state": "improving",
+            "coverage_status": "observed",
+            "evidence_count": 3
+          },
+          {
+            "attribute": "physical_conditions",
+            "state": "improving",
+            "coverage_status": "observed",
+            "evidence_count": 3
+          },
+          {
+            "attribute": "species_composition",
+            "state": "improving",
+            "coverage_status": "observed",
+            "evidence_count": 3
+          },
+          {
+            "attribute": "structural_diversity",
+            "state": "improving",
+            "coverage_status": "observed",
+            "evidence_count": 3
+          },
+          {
+            "attribute": "ecosystem_function",
+            "state": "improving",
+            "coverage_status": "observed",
+            "evidence_count": 3
+          },
+          {
+            "attribute": "external_exchanges",
+            "state": "improving",
+            "coverage_status": "observed",
+            "evidence_count": 3
+          }
+        ],
+        "overall_claim": "positive_recovery"
+      },
+      "expected_audit": {
+        "reference_model_qualified": true,
+        "overall_claim_permitted": true,
+        "expected_blockers": []
+      },
+      "hard_invariants": [
+        "A recovery claim is specific to the ecosystem, reference-model version, site strata and observation window.",
+        "Six ecosystem attributes remain independently reportable; no attribute silently compensates for another."
+      ]
+    },
+    {
+      "case_id": "REF-SYN-002",
+      "family": "degraded_reference_baseline",
+      "ecosystem_context": {
+        "ecosystem_type": "synthetic urban riparian ecosystem",
+        "local_classification": "synthetic riparian corridor class",
+        "iucn_functional_group": "synthetic inland surface water ecosystem group",
+        "spatial_strata": [
+          "upper reach",
+          "middle reach"
+        ],
+        "environmental_drivers": [
+          "rainfall",
+          "flow regime",
+          "urban runoff",
+          "temperature",
+          "land-use pressure"
+        ]
+      },
+      "reference_model": {
+        "status": "qualified",
+        "model_id": "MODEL-REF-SYN-002",
+        "model_version": "1.0.0",
+        "supersedes_model_id": null,
+        "supersession_review_status": "not_applicable",
+        "model_type": "dynamic_ensemble",
+        "reference_sites": [
+          {
+            "site_id": "REF-SYN-002-A",
+            "included_in_model": true,
+            "degradation_screening": "degraded",
+            "screening_method": "synthetic multi-pressure reference screening",
+            "dependency_group": "DEP-REF-SYN-002-A",
+            "source_record_ids": [
+              "SRC-REF-SYN-002-A"
+            ]
+          },
+          {
+            "site_id": "REF-SYN-002-B",
+            "included_in_model": true,
+            "degradation_screening": "screened_low_degradation",
+            "screening_method": "synthetic multi-pressure reference screening",
+            "dependency_group": "DEP-REF-SYN-002-B",
+            "source_record_ids": [
+              "SRC-REF-SYN-002-B"
+            ]
+          }
+        ],
+        "indicators_by_attribute": {
+          "absence_of_threats": [
+            {
+              "indicator_id": "ABSENCE_OF_THREATS-1",
+              "name": "Synthetic absence of threats indicator 1",
+              "unit": "synthetic_normalized_score",
+              "spatial_support": "reach",
+              "temporal_support": "annual_season_matched",
+              "method": "synthetic known-answer fixture",
+              "reference_lower": 0.7,
+              "reference_upper": 1,
+              "uncertainty_status": "quantified",
+              "source_record_ids": [
+                "SYN-REF-absence_of_threats-1"
+              ]
+            },
+            {
+              "indicator_id": "ABSENCE_OF_THREATS-2",
+              "name": "Synthetic absence of threats indicator 2",
+              "unit": "synthetic_normalized_score",
+              "spatial_support": "reach",
+              "temporal_support": "annual_season_matched",
+              "method": "synthetic known-answer fixture",
+              "reference_lower": 0.7,
+              "reference_upper": 1,
+              "uncertainty_status": "quantified",
+              "source_record_ids": [
+                "SYN-REF-absence_of_threats-2"
+              ]
+            },
+            {
+              "indicator_id": "ABSENCE_OF_THREATS-3",
+              "name": "Synthetic absence of threats indicator 3",
+              "unit": "synthetic_normalized_score",
+              "spatial_support": "reach",
+              "temporal_support": "annual_season_matched",
+              "method": "synthetic known-answer fixture",
+              "reference_lower": 0.7,
+              "reference_upper": 1,
+              "uncertainty_status": "quantified",
+              "source_record_ids": [
+                "SYN-REF-absence_of_threats-3"
+              ]
+            }
+          ],
+          "physical_conditions": [
+            {
+              "indicator_id": "PHYSICAL_CONDITIONS-1",
+              "name": "Synthetic physical conditions indicator 1",
+              "unit": "synthetic_normalized_score",
+              "spatial_support": "reach",
+              "temporal_support": "annual_season_matched",
+              "method": "synthetic known-answer fixture",
+              "reference_lower": 0.7,
+              "reference_upper": 1,
+              "uncertainty_status": "quantified",
+              "source_record_ids": [
+                "SYN-REF-physical_conditions-1"
+              ]
+            },
+            {
+              "indicator_id": "PHYSICAL_CONDITIONS-2",
+              "name": "Synthetic physical conditions indicator 2",
+              "unit": "synthetic_normalized_score",
+              "spatial_support": "reach",
+              "temporal_support": "annual_season_matched",
+              "method": "synthetic known-answer fixture",
+              "reference_lower": 0.7,
+              "reference_upper": 1,
+              "uncertainty_status": "quantified",
+              "source_record_ids": [
+                "SYN-REF-physical_conditions-2"
+              ]
+            },
+            {
+              "indicator_id": "PHYSICAL_CONDITIONS-3",
+              "name": "Synthetic physical conditions indicator 3",
+              "unit": "synthetic_normalized_score",
+              "spatial_support": "reach",
+              "temporal_support": "annual_season_matched",
+              "method": "synthetic known-answer fixture",
+              "reference_lower": 0.7,
+              "reference_upper": 1,
+              "uncertainty_status": "quantified",
+              "source_record_ids": [
+                "SYN-REF-physical_conditions-3"
+              ]
+            }
+          ],
+          "species_composition": [
+            {
+              "indicator_id": "SPECIES_COMPOSITION-1",
+              "name": "Synthetic species composition indicator 1",
+              "unit": "synthetic_normalized_score",
+              "spatial_support": "reach",
+              "temporal_support": "annual_season_matched",
+              "method": "synthetic known-answer fixture",
+              "reference_lower": 0.7,
+              "reference_upper": 1,
+              "uncertainty_status": "quantified",
+              "source_record_ids": [
+                "SYN-REF-species_composition-1"
+              ]
+            },
+            {
+              "indicator_id": "SPECIES_COMPOSITION-2",
+              "name": "Synthetic species composition indicator 2",
+              "unit": "synthetic_normalized_score",
+              "spatial_support": "reach",
+              "temporal_support": "annual_season_matched",
+              "method": "synthetic known-answer fixture",
+              "reference_lower": 0.7,
+              "reference_upper": 1,
+              "uncertainty_status": "quantified",
+              "source_record_ids": [
+                "SYN-REF-species_composition-2"
+              ]
+            },
+            {
+              "indicator_id": "SPECIES_COMPOSITION-3",
+              "name": "Synthetic species composition indicator 3",
+              "unit": "synthetic_normalized_score",
+              "spatial_support": "reach",
+              "temporal_support": "annual_season_matched",
+              "method": "synthetic known-answer fixture",
+              "reference_lower": 0.7,
+              "reference_upper": 1,
+              "uncertainty_status": "quantified",
+              "source_record_ids": [
+                "SYN-REF-species_composition-3"
+              ]
+            }
+          ],
+          "structural_diversity": [
+            {
+              "indicator_id": "STRUCTURAL_DIVERSITY-1",
+              "name": "Synthetic structural diversity indicator 1",
+              "unit": "synthetic_normalized_score",
+              "spatial_support": "reach",
+              "temporal_support": "annual_season_matched",
+              "method": "synthetic known-answer fixture",
+              "reference_lower": 0.7,
+              "reference_upper": 1,
+              "uncertainty_status": "quantified",
+              "source_record_ids": [
+                "SYN-REF-structural_diversity-1"
+              ]
+            },
+            {
+              "indicator_id": "STRUCTURAL_DIVERSITY-2",
+              "name": "Synthetic structural diversity indicator 2",
+              "unit": "synthetic_normalized_score",
+              "spatial_support": "reach",
+              "temporal_support": "annual_season_matched",
+              "method": "synthetic known-answer fixture",
+              "reference_lower": 0.7,
+              "reference_upper": 1,
+              "uncertainty_status": "quantified",
+              "source_record_ids": [
+                "SYN-REF-structural_diversity-2"
+              ]
+            },
+            {
+              "indicator_id": "STRUCTURAL_DIVERSITY-3",
+              "name": "Synthetic structural diversity indicator 3",
+              "unit": "synthetic_normalized_score",
+              "spatial_support": "reach",
+              "temporal_support": "annual_season_matched",
+              "method": "synthetic known-answer fixture",
+              "reference_lower": 0.7,
+              "reference_upper": 1,
+              "uncertainty_status": "quantified",
+              "source_record_ids": [
+                "SYN-REF-structural_diversity-3"
+              ]
+            }
+          ],
+          "ecosystem_function": [
+            {
+              "indicator_id": "ECOSYSTEM_FUNCTION-1",
+              "name": "Synthetic ecosystem function indicator 1",
+              "unit": "synthetic_normalized_score",
+              "spatial_support": "reach",
+              "temporal_support": "annual_season_matched",
+              "method": "synthetic known-answer fixture",
+              "reference_lower": 0.7,
+              "reference_upper": 1,
+              "uncertainty_status": "quantified",
+              "source_record_ids": [
+                "SYN-REF-ecosystem_function-1"
+              ]
+            },
+            {
+              "indicator_id": "ECOSYSTEM_FUNCTION-2",
+              "name": "Synthetic ecosystem function indicator 2",
+              "unit": "synthetic_normalized_score",
+              "spatial_support": "reach",
+              "temporal_support": "annual_season_matched",
+              "method": "synthetic known-answer fixture",
+              "reference_lower": 0.7,
+              "reference_upper": 1,
+              "uncertainty_status": "quantified",
+              "source_record_ids": [
+                "SYN-REF-ecosystem_function-2"
+              ]
+            },
+            {
+              "indicator_id": "ECOSYSTEM_FUNCTION-3",
+              "name": "Synthetic ecosystem function indicator 3",
+              "unit": "synthetic_normalized_score",
+              "spatial_support": "reach",
+              "temporal_support": "annual_season_matched",
+              "method": "synthetic known-answer fixture",
+              "reference_lower": 0.7,
+              "reference_upper": 1,
+              "uncertainty_status": "quantified",
+              "source_record_ids": [
+                "SYN-REF-ecosystem_function-3"
+              ]
+            }
+          ],
+          "external_exchanges": [
+            {
+              "indicator_id": "EXTERNAL_EXCHANGES-1",
+              "name": "Synthetic external exchanges indicator 1",
+              "unit": "synthetic_normalized_score",
+              "spatial_support": "reach",
+              "temporal_support": "annual_season_matched",
+              "method": "synthetic known-answer fixture",
+              "reference_lower": 0.7,
+              "reference_upper": 1,
+              "uncertainty_status": "quantified",
+              "source_record_ids": [
+                "SYN-REF-external_exchanges-1"
+              ]
+            },
+            {
+              "indicator_id": "EXTERNAL_EXCHANGES-2",
+              "name": "Synthetic external exchanges indicator 2",
+              "unit": "synthetic_normalized_score",
+              "spatial_support": "reach",
+              "temporal_support": "annual_season_matched",
+              "method": "synthetic known-answer fixture",
+              "reference_lower": 0.7,
+              "reference_upper": 1,
+              "uncertainty_status": "quantified",
+              "source_record_ids": [
+                "SYN-REF-external_exchanges-2"
+              ]
+            },
+            {
+              "indicator_id": "EXTERNAL_EXCHANGES-3",
+              "name": "Synthetic external exchanges indicator 3",
+              "unit": "synthetic_normalized_score",
+              "spatial_support": "reach",
+              "temporal_support": "annual_season_matched",
+              "method": "synthetic known-answer fixture",
+              "reference_lower": 0.7,
+              "reference_upper": 1,
+              "uncertainty_status": "quantified",
+              "source_record_ids": [
+                "SYN-REF-external_exchanges-3"
+              ]
+            }
+          ]
+        },
+        "climate_context": {
+          "assessment_status": "assessed",
+          "nonstationarity_detected": true,
+          "adjustment_status": "adjusted",
+          "scenario_ids": [
+            "SSP2-4.5",
+            "SSP5-8.5"
+          ],
+          "hydrological_regime_included": true
+        },
+        "succession_context": {
+          "dynamics_included": true,
+          "alternative_state_count": 1,
+          "paths": [
+            {
+              "path_id": "PATH-1",
+              "successional_stage": "established riparian mosaic",
+              "scenario_id": "SSP2-4.5",
+              "description": "Synthetic admissible dynamic recovery path.",
+              "plausibility": "supported"
+            }
+          ]
+        },
+        "shifting_baseline": {
+          "assessment_status": "not_assessed",
+          "risk_level": "high",
+          "historical_context_reviewed": true,
+          "degradation_screening_method": "synthetic historical / contemporary reference comparison"
+        },
+        "knowledge_sources": [],
+        "rights_status": "cleared_synthetic"
+      },
+      "recovery_assessment": {
+        "observation_window": "synthetic season-matched annual interval",
+        "reference_model_version": "1.0.0",
+        "attribute_states": [
+          {
+            "attribute": "absence_of_threats",
+            "state": "improving",
+            "coverage_status": "observed",
+            "evidence_count": 3
+          },
+          {
+            "attribute": "physical_conditions",
+            "state": "improving",
+            "coverage_status": "observed",
+            "evidence_count": 3
+          },
+          {
+            "attribute": "species_composition",
+            "state": "improving",
+            "coverage_status": "observed",
+            "evidence_count": 3
+          },
+          {
+            "attribute": "structural_diversity",
+            "state": "improving",
+            "coverage_status": "observed",
+            "evidence_count": 3
+          },
+          {
+            "attribute": "ecosystem_function",
+            "state": "improving",
+            "coverage_status": "observed",
+            "evidence_count": 3
+          },
+          {
+            "attribute": "external_exchanges",
+            "state": "improving",
+            "coverage_status": "observed",
+            "evidence_count": 3
+          }
+        ],
+        "overall_claim": "unresolved"
+      },
+      "expected_audit": {
+        "reference_model_qualified": false,
+        "overall_claim_permitted": true,
+        "expected_blockers": [
+          "included_reference_site_degraded",
+          "shifting_baseline_not_assessed"
+        ]
+      },
+      "hard_invariants": [
+        "A recovery claim is specific to the ecosystem, reference-model version, site strata and observation window.",
+        "Six ecosystem attributes remain independently reportable; no attribute silently compensates for another."
+      ]
+    },
+    {
+      "case_id": "REF-SYN-003",
+      "family": "climate_nonstationarity",
+      "ecosystem_context": {
+        "ecosystem_type": "synthetic urban riparian ecosystem",
+        "local_classification": "synthetic riparian corridor class",
+        "iucn_functional_group": "synthetic inland surface water ecosystem group",
+        "spatial_strata": [
+          "upper reach",
+          "middle reach"
+        ],
+        "environmental_drivers": [
+          "rainfall",
+          "flow regime",
+          "urban runoff",
+          "temperature",
+          "land-use pressure"
+        ]
+      },
+      "reference_model": {
+        "status": "qualified",
+        "model_id": "MODEL-REF-SYN-003",
+        "model_version": "1.0.0",
+        "supersedes_model_id": null,
+        "supersession_review_status": "not_applicable",
+        "model_type": "dynamic_ensemble",
+        "reference_sites": [
+          {
+            "site_id": "REF-SYN-003-A",
+            "included_in_model": true,
+            "degradation_screening": "screened_low_degradation",
+            "screening_method": "synthetic multi-pressure reference screening",
+            "dependency_group": "DEP-REF-SYN-003-A",
+            "source_record_ids": [
+              "SRC-REF-SYN-003-A"
+            ]
+          },
+          {
+            "site_id": "REF-SYN-003-B",
+            "included_in_model": true,
+            "degradation_screening": "screened_low_degradation",
+            "screening_method": "synthetic multi-pressure reference screening",
+            "dependency_group": "DEP-REF-SYN-003-B",
+            "source_record_ids": [
+              "SRC-REF-SYN-003-B"
+            ]
+          }
+        ],
+        "indicators_by_attribute": {
+          "absence_of_threats": [
+            {
+              "indicator_id": "ABSENCE_OF_THREATS-1",
+              "name": "Synthetic absence of threats indicator 1",
+              "unit": "synthetic_normalized_score",
+              "spatial_support": "reach",
+              "temporal_support": "annual_season_matched",
+              "method": "synthetic known-answer fixture",
+              "reference_lower": 0.7,
+              "reference_upper": 1,
+              "uncertainty_status": "quantified",
+              "source_record_ids": [
+                "SYN-REF-absence_of_threats-1"
+              ]
+            },
+            {
+              "indicator_id": "ABSENCE_OF_THREATS-2",
+              "name": "Synthetic absence of threats indicator 2",
+              "unit": "synthetic_normalized_score",
+              "spatial_support": "reach",
+              "temporal_support": "annual_season_matched",
+              "method": "synthetic known-answer fixture",
+              "reference_lower": 0.7,
+              "reference_upper": 1,
+              "uncertainty_status": "quantified",
+              "source_record_ids": [
+                "SYN-REF-absence_of_threats-2"
+              ]
+            },
+            {
+              "indicator_id": "ABSENCE_OF_THREATS-3",
+              "name": "Synthetic absence of threats indicator 3",
+              "unit": "synthetic_normalized_score",
+              "spatial_support": "reach",
+              "temporal_support": "annual_season_matched",
+              "method": "synthetic known-answer fixture",
+              "reference_lower": 0.7,
+              "reference_upper": 1,
+              "uncertainty_status": "quantified",
+              "source_record_ids": [
+                "SYN-REF-absence_of_threats-3"
+              ]
+            }
+          ],
+          "physical_conditions": [
+            {
+              "indicator_id": "PHYSICAL_CONDITIONS-1",
+              "name": "Synthetic physical conditions indicator 1",
+              "unit": "synthetic_normalized_score",
+              "spatial_support": "reach",
+              "temporal_support": "annual_season_matched",
+              "method": "synthetic known-answer fixture",
+              "reference_lower": 0.7,
+              "reference_upper": 1,
+              "uncertainty_status": "quantified",
+              "source_record_ids": [
+                "SYN-REF-physical_conditions-1"
+              ]
+            },
+            {
+              "indicator_id": "PHYSICAL_CONDITIONS-2",
+              "name": "Synthetic physical conditions indicator 2",
+              "unit": "synthetic_normalized_score",
+              "spatial_support": "reach",
+              "temporal_support": "annual_season_matched",
+              "method": "synthetic known-answer fixture",
+              "reference_lower": 0.7,
+              "reference_upper": 1,
+              "uncertainty_status": "quantified",
+              "source_record_ids": [
+                "SYN-REF-physical_conditions-2"
+              ]
+            },
+            {
+              "indicator_id": "PHYSICAL_CONDITIONS-3",
+              "name": "Synthetic physical conditions indicator 3",
+              "unit": "synthetic_normalized_score",
+              "spatial_support": "reach",
+              "temporal_support": "annual_season_matched",
+              "method": "synthetic known-answer fixture",
+              "reference_lower": 0.7,
+              "reference_upper": 1,
+              "uncertainty_status": "quantified",
+              "source_record_ids": [
+                "SYN-REF-physical_conditions-3"
+              ]
+            }
+          ],
+          "species_composition": [
+            {
+              "indicator_id": "SPECIES_COMPOSITION-1",
+              "name": "Synthetic species composition indicator 1",
+              "unit": "synthetic_normalized_score",
+              "spatial_support": "reach",
+              "temporal_support": "annual_season_matched",
+              "method": "synthetic known-answer fixture",
+              "reference_lower": 0.7,
+              "reference_upper": 1,
+              "uncertainty_status": "quantified",
+              "source_record_ids": [
+                "SYN-REF-species_composition-1"
+              ]
+            },
+            {
+              "indicator_id": "SPECIES_COMPOSITION-2",
+              "name": "Synthetic species composition indicator 2",
+              "unit": "synthetic_normalized_score",
+              "spatial_support": "reach",
+              "temporal_support": "annual_season_matched",
+              "method": "synthetic known-answer fixture",
+              "reference_lower": 0.7,
+              "reference_upper": 1,
+              "uncertainty_status": "quantified",
+              "source_record_ids": [
+                "SYN-REF-species_composition-2"
+              ]
+            },
+            {
+              "indicator_id": "SPECIES_COMPOSITION-3",
+              "name": "Synthetic species composition indicator 3",
+              "unit": "synthetic_normalized_score",
+              "spatial_support": "reach",
+              "temporal_support": "annual_season_matched",
+              "method": "synthetic known-answer fixture",
+              "reference_lower": 0.7,
+              "reference_upper": 1,
+              "uncertainty_status": "quantified",
+              "source_record_ids": [
+                "SYN-REF-species_composition-3"
+              ]
+            }
+          ],
+          "structural_diversity": [
+            {
+              "indicator_id": "STRUCTURAL_DIVERSITY-1",
+              "name": "Synthetic structural diversity indicator 1",
+              "unit": "synthetic_normalized_score",
+              "spatial_support": "reach",
+              "temporal_support": "annual_season_matched",
+              "method": "synthetic known-answer fixture",
+              "reference_lower": 0.7,
+              "reference_upper": 1,
+              "uncertainty_status": "quantified",
+              "source_record_ids": [
+                "SYN-REF-structural_diversity-1"
+              ]
+            },
+            {
+              "indicator_id": "STRUCTURAL_DIVERSITY-2",
+              "name": "Synthetic structural diversity indicator 2",
+              "unit": "synthetic_normalized_score",
+              "spatial_support": "reach",
+              "temporal_support": "annual_season_matched",
+              "method": "synthetic known-answer fixture",
+              "reference_lower": 0.7,
+              "reference_upper": 1,
+              "uncertainty_status": "quantified",
+              "source_record_ids": [
+                "SYN-REF-structural_diversity-2"
+              ]
+            },
+            {
+              "indicator_id": "STRUCTURAL_DIVERSITY-3",
+              "name": "Synthetic structural diversity indicator 3",
+              "unit": "synthetic_normalized_score",
+              "spatial_support": "reach",
+              "temporal_support": "annual_season_matched",
+              "method": "synthetic known-answer fixture",
+              "reference_lower": 0.7,
+              "reference_upper": 1,
+              "uncertainty_status": "quantified",
+              "source_record_ids": [
+                "SYN-REF-structural_diversity-3"
+              ]
+            }
+          ],
+          "ecosystem_function": [
+            {
+              "indicator_id": "ECOSYSTEM_FUNCTION-1",
+              "name": "Synthetic ecosystem function indicator 1",
+              "unit": "synthetic_normalized_score",
+              "spatial_support": "reach",
+              "temporal_support": "annual_season_matched",
+              "method": "synthetic known-answer fixture",
+              "reference_lower": 0.7,
+              "reference_upper": 1,
+              "uncertainty_status": "quantified",
+              "source_record_ids": [
+                "SYN-REF-ecosystem_function-1"
+              ]
+            },
+            {
+              "indicator_id": "ECOSYSTEM_FUNCTION-2",
+              "name": "Synthetic ecosystem function indicator 2",
+              "unit": "synthetic_normalized_score",
+              "spatial_support": "reach",
+              "temporal_support": "annual_season_matched",
+              "method": "synthetic known-answer fixture",
+              "reference_lower": 0.7,
+              "reference_upper": 1,
+              "uncertainty_status": "quantified",
+              "source_record_ids": [
+                "SYN-REF-ecosystem_function-2"
+              ]
+            },
+            {
+              "indicator_id": "ECOSYSTEM_FUNCTION-3",
+              "name": "Synthetic ecosystem function indicator 3",
+              "unit": "synthetic_normalized_score",
+              "spatial_support": "reach",
+              "temporal_support": "annual_season_matched",
+              "method": "synthetic known-answer fixture",
+              "reference_lower": 0.7,
+              "reference_upper": 1,
+              "uncertainty_status": "quantified",
+              "source_record_ids": [
+                "SYN-REF-ecosystem_function-3"
+              ]
+            }
+          ],
+          "external_exchanges": [
+            {
+              "indicator_id": "EXTERNAL_EXCHANGES-1",
+              "name": "Synthetic external exchanges indicator 1",
+              "unit": "synthetic_normalized_score",
+              "spatial_support": "reach",
+              "temporal_support": "annual_season_matched",
+              "method": "synthetic known-answer fixture",
+              "reference_lower": 0.7,
+              "reference_upper": 1,
+              "uncertainty_status": "quantified",
+              "source_record_ids": [
+                "SYN-REF-external_exchanges-1"
+              ]
+            },
+            {
+              "indicator_id": "EXTERNAL_EXCHANGES-2",
+              "name": "Synthetic external exchanges indicator 2",
+              "unit": "synthetic_normalized_score",
+              "spatial_support": "reach",
+              "temporal_support": "annual_season_matched",
+              "method": "synthetic known-answer fixture",
+              "reference_lower": 0.7,
+              "reference_upper": 1,
+              "uncertainty_status": "quantified",
+              "source_record_ids": [
+                "SYN-REF-external_exchanges-2"
+              ]
+            },
+            {
+              "indicator_id": "EXTERNAL_EXCHANGES-3",
+              "name": "Synthetic external exchanges indicator 3",
+              "unit": "synthetic_normalized_score",
+              "spatial_support": "reach",
+              "temporal_support": "annual_season_matched",
+              "method": "synthetic known-answer fixture",
+              "reference_lower": 0.7,
+              "reference_upper": 1,
+              "uncertainty_status": "quantified",
+              "source_record_ids": [
+                "SYN-REF-external_exchanges-3"
+              ]
+            }
+          ]
+        },
+        "climate_context": {
+          "assessment_status": "assessed",
+          "nonstationarity_detected": true,
+          "adjustment_status": "missing",
+          "scenario_ids": [
+            "SSP2-4.5",
+            "SSP5-8.5"
+          ],
+          "hydrological_regime_included": true
+        },
+        "succession_context": {
+          "dynamics_included": true,
+          "alternative_state_count": 1,
+          "paths": [
+            {
+              "path_id": "PATH-1",
+              "successional_stage": "established riparian mosaic",
+              "scenario_id": "SSP2-4.5",
+              "description": "Synthetic admissible dynamic recovery path.",
+              "plausibility": "supported"
+            }
+          ]
+        },
+        "shifting_baseline": {
+          "assessment_status": "assessed",
+          "risk_level": "low",
+          "historical_context_reviewed": true,
+          "degradation_screening_method": "synthetic historical / contemporary reference comparison"
+        },
+        "knowledge_sources": [],
+        "rights_status": "cleared_synthetic"
+      },
+      "recovery_assessment": {
+        "observation_window": "synthetic season-matched annual interval",
+        "reference_model_version": "1.0.0",
+        "attribute_states": [
+          {
+            "attribute": "absence_of_threats",
+            "state": "improving",
+            "coverage_status": "observed",
+            "evidence_count": 3
+          },
+          {
+            "attribute": "physical_conditions",
+            "state": "improving",
+            "coverage_status": "observed",
+            "evidence_count": 3
+          },
+          {
+            "attribute": "species_composition",
+            "state": "improving",
+            "coverage_status": "observed",
+            "evidence_count": 3
+          },
+          {
+            "attribute": "structural_diversity",
+            "state": "improving",
+            "coverage_status": "observed",
+            "evidence_count": 3
+          },
+          {
+            "attribute": "ecosystem_function",
+            "state": "improving",
+            "coverage_status": "observed",
+            "evidence_count": 3
+          },
+          {
+            "attribute": "external_exchanges",
+            "state": "improving",
+            "coverage_status": "observed",
+            "evidence_count": 3
+          }
+        ],
+        "overall_claim": "unresolved"
+      },
+      "expected_audit": {
+        "reference_model_qualified": false,
+        "overall_claim_permitted": true,
+        "expected_blockers": [
+          "climate_nonstationarity_unadjusted"
+        ]
+      },
+      "hard_invariants": [
+        "A recovery claim is specific to the ecosystem, reference-model version, site strata and observation window.",
+        "Six ecosystem attributes remain independently reportable; no attribute silently compensates for another."
+      ]
+    },
+    {
+      "case_id": "REF-SYN-004",
+      "family": "alternative_succession_paths",
+      "ecosystem_context": {
+        "ecosystem_type": "synthetic urban riparian ecosystem",
+        "local_classification": "synthetic riparian corridor class",
+        "iucn_functional_group": "synthetic inland surface water ecosystem group",
+        "spatial_strata": [
+          "upper reach",
+          "middle reach"
+        ],
+        "environmental_drivers": [
+          "rainfall",
+          "flow regime",
+          "urban runoff",
+          "temperature",
+          "land-use pressure"
+        ]
+      },
+      "reference_model": {
+        "status": "qualified",
+        "model_id": "MODEL-REF-SYN-004",
+        "model_version": "1.0.0",
+        "supersedes_model_id": null,
+        "supersession_review_status": "not_applicable",
+        "model_type": "successional_ensemble",
+        "reference_sites": [
+          {
+            "site_id": "REF-SYN-004-A",
+            "included_in_model": true,
+            "degradation_screening": "screened_low_degradation",
+            "screening_method": "synthetic multi-pressure reference screening",
+            "dependency_group": "DEP-REF-SYN-004-A",
+            "source_record_ids": [
+              "SRC-REF-SYN-004-A"
+            ]
+          },
+          {
+            "site_id": "REF-SYN-004-B",
+            "included_in_model": true,
+            "degradation_screening": "screened_low_degradation",
+            "screening_method": "synthetic multi-pressure reference screening",
+            "dependency_group": "DEP-REF-SYN-004-B",
+            "source_record_ids": [
+              "SRC-REF-SYN-004-B"
+            ]
+          }
+        ],
+        "indicators_by_attribute": {
+          "absence_of_threats": [
+            {
+              "indicator_id": "ABSENCE_OF_THREATS-1",
+              "name": "Synthetic absence of threats indicator 1",
+              "unit": "synthetic_normalized_score",
+              "spatial_support": "reach",
+              "temporal_support": "annual_season_matched",
+              "method": "synthetic known-answer fixture",
+              "reference_lower": 0.7,
+              "reference_upper": 1,
+              "uncertainty_status": "quantified",
+              "source_record_ids": [
+                "SYN-REF-absence_of_threats-1"
+              ]
+            },
+            {
+              "indicator_id": "ABSENCE_OF_THREATS-2",
+              "name": "Synthetic absence of threats indicator 2",
+              "unit": "synthetic_normalized_score",
+              "spatial_support": "reach",
+              "temporal_support": "annual_season_matched",
+              "method": "synthetic known-answer fixture",
+              "reference_lower": 0.7,
+              "reference_upper": 1,
+              "uncertainty_status": "quantified",
+              "source_record_ids": [
+                "SYN-REF-absence_of_threats-2"
+              ]
+            },
+            {
+              "indicator_id": "ABSENCE_OF_THREATS-3",
+              "name": "Synthetic absence of threats indicator 3",
+              "unit": "synthetic_normalized_score",
+              "spatial_support": "reach",
+              "temporal_support": "annual_season_matched",
+              "method": "synthetic known-answer fixture",
+              "reference_lower": 0.7,
+              "reference_upper": 1,
+              "uncertainty_status": "quantified",
+              "source_record_ids": [
+                "SYN-REF-absence_of_threats-3"
+              ]
+            }
+          ],
+          "physical_conditions": [
+            {
+              "indicator_id": "PHYSICAL_CONDITIONS-1",
+              "name": "Synthetic physical conditions indicator 1",
+              "unit": "synthetic_normalized_score",
+              "spatial_support": "reach",
+              "temporal_support": "annual_season_matched",
+              "method": "synthetic known-answer fixture",
+              "reference_lower": 0.7,
+              "reference_upper": 1,
+              "uncertainty_status": "quantified",
+              "source_record_ids": [
+                "SYN-REF-physical_conditions-1"
+              ]
+            },
+            {
+              "indicator_id": "PHYSICAL_CONDITIONS-2",
+              "name": "Synthetic physical conditions indicator 2",
+              "unit": "synthetic_normalized_score",
+              "spatial_support": "reach",
+              "temporal_support": "annual_season_matched",
+              "method": "synthetic known-answer fixture",
+              "reference_lower": 0.7,
+              "reference_upper": 1,
+              "uncertainty_status": "quantified",
+              "source_record_ids": [
+                "SYN-REF-physical_conditions-2"
+              ]
+            },
+            {
+              "indicator_id": "PHYSICAL_CONDITIONS-3",
+              "name": "Synthetic physical conditions indicator 3",
+              "unit": "synthetic_normalized_score",
+              "spatial_support": "reach",
+              "temporal_support": "annual_season_matched",
+              "method": "synthetic known-answer fixture",
+              "reference_lower": 0.7,
+              "reference_upper": 1,
+              "uncertainty_status": "quantified",
+              "source_record_ids": [
+                "SYN-REF-physical_conditions-3"
+              ]
+            }
+          ],
+          "species_composition": [
+            {
+              "indicator_id": "SPECIES_COMPOSITION-1",
+              "name": "Synthetic species composition indicator 1",
+              "unit": "synthetic_normalized_score",
+              "spatial_support": "reach",
+              "temporal_support": "annual_season_matched",
+              "method": "synthetic known-answer fixture",
+              "reference_lower": 0.7,
+              "reference_upper": 1,
+              "uncertainty_status": "quantified",
+              "source_record_ids": [
+                "SYN-REF-species_composition-1"
+              ]
+            },
+            {
+              "indicator_id": "SPECIES_COMPOSITION-2",
+              "name": "Synthetic species composition indicator 2",
+              "unit": "synthetic_normalized_score",
+              "spatial_support": "reach",
+              "temporal_support": "annual_season_matched",
+              "method": "synthetic known-answer fixture",
+              "reference_lower": 0.7,
+              "reference_upper": 1,
+              "uncertainty_status": "quantified",
+              "source_record_ids": [
+                "SYN-REF-species_composition-2"
+              ]
+            },
+            {
+              "indicator_id": "SPECIES_COMPOSITION-3",
+              "name": "Synthetic species composition indicator 3",
+              "unit": "synthetic_normalized_score",
+              "spatial_support": "reach",
+              "temporal_support": "annual_season_matched",
+              "method": "synthetic known-answer fixture",
+              "reference_lower": 0.7,
+              "reference_upper": 1,
+              "uncertainty_status": "quantified",
+              "source_record_ids": [
+                "SYN-REF-species_composition-3"
+              ]
+            }
+          ],
+          "structural_diversity": [
+            {
+              "indicator_id": "STRUCTURAL_DIVERSITY-1",
+              "name": "Synthetic structural diversity indicator 1",
+              "unit": "synthetic_normalized_score",
+              "spatial_support": "reach",
+              "temporal_support": "annual_season_matched",
+              "method": "synthetic known-answer fixture",
+              "reference_lower": 0.7,
+              "reference_upper": 1,
+              "uncertainty_status": "quantified",
+              "source_record_ids": [
+                "SYN-REF-structural_diversity-1"
+              ]
+            },
+            {
+              "indicator_id": "STRUCTURAL_DIVERSITY-2",
+              "name": "Synthetic structural diversity indicator 2",
+              "unit": "synthetic_normalized_score",
+              "spatial_support": "reach",
+              "temporal_support": "annual_season_matched",
+              "method": "synthetic known-answer fixture",
+              "reference_lower": 0.7,
+              "reference_upper": 1,
+              "uncertainty_status": "quantified",
+              "source_record_ids": [
+                "SYN-REF-structural_diversity-2"
+              ]
+            },
+            {
+              "indicator_id": "STRUCTURAL_DIVERSITY-3",
+              "name": "Synthetic structural diversity indicator 3",
+              "unit": "synthetic_normalized_score",
+              "spatial_support": "reach",
+              "temporal_support": "annual_season_matched",
+              "method": "synthetic known-answer fixture",
+              "reference_lower": 0.7,
+              "reference_upper": 1,
+              "uncertainty_status": "quantified",
+              "source_record_ids": [
+                "SYN-REF-structural_diversity-3"
+              ]
+            }
+          ],
+          "ecosystem_function": [
+            {
+              "indicator_id": "ECOSYSTEM_FUNCTION-1",
+              "name": "Synthetic ecosystem function indicator 1",
+              "unit": "synthetic_normalized_score",
+              "spatial_support": "reach",
+              "temporal_support": "annual_season_matched",
+              "method": "synthetic known-answer fixture",
+              "reference_lower": 0.7,
+              "reference_upper": 1,
+              "uncertainty_status": "quantified",
+              "source_record_ids": [
+                "SYN-REF-ecosystem_function-1"
+              ]
+            },
+            {
+              "indicator_id": "ECOSYSTEM_FUNCTION-2",
+              "name": "Synthetic ecosystem function indicator 2",
+              "unit": "synthetic_normalized_score",
+              "spatial_support": "reach",
+              "temporal_support": "annual_season_matched",
+              "method": "synthetic known-answer fixture",
+              "reference_lower": 0.7,
+              "reference_upper": 1,
+              "uncertainty_status": "quantified",
+              "source_record_ids": [
+                "SYN-REF-ecosystem_function-2"
+              ]
+            },
+            {
+              "indicator_id": "ECOSYSTEM_FUNCTION-3",
+              "name": "Synthetic ecosystem function indicator 3",
+              "unit": "synthetic_normalized_score",
+              "spatial_support": "reach",
+              "temporal_support": "annual_season_matched",
+              "method": "synthetic known-answer fixture",
+              "reference_lower": 0.7,
+              "reference_upper": 1,
+              "uncertainty_status": "quantified",
+              "source_record_ids": [
+                "SYN-REF-ecosystem_function-3"
+              ]
+            }
+          ],
+          "external_exchanges": [
+            {
+              "indicator_id": "EXTERNAL_EXCHANGES-1",
+              "name": "Synthetic external exchanges indicator 1",
+              "unit": "synthetic_normalized_score",
+              "spatial_support": "reach",
+              "temporal_support": "annual_season_matched",
+              "method": "synthetic known-answer fixture",
+              "reference_lower": 0.7,
+              "reference_upper": 1,
+              "uncertainty_status": "quantified",
+              "source_record_ids": [
+                "SYN-REF-external_exchanges-1"
+              ]
+            },
+            {
+              "indicator_id": "EXTERNAL_EXCHANGES-2",
+              "name": "Synthetic external exchanges indicator 2",
+              "unit": "synthetic_normalized_score",
+              "spatial_support": "reach",
+              "temporal_support": "annual_season_matched",
+              "method": "synthetic known-answer fixture",
+              "reference_lower": 0.7,
+              "reference_upper": 1,
+              "uncertainty_status": "quantified",
+              "source_record_ids": [
+                "SYN-REF-external_exchanges-2"
+              ]
+            },
+            {
+              "indicator_id": "EXTERNAL_EXCHANGES-3",
+              "name": "Synthetic external exchanges indicator 3",
+              "unit": "synthetic_normalized_score",
+              "spatial_support": "reach",
+              "temporal_support": "annual_season_matched",
+              "method": "synthetic known-answer fixture",
+              "reference_lower": 0.7,
+              "reference_upper": 1,
+              "uncertainty_status": "quantified",
+              "source_record_ids": [
+                "SYN-REF-external_exchanges-3"
+              ]
+            }
+          ]
+        },
+        "climate_context": {
+          "assessment_status": "assessed",
+          "nonstationarity_detected": true,
+          "adjustment_status": "adjusted",
+          "scenario_ids": [
+            "SSP2-4.5",
+            "SSP5-8.5"
+          ],
+          "hydrological_regime_included": true
+        },
+        "succession_context": {
+          "dynamics_included": true,
+          "alternative_state_count": 3,
+          "paths": [
+            {
+              "path_id": "PATH-1",
+              "successional_stage": "pioneer",
+              "scenario_id": "FLOOD-REGIME-A",
+              "description": "One of three plausible synthetic successional paths.",
+              "plausibility": "supported"
+            }
+          ]
+        },
+        "shifting_baseline": {
+          "assessment_status": "assessed",
+          "risk_level": "low",
+          "historical_context_reviewed": true,
+          "degradation_screening_method": "synthetic historical / contemporary reference comparison"
+        },
+        "knowledge_sources": [],
+        "rights_status": "cleared_synthetic"
+      },
+      "recovery_assessment": {
+        "observation_window": "synthetic season-matched annual interval",
+        "reference_model_version": "1.0.0",
+        "attribute_states": [
+          {
+            "attribute": "absence_of_threats",
+            "state": "improving",
+            "coverage_status": "observed",
+            "evidence_count": 3
+          },
+          {
+            "attribute": "physical_conditions",
+            "state": "improving",
+            "coverage_status": "observed",
+            "evidence_count": 3
+          },
+          {
+            "attribute": "species_composition",
+            "state": "improving",
+            "coverage_status": "observed",
+            "evidence_count": 3
+          },
+          {
+            "attribute": "structural_diversity",
+            "state": "improving",
+            "coverage_status": "observed",
+            "evidence_count": 3
+          },
+          {
+            "attribute": "ecosystem_function",
+            "state": "improving",
+            "coverage_status": "observed",
+            "evidence_count": 3
+          },
+          {
+            "attribute": "external_exchanges",
+            "state": "improving",
+            "coverage_status": "observed",
+            "evidence_count": 3
+          }
+        ],
+        "overall_claim": "unresolved"
+      },
+      "expected_audit": {
+        "reference_model_qualified": false,
+        "overall_claim_permitted": true,
+        "expected_blockers": [
+          "alternative_trajectories_underrepresented"
+        ]
+      },
+      "hard_invariants": [
+        "A recovery claim is specific to the ecosystem, reference-model version, site strata and observation window.",
+        "Six ecosystem attributes remain independently reportable; no attribute silently compensates for another."
+      ]
+    },
+    {
+      "case_id": "REF-SYN-005",
+      "family": "attribute_tradeoff",
+      "ecosystem_context": {
+        "ecosystem_type": "synthetic urban riparian ecosystem",
+        "local_classification": "synthetic riparian corridor class",
+        "iucn_functional_group": "synthetic inland surface water ecosystem group",
+        "spatial_strata": [
+          "upper reach",
+          "middle reach"
+        ],
+        "environmental_drivers": [
+          "rainfall",
+          "flow regime",
+          "urban runoff",
+          "temperature",
+          "land-use pressure"
+        ]
+      },
+      "reference_model": {
+        "status": "qualified",
+        "model_id": "MODEL-REF-SYN-005",
+        "model_version": "1.0.0",
+        "supersedes_model_id": null,
+        "supersession_review_status": "not_applicable",
+        "model_type": "dynamic_ensemble",
+        "reference_sites": [
+          {
+            "site_id": "REF-SYN-005-A",
+            "included_in_model": true,
+            "degradation_screening": "screened_low_degradation",
+            "screening_method": "synthetic multi-pressure reference screening",
+            "dependency_group": "DEP-REF-SYN-005-A",
+            "source_record_ids": [
+              "SRC-REF-SYN-005-A"
+            ]
+          },
+          {
+            "site_id": "REF-SYN-005-B",
+            "included_in_model": true,
+            "degradation_screening": "screened_low_degradation",
+            "screening_method": "synthetic multi-pressure reference screening",
+            "dependency_group": "DEP-REF-SYN-005-B",
+            "source_record_ids": [
+              "SRC-REF-SYN-005-B"
+            ]
+          }
+        ],
+        "indicators_by_attribute": {
+          "absence_of_threats": [
+            {
+              "indicator_id": "ABSENCE_OF_THREATS-1",
+              "name": "Synthetic absence of threats indicator 1",
+              "unit": "synthetic_normalized_score",
+              "spatial_support": "reach",
+              "temporal_support": "annual_season_matched",
+              "method": "synthetic known-answer fixture",
+              "reference_lower": 0.7,
+              "reference_upper": 1,
+              "uncertainty_status": "quantified",
+              "source_record_ids": [
+                "SYN-REF-absence_of_threats-1"
+              ]
+            },
+            {
+              "indicator_id": "ABSENCE_OF_THREATS-2",
+              "name": "Synthetic absence of threats indicator 2",
+              "unit": "synthetic_normalized_score",
+              "spatial_support": "reach",
+              "temporal_support": "annual_season_matched",
+              "method": "synthetic known-answer fixture",
+              "reference_lower": 0.7,
+              "reference_upper": 1,
+              "uncertainty_status": "quantified",
+              "source_record_ids": [
+                "SYN-REF-absence_of_threats-2"
+              ]
+            },
+            {
+              "indicator_id": "ABSENCE_OF_THREATS-3",
+              "name": "Synthetic absence of threats indicator 3",
+              "unit": "synthetic_normalized_score",
+              "spatial_support": "reach",
+              "temporal_support": "annual_season_matched",
+              "method": "synthetic known-answer fixture",
+              "reference_lower": 0.7,
+              "reference_upper": 1,
+              "uncertainty_status": "quantified",
+              "source_record_ids": [
+                "SYN-REF-absence_of_threats-3"
+              ]
+            }
+          ],
+          "physical_conditions": [
+            {
+              "indicator_id": "PHYSICAL_CONDITIONS-1",
+              "name": "Synthetic physical conditions indicator 1",
+              "unit": "synthetic_normalized_score",
+              "spatial_support": "reach",
+              "temporal_support": "annual_season_matched",
+              "method": "synthetic known-answer fixture",
+              "reference_lower": 0.7,
+              "reference_upper": 1,
+              "uncertainty_status": "quantified",
+              "source_record_ids": [
+                "SYN-REF-physical_conditions-1"
+              ]
+            },
+            {
+              "indicator_id": "PHYSICAL_CONDITIONS-2",
+              "name": "Synthetic physical conditions indicator 2",
+              "unit": "synthetic_normalized_score",
+              "spatial_support": "reach",
+              "temporal_support": "annual_season_matched",
+              "method": "synthetic known-answer fixture",
+              "reference_lower": 0.7,
+              "reference_upper": 1,
+              "uncertainty_status": "quantified",
+              "source_record_ids": [
+                "SYN-REF-physical_conditions-2"
+              ]
+            },
+            {
+              "indicator_id": "PHYSICAL_CONDITIONS-3",
+              "name": "Synthetic physical conditions indicator 3",
+              "unit": "synthetic_normalized_score",
+              "spatial_support": "reach",
+              "temporal_support": "annual_season_matched",
+              "method": "synthetic known-answer fixture",
+              "reference_lower": 0.7,
+              "reference_upper": 1,
+              "uncertainty_status": "quantified",
+              "source_record_ids": [
+                "SYN-REF-physical_conditions-3"
+              ]
+            }
+          ],
+          "species_composition": [
+            {
+              "indicator_id": "SPECIES_COMPOSITION-1",
+              "name": "Synthetic species composition indicator 1",
+              "unit": "synthetic_normalized_score",
+              "spatial_support": "reach",
+              "temporal_support": "annual_season_matched",
+              "method": "synthetic known-answer fixture",
+              "reference_lower": 0.7,
+              "reference_upper": 1,
+              "uncertainty_status": "quantified",
+              "source_record_ids": [
+                "SYN-REF-species_composition-1"
+              ]
+            },
+            {
+              "indicator_id": "SPECIES_COMPOSITION-2",
+              "name": "Synthetic species composition indicator 2",
+              "unit": "synthetic_normalized_score",
+              "spatial_support": "reach",
+              "temporal_support": "annual_season_matched",
+              "method": "synthetic known-answer fixture",
+              "reference_lower": 0.7,
+              "reference_upper": 1,
+              "uncertainty_status": "quantified",
+              "source_record_ids": [
+                "SYN-REF-species_composition-2"
+              ]
+            },
+            {
+              "indicator_id": "SPECIES_COMPOSITION-3",
+              "name": "Synthetic species composition indicator 3",
+              "unit": "synthetic_normalized_score",
+              "spatial_support": "reach",
+              "temporal_support": "annual_season_matched",
+              "method": "synthetic known-answer fixture",
+              "reference_lower": 0.7,
+              "reference_upper": 1,
+              "uncertainty_status": "quantified",
+              "source_record_ids": [
+                "SYN-REF-species_composition-3"
+              ]
+            }
+          ],
+          "structural_diversity": [
+            {
+              "indicator_id": "STRUCTURAL_DIVERSITY-1",
+              "name": "Synthetic structural diversity indicator 1",
+              "unit": "synthetic_normalized_score",
+              "spatial_support": "reach",
+              "temporal_support": "annual_season_matched",
+              "method": "synthetic known-answer fixture",
+              "reference_lower": 0.7,
+              "reference_upper": 1,
+              "uncertainty_status": "quantified",
+              "source_record_ids": [
+                "SYN-REF-structural_diversity-1"
+              ]
+            },
+            {
+              "indicator_id": "STRUCTURAL_DIVERSITY-2",
+              "name": "Synthetic structural diversity indicator 2",
+              "unit": "synthetic_normalized_score",
+              "spatial_support": "reach",
+              "temporal_support": "annual_season_matched",
+              "method": "synthetic known-answer fixture",
+              "reference_lower": 0.7,
+              "reference_upper": 1,
+              "uncertainty_status": "quantified",
+              "source_record_ids": [
+                "SYN-REF-structural_diversity-2"
+              ]
+            },
+            {
+              "indicator_id": "STRUCTURAL_DIVERSITY-3",
+              "name": "Synthetic structural diversity indicator 3",
+              "unit": "synthetic_normalized_score",
+              "spatial_support": "reach",
+              "temporal_support": "annual_season_matched",
+              "method": "synthetic known-answer fixture",
+              "reference_lower": 0.7,
+              "reference_upper": 1,
+              "uncertainty_status": "quantified",
+              "source_record_ids": [
+                "SYN-REF-structural_diversity-3"
+              ]
+            }
+          ],
+          "ecosystem_function": [
+            {
+              "indicator_id": "ECOSYSTEM_FUNCTION-1",
+              "name": "Synthetic ecosystem function indicator 1",
+              "unit": "synthetic_normalized_score",
+              "spatial_support": "reach",
+              "temporal_support": "annual_season_matched",
+              "method": "synthetic known-answer fixture",
+              "reference_lower": 0.7,
+              "reference_upper": 1,
+              "uncertainty_status": "quantified",
+              "source_record_ids": [
+                "SYN-REF-ecosystem_function-1"
+              ]
+            },
+            {
+              "indicator_id": "ECOSYSTEM_FUNCTION-2",
+              "name": "Synthetic ecosystem function indicator 2",
+              "unit": "synthetic_normalized_score",
+              "spatial_support": "reach",
+              "temporal_support": "annual_season_matched",
+              "method": "synthetic known-answer fixture",
+              "reference_lower": 0.7,
+              "reference_upper": 1,
+              "uncertainty_status": "quantified",
+              "source_record_ids": [
+                "SYN-REF-ecosystem_function-2"
+              ]
+            },
+            {
+              "indicator_id": "ECOSYSTEM_FUNCTION-3",
+              "name": "Synthetic ecosystem function indicator 3",
+              "unit": "synthetic_normalized_score",
+              "spatial_support": "reach",
+              "temporal_support": "annual_season_matched",
+              "method": "synthetic known-answer fixture",
+              "reference_lower": 0.7,
+              "reference_upper": 1,
+              "uncertainty_status": "quantified",
+              "source_record_ids": [
+                "SYN-REF-ecosystem_function-3"
+              ]
+            }
+          ],
+          "external_exchanges": [
+            {
+              "indicator_id": "EXTERNAL_EXCHANGES-1",
+              "name": "Synthetic external exchanges indicator 1",
+              "unit": "synthetic_normalized_score",
+              "spatial_support": "reach",
+              "temporal_support": "annual_season_matched",
+              "method": "synthetic known-answer fixture",
+              "reference_lower": 0.7,
+              "reference_upper": 1,
+              "uncertainty_status": "quantified",
+              "source_record_ids": [
+                "SYN-REF-external_exchanges-1"
+              ]
+            },
+            {
+              "indicator_id": "EXTERNAL_EXCHANGES-2",
+              "name": "Synthetic external exchanges indicator 2",
+              "unit": "synthetic_normalized_score",
+              "spatial_support": "reach",
+              "temporal_support": "annual_season_matched",
+              "method": "synthetic known-answer fixture",
+              "reference_lower": 0.7,
+              "reference_upper": 1,
+              "uncertainty_status": "quantified",
+              "source_record_ids": [
+                "SYN-REF-external_exchanges-2"
+              ]
+            },
+            {
+              "indicator_id": "EXTERNAL_EXCHANGES-3",
+              "name": "Synthetic external exchanges indicator 3",
+              "unit": "synthetic_normalized_score",
+              "spatial_support": "reach",
+              "temporal_support": "annual_season_matched",
+              "method": "synthetic known-answer fixture",
+              "reference_lower": 0.7,
+              "reference_upper": 1,
+              "uncertainty_status": "quantified",
+              "source_record_ids": [
+                "SYN-REF-external_exchanges-3"
+              ]
+            }
+          ]
+        },
+        "climate_context": {
+          "assessment_status": "assessed",
+          "nonstationarity_detected": true,
+          "adjustment_status": "adjusted",
+          "scenario_ids": [
+            "SSP2-4.5",
+            "SSP5-8.5"
+          ],
+          "hydrological_regime_included": true
+        },
+        "succession_context": {
+          "dynamics_included": true,
+          "alternative_state_count": 1,
+          "paths": [
+            {
+              "path_id": "PATH-1",
+              "successional_stage": "established riparian mosaic",
+              "scenario_id": "SSP2-4.5",
+              "description": "Synthetic admissible dynamic recovery path.",
+              "plausibility": "supported"
+            }
+          ]
+        },
+        "shifting_baseline": {
+          "assessment_status": "assessed",
+          "risk_level": "low",
+          "historical_context_reviewed": true,
+          "degradation_screening_method": "synthetic historical / contemporary reference comparison"
+        },
+        "knowledge_sources": [],
+        "rights_status": "cleared_synthetic"
+      },
+      "recovery_assessment": {
+        "observation_window": "synthetic season-matched annual interval",
+        "reference_model_version": "1.0.0",
+        "attribute_states": [
+          {
+            "attribute": "absence_of_threats",
+            "state": "improving",
+            "coverage_status": "observed",
+            "evidence_count": 3
+          },
+          {
+            "attribute": "physical_conditions",
+            "state": "improving",
+            "coverage_status": "observed",
+            "evidence_count": 3
+          },
+          {
+            "attribute": "species_composition",
+            "state": "worsening",
+            "coverage_status": "observed",
+            "evidence_count": 3
+          },
+          {
+            "attribute": "structural_diversity",
+            "state": "improving",
+            "coverage_status": "observed",
+            "evidence_count": 3
+          },
+          {
+            "attribute": "ecosystem_function",
+            "state": "improving",
+            "coverage_status": "observed",
+            "evidence_count": 3
+          },
+          {
+            "attribute": "external_exchanges",
+            "state": "improving",
+            "coverage_status": "observed",
+            "evidence_count": 3
+          }
+        ],
+        "overall_claim": "positive_recovery"
+      },
+      "expected_audit": {
+        "reference_model_qualified": true,
+        "overall_claim_permitted": false,
+        "expected_blockers": [
+          "non_compensatory_attribute_regression"
+        ]
+      },
+      "hard_invariants": [
+        "A recovery claim is specific to the ecosystem, reference-model version, site strata and observation window.",
+        "Six ecosystem attributes remain independently reportable; no attribute silently compensates for another."
+      ]
+    },
+    {
+      "case_id": "REF-SYN-006",
+      "family": "indicator_undercoverage",
+      "ecosystem_context": {
+        "ecosystem_type": "synthetic urban riparian ecosystem",
+        "local_classification": "synthetic riparian corridor class",
+        "iucn_functional_group": "synthetic inland surface water ecosystem group",
+        "spatial_strata": [
+          "upper reach",
+          "middle reach"
+        ],
+        "environmental_drivers": [
+          "rainfall",
+          "flow regime",
+          "urban runoff",
+          "temperature",
+          "land-use pressure"
+        ]
+      },
+      "reference_model": {
+        "status": "qualified",
+        "model_id": "MODEL-REF-SYN-006",
+        "model_version": "1.0.0",
+        "supersedes_model_id": null,
+        "supersession_review_status": "not_applicable",
+        "model_type": "dynamic_ensemble",
+        "reference_sites": [
+          {
+            "site_id": "REF-SYN-006-A",
+            "included_in_model": true,
+            "degradation_screening": "screened_low_degradation",
+            "screening_method": "synthetic multi-pressure reference screening",
+            "dependency_group": "DEP-REF-SYN-006-A",
+            "source_record_ids": [
+              "SRC-REF-SYN-006-A"
+            ]
+          },
+          {
+            "site_id": "REF-SYN-006-B",
+            "included_in_model": true,
+            "degradation_screening": "screened_low_degradation",
+            "screening_method": "synthetic multi-pressure reference screening",
+            "dependency_group": "DEP-REF-SYN-006-B",
+            "source_record_ids": [
+              "SRC-REF-SYN-006-B"
+            ]
+          }
+        ],
+        "indicators_by_attribute": {
+          "absence_of_threats": [
+            {
+              "indicator_id": "ABSENCE_OF_THREATS-1",
+              "name": "Synthetic absence of threats indicator 1",
+              "unit": "synthetic_normalized_score",
+              "spatial_support": "reach",
+              "temporal_support": "annual_season_matched",
+              "method": "synthetic known-answer fixture",
+              "reference_lower": 0.7,
+              "reference_upper": 1,
+              "uncertainty_status": "quantified",
+              "source_record_ids": [
+                "SYN-REF-absence_of_threats-1"
+              ]
+            },
+            {
+              "indicator_id": "ABSENCE_OF_THREATS-2",
+              "name": "Synthetic absence of threats indicator 2",
+              "unit": "synthetic_normalized_score",
+              "spatial_support": "reach",
+              "temporal_support": "annual_season_matched",
+              "method": "synthetic known-answer fixture",
+              "reference_lower": 0.7,
+              "reference_upper": 1,
+              "uncertainty_status": "quantified",
+              "source_record_ids": [
+                "SYN-REF-absence_of_threats-2"
+              ]
+            },
+            {
+              "indicator_id": "ABSENCE_OF_THREATS-3",
+              "name": "Synthetic absence of threats indicator 3",
+              "unit": "synthetic_normalized_score",
+              "spatial_support": "reach",
+              "temporal_support": "annual_season_matched",
+              "method": "synthetic known-answer fixture",
+              "reference_lower": 0.7,
+              "reference_upper": 1,
+              "uncertainty_status": "quantified",
+              "source_record_ids": [
+                "SYN-REF-absence_of_threats-3"
+              ]
+            }
+          ],
+          "physical_conditions": [
+            {
+              "indicator_id": "PHYSICAL_CONDITIONS-1",
+              "name": "Synthetic physical conditions indicator 1",
+              "unit": "synthetic_normalized_score",
+              "spatial_support": "reach",
+              "temporal_support": "annual_season_matched",
+              "method": "synthetic known-answer fixture",
+              "reference_lower": 0.7,
+              "reference_upper": 1,
+              "uncertainty_status": "quantified",
+              "source_record_ids": [
+                "SYN-REF-physical_conditions-1"
+              ]
+            },
+            {
+              "indicator_id": "PHYSICAL_CONDITIONS-2",
+              "name": "Synthetic physical conditions indicator 2",
+              "unit": "synthetic_normalized_score",
+              "spatial_support": "reach",
+              "temporal_support": "annual_season_matched",
+              "method": "synthetic known-answer fixture",
+              "reference_lower": 0.7,
+              "reference_upper": 1,
+              "uncertainty_status": "quantified",
+              "source_record_ids": [
+                "SYN-REF-physical_conditions-2"
+              ]
+            },
+            {
+              "indicator_id": "PHYSICAL_CONDITIONS-3",
+              "name": "Synthetic physical conditions indicator 3",
+              "unit": "synthetic_normalized_score",
+              "spatial_support": "reach",
+              "temporal_support": "annual_season_matched",
+              "method": "synthetic known-answer fixture",
+              "reference_lower": 0.7,
+              "reference_upper": 1,
+              "uncertainty_status": "quantified",
+              "source_record_ids": [
+                "SYN-REF-physical_conditions-3"
+              ]
+            }
+          ],
+          "species_composition": [
+            {
+              "indicator_id": "SPECIES_COMPOSITION-1",
+              "name": "Synthetic species composition indicator 1",
+              "unit": "synthetic_normalized_score",
+              "spatial_support": "reach",
+              "temporal_support": "annual_season_matched",
+              "method": "synthetic known-answer fixture",
+              "reference_lower": 0.7,
+              "reference_upper": 1,
+              "uncertainty_status": "quantified",
+              "source_record_ids": [
+                "SYN-REF-species_composition-1"
+              ]
+            },
+            {
+              "indicator_id": "SPECIES_COMPOSITION-2",
+              "name": "Synthetic species composition indicator 2",
+              "unit": "synthetic_normalized_score",
+              "spatial_support": "reach",
+              "temporal_support": "annual_season_matched",
+              "method": "synthetic known-answer fixture",
+              "reference_lower": 0.7,
+              "reference_upper": 1,
+              "uncertainty_status": "quantified",
+              "source_record_ids": [
+                "SYN-REF-species_composition-2"
+              ]
+            },
+            {
+              "indicator_id": "SPECIES_COMPOSITION-3",
+              "name": "Synthetic species composition indicator 3",
+              "unit": "synthetic_normalized_score",
+              "spatial_support": "reach",
+              "temporal_support": "annual_season_matched",
+              "method": "synthetic known-answer fixture",
+              "reference_lower": 0.7,
+              "reference_upper": 1,
+              "uncertainty_status": "quantified",
+              "source_record_ids": [
+                "SYN-REF-species_composition-3"
+              ]
+            }
+          ],
+          "structural_diversity": [
+            {
+              "indicator_id": "STRUCTURAL_DIVERSITY-1",
+              "name": "Synthetic structural diversity indicator 1",
+              "unit": "synthetic_normalized_score",
+              "spatial_support": "reach",
+              "temporal_support": "annual_season_matched",
+              "method": "synthetic known-answer fixture",
+              "reference_lower": 0.7,
+              "reference_upper": 1,
+              "uncertainty_status": "quantified",
+              "source_record_ids": [
+                "SYN-REF-structural_diversity-1"
+              ]
+            },
+            {
+              "indicator_id": "STRUCTURAL_DIVERSITY-2",
+              "name": "Synthetic structural diversity indicator 2",
+              "unit": "synthetic_normalized_score",
+              "spatial_support": "reach",
+              "temporal_support": "annual_season_matched",
+              "method": "synthetic known-answer fixture",
+              "reference_lower": 0.7,
+              "reference_upper": 1,
+              "uncertainty_status": "quantified",
+              "source_record_ids": [
+                "SYN-REF-structural_diversity-2"
+              ]
+            },
+            {
+              "indicator_id": "STRUCTURAL_DIVERSITY-3",
+              "name": "Synthetic structural diversity indicator 3",
+              "unit": "synthetic_normalized_score",
+              "spatial_support": "reach",
+              "temporal_support": "annual_season_matched",
+              "method": "synthetic known-answer fixture",
+              "reference_lower": 0.7,
+              "reference_upper": 1,
+              "uncertainty_status": "quantified",
+              "source_record_ids": [
+                "SYN-REF-structural_diversity-3"
+              ]
+            }
+          ],
+          "ecosystem_function": [
+            {
+              "indicator_id": "ECOSYSTEM_FUNCTION-1",
+              "name": "Synthetic ecosystem function indicator 1",
+              "unit": "synthetic_normalized_score",
+              "spatial_support": "reach",
+              "temporal_support": "annual_season_matched",
+              "method": "synthetic known-answer fixture",
+              "reference_lower": 0.7,
+              "reference_upper": 1,
+              "uncertainty_status": "quantified",
+              "source_record_ids": [
+                "SYN-REF-ecosystem_function-1"
+              ]
+            }
+          ],
+          "external_exchanges": [
+            {
+              "indicator_id": "EXTERNAL_EXCHANGES-1",
+              "name": "Synthetic external exchanges indicator 1",
+              "unit": "synthetic_normalized_score",
+              "spatial_support": "reach",
+              "temporal_support": "annual_season_matched",
+              "method": "synthetic known-answer fixture",
+              "reference_lower": 0.7,
+              "reference_upper": 1,
+              "uncertainty_status": "quantified",
+              "source_record_ids": [
+                "SYN-REF-external_exchanges-1"
+              ]
+            },
+            {
+              "indicator_id": "EXTERNAL_EXCHANGES-2",
+              "name": "Synthetic external exchanges indicator 2",
+              "unit": "synthetic_normalized_score",
+              "spatial_support": "reach",
+              "temporal_support": "annual_season_matched",
+              "method": "synthetic known-answer fixture",
+              "reference_lower": 0.7,
+              "reference_upper": 1,
+              "uncertainty_status": "quantified",
+              "source_record_ids": [
+                "SYN-REF-external_exchanges-2"
+              ]
+            },
+            {
+              "indicator_id": "EXTERNAL_EXCHANGES-3",
+              "name": "Synthetic external exchanges indicator 3",
+              "unit": "synthetic_normalized_score",
+              "spatial_support": "reach",
+              "temporal_support": "annual_season_matched",
+              "method": "synthetic known-answer fixture",
+              "reference_lower": 0.7,
+              "reference_upper": 1,
+              "uncertainty_status": "quantified",
+              "source_record_ids": [
+                "SYN-REF-external_exchanges-3"
+              ]
+            }
+          ]
+        },
+        "climate_context": {
+          "assessment_status": "assessed",
+          "nonstationarity_detected": true,
+          "adjustment_status": "adjusted",
+          "scenario_ids": [
+            "SSP2-4.5",
+            "SSP5-8.5"
+          ],
+          "hydrological_regime_included": true
+        },
+        "succession_context": {
+          "dynamics_included": true,
+          "alternative_state_count": 1,
+          "paths": [
+            {
+              "path_id": "PATH-1",
+              "successional_stage": "established riparian mosaic",
+              "scenario_id": "SSP2-4.5",
+              "description": "Synthetic admissible dynamic recovery path.",
+              "plausibility": "supported"
+            }
+          ]
+        },
+        "shifting_baseline": {
+          "assessment_status": "assessed",
+          "risk_level": "low",
+          "historical_context_reviewed": true,
+          "degradation_screening_method": "synthetic historical / contemporary reference comparison"
+        },
+        "knowledge_sources": [],
+        "rights_status": "cleared_synthetic"
+      },
+      "recovery_assessment": {
+        "observation_window": "synthetic season-matched annual interval",
+        "reference_model_version": "1.0.0",
+        "attribute_states": [
+          {
+            "attribute": "absence_of_threats",
+            "state": "improving",
+            "coverage_status": "observed",
+            "evidence_count": 3
+          },
+          {
+            "attribute": "physical_conditions",
+            "state": "improving",
+            "coverage_status": "observed",
+            "evidence_count": 3
+          },
+          {
+            "attribute": "species_composition",
+            "state": "improving",
+            "coverage_status": "observed",
+            "evidence_count": 3
+          },
+          {
+            "attribute": "structural_diversity",
+            "state": "improving",
+            "coverage_status": "observed",
+            "evidence_count": 3
+          },
+          {
+            "attribute": "ecosystem_function",
+            "state": "improving",
+            "coverage_status": "observed",
+            "evidence_count": 3
+          },
+          {
+            "attribute": "external_exchanges",
+            "state": "improving",
+            "coverage_status": "observed",
+            "evidence_count": 3
+          }
+        ],
+        "overall_claim": "unresolved"
+      },
+      "expected_audit": {
+        "reference_model_qualified": false,
+        "overall_claim_permitted": true,
+        "expected_blockers": [
+          "reference_attribute_indicator_undercoverage"
+        ]
+      },
+      "hard_invariants": [
+        "A recovery claim is specific to the ecosystem, reference-model version, site strata and observation window.",
+        "Six ecosystem attributes remain independently reportable; no attribute silently compensates for another."
+      ]
+    },
+    {
+      "case_id": "REF-SYN-007",
+      "family": "knowledge_consent_restriction",
+      "ecosystem_context": {
+        "ecosystem_type": "synthetic urban riparian ecosystem",
+        "local_classification": "synthetic riparian corridor class",
+        "iucn_functional_group": "synthetic inland surface water ecosystem group",
+        "spatial_strata": [
+          "upper reach",
+          "middle reach"
+        ],
+        "environmental_drivers": [
+          "rainfall",
+          "flow regime",
+          "urban runoff",
+          "temperature",
+          "land-use pressure"
+        ]
+      },
+      "reference_model": {
+        "status": "qualified",
+        "model_id": "MODEL-REF-SYN-007",
+        "model_version": "1.0.0",
+        "supersedes_model_id": null,
+        "supersession_review_status": "not_applicable",
+        "model_type": "dynamic_ensemble",
+        "reference_sites": [
+          {
+            "site_id": "REF-SYN-007-A",
+            "included_in_model": true,
+            "degradation_screening": "screened_low_degradation",
+            "screening_method": "synthetic multi-pressure reference screening",
+            "dependency_group": "DEP-REF-SYN-007-A",
+            "source_record_ids": [
+              "SRC-REF-SYN-007-A"
+            ]
+          },
+          {
+            "site_id": "REF-SYN-007-B",
+            "included_in_model": true,
+            "degradation_screening": "screened_low_degradation",
+            "screening_method": "synthetic multi-pressure reference screening",
+            "dependency_group": "DEP-REF-SYN-007-B",
+            "source_record_ids": [
+              "SRC-REF-SYN-007-B"
+            ]
+          }
+        ],
+        "indicators_by_attribute": {
+          "absence_of_threats": [
+            {
+              "indicator_id": "ABSENCE_OF_THREATS-1",
+              "name": "Synthetic absence of threats indicator 1",
+              "unit": "synthetic_normalized_score",
+              "spatial_support": "reach",
+              "temporal_support": "annual_season_matched",
+              "method": "synthetic known-answer fixture",
+              "reference_lower": 0.7,
+              "reference_upper": 1,
+              "uncertainty_status": "quantified",
+              "source_record_ids": [
+                "SYN-REF-absence_of_threats-1"
+              ]
+            },
+            {
+              "indicator_id": "ABSENCE_OF_THREATS-2",
+              "name": "Synthetic absence of threats indicator 2",
+              "unit": "synthetic_normalized_score",
+              "spatial_support": "reach",
+              "temporal_support": "annual_season_matched",
+              "method": "synthetic known-answer fixture",
+              "reference_lower": 0.7,
+              "reference_upper": 1,
+              "uncertainty_status": "quantified",
+              "source_record_ids": [
+                "SYN-REF-absence_of_threats-2"
+              ]
+            },
+            {
+              "indicator_id": "ABSENCE_OF_THREATS-3",
+              "name": "Synthetic absence of threats indicator 3",
+              "unit": "synthetic_normalized_score",
+              "spatial_support": "reach",
+              "temporal_support": "annual_season_matched",
+              "method": "synthetic known-answer fixture",
+              "reference_lower": 0.7,
+              "reference_upper": 1,
+              "uncertainty_status": "quantified",
+              "source_record_ids": [
+                "SYN-REF-absence_of_threats-3"
+              ]
+            }
+          ],
+          "physical_conditions": [
+            {
+              "indicator_id": "PHYSICAL_CONDITIONS-1",
+              "name": "Synthetic physical conditions indicator 1",
+              "unit": "synthetic_normalized_score",
+              "spatial_support": "reach",
+              "temporal_support": "annual_season_matched",
+              "method": "synthetic known-answer fixture",
+              "reference_lower": 0.7,
+              "reference_upper": 1,
+              "uncertainty_status": "quantified",
+              "source_record_ids": [
+                "SYN-REF-physical_conditions-1"
+              ]
+            },
+            {
+              "indicator_id": "PHYSICAL_CONDITIONS-2",
+              "name": "Synthetic physical conditions indicator 2",
+              "unit": "synthetic_normalized_score",
+              "spatial_support": "reach",
+              "temporal_support": "annual_season_matched",
+              "method": "synthetic known-answer fixture",
+              "reference_lower": 0.7,
+              "reference_upper": 1,
+              "uncertainty_status": "quantified",
+              "source_record_ids": [
+                "SYN-REF-physical_conditions-2"
+              ]
+            },
+            {
+              "indicator_id": "PHYSICAL_CONDITIONS-3",
+              "name": "Synthetic physical conditions indicator 3",
+              "unit": "synthetic_normalized_score",
+              "spatial_support": "reach",
+              "temporal_support": "annual_season_matched",
+              "method": "synthetic known-answer fixture",
+              "reference_lower": 0.7,
+              "reference_upper": 1,
+              "uncertainty_status": "quantified",
+              "source_record_ids": [
+                "SYN-REF-physical_conditions-3"
+              ]
+            }
+          ],
+          "species_composition": [
+            {
+              "indicator_id": "SPECIES_COMPOSITION-1",
+              "name": "Synthetic species composition indicator 1",
+              "unit": "synthetic_normalized_score",
+              "spatial_support": "reach",
+              "temporal_support": "annual_season_matched",
+              "method": "synthetic known-answer fixture",
+              "reference_lower": 0.7,
+              "reference_upper": 1,
+              "uncertainty_status": "quantified",
+              "source_record_ids": [
+                "SYN-REF-species_composition-1"
+              ]
+            },
+            {
+              "indicator_id": "SPECIES_COMPOSITION-2",
+              "name": "Synthetic species composition indicator 2",
+              "unit": "synthetic_normalized_score",
+              "spatial_support": "reach",
+              "temporal_support": "annual_season_matched",
+              "method": "synthetic known-answer fixture",
+              "reference_lower": 0.7,
+              "reference_upper": 1,
+              "uncertainty_status": "quantified",
+              "source_record_ids": [
+                "SYN-REF-species_composition-2"
+              ]
+            },
+            {
+              "indicator_id": "SPECIES_COMPOSITION-3",
+              "name": "Synthetic species composition indicator 3",
+              "unit": "synthetic_normalized_score",
+              "spatial_support": "reach",
+              "temporal_support": "annual_season_matched",
+              "method": "synthetic known-answer fixture",
+              "reference_lower": 0.7,
+              "reference_upper": 1,
+              "uncertainty_status": "quantified",
+              "source_record_ids": [
+                "SYN-REF-species_composition-3"
+              ]
+            }
+          ],
+          "structural_diversity": [
+            {
+              "indicator_id": "STRUCTURAL_DIVERSITY-1",
+              "name": "Synthetic structural diversity indicator 1",
+              "unit": "synthetic_normalized_score",
+              "spatial_support": "reach",
+              "temporal_support": "annual_season_matched",
+              "method": "synthetic known-answer fixture",
+              "reference_lower": 0.7,
+              "reference_upper": 1,
+              "uncertainty_status": "quantified",
+              "source_record_ids": [
+                "SYN-REF-structural_diversity-1"
+              ]
+            },
+            {
+              "indicator_id": "STRUCTURAL_DIVERSITY-2",
+              "name": "Synthetic structural diversity indicator 2",
+              "unit": "synthetic_normalized_score",
+              "spatial_support": "reach",
+              "temporal_support": "annual_season_matched",
+              "method": "synthetic known-answer fixture",
+              "reference_lower": 0.7,
+              "reference_upper": 1,
+              "uncertainty_status": "quantified",
+              "source_record_ids": [
+                "SYN-REF-structural_diversity-2"
+              ]
+            },
+            {
+              "indicator_id": "STRUCTURAL_DIVERSITY-3",
+              "name": "Synthetic structural diversity indicator 3",
+              "unit": "synthetic_normalized_score",
+              "spatial_support": "reach",
+              "temporal_support": "annual_season_matched",
+              "method": "synthetic known-answer fixture",
+              "reference_lower": 0.7,
+              "reference_upper": 1,
+              "uncertainty_status": "quantified",
+              "source_record_ids": [
+                "SYN-REF-structural_diversity-3"
+              ]
+            }
+          ],
+          "ecosystem_function": [
+            {
+              "indicator_id": "ECOSYSTEM_FUNCTION-1",
+              "name": "Synthetic ecosystem function indicator 1",
+              "unit": "synthetic_normalized_score",
+              "spatial_support": "reach",
+              "temporal_support": "annual_season_matched",
+              "method": "synthetic known-answer fixture",
+              "reference_lower": 0.7,
+              "reference_upper": 1,
+              "uncertainty_status": "quantified",
+              "source_record_ids": [
+                "SYN-REF-ecosystem_function-1"
+              ]
+            },
+            {
+              "indicator_id": "ECOSYSTEM_FUNCTION-2",
+              "name": "Synthetic ecosystem function indicator 2",
+              "unit": "synthetic_normalized_score",
+              "spatial_support": "reach",
+              "temporal_support": "annual_season_matched",
+              "method": "synthetic known-answer fixture",
+              "reference_lower": 0.7,
+              "reference_upper": 1,
+              "uncertainty_status": "quantified",
+              "source_record_ids": [
+                "SYN-REF-ecosystem_function-2"
+              ]
+            },
+            {
+              "indicator_id": "ECOSYSTEM_FUNCTION-3",
+              "name": "Synthetic ecosystem function indicator 3",
+              "unit": "synthetic_normalized_score",
+              "spatial_support": "reach",
+              "temporal_support": "annual_season_matched",
+              "method": "synthetic known-answer fixture",
+              "reference_lower": 0.7,
+              "reference_upper": 1,
+              "uncertainty_status": "quantified",
+              "source_record_ids": [
+                "SYN-REF-ecosystem_function-3"
+              ]
+            }
+          ],
+          "external_exchanges": [
+            {
+              "indicator_id": "EXTERNAL_EXCHANGES-1",
+              "name": "Synthetic external exchanges indicator 1",
+              "unit": "synthetic_normalized_score",
+              "spatial_support": "reach",
+              "temporal_support": "annual_season_matched",
+              "method": "synthetic known-answer fixture",
+              "reference_lower": 0.7,
+              "reference_upper": 1,
+              "uncertainty_status": "quantified",
+              "source_record_ids": [
+                "SYN-REF-external_exchanges-1"
+              ]
+            },
+            {
+              "indicator_id": "EXTERNAL_EXCHANGES-2",
+              "name": "Synthetic external exchanges indicator 2",
+              "unit": "synthetic_normalized_score",
+              "spatial_support": "reach",
+              "temporal_support": "annual_season_matched",
+              "method": "synthetic known-answer fixture",
+              "reference_lower": 0.7,
+              "reference_upper": 1,
+              "uncertainty_status": "quantified",
+              "source_record_ids": [
+                "SYN-REF-external_exchanges-2"
+              ]
+            },
+            {
+              "indicator_id": "EXTERNAL_EXCHANGES-3",
+              "name": "Synthetic external exchanges indicator 3",
+              "unit": "synthetic_normalized_score",
+              "spatial_support": "reach",
+              "temporal_support": "annual_season_matched",
+              "method": "synthetic known-answer fixture",
+              "reference_lower": 0.7,
+              "reference_upper": 1,
+              "uncertainty_status": "quantified",
+              "source_record_ids": [
+                "SYN-REF-external_exchanges-3"
+              ]
+            }
+          ]
+        },
+        "climate_context": {
+          "assessment_status": "assessed",
+          "nonstationarity_detected": true,
+          "adjustment_status": "adjusted",
+          "scenario_ids": [
+            "SSP2-4.5",
+            "SSP5-8.5"
+          ],
+          "hydrological_regime_included": true
+        },
+        "succession_context": {
+          "dynamics_included": true,
+          "alternative_state_count": 1,
+          "paths": [
+            {
+              "path_id": "PATH-1",
+              "successional_stage": "established riparian mosaic",
+              "scenario_id": "SSP2-4.5",
+              "description": "Synthetic admissible dynamic recovery path.",
+              "plausibility": "supported"
+            }
+          ]
+        },
+        "shifting_baseline": {
+          "assessment_status": "assessed",
+          "risk_level": "low",
+          "historical_context_reviewed": true,
+          "degradation_screening_method": "synthetic historical / contemporary reference comparison"
+        },
+        "knowledge_sources": [
+          {
+            "source_id": "LEK-LOCAL-01",
+            "knowledge_type": "local_ecological_knowledge",
+            "consent_status": "restricted",
+            "permitted_purposes": [
+              "community-led restoration planning"
+            ],
+            "requested_purpose": "model_training"
+          }
+        ],
+        "rights_status": "restricted"
+      },
+      "recovery_assessment": {
+        "observation_window": "synthetic season-matched annual interval",
+        "reference_model_version": "1.0.0",
+        "attribute_states": [
+          {
+            "attribute": "absence_of_threats",
+            "state": "improving",
+            "coverage_status": "observed",
+            "evidence_count": 3
+          },
+          {
+            "attribute": "physical_conditions",
+            "state": "improving",
+            "coverage_status": "observed",
+            "evidence_count": 3
+          },
+          {
+            "attribute": "species_composition",
+            "state": "improving",
+            "coverage_status": "observed",
+            "evidence_count": 3
+          },
+          {
+            "attribute": "structural_diversity",
+            "state": "improving",
+            "coverage_status": "observed",
+            "evidence_count": 3
+          },
+          {
+            "attribute": "ecosystem_function",
+            "state": "improving",
+            "coverage_status": "observed",
+            "evidence_count": 3
+          },
+          {
+            "attribute": "external_exchanges",
+            "state": "improving",
+            "coverage_status": "observed",
+            "evidence_count": 3
+          }
+        ],
+        "overall_claim": "unresolved"
+      },
+      "expected_audit": {
+        "reference_model_qualified": false,
+        "overall_claim_permitted": true,
+        "expected_blockers": [
+          "knowledge_source_consent_or_purpose_block",
+          "reference_model_rights_not_cleared"
+        ]
+      },
+      "hard_invariants": [
+        "A recovery claim is specific to the ecosystem, reference-model version, site strata and observation window.",
+        "Six ecosystem attributes remain independently reportable; no attribute silently compensates for another."
+      ]
+    },
+    {
+      "case_id": "REF-SYN-008",
+      "family": "reference_model_supersession",
+      "ecosystem_context": {
+        "ecosystem_type": "synthetic urban riparian ecosystem",
+        "local_classification": "synthetic riparian corridor class",
+        "iucn_functional_group": "synthetic inland surface water ecosystem group",
+        "spatial_strata": [
+          "upper reach",
+          "middle reach"
+        ],
+        "environmental_drivers": [
+          "rainfall",
+          "flow regime",
+          "urban runoff",
+          "temperature",
+          "land-use pressure"
+        ]
+      },
+      "reference_model": {
+        "status": "qualified",
+        "model_id": "MODEL-REF-SYN-008",
+        "model_version": "1.0.0",
+        "supersedes_model_id": "MODEL-REF-SYN-007",
+        "supersession_review_status": "pending",
+        "model_type": "dynamic_ensemble",
+        "reference_sites": [
+          {
+            "site_id": "REF-SYN-008-A",
+            "included_in_model": true,
+            "degradation_screening": "screened_low_degradation",
+            "screening_method": "synthetic multi-pressure reference screening",
+            "dependency_group": "DEP-REF-SYN-008-A",
+            "source_record_ids": [
+              "SRC-REF-SYN-008-A"
+            ]
+          },
+          {
+            "site_id": "REF-SYN-008-B",
+            "included_in_model": true,
+            "degradation_screening": "screened_low_degradation",
+            "screening_method": "synthetic multi-pressure reference screening",
+            "dependency_group": "DEP-REF-SYN-008-B",
+            "source_record_ids": [
+              "SRC-REF-SYN-008-B"
+            ]
+          }
+        ],
+        "indicators_by_attribute": {
+          "absence_of_threats": [
+            {
+              "indicator_id": "ABSENCE_OF_THREATS-1",
+              "name": "Synthetic absence of threats indicator 1",
+              "unit": "synthetic_normalized_score",
+              "spatial_support": "reach",
+              "temporal_support": "annual_season_matched",
+              "method": "synthetic known-answer fixture",
+              "reference_lower": 0.7,
+              "reference_upper": 1,
+              "uncertainty_status": "quantified",
+              "source_record_ids": [
+                "SYN-REF-absence_of_threats-1"
+              ]
+            },
+            {
+              "indicator_id": "ABSENCE_OF_THREATS-2",
+              "name": "Synthetic absence of threats indicator 2",
+              "unit": "synthetic_normalized_score",
+              "spatial_support": "reach",
+              "temporal_support": "annual_season_matched",
+              "method": "synthetic known-answer fixture",
+              "reference_lower": 0.7,
+              "reference_upper": 1,
+              "uncertainty_status": "quantified",
+              "source_record_ids": [
+                "SYN-REF-absence_of_threats-2"
+              ]
+            },
+            {
+              "indicator_id": "ABSENCE_OF_THREATS-3",
+              "name": "Synthetic absence of threats indicator 3",
+              "unit": "synthetic_normalized_score",
+              "spatial_support": "reach",
+              "temporal_support": "annual_season_matched",
+              "method": "synthetic known-answer fixture",
+              "reference_lower": 0.7,
+              "reference_upper": 1,
+              "uncertainty_status": "quantified",
+              "source_record_ids": [
+                "SYN-REF-absence_of_threats-3"
+              ]
+            }
+          ],
+          "physical_conditions": [
+            {
+              "indicator_id": "PHYSICAL_CONDITIONS-1",
+              "name": "Synthetic physical conditions indicator 1",
+              "unit": "synthetic_normalized_score",
+              "spatial_support": "reach",
+              "temporal_support": "annual_season_matched",
+              "method": "synthetic known-answer fixture",
+              "reference_lower": 0.7,
+              "reference_upper": 1,
+              "uncertainty_status": "quantified",
+              "source_record_ids": [
+                "SYN-REF-physical_conditions-1"
+              ]
+            },
+            {
+              "indicator_id": "PHYSICAL_CONDITIONS-2",
+              "name": "Synthetic physical conditions indicator 2",
+              "unit": "synthetic_normalized_score",
+              "spatial_support": "reach",
+              "temporal_support": "annual_season_matched",
+              "method": "synthetic known-answer fixture",
+              "reference_lower": 0.7,
+              "reference_upper": 1,
+              "uncertainty_status": "quantified",
+              "source_record_ids": [
+                "SYN-REF-physical_conditions-2"
+              ]
+            },
+            {
+              "indicator_id": "PHYSICAL_CONDITIONS-3",
+              "name": "Synthetic physical conditions indicator 3",
+              "unit": "synthetic_normalized_score",
+              "spatial_support": "reach",
+              "temporal_support": "annual_season_matched",
+              "method": "synthetic known-answer fixture",
+              "reference_lower": 0.7,
+              "reference_upper": 1,
+              "uncertainty_status": "quantified",
+              "source_record_ids": [
+                "SYN-REF-physical_conditions-3"
+              ]
+            }
+          ],
+          "species_composition": [
+            {
+              "indicator_id": "SPECIES_COMPOSITION-1",
+              "name": "Synthetic species composition indicator 1",
+              "unit": "synthetic_normalized_score",
+              "spatial_support": "reach",
+              "temporal_support": "annual_season_matched",
+              "method": "synthetic known-answer fixture",
+              "reference_lower": 0.7,
+              "reference_upper": 1,
+              "uncertainty_status": "quantified",
+              "source_record_ids": [
+                "SYN-REF-species_composition-1"
+              ]
+            },
+            {
+              "indicator_id": "SPECIES_COMPOSITION-2",
+              "name": "Synthetic species composition indicator 2",
+              "unit": "synthetic_normalized_score",
+              "spatial_support": "reach",
+              "temporal_support": "annual_season_matched",
+              "method": "synthetic known-answer fixture",
+              "reference_lower": 0.7,
+              "reference_upper": 1,
+              "uncertainty_status": "quantified",
+              "source_record_ids": [
+                "SYN-REF-species_composition-2"
+              ]
+            },
+            {
+              "indicator_id": "SPECIES_COMPOSITION-3",
+              "name": "Synthetic species composition indicator 3",
+              "unit": "synthetic_normalized_score",
+              "spatial_support": "reach",
+              "temporal_support": "annual_season_matched",
+              "method": "synthetic known-answer fixture",
+              "reference_lower": 0.7,
+              "reference_upper": 1,
+              "uncertainty_status": "quantified",
+              "source_record_ids": [
+                "SYN-REF-species_composition-3"
+              ]
+            }
+          ],
+          "structural_diversity": [
+            {
+              "indicator_id": "STRUCTURAL_DIVERSITY-1",
+              "name": "Synthetic structural diversity indicator 1",
+              "unit": "synthetic_normalized_score",
+              "spatial_support": "reach",
+              "temporal_support": "annual_season_matched",
+              "method": "synthetic known-answer fixture",
+              "reference_lower": 0.7,
+              "reference_upper": 1,
+              "uncertainty_status": "quantified",
+              "source_record_ids": [
+                "SYN-REF-structural_diversity-1"
+              ]
+            },
+            {
+              "indicator_id": "STRUCTURAL_DIVERSITY-2",
+              "name": "Synthetic structural diversity indicator 2",
+              "unit": "synthetic_normalized_score",
+              "spatial_support": "reach",
+              "temporal_support": "annual_season_matched",
+              "method": "synthetic known-answer fixture",
+              "reference_lower": 0.7,
+              "reference_upper": 1,
+              "uncertainty_status": "quantified",
+              "source_record_ids": [
+                "SYN-REF-structural_diversity-2"
+              ]
+            },
+            {
+              "indicator_id": "STRUCTURAL_DIVERSITY-3",
+              "name": "Synthetic structural diversity indicator 3",
+              "unit": "synthetic_normalized_score",
+              "spatial_support": "reach",
+              "temporal_support": "annual_season_matched",
+              "method": "synthetic known-answer fixture",
+              "reference_lower": 0.7,
+              "reference_upper": 1,
+              "uncertainty_status": "quantified",
+              "source_record_ids": [
+                "SYN-REF-structural_diversity-3"
+              ]
+            }
+          ],
+          "ecosystem_function": [
+            {
+              "indicator_id": "ECOSYSTEM_FUNCTION-1",
+              "name": "Synthetic ecosystem function indicator 1",
+              "unit": "synthetic_normalized_score",
+              "spatial_support": "reach",
+              "temporal_support": "annual_season_matched",
+              "method": "synthetic known-answer fixture",
+              "reference_lower": 0.7,
+              "reference_upper": 1,
+              "uncertainty_status": "quantified",
+              "source_record_ids": [
+                "SYN-REF-ecosystem_function-1"
+              ]
+            },
+            {
+              "indicator_id": "ECOSYSTEM_FUNCTION-2",
+              "name": "Synthetic ecosystem function indicator 2",
+              "unit": "synthetic_normalized_score",
+              "spatial_support": "reach",
+              "temporal_support": "annual_season_matched",
+              "method": "synthetic known-answer fixture",
+              "reference_lower": 0.7,
+              "reference_upper": 1,
+              "uncertainty_status": "quantified",
+              "source_record_ids": [
+                "SYN-REF-ecosystem_function-2"
+              ]
+            },
+            {
+              "indicator_id": "ECOSYSTEM_FUNCTION-3",
+              "name": "Synthetic ecosystem function indicator 3",
+              "unit": "synthetic_normalized_score",
+              "spatial_support": "reach",
+              "temporal_support": "annual_season_matched",
+              "method": "synthetic known-answer fixture",
+              "reference_lower": 0.7,
+              "reference_upper": 1,
+              "uncertainty_status": "quantified",
+              "source_record_ids": [
+                "SYN-REF-ecosystem_function-3"
+              ]
+            }
+          ],
+          "external_exchanges": [
+            {
+              "indicator_id": "EXTERNAL_EXCHANGES-1",
+              "name": "Synthetic external exchanges indicator 1",
+              "unit": "synthetic_normalized_score",
+              "spatial_support": "reach",
+              "temporal_support": "annual_season_matched",
+              "method": "synthetic known-answer fixture",
+              "reference_lower": 0.7,
+              "reference_upper": 1,
+              "uncertainty_status": "quantified",
+              "source_record_ids": [
+                "SYN-REF-external_exchanges-1"
+              ]
+            },
+            {
+              "indicator_id": "EXTERNAL_EXCHANGES-2",
+              "name": "Synthetic external exchanges indicator 2",
+              "unit": "synthetic_normalized_score",
+              "spatial_support": "reach",
+              "temporal_support": "annual_season_matched",
+              "method": "synthetic known-answer fixture",
+              "reference_lower": 0.7,
+              "reference_upper": 1,
+              "uncertainty_status": "quantified",
+              "source_record_ids": [
+                "SYN-REF-external_exchanges-2"
+              ]
+            },
+            {
+              "indicator_id": "EXTERNAL_EXCHANGES-3",
+              "name": "Synthetic external exchanges indicator 3",
+              "unit": "synthetic_normalized_score",
+              "spatial_support": "reach",
+              "temporal_support": "annual_season_matched",
+              "method": "synthetic known-answer fixture",
+              "reference_lower": 0.7,
+              "reference_upper": 1,
+              "uncertainty_status": "quantified",
+              "source_record_ids": [
+                "SYN-REF-external_exchanges-3"
+              ]
+            }
+          ]
+        },
+        "climate_context": {
+          "assessment_status": "assessed",
+          "nonstationarity_detected": true,
+          "adjustment_status": "adjusted",
+          "scenario_ids": [
+            "SSP2-4.5",
+            "SSP5-8.5"
+          ],
+          "hydrological_regime_included": true
+        },
+        "succession_context": {
+          "dynamics_included": true,
+          "alternative_state_count": 1,
+          "paths": [
+            {
+              "path_id": "PATH-1",
+              "successional_stage": "established riparian mosaic",
+              "scenario_id": "SSP2-4.5",
+              "description": "Synthetic admissible dynamic recovery path.",
+              "plausibility": "supported"
+            }
+          ]
+        },
+        "shifting_baseline": {
+          "assessment_status": "assessed",
+          "risk_level": "low",
+          "historical_context_reviewed": true,
+          "degradation_screening_method": "synthetic historical / contemporary reference comparison"
+        },
+        "knowledge_sources": [],
+        "rights_status": "cleared_synthetic"
+      },
+      "recovery_assessment": {
+        "observation_window": "synthetic season-matched annual interval",
+        "reference_model_version": "0.9.0",
+        "attribute_states": [
+          {
+            "attribute": "absence_of_threats",
+            "state": "improving",
+            "coverage_status": "observed",
+            "evidence_count": 3
+          },
+          {
+            "attribute": "physical_conditions",
+            "state": "improving",
+            "coverage_status": "observed",
+            "evidence_count": 3
+          },
+          {
+            "attribute": "species_composition",
+            "state": "improving",
+            "coverage_status": "observed",
+            "evidence_count": 3
+          },
+          {
+            "attribute": "structural_diversity",
+            "state": "improving",
+            "coverage_status": "observed",
+            "evidence_count": 3
+          },
+          {
+            "attribute": "ecosystem_function",
+            "state": "improving",
+            "coverage_status": "observed",
+            "evidence_count": 3
+          },
+          {
+            "attribute": "external_exchanges",
+            "state": "improving",
+            "coverage_status": "observed",
+            "evidence_count": 3
+          }
+        ],
+        "overall_claim": "unresolved"
+      },
+      "expected_audit": {
+        "reference_model_qualified": false,
+        "overall_claim_permitted": true,
+        "expected_blockers": [
+          "reference_supersession_review_incomplete",
+          "assessment_reference_model_version_mismatch"
+        ]
+      },
+      "hard_invariants": [
+        "A recovery claim is specific to the ecosystem, reference-model version, site strata and observation window.",
+        "Six ecosystem attributes remain independently reportable; no attribute silently compensates for another."
+      ]
+    },
+    {
+      "case_id": "REF-SYN-009",
+      "family": "unknown_reference_site",
+      "ecosystem_context": {
+        "ecosystem_type": "synthetic urban riparian ecosystem",
+        "local_classification": "synthetic riparian corridor class",
+        "iucn_functional_group": "synthetic inland surface water ecosystem group",
+        "spatial_strata": [
+          "upper reach",
+          "middle reach"
+        ],
+        "environmental_drivers": [
+          "rainfall",
+          "flow regime",
+          "urban runoff",
+          "temperature",
+          "land-use pressure"
+        ]
+      },
+      "reference_model": {
+        "status": "qualified",
+        "model_id": "MODEL-REF-SYN-009",
+        "model_version": "1.0.0",
+        "supersedes_model_id": null,
+        "supersession_review_status": "not_applicable",
+        "model_type": "dynamic_ensemble",
+        "reference_sites": [
+          {
+            "site_id": "REF-SYN-009-A",
+            "included_in_model": true,
+            "degradation_screening": "unknown",
+            "screening_method": "synthetic multi-pressure reference screening",
+            "dependency_group": "DEP-REF-SYN-009-A",
+            "source_record_ids": [
+              "SRC-REF-SYN-009-A"
+            ]
+          },
+          {
+            "site_id": "REF-SYN-009-B",
+            "included_in_model": true,
+            "degradation_screening": "screened_low_degradation",
+            "screening_method": "synthetic multi-pressure reference screening",
+            "dependency_group": "DEP-REF-SYN-009-B",
+            "source_record_ids": [
+              "SRC-REF-SYN-009-B"
+            ]
+          }
+        ],
+        "indicators_by_attribute": {
+          "absence_of_threats": [
+            {
+              "indicator_id": "ABSENCE_OF_THREATS-1",
+              "name": "Synthetic absence of threats indicator 1",
+              "unit": "synthetic_normalized_score",
+              "spatial_support": "reach",
+              "temporal_support": "annual_season_matched",
+              "method": "synthetic known-answer fixture",
+              "reference_lower": 0.7,
+              "reference_upper": 1,
+              "uncertainty_status": "quantified",
+              "source_record_ids": [
+                "SYN-REF-absence_of_threats-1"
+              ]
+            },
+            {
+              "indicator_id": "ABSENCE_OF_THREATS-2",
+              "name": "Synthetic absence of threats indicator 2",
+              "unit": "synthetic_normalized_score",
+              "spatial_support": "reach",
+              "temporal_support": "annual_season_matched",
+              "method": "synthetic known-answer fixture",
+              "reference_lower": 0.7,
+              "reference_upper": 1,
+              "uncertainty_status": "quantified",
+              "source_record_ids": [
+                "SYN-REF-absence_of_threats-2"
+              ]
+            },
+            {
+              "indicator_id": "ABSENCE_OF_THREATS-3",
+              "name": "Synthetic absence of threats indicator 3",
+              "unit": "synthetic_normalized_score",
+              "spatial_support": "reach",
+              "temporal_support": "annual_season_matched",
+              "method": "synthetic known-answer fixture",
+              "reference_lower": 0.7,
+              "reference_upper": 1,
+              "uncertainty_status": "quantified",
+              "source_record_ids": [
+                "SYN-REF-absence_of_threats-3"
+              ]
+            }
+          ],
+          "physical_conditions": [
+            {
+              "indicator_id": "PHYSICAL_CONDITIONS-1",
+              "name": "Synthetic physical conditions indicator 1",
+              "unit": "synthetic_normalized_score",
+              "spatial_support": "reach",
+              "temporal_support": "annual_season_matched",
+              "method": "synthetic known-answer fixture",
+              "reference_lower": 0.7,
+              "reference_upper": 1,
+              "uncertainty_status": "quantified",
+              "source_record_ids": [
+                "SYN-REF-physical_conditions-1"
+              ]
+            },
+            {
+              "indicator_id": "PHYSICAL_CONDITIONS-2",
+              "name": "Synthetic physical conditions indicator 2",
+              "unit": "synthetic_normalized_score",
+              "spatial_support": "reach",
+              "temporal_support": "annual_season_matched",
+              "method": "synthetic known-answer fixture",
+              "reference_lower": 0.7,
+              "reference_upper": 1,
+              "uncertainty_status": "quantified",
+              "source_record_ids": [
+                "SYN-REF-physical_conditions-2"
+              ]
+            },
+            {
+              "indicator_id": "PHYSICAL_CONDITIONS-3",
+              "name": "Synthetic physical conditions indicator 3",
+              "unit": "synthetic_normalized_score",
+              "spatial_support": "reach",
+              "temporal_support": "annual_season_matched",
+              "method": "synthetic known-answer fixture",
+              "reference_lower": 0.7,
+              "reference_upper": 1,
+              "uncertainty_status": "quantified",
+              "source_record_ids": [
+                "SYN-REF-physical_conditions-3"
+              ]
+            }
+          ],
+          "species_composition": [
+            {
+              "indicator_id": "SPECIES_COMPOSITION-1",
+              "name": "Synthetic species composition indicator 1",
+              "unit": "synthetic_normalized_score",
+              "spatial_support": "reach",
+              "temporal_support": "annual_season_matched",
+              "method": "synthetic known-answer fixture",
+              "reference_lower": 0.7,
+              "reference_upper": 1,
+              "uncertainty_status": "quantified",
+              "source_record_ids": [
+                "SYN-REF-species_composition-1"
+              ]
+            },
+            {
+              "indicator_id": "SPECIES_COMPOSITION-2",
+              "name": "Synthetic species composition indicator 2",
+              "unit": "synthetic_normalized_score",
+              "spatial_support": "reach",
+              "temporal_support": "annual_season_matched",
+              "method": "synthetic known-answer fixture",
+              "reference_lower": 0.7,
+              "reference_upper": 1,
+              "uncertainty_status": "quantified",
+              "source_record_ids": [
+                "SYN-REF-species_composition-2"
+              ]
+            },
+            {
+              "indicator_id": "SPECIES_COMPOSITION-3",
+              "name": "Synthetic species composition indicator 3",
+              "unit": "synthetic_normalized_score",
+              "spatial_support": "reach",
+              "temporal_support": "annual_season_matched",
+              "method": "synthetic known-answer fixture",
+              "reference_lower": 0.7,
+              "reference_upper": 1,
+              "uncertainty_status": "quantified",
+              "source_record_ids": [
+                "SYN-REF-species_composition-3"
+              ]
+            }
+          ],
+          "structural_diversity": [
+            {
+              "indicator_id": "STRUCTURAL_DIVERSITY-1",
+              "name": "Synthetic structural diversity indicator 1",
+              "unit": "synthetic_normalized_score",
+              "spatial_support": "reach",
+              "temporal_support": "annual_season_matched",
+              "method": "synthetic known-answer fixture",
+              "reference_lower": 0.7,
+              "reference_upper": 1,
+              "uncertainty_status": "quantified",
+              "source_record_ids": [
+                "SYN-REF-structural_diversity-1"
+              ]
+            },
+            {
+              "indicator_id": "STRUCTURAL_DIVERSITY-2",
+              "name": "Synthetic structural diversity indicator 2",
+              "unit": "synthetic_normalized_score",
+              "spatial_support": "reach",
+              "temporal_support": "annual_season_matched",
+              "method": "synthetic known-answer fixture",
+              "reference_lower": 0.7,
+              "reference_upper": 1,
+              "uncertainty_status": "quantified",
+              "source_record_ids": [
+                "SYN-REF-structural_diversity-2"
+              ]
+            },
+            {
+              "indicator_id": "STRUCTURAL_DIVERSITY-3",
+              "name": "Synthetic structural diversity indicator 3",
+              "unit": "synthetic_normalized_score",
+              "spatial_support": "reach",
+              "temporal_support": "annual_season_matched",
+              "method": "synthetic known-answer fixture",
+              "reference_lower": 0.7,
+              "reference_upper": 1,
+              "uncertainty_status": "quantified",
+              "source_record_ids": [
+                "SYN-REF-structural_diversity-3"
+              ]
+            }
+          ],
+          "ecosystem_function": [
+            {
+              "indicator_id": "ECOSYSTEM_FUNCTION-1",
+              "name": "Synthetic ecosystem function indicator 1",
+              "unit": "synthetic_normalized_score",
+              "spatial_support": "reach",
+              "temporal_support": "annual_season_matched",
+              "method": "synthetic known-answer fixture",
+              "reference_lower": 0.7,
+              "reference_upper": 1,
+              "uncertainty_status": "quantified",
+              "source_record_ids": [
+                "SYN-REF-ecosystem_function-1"
+              ]
+            },
+            {
+              "indicator_id": "ECOSYSTEM_FUNCTION-2",
+              "name": "Synthetic ecosystem function indicator 2",
+              "unit": "synthetic_normalized_score",
+              "spatial_support": "reach",
+              "temporal_support": "annual_season_matched",
+              "method": "synthetic known-answer fixture",
+              "reference_lower": 0.7,
+              "reference_upper": 1,
+              "uncertainty_status": "quantified",
+              "source_record_ids": [
+                "SYN-REF-ecosystem_function-2"
+              ]
+            },
+            {
+              "indicator_id": "ECOSYSTEM_FUNCTION-3",
+              "name": "Synthetic ecosystem function indicator 3",
+              "unit": "synthetic_normalized_score",
+              "spatial_support": "reach",
+              "temporal_support": "annual_season_matched",
+              "method": "synthetic known-answer fixture",
+              "reference_lower": 0.7,
+              "reference_upper": 1,
+              "uncertainty_status": "quantified",
+              "source_record_ids": [
+                "SYN-REF-ecosystem_function-3"
+              ]
+            }
+          ],
+          "external_exchanges": [
+            {
+              "indicator_id": "EXTERNAL_EXCHANGES-1",
+              "name": "Synthetic external exchanges indicator 1",
+              "unit": "synthetic_normalized_score",
+              "spatial_support": "reach",
+              "temporal_support": "annual_season_matched",
+              "method": "synthetic known-answer fixture",
+              "reference_lower": 0.7,
+              "reference_upper": 1,
+              "uncertainty_status": "quantified",
+              "source_record_ids": [
+                "SYN-REF-external_exchanges-1"
+              ]
+            },
+            {
+              "indicator_id": "EXTERNAL_EXCHANGES-2",
+              "name": "Synthetic external exchanges indicator 2",
+              "unit": "synthetic_normalized_score",
+              "spatial_support": "reach",
+              "temporal_support": "annual_season_matched",
+              "method": "synthetic known-answer fixture",
+              "reference_lower": 0.7,
+              "reference_upper": 1,
+              "uncertainty_status": "quantified",
+              "source_record_ids": [
+                "SYN-REF-external_exchanges-2"
+              ]
+            },
+            {
+              "indicator_id": "EXTERNAL_EXCHANGES-3",
+              "name": "Synthetic external exchanges indicator 3",
+              "unit": "synthetic_normalized_score",
+              "spatial_support": "reach",
+              "temporal_support": "annual_season_matched",
+              "method": "synthetic known-answer fixture",
+              "reference_lower": 0.7,
+              "reference_upper": 1,
+              "uncertainty_status": "quantified",
+              "source_record_ids": [
+                "SYN-REF-external_exchanges-3"
+              ]
+            }
+          ]
+        },
+        "climate_context": {
+          "assessment_status": "assessed",
+          "nonstationarity_detected": true,
+          "adjustment_status": "adjusted",
+          "scenario_ids": [
+            "SSP2-4.5",
+            "SSP5-8.5"
+          ],
+          "hydrological_regime_included": true
+        },
+        "succession_context": {
+          "dynamics_included": true,
+          "alternative_state_count": 1,
+          "paths": [
+            {
+              "path_id": "PATH-1",
+              "successional_stage": "established riparian mosaic",
+              "scenario_id": "SSP2-4.5",
+              "description": "Synthetic admissible dynamic recovery path.",
+              "plausibility": "supported"
+            }
+          ]
+        },
+        "shifting_baseline": {
+          "assessment_status": "assessed",
+          "risk_level": "low",
+          "historical_context_reviewed": true,
+          "degradation_screening_method": "synthetic historical / contemporary reference comparison"
+        },
+        "knowledge_sources": [],
+        "rights_status": "cleared_synthetic"
+      },
+      "recovery_assessment": {
+        "observation_window": "synthetic season-matched annual interval",
+        "reference_model_version": "1.0.0",
+        "attribute_states": [
+          {
+            "attribute": "absence_of_threats",
+            "state": "improving",
+            "coverage_status": "observed",
+            "evidence_count": 3
+          },
+          {
+            "attribute": "physical_conditions",
+            "state": "improving",
+            "coverage_status": "observed",
+            "evidence_count": 3
+          },
+          {
+            "attribute": "species_composition",
+            "state": "improving",
+            "coverage_status": "observed",
+            "evidence_count": 3
+          },
+          {
+            "attribute": "structural_diversity",
+            "state": "improving",
+            "coverage_status": "observed",
+            "evidence_count": 3
+          },
+          {
+            "attribute": "ecosystem_function",
+            "state": "improving",
+            "coverage_status": "observed",
+            "evidence_count": 3
+          },
+          {
+            "attribute": "external_exchanges",
+            "state": "improving",
+            "coverage_status": "observed",
+            "evidence_count": 3
+          }
+        ],
+        "overall_claim": "unresolved"
+      },
+      "expected_audit": {
+        "reference_model_qualified": false,
+        "overall_claim_permitted": true,
+        "expected_blockers": [
+          "included_reference_site_degradation_unknown"
+        ]
+      },
+      "hard_invariants": [
+        "A recovery claim is specific to the ecosystem, reference-model version, site strata and observation window.",
+        "Six ecosystem attributes remain independently reportable; no attribute silently compensates for another."
+      ]
+    },
+    {
+      "case_id": "REF-SYN-010",
+      "family": "unobserved_attribute_promotion",
+      "ecosystem_context": {
+        "ecosystem_type": "synthetic urban riparian ecosystem",
+        "local_classification": "synthetic riparian corridor class",
+        "iucn_functional_group": "synthetic inland surface water ecosystem group",
+        "spatial_strata": [
+          "upper reach",
+          "middle reach"
+        ],
+        "environmental_drivers": [
+          "rainfall",
+          "flow regime",
+          "urban runoff",
+          "temperature",
+          "land-use pressure"
+        ]
+      },
+      "reference_model": {
+        "status": "qualified",
+        "model_id": "MODEL-REF-SYN-010",
+        "model_version": "1.0.0",
+        "supersedes_model_id": null,
+        "supersession_review_status": "not_applicable",
+        "model_type": "dynamic_ensemble",
+        "reference_sites": [
+          {
+            "site_id": "REF-SYN-010-A",
+            "included_in_model": true,
+            "degradation_screening": "screened_low_degradation",
+            "screening_method": "synthetic multi-pressure reference screening",
+            "dependency_group": "DEP-REF-SYN-010-A",
+            "source_record_ids": [
+              "SRC-REF-SYN-010-A"
+            ]
+          },
+          {
+            "site_id": "REF-SYN-010-B",
+            "included_in_model": true,
+            "degradation_screening": "screened_low_degradation",
+            "screening_method": "synthetic multi-pressure reference screening",
+            "dependency_group": "DEP-REF-SYN-010-B",
+            "source_record_ids": [
+              "SRC-REF-SYN-010-B"
+            ]
+          }
+        ],
+        "indicators_by_attribute": {
+          "absence_of_threats": [
+            {
+              "indicator_id": "ABSENCE_OF_THREATS-1",
+              "name": "Synthetic absence of threats indicator 1",
+              "unit": "synthetic_normalized_score",
+              "spatial_support": "reach",
+              "temporal_support": "annual_season_matched",
+              "method": "synthetic known-answer fixture",
+              "reference_lower": 0.7,
+              "reference_upper": 1,
+              "uncertainty_status": "quantified",
+              "source_record_ids": [
+                "SYN-REF-absence_of_threats-1"
+              ]
+            },
+            {
+              "indicator_id": "ABSENCE_OF_THREATS-2",
+              "name": "Synthetic absence of threats indicator 2",
+              "unit": "synthetic_normalized_score",
+              "spatial_support": "reach",
+              "temporal_support": "annual_season_matched",
+              "method": "synthetic known-answer fixture",
+              "reference_lower": 0.7,
+              "reference_upper": 1,
+              "uncertainty_status": "quantified",
+              "source_record_ids": [
+                "SYN-REF-absence_of_threats-2"
+              ]
+            },
+            {
+              "indicator_id": "ABSENCE_OF_THREATS-3",
+              "name": "Synthetic absence of threats indicator 3",
+              "unit": "synthetic_normalized_score",
+              "spatial_support": "reach",
+              "temporal_support": "annual_season_matched",
+              "method": "synthetic known-answer fixture",
+              "reference_lower": 0.7,
+              "reference_upper": 1,
+              "uncertainty_status": "quantified",
+              "source_record_ids": [
+                "SYN-REF-absence_of_threats-3"
+              ]
+            }
+          ],
+          "physical_conditions": [
+            {
+              "indicator_id": "PHYSICAL_CONDITIONS-1",
+              "name": "Synthetic physical conditions indicator 1",
+              "unit": "synthetic_normalized_score",
+              "spatial_support": "reach",
+              "temporal_support": "annual_season_matched",
+              "method": "synthetic known-answer fixture",
+              "reference_lower": 0.7,
+              "reference_upper": 1,
+              "uncertainty_status": "quantified",
+              "source_record_ids": [
+                "SYN-REF-physical_conditions-1"
+              ]
+            },
+            {
+              "indicator_id": "PHYSICAL_CONDITIONS-2",
+              "name": "Synthetic physical conditions indicator 2",
+              "unit": "synthetic_normalized_score",
+              "spatial_support": "reach",
+              "temporal_support": "annual_season_matched",
+              "method": "synthetic known-answer fixture",
+              "reference_lower": 0.7,
+              "reference_upper": 1,
+              "uncertainty_status": "quantified",
+              "source_record_ids": [
+                "SYN-REF-physical_conditions-2"
+              ]
+            },
+            {
+              "indicator_id": "PHYSICAL_CONDITIONS-3",
+              "name": "Synthetic physical conditions indicator 3",
+              "unit": "synthetic_normalized_score",
+              "spatial_support": "reach",
+              "temporal_support": "annual_season_matched",
+              "method": "synthetic known-answer fixture",
+              "reference_lower": 0.7,
+              "reference_upper": 1,
+              "uncertainty_status": "quantified",
+              "source_record_ids": [
+                "SYN-REF-physical_conditions-3"
+              ]
+            }
+          ],
+          "species_composition": [
+            {
+              "indicator_id": "SPECIES_COMPOSITION-1",
+              "name": "Synthetic species composition indicator 1",
+              "unit": "synthetic_normalized_score",
+              "spatial_support": "reach",
+              "temporal_support": "annual_season_matched",
+              "method": "synthetic known-answer fixture",
+              "reference_lower": 0.7,
+              "reference_upper": 1,
+              "uncertainty_status": "quantified",
+              "source_record_ids": [
+                "SYN-REF-species_composition-1"
+              ]
+            },
+            {
+              "indicator_id": "SPECIES_COMPOSITION-2",
+              "name": "Synthetic species composition indicator 2",
+              "unit": "synthetic_normalized_score",
+              "spatial_support": "reach",
+              "temporal_support": "annual_season_matched",
+              "method": "synthetic known-answer fixture",
+              "reference_lower": 0.7,
+              "reference_upper": 1,
+              "uncertainty_status": "quantified",
+              "source_record_ids": [
+                "SYN-REF-species_composition-2"
+              ]
+            },
+            {
+              "indicator_id": "SPECIES_COMPOSITION-3",
+              "name": "Synthetic species composition indicator 3",
+              "unit": "synthetic_normalized_score",
+              "spatial_support": "reach",
+              "temporal_support": "annual_season_matched",
+              "method": "synthetic known-answer fixture",
+              "reference_lower": 0.7,
+              "reference_upper": 1,
+              "uncertainty_status": "quantified",
+              "source_record_ids": [
+                "SYN-REF-species_composition-3"
+              ]
+            }
+          ],
+          "structural_diversity": [
+            {
+              "indicator_id": "STRUCTURAL_DIVERSITY-1",
+              "name": "Synthetic structural diversity indicator 1",
+              "unit": "synthetic_normalized_score",
+              "spatial_support": "reach",
+              "temporal_support": "annual_season_matched",
+              "method": "synthetic known-answer fixture",
+              "reference_lower": 0.7,
+              "reference_upper": 1,
+              "uncertainty_status": "quantified",
+              "source_record_ids": [
+                "SYN-REF-structural_diversity-1"
+              ]
+            },
+            {
+              "indicator_id": "STRUCTURAL_DIVERSITY-2",
+              "name": "Synthetic structural diversity indicator 2",
+              "unit": "synthetic_normalized_score",
+              "spatial_support": "reach",
+              "temporal_support": "annual_season_matched",
+              "method": "synthetic known-answer fixture",
+              "reference_lower": 0.7,
+              "reference_upper": 1,
+              "uncertainty_status": "quantified",
+              "source_record_ids": [
+                "SYN-REF-structural_diversity-2"
+              ]
+            },
+            {
+              "indicator_id": "STRUCTURAL_DIVERSITY-3",
+              "name": "Synthetic structural diversity indicator 3",
+              "unit": "synthetic_normalized_score",
+              "spatial_support": "reach",
+              "temporal_support": "annual_season_matched",
+              "method": "synthetic known-answer fixture",
+              "reference_lower": 0.7,
+              "reference_upper": 1,
+              "uncertainty_status": "quantified",
+              "source_record_ids": [
+                "SYN-REF-structural_diversity-3"
+              ]
+            }
+          ],
+          "ecosystem_function": [
+            {
+              "indicator_id": "ECOSYSTEM_FUNCTION-1",
+              "name": "Synthetic ecosystem function indicator 1",
+              "unit": "synthetic_normalized_score",
+              "spatial_support": "reach",
+              "temporal_support": "annual_season_matched",
+              "method": "synthetic known-answer fixture",
+              "reference_lower": 0.7,
+              "reference_upper": 1,
+              "uncertainty_status": "quantified",
+              "source_record_ids": [
+                "SYN-REF-ecosystem_function-1"
+              ]
+            },
+            {
+              "indicator_id": "ECOSYSTEM_FUNCTION-2",
+              "name": "Synthetic ecosystem function indicator 2",
+              "unit": "synthetic_normalized_score",
+              "spatial_support": "reach",
+              "temporal_support": "annual_season_matched",
+              "method": "synthetic known-answer fixture",
+              "reference_lower": 0.7,
+              "reference_upper": 1,
+              "uncertainty_status": "quantified",
+              "source_record_ids": [
+                "SYN-REF-ecosystem_function-2"
+              ]
+            },
+            {
+              "indicator_id": "ECOSYSTEM_FUNCTION-3",
+              "name": "Synthetic ecosystem function indicator 3",
+              "unit": "synthetic_normalized_score",
+              "spatial_support": "reach",
+              "temporal_support": "annual_season_matched",
+              "method": "synthetic known-answer fixture",
+              "reference_lower": 0.7,
+              "reference_upper": 1,
+              "uncertainty_status": "quantified",
+              "source_record_ids": [
+                "SYN-REF-ecosystem_function-3"
+              ]
+            }
+          ],
+          "external_exchanges": [
+            {
+              "indicator_id": "EXTERNAL_EXCHANGES-1",
+              "name": "Synthetic external exchanges indicator 1",
+              "unit": "synthetic_normalized_score",
+              "spatial_support": "reach",
+              "temporal_support": "annual_season_matched",
+              "method": "synthetic known-answer fixture",
+              "reference_lower": 0.7,
+              "reference_upper": 1,
+              "uncertainty_status": "quantified",
+              "source_record_ids": [
+                "SYN-REF-external_exchanges-1"
+              ]
+            },
+            {
+              "indicator_id": "EXTERNAL_EXCHANGES-2",
+              "name": "Synthetic external exchanges indicator 2",
+              "unit": "synthetic_normalized_score",
+              "spatial_support": "reach",
+              "temporal_support": "annual_season_matched",
+              "method": "synthetic known-answer fixture",
+              "reference_lower": 0.7,
+              "reference_upper": 1,
+              "uncertainty_status": "quantified",
+              "source_record_ids": [
+                "SYN-REF-external_exchanges-2"
+              ]
+            },
+            {
+              "indicator_id": "EXTERNAL_EXCHANGES-3",
+              "name": "Synthetic external exchanges indicator 3",
+              "unit": "synthetic_normalized_score",
+              "spatial_support": "reach",
+              "temporal_support": "annual_season_matched",
+              "method": "synthetic known-answer fixture",
+              "reference_lower": 0.7,
+              "reference_upper": 1,
+              "uncertainty_status": "quantified",
+              "source_record_ids": [
+                "SYN-REF-external_exchanges-3"
+              ]
+            }
+          ]
+        },
+        "climate_context": {
+          "assessment_status": "assessed",
+          "nonstationarity_detected": true,
+          "adjustment_status": "adjusted",
+          "scenario_ids": [
+            "SSP2-4.5",
+            "SSP5-8.5"
+          ],
+          "hydrological_regime_included": true
+        },
+        "succession_context": {
+          "dynamics_included": true,
+          "alternative_state_count": 1,
+          "paths": [
+            {
+              "path_id": "PATH-1",
+              "successional_stage": "established riparian mosaic",
+              "scenario_id": "SSP2-4.5",
+              "description": "Synthetic admissible dynamic recovery path.",
+              "plausibility": "supported"
+            }
+          ]
+        },
+        "shifting_baseline": {
+          "assessment_status": "assessed",
+          "risk_level": "low",
+          "historical_context_reviewed": true,
+          "degradation_screening_method": "synthetic historical / contemporary reference comparison"
+        },
+        "knowledge_sources": [],
+        "rights_status": "cleared_synthetic"
+      },
+      "recovery_assessment": {
+        "observation_window": "synthetic season-matched annual interval",
+        "reference_model_version": "1.0.0",
+        "attribute_states": [
+          {
+            "attribute": "absence_of_threats",
+            "state": "improving",
+            "coverage_status": "observed",
+            "evidence_count": 3
+          },
+          {
+            "attribute": "physical_conditions",
+            "state": "improving",
+            "coverage_status": "observed",
+            "evidence_count": 3
+          },
+          {
+            "attribute": "species_composition",
+            "state": "improving",
+            "coverage_status": "observed",
+            "evidence_count": 3
+          },
+          {
+            "attribute": "structural_diversity",
+            "state": "improving",
+            "coverage_status": "observed",
+            "evidence_count": 3
+          },
+          {
+            "attribute": "ecosystem_function",
+            "state": "improving",
+            "coverage_status": "observed",
+            "evidence_count": 3
+          },
+          {
+            "attribute": "external_exchanges",
+            "state": "improving",
+            "coverage_status": "unobserved",
+            "evidence_count": 0
+          }
+        ],
+        "overall_claim": "positive_recovery"
+      },
+      "expected_audit": {
+        "reference_model_qualified": true,
+        "overall_claim_permitted": false,
+        "expected_blockers": [
+          "unobserved_attribute_in_positive_recovery_claim"
+        ]
+      },
+      "hard_invariants": [
+        "A recovery claim is specific to the ecosystem, reference-model version, site strata and observation window.",
+        "Six ecosystem attributes remain independently reportable; no attribute silently compensates for another."
+      ]
+    }
+  ]
+}

@@ -59,6 +59,10 @@ jobs:
         run: cargo test --manifest-path research/earth-observability/pcit-evaluator/Cargo.toml
       - name: Validate intervention outcome corpus with JSON Schema 2020-12
         run: cargo run --manifest-path research/earth-observability/pcit-evaluator/Cargo.toml -- validate --schema schemas/intervention-outcome-case-manifest-v0.1.schema.json --corpus research/earth-observability/INTERVENTION_OUTCOME_SYNTHETIC_CORPUS_V0_1.json
+      - name: Validate ecological reference trajectory corpus with JSON Schema 2020-12
+        run: cargo run --manifest-path research/earth-observability/pcit-evaluator/Cargo.toml -- reference-validate --schema schemas/ecological-reference-trajectory-v0.1.schema.json --corpus research/earth-observability/ECOLOGICAL_REFERENCE_TRAJECTORY_SYNTHETIC_CORPUS_V0_1.json
+      - name: Audit ecological reference trajectory blockers
+        run: cargo run --manifest-path research/earth-observability/pcit-evaluator/Cargo.toml -- reference-audit --schema schemas/ecological-reference-trajectory-v0.1.schema.json --corpus research/earth-observability/ECOLOGICAL_REFERENCE_TRAJECTORY_SYNTHETIC_CORPUS_V0_1.json --out /tmp/ecological-reference-audit.json
 
   test-native:
     runs-on: ubuntu-latest
