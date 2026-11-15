@@ -233,6 +233,7 @@ pub fn solve_dc_power_flow(
 
     let components = connected_components(&adjacency);
     let mut reference_by_bus = vec![false; bus_count];
+    let mut slack_injection_by_bus = vec![None; bus_count];
     for (island_index, component) in components.iter().enumerate() {
         let references = component
             .iter()
@@ -245,7 +246,20 @@ pub fn solve_dc_power_flow(
                 count: references.len(),
             });
         }
-        reference_by_bus[references[0]] = true;
+        let reference = references[0];
+        reference_by_bus[reference] = true;
+
+        // Compute the slack injection from specified injections alone. The
+        // later branch-flow calculation independently audits this balance.
+        let specified_sum = component
+            .iter()
+            .filter_map(|&index| network.buses[index].specified_injection_mw)
+            .sum::<f64>();
+        let slack_injection = -specified_sum;
+        if !slack_injection.is_finite() {
+            return Err(DcPowerFlowError::NonFiniteSolution);
+        }
+        slack_injection_by_bus[reference] = Some(slack_injection);
     }
 
     let mut reduced_index = vec![None; bus_count];
@@ -254,12 +268,6 @@ pub fn solve_dc_power_flow(
         if !reference_by_bus[bus_index] {
             reduced_index[bus_index] = Some(reduced_bus_indices.len());
             reduced_bus_indices.push(bus_index);
-            if bus.specified_injection_mw.is_none() {
-                return Err(DcPowerFlowError::IslandMustHaveExactlyOneReference {
-                    island_index: 0,
-                    count: 0,
-                });
-            }
         }
     }
 
@@ -332,6 +340,9 @@ pub fn solve_dc_power_flow(
             }
             net_outflow[from] += value;
             net_outflow[to] -= value;
+            if !net_outflow[from].is_finite() || !net_outflow[to].is_finite() {
+                return Err(DcPowerFlowError::NonFiniteSolution);
+            }
             (value, limit)
         } else {
             (0.0, None)
@@ -360,16 +371,16 @@ pub fn solve_dc_power_flow(
     for (index, bus) in network.buses.iter().enumerate() {
         let is_reference = reference_by_bus[index];
         let injection = if is_reference {
-            net_outflow[index]
+            slack_injection_by_bus[index].expect("each island has one computed slack injection")
         } else {
             bus.specified_injection_mw.expect("validated non-reference injection")
         };
-        let residual = if is_reference {
-            0.0
-        } else {
-            net_outflow[index] - injection
-        };
-        if !residual.is_finite() || !angles[index].is_finite() {
+        let residual = net_outflow[index] - injection;
+        if !injection.is_finite()
+            || !net_outflow[index].is_finite()
+            || !residual.is_finite()
+            || !angles[index].is_finite()
+        {
             return Err(DcPowerFlowError::NonFiniteSolution);
         }
         max_abs_nodal_residual_mw = max_abs_nodal_residual_mw.max(residual.abs());
