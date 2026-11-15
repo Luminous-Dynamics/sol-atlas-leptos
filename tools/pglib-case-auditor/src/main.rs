@@ -29,12 +29,12 @@ fn run() -> Result<AuditSummary, String> {
         }
     }
 
-    if let Some(expected) = &expected_sha {
-        if expected.len() != 40 || !expected.chars().all(|ch| ch.is_ascii_hexdigit()) {
-            return Err(
-                "expected Git blob SHA-1 must contain exactly 40 hexadecimal digits".to_owned(),
-            );
-        }
+    if let Some(expected) = &expected_sha
+        && (expected.len() != 40 || !expected.chars().all(|ch| ch.is_ascii_hexdigit()))
+    {
+        return Err(
+            "expected Git blob SHA-1 must contain exactly 40 hexadecimal digits".to_owned(),
+        );
     }
 
     let path = Path::new(&path);
