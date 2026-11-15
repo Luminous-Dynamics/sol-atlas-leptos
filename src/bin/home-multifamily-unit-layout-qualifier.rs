@@ -423,7 +423,7 @@ fn validate(
                         .unwrap_or(&Value::Null),
                     "id",
                 ) != Some(unit_space_id)
-                || unit_id
+                || Some(unit_id)
                     != text_at(
                         building_units
                             .into_iter()
