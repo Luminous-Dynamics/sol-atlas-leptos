@@ -1,0 +1,176 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://luminousdynamics.io/schemas/highveld-evidence-campaign-bridge-report-v0.1.schema.json",
+  "title": "Highveld Synthetic Evidence-Campaign Bridge Report v0.1",
+  "description": "Non-authorizing report produced from a caller-supplied synthetic bridge envelope. A planned acquisition is not an observation or qualified evidence.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "report_profile_id",
+    "input_sha256",
+    "evaluation_status",
+    "episode_id",
+    "obligation_results",
+    "planned_obligations",
+    "unresolved_obligations",
+    "source_bytes_verified",
+    "signatures_verified",
+    "physical_observations",
+    "qualified_obligations",
+    "authority_effects",
+    "claim_ceiling"
+  ],
+  "properties": {
+    "report_profile_id": {
+      "const": "luminous.highveld.evidence-campaign-bridge-report.v0.1"
+    },
+    "input_sha256": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "evaluation_status": {
+      "const": "SYNTHETIC_BRIDGE_EVALUATION_ONLY"
+    },
+    "episode_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "obligation_results": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/obligationResult"
+      }
+    },
+    "planned_obligations": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "unresolved_obligations": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "source_bytes_verified": {
+      "const": false
+    },
+    "signatures_verified": {
+      "const": false
+    },
+    "physical_observations": {
+      "const": 0
+    },
+    "qualified_obligations": {
+      "const": 0
+    },
+    "authority_effects": {
+      "const": "NONE"
+    },
+    "claim_ceiling": {
+      "const": "NON_AUTHORIZING_SYNTHETIC_EVALUATION"
+    }
+  },
+  "$defs": {
+    "disposition": {
+      "enum": [
+        "PLANNED_REMOTE_ACQUISITION",
+        "PLANNED_PHYSICAL_OBSERVATION_OPTIMAL",
+        "PLANNED_PHYSICAL_OBSERVATION_NOT_OPTIMALITY_PROVEN",
+        "BLOCKED_ADMISSIBILITY",
+        "UNKNOWN_ADMISSIBILITY",
+        "UNBOUND",
+        "CONTEXT_MISMATCH",
+        "CAMPAIGN_INCOMPLETE",
+        "CAMPAIGN_INFEASIBLE",
+        "CAMPAIGN_SEARCH_INCOMPLETE",
+        "NOT_PLANNED"
+      ]
+    },
+    "rejectedAlternative": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "acquisition_id",
+        "mapping_id",
+        "disposition",
+        "reason_codes"
+      ],
+      "properties": {
+        "acquisition_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "mapping_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "disposition": {
+          "$ref": "#/$defs/disposition"
+        },
+        "reason_codes": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    },
+    "obligationResult": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "obligation_id",
+        "disposition",
+        "evidence_state",
+        "covered_by_acquisition_ids",
+        "campaign_package_ids",
+        "optimality_proven",
+        "reason_codes",
+        "rejected_alternatives"
+      ],
+      "properties": {
+        "obligation_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "disposition": {
+          "$ref": "#/$defs/disposition"
+        },
+        "evidence_state": {
+          "const": "PLANNED_NOT_OBSERVED"
+        },
+        "covered_by_acquisition_ids": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "campaign_package_ids": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "optimality_proven": {
+          "type": "boolean"
+        },
+        "reason_codes": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "rejected_alternatives": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/rejectedAlternative"
+          }
+        }
+      }
+    }
+  }
+}
