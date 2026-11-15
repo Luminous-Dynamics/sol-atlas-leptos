@@ -725,7 +725,9 @@ fn validate(fixture: &Value, building: &Value, stress: &Value) -> Result<Value, 
             }
             if relation == "resource_flow" {
                 if from_node.1 != to_node.1
-                    || resource_classes.get(&from_node.1).is_none_or(|class| class == "communications")
+                    || resource_classes
+                        .get(&from_node.1)
+                        .is_none_or(|class| class == "communications")
                 {
                     errors.push(format!(
                         "edge {id} crosses resource classes or treats a control-only communications carrier as physical flow"
