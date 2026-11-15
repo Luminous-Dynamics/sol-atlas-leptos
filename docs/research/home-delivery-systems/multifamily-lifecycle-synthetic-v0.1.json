@@ -1,0 +1,915 @@
+{
+  "schema_version": "multifamily-lifecycle/0.1",
+  "profile_id": "SYN-MF-LIFECYCLE-ADAPTATION-001",
+  "maturity": "synthetic_scenario_only",
+  "source_bindings": {
+    "building_ref": {
+      "kind": "synthetic_multi_family_building",
+      "id": "SYN-MF-COURTYARD-004",
+      "revision": null,
+      "digest": null
+    },
+    "resident_programme_ref": {
+      "kind": "synthetic_multifamily_resident_programme",
+      "id": "SYN-MF-RESIDENT-PROGRAMME-001",
+      "revision": null,
+      "digest": null
+    },
+    "unit_layout_ref": {
+      "kind": "synthetic_multifamily_unit_layout",
+      "id": "SYN-MF-UNIT-LAYOUT-004",
+      "revision": null,
+      "digest": null
+    },
+    "service_topology_ref": {
+      "kind": "synthetic_multifamily_service_topology",
+      "id": "SYN-MF-SERVICE-DISTRIBUTION-001",
+      "revision": null,
+      "digest": null
+    }
+  },
+  "building_id": "SYN-MF-COURTYARD-004",
+  "unit_ids": [
+    "U-001",
+    "U-002",
+    "U-003",
+    "U-004"
+  ],
+  "revisions": [
+    {
+      "revision_id": "U-001-R0",
+      "unit_id": "U-001",
+      "parent_revision_id": null,
+      "revision_kind": "design",
+      "revision_state": "synthetic_identity_only",
+      "artifact_ref": null,
+      "change_kind": null
+    },
+    {
+      "revision_id": "U-001-R1",
+      "unit_id": "U-001",
+      "parent_revision_id": "U-001-R0",
+      "revision_kind": "adaptation",
+      "revision_state": "synthetic_identity_only",
+      "artifact_ref": null,
+      "change_kind": "resident_space_assignment"
+    },
+    {
+      "revision_id": "U-001-R2",
+      "unit_id": "U-001",
+      "parent_revision_id": "U-001-R1",
+      "revision_kind": "as_built",
+      "revision_state": "synthetic_identity_only",
+      "artifact_ref": null,
+      "change_kind": null
+    },
+    {
+      "revision_id": "U-001-R3",
+      "unit_id": "U-001",
+      "parent_revision_id": "U-001-R2",
+      "revision_kind": "commissioned",
+      "revision_state": "synthetic_identity_only",
+      "artifact_ref": null,
+      "change_kind": null
+    },
+    {
+      "revision_id": "U-002-R0",
+      "unit_id": "U-002",
+      "parent_revision_id": null,
+      "revision_kind": "design",
+      "revision_state": "synthetic_identity_only",
+      "artifact_ref": null,
+      "change_kind": null
+    },
+    {
+      "revision_id": "U-002-R1",
+      "unit_id": "U-002",
+      "parent_revision_id": "U-002-R0",
+      "revision_kind": "as_built",
+      "revision_state": "synthetic_identity_only",
+      "artifact_ref": null,
+      "change_kind": null
+    },
+    {
+      "revision_id": "U-002-R2",
+      "unit_id": "U-002",
+      "parent_revision_id": "U-002-R1",
+      "revision_kind": "commissioned",
+      "revision_state": "synthetic_identity_only",
+      "artifact_ref": null,
+      "change_kind": null
+    },
+    {
+      "revision_id": "U-003-R0",
+      "unit_id": "U-003",
+      "parent_revision_id": null,
+      "revision_kind": "design",
+      "revision_state": "synthetic_identity_only",
+      "artifact_ref": null,
+      "change_kind": null
+    },
+    {
+      "revision_id": "U-003-R1",
+      "unit_id": "U-003",
+      "parent_revision_id": "U-003-R0",
+      "revision_kind": "as_built",
+      "revision_state": "synthetic_identity_only",
+      "artifact_ref": null,
+      "change_kind": null
+    },
+    {
+      "revision_id": "U-003-R2",
+      "unit_id": "U-003",
+      "parent_revision_id": "U-003-R1",
+      "revision_kind": "commissioned",
+      "revision_state": "synthetic_identity_only",
+      "artifact_ref": null,
+      "change_kind": null
+    },
+    {
+      "revision_id": "U-004-R0",
+      "unit_id": "U-004",
+      "parent_revision_id": null,
+      "revision_kind": "design",
+      "revision_state": "synthetic_identity_only",
+      "artifact_ref": null,
+      "change_kind": null
+    },
+    {
+      "revision_id": "U-004-R1",
+      "unit_id": "U-004",
+      "parent_revision_id": "U-004-R0",
+      "revision_kind": "as_built",
+      "revision_state": "synthetic_identity_only",
+      "artifact_ref": null,
+      "change_kind": null
+    },
+    {
+      "revision_id": "U-004-R2",
+      "unit_id": "U-004",
+      "parent_revision_id": "U-004-R1",
+      "revision_kind": "commissioned",
+      "revision_state": "synthetic_identity_only",
+      "artifact_ref": null,
+      "change_kind": null
+    }
+  ],
+  "asset_bindings": [
+    {
+      "asset_id": "ASSET-F0-WATER-RISER",
+      "asset_kind": "water_riser",
+      "source_ref": {
+        "kind": "service_node",
+        "id": "RISER-F0-WATER",
+        "revision": null,
+        "digest": null
+      },
+      "served_unit_ids": [
+        "U-001",
+        "U-002"
+      ],
+      "identity_state": "identity_only_synthetic",
+      "current_revision_id": null,
+      "evidence_state": "unknown"
+    },
+    {
+      "asset_id": "ASSET-SHARED-WATER-PUMP",
+      "asset_kind": "water_pump",
+      "source_ref": {
+        "kind": "service_node",
+        "id": "PLANT-WATER-PUMP",
+        "revision": null,
+        "digest": null
+      },
+      "served_unit_ids": [
+        "U-001",
+        "U-002",
+        "U-003",
+        "U-004"
+      ],
+      "identity_state": "identity_only_synthetic",
+      "current_revision_id": null,
+      "evidence_state": "unknown"
+    }
+  ],
+  "events": [
+    {
+      "event_id": "EV-U-001-DESIGN",
+      "event_kind": "design_issue",
+      "event_order": 1,
+      "unit_ids": [
+        "U-001"
+      ],
+      "asset_ids": [],
+      "from_revision_id": "U-001-R0",
+      "to_revision_id": "U-001-R0",
+      "change_kind": null,
+      "event_time_state": "not_supplied",
+      "occurred_at": null,
+      "record_time_state": "not_supplied",
+      "recorded_at": null,
+      "execution_state": "authored_not_executed",
+      "data_scope": "synthetic_structure_only",
+      "resident_data_state": "no_personal_data",
+      "consent_state": "not_applicable",
+      "evidence_refs": [],
+      "change_impact_state": "not_applicable",
+      "change_impact_ref": null,
+      "invalidated_claim_ids": []
+    },
+    {
+      "event_id": "EV-U-001-ADAPT",
+      "event_kind": "adaptation",
+      "event_order": 2,
+      "unit_ids": [
+        "U-001"
+      ],
+      "asset_ids": [],
+      "from_revision_id": "U-001-R0",
+      "to_revision_id": "U-001-R1",
+      "change_kind": "resident_space_assignment",
+      "event_time_state": "not_supplied",
+      "occurred_at": null,
+      "record_time_state": "not_supplied",
+      "recorded_at": null,
+      "execution_state": "authored_not_executed",
+      "data_scope": "synthetic_structure_only",
+      "resident_data_state": "no_personal_data",
+      "consent_state": "not_applicable",
+      "evidence_refs": [],
+      "change_impact_state": "not_computed",
+      "change_impact_ref": null,
+      "invalidated_claim_ids": [
+        "CLAIM-U001-LAYOUT-R0",
+        "CLAIM-U001-PRIVACY-R0"
+      ]
+    },
+    {
+      "event_id": "EV-U-001-ASBUILT",
+      "event_kind": "as_built_capture",
+      "event_order": 3,
+      "unit_ids": [
+        "U-001"
+      ],
+      "asset_ids": [],
+      "from_revision_id": "U-001-R1",
+      "to_revision_id": "U-001-R2",
+      "change_kind": null,
+      "event_time_state": "not_supplied",
+      "occurred_at": null,
+      "record_time_state": "not_supplied",
+      "recorded_at": null,
+      "execution_state": "authored_not_executed",
+      "data_scope": "synthetic_structure_only",
+      "resident_data_state": "no_personal_data",
+      "consent_state": "not_applicable",
+      "evidence_refs": [],
+      "change_impact_state": "not_applicable",
+      "change_impact_ref": null,
+      "invalidated_claim_ids": []
+    },
+    {
+      "event_id": "EV-U-001-COMMISSION",
+      "event_kind": "commissioning",
+      "event_order": 4,
+      "unit_ids": [
+        "U-001"
+      ],
+      "asset_ids": [],
+      "from_revision_id": "U-001-R2",
+      "to_revision_id": "U-001-R3",
+      "change_kind": null,
+      "event_time_state": "not_supplied",
+      "occurred_at": null,
+      "record_time_state": "not_supplied",
+      "recorded_at": null,
+      "execution_state": "authored_not_executed",
+      "data_scope": "synthetic_structure_only",
+      "resident_data_state": "no_personal_data",
+      "consent_state": "not_applicable",
+      "evidence_refs": [],
+      "change_impact_state": "not_applicable",
+      "change_impact_ref": null,
+      "invalidated_claim_ids": []
+    },
+    {
+      "event_id": "EV-U-001-OCCUPANCY",
+      "event_kind": "occupancy_start",
+      "event_order": 5,
+      "unit_ids": [
+        "U-001"
+      ],
+      "asset_ids": [],
+      "from_revision_id": "U-001-R3",
+      "to_revision_id": "U-001-R3",
+      "change_kind": null,
+      "event_time_state": "not_supplied",
+      "occurred_at": null,
+      "record_time_state": "not_supplied",
+      "recorded_at": null,
+      "execution_state": "authored_not_executed",
+      "data_scope": "synthetic_structure_only",
+      "resident_data_state": "no_personal_data",
+      "consent_state": "not_applicable",
+      "evidence_refs": [],
+      "change_impact_state": "not_applicable",
+      "change_impact_ref": null,
+      "invalidated_claim_ids": []
+    },
+    {
+      "event_id": "EV-U-001-POE",
+      "event_kind": "post_occupancy_observation",
+      "event_order": 6,
+      "unit_ids": [
+        "U-001"
+      ],
+      "asset_ids": [],
+      "from_revision_id": "U-001-R3",
+      "to_revision_id": "U-001-R3",
+      "change_kind": null,
+      "event_time_state": "not_supplied",
+      "occurred_at": null,
+      "record_time_state": "not_supplied",
+      "recorded_at": null,
+      "execution_state": "authored_not_executed",
+      "data_scope": "synthetic_structure_only",
+      "resident_data_state": "no_personal_data",
+      "consent_state": "not_applicable",
+      "evidence_refs": [],
+      "change_impact_state": "not_applicable",
+      "change_impact_ref": null,
+      "invalidated_claim_ids": []
+    },
+    {
+      "event_id": "EV-U-001-MAINT",
+      "event_kind": "maintenance",
+      "event_order": 7,
+      "unit_ids": [
+        "U-001"
+      ],
+      "asset_ids": [],
+      "from_revision_id": "U-001-R3",
+      "to_revision_id": "U-001-R3",
+      "change_kind": null,
+      "event_time_state": "not_supplied",
+      "occurred_at": null,
+      "record_time_state": "not_supplied",
+      "recorded_at": null,
+      "execution_state": "authored_not_executed",
+      "data_scope": "synthetic_structure_only",
+      "resident_data_state": "no_personal_data",
+      "consent_state": "not_applicable",
+      "evidence_refs": [],
+      "change_impact_state": "not_applicable",
+      "change_impact_ref": null,
+      "invalidated_claim_ids": []
+    },
+    {
+      "event_id": "EV-U-001-REPAIR",
+      "event_kind": "repair",
+      "event_order": 8,
+      "unit_ids": [
+        "U-001"
+      ],
+      "asset_ids": [],
+      "from_revision_id": "U-001-R3",
+      "to_revision_id": "U-001-R3",
+      "change_kind": null,
+      "event_time_state": "not_supplied",
+      "occurred_at": null,
+      "record_time_state": "not_supplied",
+      "recorded_at": null,
+      "execution_state": "authored_not_executed",
+      "data_scope": "synthetic_structure_only",
+      "resident_data_state": "no_personal_data",
+      "consent_state": "not_applicable",
+      "evidence_refs": [],
+      "change_impact_state": "not_applicable",
+      "change_impact_ref": null,
+      "invalidated_claim_ids": []
+    },
+    {
+      "event_id": "EV-U-001-REINSPECT",
+      "event_kind": "reinspection",
+      "event_order": 9,
+      "unit_ids": [
+        "U-001"
+      ],
+      "asset_ids": [],
+      "from_revision_id": "U-001-R3",
+      "to_revision_id": "U-001-R3",
+      "change_kind": null,
+      "event_time_state": "not_supplied",
+      "occurred_at": null,
+      "record_time_state": "not_supplied",
+      "recorded_at": null,
+      "execution_state": "authored_not_executed",
+      "data_scope": "synthetic_structure_only",
+      "resident_data_state": "no_personal_data",
+      "consent_state": "not_applicable",
+      "evidence_refs": [],
+      "change_impact_state": "not_applicable",
+      "change_impact_ref": null,
+      "invalidated_claim_ids": []
+    },
+    {
+      "event_id": "EV-U-001-RECOMMISSION",
+      "event_kind": "recommissioning",
+      "event_order": 10,
+      "unit_ids": [
+        "U-001"
+      ],
+      "asset_ids": [],
+      "from_revision_id": "U-001-R3",
+      "to_revision_id": "U-001-R3",
+      "change_kind": null,
+      "event_time_state": "not_supplied",
+      "occurred_at": null,
+      "record_time_state": "not_supplied",
+      "recorded_at": null,
+      "execution_state": "authored_not_executed",
+      "data_scope": "synthetic_structure_only",
+      "resident_data_state": "no_personal_data",
+      "consent_state": "not_applicable",
+      "evidence_refs": [],
+      "change_impact_state": "not_applicable",
+      "change_impact_ref": null,
+      "invalidated_claim_ids": []
+    },
+    {
+      "event_id": "EV-U-002-DESIGN",
+      "event_kind": "design_issue",
+      "event_order": 11,
+      "unit_ids": [
+        "U-002"
+      ],
+      "asset_ids": [],
+      "from_revision_id": "U-002-R0",
+      "to_revision_id": "U-002-R0",
+      "change_kind": null,
+      "event_time_state": "not_supplied",
+      "occurred_at": null,
+      "record_time_state": "not_supplied",
+      "recorded_at": null,
+      "execution_state": "authored_not_executed",
+      "data_scope": "synthetic_structure_only",
+      "resident_data_state": "no_personal_data",
+      "consent_state": "not_applicable",
+      "evidence_refs": [],
+      "change_impact_state": "not_applicable",
+      "change_impact_ref": null,
+      "invalidated_claim_ids": []
+    },
+    {
+      "event_id": "EV-U-002-ASBUILT",
+      "event_kind": "as_built_capture",
+      "event_order": 12,
+      "unit_ids": [
+        "U-002"
+      ],
+      "asset_ids": [],
+      "from_revision_id": "U-002-R0",
+      "to_revision_id": "U-002-R1",
+      "change_kind": null,
+      "event_time_state": "not_supplied",
+      "occurred_at": null,
+      "record_time_state": "not_supplied",
+      "recorded_at": null,
+      "execution_state": "authored_not_executed",
+      "data_scope": "synthetic_structure_only",
+      "resident_data_state": "no_personal_data",
+      "consent_state": "not_applicable",
+      "evidence_refs": [],
+      "change_impact_state": "not_applicable",
+      "change_impact_ref": null,
+      "invalidated_claim_ids": []
+    },
+    {
+      "event_id": "EV-U-002-COMMISSION",
+      "event_kind": "commissioning",
+      "event_order": 13,
+      "unit_ids": [
+        "U-002"
+      ],
+      "asset_ids": [],
+      "from_revision_id": "U-002-R1",
+      "to_revision_id": "U-002-R2",
+      "change_kind": null,
+      "event_time_state": "not_supplied",
+      "occurred_at": null,
+      "record_time_state": "not_supplied",
+      "recorded_at": null,
+      "execution_state": "authored_not_executed",
+      "data_scope": "synthetic_structure_only",
+      "resident_data_state": "no_personal_data",
+      "consent_state": "not_applicable",
+      "evidence_refs": [],
+      "change_impact_state": "not_applicable",
+      "change_impact_ref": null,
+      "invalidated_claim_ids": []
+    },
+    {
+      "event_id": "EV-U-002-OCCUPANCY",
+      "event_kind": "occupancy_start",
+      "event_order": 14,
+      "unit_ids": [
+        "U-002"
+      ],
+      "asset_ids": [],
+      "from_revision_id": "U-002-R2",
+      "to_revision_id": "U-002-R2",
+      "change_kind": null,
+      "event_time_state": "not_supplied",
+      "occurred_at": null,
+      "record_time_state": "not_supplied",
+      "recorded_at": null,
+      "execution_state": "authored_not_executed",
+      "data_scope": "synthetic_structure_only",
+      "resident_data_state": "no_personal_data",
+      "consent_state": "not_applicable",
+      "evidence_refs": [],
+      "change_impact_state": "not_applicable",
+      "change_impact_ref": null,
+      "invalidated_claim_ids": []
+    },
+    {
+      "event_id": "EV-U-003-DESIGN",
+      "event_kind": "design_issue",
+      "event_order": 15,
+      "unit_ids": [
+        "U-003"
+      ],
+      "asset_ids": [],
+      "from_revision_id": "U-003-R0",
+      "to_revision_id": "U-003-R0",
+      "change_kind": null,
+      "event_time_state": "not_supplied",
+      "occurred_at": null,
+      "record_time_state": "not_supplied",
+      "recorded_at": null,
+      "execution_state": "authored_not_executed",
+      "data_scope": "synthetic_structure_only",
+      "resident_data_state": "no_personal_data",
+      "consent_state": "not_applicable",
+      "evidence_refs": [],
+      "change_impact_state": "not_applicable",
+      "change_impact_ref": null,
+      "invalidated_claim_ids": []
+    },
+    {
+      "event_id": "EV-U-003-ASBUILT",
+      "event_kind": "as_built_capture",
+      "event_order": 16,
+      "unit_ids": [
+        "U-003"
+      ],
+      "asset_ids": [],
+      "from_revision_id": "U-003-R0",
+      "to_revision_id": "U-003-R1",
+      "change_kind": null,
+      "event_time_state": "not_supplied",
+      "occurred_at": null,
+      "record_time_state": "not_supplied",
+      "recorded_at": null,
+      "execution_state": "authored_not_executed",
+      "data_scope": "synthetic_structure_only",
+      "resident_data_state": "no_personal_data",
+      "consent_state": "not_applicable",
+      "evidence_refs": [],
+      "change_impact_state": "not_applicable",
+      "change_impact_ref": null,
+      "invalidated_claim_ids": []
+    },
+    {
+      "event_id": "EV-U-003-COMMISSION",
+      "event_kind": "commissioning",
+      "event_order": 17,
+      "unit_ids": [
+        "U-003"
+      ],
+      "asset_ids": [],
+      "from_revision_id": "U-003-R1",
+      "to_revision_id": "U-003-R2",
+      "change_kind": null,
+      "event_time_state": "not_supplied",
+      "occurred_at": null,
+      "record_time_state": "not_supplied",
+      "recorded_at": null,
+      "execution_state": "authored_not_executed",
+      "data_scope": "synthetic_structure_only",
+      "resident_data_state": "no_personal_data",
+      "consent_state": "not_applicable",
+      "evidence_refs": [],
+      "change_impact_state": "not_applicable",
+      "change_impact_ref": null,
+      "invalidated_claim_ids": []
+    },
+    {
+      "event_id": "EV-U-003-OCCUPANCY",
+      "event_kind": "occupancy_start",
+      "event_order": 18,
+      "unit_ids": [
+        "U-003"
+      ],
+      "asset_ids": [],
+      "from_revision_id": "U-003-R2",
+      "to_revision_id": "U-003-R2",
+      "change_kind": null,
+      "event_time_state": "not_supplied",
+      "occurred_at": null,
+      "record_time_state": "not_supplied",
+      "recorded_at": null,
+      "execution_state": "authored_not_executed",
+      "data_scope": "synthetic_structure_only",
+      "resident_data_state": "no_personal_data",
+      "consent_state": "not_applicable",
+      "evidence_refs": [],
+      "change_impact_state": "not_applicable",
+      "change_impact_ref": null,
+      "invalidated_claim_ids": []
+    },
+    {
+      "event_id": "EV-U-004-DESIGN",
+      "event_kind": "design_issue",
+      "event_order": 19,
+      "unit_ids": [
+        "U-004"
+      ],
+      "asset_ids": [],
+      "from_revision_id": "U-004-R0",
+      "to_revision_id": "U-004-R0",
+      "change_kind": null,
+      "event_time_state": "not_supplied",
+      "occurred_at": null,
+      "record_time_state": "not_supplied",
+      "recorded_at": null,
+      "execution_state": "authored_not_executed",
+      "data_scope": "synthetic_structure_only",
+      "resident_data_state": "no_personal_data",
+      "consent_state": "not_applicable",
+      "evidence_refs": [],
+      "change_impact_state": "not_applicable",
+      "change_impact_ref": null,
+      "invalidated_claim_ids": []
+    },
+    {
+      "event_id": "EV-U-004-ASBUILT",
+      "event_kind": "as_built_capture",
+      "event_order": 20,
+      "unit_ids": [
+        "U-004"
+      ],
+      "asset_ids": [],
+      "from_revision_id": "U-004-R0",
+      "to_revision_id": "U-004-R1",
+      "change_kind": null,
+      "event_time_state": "not_supplied",
+      "occurred_at": null,
+      "record_time_state": "not_supplied",
+      "recorded_at": null,
+      "execution_state": "authored_not_executed",
+      "data_scope": "synthetic_structure_only",
+      "resident_data_state": "no_personal_data",
+      "consent_state": "not_applicable",
+      "evidence_refs": [],
+      "change_impact_state": "not_applicable",
+      "change_impact_ref": null,
+      "invalidated_claim_ids": []
+    },
+    {
+      "event_id": "EV-U-004-COMMISSION",
+      "event_kind": "commissioning",
+      "event_order": 21,
+      "unit_ids": [
+        "U-004"
+      ],
+      "asset_ids": [],
+      "from_revision_id": "U-004-R1",
+      "to_revision_id": "U-004-R2",
+      "change_kind": null,
+      "event_time_state": "not_supplied",
+      "occurred_at": null,
+      "record_time_state": "not_supplied",
+      "recorded_at": null,
+      "execution_state": "authored_not_executed",
+      "data_scope": "synthetic_structure_only",
+      "resident_data_state": "no_personal_data",
+      "consent_state": "not_applicable",
+      "evidence_refs": [],
+      "change_impact_state": "not_applicable",
+      "change_impact_ref": null,
+      "invalidated_claim_ids": []
+    },
+    {
+      "event_id": "EV-U-004-OCCUPANCY",
+      "event_kind": "occupancy_start",
+      "event_order": 22,
+      "unit_ids": [
+        "U-004"
+      ],
+      "asset_ids": [],
+      "from_revision_id": "U-004-R2",
+      "to_revision_id": "U-004-R2",
+      "change_kind": null,
+      "event_time_state": "not_supplied",
+      "occurred_at": null,
+      "record_time_state": "not_supplied",
+      "recorded_at": null,
+      "execution_state": "authored_not_executed",
+      "data_scope": "synthetic_structure_only",
+      "resident_data_state": "no_personal_data",
+      "consent_state": "not_applicable",
+      "evidence_refs": [],
+      "change_impact_state": "not_applicable",
+      "change_impact_ref": null,
+      "invalidated_claim_ids": []
+    },
+    {
+      "event_id": "EV-SHARED-F0-RISER-MAINT",
+      "event_kind": "shared_asset_maintenance",
+      "event_order": 23,
+      "unit_ids": [
+        "U-001",
+        "U-002"
+      ],
+      "asset_ids": [
+        "ASSET-F0-WATER-RISER"
+      ],
+      "from_revision_id": null,
+      "to_revision_id": null,
+      "change_kind": null,
+      "event_time_state": "not_supplied",
+      "occurred_at": null,
+      "record_time_state": "not_supplied",
+      "recorded_at": null,
+      "execution_state": "authored_not_executed",
+      "data_scope": "synthetic_structure_only",
+      "resident_data_state": "no_personal_data",
+      "consent_state": "not_applicable",
+      "evidence_refs": [],
+      "change_impact_state": "not_applicable",
+      "change_impact_ref": null,
+      "invalidated_claim_ids": []
+    },
+    {
+      "event_id": "EV-SHARED-PUMP-MAINT",
+      "event_kind": "shared_asset_maintenance",
+      "event_order": 24,
+      "unit_ids": [
+        "U-001",
+        "U-002",
+        "U-003",
+        "U-004"
+      ],
+      "asset_ids": [
+        "ASSET-SHARED-WATER-PUMP"
+      ],
+      "from_revision_id": null,
+      "to_revision_id": null,
+      "change_kind": null,
+      "event_time_state": "not_supplied",
+      "occurred_at": null,
+      "record_time_state": "not_supplied",
+      "recorded_at": null,
+      "execution_state": "authored_not_executed",
+      "data_scope": "synthetic_structure_only",
+      "resident_data_state": "no_personal_data",
+      "consent_state": "not_applicable",
+      "evidence_refs": [],
+      "change_impact_state": "not_applicable",
+      "change_impact_ref": null,
+      "invalidated_claim_ids": []
+    }
+  ],
+  "unit_timelines": [
+    {
+      "unit_id": "U-001",
+      "baseline_revision_id": "U-001-R0",
+      "current_revision_id": "U-001-R3",
+      "event_ids": [
+        "EV-U-001-DESIGN",
+        "EV-U-001-ADAPT",
+        "EV-U-001-ASBUILT",
+        "EV-U-001-COMMISSION",
+        "EV-U-001-OCCUPANCY",
+        "EV-U-001-POE",
+        "EV-U-001-MAINT",
+        "EV-U-001-REPAIR",
+        "EV-U-001-REINSPECT",
+        "EV-U-001-RECOMMISSION",
+        "EV-SHARED-F0-RISER-MAINT",
+        "EV-SHARED-PUMP-MAINT"
+      ]
+    },
+    {
+      "unit_id": "U-002",
+      "baseline_revision_id": "U-002-R0",
+      "current_revision_id": "U-002-R2",
+      "event_ids": [
+        "EV-U-002-DESIGN",
+        "EV-U-002-ASBUILT",
+        "EV-U-002-COMMISSION",
+        "EV-U-002-OCCUPANCY",
+        "EV-SHARED-F0-RISER-MAINT",
+        "EV-SHARED-PUMP-MAINT"
+      ]
+    },
+    {
+      "unit_id": "U-003",
+      "baseline_revision_id": "U-003-R0",
+      "current_revision_id": "U-003-R2",
+      "event_ids": [
+        "EV-U-003-DESIGN",
+        "EV-U-003-ASBUILT",
+        "EV-U-003-COMMISSION",
+        "EV-U-003-OCCUPANCY",
+        "EV-SHARED-PUMP-MAINT"
+      ]
+    },
+    {
+      "unit_id": "U-004",
+      "baseline_revision_id": "U-004-R0",
+      "current_revision_id": "U-004-R2",
+      "event_ids": [
+        "EV-U-004-DESIGN",
+        "EV-U-004-ASBUILT",
+        "EV-U-004-COMMISSION",
+        "EV-U-004-OCCUPANCY",
+        "EV-SHARED-PUMP-MAINT"
+      ]
+    }
+  ],
+  "claims": [
+    {
+      "claim_id": "CLAIM-U001-LAYOUT-R0",
+      "unit_id": "U-001",
+      "domain": "unit_layout",
+      "revision_id": "U-001-R0",
+      "claim_state": "invalidated",
+      "invalidated_by_event_id": "EV-U-001-ADAPT",
+      "evidence_refs": [],
+      "claim_scope": "synthetic_claim_identity_only"
+    },
+    {
+      "claim_id": "CLAIM-U001-PRIVACY-R0",
+      "unit_id": "U-001",
+      "domain": "privacy_relationship",
+      "revision_id": "U-001-R0",
+      "claim_state": "invalidated",
+      "invalidated_by_event_id": "EV-U-001-ADAPT",
+      "evidence_refs": [],
+      "claim_scope": "synthetic_claim_identity_only"
+    },
+    {
+      "claim_id": "CLAIM-U001-COMMISSION-R3",
+      "unit_id": "U-001",
+      "domain": "commissioning",
+      "revision_id": "U-001-R3",
+      "claim_state": "not_assessed",
+      "invalidated_by_event_id": null,
+      "evidence_refs": [],
+      "claim_scope": "synthetic_claim_identity_only"
+    },
+    {
+      "claim_id": "CLAIM-U001-INUSE-R3",
+      "unit_id": "U-001",
+      "domain": "in_use_service",
+      "revision_id": "U-001-R3",
+      "claim_state": "not_assessed",
+      "invalidated_by_event_id": null,
+      "evidence_refs": [],
+      "claim_scope": "synthetic_claim_identity_only"
+    },
+    {
+      "claim_id": "CLAIM-U-002-LAYOUT-CURRENT",
+      "unit_id": "U-002",
+      "domain": "unit_layout",
+      "revision_id": "U-002-R2",
+      "claim_state": "not_assessed",
+      "invalidated_by_event_id": null,
+      "evidence_refs": [],
+      "claim_scope": "synthetic_claim_identity_only"
+    },
+    {
+      "claim_id": "CLAIM-U-003-LAYOUT-CURRENT",
+      "unit_id": "U-003",
+      "domain": "unit_layout",
+      "revision_id": "U-003-R2",
+      "claim_state": "not_assessed",
+      "invalidated_by_event_id": null,
+      "evidence_refs": [],
+      "claim_scope": "synthetic_claim_identity_only"
+    },
+    {
+      "claim_id": "CLAIM-U-004-LAYOUT-CURRENT",
+      "unit_id": "U-004",
+      "domain": "unit_layout",
+      "revision_id": "U-004-R2",
+      "claim_state": "not_assessed",
+      "invalidated_by_event_id": null,
+      "evidence_refs": [],
+      "claim_scope": "synthetic_claim_identity_only"
+    }
+  ],
+  "claim_ceiling": "This synthetic record establishes only apartment/asset identity, revision lineage, logical event ordering and non-contradictory claim lifecycle. It does not establish real construction, as-built condition, commissioning, occupation, resident experience, measurement, repair, service restoration, safety, code compliance or building performance."
+}
