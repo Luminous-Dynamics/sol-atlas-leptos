@@ -253,24 +253,28 @@ fn parse_quoted_row(line: &[u8]) -> Result<Vec<String>, AgsPreflightError> {
         return Err(AgsPreflightError::EmptyLine);
     }
 
-    // AGS4 descriptors are the one unquoted cell in each row:
-    // GROUP,"PROJ" / HEADING,"PROJ_ID" / UNIT,"" / TYPE,"X".
-    // All cells following the descriptor remain strictly quoted.
-    let descriptor_end = line
-        .iter()
-        .position(|byte| *byte == b',')
-        .ok_or(AgsPreflightError::HeaderWidthMismatch)?;
-    if descriptor_end == 0 {
-        return Err(AgsPreflightError::EmptyLine);
-    }
-    let descriptor = String::from_utf8(line[..descriptor_end].to_vec())
-        .map_err(|_| AgsPreflightError::NonAsciiByte)?;
-    if descriptor.trim().is_empty() {
-        return Err(AgsPreflightError::EmptyLine);
-    }
+    let mut fields = Vec::new();
+    let mut index = 0usize;
 
-    let mut fields = vec![descriptor];
-    let mut index = descriptor_end + 1;
+    // Canonical AGS4 v4.1.1 quotes every cell, including the DATA DESCRIPTOR.
+    // Retain compatibility with unquoted descriptors found in some exchange
+    // fixtures, while keeping all value cells strictly quoted in either form.
+    if line.first() != Some(&b'"') {
+        let descriptor_end = line
+            .iter()
+            .position(|byte| *byte == b',')
+            .ok_or(AgsPreflightError::HeaderWidthMismatch)?;
+        if descriptor_end == 0 {
+            return Err(AgsPreflightError::EmptyLine);
+        }
+        let descriptor = String::from_utf8(line[..descriptor_end].to_vec())
+            .map_err(|_| AgsPreflightError::NonAsciiByte)?;
+        if descriptor.trim().is_empty() {
+            return Err(AgsPreflightError::EmptyLine);
+        }
+        fields.push(descriptor);
+        index = descriptor_end + 1;
+    }
 
     loop {
         if index >= line.len() || line[index] != b'"' {
@@ -315,13 +319,22 @@ fn parse_quoted_row(line: &[u8]) -> Result<Vec<String>, AgsPreflightError> {
         }
     }
 
+    if fields
+        .first()
+        .map(|value| value.trim().is_empty())
+        .unwrap_or(true)
+    {
+        return Err(AgsPreflightError::EmptyLine);
+    }
+
     Ok(fields)
 }
 
 /// Parse AGS4's quoted group-row envelope.
 ///
-/// The parser enforces ASCII, CRLF-delimited rows, quoted cells, GROUP/HEADING/
-/// UNIT/TYPE order and field-width consistency. It does not validate the AGS
+/// The parser enforces ASCII, CRLF-delimited rows, canonical fully quoted AGS4
+/// cells (plus a compatible unquoted-descriptor form), GROUP/HEADING/UNIT/TYPE
+/// order and field-width consistency. It does not validate the AGS
 /// standard dictionary, units, geotechnical data, parent references, BGS
 /// submission rules, coordinate frames, or the correctness of any measurement.
 pub fn parse_ags4_preflight(bytes: &[u8]) -> Result<AgsDocument, AgsPreflightError> {
