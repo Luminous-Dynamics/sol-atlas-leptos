@@ -385,8 +385,8 @@ fn validate_bridge_input(input: &BridgeInput) -> Result<(), String> {
     }
 
     let mut campaign_ids = BTreeSet::new();
-    let mut action_ids = BTreeSet::new();
     for campaign in &input.campaigns {
+        let mut action_ids = BTreeSet::new();
         if campaign.package_id.trim().is_empty() {
             return Err("campaign package_id must not be empty".to_owned());
         }
@@ -420,8 +420,8 @@ fn validate_bridge_input(input: &BridgeInput) -> Result<(), String> {
             }
             if !action_ids.insert(action.action_id.as_str()) {
                 return Err(format!(
-                    "duplicate campaign action_id: {}",
-                    action.action_id
+                    "duplicate action_id {} within campaign {}",
+                    action.action_id, campaign.package_id
                 ));
             }
             validate_unique_nonempty(
@@ -1669,13 +1669,12 @@ mod tests {
 
         let mut other_campaign = input.campaigns[0].clone();
         other_campaign.package_id = "OPTION-PACKAGE-002".to_owned();
-        other_campaign.actions[0].action_id = "OBSERVATION-ACTION-002".to_owned();
         input.campaigns.push(other_campaign);
 
         let mut rejected_mapping = input.physical_bindings[0].clone();
         rejected_mapping.mapping_id = "UNBOUND-SECOND-MAPPING".to_owned();
         rejected_mapping.campaign_package_id = "OPTION-PACKAGE-002".to_owned();
-        rejected_mapping.action_id = "OBSERVATION-ACTION-002".to_owned();
+        rejected_mapping.action_id = "OBSERVATION-ACTION-001".to_owned();
         rejected_mapping.review.status = BindingState::Unbound;
         rejected_mapping.review.mapping_sha256 = None;
         rejected_mapping.review.mycelix_approval_ref = None;
@@ -1697,6 +1696,33 @@ mod tests {
         assert_eq!(
             result.rejected_alternatives[0].disposition,
             BridgeDisposition::Unbound
+        );
+    }
+
+    #[test]
+    fn same_action_id_is_valid_in_distinct_option_campaign_namespaces() {
+        let mut input = base_input(AcquisitionKind::Physical);
+        add_complete_campaign(&mut input, CampaignSearchStatus::CompleteOptimal);
+
+        let mut second_campaign = input.campaigns[0].clone();
+        second_campaign.package_id = "OPTION-PACKAGE-002".to_owned();
+        // Intentionally retain OBSERVATION-ACTION-001: identity is scoped
+        // by the containing option-evidence package.
+        input.campaigns.push(second_campaign);
+
+        let mut second_mapping = input.physical_bindings[0].clone();
+        second_mapping.mapping_id = "OWNER-REVIEWED-MAPPING-002".to_owned();
+        second_mapping.campaign_package_id = "OPTION-PACKAGE-002".to_owned();
+        input.physical_bindings.push(second_mapping);
+
+        let report = evaluate(&input);
+        assert_eq!(
+            report.obligations_with_admissible_acquisition_route,
+            1
+        );
+        assert_eq!(
+            report.obligation_results[0].disposition,
+            BridgeDisposition::PlannedPhysicalObservationOwnerReportsOptimal
         );
     }
 
