@@ -518,6 +518,19 @@ pub fn audit_dc_power_flow(
         )?;
     }
 
+    require_close(
+        "reported maximum absolute nodal residual",
+        candidate.max_abs_nodal_residual_mw,
+        max_abs_nodal_residual_mw,
+        options.value_tolerance_mw,
+    )?;
+    require_close(
+        "reported maximum branch overload",
+        candidate.max_branch_overload_mw,
+        max_branch_overload_mw,
+        options.value_tolerance_mw,
+    )?;
+
     let within_nodal_tolerance =
         max_abs_nodal_residual_mw <= options.residual_tolerance_mw;
     let within_declared_branch_limits =
@@ -723,6 +736,19 @@ mod tests {
             .unwrap_err()
             .reason
             .contains("branch 0 flow mismatch"));
+    }
+
+    #[test]
+    fn rejects_forged_aggregate_metrics() {
+        let network = two_bus(None);
+        let mut result = solve(&network);
+        result.max_branch_overload_mw = 3.0;
+        assert!(
+            audit_dc_power_flow(&network, &result, AuditOptions::default())
+                .unwrap_err()
+                .reason
+                .contains("reported maximum branch overload mismatch")
+        );
     }
 
     #[test]
