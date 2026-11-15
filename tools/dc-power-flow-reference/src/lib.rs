@@ -695,6 +695,67 @@ mod tests {
     }
 
     #[test]
+    fn three_bus_triangle_matches_hand_calculated_counter_flows() {
+        let network = DcNetwork {
+            base_mva: 100.0,
+            buses: vec![
+                DcBus {
+                    id: 1,
+                    specified_injection_mw: None,
+                },
+                DcBus {
+                    id: 2,
+                    specified_injection_mw: Some(-50.0),
+                },
+                DcBus {
+                    id: 3,
+                    specified_injection_mw: Some(0.0),
+                },
+            ],
+            branches: vec![
+                DcBranch {
+                    from_bus: 1,
+                    to_bus: 2,
+                    reactance_pu: 0.1,
+                    tap_ratio: 0.0,
+                    phase_shift_degrees: 0.0,
+                    rate_a_mva: None,
+                    in_service: true,
+                },
+                DcBranch {
+                    from_bus: 2,
+                    to_bus: 3,
+                    reactance_pu: 0.2,
+                    tap_ratio: 0.0,
+                    phase_shift_degrees: 0.0,
+                    rate_a_mva: None,
+                    in_service: true,
+                },
+                DcBranch {
+                    from_bus: 1,
+                    to_bus: 3,
+                    reactance_pu: 0.2,
+                    tap_ratio: 0.0,
+                    phase_shift_degrees: 0.0,
+                    rate_a_mva: None,
+                    in_service: true,
+                },
+            ],
+        };
+        let result = solve_dc_power_flow(&network, SolveOptions::default()).unwrap();
+
+        assert!(result.feasible_under_declared_checks);
+        assert_eq!(result.energized_island_count, 1);
+        assert!((result.bus_states[1].voltage_angle_rad + 0.04).abs() < 1.0e-9);
+        assert!((result.bus_states[2].voltage_angle_rad + 0.02).abs() < 1.0e-9);
+        assert!((result.branch_flows[0].flow_from_to_mw - 40.0).abs() < 1.0e-9);
+        assert!((result.branch_flows[1].flow_from_to_mw + 10.0).abs() < 1.0e-9);
+        assert!((result.branch_flows[2].flow_from_to_mw - 10.0).abs() < 1.0e-9);
+        assert!((result.slack_injections[0].injection_mw - 50.0).abs() < 1.0e-9);
+        assert!(result.max_abs_nodal_residual_mw < 1.0e-9);
+    }
+
+    #[test]
     fn zero_tap_ratio_uses_unity_transformer_ratio() {
         let zero_tap = solve_dc_power_flow(&two_bus(None), SolveOptions::default()).unwrap();
         let mut explicit_unity = two_bus(None);
