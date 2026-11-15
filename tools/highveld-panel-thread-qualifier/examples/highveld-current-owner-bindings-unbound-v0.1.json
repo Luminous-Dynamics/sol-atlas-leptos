@@ -1,0 +1,188 @@
+{
+  "profile_id": "luminous.highveld.evidence-campaign-bridge.v0.1",
+  "version": "0.1.0",
+  "status": "SYNTHETIC_BRIDGE_CONTRACT_ONLY",
+  "claim_ceiling": "NON_AUTHORIZING_SYNTHETIC_EVALUATION",
+  "episode": {
+    "binding": {
+      "owner": "mycelix",
+      "repository": "Luminous-Dynamics/mycelix",
+      "commit_sha": null,
+      "artifact_path": null,
+      "artifact_sha256": null,
+      "profile_id": null,
+      "profile_version": null,
+      "adapter_id": null,
+      "adapter_sha256": null,
+      "mapping_status": "UNBOUND",
+      "mapping_sha256": null,
+      "owner_approval_ref": null
+    },
+    "episode_id": "HIGHVELD-EPISODE-CURRENT-UNBOUND",
+    "as_of_unix": 1794760000,
+    "context": {
+      "project_context_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+      "functional_contract_sha256": "1111111111111111111111111111111111111111111111111111111111111111",
+      "option_design_sha256": "2222222222222222222222222222222222222222222222222222222222222222",
+      "site_epoch": "HIGHVELD-SYNTHETIC-SITE-EPOCH-UNBOUND",
+      "coordinate_frame_id": "HIGHVELD-SYNTHETIC-FRAME-UNBOUND",
+      "clock_domain": "HIGHVELD-SYNTHETIC-CLOCK-UNBOUND",
+      "currency": "USD"
+    },
+    "unresolved_obligation_ids": [
+      "HPT-OBLIGATION-MATERIAL-AND-PANEL-MEASUREMENTS"
+    ]
+  },
+  "acquisitions": [
+    {
+      "binding": {
+        "owner": "mycelix",
+        "repository": "Luminous-Dynamics/mycelix",
+        "commit_sha": null,
+        "artifact_path": null,
+        "artifact_sha256": null,
+        "profile_id": null,
+        "profile_version": null,
+        "adapter_id": null,
+        "adapter_sha256": null,
+        "mapping_status": "UNBOUND",
+        "mapping_sha256": null,
+        "owner_approval_ref": null
+      },
+      "acquisition_id": "MYCELIX-6252-REMOTE-AUDIT-UNBOUND",
+      "episode_id": "HIGHVELD-EPISODE-CURRENT-UNBOUND",
+      "context": {
+        "project_context_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+        "functional_contract_sha256": "1111111111111111111111111111111111111111111111111111111111111111",
+        "option_design_sha256": "2222222222222222222222222222222222222222222222222222222222222222",
+        "site_epoch": "HIGHVELD-SYNTHETIC-SITE-EPOCH-UNBOUND",
+        "coordinate_frame_id": "HIGHVELD-SYNTHETIC-FRAME-UNBOUND",
+        "clock_domain": "HIGHVELD-SYNTHETIC-CLOCK-UNBOUND",
+        "currency": "USD"
+      },
+      "kind": "REMOTE",
+      "covers_obligation_ids": [
+        "HPT-OBLIGATION-MATERIAL-AND-PANEL-MEASUREMENTS"
+      ],
+      "gates": {
+        "authority": "UNKNOWN",
+        "rights_source_use": "UNKNOWN",
+        "safety": "NOT_APPLICABLE",
+        "schedule": "UNKNOWN",
+        "physical_realizability": "NOT_APPLICABLE",
+        "data_access": "UNKNOWN",
+        "source_competence": "UNKNOWN"
+      }
+    },
+    {
+      "binding": {
+        "owner": "mycelix",
+        "repository": "Luminous-Dynamics/mycelix",
+        "commit_sha": null,
+        "artifact_path": null,
+        "artifact_sha256": null,
+        "profile_id": null,
+        "profile_version": null,
+        "adapter_id": null,
+        "adapter_sha256": null,
+        "mapping_status": "UNBOUND",
+        "mapping_sha256": null,
+        "owner_approval_ref": null
+      },
+      "acquisition_id": "MYCELIX-6252-PHYSICAL-OBSERVATION-UNBOUND",
+      "episode_id": "HIGHVELD-EPISODE-CURRENT-UNBOUND",
+      "context": {
+        "project_context_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+        "functional_contract_sha256": "1111111111111111111111111111111111111111111111111111111111111111",
+        "option_design_sha256": "2222222222222222222222222222222222222222222222222222222222222222",
+        "site_epoch": "HIGHVELD-SYNTHETIC-SITE-EPOCH-UNBOUND",
+        "coordinate_frame_id": "HIGHVELD-SYNTHETIC-FRAME-UNBOUND",
+        "clock_domain": "HIGHVELD-SYNTHETIC-CLOCK-UNBOUND",
+        "currency": "USD"
+      },
+      "kind": "PHYSICAL",
+      "covers_obligation_ids": [
+        "HPT-OBLIGATION-MATERIAL-AND-PANEL-MEASUREMENTS"
+      ],
+      "gates": {
+        "authority": "UNKNOWN",
+        "rights_source_use": "UNKNOWN",
+        "safety": "UNKNOWN",
+        "schedule": "UNKNOWN",
+        "physical_realizability": "UNKNOWN",
+        "data_access": "UNKNOWN",
+        "source_competence": "UNKNOWN"
+      }
+    }
+  ],
+  "campaigns": [
+    {
+      "binding": {
+        "owner": "symtropy",
+        "repository": "Luminous-Dynamics/symtropy",
+        "commit_sha": "4de9edc401081a795fb94009d2b11d6e5aa0e483",
+        "artifact_path": null,
+        "artifact_sha256": null,
+        "profile_id": null,
+        "profile_version": null,
+        "adapter_id": null,
+        "adapter_sha256": null,
+        "mapping_status": "UNBOUND",
+        "mapping_sha256": null,
+        "owner_approval_ref": null
+      },
+      "package_id": "SYMTROPY-5260-OPTION-CAMPAIGN-UNBOUND",
+      "context": {
+        "project_context_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+        "functional_contract_sha256": "1111111111111111111111111111111111111111111111111111111111111111",
+        "option_design_sha256": "2222222222222222222222222222222222222222222222222222222222222222",
+        "site_epoch": "HIGHVELD-SYNTHETIC-SITE-EPOCH-UNBOUND",
+        "coordinate_frame_id": "HIGHVELD-SYNTHETIC-FRAME-UNBOUND",
+        "clock_domain": "HIGHVELD-SYNTHETIC-CLOCK-UNBOUND",
+        "currency": "USD"
+      },
+      "search_status": "SEARCH_INCOMPLETE",
+      "actions": [
+        {
+          "action_id": "SYMTROPY-OBSERVATION-ACTION-UNBOUND",
+          "context": {
+            "project_context_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+            "functional_contract_sha256": "1111111111111111111111111111111111111111111111111111111111111111",
+            "option_design_sha256": "2222222222222222222222222222222222222222222222222222222222222222",
+            "site_epoch": "HIGHVELD-SYNTHETIC-SITE-EPOCH-UNBOUND",
+            "coordinate_frame_id": "HIGHVELD-SYNTHETIC-FRAME-UNBOUND",
+            "clock_domain": "HIGHVELD-SYNTHETIC-CLOCK-UNBOUND",
+            "currency": "USD"
+          },
+          "covers_obligation_ids": [
+            "HPT-OBLIGATION-MATERIAL-AND-PANEL-MEASUREMENTS"
+          ]
+        }
+      ]
+    }
+  ],
+  "physical_bindings": [
+    {
+      "mapping_id": "HIGHVELD-OWNER-REVIEWED-RELATION-UNBOUND",
+      "acquisition_id": "MYCELIX-6252-PHYSICAL-OBSERVATION-UNBOUND",
+      "episode_id": "HIGHVELD-EPISODE-CURRENT-UNBOUND",
+      "campaign_package_id": "SYMTROPY-5260-OPTION-CAMPAIGN-UNBOUND",
+      "action_id": "SYMTROPY-OBSERVATION-ACTION-UNBOUND",
+      "context": {
+        "project_context_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+        "functional_contract_sha256": "1111111111111111111111111111111111111111111111111111111111111111",
+        "option_design_sha256": "2222222222222222222222222222222222222222222222222222222222222222",
+        "site_epoch": "HIGHVELD-SYNTHETIC-SITE-EPOCH-UNBOUND",
+        "coordinate_frame_id": "HIGHVELD-SYNTHETIC-FRAME-UNBOUND",
+        "clock_domain": "HIGHVELD-SYNTHETIC-CLOCK-UNBOUND",
+        "currency": "USD"
+      },
+      "review": {
+        "status": "UNBOUND",
+        "mapping_sha256": null,
+        "owner_approval_ref": null,
+        "reviewed_by": null
+      }
+    }
+  ]
+}
