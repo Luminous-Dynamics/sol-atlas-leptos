@@ -1,0 +1,36 @@
+name: DC power-flow independent auditor
+
+on:
+  pull_request:
+    paths:
+      - "tools/dc-power-flow-independent-auditor/**"
+      - ".github/workflows/dc-power-flow-independent-auditor.yml"
+      - "tools/dc-power-flow-reference/**"
+  push:
+    paths:
+      - "tools/dc-power-flow-independent-auditor/**"
+      - ".github/workflows/dc-power-flow-independent-auditor.yml"
+      - "tools/dc-power-flow-reference/**"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: dc-power-flow-independent-auditor
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+      - name: Format
+        run: cargo fmt --manifest-path tools/dc-power-flow-independent-auditor/Cargo.toml -- --check
+      - name: Locked offline tests
+        run: cargo test --manifest-path tools/dc-power-flow-independent-auditor/Cargo.toml --locked --offline
+      - name: Strict Clippy
+        run: cargo clippy --manifest-path tools/dc-power-flow-independent-auditor/Cargo.toml --locked --offline --all-targets -- -D warnings
