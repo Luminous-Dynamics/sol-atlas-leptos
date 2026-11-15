@@ -1,0 +1,68 @@
+name: City Construction Delivery Synthetic Oracle
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+    paths:
+      - "tools/city-construction-delivery-bench/**"
+      - "docs/research/city-construction-delivery/**"
+      - ".github/workflows/city-construction-delivery-oracle.yml"
+  push:
+    branches: ["main", "research/city-construction-delivery-v0.1"]
+    paths:
+      - "tools/city-construction-delivery-bench/**"
+      - "docs/research/city-construction-delivery/**"
+      - ".github/workflows/city-construction-delivery-oracle.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+concurrency:
+  group: city-construction-delivery-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  delivery-oracle:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: 1.96.0
+          components: rustfmt, clippy
+      - name: Check formatting
+        run: cargo fmt --manifest-path tools/city-construction-delivery-bench/Cargo.toml --all -- --check
+      - name: Run delivery and hostile-control tests
+        run: cargo test --locked --manifest-path tools/city-construction-delivery-bench/Cargo.toml
+      - name: Run strict Clippy
+        run: cargo clippy --locked --manifest-path tools/city-construction-delivery-bench/Cargo.toml --all-targets -- -D warnings
+      - name: Emit exact-head delivery receipt
+        shell: bash
+        run: |
+          set -euo pipefail
+          source_commit="$(git rev-parse HEAD)"
+          test "$source_commit" = "${{ github.event.pull_request.head.sha || github.sha }}"
+          cargo run --locked --quiet --manifest-path tools/city-construction-delivery-bench/Cargo.toml -- \
+            docs/research/city-construction-delivery/CITY_CONSTRUCTION_DELIVERY_CORPUS_V0_1.json \
+            --source-commit "$source_commit" > city-construction-delivery-receipt.json
+          jq -e '
+            .result == "pass"
+            and .corpus_id == "CITY-CONSTRUCTION-DELIVERY-CORPUS-V0.1"
+            and .corpus_classification == "synthetic_fixture_only"
+            and .scenario_count == 33 and .failure_count == 0
+            and (.corpus_sha256 | test("^[0-9a-f]{64}$"))
+            and (.source_commit | test("^[0-9a-f]{40}$"))
+            and (.scenarios | length == 33)
+            and (.scenarios | all(.status == "pass"))
+          ' city-construction-delivery-receipt.json
+      - name: Upload exact-head delivery receipt
+        uses: actions/upload-artifact@v4
+        with:
+          name: city-construction-delivery-reference-receipt
+          path: city-construction-delivery-receipt.json
+          if-no-files-found: error
+          retention-days: 90

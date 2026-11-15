@@ -1,0 +1,13 @@
+[package]
+name = "city-construction-delivery-reference"
+version = "0.1.0"
+edition = "2024"
+license = "AGPL-3.0-or-later"
+publish = false
+description = "Synthetic reference oracle for above-ground construction material delivery feasibility"
+
+[dependencies]
+serde_json = "=1.0.149"
+sha2 = "=0.10.9"
+
+[workspace]
