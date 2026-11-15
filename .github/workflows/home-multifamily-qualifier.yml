@@ -184,3 +184,27 @@ jobs:
                   raise SystemExit(rendered)
               print(f"PASS Draft 2020-12: {profile['profile_id']} against home-service-interface.schema.json")
           PY
+
+  lockfile-integrity:
+    name: Cargo.lock exact-resolution diagnostic
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout PR source
+        uses: actions/checkout@v4
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+      - name: Resolve manifest and require committed lockfile
+        shell: bash
+        run: |
+          set -euo pipefail
+          cargo metadata --format-version 1 --no-deps >/dev/null
+          cargo metadata --format-version 1 >/dev/null
+          if git diff --quiet -- Cargo.lock; then
+            echo "PASS: cargo metadata resolved without changing committed Cargo.lock."
+          else
+            echo "::error::Cargo.lock is stale relative to Cargo.toml / current dependency resolution."
+            git --no-pager diff -- Cargo.lock
+            exit 1
+          fi
