@@ -453,6 +453,103 @@ pub fn shared_lineage(
     }
 }
 
+
+/// Origin/meaning of a scenario supplied to a shoreline evaluation.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum EarthScenarioKind {
+    PaleogeographicReconstruction,
+    GlobalEustaticEstimate,
+    LocalRelativeSeaLevelReconstruction,
+    SyntheticModernTerrainOffset,
+    FutureEarthBoundaryCondition,
+}
+
+/// Result of checking whether a scenario has the minimum context needed to
+/// enter a local shoreline physical-model evaluation.
+///
+/// Ready means only that required input categories are present and declared
+/// Pass by the caller. It is not proof that the data or physical model is
+/// accurate, calibrated, or valid for a particular place or geological age.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum LocalShorelineInputStatus {
+    ReadyForPhysicalModelEvaluation,
+    RejectedTypeMismatch,
+    BlockedByFailedGate,
+    Unresolved,
+}
+
+/// Gate report for local shoreline evaluation.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct LocalShorelineInputReport {
+    pub status: LocalShorelineInputStatus,
+    pub missing_or_unknown_fields: BTreeSet<String>,
+    pub failed_fields: BTreeSet<String>,
+}
+
+/// Required evidence dimensions for local shoreline evaluation.
+pub const LOCAL_SHORELINE_REQUIRED_GATES: [&str; 8] = [
+    "horizontal_paleo_transform",
+    "vertical_reference",
+    "paleotopography",
+    "local_vertical_land_motion",
+    "geoid_gravitational_rotational_fingerprint",
+    "ocean_dynamics",
+    "chronology_alignment",
+    "source_lineage_and_uncertainty",
+];
+
+/// Check whether a scenario may enter a local shoreline model evaluation.
+///
+/// Synthetic modern-terrain offsets and future-Earth climate boundary
+/// conditions are rejected as type mismatches. Other scenario kinds require
+/// every local transformation/evidence gate to be explicitly Pass. Missing
+/// or Unknown gates return Unresolved; any known failed gate blocks evaluation.
+pub fn local_shoreline_input_report(
+    scenario_kind: EarthScenarioKind,
+    gates: &BTreeMap<String, GateResult>,
+) -> LocalShorelineInputReport {
+    if matches!(
+        scenario_kind,
+        EarthScenarioKind::SyntheticModernTerrainOffset
+            | EarthScenarioKind::FutureEarthBoundaryCondition
+    ) {
+        return LocalShorelineInputReport {
+            status: LocalShorelineInputStatus::RejectedTypeMismatch,
+            missing_or_unknown_fields: BTreeSet::new(),
+            failed_fields: BTreeSet::new(),
+        };
+    }
+
+    let mut missing_or_unknown_fields = BTreeSet::new();
+    let mut failed_fields = BTreeSet::new();
+
+    for field in LOCAL_SHORELINE_REQUIRED_GATES {
+        match gates.get(field) {
+            Some(GateResult::Pass) => {}
+            Some(GateResult::Fail) => {
+                failed_fields.insert(field.to_owned());
+            }
+            Some(GateResult::Unknown) | None => {
+                missing_or_unknown_fields.insert(field.to_owned());
+            }
+        }
+    }
+
+    let status = if !failed_fields.is_empty() {
+        LocalShorelineInputStatus::BlockedByFailedGate
+    } else if !missing_or_unknown_fields.is_empty() {
+        LocalShorelineInputStatus::Unresolved
+    } else {
+        LocalShorelineInputStatus::ReadyForPhysicalModelEvaluation
+    };
+
+    LocalShorelineInputReport {
+        status,
+        missing_or_unknown_fields,
+        failed_fields,
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -686,4 +783,68 @@ mod tests {
             Err(RobustnessError::EmptyFloorSet)
         );
     }
+
+    fn complete_shoreline_gates() -> BTreeMap<String, GateResult> {
+        LOCAL_SHORELINE_REQUIRED_GATES
+            .iter()
+            .map(|field| ((*field).to_owned(), GateResult::Pass))
+            .collect()
+    }
+
+    #[test]
+    fn dtr_001_synthetic_modern_offset_is_rejected_as_paleoshoreline_input() {
+        let result = local_shoreline_input_report(
+            EarthScenarioKind::SyntheticModernTerrainOffset,
+            &complete_shoreline_gates(),
+        );
+        assert_eq!(
+            result.status,
+            LocalShorelineInputStatus::RejectedTypeMismatch
+        );
+    }
+
+    #[test]
+    fn dtr_002_global_eustatic_curve_needs_local_vertical_motion_and_other_gates() {
+        let mut gates = complete_shoreline_gates();
+        gates.insert(
+            "local_vertical_land_motion".to_owned(),
+            GateResult::Unknown,
+        );
+        let result = local_shoreline_input_report(
+            EarthScenarioKind::GlobalEustaticEstimate,
+            &gates,
+        );
+        assert_eq!(result.status, LocalShorelineInputStatus::Unresolved);
+        assert!(result
+            .missing_or_unknown_fields
+            .contains("local_vertical_land_motion"));
+    }
+
+    #[test]
+    fn dtr_009_future_supercontinent_boundary_is_not_a_sea_level_offset() {
+        let result = local_shoreline_input_report(
+            EarthScenarioKind::FutureEarthBoundaryCondition,
+            &complete_shoreline_gates(),
+        );
+        assert_eq!(
+            result.status,
+            LocalShorelineInputStatus::RejectedTypeMismatch
+        );
+    }
+
+    #[test]
+    fn local_shoreline_gate_failure_blocks_evaluation() {
+        let mut gates = complete_shoreline_gates();
+        gates.insert("vertical_reference".to_owned(), GateResult::Fail);
+        let result = local_shoreline_input_report(
+            EarthScenarioKind::PaleogeographicReconstruction,
+            &gates,
+        );
+        assert_eq!(
+            result.status,
+            LocalShorelineInputStatus::BlockedByFailedGate
+        );
+        assert!(result.failed_fields.contains("vertical_reference"));
+    }
+
 }
