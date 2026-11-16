@@ -856,14 +856,8 @@ mod tests {
             .map(|strategy| StrategyUtilities {
                 strategy_id: strategy.strategy_id.clone(),
                 by_model: BTreeMap::from([
-                    (
-                        "A".to_owned(),
-                        strategy.by_model["A"] + 1_000,
-                    ),
-                    (
-                        "B".to_owned(),
-                        strategy.by_model["B"] - 500,
-                    ),
+                    ("A".to_owned(), strategy.by_model["A"] + 1_000),
+                    ("B".to_owned(), strategy.by_model["B"] - 500),
                 ]),
             })
             .collect::<Vec<_>>();
@@ -935,13 +929,10 @@ mod tests {
                 by_model: utility_map(&[("A", 10), ("B", 5), ("C", 0)]),
             },
         ];
-        let expanded =
-            minimax_regret(&expanded_models, &expanded_strategies).unwrap();
+        let expanded = minimax_regret(&expanded_models, &expanded_strategies).unwrap();
 
         for (strategy_id, baseline_regret) in baseline.maximum_regret_by_strategy {
-            assert!(
-                expanded.maximum_regret_by_strategy[&strategy_id] >= baseline_regret
-            );
+            assert!(expanded.maximum_regret_by_strategy[&strategy_id] >= baseline_regret);
         }
     }
 
@@ -970,9 +961,7 @@ mod tests {
     }
 
 
-    fn array_minimax_regret_oracle(
-        utilities: [[i64; 3]; 3],
-    ) -> ([i64; 3], [i64; 3], usize) {
+    fn array_minimax_regret_oracle(utilities: [[i64; 3]; 3]) -> ([i64; 3], [i64; 3], usize) {
         let mut best_by_model = [i64::MIN; 3];
         for model_index in 0..3 {
             for strategy_index in 0..3 {
@@ -987,8 +976,7 @@ mod tests {
         for strategy_index in 0..3 {
             let mut worst_regret = i64::MIN;
             for model_index in 0..3 {
-                let regret =
-                    best_by_model[model_index] - utilities[strategy_index][model_index];
+                let regret = best_by_model[model_index] - utilities[strategy_index][model_index];
                 if regret > worst_regret {
                     worst_regret = regret;
                 }
@@ -998,10 +986,7 @@ mod tests {
 
         let mut selected_strategy = 0usize;
         for strategy_index in 1..3 {
-            let candidate = (
-                maximum_regret_by_strategy[strategy_index],
-                strategy_index,
-            );
+            let candidate = (maximum_regret_by_strategy[strategy_index], strategy_index);
             let selected = (
                 maximum_regret_by_strategy[selected_strategy],
                 selected_strategy,
@@ -1011,11 +996,7 @@ mod tests {
             }
         }
 
-        (
-            best_by_model,
-            maximum_regret_by_strategy,
-            selected_strategy,
-        )
+        (best_by_model, maximum_regret_by_strategy, selected_strategy)
     }
 
     #[test]
@@ -1030,8 +1011,7 @@ mod tests {
 
             for strategy_index in 0..3 {
                 for model_index in 0..3 {
-                    utilities[strategy_index][model_index] =
-                        (remaining % 3) as i64;
+                    utilities[strategy_index][model_index] = (remaining % 3) as i64;
                     remaining /= 3;
                 }
             }
@@ -1049,13 +1029,12 @@ mod tests {
 
             let (oracle_best, oracle_regret, oracle_selected) =
                 array_minimax_regret_oracle(utilities);
-            let actual = minimax_regret(&models, &strategies)
-                .expect("complete finite utility matrix");
+            let actual =
+                minimax_regret(&models, &strategies).expect("complete finite utility matrix");
 
             for model_index in 0..3 {
                 assert_eq!(
-                    actual.best_utility_by_model[&models[model_index]],
-                    oracle_best[model_index],
+                    actual.best_utility_by_model[&models[model_index]], oracle_best[model_index],
                     "best utility mismatch in encoded case {encoded_case}"
                 );
             }
@@ -1069,16 +1048,13 @@ mod tests {
             }
 
             assert_eq!(
-                actual.selected_strategy,
-                strategy_ids[oracle_selected],
+                actual.selected_strategy, strategy_ids[oracle_selected],
                 "selected strategy mismatch in encoded case {encoded_case}"
             );
             assert_eq!(
-                actual.minimum_maximum_regret,
-                oracle_regret[oracle_selected],
+                actual.minimum_maximum_regret, oracle_regret[oracle_selected],
                 "minimum maximum regret mismatch in encoded case {encoded_case}"
             );
         }
     }
-
 }
