@@ -12,7 +12,7 @@
 
 use std::collections::{BTreeMap, VecDeque};
 
-use dc_power_flow_reference::{DcNetwork, DcPowerFlowResult, SolveOptions, solve_dc_power_flow};
+use dc_power_flow_reference::{DcBus, DcNetwork, DcPowerFlowResult, SolveOptions, solve_dc_power_flow};
 
 #[derive(Clone, Copy, Debug)]
 pub struct ScreenOptions {
