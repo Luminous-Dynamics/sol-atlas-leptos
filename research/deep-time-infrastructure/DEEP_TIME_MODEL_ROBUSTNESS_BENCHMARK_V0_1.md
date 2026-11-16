@@ -117,6 +117,12 @@ It implements:
 
 Eighteen Rust unit tests are written, covering DTR-001/002/004/006/007/008/009, unresolved/failed/incomplete controls, five metamorphic properties and the exhaustive 3x3 differential oracle. The Check workflow now includes an explicit `cargo test -p sol-atlas-core` step; testing the consuming application binary alone does not execute the path-dependency crate's own unit tests. The new core test step has not yet reported an exact-head result. A READY_FOR_PHYSICAL_MODEL_EVALUATION disposition means only that the declared input categories are present; it is not physical validation or site qualification.
 
+
+
+### API semantic separation
+
+The Rust API uses separate result types for separate questions: `DecisionClass` describes mandatory-floor eligibility across model families; `RankingStability` describes only whether pairwise strategy ordering is preserved. A stable ranking does not establish eligibility, safety, rights compliance or ecological acceptability.
+
 ## 7.2 Metamorphic qualification panel
 
 A separate five-property panel is frozen in:
