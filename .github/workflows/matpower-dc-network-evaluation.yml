@@ -8,6 +8,7 @@ on:
       - "tools/dc-power-flow-independent-auditor/**"
       - "tools/dc-fixed-injection-contingency-sweep/**"
       - "tools/matpower-dc-network-evaluation/**"
+      - "tools/dc-lodf-outage-screen/**"
       - ".github/workflows/matpower-dc-network-evaluation.yml"
   push:
     paths:
@@ -16,6 +17,7 @@ on:
       - "tools/dc-power-flow-independent-auditor/**"
       - "tools/dc-fixed-injection-contingency-sweep/**"
       - "tools/matpower-dc-network-evaluation/**"
+      - "tools/dc-lodf-outage-screen/**"
       - ".github/workflows/matpower-dc-network-evaluation.yml"
   workflow_dispatch:
 

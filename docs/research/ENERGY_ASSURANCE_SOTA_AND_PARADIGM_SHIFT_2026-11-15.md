@@ -241,3 +241,64 @@ Once all three cases pass both external differentials:
 - only then move to AC and chronological / distribution / sequential-control domains.
 
 The promotion rule is strict: **source-field parity, receipt consistency and reference numerical parity are independent gates**. Passing one must never imply the other two.
+
+
+## 10. PTDF/LODF screening with mandatory escalation
+
+MATPOWER 8.1 exposes makePTDF and makeLODF, and explicitly supports marking bridge-branch columns as NaN because removing a bridge causes islanding. PyPSA expresses the same branch outage distribution factor relationship and identifies the singular case where the outaged branch is the only connection between two regions. Sol-Atlas should compete by making this singularity an explicit decision state and validating every usable prediction against exact re-solves—not by pretending that LODF applies to every outage.
+
+Reference implementations:
+- MATPOWER 8.1 makePTDF: https://matpower.org/documentation/ref-manual/legacy/functions/makePTDF.html
+- MATPOWER 8.1 makeLODF: https://matpower.org/documentation/ref-manual/legacy/functions/makeLODF.html
+- PyPSA contingency analysis and BODF formula: https://docs.pypsa.org/latest/user-guide/optimization/contingencies/
+
+For an in-service outage k, the linear post-contingency flow estimate is:
+
+\[
+f_l^{(k)} = f_l + LODF_{lk} f_k,\qquad
+LODF_{lk} = \frac{PTDF_{lk}}{1-PTDF_{kk}}\quad(l\ne k),\qquad
+LODF_{kk}=-1
+\]
+
+The denominator is a topology/sensitivity warning. If it is non-positive or within a frozen tolerance of zero, Sol-Atlas returns an exact-solve abstention. It never publishes a plausible-looking predicted-safe flow for an islanding bridge.
+
+The implemented fast path:
+1. solves the intact fixed-injection DC case;
+2. constructs and factorizes one reduced susceptance matrix per energized island;
+3. computes branch-transfer PTDF columns;
+4. derives LODF outage-flow predictions and Rate A overload flags;
+5. emits every in-service outage, with either a full predicted flow vector or an explicit exact-resolve abstention.
+
+The separate validation path re-solves every outage with the direct DC reference kernel. It measures branch-flow residuals, false-safe branches/outages, false alarms, and abstentions that could have been solved exactly. The exact re-solves are intentionally not included in the fast-path runtime.
+
+### Qualification targets
+
+| Metric | Initial promotion target |
+|---|---:|
+| Coverage | 100% of in-service single-branch outages represented |
+| False-safe branch count | 0 on frozen PGLib + adversarial panel |
+| False-safe outage count | 0 on that panel |
+| Resolved flow error | max absolute error <= 1e-6 MW against exact DC re-solve |
+| Bridge / near-bridge handling | 100% explicitly abstained or sent to exact fallback |
+| Exact-solve unknowns | reported separately; never recoded as a pass |
+| False alarms | report count and overload magnitude; do not hide them |
+| Unnecessary abstentions | report count/rate where exact solve succeeds |
+| Runtime | warm/cold p50/p95/p99 for screen and exact sweep, same host and same network |
+| Memory | peak resident memory for PTDF/LODF factors and outage predictions |
+
+PGLib regression panels: IEEE 14 bus (20 outages), IEEE RTS 24 bus (38), and IEEE 57 bus (80). These are initial numerical verification sets, not evidence of large-grid performance or operational security.
+
+### What would count as a real improvement over current practice?
+
+- **Useful selective computation:** run the cheap sensitivity screen on all eligible outages, spend exact-solve compute on bridge/near-bridge cases and on cases whose predicted margin is close to a decision threshold.
+- **Risk-weighted escalation:** exact-resolve any outage whose predicted flow uncertainty interval overlaps a thermal limit; do not use a point estimate as an unconditional safety decision.
+- **Topology-aware refusal:** make bridges, weak cutsets, islands, unknown connectivity and unsupported model fields first-class states.
+- **Evidence-quality propagation:** widen flow/limit uncertainty when source fidelity, telemetry freshness, parameter calibration or topology identity is weak. A mathematically small LODF residual cannot repair poor source evidence.
+- **Service consequence ranking:** after technical screening, prioritize exact analyses by essential-service exposure and recovery cost rather than only largest MW overload.
+- **Independent external cross-check:** compare both PTDF/LODF factors and post-outage flows against MATPOWER 8.1 makePTDF/makeLODF in addition to the direct in-repository solver.
+
+Proposed performance goal after correctness is established: at least 3x warm p50 improvement over exhaustive direct re-solves on a declared 100+ bus benchmark panel, with zero false-safe outcomes and no more than 5% unnecessary abstentions. This is a target, not a measured result; small cases may not benefit because matrix factorization and report construction have fixed overhead.
+
+### Non-claims
+
+The current LODF implementation is fixed-injection linear DC screening. It does not redispatch generators, allocate new slacks after islanding, optimize corrective actions, model generator outages, validate AC voltage/reactive constraints, or certify N-1 operational security. Even a zero-error PGLib result only validates the declared equations and frozen cases. It is not field calibration or permission to operate a grid.

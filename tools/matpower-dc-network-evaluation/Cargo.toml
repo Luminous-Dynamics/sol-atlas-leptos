@@ -9,6 +9,10 @@ description = "Source-bound MATPOWER projection to independently audited DC powe
 name = "matpower-dc-evaluate"
 path = "src/main.rs"
 
+[[bin]]
+name = "matpower-dc-lodf-screen"
+path = "src/bin/matpower-dc-lodf-screen.rs"
+
 [lib]
 path = "src/lib.rs"
 
@@ -17,3 +21,4 @@ pglib-case-auditor = { path = "../pglib-case-auditor" }
 dc-power-flow-reference = { path = "../dc-power-flow-reference" }
 dc-power-flow-independent-auditor = { path = "../dc-power-flow-independent-auditor" }
 dc-fixed-injection-contingency-sweep = { path = "../dc-fixed-injection-contingency-sweep" }
+dc-lodf-outage-screen = { path = "../dc-lodf-outage-screen" }

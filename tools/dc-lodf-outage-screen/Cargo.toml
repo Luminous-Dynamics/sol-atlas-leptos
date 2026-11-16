@@ -1,0 +1,14 @@
+[package]
+name = "dc-lodf-outage-screen"
+version = "0.1.0"
+edition = "2024"
+license = "AGPL-3.0-or-later"
+description = "PTDF/LODF fast screening with exact-solve abstention for small DC networks"
+
+[workspace]
+
+[lib]
+path = "src/lib.rs"
+
+[dependencies]
+dc-power-flow-reference = { path = "../dc-power-flow-reference" }
