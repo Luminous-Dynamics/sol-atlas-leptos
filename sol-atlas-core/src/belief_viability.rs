@@ -1293,6 +1293,110 @@ mod tests {
         assert!(!expanded_report.viable_initial_beliefs.contains("initial"));
     }
 
+
+    #[test]
+    fn exhaustive_two_hidden_two_action_two_disturbance_oracle_matches_all_256_games() {
+        for encoded in 0_u16..256 {
+            let disturbances = ["d0", "d1"];
+            let mut hidden_states = vec![
+                hidden("world_a", 0, &[("service", GateResult::Pass)]),
+                hidden("world_b", 0, &[("service", GateResult::Pass)]),
+            ];
+            let mut beliefs = vec![belief(
+                "initial",
+                0,
+                "same-observation",
+                &["world_a", "world_b"],
+            )];
+            let mut actions = Vec::new();
+            let mut transitions = Vec::new();
+            let mut oracle_action_exists = false;
+
+            for action_index in 0..2 {
+                let action_id = if action_index == 0 { "action_a" } else { "action_b" };
+                let output_history = if action_index == 0 {
+                    "after_action_a"
+                } else {
+                    "after_action_b"
+                };
+                let mut terminal_ids = Vec::new();
+                let mut all_branches_pass = true;
+
+                for (world_index, world_id) in ["world_a", "world_b"].iter().enumerate() {
+                    for (disturbance_index, disturbance) in disturbances.iter().enumerate() {
+                        let bit_index =
+                            action_index * 4 + world_index * 2 + disturbance_index;
+                        let fails = ((encoded >> bit_index) & 1) != 0;
+                        let terminal_id = format!(
+                            "terminal_{action_index}_{world_index}_{disturbance_index}"
+                        );
+                        let floor = if fails {
+                            all_branches_pass = false;
+                            GateResult::Fail
+                        } else {
+                            GateResult::Pass
+                        };
+
+                        hidden_states.push(hidden(
+                            &terminal_id,
+                            1,
+                            &[("service", floor)],
+                        ));
+                        terminal_ids.push(terminal_id.clone());
+                        transitions.push(transition(
+                            world_id,
+                            action_id,
+                            disturbance,
+                            &terminal_id,
+                            output_history,
+                        ));
+                    }
+                }
+
+                if all_branches_pass {
+                    oracle_action_exists = true;
+                }
+
+                let member_refs = terminal_ids
+                    .iter()
+                    .map(String::as_str)
+                    .collect::<Vec<_>>();
+                beliefs.push(belief(
+                    output_history,
+                    1,
+                    output_history,
+                    &member_refs,
+                ));
+                actions.push(action(
+                    action_id,
+                    "initial",
+                    &[
+                        ("world_a", &[("authority", GateResult::Pass)]),
+                        ("world_b", &[("authority", GateResult::Pass)]),
+                    ],
+                ));
+            }
+
+            let model = problem(
+                1,
+                hidden_states,
+                beliefs,
+                actions,
+                transitions,
+                &["initial"],
+                &disturbances,
+            );
+            let report = compute_belief_viability_kernel(&model).unwrap();
+            let actual = report.viable_initial_beliefs.contains("initial");
+
+            assert_eq!(
+                actual,
+                oracle_action_exists,
+                "belief-game mismatch for encoded utility/outcome table {encoded}"
+            );
+        }
+    }
+
     #[test]
     fn belief_limits_return_bounded_without_partial_policy() {
         let model = problem(
