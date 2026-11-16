@@ -121,6 +121,18 @@ pub enum ViabilityExecution {
 }
 
 
+/// Result of the stationary robust controlled-invariance analysis.
+///
+/// Kept separate from finite-horizon ViabilityStatus so a state that can
+/// reach a safe terminal set is not confused with one that can remain safe
+/// indefinitely.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum InvariantStatus {
+    Invariant,
+    NotInvariant,
+    Unresolved,
+}
+
 /// One stationary configuration for robust controlled invariance.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct InvariantState {
@@ -147,7 +159,7 @@ pub struct InvariantKernelProblem {
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct InvariantStateResult {
     pub state_id: String,
-    pub status: ViabilityStatus,
+    pub status: InvariantStatus,
     pub witness_action: Option<String>,
     pub reasons: Vec<String>,
 }
@@ -426,12 +438,15 @@ fn evaluate_action_gates(
     }
 }
 
-/// Compute the finite robust-viability kernel by backward recursion.
+/// Compute finite-horizon viability to the declared terminal stage.
 ///
 /// At state s and stage t < T, the state is Viable iff its mandatory floors
 /// pass and there exists an action whose gates pass and whose successor is
-/// Viable for every declared disturbance. If no such action exists but an
-/// otherwise plausible action remains unknown, the state is Unresolved.
+/// Viable for every declared disturbance. This is finite-horizon reachability
+/// of a floor-passing terminal set; it is distinct from stationary robust
+/// controlled invariance, which asks whether safety can be maintained forever.
+/// If no viable action exists but an otherwise plausible action remains
+/// unknown, the state is Unresolved.
 fn compute_viability_kernel_exact(
     problem: &ViabilityProblem,
 ) -> Result<ViabilityReport, ViabilityError> {
@@ -1043,21 +1058,21 @@ pub fn compute_robust_controlled_invariant_kernel(
             witness_policy.insert(state.state_id.clone(), action_id.clone());
             InvariantStateResult {
                 state_id: state.state_id.clone(),
-                status: ViabilityStatus::Viable,
+                status: InvariantStatus::Invariant,
                 witness_action: Some(action_id),
                 reasons: Vec::new(),
             }
         } else if unresolved_states.contains(&state.state_id) {
             InvariantStateResult {
                 state_id: state.state_id.clone(),
-                status: ViabilityStatus::Unresolved,
+                status: InvariantStatus::Unresolved,
                 witness_action: None,
                 reasons: vec!["unknown_floor_or_potentially_invariant_unknown_transition".to_owned()],
             }
         } else {
             InvariantStateResult {
                 state_id: state.state_id.clone(),
-                status: ViabilityStatus::Infeasible,
+                status: InvariantStatus::NotInvariant,
                 witness_action: None,
                 reasons: vec!["no_action_keeps_all_disturbance_successors_in_invariant_set".to_owned()],
             }
@@ -1075,13 +1090,13 @@ pub fn compute_robust_controlled_invariant_kernel(
             .expect("initial state presence validated above")
             .status
         {
-            ViabilityStatus::Viable => {
+            InvariantStatus::Invariant => {
                 invariant_initial_states.insert(initial_id.clone());
             }
-            ViabilityStatus::Infeasible => {
+            InvariantStatus::NotInvariant => {
                 infeasible_initial_states.insert(initial_id.clone());
             }
-            ViabilityStatus::Unresolved => {
+            InvariantStatus::Unresolved => {
                 unresolved_initial_states.insert(initial_id.clone());
             }
         }
