@@ -431,8 +431,9 @@ fn predecessor_query(
 
 /// Compute the greatest robust controlled-invariant lower set.
 ///
-/// Each fixed-point iteration computes the robust predecessor in parallel
-/// by column. For each column, a binary search finds the greatest height whose
+/// Each fixed-point iteration computes the robust predecessor independently
+/// per column (currently sequential in this implementation). For each column,
+/// a binary search finds the greatest height whose
 /// state has some action that keeps every disturbance successor inside the
 /// previous threshold set. Monotonicity makes the predicate prefix-closed.
 pub fn compute_monotone_invariant_kernel_with_limits(
