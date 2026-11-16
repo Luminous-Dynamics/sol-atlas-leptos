@@ -94,7 +94,7 @@ The exact reference implementation provides:
 
 The default caps are 128 stages, 50,000 states, 250,000 actions and 2,000,000 estimated transition branches. These are engineering defaults for a reference implementation, not performance claims or universal safe limits. The lower-level limits API supports stricter or larger declared caps.
 
-The Rust module currently has 21 unit tests written, including the frozen DVK exact cases, unknown/failing evidence controls, deterministic witness ordering, explicit BOUNDED execution and a 64-game exhaustive truth-table comparison. The tests still require exact-head execution in CI before being described as passed.
+The Rust module currently has 34 unit tests written across finite-horizon and stationary-invariant semantics. In addition to the frozen DVK cases and exhaustive 64-game oracles, the suite covers unknown/failing evidence, known-failure precedence over unknown action gates, deterministic witness ordering, explicit BOUNDED execution, fixed-point iteration caps, non-anticipativity and checked timing. The tests still require exact-head execution in CI before being described as passed.
 
 ## 5.2 Exhaustive finite viability oracle
 
