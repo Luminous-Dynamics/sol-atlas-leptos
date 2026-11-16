@@ -448,7 +448,7 @@ fn angle_limit_is_present(lower_deg: f64, upper_deg: f64) -> bool {
         || (!lower_nonzero && upper_nonzero)
 }
 
-fn exact_key_coverage<K: Ord + std::fmt::Display>(
+fn exact_key_coverage<K: Ord + Clone + std::fmt::Display>(
     family: &str,
     expected: &BTreeSet<K>,
     actual: &BTreeMap<K, BoundDual>,
@@ -1246,10 +1246,22 @@ mod tests {
         .expect("binding-line KKT receipt should parse");
 
         assert!(report.primal_audit_passed, "{}", report.to_json());
-        assert!(report.primal_feasible_under_reconstructed_model, "{}", report.to_json());
+        assert!(
+            report.primal_feasible_under_reconstructed_model,
+            "{}",
+            report.to_json()
+        );
         assert!(report.dual_feasible, "{}", report.to_json());
-        assert!(report.stationarity_within_tolerance, "{}", report.to_json());
-        assert!(report.complementary_slackness_within_tolerance, "{}", report.to_json());
+        assert!(
+            report.stationarity_within_tolerance,
+            "{}",
+            report.to_json()
+        );
+        assert!(
+            report.complementary_slackness_within_tolerance,
+            "{}",
+            report.to_json()
+        );
         assert!(report.numerical_kkt_satisfied, "{}", report.to_json());
         assert_eq!(report.flow_constraint_count, 1);
         assert!((report.primal_objective - 2200.0).abs() < 1.0e-8);
