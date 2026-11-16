@@ -5,9 +5,7 @@ use std::env;
 use std::fs;
 use std::process::ExitCode;
 
-use matpower_dc_opf_primal_auditor::{
-    AuditOptions, audit_matpower_dc_opf_candidate,
-};
+use matpower_dc_opf_primal_auditor::{AuditOptions, audit_matpower_dc_opf_candidate};
 
 fn run() -> Result<bool, String> {
     let mut args = env::args().skip(1);
