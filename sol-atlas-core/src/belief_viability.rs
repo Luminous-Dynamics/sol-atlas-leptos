@@ -591,6 +591,7 @@ pub fn compute_belief_viability_kernel(
             for state_id in &belief.hidden_state_ids {
                 let gate_map = action.gates_by_hidden_state.get(state_id);
                 match gate_map {
+                    None if problem.required_action_gates.is_empty() => {}
                     None => {
                         action_unknown = true;
                         action_unknown_reasons.insert(format!(
@@ -1395,6 +1396,30 @@ mod tests {
                 "belief-game mismatch for encoded utility/outcome table {encoded}"
             );
         }
+    }
+
+
+    #[test]
+    fn no_required_action_gates_do_not_require_an_empty_gate_map_per_state() {
+        let mut model = problem(
+            1,
+            vec![
+                hidden("a", 0, &[("service", GateResult::Pass)]),
+                hidden("terminal", 1, &[("service", GateResult::Pass)]),
+            ],
+            vec![
+                belief("initial", 0, "history_0", &["a"]),
+                belief("terminal", 1, "history_1", &["terminal"]),
+            ],
+            vec![action("act", "initial", &[])],
+            vec![transition("a", "act", "none", "terminal", "history_1")],
+            &["initial"],
+            &["none"],
+        );
+        model.required_action_gates.clear();
+
+        let report = compute_belief_viability_kernel(&model).unwrap();
+        assert!(report.viable_initial_beliefs.contains("initial"));
     }
 
     #[test]
