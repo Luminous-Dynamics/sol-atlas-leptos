@@ -347,6 +347,7 @@ fn problem_fingerprint(problem: &MonotoneGridProblem) -> u64 {
         feed(*threshold as u64);
     }
 
+    drop(feed);
     hash
 }
 
