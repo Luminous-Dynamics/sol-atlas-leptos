@@ -715,6 +715,9 @@ fn audit_projection_kkt(
             - pbus_injection[index];
         let residual = b_va[index] - pg_by_bus[index] - bmis[index];
         metrics.max_pmis = metrics.max_pmis.max(residual.abs());
+        let equality_dual = duals.buses[&bus.id];
+        primal_at_lagrangian += equality_dual.lower * (bmis[index] - (b_va[index] - pg_by_bus[index]))
+            + equality_dual.upper * ((b_va[index] - pg_by_bus[index]) - bmis[index]);
         if !residual.is_finite()
             || residual.abs() > options.equality_residual_tolerance_pu
         {
@@ -908,18 +911,6 @@ fn audit_projection_kkt(
         let contribution = dual.upper - dual.lower;
         stationarity_va[index] += contribution;
         stationarity_va_scale[index] += contribution.abs();
-    }
-
-    for (index, generator) in generator_models.iter().enumerate() {
-        let dual = duals.buses[&projection.buses[generator.bus_index].id];
-        // The -Cg coefficient is -1 at the generator's bus.
-        let signed_eq = dual.upper - dual.lower;
-        stationarity_pg[index] -= signed_eq;
-        stationarity_pg_scale[index] += signed_eq.abs();
-        let bound = duals.generators[&generator.source_row];
-        let bound_contribution = bound.upper - bound.lower;
-        stationarity_pg[index] += bound_contribution;
-        stationarity_pg_scale[index] += bound_contribution.abs();
     }
 
     let mut stationarity_ok = true;
