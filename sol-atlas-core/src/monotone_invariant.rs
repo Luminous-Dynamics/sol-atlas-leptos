@@ -737,6 +737,28 @@ mod tests {
         );
     }
 
+
+    #[test]
+    fn witness_query_rejects_mismatched_transition_model() {
+        let problem = MonotoneGridProblem {
+            axis_sizes: vec![2, 3],
+            rules_by_action: vec![vec![shift_x_up_rule()]],
+            initial_safe_thresholds: vec![2, 1],
+        };
+        let execution = compute_monotone_invariant_kernel(&problem).unwrap();
+        let MonotoneGridExecution::Exact(report) = execution else {
+            panic!("small fixture must be exact");
+        };
+
+        let mut changed = problem.clone();
+        changed.rules_by_action[0][0].offset_by_output[0] = 0;
+
+        assert_eq!(
+            witness_action_for_coordinate(&changed, &report, &[0, 0]),
+            Err(MonotoneGridError::ProblemFingerprintMismatch)
+        );
+    }
+
     #[test]
     fn threshold_kernel_rejects_non_lower_closed_initial_safe_set() {
         let problem = MonotoneGridProblem {
