@@ -104,6 +104,7 @@ impl Default for ViabilityLimits {
             max_states: 50_000,
             max_actions: 250_000,
             max_transition_branches: 2_000_000,
+            max_fixed_point_iterations: 50_001,
         }
     }
 }
@@ -1139,6 +1140,27 @@ pub fn compute_robust_controlled_invariant_kernel_with_limits(
         return bounded("actions", problem.actions.len(), limits.max_actions);
     }
 
+    // Each descending fixed-point loop can remove at most one or more
+    // states per changing iteration, plus one final no-change iteration.
+    // Reject conservatively before computation if the declared state universe
+    // could exceed the per-loop iteration cap.
+    let maximum_iterations = problem
+        .states
+        .len()
+        .checked_add(1)
+        .ok_or(ViabilityError::ResourceLimitExceeded {
+            resource: "fixed_point_iterations".to_owned(),
+            observed: usize::MAX,
+            limit: limits.max_fixed_point_iterations,
+        })?;
+    if maximum_iterations > limits.max_fixed_point_iterations {
+        return Ok(bounded(
+            "fixed_point_iterations",
+            maximum_iterations,
+            limits.max_fixed_point_iterations,
+        ));
+    }
+
     let transition_bound = problem
         .actions
         .len()
@@ -1241,6 +1263,7 @@ pub struct InvariantKernelLimits {
     pub max_states: usize,
     pub max_actions: usize,
     pub max_transition_branches: usize,
+    pub max_fixed_point_iterations: usize,
 }
 
 impl Default for InvariantKernelLimits {
@@ -1849,6 +1872,7 @@ mod tests {
             max_states: 10,
             max_actions: 10,
             max_transition_branches: 10,
+            max_fixed_point_iterations: 10,
         };
 
         assert_eq!(
