@@ -107,28 +107,41 @@ fn validate_catalog(
     if string_at(&catalog, "schema_version") != Some("0.1.0")
         || string_at(&catalog, "maturity") != Some("ILLUSTRATIVE_CATALOG_NOT_EVALUATED")
     {
-        errors.push("expression catalog must remain version 0.1.0 / ILLUSTRATIVE_CATALOG_NOT_EVALUATED".to_owned());
+        errors.push(
+            "expression catalog must remain version 0.1.0 / ILLUSTRATIVE_CATALOG_NOT_EVALUATED"
+                .to_owned(),
+        );
     }
 
     let catalog_domains = string_set(array_at(&catalog, "impact_domains"));
-    let expected_domains: BTreeSet<String> =
-        IMPACT_DOMAINS.iter().map(|domain| (*domain).to_owned()).collect();
+    let expected_domains: BTreeSet<String> = IMPACT_DOMAINS
+        .iter()
+        .map(|domain| (*domain).to_owned())
+        .collect();
     if catalog_domains != expected_domains {
         errors.push("catalog impact domains differ from the profile qualifier contract".to_owned());
     }
 
-    let styles = array_at(&catalog, "style_catalog").cloned().unwrap_or_default();
+    let styles = array_at(&catalog, "style_catalog")
+        .cloned()
+        .unwrap_or_default();
     let mut style_ids = BTreeSet::new();
     for style in &styles {
         let style_id = string_at(style, "style_id").unwrap_or_default();
         if style_id.is_empty() || !style_ids.insert(style_id.to_owned()) {
-            errors.push(format!("catalog contains a missing or duplicate style_id: {style_id}"));
+            errors.push(format!(
+                "catalog contains a missing or duplicate style_id: {style_id}"
+            ));
         }
         if !nonempty_string(style, "display_name") || !nonempty_string(style, "description") {
-            errors.push(format!("catalog style {style_id} needs a display name and description"));
+            errors.push(format!(
+                "catalog style {style_id} needs a display name and description"
+            ));
         }
         if string_at(style, "authenticity_note").is_none() {
-            errors.push(format!("catalog style {style_id} is missing its non-authenticity claim boundary"));
+            errors.push(format!(
+                "catalog style {style_id} is missing its non-authenticity claim boundary"
+            ));
         }
     }
 
@@ -153,10 +166,14 @@ fn validate_catalog(
     for package in &packages {
         let package_id = string_at(package, "package_id").unwrap_or_default();
         if package_id.is_empty() || !package_ids.insert(package_id.to_owned()) {
-            errors.push(format!("catalog contains a missing or duplicate package_id: {package_id}"));
+            errors.push(format!(
+                "catalog contains a missing or duplicate package_id: {package_id}"
+            ));
         }
         if !nonempty_string(package, "display_name") || !nonempty_string(package, "description") {
-            errors.push(format!("catalog package {package_id} needs a display name and description"));
+            errors.push(format!(
+                "catalog package {package_id} needs a display name and description"
+            ));
         }
         if package.get("optional_by_default").and_then(Value::as_bool) != Some(true)
             || string_at(package, "selection_default") != Some("NOT_SELECTED")
@@ -189,7 +206,8 @@ fn validate_catalog(
         .and_then(|value| value.get("enum"))
         .and_then(Value::as_array);
     if string_set(schema_package_ids) != package_ids {
-        errors.push("experience catalog IDs do not exactly match the profile schema enum".to_owned());
+        errors
+            .push("experience catalog IDs do not exactly match the profile schema enum".to_owned());
     }
 
     (style_ids, package_ids)
@@ -208,7 +226,9 @@ fn validate_profile(profile: &Value, schema: &Value) -> Result<(), Vec<String>> 
         || !nonempty_string(profile, "linked_brief_id")
         || !nonempty_string(profile, "linked_design_revision_ref")
     {
-        errors.push("profile, exact source brief and design revision references are required".to_owned());
+        errors.push(
+            "profile, exact source brief and design revision references are required".to_owned(),
+        );
     }
 
     let maturity = string_at(profile, "maturity").unwrap_or_default();
@@ -224,18 +244,23 @@ fn validate_profile(profile: &Value, schema: &Value) -> Result<(), Vec<String>> 
 
     let expression = profile.get("expression_intent").unwrap_or(&Value::Null);
     if !nonempty_string(expression, "statement") {
-        errors.push("expression_intent.statement must be resident-authored and nonempty".to_owned());
+        errors
+            .push("expression_intent.statement must be resident-authored and nonempty".to_owned());
     }
     let context = expression.get("cultural_context").unwrap_or(&Value::Null);
     if context.get("resident_provided").and_then(Value::as_bool) == Some(false)
         && !is_null(context, "context_statement")
     {
-        errors.push("non-resident-provided cultural context must not be inserted by the system".to_owned());
+        errors.push(
+            "non-resident-provided cultural context must not be inserted by the system".to_owned(),
+        );
     }
 
     let style_preferences = profile.get("style_preferences").unwrap_or(&Value::Null);
     let mode = string_at(style_preferences, "mode").unwrap_or_default();
-    let entries = array_at(style_preferences, "entries").cloned().unwrap_or_default();
+    let entries = array_at(style_preferences, "entries")
+        .cloned()
+        .unwrap_or_default();
 
     if !["SINGLE", "BLENDED", "CUSTOM", "NONE_UNDECIDED"].contains(&mode) {
         errors.push("style preference mode is not supported".to_owned());
@@ -294,7 +319,8 @@ fn validate_profile(profile: &Value, schema: &Value) -> Result<(), Vec<String>> 
         if style_id == "OTHER_CUSTOM" {
             custom_count += 1;
             if !nonempty_string(entry, "custom_definition") {
-                errors.push("OTHER_CUSTOM requires a resident-authored custom_definition".to_owned());
+                errors
+                    .push("OTHER_CUSTOM requires a resident-authored custom_definition".to_owned());
             }
         } else if !is_null(entry, "custom_definition") {
             errors.push(format!(
@@ -306,12 +332,17 @@ fn validate_profile(profile: &Value, schema: &Value) -> Result<(), Vec<String>> 
     match mode {
         "SINGLE" => {
             if primary_count != 1 || contributing_weights != 100 || secondary_count != 0 {
-                errors.push("SINGLE mode requires exactly one PRIMARY at 100% and no SECONDARY".to_owned());
+                errors.push(
+                    "SINGLE mode requires exactly one PRIMARY at 100% and no SECONDARY".to_owned(),
+                );
             }
         }
         "BLENDED" => {
             if primary_count == 0 || contributing_weights != 100 {
-                errors.push("BLENDED mode requires at least one PRIMARY and weights summing exactly to 100".to_owned());
+                errors.push(
+                    "BLENDED mode requires at least one PRIMARY and weights summing exactly to 100"
+                        .to_owned(),
+                );
             }
         }
         "CUSTOM" => {
@@ -321,27 +352,34 @@ fn validate_profile(profile: &Value, schema: &Value) -> Result<(), Vec<String>> 
         }
         "NONE_UNDECIDED" => {
             if !entries.is_empty() {
-                errors.push("NONE_UNDECIDED mode must not silently assign style entries".to_owned());
+                errors
+                    .push("NONE_UNDECIDED mode must not silently assign style entries".to_owned());
             }
         }
         _ => {}
     }
 
-    let options = array_at(profile, "experience_options").cloned().unwrap_or_default();
+    let options = array_at(profile, "experience_options")
+        .cloned()
+        .unwrap_or_default();
     let mut option_ids = BTreeSet::new();
     let mut package_ids = BTreeSet::new();
 
     for option in &options {
         let option_id = string_at(option, "option_id").unwrap_or_default();
         if option_id.is_empty() || !option_ids.insert(option_id) {
-            errors.push(format!("missing or duplicate experience option ID: {option_id}"));
+            errors.push(format!(
+                "missing or duplicate experience option ID: {option_id}"
+            ));
         }
         let package_id = string_at(option, "package_id").unwrap_or_default();
         if package_id.is_empty() || !package_ids.insert(package_id) {
             errors.push(format!("{option_id}: missing or duplicate package_id"));
         }
         if !catalog_package_ids.contains(package_id) {
-            errors.push(format!("{option_id}: package_id {package_id} is absent from the catalog"));
+            errors.push(format!(
+                "{option_id}: package_id {package_id} is absent from the catalog"
+            ));
         }
 
         let optionality = string_at(option, "optionality").unwrap_or_default();
@@ -360,7 +398,9 @@ fn validate_profile(profile: &Value, schema: &Value) -> Result<(), Vec<String>> 
             errors.push(format!("{option_id}: unsupported optionality state"));
         }
 
-        let impacts = array_at(option, "impact_profile").cloned().unwrap_or_default();
+        let impacts = array_at(option, "impact_profile")
+            .cloned()
+            .unwrap_or_default();
         if impacts.len() != IMPACT_DOMAINS.len() {
             errors.push(format!(
                 "{option_id}: expected exactly {} impact domains, got {}",
@@ -412,7 +452,9 @@ fn validate_profile(profile: &Value, schema: &Value) -> Result<(), Vec<String>> 
                         impact.get("upper_bound").and_then(Value::as_f64),
                     ) {
                         if low > high {
-                            errors.push(format!("{option_id}/{domain}: lower_bound exceeds upper_bound"));
+                            errors.push(format!(
+                                "{option_id}/{domain}: lower_bound exceeds upper_bound"
+                            ));
                         }
                     }
                 }
@@ -423,13 +465,17 @@ fn validate_profile(profile: &Value, schema: &Value) -> Result<(), Vec<String>> 
                         ));
                     }
                 }
-                _ => errors.push(format!("{option_id}/{domain}: unsupported impact state {state}")),
+                _ => errors.push(format!(
+                    "{option_id}/{domain}: unsupported impact state {state}"
+                )),
             }
         }
 
         for required_domain in IMPACT_DOMAINS {
             if !seen_domains.contains(required_domain) {
-                errors.push(format!("{option_id}: missing impact domain {required_domain}"));
+                errors.push(format!(
+                    "{option_id}: missing impact domain {required_domain}"
+                ));
             }
         }
     }
@@ -437,7 +483,10 @@ fn validate_profile(profile: &Value, schema: &Value) -> Result<(), Vec<String>> 
     let protocol = profile.get("evaluation_protocol").unwrap_or(&Value::Null);
     if string_at(protocol, "selection_authority") != Some("RESIDENT")
         || protocol.get("automatic_approval").and_then(Value::as_bool) != Some(false)
-        || protocol.get("universal_aesthetic_score").and_then(Value::as_bool) != Some(false)
+        || protocol
+            .get("universal_aesthetic_score")
+            .and_then(Value::as_bool)
+            != Some(false)
         || !nonempty_string(protocol, "review_plan")
     {
         errors.push("evaluation protocol must preserve resident authority and prohibit automatic/universal aesthetic approval".to_owned());
@@ -445,7 +494,10 @@ fn validate_profile(profile: &Value, schema: &Value) -> Result<(), Vec<String>> 
 
     let privacy = profile.get("privacy").unwrap_or(&Value::Null);
     if maturity == "SYNTHETIC"
-        && (privacy.get("contains_direct_identifiers").and_then(Value::as_bool) != Some(false)
+        && (privacy
+            .get("contains_direct_identifiers")
+            .and_then(Value::as_bool)
+            != Some(false)
             || string_at(privacy, "sharing_mode") != Some("SYNTHETIC_PUBLIC")
             || string_at(privacy, "redaction_status") != Some("REVIEWED_NO_DIRECT_IDENTIFIERS"))
     {
@@ -474,7 +526,9 @@ fn self_test() -> Result<(), String> {
     let schema = embedded_schema()?;
     validate_profile(&profile, &schema).map_err(|errors| errors.join("\n"))?;
     println!("PASS: synthetic home expression profile satisfies v0.1 owner contract");
-    println!("PASS: resident style blend, optional packages and explicit UNKNOWN impacts preserved");
+    println!(
+        "PASS: resident style blend, optional packages and explicit UNKNOWN impacts preserved"
+    );
     println!("PASS: no universal aesthetic score or automatic approval path");
     Ok(())
 }
@@ -491,7 +545,10 @@ fn main() {
                 .map_err(|error| format!("profile is invalid JSON: {error}"))?;
             let schema = embedded_schema()?;
             validate_profile(&value, &schema).map_err(|errors| errors.join("\n"))?;
-            println!("PASS: {} satisfies the v0.1 home expression contract", args[1]);
+            println!(
+                "PASS: {} satisfies the v0.1 home expression contract",
+                args[1]
+            );
             Ok(())
         })
     } else {
@@ -558,7 +615,10 @@ mod tests {
     #[test]
     fn rejects_missing_impact_domain() {
         let (mut profile, schema) = fixture();
-        profile["experience_options"][0]["impact_profile"].as_array_mut().unwrap().pop();
+        profile["experience_options"][0]["impact_profile"]
+            .as_array_mut()
+            .unwrap()
+            .pop();
         assert!(validate_profile(&profile, &schema).is_err());
     }
 
