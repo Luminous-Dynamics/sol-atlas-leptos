@@ -969,4 +969,116 @@ mod tests {
         );
     }
 
+
+    fn array_minimax_regret_oracle(
+        utilities: [[i64; 3]; 3],
+    ) -> ([i64; 3], [i64; 3], usize) {
+        let mut best_by_model = [i64::MIN; 3];
+        for model_index in 0..3 {
+            for strategy_index in 0..3 {
+                let value = utilities[strategy_index][model_index];
+                if value > best_by_model[model_index] {
+                    best_by_model[model_index] = value;
+                }
+            }
+        }
+
+        let mut maximum_regret_by_strategy = [0_i64; 3];
+        for strategy_index in 0..3 {
+            let mut worst_regret = i64::MIN;
+            for model_index in 0..3 {
+                let regret =
+                    best_by_model[model_index] - utilities[strategy_index][model_index];
+                if regret > worst_regret {
+                    worst_regret = regret;
+                }
+            }
+            maximum_regret_by_strategy[strategy_index] = worst_regret;
+        }
+
+        let mut selected_strategy = 0usize;
+        for strategy_index in 1..3 {
+            let candidate = (
+                maximum_regret_by_strategy[strategy_index],
+                strategy_index,
+            );
+            let selected = (
+                maximum_regret_by_strategy[selected_strategy],
+                selected_strategy,
+            );
+            if candidate < selected {
+                selected_strategy = strategy_index;
+            }
+        }
+
+        (
+            best_by_model,
+            maximum_regret_by_strategy,
+            selected_strategy,
+        )
+    }
+
+    #[test]
+    fn exhaustive_differential_oracle_covers_all_3x3_ternary_utility_matrices() {
+        let models = model_ids(&["M0", "M1", "M2"]);
+        let strategy_ids = ["S0", "S1", "S2"];
+        let total_cases = 19_683_usize;
+
+        for encoded_case in 0..total_cases {
+            let mut remaining = encoded_case;
+            let mut utilities = [[0_i64; 3]; 3];
+
+            for strategy_index in 0..3 {
+                for model_index in 0..3 {
+                    utilities[strategy_index][model_index] =
+                        (remaining % 3) as i64;
+                    remaining /= 3;
+                }
+            }
+
+            let strategies = (0..3)
+                .map(|strategy_index| StrategyUtilities {
+                    strategy_id: strategy_ids[strategy_index].to_owned(),
+                    by_model: BTreeMap::from([
+                        ("M0".to_owned(), utilities[strategy_index][0]),
+                        ("M1".to_owned(), utilities[strategy_index][1]),
+                        ("M2".to_owned(), utilities[strategy_index][2]),
+                    ]),
+                })
+                .collect::<Vec<_>>();
+
+            let (oracle_best, oracle_regret, oracle_selected) =
+                array_minimax_regret_oracle(utilities);
+            let actual = minimax_regret(&models, &strategies)
+                .expect("complete finite utility matrix");
+
+            for model_index in 0..3 {
+                assert_eq!(
+                    actual.best_utility_by_model[&models[model_index]],
+                    oracle_best[model_index],
+                    "best utility mismatch in encoded case {encoded_case}"
+                );
+            }
+
+            for strategy_index in 0..3 {
+                assert_eq!(
+                    actual.maximum_regret_by_strategy[strategy_ids[strategy_index]],
+                    oracle_regret[strategy_index],
+                    "maximum regret mismatch in encoded case {encoded_case}"
+                );
+            }
+
+            assert_eq!(
+                actual.selected_strategy,
+                strategy_ids[oracle_selected],
+                "selected strategy mismatch in encoded case {encoded_case}"
+            );
+            assert_eq!(
+                actual.minimum_maximum_regret,
+                oracle_regret[oracle_selected],
+                "minimum maximum regret mismatch in encoded case {encoded_case}"
+            );
+        }
+    }
+
 }
