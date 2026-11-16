@@ -483,15 +483,17 @@ pub struct LocalShorelineInputReport {
 }
 
 /// Required evidence dimensions for local shoreline evaluation.
-pub const LOCAL_SHORELINE_REQUIRED_GATES: [&str; 8] = [
-    "horizontal_paleo_transform",
-    "vertical_reference",
-    "paleotopography",
+pub const LOCAL_SHORELINE_REQUIRED_GATES: [&str; 10] = [
+    "sea_level_quantity_definition",
+    "horizontal_crs_and_paleo_coordinate_transform",
+    "vertical_datum_and_transform",
+    "paleotopography_and_paleobathymetry",
     "local_vertical_land_motion",
-    "geoid_gravitational_rotational_fingerprint",
-    "ocean_dynamics",
+    "tectonic_and_dynamic_topography",
+    "glacio_isostatic_geoid_and_gravitational_effects",
+    "ocean_dynamics_and_rotation",
     "chronology_alignment",
-    "source_lineage_and_uncertainty",
+    "source_lineage_and_model_form_uncertainty",
 ];
 
 /// Check whether a scenario may enter a local shoreline model evaluation.
@@ -801,14 +803,14 @@ mod tests {
     #[test]
     fn local_shoreline_gate_failure_blocks_evaluation() {
         let mut gates = complete_shoreline_gates();
-        gates.insert("vertical_reference".to_owned(), GateResult::Fail);
+        gates.insert("vertical_datum_and_transform".to_owned(), GateResult::Fail);
         let result =
             local_shoreline_input_report(EarthScenarioKind::PaleogeographicReconstruction, &gates);
         assert_eq!(
             result.status,
             LocalShorelineInputStatus::BlockedByFailedGate
         );
-        assert!(result.failed_fields.contains("vertical_reference"));
+        assert!(result.failed_fields.contains("vertical_datum_and_transform"));
     }
 
 
