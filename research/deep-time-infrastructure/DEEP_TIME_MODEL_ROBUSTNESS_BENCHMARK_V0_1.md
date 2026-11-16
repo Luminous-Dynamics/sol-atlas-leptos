@@ -39,6 +39,7 @@ Classify each decision/essential-service/ecological-floor claim separately:
 - **CONDITIONAL:** admissible only under named models, with exact counterexamples.
 - **MODEL_SENSITIVE:** decision ordering or consequence changes materially across model forms.
 - **UNRESOLVED:** lineage, chronology, datum, transforms or local process evidence is insufficient.
+- **UNIFORMLY INELIGIBLE:** at least one mandatory floor fails under every model in the declared set.
 
 These are not one global confidence or weighted resilience score. An invariant result is only as broad as the declared, qualified model set; it does not prove that the set spans all possible Earth histories.
 
@@ -89,7 +90,7 @@ Best utilities are [100,80,90]. Adaptive dual is the minimax-regret strategy at 
 
 ### DTR-008 — hard floors are non-compensatory
 
-A coastal strategy has utility 100 under all three synthetic models but passes a mandatory ecological/water floor under A and C only. Its mean utility is 100, but its result is CONDITIONAL and it cannot be INVARIANT. A high mean does not override a hard-floor failure.
+A coastal strategy has utility 100 under all three synthetic models but passes a mandatory ecological/water floor under A and C only. Its mean utility is 100, but its result is CONDITIONAL and it cannot be INVARIANT. A high mean does not override a hard-floor failure. The Rust kernel also distinguishes CONDITIONAL from UNIFORMLY_INELIGIBLE when every model fails a mandatory floor.
 
 ### DTR-004 — shared model lineage
 
