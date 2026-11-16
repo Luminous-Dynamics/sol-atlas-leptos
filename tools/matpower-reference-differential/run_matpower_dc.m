@@ -13,10 +13,17 @@ function run_matpower_dc(case_path, output_path, matpower_root, source_git_blob_
         error('source_git_blob_sha1 must be exactly 40 hexadecimal digits');
     end
 
-    addpath(genpath(matpower_root));
-    define_constants;
+    matpower_lib = fullfile(matpower_root, 'lib');
+    addpath(genpath(matpower_lib));
 
     mpc = loadcase(case_path);
+
+    % loadcase/feval_w_path temporarily adjusts Octave's path while evaluating
+    % a case function. Re-admit only MATPOWER's actual function library after it
+    % returns; do not recursively add docs, examples or optional submodule trees.
+    addpath(genpath(matpower_lib));
+    define_constants;
+
     mpopt = mpoption('verbose', 0, 'out.all', 0);
     results = rundcpf(mpc, mpopt);
     if ~isfield(results, 'success') || ~results.success
