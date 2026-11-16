@@ -271,7 +271,9 @@ fn validate_benchmark_manifest(manifest: &Value, schema: &Value) -> Vec<String> 
         || manifest.get("source_case_count").and_then(Value::as_u64) != Some(1)
         || !nonempty_string(manifest, "source_population_note")
     {
-        errors.push("benchmark extension must disclose its one-case synthetic source population".to_owned());
+        errors.push(
+            "benchmark extension must disclose its one-case synthetic source population".to_owned(),
+        );
     }
 
     let allowed_statuses = string_set(array_at(manifest, "status_semantics"));
@@ -304,7 +306,9 @@ fn validate_benchmark_manifest(manifest: &Value, schema: &Value) -> Vec<String> 
             || string_at(case, "source_case_id") != Some("SYNTH-HV-CASE-001")
             || string_at(case, "derivation_kind") != Some("ONE_FACTOR_COUNTERFACTUAL_MUTATION")
         {
-            errors.push(format!("{id}: extension row is not bound to the exact synthetic Home Freedom baseline"));
+            errors.push(format!(
+                "{id}: extension row is not bound to the exact synthetic Home Freedom baseline"
+            ));
         }
         let expected_artifacts: BTreeSet<String> = [
             "docs/research/home-freedom/HOME_DESIGN_BRIEF_SYNTHETIC_EXAMPLE_V0.1.json|0090e2f0c883c62817d1b6da51d1a2dbe92a477f",
@@ -323,7 +327,9 @@ fn validate_benchmark_manifest(manifest: &Value, schema: &Value) -> Vec<String> 
             })
             .collect();
         if actual_artifacts != expected_artifacts {
-            errors.push(format!("{id}: source artifacts do not bind the exact parent brief and candidate-set blobs"));
+            errors.push(format!(
+                "{id}: source artifacts do not bind the exact parent brief and candidate-set blobs"
+            ));
         }
         if !nonempty_string(case, "source_population_ref") || !nonempty_string(case, "mutation") {
             errors.push(format!(
@@ -1010,8 +1016,7 @@ mod tests {
 
     #[test]
     fn rejects_unknown_source_case_artifact_binding() {
-        let (mut manifest, schema) =
-            benchmark_fixture().expect("valid benchmark fixture");
+        let (mut manifest, schema) = benchmark_fixture().expect("valid benchmark fixture");
         manifest["cases"][0]["source_artifact_refs"][0]["blob_sha"] =
             json!("0000000000000000000000000000000000000000");
         assert!(!validate_benchmark_manifest(&manifest, &schema).is_empty());
