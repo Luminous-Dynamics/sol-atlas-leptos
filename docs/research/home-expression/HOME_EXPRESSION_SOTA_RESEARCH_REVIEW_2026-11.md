@@ -206,8 +206,8 @@ The crosswalk is only a proposed owner-review mapping. It does not run the revis
 
 ## 7. Immediate execution sequence
 
-1. Finish the v0.1 crosswalk qualifier and make its IDs/catalog binding deterministic.
-2. Bind the 16 expression extension cases to exact #819 parent-case IDs; retain pending state until independently confirmed.
+1. **Completed in the current feature branch:** versioned 20-style/26-package catalog, 46-row proposed revision-impact crosswalk, deterministic owner/catalog checks, and exact catalog/brief digest binding in the resident expression profile.
+2. **Completed for the currently extant synthetic source only:** all 16 expression mutation rows are bound to `SYNTH-HV-CASE-001` and the exact Home Freedom brief/candidate-set blob digests. They are counterfactual mutations of one baseline, not 16 independent households. The #819 manifest still says the planned 100-case corpus is `NOT_EXECUTED`; extend that population only when independently authored, versioned source cases actually exist.
 3. Add a bounded synthetic decision-set fixture to the existing Symthaea #7790 owner rather than duplicating its problem representation.
 4. Compose a small exact-enumeration Pareto oracle and mutation tests with #7801; use no scalar aesthetic winner.
 5. Have Symtropy #1766/#1848 owners confirm the domain boundaries; reuse #683/#1790/#1900.
