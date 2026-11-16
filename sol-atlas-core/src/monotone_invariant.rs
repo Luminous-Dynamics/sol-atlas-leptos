@@ -789,6 +789,70 @@ mod tests {
         );
     }
 
+
+    #[test]
+    fn exhaustive_small_monotone_affine_maps_match_explicit_fixed_point_oracle() {
+        let limits = MonotoneGridLimits {
+            max_state_universe: 100,
+            max_columns: 10,
+            max_fixed_point_iterations: 100,
+            max_predecessor_queries: 10_000,
+        };
+
+        // Every rule is componentwise monotone because all coefficients are
+        // non-negative. Enumerate 16 cross-coupling/offset combinations and
+        // every lower-closed threshold pair on the 2x3 grid.
+        for x_from_height in 0_u64..=1 {
+            for height_from_x in 0_u64..=1 {
+                for x_offset in [-1_i64, 0] {
+                    for height_offset in [-1_i64, 0] {
+                        let rule = MonotoneTransitionRule {
+                            coefficients_by_output: vec![
+                                vec![1, x_from_height],
+                                vec![height_from_x, 1],
+                            ],
+                            offset_by_output: vec![x_offset, height_offset],
+                        };
+
+                        for lower_column in -1_i64..=2 {
+                            for upper_column in -1_i64..=lower_column {
+                                let problem = MonotoneGridProblem {
+                                    axis_sizes: vec![2, 3],
+                                    rules_by_action: vec![vec![rule.clone()]],
+                                    initial_safe_thresholds: vec![
+                                        lower_column,
+                                        upper_column,
+                                    ],
+                                };
+
+                                let execution =
+                                    compute_monotone_invariant_kernel_with_limits(
+                                        &problem,
+                                        limits,
+                                    )
+                                    .unwrap();
+                                let MonotoneGridExecution::Exact(report) = execution else {
+                                    panic!("small generated case must be exact");
+                                };
+
+                                let explicit =
+                                    explicit_oracle(&problem, &problem.initial_safe_thresholds);
+                                let expected =
+                                    thresholds_from_mask(&explicit, &problem.axis_sizes);
+
+                                assert_eq!(
+                                    report.thresholds,
+                                    expected,
+                                    "threshold mismatch for coeffs ({x_from_height},{height_from_x}), offsets ({x_offset},{height_offset}), thresholds ({lower_column},{upper_column})"
+                                );
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
     #[test]
     fn threshold_kernel_rejects_non_lower_closed_initial_safe_set() {
         let problem = MonotoneGridProblem {
