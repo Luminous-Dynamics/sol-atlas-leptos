@@ -193,6 +193,40 @@ Official product/standard sources, checked 2026-11-16:
 - buildingSMART IDS: https://www.buildingsmart.org/standards/bsi-standards/information-delivery-specification-ids/
 - EnergyPlus 26.2: https://energyplus.readthedocs.io/en/v26.2.0/
 
+## 9.1 Current research frontier (checked 2026-11-16)
+
+A particularly relevant recent comparator is Kembhavi et al., **"An evaluation guided multiagent framework for generating floor plans that comply with municipal building regulations"**, *Discover Artificial Intelligence*, published 2026-10-15, DOI 10.1007/s44163-026-02481-9. Its LayoutGen system uses retrieval, role-separated agents, deterministic geometric evaluation and iterative refinement. Across 200 runs, the paper reports a reduction from 3.7 to 0.3 detected violations per plan relative to an unretrieved, unrefined single-shot baseline using the same backbone.
+
+The comparator is promising, but its claim boundary matters:
+- evaluated single-storey, axis-aligned rectangular residential rooms on RPLAN/MSD-derived configurations;
+- counted topological, geometric and encoded dimensional errors (minimum room area, minimum room width and critical width);
+- left setbacks, floor-area ratio, egress, stair geometry, parking and ventilation outside the generation-loop checks;
+- demonstrated rule-repository swapping across three Indian municipal regimes with comparable dimensional-rule structure, not cross-country generality;
+- does not establish structural, MEP, water, cost, whole-life or construction qualification.
+
+**Our target:** match the useful neuro-symbolic pattern—generation informed by deterministic independent feedback—but require exact source rule provenance, hard-gate semantics, unknown/stale/conflicted outcomes, revision-bound evidence, broader specialist checks and competent professional authority. A 92% relative reduction on a narrow subset is not a zero-false-pass guarantee for an occupied dwelling.
+
+Useful research baselines:
+- **RPLAN:** historical residential plan corpus for graph/geometry and distributional layout comparisons. Use it only for a clearly scoped generative subtask; do not treat its distribution as a universal cultural or functional ideal.
+- **Tell2Design:** paired natural-language instructions and RPLAN plans for instruction-conditioned generation. Evaluate paired edit fidelity separately from resident agency.
+- **MSD:** additional building-layout benchmark population for cross-dataset generalization; preserve the actual split and source task.
+- **Human/architect review:** use blinded paired comparisons for resident-defined usability and preference; never substitute an LLM aesthetic score for resident judgement.
+
+A 2025 review of computer-aided building layout generation identifies floor-plan, scene-layout and other building-layout generation as distinct tasks with different benchmark datasets and metrics. Therefore report image realism metrics (e.g., FID), graph/topology validity, vector geometry, constraint satisfaction, functional circulation, accessibility and resident judgement as separate results. Do not collapse them into one leaderboard.
+
+References:
+- LayoutGen (2026): https://link.springer.com/article/10.1007/s44163-026-02481-9
+- Computer-Aided Layout Generation for Building Design: A Review (2025): https://arxiv.org/abs/2504.09694
+- Tell2Design / RPLAN is discussed in the LayoutGen paper; the benchmark must pin the exact public dataset version and test split before comparison.
+
+## 9.2 Independent certification and local review
+
+Green Star, Net Zero and EDGE are certification routes, not design generators or substitutes for local statutory approvals. The Green Building Council South Africa certification process requires an appropriately accredited professional and an independent technical assessment. Treat these as downstream assurance/certification comparators, not as an automatic feature-score output from the home compiler:
+https://www.gbcsa.org.za/the-certification-process/
+
+For South African building work, local-authority approval and the applicable National Building Regulations/SANS 10400 path remain explicit. Municipal application requirements differ; an example municipal submission route lists site/layout plans and other discipline documents according to the scope of work:
+https://www.capetown.gov.za/city-connect/apply/planning-building-and-development/building-plan-applications/submit-a-building-plan/
+
 ## 9. Benchmarks and targets
 
 Use the existing 100-case Home Freedom corpus (#819) as the feasibility oracle. Add style/experience counterfactuals to it; do not create a competing source of truth.
