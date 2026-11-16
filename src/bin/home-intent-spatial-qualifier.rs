@@ -6,18 +6,14 @@ use serde_json::{Value, json};
 use std::collections::BTreeSet;
 use std::{env, fs, process};
 
-const MANIFEST: &str = include_str!(
-    "../../docs/research/home-freedom/HOME_INTENT_SPATIAL_CROSSWALK_V0.1.json"
-);
-const SCHEMA: &str = include_str!(
-    "../../docs/research/home-freedom/HOME_INTENT_SPATIAL_CROSSWALK_V0.1.schema.json"
-);
-const BRIEF: &str = include_str!(
-    "../../docs/research/home-freedom/HOME_DESIGN_BRIEF_SYNTHETIC_EXAMPLE_V0.1.json"
-);
-const BRIEF_SCHEMA: &str = include_str!(
-    "../../docs/research/home-freedom/HOME_DESIGN_BRIEF_PROFILE_V0.1.schema.json"
-);
+const MANIFEST: &str =
+    include_str!("../../docs/research/home-freedom/HOME_INTENT_SPATIAL_CROSSWALK_V0.1.json");
+const SCHEMA: &str =
+    include_str!("../../docs/research/home-freedom/HOME_INTENT_SPATIAL_CROSSWALK_V0.1.schema.json");
+const BRIEF: &str =
+    include_str!("../../docs/research/home-freedom/HOME_DESIGN_BRIEF_SYNTHETIC_EXAMPLE_V0.1.json");
+const BRIEF_SCHEMA: &str =
+    include_str!("../../docs/research/home-freedom/HOME_DESIGN_BRIEF_PROFILE_V0.1.schema.json");
 
 fn text_at<'a>(value: &'a Value, key: &str) -> Option<&'a str> {
     value.get(key).and_then(Value::as_str)
@@ -42,12 +38,21 @@ fn path_exists(root: &Value, path: &str) -> bool {
     true
 }
 
-fn validate(manifest: &Value, schema: &Value, brief: &Value, brief_schema: &Value) -> Result<Value, Vec<String>> {
+fn validate(
+    manifest: &Value,
+    schema: &Value,
+    brief: &Value,
+    brief_schema: &Value,
+) -> Result<Value, Vec<String>> {
     let mut errors = Vec::new();
 
     for (label, candidate_schema) in [("crosswalk", schema), ("brief", brief_schema)] {
-        if text_at(candidate_schema, "$schema") != Some("https://json-schema.org/draft/2020-12/schema") {
-            errors.push(format!("{label} schema must declare JSON Schema Draft 2020-12"));
+        if text_at(candidate_schema, "$schema")
+            != Some("https://json-schema.org/draft/2020-12/schema")
+        {
+            errors.push(format!(
+                "{label} schema must declare JSON Schema Draft 2020-12"
+            ));
         }
         if text_at(candidate_schema, "type") != Some("object") {
             errors.push(format!("{label} schema root must be an object"));
@@ -62,7 +67,9 @@ fn validate(manifest: &Value, schema: &Value, brief: &Value, brief_schema: &Valu
     if text_at(manifest, "maturity") != Some("PROPOSED_OWNER_REVIEW_REQUIRED")
         || text_at(manifest, "execution_status") != Some("NO_RUNTIME_ADAPTER")
     {
-        errors.push("crosswalk cannot be promoted to owner-accepted/runtime-connected state".to_owned());
+        errors.push(
+            "crosswalk cannot be promoted to owner-accepted/runtime-connected state".to_owned(),
+        );
     }
     if text_at(manifest, "source_schema") != Some("HOME_DESIGN_BRIEF_PROFILE_V0.1.schema.json")
         || text_at(manifest, "source_schema_version") != Some("0.1.0")
@@ -87,20 +94,26 @@ fn validate(manifest: &Value, schema: &Value, brief: &Value, brief_schema: &Valu
         if source_path.is_empty() || !source_paths.insert(source_path.to_owned()) {
             errors.push(format!("{id}: source path is missing or duplicated"));
         } else if !path_exists(brief, source_path) {
-            errors.push(format!("{id}: source path {source_path} does not exist in the exact synthetic brief"));
+            errors.push(format!(
+                "{id}: source path {source_path} does not exist in the exact synthetic brief"
+            ));
         }
         if text_at(mapping, "relation") != Some("PROPOSED_SEMANTIC_MAPPING")
             || text_at(mapping, "status") != Some("OWNER_CONFIRMATION_REQUIRED")
             || !mapping.get("target_field_path").is_some_and(Value::is_null)
         {
-            errors.push(format!("{id}: unsupported or unconfirmed mapping was promoted"));
+            errors.push(format!(
+                "{id}: unsupported or unconfirmed mapping was promoted"
+            ));
         }
         if array_at(mapping, "target_owners").is_none_or(Vec::is_empty)
             || text_at(mapping, "target_semantic").is_none_or(str::is_empty)
             || text_at(mapping, "transformation").is_none_or(str::is_empty)
             || text_at(mapping, "loss_policy").is_none_or(str::is_empty)
         {
-            errors.push(format!("{id}: target owner, semantic or loss policy is missing"));
+            errors.push(format!(
+                "{id}: target owner, semantic or loss policy is missing"
+            ));
         }
     }
 
@@ -116,17 +129,33 @@ fn validate(manifest: &Value, schema: &Value, brief: &Value, brief_schema: &Valu
     ]
     .into_iter()
     .collect::<BTreeSet<_>>();
-    if source_paths.iter().map(String::as_str).collect::<BTreeSet<_>>() != expected_paths {
-        errors.push("crosswalk does not cover the eight required home-brief semantic slices".to_owned());
+    if source_paths
+        .iter()
+        .map(String::as_str)
+        .collect::<BTreeSet<_>>()
+        != expected_paths
+    {
+        errors.push(
+            "crosswalk does not cover the eight required home-brief semantic slices".to_owned(),
+        );
     }
 
     let geometry = manifest.get("geometry_gate").unwrap_or(&Value::Null);
     if text_at(geometry, "owner") != Some("Symtropy #683")
         || text_at(geometry, "state") != Some("BLOCKED_UNTIL_QUALIFIED")
-        || geometry.get("geometry_claims_permitted").and_then(Value::as_bool) != Some(false)
-        || geometry.get("production_takeoff_permitted").and_then(Value::as_bool) != Some(false)
+        || geometry
+            .get("geometry_claims_permitted")
+            .and_then(Value::as_bool)
+            != Some(false)
+        || geometry
+            .get("production_takeoff_permitted")
+            .and_then(Value::as_bool)
+            != Some(false)
     {
-        errors.push("exact geometry / production takeoff must remain blocked until provider qualification".to_owned());
+        errors.push(
+            "exact geometry / production takeoff must remain blocked until provider qualification"
+                .to_owned(),
+        );
     }
 
     let voi = manifest.get("value_of_information").unwrap_or(&Value::Null);
@@ -197,7 +226,10 @@ fn main() {
     let args = env::args().skip(1).collect::<Vec<_>>();
     match run(&args) {
         Ok(report) => {
-            println!("{}", serde_json::to_string_pretty(&report).unwrap_or_default());
+            println!(
+                "{}",
+                serde_json::to_string_pretty(&report).unwrap_or_default()
+            );
             if text_at(&report, "audit_state") == Some("HOME_INTENT_SPATIAL_CROSSWALK_PASS") {
                 return;
             }
@@ -266,7 +298,10 @@ mod tests {
     #[test]
     fn hard_preference_and_accessibility_constraints_remain_distinct() {
         let (mut manifest, schema, brief, brief_schema) = fixture();
-        manifest["mappings"].retain(|m| m["source_path"] != "constraints");
+        manifest["mappings"]
+            .as_array_mut()
+            .expect("mappings is an array in the synthetic fixture")
+            .retain(|m| m["source_path"] != "constraints");
         assert!(validate(&manifest, &schema, &brief, &brief_schema).is_err());
     }
 
