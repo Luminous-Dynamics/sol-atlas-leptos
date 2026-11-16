@@ -1,0 +1,606 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/blob/main/docs/research/home-expression/HOME_EXPRESSION_PROFILE_V0.1.schema.json",
+  "title": "Resident-directed home expression and experience profile v0.1",
+  "description": "Resident-controlled architectural expression and optional experience packages. Not a building model, aesthetic score, permit, professional design or safety certificate.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "profile_id",
+    "maturity",
+    "linked_brief_id",
+    "linked_design_revision_ref",
+    "linked_brief_constraint_ids",
+    "expression_intent",
+    "style_preferences",
+    "experience_options",
+    "evaluation_protocol",
+    "privacy"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "0.1.0"
+    },
+    "profile_id": {
+      "type": "string",
+      "pattern": "^[A-Z0-9][A-Z0-9_-]{2,63}$"
+    },
+    "maturity": {
+      "enum": [
+        "SYNTHETIC",
+        "RESIDENT_AUTHORIZED",
+        "RESTRICTED_PRIVATE"
+      ]
+    },
+    "linked_brief_id": {
+      "type": "string",
+      "pattern": "^[A-Z0-9][A-Z0-9_-]{2,63}$"
+    },
+    "linked_design_revision_ref": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 240
+    },
+    "linked_brief_constraint_ids": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "pattern": "^[A-Z0-9_-]{2,48}$"
+      }
+    },
+    "expression_intent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "statement",
+        "experiential_qualities",
+        "protected_features",
+        "avoided_motifs",
+        "sensory_intent",
+        "cultural_context"
+      ],
+      "properties": {
+        "statement": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 3000
+        },
+        "experiential_qualities": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 120
+          }
+        },
+        "protected_features": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 300
+          }
+        },
+        "avoided_motifs": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 300
+          }
+        },
+        "sensory_intent": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "light",
+            "acoustics",
+            "material_tactility",
+            "thermal_feel",
+            "spatial_sequence"
+          ],
+          "properties": {
+            "light": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "maxLength": 300
+              }
+            },
+            "acoustics": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "maxLength": 300
+              }
+            },
+            "material_tactility": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "maxLength": 300
+              }
+            },
+            "thermal_feel": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "maxLength": 300
+              }
+            },
+            "spatial_sequence": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "maxLength": 300
+              }
+            }
+          }
+        },
+        "cultural_context": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "resident_provided",
+            "context_statement",
+            "community_review_state",
+            "reference_artifacts"
+          ],
+          "properties": {
+            "resident_provided": {
+              "type": "boolean"
+            },
+            "context_statement": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "maxLength": 1000
+            },
+            "community_review_state": {
+              "enum": [
+                "NOT_APPLICABLE",
+                "NOT_REQUESTED",
+                "PLANNED",
+                "IN_PROGRESS",
+                "REVIEWED",
+                "CONTESTED"
+              ]
+            },
+            "reference_artifacts": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "artifact_ref",
+                  "source_description",
+                  "rights_state"
+                ],
+                "properties": {
+                  "artifact_ref": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 240
+                  },
+                  "source_description": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 500
+                  },
+                  "rights_state": {
+                    "enum": [
+                      "RESIDENT_OWNED",
+                      "PUBLIC_DOMAIN",
+                      "LICENSED",
+                      "PERMISSION_PENDING",
+                      "UNKNOWN"
+                    ]
+                  },
+                  "audience_or_context": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 500
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "style_preferences": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "mode",
+        "entries",
+        "catalog_revision"
+      ],
+      "properties": {
+        "mode": {
+          "enum": [
+            "SINGLE",
+            "BLENDED",
+            "CUSTOM",
+            "NONE_UNDECIDED"
+          ]
+        },
+        "catalog_revision": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80
+        },
+        "entries": {
+          "type": "array",
+          "maxItems": 12,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "style_id",
+              "display_name",
+              "role",
+              "blend_weight_pct",
+              "resident_selected",
+              "description",
+              "custom_definition",
+              "inspiration_refs"
+            ],
+            "properties": {
+              "style_id": {
+                "enum": [
+                  "HIGHLAND_STONE_TIMBER_CONTEMPORARY",
+                  "CAPE_COURTYARD_VERNACULAR",
+                  "REGIONALLY_AUTHORED_MODERNISM",
+                  "MODERNIST",
+                  "MID_CENTURY_MODERN",
+                  "BIOPHILIC_ORGANIC",
+                  "TROPICAL_MODERN",
+                  "MEDITERRANEAN_COURTYARD",
+                  "JAPANESE_INSPIRED_MINIMAL",
+                  "INDUSTRIAL",
+                  "FARMHOUSE_CRAFT",
+                  "ART_DECO",
+                  "BRUTALIST_MONOLITHIC",
+                  "GOTHIC_REVIVAL",
+                  "HERITAGE_RESTORATION",
+                  "SOLARPUNK",
+                  "MINIMALIST",
+                  "MAXIMALIST",
+                  "CONTEMPORARY_CLASSIC",
+                  "OTHER_CUSTOM"
+                ]
+              },
+              "display_name": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 120
+              },
+              "role": {
+                "enum": [
+                  "PRIMARY",
+                  "SECONDARY",
+                  "ACCEPTABLE",
+                  "AVOID"
+                ]
+              },
+              "blend_weight_pct": {
+                "type": [
+                  "integer",
+                  "null"
+                ],
+                "minimum": 0,
+                "maximum": 100
+              },
+              "resident_selected": {
+                "type": "boolean"
+              },
+              "description": {
+                "type": "string",
+                "maxLength": 800
+              },
+              "custom_definition": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "maxLength": 1200
+              },
+              "inspiration_refs": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "artifact_ref",
+                    "source_description",
+                    "rights_state"
+                  ],
+                  "properties": {
+                    "artifact_ref": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 240
+                    },
+                    "source_description": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 500
+                    },
+                    "rights_state": {
+                      "enum": [
+                        "RESIDENT_OWNED",
+                        "PUBLIC_DOMAIN",
+                        "LICENSED",
+                        "PERMISSION_PENDING",
+                        "UNKNOWN"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "experience_options": {
+      "type": "array",
+      "maxItems": 80,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "option_id",
+          "package_id",
+          "display_name",
+          "selection_state",
+          "optionality",
+          "resident_constraint_ref",
+          "delivery_phase",
+          "impact_profile",
+          "maintenance_notes",
+          "acceptance_questions"
+        ],
+        "properties": {
+          "option_id": {
+            "type": "string",
+            "pattern": "^[A-Z0-9_-]{2,48}$"
+          },
+          "package_id": {
+            "enum": [
+              "DOUBLE_HEIGHT_GREAT_HALL",
+              "GRAND_ATRIUM",
+              "WINTER_GARDEN",
+              "CONSERVATORY",
+              "GRAND_LIBRARY",
+              "PRIVATE_OBSERVATORY",
+              "ROOFTOP_TERRACE",
+              "PRIVATE_SPA_SAUNA",
+              "INDOOR_POOL",
+              "CINEMA",
+              "MUSIC_RECORDING_STUDIO",
+              "MAKER_LAB",
+              "GALLERY",
+              "INDOOR_OUTDOOR_KITCHEN",
+              "GUEST_PAVILION",
+              "MULTIGENERATIONAL_ANNEX",
+              "GREENHOUSE_FOOD_GARDEN",
+              "RAIN_GARDEN_WATER_CASCADE",
+              "SOLAR_PERGOLA",
+              "SPORTS_COURT",
+              "CLIMBING_WALL",
+              "HIDDEN_ROOM",
+              "SKYBRIDGE",
+              "CANTILEVERED_VIEW_DECK",
+              "UNDERGROUND_WELLNESS_SUITE",
+              "CUSTOM"
+            ]
+          },
+          "display_name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 160
+          },
+          "selection_state": {
+            "enum": [
+              "PREFERRED",
+              "CONSIDERED",
+              "AVOIDED"
+            ]
+          },
+          "optionality": {
+            "enum": [
+              "OPTIONAL",
+              "RESIDENT_REQUIRED"
+            ]
+          },
+          "resident_constraint_ref": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "delivery_phase": {
+            "enum": [
+              "PHASE_1",
+              "FUTURE_PHASE",
+              "UNDECIDED",
+              "NOT_SELECTED"
+            ]
+          },
+          "impact_profile": {
+            "type": "array",
+            "minItems": 10,
+            "maxItems": 10,
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "domain",
+                "state",
+                "value",
+                "lower_bound",
+                "upper_bound",
+                "unit",
+                "evidence_reference",
+                "method_reference",
+                "basis_note"
+              ],
+              "properties": {
+                "domain": {
+                  "enum": [
+                    "AREA_AND_CIRCULATION",
+                    "CAPITAL_COST",
+                    "LIFECYCLE_OPERATING_COST",
+                    "ENERGY_AND_PEAK_DEMAND",
+                    "WATER_AND_DRAINAGE",
+                    "MATERIALS_AND_CARBON",
+                    "MAINTENANCE_AND_REPAIR",
+                    "ACCESSIBILITY",
+                    "STRUCTURE_FIRE_MOISTURE_ACOUSTICS",
+                    "SOURCING_AND_DELIVERY"
+                  ]
+                },
+                "state": {
+                  "enum": [
+                    "UNKNOWN",
+                    "NOT_APPLICABLE",
+                    "ESTIMATED",
+                    "MEASURED",
+                    "QUALIFIED"
+                  ]
+                },
+                "value": {
+                  "type": [
+                    "number",
+                    "string",
+                    "null"
+                  ]
+                },
+                "lower_bound": {
+                  "type": [
+                    "number",
+                    "null"
+                  ]
+                },
+                "upper_bound": {
+                  "type": [
+                    "number",
+                    "null"
+                  ]
+                },
+                "unit": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "maxLength": 80
+                },
+                "evidence_reference": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "maxLength": 240
+                },
+                "method_reference": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "maxLength": 240
+                },
+                "basis_note": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "maxLength": 800
+                }
+              }
+            }
+          },
+          "maintenance_notes": {
+            "type": "string",
+            "maxLength": 1200
+          },
+          "acceptance_questions": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "maxLength": 500
+            }
+          }
+        }
+      }
+    },
+    "evaluation_protocol": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "selection_authority",
+        "aesthetic_success_assessor",
+        "automatic_approval",
+        "universal_aesthetic_score",
+        "review_plan"
+      ],
+      "properties": {
+        "selection_authority": {
+          "const": "RESIDENT"
+        },
+        "aesthetic_success_assessor": {
+          "enum": [
+            "RESIDENT",
+            "RESIDENT_AND_INVITED_REVIEWERS"
+          ]
+        },
+        "automatic_approval": {
+          "const": false
+        },
+        "universal_aesthetic_score": {
+          "const": false
+        },
+        "review_plan": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1200
+        }
+      }
+    },
+    "privacy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "contains_direct_identifiers",
+        "sharing_mode",
+        "redaction_status"
+      ],
+      "properties": {
+        "contains_direct_identifiers": {
+          "type": "boolean"
+        },
+        "sharing_mode": {
+          "enum": [
+            "SYNTHETIC_PUBLIC",
+            "LOCAL_ONLY",
+            "PURPOSE_SCOPED_CONSENT"
+          ]
+        },
+        "redaction_status": {
+          "enum": [
+            "REVIEWED_NO_DIRECT_IDENTIFIERS",
+            "NOT_REVIEWED",
+            "REDACTION_REQUIRED"
+          ]
+        }
+      }
+    }
+  }
+}
