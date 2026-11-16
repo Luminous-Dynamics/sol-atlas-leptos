@@ -255,7 +255,7 @@
             "properties": {
               "style_id": {
                 "enum": [
-                  "HIGHLAND_STONE_TIMBER_CONTEMPORARY",
+                  "HIGHVELD_STONE_TIMBER_CONTEMPORARY",
                   "CAPE_COURTYARD_VERNACULAR",
                   "REGIONALLY_AUTHORED_MODERNISM",
                   "MODERNIST",
