@@ -1,0 +1,34 @@
+name: DC power-flow reference kernel
+
+on:
+  pull_request:
+    paths:
+      - "tools/dc-power-flow-reference/**"
+      - ".github/workflows/dc-power-flow-reference.yml"
+  push:
+    paths:
+      - "tools/dc-power-flow-reference/**"
+      - ".github/workflows/dc-power-flow-reference.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: dc-power-flow-reference
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+      - name: Format
+        run: cargo fmt --manifest-path tools/dc-power-flow-reference/Cargo.toml -- --check
+      - name: Locked offline tests
+        run: cargo test --manifest-path tools/dc-power-flow-reference/Cargo.toml --locked --offline
+      - name: Strict Clippy
+        run: cargo clippy --manifest-path tools/dc-power-flow-reference/Cargo.toml --locked --offline --all-targets -- -D warnings

@@ -1,0 +1,11 @@
+[package]
+name = "dc-power-flow-reference"
+version = "0.1.0"
+edition = "2024"
+license = "AGPL-3.0-or-later"
+description = "Dependency-free reference DC power-flow solver for small network feasibility tests"
+
+[lib]
+path = "src/lib.rs"
+
+[dependencies]
