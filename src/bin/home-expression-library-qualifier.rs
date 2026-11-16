@@ -1,0 +1,492 @@
+// Copyright (C) 2024-2026 Tristan Stoltz / Luminous Dynamics
+// SPDX-License-Identifier: AGPL-3.0-or-later
+// Commercial licensing: see COMMERCIAL_LICENSE.md at repository root
+
+use serde_json::Value;
+use std::collections::BTreeSet;
+use std::{env, fs, process};
+
+const PROFILE_FIXTURE: &str = include_str!(
+    "../../docs/research/home-expression/HOME_EXPRESSION_PROFILE_SYNTHETIC_HIGHVELD_V0.1.json"
+);
+const PROFILE_SCHEMA: &str =
+    include_str!("../../docs/research/home-expression/HOME_EXPRESSION_PROFILE_V0.1.schema.json");
+
+const STYLE_IDS: &[&str] = &[
+    "HIGHLAND_STONE_TIMBER_CONTEMPORARY",
+    "CAPE_COURTYARD_VERNACULAR",
+    "REGIONALLY_AUTHORED_MODERNISM",
+    "MODERNIST",
+    "MID_CENTURY_MODERN",
+    "BIOPHILIC_ORGANIC",
+    "TROPICAL_MODERN",
+    "MEDITERRANEAN_COURTYARD",
+    "JAPANESE_INSPIRED_MINIMAL",
+    "INDUSTRIAL",
+    "FARMHOUSE_CRAFT",
+    "ART_DECO",
+    "BRUTALIST_MONOLITHIC",
+    "GOTHIC_REVIVAL",
+    "HERITAGE_RESTORATION",
+    "SOLARPUNK",
+    "MINIMALIST",
+    "MAXIMALIST",
+    "CONTEMPORARY_CLASSIC",
+    "OTHER_CUSTOM",
+];
+
+const IMPACT_DOMAINS: &[&str] = &[
+    "AREA_AND_CIRCULATION",
+    "CAPITAL_COST",
+    "LIFECYCLE_OPERATING_COST",
+    "ENERGY_AND_PEAK_DEMAND",
+    "WATER_AND_DRAINAGE",
+    "MATERIALS_AND_CARBON",
+    "MAINTENANCE_AND_REPAIR",
+    "ACCESSIBILITY",
+    "STRUCTURE_FIRE_MOISTURE_ACOUSTICS",
+    "SOURCING_AND_DELIVERY",
+];
+
+fn string_at<'a>(value: &'a Value, key: &str) -> Option<&'a str> {
+    value.get(key).and_then(Value::as_str)
+}
+
+fn array_at<'a>(value: &'a Value, key: &str) -> Option<&'a Vec<Value>> {
+    value.get(key).and_then(Value::as_array)
+}
+
+fn nonempty_string(value: &Value, key: &str) -> bool {
+    string_at(value, key).is_some_and(|text| !text.trim().is_empty())
+}
+
+fn is_null(value: &Value, key: &str) -> bool {
+    value.get(key).is_none_or(Value::is_null)
+}
+
+fn forbidden_score_path(value: &Value, path: &str, errors: &mut Vec<String>) {
+    match value {
+        Value::Object(map) => {
+            for (key, child) in map {
+                let child_path = format!("{path}.{key}");
+                let normalized = key.to_ascii_lowercase();
+                if [
+                    "beauty_score",
+                    "luxury_score",
+                    "cultural_fit_score",
+                    "meaning_score",
+                    "poetry_score",
+                ]
+                .contains(&normalized.as_str())
+                {
+                    errors.push(format!(
+                        "{child_path}: universal aesthetic/symbolic score is forbidden"
+                    ));
+                }
+                forbidden_score_path(child, &child_path, errors);
+            }
+        }
+        Value::Array(items) => {
+            for (index, child) in items.iter().enumerate() {
+                forbidden_score_path(child, &format!("{path}[{index}]"), errors);
+            }
+        }
+        _ => {}
+    }
+}
+
+fn validate_schema_header(schema: &Value, errors: &mut Vec<String>) {
+    if string_at(schema, "$schema") != Some("https://json-schema.org/draft/2020-12/schema") {
+        errors.push("profile schema must declare JSON Schema Draft 2020-12".to_owned());
+    }
+    if string_at(schema, "type") != Some("object") {
+        errors.push("profile schema root must be an object".to_owned());
+    }
+}
+
+fn validate_profile(profile: &Value, schema: &Value) -> Result<(), Vec<String>> {
+    let mut errors = Vec::new();
+    validate_schema_header(schema, &mut errors);
+    forbidden_score_path(profile, "$", &mut errors);
+
+    if string_at(profile, "schema_version") != Some("0.1.0") {
+        errors.push("schema_version must be 0.1.0".to_owned());
+    }
+    if !nonempty_string(profile, "profile_id")
+        || !nonempty_string(profile, "linked_brief_id")
+        || !nonempty_string(profile, "linked_design_revision_ref")
+    {
+        errors.push("profile, exact source brief and design revision references are required".to_owned());
+    }
+
+    let maturity = string_at(profile, "maturity").unwrap_or_default();
+    if !["SYNTHETIC", "RESIDENT_AUTHORIZED", "RESTRICTED_PRIVATE"].contains(&maturity) {
+        errors.push("unsupported maturity state".to_owned());
+    }
+
+    let constraints: BTreeSet<&str> = array_at(profile, "linked_brief_constraint_ids")
+        .into_iter()
+        .flatten()
+        .filter_map(Value::as_str)
+        .collect();
+
+    let expression = profile.get("expression_intent").unwrap_or(&Value::Null);
+    if !nonempty_string(expression, "statement") {
+        errors.push("expression_intent.statement must be resident-authored and nonempty".to_owned());
+    }
+    let context = expression.get("cultural_context").unwrap_or(&Value::Null);
+    if context.get("resident_provided").and_then(Value::as_bool) == Some(false)
+        && !is_null(context, "context_statement")
+    {
+        errors.push("non-resident-provided cultural context must not be inserted by the system".to_owned());
+    }
+
+    let style_preferences = profile.get("style_preferences").unwrap_or(&Value::Null);
+    let mode = string_at(style_preferences, "mode").unwrap_or_default();
+    let entries = array_at(style_preferences, "entries").cloned().unwrap_or_default();
+
+    if !["SINGLE", "BLENDED", "CUSTOM", "NONE_UNDECIDED"].contains(&mode) {
+        errors.push("style preference mode is not supported".to_owned());
+    }
+    if !nonempty_string(style_preferences, "catalog_revision") {
+        errors.push("style catalog revision is required".to_owned());
+    }
+
+    let mut style_ids = BTreeSet::new();
+    let mut contributing_weights = 0_u64;
+    let mut primary_count = 0usize;
+    let mut secondary_count = 0usize;
+    let mut custom_count = 0usize;
+
+    for entry in &entries {
+        let style_id = string_at(entry, "style_id").unwrap_or_default();
+        let role = string_at(entry, "role").unwrap_or_default();
+        if !STYLE_IDS.contains(&style_id) {
+            errors.push(format!("unknown style_id {style_id}"));
+        }
+        if !style_ids.insert(style_id) {
+            errors.push(format!("duplicate style_id {style_id}"));
+        }
+
+        if !nonempty_string(entry, "display_name") {
+            errors.push(format!("{style_id}: display_name is required"));
+        }
+
+        match role {
+            "PRIMARY" | "SECONDARY" => {
+                let weight = entry.get("blend_weight_pct").and_then(Value::as_u64);
+                match weight {
+                    Some(weight) if (1..=100).contains(&weight) => {
+                        contributing_weights += weight;
+                    }
+                    _ => errors.push(format!(
+                        "{style_id}: PRIMARY/SECONDARY needs a resident-authored integer weight in 1..=100"
+                    )),
+                }
+                if role == "PRIMARY" {
+                    primary_count += 1;
+                } else {
+                    secondary_count += 1;
+                }
+            }
+            "ACCEPTABLE" | "AVOID" => {
+                if !is_null(entry, "blend_weight_pct") {
+                    errors.push(format!(
+                        "{style_id}: ACCEPTABLE/AVOID entries must not contribute blend weight"
+                    ));
+                }
+            }
+            _ => errors.push(format!("{style_id}: unsupported style role {role}")),
+        }
+
+        if style_id == "OTHER_CUSTOM" {
+            custom_count += 1;
+            if !nonempty_string(entry, "custom_definition") {
+                errors.push("OTHER_CUSTOM requires a resident-authored custom_definition".to_owned());
+            }
+        } else if !is_null(entry, "custom_definition") {
+            errors.push(format!(
+                "{style_id}: custom_definition is only valid for OTHER_CUSTOM"
+            ));
+        }
+    }
+
+    match mode {
+        "SINGLE" => {
+            if primary_count != 1 || contributing_weights != 100 || secondary_count != 0 {
+                errors.push("SINGLE mode requires exactly one PRIMARY at 100% and no SECONDARY".to_owned());
+            }
+        }
+        "BLENDED" => {
+            if primary_count == 0 || contributing_weights != 100 {
+                errors.push("BLENDED mode requires at least one PRIMARY and weights summing exactly to 100".to_owned());
+            }
+        }
+        "CUSTOM" => {
+            if custom_count == 0 {
+                errors.push("CUSTOM mode requires at least one OTHER_CUSTOM entry".to_owned());
+            }
+        }
+        "NONE_UNDECIDED" => {
+            if !entries.is_empty() {
+                errors.push("NONE_UNDECIDED mode must not silently assign style entries".to_owned());
+            }
+        }
+        _ => {}
+    }
+
+    let options = array_at(profile, "experience_options").cloned().unwrap_or_default();
+    let mut option_ids = BTreeSet::new();
+    let mut package_ids = BTreeSet::new();
+
+    for option in &options {
+        let option_id = string_at(option, "option_id").unwrap_or_default();
+        if option_id.is_empty() || !option_ids.insert(option_id) {
+            errors.push(format!("missing or duplicate experience option ID: {option_id}"));
+        }
+        let package_id = string_at(option, "package_id").unwrap_or_default();
+        if package_id.is_empty() || !package_ids.insert(package_id) {
+            errors.push(format!("{option_id}: missing or duplicate package_id"));
+        }
+
+        let optionality = string_at(option, "optionality").unwrap_or_default();
+        if optionality == "RESIDENT_REQUIRED" {
+            let requirement = string_at(option, "resident_constraint_ref").unwrap_or_default();
+            if requirement.is_empty() || !constraints.contains(requirement) {
+                errors.push(format!(
+                    "{option_id}: RESIDENT_REQUIRED must reference an exact constraint in the linked resident brief"
+                ));
+            }
+        } else if optionality == "OPTIONAL" && !is_null(option, "resident_constraint_ref") {
+            errors.push(format!(
+                "{option_id}: optional package must not invent or attach a hard-constraint reference"
+            ));
+        } else if !["OPTIONAL", "RESIDENT_REQUIRED"].contains(&optionality) {
+            errors.push(format!("{option_id}: unsupported optionality state"));
+        }
+
+        let impacts = array_at(option, "impact_profile").cloned().unwrap_or_default();
+        if impacts.len() != IMPACT_DOMAINS.len() {
+            errors.push(format!(
+                "{option_id}: expected exactly {} impact domains, got {}",
+                IMPACT_DOMAINS.len(),
+                impacts.len()
+            ));
+        }
+        let mut seen_domains = BTreeSet::new();
+
+        for impact in &impacts {
+            let domain = string_at(impact, "domain").unwrap_or_default();
+            if !IMPACT_DOMAINS.contains(&domain) {
+                errors.push(format!("{option_id}: unknown impact domain {domain}"));
+                continue;
+            }
+            if !seen_domains.insert(domain) {
+                errors.push(format!("{option_id}: duplicate impact domain {domain}"));
+            }
+
+            let state = string_at(impact, "state").unwrap_or_default();
+            let has_value = !is_null(impact, "value");
+            let has_bounds = !is_null(impact, "lower_bound") || !is_null(impact, "upper_bound");
+            let has_basis = nonempty_string(impact, "basis_note");
+            let has_unit = nonempty_string(impact, "unit");
+            let has_evidence = nonempty_string(impact, "evidence_reference");
+            let has_method = nonempty_string(impact, "method_reference");
+
+            match state {
+                "UNKNOWN" | "NOT_APPLICABLE" => {
+                    if has_value || has_bounds || has_unit || has_evidence || has_method {
+                        errors.push(format!(
+                            "{option_id}/{domain}: {state} must not carry a fabricated numeric value, unit or qualification reference"
+                        ));
+                    }
+                    if state == "UNKNOWN" && !has_basis {
+                        errors.push(format!(
+                            "{option_id}/{domain}: UNKNOWN needs an explicit explanation"
+                        ));
+                    }
+                }
+                "ESTIMATED" => {
+                    if (!has_value && !has_bounds) || !has_unit || !has_basis {
+                        errors.push(format!(
+                            "{option_id}/{domain}: ESTIMATED needs a value or interval, unit and basis"
+                        ));
+                    }
+                    if let (Some(low), Some(high)) = (
+                        impact.get("lower_bound").and_then(Value::as_f64),
+                        impact.get("upper_bound").and_then(Value::as_f64),
+                    ) {
+                        if low > high {
+                            errors.push(format!("{option_id}/{domain}: lower_bound exceeds upper_bound"));
+                        }
+                    }
+                }
+                "MEASURED" | "QUALIFIED" => {
+                    if (!has_value && !has_bounds) || !has_unit || !has_evidence || !has_method {
+                        errors.push(format!(
+                            "{option_id}/{domain}: {state} needs value/interval, unit, evidence and method references"
+                        ));
+                    }
+                }
+                _ => errors.push(format!("{option_id}/{domain}: unsupported impact state {state}")),
+            }
+        }
+
+        for required_domain in IMPACT_DOMAINS {
+            if !seen_domains.contains(required_domain) {
+                errors.push(format!("{option_id}: missing impact domain {required_domain}"));
+            }
+        }
+    }
+
+    let protocol = profile.get("evaluation_protocol").unwrap_or(&Value::Null);
+    if string_at(protocol, "selection_authority") != Some("RESIDENT")
+        || protocol.get("automatic_approval").and_then(Value::as_bool) != Some(false)
+        || protocol.get("universal_aesthetic_score").and_then(Value::as_bool) != Some(false)
+        || !nonempty_string(protocol, "review_plan")
+    {
+        errors.push("evaluation protocol must preserve resident authority and prohibit automatic/universal aesthetic approval".to_owned());
+    }
+
+    let privacy = profile.get("privacy").unwrap_or(&Value::Null);
+    if maturity == "SYNTHETIC"
+        && (privacy.get("contains_direct_identifiers").and_then(Value::as_bool) != Some(false)
+            || string_at(privacy, "sharing_mode") != Some("SYNTHETIC_PUBLIC")
+            || string_at(privacy, "redaction_status") != Some("REVIEWED_NO_DIRECT_IDENTIFIERS"))
+    {
+        errors.push("public synthetic profile fails the privacy/redaction contract".to_owned());
+    }
+
+    if errors.is_empty() {
+        Ok(())
+    } else {
+        Err(errors)
+    }
+}
+
+fn embedded_profile() -> Result<Value, String> {
+    serde_json::from_str(PROFILE_FIXTURE)
+        .map_err(|error| format!("synthetic expression profile is invalid JSON: {error}"))
+}
+
+fn embedded_schema() -> Result<Value, String> {
+    serde_json::from_str(PROFILE_SCHEMA)
+        .map_err(|error| format!("expression schema is invalid JSON: {error}"))
+}
+
+fn self_test() -> Result<(), String> {
+    let profile = embedded_profile()?;
+    let schema = embedded_schema()?;
+    validate_profile(&profile, &schema).map_err(|errors| errors.join("\n"))?;
+    println!("PASS: synthetic home expression profile satisfies v0.1 owner contract");
+    println!("PASS: resident style blend, optional packages and explicit UNKNOWN impacts preserved");
+    println!("PASS: no universal aesthetic score or automatic approval path");
+    Ok(())
+}
+
+fn main() {
+    let args: Vec<String> = env::args().skip(1).collect();
+    let result = if args.is_empty() || args == ["--self-test"] {
+        self_test()
+    } else if args.len() == 2 && args[0] == "--profile" {
+        let profile = fs::read_to_string(&args[1])
+            .map_err(|error| format!("cannot read {}: {error}", args[1]));
+        profile.and_then(|source| {
+            let value: Value = serde_json::from_str(&source)
+                .map_err(|error| format!("profile is invalid JSON: {error}"))?;
+            let schema = embedded_schema()?;
+            validate_profile(&value, &schema).map_err(|errors| errors.join("\n"))?;
+            println!("PASS: {} satisfies the v0.1 home expression contract", args[1]);
+            Ok(())
+        })
+    } else {
+        Err("usage: home-expression-library-qualifier [--self-test | --profile PATH]".to_owned())
+    };
+
+    if let Err(error) = result {
+        eprintln!("FAIL: {error}");
+        process::exit(1);
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use serde_json::json;
+
+    fn fixture() -> (Value, Value) {
+        (
+            embedded_profile().expect("valid embedded fixture"),
+            embedded_schema().expect("valid embedded schema"),
+        )
+    }
+
+    #[test]
+    fn accepts_synthetic_highveld_profile() {
+        let (profile, schema) = fixture();
+        assert!(validate_profile(&profile, &schema).is_ok());
+    }
+
+    #[test]
+    fn supports_no_style_selected() {
+        let (mut profile, schema) = fixture();
+        profile["style_preferences"]["mode"] = json!("NONE_UNDECIDED");
+        profile["style_preferences"]["entries"] = json!([]);
+        assert!(validate_profile(&profile, &schema).is_ok());
+    }
+
+    #[test]
+    fn rejects_blend_weight_drift() {
+        let (mut profile, schema) = fixture();
+        profile["style_preferences"]["entries"][0]["blend_weight_pct"] = json!(60);
+        assert!(validate_profile(&profile, &schema).is_err());
+    }
+
+    #[test]
+    fn rejects_unknown_impact_coerced_to_zero() {
+        let (mut profile, schema) = fixture();
+        profile["experience_options"][0]["impact_profile"][1]["value"] = json!(0);
+        assert!(validate_profile(&profile, &schema).is_err());
+    }
+
+    #[test]
+    fn rejects_missing_impact_domain() {
+        let (mut profile, schema) = fixture();
+        profile["experience_options"][0]["impact_profile"].as_array_mut().unwrap().pop();
+        assert!(validate_profile(&profile, &schema).is_err());
+    }
+
+    #[test]
+    fn rejects_required_package_without_brief_constraint() {
+        let (mut profile, schema) = fixture();
+        profile["experience_options"][0]["optionality"] = json!("RESIDENT_REQUIRED");
+        profile["experience_options"][0]["resident_constraint_ref"] = json!("C_NOT_IN_BRIEF");
+        assert!(validate_profile(&profile, &schema).is_err());
+    }
+
+    #[test]
+    fn rejects_measured_claim_without_evidence_and_method() {
+        let (mut profile, schema) = fixture();
+        let impact = &mut profile["experience_options"][0]["impact_profile"][0];
+        impact["state"] = json!("MEASURED");
+        impact["value"] = json!(100.0);
+        impact["unit"] = json!("m2");
+        assert!(validate_profile(&profile, &schema).is_err());
+    }
+
+    #[test]
+    fn rejects_universal_beauty_score() {
+        let (mut profile, schema) = fixture();
+        profile["beauty_score"] = json!(0.9);
+        assert!(validate_profile(&profile, &schema).is_err());
+    }
+
+    #[test]
+    fn rejects_custom_style_without_resident_definition() {
+        let (mut profile, schema) = fixture();
+        profile["style_preferences"]["mode"] = json!("CUSTOM");
+        profile["style_preferences"]["entries"][3]["resident_selected"] = json!(true);
+        profile["style_preferences"]["entries"][3]["custom_definition"] = Value::Null;
+        assert!(validate_profile(&profile, &schema).is_err());
+    }
+}
