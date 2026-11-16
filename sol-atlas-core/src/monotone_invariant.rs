@@ -489,8 +489,10 @@ pub fn compute_monotone_invariant_kernel_with_limits(
                 continue;
             }
 
-            let mut low = 0i64;
-            let mut high = current_max.min(max_height);
+            // i128 bounds allow the sentinel step max_height + 1 when the
+            // stored i64 threshold is exactly i64::MAX.
+            let mut low = 0i128;
+            let mut high = current_max.min(max_height) as i128;
             let mut best = -1i64;
 
             // For a lower-closed set and monotone transitions, if height h
@@ -514,7 +516,7 @@ pub fn compute_monotone_invariant_kernel_with_limits(
                     &thresholds,
                     problem,
                 ) {
-                    best = middle;
+                    best = middle as i64;
                     low = middle + 1;
                 } else {
                     high = middle - 1;
