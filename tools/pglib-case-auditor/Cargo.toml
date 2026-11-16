@@ -1,0 +1,19 @@
+[package]
+name = "pglib-case-auditor"
+version = "0.1.0"
+edition = "2024"
+license = "AGPL-3.0-or-later"
+description = "Strict offline structural auditor for the classic MATPOWER v2 case profile"
+
+[[bin]]
+name = "pglib-case-auditor"
+path = "src/main.rs"
+
+[lib]
+path = "src/lib.rs"
+
+[dependencies]
+
+[[bin]]
+name = "matpower-projection"
+path = "src/bin/matpower-projection.rs"
