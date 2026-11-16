@@ -99,6 +99,7 @@ pub struct AuditReport {
     pub max_branch_angle_violation_degrees: f64,
     pub source_identity_matches: bool,
     pub model_profile_matches: bool,
+    pub receipt_consistent: bool,
     pub primal_feasible: bool,
     pub objective_consistent: bool,
     pub passed: bool,
@@ -145,7 +146,8 @@ impl AuditReport {
                 "\"max_branch_rate_violation_mw\":{},",
                 "\"max_branch_angle_violation_degrees\":{},",
                 "\"source_identity_matches\":{},\"model_profile_matches\":{},",
-                "\"primal_feasible\":{},\"objective_consistent\":{},\"passed\":{},",
+                "\"receipt_consistent\":{},\"primal_feasible\":{},",
+                "\"objective_consistent\":{},\"passed\":{},",
                 "\"violations\":[{}],",
                 "\"claim_ceiling\":{}",
                 "}}"
@@ -168,6 +170,7 @@ impl AuditReport {
             number(self.max_branch_angle_violation_degrees),
             self.source_identity_matches,
             self.model_profile_matches,
+            self.receipt_consistent,
             self.primal_feasible,
             self.objective_consistent,
             self.passed,
@@ -783,11 +786,16 @@ fn audit_projection_candidate(
         objective_tolerance,
     );
 
-    let primal_feasible = metrics.violations.iter().all(|violation| {
-        violation.family != "objective"
-    });
+    let receipt_consistent = metrics.max_branch_from_flow_error_mw
+        <= options.power_tolerance_mw
+        && metrics.max_branch_to_flow_error_mw <= options.power_tolerance_mw;
+    let primal_feasible = metrics.max_bus_balance_residual_mw
+        <= options.power_tolerance_mw
+        && metrics.max_generator_bound_violation_mw <= options.power_tolerance_mw
+        && metrics.max_branch_rate_violation_mw <= options.power_tolerance_mw
+        && metrics.max_branch_angle_violation_degrees <= options.angle_tolerance_degrees;
     let objective_consistent = objective_absolute_error <= objective_tolerance;
-    let passed = primal_feasible && objective_consistent;
+    let passed = receipt_consistent && primal_feasible && objective_consistent;
 
     Ok(AuditReport {
         source_git_blob_sha1: projection.source_git_blob_sha1.clone(),
@@ -808,6 +816,7 @@ fn audit_projection_candidate(
         max_branch_angle_violation_degrees: metrics.max_branch_angle_violation_degrees,
         source_identity_matches,
         model_profile_matches,
+        receipt_consistent,
         primal_feasible,
         objective_consistent,
         passed,
@@ -906,6 +915,8 @@ mod tests {
         let report = audit_matpower_dc_opf_candidate(TWO_BUS, &tsv, AuditOptions::default())
             .expect("numerical mismatch is an auditable result, not a parser error");
         assert!(!report.passed);
+        assert!(!report.receipt_consistent);
+        assert!(report.primal_feasible);
         assert!(report.max_branch_from_flow_error_mw > 0.9);
     }
 
