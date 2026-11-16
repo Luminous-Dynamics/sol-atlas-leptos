@@ -256,7 +256,9 @@ fn parse_reference_tsv(source: &str) -> Result<ReferenceResult, String> {
                 }
                 "mp_opt_model_version" => {
                     if mp_opt_model_version.replace(fields[2].to_owned()).is_some() {
-                        return Err(format!("duplicate MP-Opt-Model version at TSV line {line_number}"));
+                        return Err(format!(
+                            "duplicate MP-Opt-Model version at TSV line {line_number}"
+                        ));
                     }
                 }
                 "mips_version" => {
@@ -266,7 +268,9 @@ fn parse_reference_tsv(source: &str) -> Result<ReferenceResult, String> {
                 }
                 "mp_test_version" => {
                     if mp_test_version.replace(fields[2].to_owned()).is_some() {
-                        return Err(format!("duplicate MP-Test version at TSV line {line_number}"));
+                        return Err(format!(
+                            "duplicate MP-Test version at TSV line {line_number}"
+                        ));
                     }
                 }
                 "base_mva" => {
@@ -345,8 +349,8 @@ fn parse_reference_tsv(source: &str) -> Result<ReferenceResult, String> {
             "MATPOWER reference version drift: expected {MATPOWER_VERSION}, got {matpower_version}"
         ));
     }
-    let mp_opt_model_version = mp_opt_model_version
-        .ok_or("MATPOWER TSV is missing MP-Opt-Model version")?;
+    let mp_opt_model_version =
+        mp_opt_model_version.ok_or("MATPOWER TSV is missing MP-Opt-Model version")?;
     if mp_opt_model_version != MP_OPT_MODEL_VERSION {
         return Err(format!(
             "MP-Opt-Model reference version drift: expected {MP_OPT_MODEL_VERSION}, got {mp_opt_model_version}"
@@ -354,7 +358,9 @@ fn parse_reference_tsv(source: &str) -> Result<ReferenceResult, String> {
     }
     let mips_version = mips_version.ok_or("MATPOWER TSV is missing MIPS version")?;
     if mips_version != MIPS_VERSION {
-        return Err(format!("MIPS reference version drift: expected {MIPS_VERSION}, got {mips_version}"));
+        return Err(format!(
+            "MIPS reference version drift: expected {MIPS_VERSION}, got {mips_version}"
+        ));
     }
     let mp_test_version = mp_test_version.ok_or("MATPOWER TSV is missing MP-Test version")?;
     if mp_test_version != MP_TEST_VERSION {
