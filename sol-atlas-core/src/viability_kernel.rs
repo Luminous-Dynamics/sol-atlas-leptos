@@ -896,19 +896,20 @@ pub fn compute_robust_controlled_invariant_kernel(
     }
 
     let mut safe_states = BTreeSet::new();
-    let mut unresolved_states = BTreeSet::new();
-    let mut infeasible_states = BTreeSet::new();
+    let mut possibly_safe_states = BTreeSet::new();
 
     for state in &problem.states {
         match evaluate_state_floors_for_invariant(state, &problem.required_floors) {
             GateDisposition::Passed => {
                 safe_states.insert(state.state_id.clone());
+                possibly_safe_states.insert(state.state_id.clone());
             }
-            GateDisposition::Failed => {
-                infeasible_states.insert(state.state_id.clone());
-            }
+            GateDisposition::Failed => {}
             GateDisposition::Unknown(_) => {
-                unresolved_states.insert(state.state_id.clone());
+                // Unknown floors are not certified safe, but may still pass
+                // after evidence resolution. Keep them only in the optimistic
+                // set used to distinguish UNRESOLVED from NOT_INVARIANT.
+                possibly_safe_states.insert(state.state_id.clone());
             }
         }
     }
@@ -960,77 +961,71 @@ pub fn compute_robust_controlled_invariant_kernel(
         }
     }
 
-    // Propagate unresolved evidence backwards to states that might be
-    // invariant if an unknown gate/branch/successor were resolved.
+    // Compute a second, optimistic greatest fixed point. Unknown action
+    // gates and missing disturbance branches are treated as potentially
+    // resolvable; a known failed gate or a successor outside this possible
+    // set disqualifies the action. This preserves cycles of uncertainty
+    // without ever promoting them into the proven invariant set.
     loop {
-        let mut additions = BTreeSet::new();
+        let mut remove = Vec::new();
 
-        for state_id in safe_states
-            .difference(&invariant_states)
-            .filter(|id| !unresolved_states.contains(*id))
-        {
+        for state_id in &possibly_safe_states {
             let actions = actions_by_state
                 .get(state_id)
                 .map(|items| items.as_slice())
                 .unwrap_or(&[]);
+            let mut has_potential_action = false;
 
-            let mut has_potentially_closed_action = false;
             for action in actions {
-                let gate_disposition =
-                    evaluate_action_gates(action, &problem.required_action_gates);
-                if gate_disposition == GateDisposition::Failed {
+                if evaluate_action_gates(action, &problem.required_action_gates)
+                    == GateDisposition::Failed
+                {
                     continue;
                 }
-                let mut action_has_unknown = matches!(
-                    gate_disposition,
-                    GateDisposition::Unknown(_)
+
+                let all_known_successors_are_possible = problem.disturbance_ids.iter().all(
+                    |disturbance_id| {
+                        action
+                            .successor_by_disturbance
+                            .get(disturbance_id)
+                            .is_none_or(|successor| possibly_safe_states.contains(successor))
+                    },
                 );
-                let mut action_has_known_nonviable_successor = false;
 
-                for disturbance_id in &problem.disturbance_ids {
-                    let Some(successor_id) =
-                        action.successor_by_disturbance.get(disturbance_id)
-                    else {
-                        action_has_unknown = true;
-                        continue;
-                    };
-
-                    if invariant_states.contains(successor_id) {
-                        continue;
-                    }
-                    if unresolved_states.contains(successor_id) {
-                        action_has_unknown = true;
-                        continue;
-                    }
-
-                    action_has_known_nonviable_successor = true;
-                    break;
-                }
-
-                if !action_has_known_nonviable_successor && action_has_unknown {
-                    has_potentially_closed_action = true;
+                if all_known_successors_are_possible {
+                    has_potential_action = true;
                     break;
                 }
             }
 
-            if has_potentially_closed_action {
-                additions.insert(state_id.clone());
+            if !has_potential_action {
+                remove.push(state_id.clone());
             }
         }
 
-        if additions.is_empty() {
+        if remove.is_empty() {
             break;
         }
-        unresolved_states.extend(additions);
-    }
-
-    for state in &problem.states {
-        if !invariant_states.contains(&state.state_id)
-            && !unresolved_states.contains(&state.state_id)
-        {
-            infeasible_states.insert(state.state_id.clone());
+        for state_id in remove {
+            possibly_safe_states.remove(&state_id);
         }
     }
+
+    // States in the optimistic kernel but not in the proven kernel depend on
+    // unknown floors, action gates, disturbance branches or successor states.
+    let unresolved_states: BTreeSet<String> = possibly_safe_states
+        .difference(&invariant_states)
+        .cloned()
+        .collect();
+    let all_state_ids: BTreeSet<String> = problem
+        .states
+        .iter()
+        .map(|state| state.state_id.clone())
+        .collect();
+    let infeasible_states: BTreeSet<String> = all_state_ids
+        .difference(&possibly_safe_states)
+        .cloned()
+        .collect();
 
     let mut witness_policy = BTreeMap::new();
     let mut state_results = BTreeMap::new();
