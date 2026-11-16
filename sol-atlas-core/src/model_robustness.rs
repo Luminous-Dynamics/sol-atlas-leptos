@@ -800,4 +800,173 @@ mod tests {
         assert!(result.failed_fields.contains("vertical_reference"));
     }
 
+
+    #[test]
+    fn minimax_regret_is_invariant_to_input_order() {
+        let models = model_ids(&["A", "B", "C"]);
+        let strategies = vec![
+            StrategyUtilities {
+                strategy_id: "coastal".to_owned(),
+                by_model: utility_map(&[("A", 100), ("B", 30), ("C", 50)]),
+            },
+            StrategyUtilities {
+                strategy_id: "adaptive".to_owned(),
+                by_model: utility_map(&[("A", 75), ("B", 75), ("C", 70)]),
+            },
+            StrategyUtilities {
+                strategy_id: "inland".to_owned(),
+                by_model: utility_map(&[("A", 60), ("B", 80), ("C", 90)]),
+            },
+        ];
+
+        let expected = minimax_regret(&models, &strategies).unwrap();
+
+        let mut reversed_models = models.clone();
+        reversed_models.reverse();
+        let mut reversed_strategies = strategies.clone();
+        reversed_strategies.reverse();
+
+        assert_eq!(
+            minimax_regret(&reversed_models, &reversed_strategies).unwrap(),
+            expected
+        );
+    }
+
+    #[test]
+    fn per_model_constant_translation_preserves_regret_and_choice() {
+        let models = model_ids(&["A", "B"]);
+        let strategies = vec![
+            StrategyUtilities {
+                strategy_id: "coastal".to_owned(),
+                by_model: utility_map(&[("A", 100), ("B", 30)]),
+            },
+            StrategyUtilities {
+                strategy_id: "adaptive".to_owned(),
+                by_model: utility_map(&[("A", 75), ("B", 75)]),
+            },
+            StrategyUtilities {
+                strategy_id: "inland".to_owned(),
+                by_model: utility_map(&[("A", 60), ("B", 80)]),
+            },
+        ];
+        let baseline = minimax_regret(&models, &strategies).unwrap();
+
+        let translated = strategies
+            .iter()
+            .map(|strategy| StrategyUtilities {
+                strategy_id: strategy.strategy_id.clone(),
+                by_model: BTreeMap::from([
+                    (
+                        "A".to_owned(),
+                        strategy.by_model["A"] + 1_000,
+                    ),
+                    (
+                        "B".to_owned(),
+                        strategy.by_model["B"] - 500,
+                    ),
+                ]),
+            })
+            .collect::<Vec<_>>();
+
+        let shifted = minimax_regret(&models, &translated).unwrap();
+        assert_eq!(
+            shifted.maximum_regret_by_strategy,
+            baseline.maximum_regret_by_strategy
+        );
+        assert_eq!(shifted.selected_strategy, baseline.selected_strategy);
+        assert_eq!(
+            shifted.minimum_maximum_regret,
+            baseline.minimum_maximum_regret
+        );
+    }
+
+    #[test]
+    fn mandatory_floor_order_does_not_change_eligibility() {
+        let model_results = vec![
+            ModelEligibility {
+                model_id: "A".to_owned(),
+                floors: BTreeMap::from([
+                    ("water".to_owned(), GateResult::Pass),
+                    ("ecology".to_owned(), GateResult::Pass),
+                ]),
+            },
+            ModelEligibility {
+                model_id: "B".to_owned(),
+                floors: BTreeMap::from([
+                    ("water".to_owned(), GateResult::Pass),
+                    ("ecology".to_owned(), GateResult::Fail),
+                ]),
+            },
+        ];
+        let mut floors = model_ids(&["water", "ecology"]);
+        let original = classify_eligibility(&model_results, &floors).unwrap();
+        floors.reverse();
+
+        assert_eq!(
+            classify_eligibility(&model_results, &floors).unwrap(),
+            original
+        );
+        assert_eq!(original, DecisionClass::Conditional);
+    }
+
+    #[test]
+    fn adding_a_model_cannot_reduce_any_strategy_maximum_regret() {
+        let models = model_ids(&["A", "B"]);
+        let strategies = vec![
+            StrategyUtilities {
+                strategy_id: "coastal".to_owned(),
+                by_model: utility_map(&[("A", 5), ("B", 10)]),
+            },
+            StrategyUtilities {
+                strategy_id: "inland".to_owned(),
+                by_model: utility_map(&[("A", 10), ("B", 5)]),
+            },
+        ];
+        let baseline = minimax_regret(&models, &strategies).unwrap();
+
+        let expanded_models = model_ids(&["A", "B", "C"]);
+        let expanded_strategies = vec![
+            StrategyUtilities {
+                strategy_id: "coastal".to_owned(),
+                by_model: utility_map(&[("A", 5), ("B", 10), ("C", 100)]),
+            },
+            StrategyUtilities {
+                strategy_id: "inland".to_owned(),
+                by_model: utility_map(&[("A", 10), ("B", 5), ("C", 0)]),
+            },
+        ];
+        let expanded =
+            minimax_regret(&expanded_models, &expanded_strategies).unwrap();
+
+        for (strategy_id, baseline_regret) in baseline.maximum_regret_by_strategy {
+            assert!(
+                expanded.maximum_regret_by_strategy[&strategy_id] >= baseline_regret
+            );
+        }
+    }
+
+    #[test]
+    fn stable_pairwise_strategy_order_is_invariant() {
+        let models = model_ids(&["A", "B", "C"]);
+        let strategies = vec![
+            StrategyUtilities {
+                strategy_id: "first".to_owned(),
+                by_model: utility_map(&[("A", 100), ("B", 90), ("C", 80)]),
+            },
+            StrategyUtilities {
+                strategy_id: "second".to_owned(),
+                by_model: utility_map(&[("A", 70), ("B", 60), ("C", 50)]),
+            },
+            StrategyUtilities {
+                strategy_id: "third".to_owned(),
+                by_model: utility_map(&[("A", 20), ("B", 10), ("C", 0)]),
+            },
+        ];
+
+        assert_eq!(
+            classify_ranking_stability(&models, &strategies).unwrap(),
+            DecisionClass::Invariant
+        );
+    }
+
 }
