@@ -513,10 +513,19 @@ fn audit_projection_kkt(
     primal: &matpower_dc_opf_primal_auditor::AuditReport,
     options: KktOptions,
 ) -> Result<KktReport, String> {
-    if projection.matpower_version != "8.1" {
+    // MATPOWER's source file records case-format version 2. The runtime
+    // MATPOWER 8.1 identity is checked in the solver receipt, not inferred
+    // from the source's mpc.version field.
+    if projection.case_format_version != "2" {
         return Err(format!(
-            "KKT profile requires MATPOWER 8.1, got {}",
-            projection.matpower_version
+            "KKT profile requires MATPOWER case format v2, got {}",
+            projection.case_format_version
+        ));
+    }
+    if candidate.matpower_version != "8.1" {
+        return Err(format!(
+            "KKT candidate must bind MATPOWER runtime 8.1, got {}",
+            candidate.matpower_version
         ));
     }
     if candidate.model_profile_id != MODEL_PROFILE_ID {
