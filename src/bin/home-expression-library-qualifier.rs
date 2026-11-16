@@ -13,7 +13,7 @@ const PROFILE_SCHEMA: &str =
     include_str!("../../docs/research/home-expression/HOME_EXPRESSION_PROFILE_V0.1.schema.json");
 
 const STYLE_IDS: &[&str] = &[
-    "HIGHLAND_STONE_TIMBER_CONTEMPORARY",
+    "HIGHVELD_STONE_TIMBER_CONTEMPORARY",
     "CAPE_COURTYARD_VERNACULAR",
     "REGIONALLY_AUTHORED_MODERNISM",
     "MODERNIST",
@@ -300,9 +300,9 @@ fn validate_profile(profile: &Value, schema: &Value) -> Result<(), Vec<String>> 
                             "{option_id}/{domain}: {state} must not carry a fabricated numeric value, unit or qualification reference"
                         ));
                     }
-                    if state == "UNKNOWN" && !has_basis {
+                    if !has_basis {
                         errors.push(format!(
-                            "{option_id}/{domain}: UNKNOWN needs an explicit explanation"
+                            "{option_id}/{domain}: {state} needs an explicit explanation"
                         ));
                     }
                 }
@@ -386,7 +386,7 @@ fn self_test() -> Result<(), String> {
 
 fn main() {
     let args: Vec<String> = env::args().skip(1).collect();
-    let result = if args.is_empty() || args == ["--self-test"] {
+    let result = if args.is_empty() || (args.len() == 1 && args[0] == "--self-test") {
         self_test()
     } else if args.len() == 2 && args[0] == "--profile" {
         let profile = fs::read_to_string(&args[1])
