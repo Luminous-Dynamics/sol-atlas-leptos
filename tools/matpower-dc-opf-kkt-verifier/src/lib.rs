@@ -205,7 +205,6 @@ struct BranchModel {
 struct GeneratorModel {
     source_row: usize,
     bus_index: usize,
-    pg_mw: f64,
     pg_pu: f64,
     lower_pu: f64,
     upper_pu: f64,
@@ -603,7 +602,6 @@ fn audit_projection_kkt(
         generator_models.push(GeneratorModel {
             source_row: generator.source_row,
             bus_index,
-            pg_mw: state.pg_mw,
             pg_pu,
             lower_pu: generator.p_min_mw / base,
             upper_pu: generator.p_max_mw / base,
