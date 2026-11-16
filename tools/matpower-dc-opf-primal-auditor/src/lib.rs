@@ -590,7 +590,8 @@ fn audit_projection_candidate(
             projection.buses.len(),
             candidate.generators.len(),
             projection.generators.len(),
-            candidate.branches.len()
+            candidate.branches.len(),
+            projection.branches.len()
         ));
     }
 
