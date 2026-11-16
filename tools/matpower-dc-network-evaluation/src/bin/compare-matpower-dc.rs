@@ -619,7 +619,7 @@ mod tests {
                 branch.branch_index + 1,
                 branch.from_bus,
                 branch.to_bus,
-                i64::from(branch.in_service),
+                if branch.in_service { 1 } else { 0 },
                 number(branch.flow_from_to_mw),
                 number(-branch.flow_from_to_mw)
             ));
@@ -662,7 +662,7 @@ mod tests {
     fn source_identity_and_reference_version_drift_fail_closed() {
         let reference = sol_atlas_reference_tsv(CASE14);
         let wrong_identity = reference.replace(
-            &format!("META\tsource_git_blob_sha1\t{}", git_blob_sha1(CASE14.as_bytes())),
+            "META\tsource_git_blob_sha1\t2c8260fff0311c902c3d36dcabcbe861576fc97c",
             "META\tsource_git_blob_sha1\t0000000000000000000000000000000000000000",
         );
         assert!(
