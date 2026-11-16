@@ -241,3 +241,62 @@ Once all three cases pass both external differentials:
 - only then move to AC and chronological / distribution / sequential-control domains.
 
 The promotion rule is strict: **source-field parity, receipt consistency and reference numerical parity are independent gates**. Passing one must never imply the other two.
+
+
+## 10. DC model convention firewall and continuous DC-OPF audit
+
+### Why the convention must be part of the benchmark identity
+
+There are multiple legitimate linear active-power approximations. They are not interchangeable.
+
+| Profile | Branch susceptance / flow convention | Transformer tap / phase shift | Reference use |
+|---|---|---|---|
+| MATPOWER 8.1 makeBdc / DCMP | \(b=1/(x\,tap)\), with phase-shift injection | Included | This is the current Sol-Atlas fixed-injection DC kernel and new DC-OPF auditor profile |
+| PowerModels DCPPowerModel | \(b_r=x/(r^2+x^2)\) as the positive coefficient in \(P_f=-b_r(\theta_f-\theta_t)\) | Omitted | Used for the PowerModels DCP formulation; the published PGLib DC objective column is produced with PowerModels |
+| PowerModels DCMPPowerModel | \(1/x\) branch susceptance | Included | PowerModels documents this as the variant whose results should match MATPOWER |
+
+MATPOWER documents makeBdc as the linear network matrix and phase-shift-injection construction. PowerModels explicitly documents the DCP/DCMP distinction and warns that results differ across active-power-only approximations. Sources:
+- https://matpower.org/documentation/ref-manual/legacy/functions/makeBdc.html
+- https://lanl-ansi.github.io/PowerModels.jl/dev/formulation-details/
+- https://github.com/power-grid-lib/pglib-opf/blob/master/BASELINE.md
+
+**Benchmark rule:** never compare the current Sol-Atlas MATPOWER-convention objective with the PGLib/PowerModels DCP objective and call the difference a solver error or performance win. Use MATPOWER 8.1 rundcopf or PowerModels DCMP for a matched numerical reference. Compare against PowerModels DCP only after implementing and naming that distinct model profile.
+
+The profile identifier is now matpower_8_1_makeBdc_dcopf. Candidate receipts bind it alongside source digest, release version and base MVA. A future PowerModels DCP adapter must use a different explicit profile ID; it must not be a boolean flag hidden inside a shared result.
+
+### New DC-OPF evidence layer
+
+A separate Rust crate, tools/matpower-dc-opf-primal-auditor, audits MATPOWER 8.1 rundcopf candidate receipts. It independently reconstructs:
+- bus active-power balance from candidate generator dispatch, demand and shunt conductance;
+- branch active power from angle differences, reactance, tap and phase shift;
+- both branch-end flow values;
+- generator Pmin/Pmax, branch Rate A and branch angle-difference limits;
+- model-2 linear/convex-quadratic generator cost and the full reported objective.
+
+It is an independent **primal feasibility and objective audit**, not an optimizer and not an optimality proof. It deliberately rejects piecewise-linear and non-convex cost profiles in v0.1. Startup/shutdown costs are required to be zero because static DC-OPF is not a unit-commitment problem.
+
+The current next-step for optimality is a separate KKT/dual certificate checker: independently check dual sign conventions, stationarity, complementarity and primal-dual gap, and only then promote a convex quadratic DC-OPF result to a global-optimality claim. A solver termination status or a matching objective alone is insufficient.
+
+### SOTA benchmark expansion
+
+The initial IEEE 14/RTS 24/IEEE 57 cases are smoke/reference cases, not a sufficient SOTA panel. The benchmark expansion target is the full PGLib-OPF v23.07 matrix:
+- 66 TYP cases: typical operating conditions;
+- 66 API cases: congested operating conditions that make branch thermal limits bind;
+- 66 SAD cases: small angle-difference limits that exercise ANGMIN/ANGMAX.
+
+That is 198 case/variant rows. Keep model profile, case file digest, objective, feasibility, constraint residuals, solver status, solve time, hardware, worker/thread count and solver versions in each row.
+
+Useful current comparators:
+- **PowerModels.jl / PGLib baseline:** DC, AC, QC and SOC reference objectives; published solver provenance must travel with each value. https://github.com/power-grid-lib/pglib-opf/blob/master/BASELINE.md
+- **Tellegen:** a Rust-native PGLib v23.07 benchmark harness covering 198 case/variant rows; its published snapshot reports 143 solved, 50 caveat, 2 failed and 3 skipped, with DC objective reproduction/consistency and SOCWR lower-bound checks. This is a self-published comparator result, not an independent verification of its claims. https://eigenergy.github.io/tellegen/benchmark-results.html
+- **potpourri:** a pandapower/Pyomo/Ipopt PGLib DC/AC OPF harness covering all three scenario groups. Its run notes explicitly discuss formulation differences, DC convention options, AC start sensitivity and large-case runtime. https://opf-potpourri.readthedocs.io/en/latest/scripts/pglib-validation/
+
+Report, per exact matched profile:
+- candidate objective and independently recomputed objective;
+- per-bus residual and maximum per-constraint violation;
+- solver-reported termination and independently classified pass/fail/unknown;
+- primal objective vs valid dual bound and relative gap when dual evidence exists;
+- cold/warm p50/p95/p99, model construction time, solve time, peak memory and worker/thread budget;
+- every failed, unsupported, infeasible, caveat, timeout and skipped case.
+
+Do not hide caveats in a single success percentage. Do not claim a global SOTA lead from a handful of typical cases. A stronger Sol-Atlas result is a complete, source-bound, formulation-matched, independently audited 198-row report with zero silent unsupported paths—not just a lower wall-clock number.
