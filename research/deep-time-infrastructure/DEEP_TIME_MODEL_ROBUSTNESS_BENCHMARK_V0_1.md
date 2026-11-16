@@ -113,7 +113,7 @@ It implements:
 - pairwise ranking stability across model families;
 - exact synthetic shoreline cell partitions using integer millimetres;
 - shared source-observation and calibration-lineage intersections;
-- local-shoreline input gating that rejects synthetic modern terrain offsets and future-supercontinent climate boundary conditions, and requires explicit paleo transform, vertical reference, paleotopography, local vertical motion, geoid/gravitational/rotational fingerprint, ocean dynamics, chronology and lineage/uncertainty declarations.
+- local-shoreline input gating that rejects synthetic modern terrain offsets and future-supercontinent climate boundary conditions, and requires ten separate evidence dimensions: sea-level quantity definition; horizontal CRS/paleo-coordinate transform; vertical datum/transform; paleotopography/paleobathymetry; local vertical land motion; tectonic/dynamic topography; glacio-isostatic/geoid/gravitational effects; ocean dynamics/rotation; chronology alignment; and source lineage/model-form uncertainty.
 
 Eighteen Rust unit tests are written, covering DTR-001/002/004/006/007/008/009, unresolved/failed/incomplete controls, five metamorphic properties and the exhaustive 3x3 differential oracle. The Check workflow now includes an explicit `cargo test -p sol-atlas-core` step; testing the consuming application binary alone does not execute the path-dependency crate's own unit tests. The new core test step has not yet reported an exact-head result. A READY_FOR_PHYSICAL_MODEL_EVALUATION disposition means only that the declared input categories are present; it is not physical validation or site qualification.
 
