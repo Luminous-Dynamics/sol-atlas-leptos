@@ -1,0 +1,34 @@
+{
+  "schema": "luminous.deep-time-model-robustness-exhaustive-oracle-panel.v0.1",
+  "schema_version": "0.1.0",
+  "register_id": "DEEP-TIME-MODEL-ROBUSTNESS-EXHAUSTIVE-ORACLE-PANEL-V0.1",
+  "parent_issue": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/896",
+  "classification": "finite_exhaustive_differential_software_oracle_not_physical_validation",
+  "cases": [
+    {
+      "case_id": "DTR-ORACLE-001",
+      "operation": "minimax_regret",
+      "matrix_shape": {
+        "strategies": 3,
+        "models": 3,
+        "utility_values": [
+          0,
+          1,
+          2
+        ]
+      },
+      "exhaustive_case_count": 19683,
+      "candidate": "map-based minimax_regret function in sol-atlas-core/src/model_robustness.rs",
+      "independent_reference": "array-based nested-loop oracle in the unit-test module, separate from the candidate map implementation",
+      "compared_outputs": [
+        "best_utility_by_model",
+        "maximum_regret_by_strategy",
+        "selected_strategy",
+        "minimum_maximum_regret"
+      ],
+      "tie_break": "lexicographically smallest strategy ID",
+      "expected": "100 percent exact agreement across all 19,683 matrices",
+      "claim_ceiling": "Finite integer utility correctness only; no scenario probabilities, physical utility calibration, geological or site-specific inference."
+    }
+  ]
+}
