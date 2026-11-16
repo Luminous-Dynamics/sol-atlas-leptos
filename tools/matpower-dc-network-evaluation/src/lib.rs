@@ -601,13 +601,9 @@ mod tests {
         assert_eq!(screen.summary.evaluated_branch_outages, branches);
         assert!(screen.summary.coverage_complete);
 
-        let validation = compare_screen_to_exact(
-            &evaluated.network,
-            &screen,
-            SolveOptions::default(),
-            1.0e-6,
-        )
-        .expect("LODF screen must reconcile with exact fixed-injection DC re-solves");
+        let validation =
+            compare_screen_to_exact(&evaluated.network, &screen, SolveOptions::default(), 1.0e-6)
+                .expect("LODF screen must reconcile with exact fixed-injection DC re-solves");
         assert_eq!(validation.expected_branch_outages, branches);
         assert_eq!(validation.evaluated_branch_outages, branches);
         assert!(validation.coverage_complete);
@@ -615,9 +611,24 @@ mod tests {
             validation.compared_predictions + validation.exact_resolve_abstentions,
             branches
         );
-        assert_eq!(validation.flow_mismatch_count, 0, "{}", validation.to_json());
-        assert_eq!(validation.false_safe_branch_count, 0, "{}", validation.to_json());
-        assert_eq!(validation.false_safe_outage_count, 0, "{}", validation.to_json());
+        assert_eq!(
+            validation.flow_mismatch_count,
+            0,
+            "{}",
+            validation.to_json()
+        );
+        assert_eq!(
+            validation.false_safe_branch_count,
+            0,
+            "{}",
+            validation.to_json()
+        );
+        assert_eq!(
+            validation.false_safe_outage_count,
+            0,
+            "{}",
+            validation.to_json()
+        );
         assert_eq!(
             validation.unexpected_exact_unknown_count,
             0,
@@ -625,7 +636,11 @@ mod tests {
             validation.to_json()
         );
         assert!(validation.max_abs_flow_error_mw <= 1.0e-6);
-        assert!(validation.passes_declared_checks(), "{}", validation.to_json());
+        assert!(
+            validation.passes_declared_checks(),
+            "{}",
+            validation.to_json()
+        );
     }
 
     #[test]
@@ -645,12 +660,9 @@ mod tests {
 
     #[test]
     fn matpower_lodf_screen_receipt_binds_source_identity_and_coverage() {
-        let evaluation = screen_matpower_dc_case(
-            CASE14,
-            SolveOptions::default(),
-            ScreenOptions::default(),
-        )
-        .expect("MATPOWER case can be screened");
+        let evaluation =
+            screen_matpower_dc_case(CASE14, SolveOptions::default(), ScreenOptions::default())
+                .expect("MATPOWER case can be screened");
         assert_eq!(
             evaluation.source_git_blob_sha1,
             "2c8260fff0311c902c3d36dcabcbe861576fc97c"
