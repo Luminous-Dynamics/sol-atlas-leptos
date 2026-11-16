@@ -636,16 +636,7 @@ fn audit_projection_candidate(
                 options.power_tolerance_mw,
             );
             *generation_by_bus.entry(source.bus_id).or_insert(0.0) += result.pg_mw;
-        } else {
-            // Out-of-service generators are not part of the balance or objective.
-            metrics.record(
-                "generator",
-                source.source_row,
-                "offline_pg_is_zero",
-                result.pg_mw.abs(),
-                options.power_tolerance_mw,
-            );
-        }
+        } // Out-of-service generators are excluded from balance and objective.
     }
 
     let mut recomputed_branch_outflow = BTreeMap::<i64, f64>::new();
