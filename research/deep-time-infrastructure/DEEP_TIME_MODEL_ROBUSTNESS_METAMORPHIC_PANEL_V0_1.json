@@ -1,0 +1,49 @@
+{
+  "schema": "luminous.deep-time-model-robustness-metamorphic-panel.v0.1",
+  "schema_version": "0.1.0",
+  "register_id": "DEEP-TIME-MODEL-ROBUSTNESS-METAMORPHIC-PANEL-V0.1",
+  "parent_issue": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/896",
+  "classification": "finite_software_property_tests_not_geological_validation",
+  "properties": [
+    {
+      "case_id": "DTR-META-001",
+      "property": "input_order_invariance",
+      "title": "Model and strategy order must not alter exact minimax-regret output",
+      "input_transform": "Reverse model_ids and reverse strategy order; preserve all utilities by identity.",
+      "invariant": "best_utility_by_model, maximum_regret_by_strategy, selected_strategy and minimum_maximum_regret remain identical.",
+      "claim_ceiling": "Tests algorithmic invariants of the reference kernel only; no geological, physical or site-specific claim."
+    },
+    {
+      "case_id": "DTR-META-002",
+      "property": "per_model_translation_invariance",
+      "title": "Adding a constant utility offset to every strategy within each model preserves regret",
+      "input_transform": "For each model independently, add the same integer constant to all strategy utilities.",
+      "invariant": "All strategy regret values, selected strategy and minimum maximum regret remain identical.",
+      "claim_ceiling": "Tests algorithmic invariants of the reference kernel only; no geological, physical or site-specific claim."
+    },
+    {
+      "case_id": "DTR-META-003",
+      "property": "hard_floor_order_invariance",
+      "title": "Ordering mandatory floors must not alter candidate eligibility",
+      "input_transform": "Permute required floor identifiers without changing any per-model GateResult.",
+      "invariant": "The resulting DecisionClass is unchanged.",
+      "claim_ceiling": "Tests algorithmic invariants of the reference kernel only; no geological, physical or site-specific claim."
+    },
+    {
+      "case_id": "DTR-META-004",
+      "property": "model_set_expansion_monotonicity",
+      "title": "Adding an admissible model cannot reduce any strategy's maximum regret",
+      "input_transform": "Add one additional fully specified model and utility for every strategy.",
+      "invariant": "For every existing strategy, maximum regret over the expanded model set is greater than or equal to its prior maximum regret.",
+      "claim_ceiling": "Tests algorithmic invariants of the reference kernel only; no geological, physical or site-specific claim."
+    },
+    {
+      "case_id": "DTR-META-005",
+      "property": "pairwise_ranking_stability",
+      "title": "A fixed pairwise ordering across all models is classified as invariant",
+      "input_transform": "Supply complete utility values for all strategies under multiple model families with the same pairwise ordering.",
+      "invariant": "classify_ranking_stability returns DecisionClass::Invariant; any pairwise ordering reversal or tie transition returns ModelSensitive.",
+      "claim_ceiling": "Tests algorithmic invariants of the reference kernel only; no geological, physical or site-specific claim."
+    }
+  ]
+}
