@@ -73,6 +73,8 @@ Keep current Earth records stable. Introduce separate multi-body entities:
 - `SubsurfaceGeometryAsset`: versioned mesh/point cloud/profile with coverage masks, resolution and digest.
 
 Use the Subterra site-evidence schema from the Symtropy research branch as the cross-system evidence contract:
+
+The Sol Atlas-specific body/frame envelope is defined in [Planetary Site Schema v0.1](PLANETARY_SITE_SCHEMA_v0.1.json), with a clearly synthetic fixture at [fixtures/synthetic-moon-site.json](fixtures/synthetic-moon-site.json).
 https://github.com/Luminous-Dynamics/symtropy/blob/research/geobio-foundry-v0.2/research/geobio-foundry/SUBTERRA_SITE_EVIDENCE_SCHEMA_v0.1.json
 
 Use evidence state separately from visualization category. A map layer is not an engineering qualification.
