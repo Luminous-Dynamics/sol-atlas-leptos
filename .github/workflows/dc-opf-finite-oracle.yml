@@ -1,0 +1,42 @@
+name: Finite network-constrained DC dispatch oracle
+
+on:
+  pull_request:
+    paths:
+      - "tools/dc-opf-finite-oracle/**"
+      - "tools/dc-power-flow-reference/**"
+      - "tools/dc-power-flow-independent-auditor/**"
+      - ".github/workflows/dc-opf-finite-oracle.yml"
+  push:
+    paths:
+      - "tools/dc-opf-finite-oracle/**"
+      - "tools/dc-power-flow-reference/**"
+      - "tools/dc-power-flow-independent-auditor/**"
+      - ".github/workflows/dc-opf-finite-oracle.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: dc-opf-finite-oracle
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+      - name: Strict formatting
+        run: cargo fmt --manifest-path tools/dc-opf-finite-oracle/Cargo.toml -- --check
+      - name: Locked offline tests
+        run: cargo test --manifest-path tools/dc-opf-finite-oracle/Cargo.toml --locked --offline
+      - name: Parse known-answer receipt
+        run: |
+          cargo run --manifest-path tools/dc-opf-finite-oracle/Cargo.toml --locked --offline -- --self-test | jq -e \
+            '.is_exact == true and .expected_combinations == 16 and .evaluated_combinations == 16 and .feasible_assignments == 9 and (.frontier | length) == 4'
+      - name: Strict Clippy
+        run: cargo clippy --manifest-path tools/dc-opf-finite-oracle/Cargo.toml --locked --offline --all-targets -- -D warnings
