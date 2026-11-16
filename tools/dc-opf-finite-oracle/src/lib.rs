@@ -11,9 +11,7 @@
 use std::collections::BTreeMap;
 
 use dc_power_flow_independent_auditor::{AuditOptions, audit_dc_power_flow};
-use dc_power_flow_reference::{
-    DcBranch, DcBus, DcNetwork, SolveOptions, solve_dc_power_flow,
-};
+use dc_power_flow_reference::{DcBranch, DcBus, DcNetwork, SolveOptions, solve_dc_power_flow};
 
 const MAX_BUSES: usize = 64;
 const MAX_GENERATORS: usize = 32;
@@ -272,9 +270,7 @@ fn validate_case(case: &DcOpfCase) -> Result<ValidatedCase, OracleError> {
             .checked_add(bus.demand_quanta)
             .ok_or_else(|| OracleError::new("total demand quanta overflow"))?;
         if bus.is_reference && reference_bus_id.replace(bus.id).is_some() {
-            return Err(OracleError::new(
-                "exactly one reference bus is supported",
-            ));
+            return Err(OracleError::new("exactly one reference bus is supported"));
         }
     }
     let reference_bus_id =
@@ -335,8 +331,7 @@ fn validate_case(case: &DcOpfCase) -> Result<ValidatedCase, OracleError> {
                 branch.id
             )));
         }
-        if !bus_indices.contains_key(&branch.from_bus)
-            || !bus_indices.contains_key(&branch.to_bus)
+        if !bus_indices.contains_key(&branch.from_bus) || !bus_indices.contains_key(&branch.to_bus)
         {
             return Err(OracleError::new(format!(
                 "branch {} references an unknown bus",
@@ -484,11 +479,7 @@ fn dispatch_to_json(dispatch: &ParetoDispatch) -> String {
             "\"bus_angles\":[{}]",
             "}}"
         ),
-        dispatch.operating_cost_units,
-        dispatch.carbon_grams,
-        generation,
-        flows,
-        angles
+        dispatch.operating_cost_units, dispatch.carbon_grams, generation, flows, angles
     )
 }
 
@@ -590,16 +581,12 @@ fn evaluate_assignment(
                 .filter(|(generator, _)| generator.bus_id == bus.id)
                 .try_fold(0_u64, |total, (_, quanta)| total.checked_add(*quanta))
                 .ok_or_else(|| {
-                    OracleError::new(format!(
-                        "generation sum overflow at bus {}",
-                        bus.id
-                    ))
+                    OracleError::new(format!("generation sum overflow at bus {}", bus.id))
                 })?;
             let specified_injection_mw = if bus.is_reference {
                 None
             } else {
-                let net_quanta =
-                    i128::from(generation_at_bus) - i128::from(bus.demand_quanta);
+                let net_quanta = i128::from(generation_at_bus) - i128::from(bus.demand_quanta);
                 Some(net_quanta as f64 * case.power_quantum_mw)
             };
             Ok(DcBus {
@@ -653,9 +640,8 @@ fn evaluate_assignment(
         .iter()
         .find(|bus| bus.id == validated.reference_bus_id)
         .expect("validated reference bus");
-    let expected_reference_injection_mw = (reference_generation as f64
-        - reference_bus.demand_quanta as f64)
-        * case.power_quantum_mw;
+    let expected_reference_injection_mw =
+        (reference_generation as f64 - reference_bus.demand_quanta as f64) * case.power_quantum_mw;
     let observed_reference_injection_mw = solution
         .slack_injections
         .iter()
@@ -709,8 +695,7 @@ fn evaluate_assignment(
         }
     }
 
-    let (operating_cost_units, carbon_grams) =
-        checked_objective(case, generation_quanta)?;
+    let (operating_cost_units, carbon_grams) = checked_objective(case, generation_quanta)?;
     let generation = case
         .generators
         .iter()
@@ -770,13 +755,7 @@ fn enumerate_depth(
     let mut quanta = generator.p_min_quanta;
     loop {
         generation_quanta[generator_index] = quanta;
-        enumerate_depth(
-            case,
-            validated,
-            depth + 1,
-            generation_quanta,
-            report,
-        )?;
+        enumerate_depth(case, validated, depth + 1, generation_quanta, report)?;
         if quanta == generator.p_max_quanta {
             break;
         }
@@ -809,15 +788,8 @@ pub fn solve_finite_dc_opf(case: &DcOpfCase) -> Result<OracleReport, OracleError
         claim_ceiling: "exact_finite_quantized_fixed_injection_linear_dc_dispatch_only",
     };
     let mut generation_quanta = vec![0_u64; case.generators.len()];
-    enumerate_depth(
-        case,
-        &validated,
-        0,
-        &mut generation_quanta,
-        &mut report,
-    )?;
-    report.frontier_complete = report.evaluated_combinations
-        == report.expected_combinations
+    enumerate_depth(case, &validated, 0, &mut generation_quanta, &mut report)?;
+    report.frontier_complete = report.evaluated_combinations == report.expected_combinations
         && report.solver_unknowns == 0
         && report.auditor_rejections == 0;
     Ok(report)
@@ -960,8 +932,8 @@ mod tests {
     fn combination_budget_rejects_before_any_partial_search() {
         let mut case = three_bus_known_answer_case();
         case.max_combinations = 15;
-        let error = solve_finite_dc_opf(&case)
-            .expect_err("16 combinations must exceed a budget of 15");
+        let error =
+            solve_finite_dc_opf(&case).expect_err("16 combinations must exceed a budget of 15");
         assert!(error.reason.contains("requires 16 combinations"));
     }
 
