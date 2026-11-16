@@ -872,6 +872,32 @@ mod tests {
     }
 
     #[test]
+    fn branch_flow_reconstruction_honors_nonunity_tap_and_phase_shift() {
+        let source = TWO_BUS
+            .replace(
+                "-5.729577951",
+                "-11.875493542",
+            )
+            .replace(
+                "150 150 150 0 0 1 -30 30",
+                "150 150 150 1.2 5 1 -30 30",
+            );
+        let tsv = valid_tsv(TWO_BUS)
+            .replace(
+                &git_blob_sha1(TWO_BUS.as_bytes()),
+                &git_blob_sha1(source.as_bytes()),
+            )
+            .replace(
+                "-5.729577951",
+                "-11.875493542",
+            );
+        let report = audit_matpower_dc_opf_candidate(&source, &tsv, AuditOptions::default())
+            .expect("tap and phase-shift candidate should audit");
+        assert!(report.passed, "{}", report.to_json());
+        assert!(report.max_branch_from_flow_error_mw < 1.0e-6);
+    }
+
+    #[test]
     fn branch_flow_mutation_is_detected() {
         let tsv = valid_tsv(TWO_BUS).replace(
             "BRANCH\t1\t1\t2\t1\t100\t-100",
