@@ -120,6 +120,63 @@ pub enum ViabilityExecution {
     },
 }
 
+
+/// One stationary configuration for robust controlled invariance.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct InvariantState {
+    pub state_id: String,
+    pub floors: BTreeMap<String, GateResult>,
+}
+
+/// Stationary robust controlled-invariance problem.
+///
+/// Unlike ViabilityProblem, this problem has no terminal stage. It asks
+/// whether a state can remain inside the mandatory safe set indefinitely
+/// under a stationary transition relation and every declared disturbance.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct InvariantKernelProblem {
+    pub required_floors: Vec<String>,
+    pub required_action_gates: Vec<String>,
+    pub disturbance_ids: Vec<String>,
+    pub states: Vec<InvariantState>,
+    pub actions: Vec<ViabilityAction>,
+    pub initial_states: Vec<String>,
+}
+
+/// Result for one stationary state.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct InvariantStateResult {
+    pub state_id: String,
+    pub status: ViabilityStatus,
+    pub witness_action: Option<String>,
+    pub reasons: Vec<String>,
+}
+
+/// Greatest robust controlled-invariant subset of the declared finite state
+/// universe, plus explicit unresolved and infeasible partitions.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct InvariantKernelReport {
+    pub state_results: BTreeMap<String, InvariantStateResult>,
+    pub invariant_states: BTreeSet<String>,
+    pub infeasible_states: BTreeSet<String>,
+    pub unresolved_states: BTreeSet<String>,
+    pub invariant_initial_states: BTreeSet<String>,
+    pub infeasible_initial_states: BTreeSet<String>,
+    pub unresolved_initial_states: BTreeSet<String>,
+    pub witness_policy: BTreeMap<String, String>,
+}
+
+/// Execution result for the stationary invariant-kernel solver under caps.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum InvariantKernelExecution {
+    Exact(InvariantKernelReport),
+    Bounded {
+        resource: String,
+        observed: usize,
+        limit: usize,
+    },
+}
+
 /// Problem shape and graph errors. Unknown evidence inside an otherwise
 /// well-formed state/action is reflected in ViabilityStatus::Unresolved.
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -686,6 +743,428 @@ pub fn compute_viability_kernel(
             observed,
             limit,
         }),
+    }
+}
+
+
+/// Validate the stationary state/action graph. Missing disturbance outcomes
+/// are allowed as evidence gaps and later produce Unresolved classifications.
+fn validate_invariant_problem(
+    problem: &InvariantKernelProblem,
+) -> Result<BTreeMap<String, InvariantState>, ViabilityError> {
+    if problem.required_floors.is_empty() {
+        return Err(ViabilityError::EmptyRequiredFloorSet);
+    }
+    if problem.states.is_empty() {
+        return Err(ViabilityError::EmptyStateSet);
+    }
+    if problem.initial_states.is_empty() {
+        return Err(ViabilityError::EmptyInitialStateSet);
+    }
+    if problem.disturbance_ids.is_empty() {
+        return Err(ViabilityError::EmptyDisturbanceSet(0));
+    }
+
+    let mut required_floor_set = BTreeSet::new();
+    for floor_id in &problem.required_floors {
+        if !required_floor_set.insert(floor_id.as_str()) {
+            return Err(ViabilityError::DuplicateRequiredFloor(floor_id.clone()));
+        }
+    }
+    let mut required_action_gate_set = BTreeSet::new();
+    for gate_id in &problem.required_action_gates {
+        if !required_action_gate_set.insert(gate_id.as_str()) {
+            return Err(ViabilityError::DuplicateRequiredActionGate(gate_id.clone()));
+        }
+    }
+
+    let mut disturbance_set = BTreeSet::new();
+    for disturbance_id in &problem.disturbance_ids {
+        if !disturbance_set.insert(disturbance_id.as_str()) {
+            return Err(ViabilityError::DuplicateDisturbance {
+                stage: 0,
+                disturbance_id: disturbance_id.clone(),
+            });
+        }
+    }
+
+    let mut states = BTreeMap::new();
+    for state in &problem.states {
+        if state.state_id.is_empty() {
+            return Err(ViabilityError::EmptyStateId);
+        }
+        if states.insert(state.state_id.clone(), state.clone()).is_some() {
+            return Err(ViabilityError::DuplicateState(state.state_id.clone()));
+        }
+    }
+    for state in &problem.states {
+        for floor_id in &problem.required_floors {
+            if !state.floors.contains_key(floor_id) {
+                return Err(ViabilityError::MissingStateFloor {
+                    state_id: state.state_id.clone(),
+                    floor_id: floor_id.clone(),
+                });
+            }
+        }
+    }
+
+    let mut action_ids = BTreeSet::new();
+    for action in &problem.actions {
+        if action.action_id.is_empty() {
+            return Err(ViabilityError::EmptyActionId);
+        }
+        if !action_ids.insert(action.action_id.as_str()) {
+            return Err(ViabilityError::DuplicateAction(action.action_id.clone()));
+        }
+        if !states.contains_key(&action.from_state_id) {
+            return Err(ViabilityError::UnknownActionSource {
+                action_id: action.action_id.clone(),
+                state_id: action.from_state_id.clone(),
+            });
+        }
+        for (disturbance_id, successor_id) in &action.successor_by_disturbance {
+            if !disturbance_set.contains(disturbance_id.as_str()) {
+                return Err(ViabilityError::UnexpectedDisturbance {
+                    action_id: action.action_id.clone(),
+                    disturbance_id: disturbance_id.clone(),
+                });
+            }
+            if !states.contains_key(successor_id) {
+                return Err(ViabilityError::UnknownSuccessor {
+                    action_id: action.action_id.clone(),
+                    disturbance_id: disturbance_id.clone(),
+                    state_id: successor_id.clone(),
+                });
+            }
+        }
+    }
+
+    let mut initial_ids = BTreeSet::new();
+    for initial_id in &problem.initial_states {
+        if !initial_ids.insert(initial_id.as_str()) {
+            return Err(ViabilityError::DuplicateInitialState(initial_id.clone()));
+        }
+        if !states.contains_key(initial_id) {
+            return Err(ViabilityError::UnknownInitialState(initial_id.clone()));
+        }
+    }
+
+    Ok(states)
+}
+
+/// Compute the greatest robust controlled-invariant set over a finite,
+/// stationary transition system.
+///
+/// Starting from all states whose hard floors Pass, repeatedly remove any
+/// state for which no passing action maps every disturbance successor back
+/// into the current candidate set. This is a greatest-fixed-point computation.
+///
+/// Unknown floors are never admitted to the invariant set. After the known
+/// greatest fixed point is computed, uncertainty is propagated backwards:
+/// a removed state is Unresolved only if some action has no known failing
+/// successor and could become invariant if its unknown gates/branches or
+/// successor states were resolved. All remaining states are Infeasible.
+pub fn compute_robust_controlled_invariant_kernel(
+    problem: &InvariantKernelProblem,
+) -> Result<InvariantKernelReport, ViabilityError> {
+    validate_invariant_problem(problem)?;
+
+    let mut actions_by_state: BTreeMap<String, Vec<&ViabilityAction>> = BTreeMap::new();
+    for action in &problem.actions {
+        actions_by_state
+            .entry(action.from_state_id.clone())
+            .or_default()
+            .push(action);
+    }
+    for actions in actions_by_state.values_mut() {
+        actions.sort_by(|left, right| left.action_id.cmp(&right.action_id));
+    }
+
+    let mut safe_states = BTreeSet::new();
+    let mut unresolved_states = BTreeSet::new();
+    let mut infeasible_states = BTreeSet::new();
+
+    for state in &problem.states {
+        match evaluate_state_floors_for_invariant(state, &problem.required_floors) {
+            GateDisposition::Passed => {
+                safe_states.insert(state.state_id.clone());
+            }
+            GateDisposition::Failed => {
+                infeasible_states.insert(state.state_id.clone());
+            }
+            GateDisposition::Unknown(_) => {
+                unresolved_states.insert(state.state_id.clone());
+            }
+        }
+    }
+
+    // Greatest fixed point: K_{n+1} = K_n intersect CPre(K_n).
+    let mut invariant_states = safe_states.clone();
+    loop {
+        let mut remove = Vec::new();
+
+        for state_id in &invariant_states {
+            let actions = actions_by_state
+                .get(state_id)
+                .map(|items| items.as_slice())
+                .unwrap_or(&[]);
+            let mut has_closed_action = false;
+
+            for action in actions {
+                if evaluate_action_gates(action, &problem.required_action_gates)
+                    != GateDisposition::Passed
+                {
+                    continue;
+                }
+
+                let all_successors_in_kernel = problem.disturbance_ids.iter().all(
+                    |disturbance_id| {
+                        action
+                            .successor_by_disturbance
+                            .get(disturbance_id)
+                            .is_some_and(|successor| invariant_states.contains(successor))
+                    },
+                );
+
+                if all_successors_in_kernel {
+                    has_closed_action = true;
+                    break;
+                }
+            }
+
+            if !has_closed_action {
+                remove.push(state_id.clone());
+            }
+        }
+
+        if remove.is_empty() {
+            break;
+        }
+        for state_id in remove {
+            invariant_states.remove(&state_id);
+        }
+    }
+
+    // Propagate unresolved evidence backwards to states that might be
+    // invariant if an unknown gate/branch/successor were resolved.
+    loop {
+        let mut additions = BTreeSet::new();
+
+        for state_id in safe_states
+            .difference(&invariant_states)
+            .filter(|id| !unresolved_states.contains(*id))
+        {
+            let actions = actions_by_state
+                .get(state_id)
+                .map(|items| items.as_slice())
+                .unwrap_or(&[]);
+
+            let mut has_potentially_closed_action = false;
+            for action in actions {
+                let gate_disposition =
+                    evaluate_action_gates(action, &problem.required_action_gates);
+                if gate_disposition == GateDisposition::Failed {
+                    continue;
+                }
+                let mut action_has_unknown = matches!(
+                    gate_disposition,
+                    GateDisposition::Unknown(_)
+                );
+                let mut action_has_known_nonviable_successor = false;
+
+                for disturbance_id in &problem.disturbance_ids {
+                    let Some(successor_id) =
+                        action.successor_by_disturbance.get(disturbance_id)
+                    else {
+                        action_has_unknown = true;
+                        continue;
+                    };
+
+                    if invariant_states.contains(successor_id) {
+                        continue;
+                    }
+                    if unresolved_states.contains(successor_id) {
+                        action_has_unknown = true;
+                        continue;
+                    }
+
+                    action_has_known_nonviable_successor = true;
+                    break;
+                }
+
+                if !action_has_known_nonviable_successor && action_has_unknown {
+                    has_potentially_closed_action = true;
+                    break;
+                }
+            }
+
+            if has_potentially_closed_action {
+                additions.insert(state_id.clone());
+            }
+        }
+
+        if additions.is_empty() {
+            break;
+        }
+        unresolved_states.extend(additions);
+    }
+
+    for state in &problem.states {
+        if !invariant_states.contains(&state.state_id)
+            && !unresolved_states.contains(&state.state_id)
+        {
+            infeasible_states.insert(state.state_id.clone());
+        }
+    }
+
+    let mut witness_policy = BTreeMap::new();
+    let mut state_results = BTreeMap::new();
+
+    for state in &problem.states {
+        let result = if invariant_states.contains(&state.state_id) {
+            let actions = actions_by_state
+                .get(&state.state_id)
+                .map(|items| items.as_slice())
+                .unwrap_or(&[]);
+            let witness = actions.iter().find(|action| {
+                evaluate_action_gates(action, &problem.required_action_gates)
+                    == GateDisposition::Passed
+                    && problem.disturbance_ids.iter().all(|disturbance_id| {
+                        action
+                            .successor_by_disturbance
+                            .get(disturbance_id)
+                            .is_some_and(|successor| invariant_states.contains(successor))
+                    })
+            });
+            let action_id = witness
+                .expect("every state in greatest fixed point has a witness action")
+                .action_id
+                .clone();
+            witness_policy.insert(state.state_id.clone(), action_id.clone());
+            InvariantStateResult {
+                state_id: state.state_id.clone(),
+                status: ViabilityStatus::Viable,
+                witness_action: Some(action_id),
+                reasons: Vec::new(),
+            }
+        } else if unresolved_states.contains(&state.state_id) {
+            InvariantStateResult {
+                state_id: state.state_id.clone(),
+                status: ViabilityStatus::Unresolved,
+                witness_action: None,
+                reasons: vec!["unknown_floor_or_potentially_invariant_unknown_transition".to_owned()],
+            }
+        } else {
+            InvariantStateResult {
+                state_id: state.state_id.clone(),
+                status: ViabilityStatus::Infeasible,
+                witness_action: None,
+                reasons: vec!["no_action_keeps_all_disturbance_successors_in_invariant_set".to_owned()],
+            }
+        };
+        state_results.insert(state.state_id.clone(), result);
+    }
+
+    let mut invariant_initial_states = BTreeSet::new();
+    let mut infeasible_initial_states = BTreeSet::new();
+    let mut unresolved_initial_states = BTreeSet::new();
+
+    for initial_id in &problem.initial_states {
+        match state_results
+            .get(initial_id)
+            .expect("initial state presence validated above")
+            .status
+        {
+            ViabilityStatus::Viable => {
+                invariant_initial_states.insert(initial_id.clone());
+            }
+            ViabilityStatus::Infeasible => {
+                infeasible_initial_states.insert(initial_id.clone());
+            }
+            ViabilityStatus::Unresolved => {
+                unresolved_initial_states.insert(initial_id.clone());
+            }
+        }
+    }
+
+    Ok(InvariantKernelReport {
+        state_results,
+        invariant_states,
+        infeasible_states,
+        unresolved_states,
+        invariant_initial_states,
+        infeasible_initial_states,
+        unresolved_initial_states,
+        witness_policy,
+    })
+}
+
+/// Apply resource caps before invoking the stationary invariant fixed point.
+/// A Bounded result contains no partial state classifications.
+pub fn compute_robust_controlled_invariant_kernel_with_limits(
+    problem: &InvariantKernelProblem,
+    limits: ViabilityLimits,
+) -> Result<InvariantKernelExecution, ViabilityError> {
+    let bounded = |resource: &str, observed: usize, limit: usize|
+     -> Result<InvariantKernelExecution, ViabilityError> {
+        Ok(InvariantKernelExecution::Bounded {
+            resource: resource.to_owned(),
+            observed,
+            limit,
+        })
+    };
+
+    if problem.states.len() > limits.max_states {
+        return bounded("states", problem.states.len(), limits.max_states);
+    }
+    if problem.actions.len() > limits.max_actions {
+        return bounded("actions", problem.actions.len(), limits.max_actions);
+    }
+
+    let transition_bound = problem
+        .actions
+        .len()
+        .checked_mul(problem.disturbance_ids.len())
+        .ok_or(ViabilityError::ResourceLimitExceeded {
+            resource: "transition_branches".to_owned(),
+            observed: usize::MAX,
+            limit: limits.max_transition_branches,
+        })?;
+
+    if transition_bound > limits.max_transition_branches {
+        return bounded(
+            "transition_branches",
+            transition_bound,
+            limits.max_transition_branches,
+        );
+    }
+
+    Ok(InvariantKernelExecution::Exact(
+        compute_robust_controlled_invariant_kernel(problem)?,
+    ))
+}
+
+fn evaluate_state_floors_for_invariant(
+    state: &InvariantState,
+    required_floors: &[String],
+) -> GateDisposition {
+    let mut unknown = Vec::new();
+    let mut failed = false;
+
+    for floor_id in required_floors {
+        match state.floors.get(floor_id).expect("validated above") {
+            GateResult::Pass => {}
+            GateResult::Fail => failed = true,
+            GateResult::Unknown => unknown.push(floor_id.clone()),
+        }
+    }
+
+    if failed {
+        GateDisposition::Failed
+    } else if unknown.is_empty() {
+        GateDisposition::Passed
+    } else {
+        GateDisposition::Unknown(unknown)
     }
 }
 
@@ -1412,6 +1891,207 @@ mod tests {
         let second = compute_viability_kernel(&make_problem(true)).unwrap();
         assert_eq!(first, second);
         assert_eq!(first.witness_policy["initial"], "alpha");
+    }
+
+
+    fn invariant_state(id: &str, floor_values: &[(&str, GateResult)]) -> InvariantState {
+        InvariantState {
+            state_id: id.to_owned(),
+            floors: floor_map(floor_values),
+        }
+    }
+
+    fn invariant_problem(
+        states: Vec<InvariantState>,
+        actions: Vec<ViabilityAction>,
+        initial_states: &[&str],
+        disturbances: &[&str],
+    ) -> InvariantKernelProblem {
+        InvariantKernelProblem {
+            required_floors: vec!["freight".to_owned()],
+            required_action_gates: vec!["authority".to_owned()],
+            disturbance_ids: disturbances.iter().map(|id| (*id).to_owned()).collect(),
+            states,
+            actions,
+            initial_states: initial_states.iter().map(|id| (*id).to_owned()).collect(),
+        }
+    }
+
+    #[test]
+    fn invariant_kernel_keeps_safe_self_loop_for_all_disturbances() {
+        let problem = invariant_problem(
+            vec![invariant_state("safe", &[("freight", GateResult::Pass)])],
+            vec![action(
+                "hold",
+                "safe",
+                &[("authority", GateResult::Pass)],
+                &[("normal", "safe"), ("storm", "safe")],
+            )],
+            &["safe"],
+            &["normal", "storm"],
+        );
+
+        let report = compute_robust_controlled_invariant_kernel(&problem).unwrap();
+        assert!(report.invariant_states.contains("safe"));
+        assert_eq!(report.witness_policy["safe"], "hold");
+    }
+
+    #[test]
+    fn invariant_kernel_removes_state_that_can_only_transition_to_unsafe_state() {
+        let problem = invariant_problem(
+            vec![
+                invariant_state("safe_now", &[("freight", GateResult::Pass)]),
+                invariant_state("unsafe", &[("freight", GateResult::Fail)]),
+            ],
+            vec![action(
+                "degrade",
+                "safe_now",
+                &[("authority", GateResult::Pass)],
+                &[("normal", "unsafe")],
+            )],
+            &["safe_now"],
+            &["normal"],
+        );
+
+        let report = compute_robust_controlled_invariant_kernel(&problem).unwrap();
+        assert!(report.infeasible_initial_states.contains("safe_now"));
+        assert!(report.infeasible_states.contains("unsafe"));
+    }
+
+    #[test]
+    fn invariant_kernel_propagates_unknown_floor_to_predecessor() {
+        let problem = invariant_problem(
+            vec![
+                invariant_state("upstream", &[("freight", GateResult::Pass)]),
+                invariant_state("unknown_asset", &[("freight", GateResult::Unknown)]),
+            ],
+            vec![action(
+                "connect",
+                "upstream",
+                &[("authority", GateResult::Pass)],
+                &[("normal", "unknown_asset")],
+            )],
+            &["upstream"],
+            &["normal"],
+        );
+
+        let report = compute_robust_controlled_invariant_kernel(&problem).unwrap();
+        assert!(report.unresolved_states.contains("unknown_asset"));
+        assert!(report.unresolved_states.contains("upstream"));
+        assert!(report.invariant_states.is_empty());
+    }
+
+    #[test]
+    fn invariant_kernel_known_bad_branch_dominates_missing_branch() {
+        let problem = invariant_problem(
+            vec![
+                invariant_state("initial", &[("freight", GateResult::Pass)]),
+                invariant_state("good", &[("freight", GateResult::Pass)]),
+                invariant_state("bad", &[("freight", GateResult::Fail)]),
+            ],
+            vec![action(
+                "partial_bad",
+                "initial",
+                &[("authority", GateResult::Pass)],
+                &[("normal", "good"), ("power_fail", "bad")],
+            )],
+            &["initial"],
+            &["normal", "power_fail", "unobserved"],
+        );
+
+        let report = compute_robust_controlled_invariant_kernel(&problem).unwrap();
+        assert!(report.infeasible_initial_states.contains("initial"));
+        assert!(!report.unresolved_initial_states.contains("initial"));
+    }
+
+    #[test]
+    fn invariant_kernel_unknown_action_gate_produces_unresolved() {
+        let problem = invariant_problem(
+            vec![invariant_state("initial", &[("freight", GateResult::Pass)])],
+            vec![action(
+                "unknown_authority",
+                "initial",
+                &[("authority", GateResult::Unknown)],
+                &[("normal", "initial")],
+            )],
+            &["initial"],
+            &["normal"],
+        );
+
+        let report = compute_robust_controlled_invariant_kernel(&problem).unwrap();
+        assert!(report.unresolved_initial_states.contains("initial"));
+        assert!(!report.invariant_states.contains("initial"));
+    }
+
+    #[test]
+    fn invariant_kernel_is_deterministic_under_state_and_action_reordering() {
+        let problem = invariant_problem(
+            vec![
+                invariant_state("a", &[("freight", GateResult::Pass)]),
+                invariant_state("b", &[("freight", GateResult::Pass)]),
+            ],
+            vec![
+                action(
+                    "zeta",
+                    "a",
+                    &[("authority", GateResult::Pass)],
+                    &[("normal", "b")],
+                ),
+                action(
+                    "alpha",
+                    "a",
+                    &[("authority", GateResult::Pass)],
+                    &[("normal", "b")],
+                ),
+                action(
+                    "stay_b",
+                    "b",
+                    &[("authority", GateResult::Pass)],
+                    &[("normal", "b")],
+                ),
+            ],
+            &["a"],
+            &["normal"],
+        );
+
+        let first = compute_robust_controlled_invariant_kernel(&problem).unwrap();
+        let mut reversed = problem.clone();
+        reversed.states.reverse();
+        reversed.actions.reverse();
+        let second = compute_robust_controlled_invariant_kernel(&reversed).unwrap();
+
+        assert_eq!(first, second);
+        assert_eq!(first.witness_policy["a"], "alpha");
+    }
+
+    #[test]
+    fn invariant_kernel_explicit_caps_return_bounded_without_partial_states() {
+        let problem = invariant_problem(
+            vec![invariant_state("safe", &[("freight", GateResult::Pass)])],
+            vec![action(
+                "hold",
+                "safe",
+                &[("authority", GateResult::Pass)],
+                &[("normal", "safe")],
+            )],
+            &["safe"],
+            &["normal"],
+        );
+        let limits = ViabilityLimits {
+            max_horizon: 0,
+            max_states: 0,
+            max_actions: 2,
+            max_transition_branches: 2,
+        };
+
+        assert_eq!(
+            compute_robust_controlled_invariant_kernel_with_limits(&problem, limits).unwrap(),
+            InvariantKernelExecution::Bounded {
+                resource: "states".to_owned(),
+                observed: 1,
+                limit: 0,
+            }
+        );
     }
 
     #[test]
