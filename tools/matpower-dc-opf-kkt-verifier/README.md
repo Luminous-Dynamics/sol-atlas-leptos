@@ -2,6 +2,8 @@
 
 **Status:** runner-independent Rust implementation draft; exact-head CI and independent reference execution pending.
 
+Formatting is checked with the workflow's pinned stable Rust toolchain across the prerequisite primal auditor and this verifier. Formatting success is a prerequisite only; it is not a compilation, numerical-reference or physical-validation result.
+
 This crate independently checks numerical KKT conditions for the bounded MATPOWER 8.1 `makeBdc` DC-OPF profile. It consumes the source-bound primal receipt from the adjacent `matpower-dc-opf-primal-auditor` crate and an additional set of named dual multipliers exported by the pinned MATPOWER 8.1 reference script.
 
 It does not optimize. It does not call MATPOWER. It does not trust the solver's success flag, reported KKT norm, or reported primal-dual gap.
