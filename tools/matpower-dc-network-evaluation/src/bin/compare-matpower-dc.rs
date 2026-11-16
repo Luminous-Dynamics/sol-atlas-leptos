@@ -579,4 +579,125 @@ mod tests {
                 .contains("unknown TSV row")
         );
     }
+
+    const CASE14: &str =
+        include_str!("../../../pglib-case-auditor/fixtures/pglib_opf_case14_ieee.m");
+
+    fn sol_atlas_reference_tsv(source: &str) -> String {
+        let evaluation =
+            evaluate_matpower_dc_case(source, SolveOptions::default()).expect("valid DC case");
+        let reference = evaluation
+            .solution
+            .bus_states
+            .iter()
+            .find(|bus| bus.is_reference_bus)
+            .expect("one DC reference bus");
+        let mut tsv = format!(
+            concat!(
+                "META\tsource_git_blob_sha1\t{}\n",
+                "META\tmatpower_version\t8.1\n",
+                "META\tbase_mva\t{}\n",
+                "META\treference_bus\t{}\n"
+            ),
+            evaluation.source_git_blob_sha1,
+            number(evaluation.network.base_mva),
+            reference.bus_id
+        );
+        for bus in &evaluation.solution.bus_states {
+            let relative_angle_degrees =
+                bus.voltage_angle_rad.to_degrees() - reference.voltage_angle_rad.to_degrees();
+            tsv.push_str(&format!(
+                "BUS\t{}\t{}\t{}\n",
+                bus.bus_id,
+                number(relative_angle_degrees),
+                number(bus.net_injection_mw)
+            ));
+        }
+        for branch in &evaluation.solution.branch_flows {
+            tsv.push_str(&format!(
+                "BRANCH\t{}\t{}\t{}\t{}\t{}\t{}\n",
+                branch.branch_index + 1,
+                branch.from_bus,
+                branch.to_bus,
+                i64::from(branch.in_service),
+                number(branch.flow_from_to_mw),
+                number(-branch.flow_from_to_mw)
+            ));
+        }
+        tsv
+    }
+
+    #[test]
+    fn exact_source_identity_and_unmodified_branch_receipt_pass() {
+        let reference = sol_atlas_reference_tsv(CASE14);
+        let report = compare(CASE14, &reference).expect("matching source and receipt");
+        assert!(report.passed(), "{}", report.to_json());
+        assert_eq!(report.bus_count, 14);
+        assert_eq!(report.branch_count, 20);
+        assert_eq!(report.field_comparison_count, 14 * 2 + 20 * 2 + 1);
+    }
+
+    #[test]
+    fn a_single_mutated_branch_flow_is_a_reported_failure_not_a_pass() {
+        let reference = sol_atlas_reference_tsv(CASE14);
+        let mut lines = reference.lines().map(str::to_owned).collect::<Vec<_>>();
+        let branch_index = lines
+            .iter()
+            .position(|line| line.starts_with("BRANCH\t1\t"))
+            .expect("first branch exists");
+        let mut fields = lines[branch_index].split('\t').map(str::to_owned).collect::<Vec<_>>();
+        let original = fields[5].parse::<f64>().expect("numeric branch flow");
+        fields[5] = number(original + 0.01);
+        lines[branch_index] = fields.join("\t");
+        let mutated = lines.join("\n") + "\n";
+
+        let report = compare(CASE14, &mutated).expect("well-formed but wrong flow is reportable");
+        assert!(!report.passed());
+        assert!(report.mismatches.iter().any(|mismatch| {
+            mismatch.element == "branch" && mismatch.field == "from_to_flow_mw"
+        }));
+    }
+
+    #[test]
+    fn source_identity_and_reference_version_drift_fail_closed() {
+        let reference = sol_atlas_reference_tsv(CASE14);
+        let wrong_identity = reference.replace(
+            &format!("META\tsource_git_blob_sha1\t{}", git_blob_sha1(CASE14.as_bytes())),
+            "META\tsource_git_blob_sha1\t0000000000000000000000000000000000000000",
+        );
+        assert!(
+            compare(CASE14, &wrong_identity)
+                .unwrap_err()
+                .contains("source identity mismatch")
+        );
+
+        let wrong_version = reference.replace(
+            "META\tmatpower_version\t8.1",
+            "META\tmatpower_version\t8.0",
+        );
+        assert!(
+            compare(CASE14, &wrong_version)
+                .unwrap_err()
+                .contains("version drift")
+        );
+    }
+
+    #[test]
+    fn missing_branch_reference_row_is_rejected_instead_of_truncated() {
+        let reference = sol_atlas_reference_tsv(CASE14);
+        let mut lines = reference.lines().map(str::to_owned).collect::<Vec<_>>();
+        let branch_index = lines
+            .iter()
+            .position(|line| line.starts_with("BRANCH\t1\t"))
+            .expect("first branch exists");
+        lines.remove(branch_index);
+        let mutated = lines.join("\n") + "\n";
+
+        assert!(
+            parse_reference_tsv(&mutated)
+                .unwrap_err()
+                .contains("branch rows are not complete and ordered")
+        );
+    }
+
 }
