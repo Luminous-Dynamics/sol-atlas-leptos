@@ -101,192 +101,371 @@
       "dimension": "STYLE",
       "case_kind": "SYNTHETIC_CONTRACT_MUTATION",
       "source_population_ref": "sol-atlas-leptos#819",
-      "source_case_id": null,
-      "source_case_binding_status": "OWNER_CASE_BINDING_PENDING",
+      "source_case_id": "SYNTH-HV-CASE-001",
+      "source_case_binding_status": "BOUND",
       "mutation": "Valid resident-authored 65/35 blend with stable brief and revision.",
       "expected_disposition": "CONTRACT_VALID",
       "physical_evaluation": "NOT_PERFORMED",
-      "claim_ceiling": "CONTRACT_ORACLE_ONLY_NOT_BUILDING_FEASIBILITY"
+      "claim_ceiling": "CONTRACT_ORACLE_ONLY_NOT_BUILDING_FEASIBILITY",
+      "derivation_kind": "ONE_FACTOR_COUNTERFACTUAL_MUTATION",
+      "source_artifact_refs": [
+        {
+          "path": "docs/research/home-freedom/HOME_DESIGN_BRIEF_SYNTHETIC_EXAMPLE_V0.1.json",
+          "blob_sha": "0090e2f0c883c62817d1b6da51d1a2dbe92a477f"
+        },
+        {
+          "path": "docs/research/home-freedom/HOME_DESIGN_CANDIDATE_SET_SYNTHETIC_EXAMPLE_V0.1.json",
+          "blob_sha": "030e6c0e71cef1a936738910409396a9a48dedcf"
+        }
+      ]
     },
     {
       "case_id": "CASE_NO_STYLE",
       "dimension": "STYLE",
       "case_kind": "SYNTHETIC_CONTRACT_MUTATION",
       "source_population_ref": "sol-atlas-leptos#819",
-      "source_case_id": null,
-      "source_case_binding_status": "OWNER_CASE_BINDING_PENDING",
+      "source_case_id": "SYNTH-HV-CASE-001",
+      "source_case_binding_status": "BOUND",
       "mutation": "Resident explicitly leaves style undecided; no style is inferred.",
       "expected_disposition": "CONTRACT_VALID",
       "physical_evaluation": "NOT_PERFORMED",
-      "claim_ceiling": "CONTRACT_ORACLE_ONLY_NOT_BUILDING_FEASIBILITY"
+      "claim_ceiling": "CONTRACT_ORACLE_ONLY_NOT_BUILDING_FEASIBILITY",
+      "derivation_kind": "ONE_FACTOR_COUNTERFACTUAL_MUTATION",
+      "source_artifact_refs": [
+        {
+          "path": "docs/research/home-freedom/HOME_DESIGN_BRIEF_SYNTHETIC_EXAMPLE_V0.1.json",
+          "blob_sha": "0090e2f0c883c62817d1b6da51d1a2dbe92a477f"
+        },
+        {
+          "path": "docs/research/home-freedom/HOME_DESIGN_CANDIDATE_SET_SYNTHETIC_EXAMPLE_V0.1.json",
+          "blob_sha": "030e6c0e71cef1a936738910409396a9a48dedcf"
+        }
+      ]
     },
     {
       "case_id": "CASE_CUSTOM_STYLE",
       "dimension": "STYLE",
       "case_kind": "SYNTHETIC_CONTRACT_MUTATION",
       "source_population_ref": "sol-atlas-leptos#819",
-      "source_case_id": null,
-      "source_case_binding_status": "OWNER_CASE_BINDING_PENDING",
+      "source_case_id": "SYNTH-HV-CASE-001",
+      "source_case_binding_status": "BOUND",
       "mutation": "Custom language is fully defined by the resident and bound to the design revision.",
       "expected_disposition": "CONTRACT_VALID",
       "physical_evaluation": "NOT_PERFORMED",
-      "claim_ceiling": "CONTRACT_ORACLE_ONLY_NOT_BUILDING_FEASIBILITY"
+      "claim_ceiling": "CONTRACT_ORACLE_ONLY_NOT_BUILDING_FEASIBILITY",
+      "derivation_kind": "ONE_FACTOR_COUNTERFACTUAL_MUTATION",
+      "source_artifact_refs": [
+        {
+          "path": "docs/research/home-freedom/HOME_DESIGN_BRIEF_SYNTHETIC_EXAMPLE_V0.1.json",
+          "blob_sha": "0090e2f0c883c62817d1b6da51d1a2dbe92a477f"
+        },
+        {
+          "path": "docs/research/home-freedom/HOME_DESIGN_CANDIDATE_SET_SYNTHETIC_EXAMPLE_V0.1.json",
+          "blob_sha": "030e6c0e71cef1a936738910409396a9a48dedcf"
+        }
+      ]
     },
     {
       "case_id": "CASE_AVOIDED_STYLE",
       "dimension": "STYLE",
       "case_kind": "SYNTHETIC_CONTRACT_MUTATION",
       "source_population_ref": "sol-atlas-leptos#819",
-      "source_case_id": null,
-      "source_case_binding_status": "OWNER_CASE_BINDING_PENDING",
+      "source_case_id": "SYNTH-HV-CASE-001",
+      "source_case_binding_status": "BOUND",
       "mutation": "Candidate includes a style the resident explicitly marked AVOID.",
       "expected_disposition": "BLOCKED_BY_RESIDENT_EXCLUSION",
       "physical_evaluation": "NOT_PERFORMED",
-      "claim_ceiling": "CONTRACT_ORACLE_ONLY_NOT_BUILDING_FEASIBILITY"
+      "claim_ceiling": "CONTRACT_ORACLE_ONLY_NOT_BUILDING_FEASIBILITY",
+      "derivation_kind": "ONE_FACTOR_COUNTERFACTUAL_MUTATION",
+      "source_artifact_refs": [
+        {
+          "path": "docs/research/home-freedom/HOME_DESIGN_BRIEF_SYNTHETIC_EXAMPLE_V0.1.json",
+          "blob_sha": "0090e2f0c883c62817d1b6da51d1a2dbe92a477f"
+        },
+        {
+          "path": "docs/research/home-freedom/HOME_DESIGN_CANDIDATE_SET_SYNTHETIC_EXAMPLE_V0.1.json",
+          "blob_sha": "030e6c0e71cef1a936738910409396a9a48dedcf"
+        }
+      ]
     },
     {
       "case_id": "CASE_BLEND_SUM_99",
       "dimension": "STYLE",
       "case_kind": "SYNTHETIC_CONTRACT_MUTATION",
       "source_population_ref": "sol-atlas-leptos#819",
-      "source_case_id": null,
-      "source_case_binding_status": "OWNER_CASE_BINDING_PENDING",
+      "source_case_id": "SYNTH-HV-CASE-001",
+      "source_case_binding_status": "BOUND",
       "mutation": "Primary and secondary style weights sum to 99 rather than 100.",
       "expected_disposition": "REJECTED_CONTRACT",
       "physical_evaluation": "NOT_PERFORMED",
-      "claim_ceiling": "CONTRACT_ORACLE_ONLY_NOT_BUILDING_FEASIBILITY"
+      "claim_ceiling": "CONTRACT_ORACLE_ONLY_NOT_BUILDING_FEASIBILITY",
+      "derivation_kind": "ONE_FACTOR_COUNTERFACTUAL_MUTATION",
+      "source_artifact_refs": [
+        {
+          "path": "docs/research/home-freedom/HOME_DESIGN_BRIEF_SYNTHETIC_EXAMPLE_V0.1.json",
+          "blob_sha": "0090e2f0c883c62817d1b6da51d1a2dbe92a477f"
+        },
+        {
+          "path": "docs/research/home-freedom/HOME_DESIGN_CANDIDATE_SET_SYNTHETIC_EXAMPLE_V0.1.json",
+          "blob_sha": "030e6c0e71cef1a936738910409396a9a48dedcf"
+        }
+      ]
     },
     {
       "case_id": "CASE_OPTIONAL_OBSERVATORY",
       "dimension": "AMENITY",
       "case_kind": "SYNTHETIC_CONTRACT_MUTATION",
       "source_population_ref": "sol-atlas-leptos#819",
-      "source_case_id": null,
-      "source_case_binding_status": "OWNER_CASE_BINDING_PENDING",
+      "source_case_id": "SYNTH-HV-CASE-001",
+      "source_case_binding_status": "BOUND",
       "mutation": "Optional observatory package carries ten UNKNOWN impacts and remains unselected until resident selection.",
       "expected_disposition": "VALID_UNKNOWN_PRESERVED",
       "physical_evaluation": "NOT_PERFORMED",
-      "claim_ceiling": "CONTRACT_ORACLE_ONLY_NOT_BUILDING_FEASIBILITY"
+      "claim_ceiling": "CONTRACT_ORACLE_ONLY_NOT_BUILDING_FEASIBILITY",
+      "derivation_kind": "ONE_FACTOR_COUNTERFACTUAL_MUTATION",
+      "source_artifact_refs": [
+        {
+          "path": "docs/research/home-freedom/HOME_DESIGN_BRIEF_SYNTHETIC_EXAMPLE_V0.1.json",
+          "blob_sha": "0090e2f0c883c62817d1b6da51d1a2dbe92a477f"
+        },
+        {
+          "path": "docs/research/home-freedom/HOME_DESIGN_CANDIDATE_SET_SYNTHETIC_EXAMPLE_V0.1.json",
+          "blob_sha": "030e6c0e71cef1a936738910409396a9a48dedcf"
+        }
+      ]
     },
     {
       "case_id": "CASE_OPTIONAL_POOL",
       "dimension": "AMENITY",
       "case_kind": "SYNTHETIC_CONTRACT_MUTATION",
       "source_population_ref": "sol-atlas-leptos#819",
-      "source_case_id": null,
-      "source_case_binding_status": "OWNER_CASE_BINDING_PENDING",
+      "source_case_id": "SYNTH-HV-CASE-001",
+      "source_case_binding_status": "BOUND",
       "mutation": "Optional indoor pool is considered while water and lifecycle impacts remain UNKNOWN.",
       "expected_disposition": "REVIEW_REQUIRED_NO_AUTO_PASS",
       "physical_evaluation": "NOT_PERFORMED",
-      "claim_ceiling": "CONTRACT_ORACLE_ONLY_NOT_BUILDING_FEASIBILITY"
+      "claim_ceiling": "CONTRACT_ORACLE_ONLY_NOT_BUILDING_FEASIBILITY",
+      "derivation_kind": "ONE_FACTOR_COUNTERFACTUAL_MUTATION",
+      "source_artifact_refs": [
+        {
+          "path": "docs/research/home-freedom/HOME_DESIGN_BRIEF_SYNTHETIC_EXAMPLE_V0.1.json",
+          "blob_sha": "0090e2f0c883c62817d1b6da51d1a2dbe92a477f"
+        },
+        {
+          "path": "docs/research/home-freedom/HOME_DESIGN_CANDIDATE_SET_SYNTHETIC_EXAMPLE_V0.1.json",
+          "blob_sha": "030e6c0e71cef1a936738910409396a9a48dedcf"
+        }
+      ]
     },
     {
       "case_id": "CASE_UNKNOWN_CAPEX_NULL",
       "dimension": "BUDGET",
       "case_kind": "SYNTHETIC_CONTRACT_MUTATION",
       "source_population_ref": "sol-atlas-leptos#819",
-      "source_case_id": null,
-      "source_case_binding_status": "OWNER_CASE_BINDING_PENDING",
+      "source_case_id": "SYNTH-HV-CASE-001",
+      "source_case_binding_status": "BOUND",
       "mutation": "Unknown capital cost remains null and is not ranked as zero.",
       "expected_disposition": "VALID_UNKNOWN_PRESERVED",
       "physical_evaluation": "NOT_PERFORMED",
-      "claim_ceiling": "CONTRACT_ORACLE_ONLY_NOT_BUILDING_FEASIBILITY"
+      "claim_ceiling": "CONTRACT_ORACLE_ONLY_NOT_BUILDING_FEASIBILITY",
+      "derivation_kind": "ONE_FACTOR_COUNTERFACTUAL_MUTATION",
+      "source_artifact_refs": [
+        {
+          "path": "docs/research/home-freedom/HOME_DESIGN_BRIEF_SYNTHETIC_EXAMPLE_V0.1.json",
+          "blob_sha": "0090e2f0c883c62817d1b6da51d1a2dbe92a477f"
+        },
+        {
+          "path": "docs/research/home-freedom/HOME_DESIGN_CANDIDATE_SET_SYNTHETIC_EXAMPLE_V0.1.json",
+          "blob_sha": "030e6c0e71cef1a936738910409396a9a48dedcf"
+        }
+      ]
     },
     {
       "case_id": "CASE_UNKNOWN_CAPEX_ZERO_FILL",
       "dimension": "BUDGET",
       "case_kind": "SYNTHETIC_CONTRACT_MUTATION",
       "source_population_ref": "sol-atlas-leptos#819",
-      "source_case_id": null,
-      "source_case_binding_status": "OWNER_CASE_BINDING_PENDING",
+      "source_case_id": "SYNTH-HV-CASE-001",
+      "source_case_binding_status": "BOUND",
       "mutation": "Unknown capital cost is replaced by numeric zero without evidence.",
       "expected_disposition": "REJECTED_FALSE_PRECISION",
       "physical_evaluation": "NOT_PERFORMED",
-      "claim_ceiling": "CONTRACT_ORACLE_ONLY_NOT_BUILDING_FEASIBILITY"
+      "claim_ceiling": "CONTRACT_ORACLE_ONLY_NOT_BUILDING_FEASIBILITY",
+      "derivation_kind": "ONE_FACTOR_COUNTERFACTUAL_MUTATION",
+      "source_artifact_refs": [
+        {
+          "path": "docs/research/home-freedom/HOME_DESIGN_BRIEF_SYNTHETIC_EXAMPLE_V0.1.json",
+          "blob_sha": "0090e2f0c883c62817d1b6da51d1a2dbe92a477f"
+        },
+        {
+          "path": "docs/research/home-freedom/HOME_DESIGN_CANDIDATE_SET_SYNTHETIC_EXAMPLE_V0.1.json",
+          "blob_sha": "030e6c0e71cef1a936738910409396a9a48dedcf"
+        }
+      ]
     },
     {
       "case_id": "CASE_BUDGET_CEILING_CHANGED",
       "dimension": "BUDGET",
       "case_kind": "SYNTHETIC_CONTRACT_MUTATION",
       "source_population_ref": "sol-atlas-leptos#819",
-      "source_case_id": null,
-      "source_case_binding_status": "OWNER_CASE_BINDING_PENDING",
+      "source_case_id": "SYNTH-HV-CASE-001",
+      "source_case_binding_status": "BOUND",
       "mutation": "Only the resident-authorized capital ceiling changes; affected cost/Pareto results require recalculation.",
       "expected_disposition": "RECALCULATE_COST_AND_PARETO",
       "physical_evaluation": "NOT_PERFORMED",
-      "claim_ceiling": "CONTRACT_ORACLE_ONLY_NOT_BUILDING_FEASIBILITY"
+      "claim_ceiling": "CONTRACT_ORACLE_ONLY_NOT_BUILDING_FEASIBILITY",
+      "derivation_kind": "ONE_FACTOR_COUNTERFACTUAL_MUTATION",
+      "source_artifact_refs": [
+        {
+          "path": "docs/research/home-freedom/HOME_DESIGN_BRIEF_SYNTHETIC_EXAMPLE_V0.1.json",
+          "blob_sha": "0090e2f0c883c62817d1b6da51d1a2dbe92a477f"
+        },
+        {
+          "path": "docs/research/home-freedom/HOME_DESIGN_CANDIDATE_SET_SYNTHETIC_EXAMPLE_V0.1.json",
+          "blob_sha": "030e6c0e71cef1a936738910409396a9a48dedcf"
+        }
+      ]
     },
     {
       "case_id": "CASE_REQUIRED_AMENITY_ORPHAN",
       "dimension": "AMENITY",
       "case_kind": "SYNTHETIC_CONTRACT_MUTATION",
       "source_population_ref": "sol-atlas-leptos#819",
-      "source_case_id": null,
-      "source_case_binding_status": "OWNER_CASE_BINDING_PENDING",
+      "source_case_id": "SYNTH-HV-CASE-001",
+      "source_case_binding_status": "BOUND",
       "mutation": "Package marked RESIDENT_REQUIRED has no matching non-negotiable constraint in the linked source brief.",
       "expected_disposition": "REJECTED_ORPHAN_REQUIREMENT",
       "physical_evaluation": "NOT_PERFORMED",
-      "claim_ceiling": "CONTRACT_ORACLE_ONLY_NOT_BUILDING_FEASIBILITY"
+      "claim_ceiling": "CONTRACT_ORACLE_ONLY_NOT_BUILDING_FEASIBILITY",
+      "derivation_kind": "ONE_FACTOR_COUNTERFACTUAL_MUTATION",
+      "source_artifact_refs": [
+        {
+          "path": "docs/research/home-freedom/HOME_DESIGN_BRIEF_SYNTHETIC_EXAMPLE_V0.1.json",
+          "blob_sha": "0090e2f0c883c62817d1b6da51d1a2dbe92a477f"
+        },
+        {
+          "path": "docs/research/home-freedom/HOME_DESIGN_CANDIDATE_SET_SYNTHETIC_EXAMPLE_V0.1.json",
+          "blob_sha": "030e6c0e71cef1a936738910409396a9a48dedcf"
+        }
+      ]
     },
     {
       "case_id": "CASE_STALE_REVISION",
       "dimension": "REVISION",
       "case_kind": "SYNTHETIC_CONTRACT_MUTATION",
       "source_population_ref": "sol-atlas-leptos#819",
-      "source_case_id": null,
-      "source_case_binding_status": "OWNER_CASE_BINDING_PENDING",
+      "source_case_id": "SYNTH-HV-CASE-001",
+      "source_case_binding_status": "BOUND",
       "mutation": "Expression profile refers to a superseded design revision.",
       "expected_disposition": "REQUALIFICATION_REQUIRED",
       "physical_evaluation": "NOT_PERFORMED",
-      "claim_ceiling": "CONTRACT_ORACLE_ONLY_NOT_BUILDING_FEASIBILITY"
+      "claim_ceiling": "CONTRACT_ORACLE_ONLY_NOT_BUILDING_FEASIBILITY",
+      "derivation_kind": "ONE_FACTOR_COUNTERFACTUAL_MUTATION",
+      "source_artifact_refs": [
+        {
+          "path": "docs/research/home-freedom/HOME_DESIGN_BRIEF_SYNTHETIC_EXAMPLE_V0.1.json",
+          "blob_sha": "0090e2f0c883c62817d1b6da51d1a2dbe92a477f"
+        },
+        {
+          "path": "docs/research/home-freedom/HOME_DESIGN_CANDIDATE_SET_SYNTHETIC_EXAMPLE_V0.1.json",
+          "blob_sha": "030e6c0e71cef1a936738910409396a9a48dedcf"
+        }
+      ]
     },
     {
       "case_id": "CASE_UNLICENSED_REFERENCE",
       "dimension": "RIGHTS",
       "case_kind": "SYNTHETIC_CONTRACT_MUTATION",
       "source_population_ref": "sol-atlas-leptos#819",
-      "source_case_id": null,
-      "source_case_binding_status": "OWNER_CASE_BINDING_PENDING",
+      "source_case_id": "SYNTH-HV-CASE-001",
+      "source_case_binding_status": "BOUND",
       "mutation": "Reference image rights are UNKNOWN or permission is pending; do not redistribute it as a public asset.",
       "expected_disposition": "REFERENCE_REVIEW_REQUIRED",
       "physical_evaluation": "NOT_PERFORMED",
-      "claim_ceiling": "CONTRACT_ORACLE_ONLY_NOT_BUILDING_FEASIBILITY"
+      "claim_ceiling": "CONTRACT_ORACLE_ONLY_NOT_BUILDING_FEASIBILITY",
+      "derivation_kind": "ONE_FACTOR_COUNTERFACTUAL_MUTATION",
+      "source_artifact_refs": [
+        {
+          "path": "docs/research/home-freedom/HOME_DESIGN_BRIEF_SYNTHETIC_EXAMPLE_V0.1.json",
+          "blob_sha": "0090e2f0c883c62817d1b6da51d1a2dbe92a477f"
+        },
+        {
+          "path": "docs/research/home-freedom/HOME_DESIGN_CANDIDATE_SET_SYNTHETIC_EXAMPLE_V0.1.json",
+          "blob_sha": "030e6c0e71cef1a936738910409396a9a48dedcf"
+        }
+      ]
     },
     {
       "case_id": "CASE_INFERRED_CULTURE",
       "dimension": "AGENCY",
       "case_kind": "SYNTHETIC_CONTRACT_MUTATION",
       "source_population_ref": "sol-atlas-leptos#819",
-      "source_case_id": null,
-      "source_case_binding_status": "OWNER_CASE_BINDING_PENDING",
+      "source_case_id": "SYNTH-HV-CASE-001",
+      "source_case_binding_status": "BOUND",
       "mutation": "System inserts cultural context that the resident did not provide.",
       "expected_disposition": "REJECTED_INFERRED_CONTEXT",
       "physical_evaluation": "NOT_PERFORMED",
-      "claim_ceiling": "CONTRACT_ORACLE_ONLY_NOT_BUILDING_FEASIBILITY"
+      "claim_ceiling": "CONTRACT_ORACLE_ONLY_NOT_BUILDING_FEASIBILITY",
+      "derivation_kind": "ONE_FACTOR_COUNTERFACTUAL_MUTATION",
+      "source_artifact_refs": [
+        {
+          "path": "docs/research/home-freedom/HOME_DESIGN_BRIEF_SYNTHETIC_EXAMPLE_V0.1.json",
+          "blob_sha": "0090e2f0c883c62817d1b6da51d1a2dbe92a477f"
+        },
+        {
+          "path": "docs/research/home-freedom/HOME_DESIGN_CANDIDATE_SET_SYNTHETIC_EXAMPLE_V0.1.json",
+          "blob_sha": "030e6c0e71cef1a936738910409396a9a48dedcf"
+        }
+      ]
     },
     {
       "case_id": "CASE_STEP_FREE_ACCESS_PRESENT",
       "dimension": "HARD_CONSTRAINT",
       "case_kind": "SYNTHETIC_CONTRACT_MUTATION",
       "source_population_ref": "sol-atlas-leptos#819",
-      "source_case_id": null,
-      "source_case_binding_status": "OWNER_CASE_BINDING_PENDING",
+      "source_case_id": "SYNTH-HV-CASE-001",
+      "source_case_binding_status": "BOUND",
       "mutation": "Step-free access remains present, resident-authored and bound to the source brief.",
       "expected_disposition": "CONTRACT_VALID",
       "physical_evaluation": "NOT_PERFORMED",
-      "claim_ceiling": "CONTRACT_ORACLE_ONLY_NOT_BUILDING_FEASIBILITY"
+      "claim_ceiling": "CONTRACT_ORACLE_ONLY_NOT_BUILDING_FEASIBILITY",
+      "derivation_kind": "ONE_FACTOR_COUNTERFACTUAL_MUTATION",
+      "source_artifact_refs": [
+        {
+          "path": "docs/research/home-freedom/HOME_DESIGN_BRIEF_SYNTHETIC_EXAMPLE_V0.1.json",
+          "blob_sha": "0090e2f0c883c62817d1b6da51d1a2dbe92a477f"
+        },
+        {
+          "path": "docs/research/home-freedom/HOME_DESIGN_CANDIDATE_SET_SYNTHETIC_EXAMPLE_V0.1.json",
+          "blob_sha": "030e6c0e71cef1a936738910409396a9a48dedcf"
+        }
+      ]
     },
     {
       "case_id": "CASE_STEP_FREE_ACCESS_REMOVED",
       "dimension": "HARD_CONSTRAINT",
       "case_kind": "SYNTHETIC_CONTRACT_MUTATION",
       "source_population_ref": "sol-atlas-leptos#819",
-      "source_case_id": null,
-      "source_case_binding_status": "OWNER_CASE_BINDING_PENDING",
+      "source_case_id": "SYNTH-HV-CASE-001",
+      "source_case_binding_status": "BOUND",
       "mutation": "The same candidate is mutated only by removing the resident's step-free hard requirement.",
       "expected_disposition": "REJECTED_CONSTRAINT_LOSS",
       "physical_evaluation": "NOT_PERFORMED",
-      "claim_ceiling": "CONTRACT_ORACLE_ONLY_NOT_BUILDING_FEASIBILITY"
+      "claim_ceiling": "CONTRACT_ORACLE_ONLY_NOT_BUILDING_FEASIBILITY",
+      "derivation_kind": "ONE_FACTOR_COUNTERFACTUAL_MUTATION",
+      "source_artifact_refs": [
+        {
+          "path": "docs/research/home-freedom/HOME_DESIGN_BRIEF_SYNTHETIC_EXAMPLE_V0.1.json",
+          "blob_sha": "0090e2f0c883c62817d1b6da51d1a2dbe92a477f"
+        },
+        {
+          "path": "docs/research/home-freedom/HOME_DESIGN_CANDIDATE_SET_SYNTHETIC_EXAMPLE_V0.1.json",
+          "blob_sha": "030e6c0e71cef1a936738910409396a9a48dedcf"
+        }
+      ]
     }
-  ]
+  ],
+  "source_population_state": "ONE_SYNTHETIC_BASELINE_ONLY",
+  "source_case_count": 1,
+  "source_population_note": "All 16 rows are one-factor contract mutations derived from the single existing synthetic Home Freedom case SYNTH-HV-CASE-001. They are not 16 independent household/site cases and do not instantiate the planned 100-case corpus."
 }
