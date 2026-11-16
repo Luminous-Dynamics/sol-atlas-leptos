@@ -10,7 +10,7 @@ use dc_fixed_injection_contingency_sweep::{
     ContingencySweepReport, SweepOptions, sweep_fixed_injection_single_branch_outages,
 };
 use dc_lodf_outage_screen::{
-    LODFScreenReport, ScreenOptions, compare_screen_to_exact, screen_single_branch_outages,
+    LODFScreenReport, ScreenOptions, screen_single_branch_outages,
 };
 use dc_power_flow_independent_auditor::{AuditOptions, AuditReport, audit_dc_power_flow};
 use dc_power_flow_reference::{
@@ -453,6 +453,7 @@ pub fn screen_matpower_dc_case(
 #[cfg(test)]
 mod tests {
     use super::*;
+    use dc_lodf_outage_screen::compare_screen_to_exact;
 
     const CASE14: &str = include_str!("../../pglib-case-auditor/fixtures/pglib_opf_case14_ieee.m");
     const CASE24: &str =
