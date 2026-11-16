@@ -323,10 +323,7 @@ pub fn parse_candidate_tsv(input: &str) -> Result<MatpowerDcOpfCandidate, String
                     }
                 }
                 "base_mva" => {
-                    if base_mva
-                        .replace(parse_float(row[2], "base MVA")?)
-                        .is_some()
-                    {
+                    if base_mva.replace(parse_float(row[2], "base MVA")?).is_some() {
                         return Err(format!("duplicate base MVA at line {line_number}"));
                     }
                 }
@@ -339,7 +336,9 @@ pub fn parse_candidate_tsv(input: &str) -> Result<MatpowerDcOpfCandidate, String
                     }
                 }
                 unknown => {
-                    return Err(format!("unknown META key '{unknown}' at line {line_number}"));
+                    return Err(format!(
+                        "unknown META key '{unknown}' at line {line_number}"
+                    ));
                 }
             },
             Some("BUS") if row.len() == 3 => {
@@ -355,7 +354,9 @@ pub fn parse_candidate_tsv(input: &str) -> Result<MatpowerDcOpfCandidate, String
             Some("GEN") if row.len() == 5 => {
                 let source_row = parse_row_index(row[1], "generator source row")?;
                 if source_row == 0 || !generator_rows.insert(source_row) {
-                    return Err(format!("invalid or duplicate generator row at line {line_number}"));
+                    return Err(format!(
+                        "invalid or duplicate generator row at line {line_number}"
+                    ));
                 }
                 generators.push(GeneratorCandidate {
                     source_row,
@@ -367,7 +368,9 @@ pub fn parse_candidate_tsv(input: &str) -> Result<MatpowerDcOpfCandidate, String
             Some("BRANCH") if row.len() == 7 => {
                 let source_row = parse_row_index(row[1], "branch source row")?;
                 if source_row == 0 || !branch_rows.insert(source_row) {
-                    return Err(format!("invalid or duplicate branch row at line {line_number}"));
+                    return Err(format!(
+                        "invalid or duplicate branch row at line {line_number}"
+                    ));
                 }
                 branches.push(BranchCandidate {
                     source_row,
@@ -389,7 +392,9 @@ pub fn parse_candidate_tsv(input: &str) -> Result<MatpowerDcOpfCandidate, String
 
     let source_git_blob_sha1 = digest.ok_or("candidate receipt missing source Git blob SHA-1")?;
     if source_git_blob_sha1.len() != 40
-        || !source_git_blob_sha1.chars().all(|character| character.is_ascii_hexdigit())
+        || !source_git_blob_sha1
+            .chars()
+            .all(|character| character.is_ascii_hexdigit())
     {
         return Err("candidate source Git blob SHA-1 is malformed".to_owned());
     }
@@ -495,11 +500,7 @@ fn objective_from_dispatch(
     candidate: &MatpowerDcOpfCandidate,
 ) -> Result<f64, String> {
     let mut objective = 0.0;
-    for (source, cost) in projection
-        .generators
-        .iter()
-        .zip(projection.costs.iter())
-    {
+    for (source, cost) in projection.generators.iter().zip(projection.costs.iter()) {
         let result = candidate
             .generators
             .get(source.source_row - 1)
@@ -644,11 +645,7 @@ fn audit_projection_candidate(
 
     let mut recomputed_branch_outflow = BTreeMap::<i64, f64>::new();
 
-    for (source, result) in projection
-        .branches
-        .iter()
-        .zip(candidate.branches.iter())
-    {
+    for (source, result) in projection.branches.iter().zip(candidate.branches.iter()) {
         if source.source_row != result.source_row
             || source.from_bus != result.from_bus
             || source.to_bus != result.to_bus
@@ -689,8 +686,7 @@ fn audit_projection_candidate(
         let to_error = (result.pt_mw - recomputed_pt).abs();
         metrics.max_branch_from_flow_error_mw =
             metrics.max_branch_from_flow_error_mw.max(from_error);
-        metrics.max_branch_to_flow_error_mw =
-            metrics.max_branch_to_flow_error_mw.max(to_error);
+        metrics.max_branch_to_flow_error_mw = metrics.max_branch_to_flow_error_mw.max(to_error);
         add_violation(
             &mut metrics,
             "branch",
@@ -709,8 +705,12 @@ fn audit_projection_candidate(
         );
 
         if source.in_service {
-            *recomputed_branch_outflow.entry(source.from_bus).or_insert(0.0) += recomputed_pf;
-            *recomputed_branch_outflow.entry(source.to_bus).or_insert(0.0) -= recomputed_pf;
+            *recomputed_branch_outflow
+                .entry(source.from_bus)
+                .or_insert(0.0) += recomputed_pf;
+            *recomputed_branch_outflow
+                .entry(source.to_bus)
+                .or_insert(0.0) -= recomputed_pf;
         }
 
         if source.in_service && source.rate_a_mva > 0.0 {
@@ -756,14 +756,13 @@ fn audit_projection_candidate(
 
     for source_bus in &projection.buses {
         let generation = *generation_by_bus.get(&source_bus.id).unwrap_or(&0.0);
-        let net_injection = generation
-            - source_bus.demand_mw
-            - source_bus.shunt_conductance_mw;
-        let branch_outflow = *recomputed_branch_outflow.get(&source_bus.id).unwrap_or(&0.0);
+        let net_injection = generation - source_bus.demand_mw - source_bus.shunt_conductance_mw;
+        let branch_outflow = *recomputed_branch_outflow
+            .get(&source_bus.id)
+            .unwrap_or(&0.0);
         let residual = net_injection - branch_outflow;
-        metrics.max_bus_balance_residual_mw = metrics
-            .max_bus_balance_residual_mw
-            .max(residual.abs());
+        metrics.max_bus_balance_residual_mw =
+            metrics.max_bus_balance_residual_mw.max(residual.abs());
         metrics.record_power(
             "bus",
             source_bus.id,
@@ -786,11 +785,9 @@ fn audit_projection_candidate(
         objective_tolerance,
     );
 
-    let receipt_consistent = metrics.max_branch_from_flow_error_mw
-        <= options.power_tolerance_mw
+    let receipt_consistent = metrics.max_branch_from_flow_error_mw <= options.power_tolerance_mw
         && metrics.max_branch_to_flow_error_mw <= options.power_tolerance_mw;
-    let primal_feasible = metrics.max_bus_balance_residual_mw
-        <= options.power_tolerance_mw
+    let primal_feasible = metrics.max_bus_balance_residual_mw <= options.power_tolerance_mw
         && metrics.max_generator_bound_violation_mw <= options.power_tolerance_mw
         && metrics.max_branch_rate_violation_mw <= options.power_tolerance_mw
         && metrics.max_branch_angle_violation_degrees <= options.angle_tolerance_degrees;
@@ -865,12 +862,9 @@ mod tests {
 
     #[test]
     fn hand_calculated_two_bus_candidate_is_primal_feasible_and_objective_consistent() {
-        let report = audit_matpower_dc_opf_candidate(
-            TWO_BUS,
-            &valid_tsv(TWO_BUS),
-            AuditOptions::default(),
-        )
-        .expect("candidate receipt should parse and audit");
+        let report =
+            audit_matpower_dc_opf_candidate(TWO_BUS, &valid_tsv(TWO_BUS), AuditOptions::default())
+                .expect("candidate receipt should parse and audit");
         assert!(report.passed, "{}", report.to_json());
         assert_eq!(report.bus_count, 2);
         assert_eq!(report.generator_count, 1);
@@ -883,23 +877,14 @@ mod tests {
     #[test]
     fn branch_flow_reconstruction_honors_nonunity_tap_and_phase_shift() {
         let source = TWO_BUS
-            .replace(
-                "-5.729577951",
-                "-11.875493542",
-            )
-            .replace(
-                "150 150 150 0 0 1 -30 30",
-                "150 150 150 1.2 5 1 -30 30",
-            );
+            .replace("-5.729577951", "-11.875493542")
+            .replace("150 150 150 0 0 1 -30 30", "150 150 150 1.2 5 1 -30 30");
         let tsv = valid_tsv(TWO_BUS)
             .replace(
                 &git_blob_sha1(TWO_BUS.as_bytes()),
                 &git_blob_sha1(source.as_bytes()),
             )
-            .replace(
-                "-5.729577951",
-                "-11.875493542",
-            );
+            .replace("-5.729577951", "-11.875493542");
         let report = audit_matpower_dc_opf_candidate(&source, &tsv, AuditOptions::default())
             .expect("tap and phase-shift candidate should audit");
         assert!(report.passed, "{}", report.to_json());
@@ -922,10 +907,7 @@ mod tests {
 
     #[test]
     fn generator_bound_violation_is_reported_not_hidden() {
-        let tsv = valid_tsv(TWO_BUS).replace(
-            "GEN\t1\t1\t1\t100",
-            "GEN\t1\t1\t1\t201",
-        );
+        let tsv = valid_tsv(TWO_BUS).replace("GEN\t1\t1\t1\t100", "GEN\t1\t1\t1\t201");
         let report = audit_matpower_dc_opf_candidate(TWO_BUS, &tsv, AuditOptions::default())
             .expect("candidate should produce a violation report");
         assert!(!report.primal_feasible);
@@ -936,10 +918,7 @@ mod tests {
     fn branch_overload_and_angle_violation_are_separate() {
         let source = TWO_BUS.replace("150 150 150 0 0 1 -30 30", "80 80 80 0 0 1 -3 3");
         let digest = git_blob_sha1(source.as_bytes());
-        let tsv = valid_tsv(TWO_BUS).replace(
-            &git_blob_sha1(TWO_BUS.as_bytes()),
-            &digest,
-        );
+        let tsv = valid_tsv(TWO_BUS).replace(&git_blob_sha1(TWO_BUS.as_bytes()), &digest);
         let report = audit_matpower_dc_opf_candidate(&source, &tsv, AuditOptions::default())
             .expect("source and candidate identities match");
         assert!(!report.primal_feasible);
@@ -974,40 +953,36 @@ mod tests {
     #[test]
     fn duplicate_bus_and_branch_rows_are_rejected() {
         let duplicate_bus = format!("{}\nBUS\t1\t0\n", valid_tsv(TWO_BUS));
-        assert!(parse_candidate_tsv(&duplicate_bus).unwrap_err().contains("duplicate bus ID"));
-
-        let duplicate_branch = format!(
-            "{}\nBRANCH\t1\t1\t2\t1\t100\t-100\n",
-            valid_tsv(TWO_BUS)
+        assert!(
+            parse_candidate_tsv(&duplicate_bus)
+                .unwrap_err()
+                .contains("duplicate bus ID")
         );
-        assert!(parse_candidate_tsv(&duplicate_branch)
-            .unwrap_err()
-            .contains("duplicate branch row"));
+
+        let duplicate_branch = format!("{}\nBRANCH\t1\t1\t2\t1\t100\t-100\n", valid_tsv(TWO_BUS));
+        assert!(
+            parse_candidate_tsv(&duplicate_branch)
+                .unwrap_err()
+                .contains("duplicate branch row")
+        );
     }
 
     #[test]
     fn unsupported_cost_profile_fails_closed() {
-        let source = TWO_BUS.replace(
-            "2 0 0 3 0.01 20 0;",
-            "1 0 0 2 0 0 200 200;",
-        );
-        let error = audit_matpower_dc_opf_candidate(
-            &source,
-            &valid_tsv(&source),
-            AuditOptions::default(),
-        )
-        .unwrap_err();
+        let source = TWO_BUS.replace("2 0 0 3 0.01 20 0;", "1 0 0 2 0 0 200 200;");
+        let error =
+            audit_matpower_dc_opf_candidate(&source, &valid_tsv(&source), AuditOptions::default())
+                .unwrap_err();
         assert!(error.contains("unsupported cost model"));
     }
 
     #[test]
     fn rejects_wrong_dc_model_profile() {
-        let tsv = valid_tsv(TWO_BUS).replace(
-            "matpower_8_1_makeBdc_dcopf",
-            "powermodels_dcp",
+        let tsv = valid_tsv(TWO_BUS).replace("matpower_8_1_makeBdc_dcopf", "powermodels_dcp");
+        assert!(
+            audit_matpower_dc_opf_candidate(TWO_BUS, &tsv, AuditOptions::default())
+                .unwrap_err()
+                .contains("model profile/version mismatch")
         );
-        assert!(audit_matpower_dc_opf_candidate(TWO_BUS, &tsv, AuditOptions::default())
-            .unwrap_err()
-            .contains("model profile/version mismatch"));
     }
 }
