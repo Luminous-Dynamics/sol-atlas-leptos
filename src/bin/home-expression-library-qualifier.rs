@@ -27,9 +27,8 @@ const REVISION_IMPACT_SCHEMA: &str = include_str!(
 );
 const EXPECTED_CATALOG_REVISION: &str = "HOME-EXPRESSION-CATALOG-0.1.0";
 const EXPECTED_CATALOG_BLOB_SHA: &str = "f247bfc326e2e5fe5b625452e84de53faae38aa9";
-const HOME_BRIEF_FIXTURE: &str = include_str!(
-    "../../docs/research/home-freedom/HOME_DESIGN_BRIEF_SYNTHETIC_EXAMPLE_V0.1.json"
-);
+const HOME_BRIEF_FIXTURE: &str =
+    include_str!("../../docs/research/home-freedom/HOME_DESIGN_BRIEF_SYNTHETIC_EXAMPLE_V0.1.json");
 const EXPECTED_BRIEF_ARTIFACT_REF: &str =
     "docs/research/home-freedom/HOME_DESIGN_BRIEF_SYNTHETIC_EXAMPLE_V0.1.json";
 const EXPECTED_BRIEF_BLOB_SHA: &str = "0090e2f0c883c62817d1b6da51d1a2dbe92a477f";
@@ -598,21 +597,27 @@ fn validate_profile_source_bindings(
 ) {
     let brief_id = string_at(source_brief, "brief_id").unwrap_or_default();
     if string_at(profile, "linked_brief_id") != Some(brief_id) {
-        errors.push("expression profile brief ID does not match the embedded source brief".to_owned());
+        errors.push(
+            "expression profile brief ID does not match the embedded source brief".to_owned(),
+        );
     }
     if string_at(profile, "linked_brief_artifact_ref") != Some(EXPECTED_BRIEF_ARTIFACT_REF)
         || string_at(profile, "linked_brief_content_sha") != Some(EXPECTED_BRIEF_BLOB_SHA)
     {
-        errors.push("expression profile does not bind the exact source brief path and blob digest".to_owned());
+        errors.push(
+            "expression profile does not bind the exact source brief path and blob digest"
+                .to_owned(),
+        );
     }
 
-    let expected_constraints = object_field_string_set(
-        array_at(source_brief, "constraints"),
-        "constraint_id",
-    );
+    let expected_constraints =
+        object_field_string_set(array_at(source_brief, "constraints"), "constraint_id");
     let actual_constraints = string_set(array_at(profile, "linked_brief_constraint_ids"));
     if expected_constraints != actual_constraints {
-        errors.push("expression profile linked constraint IDs differ from the exact source brief".to_owned());
+        errors.push(
+            "expression profile linked constraint IDs differ from the exact source brief"
+                .to_owned(),
+        );
     }
 
     let preferences = profile.get("style_preferences").unwrap_or(&Value::Null);
@@ -1027,7 +1032,10 @@ mod tests {
     #[test]
     fn rejects_linked_constraint_loss() {
         let (mut profile, schema) = fixture();
-        profile["linked_brief_constraint_ids"].as_array_mut().unwrap().pop();
+        profile["linked_brief_constraint_ids"]
+            .as_array_mut()
+            .unwrap()
+            .pop();
         assert!(validate_profile(&profile, &schema).is_err());
     }
 
