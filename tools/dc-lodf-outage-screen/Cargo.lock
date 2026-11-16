@@ -1,0 +1,12 @@
+version = 4
+
+[[package]]
+name = "dc-lodf-outage-screen"
+version = "0.1.0"
+dependencies = [
+ "dc-power-flow-reference",
+]
+
+[[package]]
+name = "dc-power-flow-reference"
+version = "0.1.0"
