@@ -174,3 +174,49 @@ A correct abstention or "not supported" result is a capability, not a failure to
 ## 9. Claim ceiling
 
 This is a literature-grounded comparison protocol. It is not a reproduced comparison, tool validation, SOTA result or claim that Luminous has broader/stronger capabilities today. Each external tool must be evaluated on a task it supports, with matched inputs and independent outcomes.
+
+## 10. Additional 2026 evidence: federation, lifecycle semantics and adaptive transport
+
+Two recent reviews reinforce why the comparison should be about composable, qualified model workflows rather than building a single general-purpose twin.
+
+### Infrastructure BIM/digital-twin lifecycle review (30 October 2026)
+
+Pisciotta and Inzerillo review 97 primary studies selected from 531 records. In that corpus, 65 studies emphasize interoperability/data modelling, 49 include digital twin/IoT/structural-health-monitoring technologies, and 47 include open/semantic interoperability standards. The technology categories overlap, and the authors explicitly warn that labels do not establish operational maturity. They identify gaps in semantic continuity, updating, governance and long-term operational validation. Their review also notes heterogeneous case evidence and the presence of conceptual and one-way-update systems.
+
+Reference: A. Pisciotta & L. Inzerillo (2026), *Building Information Modeling for Infrastructure Lifecycle Management: A Systematic Review of Interoperability, Asset Management, and Digital Twins*, Applied Sciences 16(21), 10749, published 30 October 2026. https://doi.org/10.3390/app162110749 .
+
+**Implication:** connector count is not interoperability. The federation must preserve units, coordinate/datum semantics, valid-time, revision lineage, update direction, model boundary, rights and claim ceiling. A model that only imports one way or has no operational update/replay evidence must be labelled accordingly.
+
+### Adaptive transport under deep uncertainty (November 2026)
+
+Jittrapirom et al. propose an adaptive policy framework for sustainable transport that links monitoring, contingency planning and adaptive actions, illustrates the approach with a stylized urban redevelopment case in the Netherlands, and treats accessibility as an outcome of interaction across multiple spatial scales.
+
+Reference: P. Jittrapirom, V. Marchau, R. van der Heijden & H. Meurs (2026), *Decision-supportive framework for sustainable transport under deep uncertainty*, Transport Policy, Article 104389, November 2026. https://doi.org/10.1016/j.tranpol.2026.104389 .
+
+**Implication:** the Durban–Gauteng and deep-time comparisons must evaluate transport accessibility and service continuity across scales, not only vehicle or section efficiency. Monitoring, detection delay, implementation lead time and contingencies must be part of the matched policy—not assumed instantaneous.
+
+### Multiplex infrastructure criticality (September 2026)
+
+Chatzistefanou et al. propose a multiplex-network framework for interdependent infrastructure asset criticality under natural hazards, explicitly considering multiple interaction types, multiple criticality dimensions and cascading effects.
+
+Reference: G. A. Chatzistefanou et al. (2026), *A multiplex network-based framework to assess interdependent infrastructure asset criticality and priority under natural hazard scenarios*, International Journal of Disaster Risk Reduction, 143, 106319, September 2026. https://doi.org/10.1016/j.ijdrr.2026.106319 .
+
+**Implication:** the comparison suite should include multiplex dependency representations as a direct method baseline. It should still compare each model against typed hypergraph, time-valid dependency and exact small-instance oracles, not assume that more layers alone produce better causal fidelity.
+
+### Standards scope caution
+
+ISO 23247-6:2026 describes digital-twin composition methods (integrated, unified and federated) for manufacturing environments. It is a useful architectural reference for composing independently built twins, but its stated scope is manufacturing—not a direct civil-infrastructure certification or conformance requirement.
+
+Reference: ISO 23247-6:2026, *Digital twin framework for manufacturing — Part 6: Digital twin composition*. https://www.iso.org/obp/ui?_escaped_fragment_=iso%3Astd%3Aiso%3A23247%3A-6%3Aed-1%3Av1%3Aen .
+
+## 11. Revised differentiation statement
+
+The defensible target is an evidence-qualified federation across specialist models, with:
+- exact source/model/version and transformation lineage;
+- typed physical, digital, geographic, logical, economic, institutional, ecological and evidentiary dependencies;
+- explicit model-form disagreement, not default averages;
+- time-valid observations, service floors and governance authority;
+- adaptive pathway comparison with monitoring and action latency;
+- independently checkable finite oracles and immutable replay.
+
+The opportunity is to outperform **the integration and decision-assurance workflow on matched tasks**, not to claim that one Luminous model replaces every specialist model.
