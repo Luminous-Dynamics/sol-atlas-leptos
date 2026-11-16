@@ -1,0 +1,368 @@
+{
+  "schema": "luminous.deep-time-model-robustness-case-register.v0.1",
+  "schema_version": "0.1.0",
+  "register_id": "DEEP-TIME-MODEL-ROBUSTNESS-CASE-REGISTER-V0.1",
+  "classification": "synthetic_comparison_contract_not_geological_validation",
+  "parent_issue": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/896",
+  "cases": [
+    {
+      "case_id": "DTR-001",
+      "domain": "scenario_type",
+      "title": "Synthetic +200 m offset cannot become a palaeo reconstruction",
+      "classification": "specification_only",
+      "scenario": "A modern DEM vertical offset is supplied to the same intake surface as an eustatic geological reconstruction.",
+      "inputs": {
+        "scenario_kind": "synthetic_modern_terrain_offset",
+        "offset_m": 200,
+        "required_paleo_fields": [
+          "age",
+          "paleogeographic_model",
+          "paleotopography",
+          "sea_level_variable_definition",
+          "vertical_reference",
+          "tectonic_context"
+        ]
+      },
+      "expected": {
+        "disposition": "reject_paleo_reconstruction_promotion",
+        "keep_type": "synthetic_stress_test"
+      },
+      "oracle": "Scenario type is immutable and must not be inferred from the numeric offset.",
+      "claim_ceiling": "Synthetic model-comparison semantics only; no validated palaeogeography, local relative sea level, future coastline or infrastructure feasibility claim."
+    },
+    {
+      "case_id": "DTR-002",
+      "domain": "local_relative_sea_level",
+      "title": "Global eustatic estimate cannot yield local relative sea level with unknown vertical land motion",
+      "classification": "specification_only",
+      "scenario": "A global mean eustatic sea-level value is available but tectonic uplift/subsidence and local vertical reference are unknown.",
+      "inputs": {
+        "global_eustatic_change_m": 150,
+        "local_vertical_land_motion": null,
+        "geoid_fingerprint": null,
+        "local_vertical_reference": null
+      },
+      "expected": {
+        "local_relative_sea_level": null,
+        "disposition": "unresolved_no_local_shoreline_claim"
+      },
+      "oracle": "Missing local process and datum inputs block local relative sea-level transformation.",
+      "claim_ceiling": "Synthetic model-comparison semantics only; no validated palaeogeography, local relative sea level, future coastline or infrastructure feasibility claim."
+    },
+    {
+      "case_id": "DTR-003",
+      "domain": "model_family",
+      "title": "Competing palaeo reconstructions preserve original model outputs",
+      "classification": "specification_only",
+      "scenario": "Three independent source records report differing global eustatic estimates for a named age interval.",
+      "inputs": {
+        "models": [
+          {
+            "id": "A",
+            "family": "paleogeographic_flooding",
+            "reported_m": 280
+          },
+          {
+            "id": "B",
+            "family": "strontium_isotope_glacioeustatic",
+            "reported_range_m": [
+              174,
+              217
+            ]
+          },
+          {
+            "id": "C",
+            "family": "sequence_stratigraphy_review",
+            "reported_range_m": [
+              40,
+              55
+            ]
+          }
+        ]
+      },
+      "expected": {
+        "disposition": "preserve_each_model_independently",
+        "mean_m": null,
+        "pooled_confidence_interval": null
+      },
+      "oracle": "Do not average non-commensurable reconstructions or relabel study ranges as a pooled confidence interval.",
+      "claim_ceiling": "Synthetic model-comparison semantics only; no validated palaeogeography, local relative sea level, future coastline or infrastructure feasibility claim."
+    },
+    {
+      "case_id": "DTR-004",
+      "domain": "model_independence",
+      "title": "Shared observations/calibration prevent false independent corroboration",
+      "classification": "synthetic_hand_computable_reference",
+      "scenario": "Two nominal model publications share one upstream proxy dataset and one calibration model.",
+      "inputs": {
+        "models": [
+          {
+            "id": "M1",
+            "observations": [
+              "PROXY-1",
+              "PROXY-2"
+            ],
+            "calibration": "CAL-7"
+          },
+          {
+            "id": "M2",
+            "observations": [
+              "PROXY-2",
+              "PROXY-3"
+            ],
+            "calibration": "CAL-7"
+          }
+        ]
+      },
+      "expected": {
+        "shared_observations": [
+          "PROXY-2"
+        ],
+        "shared_calibration": [
+          "CAL-7"
+        ],
+        "independence_credit": "not_independent",
+        "disposition": "shared_lineage"
+      },
+      "oracle": "Set intersections identify one shared observation and one shared calibration ancestor.",
+      "claim_ceiling": "Synthetic model-comparison semantics only; no validated palaeogeography, local relative sea level, future coastline or infrastructure feasibility claim."
+    },
+    {
+      "case_id": "DTR-005",
+      "domain": "chronology",
+      "title": "Mismatched age bins block direct pointwise curve comparison",
+      "classification": "specification_only",
+      "scenario": "One curve is reported as a 5 Myr interval mean and another as an age-specific peak with uncertain age.",
+      "inputs": {
+        "curve_a": {
+          "age_start_ma": 85,
+          "age_end_ma": 90,
+          "statistic": "interval_mean"
+        },
+        "curve_b": {
+          "age_start_ma": 87,
+          "age_end_ma": 87,
+          "statistic": "point_peak",
+          "age_uncertainty_ma": 2
+        }
+      },
+      "expected": {
+        "disposition": "require_age_alignment_and_statistic_crosswalk",
+        "pointwise_comparison_allowed": false
+      },
+      "oracle": "Age interval and statistic type are not equivalent without an explicit comparison transform.",
+      "claim_ceiling": "Synthetic model-comparison semantics only; no validated palaeogeography, local relative sea level, future coastline or infrastructure feasibility claim."
+    },
+    {
+      "case_id": "DTR-006",
+      "domain": "shoreline_envelope",
+      "title": "Exact synthetic shoreline agreement and disagreement cells",
+      "classification": "synthetic_hand_computable_reference",
+      "scenario": "A five-cell one-dimensional synthetic terrain is tested against two synthetic water offsets; this is only a software oracle.",
+      "inputs": {
+        "cell_elevations_m": [
+          0,
+          2,
+          5,
+          8,
+          12
+        ],
+        "model_a_water_offset_m": 5,
+        "model_b_water_offset_m": 8,
+        "wet_rule": "elevation_lte_water_offset"
+      },
+      "expected": {
+        "model_a_wet_cells": [
+          0,
+          1,
+          2
+        ],
+        "model_b_wet_cells": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "invariant_wet_cells": [
+          0,
+          1,
+          2
+        ],
+        "model_sensitive_cells": [
+          3
+        ],
+        "invariant_dry_cells": [
+          4
+        ],
+        "disposition": "exact_model_disagreement_partition"
+      },
+      "oracle": "Apply the declared <= threshold independently to each model; take set intersection, symmetric difference and invariant dry complement.",
+      "claim_ceiling": "Synthetic model-comparison semantics only; no validated palaeogeography, local relative sea level, future coastline or infrastructure feasibility claim."
+    },
+    {
+      "case_id": "DTR-007",
+      "domain": "robust_decision",
+      "title": "Minimax regret across three unweighted geological model families",
+      "classification": "synthetic_hand_computable_reference",
+      "scenario": "Three infrastructure strategies are compared across three equally admissible model forms without assigning probabilities.",
+      "inputs": {
+        "models": [
+          "FLOODING_A",
+          "STRONTIUM_B",
+          "SEQUENCE_C"
+        ],
+        "utilities": {
+          "coastal_fixed": [
+            100,
+            30,
+            50
+          ],
+          "adaptive_dual": [
+            75,
+            75,
+            70
+          ],
+          "inland_rail": [
+            60,
+            80,
+            90
+          ]
+        }
+      },
+      "expected": {
+        "best_by_model": [
+          100,
+          80,
+          90
+        ],
+        "max_regret": {
+          "coastal_fixed": 50,
+          "adaptive_dual": 25,
+          "inland_rail": 40
+        },
+        "selected": "adaptive_dual",
+        "minimum_max_regret": 25,
+        "disposition": "exact_minimax_regret"
+      },
+      "oracle": "Compute best utility per model, subtract each strategy's utility, then minimize maximum regret; no model probabilities.",
+      "claim_ceiling": "Synthetic model-comparison semantics only; no validated palaeogeography, local relative sea level, future coastline or infrastructure feasibility claim."
+    },
+    {
+      "case_id": "DTR-008",
+      "domain": "hard_floor",
+      "title": "Mean or median performance cannot hide a mandatory-floor failure in one model",
+      "classification": "synthetic_hand_computable_reference",
+      "scenario": "A coastal portfolio achieves the highest mean utility but violates a mandatory water/ecological service floor in one model family.",
+      "inputs": {
+        "models": [
+          "A",
+          "B",
+          "C"
+        ],
+        "strategy": "coastal_fixed",
+        "utilities": [
+          100,
+          100,
+          100
+        ],
+        "mandatory_floor_pass": [
+          true,
+          false,
+          true
+        ]
+      },
+      "expected": {
+        "mean_utility": 100,
+        "classification": "conditional",
+        "failing_models": [
+          "B"
+        ],
+        "invariant": false,
+        "disposition": "reject_invariant_claim"
+      },
+      "oracle": "A strategy is INVARIANT only when every qualified model meets every mandatory floor.",
+      "claim_ceiling": "Synthetic model-comparison semantics only; no validated palaeogeography, local relative sea level, future coastline or infrastructure feasibility claim."
+    },
+    {
+      "case_id": "DTR-009",
+      "domain": "future_earth_boundary",
+      "title": "Future supercontinent climate experiment cannot be relabelled as sea-level offset",
+      "classification": "specification_only",
+      "scenario": "A 200/250 Ma climate boundary-condition model is passed to an inundation function expecting sea-level change.",
+      "inputs": {
+        "scenario_family": "future_earth_boundary_condition",
+        "sea_level_offset_m": null,
+        "climate_model_outputs": [
+          "temperature",
+          "precipitation",
+          "wind"
+        ],
+        "consumer_requires": "sea_level_offset_m"
+      },
+      "expected": {
+        "disposition": "reject_type_mismatch",
+        "sea_level_claim": false
+      },
+      "oracle": "Climate boundary conditions are not sea-level offset values.",
+      "claim_ceiling": "Synthetic model-comparison semantics only; no validated palaeogeography, local relative sea level, future coastline or infrastructure feasibility claim."
+    },
+    {
+      "case_id": "DTR-010",
+      "domain": "replay",
+      "title": "Revised model input creates a new immutable scenario decision record",
+      "classification": "synthetic_hand_computable_reference",
+      "scenario": "The source digest for one reconstruction changes after a decision has been computed.",
+      "inputs": {
+        "old_source_digest": "sha256:aaaa",
+        "new_source_digest": "sha256:bbbb",
+        "old_decision_id": "DEC-1",
+        "policy": "recompute_and_preserve_old_receipt"
+      },
+      "expected": {
+        "new_decision_required": true,
+        "old_decision_mutated": false,
+        "old_digest": "sha256:aaaa",
+        "new_digest": "sha256:bbbb",
+        "disposition": "versioned_replay"
+      },
+      "oracle": "A changed source digest changes run identity; historical decision output is immutable.",
+      "claim_ceiling": "Synthetic model-comparison semantics only; no validated palaeogeography, local relative sea level, future coastline or infrastructure feasibility claim."
+    },
+    {
+      "case_id": "DTR-011",
+      "domain": "information_timing",
+      "title": "Adaptive policy cannot observe the future model identity",
+      "classification": "specification_only",
+      "scenario": "A policy chooses a relocation trigger using the hidden model-family label that is revealed only after the simulated decision time.",
+      "inputs": {
+        "decision_time": 10,
+        "model_identity_revealed_at": 20,
+        "policy_uses_model_identity_at": 10
+      },
+      "expected": {
+        "disposition": "reject_future_information_leakage"
+      },
+      "oracle": "Decision inputs must be limited to evidence available at decision time.",
+      "claim_ceiling": "Synthetic model-comparison semantics only; no validated palaeogeography, local relative sea level, future coastline or infrastructure feasibility claim."
+    },
+    {
+      "case_id": "DTR-012",
+      "domain": "uncertainty_classification",
+      "title": "Incomplete reconstruction provenance forces UNRESOLVED classification",
+      "classification": "synthetic_hand_computable_reference",
+      "scenario": "A model result lacks a vertical reference and the provenance inventory is not complete.",
+      "inputs": {
+        "model_output_present": true,
+        "vertical_reference": null,
+        "source_inventory_complete": false
+      },
+      "expected": {
+        "classification": "UNRESOLVED",
+        "invariant_credit": false,
+        "disposition": "abstain"
+      },
+      "oracle": "Missing critical transform metadata and incomplete lineage prevent INVARIANT or CONDITIONAL qualification.",
+      "claim_ceiling": "Synthetic model-comparison semantics only; no validated palaeogeography, local relative sea level, future coastline or infrastructure feasibility claim."
+    }
+  ]
+}
