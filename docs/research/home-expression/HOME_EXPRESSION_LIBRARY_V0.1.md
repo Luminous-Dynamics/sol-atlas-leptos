@@ -264,6 +264,17 @@ Use the existing 100-case Home Freedom corpus (#819) as the feasibility oracle. 
 
 A synthetic schema pass is not physical validation. A simulated performance improvement is not a measured one. A matched industry trial must use the same site, programme, code assumptions, climate, service boundary, review maturity and cost basis.
 
+### 9.3 Executable contract-extension population
+
+The current proposed extension is captured in:
+- `HOME_EXPRESSION_BENCHMARK_EXTENSION_V0.1.json`;
+- `HOME_EXPRESSION_BENCHMARK_EXTENSION_V0.1.schema.json`;
+- Rust verifier coverage in `home-expression-library-qualifier`.
+
+It currently contains 16 synthetic contract-mutation cases covering style choice/exclusions, blends, optional observatory/pool packages, unknown and zero-filled cost, budget sensitivity, orphan resident requirements, stale revisions, reference rights, inferred cultural context and step-free access preservation. Four counterfactual pairs vary only style, amenity, budget or one hard constraint.
+
+**Execution and binding state:** the extension is `PROPOSED_NOT_EVALUATED` / `NOT_EXECUTED`. Exact case IDs in the parent 100-case corpus are deliberately null and marked `OWNER_CASE_BINDING_PENDING`; no synthetic extension row is misrepresented as an already matched source case. The current Rust gate verifies contract integrity and pair structure, not the physical dwelling or the performance of an industry comparator. The next benchmark increment should bind each extension row to exact parent corpus case IDs, freeze the resulting population and independently author the expected answers before executing any candidate workflow.
+
 ## 10. South African deployment boundary
 
 Start with Johannesburg / Highveld as a regional research profile, not a universal default. Maintain the current municipality, land-use rights, survey, servitudes, soil, service connections and applicable editions/amendments of the National Building Regulations and SANS 10400 as explicit inputs.
