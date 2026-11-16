@@ -458,7 +458,7 @@ fn compute_viability_kernel_exact(
             .expect("stage disturbance set validated above");
         let actions = actions_by_state
             .get(&state.state_id)
-            .map(Vec::as_slice)
+            .map(|items| items.as_slice())
             .unwrap_or(&[]);
 
         let mut unknown_reasons = BTreeSet::new();
@@ -1329,7 +1329,7 @@ mod tests {
                         .iter()
                         .enumerate()
                         .map(|(disturbance_index, disturbance)| {
-                            let bit = (pattern >> disturbance_index) & 1;
+                            let bit = (*pattern >> disturbance_index) & 1;
                             (
                                 *disturbance,
                                 if bit == 0 { "good" } else { "bad" },
