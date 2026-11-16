@@ -13,6 +13,12 @@ const PROFILE_SCHEMA: &str =
     include_str!("../../docs/research/home-expression/HOME_EXPRESSION_PROFILE_V0.1.schema.json");
 const CATALOG_FIXTURE: &str =
     include_str!("../../docs/research/home-expression/HOME_EXPRESSION_CATALOG_V0.1.json");
+const BENCHMARK_FIXTURE: &str = include_str!(
+    "../../docs/research/home-expression/HOME_EXPRESSION_BENCHMARK_EXTENSION_V0.1.json"
+);
+const BENCHMARK_SCHEMA: &str = include_str!(
+    "../../docs/research/home-expression/HOME_EXPRESSION_BENCHMARK_EXTENSION_V0.1.schema.json"
+);
 
 const IMPACT_DOMAINS: &[&str] = &[
     "AREA_AND_CIRCULATION",
@@ -213,10 +219,125 @@ fn validate_catalog(
     (style_ids, package_ids)
 }
 
+fn benchmark_fixture() -> Result<(Value, Value), String> {
+    let manifest: Value = serde_json::from_str(BENCHMARK_FIXTURE)
+        .map_err(|error| format!("benchmark extension is invalid JSON: {error}"))?;
+    let schema: Value = serde_json::from_str(BENCHMARK_SCHEMA)
+        .map_err(|error| format!("benchmark extension schema is invalid JSON: {error}"))?;
+    Ok((manifest, schema))
+}
+
+fn validate_benchmark_manifest(manifest: &Value, schema: &Value) -> Vec<String> {
+    let mut errors = Vec::new();
+    if string_at(schema, "$schema") != Some("https://json-schema.org/draft/2020-12/schema")
+        || string_at(schema, "type") != Some("object")
+    {
+        errors.push("benchmark extension schema must declare a Draft 2020-12 object".to_owned());
+    }
+    if string_at(manifest, "schema_version") != Some("0.1.0")
+        || string_at(manifest, "study_id") != Some("HOME-EXPRESSION-BENCH-EXT-001")
+        || string_at(manifest, "maturity") != Some("PROPOSED_NOT_EVALUATED")
+        || string_at(manifest, "execution_status") != Some("NOT_EXECUTED")
+    {
+        errors.push("benchmark extension identity, maturity or execution state was promoted".to_owned());
+    }
+    if !nonempty_string(manifest, "parent_home_freedom_corpus_ref")
+        || !nonempty_string(manifest, "purpose")
+        || !nonempty_string(manifest, "functional_unit")
+    {
+        errors.push("benchmark extension must declare its Home Freedom parent and scope".to_owned());
+    }
+
+    let allowed_statuses = string_set(array_at(manifest, "status_semantics"));
+    let cases = array_at(manifest, "cases").cloned().unwrap_or_default();
+    if cases.len() < 16 {
+        errors.push("benchmark extension requires at least 16 contract mutation cases".to_owned());
+    }
+    let mut case_ids = BTreeSet::new();
+    for case in &cases {
+        let id = string_at(case, "case_id").unwrap_or_default();
+        if id.is_empty() || !case_ids.insert(id.to_owned()) {
+            errors.push(format!("benchmark extension contains a missing or duplicate case ID: {id}"));
+        }
+        let disposition = string_at(case, "expected_disposition").unwrap_or_default();
+        if !allowed_statuses.contains(disposition) {
+            errors.push(format!("{id}: expected disposition is absent from status_semantics"));
+        }
+        if string_at(case, "case_kind") != Some("SYNTHETIC_CONTRACT_MUTATION")
+            || string_at(case, "physical_evaluation") != Some("NOT_PERFORMED")
+            || string_at(case, "claim_ceiling") != Some("CONTRACT_ORACLE_ONLY_NOT_BUILDING_FEASIBILITY")
+        {
+            errors.push(format!("{id}: case maturity or claim ceiling was promoted"));
+        }
+        if string_at(case, "source_case_binding_status") != Some("OWNER_CASE_BINDING_PENDING")
+            || !case.get("source_case_id").is_some_and(Value::is_null)
+        {
+            errors.push(format!("{id}: unverified Home Freedom source-case binding was invented"));
+        }
+        if !nonempty_string(case, "source_population_ref") || !nonempty_string(case, "mutation") {
+            errors.push(format!("{id}: source population or mutation description is missing"));
+        }
+    }
+
+    let expected_dimensions: BTreeSet<String> = [
+        "STYLE",
+        "AMENITY",
+        "BUDGET",
+        "HARD_CONSTRAINT",
+    ]
+    .into_iter()
+    .map(str::to_owned)
+    .collect();
+    let pairs = array_at(manifest, "counterfactual_pairs")
+        .cloned()
+        .unwrap_or_default();
+    if pairs.len() != expected_dimensions.len() {
+        errors.push("benchmark extension requires exactly four one-factor counterfactual pairs".to_owned());
+    }
+    let mut pair_ids = BTreeSet::new();
+    let mut pair_dimensions = BTreeSet::new();
+    for pair in &pairs {
+        let pair_id = string_at(pair, "pair_id").unwrap_or_default();
+        if pair_id.is_empty() || !pair_ids.insert(pair_id.to_owned()) {
+            errors.push(format!("counterfactual pair has a missing or duplicate ID: {pair_id}"));
+        }
+        let dimension = string_at(pair, "changed_dimension").unwrap_or_default();
+        if !pair_dimensions.insert(dimension.to_owned()) {
+            errors.push(format!("{pair_id}: counterfactual dimension is duplicated"));
+        }
+        if !["STYLE", "AMENITY", "BUDGET", "HARD_CONSTRAINT"].contains(&dimension) {
+            errors.push(format!("{pair_id}: unsupported counterfactual dimension"));
+        }
+        for key in ["left_case", "right_case"] {
+            let case_id = string_at(pair, key).unwrap_or_default();
+            if !case_ids.contains(case_id) {
+                errors.push(format!("{pair_id}: {key} does not reference a known case"));
+            }
+        }
+        if array_at(pair, "changed_fields").is_none_or(Vec::is_empty)
+            || array_at(pair, "held_constant_fields").is_none_or(Vec::is_empty)
+            || !nonempty_string(pair, "expected_invariant")
+        {
+            errors.push(format!("{pair_id}: counterfactual pair lacks changed/held-constant fields or invariant"));
+        }
+    }
+    if pair_dimensions != expected_dimensions {
+        errors.push("counterfactual pairs must cover STYLE, AMENITY, BUDGET and HARD_CONSTRAINT exactly once".to_owned());
+    }
+
+    errors
+}
+
 fn validate_profile(profile: &Value, schema: &Value) -> Result<(), Vec<String>> {
     let mut errors = Vec::new();
     validate_schema_header(schema, &mut errors);
     let (catalog_style_ids, catalog_package_ids) = validate_catalog(schema, &mut errors);
+    match benchmark_fixture() {
+        Ok((manifest, benchmark_schema)) => {
+            errors.extend(validate_benchmark_manifest(&manifest, &benchmark_schema));
+        }
+        Err(error) => errors.push(error),
+    }
     forbidden_score_path(profile, "$", &mut errors);
 
     if string_at(profile, "schema_version") != Some("0.1.0") {
@@ -585,6 +706,13 @@ mod tests {
         profile["style_preferences"]["mode"] = json!("NONE_UNDECIDED");
         profile["style_preferences"]["entries"] = json!([]);
         assert!(validate_profile(&profile, &schema).is_ok());
+    }
+
+    #[test]
+    fn rejects_missing_counterfactual_dimension() {
+        let (mut manifest, schema) = benchmark_fixture().expect("valid benchmark fixture");
+        manifest["counterfactual_pairs"][0]["changed_dimension"] = json!("STYLE");
+        assert!(!validate_benchmark_manifest(&manifest, &schema).is_empty());
     }
 
     #[test]
