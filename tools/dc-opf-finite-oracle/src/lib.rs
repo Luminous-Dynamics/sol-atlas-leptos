@@ -10,9 +10,7 @@
 
 use std::collections::BTreeMap;
 
-use dc_power_flow_independent_auditor::{
-    AuditOptions, AuditReport, audit_dc_power_flow,
-};
+use dc_power_flow_independent_auditor::{AuditOptions, audit_dc_power_flow};
 use dc_power_flow_reference::{
     DcBranch, DcBus, DcNetwork, SolveOptions, solve_dc_power_flow,
 };
@@ -971,7 +969,7 @@ mod tests {
     fn tight_branch_limits_prove_infeasibility_not_unknown() {
         let mut case = three_bus_known_answer_case();
         case.generators[1].p_max_quanta = 1;
-        case.generators[2].p_max_quanta = 0;
+        case.generators[2].p_max_quanta = 1;
         for branch in &mut case.branches {
             branch.rate_a_limit_mw = Some(0.01);
         }
