@@ -368,6 +368,7 @@ fn validate_problem(
     }
 
     let mut actions_by_belief: BTreeMap<String, Vec<&BeliefAction>> = BTreeMap::new();
+    let mut actions_by_id: BTreeMap<String, &BeliefAction> = BTreeMap::new();
     let mut action_ids = BTreeSet::new();
     for action in &problem.actions {
         if action.action_id.is_empty() {
@@ -397,6 +398,7 @@ fn validate_problem(
                 });
             }
         }
+        actions_by_id.insert(action.action_id.clone(), action);
         actions_by_belief
             .entry(action.from_belief_id.clone())
             .or_default()
@@ -437,9 +439,17 @@ fn validate_problem(
                 transition.disturbance_id.clone(),
             ));
         }
-        if !action_ids.contains(transition.action_id.as_str()) {
-            return Err(BeliefViabilityError::UnknownTransitionAction(
+        let action = actions_by_id
+            .get(&transition.action_id)
+            .ok_or_else(|| BeliefViabilityError::UnknownTransitionAction(
                 transition.action_id.clone(),
+            ))?;
+        let source_belief = beliefs
+            .get(&action.from_belief_id)
+            .expect("action belief validated above");
+        if !source_belief.hidden_state_ids.contains(&transition.from_hidden_state_id) {
+            return Err(BeliefViabilityError::UnknownTransitionState(
+                transition.from_hidden_state_id.clone(),
             ));
         }
 
@@ -634,6 +644,33 @@ pub fn compute_belief_viability_kernel(
                         continue;
                     };
 
+                    let successor_state = hidden_states
+                        .get(&transition.successor_hidden_state_id)
+                        .expect("transition successor validated above");
+                    match evaluate_floor_map(
+                        &successor_state.floors,
+                        &problem.required_floors,
+                    ) {
+                        EvidenceDisposition::Fail => {
+                            action_has_known_failure = true;
+                            failure_reasons.insert(format!(
+                                "successor_hidden_state_floor_failed:{}",
+                                transition.successor_hidden_state_id
+                            ));
+                        }
+                        EvidenceDisposition::Unknown(unknowns) => {
+                            action_unknown = true;
+                            for floor_id in unknowns {
+                                action_unknown_reasons.insert(format!(
+                                    "unknown_successor_floor:{}:{}",
+                                    transition.successor_hidden_state_id,
+                                    floor_id
+                                ));
+                            }
+                        }
+                        EvidenceDisposition::Pass => {}
+                    }
+
                     if transition.next_observable_history_id.is_empty() {
                         action_unknown = true;
                         action_unknown_reasons.insert(format!(
@@ -649,8 +686,6 @@ pub fn compute_belief_viability_kernel(
                         .insert(transition.successor_hidden_state_id.clone());
                 }
             }
-
-            let mut action_has_known_failure = false;
             for (history_id, successor_states) in successor_beliefs {
                 let key = (belief.stage + 1, history_id.clone());
                 let Some(successor_belief_id) = belief_by_history.get(&key) else {
@@ -813,16 +848,21 @@ pub fn compute_belief_viability_kernel_with_limits(
         .beliefs
         .iter()
         .try_fold(0usize, |sum, belief| {
+            let action_count = problem
+                .actions
+                .iter()
+                .filter(|action| action.from_belief_id == belief.belief_id)
+                .count();
+            let disturbance_count = problem
+                .disturbances_by_stage
+                .get(&belief.stage)
+                .map(Vec::len)
+                .unwrap_or(0);
             let branch_count = belief
                 .hidden_state_ids
                 .len()
-                .checked_mul(
-                    problem
-                        .disturbances_by_stage
-                        .get(&belief.stage)
-                        .map(Vec::len)
-                        .unwrap_or(0),
-                )
+                .checked_mul(disturbance_count)
+                .and_then(|value| value.checked_mul(action_count))
                 .ok_or(BeliefViabilityError::ResourceLimitOverflow)?;
             sum.checked_add(branch_count)
                 .ok_or(BeliefViabilityError::ResourceLimitOverflow)
