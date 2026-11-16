@@ -63,8 +63,8 @@ jobs:
       # Test its binary-local unit tests explicitly.
       - name: Test application binary
         run: cargo test --bin sol-atlas-leptos
-      # sol-atlas-core is a separate path-dependency crate. Cargo does not
+      # sol-atlas-core is a workspace member and path dependency. Cargo does not
       # execute dependency-crate unit tests when testing only the consuming bin,
-      # so run that crate's manifest directly to execute its own test target.
+      # so test the library package explicitly using the workspace lockfile.
       - name: Test shared core library
         run: cargo test -p sol-atlas-core
