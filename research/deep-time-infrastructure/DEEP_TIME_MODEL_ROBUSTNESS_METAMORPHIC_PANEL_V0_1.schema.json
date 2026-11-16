@@ -1,0 +1,86 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://luminousdynamics.io/schemas/deep-time-model-robustness-metamorphic-panel-v0.1.schema.json",
+  "title": "Deep-Time Model Robustness Metamorphic Panel v0.1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "schema_version",
+    "register_id",
+    "parent_issue",
+    "classification",
+    "properties"
+  ],
+  "properties": {
+    "schema": {
+      "const": "luminous.deep-time-model-robustness-metamorphic-panel.v0.1"
+    },
+    "schema_version": {
+      "const": "0.1.0"
+    },
+    "register_id": {
+      "const": "DEEP-TIME-MODEL-ROBUSTNESS-METAMORPHIC-PANEL-V0.1"
+    },
+    "parent_issue": {
+      "type": "string",
+      "format": "uri"
+    },
+    "classification": {
+      "const": "finite_software_property_tests_not_geological_validation"
+    },
+    "properties": {
+      "type": "array",
+      "minItems": 5,
+      "maxItems": 5,
+      "items": {
+        "$ref": "#/$defs/property"
+      }
+    }
+  },
+  "$defs": {
+    "property": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "case_id",
+        "property",
+        "title",
+        "input_transform",
+        "invariant",
+        "claim_ceiling"
+      ],
+      "properties": {
+        "case_id": {
+          "type": "string",
+          "pattern": "^DTR-META-[0-9]{3}$"
+        },
+        "property": {
+          "enum": [
+            "input_order_invariance",
+            "per_model_translation_invariance",
+            "hard_floor_order_invariance",
+            "model_set_expansion_monotonicity",
+            "pairwise_ranking_stability"
+          ]
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1
+        },
+        "input_transform": {
+          "type": "string",
+          "minLength": 1
+        },
+        "invariant": {
+          "type": "string",
+          "minLength": 1
+        },
+        "claim_ceiling": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    }
+  }
+}
