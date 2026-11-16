@@ -1,0 +1,141 @@
+{
+  "schema": "luminous.deep-time-belief-viability-case-register.v0.1",
+  "schema_version": "0.1.0",
+  "register_id": "DEEP-TIME-BELIEF-VIABILITY-CASE-REGISTER-V0.1",
+  "parent_issue": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/903",
+  "classification": "finite_partial_observation_software_semantics_not_physical_validation",
+  "cases": [
+    {
+      "case_id": "DBV-001",
+      "classification": "synthetic_hand_computable_reference",
+      "title": "One shared action preserves every hidden state",
+      "scenario": "Two hidden futures share one observation. A common action preserves both through every declared disturbance.",
+      "expected": {
+        "belief_viable": true,
+        "required_shared_action": "shared_safe_action",
+        "disposition": "exact"
+      },
+      "oracle": "For the single action, all hidden-state/disturbance successors enter the same declared next belief and every hidden terminal state passes.",
+      "claim_ceiling": "Finite belief-state decision semantics only; no probability, geology, hydraulic, site, rights or real-world infrastructure qualification."
+    },
+    {
+      "case_id": "DBV-002",
+      "classification": "synthetic_hand_computable_reference",
+      "title": "Different hidden-state preferred actions do not create a robust shared action",
+      "scenario": "A coastal action preserves the coast world but breaks the inland world; an inland action does the reverse. The controller cannot distinguish them yet.",
+      "expected": {
+        "belief_viable": false,
+        "disposition": "infeasible"
+      },
+      "oracle": "Each action has at least one known successor floor failure in the single shared belief; existential choice of one action cannot satisfy both hidden states.",
+      "claim_ceiling": "Finite belief-state decision semantics only; no probability, geology, hydraulic, site, rights or real-world infrastructure qualification."
+    },
+    {
+      "case_id": "DBV-003",
+      "classification": "synthetic_hand_computable_reference",
+      "title": "Different actions become admissible only after a distinguishing observation",
+      "scenario": "One shared wait action leads to two observable-history classes. The controller may choose different actions only in the two successor beliefs.",
+      "expected": {
+        "belief_viable": true,
+        "initial_action": "wait_for_observation",
+        "post_observation_actions": [
+          "action_a",
+          "action_b"
+        ],
+        "disposition": "exact"
+      },
+      "oracle": "Backward recursion first qualifies both singleton successor beliefs, then the shared initial action whose observation outcomes lead to those viable beliefs.",
+      "claim_ceiling": "Finite belief-state decision semantics only; no probability, geology, hydraulic, site, rights or real-world infrastructure qualification."
+    },
+    {
+      "case_id": "DBV-004",
+      "classification": "synthetic_hand_computable_reference",
+      "title": "Successors with the same observation are merged",
+      "scenario": "Two hidden states and possible disturbances produce multiple hidden successors but the same next observation history.",
+      "expected": {
+        "merged_successor_belief": true,
+        "belief_viable": true,
+        "disposition": "exact"
+      },
+      "oracle": "The exact set of hidden successor IDs under the common observable-history ID must match one declared successor belief.",
+      "claim_ceiling": "Finite belief-state decision semantics only; no probability, geology, hydraulic, site, rights or real-world infrastructure qualification."
+    },
+    {
+      "case_id": "DBV-005",
+      "classification": "synthetic_hand_computable_reference",
+      "title": "Unknown authority in one hidden state yields unresolved belief",
+      "scenario": "An action is known to pass authority in one hidden world, but the authority status is unknown in another indistinguishable world.",
+      "expected": {
+        "belief_viable": false,
+        "belief_unresolved": true,
+        "disposition": "unresolved"
+      },
+      "oracle": "The action is not certified admissible for every hidden state and no other action exists.",
+      "claim_ceiling": "Finite belief-state decision semantics only; no probability, geology, hydraulic, site, rights or real-world infrastructure qualification."
+    },
+    {
+      "case_id": "DBV-006",
+      "classification": "synthetic_hand_computable_reference",
+      "title": "One hidden ecological-floor failure invalidates the belief",
+      "scenario": "The freight/service floor passes in both hidden worlds, but an ecological floor fails in one.",
+      "expected": {
+        "belief_viable": false,
+        "disposition": "infeasible",
+        "reason": "mandatory_floor_failed_in_hidden_state"
+      },
+      "oracle": "All required floors are conjunctive for every hidden state in the belief.",
+      "claim_ceiling": "Finite belief-state decision semantics only; no probability, geology, hydraulic, site, rights or real-world infrastructure qualification."
+    },
+    {
+      "case_id": "DBV-007",
+      "classification": "synthetic_hand_computable_reference",
+      "title": "Missing next observation mapping is unresolved",
+      "scenario": "The physical successor is known but the observation history delivered to the controller is missing.",
+      "expected": {
+        "belief_viable": false,
+        "belief_unresolved": true,
+        "disposition": "unresolved"
+      },
+      "oracle": "Without a valid observation class the solver cannot define the information state for the next action.",
+      "claim_ceiling": "Finite belief-state decision semantics only; no probability, geology, hydraulic, site, rights or real-world infrastructure qualification."
+    },
+    {
+      "case_id": "DBV-008",
+      "classification": "specification_only",
+      "title": "Hidden future labels cannot split an unchanged observable history",
+      "scenario": "Two geological model labels differ, but the measurement and observation history available at the decision time are identical.",
+      "expected": {
+        "policy_action_must_be_equal": true,
+        "disposition": "specification_only"
+      },
+      "oracle": "The policy API contains observable-history IDs and belief membership only; hidden future labels are not policy inputs.",
+      "claim_ceiling": "Finite belief-state decision semantics only; no probability, geology, hydraulic, site, rights or real-world infrastructure qualification."
+    },
+    {
+      "case_id": "DBV-009",
+      "classification": "synthetic_hand_computable_reference",
+      "title": "Belief expansion to a floor-failing hidden state removes viability",
+      "scenario": "A singleton belief is viable. Adding an observationally indistinguishable hidden state whose terminal floor fails makes the belief non-viable.",
+      "expected": {
+        "singleton_viable": true,
+        "expanded_viable": false,
+        "disposition": "exact"
+      },
+      "oracle": "One common action must preserve all members; adding a hidden member with a known mandatory floor failure removes the robust witness.",
+      "claim_ceiling": "Finite belief-state decision semantics only; no probability, geology, hydraulic, site, rights or real-world infrastructure qualification."
+    },
+    {
+      "case_id": "DBV-010",
+      "classification": "bounded_control",
+      "title": "Belief graph cap returns bounded without a partial policy",
+      "scenario": "The hidden-state count exceeds the configured cap before solving.",
+      "expected": {
+        "disposition": "bounded",
+        "resource": "hidden_states",
+        "partial_policy_returned": false
+      },
+      "oracle": "The limit-aware API rejects before synthesis and returns no state or policy labels.",
+      "claim_ceiling": "Finite belief-state decision semantics only; no probability, geology, hydraulic, site, rights or real-world infrastructure qualification."
+    }
+  ]
+}
