@@ -48,6 +48,30 @@ jobs:
           git -C vendor/matpower fetch --depth=1 origin refs/tags/8.1:refs/tags/8.1
           test "$(git -C vendor/matpower rev-parse '8.1^{}')" = "1a828c7af590714499284e36ee9c81273388c594"
 
+      - name: Checkout immutable MP-Opt-Model 5.0
+        uses: actions/checkout@v4
+        with:
+          repository: MATPOWER/mp-opt-model
+          ref: 35e81cdc147436e843d69b143b32ec5bacfa14d2
+          path: vendor/mp-opt-model
+
+      - name: Checkout immutable MP-Test 8.1
+        uses: actions/checkout@v4
+        with:
+          repository: MATPOWER/mptest
+          ref: a918a838ee421af41d64775508a8a6608e75e569
+          path: vendor/mptest
+
+      - name: Verify MATPOWER auxiliary source identities
+        shell: bash
+        run: |
+          test "$(git -C vendor/mp-opt-model rev-parse HEAD)" = "35e81cdc147436e843d69b143b32ec5bacfa14d2"
+          git -C vendor/mp-opt-model fetch --depth=1 origin refs/tags/5.0:refs/tags/5.0
+          test "$(git -C vendor/mp-opt-model rev-parse '5.0^{}')" = "35e81cdc147436e843d69b143b32ec5bacfa14d2"
+          test "$(git -C vendor/mptest rev-parse HEAD)" = "a918a838ee421af41d64775508a8a6608e75e569"
+          git -C vendor/mptest fetch --depth=1 origin refs/tags/8.1:refs/tags/8.1
+          test "$(git -C vendor/mptest rev-parse '8.1^{}')" = "a918a838ee421af41d64775508a8a6608e75e569"
+
       - name: Install GNU Octave
         run: |
           sudo apt-get update
@@ -81,8 +105,14 @@ jobs:
             digest="$(git hash-object "$case")"
             reference="artifacts/matpower-8.1-dc-reference/${name}.matpower.tsv"
             report="artifacts/matpower-8.1-dc-reference/${name}.comparison.json"
+            export MATPOWER_CASE="$GITHUB_WORKSPACE/$case"
+            export MATPOWER_OUTPUT="$GITHUB_WORKSPACE/$reference"
+            export MATPOWER_ROOT="$GITHUB_WORKSPACE/vendor/matpower"
+            export MP_OPT_MODEL_ROOT="$GITHUB_WORKSPACE/vendor/mp-opt-model"
+            export MP_TEST_ROOT="$GITHUB_WORKSPACE/vendor/mptest"
+            export SOURCE_GIT_BLOB_SHA1="$digest"
             octave-cli --quiet --no-gui --eval \
-              "addpath('tools/matpower-reference-differential'); run_matpower_dc('$case', '$reference', 'vendor/matpower', '$digest');"
+              "repo_root = getenv('GITHUB_WORKSPACE'); addpath(fullfile(repo_root, 'tools', 'matpower-reference-differential')); run_matpower_dc(getenv('MATPOWER_CASE'), getenv('MATPOWER_OUTPUT'), getenv('MATPOWER_ROOT'), getenv('MP_OPT_MODEL_ROOT'), getenv('MP_TEST_ROOT'), getenv('SOURCE_GIT_BLOB_SHA1'));"
             tools/matpower-dc-network-evaluation/target/debug/compare-matpower-dc \
               "$case" "$reference" | tee "$report" | jq -e '.passed == true'
           done
