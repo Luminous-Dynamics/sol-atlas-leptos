@@ -9,6 +9,9 @@
 use dc_fixed_injection_contingency_sweep::{
     ContingencySweepReport, SweepOptions, sweep_fixed_injection_single_branch_outages,
 };
+use dc_lodf_outage_screen::{
+    LODFScreenReport, ScreenOptions, compare_screen_to_exact, screen_single_branch_outages,
+};
 use dc_power_flow_independent_auditor::{AuditOptions, AuditReport, audit_dc_power_flow};
 use dc_power_flow_reference::{
     DcBranch, DcBus, DcNetwork, DcPowerFlowResult, SolveOptions, solve_dc_power_flow,
@@ -396,6 +399,57 @@ impl MatpowerDcContingencyEvaluation {
     }
 }
 
+#[derive(Clone, Debug, PartialEq)]
+pub struct MatpowerDcLodfScreenEvaluation {
+    pub source_git_blob_sha1: String,
+    pub source_function_name: String,
+    pub matpower_version: String,
+    pub screen: LODFScreenReport,
+}
+
+impl MatpowerDcLodfScreenEvaluation {
+    pub fn to_json(&self) -> String {
+        format!(
+            concat!(
+                "{{",
+                "\"schema_version\":\"matpower-dc-lodf-screen-evaluation.v0.1.0\",",
+                "\"source_git_blob_sha1\":{},",
+                "\"source_function_name\":{},",
+                "\"matpower_version\":{},",
+                "\"screen\":{},",
+                "\"claim_ceiling\":\"{}\"",
+                "}}"
+            ),
+            json_quote(&self.source_git_blob_sha1),
+            json_quote(&self.source_function_name),
+            json_quote(&self.matpower_version),
+            self.screen.to_json(),
+            self.screen.claim_ceiling
+        )
+    }
+}
+
+/// Run the source-bound fixed-injection DC base case and produce an LODF
+/// contingency screen. Bridge/near-bridge outages remain exact-solve abstentions.
+pub fn screen_matpower_dc_case(
+    source: &str,
+    solve_options: SolveOptions,
+    screen_options: ScreenOptions,
+) -> Result<MatpowerDcLodfScreenEvaluation, EvaluationError> {
+    let projection = project_matpower_dc_case(source)
+        .map_err(|error| EvaluationError::new("matpower_projection", error))?;
+    let network = map_projection(&projection)?;
+    let screen = screen_single_branch_outages(&network, solve_options, screen_options)
+        .map_err(|error| EvaluationError::new("lodf_screen", error.to_string()))?;
+
+    Ok(MatpowerDcLodfScreenEvaluation {
+        source_git_blob_sha1: projection.source_git_blob_sha1,
+        source_function_name: projection.function_name,
+        matpower_version: projection.matpower_version,
+        screen,
+    })
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -533,6 +587,79 @@ mod tests {
             .expect_err("20 in-service branches exceed a 19-case budget");
         assert_eq!(error.stage, "contingency_sweep");
         assert!(error.reason.contains("configured budget is 19"));
+    }
+
+    fn assert_lodf_screen_matches_exact_outage_resolves(source: &str, branches: usize) {
+        let evaluated = evaluate(source);
+        let screen = screen_single_branch_outages(
+            &evaluated.network,
+            SolveOptions::default(),
+            ScreenOptions::default(),
+        )
+        .expect("PGLib DC network can be LODF-screened");
+        assert_eq!(screen.summary.expected_branch_outages, branches);
+        assert_eq!(screen.summary.evaluated_branch_outages, branches);
+        assert!(screen.summary.coverage_complete);
+
+        let validation = compare_screen_to_exact(
+            &evaluated.network,
+            &screen,
+            SolveOptions::default(),
+            1.0e-6,
+        )
+        .expect("LODF screen must reconcile with exact fixed-injection DC re-solves");
+        assert_eq!(validation.expected_branch_outages, branches);
+        assert_eq!(validation.evaluated_branch_outages, branches);
+        assert!(validation.coverage_complete);
+        assert_eq!(
+            validation.compared_predictions + validation.exact_resolve_abstentions,
+            branches
+        );
+        assert_eq!(validation.flow_mismatch_count, 0, "{}", validation.to_json());
+        assert_eq!(validation.false_safe_branch_count, 0, "{}", validation.to_json());
+        assert_eq!(validation.false_safe_outage_count, 0, "{}", validation.to_json());
+        assert_eq!(
+            validation.unexpected_exact_unknown_count,
+            0,
+            "{}",
+            validation.to_json()
+        );
+        assert!(validation.max_abs_flow_error_mw <= 1.0e-6);
+        assert!(validation.passes_declared_checks(), "{}", validation.to_json());
+    }
+
+    #[test]
+    fn ieee_14_lodf_screen_matches_all_resolvable_exact_outage_solves() {
+        assert_lodf_screen_matches_exact_outage_resolves(CASE14, 20);
+    }
+
+    #[test]
+    fn ieee_rts_24_lodf_screen_matches_all_resolvable_exact_outage_solves() {
+        assert_lodf_screen_matches_exact_outage_resolves(CASE24, 38);
+    }
+
+    #[test]
+    fn ieee_57_lodf_screen_matches_all_resolvable_exact_outage_solves() {
+        assert_lodf_screen_matches_exact_outage_resolves(CASE57, 80);
+    }
+
+    #[test]
+    fn matpower_lodf_screen_receipt_binds_source_identity_and_coverage() {
+        let evaluation = screen_matpower_dc_case(
+            CASE14,
+            SolveOptions::default(),
+            ScreenOptions::default(),
+        )
+        .expect("MATPOWER case can be screened");
+        assert_eq!(
+            evaluation.source_git_blob_sha1,
+            "2c8260fff0311c902c3d36dcabcbe861576fc97c"
+        );
+        assert_eq!(evaluation.screen.summary.expected_branch_outages, 20);
+        assert!(evaluation.screen.summary.coverage_complete);
+        let json = evaluation.to_json();
+        assert!(json.contains("\"matpower-dc-lodf-screen-evaluation.v0.1.0\""));
+        assert!(json.contains("\"dc-lodf-outage-screen.v0.1.0\""));
     }
 
     #[test]
