@@ -79,7 +79,7 @@ These are a menu, not recommendations. Some are expensive, maintenance-intensive
 
 ## 5. Data contract
 
-The machine-readable contract is `HOME_EXPRESSION_PROFILE_V0.1.schema.json`; the paired synthetic example is `HOME_EXPRESSION_PROFILE_SYNTHETIC_HIGHVELD_V0.1.json`.
+The machine-readable contract is `HOME_EXPRESSION_PROFILE_V0.1.schema.json`; the paired synthetic example is `HOME_EXPRESSION_PROFILE_SYNTHETIC_HIGHVELD_V0.1.json`; the non-exhaustive identifier/description catalogue is `HOME_EXPRESSION_CATALOG_V0.1.json`.
 
 Every profile binds to:
 - one exact Home Freedom brief ID;
@@ -116,6 +116,12 @@ For each domain, the profile records one of:
 - `QUALIFIED`: an appropriate specialist/authority has qualified the claim in the stated scope.
 
 The synthetic fixture deliberately marks all impacts UNKNOWN. It must not invent costs, thermal benefits, embodied-carbon reductions, water efficiency or structural feasibility.
+
+### 5.1 Multi-resident boundary
+
+The v0.1 expression profile is bound to one exact source brief and one design revision. It must not be interpreted as a household-wide consensus or as proof that every resident accepts a proposed style/amenity blend.
+
+For a shared home, preserve separate resident-authored intent and consent scopes. Do not average competing style weights, expose private preferences, silently relax one person's non-negotiable constraint, or assume agreement from a majority or from a generated candidate. Conflicting requirements remain visible and may produce separate candidates or an explicit unresolved state. The dedicated multi-resident owner is [HOUSEHOLD-PLURAL-INTENT-001 #907](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/907). Mycelix identity/consent and construction provenance remain separate owners.
 
 ## 6. Paradigm shifts
 
