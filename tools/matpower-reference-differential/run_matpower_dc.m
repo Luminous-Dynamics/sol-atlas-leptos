@@ -14,7 +14,9 @@ function run_matpower_dc(case_path, output_path, matpower_root, source_git_blob_
     end
 
     matpower_lib = fullfile(matpower_root, 'lib');
+    matpower_feature_lib = fullfile(matpower_root, 'mptest', 'lib');
     addpath(genpath(matpower_lib));
+    addpath(matpower_feature_lib);
 
     mpc = loadcase(case_path);
 
@@ -22,6 +24,7 @@ function run_matpower_dc(case_path, output_path, matpower_root, source_git_blob_
     % a case function. Re-admit only MATPOWER's actual function library after it
     % returns; do not recursively add docs, examples or optional submodule trees.
     addpath(genpath(matpower_lib));
+    addpath(matpower_feature_lib);
     define_constants;
 
     mpopt = mpoption('verbose', 0, 'out.all', 0);
