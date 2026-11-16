@@ -110,3 +110,18 @@ jobs:
           set -euo pipefail
           cargo run --manifest-path tools/matpower-dc-opf-kkt-verifier/Cargo.toml --locked --offline -- tools/matpower-dc-opf-primal-auditor/fixtures/two_bus.m /tmp/matpower-two-bus.tsv | tee /tmp/kkt-report.json
           jq -e '.numerical_kkt_satisfied == true and .formal_global_optimality_proof == false and .numerical_gap_is_rigorous_lower_bound == false' /tmp/kkt-report.json >/dev/null
+
+      - name: Run active-line MATPOWER 8.1 DC-OPF and export binding shadow price
+        shell: bash
+        run: |
+          set -euo pipefail
+          SOURCE="tools/matpower-dc-opf-kkt-verifier/fixtures/two_bus_binding_line.m"
+          SOURCE_SHA="$(git hash-object "$SOURCE")"
+          octave-cli --quiet --no-gui --eval "addpath('tools/matpower-reference-differential'); run_matpower_dcopf('$SOURCE', '/tmp/matpower-binding-line.tsv', 'vendor/matpower', 'vendor/mp-opt-model', 'vendor/mips', 'vendor/mptest', '$SOURCE_SHA')"
+
+      - name: Independently verify active-line KKT and nodal-price conditions
+        shell: bash
+        run: |
+          set -euo pipefail
+          cargo run --manifest-path tools/matpower-dc-opf-kkt-verifier/Cargo.toml --locked --offline -- tools/matpower-dc-opf-kkt-verifier/fixtures/two_bus_binding_line.m /tmp/matpower-binding-line.tsv | tee /tmp/kkt-binding-line-report.json
+          jq -e '.numerical_kkt_satisfied == true and .flow_constraint_count == 1 and .formal_global_optimality_proof == false and .numerical_gap_is_rigorous_lower_bound == false' /tmp/kkt-binding-line-report.json >/dev/null
