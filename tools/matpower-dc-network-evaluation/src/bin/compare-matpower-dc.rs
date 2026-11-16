@@ -12,6 +12,9 @@ use dc_power_flow_reference::SolveOptions;
 use matpower_dc_network_evaluation::evaluate_matpower_dc_case;
 
 const MATPOWER_VERSION: &str = "8.1";
+const MP_OPT_MODEL_VERSION: &str = "5.0";
+const MIPS_VERSION: &str = "1.5.2";
+const MP_TEST_VERSION: &str = "8.1";
 const ANGLE_TOLERANCE_DEGREES: f64 = 1.0e-7;
 const POWER_TOLERANCE_MW: f64 = 1.0e-6;
 const BASE_MVA_TOLERANCE: f64 = 1.0e-10;
@@ -36,6 +39,9 @@ struct ReferenceBranch {
 struct ReferenceResult {
     source_git_blob_sha1: String,
     matpower_version: String,
+    mp_opt_model_version: String,
+    mips_version: String,
+    mp_test_version: String,
     base_mva: f64,
     reference_bus: i64,
     buses: BTreeMap<i64, ReferenceBus>,
@@ -91,6 +97,9 @@ impl Checker {
 struct ComparisonReport {
     source_git_blob_sha1: String,
     matpower_version: String,
+    mp_opt_model_version: String,
+    mips_version: String,
+    mp_test_version: String,
     reference_bus: i64,
     bus_count: usize,
     branch_count: usize,
@@ -135,6 +144,9 @@ impl ComparisonReport {
                 "\"schema_version\":\"matpower-dc-reference-differential.v0.1.0\",",
                 "\"source_git_blob_sha1\":{},",
                 "\"matpower_version\":{},",
+                "\"mp_opt_model_version\":{},",
+                "\"mips_version\":{},",
+                "\"mp_test_version\":{},",
                 "\"reference_bus\":{},",
                 "\"bus_count\":{},\"branch_count\":{},",
                 "\"field_comparison_count\":{},",
@@ -148,6 +160,9 @@ impl ComparisonReport {
             ),
             quote(&self.source_git_blob_sha1),
             quote(&self.matpower_version),
+            quote(&self.mp_opt_model_version),
+            quote(&self.mips_version),
+            quote(&self.mp_test_version),
             self.reference_bus,
             self.bus_count,
             self.branch_count,
@@ -210,6 +225,9 @@ fn parse_i64(value: &str, context: &str) -> Result<i64, String> {
 fn parse_reference_tsv(source: &str) -> Result<ReferenceResult, String> {
     let mut source_digest = None;
     let mut matpower_version = None;
+    let mut mp_opt_model_version = None;
+    let mut mips_version = None;
+    let mut mp_test_version = None;
     let mut base_mva = None;
     let mut reference_bus = None;
     let mut buses = BTreeMap::new();
@@ -234,6 +252,21 @@ fn parse_reference_tsv(source: &str) -> Result<ReferenceResult, String> {
                         return Err(format!(
                             "duplicate MATPOWER version at TSV line {line_number}"
                         ));
+                    }
+                }
+                "mp_opt_model_version" => {
+                    if mp_opt_model_version.replace(fields[2].to_owned()).is_some() {
+                        return Err(format!("duplicate MP-Opt-Model version at TSV line {line_number}"));
+                    }
+                }
+                "mips_version" => {
+                    if mips_version.replace(fields[2].to_owned()).is_some() {
+                        return Err(format!("duplicate MIPS version at TSV line {line_number}"));
+                    }
+                }
+                "mp_test_version" => {
+                    if mp_test_version.replace(fields[2].to_owned()).is_some() {
+                        return Err(format!("duplicate MP-Test version at TSV line {line_number}"));
                     }
                 }
                 "base_mva" => {
@@ -312,6 +345,23 @@ fn parse_reference_tsv(source: &str) -> Result<ReferenceResult, String> {
             "MATPOWER reference version drift: expected {MATPOWER_VERSION}, got {matpower_version}"
         ));
     }
+    let mp_opt_model_version = mp_opt_model_version
+        .ok_or("MATPOWER TSV is missing MP-Opt-Model version")?;
+    if mp_opt_model_version != MP_OPT_MODEL_VERSION {
+        return Err(format!(
+            "MP-Opt-Model reference version drift: expected {MP_OPT_MODEL_VERSION}, got {mp_opt_model_version}"
+        ));
+    }
+    let mips_version = mips_version.ok_or("MATPOWER TSV is missing MIPS version")?;
+    if mips_version != MIPS_VERSION {
+        return Err(format!("MIPS reference version drift: expected {MIPS_VERSION}, got {mips_version}"));
+    }
+    let mp_test_version = mp_test_version.ok_or("MATPOWER TSV is missing MP-Test version")?;
+    if mp_test_version != MP_TEST_VERSION {
+        return Err(format!(
+            "MP-Test reference version drift: expected {MP_TEST_VERSION}, got {mp_test_version}"
+        ));
+    }
     for (index, branch) in branches.iter().enumerate() {
         if branch.row != index + 1 {
             return Err(format!(
@@ -325,6 +375,9 @@ fn parse_reference_tsv(source: &str) -> Result<ReferenceResult, String> {
     Ok(ReferenceResult {
         source_git_blob_sha1,
         matpower_version,
+        mp_opt_model_version,
+        mips_version,
+        mp_test_version,
         base_mva: base_mva.ok_or("MATPOWER TSV is missing base MVA")?,
         reference_bus: reference_bus.ok_or("MATPOWER TSV is missing reference bus")?,
         buses,
@@ -465,6 +518,9 @@ fn compare(source: &str, reference_tsv: &str) -> Result<ComparisonReport, String
     Ok(ComparisonReport {
         source_git_blob_sha1: evaluation.source_git_blob_sha1,
         matpower_version: reference.matpower_version,
+        mp_opt_model_version: reference.mp_opt_model_version,
+        mips_version: reference.mips_version,
+        mp_test_version: reference.mp_test_version,
         reference_bus: reference.reference_bus,
         bus_count: our_buses.len(),
         branch_count: reference.branches.len(),
@@ -523,6 +579,9 @@ mod tests {
         let tsv = concat!(
             "META\tsource_git_blob_sha1\t2c8260fff0311c902c3d36dcabcbe861576fc97c\n",
             "META\tmatpower_version\t8.1\n",
+            "META\tmp_opt_model_version\t5.0\n",
+            "META\tmips_version\t1.5.2\n",
+            "META\tmp_test_version\t8.1\n",
             "META\tbase_mva\t100\n",
             "META\treference_bus\t1\n",
             "BUS\t1\t0\t10\n",
@@ -540,6 +599,9 @@ mod tests {
         let duplicate_bus = concat!(
             "META\tsource_git_blob_sha1\t2c8260fff0311c902c3d36dcabcbe861576fc97c\n",
             "META\tmatpower_version\t8.1\n",
+            "META\tmp_opt_model_version\t5.0\n",
+            "META\tmips_version\t1.5.2\n",
+            "META\tmp_test_version\t8.1\n",
             "META\tbase_mva\t100\n",
             "META\treference_bus\t1\n",
             "BUS\t1\t0\t0\n",
@@ -554,6 +616,9 @@ mod tests {
         let duplicate_branch = concat!(
             "META\tsource_git_blob_sha1\t2c8260fff0311c902c3d36dcabcbe861576fc97c\n",
             "META\tmatpower_version\t8.1\n",
+            "META\tmp_opt_model_version\t5.0\n",
+            "META\tmips_version\t1.5.2\n",
+            "META\tmp_test_version\t8.1\n",
             "META\tbase_mva\t100\n",
             "META\treference_bus\t1\n",
             "BUS\t1\t0\t0\n",
@@ -569,6 +634,9 @@ mod tests {
         let unknown = concat!(
             "META\tsource_git_blob_sha1\t2c8260fff0311c902c3d36dcabcbe861576fc97c\n",
             "META\tmatpower_version\t8.1\n",
+            "META\tmp_opt_model_version\t5.0\n",
+            "META\tmips_version\t1.5.2\n",
+            "META\tmp_test_version\t8.1\n",
             "META\tbase_mva\t100\n",
             "META\treference_bus\t1\n",
             "BOGUS\t1\n"
@@ -596,6 +664,9 @@ mod tests {
             concat!(
                 "META\tsource_git_blob_sha1\t{}\n",
                 "META\tmatpower_version\t8.1\n",
+                "META\tmp_opt_model_version\t5.0\n",
+                "META\tmips_version\t1.5.2\n",
+                "META\tmp_test_version\t8.1\n",
                 "META\tbase_mva\t{}\n",
                 "META\treference_bus\t{}\n"
             ),
