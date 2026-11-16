@@ -24,7 +24,7 @@ Do not compare this profile directly against PGLib's published DC objective colu
 
 ## Scope and non-claims
 
-v0.1 supports one model-2 generator cost row per generator, linear or convex quadratic costs, and zero startup/shutdown cost. It does not support piecewise-linear cost functions or non-convex polynomial objectives.
+v0.1 supports one model-2 generator cost row per generator, linear or convex quadratic costs. Startup/shutdown columns are preserved for source fidelity but are intentionally excluded from the continuous single-period OPF objective, matching MATPOWER's `rundcopf` formulation; unit commitment and start/stop decisions are not modelled. It does not support piecewise-linear cost functions or non-convex polynomial objectives.
 
 A passing report establishes **primal feasibility under the declared MATPOWER DC model and independent objective recomputation**. It does not prove optimality or a valid global lower bound. In particular, it is not a dual/KKT certificate, AC-OPF result, physical measurement, N-1 security proof or operational authorization.
 
