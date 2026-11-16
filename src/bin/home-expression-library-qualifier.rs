@@ -27,6 +27,12 @@ const REVISION_IMPACT_SCHEMA: &str = include_str!(
 );
 const EXPECTED_CATALOG_REVISION: &str = "HOME-EXPRESSION-CATALOG-0.1.0";
 const EXPECTED_CATALOG_BLOB_SHA: &str = "f247bfc326e2e5fe5b625452e84de53faae38aa9";
+const HOME_BRIEF_FIXTURE: &str = include_str!(
+    "../../docs/research/home-freedom/HOME_DESIGN_BRIEF_SYNTHETIC_EXAMPLE_V0.1.json"
+);
+const EXPECTED_BRIEF_ARTIFACT_REF: &str =
+    "docs/research/home-freedom/HOME_DESIGN_BRIEF_SYNTHETIC_EXAMPLE_V0.1.json";
+const EXPECTED_BRIEF_BLOB_SHA: &str = "0090e2f0c883c62817d1b6da51d1a2dbe92a477f";
 
 const IMPACT_DOMAINS: &[&str] = &[
     "AREA_AND_CIRCULATION",
@@ -584,10 +590,54 @@ fn validate_revision_impact_crosswalk(
     errors
 }
 
+fn validate_profile_source_bindings(
+    profile: &Value,
+    source_brief: &Value,
+    catalog: &Value,
+    errors: &mut Vec<String>,
+) {
+    let brief_id = string_at(source_brief, "brief_id").unwrap_or_default();
+    if string_at(profile, "linked_brief_id") != Some(brief_id) {
+        errors.push("expression profile brief ID does not match the embedded source brief".to_owned());
+    }
+    if string_at(profile, "linked_brief_artifact_ref") != Some(EXPECTED_BRIEF_ARTIFACT_REF)
+        || string_at(profile, "linked_brief_content_sha") != Some(EXPECTED_BRIEF_BLOB_SHA)
+    {
+        errors.push("expression profile does not bind the exact source brief path and blob digest".to_owned());
+    }
+
+    let expected_constraints = object_field_string_set(
+        array_at(source_brief, "constraints"),
+        "constraint_id",
+    );
+    let actual_constraints = string_set(array_at(profile, "linked_brief_constraint_ids"));
+    if expected_constraints != actual_constraints {
+        errors.push("expression profile linked constraint IDs differ from the exact source brief".to_owned());
+    }
+
+    let preferences = profile.get("style_preferences").unwrap_or(&Value::Null);
+    if string_at(preferences, "catalog_revision") != string_at(catalog, "catalog_revision")
+        || string_at(preferences, "catalog_revision") != Some(EXPECTED_CATALOG_REVISION)
+        || string_at(preferences, "catalog_content_sha") != Some(EXPECTED_CATALOG_BLOB_SHA)
+    {
+        errors.push("expression profile does not bind the exact style/experience catalog revision and digest".to_owned());
+    }
+}
+
 fn validate_profile(profile: &Value, schema: &Value) -> Result<(), Vec<String>> {
     let mut errors = Vec::new();
     validate_schema_header(schema, &mut errors);
     let (catalog_style_ids, catalog_package_ids) = validate_catalog(schema, &mut errors);
+    match (
+        serde_json::from_str::<Value>(HOME_BRIEF_FIXTURE),
+        serde_json::from_str::<Value>(CATALOG_FIXTURE),
+    ) {
+        (Ok(source_brief), Ok(catalog)) => {
+            validate_profile_source_bindings(profile, &source_brief, &catalog, &mut errors);
+        }
+        (Err(error), _) => errors.push(format!("embedded source brief is invalid JSON: {error}")),
+        (_, Err(error)) => errors.push(format!("embedded catalog is invalid JSON: {error}")),
+    }
     match benchmark_fixture() {
         Ok((manifest, benchmark_schema)) => {
             errors.extend(validate_benchmark_manifest(&manifest, &benchmark_schema));
@@ -965,6 +1015,28 @@ mod tests {
     fn accepts_synthetic_highveld_profile() {
         let (profile, schema) = fixture();
         assert!(validate_profile(&profile, &schema).is_ok());
+    }
+
+    #[test]
+    fn rejects_source_brief_digest_drift() {
+        let (mut profile, schema) = fixture();
+        profile["linked_brief_content_sha"] = json!("0000000000000000000000000000000000000000");
+        assert!(validate_profile(&profile, &schema).is_err());
+    }
+
+    #[test]
+    fn rejects_linked_constraint_loss() {
+        let (mut profile, schema) = fixture();
+        profile["linked_brief_constraint_ids"].as_array_mut().unwrap().pop();
+        assert!(validate_profile(&profile, &schema).is_err());
+    }
+
+    #[test]
+    fn rejects_catalog_digest_drift() {
+        let (mut profile, schema) = fixture();
+        profile["style_preferences"]["catalog_content_sha"] =
+            json!("0000000000000000000000000000000000000000");
+        assert!(validate_profile(&profile, &schema).is_err());
     }
 
     #[test]
