@@ -1,7 +1,7 @@
 # Deep-Time Topology Renewal Benchmark
 ## Protocol v0.1
 
-**Status:** ten synthetic transition cases defined; five hand-computable references are included; no physical or real-site validation is claimed.  
+**Status:** ten synthetic transition cases defined; seven hand-computable references are included; no physical or real-site validation is claimed.  
 **Parent:** [DEEP-TIME-INFRASTRUCTURE-001 #886](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/886)  
 **Work item:** [DEEP-TIME-TOPOLOGY-RENEWAL-001 #894](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/894)  
 **Composes:** service-continuity corpus #890; Symtropy #3894/#5452/#5474/#1601/#3279/#3347/#451; Symthaea #7636; Sol-Atlas #377/#115; Mycelix #5149.
