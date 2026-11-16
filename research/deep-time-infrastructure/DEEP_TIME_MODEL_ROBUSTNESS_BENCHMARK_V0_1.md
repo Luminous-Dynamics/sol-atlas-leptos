@@ -59,7 +59,7 @@ These are not one global confidence or weighted resilience score. An invariant r
 | DTR-011 | future model identity | Adaptive policy cannot use hidden future information |
 | DTR-012 | incomplete datum/lineage | Classify UNRESOLVED and abstain |
 
-Four are initially tagged as exact references in the register (DTR-004, 006, 007, 008, 010 and 012 have simple exact expected checks; the full register marks the cases explicitly). Six or more exact cases should be promoted into an independent executable oracle before model integration.
+Six cases are initially tagged as exact references in the register (DTR-004, 006, 007, 008, 010 and 012). These expected outcomes are manually recomputable and should be promoted into an independent executable oracle before model integration.
 
 ## 6. Exact reference examples
 
