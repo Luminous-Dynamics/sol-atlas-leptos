@@ -1,0 +1,292 @@
+{
+  "schema_version": "0.1.0",
+  "study_id": "HOME-EXPRESSION-BENCH-EXT-001",
+  "maturity": "PROPOSED_NOT_EVALUATED",
+  "execution_status": "NOT_EXECUTED",
+  "parent_home_freedom_corpus_ref": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/819",
+  "parent_expression_issue_ref": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/904",
+  "purpose": "Expression and experience contract extension over the existing Home Freedom case population. This is not a second independent dwelling-feasibility corpus.",
+  "functional_unit": "one resident expression profile and its optional experience package set bound to one exact Home Freedom brief and design revision",
+  "status_semantics": [
+    "CONTRACT_VALID",
+    "VALID_UNKNOWN_PRESERVED",
+    "REVIEW_REQUIRED_NO_AUTO_PASS",
+    "BLOCKED_BY_RESIDENT_EXCLUSION",
+    "REJECTED_CONTRACT",
+    "REJECTED_FALSE_PRECISION",
+    "RECALCULATE_COST_AND_PARETO",
+    "REJECTED_ORPHAN_REQUIREMENT",
+    "REQUALIFICATION_REQUIRED",
+    "REFERENCE_REVIEW_REQUIRED",
+    "REJECTED_INFERRED_CONTEXT",
+    "REJECTED_CONSTRAINT_LOSS"
+  ],
+  "counterfactual_pairs": [
+    {
+      "pair_id": "CF_STYLE_ONLY_001",
+      "left_case": "CASE_STYLE_BLEND",
+      "right_case": "CASE_NO_STYLE",
+      "changed_dimension": "STYLE",
+      "changed_fields": [
+        "style_preferences"
+      ],
+      "held_constant_fields": [
+        "source_brief",
+        "design_revision",
+        "hard_constraints",
+        "site",
+        "budget",
+        "experience_options"
+      ],
+      "expected_invariant": "All non-style hard constraints and evidence scope remain unchanged."
+    },
+    {
+      "pair_id": "CF_AMENITY_ONLY_001",
+      "left_case": "CASE_OPTIONAL_OBSERVATORY",
+      "right_case": "CASE_OPTIONAL_POOL",
+      "changed_dimension": "AMENITY",
+      "changed_fields": [
+        "experience_options"
+      ],
+      "held_constant_fields": [
+        "source_brief",
+        "design_revision",
+        "hard_constraints",
+        "site",
+        "budget",
+        "style_preferences"
+      ],
+      "expected_invariant": "Only the selected amenity package changes; each package retains its own UNKNOWN impact domains."
+    },
+    {
+      "pair_id": "CF_BUDGET_ONLY_001",
+      "left_case": "CASE_UNKNOWN_CAPEX_NULL",
+      "right_case": "CASE_BUDGET_CEILING_CHANGED",
+      "changed_dimension": "BUDGET",
+      "changed_fields": [
+        "budget.initial_capital_max"
+      ],
+      "held_constant_fields": [
+        "source_brief",
+        "design_revision",
+        "hard_constraints",
+        "site",
+        "style_preferences",
+        "experience_options"
+      ],
+      "expected_invariant": "No cost/performance value may be inferred from the changed ceiling; only affordability/cost-dependent conclusions are re-evaluated."
+    },
+    {
+      "pair_id": "CF_HARD_CONSTRAINT_ONLY_001",
+      "left_case": "CASE_STEP_FREE_ACCESS_PRESENT",
+      "right_case": "CASE_STEP_FREE_ACCESS_REMOVED",
+      "changed_dimension": "HARD_CONSTRAINT",
+      "changed_fields": [
+        "constraints.C_ACCESS_01"
+      ],
+      "held_constant_fields": [
+        "source_brief_identity",
+        "design_revision",
+        "site",
+        "budget",
+        "style_preferences",
+        "experience_options"
+      ],
+      "expected_invariant": "Constraint removal is observable and never silently inherited; geometry/access evidence must be requalified."
+    }
+  ],
+  "cases": [
+    {
+      "case_id": "CASE_STYLE_BLEND",
+      "dimension": "STYLE",
+      "case_kind": "SYNTHETIC_CONTRACT_MUTATION",
+      "source_population_ref": "sol-atlas-leptos#819",
+      "source_case_id": null,
+      "source_case_binding_status": "OWNER_CASE_BINDING_PENDING",
+      "mutation": "Valid resident-authored 65/35 blend with stable brief and revision.",
+      "expected_disposition": "CONTRACT_VALID",
+      "physical_evaluation": "NOT_PERFORMED",
+      "claim_ceiling": "CONTRACT_ORACLE_ONLY_NOT_BUILDING_FEASIBILITY"
+    },
+    {
+      "case_id": "CASE_NO_STYLE",
+      "dimension": "STYLE",
+      "case_kind": "SYNTHETIC_CONTRACT_MUTATION",
+      "source_population_ref": "sol-atlas-leptos#819",
+      "source_case_id": null,
+      "source_case_binding_status": "OWNER_CASE_BINDING_PENDING",
+      "mutation": "Resident explicitly leaves style undecided; no style is inferred.",
+      "expected_disposition": "CONTRACT_VALID",
+      "physical_evaluation": "NOT_PERFORMED",
+      "claim_ceiling": "CONTRACT_ORACLE_ONLY_NOT_BUILDING_FEASIBILITY"
+    },
+    {
+      "case_id": "CASE_CUSTOM_STYLE",
+      "dimension": "STYLE",
+      "case_kind": "SYNTHETIC_CONTRACT_MUTATION",
+      "source_population_ref": "sol-atlas-leptos#819",
+      "source_case_id": null,
+      "source_case_binding_status": "OWNER_CASE_BINDING_PENDING",
+      "mutation": "Custom language is fully defined by the resident and bound to the design revision.",
+      "expected_disposition": "CONTRACT_VALID",
+      "physical_evaluation": "NOT_PERFORMED",
+      "claim_ceiling": "CONTRACT_ORACLE_ONLY_NOT_BUILDING_FEASIBILITY"
+    },
+    {
+      "case_id": "CASE_AVOIDED_STYLE",
+      "dimension": "STYLE",
+      "case_kind": "SYNTHETIC_CONTRACT_MUTATION",
+      "source_population_ref": "sol-atlas-leptos#819",
+      "source_case_id": null,
+      "source_case_binding_status": "OWNER_CASE_BINDING_PENDING",
+      "mutation": "Candidate includes a style the resident explicitly marked AVOID.",
+      "expected_disposition": "BLOCKED_BY_RESIDENT_EXCLUSION",
+      "physical_evaluation": "NOT_PERFORMED",
+      "claim_ceiling": "CONTRACT_ORACLE_ONLY_NOT_BUILDING_FEASIBILITY"
+    },
+    {
+      "case_id": "CASE_BLEND_SUM_99",
+      "dimension": "STYLE",
+      "case_kind": "SYNTHETIC_CONTRACT_MUTATION",
+      "source_population_ref": "sol-atlas-leptos#819",
+      "source_case_id": null,
+      "source_case_binding_status": "OWNER_CASE_BINDING_PENDING",
+      "mutation": "Primary and secondary style weights sum to 99 rather than 100.",
+      "expected_disposition": "REJECTED_CONTRACT",
+      "physical_evaluation": "NOT_PERFORMED",
+      "claim_ceiling": "CONTRACT_ORACLE_ONLY_NOT_BUILDING_FEASIBILITY"
+    },
+    {
+      "case_id": "CASE_OPTIONAL_OBSERVATORY",
+      "dimension": "AMENITY",
+      "case_kind": "SYNTHETIC_CONTRACT_MUTATION",
+      "source_population_ref": "sol-atlas-leptos#819",
+      "source_case_id": null,
+      "source_case_binding_status": "OWNER_CASE_BINDING_PENDING",
+      "mutation": "Optional observatory package carries ten UNKNOWN impacts and remains unselected until resident selection.",
+      "expected_disposition": "VALID_UNKNOWN_PRESERVED",
+      "physical_evaluation": "NOT_PERFORMED",
+      "claim_ceiling": "CONTRACT_ORACLE_ONLY_NOT_BUILDING_FEASIBILITY"
+    },
+    {
+      "case_id": "CASE_OPTIONAL_POOL",
+      "dimension": "AMENITY",
+      "case_kind": "SYNTHETIC_CONTRACT_MUTATION",
+      "source_population_ref": "sol-atlas-leptos#819",
+      "source_case_id": null,
+      "source_case_binding_status": "OWNER_CASE_BINDING_PENDING",
+      "mutation": "Optional indoor pool is considered while water and lifecycle impacts remain UNKNOWN.",
+      "expected_disposition": "REVIEW_REQUIRED_NO_AUTO_PASS",
+      "physical_evaluation": "NOT_PERFORMED",
+      "claim_ceiling": "CONTRACT_ORACLE_ONLY_NOT_BUILDING_FEASIBILITY"
+    },
+    {
+      "case_id": "CASE_UNKNOWN_CAPEX_NULL",
+      "dimension": "BUDGET",
+      "case_kind": "SYNTHETIC_CONTRACT_MUTATION",
+      "source_population_ref": "sol-atlas-leptos#819",
+      "source_case_id": null,
+      "source_case_binding_status": "OWNER_CASE_BINDING_PENDING",
+      "mutation": "Unknown capital cost remains null and is not ranked as zero.",
+      "expected_disposition": "VALID_UNKNOWN_PRESERVED",
+      "physical_evaluation": "NOT_PERFORMED",
+      "claim_ceiling": "CONTRACT_ORACLE_ONLY_NOT_BUILDING_FEASIBILITY"
+    },
+    {
+      "case_id": "CASE_UNKNOWN_CAPEX_ZERO_FILL",
+      "dimension": "BUDGET",
+      "case_kind": "SYNTHETIC_CONTRACT_MUTATION",
+      "source_population_ref": "sol-atlas-leptos#819",
+      "source_case_id": null,
+      "source_case_binding_status": "OWNER_CASE_BINDING_PENDING",
+      "mutation": "Unknown capital cost is replaced by numeric zero without evidence.",
+      "expected_disposition": "REJECTED_FALSE_PRECISION",
+      "physical_evaluation": "NOT_PERFORMED",
+      "claim_ceiling": "CONTRACT_ORACLE_ONLY_NOT_BUILDING_FEASIBILITY"
+    },
+    {
+      "case_id": "CASE_BUDGET_CEILING_CHANGED",
+      "dimension": "BUDGET",
+      "case_kind": "SYNTHETIC_CONTRACT_MUTATION",
+      "source_population_ref": "sol-atlas-leptos#819",
+      "source_case_id": null,
+      "source_case_binding_status": "OWNER_CASE_BINDING_PENDING",
+      "mutation": "Only the resident-authorized capital ceiling changes; affected cost/Pareto results require recalculation.",
+      "expected_disposition": "RECALCULATE_COST_AND_PARETO",
+      "physical_evaluation": "NOT_PERFORMED",
+      "claim_ceiling": "CONTRACT_ORACLE_ONLY_NOT_BUILDING_FEASIBILITY"
+    },
+    {
+      "case_id": "CASE_REQUIRED_AMENITY_ORPHAN",
+      "dimension": "AMENITY",
+      "case_kind": "SYNTHETIC_CONTRACT_MUTATION",
+      "source_population_ref": "sol-atlas-leptos#819",
+      "source_case_id": null,
+      "source_case_binding_status": "OWNER_CASE_BINDING_PENDING",
+      "mutation": "Package marked RESIDENT_REQUIRED has no matching non-negotiable constraint in the linked source brief.",
+      "expected_disposition": "REJECTED_ORPHAN_REQUIREMENT",
+      "physical_evaluation": "NOT_PERFORMED",
+      "claim_ceiling": "CONTRACT_ORACLE_ONLY_NOT_BUILDING_FEASIBILITY"
+    },
+    {
+      "case_id": "CASE_STALE_REVISION",
+      "dimension": "REVISION",
+      "case_kind": "SYNTHETIC_CONTRACT_MUTATION",
+      "source_population_ref": "sol-atlas-leptos#819",
+      "source_case_id": null,
+      "source_case_binding_status": "OWNER_CASE_BINDING_PENDING",
+      "mutation": "Expression profile refers to a superseded design revision.",
+      "expected_disposition": "REQUALIFICATION_REQUIRED",
+      "physical_evaluation": "NOT_PERFORMED",
+      "claim_ceiling": "CONTRACT_ORACLE_ONLY_NOT_BUILDING_FEASIBILITY"
+    },
+    {
+      "case_id": "CASE_UNLICENSED_REFERENCE",
+      "dimension": "RIGHTS",
+      "case_kind": "SYNTHETIC_CONTRACT_MUTATION",
+      "source_population_ref": "sol-atlas-leptos#819",
+      "source_case_id": null,
+      "source_case_binding_status": "OWNER_CASE_BINDING_PENDING",
+      "mutation": "Reference image rights are UNKNOWN or permission is pending; do not redistribute it as a public asset.",
+      "expected_disposition": "REFERENCE_REVIEW_REQUIRED",
+      "physical_evaluation": "NOT_PERFORMED",
+      "claim_ceiling": "CONTRACT_ORACLE_ONLY_NOT_BUILDING_FEASIBILITY"
+    },
+    {
+      "case_id": "CASE_INFERRED_CULTURE",
+      "dimension": "AGENCY",
+      "case_kind": "SYNTHETIC_CONTRACT_MUTATION",
+      "source_population_ref": "sol-atlas-leptos#819",
+      "source_case_id": null,
+      "source_case_binding_status": "OWNER_CASE_BINDING_PENDING",
+      "mutation": "System inserts cultural context that the resident did not provide.",
+      "expected_disposition": "REJECTED_INFERRED_CONTEXT",
+      "physical_evaluation": "NOT_PERFORMED",
+      "claim_ceiling": "CONTRACT_ORACLE_ONLY_NOT_BUILDING_FEASIBILITY"
+    },
+    {
+      "case_id": "CASE_STEP_FREE_ACCESS_PRESENT",
+      "dimension": "HARD_CONSTRAINT",
+      "case_kind": "SYNTHETIC_CONTRACT_MUTATION",
+      "source_population_ref": "sol-atlas-leptos#819",
+      "source_case_id": null,
+      "source_case_binding_status": "OWNER_CASE_BINDING_PENDING",
+      "mutation": "Step-free access remains present, resident-authored and bound to the source brief.",
+      "expected_disposition": "CONTRACT_VALID",
+      "physical_evaluation": "NOT_PERFORMED",
+      "claim_ceiling": "CONTRACT_ORACLE_ONLY_NOT_BUILDING_FEASIBILITY"
+    },
+    {
+      "case_id": "CASE_STEP_FREE_ACCESS_REMOVED",
+      "dimension": "HARD_CONSTRAINT",
+      "case_kind": "SYNTHETIC_CONTRACT_MUTATION",
+      "source_population_ref": "sol-atlas-leptos#819",
+      "source_case_id": null,
+      "source_case_binding_status": "OWNER_CASE_BINDING_PENDING",
+      "mutation": "The same candidate is mutated only by removing the resident's step-free hard requirement.",
+      "expected_disposition": "REJECTED_CONSTRAINT_LOSS",
+      "physical_evaluation": "NOT_PERFORMED",
+      "claim_ceiling": "CONTRACT_ORACLE_ONLY_NOT_BUILDING_FEASIBILITY"
+    }
+  ]
+}
