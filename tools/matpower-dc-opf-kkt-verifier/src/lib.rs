@@ -1204,6 +1204,81 @@ mod tests {
         assert!(error.contains("Va bound dual coverage mismatch"));
     }
 
+    const TWO_BUS_BINDING_LINE: &str = include_str!("../fixtures/two_bus_binding_line.m");
+
+    fn valid_binding_line_receipt(source: &str) -> String {
+        let digest = pglib_case_auditor::git_blob_sha1(source.as_bytes());
+        format!(
+            concat!(
+                "META\\tsource_git_blob_sha1\\t{}\\n",
+                "META\\tmatpower_version\\t8.1\\n",
+                "META\\tmodel_profile_id\\tmatpower_8_1_makeBdc_dcopf\\n",
+                "META\\tbase_mva\\t100\\n",
+                "META\\tobjective\\t2200\\n",
+                "BUS\\t1\\t0\\n",
+                "BUS\\t2\\t-2.291831181\\n",
+                "GEN\\t1\\t1\\t1\\t40\\n",
+                "GEN\\t2\\t2\\t1\\t60\\n",
+                "BRANCH\\t1\\t1\\t2\\t1\\t40\\t-40\\n",
+                "DUAL_META\\t1\\tlower_upper_nonnegative\\n",
+                "DUAL_BUS\\t1\\t0\\t1000\\n",
+                "DUAL_BUS\\t2\\t0\\t3000\\n",
+                "DUAL_VA\\t1\\t0\\t0\\n",
+                "DUAL_VA\\t2\\t0\\t0\\n",
+                "DUAL_GEN\\t1\\t0\\t0\\n",
+                "DUAL_GEN\\t2\\t0\\t0\\n",
+                "DUAL_FLOW\\t1\\t0\\t2000\\n",
+                "DUAL_ANGLE\\t1\\t0\\t0\\n"
+            ),
+            digest
+        )
+    }
+
+    #[test]
+    fn binding_line_case_checks_nonzero_flow_dual_and_dispatch_stationarity() {
+        let receipt = valid_binding_line_receipt(TWO_BUS_BINDING_LINE);
+        let report = audit_matpower_dc_opf_kkt(
+            TWO_BUS_BINDING_LINE,
+            &receipt,
+            PrimalAuditOptions::default(),
+            KktOptions::default(),
+        )
+        .expect("binding-line KKT receipt should parse");
+
+        assert!(report.primal_audit_passed, "{}", report.to_json());
+        assert!(report.primal_feasible_under_reconstructed_model, "{}", report.to_json());
+        assert!(report.dual_feasible, "{}", report.to_json());
+        assert!(report.stationarity_within_tolerance, "{}", report.to_json());
+        assert!(report.complementary_slackness_within_tolerance, "{}", report.to_json());
+        assert!(report.numerical_kkt_satisfied, "{}", report.to_json());
+        assert_eq!(report.flow_constraint_count, 1);
+        assert!((report.primal_objective - 2200.0).abs() < 1.0e-8);
+        assert!(
+            report
+                .numerical_primal_dual_gap_estimate
+                .is_some_and(|gap| gap.abs() < 1.0e-6),
+            "{}",
+            report.to_json()
+        );
+    }
+
+    #[test]
+    fn wrong_binding_line_shadow_price_is_detected_by_stationarity() {
+        let receipt = valid_binding_line_receipt(TWO_BUS_BINDING_LINE).replace(
+            "DUAL_FLOW\\t1\\t0\\t2000",
+            "DUAL_FLOW\\t1\\t0\\t1900",
+        );
+        let report = audit_matpower_dc_opf_kkt(
+            TWO_BUS_BINDING_LINE,
+            &receipt,
+            PrimalAuditOptions::default(),
+            KktOptions::default(),
+        )
+        .expect("wrong line shadow price should produce an audit report");
+        assert!(!report.stationarity_within_tolerance, "{}", report.to_json());
+        assert!(!report.numerical_kkt_satisfied, "{}", report.to_json());
+    }
+
     #[test]
     fn upper_flow_multiplier_with_slack_violates_complementarity() {
         let receipt = valid_receipt(TWO_BUS).replace(
