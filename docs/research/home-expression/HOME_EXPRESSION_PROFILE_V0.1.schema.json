@@ -235,9 +235,7 @@
           ]
         },
         "catalog_revision": {
-          "type": "string",
-          "minLength": 1,
-          "maxLength": 80
+          "const": "HOME-EXPRESSION-CATALOG-0.1.0"
         },
         "entries": {
           "type": "array",
@@ -352,8 +350,7 @@
           }
         },
         "catalog_content_sha": {
-          "type": "string",
-          "pattern": "^[a-f0-9]{40}$"
+          "const": "f247bfc326e2e5fe5b625452e84de53faae38aa9"
         }
       }
     },
