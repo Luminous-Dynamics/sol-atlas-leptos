@@ -1,0 +1,33 @@
+{
+  "schema": "luminous.deep-time-viability-kernel-exhaustive-oracle-panel.v0.1",
+  "schema_version": "0.1.0",
+  "register_id": "DEEP-TIME-VIABILITY-KERNEL-EXHAUSTIVE-ORACLE-PANEL-V0.1",
+  "parent_issue": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/898",
+  "classification": "finite_exhaustive_differential_software_oracle_not_physical_validation",
+  "cases": [
+    {
+      "case_id": "DVK-ORACLE-001",
+      "game_shape": {
+        "stages": 1,
+        "initial_states": 1,
+        "terminal_states": 2,
+        "controller_actions": 2,
+        "disturbance_branches": 3,
+        "terminal_floor_outcomes": [
+          "pass",
+          "fail"
+        ]
+      },
+      "action_successor_patterns_per_action": 8,
+      "exhaustive_case_count": 64,
+      "candidate": "compute_viability_kernel in sol-atlas-core/src/viability_kernel.rs",
+      "independent_reference": "Truth-table oracle: a game is robustly viable iff at least one controller action maps every disturbance to the passing terminal state.",
+      "compared_outputs": [
+        "initial_state_viability",
+        "witness_action_determinism"
+      ],
+      "expected": "100 percent exact agreement across all 64 finite games.",
+      "claim_ceiling": "Finite one-step AND/OR semantics only; no real infrastructure safety or physical model validation."
+    }
+  ]
+}
