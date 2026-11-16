@@ -74,7 +74,7 @@ function run_matpower_dcopf(case_path, output_path, matpower_root, mp_opt_model_
         error('MATPOWER result is missing required Pmis, Va or Pg multiplier blocks');
     end
 
-    fprintf(fid, 'DUAL_META\\t1\\tlower_upper_nonnegative\\n');
+    fprintf(fid, 'DUAL_META\t1\tlower_upper_nonnegative\n');
     bus_ids = results.order.bus.i2e(:);
     va_mu_l = results.var.mu.l.Va(:);
     va_mu_u = results.var.mu.u.Va(:);
@@ -92,13 +92,13 @@ function run_matpower_dcopf(case_path, output_path, matpower_root, mp_opt_model_
     end
 
     for i = 1:length(bus_ids)
-        fprintf(fid, 'DUAL_BUS\\t%d\\t%.17g\\t%.17g\\n', ...
+        fprintf(fid, 'DUAL_BUS\t%d\t%.17g\t%.17g\n', ...
             round(bus_ids(i)), pmis_mu_l(i), pmis_mu_u(i));
-        fprintf(fid, 'DUAL_VA\\t%d\\t%.17g\\t%.17g\\n', ...
+        fprintf(fid, 'DUAL_VA\t%d\t%.17g\t%.17g\n', ...
             round(bus_ids(i)), va_mu_l(i), va_mu_u(i));
     end
     for i = 1:length(results.order.gen.i2e)
-        fprintf(fid, 'DUAL_GEN\\t%d\\t%.17g\\t%.17g\\n', ...
+        fprintf(fid, 'DUAL_GEN\t%d\t%.17g\t%.17g\n', ...
             round(results.order.gen.i2e(i)), pg_mu_l(i), pg_mu_u(i));
     end
 
@@ -117,7 +117,7 @@ function run_matpower_dcopf(case_path, output_path, matpower_root, mp_opt_model_
         end
         branch_source_rows = results.order.branch.i2e(constrained_internal);
         for i = 1:length(constrained_internal)
-            fprintf(fid, 'DUAL_FLOW\\t%d\\t%.17g\\t%.17g\\n', ...
+            fprintf(fid, 'DUAL_FLOW\t%d\t%.17g\t%.17g\n', ...
                 round(branch_source_rows(i)), pf_mu_l(i), pf_mu_u(i));
         end
     end
@@ -135,7 +135,7 @@ function run_matpower_dcopf(case_path, output_path, matpower_root, mp_opt_model_
         end
         angle_source_rows = results.order.branch.i2e(angle_internal);
         for i = 1:length(angle_internal)
-            fprintf(fid, 'DUAL_ANGLE\\t%d\\t%.17g\\t%.17g\\n', ...
+            fprintf(fid, 'DUAL_ANGLE\t%d\t%.17g\t%.17g\n', ...
                 round(angle_source_rows(i)), ang_mu_l(i), ang_mu_u(i));
         end
     end
