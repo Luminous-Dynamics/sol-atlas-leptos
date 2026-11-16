@@ -102,9 +102,11 @@ function run_matpower_dcopf(case_path, output_path, matpower_root, mp_opt_model_
             round(results.order.gen.i2e(i)), pg_mu_l(i), pg_mu_u(i));
     end
 
-    mpc_internal = results.om.get_mpc();
-    constrained_internal = find(mpc_internal.branch(:, RATE_A) ~= 0 & ...
-        mpc_internal.branch(:, RATE_A) < 1e10);
+    % Use MATPOWER's explicit internal-to-external branch mapping rather
+    % than depending on the optional legacy OPF model object being retained.
+    branch_source_rows_all = results.order.branch.i2e(:);
+    source_rate_a = mpc.branch(branch_source_rows_all, RATE_A);
+    constrained_internal = find(source_rate_a ~= 0 & source_rate_a < 1e10);
     if ~isempty(constrained_internal)
         if ~isfield(results.lin.mu.l, 'Pf') || ~isfield(results.lin.mu.u, 'Pf')
             error('MATPOWER result is missing the Pf dual block for constrained branches');
@@ -122,7 +124,13 @@ function run_matpower_dcopf(case_path, output_path, matpower_root, mp_opt_model_
         end
     end
 
-    angle_internal = results.om.get_userdata('iang');
+    source_angle_min = mpc.branch(branch_source_rows_all, ANGMIN);
+    source_angle_max = mpc.branch(branch_source_rows_all, ANGMAX);
+    angle_mask = (source_angle_min ~= 0 & source_angle_min > -360) | ...
+        (source_angle_max ~= 0 & source_angle_max < 360) | ...
+        (source_angle_min ~= 0 & source_angle_max == 0) | ...
+        (source_angle_min == 0 & source_angle_max ~= 0);
+    angle_internal = find(angle_mask);
     if ~isempty(angle_internal)
         if ~isfield(results.lin.mu.l, 'ang') || ~isfield(results.lin.mu.u, 'ang')
             error('MATPOWER result is missing the angle-difference dual block');
