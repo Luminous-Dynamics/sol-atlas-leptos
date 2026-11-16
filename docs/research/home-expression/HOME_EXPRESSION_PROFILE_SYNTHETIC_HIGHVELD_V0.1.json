@@ -1,0 +1,618 @@
+{
+  "schema_version": "0.1.0",
+  "profile_id": "SYNTH-HV-EXPRESSION-001",
+  "maturity": "SYNTHETIC",
+  "linked_brief_id": "SYNTH-HV-FAMILY-001",
+  "linked_design_revision_ref": "SYNTHETIC-HIGHVELD-REV-A-NOT-A-PARCEL-DESIGN",
+  "linked_brief_constraint_ids": [
+    "C_SLEEP_02",
+    "C_WORK_01",
+    "C_ACCESS_01",
+    "C_PHASE_01",
+    "C_WATER_01"
+  ],
+  "expression_intent": {
+    "statement": "A grounded, tactile and welcoming Highveld home with a strong connection to landscape, generous shared space and a quiet place for reading or focused work.",
+    "experiential_qualities": [
+      "sheltered",
+      "warm",
+      "legible",
+      "tactile",
+      "calm",
+      "dramatic arrival without excess"
+    ],
+    "protected_features": [
+      "A shaded outdoor room remains a resident priority.",
+      "The principal circulation should be easy to understand."
+    ],
+    "avoided_motifs": [
+      "Avoid imposing cultural or historical motifs that the resident has not selected.",
+      "Avoid ornamental water use as a source of essential thermal comfort."
+    ],
+    "sensory_intent": {
+      "light": [
+        "Useful daylight with controllable glare and summer solar gain."
+      ],
+      "acoustics": [
+        "A quiet library/work setting separated from noisy social and service activities."
+      ],
+      "material_tactility": [
+        "Honest, repairable finishes; tactile stone, timber or local alternatives may be explored."
+      ],
+      "thermal_feel": [
+        "Comfort should not depend on discretionary water use."
+      ],
+      "spatial_sequence": [
+        "A sheltered threshold leading to a shared hall and a protected outdoor room."
+      ]
+    },
+    "cultural_context": {
+      "resident_provided": false,
+      "context_statement": null,
+      "community_review_state": "NOT_REQUESTED",
+      "reference_artifacts": []
+    }
+  },
+  "style_preferences": {
+    "mode": "BLENDED",
+    "catalog_revision": "HOME-STYLE-TAXONOMY-0.1.0",
+    "entries": [
+      {
+        "style_id": "HIGHLAND_STONE_TIMBER_CONTEMPORARY",
+        "display_name": "Highveld stone-and-timber contemporary",
+        "role": "PRIMARY",
+        "blend_weight_pct": 65,
+        "resident_selected": true,
+        "description": "A synthetic exploration of robust, tactile masonry and timber expression with contemporary openings and a sheltered courtyard.",
+        "custom_definition": null,
+        "inspiration_refs": []
+      },
+      {
+        "style_id": "SOLARPUNK",
+        "display_name": "Solarpunk",
+        "role": "SECONDARY",
+        "blend_weight_pct": 35,
+        "resident_selected": true,
+        "description": "A resident-selected inspiration for visible ecological systems, productive planting and energy-aware expression; not a claim of measured sustainability.",
+        "custom_definition": null,
+        "inspiration_refs": []
+      },
+      {
+        "style_id": "GOTHIC_REVIVAL",
+        "display_name": "Gothic Revival",
+        "role": "AVOID",
+        "blend_weight_pct": null,
+        "resident_selected": true,
+        "description": "Explicitly excluded in this synthetic brief.",
+        "custom_definition": null,
+        "inspiration_refs": []
+      },
+      {
+        "style_id": "OTHER_CUSTOM",
+        "display_name": "Resident-defined craft language",
+        "role": "ACCEPTABLE",
+        "blend_weight_pct": null,
+        "resident_selected": false,
+        "description": "An open slot for a future resident-authored direction.",
+        "custom_definition": "To be written only by the resident; no default cultural interpretation.",
+        "inspiration_refs": []
+      }
+    ]
+  },
+  "experience_options": [
+    {
+      "option_id": "OPT_LIBRARY_01",
+      "package_id": "GRAND_LIBRARY",
+      "display_name": "Grand library and reading gallery",
+      "selection_state": "PREFERRED",
+      "optionality": "OPTIONAL",
+      "resident_constraint_ref": null,
+      "delivery_phase": "PHASE_1",
+      "impact_profile": [
+        {
+          "domain": "AREA_AND_CIRCULATION",
+          "state": "UNKNOWN",
+          "value": null,
+          "lower_bound": null,
+          "upper_bound": null,
+          "unit": null,
+          "evidence_reference": null,
+          "method_reference": null,
+          "basis_note": "Synthetic placeholder only; no cost, physical performance or delivery assessment has been performed."
+        },
+        {
+          "domain": "CAPITAL_COST",
+          "state": "UNKNOWN",
+          "value": null,
+          "lower_bound": null,
+          "upper_bound": null,
+          "unit": null,
+          "evidence_reference": null,
+          "method_reference": null,
+          "basis_note": "Synthetic placeholder only; no cost, physical performance or delivery assessment has been performed."
+        },
+        {
+          "domain": "LIFECYCLE_OPERATING_COST",
+          "state": "UNKNOWN",
+          "value": null,
+          "lower_bound": null,
+          "upper_bound": null,
+          "unit": null,
+          "evidence_reference": null,
+          "method_reference": null,
+          "basis_note": "Synthetic placeholder only; no cost, physical performance or delivery assessment has been performed."
+        },
+        {
+          "domain": "ENERGY_AND_PEAK_DEMAND",
+          "state": "UNKNOWN",
+          "value": null,
+          "lower_bound": null,
+          "upper_bound": null,
+          "unit": null,
+          "evidence_reference": null,
+          "method_reference": null,
+          "basis_note": "Synthetic placeholder only; no cost, physical performance or delivery assessment has been performed."
+        },
+        {
+          "domain": "WATER_AND_DRAINAGE",
+          "state": "UNKNOWN",
+          "value": null,
+          "lower_bound": null,
+          "upper_bound": null,
+          "unit": null,
+          "evidence_reference": null,
+          "method_reference": null,
+          "basis_note": "Synthetic placeholder only; no cost, physical performance or delivery assessment has been performed."
+        },
+        {
+          "domain": "MATERIALS_AND_CARBON",
+          "state": "UNKNOWN",
+          "value": null,
+          "lower_bound": null,
+          "upper_bound": null,
+          "unit": null,
+          "evidence_reference": null,
+          "method_reference": null,
+          "basis_note": "Synthetic placeholder only; no cost, physical performance or delivery assessment has been performed."
+        },
+        {
+          "domain": "MAINTENANCE_AND_REPAIR",
+          "state": "UNKNOWN",
+          "value": null,
+          "lower_bound": null,
+          "upper_bound": null,
+          "unit": null,
+          "evidence_reference": null,
+          "method_reference": null,
+          "basis_note": "Synthetic placeholder only; no cost, physical performance or delivery assessment has been performed."
+        },
+        {
+          "domain": "ACCESSIBILITY",
+          "state": "UNKNOWN",
+          "value": null,
+          "lower_bound": null,
+          "upper_bound": null,
+          "unit": null,
+          "evidence_reference": null,
+          "method_reference": null,
+          "basis_note": "Synthetic placeholder only; no cost, physical performance or delivery assessment has been performed."
+        },
+        {
+          "domain": "STRUCTURE_FIRE_MOISTURE_ACOUSTICS",
+          "state": "UNKNOWN",
+          "value": null,
+          "lower_bound": null,
+          "upper_bound": null,
+          "unit": null,
+          "evidence_reference": null,
+          "method_reference": null,
+          "basis_note": "Synthetic placeholder only; no cost, physical performance or delivery assessment has been performed."
+        },
+        {
+          "domain": "SOURCING_AND_DELIVERY",
+          "state": "UNKNOWN",
+          "value": null,
+          "lower_bound": null,
+          "upper_bound": null,
+          "unit": null,
+          "evidence_reference": null,
+          "method_reference": null,
+          "basis_note": "Synthetic placeholder only; no cost, physical performance or delivery assessment has been performed."
+        }
+      ],
+      "maintenance_notes": "Review shelving loads, access, lighting, dust control, fire protection, acoustic separation and future reconfiguration.",
+      "acceptance_questions": [
+        "Does the library support daily use, storage and quiet work?",
+        "Can shelves and lighting be maintained without specialist-only access?"
+      ]
+    },
+    {
+      "option_id": "OPT_OBSERVATORY_01",
+      "package_id": "PRIVATE_OBSERVATORY",
+      "display_name": "Private rooftop observatory",
+      "selection_state": "CONSIDERED",
+      "optionality": "OPTIONAL",
+      "resident_constraint_ref": null,
+      "delivery_phase": "FUTURE_PHASE",
+      "impact_profile": [
+        {
+          "domain": "AREA_AND_CIRCULATION",
+          "state": "UNKNOWN",
+          "value": null,
+          "lower_bound": null,
+          "upper_bound": null,
+          "unit": null,
+          "evidence_reference": null,
+          "method_reference": null,
+          "basis_note": "Synthetic placeholder only; no cost, physical performance or delivery assessment has been performed."
+        },
+        {
+          "domain": "CAPITAL_COST",
+          "state": "UNKNOWN",
+          "value": null,
+          "lower_bound": null,
+          "upper_bound": null,
+          "unit": null,
+          "evidence_reference": null,
+          "method_reference": null,
+          "basis_note": "Synthetic placeholder only; no cost, physical performance or delivery assessment has been performed."
+        },
+        {
+          "domain": "LIFECYCLE_OPERATING_COST",
+          "state": "UNKNOWN",
+          "value": null,
+          "lower_bound": null,
+          "upper_bound": null,
+          "unit": null,
+          "evidence_reference": null,
+          "method_reference": null,
+          "basis_note": "Synthetic placeholder only; no cost, physical performance or delivery assessment has been performed."
+        },
+        {
+          "domain": "ENERGY_AND_PEAK_DEMAND",
+          "state": "UNKNOWN",
+          "value": null,
+          "lower_bound": null,
+          "upper_bound": null,
+          "unit": null,
+          "evidence_reference": null,
+          "method_reference": null,
+          "basis_note": "Synthetic placeholder only; no cost, physical performance or delivery assessment has been performed."
+        },
+        {
+          "domain": "WATER_AND_DRAINAGE",
+          "state": "UNKNOWN",
+          "value": null,
+          "lower_bound": null,
+          "upper_bound": null,
+          "unit": null,
+          "evidence_reference": null,
+          "method_reference": null,
+          "basis_note": "Synthetic placeholder only; no cost, physical performance or delivery assessment has been performed."
+        },
+        {
+          "domain": "MATERIALS_AND_CARBON",
+          "state": "UNKNOWN",
+          "value": null,
+          "lower_bound": null,
+          "upper_bound": null,
+          "unit": null,
+          "evidence_reference": null,
+          "method_reference": null,
+          "basis_note": "Synthetic placeholder only; no cost, physical performance or delivery assessment has been performed."
+        },
+        {
+          "domain": "MAINTENANCE_AND_REPAIR",
+          "state": "UNKNOWN",
+          "value": null,
+          "lower_bound": null,
+          "upper_bound": null,
+          "unit": null,
+          "evidence_reference": null,
+          "method_reference": null,
+          "basis_note": "Synthetic placeholder only; no cost, physical performance or delivery assessment has been performed."
+        },
+        {
+          "domain": "ACCESSIBILITY",
+          "state": "UNKNOWN",
+          "value": null,
+          "lower_bound": null,
+          "upper_bound": null,
+          "unit": null,
+          "evidence_reference": null,
+          "method_reference": null,
+          "basis_note": "Synthetic placeholder only; no cost, physical performance or delivery assessment has been performed."
+        },
+        {
+          "domain": "STRUCTURE_FIRE_MOISTURE_ACOUSTICS",
+          "state": "UNKNOWN",
+          "value": null,
+          "lower_bound": null,
+          "upper_bound": null,
+          "unit": null,
+          "evidence_reference": null,
+          "method_reference": null,
+          "basis_note": "Synthetic placeholder only; no cost, physical performance or delivery assessment has been performed."
+        },
+        {
+          "domain": "SOURCING_AND_DELIVERY",
+          "state": "UNKNOWN",
+          "value": null,
+          "lower_bound": null,
+          "upper_bound": null,
+          "unit": null,
+          "evidence_reference": null,
+          "method_reference": null,
+          "basis_note": "Synthetic placeholder only; no cost, physical performance or delivery assessment has been performed."
+        }
+      ],
+      "maintenance_notes": "Requires separate structural, weatherproofing, access, fall-protection, wind, glare, heat-gain and maintenance review.",
+      "acceptance_questions": [
+        "Can the access route be safe and accessible?",
+        "Does the structure remain feasible under the actual roof and wind design?"
+      ]
+    },
+    {
+      "option_id": "OPT_ATRIUM_01",
+      "package_id": "GRAND_ATRIUM",
+      "display_name": "Daylit grand atrium",
+      "selection_state": "CONSIDERED",
+      "optionality": "OPTIONAL",
+      "resident_constraint_ref": null,
+      "delivery_phase": "UNDECIDED",
+      "impact_profile": [
+        {
+          "domain": "AREA_AND_CIRCULATION",
+          "state": "UNKNOWN",
+          "value": null,
+          "lower_bound": null,
+          "upper_bound": null,
+          "unit": null,
+          "evidence_reference": null,
+          "method_reference": null,
+          "basis_note": "Synthetic placeholder only; no cost, physical performance or delivery assessment has been performed."
+        },
+        {
+          "domain": "CAPITAL_COST",
+          "state": "UNKNOWN",
+          "value": null,
+          "lower_bound": null,
+          "upper_bound": null,
+          "unit": null,
+          "evidence_reference": null,
+          "method_reference": null,
+          "basis_note": "Synthetic placeholder only; no cost, physical performance or delivery assessment has been performed."
+        },
+        {
+          "domain": "LIFECYCLE_OPERATING_COST",
+          "state": "UNKNOWN",
+          "value": null,
+          "lower_bound": null,
+          "upper_bound": null,
+          "unit": null,
+          "evidence_reference": null,
+          "method_reference": null,
+          "basis_note": "Synthetic placeholder only; no cost, physical performance or delivery assessment has been performed."
+        },
+        {
+          "domain": "ENERGY_AND_PEAK_DEMAND",
+          "state": "UNKNOWN",
+          "value": null,
+          "lower_bound": null,
+          "upper_bound": null,
+          "unit": null,
+          "evidence_reference": null,
+          "method_reference": null,
+          "basis_note": "Synthetic placeholder only; no cost, physical performance or delivery assessment has been performed."
+        },
+        {
+          "domain": "WATER_AND_DRAINAGE",
+          "state": "UNKNOWN",
+          "value": null,
+          "lower_bound": null,
+          "upper_bound": null,
+          "unit": null,
+          "evidence_reference": null,
+          "method_reference": null,
+          "basis_note": "Synthetic placeholder only; no cost, physical performance or delivery assessment has been performed."
+        },
+        {
+          "domain": "MATERIALS_AND_CARBON",
+          "state": "UNKNOWN",
+          "value": null,
+          "lower_bound": null,
+          "upper_bound": null,
+          "unit": null,
+          "evidence_reference": null,
+          "method_reference": null,
+          "basis_note": "Synthetic placeholder only; no cost, physical performance or delivery assessment has been performed."
+        },
+        {
+          "domain": "MAINTENANCE_AND_REPAIR",
+          "state": "UNKNOWN",
+          "value": null,
+          "lower_bound": null,
+          "upper_bound": null,
+          "unit": null,
+          "evidence_reference": null,
+          "method_reference": null,
+          "basis_note": "Synthetic placeholder only; no cost, physical performance or delivery assessment has been performed."
+        },
+        {
+          "domain": "ACCESSIBILITY",
+          "state": "UNKNOWN",
+          "value": null,
+          "lower_bound": null,
+          "upper_bound": null,
+          "unit": null,
+          "evidence_reference": null,
+          "method_reference": null,
+          "basis_note": "Synthetic placeholder only; no cost, physical performance or delivery assessment has been performed."
+        },
+        {
+          "domain": "STRUCTURE_FIRE_MOISTURE_ACOUSTICS",
+          "state": "UNKNOWN",
+          "value": null,
+          "lower_bound": null,
+          "upper_bound": null,
+          "unit": null,
+          "evidence_reference": null,
+          "method_reference": null,
+          "basis_note": "Synthetic placeholder only; no cost, physical performance or delivery assessment has been performed."
+        },
+        {
+          "domain": "SOURCING_AND_DELIVERY",
+          "state": "UNKNOWN",
+          "value": null,
+          "lower_bound": null,
+          "upper_bound": null,
+          "unit": null,
+          "evidence_reference": null,
+          "method_reference": null,
+          "basis_note": "Synthetic placeholder only; no cost, physical performance or delivery assessment has been performed."
+        }
+      ],
+      "maintenance_notes": "Review daylight/glare, overheating, smoke control, acoustics, cleaning access, envelope leakage and vertical circulation.",
+      "acceptance_questions": [
+        "Does the atrium improve the desired spatial experience without creating unacceptable thermal or acoustic penalties?"
+      ]
+    },
+    {
+      "option_id": "OPT_POOL_01",
+      "package_id": "INDOOR_POOL",
+      "display_name": "Indoor swimming pool",
+      "selection_state": "AVOIDED",
+      "optionality": "OPTIONAL",
+      "resident_constraint_ref": null,
+      "delivery_phase": "NOT_SELECTED",
+      "impact_profile": [
+        {
+          "domain": "AREA_AND_CIRCULATION",
+          "state": "UNKNOWN",
+          "value": null,
+          "lower_bound": null,
+          "upper_bound": null,
+          "unit": null,
+          "evidence_reference": null,
+          "method_reference": null,
+          "basis_note": "Synthetic placeholder only; no cost, physical performance or delivery assessment has been performed."
+        },
+        {
+          "domain": "CAPITAL_COST",
+          "state": "UNKNOWN",
+          "value": null,
+          "lower_bound": null,
+          "upper_bound": null,
+          "unit": null,
+          "evidence_reference": null,
+          "method_reference": null,
+          "basis_note": "Synthetic placeholder only; no cost, physical performance or delivery assessment has been performed."
+        },
+        {
+          "domain": "LIFECYCLE_OPERATING_COST",
+          "state": "UNKNOWN",
+          "value": null,
+          "lower_bound": null,
+          "upper_bound": null,
+          "unit": null,
+          "evidence_reference": null,
+          "method_reference": null,
+          "basis_note": "Synthetic placeholder only; no cost, physical performance or delivery assessment has been performed."
+        },
+        {
+          "domain": "ENERGY_AND_PEAK_DEMAND",
+          "state": "UNKNOWN",
+          "value": null,
+          "lower_bound": null,
+          "upper_bound": null,
+          "unit": null,
+          "evidence_reference": null,
+          "method_reference": null,
+          "basis_note": "Synthetic placeholder only; no cost, physical performance or delivery assessment has been performed."
+        },
+        {
+          "domain": "WATER_AND_DRAINAGE",
+          "state": "UNKNOWN",
+          "value": null,
+          "lower_bound": null,
+          "upper_bound": null,
+          "unit": null,
+          "evidence_reference": null,
+          "method_reference": null,
+          "basis_note": "Synthetic placeholder only; no cost, physical performance or delivery assessment has been performed."
+        },
+        {
+          "domain": "MATERIALS_AND_CARBON",
+          "state": "UNKNOWN",
+          "value": null,
+          "lower_bound": null,
+          "upper_bound": null,
+          "unit": null,
+          "evidence_reference": null,
+          "method_reference": null,
+          "basis_note": "Synthetic placeholder only; no cost, physical performance or delivery assessment has been performed."
+        },
+        {
+          "domain": "MAINTENANCE_AND_REPAIR",
+          "state": "UNKNOWN",
+          "value": null,
+          "lower_bound": null,
+          "upper_bound": null,
+          "unit": null,
+          "evidence_reference": null,
+          "method_reference": null,
+          "basis_note": "Synthetic placeholder only; no cost, physical performance or delivery assessment has been performed."
+        },
+        {
+          "domain": "ACCESSIBILITY",
+          "state": "UNKNOWN",
+          "value": null,
+          "lower_bound": null,
+          "upper_bound": null,
+          "unit": null,
+          "evidence_reference": null,
+          "method_reference": null,
+          "basis_note": "Synthetic placeholder only; no cost, physical performance or delivery assessment has been performed."
+        },
+        {
+          "domain": "STRUCTURE_FIRE_MOISTURE_ACOUSTICS",
+          "state": "UNKNOWN",
+          "value": null,
+          "lower_bound": null,
+          "upper_bound": null,
+          "unit": null,
+          "evidence_reference": null,
+          "method_reference": null,
+          "basis_note": "Synthetic placeholder only; no cost, physical performance or delivery assessment has been performed."
+        },
+        {
+          "domain": "SOURCING_AND_DELIVERY",
+          "state": "UNKNOWN",
+          "value": null,
+          "lower_bound": null,
+          "upper_bound": null,
+          "unit": null,
+          "evidence_reference": null,
+          "method_reference": null,
+          "basis_note": "Synthetic placeholder only; no cost, physical performance or delivery assessment has been performed."
+        }
+      ],
+      "maintenance_notes": "Excluded from the current synthetic expression profile; no water, humidity, structural or lifecycle claims are made.",
+      "acceptance_questions": [
+        "Would this conflict with the resident's water constraint or whole-life budget?"
+      ]
+    }
+  ],
+  "evaluation_protocol": {
+    "selection_authority": "RESIDENT",
+    "aesthetic_success_assessor": "RESIDENT_AND_INVITED_REVIEWERS",
+    "automatic_approval": false,
+    "universal_aesthetic_score": false,
+    "review_plan": "Review candidate compositions with the resident. Where cultural, heritage or place-specific references are intentionally supplied, invite relevant community/contextual review. Engineering and delivery evidence is evaluated separately by its competent owner."
+  },
+  "privacy": {
+    "contains_direct_identifiers": false,
+    "sharing_mode": "SYNTHETIC_PUBLIC",
+    "redaction_status": "REVIEWED_NO_DIRECT_IDENTIFIERS"
+  }
+}
