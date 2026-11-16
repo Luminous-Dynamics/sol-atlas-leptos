@@ -383,7 +383,8 @@ fn validate_revision_impact_crosswalk(
         || string_at(manifest, "maturity") != Some("PROPOSED_OWNER_REVIEW_REQUIRED")
         || string_at(manifest, "execution_status") != Some("NO_RUNTIME_INTEGRATION")
     {
-        errors.push("revision impact identity, maturity or execution state was promoted".to_owned());
+        errors
+            .push("revision impact identity, maturity or execution state was promoted".to_owned());
     }
     if string_at(manifest, "primary_revision_owner") != Some("Sol-Atlas #832")
         || string_at(manifest, "geometry_qualification_owner") != Some("Symtropy #683")
@@ -395,7 +396,8 @@ fn validate_revision_impact_crosswalk(
         || string_at(manifest, "parent_catalog_revision") != Some(EXPECTED_CATALOG_REVISION)
         || string_at(manifest, "parent_catalog_content_sha") != Some(EXPECTED_CATALOG_BLOB_SHA)
     {
-        errors.push("revision crosswalk is not bound to the exact v0.1 catalog revision".to_owned());
+        errors
+            .push("revision crosswalk is not bound to the exact v0.1 catalog revision".to_owned());
     }
 
     let style_ids = object_field_string_set(array_at(catalog, "style_catalog"), "style_id");
@@ -404,7 +406,9 @@ fn validate_revision_impact_crosswalk(
 
     let records = array_at(manifest, "records").cloned().unwrap_or_default();
     if records.len() != style_ids.len() + package_ids.len() {
-        errors.push("revision crosswalk must contain exactly one row per style and package ID".to_owned());
+        errors.push(
+            "revision crosswalk must contain exactly one row per style and package ID".to_owned(),
+        );
     }
 
     let allowed_domains = string_set(array_at(manifest, "impact_domains"));
@@ -423,15 +427,29 @@ fn validate_revision_impact_crosswalk(
         let owner_refs = string_set(array_at(record, "owner_refs"));
 
         if owner_refs.is_empty() || !owner_refs.contains("Sol-Atlas #832") {
-            errors.push(format!("{id}: every record must point to the primary revision owner #832"));
+            errors.push(format!(
+                "{id}: every record must point to the primary revision owner #832"
+            ));
         }
-        if record.get("resident_intent_review_required").and_then(Value::as_bool) != Some(true) {
+        if record
+            .get("resident_intent_review_required")
+            .and_then(Value::as_bool)
+            != Some(true)
+        {
             errors.push(format!("{id}: resident intent review must remain required"));
         }
-        if record.get("automatic_invalidation_permitted").and_then(Value::as_bool) != Some(false)
-            || record.get("automatic_approval_permitted").and_then(Value::as_bool) != Some(false)
+        if record
+            .get("automatic_invalidation_permitted")
+            .and_then(Value::as_bool)
+            != Some(false)
+            || record
+                .get("automatic_approval_permitted")
+                .and_then(Value::as_bool)
+                != Some(false)
         {
-            errors.push(format!("{id}: a proposed crosswalk must not automatically invalidate or approve"));
+            errors.push(format!(
+                "{id}: a proposed crosswalk must not automatically invalidate or approve"
+            ));
         }
         if !nonempty_string(record, "evidence_retention_rule") {
             errors.push(format!("{id}: exact evidence-retention rule is required"));
@@ -443,23 +461,38 @@ fn validate_revision_impact_crosswalk(
         match kind {
             "STYLE" => {
                 if !style_ids.contains(id) || !seen_styles.insert(id.to_owned()) {
-                    errors.push(format!("{id}: style record is missing, duplicated or orphaned"));
+                    errors.push(format!(
+                        "{id}: style record is missing, duplicated or orphaned"
+                    ));
                 }
                 if change_class != "STYLE_INTENT_ONLY" || !domains.is_empty() {
-                    errors.push(format!("{id}: style labels must not imply physical impacts by themselves"));
+                    errors.push(format!(
+                        "{id}: style labels must not imply physical impacts by themselves"
+                    ));
                 }
-                if record.get("rights_or_context_review_required").and_then(Value::as_bool).is_none() {
-                    errors.push(format!("{id}: rights/context review disposition is required"));
+                if record
+                    .get("rights_or_context_review_required")
+                    .and_then(Value::as_bool)
+                    .is_none()
+                {
+                    errors.push(format!(
+                        "{id}: rights/context review disposition is required"
+                    ));
                 }
             }
             "EXPERIENCE_PACKAGE" => {
                 if !package_ids.contains(id) || !seen_packages.insert(id.to_owned()) {
-                    errors.push(format!("{id}: experience-package record is missing, duplicated or orphaned"));
+                    errors.push(format!(
+                        "{id}: experience-package record is missing, duplicated or orphaned"
+                    ));
                 }
                 if change_class != "EXPERIENCE_PACKAGE_ADDED"
-                    || record.get("review_domains_are_nonbinding_hints").and_then(Value::as_bool)
+                    || record
+                        .get("review_domains_are_nonbinding_hints")
+                        .and_then(Value::as_bool)
                         != Some(true)
-                    || record.get("actual_artifact_change_required_before_evidence_invalidation")
+                    || record
+                        .get("actual_artifact_change_required_before_evidence_invalidation")
                         .and_then(Value::as_bool)
                         != Some(true)
                 {
@@ -475,15 +508,27 @@ fn validate_revision_impact_crosswalk(
         errors.push("revision crosswalk does not cover the exact style catalog".to_owned());
     }
     if seen_packages != package_ids {
-        errors.push("revision crosswalk does not cover the exact experience package catalog".to_owned());
+        errors.push(
+            "revision crosswalk does not cover the exact experience package catalog".to_owned(),
+        );
     }
 
     let policy = manifest.get("global_policy").unwrap_or(&Value::Null);
-    if policy.get("automatic_invalidation_permitted").and_then(Value::as_bool) != Some(false)
-        || policy.get("automatic_approval_permitted").and_then(Value::as_bool) != Some(false)
-        || policy.get("physical_effects_inferred_from_style_label").and_then(Value::as_bool)
+    if policy
+        .get("automatic_invalidation_permitted")
+        .and_then(Value::as_bool)
+        != Some(false)
+        || policy
+            .get("automatic_approval_permitted")
+            .and_then(Value::as_bool)
             != Some(false)
-        || policy.get("impact_hints_are_qualification_evidence").and_then(Value::as_bool)
+        || policy
+            .get("physical_effects_inferred_from_style_label")
+            .and_then(Value::as_bool)
+            != Some(false)
+        || policy
+            .get("impact_hints_are_qualification_evidence")
+            .and_then(Value::as_bool)
             != Some(false)
         || policy
             .get("stale_pass_retention_requires_exact_unchanged_dependency_proof")
@@ -494,10 +539,15 @@ fn validate_revision_impact_crosswalk(
         || string_at(policy, "resident_choice_authority") != Some("RESIDENT")
         || string_at(policy, "multi_resident_authority_ref") != Some("Sol-Atlas #907")
     {
-        errors.push("revision crosswalk global fail-closed or resident-authority policy was weakened".to_owned());
+        errors.push(
+            "revision crosswalk global fail-closed or resident-authority policy was weakened"
+                .to_owned(),
+        );
     }
     if string_at(manifest, "claim_ceiling")
-        != Some("PROPOSED_OWNER_REVIEW_CROSSWALK_ONLY_NO_RUNTIME_INVALIDATION_OR_PHYSICAL_QUALIFICATION")
+        != Some(
+            "PROPOSED_OWNER_REVIEW_CROSSWALK_ONLY_NO_RUNTIME_INVALIDATION_OR_PHYSICAL_QUALIFICATION",
+        )
     {
         errors.push("revision crosswalk claim ceiling was promoted".to_owned());
     }
@@ -897,8 +947,7 @@ mod tests {
 
     #[test]
     fn accepts_catalog_bound_revision_impact_crosswalk() {
-        let (manifest, schema) =
-            revision_impact_fixture().expect("valid revision impact fixture");
+        let (manifest, schema) = revision_impact_fixture().expect("valid revision impact fixture");
         let catalog: Value =
             serde_json::from_str(CATALOG_FIXTURE).expect("valid expression catalog");
         assert!(validate_revision_impact_crosswalk(&manifest, &schema, &catalog).is_empty());
@@ -920,7 +969,8 @@ mod tests {
             revision_impact_fixture().expect("valid revision impact fixture");
         let catalog: Value =
             serde_json::from_str(CATALOG_FIXTURE).expect("valid expression catalog");
-        manifest["records"][0]["potential_review_domains"] = json!(["STRUCTURE_FIRE_MOISTURE_ACOUSTICS"]);
+        manifest["records"][0]["potential_review_domains"] =
+            json!(["STRUCTURE_FIRE_MOISTURE_ACOUSTICS"]);
         assert!(!validate_revision_impact_crosswalk(&manifest, &schema, &catalog).is_empty());
     }
 
