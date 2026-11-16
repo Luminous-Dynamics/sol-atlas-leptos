@@ -76,6 +76,36 @@ The machine-readable register contains 12 unique cases:
 
 Nine cases have hand-computable outcomes. Three remain specifications requiring fuller finite action/observation encoding. The exact-state register is a reference contract, not a real-world model.
 
+
+## 5.1 Executable Rust reference kernel
+
+The shared core now contains [sol-atlas-core/src/viability_kernel.rs](https://github.com/Luminous-Dynamics/sol-atlas-leptos/blob/research/deep-time-infrastructure-001/sol-atlas-core/src/viability_kernel.rs), exported by sol-atlas-core.
+
+The exact reference implementation provides:
+- finite-horizon backward recursion using existential controller choice and universal disturbance branches;
+- conjunctive mandatory state floors and separate action admissibility gates;
+- explicit VIABLE / INFEASIBLE / UNRESOLVED results;
+- a witness action for every viable non-terminal state;
+- an input-order-independent lexicographic witness tie-break;
+- rejection of malformed graph references and non-advancing transitions;
+- non-anticipativity checking across identical observable histories;
+- checked observation-delay + action-lead-time arithmetic;
+- configurable horizon/state/action/transition-branch caps, returning BOUNDED with no partial viability classifications when exceeded.
+
+The default caps are 128 stages, 50,000 states, 250,000 actions and 2,000,000 estimated transition branches. These are engineering defaults for a reference implementation, not performance claims or universal safe limits. The lower-level limits API supports stricter or larger declared caps.
+
+The Rust module currently has 21 unit tests written, including the frozen DVK exact cases, unknown/failing evidence controls, deterministic witness ordering, explicit BOUNDED execution and a 64-game exhaustive truth-table comparison. The tests still require exact-head execution in CI before being described as passed.
+
+## 5.2 Exhaustive finite viability oracle
+
+The machine-readable panel is frozen:
+- [DVT exhaustive oracle JSON](https://github.com/Luminous-Dynamics/sol-atlas-leptos/blob/research/deep-time-infrastructure-001/research/deep-time-infrastructure/DEEP_TIME_VIABILITY_KERNEL_EXHAUSTIVE_ORACLE_PANEL_V0_1.json)
+- [DVT exhaustive oracle schema](https://github.com/Luminous-Dynamics/sol-atlas-leptos/blob/research/deep-time-infrastructure-001/research/deep-time-infrastructure/DEEP_TIME_VIABILITY_KERNEL_EXHAUSTIVE_ORACLE_PANEL_V0_1.schema.json)
+
+It enumerates all 64 one-stage games with one initial state, two terminal states (one passing and one failing), two controller actions and three disturbance branches. Each action has eight possible successor patterns. The independent truth-table oracle states that the initial state is viable iff at least one action maps every disturbance to the passing terminal. The test compares the finite kernel with that independent oracle for all 64 games.
+
+DVK-003 (non-anticipativity) has also been promoted from specification-only to a hand-computable reference because the Rust kernel now directly rejects different actions for identical observable histories. DVK-009 (shared crews/equipment) and DVK-012 (matched comparison across policy families) remain specification-only.
+
 ## 5. Key exact reference answers
 
 **DVK-001:** The single start→commissioned transition passes all floors under the only disturbance. Both states are viable.
