@@ -2109,6 +2109,63 @@ mod tests {
         );
     }
 
+
+    #[test]
+    fn exhaustive_stationary_invariant_oracle_matches_all_64_games() {
+        let disturbances = ["d0", "d1", "d2"];
+        for first_action_pattern in 0_u8..8 {
+            for second_action_pattern in 0_u8..8 {
+                let patterns = [first_action_pattern, second_action_pattern];
+                let mut actions = Vec::new();
+
+                for (index, pattern) in patterns.iter().enumerate() {
+                    let successors = disturbances
+                        .iter()
+                        .enumerate()
+                        .map(|(disturbance_index, disturbance)| {
+                            let bit = (*pattern >> disturbance_index) & 1;
+                            (
+                                *disturbance,
+                                if bit == 0 { "safe" } else { "unsafe" },
+                            )
+                        })
+                        .collect::<Vec<_>>();
+                    let action_id = if index == 0 { "action_a" } else { "action_b" };
+                    actions.push(action(
+                        action_id,
+                        "safe",
+                        &[("authority", GateResult::Pass)],
+                        &successors,
+                    ));
+                }
+
+                let problem = invariant_problem(
+                    vec![
+                        invariant_state("safe", &[("freight", GateResult::Pass)]),
+                        invariant_state("unsafe", &[("freight", GateResult::Fail)]),
+                    ],
+                    actions,
+                    &["safe"],
+                    &disturbances,
+                );
+
+                // Independent truth-table oracle: a state is stationary
+                // invariant iff at least one action returns to it for every
+                // possible disturbance.
+                let oracle_invariant = patterns.contains(&0);
+                let report =
+                    compute_robust_controlled_invariant_kernel(&problem).unwrap();
+                let actual_invariant = report.invariant_initial_states.contains("safe");
+
+                assert_eq!(
+                    actual_invariant,
+                    oracle_invariant,
+                    "stationary invariant mismatch for patterns {first_action_pattern} and {second_action_pattern}"
+                );
+            }
+        }
+    }
+
     #[test]
     fn timing_overflow_fails_closed() {
         assert_eq!(
