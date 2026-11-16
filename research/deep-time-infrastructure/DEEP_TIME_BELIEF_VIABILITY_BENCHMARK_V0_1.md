@@ -1,7 +1,7 @@
 # Deep-Time Infrastructure Belief-State Viability
 ## Benchmark protocol v0.1
 
-**Status:** finite partial-observation reference kernel committed; ten cases registered; source tests are written but not executed on the latest exact head.  
+**Status:** finite partial-observation reference kernel committed; ten cases registered; 11 source tests are written but not executed on the latest exact head.  
 **Owner:** [DEEP-TIME-BELIEF-VIABILITY-001 #903](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/903).  
 **Composes:** #898 perfect-information viability; #901 solver scaling; Symthaea #7636 adaptive pathway policy; Symtropy #3894 service outcomes.
 
@@ -70,7 +70,7 @@ The Rust tests include 256 tiny partial-observation games:
 
 The independent truth table says the initial belief is viable iff at least one common action has all four terminal outcomes passing. The test checks the belief solver against this oracle across all 256 combinations.
 
-Ten unit tests are written, including this exhaustive comparison. They have not yet run on the current exact head.
+Eleven unit tests are written, including this exhaustive comparison, an optional-action-gate control and failure/unknown precedence checks. They have not yet run on the current exact head.
 
 ## 6. Baselines and metrics
 
