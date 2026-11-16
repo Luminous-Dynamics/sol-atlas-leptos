@@ -715,9 +715,6 @@ fn audit_projection_kkt(
             - pbus_injection[index];
         let residual = b_va[index] - pg_by_bus[index] - bmis[index];
         metrics.max_pmis = metrics.max_pmis.max(residual.abs());
-        let equality_dual = duals.buses[&bus.id];
-        primal_at_lagrangian += equality_dual.lower * (bmis[index] - (b_va[index] - pg_by_bus[index]))
-            + equality_dual.upper * ((b_va[index] - pg_by_bus[index]) - bmis[index]);
         if !residual.is_finite()
             || residual.abs() > options.equality_residual_tolerance_pu
         {
@@ -943,6 +940,13 @@ fn audit_projection_kkt(
         primal_at_lagrangian += generator.quadratic_cost_pu * generator.pg_pu * generator.pg_pu
             + generator.linear_cost_pu * generator.pg_pu
             + generator.constant_cost;
+    }
+
+    for (index, bus) in projection.buses.iter().enumerate() {
+        let dual = duals.buses[&bus.id];
+        let expression = b_va[index] - pg_by_bus[index];
+        primal_at_lagrangian += dual.lower * (bmis[index] - expression)
+            + dual.upper * (expression - bmis[index]);
     }
 
     for (index, bus) in projection.buses.iter().enumerate() {
