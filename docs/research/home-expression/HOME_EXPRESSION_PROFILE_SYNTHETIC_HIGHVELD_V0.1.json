@@ -97,7 +97,8 @@
         "custom_definition": "To be written only by the resident; no default cultural interpretation.",
         "inspiration_refs": []
       }
-    ]
+    ],
+    "catalog_content_sha": "f247bfc326e2e5fe5b625452e84de53faae38aa9"
   },
   "experience_options": [
     {
@@ -614,5 +615,7 @@
     "contains_direct_identifiers": false,
     "sharing_mode": "SYNTHETIC_PUBLIC",
     "redaction_status": "REVIEWED_NO_DIRECT_IDENTIFIERS"
-  }
+  },
+  "linked_brief_artifact_ref": "docs/research/home-freedom/HOME_DESIGN_BRIEF_SYNTHETIC_EXAMPLE_V0.1.json",
+  "linked_brief_content_sha": "0090e2f0c883c62817d1b6da51d1a2dbe92a477f"
 }
