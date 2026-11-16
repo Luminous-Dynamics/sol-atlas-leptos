@@ -540,26 +540,26 @@ fn compute_viability_kernel_exact(
         let mut viable_witness: Option<String> = None;
 
         for action in actions {
-            match evaluate_action_gates(action, &problem.required_action_gates) {
-                GateDisposition::Failed => {
-                    infeasible_reasons.insert(format!("action_gate_failed:{}", action.action_id));
-                    continue;
-                }
-                GateDisposition::Unknown(unknowns) => {
-                    for gate_id in unknowns {
-                        unknown_reasons.insert(format!(
-                            "unknown_action_gate:{}:{gate_id}",
-                            action.action_id
-                        ));
+            let gate_unknowns =
+                match evaluate_action_gates(action, &problem.required_action_gates) {
+                    GateDisposition::Failed => {
+                        infeasible_reasons
+                            .insert(format!("action_gate_failed:{}", action.action_id));
+                        continue;
                     }
-                    continue;
-                }
-                GateDisposition::Passed => {}
-            }
+                    GateDisposition::Unknown(unknowns) => unknowns,
+                    GateDisposition::Passed => Vec::new(),
+                };
 
             let mut action_has_known_failure = false;
-            let mut action_has_unknown = false;
+            let mut action_has_unknown = !gate_unknowns.is_empty();
             let mut action_unknown_reasons = BTreeSet::new();
+            for gate_id in gate_unknowns {
+                action_unknown_reasons.insert(format!(
+                    "unknown_action_gate:{}:{gate_id}",
+                    action.action_id
+                ));
+            }
 
             for disturbance_id in disturbance_ids {
                 let Some(successor_id) =
@@ -2326,6 +2326,29 @@ mod tests {
                 limit: 0,
             }
         );
+    }
+
+
+    #[test]
+    fn known_failing_successor_dominates_unknown_action_gate() {
+        let problem = base_problem(
+            1,
+            vec![
+                state("initial", 0, &[("freight", GateResult::Pass)]),
+                state("terminal_failure", 1, &[("freight", GateResult::Fail)]),
+            ],
+            vec![action(
+                "uncertain_authority",
+                "initial",
+                &[("authority", GateResult::Unknown)],
+                &[("none", "terminal_failure")],
+            )],
+            &["initial"],
+        );
+
+        let report = compute_viability_kernel(&problem).unwrap();
+        assert!(report.infeasible_initial_states.contains("initial"));
+        assert!(!report.unresolved_initial_states.contains("initial"));
     }
 
     #[test]
