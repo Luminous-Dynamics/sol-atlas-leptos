@@ -1105,7 +1105,7 @@ mod tests {
         )
         .expect("base case is connected");
         assert!(matches!(
-            screen.outages[0].disposition,
+            &screen.outages[0].disposition,
             OutageDisposition::RequiresExactResolve {
                 reason: ExactResolveReason::BridgeOrNearBridge,
                 ..
