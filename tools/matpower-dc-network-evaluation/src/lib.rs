@@ -42,7 +42,7 @@ impl std::error::Error for EvaluationError {}
 pub struct MatpowerDcEvaluation {
     pub source_git_blob_sha1: String,
     pub source_function_name: String,
-    pub matpower_version: String,
+    pub case_format_version: String,
     pub network: DcNetwork,
     pub solution: DcPowerFlowResult,
     pub audit: AuditReport,
@@ -190,7 +190,7 @@ fn evaluate_projection(
     Ok(MatpowerDcEvaluation {
         source_git_blob_sha1: projection.source_git_blob_sha1.clone(),
         source_function_name: projection.function_name.clone(),
-        matpower_version: projection.matpower_version.clone(),
+        case_format_version: projection.case_format_version.clone(),
         network,
         solution,
         audit,
@@ -291,7 +291,7 @@ impl MatpowerDcEvaluation {
                 "\"schema_version\":\"matpower-dc-evaluation.v0.1.0\",",
                 "\"source_git_blob_sha1\":{},",
                 "\"source_function_name\":{},",
-                "\"matpower_version\":{},",
+                "\"case_format_version\":{},",
                 "\"base_mva\":{},",
                 "\"bus_count\":{},",
                 "\"branch_count\":{},",
@@ -309,7 +309,7 @@ impl MatpowerDcEvaluation {
             ),
             json_quote(&self.source_git_blob_sha1),
             json_quote(&self.source_function_name),
-            json_quote(&self.matpower_version),
+            json_quote(&self.case_format_version),
             number(self.network.base_mva),
             self.network.buses.len(),
             self.network.branches.len(),
@@ -331,7 +331,7 @@ impl MatpowerDcEvaluation {
 pub struct MatpowerDcContingencyEvaluation {
     pub source_git_blob_sha1: String,
     pub source_function_name: String,
-    pub matpower_version: String,
+    pub case_format_version: String,
     pub sweep: ContingencySweepReport,
     pub claim_ceiling: &'static str,
 }
@@ -367,7 +367,7 @@ pub fn sweep_matpower_dc_case(
     Ok(MatpowerDcContingencyEvaluation {
         source_git_blob_sha1: projection.source_git_blob_sha1,
         source_function_name: projection.function_name,
-        matpower_version: projection.matpower_version,
+        case_format_version: projection.case_format_version,
         sweep,
         claim_ceiling: "audited_fixed_injection_dc_single_branch_outage_screening_only",
     })
@@ -382,14 +382,14 @@ impl MatpowerDcContingencyEvaluation {
                 "\"schema_version\":\"matpower-dc-contingency-evaluation.v0.1.0\",",
                 "\"source_git_blob_sha1\":{},",
                 "\"source_function_name\":{},",
-                "\"matpower_version\":{},",
+                "\"case_format_version\":{},",
                 "\"sweep\":{},",
                 "\"claim_ceiling\":{}",
                 "}}"
             ),
             json_quote(&self.source_git_blob_sha1),
             json_quote(&self.source_function_name),
-            json_quote(&self.matpower_version),
+            json_quote(&self.case_format_version),
             self.sweep.to_json(),
             json_quote(self.claim_ceiling)
         )
