@@ -169,6 +169,8 @@ pub struct InvariantStateResult {
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct InvariantKernelReport {
     pub state_results: BTreeMap<String, InvariantStateResult>,
+    pub proven_fixed_point_iterations: usize,
+    pub optimistic_fixed_point_iterations: usize,
     pub invariant_states: BTreeSet<String>,
     pub infeasible_states: BTreeSet<String>,
     pub unresolved_states: BTreeSet<String>,
@@ -916,7 +918,9 @@ pub fn compute_robust_controlled_invariant_kernel(
 
     // Greatest fixed point: K_{n+1} = K_n intersect CPre(K_n).
     let mut invariant_states = safe_states.clone();
+    let mut proven_fixed_point_iterations = 0usize;
     loop {
+        proven_fixed_point_iterations += 1;
         let mut remove = Vec::new();
 
         for state_id in &invariant_states {
@@ -966,7 +970,9 @@ pub fn compute_robust_controlled_invariant_kernel(
     // resolvable; a known failed gate or a successor outside this possible
     // set disqualifies the action. This preserves cycles of uncertainty
     // without ever promoting them into the proven invariant set.
+    let mut optimistic_fixed_point_iterations = 0usize;
     loop {
+        optimistic_fixed_point_iterations += 1;
         let mut remove = Vec::new();
 
         for state_id in &possibly_safe_states {
@@ -1099,6 +1105,8 @@ pub fn compute_robust_controlled_invariant_kernel(
 
     Ok(InvariantKernelReport {
         state_results,
+        proven_fixed_point_iterations,
+        optimistic_fixed_point_iterations,
         invariant_states,
         infeasible_states,
         unresolved_states,
@@ -1176,6 +1184,84 @@ fn evaluate_state_floors_for_invariant(
     } else {
         GateDisposition::Unknown(unknown)
     }
+}
+
+
+
+/// Apply explicit resource caps before stationary invariant synthesis.
+///
+/// The two descending fixed-point loops can each remove at most one or more
+/// states per changing iteration, so their iteration counts are bounded by
+/// the finite state count. A cap hit returns Bounded without partial labels.
+pub fn compute_robust_controlled_invariant_kernel_with_limits(
+    problem: &InvariantKernelProblem,
+    limits: InvariantKernelLimits,
+) -> Result<InvariantKernelExecution, ViabilityError> {
+    let bounded = |resource: &str, observed: usize, limit: usize| {
+        InvariantKernelExecution::Bounded {
+            resource: resource.to_owned(),
+            observed,
+            limit,
+        }
+    };
+
+    if problem.states.len() > limits.max_states {
+        return Ok(bounded("states", problem.states.len(), limits.max_states));
+    }
+    if problem.actions.len() > limits.max_actions {
+        return Ok(bounded("actions", problem.actions.len(), limits.max_actions));
+    }
+
+    let transition_bound = problem
+        .actions
+        .len()
+        .checked_mul(problem.disturbance_ids.len())
+        .ok_or(ViabilityError::ResourceLimitExceeded {
+            resource: "transition_branches".to_owned(),
+            observed: usize::MAX,
+            limit: limits.max_transition_branches,
+        })?;
+
+    if transition_bound > limits.max_transition_branches {
+        return Ok(bounded(
+            "transition_branches",
+            transition_bound,
+            limits.max_transition_branches,
+        ));
+    }
+
+    Ok(InvariantKernelExecution::Exact(
+        compute_robust_controlled_invariant_kernel(problem)?,
+    ))
+}
+
+/// Resource limits for the stationary greatest-fixed-point solver.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct InvariantKernelLimits {
+    pub max_states: usize,
+    pub max_actions: usize,
+    pub max_transition_branches: usize,
+}
+
+impl Default for InvariantKernelLimits {
+    fn default() -> Self {
+        Self {
+            max_states: 50_000,
+            max_actions: 250_000,
+            max_transition_branches: 2_000_000,
+        }
+    }
+}
+
+/// A bounded stationary-kernel result contains no partial state labels.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum InvariantKernelExecution {
+    Exact(InvariantKernelReport),
+    Bounded {
+        resource: String,
+        observed: usize,
+        limit: usize,
+    },
 }
 
 /// A policy choice at one observable decision history.
@@ -2159,6 +2245,87 @@ mod tests {
                 );
             }
         }
+    }
+
+
+    #[test]
+    fn invariant_kernel_preserves_cyclic_unknown_authority_as_unresolved() {
+        let problem = invariant_problem(
+            vec![
+                invariant_state("a", &[("freight", GateResult::Pass)]),
+                invariant_state("b", &[("freight", GateResult::Pass)]),
+            ],
+            vec![
+                action(
+                    "unknown_a_to_b",
+                    "a",
+                    &[("authority", GateResult::Unknown)],
+                    &[("normal", "b")],
+                ),
+                action(
+                    "known_b_to_a",
+                    "b",
+                    &[("authority", GateResult::Pass)],
+                    &[("normal", "a")],
+                ),
+            ],
+            &["a"],
+            &["normal"],
+        );
+
+        let report = compute_robust_controlled_invariant_kernel(&problem).unwrap();
+        assert!(report.unresolved_states.contains("a"));
+        assert!(report.unresolved_states.contains("b"));
+        assert!(report.invariant_states.is_empty());
+        assert!(report.infeasible_states.is_empty());
+    }
+
+    #[test]
+    fn invariant_kernel_reports_fixed_point_iteration_counts() {
+        let problem = invariant_problem(
+            vec![invariant_state("safe", &[("freight", GateResult::Pass)])],
+            vec![action(
+                "hold",
+                "safe",
+                &[("authority", GateResult::Pass)],
+                &[("normal", "safe")],
+            )],
+            &["safe"],
+            &["normal"],
+        );
+
+        let report = compute_robust_controlled_invariant_kernel(&problem).unwrap();
+        assert_eq!(report.proven_fixed_point_iterations, 1);
+        assert_eq!(report.optimistic_fixed_point_iterations, 1);
+    }
+
+    #[test]
+    fn invariant_kernel_caps_return_bounded_without_partial_labels() {
+        let problem = invariant_problem(
+            vec![invariant_state("safe", &[("freight", GateResult::Pass)])],
+            vec![action(
+                "hold",
+                "safe",
+                &[("authority", GateResult::Pass)],
+                &[("normal", "safe")],
+            )],
+            &["safe"],
+            &["normal"],
+        );
+        let limits = InvariantKernelLimits {
+            max_states: 0,
+            max_actions: 10,
+            max_transition_branches: 10,
+        };
+
+        assert_eq!(
+            compute_robust_controlled_invariant_kernel_with_limits(&problem, limits).unwrap(),
+            InvariantKernelExecution::Bounded {
+                resource: "states".to_owned(),
+                observed: 1,
+                limit: 0,
+            }
+        );
     }
 
     #[test]
