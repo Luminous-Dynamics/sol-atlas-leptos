@@ -1,0 +1,126 @@
+{
+  "schema": "luminous.deep-time-water-reference-fixtures.v0.1",
+  "schema_version": "0.1.0",
+  "classification": "synthetic_hand_computable_reference_fixtures_not_physical_validation",
+  "units": {
+    "volume": "m3",
+    "energy": "kWh",
+    "interval": "one declared accounting interval"
+  },
+  "accounting_equation": "final_storage = initial_storage + natural_inflow + precipitation + return_flow - lockage - evaporation - seepage - leakage - consumptive_withdrawal - environmental_release",
+  "fixtures": [
+    {
+      "fixture_id": "WAT-001",
+      "title": "Balanced navigation-pool reference",
+      "inputs": {
+        "initial_storage_m3": 1000,
+        "natural_inflow_m3": 100,
+        "precipitation_m3": 20,
+        "return_flow_m3": 5,
+        "lockage_m3": 30,
+        "evaporation_m3": 15,
+        "seepage_m3": 10,
+        "leakage_m3": 5,
+        "consumptive_withdrawal_m3": 20,
+        "environmental_release_m3": 25
+      },
+      "expected": {
+        "final_storage_m3": 1020,
+        "accounting_residual_m3": 0,
+        "disposition": "pass"
+      },
+      "oracle_note": "Inputs sum to 1125 m3; outflows sum to 105 m3; final storage is 1020 m3."
+    },
+    {
+      "fixture_id": "WAT-002",
+      "title": "Drought storage-floor violation",
+      "inputs": {
+        "initial_storage_m3": 1000,
+        "natural_inflow_m3": 0,
+        "precipitation_m3": 0,
+        "return_flow_m3": 0,
+        "lockage_m3": 30,
+        "evaporation_m3": 15,
+        "seepage_m3": 10,
+        "leakage_m3": 5,
+        "consumptive_withdrawal_m3": 20,
+        "environmental_release_m3": 25,
+        "minimum_storage_m3": 900
+      },
+      "expected": {
+        "final_storage_m3": 895,
+        "accounting_residual_m3": 0,
+        "storage_shortfall_m3": 5,
+        "disposition": "blocked_storage_floor"
+      },
+      "oracle_note": "Arithmetic closes, but the terminal storage is 5 m3 below the declared minimum."
+    },
+    {
+      "fixture_id": "WAT-003",
+      "title": "Environmental-flow shortfall",
+      "inputs": {
+        "required_environmental_release_m3": 25,
+        "proposed_environmental_release_m3": 20
+      },
+      "expected": {
+        "shortfall_m3": 5,
+        "disposition": "reject_environmental_flow_violation"
+      },
+      "oracle_note": "Hard constraint; no throughput or cost score may compensate for the 5 m3 shortfall."
+    },
+    {
+      "fixture_id": "WAT-004",
+      "title": "Donor-basin transfer overdraw",
+      "inputs": {
+        "allocable_surplus_after_prior_rights_and_environmental_flows_m3": 20,
+        "requested_transfer_m3": 25
+      },
+      "expected": {
+        "overdraw_m3": 5,
+        "disposition": "reject_donor_basin_overdraw"
+      },
+      "oracle_note": "Transfer request exceeds declared donor-basin allocable surplus by 5 m3."
+    },
+    {
+      "fixture_id": "WAT-005",
+      "title": "Leakage limit exceeded",
+      "inputs": {
+        "measured_leakage_m3": 8,
+        "maximum_leakage_m3": 5
+      },
+      "expected": {
+        "excess_leakage_m3": 3,
+        "disposition": "reject_loss_limit_violation"
+      },
+      "oracle_note": "Leakage remains a separately itemized outflow and is compared with its explicit limit."
+    },
+    {
+      "fixture_id": "WAT-006",
+      "title": "Precipitation and evaporation signs",
+      "inputs": {
+        "precipitation_m3": 20,
+        "evaporation_m3": 15
+      },
+      "expected": {
+        "net_atmospheric_contribution_m3": 5,
+        "disposition": "pass"
+      },
+      "oracle_note": "Precipitation is positive inflow; evaporation is positive outflow in the accounting convention."
+    },
+    {
+      "fixture_id": "WAT-007",
+      "title": "Lockage water and energy",
+      "inputs": {
+        "lock_cycles": 4,
+        "water_per_cycle_m3": 12,
+        "energy_per_cycle_kwh": 1.5
+      },
+      "expected": {
+        "lockage_water_m3": 48,
+        "lockage_energy_kwh": 6,
+        "disposition": "pass"
+      },
+      "oracle_note": "Four cycles consume 48 m3 and 6 kWh under the declared per-cycle coefficients."
+    }
+  ]
+}
