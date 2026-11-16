@@ -44,8 +44,9 @@ impl std::fmt::Display for ScreenError {
             Self::InvalidDenominatorTolerance => formatter.write_str(
                 "LODF denominator tolerance must be finite and strictly between zero and one",
             ),
-            Self::InvalidFlowTolerance => formatter
-                .write_str("flow comparison tolerance must be finite and non-negative"),
+            Self::InvalidFlowTolerance => {
+                formatter.write_str("flow comparison tolerance must be finite and non-negative")
+            }
             Self::BaseCaseSolveFailed(reason) => {
                 write!(formatter, "base DC power flow failed: {reason}")
             }
@@ -53,9 +54,15 @@ impl std::fmt::Display for ScreenError {
             Self::SingularIslandMatrix {
                 island_index,
                 reason,
-            } => write!(formatter, "island {island_index} sensitivity matrix: {reason}"),
+            } => write!(
+                formatter,
+                "island {island_index} sensitivity matrix: {reason}"
+            ),
             Self::NonFiniteSensitivity { branch_index } => {
-                write!(formatter, "non-finite PTDF/LODF sensitivity at branch {branch_index}")
+                write!(
+                    formatter,
+                    "non-finite PTDF/LODF sensitivity at branch {branch_index}"
+                )
             }
         }
     }
@@ -81,7 +88,9 @@ impl ExactResolveReason {
 #[derive(Clone, Debug, PartialEq)]
 pub enum OutageDisposition {
     PredictedWithinDeclaredLimits,
-    PredictedOverload { max_overload_mw: f64 },
+    PredictedOverload {
+        max_overload_mw: f64,
+    },
     RequiresExactResolve {
         reason: ExactResolveReason,
         ptdf_self: f64,
@@ -412,10 +421,7 @@ struct LuFactor {
 }
 
 impl LuFactor {
-    fn factorize(
-        mut matrix: Vec<Vec<f64>>,
-        island_index: usize,
-    ) -> Result<Self, ScreenError> {
+    fn factorize(mut matrix: Vec<Vec<f64>>, island_index: usize) -> Result<Self, ScreenError> {
         let size = matrix.len();
         if matrix.iter().any(|row| row.len() != size) {
             return Err(ScreenError::SingularIslandMatrix {
@@ -729,8 +735,7 @@ pub fn screen_single_branch_outages(
 
         let outaged_susceptance = sensitivity.susceptance_mw_per_rad[outaged_branch_index]
             .expect("in-service branch has a susceptance");
-        let ptdf_self =
-            outaged_susceptance * (angle_delta[from_index] - angle_delta[to_index]);
+        let ptdf_self = outaged_susceptance * (angle_delta[from_index] - angle_delta[to_index]);
         let lodf_denominator = 1.0 - ptdf_self;
         if !ptdf_self.is_finite() || !lodf_denominator.is_finite() {
             return Err(ScreenError::NonFiniteSensitivity {
@@ -741,9 +746,7 @@ pub fn screen_single_branch_outages(
         let mut branch_flows = Vec::new();
         let disposition = if lodf_denominator <= screen_options.lodf_denominator_tolerance {
             exact_resolve_abstentions += 1;
-            let reason = if lodf_denominator.abs()
-                <= screen_options.lodf_denominator_tolerance
-            {
+            let reason = if lodf_denominator.abs() <= screen_options.lodf_denominator_tolerance {
                 ExactResolveReason::BridgeOrNearBridge
             } else {
                 ExactResolveReason::NonPositiveLodfDenominator
@@ -941,15 +944,16 @@ pub fn compare_screen_to_exact(
                 }
 
                 for predicted in &outage.branch_flows {
-                    let exact_flow = exact
-                        .branch_flows
-                        .get(predicted.branch_index)
-                        .ok_or_else(|| {
-                            ScreenError::InvalidTopology(format!(
-                                "exact solve omitted branch {}",
-                                predicted.branch_index
-                            ))
-                        })?;
+                    let exact_flow =
+                        exact
+                            .branch_flows
+                            .get(predicted.branch_index)
+                            .ok_or_else(|| {
+                                ScreenError::InvalidTopology(format!(
+                                    "exact solve omitted branch {}",
+                                    predicted.branch_index
+                                ))
+                            })?;
                     if exact_flow.from_bus != predicted.from_bus
                         || exact_flow.to_bus != predicted.to_bus
                         || exact_flow.in_service != predicted.in_service
@@ -961,8 +965,7 @@ pub fn compare_screen_to_exact(
                     }
                     report.flow_comparison_count += 1;
                     let error = (predicted.predicted_flow_mw - exact_flow.flow_from_to_mw).abs();
-                    report.max_abs_flow_error_mw =
-                        report.max_abs_flow_error_mw.max(error);
+                    report.max_abs_flow_error_mw = report.max_abs_flow_error_mw.max(error);
                     let overload_error =
                         (predicted.predicted_overload_mw - exact_flow.overload_mw).abs();
                     report.max_abs_overload_error_mw =
@@ -979,8 +982,7 @@ pub fn compare_screen_to_exact(
                         });
                     }
                     let predicted_safe =
-                        predicted.predicted_overload_mw
-                            <= solve_options.branch_limit_tolerance_mw;
+                        predicted.predicted_overload_mw <= solve_options.branch_limit_tolerance_mw;
                     let exact_unsafe =
                         exact_flow.overload_mw > solve_options.branch_limit_tolerance_mw;
                     if predicted_safe && exact_unsafe {
@@ -1065,19 +1067,19 @@ mod tests {
             ScreenOptions::default(),
         )
         .expect("triangle can be screened");
-        let validation = compare_screen_to_exact(
-            &network,
-            &screen,
-            SolveOptions::default(),
-            1.0e-7,
-        )
-        .expect("exact comparison succeeds");
+        let validation =
+            compare_screen_to_exact(&network, &screen, SolveOptions::default(), 1.0e-7)
+                .expect("exact comparison succeeds");
 
         assert!(screen.summary.coverage_complete);
         assert_eq!(screen.summary.expected_branch_outages, 3);
         assert_eq!(screen.summary.resolved_predictions, 3);
         assert_eq!(screen.summary.exact_resolve_abstentions, 0);
-        assert!(validation.passes_declared_checks(), "{}", validation.to_json());
+        assert!(
+            validation.passes_declared_checks(),
+            "{}",
+            validation.to_json()
+        );
         assert_eq!(validation.flow_comparison_count, 9);
         assert!(validation.max_abs_flow_error_mw <= 1.0e-7);
     }
@@ -1111,13 +1113,9 @@ mod tests {
                 ..
             }
         ));
-        let validation = compare_screen_to_exact(
-            &network,
-            &screen,
-            SolveOptions::default(),
-            1.0e-7,
-        )
-        .expect("unknown can be reconciled");
+        let validation =
+            compare_screen_to_exact(&network, &screen, SolveOptions::default(), 1.0e-7)
+                .expect("unknown can be reconciled");
         assert_eq!(validation.exact_resolve_abstentions, 1);
         assert_eq!(validation.exact_solver_unknowns, 1);
         assert_eq!(validation.abstentions_with_exact_solution, 0);
@@ -1131,7 +1129,11 @@ mod tests {
         network.branches[2].tap_ratio = 0.9;
         network.branches[1].phase_shift_degrees = -2.5;
         let validation = validate(&network);
-        assert!(validation.passes_declared_checks(), "{}", validation.to_json());
+        assert!(
+            validation.passes_declared_checks(),
+            "{}",
+            validation.to_json()
+        );
         assert!(validation.max_abs_flow_error_mw <= 1.0e-7);
     }
 
@@ -1158,14 +1160,20 @@ mod tests {
             dc_branch(4, 6, 0.2, 0.0, 0.0, None, true),
         ]);
         let validation = validate(&network);
-        assert!(validation.passes_declared_checks(), "{}", validation.to_json());
+        assert!(
+            validation.passes_declared_checks(),
+            "{}",
+            validation.to_json()
+        );
         assert_eq!(validation.expected_branch_outages, 6);
     }
 
     #[test]
     fn outages_on_deenergized_branches_are_not_in_the_contingency_panel() {
         let mut network = triangle();
-        network.branches.push(dc_branch(1, 3, 0.2, 0.0, 0.0, None, false));
+        network
+            .branches
+            .push(dc_branch(1, 3, 0.2, 0.0, 0.0, None, false));
         let screen = screen_single_branch_outages(
             &network,
             SolveOptions::default(),
@@ -1206,7 +1214,11 @@ mod tests {
         .unwrap();
         assert_eq!(first, second);
         assert!(first.to_json().starts_with("{"));
-        assert!(first.to_json().contains("\"schema_version\":\"dc-lodf-outage-screen.v0.1.0\""));
+        assert!(
+            first
+                .to_json()
+                .contains("\"schema_version\":\"dc-lodf-outage-screen.v0.1.0\"")
+        );
     }
 
     #[test]
