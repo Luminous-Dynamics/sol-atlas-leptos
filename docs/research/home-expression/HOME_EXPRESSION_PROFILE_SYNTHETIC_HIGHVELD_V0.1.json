@@ -58,7 +58,7 @@
     "catalog_revision": "HOME-STYLE-TAXONOMY-0.1.0",
     "entries": [
       {
-        "style_id": "HIGHLAND_STONE_TIMBER_CONTEMPORARY",
+        "style_id": "HIGHVELD_STONE_TIMBER_CONTEMPORARY",
         "display_name": "Highveld stone-and-timber contemporary",
         "role": "PRIMARY",
         "blend_weight_pct": 65,
