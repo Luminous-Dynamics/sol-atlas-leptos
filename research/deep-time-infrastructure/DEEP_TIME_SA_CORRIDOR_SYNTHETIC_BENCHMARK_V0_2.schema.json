@@ -1,0 +1,127 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://luminousdynamics.io/schemas/deep-time-sa-corridor-synthetic-benchmark-v0.2.schema.json",
+  "title": "Deep-Time South African Corridor Synthetic Benchmark v0.2",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "schema_version",
+    "register_id",
+    "classification",
+    "parent_issue",
+    "supersedes",
+    "cases"
+  ],
+  "properties": {
+    "schema": {
+      "const": "luminous.deep-time-sa-corridor-synthetic-benchmark.v0.2"
+    },
+    "schema_version": {
+      "const": "0.2.0"
+    },
+    "register_id": {
+      "const": "DEEP-TIME-SA-CORRIDOR-SYNTHETIC-BENCHMARK-V0.2"
+    },
+    "classification": {
+      "const": "synthetic_test_corpus_not_observed_corridor_performance"
+    },
+    "parent_issue": {
+      "type": "string",
+      "format": "uri"
+    },
+    "supersedes": {
+      "const": "DEEP-TIME-SA-CORRIDOR-SYNTHETIC-BENCHMARK-V0.1"
+    },
+    "cases": {
+      "type": "array",
+      "minItems": 30,
+      "maxItems": 30,
+      "items": {
+        "$ref": "#/$defs/case"
+      }
+    }
+  },
+  "$defs": {
+    "case": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "case_id",
+        "domain",
+        "title",
+        "classification",
+        "scenario",
+        "inputs",
+        "expected",
+        "oracle",
+        "claim_ceiling"
+      ],
+      "properties": {
+        "case_id": {
+          "type": "string",
+          "pattern": "^SA-COR-[0-9]{3}$"
+        },
+        "domain": {
+          "enum": [
+            "network_flow",
+            "topology_transition",
+            "common_cause",
+            "capacity_status",
+            "policy_milestone",
+            "hazard_correlation",
+            "digital_control",
+            "gateway_choice",
+            "water_rights",
+            "distributional_service",
+            "whole_life_cost_carbon",
+            "demand_data",
+            "port_statistics",
+            "network_statement",
+            "service_recovery",
+            "robust_policy",
+            "section_capacity",
+            "capacity_accounting",
+            "capacity_resolution",
+            "shared_section",
+            "train_operation",
+            "running_time",
+            "workbook_safety",
+            "network_scope",
+            "future_capacity"
+          ]
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1
+        },
+        "classification": {
+          "enum": [
+            "synthetic_exact_reference",
+            "specification_only"
+          ]
+        },
+        "scenario": {
+          "type": "string",
+          "minLength": 1
+        },
+        "inputs": {
+          "type": "object",
+          "minProperties": 1
+        },
+        "expected": {
+          "type": "object",
+          "minProperties": 1
+        },
+        "oracle": {
+          "type": "string",
+          "minLength": 1
+        },
+        "claim_ceiling": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    }
+  }
+}
