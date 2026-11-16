@@ -20,6 +20,7 @@ function run_matpower_dc(case_path, output_path, matpower_root, mp_opt_model_roo
     case_path = absolute_existing_file(case_path, 'case file');
     matpower_root = absolute_existing_directory(matpower_root, 'MATPOWER root');
     mp_opt_model_root = absolute_existing_directory(mp_opt_model_root, 'MP-Opt-Model root');
+    mips_root = absolute_existing_directory(mips_root, 'MIPS root');
     mp_test_root = absolute_existing_directory(mp_test_root, 'MP-Test root');
     output_path = absolute_output_path(output_path);
 
@@ -41,7 +42,7 @@ function run_matpower_dc(case_path, output_path, matpower_root, mp_opt_model_roo
     mpc = loadcase(case_path);
 
     % loadcase/feval_w_path temporarily adjusts the Octave search path while
-    % evaluating the case function. Re-admit only the three actual library
+    % evaluating the case function. Re-admit only the four actual library
     % roots after it returns; do not recursively add docs/examples.
     addpath(genpath(matpower_lib));
     addpath(genpath(mp_opt_model_lib));
