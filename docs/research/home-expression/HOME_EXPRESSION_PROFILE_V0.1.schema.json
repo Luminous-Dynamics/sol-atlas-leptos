@@ -10,6 +10,8 @@
     "profile_id",
     "maturity",
     "linked_brief_id",
+    "linked_brief_artifact_ref",
+    "linked_brief_content_sha",
     "linked_design_revision_ref",
     "linked_brief_constraint_ids",
     "expression_intent",
@@ -220,7 +222,8 @@
       "required": [
         "mode",
         "entries",
-        "catalog_revision"
+        "catalog_revision",
+        "catalog_content_sha"
       ],
       "properties": {
         "mode": {
@@ -347,6 +350,10 @@
               }
             }
           }
+        },
+        "catalog_content_sha": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{40}$"
         }
       }
     },
@@ -601,6 +608,15 @@
           ]
         }
       }
+    },
+    "linked_brief_artifact_ref": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 240
+    },
+    "linked_brief_content_sha": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{40}$"
     }
   }
 }
