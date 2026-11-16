@@ -17,6 +17,7 @@ pub mod energy_trading;
 pub mod geo;
 pub mod lod;
 pub mod model_robustness;
+pub mod monotone_invariant;
 pub mod mycelix_flows;
 // pub mod relativity_viz;
 pub mod geometry;
