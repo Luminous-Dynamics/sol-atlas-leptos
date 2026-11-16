@@ -1,0 +1,107 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://luminousdynamics.io/schemas/deep-time-service-continuity-case-register-v0.1.schema.json",
+  "title": "Deep-Time Service Continuity Case Register v0.1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "schema_version",
+    "register_id",
+    "classification",
+    "maturity",
+    "parent_issue",
+    "cases"
+  ],
+  "properties": {
+    "schema": {
+      "const": "luminous.deep-time-service-continuity-case-register.v0.1"
+    },
+    "schema_version": {
+      "const": "0.1.0"
+    },
+    "register_id": {
+      "const": "DEEP-TIME-SERVICE-CONTINUITY-CASE-REGISTER-V0.1"
+    },
+    "classification": {
+      "const": "synthetic_test_specification_not_physical_validation"
+    },
+    "maturity": {
+      "type": "string",
+      "minLength": 1
+    },
+    "parent_issue": {
+      "type": "string",
+      "format": "uri"
+    },
+    "cases": {
+      "type": "array",
+      "minItems": 40,
+      "maxItems": 40,
+      "items": {
+        "$ref": "#/$defs/case"
+      }
+    }
+  },
+  "$defs": {
+    "case": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "case_id",
+        "domain",
+        "title",
+        "purpose",
+        "oracle_class",
+        "expected_disposition",
+        "hard_invariant",
+        "fixture_status",
+        "claim_ceiling"
+      ],
+      "properties": {
+        "case_id": {
+          "type": "string",
+          "pattern": "^(DTS|WAT|NET|PATH|EVD)-[0-9]{3}$"
+        },
+        "domain": {
+          "enum": [
+            "scenario_semantics",
+            "water_ledger",
+            "service_network",
+            "adaptive_pathway",
+            "evidence_and_rights"
+          ]
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1
+        },
+        "purpose": {
+          "type": "string",
+          "minLength": 1
+        },
+        "oracle_class": {
+          "type": "string",
+          "minLength": 1
+        },
+        "expected_disposition": {
+          "type": "string",
+          "minLength": 1
+        },
+        "hard_invariant": {
+          "type": "string",
+          "minLength": 1
+        },
+        "fixture_status": {
+          "enum": [
+            "specification_only",
+            "hand_computable_reference"
+          ]
+        },
+        "claim_ceiling": {
+          "const": "Synthetic contract-level behavior only; no real-site, physical, legal or engineering feasibility claim."
+        }
+      }
+    }
+  }
+}

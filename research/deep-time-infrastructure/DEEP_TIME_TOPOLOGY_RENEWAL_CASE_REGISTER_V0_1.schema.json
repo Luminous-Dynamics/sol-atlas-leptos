@@ -1,0 +1,107 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://luminousdynamics.io/schemas/deep-time-topology-renewal-case-register-v0.1.schema.json",
+  "title": "Deep-Time Topology Renewal Case Register v0.1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "schema_version",
+    "register_id",
+    "classification",
+    "parent_issue",
+    "cases"
+  ],
+  "properties": {
+    "schema": {
+      "const": "luminous.deep-time-topology-renewal-case-register.v0.1"
+    },
+    "schema_version": {
+      "const": "0.1.0"
+    },
+    "register_id": {
+      "const": "DEEP-TIME-TOPOLOGY-RENEWAL-CASE-REGISTER-V0.1"
+    },
+    "classification": {
+      "const": "synthetic_transition_benchmark_specification_not_physical_validation"
+    },
+    "parent_issue": {
+      "type": "string",
+      "format": "uri"
+    },
+    "cases": {
+      "type": "array",
+      "minItems": 10,
+      "maxItems": 10,
+      "items": {
+        "$ref": "#/$defs/case"
+      }
+    }
+  },
+  "$defs": {
+    "case": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "case_id",
+        "domain",
+        "title",
+        "classification",
+        "scenario",
+        "inputs",
+        "expected",
+        "oracle",
+        "claim_ceiling"
+      ],
+      "properties": {
+        "case_id": {
+          "type": "string",
+          "pattern": "^TNR-[0-9]{3}$"
+        },
+        "domain": {
+          "enum": [
+            "service_transfer",
+            "waterway_to_multimodal",
+            "ecological_corridor",
+            "polycentric_settlement",
+            "common_cause",
+            "whole_life_carbon",
+            "adaptive_trigger",
+            "robust_policy",
+            "asset_lifecycle"
+          ]
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1
+        },
+        "classification": {
+          "enum": [
+            "synthetic_hand_computable_reference",
+            "specification_only"
+          ]
+        },
+        "scenario": {
+          "type": "string",
+          "minLength": 1
+        },
+        "inputs": {
+          "type": "object",
+          "minProperties": 1
+        },
+        "expected": {
+          "type": "object",
+          "minProperties": 1
+        },
+        "oracle": {
+          "type": "string",
+          "minLength": 1
+        },
+        "claim_ceiling": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    }
+  }
+}

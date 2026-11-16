@@ -1,0 +1,117 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://luminousdynamics.io/schemas/deep-time-model-robustness-exhaustive-oracle-panel-v0.1.schema.json",
+  "title": "Deep-Time Model Robustness Exhaustive Oracle Panel v0.1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "schema_version",
+    "register_id",
+    "parent_issue",
+    "classification",
+    "cases"
+  ],
+  "properties": {
+    "schema": {
+      "const": "luminous.deep-time-model-robustness-exhaustive-oracle-panel.v0.1"
+    },
+    "schema_version": {
+      "const": "0.1.0"
+    },
+    "register_id": {
+      "const": "DEEP-TIME-MODEL-ROBUSTNESS-EXHAUSTIVE-ORACLE-PANEL-V0.1"
+    },
+    "parent_issue": {
+      "type": "string",
+      "format": "uri"
+    },
+    "classification": {
+      "const": "finite_exhaustive_differential_software_oracle_not_physical_validation"
+    },
+    "cases": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 1,
+      "items": {
+        "$ref": "#/$defs/case"
+      }
+    }
+  },
+  "$defs": {
+    "case": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "case_id",
+        "operation",
+        "matrix_shape",
+        "exhaustive_case_count",
+        "candidate",
+        "independent_reference",
+        "compared_outputs",
+        "tie_break",
+        "expected",
+        "claim_ceiling"
+      ],
+      "properties": {
+        "case_id": {
+          "const": "DTR-ORACLE-001"
+        },
+        "operation": {
+          "const": "minimax_regret"
+        },
+        "matrix_shape": {
+          "type": "object",
+          "required": [
+            "strategies",
+            "models",
+            "utility_values"
+          ],
+          "properties": {
+            "strategies": {
+              "const": 3
+            },
+            "models": {
+              "const": 3
+            },
+            "utility_values": {
+              "const": [
+                0,
+                1,
+                2
+              ]
+            }
+          }
+        },
+        "exhaustive_case_count": {
+          "const": 19683
+        },
+        "candidate": {
+          "type": "string",
+          "minLength": 1
+        },
+        "independent_reference": {
+          "type": "string",
+          "minLength": 1
+        },
+        "compared_outputs": {
+          "type": "array",
+          "minItems": 4,
+          "items": {
+            "type": "string"
+          }
+        },
+        "tie_break": {
+          "type": "string"
+        },
+        "expected": {
+          "type": "string"
+        },
+        "claim_ceiling": {
+          "type": "string"
+        }
+      }
+    }
+  }
+}

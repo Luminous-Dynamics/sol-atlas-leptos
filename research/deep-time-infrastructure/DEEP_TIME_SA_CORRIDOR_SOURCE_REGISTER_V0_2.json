@@ -1,0 +1,305 @@
+{
+  "schema": "luminous.deep-time-sa-corridor-source-register.v0.2",
+  "schema_version": "0.2.0",
+  "register_id": "DEEP-TIME-SA-CORRIDOR-SOURCE-REGISTER-V0.2",
+  "as_of": "2026-11-16",
+  "classification": "public_source_catalogue_with_uningested_primary_annexures_not_project_feasibility",
+  "sources": [
+    {
+      "source_id": "SA-TNPA-PORT-STATS",
+      "source_type": "web_page",
+      "publisher": "Transnet National Ports Authority",
+      "title": "Transnet National Ports Authority Port Statistics",
+      "primary_url": "https://www.transnet.net/SubsiteRender.aspx?id=24332214",
+      "artifact_url": null,
+      "media_type": "text/html",
+      "publication_date": null,
+      "valid_period_start": "2024-07",
+      "valid_period_end": "2026-09",
+      "evidence_class": "official_operational_statistics_catalogue",
+      "currentness": "latest_visible_month_2026-09_at_snapshot",
+      "source_statement": "The official page states that cargo statistics are based on actual cargo dues invoiced and displays monthly rows through September 2026 with total cargo, TEUs and vessel arrivals. The displayed series' exact geographic aggregation and row definitions must be resolved before corridor use.",
+      "payload_state": "web_page_reviewed_artifact_capture_pending",
+      "permitted_use": [
+        "Identify official monthly/annual data files and their publisher-side definitions",
+        "Build a historical series only after exact artifacts, units and geographic coverage are pinned"
+      ],
+      "prohibited_inference": [
+        "Do not infer that the displayed figures are Durban-only without a source-backed port identifier",
+        "Do not infer design capacity from invoiced cargo or TEUs",
+        "Do not infer route-specific rail tonnage from port statistics"
+      ],
+      "required_qualification": [
+        "Capture exact linked artifacts and SHA-256 digests",
+        "Inspect file headers, units, definitions, revisions, coverage and whether values are port-level or aggregate",
+        "Reconcile monthly and annual totals; retain missing months and revisions"
+      ],
+      "status": "catalogued_not_ingested"
+    },
+    {
+      "source_id": "SA-TRANSNET-KZN-LOGISTICS-HUB",
+      "source_type": "web_page",
+      "publisher": "Transnet National Ports Authority",
+      "title": "KZN Logistics Hub Programme and Port of Durban Master Plan",
+      "primary_url": "https://www.transnet.net/SubsiteRender.aspx?id=5723346",
+      "artifact_url": null,
+      "media_type": "text/html",
+      "publication_date": null,
+      "valid_period_start": null,
+      "valid_period_end": null,
+      "evidence_class": "official_masterplan_and_capacity_statement",
+      "currentness": "planning_page_retrieval_snapshot",
+      "source_statement": "Transnet describes 33 projects across Durban and Richards Bay masterplans, estimated programme investment above R154 billion, Durban stated current container capacity 2.9m TEUs and planned future capacity 11.4m TEUs.",
+      "payload_state": "web_page_reviewed_artifact_capture_pending",
+      "permitted_use": [
+        "Record stated capacity/planning claims with status and retrieval date",
+        "Construct explicitly planned/future capacity scenarios"
+      ],
+      "prohibited_inference": [
+        "Do not treat planned capacity as commissioned or operating",
+        "Do not treat stated capacity as observed throughput or reliable daily service",
+        "Do not infer project completion, funding drawdown or permission from a masterplan page"
+      ],
+      "required_qualification": [
+        "Verify project-level scope, terminal boundary, TEU definitions and revision",
+        "Separate current rated, practical, operating, allocated and planned capacities",
+        "Check commissioning, funding, permit and service evidence separately"
+      ],
+      "status": "planning_claims_not_operational_baseline"
+    },
+    {
+      "source_id": "SA-MOT-OPEN-ACCESS-TOCS-2026",
+      "source_type": "web_page",
+      "publisher": "South African Department of Transport / Government of South Africa",
+      "title": "Minister of Transport keynote at Africa Rail Convention",
+      "primary_url": "https://www.gov.za/news/speeches/minister-barbara-creecy-africa-rail-convention-08-jul-2026",
+      "artifact_url": null,
+      "media_type": "text/html",
+      "publication_date": "2026-07-08",
+      "valid_period_start": null,
+      "valid_period_end": null,
+      "evidence_class": "official_policy_milestone_and_operator_plan",
+      "currentness": "dated_policy_statement",
+      "source_statement": "The speech reports approval of the first 11 private Train Operating Companies on 13 March 2026, expected operations from 1 April 2027 and planned combined freight volume up to 24 million tonnes per year.",
+      "payload_state": "web_page_reviewed",
+      "permitted_use": [
+        "Represent approval as a dated policy milestone",
+        "Represent expected start and 24 Mt/year as a plan in future scenario branches"
+      ],
+      "prohibited_inference": [
+        "Do not mark service operational before observed first-service evidence",
+        "Do not count the planned 24 Mt/year as current corridor capacity, allocated train paths or actual freight moved",
+        "Do not assume routes, commodities or operators have interchangeable capacity"
+      ],
+      "required_qualification": [
+        "Verify route/section train paths, allocation, contracts and actual service start",
+        "Capture operator, commodity, service period, payload and source revision"
+      ],
+      "status": "plan_not_observed_operations"
+    },
+    {
+      "source_id": "SA-COASTAL-ADAPTATION-RESPONSE-PLAN",
+      "source_type": "web_page",
+      "publisher": "Department of Forestry, Fisheries and the Environment / Government of South Africa",
+      "title": "South Africa Climate Change Coastal Adaptation Response Plan launch statement",
+      "primary_url": "https://www.gov.za/news/media-statements/minister-dion-george-launches-climate-change-coastal-adaptation-response-plan",
+      "artifact_url": null,
+      "media_type": "text/html",
+      "publication_date": "2025-06-05",
+      "valid_period_start": null,
+      "valid_period_end": null,
+      "evidence_class": "national_adaptation_policy",
+      "currentness": "policy_context",
+      "source_statement": "The launch statement describes five components—ecosystems, communities, infrastructure, livelihoods and governance—21 measurable response outcomes and more than 150 interventions.",
+      "payload_state": "web_page_reviewed_full_plan_pending",
+      "permitted_use": [
+        "Define coastal adaptation evidence domains and regional data-gap questions"
+      ],
+      "prohibited_inference": [
+        "Do not infer a Durban asset's exposure or a funded/completed local intervention from the national statement",
+        "Do not treat the launch statement as implementation evidence"
+      ],
+      "required_qualification": [
+        "Obtain the complete plan and relevant KwaZulu-Natal/municipal plans",
+        "Bind intervention to geography, responsible authority, status, budget and monitoring evidence"
+      ],
+      "status": "policy_context_not_local_implementation"
+    },
+    {
+      "source_id": "SA-NWRS3-2023",
+      "source_type": "pdf",
+      "publisher": "South African Department of Water and Sanitation",
+      "title": "National Water Resource Strategy Third Edition",
+      "primary_url": "https://www.dws.gov.za/documents/Other/Strategic%20Plan/2023/Approved%20National%20Water%20Resource%20Strategy%20Third%20Edition%20%28NWRS3%29%202023.pdf",
+      "artifact_url": null,
+      "media_type": "application/pdf",
+      "publication_date": "2023-03",
+      "valid_period_start": null,
+      "valid_period_end": null,
+      "evidence_class": "national_water_policy_and_ecological_obligation_context",
+      "currentness": "policy_reference",
+      "source_statement": "NWRS-3 sets national directions for sustainable/equitable water management, climate adaptation, water quality, ecological infrastructure and water-sector governance.",
+      "payload_state": "linked_pdf_not_locally_pinned",
+      "permitted_use": [
+        "Define mandatory questions for catchment evidence, rights, water quality, environmental flows and ecological infrastructure"
+      ],
+      "prohibited_inference": [
+        "Do not infer site-specific allocable surplus, Reserve determination, water-use authorization or transfer feasibility from the national strategy alone"
+      ],
+      "required_qualification": [
+        "Pin exact PDF bytes and digest",
+        "Obtain applicable catchment/Water Management Area data, current balances, Reserve/flow determinations, licensed uses and competent-authority evidence"
+      ],
+      "status": "policy_context_not_catchment_balance"
+    },
+    {
+      "source_id": "SA-FREIGHT-LOGISTICS-ROADMAP-NETWORK-STATEMENT",
+      "source_type": "web_page",
+      "publisher": "South African Department of Transport / Government of South Africa",
+      "title": "Roadmap for the Freight Logistics System: Final Network Statement and Rail Access Tariffs 2024/2025",
+      "primary_url": "https://www.gov.za/documents/notices/roadmap-freight-logistics-system-south-africa-final-network-statement-and-rail",
+      "artifact_url": null,
+      "media_type": "text/html",
+      "publication_date": "2024",
+      "valid_period_start": "2024/2025",
+      "valid_period_end": "2024/2025",
+      "evidence_class": "historical_network_statement_and_tariff_notice",
+      "currentness": "historical_prior_version",
+      "source_statement": "The government notice links a final network statement and rail access tariffs for 2024/25; TRIM subsequently published Network Statement Version 4 in September 2026.",
+      "payload_state": "historical_reference_only",
+      "permitted_use": [
+        "Retain for historical/policy provenance after exact attachment review"
+      ],
+      "prohibited_inference": [
+        "Do not use as the current 2026/27 capacity statement or tariff",
+        "Do not prefer it over TRIM Network Statement Version 4 or its current annexures"
+      ],
+      "required_qualification": [
+        "Retain exact old attachment revisions and digest if used for historical comparisons",
+        "Use current TRIM Network Statement Version 4 and applicable annexures for 2026/27"
+      ],
+      "status": "historical_not_current_authority"
+    },
+    {
+      "source_id": "SA-TRIM-NETWORK-STATEMENT-V4",
+      "source_type": "pdf",
+      "publisher": "Transnet Rail Infrastructure Manager",
+      "title": "Final Network Statement Version 4",
+      "primary_url": "https://www.transnet.net/TRIM-Networkstatement",
+      "artifact_url": "https://www.transnet.net/getFile.ashx?id=28645",
+      "media_type": "application/pdf",
+      "publication_date": "2026-09-18",
+      "valid_period_start": "2026/27",
+      "valid_period_end": null,
+      "evidence_class": "official_current_rail_network_statement",
+      "currentness": "latest_final_version_seen_2026-11-16",
+      "source_statement": "TRIM's official page announces Final Network Statement Version 4 on 18 September 2026 and links Annexures 15, 17, 33, 33a, 33b, 40, 41 and 43. The page also records an updated Annexure 33b capacity statement on 29 October 2026.",
+      "payload_state": "official_page_reviewed_pdf_linked_not_pinned",
+      "permitted_use": [
+        "Establish current network-statement version and annexure context",
+        "Bind the applicability/effective period of the 2026/27 network documents"
+      ],
+      "prohibited_inference": [
+        "Do not infer route capacity, actual operations or path availability from the landing page alone",
+        "Do not equate a published network statement with granted access or dispatched train service"
+      ],
+      "required_qualification": [
+        "Capture the exact Version 4 PDF and digest",
+        "Resolve publication/effective dates, annexure revisions and any later announcements",
+        "Bind each capacity/running-time record to the exact annexure version"
+      ],
+      "status": "current_reference_pdf_capture_pending"
+    },
+    {
+      "source_id": "SA-TRIM-ANNEXURE-33-NETWORK-REGISTER-2026-06-V03",
+      "source_type": "pdf",
+      "publisher": "Transnet Rail Infrastructure Manager",
+      "title": "Annexure 33 Network Register, June 2026 v0.3",
+      "primary_url": "https://www.transnet.net/TRIM-Networkstatement",
+      "artifact_url": "https://www.transnet.net/getFile.ashx?id=21073",
+      "media_type": "application/pdf",
+      "publication_date": "2026-06-26",
+      "valid_period_start": "2026/27 timetable",
+      "valid_period_end": null,
+      "evidence_class": "official_section_network_register_and_capacity_semantics",
+      "currentness": "applicable_to_network_statement_v4",
+      "source_statement": "The 8-page register is dated 26 June 2026 and valid under Network Statement Version 4 for the 2026/27 timetable. It identifies General Freight: Johannesburg to Durban as a route and states that Annexure 33b contains section-level theoretical capacity, practical capacity, capacity lost and reasons, operational capacity (daily/weekly), allocated capacity and spare capacity. It notes TRIM infrastructure scope excludes PRASA and other infrastructure managers.",
+      "payload_state": "pdf_text_and_page_images_reviewed_bytes_not_pinned",
+      "permitted_use": [
+        "Define route/section vocabulary, network scope, field semantics and validity context",
+        "Build a route/section crosswalk only with independently verified source identifiers"
+      ],
+      "prohibited_inference": [
+        "Do not treat TRIM scope as the entire South African rail system",
+        "Do not treat section names or map geometry as current capacity",
+        "Do not convert train paths to tonnes without train consist, payload, commodity and service assumptions"
+      ],
+      "required_qualification": [
+        "Pin exact PDF bytes and digest",
+        "Capture section IDs/endpoints and crosswalk provenance",
+        "Use the latest Annexure 33b workbook for current values and preserve unresolved/ambiguous section identity"
+      ],
+      "status": "context_reviewed_workbook_values_not_parsed"
+    },
+    {
+      "source_id": "SA-TRIM-ANNEXURE-33A-RUNNING-TIMES",
+      "source_type": "xlsx",
+      "publisher": "Transnet Rail Infrastructure Manager",
+      "title": "Annexure 33a Point-to-Point Running Times and Distances",
+      "primary_url": "https://www.transnet.net/TRIM-Networkstatement",
+      "artifact_url": "https://www.transnet.net/getFile.ashx?id=22633",
+      "media_type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      "publication_date": "2026-09-18",
+      "valid_period_start": "2026/27 timetable",
+      "valid_period_end": null,
+      "evidence_class": "official_timetable_running_time_and_distance_annexure",
+      "currentness": "network_statement_v4_annexure",
+      "source_statement": "TRIM describes Annexure 33a as station-to-station running times, distances and train frequencies/days for train paths. Annexure 33 warns these times include recovery/buffer time but remain conditional; theft/vandalism and rolling-stock failures may prevent the stated time being achieved.",
+      "payload_state": "direct_xlsx_link_identified_download_not_verified",
+      "permitted_use": [
+        "Use as a dated scheduled/path running-time and distance source after exact workbook capture and parse"
+      ],
+      "prohibited_inference": [
+        "Do not treat scheduled/buffered time as observed actual transit time or a guarantee",
+        "Do not infer route capacity solely from running times"
+      ],
+      "required_qualification": [
+        "Capture file bytes/digest and terms",
+        "Inspect workbook sheets, formulas/cached values, units, validity, route/section identities and frequency definitions",
+        "Keep scheduled running times separate from observed transit-time distributions"
+      ],
+      "status": "linked_workbook_not_captured_or_parsed"
+    },
+    {
+      "source_id": "SA-TRIM-ANNEXURE-33B-CAPACITY-2026-10-29",
+      "source_type": "xlsm",
+      "publisher": "Transnet Rail Infrastructure Manager",
+      "title": "Annexure 33b Capacity Statement, updated 29 October 2026",
+      "primary_url": "https://www.transnet.net/TRIM-Networkstatement",
+      "artifact_url": "https://www.transnet.net/getFile.ashx?id=32419",
+      "media_type": "application/vnd.ms-excel.sheet.macroenabled.12",
+      "publication_date": "2026-10-29",
+      "valid_period_start": "2026/27 timetable",
+      "valid_period_end": null,
+      "evidence_class": "official_section_level_capacity_statement",
+      "currentness": "latest_updated_annexure_33b_seen_2026-11-16",
+      "source_statement": "TRIM's official Network Statement page explicitly says Annexure 33b was updated on 29 October 2026. The workbook is the section-by-section capacity source for the Network Register's ten routes, including General Freight Johannesburg–Durban.",
+      "payload_state": "direct_xlsm_link_identified_download_failed_unsupported_content_type_not_parsed",
+      "permitted_use": [
+        "After rights/security review and exact capture, parse as the primary source for declared section train-path capacity fields"
+      ],
+      "prohibited_inference": [
+        "Do not treat linked file as locally acquired, checksum-verified or parsed",
+        "Do not execute embedded macros",
+        "Do not infer annual freight tonnes from train-path counts without separately sourced train/commodity/payload/service assumptions"
+      ],
+      "required_qualification": [
+        "Capture exact bytes and SHA-256, verify MIME/file signature and source version",
+        "Inspect macro project, hidden/very-hidden sheets, external links, formula cells and cached values without executing macros",
+        "Record sheet/cell/range lineage for each normalized value",
+        "Reconcile theoretical/practical/lost/operational/allocated/spare semantics with Annexure 33 and preserve any discrepancy"
+      ],
+      "status": "official_link_verified_workbook_not_captured_or_parsed"
+    }
+  ]
+}

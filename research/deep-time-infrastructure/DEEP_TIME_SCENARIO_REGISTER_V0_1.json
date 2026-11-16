@@ -1,0 +1,327 @@
+{
+  "schema": "luminous.deep-time-scenario-register.v0.1",
+  "schema_version": "0.1.0",
+  "register_id": "DEEP-TIME-SCENARIO-REGISTER-V0.1",
+  "classification": "source_catalogue_not_forecast",
+  "scenarios": [
+    {
+      "scenario_id": "DTS-ICE-001",
+      "name": "Complete melt of present-day land-ice inventory",
+      "scenario_family": "present_day_ice_inventory_equivalent",
+      "time_reference": {
+        "kind": "inventory_snapshot",
+        "label": "Present-day inventory described by source; hypothetical complete melt, not a dated forecast",
+        "start_year": null,
+        "end_year": null,
+        "age_ma": null
+      },
+      "mechanism": "Gravitationally grounded glaciers, ice caps and ice sheets add water to the ocean upon complete melting. Floating sea ice and floating ice shelves are not counted as equivalent grounded land-ice volume.",
+      "estimate": {
+        "quantity": "global_mean_sea_level_equivalent",
+        "lower_m": null,
+        "upper_m": null,
+        "nominal_m": 70,
+        "reference": "Approximate global mean sea-level equivalent of the present-day glacier and ice-cap inventory; not relative local sea level.",
+        "estimate_class": "approximate_equivalent",
+        "confidence": "Approximate; USGS notes uncertainty in total glacier and ice-cap volume."
+      },
+      "model_family": "Present-day cryosphere inventory water-equivalent estimate",
+      "source_references": [
+        {
+          "source_id": "USGS-GLACIER-MELT-FAQ",
+          "title": "How would sea level change if all glaciers melted?",
+          "url": "https://www.usgs.gov/faqs/how-would-sea-level-change-if-all-glaciers-melted",
+          "publication_year": 2012,
+          "source_role": "Approximate total land-ice sea-level equivalent."
+        },
+        {
+          "source_id": "COPERNICUS-ICE-SHEETS",
+          "title": "Climate indicators: Ice sheets",
+          "url": "https://climate.copernicus.eu/climate-indicators/ice-sheets",
+          "publication_year": 2025,
+          "source_role": "Greenland and Antarctic ice-sheet contributions."
+        }
+      ],
+      "limitations": [
+        "This is not a plausible near-term forecast or a +200 m mechanism.",
+        "A global mean equivalent does not give local shoreline change; gravitational, rotational, ocean-dynamic and vertical-land-motion fingerprints matter.",
+        "Do not add floating sea-ice area as if it were grounded land ice."
+      ],
+      "allowed_use": "climate_adaptation_context",
+      "claim_ceiling": "Approximate global water-equivalent reference only; no local inundation or timing claim."
+    },
+    {
+      "scenario_id": "DTS-IPCC-SSP585-2100",
+      "name": "IPCC AR6 very-high-emissions likely range to 2100",
+      "scenario_family": "anthropogenic_projection",
+      "time_reference": {
+        "kind": "projection_horizon",
+        "label": "2100; change relative to 1995–2014",
+        "start_year": 1995,
+        "end_year": 2100,
+        "age_ma": null
+      },
+      "mechanism": "Combined thermal expansion, land-ice mass loss and other assessed contributors under SSP5-8.5.",
+      "estimate": {
+        "quantity": "global_mean_sea_level_change",
+        "lower_m": 0.63,
+        "upper_m": 1.01,
+        "nominal_m": 0.77,
+        "reference": "Global mean sea level relative to 1995–2014.",
+        "estimate_class": "likely_range",
+        "confidence": "Medium confidence; 17th–83rd percentile likely range in IPCC AR6."
+      },
+      "model_family": "IPCC AR6 assessed global mean sea-level projection, SSP5-8.5",
+      "source_references": [
+        {
+          "source_id": "IPCC-AR6-WGI-SPM",
+          "title": "Climate Change 2021: The Physical Science Basis — Summary for Policymakers",
+          "url": "https://www.ipcc.ch/report/ar6/wg1/chapter/summary-for-policymakers/",
+          "publication_year": 2021,
+          "source_role": "Primary assessed projection."
+        }
+      ],
+      "limitations": [
+        "Global mean projection, not a site-level relative sea-level projection.",
+        "Likely range does not include all low-confidence ice-sheet instability outcomes.",
+        "Scenario is conditional on an emissions pathway, not a probability forecast that SSP5-8.5 will occur."
+      ],
+      "allowed_use": "climate_adaptation_context",
+      "claim_ceiling": "IPCC assessed global mean likely range; local adaptation requires regional sea-level and land-motion evidence."
+    },
+    {
+      "scenario_id": "DTS-IPCC-SSP585-2300",
+      "name": "IPCC AR6 low-likelihood high-impact sea-level outcome beyond 2300",
+      "scenario_family": "anthropogenic_projection",
+      "time_reference": {
+        "kind": "projection_horizon",
+        "label": "2300; figure convention relative to 1900",
+        "start_year": 1900,
+        "end_year": 2300,
+        "age_ma": null
+      },
+      "mechanism": "Very high greenhouse-gas emissions with deeply uncertain long-term ice-sheet instability and commitment processes.",
+      "estimate": {
+        "quantity": "global_mean_sea_level_change",
+        "lower_m": 15,
+        "upper_m": null,
+        "nominal_m": null,
+        "reference": "Global mean sea-level change relative to 1900; lower bound only, not a central estimate.",
+        "estimate_class": "low_likelihood_high_impact_lower_bound",
+        "confidence": "Low confidence; low-likelihood/high-impact outcome cannot be excluded."
+      },
+      "model_family": "IPCC AR6 low-confidence long-term high-impact sea-level outcome",
+      "source_references": [
+        {
+          "source_id": "IPCC-AR6-SYR-LR-FIG-3-4",
+          "title": "IPCC AR6 Synthesis Report Longer Report, Figure 3.4",
+          "url": "https://www.ipcc.ch/report/ar6/syr/figures/figure-3-4/",
+          "publication_year": 2023,
+          "source_role": "Long-term high-impact sea-level framing and figure reference."
+        }
+      ],
+      "limitations": [
+        "Not a likely range, median, or date-specific deterministic forecast.",
+        "Low confidence and deep uncertainty must remain visible.",
+        "Not a +200 m projection."
+      ],
+      "allowed_use": "climate_adaptation_context",
+      "claim_ceiling": "Low-confidence high-impact stress boundary only; not a central planning forecast."
+    },
+    {
+      "scenario_id": "DTS-CRETACEOUS-FLOODING-2022",
+      "name": "Phanerozoic paleogeographic-flooding reconstruction peak",
+      "scenario_family": "paleogeographic_reconstruction",
+      "time_reference": {
+        "kind": "geological_age",
+        "label": "Approximate peak near 80 Ma in the cited reconstruction",
+        "start_year": null,
+        "end_year": null,
+        "age_ma": 80
+      },
+      "mechanism": "Reconstructed geological sea-level highstand shaped by changing ocean-basin capacity, tectonic evolution and long-term Earth-system processes; not equivalent to melting modern ice.",
+      "estimate": {
+        "quantity": "global_eustatic_sea_level_change",
+        "lower_m": null,
+        "upper_m": null,
+        "nominal_m": 280,
+        "reference": "Approximate reconstructed peak relative to present-day level as reported by the study.",
+        "estimate_class": "published_reconstruction_peak_estimate",
+        "confidence": "Published reconstruction; highly method-dependent and contested by alternative long-term curves."
+      },
+      "model_family": "Global Phanerozoic sea levels from paleogeographic flooding maps (2022)",
+      "source_references": [
+        {
+          "source_id": "MILLER-2022-GR-280M",
+          "title": "Global Phanerozoic sea levels from paleogeographic flooding maps",
+          "url": "https://doi.org/10.1016/j.gr.2022.05.011",
+          "publication_year": 2022,
+          "source_role": "Paleogeographic flooding reconstruction."
+        }
+      ],
+      "limitations": [
+        "Model output depends on palaeogeographic reconstructions, paleotopography and the flooding method.",
+        "A modern digital elevation model raised by 280 m is not a valid reproduction of the past geography.",
+        "Do not treat this single curve as consensus or independent of its underlying reconstructions."
+      ],
+      "allowed_use": "paleogeographic_comparison",
+      "claim_ceiling": "One published reconstruction hypothesis; use original palaeogeography and uncertainty, not a modern bathtub map."
+    },
+    {
+      "scenario_id": "DTS-CRETACEOUS-STRONTIUM-2022",
+      "name": "Long-term Phanerozoic strontium-isotope and glaciation reconstruction",
+      "scenario_family": "paleogeographic_reconstruction",
+      "time_reference": {
+        "kind": "geological_age",
+        "label": "Cretaceous highstands; study reports peak estimates including approximately 117 Ma and 91 Ma",
+        "start_year": null,
+        "end_year": null,
+        "age_ma": 117
+      },
+      "mechanism": "Tectono-glacio-eustatic reconstruction combining strontium-isotope variation and estimates of continental glaciation.",
+      "estimate": {
+        "quantity": "global_eustatic_sea_level_change",
+        "lower_m": 174,
+        "upper_m": 217,
+        "nominal_m": null,
+        "reference": "Reported Cretaceous highstand estimates relative to present-day level in the study, including peak values at different geological ages.",
+        "estimate_class": "published_reconstruction_range",
+        "confidence": "Published reconstruction range; not a statistical confidence interval shared by all studies."
+      },
+      "model_family": "Long-term Phanerozoic global mean sea level from strontium isotope variations and continental-glaciation estimates (2022)",
+      "source_references": [
+        {
+          "source_id": "MILLER-2022-GR-174-217M",
+          "title": "Long-term Phanerozoic global mean sea level: Insights from strontium isotope variations and estimates of continental glaciation",
+          "url": "https://doi.org/10.1016/j.gr.2022.07.014",
+          "publication_year": 2022,
+          "source_role": "Tectono-glacio-eustatic reconstruction."
+        }
+      ],
+      "limitations": [
+        "The study reports Cretaceous highstands at different ages; do not label the entire 174–217 m range as Late Cretaceous.",
+        "Range is a study-reported reconstruction range, not a statistical confidence interval shared by all studies.",
+        "Tectonic, basin-volume and glaciation assumptions require independent review."
+      ],
+      "allowed_use": "paleogeographic_comparison",
+      "claim_ceiling": "Published reconstruction range only; retain source model and age semantics."
+    },
+    {
+      "scenario_id": "DTS-CRETACEOUS-REVIEW-2026",
+      "name": "Alternative Cenozoic sea-level reconstruction review",
+      "scenario_family": "paleogeographic_reconstruction",
+      "time_reference": {
+        "kind": "geological_age",
+        "label": "Late Cretaceous peak as reconstructed by the 2026 review",
+        "start_year": null,
+        "end_year": null,
+        "age_ma": null
+      },
+      "mechanism": "Alternative sequence-stratigraphic and sedimentary-facies reconstruction challenging higher Late Cretaceous highstand estimates.",
+      "estimate": {
+        "quantity": "global_eustatic_sea_level_change",
+        "lower_m": 40,
+        "upper_m": 55,
+        "nominal_m": null,
+        "reference": "Reported Late Cretaceous peak relative to present-day level in the 2026 review.",
+        "estimate_class": "published_reconstruction_range",
+        "confidence": "Recent published alternative reconstruction; should be evaluated against primary stratigraphic evidence and other model families."
+      },
+      "model_family": "Persistent Cenozoic sea-level rise: historical evidence from sequence-stratigraphic and sedimentary facies studies in continental margin basins (2026)",
+      "source_references": [
+        {
+          "source_id": "EARTH-SCI-REV-2026-105470",
+          "title": "Persistent Cenozoic sea-level rise: Historical evidence from sequence-stratigraphic and sedimentary facies studies in continental margin basins",
+          "url": "https://doi.org/10.1016/j.earscirev.2026.105470",
+          "publication_year": 2026,
+          "source_role": "Alternative literature review and reconstruction."
+        }
+      ],
+      "limitations": [
+        "This is an alternative reconstruction, not an agreed replacement for the 2022 curves.",
+        "The estimate should be rechecked against the full paper, data and subsequent critique before quantitative use.",
+        "Do not average conflicting reconstructions without a defensible model-combination method."
+      ],
+      "allowed_use": "paleogeographic_comparison",
+      "claim_ceiling": "Competing published reconstruction hypothesis; no consensus claim."
+    },
+    {
+      "scenario_id": "DTS-SYNTHETIC-PLUS-200M",
+      "name": "Modern-terrain +200 m synthetic inundation stress test",
+      "scenario_family": "synthetic_stress_test",
+      "time_reference": {
+        "kind": "synthetic_offset",
+        "label": "No geological time; imposed water-surface offset over a declared modern terrain model",
+        "start_year": null,
+        "end_year": null,
+        "age_ma": null
+      },
+      "mechanism": "An artificial uniform +200 m surface offset used to test data pipelines, network topology failure, and adaptation search behavior. No physical Earth process is asserted.",
+      "estimate": {
+        "quantity": "modern_terrain_surface_offset",
+        "lower_m": null,
+        "upper_m": null,
+        "nominal_m": 200,
+        "reference": "Offset relative to the chosen modern terrain model vertical datum; not a global eustatic or local relative sea-level prediction.",
+        "estimate_class": "synthetic_offset",
+        "confidence": "Deterministic user-defined stress parameter; not an empirical estimate."
+      },
+      "model_family": "Synthetic modern-surface offset; terrain and vertical datum must be pinned by each run",
+      "source_references": [
+        {
+          "source_id": "SYNTHETIC-POLICY-001",
+          "title": "DEEP-TIME-INFRASTRUCTURE-001 scenario policy",
+          "url": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/886",
+          "publication_year": 2026,
+          "source_role": "Defines the synthetic-only claim ceiling and separation from physical projections."
+        }
+      ],
+      "limitations": [
+        "Not a sea-level forecast, climate scenario, ice-melt outcome or Cretaceous paleogeography.",
+        "A modern bathtub overlay omits tectonics, dynamic topography, ocean-basin change, erosion, sedimentation, isostasy and evolving drainage.",
+        "Only supports software robustness and explicitly synthetic stress testing."
+      ],
+      "allowed_use": "synthetic_robustness_test",
+      "claim_ceiling": "Synthetic stress test only; must be visibly labelled and must not be presented as a physical Earth forecast."
+    },
+    {
+      "scenario_id": "DTS-NEXT-SUPERCONTINENT-200-250MA",
+      "name": "Next-supercontinent alternative future climate boundary conditions",
+      "scenario_family": "future_earth_boundary_condition",
+      "time_reference": {
+        "kind": "future_boundary_condition",
+        "label": "Two alternative Earth configurations modelled 200 and 250 million years into the future",
+        "start_year": null,
+        "end_year": null,
+        "age_ma": null
+      },
+      "mechanism": "Alternative plate-tectonic configurations, continental topography, ocean gateways, solar insolation and rotation-rate assumptions create materially different future climate boundary conditions.",
+      "estimate": {
+        "quantity": "not_applicable",
+        "lower_m": null,
+        "upper_m": null,
+        "nominal_m": null,
+        "reference": "No sea-level offset is specified by this scenario record.",
+        "estimate_class": "no_sea_level_estimate",
+        "confidence": "Comparative Earth-system modelling; not a prediction of city locations, coastlines or future sea-level height."
+      },
+      "model_family": "The Climates of Earth's Next Supercontinent: Effects of Tectonics, Rotation Rate, and Insolation (2021)",
+      "source_references": [
+        {
+          "source_id": "WAY-2021-NEXT-SUPERCONTINENT",
+          "title": "The Climates of Earth's Next Supercontinent: Effects of Tectonics, Rotation Rate, and Insolation",
+          "url": "https://doi.org/10.1029/2021GC009983",
+          "publication_year": 2021,
+          "source_role": "Two alternative 200 and 250 Ma climate boundary-condition experiments."
+        }
+      ],
+      "limitations": [
+        "The study compares alternative boundary conditions, not a precise prediction of one future supercontinent.",
+        "No city, canal alignment or engineering asset can be projected with present-day precision at this horizon.",
+        "Solar, tectonic, atmospheric and ocean assumptions must be revisited for any new model run."
+      ],
+      "allowed_use": "future_earth_boundary_condition_comparison",
+      "claim_ceiling": "Comparative boundary-condition research only; no local infrastructure or sea-level forecast."
+    }
+  ]
+}

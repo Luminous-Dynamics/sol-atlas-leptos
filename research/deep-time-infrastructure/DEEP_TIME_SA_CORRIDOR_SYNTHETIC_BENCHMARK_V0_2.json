@@ -1,0 +1,776 @@
+{
+  "schema": "luminous.deep-time-sa-corridor-synthetic-benchmark.v0.2",
+  "schema_version": "0.2.0",
+  "register_id": "DEEP-TIME-SA-CORRIDOR-SYNTHETIC-BENCHMARK-V0.2",
+  "classification": "synthetic_test_corpus_not_observed_corridor_performance",
+  "parent_issue": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/895",
+  "supersedes": "DEEP-TIME-SA-CORRIDOR-SYNTHETIC-BENCHMARK-V0.1",
+  "cases": [
+    {
+      "case_id": "SA-COR-001",
+      "domain": "network_flow",
+      "title": "Single-route bottleneck",
+      "classification": "synthetic_exact_reference",
+      "scenario": "Three serial edges bound throughput.",
+      "inputs": {
+        "edges": [
+          [
+            "port",
+            "rail",
+            100
+          ],
+          [
+            "rail",
+            "dry_port",
+            75
+          ],
+          [
+            "dry_port",
+            "gauteng",
+            60
+          ]
+        ],
+        "demand": 90
+      },
+      "expected": {
+        "maximum_deliverable": 60,
+        "unmet_demand": 30,
+        "minimum_cut_capacity": 60,
+        "disposition": "exact"
+      },
+      "oracle": "Single path throughput is the minimum edge capacity; unmet demand is demand minus delivered.",
+      "claim_ceiling": "Synthetic corridor semantics only; no observed South African route capacity, project feasibility or engineering result."
+    },
+    {
+      "case_id": "SA-COR-002",
+      "domain": "network_flow",
+      "title": "Two alternative rail/road paths",
+      "classification": "synthetic_exact_reference",
+      "scenario": "Two edge-disjoint paths connect source and destination.",
+      "inputs": {
+        "paths": [
+          {
+            "id": "rail",
+            "capacity": 20
+          },
+          {
+            "id": "road",
+            "capacity": 25
+          }
+        ],
+        "demand": 60
+      },
+      "expected": {
+        "maximum_deliverable": 45,
+        "unmet_demand": 15,
+        "edge_disjoint_paths": 2,
+        "disposition": "exact"
+      },
+      "oracle": "Parallel independent path capacities sum to 45; demand caps delivered flow.",
+      "claim_ceiling": "Synthetic corridor semantics only; no observed South African route capacity, project feasibility or engineering result."
+    },
+    {
+      "case_id": "SA-COR-003",
+      "domain": "network_flow",
+      "title": "Multimodal chain bottleneck",
+      "classification": "synthetic_exact_reference",
+      "scenario": "A cargo chain is limited by its least-capacity stage.",
+      "inputs": {
+        "demand": 100,
+        "port_handling": 90,
+        "rail_capacity": 70,
+        "dry_port_handling": 80,
+        "road_drayage": 60
+      },
+      "expected": {
+        "maximum_deliverable": 60,
+        "unmet_demand": 40,
+        "bottleneck": "road_drayage",
+        "disposition": "exact"
+      },
+      "oracle": "End-to-end chain throughput is the minimum of demand and each stage.",
+      "claim_ceiling": "Synthetic corridor semantics only; no observed South African route capacity, project feasibility or engineering result."
+    },
+    {
+      "case_id": "SA-COR-004",
+      "domain": "topology_transition",
+      "title": "Staged rail commissioning with overlap",
+      "classification": "synthetic_exact_reference",
+      "scenario": "New rail capacity is commissioned before old capacity is retired.",
+      "inputs": {
+        "periods": [
+          {
+            "period": 0,
+            "old_capacity": 80,
+            "new_capacity": 0,
+            "demand": 80
+          },
+          {
+            "period": 1,
+            "old_capacity": 60,
+            "new_capacity": 20,
+            "demand": 80
+          },
+          {
+            "period": 2,
+            "old_capacity": 0,
+            "new_capacity": 80,
+            "demand": 80
+          }
+        ]
+      },
+      "expected": {
+        "delivered": [
+          80,
+          80,
+          80
+        ],
+        "unmet": [
+          0,
+          0,
+          0
+        ],
+        "total_unmet": 0,
+        "disposition": "exact_zero_gap"
+      },
+      "oracle": "Per period delivered is min(demand, old capacity plus new capacity).",
+      "claim_ceiling": "Synthetic corridor semantics only; no observed South African route capacity, project feasibility or engineering result."
+    },
+    {
+      "case_id": "SA-COR-005",
+      "domain": "topology_transition",
+      "title": "Premature retirement before new capacity",
+      "classification": "synthetic_exact_reference",
+      "scenario": "Old service retires before planned new capacity is actually commissioned.",
+      "inputs": {
+        "periods": [
+          {
+            "period": 0,
+            "old_capacity": 80,
+            "new_capacity": 0,
+            "demand": 80
+          },
+          {
+            "period": 1,
+            "old_capacity": 0,
+            "new_capacity": 0,
+            "demand": 80
+          },
+          {
+            "period": 2,
+            "old_capacity": 0,
+            "new_capacity": 80,
+            "demand": 80
+          }
+        ]
+      },
+      "expected": {
+        "delivered": [
+          80,
+          0,
+          80
+        ],
+        "unmet": [
+          0,
+          80,
+          0
+        ],
+        "total_unmet": 80,
+        "disposition": "reject_transition_gap"
+      },
+      "oracle": "The service gap is one period with unmet demand 80.",
+      "claim_ceiling": "Synthetic corridor semantics only; no observed South African route capacity, project feasibility or engineering result."
+    },
+    {
+      "case_id": "SA-COR-006",
+      "domain": "common_cause",
+      "title": "Two nominal paths share a power substation",
+      "classification": "synthetic_exact_reference",
+      "scenario": "Separate route geometries both require one common power/control node.",
+      "inputs": {
+        "paths": [
+          {
+            "id": "rail",
+            "capacity": 50,
+            "requires": [
+              "SUB-1"
+            ]
+          },
+          {
+            "id": "road_terminal",
+            "capacity": 40,
+            "requires": [
+              "SUB-1"
+            ]
+          }
+        ],
+        "event": {
+          "failed_dependency": "SUB-1"
+        }
+      },
+      "expected": {
+        "available_paths": 0,
+        "deliverable_capacity": 0,
+        "disposition": "reject_false_redundancy"
+      },
+      "oracle": "Failure of the required common dependency disables both nominal paths.",
+      "claim_ceiling": "Synthetic corridor semantics only; no observed South African route capacity, project feasibility or engineering result."
+    },
+    {
+      "case_id": "SA-COR-007",
+      "domain": "network_flow",
+      "title": "Single-path outage with surviving alternate path",
+      "classification": "synthetic_exact_reference",
+      "scenario": "One of two physically independent paths becomes unavailable.",
+      "inputs": {
+        "paths": [
+          {
+            "id": "rail",
+            "capacity": 60
+          },
+          {
+            "id": "road",
+            "capacity": 40
+          }
+        ],
+        "demand": 80,
+        "event": {
+          "failed_path": "rail"
+        }
+      },
+      "expected": {
+        "delivered": 40,
+        "unmet": 40,
+        "disposition": "exact"
+      },
+      "oracle": "Only the surviving road path contributes capacity.",
+      "claim_ceiling": "Synthetic corridor semantics only; no observed South African route capacity, project feasibility or engineering result."
+    },
+    {
+      "case_id": "SA-COR-008",
+      "domain": "capacity_status",
+      "title": "Planned terminal capacity not operating capacity",
+      "classification": "specification_only",
+      "scenario": "A masterplan capacity is not evidenced as commissioned.",
+      "inputs": {
+        "required_fields": [
+          "capacity_value",
+          "capacity_type",
+          "as_of",
+          "commissioning_status",
+          "terminal_id",
+          "source_revision"
+        ]
+      },
+      "expected": {
+        "disposition": "block_operating_capacity_claim_if_uncommissioned_or_unknown"
+      },
+      "oracle": "Capacity class and commissioning status are mandatory; planned capacity remains a future scenario.",
+      "claim_ceiling": "Synthetic corridor semantics only; no observed South African route capacity, project feasibility or engineering result."
+    },
+    {
+      "case_id": "SA-COR-009",
+      "domain": "policy_milestone",
+      "title": "Announced future train operator start date",
+      "classification": "specification_only",
+      "scenario": "A future service start is announced but observed operation evidence is absent.",
+      "inputs": {
+        "as_of": "2026-11-16",
+        "expected_start": "2027-04-01",
+        "observed_first_service_receipt": null
+      },
+      "expected": {
+        "current_operational_capacity_credit": 0,
+        "disposition": "do_not_promote_plan_to_observed_service"
+      },
+      "oracle": "A future plan does not establish present operation.",
+      "claim_ceiling": "Synthetic corridor semantics only; no observed South African route capacity, project feasibility or engineering result."
+    },
+    {
+      "case_id": "SA-COR-010",
+      "domain": "hazard_correlation",
+      "title": "Road and rail share a flood footprint",
+      "classification": "specification_only",
+      "scenario": "Two route geometries intersect one event footprint.",
+      "inputs": {
+        "routes": [
+          "road",
+          "rail"
+        ],
+        "shared_hazard_id": "FLOOD-01",
+        "event_validity": "scenario_time_window"
+      },
+      "expected": {
+        "disposition": "report_correlated_route_loss_and_recompute_service"
+      },
+      "oracle": "Spatially shared exposure is a common hazard relation, not independent event draws.",
+      "claim_ceiling": "Synthetic corridor semantics only; no observed South African route capacity, project feasibility or engineering result."
+    },
+    {
+      "case_id": "SA-COR-011",
+      "domain": "digital_control",
+      "title": "Separate terminals share control plane",
+      "classification": "specification_only",
+      "scenario": "Multiple terminals rely on a common control/telemetry dependency.",
+      "inputs": {
+        "terminals": [
+          "T1",
+          "T2"
+        ],
+        "shared_control_plane": "CTRL-1"
+      },
+      "expected": {
+        "disposition": "show_common_control_failure_domain"
+      },
+      "oracle": "Nominal terminal count does not imply independent digital control.",
+      "claim_ceiling": "Synthetic corridor semantics only; no observed South African route capacity, project feasibility or engineering result."
+    },
+    {
+      "case_id": "SA-COR-012",
+      "domain": "gateway_choice",
+      "title": "Alternative gateway requires cargo compatibility",
+      "classification": "specification_only",
+      "scenario": "A candidate gateway is not credited until key capabilities are evidenced.",
+      "inputs": {
+        "required": [
+          "cargo_compatibility",
+          "terminal_capacity",
+          "route_access",
+          "operating_status",
+          "authority",
+          "handling_constraints"
+        ]
+      },
+      "expected": {
+        "disposition": "block_gateway_credit_if_required_field_unknown"
+      },
+      "oracle": "A different port name is not proof of a usable alternative gateway.",
+      "claim_ceiling": "Synthetic corridor semantics only; no observed South African route capacity, project feasibility or engineering result."
+    },
+    {
+      "case_id": "SA-COR-013",
+      "domain": "water_rights",
+      "title": "Canal or transfer unsupported without catchment evidence",
+      "classification": "specification_only",
+      "scenario": "A conceptual canal lacks donor-basin, ecological, geotechnical and rights evidence.",
+      "inputs": {
+        "missing": [
+          "catchment_water_balance",
+          "environmental_reserve",
+          "water_use_authorisation",
+          "geotechnical_profile",
+          "sediment",
+          "ecology",
+          "community_process"
+        ]
+      },
+      "expected": {
+        "disposition": "abstain_no_real_site_eligibility"
+      },
+      "oracle": "Unknown water, rights or ecology evidence cannot be imputed as positive feasibility.",
+      "claim_ceiling": "Synthetic corridor semantics only; no observed South African route capacity, project feasibility or engineering result."
+    },
+    {
+      "case_id": "SA-COR-014",
+      "domain": "distributional_service",
+      "title": "Aggregate performance hides group service-floor breach",
+      "classification": "specification_only",
+      "scenario": "Aggregate tonnage improves but one beneficiary group falls below its service floor.",
+      "inputs": {
+        "groups": [
+          "metro",
+          "rural_hinterland"
+        ],
+        "requires_group_metrics": true
+      },
+      "expected": {
+        "disposition": "reject_or_report_group_floor_breach"
+      },
+      "oracle": "Evaluate group-by-service outcomes, not only regional freight totals.",
+      "claim_ceiling": "Synthetic corridor semantics only; no observed South African route capacity, project feasibility or engineering result."
+    },
+    {
+      "case_id": "SA-COR-015",
+      "domain": "whole_life_cost_carbon",
+      "title": "Mode comparison needs complete lifecycle ledgers",
+      "classification": "specification_only",
+      "scenario": "Road, rail and multimodal alternatives have different lifecycle and externality profiles.",
+      "inputs": {
+        "required_ledgers": [
+          "capital",
+          "operations",
+          "maintenance",
+          "energy",
+          "whole_life_carbon",
+          "safety",
+          "air_pollution",
+          "accessibility",
+          "distribution",
+          "end_of_life"
+        ]
+      },
+      "expected": {
+        "disposition": "no_scalar_score_until_boundaries_and_units_are_complete"
+      },
+      "oracle": "Private, fiscal and social cost stay separate; rights and safety floors cannot be traded away.",
+      "claim_ceiling": "Synthetic corridor semantics only; no observed South African route capacity, project feasibility or engineering result."
+    },
+    {
+      "case_id": "SA-COR-016",
+      "domain": "demand_data",
+      "title": "OD demand matrix missing or inconsistent",
+      "classification": "specification_only",
+      "scenario": "Origin-destination volumes are incomplete or cover mismatched periods/commodities.",
+      "inputs": {
+        "required": [
+          "origin",
+          "destination",
+          "commodity",
+          "unit",
+          "period",
+          "source_revision",
+          "coverage",
+          "missingness"
+        ]
+      },
+      "expected": {
+        "disposition": "incomplete_or_bounded_not_full_demand_claim"
+      },
+      "oracle": "Do not backfill missing freight demand with assumed totals.",
+      "claim_ceiling": "Synthetic corridor semantics only; no observed South African route capacity, project feasibility or engineering result."
+    },
+    {
+      "case_id": "SA-COR-017",
+      "domain": "port_statistics",
+      "title": "Cargo-dues series differs from design capacity",
+      "classification": "specification_only",
+      "scenario": "Monthly invoiced cargo statistics are not equivalent to design capacity or rail throughput.",
+      "inputs": {
+        "metrics": [
+          "invoiced_cargo",
+          "observed_throughput",
+          "rated_capacity",
+          "planned_capacity"
+        ],
+        "requires_distinct_semantics": true
+      },
+      "expected": {
+        "disposition": "reject_metric_conflation"
+      },
+      "oracle": "Metric identity, unit, period and definition stay attached to every value.",
+      "claim_ceiling": "Synthetic corridor semantics only; no observed South African route capacity, project feasibility or engineering result."
+    },
+    {
+      "case_id": "SA-COR-018",
+      "domain": "network_statement",
+      "title": "Superseded rail network statement",
+      "classification": "specification_only",
+      "scenario": "A 2024/25 statement is used for a 2026/27 access claim without checking later revisions.",
+      "inputs": {
+        "source_period": "2024/2025",
+        "assessment_period": "2026/2027",
+        "latest_revision_verified": false
+      },
+      "expected": {
+        "disposition": "block_current_route_capacity_claim"
+      },
+      "oracle": "Dated reference data cannot silently become current access conditions.",
+      "claim_ceiling": "Synthetic corridor semantics only; no observed South African route capacity, project feasibility or engineering result."
+    },
+    {
+      "case_id": "SA-COR-019",
+      "domain": "service_recovery",
+      "title": "Compound port, rail and power disruption",
+      "classification": "specification_only",
+      "scenario": "Overlapping outages require shared crews and prerequisite restoration.",
+      "inputs": {
+        "events": [
+          "PORT-OUTAGE",
+          "RAIL-OUTAGE",
+          "POWER-CONTROL-OUTAGE"
+        ],
+        "requires_event_sequence": true,
+        "shared_recovery_resources": true
+      },
+      "expected": {
+        "disposition": "evaluate_time_ordered_service_cascade_and_recovery"
+      },
+      "oracle": "Do not add independent outage effects or assume shared-resource repairs can run in parallel.",
+      "claim_ceiling": "Synthetic corridor semantics only; no observed South African route capacity, project feasibility or engineering result."
+    },
+    {
+      "case_id": "SA-COR-020",
+      "domain": "robust_policy",
+      "title": "No-probability robust corridor choice",
+      "classification": "synthetic_exact_reference",
+      "scenario": "Select a portfolio across three admissible futures without invented probabilities.",
+      "inputs": {
+        "scenarios": [
+          "normal",
+          "rail_disruption",
+          "port_disruption"
+        ],
+        "utilities": {
+          "road_dominant": [
+            70,
+            60,
+            55
+          ],
+          "rail_first": [
+            85,
+            25,
+            40
+          ],
+          "staged_multimodal": [
+            78,
+            72,
+            68
+          ]
+        }
+      },
+      "expected": {
+        "best_by_scenario": [
+          85,
+          72,
+          68
+        ],
+        "max_regret": {
+          "road_dominant": 15,
+          "rail_first": 47,
+          "staged_multimodal": 7
+        },
+        "selected": "staged_multimodal",
+        "minimum_max_regret": 7,
+        "disposition": "exact_minimax_regret"
+      },
+      "oracle": "Compute scenario-wise regret and minimize its maximum; no probabilities are used.",
+      "claim_ceiling": "Synthetic corridor semantics only; no observed South African route capacity, project feasibility or engineering result."
+    },
+    {
+      "case_id": "SA-COR-021",
+      "domain": "section_capacity",
+      "title": "Route bottleneck across section-level operational capacity",
+      "classification": "synthetic_exact_reference",
+      "scenario": "A four-section route has different operational train-path capacity at daily resolution. The weakest section limits the end-to-end route.",
+      "inputs": {
+        "route_id": "SYN-JHB-DURBAN",
+        "capacity_unit": "train_paths_per_day",
+        "sections": [
+          {
+            "section_id": "S1",
+            "available_operational": 12
+          },
+          {
+            "section_id": "S2",
+            "available_operational": 9
+          },
+          {
+            "section_id": "S3",
+            "available_operational": 8
+          },
+          {
+            "section_id": "S4",
+            "available_operational": 11
+          }
+        ],
+        "demand": 10
+      },
+      "expected": {
+        "route_capacity": 8,
+        "delivered": 8,
+        "unmet": 2,
+        "bottleneck_section": "S3",
+        "disposition": "exact"
+      },
+      "oracle": "For one serial route, route capacity is the minimum section operational capacity; delivered=min(demand,route capacity)."
+    },
+    {
+      "case_id": "SA-COR-022",
+      "domain": "capacity_accounting",
+      "title": "Allocated versus spare capacity",
+      "classification": "synthetic_exact_reference",
+      "scenario": "The source declares spare capacity as the residual after allocations from available operational capacity.",
+      "inputs": {
+        "time_basis": "paths_per_week",
+        "available_operational": 14,
+        "allocated": 9
+      },
+      "expected": {
+        "spare": 5,
+        "allocated_plus_spare": 14,
+        "disposition": "exact"
+      },
+      "oracle": "Under the fixture's explicit definition, spare=available_operational-allocated."
+    },
+    {
+      "case_id": "SA-COR-023",
+      "domain": "capacity_accounting",
+      "title": "Theoretical, practical and capacity-lost values remain distinct",
+      "classification": "specification_only",
+      "scenario": "A route section exposes theoretical capacity, practical capacity and reasons for lost capacity. The parser must preserve source semantics and not silently infer arithmetic when source definitions do not state it.",
+      "inputs": {
+        "required_fields": [
+          "theoretical_capacity",
+          "practical_capacity",
+          "capacity_lost",
+          "loss_reason",
+          "time_basis",
+          "section_id",
+          "source_sheet",
+          "source_cell"
+        ],
+        "example_values": {
+          "theoretical": 18,
+          "practical": 12,
+          "capacity_lost": 6
+        }
+      },
+      "expected": {
+        "disposition": "retain_distinct_source_values_and_reconcile_only_when_defined"
+      },
+      "oracle": "The source-specific fields remain separate; numerical difference is not proof that the declared loss field has the same definition."
+    },
+    {
+      "case_id": "SA-COR-024",
+      "domain": "capacity_resolution",
+      "title": "Daily versus weekly train-path resolution",
+      "classification": "synthetic_exact_reference",
+      "scenario": "The source declares four available paths per operating day and five operating days in the stated week.",
+      "inputs": {
+        "paths_per_operating_day": 4,
+        "operating_days_in_period": 5,
+        "calendar_days_in_week": 7
+      },
+      "expected": {
+        "paths_per_week": 20,
+        "not_28": true,
+        "disposition": "exact"
+      },
+      "oracle": "Weekly paths=paths per operating day multiplied by the declared five operating days, not seven calendar days."
+    },
+    {
+      "case_id": "SA-COR-025",
+      "domain": "shared_section",
+      "title": "Two routes share a downstream section bottleneck",
+      "classification": "synthetic_exact_reference",
+      "scenario": "Two feeder paths enter a common downstream section; their nominal capacities must not be summed beyond the shared section's capacity.",
+      "inputs": {
+        "feeder_paths": [
+          {
+            "route": "A",
+            "capacity": 8
+          },
+          {
+            "route": "B",
+            "capacity": 6
+          }
+        ],
+        "shared_section_capacity": 10,
+        "demand": 20
+      },
+      "expected": {
+        "maximum_deliverable": 10,
+        "unmet": 10,
+        "shared_bottleneck": true,
+        "disposition": "exact"
+      },
+      "oracle": "Aggregate incoming capacity is 14, but the common section limits end-to-end flow to 10."
+    },
+    {
+      "case_id": "SA-COR-026",
+      "domain": "train_operation",
+      "title": "Allocated capacity is not automatically unused spare capacity",
+      "classification": "specification_only",
+      "scenario": "An operator is allocated ten paths/day and operates six. The remaining four cannot be reclassified as spare without contract, release and timetable evidence.",
+      "inputs": {
+        "allocated_paths_per_day": 10,
+        "observed_operated_paths_per_day": 6,
+        "release_or_reallocation_evidence": null
+      },
+      "expected": {
+        "unused_allocated_paths": 4,
+        "spare_capacity_credit": 0,
+        "disposition": "do_not_reclassify_without_authority_evidence"
+      },
+      "oracle": "Actual operated paths and contractually allocated paths are separate states; unused allocations do not automatically become available spare."
+    },
+    {
+      "case_id": "SA-COR-027",
+      "domain": "running_time",
+      "title": "Scheduled and realized running time are separate measures",
+      "classification": "synthetic_exact_reference",
+      "scenario": "A published scheduled path includes buffer time of 120 minutes; one synthetic observed trip takes 150 minutes.",
+      "inputs": {
+        "scheduled_time_minutes": 120,
+        "observed_trip_time_minutes": 150,
+        "observation_count": 1
+      },
+      "expected": {
+        "difference_minutes": 30,
+        "observed_not_schedule": true,
+        "disposition": "exact_single_observation_only"
+      },
+      "oracle": "Observed-minus-scheduled=30 minutes for this one fixture; one observation is not a representative distribution."
+    },
+    {
+      "case_id": "SA-COR-028",
+      "domain": "workbook_safety",
+      "title": "XLSM formulas and cached values without macro execution",
+      "classification": "specification_only",
+      "scenario": "An official macro-enabled capacity workbook is ingested as data. VBA is never executed; formula text, cached values, sheet visibility and workbook bytes remain auditable.",
+      "inputs": {
+        "file_type": "xlsm",
+        "requires": [
+          "raw_sha256",
+          "sheet_inventory",
+          "visibility",
+          "formula_text",
+          "cached_values",
+          "source_cell_ref",
+          "parser_version"
+        ],
+        "execute_macros": false
+      },
+      "expected": {
+        "disposition": "block_ingestion_if_raw_bytes_or_cell_lineage_missing"
+      },
+      "oracle": "Parser must treat the workbook as an untrusted data container and preserve formula/cached-value distinctions."
+    },
+    {
+      "case_id": "SA-COR-029",
+      "domain": "network_scope",
+      "title": "TRIM route data is not the complete South African rail network",
+      "classification": "specification_only",
+      "scenario": "The TRIM network register excludes PRASA and other infrastructure managers. A downstream report attempts to label its graph as the entire national rail network.",
+      "inputs": {
+        "declared_source_scope": "TRIM_owned_and_operated_infrastructure",
+        "known_exclusions": [
+          "PRASA",
+          "other_infrastructure_managers"
+        ],
+        "requested_claim": "complete_national_rail_network"
+      },
+      "expected": {
+        "disposition": "reject_complete_network_claim"
+      },
+      "oracle": "The source scope and exclusions must propagate to every map, route and coverage summary."
+    },
+    {
+      "case_id": "SA-COR-030",
+      "domain": "future_capacity",
+      "title": "Investment-plan or future operator target cannot become operational capacity",
+      "classification": "specification_only",
+      "scenario": "An approved investment plan or expected operator start is promoted into current available paths before commissioning and observed operation.",
+      "inputs": {
+        "plan_or_target_capacity": 100,
+        "commissioning_receipt": null,
+        "observed_operational_path_receipt": null
+      },
+      "expected": {
+        "operational_capacity_credit": 0,
+        "disposition": "keep_as_future_scenario_only"
+      },
+      "oracle": "Planned investment or future service milestone is not commissioned, available or operated capacity."
+    }
+  ]
+}

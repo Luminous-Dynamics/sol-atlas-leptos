@@ -1,0 +1,109 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://luminousdynamics.io/schemas/deep-time-water-reference-fixtures-v0.1.schema.json",
+  "title": "Deep-Time Water Reference Fixtures v0.1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "schema_version",
+    "classification",
+    "units",
+    "accounting_equation",
+    "fixtures"
+  ],
+  "properties": {
+    "schema": {
+      "const": "luminous.deep-time-water-reference-fixtures.v0.1"
+    },
+    "schema_version": {
+      "const": "0.1.0"
+    },
+    "classification": {
+      "const": "synthetic_hand_computable_reference_fixtures_not_physical_validation"
+    },
+    "units": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "volume",
+        "energy",
+        "interval"
+      ],
+      "properties": {
+        "volume": {
+          "const": "m3"
+        },
+        "energy": {
+          "const": "kWh"
+        },
+        "interval": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "accounting_equation": {
+      "type": "string",
+      "minLength": 1
+    },
+    "fixtures": {
+      "type": "array",
+      "minItems": 7,
+      "maxItems": 7,
+      "items": {
+        "$ref": "#/$defs/fixture"
+      }
+    }
+  },
+  "$defs": {
+    "fixture": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "fixture_id",
+        "title",
+        "inputs",
+        "expected",
+        "oracle_note"
+      ],
+      "properties": {
+        "fixture_id": {
+          "type": "string",
+          "pattern": "^WAT-00[1-7]$"
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1
+        },
+        "inputs": {
+          "type": "object",
+          "minProperties": 1,
+          "additionalProperties": {
+            "type": "number",
+            "minimum": 0
+          }
+        },
+        "expected": {
+          "type": "object",
+          "minProperties": 1,
+          "additionalProperties": {
+            "oneOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "string",
+                "minLength": 1
+              }
+            ]
+          }
+        },
+        "oracle_note": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    }
+  }
+}

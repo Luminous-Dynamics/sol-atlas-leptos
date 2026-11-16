@@ -1,0 +1,110 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://luminousdynamics.io/schemas/deep-time-model-robustness-case-register-v0.1.schema.json",
+  "title": "Deep-Time Model Robustness Case Register v0.1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "schema_version",
+    "register_id",
+    "classification",
+    "parent_issue",
+    "cases"
+  ],
+  "properties": {
+    "schema": {
+      "const": "luminous.deep-time-model-robustness-case-register.v0.1"
+    },
+    "schema_version": {
+      "const": "0.1.0"
+    },
+    "register_id": {
+      "const": "DEEP-TIME-MODEL-ROBUSTNESS-CASE-REGISTER-V0.1"
+    },
+    "classification": {
+      "const": "synthetic_comparison_contract_not_geological_validation"
+    },
+    "parent_issue": {
+      "type": "string",
+      "format": "uri"
+    },
+    "cases": {
+      "type": "array",
+      "minItems": 12,
+      "maxItems": 12,
+      "items": {
+        "$ref": "#/$defs/case"
+      }
+    }
+  },
+  "$defs": {
+    "case": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "case_id",
+        "domain",
+        "title",
+        "classification",
+        "scenario",
+        "inputs",
+        "expected",
+        "oracle",
+        "claim_ceiling"
+      ],
+      "properties": {
+        "case_id": {
+          "type": "string",
+          "pattern": "^DTR-[0-9]{3}$"
+        },
+        "domain": {
+          "enum": [
+            "scenario_type",
+            "local_relative_sea_level",
+            "model_family",
+            "model_independence",
+            "chronology",
+            "shoreline_envelope",
+            "robust_decision",
+            "hard_floor",
+            "future_earth_boundary",
+            "replay",
+            "information_timing",
+            "uncertainty_classification"
+          ]
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1
+        },
+        "classification": {
+          "enum": [
+            "synthetic_hand_computable_reference",
+            "specification_only"
+          ]
+        },
+        "scenario": {
+          "type": "string",
+          "minLength": 1
+        },
+        "inputs": {
+          "type": "object",
+          "minProperties": 1
+        },
+        "expected": {
+          "type": "object",
+          "minProperties": 1
+        },
+        "oracle": {
+          "type": "string",
+          "minLength": 1
+        },
+        "claim_ceiling": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    }
+  }
+}

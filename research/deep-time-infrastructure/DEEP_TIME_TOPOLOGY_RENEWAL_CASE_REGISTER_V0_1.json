@@ -1,0 +1,310 @@
+{
+  "schema": "luminous.deep-time-topology-renewal-case-register.v0.1",
+  "schema_version": "0.1.0",
+  "register_id": "DEEP-TIME-TOPOLOGY-RENEWAL-CASE-REGISTER-V0.1",
+  "classification": "synthetic_transition_benchmark_specification_not_physical_validation",
+  "parent_issue": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/894",
+  "cases": [
+    {
+      "case_id": "TNR-001",
+      "domain": "service_transfer",
+      "title": "Port relocation with overlap and zero service gap",
+      "classification": "synthetic_hand_computable_reference",
+      "scenario": "Old coastal terminal capacity 100 units/period; demand 80; new inland terminal is commissioned in stages.",
+      "inputs": {
+        "periods": [
+          {
+            "period": 0,
+            "old_terminal_capacity": 100,
+            "new_terminal_capacity": 0,
+            "demand": 80
+          },
+          {
+            "period": 1,
+            "old_terminal_capacity": 60,
+            "new_terminal_capacity": 40,
+            "demand": 80
+          },
+          {
+            "period": 2,
+            "old_terminal_capacity": 0,
+            "new_terminal_capacity": 80,
+            "demand": 80
+          }
+        ]
+      },
+      "expected": {
+        "delivered_by_period": [
+          80,
+          80,
+          80
+        ],
+        "unmet_by_period": [
+          0,
+          0,
+          0
+        ],
+        "total_unmet_service_units": 0,
+        "disposition": "pass_zero_gap"
+      },
+      "oracle": "Per period delivered=min(demand, old_capacity+new_capacity).",
+      "claim_ceiling": "Synthetic transition semantics only; no real-site, hydraulic, ecological, legal, social, financial or engineering feasibility claim."
+    },
+    {
+      "case_id": "TNR-002",
+      "domain": "service_transfer",
+      "title": "Premature retirement before replacement corridor commission",
+      "classification": "synthetic_hand_computable_reference",
+      "scenario": "The existing corridor is retired one period before the replacement route can carry service.",
+      "inputs": {
+        "periods": [
+          {
+            "period": 0,
+            "old_capacity": 100,
+            "new_capacity": 0,
+            "demand": 80
+          },
+          {
+            "period": 1,
+            "old_capacity": 0,
+            "new_capacity": 0,
+            "demand": 80
+          },
+          {
+            "period": 2,
+            "old_capacity": 0,
+            "new_capacity": 80,
+            "demand": 80
+          }
+        ]
+      },
+      "expected": {
+        "delivered_by_period": [
+          80,
+          0,
+          80
+        ],
+        "unmet_by_period": [
+          0,
+          80,
+          0
+        ],
+        "total_unmet_service_units": 80,
+        "disposition": "reject_transition_gap"
+      },
+      "oracle": "Per period delivered=min(demand, old_capacity+new_capacity); one interval has no available route.",
+      "claim_ceiling": "Synthetic transition semantics only; no real-site, hydraulic, ecological, legal, social, financial or engineering feasibility claim."
+    },
+    {
+      "case_id": "TNR-003",
+      "domain": "waterway_to_multimodal",
+      "title": "Drought waterway substitution while preserving environmental flow",
+      "classification": "synthetic_hand_computable_reference",
+      "scenario": "Drought reduces navigation capacity. Rail and road substitute only within declared capacities; environmental flow is a hard gate.",
+      "inputs": {
+        "freight_demand_tonnes_per_day": 100,
+        "drought_waterway_capacity": 30,
+        "rail_capacity": 40,
+        "road_capacity": 10,
+        "environmental_flow_required_m3_per_day": 25,
+        "environmental_flow_proposed_m3_per_day": 25
+      },
+      "expected": {
+        "freight_delivered_tonnes_per_day": 80,
+        "unmet_freight_tonnes_per_day": 20,
+        "environmental_flow_shortfall_m3_per_day": 0,
+        "disposition": "pass_with_unmet_demand_reported"
+      },
+      "oracle": "Delivered=min(demand, sum of mode capacities)=80. Do not create capacity by drawing down protected ecological flow.",
+      "claim_ceiling": "Synthetic transition semantics only; no real-site, hydraulic, ecological, legal, social, financial or engineering feasibility claim."
+    },
+    {
+      "case_id": "TNR-004",
+      "domain": "ecological_corridor",
+      "title": "Sediment-driven waterway retirement with habitat restoration",
+      "classification": "specification_only",
+      "scenario": "Navigation channel loses viable depth under an admitted sediment/estuary scenario; cargo transfers to a qualified alternative while channel restoration maintains estuary connectivity.",
+      "inputs": {
+        "required": {
+          "cargo_service_continuity": true,
+          "sediment_transport_connectivity": true,
+          "fish_passage_assessment": true,
+          "restoration_authority": true
+        }
+      },
+      "expected": {
+        "disposition": "block_if_any_required_evidence_unknown",
+        "claim_ceiling": "No local ecological or navigation feasibility claim."
+      },
+      "oracle": "Navigation retirement and ecological restoration are separate state transitions with independent evidence gates.",
+      "claim_ceiling": "Synthetic transition semantics only; no real-site, hydraulic, ecological, legal, social, financial or engineering feasibility claim."
+    },
+    {
+      "case_id": "TNR-005",
+      "domain": "polycentric_settlement",
+      "title": "Polycentric settlement split with group-level essential-service floors",
+      "classification": "specification_only",
+      "scenario": "Population and productive functions redistribute across two settlement nodes; aggregate capacity must not conceal any group's service-floor breach.",
+      "inputs": {
+        "groups": [
+          "origin",
+          "receiving"
+        ],
+        "services": [
+          "potable_water",
+          "healthcare",
+          "electricity",
+          "freight_access"
+        ],
+        "requires_group_level_outcomes": true
+      },
+      "expected": {
+        "disposition": "reject_if_any_group_floor_breached"
+      },
+      "oracle": "Evaluate every service x beneficiary group, not only regional aggregates.",
+      "claim_ceiling": "Synthetic transition semantics only; no real-site, hydraulic, ecological, legal, social, financial or engineering feasibility claim."
+    },
+    {
+      "case_id": "TNR-006",
+      "domain": "common_cause",
+      "title": "Nominally separate corridors share a power and control failure domain",
+      "classification": "synthetic_hand_computable_reference",
+      "scenario": "Two terminal/corridor paths are topologically separate but both require one shared substation and control plane.",
+      "inputs": {
+        "nominal_paths": 2,
+        "shared_power_substation": "SUB-1",
+        "shared_control_plane": "CTRL-1",
+        "failure_event": {
+          "power_substation": "SUB-1",
+          "control_plane": "CTRL-1"
+        }
+      },
+      "expected": {
+        "available_paths_after_event": 0,
+        "independent_failure_domains": 1,
+        "disposition": "reject_false_redundancy"
+      },
+      "oracle": "An outage in the shared dependency domain disables both nominal paths; path count alone is not independence.",
+      "claim_ceiling": "Synthetic transition semantics only; no real-site, hydraulic, ecological, legal, social, financial or engineering feasibility claim."
+    },
+    {
+      "case_id": "TNR-007",
+      "domain": "whole_life_carbon",
+      "title": "Repair-versus-replace whole-life carbon known answer",
+      "classification": "synthetic_hand_computable_reference",
+      "scenario": "Equivalent service alternatives over a fixed ten-year study horizon. All carbon factors are synthetic fixture inputs, not external emission factors.",
+      "inputs": {
+        "horizon_years": 10,
+        "repair": {
+          "embodied_tco2e": 120,
+          "operational_tco2e_per_year": 12,
+          "end_of_life_tco2e": 10,
+          "material_input_tonnes": 30
+        },
+        "replace": {
+          "embodied_tco2e": 220,
+          "operational_tco2e_per_year": 8,
+          "end_of_life_tco2e": 20,
+          "material_input_tonnes": 60
+        }
+      },
+      "expected": {
+        "repair_total_tco2e": 250,
+        "replace_total_tco2e": 320,
+        "repair_advantage_tco2e": 70,
+        "repair_material_input_tonnes": 30,
+        "replace_material_input_tonnes": 60,
+        "disposition": "repair_lower_carbon_for_declared_boundary"
+      },
+      "oracle": "Total=embodied+horizon*annual_operational+end_of_life. No discounting or external factors in this fixture.",
+      "claim_ceiling": "Synthetic transition semantics only; no real-site, hydraulic, ecological, legal, social, financial or engineering feasibility claim."
+    },
+    {
+      "case_id": "TNR-008",
+      "domain": "adaptive_trigger",
+      "title": "Trigger arrives too late for action lead time",
+      "classification": "synthetic_hand_computable_reference",
+      "scenario": "The trigger becomes observable only after monitoring delay; adaptation completes after the service threshold.",
+      "inputs": {
+        "threshold_time": 8,
+        "signal_crossing_time": 4,
+        "observation_delay": 2,
+        "action_lead_time": 3
+      },
+      "expected": {
+        "trigger_observed_time": 6,
+        "action_completion_time": 9,
+        "late_by_time_units": 1,
+        "disposition": "reject_claim_of_preventive_adaptation"
+      },
+      "oracle": "Observed time=crossing+delay; completion=observed+lead time.",
+      "claim_ceiling": "Synthetic transition semantics only; no real-site, hydraulic, ecological, legal, social, financial or engineering feasibility claim."
+    },
+    {
+      "case_id": "TNR-009",
+      "domain": "robust_policy",
+      "title": "Minimax-regret pathway without invented scenario probabilities",
+      "classification": "synthetic_hand_computable_reference",
+      "scenario": "Three strategies are evaluated over three admissible futures with no calibrated probability model.",
+      "inputs": {
+        "scenario_ids": [
+          "coastal_stable",
+          "coastal_loss",
+          "drought"
+        ],
+        "utilities": {
+          "fixed_coastal": [
+            100,
+            10,
+            100
+          ],
+          "staged_dual": [
+            80,
+            70,
+            70
+          ],
+          "inland_rail": [
+            65,
+            80,
+            80
+          ]
+        }
+      },
+      "expected": {
+        "best_utility_by_scenario": [
+          100,
+          80,
+          100
+        ],
+        "maximum_regret_by_strategy": {
+          "fixed_coastal": 70,
+          "staged_dual": 30,
+          "inland_rail": 35
+        },
+        "selected_strategy": "staged_dual",
+        "minimum_maximum_regret": 30,
+        "disposition": "exact_minimax_regret"
+      },
+      "oracle": "Regret=best utility in each scenario minus strategy utility; minimize maximum regret. No probabilities are used.",
+      "claim_ceiling": "Synthetic transition semantics only; no real-site, hydraulic, ecological, legal, social, financial or engineering feasibility claim."
+    },
+    {
+      "case_id": "TNR-010",
+      "domain": "asset_lifecycle",
+      "title": "Asset decommissioning, material recovery and corridor re-use",
+      "classification": "specification_only",
+      "scenario": "A retired corridor is dismantled, reusable material recovered, contaminated fractions separately handled, and the alignment may become an ecological corridor.",
+      "inputs": {
+        "requires_material_balance": true,
+        "requires_waste_hierarchy": true,
+        "requires_ecological_restoration": true,
+        "requires_decommissioning_authority": true
+      },
+      "expected": {
+        "disposition": "block_if_material_or_restoration_ledger_incomplete"
+      },
+      "oracle": "Decommissioning is an explicit lifecycle action and cannot be treated as zero-cost or zero-impact.",
+      "claim_ceiling": "Synthetic transition semantics only; no real-site, hydraulic, ecological, legal, social, financial or engineering feasibility claim."
+    }
+  ]
+}
