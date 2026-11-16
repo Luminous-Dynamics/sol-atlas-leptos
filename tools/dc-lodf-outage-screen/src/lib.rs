@@ -12,9 +12,7 @@
 
 use std::collections::{BTreeMap, VecDeque};
 
-use dc_power_flow_reference::{
-    DcNetwork, DcPowerFlowError, DcPowerFlowResult, SolveOptions, solve_dc_power_flow,
-};
+use dc_power_flow_reference::{DcNetwork, DcPowerFlowResult, SolveOptions, solve_dc_power_flow};
 
 #[derive(Clone, Copy, Debug)]
 pub struct ScreenOptions {
@@ -157,6 +155,8 @@ pub struct ScreenMismatch {
 #[derive(Clone, Debug, PartialEq)]
 pub struct ScreenValidationReport {
     pub expected_branch_outages: usize,
+    pub evaluated_branch_outages: usize,
+    pub coverage_complete: bool,
     pub compared_predictions: usize,
     pub exact_resolve_abstentions: usize,
     pub abstentions_with_exact_solution: usize,
@@ -177,7 +177,8 @@ impl ScreenValidationReport {
     /// True only if every usable prediction matches an exact re-solve within
     /// tolerance and there are no false-safe branch or outage predictions.
     pub fn passes_declared_checks(&self) -> bool {
-        self.flow_mismatch_count == 0
+        self.coverage_complete
+            && self.flow_mismatch_count == 0
             && self.false_safe_branch_count == 0
             && self.false_safe_outage_count == 0
             && self.unexpected_exact_unknown_count == 0
@@ -227,6 +228,8 @@ impl ScreenValidationReport {
                 "}}"
             ),
             self.expected_branch_outages,
+            self.evaluated_branch_outages,
+            self.coverage_complete,
             self.compared_predictions,
             self.exact_resolve_abstentions,
             self.abstentions_with_exact_solution,
@@ -843,6 +846,9 @@ pub fn compare_screen_to_exact(
     }
     let mut report = ScreenValidationReport {
         expected_branch_outages: screen.summary.expected_branch_outages,
+        evaluated_branch_outages: screen.outages.len(),
+        coverage_complete: screen.summary.coverage_complete
+            && screen.outages.len() == screen.summary.expected_branch_outages,
         compared_predictions: 0,
         exact_resolve_abstentions: 0,
         abstentions_with_exact_solution: 0,
