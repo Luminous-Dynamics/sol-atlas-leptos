@@ -1,13 +1,13 @@
-function run_matpower_dc(case_path, output_path, matpower_root, mp_opt_model_root, mp_test_root, source_git_blob_sha1)
+function run_matpower_dc(case_path, output_path, matpower_root, mp_opt_model_root, mips_root, mp_test_root, source_git_blob_sha1)
     % Run MATPOWER 8.1's own DC power flow on unchanged source bytes.
     % MATPOWER, MP-Opt-Model and MP-Test are separate pinned source packages.
     %
     % Usage:
     %   run_matpower_dc(case_path, output_path, matpower_root, ...
-    %       mp_opt_model_root, mp_test_root, source_git_blob_sha1)
+    %       mp_opt_model_root, mips_root, mp_test_root, source_git_blob_sha1)
 
-    if nargin ~= 6
-        error('Expected case, output, MATPOWER root, MP-Opt-Model root, MP-Test root, digest');
+    if nargin ~= 7
+        error('Expected case, output, MATPOWER root, MP-Opt-Model root, MIPS root, MP-Test root, digest');
     end
     if length(source_git_blob_sha1) ~= 40 || ...
             isempty(regexp(source_git_blob_sha1, '^[0-9a-fA-F]{40}$', 'once'))
@@ -25,8 +25,9 @@ function run_matpower_dc(case_path, output_path, matpower_root, mp_opt_model_roo
 
     matpower_lib = fullfile(matpower_root, 'lib');
     mp_opt_model_lib = fullfile(mp_opt_model_root, 'lib');
+    mips_lib = fullfile(mips_root, 'lib');
     mp_test_lib = fullfile(mp_test_root, 'lib');
-    for required = {matpower_lib, mp_opt_model_lib, mp_test_lib}
+    for required = {matpower_lib, mp_opt_model_lib, mips_lib, mp_test_lib}
         if exist(required{1}, 'dir') ~= 7
             error('Required reference library directory is absent: %s', required{1});
         end
@@ -34,6 +35,7 @@ function run_matpower_dc(case_path, output_path, matpower_root, mp_opt_model_roo
 
     addpath(genpath(matpower_lib));
     addpath(genpath(mp_opt_model_lib));
+    addpath(genpath(mips_lib));
     addpath(genpath(mp_test_lib));
 
     mpc = loadcase(case_path);
@@ -43,6 +45,7 @@ function run_matpower_dc(case_path, output_path, matpower_root, mp_opt_model_roo
     % roots after it returns; do not recursively add docs/examples.
     addpath(genpath(matpower_lib));
     addpath(genpath(mp_opt_model_lib));
+    addpath(genpath(mips_lib));
     addpath(genpath(mp_test_lib));
     define_constants;
 
@@ -69,6 +72,7 @@ function run_matpower_dc(case_path, output_path, matpower_root, mp_opt_model_roo
     fprintf(fid, 'META\tsource_git_blob_sha1\t%s\n', lower(source_git_blob_sha1));
     fprintf(fid, 'META\tmatpower_version\t8.1\n');
     fprintf(fid, 'META\tmp_opt_model_version\t5.0\n');
+    fprintf(fid, 'META\tmips_version\t1.5.2\n');
     fprintf(fid, 'META\tmp_test_version\t8.1\n');
     fprintf(fid, 'META\tbase_mva\t%.17g\n', results.baseMVA);
     fprintf(fid, 'META\treference_bus\t%d\n', reference_bus);
