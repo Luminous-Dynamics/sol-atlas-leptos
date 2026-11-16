@@ -986,12 +986,8 @@ mod tests {
         assert_eq!(projection.costs[0].startup_cost, 125.0);
         assert_eq!(projection.costs[0].shutdown_cost, 250.0);
         let candidate = valid_tsv(&source);
-        let report = audit_matpower_dc_opf_candidate(
-            &source,
-            &candidate,
-            AuditOptions::default(),
-        )
-        .expect("MATPOWER continuous DC-OPF ignores commitment metadata");
+        let report = audit_matpower_dc_opf_candidate(&source, &candidate, AuditOptions::default())
+            .expect("MATPOWER continuous DC-OPF ignores commitment metadata");
         assert!(report.passed, "{}", report.to_json());
         assert!((report.recomputed_objective - 2100.0).abs() < 1.0e-8);
     }
