@@ -125,21 +125,21 @@ pub fn classify_eligibility(
 
     for model in model_results {
         if !seen_models.insert(model.model_id.as_str()) {
-            return Err(RobustnessError::DuplicateModelId(
-                model.model_id.clone(),
-            ));
+            return Err(RobustnessError::DuplicateModelId(model.model_id.clone()));
         }
 
         let mut failed = false;
         let mut unknown = false;
 
         for floor_id in required_floors {
-            let result = model.floors.get(floor_id).ok_or_else(|| {
-                RobustnessError::MissingFloor {
-                    model_id: model.model_id.clone(),
-                    floor_id: floor_id.clone(),
-                }
-            })?;
+            let result =
+                model
+                    .floors
+                    .get(floor_id)
+                    .ok_or_else(|| RobustnessError::MissingFloor {
+                        model_id: model.model_id.clone(),
+                        floor_id: floor_id.clone(),
+                    })?;
 
             match result {
                 GateResult::Pass => {}
@@ -298,12 +298,7 @@ pub fn minimax_regret(
     for model_id in model_ids {
         let best = strategies
             .iter()
-            .map(|strategy| {
-                *strategy
-                    .by_model
-                    .get(model_id)
-                    .expect("validated above")
-            })
+            .map(|strategy| *strategy.by_model.get(model_id).expect("validated above"))
             .max()
             .expect("non-empty strategy set checked above");
         best_utility_by_model.insert(model_id.clone(), best);
@@ -316,39 +311,36 @@ pub fn minimax_regret(
             let best = *best_utility_by_model
                 .get(model_id)
                 .expect("best utility computed for every model");
-            let utility = *strategy
-                .by_model
-                .get(model_id)
-                .expect("validated above");
-            let regret = best.checked_sub(utility).ok_or_else(|| {
-                RobustnessError::RegretOverflow {
-                    strategy_id: strategy.strategy_id.clone(),
-                    model_id: model_id.clone(),
-                }
-            })?;
+            let utility = *strategy.by_model.get(model_id).expect("validated above");
+            let regret =
+                best.checked_sub(utility)
+                    .ok_or_else(|| RobustnessError::RegretOverflow {
+                        strategy_id: strategy.strategy_id.clone(),
+                        model_id: model_id.clone(),
+                    })?;
             maximum_regret = maximum_regret.max(regret);
         }
 
-        maximum_regret_by_strategy.insert(
-            strategy.strategy_id.clone(),
-            maximum_regret,
-        );
+        maximum_regret_by_strategy.insert(strategy.strategy_id.clone(), maximum_regret);
     }
 
-    let (selected_strategy, minimum_maximum_regret) = maximum_regret_by_strategy
-        .iter()
-        .min_by(|(left_id, left_regret), (right_id, right_regret)| {
-            left_regret
-                .cmp(right_regret)
-                .then_with(|| left_id.cmp(right_id))
-        })
-        .expect("non-empty strategy set checked above");
+    let (selected_strategy, minimum_maximum_regret) = {
+        let (strategy_id, regret) = maximum_regret_by_strategy
+            .iter()
+            .min_by(|(left_id, left_regret), (right_id, right_regret)| {
+                left_regret
+                    .cmp(right_regret)
+                    .then_with(|| left_id.cmp(right_id))
+            })
+            .expect("non-empty strategy set checked above");
+        (strategy_id.clone(), *regret)
+    };
 
     Ok(MinimaxRegretReport {
         best_utility_by_model,
         maximum_regret_by_strategy,
-        selected_strategy: selected_strategy.clone(),
-        minimum_maximum_regret: *minimum_maximum_regret,
+        selected_strategy,
+        minimum_maximum_regret,
     })
 }
 
@@ -385,9 +377,7 @@ pub fn synthetic_shoreline_envelope(
         let wet: BTreeSet<usize> = elevations_mm
             .iter()
             .enumerate()
-            .filter_map(|(index, elevation)| {
-                (*elevation <= *offset_mm).then_some(index)
-            })
+            .filter_map(|(index, elevation)| (*elevation <= *offset_mm).then_some(index))
             .collect();
 
         union_wet.extend(wet.iter().copied());
@@ -432,14 +422,10 @@ pub fn shared_lineage(
     left_calibrations: &[String],
     right_calibrations: &[String],
 ) -> SharedLineage {
-    let left_obs: BTreeSet<&str> =
-        left_observations.iter().map(String::as_str).collect();
-    let right_obs: BTreeSet<&str> =
-        right_observations.iter().map(String::as_str).collect();
-    let left_cal: BTreeSet<&str> =
-        left_calibrations.iter().map(String::as_str).collect();
-    let right_cal: BTreeSet<&str> =
-        right_calibrations.iter().map(String::as_str).collect();
+    let left_obs: BTreeSet<&str> = left_observations.iter().map(String::as_str).collect();
+    let right_obs: BTreeSet<&str> = right_observations.iter().map(String::as_str).collect();
+    let left_cal: BTreeSet<&str> = left_calibrations.iter().map(String::as_str).collect();
+    let right_cal: BTreeSet<&str> = right_calibrations.iter().map(String::as_str).collect();
 
     SharedLineage {
         shared_observations: left_obs
@@ -452,7 +438,6 @@ pub fn shared_lineage(
             .collect(),
     }
 }
-
 
 /// Origin/meaning of a scenario supplied to a shoreline evaluation.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -590,11 +575,8 @@ mod tests {
             ("MODEL-A".to_owned(), 5_000_i64),
             ("MODEL-B".to_owned(), 8_000_i64),
         ]);
-        let result = synthetic_shoreline_envelope(
-            &[0, 2_000, 5_000, 8_000, 12_000],
-            &offsets,
-        )
-        .expect("valid synthetic shoreline fixture");
+        let result = synthetic_shoreline_envelope(&[0, 2_000, 5_000, 8_000, 12_000], &offsets)
+            .expect("valid synthetic shoreline fixture");
 
         assert_eq!(
             result.wet_cells_by_model["MODEL-A"],
@@ -604,18 +586,9 @@ mod tests {
             result.wet_cells_by_model["MODEL-B"],
             BTreeSet::from([0, 1, 2, 3])
         );
-        assert_eq!(
-            result.invariant_wet_cells,
-            BTreeSet::from([0, 1, 2])
-        );
-        assert_eq!(
-            result.model_sensitive_cells,
-            BTreeSet::from([3])
-        );
-        assert_eq!(
-            result.invariant_dry_cells,
-            BTreeSet::from([4])
-        );
+        assert_eq!(result.invariant_wet_cells, BTreeSet::from([0, 1, 2]));
+        assert_eq!(result.model_sensitive_cells, BTreeSet::from([3]));
+        assert_eq!(result.invariant_dry_cells, BTreeSet::from([4]));
     }
 
     #[test]
@@ -648,8 +621,8 @@ mod tests {
             },
         ];
 
-        let result = minimax_regret(&models, &strategies)
-            .expect("complete unweighted utility matrix");
+        let result =
+            minimax_regret(&models, &strategies).expect("complete unweighted utility matrix");
 
         assert_eq!(
             result.best_utility_by_model,
@@ -677,24 +650,15 @@ mod tests {
         let models = vec![
             ModelEligibility {
                 model_id: "A".to_owned(),
-                floors: BTreeMap::from([(
-                    "water_ecology".to_owned(),
-                    GateResult::Pass,
-                )]),
+                floors: BTreeMap::from([("water_ecology".to_owned(), GateResult::Pass)]),
             },
             ModelEligibility {
                 model_id: "B".to_owned(),
-                floors: BTreeMap::from([(
-                    "water_ecology".to_owned(),
-                    GateResult::Fail,
-                )]),
+                floors: BTreeMap::from([("water_ecology".to_owned(), GateResult::Fail)]),
             },
             ModelEligibility {
                 model_id: "C".to_owned(),
-                floors: BTreeMap::from([(
-                    "water_ecology".to_owned(),
-                    GateResult::Pass,
-                )]),
+                floors: BTreeMap::from([("water_ecology".to_owned(), GateResult::Pass)]),
             },
         ];
 
@@ -714,17 +678,11 @@ mod tests {
         let models = vec![
             ModelEligibility {
                 model_id: "A".to_owned(),
-                floors: BTreeMap::from([(
-                    "water_ecology".to_owned(),
-                    GateResult::Pass,
-                )]),
+                floors: BTreeMap::from([("water_ecology".to_owned(), GateResult::Pass)]),
             },
             ModelEligibility {
                 model_id: "B".to_owned(),
-                floors: BTreeMap::from([(
-                    "water_ecology".to_owned(),
-                    GateResult::Unknown,
-                )]),
+                floors: BTreeMap::from([("water_ecology".to_owned(), GateResult::Unknown)]),
             },
         ];
 
@@ -806,18 +764,15 @@ mod tests {
     #[test]
     fn dtr_002_global_eustatic_curve_needs_local_vertical_motion_and_other_gates() {
         let mut gates = complete_shoreline_gates();
-        gates.insert(
-            "local_vertical_land_motion".to_owned(),
-            GateResult::Unknown,
-        );
-        let result = local_shoreline_input_report(
-            EarthScenarioKind::GlobalEustaticEstimate,
-            &gates,
-        );
+        gates.insert("local_vertical_land_motion".to_owned(), GateResult::Unknown);
+        let result =
+            local_shoreline_input_report(EarthScenarioKind::GlobalEustaticEstimate, &gates);
         assert_eq!(result.status, LocalShorelineInputStatus::Unresolved);
-        assert!(result
-            .missing_or_unknown_fields
-            .contains("local_vertical_land_motion"));
+        assert!(
+            result
+                .missing_or_unknown_fields
+                .contains("local_vertical_land_motion")
+        );
     }
 
     #[test]
@@ -836,10 +791,8 @@ mod tests {
     fn local_shoreline_gate_failure_blocks_evaluation() {
         let mut gates = complete_shoreline_gates();
         gates.insert("vertical_reference".to_owned(), GateResult::Fail);
-        let result = local_shoreline_input_report(
-            EarthScenarioKind::PaleogeographicReconstruction,
-            &gates,
-        );
+        let result =
+            local_shoreline_input_report(EarthScenarioKind::PaleogeographicReconstruction, &gates);
         assert_eq!(
             result.status,
             LocalShorelineInputStatus::BlockedByFailedGate
