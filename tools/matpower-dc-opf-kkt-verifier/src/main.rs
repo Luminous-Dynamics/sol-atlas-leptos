@@ -5,17 +5,14 @@ use std::env;
 use std::fs;
 use std::process::ExitCode;
 
-use matpower_dc_opf_kkt_verifier::{
-    KktOptions,
-    audit_matpower_dc_opf_kkt,
-};
+use matpower_dc_opf_kkt_verifier::{KktOptions, audit_matpower_dc_opf_kkt};
 use matpower_dc_opf_primal_auditor::AuditOptions as PrimalAuditOptions;
 
 fn run() -> Result<bool, String> {
     let mut args = env::args().skip(1);
-    let case_path = args
-        .next()
-        .ok_or_else(|| "usage: matpower-dc-opf-kkt-verify <case.m> <matpower-dcopf.tsv>".to_owned())?;
+    let case_path = args.next().ok_or_else(|| {
+        "usage: matpower-dc-opf-kkt-verify <case.m> <matpower-dcopf.tsv>".to_owned()
+    })?;
     let receipt_path = args
         .next()
         .ok_or_else(|| "missing MATPOWER DC-OPF candidate receipt path".to_owned())?;
