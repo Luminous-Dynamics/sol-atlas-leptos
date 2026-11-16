@@ -1,7 +1,7 @@
 # Deep-Time Model Robustness Benchmark
 ## Protocol v0.1
 
-**Status:** 12 synthetic cases; four exact hand-computable references; no geological model or local shoreline validation.  
+**Status:** 12 synthetic cases; six exact hand-computable references; no geological model or local shoreline validation.  
 **Owner:** [DEEP-TIME-MODEL-ROBUSTNESS-001 #896](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/896).  
 **Composes:** #886, #890, #894; Symthaea #7636; Symtropy #3894/#5474/#1601; Sol-Atlas #400/#115; Mycelix #5923/#5762.
 
@@ -31,7 +31,7 @@ Do not treat a global mean/eustatic curve as a local shoreline. Local relative s
 
 The +200 m modern terrain experiment remains a synthetic software stress test. It is not a geological reconstruction or a prediction.
 
-## 4. Four decision outcome classes
+## 4. Five decision outcome classes
 
 Classify each decision/essential-service/ecological-floor claim separately:
 
@@ -101,6 +101,21 @@ Model M1 uses observations {PROXY-1, PROXY-2} and calibration CAL-7; M2 uses {PR
 The 7 November 2026 infrastructure interdependency tool review identifies a heterogeneous field: spatial analytics (Kaleidoscope), participatory causal mapping (CIrcle), probabilistic cascade simulation (REFIT), restoration prioritization (PRIIA), fault propagation (CISIA-Pro), hazard-failure-recovery (InfraRisk) and integrated community-resilience modelling (IN-CORE). This programme should not try to replace those tools' specialist models.
 
 Recent work on adaptive transport under deep uncertainty connects monitoring, contingency planning and adaptive action (Jittrapirom et al., November 2026). The benchmark should compose that adaptive-policy ownership with the model-set envelope here. The central differentiator is to tell decision-makers **which conclusions remain valid across disagreeing model families, which depend on specific assumptions, and where evidence is not sufficient to decide**.
+
+## 7.1 Executable reference kernel (research branch; tests not yet run)
+
+The shared Rust core now has a bounded reference module:
+[`sol-atlas-core/src/model_robustness.rs`](https://github.com/Luminous-Dynamics/sol-atlas-leptos/blob/research/deep-time-infrastructure-001/sol-atlas-core/src/model_robustness.rs).
+
+It implements:
+- finite unweighted minimax regret with integer utility values, deterministic lexical tie-breaking and overflow rejection;
+- mandatory-floor classification: INVARIANT, CONDITIONAL, MODEL_SENSITIVE, UNIFORMLY_INELIGIBLE and UNRESOLVED;
+- pairwise ranking stability across model families;
+- exact synthetic shoreline cell partitions using integer millimetres;
+- shared source-observation and calibration-lineage intersections;
+- local-shoreline input gating that rejects synthetic modern terrain offsets and future-supercontinent climate boundary conditions, and requires explicit paleo transform, vertical reference, paleotopography, local vertical motion, geoid/gravitational/rotational fingerprint, ocean dynamics, chronology and lineage/uncertainty declarations.
+
+Twelve Rust unit tests are written, covering DTR-001/002/004/006/007/008/009 plus unresolved/failed/incomplete controls. They are not yet executed. A READY_FOR_PHYSICAL_MODEL_EVALUATION disposition means only that the declared input categories are present; it is not physical validation or site qualification.
 
 ## 8. Required comparisons
 
