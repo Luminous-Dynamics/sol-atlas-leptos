@@ -1,0 +1,154 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/blob/main/docs/research/home-freedom/HOME_INTENT_SPATIAL_CROSSWALK_V0.1.schema.json",
+  "title": "Home intent spatial crosswalk manifest v0.1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "study_id",
+    "maturity",
+    "execution_status",
+    "source_schema",
+    "source_schema_version",
+    "mapping_count",
+    "mappings",
+    "geometry_gate",
+    "value_of_information",
+    "claim_ceiling"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "0.1.0"
+    },
+    "study_id": {
+      "const": "HOME-INTENT-SPATIAL-BRIDGE-001"
+    },
+    "maturity": {
+      "const": "PROPOSED_OWNER_REVIEW_REQUIRED"
+    },
+    "execution_status": {
+      "const": "NO_RUNTIME_ADAPTER"
+    },
+    "source_schema": {
+      "const": "HOME_DESIGN_BRIEF_PROFILE_V0.1.schema.json"
+    },
+    "source_schema_version": {
+      "const": "0.1.0"
+    },
+    "mapping_count": {
+      "type": "integer",
+      "minimum": 8,
+      "maximum": 8
+    },
+    "mappings": {
+      "type": "array",
+      "minItems": 8,
+      "maxItems": 8,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "mapping_id",
+          "source_path",
+          "source_semantic",
+          "target_owners",
+          "target_semantic",
+          "relation",
+          "status",
+          "target_field_path",
+          "transformation",
+          "loss_policy"
+        ],
+        "properties": {
+          "mapping_id": {
+            "type": "string"
+          },
+          "source_path": {
+            "type": "string"
+          },
+          "source_semantic": {
+            "type": "string"
+          },
+          "target_owners": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "string"
+            }
+          },
+          "target_semantic": {
+            "type": "string"
+          },
+          "relation": {
+            "const": "PROPOSED_SEMANTIC_MAPPING"
+          },
+          "status": {
+            "const": "OWNER_CONFIRMATION_REQUIRED"
+          },
+          "target_field_path": {
+            "type": "null"
+          },
+          "transformation": {
+            "type": "string"
+          },
+          "loss_policy": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "geometry_gate": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "owner",
+        "state",
+        "geometry_claims_permitted",
+        "production_takeoff_permitted"
+      ],
+      "properties": {
+        "owner": {
+          "const": "Symtropy #683"
+        },
+        "state": {
+          "const": "BLOCKED_UNTIL_QUALIFIED"
+        },
+        "geometry_claims_permitted": {
+          "const": false
+        },
+        "production_takeoff_permitted": {
+          "const": false
+        }
+      }
+    },
+    "value_of_information": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "state",
+        "questions",
+        "authority"
+      ],
+      "properties": {
+        "state": {
+          "const": "PROPOSED_NOT_EXECUTED"
+        },
+        "questions": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string"
+          }
+        },
+        "authority": {
+          "const": "ADVISORY_ONLY"
+        }
+      }
+    },
+    "claim_ceiling": {
+      "type": "string",
+      "minLength": 1
+    }
+  }
+}

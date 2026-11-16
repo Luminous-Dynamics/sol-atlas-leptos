@@ -1,0 +1,193 @@
+{
+  "schema_version": "0.1.0",
+  "brief_id": "SYNTH-HV-FAMILY-001",
+  "maturity": "SYNTHETIC",
+  "household_frame": {
+    "usual_occupant_count": 3,
+    "occupancy_pattern": "FAMILY",
+    "guest_capacity": 4
+  },
+  "intent": {
+    "activities": [
+      {
+        "activity_id": "ACT_SLEEP_01",
+        "activity": "sleep and personal retreat for two adults",
+        "frequency": "DAILY",
+        "dedicated_space_required": true,
+        "privacy_requirement": "PRIVATE"
+      },
+      {
+        "activity_id": "ACT_SLEEP_02",
+        "activity": "child sleeping and quiet study",
+        "frequency": "DAILY",
+        "dedicated_space_required": true,
+        "privacy_requirement": "PRIVATE"
+      },
+      {
+        "activity_id": "ACT_COOK_01",
+        "activity": "cook and eat together",
+        "frequency": "DAILY",
+        "dedicated_space_required": true,
+        "privacy_requirement": "SEMI_PRIVATE"
+      },
+      {
+        "activity_id": "ACT_WORK_01",
+        "activity": "quiet remote work and focused making",
+        "frequency": "DAILY",
+        "dedicated_space_required": true,
+        "privacy_requirement": "PRIVATE"
+      },
+      {
+        "activity_id": "ACT_GUEST_01",
+        "activity": "host a small number of guests",
+        "frequency": "OCCASIONAL",
+        "dedicated_space_required": false,
+        "privacy_requirement": "SEMI_PRIVATE"
+      },
+      {
+        "activity_id": "ACT_OUTDOOR_01",
+        "activity": "eat, read and spend time outdoors in shade",
+        "frequency": "DAILY",
+        "dedicated_space_required": false,
+        "privacy_requirement": "SEMI_PRIVATE"
+      }
+    ],
+    "space_relationships": [
+      {
+        "from_activity_id": "ACT_WORK_01",
+        "to_activity_id": "ACT_COOK_01",
+        "relationship": "ACOUSTICALLY_SEPARATE"
+      },
+      {
+        "from_activity_id": "ACT_SLEEP_01",
+        "to_activity_id": "ACT_SLEEP_02",
+        "relationship": "VISUALLY_PRIVATE"
+      },
+      {
+        "from_activity_id": "ACT_OUTDOOR_01",
+        "to_activity_id": "ACT_COOK_01",
+        "relationship": "DIRECT_ACCESS"
+      },
+      {
+        "from_activity_id": "ACT_GUEST_01",
+        "to_activity_id": "ACT_SLEEP_01",
+        "relationship": "SEPARATE"
+      }
+    ],
+    "outdoor_use": [
+      "PRIVATE_COURTYARD",
+      "SERVICE_YARD"
+    ],
+    "future_adaptations": [
+      "Possibility of a third sleeping room without compromising escape, daylight, structure or service routes."
+    ]
+  },
+  "constraints": [
+    {
+      "constraint_id": "C_SLEEP_02",
+      "domain": "FUNCTION",
+      "statement": "Provide two private sleeping rooms.",
+      "severity": "NON_NEGOTIABLE",
+      "verification_owner": "Resident brief; professional plan review",
+      "evidence_reference": null
+    },
+    {
+      "constraint_id": "C_WORK_01",
+      "domain": "ACOUSTICS",
+      "statement": "Provide a quiet work area separated from the main cooking/living noise source.",
+      "severity": "NON_NEGOTIABLE",
+      "verification_owner": "Resident brief and acoustic review",
+      "evidence_reference": null
+    },
+    {
+      "constraint_id": "C_ACCESS_01",
+      "domain": "ACCESSIBILITY",
+      "statement": "Provide a step-free primary entry and continuous step-free access to one bathroom and one sleeping room.",
+      "severity": "NON_NEGOTIABLE",
+      "verification_owner": "Qualified accessibility / building professional",
+      "evidence_reference": null
+    },
+    {
+      "constraint_id": "C_PHASE_01",
+      "domain": "DELIVERY",
+      "statement": "The first occupied phase must be complete, weather-tight, sanitary and safe for the declared household.",
+      "severity": "NON_NEGOTIABLE",
+      "verification_owner": "Qualified design and building professionals",
+      "evidence_reference": null
+    },
+    {
+      "constraint_id": "C_WATER_01",
+      "domain": "WATER",
+      "statement": "Do not depend on discretionary pool, fountain or garden-water use for essential thermal comfort.",
+      "severity": "NON_NEGOTIABLE",
+      "verification_owner": "Water and building-services reviewer",
+      "evidence_reference": null
+    }
+  ],
+  "preferences": [
+    {
+      "preference_id": "P_COURT_01",
+      "domain": "OUTDOOR",
+      "statement": "Prefer a shaded private courtyard or outdoor room.",
+      "priority": 5,
+      "tradeable": true
+    },
+    {
+      "preference_id": "P_LIGHT_01",
+      "domain": "DAYLIGHT",
+      "statement": "Prefer useful daylight without excessive summer solar gain.",
+      "priority": 5,
+      "tradeable": true
+    },
+    {
+      "preference_id": "P_MATERIAL_01",
+      "domain": "MATERIAL",
+      "statement": "Prefer repairable materials and components that can be sourced locally.",
+      "priority": 4,
+      "tradeable": true
+    },
+    {
+      "preference_id": "P_ADAPT_01",
+      "domain": "ADAPTABILITY",
+      "statement": "Prefer an expansion path for a future third sleeping room.",
+      "priority": 4,
+      "tradeable": true
+    }
+  ],
+  "site_reference": {
+    "site_artifact_ref": "SYNTHETIC-SITE-HV-001-NO-REAL-PARCEL",
+    "jurisdiction": "City of Johannesburg, Gauteng, South Africa (synthetic jurisdiction label; authority profile not verified)",
+    "authority_profile_ref": "SYNTHETIC-COJ-AUTHORITY-PROFILE-UNVERIFIED",
+    "survey_state": "PROVISIONAL",
+    "rights_state": "UNKNOWN",
+    "soil_state": "UNKNOWN",
+    "climate_profile_ref": "SYNTHETIC-HIGHVELD-CLIMATE-PLACEHOLDER-NOT-WEATHER-DATA"
+  },
+  "budget": {
+    "currency": "ZAR",
+    "initial_capital_min": null,
+    "initial_capital_max": null,
+    "whole_life_horizon_years": 50,
+    "monthly_housing_cost_ceiling": null,
+    "cost_scope_ref": "UNSET-SYNTHETIC-COST-SCOPE-NO-QUOTATIONS",
+    "price_date": null
+  },
+  "delivery": {
+    "phase_count": 2,
+    "first_occupied_phase_must_be_complete": true,
+    "local_supply_profile_ref": "NOT_YET_QUALIFIED_LOCAL_SUPPLY_PROFILE",
+    "construction_skill_profile_ref": "NOT_YET_QUALIFIED_SKILL_PROFILE",
+    "preferred_construction_modes": [
+      "LOCAL_TRADE",
+      "HYBRID"
+    ]
+  },
+  "privacy": {
+    "data_sharing_mode": "SYNTHETIC_PUBLIC",
+    "purpose": "Exercise the home brief and candidate-set contract with non-personal synthetic data.",
+    "retention_policy_ref": "PUBLIC_SYNTHETIC_FIXTURE",
+    "contains_direct_identifiers": false,
+    "consent_evidence_ref": null,
+    "redaction_status": "REVIEWED_NO_DIRECT_IDENTIFIERS"
+  }
+}

@@ -1,0 +1,150 @@
+{
+  "schema_version": "0.1.0",
+  "study_id": "HOME-INTENT-SPATIAL-BRIDGE-001",
+  "maturity": "PROPOSED_OWNER_REVIEW_REQUIRED",
+  "execution_status": "NO_RUNTIME_ADAPTER",
+  "source_schema": "HOME_DESIGN_BRIEF_PROFILE_V0.1.schema.json",
+  "source_schema_version": "0.1.0",
+  "mapping_count": 8,
+  "mappings": [
+    {
+      "mapping_id": "MAP_HOUSEHOLD_CONTEXT",
+      "source_path": "household_frame",
+      "source_semantic": "Occupancy and household-use context",
+      "target_owners": [
+        "Symthaea #7790",
+        "Symtropy #1687"
+      ],
+      "target_semantic": "Resident context for intent problem and task planning",
+      "relation": "PROPOSED_SEMANTIC_MAPPING",
+      "status": "OWNER_CONFIRMATION_REQUIRED",
+      "target_field_path": null,
+      "transformation": "Preserve stated occupancy count and pattern without inferring household roles, diagnosis, culture or needs.",
+      "loss_policy": "Retain source values and source IDs; unresolved target fields remain explicit."
+    },
+    {
+      "mapping_id": "MAP_ACTIVITIES",
+      "source_path": "intent.activities",
+      "source_semantic": "Resident-stated activities and tasks",
+      "target_owners": [
+        "Symtropy #1687",
+        "Symthaea #7790"
+      ],
+      "target_semantic": "Functional task set and intent objectives",
+      "relation": "PROPOSED_SEMANTIC_MAPPING",
+      "status": "OWNER_CONFIRMATION_REQUIRED",
+      "target_field_path": null,
+      "transformation": "Preserve activity ID, wording, frequency, dedicated-space and privacy intent; any decomposition references the source activity ID.",
+      "loss_policy": "No activity may be dropped or silently generalized."
+    },
+    {
+      "mapping_id": "MAP_SPACE_RELATIONSHIPS",
+      "source_path": "intent.space_relationships",
+      "source_semantic": "Adjacency, separation and privacy relations",
+      "target_owners": [
+        "Symtropy #1766",
+        "Symtropy #455"
+      ],
+      "target_semantic": "Spatial relationship constraints and facet-specific topology questions",
+      "relation": "PROPOSED_SEMANTIC_MAPPING",
+      "status": "OWNER_CONFIRMATION_REQUIRED",
+      "target_field_path": null,
+      "transformation": "Preserve each source relation and both activity endpoints; ambiguous target relations stay unresolved.",
+      "loss_policy": "Do not infer exact geometry or merge distinct visibility/acoustic/access relations."
+    },
+    {
+      "mapping_id": "MAP_HARD_CONSTRAINTS",
+      "source_path": "constraints",
+      "source_semantic": "Non-negotiable resident requirements",
+      "target_owners": [
+        "Symthaea #7790",
+        "Symtropy #1687"
+      ],
+      "target_semantic": "Hard constraints and room/task review requirements",
+      "relation": "PROPOSED_SEMANTIC_MAPPING",
+      "status": "OWNER_CONFIRMATION_REQUIRED",
+      "target_field_path": null,
+      "transformation": "Preserve severity NON_NEGOTIABLE, constraint ID, owner and evidence reference.",
+      "loss_policy": "Never convert a hard requirement into a weight, reward, preference or soft penalty."
+    },
+    {
+      "mapping_id": "MAP_PREFERENCES",
+      "source_path": "preferences",
+      "source_semantic": "Resident-authored soft preferences",
+      "target_owners": [
+        "Symthaea #7790",
+        "Mycelix #5149"
+      ],
+      "target_semantic": "Preference vector, tradeability and decision provenance",
+      "relation": "PROPOSED_SEMANTIC_MAPPING",
+      "status": "OWNER_CONFIRMATION_REQUIRED",
+      "target_field_path": null,
+      "transformation": "Preserve preference ID, priority, tradeability and exact source statement.",
+      "loss_policy": "No preference is replaced or scalarized into an opaque universal home score."
+    },
+    {
+      "mapping_id": "MAP_SITE_CONTEXT",
+      "source_path": "site_reference",
+      "source_semantic": "Site, rights, climate and authority references",
+      "target_owners": [
+        "Sol-Atlas #593",
+        "Sol-Atlas #604",
+        "Symtropy #1766"
+      ],
+      "target_semantic": "Versioned site/context input and applicability questions",
+      "relation": "PROPOSED_SEMANTIC_MAPPING",
+      "status": "OWNER_CONFIRMATION_REQUIRED",
+      "target_field_path": null,
+      "transformation": "Preserve artifact reference, jurisdiction and evidence state.",
+      "loss_policy": "Unknown rights, survey, soil or authority facts remain unknown; no parcel inference."
+    },
+    {
+      "mapping_id": "MAP_DELIVERY_BLUEPRINT",
+      "source_path": "delivery",
+      "source_semantic": "Phasing and local build/delivery intent",
+      "target_owners": [
+        "Symtropy #493",
+        "Sol-Atlas #622"
+      ],
+      "target_semantic": "Blueprint parameter and build-package requirements",
+      "relation": "PROPOSED_SEMANTIC_MAPPING",
+      "status": "OWNER_CONFIRMATION_REQUIRED",
+      "target_field_path": null,
+      "transformation": "Pass only declarative requirements and source revision; adapted design becomes a new lineage.",
+      "loss_policy": "A blueprint or work package does not authorize fabrication or occupied-home execution."
+    },
+    {
+      "mapping_id": "MAP_PRIVACY",
+      "source_path": "privacy",
+      "source_semantic": "Purpose-scoped sharing and retention constraints",
+      "target_owners": [
+        "Mycelix #5149"
+      ],
+      "target_semantic": "Consent, provenance, revocation and sharing decision",
+      "relation": "PROPOSED_SEMANTIC_MAPPING",
+      "status": "OWNER_CONFIRMATION_REQUIRED",
+      "target_field_path": null,
+      "transformation": "Bind source purpose, data-sharing mode, redaction status and consent evidence.",
+      "loss_policy": "No external export on denied, revoked or ambiguous consent."
+    }
+  ],
+  "geometry_gate": {
+    "owner": "Symtropy #683",
+    "state": "BLOCKED_UNTIL_QUALIFIED",
+    "geometry_claims_permitted": false,
+    "production_takeoff_permitted": false
+  },
+  "value_of_information": {
+    "state": "PROPOSED_NOT_EXECUTED",
+    "questions": [
+      "site boundary and rights evidence",
+      "geotechnical investigation requirement",
+      "municipal authority/code profile applicability",
+      "site orientation and shading evidence",
+      "resident preference conflicts",
+      "local product availability and dated quotations"
+    ],
+    "authority": "ADVISORY_ONLY"
+  },
+  "claim_ceiling": "Proposed semantic crosswalk only. No target owner schema path is confirmed, no runtime adapter is connected, no geometry or accessibility result is produced."
+}

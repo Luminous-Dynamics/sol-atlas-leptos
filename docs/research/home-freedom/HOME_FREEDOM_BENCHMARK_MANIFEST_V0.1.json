@@ -1,0 +1,395 @@
+{
+  "schema_version": "0.1.0",
+  "study_id": "HOME-FREEDOM-COMPILER-001",
+  "maturity": "PROPOSED_NOT_EVALUATED",
+  "execution_status": "NOT_EXECUTED",
+  "region_profile": "JOHANNESBURG_HIGHVELD_FIRST_PROFILE",
+  "functional_unit": "one dwelling design revision meeting one resident brief over one declared service horizon",
+  "archetypes": [
+    {
+      "id": "COURTYARD_SOLAR",
+      "name": "Solar courtyard home",
+      "description": "Shaded and seasonally controlled outdoor room with passive solar access."
+    },
+    {
+      "id": "ROW_SERVICE_YARD",
+      "name": "Row or terrace home",
+      "description": "Repeatable attached-home structure with a private service yard."
+    },
+    {
+      "id": "COMPACT_EXPANSION",
+      "name": "Compact detached expandable home",
+      "description": "Complete initial core with a prequalified expansion bay."
+    },
+    {
+      "id": "DUPLEX_INTERGEN",
+      "name": "Duplex intergenerational home",
+      "description": "Two usable privacy zones with explicit shared-service boundaries."
+    },
+    {
+      "id": "ACCESSIBLE_SINGLE_LEVEL",
+      "name": "Accessible single-level home",
+      "description": "Step-free circulation and adaptable high-use spaces."
+    },
+    {
+      "id": "LIVE_WORK",
+      "name": "Live-work / maker home",
+      "description": "Acoustic, fire, ventilation and visitor boundaries between use zones."
+    },
+    {
+      "id": "CLUSTER_SHARED",
+      "name": "Clustered homes with shared amenities",
+      "description": "Optional shared facilities with household-local essential-service fallback."
+    },
+    {
+      "id": "RETROFIT_FIRST",
+      "name": "Retrofit / extension-first home",
+      "description": "Repair and adaptation before demolition or new build."
+    },
+    {
+      "id": "RURAL_RESOURCE_RESILIENT",
+      "name": "Rural resource-resilient home",
+      "description": "Qualified water, sanitation, energy and access autonomy under local conditions."
+    },
+    {
+      "id": "MAINTAIN_EXISTING",
+      "name": "No-build / maintain-existing baseline",
+      "description": "No new dwelling construction; retain or repair the existing functional home."
+    }
+  ],
+  "scenario_families": [
+    {
+      "id": "NORMAL_BASELINE",
+      "name": "Normal service and climate",
+      "description": "Reference operating and delivery conditions."
+    },
+    {
+      "id": "WINTER_COLD_NIGHT",
+      "name": "Highveld cold-night sequence",
+      "description": "Winter night comfort, condensation and safe ventilation."
+    },
+    {
+      "id": "SUMMER_HOT_STILL",
+      "name": "Hot still summer period",
+      "description": "Shading, internal gains and ventilation under low wind."
+    },
+    {
+      "id": "HUMID_HOT",
+      "name": "Humid-hot stress",
+      "description": "Moisture, dew point, ventilation and cooling limits."
+    },
+    {
+      "id": "WATER_CURTAILMENT",
+      "name": "Water restriction / source loss",
+      "description": "No discretionary cooling water; essential household water floors protected."
+    },
+    {
+      "id": "GRID_OUTAGE",
+      "name": "Grid outage",
+      "description": "Thermal, lighting, refrigeration and essential-service continuity."
+    },
+    {
+      "id": "MATERIAL_UNAVAILABLE",
+      "name": "Material substitution",
+      "description": "A key local material or component becomes unavailable."
+    },
+    {
+      "id": "COST_SHOCK",
+      "name": "Cost escalation",
+      "description": "Rate uncertainty, inflation and delayed procurement."
+    },
+    {
+      "id": "HOUSEHOLD_CHANGE",
+      "name": "Household composition change",
+      "description": "Change in occupancy, care, work or privacy needs."
+    },
+    {
+      "id": "PHASED_EXPANSION",
+      "name": "Future expansion",
+      "description": "Addition tested for structure, daylight, access, fire, drainage and service capacity."
+    }
+  ],
+  "comparators": [
+    {
+      "id": "ARCHITECT_LED",
+      "role": "Professional architect-led baseline",
+      "scope": "Matched resident brief, site, authority envelope, fee/time, iteration count and review maturity."
+    },
+    {
+      "id": "TESTFIT",
+      "role": "Site feasibility / configuration baseline",
+      "scope": "Use published site, zoning, building configuration, pro-forma and quantity-takeoff capabilities where geographically supported."
+    },
+    {
+      "id": "FINCH3D",
+      "role": "Rule-bound plan generation baseline",
+      "scope": "Use plan-library and code/accessibility constraints under matched brief and input budget."
+    },
+    {
+      "id": "AUTODESK_FORMA",
+      "role": "Early-stage site and daylight baseline",
+      "scope": "Evaluate supported site/daylight functions only; not a substitute for detailed dwelling or structural review."
+    },
+    {
+      "id": "OPENBIM_SEMANTICS",
+      "role": "Interoperability baseline",
+      "scope": "IFC plus selected Brick / ASHRAE 223 / Haystack crosswalk versions; track semantic loss."
+    },
+    {
+      "id": "ENERGYPLUS_OPENSTUDIO",
+      "role": "Building physics baseline",
+      "scope": "Use supported thermal, energy and water models within their documented applicability."
+    },
+    {
+      "id": "BOPTEST",
+      "role": "Building control comparison harness",
+      "scope": "Use published emulator cases and matched traces for controller comparisons where the dwelling system and model scope are supported; do not claim a dedicated outdoor-pool/neighbourhood entitlement case."
+    },
+    {
+      "id": "LOCAL_BUILD_WORKFLOW",
+      "role": "Local delivery baseline",
+      "scope": "Local quantity surveyor, trades and supplier workflow; measure labour, availability, rework and variance."
+    },
+    {
+      "id": "HYBRID_COMPOSITION",
+      "role": "Incumbent-plus-compiler workflow",
+      "scope": "Compose, rather than replace, specialist tools and qualified professionals."
+    }
+  ],
+  "hard_gates": [
+    {
+      "id": "NO_FALSE_FEASIBLE",
+      "target": 0,
+      "unit": "false_feasible_designs",
+      "meaning": "No missing or failed binding site, rights, code, structure, fire, access, health or sanitation evidence may be promoted to PASS."
+    },
+    {
+      "id": "REQUIREMENT_RETENTION",
+      "target": 1,
+      "unit": "fraction",
+      "meaning": "All non-negotiable resident constraints remain satisfied and traceable."
+    },
+    {
+      "id": "KNOWN_ANSWER_AGREEMENT",
+      "target": 1,
+      "unit": "fraction",
+      "meaning": "Exact agreement with independently authored frozen feasibility and cost-accounting answers."
+    },
+    {
+      "id": "BOM_PROVENANCE",
+      "target": 1,
+      "unit": "fraction",
+      "meaning": "Every quantity is revision-bound and carries unit, source and calculation method."
+    },
+    {
+      "id": "COST_UNKNOWN_PRESERVATION",
+      "target": 1,
+      "unit": "fraction",
+      "meaning": "Unknown rates, exclusions, contingency and uncertainty remain explicit; unknown is never coerced to zero."
+    },
+    {
+      "id": "SAFE_OCCUPIED_PHASE",
+      "target": 0,
+      "unit": "unsafe_occupied_phases",
+      "meaning": "No phase marked for occupancy may lack its declared essential services or safety requirements."
+    },
+    {
+      "id": "MODIFICATION_REQUALIFICATION",
+      "target": 0,
+      "unit": "unreviewed_buildable_modifications",
+      "meaning": "No future modification is labelled buildable without checking impacted constraints and authority."
+    },
+    {
+      "id": "SEMANTIC_ROUND_TRIP",
+      "target": 1,
+      "unit": "fraction",
+      "meaning": "All required geometry, space identities, units, relationships and provenance survive export/import."
+    },
+    {
+      "id": "NO_UNAUTHORIZED_ACTION",
+      "target": 0,
+      "unit": "unauthorized_external_actions",
+      "meaning": "The generator cannot submit permits, procure, actuate building systems or authorize construction."
+    },
+    {
+      "id": "POSITIVE_CONTROL_PRESERVATION",
+      "target": 1,
+      "unit": "fraction",
+      "meaning": "Every valid positive control remains admissible; an always-blocked system cannot pass."
+    }
+  ],
+  "metrics": [
+    {
+      "id": "DESIGN_AGENCY",
+      "unit": "fraction_of_nonnegotiable_constraints_preserved",
+      "direction": "MAXIMIZE"
+    },
+    {
+      "id": "PREFERENCE_RETENTION",
+      "unit": "priority_weighted_fraction_reported_not_scalarized",
+      "direction": "REPORT"
+    },
+    {
+      "id": "FUNCTIONAL_FIT",
+      "unit": "per_activity_disposition",
+      "direction": "REPORT"
+    },
+    {
+      "id": "ACCESSIBILITY_COVERAGE",
+      "unit": "fraction_of_declared_access_requirements_verified",
+      "direction": "MAXIMIZE"
+    },
+    {
+      "id": "CODE_EVIDENCE_COVERAGE",
+      "unit": "fraction_of_applicable_checks_with_current_evidence",
+      "direction": "MAXIMIZE"
+    },
+    {
+      "id": "CAPITAL_COST",
+      "unit": "ZAR_at_pinned_price_date",
+      "direction": "MINIMIZE"
+    },
+    {
+      "id": "WHOLE_LIFE_COST",
+      "unit": "ZAR_over_declared_horizon",
+      "direction": "MINIMIZE"
+    },
+    {
+      "id": "COST_UNCERTAINTY",
+      "unit": "declared_interval_or_distribution",
+      "direction": "REPORT"
+    },
+    {
+      "id": "BUILD_DURATION",
+      "unit": "calendar_days_and_crew_hours",
+      "direction": "MINIMIZE"
+    },
+    {
+      "id": "MATERIAL_AVAILABILITY",
+      "unit": "fraction_of_BOM_with_qualified_local_supply",
+      "direction": "MAXIMIZE"
+    },
+    {
+      "id": "THERMAL_DISCOMFORT",
+      "unit": "occupied_degree_hours_by_season",
+      "direction": "MINIMIZE"
+    },
+    {
+      "id": "WATER_USE",
+      "unit": "litres_per_occupant_service_year_by_source",
+      "direction": "MINIMIZE"
+    },
+    {
+      "id": "OPERATIONAL_ENERGY",
+      "unit": "kWh_per_occupant_service_year",
+      "direction": "MINIMIZE"
+    },
+    {
+      "id": "EMBODIED_CARBON",
+      "unit": "kgCO2e_per_functional_unit_and_declared_life_cycle_scope",
+      "direction": "MINIMIZE"
+    },
+    {
+      "id": "ADAPTATION_COST",
+      "unit": "ZAR_per_qualified_future_change",
+      "direction": "MINIMIZE"
+    },
+    {
+      "id": "SERVICE_CONTINUITY",
+      "unit": "unserved_service_hours_by_household",
+      "direction": "MINIMIZE"
+    },
+    {
+      "id": "MAINTENANCE_BURDEN",
+      "unit": "labour_hours_and_parts_cost_per_year",
+      "direction": "MINIMIZE"
+    },
+    {
+      "id": "PRIVACY_RIGHTS_FAILURES",
+      "unit": "unauthorized_or_out_of_purpose_disclosures",
+      "direction": "MINIMIZE"
+    }
+  ],
+  "negative_controls": [
+    {
+      "id": "NC_SITE_UNRESOLVED",
+      "mutation": "Remove the qualified site survey or introduce a boundary conflict.",
+      "expected": "BLOCKED"
+    },
+    {
+      "id": "NC_RIGHTS_UNKNOWN",
+      "mutation": "Remove land-use or servitude evidence.",
+      "expected": "UNKNOWN"
+    },
+    {
+      "id": "NC_CODE_STALE",
+      "mutation": "Swap the municipality or code edition without updating the authority profile.",
+      "expected": "BLOCKED"
+    },
+    {
+      "id": "NC_ACCESS_BROKEN",
+      "mutation": "Introduce an unqualified step, door conflict or inaccessible route.",
+      "expected": "BLOCKED"
+    },
+    {
+      "id": "NC_FUTURE_EGRESS",
+      "mutation": "Add a future room that blocks an escape path or fire access.",
+      "expected": "BLOCKED"
+    },
+    {
+      "id": "NC_MATERIAL_UNAVAILABLE",
+      "mutation": "Remove the sole supplier or source evidence for a critical material.",
+      "expected": "UNKNOWN"
+    },
+    {
+      "id": "NC_COST_ZERO_FILL",
+      "mutation": "Delete a rate and let the evaluator silently coerce it to zero.",
+      "expected": "BLOCKED"
+    },
+    {
+      "id": "NC_WATER_RESERVE",
+      "mutation": "Debit household essential water reserves for discretionary cooling.",
+      "expected": "BLOCKED"
+    },
+    {
+      "id": "NC_COLD_NIGHT",
+      "mutation": "Use a summer-only pass to claim whole-year Highveld comfort.",
+      "expected": "NOT_COMPARABLE"
+    },
+    {
+      "id": "NC_PHASE_UNSAFE",
+      "mutation": "Mark an incomplete shell as suitable for occupation.",
+      "expected": "BLOCKED"
+    },
+    {
+      "id": "NC_PRIVACY_REVOKED",
+      "mutation": "Reuse a resident brief after purpose-scoped consent is revoked.",
+      "expected": "BLOCKED"
+    },
+    {
+      "id": "NC_CALIBRATION_LEAK",
+      "mutation": "Use the same observation IDs for model calibration and held-out validation.",
+      "expected": "BLOCKED"
+    },
+    {
+      "id": "NC_PREFERENCE_ERASURE",
+      "mutation": "Silently change a non-negotiable requirement into a preference.",
+      "expected": "BLOCKED"
+    },
+    {
+      "id": "NC_UNREVIEWED_EXTENSION",
+      "mutation": "Mark an expansion buildable without rechecking structure, services and shared-property rules.",
+      "expected": "BLOCKED"
+    }
+  ],
+  "protocol_requirements": [
+    "At least 10 anonymized synthetic briefs crossed with at least 10 scenario/site profiles; the manifest is a plan, not evidence that these runs exist.",
+    "Independent known-answer oracle authored separately from the candidate generator.",
+    "Matched brief, site, weather, occupancy, materials, cost scope, human effort and compute budget for all comparators.",
+    "Report all candidates, rejections, Pareto alternatives, unsupported tasks and reasons; never hide inconvenient options.",
+    "Use exact product/tool versions, license/entitlement, model revisions, code edition and data provenance.",
+    "No physical, cost, compliance or resident outcome claim from synthetic data.",
+    "No universal weighted score; hard constraints first, then separate objective vectors and resident choice."
+  ],
+  "claim_ceiling": "Synthetic research contract only. No construction-ready designs, professional sign-off, permits, verified costs, physical performance or resident outcomes are present."
+}
