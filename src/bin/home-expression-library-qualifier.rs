@@ -11,29 +11,8 @@ const PROFILE_FIXTURE: &str = include_str!(
 );
 const PROFILE_SCHEMA: &str =
     include_str!("../../docs/research/home-expression/HOME_EXPRESSION_PROFILE_V0.1.schema.json");
-
-const STYLE_IDS: &[&str] = &[
-    "HIGHVELD_STONE_TIMBER_CONTEMPORARY",
-    "CAPE_COURTYARD_VERNACULAR",
-    "REGIONALLY_AUTHORED_MODERNISM",
-    "MODERNIST",
-    "MID_CENTURY_MODERN",
-    "BIOPHILIC_ORGANIC",
-    "TROPICAL_MODERN",
-    "MEDITERRANEAN_COURTYARD",
-    "JAPANESE_INSPIRED_MINIMAL",
-    "INDUSTRIAL",
-    "FARMHOUSE_CRAFT",
-    "ART_DECO",
-    "BRUTALIST_MONOLITHIC",
-    "GOTHIC_REVIVAL",
-    "HERITAGE_RESTORATION",
-    "SOLARPUNK",
-    "MINIMALIST",
-    "MAXIMALIST",
-    "CONTEMPORARY_CLASSIC",
-    "OTHER_CUSTOM",
-];
+const CATALOG_FIXTURE: &str =
+    include_str!("../../docs/research/home-expression/HOME_EXPRESSION_CATALOG_V0.1.json");
 
 const IMPACT_DOMAINS: &[&str] = &[
     "AREA_AND_CIRCULATION",
@@ -104,9 +83,122 @@ fn validate_schema_header(schema: &Value, errors: &mut Vec<String>) {
     }
 }
 
+fn string_set(values: Option<&Vec<Value>>) -> BTreeSet<String> {
+    values
+        .into_iter()
+        .flatten()
+        .filter_map(Value::as_str)
+        .map(str::to_owned)
+        .collect()
+}
+
+fn validate_catalog(
+    schema: &Value,
+    errors: &mut Vec<String>,
+) -> (BTreeSet<String>, BTreeSet<String>) {
+    let catalog: Value = match serde_json::from_str(CATALOG_FIXTURE) {
+        Ok(value) => value,
+        Err(error) => {
+            errors.push(format!("expression catalog is invalid JSON: {error}"));
+            return (BTreeSet::new(), BTreeSet::new());
+        }
+    };
+
+    if string_at(&catalog, "schema_version") != Some("0.1.0")
+        || string_at(&catalog, "maturity") != Some("ILLUSTRATIVE_CATALOG_NOT_EVALUATED")
+    {
+        errors.push("expression catalog must remain version 0.1.0 / ILLUSTRATIVE_CATALOG_NOT_EVALUATED".to_owned());
+    }
+
+    let catalog_domains = string_set(array_at(&catalog, "impact_domains"));
+    let expected_domains: BTreeSet<String> =
+        IMPACT_DOMAINS.iter().map(|domain| (*domain).to_owned()).collect();
+    if catalog_domains != expected_domains {
+        errors.push("catalog impact domains differ from the profile qualifier contract".to_owned());
+    }
+
+    let styles = array_at(&catalog, "style_catalog").cloned().unwrap_or_default();
+    let mut style_ids = BTreeSet::new();
+    for style in &styles {
+        let style_id = string_at(style, "style_id").unwrap_or_default();
+        if style_id.is_empty() || !style_ids.insert(style_id.to_owned()) {
+            errors.push(format!("catalog contains a missing or duplicate style_id: {style_id}"));
+        }
+        if !nonempty_string(style, "display_name") || !nonempty_string(style, "description") {
+            errors.push(format!("catalog style {style_id} needs a display name and description"));
+        }
+        if string_at(style, "authenticity_note").is_none() {
+            errors.push(format!("catalog style {style_id} is missing its non-authenticity claim boundary"));
+        }
+    }
+
+    let schema_style_ids = schema
+        .get("properties")
+        .and_then(|value| value.get("style_preferences"))
+        .and_then(|value| value.get("properties"))
+        .and_then(|value| value.get("entries"))
+        .and_then(|value| value.get("items"))
+        .and_then(|value| value.get("properties"))
+        .and_then(|value| value.get("style_id"))
+        .and_then(|value| value.get("enum"))
+        .and_then(Value::as_array);
+    if string_set(schema_style_ids) != style_ids {
+        errors.push("style catalog IDs do not exactly match the profile schema enum".to_owned());
+    }
+
+    let packages = array_at(&catalog, "experience_catalog")
+        .cloned()
+        .unwrap_or_default();
+    let mut package_ids = BTreeSet::new();
+    for package in &packages {
+        let package_id = string_at(package, "package_id").unwrap_or_default();
+        if package_id.is_empty() || !package_ids.insert(package_id.to_owned()) {
+            errors.push(format!("catalog contains a missing or duplicate package_id: {package_id}"));
+        }
+        if !nonempty_string(package, "display_name") || !nonempty_string(package, "description") {
+            errors.push(format!("catalog package {package_id} needs a display name and description"));
+        }
+        if package.get("optional_by_default").and_then(Value::as_bool) != Some(true)
+            || string_at(package, "selection_default") != Some("NOT_SELECTED")
+            || string_at(package, "claim_ceiling")
+                != Some("CATALOG_ONLY_NO_COST_PERFORMANCE_OR_FEASIBILITY_CLAIM")
+        {
+            errors.push(format!(
+                "catalog package {package_id} must remain optional, unselected and non-qualifying by default"
+            ));
+        }
+        if string_set(array_at(package, "impact_domains")) != expected_domains {
+            errors.push(format!(
+                "catalog package {package_id} must declare all ten impact domains"
+            ));
+        }
+        let priority_domains = string_set(array_at(package, "priority_review_domains"));
+        if !priority_domains.is_subset(&expected_domains) {
+            errors.push(format!(
+                "catalog package {package_id} contains an unknown priority review domain"
+            ));
+        }
+    }
+
+    let schema_package_ids = schema
+        .get("properties")
+        .and_then(|value| value.get("experience_options"))
+        .and_then(|value| value.get("items"))
+        .and_then(|value| value.get("properties"))
+        .and_then(|value| value.get("package_id"))
+        .and_then(|value| value.get("enum"))
+        .and_then(Value::as_array);
+    if string_set(schema_package_ids) != package_ids {
+        errors.push("experience catalog IDs do not exactly match the profile schema enum".to_owned());
+    }
+
+    (style_ids, package_ids)
+}
+
 fn validate_profile(profile: &Value, schema: &Value) -> Result<(), Vec<String>> {
     let mut errors = Vec::new();
     validate_schema_header(schema, &mut errors);
+    let (catalog_style_ids, catalog_package_ids) = validate_catalog(schema, &mut errors);
     forbidden_score_path(profile, "$", &mut errors);
 
     if string_at(profile, "schema_version") != Some("0.1.0") {
@@ -161,7 +253,7 @@ fn validate_profile(profile: &Value, schema: &Value) -> Result<(), Vec<String>> 
     for entry in &entries {
         let style_id = string_at(entry, "style_id").unwrap_or_default();
         let role = string_at(entry, "role").unwrap_or_default();
-        if !STYLE_IDS.contains(&style_id) {
+        if !catalog_style_ids.contains(style_id) {
             errors.push(format!("unknown style_id {style_id}"));
         }
         if !style_ids.insert(style_id) {
@@ -247,6 +339,9 @@ fn validate_profile(profile: &Value, schema: &Value) -> Result<(), Vec<String>> 
         let package_id = string_at(option, "package_id").unwrap_or_default();
         if package_id.is_empty() || !package_ids.insert(package_id) {
             errors.push(format!("{option_id}: missing or duplicate package_id"));
+        }
+        if !catalog_package_ids.contains(package_id) {
+            errors.push(format!("{option_id}: package_id {package_id} is absent from the catalog"));
         }
 
         let optionality = string_at(option, "optionality").unwrap_or_default();
@@ -433,6 +528,17 @@ mod tests {
         profile["style_preferences"]["mode"] = json!("NONE_UNDECIDED");
         profile["style_preferences"]["entries"] = json!([]);
         assert!(validate_profile(&profile, &schema).is_ok());
+    }
+
+    #[test]
+    fn rejects_schema_catalog_style_drift() {
+        let (profile, mut schema) = fixture();
+        schema["properties"]["style_preferences"]["properties"]["entries"]["items"]["properties"]
+            ["style_id"]["enum"]
+            .as_array_mut()
+            .unwrap()
+            .pop();
+        assert!(validate_profile(&profile, &schema).is_err());
     }
 
     #[test]
