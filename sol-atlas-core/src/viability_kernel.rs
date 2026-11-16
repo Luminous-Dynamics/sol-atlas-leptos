@@ -87,6 +87,39 @@ pub struct ViabilityReport {
     pub witness_policy: BTreeMap<String, String>,
 }
 
+
+/// Explicit computational limits for finite exact viability evaluation.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct ViabilityLimits {
+    pub max_horizon: u32,
+    pub max_states: usize,
+    pub max_actions: usize,
+    pub max_transition_branches: usize,
+}
+
+impl Default for ViabilityLimits {
+    fn default() -> Self {
+        Self {
+            max_horizon: 128,
+            max_states: 50_000,
+            max_actions: 250_000,
+            max_transition_branches: 2_000_000,
+        }
+    }
+}
+
+/// A bounded run is not a partial viability proof. No state is reported
+/// viable or infeasible until the exact finite problem is fully evaluated.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum ViabilityExecution {
+    Exact(ViabilityReport),
+    Bounded {
+        resource: String,
+        observed: usize,
+        limit: usize,
+    },
+}
+
 /// Problem shape and graph errors. Unknown evidence inside an otherwise
 /// well-formed state/action is reflected in ViabilityStatus::Unresolved.
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -141,6 +174,11 @@ pub enum ViabilityError {
         actions: Vec<String>,
     },
     TimingOverflow,
+    ResourceLimitExceeded {
+        resource: String,
+        observed: usize,
+        limit: usize,
+    },
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -337,7 +375,7 @@ fn evaluate_action_gates(
 /// pass and there exists an action whose gates pass and whose successor is
 /// Viable for every declared disturbance. If no such action exists but an
 /// otherwise plausible action remains unknown, the state is Unresolved.
-pub fn compute_viability_kernel(
+fn compute_viability_kernel_exact(
     problem: &ViabilityProblem,
 ) -> Result<ViabilityReport, ViabilityError> {
     validate_problem(problem)?;
@@ -554,6 +592,95 @@ pub fn compute_viability_kernel(
         unresolved_initial_states,
         witness_policy,
     })
+}
+
+
+/// Evaluate a finite viability problem under explicit resource caps.
+///
+/// If a cap is exceeded, returns Bounded with no state classifications. This
+/// prevents incomplete exploration from being confused with exact viability.
+pub fn compute_viability_kernel_with_limits(
+    problem: &ViabilityProblem,
+    limits: ViabilityLimits,
+) -> Result<ViabilityExecution, ViabilityError> {
+    let bounded = |resource: &str, observed: usize, limit: usize| {
+        Ok(ViabilityExecution::Bounded {
+            resource: resource.to_owned(),
+            observed,
+            limit,
+        })
+    };
+
+    if problem.horizon > limits.max_horizon {
+        return bounded(
+            "horizon",
+            problem.horizon as usize,
+            limits.max_horizon as usize,
+        );
+    }
+    if problem.states.len() > limits.max_states {
+        return bounded("states", problem.states.len(), limits.max_states);
+    }
+    if problem.actions.len() > limits.max_actions {
+        return bounded("actions", problem.actions.len(), limits.max_actions);
+    }
+
+    let stages_by_state: BTreeMap<&str, u32> = problem
+        .states
+        .iter()
+        .map(|state| (state.state_id.as_str(), state.stage))
+        .collect();
+    let mut transition_bound = 0usize;
+
+    for action in &problem.actions {
+        let Some(stage) = stages_by_state.get(action.from_state_id.as_str()) else {
+            continue;
+        };
+        let branch_count = problem
+            .disturbances_by_stage
+            .get(stage)
+            .map(Vec::len)
+            .unwrap_or(0);
+        transition_bound = transition_bound
+            .checked_add(branch_count)
+            .ok_or(ViabilityError::ResourceLimitExceeded {
+                resource: "transition_branches".to_owned(),
+                observed: usize::MAX,
+                limit: limits.max_transition_branches,
+            })?;
+    }
+
+    if transition_bound > limits.max_transition_branches {
+        return bounded(
+            "transition_branches",
+            transition_bound,
+            limits.max_transition_branches,
+        );
+    }
+
+    let report = compute_viability_kernel_exact(problem)?;
+    Ok(ViabilityExecution::Exact(report))
+}
+
+/// Convenience exact API with conservative default limits.
+///
+/// Call compute_viability_kernel_with_limits when callers need the explicit
+/// Bounded result and wish to select different caps.
+pub fn compute_viability_kernel(
+    problem: &ViabilityProblem,
+) -> Result<ViabilityReport, ViabilityError> {
+    match compute_viability_kernel_with_limits(problem, ViabilityLimits::default())? {
+        ViabilityExecution::Exact(report) => Ok(report),
+        ViabilityExecution::Bounded {
+            resource,
+            observed,
+            limit,
+        } => Err(ViabilityError::ResourceLimitExceeded {
+            resource,
+            observed,
+            limit,
+        }),
+    }
 }
 
 /// A policy choice at one observable decision history.
@@ -1117,6 +1244,69 @@ mod tests {
         let report = evaluate_action_lead_time(4, 1, 3, 8).unwrap();
         assert_eq!(report.completion_time, 8);
         assert!(report.feasible);
+    }
+
+
+    #[test]
+    fn explicit_limit_returns_bounded_without_viability_claims() {
+        let problem = base_problem(
+            1,
+            vec![
+                state("initial", 0, &[("freight", GateResult::Pass)]),
+                state("terminal", 1, &[("freight", GateResult::Pass)]),
+            ],
+            vec![action(
+                "commission",
+                "initial",
+                &[("authority", GateResult::Pass)],
+                &[("none", "terminal")],
+            )],
+            &["initial"],
+        );
+        let limits = ViabilityLimits {
+            max_horizon: 0,
+            max_states: 10,
+            max_actions: 10,
+            max_transition_branches: 10,
+        };
+
+        assert_eq!(
+            compute_viability_kernel_with_limits(&problem, limits).unwrap(),
+            ViabilityExecution::Bounded {
+                resource: "horizon".to_owned(),
+                observed: 1,
+                limit: 0,
+            }
+        );
+    }
+
+    #[test]
+    fn exact_execution_is_explicit_when_all_limits_are_met() {
+        let problem = base_problem(
+            1,
+            vec![
+                state("initial", 0, &[("freight", GateResult::Pass)]),
+                state("terminal", 1, &[("freight", GateResult::Pass)]),
+            ],
+            vec![action(
+                "commission",
+                "initial",
+                &[("authority", GateResult::Pass)],
+                &[("none", "terminal")],
+            )],
+            &["initial"],
+        );
+        let limits = ViabilityLimits {
+            max_horizon: 2,
+            max_states: 2,
+            max_actions: 1,
+            max_transition_branches: 1,
+        };
+
+        assert!(matches!(
+            compute_viability_kernel_with_limits(&problem, limits).unwrap(),
+            ViabilityExecution::Exact(_)
+        ));
     }
 
     #[test]
