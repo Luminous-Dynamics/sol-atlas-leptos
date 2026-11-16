@@ -106,6 +106,15 @@ fn string_set(values: Option<&Vec<Value>>) -> BTreeSet<String> {
         .collect()
 }
 
+fn object_field_string_set(values: Option<&Vec<Value>>, field: &str) -> BTreeSet<String> {
+    values
+        .into_iter()
+        .flatten()
+        .filter_map(|value| value.get(field).and_then(Value::as_str))
+        .map(str::to_owned)
+        .collect()
+}
+
 fn validate_catalog(
     schema: &Value,
     errors: &mut Vec<String>,
@@ -389,30 +398,9 @@ fn validate_revision_impact_crosswalk(
         errors.push("revision crosswalk is not bound to the exact v0.1 catalog revision".to_owned());
     }
 
-    let style_ids = string_set(
-        array_at(catalog, "style_catalog")
-            .map(|items| {
-                // Project each catalog object to its exact style_id without changing the source.
-                // This function is local to the verifier; no network or runtime lookup occurs.
-                items
-                    .iter()
-                    .filter_map(|item| item.get("style_id").and_then(Value::as_str))
-                    .map(|id| Value::String(id.to_owned()))
-                    .collect::<Vec<_>>()
-                    .leak()
-            }),
-    );
-    let package_ids = string_set(
-        array_at(catalog, "experience_catalog")
-            .map(|items| {
-                items
-                    .iter()
-                    .filter_map(|item| item.get("package_id").and_then(Value::as_str))
-                    .map(|id| Value::String(id.to_owned()))
-                    .collect::<Vec<_>>()
-                    .leak()
-            }),
-    );
+    let style_ids = object_field_string_set(array_at(catalog, "style_catalog"), "style_id");
+    let package_ids =
+        object_field_string_set(array_at(catalog, "experience_catalog"), "package_id");
 
     let records = array_at(manifest, "records").cloned().unwrap_or_default();
     if records.len() != style_ids.len() + package_ids.len() {
