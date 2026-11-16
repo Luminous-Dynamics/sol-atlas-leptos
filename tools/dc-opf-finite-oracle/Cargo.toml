@@ -1,0 +1,14 @@
+[package]
+name = "dc-opf-finite-oracle"
+version = "0.1.0"
+edition = "2024"
+license = "AGPL-3.0-or-later"
+description = "Exhaustive finite-instance network-constrained DC dispatch oracle"
+
+[dependencies]
+dc-power-flow-reference = { path = "../dc-power-flow-reference" }
+dc-power-flow-independent-auditor = { path = "../dc-power-flow-independent-auditor" }
+
+[[bin]]
+name = "dc-opf-finite-oracle"
+path = "src/main.rs"
