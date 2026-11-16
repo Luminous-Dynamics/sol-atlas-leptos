@@ -1,0 +1,132 @@
+name: MATPOWER 8.1 DC-OPF primal audit
+
+on:
+  pull_request:
+    paths:
+      - "tools/pglib-case-auditor/**"
+      - "tools/matpower-dc-opf-primal-auditor/**"
+      - "tools/matpower-reference-differential/run_matpower_dcopf.m"
+      - ".github/workflows/matpower-8.1-dc-opf-primal-audit.yml"
+  push:
+    paths:
+      - "tools/pglib-case-auditor/**"
+      - "tools/matpower-dc-opf-primal-auditor/**"
+      - "tools/matpower-reference-differential/run_matpower_dcopf.m"
+      - ".github/workflows/matpower-8.1-dc-opf-primal-audit.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: matpower-8-1-dc-opf-primal-audit
+  cancel-in-progress: true
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Sol-Atlas
+        uses: actions/checkout@v4
+
+      - name: Checkout immutable MATPOWER 8.1 release
+        uses: actions/checkout@v4
+        with:
+          repository: MATPOWER/matpower
+          ref: 1a828c7af590714499284e36ee9c81273388c594
+          path: vendor/matpower
+
+      - name: Checkout immutable MP-Opt-Model 5.0
+        uses: actions/checkout@v4
+        with:
+          repository: MATPOWER/mp-opt-model
+          ref: 35e81cdc147436e843d69b143b32ec5bacfa14d2
+          path: vendor/mp-opt-model
+
+      - name: Checkout immutable MIPS 1.5.2
+        uses: actions/checkout@v4
+        with:
+          repository: MATPOWER/mips
+          ref: 7ed83ba9d668864fbf7f4c1931ee697b86aa5764
+          path: vendor/mips
+
+      - name: Checkout immutable MP-Test 8.1
+        uses: actions/checkout@v4
+        with:
+          repository: MATPOWER/mptest
+          ref: a918a838ee421af41d64775508a8a6608e75e569
+          path: vendor/mptest
+
+      - name: Verify reference source identities
+        shell: bash
+        run: |
+          test "$(git -C vendor/matpower rev-parse HEAD)" = "1a828c7af590714499284e36ee9c81273388c594"
+          git -C vendor/matpower fetch --depth=1 origin refs/tags/8.1:refs/tags/8.1
+          test "$(git -C vendor/matpower rev-parse '8.1^{}')" = "1a828c7af590714499284e36ee9c81273388c594"
+          test "$(git -C vendor/mp-opt-model rev-parse HEAD)" = "35e81cdc147436e843d69b143b32ec5bacfa14d2"
+          git -C vendor/mp-opt-model fetch --depth=1 origin refs/tags/5.0:refs/tags/5.0
+          test "$(git -C vendor/mp-opt-model rev-parse '5.0^{}')" = "35e81cdc147436e843d69b143b32ec5bacfa14d2"
+          test "$(git -C vendor/mips rev-parse HEAD)" = "7ed83ba9d668864fbf7f4c1931ee697b86aa5764"
+          git -C vendor/mips fetch --depth=1 origin refs/tags/1.5.2:refs/tags/1.5.2
+          test "$(git -C vendor/mips rev-parse '1.5.2^{}')" = "7ed83ba9d668864fbf7f4c1931ee697b86aa5764"
+          test "$(git -C vendor/mptest rev-parse HEAD)" = "a918a838ee421af41d64775508a8a6608e75e569"
+          git -C vendor/mptest fetch --depth=1 origin refs/tags/8.1:refs/tags/8.1
+          test "$(git -C vendor/mptest rev-parse '8.1^{}')" = "a918a838ee421af41d64775508a8a6608e75e569"
+
+      - name: Install GNU Octave
+        run: |
+          sudo apt-get update
+          sudo apt-get install --no-install-recommends -y octave
+          octave-cli --version
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+
+      - name: Strict formatting
+        run: |
+          cargo fmt --manifest-path tools/pglib-case-auditor/Cargo.toml -- --check
+          cargo fmt --manifest-path tools/matpower-dc-opf-primal-auditor/Cargo.toml -- --check
+
+      - name: Locked offline tests and build
+        run: |
+          cargo test --manifest-path tools/pglib-case-auditor/Cargo.toml --locked --offline
+          cargo test --manifest-path tools/matpower-dc-opf-primal-auditor/Cargo.toml --locked --offline
+          cargo build --manifest-path tools/matpower-dc-opf-primal-auditor/Cargo.toml --locked --offline --bins
+          cargo clippy --manifest-path tools/pglib-case-auditor/Cargo.toml --locked --offline --all-targets -- -D warnings
+          cargo clippy --manifest-path tools/matpower-dc-opf-primal-auditor/Cargo.toml --locked --offline --all-targets -- -D warnings
+
+      - name: Audit MATPOWER rundcopf candidate receipts
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p artifacts/matpower-8.1-dc-opf
+          for case in \
+            tools/pglib-case-auditor/fixtures/pglib_opf_case14_ieee.m \
+            tools/pglib-case-auditor/fixtures/pglib_opf_case24_ieee_rts.m \
+            tools/pglib-case-auditor/fixtures/pglib_opf_case57_ieee.m; do
+            name="$(basename "$case" .m)"
+            digest="$(git hash-object "$case")"
+            receipt="artifacts/matpower-8.1-dc-opf/\${name}.rundcopf.tsv"
+            report="artifacts/matpower-8.1-dc-opf/\${name}.audit.json"
+            export GITHUB_WORKSPACE
+            export MATPOWER_CASE="$GITHUB_WORKSPACE/$case"
+            export MATPOWER_OUTPUT="$GITHUB_WORKSPACE/$receipt"
+            export MATPOWER_ROOT="$GITHUB_WORKSPACE/vendor/matpower"
+            export MP_OPT_MODEL_ROOT="$GITHUB_WORKSPACE/vendor/mp-opt-model"
+            export MIPS_ROOT="$GITHUB_WORKSPACE/vendor/mips"
+            export MP_TEST_ROOT="$GITHUB_WORKSPACE/vendor/mptest"
+            export SOURCE_GIT_BLOB_SHA1="$digest"
+            octave-cli --quiet --no-gui --eval \
+              "repo_root = getenv('GITHUB_WORKSPACE'); addpath(fullfile(repo_root, 'tools', 'matpower-reference-differential')); run_matpower_dcopf(getenv('MATPOWER_CASE'), getenv('MATPOWER_OUTPUT'), getenv('MATPOWER_ROOT'), getenv('MP_OPT_MODEL_ROOT'), getenv('MIPS_ROOT'), getenv('MP_TEST_ROOT'), getenv('SOURCE_GIT_BLOB_SHA1'));"
+            tools/matpower-dc-opf-primal-auditor/target/debug/matpower-dc-opf-audit \
+              "$case" "$receipt" | tee "$report" | jq -e '.passed == true'
+          done
+
+      - name: Publish independently audited candidate receipts
+        uses: actions/upload-artifact@v4
+        with:
+          name: matpower-8.1-dc-opf-primal-audit
+          path: artifacts/matpower-8.1-dc-opf/
+          if-no-files-found: error
