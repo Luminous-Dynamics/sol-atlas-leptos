@@ -465,7 +465,7 @@ pub fn compute_monotone_invariant_kernel_with_limits(
         ));
     }
 
-    let max_height = problem.axis_sizes[problem.axis_sizes.len() - 1] as i64 - 1;
+    let max_height = (problem.axis_sizes[problem.axis_sizes.len() - 1] - 1) as i64;
     let mut thresholds = problem.initial_safe_thresholds.clone();
     let mut predecessor_queries = 0usize;
     let mut fixed_point_iterations = 0usize;
@@ -558,9 +558,10 @@ pub fn compute_monotone_invariant_kernel(
     compute_monotone_invariant_kernel_with_limits(problem, MonotoneGridLimits::default())
 }
 
-/// Return the lexicographically first action that keeps every disturbance
-/// successor inside a previously computed exact invariant threshold set.
-/// Returns None for a state outside the invariant set.
+/// Return the index of the first caller-enumerated action that keeps every
+/// disturbance successor inside a previously computed exact invariant
+/// threshold set. Action identity is therefore tied to the original
+/// rules_by_action ordering. Returns None for a state outside the invariant set.
 pub fn witness_action_for_coordinate(
     problem: &MonotoneGridProblem,
     report: &MonotoneInvariantReport,
@@ -738,6 +739,34 @@ mod tests {
         );
     }
 
+
+
+    #[test]
+    fn maximum_i64_height_axis_is_handled_without_signed_cast_overflow() {
+        let height_size = (i64::MAX as usize) + 1;
+        let problem = MonotoneGridProblem {
+            axis_sizes: vec![1, height_size],
+            rules_by_action: vec![vec![MonotoneTransitionRule {
+                coefficients_by_output: vec![vec![1, 0], vec![0, 1]],
+                offset_by_output: vec![0, 0],
+            }]],
+            initial_safe_thresholds: vec![i64::MAX],
+        };
+        let limits = MonotoneGridLimits {
+            max_state_universe: u128::MAX,
+            max_columns: 1,
+            max_fixed_point_iterations: 2,
+            max_predecessor_queries: 128,
+        };
+
+        let execution =
+            compute_monotone_invariant_kernel_with_limits(&problem, limits).unwrap();
+        let MonotoneGridExecution::Exact(report) = execution else {
+            panic!("identity fixture must be exact");
+        };
+        assert_eq!(report.thresholds, vec![i64::MAX]);
+        assert_eq!(report.state_universe_size, (i64::MAX as u128) + 1);
+    }
 
     #[test]
     fn witness_query_rejects_mismatched_transition_model() {
