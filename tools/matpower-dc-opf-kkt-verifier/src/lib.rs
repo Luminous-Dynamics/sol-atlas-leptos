@@ -300,7 +300,9 @@ fn split_primal_and_dual(input: &str) -> Result<(String, DualCertificate), Strin
                     return Err(format!("duplicate DUAL_META at line {line_number}"));
                 }
                 if fields[1] != DUAL_SCHEMA_VERSION || fields[2] != DUAL_CONVENTION {
-                    return Err(format!("unsupported dual schema/convention at line {line_number}"));
+                    return Err(format!(
+                        "unsupported dual schema/convention at line {line_number}"
+                    ));
                 }
                 meta_seen = true;
             }
@@ -350,7 +352,9 @@ fn split_primal_and_dual(input: &str) -> Result<(String, DualCertificate), Strin
                 )?;
             }
             Some(kind) if kind.starts_with("DUAL_") => {
-                return Err(format!("malformed or unknown dual row '{kind}' at line {line_number}"));
+                return Err(format!(
+                    "malformed or unknown dual row '{kind}' at line {line_number}"
+                ));
             }
             _ => primal_lines.push(line),
         }
@@ -370,7 +374,9 @@ fn insert_dual<K: Ord + std::fmt::Display>(
     family: &str,
 ) -> Result<(), String> {
     if target.insert(key, dual).is_some() {
-        return Err(format!("duplicate {family} dual identity at line {line_number}"));
+        return Err(format!(
+            "duplicate {family} dual identity at line {line_number}"
+        ));
     }
     Ok(())
 }
@@ -455,8 +461,14 @@ fn exact_key_coverage<K: Ord + Clone + std::fmt::Display>(
 ) -> Result<(), String> {
     let actual_keys = actual.keys().cloned().collect::<BTreeSet<_>>();
     if &actual_keys != expected {
-        let missing = expected.difference(&actual_keys).map(ToString::to_string).collect::<Vec<_>>();
-        let extra = actual_keys.difference(expected).map(ToString::to_string).collect::<Vec<_>>();
+        let missing = expected
+            .difference(&actual_keys)
+            .map(ToString::to_string)
+            .collect::<Vec<_>>();
+        let extra = actual_keys
+            .difference(expected)
+            .map(ToString::to_string)
+            .collect::<Vec<_>>();
         return Err(format!(
             "{family} dual coverage mismatch; missing={missing:?}, extra={extra:?}"
         ));
@@ -476,7 +488,10 @@ fn validate_options(options: KktOptions) -> Result<(), String> {
         options.stationarity_relative_tolerance,
         options.complementarity_tolerance,
     ];
-    if values.iter().any(|value| !value.is_finite() || *value < 0.0) {
+    if values
+        .iter()
+        .any(|value| !value.is_finite() || *value < 0.0)
+    {
         return Err("all KKT tolerances must be finite and non-negative".to_owned());
     }
     Ok(())
@@ -553,7 +568,11 @@ fn audit_projection_kkt(
         return Err("source projection has duplicate bus identities".to_owned());
     }
     let candidate_buses = &candidate.buses;
-    let expected_bus_ids = projection.buses.iter().map(|bus| bus.id).collect::<BTreeSet<_>>();
+    let expected_bus_ids = projection
+        .buses
+        .iter()
+        .map(|bus| bus.id)
+        .collect::<BTreeSet<_>>();
     exact_key_coverage("Pmis", &expected_bus_ids, &duals.buses)?;
     exact_key_coverage("Va bound", &expected_bus_ids, &duals.va)?;
 
@@ -584,9 +603,14 @@ fn audit_projection_kkt(
         if !generator.in_service {
             continue;
         }
-        let state = candidate_generators.get(&generator.source_row).ok_or_else(|| {
-            format!("candidate is missing online generator row {}", generator.source_row)
-        })?;
+        let state = candidate_generators
+            .get(&generator.source_row)
+            .ok_or_else(|| {
+                format!(
+                    "candidate is missing online generator row {}",
+                    generator.source_row
+                )
+            })?;
         if !state.in_service || state.bus_id != generator.bus_id {
             return Err(format!(
                 "candidate generator identity/status mismatch at source row {}",
@@ -635,7 +659,10 @@ fn audit_projection_kkt(
             .get(&branch.to_bus)
             .ok_or_else(|| format!("branch {} has unknown to-bus", branch.source_row))?;
         if !branch.reactance_pu.is_finite() || branch.reactance_pu.abs() <= f64::EPSILON {
-            return Err(format!("branch {} has invalid reactance", branch.source_row));
+            return Err(format!(
+                "branch {} has invalid reactance",
+                branch.source_row
+            ));
         }
         let effective_tap = if branch.tap_ratio == 0.0 {
             1.0
@@ -643,7 +670,10 @@ fn audit_projection_kkt(
             branch.tap_ratio
         };
         if !effective_tap.is_finite() || effective_tap <= 0.0 {
-            return Err(format!("branch {} has invalid tap ratio", branch.source_row));
+            return Err(format!(
+                "branch {} has invalid tap ratio",
+                branch.source_row
+            ));
         }
         let susceptance = 1.0 / (branch.reactance_pu * effective_tap);
         let phase_injection_pu = -susceptance * branch.phase_shift_degrees * DEG_TO_RAD;
@@ -717,13 +747,10 @@ fn audit_projection_kkt(
 
     let mut bmis = vec![0.0; projection.buses.len()];
     for (index, bus) in projection.buses.iter().enumerate() {
-        bmis[index] = -(bus.demand_mw + bus.shunt_conductance_mw) / base
-            - pbus_injection[index];
+        bmis[index] = -(bus.demand_mw + bus.shunt_conductance_mw) / base - pbus_injection[index];
         let residual = b_va[index] - pg_by_bus[index] - bmis[index];
         metrics.max_pmis = metrics.max_pmis.max(residual.abs());
-        if !residual.is_finite()
-            || residual.abs() > options.equality_residual_tolerance_pu
-        {
+        if !residual.is_finite() || residual.abs() > options.equality_residual_tolerance_pu {
             metrics.primal_feasible = false;
         }
     }
@@ -831,14 +858,10 @@ fn audit_projection_kkt(
         if !violation.is_finite() || violation > options.generator_bound_tolerance_pu {
             metrics.primal_feasible = false;
         }
-        metrics.observe_complementarity(
-            dual.lower * lower_slack,
-            options.complementarity_tolerance,
-        );
-        metrics.observe_complementarity(
-            dual.upper * upper_slack,
-            options.complementarity_tolerance,
-        );
+        metrics
+            .observe_complementarity(dual.lower * lower_slack, options.complementarity_tolerance);
+        metrics
+            .observe_complementarity(dual.upper * upper_slack, options.complementarity_tolerance);
     }
 
     // The equality Pmis is represented by identical lower/upper bounds.
@@ -879,8 +902,8 @@ fn audit_projection_kkt(
         .map(|bus| duals.buses[&bus.id].upper - duals.buses[&bus.id].lower)
         .collect::<Vec<_>>();
     for branch in &branch_models {
-        let delta = branch.susceptance
-            * (signed_pmis[branch.from_index] - signed_pmis[branch.to_index]);
+        let delta =
+            branch.susceptance * (signed_pmis[branch.from_index] - signed_pmis[branch.to_index]);
         stationarity_va[branch.from_index] += delta;
         stationarity_va[branch.to_index] -= delta;
         stationarity_va_scale[branch.from_index] += delta.abs();
@@ -951,8 +974,8 @@ fn audit_projection_kkt(
     for (index, bus) in projection.buses.iter().enumerate() {
         let dual = duals.buses[&bus.id];
         let expression = b_va[index] - pg_by_bus[index];
-        primal_at_lagrangian += dual.lower * (bmis[index] - expression)
-            + dual.upper * (expression - bmis[index]);
+        primal_at_lagrangian +=
+            dual.lower * (bmis[index] - expression) + dual.upper * (expression - bmis[index]);
     }
 
     for (index, bus) in projection.buses.iter().enumerate() {
@@ -964,12 +987,10 @@ fn audit_projection_kkt(
             let dual = duals.flows[&branch.source_row];
             dual_constant += dual.lower * lower - dual.upper * upper;
             let expression = branch.susceptance * (va[branch.from_index] - va[branch.to_index]);
-            primal_at_lagrangian += dual.lower * (lower - expression)
-                + dual.upper * (expression - upper);
+            primal_at_lagrangian +=
+                dual.lower * (lower - expression) + dual.upper * (expression - upper);
         }
-        if let (Some(lower), Some(upper)) =
-            (branch.angle_lower_rad, branch.angle_upper_rad)
-        {
+        if let (Some(lower), Some(upper)) = (branch.angle_lower_rad, branch.angle_upper_rad) {
             let dual = duals.angles[&branch.source_row];
             if lower.is_finite() {
                 dual_constant += dual.lower * lower;
@@ -992,14 +1013,13 @@ fn audit_projection_kkt(
         if bus.bus_type == 3 {
             let reference = bus.voltage_angle_initial_degrees * DEG_TO_RAD;
             dual_constant += dual.lower * reference - dual.upper * reference;
-            primal_at_lagrangian += dual.lower * (reference - va[index])
-                + dual.upper * (va[index] - reference);
+            primal_at_lagrangian +=
+                dual.lower * (reference - va[index]) + dual.upper * (va[index] - reference);
         }
     }
     for generator in &generator_models {
         let dual = duals.generators[&generator.source_row];
-        dual_constant += dual.lower * generator.lower_pu
-            - dual.upper * generator.upper_pu;
+        dual_constant += dual.lower * generator.lower_pu - dual.upper * generator.upper_pu;
         primal_at_lagrangian += dual.lower * (generator.lower_pu - generator.pg_pu)
             + dual.upper * (generator.pg_pu - generator.upper_pu);
     }
@@ -1027,12 +1047,11 @@ fn audit_projection_kkt(
         }
     }
 
-    let numerical_dual_infimum_estimate =
-        if dual_infimum_available && dual_infimum.is_finite() {
-            Some(dual_infimum)
-        } else {
-            None
-        };
+    let numerical_dual_infimum_estimate = if dual_infimum_available && dual_infimum.is_finite() {
+        Some(dual_infimum)
+    } else {
+        None
+    };
     let numerical_primal_dual_gap_estimate =
         numerical_dual_infimum_estimate.map(|dual| primal.recomputed_objective - dual);
 
@@ -1109,8 +1128,7 @@ fn cost_triplet(cost: &pglib_case_auditor::MatpowerDcCost) -> Result<(f64, f64, 
 mod tests {
     use super::*;
 
-    const TWO_BUS: &str =
-        include_str!("../../matpower-dc-opf-primal-auditor/fixtures/two_bus.m");
+    const TWO_BUS: &str = include_str!("../../matpower-dc-opf-primal-auditor/fixtures/two_bus.m");
 
     fn valid_receipt(source: &str) -> String {
         let digest = pglib_case_auditor::git_blob_sha1(source.as_bytes());
@@ -1168,10 +1186,8 @@ mod tests {
 
     #[test]
     fn wrong_bus_multiplier_is_detected_by_stationarity() {
-        let receipt = valid_receipt(TWO_BUS).replace(
-            "DUAL_BUS\t1\t0\t2200",
-            "DUAL_BUS\t1\t0\t2100",
-        );
+        let receipt =
+            valid_receipt(TWO_BUS).replace("DUAL_BUS\t1\t0\t2200", "DUAL_BUS\t1\t0\t2100");
         let report = audit_matpower_dc_opf_kkt(
             TWO_BUS,
             &receipt,
@@ -1185,10 +1201,8 @@ mod tests {
 
     #[test]
     fn negative_dual_is_not_accepted() {
-        let receipt = valid_receipt(TWO_BUS).replace(
-            "DUAL_BUS\t1\t0\t2200",
-            "DUAL_BUS\t1\t-0.1\t2200",
-        );
+        let receipt =
+            valid_receipt(TWO_BUS).replace("DUAL_BUS\t1\t0\t2200", "DUAL_BUS\t1\t-0.1\t2200");
         let report = audit_matpower_dc_opf_kkt(
             TWO_BUS,
             &receipt,
@@ -1261,11 +1275,7 @@ mod tests {
             report.to_json()
         );
         assert!(report.dual_feasible, "{}", report.to_json());
-        assert!(
-            report.stationarity_within_tolerance,
-            "{}",
-            report.to_json()
-        );
+        assert!(report.stationarity_within_tolerance, "{}", report.to_json());
         assert!(
             report.complementary_slackness_within_tolerance,
             "{}",
@@ -1285,10 +1295,8 @@ mod tests {
 
     #[test]
     fn wrong_binding_line_shadow_price_is_detected_by_stationarity() {
-        let receipt = valid_binding_line_receipt(TWO_BUS_BINDING_LINE).replace(
-            "DUAL_FLOW\\t1\\t0\\t2000",
-            "DUAL_FLOW\\t1\\t0\\t1900",
-        );
+        let receipt = valid_binding_line_receipt(TWO_BUS_BINDING_LINE)
+            .replace("DUAL_FLOW\\t1\\t0\\t2000", "DUAL_FLOW\\t1\\t0\\t1900");
         let report = audit_matpower_dc_opf_kkt(
             TWO_BUS_BINDING_LINE,
             &receipt,
@@ -1296,16 +1304,17 @@ mod tests {
             KktOptions::default(),
         )
         .expect("wrong line shadow price should produce an audit report");
-        assert!(!report.stationarity_within_tolerance, "{}", report.to_json());
+        assert!(
+            !report.stationarity_within_tolerance,
+            "{}",
+            report.to_json()
+        );
         assert!(!report.numerical_kkt_satisfied, "{}", report.to_json());
     }
 
     #[test]
     fn upper_flow_multiplier_with_slack_violates_complementarity() {
-        let receipt = valid_receipt(TWO_BUS).replace(
-            "DUAL_FLOW\t1\t0\t0",
-            "DUAL_FLOW\t1\t0\t0.01",
-        );
+        let receipt = valid_receipt(TWO_BUS).replace("DUAL_FLOW\t1\t0\t0", "DUAL_FLOW\t1\t0\t0.01");
         let report = audit_matpower_dc_opf_kkt(
             TWO_BUS,
             &receipt,
