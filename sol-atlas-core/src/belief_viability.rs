@@ -627,8 +627,9 @@ pub fn compute_belief_viability_kernel(
             }
 
             let mut successor_beliefs = BTreeMap::<String, BTreeSet<String>>::new();
+            let mut action_has_known_failure = false;
 
-            'hidden: for state_id in &belief.hidden_state_ids {
+            for state_id in &belief.hidden_state_ids {
                 for disturbance_id in disturbance_ids {
                     let key = (
                         state_id.clone(),
