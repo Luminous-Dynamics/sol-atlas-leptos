@@ -724,7 +724,7 @@ mod tests {
     #[test]
     fn rejects_missing_counterfactual_dimension() {
         let (mut manifest, schema) = benchmark_fixture().expect("valid benchmark fixture");
-        manifest["counterfactual_pairs"][0]["changed_dimension"] = json!("STYLE");
+        manifest["counterfactual_pairs"][0]["changed_dimension"] = json!("UNDECLARED");
         assert!(!validate_benchmark_manifest(&manifest, &schema).is_empty());
     }
 
