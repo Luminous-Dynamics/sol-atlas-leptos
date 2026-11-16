@@ -145,6 +145,10 @@ The system should preserve many legitimate aesthetic directions. It must not tra
 
 A hidden pump room that cannot be serviced, a glass roof that cannot be cleaned, or an indoor waterfall that causes persistent moisture problems is not a high-quality amenity. Evaluate the maintenance path, replacement access, spare parts and service interruption alongside the visual experience.
 
+### 6.1 Change-aware evidence boundary
+
+[HOME-EXPRESSION-REVISION-IMPACT-001 #911](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/911) defines the proposed crosswalk from style/package changes to the existing whole-home invalidation owner [#832](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/832). It distinguishes a style-intent update, a programme option, and an actual geometry/assembly/service change. A style label does not by itself change the physical model; an amenity selection does not itself invalidate a prior design receipt. Only #832 may determine dependency-specific invalidation once exact design artifacts change. The v0.1 crosswalk is owner-review only and cannot automatically approve or invalidate evidence.
+
 ## 7. Integration map
 
 | Owner | Contract to reuse |
@@ -155,6 +159,7 @@ A hidden pump room that cannot be serviced, a glass roof that cannot be cleaned,
 | Sol-Atlas #806 | Loss-aware intent and accessibility bridge |
 | Sol-Atlas #831 | Synthetic geometric layout qualifier |
 | Sol-Atlas #832 | Revision and evidence invalidation graph |
+| Sol-Atlas #911 | Expression/package-to-revision impact crosswalk (proposed; #832 remains authority) |
 | Sol-Atlas #811 / PR #812 | Material/component evidence and substitution |
 | Sol-Atlas #803 / #814 | Assembly demand and DfMA delivery |
 | Sol-Atlas #816 | Whole-household cost of place |
@@ -274,6 +279,20 @@ The current proposed extension is captured in:
 It currently contains 16 synthetic contract-mutation cases covering style choice/exclusions, blends, optional observatory/pool packages, unknown and zero-filled cost, budget sensitivity, orphan resident requirements, stale revisions, reference rights, inferred cultural context and step-free access preservation. Four counterfactual pairs vary only style, amenity, budget or one hard constraint.
 
 **Execution and binding state:** the extension is `PROPOSED_NOT_EVALUATED` / `NOT_EXECUTED`. Exact case IDs in the parent 100-case corpus are deliberately null and marked `OWNER_CASE_BINDING_PENDING`; no synthetic extension row is misrepresented as an already matched source case. The current Rust gate verifies contract integrity and pair structure, not the physical dwelling or the performance of an industry comparator. The next benchmark increment should bind each extension row to exact parent corpus case IDs, freeze the resulting population and independently author the expected answers before executing any candidate workflow.
+
+### 9.4 2026 research frontier and benchmark implications
+
+A current research synthesis, including fair competitor scope and proposed search targets, is maintained in `HOME_EXPRESSION_SOTA_RESEARCH_REVIEW_2026-11.md`.
+
+Two results materially affect this programme:
+- **LayoutGen (published 2026-10-15):** an evaluation-guided neuro-symbolic plan generator reports a 92% reduction in detected violations (3.7 to 0.3 per plan across 200 runs) against its single-shot baseline. Its in-loop regulatory scope is explicitly limited to minimum room area, room width and critical width for single-storey axis-aligned residential plans; other checks such as setbacks, egress, stairs, parking and ventilation are outside the reported measure. This is a matched baseline for the generator–verifier loop, not a whole-building approval.
+- **Talami, Costa and Stouffs (online 2026-10-20):** a stage-adaptive surrogate/physics/uncertainty framework reports 93.8% fewer simulations than exhaustive search for an 11-variable office case with four uncertainty scenarios. This suggests our next SOTA target should be simulation-call efficiency at matched Pareto quality, with high-fidelity re-evaluation—not speed from replacing physics with a language model.
+
+A 2026 evaluation study also finds weaknesses in generic FID and VLM judging and proposes four evaluation levels: model quality, element validity, performance KPIs and human evaluation. Treat visual-language model judgments as calibrated advisory evidence, never as safety, feasibility or resident-consent authority.
+
+**Proposed target:** on bounded test problems, save at least 90% of high-fidelity simulation calls versus exhaustive search while retaining at least 95% of exact-oracle hypervolume, using calibrated uncertainty and independent high-fidelity checks of final alternatives. This is a target, not a current result.
+
+Standards to pin: IFC 4.3.2.0 / ISO 16739-1:2024; IDS 1.0 for alphanumeric IFC information requirements (not geometric validation); EnergyPlus 26.2.0 (released 2026-09-30). See the research review for links, scope and sources.
 
 ## 10. South African deployment boundary
 
