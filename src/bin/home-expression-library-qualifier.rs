@@ -267,6 +267,12 @@ fn validate_benchmark_manifest(manifest: &Value, schema: &Value) -> Vec<String> 
         errors
             .push("benchmark extension must declare its Home Freedom parent and scope".to_owned());
     }
+    if string_at(manifest, "source_population_state") != Some("ONE_SYNTHETIC_BASELINE_ONLY")
+        || manifest.get("source_case_count").and_then(Value::as_u64) != Some(1)
+        || !nonempty_string(manifest, "source_population_note")
+    {
+        errors.push("benchmark extension must disclose its one-case synthetic source population".to_owned());
+    }
 
     let allowed_statuses = string_set(array_at(manifest, "status_semantics"));
     let cases = array_at(manifest, "cases").cloned().unwrap_or_default();
@@ -294,12 +300,30 @@ fn validate_benchmark_manifest(manifest: &Value, schema: &Value) -> Vec<String> 
         {
             errors.push(format!("{id}: case maturity or claim ceiling was promoted"));
         }
-        if string_at(case, "source_case_binding_status") != Some("OWNER_CASE_BINDING_PENDING")
-            || !case.get("source_case_id").is_some_and(Value::is_null)
+        if string_at(case, "source_case_binding_status") != Some("BOUND")
+            || string_at(case, "source_case_id") != Some("SYNTH-HV-CASE-001")
+            || string_at(case, "derivation_kind") != Some("ONE_FACTOR_COUNTERFACTUAL_MUTATION")
         {
-            errors.push(format!(
-                "{id}: unverified Home Freedom source-case binding was invented"
-            ));
+            errors.push(format!("{id}: extension row is not bound to the exact synthetic Home Freedom baseline"));
+        }
+        let expected_artifacts: BTreeSet<String> = [
+            "docs/research/home-freedom/HOME_DESIGN_BRIEF_SYNTHETIC_EXAMPLE_V0.1.json|0090e2f0c883c62817d1b6da51d1a2dbe92a477f",
+            "docs/research/home-freedom/HOME_DESIGN_CANDIDATE_SET_SYNTHETIC_EXAMPLE_V0.1.json|030e6c0e71cef1a936738910409396a9a48dedcf",
+        ]
+        .into_iter()
+        .map(str::to_owned)
+        .collect();
+        let actual_artifacts: BTreeSet<String> = array_at(case, "source_artifact_refs")
+            .into_iter()
+            .flatten()
+            .filter_map(|artifact| {
+                let path = string_at(artifact, "path")?;
+                let sha = string_at(artifact, "blob_sha")?;
+                Some(format!("{path}|{sha}"))
+            })
+            .collect();
+        if actual_artifacts != expected_artifacts {
+            errors.push(format!("{id}: source artifacts do not bind the exact parent brief and candidate-set blobs"));
         }
         if !nonempty_string(case, "source_population_ref") || !nonempty_string(case, "mutation") {
             errors.push(format!(
@@ -982,6 +1006,15 @@ mod tests {
             serde_json::from_str(CATALOG_FIXTURE).expect("valid expression catalog");
         manifest["parent_catalog_content_sha"] = json!("0000000000000000000000000000000000000000");
         assert!(!validate_revision_impact_crosswalk(&manifest, &schema, &catalog).is_empty());
+    }
+
+    #[test]
+    fn rejects_unknown_source_case_artifact_binding() {
+        let (mut manifest, schema) =
+            benchmark_fixture().expect("valid benchmark fixture");
+        manifest["cases"][0]["source_artifact_refs"][0]["blob_sha"] =
+            json!("0000000000000000000000000000000000000000");
+        assert!(!validate_benchmark_manifest(&manifest, &schema).is_empty());
     }
 
     #[test]
