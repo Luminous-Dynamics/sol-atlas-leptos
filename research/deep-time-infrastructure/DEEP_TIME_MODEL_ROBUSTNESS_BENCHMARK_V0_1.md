@@ -115,7 +115,7 @@ It implements:
 - shared source-observation and calibration-lineage intersections;
 - local-shoreline input gating that rejects synthetic modern terrain offsets and future-supercontinent climate boundary conditions, and requires explicit paleo transform, vertical reference, paleotopography, local vertical motion, geoid/gravitational/rotational fingerprint, ocean dynamics, chronology and lineage/uncertainty declarations.
 
-Twelve Rust unit tests are written, covering DTR-001/002/004/006/007/008/009 plus unresolved/failed/incomplete controls. They are not yet executed. A READY_FOR_PHYSICAL_MODEL_EVALUATION disposition means only that the declared input categories are present; it is not physical validation or site qualification.
+Eighteen Rust unit tests are written, covering DTR-001/002/004/006/007/008/009, unresolved/failed/incomplete controls, five metamorphic properties and the exhaustive 3x3 differential oracle. Tests remain subject to exact-head execution. A READY_FOR_PHYSICAL_MODEL_EVALUATION disposition means only that the declared input categories are present; it is not physical validation or site qualification.
 
 ## 7.2 Metamorphic qualification panel
 
