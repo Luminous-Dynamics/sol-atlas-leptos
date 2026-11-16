@@ -213,7 +213,6 @@ struct GeneratorModel {
     constant_cost: f64,
 }
 
-#[derive(Default)]
 struct Metrics {
     max_pmis: f64,
     max_flow_violation: f64,
