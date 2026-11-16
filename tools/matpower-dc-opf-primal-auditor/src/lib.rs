@@ -389,7 +389,9 @@ pub fn parse_candidate_tsv(input: &str) -> Result<MatpowerDcOpfCandidate, String
 
     let source_git_blob_sha1 = digest.ok_or("candidate receipt missing source Git blob SHA-1")?;
     if source_git_blob_sha1.len() != 40
-        || !source_git_blob_sha1.chars().all(|character| character.is_ascii_hexdigit())
+        || !source_git_blob_sha1
+            .chars()
+            .all(|character| character.is_ascii_hexdigit())
     {
         return Err("candidate source Git blob SHA-1 is malformed".to_owned());
     }
