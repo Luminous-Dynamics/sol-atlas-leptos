@@ -210,6 +210,8 @@ impl ScreenValidationReport {
                 "{{",
                 "\"schema_version\":\"dc-lodf-screen-validation.v0.1.0\",",
                 "\"expected_branch_outages\":{},",
+                "\"evaluated_branch_outages\":{},",
+                "\"coverage_complete\":{},",
                 "\"compared_predictions\":{},",
                 "\"exact_resolve_abstentions\":{},",
                 "\"abstentions_with_exact_solution\":{},",
