@@ -220,3 +220,24 @@ The defensible target is an evidence-qualified federation across specialist mode
 - independently checkable finite oracles and immutable replay.
 
 The opportunity is to outperform **the integration and decision-assurance workflow on matched tasks**, not to claim that one Luminous model replaces every specialist model.
+
+## 13. A higher research bar: Tier 3 systemic-risk defensibility and information constraints
+
+A 2026 *Risk Analysis* research agenda proposes three capability tiers for systemic-risk assessment: Tier 1 direct/localized impacts; Tier 2 cascading consequences across connected systems; Tier 3 emergent, transformative and deeply uncertain dynamics, including feedback loops and structural changes. It argues that most practically applied methods rarely extend beyond Tier 1 or basic Tier 2 and identifies six priorities: consequence analysis, structuring uncertainty, evaluating trade-offs, causal inference, defensibility and communicating results. The authors also argue that, in complex systemic settings, credibility must move beyond a simple “validated model” label toward explicit assumptions, framing and defensible use when a fully verifiable outcome may not exist.
+
+Reference: T. Logan et al. (2026), *Advancing Systemic Risk Assessment for Complex, Interdependent Systems: A Research Agenda*, Risk Analysis 46(5), e70243, first published 14 April 2026. https://doi.org/10.1111/risa.70243 .
+
+**Implication for the Luminous benchmark:** do not give a system a Tier 3 badge just because it has many graph layers or scenario sliders. Require adversarial tests of feedback, delayed effects, intervention side-effects, topology change, model-form disagreement, observation limits and decision defensibility. Every run must state what it cannot establish.
+
+### Partial observation is a separate benchmark dimension
+
+The perfect-information finite and stationary kernels assume the controller sees the modeled state. They are not automatically adaptive planners for a system whose true state or geological future is hidden. The new [belief-state viability kernel](https://github.com/Luminous-Dynamics/sol-atlas-leptos/blob/research/deep-time-infrastructure-001/sol-atlas-core/src/belief_viability.rs) chooses one action for the complete set of hidden worlds consistent with current observations, then partitions successors only when an observation becomes available. This prevents hidden future model IDs from becoming policy inputs.
+
+In the matched evaluation:
+- perfect-information viability is an optimistic upper bound, not a fair partial-observation baseline;
+- fixed/open-loop policy, scenario-tree policy with explicit non-anticipativity, and belief-state recursion use the same hidden-state and observation graph;
+- the perfect-information gap is reported separately;
+- observation delay and measurement uncertainty are part of the input, not instantaneous free information.
+
+This is a finite reference semantics, not a probability-calibrated POMDP or a real-world adaptive controller.
+
