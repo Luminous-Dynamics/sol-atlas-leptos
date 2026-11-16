@@ -88,6 +88,25 @@ No general-purpose engine should pretend to replace every specialist solver. Kee
 
 A model output is admissible only for its declared context of use, calibration domain, data resolution, boundary conditions and validation evidence. TELEMAC publishes a validation manual and benchmark cases; use relevant analytical and laboratory cases as independent comparators, not as evidence that our own adapter is validated. See [TELEMAC-3D product and validation documentation](https://opentelemac.org/en/product/telemac3d).
 
+### 2.7 Treat deep-time model disagreement as a benchmark signal
+
+The current Late Cretaceous sea-level debate is a useful first adversarial model-family benchmark because its published reconstructions are methodologically different:
+
+- **Paleogeographic flooding method (2022):** estimates a peak near 280 m above present around 80 Ma by measuring modern-land flooding in paleogeographic reconstructions and applying a modern global hypsometric slope. The paper explicitly discusses the sensitivity of the result to hypsometric slope and paleogeographic assumptions. [Paper](https://doi.org/10.1016/j.gr.2022.05.011).
+- **Strontium-isotope / tectono-glacio-eustatic method (2022):** combines plate-tectonic and glaciation estimates, reporting Cretaceous highstands around 174–217 m and a Phanerozoic combined amplitude around 220 m. Its assumptions include ocean-floor-depth and continental-shelf-hypsometry treatments. [Paper](https://doi.org/10.1016/j.gr.2022.07.014).
+- **Sequence-stratigraphic / basin synthesis (June 2026):** Xu and Jin compile 66 datasets, including 26 published curves and 40 stratigraphic or seismic sections across 38 continental-margin basins/regions. They propose a different Cenozoic history in which present global mean sea level is only about 40–55 m below the Late Cretaceous peak. This is a competing synthesis, not an established replacement. [Paper](https://doi.org/10.1016/j.earscirev.2026.105470).
+
+Do not average the reported peaks or rank a reconstruction from one headline number. Preserve each method, input lineage, age model, reference frame, hypsometry, plate reconstruction, basin coverage, uncertainty and known limitations. Treat shared input curves or datasets as correlated evidence unless independence is demonstrated; a collection of 66 datasets is not automatically 66 independent confirmations.
+
+The benchmark should test:
+- whether the implementation preserves each reconstruction family without collapsing the input evidence;
+- sensitivity to alternative paleogeographic grids, age assignments, basin coverage, dynamic topography and hypsometric assumptions;
+- out-of-sample agreement with withheld stratigraphic/seismic sections where source data and permissions allow;
+- uncertainty calibration and residual structure, not only peak-height error;
+- whether a service-network decision remains acceptable across competing histories even when the inferred ancient shoreline differs materially.
+
+This is a model-disagreement experiment at geological timescales. It cannot be translated into a present-day site flood map or an anthropogenic sea-level forecast.
+
 ## 3. Contract-level architecture
 
 Minimum renderer-neutral study shape:
