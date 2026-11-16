@@ -1,0 +1,117 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://luminousdynamics.io/schemas/stationary-invariant-exhaustive-oracle-panel-v0.1.schema.json",
+  "title": "Stationary Invariant Exhaustive Oracle Panel v0.1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "schema_version",
+    "register_id",
+    "parent_issue",
+    "classification",
+    "cases"
+  ],
+  "properties": {
+    "schema": {
+      "const": "luminous.stationary-invariant-exhaustive-oracle-panel.v0.1"
+    },
+    "schema_version": {
+      "const": "0.1.0"
+    },
+    "register_id": {
+      "const": "STATIONARY-INVARIANT-EXHAUSTIVE-ORACLE-PANEL-V0.1"
+    },
+    "parent_issue": {
+      "type": "string",
+      "format": "uri"
+    },
+    "classification": {
+      "const": "finite_stationary_safety_game_differential_oracle_not_physical_validation"
+    },
+    "cases": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 1,
+      "items": {
+        "$ref": "#/$defs/case"
+      }
+    }
+  },
+  "$defs": {
+    "case": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "case_id",
+        "game_shape",
+        "action_successor_patterns_per_action",
+        "exhaustive_case_count",
+        "candidate",
+        "independent_reference",
+        "compared_outputs",
+        "expected",
+        "claim_ceiling"
+      ],
+      "properties": {
+        "case_id": {
+          "const": "SIK-ORACLE-001"
+        },
+        "game_shape": {
+          "type": "object",
+          "required": [
+            "stationary_states",
+            "initial_states",
+            "mandatory_safe_states",
+            "controller_actions",
+            "disturbance_branches"
+          ],
+          "properties": {
+            "stationary_states": {
+              "const": 2
+            },
+            "initial_states": {
+              "const": 1
+            },
+            "mandatory_safe_states": {
+              "const": 1
+            },
+            "controller_actions": {
+              "const": 2
+            },
+            "disturbance_branches": {
+              "const": 3
+            }
+          }
+        },
+        "action_successor_patterns_per_action": {
+          "const": 8
+        },
+        "exhaustive_case_count": {
+          "const": 64
+        },
+        "candidate": {
+          "type": "string",
+          "minLength": 1
+        },
+        "independent_reference": {
+          "type": "string",
+          "minLength": 1
+        },
+        "compared_outputs": {
+          "type": "array",
+          "minItems": 2,
+          "items": {
+            "type": "string"
+          }
+        },
+        "expected": {
+          "type": "string"
+        },
+        "claim_ceiling": {
+          "type": "string"
+        }
+      }
+    }
+  }
+}
