@@ -1266,6 +1266,7 @@ mod tests {
             report.to_json()
         );
         assert!(report.dual_feasible, "{}", report.to_json());
+        assert!(report.stationarity_within_tolerance, "{}", report.to_json());
         assert!(
             report.complementary_slackness_within_tolerance,
             "{}",
