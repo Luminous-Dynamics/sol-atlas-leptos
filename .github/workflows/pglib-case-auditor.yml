@@ -1,0 +1,61 @@
+name: PGLib case importer audit
+
+on:
+  pull_request:
+    paths:
+      - "tools/pglib-case-auditor/**"
+      - ".github/workflows/pglib-case-auditor.yml"
+  push:
+    paths:
+      - "tools/pglib-case-auditor/**"
+      - ".github/workflows/pglib-case-auditor.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pglib-case-auditor
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+      - name: Format
+        run: cargo fmt --manifest-path tools/pglib-case-auditor/Cargo.toml -- --check
+      - name: Test offline and locked
+        run: cargo test --manifest-path tools/pglib-case-auditor/Cargo.toml --locked --offline
+      - name: Strict Clippy
+        run: cargo clippy --manifest-path tools/pglib-case-auditor/Cargo.toml --locked --offline --all-targets -- -D warnings
+      - name: Audit pinned PGLib fixtures
+        run: |
+          cargo run --manifest-path tools/pglib-case-auditor/Cargo.toml --locked --offline -- \
+            tools/pglib-case-auditor/fixtures/pglib_opf_case14_ieee.m \
+            --expect-git-blob-sha1 2c8260fff0311c902c3d36dcabcbe861576fc97c \
+            > /tmp/pglib-case14-receipt.json
+          cargo run --manifest-path tools/pglib-case-auditor/Cargo.toml --locked --offline -- \
+            tools/pglib-case-auditor/fixtures/pglib_opf_case24_ieee_rts.m \
+            --expect-git-blob-sha1 00b024c2e583b82452392514d2c22881c708ba7c \
+            > /tmp/pglib-case24-receipt.json
+          cargo run --manifest-path tools/pglib-case-auditor/Cargo.toml --locked --offline -- \
+            tools/pglib-case-auditor/fixtures/pglib_opf_case57_ieee.m \
+            --expect-git-blob-sha1 d8b0c9e8b45265e57f52b7ab96880ad3a874cde5 \
+            > /tmp/pglib-case57-receipt.json
+          grep -q '"bus_count": 14' /tmp/pglib-case14-receipt.json
+          grep -q '"generator_count": 5' /tmp/pglib-case14-receipt.json
+          grep -q '"branch_count": 20' /tmp/pglib-case14-receipt.json
+          grep -q '"bus_count": 24' /tmp/pglib-case24-receipt.json
+          grep -q '"generator_count": 33' /tmp/pglib-case24-receipt.json
+          grep -q '"branch_count": 38' /tmp/pglib-case24-receipt.json
+          grep -q '"bus_count": 57' /tmp/pglib-case57-receipt.json
+          grep -q '"generator_count": 7' /tmp/pglib-case57-receipt.json
+          grep -q '"branch_count": 80' /tmp/pglib-case57-receipt.json
+          for report in /tmp/pglib-case{14,24,57}-receipt.json; do
+            grep -q '"energized_island_count": 1' "$report"
+            grep -q '"claim_ceiling": "structural_import_only"' "$report"
+          done
