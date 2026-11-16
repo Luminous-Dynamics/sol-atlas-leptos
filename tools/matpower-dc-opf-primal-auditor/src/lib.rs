@@ -981,6 +981,10 @@ mod tests {
     #[test]
     fn startup_shutdown_cost_metadata_is_retained_but_not_added_to_continuous_opf_objective() {
         let source = TWO_BUS.replace("2 0 0 3 0.01 20 0;", "2 125 250 3 0.01 20 0;");
+        let projection = project_matpower_dc_case(&source)
+            .expect("startup/shutdown metadata remains source-bound in the projection");
+        assert_eq!(projection.costs[0].startup_cost, 125.0);
+        assert_eq!(projection.costs[0].shutdown_cost, 250.0);
         let candidate = valid_tsv(&source);
         let report = audit_matpower_dc_opf_candidate(
             &source,
