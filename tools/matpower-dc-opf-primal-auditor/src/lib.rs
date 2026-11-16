@@ -482,12 +482,10 @@ fn validate_projection_profile(projection: &MatpowerDcProjection) -> Result<(), 
                 cost.point_or_coefficient_count, cost.source_row
             ));
         }
-        if cost.startup_cost != 0.0 || cost.shutdown_cost != 0.0 {
-            return Err(format!(
-                "nonzero startup/shutdown cost at generator row {}; static DC-OPF profile does not model commitment costs",
-                cost.source_row
-            ));
-        }
+        // Startup/shutdown fields are retained in the projection for source
+        // fidelity, but MATPOWER's continuous single-period rundcopf objective
+        // uses only the polynomial coefficients. No unit-commitment decisions
+        // or start/stop costs are modelled by this profile.
         if cost.point_or_coefficient_count == 3 && cost.coefficients[0] < 0.0 {
             return Err(format!(
                 "non-convex quadratic cost at generator row {}; convexity is required for later KKT certification",
@@ -978,6 +976,20 @@ mod tests {
             audit_matpower_dc_opf_candidate(&source, &valid_tsv(&source), AuditOptions::default())
                 .unwrap_err();
         assert!(error.contains("unsupported cost model"));
+    }
+
+    #[test]
+    fn startup_shutdown_cost_metadata_is_retained_but_not_added_to_continuous_opf_objective() {
+        let source = TWO_BUS.replace("2 0 0 3 0.01 20 0;", "2 125 250 3 0.01 20 0;");
+        let candidate = valid_tsv(&source);
+        let report = audit_matpower_dc_opf_candidate(
+            &source,
+            &candidate,
+            AuditOptions::default(),
+        )
+        .expect("MATPOWER continuous DC-OPF ignores commitment metadata");
+        assert!(report.passed, "{}", report.to_json());
+        assert!((report.recomputed_objective - 2100.0).abs() < 1.0e-8);
     }
 
     #[test]
