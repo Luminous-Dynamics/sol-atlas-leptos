@@ -80,10 +80,17 @@ jobs:
           toolchain: 1.96.0
           components: rustfmt, clippy
 
-      - name: Strict formatting
-        run: |
-          cargo fmt --manifest-path tools/matpower-dc-opf-primal-auditor/Cargo.toml -- --check
-          cargo fmt --manifest-path tools/matpower-dc-opf-kkt-verifier/Cargo.toml -- --check
+      - name: Strict formatting (primal auditor toolchain)
+        run: cargo fmt --manifest-path tools/matpower-dc-opf-primal-auditor/Cargo.toml -- --check
+
+      # The KKT crate was formatted with Rust 1.100.0, while the parent
+      # primal auditor remains pinned to 1.96.0. Keep each crate's formatter
+      # explicit; compilation and tests below still use the 1.96.0 compiler.
+      - name: Install KKT formatter toolchain
+        run: rustup toolchain install 1.100.0 --profile minimal --component rustfmt
+
+      - name: Strict formatting (KKT toolchain)
+        run: cargo +1.100.0 fmt --manifest-path tools/matpower-dc-opf-kkt-verifier/Cargo.toml -- --check
 
       - name: Locked offline tests
         run: |
