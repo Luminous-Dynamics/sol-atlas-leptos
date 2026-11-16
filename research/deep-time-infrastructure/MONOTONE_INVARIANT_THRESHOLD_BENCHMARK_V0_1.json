@@ -127,6 +127,48 @@
       },
       "oracle": "Identity transitions make every state in the lower-closed initial safe set remain in the set; the threshold frontier is unchanged.",
       "claim_ceiling": "Source-level test fixture and algorithmic representation only. Runtime/memory measurements and scale superiority are not yet established."
+    },
+    {
+      "case_id": "MIT-006",
+      "classification": "generated_differential_exact_reference",
+      "title": "160 generated lower-closed 2D grids match explicit greatest-fixed-point oracle",
+      "input": {
+        "axis_sizes": [
+          2,
+          3
+        ],
+        "cross_couplings": {
+          "x_from_height": [
+            0,
+            1
+          ],
+          "height_from_x": [
+            0,
+            1
+          ]
+        },
+        "offsets": {
+          "x": [
+            -1,
+            0
+          ],
+          "height": [
+            -1,
+            0
+          ]
+        },
+        "initial_threshold_pairs": "all (t0,t1) with -1 <= t1 <= t0 <= 2",
+        "transition_maps": 16,
+        "initial_sets": 10,
+        "total_cases": 160
+      },
+      "expected": {
+        "differential_mismatches": 0,
+        "exact_threshold_match": true,
+        "disposition": "exact"
+      },
+      "oracle": "For each generated non-negative affine saturating rule and each lower-closed initial threshold pair, enumerate all six grid states and perform explicit greatest-fixed-point removal; compare the resulting set with the compressed threshold solver.",
+      "claim_ceiling": "Finite algorithmic equivalence on this generated monotone 2D family only; no performance or physical-model claim."
     }
   ]
 }
