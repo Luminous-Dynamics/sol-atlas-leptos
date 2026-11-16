@@ -1,0 +1,637 @@
+{
+  "schema": "luminous.deep-time-viability-kernel-case-register.v0.1",
+  "schema_version": "0.1.0",
+  "register_id": "DEEP-TIME-VIABILITY-KERNEL-CASE-REGISTER-V0.1",
+  "parent_issue": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/898",
+  "classification": "finite_configuration_space_benchmark_not_real_infrastructure_validation",
+  "cases": [
+    {
+      "case_id": "DVK-001",
+      "domain": "finite_reachability",
+      "classification": "synthetic_hand_computable_reference",
+      "title": "Single service-preserving transition path",
+      "scenario": "A start configuration has one admissible commission action that reaches a terminal configuration and preserves every floor.",
+      "inputs": {
+        "horizon": 1,
+        "states": [
+          {
+            "id": "start",
+            "stage": 0,
+            "floors": {
+              "water": "pass",
+              "freight": "pass"
+            }
+          },
+          {
+            "id": "commissioned",
+            "stage": 1,
+            "floors": {
+              "water": "pass",
+              "freight": "pass"
+            }
+          }
+        ],
+        "disturbances_by_stage": {
+          "0": [
+            "none"
+          ]
+        },
+        "actions": [
+          {
+            "id": "commission",
+            "from": "start",
+            "admissible": true,
+            "next_by_disturbance": {
+              "none": "commissioned"
+            }
+          }
+        ],
+        "terminal_states": [
+          "commissioned"
+        ],
+        "initial_states": [
+          "start"
+        ]
+      },
+      "expected": {
+        "viable_states": [
+          "commissioned",
+          "start"
+        ],
+        "infeasible_states": [],
+        "unresolved_states": [],
+        "initial_viability": {
+          "start": true
+        },
+        "disposition": "exact"
+      },
+      "oracle": "Backward reachability: commissioned is a floor-passing terminal state; start has an action whose every disturbance successor is viable.",
+      "claim_ceiling": "Finite synthetic viability semantics only; no real-world service, ecological, legal, financial, hydraulic or construction feasibility claim."
+    },
+    {
+      "case_id": "DVK-002",
+      "domain": "buffer_lead_time",
+      "classification": "synthetic_hand_computable_reference",
+      "title": "Two-period buffer supports a two-step relocation; one-period buffer does not",
+      "scenario": "A replacement service needs two transitions to commission. One old service buffer expires after one period; another after two.",
+      "inputs": {
+        "horizon": 2,
+        "states": [
+          {
+            "id": "buffer1_start",
+            "stage": 0,
+            "floors": {
+              "freight": "pass"
+            }
+          },
+          {
+            "id": "buffer1_exhausted",
+            "stage": 1,
+            "floors": {
+              "freight": "fail"
+            }
+          },
+          {
+            "id": "buffer2_start",
+            "stage": 0,
+            "floors": {
+              "freight": "pass"
+            }
+          },
+          {
+            "id": "buffer2_mid",
+            "stage": 1,
+            "floors": {
+              "freight": "pass"
+            }
+          },
+          {
+            "id": "new_service",
+            "stage": 2,
+            "floors": {
+              "freight": "pass"
+            }
+          }
+        ],
+        "disturbances_by_stage": {
+          "0": [
+            "none"
+          ],
+          "1": [
+            "none"
+          ]
+        },
+        "actions": [
+          {
+            "id": "relocate_from_buffer1",
+            "from": "buffer1_start",
+            "admissible": true,
+            "next_by_disturbance": {
+              "none": "buffer1_exhausted"
+            }
+          },
+          {
+            "id": "continue_buffer2",
+            "from": "buffer2_start",
+            "admissible": true,
+            "next_by_disturbance": {
+              "none": "buffer2_mid"
+            }
+          },
+          {
+            "id": "commission_replacement",
+            "from": "buffer2_mid",
+            "admissible": true,
+            "next_by_disturbance": {
+              "none": "new_service"
+            }
+          }
+        ],
+        "terminal_states": [
+          "new_service"
+        ],
+        "initial_states": [
+          "buffer1_start",
+          "buffer2_start"
+        ]
+      },
+      "expected": {
+        "initial_viability": {
+          "buffer1_start": false,
+          "buffer2_start": true
+        },
+        "reason_codes": {
+          "buffer1_start": "service_floor_breach_before_commission",
+          "buffer2_start": "all_transition_steps_preserve_service"
+        },
+        "disposition": "exact"
+      },
+      "oracle": "Backward recursion leaves buffer2_start viable through two pass states; buffer1_start transitions to a state whose freight floor fails.",
+      "claim_ceiling": "Finite synthetic viability semantics only; no real-world service, ecological, legal, financial, hydraulic or construction feasibility claim."
+    },
+    {
+      "case_id": "DVK-003",
+      "domain": "non_anticipativity",
+      "classification": "specification_only",
+      "title": "Hidden future scenario identity cannot select the initial action",
+      "scenario": "Two future model families share the same observable history at the initial decision time. A policy chooses different first actions only because it can see the hidden future label.",
+      "inputs": {
+        "initial_observation": "same",
+        "hidden_futures": [
+          "A",
+          "B"
+        ],
+        "decision_time": 0,
+        "identity_revealed_time": 2,
+        "policy_action_by_hidden_identity": {
+          "A": "relocate_coast",
+          "B": "relocate_inland"
+        }
+      },
+      "expected": {
+        "disposition": "reject_future_information_leakage",
+        "non_anticipativity_pass": false
+      },
+      "oracle": "Histories with identical observations at decision time must map to the same action.",
+      "claim_ceiling": "Finite synthetic viability semantics only; no real-world service, ecological, legal, financial, hydraulic or construction feasibility claim."
+    },
+    {
+      "case_id": "DVK-004",
+      "domain": "common_cause",
+      "classification": "synthetic_hand_computable_reference",
+      "title": "Two nominal routes share one power domain and fail together",
+      "scenario": "Both transport routes require SUB-1. The robust disturbance set includes a substation outage.",
+      "inputs": {
+        "horizon": 1,
+        "states": [
+          {
+            "id": "operating",
+            "stage": 0,
+            "floors": {
+              "freight": "pass"
+            }
+          },
+          {
+            "id": "routes_available",
+            "stage": 1,
+            "floors": {
+              "freight": "pass"
+            }
+          },
+          {
+            "id": "no_route_service_lost",
+            "stage": 1,
+            "floors": {
+              "freight": "fail"
+            }
+          }
+        ],
+        "disturbances_by_stage": {
+          "0": [
+            "power_ok",
+            "power_fail"
+          ]
+        },
+        "actions": [
+          {
+            "id": "operate_two_nominal_routes",
+            "from": "operating",
+            "admissible": true,
+            "shared_dependencies": [
+              "SUB-1"
+            ],
+            "next_by_disturbance": {
+              "power_ok": "routes_available",
+              "power_fail": "no_route_service_lost"
+            }
+          }
+        ],
+        "terminal_states": [
+          "routes_available",
+          "no_route_service_lost"
+        ],
+        "initial_states": [
+          "operating"
+        ]
+      },
+      "expected": {
+        "initial_viability": {
+          "operating": false
+        },
+        "robust_viability": false,
+        "weak_viability": true,
+        "disposition": "exact"
+      },
+      "oracle": "An action is robust only if every disturbance successor is viable; the power_fail branch breaches the freight floor.",
+      "claim_ceiling": "Finite synthetic viability semantics only; no real-world service, ecological, legal, financial, hydraulic or construction feasibility claim."
+    },
+    {
+      "case_id": "DVK-005",
+      "domain": "authority_gate",
+      "classification": "synthetic_hand_computable_reference",
+      "title": "Failed water or land authority gate removes a transition action",
+      "scenario": "The existing configuration cannot meet the next-period service floor without relocation, but the only relocation action has a failed authority gate.",
+      "inputs": {
+        "horizon": 1,
+        "states": [
+          {
+            "id": "current",
+            "stage": 0,
+            "floors": {
+              "freight": "pass"
+            }
+          },
+          {
+            "id": "service_failure",
+            "stage": 1,
+            "floors": {
+              "freight": "fail"
+            }
+          }
+        ],
+        "disturbances_by_stage": {
+          "0": [
+            "none"
+          ]
+        },
+        "actions": [
+          {
+            "id": "relocate",
+            "from": "current",
+            "admissible": false,
+            "failed_gates": [
+              "water_transfer_authority"
+            ],
+            "next_by_disturbance": {
+              "none": "current"
+            }
+          }
+        ],
+        "terminal_states": [
+          "service_failure"
+        ],
+        "initial_states": [
+          "current"
+        ]
+      },
+      "expected": {
+        "initial_viability": {
+          "current": false
+        },
+        "admissible_action_count": 0,
+        "disposition": "exact"
+      },
+      "oracle": "A failed mandatory authority gate makes the action inadmissible; no feasible action preserves the horizon service floor.",
+      "claim_ceiling": "Finite synthetic viability semantics only; no real-world service, ecological, legal, financial, hydraulic or construction feasibility claim."
+    },
+    {
+      "case_id": "DVK-006",
+      "domain": "ecological_floor",
+      "classification": "synthetic_hand_computable_reference",
+      "title": "Transport service cannot compensate for ecological floor breach",
+      "scenario": "A transition maintains freight delivery but violates the required environmental-flow/ecological state.",
+      "inputs": {
+        "horizon": 1,
+        "states": [
+          {
+            "id": "before",
+            "stage": 0,
+            "floors": {
+              "freight": "pass",
+              "environmental_flow": "pass"
+            }
+          },
+          {
+            "id": "after",
+            "stage": 1,
+            "floors": {
+              "freight": "pass",
+              "environmental_flow": "fail"
+            }
+          }
+        ],
+        "disturbances_by_stage": {
+          "0": [
+            "none"
+          ]
+        },
+        "actions": [
+          {
+            "id": "divert_water_to_navigation",
+            "from": "before",
+            "admissible": true,
+            "next_by_disturbance": {
+              "none": "after"
+            }
+          }
+        ],
+        "terminal_states": [
+          "after"
+        ],
+        "initial_states": [
+          "before"
+        ]
+      },
+      "expected": {
+        "initial_viability": {
+          "before": false
+        },
+        "service_only_projection_would_pass": true,
+        "full_hard_floor_viability": false,
+        "disposition": "exact"
+      },
+      "oracle": "All mandatory floors are conjunctive; freight passing cannot compensate for environmental-flow failure.",
+      "claim_ceiling": "Finite synthetic viability semantics only; no real-world service, ecological, legal, financial, hydraulic or construction feasibility claim."
+    },
+    {
+      "case_id": "DVK-007",
+      "domain": "robust_vs_weak",
+      "classification": "synthetic_hand_computable_reference",
+      "title": "Weak viability differs from robust viability across two disturbances",
+      "scenario": "One action maintains service in a normal event but fails in a drought/power compound event.",
+      "inputs": {
+        "horizon": 1,
+        "states": [
+          {
+            "id": "initial",
+            "stage": 0,
+            "floors": {
+              "water": "pass"
+            }
+          },
+          {
+            "id": "normal_terminal",
+            "stage": 1,
+            "floors": {
+              "water": "pass"
+            }
+          },
+          {
+            "id": "compound_failure",
+            "stage": 1,
+            "floors": {
+              "water": "fail"
+            }
+          }
+        ],
+        "disturbances_by_stage": {
+          "0": [
+            "normal",
+            "compound"
+          ]
+        },
+        "actions": [
+          {
+            "id": "single_plan",
+            "from": "initial",
+            "admissible": true,
+            "next_by_disturbance": {
+              "normal": "normal_terminal",
+              "compound": "compound_failure"
+            }
+          }
+        ],
+        "terminal_states": [
+          "normal_terminal",
+          "compound_failure"
+        ],
+        "initial_states": [
+          "initial"
+        ]
+      },
+      "expected": {
+        "weak_viability": true,
+        "robust_viability": false,
+        "initial_robust_viability": {
+          "initial": false
+        },
+        "disposition": "exact"
+      },
+      "oracle": "Existence of one successful disturbance path is weak viability; robust viability requires every declared disturbance successor to be viable.",
+      "claim_ceiling": "Finite synthetic viability semantics only; no real-world service, ecological, legal, financial, hydraulic or construction feasibility claim."
+    },
+    {
+      "case_id": "DVK-008",
+      "domain": "transition_gap",
+      "classification": "synthetic_hand_computable_reference",
+      "title": "Old corridor retires before replacement service is commissioned",
+      "scenario": "A transition reaches a new service state, but the freight floor fails in the intermediate period.",
+      "inputs": {
+        "horizon": 2,
+        "states": [
+          {
+            "id": "old_service",
+            "stage": 0,
+            "floors": {
+              "freight": "pass"
+            }
+          },
+          {
+            "id": "gap_period",
+            "stage": 1,
+            "floors": {
+              "freight": "fail"
+            }
+          },
+          {
+            "id": "new_service",
+            "stage": 2,
+            "floors": {
+              "freight": "pass"
+            }
+          }
+        ],
+        "disturbances_by_stage": {
+          "0": [
+            "none"
+          ],
+          "1": [
+            "none"
+          ]
+        },
+        "actions": [
+          {
+            "id": "retire_old",
+            "from": "old_service",
+            "admissible": true,
+            "next_by_disturbance": {
+              "none": "gap_period"
+            }
+          },
+          {
+            "id": "commission_new",
+            "from": "gap_period",
+            "admissible": true,
+            "next_by_disturbance": {
+              "none": "new_service"
+            }
+          }
+        ],
+        "terminal_states": [
+          "new_service"
+        ],
+        "initial_states": [
+          "old_service"
+        ]
+      },
+      "expected": {
+        "initial_viability": {
+          "old_service": false
+        },
+        "transition_gap_period": "gap_period",
+        "disposition": "exact"
+      },
+      "oracle": "A future viable terminal state does not rescue an intermediate mandatory service-floor breach.",
+      "claim_ceiling": "Finite synthetic viability semantics only; no real-world service, ecological, legal, financial, hydraulic or construction feasibility claim."
+    },
+    {
+      "case_id": "DVK-009",
+      "domain": "shared_resources",
+      "classification": "specification_only",
+      "title": "Shared crews/equipment prevent two recovery actions from running in parallel",
+      "scenario": "Two transition actions each require the only available crew and lift equipment.",
+      "inputs": {
+        "actions": [
+          {
+            "id": "repair_port",
+            "crew": "C1",
+            "equipment": "E1",
+            "duration": 2
+          },
+          {
+            "id": "repair_rail",
+            "crew": "C1",
+            "equipment": "E1",
+            "duration": 2
+          }
+        ],
+        "available_crews": [
+          "C1"
+        ],
+        "available_equipment": [
+          "E1"
+        ],
+        "requires_parallel_start": true
+      },
+      "expected": {
+        "disposition": "block_parallel_schedule_or_include_sequential_service_loss"
+      },
+      "oracle": "Resource contention means both actions cannot be treated as simultaneous.",
+      "claim_ceiling": "Finite synthetic viability semantics only; no real-world service, ecological, legal, financial, hydraulic or construction feasibility claim."
+    },
+    {
+      "case_id": "DVK-010",
+      "domain": "disturbance_set_expansion",
+      "classification": "synthetic_hand_computable_reference",
+      "title": "Adding an adverse disturbance cannot enlarge the robust viability set",
+      "scenario": "The initial problem has only a normal disturbance; the expanded problem adds a power-failure branch that breaches the service floor.",
+      "inputs": {
+        "base_disturbances": [
+          "normal"
+        ],
+        "expanded_disturbances": [
+          "normal",
+          "power_fail"
+        ],
+        "next_state_by_disturbance": {
+          "normal": "service_ok",
+          "power_fail": "service_lost"
+        },
+        "floors": {
+          "service_ok": "pass",
+          "service_lost": "fail"
+        }
+      },
+      "expected": {
+        "base_initial_viable": true,
+        "expanded_initial_viable": false,
+        "kernel_expansion_allowed": false,
+        "disposition": "exact"
+      },
+      "oracle": "Robust viability is universally quantified over disturbances; expanding the set can preserve or shrink, never enlarge, the kernel.",
+      "claim_ceiling": "Finite synthetic viability semantics only; no real-world service, ecological, legal, financial, hydraulic or construction feasibility claim."
+    },
+    {
+      "case_id": "DVK-011",
+      "domain": "observation_delay",
+      "classification": "synthetic_hand_computable_reference",
+      "title": "Delayed signpost leaves insufficient action lead time",
+      "scenario": "The adverse condition crosses at t=4, is observable at t=6 and requires three periods to complete relocation; the service floor is breached at t=8.",
+      "inputs": {
+        "threshold_time": 8,
+        "signal_crossing_time": 4,
+        "observation_delay": 2,
+        "action_lead_time": 3
+      },
+      "expected": {
+        "observation_time": 6,
+        "completion_time": 9,
+        "late_by": 1,
+        "robustly_viable": false,
+        "disposition": "exact"
+      },
+      "oracle": "The action completion time is later than the service-floor deadline; the policy cannot prevent the breach.",
+      "claim_ceiling": "Finite synthetic viability semantics only; no real-world service, ecological, legal, financial, hydraulic or construction feasibility claim."
+    },
+    {
+      "case_id": "DVK-012",
+      "domain": "configuration_space",
+      "classification": "specification_only",
+      "title": "Compare fixed plan, contingency tree and adaptive policy over the same state space",
+      "scenario": "Three policy families are compared over the same transition graph and disturbance set.",
+      "inputs": {
+        "policies": [
+          "fixed_master_plan",
+          "contingency_tree",
+          "adaptive_non_anticipative"
+        ],
+        "requires_same_state_action_disturbance_universe": true
+      },
+      "expected": {
+        "disposition": "matched_policy_comparison_required"
+      },
+      "oracle": "Policy comparisons are only fair when state, action, disturbance, budget, observations and time horizon match.",
+      "claim_ceiling": "Finite synthetic viability semantics only; no real-world service, ecological, legal, financial, hydraulic or construction feasibility claim."
+    }
+  ]
+}
