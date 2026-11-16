@@ -534,7 +534,7 @@
           68
         ],
         "max_regret": {
-          "road_dominant": 17,
+          "road_dominant": 15,
           "rail_first": 47,
           "staged_multimodal": 7
         },
