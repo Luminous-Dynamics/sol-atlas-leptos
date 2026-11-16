@@ -172,7 +172,7 @@
     {
       "case_id": "DVK-003",
       "domain": "non_anticipativity",
-      "classification": "specification_only",
+      "classification": "synthetic_hand_computable_reference",
       "title": "Hidden future scenario identity cannot select the initial action",
       "scenario": "Two future model families share the same observable history at the initial decision time. A policy chooses different first actions only because it can see the hidden future label.",
       "inputs": {
