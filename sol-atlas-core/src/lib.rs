@@ -27,5 +27,6 @@ pub mod solar_system;
 pub mod timeline;
 pub mod types;
 pub mod visual_validation;
+pub mod viability_kernel;
 
 pub use types::*;
