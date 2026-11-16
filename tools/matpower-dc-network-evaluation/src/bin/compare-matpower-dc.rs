@@ -645,7 +645,10 @@ mod tests {
             .iter()
             .position(|line| line.starts_with("BRANCH\t1\t"))
             .expect("first branch exists");
-        let mut fields = lines[branch_index].split('\t').map(str::to_owned).collect::<Vec<_>>();
+        let mut fields = lines[branch_index]
+            .split('\t')
+            .map(str::to_owned)
+            .collect::<Vec<_>>();
         let original = fields[5].parse::<f64>().expect("numeric branch flow");
         fields[5] = number(original + 0.01);
         lines[branch_index] = fields.join("\t");
@@ -671,10 +674,8 @@ mod tests {
                 .contains("source identity mismatch")
         );
 
-        let wrong_version = reference.replace(
-            "META\tmatpower_version\t8.1",
-            "META\tmatpower_version\t8.0",
-        );
+        let wrong_version =
+            reference.replace("META\tmatpower_version\t8.1", "META\tmatpower_version\t8.0");
         assert!(
             compare(CASE14, &wrong_version)
                 .unwrap_err()
@@ -699,5 +700,4 @@ mod tests {
                 .contains("branch rows are not complete and ordered")
         );
     }
-
 }
