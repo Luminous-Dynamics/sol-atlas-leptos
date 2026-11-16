@@ -85,10 +85,14 @@ A single scalar score is intentionally not used to conceal a failed KKT family.
 P0 tests in this crate:
 
 - Hand-calculated two-bus quadratic dispatch with analytically known objective and nodal multipliers.
+- Two-generator, two-bus active-line case: a 40 MW line limit binds, the cheap generator supplies 40 MW, the expensive generator supplies 60 MW, and a nonzero line shadow price is required for stationarity.
 - Incorrect bus multiplier mutation that must fail stationarity.
+- Incorrect active-line shadow-price mutation that must fail stationarity.
 - Negative dual multiplier that must fail dual feasibility.
 - Missing multiplier identity that must fail closed.
 - Nonzero multiplier on a slack line limit that must fail complementary slackness.
+
+The dedicated workflow runs both hand-derived fixtures through the pinned MATPOWER 8.1 stack, exports primal and named dual receipts, then independently verifies them with the Rust implementation. These are synthetic known-answer cases, not evidence of physical grid performance.
 
 The adjacent PGLib IEEE 14, RTS 24, and IEEE 57 source cases are the next reference differential once the MATPOWER 8.1 dual export workflow executes. The PGLib published DC objective column uses PowerModels' DCP convention; it must not be compared directly with MATPOWER's makeBdc profile. Use a matched MATPOWER 8.1 reference run or PowerModels DCMP when checking numerical parity.
 
@@ -103,6 +107,12 @@ cargo clippy --manifest-path tools/matpower-dc-opf-kkt-verifier/Cargo.toml --loc
 octave-cli --quiet --no-gui --eval "addpath('tools/matpower-reference-differential'); run_matpower_dcopf('case.m', '/tmp/case.tsv', 'vendor/matpower', 'vendor/mp-opt-model', 'vendor/mips', 'vendor/mptest', 'SOURCE_GIT_BLOB_SHA1')"
 
 tools/matpower-dc-opf-kkt-verifier/target/debug/matpower-dc-opf-kkt-verify case.m /tmp/case.tsv
+
+# Binding-line known-answer fixture
+# The pinned workflow runs the matching MATPOWER 8.1 solve first, then:
+tools/matpower-dc-opf-kkt-verifier/target/debug/matpower-dc-opf-kkt-verify \
+  tools/matpower-dc-opf-kkt-verifier/fixtures/two_bus_binding_line.m \
+  /tmp/matpower-binding-line.tsv
 ```
 
 The CLI exits successfully only when the primal auditor and every numerical KKT family pass. The JSON report retains the exact claim ceiling.
