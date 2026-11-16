@@ -2375,6 +2375,39 @@ mod tests {
         assert!(!report.unresolved_initial_states.contains("initial"));
     }
 
+
+    #[test]
+    fn invariant_kernel_fixed_point_iteration_cap_returns_bounded() {
+        let problem = invariant_problem(
+            vec![invariant_state("safe", &[("freight", GateResult::Pass)])],
+            vec![action(
+                "hold",
+                "safe",
+                &[("authority", GateResult::Pass)],
+                &[("normal", "safe")],
+            )],
+            &["safe"],
+            &["normal"],
+        );
+        let limits = InvariantKernelLimits {
+            max_states: 10,
+            max_actions: 10,
+            max_transition_branches: 10,
+            max_fixed_point_iterations: 1,
+        };
+
+        // One state requires a possible first update and a final no-change
+        // iteration, so a cap of one is conservatively insufficient.
+        assert_eq!(
+            compute_robust_controlled_invariant_kernel_with_limits(&problem, limits).unwrap(),
+            InvariantKernelExecution::Bounded {
+                resource: "fixed_point_iterations".to_owned(),
+                observed: 2,
+                limit: 1,
+            }
+        );
+    }
+
     #[test]
     fn timing_overflow_fails_closed() {
         assert_eq!(
