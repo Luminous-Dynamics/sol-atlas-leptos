@@ -1,0 +1,110 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://luminousdynamics.io/schemas/deep-time-viability-kernel-case-register-v0.1.schema.json",
+  "title": "Deep-Time Viability Kernel Case Register v0.1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "schema_version",
+    "register_id",
+    "parent_issue",
+    "classification",
+    "cases"
+  ],
+  "properties": {
+    "schema": {
+      "const": "luminous.deep-time-viability-kernel-case-register.v0.1"
+    },
+    "schema_version": {
+      "const": "0.1.0"
+    },
+    "register_id": {
+      "const": "DEEP-TIME-VIABILITY-KERNEL-CASE-REGISTER-V0.1"
+    },
+    "parent_issue": {
+      "type": "string",
+      "format": "uri"
+    },
+    "classification": {
+      "const": "finite_configuration_space_benchmark_not_real_infrastructure_validation"
+    },
+    "cases": {
+      "type": "array",
+      "minItems": 12,
+      "maxItems": 12,
+      "items": {
+        "$ref": "#/$defs/case"
+      }
+    }
+  },
+  "$defs": {
+    "case": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "case_id",
+        "domain",
+        "classification",
+        "title",
+        "scenario",
+        "inputs",
+        "expected",
+        "oracle",
+        "claim_ceiling"
+      ],
+      "properties": {
+        "case_id": {
+          "type": "string",
+          "pattern": "^DVK-[0-9]{3}$"
+        },
+        "domain": {
+          "enum": [
+            "finite_reachability",
+            "buffer_lead_time",
+            "non_anticipativity",
+            "common_cause",
+            "authority_gate",
+            "ecological_floor",
+            "robust_vs_weak",
+            "transition_gap",
+            "shared_resources",
+            "disturbance_set_expansion",
+            "observation_delay",
+            "configuration_space"
+          ]
+        },
+        "classification": {
+          "enum": [
+            "synthetic_hand_computable_reference",
+            "specification_only"
+          ]
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1
+        },
+        "scenario": {
+          "type": "string",
+          "minLength": 1
+        },
+        "inputs": {
+          "type": "object",
+          "minProperties": 1
+        },
+        "expected": {
+          "type": "object",
+          "minProperties": 1
+        },
+        "oracle": {
+          "type": "string",
+          "minLength": 1
+        },
+        "claim_ceiling": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    }
+  }
+}
