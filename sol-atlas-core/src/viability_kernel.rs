@@ -387,6 +387,11 @@ fn compute_viability_kernel_exact(
             .or_default()
             .push(action);
     }
+    // Deterministic witness selection: the first viable action is the
+    // lexicographically smallest action ID, independent of input order.
+    for actions in actions_by_state.values_mut() {
+        actions.sort_by(|left, right| left.action_id.cmp(&right.action_id));
+    }
 
     let mut ordered_states: Vec<&ViabilityState> = problem.states.iter().collect();
     ordered_states.sort_by(|left, right| {
@@ -603,7 +608,8 @@ pub fn compute_viability_kernel_with_limits(
     problem: &ViabilityProblem,
     limits: ViabilityLimits,
 ) -> Result<ViabilityExecution, ViabilityError> {
-    let bounded = |resource: &str, observed: usize, limit: usize| {
+    let bounded = |resource: &str, observed: usize, limit: usize|
+     -> Result<ViabilityExecution, ViabilityError> {
         Ok(ViabilityExecution::Bounded {
             resource: resource.to_owned(),
             observed,
@@ -1307,6 +1313,105 @@ mod tests {
             compute_viability_kernel_with_limits(&problem, limits).unwrap(),
             ViabilityExecution::Exact(_)
         ));
+    }
+
+
+    #[test]
+    fn exhaustive_three_disturbance_two_action_oracle_matches_all_64_games() {
+        let disturbances = ["d0", "d1", "d2"];
+        for first_action_pattern in 0_u8..8 {
+            for second_action_pattern in 0_u8..8 {
+                let action_patterns = [first_action_pattern, second_action_pattern];
+                let mut actions = Vec::new();
+
+                for (index, pattern) in action_patterns.iter().enumerate() {
+                    let successors = disturbances
+                        .iter()
+                        .enumerate()
+                        .map(|(disturbance_index, disturbance)| {
+                            let bit = (pattern >> disturbance_index) & 1;
+                            (
+                                *disturbance,
+                                if bit == 0 { "good" } else { "bad" },
+                            )
+                        })
+                        .collect::<Vec<_>>();
+                    let id = if index == 0 { "action_a" } else { "action_b" };
+                    actions.push(action(
+                        id,
+                        "initial",
+                        &[("authority", GateResult::Pass)],
+                        &successors,
+                    ));
+                }
+
+                let mut problem = base_problem(
+                    1,
+                    vec![
+                        state("initial", 0, &[("freight", GateResult::Pass)]),
+                        state("good", 1, &[("freight", GateResult::Pass)]),
+                        state("bad", 1, &[("freight", GateResult::Fail)]),
+                    ],
+                    actions,
+                    &["initial"],
+                );
+                problem.disturbances_by_stage.insert(
+                    0,
+                    disturbances.iter().map(|id| (*id).to_owned()).collect(),
+                );
+
+                // Independent truth-table oracle: an action wins only when
+                // every disturbance bit selects the good terminal state.
+                let oracle_viable = action_patterns.contains(&0);
+                let report = compute_viability_kernel(&problem).unwrap();
+                let actual_viable = report
+                    .robust_viable_initial_states
+                    .contains("initial");
+
+                assert_eq!(
+                    actual_viable,
+                    oracle_viable,
+                    "mismatch for action patterns {first_action_pattern} and {second_action_pattern}"
+                );
+            }
+        }
+    }
+
+    #[test]
+    fn witness_action_is_lexicographically_deterministic() {
+        let make_problem = |reverse_actions: bool| {
+            let mut actions = vec![
+                action(
+                    "zeta",
+                    "initial",
+                    &[("authority", GateResult::Pass)],
+                    &[("none", "terminal")],
+                ),
+                action(
+                    "alpha",
+                    "initial",
+                    &[("authority", GateResult::Pass)],
+                    &[("none", "terminal")],
+                ),
+            ];
+            if reverse_actions {
+                actions.reverse();
+            }
+            base_problem(
+                1,
+                vec![
+                    state("initial", 0, &[("freight", GateResult::Pass)]),
+                    state("terminal", 1, &[("freight", GateResult::Pass)]),
+                ],
+                actions,
+                &["initial"],
+            )
+        };
+
+        let first = compute_viability_kernel(&make_problem(false)).unwrap();
+        let second = compute_viability_kernel(&make_problem(true)).unwrap();
+        assert_eq!(first, second);
+        assert_eq!(first.witness_policy["initial"], "alpha");
     }
 
     #[test]
