@@ -85,3 +85,20 @@ With MATPOWER 8.1 and Octave installed:
     tools/matpower-dc-network-evaluation/target/debug/compare-matpower-dc tools/pglib-case-auditor/fixtures/pglib_opf_case14_ieee.m /tmp/case14.tsv
 
 A zero mismatch is scoped to these exact inputs, MATPOWER version, fixed-injection DC equations, reported values and tolerances. It is not AC power-flow validation, AC-OPF parity, full N-1 security, physical calibration or operational authority.
+
+
+## PTDF/LODF fast outage screen
+
+The standalone library at tools/dc-lodf-outage-screen computes a source-bound base DC solution and predicts every in-service single-branch outage using PTDF/LODF sensitivities. It factorizes one reduced susceptance matrix per energized island and reuses it for each branch transaction.
+
+Run:
+
+    cargo run --manifest-path tools/matpower-dc-network-evaluation/Cargo.toml --locked --offline --bin matpower-dc-lodf-screen -- tools/pglib-case-auditor/fixtures/pglib_opf_case14_ieee.m
+
+The JSON receipt has one record per in-service outage. An ordinary record includes predicted post-outage flows and Rate A overloads. A bridge or near-bridge record contains no predicted flows and explicitly requires an exact re-solve.
+
+The PGLib integration tests compare every resolved prediction to a direct outage re-solve for all 20 IEEE 14-bus, 38 IEEE RTS 24-bus and 80 IEEE 57-bus outages. They require zero flow mismatches at 1e-6 MW, zero false-safe branch/outage results, zero unexpected exact-solver failures and complete coverage. Bridge/near-bridge cases are counted as abstentions.
+
+The screen and exact comparison are separate APIs. The fast screen does not execute the exhaustive solver sweep. The validation API deliberately does, and its cost must not be included in fast-screen runtime measurements.
+
+This is fixed-injection linear DC screening only. It is not redispatch, DC-OPF, SCLOPF, AC contingency analysis, or N-1 operating-security qualification.
