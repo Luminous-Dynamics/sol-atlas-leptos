@@ -19,6 +19,14 @@ const BENCHMARK_FIXTURE: &str = include_str!(
 const BENCHMARK_SCHEMA: &str = include_str!(
     "../../docs/research/home-expression/HOME_EXPRESSION_BENCHMARK_EXTENSION_V0.1.schema.json"
 );
+const REVISION_IMPACT_FIXTURE: &str = include_str!(
+    "../../docs/research/home-expression/HOME_EXPRESSION_REVISION_IMPACT_CROSSWALK_V0.1.json"
+);
+const REVISION_IMPACT_SCHEMA: &str = include_str!(
+    "../../docs/research/home-expression/HOME_EXPRESSION_REVISION_IMPACT_CROSSWALK_V0.1.schema.json"
+);
+const EXPECTED_CATALOG_REVISION: &str = "HOME-EXPRESSION-CATALOG-0.1.0";
+const EXPECTED_CATALOG_BLOB_SHA: &str = "f247bfc326e2e5fe5b625452e84de53faae38aa9";
 
 const IMPACT_DOMAINS: &[&str] = &[
     "AREA_AND_CIRCULATION",
@@ -341,6 +349,173 @@ fn validate_benchmark_manifest(manifest: &Value, schema: &Value) -> Vec<String> 
     errors
 }
 
+fn revision_impact_fixture() -> Result<(Value, Value), String> {
+    let manifest: Value = serde_json::from_str(REVISION_IMPACT_FIXTURE)
+        .map_err(|error| format!("revision impact crosswalk is invalid JSON: {error}"))?;
+    let schema: Value = serde_json::from_str(REVISION_IMPACT_SCHEMA)
+        .map_err(|error| format!("revision impact schema is invalid JSON: {error}"))?;
+    Ok((manifest, schema))
+}
+
+fn validate_revision_impact_crosswalk(
+    manifest: &Value,
+    schema: &Value,
+    catalog: &Value,
+) -> Vec<String> {
+    let mut errors = Vec::new();
+
+    if string_at(schema, "$schema") != Some("https://json-schema.org/draft/2020-12/schema")
+        || string_at(schema, "type") != Some("object")
+    {
+        errors.push("revision impact schema must declare a Draft 2020-12 object".to_owned());
+    }
+    if string_at(manifest, "schema_version") != Some("0.1.0")
+        || string_at(manifest, "study_id") != Some("HOME-EXPRESSION-REVISION-IMPACT-001")
+        || string_at(manifest, "maturity") != Some("PROPOSED_OWNER_REVIEW_REQUIRED")
+        || string_at(manifest, "execution_status") != Some("NO_RUNTIME_INTEGRATION")
+    {
+        errors.push("revision impact identity, maturity or execution state was promoted".to_owned());
+    }
+    if string_at(manifest, "primary_revision_owner") != Some("Sol-Atlas #832")
+        || string_at(manifest, "geometry_qualification_owner") != Some("Symtropy #683")
+        || string_at(manifest, "universal_invalidation_authority") != Some("SOL-ATLAS #832 ONLY")
+    {
+        errors.push("revision/geometry ownership boundary was changed".to_owned());
+    }
+    if string_at(catalog, "catalog_revision") != Some(EXPECTED_CATALOG_REVISION)
+        || string_at(manifest, "parent_catalog_revision") != Some(EXPECTED_CATALOG_REVISION)
+        || string_at(manifest, "parent_catalog_content_sha") != Some(EXPECTED_CATALOG_BLOB_SHA)
+    {
+        errors.push("revision crosswalk is not bound to the exact v0.1 catalog revision".to_owned());
+    }
+
+    let style_ids = string_set(
+        array_at(catalog, "style_catalog")
+            .map(|items| {
+                // Project each catalog object to its exact style_id without changing the source.
+                // This function is local to the verifier; no network or runtime lookup occurs.
+                items
+                    .iter()
+                    .filter_map(|item| item.get("style_id").and_then(Value::as_str))
+                    .map(|id| Value::String(id.to_owned()))
+                    .collect::<Vec<_>>()
+                    .leak()
+            }),
+    );
+    let package_ids = string_set(
+        array_at(catalog, "experience_catalog")
+            .map(|items| {
+                items
+                    .iter()
+                    .filter_map(|item| item.get("package_id").and_then(Value::as_str))
+                    .map(|id| Value::String(id.to_owned()))
+                    .collect::<Vec<_>>()
+                    .leak()
+            }),
+    );
+
+    let records = array_at(manifest, "records").cloned().unwrap_or_default();
+    if records.len() != style_ids.len() + package_ids.len() {
+        errors.push("revision crosswalk must contain exactly one row per style and package ID".to_owned());
+    }
+
+    let allowed_domains = string_set(array_at(manifest, "impact_domains"));
+    let expected_domains = string_set(array_at(catalog, "impact_domains"));
+    if allowed_domains != expected_domains {
+        errors.push("revision crosswalk impact domains differ from the parent catalog".to_owned());
+    }
+
+    let mut seen_styles = BTreeSet::new();
+    let mut seen_packages = BTreeSet::new();
+    for record in &records {
+        let id = string_at(record, "id").unwrap_or_default();
+        let kind = string_at(record, "kind").unwrap_or_default();
+        let change_class = string_at(record, "change_class").unwrap_or_default();
+        let domains = string_set(array_at(record, "potential_review_domains"));
+        let owner_refs = string_set(array_at(record, "owner_refs"));
+
+        if owner_refs.is_empty() || !owner_refs.contains("Sol-Atlas #832") {
+            errors.push(format!("{id}: every record must point to the primary revision owner #832"));
+        }
+        if record.get("resident_intent_review_required").and_then(Value::as_bool) != Some(true) {
+            errors.push(format!("{id}: resident intent review must remain required"));
+        }
+        if record.get("automatic_invalidation_permitted").and_then(Value::as_bool) != Some(false)
+            || record.get("automatic_approval_permitted").and_then(Value::as_bool) != Some(false)
+        {
+            errors.push(format!("{id}: a proposed crosswalk must not automatically invalidate or approve"));
+        }
+        if !nonempty_string(record, "evidence_retention_rule") {
+            errors.push(format!("{id}: exact evidence-retention rule is required"));
+        }
+        if !domains.is_subset(&allowed_domains) {
+            errors.push(format!("{id}: record contains an undeclared impact domain"));
+        }
+
+        match kind {
+            "STYLE" => {
+                if !style_ids.contains(id) || !seen_styles.insert(id.to_owned()) {
+                    errors.push(format!("{id}: style record is missing, duplicated or orphaned"));
+                }
+                if change_class != "STYLE_INTENT_ONLY" || !domains.is_empty() {
+                    errors.push(format!("{id}: style labels must not imply physical impacts by themselves"));
+                }
+                if record.get("rights_or_context_review_required").and_then(Value::as_bool).is_none() {
+                    errors.push(format!("{id}: rights/context review disposition is required"));
+                }
+            }
+            "EXPERIENCE_PACKAGE" => {
+                if !package_ids.contains(id) || !seen_packages.insert(id.to_owned()) {
+                    errors.push(format!("{id}: experience-package record is missing, duplicated or orphaned"));
+                }
+                if change_class != "EXPERIENCE_PACKAGE_ADDED"
+                    || record.get("review_domains_are_nonbinding_hints").and_then(Value::as_bool)
+                        != Some(true)
+                    || record.get("actual_artifact_change_required_before_evidence_invalidation")
+                        .and_then(Value::as_bool)
+                        != Some(true)
+                {
+                    errors.push(format!(
+                        "{id}: package review hints must not trigger invalidation before an actual artifact change"
+                    ));
+                }
+            }
+            _ => errors.push(format!("{id}: unsupported crosswalk record kind")),
+        }
+    }
+    if seen_styles != style_ids {
+        errors.push("revision crosswalk does not cover the exact style catalog".to_owned());
+    }
+    if seen_packages != package_ids {
+        errors.push("revision crosswalk does not cover the exact experience package catalog".to_owned());
+    }
+
+    let policy = manifest.get("global_policy").unwrap_or(&Value::Null);
+    if policy.get("automatic_invalidation_permitted").and_then(Value::as_bool) != Some(false)
+        || policy.get("automatic_approval_permitted").and_then(Value::as_bool) != Some(false)
+        || policy.get("physical_effects_inferred_from_style_label").and_then(Value::as_bool)
+            != Some(false)
+        || policy.get("impact_hints_are_qualification_evidence").and_then(Value::as_bool)
+            != Some(false)
+        || policy
+            .get("stale_pass_retention_requires_exact_unchanged_dependency_proof")
+            .and_then(Value::as_bool)
+            != Some(true)
+        || string_at(policy, "unknown_dependency_disposition")
+            != Some("QUARANTINE_FOR_OWNER_REVIEW")
+        || string_at(policy, "resident_choice_authority") != Some("RESIDENT")
+        || string_at(policy, "multi_resident_authority_ref") != Some("Sol-Atlas #907")
+    {
+        errors.push("revision crosswalk global fail-closed or resident-authority policy was weakened".to_owned());
+    }
+    if string_at(manifest, "claim_ceiling")
+        != Some("PROPOSED_OWNER_REVIEW_CROSSWALK_ONLY_NO_RUNTIME_INVALIDATION_OR_PHYSICAL_QUALIFICATION")
+    {
+        errors.push("revision crosswalk claim ceiling was promoted".to_owned());
+    }
+    errors
+}
+
 fn validate_profile(profile: &Value, schema: &Value) -> Result<(), Vec<String>> {
     let mut errors = Vec::new();
     validate_schema_header(schema, &mut errors);
@@ -349,6 +524,17 @@ fn validate_profile(profile: &Value, schema: &Value) -> Result<(), Vec<String>> 
         Ok((manifest, benchmark_schema)) => {
             errors.extend(validate_benchmark_manifest(&manifest, &benchmark_schema));
         }
+        Err(error) => errors.push(error),
+    }
+    match revision_impact_fixture() {
+        Ok((manifest, crosswalk_schema)) => match serde_json::from_str::<Value>(CATALOG_FIXTURE) {
+            Ok(catalog) => errors.extend(validate_revision_impact_crosswalk(
+                &manifest,
+                &crosswalk_schema,
+                &catalog,
+            )),
+            Err(error) => errors.push(format!("catalog fixture is invalid JSON: {error}")),
+        },
         Err(error) => errors.push(error),
     }
     forbidden_score_path(profile, "$", &mut errors);
@@ -719,6 +905,45 @@ mod tests {
         profile["style_preferences"]["mode"] = json!("NONE_UNDECIDED");
         profile["style_preferences"]["entries"] = json!([]);
         assert!(validate_profile(&profile, &schema).is_ok());
+    }
+
+    #[test]
+    fn accepts_catalog_bound_revision_impact_crosswalk() {
+        let (manifest, schema) =
+            revision_impact_fixture().expect("valid revision impact fixture");
+        let catalog: Value =
+            serde_json::from_str(CATALOG_FIXTURE).expect("valid expression catalog");
+        assert!(validate_revision_impact_crosswalk(&manifest, &schema, &catalog).is_empty());
+    }
+
+    #[test]
+    fn rejects_automatic_evidence_invalidation_from_review_hints() {
+        let (mut manifest, schema) =
+            revision_impact_fixture().expect("valid revision impact fixture");
+        let catalog: Value =
+            serde_json::from_str(CATALOG_FIXTURE).expect("valid expression catalog");
+        manifest["records"][20]["automatic_invalidation_permitted"] = json!(true);
+        assert!(!validate_revision_impact_crosswalk(&manifest, &schema, &catalog).is_empty());
+    }
+
+    #[test]
+    fn rejects_style_label_physical_impact_inference() {
+        let (mut manifest, schema) =
+            revision_impact_fixture().expect("valid revision impact fixture");
+        let catalog: Value =
+            serde_json::from_str(CATALOG_FIXTURE).expect("valid expression catalog");
+        manifest["records"][0]["potential_review_domains"] = json!(["STRUCTURE_FIRE_MOISTURE_ACOUSTICS"]);
+        assert!(!validate_revision_impact_crosswalk(&manifest, &schema, &catalog).is_empty());
+    }
+
+    #[test]
+    fn rejects_stale_parent_catalog_binding() {
+        let (mut manifest, schema) =
+            revision_impact_fixture().expect("valid revision impact fixture");
+        let catalog: Value =
+            serde_json::from_str(CATALOG_FIXTURE).expect("valid expression catalog");
+        manifest["parent_catalog_content_sha"] = json!("0000000000000000000000000000000000000000");
+        assert!(!validate_revision_impact_crosswalk(&manifest, &schema, &catalog).is_empty());
     }
 
     #[test]
