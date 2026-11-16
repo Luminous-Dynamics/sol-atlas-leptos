@@ -1,0 +1,17 @@
+[package]
+name = "matpower-dc-opf-kkt-verifier"
+version = "0.1.0"
+edition = "2024"
+license = "AGPL-3.0-or-later"
+description = "Independent numerical KKT verifier for MATPOWER 8.1 convex DC-OPF receipts"
+
+[[bin]]
+name = "matpower-dc-opf-kkt-verify"
+path = "src/main.rs"
+
+[lib]
+path = "src/lib.rs"
+
+[dependencies]
+matpower-dc-opf-primal-auditor = { path = "../matpower-dc-opf-primal-auditor" }
+pglib-case-auditor = { path = "../pglib-case-auditor" }
