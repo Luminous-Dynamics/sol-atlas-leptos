@@ -1,14 +1,19 @@
 # MATPOWER 8.1 DC Reference Differential
 
-This harness compares Sol-Atlas fixed-injection DC power flow against MATPOWER 8.1 \`rundcpf\` on the exact same PGLib MATPOWER source files.
+This harness compares Sol-Atlas fixed-injection DC power flow against MATPOWER 8.1 rundcpf on the exact same PGLib MATPOWER source files.
 
 ## Independent implementations
 
 - Sol-Atlas parses the source with its strict MATPOWER profile, creates a typed source-bound projection, solves with the separate Rust DC reference kernel, and independently audits the resulting receipt.
-- MATPOWER 8.1 independently loads the original \`.m\` file and solves it with \`rundcpf\`.
+- MATPOWER 8.1 independently loads the original .m file and solves it with rundcpf.
 - The comparator binds both paths to the exact Git blob SHA-1 and checks the corresponding results.
 
-MATPOWER is pinned to commit \`1a828c7af590714499284e36ee9c81273388c594\`, the official MATPOWER 8.1 release tag. The workflow checks out and verifies that exact commit and tag before running the comparison.
+The numerical reference stack is pinned to exact release commits:
+- MATPOWER 8.1: 1a828c7af590714499284ec9c81273388c594.
+- MP-Opt-Model 5.0: 35e81cdc147436e843d69b143b32ec5bacfa14d2.
+- MP-Test 8.1: a918a838ee421af41d64775508a8a6608e75e569.
+
+MATPOWER 8.1 requires MP-Opt-Model and uses MP-Test utilities. The CI workflow checks out and verifies each exact commit and release tag. The reference function resolves every path to an absolute path because MATPOWER's loadcase helper temporarily changes the Octave working directory while evaluating a case file; relative library paths are not stable across that operation.
 
 ## Compared quantities
 
@@ -20,21 +25,23 @@ MATPOWER is pinned to commit \`1a828c7af590714499284e36ee9c81273388c594\`, the o
 - forward and reverse branch active-power flow (MATPOWER PF/PT).
 
 Frozen comparison tolerances:
-- bus angle: \(10^{-7}\) degrees;
-- active power / branch flow: \(10^{-6}\) MW;
-- base MVA: \(10^{-10}\) MVA.
+- bus angle: 1e-7 degrees;
+- active power / branch flow: 1e-6 MW;
+- base MVA: 1e-10 MVA.
 
 Any mismatch fails the differential job and is retained in a JSON receipt. Missing rows, duplicate bus/branch identities, version drift, non-finite values and source digest mismatches fail closed.
 
 ## Run
 
-With MATPOWER 8.1 and GNU Octave installed:
+With MATPOWER 8.1, MP-Opt-Model 5.0, MP-Test 8.1 and GNU Octave installed:
 
     cargo build --manifest-path tools/matpower-dc-network-evaluation/Cargo.toml --locked --offline --bins
-    octave-cli --quiet --no-gui --eval "addpath('tools/matpower-reference-differential'); run_matpower_dc('tools/pglib-case-auditor/fixtures/pglib_opf_case14_ieee.m', '/tmp/case14.tsv', '/path/to/matpower-8.1', '$(git hash-object tools/pglib-case-auditor/fixtures/pglib_opf_case14_ieee.m)')"
+
+    octave-cli --quiet --no-gui --eval "repo=pwd; addpath(fullfile(repo,'tools','matpower-reference-differential')); run_matpower_dc(fullfile(repo,'tools','pglib-case-auditor','fixtures','pglib_opf_case14_ieee.m'), fullfile(repo,'/tmp','case14.tsv'), fullfile(repo,'vendor','matpower'), fullfile(repo,'vendor','mp-opt-model'), fullfile(repo,'vendor','mptest'), '$(git hash-object tools/pglib-case-auditor/fixtures/pglib_opf_case14_ieee.m)')"
+
     tools/matpower-dc-network-evaluation/target/debug/compare-matpower-dc tools/pglib-case-auditor/fixtures/pglib_opf_case14_ieee.m /tmp/case14.tsv
 
-The dedicated workflow runs the same path for IEEE 14, IEEE RTS 24 and IEEE 57 and publishes the TSV plus JSON comparison receipts as a downloadable workflow artifact.
+The dedicated workflow runs the same path for IEEE 14, IEEE RTS 24 and IEEE 57 and publishes TSV plus JSON comparison receipts as a workflow artifact.
 
 ## Claim boundary
 
