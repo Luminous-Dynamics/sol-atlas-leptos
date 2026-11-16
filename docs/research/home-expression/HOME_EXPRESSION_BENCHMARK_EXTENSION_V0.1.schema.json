@@ -14,7 +14,10 @@
     "purpose",
     "functional_unit",
     "counterfactual_pairs",
-    "cases"
+    "cases",
+    "source_population_state",
+    "source_case_count",
+    "source_population_note"
   ],
   "properties": {
     "schema_version": {
@@ -124,7 +127,9 @@
           "mutation",
           "expected_disposition",
           "physical_evaluation",
-          "claim_ceiling"
+          "claim_ceiling",
+          "derivation_kind",
+          "source_artifact_refs"
         ],
         "properties": {
           "case_id": {
@@ -170,9 +175,49 @@
           },
           "claim_ceiling": {
             "const": "CONTRACT_ORACLE_ONLY_NOT_BUILDING_FEASIBILITY"
+          },
+          "derivation_kind": {
+            "const": "ONE_FACTOR_COUNTERFACTUAL_MUTATION"
+          },
+          "source_artifact_refs": {
+            "type": "array",
+            "minItems": 2,
+            "maxItems": 2,
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "path",
+                "blob_sha"
+              ],
+              "properties": {
+                "path": {
+                  "enum": [
+                    "docs/research/home-freedom/HOME_DESIGN_BRIEF_SYNTHETIC_EXAMPLE_V0.1.json",
+                    "docs/research/home-freedom/HOME_DESIGN_CANDIDATE_SET_SYNTHETIC_EXAMPLE_V0.1.json"
+                  ]
+                },
+                "blob_sha": {
+                  "enum": [
+                    "0090e2f0c883c62817d1b6da51d1a2dbe92a477f",
+                    "030e6c0e71cef1a936738910409396a9a48dedcf"
+                  ]
+                }
+              }
+            }
           }
         }
       }
+    },
+    "source_population_state": {
+      "const": "ONE_SYNTHETIC_BASELINE_ONLY"
+    },
+    "source_case_count": {
+      "const": 1
+    },
+    "source_population_note": {
+      "type": "string",
+      "minLength": 1
     }
   }
 }
