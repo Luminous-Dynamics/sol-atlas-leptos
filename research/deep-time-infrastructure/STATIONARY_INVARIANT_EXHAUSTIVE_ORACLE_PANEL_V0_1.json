@@ -1,0 +1,29 @@
+{
+  "schema": "luminous.stationary-invariant-exhaustive-oracle-panel.v0.1",
+  "schema_version": "0.1.0",
+  "register_id": "STATIONARY-INVARIANT-EXHAUSTIVE-ORACLE-PANEL-V0.1",
+  "parent_issue": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/901",
+  "classification": "finite_stationary_safety_game_differential_oracle_not_physical_validation",
+  "cases": [
+    {
+      "case_id": "SIK-ORACLE-001",
+      "game_shape": {
+        "stationary_states": 2,
+        "initial_states": 1,
+        "mandatory_safe_states": 1,
+        "controller_actions": 2,
+        "disturbance_branches": 3
+      },
+      "action_successor_patterns_per_action": 8,
+      "exhaustive_case_count": 64,
+      "candidate": "compute_robust_controlled_invariant_kernel in sol-atlas-core/src/viability_kernel.rs",
+      "independent_reference": "Truth-table oracle: the sole passing state is invariant iff one action maps all three disturbance branches back to that same state.",
+      "compared_outputs": [
+        "initial_invariant_membership",
+        "invariant_state_partition"
+      ],
+      "expected": "100 percent exact agreement across all 64 games.",
+      "claim_ceiling": "One-state stationary greatest-fixed-point semantics only; no real infrastructure or physical model validation."
+    }
+  ]
+}
