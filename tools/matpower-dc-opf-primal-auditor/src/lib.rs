@@ -441,10 +441,13 @@ pub fn parse_candidate_tsv(input: &str) -> Result<MatpowerDcOpfCandidate, String
 }
 
 fn validate_projection_profile(projection: &MatpowerDcProjection) -> Result<(), String> {
-    if projection.matpower_version != MATPOWER_VERSION {
+    // The source's mpc.version field is MATPOWER case-format version 2.
+    // The MATPOWER executable version (8.1) is bound separately by the
+    // solver-produced candidate receipt and this model-profile identifier.
+    if projection.case_format_version != "2" {
         return Err(format!(
-            "source MATPOWER version must be {MATPOWER_VERSION}, got {}",
-            projection.matpower_version
+            "source MATPOWER case format version must be 2, got {}",
+            projection.case_format_version
         ));
     }
     if projection.generators.len() != projection.costs.len() {
