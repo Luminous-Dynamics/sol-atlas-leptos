@@ -108,8 +108,8 @@ jobs:
             tools/pglib-case-auditor/fixtures/pglib_opf_case57_ieee.m; do
             name="$(basename "$case" .m)"
             digest="$(git hash-object "$case")"
-            receipt="artifacts/matpower-8.1-dc-opf/\${name}.rundcopf.tsv"
-            report="artifacts/matpower-8.1-dc-opf/\${name}.audit.json"
+            receipt="artifacts/matpower-8.1-dc-opf/${name}.rundcopf.tsv"
+            report="artifacts/matpower-8.1-dc-opf/${name}.audit.json"
             export GITHUB_WORKSPACE
             export MATPOWER_CASE="$GITHUB_WORKSPACE/$case"
             export MATPOWER_OUTPUT="$GITHUB_WORKSPACE/$receipt"
