@@ -67,4 +67,4 @@ jobs:
       # execute dependency-crate unit tests when testing only the consuming bin,
       # so run that crate's manifest directly to execute its own test target.
       - name: Test shared core library
-        run: cargo test --manifest-path sol-atlas-core/Cargo.toml
+        run: cargo test -p sol-atlas-core
