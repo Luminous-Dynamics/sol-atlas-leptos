@@ -183,8 +183,9 @@ pub fn classify_eligibility(
 ///
 /// Every model must provide one utility for every strategy, using identical
 /// utility semantics. A strategy pair whose relative ordering changes in
-/// any model makes the overall ranking ModelSensitive. This is ordinal
-/// stability only; it does not select a strategy or assign model weights.
+/// any model returns RankingStability::ModelSensitive. Stable pairwise
+/// ordering returns RankingStability::Stable. This does not establish
+/// mandatory-floor eligibility, select a strategy or assign model weights.
 pub fn classify_ranking_stability(
     model_ids: &[String],
     strategies: &[StrategyUtilities],
