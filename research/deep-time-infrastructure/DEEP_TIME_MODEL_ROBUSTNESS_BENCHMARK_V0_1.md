@@ -117,6 +117,16 @@ It implements:
 
 Twelve Rust unit tests are written, covering DTR-001/002/004/006/007/008/009 plus unresolved/failed/incomplete controls. They are not yet executed. A READY_FOR_PHYSICAL_MODEL_EVALUATION disposition means only that the declared input categories are present; it is not physical validation or site qualification.
 
+## 7.2 Metamorphic qualification panel
+
+A separate five-property panel is frozen in:
+- [Metamorphic panel JSON](https://github.com/Luminous-Dynamics/sol-atlas-leptos/blob/research/deep-time-infrastructure-001/research/deep-time-infrastructure/DEEP_TIME_MODEL_ROBUSTNESS_METAMORPHIC_PANEL_V0_1.json)
+- [Metamorphic panel schema](https://github.com/Luminous-Dynamics/sol-atlas-leptos/blob/research/deep-time-infrastructure-001/research/deep-time-infrastructure/DEEP_TIME_MODEL_ROBUSTNESS_METAMORPHIC_PANEL_V0_1.schema.json)
+
+The five properties are input-order invariance, per-model additive-utility translation invariance, mandatory-floor order invariance, monotonicity of maximum regret when expanding the model set, and pairwise ranking stability. These properties guard against results depending on iteration order, arbitrary baseline offsets, reordered constraints or a selectively narrow model set.
+
+The Rust module currently contains 17 unit tests, including these five metamorphic controls. Test source is committed; execution status is tracked separately from source presence.
+
 ## 8. Required comparisons
 
 - single best-estimate model;
