@@ -1,0 +1,248 @@
+{
+  "schema_version": "0.1.0",
+  "title": "GMD / IBR / CT / protection controlled scenario matrix",
+  "claim_ceiling": "E0",
+  "case_status": "scenario_design_only",
+  "note": "Every case below is a planned synthetic scenario definition. No Texas2k data file, NGET/AIDPS model, vendor relay model, protection setting, physical waveform or field asset data is claimed to have been obtained.",
+  "common_networks": [
+    {
+      "family": "Texas2kSeries24",
+      "synthetic": true,
+      "source_uri": "https://electricgrids.engr.tamu.edu/activsg2000-dynamics-cases-2024/",
+      "artifact_status": "catalogued_not_downloaded"
+    },
+    {
+      "family": "Texas2kSeries25",
+      "synthetic": true,
+      "source_uri": "https://electricgrids.engr.tamu.edu/texas2k-series25/",
+      "artifact_status": "catalogued_not_downloaded"
+    },
+    {
+      "family": "Memphis2026Synthetic",
+      "synthetic": true,
+      "source_uri": "https://electricgrids.engr.tamu.edu/electric-grid-test-cases/",
+      "artifact_status": "catalogued_not_downloaded"
+    }
+  ],
+  "cases": [
+    {
+      "case_id": "gmd-ibr-001-no-gmd-conventional-control",
+      "purpose": "Conventional generation and protection baseline with no GMD injection.",
+      "gmd": false,
+      "ibr": "none",
+      "nbd": "not_installed",
+      "topology": "nonradial",
+      "fault": "none",
+      "required_lanes": [
+        "phasor_rms",
+        "emt"
+      ],
+      "focus": [
+        "baseline relay operation",
+        "waveform reference"
+      ]
+    },
+    {
+      "case_id": "gmd-ibr-002-gmd-conventional",
+      "purpose": "GMD-only conventional network baseline to quantify transformer DC-bias and harmonics without IBR or NBD changes.",
+      "gmd": true,
+      "ibr": "none",
+      "nbd": "not_installed",
+      "topology": "nonradial",
+      "fault": "none",
+      "required_lanes": [
+        "phasor_rms",
+        "emt"
+      ],
+      "focus": [
+        "GIC injection",
+        "transformer response",
+        "CT primary-secondary relationship"
+      ]
+    },
+    {
+      "case_id": "gmd-ibr-003-ibr-only-gfl-weak-grid",
+      "purpose": "IBR-only weak-grid protection baseline without GMD, isolating converter-control and current-limiter behaviour.",
+      "gmd": false,
+      "ibr": "grid_following",
+      "nbd": "not_installed",
+      "topology": "radial",
+      "fault": "single_line_ground",
+      "required_lanes": [
+        "phasor_rms",
+        "emt"
+      ],
+      "focus": [
+        "PLL",
+        "fast current control",
+        "current limit",
+        "fault current contribution"
+      ]
+    },
+    {
+      "case_id": "gmd-ibr-004-gmd-gfl-no-nbd",
+      "purpose": "Combined GMD and grid-following PV/wind operating case without neutral blocking device.",
+      "gmd": true,
+      "ibr": "grid_following",
+      "nbd": "not_installed",
+      "topology": "radial",
+      "fault": "none",
+      "required_lanes": [
+        "phasor_rms",
+        "emt"
+      ],
+      "focus": [
+        "DC bias",
+        "CT secondary distortion",
+        "relay elements"
+      ]
+    },
+    {
+      "case_id": "gmd-ibr-005-gmd-gfl-nbd-radial",
+      "purpose": "Matched radial pair with a neutral blocker enabled to test target transformer benefit and network redistribution.",
+      "gmd": true,
+      "ibr": "grid_following",
+      "nbd": "in_service",
+      "topology": "radial",
+      "fault": "single_line_ground",
+      "required_lanes": [
+        "phasor_rms",
+        "emt",
+        "rtds"
+      ],
+      "focus": [
+        "neutral current redistribution",
+        "distance relay reach",
+        "CT saturation"
+      ]
+    },
+    {
+      "case_id": "gmd-ibr-006-gmd-gfl-nbd-nonradial",
+      "purpose": "Matched non-radial case to test NBD interactions with parallel in-feeds and source impedance ratios.",
+      "gmd": true,
+      "ibr": "grid_following",
+      "nbd": "in_service",
+      "topology": "nonradial",
+      "fault": "line_line",
+      "required_lanes": [
+        "phasor_rms",
+        "emt"
+      ],
+      "focus": [
+        "apparent impedance",
+        "directional elements",
+        "protection coordination"
+      ]
+    },
+    {
+      "case_id": "gmd-ibr-007-gmd-gfm-low-scr",
+      "purpose": "Grid-forming inverter case under weak-grid and low-SCR operating conditions during GMD.",
+      "gmd": true,
+      "ibr": "grid_forming",
+      "nbd": "not_installed",
+      "topology": "nonradial",
+      "fault": "none",
+      "required_lanes": [
+        "phasor_rms",
+        "emt"
+      ],
+      "focus": [
+        "droop or VSM mode",
+        "current limiting",
+        "voltage support",
+        "damping"
+      ]
+    },
+    {
+      "case_id": "gmd-ibr-008-gmd-ibr-fault-during-ct-bias",
+      "purpose": "Apply a timed protection fault while CTs experience a GMD-related offset/bias condition.",
+      "gmd": true,
+      "ibr": "grid_following",
+      "nbd": "not_installed",
+      "topology": "radial",
+      "fault": "three_phase",
+      "required_lanes": [
+        "emt",
+        "rtds",
+        "controller_hil"
+      ],
+      "focus": [
+        "CT secondary waveform",
+        "relay pickup",
+        "trip time",
+        "false trip and failure to trip"
+      ]
+    },
+    {
+      "case_id": "gmd-ibr-009-gmd-ibr-backup-n-minus-one",
+      "purpose": "N-1 corridor/device outage under GMD and IBR dispatch with backup protection enabled.",
+      "gmd": true,
+      "ibr": "grid_following_and_grid_forming",
+      "nbd": "in_service",
+      "topology": "nonradial",
+      "fault": "single_line_ground",
+      "required_lanes": [
+        "phasor_rms",
+        "emt"
+      ],
+      "focus": [
+        "backup protection",
+        "source impedance ratio",
+        "network-wide stress"
+      ]
+    },
+    {
+      "case_id": "gmd-ibr-010-stale-gic-telemetry",
+      "purpose": "Negative control: stale or time-misaligned GIC telemetry must be rejected or lower the evidence class.",
+      "gmd": true,
+      "ibr": "grid_following",
+      "nbd": "unknown",
+      "topology": "nonradial",
+      "fault": "none",
+      "required_lanes": [
+        "emt"
+      ],
+      "focus": [
+        "clock skew",
+        "stale evidence",
+        "fail-closed provenance"
+      ]
+    },
+    {
+      "case_id": "gmd-ibr-011-common-mode-sensor-error",
+      "purpose": "Negative control: correlated sensor error must not be treated as independent confirmation.",
+      "gmd": true,
+      "ibr": "grid_following",
+      "nbd": "not_installed",
+      "topology": "radial",
+      "fault": "none",
+      "required_lanes": [
+        "emt"
+      ],
+      "focus": [
+        "shared calibration",
+        "common data source",
+        "correlated evidence"
+      ]
+    },
+    {
+      "case_id": "gmd-ibr-012-ibr-current-limit-and-cessation",
+      "purpose": "Matched converter controls: fast/slow current control, current limit and momentary cessation variants under the same fault and network.",
+      "gmd": true,
+      "ibr": "grid_following_and_grid_forming",
+      "nbd": "not_installed",
+      "topology": "radial_and_nonradial",
+      "fault": "double_line_ground",
+      "required_lanes": [
+        "phasor_rms",
+        "emt"
+      ],
+      "focus": [
+        "current control loop",
+        "current limiting",
+        "momentary cessation",
+        "relay response"
+      ]
+    }
+  ]
+}

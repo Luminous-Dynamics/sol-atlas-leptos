@@ -1,0 +1,184 @@
+{
+  "schema_version": "0.1.0",
+  "scenario_id": "gmd-ibr-example-gfl-radial",
+  "status": "planned",
+  "claim_ceiling": "E0",
+  "evidence_class": "design",
+  "network": {
+    "family": "Texas2kSeries25",
+    "synthetic": true,
+    "source": {
+      "source_ref": "https://electricgrids.engr.tamu.edu/texas2k-series25/",
+      "publisher": "Texas A&M University Electric Grid Test Case Repository",
+      "source_class": "synthetic_network",
+      "access_status": "catalogued_not_downloaded",
+      "artifact_sha256": null,
+      "revision": null,
+      "notes": "Source catalogued only; no network artifact downloaded or pinned."
+    },
+    "topology_revision": null,
+    "topology_sha256": null,
+    "base_frequency_hz": 60,
+    "nominal_voltage_kv": 345,
+    "network_strength_description": "mixed",
+    "short_circuit_ratio": null
+  },
+  "timebase": {
+    "origin": "relative_to_simulation_start",
+    "clock_reference": "synthetic-fixture-index",
+    "synchronization_group": "gmd-ibr-example-sync-0",
+    "maximum_clock_uncertainty_ns": 0,
+    "sample_alignment_tolerance_ns": 0,
+    "absolute_start_epoch_ns": null
+  },
+  "disturbance": {
+    "gmd_enabled": true,
+    "gic_input_class": "synthetic_injection",
+    "gic_waveform_ref": "gmd-ibr-waveform-example-001",
+    "gic_source_sha256": "28bec27ca2c84f24fad1aae46a22403a82f397e2cbdfd89f4006c6e4046c7c3e",
+    "polarity_convention": "declared_per_channel",
+    "earth_response_model_ref": null,
+    "earth_response_model_sha256": null,
+    "line_voltage_model_ref": null,
+    "line_voltage_model_sha256": null
+  },
+  "inverter_resources": [
+    {
+      "resource_id": "ibr-pv-example-1",
+      "resource_type": "PV",
+      "operating_mode": "grid_following",
+      "converter_model_fidelity": "average_value",
+      "control_mode": "PQ",
+      "current_control_model": "explicit_fast_loop",
+      "current_limit_model": "explicit",
+      "momentary_cessation_model": "explicit",
+      "phase_locked_loop_model": "explicit",
+      "dispatch_pu": 0.8,
+      "current_limit_pu": 1.1,
+      "scr_at_poi": 2.3,
+      "model_ref": null,
+      "model_sha256": null
+    }
+  ],
+  "neutral_blocking_devices": [
+    {
+      "device_id": "nbd-example-1",
+      "installed": false,
+      "device_model_class": "capacitive_neutral_blocker",
+      "state": "not_installed",
+      "model_ref": null,
+      "model_sha256": null,
+      "protection_bypass_logic_ref": null
+    }
+  ],
+  "transformers": [
+    {
+      "transformer_id": "transformer-example-1",
+      "configuration_revision": null,
+      "configuration_sha256": null,
+      "winding_grounding_ref": null,
+      "gic_model_ref": null,
+      "response_model_class": "unknown",
+      "validity_domain_ref": null
+    }
+  ],
+  "current_transformers": [
+    {
+      "ct_id": "ct-example-1",
+      "ratio_primary_secondary": 2000,
+      "burden_ohm": 1,
+      "remanence_state": "unknown",
+      "remanence_bound_pu": null,
+      "magnetization_curve_ref": null,
+      "configuration_sha256": null,
+      "secondary_grounding_ref": null
+    }
+  ],
+  "protection_relays": [
+    {
+      "relay_id": "relay-example-21",
+      "function": "21",
+      "model_fidelity": "phasor_rms",
+      "settings_revision": null,
+      "settings_sha256": null,
+      "ct_ids": [
+        "ct-example-1"
+      ],
+      "model_ref": null,
+      "trip_output_observed": false,
+      "measurement_input_source": "unknown"
+    }
+  ],
+  "faults": [],
+  "fidelity_studies": [
+    {
+      "study_id": "planned-rms-study",
+      "lane": "phasor_rms",
+      "tool_name": "not-selected",
+      "tool_version": null,
+      "model_set_sha256": null,
+      "time_step_ns": null,
+      "physical_hardware_ref": null,
+      "claim_ceiling": "E0"
+    }
+  ],
+  "required_metrics": [
+    {
+      "metric_id": "gic_waveform",
+      "minimum_fidelity": "emt",
+      "scope": "synthetic input contract"
+    },
+    {
+      "metric_id": "ct_secondary_waveform",
+      "minimum_fidelity": "emt",
+      "scope": "CT secondary waveform fidelity"
+    },
+    {
+      "metric_id": "ct_saturation_indicator",
+      "minimum_fidelity": "emt",
+      "scope": "CT saturation representation"
+    },
+    {
+      "metric_id": "relay_trip_time",
+      "minimum_fidelity": "emt",
+      "scope": "waveform-resolved relay response"
+    },
+    {
+      "metric_id": "physical_relay_operation",
+      "minimum_fidelity": "controller_hil",
+      "scope": "physical relay evidence"
+    },
+    {
+      "metric_id": "service_continuity",
+      "minimum_fidelity": "phasor_rms",
+      "scope": "system-level service trajectory"
+    },
+    {
+      "metric_id": "protection_robustness_envelope",
+      "minimum_fidelity": "emt",
+      "scope": "bounded relay misoperation-free domain with declared GIC/CT/IBR/network ranges"
+    },
+    {
+      "metric_id": "false_trip_rate",
+      "minimum_fidelity": "emt",
+      "scope": "trip output when no trip is warranted by the declared fault/zone truth"
+    },
+    {
+      "metric_id": "failure_to_trip_rate",
+      "minimum_fidelity": "emt",
+      "scope": "failure or late operation for an in-zone fault under declared response limits"
+    },
+    {
+      "metric_id": "coordination_margin",
+      "minimum_fidelity": "emt",
+      "scope": "owner-supplied primary/backup timing or reach margin"
+    }
+  ],
+  "waveform_manifest_refs": [
+    "gmd-ibr-waveform-example-001"
+  ],
+  "operational_boundary": {
+    "operational_control_enabled": false,
+    "execution_authorized": false
+  }
+}
