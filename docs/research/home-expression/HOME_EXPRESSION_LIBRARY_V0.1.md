@@ -82,9 +82,10 @@ These are a menu, not recommendations. Some are expensive, maintenance-intensive
 The machine-readable contract is `HOME_EXPRESSION_PROFILE_V0.1.schema.json`; the paired synthetic example is `HOME_EXPRESSION_PROFILE_SYNTHETIC_HIGHVELD_V0.1.json`; the non-exhaustive identifier/description catalogue is `HOME_EXPRESSION_CATALOG_V0.1.json`.
 
 Every profile binds to:
-- one exact Home Freedom brief ID;
+- one exact Home Freedom brief ID, source artifact path and content/blob digest;
+- one exact style/experience catalog revision and content/blob digest;
 - one exact design revision/artifact reference;
-- known constraint IDs from the source brief;
+- the exact set of constraint IDs in the source brief (the qualifier rejects missing, added or changed IDs);
 - a resident-authored expression statement;
 - protected qualities and explicitly avoided motifs;
 - chosen / acceptable / avoided / undecided style preferences;
