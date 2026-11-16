@@ -1,0 +1,132 @@
+{
+  "schema": "luminous.monotone-invariant-threshold-benchmark.v0.1",
+  "schema_version": "0.1.0",
+  "register_id": "MONOTONE-INVARIANT-THRESHOLD-BENCHMARK-V0.1",
+  "parent_issue": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/901",
+  "classification": "restricted_structured_monotone_software_prototype_not_general_infrastructure_scalability_evidence",
+  "cases": [
+    {
+      "case_id": "MIT-001",
+      "classification": "synthetic_exact_reference",
+      "title": "2D threshold update matches explicit greatest-fixed-point oracle",
+      "input": {
+        "axis_sizes": [
+          2,
+          3
+        ],
+        "actions": 1,
+        "disturbances": 2,
+        "initial_thresholds": [
+          2,
+          1
+        ],
+        "rule": "x_next=min(x+1,1); y_next=y"
+      },
+      "expected": {
+        "thresholds": [
+          1,
+          1
+        ],
+        "invariant_state_count": 4,
+        "explicit_oracle_match": true
+      },
+      "oracle": "Enumerate the six product-grid states, repeatedly remove every safe state without an action whose two successors remain in the current safe set, and compare the resulting boolean mask with the threshold representation.",
+      "claim_ceiling": "Small finite monotone-grid algorithm semantics only."
+    },
+    {
+      "case_id": "MIT-002",
+      "classification": "negative_control",
+      "title": "Reject a non-lower-closed initial safe set",
+      "input": {
+        "axis_sizes": [
+          2,
+          3
+        ],
+        "initial_thresholds": [
+          0,
+          1
+        ]
+      },
+      "expected": {
+        "disposition": "reject",
+        "error": "SafeSetNotLowerClosed"
+      },
+      "oracle": "In componentwise order, the threshold at column x=0 must be at least the threshold at x=1; 0 < 1 violates lower-closedness.",
+      "claim_ceiling": "Input assumption validation only."
+    },
+    {
+      "case_id": "MIT-003",
+      "classification": "negative_control",
+      "title": "Reject malformed affine transition-rule dimensions",
+      "input": {
+        "axis_sizes": [
+          2,
+          3
+        ],
+        "coefficients_by_output": [
+          [
+            1,
+            0
+          ]
+        ],
+        "offset_by_output": [
+          0,
+          0
+        ]
+      },
+      "expected": {
+        "disposition": "reject",
+        "error": "WrongRuleOutputCount"
+      },
+      "oracle": "A d-dimensional transition rule must define exactly d output rows and d offsets.",
+      "claim_ceiling": "Input schema validation only."
+    },
+    {
+      "case_id": "MIT-004",
+      "classification": "bounded_control",
+      "title": "Column cap produces BOUNDED without partial threshold output",
+      "input": {
+        "axis_sizes": [
+          2,
+          3
+        ],
+        "columns": 2,
+        "max_columns": 1
+      },
+      "expected": {
+        "disposition": "bounded",
+        "resource": "columns",
+        "observed": 2,
+        "limit": 1,
+        "partial_thresholds_returned": false
+      },
+      "oracle": "The declared column count exceeds the explicit cap before fixed-point evaluation begins.",
+      "claim_ceiling": "Bounded execution semantics only."
+    },
+    {
+      "case_id": "MIT-005",
+      "classification": "structured_scale_smoke",
+      "title": "8-million-state product grid stored as 40,000 column thresholds",
+      "input": {
+        "axis_sizes": [
+          200,
+          200,
+          200
+        ],
+        "actions": 1,
+        "disturbances": 1,
+        "rule": "identity",
+        "initial_thresholds": "all columns at height 199"
+      },
+      "expected": {
+        "state_universe_size": 8000000,
+        "column_count": 40000,
+        "invariant_state_count": 8000000,
+        "threshold_count": 40000,
+        "disposition": "exact"
+      },
+      "oracle": "Identity transitions make every state in the lower-closed initial safe set remain in the set; the threshold frontier is unchanged.",
+      "claim_ceiling": "Source-level test fixture and algorithmic representation only. Runtime/memory measurements and scale superiority are not yet established."
+    }
+  ]
+}
