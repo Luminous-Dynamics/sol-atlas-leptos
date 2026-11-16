@@ -1,0 +1,91 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://luminousdynamics.io/schemas/monotone-invariant-threshold-benchmark-v0.1.schema.json",
+  "title": "Monotone Invariant Threshold Benchmark v0.1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "schema_version",
+    "register_id",
+    "parent_issue",
+    "classification",
+    "cases"
+  ],
+  "properties": {
+    "schema": {
+      "const": "luminous.monotone-invariant-threshold-benchmark.v0.1"
+    },
+    "schema_version": {
+      "const": "0.1.0"
+    },
+    "register_id": {
+      "const": "MONOTONE-INVARIANT-THRESHOLD-BENCHMARK-V0.1"
+    },
+    "parent_issue": {
+      "type": "string",
+      "format": "uri"
+    },
+    "classification": {
+      "const": "restricted_structured_monotone_software_prototype_not_general_infrastructure_scalability_evidence"
+    },
+    "cases": {
+      "type": "array",
+      "minItems": 6,
+      "maxItems": 6,
+      "items": {
+        "$ref": "#/$defs/case"
+      }
+    }
+  },
+  "$defs": {
+    "case": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "case_id",
+        "classification",
+        "title",
+        "input",
+        "expected",
+        "oracle",
+        "claim_ceiling"
+      ],
+      "properties": {
+        "case_id": {
+          "type": "string",
+          "pattern": "^MIT-[0-9]{3}$"
+        },
+        "classification": {
+          "enum": [
+            "synthetic_exact_reference",
+            "negative_control",
+            "bounded_control",
+            "structured_scale_smoke",
+            "generated_differential_exact_reference"
+          ]
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1
+        },
+        "input": {
+          "type": "object",
+          "minProperties": 1
+        },
+        "expected": {
+          "type": "object",
+          "minProperties": 1
+        },
+        "oracle": {
+          "type": "string",
+          "minLength": 1
+        },
+        "claim_ceiling": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    }
+  }
+}
