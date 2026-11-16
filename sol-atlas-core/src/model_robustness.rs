@@ -32,6 +32,16 @@ pub enum DecisionClass {
     Unresolved,
 }
 
+/// Stability of strategy ordering across model families.
+///
+/// This is distinct from mandatory-floor eligibility: a stable ranking
+/// does not establish that any strategy is admissible.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum RankingStability {
+    Stable,
+    ModelSensitive,
+}
+
 /// Result of evaluating one mandatory floor for one model family.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum GateResult {
@@ -178,7 +188,7 @@ pub fn classify_eligibility(
 pub fn classify_ranking_stability(
     model_ids: &[String],
     strategies: &[StrategyUtilities],
-) -> Result<DecisionClass, RobustnessError> {
+) -> Result<RankingStability, RobustnessError> {
     if model_ids.is_empty() {
         return Err(RobustnessError::EmptyModelSet);
     }
@@ -234,7 +244,7 @@ pub fn classify_ranking_stability(
                 match first_ordering {
                     None => first_ordering = Some(ordering),
                     Some(previous) if previous != ordering => {
-                        return Ok(DecisionClass::ModelSensitive);
+                        return Ok(RankingStability::ModelSensitive);
                     }
                     Some(_) => {}
                 }
@@ -242,7 +252,7 @@ pub fn classify_ranking_stability(
         }
     }
 
-    Ok(DecisionClass::Invariant)
+    Ok(RankingStability::Stable)
 }
 
 /// Compute exact minimax regret over a finite, unweighted model set.
@@ -708,7 +718,7 @@ mod tests {
 
         assert_eq!(
             classify_ranking_stability(&models, &strategies).unwrap(),
-            DecisionClass::ModelSensitive
+            RankingStability::ModelSensitive
         );
     }
 
@@ -956,7 +966,7 @@ mod tests {
 
         assert_eq!(
             classify_ranking_stability(&models, &strategies).unwrap(),
-            DecisionClass::Invariant
+            RankingStability::Stable
         );
     }
 
