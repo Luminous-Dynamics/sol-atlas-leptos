@@ -1,0 +1,196 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/blob/main/docs/research/home-expression/HOME_EXPRESSION_REVISION_IMPACT_CROSSWALK_V0.1.schema.json",
+  "title": "Home Expression Revision Impact Crosswalk v0.1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "study_id",
+    "maturity",
+    "execution_status",
+    "primary_revision_owner",
+    "geometry_qualification_owner",
+    "parent_catalog_revision",
+    "parent_catalog_content_sha",
+    "impact_domains",
+    "owner_map",
+    "universal_invalidation_authority",
+    "records",
+    "global_policy",
+    "claim_ceiling"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "0.1.0"
+    },
+    "study_id": {
+      "const": "HOME-EXPRESSION-REVISION-IMPACT-001"
+    },
+    "maturity": {
+      "const": "PROPOSED_OWNER_REVIEW_REQUIRED"
+    },
+    "execution_status": {
+      "const": "NO_RUNTIME_INTEGRATION"
+    },
+    "primary_revision_owner": {
+      "const": "Sol-Atlas #832"
+    },
+    "geometry_qualification_owner": {
+      "const": "Symtropy #683"
+    },
+    "expression_issue_ref": {
+      "type": "string",
+      "format": "uri"
+    },
+    "issue_ref": {
+      "type": "string",
+      "format": "uri"
+    },
+    "parent_catalog_revision": {
+      "type": "string"
+    },
+    "parent_catalog_content_sha": {
+      "type": "string"
+    },
+    "impact_domains": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "string"
+      }
+    },
+    "owner_map": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        }
+      }
+    },
+    "universal_invalidation_authority": {
+      "const": "SOL-ATLAS #832 ONLY"
+    },
+    "records": {
+      "type": "array",
+      "minItems": 46,
+      "maxItems": 46,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "kind",
+          "change_class",
+          "potential_review_domains",
+          "owner_refs",
+          "resident_intent_review_required",
+          "automatic_invalidation_permitted",
+          "automatic_approval_permitted",
+          "evidence_retention_rule"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "kind": {
+            "enum": [
+              "STYLE",
+              "EXPERIENCE_PACKAGE"
+            ]
+          },
+          "change_class": {
+            "enum": [
+              "STYLE_INTENT_ONLY",
+              "EXPERIENCE_PACKAGE_ADDED"
+            ]
+          },
+          "potential_review_domains": {
+            "type": "array",
+            "uniqueItems": true,
+            "items": {
+              "type": "string"
+            }
+          },
+          "review_domains_are_nonbinding_hints": {
+            "type": "boolean"
+          },
+          "review_domain_semantics": {
+            "type": "string"
+          },
+          "owner_refs": {
+            "type": "array",
+            "minItems": 1,
+            "uniqueItems": true,
+            "items": {
+              "type": "string"
+            }
+          },
+          "resident_intent_review_required": {
+            "const": true
+          },
+          "rights_or_context_review_required": {
+            "type": "boolean"
+          },
+          "actual_artifact_change_required_before_evidence_invalidation": {
+            "type": "boolean"
+          },
+          "automatic_invalidation_permitted": {
+            "const": false
+          },
+          "automatic_approval_permitted": {
+            "const": false
+          },
+          "evidence_retention_rule": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    },
+    "global_policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "automatic_invalidation_permitted",
+        "automatic_approval_permitted",
+        "physical_effects_inferred_from_style_label",
+        "impact_hints_are_qualification_evidence",
+        "stale_pass_retention_requires_exact_unchanged_dependency_proof",
+        "unknown_dependency_disposition",
+        "resident_choice_authority",
+        "multi_resident_authority_ref"
+      ],
+      "properties": {
+        "automatic_invalidation_permitted": {
+          "const": false
+        },
+        "automatic_approval_permitted": {
+          "const": false
+        },
+        "physical_effects_inferred_from_style_label": {
+          "const": false
+        },
+        "impact_hints_are_qualification_evidence": {
+          "const": false
+        },
+        "stale_pass_retention_requires_exact_unchanged_dependency_proof": {
+          "const": true
+        },
+        "unknown_dependency_disposition": {
+          "const": "QUARANTINE_FOR_OWNER_REVIEW"
+        },
+        "resident_choice_authority": {
+          "const": "RESIDENT"
+        },
+        "multi_resident_authority_ref": {
+          "const": "Sol-Atlas #907"
+        }
+      }
+    },
+    "claim_ceiling": {
+      "const": "PROPOSED_OWNER_REVIEW_CROSSWALK_ONLY_NO_RUNTIME_INVALIDATION_OR_PHYSICAL_QUALIFICATION"
+    }
+  }
+}
