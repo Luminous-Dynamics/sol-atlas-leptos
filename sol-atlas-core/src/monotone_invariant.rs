@@ -77,6 +77,8 @@ pub struct MonotonicityCertificate {
 /// Exact greatest-fixed-point result in compressed threshold form.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct MonotoneInvariantReport {
+    pub problem_fingerprint: u64,
+    pub axis_sizes: Vec<usize>,
     pub thresholds: Vec<i64>,
     pub column_count: usize,
     pub state_universe_size: u128,
@@ -149,6 +151,7 @@ pub enum MonotoneGridError {
         value: usize,
         maximum: usize,
     },
+    ProblemFingerprintMismatch,
 }
 
 /// Decode row-major flat index into componentwise coordinates.
@@ -303,6 +306,48 @@ fn validate_lower_closed_thresholds(
         }
     }
     Ok(())
+}
+
+
+/// Stable non-cryptographic fingerprint for accidental stale-problem
+/// detection when querying witness actions from a computed threshold report.
+/// This is not an evidence attestation or security digest.
+fn problem_fingerprint(problem: &MonotoneGridProblem) -> u64 {
+    let mut hash = 0xcbf29ce484222325_u64;
+    let mut feed = |value: u64| {
+        for byte in value.to_le_bytes() {
+            hash ^= byte as u64;
+            hash = hash.wrapping_mul(0x100000001b3);
+        }
+    };
+
+    feed(problem.axis_sizes.len() as u64);
+    for size in &problem.axis_sizes {
+        feed(*size as u64);
+    }
+    feed(problem.rules_by_action.len() as u64);
+    for action_rules in &problem.rules_by_action {
+        feed(action_rules.len() as u64);
+        for rule in action_rules {
+            feed(rule.coefficients_by_output.len() as u64);
+            for row in &rule.coefficients_by_output {
+                feed(row.len() as u64);
+                for coefficient in row {
+                    feed(*coefficient);
+                }
+            }
+            feed(rule.offset_by_output.len() as u64);
+            for offset in &rule.offset_by_output {
+                feed(*offset as u64);
+            }
+        }
+    }
+    feed(problem.initial_safe_thresholds.len() as u64);
+    for threshold in &problem.initial_safe_thresholds {
+        feed(*threshold as u64);
+    }
+
+    hash
 }
 
 fn apply_rule(
@@ -482,6 +527,8 @@ pub fn compute_monotone_invariant_kernel_with_limits(
         if next_thresholds == thresholds {
             return Ok(MonotoneGridExecution::Exact(
                 MonotoneInvariantReport {
+                    problem_fingerprint: problem_fingerprint(problem),
+                    axis_sizes: problem.axis_sizes.clone(),
                     invariant_state_count: invariant_state_count(&thresholds),
                     thresholds,
                     column_count,
@@ -518,6 +565,11 @@ pub fn witness_action_for_coordinate(
     report: &MonotoneInvariantReport,
     coordinates: &[usize],
 ) -> Result<Option<usize>, MonotoneGridError> {
+    if problem_fingerprint(problem) != report.problem_fingerprint
+        || problem.axis_sizes != report.axis_sizes
+    {
+        return Err(MonotoneGridError::ProblemFingerprintMismatch);
+    }
     if coordinates.len() != problem.axis_sizes.len() {
         return Err(MonotoneGridError::CoordinateDimensionMismatch {
             expected: problem.axis_sizes.len(),
