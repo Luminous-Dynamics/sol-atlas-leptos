@@ -126,6 +126,17 @@ DVK-003 (non-anticipativity) has also been promoted from specification-only to a
 
 **DVK-011:** Signal crosses at t=4; observable at t=6; relocation completes at t=9; service floor deadline t=8. The action is one time unit too late.
 
+
+## 5.6 Separate stationary-invariant exhaustive oracle
+
+A distinct 64-game panel now qualifies the stationary greatest-fixed-point solver:
+- [Stationary invariant oracle JSON](https://github.com/Luminous-Dynamics/sol-atlas-leptos/blob/research/deep-time-infrastructure-001/research/deep-time-infrastructure/STATIONARY_INVARIANT_EXHAUSTIVE_ORACLE_PANEL_V0_1.json)
+- [Stationary invariant oracle schema](https://github.com/Luminous-Dynamics/sol-atlas-leptos/blob/research/deep-time-infrastructure-001/research/deep-time-infrastructure/STATIONARY_INVARIANT_EXHAUSTIVE_ORACLE_PANEL_V0_1.schema.json)
+
+The finite stationary game has two states (one mandatory-safe, one unsafe), one initial state, two controller actions and three disturbance branches. Every action has eight possible successor patterns. The independent truth-table oracle says the safe state is invariant iff at least one action returns to that state for every disturbance. The Rust test checks all 64 combinations.
+
+Do not merge this panel with the finite-horizon DVT oracle. The finite-horizon oracle tests terminal-reaching semantics; this one tests indefinite stationary controlled invariance.
+
 ## 6. Required baselines
 
 Compare:
