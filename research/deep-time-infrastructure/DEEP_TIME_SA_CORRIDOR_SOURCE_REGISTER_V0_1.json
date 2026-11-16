@@ -1,0 +1,154 @@
+{
+  "schema": "luminous.deep-time-sa-corridor-source-register.v0.1",
+  "schema_version": "0.1.0",
+  "register_id": "DEEP-TIME-SA-CORRIDOR-SOURCE-REGISTER-V0.1",
+  "as_of": "2026-11-16",
+  "classification": "public_source_catalogue_not_project_feasibility",
+  "sources": [
+    {
+      "source_id": "SA-TNPA-PORT-STATS",
+      "title": "Transnet National Ports Authority Port Statistics",
+      "publisher": "Transnet National Ports Authority",
+      "url": "https://www.transnet.net/SubsiteRender.aspx?id=24332214",
+      "publication_date": null,
+      "observed_period_start": "2024-07",
+      "observed_period_end": "2026-09",
+      "evidence_class": "official_operational_statistics_catalogue",
+      "source_statement": "The page states that cargo statistics are based on actual cargo dues invoiced and displays monthly series through 2026-09 at the retrieval snapshot.",
+      "permitted_use": [
+        "Identify official monthly port-statistics files for a future exact data intake",
+        "After downloading and pinning a file, calculate a source-scoped historical port cargo series"
+      ],
+      "prohibited_inference": [
+        "Do not infer TEU throughput from unlabeled summary columns",
+        "Do not infer port/terminal capacity from invoiced cargo statistics",
+        "Do not infer rail corridor throughput from port cargo alone"
+      ],
+      "required_qualification": [
+        "Download exact monthly/annual artifact",
+        "Record artifact digest, filename, units, definitions, coverage, revisions and rights",
+        "Cross-check totals against annual publications and do not silently interpolate missing months"
+      ],
+      "status": "catalogued_download_and_parse_pending"
+    },
+    {
+      "source_id": "SA-TRANSNET-KZN-LOGISTICS-HUB",
+      "title": "KZN Logistics Hub Programme and Port of Durban Master Plan",
+      "publisher": "Transnet National Ports Authority",
+      "url": "https://www.transnet.net/SubsiteRender.aspx?id=5723346",
+      "publication_date": null,
+      "observed_period_start": null,
+      "observed_period_end": null,
+      "evidence_class": "official_masterplan_and_capacity_statement",
+      "source_statement": "Transnet page describes 33 projects across Durban and Richards Bay masterplans, an estimated programme investment above R154 billion, Durban current container capacity of 2.9 million TEUs and planned future capacity of 11.4 million TEUs.",
+      "permitted_use": [
+        "Record official planning claims with their stated units and source date/retrieval date",
+        "Construct alternative hypotheses for capacity transition scenarios"
+      ],
+      "prohibited_inference": [
+        "Do not treat planned capacity as operating capacity",
+        "Do not treat capacity as observed throughput, berth productivity or guaranteed delivery",
+        "Do not infer that every planned project is funded, permitted, commissioned or complete"
+      ],
+      "required_qualification": [
+        "Confirm latest revision and project-level status",
+        "Separate designed/current/planned/contracted/commissioned/observed values",
+        "Identify terminal boundary and TEU basis"
+      ],
+      "status": "catalogued_planning_claims_not_operational_baseline"
+    },
+    {
+      "source_id": "SA-MOT-OPEN-ACCESS-TOCS-2026",
+      "title": "Minister of Transport keynote at Africa Rail Convention",
+      "publisher": "South African Department of Transport / Government of South Africa",
+      "url": "https://www.gov.za/news/speeches/minister-barbara-creecy-africa-rail-convention-08-jul-2026",
+      "publication_date": "2026-07-08",
+      "observed_period_start": null,
+      "observed_period_end": null,
+      "evidence_class": "official_policy_milestone_and_operator_plan",
+      "source_statement": "The speech reports approval of the first 11 private Train Operating Companies for network access on 2026-03-13, says operations are expected to commence on 2027-04-01, and reports planned combined freight volumes up to 24 million tonnes per annum.",
+      "permitted_use": [
+        "Represent the approval as an official policy milestone",
+        "Represent 2027 start date and 24 million tonnes/year as a dated plan/expectation in scenario branches"
+      ],
+      "prohibited_inference": [
+        "Do not mark private TOC service as operational before separately verified observed commencement",
+        "Do not treat planned 24 Mt/year as available corridor capacity or actual freight moved",
+        "Do not assume all allocated slots, routes or commodity handling are interchangeable"
+      ],
+      "required_qualification": [
+        "Verify network statement, access contracts, train paths, capacity allocation, route segments and first observed operations",
+        "Record operator, commodity, start date and reporting period"
+      ],
+      "status": "dated_official_plan_observed_operations_pending"
+    },
+    {
+      "source_id": "SA-COASTAL-ADAPTATION-RESPONSE-PLAN",
+      "title": "South Africa Climate Change Coastal Adaptation Response Plan launch statement",
+      "publisher": "Department of Forestry, Fisheries and the Environment / Government of South Africa",
+      "url": "https://www.gov.za/news/media-statements/minister-dion-george-launches-climate-change-coastal-adaptation-response-plan",
+      "publication_date": "2025-06-05",
+      "observed_period_start": null,
+      "observed_period_end": null,
+      "evidence_class": "national_adaptation_policy",
+      "source_statement": "Launch statement describes five components (ecosystems, communities, infrastructure, livelihoods, governance), 21 measurable response outcomes, more than 150 interventions, and stakeholder consultation during 2023–2024.",
+      "permitted_use": [
+        "Define policy-aligned evidence domains and data-gap questions for coastal adaptation"
+      ],
+      "prohibited_inference": [
+        "Do not infer a specific Durban asset's exposure or approved intervention from the national launch statement",
+        "Do not treat announcement as proof of completed local implementation"
+      ],
+      "required_qualification": [
+        "Obtain the complete plan and relevant KZN/local implementation plans",
+        "Bind intervention, geography, accountable authority, status, budget and monitoring evidence"
+      ],
+      "status": "policy_context_full_plan_and_local_delivery_evidence_pending"
+    },
+    {
+      "source_id": "SA-NWRS3-2023",
+      "title": "National Water Resource Strategy Third Edition",
+      "publisher": "South African Department of Water and Sanitation",
+      "url": "https://www.dws.gov.za/documents/Other/Strategic%20Plan/2023/Approved%20National%20Water%20Resource%20Strategy%20Third%20Edition%20%28NWRS3%29%202023.pdf",
+      "publication_date": "2023-03",
+      "observed_period_start": null,
+      "observed_period_end": null,
+      "evidence_class": "national_water_policy_and_ecological_obligation_context",
+      "source_statement": "NWRS-3 sets national directions for sustainable/equitable water management, climate adaptation, water quality, ecological infrastructure and water-sector governance.",
+      "permitted_use": [
+        "Define mandatory questions for catchment evidence, rights, water quality, environmental flows and ecological infrastructure"
+      ],
+      "prohibited_inference": [
+        "Do not infer site-specific allocable surplus, water-use authorization, environmental reserve or transfer feasibility from the national strategy alone"
+      ],
+      "required_qualification": [
+        "Obtain applicable catchment/Water Management Area data, current water balances, Reserve/flow determinations, licensed uses and competent-authority evidence"
+      ],
+      "status": "policy_context_not_catchment_water_balance"
+    },
+    {
+      "source_id": "SA-FREIGHT-LOGISTICS-ROADMAP-NETWORK-STATEMENT",
+      "title": "Roadmap for the Freight Logistics System: Final Network Statement and Rail Access Tariffs 2024/2025",
+      "publisher": "South African Department of Transport / Government of South Africa",
+      "url": "https://www.gov.za/documents/notices/roadmap-freight-logistics-system-south-africa-final-network-statement-and-rail",
+      "publication_date": "2024",
+      "observed_period_start": "2024/2025",
+      "observed_period_end": "2024/2025",
+      "evidence_class": "dated_network_statement_and_tariff_notice",
+      "source_statement": "Official government notice links a final network statement and rail access tariffs for 2024/2025.",
+      "permitted_use": [
+        "Historical/dated policy and network-statement reference after attachment review"
+      ],
+      "prohibited_inference": [
+        "Do not treat 2024/2025 statement or tariff as current 2026/2027 access conditions",
+        "Do not use a network statement without validating superseding notices, route restrictions and effective dates"
+      ],
+      "required_qualification": [
+        "Retrieve exact attachment bytes and digest",
+        "Check current network statement, access tariffs, amendments and effective dates",
+        "Validate segment-level capacity, restrictions and operating conditions"
+      ],
+      "status": "dated_reference_current_revision_check_required"
+    }
+  ]
+}
