@@ -192,7 +192,8 @@ fn validate_catalog(catalog: &Value, schema: &Value, errors: &mut Vec<String>) {
         errors.push("Karoo heritage reference requires at least two source records".to_owned());
     }
 
-    let community = catalog.get("community_authored_reference_policy").unwrap_or(&Value::Null);
+    let null = Value::Null;
+    let community = catalog.get("community_authored_reference_policy").unwrap_or(&null);
     if text(community, "maturity") != Some("POLICY_ONLY_NO_COMMUNITY_MODULES_PUBLISHED")
         || text(community, "prohibition") != Some("DO_NOT_CREATE_GENERIC_AFRICAN_OR_ETHNIC_STYLE_PRESETS")
     {
@@ -243,7 +244,8 @@ fn validate_grammar(
         .map(|values| strings(Some(values), Some("package_id")))
         .unwrap_or_default();
 
-    let composition = grammar.get("composition").unwrap_or(&Value::Null);
+    let null = Value::Null;
+    let composition = grammar.get("composition").unwrap_or(&null);
     for axis in REQUIRED_AXES {
         if composition.get(axis).is_none() {
             errors.push(format!("grammar composition is missing axis {axis}"));
@@ -286,7 +288,7 @@ fn validate_grammar(
         }
     }
 
-    let context = grammar.get("context").unwrap_or(&Value::Null);
+    let context = grammar.get("context").unwrap_or(&null);
     if text(context, "context_state") == Some("UNKNOWN")
         && text(grammar, "evidence_state") != Some("UNKNOWN_NOT_EVALUATED")
     {
