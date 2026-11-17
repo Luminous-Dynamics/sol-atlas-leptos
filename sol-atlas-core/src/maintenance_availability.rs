@@ -180,6 +180,7 @@ impl std::error::Error for ProjectionError {}
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum TraceValidationError {
     UnsupportedSchemaVersion,
+    EmptyTraceId,
     EmptyStudyId,
     InvalidStudyWindow,
     InvalidTarget,
@@ -201,6 +202,7 @@ impl fmt::Display for TraceValidationError {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
         let message = match self {
             Self::UnsupportedSchemaVersion => "unsupported maintenance trace schema version",
+            Self::EmptyTraceId => "trace ID is empty",
             Self::EmptyStudyId => "trace study ID is empty",
             Self::InvalidStudyWindow => "trace study window must have start < end",
             Self::InvalidTarget => "trace asset identity is empty",
@@ -356,7 +358,7 @@ pub fn validate_trace_structure(
         return Err(TraceValidationError::UnsupportedSchemaVersion);
     }
     if !non_empty(&trace.trace_id) {
-        return Err(TraceValidationError::EmptyStudyId);
+        return Err(TraceValidationError::EmptyTraceId);
     }
     if !non_empty(&trace.study_id) {
         return Err(TraceValidationError::EmptyStudyId);
@@ -891,6 +893,17 @@ mod tests {
     fn generated_trace_has_complete_non_overlapping_study_coverage() {
         let trace = project_maintenance_availability(&request()).expect("valid trace");
         assert_eq!(validate_trace_structure(&trace), Ok(()));
+    }
+
+    #[test]
+    fn trace_validator_rejects_empty_trace_id() {
+        let mut trace = project_maintenance_availability(&request()).expect("valid trace");
+        trace.trace_id.clear();
+
+        assert_eq!(
+            validate_trace_structure(&trace),
+            Err(TraceValidationError::EmptyTraceId)
+        );
     }
 
     #[test]
