@@ -153,15 +153,15 @@ impl fmt::Display for ProjectionError {
             Self::EvidenceConfigurationMismatch => "evidence is bound to the wrong configuration",
             Self::AuthorizationAfterMaintenanceStart => {
                 "authorization was observed after maintenance start"
-            },
+            }
             Self::InvalidEvidenceOrder => "maintenance evidence timestamps are inconsistent",
             Self::ReturnBeforeStudyStart => "return-to-service occurred before the study window",
             Self::CompletionWithoutIsolation => {
                 "completion evidence exists without isolation evidence"
-            },
+            }
             Self::InspectionWithoutCompletion => {
                 "inspection evidence exists without completion evidence"
-            },
+            }
             Self::ReturnAuthorizationWithoutInspection => {
                 "return-to-service authority exists without inspection acceptance"
             }
@@ -322,7 +322,8 @@ pub fn project_maintenance_availability(
         if authorization.observed_at_unix_seconds > outage_start {
             return Err(ProjectionError::AuthorizationAfterMaintenanceStart);
         }
-        if authorization.observed_at_unix_seconds < work_order.source_event.observed_at_unix_seconds {
+        if authorization.observed_at_unix_seconds < work_order.source_event.observed_at_unix_seconds
+        {
             return Err(ProjectionError::InvalidEvidenceOrder);
         }
     }
