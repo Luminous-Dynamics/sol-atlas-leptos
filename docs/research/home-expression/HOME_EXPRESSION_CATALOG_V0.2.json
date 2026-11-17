@@ -1,0 +1,1523 @@
+{
+  "schema_version": "0.2.0",
+  "maturity": "ILLUSTRATIVE_CATALOG_NOT_EVALUATED",
+  "catalog_revision": "HOME-EXPRESSION-CATALOG-0.2.0",
+  "non_goals": [
+    "No universal aesthetic ranking",
+    "No default cultural inference",
+    "No price or performance assertion",
+    "No implied code, structural or construction approval",
+    "Style labels are not spatial typologies or construction assemblies",
+    "No automatic style-to-geometry or style-to-performance mapping",
+    "No generic pan-African or pan-cultural vernacular preset",
+    "Heritage reference modules do not authorize new construction or adaptation"
+  ],
+  "impact_domains": [
+    "AREA_AND_CIRCULATION",
+    "CAPITAL_COST",
+    "LIFECYCLE_OPERATING_COST",
+    "ENERGY_AND_PEAK_DEMAND",
+    "WATER_AND_DRAINAGE",
+    "MATERIALS_AND_CARBON",
+    "MAINTENANCE_AND_REPAIR",
+    "ACCESSIBILITY",
+    "STRUCTURE_FIRE_MOISTURE_ACOUSTICS",
+    "SOURCING_AND_DELIVERY"
+  ],
+  "style_catalog": [
+    {
+      "style_id": "HIGHVELD_STONE_TIMBER_CONTEMPORARY",
+      "display_name": "Highveld stone-and-timber contemporary",
+      "category": "REGIONAL_EXPLORATION",
+      "description": "Tactile masonry and timber, deep shade, sheltered outdoor rooms and contemporary openings. Exact materials and climate response remain site-specific.",
+      "resident_may_blend": true,
+      "resident_may_rename": true,
+      "authenticity_note": "An exploration label, not a universal taste category, cultural authenticity claim or performance guarantee.",
+      "reference_policy": "GENERAL_EXPLORATION",
+      "reference_scope": "GENERAL_EXPLORATION",
+      "reference_sources": [],
+      "not_a_typology": true,
+      "selection_status": "ILLUSTRATIVE_NOT_EVALUATED",
+      "must_not_assume": [
+        "cultural identity or authenticity",
+        "buildability or code compliance",
+        "climate or whole-life performance"
+      ]
+    },
+    {
+      "style_id": "CAPE_COURTYARD_VERNACULAR",
+      "display_name": "Cape/courtyard-informed vernacular",
+      "category": "REGIONAL_EXPLORATION",
+      "description": "A prompt to explore courtyard, threshold, material and climate traditions using resident- and community-sourced references; not a universal claim of authenticity.",
+      "resident_may_blend": true,
+      "resident_may_rename": true,
+      "authenticity_note": "An exploration label, not a universal taste category, cultural authenticity claim or performance guarantee.",
+      "reference_policy": "CONTEXT_AND_SOURCE_REQUIRED",
+      "reference_scope": "CAPE_AND_RESIDENT_SUPPLIED_CONTEXT",
+      "reference_sources": [
+        "https://repository.up.ac.za/server/api/core/bitstreams/fc087af1-69b5-4f2f-9e74-9ed9fe58716e/content"
+      ],
+      "not_a_typology": true,
+      "selection_status": "ILLUSTRATIVE_NOT_EVALUATED",
+      "must_not_assume": [
+        "cultural identity or authenticity",
+        "buildability or code compliance",
+        "climate or whole-life performance"
+      ]
+    },
+    {
+      "style_id": "REGIONALLY_AUTHORED_MODERNISM",
+      "display_name": "Contemporary / regionally authored modernism",
+      "category": "REGIONAL_EXPLORATION",
+      "description": "A contemporary language grounded in references explicitly supplied and reviewed by residents and relevant communities.",
+      "resident_may_blend": true,
+      "resident_may_rename": true,
+      "authenticity_note": "An exploration label, not a universal taste category, cultural authenticity claim or performance guarantee.",
+      "reference_policy": "CONTEXT_AND_SOURCE_REQUIRED",
+      "reference_scope": "RESIDENT_AND_COMMUNITY_AUTHORED_REGIONAL_CONTEXT",
+      "reference_sources": [
+        "https://repository.up.ac.za/server/api/core/bitstreams/fc087af1-69b5-4f2f-9e74-9ed9fe58716e/content",
+        "https://onlinelibrary.wiley.com/doi/10.1111/cura.12510"
+      ],
+      "not_a_typology": true,
+      "selection_status": "ILLUSTRATIVE_NOT_EVALUATED",
+      "must_not_assume": [
+        "cultural identity or authenticity",
+        "buildability or code compliance",
+        "climate or whole-life performance"
+      ]
+    },
+    {
+      "style_id": "MODERNIST",
+      "display_name": "Modernist",
+      "category": "HISTORICAL_AND_CONTEMPORARY",
+      "description": "Clarity of form, functional legibility, spatial continuity and disciplined structure.",
+      "resident_may_blend": true,
+      "resident_may_rename": true,
+      "authenticity_note": "An exploration label, not a universal taste category, cultural authenticity claim or performance guarantee.",
+      "reference_policy": "GENERAL_EXPLORATION",
+      "reference_scope": "GENERAL_EXPLORATION",
+      "reference_sources": [],
+      "not_a_typology": true,
+      "selection_status": "ILLUSTRATIVE_NOT_EVALUATED",
+      "must_not_assume": [
+        "cultural identity or authenticity",
+        "buildability or code compliance",
+        "climate or whole-life performance"
+      ]
+    },
+    {
+      "style_id": "MID_CENTURY_MODERN",
+      "display_name": "Mid-century modern",
+      "category": "HISTORICAL_AND_CONTEMPORARY",
+      "description": "Human-scaled proportions, crafted detail and indoor/outdoor relationships.",
+      "resident_may_blend": true,
+      "resident_may_rename": true,
+      "authenticity_note": "An exploration label, not a universal taste category, cultural authenticity claim or performance guarantee.",
+      "reference_policy": "GENERAL_EXPLORATION",
+      "reference_scope": "GENERAL_EXPLORATION",
+      "reference_sources": [],
+      "not_a_typology": true,
+      "selection_status": "ILLUSTRATIVE_NOT_EVALUATED",
+      "must_not_assume": [
+        "cultural identity or authenticity",
+        "buildability or code compliance",
+        "climate or whole-life performance"
+      ]
+    },
+    {
+      "style_id": "BIOPHILIC_ORGANIC",
+      "display_name": "Biophilic / organic",
+      "category": "EXPERIENTIAL",
+      "description": "Natural textures, planted edges, framed landscape and non-rectilinear spatial references.",
+      "resident_may_blend": true,
+      "resident_may_rename": true,
+      "authenticity_note": "An exploration label, not a universal taste category, cultural authenticity claim or performance guarantee.",
+      "reference_policy": "GENERAL_EXPLORATION",
+      "reference_scope": "GENERAL_EXPLORATION",
+      "reference_sources": [],
+      "not_a_typology": true,
+      "selection_status": "ILLUSTRATIVE_NOT_EVALUATED",
+      "must_not_assume": [
+        "cultural identity or authenticity",
+        "buildability or code compliance",
+        "climate or whole-life performance"
+      ]
+    },
+    {
+      "style_id": "TROPICAL_MODERN",
+      "display_name": "Tropical modern",
+      "category": "CLIMATE_RESPONSIVE_EXPLORATION",
+      "description": "Deep shade, rain protection and outdoor rooms; ventilation and thermal benefits require local analysis.",
+      "resident_may_blend": true,
+      "resident_may_rename": true,
+      "authenticity_note": "An exploration label, not a universal taste category, cultural authenticity claim or performance guarantee.",
+      "reference_policy": "GENERAL_EXPLORATION",
+      "reference_scope": "GENERAL_EXPLORATION",
+      "reference_sources": [],
+      "not_a_typology": true,
+      "selection_status": "ILLUSTRATIVE_NOT_EVALUATED",
+      "must_not_assume": [
+        "cultural identity or authenticity",
+        "buildability or code compliance",
+        "climate or whole-life performance"
+      ]
+    },
+    {
+      "style_id": "MEDITERRANEAN_COURTYARD",
+      "display_name": "Mediterranean courtyard",
+      "category": "HISTORICAL_AND_CONTEMPORARY",
+      "description": "Courtyard enclosure, textured surfaces, shaded arcades and layered thresholds.",
+      "resident_may_blend": true,
+      "resident_may_rename": true,
+      "authenticity_note": "An exploration label, not a universal taste category, cultural authenticity claim or performance guarantee.",
+      "reference_policy": "GENERAL_EXPLORATION",
+      "reference_scope": "GENERAL_EXPLORATION",
+      "reference_sources": [],
+      "not_a_typology": true,
+      "selection_status": "ILLUSTRATIVE_NOT_EVALUATED",
+      "must_not_assume": [
+        "cultural identity or authenticity",
+        "buildability or code compliance",
+        "climate or whole-life performance"
+      ]
+    },
+    {
+      "style_id": "JAPANESE_INSPIRED_MINIMAL",
+      "display_name": "Japanese-inspired minimal",
+      "category": "CULTURAL_REFERENCE",
+      "description": "Restraint, transitions, framed views and craft; use specific sourced references and avoid treating a diverse culture as a preset.",
+      "resident_may_blend": true,
+      "resident_may_rename": true,
+      "authenticity_note": "An exploration label, not a universal taste category, cultural authenticity claim or performance guarantee.",
+      "reference_policy": "GENERAL_EXPLORATION",
+      "reference_scope": "GENERAL_EXPLORATION",
+      "reference_sources": [],
+      "not_a_typology": true,
+      "selection_status": "ILLUSTRATIVE_NOT_EVALUATED",
+      "must_not_assume": [
+        "cultural identity or authenticity",
+        "buildability or code compliance",
+        "climate or whole-life performance"
+      ]
+    },
+    {
+      "style_id": "INDUSTRIAL",
+      "display_name": "Industrial",
+      "category": "MATERIAL_AND_CRAFT",
+      "description": "Expressed construction logic, robust surfaces and adaptable work zones.",
+      "resident_may_blend": true,
+      "resident_may_rename": true,
+      "authenticity_note": "An exploration label, not a universal taste category, cultural authenticity claim or performance guarantee.",
+      "reference_policy": "GENERAL_EXPLORATION",
+      "reference_scope": "GENERAL_EXPLORATION",
+      "reference_sources": [],
+      "not_a_typology": true,
+      "selection_status": "ILLUSTRATIVE_NOT_EVALUATED",
+      "must_not_assume": [
+        "cultural identity or authenticity",
+        "buildability or code compliance",
+        "climate or whole-life performance"
+      ]
+    },
+    {
+      "style_id": "FARMHOUSE_CRAFT",
+      "display_name": "Farmhouse / craft",
+      "category": "MATERIAL_AND_CRAFT",
+      "description": "Domestic warmth, practical utility, visible craft and repairable materials.",
+      "resident_may_blend": true,
+      "resident_may_rename": true,
+      "authenticity_note": "An exploration label, not a universal taste category, cultural authenticity claim or performance guarantee.",
+      "reference_policy": "GENERAL_EXPLORATION",
+      "reference_scope": "GENERAL_EXPLORATION",
+      "reference_sources": [],
+      "not_a_typology": true,
+      "selection_status": "ILLUSTRATIVE_NOT_EVALUATED",
+      "must_not_assume": [
+        "cultural identity or authenticity",
+        "buildability or code compliance",
+        "climate or whole-life performance"
+      ]
+    },
+    {
+      "style_id": "ART_DECO",
+      "display_name": "Art Deco",
+      "category": "HISTORICAL_AND_CONTEMPORARY",
+      "description": "Geometric composition, crafted metalwork, rhythm and expressive detailing.",
+      "resident_may_blend": true,
+      "resident_may_rename": true,
+      "authenticity_note": "An exploration label, not a universal taste category, cultural authenticity claim or performance guarantee.",
+      "reference_policy": "GENERAL_EXPLORATION",
+      "reference_scope": "GENERAL_EXPLORATION",
+      "reference_sources": [],
+      "not_a_typology": true,
+      "selection_status": "ILLUSTRATIVE_NOT_EVALUATED",
+      "must_not_assume": [
+        "cultural identity or authenticity",
+        "buildability or code compliance",
+        "climate or whole-life performance"
+      ]
+    },
+    {
+      "style_id": "BRUTALIST_MONOLITHIC",
+      "display_name": "Brutalist / monolithic",
+      "category": "HISTORICAL_AND_CONTEMPORARY",
+      "description": "Mass, texture, material expression and strong spatial geometry.",
+      "resident_may_blend": true,
+      "resident_may_rename": true,
+      "authenticity_note": "An exploration label, not a universal taste category, cultural authenticity claim or performance guarantee.",
+      "reference_policy": "GENERAL_EXPLORATION",
+      "reference_scope": "GENERAL_EXPLORATION",
+      "reference_sources": [],
+      "not_a_typology": true,
+      "selection_status": "ILLUSTRATIVE_NOT_EVALUATED",
+      "must_not_assume": [
+        "cultural identity or authenticity",
+        "buildability or code compliance",
+        "climate or whole-life performance"
+      ]
+    },
+    {
+      "style_id": "GOTHIC_REVIVAL",
+      "display_name": "Gothic Revival",
+      "category": "HISTORICAL_AND_CONTEMPORARY",
+      "description": "Vertical emphasis, rhythm, ornament and crafted light.",
+      "resident_may_blend": true,
+      "resident_may_rename": true,
+      "authenticity_note": "An exploration label, not a universal taste category, cultural authenticity claim or performance guarantee.",
+      "reference_policy": "GENERAL_EXPLORATION",
+      "reference_scope": "GENERAL_EXPLORATION",
+      "reference_sources": [],
+      "not_a_typology": true,
+      "selection_status": "ILLUSTRATIVE_NOT_EVALUATED",
+      "must_not_assume": [
+        "cultural identity or authenticity",
+        "buildability or code compliance",
+        "climate or whole-life performance"
+      ]
+    },
+    {
+      "style_id": "HERITAGE_RESTORATION",
+      "display_name": "Heritage restoration",
+      "category": "CONSERVATION",
+      "description": "Conservation-led repair and retention based on exact asset, rights and heritage context.",
+      "resident_may_blend": true,
+      "resident_may_rename": true,
+      "authenticity_note": "An exploration label, not a universal taste category, cultural authenticity claim or performance guarantee.",
+      "reference_policy": "CONSERVATION_REVIEW_REQUIRED",
+      "reference_scope": "EXACT_ASSET_AND_HERITAGE_CONTEXT",
+      "reference_sources": [],
+      "not_a_typology": true,
+      "selection_status": "ILLUSTRATIVE_NOT_EVALUATED",
+      "must_not_assume": [
+        "cultural identity or authenticity",
+        "buildability or code compliance",
+        "climate or whole-life performance"
+      ]
+    },
+    {
+      "style_id": "SOLARPUNK",
+      "display_name": "Solarpunk",
+      "category": "SPECULATIVE_AND_ECOLOGICAL",
+      "description": "Visible ecological systems, productive landscape and technology that is legible and repairable; not a measured sustainability claim.",
+      "resident_may_blend": true,
+      "resident_may_rename": true,
+      "authenticity_note": "An exploration label, not a universal taste category, cultural authenticity claim or performance guarantee.",
+      "reference_policy": "GENERAL_EXPLORATION",
+      "reference_scope": "GENERAL_EXPLORATION",
+      "reference_sources": [],
+      "not_a_typology": true,
+      "selection_status": "ILLUSTRATIVE_NOT_EVALUATED",
+      "must_not_assume": [
+        "cultural identity or authenticity",
+        "buildability or code compliance",
+        "climate or whole-life performance"
+      ]
+    },
+    {
+      "style_id": "MINIMALIST",
+      "display_name": "Minimalist",
+      "category": "EXPERIENTIAL",
+      "description": "Reduction, proportion, material clarity and restrained detail.",
+      "resident_may_blend": true,
+      "resident_may_rename": true,
+      "authenticity_note": "An exploration label, not a universal taste category, cultural authenticity claim or performance guarantee.",
+      "reference_policy": "GENERAL_EXPLORATION",
+      "reference_scope": "GENERAL_EXPLORATION",
+      "reference_sources": [],
+      "not_a_typology": true,
+      "selection_status": "ILLUSTRATIVE_NOT_EVALUATED",
+      "must_not_assume": [
+        "cultural identity or authenticity",
+        "buildability or code compliance",
+        "climate or whole-life performance"
+      ]
+    },
+    {
+      "style_id": "MAXIMALIST",
+      "display_name": "Maximalist",
+      "category": "EXPERIENTIAL",
+      "description": "Layered colour, collections, texture and expressive rooms.",
+      "resident_may_blend": true,
+      "resident_may_rename": true,
+      "authenticity_note": "An exploration label, not a universal taste category, cultural authenticity claim or performance guarantee.",
+      "reference_policy": "GENERAL_EXPLORATION",
+      "reference_scope": "GENERAL_EXPLORATION",
+      "reference_sources": [],
+      "not_a_typology": true,
+      "selection_status": "ILLUSTRATIVE_NOT_EVALUATED",
+      "must_not_assume": [
+        "cultural identity or authenticity",
+        "buildability or code compliance",
+        "climate or whole-life performance"
+      ]
+    },
+    {
+      "style_id": "CONTEMPORARY_CLASSIC",
+      "display_name": "Contemporary classic",
+      "category": "HISTORICAL_AND_CONTEMPORARY",
+      "description": "Durable proportions and familiar architectural order with contemporary materials and services.",
+      "resident_may_blend": true,
+      "resident_may_rename": true,
+      "authenticity_note": "An exploration label, not a universal taste category, cultural authenticity claim or performance guarantee.",
+      "reference_policy": "GENERAL_EXPLORATION",
+      "reference_scope": "GENERAL_EXPLORATION",
+      "reference_sources": [],
+      "not_a_typology": true,
+      "selection_status": "ILLUSTRATIVE_NOT_EVALUATED",
+      "must_not_assume": [
+        "cultural identity or authenticity",
+        "buildability or code compliance",
+        "climate or whole-life performance"
+      ]
+    },
+    {
+      "style_id": "OTHER_CUSTOM",
+      "display_name": "Resident-authored custom language",
+      "category": "CUSTOM",
+      "description": "An open category defined by the resident; no default cultural, historical or aesthetic interpretation.",
+      "resident_may_blend": true,
+      "resident_may_rename": true,
+      "authenticity_note": "An exploration label, not a universal taste category, cultural authenticity claim or performance guarantee.",
+      "reference_policy": "RESIDENT_AUTHORED",
+      "reference_scope": "GENERAL_EXPLORATION",
+      "reference_sources": [],
+      "not_a_typology": true,
+      "selection_status": "ILLUSTRATIVE_NOT_EVALUATED",
+      "must_not_assume": [
+        "cultural identity or authenticity",
+        "buildability or code compliance",
+        "climate or whole-life performance"
+      ]
+    },
+    {
+      "style_id": "CAPE_DUTCH_HISTORIC",
+      "display_name": "Cape Dutch (historic reference)",
+      "category": "REGIONAL_HISTORICAL_REFERENCE",
+      "description": "A source-led exploration of historic Cape farmstead composition, gables, roof forms, plastered masonry and sheltered stoep/threshold relationships. Use as a historically situated reference, not a universal regional template or climate-performance shortcut.",
+      "authenticity_note": "Historical reference only. Interpret with local evidence, material context and heritage review; do not claim a single pure or timeless Cape identity.",
+      "reference_policy": "CONTEXT_AND_SOURCE_REQUIRED",
+      "reference_scope": "CAPE_HISTORICAL_ARCHITECTURE",
+      "reference_sources": [
+        "https://repository.up.ac.za/server/api/core/bitstreams/fc087af1-69b5-4f2f-9e74-9ed9fe58716e/content"
+      ],
+      "not_a_typology": true,
+      "selection_status": "ILLUSTRATIVE_NOT_EVALUATED",
+      "must_not_assume": [
+        "authenticity from location or resident identity",
+        "heritage approval",
+        "thermal performance from appearance"
+      ]
+    },
+    {
+      "style_id": "CAPE_GEORGIAN_INFLUENCE",
+      "display_name": "Cape Georgian influence",
+      "category": "REGIONAL_HISTORICAL_REFERENCE",
+      "description": "A historically layered Cape vernacular reference for Georgian-influenced symmetry, classical ordering and internal/external detailing. Treat it as one influence in an evolving tradition, not as a uniform standalone regional style.",
+      "authenticity_note": "The source describes Georgian influence as one shift within Cape vernacular development; retain the specific reference and historical context.",
+      "reference_policy": "CONTEXT_AND_SOURCE_REQUIRED",
+      "reference_scope": "CAPE_VERNACULAR_HISTORICAL_LAYER",
+      "reference_sources": [
+        "https://repository.up.ac.za/server/api/core/bitstreams/fc087af1-69b5-4f2f-9e74-9ed9fe58716e/content"
+      ],
+      "not_a_typology": true,
+      "selection_status": "ILLUSTRATIVE_NOT_EVALUATED",
+      "must_not_assume": [
+        "a single canonical Cape Georgian form",
+        "cultural authenticity",
+        "regulatory or climatic suitability"
+      ]
+    },
+    {
+      "style_id": "VICTORIAN",
+      "display_name": "Victorian",
+      "category": "HISTORICAL_AND_CONTEMPORARY",
+      "description": "An exploratory family spanning varied Victorian-era compositions, rooflines, bays, verandahs and decorative detail. Select specific place, period and building precedents rather than treating the label as one universal recipe.",
+      "authenticity_note": "A broad historical family; exact regional variants and heritage significance require source context.",
+      "reference_policy": "GENERAL_EXPLORATION",
+      "reference_scope": "GLOBAL_HISTORICAL_FAMILY",
+      "reference_sources": [],
+      "not_a_typology": true,
+      "selection_status": "ILLUSTRATIVE_NOT_EVALUATED",
+      "must_not_assume": [
+        "one universal Victorian template",
+        "heritage status",
+        "energy or maintenance performance"
+      ]
+    },
+    {
+      "style_id": "EDWARDIAN",
+      "display_name": "Edwardian",
+      "category": "HISTORICAL_AND_CONTEMPORARY",
+      "description": "An exploratory early-20th-century family often associated with lighter classical detailing, generous openings and transitional domestic forms. Ground any use in a specific regional precedent and building type.",
+      "authenticity_note": "Historical exploration only; features vary significantly by place, class, climate and period.",
+      "reference_policy": "GENERAL_EXPLORATION",
+      "reference_scope": "GLOBAL_HISTORICAL_FAMILY",
+      "reference_sources": [],
+      "not_a_typology": true,
+      "selection_status": "ILLUSTRATIVE_NOT_EVALUATED",
+      "must_not_assume": [
+        "one universal Edwardian type",
+        "heritage approval",
+        "climate response"
+      ]
+    },
+    {
+      "style_id": "GEORGIAN_NEOCLASSICAL",
+      "display_name": "Georgian / Neoclassical",
+      "category": "HISTORICAL_AND_CONTEMPORARY",
+      "description": "An exploratory language of ordered composition, proportion, symmetry and classical references. Distinguish Georgian traditions from later Neoclassical revivals and identify the precedent being interpreted.",
+      "authenticity_note": "A broad family label, not a substitute for period-specific architectural research.",
+      "reference_policy": "GENERAL_EXPLORATION",
+      "reference_scope": "GLOBAL_HISTORICAL_FAMILY",
+      "reference_sources": [],
+      "not_a_typology": true,
+      "selection_status": "ILLUSTRATIVE_NOT_EVALUATED",
+      "must_not_assume": [
+        "historical accuracy without a precedent",
+        "accessibility or structural adequacy"
+      ]
+    },
+    {
+      "style_id": "ARTS_AND_CRAFTS_CRAFTSMAN",
+      "display_name": "Arts & Crafts / Craftsman",
+      "category": "MATERIAL_AND_CRAFT",
+      "description": "An exploratory language emphasizing visible making, integrated joinery, tactile materials, human-scaled detail and craft-led composition. Material sourcing, durability and embodied impacts remain separately qualified.",
+      "authenticity_note": "Craft language is not proof of local provenance, fair labour or repairability.",
+      "reference_policy": "GENERAL_EXPLORATION",
+      "reference_scope": "GLOBAL_HISTORICAL_FAMILY",
+      "reference_sources": [],
+      "not_a_typology": true,
+      "selection_status": "ILLUSTRATIVE_NOT_EVALUATED",
+      "must_not_assume": [
+        "craft authenticity",
+        "ethical sourcing",
+        "low lifecycle cost"
+      ]
+    },
+    {
+      "style_id": "ART_NOUVEAU",
+      "display_name": "Art Nouveau / Jugendstil",
+      "category": "HISTORICAL_AND_CONTEMPORARY",
+      "description": "An exploratory language of flowing lines, organic ornament, integrated metalwork, glass and crafted motifs. Separate decorative intent from fabrication, fire, safety and maintenance requirements.",
+      "authenticity_note": "A broad international family with distinct regional expressions.",
+      "reference_policy": "GENERAL_EXPLORATION",
+      "reference_scope": "GLOBAL_HISTORICAL_FAMILY",
+      "reference_sources": [],
+      "not_a_typology": true,
+      "selection_status": "ILLUSTRATIVE_NOT_EVALUATED",
+      "must_not_assume": [
+        "historical fidelity",
+        "fabrication feasibility",
+        "universal cultural meaning"
+      ]
+    },
+    {
+      "style_id": "PRAIRIE_SCHOOL",
+      "display_name": "Prairie School",
+      "category": "HISTORICAL_AND_CONTEMPORARY",
+      "description": "An exploratory language associated with horizontal composition, integrated spatial sequences, sheltering eaves and a deliberate relationship between building and landscape. Actual solar, wind and water performance require site analysis.",
+      "authenticity_note": "A historical movement, not a climate-neutral design prescription.",
+      "reference_policy": "GENERAL_EXPLORATION",
+      "reference_scope": "GLOBAL_HISTORICAL_FAMILY",
+      "reference_sources": [],
+      "not_a_typology": true,
+      "selection_status": "ILLUSTRATIVE_NOT_EVALUATED",
+      "must_not_assume": [
+        "solar performance from roof form",
+        "site fit",
+        "structural adequacy"
+      ]
+    },
+    {
+      "style_id": "BAUHAUS",
+      "display_name": "Bauhaus",
+      "category": "HISTORICAL_AND_CONTEMPORARY",
+      "description": "An exploratory language connecting functional organization, geometric clarity, modern materials and the integration of art, craft and industrial production. Specific precedents and construction systems must be identified.",
+      "authenticity_note": "Historical reference, not a synonym for generic minimalism or low-cost construction.",
+      "reference_policy": "GENERAL_EXPLORATION",
+      "reference_scope": "GLOBAL_HISTORICAL_FAMILY",
+      "reference_sources": [],
+      "not_a_typology": true,
+      "selection_status": "ILLUSTRATIVE_NOT_EVALUATED",
+      "must_not_assume": [
+        "cheap construction",
+        "minimal embodied carbon",
+        "universal functional quality"
+      ]
+    },
+    {
+      "style_id": "INTERNATIONAL_STYLE",
+      "display_name": "International Style",
+      "category": "HISTORICAL_AND_CONTEMPORARY",
+      "description": "An exploratory language of rationalized volumes, planar composition, structural expression and extensive glazing in some variants. Envelope, glare, overheating, privacy and energy consequences must be tested rather than inferred.",
+      "authenticity_note": "A historically diverse movement; avoid copying form without adapting to local context.",
+      "reference_policy": "GENERAL_EXPLORATION",
+      "reference_scope": "GLOBAL_HISTORICAL_FAMILY",
+      "reference_sources": [],
+      "not_a_typology": true,
+      "selection_status": "ILLUSTRATIVE_NOT_EVALUATED",
+      "must_not_assume": [
+        "climate suitability",
+        "low energy demand",
+        "universal modernity"
+      ]
+    },
+    {
+      "style_id": "NORDIC_SCANDINAVIAN",
+      "display_name": "Nordic / Scandinavian",
+      "category": "MATERIAL_AND_CRAFT",
+      "description": "An exploratory family of restrained composition, daylight-conscious interiors, tactile materials and functional simplicity. Translate the actual principles to local climate and culture; do not import cold-climate assemblies by appearance.",
+      "authenticity_note": "A broad regional family with substantial variation across countries, periods and designers.",
+      "reference_policy": "GENERAL_EXPLORATION",
+      "reference_scope": "NORDIC_REGIONAL_FAMILY",
+      "reference_sources": [],
+      "not_a_typology": true,
+      "selection_status": "ILLUSTRATIVE_NOT_EVALUATED",
+      "must_not_assume": [
+        "cold-climate performance in other climates",
+        "one Nordic identity",
+        "sourcing or sustainability"
+      ]
+    },
+    {
+      "style_id": "SPANISH_COLONIAL_MISSION",
+      "display_name": "Spanish Colonial / Mission",
+      "category": "HISTORICAL_AND_CONTEMPORARY",
+      "description": "An exploratory family of arcades, courtyards, plastered surfaces, roof forms and layered thresholds. Select a specific region and historical lineage; avoid flattening colonial and postcolonial histories into a decorative kit.",
+      "authenticity_note": "Regional variants and colonial histories differ; use source-led interpretation and context review.",
+      "reference_policy": "CONTEXT_AND_SOURCE_REQUIRED",
+      "reference_scope": "REGIONAL_HISTORICAL_FAMILY",
+      "reference_sources": [],
+      "not_a_typology": true,
+      "selection_status": "ILLUSTRATIVE_NOT_EVALUATED",
+      "must_not_assume": [
+        "cultural neutrality",
+        "regional authenticity",
+        "thermal performance"
+      ]
+    },
+    {
+      "style_id": "ALPINE_CHALET",
+      "display_name": "Alpine / Chalet",
+      "category": "HISTORICAL_AND_CONTEMPORARY",
+      "description": "An exploratory family of pitched roof forms, expressed timber, deep eaves and sheltered outdoor edges. Snow, wind, rain, fire, timber durability and structural loading are site-specific engineering questions.",
+      "authenticity_note": "A regionally situated precedent, not a generic roof or structure specification.",
+      "reference_policy": "GENERAL_EXPLORATION",
+      "reference_scope": "ALPINE_REGIONAL_FAMILY",
+      "reference_sources": [],
+      "not_a_typology": true,
+      "selection_status": "ILLUSTRATIVE_NOT_EVALUATED",
+      "must_not_assume": [
+        "snow-load adequacy",
+        "weatherproofing",
+        "timber durability"
+      ]
+    },
+    {
+      "style_id": "POSTMODERN",
+      "display_name": "Postmodern",
+      "category": "HISTORICAL_AND_CONTEMPORARY",
+      "description": "An exploratory language using layered references, symbolic form, historical quotation, colour and deliberate contrast. Meaning is resident- and context-dependent; no universal cultural or semantic score is assigned.",
+      "authenticity_note": "A diverse movement; specify the intended precedent, motifs and meaning in the resident's own terms.",
+      "reference_policy": "GENERAL_EXPLORATION",
+      "reference_scope": "GLOBAL_HISTORICAL_FAMILY",
+      "reference_sources": [],
+      "not_a_typology": true,
+      "selection_status": "ILLUSTRATIVE_NOT_EVALUATED",
+      "must_not_assume": [
+        "shared interpretation of symbols",
+        "historical accuracy",
+        "aesthetic preference"
+      ]
+    }
+  ],
+  "experience_catalog": [
+    {
+      "package_id": "DOUBLE_HEIGHT_GREAT_HALL",
+      "display_name": "Double-height great hall",
+      "category": "SPATIAL_DRAMA",
+      "description": "A tall shared social volume and strong arrival sequence.",
+      "optional_by_default": true,
+      "selection_default": "NOT_SELECTED",
+      "impact_domains": [
+        "AREA_AND_CIRCULATION",
+        "CAPITAL_COST",
+        "LIFECYCLE_OPERATING_COST",
+        "ENERGY_AND_PEAK_DEMAND",
+        "WATER_AND_DRAINAGE",
+        "MATERIALS_AND_CARBON",
+        "MAINTENANCE_AND_REPAIR",
+        "ACCESSIBILITY",
+        "STRUCTURE_FIRE_MOISTURE_ACOUSTICS",
+        "SOURCING_AND_DELIVERY"
+      ],
+      "priority_review_domains": [
+        "AREA_AND_CIRCULATION",
+        "CAPITAL_COST",
+        "LIFECYCLE_OPERATING_COST",
+        "ENERGY_AND_PEAK_DEMAND",
+        "MAINTENANCE_AND_REPAIR",
+        "ACCESSIBILITY",
+        "STRUCTURE_FIRE_MOISTURE_ACOUSTICS"
+      ],
+      "claim_ceiling": "CATALOG_ONLY_NO_COST_PERFORMANCE_OR_FEASIBILITY_CLAIM",
+      "review_note": "All impacts remain UNKNOWN until a versioned owner assessment supplies evidence; review-domain hints are not proof of impact."
+    },
+    {
+      "package_id": "GRAND_ATRIUM",
+      "display_name": "Daylit grand atrium",
+      "category": "SPATIAL_DRAMA",
+      "description": "An internal light court or atrium with a visible vertical spatial sequence.",
+      "optional_by_default": true,
+      "selection_default": "NOT_SELECTED",
+      "impact_domains": [
+        "AREA_AND_CIRCULATION",
+        "CAPITAL_COST",
+        "LIFECYCLE_OPERATING_COST",
+        "ENERGY_AND_PEAK_DEMAND",
+        "WATER_AND_DRAINAGE",
+        "MATERIALS_AND_CARBON",
+        "MAINTENANCE_AND_REPAIR",
+        "ACCESSIBILITY",
+        "STRUCTURE_FIRE_MOISTURE_ACOUSTICS",
+        "SOURCING_AND_DELIVERY"
+      ],
+      "priority_review_domains": [
+        "AREA_AND_CIRCULATION",
+        "CAPITAL_COST",
+        "ENERGY_AND_PEAK_DEMAND",
+        "MAINTENANCE_AND_REPAIR",
+        "ACCESSIBILITY",
+        "STRUCTURE_FIRE_MOISTURE_ACOUSTICS"
+      ],
+      "claim_ceiling": "CATALOG_ONLY_NO_COST_PERFORMANCE_OR_FEASIBILITY_CLAIM",
+      "review_note": "All impacts remain UNKNOWN until a versioned owner assessment supplies evidence; review-domain hints are not proof of impact."
+    },
+    {
+      "package_id": "WINTER_GARDEN",
+      "display_name": "Winter garden",
+      "category": "LANDSCAPE_AND_ECOLOGY",
+      "description": "A protected planted room or seasonal garden enclosure.",
+      "optional_by_default": true,
+      "selection_default": "NOT_SELECTED",
+      "impact_domains": [
+        "AREA_AND_CIRCULATION",
+        "CAPITAL_COST",
+        "LIFECYCLE_OPERATING_COST",
+        "ENERGY_AND_PEAK_DEMAND",
+        "WATER_AND_DRAINAGE",
+        "MATERIALS_AND_CARBON",
+        "MAINTENANCE_AND_REPAIR",
+        "ACCESSIBILITY",
+        "STRUCTURE_FIRE_MOISTURE_ACOUSTICS",
+        "SOURCING_AND_DELIVERY"
+      ],
+      "priority_review_domains": [
+        "AREA_AND_CIRCULATION",
+        "CAPITAL_COST",
+        "LIFECYCLE_OPERATING_COST",
+        "ENERGY_AND_PEAK_DEMAND",
+        "WATER_AND_DRAINAGE",
+        "MAINTENANCE_AND_REPAIR",
+        "ACCESSIBILITY",
+        "STRUCTURE_FIRE_MOISTURE_ACOUSTICS"
+      ],
+      "claim_ceiling": "CATALOG_ONLY_NO_COST_PERFORMANCE_OR_FEASIBILITY_CLAIM",
+      "review_note": "All impacts remain UNKNOWN until a versioned owner assessment supplies evidence; review-domain hints are not proof of impact."
+    },
+    {
+      "package_id": "CONSERVATORY",
+      "display_name": "Conservatory / orangery",
+      "category": "LANDSCAPE_AND_ECOLOGY",
+      "description": "A glazed or partially glazed garden room with controlled ventilation and solar exposure.",
+      "optional_by_default": true,
+      "selection_default": "NOT_SELECTED",
+      "impact_domains": [
+        "AREA_AND_CIRCULATION",
+        "CAPITAL_COST",
+        "LIFECYCLE_OPERATING_COST",
+        "ENERGY_AND_PEAK_DEMAND",
+        "WATER_AND_DRAINAGE",
+        "MATERIALS_AND_CARBON",
+        "MAINTENANCE_AND_REPAIR",
+        "ACCESSIBILITY",
+        "STRUCTURE_FIRE_MOISTURE_ACOUSTICS",
+        "SOURCING_AND_DELIVERY"
+      ],
+      "priority_review_domains": [
+        "AREA_AND_CIRCULATION",
+        "CAPITAL_COST",
+        "LIFECYCLE_OPERATING_COST",
+        "ENERGY_AND_PEAK_DEMAND",
+        "WATER_AND_DRAINAGE",
+        "MAINTENANCE_AND_REPAIR",
+        "ACCESSIBILITY",
+        "STRUCTURE_FIRE_MOISTURE_ACOUSTICS"
+      ],
+      "claim_ceiling": "CATALOG_ONLY_NO_COST_PERFORMANCE_OR_FEASIBILITY_CLAIM",
+      "review_note": "All impacts remain UNKNOWN until a versioned owner assessment supplies evidence; review-domain hints are not proof of impact."
+    },
+    {
+      "package_id": "GRAND_LIBRARY",
+      "display_name": "Grand library and reading gallery",
+      "category": "LEARNING_AND_CULTURE",
+      "description": "A dedicated reading, archive or collection space with shelving, lighting and acoustic requirements.",
+      "optional_by_default": true,
+      "selection_default": "NOT_SELECTED",
+      "impact_domains": [
+        "AREA_AND_CIRCULATION",
+        "CAPITAL_COST",
+        "LIFECYCLE_OPERATING_COST",
+        "ENERGY_AND_PEAK_DEMAND",
+        "WATER_AND_DRAINAGE",
+        "MATERIALS_AND_CARBON",
+        "MAINTENANCE_AND_REPAIR",
+        "ACCESSIBILITY",
+        "STRUCTURE_FIRE_MOISTURE_ACOUSTICS",
+        "SOURCING_AND_DELIVERY"
+      ],
+      "priority_review_domains": [
+        "AREA_AND_CIRCULATION",
+        "CAPITAL_COST",
+        "LIFECYCLE_OPERATING_COST",
+        "MAINTENANCE_AND_REPAIR",
+        "ACCESSIBILITY",
+        "STRUCTURE_FIRE_MOISTURE_ACOUSTICS",
+        "SOURCING_AND_DELIVERY"
+      ],
+      "claim_ceiling": "CATALOG_ONLY_NO_COST_PERFORMANCE_OR_FEASIBILITY_CLAIM",
+      "review_note": "All impacts remain UNKNOWN until a versioned owner assessment supplies evidence; review-domain hints are not proof of impact."
+    },
+    {
+      "package_id": "PRIVATE_OBSERVATORY",
+      "display_name": "Private observatory",
+      "category": "LEARNING_AND_CULTURE",
+      "description": "A telescope room, roof dome or dark-sky observation terrace.",
+      "optional_by_default": true,
+      "selection_default": "NOT_SELECTED",
+      "impact_domains": [
+        "AREA_AND_CIRCULATION",
+        "CAPITAL_COST",
+        "LIFECYCLE_OPERATING_COST",
+        "ENERGY_AND_PEAK_DEMAND",
+        "WATER_AND_DRAINAGE",
+        "MATERIALS_AND_CARBON",
+        "MAINTENANCE_AND_REPAIR",
+        "ACCESSIBILITY",
+        "STRUCTURE_FIRE_MOISTURE_ACOUSTICS",
+        "SOURCING_AND_DELIVERY"
+      ],
+      "priority_review_domains": [
+        "AREA_AND_CIRCULATION",
+        "CAPITAL_COST",
+        "ENERGY_AND_PEAK_DEMAND",
+        "MAINTENANCE_AND_REPAIR",
+        "ACCESSIBILITY",
+        "STRUCTURE_FIRE_MOISTURE_ACOUSTICS",
+        "SOURCING_AND_DELIVERY"
+      ],
+      "claim_ceiling": "CATALOG_ONLY_NO_COST_PERFORMANCE_OR_FEASIBILITY_CLAIM",
+      "review_note": "All impacts remain UNKNOWN until a versioned owner assessment supplies evidence; review-domain hints are not proof of impact."
+    },
+    {
+      "package_id": "ROOFTOP_TERRACE",
+      "display_name": "Rooftop terrace",
+      "category": "SPATIAL_DRAMA",
+      "description": "An elevated outdoor room subject to structure, guard, access, drainage and weather review.",
+      "optional_by_default": true,
+      "selection_default": "NOT_SELECTED",
+      "impact_domains": [
+        "AREA_AND_CIRCULATION",
+        "CAPITAL_COST",
+        "LIFECYCLE_OPERATING_COST",
+        "ENERGY_AND_PEAK_DEMAND",
+        "WATER_AND_DRAINAGE",
+        "MATERIALS_AND_CARBON",
+        "MAINTENANCE_AND_REPAIR",
+        "ACCESSIBILITY",
+        "STRUCTURE_FIRE_MOISTURE_ACOUSTICS",
+        "SOURCING_AND_DELIVERY"
+      ],
+      "priority_review_domains": [
+        "AREA_AND_CIRCULATION",
+        "CAPITAL_COST",
+        "WATER_AND_DRAINAGE",
+        "MAINTENANCE_AND_REPAIR",
+        "ACCESSIBILITY",
+        "STRUCTURE_FIRE_MOISTURE_ACOUSTICS"
+      ],
+      "claim_ceiling": "CATALOG_ONLY_NO_COST_PERFORMANCE_OR_FEASIBILITY_CLAIM",
+      "review_note": "All impacts remain UNKNOWN until a versioned owner assessment supplies evidence; review-domain hints are not proof of impact."
+    },
+    {
+      "package_id": "PRIVATE_SPA_SAUNA",
+      "display_name": "Spa and sauna",
+      "category": "WELLNESS_AND_LEISURE",
+      "description": "A dedicated wellness suite with ventilation, moisture, electrical, fire and service requirements.",
+      "optional_by_default": true,
+      "selection_default": "NOT_SELECTED",
+      "impact_domains": [
+        "AREA_AND_CIRCULATION",
+        "CAPITAL_COST",
+        "LIFECYCLE_OPERATING_COST",
+        "ENERGY_AND_PEAK_DEMAND",
+        "WATER_AND_DRAINAGE",
+        "MATERIALS_AND_CARBON",
+        "MAINTENANCE_AND_REPAIR",
+        "ACCESSIBILITY",
+        "STRUCTURE_FIRE_MOISTURE_ACOUSTICS",
+        "SOURCING_AND_DELIVERY"
+      ],
+      "priority_review_domains": [
+        "AREA_AND_CIRCULATION",
+        "CAPITAL_COST",
+        "LIFECYCLE_OPERATING_COST",
+        "ENERGY_AND_PEAK_DEMAND",
+        "WATER_AND_DRAINAGE",
+        "MAINTENANCE_AND_REPAIR",
+        "ACCESSIBILITY",
+        "STRUCTURE_FIRE_MOISTURE_ACOUSTICS"
+      ],
+      "claim_ceiling": "CATALOG_ONLY_NO_COST_PERFORMANCE_OR_FEASIBILITY_CLAIM",
+      "review_note": "All impacts remain UNKNOWN until a versioned owner assessment supplies evidence; review-domain hints are not proof of impact."
+    },
+    {
+      "package_id": "INDOOR_POOL",
+      "display_name": "Indoor swimming pool",
+      "category": "WELLNESS_AND_LEISURE",
+      "description": "An indoor pool with significant water, humidity, structure, energy and maintenance implications.",
+      "optional_by_default": true,
+      "selection_default": "NOT_SELECTED",
+      "impact_domains": [
+        "AREA_AND_CIRCULATION",
+        "CAPITAL_COST",
+        "LIFECYCLE_OPERATING_COST",
+        "ENERGY_AND_PEAK_DEMAND",
+        "WATER_AND_DRAINAGE",
+        "MATERIALS_AND_CARBON",
+        "MAINTENANCE_AND_REPAIR",
+        "ACCESSIBILITY",
+        "STRUCTURE_FIRE_MOISTURE_ACOUSTICS",
+        "SOURCING_AND_DELIVERY"
+      ],
+      "priority_review_domains": [
+        "AREA_AND_CIRCULATION",
+        "CAPITAL_COST",
+        "LIFECYCLE_OPERATING_COST",
+        "ENERGY_AND_PEAK_DEMAND",
+        "WATER_AND_DRAINAGE",
+        "MATERIALS_AND_CARBON",
+        "MAINTENANCE_AND_REPAIR",
+        "ACCESSIBILITY",
+        "STRUCTURE_FIRE_MOISTURE_ACOUSTICS",
+        "SOURCING_AND_DELIVERY"
+      ],
+      "claim_ceiling": "CATALOG_ONLY_NO_COST_PERFORMANCE_OR_FEASIBILITY_CLAIM",
+      "review_note": "All impacts remain UNKNOWN until a versioned owner assessment supplies evidence; review-domain hints are not proof of impact."
+    },
+    {
+      "package_id": "CINEMA",
+      "display_name": "Cinema / immersive media room",
+      "category": "WELLNESS_AND_LEISURE",
+      "description": "A dedicated viewing room with acoustic, ventilation, power and accessibility needs.",
+      "optional_by_default": true,
+      "selection_default": "NOT_SELECTED",
+      "impact_domains": [
+        "AREA_AND_CIRCULATION",
+        "CAPITAL_COST",
+        "LIFECYCLE_OPERATING_COST",
+        "ENERGY_AND_PEAK_DEMAND",
+        "WATER_AND_DRAINAGE",
+        "MATERIALS_AND_CARBON",
+        "MAINTENANCE_AND_REPAIR",
+        "ACCESSIBILITY",
+        "STRUCTURE_FIRE_MOISTURE_ACOUSTICS",
+        "SOURCING_AND_DELIVERY"
+      ],
+      "priority_review_domains": [
+        "AREA_AND_CIRCULATION",
+        "CAPITAL_COST",
+        "LIFECYCLE_OPERATING_COST",
+        "ENERGY_AND_PEAK_DEMAND",
+        "MAINTENANCE_AND_REPAIR",
+        "ACCESSIBILITY",
+        "STRUCTURE_FIRE_MOISTURE_ACOUSTICS"
+      ],
+      "claim_ceiling": "CATALOG_ONLY_NO_COST_PERFORMANCE_OR_FEASIBILITY_CLAIM",
+      "review_note": "All impacts remain UNKNOWN until a versioned owner assessment supplies evidence; review-domain hints are not proof of impact."
+    },
+    {
+      "package_id": "MUSIC_RECORDING_STUDIO",
+      "display_name": "Music / recording studio",
+      "category": "LEARNING_AND_CULTURE",
+      "description": "A rehearsal, listening or recording room with isolation and acoustic requirements.",
+      "optional_by_default": true,
+      "selection_default": "NOT_SELECTED",
+      "impact_domains": [
+        "AREA_AND_CIRCULATION",
+        "CAPITAL_COST",
+        "LIFECYCLE_OPERATING_COST",
+        "ENERGY_AND_PEAK_DEMAND",
+        "WATER_AND_DRAINAGE",
+        "MATERIALS_AND_CARBON",
+        "MAINTENANCE_AND_REPAIR",
+        "ACCESSIBILITY",
+        "STRUCTURE_FIRE_MOISTURE_ACOUSTICS",
+        "SOURCING_AND_DELIVERY"
+      ],
+      "priority_review_domains": [
+        "AREA_AND_CIRCULATION",
+        "CAPITAL_COST",
+        "ENERGY_AND_PEAK_DEMAND",
+        "MAINTENANCE_AND_REPAIR",
+        "ACCESSIBILITY",
+        "STRUCTURE_FIRE_MOISTURE_ACOUSTICS"
+      ],
+      "claim_ceiling": "CATALOG_ONLY_NO_COST_PERFORMANCE_OR_FEASIBILITY_CLAIM",
+      "review_note": "All impacts remain UNKNOWN until a versioned owner assessment supplies evidence; review-domain hints are not proof of impact."
+    },
+    {
+      "package_id": "MAKER_LAB",
+      "display_name": "Maker laboratory / workshop",
+      "category": "LEARNING_AND_CULTURE",
+      "description": "A workshop or fabrication space requiring process-specific electrical, extraction, fire and storage review.",
+      "optional_by_default": true,
+      "selection_default": "NOT_SELECTED",
+      "impact_domains": [
+        "AREA_AND_CIRCULATION",
+        "CAPITAL_COST",
+        "LIFECYCLE_OPERATING_COST",
+        "ENERGY_AND_PEAK_DEMAND",
+        "WATER_AND_DRAINAGE",
+        "MATERIALS_AND_CARBON",
+        "MAINTENANCE_AND_REPAIR",
+        "ACCESSIBILITY",
+        "STRUCTURE_FIRE_MOISTURE_ACOUSTICS",
+        "SOURCING_AND_DELIVERY"
+      ],
+      "priority_review_domains": [
+        "AREA_AND_CIRCULATION",
+        "CAPITAL_COST",
+        "LIFECYCLE_OPERATING_COST",
+        "ENERGY_AND_PEAK_DEMAND",
+        "WATER_AND_DRAINAGE",
+        "MAINTENANCE_AND_REPAIR",
+        "ACCESSIBILITY",
+        "STRUCTURE_FIRE_MOISTURE_ACOUSTICS",
+        "SOURCING_AND_DELIVERY"
+      ],
+      "claim_ceiling": "CATALOG_ONLY_NO_COST_PERFORMANCE_OR_FEASIBILITY_CLAIM",
+      "review_note": "All impacts remain UNKNOWN until a versioned owner assessment supplies evidence; review-domain hints are not proof of impact."
+    },
+    {
+      "package_id": "GALLERY",
+      "display_name": "Art gallery / collection room",
+      "category": "LEARNING_AND_CULTURE",
+      "description": "A room or sequence for displaying art and collections, with light, humidity, access and security planning.",
+      "optional_by_default": true,
+      "selection_default": "NOT_SELECTED",
+      "impact_domains": [
+        "AREA_AND_CIRCULATION",
+        "CAPITAL_COST",
+        "LIFECYCLE_OPERATING_COST",
+        "ENERGY_AND_PEAK_DEMAND",
+        "WATER_AND_DRAINAGE",
+        "MATERIALS_AND_CARBON",
+        "MAINTENANCE_AND_REPAIR",
+        "ACCESSIBILITY",
+        "STRUCTURE_FIRE_MOISTURE_ACOUSTICS",
+        "SOURCING_AND_DELIVERY"
+      ],
+      "priority_review_domains": [
+        "AREA_AND_CIRCULATION",
+        "CAPITAL_COST",
+        "LIFECYCLE_OPERATING_COST",
+        "ENERGY_AND_PEAK_DEMAND",
+        "MAINTENANCE_AND_REPAIR",
+        "ACCESSIBILITY",
+        "STRUCTURE_FIRE_MOISTURE_ACOUSTICS"
+      ],
+      "claim_ceiling": "CATALOG_ONLY_NO_COST_PERFORMANCE_OR_FEASIBILITY_CLAIM",
+      "review_note": "All impacts remain UNKNOWN until a versioned owner assessment supplies evidence; review-domain hints are not proof of impact."
+    },
+    {
+      "package_id": "INDOOR_OUTDOOR_KITCHEN",
+      "display_name": "Indoor/outdoor kitchen",
+      "category": "FOOD_AND_GATHERING",
+      "description": "A cooking and gathering space with ventilation, fire, drainage, weather and service interfaces.",
+      "optional_by_default": true,
+      "selection_default": "NOT_SELECTED",
+      "impact_domains": [
+        "AREA_AND_CIRCULATION",
+        "CAPITAL_COST",
+        "LIFECYCLE_OPERATING_COST",
+        "ENERGY_AND_PEAK_DEMAND",
+        "WATER_AND_DRAINAGE",
+        "MATERIALS_AND_CARBON",
+        "MAINTENANCE_AND_REPAIR",
+        "ACCESSIBILITY",
+        "STRUCTURE_FIRE_MOISTURE_ACOUSTICS",
+        "SOURCING_AND_DELIVERY"
+      ],
+      "priority_review_domains": [
+        "AREA_AND_CIRCULATION",
+        "CAPITAL_COST",
+        "LIFECYCLE_OPERATING_COST",
+        "ENERGY_AND_PEAK_DEMAND",
+        "WATER_AND_DRAINAGE",
+        "MAINTENANCE_AND_REPAIR",
+        "ACCESSIBILITY",
+        "STRUCTURE_FIRE_MOISTURE_ACOUSTICS"
+      ],
+      "claim_ceiling": "CATALOG_ONLY_NO_COST_PERFORMANCE_OR_FEASIBILITY_CLAIM",
+      "review_note": "All impacts remain UNKNOWN until a versioned owner assessment supplies evidence; review-domain hints are not proof of impact."
+    },
+    {
+      "package_id": "GUEST_PAVILION",
+      "display_name": "Guest pavilion",
+      "category": "RESIDENTIAL_AND_GUEST",
+      "description": "A separate or linked guest structure with its own access, privacy, services and approval requirements.",
+      "optional_by_default": true,
+      "selection_default": "NOT_SELECTED",
+      "impact_domains": [
+        "AREA_AND_CIRCULATION",
+        "CAPITAL_COST",
+        "LIFECYCLE_OPERATING_COST",
+        "ENERGY_AND_PEAK_DEMAND",
+        "WATER_AND_DRAINAGE",
+        "MATERIALS_AND_CARBON",
+        "MAINTENANCE_AND_REPAIR",
+        "ACCESSIBILITY",
+        "STRUCTURE_FIRE_MOISTURE_ACOUSTICS",
+        "SOURCING_AND_DELIVERY"
+      ],
+      "priority_review_domains": [
+        "AREA_AND_CIRCULATION",
+        "CAPITAL_COST",
+        "LIFECYCLE_OPERATING_COST",
+        "ENERGY_AND_PEAK_DEMAND",
+        "WATER_AND_DRAINAGE",
+        "MAINTENANCE_AND_REPAIR",
+        "ACCESSIBILITY",
+        "STRUCTURE_FIRE_MOISTURE_ACOUSTICS",
+        "SOURCING_AND_DELIVERY"
+      ],
+      "claim_ceiling": "CATALOG_ONLY_NO_COST_PERFORMANCE_OR_FEASIBILITY_CLAIM",
+      "review_note": "All impacts remain UNKNOWN until a versioned owner assessment supplies evidence; review-domain hints are not proof of impact."
+    },
+    {
+      "package_id": "MULTIGENERATIONAL_ANNEX",
+      "display_name": "Multi-generational annex",
+      "category": "RESIDENTIAL_AND_GUEST",
+      "description": "An adaptable additional living zone with explicit privacy, access and shared-service boundaries.",
+      "optional_by_default": true,
+      "selection_default": "NOT_SELECTED",
+      "impact_domains": [
+        "AREA_AND_CIRCULATION",
+        "CAPITAL_COST",
+        "LIFECYCLE_OPERATING_COST",
+        "ENERGY_AND_PEAK_DEMAND",
+        "WATER_AND_DRAINAGE",
+        "MATERIALS_AND_CARBON",
+        "MAINTENANCE_AND_REPAIR",
+        "ACCESSIBILITY",
+        "STRUCTURE_FIRE_MOISTURE_ACOUSTICS",
+        "SOURCING_AND_DELIVERY"
+      ],
+      "priority_review_domains": [
+        "AREA_AND_CIRCULATION",
+        "CAPITAL_COST",
+        "LIFECYCLE_OPERATING_COST",
+        "ENERGY_AND_PEAK_DEMAND",
+        "WATER_AND_DRAINAGE",
+        "MAINTENANCE_AND_REPAIR",
+        "ACCESSIBILITY",
+        "STRUCTURE_FIRE_MOISTURE_ACOUSTICS",
+        "SOURCING_AND_DELIVERY"
+      ],
+      "claim_ceiling": "CATALOG_ONLY_NO_COST_PERFORMANCE_OR_FEASIBILITY_CLAIM",
+      "review_note": "All impacts remain UNKNOWN until a versioned owner assessment supplies evidence; review-domain hints are not proof of impact."
+    },
+    {
+      "package_id": "GREENHOUSE_FOOD_GARDEN",
+      "display_name": "Greenhouse / food garden",
+      "category": "LANDSCAPE_AND_ECOLOGY",
+      "description": "A productive landscape or protected growing space with source-specific water and maintenance requirements.",
+      "optional_by_default": true,
+      "selection_default": "NOT_SELECTED",
+      "impact_domains": [
+        "AREA_AND_CIRCULATION",
+        "CAPITAL_COST",
+        "LIFECYCLE_OPERATING_COST",
+        "ENERGY_AND_PEAK_DEMAND",
+        "WATER_AND_DRAINAGE",
+        "MATERIALS_AND_CARBON",
+        "MAINTENANCE_AND_REPAIR",
+        "ACCESSIBILITY",
+        "STRUCTURE_FIRE_MOISTURE_ACOUSTICS",
+        "SOURCING_AND_DELIVERY"
+      ],
+      "priority_review_domains": [
+        "AREA_AND_CIRCULATION",
+        "CAPITAL_COST",
+        "LIFECYCLE_OPERATING_COST",
+        "ENERGY_AND_PEAK_DEMAND",
+        "WATER_AND_DRAINAGE",
+        "MATERIALS_AND_CARBON",
+        "MAINTENANCE_AND_REPAIR",
+        "ACCESSIBILITY",
+        "SOURCING_AND_DELIVERY"
+      ],
+      "claim_ceiling": "CATALOG_ONLY_NO_COST_PERFORMANCE_OR_FEASIBILITY_CLAIM",
+      "review_note": "All impacts remain UNKNOWN until a versioned owner assessment supplies evidence; review-domain hints are not proof of impact."
+    },
+    {
+      "package_id": "RAIN_GARDEN_WATER_CASCADE",
+      "display_name": "Rain garden / water cascade",
+      "category": "LANDSCAPE_AND_ECOLOGY",
+      "description": "A rain garden, reflecting feature or visible water channel; no cooling or water-saving benefit is assumed.",
+      "optional_by_default": true,
+      "selection_default": "NOT_SELECTED",
+      "impact_domains": [
+        "AREA_AND_CIRCULATION",
+        "CAPITAL_COST",
+        "LIFECYCLE_OPERATING_COST",
+        "ENERGY_AND_PEAK_DEMAND",
+        "WATER_AND_DRAINAGE",
+        "MATERIALS_AND_CARBON",
+        "MAINTENANCE_AND_REPAIR",
+        "ACCESSIBILITY",
+        "STRUCTURE_FIRE_MOISTURE_ACOUSTICS",
+        "SOURCING_AND_DELIVERY"
+      ],
+      "priority_review_domains": [
+        "AREA_AND_CIRCULATION",
+        "CAPITAL_COST",
+        "LIFECYCLE_OPERATING_COST",
+        "WATER_AND_DRAINAGE",
+        "MATERIALS_AND_CARBON",
+        "MAINTENANCE_AND_REPAIR",
+        "ACCESSIBILITY",
+        "STRUCTURE_FIRE_MOISTURE_ACOUSTICS"
+      ],
+      "claim_ceiling": "CATALOG_ONLY_NO_COST_PERFORMANCE_OR_FEASIBILITY_CLAIM",
+      "review_note": "All impacts remain UNKNOWN until a versioned owner assessment supplies evidence; review-domain hints are not proof of impact."
+    },
+    {
+      "package_id": "SOLAR_PERGOLA",
+      "display_name": "Solar pergola",
+      "category": "LANDSCAPE_AND_ECOLOGY",
+      "description": "A shaded outdoor structure that may integrate PV after structural and electrical qualification.",
+      "optional_by_default": true,
+      "selection_default": "NOT_SELECTED",
+      "impact_domains": [
+        "AREA_AND_CIRCULATION",
+        "CAPITAL_COST",
+        "LIFECYCLE_OPERATING_COST",
+        "ENERGY_AND_PEAK_DEMAND",
+        "WATER_AND_DRAINAGE",
+        "MATERIALS_AND_CARBON",
+        "MAINTENANCE_AND_REPAIR",
+        "ACCESSIBILITY",
+        "STRUCTURE_FIRE_MOISTURE_ACOUSTICS",
+        "SOURCING_AND_DELIVERY"
+      ],
+      "priority_review_domains": [
+        "AREA_AND_CIRCULATION",
+        "CAPITAL_COST",
+        "ENERGY_AND_PEAK_DEMAND",
+        "MATERIALS_AND_CARBON",
+        "MAINTENANCE_AND_REPAIR",
+        "ACCESSIBILITY",
+        "STRUCTURE_FIRE_MOISTURE_ACOUSTICS",
+        "SOURCING_AND_DELIVERY"
+      ],
+      "claim_ceiling": "CATALOG_ONLY_NO_COST_PERFORMANCE_OR_FEASIBILITY_CLAIM",
+      "review_note": "All impacts remain UNKNOWN until a versioned owner assessment supplies evidence; review-domain hints are not proof of impact."
+    },
+    {
+      "package_id": "SPORTS_COURT",
+      "display_name": "Sports court",
+      "category": "WELLNESS_AND_LEISURE",
+      "description": "An outdoor or indoor court with land, drainage, lighting, noise and access implications.",
+      "optional_by_default": true,
+      "selection_default": "NOT_SELECTED",
+      "impact_domains": [
+        "AREA_AND_CIRCULATION",
+        "CAPITAL_COST",
+        "LIFECYCLE_OPERATING_COST",
+        "ENERGY_AND_PEAK_DEMAND",
+        "WATER_AND_DRAINAGE",
+        "MATERIALS_AND_CARBON",
+        "MAINTENANCE_AND_REPAIR",
+        "ACCESSIBILITY",
+        "STRUCTURE_FIRE_MOISTURE_ACOUSTICS",
+        "SOURCING_AND_DELIVERY"
+      ],
+      "priority_review_domains": [
+        "AREA_AND_CIRCULATION",
+        "CAPITAL_COST",
+        "ENERGY_AND_PEAK_DEMAND",
+        "WATER_AND_DRAINAGE",
+        "MAINTENANCE_AND_REPAIR",
+        "ACCESSIBILITY",
+        "STRUCTURE_FIRE_MOISTURE_ACOUSTICS"
+      ],
+      "claim_ceiling": "CATALOG_ONLY_NO_COST_PERFORMANCE_OR_FEASIBILITY_CLAIM",
+      "review_note": "All impacts remain UNKNOWN until a versioned owner assessment supplies evidence; review-domain hints are not proof of impact."
+    },
+    {
+      "package_id": "CLIMBING_WALL",
+      "display_name": "Climbing wall",
+      "category": "WELLNESS_AND_LEISURE",
+      "description": "A climbing feature requiring professionally reviewed structure, equipment, fall zones and access controls.",
+      "optional_by_default": true,
+      "selection_default": "NOT_SELECTED",
+      "impact_domains": [
+        "AREA_AND_CIRCULATION",
+        "CAPITAL_COST",
+        "LIFECYCLE_OPERATING_COST",
+        "ENERGY_AND_PEAK_DEMAND",
+        "WATER_AND_DRAINAGE",
+        "MATERIALS_AND_CARBON",
+        "MAINTENANCE_AND_REPAIR",
+        "ACCESSIBILITY",
+        "STRUCTURE_FIRE_MOISTURE_ACOUSTICS",
+        "SOURCING_AND_DELIVERY"
+      ],
+      "priority_review_domains": [
+        "AREA_AND_CIRCULATION",
+        "CAPITAL_COST",
+        "MAINTENANCE_AND_REPAIR",
+        "ACCESSIBILITY",
+        "STRUCTURE_FIRE_MOISTURE_ACOUSTICS",
+        "SOURCING_AND_DELIVERY"
+      ],
+      "claim_ceiling": "CATALOG_ONLY_NO_COST_PERFORMANCE_OR_FEASIBILITY_CLAIM",
+      "review_note": "All impacts remain UNKNOWN until a versioned owner assessment supplies evidence; review-domain hints are not proof of impact."
+    },
+    {
+      "package_id": "HIDDEN_ROOM",
+      "display_name": "Hidden room / book-lined passage",
+      "category": "SPATIAL_DRAMA",
+      "description": "A concealed storage or retreat space; must not compromise accessible circulation, escape, fire separation or inspection.",
+      "optional_by_default": true,
+      "selection_default": "NOT_SELECTED",
+      "impact_domains": [
+        "AREA_AND_CIRCULATION",
+        "CAPITAL_COST",
+        "LIFECYCLE_OPERATING_COST",
+        "ENERGY_AND_PEAK_DEMAND",
+        "WATER_AND_DRAINAGE",
+        "MATERIALS_AND_CARBON",
+        "MAINTENANCE_AND_REPAIR",
+        "ACCESSIBILITY",
+        "STRUCTURE_FIRE_MOISTURE_ACOUSTICS",
+        "SOURCING_AND_DELIVERY"
+      ],
+      "priority_review_domains": [
+        "AREA_AND_CIRCULATION",
+        "CAPITAL_COST",
+        "MAINTENANCE_AND_REPAIR",
+        "ACCESSIBILITY",
+        "STRUCTURE_FIRE_MOISTURE_ACOUSTICS",
+        "SOURCING_AND_DELIVERY"
+      ],
+      "claim_ceiling": "CATALOG_ONLY_NO_COST_PERFORMANCE_OR_FEASIBILITY_CLAIM",
+      "review_note": "All impacts remain UNKNOWN until a versioned owner assessment supplies evidence; review-domain hints are not proof of impact."
+    },
+    {
+      "package_id": "SKYBRIDGE",
+      "display_name": "Skybridge",
+      "category": "SPATIAL_DRAMA",
+      "description": "An elevated connection between building wings, with structure, weather, access and fire-review needs.",
+      "optional_by_default": true,
+      "selection_default": "NOT_SELECTED",
+      "impact_domains": [
+        "AREA_AND_CIRCULATION",
+        "CAPITAL_COST",
+        "LIFECYCLE_OPERATING_COST",
+        "ENERGY_AND_PEAK_DEMAND",
+        "WATER_AND_DRAINAGE",
+        "MATERIALS_AND_CARBON",
+        "MAINTENANCE_AND_REPAIR",
+        "ACCESSIBILITY",
+        "STRUCTURE_FIRE_MOISTURE_ACOUSTICS",
+        "SOURCING_AND_DELIVERY"
+      ],
+      "priority_review_domains": [
+        "AREA_AND_CIRCULATION",
+        "CAPITAL_COST",
+        "MAINTENANCE_AND_REPAIR",
+        "ACCESSIBILITY",
+        "STRUCTURE_FIRE_MOISTURE_ACOUSTICS",
+        "SOURCING_AND_DELIVERY"
+      ],
+      "claim_ceiling": "CATALOG_ONLY_NO_COST_PERFORMANCE_OR_FEASIBILITY_CLAIM",
+      "review_note": "All impacts remain UNKNOWN until a versioned owner assessment supplies evidence; review-domain hints are not proof of impact."
+    },
+    {
+      "package_id": "CANTILEVERED_VIEW_DECK",
+      "display_name": "Cantilevered view deck",
+      "category": "SPATIAL_DRAMA",
+      "description": "A projecting deck or balcony; structural capacity, guard design, weather and maintenance must be reviewed.",
+      "optional_by_default": true,
+      "selection_default": "NOT_SELECTED",
+      "impact_domains": [
+        "AREA_AND_CIRCULATION",
+        "CAPITAL_COST",
+        "LIFECYCLE_OPERATING_COST",
+        "ENERGY_AND_PEAK_DEMAND",
+        "WATER_AND_DRAINAGE",
+        "MATERIALS_AND_CARBON",
+        "MAINTENANCE_AND_REPAIR",
+        "ACCESSIBILITY",
+        "STRUCTURE_FIRE_MOISTURE_ACOUSTICS",
+        "SOURCING_AND_DELIVERY"
+      ],
+      "priority_review_domains": [
+        "AREA_AND_CIRCULATION",
+        "CAPITAL_COST",
+        "MAINTENANCE_AND_REPAIR",
+        "ACCESSIBILITY",
+        "STRUCTURE_FIRE_MOISTURE_ACOUSTICS",
+        "SOURCING_AND_DELIVERY"
+      ],
+      "claim_ceiling": "CATALOG_ONLY_NO_COST_PERFORMANCE_OR_FEASIBILITY_CLAIM",
+      "review_note": "All impacts remain UNKNOWN until a versioned owner assessment supplies evidence; review-domain hints are not proof of impact."
+    },
+    {
+      "package_id": "UNDERGROUND_WELLNESS_SUITE",
+      "display_name": "Underground wellness suite",
+      "category": "WELLNESS_AND_LEISURE",
+      "description": "A below-grade suite with geotechnical, groundwater, drainage, ventilation, fire and accessible-egress implications.",
+      "optional_by_default": true,
+      "selection_default": "NOT_SELECTED",
+      "impact_domains": [
+        "AREA_AND_CIRCULATION",
+        "CAPITAL_COST",
+        "LIFECYCLE_OPERATING_COST",
+        "ENERGY_AND_PEAK_DEMAND",
+        "WATER_AND_DRAINAGE",
+        "MATERIALS_AND_CARBON",
+        "MAINTENANCE_AND_REPAIR",
+        "ACCESSIBILITY",
+        "STRUCTURE_FIRE_MOISTURE_ACOUSTICS",
+        "SOURCING_AND_DELIVERY"
+      ],
+      "priority_review_domains": [
+        "AREA_AND_CIRCULATION",
+        "CAPITAL_COST",
+        "LIFECYCLE_OPERATING_COST",
+        "ENERGY_AND_PEAK_DEMAND",
+        "WATER_AND_DRAINAGE",
+        "MATERIALS_AND_CARBON",
+        "MAINTENANCE_AND_REPAIR",
+        "ACCESSIBILITY",
+        "STRUCTURE_FIRE_MOISTURE_ACOUSTICS",
+        "SOURCING_AND_DELIVERY"
+      ],
+      "claim_ceiling": "CATALOG_ONLY_NO_COST_PERFORMANCE_OR_FEASIBILITY_CLAIM",
+      "review_note": "All impacts remain UNKNOWN until a versioned owner assessment supplies evidence; review-domain hints are not proof of impact."
+    },
+    {
+      "package_id": "CUSTOM",
+      "display_name": "Custom experience package",
+      "category": "CUSTOM",
+      "description": "A resident-authored feature described with its function, impact profile and acceptance questions.",
+      "optional_by_default": true,
+      "selection_default": "NOT_SELECTED",
+      "impact_domains": [
+        "AREA_AND_CIRCULATION",
+        "CAPITAL_COST",
+        "LIFECYCLE_OPERATING_COST",
+        "ENERGY_AND_PEAK_DEMAND",
+        "WATER_AND_DRAINAGE",
+        "MATERIALS_AND_CARBON",
+        "MAINTENANCE_AND_REPAIR",
+        "ACCESSIBILITY",
+        "STRUCTURE_FIRE_MOISTURE_ACOUSTICS",
+        "SOURCING_AND_DELIVERY"
+      ],
+      "priority_review_domains": [
+        "AREA_AND_CIRCULATION",
+        "CAPITAL_COST",
+        "LIFECYCLE_OPERATING_COST",
+        "ENERGY_AND_PEAK_DEMAND",
+        "WATER_AND_DRAINAGE",
+        "MATERIALS_AND_CARBON",
+        "MAINTENANCE_AND_REPAIR",
+        "ACCESSIBILITY",
+        "STRUCTURE_FIRE_MOISTURE_ACOUSTICS",
+        "SOURCING_AND_DELIVERY"
+      ],
+      "claim_ceiling": "CATALOG_ONLY_NO_COST_PERFORMANCE_OR_FEASIBILITY_CLAIM",
+      "review_note": "All impacts remain UNKNOWN until a versioned owner assessment supplies evidence; review-domain hints are not proof of impact."
+    }
+  ],
+  "supersedes_catalog_revision": "HOME-EXPRESSION-CATALOG-0.1.0",
+  "composition_model": {
+    "description": "Style families are architectural-expression references only. They do not define spatial typology, construction assemblies, environmental performance or experience feasibility.",
+    "independent_axes": [
+      "SPATIAL_TYPOLOGY",
+      "ARCHITECTURAL_EXPRESSION",
+      "MATERIAL_AND_TECTONIC_INTENT",
+      "ENVIRONMENTAL_STRATEGY_INTENT",
+      "EXPERIENCE_AND_PROGRAMME"
+    ],
+    "combination_rule": "PRESERVE_RESIDENT_PARTIAL_PREFERENCES_AND_UNRESOLVED_CONFLICTS_NO_AUTOMATIC_STYLE_TO_GEOMETRY_MAPPING",
+    "scoring_rule": "NO_UNIVERSAL_BEAUTY_MEANING_OR_CULTURAL_FIT_SCORE"
+  },
+  "regional_reference_modules": [
+    {
+      "reference_id": "KAROO_CORBELLED_STONE_HERITAGE",
+      "display_name": "Great Karoo corbelled-stone heritage architecture",
+      "module_type": "CONSERVATION_REFERENCE_ONLY",
+      "geographic_scope": "GREAT_KAROO_SOUTH_AFRICA",
+      "historical_scope": "Documented nineteenth-century corbelled structures; not a generic contemporary house style.",
+      "description": "A heritage and research reference for the specific corbelled structures of the Great Karoo. Use for documentation, conservation, interpretation and carefully reviewed adaptation studies only; do not turn it into a new-build kit or infer a single cultural ownership.",
+      "attribution_guardrail": "UCT research describes frontier interactions and contested/multiple heritage claims. Any project-level interpretation requires exact asset provenance, local community engagement, rights review and qualified conservation input.",
+      "reference_sources": [
+        "https://open.uct.ac.za/handle/11427/12087",
+        "https://open.uct.ac.za/items/5d247a02-4bab-4a92-8f6f-2ce9d5fb04fb"
+      ],
+      "claim_ceiling": "HERITAGE_REFERENCE_ONLY_NO_NEW_BUILD_DETAIL_NO_STRUCTURAL_OR_CODE_APPROVAL",
+      "selection_status": "REFERENCE_ONLY_NOT_A_STYLE_PRESET"
+    }
+  ],
+  "community_authored_reference_policy": {
+    "maturity": "POLICY_ONLY_NO_COMMUNITY_MODULES_PUBLISHED",
+    "prohibition": "DO_NOT_CREATE_GENERIC_AFRICAN_OR_ETHNIC_STYLE_PRESETS",
+    "required_fields": [
+      "specific_community_or_custodian_attribution",
+      "community_authorized_description_and_scope",
+      "source_and_provenance",
+      "rights_and_permitted_use",
+      "consultation_or_consent_record",
+      "context_and_heritage_review_status",
+      "withdrawal_or_correction_path"
+    ],
+    "default_state": "UNAVAILABLE_UNTIL_ATTRIBUTION_RIGHTS_AND_REVIEW_ARE_ESTABLISHED"
+  }
+}
