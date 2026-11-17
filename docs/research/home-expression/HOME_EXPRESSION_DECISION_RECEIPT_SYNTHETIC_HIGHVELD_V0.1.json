@@ -1,0 +1,182 @@
+{
+  "schema_version": "0.1.0",
+  "receipt_id": "SYNTH-HV-EXPRESSION-DECISION-001",
+  "study_id": "HOME-EXPRESSION-DECISION-RECEIPT-001",
+  "maturity": "SYNTHETIC_CONTRACT_FIXTURE",
+  "execution_status": "NOT_EXECUTED",
+  "source_binding": {
+    "profile_id": "SYNTH-HV-EXPRESSION-001",
+    "profile_artifact_ref": "docs/research/home-expression/HOME_EXPRESSION_PROFILE_SYNTHETIC_HIGHVELD_V0.1.json",
+    "profile_content_sha": "a7f34f081c793e0794ad071b3694fe90206ca94a",
+    "brief_id": "SYNTH-HV-FAMILY-001",
+    "brief_artifact_ref": "docs/research/home-freedom/HOME_DESIGN_BRIEF_SYNTHETIC_EXAMPLE_V0.1.json",
+    "brief_content_sha": "0090e2f0c883c62817d1b6da51d1a2dbe92a477f",
+    "candidate_set_id": "SYNTH-HV-CASE-001",
+    "candidate_set_artifact_ref": "docs/research/home-freedom/HOME_DESIGN_CANDIDATE_SET_SYNTHETIC_EXAMPLE_V0.1.json",
+    "candidate_set_content_sha": "030e6c0e71cef1a936738910409396a9a48dedcf",
+    "design_revision": "HFC-SYNTH-REV-0"
+  },
+  "candidate_receipts": [
+    {
+      "candidate_id": "SYNTH-HV-A",
+      "source_disposition": "CONDITIONAL_CONCEPT_ONLY",
+      "space_program_state": "SYMBOLIC_ROOM_PROGRAM_NOT_GEOMETRY",
+      "technical_disposition": "CONDITIONAL_CONCEPT_ONLY",
+      "hard_gate_results": [
+        {
+          "gate_id": "C_SLEEP_02",
+          "state": "UNKNOWN",
+          "reason": "Unverified at symbolic room-program stage; no site, code, geometry or professional evidence is attached.",
+          "evidence_ref": null
+        },
+        {
+          "gate_id": "C_WORK_01",
+          "state": "UNKNOWN",
+          "reason": "Unverified at symbolic room-program stage; no site, code, geometry or professional evidence is attached.",
+          "evidence_ref": null
+        },
+        {
+          "gate_id": "C_ACCESS_01",
+          "state": "UNKNOWN",
+          "reason": "Unverified at symbolic room-program stage; no site, code, geometry or professional evidence is attached.",
+          "evidence_ref": null
+        },
+        {
+          "gate_id": "C_PHASE_01",
+          "state": "UNKNOWN",
+          "reason": "Unverified at symbolic room-program stage; no site, code, geometry or professional evidence is attached.",
+          "evidence_ref": null
+        },
+        {
+          "gate_id": "C_WATER_01",
+          "state": "UNKNOWN",
+          "reason": "Unverified at symbolic room-program stage; no site, code, geometry or professional evidence is attached.",
+          "evidence_ref": null
+        },
+        {
+          "gate_id": "SITE_RIGHTS",
+          "state": "UNKNOWN",
+          "reason": "Unverified at symbolic room-program stage; no site, code, geometry or professional evidence is attached.",
+          "evidence_ref": null
+        },
+        {
+          "gate_id": "AUTHORITY_CODE",
+          "state": "UNKNOWN",
+          "reason": "Unverified at symbolic room-program stage; no site, code, geometry or professional evidence is attached.",
+          "evidence_ref": null
+        },
+        {
+          "gate_id": "STRUCTURE_FIRE",
+          "state": "UNKNOWN",
+          "reason": "Unverified at symbolic room-program stage; no site, code, geometry or professional evidence is attached.",
+          "evidence_ref": null
+        },
+        {
+          "gate_id": "MOISTURE_DRAINAGE",
+          "state": "UNKNOWN",
+          "reason": "Unverified at symbolic room-program stage; no site, code, geometry or professional evidence is attached.",
+          "evidence_ref": null
+        },
+        {
+          "gate_id": "COST_LOCAL_SUPPLY",
+          "state": "UNKNOWN",
+          "reason": "Unverified at symbolic room-program stage; no site, code, geometry or professional evidence is attached.",
+          "evidence_ref": null
+        }
+      ]
+    },
+    {
+      "candidate_id": "SYNTH-HV-B",
+      "source_disposition": "CONDITIONAL_CONCEPT_ONLY",
+      "space_program_state": "SYMBOLIC_ROOM_PROGRAM_NOT_GEOMETRY",
+      "technical_disposition": "CONDITIONAL_CONCEPT_ONLY",
+      "hard_gate_results": [
+        {
+          "gate_id": "C_SLEEP_02",
+          "state": "UNKNOWN",
+          "reason": "Unverified at symbolic room-program stage; party-wall, fire, acoustic, orientation and site constraints have not been checked.",
+          "evidence_ref": null
+        },
+        {
+          "gate_id": "C_WORK_01",
+          "state": "UNKNOWN",
+          "reason": "Unverified at symbolic room-program stage; party-wall, fire, acoustic, orientation and site constraints have not been checked.",
+          "evidence_ref": null
+        },
+        {
+          "gate_id": "C_ACCESS_01",
+          "state": "UNKNOWN",
+          "reason": "Unverified at symbolic room-program stage; party-wall, fire, acoustic, orientation and site constraints have not been checked.",
+          "evidence_ref": null
+        },
+        {
+          "gate_id": "C_PHASE_01",
+          "state": "UNKNOWN",
+          "reason": "Unverified at symbolic room-program stage; party-wall, fire, acoustic, orientation and site constraints have not been checked.",
+          "evidence_ref": null
+        },
+        {
+          "gate_id": "C_WATER_01",
+          "state": "UNKNOWN",
+          "reason": "Unverified at symbolic room-program stage; party-wall, fire, acoustic, orientation and site constraints have not been checked.",
+          "evidence_ref": null
+        },
+        {
+          "gate_id": "SITE_RIGHTS",
+          "state": "UNKNOWN",
+          "reason": "Unverified at symbolic room-program stage; party-wall, fire, acoustic, orientation and site constraints have not been checked.",
+          "evidence_ref": null
+        },
+        {
+          "gate_id": "AUTHORITY_CODE",
+          "state": "UNKNOWN",
+          "reason": "Unverified at symbolic room-program stage; party-wall, fire, acoustic, orientation and site constraints have not been checked.",
+          "evidence_ref": null
+        },
+        {
+          "gate_id": "STRUCTURE_FIRE",
+          "state": "UNKNOWN",
+          "reason": "Unverified at symbolic room-program stage; party-wall, fire, acoustic, orientation and site constraints have not been checked.",
+          "evidence_ref": null
+        },
+        {
+          "gate_id": "MOISTURE_DRAINAGE",
+          "state": "UNKNOWN",
+          "reason": "Unverified at symbolic room-program stage; party-wall, fire, acoustic, orientation and site constraints have not been checked.",
+          "evidence_ref": null
+        },
+        {
+          "gate_id": "COST_LOCAL_SUPPLY",
+          "state": "UNKNOWN",
+          "reason": "Unverified at symbolic room-program stage; party-wall, fire, acoustic, orientation and site constraints have not been checked.",
+          "evidence_ref": null
+        }
+      ]
+    }
+  ],
+  "comparison_policy": {
+    "comparison_layer": "EXPRESSION_PREVIEW_ONLY",
+    "technical_pareto_status": "NOT_COMPUTABLE_UNTIL_REQUIRED_GATES_PASS_AND_OBJECTIVES_ARE_ADMITTED",
+    "candidates_ranked": false,
+    "scalar_score": null,
+    "automatic_selection": false,
+    "feasibility_claim_permitted": false,
+    "pareto_comparison_requires_all_hard_gates_pass": true,
+    "preference_source": "RESIDENT_AUTHORED_PROFILE_ONLY",
+    "unknown_gate_semantics": "CONDITIONAL_NOT_PASS"
+  },
+  "resident_choice": {
+    "authority": "RESIDENT",
+    "state": "NOT_RECORDED",
+    "selected_candidate_id": null,
+    "pairwise_preferences": [
+      {
+        "left_candidate_id": "SYNTH-HV-A",
+        "right_candidate_id": "SYNTH-HV-B",
+        "decision": "UNDECIDED",
+        "basis": "No resident-authored pairwise choice is present in the synthetic source profile."
+      }
+    ]
+  },
+  "claim_ceiling": "CONTRACT_ONLY_NO_TECHNICAL_FEASIBILITY_OR_PREFERENCE_WINNER"
+}
