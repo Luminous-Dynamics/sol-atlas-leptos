@@ -1,0 +1,918 @@
+{
+  "schema_version": "0.1.0",
+  "benchmark_id": "HOME-FREEDOM-ROBUST-DECISION-001",
+  "brief_id": "SYNTHETIC_HIGHVELD_BRIEF_001",
+  "design_revision": "SYNTHETIC_DESIGN_REVISION_001",
+  "maturity": "SYNTHETIC",
+  "execution_status": "NOT_SIMULATED",
+  "scenarios": [
+    {
+      "scenario_id": "NORMAL_SERVICE",
+      "exogenous_trace_id": "SYNTHETIC_TRACE_NORMAL_V1"
+    },
+    {
+      "scenario_id": "HOT_GRID_OUTAGE",
+      "exogenous_trace_id": "SYNTHETIC_TRACE_HOT_OUTAGE_V1"
+    },
+    {
+      "scenario_id": "WINTER_COLD_NIGHT",
+      "exogenous_trace_id": "SYNTHETIC_TRACE_COLD_NIGHT_V1"
+    }
+  ],
+  "hard_constraints": [
+    {
+      "constraint_id": "STEP_FREE_ROUTE"
+    },
+    {
+      "constraint_id": "FIRE_EGRESS"
+    },
+    {
+      "constraint_id": "ESSENTIAL_WATER_FLOOR"
+    }
+  ],
+  "objectives": [
+    {
+      "objective_id": "WHOLE_LIFE_COST_INDEX",
+      "unit": "synthetic_cost_index_points",
+      "direction": "MINIMIZE"
+    },
+    {
+      "objective_id": "THERMAL_DISCOMFORT",
+      "unit": "degree_hours",
+      "direction": "MINIMIZE"
+    },
+    {
+      "objective_id": "DISCRETIONARY_WATER",
+      "unit": "litres_per_service_year",
+      "direction": "MINIMIZE"
+    }
+  ],
+  "candidates": [
+    {
+      "candidate_id": "COURTYARD_A",
+      "scenario_results": [
+        {
+          "scenario_id": "NORMAL_SERVICE",
+          "gate_results": [
+            {
+              "constraint_id": "STEP_FREE_ROUTE",
+              "state": "PASS",
+              "evidence_ref": "synthetic:COURTYARD_A:NORMAL_SERVICE:STEP_FREE_ROUTE"
+            },
+            {
+              "constraint_id": "FIRE_EGRESS",
+              "state": "PASS",
+              "evidence_ref": "synthetic:COURTYARD_A:NORMAL_SERVICE:FIRE_EGRESS"
+            },
+            {
+              "constraint_id": "ESSENTIAL_WATER_FLOOR",
+              "state": "PASS",
+              "evidence_ref": "synthetic:COURTYARD_A:NORMAL_SERVICE:ESSENTIAL_WATER_FLOOR"
+            }
+          ],
+          "metric_intervals": [
+            {
+              "objective_id": "WHOLE_LIFE_COST_INDEX",
+              "state": "KNOWN_INTERVAL",
+              "lower": 90,
+              "upper": 95,
+              "unit": "synthetic_cost_index_points",
+              "interval_basis": "SYNTHETIC_BOUND"
+            },
+            {
+              "objective_id": "THERMAL_DISCOMFORT",
+              "state": "KNOWN_INTERVAL",
+              "lower": 40,
+              "upper": 55,
+              "unit": "degree_hours",
+              "interval_basis": "SYNTHETIC_BOUND"
+            },
+            {
+              "objective_id": "DISCRETIONARY_WATER",
+              "state": "KNOWN_INTERVAL",
+              "lower": 13000,
+              "upper": 14500,
+              "unit": "litres_per_service_year",
+              "interval_basis": "SYNTHETIC_BOUND"
+            }
+          ]
+        },
+        {
+          "scenario_id": "HOT_GRID_OUTAGE",
+          "gate_results": [
+            {
+              "constraint_id": "STEP_FREE_ROUTE",
+              "state": "PASS",
+              "evidence_ref": "synthetic:COURTYARD_A:HOT_GRID_OUTAGE:STEP_FREE_ROUTE"
+            },
+            {
+              "constraint_id": "FIRE_EGRESS",
+              "state": "PASS",
+              "evidence_ref": "synthetic:COURTYARD_A:HOT_GRID_OUTAGE:FIRE_EGRESS"
+            },
+            {
+              "constraint_id": "ESSENTIAL_WATER_FLOOR",
+              "state": "PASS",
+              "evidence_ref": "synthetic:COURTYARD_A:HOT_GRID_OUTAGE:ESSENTIAL_WATER_FLOOR"
+            }
+          ],
+          "metric_intervals": [
+            {
+              "objective_id": "WHOLE_LIFE_COST_INDEX",
+              "state": "KNOWN_INTERVAL",
+              "lower": 94,
+              "upper": 101,
+              "unit": "synthetic_cost_index_points",
+              "interval_basis": "SYNTHETIC_BOUND"
+            },
+            {
+              "objective_id": "THERMAL_DISCOMFORT",
+              "state": "KNOWN_INTERVAL",
+              "lower": 80,
+              "upper": 95,
+              "unit": "degree_hours",
+              "interval_basis": "SYNTHETIC_BOUND"
+            },
+            {
+              "objective_id": "DISCRETIONARY_WATER",
+              "state": "KNOWN_INTERVAL",
+              "lower": 13000,
+              "upper": 14500,
+              "unit": "litres_per_service_year",
+              "interval_basis": "SYNTHETIC_BOUND"
+            }
+          ]
+        },
+        {
+          "scenario_id": "WINTER_COLD_NIGHT",
+          "gate_results": [
+            {
+              "constraint_id": "STEP_FREE_ROUTE",
+              "state": "PASS",
+              "evidence_ref": "synthetic:COURTYARD_A:WINTER_COLD_NIGHT:STEP_FREE_ROUTE"
+            },
+            {
+              "constraint_id": "FIRE_EGRESS",
+              "state": "PASS",
+              "evidence_ref": "synthetic:COURTYARD_A:WINTER_COLD_NIGHT:FIRE_EGRESS"
+            },
+            {
+              "constraint_id": "ESSENTIAL_WATER_FLOOR",
+              "state": "PASS",
+              "evidence_ref": "synthetic:COURTYARD_A:WINTER_COLD_NIGHT:ESSENTIAL_WATER_FLOOR"
+            }
+          ],
+          "metric_intervals": [
+            {
+              "objective_id": "WHOLE_LIFE_COST_INDEX",
+              "state": "KNOWN_INTERVAL",
+              "lower": 92,
+              "upper": 99,
+              "unit": "synthetic_cost_index_points",
+              "interval_basis": "SYNTHETIC_BOUND"
+            },
+            {
+              "objective_id": "THERMAL_DISCOMFORT",
+              "state": "KNOWN_INTERVAL",
+              "lower": 70,
+              "upper": 88,
+              "unit": "degree_hours",
+              "interval_basis": "SYNTHETIC_BOUND"
+            },
+            {
+              "objective_id": "DISCRETIONARY_WATER",
+              "state": "KNOWN_INTERVAL",
+              "lower": 13000,
+              "upper": 14500,
+              "unit": "litres_per_service_year",
+              "interval_basis": "SYNTHETIC_BOUND"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "candidate_id": "REFERENCE_B",
+      "scenario_results": [
+        {
+          "scenario_id": "NORMAL_SERVICE",
+          "gate_results": [
+            {
+              "constraint_id": "STEP_FREE_ROUTE",
+              "state": "PASS",
+              "evidence_ref": "synthetic:REFERENCE_B:NORMAL_SERVICE:STEP_FREE_ROUTE"
+            },
+            {
+              "constraint_id": "FIRE_EGRESS",
+              "state": "PASS",
+              "evidence_ref": "synthetic:REFERENCE_B:NORMAL_SERVICE:FIRE_EGRESS"
+            },
+            {
+              "constraint_id": "ESSENTIAL_WATER_FLOOR",
+              "state": "PASS",
+              "evidence_ref": "synthetic:REFERENCE_B:NORMAL_SERVICE:ESSENTIAL_WATER_FLOOR"
+            }
+          ],
+          "metric_intervals": [
+            {
+              "objective_id": "WHOLE_LIFE_COST_INDEX",
+              "state": "KNOWN_INTERVAL",
+              "lower": 110,
+              "upper": 118,
+              "unit": "synthetic_cost_index_points",
+              "interval_basis": "SYNTHETIC_BOUND"
+            },
+            {
+              "objective_id": "THERMAL_DISCOMFORT",
+              "state": "KNOWN_INTERVAL",
+              "lower": 80,
+              "upper": 95,
+              "unit": "degree_hours",
+              "interval_basis": "SYNTHETIC_BOUND"
+            },
+            {
+              "objective_id": "DISCRETIONARY_WATER",
+              "state": "KNOWN_INTERVAL",
+              "lower": 17000,
+              "upper": 18500,
+              "unit": "litres_per_service_year",
+              "interval_basis": "SYNTHETIC_BOUND"
+            }
+          ]
+        },
+        {
+          "scenario_id": "HOT_GRID_OUTAGE",
+          "gate_results": [
+            {
+              "constraint_id": "STEP_FREE_ROUTE",
+              "state": "PASS",
+              "evidence_ref": "synthetic:REFERENCE_B:HOT_GRID_OUTAGE:STEP_FREE_ROUTE"
+            },
+            {
+              "constraint_id": "FIRE_EGRESS",
+              "state": "PASS",
+              "evidence_ref": "synthetic:REFERENCE_B:HOT_GRID_OUTAGE:FIRE_EGRESS"
+            },
+            {
+              "constraint_id": "ESSENTIAL_WATER_FLOOR",
+              "state": "PASS",
+              "evidence_ref": "synthetic:REFERENCE_B:HOT_GRID_OUTAGE:ESSENTIAL_WATER_FLOOR"
+            }
+          ],
+          "metric_intervals": [
+            {
+              "objective_id": "WHOLE_LIFE_COST_INDEX",
+              "state": "KNOWN_INTERVAL",
+              "lower": 116,
+              "upper": 124,
+              "unit": "synthetic_cost_index_points",
+              "interval_basis": "SYNTHETIC_BOUND"
+            },
+            {
+              "objective_id": "THERMAL_DISCOMFORT",
+              "state": "KNOWN_INTERVAL",
+              "lower": 125,
+              "upper": 150,
+              "unit": "degree_hours",
+              "interval_basis": "SYNTHETIC_BOUND"
+            },
+            {
+              "objective_id": "DISCRETIONARY_WATER",
+              "state": "KNOWN_INTERVAL",
+              "lower": 17000,
+              "upper": 18500,
+              "unit": "litres_per_service_year",
+              "interval_basis": "SYNTHETIC_BOUND"
+            }
+          ]
+        },
+        {
+          "scenario_id": "WINTER_COLD_NIGHT",
+          "gate_results": [
+            {
+              "constraint_id": "STEP_FREE_ROUTE",
+              "state": "PASS",
+              "evidence_ref": "synthetic:REFERENCE_B:WINTER_COLD_NIGHT:STEP_FREE_ROUTE"
+            },
+            {
+              "constraint_id": "FIRE_EGRESS",
+              "state": "PASS",
+              "evidence_ref": "synthetic:REFERENCE_B:WINTER_COLD_NIGHT:FIRE_EGRESS"
+            },
+            {
+              "constraint_id": "ESSENTIAL_WATER_FLOOR",
+              "state": "PASS",
+              "evidence_ref": "synthetic:REFERENCE_B:WINTER_COLD_NIGHT:ESSENTIAL_WATER_FLOOR"
+            }
+          ],
+          "metric_intervals": [
+            {
+              "objective_id": "WHOLE_LIFE_COST_INDEX",
+              "state": "KNOWN_INTERVAL",
+              "lower": 113,
+              "upper": 121,
+              "unit": "synthetic_cost_index_points",
+              "interval_basis": "SYNTHETIC_BOUND"
+            },
+            {
+              "objective_id": "THERMAL_DISCOMFORT",
+              "state": "KNOWN_INTERVAL",
+              "lower": 110,
+              "upper": 130,
+              "unit": "degree_hours",
+              "interval_basis": "SYNTHETIC_BOUND"
+            },
+            {
+              "objective_id": "DISCRETIONARY_WATER",
+              "state": "KNOWN_INTERVAL",
+              "lower": 17000,
+              "upper": 18500,
+              "unit": "litres_per_service_year",
+              "interval_basis": "SYNTHETIC_BOUND"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "candidate_id": "LOW_CAPEX_C",
+      "scenario_results": [
+        {
+          "scenario_id": "NORMAL_SERVICE",
+          "gate_results": [
+            {
+              "constraint_id": "STEP_FREE_ROUTE",
+              "state": "PASS",
+              "evidence_ref": "synthetic:LOW_CAPEX_C:NORMAL_SERVICE:STEP_FREE_ROUTE"
+            },
+            {
+              "constraint_id": "FIRE_EGRESS",
+              "state": "PASS",
+              "evidence_ref": "synthetic:LOW_CAPEX_C:NORMAL_SERVICE:FIRE_EGRESS"
+            },
+            {
+              "constraint_id": "ESSENTIAL_WATER_FLOOR",
+              "state": "PASS",
+              "evidence_ref": "synthetic:LOW_CAPEX_C:NORMAL_SERVICE:ESSENTIAL_WATER_FLOOR"
+            }
+          ],
+          "metric_intervals": [
+            {
+              "objective_id": "WHOLE_LIFE_COST_INDEX",
+              "state": "KNOWN_INTERVAL",
+              "lower": 70,
+              "upper": 78,
+              "unit": "synthetic_cost_index_points",
+              "interval_basis": "SYNTHETIC_BOUND"
+            },
+            {
+              "objective_id": "THERMAL_DISCOMFORT",
+              "state": "KNOWN_INTERVAL",
+              "lower": 140,
+              "upper": 170,
+              "unit": "degree_hours",
+              "interval_basis": "SYNTHETIC_BOUND"
+            },
+            {
+              "objective_id": "DISCRETIONARY_WATER",
+              "state": "KNOWN_INTERVAL",
+              "lower": 19000,
+              "upper": 22000,
+              "unit": "litres_per_service_year",
+              "interval_basis": "SYNTHETIC_BOUND"
+            }
+          ]
+        },
+        {
+          "scenario_id": "HOT_GRID_OUTAGE",
+          "gate_results": [
+            {
+              "constraint_id": "STEP_FREE_ROUTE",
+              "state": "PASS",
+              "evidence_ref": "synthetic:LOW_CAPEX_C:HOT_GRID_OUTAGE:STEP_FREE_ROUTE"
+            },
+            {
+              "constraint_id": "FIRE_EGRESS",
+              "state": "PASS",
+              "evidence_ref": "synthetic:LOW_CAPEX_C:HOT_GRID_OUTAGE:FIRE_EGRESS"
+            },
+            {
+              "constraint_id": "ESSENTIAL_WATER_FLOOR",
+              "state": "PASS",
+              "evidence_ref": "synthetic:LOW_CAPEX_C:HOT_GRID_OUTAGE:ESSENTIAL_WATER_FLOOR"
+            }
+          ],
+          "metric_intervals": [
+            {
+              "objective_id": "WHOLE_LIFE_COST_INDEX",
+              "state": "KNOWN_INTERVAL",
+              "lower": 72,
+              "upper": 82,
+              "unit": "synthetic_cost_index_points",
+              "interval_basis": "SYNTHETIC_BOUND"
+            },
+            {
+              "objective_id": "THERMAL_DISCOMFORT",
+              "state": "KNOWN_INTERVAL",
+              "lower": 190,
+              "upper": 230,
+              "unit": "degree_hours",
+              "interval_basis": "SYNTHETIC_BOUND"
+            },
+            {
+              "objective_id": "DISCRETIONARY_WATER",
+              "state": "KNOWN_INTERVAL",
+              "lower": 19000,
+              "upper": 22000,
+              "unit": "litres_per_service_year",
+              "interval_basis": "SYNTHETIC_BOUND"
+            }
+          ]
+        },
+        {
+          "scenario_id": "WINTER_COLD_NIGHT",
+          "gate_results": [
+            {
+              "constraint_id": "STEP_FREE_ROUTE",
+              "state": "PASS",
+              "evidence_ref": "synthetic:LOW_CAPEX_C:WINTER_COLD_NIGHT:STEP_FREE_ROUTE"
+            },
+            {
+              "constraint_id": "FIRE_EGRESS",
+              "state": "PASS",
+              "evidence_ref": "synthetic:LOW_CAPEX_C:WINTER_COLD_NIGHT:FIRE_EGRESS"
+            },
+            {
+              "constraint_id": "ESSENTIAL_WATER_FLOOR",
+              "state": "PASS",
+              "evidence_ref": "synthetic:LOW_CAPEX_C:WINTER_COLD_NIGHT:ESSENTIAL_WATER_FLOOR"
+            }
+          ],
+          "metric_intervals": [
+            {
+              "objective_id": "WHOLE_LIFE_COST_INDEX",
+              "state": "KNOWN_INTERVAL",
+              "lower": 71,
+              "upper": 80,
+              "unit": "synthetic_cost_index_points",
+              "interval_basis": "SYNTHETIC_BOUND"
+            },
+            {
+              "objective_id": "THERMAL_DISCOMFORT",
+              "state": "KNOWN_INTERVAL",
+              "lower": 165,
+              "upper": 205,
+              "unit": "degree_hours",
+              "interval_basis": "SYNTHETIC_BOUND"
+            },
+            {
+              "objective_id": "DISCRETIONARY_WATER",
+              "state": "KNOWN_INTERVAL",
+              "lower": 19000,
+              "upper": 22000,
+              "unit": "litres_per_service_year",
+              "interval_basis": "SYNTHETIC_BOUND"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "candidate_id": "ADAPTIVE_D",
+      "scenario_results": [
+        {
+          "scenario_id": "NORMAL_SERVICE",
+          "gate_results": [
+            {
+              "constraint_id": "STEP_FREE_ROUTE",
+              "state": "PASS",
+              "evidence_ref": "synthetic:ADAPTIVE_D:NORMAL_SERVICE:STEP_FREE_ROUTE"
+            },
+            {
+              "constraint_id": "FIRE_EGRESS",
+              "state": "PASS",
+              "evidence_ref": "synthetic:ADAPTIVE_D:NORMAL_SERVICE:FIRE_EGRESS"
+            },
+            {
+              "constraint_id": "ESSENTIAL_WATER_FLOOR",
+              "state": "PASS",
+              "evidence_ref": "synthetic:ADAPTIVE_D:NORMAL_SERVICE:ESSENTIAL_WATER_FLOOR"
+            }
+          ],
+          "metric_intervals": [
+            {
+              "objective_id": "WHOLE_LIFE_COST_INDEX",
+              "state": "KNOWN_INTERVAL",
+              "lower": 96,
+              "upper": 110,
+              "unit": "synthetic_cost_index_points",
+              "interval_basis": "SYNTHETIC_BOUND"
+            },
+            {
+              "objective_id": "THERMAL_DISCOMFORT",
+              "state": "KNOWN_INTERVAL",
+              "lower": 55,
+              "upper": 80,
+              "unit": "degree_hours",
+              "interval_basis": "SYNTHETIC_BOUND"
+            },
+            {
+              "objective_id": "DISCRETIONARY_WATER",
+              "state": "KNOWN_INTERVAL",
+              "lower": 12000,
+              "upper": 16000,
+              "unit": "litres_per_service_year",
+              "interval_basis": "SYNTHETIC_BOUND"
+            }
+          ]
+        },
+        {
+          "scenario_id": "HOT_GRID_OUTAGE",
+          "gate_results": [
+            {
+              "constraint_id": "STEP_FREE_ROUTE",
+              "state": "PASS",
+              "evidence_ref": "synthetic:ADAPTIVE_D:HOT_GRID_OUTAGE:STEP_FREE_ROUTE"
+            },
+            {
+              "constraint_id": "FIRE_EGRESS",
+              "state": "PASS",
+              "evidence_ref": "synthetic:ADAPTIVE_D:HOT_GRID_OUTAGE:FIRE_EGRESS"
+            },
+            {
+              "constraint_id": "ESSENTIAL_WATER_FLOOR",
+              "state": "UNKNOWN",
+              "evidence_ref": null
+            }
+          ],
+          "metric_intervals": [
+            {
+              "objective_id": "WHOLE_LIFE_COST_INDEX",
+              "state": "KNOWN_INTERVAL",
+              "lower": 100,
+              "upper": 118,
+              "unit": "synthetic_cost_index_points",
+              "interval_basis": "SYNTHETIC_BOUND"
+            },
+            {
+              "objective_id": "THERMAL_DISCOMFORT",
+              "state": "KNOWN_INTERVAL",
+              "lower": 70,
+              "upper": 110,
+              "unit": "degree_hours",
+              "interval_basis": "SYNTHETIC_BOUND"
+            },
+            {
+              "objective_id": "DISCRETIONARY_WATER",
+              "state": "KNOWN_INTERVAL",
+              "lower": 12000,
+              "upper": 18000,
+              "unit": "litres_per_service_year",
+              "interval_basis": "SYNTHETIC_BOUND"
+            }
+          ]
+        },
+        {
+          "scenario_id": "WINTER_COLD_NIGHT",
+          "gate_results": [
+            {
+              "constraint_id": "STEP_FREE_ROUTE",
+              "state": "PASS",
+              "evidence_ref": "synthetic:ADAPTIVE_D:WINTER_COLD_NIGHT:STEP_FREE_ROUTE"
+            },
+            {
+              "constraint_id": "FIRE_EGRESS",
+              "state": "PASS",
+              "evidence_ref": "synthetic:ADAPTIVE_D:WINTER_COLD_NIGHT:FIRE_EGRESS"
+            },
+            {
+              "constraint_id": "ESSENTIAL_WATER_FLOOR",
+              "state": "PASS",
+              "evidence_ref": "synthetic:ADAPTIVE_D:WINTER_COLD_NIGHT:ESSENTIAL_WATER_FLOOR"
+            }
+          ],
+          "metric_intervals": [
+            {
+              "objective_id": "WHOLE_LIFE_COST_INDEX",
+              "state": "KNOWN_INTERVAL",
+              "lower": 98,
+              "upper": 115,
+              "unit": "synthetic_cost_index_points",
+              "interval_basis": "SYNTHETIC_BOUND"
+            },
+            {
+              "objective_id": "THERMAL_DISCOMFORT",
+              "state": "KNOWN_INTERVAL",
+              "lower": 75,
+              "upper": 105,
+              "unit": "degree_hours",
+              "interval_basis": "SYNTHETIC_BOUND"
+            },
+            {
+              "objective_id": "DISCRETIONARY_WATER",
+              "state": "KNOWN_INTERVAL",
+              "lower": 12000,
+              "upper": 17000,
+              "unit": "litres_per_service_year",
+              "interval_basis": "SYNTHETIC_BOUND"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "candidate_id": "ACCESS_FAIL_E",
+      "scenario_results": [
+        {
+          "scenario_id": "NORMAL_SERVICE",
+          "gate_results": [
+            {
+              "constraint_id": "STEP_FREE_ROUTE",
+              "state": "PASS",
+              "evidence_ref": "synthetic:ACCESS_FAIL_E:NORMAL_SERVICE:STEP_FREE_ROUTE"
+            },
+            {
+              "constraint_id": "FIRE_EGRESS",
+              "state": "PASS",
+              "evidence_ref": "synthetic:ACCESS_FAIL_E:NORMAL_SERVICE:FIRE_EGRESS"
+            },
+            {
+              "constraint_id": "ESSENTIAL_WATER_FLOOR",
+              "state": "PASS",
+              "evidence_ref": "synthetic:ACCESS_FAIL_E:NORMAL_SERVICE:ESSENTIAL_WATER_FLOOR"
+            }
+          ],
+          "metric_intervals": [
+            {
+              "objective_id": "WHOLE_LIFE_COST_INDEX",
+              "state": "KNOWN_INTERVAL",
+              "lower": 88,
+              "upper": 102,
+              "unit": "synthetic_cost_index_points",
+              "interval_basis": "SYNTHETIC_BOUND"
+            },
+            {
+              "objective_id": "THERMAL_DISCOMFORT",
+              "state": "KNOWN_INTERVAL",
+              "lower": 50,
+              "upper": 80,
+              "unit": "degree_hours",
+              "interval_basis": "SYNTHETIC_BOUND"
+            },
+            {
+              "objective_id": "DISCRETIONARY_WATER",
+              "state": "KNOWN_INTERVAL",
+              "lower": 14000,
+              "upper": 17000,
+              "unit": "litres_per_service_year",
+              "interval_basis": "SYNTHETIC_BOUND"
+            }
+          ]
+        },
+        {
+          "scenario_id": "HOT_GRID_OUTAGE",
+          "gate_results": [
+            {
+              "constraint_id": "STEP_FREE_ROUTE",
+              "state": "PASS",
+              "evidence_ref": "synthetic:ACCESS_FAIL_E:HOT_GRID_OUTAGE:STEP_FREE_ROUTE"
+            },
+            {
+              "constraint_id": "FIRE_EGRESS",
+              "state": "PASS",
+              "evidence_ref": "synthetic:ACCESS_FAIL_E:HOT_GRID_OUTAGE:FIRE_EGRESS"
+            },
+            {
+              "constraint_id": "ESSENTIAL_WATER_FLOOR",
+              "state": "PASS",
+              "evidence_ref": "synthetic:ACCESS_FAIL_E:HOT_GRID_OUTAGE:ESSENTIAL_WATER_FLOOR"
+            }
+          ],
+          "metric_intervals": [
+            {
+              "objective_id": "WHOLE_LIFE_COST_INDEX",
+              "state": "KNOWN_INTERVAL",
+              "lower": 92,
+              "upper": 108,
+              "unit": "synthetic_cost_index_points",
+              "interval_basis": "SYNTHETIC_BOUND"
+            },
+            {
+              "objective_id": "THERMAL_DISCOMFORT",
+              "state": "KNOWN_INTERVAL",
+              "lower": 90,
+              "upper": 120,
+              "unit": "degree_hours",
+              "interval_basis": "SYNTHETIC_BOUND"
+            },
+            {
+              "objective_id": "DISCRETIONARY_WATER",
+              "state": "KNOWN_INTERVAL",
+              "lower": 14000,
+              "upper": 17000,
+              "unit": "litres_per_service_year",
+              "interval_basis": "SYNTHETIC_BOUND"
+            }
+          ]
+        },
+        {
+          "scenario_id": "WINTER_COLD_NIGHT",
+          "gate_results": [
+            {
+              "constraint_id": "STEP_FREE_ROUTE",
+              "state": "FAIL",
+              "evidence_ref": "synthetic:ACCESS_FAIL_E:WINTER_COLD_NIGHT:STEP_FREE_ROUTE"
+            },
+            {
+              "constraint_id": "FIRE_EGRESS",
+              "state": "PASS",
+              "evidence_ref": "synthetic:ACCESS_FAIL_E:WINTER_COLD_NIGHT:FIRE_EGRESS"
+            },
+            {
+              "constraint_id": "ESSENTIAL_WATER_FLOOR",
+              "state": "PASS",
+              "evidence_ref": "synthetic:ACCESS_FAIL_E:WINTER_COLD_NIGHT:ESSENTIAL_WATER_FLOOR"
+            }
+          ],
+          "metric_intervals": [
+            {
+              "objective_id": "WHOLE_LIFE_COST_INDEX",
+              "state": "KNOWN_INTERVAL",
+              "lower": 90,
+              "upper": 105,
+              "unit": "synthetic_cost_index_points",
+              "interval_basis": "SYNTHETIC_BOUND"
+            },
+            {
+              "objective_id": "THERMAL_DISCOMFORT",
+              "state": "KNOWN_INTERVAL",
+              "lower": 85,
+              "upper": 115,
+              "unit": "degree_hours",
+              "interval_basis": "SYNTHETIC_BOUND"
+            },
+            {
+              "objective_id": "DISCRETIONARY_WATER",
+              "state": "KNOWN_INTERVAL",
+              "lower": 14000,
+              "upper": 17000,
+              "unit": "litres_per_service_year",
+              "interval_basis": "SYNTHETIC_BOUND"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "candidate_id": "METRIC_UNKNOWN_F",
+      "scenario_results": [
+        {
+          "scenario_id": "NORMAL_SERVICE",
+          "gate_results": [
+            {
+              "constraint_id": "STEP_FREE_ROUTE",
+              "state": "PASS",
+              "evidence_ref": "synthetic:METRIC_UNKNOWN_F:NORMAL_SERVICE:STEP_FREE_ROUTE"
+            },
+            {
+              "constraint_id": "FIRE_EGRESS",
+              "state": "PASS",
+              "evidence_ref": "synthetic:METRIC_UNKNOWN_F:NORMAL_SERVICE:FIRE_EGRESS"
+            },
+            {
+              "constraint_id": "ESSENTIAL_WATER_FLOOR",
+              "state": "PASS",
+              "evidence_ref": "synthetic:METRIC_UNKNOWN_F:NORMAL_SERVICE:ESSENTIAL_WATER_FLOOR"
+            }
+          ],
+          "metric_intervals": [
+            {
+              "objective_id": "WHOLE_LIFE_COST_INDEX",
+              "state": "KNOWN_INTERVAL",
+              "lower": 100,
+              "upper": 112,
+              "unit": "synthetic_cost_index_points",
+              "interval_basis": "SYNTHETIC_BOUND"
+            },
+            {
+              "objective_id": "THERMAL_DISCOMFORT",
+              "state": "KNOWN_INTERVAL",
+              "lower": 60,
+              "upper": 85,
+              "unit": "degree_hours",
+              "interval_basis": "SYNTHETIC_BOUND"
+            },
+            {
+              "objective_id": "DISCRETIONARY_WATER",
+              "state": "KNOWN_INTERVAL",
+              "lower": 15000,
+              "upper": 17500,
+              "unit": "litres_per_service_year",
+              "interval_basis": "SYNTHETIC_BOUND"
+            }
+          ]
+        },
+        {
+          "scenario_id": "HOT_GRID_OUTAGE",
+          "gate_results": [
+            {
+              "constraint_id": "STEP_FREE_ROUTE",
+              "state": "PASS",
+              "evidence_ref": "synthetic:METRIC_UNKNOWN_F:HOT_GRID_OUTAGE:STEP_FREE_ROUTE"
+            },
+            {
+              "constraint_id": "FIRE_EGRESS",
+              "state": "PASS",
+              "evidence_ref": "synthetic:METRIC_UNKNOWN_F:HOT_GRID_OUTAGE:FIRE_EGRESS"
+            },
+            {
+              "constraint_id": "ESSENTIAL_WATER_FLOOR",
+              "state": "PASS",
+              "evidence_ref": "synthetic:METRIC_UNKNOWN_F:HOT_GRID_OUTAGE:ESSENTIAL_WATER_FLOOR"
+            }
+          ],
+          "metric_intervals": [
+            {
+              "objective_id": "WHOLE_LIFE_COST_INDEX",
+              "state": "KNOWN_INTERVAL",
+              "lower": 104,
+              "upper": 116,
+              "unit": "synthetic_cost_index_points",
+              "interval_basis": "SYNTHETIC_BOUND"
+            },
+            {
+              "objective_id": "THERMAL_DISCOMFORT",
+              "state": "KNOWN_INTERVAL",
+              "lower": 95,
+              "upper": 120,
+              "unit": "degree_hours",
+              "interval_basis": "SYNTHETIC_BOUND"
+            },
+            {
+              "objective_id": "DISCRETIONARY_WATER",
+              "state": "UNKNOWN",
+              "lower": null,
+              "upper": null,
+              "unit": "litres_per_service_year",
+              "interval_basis": "UNKNOWN"
+            }
+          ]
+        },
+        {
+          "scenario_id": "WINTER_COLD_NIGHT",
+          "gate_results": [
+            {
+              "constraint_id": "STEP_FREE_ROUTE",
+              "state": "PASS",
+              "evidence_ref": "synthetic:METRIC_UNKNOWN_F:WINTER_COLD_NIGHT:STEP_FREE_ROUTE"
+            },
+            {
+              "constraint_id": "FIRE_EGRESS",
+              "state": "PASS",
+              "evidence_ref": "synthetic:METRIC_UNKNOWN_F:WINTER_COLD_NIGHT:FIRE_EGRESS"
+            },
+            {
+              "constraint_id": "ESSENTIAL_WATER_FLOOR",
+              "state": "PASS",
+              "evidence_ref": "synthetic:METRIC_UNKNOWN_F:WINTER_COLD_NIGHT:ESSENTIAL_WATER_FLOOR"
+            }
+          ],
+          "metric_intervals": [
+            {
+              "objective_id": "WHOLE_LIFE_COST_INDEX",
+              "state": "KNOWN_INTERVAL",
+              "lower": 102,
+              "upper": 114,
+              "unit": "synthetic_cost_index_points",
+              "interval_basis": "SYNTHETIC_BOUND"
+            },
+            {
+              "objective_id": "THERMAL_DISCOMFORT",
+              "state": "KNOWN_INTERVAL",
+              "lower": 80,
+              "upper": 105,
+              "unit": "degree_hours",
+              "interval_basis": "SYNTHETIC_BOUND"
+            },
+            {
+              "objective_id": "DISCRETIONARY_WATER",
+              "state": "KNOWN_INTERVAL",
+              "lower": 15000,
+              "upper": 17500,
+              "unit": "litres_per_service_year",
+              "interval_basis": "SYNTHETIC_BOUND"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "claim_ceiling": {
+    "physical_simulation_performed": false,
+    "measured_data_admitted": false,
+    "professional_review_passed": false,
+    "buildability_claimed": false,
+    "sota_superiority_claimed": false,
+    "scalar_score_emitted": false
+  }
+}
