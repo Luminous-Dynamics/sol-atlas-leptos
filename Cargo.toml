@@ -61,3 +61,7 @@ opt-level = "z"
 lto = true
 codegen-units = 1
 strip = true
+
+[workspace]
+members = ["sol-atlas-core"]
+resolver = "3"
