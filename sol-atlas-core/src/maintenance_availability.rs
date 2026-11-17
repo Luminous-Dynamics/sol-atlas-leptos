@@ -845,6 +845,55 @@ mod tests {
     }
 
     #[test]
+    fn generated_interval_partitions_validate_across_boundary_sweep() {
+        for isolation_at in 2..=60 {
+            for restoration_delay in 1..=5 {
+                let mut input = request();
+                let completion_at = isolation_at + 1;
+                let inspection_at = isolation_at + 2;
+                let return_at = inspection_at + restoration_delay;
+
+                input.work_order.isolation = Some(evidence(
+                    &format!("isolation-{isolation_at}"),
+                    isolation_at,
+                    OLD_CONFIG,
+                ));
+                input.work_order.completion = Some(evidence(
+                    &format!("completion-{isolation_at}"),
+                    completion_at,
+                    NEW_CONFIG,
+                ));
+                input.work_order.inspection = Some(evidence(
+                    &format!("inspection-{isolation_at}"),
+                    inspection_at,
+                    NEW_CONFIG,
+                ));
+                input.work_order.return_to_service_authorization = Some(evidence(
+                    &format!("return-{isolation_at}-{restoration_delay}"),
+                    return_at,
+                    NEW_CONFIG,
+                ));
+
+                let trace = project_maintenance_availability(&input)
+                    .expect("ordered boundary-sweep evidence");
+                assert_eq!(
+                    validate_trace_structure(&trace),
+                    Ok(()),
+                    "isolation={isolation_at}, return={return_at}"
+                );
+                assert_eq!(
+                    trace.intervals.first().unwrap().start_unix_seconds,
+                    input.study_window.start_unix_seconds
+                );
+                assert_eq!(
+                    trace.intervals.last().unwrap().end_unix_seconds,
+                    input.study_window.end_unix_seconds
+                );
+            }
+        }
+    }
+
+    #[test]
     fn return_after_study_horizon_remains_unresolved_at_horizon() {
         let mut input = request();
         input.study_window.end_unix_seconds = 50;
