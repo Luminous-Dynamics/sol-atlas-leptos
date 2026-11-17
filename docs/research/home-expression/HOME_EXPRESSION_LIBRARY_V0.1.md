@@ -83,8 +83,9 @@ The machine-readable contract is `HOME_EXPRESSION_PROFILE_V0.1.schema.json`; the
 
 Every profile binds to:
 - one exact Home Freedom brief ID, source artifact path and content/blob digest;
+- one exact Home Freedom candidate-set ID, source artifact path and content/blob digest;
+- the same exact design revision as the linked candidate set;
 - one exact style/experience catalog revision and content/blob digest;
-- one exact design revision/artifact reference;
 - the exact set of constraint IDs in the source brief (the qualifier rejects missing, added or changed IDs);
 - a resident-authored expression statement;
 - protected qualities and explicitly avoided motifs;
@@ -117,6 +118,14 @@ For each domain, the profile records one of:
 - `QUALIFIED`: an appropriate specialist/authority has qualified the claim in the stated scope.
 
 The synthetic fixture deliberately marks all impacts UNKNOWN. It must not invent costs, thermal benefits, embodied-carbon reductions, water efficiency or structural feasibility.
+
+### 5.2 Resident-owned decision receipt
+
+[HOME-EXPRESSION-DECISION-RECEIPT-001 #917](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/917) adds a contract for the output of an expression-design comparison. It is deliberately not a new optimizer.
+
+The receipt pins the exact expression profile, source brief, Home Freedom candidate set and design revision. For each source candidate, it preserves every hard-gate ID, state, reason and evidence reference. A known `FAIL` blocks that candidate; any `UNKNOWN` leaves it conditional; only all-`PASS` candidates may enter an owner-native preference comparison. Even then, this is not permit approval or construction readiness.
+
+The synthetic Highveld receipt keeps both current candidates conditional because all ten source gates are `UNKNOWN`. It records no resident pairwise choice and no winner. There is no scalar style/beauty/household score, automatic ranking or automatic selection path. Incomparability and “not recorded” are legitimate outcomes. Multi-resident disagreement and private intent remain with #907.
 
 ### 5.1 Multi-resident boundary
 
