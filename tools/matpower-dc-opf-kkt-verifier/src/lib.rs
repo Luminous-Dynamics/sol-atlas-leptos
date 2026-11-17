@@ -448,10 +448,11 @@ fn number(value: f64) -> String {
 fn angle_limit_is_present(lower_deg: f64, upper_deg: f64) -> bool {
     let lower_nonzero = lower_deg != 0.0;
     let upper_nonzero = upper_deg != 0.0;
-    (lower_nonzero && lower_deg > -360.0)
-        || (upper_nonzero && upper_deg < 360.0)
-        || (lower_nonzero && !upper_nonzero)
-        || (!lower_nonzero && upper_nonzero)
+    match (lower_nonzero, upper_nonzero) {
+        (false, false) => false,
+        (true, false) | (false, true) => true,
+        (true, true) => lower_deg > -360.0 || upper_deg < 360.0,
+    }
 }
 
 fn exact_key_coverage<K: Ord + Clone + std::fmt::Display>(
