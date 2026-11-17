@@ -6,12 +6,10 @@ use serde_json::{Value, json};
 use std::collections::{BTreeMap, BTreeSet};
 use std::{env, process};
 
-const CORPUS: &str = include_str!(
-    "../../docs/research/home-freedom/HOME_FREEDOM_100_CASE_CORPUS_V0.1.json"
-);
-const CORPUS_SCHEMA: &str = include_str!(
-    "../../docs/research/home-freedom/HOME_FREEDOM_100_CASE_CORPUS_V0.1.schema.json"
-);
+const CORPUS: &str =
+    include_str!("../../docs/research/home-freedom/HOME_FREEDOM_100_CASE_CORPUS_V0.1.json");
+const CORPUS_SCHEMA: &str =
+    include_str!("../../docs/research/home-freedom/HOME_FREEDOM_100_CASE_CORPUS_V0.1.schema.json");
 
 fn text_at<'a>(value: &'a Value, key: &str) -> Option<&'a str> {
     value.get(key).and_then(Value::as_str)
@@ -82,7 +80,10 @@ fn evaluate_case(
                     vec![format!("{gate_id}_STATE_MISSING")],
                 ));
             };
-            if observed.insert(gate_id.to_owned(), state.to_owned()).is_some() {
+            if observed
+                .insert(gate_id.to_owned(), state.to_owned())
+                .is_some()
+            {
                 return Ok((
                     "NOT_COMPARABLE".to_owned(),
                     vec![format!("{gate_id}_DUPLICATE_OBSERVATION")],
@@ -111,7 +112,8 @@ fn evaluate_case(
                 vec![format!("{gate_id}_OBSERVATION_MISSING")],
             ));
         };
-        let Some(scenario_state) = scenario_observations.get(gate_id).and_then(Value::as_str) else {
+        let Some(scenario_state) = scenario_observations.get(gate_id).and_then(Value::as_str)
+        else {
             return Ok((
                 "NOT_COMPARABLE".to_owned(),
                 vec![format!("{gate_id}_SCENARIO_SCOPE_MISSING")],
@@ -178,10 +180,15 @@ fn validate(corpus: &Value, schema: &Value) -> Result<Value, Vec<String>> {
     let mut profiles = BTreeMap::<String, Value>::new();
     if let Some(items) = array_at(corpus, "household_profiles") {
         if items.len() != 10 {
-            errors.push(format!("expected 10 household profiles, found {}", items.len()));
+            errors.push(format!(
+                "expected 10 household profiles, found {}",
+                items.len()
+            ));
         }
         for item in items {
-            let id = text_at(item, "id").unwrap_or("<missing-profile-id>").to_owned();
+            let id = text_at(item, "id")
+                .unwrap_or("<missing-profile-id>")
+                .to_owned();
             if profiles.insert(id.clone(), item.clone()).is_some() {
                 errors.push(format!("duplicate household profile ID {id}"));
             }
@@ -189,7 +196,9 @@ fn validate(corpus: &Value, schema: &Value) -> Result<Value, Vec<String>> {
                 errors.push(format!("profile {id}: {error}"));
             }
             if item.get("step_free").and_then(Value::as_bool).is_none() {
-                errors.push(format!("profile {id}: step_free must be explicitly declared"));
+                errors.push(format!(
+                    "profile {id}: step_free must be explicitly declared"
+                ));
             }
         }
     } else {
@@ -202,7 +211,9 @@ fn validate(corpus: &Value, schema: &Value) -> Result<Value, Vec<String>> {
             errors.push(format!("expected 10 site scenarios, found {}", items.len()));
         }
         for item in items {
-            let id = text_at(item, "id").unwrap_or("<missing-scenario-id>").to_owned();
+            let id = text_at(item, "id")
+                .unwrap_or("<missing-scenario-id>")
+                .to_owned();
             if scenarios.insert(id.clone(), item.clone()).is_some() {
                 errors.push(format!("duplicate site scenario ID {id}"));
             }
@@ -233,7 +244,9 @@ fn validate(corpus: &Value, schema: &Value) -> Result<Value, Vec<String>> {
         }
         for case in items {
             case_count += 1;
-            let id = text_at(case, "case_id").unwrap_or("<missing-case-id>").to_owned();
+            let id = text_at(case, "case_id")
+                .unwrap_or("<missing-case-id>")
+                .to_owned();
             if !case_ids.insert(id.clone()) {
                 errors.push(format!("duplicate case ID {id}"));
                 continue;
@@ -255,7 +268,9 @@ fn validate(corpus: &Value, schema: &Value) -> Result<Value, Vec<String>> {
                     expected_reasons.sort();
                     if reasons != expected_reasons {
                         expected_reason_mismatches += 1;
-                        errors.push(format!("{id}: expected reason codes do not match observed gate states"));
+                        errors.push(format!(
+                            "{id}: expected reason codes do not match observed gate states"
+                        ));
                     }
                     *counts.entry(actual).or_insert(0) += 1;
                 }
@@ -271,7 +286,10 @@ fn validate(corpus: &Value, schema: &Value) -> Result<Value, Vec<String>> {
     let blocked = counts.get("BLOCKED").copied().unwrap_or(0);
     let not_comparable = counts.get("NOT_COMPARABLE").copied().unwrap_or(0);
     if eligible == 0 || conditional == 0 || blocked == 0 {
-        errors.push("corpus must preserve eligible, conditional and blocked positive/negative controls".to_owned());
+        errors.push(
+            "corpus must preserve eligible, conditional and blocked positive/negative controls"
+                .to_owned(),
+        );
     }
     if case_count != case_ids.len() {
         errors.push("case identity coverage is incomplete".to_owned());
@@ -315,7 +333,10 @@ fn main() {
     let (corpus, schema) = fixture();
     match validate(&corpus, &schema) {
         Ok(report) => {
-            println!("{}", serde_json::to_string_pretty(&report).unwrap_or_default());
+            println!(
+                "{}",
+                serde_json::to_string_pretty(&report).unwrap_or_default()
+            );
         }
         Err(errors) => {
             eprintln!("HOME_FREEDOM_100_CASE_CORPUS_FAIL: {}", errors.join("; "));
@@ -344,17 +365,29 @@ mod tests {
     #[test]
     fn unknown_required_gate_never_promotes_to_screening_eligible() {
         let (mut corpus, _) = fixture();
-        let case_index = corpus["cases"].as_array().unwrap().iter()
+        let case_index = corpus["cases"]
+            .as_array()
+            .unwrap()
+            .iter()
             .position(|case| case["case_id"] == "H01_COMPACT_SINGLE__S01_COMPLETE_REFERENCE")
             .unwrap();
         let mut case = corpus["cases"][case_index].clone();
-        case["gate_observations"].as_array_mut().unwrap().iter_mut()
-            .find(|gate| gate["gate_id"] == "SITE_SURVEY").unwrap()["state"] = json!("UNKNOWN");
-        corpus["site_scenarios"].as_array_mut().unwrap().iter_mut()
-            .find(|scenario| scenario["id"] == "S01_COMPLETE_REFERENCE").unwrap()
-            ["observations"]["SITE_SURVEY"] = json!("UNKNOWN");
+        case["gate_observations"]
+            .as_array_mut()
+            .unwrap()
+            .iter_mut()
+            .find(|gate| gate["gate_id"] == "SITE_SURVEY")
+            .unwrap()["state"] = json!("UNKNOWN");
+        corpus["site_scenarios"]
+            .as_array_mut()
+            .unwrap()
+            .iter_mut()
+            .find(|scenario| scenario["id"] == "S01_COMPLETE_REFERENCE")
+            .unwrap()["observations"]["SITE_SURVEY"] = json!("UNKNOWN");
         assert_eq!(
-            evaluate_case(&case, &profile_map(&corpus), &scenario_map(&corpus)).unwrap().0,
+            evaluate_case(&case, &profile_map(&corpus), &scenario_map(&corpus))
+                .unwrap()
+                .0,
             "CONDITIONAL_CONCEPT_ONLY"
         );
     }
@@ -364,14 +397,26 @@ mod tests {
         let (corpus, _) = fixture();
         let profiles = profile_map(&corpus);
         let scenarios = scenario_map(&corpus);
-        let standard = corpus["cases"].as_array().unwrap().iter()
+        let standard = corpus["cases"]
+            .as_array()
+            .unwrap()
+            .iter()
             .find(|case| case["case_id"] == "H01_COMPACT_SINGLE__S07_STEP_FREE_FAILED")
             .unwrap();
-        let step_free = corpus["cases"].as_array().unwrap().iter()
+        let step_free = corpus["cases"]
+            .as_array()
+            .unwrap()
+            .iter()
             .find(|case| case["case_id"] == "H05_STEP_FREE_FIRST__S07_STEP_FREE_FAILED")
             .unwrap();
-        assert_eq!(evaluate_case(standard, &profiles, &scenarios).unwrap().0, "SCREENING_ELIGIBLE");
-        assert_eq!(evaluate_case(step_free, &profiles, &scenarios).unwrap().0, "BLOCKED");
+        assert_eq!(
+            evaluate_case(standard, &profiles, &scenarios).unwrap().0,
+            "SCREENING_ELIGIBLE"
+        );
+        assert_eq!(
+            evaluate_case(step_free, &profiles, &scenarios).unwrap().0,
+            "BLOCKED"
+        );
     }
 
     #[test]
@@ -388,7 +433,10 @@ mod tests {
         let (corpus, _) = fixture();
         let mut case = corpus["cases"][0].clone();
         let duplicate = case["gate_observations"][0].clone();
-        case["gate_observations"].as_array_mut().unwrap().push(duplicate);
+        case["gate_observations"]
+            .as_array_mut()
+            .unwrap()
+            .push(duplicate);
         let result = evaluate_case(&case, &profile_map(&corpus), &scenario_map(&corpus)).unwrap();
         assert_eq!(result.0, "NOT_COMPARABLE");
     }
@@ -396,18 +444,31 @@ mod tests {
     #[test]
     fn required_not_applicable_gate_is_not_comparable() {
         let (mut corpus, _) = fixture();
-        let case = corpus["cases"].as_array_mut().unwrap().iter_mut()
+        let case = corpus["cases"]
+            .as_array_mut()
+            .unwrap()
+            .iter_mut()
             .find(|case| case["case_id"] == "H05_STEP_FREE_FIRST__S01_COMPLETE_REFERENCE")
             .unwrap();
-        case["gate_observations"].as_array_mut().unwrap().iter_mut()
-            .find(|gate| gate["gate_id"] == "STEP_FREE_INTERNAL_ROUTE").unwrap()["state"] =
-            json!("NOT_APPLICABLE");
-        corpus["site_scenarios"].as_array_mut().unwrap().iter_mut()
-            .find(|scenario| scenario["id"] == "S01_COMPLETE_REFERENCE").unwrap()
-            ["observations"]["STEP_FREE_INTERNAL_ROUTE"] = json!("NOT_APPLICABLE");
-        let case = corpus["cases"].as_array().unwrap().iter()
+        case["gate_observations"]
+            .as_array_mut()
+            .unwrap()
+            .iter_mut()
+            .find(|gate| gate["gate_id"] == "STEP_FREE_INTERNAL_ROUTE")
+            .unwrap()["state"] = json!("NOT_APPLICABLE");
+        corpus["site_scenarios"]
+            .as_array_mut()
+            .unwrap()
+            .iter_mut()
+            .find(|scenario| scenario["id"] == "S01_COMPLETE_REFERENCE")
+            .unwrap()["observations"]["STEP_FREE_INTERNAL_ROUTE"] = json!("NOT_APPLICABLE");
+        let case = corpus["cases"]
+            .as_array()
+            .unwrap()
+            .iter()
             .find(|case| case["case_id"] == "H05_STEP_FREE_FIRST__S01_COMPLETE_REFERENCE")
-            .unwrap().clone();
+            .unwrap()
+            .clone();
         let result = evaluate_case(&case, &profile_map(&corpus), &scenario_map(&corpus)).unwrap();
         assert_eq!(result.0, "NOT_COMPARABLE");
     }
@@ -420,15 +481,19 @@ mod tests {
         let after = validate(&corpus, &schema).unwrap();
         assert_eq!(before["disposition_counts"], after["disposition_counts"]);
     }
-    
+
     fn profile_map(corpus: &Value) -> BTreeMap<String, Value> {
-        array_at(corpus, "household_profiles").unwrap().iter()
+        array_at(corpus, "household_profiles")
+            .unwrap()
+            .iter()
             .map(|item| (text_at(item, "id").unwrap().to_owned(), item.clone()))
             .collect()
     }
-    
+
     fn scenario_map(corpus: &Value) -> BTreeMap<String, Value> {
-        array_at(corpus, "site_scenarios").unwrap().iter()
+        array_at(corpus, "site_scenarios")
+            .unwrap()
+            .iter()
             .map(|item| (text_at(item, "id").unwrap().to_owned(), item.clone()))
             .collect()
     }
