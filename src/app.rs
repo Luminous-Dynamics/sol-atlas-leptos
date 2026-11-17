@@ -6,8 +6,8 @@ use leptos_router::components::{A, Route, Router, Routes};
 use leptos_router::path;
 
 use crate::components::globe_canvas::GlobeCanvas;
-use crate::components::hud::Hud;
 use crate::components::home_expression::HomeExpressionPage;
+use crate::components::hud::Hud;
 use crate::components::info_panel::InfoPanel;
 use crate::components::layer_panel::LayerPanel;
 use crate::components::planet_nav::PlanetNav;
