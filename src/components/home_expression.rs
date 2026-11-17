@@ -532,7 +532,10 @@ mod tests {
         apply_style_role(&mut roles, "BIOPHILIC_ORGANIC".to_owned(), "ACCEPTABLE");
 
         assert_eq!(roles.get("MODERNIST").map(String::as_str), Some("PRIMARY"));
-        assert_eq!(roles.get("SOLARPUNK").map(String::as_str), Some("SECONDARY"));
+        assert_eq!(
+            roles.get("SOLARPUNK").map(String::as_str),
+            Some("SECONDARY")
+        );
         assert_eq!(
             roles.get("GOTHIC_REVIVAL").map(String::as_str),
             Some("AVOID")
