@@ -1,0 +1,220 @@
+{
+  "schema_version": "0.1.0",
+  "suite_id": "MEGASTRUCTURE-DESIGN-CONTEXT-SYNTHETIC-001",
+  "claim_class": "SYNTHETIC_DATA_QUALITY_ONLY",
+  "projection_policy": "READ_ONLY_NO_APPROVAL_AUTHORITY",
+  "cases": [
+    {
+      "case_id": "STALE_DESIGN_IDENTITY_AFTER_FOOTPRINT_CHANGE",
+      "candidate": {
+        "candidate_id": "SYNTHETIC-PORT-A",
+        "design_generation": "DESIGN-A2",
+        "geometry_digest": "sha256:synthetic-new-footprint-a2",
+        "coordinate_system": "EPSG:4326",
+        "epoch": "2026-01-01T00:00:00Z"
+      },
+      "projection": {
+        "design_generation": "DESIGN-A1",
+        "geometry_digest": "sha256:synthetic-old-footprint-a1",
+        "source_health": "loaded",
+        "feature_state": "features_present",
+        "data_class": "administrative",
+        "license": "public"
+      },
+      "expected_disposition": "reject_or_mark_stale",
+      "expected_reason_codes": [
+        "DESIGN_GENERATION_MISMATCH",
+        "GEOMETRY_DIGEST_MISMATCH"
+      ]
+    },
+    {
+      "case_id": "CONSERVATION_BOUNDARY_ALIGNMENT_UNCERTAIN",
+      "candidate": {
+        "candidate_id": "SYNTHETIC-PORT-B",
+        "design_generation": "DESIGN-B1",
+        "geometry_digest": "sha256:synthetic-footprint-b1",
+        "coordinate_system": "EPSG:4326",
+        "epoch": "2026-01-01T00:00:00Z"
+      },
+      "projection": {
+        "design_generation": "DESIGN-B1",
+        "geometry_digest": "sha256:synthetic-footprint-b1",
+        "source_health": "partially_loaded",
+        "feature_state": "boundary_nearby",
+        "data_class": "administrative",
+        "license": "public",
+        "positional_uncertainty_m": 150
+      },
+      "expected_disposition": "retain_uncertainty_and_require_review",
+      "expected_reason_codes": [
+        "BOUNDARY_ALIGNMENT_UNCERTAIN",
+        "PARTIAL_SOURCE_HEALTH"
+      ]
+    },
+    {
+      "case_id": "EMPTY_FEATURES_WITH_MISSING_COVERAGE",
+      "candidate": {
+        "candidate_id": "SYNTHETIC-PORT-C",
+        "design_generation": "DESIGN-C1",
+        "geometry_digest": "sha256:synthetic-footprint-c1",
+        "coordinate_system": "EPSG:4326",
+        "epoch": "2026-01-01T00:00:00Z"
+      },
+      "projection": {
+        "design_generation": "DESIGN-C1",
+        "geometry_digest": "sha256:synthetic-footprint-c1",
+        "source_health": "unavailable",
+        "feature_state": "no_features_returned",
+        "data_class": "unknown",
+        "license": "unknown",
+        "coverage_complete": false
+      },
+      "expected_disposition": "unknown_not_no_impact",
+      "expected_reason_codes": [
+        "SOURCE_UNAVAILABLE",
+        "COVERAGE_INCOMPLETE",
+        "EMPTY_NOT_EQUIVALENT_TO_ABSENCE"
+      ]
+    },
+    {
+      "case_id": "CONFLICTING_HAZARD_EPOCHS_AND_RESOLUTIONS",
+      "candidate": {
+        "candidate_id": "SYNTHETIC-PORT-D",
+        "design_generation": "DESIGN-D1",
+        "geometry_digest": "sha256:synthetic-footprint-d1",
+        "coordinate_system": "EPSG:32736",
+        "epoch": "2026-01-01T00:00:00Z"
+      },
+      "projection": {
+        "design_generation": "DESIGN-D1",
+        "geometry_digest": "sha256:synthetic-footprint-d1",
+        "source_health": "loaded",
+        "feature_state": "conflicting_sources",
+        "data_class": "modelled",
+        "license": "public",
+        "sources": [
+          {
+            "id": "hazard-grid-old",
+            "epoch": "2010-01-01T00:00:00Z",
+            "resolution_m": 1000,
+            "scenario": "historical-baseline"
+          },
+          {
+            "id": "hazard-grid-new",
+            "epoch": "2025-01-01T00:00:00Z",
+            "resolution_m": 100,
+            "scenario": "future-midrange"
+          }
+        ]
+      },
+      "expected_disposition": "show_conflict_without_silent_precedence",
+      "expected_reason_codes": [
+        "SOURCE_EPOCH_MISMATCH",
+        "SOURCE_RESOLUTION_MISMATCH",
+        "MODEL_SCENARIO_MISMATCH"
+      ]
+    },
+    {
+      "case_id": "RESTRICTED_COMMUNITY_LAYER_MUST_NOT_DISCLOSE",
+      "candidate": {
+        "candidate_id": "SYNTHETIC-PORT-E",
+        "design_generation": "DESIGN-E1",
+        "geometry_digest": "sha256:synthetic-footprint-e1",
+        "coordinate_system": "EPSG:4326",
+        "epoch": "2026-01-01T00:00:00Z"
+      },
+      "projection": {
+        "design_generation": "DESIGN-E1",
+        "geometry_digest": "sha256:synthetic-footprint-e1",
+        "source_health": "loaded",
+        "feature_state": "sensitive_features_present",
+        "data_class": "measured",
+        "license": "internal_review_only",
+        "access_class": "restricted_personal_or_community_sensitive"
+      },
+      "expected_disposition": "restrict_from_public_projection",
+      "expected_reason_codes": [
+        "ACCESS_RESTRICTION",
+        "SENSITIVE_LAYER_NOT_PUBLIC"
+      ]
+    },
+    {
+      "case_id": "RENDER_OMITS_CRITICAL_SERVICE_CORRIDOR",
+      "candidate": {
+        "candidate_id": "SYNTHETIC-PORT-F",
+        "design_generation": "DESIGN-F1",
+        "geometry_digest": "sha256:synthetic-footprint-f1",
+        "coordinate_system": "EPSG:4326",
+        "epoch": "2026-01-01T00:00:00Z"
+      },
+      "projection": {
+        "design_generation": "DESIGN-F1",
+        "geometry_digest": "sha256:synthetic-footprint-f1",
+        "source_health": "loaded",
+        "feature_state": "critical_corridor_present",
+        "data_class": "observed",
+        "license": "public",
+        "render_view_includes_layer": false
+      },
+      "expected_disposition": "review_pack_incomplete",
+      "expected_reason_codes": [
+        "CRITICAL_CONTEXT_LAYER_NOT_RENDERED",
+        "VIEW_LAYER_SET_MISMATCH"
+      ]
+    },
+    {
+      "case_id": "ILLUSTRATIVE_ORBIT_POSITIONS_NOT_EPHEMERIS",
+      "candidate": {
+        "candidate_id": "SYNTHETIC-ORBITAL-G",
+        "design_generation": "DESIGN-G1",
+        "geometry_digest": "sha256:synthetic-orbital-envelope-g1",
+        "coordinate_system": "INERTIAL_FRAME_UNRESOLVED",
+        "epoch": "unknown"
+      },
+      "projection": {
+        "design_generation": "DESIGN-G1",
+        "geometry_digest": "sha256:synthetic-orbital-envelope-g1",
+        "source_health": "loaded",
+        "feature_state": "illustrative_positions",
+        "data_class": "synthetic",
+        "license": "internal",
+        "frame_id": "display-frame",
+        "epoch": "unknown",
+        "ephemeris_identity": null
+      },
+      "expected_disposition": "reject_as_physical_orbital_context",
+      "expected_reason_codes": [
+        "ILLUSTRATIVE_GEOMETRY_ONLY",
+        "EPOCH_UNRESOLVED",
+        "EPHEMERIS_IDENTITY_MISSING",
+        "FRAME_TRANSFORM_MISSING"
+      ]
+    },
+    {
+      "case_id": "SYNTHETIC_LAYER_MISLABELLED_AS_OFFICIAL",
+      "candidate": {
+        "candidate_id": "SYNTHETIC-PORT-H",
+        "design_generation": "DESIGN-H1",
+        "geometry_digest": "sha256:synthetic-footprint-h1",
+        "coordinate_system": "EPSG:4326",
+        "epoch": "2026-01-01T00:00:00Z"
+      },
+      "projection": {
+        "design_generation": "DESIGN-H1",
+        "geometry_digest": "sha256:synthetic-footprint-h1",
+        "source_health": "loaded",
+        "feature_state": "features_present",
+        "data_class": "synthetic",
+        "license": "internal",
+        "publisher_authority": "government_official",
+        "source_identity": null
+      },
+      "expected_disposition": "reject_claim_promotion",
+      "expected_reason_codes": [
+        "SYNTHETIC_NOT_OFFICIAL",
+        "SOURCE_IDENTITY_MISSING",
+        "DATA_CLASS_AUTHORITY_CONFLICT"
+      ]
+    }
+  ]
+}
