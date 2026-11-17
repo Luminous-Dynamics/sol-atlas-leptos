@@ -73,4 +73,4 @@ jobs:
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
       - name: Test shared core library
-        run: cargo test --manifest-path sol-atlas-core/Cargo.toml
+        run: cargo test --package sol-atlas-core --locked
