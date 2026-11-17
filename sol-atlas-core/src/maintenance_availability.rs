@@ -188,6 +188,7 @@ pub enum TraceValidationError {
     DuplicateEvidenceReference,
     MissingIntervals,
     InvalidInterval,
+    InvalidIntervalConfiguration,
     IntervalOutsideStudy,
     IntervalGap,
     IntervalOverlap,
@@ -208,6 +209,7 @@ impl fmt::Display for TraceValidationError {
             Self::DuplicateEvidenceReference => "trace contains duplicate evidence references",
             Self::MissingIntervals => "trace has no availability intervals",
             Self::InvalidInterval => "trace contains an empty or reversed interval",
+            Self::InvalidIntervalConfiguration => "trace interval has an empty configuration digest",
             Self::IntervalOutsideStudy => "trace interval lies outside its study window",
             Self::IntervalGap => "trace availability intervals contain a gap",
             Self::IntervalOverlap => "trace availability intervals overlap",
@@ -326,7 +328,7 @@ pub fn validate_trace_structure(
             return Err(TraceValidationError::InvalidInterval);
         }
         if !non_empty(&interval.configuration_digest) {
-            return Err(TraceValidationError::InvalidTarget);
+            return Err(TraceValidationError::InvalidIntervalConfiguration);
         }
         if interval.start_unix_seconds < study_start || interval.end_unix_seconds > study_end {
             return Err(TraceValidationError::IntervalOutsideStudy);
@@ -817,6 +819,17 @@ mod tests {
         assert_eq!(
             validate_trace_structure(&trace),
             Err(TraceValidationError::IntervalOverlap)
+        );
+    }
+
+    #[test]
+    fn trace_validator_rejects_duplicate_evidence_references() {
+        let mut trace = project_maintenance_availability(&request()).expect("valid trace");
+        trace.source_event_refs[1].reference = trace.source_event_refs[0].reference.clone();
+
+        assert_eq!(
+            validate_trace_structure(&trace),
+            Err(TraceValidationError::DuplicateEvidenceReference)
         );
     }
 
