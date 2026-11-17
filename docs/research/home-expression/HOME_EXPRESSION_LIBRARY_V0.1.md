@@ -316,6 +316,21 @@ Start with Johannesburg / Highveld as a regional research profile, not a univers
 
 The South African building-plan route requires local-authority approval and relevant plans and supporting documentation; the local authority and competent professionals remain the approval path. The compiler must never infer approval from an IFC export, IDS pass, geometry check or simulated result.
 
+## 10.1 Resident-facing configurator prototype
+
+The current feature branch adds a Leptos route at `/homes/express` and a globe landing-page link. It reads the same versioned expression catalog used by the Rust qualifier, rather than maintaining a second handwritten list.
+
+The local configurator currently supports:
+- one primary and at most one secondary style, with adjustable blend weights;
+- explicit Avoid and Acceptable style roles;
+- optional experience packages marked Preferred, Considered or Avoided;
+- a resident-authored free-text statement;
+- a live JSON working-draft preview and a reset action.
+
+**Interaction contract:** a secondary blend cannot exist without a distinct primary. Removing/reclassifying a primary promotes the existing secondary rather than leaving an invalid blend. Package state toggles back to NOT_SELECTED. The preview labels itself `RESIDENT_WORKING_DRAFT_NOT_VALIDATED`; it is not the Home Freedom profile schema because it is not yet bound to a brief, candidate set, constraints or design revision. The page uses local reactive state only and makes no upload/persistence, geometry, cost or feasibility claim.
+
+The UI and five configurator logic tests are in `src/components/home_expression.rs`; route wiring is in `src/app.rs`; visual treatment is in `style/main.css`. A resident-experience study is separately specified in [HOME-EXPRESSION-RESIDENT-AGENCY-001 #925](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/925). A working configurator is not evidence of participation benefit: that requires actual consented participants and independent evaluation.
+
 ## 11. Claim ceiling
 
 This increment provides:
@@ -323,7 +338,8 @@ This increment provides:
 - a synthetic profile;
 - a deterministic Rust qualifier for contract-level invariants;
 - a source-bound resident decision receipt that keeps unknown gates conditional and preserves resident choice;
-- a research and benchmark protocol.
+- a research and benchmark protocol;
+- an early resident-facing configurator with local-only working-draft state.
 
 It does **not** provide:
 - a production architectural style recommender or image renderer;
