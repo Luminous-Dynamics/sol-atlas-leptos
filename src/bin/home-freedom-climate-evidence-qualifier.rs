@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // Commercial licensing: see COMMERCIAL_LICENSE.md at repository root
 
-use serde_json::{json, Value};
+use serde_json::{Value, json};
 use std::collections::{BTreeMap, BTreeSet};
 use std::{env, process};
 
@@ -67,12 +67,22 @@ fn check_schema_contract() -> Result<(), String> {
         return Err("schema must declare Draft 2020-12".to_owned());
     }
     let required = array(&schema, "required", "schema")?;
-    for field in ["climate_members", "scenario_compositions", "adversarial_cases", "claim_ceiling"] {
+    for field in [
+        "climate_members",
+        "scenario_compositions",
+        "adversarial_cases",
+        "claim_ceiling",
+    ] {
         if !required.iter().any(|item| item.as_str() == Some(field)) {
             return Err(format!("schema root required list omits {field}"));
         }
     }
-    for definition in ["climateMember", "scenarioComposition", "adversarialCase", "claimCeiling"] {
+    for definition in [
+        "climateMember",
+        "scenarioComposition",
+        "adversarialCase",
+        "claimCeiling",
+    ] {
         if schema["$defs"].get(definition).is_none() {
             return Err(format!("schema definition {definition} is missing"));
         }
@@ -230,7 +240,9 @@ fn evaluate(root: &Value) -> Result<Value, String> {
         let class = text(member, "evidence_class", "climate_member")?;
         member_classes.insert(id.to_owned(), class.to_owned());
         if text(member, "admission_state", "climate_member")? != "SYNTHETIC_ONLY" {
-            return Err(format!("synthetic fixture member {id} is not SYNTHETIC_ONLY"));
+            return Err(format!(
+                "synthetic fixture member {id} is not SYNTHETIC_ONLY"
+            ));
         }
         let source = member
             .get("source_identity")
@@ -239,23 +251,34 @@ fn evaluate(root: &Value) -> Result<Value, String> {
             || source["retrieved_at_utc"] != Value::Null
             || source["rights_record_ref"] != Value::Null
         {
-            return Err(format!("synthetic member {id} contains a real-source receipt"));
+            return Err(format!(
+                "synthetic member {id} contains a real-source receipt"
+            ));
         }
         let rights = member
             .get("rights")
             .ok_or_else(|| format!("member {id} has no rights record"))?;
         if text(rights, "state", "rights")? != "SYNTHETIC_ONLY" {
-            return Err(format!("synthetic fixture member {id} claims non-synthetic rights"));
+            return Err(format!(
+                "synthetic fixture member {id} claims non-synthetic rights"
+            ));
         }
         let purpose = array(member, "purpose_ceiling", "climate_member")?;
-        if !purpose.iter().any(|item| item.as_str() == Some("SOFTWARE_CONTRACT_TEST_ONLY")) {
-            return Err(format!("synthetic fixture member {id} lacks the software-only purpose ceiling"));
+        if !purpose
+            .iter()
+            .any(|item| item.as_str() == Some("SOFTWARE_CONTRACT_TEST_ONLY"))
+        {
+            return Err(format!(
+                "synthetic fixture member {id} lacks the software-only purpose ceiling"
+            ));
         }
         let quality = member
             .get("quality")
             .ok_or_else(|| format!("member {id} has no quality record"))?;
         if text(quality, "qc_state", "quality")? != "SYNTHETIC_ONLY" {
-            return Err(format!("synthetic fixture member {id} has non-synthetic QC state"));
+            return Err(format!(
+                "synthetic fixture member {id} has non-synthetic QC state"
+            ));
         }
         check_class_metadata(member, class)?;
         for uncertainty in array(member, "uncertainty_components", "climate_member")? {
@@ -320,66 +343,103 @@ fn evaluate(root: &Value) -> Result<Value, String> {
         let mut scenario_classes = Vec::new();
         let mut seen_refs = BTreeSet::new();
         for member_ref in refs {
-            let member_id = member_ref
-                .as_str()
-                .ok_or_else(|| format!("scenario {scenario_id} has a non-string member reference"))?;
+            let member_id = member_ref.as_str().ok_or_else(|| {
+                format!("scenario {scenario_id} has a non-string member reference")
+            })?;
             unique_insert(&mut seen_refs, member_id, "scenario member references")?;
-            let class = member_classes
-                .get(member_id)
-                .ok_or_else(|| format!("scenario {scenario_id} refers to unknown member {member_id}"))?;
+            let class = member_classes.get(member_id).ok_or_else(|| {
+                format!("scenario {scenario_id} refers to unknown member {member_id}")
+            })?;
             scenario_classes.push(class.as_str());
         }
         let purpose = text(scenario, "purpose", "scenario_composition")?;
         if purpose == "TYPICAL_YEAR_SCREENING"
-            && scenario_classes.iter().any(|class| *class != "TYPICAL_METEOROLOGICAL_YEAR")
+            && scenario_classes
+                .iter()
+                .any(|class| *class != "TYPICAL_METEOROLOGICAL_YEAR")
         {
-            return Err(format!("scenario {scenario_id} mixes non-TMY evidence into TMY screening"));
+            return Err(format!(
+                "scenario {scenario_id} mixes non-TMY evidence into TMY screening"
+            ));
         }
         if purpose == "HISTORICAL_EPISODE_REPLAY"
             && scenario_classes.iter().any(|class| {
-                !["STATION_OBSERVATION", "REANALYSIS", "OBSERVED_EXTREME_EPISODE"].contains(class)
+                ![
+                    "STATION_OBSERVATION",
+                    "REANALYSIS",
+                    "OBSERVED_EXTREME_EPISODE",
+                ]
+                .contains(class)
             })
         {
-            return Err(format!("scenario {scenario_id} uses an invalid class for historical replay"));
+            return Err(format!(
+                "scenario {scenario_id} uses an invalid class for historical replay"
+            ));
         }
         if purpose == "FUTURE_SCENARIO_EXPLORATION"
-            && scenario_classes.iter().any(|class| *class != "FUTURE_PROJECTION")
+            && scenario_classes
+                .iter()
+                .any(|class| *class != "FUTURE_PROJECTION")
         {
-            return Err(format!("scenario {scenario_id} mixes non-projection evidence into future exploration"));
+            return Err(format!(
+                "scenario {scenario_id} mixes non-projection evidence into future exploration"
+            ));
         }
 
         let mode = text(scenario, "composition_mode", "scenario_composition")?;
         let aggregation_method = &scenario["aggregation_method_ref"];
         match mode {
             "SINGLE_MEMBER" if refs.len() != 1 => {
-                return Err(format!("scenario {scenario_id} is SINGLE_MEMBER but has multiple members"));
+                return Err(format!(
+                    "scenario {scenario_id} is SINGLE_MEMBER but has multiple members"
+                ));
             }
             "PARALLEL_NOT_POOLED" if refs.len() < 2 => {
-                return Err(format!("scenario {scenario_id} is PARALLEL_NOT_POOLED but has fewer than two members"));
+                return Err(format!(
+                    "scenario {scenario_id} is PARALLEL_NOT_POOLED but has fewer than two members"
+                ));
             }
             "APPROVED_STATISTICAL_AGGREGATION"
                 if aggregation_method.as_str().is_none_or(str::is_empty) =>
             {
-                return Err(format!("scenario {scenario_id} aggregates without a method reference"));
+                return Err(format!(
+                    "scenario {scenario_id} aggregates without a method reference"
+                ));
             }
             "SINGLE_MEMBER" | "PARALLEL_NOT_POOLED" | "MEMBERWISE_STRESS_SET"
                 if !aggregation_method.is_null() =>
             {
-                return Err(format!("scenario {scenario_id} supplies an aggregation method for a non-aggregated mode"));
+                return Err(format!(
+                    "scenario {scenario_id} supplies an aggregation method for a non-aggregated mode"
+                ));
             }
-            "SINGLE_MEMBER" | "PARALLEL_NOT_POOLED" | "MEMBERWISE_STRESS_SET"
+            "SINGLE_MEMBER"
+            | "PARALLEL_NOT_POOLED"
+            | "MEMBERWISE_STRESS_SET"
             | "APPROVED_STATISTICAL_AGGREGATION" => {}
-            _ => return Err(format!("scenario {scenario_id} has unknown composition mode {mode}")),
+            _ => {
+                return Err(format!(
+                    "scenario {scenario_id} has unknown composition mode {mode}"
+                ));
+            }
         }
 
         let events = array(scenario, "service_event_refs", "scenario_composition")?;
         if purpose == "COMPOUND_RESILIENCE" && events.is_empty() {
-            return Err(format!("compound scenario {scenario_id} has no service event"));
+            return Err(format!(
+                "compound scenario {scenario_id} has no service event"
+            ));
         }
         for event in events {
             only_keys(
                 event,
-                &["owner", "event_ref", "event_class", "timebase_ref", "alignment_state"],
+                &[
+                    "owner",
+                    "event_ref",
+                    "event_class",
+                    "timebase_ref",
+                    "alignment_state",
+                ],
                 "service_event_ref",
             )?;
             text(event, "owner", "service_event_ref")?;
@@ -387,19 +447,33 @@ fn evaluate(root: &Value) -> Result<Value, String> {
             text(event, "event_class", "service_event_ref")?;
             let alignment = text(event, "alignment_state", "service_event_ref")?;
             if alignment == "QUALIFIED_ALIGNMENT" {
-                return Err("synthetic fixture cannot claim a qualified real-world timebase alignment".to_owned());
+                return Err(
+                    "synthetic fixture cannot claim a qualified real-world timebase alignment"
+                        .to_owned(),
+                );
             }
         }
     }
 
     let cases = array(root, "adversarial_cases", "root")?;
     if cases.len() != 25 {
-        return Err(format!("expected exactly 25 adversarial cases, found {}", cases.len()));
+        return Err(format!(
+            "expected exactly 25 adversarial cases, found {}",
+            cases.len()
+        ));
     }
     let mut case_ids = BTreeSet::new();
     for case in cases {
-        only_keys(case, &["case_id", "attack", "expected_result"], "adversarial_case")?;
-        unique_insert(&mut case_ids, text(case, "case_id", "adversarial_case")?, "adversarial cases")?;
+        only_keys(
+            case,
+            &["case_id", "attack", "expected_result"],
+            "adversarial_case",
+        )?;
+        unique_insert(
+            &mut case_ids,
+            text(case, "case_id", "adversarial_case")?,
+            "adversarial cases",
+        )?;
         text(case, "attack", "adversarial_case")?;
         let expected = text(case, "expected_result", "adversarial_case")?;
         if ![
@@ -412,7 +486,9 @@ fn evaluate(root: &Value) -> Result<Value, String> {
         ]
         .contains(&expected)
         {
-            return Err(format!("adversarial case has unsupported expected result {expected}"));
+            return Err(format!(
+                "adversarial case has unsupported expected result {expected}"
+            ));
         }
     }
 
