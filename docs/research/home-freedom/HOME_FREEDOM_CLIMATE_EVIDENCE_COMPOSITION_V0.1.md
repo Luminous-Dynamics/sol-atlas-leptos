@@ -51,7 +51,9 @@ Never merge these types into one generic weather-file field. When sources are co
 - **On-site microclimate:** must reference Mycelix's exact instrument passport, installation, sample and stream-timebase receipts. An airport-to-courtyard adjustment without an independently qualified method is not a measurement.
 - **Future climate:** each member requires explicit model, ensemble member, pathway/scenario, projection period, downscaling and bias-correction method where used. Preserve individual ensemble members; do not hide spread in one average.
 
-The Tambo International and Botanical Gardens TMYx listings in #593 remain candidate listings only until exact files, EPW/STAT headers, coordinates/elevation, coverage, quality, station relationship, licence and representativeness are inspected. This contract admits neither file.
+The current Climate.OneBuilding South Africa catalogue lists 2011–2025 TMYx entries for both Johannesburg-Tambo International Airport (WMO 683680) and Johannesburg Botanical Gardens (WMO 683610), alongside rolling 2004–2018, 2007–2021 and 2009–2023 windows and an all-available-period file. Its source description says TMYx combines hourly station meteorology from the legacy NCEI/NOAA ISD with gridded ERA5 solar-radiation data. The source guide says the selected source year for each month is recorded in EPW COMMENT 1 and the STAT file; a 2011–2025 TMYx is therefore a 15-year selection pool, not a continuous 15-year event series. Preserve that source construction lineage and every selected-month year.
+
+The catalogue entries are now confirmed as current candidate listings, but the ZIP download did not complete in this work session, so no EPW/STAT header, coordinates/elevation, month-source years, variable coverage, digest or embedded station metadata have been inspected. Licence/redistribution and representativeness also remain unresolved. Neither file is admitted by this contract.
 
 ## 3. Evidence member contract
 
@@ -169,6 +171,8 @@ As of 17 November 2026: no Highveld weather extraction has been admitted; SAWS a
 
 - Copernicus ERA5 hourly single-level time-series: https://cds.climate.copernicus.eu/datasets/reanalysis-era5-single-levels-timeseries
 - Copernicus ERA5-Land hourly: https://cds.climate.copernicus.eu/datasets/reanalysis-era5-land
+- Climate.OneBuilding South Africa TMYx catalogue: https://www.climate.onebuilding.org/WMO_Region_1_Africa/ZAF_South_Africa/index.html
+- Climate.OneBuilding TMYx source/method notes: https://www.climate.onebuilding.org/sources/
 - NOAA Integrated Surface Database: https://www.ncei.noaa.gov/products/land-based-station/integrated-surface-database
 - NOAA Global Historical Climatology Network hourly (GHCNh): https://www.ncei.noaa.gov/products/global-historical-climatology-network-hourly
 - NOAA station histories / HOMR: https://www.ncei.noaa.gov/products/land-based-station/station-histories
