@@ -214,10 +214,19 @@ pub fn HomeExpressionPage() -> impl IntoView {
                 </div>
                 <div class="home-expression-style-grid">
                     {styles.into_iter().map(|style| {
-                        let id_primary = style.id.clone();
-                        let id_secondary = style.id.clone();
-                        let id_avoid = style.id.clone();
-                        let id_acceptable = style.id.clone();
+                        let id_primary_active = style.id.clone();
+                        let id_primary_pressed = style.id.clone();
+                        let id_primary_click = style.id.clone();
+                        let id_secondary_active = style.id.clone();
+                        let id_secondary_pressed = style.id.clone();
+                        let id_secondary_click = style.id.clone();
+                        let id_avoid_active = style.id.clone();
+                        let id_avoid_pressed = style.id.clone();
+                        let id_avoid_click = style.id.clone();
+                        let id_acceptable_active = style.id.clone();
+                        let id_acceptable_pressed = style.id.clone();
+                        let id_acceptable_click = style.id.clone();
+                        let role_label_id = style.id.clone();
 
                         view! {
                             <article class="home-expression-style-card">
@@ -226,28 +235,28 @@ pub fn HomeExpressionPage() -> impl IntoView {
                                 <p class="home-expression-card-description">{style.description.clone()}</p>
                                 <div class="home-expression-role-row" aria-label="Style preference">
                                     <button
-                                        class:active=move || current_preference(style_roles, &id_primary) == "PRIMARY"
-                                        aria-pressed=move || (current_preference(style_roles, &id_primary) == "PRIMARY").to_string()
-                                        on:click=move |_| set_style_role(style_roles, id_primary.clone(), "PRIMARY")
+                                        class:active=move || current_preference(style_roles, &id_primary_active) == "PRIMARY"
+                                        aria-pressed=move || (current_preference(style_roles, &id_primary_pressed) == "PRIMARY").to_string()
+                                        on:click=move |_| set_style_role(style_roles, id_primary_click.clone(), "PRIMARY")
                                     >"Primary"</button>
                                     <button
-                                        class:active=move || current_preference(style_roles, &id_secondary) == "SECONDARY"
-                                        aria-pressed=move || (current_preference(style_roles, &id_secondary) == "SECONDARY").to_string()
-                                        on:click=move |_| set_style_role(style_roles, id_secondary.clone(), "SECONDARY")
+                                        class:active=move || current_preference(style_roles, &id_secondary_active) == "SECONDARY"
+                                        aria-pressed=move || (current_preference(style_roles, &id_secondary_pressed) == "SECONDARY").to_string()
+                                        on:click=move |_| set_style_role(style_roles, id_secondary_click.clone(), "SECONDARY")
                                     >"Blend"</button>
                                     <button
-                                        class:active=move || current_preference(style_roles, &id_avoid) == "AVOID"
-                                        aria-pressed=move || (current_preference(style_roles, &id_avoid) == "AVOID").to_string()
-                                        on:click=move |_| set_style_role(style_roles, id_avoid.clone(), "AVOID")
+                                        class:active=move || current_preference(style_roles, &id_avoid_active) == "AVOID"
+                                        aria-pressed=move || (current_preference(style_roles, &id_avoid_pressed) == "AVOID").to_string()
+                                        on:click=move |_| set_style_role(style_roles, id_avoid_click.clone(), "AVOID")
                                     >"Avoid"</button>
                                     <button
-                                        class:active=move || current_preference(style_roles, &id_acceptable) == "ACCEPTABLE"
-                                        aria-pressed=move || (current_preference(style_roles, &id_acceptable) == "ACCEPTABLE").to_string()
-                                        on:click=move |_| set_style_role(style_roles, id_acceptable.clone(), "ACCEPTABLE")
+                                        class:active=move || current_preference(style_roles, &id_acceptable_active) == "ACCEPTABLE"
+                                        aria-pressed=move || (current_preference(style_roles, &id_acceptable_pressed) == "ACCEPTABLE").to_string()
+                                        on:click=move |_| set_style_role(style_roles, id_acceptable_click.clone(), "ACCEPTABLE")
                                     >"Acceptable"</button>
                                 </div>
                                 <p class="home-expression-current-role">
-                                    {move || match current_preference(style_roles, &style.id).as_str() {
+                                    {move || match current_preference(style_roles, &role_label_id).as_str() {
                                         "PRIMARY" => "Primary direction",
                                         "SECONDARY" => "Secondary blend",
                                         "AVOID" => "Explicitly avoided",
@@ -301,9 +310,13 @@ pub fn HomeExpressionPage() -> impl IntoView {
                 </div>
                 <div class="home-expression-package-grid">
                     {experiences.into_iter().map(|package| {
-                        let id_prefer = package.id.clone();
-                        let id_consider = package.id.clone();
-                        let id_avoid = package.id.clone();
+                        let id_prefer_active = package.id.clone();
+                        let id_prefer_click = package.id.clone();
+                        let id_consider_active = package.id.clone();
+                        let id_consider_click = package.id.clone();
+                        let id_avoid_active = package.id.clone();
+                        let id_avoid_click = package.id.clone();
+                        let package_label_id = package.id.clone();
 
                         view! {
                             <article class="home-expression-package-card">
@@ -312,20 +325,20 @@ pub fn HomeExpressionPage() -> impl IntoView {
                                 <p class="home-expression-card-description">{package.description.clone()}</p>
                                 <div class="home-expression-package-actions">
                                     <button
-                                        class:active=move || current_preference(experience_states, &id_prefer) == "PREFERRED"
-                                        on:click=move |_| set_experience_state(experience_states, id_prefer.clone(), "PREFERRED")
+                                        class:active=move || current_preference(experience_states, &id_prefer_active) == "PREFERRED"
+                                        on:click=move |_| set_experience_state(experience_states, id_prefer_click.clone(), "PREFERRED")
                                     >"Prefer"</button>
                                     <button
-                                        class:active=move || current_preference(experience_states, &id_consider) == "CONSIDERED"
-                                        on:click=move |_| set_experience_state(experience_states, id_consider.clone(), "CONSIDERED")
+                                        class:active=move || current_preference(experience_states, &id_consider_active) == "CONSIDERED"
+                                        on:click=move |_| set_experience_state(experience_states, id_consider_click.clone(), "CONSIDERED")
                                     >"Consider"</button>
                                     <button
-                                        class:active=move || current_preference(experience_states, &id_avoid) == "AVOIDED"
-                                        on:click=move |_| set_experience_state(experience_states, id_avoid.clone(), "AVOIDED")
+                                        class:active=move || current_preference(experience_states, &id_avoid_active) == "AVOIDED"
+                                        on:click=move |_| set_experience_state(experience_states, id_avoid_click.clone(), "AVOIDED")
                                     >"Avoid"</button>
                                 </div>
                                 <p class="home-expression-current-role">
-                                    {move || match current_preference(experience_states, &package.id).as_str() {
+                                    {move || match current_preference(experience_states, &package_label_id).as_str() {
                                         "PREFERRED" => "Your preferred option",
                                         "CONSIDERED" => "Worth exploring",
                                         "AVOIDED" => "Explicitly avoided",
