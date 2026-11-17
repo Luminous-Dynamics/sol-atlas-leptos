@@ -1,0 +1,712 @@
+{
+  "schema_version": "luminous.habitat.reference-scenario/0.1",
+  "scenario_id": "HIGHVELD-KEEP-SYNTHETIC-001",
+  "programme": "Luminous Habitats / CityMaker",
+  "issue": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/607",
+  "revision_status": "E0_CONCEPT_SYNTHETIC",
+  "created_date": "2026-11-07",
+  "claim_ceiling": "synthetic_requirements_and_design_space_only",
+  "geography": {
+    "reference_region": "Johannesburg / Highveld, South Africa",
+    "reference_only": true,
+    "parcel_id": null,
+    "coordinates": null,
+    "survey": null,
+    "zoning": null,
+    "title_conditions": null,
+    "geotechnical_report": null,
+    "dolomite_assessment": null,
+    "status": "UNKNOWN_NO_REAL_PARCEL_SELECTED"
+  },
+  "synthetic_site_envelope": {
+    "enabled_for_fixture_search_only": true,
+    "shape": "rectangle",
+    "width_m": 60,
+    "depth_m": 80,
+    "local_coordinate_frame": "ENU_SYNTHETIC",
+    "orientation_deg_from_true_north": null,
+    "slope": null,
+    "setbacks_m": null,
+    "coverage_limit": null,
+    "height_limit_m": null,
+    "label": "SYNTHETIC_NOT_A_SURVEY_OR_ZONING_ENVELOPE",
+    "status": "ASSUMPTION_NOT_SITE_EVIDENCE"
+  },
+  "household": {
+    "occupants_min": 4,
+    "occupants_max": 6,
+    "status": "SYNTHETIC_BENCHMARK_ASSUMPTION",
+    "real_resident_requirements": "NOT_YET_COLLECTED",
+    "privacy_rule": "do_not_infer_care_mobility_cultural_or_household_preferences_from_demographic_proxies"
+  },
+  "functional_programme": [
+    {
+      "id": "arrival",
+      "function": "accessible arrival, sheltered entrance and legible visitor transition",
+      "requirement_class": "HARD_INTENT",
+      "level": "arrival_level",
+      "geometry_status": "NOT_MODELED"
+    },
+    {
+      "id": "great_hall",
+      "function": "shared living, gathering and communal heart",
+      "requirement_class": "SOFT_WITH_MINIMUM_FUNCTION",
+      "level": "arrival_level",
+      "geometry_status": "NOT_MODELED"
+    },
+    {
+      "id": "kitchen_dining",
+      "function": "food preparation, storage and dining tasks",
+      "requirement_class": "HARD_TASK_COVERAGE",
+      "level": "arrival_level",
+      "geometry_status": "NOT_MODELED"
+    },
+    {
+      "id": "library_quiet",
+      "function": "quiet study, reading and retreat",
+      "requirement_class": "PREFERENCE",
+      "level": "TBD",
+      "geometry_status": "NOT_MODELED"
+    },
+    {
+      "id": "work_making",
+      "function": "workshop, making, repair and focused work",
+      "requirement_class": "HARD_TASK_COVERAGE",
+      "level": "arrival_level_or_step_free_access",
+      "geometry_status": "NOT_MODELED"
+    },
+    {
+      "id": "sleeping_rooms",
+      "count": 4,
+      "function": "sleeping and personal privacy, including one flexible guest/care room",
+      "requirement_class": "HARD_PROGRAMME_ASSUMPTION",
+      "level": "TBD",
+      "geometry_status": "NOT_MODELED"
+    },
+    {
+      "id": "accessible_washroom",
+      "function": "accessible essential daily tasks",
+      "requirement_class": "HARD_INTENT",
+      "level": "arrival_level",
+      "geometry_status": "NOT_MODELED"
+    },
+    {
+      "id": "service_plant",
+      "function": "laundry, utilities, plant, storage, waste and maintenance access",
+      "requirement_class": "HARD_TASK_COVERAGE",
+      "level": "service_accessible",
+      "geometry_status": "NOT_MODELED"
+    },
+    {
+      "id": "outdoor_living",
+      "function": "shaded, step-free outdoor living, courtyard or garden",
+      "requirement_class": "HARD_ACCESS_PLUS_PREFERENCE",
+      "level": "arrival_level",
+      "geometry_status": "NOT_MODELED"
+    },
+    {
+      "id": "vehicle_bicycle_arrival",
+      "function": "vehicle and bicycle arrival with responder approach preserved",
+      "requirement_class": "HARD_SITE_DEPENDENT",
+      "level": "site",
+      "geometry_status": "NOT_MODELED"
+    }
+  ],
+  "architectural_alternatives": [
+    {
+      "id": "A_COURTYARD_CLOISTER",
+      "description": "central accessible garden court, inhabited galleries and great hall",
+      "questions": [
+        "courtyard daylight and seasonal solar access",
+        "privacy and overlooking",
+        "external envelope and heat loss/gain",
+        "accessible circulation continuity",
+        "maintenance and drainage",
+        "fabrication and roof span feasibility"
+      ],
+      "status": "HYPOTHESIS_NOT_GEOMETRY",
+      "family": "courtyard_cloister"
+    },
+    {
+      "id": "B_WINGED_GREAT_HALL",
+      "description": "central communal hall with residential wings and sheltered garden court",
+      "questions": [
+        "communal/private threshold quality",
+        "circulation distance and legibility",
+        "roof and structural system efficiency",
+        "passive shading and cross ventilation",
+        "phasing and fabrication"
+      ],
+      "status": "HYPOTHESIS_NOT_GEOMETRY",
+      "family": "winged_great_hall"
+    },
+    {
+      "id": "C_COMPACT_KEEP",
+      "description": "compact potentially two-storey form with concentrated services",
+      "questions": [
+        "envelope compactness versus accessible daily tasks",
+        "step-free access and vertical dependence",
+        "fire strategy and evacuation",
+        "stack effect and summer overheating",
+        "maintenance access and adaptation"
+      ],
+      "status": "HYPOTHESIS_NOT_GEOMETRY",
+      "family": "compact_keep"
+    },
+    {
+      "id": "D_GARDEN_PAVILIONS",
+      "description": "lower-volume wings linked by covered circulation around gardens",
+      "questions": [
+        "accessible covered circulation",
+        "envelope-area and service-run penalty",
+        "daylight and garden connection",
+        "phased fabrication and repair",
+        "weather exposure and maintenance"
+      ],
+      "status": "HYPOTHESIS_NOT_GEOMETRY",
+      "family": "garden_pavilions"
+    }
+  ],
+  "climate_inputs": {
+    "reference_profile": "JOHANNESBURG_HIGHVELD_REGIONAL_REFERENCE",
+    "candidate_weather_files": [
+      {
+        "id": "JOBURG_TAMBO_TMYX_2011_2025",
+        "filename": "ZAF_GT_Johannesburg-Tambo.Intl.AP.683680_TMYx.2011-2025.zip",
+        "source": "https://climate.onebuilding.org/WMO_Region_1_Africa/ZAF_South_Africa/index.html",
+        "dataset_type": "TYPICAL_METEOROLOGICAL_YEAR",
+        "status": "CATALOGUED_NOT_HEADER_INSPECTED_OR_QUALIFIED",
+        "sha256": null,
+        "reuse_rights": "UNKNOWN",
+        "site_representativeness": "UNKNOWN",
+        "source_page_rights_note": "source_page_footer_states_copyright_2014-2026_climate_onebuilding_all_rights_reserved; no_file_specific_license_or_redistribution_terms_located_in_source_page; permission_and_reuse_terms_require_direct_review"
+      },
+      {
+        "id": "JOBURG_BOTANICAL_GARDENS_TMYX_2011_2025",
+        "filename": "ZAF_GT_Johannesburg.Botanical.Gardens.683610_TMYx.2011-2025.zip",
+        "source": "https://climate.onebuilding.org/WMO_Region_1_Africa/ZAF_South_Africa/index.html",
+        "dataset_type": "TYPICAL_METEOROLOGICAL_YEAR",
+        "status": "CATALOGUED_NOT_HEADER_INSPECTED_OR_QUALIFIED",
+        "sha256": null,
+        "reuse_rights": "UNKNOWN",
+        "site_representativeness": "UNKNOWN",
+        "source_page_rights_note": "source_page_footer_states_copyright_2014-2026_climate_onebuilding_all_rights_reserved; no_file_specific_license_or_redistribution_terms_located_in_source_page; permission_and_reuse_terms_require_direct_review"
+      },
+      {
+        "id": "JOBURG_GRAND_CENTRAL_TMYX_2011_2025",
+        "filename": "ZAF_GT_Grand.Central.AP.682650_TMYx.2011-2025.zip",
+        "source": "https://climate.onebuilding.org/WMO_Region_1_Africa/ZAF_South_Africa/index.html",
+        "dataset_type": "TYPICAL_METEOROLOGICAL_YEAR",
+        "status": "CATALOGUED_NOT_HEADER_INSPECTED_OR_QUALIFIED",
+        "sha256": null,
+        "reuse_rights": "UNKNOWN",
+        "site_representativeness": "UNKNOWN",
+        "publisher_display_size_kib_approx": 394,
+        "source_page_rights_note": "source_page_footer_states_copyright_2014-2026_climate_onebuilding_all_rights_reserved; no_file_specific_license_or_redistribution_terms_located_in_source_page; permission_and_reuse_terms_require_direct_review"
+      },
+      {
+        "id": "JOBURG_RAND_AIRPORT_TMYX_2011_2025",
+        "filename": "ZAF_GT_Rand.AP.683463_TMYx.2011-2025.zip",
+        "source": "https://climate.onebuilding.org/WMO_Region_1_Africa/ZAF_South_Africa/index.html",
+        "dataset_type": "TYPICAL_METEOROLOGICAL_YEAR",
+        "status": "CATALOGUED_NOT_HEADER_INSPECTED_OR_QUALIFIED",
+        "sha256": null,
+        "reuse_rights": "UNKNOWN",
+        "site_representativeness": "UNKNOWN",
+        "publisher_display_size_kib_approx": 420,
+        "source_page_rights_note": "source_page_footer_states_copyright_2014-2026_climate_onebuilding_all_rights_reserved; no_file_specific_license_or_redistribution_terms_located_in_source_page; permission_and_reuse_terms_require_direct_review"
+      },
+      {
+        "id": "JOBURG_LANSERIA_INTL_TMYX_2011_2025",
+        "filename": "ZAF_GT_Lanseria.Intl.AP.682635_TMYx.2011-2025.zip",
+        "source": "https://climate.onebuilding.org/WMO_Region_1_Africa/ZAF_South_Africa/index.html",
+        "dataset_type": "TYPICAL_METEOROLOGICAL_YEAR",
+        "status": "CATALOGUED_NOT_HEADER_INSPECTED_OR_QUALIFIED",
+        "sha256": null,
+        "reuse_rights": "UNKNOWN",
+        "site_representativeness": "UNKNOWN",
+        "publisher_display_size_kib_approx": 400,
+        "source_page_rights_note": "source_page_footer_states_copyright_2014-2026_climate_onebuilding_all_rights_reserved; no_file_specific_license_or_redistribution_terms_located_in_source_page; permission_and_reuse_terms_require_direct_review"
+      }
+    ],
+    "separate_required_profiles": [
+      "historical_hot_spell_and_hot_night",
+      "historical_cold_night",
+      "hail_and_intense_rainfall",
+      "site_specific_wind_and_storm",
+      "future_climate_scenario_with_model_period_and_quantile",
+      "grid_outage_during_hot_spell",
+      "water_supply_disruption",
+      "air_quality_constrained_ventilation"
+    ],
+    "prohibited_substitutions": [
+      "TMY_AS_HEATWAVE",
+      "REGIONAL_WEATHER_AS_PARCEL_WEATHER",
+      "MODELLED_AS_MEASURED",
+      "UNQUALIFIED_FILE_AS_VALIDATED_INPUT"
+    ],
+    "station_ensemble_policy": {
+      "status": "REGIONAL_CANDIDATE_ENSEMBLE_NOT_LOCAL_SITE_WEATHER",
+      "purpose": "sensitivity_testing_across_available_joburg_gauteng_station_exposures_before_a_parcel_is_selected",
+      "rule": "preserve_each_file_as_a_distinct_source_and_model_scenario",
+      "prohibited": [
+        "blind_average_of_station_files",
+        "choose_nearest_station_without_exposure_review",
+        "infer_parcel_representativeness_from_city_name",
+        "use_tmy_as_extreme_or_future_climate"
+      ],
+      "qualification_requirements": [
+        "header_and_stat_inspection",
+        "station_identity_and_location_history",
+        "file_sha256",
+        "reuse_rights",
+        "data_period_and_variable_coverage",
+        "station_exposure_and_urban_context",
+        "site_distance_elevation_and_terrain",
+        "independent_comparison_to_public_station_data"
+      ],
+      "selected_site_station": null
+    }
+  },
+  "design_hypotheses": {
+    "solar_control": "compare orientation, winter solar access and summer shading; do not hardcode orientation before site survey",
+    "thermal": "compare mass, insulation, shading, glazing and night purge as interacting variables",
+    "ventilation": "admit only where outdoor temperature, air quality, noise, security and weather conditions support it",
+    "water": "consider harvesting, storage and safe reuse; keep potable and non-potable systems separated",
+    "energy": "consider PV, battery, load management and local/manual fallback; no capacity selected",
+    "landscape": "use locally appropriate low-irrigation shade and habitat planting with site-specific fire/maintenance review",
+    "stormwater": "design drainage, overflow, rain gardens and swales as engineered infrastructure",
+    "materials": "compare conventional masonry/concrete/steel, stone expression, qualified timber/hybrid, panelized/precast and narrowly qualified additive components"
+  },
+  "life_safety_and_security": {
+    "principles": [
+      "welcoming_not_militarized",
+      "proportionate_access_control",
+      "privacy_balanced_with_natural_visibility",
+      "accessible_everyday_routes",
+      "independent_emergency_egress",
+      "responder_access",
+      "manual_operation_during_outages",
+      "site_specific_fire_and_flood_review"
+    ],
+    "qualified_reviews_required": [
+      "structural",
+      "fire_and_egress",
+      "accessibility",
+      "geotechnical",
+      "stormwater",
+      "security",
+      "electrical_and_energy",
+      "water_and_sanitation"
+    ],
+    "prohibited": [
+      "traps_or_hazardous_deterrents",
+      "weapons",
+      "autonomous_enforcement",
+      "surveillance_dependent_safety_claims"
+    ]
+  },
+  "solver_contracts": {
+    "geometry_authority": {
+      "owner": "Symtropy",
+      "reference": "https://github.com/Luminous-Dynamics/symtropy/issues/683",
+      "status": "EXACT_GEOMETRY_PROVIDER_REQUIRED"
+    },
+    "solver_boundary": {
+      "owner": "Symtropy",
+      "reference": "https://github.com/Luminous-Dynamics/symtropy/issues/1790",
+      "status": "SPECIALIST_ADAPTERS_ONLY"
+    },
+    "thermal_energy": {
+      "owner": "Symtropy",
+      "reference": "https://github.com/Luminous-Dynamics/symtropy/issues/1900",
+      "engine_candidate": "EnergyPlus 26.2.0",
+      "status": "USE_VERSION_PINNED_QUALIFIED_ADAPTER"
+    },
+    "structural": {
+      "engine": null,
+      "status": "NOT_SELECTED_REQUIRES_REFERENCE_CASE_AND_PROFESSIONAL_OWNER"
+    },
+    "fire_egress": {
+      "engine": null,
+      "status": "QUALIFIED_FIRE_PROFESSIONAL_REVIEW_REQUIRED"
+    },
+    "daylight": {
+      "engine": null,
+      "status": "SPECIALIST_ADAPTER_AND_SCOPE_NOT_SELECTED"
+    },
+    "wind_geotechnical_stormwater": {
+      "engine": null,
+      "status": "SITE_SPECIFIC_QUALIFIED_ANALYSIS_REQUIRED"
+    }
+  },
+  "approval_context": {
+    "south_african_register": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/604",
+    "municipal_planning": "https://joburg.org.za/work_/Pages/Work%20in%20Joburg/Building%20Plans/Building-Plans.aspx",
+    "nhbrc": "https://www.nhbrc.org.za/why-enrol/",
+    "status": "NO_APPROVAL_OR_COMPLIANCE_CLAIM"
+  },
+  "benchmark_outcomes": [
+    "blind_aesthetic_and_place_identity_review",
+    "resident_task_completion_and_accessibility",
+    "area_and_circulation",
+    "daylight_glare_and_views",
+    "thermal_trajectories_and_energy",
+    "ventilation_and_indoor_air_quality",
+    "water_demand_and_outage_behavior",
+    "fire_egress_and_responder_access_review",
+    "structural_solver_reference_error_within_scope",
+    "initial_and_whole_life_cost",
+    "whole_life_carbon_and_water",
+    "fabrication_completeness_tolerance_first_pass_yield_and_rework",
+    "maintenance_repair_replacement_and_adaptation",
+    "privacy_perceived_safety_and_resident_control"
+  ],
+  "hard_constraints": [
+    "no_accessibility_hard_gate_failure",
+    "no_fire_or_egress_hard_gate_failure",
+    "no_responder_access_failure",
+    "no_missing_or_nonconverged_solver_pass",
+    "no_unqualified_material_or_system_approval",
+    "no_autonomous_robot_execution_without_physical_safety_case",
+    "no_real_site_claim_from_synthetic_assumptions"
+  ],
+  "evidence_tier": "E0",
+  "unresolved_inputs": [
+    "real_site_and_title",
+    "survey_and_orientation",
+    "geotechnical_and_dolomite_assessment",
+    "qualified_weather_file_and_extreme_event_data",
+    "resident_requirements",
+    "zoning_and_setbacks",
+    "material_sources_and_grades",
+    "structural_system_and_solver_reference",
+    "fire_strategy",
+    "water_and_energy_capacity",
+    "budget_and_whole_life_cost_basis"
+  ],
+  "functional_relationships": [
+    {
+      "id": "REL-001",
+      "source": "arrival",
+      "target": "great_hall",
+      "relation": "must_have_step_free_route",
+      "requirement_class": "hard",
+      "reason": "The communal living/gathering function is part of the essential arrival-level task network."
+    },
+    {
+      "id": "REL-002",
+      "source": "arrival",
+      "target": "kitchen_dining",
+      "relation": "must_have_step_free_route",
+      "requirement_class": "hard",
+      "reason": "Food preparation and dining are essential daily tasks."
+    },
+    {
+      "id": "REL-003",
+      "source": "arrival",
+      "target": "accessible_washroom",
+      "relation": "must_have_arrival_level_access",
+      "requirement_class": "hard",
+      "reason": "The synthetic reference brief requires an accessible washroom on the arrival level."
+    },
+    {
+      "id": "REL-004",
+      "source": "arrival",
+      "target": "work_making",
+      "relation": "must_have_step_free_route",
+      "requirement_class": "hard",
+      "reason": "The synthetic programme requires access to work/making/repair tasks without relying on stairs."
+    },
+    {
+      "id": "REL-005",
+      "source": "arrival",
+      "target": "outdoor_living",
+      "relation": "must_have_step_free_route",
+      "requirement_class": "hard",
+      "reason": "The courtyard/garden and outdoor living function is part of the accessible daily-use network."
+    },
+    {
+      "id": "REL-006",
+      "source": "arrival",
+      "target": "great_hall",
+      "relation": "visitor_route_must_avoid_private_zone",
+      "via_excluded": [
+        "sleeping_rooms"
+      ],
+      "requirement_class": "hard",
+      "reason": "Visitor access to shared gathering space must not require passage through private sleeping areas."
+    },
+    {
+      "id": "REL-007",
+      "source": "service_plant",
+      "target": "arrival",
+      "relation": "maintenance_access_must_avoid_private_zone",
+      "via_excluded": [
+        "sleeping_rooms"
+      ],
+      "requirement_class": "hard",
+      "reason": "Routine inspection and repair of plant/services should not require entry through sleeping rooms."
+    },
+    {
+      "id": "REL-008",
+      "source": "kitchen_dining",
+      "target": "outdoor_living",
+      "relation": "should_be_adjacent",
+      "requirement_class": "preference",
+      "reason": "A useful indoor/outdoor food and gathering relationship; evaluate privacy, climate, maintenance and ventilation trade-offs."
+    },
+    {
+      "id": "REL-009",
+      "source": "library_quiet",
+      "target": "great_hall",
+      "relation": "should_be_acoustically_separated",
+      "requirement_class": "preference",
+      "reason": "Quiet study may benefit from separation from communal activity; resident review must confirm the preference."
+    },
+    {
+      "id": "REL-010",
+      "source": "sleeping_rooms",
+      "target": "great_hall",
+      "relation": "should_be_acoustically_separated",
+      "requirement_class": "preference",
+      "reason": "Sleep/privacy and communal gathering can conflict; preserve this as a negotiable design preference."
+    },
+    {
+      "id": "REL-011",
+      "source": "work_making",
+      "target": "service_plant",
+      "relation": "should_be_adjacent",
+      "requirement_class": "preference",
+      "reason": "Repair/work activities may benefit from convenient service access, subject to noise and safety separation."
+    }
+  ],
+  "alternative_climate_provider_methodologies": [
+    {
+      "id": "EPW_TOOLS_STATION_REANALYSIS_FUSION",
+      "provider": "EPW.tools",
+      "methodology_source": "https://epw.tools/methodology",
+      "validation_source": "https://epw.tools/validation",
+      "actual_year_source": "https://epw.tools/amy-weather-files",
+      "products_described_by_provider": [
+        "actual_meteorological_year",
+        "typical_meteorological_year",
+        "future_climate_epw"
+      ],
+      "provider_method_claim": "station observations (NOAA ISD via Meteostat) prioritized, ERA5/MERRA-2 gap filling, satellite-derived solar where available, physical-plausibility checks",
+      "provider_validation_claim": "published design-condition comparisons against ASHRAE across 15,857 station-edition comparisons and hourly validation at seven NOAA SURFRAD sites",
+      "local_validation_status": "NOT_INDEPENDENTLY_REVIEWED_FOR_JOHANNESBURG_OR_A_HIGHVELD_PARCEL",
+      "source_file_downloaded": false,
+      "file_digest": null,
+      "reuse_rights": "UNKNOWN",
+      "licence_and_terms_checked": false,
+      "status": "RESEARCH_ONLY_NOT_INGESTED_OR_QUALIFIED",
+      "allowed_use_in_v0_1": "compare provider methodology and define a future controlled source-qualification experiment",
+      "prohibited_use_in_v0_1": [
+        "claim_local_validation",
+        "replace_climate_onebuilding_candidates",
+        "treat_vendor_validation_as_independent_luminous_validation",
+        "merge_amy_tmy_and_future_as_one_evidence_class"
+      ]
+    },
+    {
+      "id": "JOHANNESBURG_GRID_TREND_EPWT",
+      "provider": "EPW.tools",
+      "source": "https://epw.tools/climate-johannesburg",
+      "method": "NASA POWER daily 2m temperature from MERRA-2 reanalysis",
+      "spatial_resolution": "0.5_degree_grid_cell",
+      "cell_center_approximate_latitude": -26.14,
+      "cell_center_approximate_longitude": 28.24,
+      "period": "1981-2025",
+      "computed_date": "2026-10-21",
+      "provider_reported_trend": "annual mean 16.46 C (1981-1990) to 17.3 C (2016-2025), +0.84 C",
+      "scope_limit": "grid cell averages Johannesburg and surroundings; not an airport station, central-city thermometer or parcel measurement",
+      "status": "REGIONAL_RESEARCH_CONTEXT_ONLY_NOT_DESIGN_WEATHER"
+    }
+  ],
+  "station_metadata_crosschecks": [
+    {
+      "id": "JOHANNESBURG_BOTANICAL_ASHRAE_2021",
+      "station_name": "JOHANNESBURG BOTANICAL",
+      "network_code": "WMO_683610",
+      "source": "https://www.ashrae.org/file%20library/technical%20resources/bookstore/stnlist_ip.pdf",
+      "metadata_vintage": "ASHRAE_HOF_2021",
+      "latitude_deg": -26.157,
+      "longitude_deg": 27.999,
+      "elevation_ft": 5328,
+      "authority_scope": "published_station_list_metadata_only",
+      "status": "METADATA_CROSSCHECK_ONLY_NOT_SERIES_OR_SITE_QUALIFICATION",
+      "history_and_instrument_metadata": "not_reconciled",
+      "measurement_series_downloaded": false,
+      "file_digest": null
+    },
+    {
+      "id": "JOHANNESBURG_TAMBO_ASHRAE_2021",
+      "station_name": "JOHANNESBURG INTL",
+      "network_code": "WMO_683680",
+      "source": "https://www.ashrae.org/file%20library/technical%20resources/bookstore/stnlist_ip.pdf",
+      "metadata_vintage": "ASHRAE_HOF_2021",
+      "latitude_deg": -26.143,
+      "longitude_deg": 28.235,
+      "elevation_ft": 5561,
+      "authority_scope": "published_station_list_metadata_only",
+      "status": "METADATA_CROSSCHECK_ONLY_NOT_SERIES_OR_SITE_QUALIFICATION",
+      "history_and_instrument_metadata": "not_reconciled",
+      "measurement_series_downloaded": false,
+      "file_digest": null
+    },
+    {
+      "id": "JOHANNESBURG_TAMBO_NOAA_GHCND",
+      "station_name": "JOHANNESBURG INTERNATIONAL SF",
+      "network_code": "GHCND:SFM00068368",
+      "source": "https://www.ncdc.noaa.gov/cdo-web/datasets/GHCND/stations/GHCND%3ASFM00068368/detail",
+      "metadata_vintage": "page_accessed_2026-11-07",
+      "latitude_deg": -26.139,
+      "longitude_deg": 28.246,
+      "elevation_m": 1694.1,
+      "daily_summary_period_start": "1973-01-17",
+      "daily_summary_period_end": "2020-05-27",
+      "authority_scope": "NCEI_GHCND_STATION_METADATA_AND_DAILY_SUMMARY_INVENTORY",
+      "status": "METADATA_CROSSCHECK_ONLY_IDENTITY_AND_HISTORY_NOT_RECONCILED",
+      "rendered_location_history": "not_available_in_rendered_station_table",
+      "rendered_equipment_history": "not_available_in_rendered_station_table",
+      "hourly_series_downloaded": false,
+      "file_digest": null,
+      "measurement_series_downloaded": false
+    },
+    {
+      "id": "JOHANNESBURG_TAMBO_SAWS_WIGOS_OSCAR",
+      "station_name": "JOHANNESBURG INT WO",
+      "network_code": "0-20000-0-68368",
+      "source": "https://capetowndata.com/en/data/daily-rainfall/stations/johannesburg-int-wo/",
+      "primary_metadata_registry": "https://oscar.tools.wmo.int/web-client/",
+      "metadata_vintage": "secondary_index_accessed_2026-11-07",
+      "latitude_deg": -26.143,
+      "longitude_deg": 28.2346,
+      "elevation_m": 1695,
+      "status": "SECONDARY_REFERENCE_TO_WMO_OSCAR_NOT_DIRECTLY_VERIFIED",
+      "reported_registry_rebuild_date": "2026-10-29",
+      "reported_previous_town_level_latitude_deg": -26.2041,
+      "reported_previous_town_level_longitude_deg": 28.0473,
+      "reported_previous_to_current_distance_km": 19.9,
+      "authority_scope": "current_station_reference_metadata_candidate_only",
+      "history_and_instrument_metadata": "must_retrieve_directly_from_wmo_oscar_and_saws",
+      "measurement_series_downloaded": false,
+      "file_digest": null
+    },
+    {
+      "id": "JOBURG_GRAND_CENTRAL_TMYX_CATALOGUE_ONLY",
+      "station_name": "GRAND CENTRAL AIRPORT",
+      "network_code": "WMO_682650",
+      "source": "https://climate.onebuilding.org/WMO_Region_1_Africa/ZAF_South_Africa/index.html",
+      "metadata_vintage": "climate_onebuilding_south_africa_index_accessed_2026-11-07",
+      "authority_scope": "filename_station_code_only",
+      "status": "CATALOGUE_ID_ONLY_STATION_METADATA_NOT_RETRIEVED",
+      "history_and_instrument_metadata": "not_retrieved",
+      "measurement_series_downloaded": false,
+      "file_digest": null
+    },
+    {
+      "id": "JOBURG_RAND_AIRPORT_TMYX_CATALOGUE_ONLY",
+      "station_name": "RAND AIRPORT",
+      "network_code": "WMO_683463",
+      "source": "https://climate.onebuilding.org/WMO_Region_1_Africa/ZAF_South_Africa/index.html",
+      "metadata_vintage": "climate_onebuilding_south_africa_index_accessed_2026-11-07",
+      "authority_scope": "filename_station_code_only",
+      "status": "CATALOGUE_ID_ONLY_STATION_METADATA_NOT_RETRIEVED",
+      "history_and_instrument_metadata": "not_retrieved",
+      "measurement_series_downloaded": false,
+      "file_digest": null
+    },
+    {
+      "id": "JOBURG_LANSERIA_TMYX_CATALOGUE_ONLY",
+      "station_name": "LANSERIA INTERNATIONAL AIRPORT",
+      "network_code": "WMO_682635",
+      "source": "https://climate.onebuilding.org/WMO_Region_1_Africa/ZAF_South_Africa/index.html",
+      "metadata_vintage": "climate_onebuilding_south_africa_index_accessed_2026-11-07",
+      "authority_scope": "filename_station_code_only",
+      "status": "CATALOGUE_ID_ONLY_STATION_METADATA_NOT_RETRIEVED",
+      "history_and_instrument_metadata": "not_retrieved",
+      "measurement_series_downloaded": false,
+      "file_digest": null
+    }
+  ],
+  "station_network_source_profiles": [
+    {
+      "id": "ARC_OPERATIONAL_AGROCLIMATE_NETWORK",
+      "provider": "Agricultural Research Council ARC-ISCW Agrometeorology",
+      "source": "https://www.arc.agric.za/arc-iscw/Pages/Climate-Monitoring-Services.aspx",
+      "inventory_scope": "operational_national_agroclimate_network",
+      "reported_station_count_approx": 500,
+      "parameters_reported": [
+        "temperature",
+        "rainfall",
+        "humidity",
+        "radiation",
+        "wind_speed",
+        "wind_direction",
+        "wind_gust"
+      ],
+      "reported_temporal_products": [
+        "hourly",
+        "daily",
+        "monthly",
+        "yearly",
+        "long_term_average"
+      ],
+      "data_access_status": "contact_provider_for_availability_terms",
+      "status": "NETWORK_SCOPE_METADATA_ONLY_NOT_STATION_QUALIFICATION",
+      "not_evidence_of": [
+        "all_stations_active",
+        "all_stations_hourly",
+        "Johannesburg_parcel_representativeness",
+        "free_redistribution"
+      ]
+    },
+    {
+      "id": "ARC_AGROCLIMATE_WEB_PORTAL_ARCHIVE",
+      "provider": "ARC Agrometeorology Web Data Portal",
+      "source": "https://www.agroclimate.agric.za/WP/WP/About.php",
+      "inventory_scope": "historical_and_active_portal_archive",
+      "reported_total_stations_approx": 1900,
+      "reported_manual_stations": 1100,
+      "reported_automatic_weather_stations": 763,
+      "reported_active_automatic_stations": 460,
+      "reported_active_collection_cadence": "daily",
+      "reported_period_note": "some historical rainfall records extend to January 1900",
+      "data_access_status": "paid_ad_hoc_or_subscription",
+      "status": "ARCHIVE_INVENTORY_METADATA_ONLY_NOT_STATION_QUALIFICATION",
+      "not_evidence_of": [
+        "1900_currently_active_stations",
+        "all_stations_hourly",
+        "all_variables_available_at_each_station",
+        "Johannesburg_parcel_representativeness",
+        "free_redistribution"
+      ]
+    },
+    {
+      "id": "SAWS_WIS2_FIXED_LAND_SYNOP",
+      "provider": "South African Weather Service",
+      "source": "https://wis.weathersa.co.za/",
+      "product": "hourly_synoptic_observations_fixed_land_stations",
+      "public_topic": "origin/a/wis2/za-weathersa/data/core/weather/surface-based-observations/synop",
+      "public_metadata_identifier": "urn:wmo:md:za-weathersa:xoeh2t",
+      "recommended_topic": "origin/a/wis2/za-weathersa/data/recommended/weather/surface-based-observations/synop",
+      "recommended_metadata_identifier": "urn:wmo:md:za-weathersa:76h87o",
+      "access_and_license_status": "must_check_product_topic_specific_license_and_reuse_terms",
+      "station_identity_history": "not_yet_reconciled",
+      "measurement_messages_downloaded": false,
+      "status": "PORTAL_PRODUCT_METADATA_ONLY_NOT_STATION_QUALIFICATION"
+    },
+    {
+      "id": "NOAA_NCEI_GLOBAL_HOURLY_ISD",
+      "provider": "NOAA National Centers for Environmental Information",
+      "source": "https://www.ncei.noaa.gov/products/land-based-station/integrated-surface-database",
+      "product": "global_hourly_integrated_surface_database",
+      "reported_global_station_scope": "more_than_20000_stations; coverage varies by station and period",
+      "local_johannesburg_series_downloaded": false,
+      "local_station_history_reconciled": false,
+      "status": "GLOBAL_ARCHIVE_PRODUCT_METADATA_ONLY_NOT_LOCAL_SERIES_QUALIFICATION"
+    }
+  ]
+}

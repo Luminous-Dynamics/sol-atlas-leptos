@@ -1,0 +1,304 @@
+{
+  "schema_version": "luminous.habitat.parameter-space/0.1",
+  "parameter_space_id": "HIGHVELD-KEEP-PARAMETERS-SYNTHETIC-001",
+  "scenario_id": "HIGHVELD-KEEP-SYNTHETIC-001",
+  "revision_status": "E0_SYNTHETIC_SEARCH_BOUNDS",
+  "claim_ceiling": "design_space_exploration_only_not_building_dimensions_or_code_limits",
+  "coordinate_units": "SI",
+  "bounds_policy": {
+    "all_numeric_ranges_are": "SYNTHETIC_SEARCH_BOUNDS",
+    "not_interpretable_as": [
+      "structural_limits",
+      "statutory_minimums_or_maximums",
+      "site_setbacks_or_zoning_envelope",
+      "fire_or_accessibility_dimensions",
+      "verified_optimal_values"
+    ],
+    "range_selection": "for initial design-space coverage only; revise after geometry provider, site evidence, specialist review and stakeholder input",
+    "missing_parameter_policy": "UNKNOWN_NOT_IMPUTED",
+    "hard_constraint_policy": "non_compensatory; no objective score can override a failed or unknown hard gate"
+  },
+  "topology_variables": [
+    {
+      "id": "spatial_family",
+      "kind": "categorical_design_variable",
+      "values": [
+        "courtyard_cloister",
+        "winged_great_hall",
+        "compact_keep",
+        "garden_pavilions"
+      ],
+      "source": "HIGHVELD_KEEP_DESIGN_BASIS_V0_1",
+      "evidence_state": "synthetic"
+    },
+    {
+      "id": "storey_count",
+      "kind": "categorical_design_variable",
+      "values": [1, 2],
+      "unit": "storeys",
+      "note": "Two storeys is not preferred by default; evaluate step-free access, evacuation, vertical service dependence, maintenance and thermal stratification.",
+      "evidence_state": "synthetic"
+    },
+    {
+      "id": "building_orientation",
+      "kind": "continuous_design_variable",
+      "minimum": 0.0,
+      "maximum": 359.9,
+      "unit": "degrees_clockwise_from_true_north",
+      "note": "The site true-north reference is unknown until survey. This variable is a synthetic rotation only.",
+      "evidence_state": "synthetic"
+    },
+    {
+      "id": "courtyard_aspect_ratio",
+      "kind": "continuous_design_variable",
+      "minimum": 0.7,
+      "maximum": 1.6,
+      "unit": "dimensionless_width_to_depth",
+      "applies_to": ["courtyard_cloister", "winged_great_hall", "compact_keep", "garden_pavilions"],
+      "evidence_state": "synthetic_search_bound"
+    },
+    {
+      "id": "courtyard_area_ratio",
+      "kind": "continuous_design_variable",
+      "minimum": 0.08,
+      "maximum": 0.25,
+      "unit": "dimensionless_courtyard_area_to_building_footprint_area",
+      "applies_to": ["courtyard_cloister", "winged_great_hall", "compact_keep"],
+      "evidence_state": "synthetic_search_bound"
+    },
+    {
+      "id": "covered_gallery_perimeter_fraction",
+      "kind": "continuous_design_variable",
+      "minimum": 0.15,
+      "maximum": 0.5,
+      "unit": "dimensionless_fraction_of_courtyard_perimeter",
+      "applies_to": ["courtyard_cloister", "winged_great_hall", "compact_keep", "garden_pavilions"],
+      "evidence_state": "synthetic_search_bound"
+    },
+    {
+      "id": "shared_space_visibility_intent",
+      "kind": "categorical_preference",
+      "values": ["more_open", "balanced", "more_enclosed"],
+      "note": "Must be evaluated with privacy, acoustics, daylight, safety and resident input; not a crime-risk predictor.",
+      "evidence_state": "preference_to_be_validated"
+    },
+    {
+      "id": "private_service_zone_separation",
+      "kind": "categorical_design_variable",
+      "values": ["adjacent_but_distinct", "separate_wing", "service_courtyard"],
+      "evidence_state": "synthetic"
+    }
+  ],
+  "envelope_variables": [
+    {
+      "id": "roof_form",
+      "kind": "categorical_design_variable",
+      "values": ["pitched_gable", "hip", "mono_pitch", "courtyard_roof_light", "hybrid"],
+      "note": "Roof form requires structural, drainage, wind, hail, fire and maintenance review.",
+      "evidence_state": "synthetic"
+    },
+    {
+      "id": "north_facade_glazing_ratio",
+      "kind": "continuous_design_variable",
+      "minimum": 0.1,
+      "maximum": 0.45,
+      "unit": "dimensionless_glazed_area_to_gross_facade_area",
+      "evidence_state": "synthetic_search_bound"
+    },
+    {
+      "id": "east_west_facade_glazing_ratio",
+      "kind": "continuous_design_variable",
+      "minimum": 0.05,
+      "maximum": 0.3,
+      "unit": "dimensionless_glazed_area_to_gross_facade_area",
+      "evidence_state": "synthetic_search_bound"
+    },
+    {
+      "id": "south_facade_glazing_ratio",
+      "kind": "continuous_design_variable",
+      "minimum": 0.05,
+      "maximum": 0.3,
+      "unit": "dimensionless_glazed_area_to_gross_facade_area",
+      "evidence_state": "synthetic_search_bound"
+    },
+    {
+      "id": "external_shading_strategy",
+      "kind": "categorical_design_variable",
+      "values": ["overhangs", "vertical_screens", "veranda_gallery", "external_louvres", "vegetated_shade", "hybrid"],
+      "evidence_state": "synthetic"
+    },
+    {
+      "id": "thermal_mass_strategy",
+      "kind": "categorical_design_variable",
+      "values": ["low", "mixed", "high"],
+      "note": "The actual heat capacity and conductivity must come from qualified assembly/material data, not this category.",
+      "evidence_state": "synthetic"
+    },
+    {
+      "id": "insulation_assembly",
+      "kind": "qualified_product_reference",
+      "values": [],
+      "status": "UNKNOWN_UNTIL_PRODUCT_AND_ASSEMBLY_EVIDENCE",
+      "evidence_state": "unknown"
+    },
+    {
+      "id": "ventilation_strategy",
+      "kind": "categorical_design_variable",
+      "values": ["cross_ventilation", "stack_assisted", "mixed_mode", "mechanical_hybrid"],
+      "note": "Admit natural ventilation only when outdoor air quality, temperature, noise, weather, security and occupant requirements allow it.",
+      "evidence_state": "synthetic"
+    }
+  ],
+  "materials_and_production_variables": [
+    {
+      "id": "primary_structural_route",
+      "kind": "categorical_design_variable",
+      "values": [
+        "masonry_reinforced_concrete_steel",
+        "stone_expression_with_engineered_frame",
+        "qualified_timber_hybrid",
+        "panelized_or_precast_hybrid"
+      ],
+      "evidence_state": "candidate_routes_not_qualified"
+    },
+    {
+      "id": "facade_material_family",
+      "kind": "categorical_design_variable",
+      "values": ["qualified_local_stone", "masonry", "timber_screen", "earth_system_if_qualified", "hybrid"],
+      "evidence_state": "candidate_routes_not_qualified"
+    },
+    {
+      "id": "construction_route",
+      "kind": "categorical_design_variable",
+      "values": ["conventional_site_build", "panelized", "precast", "guarded_robotic_timber_panel_cell", "qualified_additive_component"],
+      "evidence_state": "candidate_routes_not_qualified"
+    },
+    {
+      "id": "connection_strategy",
+      "kind": "categorical_design_variable",
+      "values": ["engineered_welded", "bolted_mechanical", "engineered_mortar_or_grout", "hybrid"],
+      "note": "Connection selection belongs to the responsible structural/material engineer; repairability is evaluated without relaxing structural or fire requirements.",
+      "evidence_state": "synthetic"
+    },
+    {
+      "id": "material_source_and_grade",
+      "kind": "qualified_evidence_reference",
+      "values": [],
+      "status": "UNKNOWN_UNTIL_SUPPLIER_LOT_AND_QUALIFICATION",
+      "evidence_state": "unknown"
+    }
+  ],
+  "building_system_variables": [
+    {
+      "id": "energy_architecture",
+      "kind": "categorical_design_variable",
+      "values": ["grid_dominant_efficient", "pv_battery_grid_hybrid", "pv_battery_with_load_shedding", "other_engineered_microgrid"],
+      "note": "No autonomy duration or capacity is claimed; derive from measured loads, service needs, site and equipment evidence.",
+      "evidence_state": "synthetic"
+    },
+    {
+      "id": "water_architecture",
+      "kind": "categorical_design_variable",
+      "values": ["municipal_efficient", "rainwater_nonpotable_reuse", "rainwater_and_greywater_reuse", "hybrid_with_backup_storage"],
+      "note": "Potable/non-potable separation, treatment, cross-connection prevention, water rights and maintenance are hard review items.",
+      "evidence_state": "synthetic"
+    },
+    {
+      "id": "stormwater_landscape",
+      "kind": "categorical_design_variable",
+      "values": ["engineered_swales", "rain_gardens", "detention_landscape", "hybrid"],
+      "note": "Site hydrology, soil infiltration and geotechnical suitability remain unknown until assessed.",
+      "evidence_state": "synthetic"
+    },
+    {
+      "id": "plant_maintenance_access",
+      "kind": "categorical_hard_requirement",
+      "values": ["maintainable_without_damaging_primary_structure"],
+      "evidence_state": "required_intent"
+    }
+  ],
+  "hard_requirements": [
+    {
+      "id": "step_free_essential_task_network",
+      "owner": "qualified_accessibility_professional_and_resident_review",
+      "evidence_state": "required_not_yet_verified"
+    },
+    {
+      "id": "fire_strategy_and_egress",
+      "owner": "qualified_fire_professional_and_building_control_process",
+      "evidence_state": "required_not_yet_verified"
+    },
+    {
+      "id": "emergency_responder_access",
+      "owner": "qualified_fire_and_site_access_review",
+      "evidence_state": "required_not_yet_verified"
+    },
+    {
+      "id": "structural_load_path_and_foundation",
+      "owner": "registered_structural_and_geotechnical_professionals",
+      "evidence_state": "required_not_yet_verified"
+    },
+    {
+      "id": "site_legal_and_zoning",
+      "owner": "municipal_and_legal_project_process",
+      "evidence_state": "unknown_no_real_parcel"
+    },
+    {
+      "id": "qualified_products_and_materials",
+      "owner": "supplier_evidence_and_applicable_south_african_approval_pathway",
+      "evidence_state": "unknown"
+    },
+    {
+      "id": "privacy_and_local_manual_control",
+      "owner": "resident_authorized_requirements_and_system_review",
+      "evidence_state": "required_intent"
+    },
+    {
+      "id": "manual_fallback_for_essential_services",
+      "owner": "building_services_engineer_and_resident_review",
+      "evidence_state": "required_intent"
+    }
+  ],
+  "uncertainties_to_sweep": [
+    "weather_file_and_station_representativeness",
+    "occupancy_and_internal_gains",
+    "material_property_and_supply_variation",
+    "orientation_and_neighbor_shading",
+    "soil_and_foundation_conditions",
+    "grid_and_water_service_availability",
+    "construction_tolerance_and_installation_quality",
+    "future_household_task_changes"
+  ],
+  "invalidators": [
+    "site_boundary_or_orientation_change",
+    "candidate_geometry_revision",
+    "material_grade_supplier_or_product_revision",
+    "weather_file_or_schedule_revision",
+    "structural_system_or_load_case_change",
+    "fire_strategy_or_egress_change",
+    "utility_capacity_or_service_profile_change",
+    "resident_hard_requirement_change"
+  ],
+  "optimization_policy": {
+    "hard_constraints": "non_compensatory",
+    "soft_objectives": [
+      "aesthetic_and_experiential_quality",
+      "daylight_and_glare",
+      "thermal_trajectories",
+      "energy_and_water_demand",
+      "whole_life_cost_and_carbon",
+      "fabrication_and_repairability",
+      "accessibility_and_wayfinding"
+    ],
+    "aggregation": "report_objective_vector_and_pareto_set; no_universal_weighted_best_design",
+    "aesthetic_scoring": "no_single_beauty_or_meaning_score; use attributable stakeholder review",
+    "uncertainty": "sweep_declared_ranges_and_preserve_unknowns; do_not_replace_missing_evidence_with_favorable_defaults"
+  },
+  "ownership": {
+    "symthaea": ["intent", "candidate_search", "conflict_explanation", "pareto_and_value_of_information"],
+    "symtropy": ["qualified_geometry_consumer", "spatial_topology", "solver_adapters", "trajectory_and_validity"],
+    "sol_atlas": ["site_context", "climate_source_evidence", "planning_and_utility_projection"],
+    "mycelix": ["consent", "material_provenance", "decision_and_inspection_receipts"],
+    "professionals_and_authorities": ["engineering_review", "fire_and_accessibility_review", "statutory_approval"]
+  }
+}
