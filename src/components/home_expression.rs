@@ -67,10 +67,7 @@ fn load_catalog() -> (Vec<StyleOption>, Vec<ExperienceOption>) {
     (styles, experiences)
 }
 
-fn current_preference(
-    preferences: RwSignal<BTreeMap<String, String>>,
-    item_id: &str,
-) -> String {
+fn current_preference(preferences: RwSignal<BTreeMap<String, String>>, item_id: &str) -> String {
     preferences.with(|entries| {
         entries
             .get(item_id)
@@ -81,7 +78,10 @@ fn current_preference(
 
 fn set_style_role(roles: RwSignal<BTreeMap<String, String>>, style_id: String, role: &'static str) {
     roles.update(|entries| {
-        if entries.get(&style_id).is_some_and(|current| current == role) {
+        if entries
+            .get(&style_id)
+            .is_some_and(|current| current == role)
+        {
             entries.remove(&style_id);
             return;
         }
@@ -99,7 +99,10 @@ fn set_experience_state(
     state: &'static str,
 ) {
     states.update(|entries| {
-        if entries.get(&package_id).is_some_and(|current| current == state) {
+        if entries
+            .get(&package_id)
+            .is_some_and(|current| current == state)
+        {
             entries.remove(&package_id);
         } else {
             entries.insert(package_id, state.to_owned());
