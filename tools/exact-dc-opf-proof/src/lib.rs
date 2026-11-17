@@ -25,53 +25,100 @@ impl Rational {
         let mut n = numerator;
         let mut d = denominator;
         if d < 0 {
-            n = n.checked_neg().ok_or("rational sign normalization overflow")?;
+            n = n
+                .checked_neg()
+                .ok_or("rational sign normalization overflow")?;
             d = d.checked_neg().ok_or("rational denominator overflow")?;
         }
         let divisor = gcd(
-            n.checked_abs().ok_or("rational numerator magnitude overflow")? as u128,
-            d.checked_abs().ok_or("rational denominator magnitude overflow")? as u128,
+            n.checked_abs()
+                .ok_or("rational numerator magnitude overflow")? as u128,
+            d.checked_abs()
+                .ok_or("rational denominator magnitude overflow")? as u128,
         );
         let divisor = i128::try_from(divisor).map_err(|_| "rational gcd overflow")?;
-        Ok(Self { numerator: n / divisor, denominator: d / divisor })
+        Ok(Self {
+            numerator: n / divisor,
+            denominator: d / divisor,
+        })
     }
 
     pub const fn zero() -> Self {
-        Self { numerator: 0, denominator: 1 }
+        Self {
+            numerator: 0,
+            denominator: 1,
+        }
     }
 
     pub const fn one() -> Self {
-        Self { numerator: 1, denominator: 1 }
+        Self {
+            numerator: 1,
+            denominator: 1,
+        }
     }
 
     pub fn integer(value: i128) -> Self {
-        Self { numerator: value, denominator: 1 }
+        Self {
+            numerator: value,
+            denominator: 1,
+        }
     }
 
-    pub fn numerator(self) -> i128 { self.numerator }
-    pub fn denominator(self) -> i128 { self.denominator }
+    pub fn numerator(self) -> i128 {
+        self.numerator
+    }
+    pub fn denominator(self) -> i128 {
+        self.denominator
+    }
 
     pub fn checked_add(self, rhs: Self) -> Result<Self, String> {
         let common = gcd(self.denominator as u128, rhs.denominator as u128);
-        let left_scale = rhs.denominator / i128::try_from(common).map_err(|_| "rational gcd overflow")?;
-        let right_scale = self.denominator / i128::try_from(common).map_err(|_| "rational gcd overflow")?;
-        let left = self.numerator.checked_mul(left_scale).ok_or("rational addition overflow")?;
-        let right = rhs.numerator.checked_mul(right_scale).ok_or("rational addition overflow")?;
-        let numerator = left.checked_add(right).ok_or("rational addition overflow")?;
-        let denominator = self.denominator.checked_mul(left_scale).ok_or("rational denominator overflow")?;
+        let left_scale =
+            rhs.denominator / i128::try_from(common).map_err(|_| "rational gcd overflow")?;
+        let right_scale =
+            self.denominator / i128::try_from(common).map_err(|_| "rational gcd overflow")?;
+        let left = self
+            .numerator
+            .checked_mul(left_scale)
+            .ok_or("rational addition overflow")?;
+        let right = rhs
+            .numerator
+            .checked_mul(right_scale)
+            .ok_or("rational addition overflow")?;
+        let numerator = left
+            .checked_add(right)
+            .ok_or("rational addition overflow")?;
+        let denominator = self
+            .denominator
+            .checked_mul(left_scale)
+            .ok_or("rational denominator overflow")?;
         Self::new(numerator, denominator)
     }
 
     pub fn checked_sub(self, rhs: Self) -> Result<Self, String> {
-        let negated = rhs.numerator.checked_neg().ok_or("rational subtraction overflow")?;
-        self.checked_add(Self { numerator: negated, denominator: rhs.denominator })
+        let negated = rhs
+            .numerator
+            .checked_neg()
+            .ok_or("rational subtraction overflow")?;
+        self.checked_add(Self {
+            numerator: negated,
+            denominator: rhs.denominator,
+        })
     }
 
     pub fn checked_mul(self, rhs: Self) -> Result<Self, String> {
-        let g1 = gcd(self.numerator.checked_abs().ok_or("rational numerator magnitude overflow")? as u128,
-                     rhs.denominator as u128);
-        let g2 = gcd(rhs.numerator.checked_abs().ok_or("rational numerator magnitude overflow")? as u128,
-                     self.denominator as u128);
+        let g1 = gcd(
+            self.numerator
+                .checked_abs()
+                .ok_or("rational numerator magnitude overflow")? as u128,
+            rhs.denominator as u128,
+        );
+        let g2 = gcd(
+            rhs.numerator
+                .checked_abs()
+                .ok_or("rational numerator magnitude overflow")? as u128,
+            self.denominator as u128,
+        );
         let g1 = i128::try_from(g1).map_err(|_| "rational gcd overflow")?;
         let g2 = i128::try_from(g2).map_err(|_| "rational gcd overflow")?;
         let a = self.numerator / g1;
@@ -95,12 +142,20 @@ impl Rational {
         let g = gcd(self.denominator as u128, rhs.denominator as u128);
         let lscale = rhs.denominator / i128::try_from(g).map_err(|_| "rational gcd overflow")?;
         let rscale = self.denominator / i128::try_from(g).map_err(|_| "rational gcd overflow")?;
-        let left = self.numerator.checked_mul(lscale).ok_or("rational comparison overflow")?;
-        let right = rhs.numerator.checked_mul(rscale).ok_or("rational comparison overflow")?;
+        let left = self
+            .numerator
+            .checked_mul(lscale)
+            .ok_or("rational comparison overflow")?;
+        let right = rhs
+            .numerator
+            .checked_mul(rscale)
+            .ok_or("rational comparison overflow")?;
         Ok(left.cmp(&right))
     }
 
-    pub fn is_zero(self) -> bool { self.numerator == 0 }
+    pub fn is_zero(self) -> bool {
+        self.numerator == 0
+    }
 
     pub fn as_fraction(self) -> String {
         format!("{}/{}", self.numerator, self.denominator)
@@ -139,21 +194,33 @@ fn sha1(input: &[u8]) -> [u8; 20] {
     let bit_len = (input.len() as u64).wrapping_mul(8);
     let mut message = input.to_vec();
     message.push(0x80);
-    while message.len() % 64 != 56 { message.push(0); }
+    while message.len() % 64 != 56 {
+        message.push(0);
+    }
     message.extend_from_slice(&bit_len.to_be_bytes());
 
-    let (mut h0, mut h1, mut h2, mut h3, mut h4) =
-        (0x67452301_u32, 0xefcdab89_u32, 0x98badcfe_u32, 0x10325476_u32, 0xc3d2e1f0_u32);
+    let (mut h0, mut h1, mut h2, mut h3, mut h4) = (
+        0x67452301_u32,
+        0xefcdab89_u32,
+        0x98badcfe_u32,
+        0x10325476_u32,
+        0xc3d2e1f0_u32,
+    );
     for chunk in message.chunks_exact(64) {
         let mut words = [0_u32; 80];
         for (index, word) in words.iter_mut().take(16).enumerate() {
             let offset = index * 4;
             *word = u32::from_be_bytes([
-                chunk[offset], chunk[offset + 1], chunk[offset + 2], chunk[offset + 3],
+                chunk[offset],
+                chunk[offset + 1],
+                chunk[offset + 2],
+                chunk[offset + 3],
             ]);
         }
         for index in 16..80 {
-            words[index] = (words[index - 3] ^ words[index - 8] ^ words[index - 14] ^ words[index - 16]).rotate_left(1);
+            words[index] =
+                (words[index - 3] ^ words[index - 8] ^ words[index - 14] ^ words[index - 16])
+                    .rotate_left(1);
         }
         let (mut a, mut b, mut c, mut d, mut e) = (h0, h1, h2, h3, h4);
         for (index, word) in words.iter().enumerate() {
@@ -163,11 +230,23 @@ fn sha1(input: &[u8]) -> [u8; 20] {
                 40..=59 => ((b & c) | (b & d) | (c & d), 0x8f1bbcdc),
                 _ => (b ^ c ^ d, 0xca62c1d6),
             };
-            let temp = a.rotate_left(5).wrapping_add(f).wrapping_add(e).wrapping_add(k).wrapping_add(*word);
-            e = d; d = c; c = b.rotate_left(30); b = a; a = temp;
+            let temp = a
+                .rotate_left(5)
+                .wrapping_add(f)
+                .wrapping_add(e)
+                .wrapping_add(k)
+                .wrapping_add(*word);
+            e = d;
+            d = c;
+            c = b.rotate_left(30);
+            b = a;
+            a = temp;
         }
-        h0 = h0.wrapping_add(a); h1 = h1.wrapping_add(b); h2 = h2.wrapping_add(c);
-        h3 = h3.wrapping_add(d); h4 = h4.wrapping_add(e);
+        h0 = h0.wrapping_add(a);
+        h1 = h1.wrapping_add(b);
+        h2 = h2.wrapping_add(c);
+        h3 = h3.wrapping_add(d);
+        h4 = h4.wrapping_add(e);
     }
     let mut result = [0_u8; 20];
     for (index, word) in [h0, h1, h2, h3, h4].iter().enumerate() {
@@ -229,14 +308,18 @@ pub struct ExactProof {
     pub primal_dual_gap_per_hour: Rational,
 }
 
-fn r(n: i128, d: i128) -> Result<Rational, String> { Rational::new(n, d) }
+fn r(n: i128, d: i128) -> Result<Rational, String> {
+    Rational::new(n, d)
+}
 
 /// Admit only the exact frozen source bytes and the supported MATPOWER data rows.
 /// This is intentionally not a general-purpose MATPOWER parser.
 pub fn model_from_source(source: &str) -> Result<ExactModel, String> {
     let digest = git_blob_sha1(source.as_bytes());
     if digest != SOURCE_BLOB_SHA1 {
-        return Err(format!("source digest mismatch: expected {SOURCE_BLOB_SHA1}, got {digest}"));
+        return Err(format!(
+            "source digest mismatch: expected {SOURCE_BLOB_SHA1}, got {digest}"
+        ));
     }
     let required = [
         "mpc.version = '2';",
@@ -251,7 +334,9 @@ pub fn model_from_source(source: &str) -> Result<ExactModel, String> {
     ];
     for fragment in required {
         if !source.contains(fragment) {
-            return Err(format!("source does not match the supported exact model row: {fragment}"));
+            return Err(format!(
+                "source does not match the supported exact model row: {fragment}"
+            ));
         }
     }
 
@@ -261,7 +346,10 @@ pub fn model_from_source(source: &str) -> Result<ExactModel, String> {
     let susceptance_pu = Rational::one().checked_div(r(1, 10)?)?;
     let generator_lower_pu = r(0, 1)?;
     let generator_upper_pu = r(200, 1)?.checked_div(base_mva)?;
-    let generator_cost_pu = [r(10, 1)?.checked_mul(base_mva)?, r(30, 1)?.checked_mul(base_mva)?];
+    let generator_cost_pu = [
+        r(10, 1)?.checked_mul(base_mva)?,
+        r(30, 1)?.checked_mul(base_mva)?,
+    ];
     Ok(ExactModel {
         source_sha1: digest,
         base_mva,
@@ -297,7 +385,10 @@ pub fn known_certificate() -> Result<Certificate, String> {
 
 fn require_zero(label: &str, value: Rational) -> Result<(), String> {
     if !value.is_zero() {
-        return Err(format!("{label} is not exactly zero: {}", value.as_fraction()));
+        return Err(format!(
+            "{label} is not exactly zero: {}",
+            value.as_fraction()
+        ));
     }
     Ok(())
 }
@@ -315,11 +406,14 @@ pub fn verify(model: &ExactModel, certificate: Certificate) -> Result<ExactProof
     let b = model.susceptance_pu;
 
     // h1 = b(theta1 - theta2) - p1 = 0
-    let bus_1_residual = b.checked_mul(p.theta_reference_rad.checked_sub(p.theta_load_rad)?)?
+    let bus_1_residual = b
+        .checked_mul(p.theta_reference_rad.checked_sub(p.theta_load_rad)?)?
         .checked_sub(p.generator_1_pu)?;
     // h2 = b(theta2 - theta1) - p2 + demand = 0
-    let bus_2_residual = b.checked_mul(p.theta_load_rad.checked_sub(p.theta_reference_rad)?)?
-        .checked_sub(p.generator_2_pu)?.checked_add(model.demand_pu)?;
+    let bus_2_residual = b
+        .checked_mul(p.theta_load_rad.checked_sub(p.theta_reference_rad)?)?
+        .checked_sub(p.generator_2_pu)?
+        .checked_add(model.demand_pu)?;
 
     require_zero("reference angle", p.theta_reference_rad)?;
     require_zero("bus 1 active-power balance", bus_1_residual)?;
@@ -328,20 +422,34 @@ pub fn verify(model: &ExactModel, certificate: Certificate) -> Result<ExactProof
     let flow = b.checked_mul(p.theta_reference_rad.checked_sub(p.theta_load_rad)?)?;
     let negative_flow = Rational::zero().checked_sub(flow)?;
     for (label, value, lower, upper) in [
-        ("generator 1", p.generator_1_pu, model.generator_lower_pu, model.generator_upper_pu),
-        ("generator 2", p.generator_2_pu, model.generator_lower_pu, model.generator_upper_pu),
+        (
+            "generator 1",
+            p.generator_1_pu,
+            model.generator_lower_pu,
+            model.generator_upper_pu,
+        ),
+        (
+            "generator 2",
+            p.generator_2_pu,
+            model.generator_lower_pu,
+            model.generator_upper_pu,
+        ),
     ] {
-        if value.cmp_checked(lower)? == Ordering::Less || value.cmp_checked(upper)? == Ordering::Greater {
+        if value.cmp_checked(lower)? == Ordering::Less
+            || value.cmp_checked(upper)? == Ordering::Greater
+        {
             return Err(format!("{label} dispatch is outside exact bounds"));
         }
     }
     if flow.cmp_checked(model.line_limit_pu)? == Ordering::Greater
-        || negative_flow.cmp_checked(model.line_limit_pu)? == Ordering::Greater {
+        || negative_flow.cmp_checked(model.line_limit_pu)? == Ordering::Greater
+    {
         return Err("line flow violates its exact symmetric limit".to_owned());
     }
 
     for (label, multiplier) in [
-        ("line lower dual", d.line_lower), ("line upper dual", d.line_upper),
+        ("line lower dual", d.line_lower),
+        ("line upper dual", d.line_upper),
         ("generator 1 lower dual", d.generator_1_lower),
         ("generator 1 upper dual", d.generator_1_upper),
         ("generator 2 lower dual", d.generator_2_lower),
@@ -354,8 +462,10 @@ pub fn verify(model: &ExactModel, certificate: Certificate) -> Result<ExactProof
     //     + muU*(f-limit) + muL*(-f-limit)
     //     + muLo*(lo-p) + muUp*(p-hi).
     let stationarity_theta_1 = b.checked_mul(
-        d.bus_1_balance.checked_sub(d.bus_2_balance)?
-            .checked_add(d.line_upper)?.checked_sub(d.line_lower)?,
+        d.bus_1_balance
+            .checked_sub(d.bus_2_balance)?
+            .checked_add(d.line_upper)?
+            .checked_sub(d.line_lower)?,
     )?;
     let stationarity_theta_2 = Rational::zero().checked_sub(stationarity_theta_1)?;
     let stationarity_pg_1 = model.generator_cost_pu[0]
@@ -389,12 +499,15 @@ pub fn verify(model: &ExactModel, certificate: Certificate) -> Result<ExactProof
         require_zero(label, slack.checked_mul(multiplier)?)?;
     }
 
-    let primal_objective = model.generator_cost_pu[0].checked_mul(p.generator_1_pu)?
+    let primal_objective = model.generator_cost_pu[0]
+        .checked_mul(p.generator_1_pu)?
         .checked_add(model.generator_cost_pu[1].checked_mul(p.generator_2_pu)?)?;
     // The only nonzero constant terms in the Lagrangian are lambda2*demand
     // and -mu_upper*line_limit. All lower/upper generator-bound multipliers
     // and lower-line multiplier are exactly zero in this certificate.
-    let dual_lower_bound = d.bus_2_balance.checked_mul(model.demand_pu)?
+    let dual_lower_bound = d
+        .bus_2_balance
+        .checked_mul(model.demand_pu)?
         .checked_sub(d.line_upper.checked_mul(model.line_limit_pu)?)?
         .checked_sub(d.line_lower.checked_mul(model.line_limit_pu)?)?
         .checked_add(d.generator_1_lower.checked_mul(model.generator_lower_pu)?)?
@@ -457,11 +570,17 @@ impl ExactProof {
                 "  \"claim_ceiling\": \"exact optimality proof for this one source-bound convex two-bus DC-OPF LP; no general solver or physical-grid claim\"\n",
                 "}}\n"
             ),
-            self.source_sha1, MODEL_PROFILE, self.flow_pu.as_fraction(),
-            self.bus_1_residual_pu.as_fraction(), self.bus_2_residual_pu.as_fraction(),
-            self.stationarity_theta_1.as_fraction(), self.stationarity_theta_2.as_fraction(),
-            self.stationarity_pg_1.as_fraction(), self.stationarity_pg_2.as_fraction(),
-            self.primal_objective_per_hour.as_fraction(), self.dual_lower_bound_per_hour.as_fraction(),
+            self.source_sha1,
+            MODEL_PROFILE,
+            self.flow_pu.as_fraction(),
+            self.bus_1_residual_pu.as_fraction(),
+            self.bus_2_residual_pu.as_fraction(),
+            self.stationarity_theta_1.as_fraction(),
+            self.stationarity_theta_2.as_fraction(),
+            self.stationarity_pg_1.as_fraction(),
+            self.stationarity_pg_2.as_fraction(),
+            self.primal_objective_per_hour.as_fraction(),
+            self.dual_lower_bound_per_hour.as_fraction(),
             self.primal_dual_gap_per_hour.as_fraction(),
         )
     }
@@ -502,13 +621,21 @@ mod tests {
     #[test]
     fn source_digest_mutation_is_rejected() {
         let changed = format!("{TWO_BUS_SOURCE}\n");
-        assert!(model_from_source(&changed).unwrap_err().contains("source digest mismatch"));
+        assert!(
+            model_from_source(&changed)
+                .unwrap_err()
+                .contains("source digest mismatch")
+        );
     }
 
     #[test]
     fn line_limit_source_mutation_is_rejected() {
         let changed = TWO_BUS_SOURCE.replace("0 40 40 40 0", "0 41 41 41 0");
-        assert!(model_from_source(&changed).unwrap_err().contains("source digest mismatch"));
+        assert!(
+            model_from_source(&changed)
+                .unwrap_err()
+                .contains("source digest mismatch")
+        );
     }
 
     #[test]
@@ -516,7 +643,11 @@ mod tests {
         let model = model_from_source(TWO_BUS_SOURCE).expect("model");
         let mut certificate = known_certificate().expect("certificate");
         certificate.dual.line_upper = Rational::integer(1900);
-        assert!(verify(&model, certificate).unwrap_err().contains("theta 1 stationarity"));
+        assert!(
+            verify(&model, certificate)
+                .unwrap_err()
+                .contains("theta 1 stationarity")
+        );
     }
 
     #[test]
@@ -540,7 +671,11 @@ mod tests {
         let model = model_from_source(TWO_BUS_SOURCE).expect("model");
         let mut certificate = known_certificate().expect("certificate");
         certificate.dual.line_upper = Rational::integer(-1);
-        assert!(verify(&model, certificate).unwrap_err().contains("line upper dual is negative"));
+        assert!(
+            verify(&model, certificate)
+                .unwrap_err()
+                .contains("line upper dual is negative")
+        );
     }
 
     #[test]
