@@ -109,6 +109,30 @@ An observatory, skybridge, indoor pool, hidden room or underground wellness suit
 
 An intent-only change does not automatically invalidate unrelated physical evidence. An actual geometry, assembly, service or equipment change may invalidate several dependent receipts. The single revision owner (#832) must decide from the exact dependency graph. This prevents both stale PASS leakage and indiscriminate invalidation.
 
+### H. From optimizer recommendation to a resident-owned decision receipt
+
+The current synthetic Home Freedom candidates have all ten source gates at `UNKNOWN`. A useful system should not hide that state behind an attractive Pareto chart. It should emit a revision-bound decision receipt which says what can be compared, what remains conditional, which evidence is missing, and whether the resident has actually chosen.
+
+The new Sol-Atlas #917 work implements the contract-side guard:
+- exact profile, brief, candidate-set and design-revision binding;
+- exact preservation of every source hard-gate ID/state/reason/evidence reference;
+- `FAIL -> BLOCKED`, `UNKNOWN -> CONDITIONAL`, all `PASS -> eligible for resident-authorized preference comparison`;
+- no universal score, automatic rank, automatic selection or inferred resident choice.
+
+This composes Symthaea #7790/#7801 and Symtropy #1766/#1848; it is not a second Pareto optimizer or physical evaluator. The current synthetic receipt correctly leaves both source candidates conditional and the resident choice unrecorded.
+
+### I. 2026 openBIM conformance gap: IDS checker results can differ
+
+buildingSMART's 2026 IDS community survey received 186 responses; 58% reported using IDS on real projects. The survey reports strong demand for checker/authoring certification and notes that the same IDS file can produce different checking results across tools. IDS 1.0 is a final standard for **alphanumeric** IFC information requirements; it does not specify geometric checking.
+
+This is an opportunity for a differential conformance benchmark, not a reason to replace IFC/IDS. For identical frozen IFC + IDS fixtures, compare checker outputs across tools, capture exact versions, and require every discrepancy to become a reproducible counterexample. Separate:
+- IDS schema conformance;
+- information requirement evaluation;
+- geometry / spatial checking (outside IDS's alphanumeric scope);
+- downstream engineering evidence.
+
+A tool's “IDS pass” must not be promoted to geometry, building-code or physical qualification.
+
 ## 3. Competitive map and fair comparison
 
 | Comparator | Strongest relevant capability | Fair matched task | Where Luminous should differentiate |
@@ -208,11 +232,12 @@ The crosswalk is only a proposed owner-review mapping. It does not run the revis
 
 1. **Completed in the current feature branch:** versioned 20-style/26-package catalog, 46-row proposed revision-impact crosswalk, deterministic owner/catalog checks, and exact catalog/brief digest binding in the resident expression profile.
 2. **Completed for the currently extant synthetic source only:** all 16 expression mutation rows are bound to `SYNTH-HV-CASE-001` and the exact Home Freedom brief/candidate-set blob digests. They are counterfactual mutations of one baseline, not 16 independent households. The #819 manifest still says the planned 100-case corpus is `NOT_EXECUTED`; extend that population only when independently authored, versioned source cases actually exist.
-3. Add a bounded synthetic decision-set fixture to the existing Symthaea #7790 owner rather than duplicating its problem representation.
-4. Compose a small exact-enumeration Pareto oracle and mutation tests with #7801; use no scalar aesthetic winner.
-5. Have Symtropy #1766/#1848 owners confirm the domain boundaries; reuse #683/#1790/#1900.
-6. Select one tractable starter typology and run matched high-fidelity EnergyPlus 26.2.0 scenarios only after exact input package qualification.
-7. Run a paid, consented resident/architect trial before human-benefit claims or product comparisons.
+3. **Decision receipt contract added in Sol-Atlas #917:** exact profile/brief/candidate-set/revision binding and fail-closed candidate dispositions; the current source candidates remain conditional with no resident winner.
+4. Compose Symthaea #7790/#7801's multi-objective search with Symtropy #1766/#1848's physical/resilience receipts; keep one optimizer and one physical-evaluation authority.
+5. Build exact-enumeration oracles on small, independently authored candidate spaces and report hypervolume/IGD+/regret only after all required gates pass.
+6. Create an IDS differential conformance suite under the existing openBIM owner; compare identical IFC+IDS fixtures across checker versions because 2026 buildingSMART survey users report cross-tool result differences.
+7. Select one tractable starter typology and run matched high-fidelity EnergyPlus 26.2.0 scenarios only after exact input package qualification.
+8. Run a paid, consented resident/architect trial before human-benefit claims or product comparisons.
 
 ## 8. Research and standards sources
 
@@ -223,4 +248,5 @@ The crosswalk is only a proposed owner-review mapping. It does not run the revis
 - buildingSMART IDS 1.0: https://www.buildingsmart.org/standards/bsi-standards/information-delivery-specification-ids/
 - ISO 16739-1:2024: https://www.iso.org/standard/84123.html
 - EnergyPlus 26.2.0: https://energyplus.net/epupdate.htm
+- buildingSMART IDS 2026 survey (186 responses; checker interoperability concerns): https://www.buildingsmart.org/ids-survey-results-2026/
 
