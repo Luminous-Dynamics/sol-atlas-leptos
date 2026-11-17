@@ -6,6 +6,9 @@ use serde_json::Value;
 use std::collections::BTreeSet;
 use std::{env, process};
 
+const BASE_CATALOG: &str = include_str!(
+    "../../docs/research/home-expression/HOME_EXPRESSION_CATALOG_V0.1.json"
+);
 const CATALOG: &str = include_str!(
     "../../docs/research/home-expression/HOME_EXPRESSION_CATALOG_V0.2.json"
 );
@@ -105,6 +108,14 @@ fn validate_catalog(catalog: &Value, schema: &Value, errors: &mut Vec<String>) {
         errors.push("catalogue identity, lineage or maturity was changed".to_owned());
     }
 
+    let base_catalog: Value = match serde_json::from_str(BASE_CATALOG) {
+        Ok(value) => value,
+        Err(error) => {
+            errors.push(format!("v0.1 baseline catalogue is invalid JSON: {error}"));
+            Value::Null
+        }
+    };
+
     let styles = catalog
         .get("style_catalog")
         .and_then(Value::as_array)
@@ -147,6 +158,31 @@ fn validate_catalog(catalog: &Value, schema: &Value, errors: &mut Vec<String>) {
             errors.push(format!("required style ID is missing: {id}"));
         }
     }
+    let base_style_ids = base_catalog
+        .get("style_catalog")
+        .and_then(Value::as_array)
+        .map(|values| strings(Some(values), Some("style_id")))
+        .unwrap_or_default();
+    if base_style_ids.len() != 20 || !base_style_ids.is_subset(&style_ids) {
+        errors.push("v0.2 must preserve every v0.1 style ID".to_owned());
+    }
+
+    let composition_axes = catalog
+        .get("composition_model")
+        .and_then(|value| value.get("independent_axes"))
+        .and_then(Value::as_array)
+        .map(|values| strings(Some(values), None))
+        .unwrap_or_default();
+    if composition_axes.len() != 5 {
+        errors.push("catalogue must define five independent grammar axes".to_owned());
+    }
+    let forbidden_terms = ["african style", "ethnic style", "pan-african"];
+    for style in &styles {
+        let name = text(style, "display_name").unwrap_or_default().to_ascii_lowercase();
+        if forbidden_terms.iter().any(|term| name.contains(term)) {
+            errors.push(format!("generic pan-cultural preset is forbidden: {}", text(style, "style_id").unwrap_or_default()));
+        }
+    }
 
     let packages = catalog
         .get("experience_catalog")
@@ -159,6 +195,14 @@ fn validate_catalog(catalog: &Value, schema: &Value, errors: &mut Vec<String>) {
     let package_ids = strings(Some(&packages), Some("package_id"));
     if package_ids.len() != packages.len() {
         errors.push("experience package IDs are missing or duplicated".to_owned());
+    }
+    let base_package_ids = base_catalog
+        .get("experience_catalog")
+        .and_then(Value::as_array)
+        .map(|values| strings(Some(values), Some("package_id")))
+        .unwrap_or_default();
+    if base_package_ids.len() != 26 || package_ids != base_package_ids {
+        errors.push("v0.2 must preserve the exact v0.1 experience package ID set".to_owned());
     }
     for package in &packages {
         let id = text(package, "package_id").unwrap_or_default();
@@ -259,16 +303,27 @@ fn validate_grammar(
         .cloned()
         .unwrap_or_default();
     let mut primary_count = 0usize;
+    let mut expression_ids = BTreeSet::new();
     for entry in &expression {
         let id = text(entry, "style_id").unwrap_or_default();
         if !style_ids.contains(id) {
             errors.push(format!("grammar references unknown style ID: {id}"));
         }
-        if text(entry, "role") == Some("PRIMARY") {
+        if !expression_ids.insert(id.to_owned()) {
+            errors.push(format!("grammar contains duplicate expression entry: {id}"));
+        }
+        let role = text(entry, "role").unwrap_or_default();
+        if !["PRIMARY", "SECONDARY", "ACCENT", "REFERENCE_ONLY", "AVOID", "ACCEPTABLE", "UNDECIDED"].contains(&role) {
+            errors.push(format!("grammar style {id} has unsupported resident role: {role}"));
+        }
+        if role == "PRIMARY" {
             primary_count += 1;
         }
-        if text(entry, "role").is_none() {
-            errors.push(format!("grammar style {id} has no resident role"));
+        if role == "REFERENCE_ONLY" {
+            let source_refs = entry.get("source_refs").and_then(Value::as_array);
+            if source_refs.is_none_or(Vec::is_empty) {
+                errors.push(format!("reference-only style {id} must carry source references"));
+            }
         }
     }
     if primary_count > 1 {
@@ -281,10 +336,14 @@ fn validate_grammar(
         .and_then(Value::as_array)
         .cloned()
         .unwrap_or_default();
+    let mut experience_ids = BTreeSet::new();
     for entry in &experiences {
         let id = text(entry, "package_id").unwrap_or_default();
         if !package_ids.contains(id) {
             errors.push(format!("grammar references unknown experience package: {id}"));
+        }
+        if !experience_ids.insert(id.to_owned()) {
+            errors.push(format!("grammar contains duplicate experience entry: {id}"));
         }
     }
 
@@ -357,6 +416,19 @@ fn run_self_test() -> Result<(), String> {
         Value::Array(vec![Value::String("architectural_expression".to_owned())]);
     if validate_all(&catalog, &catalog_schema, &grammar, &collapsed).is_empty() {
         return Err("negative control failed: collapsed grammar axes were accepted".to_owned());
+    }
+
+    let mut duplicate_expression = grammar.clone();
+    let expression_entry = duplicate_expression["composition"]["architectural_expression"]["entries"][0].clone();
+    duplicate_expression["composition"]["architectural_expression"]["entries"].as_array_mut().unwrap().push(expression_entry);
+    if validate_all(&catalog, &catalog_schema, &duplicate_expression, &grammar_schema).is_empty() {
+        return Err("negative control failed: duplicate expression entry was accepted".to_owned());
+    }
+
+    let mut unreferenced_reference = grammar.clone();
+    unreferenced_reference["composition"]["architectural_expression"]["entries"][1]["source_refs"] = Value::Array(Vec::new());
+    if validate_all(&catalog, &catalog_schema, &unreferenced_reference, &grammar_schema).is_empty() {
+        return Err("negative control failed: unreferenced heritage style entry was accepted".to_owned());
     }
 
     Ok(())
