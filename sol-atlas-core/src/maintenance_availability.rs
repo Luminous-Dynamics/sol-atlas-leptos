@@ -209,11 +209,15 @@ impl fmt::Display for TraceValidationError {
             Self::EmptyWorkOrderId => "trace work-order ID is empty",
             Self::EmptyClaimCeiling => "trace claim ceiling is empty",
             Self::MissingEvidenceReferences => "trace has no source evidence references",
-            Self::InvalidEvidenceReference => "trace contains an empty evidence reference or digest",
+            Self::InvalidEvidenceReference => {
+                "trace contains an empty evidence reference or digest"
+            }
             Self::DuplicateEvidenceReference => "trace contains duplicate evidence references",
             Self::MissingIntervals => "trace has no availability intervals",
             Self::InvalidInterval => "trace contains an empty or reversed interval",
-            Self::InvalidIntervalConfiguration => "trace interval has an empty configuration digest",
+            Self::InvalidIntervalConfiguration => {
+                "trace interval has an empty configuration digest"
+            }
             Self::IntervalOutsideStudy => "trace interval lies outside its study window",
             Self::IntervalGap => "trace availability intervals contain a gap",
             Self::IntervalOverlap => "trace availability intervals overlap",
@@ -293,10 +297,7 @@ fn deterministic_trace_id(request: &ProjectionRequest) -> String {
         &request.study_window.end_unix_seconds.to_string(),
     );
     append_id_component(&mut trace_id, &request.target.asset_id);
-    append_id_component(
-        &mut trace_id,
-        &request.target.configuration_digest,
-    );
+    append_id_component(&mut trace_id, &request.target.configuration_digest);
     append_id_component(&mut trace_id, &request.work_order.work_order_id);
     append_id_component(
         &mut trace_id,
@@ -311,10 +312,7 @@ fn deterministic_trace_id(request: &ProjectionRequest) -> String {
     append_optional_evidence(&mut trace_id, request.work_order.authorization.as_ref());
     append_optional_evidence(&mut trace_id, request.work_order.isolation.as_ref());
     append_optional_evidence(&mut trace_id, request.work_order.completion.as_ref());
-    append_optional_evidence(
-        &mut trace_id,
-        request.work_order.inspection.as_ref(),
-    );
+    append_optional_evidence(&mut trace_id, request.work_order.inspection.as_ref());
     append_optional_evidence(
         &mut trace_id,
         request.work_order.return_to_service_authorization.as_ref(),
@@ -366,9 +364,7 @@ pub fn validate_trace_structure(
     if trace.study_window.start_unix_seconds >= trace.study_window.end_unix_seconds {
         return Err(TraceValidationError::InvalidStudyWindow);
     }
-    if !non_empty(&trace.target.asset_id)
-        || !non_empty(&trace.target.configuration_digest)
-    {
+    if !non_empty(&trace.target.asset_id) || !non_empty(&trace.target.configuration_digest) {
         return Err(TraceValidationError::InvalidTarget);
     }
     if !non_empty(&trace.work_order_id) {
