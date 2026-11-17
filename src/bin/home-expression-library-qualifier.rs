@@ -32,6 +32,12 @@ const HOME_BRIEF_FIXTURE: &str =
 const EXPECTED_BRIEF_ARTIFACT_REF: &str =
     "docs/research/home-freedom/HOME_DESIGN_BRIEF_SYNTHETIC_EXAMPLE_V0.1.json";
 const EXPECTED_BRIEF_BLOB_SHA: &str = "0090e2f0c883c62817d1b6da51d1a2dbe92a477f";
+const HOME_CANDIDATE_SET_FIXTURE: &str = include_str!(
+    "../../docs/research/home-freedom/HOME_DESIGN_CANDIDATE_SET_SYNTHETIC_EXAMPLE_V0.1.json"
+);
+const EXPECTED_CANDIDATE_SET_ARTIFACT_REF: &str =
+    "docs/research/home-freedom/HOME_DESIGN_CANDIDATE_SET_SYNTHETIC_EXAMPLE_V0.1.json";
+const EXPECTED_CANDIDATE_SET_BLOB_SHA: &str = "030e6c0e71cef1a936738910409396a9a48dedcf";
 
 const IMPACT_DOMAINS: &[&str] = &[
     "AREA_AND_CIRCULATION",
@@ -592,6 +598,7 @@ fn validate_revision_impact_crosswalk(
 fn validate_profile_source_bindings(
     profile: &Value,
     source_brief: &Value,
+    source_candidate_set: &Value,
     catalog: &Value,
     errors: &mut Vec<String>,
 ) {
@@ -620,6 +627,25 @@ fn validate_profile_source_bindings(
         );
     }
 
+    let candidate_set_id = string_at(source_candidate_set, "candidate_set_id").unwrap_or_default();
+    let candidate_brief_id = string_at(source_candidate_set, "brief_id").unwrap_or_default();
+    let candidate_revision = string_at(source_candidate_set, "design_revision").unwrap_or_default();
+    if string_at(profile, "linked_candidate_set_id") != Some(candidate_set_id)
+        || string_at(profile, "linked_candidate_set_id") != Some("SYNTH-HV-CASE-001")
+        || string_at(profile, "linked_candidate_set_artifact_ref")
+            != Some(EXPECTED_CANDIDATE_SET_ARTIFACT_REF)
+        || string_at(profile, "linked_candidate_set_content_sha")
+            != Some(EXPECTED_CANDIDATE_SET_BLOB_SHA)
+    {
+        errors.push("expression profile does not bind the exact Home Freedom candidate-set path and digest".to_owned());
+    }
+    if candidate_brief_id != brief_id
+        || string_at(profile, "linked_design_revision_ref") != Some(candidate_revision)
+        || candidate_revision != "HFC-SYNTH-REV-0"
+    {
+        errors.push("expression profile, source brief and candidate set do not share the exact brief/revision identity".to_owned());
+    }
+
     let preferences = profile.get("style_preferences").unwrap_or(&Value::Null);
     if string_at(preferences, "catalog_revision") != string_at(catalog, "catalog_revision")
         || string_at(preferences, "catalog_revision") != Some(EXPECTED_CATALOG_REVISION)
@@ -635,13 +661,21 @@ fn validate_profile(profile: &Value, schema: &Value) -> Result<(), Vec<String>> 
     let (catalog_style_ids, catalog_package_ids) = validate_catalog(schema, &mut errors);
     match (
         serde_json::from_str::<Value>(HOME_BRIEF_FIXTURE),
+        serde_json::from_str::<Value>(HOME_CANDIDATE_SET_FIXTURE),
         serde_json::from_str::<Value>(CATALOG_FIXTURE),
     ) {
-        (Ok(source_brief), Ok(catalog)) => {
-            validate_profile_source_bindings(profile, &source_brief, &catalog, &mut errors);
+        (Ok(source_brief), Ok(source_candidate_set), Ok(catalog)) => {
+            validate_profile_source_bindings(
+                profile,
+                &source_brief,
+                &source_candidate_set,
+                &catalog,
+                &mut errors,
+            );
         }
-        (Err(error), _) => errors.push(format!("embedded source brief is invalid JSON: {error}")),
-        (_, Err(error)) => errors.push(format!("embedded catalog is invalid JSON: {error}")),
+        (Err(error), _, _) => errors.push(format!("embedded source brief is invalid JSON: {error}")),
+        (_, Err(error), _) => errors.push(format!("embedded source candidate set is invalid JSON: {error}")),
+        (_, _, Err(error)) => errors.push(format!("embedded catalog is invalid JSON: {error}")),
     }
     match benchmark_fixture() {
         Ok((manifest, benchmark_schema)) => {
@@ -1020,6 +1054,21 @@ mod tests {
     fn accepts_synthetic_highveld_profile() {
         let (profile, schema) = fixture();
         assert!(validate_profile(&profile, &schema).is_ok());
+    }
+
+    #[test]
+    fn rejects_source_candidate_set_digest_drift() {
+        let (mut profile, schema) = fixture();
+        profile["linked_candidate_set_content_sha"] =
+            json!("0000000000000000000000000000000000000000");
+        assert!(validate_profile(&profile, &schema).is_err());
+    }
+
+    #[test]
+    fn rejects_source_candidate_revision_drift() {
+        let (mut profile, schema) = fixture();
+        profile["linked_design_revision_ref"] = json!("STALE-REVISION");
+        assert!(validate_profile(&profile, &schema).is_err());
     }
 
     #[test]
