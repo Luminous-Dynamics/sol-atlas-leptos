@@ -79,6 +79,7 @@
       "version": "1.96.0"
     },
     "octave": {
+      "name": "GNU Octave",
       "version": "runner-installed; exact patch version captured in execution receipt"
     }
   },
