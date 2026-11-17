@@ -77,3 +77,7 @@ jobs:
         run: cargo test --bin home-expression-library-qualifier
       - name: Audit synthetic home expression and decision receipt
         run: cargo run --bin home-expression-library-qualifier -- --self-test
+      - name: Test home architectural grammar qualifier
+        run: cargo test --bin home-architectural-grammar-qualifier
+      - name: Audit v0.2 catalogue and grammar composition
+        run: cargo run --bin home-architectural-grammar-qualifier -- --self-test
