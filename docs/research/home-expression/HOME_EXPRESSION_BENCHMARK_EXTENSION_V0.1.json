@@ -19,7 +19,11 @@
     "REQUALIFICATION_REQUIRED",
     "REFERENCE_REVIEW_REQUIRED",
     "REJECTED_INFERRED_CONTEXT",
-    "REJECTED_CONSTRAINT_LOSS"
+    "REJECTED_CONSTRAINT_LOSS",
+    "REJECTED_PREFERENCE_CYCLE",
+    "REJECTED_DUPLICATE_PREFERENCE",
+    "REJECTED_DIRECT_IDENTIFIERS",
+    "REJECTED_UNBOUND_DECISION_EVENT"
   ],
   "counterfactual_pairs": [
     {
@@ -463,6 +467,190 @@
           "blob_sha": "030e6c0e71cef1a936738910409396a9a48dedcf"
         }
       ]
+    },
+    {
+      "case_id": "CASE_EMPTY_SOURCE_GATE_SET",
+      "dimension": "HARD_CONSTRAINT",
+      "case_kind": "SYNTHETIC_CONTRACT_MUTATION",
+      "source_population_ref": "sol-atlas-leptos#819",
+      "source_case_id": "SYNTH-HV-CASE-001",
+      "source_case_binding_status": "BOUND",
+      "derivation_kind": "ONE_FACTOR_COUNTERFACTUAL_MUTATION",
+      "source_artifact_refs": [
+        {
+          "path": "docs/research/home-freedom/HOME_DESIGN_BRIEF_SYNTHETIC_EXAMPLE_V0.1.json",
+          "blob_sha": "0090e2f0c883c62817d1b6da51d1a2dbe92a477f"
+        },
+        {
+          "path": "docs/research/home-freedom/HOME_DESIGN_CANDIDATE_SET_SYNTHETIC_EXAMPLE_V0.1.json",
+          "blob_sha": "030e6c0e71cef1a936738910409396a9a48dedcf"
+        }
+      ],
+      "mutation": "Mutate one source candidate to carry an empty hard-gate set; it must remain conditional and cannot become all-PASS.",
+      "expected_disposition": "REJECTED_CONTRACT",
+      "physical_evaluation": "NOT_PERFORMED",
+      "claim_ceiling": "CONTRACT_ORACLE_ONLY_NOT_BUILDING_FEASIBILITY"
+    },
+    {
+      "case_id": "CASE_MISSING_REQUIRED_GATE_ID",
+      "dimension": "HARD_CONSTRAINT",
+      "case_kind": "SYNTHETIC_CONTRACT_MUTATION",
+      "source_population_ref": "sol-atlas-leptos#819",
+      "source_case_id": "SYNTH-HV-CASE-001",
+      "source_case_binding_status": "BOUND",
+      "derivation_kind": "ONE_FACTOR_COUNTERFACTUAL_MUTATION",
+      "source_artifact_refs": [
+        {
+          "path": "docs/research/home-freedom/HOME_DESIGN_BRIEF_SYNTHETIC_EXAMPLE_V0.1.json",
+          "blob_sha": "0090e2f0c883c62817d1b6da51d1a2dbe92a477f"
+        },
+        {
+          "path": "docs/research/home-freedom/HOME_DESIGN_CANDIDATE_SET_SYNTHETIC_EXAMPLE_V0.1.json",
+          "blob_sha": "030e6c0e71cef1a936738910409396a9a48dedcf"
+        }
+      ],
+      "mutation": "Remove one of the ten required source gate IDs while leaving the other records intact.",
+      "expected_disposition": "REJECTED_CONTRACT",
+      "physical_evaluation": "NOT_PERFORMED",
+      "claim_ceiling": "CONTRACT_ORACLE_ONLY_NOT_BUILDING_FEASIBILITY"
+    },
+    {
+      "case_id": "CASE_UNSUPPORTED_GATE_STATE",
+      "dimension": "HARD_CONSTRAINT",
+      "case_kind": "SYNTHETIC_CONTRACT_MUTATION",
+      "source_population_ref": "sol-atlas-leptos#819",
+      "source_case_id": "SYNTH-HV-CASE-001",
+      "source_case_binding_status": "BOUND",
+      "derivation_kind": "ONE_FACTOR_COUNTERFACTUAL_MUTATION",
+      "source_artifact_refs": [
+        {
+          "path": "docs/research/home-freedom/HOME_DESIGN_BRIEF_SYNTHETIC_EXAMPLE_V0.1.json",
+          "blob_sha": "0090e2f0c883c62817d1b6da51d1a2dbe92a477f"
+        },
+        {
+          "path": "docs/research/home-freedom/HOME_DESIGN_CANDIDATE_SET_SYNTHETIC_EXAMPLE_V0.1.json",
+          "blob_sha": "030e6c0e71cef1a936738910409396a9a48dedcf"
+        }
+      ],
+      "mutation": "Replace a source gate state with an unrecognized value such as MAYBE.",
+      "expected_disposition": "REJECTED_CONTRACT",
+      "physical_evaluation": "NOT_PERFORMED",
+      "claim_ceiling": "CONTRACT_ORACLE_ONLY_NOT_BUILDING_FEASIBILITY"
+    },
+    {
+      "case_id": "CASE_PREFERENCE_CYCLE",
+      "dimension": "AGENCY",
+      "case_kind": "SYNTHETIC_CONTRACT_MUTATION",
+      "source_population_ref": "sol-atlas-leptos#819",
+      "source_case_id": "SYNTH-HV-CASE-001",
+      "source_case_binding_status": "BOUND",
+      "derivation_kind": "ONE_FACTOR_COUNTERFACTUAL_MUTATION",
+      "source_artifact_refs": [
+        {
+          "path": "docs/research/home-freedom/HOME_DESIGN_BRIEF_SYNTHETIC_EXAMPLE_V0.1.json",
+          "blob_sha": "0090e2f0c883c62817d1b6da51d1a2dbe92a477f"
+        },
+        {
+          "path": "docs/research/home-freedom/HOME_DESIGN_CANDIDATE_SET_SYNTHETIC_EXAMPLE_V0.1.json",
+          "blob_sha": "030e6c0e71cef1a936738910409396a9a48dedcf"
+        }
+      ],
+      "mutation": "Submit A preferred to B, B preferred to C, and C preferred to A; reject the contradictory directed cycle without inventing a winner.",
+      "expected_disposition": "REJECTED_PREFERENCE_CYCLE",
+      "physical_evaluation": "NOT_PERFORMED",
+      "claim_ceiling": "CONTRACT_ORACLE_ONLY_NOT_BUILDING_FEASIBILITY"
+    },
+    {
+      "case_id": "CASE_DUPLICATE_REVERSED_PREFERENCE_PAIR",
+      "dimension": "AGENCY",
+      "case_kind": "SYNTHETIC_CONTRACT_MUTATION",
+      "source_population_ref": "sol-atlas-leptos#819",
+      "source_case_id": "SYNTH-HV-CASE-001",
+      "source_case_binding_status": "BOUND",
+      "derivation_kind": "ONE_FACTOR_COUNTERFACTUAL_MUTATION",
+      "source_artifact_refs": [
+        {
+          "path": "docs/research/home-freedom/HOME_DESIGN_BRIEF_SYNTHETIC_EXAMPLE_V0.1.json",
+          "blob_sha": "0090e2f0c883c62817d1b6da51d1a2dbe92a477f"
+        },
+        {
+          "path": "docs/research/home-freedom/HOME_DESIGN_CANDIDATE_SET_SYNTHETIC_EXAMPLE_V0.1.json",
+          "blob_sha": "030e6c0e71cef1a936738910409396a9a48dedcf"
+        }
+      ],
+      "mutation": "Submit the same pair twice in opposite candidate order; reject duplicate/reversed pair records.",
+      "expected_disposition": "REJECTED_DUPLICATE_PREFERENCE",
+      "physical_evaluation": "NOT_PERFORMED",
+      "claim_ceiling": "CONTRACT_ORACLE_ONLY_NOT_BUILDING_FEASIBILITY"
+    },
+    {
+      "case_id": "CASE_STALE_PREFERENCE_EVENT_REVISION",
+      "dimension": "AGENCY",
+      "case_kind": "SYNTHETIC_CONTRACT_MUTATION",
+      "source_population_ref": "sol-atlas-leptos#819",
+      "source_case_id": "SYNTH-HV-CASE-001",
+      "source_case_binding_status": "BOUND",
+      "derivation_kind": "ONE_FACTOR_COUNTERFACTUAL_MUTATION",
+      "source_artifact_refs": [
+        {
+          "path": "docs/research/home-freedom/HOME_DESIGN_BRIEF_SYNTHETIC_EXAMPLE_V0.1.json",
+          "blob_sha": "0090e2f0c883c62817d1b6da51d1a2dbe92a477f"
+        },
+        {
+          "path": "docs/research/home-freedom/HOME_DESIGN_CANDIDATE_SET_SYNTHETIC_EXAMPLE_V0.1.json",
+          "blob_sha": "030e6c0e71cef1a936738910409396a9a48dedcf"
+        }
+      ],
+      "mutation": "Bind a resident concept-direction event to a superseded design revision.",
+      "expected_disposition": "REQUALIFICATION_REQUIRED",
+      "physical_evaluation": "NOT_PERFORMED",
+      "claim_ceiling": "CONTRACT_ORACLE_ONLY_NOT_BUILDING_FEASIBILITY"
+    },
+    {
+      "case_id": "CASE_DIRECT_IDENTITY_PARTICIPANT_REFERENCE",
+      "dimension": "AGENCY",
+      "case_kind": "SYNTHETIC_CONTRACT_MUTATION",
+      "source_population_ref": "sol-atlas-leptos#819",
+      "source_case_id": "SYNTH-HV-CASE-001",
+      "source_case_binding_status": "BOUND",
+      "derivation_kind": "ONE_FACTOR_COUNTERFACTUAL_MUTATION",
+      "source_artifact_refs": [
+        {
+          "path": "docs/research/home-freedom/HOME_DESIGN_BRIEF_SYNTHETIC_EXAMPLE_V0.1.json",
+          "blob_sha": "0090e2f0c883c62817d1b6da51d1a2dbe92a477f"
+        },
+        {
+          "path": "docs/research/home-freedom/HOME_DESIGN_CANDIDATE_SET_SYNTHETIC_EXAMPLE_V0.1.json",
+          "blob_sha": "030e6c0e71cef1a936738910409396a9a48dedcf"
+        }
+      ],
+      "mutation": "Put a direct personal identifier into a field intended for an opaque participant reference.",
+      "expected_disposition": "REJECTED_DIRECT_IDENTIFIERS",
+      "physical_evaluation": "NOT_PERFORMED",
+      "claim_ceiling": "CONTRACT_ORACLE_ONLY_NOT_BUILDING_FEASIBILITY"
+    },
+    {
+      "case_id": "CASE_UNBOUND_PREFERENCE_EVENT",
+      "dimension": "AGENCY",
+      "case_kind": "SYNTHETIC_CONTRACT_MUTATION",
+      "source_population_ref": "sol-atlas-leptos#819",
+      "source_case_id": "SYNTH-HV-CASE-001",
+      "source_case_binding_status": "BOUND",
+      "derivation_kind": "ONE_FACTOR_COUNTERFACTUAL_MUTATION",
+      "source_artifact_refs": [
+        {
+          "path": "docs/research/home-freedom/HOME_DESIGN_BRIEF_SYNTHETIC_EXAMPLE_V0.1.json",
+          "blob_sha": "0090e2f0c883c62817d1b6da51d1a2dbe92a477f"
+        },
+        {
+          "path": "docs/research/home-freedom/HOME_DESIGN_CANDIDATE_SET_SYNTHETIC_EXAMPLE_V0.1.json",
+          "blob_sha": "030e6c0e71cef1a936738910409396a9a48dedcf"
+        }
+      ],
+      "mutation": "Record a pairwise preference without an event reference, digest, or source revision binding.",
+      "expected_disposition": "REJECTED_UNBOUND_DECISION_EVENT",
+      "physical_evaluation": "NOT_PERFORMED",
+      "claim_ceiling": "CONTRACT_ORACLE_ONLY_NOT_BUILDING_FEASIBILITY"
     }
   ],
   "source_population_state": "ONE_SYNTHETIC_BASELINE_ONLY",
