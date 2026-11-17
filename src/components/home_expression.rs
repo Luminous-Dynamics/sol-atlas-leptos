@@ -32,7 +32,8 @@ struct ExperienceOption {
 }
 
 fn load_catalog() -> (Vec<StyleOption>, Vec<ExperienceOption>) {
-    let catalog: Value = serde_json::from_str(EXPRESSION_CATALOG).unwrap_or(Value::Null);
+    let catalog: Value = serde_json::from_str(EXPRESSION_CATALOG)
+        .expect("embedded home expression catalogue must be valid JSON");
 
     let styles = catalog
         .get("style_catalog")
@@ -76,21 +77,42 @@ fn current_preference(preferences: RwSignal<BTreeMap<String, String>>, item_id: 
     })
 }
 
-fn set_style_role(roles: RwSignal<BTreeMap<String, String>>, style_id: String, role: &'static str) {
-    roles.update(|entries| {
-        if entries
-            .get(&style_id)
-            .is_some_and(|current| current == role)
-        {
-            entries.remove(&style_id);
-            return;
-        }
+fn apply_style_role(
+    entries: &mut BTreeMap<String, String>,
+    style_id: String,
+    role: &'static str,
+) {
+    if entries
+        .get(&style_id)
+        .is_some_and(|current| current == role)
+    {
+        entries.remove(&style_id);
+        return;
+    }
 
-        if role == "PRIMARY" || role == "SECONDARY" {
-            entries.retain(|_, current| current != role);
-        }
-        entries.insert(style_id, role.to_owned());
-    });
+    if role == "PRIMARY" || role == "SECONDARY" {
+        entries.retain(|_, current| current != role);
+    }
+    entries.insert(style_id, role.to_owned());
+}
+
+fn set_style_role(roles: RwSignal<BTreeMap<String, String>>, style_id: String, role: &'static str) {
+    roles.update(|entries| apply_style_role(entries, style_id, role));
+}
+
+fn apply_experience_state(
+    entries: &mut BTreeMap<String, String>,
+    package_id: String,
+    state: &'static str,
+) {
+    if entries
+        .get(&package_id)
+        .is_some_and(|current| current == state)
+    {
+        entries.remove(&package_id);
+    } else {
+        entries.insert(package_id, state.to_owned());
+    }
 }
 
 fn set_experience_state(
@@ -98,16 +120,7 @@ fn set_experience_state(
     package_id: String,
     state: &'static str,
 ) {
-    states.update(|entries| {
-        if entries
-            .get(&package_id)
-            .is_some_and(|current| current == state)
-        {
-            entries.remove(&package_id);
-        } else {
-            entries.insert(package_id, state.to_owned());
-        }
-    });
+    states.update(|entries| apply_experience_state(entries, package_id, state));
 }
 
 #[component]
@@ -382,5 +395,82 @@ pub fn HomeExpressionPage() -> impl IntoView {
                 <A href="/">"Return to Sol Atlas ↑"</A>
             </footer>
         </main>
+    }
+}
+
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn embedded_catalog_has_expected_style_and_experience_counts() {
+        let (styles, experiences) = load_catalog();
+        assert_eq!(styles.len(), 20);
+        assert_eq!(experiences.len(), 26);
+        assert!(styles.iter().all(|item| {
+            !item.id.is_empty()
+                && !item.name.is_empty()
+                && !item.category.is_empty()
+                && !item.description.is_empty()
+        }));
+        assert!(experiences.iter().all(|item| {
+            !item.id.is_empty()
+                && !item.name.is_empty()
+                && !item.category.is_empty()
+                && !item.description.is_empty()
+        }));
+    }
+
+    #[test]
+    fn style_roles_allow_only_one_primary_and_one_secondary() {
+        let mut roles = BTreeMap::new();
+        apply_style_role(&mut roles, "MODERNIST".to_owned(), "PRIMARY");
+        apply_style_role(&mut roles, "SOLARPUNK".to_owned(), "SECONDARY");
+        apply_style_role(&mut roles, "BIOPHILIC_ORGANIC".to_owned(), "PRIMARY");
+
+        assert_eq!(roles.get("MODERNIST"), None);
+        assert_eq!(
+            roles.get("BIOPHILIC_ORGANIC").map(String::as_str),
+            Some("PRIMARY")
+        );
+        assert_eq!(roles.get("SOLARPUNK").map(String::as_str), Some("SECONDARY"));
+    }
+
+    #[test]
+    fn selecting_avoid_or_acceptable_does_not_displace_primary_blend() {
+        let mut roles = BTreeMap::new();
+        apply_style_role(&mut roles, "MODERNIST".to_owned(), "PRIMARY");
+        apply_style_role(&mut roles, "SOLARPUNK".to_owned(), "SECONDARY");
+        apply_style_role(&mut roles, "GOTHIC_REVIVAL".to_owned(), "AVOID");
+        apply_style_role(&mut roles, "BIOPHILIC_ORGANIC".to_owned(), "ACCEPTABLE");
+
+        assert_eq!(roles.get("MODERNIST").map(String::as_str), Some("PRIMARY"));
+        assert_eq!(roles.get("SOLARPUNK").map(String::as_str), Some("SECONDARY"));
+        assert_eq!(roles.get("GOTHIC_REVIVAL").map(String::as_str), Some("AVOID"));
+        assert_eq!(
+            roles.get("BIOPHILIC_ORGANIC").map(String::as_str),
+            Some("ACCEPTABLE")
+        );
+    }
+
+    #[test]
+    fn clicking_the_same_style_role_clears_it() {
+        let mut roles = BTreeMap::new();
+        apply_style_role(&mut roles, "MODERNIST".to_owned(), "PRIMARY");
+        apply_style_role(&mut roles, "MODERNIST".to_owned(), "PRIMARY");
+        assert!(roles.is_empty());
+    }
+
+    #[test]
+    fn experience_preferences_toggle_back_to_not_selected() {
+        let mut states = BTreeMap::new();
+        apply_experience_state(&mut states, "PRIVATE_OBSERVATORY".to_owned(), "PREFERRED");
+        assert_eq!(
+            states.get("PRIVATE_OBSERVATORY").map(String::as_str),
+            Some("PREFERRED")
+        );
+        apply_experience_state(&mut states, "PRIVATE_OBSERVATORY".to_owned(), "PREFERRED");
+        assert!(states.is_empty());
     }
 }
