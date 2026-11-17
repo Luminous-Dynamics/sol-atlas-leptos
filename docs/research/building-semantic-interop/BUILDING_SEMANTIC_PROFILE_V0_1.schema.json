@@ -1,0 +1,141 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/blob/main/docs/research/building-semantic-interop/BUILDING_SEMANTIC_PROFILE_V0_1.schema.json",
+  "title": "Sol-Atlas Building Semantic Mapping Profile v0.1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "profile_id",
+    "classification",
+    "claim_ceiling",
+    "mapping_relations",
+    "standards",
+    "policy"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "sol-atlas.building-semantic-profile/0.1"
+    },
+    "profile_id": {
+      "const": "CITY-BUILDING-SEMANTIC-PROFILE-V0.1"
+    },
+    "classification": {
+      "const": "synthetic_mapping_contract_only"
+    },
+    "claim_ceiling": {
+      "const": "synthetic_mapping_admission_and_semantic_loss_checks_only"
+    },
+    "mapping_relations": {
+      "type": "array",
+      "minItems": 7,
+      "maxItems": 7,
+      "uniqueItems": true,
+      "items": {
+        "enum": [
+          "exact",
+          "narrower",
+          "broader",
+          "related",
+          "composed",
+          "derived",
+          "unresolved"
+        ]
+      }
+    },
+    "standards": {
+      "type": "array",
+      "minItems": 5,
+      "maxItems": 5,
+      "items": {
+        "$ref": "#/$defs/standard"
+      }
+    },
+    "policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "exact_equivalence_requires_same_subject",
+        "exact_equivalence_requires_same_quantity_kind",
+        "exact_equivalence_requires_same_unit",
+        "exact_equivalence_requires_preserved_time_basis",
+        "exact_equivalence_requires_preserved_evidence_class",
+        "prerelease_mappings_admitted_as_stable",
+        "unknown_standard_release_admitted",
+        "unknown_rights_admitted",
+        "automatic_label_based_equivalence_allowed",
+        "new_core_ontology_allowed"
+      ],
+      "properties": {
+        "exact_equivalence_requires_same_subject": {
+          "const": true
+        },
+        "exact_equivalence_requires_same_quantity_kind": {
+          "const": true
+        },
+        "exact_equivalence_requires_same_unit": {
+          "const": true
+        },
+        "exact_equivalence_requires_preserved_time_basis": {
+          "const": true
+        },
+        "exact_equivalence_requires_preserved_evidence_class": {
+          "const": true
+        },
+        "prerelease_mappings_admitted_as_stable": {
+          "const": false
+        },
+        "unknown_standard_release_admitted": {
+          "const": false
+        },
+        "unknown_rights_admitted": {
+          "const": false
+        },
+        "automatic_label_based_equivalence_allowed": {
+          "const": false
+        },
+        "new_core_ontology_allowed": {
+          "const": false
+        }
+      }
+    }
+  },
+  "$defs": {
+    "standard": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "key",
+        "family",
+        "release_id",
+        "maturity",
+        "status"
+      ],
+      "properties": {
+        "key": {
+          "type": "string",
+          "minLength": 1
+        },
+        "family": {
+          "type": "string",
+          "minLength": 1
+        },
+        "release_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "maturity": {
+          "enum": [
+            "stable",
+            "prerelease",
+            "unresolved"
+          ]
+        },
+        "status": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    }
+  }
+}
