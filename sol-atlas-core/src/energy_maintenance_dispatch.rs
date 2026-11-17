@@ -33,7 +33,7 @@ pub struct PvAssetDispatchBinding {
     pub pv_configuration_digest: String,
 }
 
-#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum DispatchAssetAvailability {
     Available,
@@ -67,7 +67,7 @@ pub struct MaintenanceDispatchProjection {
     pub claim_ceiling: String,
 }
 
-#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct MaintenanceDispatchAssessment {
     pub projection: MaintenanceDispatchProjection,
