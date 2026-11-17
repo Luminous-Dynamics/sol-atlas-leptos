@@ -80,9 +80,6 @@ jobs:
           toolchain: 1.96.0
           components: rustfmt, clippy
 
-      - name: Strict formatting (primal auditor toolchain)
-        run: cargo fmt --manifest-path tools/matpower-dc-opf-primal-auditor/Cargo.toml -- --check
-
       - name: Strict formatting (pinned Rust 1.96.0 for both crates)
         run: |
           cargo fmt --manifest-path tools/matpower-dc-opf-primal-auditor/Cargo.toml -- --check
@@ -104,9 +101,18 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          SOURCE="tools/matpower-dc-opf-primal-auditor/fixtures/two_bus.m"
+          REPO_ROOT="$GITHUB_WORKSPACE"
+          SOURCE="$REPO_ROOT/tools/matpower-dc-opf-primal-auditor/fixtures/two_bus.m"
           SOURCE_SHA="$(git hash-object "$SOURCE")"
-          octave-cli --quiet --no-gui --eval "addpath('tools/matpower-reference-differential'); run_matpower_dcopf('$SOURCE', '/tmp/matpower-two-bus.tsv', 'vendor/matpower', 'vendor/mp-opt-model', 'vendor/mips', 'vendor/mptest', '$SOURCE_SHA')"
+          export REFERENCE_ROOT="$REPO_ROOT/tools/matpower-reference-differential"
+          export MATPOWER_ROOT="$REPO_ROOT/vendor/matpower"
+          export MP_OPT_MODEL_ROOT="$REPO_ROOT/vendor/mp-opt-model"
+          export MIPS_ROOT="$REPO_ROOT/vendor/mips"
+          export MP_TEST_ROOT="$REPO_ROOT/vendor/mptest"
+          export MATPOWER_CASE="$SOURCE"
+          export MATPOWER_OUTPUT="/tmp/matpower-two-bus.tsv"
+          export SOURCE_GIT_BLOB_SHA1="$SOURCE_SHA"
+          octave-cli --quiet --no-gui --eval "addpath(getenv('REFERENCE_ROOT')); run_matpower_dcopf(getenv('MATPOWER_CASE'), getenv('MATPOWER_OUTPUT'), getenv('MATPOWER_ROOT'), getenv('MP_OPT_MODEL_ROOT'), getenv('MIPS_ROOT'), getenv('MP_TEST_ROOT'), getenv('SOURCE_GIT_BLOB_SHA1'))"
 
       - name: Independently verify MATPOWER primal and KKT conditions
         shell: bash
@@ -119,9 +125,18 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          SOURCE="tools/matpower-dc-opf-kkt-verifier/fixtures/two_bus_binding_line.m"
+          REPO_ROOT="$GITHUB_WORKSPACE"
+          SOURCE="$REPO_ROOT/tools/matpower-dc-opf-kkt-verifier/fixtures/two_bus_binding_line.m"
           SOURCE_SHA="$(git hash-object "$SOURCE")"
-          octave-cli --quiet --no-gui --eval "addpath('tools/matpower-reference-differential'); run_matpower_dcopf('$SOURCE', '/tmp/matpower-binding-line.tsv', 'vendor/matpower', 'vendor/mp-opt-model', 'vendor/mips', 'vendor/mptest', '$SOURCE_SHA')"
+          export REFERENCE_ROOT="$REPO_ROOT/tools/matpower-reference-differential"
+          export MATPOWER_ROOT="$REPO_ROOT/vendor/matpower"
+          export MP_OPT_MODEL_ROOT="$REPO_ROOT/vendor/mp-opt-model"
+          export MIPS_ROOT="$REPO_ROOT/vendor/mips"
+          export MP_TEST_ROOT="$REPO_ROOT/vendor/mptest"
+          export MATPOWER_CASE="$SOURCE"
+          export MATPOWER_OUTPUT="/tmp/matpower-binding-line.tsv"
+          export SOURCE_GIT_BLOB_SHA1="$SOURCE_SHA"
+          octave-cli --quiet --no-gui --eval "addpath(getenv('REFERENCE_ROOT')); run_matpower_dcopf(getenv('MATPOWER_CASE'), getenv('MATPOWER_OUTPUT'), getenv('MATPOWER_ROOT'), getenv('MP_OPT_MODEL_ROOT'), getenv('MIPS_ROOT'), getenv('MP_TEST_ROOT'), getenv('SOURCE_GIT_BLOB_SHA1'))"
 
       - name: Independently verify active-line KKT and nodal-price conditions
         shell: bash
