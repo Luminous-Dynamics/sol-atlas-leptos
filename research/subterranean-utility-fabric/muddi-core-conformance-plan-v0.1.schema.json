@@ -1,0 +1,192 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "SUF MUDDI Core conformance plan v0.1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "status",
+    "standard",
+    "claim_ceiling",
+    "tests",
+    "mandatory_attributes",
+    "negative_controls",
+    "geometry_policy",
+    "logical_name_policy",
+    "claim"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "luminous.suf.muddi_core_conformance_plan.v0.1"
+    },
+    "status": {
+      "enum": [
+        "partial_traceability_not_conformant",
+        "logical_model_draft",
+        "conformance_tested"
+      ]
+    },
+    "standard": {
+      "type": "object",
+      "required": [
+        "document",
+        "version",
+        "url",
+        "uml_source"
+      ],
+      "properties": {
+        "document": {
+          "const": "OGC 23-024"
+        },
+        "version": {
+          "const": "1.0"
+        },
+        "url": {
+          "type": "string",
+          "format": "uri"
+        },
+        "uml_source": {
+          "type": "string",
+          "format": "uri"
+        }
+      },
+      "additionalProperties": false
+    },
+    "claim_ceiling": {
+      "type": "string"
+    },
+    "tests": {
+      "type": "array",
+      "minItems": 4,
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "requirement",
+          "status",
+          "evidence",
+          "next"
+        ],
+        "properties": {
+          "id": {
+            "enum": [
+              "A.1",
+              "A.2",
+              "A.3",
+              "A.4"
+            ]
+          },
+          "requirement": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "evidence": {
+            "type": "string"
+          },
+          "next": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "mandatory_attributes": {
+      "type": "array",
+      "minItems": 10,
+      "items": {
+        "type": "object",
+        "required": [
+          "concept",
+          "attributes"
+        ],
+        "properties": {
+          "concept": {
+            "type": "string"
+          },
+          "attributes": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "conditional": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "inherited": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "negative_controls": {
+      "type": "array",
+      "minItems": 10,
+      "items": {
+        "type": "string"
+      }
+    },
+    "geometry_policy": {
+      "type": "object",
+      "required": [
+        "status",
+        "fixture_encodings",
+        "target_standards",
+        "candidate_extended_encoding"
+      ],
+      "properties": {
+        "status": {
+          "type": "string"
+        },
+        "fixture_encodings": {
+          "type": "string"
+        },
+        "target_standards": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "candidate_extended_encoding": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "logical_name_policy": {
+      "type": "object",
+      "required": [
+        "required",
+        "mapping_artifact",
+        "fields"
+      ],
+      "properties": {
+        "required": {
+          "const": true
+        },
+        "mapping_artifact": {
+          "type": "string"
+        },
+        "fields": {
+          "type": "array",
+          "minItems": 6,
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "claim": {
+      "type": "string"
+    }
+  }
+}

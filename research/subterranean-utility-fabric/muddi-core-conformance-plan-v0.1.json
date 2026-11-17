@@ -1,0 +1,164 @@
+{
+  "schema_version": "luminous.suf.muddi_core_conformance_plan.v0.1",
+  "status": "partial_traceability_not_conformant",
+  "standard": {
+    "document": "OGC 23-024",
+    "version": "1.0",
+    "url": "https://docs.ogc.org/is/23-024/23-024.html",
+    "uml_source": "https://schemas.opengis.net/muddi/1.0/xmi-v2-4-2-default.xmi"
+  },
+  "claim_ceiling": "This is a plan and partial traceability matrix only. No MUDDI Core conformance claim is made.",
+  "tests": [
+    {
+      "id": "A.1",
+      "requirement": "/req/core/classes-concepts",
+      "status": "partial",
+      "evidence": "Ten Core concepts mapped; local concrete profile types added; abstract base/concrete subtype distinction needs UML-level review.",
+      "next": "Review every Core UML class and referenced concept against the official XMI."
+    },
+    {
+      "id": "A.2",
+      "requirement": "/req/core/classes-associations",
+      "status": "not_mapped_exhaustively",
+      "evidence": "Local fixture has illustrative links; exact UML association roles, source/target direction and maximum multiplicities are not fully crosswalked.",
+      "next": "Extract all Core associations from official XMI and test direction, roles and maximum multiplicities."
+    },
+    {
+      "id": "A.3",
+      "requirement": "/req/core/classes-attributes",
+      "status": "partial",
+      "evidence": "Mandatory attributes captured for MUDDIObject, MUDDIAsset, MUDDIEvent, MUDDISpace, Network and NetworkAsset; full inherited/defined attribute audit outstanding.",
+      "next": "Audit all attributes, definitions, types, obligations and maximum multiplicities against the XMI."
+    },
+    {
+      "id": "A.4",
+      "requirement": "/req/core/concrete-value-types",
+      "status": "not_complete",
+      "evidence": "Synthetic geometry arrays are fixture placeholders and do not yet define the final ISO 19107 concrete type/CRS profile.",
+      "next": "Specify concrete geometry/value types for every required AbstractValueType and test the encodings."
+    }
+  ],
+  "mandatory_attributes": [
+    {
+      "concept": "MUDDIObject",
+      "attributes": [
+        "objectID",
+        "recordID",
+        "systemID"
+      ],
+      "conditional": [
+        "sf_geometry"
+      ]
+    },
+    {
+      "concept": "MUDDIAsset",
+      "attributes": [
+        "assetOwnerID"
+      ]
+    },
+    {
+      "concept": "MUDDIEvent",
+      "attributes": [
+        "targetObject",
+        "targetProperty",
+        "validTime"
+      ]
+    },
+    {
+      "concept": "MUDDISpace",
+      "attributes": [
+        "extent"
+      ]
+    },
+    {
+      "concept": "Network",
+      "attributes": [
+        "commodityType"
+      ]
+    },
+    {
+      "concept": "NetworkAsset",
+      "attributes": [
+        "utilityType"
+      ]
+    },
+    {
+      "concept": "NetworkConveyance",
+      "attributes": [],
+      "inherited": [
+        "NetworkAsset",
+        "MUDDIAsset",
+        "MUDDIObject"
+      ]
+    },
+    {
+      "concept": "NetworkNode",
+      "attributes": [],
+      "inherited": [
+        "NetworkConveyance",
+        "NetworkAsset",
+        "MUDDIAsset",
+        "MUDDIObject"
+      ]
+    },
+    {
+      "concept": "NetworkLink",
+      "attributes": [],
+      "inherited": [
+        "NetworkConveyance",
+        "NetworkAsset",
+        "MUDDIAsset",
+        "MUDDIObject"
+      ]
+    },
+    {
+      "concept": "NetworkAccessory",
+      "attributes": [],
+      "inherited": [
+        "NetworkAsset",
+        "MUDDIAsset",
+        "MUDDIObject"
+      ]
+    }
+  ],
+  "negative_controls": [
+    "missing_object_id",
+    "duplicate_record_id",
+    "system_id_without_provider_namespace",
+    "missing_asset_owner_id",
+    "missing_utility_type",
+    "missing_commodity_type",
+    "missing_event_target_object",
+    "missing_event_target_property",
+    "missing_event_valid_time",
+    "missing_space_extent",
+    "missing_logical_name_row",
+    "missing_concrete_profile_subtype",
+    "invalid_geometry_type_or_crs",
+    "wrong_association_role_or_direction",
+    "wrong_association_multiplicity",
+    "unauthorized_restricted_geometry_export"
+  ],
+  "geometry_policy": {
+    "status": "not_finalized",
+    "fixture_encodings": "synthetic Point/LineString/Polygon coordinate arrays only",
+    "target_standards": [
+      "ISO 19107",
+      "OGC Simple Features"
+    ],
+    "candidate_extended_encoding": "OGC JSON-FG where CRS/3D metadata is required"
+  },
+  "logical_name_policy": {
+    "required": true,
+    "mapping_artifact": "muddi-core-crosswalk-v0.1.json",
+    "fields": [
+      "conceptName",
+      "logicalName",
+      "parentConceptName",
+      "parentLogicalName",
+      "defaultSymbol",
+      "implementationName"
+    ]
+  },
+  "claim": "Not MUDDI Core conformant; partial traceability only."
+}
