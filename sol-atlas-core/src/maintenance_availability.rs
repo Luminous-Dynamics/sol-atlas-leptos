@@ -556,6 +556,18 @@ mod tests {
     }
 
     #[test]
+    fn return_evidence_does_not_override_missing_work_authorization() {
+        let mut input = request();
+        input.work_order.authorization = None;
+
+        let trace = project_maintenance_availability(&input).expect("unknown is representable");
+        assert_eq!(trace.disposition, ProjectionDisposition::NotEvaluable);
+        assert_eq!(trace.intervals.len(), 2);
+        assert_eq!(trace.intervals[1].state, AvailabilityState::Unknown);
+        assert_eq!(trace.intervals[1].end_unix_seconds, 50);
+    }
+
+    #[test]
     fn wrong_replacement_configuration_is_rejected() {
         let mut input = request();
         input.work_order.inspection = Some(evidence("inspection-wrong-rev", 31, OLD_CONFIG));
