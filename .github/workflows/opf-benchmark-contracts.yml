@@ -1,0 +1,43 @@
+name: OPF Benchmark Contracts
+
+on:
+  pull_request:
+    paths:
+      - "docs/schemas/opf-benchmark/**"
+      - "docs/research/fixtures/opf-benchmark/**"
+      - "docs/research/OPF_BENCHMARK_CONTRACTS_V0.1.md"
+      - "tools/opf-benchmark-contracts/**"
+      - ".github/workflows/opf-benchmark-contracts.yml"
+  push:
+    paths:
+      - "docs/schemas/opf-benchmark/**"
+      - "docs/research/fixtures/opf-benchmark/**"
+      - "docs/research/OPF_BENCHMARK_CONTRACTS_V0.1.md"
+      - "tools/opf-benchmark-contracts/**"
+      - ".github/workflows/opf-benchmark-contracts.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: opf-benchmark-contracts
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install pinned JSON Schema validator
+        run: python -m pip install --disable-pip-version-check --no-input jsonschema==4.23.0
+
+      - name: Validate schemas, exact case identities and fail-closed run receipts
+        run: python tools/opf-benchmark-contracts/validate_opf_benchmark_contracts.py
