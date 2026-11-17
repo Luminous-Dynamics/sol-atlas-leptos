@@ -65,3 +65,12 @@ jobs:
       # (renderer::hex, sol-atlas-core). Must target the bin explicitly:
       # `cargo test --lib` fails with "no library targets found".
       - run: cargo test --bin sol-atlas-leptos
+
+  test-core:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+      - name: Test shared core library
+        run: cargo test --manifest-path sol-atlas-core/Cargo.toml
