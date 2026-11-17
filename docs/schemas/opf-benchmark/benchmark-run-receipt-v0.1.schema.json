@@ -72,7 +72,11 @@
               "const": "MW"
             },
             "angle": {
-              "const": "radians_or_explicit_degrees"
+              "const": "radians_or_explicit_degrees",
+              "enum": [
+                "radians",
+                "degrees"
+              ]
             },
             "objective": {
               "$ref": "#/$defs/text"
