@@ -690,12 +690,9 @@ fn decision_receipt_fixture() -> Result<(Value, Value), String> {
 
 fn candidate_technical_disposition(gates: &[Value]) -> &'static str {
     if gates.is_empty()
-        || gates.iter().any(|gate| {
-            !matches!(
-                string_at(gate, "state"),
-                Some("PASS" | "FAIL" | "UNKNOWN")
-            )
-        })
+        || gates
+            .iter()
+            .any(|gate| !matches!(string_at(gate, "state"), Some("PASS" | "FAIL" | "UNKNOWN")))
     {
         return "CONDITIONAL_CONCEPT_ONLY";
     }
@@ -715,24 +712,19 @@ fn candidate_technical_disposition(gates: &[Value]) -> &'static str {
 }
 
 fn preference_event_is_well_formed(value: &Value, design_revision: &str) -> bool {
-    string_at(value, "participant_ref")
-        .is_some_and(|participant| {
-            participant.starts_with("participant:")
-                && participant.len() > "participant:".len()
-        })
-        && string_at(value, "event_ref")
-            .is_some_and(|event_ref| event_ref.starts_with("urn:mycelix:"))
+    string_at(value, "participant_ref").is_some_and(|participant| {
+        participant.starts_with("participant:") && participant.len() > "participant:".len()
+    }) && string_at(value, "event_ref")
+        .is_some_and(|event_ref| event_ref.starts_with("urn:mycelix:"))
         && string_at(value, "design_revision") == Some(design_revision)
-        && string_at(value, "event_content_sha256")
-            .is_some_and(|digest| {
-                digest.len() == 64
-                    && digest
-                        .bytes()
-                        .all(|byte| byte.is_ascii_digit() || (b'a'..=b'f').contains(&byte))
-            })
+        && string_at(value, "event_content_sha256").is_some_and(|digest| {
+            digest.len() == 64
+                && digest
+                    .bytes()
+                    .all(|byte| byte.is_ascii_digit() || (b'a'..=b'f').contains(&byte))
+        })
         && string_at(value, "decision_scope") == Some("CONCEPT_DIRECTION_ONLY")
-        && string_at(value, "provenance_status")
-            == Some("PENDING_MYCELIX_5149_VERIFICATION")
+        && string_at(value, "provenance_status") == Some("PENDING_MYCELIX_5149_VERIFICATION")
 }
 
 fn preference_graph_has_cycle(pairs: &[Value]) -> bool {
@@ -740,8 +732,12 @@ fn preference_graph_has_cycle(pairs: &[Value]) -> bool {
     let mut indegree: BTreeMap<String, usize> = BTreeMap::new();
 
     for pair in pairs {
-        let left = string_at(pair, "left_candidate_id").unwrap_or_default().to_owned();
-        let right = string_at(pair, "right_candidate_id").unwrap_or_default().to_owned();
+        let left = string_at(pair, "left_candidate_id")
+            .unwrap_or_default()
+            .to_owned();
+        let right = string_at(pair, "right_candidate_id")
+            .unwrap_or_default()
+            .to_owned();
         let direction = match string_at(pair, "decision") {
             Some("PREFER_LEFT") => Some((left, right)),
             Some("PREFER_RIGHT") => Some((right, left)),
@@ -791,7 +787,9 @@ fn validate_resident_choice(
 ) {
     let state = string_at(resident_choice, "state").unwrap_or_default();
     let selected = resident_choice.get("selected_candidate_id");
-    let event = resident_choice.get("decision_event").unwrap_or(&Value::Null);
+    let event = resident_choice
+        .get("decision_event")
+        .unwrap_or(&Value::Null);
     let pairwise = array_at(resident_choice, "pairwise_preferences")
         .cloned()
         .unwrap_or_default();
@@ -804,41 +802,57 @@ fn validate_resident_choice(
         "NOT_RECORDED" => {
             if !selected.is_some_and(Value::is_null)
                 || !event.is_null()
-                || pairwise.iter().any(|pair| string_at(pair, "decision") != Some("UNDECIDED"))
+                || pairwise
+                    .iter()
+                    .any(|pair| string_at(pair, "decision") != Some("UNDECIDED"))
             {
-                errors.push("NOT_RECORDED must not contain an inferred selection or preference".to_owned());
+                errors.push(
+                    "NOT_RECORDED must not contain an inferred selection or preference".to_owned(),
+                );
             }
         }
         "UNDECIDED" => {
             if !selected.is_some_and(Value::is_null)
                 || !preference_event_is_well_formed(event, design_revision)
-                || pairwise.iter().any(|pair| string_at(pair, "decision") != Some("UNDECIDED"))
+                || pairwise
+                    .iter()
+                    .any(|pair| string_at(pair, "decision") != Some("UNDECIDED"))
             {
-                errors.push("explicit UNDECIDED requires a pending provenance event and no preference".to_owned());
+                errors.push(
+                    "explicit UNDECIDED requires a pending provenance event and no preference"
+                        .to_owned(),
+                );
             }
         }
         "PREFERENCES_RECORDED" => {
             if !selected.is_some_and(Value::is_null)
                 || !preference_event_is_well_formed(event, design_revision)
-                || !pairwise.iter().any(|pair| {
-                    !matches!(string_at(pair, "decision"), Some("UNDECIDED"))
-                })
+                || !pairwise
+                    .iter()
+                    .any(|pair| !matches!(string_at(pair, "decision"), Some("UNDECIDED")))
             {
                 errors.push("recorded preferences require an event reference and at least one explicit comparison".to_owned());
             }
         }
         "CONCEPT_DIRECTION_SELECTED" => {
             let selected_id = selected.and_then(Value::as_str).unwrap_or_default();
-            if !source_candidate_ids.contains(selected_id) || !preference_event_is_well_formed(event, design_revision) {
+            if !source_candidate_ids.contains(selected_id)
+                || !preference_event_is_well_formed(event, design_revision)
+            {
                 errors.push("concept direction selection must reference a source candidate and provenance event".to_owned());
             }
         }
         "INCOMPARABLE" => {
             if !selected.is_some_and(Value::is_null)
                 || !preference_event_is_well_formed(event, design_revision)
-                || !pairwise.iter().any(|pair| string_at(pair, "decision") == Some("INCOMPARABLE"))
+                || !pairwise
+                    .iter()
+                    .any(|pair| string_at(pair, "decision") == Some("INCOMPARABLE"))
             {
-                errors.push("INCOMPARABLE requires an explicit incomparable pair and provenance event".to_owned());
+                errors.push(
+                    "INCOMPARABLE requires an explicit incomparable pair and provenance event"
+                        .to_owned(),
+                );
             }
         }
         _ => errors.push("unsupported resident choice state".to_owned()),
@@ -848,8 +862,14 @@ fn validate_resident_choice(
     for pair in &pairwise {
         let left = string_at(pair, "left_candidate_id").unwrap_or_default();
         let right = string_at(pair, "right_candidate_id").unwrap_or_default();
-        if left == right || !source_candidate_ids.contains(left) || !source_candidate_ids.contains(right) {
-            errors.push("resident pairwise decision must reference two distinct source candidates".to_owned());
+        if left == right
+            || !source_candidate_ids.contains(left)
+            || !source_candidate_ids.contains(right)
+        {
+            errors.push(
+                "resident pairwise decision must reference two distinct source candidates"
+                    .to_owned(),
+            );
         }
         let normalized = if left <= right {
             format!("{left}|{right}")
@@ -857,18 +877,25 @@ fn validate_resident_choice(
             format!("{right}|{left}")
         };
         if !seen_pairs.insert(normalized) {
-            errors.push("resident pairwise decision contains a duplicate or reversed duplicate pair".to_owned());
+            errors.push(
+                "resident pairwise decision contains a duplicate or reversed duplicate pair"
+                    .to_owned(),
+            );
         }
         if !matches!(
             string_at(pair, "decision"),
             Some("UNDECIDED" | "PREFER_LEFT" | "PREFER_RIGHT" | "EQUIVALENT" | "INCOMPARABLE")
         ) || !nonempty_string(pair, "basis")
         {
-            errors.push("resident pairwise decision has an unsupported state or missing basis".to_owned());
+            errors.push(
+                "resident pairwise decision has an unsupported state or missing basis".to_owned(),
+            );
         }
     }
     if preference_graph_has_cycle(&pairwise) {
-        errors.push("resident pairwise preferences contain a contradictory directed cycle".to_owned());
+        errors.push(
+            "resident pairwise preferences contain a contradictory directed cycle".to_owned(),
+        );
     }
 }
 
@@ -992,13 +1019,13 @@ fn validate_decision_receipt(
                 "{candidate_id}: source must preserve the exact ten required hard-gate IDs"
             ));
         }
-        if receipt_gates.iter().any(|gate| {
-            !matches!(
-                string_at(gate, "state"),
-                Some("PASS" | "FAIL" | "UNKNOWN")
-            )
-        }) {
-            errors.push(format!("{candidate_id}: receipt contains an unsupported hard-gate state"));
+        if receipt_gates
+            .iter()
+            .any(|gate| !matches!(string_at(gate, "state"), Some("PASS" | "FAIL" | "UNKNOWN")))
+        {
+            errors.push(format!(
+                "{candidate_id}: receipt contains an unsupported hard-gate state"
+            ));
         }
         if source_gate_ids != receipt_gate_ids || source_gate_ids.len() != source_gates.len() {
             errors.push(format!(
@@ -1540,28 +1567,20 @@ mod tests {
             .as_array_mut()
             .unwrap()
             .pop();
-        assert!(!validate_decision_receipt(
-            &receipt,
-            &schema,
-            &profile,
-            &brief,
-            &candidate_set
-        )
-        .is_empty());
+        assert!(
+            !validate_decision_receipt(&receipt, &schema, &profile, &brief, &candidate_set)
+                .is_empty()
+        );
     }
 
     #[test]
     fn rejects_empty_source_hard_gate_set() {
         let (receipt, schema, profile, brief, mut candidate_set) = decision_fixture();
         candidate_set["candidates"][0]["hard_gate_results"] = json!([]);
-        assert!(!validate_decision_receipt(
-            &receipt,
-            &schema,
-            &profile,
-            &brief,
-            &candidate_set
-        )
-        .is_empty());
+        assert!(
+            !validate_decision_receipt(&receipt, &schema, &profile, &brief, &candidate_set)
+                .is_empty()
+        );
     }
 
     #[test]
@@ -1648,7 +1667,10 @@ mod tests {
         receipt["resident_choice"]["pairwise_preferences"][0]["decision"] = json!("PREFER_LEFT");
         receipt["resident_choice"]["pairwise_preferences"][0]["basis"] =
             json!("Synthetic positive control only; not a real resident choice.");
-        assert!(validate_decision_receipt(&receipt, &schema, &profile, &brief, &candidate_set).is_empty());
+        assert!(
+            validate_decision_receipt(&receipt, &schema, &profile, &brief, &candidate_set)
+                .is_empty()
+        );
     }
 
     #[test]
@@ -1656,7 +1678,10 @@ mod tests {
         let (mut receipt, schema, profile, brief, candidate_set) = decision_fixture();
         receipt["resident_choice"]["state"] = json!("PREFERENCES_RECORDED");
         receipt["resident_choice"]["pairwise_preferences"][0]["decision"] = json!("PREFER_LEFT");
-        assert!(!validate_decision_receipt(&receipt, &schema, &profile, &brief, &candidate_set).is_empty());
+        assert!(
+            !validate_decision_receipt(&receipt, &schema, &profile, &brief, &candidate_set)
+                .is_empty()
+        );
     }
 
     #[test]
@@ -1672,7 +1697,10 @@ mod tests {
             "provenance_status":"PENDING_MYCELIX_5149_VERIFICATION"
         });
         receipt["resident_choice"]["pairwise_preferences"][0]["decision"] = json!("PREFER_LEFT");
-        assert!(!validate_decision_receipt(&receipt, &schema, &profile, &brief, &candidate_set).is_empty());
+        assert!(
+            !validate_decision_receipt(&receipt, &schema, &profile, &brief, &candidate_set)
+                .is_empty()
+        );
     }
 
     #[test]
@@ -1688,7 +1716,10 @@ mod tests {
             "provenance_status":"PENDING_MYCELIX_5149_VERIFICATION"
         });
         receipt["resident_choice"]["pairwise_preferences"][0]["decision"] = json!("PREFER_LEFT");
-        assert!(!validate_decision_receipt(&receipt, &schema, &profile, &brief, &candidate_set).is_empty());
+        assert!(
+            !validate_decision_receipt(&receipt, &schema, &profile, &brief, &candidate_set)
+                .is_empty()
+        );
     }
 
     #[test]
@@ -1704,7 +1735,10 @@ mod tests {
             "decision_scope":"CONCEPT_DIRECTION_ONLY",
             "provenance_status":"PENDING_MYCELIX_5149_VERIFICATION"
         });
-        assert!(!validate_decision_receipt(&receipt, &schema, &profile, &brief, &candidate_set).is_empty());
+        assert!(
+            !validate_decision_receipt(&receipt, &schema, &profile, &brief, &candidate_set)
+                .is_empty()
+        );
     }
 
     #[test]
