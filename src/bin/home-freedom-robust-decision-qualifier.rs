@@ -249,10 +249,10 @@ fn evaluate(root: &Value) -> Result<Value, String> {
 
     for candidate_row in candidate_rows {
         only_keys(
-                candidate_row,
-                &["candidate_id", "scenario_results"],
-                "candidate",
-            )?;
+            candidate_row,
+            &["candidate_id", "scenario_results"],
+            "candidate",
+        )?;
         let candidate_id = required_str(candidate_row, "candidate_id", "candidate")?;
         let result_rows = required_array(candidate_row, "scenario_results", "candidate")?;
         if result_rows.len() != scenario_ids.len() {
@@ -280,10 +280,10 @@ fn evaluate(root: &Value) -> Result<Value, String> {
                 ));
             }
             unique_insert(
-                    &mut seen_scenarios,
-                    scenario_id.clone(),
-                    "candidate scenarios",
-                )?;
+                &mut seen_scenarios,
+                scenario_id.clone(),
+                "candidate scenarios",
+            )?;
 
             let gate_rows = required_array(scenario_row, "gate_results", "scenario_result")?;
             if gate_rows.len() != constraint_ids.len() {
