@@ -30,7 +30,10 @@ struct Candidate {
     intervals: BTreeMap<String, BTreeMap<String, Interval>>,
 }
 
-fn object<'a>(value: &'a Value, context: &str) -> Result<&'a serde_json::Map<String, Value>, String> {
+fn object<'a>(
+    value: &'a Value,
+    context: &str,
+) -> Result<&'a serde_json::Map<String, Value>, String> {
     value
         .as_object()
         .ok_or_else(|| format!("{context} must be an object"))
@@ -46,7 +49,11 @@ fn only_keys(value: &Value, allowed: &[&str], context: &str) -> Result<(), Strin
     Ok(())
 }
 
-fn required_array<'a>(value: &'a Value, key: &str, context: &str) -> Result<&'a Vec<Value>, String> {
+fn required_array<'a>(
+    value: &'a Value,
+    key: &str,
+    context: &str,
+) -> Result<&'a Vec<Value>, String> {
     value
         .get(key)
         .and_then(Value::as_array)
@@ -222,7 +229,9 @@ fn evaluate(root: &Value) -> Result<Value, String> {
         let unit = required_str(row, "unit", "objective")?;
         let direction = required_str(row, "direction", "objective")?;
         if direction != "MINIMIZE" && direction != "MAXIMIZE" {
-            return Err(format!("objective {id} has unsupported direction {direction}"));
+            return Err(format!(
+                "objective {id} has unsupported direction {direction}"
+            ));
         }
         if objectives
             .insert(id.clone(), Objective { unit, direction })
@@ -239,7 +248,11 @@ fn evaluate(root: &Value) -> Result<Value, String> {
     let mut candidates = BTreeMap::<String, Candidate>::new();
 
     for candidate_row in candidate_rows {
-        only_keys(candidate_row, &["candidate_id", "scenario_results"], "candidate")?;
+        only_keys(
+                candidate_row,
+                &["candidate_id", "scenario_results"],
+                "candidate",
+            )?;
         let candidate_id = required_str(candidate_row, "candidate_id", "candidate")?;
         let result_rows = required_array(candidate_row, "scenario_results", "candidate")?;
         if result_rows.len() != scenario_ids.len() {
@@ -266,7 +279,11 @@ fn evaluate(root: &Value) -> Result<Value, String> {
                     "candidate {candidate_id} refers to undeclared scenario {scenario_id}"
                 ));
             }
-            unique_insert(&mut seen_scenarios, scenario_id.clone(), "candidate scenarios")?;
+            unique_insert(
+                    &mut seen_scenarios,
+                    scenario_id.clone(),
+                    "candidate scenarios",
+                )?;
 
             let gate_rows = required_array(scenario_row, "gate_results", "scenario_result")?;
             if gate_rows.len() != constraint_ids.len() {
@@ -276,7 +293,11 @@ fn evaluate(root: &Value) -> Result<Value, String> {
             }
             let mut seen_gates = BTreeSet::new();
             for gate in gate_rows {
-                only_keys(gate, &["constraint_id", "state", "evidence_ref"], "gate_result")?;
+                only_keys(
+                    gate,
+                    &["constraint_id", "state", "evidence_ref"],
+                    "gate_result",
+                )?;
                 let constraint_id = required_str(gate, "constraint_id", "gate_result")?;
                 if !constraint_ids.contains(&constraint_id) {
                     return Err(format!(
@@ -545,7 +566,11 @@ fn evaluate(root: &Value) -> Result<Value, String> {
         left["scope"]
             .as_str()
             .cmp(&right["scope"].as_str())
-            .then(left["scenario_id"].to_string().cmp(&right["scenario_id"].to_string()))
+            .then(
+                left["scenario_id"]
+                    .to_string()
+                    .cmp(&right["scenario_id"].to_string()),
+            )
             .then(left["dominates"].as_str().cmp(&right["dominates"].as_str()))
             .then(left["dominated"].as_str().cmp(&right["dominated"].as_str()))
     });
@@ -622,10 +647,16 @@ fn run_self_tests() -> Result<(), String> {
     let mut permuted = fixture.clone();
     permuted["candidates"].as_array_mut().unwrap().reverse();
     for candidate in permuted["candidates"].as_array_mut().unwrap() {
-        candidate["scenario_results"].as_array_mut().unwrap().reverse();
+        candidate["scenario_results"]
+            .as_array_mut()
+            .unwrap()
+            .reverse();
         for scenario in candidate["scenario_results"].as_array_mut().unwrap() {
             scenario["gate_results"].as_array_mut().unwrap().reverse();
-            scenario["metric_intervals"].as_array_mut().unwrap().reverse();
+            scenario["metric_intervals"]
+                .as_array_mut()
+                .unwrap()
+                .reverse();
         }
     }
     if evaluate(&permuted)? != report {
@@ -644,16 +675,14 @@ fn run_self_tests() -> Result<(), String> {
 
     // Reversing uncertainty bounds must be rejected.
     let mut inverted = fixture.clone();
-    inverted["candidates"][0]["scenario_results"][0]["metric_intervals"][0]["lower"] =
-        json!(200.0);
+    inverted["candidates"][0]["scenario_results"][0]["metric_intervals"][0]["lower"] = json!(200.0);
     if evaluate(&inverted).is_ok() {
         return Err("inverted uncertainty interval was accepted".to_owned());
     }
 
     // Widening an interval must not create a dominance claim.
     let mut widened = fixture.clone();
-    widened["candidates"][0]["scenario_results"][1]["metric_intervals"][1]["upper"] =
-        json!(300.0);
+    widened["candidates"][0]["scenario_results"][1]["metric_intervals"][1]["upper"] = json!(300.0);
     let widened_report = evaluate(&widened)?;
     let widened_pairs = widened_report["dominance_pairs"].as_array().unwrap();
     if widened_pairs.iter().any(|row| {
@@ -672,7 +701,9 @@ fn main() {
     if args.first().map(String::as_str) == Some("--self-test") {
         match run_self_tests() {
             Ok(()) => {
-                println!("HOME_FREEDOM_ROBUST_DECISION_PASS: synthetic oracle, fail-closed gates, interval dominance, frontiers and permutation controls");
+                println!(
+                    "HOME_FREEDOM_ROBUST_DECISION_PASS: synthetic oracle, fail-closed gates, interval dominance, frontiers and permutation controls"
+                );
             }
             Err(error) => {
                 eprintln!("HOME_FREEDOM_ROBUST_DECISION_FAIL: {error}");
