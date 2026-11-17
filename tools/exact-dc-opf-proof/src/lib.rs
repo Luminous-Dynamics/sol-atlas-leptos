@@ -51,7 +51,7 @@ impl Rational {
     pub fn numerator(self) -> i128 { self.numerator }
     pub fn denominator(self) -> i128 { self.denominator }
 
-    pub fn add(self, rhs: Self) -> Result<Self, String> {
+    pub fn checked_add(self, rhs: Self) -> Result<Self, String> {
         let common = gcd(self.denominator as u128, rhs.denominator as u128);
         let left_scale = rhs.denominator / i128::try_from(common).map_err(|_| "rational gcd overflow")?;
         let right_scale = self.denominator / i128::try_from(common).map_err(|_| "rational gcd overflow")?;
@@ -62,12 +62,12 @@ impl Rational {
         Self::new(numerator, denominator)
     }
 
-    pub fn sub(self, rhs: Self) -> Result<Self, String> {
+    pub fn checked_sub(self, rhs: Self) -> Result<Self, String> {
         let negated = rhs.numerator.checked_neg().ok_or("rational subtraction overflow")?;
-        self.add(Self { numerator: negated, denominator: rhs.denominator })
+        self.checked_add(Self { numerator: negated, denominator: rhs.denominator })
     }
 
-    pub fn mul(self, rhs: Self) -> Result<Self, String> {
+    pub fn checked_mul(self, rhs: Self) -> Result<Self, String> {
         let g1 = gcd(self.numerator.checked_abs().ok_or("rational numerator magnitude overflow")? as u128,
                      rhs.denominator as u128);
         let g2 = gcd(rhs.numerator.checked_abs().ok_or("rational numerator magnitude overflow")? as u128,
@@ -84,11 +84,11 @@ impl Rational {
         )
     }
 
-    pub fn div(self, rhs: Self) -> Result<Self, String> {
+    pub fn checked_div(self, rhs: Self) -> Result<Self, String> {
         if rhs.numerator == 0 {
             return Err("rational division by zero".to_owned());
         }
-        self.mul(Self::new(rhs.denominator, rhs.numerator)?)
+        self.checked_mul(Self::new(rhs.denominator, rhs.numerator)?)
     }
 
     pub fn cmp_checked(self, rhs: Self) -> Result<Ordering, String> {
@@ -256,12 +256,12 @@ pub fn model_from_source(source: &str) -> Result<ExactModel, String> {
     }
 
     let base_mva = r(100, 1)?;
-    let demand_pu = r(100, 1)?.div(base_mva)?;
-    let line_limit_pu = r(40, 1)?.div(base_mva)?;
-    let susceptance_pu = Rational::one().div(r(1, 10)?)?;
+    let demand_pu = r(100, 1)?.checked_div(base_mva)?;
+    let line_limit_pu = r(40, 1)?.checked_div(base_mva)?;
+    let susceptance_pu = Rational::one().checked_div(r(1, 10)?)?;
     let generator_lower_pu = r(0, 1)?;
-    let generator_upper_pu = r(200, 1)?.div(base_mva)?;
-    let generator_cost_pu = [r(10, 1)?.mul(base_mva)?, r(30, 1)?.mul(base_mva)?];
+    let generator_upper_pu = r(200, 1)?.checked_div(base_mva)?;
+    let generator_cost_pu = [r(10, 1)?.checked_mul(base_mva)?, r(30, 1)?.checked_mul(base_mva)?];
     Ok(ExactModel {
         source_sha1: digest,
         base_mva,
@@ -315,18 +315,18 @@ pub fn verify(model: &ExactModel, certificate: Certificate) -> Result<ExactProof
     let b = model.susceptance_pu;
 
     // h1 = b(theta1 - theta2) - p1 = 0
-    let bus_1_residual = b.mul(p.theta_reference_rad.sub(p.theta_load_rad)?)?
-        .sub(p.generator_1_pu)?;
+    let bus_1_residual = b.checked_mul(p.theta_reference_rad.checked_sub(p.theta_load_rad)?)?
+        .checked_sub(p.generator_1_pu)?;
     // h2 = b(theta2 - theta1) - p2 + demand = 0
-    let bus_2_residual = b.mul(p.theta_load_rad.sub(p.theta_reference_rad)?)?
-        .sub(p.generator_2_pu)?.add(model.demand_pu)?;
+    let bus_2_residual = b.checked_mul(p.theta_load_rad.checked_sub(p.theta_reference_rad)?)?
+        .checked_sub(p.generator_2_pu)?.checked_add(model.demand_pu)?;
 
     require_zero("reference angle", p.theta_reference_rad)?;
     require_zero("bus 1 active-power balance", bus_1_residual)?;
     require_zero("bus 2 active-power balance", bus_2_residual)?;
 
-    let flow = b.mul(p.theta_reference_rad.sub(p.theta_load_rad)?)?;
-    let negative_flow = Rational::zero().sub(flow)?;
+    let flow = b.checked_mul(p.theta_reference_rad.checked_sub(p.theta_load_rad)?)?;
+    let negative_flow = Rational::zero().checked_sub(flow)?;
     for (label, value, lower, upper) in [
         ("generator 1", p.generator_1_pu, model.generator_lower_pu, model.generator_upper_pu),
         ("generator 2", p.generator_2_pu, model.generator_lower_pu, model.generator_upper_pu),
@@ -353,31 +353,31 @@ pub fn verify(model: &ExactModel, certificate: Certificate) -> Result<ExactProof
     // L = c'p + lambda1*h1 + lambda2*h2
     //     + muU*(f-limit) + muL*(-f-limit)
     //     + muLo*(lo-p) + muUp*(p-hi).
-    let stationarity_theta_1 = b.mul(
-        d.bus_1_balance.sub(d.bus_2_balance)?
-            .add(d.line_upper)?.sub(d.line_lower)?,
+    let stationarity_theta_1 = b.checked_mul(
+        d.bus_1_balance.checked_sub(d.bus_2_balance)?
+            .checked_add(d.line_upper)?.checked_sub(d.line_lower)?,
     )?;
-    let stationarity_theta_2 = Rational::zero().sub(stationarity_theta_1)?;
+    let stationarity_theta_2 = Rational::zero().checked_sub(stationarity_theta_1)?;
     let stationarity_pg_1 = model.generator_cost_pu[0]
-        .sub(d.bus_1_balance)?
-        .sub(d.generator_1_lower)?
-        .add(d.generator_1_upper)?;
+        .checked_sub(d.bus_1_balance)?
+        .checked_sub(d.generator_1_lower)?
+        .checked_add(d.generator_1_upper)?;
     let stationarity_pg_2 = model.generator_cost_pu[1]
-        .sub(d.bus_2_balance)?
-        .sub(d.generator_2_lower)?
-        .add(d.generator_2_upper)?;
+        .checked_sub(d.bus_2_balance)?
+        .checked_sub(d.generator_2_lower)?
+        .checked_add(d.generator_2_upper)?;
     require_zero("theta 1 stationarity", stationarity_theta_1)?;
     require_zero("theta 2 stationarity", stationarity_theta_2)?;
     require_zero("generator 1 stationarity", stationarity_pg_1)?;
     require_zero("generator 2 stationarity", stationarity_pg_2)?;
 
     // Complementary slackness for each lower/upper inequality.
-    let line_upper_slack = model.line_limit_pu.sub(flow)?;
-    let line_lower_slack = model.line_limit_pu.add(flow)?;
-    let g1_lower_slack = p.generator_1_pu.sub(model.generator_lower_pu)?;
-    let g1_upper_slack = model.generator_upper_pu.sub(p.generator_1_pu)?;
-    let g2_lower_slack = p.generator_2_pu.sub(model.generator_lower_pu)?;
-    let g2_upper_slack = model.generator_upper_pu.sub(p.generator_2_pu)?;
+    let line_upper_slack = model.line_limit_pu.checked_sub(flow)?;
+    let line_lower_slack = model.line_limit_pu.checked_add(flow)?;
+    let g1_lower_slack = p.generator_1_pu.checked_sub(model.generator_lower_pu)?;
+    let g1_upper_slack = model.generator_upper_pu.checked_sub(p.generator_1_pu)?;
+    let g2_lower_slack = p.generator_2_pu.checked_sub(model.generator_lower_pu)?;
+    let g2_upper_slack = model.generator_upper_pu.checked_sub(p.generator_2_pu)?;
     for (label, slack, multiplier) in [
         ("line upper", line_upper_slack, d.line_upper),
         ("line lower", line_lower_slack, d.line_lower),
@@ -386,22 +386,22 @@ pub fn verify(model: &ExactModel, certificate: Certificate) -> Result<ExactProof
         ("generator 2 lower", g2_lower_slack, d.generator_2_lower),
         ("generator 2 upper", g2_upper_slack, d.generator_2_upper),
     ] {
-        require_zero(label, slack.mul(multiplier)?)?;
+        require_zero(label, slack.checked_mul(multiplier)?)?;
     }
 
-    let primal_objective = model.generator_cost_pu[0].mul(p.generator_1_pu)?
-        .add(model.generator_cost_pu[1].mul(p.generator_2_pu)?)?;
+    let primal_objective = model.generator_cost_pu[0].checked_mul(p.generator_1_pu)?
+        .checked_add(model.generator_cost_pu[1].checked_mul(p.generator_2_pu)?)?;
     // The only nonzero constant terms in the Lagrangian are lambda2*demand
     // and -mu_upper*line_limit. All lower/upper generator-bound multipliers
     // and lower-line multiplier are exactly zero in this certificate.
-    let dual_lower_bound = d.bus_2_balance.mul(model.demand_pu)?
-        .sub(d.line_upper.mul(model.line_limit_pu)?)?
-        .sub(d.line_lower.mul(model.line_limit_pu)?)?
-        .add(d.generator_1_lower.mul(model.generator_lower_pu)?)?
-        .sub(d.generator_1_upper.mul(model.generator_upper_pu)?)?
-        .add(d.generator_2_lower.mul(model.generator_lower_pu)?)?
-        .sub(d.generator_2_upper.mul(model.generator_upper_pu)?)?;
-    let gap = primal_objective.sub(dual_lower_bound)?;
+    let dual_lower_bound = d.bus_2_balance.checked_mul(model.demand_pu)?
+        .checked_sub(d.line_upper.checked_mul(model.line_limit_pu)?)?
+        .checked_sub(d.line_lower.checked_mul(model.line_limit_pu)?)?
+        .checked_add(d.generator_1_lower.checked_mul(model.generator_lower_pu)?)?
+        .checked_sub(d.generator_1_upper.checked_mul(model.generator_upper_pu)?)?
+        .checked_add(d.generator_2_lower.checked_mul(model.generator_lower_pu)?)?
+        .checked_sub(d.generator_2_upper.checked_mul(model.generator_upper_pu)?)?;
+    let gap = primal_objective.checked_sub(dual_lower_bound)?;
     require_zero("exact primal-dual gap", gap)?;
 
     Ok(ExactProof {
@@ -546,7 +546,7 @@ mod tests {
     #[test]
     fn checked_arithmetic_refuses_overflow() {
         let large = Rational::integer(i128::MAX);
-        assert!(large.mul(Rational::integer(2)).is_err());
+        assert!(large.checked_mul(Rational::integer(2)).is_err());
     }
 
     #[test]
