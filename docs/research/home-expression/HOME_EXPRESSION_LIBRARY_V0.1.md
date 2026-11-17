@@ -125,11 +125,17 @@ The synthetic fixture deliberately marks all impacts UNKNOWN. It must not invent
 
 The receipt pins the exact expression profile, source brief, Home Freedom candidate set and design revision. For each source candidate, it preserves every hard-gate ID, state, reason and evidence reference. A known `FAIL` blocks that candidate; any `UNKNOWN` leaves it conditional; only all-`PASS` candidates may enter an owner-native preference comparison. Even then, this is not permit approval or construction readiness.
 
-The synthetic Highveld receipt keeps both current candidates conditional because all ten source gates are `UNKNOWN`. It records no resident pairwise choice and no winner. There is no scalar style/beauty/household score, automatic ranking or automatic selection path. Incomparability and “not recorded” are legitimate outcomes. Multi-resident disagreement and private intent remain with #907.
+The synthetic Highveld receipt keeps both current candidates conditional because all ten source gates are `UNKNOWN`. It records no resident pairwise choice and no winner. There is no scalar style/beauty/household score, automatic ranking or automatic selection path.
+
+The schema also supports resident-authored `UNDECIDED`, `PREFERENCES_RECORDED`, `CONCEPT_DIRECTION_SELECTED` and `INCOMPARABLE` states. Pairwise outcomes (`PREFER_LEFT`, `PREFER_RIGHT`, `EQUIVALENT`, `INCOMPARABLE`, `UNDECIDED`) remain a partial preference graph: duplicate/reversed pairs and contradictory directed cycles are rejected, but no total ranking is inferred. A selected candidate is only a concept direction, not a feasibility or construction approval.
+
+A recorded event requires an opaque participant reference, a Mycelix event reference, event SHA-256, exact design revision and `CONCEPT_DIRECTION_ONLY` scope. Provenance status remains `PENDING_MYCELIX_5149_VERIFICATION`: Sol-Atlas validates the envelope but does not authenticate the actor, verify consent or issue an approval. The current synthetic fixture remains `NOT_RECORDED`; no real resident choice is fabricated.
+
+Multi-resident disagreement and private intent remain with #907.
 
 ### 5.1 Multi-resident boundary
 
-The v0.1 expression profile is bound to one exact source brief and one design revision. It must not be interpreted as a household-wide consensus or as proof that every resident accepts a proposed style/amenity blend.
+The v0.1 expression profile is bound to one exact source brief, candidate set and design revision. It must not be interpreted as a household-wide consensus or as proof that every resident accepts a proposed style/amenity blend.
 
 For a shared home, preserve separate resident-authored intent and consent scopes. Do not average competing style weights, expose private preferences, silently relax one person's non-negotiable constraint, or assume agreement from a majority or from a generated candidate. Conflicting requirements remain visible and may produce separate candidates or an explicit unresolved state. The dedicated multi-resident owner is [HOUSEHOLD-PLURAL-INTENT-001 #907](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/907). Mycelix identity/consent and construction provenance remain separate owners.
 
