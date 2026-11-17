@@ -13,7 +13,7 @@ use serde_json::{Value, json};
 use std::collections::BTreeMap;
 
 const EXPRESSION_CATALOG: &str =
-    include_str!("../../docs/research/home-expression/HOME_EXPRESSION_CATALOG_V0.1.json");
+    include_str!("../../docs/research/home-expression/HOME_EXPRESSION_CATALOG_V0.2.json");
 
 #[derive(Clone)]
 struct StyleOption {
@@ -228,7 +228,9 @@ pub fn HomeExpressionPage() -> impl IntoView {
         };
 
         let draft = json!({
-            "draft_version": "0.1.0",
+            "draft_version": "0.2.0",
+            "catalog_revision": "HOME-EXPRESSION-CATALOG-0.2.0",
+            "composition_contract": "HOME-ARCHITECTURAL-GRAMMAR-COMPOSITION-0.2.0",
             "maturity": "RESIDENT_WORKING_DRAFT_NOT_VALIDATED",
             "scope": "SINGLE_RESIDENT_EXPRESSION_EXPLORATION",
             "resident_expression": {
@@ -472,7 +474,7 @@ mod tests {
     #[test]
     fn embedded_catalog_has_expected_style_and_experience_counts() {
         let (styles, experiences) = load_catalog();
-        assert_eq!(styles.len(), 20);
+        assert_eq!(styles.len(), 34);
         assert_eq!(experiences.len(), 26);
         assert!(styles.iter().all(|item| {
             !item.id.is_empty()
