@@ -321,7 +321,7 @@ fn validate_grammar(
         }
         if role == "REFERENCE_ONLY" {
             let source_refs = entry.get("source_refs").and_then(Value::as_array);
-            if source_refs.is_none_or(Vec::is_empty) {
+            if source_refs.is_none_or(|refs| refs.is_empty()) {
                 errors.push(format!("reference-only style {id} must carry source references"));
             }
         }
