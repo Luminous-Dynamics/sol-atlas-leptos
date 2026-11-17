@@ -1296,7 +1296,7 @@ mod tests {
     #[test]
     fn wrong_binding_line_shadow_price_is_detected_by_stationarity() {
         let receipt = valid_binding_line_receipt(TWO_BUS_BINDING_LINE)
-            .replace("DUAL_FLOW\\t1\\t0\\t2000", "DUAL_FLOW\\t1\\t0\\t1900");
+            .replace("DUAL_FLOW\t1\t0\t2000", "DUAL_FLOW\t1\t0\t1900");
         let report = audit_matpower_dc_opf_kkt(
             TWO_BUS_BINDING_LINE,
             &receipt,
