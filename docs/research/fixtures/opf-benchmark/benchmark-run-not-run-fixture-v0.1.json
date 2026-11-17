@@ -1,0 +1,78 @@
+{
+  "schema_version": "0.1.0",
+  "receipt_id": "not-run-pglib-case14-matpower-reference-v0.1",
+  "manifest_id": "pglib-v23.07-typ-matpower-dcmp-starter-v0.1",
+  "case_id": "pglib_opf_case14_ieee",
+  "source_git_blob_sha1": "2c8260fff0311c902c3d36dcabcbe861576fc97c",
+  "formulation": {
+    "profile_id": "matpower_8_1_makeBdc_dcopf",
+    "revision": "makeBdc-matpower-8.1-pinned",
+    "base_mva": 100,
+    "units": {
+      "power": "MW",
+      "angle": "radians_or_explicit_degrees",
+      "objective": "USD/hour"
+    },
+    "conventions": {
+      "branch_susceptance": "-1/x",
+      "transformer_taps": "included",
+      "phase_shifts": "included",
+      "shunts": "ignored",
+      "slack_handling": "MATPOWER type-3 reference bus with solver balancing",
+      "cost_model": "MATPOWER polynomial gencost model"
+    }
+  },
+  "solver": {
+    "name": "MATPOWER",
+    "version": "8.1",
+    "build_identity": "1a828c7af590714499284e36ee9c81273388c594",
+    "algorithm": "rundcopf with MIPS 1.5.2",
+    "parameters_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+    "modeler": "MATPOWER 8.1",
+    "linear_solver": "MATPOWER-pinned MIPS"
+  },
+  "environment": {
+    "os": "not-run",
+    "architecture": "not-run",
+    "cpu_model": "not-run",
+    "logical_cores": 1,
+    "memory_mib": 1,
+    "thread_count": 1
+  },
+  "execution": {
+    "run_status": "not_run",
+    "started_at": "2026-11-17T00:00:00Z",
+    "repetitions": 1,
+    "cold_start": true,
+    "warm_start": false,
+    "jit_included": false,
+    "exit_code": null,
+    "timings_ms": {
+      "model_build": 0,
+      "preprocess": 0,
+      "solve": 0,
+      "verify": 0,
+      "end_to_end": 0
+    },
+    "peak_memory_mib": null
+  },
+  "outcome": {
+    "solver_outcome": "unknown"
+  },
+  "qualification": {
+    "disposition": "not_run",
+    "verifier": "not_run",
+    "verifier_build": "not_run",
+    "independent": false,
+    "method": "none",
+    "checks": [],
+    "artifact": {
+      "state": "absent",
+      "reason": "This is a schema-valid not-run fixture; no solver execution or independent evidence artifact is claimed."
+    },
+    "notes": [
+      "Do not interpret the PGLib published baseline context as a run receipt or matched-formulation measurement."
+    ]
+  },
+  "claim_ceiling": "structural_only"
+}
