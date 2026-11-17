@@ -10,7 +10,7 @@
     "base_mva": 100,
     "units": {
       "power": "MW",
-      "angle": "radians_or_explicit_degrees",
+      "angle": "radians",
       "objective": "USD/hour"
     },
     "conventions": {
@@ -27,7 +27,6 @@
     "version": "8.1",
     "build_identity": "1a828c7af590714499284e36ee9c81273388c594",
     "algorithm": "rundcopf with MIPS 1.5.2",
-    "parameters_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
     "modeler": "MATPOWER 8.1",
     "linear_solver": "MATPOWER-pinned MIPS"
   },
