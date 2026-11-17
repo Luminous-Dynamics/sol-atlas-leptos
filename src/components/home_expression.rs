@@ -21,6 +21,8 @@ struct StyleOption {
     name: String,
     category: String,
     description: String,
+    reference_policy: String,
+    authenticity_note: String,
 }
 
 #[derive(Clone)]
@@ -46,6 +48,8 @@ fn load_catalog() -> (Vec<StyleOption>, Vec<ExperienceOption>) {
                 name: item.get("display_name")?.as_str()?.to_owned(),
                 category: item.get("category")?.as_str()?.to_owned(),
                 description: item.get("description")?.as_str()?.to_owned(),
+                reference_policy: item.get("reference_policy")?.as_str()?.to_owned(),
+                authenticity_note: item.get("authenticity_note")?.as_str()?.to_owned(),
             })
         })
         .collect();
@@ -265,8 +269,15 @@ pub fn HomeExpressionPage() -> impl IntoView {
                 <div class="home-expression-boundary">
                     <strong>"An expression tool, not a building approval."</strong>
                     " Your selections are a local working draft. They do not generate floor plans, "
-                    "prices or engineering evidence, and they are not uploaded or saved."
+                    "prices or engineering evidence, and they are not uploaded or saved. This page "
+                    "currently edits expression and experience preferences only; the v0.2 grammar "
+                    "contract also separates spatial typology, materials and environmental strategies."
                 </div>
+                <p class="home-expression-card-description">
+                    "Historical and community-associated references are exploration prompts only. "
+                    "They require source, rights, local-context and (where applicable) heritage review. "
+                    "No identity or culture is inferred from a resident or site."
+                </p>
             </header>
 
             <section class="home-expression-section">
@@ -302,6 +313,9 @@ pub fn HomeExpressionPage() -> impl IntoView {
                                 <p class="home-expression-card-category">{style.category.clone()}</p>
                                 <h3>{style.name.clone()}</h3>
                                 <p class="home-expression-card-description">{style.description.clone()}</p>
+                                <p class="home-expression-card-description">
+                                    {format!("{} · {}", style.reference_policy, style.authenticity_note)}
+                                </p>
                                 <div class="home-expression-role-row" aria-label="Style preference">
                                     <button
                                         class:active=move || current_preference(style_roles, &id_primary_active) == "PRIMARY"
@@ -481,6 +495,8 @@ mod tests {
                 && !item.name.is_empty()
                 && !item.category.is_empty()
                 && !item.description.is_empty()
+                && !item.reference_policy.is_empty()
+                && !item.authenticity_note.is_empty()
         }));
         assert!(experiences.iter().all(|item| {
             !item.id.is_empty()
