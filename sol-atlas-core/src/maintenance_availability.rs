@@ -875,6 +875,17 @@ mod tests {
     }
 
     #[test]
+    fn trace_json_round_trip_preserves_validated_partition() {
+        let trace = project_maintenance_availability(&request()).expect("valid trace");
+        let encoded = serde_json::to_string(&trace).expect("serialize trace");
+        let decoded: MaintenanceAvailabilityTraceV1 =
+            serde_json::from_str(&encoded).expect("deserialize trace");
+
+        assert_eq!(decoded, trace);
+        assert_eq!(validate_trace_structure(&decoded), Ok(()));
+    }
+
+    #[test]
     fn trace_id_is_stable_for_identical_inputs_and_changes_with_evidence() {
         let input = request();
         let first = project_maintenance_availability(&input).expect("valid trace");
