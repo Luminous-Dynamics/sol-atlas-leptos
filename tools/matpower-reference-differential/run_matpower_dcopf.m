@@ -56,4 +56,98 @@ function run_matpower_dcopf(case_path, output_path, matpower_root, mp_opt_model_
             i, round(row(F_BUS)), round(row(T_BUS)), ...
             round(row(BR_STATUS) ~= 0), row(PF), row(PT));
     end
+    % Export the named MATPOWER 8.1 dual variables in internal model order,
+    % but bind every row back to the original external source identity.
+    % These are solver-reported observations; the Rust KKT verifier recomputes
+    % every sign, constraint, stationarity and complementarity condition.
+    if ~isfield(results, 'lin') || ~isfield(results, 'var') || ...
+            ~isfield(results.lin, 'mu') || ~isfield(results.var, 'mu')
+        error('MATPOWER result is missing named linear-constraint or variable multipliers');
+    end
+    if ~isfield(results.lin.mu, 'l') || ~isfield(results.lin.mu, 'u') || ...
+            ~isfield(results.var.mu, 'l') || ~isfield(results.var.mu, 'u')
+        error('MATPOWER result is missing lower/upper multiplier groups');
+    end
+    if ~isfield(results.lin.mu.l, 'Pmis') || ~isfield(results.lin.mu.u, 'Pmis') || ...
+            ~isfield(results.var.mu.l, 'Va') || ~isfield(results.var.mu.u, 'Va') || ...
+            ~isfield(results.var.mu.l, 'Pg') || ~isfield(results.var.mu.u, 'Pg')
+        error('MATPOWER result is missing required Pmis, Va or Pg multiplier blocks');
+    end
+
+    fprintf(fid, 'DUAL_META\t1\tlower_upper_nonnegative\n');
+    bus_ids = results.order.bus.i2e(:);
+    va_mu_l = results.var.mu.l.Va(:);
+    va_mu_u = results.var.mu.u.Va(:);
+    pg_mu_l = results.var.mu.l.Pg(:);
+    pg_mu_u = results.var.mu.u.Pg(:);
+    pmis_mu_l = results.lin.mu.l.Pmis(:);
+    pmis_mu_u = results.lin.mu.u.Pmis(:);
+    if length(bus_ids) ~= length(va_mu_l) || length(bus_ids) ~= length(va_mu_u) || ...
+            length(bus_ids) ~= length(pmis_mu_l) || length(bus_ids) ~= length(pmis_mu_u)
+        error('MATPOWER internal bus/dual dimensions do not agree');
+    end
+    if length(results.order.gen.i2e) ~= length(pg_mu_l) || ...
+            length(results.order.gen.i2e) ~= length(pg_mu_u)
+        error('MATPOWER internal generator/dual dimensions do not agree');
+    end
+
+    for i = 1:length(bus_ids)
+        fprintf(fid, 'DUAL_BUS\t%d\t%.17g\t%.17g\n', ...
+            round(bus_ids(i)), pmis_mu_l(i), pmis_mu_u(i));
+        fprintf(fid, 'DUAL_VA\t%d\t%.17g\t%.17g\n', ...
+            round(bus_ids(i)), va_mu_l(i), va_mu_u(i));
+    end
+    for i = 1:length(results.order.gen.i2e)
+        fprintf(fid, 'DUAL_GEN\t%d\t%.17g\t%.17g\n', ...
+            round(results.order.gen.i2e(i)), pg_mu_l(i), pg_mu_u(i));
+    end
+
+    % Use MATPOWER's explicit internal-to-external branch mapping rather
+    % than depending on the optional legacy OPF model object being retained.
+    % MATPOWER 8.1 does not define order.branch.i2e. Branch rows are
+    % filtered but not reordered by ext2int; status.on preserves the
+    % original external source-row identities for in-service branches.
+    branch_source_rows_all = results.order.branch.status.on(:);
+    source_rate_a = mpc.branch(branch_source_rows_all, RATE_A);
+    constrained_internal = find(source_rate_a ~= 0 & source_rate_a < 1e10);
+    if ~isempty(constrained_internal)
+        if ~isfield(results.lin.mu.l, 'Pf') || ~isfield(results.lin.mu.u, 'Pf')
+            error('MATPOWER result is missing the Pf dual block for constrained branches');
+        end
+        pf_mu_l = results.lin.mu.l.Pf(:);
+        pf_mu_u = results.lin.mu.u.Pf(:);
+        if length(constrained_internal) ~= length(pf_mu_l) || ...
+                length(constrained_internal) ~= length(pf_mu_u)
+            error('MATPOWER Pf dual dimensions do not match constrained branches');
+        end
+        branch_source_rows = branch_source_rows_all(constrained_internal);
+        for i = 1:length(constrained_internal)
+            fprintf(fid, 'DUAL_FLOW\t%d\t%.17g\t%.17g\n', ...
+                round(branch_source_rows(i)), pf_mu_l(i), pf_mu_u(i));
+        end
+    end
+
+    source_angle_min = mpc.branch(branch_source_rows_all, ANGMIN);
+    source_angle_max = mpc.branch(branch_source_rows_all, ANGMAX);
+    angle_mask = (source_angle_min ~= 0 & source_angle_min > -360) | ...
+        (source_angle_max ~= 0 & source_angle_max < 360) | ...
+        (source_angle_min ~= 0 & source_angle_max == 0) | ...
+        (source_angle_min == 0 & source_angle_max ~= 0);
+    angle_internal = find(angle_mask);
+    if ~isempty(angle_internal)
+        if ~isfield(results.lin.mu.l, 'ang') || ~isfield(results.lin.mu.u, 'ang')
+            error('MATPOWER result is missing the angle-difference dual block');
+        end
+        ang_mu_l = results.lin.mu.l.ang(:);
+        ang_mu_u = results.lin.mu.u.ang(:);
+        if length(angle_internal) ~= length(ang_mu_l) || ...
+                length(angle_internal) ~= length(ang_mu_u)
+            error('MATPOWER angle dual dimensions do not match constrained branches');
+        end
+        angle_source_rows = branch_source_rows_all(angle_internal);
+        for i = 1:length(angle_internal)
+            fprintf(fid, 'DUAL_ANGLE\t%d\t%.17g\t%.17g\n', ...
+                round(angle_source_rows(i)), ang_mu_l(i), ang_mu_u(i));
+        end
+    end
 end
