@@ -1,0 +1,32 @@
+{
+  "schema_version": "exact-dc-opf-proof.v0.1.0",
+  "source_git_blob_sha1": "6f835a443a6b33a11fade361a437c7cfab9d0182",
+  "model_profile": "matpower_8_1_makeBdc_dcopf_exact_two_bus_v0_1",
+  "arithmetic": "checked_i128_rational_no_float_fallback",
+  "primal": {
+    "theta_reference_rad": "0/1",
+    "theta_load_rad": "-1/25",
+    "generator_1_pu": "2/5",
+    "generator_2_pu": "3/5",
+    "line_flow_pu": "2/5"
+  },
+  "dual": {
+    "bus_1_balance": "1000/1",
+    "bus_2_balance": "3000/1",
+    "line_upper": "2000/1",
+    "all_other_inequality_multipliers": "0/1"
+  },
+  "exact_checks": {
+    "bus_1_balance_residual_pu": "0/1",
+    "bus_2_balance_residual_pu": "0/1",
+    "stationarity_theta_1": "0/1",
+    "stationarity_theta_2": "0/1",
+    "stationarity_generator_1": "0/1",
+    "stationarity_generator_2": "0/1",
+    "primal_objective_per_hour": "2200/1",
+    "dual_lower_bound_per_hour": "2200/1",
+    "primal_dual_gap_per_hour": "0/1"
+  },
+  "proof_status": "exact_pass_for_frozen_rational_fixture",
+  "claim_ceiling": "exact optimality proof for this one source-bound convex two-bus DC-OPF LP; no general solver or physical-grid claim"
+}
