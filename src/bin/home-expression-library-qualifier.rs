@@ -61,6 +61,17 @@ const REQUIRED_SOURCE_HARD_GATE_IDS: &[&str] = &[
     "COST_LOCAL_SUPPLY",
 ];
 
+const REQUIRED_EXPRESSION_BENCHMARK_CASES: &[(&str, &str, &str)] = &[
+    ("CASE_EMPTY_SOURCE_GATE_SET", "HARD_CONSTRAINT", "REJECTED_CONTRACT"),
+    ("CASE_MISSING_REQUIRED_GATE_ID", "HARD_CONSTRAINT", "REJECTED_CONTRACT"),
+    ("CASE_UNSUPPORTED_GATE_STATE", "HARD_CONSTRAINT", "REJECTED_CONTRACT"),
+    ("CASE_PREFERENCE_CYCLE", "AGENCY", "REJECTED_PREFERENCE_CYCLE"),
+    ("CASE_DUPLICATE_REVERSED_PREFERENCE_PAIR", "AGENCY", "REJECTED_DUPLICATE_PREFERENCE"),
+    ("CASE_STALE_PREFERENCE_EVENT_REVISION", "AGENCY", "REQUALIFICATION_REQUIRED"),
+    ("CASE_DIRECT_IDENTITY_PARTICIPANT_REFERENCE", "AGENCY", "REJECTED_DIRECT_IDENTIFIERS"),
+    ("CASE_UNBOUND_PREFERENCE_EVENT", "AGENCY", "REJECTED_UNBOUND_DECISION_EVENT"),
+];
+
 const IMPACT_DOMAINS: &[&str] = &[
     "AREA_AND_CIRCULATION",
     "CAPITAL_COST",
@@ -311,8 +322,8 @@ fn validate_benchmark_manifest(manifest: &Value, schema: &Value) -> Vec<String> 
 
     let allowed_statuses = string_set(array_at(manifest, "status_semantics"));
     let cases = array_at(manifest, "cases").cloned().unwrap_or_default();
-    if cases.len() < 16 {
-        errors.push("benchmark extension requires at least 16 contract mutation cases".to_owned());
+    if cases.len() < 24 {
+        errors.push("benchmark extension requires at least 24 contract mutation cases".to_owned());
     }
     let mut case_ids = BTreeSet::new();
     for case in &cases {
@@ -368,6 +379,22 @@ fn validate_benchmark_manifest(manifest: &Value, schema: &Value) -> Vec<String> 
             errors.push(format!(
                 "{id}: source population or mutation description is missing"
             ));
+        }
+    }
+
+    for (required_id, required_dimension, required_disposition) in
+        REQUIRED_EXPRESSION_BENCHMARK_CASES
+    {
+        let case = cases
+            .iter()
+            .find(|case| string_at(case, "case_id") == Some(*required_id));
+        match case {
+            Some(case)
+                if string_at(case, "dimension") == Some(*required_dimension)
+                    && string_at(case, "expected_disposition") == Some(*required_disposition) => {}
+            _ => errors.push(format!(
+                "{required_id}: required decision-integrity benchmark case is missing or has the wrong oracle"
+            )),
         }
     }
 
@@ -1874,6 +1901,29 @@ mod tests {
         let (mut manifest, schema) = benchmark_fixture().expect("valid benchmark fixture");
         manifest["cases"][0]["source_artifact_refs"][0]["blob_sha"] =
             json!("0000000000000000000000000000000000000000");
+        assert!(!validate_benchmark_manifest(&manifest, &schema).is_empty());
+    }
+
+    #[test]
+    fn rejects_missing_preference_cycle_benchmark_case() {
+        let (mut manifest, schema) = benchmark_fixture().expect("valid benchmark fixture");
+        manifest["cases"]
+            .as_array_mut()
+            .unwrap()
+            .retain(|case| case["case_id"] != "CASE_PREFERENCE_CYCLE");
+        assert!(!validate_benchmark_manifest(&manifest, &schema).is_empty());
+    }
+
+    #[test]
+    fn rejects_preference_case_with_wrong_expected_disposition() {
+        let (mut manifest, schema) = benchmark_fixture().expect("valid benchmark fixture");
+        let case = manifest["cases"]
+            .as_array_mut()
+            .unwrap()
+            .iter_mut()
+            .find(|case| case["case_id"] == "CASE_PREFERENCE_CYCLE")
+            .unwrap();
+        case["expected_disposition"] = json!("CONTRACT_VALID");
         assert!(!validate_benchmark_manifest(&manifest, &schema).is_empty());
     }
 
