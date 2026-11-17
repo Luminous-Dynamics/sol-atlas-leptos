@@ -208,10 +208,7 @@ fn validate(corpus: &Value, schema: &Value) -> Result<Value, Vec<String>> {
     let mut scenarios = BTreeMap::<String, Value>::new();
     if let Some(items) = array_at(corpus, "site_scenarios") {
         if items.len() != 10 {
-            errors.push(format!(
-                "expected 10 site scenarios, found {}",
-                items.len()
-            ));
+            errors.push(format!("expected 10 site scenarios, found {}", items.len()));
         }
         for item in items {
             let id = text_at(item, "id")
