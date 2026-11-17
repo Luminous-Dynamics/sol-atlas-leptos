@@ -72,7 +72,6 @@
               "const": "MW"
             },
             "angle": {
-              "const": "radians_or_explicit_degrees",
               "enum": [
                 "radians",
                 "degrees"
