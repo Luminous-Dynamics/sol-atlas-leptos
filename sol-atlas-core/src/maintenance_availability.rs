@@ -129,6 +129,7 @@ pub enum ProjectionError {
     EvidenceConfigurationMismatch,
     AuthorizationAfterMaintenanceStart,
     InvalidEvidenceOrder,
+    ReturnBeforeStudyStart,
     CompletionWithoutIsolation,
     InspectionWithoutCompletion,
     ReturnAuthorizationWithoutInspection,
@@ -151,6 +152,7 @@ impl fmt::Display for ProjectionError {
             Self::EvidenceConfigurationMismatch => "evidence is bound to the wrong configuration",
             Self::AuthorizationAfterMaintenanceStart => "authorization was observed after maintenance start",
             Self::InvalidEvidenceOrder => "maintenance evidence timestamps are inconsistent",
+            Self::ReturnBeforeStudyStart => "return-to-service occurred before the study window",
             Self::CompletionWithoutIsolation => "completion evidence exists without isolation evidence",
             Self::InspectionWithoutCompletion => "inspection evidence exists without completion evidence",
             Self::ReturnAuthorizationWithoutInspection => {
@@ -364,10 +366,22 @@ pub fn project_maintenance_availability(
         ProjectionDisposition::Incomplete
     };
 
-    let return_at = work_order
-        .return_to_service_authorization
-        .as_ref()
-        .map(|evidence| evidence.observed_at_unix_seconds);
+    // A final authorization cannot repair a missing authorization for the
+    // maintenance operation itself. Keep the remainder of the window Unknown.
+    let return_at = if work_order.authorization.is_some()
+        && work_order.completion.is_some()
+        && work_order.inspection.is_some()
+    {
+        work_order
+            .return_to_service_authorization
+            .as_ref()
+            .map(|evidence| evidence.observed_at_unix_seconds)
+    } else {
+        None
+    };
+    if return_at.is_some_and(|timestamp| timestamp < window.start_unix_seconds) {
+        return Err(ProjectionError::ReturnBeforeStudyStart);
+    }
 
     let mut intervals = Vec::with_capacity(3);
     let clipped_outage_start = outage_start.max(window.start_unix_seconds);
