@@ -77,23 +77,76 @@ fn current_preference(preferences: RwSignal<BTreeMap<String, String>>, item_id: 
     })
 }
 
+fn promote_secondary_if_orphaned(entries: &mut BTreeMap<String, String>) {
+    if entries.values().any(|role| role == "PRIMARY") {
+        return;
+    }
+    if let Some(style_id) = entries
+        .iter()
+        .find_map(|(style_id, role)| (role == "SECONDARY").then(|| style_id.clone()))
+    {
+        entries.insert(style_id, "PRIMARY".to_owned());
+    }
+}
+
+fn can_select_secondary(
+    roles: RwSignal<BTreeMap<String, String>>,
+    style_id: &str,
+) -> bool {
+    roles.with(|entries| {
+        entries.get(style_id).is_some_and(|role| role == "SECONDARY")
+            || entries
+                .iter()
+                .any(|(candidate, role)| candidate != style_id && role == "PRIMARY")
+    })
+}
+
 fn apply_style_role(
     entries: &mut BTreeMap<String, String>,
     style_id: String,
     role: &'static str,
 ) {
+    let was_primary = entries
+        .get(&style_id)
+        .is_some_and(|current| current == "PRIMARY");
+
     if entries
         .get(&style_id)
         .is_some_and(|current| current == role)
     {
         entries.remove(&style_id);
+        if role == "PRIMARY" {
+            promote_secondary_if_orphaned(entries);
+        }
         return;
     }
 
-    if role == "PRIMARY" || role == "SECONDARY" {
-        entries.retain(|_, current| current != role);
+    match role {
+        "PRIMARY" => {
+            entries.retain(|key, current| {
+                current != "PRIMARY" && !(key == &style_id && current == "SECONDARY")
+            });
+            entries.insert(style_id, "PRIMARY".to_owned());
+        }
+        "SECONDARY" => {
+            let has_other_primary = entries
+                .iter()
+                .any(|(candidate, current)| candidate != &style_id && current == "PRIMARY");
+            if has_other_primary {
+                entries.retain(|key, current| {
+                    current != "SECONDARY" && !(key == &style_id && current == "PRIMARY")
+                });
+                entries.insert(style_id, "SECONDARY".to_owned());
+            }
+        }
+        "AVOID" | "ACCEPTABLE" => {
+            entries.insert(style_id, role.to_owned());
+            if was_primary {
+                promote_secondary_if_orphaned(entries);
+            }
+        }
+        _ => {}
     }
-    entries.insert(style_id, role.to_owned());
 }
 
 fn set_style_role(roles: RwSignal<BTreeMap<String, String>>, style_id: String, role: &'static str) {
@@ -236,6 +289,7 @@ pub fn HomeExpressionPage() -> impl IntoView {
                         let id_secondary_active = style.id.clone();
                         let id_secondary_pressed = style.id.clone();
                         let id_secondary_click = style.id.clone();
+                        let id_secondary_disabled = style.id.clone();
                         let id_avoid_active = style.id.clone();
                         let id_avoid_pressed = style.id.clone();
                         let id_avoid_click = style.id.clone();
@@ -256,6 +310,7 @@ pub fn HomeExpressionPage() -> impl IntoView {
                                         on:click=move |_| set_style_role(style_roles, id_primary_click.clone(), "PRIMARY")
                                     >"Primary"</button>
                                     <button
+                                        disabled=move || !can_select_secondary(style_roles, &id_secondary_disabled)
                                         class:active=move || current_preference(style_roles, &id_secondary_active) == "SECONDARY"
                                         aria-pressed=move || (current_preference(style_roles, &id_secondary_pressed) == "SECONDARY").to_string()
                                         on:click=move |_| set_style_role(style_roles, id_secondary_click.clone(), "SECONDARY")
@@ -435,6 +490,34 @@ mod tests {
             Some("PRIMARY")
         );
         assert_eq!(roles.get("SOLARPUNK").map(String::as_str), Some("SECONDARY"));
+    }
+
+    #[test]
+    fn secondary_style_requires_a_different_primary() {
+        let mut roles = BTreeMap::new();
+        apply_style_role(&mut roles, "SOLARPUNK".to_owned(), "SECONDARY");
+        assert!(roles.is_empty());
+        assert!(!can_select_secondary(RwSignal::new(roles), "SOLARPUNK"));
+    }
+
+    #[test]
+    fn removing_primary_promotes_existing_secondary() {
+        let mut roles = BTreeMap::new();
+        apply_style_role(&mut roles, "MODERNIST".to_owned(), "PRIMARY");
+        apply_style_role(&mut roles, "SOLARPUNK".to_owned(), "SECONDARY");
+        apply_style_role(&mut roles, "MODERNIST".to_owned(), "PRIMARY");
+        assert_eq!(roles.len(), 1);
+        assert_eq!(roles.get("SOLARPUNK").map(String::as_str), Some("PRIMARY"));
+    }
+
+    #[test]
+    fn replacing_primary_with_avoid_promotes_secondary() {
+        let mut roles = BTreeMap::new();
+        apply_style_role(&mut roles, "MODERNIST".to_owned(), "PRIMARY");
+        apply_style_role(&mut roles, "SOLARPUNK".to_owned(), "SECONDARY");
+        apply_style_role(&mut roles, "MODERNIST".to_owned(), "AVOID");
+        assert_eq!(roles.get("MODERNIST").map(String::as_str), Some("AVOID"));
+        assert_eq!(roles.get("SOLARPUNK").map(String::as_str), Some("PRIMARY"));
     }
 
     #[test]
