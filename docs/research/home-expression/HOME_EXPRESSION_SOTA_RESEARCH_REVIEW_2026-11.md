@@ -247,13 +247,15 @@ The crosswalk is only a proposed owner-review mapping. It does not run the revis
 ## 7. Immediate execution sequence
 
 1. **Completed in the current feature branch:** versioned 20-style/26-package catalog, 46-row proposed revision-impact crosswalk, deterministic owner/catalog checks, and exact catalog/brief digest binding in the resident expression profile.
-2. **Completed for the currently extant synthetic source only:** all 24 expression mutation rows are bound to `SYNTH-HV-CASE-001` and the exact Home Freedom brief/candidate-set blob digests. They are counterfactual mutations of one baseline, not 16 independent households. The #819 manifest still says the planned 100-case corpus is `NOT_EXECUTED`; extend that population only when independently authored, versioned source cases actually exist.
+2. **Completed for the currently extant synthetic source only:** all 24 expression mutation rows are bound to `SYNTH-HV-CASE-001` and the exact Home Freedom brief/candidate-set blob digests. They are counterfactual mutations of one baseline, not 24 independent households. The #819 manifest still says the planned 100-case corpus is `NOT_EXECUTED`; extend that population only when independently authored, versioned source cases actually exist.
 3. **Decision receipt contract added in Sol-Atlas #917:** exact profile/brief/candidate-set/revision binding and fail-closed candidate dispositions; the current source candidates remain conditional with no resident winner.
 4. Compose Symthaea #7790/#7801's multi-objective search with Symtropy #1766/#1848's physical/resilience receipts; keep one optimizer and one physical-evaluation authority.
 5. Build exact-enumeration oracles on small, independently authored candidate spaces and report hypervolume/IGD+/regret only after all required gates pass.
 6. Create an IDS differential conformance suite under the existing openBIM owner; compare identical IFC+IDS fixtures across checker versions because 2026 buildingSMART survey users report cross-tool result differences.
-7. Select one tractable starter typology and run matched high-fidelity EnergyPlus 26.2.0 scenarios only after exact input package qualification.
-8. Run a paid, consented resident/architect trial before human-benefit claims or product comparisons.
+7. **Interactive resident configurator prototype added:** `/homes/express` reads the versioned 20-style/26-package catalogue, captures local-only style/experience preferences and shows an unvalidated JSON working draft. It is not a floor-plan generator or validated resident study.
+8. **Resident agency evaluation protocol opened in Sol-Atlas #925:** pre-register consented tasks for preference comprehension, UNKNOWN/conditional understanding, choice influence, privacy, accessibility, correction and withdrawal. No benefit claim until the study is conducted and independently analysed.
+9. Select one tractable starter typology and run matched high-fidelity EnergyPlus 26.2.0 scenarios only after exact input package qualification.
+10. Run a paid, consented resident/architect trial before human-benefit claims or product comparisons.
 
 ## 8. Research and standards sources
 
