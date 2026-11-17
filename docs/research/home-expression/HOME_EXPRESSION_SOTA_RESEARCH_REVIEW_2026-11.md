@@ -238,7 +238,7 @@ The Sol-Atlas expression branch adds:
 - 26 optional experience packages;
 - one resident-authored synthetic Highveld/Solarpunk expression profile;
 - ten impact domains per selected package, with UNKNOWN preserved;
-- a 16-case/4-pair contract-mutation extension;
+- a 24-case/4-pair contract-mutation extension;
 - a proposed 46-row style/package-to-revision crosswalk which refers changes back to #832 and forbids automatic invalidation/approval;
 - Rust qualification and CI checks for schema/catalog/benchmark/crosswalk integrity.
 
@@ -247,7 +247,7 @@ The crosswalk is only a proposed owner-review mapping. It does not run the revis
 ## 7. Immediate execution sequence
 
 1. **Completed in the current feature branch:** versioned 20-style/26-package catalog, 46-row proposed revision-impact crosswalk, deterministic owner/catalog checks, and exact catalog/brief digest binding in the resident expression profile.
-2. **Completed for the currently extant synthetic source only:** all 16 expression mutation rows are bound to `SYNTH-HV-CASE-001` and the exact Home Freedom brief/candidate-set blob digests. They are counterfactual mutations of one baseline, not 16 independent households. The #819 manifest still says the planned 100-case corpus is `NOT_EXECUTED`; extend that population only when independently authored, versioned source cases actually exist.
+2. **Completed for the currently extant synthetic source only:** all 24 expression mutation rows are bound to `SYNTH-HV-CASE-001` and the exact Home Freedom brief/candidate-set blob digests. They are counterfactual mutations of one baseline, not 16 independent households. The #819 manifest still says the planned 100-case corpus is `NOT_EXECUTED`; extend that population only when independently authored, versioned source cases actually exist.
 3. **Decision receipt contract added in Sol-Atlas #917:** exact profile/brief/candidate-set/revision binding and fail-closed candidate dispositions; the current source candidates remain conditional with no resident winner.
 4. Compose Symthaea #7790/#7801's multi-objective search with Symtropy #1766/#1848's physical/resilience receipts; keep one optimizer and one physical-evaluation authority.
 5. Build exact-enumeration oracles on small, independently authored candidate spaces and report hypervolume/IGD+/regret only after all required gates pass.
