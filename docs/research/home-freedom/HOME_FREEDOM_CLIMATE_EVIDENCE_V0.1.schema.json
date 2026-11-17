@@ -13,7 +13,8 @@
     "climate_members",
     "scenario_compositions",
     "uncertainty_policy",
-    "claim_ceiling"
+    "claim_ceiling",
+    "adversarial_cases"
   ],
   "properties": {
     "schema_version": {
@@ -51,6 +52,13 @@
     },
     "claim_ceiling": {
       "$ref": "#/$defs/claimCeiling"
+    },
+    "adversarial_cases": {
+      "type": "array",
+      "minItems": 25,
+      "items": {
+        "$ref": "#/$defs/adversarialCase"
+      }
     }
   },
   "$defs": {
@@ -1018,6 +1026,35 @@
         },
         "sota_superiority_claimed": {
           "const": false
+        }
+      }
+    },
+    "adversarialCase": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "case_id",
+        "attack",
+        "expected_result"
+      ],
+      "properties": {
+        "case_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "attack": {
+          "type": "string",
+          "minLength": 1
+        },
+        "expected_result": {
+          "enum": [
+            "REJECT_AS_CLASS_MISMATCH",
+            "BLOCK_FROM_ADMISSION",
+            "REQUIRE_OWNER_REVIEW",
+            "KEEP_MEMBERS_SEPARATE",
+            "UNALIGNED_NOT_ADMITTED",
+            "INVALIDATE_DEPENDENT_RESULT"
+          ]
         }
       }
     }
