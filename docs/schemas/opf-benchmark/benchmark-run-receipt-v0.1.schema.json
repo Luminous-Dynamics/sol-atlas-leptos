@@ -139,8 +139,7 @@
         "name",
         "version",
         "build_identity",
-        "algorithm",
-        "parameters_sha256"
+        "algorithm"
       ],
       "properties": {
         "name": {
@@ -362,6 +361,14 @@
               }
             }
           }
+        },
+        "primal_residual_unit": {
+          "type": "string",
+          "minLength": 1
+        },
+        "dual_residual_unit": {
+          "type": "string",
+          "minLength": 1
         }
       }
     },
@@ -486,6 +493,30 @@
         "relaxation_bound",
         "physical_validation"
       ]
+    },
+    "target": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "asset_id",
+        "hardware_revision",
+        "firmware_revision",
+        "as_built_config_sha256"
+      ],
+      "properties": {
+        "asset_id": {
+          "$ref": "#/$defs/id"
+        },
+        "hardware_revision": {
+          "$ref": "#/$defs/text"
+        },
+        "firmware_revision": {
+          "$ref": "#/$defs/text"
+        },
+        "as_built_config_sha256": {
+          "$ref": "#/$defs/sha256"
+        }
+      }
     }
   },
   "$defs": {
