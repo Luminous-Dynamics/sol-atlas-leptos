@@ -198,6 +198,61 @@ No build, purchase, energization, occupancy or device-actuation authority is con
 6. Run design workflow comparisons, then one qualified EnergyPlus zone / envelope reference case, then the room-scale unoccupied service bench.
 7. Treat measured results, not the render or the optimizer's preferred candidate, as the basis for promotion.
 
-## 8. Claim boundary
+## 8. Johannesburg operating context and certification applicability — 17 November 2026
+
+### 8.1 Water restrictions are a live stress case, not a permanent design assumption
+
+Johannesburg Water's Level 1 restrictions are published for **1 September 2026 through 31 March 2027**. During this period, watering gardens and filling swimming pools is prohibited from 06:00 to 18:00, and hosepipe washing of paved areas / driveways is not permitted.
+
+Design implications for this reference dwelling:
+
+- Include this period as a named, date-bounded operational stress case in water-demand and pool/water-feature experiments.
+- Keep a pool, rill, pond, evaporative cooler or irrigation loop discretionary. None may draw down a resident-defined essential potable-water reserve or displace drinking, hygiene or sanitation floors.
+- Model actual withdrawal, make-up volume, evaporation, backwash, overflow and treatment reject separately. A covered or recirculating pool is not water-neutral.
+- Compare against a competent no-pool / no-water-feature baseline. Do not claim the restriction is satisfied merely because filling is scheduled outside the restricted daytime hours.
+- Refresh municipal restrictions and supply-condition notices at the time of any future site design or operation; this September–March notice must not be treated as a permanent annual entitlement.
+
+Source: [Johannesburg Water — Level 1 water restrictions, 15 September 2026](https://www.johannesburgwater.co.za/blog/2026/09/15/level-1-water-restrictions-are-here-lets-make-every-drop-count/).
+
+### 8.2 South African energy policy: separate operative requirements from draft policy
+
+The current design baseline remains the applicable National Building Regulations and SANS 10400-XA requirements, with the exact submission route and edition confirmed by the registered professional and local authority for the project.
+
+The Government Gazette of **30 October 2026** published Notice 4221 of 2026 as a **draft** National Energy Efficiency Strategy 2025–35 for comment. Its discussion of future policy, building-energy codes and Energy Performance Certificates must not be treated as an enacted amendment. The draft also describes the existing EPC mandate as applying to specified larger categories (including private buildings above 2,000 m² and government buildings above 1,000 m² in specified use classes); do not assume that an EPC mandate applies to a single-family home. Verify the operative EPC regulations and scope separately.
+
+Sources:
+- [Government Gazette 55638, Notice 4221 of 2026 — Draft National Energy Efficiency Strategy](https://www.gov.za/sites/default/files/gcis_document/202610/55638gen4221.pdf).
+- [IEA — SANS 10400-XA:2021 policy record](https://www.iea.org/policies/8412-sans-10400-xa2021-national-building-regulations-energy-usage-in-buildings).
+
+### 8.3 Green Star applicability and cost need an early eligibility check
+
+GBCSA's current public materials list a **Green Star New Build V2 pilot**, existing Green Star New Buildings and Major Refurbishments tools, and a specific **Multi Unit Residential (MUR) V1** tool. The 2026 pricing brochure describes V2 as a pilot; it does not by itself establish that a detached single-family dwelling is eligible under a particular residential route.
+
+Before choosing a rating target:
+1. obtain written confirmation from GBCSA of the exact tool and building typology accepted for the proposed project;
+2. confirm the current technical manual, evidence requirements, accredited-professional requirements and registration stage;
+3. compare certification fees and the cost of independent assessment against the value of certification for this one dwelling;
+4. preserve the rating tool as a design-review comparator even when formal certification is not proportionate.
+
+The published 2026 brochure lists New Build V2 pilot fees of R205,000 (member) / R246,000 (non-member), VAT included; the V1 New Buildings and Major Refurbishments fee band below 1,500 m² is R78,890 / R99,000. These are published fees, not a quote for Highveld Keep, and do not establish eligibility or all professional/consultant costs.
+
+Sources:
+- [GBCSA — rating tools](https://www.gbcsa.org.za/rating-tools/).
+- [GBCSA — 2026 Certification Pricing Brochure](https://www.gbcsa.org.za/wp-content/uploads/2026/02/2026-GBCSA-Certification-Pricing-Brochure-20260212-_f_pdf.pdf).
+- [GBCSA — tool and technical-resource index](https://gbcsa.zendesk.com/hc/en-us).
+
+### 8.4 EDGE Advanced is a project-specific modeled comparator
+
+GBCI's current EDGE certification guidance says a project is designated EDGE Advanced when it achieves at least **40% predicted energy savings**, plus at least **20% predicted water savings** and **20% predicted embodied-energy savings in materials**, relative to the applicable EDGE baseline.
+
+These are modeled certification thresholds using EDGE's methodology and baseline. They are not universal savings against every existing Johannesburg dwelling and are not post-occupancy measured performance. For Highveld Keep, use the thresholds as a stretch comparator only after:
+- confirming the residential project/site eligibility and current EDGE version;
+- freezing the applicable baseline, occupancy, energy end uses, water fixtures, materials and functional unit;
+- recording all assumptions, substitutions and model version;
+- separately measuring actual operational results later.
+
+Source: [GBCI — EDGE Certification](https://edge.gbci.org/certification?language=en).
+
+## 9. Claim boundary
 
 This appendix is a research crosswalk. It does not establish current legal compliance, eligibility for any certification, product or instrument qualification, indoor-air safety, structural/fire performance, actual energy/water savings, cost, comfort, resilience or human benefit. All quantitative ambitions are proposed comparison targets and must be frozen only after their context and baseline are justified.
