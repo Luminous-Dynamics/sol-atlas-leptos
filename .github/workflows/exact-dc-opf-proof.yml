@@ -1,0 +1,48 @@
+name: Exact-Rational Two-Bus DC-OPF Proof
+
+on:
+  pull_request:
+    paths:
+      - "tools/exact-dc-opf-proof/**"
+      - "tools/matpower-dc-opf-kkt-verifier/fixtures/two_bus_binding_line.m"
+      - ".github/workflows/exact-dc-opf-proof.yml"
+  push:
+    paths:
+      - "tools/exact-dc-opf-proof/**"
+      - "tools/matpower-dc-opf-kkt-verifier/fixtures/two_bus_binding_line.m"
+      - ".github/workflows/exact-dc-opf-proof.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: exact-dc-opf-proof
+  cancel-in-progress: true
+
+jobs:
+  exact-proof:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install pinned Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: 1.96.0
+          components: rustfmt, clippy
+
+      - name: Verify strict formatting
+        run: cargo fmt --manifest-path tools/exact-dc-opf-proof/Cargo.toml -- --check
+
+      - name: Run exact arithmetic and negative-control tests
+        run: cargo test --manifest-path tools/exact-dc-opf-proof/Cargo.toml --locked --offline
+
+      - name: Run proof checker and compare deterministic receipt
+        run: |
+          cargo run --manifest-path tools/exact-dc-opf-proof/Cargo.toml --locked --offline > /tmp/exact-proof.json
+          diff -u tools/exact-dc-opf-proof/fixtures/expected-proof.json /tmp/exact-proof.json
+
+      - name: Strict Clippy
+        run: cargo clippy --manifest-path tools/exact-dc-opf-proof/Cargo.toml --locked --offline --all-targets -- -D warnings
