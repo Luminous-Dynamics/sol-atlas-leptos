@@ -28,8 +28,10 @@ impl Rational {
             n = n.checked_neg().ok_or("rational sign normalization overflow")?;
             d = d.checked_neg().ok_or("rational denominator overflow")?;
         }
-        let divisor = gcd(n.checked_abs().ok_or("rational numerator magnitude overflow")?,
-                          d.checked_abs().ok_or("rational denominator magnitude overflow")?);
+        let divisor = gcd(
+            n.checked_abs().ok_or("rational numerator magnitude overflow")? as u128,
+            d.checked_abs().ok_or("rational denominator magnitude overflow")? as u128,
+        );
         let divisor = i128::try_from(divisor).map_err(|_| "rational gcd overflow")?;
         Ok(Self { numerator: n / divisor, denominator: d / divisor })
     }
