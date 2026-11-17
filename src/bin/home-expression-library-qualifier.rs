@@ -714,6 +714,157 @@ fn candidate_technical_disposition(gates: &[Value]) -> &'static str {
     }
 }
 
+fn preference_event_is_well_formed(value: &Value) -> bool {
+    nonempty_string(value, "participant_ref")
+        && nonempty_string(value, "event_ref")
+        && string_at(value, "event_content_sha256")
+            .is_some_and(|digest| {
+                digest.len() == 64
+                    && digest
+                        .bytes()
+                        .all(|byte| byte.is_ascii_digit() || (b'a'..=b'f').contains(&byte))
+            })
+        && string_at(value, "decision_scope") == Some("CONCEPT_DIRECTION_ONLY")
+        && string_at(value, "provenance_status")
+            == Some("PENDING_MYCELIX_5149_VERIFICATION")
+}
+
+fn preference_graph_has_cycle(pairs: &[Value]) -> bool {
+    let mut edges: BTreeMap<String, BTreeSet<String>> = BTreeMap::new();
+    let mut indegree: BTreeMap<String, usize> = BTreeMap::new();
+
+    for pair in pairs {
+        let left = string_at(pair, "left_candidate_id").unwrap_or_default().to_owned();
+        let right = string_at(pair, "right_candidate_id").unwrap_or_default().to_owned();
+        let direction = match string_at(pair, "decision") {
+            Some("PREFER_LEFT") => Some((left, right)),
+            Some("PREFER_RIGHT") => Some((right, left)),
+            _ => None,
+        };
+        if let Some((preferred, less_preferred)) = direction {
+            indegree.entry(preferred.clone()).or_insert(0);
+            indegree.entry(less_preferred.clone()).or_insert(0);
+            let inserted = edges
+                .entry(preferred)
+                .or_default()
+                .insert(less_preferred.clone());
+            if inserted {
+                *indegree.entry(less_preferred).or_insert(0) += 1;
+            }
+        }
+    }
+
+    let mut ready: VecDeque<String> = indegree
+        .iter()
+        .filter_map(|(node, degree)| (*degree == 0).then_some(node.clone()))
+        .collect();
+    let mut visited = 0usize;
+
+    while let Some(node) = ready.pop_front() {
+        visited += 1;
+        if let Some(neighbors) = edges.get(&node) {
+            for neighbor in neighbors {
+                if let Some(degree) = indegree.get_mut(neighbor) {
+                    *degree -= 1;
+                    if *degree == 0 {
+                        ready.push_back(neighbor.clone());
+                    }
+                }
+            }
+        }
+    }
+
+    visited != indegree.len()
+}
+
+fn validate_resident_choice(
+    resident_choice: &Value,
+    source_candidate_ids: &BTreeSet<String>,
+    errors: &mut Vec<String>,
+) {
+    let state = string_at(resident_choice, "state").unwrap_or_default();
+    let selected = resident_choice.get("selected_candidate_id");
+    let event = resident_choice.get("decision_event").unwrap_or(&Value::Null);
+    let pairwise = array_at(resident_choice, "pairwise_preferences")
+        .cloned()
+        .unwrap_or_default();
+
+    if string_at(resident_choice, "authority") != Some("RESIDENT") {
+        errors.push("resident choice authority must remain with the resident".to_owned());
+    }
+
+    match state {
+        "NOT_RECORDED" => {
+            if !selected.is_some_and(Value::is_null)
+                || !event.is_null()
+                || pairwise.iter().any(|pair| string_at(pair, "decision") != Some("UNDECIDED"))
+            {
+                errors.push("NOT_RECORDED must not contain an inferred selection or preference".to_owned());
+            }
+        }
+        "UNDECIDED" => {
+            if !selected.is_some_and(Value::is_null)
+                || !preference_event_is_well_formed(event)
+                || pairwise.iter().any(|pair| string_at(pair, "decision") != Some("UNDECIDED"))
+            {
+                errors.push("explicit UNDECIDED requires a pending provenance event and no preference".to_owned());
+            }
+        }
+        "PREFERENCES_RECORDED" => {
+            if !selected.is_some_and(Value::is_null)
+                || !preference_event_is_well_formed(event)
+                || !pairwise.iter().any(|pair| {
+                    !matches!(string_at(pair, "decision"), Some("UNDECIDED"))
+                })
+            {
+                errors.push("recorded preferences require an event reference and at least one explicit comparison".to_owned());
+            }
+        }
+        "CONCEPT_DIRECTION_SELECTED" => {
+            let selected_id = selected.and_then(Value::as_str).unwrap_or_default();
+            if !source_candidate_ids.contains(selected_id) || !preference_event_is_well_formed(event) {
+                errors.push("concept direction selection must reference a source candidate and provenance event".to_owned());
+            }
+        }
+        "INCOMPARABLE" => {
+            if !selected.is_some_and(Value::is_null)
+                || !preference_event_is_well_formed(event)
+                || !pairwise.iter().any(|pair| string_at(pair, "decision") == Some("INCOMPARABLE"))
+            {
+                errors.push("INCOMPARABLE requires an explicit incomparable pair and provenance event".to_owned());
+            }
+        }
+        _ => errors.push("unsupported resident choice state".to_owned()),
+    }
+
+    let mut seen_pairs = BTreeSet::new();
+    for pair in &pairwise {
+        let left = string_at(pair, "left_candidate_id").unwrap_or_default();
+        let right = string_at(pair, "right_candidate_id").unwrap_or_default();
+        if left == right || !source_candidate_ids.contains(left) || !source_candidate_ids.contains(right) {
+            errors.push("resident pairwise decision must reference two distinct source candidates".to_owned());
+        }
+        let normalized = if left <= right {
+            format!("{left}|{right}")
+        } else {
+            format!("{right}|{left}")
+        };
+        if !seen_pairs.insert(normalized) {
+            errors.push("resident pairwise decision contains a duplicate or reversed duplicate pair".to_owned());
+        }
+        if !matches!(
+            string_at(pair, "decision"),
+            Some("UNDECIDED" | "PREFER_LEFT" | "PREFER_RIGHT" | "EQUIVALENT" | "INCOMPARABLE")
+        ) || !nonempty_string(pair, "basis")
+        {
+            errors.push("resident pairwise decision has an unsupported state or missing basis".to_owned());
+        }
+    }
+    if preference_graph_has_cycle(&pairwise) {
+        errors.push("resident pairwise preferences contain a contradictory directed cycle".to_owned());
+    }
+}
+
 fn validate_decision_receipt(
     receipt: &Value,
     schema: &Value,
@@ -905,157 +1056,6 @@ fn validate_decision_receipt(
     {
         errors.push("decision comparison policy weakens resident authority, unknown handling or non-ranking boundary".to_owned());
     }
-
-fn preference_event_is_well_formed(value: &Value) -> bool {
-    nonempty_string(value, "participant_ref")
-        && nonempty_string(value, "event_ref")
-        && string_at(value, "event_content_sha256")
-            .is_some_and(|digest| {
-                digest.len() == 64
-                    && digest
-                        .bytes()
-                        .all(|byte| byte.is_ascii_digit() || (b'a'..=b'f').contains(&byte))
-            })
-        && string_at(value, "decision_scope") == Some("CONCEPT_DIRECTION_ONLY")
-        && string_at(value, "provenance_status")
-            == Some("PENDING_MYCELIX_5149_VERIFICATION")
-}
-
-fn preference_graph_has_cycle(pairs: &[Value]) -> bool {
-    let mut edges: BTreeMap<String, BTreeSet<String>> = BTreeMap::new();
-    let mut indegree: BTreeMap<String, usize> = BTreeMap::new();
-
-    for pair in pairs {
-        let left = string_at(pair, "left_candidate_id").unwrap_or_default().to_owned();
-        let right = string_at(pair, "right_candidate_id").unwrap_or_default().to_owned();
-        let direction = match string_at(pair, "decision") {
-            Some("PREFER_LEFT") => Some((left, right)),
-            Some("PREFER_RIGHT") => Some((right, left)),
-            _ => None,
-        };
-        if let Some((preferred, less_preferred)) = direction {
-            indegree.entry(preferred.clone()).or_insert(0);
-            indegree.entry(less_preferred.clone()).or_insert(0);
-            let inserted = edges
-                .entry(preferred)
-                .or_default()
-                .insert(less_preferred.clone());
-            if inserted {
-                *indegree.entry(less_preferred).or_insert(0) += 1;
-            }
-        }
-    }
-
-    let mut ready: VecDeque<String> = indegree
-        .iter()
-        .filter_map(|(node, degree)| (*degree == 0).then_some(node.clone()))
-        .collect();
-    let mut visited = 0usize;
-
-    while let Some(node) = ready.pop_front() {
-        visited += 1;
-        if let Some(neighbors) = edges.get(&node) {
-            for neighbor in neighbors {
-                if let Some(degree) = indegree.get_mut(neighbor) {
-                    *degree -= 1;
-                    if *degree == 0 {
-                        ready.push_back(neighbor.clone());
-                    }
-                }
-            }
-        }
-    }
-
-    visited != indegree.len()
-}
-
-fn validate_resident_choice(
-    resident_choice: &Value,
-    source_candidate_ids: &BTreeSet<String>,
-    errors: &mut Vec<String>,
-) {
-    let state = string_at(resident_choice, "state").unwrap_or_default();
-    let selected = resident_choice.get("selected_candidate_id");
-    let event = resident_choice.get("decision_event").unwrap_or(&Value::Null);
-    let pairwise = array_at(resident_choice, "pairwise_preferences")
-        .cloned()
-        .unwrap_or_default();
-
-    if string_at(resident_choice, "authority") != Some("RESIDENT") {
-        errors.push("resident choice authority must remain with the resident".to_owned());
-    }
-
-    match state {
-        "NOT_RECORDED" => {
-            if !selected.is_some_and(Value::is_null)
-                || !event.is_null()
-                || pairwise.iter().any(|pair| string_at(pair, "decision") != Some("UNDECIDED"))
-            {
-                errors.push("NOT_RECORDED must not contain an inferred selection or preference".to_owned());
-            }
-        }
-        "UNDECIDED" => {
-            if !selected.is_some_and(Value::is_null)
-                || !preference_event_is_well_formed(event)
-                || pairwise.iter().any(|pair| string_at(pair, "decision") != Some("UNDECIDED"))
-            {
-                errors.push("explicit UNDECIDED requires a pending provenance event and no preference".to_owned());
-            }
-        }
-        "PREFERENCES_RECORDED" => {
-            if !selected.is_some_and(Value::is_null)
-                || !preference_event_is_well_formed(event)
-                || !pairwise.iter().any(|pair| {
-                    !matches!(string_at(pair, "decision"), Some("UNDECIDED"))
-                })
-            {
-                errors.push("recorded preferences require an event reference and at least one explicit comparison".to_owned());
-            }
-        }
-        "CONCEPT_DIRECTION_SELECTED" => {
-            let selected_id = selected.and_then(Value::as_str).unwrap_or_default();
-            if !source_candidate_ids.contains(selected_id) || !preference_event_is_well_formed(event) {
-                errors.push("concept direction selection must reference a source candidate and provenance event".to_owned());
-            }
-        }
-        "INCOMPARABLE" => {
-            if !selected.is_some_and(Value::is_null)
-                || !preference_event_is_well_formed(event)
-                || !pairwise.iter().any(|pair| string_at(pair, "decision") == Some("INCOMPARABLE"))
-            {
-                errors.push("INCOMPARABLE requires an explicit incomparable pair and provenance event".to_owned());
-            }
-        }
-        _ => errors.push("unsupported resident choice state".to_owned()),
-    }
-
-    let mut seen_pairs = BTreeSet::new();
-    for pair in &pairwise {
-        let left = string_at(pair, "left_candidate_id").unwrap_or_default();
-        let right = string_at(pair, "right_candidate_id").unwrap_or_default();
-        if left == right || !source_candidate_ids.contains(left) || !source_candidate_ids.contains(right) {
-            errors.push("resident pairwise decision must reference two distinct source candidates".to_owned());
-        }
-        let normalized = if left <= right {
-            format!("{left}|{right}")
-        } else {
-            format!("{right}|{left}")
-        };
-        if !seen_pairs.insert(normalized) {
-            errors.push("resident pairwise decision contains a duplicate or reversed duplicate pair".to_owned());
-        }
-        if !matches!(
-            string_at(pair, "decision"),
-            Some("UNDECIDED" | "PREFER_LEFT" | "PREFER_RIGHT" | "EQUIVALENT" | "INCOMPARABLE")
-        ) || !nonempty_string(pair, "basis")
-        {
-            errors.push("resident pairwise decision has an unsupported state or missing basis".to_owned());
-        }
-    }
-    if preference_graph_has_cycle(&pairwise) {
-        errors.push("resident pairwise preferences contain a contradictory directed cycle".to_owned());
-    }
-}
 
     let resident_choice = receipt.get("resident_choice").unwrap_or(&Value::Null);
     validate_resident_choice(resident_choice, &source_candidate_ids, &mut errors);
