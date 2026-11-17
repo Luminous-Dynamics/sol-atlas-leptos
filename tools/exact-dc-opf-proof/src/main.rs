@@ -1,4 +1,4 @@
-use exact_dc_opf_proof::{prove_frozen_fixture, TWO_BUS_SOURCE};
+use exact_dc_opf_proof::{TWO_BUS_SOURCE, prove_frozen_fixture};
 use std::process::ExitCode;
 
 fn main() -> ExitCode {
