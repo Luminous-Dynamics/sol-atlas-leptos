@@ -66,6 +66,22 @@ The study finds that common generative-design evaluation approaches can respond 
 - **IDS:** Information Delivery Specification 1.0 is an approved buildingSMART standard for machine-readable alphanumeric information requirements on IFC objects (classifications, properties, materials, quantities and relations). IDS does not replace geometry validation; pair it with explicit geometry/relationship checks and report semantic loss separately.
 - **EnergyPlus:** version 26.2.0 was released 30 September 2026. Pin the exact release, executable/package digest, EpJSON schema, weather file and model inputs for every physical-model receipt.
 
+### 1.5 Additional 2026 evidence: interactive surrogates, residential decision fronts and participation
+
+Three further findings sharpen the benchmark strategy:
+
+**Interactive surrogate + NSGA-III (September 2026).** Uddin, Khanna and Aman describe a browser-based early-design framework trained on 600 Latin-Hypercube EnergyPlus simulations of a small commercial office in ASHRAE Climate Zone 4A. Their multi-output DNN reports R² above 0.95 for EUI, peak heating demand and spatial daylight autonomy; the authors report 3–4 orders of magnitude reduction in per-evaluation time versus direct simulation and Pareto front generation within 60–180 seconds. This is a useful interactive-search comparator, but it is one small commercial-office case, one climate zone and a 600-simulation training population. It is not evidence of cross-climate residential generalization or that the surrogate can safely replace final EnergyPlus runs.
+
+**Residential optimization / decision support (1 October 2026).** Romeos et al. couple a high-fidelity EnergyPlus model and a multi-objective evolutionary algorithm for residential buildings in Mediterranean climates. Their reported front includes 59 non-dominated solutions trading annual space-conditioning energy against construction material cost. This is a relevant residential baseline, but those two objectives do not constitute a complete household utility, accessibility, water, service continuity or multi-resident preference model.
+
+**Community participation gap (1 October 2026 review).** A systematic review of 108 generative urban-design studies reports community engagement absent in 77% of the surveyed studies. This finding motivates a deliberate participation/evaluation track; it does not demonstrate that a particular AI system gives residents meaningful agency. Luminous must test resident task completion, comprehension, privacy, influence over decisions and preservation of dissent with actual consented participants—not count prompts or simulated personas as engagement.
+
+These findings suggest we need two different leaderboards:
+- **search performance:** exact-oracle regret/hypervolume, feasibility, expensive simulation calls, wall time, surrogate calibration and high-fidelity confirmation;
+- **decision legitimacy and usability:** source attribution, explicit preference state, choice comprehension, privacy-scope compliance, dissent preservation, and the fraction of resident-stated requirements that visibly influence accepted alternatives.
+
+Do not combine these leaderboards into one weighted scalar. A very fast optimizer cannot compensate for a system that misrepresents or excludes the people whose home is being designed.
+
 ## 2. Paradigm shifts worth pursuing
 
 ### A. From a generated plan to a resident-owned design decision
@@ -242,6 +258,10 @@ The crosswalk is only a proposed owner-review mapping. It does not run the revis
 ## 8. Research and standards sources
 
 - Kembhavi et al. (2026-10-15), LayoutGen: https://link.springer.com/article/10.1007/s44163-026-02481-9
+- Uddin, Khanna & Aman (2026-09), interactive DNN + NSGA-III building optimization: https://www.sciencedirect.com/science/article/pii/S3051052X26000768
+- Romeos et al. (2026-10-01), residential EnergyPlus + multi-objective decision support: https://www.sciencedirect.com/science/article/pii/S0378778826009370
+- Generative urban design systematic review (2026-10-01), community engagement absent in 77% of 108 studies: https://doi.org/10.1016/j.scs.2026.107864
+- Huang et al. (2025-12-17), 153-study performance-driven generative design systematic review: https://doi.org/10.3390/buildings15244556
 - Talami, Costa & Stouffs (online 2026-10-20), uncertainty-informed multi-objective building design: https://doi.org/10.1016/j.enbuild.2026.118417
 - Brama et al. (online 2026-06-14), evaluation challenges in generative urban design: https://doi.org/10.1177/14780771261459705
 - buildingSMART IFC 4.3.2.0: https://technical.buildingsmart.org/standards/ifc/ifc-schema-specifications/
