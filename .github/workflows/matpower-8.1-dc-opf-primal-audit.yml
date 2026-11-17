@@ -110,6 +110,7 @@ jobs:
             name="$(basename "$case" .m)"
             digest="$(git hash-object "$case")"
             receipt="artifacts/matpower-8.1-dc-opf/${name}.rundcopf.tsv"
+            primal_receipt="artifacts/matpower-8.1-dc-opf/${name}.primal.tsv"
             report="artifacts/matpower-8.1-dc-opf/${name}.audit.json"
             export GITHUB_WORKSPACE
             export MATPOWER_CASE="$GITHUB_WORKSPACE/$case"
@@ -121,8 +122,11 @@ jobs:
             export SOURCE_GIT_BLOB_SHA1="$digest"
             octave-cli --quiet --no-gui --eval \
               "repo_root = getenv('GITHUB_WORKSPACE'); addpath(fullfile(repo_root, 'tools', 'matpower-reference-differential')); run_matpower_dcopf(getenv('MATPOWER_CASE'), getenv('MATPOWER_OUTPUT'), getenv('MATPOWER_ROOT'), getenv('MP_OPT_MODEL_ROOT'), getenv('MIPS_ROOT'), getenv('MP_TEST_ROOT'), getenv('SOURCE_GIT_BLOB_SHA1'));"
+            # Keep the original MATPOWER receipt (including duals) and derive
+            # a primal-only TSV for the primal auditor's strict row grammar.
+            awk -F '\t' 'NF > 0 && $1 !~ /^DUAL_/ { print }' "$receipt" > "$primal_receipt"
             tools/matpower-dc-opf-primal-auditor/target/debug/matpower-dc-opf-audit \
-              "$case" "$receipt" | tee "$report" | jq -e '.passed == true'
+              "$case" "$primal_receipt" | tee "$report" | jq -e '.passed == true'
           done
 
       - name: Publish independently audited candidate receipts
