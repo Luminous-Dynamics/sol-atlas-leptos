@@ -1,0 +1,514 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/blob/main/docs/schemas/opf-benchmark/benchmark-run-receipt-v0.1.schema.json",
+  "title": "OPF Benchmark Run Receipt v0.1",
+  "description": "Source-bound, formulation-bound and independently qualified solver run record. Solver status alone does not establish optimality.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "receipt_id",
+    "manifest_id",
+    "case_id",
+    "source_git_blob_sha1",
+    "formulation",
+    "solver",
+    "environment",
+    "execution",
+    "outcome",
+    "qualification",
+    "claim_ceiling"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "0.1.0"
+    },
+    "receipt_id": {
+      "$ref": "#/$defs/id"
+    },
+    "manifest_id": {
+      "$ref": "#/$defs/id"
+    },
+    "case_id": {
+      "$ref": "#/$defs/id"
+    },
+    "source_git_blob_sha1": {
+      "$ref": "#/$defs/gitSha1"
+    },
+    "source_sha256": {
+      "$ref": "#/$defs/sha256"
+    },
+    "formulation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "profile_id",
+        "revision",
+        "base_mva",
+        "units",
+        "conventions"
+      ],
+      "properties": {
+        "profile_id": {
+          "$ref": "#/$defs/id"
+        },
+        "revision": {
+          "$ref": "#/$defs/id"
+        },
+        "base_mva": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "units": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "power",
+            "angle",
+            "objective"
+          ],
+          "properties": {
+            "power": {
+              "const": "MW"
+            },
+            "angle": {
+              "const": "radians_or_explicit_degrees"
+            },
+            "objective": {
+              "$ref": "#/$defs/text"
+            }
+          }
+        },
+        "conventions": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "branch_susceptance",
+            "transformer_taps",
+            "phase_shifts",
+            "shunts",
+            "slack_handling",
+            "cost_model"
+          ],
+          "properties": {
+            "branch_susceptance": {
+              "enum": [
+                "-1/x",
+                "-x/(r^2+x^2)",
+                "other_explicit"
+              ]
+            },
+            "transformer_taps": {
+              "enum": [
+                "included",
+                "ignored",
+                "not_applicable",
+                "unknown"
+              ]
+            },
+            "phase_shifts": {
+              "enum": [
+                "included",
+                "ignored",
+                "not_applicable",
+                "unknown"
+              ]
+            },
+            "shunts": {
+              "enum": [
+                "included",
+                "ignored",
+                "not_applicable",
+                "unknown"
+              ]
+            },
+            "slack_handling": {
+              "$ref": "#/$defs/text"
+            },
+            "cost_model": {
+              "$ref": "#/$defs/text"
+            }
+          }
+        }
+      }
+    },
+    "solver": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "version",
+        "build_identity",
+        "algorithm",
+        "parameters_sha256"
+      ],
+      "properties": {
+        "name": {
+          "$ref": "#/$defs/text"
+        },
+        "version": {
+          "$ref": "#/$defs/text"
+        },
+        "build_identity": {
+          "$ref": "#/$defs/text"
+        },
+        "algorithm": {
+          "$ref": "#/$defs/text"
+        },
+        "parameters_sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "modeler": {
+          "$ref": "#/$defs/text"
+        },
+        "linear_solver": {
+          "$ref": "#/$defs/text"
+        }
+      }
+    },
+    "environment": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "os",
+        "architecture",
+        "cpu_model",
+        "logical_cores",
+        "memory_mib",
+        "thread_count"
+      ],
+      "properties": {
+        "os": {
+          "$ref": "#/$defs/text"
+        },
+        "architecture": {
+          "$ref": "#/$defs/text"
+        },
+        "cpu_model": {
+          "$ref": "#/$defs/text"
+        },
+        "logical_cores": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "memory_mib": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "thread_count": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "blas": {
+          "$ref": "#/$defs/text"
+        },
+        "kernel": {
+          "$ref": "#/$defs/text"
+        }
+      }
+    },
+    "execution": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "run_status",
+        "started_at",
+        "repetitions",
+        "cold_start",
+        "timings_ms",
+        "peak_memory_mib"
+      ],
+      "properties": {
+        "run_status": {
+          "enum": [
+            "completed",
+            "failed",
+            "not_run",
+            "interrupted"
+          ]
+        },
+        "started_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "repetitions": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "cold_start": {
+          "type": "boolean"
+        },
+        "warm_start": {
+          "type": "boolean"
+        },
+        "jit_included": {
+          "type": "boolean"
+        },
+        "exit_code": {
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
+        "timings_ms": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "model_build",
+            "preprocess",
+            "solve",
+            "verify",
+            "end_to_end"
+          ],
+          "properties": {
+            "model_build": {
+              "type": "number",
+              "minimum": 0
+            },
+            "preprocess": {
+              "type": "number",
+              "minimum": 0
+            },
+            "solve": {
+              "type": "number",
+              "minimum": 0
+            },
+            "verify": {
+              "type": "number",
+              "minimum": 0
+            },
+            "end_to_end": {
+              "type": "number",
+              "minimum": 0
+            }
+          }
+        },
+        "peak_memory_mib": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0
+        }
+      }
+    },
+    "outcome": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "solver_outcome"
+      ],
+      "properties": {
+        "solver_outcome": {
+          "enum": [
+            "optimal",
+            "feasible",
+            "infeasible",
+            "unbounded",
+            "iteration_limit",
+            "time_limit",
+            "numerical_error",
+            "error",
+            "unknown"
+          ]
+        },
+        "objective_value": {
+          "type": "number"
+        },
+        "objective_unit": {
+          "$ref": "#/$defs/text"
+        },
+        "primal_residual": {
+          "$ref": "#/$defs/nonnegative"
+        },
+        "dual_residual": {
+          "$ref": "#/$defs/nonnegative"
+        },
+        "stationarity_residual": {
+          "$ref": "#/$defs/nonnegative"
+        },
+        "complementarity_residual": {
+          "$ref": "#/$defs/nonnegative"
+        },
+        "primal_dual_gap": {
+          "type": "number"
+        },
+        "relative_primal_dual_gap": {
+          "$ref": "#/$defs/nonnegative"
+        },
+        "constraint_violations": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "constraint_id",
+              "quantity",
+              "magnitude",
+              "unit"
+            ],
+            "properties": {
+              "constraint_id": {
+                "$ref": "#/$defs/id"
+              },
+              "quantity": {
+                "$ref": "#/$defs/text"
+              },
+              "magnitude": {
+                "$ref": "#/$defs/nonnegative"
+              },
+              "unit": {
+                "$ref": "#/$defs/text"
+              }
+            }
+          }
+        }
+      }
+    },
+    "qualification": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "disposition",
+        "verifier",
+        "verifier_build",
+        "independent",
+        "method",
+        "checks",
+        "artifact"
+      ],
+      "properties": {
+        "disposition": {
+          "enum": [
+            "pass",
+            "fail",
+            "unknown",
+            "not_evaluable",
+            "not_run"
+          ]
+        },
+        "verifier": {
+          "$ref": "#/$defs/text"
+        },
+        "verifier_build": {
+          "$ref": "#/$defs/text"
+        },
+        "independent": {
+          "type": "boolean"
+        },
+        "method": {
+          "enum": [
+            "primal_audit",
+            "numerical_kkt",
+            "exact_rational",
+            "interval_bound",
+            "external_reference_differential",
+            "laboratory_measurement",
+            "hardware_in_loop",
+            "field_observation",
+            "none"
+          ]
+        },
+        "checks": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "enum": [
+              "source_identity",
+              "formulation_identity",
+              "primal_feasibility",
+              "dual_feasibility",
+              "stationarity",
+              "complementary_slackness",
+              "duality_gap",
+              "exact_optimality",
+              "measurement_correlation",
+              "asset_configuration_identity",
+              "negative_controls"
+            ]
+          }
+        },
+        "artifact": {
+          "oneOf": [
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "state",
+                "sha256",
+                "uri"
+              ],
+              "properties": {
+                "state": {
+                  "const": "present"
+                },
+                "sha256": {
+                  "$ref": "#/$defs/sha256"
+                },
+                "uri": {
+                  "type": "string",
+                  "format": "uri"
+                }
+              }
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "state",
+                "reason"
+              ],
+              "properties": {
+                "state": {
+                  "const": "absent"
+                },
+                "reason": {
+                  "$ref": "#/$defs/text"
+                }
+              }
+            }
+          ]
+        },
+        "notes": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/text"
+          }
+        }
+      }
+    },
+    "claim_ceiling": {
+      "enum": [
+        "structural_only",
+        "numerical_feasibility",
+        "numerical_kkt",
+        "exact_optimality",
+        "relaxation_bound",
+        "physical_validation"
+      ]
+    }
+  },
+  "$defs": {
+    "text": {
+      "type": "string",
+      "minLength": 1
+    },
+    "id": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/-]*$"
+    },
+    "gitSha1": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{40}$"
+    },
+    "sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "nonnegative": {
+      "type": "number",
+      "minimum": 0
+    }
+  }
+}
