@@ -157,8 +157,7 @@
         "additionalProperties": false,
         "required": [
           "name",
-          "version",
-          "git_commit"
+          "version"
         ],
         "properties": {
           "name": {
