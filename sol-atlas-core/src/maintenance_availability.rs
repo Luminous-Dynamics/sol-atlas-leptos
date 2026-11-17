@@ -150,11 +150,17 @@ impl fmt::Display for ProjectionError {
             Self::BaselineAfterMaintenanceStart => "baseline evidence does not predate maintenance",
             Self::AssetIdentityMismatch => "asset identity does not match the study target",
             Self::EvidenceConfigurationMismatch => "evidence is bound to the wrong configuration",
-            Self::AuthorizationAfterMaintenanceStart => "authorization was observed after maintenance start",
+            Self::AuthorizationAfterMaintenanceStart => {
+                "authorization was observed after maintenance start"
+            },
             Self::InvalidEvidenceOrder => "maintenance evidence timestamps are inconsistent",
             Self::ReturnBeforeStudyStart => "return-to-service occurred before the study window",
-            Self::CompletionWithoutIsolation => "completion evidence exists without isolation evidence",
-            Self::InspectionWithoutCompletion => "inspection evidence exists without completion evidence",
+            Self::CompletionWithoutIsolation => {
+                "completion evidence exists without isolation evidence"
+            },
+            Self::InspectionWithoutCompletion => {
+                "inspection evidence exists without completion evidence"
+            },
             Self::ReturnAuthorizationWithoutInspection => {
                 "return-to-service authority exists without inspection acceptance"
             }
@@ -252,12 +258,18 @@ pub fn project_maintenance_availability(
         return Err(ProjectionError::AssetIdentityMismatch);
     }
 
-    require_configuration(&request.baseline_available, &request.target.configuration_digest)?;
+    require_configuration(
+        &request.baseline_available,
+        &request.target.configuration_digest,
+    )?;
     if request.baseline_available.observed_at_unix_seconds > window.start_unix_seconds {
         return Err(ProjectionError::BaselineAfterStudyStart);
     }
 
-    require_configuration(&work_order.source_event, &request.target.configuration_digest)?;
+    require_configuration(
+        &work_order.source_event,
+        &request.target.configuration_digest,
+    )?;
     if let Some(authorization) = &work_order.authorization {
         require_configuration(authorization, &request.target.configuration_digest)?;
     }
@@ -417,14 +429,13 @@ pub fn project_maintenance_availability(
         );
     }
 
-    let late_start = work_order
-        .isolation
-        .as_ref()
-        .is_some_and(|evidence| evidence.observed_at_unix_seconds > work_order.planned_start_unix_seconds);
-    let late_completion = return_at
-        .is_some_and(|timestamp| timestamp > work_order.planned_end_unix_seconds);
-    let overdue_unresolved = return_at.is_none()
-        && window.end_unix_seconds > work_order.planned_end_unix_seconds;
+    let late_start = work_order.isolation.as_ref().is_some_and(|evidence| {
+        evidence.observed_at_unix_seconds > work_order.planned_start_unix_seconds
+    });
+    let late_completion =
+        return_at.is_some_and(|timestamp| timestamp > work_order.planned_end_unix_seconds);
+    let overdue_unresolved =
+        return_at.is_none() && window.end_unix_seconds > work_order.planned_end_unix_seconds;
 
     Ok(MaintenanceAvailabilityTraceV1 {
         schema_version: MAINTENANCE_AVAILABILITY_SCHEMA_VERSION,
@@ -486,7 +497,11 @@ mod tests {
                 completion: Some(evidence("work-completed", 28, NEW_CONFIG)),
                 post_work_configuration_digest: Some(NEW_CONFIG.to_owned()),
                 inspection: Some(evidence("inspection-accepted", 31, NEW_CONFIG)),
-                return_to_service_authorization: Some(evidence("return-authorized", 33, NEW_CONFIG)),
+                return_to_service_authorization: Some(evidence(
+                    "return-authorized",
+                    33,
+                    NEW_CONFIG,
+                )),
             },
         }
     }
