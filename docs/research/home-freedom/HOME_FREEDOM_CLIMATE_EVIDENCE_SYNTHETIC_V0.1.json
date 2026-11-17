@@ -1,0 +1,678 @@
+{
+  "schema_version": "0.1.0",
+  "benchmark_id": "HOME-FREEDOM-CLIMATE-EVIDENCE-001",
+  "maturity": "SYNTHETIC_ONLY",
+  "execution_status": "NOT_INGESTED_NOT_SIMULATED",
+  "as_of_utc": "2026-11-17T00:00:00Z",
+  "climate_members": [
+    {
+      "member_id": "SYN-TMY-001",
+      "evidence_class": "TYPICAL_METEOROLOGICAL_YEAR",
+      "admission_state": "SYNTHETIC_ONLY",
+      "source_identity": {
+        "publisher": "synthetic fixture",
+        "product_id": "SYNTHETIC-TMY-PLACEHOLDER",
+        "source_locator": "synthetic://SYN-TMY-001",
+        "source_version": "fixture-v0.1",
+        "retrieved_at_utc": null,
+        "content_sha256": null,
+        "rights_record_ref": null
+      },
+      "spatial_support": {
+        "support_kind": "UNKNOWN",
+        "latitude_deg": null,
+        "longitude_deg": null,
+        "elevation_m": null,
+        "grid_spacing_deg": null,
+        "representativeness_state": "NOT_ASSESSED"
+      },
+      "temporal_support": {
+        "time_basis": "UNKNOWN",
+        "sample_interval_seconds": null,
+        "coverage_start_utc": null,
+        "coverage_end_utc": null,
+        "coverage_state": "SYNTHETIC"
+      },
+      "quality": {
+        "qc_state": "SYNTHETIC_ONLY",
+        "missing_fraction": null,
+        "station_history_state": "UNKNOWN",
+        "instrument_history_state": "UNKNOWN",
+        "imputation_policy": "NOT_ADMITTED"
+      },
+      "uncertainty_components": [
+        {
+          "component_id": "U-SYN-TMY-001",
+          "kind": "OTHER",
+          "state": "UNKNOWN",
+          "lower": null,
+          "upper": null,
+          "unit": null,
+          "method_ref": null,
+          "dependence_group": null
+        }
+      ],
+      "rights": {
+        "state": "SYNTHETIC_ONLY",
+        "licence_identifier": null,
+        "commercial_use": "NOT_APPLICABLE",
+        "redistribution": "NOT_APPLICABLE"
+      },
+      "purpose_ceiling": [
+        "SOFTWARE_CONTRACT_TEST_ONLY"
+      ],
+      "class_metadata": {
+        "selection_period_start": null,
+        "selection_period_end": null,
+        "selection_method_ref": null,
+        "supported_use": "TYPICAL_YEAR_SCREENING_ONLY"
+      }
+    },
+    {
+      "member_id": "SYN-STATION-001",
+      "evidence_class": "STATION_OBSERVATION",
+      "admission_state": "SYNTHETIC_ONLY",
+      "source_identity": {
+        "publisher": "synthetic fixture",
+        "product_id": "SYNTHETIC-STATION-PLACEHOLDER",
+        "source_locator": "synthetic://SYN-STATION-001",
+        "source_version": "fixture-v0.1",
+        "retrieved_at_utc": null,
+        "content_sha256": null,
+        "rights_record_ref": null
+      },
+      "spatial_support": {
+        "support_kind": "UNKNOWN",
+        "latitude_deg": null,
+        "longitude_deg": null,
+        "elevation_m": null,
+        "grid_spacing_deg": null,
+        "representativeness_state": "NOT_ASSESSED"
+      },
+      "temporal_support": {
+        "time_basis": "UNKNOWN",
+        "sample_interval_seconds": null,
+        "coverage_start_utc": null,
+        "coverage_end_utc": null,
+        "coverage_state": "SYNTHETIC"
+      },
+      "quality": {
+        "qc_state": "SYNTHETIC_ONLY",
+        "missing_fraction": null,
+        "station_history_state": "UNKNOWN",
+        "instrument_history_state": "UNKNOWN",
+        "imputation_policy": "NOT_ADMITTED"
+      },
+      "uncertainty_components": [
+        {
+          "component_id": "U-SYN-STATION-001",
+          "kind": "OTHER",
+          "state": "UNKNOWN",
+          "lower": null,
+          "upper": null,
+          "unit": null,
+          "method_ref": null,
+          "dependence_group": null
+        }
+      ],
+      "rights": {
+        "state": "SYNTHETIC_ONLY",
+        "licence_identifier": null,
+        "commercial_use": "NOT_APPLICABLE",
+        "redistribution": "NOT_APPLICABLE"
+      },
+      "purpose_ceiling": [
+        "SOFTWARE_CONTRACT_TEST_ONLY"
+      ],
+      "class_metadata": {
+        "station_id": "SYNTHETIC-STATION",
+        "station_history_ref": null,
+        "relocation_review_state": "NOT_REVIEWED",
+        "instrument_change_review_state": "NOT_REVIEWED",
+        "qc_profile_ref": null
+      }
+    },
+    {
+      "member_id": "SYN-REANALYSIS-001",
+      "evidence_class": "REANALYSIS",
+      "admission_state": "SYNTHETIC_ONLY",
+      "source_identity": {
+        "publisher": "synthetic fixture",
+        "product_id": "SYNTHETIC-REANALYSIS-PLACEHOLDER",
+        "source_locator": "synthetic://SYN-REANALYSIS-001",
+        "source_version": "fixture-v0.1",
+        "retrieved_at_utc": null,
+        "content_sha256": null,
+        "rights_record_ref": null
+      },
+      "spatial_support": {
+        "support_kind": "UNKNOWN",
+        "latitude_deg": null,
+        "longitude_deg": null,
+        "elevation_m": null,
+        "grid_spacing_deg": null,
+        "representativeness_state": "NOT_ASSESSED"
+      },
+      "temporal_support": {
+        "time_basis": "UNKNOWN",
+        "sample_interval_seconds": null,
+        "coverage_start_utc": null,
+        "coverage_end_utc": null,
+        "coverage_state": "SYNTHETIC"
+      },
+      "quality": {
+        "qc_state": "SYNTHETIC_ONLY",
+        "missing_fraction": null,
+        "station_history_state": "UNKNOWN",
+        "instrument_history_state": "UNKNOWN",
+        "imputation_policy": "NOT_ADMITTED"
+      },
+      "uncertainty_components": [
+        {
+          "component_id": "U-SYN-REANALYSIS-001",
+          "kind": "OTHER",
+          "state": "UNKNOWN",
+          "lower": null,
+          "upper": null,
+          "unit": null,
+          "method_ref": null,
+          "dependence_group": null
+        }
+      ],
+      "rights": {
+        "state": "SYNTHETIC_ONLY",
+        "licence_identifier": null,
+        "commercial_use": "NOT_APPLICABLE",
+        "redistribution": "NOT_APPLICABLE"
+      },
+      "purpose_ceiling": [
+        "SOFTWARE_CONTRACT_TEST_ONLY"
+      ],
+      "class_metadata": {
+        "product_family": "ERA5",
+        "grid_selection_method": "UNKNOWN",
+        "nearest_grid_point_used": true,
+        "assimilation_relationship": "UNKNOWN"
+      }
+    },
+    {
+      "member_id": "SYN-FUTURE-001",
+      "evidence_class": "FUTURE_PROJECTION",
+      "admission_state": "SYNTHETIC_ONLY",
+      "source_identity": {
+        "publisher": "synthetic fixture",
+        "product_id": "SYNTHETIC-FUTURE-PLACEHOLDER",
+        "source_locator": "synthetic://SYN-FUTURE-001",
+        "source_version": "fixture-v0.1",
+        "retrieved_at_utc": null,
+        "content_sha256": null,
+        "rights_record_ref": null
+      },
+      "spatial_support": {
+        "support_kind": "UNKNOWN",
+        "latitude_deg": null,
+        "longitude_deg": null,
+        "elevation_m": null,
+        "grid_spacing_deg": null,
+        "representativeness_state": "NOT_ASSESSED"
+      },
+      "temporal_support": {
+        "time_basis": "UNKNOWN",
+        "sample_interval_seconds": null,
+        "coverage_start_utc": null,
+        "coverage_end_utc": null,
+        "coverage_state": "SYNTHETIC"
+      },
+      "quality": {
+        "qc_state": "SYNTHETIC_ONLY",
+        "missing_fraction": null,
+        "station_history_state": "UNKNOWN",
+        "instrument_history_state": "UNKNOWN",
+        "imputation_policy": "NOT_ADMITTED"
+      },
+      "uncertainty_components": [
+        {
+          "component_id": "U-SYN-FUTURE-001",
+          "kind": "OTHER",
+          "state": "UNKNOWN",
+          "lower": null,
+          "upper": null,
+          "unit": null,
+          "method_ref": null,
+          "dependence_group": null
+        }
+      ],
+      "rights": {
+        "state": "SYNTHETIC_ONLY",
+        "licence_identifier": null,
+        "commercial_use": "NOT_APPLICABLE",
+        "redistribution": "NOT_APPLICABLE"
+      },
+      "purpose_ceiling": [
+        "SOFTWARE_CONTRACT_TEST_ONLY"
+      ],
+      "class_metadata": {
+        "climate_model": "SYNTHETIC-MODEL",
+        "ensemble_member_id": "SYNTHETIC-MEMBER",
+        "scenario_or_pathway": "SYNTHETIC-PATHWAY",
+        "period_start_year": 2050,
+        "period_end_year": 2059,
+        "downscaling_method_ref": null,
+        "bias_correction_method_ref": null
+      }
+    },
+    {
+      "member_id": "SYN-EXTREME-001",
+      "evidence_class": "OBSERVED_EXTREME_EPISODE",
+      "admission_state": "SYNTHETIC_ONLY",
+      "source_identity": {
+        "publisher": "synthetic fixture",
+        "product_id": "SYNTHETIC-EXTREME-PLACEHOLDER",
+        "source_locator": "synthetic://SYN-EXTREME-001",
+        "source_version": "fixture-v0.1",
+        "retrieved_at_utc": null,
+        "content_sha256": null,
+        "rights_record_ref": null
+      },
+      "spatial_support": {
+        "support_kind": "UNKNOWN",
+        "latitude_deg": null,
+        "longitude_deg": null,
+        "elevation_m": null,
+        "grid_spacing_deg": null,
+        "representativeness_state": "NOT_ASSESSED"
+      },
+      "temporal_support": {
+        "time_basis": "UNKNOWN",
+        "sample_interval_seconds": null,
+        "coverage_start_utc": null,
+        "coverage_end_utc": null,
+        "coverage_state": "SYNTHETIC"
+      },
+      "quality": {
+        "qc_state": "SYNTHETIC_ONLY",
+        "missing_fraction": null,
+        "station_history_state": "UNKNOWN",
+        "instrument_history_state": "UNKNOWN",
+        "imputation_policy": "NOT_ADMITTED"
+      },
+      "uncertainty_components": [
+        {
+          "component_id": "U-SYN-EXTREME-001",
+          "kind": "OTHER",
+          "state": "UNKNOWN",
+          "lower": null,
+          "upper": null,
+          "unit": null,
+          "method_ref": null,
+          "dependence_group": null
+        }
+      ],
+      "rights": {
+        "state": "SYNTHETIC_ONLY",
+        "licence_identifier": null,
+        "commercial_use": "NOT_APPLICABLE",
+        "redistribution": "NOT_APPLICABLE"
+      },
+      "purpose_ceiling": [
+        "SOFTWARE_CONTRACT_TEST_ONLY"
+      ],
+      "class_metadata": {
+        "parent_member_id": "SYN-STATION-001",
+        "episode_id": "SYNTHETIC-HEAT-EPISODE",
+        "event_class": "HEATWAVE",
+        "selection_rule_ref": "synthetic:episode-selector",
+        "event_start_utc": "2020-01-01T00:00:00Z",
+        "event_end_utc": "2020-01-03T00:00:00Z"
+      }
+    },
+    {
+      "member_id": "SYN-MICROCLIMATE-001",
+      "evidence_class": "ON_SITE_MICROCLIMATE",
+      "admission_state": "SYNTHETIC_ONLY",
+      "source_identity": {
+        "publisher": "synthetic fixture",
+        "product_id": "SYNTHETIC-MICROCLIMATE-PLACEHOLDER",
+        "source_locator": "synthetic://SYN-MICROCLIMATE-001",
+        "source_version": "fixture-v0.1",
+        "retrieved_at_utc": null,
+        "content_sha256": null,
+        "rights_record_ref": null
+      },
+      "spatial_support": {
+        "support_kind": "UNKNOWN",
+        "latitude_deg": null,
+        "longitude_deg": null,
+        "elevation_m": null,
+        "grid_spacing_deg": null,
+        "representativeness_state": "NOT_ASSESSED"
+      },
+      "temporal_support": {
+        "time_basis": "UNKNOWN",
+        "sample_interval_seconds": null,
+        "coverage_start_utc": null,
+        "coverage_end_utc": null,
+        "coverage_state": "SYNTHETIC"
+      },
+      "quality": {
+        "qc_state": "SYNTHETIC_ONLY",
+        "missing_fraction": null,
+        "station_history_state": "UNKNOWN",
+        "instrument_history_state": "UNKNOWN",
+        "imputation_policy": "NOT_ADMITTED"
+      },
+      "uncertainty_components": [
+        {
+          "component_id": "U-SYN-MICROCLIMATE-001",
+          "kind": "OTHER",
+          "state": "UNKNOWN",
+          "lower": null,
+          "upper": null,
+          "unit": null,
+          "method_ref": null,
+          "dependence_group": null
+        }
+      ],
+      "rights": {
+        "state": "SYNTHETIC_ONLY",
+        "licence_identifier": null,
+        "commercial_use": "NOT_APPLICABLE",
+        "redistribution": "NOT_APPLICABLE"
+      },
+      "purpose_ceiling": [
+        "SOFTWARE_CONTRACT_TEST_ONLY"
+      ],
+      "class_metadata": {
+        "instrument_passport_ref": "synthetic:mycelix-6034",
+        "sample_session_ref": "synthetic:sample-session",
+        "stream_timebase_ref": "synthetic:mycelix-6054",
+        "installation_scope_ref": "synthetic:installation",
+        "location_owner_ref": "synthetic:location"
+      }
+    },
+    {
+      "member_id": "SYN-TRACE-001",
+      "evidence_class": "SYNTHETIC_TRACE",
+      "admission_state": "SYNTHETIC_ONLY",
+      "source_identity": {
+        "publisher": "synthetic fixture",
+        "product_id": "SYNTHETIC-TRACE-PLACEHOLDER",
+        "source_locator": "synthetic://SYN-TRACE-001",
+        "source_version": "fixture-v0.1",
+        "retrieved_at_utc": null,
+        "content_sha256": null,
+        "rights_record_ref": null
+      },
+      "spatial_support": {
+        "support_kind": "UNKNOWN",
+        "latitude_deg": null,
+        "longitude_deg": null,
+        "elevation_m": null,
+        "grid_spacing_deg": null,
+        "representativeness_state": "NOT_ASSESSED"
+      },
+      "temporal_support": {
+        "time_basis": "UNKNOWN",
+        "sample_interval_seconds": null,
+        "coverage_start_utc": null,
+        "coverage_end_utc": null,
+        "coverage_state": "SYNTHETIC"
+      },
+      "quality": {
+        "qc_state": "SYNTHETIC_ONLY",
+        "missing_fraction": null,
+        "station_history_state": "UNKNOWN",
+        "instrument_history_state": "UNKNOWN",
+        "imputation_policy": "NOT_ADMITTED"
+      },
+      "uncertainty_components": [
+        {
+          "component_id": "U-SYN-TRACE-001",
+          "kind": "OTHER",
+          "state": "UNKNOWN",
+          "lower": null,
+          "upper": null,
+          "unit": null,
+          "method_ref": null,
+          "dependence_group": null
+        }
+      ],
+      "rights": {
+        "state": "SYNTHETIC_ONLY",
+        "licence_identifier": null,
+        "commercial_use": "NOT_APPLICABLE",
+        "redistribution": "NOT_APPLICABLE"
+      },
+      "purpose_ceiling": [
+        "SOFTWARE_CONTRACT_TEST_ONLY"
+      ],
+      "class_metadata": {
+        "fixture_id": "HOME-FREEDOM-CLIMATE-EVIDENCE-001",
+        "fixture_case_id": "SYNTHETIC-COMPOUND-CASE-001"
+      }
+    }
+  ],
+  "scenario_compositions": [
+    {
+      "scenario_id": "SYNTHETIC-TMY-SCREEN",
+      "mandatory": false,
+      "purpose": "TYPICAL_YEAR_SCREENING",
+      "climate_member_refs": [
+        "SYN-TMY-001"
+      ],
+      "service_event_refs": [],
+      "composition_mode": "SINGLE_MEMBER",
+      "aggregation_method_ref": null,
+      "decision_trace_id": "SYNTHETIC_TRACE_TMY_V1"
+    },
+    {
+      "scenario_id": "SYNTHETIC-STATION-REANALYSIS-COMPARE",
+      "mandatory": true,
+      "purpose": "HISTORICAL_EPISODE_REPLAY",
+      "climate_member_refs": [
+        "SYN-STATION-001",
+        "SYN-REANALYSIS-001"
+      ],
+      "service_event_refs": [],
+      "composition_mode": "PARALLEL_NOT_POOLED",
+      "aggregation_method_ref": null,
+      "decision_trace_id": "SYNTHETIC_TRACE_OBS_REANALYSIS_V1"
+    },
+    {
+      "scenario_id": "SYNTHETIC-FUTURE-MEMBERWISE",
+      "mandatory": true,
+      "purpose": "FUTURE_SCENARIO_EXPLORATION",
+      "climate_member_refs": [
+        "SYN-FUTURE-001"
+      ],
+      "service_event_refs": [],
+      "composition_mode": "MEMBERWISE_STRESS_SET",
+      "aggregation_method_ref": null,
+      "decision_trace_id": "SYNTHETIC_TRACE_FUTURE_V1"
+    },
+    {
+      "scenario_id": "SYNTHETIC-COMPOUND-OUTAGE",
+      "mandatory": true,
+      "purpose": "COMPOUND_RESILIENCE",
+      "climate_member_refs": [
+        "SYN-EXTREME-001"
+      ],
+      "service_event_refs": [
+        {
+          "owner": "Symtropy",
+          "event_ref": "synthetic:grid-outage",
+          "event_class": "GRID_OUTAGE",
+          "timebase_ref": "synthetic:timebase-6054",
+          "alignment_state": "UNRESOLVED"
+        },
+        {
+          "owner": "Mycelix",
+          "event_ref": "synthetic:water-interruption",
+          "event_class": "WATER_INTERRUPTION",
+          "timebase_ref": "synthetic:timebase-6054",
+          "alignment_state": "UNRESOLVED"
+        }
+      ],
+      "composition_mode": "SINGLE_MEMBER",
+      "aggregation_method_ref": null,
+      "decision_trace_id": "SYNTHETIC_TRACE_HOT_GRID_WATER_V1"
+    },
+    {
+      "scenario_id": "SYNTHETIC-COURTYARD-COMPARATOR",
+      "mandatory": false,
+      "purpose": "MICROCLIMATE_COMPARISON",
+      "climate_member_refs": [
+        "SYN-MICROCLIMATE-001",
+        "SYN-STATION-001",
+        "SYN-REANALYSIS-001"
+      ],
+      "service_event_refs": [],
+      "composition_mode": "PARALLEL_NOT_POOLED",
+      "aggregation_method_ref": null,
+      "decision_trace_id": "SYNTHETIC_TRACE_MICROCLIMATE_V1"
+    }
+  ],
+  "uncertainty_policy": {
+    "preserve_components": true,
+    "independence_assumed_by_default": false,
+    "pooling_default": "PARALLEL_NOT_POOLED",
+    "unknown_is_zero": false
+  },
+  "claim_ceiling": {
+    "weather_acquired": false,
+    "real_station_admitted": false,
+    "reanalysis_admitted_for_site": false,
+    "physical_model_run": false,
+    "sensor_measurement_admitted": false,
+    "site_microclimate_claimed": false,
+    "building_performance_claimed": false,
+    "sota_superiority_claimed": false
+  },
+  "adversarial_cases": [
+    {
+      "case_id": "TMY_AS_HEATWAVE",
+      "attack": "TMY member is assigned as an observed heatwave",
+      "expected_result": "REJECT_AS_CLASS_MISMATCH"
+    },
+    {
+      "case_id": "TMY_MONTHS_AS_CONTINUOUS_EPISODE",
+      "attack": "Representative TMY months are interpreted as one observed continuous episode",
+      "expected_result": "BLOCK_FROM_ADMISSION"
+    },
+    {
+      "case_id": "STATION_MOVE_UNREVIEWED",
+      "attack": "Station relocation exists but station history is not reviewed",
+      "expected_result": "REQUIRE_OWNER_REVIEW"
+    },
+    {
+      "case_id": "STATION_INSTRUMENT_CHANGE",
+      "attack": "Instrument or reporting method changes within a station series without review",
+      "expected_result": "REQUIRE_OWNER_REVIEW"
+    },
+    {
+      "case_id": "QC_FLAGS_DROPPED",
+      "attack": "Export drops source quality-control flags",
+      "expected_result": "BLOCK_FROM_ADMISSION"
+    },
+    {
+      "case_id": "MISSING_AS_ZERO",
+      "attack": "Missing intervals are silently zero-filled",
+      "expected_result": "BLOCK_FROM_ADMISSION"
+    },
+    {
+      "case_id": "STATION_OUT_OF_SCOPE",
+      "attack": "Station is applied outside declared spatial or temporal scope",
+      "expected_result": "BLOCK_FROM_ADMISSION"
+    },
+    {
+      "case_id": "ERA5_GRID_AS_PARCEL",
+      "attack": "Nearest ERA5 grid point is presented as a parcel measurement",
+      "expected_result": "REJECT_AS_CLASS_MISMATCH"
+    },
+    {
+      "case_id": "ERA5_LAND_AS_SENSOR",
+      "attack": "ERA5-Land output is presented as direct on-site observation",
+      "expected_result": "REJECT_AS_CLASS_MISMATCH"
+    },
+    {
+      "case_id": "ERA5_AND_LAND_AS_INDEPENDENT",
+      "attack": "ERA5 and ERA5-Land are treated as independent observations without dependency review",
+      "expected_result": "REQUIRE_OWNER_REVIEW"
+    },
+    {
+      "case_id": "PROJECTION_METADATA_MISSING",
+      "attack": "Future projection lacks model, ensemble member, pathway or period",
+      "expected_result": "BLOCK_FROM_ADMISSION"
+    },
+    {
+      "case_id": "ENSEMBLE_AVERAGE_HIDES_MEMBER",
+      "attack": "A projection average suppresses an adverse member without a declared method",
+      "expected_result": "KEEP_MEMBERS_SEPARATE"
+    },
+    {
+      "case_id": "EPISODE_WITHOUT_SELECTOR",
+      "attack": "Extreme episode lacks an exact source member or reproducible selection rule",
+      "expected_result": "BLOCK_FROM_ADMISSION"
+    },
+    {
+      "case_id": "HOT_NIGHT_LOCAL_TIME_TRUNCATION",
+      "attack": "Local-time conversion truncates an overnight event window",
+      "expected_result": "REQUIRE_OWNER_REVIEW"
+    },
+    {
+      "case_id": "COLD_SNAP_OMITTED",
+      "attack": "Declared required cold scenario is missing from the mandatory scenario set",
+      "expected_result": "BLOCK_FROM_ADMISSION"
+    },
+    {
+      "case_id": "GRID_WATER_UNALIGNED",
+      "attack": "Grid and water traces have no qualified cross-stream timebase",
+      "expected_result": "UNALIGNED_NOT_ADMITTED"
+    },
+    {
+      "case_id": "CLOCK_RESET_REORDER",
+      "attack": "Clock reset or correction creates duplicated or reordered events",
+      "expected_result": "UNALIGNED_NOT_ADMITTED"
+    },
+    {
+      "case_id": "COMPOUND_COVERAGE_GAP",
+      "attack": "Climate and outage traces do not cover the same declared episode window",
+      "expected_result": "UNALIGNED_NOT_ADMITTED"
+    },
+    {
+      "case_id": "MICROCLIMATE_NO_PASSPORT",
+      "attack": "On-site sensor has no exact admitted instrument passport",
+      "expected_result": "BLOCK_FROM_ADMISSION"
+    },
+    {
+      "case_id": "MICROCLIMATE_INSTALL_UNQUALIFIED",
+      "attack": "Sensor installation or sample stream is not qualified for the declared location",
+      "expected_result": "REQUIRE_OWNER_REVIEW"
+    },
+    {
+      "case_id": "RIGHTS_UNKNOWN",
+      "attack": "Source reuse rights are unknown for the intended processing or redistribution",
+      "expected_result": "BLOCK_FROM_ADMISSION"
+    },
+    {
+      "case_id": "STALE_DIGEST_RESULT",
+      "attack": "A source digest changes but a dependent model result remains current",
+      "expected_result": "INVALIDATE_DEPENDENT_RESULT"
+    },
+    {
+      "case_id": "UNEQUAL_SCENARIO_SET",
+      "attack": "Candidate designs are evaluated against non-identical mandatory scenario identities",
+      "expected_result": "BLOCK_FROM_ADMISSION"
+    },
+    {
+      "case_id": "AGGREGATION_WITHOUT_METHOD",
+      "attack": "Statistical aggregation lacks a method and dependency contract",
+      "expected_result": "BLOCK_FROM_ADMISSION"
+    },
+    {
+      "case_id": "UNCERTAINTY_COMPONENT_COLLAPSE",
+      "attack": "Measurement, model and projection uncertainty are collapsed without a justified model",
+      "expected_result": "REQUIRE_OWNER_REVIEW"
+    }
+  ]
+}

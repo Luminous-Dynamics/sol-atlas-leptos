@@ -77,3 +77,7 @@ jobs:
         run: cargo test --bin home-freedom-robust-decision-qualifier
       - name: Audit robust Pareto / interval decision corpus
         run: cargo run --bin home-freedom-robust-decision-qualifier -- --self-test
+      - name: Test home freedom climate evidence qualifier
+        run: cargo test --bin home-freedom-climate-evidence-qualifier
+      - name: Audit climate evidence composition corpus
+        run: cargo run --bin home-freedom-climate-evidence-qualifier -- --self-test

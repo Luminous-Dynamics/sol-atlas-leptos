@@ -1,0 +1,1151 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://luminousdynamics.io/schemas/home-freedom-climate-evidence-composition-0.1.0.json",
+  "title": "Home Freedom climate evidence composition contract v0.1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "benchmark_id",
+    "maturity",
+    "execution_status",
+    "as_of_utc",
+    "climate_members",
+    "scenario_compositions",
+    "uncertainty_policy",
+    "claim_ceiling",
+    "adversarial_cases"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "0.1.0"
+    },
+    "benchmark_id": {
+      "const": "HOME-FREEDOM-CLIMATE-EVIDENCE-001"
+    },
+    "maturity": {
+      "const": "SYNTHETIC_ONLY"
+    },
+    "execution_status": {
+      "const": "NOT_INGESTED_NOT_SIMULATED"
+    },
+    "as_of_utc": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "climate_members": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/climateMember"
+      }
+    },
+    "scenario_compositions": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/scenarioComposition"
+      }
+    },
+    "uncertainty_policy": {
+      "$ref": "#/$defs/uncertaintyPolicy"
+    },
+    "claim_ceiling": {
+      "$ref": "#/$defs/claimCeiling"
+    },
+    "adversarial_cases": {
+      "type": "array",
+      "minItems": 25,
+      "items": {
+        "$ref": "#/$defs/adversarialCase"
+      }
+    }
+  },
+  "$defs": {
+    "climateMember": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "member_id",
+        "evidence_class",
+        "admission_state",
+        "source_identity",
+        "spatial_support",
+        "temporal_support",
+        "quality",
+        "uncertainty_components",
+        "rights",
+        "purpose_ceiling",
+        "class_metadata"
+      ],
+      "properties": {
+        "member_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "evidence_class": {
+          "enum": [
+            "TYPICAL_METEOROLOGICAL_YEAR",
+            "STATION_OBSERVATION",
+            "REANALYSIS",
+            "OBSERVED_EXTREME_EPISODE",
+            "FUTURE_PROJECTION",
+            "ON_SITE_MICROCLIMATE",
+            "SYNTHETIC_TRACE"
+          ]
+        },
+        "admission_state": {
+          "enum": [
+            "SYNTHETIC_ONLY",
+            "CANDIDATE_ONLY",
+            "OWNER_REVIEW_REQUIRED",
+            "ADMITTED_FOR_SCREENING",
+            "ADMITTED_FOR_MODEL_INPUT",
+            "REJECTED",
+            "REVOKED"
+          ]
+        },
+        "source_identity": {
+          "$ref": "#/$defs/sourceIdentity"
+        },
+        "spatial_support": {
+          "$ref": "#/$defs/spatialSupport"
+        },
+        "temporal_support": {
+          "$ref": "#/$defs/temporalSupport"
+        },
+        "quality": {
+          "$ref": "#/$defs/quality"
+        },
+        "uncertainty_components": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/uncertaintyComponent"
+          }
+        },
+        "rights": {
+          "$ref": "#/$defs/rights"
+        },
+        "purpose_ceiling": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "enum": [
+              "TYPICAL_YEAR_SCREENING",
+              "HISTORICAL_EPISODE_REPLAY",
+              "SPATIAL_COMPARISON",
+              "FUTURE_SCENARIO_EXPLORATION",
+              "ON_SITE_MICROCLIMATE_ANALYSIS",
+              "SOFTWARE_CONTRACT_TEST_ONLY"
+            ]
+          }
+        },
+        "class_metadata": {
+          "type": "object"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "evidence_class": {
+                "const": "TYPICAL_METEOROLOGICAL_YEAR"
+              }
+            },
+            "required": [
+              "evidence_class"
+            ]
+          },
+          "then": {
+            "properties": {
+              "class_metadata": {
+                "$ref": "#/$defs/tmyMetadata"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "evidence_class": {
+                "const": "STATION_OBSERVATION"
+              }
+            },
+            "required": [
+              "evidence_class"
+            ]
+          },
+          "then": {
+            "properties": {
+              "class_metadata": {
+                "$ref": "#/$defs/stationMetadata"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "evidence_class": {
+                "const": "REANALYSIS"
+              }
+            },
+            "required": [
+              "evidence_class"
+            ]
+          },
+          "then": {
+            "properties": {
+              "class_metadata": {
+                "$ref": "#/$defs/reanalysisMetadata"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "evidence_class": {
+                "const": "OBSERVED_EXTREME_EPISODE"
+              }
+            },
+            "required": [
+              "evidence_class"
+            ]
+          },
+          "then": {
+            "properties": {
+              "class_metadata": {
+                "$ref": "#/$defs/extremeMetadata"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "evidence_class": {
+                "const": "FUTURE_PROJECTION"
+              }
+            },
+            "required": [
+              "evidence_class"
+            ]
+          },
+          "then": {
+            "properties": {
+              "class_metadata": {
+                "$ref": "#/$defs/projectionMetadata"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "evidence_class": {
+                "const": "ON_SITE_MICROCLIMATE"
+              }
+            },
+            "required": [
+              "evidence_class"
+            ]
+          },
+          "then": {
+            "properties": {
+              "class_metadata": {
+                "$ref": "#/$defs/microclimateMetadata"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "evidence_class": {
+                "const": "SYNTHETIC_TRACE"
+              }
+            },
+            "required": [
+              "evidence_class"
+            ]
+          },
+          "then": {
+            "properties": {
+              "class_metadata": {
+                "$ref": "#/$defs/syntheticMetadata"
+              }
+            }
+          }
+        }
+      ]
+    },
+    "sourceIdentity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "publisher",
+        "product_id",
+        "source_locator",
+        "source_version",
+        "retrieved_at_utc",
+        "content_sha256",
+        "rights_record_ref"
+      ],
+      "properties": {
+        "publisher": {
+          "type": "string",
+          "minLength": 1
+        },
+        "product_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "source_locator": {
+          "type": "string",
+          "minLength": 1
+        },
+        "source_version": {
+          "type": "string",
+          "minLength": 1
+        },
+        "retrieved_at_utc": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "content_sha256": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "pattern": "^[a-fA-F0-9]{64}$"
+        },
+        "rights_record_ref": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+    "spatialSupport": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "support_kind",
+        "latitude_deg",
+        "longitude_deg",
+        "elevation_m",
+        "grid_spacing_deg",
+        "representativeness_state"
+      ],
+      "properties": {
+        "support_kind": {
+          "enum": [
+            "POINT",
+            "GRID_CELL",
+            "AREA",
+            "SITE",
+            "UNKNOWN"
+          ]
+        },
+        "latitude_deg": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": -90,
+          "maximum": 90
+        },
+        "longitude_deg": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": -180,
+          "maximum": 180
+        },
+        "elevation_m": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "grid_spacing_deg": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "exclusiveMinimum": 0
+        },
+        "representativeness_state": {
+          "enum": [
+            "NOT_ASSESSED",
+            "CANDIDATE_ONLY",
+            "OWNER_REVIEW_REQUIRED",
+            "QUALIFIED_FOR_DECLARED_SCOPE",
+            "UNKNOWN"
+          ]
+        }
+      }
+    },
+    "temporalSupport": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "time_basis",
+        "sample_interval_seconds",
+        "coverage_start_utc",
+        "coverage_end_utc",
+        "coverage_state"
+      ],
+      "properties": {
+        "time_basis": {
+          "enum": [
+            "UTC",
+            "LOCAL_CIVIL",
+            "MODEL_TIME",
+            "UNKNOWN"
+          ]
+        },
+        "sample_interval_seconds": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 1
+        },
+        "coverage_start_utc": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "coverage_end_utc": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "coverage_state": {
+          "enum": [
+            "COMPLETE_FOR_DECLARED_WINDOW",
+            "PARTIAL",
+            "UNKNOWN",
+            "SYNTHETIC"
+          ]
+        }
+      }
+    },
+    "quality": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "qc_state",
+        "missing_fraction",
+        "station_history_state",
+        "instrument_history_state",
+        "imputation_policy"
+      ],
+      "properties": {
+        "qc_state": {
+          "enum": [
+            "OWNER_QC_PRESERVED",
+            "QC_NOT_AVAILABLE",
+            "QC_NOT_REVIEWED",
+            "SYNTHETIC_ONLY",
+            "UNKNOWN"
+          ]
+        },
+        "missing_fraction": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "maximum": 1
+        },
+        "station_history_state": {
+          "enum": [
+            "REVIEWED",
+            "NOT_REVIEWED",
+            "NOT_APPLICABLE",
+            "UNKNOWN"
+          ]
+        },
+        "instrument_history_state": {
+          "enum": [
+            "REVIEWED",
+            "NOT_REVIEWED",
+            "NOT_APPLICABLE",
+            "UNKNOWN"
+          ]
+        },
+        "imputation_policy": {
+          "enum": [
+            "NONE",
+            "EXPLICIT_OWNER_METHOD",
+            "NOT_ADMITTED",
+            "UNKNOWN"
+          ]
+        }
+      }
+    },
+    "uncertaintyComponent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "component_id",
+        "kind",
+        "state",
+        "lower",
+        "upper",
+        "unit",
+        "method_ref",
+        "dependence_group"
+      ],
+      "properties": {
+        "component_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "kind": {
+          "enum": [
+            "MEASUREMENT",
+            "SAMPLING",
+            "SPATIAL_REPRESENTATIVENESS",
+            "REANALYSIS",
+            "MODEL_DISCREPANCY",
+            "PROJECTION_SPREAD",
+            "MISSINGNESS",
+            "OTHER"
+          ]
+        },
+        "state": {
+          "enum": [
+            "QUANTIFIED",
+            "QUALITATIVE_ONLY",
+            "UNKNOWN"
+          ]
+        },
+        "lower": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "upper": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "unit": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "method_ref": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "dependence_group": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+    "rights": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "state",
+        "licence_identifier",
+        "commercial_use",
+        "redistribution"
+      ],
+      "properties": {
+        "state": {
+          "enum": [
+            "RIGHTS_VERIFIED",
+            "CANDIDATE_UNVERIFIED",
+            "RESTRICTED",
+            "SYNTHETIC_ONLY",
+            "UNKNOWN"
+          ]
+        },
+        "licence_identifier": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "commercial_use": {
+          "enum": [
+            "ALLOWED",
+            "PROHIBITED",
+            "CONDITIONAL",
+            "UNKNOWN",
+            "NOT_APPLICABLE"
+          ]
+        },
+        "redistribution": {
+          "enum": [
+            "ALLOWED",
+            "PROHIBITED",
+            "CONDITIONAL",
+            "UNKNOWN",
+            "NOT_APPLICABLE"
+          ]
+        }
+      }
+    },
+    "tmyMetadata": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "selection_period_start",
+        "selection_period_end",
+        "selection_method_ref",
+        "supported_use"
+      ],
+      "properties": {
+        "selection_period_start": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "selection_period_end": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "selection_method_ref": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "supported_use": {
+          "const": "TYPICAL_YEAR_SCREENING_ONLY"
+        }
+      }
+    },
+    "stationMetadata": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "station_id",
+        "station_history_ref",
+        "relocation_review_state",
+        "instrument_change_review_state",
+        "qc_profile_ref"
+      ],
+      "properties": {
+        "station_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "station_history_ref": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "relocation_review_state": {
+          "enum": [
+            "REVIEWED",
+            "UNRESOLVED",
+            "NOT_REVIEWED",
+            "UNKNOWN"
+          ]
+        },
+        "instrument_change_review_state": {
+          "enum": [
+            "REVIEWED",
+            "UNRESOLVED",
+            "NOT_REVIEWED",
+            "UNKNOWN"
+          ]
+        },
+        "qc_profile_ref": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+    "reanalysisMetadata": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "product_family",
+        "grid_selection_method",
+        "nearest_grid_point_used",
+        "assimilation_relationship"
+      ],
+      "properties": {
+        "product_family": {
+          "enum": [
+            "ERA5",
+            "ERA5_LAND",
+            "OTHER"
+          ]
+        },
+        "grid_selection_method": {
+          "enum": [
+            "EXACT_GRID_CELL",
+            "NEAREST_GRID_POINT",
+            "INTERPOLATED",
+            "UNKNOWN"
+          ]
+        },
+        "nearest_grid_point_used": {
+          "type": "boolean"
+        },
+        "assimilation_relationship": {
+          "enum": [
+            "ATMOSPHERIC_REANALYSIS",
+            "ERA5_FORCED_LAND_MODEL",
+            "OTHER",
+            "UNKNOWN"
+          ]
+        }
+      }
+    },
+    "extremeMetadata": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "parent_member_id",
+        "episode_id",
+        "event_class",
+        "selection_rule_ref",
+        "event_start_utc",
+        "event_end_utc"
+      ],
+      "properties": {
+        "parent_member_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "episode_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "event_class": {
+          "enum": [
+            "HEATWAVE",
+            "HOT_NIGHT_SEQUENCE",
+            "COLD_SNAP",
+            "OTHER"
+          ]
+        },
+        "selection_rule_ref": {
+          "type": "string",
+          "minLength": 1
+        },
+        "event_start_utc": {
+          "type": "string"
+        },
+        "event_end_utc": {
+          "type": "string"
+        }
+      }
+    },
+    "projectionMetadata": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "climate_model",
+        "ensemble_member_id",
+        "scenario_or_pathway",
+        "period_start_year",
+        "period_end_year",
+        "downscaling_method_ref",
+        "bias_correction_method_ref"
+      ],
+      "properties": {
+        "climate_model": {
+          "type": "string",
+          "minLength": 1
+        },
+        "ensemble_member_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "scenario_or_pathway": {
+          "type": "string",
+          "minLength": 1
+        },
+        "period_start_year": {
+          "type": "integer"
+        },
+        "period_end_year": {
+          "type": "integer"
+        },
+        "downscaling_method_ref": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "bias_correction_method_ref": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+    "microclimateMetadata": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "instrument_passport_ref",
+        "sample_session_ref",
+        "stream_timebase_ref",
+        "installation_scope_ref",
+        "location_owner_ref"
+      ],
+      "properties": {
+        "instrument_passport_ref": {
+          "type": "string",
+          "minLength": 1
+        },
+        "sample_session_ref": {
+          "type": "string",
+          "minLength": 1
+        },
+        "stream_timebase_ref": {
+          "type": "string",
+          "minLength": 1
+        },
+        "installation_scope_ref": {
+          "type": "string",
+          "minLength": 1
+        },
+        "location_owner_ref": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "syntheticMetadata": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "fixture_id",
+        "fixture_case_id"
+      ],
+      "properties": {
+        "fixture_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "fixture_case_id": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "serviceEventRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "owner",
+        "event_ref",
+        "event_class",
+        "timebase_ref",
+        "alignment_state"
+      ],
+      "properties": {
+        "owner": {
+          "type": "string",
+          "minLength": 1
+        },
+        "event_ref": {
+          "type": "string",
+          "minLength": 1
+        },
+        "event_class": {
+          "type": "string",
+          "minLength": 1
+        },
+        "timebase_ref": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "alignment_state": {
+          "enum": [
+            "QUALIFIED_ALIGNMENT",
+            "UNRESOLVED",
+            "NOT_REQUIRED",
+            "UNKNOWN"
+          ]
+        }
+      }
+    },
+    "scenarioComposition": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "scenario_id",
+        "mandatory",
+        "purpose",
+        "climate_member_refs",
+        "service_event_refs",
+        "composition_mode",
+        "aggregation_method_ref",
+        "decision_trace_id"
+      ],
+      "properties": {
+        "scenario_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "mandatory": {
+          "type": "boolean"
+        },
+        "purpose": {
+          "enum": [
+            "TYPICAL_YEAR_SCREENING",
+            "HISTORICAL_EPISODE_REPLAY",
+            "FUTURE_SCENARIO_EXPLORATION",
+            "COMPOUND_RESILIENCE",
+            "MICROCLIMATE_COMPARISON",
+            "SOFTWARE_CONTRACT_TEST_ONLY"
+          ]
+        },
+        "climate_member_refs": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "service_event_refs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/serviceEventRef"
+          }
+        },
+        "composition_mode": {
+          "enum": [
+            "SINGLE_MEMBER",
+            "PARALLEL_NOT_POOLED",
+            "MEMBERWISE_STRESS_SET",
+            "APPROVED_STATISTICAL_AGGREGATION"
+          ]
+        },
+        "aggregation_method_ref": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "decision_trace_id": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "composition_mode": {
+                "const": "SINGLE_MEMBER"
+              }
+            },
+            "required": [
+              "composition_mode"
+            ]
+          },
+          "then": {
+            "properties": {
+              "climate_member_refs": {
+                "minItems": 1,
+                "maxItems": 1
+              },
+              "aggregation_method_ref": {
+                "type": "null"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "composition_mode": {
+                "const": "PARALLEL_NOT_POOLED"
+              }
+            },
+            "required": [
+              "composition_mode"
+            ]
+          },
+          "then": {
+            "properties": {
+              "climate_member_refs": {
+                "minItems": 2
+              },
+              "aggregation_method_ref": {
+                "type": "null"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "composition_mode": {
+                "const": "MEMBERWISE_STRESS_SET"
+              }
+            },
+            "required": [
+              "composition_mode"
+            ]
+          },
+          "then": {
+            "properties": {
+              "aggregation_method_ref": {
+                "type": "null"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "composition_mode": {
+                "const": "APPROVED_STATISTICAL_AGGREGATION"
+              }
+            },
+            "required": [
+              "composition_mode"
+            ]
+          },
+          "then": {
+            "properties": {
+              "climate_member_refs": {
+                "minItems": 2
+              },
+              "aggregation_method_ref": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          }
+        }
+      ]
+    },
+    "uncertaintyPolicy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "preserve_components",
+        "independence_assumed_by_default",
+        "pooling_default",
+        "unknown_is_zero"
+      ],
+      "properties": {
+        "preserve_components": {
+          "const": true
+        },
+        "independence_assumed_by_default": {
+          "const": false
+        },
+        "pooling_default": {
+          "const": "PARALLEL_NOT_POOLED"
+        },
+        "unknown_is_zero": {
+          "const": false
+        }
+      }
+    },
+    "claimCeiling": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "weather_acquired",
+        "real_station_admitted",
+        "reanalysis_admitted_for_site",
+        "physical_model_run",
+        "sensor_measurement_admitted",
+        "site_microclimate_claimed",
+        "building_performance_claimed",
+        "sota_superiority_claimed"
+      ],
+      "properties": {
+        "weather_acquired": {
+          "const": false
+        },
+        "real_station_admitted": {
+          "const": false
+        },
+        "reanalysis_admitted_for_site": {
+          "const": false
+        },
+        "physical_model_run": {
+          "const": false
+        },
+        "sensor_measurement_admitted": {
+          "const": false
+        },
+        "site_microclimate_claimed": {
+          "const": false
+        },
+        "building_performance_claimed": {
+          "const": false
+        },
+        "sota_superiority_claimed": {
+          "const": false
+        }
+      }
+    },
+    "adversarialCase": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "case_id",
+        "attack",
+        "expected_result"
+      ],
+      "properties": {
+        "case_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "attack": {
+          "type": "string",
+          "minLength": 1
+        },
+        "expected_result": {
+          "enum": [
+            "REJECT_AS_CLASS_MISMATCH",
+            "BLOCK_FROM_ADMISSION",
+            "REQUIRE_OWNER_REVIEW",
+            "KEEP_MEMBERS_SEPARATE",
+            "UNALIGNED_NOT_ADMITTED",
+            "INVALIDATE_DEPENDENT_RESULT"
+          ]
+        }
+      }
+    }
+  }
+}
