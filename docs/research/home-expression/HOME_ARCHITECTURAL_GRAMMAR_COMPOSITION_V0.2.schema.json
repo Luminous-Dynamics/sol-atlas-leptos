@@ -1,0 +1,257 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/blob/main/docs/research/home-expression/HOME_ARCHITECTURAL_GRAMMAR_COMPOSITION_V0.2.schema.json",
+  "title": "Resident-directed architectural grammar composition v0.2",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "grammar_id",
+    "maturity",
+    "catalog_revision",
+    "design_revision_ref",
+    "context",
+    "composition",
+    "decision_state",
+    "evidence_state",
+    "claim_ceiling"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "0.2.0"
+    },
+    "grammar_id": {
+      "type": "string",
+      "pattern": "^[A-Z0-9_-]{3,80}$"
+    },
+    "maturity": {
+      "enum": [
+        "SYNTHETIC_NOT_EVALUATED",
+        "RESIDENT_WORKING_DRAFT_NOT_VALIDATED",
+        "OWNER_REVIEW_REQUIRED"
+      ]
+    },
+    "catalog_revision": {
+      "const": "HOME-EXPRESSION-CATALOG-0.2.0"
+    },
+    "design_revision_ref": {
+      "type": "string",
+      "minLength": 1
+    },
+    "context": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "site_context_ref",
+        "climate_profile_ref",
+        "jurisdiction_ref",
+        "context_state"
+      ],
+      "properties": {
+        "site_context_ref": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "climate_profile_ref": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "jurisdiction_ref": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "context_state": {
+          "enum": [
+            "UNKNOWN",
+            "PARTIAL",
+            "SOURCE_BOUND_NOT_QUALIFIED"
+          ]
+        }
+      }
+    },
+    "composition": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "spatial_typology",
+        "architectural_expression",
+        "material_tectonic_intent",
+        "environmental_strategy_intent",
+        "experience_programme"
+      ],
+      "properties": {
+        "spatial_typology": {
+          "$ref": "#/$defs/intentAxis"
+        },
+        "architectural_expression": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "state",
+            "entries"
+          ],
+          "properties": {
+            "state": {
+              "enum": [
+                "UNDECIDED",
+                "INTENT_SELECTED",
+                "CONFLICT_UNRESOLVED"
+              ]
+            },
+            "entries": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "style_id",
+                  "role",
+                  "resident_selected"
+                ],
+                "properties": {
+                  "style_id": {
+                    "type": "string"
+                  },
+                  "role": {
+                    "enum": [
+                      "PRIMARY",
+                      "SECONDARY",
+                      "ACCENT",
+                      "REFERENCE_ONLY",
+                      "AVOID",
+                      "ACCEPTABLE",
+                      "UNDECIDED"
+                    ]
+                  },
+                  "resident_selected": {
+                    "type": "boolean"
+                  },
+                  "source_refs": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "format": "uri"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "material_tectonic_intent": {
+          "$ref": "#/$defs/intentAxis"
+        },
+        "environmental_strategy_intent": {
+          "$ref": "#/$defs/intentAxis"
+        },
+        "experience_programme": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "state",
+            "entries"
+          ],
+          "properties": {
+            "state": {
+              "enum": [
+                "UNDECIDED",
+                "OPTIONAL_IDEAS_ONLY",
+                "CONFLICT_UNRESOLVED"
+              ]
+            },
+            "entries": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "package_id",
+                  "preference"
+                ],
+                "properties": {
+                  "package_id": {
+                    "type": "string"
+                  },
+                  "preference": {
+                    "enum": [
+                      "PREFERRED",
+                      "CONSIDERED",
+                      "AVOIDED",
+                      "UNDECIDED"
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "decision_state": {
+      "enum": [
+        "NO_RESIDENT_CHOICE_OR_DESIGN_APPROVAL_RECORDED",
+        "PARTIAL_RESIDENT_INTENT_RECORDED"
+      ]
+    },
+    "evidence_state": {
+      "enum": [
+        "UNKNOWN_NOT_EVALUATED",
+        "SOURCE_BOUND_PENDING_OWNER_REVIEW"
+      ]
+    },
+    "claim_ceiling": {
+      "const": "INTENT_ONLY_NO_GEOMETRY_COST_PERFORMANCE_OR_APPROVAL"
+    }
+  },
+  "$defs": {
+    "intentAxis": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "state",
+        "entries"
+      ],
+      "properties": {
+        "state": {
+          "enum": [
+            "UNDECIDED",
+            "INTENT_SELECTED",
+            "CONFLICT_UNRESOLVED",
+            "INTENT_ONLY_NOT_EVALUATED"
+          ]
+        },
+        "entries": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "item_id",
+              "preference"
+            ],
+            "properties": {
+              "item_id": {
+                "type": "string",
+                "pattern": "^[A-Z0-9_]{2,80}$"
+              },
+              "preference": {
+                "enum": [
+                  "PREFERRED",
+                  "CONSIDERED",
+                  "AVOIDED",
+                  "UNDECIDED"
+                ]
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
