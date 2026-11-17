@@ -1,0 +1,218 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Home Freedom 100-case synthetic corpus v0.1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "study_id",
+    "maturity",
+    "execution_status",
+    "functional_unit",
+    "expected_case_count",
+    "disposition_definitions",
+    "household_profiles",
+    "site_scenarios",
+    "cases",
+    "claim_ceiling"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "0.1.0"
+    },
+    "study_id": {
+      "const": "HOME-FREEDOM-100-CASE-CORPUS-001"
+    },
+    "maturity": {
+      "const": "SYNTHETIC_FROZEN_CORPUS"
+    },
+    "execution_status": {
+      "const": "NOT_EXECUTED"
+    },
+    "functional_unit": {
+      "type": "string"
+    },
+    "expected_case_count": {
+      "const": 100
+    },
+    "disposition_definitions": {
+      "type": "object",
+      "required": [
+        "SCREENING_ELIGIBLE",
+        "CONDITIONAL_CONCEPT_ONLY",
+        "BLOCKED",
+        "NOT_COMPARABLE"
+      ],
+      "properties": {
+        "SCREENING_ELIGIBLE": {
+          "type": "string"
+        },
+        "CONDITIONAL_CONCEPT_ONLY": {
+          "type": "string"
+        },
+        "BLOCKED": {
+          "type": "string"
+        },
+        "NOT_COMPARABLE": {
+          "type": "string"
+        }
+      }
+    },
+    "household_profiles": {
+      "type": "array",
+      "minItems": 10,
+      "maxItems": 10,
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "label",
+          "occupants",
+          "step_free",
+          "priorities",
+          "adaptation",
+          "required_gate_ids"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "label": {
+            "type": "string"
+          },
+          "occupants": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "step_free": {
+            "type": "boolean"
+          },
+          "priorities": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "adaptation": {
+            "type": "string"
+          },
+          "required_gate_ids": {
+            "type": "array",
+            "minItems": 1,
+            "uniqueItems": true,
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "site_scenarios": {
+      "type": "array",
+      "minItems": 10,
+      "maxItems": 10,
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "description",
+          "observations"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "observations": {
+            "type": "object",
+            "additionalProperties": {
+              "enum": [
+                "PASS",
+                "UNKNOWN",
+                "FAIL",
+                "NOT_APPLICABLE"
+              ]
+            }
+          }
+        }
+      }
+    },
+    "cases": {
+      "type": "array",
+      "minItems": 100,
+      "maxItems": 100,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "case_id",
+          "household_profile_id",
+          "site_scenario_id",
+          "required_gate_ids",
+          "gate_observations",
+          "expected_disposition",
+          "expected_reason_codes"
+        ],
+        "properties": {
+          "case_id": {
+            "type": "string"
+          },
+          "household_profile_id": {
+            "type": "string"
+          },
+          "site_scenario_id": {
+            "type": "string"
+          },
+          "required_gate_ids": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "gate_observations": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "gate_id",
+                "state"
+              ],
+              "properties": {
+                "gate_id": {
+                  "type": "string"
+                },
+                "state": {
+                  "enum": [
+                    "PASS",
+                    "UNKNOWN",
+                    "FAIL",
+                    "NOT_APPLICABLE"
+                  ]
+                }
+              }
+            }
+          },
+          "expected_disposition": {
+            "enum": [
+              "SCREENING_ELIGIBLE",
+              "CONDITIONAL_CONCEPT_ONLY",
+              "BLOCKED",
+              "NOT_COMPARABLE"
+            ]
+          },
+          "expected_reason_codes": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "claim_ceiling": {
+      "type": "string"
+    }
+  }
+}
