@@ -1198,3 +1198,17 @@ canvas#globe-canvas.has-hover {
     .home-expression-blend { grid-template-columns: 1fr; }
     .home-expression-card-description { min-height: 0; }
 }
+
+.home-expression-reset {
+    border: 1px solid rgba(var(--sa-line), 0.24);
+    border-radius: 8px;
+    padding: 8px 12px;
+    background: rgba(255, 255, 255, 0.035);
+    color: rgba(237, 242, 245, 0.72);
+    font-size: 11px;
+    cursor: pointer;
+}
+.home-expression-reset:hover {
+    border-color: rgba(var(--sa-accent), 0.5);
+    color: #fff;
+}
