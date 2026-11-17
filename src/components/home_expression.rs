@@ -89,11 +89,10 @@ fn promote_secondary_if_orphaned(entries: &mut BTreeMap<String, String>) {
     }
 }
 
-fn can_select_secondary_from_entries(
-    entries: &BTreeMap<String, String>,
-    style_id: &str,
-) -> bool {
-    entries.get(style_id).is_some_and(|role| role == "SECONDARY")
+fn can_select_secondary_from_entries(entries: &BTreeMap<String, String>, style_id: &str) -> bool {
+    entries
+        .get(style_id)
+        .is_some_and(|role| role == "SECONDARY")
         || entries
             .iter()
             .any(|(candidate, role)| candidate != style_id && role == "PRIMARY")
@@ -103,11 +102,7 @@ fn can_select_secondary(roles: RwSignal<BTreeMap<String, String>>, style_id: &st
     roles.with(|entries| can_select_secondary_from_entries(entries, style_id))
 }
 
-fn apply_style_role(
-    entries: &mut BTreeMap<String, String>,
-    style_id: String,
-    role: &'static str,
-) {
+fn apply_style_role(entries: &mut BTreeMap<String, String>, style_id: String, role: &'static str) {
     let was_primary = entries
         .get(&style_id)
         .is_some_and(|current| current == "PRIMARY");
@@ -455,7 +450,6 @@ pub fn HomeExpressionPage() -> impl IntoView {
     }
 }
 
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -491,7 +485,10 @@ mod tests {
             roles.get("BIOPHILIC_ORGANIC").map(String::as_str),
             Some("PRIMARY")
         );
-        assert_eq!(roles.get("SOLARPUNK").map(String::as_str), Some("SECONDARY"));
+        assert_eq!(
+            roles.get("SOLARPUNK").map(String::as_str),
+            Some("SECONDARY")
+        );
     }
 
     #[test]
@@ -536,7 +533,10 @@ mod tests {
 
         assert_eq!(roles.get("MODERNIST").map(String::as_str), Some("PRIMARY"));
         assert_eq!(roles.get("SOLARPUNK").map(String::as_str), Some("SECONDARY"));
-        assert_eq!(roles.get("GOTHIC_REVIVAL").map(String::as_str), Some("AVOID"));
+        assert_eq!(
+            roles.get("GOTHIC_REVIVAL").map(String::as_str),
+            Some("AVOID")
+        );
         assert_eq!(
             roles.get("BIOPHILIC_ORGANIC").map(String::as_str),
             Some("ACCEPTABLE")
