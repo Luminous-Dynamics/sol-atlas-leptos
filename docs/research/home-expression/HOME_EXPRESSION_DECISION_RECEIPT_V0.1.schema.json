@@ -222,7 +222,8 @@
         "authority",
         "state",
         "selected_candidate_id",
-        "pairwise_preferences"
+        "pairwise_preferences",
+        "decision_event"
       ],
       "properties": {
         "authority": {
@@ -232,7 +233,8 @@
           "enum": [
             "NOT_RECORDED",
             "UNDECIDED",
-            "CHOICE_RECORDED",
+            "PREFERENCES_RECORDED",
+            "CONCEPT_DIRECTION_SELECTED",
             "INCOMPARABLE"
           ]
         },
@@ -273,6 +275,43 @@
                 "type": "string",
                 "minLength": 1
               }
+            }
+          }
+        },
+        "decision_event": {
+          "type": [
+            "object",
+            "null"
+          ],
+          "additionalProperties": false,
+          "required": [
+            "participant_ref",
+            "event_ref",
+            "event_content_sha256",
+            "decision_scope",
+            "provenance_status"
+          ],
+          "properties": {
+            "participant_ref": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 160,
+              "pattern": "^[A-Za-z0-9:_-]+$"
+            },
+            "event_ref": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 512
+            },
+            "event_content_sha256": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{64}$"
+            },
+            "decision_scope": {
+              "const": "CONCEPT_DIRECTION_ONLY"
+            },
+            "provenance_status": {
+              "const": "PENDING_MYCELIX_5149_VERIFICATION"
             }
           }
         }
