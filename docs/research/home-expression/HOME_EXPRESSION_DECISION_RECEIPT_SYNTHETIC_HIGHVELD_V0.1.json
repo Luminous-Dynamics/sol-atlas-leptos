@@ -176,7 +176,8 @@
         "decision": "UNDECIDED",
         "basis": "No resident-authored pairwise choice is present in the synthetic source profile."
       }
-    ]
+    ],
+    "decision_event": null
   },
   "claim_ceiling": "CONTRACT_ONLY_NO_TECHNICAL_FEASIBILITY_OR_PREFERENCE_WINNER"
 }
