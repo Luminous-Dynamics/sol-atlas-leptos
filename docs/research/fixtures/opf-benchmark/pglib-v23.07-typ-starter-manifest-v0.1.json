@@ -75,6 +75,7 @@
       "git_commit": "a918a838ee421af41d64775508a8a6608e75e569"
     },
     "rust": {
+      "name": "Rust",
       "version": "1.96.0"
     },
     "octave": {
