@@ -1,0 +1,15 @@
+[package]
+name = "exact-dc-opf-proof"
+version = "0.1.0"
+edition = "2024"
+license = "AGPL-3.0-or-later"
+description = "Checked exact-rational proof checker for a frozen two-bus MATPOWER DC-OPF fixture"
+
+[lib]
+path = "src/lib.rs"
+
+[[bin]]
+name = "exact-dc-opf-proof"
+path = "src/main.rs"
+
+[dependencies]
