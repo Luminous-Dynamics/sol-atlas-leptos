@@ -1,0 +1,166 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://luminousdynamics.io/schemas/sol-atlas/planetary-site/v0.1",
+  "title": "Sol Atlas Planetary Site Record v0.1",
+  "description": "Multi-body surface feature record with explicit planetary reference frame, coordinate convention, observation provenance and evidence state. This schema is not a geospatial accuracy or engineering qualification certificate.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "site_id",
+    "body_id",
+    "reference_frame",
+    "surface_location",
+    "feature_class",
+    "evidence_state",
+    "observations",
+    "provenance"
+  ],
+  "properties": {
+    "schema_version": { "const": "0.1" },
+    "site_id": { "type": "string", "minLength": 1 },
+    "body_id": {
+      "enum": ["EARTH", "MOON", "MARS", "VENUS", "MERCURY", "EUROPA", "ENCELADUS", "GANYMEDE", "CALLISTO", "TITAN", "ASTEROID", "COMET", "OTHER"]
+    },
+    "reference_frame": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["frame_id", "frame_type", "orientation_model_id", "epoch_utc", "validity_basis"],
+      "properties": {
+        "frame_id": { "type": "string", "minLength": 1 },
+        "frame_type": {
+          "enum": ["body_fixed_rotating", "body_fixed_non_rotating", "inertial", "mission_defined"]
+        },
+        "orientation_model_id": { "type": "string", "minLength": 1 },
+        "epoch_utc": { "type": "string", "format": "date-time" },
+        "validity_basis": { "type": "string", "minLength": 1 },
+        "source_ref": { "type": ["string", "null"] }
+      }
+    },
+    "surface_location": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["coordinate_system", "latitude_deg", "longitude_deg", "longitude_direction", "height_m", "reference_shape_model_id"],
+          "properties": {
+            "coordinate_system": { "const": "planetographic_lat_lon" },
+            "latitude_deg": { "type": "number", "minimum": -90, "maximum": 90 },
+            "longitude_deg": { "type": "number" },
+            "longitude_direction": { "enum": ["positive_east", "positive_west"] },
+            "height_m": { "type": ["number", "null"] },
+            "reference_shape_model_id": { "type": "string", "minLength": 1 }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["coordinate_system", "latitude_deg", "longitude_deg", "longitude_direction", "radius_m"],
+          "properties": {
+            "coordinate_system": { "const": "planetocentric_lat_lon" },
+            "latitude_deg": { "type": "number", "minimum": -90, "maximum": 90 },
+            "longitude_deg": { "type": "number" },
+            "longitude_direction": { "enum": ["positive_east", "positive_west"] },
+            "radius_m": { "type": "number", "exclusiveMinimum": 0 }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["coordinate_system", "x_km", "y_km", "z_km"],
+          "properties": {
+            "coordinate_system": { "const": "body_fixed_rectangular_km" },
+            "x_km": { "type": "number" },
+            "y_km": { "type": "number" },
+            "z_km": { "type": "number" }
+          }
+        }
+      ]
+    },
+    "feature_class": {
+      "enum": ["pit", "skylight", "collapse_chain", "lava_tube_candidate", "cave_candidate", "fracture", "karst_candidate", "ice_related_candidate", "mapped_void", "engineered_gallery", "other", "unknown"]
+    },
+    "evidence_state": {
+      "enum": ["scenario", "candidate", "multi_sensor_supported", "local_geophysics_available", "access_demonstrated", "interior_mapped_within_extent", "engineering_assessed", "independently_qualified_for_declared_envelope"]
+    },
+    "observation_refs": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 },
+      "uniqueItems": true
+    },
+    "observations": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["observation_id", "modality", "captured_at_utc", "native_resolution", "coordinate_frame_id", "source_uri", "content_digest"],
+        "properties": {
+          "observation_id": { "type": "string", "minLength": 1 },
+          "modality": {
+            "enum": ["optical", "stereo", "thermal_ir", "sar", "radar_sounder", "gpr", "lidar", "photogrammetry", "seismic", "gravity", "magnetic", "spectroscopy", "in_situ_robot", "other"]
+          },
+          "captured_at_utc": { "type": "string", "format": "date-time" },
+          "native_resolution": { "type": ["string", "null"] },
+          "coordinate_frame_id": { "type": "string", "minLength": 1 },
+          "source_uri": { "type": "string", "minLength": 1 },
+          "content_digest": {
+            "type": ["string", "null"],
+            "pattern": "^[a-fA-F0-9]{64}$"
+          }
+        }
+      }
+    },
+    "subsurface_frame": {
+      "type": ["object", "null"],
+      "additionalProperties": false,
+      "required": ["frame_id", "parent_body_frame_id", "translation_m", "rotation_matrix_row_major", "registration_residual_m", "control_observation_refs"],
+      "properties": {
+        "frame_id": { "type": "string", "minLength": 1 },
+        "parent_body_frame_id": { "type": "string", "minLength": 1 },
+        "translation_m": {
+          "type": "array",
+          "prefixItems": [
+            { "type": "number" },
+            { "type": "number" },
+            { "type": "number" }
+          ],
+          "minItems": 3,
+          "maxItems": 3
+        },
+        "rotation_matrix_row_major": {
+          "type": "array",
+          "items": { "type": "number" },
+          "minItems": 9,
+          "maxItems": 9
+        },
+        "registration_residual_m": { "type": ["number", "null"], "minimum": 0 },
+        "control_observation_refs": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 },
+          "uniqueItems": true
+        }
+      }
+    },
+    "provenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "producer", "dataset_id", "created_at_utc", "source_lineage"],
+      "properties": {
+        "kind": { "enum": ["observed", "curated", "scenario", "derived"] },
+        "producer": { "type": "string", "minLength": 1 },
+        "dataset_id": { "type": "string", "minLength": 1 },
+        "created_at_utc": { "type": "string", "format": "date-time" },
+        "source_lineage": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "synthetic": { "type": "boolean" }
+      }
+    },
+    "unknowns": {
+      "type": "array",
+      "items": { "type": "string" }
+    }
+  }
+}

@@ -1,0 +1,60 @@
+{
+  "schema_version": "0.1",
+  "site_id": "synthetic-moon-subterranean-candidate-01",
+  "body_id": "MOON",
+  "reference_frame": {
+    "frame_id": "IAU_MOON",
+    "frame_type": "body_fixed_rotating",
+    "orientation_model_id": "synthetic-iau-moon-model-reference",
+    "epoch_utc": "2026-11-16T00:00:00Z",
+    "validity_basis": "Synthetic test frame reference only; replace with controlled IAU/PDS/NAIF kernel version before operational mapping.",
+    "source_ref": "https://naif.jpl.nasa.gov/pub/naif/toolkit_docs/C/req/frames.html"
+  },
+  "surface_location": {
+    "coordinate_system": "planetographic_lat_lon",
+    "latitude_deg": 12.0,
+    "longitude_deg": 25.0,
+    "longitude_direction": "positive_east",
+    "height_m": 0.0,
+    "reference_shape_model_id": "synthetic-lunar-sphere-placeholder"
+  },
+  "feature_class": "skylight",
+  "evidence_state": "scenario",
+  "observation_refs": ["synthetic-optical-observation-01", "synthetic-sar-observation-01"],
+  "observations": [
+    {
+      "observation_id": "synthetic-optical-observation-01",
+      "modality": "optical",
+      "captured_at_utc": "2026-11-16T00:00:00Z",
+      "native_resolution": "synthetic 1 m/pixel",
+      "coordinate_frame_id": "IAU_MOON",
+      "source_uri": "urn:synthetic:subterra:moon:optical:01",
+      "content_digest": null
+    },
+    {
+      "observation_id": "synthetic-sar-observation-01",
+      "modality": "sar",
+      "captured_at_utc": "2026-11-16T00:00:00Z",
+      "native_resolution": "synthetic 5 m/pixel",
+      "coordinate_frame_id": "IAU_MOON",
+      "source_uri": "urn:synthetic:subterra:moon:sar:01",
+      "content_digest": null
+    }
+  ],
+  "subsurface_frame": null,
+  "provenance": {
+    "kind": "scenario",
+    "producer": "Sol Atlas Subterra integration fixture",
+    "dataset_id": "synthetic-subterra-moon-site-v0.1",
+    "created_at_utc": "2026-11-16T00:00:00Z",
+    "source_lineage": [],
+    "synthetic": true
+  },
+  "unknowns": [
+    "Real-world site location and morphology",
+    "Whether a connected subsurface void exists",
+    "Geological origin",
+    "Interior geometry and survey extent",
+    "Accessibility and structural condition"
+  ]
+}
