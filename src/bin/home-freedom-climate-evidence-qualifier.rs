@@ -77,6 +77,12 @@ fn check_schema_contract() -> Result<(), String> {
             return Err(format!("schema definition {definition} is missing"));
         }
     }
+    let mode_rules = schema["$defs"]["scenarioComposition"]["allOf"]
+        .as_array()
+        .ok_or_else(|| "scenarioComposition must encode composition-mode rules".to_owned())?;
+    if mode_rules.len() != 4 {
+        return Err("scenarioComposition must constrain all four composition modes".to_owned());
+    }
     Ok(())
 }
 
@@ -264,6 +270,22 @@ fn evaluate(root: &Value) -> Result<Value, String> {
                 text(uncertainty, "method_ref", "uncertainty_component")?;
             }
         }
+    }
+    let observed_classes: BTreeSet<&str> =
+        member_classes.values().map(String::as_str).collect();
+    let required_classes: BTreeSet<&str> = [
+        "TYPICAL_METEOROLOGICAL_YEAR",
+        "STATION_OBSERVATION",
+        "REANALYSIS",
+        "OBSERVED_EXTREME_EPISODE",
+        "FUTURE_PROJECTION",
+        "ON_SITE_MICROCLIMATE",
+        "SYNTHETIC_TRACE",
+    ]
+    .into_iter()
+    .collect();
+    if observed_classes != required_classes {
+        return Err("fixture does not represent every declared evidence class exactly".to_owned());
     }
 
     let scenarios = array(root, "scenario_compositions", "root")?;
