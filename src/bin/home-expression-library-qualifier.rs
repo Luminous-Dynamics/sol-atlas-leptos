@@ -48,6 +48,19 @@ const EXPECTED_PROFILE_ARTIFACT_REF: &str =
     "docs/research/home-expression/HOME_EXPRESSION_PROFILE_SYNTHETIC_HIGHVELD_V0.1.json";
 const EXPECTED_PROFILE_BLOB_SHA: &str = "a7f34f081c793e0794ad071b3694fe90206ca94a";
 
+const REQUIRED_SOURCE_HARD_GATE_IDS: &[&str] = &[
+    "C_SLEEP_02",
+    "C_WORK_01",
+    "C_ACCESS_01",
+    "C_PHASE_01",
+    "C_WATER_01",
+    "SITE_RIGHTS",
+    "AUTHORITY_CODE",
+    "STRUCTURE_FIRE",
+    "MOISTURE_DRAINAGE",
+    "COST_LOCAL_SUPPLY",
+];
+
 const IMPACT_DOMAINS: &[&str] = &[
     "AREA_AND_CIRCULATION",
     "CAPITAL_COST",
@@ -676,6 +689,16 @@ fn decision_receipt_fixture() -> Result<(Value, Value), String> {
 }
 
 fn candidate_technical_disposition(gates: &[Value]) -> &'static str {
+    if gates.is_empty()
+        || gates.iter().any(|gate| {
+            !matches!(
+                string_at(gate, "state"),
+                Some("PASS" | "FAIL" | "UNKNOWN")
+            )
+        })
+    {
+        return "CONDITIONAL_CONCEPT_ONLY";
+    }
     if gates
         .iter()
         .any(|gate| string_at(gate, "state") == Some("FAIL"))
@@ -683,7 +706,7 @@ fn candidate_technical_disposition(gates: &[Value]) -> &'static str {
         "BLOCKED"
     } else if gates
         .iter()
-        .any(|gate| string_at(gate, "state") != Some("PASS"))
+        .any(|gate| string_at(gate, "state") == Some("UNKNOWN"))
     {
         "CONDITIONAL_CONCEPT_ONLY"
     } else {
@@ -800,6 +823,25 @@ fn validate_decision_receipt(
         }
         let source_gate_ids = object_field_string_set(Some(&source_gates), "gate_id");
         let receipt_gate_ids = object_field_string_set(Some(&receipt_gates), "gate_id");
+        let required_source_gate_ids: BTreeSet<String> = REQUIRED_SOURCE_HARD_GATE_IDS
+            .iter()
+            .map(|gate_id| (*gate_id).to_owned())
+            .collect();
+        if source_gates.len() != REQUIRED_SOURCE_HARD_GATE_IDS.len()
+            || source_gate_ids != required_source_gate_ids
+        {
+            errors.push(format!(
+                "{candidate_id}: source must preserve the exact ten required hard-gate IDs"
+            ));
+        }
+        if receipt_gates.iter().any(|gate| {
+            !matches!(
+                string_at(gate, "state"),
+                Some("PASS" | "FAIL" | "UNKNOWN")
+            )
+        }) {
+            errors.push(format!("{candidate_id}: receipt contains an unsupported hard-gate state"));
+        }
         if source_gate_ids != receipt_gate_ids || source_gate_ids.len() != source_gates.len() {
             errors.push(format!(
                 "{candidate_id}: hard-gate IDs are missing, duplicated or invented"
@@ -1328,6 +1370,54 @@ mod tests {
             validate_decision_receipt(&receipt, &schema, &profile, &brief, &candidate_set)
                 .is_empty()
         );
+    }
+
+    #[test]
+    fn an_empty_hard_gate_set_never_becomes_preference_eligible() {
+        assert_eq!(
+            candidate_technical_disposition(&[]),
+            "CONDITIONAL_CONCEPT_ONLY"
+        );
+    }
+
+    #[test]
+    fn unsupported_hard_gate_state_never_becomes_preference_eligible() {
+        let gates = vec![json!({"gate_id":"C_ACCESS_01","state":"MAYBE"})];
+        assert_eq!(
+            candidate_technical_disposition(&gates),
+            "CONDITIONAL_CONCEPT_ONLY"
+        );
+    }
+
+    #[test]
+    fn rejects_missing_required_source_hard_gate() {
+        let (receipt, schema, profile, brief, mut candidate_set) = decision_fixture();
+        candidate_set["candidates"][0]["hard_gate_results"]
+            .as_array_mut()
+            .unwrap()
+            .pop();
+        assert!(!validate_decision_receipt(
+            &receipt,
+            &schema,
+            &profile,
+            &brief,
+            &candidate_set
+        )
+        .is_empty());
+    }
+
+    #[test]
+    fn rejects_empty_source_hard_gate_set() {
+        let (receipt, schema, profile, brief, mut candidate_set) = decision_fixture();
+        candidate_set["candidates"][0]["hard_gate_results"] = json!([]);
+        assert!(!validate_decision_receipt(
+            &receipt,
+            &schema,
+            &profile,
+            &brief,
+            &candidate_set
+        )
+        .is_empty());
     }
 
     #[test]
