@@ -175,6 +175,50 @@ impl fmt::Display for ProjectionError {
 
 impl std::error::Error for ProjectionError {}
 
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub enum TraceValidationError {
+    UnsupportedSchemaVersion,
+    EmptyStudyId,
+    InvalidStudyWindow,
+    InvalidTarget,
+    EmptyWorkOrderId,
+    EmptyClaimCeiling,
+    MissingEvidenceReferences,
+    InvalidEvidenceReference,
+    DuplicateEvidenceReference,
+    MissingIntervals,
+    InvalidInterval,
+    IntervalOutsideStudy,
+    IntervalGap,
+    IntervalOverlap,
+    IncompleteCoverage,
+}
+
+impl fmt::Display for TraceValidationError {
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let message = match self {
+            Self::UnsupportedSchemaVersion => "unsupported maintenance trace schema version",
+            Self::EmptyStudyId => "trace study ID is empty",
+            Self::InvalidStudyWindow => "trace study window must have start < end",
+            Self::InvalidTarget => "trace asset identity is empty",
+            Self::EmptyWorkOrderId => "trace work-order ID is empty",
+            Self::EmptyClaimCeiling => "trace claim ceiling is empty",
+            Self::MissingEvidenceReferences => "trace has no source evidence references",
+            Self::InvalidEvidenceReference => "trace contains an empty evidence reference or digest",
+            Self::DuplicateEvidenceReference => "trace contains duplicate evidence references",
+            Self::MissingIntervals => "trace has no availability intervals",
+            Self::InvalidInterval => "trace contains an empty or reversed interval",
+            Self::IntervalOutsideStudy => "trace interval lies outside its study window",
+            Self::IntervalGap => "trace availability intervals contain a gap",
+            Self::IntervalOverlap => "trace availability intervals overlap",
+            Self::IncompleteCoverage => "trace intervals do not cover the complete study window",
+        };
+        formatter.write_str(message)
+    }
+}
+
+impl std::error::Error for TraceValidationError {}
+
 fn non_empty(value: &str) -> bool {
     !value.trim().is_empty()
 }
@@ -222,6 +266,85 @@ fn push_interval(
             configuration_digest: configuration_digest.to_owned(),
         });
     }
+}
+
+/// Validate the structural integrity of a serialized study-window trace.
+///
+/// This checks schema/version, identifiers, source-reference uniqueness, and
+/// complete non-overlapping interval coverage. It does not authenticate source
+/// digests, verify signer authority, or independently reproduce the projection.
+pub fn validate_trace_structure(
+    trace: &MaintenanceAvailabilityTraceV1,
+) -> Result<(), TraceValidationError> {
+    if trace.schema_version != MAINTENANCE_AVAILABILITY_SCHEMA_VERSION {
+        return Err(TraceValidationError::UnsupportedSchemaVersion);
+    }
+    if !non_empty(&trace.study_id) {
+        return Err(TraceValidationError::EmptyStudyId);
+    }
+    if trace.study_window.start_unix_seconds >= trace.study_window.end_unix_seconds {
+        return Err(TraceValidationError::InvalidStudyWindow);
+    }
+    if !non_empty(&trace.target.asset_id)
+        || !non_empty(&trace.target.configuration_digest)
+    {
+        return Err(TraceValidationError::InvalidTarget);
+    }
+    if !non_empty(&trace.work_order_id) {
+        return Err(TraceValidationError::EmptyWorkOrderId);
+    }
+    if !non_empty(&trace.claim_ceiling) {
+        return Err(TraceValidationError::EmptyClaimCeiling);
+    }
+    if trace.source_event_refs.is_empty() {
+        return Err(TraceValidationError::MissingEvidenceReferences);
+    }
+
+    let mut seen_references = HashSet::new();
+    for evidence in &trace.source_event_refs {
+        if !non_empty(&evidence.reference)
+            || !non_empty(&evidence.digest)
+            || !non_empty(&evidence.configuration_digest)
+        {
+            return Err(TraceValidationError::InvalidEvidenceReference);
+        }
+        if !seen_references.insert(evidence.reference.as_str()) {
+            return Err(TraceValidationError::DuplicateEvidenceReference);
+        }
+    }
+
+    if trace.intervals.is_empty() {
+        return Err(TraceValidationError::MissingIntervals);
+    }
+
+    let study_start = trace.study_window.start_unix_seconds;
+    let study_end = trace.study_window.end_unix_seconds;
+    let mut expected_start = study_start;
+
+    for interval in &trace.intervals {
+        if interval.start_unix_seconds >= interval.end_unix_seconds {
+            return Err(TraceValidationError::InvalidInterval);
+        }
+        if !non_empty(&interval.configuration_digest) {
+            return Err(TraceValidationError::InvalidTarget);
+        }
+        if interval.start_unix_seconds < study_start || interval.end_unix_seconds > study_end {
+            return Err(TraceValidationError::IntervalOutsideStudy);
+        }
+        if interval.start_unix_seconds > expected_start {
+            return Err(TraceValidationError::IntervalGap);
+        }
+        if interval.start_unix_seconds < expected_start {
+            return Err(TraceValidationError::IntervalOverlap);
+        }
+        expected_start = interval.end_unix_seconds;
+    }
+
+    if expected_start != study_end {
+        return Err(TraceValidationError::IncompleteCoverage);
+    }
+
+    Ok(())
 }
 
 /// Project one maintenance work order into a deterministic study-window trace.
@@ -442,8 +565,8 @@ pub fn project_maintenance_availability(
     });
     let late_return_to_service =
         return_at.is_some_and(|timestamp| timestamp > work_order.planned_end_unix_seconds);
-    let overdue_unresolved =
-        return_at.is_none() && window.end_unix_seconds > work_order.planned_end_unix_seconds;
+    let overdue_unresolved = window.end_unix_seconds > work_order.planned_end_unix_seconds
+        && return_at.is_none_or(|timestamp| timestamp > window.end_unix_seconds);
 
     Ok(MaintenanceAvailabilityTraceV1 {
         schema_version: MAINTENANCE_AVAILABILITY_SCHEMA_VERSION,
@@ -667,6 +790,62 @@ mod tests {
             project_maintenance_availability(&input),
             Err(ProjectionError::ReturnBeforeStudyStart)
         );
+    }
+
+    #[test]
+    fn generated_trace_has_complete_non_overlapping_study_coverage() {
+        let trace = project_maintenance_availability(&request()).expect("valid trace");
+        assert_eq!(validate_trace_structure(&trace), Ok(()));
+    }
+
+    #[test]
+    fn trace_validator_rejects_interval_gap() {
+        let mut trace = project_maintenance_availability(&request()).expect("valid trace");
+        trace.intervals[1].start_unix_seconds += 1;
+
+        assert_eq!(
+            validate_trace_structure(&trace),
+            Err(TraceValidationError::IntervalGap)
+        );
+    }
+
+    #[test]
+    fn trace_validator_rejects_interval_overlap() {
+        let mut trace = project_maintenance_availability(&request()).expect("valid trace");
+        trace.intervals[1].start_unix_seconds -= 1;
+
+        assert_eq!(
+            validate_trace_structure(&trace),
+            Err(TraceValidationError::IntervalOverlap)
+        );
+    }
+
+    #[test]
+    fn trace_validator_rejects_incomplete_study_coverage() {
+        let mut trace = project_maintenance_availability(&request()).expect("valid trace");
+        trace.intervals[2].end_unix_seconds -= 1;
+
+        assert_eq!(
+            validate_trace_structure(&trace),
+            Err(TraceValidationError::IncompleteCoverage)
+        );
+    }
+
+    #[test]
+    fn return_after_study_horizon_remains_unresolved_at_horizon() {
+        let mut input = request();
+        input.study_window.end_unix_seconds = 50;
+        input.work_order.return_to_service_authorization =
+            Some(evidence("return-authorized-after-horizon", 55, NEW_CONFIG));
+
+        let trace = project_maintenance_availability(&input).expect("valid future restoration");
+        assert_eq!(trace.intervals.last().unwrap().end_unix_seconds, 50);
+        assert_eq!(
+            trace.intervals.last().unwrap().state,
+            AvailabilityState::PlannedOutage
+        );
+        assert!(trace.late_return_to_service);
+        assert!(trace.overdue_unresolved);
     }
 
     #[test]
