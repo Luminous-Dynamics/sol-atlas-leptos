@@ -963,7 +963,96 @@
           "type": "string",
           "minLength": 1
         }
-      }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "composition_mode": {
+                "const": "SINGLE_MEMBER"
+              }
+            },
+            "required": [
+              "composition_mode"
+            ]
+          },
+          "then": {
+            "properties": {
+              "climate_member_refs": {
+                "minItems": 1,
+                "maxItems": 1
+              },
+              "aggregation_method_ref": {
+                "type": "null"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "composition_mode": {
+                "const": "PARALLEL_NOT_POOLED"
+              }
+            },
+            "required": [
+              "composition_mode"
+            ]
+          },
+          "then": {
+            "properties": {
+              "climate_member_refs": {
+                "minItems": 2
+              },
+              "aggregation_method_ref": {
+                "type": "null"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "composition_mode": {
+                "const": "MEMBERWISE_STRESS_SET"
+              }
+            },
+            "required": [
+              "composition_mode"
+            ]
+          },
+          "then": {
+            "properties": {
+              "aggregation_method_ref": {
+                "type": "null"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "composition_mode": {
+                "const": "APPROVED_STATISTICAL_AGGREGATION"
+              }
+            },
+            "required": [
+              "composition_mode"
+            ]
+          },
+          "then": {
+            "properties": {
+              "climate_member_refs": {
+                "minItems": 2
+              },
+              "aggregation_method_ref": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          }
+        }
+      ]
     },
     "uncertaintyPolicy": {
       "type": "object",
