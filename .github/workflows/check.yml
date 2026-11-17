@@ -75,5 +75,5 @@ jobs:
         run: cargo run --bin home-intent-spatial-qualifier -- --self-test
       - name: Test home expression library qualifier
         run: cargo test --bin home-expression-library-qualifier
-      - name: Audit synthetic home expression profile
+      - name: Audit synthetic home expression and decision receipt
         run: cargo run --bin home-expression-library-qualifier -- --self-test
