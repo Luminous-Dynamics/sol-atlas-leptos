@@ -379,10 +379,13 @@ pub fn HomeExpressionPage() -> impl IntoView {
                 <div class="home-expression-package-grid">
                     {experiences.into_iter().map(|package| {
                         let id_prefer_active = package.id.clone();
+                        let id_prefer_pressed = package.id.clone();
                         let id_prefer_click = package.id.clone();
                         let id_consider_active = package.id.clone();
+                        let id_consider_pressed = package.id.clone();
                         let id_consider_click = package.id.clone();
                         let id_avoid_active = package.id.clone();
+                        let id_avoid_pressed = package.id.clone();
                         let id_avoid_click = package.id.clone();
                         let package_label_id = package.id.clone();
 
@@ -394,14 +397,17 @@ pub fn HomeExpressionPage() -> impl IntoView {
                                 <div class="home-expression-package-actions">
                                     <button
                                         class:active=move || current_preference(experience_states, &id_prefer_active) == "PREFERRED"
+                                        aria-pressed=move || (current_preference(experience_states, &id_prefer_pressed) == "PREFERRED").to_string()
                                         on:click=move |_| set_experience_state(experience_states, id_prefer_click.clone(), "PREFERRED")
                                     >"Prefer"</button>
                                     <button
                                         class:active=move || current_preference(experience_states, &id_consider_active) == "CONSIDERED"
+                                        aria-pressed=move || (current_preference(experience_states, &id_consider_pressed) == "CONSIDERED").to_string()
                                         on:click=move |_| set_experience_state(experience_states, id_consider_click.clone(), "CONSIDERED")
                                     >"Consider"</button>
                                     <button
                                         class:active=move || current_preference(experience_states, &id_avoid_active) == "AVOIDED"
+                                        aria-pressed=move || (current_preference(experience_states, &id_avoid_pressed) == "AVOIDED").to_string()
                                         on:click=move |_| set_experience_state(experience_states, id_avoid_click.clone(), "AVOIDED")
                                     >"Avoid"</button>
                                 </div>
@@ -438,6 +444,15 @@ pub fn HomeExpressionPage() -> impl IntoView {
                         <h2>"A record of what you expressed"</h2>
                         <p>"This updates locally as you explore. It is not yet a validated Home Freedom brief or a design proposal."</p>
                     </div>
+                    <button
+                        class="home-expression-reset"
+                        on:click=move |_| {
+                            style_roles.set(BTreeMap::new());
+                            experience_states.set(BTreeMap::new());
+                            secondary_weight.set(35);
+                            resident_statement.set(String::new());
+                        }
+                    >"Reset draft"</button>
                 </div>
                 <pre class="home-expression-preview">{preview}</pre>
             </section>
