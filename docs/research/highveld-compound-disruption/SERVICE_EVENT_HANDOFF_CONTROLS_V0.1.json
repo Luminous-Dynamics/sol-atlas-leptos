@@ -1,0 +1,571 @@
+{
+  "schema_version": "0.1.0",
+  "control_set_id": "highveld-service-event-handoff-controls-v0.1",
+  "status": "synthetic_reference_controls_not_owner_adapter",
+  "claim_ceiling": "Synthetic control semantics and owner-review eligibility only. No actual native service event, physical measurement, service quality, habitability, safety or causal dependency is established.",
+  "owner_native_contract": {
+    "owner": "Symtropy #1848/#1849",
+    "source_branch": "research/spatial-resilience-trajectory-benchmark-2026-10",
+    "event_fields": {
+      "id": "string",
+      "generation": "u64",
+      "tick": "u32",
+      "sequence": "u32",
+      "kind": "enum"
+    },
+    "kind_values": [
+      "restored",
+      "lost"
+    ],
+    "mapping_rule": "owner_approved_service_outcome_and_clock_mapping_required"
+  },
+  "cases": [
+    {
+      "case_id": "grid_loss_reserve_preserves_heatbank",
+      "title": "Grid interruption while stored thermal reserve preserves hot-water service",
+      "decision_as_of_offset_s": 30,
+      "upstream_conditions": [
+        {
+          "event_id": "grid_loss",
+          "kind": "grid_interruption",
+          "scope": "dwelling",
+          "start_offset_s": 10,
+          "end_offset_s": 100,
+          "evidence_class": "SyntheticControlledEvent",
+          "available_at_offset_s": 10
+        }
+      ],
+      "service_observations": [
+        {
+          "service_id": "heatbank_hot_water",
+          "subject_scope": "resident_task",
+          "observed_at_offset_s": 30,
+          "outcome_state": "above_floor",
+          "floor_profile_id": "synthetic_hot_water_floor_r1",
+          "evidence_status": "synthetic_control_only",
+          "available_at_offset_s": 30
+        }
+      ],
+      "time_mapping_state": "owner_mapping_not_provided",
+      "evidence_validity": "synthetic_fixture_valid",
+      "expected_projections": [
+        {
+          "service_id": "heatbank_hot_water",
+          "expected_disposition": "DO_NOT_EMIT",
+          "candidate_kind": "none",
+          "expected_recovery_claim": "NOT_APPLICABLE",
+          "rationale": "An upstream grid loss is present but the named service remains above its floor on reserve."
+        }
+      ],
+      "claim_ceiling": "Synthetic service-continuity counterexample only; no reserve capacity or real hot-water performance."
+    },
+    {
+      "case_id": "grid_restored_service_still_below_floor",
+      "title": "Grid restoration while delivered hot-water service remains below its floor",
+      "decision_as_of_offset_s": 120,
+      "upstream_conditions": [
+        {
+          "event_id": "grid_restore",
+          "kind": "grid_restoration",
+          "scope": "dwelling",
+          "start_offset_s": 100,
+          "end_offset_s": 101,
+          "evidence_class": "SyntheticControlledEvent",
+          "available_at_offset_s": 100
+        }
+      ],
+      "service_observations": [
+        {
+          "service_id": "heatbank_hot_water",
+          "subject_scope": "resident_task",
+          "observed_at_offset_s": 120,
+          "outcome_state": "below_floor",
+          "floor_profile_id": "synthetic_hot_water_floor_r1",
+          "evidence_status": "synthetic_control_only",
+          "available_at_offset_s": 120
+        }
+      ],
+      "time_mapping_state": "owner_mapping_not_provided",
+      "evidence_validity": "synthetic_fixture_valid",
+      "expected_projections": [
+        {
+          "service_id": "heatbank_hot_water",
+          "expected_disposition": "DO_NOT_EMIT",
+          "candidate_kind": "none",
+          "expected_recovery_claim": "NOT_ESTABLISHED",
+          "rationale": "Upstream grid restoration does not establish a service restoration; the service remains below its floor."
+        }
+      ],
+      "claim_ceiling": "Synthetic service-recovery distinction only; no physical thermal recovery result."
+    },
+    {
+      "case_id": "water_area_notice_without_tap_outcome",
+      "title": "Municipal area water notice with no tap or end-use service observation",
+      "decision_as_of_offset_s": 50,
+      "upstream_conditions": [
+        {
+          "event_id": "municipal_notice",
+          "kind": "municipal_water_notice",
+          "scope": "system",
+          "start_offset_s": 0,
+          "end_offset_s": 86400,
+          "evidence_class": "SyntheticControlledEvent",
+          "available_at_offset_s": 0
+        }
+      ],
+      "service_observations": [
+        {
+          "service_id": "waterloop_nonpotable_end_use",
+          "subject_scope": "tap_end_use",
+          "observed_at_offset_s": 50,
+          "outcome_state": "not_observed",
+          "floor_profile_id": "synthetic_nonpotable_floor_r1",
+          "evidence_status": "synthetic_control_only",
+          "available_at_offset_s": 50
+        }
+      ],
+      "time_mapping_state": "owner_mapping_not_provided",
+      "evidence_validity": "synthetic_fixture_valid",
+      "expected_projections": [
+        {
+          "service_id": "waterloop_nonpotable_end_use",
+          "expected_disposition": "BLOCKED",
+          "candidate_kind": "none",
+          "expected_recovery_claim": "NOT_ESTABLISHED",
+          "rationale": "System/area notice plus no tap observation cannot establish the named end-use service state."
+        }
+      ],
+      "claim_ceiling": "Synthetic scope-control only; no municipal or household outage assertion."
+    },
+    {
+      "case_id": "component_fault_without_service_consequence",
+      "title": "Component fault while the delivered service remains above its declared floor",
+      "decision_as_of_offset_s": 60,
+      "upstream_conditions": [
+        {
+          "event_id": "pump_fault",
+          "kind": "component_fault",
+          "scope": "component",
+          "start_offset_s": 20,
+          "end_offset_s": 200,
+          "evidence_class": "SyntheticControlledEvent",
+          "available_at_offset_s": 20
+        }
+      ],
+      "service_observations": [
+        {
+          "service_id": "waterloop_nonpotable_end_use",
+          "subject_scope": "tap_end_use",
+          "observed_at_offset_s": 60,
+          "outcome_state": "above_floor",
+          "floor_profile_id": "synthetic_nonpotable_floor_r1",
+          "evidence_status": "synthetic_control_only",
+          "available_at_offset_s": 60
+        }
+      ],
+      "time_mapping_state": "owner_mapping_not_provided",
+      "evidence_validity": "synthetic_fixture_valid",
+      "expected_projections": [
+        {
+          "service_id": "waterloop_nonpotable_end_use",
+          "expected_disposition": "DO_NOT_EMIT",
+          "candidate_kind": "none",
+          "expected_recovery_claim": "NOT_APPLICABLE",
+          "rationale": "A component fault does not imply service loss when the observed end-use remains above its floor."
+        }
+      ],
+      "claim_ceiling": "Synthetic fault/outcome separation only; no component or water-system capability claim."
+    },
+    {
+      "case_id": "qualified_named_service_floor_crossing",
+      "title": "Named resident/task service crosses below its declared floor",
+      "decision_as_of_offset_s": 40,
+      "upstream_conditions": [
+        {
+          "event_id": "grid_loss",
+          "kind": "grid_interruption",
+          "scope": "dwelling",
+          "start_offset_s": 10,
+          "end_offset_s": 100,
+          "evidence_class": "SyntheticControlledEvent",
+          "available_at_offset_s": 10
+        }
+      ],
+      "service_observations": [
+        {
+          "service_id": "aircare_clean_air",
+          "subject_scope": "resident_task",
+          "observed_at_offset_s": 20,
+          "available_at_offset_s": 20,
+          "outcome_state": "above_floor",
+          "floor_profile_id": "synthetic_clean_air_floor_r1",
+          "evidence_status": "synthetic_control_only"
+        },
+        {
+          "service_id": "aircare_clean_air",
+          "subject_scope": "resident_task",
+          "observed_at_offset_s": 40,
+          "available_at_offset_s": 40,
+          "outcome_state": "below_floor",
+          "floor_profile_id": "synthetic_clean_air_floor_r1",
+          "evidence_status": "synthetic_control_only"
+        }
+      ],
+      "time_mapping_state": "owner_mapping_approved",
+      "evidence_validity": "synthetic_fixture_valid",
+      "expected_projections": [
+        {
+          "service_id": "aircare_clean_air",
+          "expected_disposition": "OWNER_REVIEW_CANDIDATE_ONLY",
+          "candidate_kind": "lost",
+          "expected_recovery_claim": "NOT_ESTABLISHED",
+          "rationale": "A named service-floor crossing can be considered for owner mapping only if the approved owner clock/identity mapping and evidence requirements are satisfied."
+        }
+      ],
+      "claim_ceiling": "Synthetic eligibility control only; does not produce an owner event or a pollutant/health outcome."
+    },
+    {
+      "case_id": "service_above_floor_after_repair_no_stable_window",
+      "title": "Service returns above floor after repair but stable recovery window is incomplete",
+      "decision_as_of_offset_s": 80,
+      "upstream_conditions": [
+        {
+          "event_id": "aircare_fault",
+          "kind": "component_fault",
+          "scope": "component",
+          "start_offset_s": 10,
+          "end_offset_s": 70,
+          "evidence_class": "SyntheticControlledEvent",
+          "available_at_offset_s": 10
+        },
+        {
+          "event_id": "repair_complete",
+          "kind": "repair_complete",
+          "scope": "component",
+          "start_offset_s": 70,
+          "end_offset_s": 71,
+          "evidence_class": "SyntheticControlledEvent",
+          "available_at_offset_s": 70
+        }
+      ],
+      "service_observations": [
+        {
+          "service_id": "aircare_clean_air",
+          "subject_scope": "resident_task",
+          "observed_at_offset_s": 30,
+          "available_at_offset_s": 30,
+          "outcome_state": "below_floor",
+          "floor_profile_id": "synthetic_clean_air_floor_r1",
+          "evidence_status": "synthetic_control_only"
+        },
+        {
+          "service_id": "aircare_clean_air",
+          "subject_scope": "resident_task",
+          "observed_at_offset_s": 80,
+          "available_at_offset_s": 80,
+          "outcome_state": "above_floor",
+          "floor_profile_id": "synthetic_clean_air_floor_r1",
+          "evidence_status": "synthetic_control_only"
+        }
+      ],
+      "time_mapping_state": "owner_mapping_approved",
+      "evidence_validity": "synthetic_fixture_valid",
+      "expected_projections": [
+        {
+          "service_id": "aircare_clean_air",
+          "expected_disposition": "OWNER_REVIEW_CANDIDATE_ONLY",
+          "candidate_kind": "restored",
+          "expected_recovery_claim": "NOT_ESTABLISHED",
+          "rationale": "A qualified above-floor transition may be considered for owner mapping, but the synthetic single observation does not satisfy the owner stable-recovery window."
+        }
+      ],
+      "claim_ceiling": "Synthetic transition-versus-stable-recovery separation only."
+    },
+    {
+      "case_id": "shared_upstream_divergent_service_outcomes",
+      "title": "One grid interruption yields different service outcomes across household services",
+      "decision_as_of_offset_s": 60,
+      "upstream_conditions": [
+        {
+          "event_id": "shared_grid_loss",
+          "kind": "grid_interruption",
+          "scope": "dwelling",
+          "start_offset_s": 20,
+          "end_offset_s": 120,
+          "evidence_class": "SyntheticControlledEvent",
+          "available_at_offset_s": 20
+        }
+      ],
+      "service_observations": [
+        {
+          "service_id": "heatbank_hot_water",
+          "subject_scope": "resident_task",
+          "observed_at_offset_s": 60,
+          "outcome_state": "above_floor",
+          "floor_profile_id": "synthetic_hot_water_floor_r1",
+          "evidence_status": "synthetic_control_only",
+          "available_at_offset_s": 60
+        },
+        {
+          "service_id": "aircare_clean_air",
+          "subject_scope": "resident_task",
+          "observed_at_offset_s": 60,
+          "outcome_state": "below_floor",
+          "floor_profile_id": "synthetic_clean_air_floor_r1",
+          "evidence_status": "synthetic_control_only",
+          "available_at_offset_s": 60
+        }
+      ],
+      "time_mapping_state": "owner_mapping_approved",
+      "evidence_validity": "synthetic_fixture_valid",
+      "expected_projections": [
+        {
+          "service_id": "heatbank_hot_water",
+          "expected_disposition": "DO_NOT_EMIT",
+          "candidate_kind": "none",
+          "expected_recovery_claim": "NOT_APPLICABLE",
+          "rationale": "Reserve-backed hot-water service remains above its floor."
+        },
+        {
+          "service_id": "aircare_clean_air",
+          "expected_disposition": "OWNER_REVIEW_CANDIDATE_ONLY",
+          "candidate_kind": "lost",
+          "expected_recovery_claim": "NOT_ESTABLISHED",
+          "rationale": "Only the separately observed AirCare floor crossing is eligible for owner review."
+        }
+      ],
+      "claim_ceiling": "Synthetic multi-service divergence control only; no actual system dependency or capacity."
+    },
+    {
+      "case_id": "scope_mismatch_system_event_and_tap_record",
+      "title": "Overlapping system event and tap record have incompatible scope",
+      "decision_as_of_offset_s": 100,
+      "upstream_conditions": [
+        {
+          "event_id": "system_water_status",
+          "kind": "municipal_water_notice",
+          "scope": "system",
+          "start_offset_s": 0,
+          "end_offset_s": 86400,
+          "evidence_class": "SyntheticControlledEvent",
+          "available_at_offset_s": 0
+        }
+      ],
+      "service_observations": [
+        {
+          "service_id": "tap_end_use",
+          "subject_scope": "tap_end_use",
+          "observed_at_offset_s": 100,
+          "outcome_state": "unknown",
+          "floor_profile_id": "synthetic_tap_floor_r1",
+          "evidence_status": "synthetic_control_only",
+          "available_at_offset_s": 100
+        }
+      ],
+      "time_mapping_state": "owner_mapping_not_provided",
+      "evidence_validity": "out_of_scope",
+      "expected_projections": [
+        {
+          "service_id": "tap_end_use",
+          "expected_disposition": "BLOCKED",
+          "candidate_kind": "none",
+          "expected_recovery_claim": "NOT_ESTABLISHED",
+          "rationale": "Temporal overlap cannot overcome a system-to-tap scope mismatch or unknown service state."
+        }
+      ],
+      "claim_ceiling": "Synthetic scope non-comparability control only."
+    },
+    {
+      "case_id": "future_observation_hidden_until_available",
+      "title": "Future service observation exists in corpus but is unavailable at decision time",
+      "decision_as_of_offset_s": 50,
+      "upstream_conditions": [
+        {
+          "event_id": "future_grid_event",
+          "kind": "grid_interruption",
+          "scope": "dwelling",
+          "start_offset_s": 100,
+          "end_offset_s": 200,
+          "evidence_class": "SyntheticControlledEvent",
+          "available_at_offset_s": 100
+        }
+      ],
+      "service_observations": [
+        {
+          "service_id": "heatbank_hot_water",
+          "subject_scope": "resident_task",
+          "observed_at_offset_s": 120,
+          "outcome_state": "below_floor",
+          "floor_profile_id": "synthetic_hot_water_floor_r1",
+          "evidence_status": "synthetic_control_only",
+          "available_at_offset_s": 120
+        }
+      ],
+      "time_mapping_state": "owner_mapping_approved",
+      "evidence_validity": "synthetic_fixture_valid",
+      "expected_projections": [
+        {
+          "service_id": "heatbank_hot_water",
+          "expected_disposition": "BLOCKED",
+          "candidate_kind": "none",
+          "expected_recovery_claim": "NOT_ESTABLISHED",
+          "rationale": "At decision time 50 neither the future event nor its later service outcome is available to the policy."
+        }
+      ],
+      "claim_ceiling": "Synthetic information-availability control only."
+    },
+    {
+      "case_id": "revoked_evidence_blocks_projection",
+      "title": "Revoked source rights invalidate the service evidence dependency",
+      "decision_as_of_offset_s": 60,
+      "upstream_conditions": [
+        {
+          "event_id": "grid_loss",
+          "kind": "grid_interruption",
+          "scope": "dwelling",
+          "start_offset_s": 10,
+          "end_offset_s": 100,
+          "evidence_class": "SyntheticControlledEvent",
+          "available_at_offset_s": 10
+        }
+      ],
+      "service_observations": [
+        {
+          "service_id": "aircare_clean_air",
+          "subject_scope": "resident_task",
+          "observed_at_offset_s": 60,
+          "outcome_state": "below_floor",
+          "floor_profile_id": "synthetic_clean_air_floor_r1",
+          "evidence_status": "synthetic_control_only",
+          "available_at_offset_s": 60
+        }
+      ],
+      "time_mapping_state": "owner_mapping_approved",
+      "evidence_validity": "revoked",
+      "expected_projections": [
+        {
+          "service_id": "aircare_clean_air",
+          "expected_disposition": "BLOCKED",
+          "candidate_kind": "none",
+          "expected_recovery_claim": "NOT_ESTABLISHED",
+          "rationale": "A revoked evidence dependency cannot support a new native service transition; dependent results require owner-scoped invalidation."
+        }
+      ],
+      "claim_ceiling": "Synthetic rights/invalidation control only; legal remedies remain source-agreement specific."
+    },
+    {
+      "case_id": "ambiguous_time_mapping_blocks_projection",
+      "title": "Service outcome exists but source-to-owner time mapping is ambiguous",
+      "decision_as_of_offset_s": 60,
+      "upstream_conditions": [
+        {
+          "event_id": "grid_loss",
+          "kind": "grid_interruption",
+          "scope": "dwelling",
+          "start_offset_s": 10,
+          "end_offset_s": 100,
+          "evidence_class": "SyntheticControlledEvent",
+          "available_at_offset_s": 10
+        }
+      ],
+      "service_observations": [
+        {
+          "service_id": "aircare_clean_air",
+          "subject_scope": "resident_task",
+          "observed_at_offset_s": 60,
+          "outcome_state": "below_floor",
+          "floor_profile_id": "synthetic_clean_air_floor_r1",
+          "evidence_status": "synthetic_control_only",
+          "available_at_offset_s": 60
+        }
+      ],
+      "time_mapping_state": "ambiguous",
+      "evidence_validity": "synthetic_fixture_valid",
+      "expected_projections": [
+        {
+          "service_id": "aircare_clean_air",
+          "expected_disposition": "BLOCKED",
+          "candidate_kind": "none",
+          "expected_recovery_claim": "NOT_ESTABLISHED",
+          "rationale": "Do not guess the conversion between scenario seconds and the owner tick/generation/sequence contract."
+        }
+      ],
+      "claim_ceiling": "Synthetic clock-mapping control only."
+    },
+    {
+      "case_id": "recurrence_before_stable_recovery",
+      "title": "A new service loss occurs before the earlier restored interval is stable",
+      "decision_as_of_offset_s": 90,
+      "upstream_conditions": [
+        {
+          "event_id": "initial_aircare_fault",
+          "kind": "component_fault",
+          "scope": "component",
+          "start_offset_s": 0,
+          "end_offset_s": 20,
+          "evidence_class": "SyntheticControlledEvent",
+          "available_at_offset_s": 0
+        },
+        {
+          "event_id": "repair_complete",
+          "kind": "repair_complete",
+          "scope": "component",
+          "start_offset_s": 20,
+          "end_offset_s": 21,
+          "evidence_class": "SyntheticControlledEvent",
+          "available_at_offset_s": 20
+        },
+        {
+          "event_id": "repeat_grid_loss",
+          "kind": "grid_interruption",
+          "scope": "dwelling",
+          "start_offset_s": 80,
+          "end_offset_s": 150,
+          "evidence_class": "SyntheticControlledEvent",
+          "available_at_offset_s": 80
+        }
+      ],
+      "service_observations": [
+        {
+          "service_id": "aircare_clean_air",
+          "subject_scope": "resident_task",
+          "observed_at_offset_s": 10,
+          "available_at_offset_s": 10,
+          "outcome_state": "below_floor",
+          "floor_profile_id": "synthetic_clean_air_floor_r1",
+          "evidence_status": "synthetic_control_only"
+        },
+        {
+          "service_id": "aircare_clean_air",
+          "subject_scope": "resident_task",
+          "observed_at_offset_s": 50,
+          "available_at_offset_s": 50,
+          "outcome_state": "above_floor",
+          "floor_profile_id": "synthetic_clean_air_floor_r1",
+          "evidence_status": "synthetic_control_only"
+        },
+        {
+          "service_id": "aircare_clean_air",
+          "subject_scope": "resident_task",
+          "observed_at_offset_s": 90,
+          "available_at_offset_s": 90,
+          "outcome_state": "below_floor",
+          "floor_profile_id": "synthetic_clean_air_floor_r1",
+          "evidence_status": "synthetic_control_only"
+        }
+      ],
+      "time_mapping_state": "owner_mapping_approved",
+      "evidence_validity": "synthetic_fixture_valid",
+      "expected_projections": [
+        {
+          "service_id": "aircare_clean_air",
+          "expected_disposition": "OWNER_REVIEW_CANDIDATE_ONLY",
+          "candidate_kind": "lost",
+          "expected_recovery_claim": "NOT_ESTABLISHED",
+          "rationale": "The new floor crossing may be considered for owner mapping; the earlier restoration must not be promoted to stable recovery, and the owner oracle must process recurrence."
+        }
+      ],
+      "claim_ceiling": "Synthetic recurrence/recovery-boundary control only."
+    }
+  ]
+}

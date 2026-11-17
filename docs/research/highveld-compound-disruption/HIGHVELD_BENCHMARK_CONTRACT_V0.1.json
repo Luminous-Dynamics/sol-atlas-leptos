@@ -1,0 +1,464 @@
+{
+  "contract_format": "json",
+  "schema_version": "0.1.0",
+  "contract_id": "highveld-cross-tool-household-resilience-benchmark-v0.1",
+  "programme": "HIGHVELD-KEEP-001",
+  "parent_issue": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/607",
+  "corpus_issue": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/735",
+  "synthetic_event_corpus": "SYNTHETIC_CORPUS_V0.1.json",
+  "claim_ceiling": "Proposed benchmark protocol and synthetic mechanics only. No real dwelling performance, event probability, physical safety, habitability, cost advantage, code compliance, or industry superiority is established.",
+  "architecture_candidates": [
+    {
+      "architecture_id": "INDEPENDENT_SERVICES",
+      "definition_owner": "Sol-Atlas #694",
+      "evaluation_status": "NOT_EVALUATED"
+    },
+    {
+      "architecture_id": "SHARED_UTILITY",
+      "definition_owner": "Sol-Atlas #694",
+      "evaluation_status": "NOT_EVALUATED"
+    },
+    {
+      "architecture_id": "HYBRID_LOCAL_AUTONOMY",
+      "definition_owner": "Sol-Atlas #694",
+      "evaluation_status": "NOT_EVALUATED"
+    }
+  ],
+  "benchmark_arms": [
+    {
+      "arm_id": "B0_MANUAL_BASELINE",
+      "purpose": "Measure the documented conventional/manual workflow and human effort; do not assume its quality or speed.",
+      "required_evidence": "Frozen task brief, operator qualifications, elapsed time, human-hours, inputs, exclusions and decision record."
+    },
+    {
+      "arm_id": "B1_SPECIALIST_TOOLCHAIN",
+      "purpose": "Best-available incumbent specialist tools applied to the same eligible subtasks, inputs and decision brief.",
+      "eligible_tools": [
+        "Autodesk Forma Building Design",
+        "TestFit Site Solver",
+        "EnergyPlus",
+        "BOPTEST",
+        "ANSI/ASHRAE Standard 140 test suite",
+        "NREL REopt Web Tool/API",
+        "HOMER Grid",
+        "EPRI OpenDSS",
+        "GridLAB-D"
+      ],
+      "required_evidence": "Exact product/software version, modules, configuration, licence/access conditions, operator time, compute, source data and outputs. Use a tool only for tasks inside its supported scope.",
+      "conditional_tool_scope": {
+        "NREL REopt Web Tool/API": "DER mix, sizing, dispatch, techno-economic comparison and critical-load resilience analysis for buildings/campuses/microgrids",
+        "HOMER Grid": "microgrid simulation, optimization and sensitivity analysis; battery degradation/augmentation and time-of-use dispatch",
+        "EPRI OpenDSS": "distribution-system power-flow, quasi-static time-series, DER interconnection, harmonics and fault/dynamics analyses",
+        "GridLAB-D": "distribution-system and device interaction simulation across multiple temporal scales"
+      }
+    },
+    {
+      "arm_id": "B2_EVIDENCE_COMPOSITION",
+      "purpose": "Use the same eligible specialist engines and outputs as B1, adding Luminous evidence identity, scope/rights/revision control, compound-trace pairing, owner-native outcome bindings, invalidation and replay.",
+      "required_evidence": "B1 engine identity and input/output digests plus exact evidence-composition receipts and owner contract versions."
+    },
+    {
+      "arm_id": "B3_HYBRID_WORKFLOW",
+      "purpose": "Best incumbent specialist toolchain plus only the Luminous layers shown to add measurable value; report every retained and replaced tool.",
+      "required_evidence": "Same as B1 and B2, including explicit system boundary and who performed each action."
+    },
+    {
+      "arm_id": "B4_EXHAUSTIVE_REFERENCE",
+      "purpose": "Exhaustive independent oracle for small finite synthetic cases only; diagnostic reference, never a deployable competitor or physical truth.",
+      "required_evidence": "Frozen finite state space, independently authored evaluator, exact expected feasible/Pareto sets and oracle source digest."
+    }
+  ],
+  "matched_comparison_requirements": [
+    "Identical Highveld geometry/design revision and resident/task requirement revision across paired arms.",
+    "Identical exogenous event corpus bytes, scenario IDs, revision and SHA-256 digest across paired arms.",
+    "Identical initial conditions, resource limits, boundary conditions and declared information budget.",
+    "No future-event information to a candidate except a separately labelled B4-style oracle upper bound.",
+    "Same output functional units, time horizons, time steps, denominator definitions and uncertainty reporting wherever comparison is claimed.",
+    "Record software/tool versions, licences, model options, compute budget, human/operator time, manual edits, retries, failures and exclusions.",
+    "Use the same source-data snapshots and rights state; a tool unavailable to one arm must be disclosed rather than silently substituted.",
+    "Design selection, operational-control policy and post-occupancy observation are separate experiments with separate outputs.",
+    "For shared-utility/network cases, use the same load profile, tariff/price assumptions, technology costs, topology, resource limits and outage/dispatch trace across paired specialist-tool arms.",
+    "Use a distribution simulator only when a feeder/network model and its scope are explicit; do not infer household or tap service from feeder/system power flow.",
+    "Record whether REopt/HOMER/OpenDSS/GridLAB-D were eligible and applicable to each candidate/subtask; an unavailable tool or unsupported subtask must be disclosed, not silently substituted."
+  ],
+  "owner_crosswalk": [
+    {
+      "owner": "Sol-Atlas #630/#611/#593",
+      "responsibility": "Highveld design/stress binding and climate-source admission; preserve weather product, station/grid, location, baseline, timestep, representativeness, rights and revision.",
+      "do_not_duplicate": "No weather archive or climate qualification engine."
+    },
+    {
+      "owner": "Sol-Atlas #694",
+      "responsibility": "Reference dwelling, household-service definitions and architecture candidate identities.",
+      "do_not_duplicate": "No duplicate service product or architecture registry."
+    },
+    {
+      "owner": "Sol-Atlas #735/#736",
+      "responsibility": "Compound-event evidence register, synthetic traces, evidence class, scope joins and matched trace manifest.",
+      "do_not_duplicate": "No service timeline, causal engine or resilience evaluator."
+    },
+    {
+      "owner": "Symtropy #1848/#1849",
+      "responsibility": "Existing deterministic event clock, paired policies, lost/restored service trajectories, service floors, recovery and Pareto evaluation.",
+      "adapter_boundary": "Only translate a qualified, owner-approved service loss/restoration into the exact owner-native event schema; preserve the source trace and provenance alongside it. Do not inject raw climate, utility or component-fault evidence as a native service event."
+    },
+    {
+      "owner": "Sol-Atlas #700/#633",
+      "responsibility": "Service outcome binding and read-only post-occupancy outcome/comparability.",
+      "do_not_duplicate": "No new universal resilience score or post-occupancy evaluator."
+    },
+    {
+      "owner": "Mycelix #6025",
+      "responsibility": "Building instrument-channel capability/admission by measurand, placement, calibration, rights, local acquisition and decision scope.",
+      "do_not_duplicate": "No new sensor passport or physical-measurement authority."
+    },
+    {
+      "owner": "Symtropy #1846",
+      "responsibility": "Evidence validity envelope and dependency-scoped invalidation."
+    },
+    {
+      "owner": "Symtropy #1892/#1922",
+      "responsibility": "Finite-state decision impact, measurement choice, adaptive measurement policy and stopping rules."
+    },
+    {
+      "owner": "Symtropy #1900 and applicable physics owners",
+      "responsibility": "Version-pinned EnergyPlus/thermal adapter, model input/output, convergence, validation and uncertainty."
+    }
+  ],
+  "scorecards": [
+    {
+      "scorecard_id": "evidence_integrity",
+      "metrics": [
+        {
+          "metric_id": "paired_trace_digest_mismatch_count",
+          "definition": "Count of paired candidate comparisons whose exogenous trace digest differs.",
+          "unit": "count",
+          "target": 0,
+          "gate": "HARD"
+        },
+        {
+          "metric_id": "future_information_leak_count",
+          "definition": "Count of non-oracle decisions exposed to events or observations unavailable at decision time.",
+          "unit": "count",
+          "target": 0,
+          "gate": "HARD"
+        },
+        {
+          "metric_id": "critical_false_pass_count",
+          "definition": "Count of seeded missing, stale, revoked, out-of-scope, conflicting, non-converged or unqualified critical inputs admitted as PASS.",
+          "unit": "count",
+          "target": 0,
+          "gate": "HARD"
+        },
+        {
+          "metric_id": "scope_escalation_count",
+          "definition": "Count of source records promoted to a finer or different physical scope without an approved join.",
+          "unit": "count",
+          "target": 0,
+          "gate": "HARD"
+        },
+        {
+          "metric_id": "stale_dependency_admission_count",
+          "definition": "Count of dependent results reused after a declared upstream source, rights, geometry, instrument or model revision invalidation trigger.",
+          "unit": "count",
+          "target": 0,
+          "gate": "HARD"
+        }
+      ]
+    },
+    {
+      "scorecard_id": "software_oracle_conformance",
+      "metrics": [
+        {
+          "metric_id": "synthetic_known_answer_exact_match",
+          "definition": "Exact match to independently authored interval, scope, decision-state and replay known answers.",
+          "unit": "fraction",
+          "target": 1,
+          "gate": "HARD"
+        },
+        {
+          "metric_id": "seeded_control_detection_rate",
+          "definition": "Detected/blocked seeded adversarial controls, reported by family with numerator and denominator.",
+          "unit": "fraction",
+          "target": 1,
+          "gate": "HARD"
+        },
+        {
+          "metric_id": "unrelated_invalidation_count",
+          "definition": "Independent-oracle dependency nodes invalidated despite no path from the changed source.",
+          "unit": "count",
+          "target": 0,
+          "gate": "HARD"
+        },
+        {
+          "metric_id": "replay_digest_mismatch_count",
+          "definition": "Different canonical output digests for identical frozen inputs, versions and deterministic execution settings.",
+          "unit": "count",
+          "target": 0,
+          "gate": "HARD"
+        }
+      ]
+    },
+    {
+      "scorecard_id": "design_decision_quality",
+      "metrics": [
+        {
+          "metric_id": "false_feasible_rate",
+          "definition": "Low-fidelity candidates admitted as hard-feasible that fail the approved higher-fidelity/reference check; report denominator and confidence/coverage.",
+          "unit": "fraction",
+          "target": 0,
+          "gate": "HARD_FOR_CRITICAL_CONSTRAINTS"
+        },
+        {
+          "metric_id": "pareto_set_recall_vs_exhaustive",
+          "definition": "|P_candidate intersect P_exhaustive| / |P_exhaustive| on finite cases with identical objective bounds and hard constraints.",
+          "unit": "fraction",
+          "target": 1,
+          "gate": "HARD_ON_FINITE_ORACLE_CASES"
+        },
+        {
+          "metric_id": "pareto_set_precision_vs_exhaustive",
+          "definition": "|P_candidate intersect P_exhaustive| / |P_candidate| on finite cases.",
+          "unit": "fraction",
+          "target": 1,
+          "gate": "HARD_ON_FINITE_ORACLE_CASES"
+        },
+        {
+          "metric_id": "decision_rank_reversal_rate",
+          "definition": "Fraction of frozen candidate comparisons whose ordering reverses between screening and qualified reference evaluation; report by objective and cause, do not hide reversals in a mean.",
+          "unit": "fraction",
+          "target": "MEASURE_AND_REPORT",
+          "gate": "DIAGNOSTIC"
+        },
+        {
+          "metric_id": "low_to_high_fidelity_decision_preservation",
+          "definition": "Fraction of screened decisions that remain feasible and unchanged under the qualified reference, with Pareto-set retention reported separately.",
+          "unit": "fraction",
+          "target": "PREREGISTER_AFTER_PILOT_BASELINE",
+          "gate": "DIAGNOSTIC"
+        }
+      ]
+    },
+    {
+      "scorecard_id": "resident_service_resilience",
+      "metrics": [
+        {
+          "metric_id": "essential_task_service_floor_hours",
+          "definition": "Hours each declared resident/task floor is met, by resident and task; retain service-specific units and intervals.",
+          "unit": "hours",
+          "target": "PROFILE_DEFINED",
+          "gate": "NON_COMPENSATORY"
+        },
+        {
+          "metric_id": "unserved_service_hours",
+          "definition": "Unserved hours by service, resident/task, and event trace.",
+          "unit": "hours",
+          "target": "REPORT_VECTOR",
+          "gate": "DIAGNOSTIC"
+        },
+        {
+          "metric_id": "time_to_first_floor_breach",
+          "definition": "Elapsed time from scenario start to first declared hard service-floor breach.",
+          "unit": "seconds_or_declared_time_unit",
+          "target": "REPORT",
+          "gate": "DIAGNOSTIC"
+        },
+        {
+          "metric_id": "reserve_depletion_time",
+          "definition": "Time to reserve depletion, only where a qualified reserve state and service demand model exist.",
+          "unit": "declared_resource_unit_and_time",
+          "target": "REPORT_OR_UNKNOWN",
+          "gate": "DIAGNOSTIC"
+        },
+        {
+          "metric_id": "stable_recovery_time",
+          "definition": "Time to the owner-defined stable recovery condition, not merely first restoration.",
+          "unit": "seconds_or_declared_time_unit",
+          "target": "REPORT_OR_UNKNOWN",
+          "gate": "DIAGNOSTIC"
+        },
+        {
+          "metric_id": "per_resident_floor_failure_count",
+          "definition": "Count of residents with at least one failed mandatory floor; do not average across residents.",
+          "unit": "count",
+          "target": 0,
+          "gate": "NON_COMPENSATORY_WHEN_PROFILE_IS_ADMITTED"
+        }
+      ]
+    },
+    {
+      "scorecard_id": "physics_and_measurement_credibility",
+      "metrics": [
+        {
+          "metric_id": "ashrae_140_applicable_suite_results",
+          "definition": "Applicable Standard 140 test groups and exact software/version results; report applicability and exclusions.",
+          "unit": "test_results_by_suite",
+          "target": "ALL_PREREGISTERED_APPLICABLE_CASES_PASS",
+          "gate": "MODEL_CAPABILITY"
+        },
+        {
+          "metric_id": "held_out_reference_residuals",
+          "definition": "Residuals and uncertainty against held-out measured/reference observations for declared outputs and operating domain.",
+          "unit": "output_native_units",
+          "target": "MODEL_SPECIFIC_PREREGISTERED_TOLERANCE",
+          "gate": "PHYSICAL_MODEL"
+        },
+        {
+          "metric_id": "measurement_uncertainty_budget",
+          "definition": "Instrument, placement, acquisition, calibration, synchronization and derived-output uncertainty; include covariance assumptions.",
+          "unit": "declared_units",
+          "target": "COMPLETE_FOR_DECISION_CRITICAL_MEASURANDS",
+          "gate": "PHYSICAL_MEASUREMENT"
+        },
+        {
+          "metric_id": "out_of_domain_or_nonconverged_count",
+          "definition": "Count of predictions outside approved applicability or without successful convergence.",
+          "unit": "count",
+          "target": 0,
+          "gate": "HARD"
+        }
+      ]
+    },
+    {
+      "scorecard_id": "lifecycle_and_operational_effort",
+      "metrics": [
+        {
+          "metric_id": "human_hours_to_defensible_decision",
+          "definition": "Measured operator, engineering, review and rework hours from frozen brief to reproducible decision package.",
+          "unit": "person_hours",
+          "target": "MEASURE_RELATIVE_TO_B0_AND_B1",
+          "gate": "DIAGNOSTIC"
+        },
+        {
+          "metric_id": "decision_cycle_elapsed_time",
+          "definition": "Wall-clock elapsed time including data preparation, solver time, review and correction.",
+          "unit": "hours",
+          "target": "MEASURE_RELATIVE_TO_B0_AND_B1",
+          "gate": "DIAGNOSTIC"
+        },
+        {
+          "metric_id": "requalification_scope_precision_recall",
+          "definition": "Precision and recall of affected downstream artifacts against independently authored dependency oracle.",
+          "unit": "fraction_pair",
+          "target": [
+            1,
+            1
+          ],
+          "gate": "HARD_ON_SYNTHETIC_GRAPH"
+        },
+        {
+          "metric_id": "repair_and_reverification_burden",
+          "definition": "Repair labour, part wait, service interruption and requalification time; no guessed values.",
+          "unit": "declared_units",
+          "target": "MEASURE_OR_UNKNOWN",
+          "gate": "DIAGNOSTIC"
+        }
+      ]
+    },
+    {
+      "scorecard_id": "decision_selectivity",
+      "metrics": [
+        {
+          "metric_id": "b2_valid_case_coverage",
+          "definition": "Oracle-admissible synthetic service decisions preserved by B2 as PASS with SATISFIED hard floor, divided by all oracle-admissible PASS/SATISFIED service decisions.",
+          "unit": "fraction",
+          "target": 1,
+          "gate": "HARD_ON_SYNTHETIC_KNOWN_ANSWER_CASES"
+        },
+        {
+          "metric_id": "b2_valid_case_false_reject_count",
+          "definition": "Oracle-admissible PASS/SATISFIED service cases rejected, blocked or marked unknown by B2.",
+          "unit": "count",
+          "target": 0,
+          "gate": "HARD_ON_SYNTHETIC_KNOWN_ANSWER_CASES"
+        },
+        {
+          "metric_id": "b2_adversarial_critical_false_pass_count",
+          "definition": "Seeded adversarial cases where B2 returns PASS despite invalid rights, unapproved scope, future information or a violated/unknown resident service floor.",
+          "unit": "count",
+          "target": 0,
+          "gate": "HARD_ON_SYNTHETIC_KNOWN_ANSWER_CASES"
+        }
+      ]
+    }
+  ],
+  "benchmark_stages": [
+    {
+      "stage": "E1_SYNTHETIC_MECHANICS",
+      "entry": "Frozen schema, corpus and independently authored known answers.",
+      "exit": "100% known-answer agreement, 100% seeded-control detection, zero critical false passes and deterministic replay."
+    },
+    {
+      "stage": "E2_TOOLCHAIN_COMPARISON",
+      "entry": "Same candidate/input/trace digest across B0-B3; exact tool versions and measured human/compute budgets.",
+      "exit": "Published per-task scorecards and complete exclusions; no aggregate winner if tasks are not comparable."
+    },
+    {
+      "stage": "E3_PHYSICS_QUALIFICATION",
+      "entry": "Version-pinned model, applicable Standard 140 suite, verified inputs, measured reference and held-out validation plan.",
+      "exit": "Model-specific VVUQ evidence accepted by the relevant domain owner; no synthetic benchmark can satisfy this stage."
+    },
+    {
+      "stage": "E4_UNOCCUPIED_PHYSICAL_TEST",
+      "entry": "Safety-reviewed unoccupied test cell #4531, instrument admission #6025, calibrated reference methods and approved test procedures.",
+      "exit": "Repeatable subsystem measurements, uncertainty, failure detection and safe recovery evidence."
+    },
+    {
+      "stage": "E5_POST_OCCUPANCY_OUTCOMES",
+      "entry": "Resident consent, privacy/purpose constraints, independent instrument admission and a pre-registered comparison protocol.",
+      "exit": "Read-only resident/service outcomes and comparability through #633/#700; no model self-certification."
+    }
+  ],
+  "proposed_targets_not_results": {
+    "synthetic_mechanics": "100% exact known-answer match and seeded-control detection; zero false PASS.",
+    "paired_comparisons": "100% identical exogenous trace and initial-state identity; zero unlabelled oracle leakage.",
+    "critical_constraints": "Zero false-feasible decisions after qualified reference checking; no compensating scalar score.",
+    "decision_quality": "100% Pareto precision/recall on finite exhaustive oracle cases; held-out real-world targets require a measured baseline and preregistration.",
+    "lifecycle": "Demonstrate lower human-hours or rework than B0/B1 at equivalent decision quality before claiming productivity superiority.",
+    "physical_credibility": "Use model- and measurand-specific tolerances; no universal thermal, air, water or energy threshold is set by this contract."
+  },
+  "prohibited_claims_until_qualified": [
+    "No SOTA or industry-superiority claim from synthetic corpus results.",
+    "No habitability, health, fire, structural, water-potability or life-safety claim from synthetic simulation.",
+    "No household-level outage or tap-level service claim from national/system/municipal context alone.",
+    "No empirical probability or joint hazard rate from scenario counts or marginal event frequencies.",
+    "No universal resilience scalar that permits one resident's mandatory service-floor failure to be compensated by another metric.",
+    "No use of BOPTEST, ASHRAE 140, EnergyPlus, Forma or TestFit outside each tool's defined scope."
+  ],
+  "service_event_handoff_controls": {
+    "corpus_file": "SERVICE_EVENT_HANDOFF_CONTROLS_V0.1.json",
+    "schema_file": "SERVICE_EVENT_HANDOFF_CONTROLS_V0.1.schema.json",
+    "case_count": 12,
+    "per_service_expected_dispositions": 13,
+    "owner": "Symtropy #1848/#1849",
+    "status": "synthetic_reference_controls_not_owner_adapter",
+    "purpose": "Prevent upstream infrastructure events from being promoted to household service transitions without a qualified named-service outcome and owner-approved clock mapping."
+  },
+  "paired_experiment_protocol": {
+    "protocol_file": "B1_B2_PAIRED_EXPERIMENT_PROTOCOL_V0.1.md",
+    "run_packet_schema": "B1_B2_PAIRED_RUN_PACKET_V0.1.schema.json",
+    "audit_cli": "src/bin/highveld-paired-audit.rs",
+    "audit_command": "cargo run --bin highveld-paired-audit -- --input <paired-run.json>",
+    "self_test_command": "cargo run --bin highveld-paired-audit -- --self-test",
+    "status": "protocol_and_packet_auditor_added_not_industry_experiment",
+    "audit_scope": [
+      "matched B1/B2 specialist engine identity and raw input/output digests",
+      "B2 composition receipt binding to matched inputs and engine I/O",
+      "B2 per-service rights and scope validation",
+      "independent-oracle decision and hard-floor agreement",
+      "future-information leakage detection",
+      "B2 valid-case coverage and false-rejection gate to prevent an always-BLOCKED degenerate strategy",
+      "paired engine-configuration digest and frozen source-rights revision binding",
+      "valid-case coverage and false-rejection/overblocking measurement",
+      "candidate and scenario allowlists pinned to v0.1 registered cases",
+      "unique and enum-valid independent-oracle service expectations",
+      "both B1 and B2 independently bind the same frozen engine-configuration digest",
+      "3 candidate by 7 scenario case-matrix completeness as a preregistered plan"
+    ],
+    "claim_ceiling": "The auditor checks submitted experiment packets and synthetic self-tests only. It does not execute specialist tools or establish physical building performance. A B2 PASS requires both zero critical false passes and full preservation of oracle-admissible clean cases; an always-block strategy cannot pass.",
+    "receipt_digest_recomputation": "SHA-256 over versioned fixed-field, length-prefixed UTF-8 receipt encoding; binds event, design, requirements, initial state, source snapshot, engine input/output, engine configuration and source-rights revision.",
+    "case_matrix_file": "B1_B2_CASE_MATRIX_V0.1.json",
+    "planned_pairs": 21,
+    "matrix_status": "PREREGISTERED_PLAN_NOT_EXECUTED"
+  }
+}

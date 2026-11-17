@@ -1,0 +1,935 @@
+{
+  "schema_version": "0.1.0",
+  "dataset_id": "highveld-compound-disruption-synthetic-v0.1",
+  "evidence_class": "SyntheticControlledEvent",
+  "claim_ceiling": "Synthetic event-window and evidence-scope conformance only; no local event occurrence, probability, causal dependency, physical service outcome or building qualification is claimed.",
+  "scenarios": [
+    {
+      "scenario_id": "hot_grid_water_parts",
+      "title": "Hot day and night with overlapping grid, water and repair disruption",
+      "evidence_class": "SyntheticControlledEvent",
+      "timeline_basis": "integer_seconds_from_scenario_t0",
+      "interval_convention": "half_open",
+      "events": [
+        {
+          "event_id": "hot_day",
+          "kind": "heat_episode",
+          "start_offset_s": 0,
+          "end_offset_s": 86400,
+          "scope": "regional",
+          "temporal_resolution_s": 3600
+        },
+        {
+          "event_id": "hot_night",
+          "kind": "hot_night",
+          "start_offset_s": 72000,
+          "end_offset_s": 115200,
+          "scope": "site",
+          "temporal_resolution_s": 900
+        },
+        {
+          "event_id": "grid_loss",
+          "kind": "grid_interruption",
+          "start_offset_s": 64800,
+          "end_offset_s": 100800,
+          "scope": "dwelling",
+          "temporal_resolution_s": 1
+        },
+        {
+          "event_id": "water_loss",
+          "kind": "water_interruption",
+          "start_offset_s": 80000,
+          "end_offset_s": 110000,
+          "scope": "dwelling",
+          "temporal_resolution_s": 60
+        },
+        {
+          "event_id": "filter_part_delay",
+          "kind": "replacement_part_delay",
+          "start_offset_s": 90000,
+          "end_offset_s": 172800,
+          "scope": "repair_supply",
+          "temporal_resolution_s": 3600
+        }
+      ],
+      "expected_temporal_relations": [
+        {
+          "left_event_id": "hot_day",
+          "right_event_id": "hot_night",
+          "expected_relation": "overlaps",
+          "rationale": "The half-open windows share a non-empty interval."
+        },
+        {
+          "left_event_id": "hot_night",
+          "right_event_id": "grid_loss",
+          "expected_relation": "overlaps",
+          "rationale": "The hot-night and grid-loss windows overlap."
+        },
+        {
+          "left_event_id": "hot_night",
+          "right_event_id": "water_loss",
+          "expected_relation": "overlaps",
+          "rationale": "The hot-night and water-loss windows overlap."
+        },
+        {
+          "left_event_id": "grid_loss",
+          "right_event_id": "water_loss",
+          "expected_relation": "overlaps",
+          "rationale": "The two service interruption windows overlap."
+        },
+        {
+          "left_event_id": "grid_loss",
+          "right_event_id": "filter_part_delay",
+          "expected_relation": "overlaps",
+          "rationale": "The part delay begins before the grid-loss window ends."
+        },
+        {
+          "left_event_id": "water_loss",
+          "right_event_id": "filter_part_delay",
+          "expected_relation": "overlaps",
+          "rationale": "The part delay overlaps the water interruption."
+        },
+        {
+          "left_event_id": "hot_day",
+          "right_event_id": "filter_part_delay",
+          "expected_relation": "precedes",
+          "rationale": "The hot-day window ends before the part delay begins."
+        }
+      ],
+      "semantic_links": [
+        {
+          "from_event_id": "grid_loss",
+          "to_event_id": "water_loss",
+          "relation": "co_occurs_only",
+          "basis": "synthetic_declaration",
+          "rationale": "Overlap only; no shared physical cause is asserted."
+        }
+      ],
+      "claim_ceiling": "Synthetic compound-window overlap only.",
+      "capability_assumptions": [
+        "No future event information is available to candidate policies.",
+        "Resource coupling between pumping and other loads is candidate-specific, not implied by this trace."
+      ],
+      "scope_join_guards": []
+    },
+    {
+      "scenario_id": "cold_grid_heatbank_repair",
+      "title": "Cold episode with grid interruption, HeatBank fault and later parts delay",
+      "evidence_class": "SyntheticControlledEvent",
+      "timeline_basis": "integer_seconds_from_scenario_t0",
+      "interval_convention": "half_open",
+      "events": [
+        {
+          "event_id": "cold_episode",
+          "kind": "cold_episode",
+          "start_offset_s": 0,
+          "end_offset_s": 172800,
+          "scope": "regional",
+          "temporal_resolution_s": 3600
+        },
+        {
+          "event_id": "grid_loss",
+          "kind": "grid_interruption",
+          "start_offset_s": 36000,
+          "end_offset_s": 75600,
+          "scope": "dwelling",
+          "temporal_resolution_s": 1
+        },
+        {
+          "event_id": "heatbank_fault",
+          "kind": "component_fault",
+          "start_offset_s": 30000,
+          "end_offset_s": 90000,
+          "scope": "component",
+          "temporal_resolution_s": 1,
+          "notes": "Synthetic HeatBank component fault."
+        },
+        {
+          "event_id": "replacement_delay",
+          "kind": "replacement_part_delay",
+          "start_offset_s": 100000,
+          "end_offset_s": 180000,
+          "scope": "repair_supply",
+          "temporal_resolution_s": 3600
+        }
+      ],
+      "expected_temporal_relations": [
+        {
+          "left_event_id": "cold_episode",
+          "right_event_id": "grid_loss",
+          "expected_relation": "overlaps",
+          "rationale": "The cold episode spans the grid interruption."
+        },
+        {
+          "left_event_id": "cold_episode",
+          "right_event_id": "heatbank_fault",
+          "expected_relation": "overlaps",
+          "rationale": "The cold episode spans the component fault."
+        },
+        {
+          "left_event_id": "grid_loss",
+          "right_event_id": "heatbank_fault",
+          "expected_relation": "overlaps",
+          "rationale": "The service interruption and component fault overlap."
+        },
+        {
+          "left_event_id": "grid_loss",
+          "right_event_id": "replacement_delay",
+          "expected_relation": "precedes",
+          "rationale": "The replacement delay starts after the grid interruption ends."
+        },
+        {
+          "left_event_id": "heatbank_fault",
+          "right_event_id": "replacement_delay",
+          "expected_relation": "precedes",
+          "rationale": "The component fault window ends before the delay begins."
+        },
+        {
+          "left_event_id": "cold_episode",
+          "right_event_id": "replacement_delay",
+          "expected_relation": "overlaps",
+          "rationale": "The repair delay begins during the cold episode."
+        }
+      ],
+      "semantic_links": [
+        {
+          "from_event_id": "grid_loss",
+          "to_event_id": "heatbank_fault",
+          "relation": "co_occurs_only",
+          "basis": "synthetic_declaration",
+          "rationale": "Temporal overlap does not establish that the grid event caused the fault."
+        }
+      ],
+      "claim_ceiling": "Synthetic overlap only; no thermal service or safety result.",
+      "capability_assumptions": [
+        "The HeatBank service floor is not supplied by this corpus.",
+        "Do not infer useful heat or hot-water delivery from a component fault record."
+      ],
+      "scope_join_guards": []
+    },
+    {
+      "scenario_id": "air_quality_ventilation_network",
+      "title": "Outdoor-air stress with ventilation restriction, grid loss and network loss",
+      "evidence_class": "SyntheticControlledEvent",
+      "timeline_basis": "integer_seconds_from_scenario_t0",
+      "interval_convention": "half_open",
+      "events": [
+        {
+          "event_id": "outdoor_air_event",
+          "kind": "outdoor_air_event",
+          "start_offset_s": 0,
+          "end_offset_s": 43200,
+          "scope": "regional",
+          "temporal_resolution_s": 900,
+          "notes": "Synthetic outdoor-air stress; no pollutant or health threshold is implied."
+        },
+        {
+          "event_id": "ventilation_restriction",
+          "kind": "ventilation_restriction",
+          "start_offset_s": 5400,
+          "end_offset_s": 28800,
+          "scope": "room",
+          "temporal_resolution_s": 1
+        },
+        {
+          "event_id": "grid_loss",
+          "kind": "grid_interruption",
+          "start_offset_s": 3600,
+          "end_offset_s": 18000,
+          "scope": "dwelling",
+          "temporal_resolution_s": 1
+        },
+        {
+          "event_id": "network_loss",
+          "kind": "network_interruption",
+          "start_offset_s": 7200,
+          "end_offset_s": 50000,
+          "scope": "network",
+          "temporal_resolution_s": 1
+        }
+      ],
+      "expected_temporal_relations": [
+        {
+          "left_event_id": "outdoor_air_event",
+          "right_event_id": "ventilation_restriction",
+          "expected_relation": "overlaps",
+          "rationale": "The outdoor-air event overlaps the ventilation restriction."
+        },
+        {
+          "left_event_id": "outdoor_air_event",
+          "right_event_id": "grid_loss",
+          "expected_relation": "overlaps",
+          "rationale": "The outdoor-air event overlaps the grid interruption."
+        },
+        {
+          "left_event_id": "outdoor_air_event",
+          "right_event_id": "network_loss",
+          "expected_relation": "overlaps",
+          "rationale": "The outdoor-air event overlaps the network interruption."
+        },
+        {
+          "left_event_id": "ventilation_restriction",
+          "right_event_id": "grid_loss",
+          "expected_relation": "overlaps",
+          "rationale": "The ventilation restriction and grid interruption overlap."
+        },
+        {
+          "left_event_id": "ventilation_restriction",
+          "right_event_id": "network_loss",
+          "expected_relation": "overlaps",
+          "rationale": "The ventilation restriction and network loss overlap."
+        },
+        {
+          "left_event_id": "grid_loss",
+          "right_event_id": "network_loss",
+          "expected_relation": "overlaps",
+          "rationale": "The grid and network interruption windows overlap."
+        }
+      ],
+      "semantic_links": [
+        {
+          "from_event_id": "grid_loss",
+          "to_event_id": "network_loss",
+          "relation": "co_occurs_only",
+          "basis": "synthetic_declaration",
+          "rationale": "No common power/network failure cause is asserted."
+        }
+      ],
+      "claim_ceiling": "Synthetic event overlap and declared fallback assumption only.",
+      "capability_assumptions": [
+        "A manual control path is declared available in this fixture.",
+        "Manual control availability is not proof of adequate outdoor-air delivery or pollutant-specific clean-air service."
+      ],
+      "scope_join_guards": []
+    },
+    {
+      "scenario_id": "restoration_repeat_fault",
+      "title": "Restoration followed by delayed repair and a repeated outage",
+      "evidence_class": "SyntheticControlledEvent",
+      "timeline_basis": "integer_seconds_from_scenario_t0",
+      "interval_convention": "half_open",
+      "events": [
+        {
+          "event_id": "first_grid_loss",
+          "kind": "grid_interruption",
+          "start_offset_s": 0,
+          "end_offset_s": 36000,
+          "scope": "dwelling",
+          "temporal_resolution_s": 1
+        },
+        {
+          "event_id": "supply_restored",
+          "kind": "service_restoration",
+          "start_offset_s": 36000,
+          "end_offset_s": 36001,
+          "scope": "dwelling",
+          "temporal_resolution_s": 1
+        },
+        {
+          "event_id": "repair_part_delay",
+          "kind": "replacement_part_delay",
+          "start_offset_s": 36000,
+          "end_offset_s": 72000,
+          "scope": "repair_supply",
+          "temporal_resolution_s": 3600
+        },
+        {
+          "event_id": "repeat_grid_loss",
+          "kind": "grid_interruption",
+          "start_offset_s": 54000,
+          "end_offset_s": 72000,
+          "scope": "dwelling",
+          "temporal_resolution_s": 1
+        }
+      ],
+      "expected_temporal_relations": [
+        {
+          "left_event_id": "first_grid_loss",
+          "right_event_id": "supply_restored",
+          "expected_relation": "meets",
+          "rationale": "The first outage ends exactly when the restoration marker begins."
+        },
+        {
+          "left_event_id": "first_grid_loss",
+          "right_event_id": "repeat_grid_loss",
+          "expected_relation": "precedes",
+          "rationale": "The repeated outage starts after the first outage ends."
+        },
+        {
+          "left_event_id": "supply_restored",
+          "right_event_id": "repeat_grid_loss",
+          "expected_relation": "precedes",
+          "rationale": "The restoration marker ends before the repeated outage begins."
+        },
+        {
+          "left_event_id": "repair_part_delay",
+          "right_event_id": "repeat_grid_loss",
+          "expected_relation": "overlaps",
+          "rationale": "The part delay remains active when the repeated outage begins."
+        },
+        {
+          "left_event_id": "supply_restored",
+          "right_event_id": "repair_part_delay",
+          "expected_relation": "overlaps",
+          "rationale": "The restoration marker lies within the repair-part delay window."
+        }
+      ],
+      "semantic_links": [
+        {
+          "from_event_id": "first_grid_loss",
+          "to_event_id": "repeat_grid_loss",
+          "relation": "co_occurs_only",
+          "basis": "synthetic_declaration",
+          "rationale": "A repeated event is specified; no physical common cause is asserted."
+        }
+      ],
+      "claim_ceiling": "Synthetic interval-boundary and recurrence fixture only.",
+      "capability_assumptions": [
+        "A restoration marker is not sufficient evidence of stable service recovery.",
+        "Repair completion and repeat-fault verification remain separate owner-native outcomes."
+      ],
+      "scope_join_guards": []
+    },
+    {
+      "scenario_id": "system_notice_no_tap_report",
+      "title": "System-level status record with no tap-level report",
+      "evidence_class": "SyntheticControlledEvent",
+      "timeline_basis": "integer_seconds_from_scenario_t0",
+      "interval_convention": "half_open",
+      "events": [
+        {
+          "event_id": "system_status_notice",
+          "kind": "system_status_notice",
+          "start_offset_s": 0,
+          "end_offset_s": 86400,
+          "scope": "system",
+          "temporal_resolution_s": 86400,
+          "notes": "Synthetic example of a daily system-level status coverage window."
+        },
+        {
+          "event_id": "tap_observation_window",
+          "kind": "observation_window",
+          "start_offset_s": 0,
+          "end_offset_s": 86400,
+          "scope": "tap",
+          "temporal_resolution_s": 86400,
+          "notes": "Coverage window for a missing local tap observation; not an event assertion."
+        }
+      ],
+      "expected_temporal_relations": [
+        {
+          "left_event_id": "system_status_notice",
+          "right_event_id": "tap_observation_window",
+          "expected_relation": "overlaps",
+          "rationale": "The half-open time windows overlap; temporal overlap alone does not establish semantic comparability."
+        }
+      ],
+      "semantic_links": [
+        {
+          "from_event_id": "system_status_notice",
+          "to_event_id": "tap_observation_window",
+          "relation": "unknown",
+          "basis": "unresolved",
+          "rationale": "No local tap evidence or dependency relation is supplied."
+        }
+      ],
+      "claim_ceiling": "Synthetic scope/missingness guard only; no water supply or tap outcome is claimed.",
+      "coverage_records": [
+        {
+          "record_id": "system_daily_record",
+          "scope": "system",
+          "record_status": "observed_normal",
+          "coverage_window": {
+            "start_offset_s": 0,
+            "end_offset_s": 86400
+          },
+          "temporal_resolution_s": 86400,
+          "notes": "Synthetic system-level status only; does not establish household delivery."
+        },
+        {
+          "record_id": "tap_daily_no_report",
+          "scope": "tap",
+          "record_status": "no_report",
+          "coverage_window": {
+            "start_offset_s": 0,
+            "end_offset_s": 86400
+          },
+          "temporal_resolution_s": 86400,
+          "notes": "No tap-level report exists in this fixture; this is not observed normal service."
+        }
+      ],
+      "scope_join_guards": [
+        {
+          "left_event_id": "system_status_notice",
+          "right_event_id": "tap_observation_window",
+          "expected_disposition": "NOT_COMPARABLE",
+          "rationale": "A system-level status record cannot be promoted to tap-level delivery or outage evidence."
+        }
+      ]
+    },
+    {
+      "scenario_id": "rain_grid_drainage_repair",
+      "title": "Heavy-rain stress with grid loss, drainage-pump fault and repair delay",
+      "evidence_class": "SyntheticControlledEvent",
+      "timeline_basis": "integer_seconds_from_scenario_t0",
+      "interval_convention": "half_open",
+      "events": [
+        {
+          "event_id": "heavy_rainfall",
+          "kind": "heavy_rainfall",
+          "start_offset_s": 0,
+          "end_offset_s": 86400,
+          "scope": "site",
+          "temporal_resolution_s": 900,
+          "notes": "Synthetic rainfall forcing; not a Johannesburg observed event, flood map or design rainfall."
+        },
+        {
+          "event_id": "grid_loss",
+          "kind": "grid_interruption",
+          "start_offset_s": 28800,
+          "end_offset_s": 72000,
+          "scope": "dwelling",
+          "temporal_resolution_s": 1
+        },
+        {
+          "event_id": "drainage_pump_fault",
+          "kind": "component_fault",
+          "start_offset_s": 32400,
+          "end_offset_s": 100800,
+          "scope": "component",
+          "temporal_resolution_s": 1,
+          "notes": "Synthetic drainage-pump fault; no pump capacity or flood depth is implied."
+        },
+        {
+          "event_id": "network_loss",
+          "kind": "network_interruption",
+          "start_offset_s": 36000,
+          "end_offset_s": 60000,
+          "scope": "network",
+          "temporal_resolution_s": 1
+        },
+        {
+          "event_id": "replacement_delay",
+          "kind": "replacement_part_delay",
+          "start_offset_s": 50000,
+          "end_offset_s": 140000,
+          "scope": "repair_supply",
+          "temporal_resolution_s": 3600
+        }
+      ],
+      "expected_temporal_relations": [
+        {
+          "left_event_id": "heavy_rainfall",
+          "right_event_id": "grid_loss",
+          "expected_relation": "overlaps",
+          "rationale": "Synthetic external forcing overlaps the grid interruption."
+        },
+        {
+          "left_event_id": "heavy_rainfall",
+          "right_event_id": "drainage_pump_fault",
+          "expected_relation": "overlaps",
+          "rationale": "Synthetic rainfall window overlaps the pump fault."
+        },
+        {
+          "left_event_id": "heavy_rainfall",
+          "right_event_id": "network_loss",
+          "expected_relation": "overlaps",
+          "rationale": "Synthetic rainfall window overlaps the network interruption."
+        },
+        {
+          "left_event_id": "grid_loss",
+          "right_event_id": "drainage_pump_fault",
+          "expected_relation": "overlaps",
+          "rationale": "Grid interruption and pump fault overlap."
+        },
+        {
+          "left_event_id": "grid_loss",
+          "right_event_id": "network_loss",
+          "expected_relation": "overlaps",
+          "rationale": "Grid and network interruptions overlap."
+        },
+        {
+          "left_event_id": "drainage_pump_fault",
+          "right_event_id": "network_loss",
+          "expected_relation": "overlaps",
+          "rationale": "Pump fault and network interruption overlap."
+        },
+        {
+          "left_event_id": "drainage_pump_fault",
+          "right_event_id": "replacement_delay",
+          "expected_relation": "overlaps",
+          "rationale": "Repair delay begins before the pump fault window ends."
+        },
+        {
+          "left_event_id": "network_loss",
+          "right_event_id": "replacement_delay",
+          "expected_relation": "overlaps",
+          "rationale": "Repair delay overlaps the network interruption."
+        }
+      ],
+      "semantic_links": [
+        {
+          "from_event_id": "grid_loss",
+          "to_event_id": "drainage_pump_fault",
+          "relation": "co_occurs_only",
+          "basis": "synthetic_declaration",
+          "rationale": "Temporal overlap only; no physical causal direction is asserted."
+        }
+      ],
+      "scope_join_guards": [],
+      "claim_ceiling": "Synthetic event-window overlap only; no flood consequence, drainage capacity or safety result.",
+      "capability_assumptions": [
+        "No rainfall depth, return period, flood depth or local hazard frequency is supplied.",
+        "No building drainage, pump curve, invert level or site drainage design is represented.",
+        "Pump failure does not itself prove water ingress or a dwelling flood event."
+      ]
+    },
+    {
+      "scenario_id": "peak_shared_plant_household_change",
+      "title": "Peak household service concurrency with shared-plant fault and changing task demand",
+      "evidence_class": "SyntheticControlledEvent",
+      "timeline_basis": "integer_seconds_from_scenario_t0",
+      "interval_convention": "half_open",
+      "events": [
+        {
+          "event_id": "peak_service_demand",
+          "kind": "peak_service_demand",
+          "start_offset_s": 0,
+          "end_offset_s": 21600,
+          "scope": "dwelling",
+          "temporal_resolution_s": 60,
+          "notes": "Synthetic concurrent household task window; no resident demand profile is inferred."
+        },
+        {
+          "event_id": "shared_plant_fault",
+          "kind": "component_fault",
+          "start_offset_s": 3600,
+          "end_offset_s": 10800,
+          "scope": "component",
+          "temporal_resolution_s": 1,
+          "notes": "Synthetic shared-utility plant fault."
+        },
+        {
+          "event_id": "replacement_delay",
+          "kind": "replacement_part_delay",
+          "start_offset_s": 10800,
+          "end_offset_s": 43200,
+          "scope": "repair_supply",
+          "temporal_resolution_s": 3600
+        },
+        {
+          "event_id": "household_task_change",
+          "kind": "household_task_change",
+          "start_offset_s": 14400,
+          "end_offset_s": 86400,
+          "scope": "dwelling",
+          "temporal_resolution_s": 3600,
+          "notes": "Synthetic change in task requirements; not a demographic inference."
+        }
+      ],
+      "expected_temporal_relations": [
+        {
+          "left_event_id": "peak_service_demand",
+          "right_event_id": "shared_plant_fault",
+          "expected_relation": "overlaps",
+          "rationale": "Peak household service demand overlaps shared-plant fault."
+        },
+        {
+          "left_event_id": "peak_service_demand",
+          "right_event_id": "replacement_delay",
+          "expected_relation": "overlaps",
+          "rationale": "Peak demand overlaps the replacement delay."
+        },
+        {
+          "left_event_id": "shared_plant_fault",
+          "right_event_id": "replacement_delay",
+          "expected_relation": "meets",
+          "rationale": "The shared-plant fault ends exactly when the replacement-part delay begins under half-open interval semantics."
+        },
+        {
+          "left_event_id": "replacement_delay",
+          "right_event_id": "household_task_change",
+          "expected_relation": "overlaps",
+          "rationale": "The task-change window begins during the parts delay."
+        }
+      ],
+      "semantic_links": [
+        {
+          "from_event_id": "shared_plant_fault",
+          "to_event_id": "peak_service_demand",
+          "relation": "co_occurs_only",
+          "basis": "synthetic_declaration",
+          "rationale": "The fault overlaps peak demand; this fixture does not claim that the demand caused the fault."
+        }
+      ],
+      "scope_join_guards": [],
+      "claim_ceiling": "Synthetic concurrency, shared-plant and task-change timing only; no actual household demand or architecture performance is claimed.",
+      "capability_assumptions": [
+        "Architecture IDs are consumed from the existing #694 package: INDEPENDENT_SERVICES, SHARED_UTILITY and HYBRID_LOCAL_AUTONOMY.",
+        "No architecture receives extra demand or future-event knowledge.",
+        "Any shared resource coupling, capacity, reserve or failure propagation remains UNKNOWN until an exact physical model and owner contract are supplied."
+      ]
+    }
+  ],
+  "adversarial_controls": [
+    {
+      "control_id": "ambiguous_sast_timestamp",
+      "family": "timezone_ambiguity",
+      "records": [
+        {
+          "record_id": "obs_ambiguous_time",
+          "source_id": "synthetic_source_weather",
+          "source_revision": "fixture-r1",
+          "scope": "regional",
+          "temporal_resolution_s": 3600,
+          "timezone_state": "missing",
+          "coverage_state": "complete",
+          "rights_state": "synthetic_control_only",
+          "timestamp_text": "2026-01-15 02:00:00 (no timezone designator)",
+          "event_id": "heat_event",
+          "window_role": "observation_coverage"
+        }
+      ],
+      "expected_disposition": "REJECT_TIME_JOIN",
+      "rationale": "The local timestamp has no unambiguous timezone interpretation; do not normalize it to UTC by guessing."
+    },
+    {
+      "control_id": "daily_system_vs_hourly_site",
+      "family": "coarse_fine_resolution",
+      "records": [
+        {
+          "record_id": "daily_system_record",
+          "source_id": "synthetic_source_water",
+          "source_revision": "fixture-r1",
+          "scope": "system",
+          "temporal_resolution_s": 86400,
+          "timezone_state": "not_applicable",
+          "coverage_state": "complete",
+          "rights_state": "synthetic_control_only",
+          "start_offset_s": 0,
+          "end_offset_s": 86400,
+          "record_status": "observed_normal",
+          "window_role": "observation_coverage"
+        },
+        {
+          "record_id": "hourly_site_record",
+          "source_id": "synthetic_source_water",
+          "source_revision": "fixture-r1",
+          "scope": "site",
+          "temporal_resolution_s": 3600,
+          "timezone_state": "not_applicable",
+          "coverage_state": "complete",
+          "rights_state": "synthetic_control_only",
+          "start_offset_s": 0,
+          "end_offset_s": 86400,
+          "record_status": "reported_event",
+          "window_role": "observation_coverage"
+        }
+      ],
+      "expected_disposition": "REQUIRE_ALIGNMENT_REVIEW",
+      "rationale": "The records have different scope and temporal resolution; overlapping coarse windows do not establish event co-occurrence at a finer scope."
+    },
+    {
+      "control_id": "right_censored_interruption",
+      "family": "censored_window",
+      "records": [
+        {
+          "record_id": "censored_outage",
+          "source_id": "synthetic_source_grid",
+          "source_revision": "fixture-r1",
+          "scope": "feeder",
+          "temporal_resolution_s": 60,
+          "timezone_state": "explicit_utc",
+          "coverage_state": "right_censored",
+          "rights_state": "synthetic_control_only",
+          "event_id": "outage_1",
+          "start_offset_s": 100,
+          "end_offset_s": 500,
+          "record_status": "censored",
+          "window_role": "observation_coverage"
+        }
+      ],
+      "expected_disposition": "RETAIN_PARTIAL_ONLY",
+      "rationale": "The event end is not observed; do not claim restoration time, complete duration or stable recovery."
+    },
+    {
+      "control_id": "conflicting_same_scope_status",
+      "family": "conflicting_observations",
+      "records": [
+        {
+          "record_id": "status_a",
+          "source_id": "synthetic_source_water",
+          "source_revision": "fixture-r1",
+          "scope": "system",
+          "temporal_resolution_s": 3600,
+          "timezone_state": "explicit_utc",
+          "coverage_state": "conflicting",
+          "rights_state": "synthetic_control_only",
+          "start_offset_s": 0,
+          "end_offset_s": 3600,
+          "record_status": "observed_normal",
+          "window_role": "observation_coverage"
+        },
+        {
+          "record_id": "status_b",
+          "source_id": "synthetic_source_water",
+          "source_revision": "fixture-r1",
+          "scope": "system",
+          "temporal_resolution_s": 3600,
+          "timezone_state": "explicit_utc",
+          "coverage_state": "conflicting",
+          "rights_state": "synthetic_control_only",
+          "start_offset_s": 0,
+          "end_offset_s": 3600,
+          "record_status": "reported_event",
+          "window_role": "observation_coverage"
+        }
+      ],
+      "expected_disposition": "BLOCK_CONFLICTING_EVIDENCE",
+      "rationale": "Conflicting source observations on the same scope/window cannot be averaged or resolved by arbitrary source order."
+    },
+    {
+      "control_id": "revoked_source_rights",
+      "family": "rights_revocation",
+      "records": [
+        {
+          "record_id": "revoked_record",
+          "source_id": "synthetic_source_weather",
+          "source_revision": "fixture-r1",
+          "scope": "regional",
+          "temporal_resolution_s": 3600,
+          "timezone_state": "explicit_utc",
+          "coverage_state": "complete",
+          "rights_state": "revoked",
+          "event_id": "heat_event",
+          "start_offset_s": 0,
+          "end_offset_s": 3600,
+          "record_status": "reported_event",
+          "window_role": "event_interval"
+        }
+      ],
+      "expected_disposition": "REJECT_AND_INVALIDATE_DEPENDENTS",
+      "rationale": "A revoked rights state blocks new admission and triggers review/invalidation of dependent uses according to the source agreement and owner policy; the synthetic fixture does not determine legal remedies."
+    },
+    {
+      "control_id": "source_revision_invalidates_result",
+      "family": "source_revision_change",
+      "records": [
+        {
+          "record_id": "current_source_record",
+          "source_id": "synthetic_source_water",
+          "source_revision": "fixture-r2",
+          "scope": "system",
+          "temporal_resolution_s": 86400,
+          "timezone_state": "not_applicable",
+          "coverage_state": "complete",
+          "rights_state": "synthetic_control_only",
+          "event_id": "water_status",
+          "start_offset_s": 0,
+          "end_offset_s": 86400,
+          "window_role": "event_interval"
+        }
+      ],
+      "current_source_revision": "fixture-r2",
+      "derived_result_source_revision": "fixture-r1",
+      "expected_disposition": "INVALIDATE_STALE_DEPENDENTS",
+      "rationale": "The derived result was generated from a previous source revision and must not be reused as current evidence."
+    },
+    {
+      "control_id": "policy_future_event_leak",
+      "family": "future_information_leakage",
+      "records": [
+        {
+          "record_id": "future_event",
+          "source_id": "synthetic_source_grid",
+          "source_revision": "fixture-r1",
+          "scope": "dwelling",
+          "temporal_resolution_s": 1,
+          "timezone_state": "not_applicable",
+          "coverage_state": "complete",
+          "rights_state": "synthetic_control_only",
+          "event_id": "future_grid_loss",
+          "start_offset_s": 100,
+          "end_offset_s": 200,
+          "record_status": "reported_event",
+          "policy_visible": true,
+          "available_at_offset_s": 0,
+          "window_role": "event_interval"
+        }
+      ],
+      "decision_as_of_offset_s": 50,
+      "oracle_upper_bound": false,
+      "expected_disposition": "HIDE_FUTURE_INFORMATION",
+      "rationale": "The candidate policy at t=50 cannot see an event scheduled to start at t=100 merely because the benchmark fixture contains it; only an explicitly labelled oracle arm may receive future-event knowledge."
+    },
+    {
+      "control_id": "mismatched_candidate_trace",
+      "family": "unmatched_candidate_trace",
+      "records": [],
+      "candidate_arms": [
+        {
+          "arm_id": "independent",
+          "exogenous_trace_id": "trace-A",
+          "information_budget_id": "budget-1",
+          "initial_state_id": "initial-1"
+        },
+        {
+          "arm_id": "shared",
+          "exogenous_trace_id": "trace-B",
+          "information_budget_id": "budget-1",
+          "initial_state_id": "initial-1"
+        },
+        {
+          "arm_id": "hybrid",
+          "exogenous_trace_id": "trace-A",
+          "information_budget_id": "budget-1",
+          "initial_state_id": "initial-1"
+        }
+      ],
+      "expected_disposition": "REJECT_UNMATCHED_COMPARISON",
+      "rationale": "Architecture arms must use the same exogenous trace, initial state and declared information budget; otherwise the comparison is confounded."
+    },
+    {
+      "control_id": "unsupported_common_cause_link",
+      "family": "unsupported_common_cause",
+      "records": [
+        {
+          "record_id": "grid_record",
+          "source_id": "synthetic_source_grid",
+          "source_revision": "fixture-r1",
+          "scope": "dwelling",
+          "temporal_resolution_s": 1,
+          "timezone_state": "not_applicable",
+          "coverage_state": "complete",
+          "rights_state": "synthetic_control_only",
+          "event_id": "grid_loss",
+          "start_offset_s": 0,
+          "end_offset_s": 500,
+          "window_role": "event_interval"
+        },
+        {
+          "record_id": "network_record",
+          "source_id": "synthetic_source_network",
+          "source_revision": "fixture-r1",
+          "scope": "network",
+          "temporal_resolution_s": 1,
+          "timezone_state": "not_applicable",
+          "coverage_state": "complete",
+          "rights_state": "synthetic_control_only",
+          "event_id": "network_loss",
+          "start_offset_s": 0,
+          "end_offset_s": 500,
+          "window_role": "event_interval"
+        }
+      ],
+      "declared_link": {
+        "from_event_id": "grid_loss",
+        "to_event_id": "network_loss",
+        "relation": "common_cause",
+        "basis": "unresolved"
+      },
+      "expected_disposition": "REFUSE_CAUSAL_LINK",
+      "rationale": "Temporal overlap and a declared hypothesis do not establish a common cause; the relation remains unresolved without supporting evidence."
+    }
+  ]
+}

@@ -1,0 +1,819 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/blob/main/docs/research/highveld-compound-disruption/HIGHVELD_COMPOUND_EVENT_V0.1.schema.json",
+  "title": "Highveld Compound Disruption Synthetic Corpus v0.1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "dataset_id",
+    "evidence_class",
+    "claim_ceiling",
+    "scenarios",
+    "adversarial_controls"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "0.1.0"
+    },
+    "dataset_id": {
+      "const": "highveld-compound-disruption-synthetic-v0.1"
+    },
+    "evidence_class": {
+      "const": "SyntheticControlledEvent"
+    },
+    "claim_ceiling": {
+      "type": "string",
+      "minLength": 1
+    },
+    "scenarios": {
+      "type": "array",
+      "minItems": 5,
+      "maxItems": 20,
+      "items": {
+        "$ref": "#/$defs/scenario"
+      }
+    },
+    "adversarial_controls": {
+      "type": "array",
+      "minItems": 9,
+      "maxItems": 100,
+      "items": {
+        "$ref": "#/$defs/adversarial_control"
+      }
+    }
+  },
+  "$defs": {
+    "scope": {
+      "enum": [
+        "regional",
+        "system",
+        "feeder",
+        "site",
+        "dwelling",
+        "room",
+        "tap",
+        "service",
+        "component",
+        "repair_supply",
+        "network"
+      ]
+    },
+    "event": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "event_id",
+        "kind",
+        "start_offset_s",
+        "end_offset_s",
+        "scope",
+        "temporal_resolution_s"
+      ],
+      "properties": {
+        "event_id": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]{2,63}$"
+        },
+        "kind": {
+          "enum": [
+            "heat_episode",
+            "hot_night",
+            "cold_episode",
+            "grid_interruption",
+            "water_interruption",
+            "outdoor_air_event",
+            "ventilation_restriction",
+            "component_fault",
+            "replacement_part_delay",
+            "network_interruption",
+            "service_restoration",
+            "system_status_notice",
+            "observation_window",
+            "heavy_rainfall",
+            "peak_service_demand",
+            "household_task_change"
+          ]
+        },
+        "start_offset_s": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "end_offset_s": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "scope": {
+          "$ref": "#/$defs/scope"
+        },
+        "temporal_resolution_s": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "notes": {
+          "type": "string"
+        }
+      }
+    },
+    "temporal_relation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "left_event_id",
+        "right_event_id",
+        "expected_relation",
+        "rationale"
+      ],
+      "properties": {
+        "left_event_id": {
+          "type": "string"
+        },
+        "right_event_id": {
+          "type": "string"
+        },
+        "expected_relation": {
+          "enum": [
+            "overlaps",
+            "meets",
+            "precedes",
+            "follows",
+            "unknown"
+          ]
+        },
+        "rationale": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "semantic_link": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "from_event_id",
+        "to_event_id",
+        "relation",
+        "basis",
+        "rationale"
+      ],
+      "properties": {
+        "from_event_id": {
+          "type": "string"
+        },
+        "to_event_id": {
+          "type": "string"
+        },
+        "relation": {
+          "enum": [
+            "depends_on",
+            "common_cause",
+            "co_occurs_only",
+            "unknown"
+          ]
+        },
+        "basis": {
+          "enum": [
+            "synthetic_declaration",
+            "source_supported",
+            "unresolved"
+          ]
+        },
+        "rationale": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "coverage_window": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "start_offset_s",
+        "end_offset_s"
+      ],
+      "properties": {
+        "start_offset_s": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "end_offset_s": {
+          "type": "integer",
+          "minimum": 1
+        }
+      }
+    },
+    "coverage_record": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "record_id",
+        "scope",
+        "record_status",
+        "coverage_window",
+        "temporal_resolution_s"
+      ],
+      "properties": {
+        "record_id": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]{2,63}$"
+        },
+        "scope": {
+          "$ref": "#/$defs/scope"
+        },
+        "record_status": {
+          "enum": [
+            "reported_event",
+            "observed_normal",
+            "no_report",
+            "censored",
+            "unknown"
+          ]
+        },
+        "coverage_window": {
+          "$ref": "#/$defs/coverage_window"
+        },
+        "temporal_resolution_s": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "notes": {
+          "type": "string"
+        }
+      }
+    },
+    "scenario": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "scenario_id",
+        "title",
+        "evidence_class",
+        "timeline_basis",
+        "interval_convention",
+        "events",
+        "expected_temporal_relations",
+        "semantic_links",
+        "claim_ceiling",
+        "scope_join_guards"
+      ],
+      "properties": {
+        "scenario_id": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]{2,63}$"
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1
+        },
+        "evidence_class": {
+          "const": "SyntheticControlledEvent"
+        },
+        "timeline_basis": {
+          "const": "integer_seconds_from_scenario_t0"
+        },
+        "interval_convention": {
+          "const": "half_open"
+        },
+        "events": {
+          "type": "array",
+          "minItems": 2,
+          "items": {
+            "$ref": "#/$defs/event"
+          }
+        },
+        "expected_temporal_relations": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/temporal_relation"
+          }
+        },
+        "semantic_links": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/semantic_link"
+          }
+        },
+        "coverage_records": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/coverage_record"
+          }
+        },
+        "capability_assumptions": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "claim_ceiling": {
+          "type": "string",
+          "minLength": 1
+        },
+        "scope_join_guards": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/scope_join_guard"
+          }
+        }
+      }
+    },
+    "scope_join_guard": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "left_event_id",
+        "right_event_id",
+        "expected_disposition",
+        "rationale"
+      ],
+      "properties": {
+        "left_event_id": {
+          "type": "string"
+        },
+        "right_event_id": {
+          "type": "string"
+        },
+        "expected_disposition": {
+          "enum": [
+            "COMPARABLE_WITHIN_DECLARED_SCOPE",
+            "NOT_COMPARABLE",
+            "UNKNOWN"
+          ]
+        },
+        "rationale": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "evidence_record": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "record_id",
+        "source_id",
+        "source_revision",
+        "scope",
+        "temporal_resolution_s",
+        "timezone_state",
+        "coverage_state",
+        "rights_state",
+        "window_role"
+      ],
+      "properties": {
+        "record_id": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]{2,63}$"
+        },
+        "source_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "source_revision": {
+          "type": "string",
+          "minLength": 1
+        },
+        "scope": {
+          "$ref": "#/$defs/scope"
+        },
+        "temporal_resolution_s": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "timezone_state": {
+          "enum": [
+            "explicit_utc",
+            "explicit_offset",
+            "missing",
+            "ambiguous",
+            "not_applicable"
+          ]
+        },
+        "timestamp_text": {
+          "type": "string"
+        },
+        "coverage_state": {
+          "enum": [
+            "complete",
+            "left_censored",
+            "right_censored",
+            "both_censored",
+            "no_report",
+            "unknown",
+            "conflicting"
+          ]
+        },
+        "rights_state": {
+          "enum": [
+            "synthetic_control_only",
+            "valid_recorded",
+            "unknown",
+            "rights_evidence_missing",
+            "revoked"
+          ]
+        },
+        "event_id": {
+          "type": "string"
+        },
+        "start_offset_s": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "end_offset_s": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "record_status": {
+          "enum": [
+            "reported_event",
+            "observed_normal",
+            "no_report",
+            "censored",
+            "unknown",
+            "conflicting"
+          ]
+        },
+        "policy_visible": {
+          "type": "boolean"
+        },
+        "available_at_offset_s": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "window_role": {
+          "enum": [
+            "event_interval",
+            "observation_coverage"
+          ]
+        }
+      }
+    },
+    "candidate_arm": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "arm_id",
+        "exogenous_trace_id",
+        "information_budget_id",
+        "initial_state_id"
+      ],
+      "properties": {
+        "arm_id": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]{2,63}$"
+        },
+        "exogenous_trace_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "information_budget_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "initial_state_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "oracle_upper_bound": {
+          "type": "boolean"
+        }
+      }
+    },
+    "adversarial_link": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "from_event_id",
+        "to_event_id",
+        "relation",
+        "basis"
+      ],
+      "properties": {
+        "from_event_id": {
+          "type": "string"
+        },
+        "to_event_id": {
+          "type": "string"
+        },
+        "relation": {
+          "enum": [
+            "depends_on",
+            "common_cause",
+            "co_occurs_only",
+            "unknown"
+          ]
+        },
+        "basis": {
+          "enum": [
+            "synthetic_declaration",
+            "source_supported",
+            "unresolved"
+          ]
+        }
+      }
+    },
+    "adversarial_control": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "control_id",
+        "family",
+        "records",
+        "expected_disposition",
+        "rationale"
+      ],
+      "properties": {
+        "control_id": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]{2,63}$"
+        },
+        "family": {
+          "enum": [
+            "timezone_ambiguity",
+            "coarse_fine_resolution",
+            "censored_window",
+            "conflicting_observations",
+            "rights_revocation",
+            "source_revision_change",
+            "future_information_leakage",
+            "unmatched_candidate_trace",
+            "unsupported_common_cause"
+          ]
+        },
+        "records": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/evidence_record"
+          }
+        },
+        "candidate_arms": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/candidate_arm"
+          }
+        },
+        "declared_link": {
+          "$ref": "#/$defs/adversarial_link"
+        },
+        "decision_as_of_offset_s": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "oracle_upper_bound": {
+          "type": "boolean"
+        },
+        "current_source_revision": {
+          "type": "string"
+        },
+        "derived_result_source_revision": {
+          "type": "string"
+        },
+        "expected_disposition": {
+          "enum": [
+            "REJECT_TIME_JOIN",
+            "REQUIRE_ALIGNMENT_REVIEW",
+            "RETAIN_PARTIAL_ONLY",
+            "BLOCK_CONFLICTING_EVIDENCE",
+            "REJECT_AND_INVALIDATE_DEPENDENTS",
+            "INVALIDATE_STALE_DEPENDENTS",
+            "HIDE_FUTURE_INFORMATION",
+            "REJECT_UNMATCHED_COMPARISON",
+            "REFUSE_CAUSAL_LINK"
+          ]
+        },
+        "rationale": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "family": {
+                "const": "timezone_ambiguity"
+              }
+            },
+            "required": [
+              "family"
+            ]
+          },
+          "then": {
+            "properties": {
+              "records": {
+                "contains": {
+                  "properties": {
+                    "timezone_state": {
+                      "enum": [
+                        "missing",
+                        "ambiguous"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "timezone_state"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "family": {
+                "const": "censored_window"
+              }
+            },
+            "required": [
+              "family"
+            ]
+          },
+          "then": {
+            "properties": {
+              "records": {
+                "contains": {
+                  "properties": {
+                    "coverage_state": {
+                      "enum": [
+                        "left_censored",
+                        "right_censored",
+                        "both_censored"
+                      ]
+                    },
+                    "window_role": {
+                      "const": "observation_coverage"
+                    }
+                  },
+                  "required": [
+                    "coverage_state",
+                    "window_role"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "family": {
+                "const": "rights_revocation"
+              }
+            },
+            "required": [
+              "family"
+            ]
+          },
+          "then": {
+            "properties": {
+              "records": {
+                "contains": {
+                  "properties": {
+                    "rights_state": {
+                      "const": "revoked"
+                    }
+                  },
+                  "required": [
+                    "rights_state"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "family": {
+                "const": "future_information_leakage"
+              }
+            },
+            "required": [
+              "family"
+            ]
+          },
+          "then": {
+            "required": [
+              "decision_as_of_offset_s",
+              "oracle_upper_bound"
+            ],
+            "properties": {
+              "records": {
+                "contains": {
+                  "properties": {
+                    "policy_visible": {
+                      "const": true
+                    },
+                    "available_at_offset_s": {
+                      "type": "integer"
+                    }
+                  },
+                  "required": [
+                    "policy_visible",
+                    "available_at_offset_s"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "family": {
+                "const": "source_revision_change"
+              }
+            },
+            "required": [
+              "family"
+            ]
+          },
+          "then": {
+            "required": [
+              "current_source_revision",
+              "derived_result_source_revision"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "family": {
+                "const": "unmatched_candidate_trace"
+              }
+            },
+            "required": [
+              "family"
+            ]
+          },
+          "then": {
+            "required": [
+              "candidate_arms"
+            ],
+            "properties": {
+              "candidate_arms": {
+                "minItems": 2
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "family": {
+                "const": "unsupported_common_cause"
+              }
+            },
+            "required": [
+              "family"
+            ]
+          },
+          "then": {
+            "required": [
+              "declared_link"
+            ],
+            "properties": {
+              "declared_link": {
+                "properties": {
+                  "relation": {
+                    "const": "common_cause"
+                  },
+                  "basis": {
+                    "const": "unresolved"
+                  }
+                },
+                "required": [
+                  "relation",
+                  "basis"
+                ]
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "family": {
+                "enum": [
+                  "coarse_fine_resolution",
+                  "conflicting_observations"
+                ]
+              }
+            },
+            "required": [
+              "family"
+            ]
+          },
+          "then": {
+            "properties": {
+              "records": {
+                "minItems": 2
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}
