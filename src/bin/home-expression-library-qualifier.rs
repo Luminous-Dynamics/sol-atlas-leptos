@@ -714,9 +714,15 @@ fn candidate_technical_disposition(gates: &[Value]) -> &'static str {
     }
 }
 
-fn preference_event_is_well_formed(value: &Value) -> bool {
-    nonempty_string(value, "participant_ref")
-        && nonempty_string(value, "event_ref")
+fn preference_event_is_well_formed(value: &Value, design_revision: &str) -> bool {
+    string_at(value, "participant_ref")
+        .is_some_and(|participant| {
+            participant.starts_with("participant:")
+                && participant.len() > "participant:".len()
+        })
+        && string_at(value, "event_ref")
+            .is_some_and(|event_ref| event_ref.starts_with("urn:mycelix:"))
+        && string_at(value, "design_revision") == Some(design_revision)
         && string_at(value, "event_content_sha256")
             .is_some_and(|digest| {
                 digest.len() == 64
@@ -780,6 +786,7 @@ fn preference_graph_has_cycle(pairs: &[Value]) -> bool {
 fn validate_resident_choice(
     resident_choice: &Value,
     source_candidate_ids: &BTreeSet<String>,
+    design_revision: &str,
     errors: &mut Vec<String>,
 ) {
     let state = string_at(resident_choice, "state").unwrap_or_default();
@@ -804,7 +811,7 @@ fn validate_resident_choice(
         }
         "UNDECIDED" => {
             if !selected.is_some_and(Value::is_null)
-                || !preference_event_is_well_formed(event)
+                || !preference_event_is_well_formed(event, design_revision)
                 || pairwise.iter().any(|pair| string_at(pair, "decision") != Some("UNDECIDED"))
             {
                 errors.push("explicit UNDECIDED requires a pending provenance event and no preference".to_owned());
@@ -812,7 +819,7 @@ fn validate_resident_choice(
         }
         "PREFERENCES_RECORDED" => {
             if !selected.is_some_and(Value::is_null)
-                || !preference_event_is_well_formed(event)
+                || !preference_event_is_well_formed(event, design_revision)
                 || !pairwise.iter().any(|pair| {
                     !matches!(string_at(pair, "decision"), Some("UNDECIDED"))
                 })
@@ -822,13 +829,13 @@ fn validate_resident_choice(
         }
         "CONCEPT_DIRECTION_SELECTED" => {
             let selected_id = selected.and_then(Value::as_str).unwrap_or_default();
-            if !source_candidate_ids.contains(selected_id) || !preference_event_is_well_formed(event) {
+            if !source_candidate_ids.contains(selected_id) || !preference_event_is_well_formed(event, design_revision) {
                 errors.push("concept direction selection must reference a source candidate and provenance event".to_owned());
             }
         }
         "INCOMPARABLE" => {
             if !selected.is_some_and(Value::is_null)
-                || !preference_event_is_well_formed(event)
+                || !preference_event_is_well_formed(event, design_revision)
                 || !pairwise.iter().any(|pair| string_at(pair, "decision") == Some("INCOMPARABLE"))
             {
                 errors.push("INCOMPARABLE requires an explicit incomparable pair and provenance event".to_owned());
@@ -1058,7 +1065,13 @@ fn validate_decision_receipt(
     }
 
     let resident_choice = receipt.get("resident_choice").unwrap_or(&Value::Null);
-    validate_resident_choice(resident_choice, &source_candidate_ids, &mut errors);
+    let decision_revision = string_at(binding, "design_revision").unwrap_or_default();
+    validate_resident_choice(
+        resident_choice,
+        &source_candidate_ids,
+        decision_revision,
+        &mut errors,
+    );
 
     if string_at(receipt, "claim_ceiling")
         != Some("CONTRACT_ONLY_NO_TECHNICAL_FEASIBILITY_OR_PREFERENCE_WINNER")
@@ -1628,6 +1641,7 @@ mod tests {
             "participant_ref":"participant:synthetic-01",
             "event_ref":"urn:mycelix:synthetic:decision-001",
             "event_content_sha256":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "design_revision":"HFC-SYNTH-REV-0",
             "decision_scope":"CONCEPT_DIRECTION_ONLY",
             "provenance_status":"PENDING_MYCELIX_5149_VERIFICATION"
         });
@@ -1646,6 +1660,38 @@ mod tests {
     }
 
     #[test]
+    fn rejects_preference_event_from_a_stale_design_revision() {
+        let (mut receipt, schema, profile, brief, candidate_set) = decision_fixture();
+        receipt["resident_choice"]["state"] = json!("PREFERENCES_RECORDED");
+        receipt["resident_choice"]["decision_event"] = json!({
+            "participant_ref":"participant:synthetic-01",
+            "event_ref":"urn:mycelix:synthetic:decision-003",
+            "event_content_sha256":"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "design_revision":"STALE-REVISION",
+            "decision_scope":"CONCEPT_DIRECTION_ONLY",
+            "provenance_status":"PENDING_MYCELIX_5149_VERIFICATION"
+        });
+        receipt["resident_choice"]["pairwise_preferences"][0]["decision"] = json!("PREFER_LEFT");
+        assert!(!validate_decision_receipt(&receipt, &schema, &profile, &brief, &candidate_set).is_empty());
+    }
+
+    #[test]
+    fn rejects_direct_identity_in_participant_reference() {
+        let (mut receipt, schema, profile, brief, candidate_set) = decision_fixture();
+        receipt["resident_choice"]["state"] = json!("PREFERENCES_RECORDED");
+        receipt["resident_choice"]["decision_event"] = json!({
+            "participant_ref":"Tristan",
+            "event_ref":"urn:mycelix:synthetic:decision-004",
+            "event_content_sha256":"dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "design_revision":"HFC-SYNTH-REV-0",
+            "decision_scope":"CONCEPT_DIRECTION_ONLY",
+            "provenance_status":"PENDING_MYCELIX_5149_VERIFICATION"
+        });
+        receipt["resident_choice"]["pairwise_preferences"][0]["decision"] = json!("PREFER_LEFT");
+        assert!(!validate_decision_receipt(&receipt, &schema, &profile, &brief, &candidate_set).is_empty());
+    }
+
+    #[test]
     fn rejects_concept_selection_for_unknown_candidate() {
         let (mut receipt, schema, profile, brief, candidate_set) = decision_fixture();
         receipt["resident_choice"]["state"] = json!("CONCEPT_DIRECTION_SELECTED");
@@ -1654,6 +1700,7 @@ mod tests {
             "participant_ref":"participant:synthetic-01",
             "event_ref":"urn:mycelix:synthetic:decision-002",
             "event_content_sha256":"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "design_revision":"HFC-SYNTH-REV-0",
             "decision_scope":"CONCEPT_DIRECTION_ONLY",
             "provenance_status":"PENDING_MYCELIX_5149_VERIFICATION"
         });
