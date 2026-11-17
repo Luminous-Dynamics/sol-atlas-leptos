@@ -1,0 +1,557 @@
+use serde_json::{Value, json};
+use std::{env, process};
+
+const MANIFEST: &str = include_str!(
+    "../../docs/research/highveld-neighborhood-commons/PASSIVE_COOLING_STUDY_MANIFEST_V0.1.json"
+);
+const SCHEMA: &str = include_str!(
+    "../../docs/research/highveld-neighborhood-commons/PASSIVE_COOLING_STUDY_MANIFEST_V0.1.schema.json"
+);
+const MULTI_ENGINE_BENCHMARK: &str = include_str!(
+    "../../docs/research/highveld-neighborhood-commons/MULTI_ENGINE_THERMAL_WATER_BENCHMARK_MANIFEST_V0.1.json"
+);
+const COURTYARD_INSTRUMENT_PACKAGE: &str = include_str!(
+    "../../docs/research/highveld-neighborhood-commons/COURTYARD_TEST_CELL_INSTRUMENT_MANIFEST_V0.1.json"
+);
+const THERMAL_SERVICE_REFUGE: &str = include_str!(
+    "../../docs/research/highveld-neighborhood-commons/THERMAL_SERVICE_REFUGE_BENCHMARK_MANIFEST_V0.1.json"
+);
+const THERMAL_SERVICE_REFUGE_SCHEMA: &str = include_str!(
+    "../../docs/research/highveld-neighborhood-commons/THERMAL_SERVICE_REFUGE_BENCHMARK_MANIFEST_V0.1.schema.json"
+);
+
+fn string_at<'a>(value: &'a Value, key: &str) -> Option<&'a str> {
+    value
+        .get(key)
+        .and_then(Value::as_str)
+        .filter(|text| !text.trim().is_empty())
+}
+
+fn array_at<'a>(value: &'a Value, key: &str) -> Option<&'a Vec<Value>> {
+    value.get(key).and_then(Value::as_array)
+}
+
+fn has_string(values: &[Value], expected: &str) -> bool {
+    values.iter().any(|value| value.as_str() == Some(expected))
+}
+
+fn unique_nonempty_ids(items: &[Value]) -> bool {
+    let mut seen = std::collections::BTreeSet::new();
+    items.iter().all(|item| {
+        item.get("id")
+            .and_then(Value::as_str)
+            .is_some_and(|id| !id.trim().is_empty() && seen.insert(id))
+    })
+}
+
+fn build_report() -> Result<Value, Vec<String>> {
+    let mut errors = Vec::new();
+    let manifest: Value = match serde_json::from_str(MANIFEST) {
+        Ok(value) => value,
+        Err(error) => return Err(vec![format!("cooling manifest JSON parse failed: {error}")]),
+    };
+    let schema: Value = match serde_json::from_str(SCHEMA) {
+        Ok(value) => value,
+        Err(error) => return Err(vec![format!("cooling schema JSON parse failed: {error}")]),
+    };
+    let refuge: Value = match serde_json::from_str(THERMAL_SERVICE_REFUGE) {
+        Ok(value) => value,
+        Err(error) => {
+            return Err(vec![format!(
+                "thermal service/refuge JSON parse failed: {error}"
+            )]);
+        }
+    };
+    let refuge_schema: Value = match serde_json::from_str(THERMAL_SERVICE_REFUGE_SCHEMA) {
+        Ok(value) => value,
+        Err(error) => {
+            return Err(vec![format!(
+                "thermal service/refuge schema JSON parse failed: {error}"
+            )]);
+        }
+    };
+
+    if string_at(&schema, "$schema") != Some("https://json-schema.org/draft/2020-12/schema") {
+        errors.push("cooling schema must declare JSON Schema Draft 2020-12".to_owned());
+    }
+    if string_at(&refuge_schema, "$schema") != Some("https://json-schema.org/draft/2020-12/schema")
+    {
+        errors.push(
+            "thermal service/refuge schema must declare JSON Schema Draft 2020-12".to_owned(),
+        );
+    }
+    for (key, expected) in [
+        ("study_id", "HIGHVELD-THERMAL-SERVICE-REFUGE-001"),
+        ("maturity", "BENCHMARK_PROTOCOL_NOT_EXECUTED"),
+        ("execution_status", "NOT_EXECUTED"),
+        ("climate_context", "JOHANNESBURG_HIGHVELD"),
+    ] {
+        if string_at(&refuge, key) != Some(expected) {
+            errors.push(format!("thermal service/refuge {key} must be {expected}"));
+        }
+    }
+    let building_arms = array_at(&refuge, "building_intervention_arms")
+        .cloned()
+        .unwrap_or_default();
+    let building_scenarios = array_at(&refuge, "building_scenarios")
+        .cloned()
+        .unwrap_or_default();
+    let refuge_topologies = array_at(&refuge, "refuge_network_topologies")
+        .cloned()
+        .unwrap_or_default();
+    let refuge_scenarios = array_at(&refuge, "refuge_scenarios")
+        .cloned()
+        .unwrap_or_default();
+    if building_arms.len() != 7 || !unique_nonempty_ids(&building_arms) {
+        errors
+            .push("thermal service benchmark must preserve seven unique building arms".to_owned());
+    }
+    if building_scenarios.len() != 8
+        || !unique_nonempty_ids(
+            &building_scenarios
+                .iter()
+                .map(|value| json!({"id": value}))
+                .collect::<Vec<_>>(),
+        )
+    {
+        errors.push(
+            "thermal service benchmark must preserve eight unique building scenarios".to_owned(),
+        );
+    }
+    if refuge_topologies.len() != 4 || !unique_nonempty_ids(&refuge_topologies) {
+        errors.push("refuge benchmark must preserve four unique topologies".to_owned());
+    }
+    if refuge_scenarios.len() != 6
+        || !unique_nonempty_ids(
+            &refuge_scenarios
+                .iter()
+                .map(|value| json!({"id": value}))
+                .collect::<Vec<_>>(),
+        )
+    {
+        errors.push("refuge benchmark must preserve six unique stress scenarios".to_owned());
+    }
+    let primary_thermal_baseline = building_arms.iter().any(|arm| {
+        string_at(arm, "id") == Some("PASSIVE_ENVELOPE_SHADE_BASELINE")
+            && string_at(arm, "role") == Some("PRIMARY_CONTROL")
+    });
+    if !primary_thermal_baseline {
+        errors.push("a competent passive envelope/shade primary control is required".to_owned());
+    }
+    for required in [
+        "PASSIVE_ENVELOPE_NIGHT_PURGE",
+        "MECHANICAL_COOLING_REFERENCE",
+        "PCM_STORE_NIGHT_REGENERATION",
+        "RADIATIVE_DRY_SINK_STORE",
+        "CONDITIONAL_EVAPORATIVE_ASSIST",
+        "LAYERED_MULTI_SINK_PORTFOLIO",
+    ] {
+        if !building_arms
+            .iter()
+            .any(|arm| string_at(arm, "id") == Some(required))
+        {
+            errors.push(format!("missing thermal service intervention {required}"));
+        }
+    }
+    for required in [
+        "HOME_ONLY",
+        "CENTRAL_REFUGE_HUB",
+        "DISTRIBUTED_REFUGE_PODS",
+        "FEDERATED_REFUGE_MESH",
+    ] {
+        if !refuge_topologies
+            .iter()
+            .any(|item| string_at(item, "id") == Some(required))
+        {
+            errors.push(format!("missing refuge topology {required}"));
+        }
+    }
+    let expansion = &refuge["case_expansion"];
+    if expansion["building_service"]["cases"].as_u64() != Some(56)
+        || expansion["refuge_network"]["cases"].as_u64() != Some(24)
+        || expansion["total_cases"].as_u64() != Some(80)
+        || string_at(expansion, "state") != Some("REGISTERED_NOT_EXECUTED")
+    {
+        errors.push(
+            "thermal service/refuge case expansion must remain 56 + 24 = 80 registered cases"
+                .to_owned(),
+        );
+    }
+    let comfort = &refuge["comfort_method"];
+    if string_at(comfort, "reference") != Some("ANSI/ASHRAE_STANDARD_55_2023")
+        || string_at(comfort, "application_ceiling")
+            != Some("COMFORT_EVALUATION_WHERE_APPLICABLE_NOT_HEAT_HEALTH_SAFETY")
+    {
+        errors.push(
+            "comfort method must preserve ASHRAE applicability and safety distinction".to_owned(),
+        );
+    }
+    for key in [
+        "false_available_refuge_claims",
+        "over_capacity_refuge_assignments",
+        "essential_water_floor_violations",
+        "comfort_claim_without_correct_method_and_measurements",
+        "comfort_standard_treated_as_health_safety_limit",
+        "sensitive_identity_or_health_fields_required",
+        "untraceable_case_results",
+        "missed_seeded_negative_controls",
+        "false_blocks_of_valid_positive_controls",
+    ] {
+        if refuge["hard_gates"].get(key).and_then(Value::as_u64) != Some(0) {
+            errors.push(format!(
+                "thermal service/refuge hard gate {key} must equal zero"
+            ));
+        }
+    }
+    if refuge["governance"]["individual_health_data_required"].as_bool() != Some(false)
+        || refuge["governance"]["identifiable_movement_history_required"].as_bool() != Some(false)
+        || refuge["governance"]["unknown_refuge_dependency_means_unavailable"].as_bool()
+            != Some(true)
+    {
+        errors
+            .push("thermal refuge privacy and fail-closed governance rules are invalid".to_owned());
+    }
+    for (key, expected) in [
+        ("format_version", "0.1"),
+        ("study_id", "HIGHVELD-PASSIVE-COOLING-WATER-001"),
+        ("parent_candidate", "NEIGHBORHOOD_RESILIENCE_COMMONS"),
+        ("maturity", "DESIGN_HYPOTHESES_NOT_PHYSICALLY_EVALUATED"),
+        ("climate_context", "JOHANNESBURG_HIGHVELD"),
+        ("baseline_required", "NO_WATER_PASSIVE_BASELINE"),
+        (
+            "physics_owner",
+            "SPECIALIST_BUILDING_AIRFLOW_HYDRAULIC_SOLVERS",
+        ),
+        ("event_and_trajectory_owner", "SYMTROPY"),
+        ("geometry_and_configuration_owner", "SOL_ATLAS"),
+        ("rights_and_water_account_owner", "MYCELIX"),
+        ("execution_status", "NOT_EXECUTED"),
+    ] {
+        if string_at(&manifest, key) != Some(expected) {
+            errors.push(format!("{key} must be {expected}"));
+        }
+    }
+
+    let archetypes = array_at(&manifest, "archetypes")
+        .cloned()
+        .unwrap_or_default();
+    if archetypes.len() < 7 || !unique_nonempty_ids(&archetypes) {
+        errors.push("archetypes must contain at least seven unique non-empty IDs".to_owned());
+    }
+    let baseline = archetypes.iter().any(|item| {
+        string_at(item, "id") == Some("NO_WATER_PASSIVE_BASELINE")
+            && string_at(item, "role") == Some("PRIMARY_CONTROL")
+    });
+    if !baseline {
+        errors.push("a no-water passive primary control is mandatory".to_owned());
+    }
+    for required in [
+        "COVERED_POOL_THERMAL_MASS",
+        "SHADED_RECIRCULATING_RILL",
+        "EVAPORATIVE_DOWNSHAFT",
+        "CLOSED_LOOP_THERMAL_WATER_STORE",
+        "POOL_COURTYARD_HYBRID",
+    ] {
+        if !archetypes
+            .iter()
+            .any(|item| string_at(item, "id") == Some(required))
+        {
+            errors.push(format!("missing cooling archetype {required}"));
+        }
+    }
+    let spray_control = archetypes.iter().any(|item| {
+        string_at(item, "id") == Some("UNBOUNDED_SPRAY_NEGATIVE_CONTROL")
+            && string_at(item, "role") == Some("NEGATIVE_CONTROL")
+            && string_at(item, "expected_claim") == Some("MUST_NOT_QUALIFY")
+    });
+    if !spray_control {
+        errors.push("unbounded spray must remain an explicit negative control".to_owned());
+    }
+
+    let comparisons = array_at(&manifest, "comparison_modes")
+        .cloned()
+        .unwrap_or_default();
+    for required in [
+        "WATER_LIMITED_PRIMARY",
+        "THERMAL_CAPACITY_MATCHED",
+        "ENERGY_BUDGET_MATCHED_SENSITIVITY",
+        "DROUGHT_AND_CURTAILMENT",
+        "HUMID_HOT",
+        "COLD_NIGHT",
+    ] {
+        if !has_string(&comparisons, required) {
+            errors.push(format!("missing comparison mode {required}"));
+        }
+    }
+
+    for (field, required) in [
+        ("matched_inputs_required", "weather_file_digest"),
+        ("matched_inputs_required", "building_geometry_digest"),
+        (
+            "matched_inputs_required",
+            "occupancy_and_internal_gains_digest",
+        ),
+        ("matched_inputs_required", "water_budget_and_reserve_digest"),
+        ("metered_water_terms", "makeup_by_source_class"),
+        ("metered_water_terms", "evaporation_estimate_with_method"),
+        ("metered_water_terms", "leakage"),
+        ("metered_water_terms", "closing_volume"),
+        ("thermal_terms", "useful_heat_removed_from_occupied_zone"),
+        ("thermal_terms", "latent_heat_at_evaporation_interface"),
+        ("thermal_terms", "heat_rejection_path"),
+        ("required_outcomes", "occupied_hour_operative_temperature"),
+        ("required_outcomes", "water_litres_per_useful_kwh"),
+        ("required_outcomes", "pump_filtration_treatment_kwh"),
+        (
+            "negative_controls",
+            "POOL_VOLUME_COUNTED_AS_COOLING_WITHOUT_HEAT_PATH",
+        ),
+        (
+            "negative_controls",
+            "LATENT_HEAT_REPORTED_AS_USEFUL_ROOM_COOLING",
+        ),
+        (
+            "negative_controls",
+            "MISSING_WATER_METER_INTERPRETED_AS_ZERO_LOSS",
+        ),
+        (
+            "negative_controls",
+            "UNTREATED_GREYWATER_USED_IN_POOL_OR_AEROSOL",
+        ),
+        (
+            "negative_controls",
+            "WATER_RESERVE_FLOOR_OR_MUNICIPAL_RESTRICTION_IGNORED",
+        ),
+        ("safety_and_governance_gates", "water_quality_qualified"),
+        (
+            "safety_and_governance_gates",
+            "drowning_and_child_safety_qualified",
+        ),
+        (
+            "safety_and_governance_gates",
+            "household_essential_water_reserve_protected",
+        ),
+        (
+            "safety_and_governance_gates",
+            "resident_authority_and_appeal_preserved",
+        ),
+    ] {
+        let values = array_at(&manifest, field).cloned().unwrap_or_default();
+        if !has_string(&values, required) {
+            errors.push(format!("{field} is missing required entry {required}"));
+        }
+    }
+
+    if !errors.is_empty() {
+        return Err(errors);
+    }
+
+    let negative_controls = array_at(&manifest, "negative_controls").map_or(0, Vec::len);
+    let safety_gates = array_at(&manifest, "safety_and_governance_gates").map_or(0, Vec::len);
+    Ok(json!({
+        "audit_state": "STRUCTURAL_CONTRACT_PASS",
+        "study_id": "HIGHVELD-PASSIVE-COOLING-WATER-001",
+        "maturity": "DESIGN_HYPOTHESES_NOT_PHYSICALLY_EVALUATED",
+        "archetype_count": archetypes.len(),
+        "primary_no_water_control": "PRESENT",
+        "comparison_mode_count": comparisons.len(),
+        "negative_control_count": negative_controls,
+        "safety_and_governance_gate_count": safety_gates,
+        "thermal_service_refuge_study_id": "HIGHVELD-THERMAL-SERVICE-REFUGE-001",
+        "thermal_service_building_case_count": 56,
+        "thermal_service_refuge_network_case_count": 24,
+        "thermal_service_refuge_total_case_count": 80,
+        "thermal_service_refuge_execution_status": "NOT_EXECUTED",
+        "comfort_safety_boundary": "ASHRAE_COMFORT_IS_NOT_HEAT_HEALTH_SAFETY",
+        "execution_status": "NOT_EXECUTED",
+        "schema_engine": "NOT_RUN; schema declaration and manifest semantics are checked by this Rust qualifier",
+        "claim_ceiling": "No physical cooling, water saving, payback or resilience outcome is claimed"
+    }))
+}
+
+fn main() {
+    let args: Vec<String> = env::args().skip(1).collect();
+    let mode = args.first().map(String::as_str).unwrap_or("--help");
+    match mode {
+        "--self-test" | "--audit" => match build_report() {
+            Ok(report) => {
+                println!(
+                    "{}",
+                    serde_json::to_string_pretty(&report).unwrap_or_default()
+                );
+            }
+            Err(errors) => {
+                eprintln!(
+                    "{}",
+                    serde_json::to_string_pretty(&json!({
+                        "audit_state": "STRUCTURAL_CONTRACT_FAIL",
+                        "errors": errors,
+                        "execution_status": "NOT_EXECUTED"
+                    }))
+                    .unwrap_or_default()
+                );
+                process::exit(1);
+            }
+        },
+        "--help" | "-h" => {
+            println!("highveld-cooling-water-qualifier");
+            println!(
+                "  --self-test  validate the cooling study manifest and emit a structural audit"
+            );
+            println!("  --audit      emit the same audit");
+        }
+        _ => {
+            eprintln!("unknown argument; use --help");
+            process::exit(2);
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn courtyard_instrument_package_is_a_template_not_field_evidence() {
+        let package: Value = serde_json::from_str(COURTYARD_INSTRUMENT_PACKAGE)
+            .expect("courtyard instrument package JSON");
+        assert_eq!(
+            package["admission_state"].as_str(),
+            Some("TEMPLATE_NOT_FIELD_ADMITTED")
+        );
+        assert_eq!(package["execution_status"].as_str(), Some("NOT_EXECUTED"));
+        assert_eq!(
+            package["native_event_identity_owner"].as_str(),
+            Some("SYMTROPY")
+        );
+        let channels = package["channels"].as_array().expect("instrument channels");
+        assert_eq!(channels.len(), 35);
+        for required in [
+            "DOWNWELLING_LONGWAVE_RADIATION",
+            "UPWELLING_LONGWAVE_RADIATION",
+            "RADIATIVE_PANEL_SURFACE_TEMPERATURE",
+            "RADIATIVE_PANEL_LOOP_SUPPLY_TEMPERATURE",
+            "RADIATIVE_PANEL_LOOP_RETURN_TEMPERATURE",
+            "RADIATIVE_PANEL_LOOP_FLOW",
+            "RADIATIVE_PANEL_PUMP_POWER",
+            "DIFFUSE_HORIZONTAL_SOLAR_IRRADIANCE",
+            "BAROMETRIC_PRESSURE",
+            "PANEL_PLANE_WIND_SPEED",
+            "PANEL_PLANE_WIND_DIRECTION",
+        ] {
+            assert!(
+                channels
+                    .iter()
+                    .any(|channel| channel["channel_id"] == required)
+            );
+        }
+        assert!(channels.iter().all(|channel| {
+            channel["instrument_assignment"].is_null()
+                && channel["calibration_state"] == "NOT_ADMITTED"
+                && channel["evidence_state"] == "TEMPLATE_ONLY"
+        }));
+        assert_eq!(
+            package["privacy_controls"]["cameras_permitted"].as_bool(),
+            Some(false)
+        );
+        assert!(
+            package["missingness_rule"]
+                .as_str()
+                .is_some_and(|rule| rule.contains("UNKNOWN_NOT_ZERO"))
+        );
+    }
+
+    #[test]
+    fn multi_engine_benchmark_pins_distinct_specialist_roles() {
+        let manifest: Value =
+            serde_json::from_str(MULTI_ENGINE_BENCHMARK).expect("multi-engine manifest JSON");
+        assert_eq!(
+            manifest["study_id"].as_str(),
+            Some("HIGHVELD-MULTI-ENGINE-THERMAL-WATER-001")
+        );
+        assert_eq!(
+            manifest["maturity"].as_str(),
+            Some("BENCHMARK_PREREGISTERED_NOT_EXECUTED")
+        );
+        assert_eq!(
+            manifest["baseline"].as_str(),
+            Some("S2_NO_WATER_PASSIVE_BASELINE")
+        );
+        assert_eq!(manifest["execution_status"].as_str(), Some("NOT_EXECUTED"));
+        let engines = manifest["engines"].as_array().expect("engine registry");
+        assert_eq!(engines.len(), 6);
+        for required in [
+            "ENERGYPLUS_26_2_0",
+            "MODELICA_BUILDINGS_14_0_0",
+            "OPENSTUDIO_3_11_0",
+            "BOPTEST_0_9_0",
+            "OPENFOAM_FOUNDATION_14",
+            "OPENFOAM_OPENCFD_2606",
+        ] {
+            assert!(engines.iter().any(|engine| engine["id"] == required));
+        }
+        let scenarios = manifest["scenarios"].as_array().expect("scenario matrix");
+        assert_eq!(scenarios.len(), 10);
+        assert!(
+            scenarios
+                .iter()
+                .any(|item| item == "S9_PAIRED_FIELD_TEST_CELL")
+        );
+        let claim = manifest["claim_ceiling"].as_str().expect("claim ceiling");
+        assert!(claim.contains("superiority claim"));
+    }
+
+    #[test]
+    fn thermal_service_refuge_benchmark_preserves_80_cases_and_safety_boundary() {
+        let report = build_report().expect("thermal service/refuge contract must qualify");
+        assert_eq!(
+            report["thermal_service_building_case_count"].as_u64(),
+            Some(56)
+        );
+        assert_eq!(
+            report["thermal_service_refuge_network_case_count"].as_u64(),
+            Some(24)
+        );
+        assert_eq!(
+            report["thermal_service_refuge_total_case_count"].as_u64(),
+            Some(80)
+        );
+        assert_eq!(
+            report["comfort_safety_boundary"].as_str(),
+            Some("ASHRAE_COMFORT_IS_NOT_HEAT_HEALTH_SAFETY")
+        );
+        assert_eq!(
+            report["thermal_service_refuge_execution_status"].as_str(),
+            Some("NOT_EXECUTED")
+        );
+    }
+
+    #[test]
+    fn water_study_has_no_water_control_and_all_primary_archetypes() {
+        let report = build_report().expect("the committed cooling design contract must qualify");
+        assert_eq!(report["archetype_count"].as_u64(), Some(7));
+        assert_eq!(report["primary_no_water_control"].as_str(), Some("PRESENT"));
+    }
+
+    #[test]
+    fn cooling_claims_remain_unexecuted_and_unvalidated() {
+        let report = build_report().expect("the cooling manifest must qualify");
+        assert_eq!(
+            report["maturity"].as_str(),
+            Some("DESIGN_HYPOTHESES_NOT_PHYSICALLY_EVALUATED")
+        );
+        assert_eq!(report["execution_status"].as_str(), Some("NOT_EXECUTED"));
+        assert!(
+            report["claim_ceiling"]
+                .as_str()
+                .is_some_and(|text| text.contains("No physical cooling"))
+        );
+    }
+
+    #[test]
+    fn water_negative_controls_and_safety_gates_are_preserved() {
+        let report = build_report().expect("the cooling manifest must qualify");
+        assert_eq!(report["negative_control_count"].as_u64(), Some(12));
+        assert_eq!(report["safety_and_governance_gate_count"].as_u64(), Some(9));
+    }
+}

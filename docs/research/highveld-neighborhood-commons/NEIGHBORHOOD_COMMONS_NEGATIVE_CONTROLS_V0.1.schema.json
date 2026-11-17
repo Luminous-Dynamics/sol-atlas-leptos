@@ -1,0 +1,71 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Highveld neighborhood commons negative controls v0.1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "benchmark_id",
+    "maturity",
+    "evidence_class",
+    "claim_ceiling",
+    "controls"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "0.1.0"
+    },
+    "benchmark_id": {
+      "const": "HIGHVELD-NEIGHBORHOOD-COMMONS-QUALIFIER"
+    },
+    "maturity": {
+      "const": "PROPOSED_NOT_EVALUATED"
+    },
+    "evidence_class": {
+      "const": "SyntheticNegativeControls"
+    },
+    "claim_ceiling": {
+      "type": "string",
+      "minLength": 30
+    },
+    "controls": {
+      "type": "array",
+      "minItems": 21,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "control_id",
+          "description",
+          "expected_code",
+          "expected_disposition",
+          "evidence_class"
+        ],
+        "properties": {
+          "control_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "description": {
+            "type": "string",
+            "minLength": 10
+          },
+          "expected_code": {
+            "type": "string",
+            "minLength": 1
+          },
+          "expected_disposition": {
+            "enum": [
+              "BLOCK",
+              "REVIEW",
+              "PASS"
+            ]
+          },
+          "evidence_class": {
+            "const": "SyntheticNegativeControl"
+          }
+        }
+      }
+    }
+  }
+}

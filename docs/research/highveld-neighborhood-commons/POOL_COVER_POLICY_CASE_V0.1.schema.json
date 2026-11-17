@@ -1,0 +1,231 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://luminousdynamics.io/schemas/highveld-pool-cover-policy-case-v0.1.schema.json",
+  "title": "Highveld pool cover policy eligibility case v0.1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "study_id",
+    "case_id",
+    "maturity",
+    "execution_status",
+    "cases"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "0.1"
+    },
+    "study_id": {
+      "const": "HIGHVELD-POOL-COVER-POLICY-001"
+    },
+    "case_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "maturity": {
+      "const": "SYNTHETIC_KNOWN_ANSWER"
+    },
+    "execution_status": {
+      "const": "NO_PHYSICAL_COVER_ACTUATION"
+    },
+    "cases": {
+      "type": "array",
+      "minItems": 8,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "case_id",
+          "objective",
+          "time_window",
+          "cover_mechanism_state",
+          "manual_override_state",
+          "water_rights_state",
+          "water_quality_state",
+          "sky_view_state",
+          "shade_mechanism_state",
+          "heat_recovery_hx_state",
+          "pool_temperature_c",
+          "pool_regeneration_target_c",
+          "pool_owner_max_temperature_c",
+          "pool_heating_demand_kwh",
+          "pool_usable_headroom_kwh",
+          "net_heat_rejection_estimate_kw",
+          "net_heat_rejection_u95_kw",
+          "expected_evaporation_l",
+          "evaporation_u95_l",
+          "discretionary_water_budget_l",
+          "solar_gain_estimate_kw",
+          "solar_gain_u95_kw",
+          "evidence_refs"
+        ],
+        "properties": {
+          "case_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "objective": {
+            "enum": [
+              "POOL_BUFFER_REGENERATION",
+              "POOL_HEAT_RECOVERY",
+              "DAYTIME_SOLAR_PROTECTION"
+            ]
+          },
+          "time_window": {
+            "enum": [
+              "DAY",
+              "NIGHT"
+            ]
+          },
+          "cover_mechanism_state": {
+            "enum": [
+              "QUALIFIED",
+              "FAILED",
+              "UNKNOWN"
+            ]
+          },
+          "manual_override_state": {
+            "enum": [
+              "QUALIFIED",
+              "FAILED",
+              "UNKNOWN"
+            ]
+          },
+          "water_rights_state": {
+            "enum": [
+              "QUALIFIED",
+              "PROHIBITED",
+              "UNKNOWN"
+            ]
+          },
+          "water_quality_state": {
+            "enum": [
+              "QUALIFIED",
+              "FAILED",
+              "UNKNOWN"
+            ]
+          },
+          "sky_view_state": {
+            "enum": [
+              "QUALIFIED",
+              "FAILED",
+              "UNKNOWN"
+            ]
+          },
+          "shade_mechanism_state": {
+            "enum": [
+              "QUALIFIED",
+              "FAILED",
+              "UNKNOWN"
+            ]
+          },
+          "heat_recovery_hx_state": {
+            "enum": [
+              "QUALIFIED",
+              "NOT_REQUIRED",
+              "FAILED",
+              "UNKNOWN"
+            ]
+          },
+          "pool_temperature_c": {
+            "type": "number"
+          },
+          "pool_regeneration_target_c": {
+            "type": "number"
+          },
+          "pool_owner_max_temperature_c": {
+            "type": "number"
+          },
+          "pool_heating_demand_kwh": {
+            "type": "number",
+            "minimum": 0
+          },
+          "pool_usable_headroom_kwh": {
+            "type": "number",
+            "minimum": 0
+          },
+          "net_heat_rejection_estimate_kw": {
+            "type": "number"
+          },
+          "net_heat_rejection_u95_kw": {
+            "type": "number",
+            "minimum": 0
+          },
+          "expected_evaporation_l": {
+            "type": "number",
+            "minimum": 0
+          },
+          "evaporation_u95_l": {
+            "type": "number",
+            "minimum": 0
+          },
+          "discretionary_water_budget_l": {
+            "type": "number",
+            "minimum": 0
+          },
+          "solar_gain_estimate_kw": {
+            "type": "number"
+          },
+          "solar_gain_u95_kw": {
+            "type": "number",
+            "minimum": 0
+          },
+          "evidence_refs": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "weather",
+              "pool_state",
+              "sky_view",
+              "rights",
+              "quality",
+              "cover",
+              "uncertainty",
+              "owner_limits",
+              "heat_exchanger"
+            ],
+            "properties": {
+              "weather": {
+                "type": "string",
+                "minLength": 1
+              },
+              "pool_state": {
+                "type": "string",
+                "minLength": 1
+              },
+              "sky_view": {
+                "type": "string",
+                "minLength": 1
+              },
+              "rights": {
+                "type": "string",
+                "minLength": 1
+              },
+              "quality": {
+                "type": "string",
+                "minLength": 1
+              },
+              "cover": {
+                "type": "string",
+                "minLength": 1
+              },
+              "uncertainty": {
+                "type": "string",
+                "minLength": 1
+              },
+              "owner_limits": {
+                "type": "string",
+                "minLength": 1
+              },
+              "heat_exchanger": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

@@ -65,3 +65,77 @@ jobs:
       # (renderer::hex, sol-atlas-core). Must target the bin explicitly:
       # `cargo test --lib` fails with "no library targets found".
       - run: cargo test --bin sol-atlas-leptos
+      - name: Test neighborhood commons qualifier
+        run: cargo test --bin highveld-commons-qualifier
+      - name: Execute neighborhood commons reference audit
+        run: cargo run --bin highveld-commons-qualifier -- --self-test
+      - name: Test topology removal qualifier
+        run: cargo test --bin highveld-topology-removal-qualifier
+      - name: Execute topology removal manifest audit
+        run: cargo run --bin highveld-topology-removal-qualifier -- --self-test
+      - name: Test cooling water qualifier
+        run: cargo test --bin highveld-cooling-water-qualifier
+      - name: Execute cooling water manifest audit
+        run: cargo run --bin highveld-cooling-water-qualifier -- --self-test
+      - name: Test thermal water analytical screen
+        run: cargo test --bin highveld-thermal-water-screen
+      - name: Execute thermal water analytical known-answer screen
+        run: cargo run --bin highveld-thermal-water-screen -- --self-test
+      - name: Test thermal sink cascade qualifier
+        run: cargo test --bin highveld-thermal-sink-cascade-qualifier
+      - name: Execute thermal sink cascade manifest audit
+        run: cargo run --bin highveld-thermal-sink-cascade-qualifier -- --self-test
+      - name: Test thermal sink dispatch governor
+        run: cargo test --bin highveld-thermal-sink-dispatch-governor
+      - name: Execute thermal sink dispatch governor synthetic case
+        run: cargo run --bin highveld-thermal-sink-dispatch-governor -- --self-test
+      - name: Test Johannesburg weather source qualifier
+        run: cargo test --bin highveld-weather-source-qualifier
+      - name: Execute Johannesburg weather source register audit
+        run: cargo run --bin highveld-weather-source-qualifier -- --self-test
+      - name: Test finite thermal store trajectory ledger
+        run: cargo test --bin highveld-thermal-store-ledger
+      - name: Execute finite thermal store trajectory ledger
+        run: cargo run --bin highveld-thermal-store-ledger -- --self-test
+      - name: Test thermal refuge availability governor
+        run: cargo test --bin highveld-refuge-availability-governor
+      - name: Execute thermal refuge availability governor
+        run: cargo run --bin highveld-refuge-availability-governor -- --self-test
+      - name: Test aggregate refuge network flow oracle
+        run: cargo test --bin highveld-refuge-network-flow-oracle
+      - name: Execute aggregate refuge network flow oracle
+        run: cargo run --bin highveld-refuge-network-flow-oracle -- --self-test
+      - name: Test aggregate refuge capacity oracle
+        run: cargo test --bin highveld-refuge-capacity-oracle
+      - name: Execute aggregate refuge capacity oracle
+        run: cargo run --bin highveld-refuge-capacity-oracle -- --self-test
+      - name: Test multi-zone refuge network feasibility oracle
+        run: cargo test --bin highveld-refuge-network-feasibility
+      - name: Execute multi-zone refuge network feasibility oracle
+        run: cargo run --bin highveld-refuge-network-feasibility -- --self-test
+      - name: Execute temporal refuge supply-demand degradation sequence
+        run: cargo run --bin highveld-refuge-network-feasibility -- --time-series-self-test
+      - name: Test shared refuge capacity audit
+        run: cargo test --bin highveld-refuge-shared-capacity-audit
+      - name: Execute shared refuge capacity audit
+        run: cargo run --bin highveld-refuge-shared-capacity-audit -- --self-test
+      - name: Test pool and water feature thermal qualifier
+        run: cargo test --bin highveld-pool-water-feature-qualifier
+      - name: Execute pool and water feature thermal audit
+        run: cargo run --bin highveld-pool-water-feature-qualifier -- --self-test
+      - name: Test non-actuating pool cover policy governor
+        run: cargo test --bin highveld-pool-cover-policy-governor
+      - name: Execute non-actuating pool cover policy governor
+        run: cargo run --bin highveld-pool-cover-policy-governor -- --self-test
+      - name: Test pool heat-recovery conservation ledger
+        run: cargo test --bin highveld-pool-heat-recovery-ledger
+      - name: Execute pool heat-recovery conservation ledger
+        run: cargo run --bin highveld-pool-heat-recovery-ledger -- --self-test
+      - name: Test pool passive regeneration ledger
+        run: cargo test --bin highveld-pool-passive-regeneration-ledger
+      - name: Execute pool passive regeneration ledger
+        run: cargo run --bin highveld-pool-passive-regeneration-ledger -- --self-test
+      - name: Test layered pool thermal exergy ledger
+        run: cargo test --bin highveld-pool-thermal-exergy-ledger
+      - name: Execute layered pool thermal exergy ledger
+        run: cargo run --bin highveld-pool-thermal-exergy-ledger -- --self-test

@@ -1,0 +1,708 @@
+# Highveld thermal-water cooling: SOTA comparison and executable benchmark plan
+
+**Date:** 12 November 2026  
+**Parent:** `NEIGHBORHOOD_RESILIENCE_COMMONS` / PR #741  
+**Related tracking:** [#745 — passive cooling and water integration](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/745)  
+**Maturity:** `RESEARCH_PLAN_NOT_EVALUATED`
+
+## 1. Executive research conclusion
+
+The opportunity is not to replace EnergyPlus, CFD, Modelica or building-control benchmark suites. It is to connect their specialist outputs into a reproducible, water-constrained, resident-service evidence chain:
+
+`geometry + weather + water rights + source quality + thermal physics + controller + observed service + independent qualification`.
+
+The differentiator is **cooling as a qualified service under a scarce-water and changing-climate constraint**, not a decorative water feature or a single simulated temperature reduction.
+
+A pool or tank has thermal capacity; that fact alone does not establish a useful heat path to an occupied zone. Evaporated water removes heat at the evaporation interface; that does not establish the same number of kWh as useful room cooling. The benchmark must preserve these separate physical and service quantities.
+
+## 2. Incumbent capability snapshot
+
+### 2.1 EnergyPlus 26.2 — use the specialist physics
+
+The current EnergyPlus 26.2 documentation provides a `SwimmingPool:Indoor` model integrated with the zone surface heat balance. It accounts for convection, evaporation, long- and short-wave radiation, conduction through the pool bottom, make-up water, heating and cover effects. Pool evaporation contributes to the zone moisture balance. This is valuable existing capability and should be used as a comparison/reference model when its assumptions fit.
+
+The documented indoor-pool object is not a general outdoor courtyard-pool model:
+- pool water is lumped into the inside face of a linked floor surface;
+- the pool occupies the entire floor surface to which it is linked;
+- that pool/floor surface cannot be part of a low-temperature radiant system or ventilated slab;
+- the cover schedule can vary, but the separate cover heat-transfer reduction factors are fixed input values.
+
+The v26.2 Input Output Reference lists `SwimmingPool:Indoor`; no `SwimmingPool:Outdoor` entry was found in the inspected object index. Treat that as a scoped documentation observation, not proof that no external extension or user-defined coupling exists.
+
+EnergyPlus also provides `WaterUse:Storage`, `WaterUse:RainCollector`, `WaterUse:Connections`, direct/indirect evaporative coolers, `ZoneCoolTower:Shower`, heat exchangers and ground-heat-exchanger objects. This gives useful water collection, tank/account and HVAC couplings. A critical nuance: the documented `WaterUse:Storage` tank water temperature is currently schedule-driven; the docs state that it substitutes for a full thermal tank model and that several ambient/tank thermal fields are reserved for future use. For dynamic tank stratification, EnergyPlus separately provides mixed/stratified chilled-water thermal-storage objects. Do not treat the water-accounting tank as a validated pool/cistern thermal model.
+
+**Our approach:** use EnergyPlus for the building/indoor-pool/control physics it supports; use an explicitly coupled outdoor-water/airflow model and an independently measured interface for the remaining system boundary. Do not fork its pool physics without a compelling, verified model gap.
+
+References: [Indoor swimming pool engineering reference](https://energyplus.readthedocs.io/en/v26.2.0/guides/engineering-reference/17.3-indoor-swimming-pool.html); [Input Output Reference / EpJSON schema](https://energyplus.readthedocs.io/en/v26.2.0/guides/input-output-reference/index.html); [Water systems objects](https://energyplus.readthedocs.io/en/v26.2.0/guides/input-output-reference/1.56-group-water-systems.html); [water thermal tank reference](https://energyplus.readthedocs.io/en/v26.2.0/guides/engineering-reference/19.3-water-thermal-tanks-includes-water-heaters.html).
+
+### 2.2 BOPTEST — controls benchmark, not a neighbourhood water twin
+
+The public BOPTEST latest-release testcase page lists nine ready emulators, including BESTEST Air/Hydronic, hydronic heat-pump, two-zone apartment and multizone residential/office cases. These cases include dynamic models, embedded controls, weather, electricity prices and emissions data, with predefined REST API test scenarios.
+
+That is a useful control-comparison baseline. The public case list does not expose a dedicated outdoor-pool/courtyard-water, household-water-entitlement, neighbourhood access or common-cause service case. This is a gap in the inspected public testcase list—not a claim that BOPTEST cannot be extended.
+
+**Our approach:** align the controller comparison with BOPTEST principles and, where practical, package a custom water-coupled case or bridge rather than inventing incompatible metrics. Preserve exact model, controller, weather and test-scenario IDs.
+
+Reference: [BOPTEST test cases](https://ibpsa.github.io/project1-boptest/testcases/).
+
+### 2.3 South African regulatory and operating context
+
+- SANS 10400-XA:2021 is identified in the 30 October 2026 Draft National Energy Efficiency Strategy as supporting the mandatory Part XA building-energy-code framework, with municipalities responsible for plan review and enforcement. The same gazette is a **draft** strategy, not itself an enacted amendment to SANS or the building regulations.
+- The draft National Energy Efficiency Strategy 2025–35 proposes scheduled strengthening of SANS 10400-XA and expansion of Energy Performance Certification. Treat this as regulatory direction to monitor, not a current project compliance certificate.
+- Johannesburg Water's Level 1 restrictions run from 1 September 2026 to 31 March 2027. The official customer notice prohibits pool filling and garden watering between 06:00 and 18:00; its emergency/customer page also explicitly includes water features in that restricted daytime list. Current restrictions and permissions must be checked again before operation.
+- South Africa's 2015 national environmental-health norms include pool-quality monitoring and sampling recommendations for public/semi-public facilities. They distinguish pool use classes and include microbiological and chemical water monitoring. Obtain current local-authority/public-health interpretation before designing shared/community facilities; do not apply a public-pool sampling schedule as if it were a universal rule for every private ornamental feature.
+
+References: [30 Oct 2026 Draft NEES 2025–35, Government Gazette 55638, Notice 4221](https://www.gov.za/sites/default/files/gcis_document/202610/55638gen4221.pdf); [Johannesburg Water Level 1 notice](https://www.johannesburgwater.co.za/blog/2026/09/15/level-1-water-restrictions-are-here-lets-make-every-drop-count/); [Johannesburg Water emergency/customer notice](https://scm.johannesburgwater.co.za/emergencies/); [National Environmental Health Norms and Standards, Gazette 39561 (2015)](https://www.gov.za/sites/default/files/gcis_document/201512/39561gon1229.pdf).
+
+## 3. Corrected local-climate evidence and weather strategy
+
+The previously referenced EPW.tools Johannesburg climate-trend page computes its 1981–2025 daily temperature series from NASA POWER / MERRA-2 at a 0.5° grid cell containing approximately `-26.14, 28.24`. It is **not ERA5**. We correct that source attribution here. The page reports a +0.84°C difference between the 1981–1990 and 2016–2025 annual means in that grid cell, and explicitly warns that the grid averages city and surroundings rather than representing an airport or neighbourhood thermometer. These are reanalysis/grid-cell calculations, not a station trend or a measured building load.
+
+The same page notes that its EPW files use nearest station observations first and reanalysis only for gaps. That distinction and the file's station/gap metadata must travel with every input. A typical meteorological year alone is not adequate for a warming-life-cycle claim.
+
+Required weather suite:
+1. pinned typical-year EPW with source metadata and `.STAT`;
+2. at least one recent actual meteorological year (AMY) with original weather-source metadata;
+3. a hot-tail/historic extreme year, not selected after seeing candidate results;
+4. a future-climate weather series for stated building-life horizons and scenario assumptions;
+5. sensitivity to urban microclimate/shading/wind and missing-data treatment.
+
+Where possible, compare reanalysis with quality-controlled South African Weather Service or other traceable station observations. Do not pass a coarse grid-cell mean off as local courtyard wind, humidity or temperature.
+
+Reference: [EPW.tools Johannesburg method and trend](https://epw.tools/climate-johannesburg).
+
+## 4. Paradigm shifts that could create a real advantage
+
+### A. Thermal water service, not pool-as-ornament
+
+Represent every water feature as a versioned physical service with:
+- water source, quality, legal permission, rights and reserve floor;
+- open surface, exposed area, depth, cover and wet/dry state;
+- inlet/outlet temperatures, stratification, flow and heat-exchanger conductance;
+- latent, sensible, radiative and conductive transfer as distinct terms;
+- pump/filter/treatment power and duty;
+- evaporation, splash, purge/backwash, leak and overflow;
+- delivered cooling to a named occupied zone, with evidence and uncertainty.
+
+The service claim must point to an actual heat path and measured/simulated occupant-zone response.
+
+### B. Thermal cascade with exergy-aware dispatch
+
+Do not ask only "how many kWh are stored?" Also ask whether the storage temperature is useful to the sink at the required time. A low-grade 20–25°C store may be useful for some heat-rejection or tempering tasks but cannot be treated as equivalent to chilled water at a lower supply temperature.
+
+Explore this staged cascade:
+1. use shade, envelope, solar control and night ventilation to reduce the load;
+2. use high thermal mass and controlled night purge where climate permits;
+3. use low-temperature hydronic loops only when the water/ground/sky sink is cooler enough and condensation limits are satisfied;
+4. use covered water mass to buffer a qualified thermal loop;
+5. enable direct evaporation only when wet-bulb depression, humidity, water rights and water budget justify it;
+6. use mechanical cooling as a bounded top-up or resilience layer, not as an invisible baseline assumption.
+
+Benchmark water storage against stratified chilled-water storage, ground exchange, PCM storage and a no-water passive design. Water's high heat capacity is not by itself proof it is the best storage medium.
+
+### C. Water-aware controls with a hard entitlement invariant
+
+Use a receding-horizon controller or robust model-predictive policy to choose among cover, charge, discharge, evaporative assist, bypass and safe shutdown. Inputs include forecast uncertainty, wet-bulb/dew point, heat-sink availability, water account balance, water quality, tariff/carbon signal, occupancy, equipment health and current restrictions.
+
+Hard constraint: discretionary cooling cannot debit protected household water floors. The controller may choose a less-cool option or reject operation; it cannot invent water or silently cross an essential reserve. Unknown quality, rights, restriction status or instrument health fails closed.
+
+### D. Climate-adaptive rather than one-weather-file design
+
+Select and test control policies across multiple years and future climate scenarios. Evaluate distribution shift, forecast error, changed occupancy and component degradation. A design that wins only on one TMY file is not robust.
+
+### E. Evidence-native digital thread
+
+Every simulation and measurement should be linked to:
+- geometry/configuration/BOM revision;
+- weather and water-source dataset digests;
+- engine/controller version and configuration;
+- calibration and instrument certificates;
+- assumptions, uncertainty and applicability domain;
+- original observations, transformed inputs and derived outputs;
+- independent replay result and claim ceiling.
+
+This is where Sol-Atlas, Symtropy and Mycelix add value around specialist physics engines.
+
+## 5. Benchmark ladder
+
+### Stage 0 — analytical known-answer controls
+
+Use the executable first-principles screen and hand-calculated cases to verify units, conservation and ceiling logic. It must never report the thermal capacity or latent heat at the water surface as useful cooling delivered to occupants.
+
+Required exact cases:
+- 1 m³ water × 1 K = approximately 1.163 kWh sensible storage capacity;
+- 1 L evaporated × 2,450 kJ/kg latent heat = approximately 0.681 kWh absorbed at the evaporation interface;
+- 1 kW pump × 1 hour = 1 kWh electricity;
+- a balanced water account with inflow/outflow and closing volume;
+- an over-budget case that blocks discretionary operation;
+- missing source/quality/rights or instrument evidence that blocks qualification.
+
+### Stage 1 — matched building simulation
+
+At minimum compare:
+- shade + orientation + cross/stack ventilation + night purge, no water;
+- covered pool/cistern thermal mass without a claimed heat path;
+- covered store + closed-loop heat exchanger + qualified nighttime sink;
+- small shaded rill or wetted surface with controlled exposure;
+- indirect/direct evaporative strategies where appropriate;
+- water storage + PCM + ground-coupled variants;
+- mechanical baseline and mixed-mode baseline.
+
+Match geometry, occupancy, internal gains, weather, thermal comfort criteria, ventilation and control look-ahead. Report both energy/capacity-matched and water-budget-matched arms.
+
+### Stage 2 — coupled outdoor microclimate
+
+Use CFD or a qualified reduced-order airflow model for wind, buoyancy, courtyard aspect ratio, shade, surface temperatures and humidity transport. Validate with sensors or a controlled test cell. Then couple boundary conditions into the building model. A courtyard-average temperature drop cannot substitute for occupied-zone comfort.
+
+### Stage 3 — hardware-in-the-loop / BOPTEST-style controls
+
+Compare fixed schedules, rule-based control, model predictive control and robust/uncertainty-aware control on identical weather, forecast, plant and disturbance traces. Include pump failure, sensor drift, water curtailment, water-quality alarm, network loss and manual degraded operation. Score comfort, water, electricity, peak load, emissions, constraint violations, control actions and recovery.
+
+### Stage 4 — instrumented field validation
+
+Start with an instrumented small courtyard/test cell rather than an expensive pool retrofit. Use a paired no-water/shaded control and water-feature intervention. Log:
+- calibrated air temperature/RH/dew point and globe/operative-temperature proxies;
+- water temperatures at multiple depths, volume and makeup;
+- flow and heat-exchanger inlet/outlet temperatures;
+- solar radiation, wind direction/speed and rainfall;
+- pump/filter/treatment electricity;
+- water quality, maintenance events, occupancy and control state.
+
+Run matched periods and a preregistered analysis. Separate measured outcomes from model-calibrated estimates. A real building pilot follows only after the test cell demonstrates water and thermal-account closure.
+
+## 6. Proposed target metrics (not yet achieved)
+
+| Dimension | Proposed research target |
+|---|---|
+| Household water floor | 0 unauthorized discretionary breaches |
+| Water quality / rights | 0 operation with unknown or failed qualification |
+| Water balance | residual within the combined, declared measurement uncertainty; no unmetered term silently set to zero |
+| Thermal balance | residual within propagated model/instrument uncertainty for each held-out test |
+| Useful cooling | never credited without a validated heat path and occupied-zone outcome |
+| Model calibration | predeclared held-out bias/RMSE plus interval coverage and error by operating regime; no tuning on the holdout |
+| Uncertainty | nominal 90%/95% predictive interval coverage assessed on held-out seasonal and stress conditions |
+| Out-of-domain | 0 critical claims accepted outside the declared applicability domain |
+| Controller | 0 hard-constraint violations; compare comfort/water/electricity Pareto sets |
+| Robustness | disclose worst-case and tail performance under heat, drought, humid-hot and equipment faults |
+| Audit | 100% results traceable to exact input, model, controller and instrument revisions |
+
+Do not impose one universal R², RMSE or water-saving threshold across different building types. Pre-register building-specific acceptance margins, reference measurement uncertainties and service-floor consequences before inspecting the test results.
+
+## 7. SOTA comparison and honest claim boundary
+
+| Capability | Publicly documented incumbent baseline | Highveld opportunity |
+|---|---|---|
+| Indoor pool heat balance | EnergyPlus 26.2 `SwimmingPool:Indoor` | Reuse it where assumptions fit; qualify coupled building/commons outcomes |
+| Rain capture and water-use accounting | EnergyPlus `WaterUse:RainCollector`, `WaterUse:Storage`, water meters | Add resident rights, reserved floors, source quality and auditable reuse authority |
+| Stratified thermal storage | EnergyPlus mixed/stratified chilled-water tank and hot-water tank models | Compare a real pool/cistern heat-transfer path to dedicated TES/PCM/ground options |
+| Evaporative equipment | EnergyPlus direct/indirect evaporative cooler and cool-tower objects | Outdoor courtyard geometry, humidity exposure, drought dispatch and field validation |
+| Building controls benchmarking | BOPTEST v0.9.0, nine ready emulators and REST scenarios | Add a custom water-coupled apartment/courtyard case and resilience disturbances |
+| Detailed outdoor airflow | CFD specialist tools | Link geometry, measured boundaries and uncertainty to indoor comfort and service claims |
+| Regulatory compliance | SANS 10400-XA:2021 / municipal enforcement | Produce auditable inputs and M&V evidence; never replace the authority/certifier |
+
+We do not currently have evidence that Highveld outperforms these physics/control engines. A defensible win would be a benchmark suite that couples them, preserves water/human constraints, exposes uncertainty and reproduces the evidence across an independent holdout.
+
+## 8. Current local conditions and safety references
+
+Johannesburg Water's Level 1 restriction dates are 1 September 2026–31 March 2027. Its main notice specifies daytime pool filling/garden watering restrictions; its emergency/customer page includes water features. Always recheck before operation.
+
+South Africa's 2015 national environmental-health norms include public/semi-public pool water sampling, hygiene, sanitary condition and backflow safeguards. They are not a substitute for current municipal and specialist public-health signoff. Spray/mist and warm recirculating water need a separate aerosol/Legionella risk assessment; an ornamental feature should not become a poorly maintained aerosol generator.
+
+The 30 Oct 2026 Draft NEES 2025–35 is a proposed strategy and explicitly not an enacted SANS amendment. It identifies SANS 10400-XA and municipal enforcement as part of the existing building-energy-code framework, while proposing future strengthening and wider EPC activity.
+
+## 9. Immediate implementation sequence
+
+1. Keep PR #736's candidate matrix frozen.
+2. Land the topology and cooling manifest qualifiers in PR #741; wait for no runner to continue document/model-contract work.
+3. Add the first-principles screening binary with synthetic known-answer inputs; ensure it emits separate storage, latent-interface and pump quantities and leaves useful zone cooling unknown.
+4. Pin the exact EnergyPlus 26.2 objects and documented limitations in a model-interface manifest.
+5. Obtain and hash a licensed/traceable Johannesburg EPW plus actual-year and future-climate candidates. Verify the EPW against nearby station data.
+6. Create a minimal EnergyPlus baseline and indoor pool model; separately define an outdoor courtyard-water co-simulation interface.
+7. Specify the independent water/energy-balance oracle and measurement uncertainty.
+8. Build a paired courtyard test cell and preregister a field validation plan before claiming cooling savings.
+
+**Status:** research and software contracts only. No actual EnergyPlus run, BOPTEST run, CFD result, field observation, cost result or SOTA superiority result has been produced by this packet.
+
+
+## 10. Expanded industry/toolchain comparison (12 November 2026)
+
+The engine boundary matters. These systems are complementary rather than interchangeable:
+
+| System | Current public baseline observed | Best-fit responsibility in this programme | What it does not replace |
+|---|---|---|---|
+| EnergyPlus | 26.2.0 | Building/zone heat and moisture balance, supported indoor pool model, HVAC, water-use objects and thermal storage | Outdoor courtyard CFD, resident water rights, instrument qualification or household service truth |
+| Modelica Buildings Library | 14.0.0, released 5 Oct 2026 | Dynamic hydronic plant, thermal storage, plant controls, district/building energy systems; recent release adds liquid-cooled data-centre components, EnergyPlus sizing coupling and TOUGH ground-response coupling | It is not automatically a measured Highveld courtyard-water model; exact library and Modelica solver versions must be pinned |
+| OpenStudio | 3.11.0 SDK release, 30 Apr 2026 | Model authoring, workflow, measures and orchestration around EnergyPlus | It is not a separate physical solver or a second independent validation result when it invokes the same EnergyPlus engine |
+| BOPTEST | v0.9.0, 18 Nov 2025; nine published ready test cases | Reproducible control benchmarking with REST interface, test scenarios and building emulators | It is not the current source of courtyard-water physics or community water-entitlement semantics |
+| OpenFOAM Foundation | v14, 14 Jul 2026 | Outdoor airflow, buoyancy, surface exchange and CFD where a validated model is built | Not building-energy orchestration or resident-service assurance |
+| OpenCFD OpenFOAM | v2606, 26 Jun 2026 | Alternative OpenFOAM distribution / CFD environment | Must not be treated as byte-for-byte or release-compatible with the Foundation distribution |
+| Sol-Atlas / Symtropy / Mycelix | Luminous evidence/control integration under development | Geometry/configuration provenance; native time/event and service trajectories; water rights, consent, resource accounts and instrument admission | Does not replace any of the specialist physical solvers above |
+
+Modelica Buildings Library 14.0.0 specifically adds liquid-cooled data-centre systems and TOUGH-based geothermal coupling, and extends EnergyPlus-linked thermal-zone sizing. This makes it an especially relevant plant/ground coupling comparator for thermal-water work. Its EnergyPlus-linked package documented on the release page uses `EnergyPlus_24_2_0`; do not imply the package is already a turnkey EnergyPlus 26.2 co-simulation. [LBNL Modelica Buildings release 14.0.0](https://simulationresearch.lbl.gov/modelica/library-release/2026/10/05/releases-11.1.2-12.1.2-13.0.1-14.0.0.html).
+
+OpenStudio 3.11.0 is a current workflow/SDK layer and should be assessed as an authoring and orchestration option around EnergyPlus, not counted as an independent thermal solver result. [OpenStudio release page](https://openstudio.net/).
+
+The two current OpenFOAM release families must be separately identified in every experiment: OpenFOAM Foundation v14 and OpenCFD v2606 have distinct release streams. [Foundation v14](https://openfoam.org/release/14/); [OpenCFD v2606](https://www.openfoam.com/download/release-history).
+
+## 11. The defensible route to beating the state of the art
+
+Do not compete on an isolated pool-temperature result or make a generic claim that Luminous can replace a specialist solver. Compete on a harder system-level benchmark:
+
+1. **Matched physics:** same geometry, weather, occupancy, schedules and boundary conditions. Reuse each specialist engine in its intended domain.
+2. **Independent cross-engine agreement:** compare EnergyPlus/Modelica/CFD outputs only at explicitly shared physical interfaces; report residuals, uncertainty and solver-boundary differences.
+3. **Water-constrained control:** at the same declared water budget and comfort requirement, test whether the system reduces discretionary water and auxiliary electricity without increasing occupied-zone discomfort or humidity risk.
+4. **Climate robustness:** evaluate multiple historical years, hot-tail conditions, future climate sequences, drought curtailment, humid-hot days, cold nights and equipment faults.
+5. **Decision-grade uncertainty:** report held-out bias, calibrated interval coverage, false-feasible decisions at comfort/water thresholds and out-of-domain detection—not just R².
+6. **Evidence replay:** another operator must be able to reconstruct the input package, run identities, transformations, water/energy balances and claim ceiling from digests and receipts.
+
+A credible result that beats an incumbent on this benchmark would be a Pareto improvement at matched constraints (for example: equal or better comfort with less water and no greater auxiliary energy), or materially better robustness under the same disturbance envelope, with independent field validation. A faster run, a lower residual on an unmatched case or a prettier digital twin is not enough.
+
+The multi-engine case matrix is registered separately in `MULTI_ENGINE_THERMAL_WATER_BENCHMARK_V0.1.md` and its JSON manifest. It remains `NOT_EXECUTED`.
+
+
+## 12. Thermal storage: compare useful trajectory, not material or nameplate claims
+
+A January 2026 review of building thermal energy storage identifies charge/discharge power and heat-exchanger capability as critical deployment constraints, alongside storage media such as PCM; it also notes that longer-duration thermochemical storage still has deployment challenges. A September 2026 PCM review summarizes case-specific reports of roughly 8–36.5% peak-load/heat-flux reduction and 10–30% annual energy savings in selected building comparisons. One separate 81%-of-peak-cooling-demand result came from a combined rooftop PCM + solar chimney + earth-to-air heat-exchanger CFD system, and must not be attributed to PCM alone. These are literature examples, not universal product guarantees or Johannesburg results.
+
+EnergyPlus 26.2 includes ThermalStorage:PCM: the object is connected to plant and use loops, charges/melts and discharges/freezes PCM through a specified internal heat-exchanger effectiveness, and uses a PCM material with phase-change hysteresis. It is a useful specialist baseline. The Highveld store ledger should audit the resulting state trajectory and cycle closure, not recreate that phase physics.
+
+Sources:
+- [Nature Reviews: Increasing the sustainability of buildings by using thermal energy storage, 2 January 2026](https://www.nature.com/articles/s44359-025-00123-4)
+- [Phase Change Materials in Energy Systems: Performance, Reliability, Life Cycle Evidence, and Design Guidelines, 12 September 2026](https://onlinelibrary.wiley.com/doi/10.1155/er/2036127)
+- [EnergyPlus 26.2 Water Heaters and Thermal Storage reference: ThermalStorage:PCM](https://energyplus.readthedocs.io/en/v26.2.0/guides/input-output-reference/1.24-group-water-heaters.html)
+
+Benchmark implication: compare usable kWh inside the operating temperature band, charge/discharge kW, heat rejected by each qualified path, parasitic electricity, water by source, degraded capacity, state-of-charge headroom and annual/seasonal cycle drift. A high latent-heat value or nominal tank capacity does not establish service continuity.
+
+## 13. Thermal comfort and neighborhood service are different claims
+
+ANSI/ASHRAE Standard 55-2023 uses standard and adaptive comfort methods and includes local discomfort from vertical air-temperature gradients. Its environmental factors include air temperature, thermal radiation, humidity and air speed, combined with activity and clothing; its stated population scope is healthy adults in indoor occupied spaces. The official ASHRAE addenda index currently lists addenda a and b to Standard 55-2023 dated 31 August 2026. Pin the exact edition/addenda and use the correct method at execution. Do not interpret comfort compliance as a heat-health safety guarantee.
+
+A 2026 systematic review of urban heat vulnerability/mitigation found that many studies discuss mitigation without empirical testing and documented gaps in cooling access, energy burden, housing conditions, spatial scale and distributional outcomes. The Highveld service/refuge benchmark is designed to measure those gaps rather than assume that a mapped cooling feature benefits every household.
+
+Sources:
+- [ASHRAE Standard 55 – Thermal Environmental Conditions for Human Occupancy](https://www.ashrae.org/technical-resources/bookstore/standard-55-thermal-environmental-conditions-for-human-occupancy)
+- [ASHRAE Standards Addenda](https://www.ashrae.org/technical-resources/standards-and-guidelines/standards-addenda)
+- [Urban heat, vulnerability, and mitigation in U.S. cities: A systematic review, 2026](https://doi.org/10.1016/j.scsadv.2026.100077)
+- [Passive radiative cooling in the built environment: A multi-scale review, November 2026](https://www.sciencedirect.com/science/article/pii/S2213138826006764)
+
+## 14. New executable/research increments registered on 12 November 2026
+
+The following work has been added to PR #741 without changing PR #736's frozen three-candidate architecture matrix:
+
+| Increment | Registered scope | Current evidence ceiling |
+|---|---|---|
+| Thermal sink cascade | 8 architecture arms × 9 stress scenarios = 72 cases | Manifest and Rust structural qualifier; no thermal simulation |
+| Sink dispatch governor | Fail-closed eligibility filter for radiative/dry/ground/evaporative paths | Synthetic eligibility tests; no actuation or equipment certification |
+| Johannesburg weather package | SAWS/ARC/DWS/WRO/NOAA/reanalysis/EPW source-rights and representativeness register | No site selected, no paid/licensed data acquired, no weather observations admitted |
+| Radiative sky-sink benchmark | 7 component/system arms × 7 weather regimes = 49 cases | Registered matrix; no panel or field test |
+| Finite thermal-store ledger | Interval heat balance, state bounds, per-sink rejection and cycle closure | Synthetic known-answer ledger; no physical store validation |
+| Thermal service and refuge benchmark | 7 building interventions × 8 operating scenarios + 4 refuge topologies × 6 failures = 80 cases | Registered matrix; no site, route, refuge or resident data admitted |
+| Refuge availability governor | Site opening, thermal/ventilation/safe-water service, route accessibility, total/accessibility capacity and water reserves | Synthetic eligibility controls only; no real route/site/booking or occupant assignment |
+| Refuge network max-throughput reference | Independent accessible-first/general-second max-flow baseline against the richer fairness/time-series engine | Synthetic reference comparator only; not the primary policy engine |
+| Refuge temporal continuity ledger | Baseline service ratio, first degradation, time to baseline recovery, longest degraded episode, total below-baseline hours and unresolved end gaps per anonymous cohort | Synthetic duration-relative sequence only; no native timestamps or real service evidence |
+| Courtyard instrument package | 35 template channels, including long-wave/radiative panel/loop sensors | Instrument identities/calibration remain unassigned; template only |
+| Pool pedestrian microclimate attribution | Six matched arms × six weather regimes, six spatial stations and four heights | Dry-shade matched-control protocol and structural qualifier; no field experiment or microclimate effect admitted |
+
+The refuge network sequence oracle now complements cumulative unmet place-hours with a cohort resilience curve: it fixes first-snapshot baseline ratios and reports time to return to baseline, longest/total degradation duration, episode count and unresolved gaps. Cohort identities and owner-approved tie-break ranks must remain stable across timepoints; elapsed hours come only from the declared interval durations.
+
+The thermal-store ledger reports peak input/rejection rate as well as energy, and marks each interval FAIL when its own balance, capacity or continuity checks fail. The thermal service/refuge qualifier requires the 80-case registration and preserves the distinction between ASHRAE comfort and local heat-health safety. Its refuge claim rules reject unknown dependencies, inaccessible routes and exhausted capacity.
+
+## 15. What a defensible SOTA win would look like now
+
+A credible Highveld result should demonstrate all of the following on the same frozen, held-out traces:
+
+1. A specialist physics baseline (EnergyPlus/Modelica/validated external airflow model) with a documented configuration and applicable reference cases.
+2. A competent passive no-water building baseline and a properly sized mechanical-cooling reference.
+3. A finite thermal store whose charge/discharge power and seasonal state trajectory close within uncertainty.
+4. A water/rights governor that never spends protected essential reserves and blocks unknown or prohibited source states.
+5. Occupied-zone comfort evaluated with the correct standard/adaptive method, plus a separate authority-approved safety envelope where required.
+6. Refuge availability based on live operating dependencies, capacity and accessible network routes—not proximity circles or straight-line distance.
+7. Uncertainty-calibrated held-out results, per-household distributions, worst-case service gap, maintenance and lifecycle cost.
+8. Exact replay by an independent operator.
+
+The advancement is the coupled, evidence-carrying service layer around the best specialist engines. It is not a claim that a new Luminous model outperforms EnergyPlus at heat balance, Modelica at plant dynamics or CFD at outdoor flow. All new matrices remain NOT_EXECUTED until the required model, data-rights, instrument and independent-review gates are met.
+
+
+## 16. Refuge network: static coverage is not service continuity
+
+Recent literature indicates a shift from static cooling-centre coverage toward building-level exposure, access and time-varying supply/demand:
+- A May 2025 geospatial framework ranked potential/available cooling centres in five U.S. cities using physical/social factors and accessibility/population coverage. It reported large gaps in walking access and energy-burden coverage; this is a siting/access baseline, not an operational capacity or outage replay.
+- A September 2026 building-level heat-risk framework applied indoor thermal exposure and cooling-centre accessibility across 214,681 Phoenix residences and showed that building exposure and cooling-centre access can diverge spatially.
+- A September 2026 state/process study explicitly evaluated heatwave-induced cooling-service supply/demand mismatch and functional degradation of fixed-location cooling supply.
+- A 2026 urban-heat systematic review recommends operational twins linked to real-time sensing, outage risk, transit conditions and cooling-site occupancy, as well as interoperable benchmark datasets.
+
+Highveld now has two distinct layers:
+1. **Static snapshot feasibility:** aggregate max-flow across anonymous cohorts and shared refuges, using route accessibility, capacity and safe-water limits.
+2. **Temporal service degradation:** evaluate ordered snapshots and integrate unmet-place-hours and accessible unmet-place-hours, while leaving native event IDs, clock and causal chronology with Symtropy.
+
+These remain synthetic benchmarks. A credible win would show a better worst-cohort service ratio and lower unmet-place-hours under common held-out heat/outage/route/capacity traces—not simply more sites on a map.
+
+Sources:
+- [ORNL, Where to cool off: a geospatial framework for placement of cooling centers, May 2025](https://www.ornl.gov/publication/where-cool-geospatial-framework-placement-cooling-centers)
+- [A two-dimensional framework for building-level heat risk assessment: Refining vulnerability identification and advancing equity, September 2026](https://www.sciencedirect.com/science/article/pii/S2212420926003535)
+- [Urban heat resilience from a state–process perspective: Heatwave-induced cooling service supply–demand mismatch and hierarchical spatial allocation of greening, 15 September 2026](https://www.sciencedirect.com/science/article/pii/S2210670726004762)
+- [Urban heat, vulnerability, and mitigation in U.S. cities: A systematic review, 2026](https://doi.org/10.1016/j.scsadv.2026.100077)
+
+**Claim boundary:** no real refuge location, route, resident demand, operational capacity, outage or heatwave chronology is admitted by these new artifacts. No live allocation or emergency dispatch is implemented.
+
+
+## 16. Pool and water-feature integration: role separation and specialist boundaries
+
+EnergyPlus 26.2 already provides a SwimmingPool:Indoor model integrated into the building surface heat balance. It includes water-surface convection, evaporation, short-/long-wave radiation, bottom conduction, solar gain, heater/plant flow, makeup water, water-temperature change and effects of a scheduled cover on multiple transfer modes. Pool evaporation is also added to the zone moisture balance. Use this for indoor pools where its floor/surface assumptions fit; it is not a ready-made outdoor courtyard water-feature or neighborhood CFD model.
+
+A 2025 IBPSA field paper measured an up-to-70% reduction in evaporation in one unoccupied Norwegian indoor pool when a movable floor acted as a cover. This is a site-specific result, not a universal saving factor. It is enough to motivate matched cover studies—not to assume that a pool cover gives the same benefit outdoors or improves thermal regeneration.
+
+CDC's current decorative-fountain guidance says all decorative fountains produce aerosols, and recommends a water-management programme, cleaning/disinfection and monitoring of critical water parameters. ASHRAE's public water-system risk-management suite identifies Standard 188 and Guideline 12; Guideline 12 addresses decorative water features, cooling towers, misters, humidifiers and other devices. CDC also distinguishes typical swimming pools from hot tubs and aerosol devices: typical pools are usually too cool for Legionella growth, while hot/aerosol devices require their own assessment. The architecture should therefore classify the aerosol mechanism, actual water temperature, treatment, maintenance and exposure context rather than label every pool or fountain identically.
+
+Sources:
+- [EnergyPlus 26.2 Indoor Swimming Pool Engineering Reference](https://energyplus.readthedocs.io/en/v26.2.0/guides/engineering-reference/17.3-indoor-swimming-pool.html)
+- [EnergyPlus 26.2 ThermalStorage:PCM reference](https://energyplus.readthedocs.io/en/v26.2.0/guides/input-output-reference/1.24-group-water-heaters.html)
+- [IBPSA Building Simulation 2025: Quantifying the Influence of the Pool Cover on the Water Evaporation Rate](https://publications.ibpsa.org/conference/paper/?id=bs2025_1871)
+- [CDC: Controlling Legionella in Decorative Fountains, 3 January 2025](https://www.cdc.gov/control-legionella/php/toolkit/decorative-fountain-module.html)
+- [ASHRAE: Guidance for Water System Risk Management](https://www.ashrae.org/technical-resources/standards-and-guidelines/guidance-for-water-system-risk-management)
+- [CDC: Evaluating Sources of Exposure](https://www.cdc.gov/investigate-legionella/php/public-health-strategy/evaluating-sources-of-exposure.html)
+
+New pool/water research packet in PR #741:
+- POOL_WATER_FEATURE_THERMAL_ROLES_V0.1.md
+- POOL_WATER_FEATURE_THERMAL_MANIFEST_V0.1.json and schema
+- highveld-pool-water-feature-qualifier structural/negative-control test binary
+- 10 archetypes × 8 scenarios = 80 registered cases, including pool heat recovery from building cooling loads; five time-dependent cover/shading modes, including day shading/night exposure and adaptive cover.
+- Contract: a pool is a finite thermal buffer; sustained cooling requires a named regeneration path. Evaporative removal is measured separately from useful occupied-zone cooling; water use, humidity, make-up, purge, rights, quality and aerosol risk remain explicit.
+
+## 17. Multi-area refuge flow and shared-capacity audit
+
+The existing highveld-refuge-network-feasibility binary is the network-level max-flow feasibility oracle, with a separate ordered supply/demand degradation sequence. It performs accessible-demand-first feasibility under shared site capacities and route links, while explicitly returning no person assignment or reservation.
+
+The added highveld-refuge-shared-capacity-audit is intentionally narrower and independent: it validates a proposed anonymized group-to-site plan by re-summing every site's total, accessible and water use. It catches double-spending in submitted plans, per-group over-allocation, duplicate group/site rows, unknown sites and route-evidence failures. It reports separate service ratios/gaps; it is not a second allocation algorithm.
+
+The benchmark target is zero false-feasible total/accessibility/water capacity, zero accepted unreachable routes and preservation of positive controls. A plan may be physically feasible but still have unmet demand; the audit must report that gap rather than hide it in an aggregate score.
+
+
+### Pool heat recovery as a matched heat-use arm
+
+The Highveld pool/water benchmark contains 10 archetypes × 8 scenarios = 80 registered cases. The tenth arm, POOL_HEAT_RECOVERY_FROM_COOLING_LOAD, follows an established industry pattern: a UC Davis WCEC hotel field trial reported average 5% electricity savings, peak reductions up to 12% and 29% lower pool-heating natural-gas use over four weeks in San Diego. The California feasibility study's 25–30% cooling-electricity / 30–35% peak reductions are modelled selected-condition estimates, not field performance.
+
+The local benchmark must gate recovery by actual pool heating demand, an isolated exchanger and an owner/authority-defined pool temperature ceiling. When the pool is at its ceiling or there is no heating demand, excess condenser heat must move to a separately qualified fallback sink or recovery must stop. Count recovered heat, displaced pool-heater energy and fallback rejection separately. This is not an assumed Highveld saving.
+
+
+## 18. Temperature-grade qualification: two-sided pinch before thermal dispatch
+
+The thermal sink governor now evaluates two separate temperature-grade boundaries:
+- load-return fluid → finite store (charge admission);
+- finite store → external sink (regeneration/rejection).
+
+The load-side gate requires a measured/qualified temperature approach above the declared heat-exchanger minimum, sufficient available heat-transfer power, qualified boundary and instrument evidence, and requested transfer energy within the store's current free headroom. V0.1 gives no credit for simultaneous regeneration when checking the charge request. The sink-side gate independently requires the store to be hot enough relative to the named sink, plus sufficient rejection capacity and auxiliary power. Neither side substitutes for the other.
+
+This is a useful system boundary because thermal storage studies emphasize delivery temperature, charging/discharging power, response time, heat losses and integration complexity—not only energy density. A September 2026 PCM review also finds that continuous occupancy can lead to thermal saturation when the PCM lacks adequate regeneration, while night ventilation's effectiveness varies with heatwave morphology, nighttime minimum temperature, thermal mass and operating schedule. Those results support a schedule- and temperature-grade-aware benchmark, not a fixed opening time or generic nameplate-capacity credit.
+
+Current implementation is a deterministic eligibility screen around qualified measurements/specialist solver outputs. It is not an exergy solver, a PCM constitutive model, an HX design tool or a coupled transient controller. Future v0.2 could compare energy and exergy destruction across the full path using measured temperatures/flows and an explicit reference environment, but only after the physical heat boundary and uncertainty are qualified.
+
+Sources:
+- [2026 industrial TES review: temperature grade, charge/discharge power, response time and integration](https://www.mdpi.com/1996-1073/19/12/2734) — turn156304search3
+- [Occupancy-dependent PCM review and thermal saturation in continuously occupied buildings](https://www.sciencedirect.com/science/article/pii/S0378778826010078) — turn156304search13
+- [Night ventilation during heatwaves: 18,000 EnergyPlus simulations across 36 heatwaves](https://www.mdpi.com/2075-5309/16/17/3555) — turn156304search15
+- [2026 exergy analysis review](https://www.sciencedirect.com/science/article/pii/S0735193326006408) — turn156304search2
+
+Benchmark target: zero accepted load-to-store transfers below the required temperature approach; zero transfers beyond current free store headroom without explicitly qualified concurrent regeneration; zero sink-side rejection below its own pinch; preserve the positive controls on both sides; 100% traceability to load, store, exchanger, sink and uncertainty evidence.
+
+
+## 19. Pool heat recovery: first-law balance and no-double-count accounting
+
+The pool/water feature programme now has a separate synthetic conservation ledger for heat recovery from a building cooling load. It checks two different control volumes rather than treating "recovered heat" as one undifferentiated number:
+
+- Refrigeration circuit: condenser heat output = building-side heat removed + compressor electrical work − declared compressor-to-ambient loss.
+- Condenser disposition: condenser heat output = pool heat recovered + fallback sink rejection + measured distribution losses.
+
+Building-side cooling, pool heat delivery and independently measured displaced pool-heater input are output as distinct credits. The ledger rejects first-law residual beyond supplied uncertainty, disposition residual beyond uncertainty, pool recovery beyond actual demand/headroom/maximum temperature, unqualified/undersized fallback rejection and heater-displacement claims without a baseline meter/counterfactual.
+
+This addresses a common boundary-accounting error: condenser heat includes compressor electrical work and cannot all be credited as useful building cooling. The pool may consume part of that heat for a real heating demand, but it does not make the building-side cooling credit larger. The remaining condenser heat still needs a qualified rejection path.
+
+The committed case is synthetic and closes the two boundaries exactly at 12.8 kWh. It proves arithmetic only, not refrigeration performance, pool temperature behavior or energy savings.
+
+The parent pool/water benchmark now records 80 cases (10 archetypes × 8 scenarios) and adds explicit condenser first-law, condenser-disposition and heat-double-count gates. The new ledger is wired into native CI and has separate controls for no pool heating demand and inadequate fallback capacity.
+
+**Claim ceiling:** no measured heat recovery, no displaced heater energy, no pool temperature result and no Highveld saving is claimed. The UC Davis field trial and California modeled feasibility study remain reference classes, not local predictions.
+
+
+## 16. Refuge network fairness: throughput is not distribution
+
+The 2026 U.S.-focused systematic review of 50 urban-heat studies reports that 68% discuss mitigation without empirical evaluation, 66% rely on satellite land-surface temperature, and 54% use census-tract aggregation; it also identifies gaps in cooling access, housing conditions, energy burden and distributional outcomes. Those are findings from that review's U.S. corpus, not a claim about every country or South African practice. The Highveld response is to add anonymous demand-cohort service, time-varying site capacity, accessible-route constraints, water limits and unmet-place-hours rather than assume that mapped proximity equals delivered refuge service.
+
+The new max-min comparator distinguishes two objectives that must not be conflated:
+- **Maximum throughput:** serve the largest total number under a frozen graph/capacity model.
+- **Discrete max-min cohort coverage:** preserve the accessibility-protected stage, then progressively add general-service places to the cohort with the lowest total coverage ratio, accepting each increment only when all current cohort quotas remain jointly feasible.
+
+It reports the throughput delta, minimum/maximum cohort service ratio and spread, with an explicit owner-supplied tie-break rank only for exact discrete ties. It does not label a mathematical max-min solution as morally fair or assign occupants. Future time-series work should test rotating ties and cumulative service debt, because a static cohort tie-break can create persistent disadvantage across repeated events.
+
+Source:
+- [Urban heat, vulnerability, and mitigation in U.S. cities: A systematic review, September 2026](https://doi.org/10.1016/j.scsadv.2026.100077)
+
+## 17. Thermal-storage measurement and application-level baselines
+
+An October 2026 systematic review of PCM characterization compares differential scanning calorimetry (DSC), T-history, heat-flow-meter (HFM) and three-layer calorimetry methods, and identifies standardization, reproducibility and cross-method validation as continuing gaps. A March 2026 review describes low PCM conductivity as a key constraint on latent-store response and heat-transfer rate, motivating matched passive/active enhancement comparisons. A September 2026 application-oriented review emphasizes the disconnect between material-level properties and real deployed-system performance.
+
+For Highveld, a fair PCM/pool comparison therefore needs:
+- independently characterized material properties and method uncertainty;
+- matched component geometry, heat exchanger and flow conditions;
+- metered charge/discharge power and operating temperature grade;
+- degradation / cycling / incomplete regeneration;
+- pool/tank temperature stratification or an independently validated mixed-state assumption;
+- full building-side comfort and system parasitics;
+- end-of-season store closure.
+
+EnergyPlus 26.2 is a useful specialist baseline, not a universal ground truth. Its documented ice thermal-storage model assumes a fully mixed tank, empirical heat-exchanger effectiveness and constant heat-loss rate; it does not resolve axial stratification or the radiative/convective loss breakdown. It also restricts operation to one charge/discharge side per timestep. These are model-boundary facts to disclose and compare against field measurements, not reasons to discard the engine.
+
+Sources:
+- [Thermal property characterization of phase change materials in building applications: a systematic review, 15 October 2026](https://www.sciencedirect.com/science/article/abs/pii/S2352152X2602949X)
+- [Enhancement of thermal performance in latent heat thermal storage systems, 10 March 2026](https://www.sciencedirect.com/science/article/abs/pii/S2352152X26000964)
+- [Phase Change Materials in Energy Systems: Performance, Reliability, Life Cycle Evidence, and Design Guidelines, 12 September 2026](https://onlinelibrary.wiley.com/doi/10.1155/er/2036127)
+- [EnergyPlus 26.2 ice thermal-storage engineering reference](https://energyplus.readthedocs.io/en/v26.2.0/guides/engineering-reference/15.1-ice-thermal-storage.html)
+
+A credible SOTA result must show a matched field-validated system improvement and preserved service floors; a higher latent-heat number, a peak cooling-power value or a simulator result under unmatched boundaries is not enough.
+
+
+## 18. From static fairness to cumulative service debt
+
+The network-feasibility qualifier now compares accessible-first maximum throughput with discrete progressive max-min cohort coverage. The temporal degradation evaluator additionally accumulates requested, served, unmet, accessible and general place-hours by anonymous cohort, and checks that the sum of cohort deficits exactly reconciles to the network-wide deficit.
+
+This enables a new comparison not captured by a static max-flow result:
+- Does a policy improve the worst cohort's service ratio at each snapshot?
+- Does the same cohort repeatedly carry the largest unmet-place-hour burden across a multi-day event?
+- Do rotating tie-breaks or cumulative service-debt-aware policies reduce persistent disadvantage without reducing total served capacity?
+- Does the policy preserve accessible-place and protected-water floors under repeated site, route and staffing failures?
+
+The benchmark reports absolute place-hour debt and normalized cumulative service ratio together. It does not count snapshots as unique people, and it does not automatically translate debt into priority or dispatch. A debt-aware policy must be separately preregistered and owner/resident governed.
+
+This is a potential advance over static cooling-center maps or one-shot maximum-flow analysis: it tests whether service disparity persists through an event and whether recovery policies reduce cumulative service gaps. It remains a research target until held-out, rights-cleared and physically/operationally representative data exists.
+
+
+## 19. Passive pool and water-feature evidence: measure the complete cycle
+
+Three recent studies sharpen the field-test design:
+
+- A March 2026 open solar PV/T pool experiment reports that evaporation dominated heat loss in its tested outdoor system (approximately 70% for that study's conditions), with strong seasonal variation. This is a reason to meter evaporation and separate it from sensible/radiative fluxes—not a transferable Johannesburg coefficient.
+- A March 2026 nighttime outdoor-pool study tested an aggregate reduced-order thermal-balance model on 13 independent nighttime realizations. Its effective-coefficient formulation is useful for system-level prediction but does not independently identify every heat-flux mechanism. For mechanism-specific claims, Highveld needs separate flux measurements and uncertainty.
+- An August 2026 water-channel study validated its urban-flow/thermal model using CFD and wind-tunnel evidence and found that wind and canyon configuration strongly affect channel performance; adding multiple channels can worsen daytime comfort through long-wave effects. This cautions against using water area alone as a proxy for local cooling benefit.
+
+Sources:
+- [Integrating experimental and theoretical approaches for seasonal performance analysis of an open solar photovoltaic/thermal pool system (Energy, 2026)](https://doi.org/10.1016/j.energy.2026.140364)
+- [Nighttime Validation and Local Sensitivity of a Reduced-Order Thermal Balance for Above-Ground Outdoor Pools (16 March 2026)](https://www.mdpi.com/2673-9909/6/3/46)
+- [Harnessing ancient wisdom: Investigating the microclimatic cooling effects and evaporative potential of traditional water channels in arid environments (15 August 2026)](https://doi.org/10.1016/j.scs.2026.107516)
+
+The pool passive-regeneration ledger is now a separate executable contract from the heat-pump pool recovery ledger. It tracks long-wave, sensible, evaporation, ground and isolated-HX heat rejection separately; a separate mass ledger accounts for make-up, rain, evaporation, withdrawal, leakage, backwash and overflow. Its synthetic case closes the thermal and water balances and requires a layer-resolved pool state or validated equivalent. No physical pool result or Johannesburg coefficient is claimed.
+
+A credible experiment should pair cover/shade schedules under identical weather, geometry and operating windows; instrument top/middle/bottom water temperatures, long-wave radiative boundary, wind, solar, evaporation/make-up and all heat-transfer loops; and close both thermal energy and water volume over a full multi-day / seasonal cycle. It must separately measure local outdoor comfort and occupied-zone outcomes—pool heat rejection alone does not prove building cooling.
+
+
+## 16. Local heat-action practice, cooling-centre evidence and the operational gap
+
+New South African evidence makes Gauteng a particularly appropriate first comparison context. A January 2026 scoping review and benchmarking exercise included 36 studies, 13 with Gauteng data, and identified practical heat-action-plan patterns: district-level activation thresholds (Victoria), graded activation with explicit departmental roles (Maharashtra), and low-cost cooling-camp models (Khyber Pakhtunkhwa). These are adaptable practices, not evidence that a specific Johannesburg refuge network has been validated.
+
+The 2026 World Bank report on Johannesburg and Ekurhuleni recommends greening under-provisioned neighbourhoods, stronger heat-health warning/awareness, cooling strategies for low-cost dwellings and public spaces, community cool spaces, occupational heat measures and reducing building cooling demand. Highveld should complement those city actions, not compete with or replace them.
+
+International siting research also shows why accessibility maps alone are not enough. A May 2025 geospatial framework applied to five U.S. cities reported only 32.2–50.7% of cooling centres within walking distance of the most vulnerable populations and 21.2–49.4% of residents with high energy burden having access in those study cities. Those percentages must not be transferred to Gauteng; they are a reason to measure local access with actual routes, accessibility, operating state and capacity.
+
+Evidence on cooling-centre health outcomes remains weak. A 2025 systematic review found six eligible studies and no conclusive direct measurement of health/wellbeing outcomes following cooling-centre use; identified barriers included accessibility, operating hours and public perceptions. Accordingly, a Highveld “refuge eligible” or “reachable” result is not a health-benefit claim. The field programme must measure indoor/outdoor thermal service and service continuity, and any health outcome work requires a separate ethics-approved, competent public-health protocol.
+
+Sources:
+- [Temperature-Related Health Impacts: A Scoping Review and Benchmarking Exercise to Inform a Heat Action Plan (Gauteng, 22 January 2026)](https://pmc.ncbi.nlm.nih.gov/articles/PMC12829453/)
+- [Urban heat in Johannesburg and Ekurhuleni: impacts and mitigation options (World Bank, 2026)](https://www.preventionweb.net/publication/documents-and-publications/urban-heat-johannesburg-and-ekurhuleni-impacts-and)
+- [Where to cool off: a geospatial framework for placement of cooling centers (May 2025)](https://www.ornl.gov/publication/where-cool-geospatial-framework-placement-cooling-centers)
+- [Public health effectiveness of cooling centres during periods of adverse hot weather: a systematic literature review (16 July 2025)](https://academic.oup.com/oocc/article/5/1/kgaf020/8203398)
+- [Passive radiative cooling in the built environment: A multi-scale review (November 2026)](https://www.sciencedirect.com/science/article/pii/S2213138826006764)
+- [ASHRAE Standards Addenda index — Standard 55-2023 addenda a/b dated 31 August 2026](https://www.ashrae.org/technical-resources/standards-and-guidelines/standards-addenda)
+
+### The next defensible performance comparison
+
+Against municipal/local practice, compare:
+1. District heat-action activation and existing community facilities as the baseline.
+2. Geographic access and route-network access as separate measures.
+3. Static site inventory vs time-specific qualified capacity after commitments.
+4. Last-known availability vs freshness-qualified availability.
+5. Aggregate accessible-first flow vs progressive max-min cohort service.
+6. Static coverage vs unmet-place-hours and accessible unmet-place-hours under the same heat/outage trace.
+7. Nominal refuge status vs independently measured occupied-zone thermal service, ventilation, water quality and safe operation.
+
+Targets: 0 false available-refuge claims from stale critical evidence; 0 double-counted capacity/water; 0 accessible demand allocated through unqualified routes; 100% traceability from site/route/source event to the evaluation event. These are proposed acceptance targets, not achieved results.
+
+
+## 17. New 2026 evidence: resilience metric fragmentation and district cooling integration gaps
+
+A 1 November 2026 scoping review of energy resilience in the built environment covers 176 studies/frameworks, finds only 44 operational definitions, identifies 29 indicators (including equivalent formulations not consistently recognized), and reports that fewer than 10% of the reviewed evidence addresses the Global South. It highlights short, single-building/event studies and limited integration of multi-hazard trajectories and equity. This supports a Highveld contribution based on explicit operational definitions, common units, district-to-household trajectories and held-out Global South validation—not another bespoke scalar resilience score.
+
+A 15 June 2026 review screened 106 district-cooling/energy tools and examined 14 more deeply. It finds an integration gap: many detailed district-cooling models do not extend into wider energy-system analysis, while broad energy-system tools simplify district cooling thermodynamics. A 15 September 2026 review of fifth-generation district heating/cooling control strategies emphasizes system-wide thermal flexibility and coupled production/distribution/end-user control. Highveld should therefore expose auditable interfaces between detailed thermal solvers, storage/sink physics, network constraints and occupant service while keeping specialist engines authoritative.
+
+A 25 June 2026 thermal-resilience review frames resilience as time-dependent response to climatic extremes and outages, reinforcing the need for trajectory metrics rather than static capacity or one-time indoor-temperature results.
+
+Sources:
+- [Energy resilience in the built environment under disruptive events: hazard-, climate- and equity-informed systematic scoping review (1 November 2026)](https://www.sciencedirect.com/science/article/pii/S0378778826011710)
+- [Evaluating tools for integrating district cooling models into wider energy systems (15 June 2026)](https://www.sciencedirect.com/science/article/pii/S019689042600436X)
+- [Control strategies in fifth-generation district heating and cooling systems: A review (15 September 2026)](https://www.sciencedirect.com/science/article/pii/S2210670726005731)
+- [Thermal Resilience of Residential Buildings Under Climatic Extremes and Power Outages (25 June 2026)](https://www.mdpi.com/1996-1073/19/13/3006)
+
+### Highveld's defensible SOTA challenge
+
+On matched site/route/service traces, compare:
+1. a competent static nearest-refuge baseline;
+2. conventional maximum-throughput flow;
+3. discrete progressive max-min service;
+4. the capacity-scaled progressive-fill fast path;
+5. a proven lexicographic/max-min operations-research solver;
+6. temporal evidence-freshness + service-debt replay.
+
+Report exact output agreement, worst-cohort service ratio, accessible unmet service, total throughput, unmet-place-hours, water-limited capacity, maximum age of admitted evidence, max-flow evaluation count, wall time and memory. Include South African and Global South test contexts only after licensed local data and owner-approved evidence admission. No SOTA superiority is claimed by registration or synthetic tests.
+
+
+## 16. Dynamic refuge capacity: moving beyond proximity and static catchments
+
+Three useful comparison points now make the research frontier clearer:
+
+- A September 2026 building-level heat-risk framework evaluated indoor thermal exposure and cooling-center accessibility across **214,681 residential buildings in Phoenix**. It demonstrates why building exposure and cooling access must be assessed jointly, and identifies mismatches missed by coarse aggregate proxies.
+- A September 2026 urban-park cooling-accessibility study applies a physics-informed two-step floating catchment area method and explainable nonlinear analysis; its reported blind-zone share belongs to that study geography and is not a universal urban statistic.
+- A 2025 cooling-center placement framework uses multicriteria ranking and population-coverage analysis in five US cities. This is a relevant static siting/access comparator.
+
+The Highveld aggregate capacity oracle is deliberately a different layer. It does not replace the spatial accessibility model. It takes its route evidence and adds simultaneous group demand, site opening/thermal/ventilation/water/staffing states, accessible places, shared seat limits, protected safe-water reserves, network partitions and bounded exact feasibility.
+
+For a fair benchmark, freeze the same site inventory, route network, anonymous demand cells and time window. Run:
+1. straight-line proximity as a deliberately weak negative/control baseline;
+2. static network accessibility / 2SFCA coverage;
+3. per-site availability without cross-cohort resource accounting;
+4. aggregate capacity oracle with shared seats, accessible capacity, water and service dependencies;
+5. the same oracle under common-cause site loss, blocked links, hot-night service failure and network partition.
+
+Report per-cohort reachable service, total unmet places, accessible unmet places, water headroom, worst-cell service gap, and failure causes. Do not compare only mean travel distance or number of mapped cooling centers.
+
+Sources:
+- [Building-level heat risk and cooling-center accessibility across 214,681 Phoenix residences, September 2026](https://www.sciencedirect.com/science/article/pii/S2212420926003535)
+- [Cooling accessibility of urban parks using improved 2SFCA and explainable ML, 1 September 2026](https://www.sciencedirect.com/science/article/pii/S2210670726004166)
+- [Where to cool off: geospatial framework for cooling-center placement, 2025](https://www.tandfonline.com/doi/full/10.1080/15481603.2025.2500770)
+
+## 17. New bounded aggregate-refuge oracle registered
+
+The PR now contains:
+- REFUGE_CAPACITY_ORACLE_V0.1.md
+- REFUGE_CAPACITY_ORACLE_CASE_V0.1.json
+- REFUGE_CAPACITY_ORACLE_CASE_V0.1.schema.json
+- src/bin/highveld-refuge-capacity-oracle.rs
+- Native CI test and self-test commands.
+
+The oracle performs exact backtracking feasibility over anonymous place-units and shared site resources within a declared envelope (8 sites, 8 cohorts, 32 places, 100,000 search nodes). It emits a planning witness only if all cohort places can be covered; it emits no partial allocation. Limit exhaustion is INDETERMINATE_LIMIT_REACHED, never a pass. The output does not book, reserve or assign any person.
+
+Known-answer tests cover shared-capacity double booking, accessible route/capacity, protected water reserves, common service failure, network partition and search-limit indeterminacy. These are synthetic tests, not real cooling-site or route results.
+
+
+## 18. Field evidence for an integrated water-backed climate refuge
+
+A 2026 large-scale field assessment of the Cartuja Qanat Agora in Seville reports a genuinely integrated outdoor climate-refuge configuration: near-total solar blocking, a water-fed radiant ceiling, ground/water-based heat exchange and nocturnal radiative–evaporative regeneration. During representative extreme heat, outdoor conditions approached 40 °C while the occupied zone was reported around 29 °C, with air-temperature reductions exceeding 15 °C; night regeneration capacity was reported as 152 kW, COP 32.4, and 80% of surveyed users described neutral thermal sensation.
+
+This is a valuable **field reference**, not a directly transferable target. The reported values belong to one project's geometry, climate, operating boundary, scale, occupancy, plant, measurement method and service period. Before matching Highveld to it, reconstruct its denominator and boundary for COP, how "capacity" was measured, indoor/outdoor sensor positions and the amount of area/person-hours served. Do not compare the 152 kW figure to a domestic pool, a single panel or a material coupon.
+
+The actionable design pattern to test in Johannesburg is:
+- stop solar/radiant heat gain first using deep shade;
+- remove occupied-zone heat via an isolated, metered radiant-water heat exchanger;
+- treat the pool/cistern/PCM store as a finite buffer, with top/mid/bottom state;
+- regenerate by ground and/or radiative-dry sinks when weather allows;
+- use evaporative assistance only as an optional, water-rights-governed sink;
+- route excess heat to a separately qualified fallback sink;
+- close the thermal and water balances over consecutive hot days and nights;
+- qualify actual occupied person-hours, not equipment nameplate capacity.
+
+Source: [Thermal comfort and energy performance of a passive urban climate shelter under extreme heat: large-scale measurements at Cartuja Qanat Agora, 2026](https://www.sciencedirect.com/science/article/pii/S0360132326003562).
+
+## 19. Blue-green-grey integration, VPD and why "more water" is not the design rule
+
+A July 2026 comprehensive review of blue, green and grey urban infrastructure finds that combined performance is scale-, morphology- and configuration-dependent; it calls for cross-scale climate-responsive research. A June 2026 review of the radiative-cooling/water nexus highlights low-humidity/clear-sky dependence and the opportunity to couple radiative heat exchangers, dry coolers, night-sky thermal storage and atmospheric-water capture—while warning that field trials should measure water- and power-usage effectiveness across full seasonal cycles. A November 2026 study across 225 large cities finds that VPD relationships with blue-green cooling are nonlinear and climate-region dependent, not governed by one universal latent-heat pathway.
+
+Implications for Highveld:
+1. Record VPD and wet-bulb depression; ambient RH alone is not sufficient to qualify evaporative potential.
+2. Couple blue features with grey geometry and green shade/evapotranspiration; do not assume water area alone predicts pedestrian comfort.
+3. A shaded rill, closed-loop water ceiling and open pool are different interventions with different water/health and thermal boundaries.
+4. Prefer dry regeneration first where the approach temperature and weather permit; reserve evaporative duty for periods where its incremental benefit justifies source-specific water and maintenance cost.
+5. If atmospheric water harvesting is proposed, treat it as a separate source with its own yield, energy, quality and reliability evidence. Do not book hypothetical condensate/dew as available make-up water.
+6. Measure both the microclimate outside and the heat actually removed from the occupied building/refuge. Surface temperature or park-wide mean alone is insufficient.
+
+Sources:
+- [A comprehensive review of blue, green, and grey space studies for improving urban microclimate, 15 July 2026](https://www.sciencedirect.com/science/article/pii/S0360132326005032)
+- [Passive subambient cooling and atmospheric water nexus, Nature Communications, 9 June 2026](https://www.nature.com/articles/s41467-026-74110-z)
+- [Global decline in urban blue-green cooling efficiency driven by vapor pressure deficit, 2026](https://www.nature.com/articles/s44432-026-00019-z)
+- [Cooling potential of stormwater blue-green infrastructure depends on soil type and water availability, 2025/2026](https://www.sciencedirect.com/science/article/pii/S2210670725009539)
+
+## 20. New water-backed refuge benchmark
+
+A separate HIGHVELD-WATER-BACKED-REFUGE-001 study now registers 6 matched system arms × 6 operating scenarios = 36 comparisons. It is checked by the existing pool/water feature qualifier, while preserving the original 10 × 8 pool archetype matrix.
+
+The arms isolate: dry shade/ventilation; mechanical refuge; radiant-water loop with no storage; ground-regenerated finite store; radiative-regenerated finite store; and a layered refuge portfolio. Scenarios cover high-VPD clear heat, humid/cloudy weak sky sink, multi-day heat/hot nights, grid outage, water curtailment and cold-clear overcooling.
+
+The test contract requires occupied-zone operative/radiant conditions, useful heat removed by a real building-side path, layered store state and night recovery, pump/fan electricity, full water source/loss accounting and outdoor spatial microclimate controls. It prohibits automatic aerosol operation, hidden essential-water reserve use, and treating thermal comfort as a health safety guarantee.
+
+**Status:** 36 registered comparisons, not executed. The Qanat field values are stored only as a Seville reference and explicitly marked non-transferable to Highveld.
+
+## 21. Refuge network engines: keep objective and evidence role explicit
+
+The active branch now separates five related but non-interchangeable questions:
+
+| Tool | Question answered | Exactness / output boundary |
+|---|---|---|
+| highveld-refuge-availability-governor | Is one site eligible for human capacity planning at this time? | Deterministic site eligibility, no allocation |
+| highveld-refuge-network-flow-oracle | What is the maximum aggregate throughput in a small frozen network under an accessible-first policy? | Independent Edmonds–Karp reference, no fairness/temporal policy |
+| highveld-refuge-network-feasibility | How much service can the network sustain across cohorts and event-time states, under a progressive max-min policy? | Shared-capacity flow plus temporal service debt, degradation/recovery and freshness |
+| highveld-refuge-capacity-oracle | Does a complete bounded group-level feasibility witness exist? | Exact bounded search; node-limit exhaustion is indeterminate |
+| highveld-refuge-shared-capacity-audit | Does a proposed group-level plan overcommit shared site resources? | Independent plan audit, not an optimizer |
+
+The simple max-flow comparator is not a second main allocator. Its value is methodological: it gives a conventional throughput reference against which the fairness-aware and time-series engines can be compared on the same frozen input. Do not interpret its higher total flow as a superior service policy if it worsens minimum cohort service or accessible unmet demand.
+
+Future acceptance should include a shared fixture/adapter so each tool consumes one common route/capacity/resource graph, plus an independent replay that compares total throughput, accessible service, minimum cohort coverage, per-area unmet demand, time-integrated place-hours, water headroom and recovery chronology.
+
+
+
+## 16. 14 November 2026 research update: pool-cover pathways, transferability and reference verification
+
+### Specialist-model boundary
+
+EnergyPlus 26.2's SwimmingPool:Indoor represents an indoor pool coupled to a zone and plant loop. Its heat balance has separate convective, evaporative, radiative, bottom-conduction, makeup-water and plant-heating terms. The cover schedule also separates cover effects on evaporation, convection, short-wave radiation and long-wave radiation. This is a useful indoor-pool baseline; it is not an outdoor pool, courtyard CFD or neighborhood microclimate model.
+
+Sources:
+- [EnergyPlus 26.2 Indoor Swimming Pool Engineering Reference](https://energyplus.readthedocs.io/en/v26.2.0/guides/engineering-reference/17.3-indoor-swimming-pool.html)
+- [EnergyPlus 26.2 SwimmingPool:Indoor object reference](https://energyplus.readthedocs.io/en/v26.2.0/guides/input-output-reference/1.14-group-internal-gains-people-lights-other-internal-zone-equipment.html)
+
+A 2025 Norwegian indoor-pool study measured up to 70% evaporation reduction for an unoccupied indoor pool when a movable floor acted as a cover. This is a facility-specific result, not an outdoor pool coefficient or Johannesburg guarantee. Its useful lesson is to measure cover performance instead of assuming a generic evaporation factor.
+
+Source:
+- [Quantifying the Influence of the Pool Cover on the Water Evaporation Rate in Indoor Swimming Halls, IBPSA 2025](https://publications.ibpsa.org/conference/paper/?id=bs2025_1871)
+
+### Outdoor water-channel and blue-space scale limits
+
+An August 2026 CFD study of traditional water channels reports up to 2.40 °C PET reduction in its narrow-channel cases, but finds canyon confinement and wind more influential than surface area; multiple channels can worsen daytime comfort through long-wave radiation. It tests 14 alleyway configurations × 27 environmental conditions × 3 simulation hours (1,134 cases). These are modeled arid-alley results, not measured Highveld effects.
+
+A September 2026 Nanjing park field/model study reports a 1.30 °C park-average air-temperature reduction versus built-up surroundings while all measured internal activity points still experienced at least strong UTCI heat stress; point air temperatures differed by up to 2.22 °C. This is a strong warning against using a park/courtyard mean to claim a resident-level comfort benefit.
+
+A February 2026 dense-urban water-body study reports a 3.41 ha threshold for isolated water bodies under its study conditions. This is not a backyard-pool or courtyard design rule; do not scale it by area ratio.
+
+Sources:
+- [Traditional water-channel cooling and canyon configuration study, 15 August 2026](https://www.sciencedirect.com/science/article/pii/S2210670726004038)
+- [From Park-Wide Cooling to Heat Stress Across Activity Spaces, 6 September 2026](https://www.mdpi.com/2071-1050/18/17/9141)
+- [Regulation of water body cooling effects in dense Urban Areas, 1 February 2026](https://www.sciencedirect.com/science/article/pii/S2210670726000363)
+- [Passive cooling for the built environment, Nature Reviews Clean Technology, 2 July 2026](https://www.nature.com/articles/s44359-026-00177-y)
+
+### Current comparative benchmark position
+
+The new work now separates:
+- first-law pool/water balance and each heat path;
+- second-law temperature-grade exergy and idealized headroom;
+- pool cover, heat recovery and passive regeneration;
+- pedestrian microclimate causal attribution against matched dry shade;
+- cross-scale claim promotion;
+- refuge availability, shared capacity, maximum-throughput reference, progressive max-min service and ordered supply/demand degradation.
+
+The refuge max-flow oracle now checks all 144 small two-area/two-site route/capacity configurations against a separate brute-force integral assignment enumerator, plus monotonicity of throughput under route and capacity changes. The pool exergy ledger adds property-based checks for non-negativity, monotonicity with temperature distance, linear scaling with mass/specific heat and invalid absolute-temperature rejection.
+
+### What would constitute a real SOTA advance
+
+1. **Matched physical baseline:** use the EnergyPlus indoor pool object only for applicable indoor cases; use a separately qualified outdoor boundary/CFD/field method for pools, rills and courtyards.
+2. **Adaptive cover test:** compare covered, shaded-exposed and night-open schedules across a complete diurnal/seasonal cycle, with measured short-wave, long-wave, convection, evaporation, pool temperature and water use.
+3. **Robust sink regeneration:** require the lower uncertainty bound of predicted heat rejection to be positive and the upper uncertainty bound of evaporative loss to fit inside an admitted discretionary water budget before recommending exposure for regeneration.
+4. **Causal pedestrian outcomes:** paired upwind, feature-edge, near-field, downwind and matched dry-shade measurements at occupied heights, with MRT/globe/UTCI inputs and multi-day weather blocks.
+5. **Cross-scale evidence discipline:** no water-surface result becomes a pedestrian claim; no pedestrian result becomes an indoor cooling claim; no blue-space map becomes a thermal-refuge service claim without the next evidence tier.
+6. **Temporal service comparison:** compare P50/P90/P95 and worst-group service continuity, accessible unmet demand, water reserve headroom, thermal store drift and recovery time under the same compound heat/grid/water traces.
+
+These are research targets. No outdoor pool performance, cover optimum, microclimate improvement, building energy saving or neighborhood cooling result has been measured for Johannesburg. The strongest differentiator remains the independently replayable integration of specialist physics, water entitlements, finite thermal storage, human-service outcomes and scale-correct evidence.

@@ -1,0 +1,169 @@
+{
+  "format_version": "0.1",
+  "study_id": "HIGHVELD-POOL-SCALE-TRANSFER-001",
+  "parent_studies": [
+    "HIGHVELD-POOL-WATER-THERMAL-001",
+    "HIGHVELD-POOL-MICROCLIMATE-ATTRIBUTION-001"
+  ],
+  "maturity": "RESEARCH_PROTOCOL_NOT_EXECUTED",
+  "execution_status": "NOT_EXECUTED",
+  "climate_context": "JOHANNESBURG_HIGHVELD",
+  "scale_tiers": [
+    {
+      "id": "COMPONENT_POOL",
+      "claim_scope": "WATER_MATERIAL_STORAGE_AND_PHYSICAL_BALANCE",
+      "minimum_evidence": [
+        "LAYER_RESOLVED_STATE",
+        "WATER_VOLUME",
+        "FIRST_LAW_BALANCE",
+        "USABLE_HEADROOM",
+        "SINK_PATH_EVIDENCE"
+      ]
+    },
+    {
+      "id": "COURTYARD_PEDESTRIAN",
+      "claim_scope": "LOCAL_OUTDOOR_MICROCLIMATE_AT_OCCUPIED_HEIGHTS",
+      "minimum_evidence": [
+        "MATCHED_DRY_SHADE_CONTROL",
+        "UPWIND_BOUNDARY",
+        "SPATIAL_TRANSECT",
+        "AIR_TEMPERATURE",
+        "HUMIDITY",
+        "WIND",
+        "MEAN_RADIANT_OR_GLOBE_TEMPERATURE",
+        "SENSOR_HEIGHT_AND_GEOMETRY"
+      ]
+    },
+    {
+      "id": "BUILDING_OCCUPIED_ZONE",
+      "claim_scope": "INDOOR_THERMAL_SERVICE_AND_COOLING_DEMAND",
+      "minimum_evidence": [
+        "QUALIFIED_BUILDING_SIDE_HEAT_PATH",
+        "INDOOR_OPERATIVE_CONDITIONS",
+        "OCCUPANCY_AND_SCHEDULE",
+        "COOLING_ELECTRICITY"
+      ]
+    },
+    {
+      "id": "NEIGHBORHOOD_BLUE_SPACE",
+      "claim_scope": "SPATIALLY_DISTRIBUTED_URBAN_EFFECT",
+      "minimum_evidence": [
+        "DISTRIBUTED_REPRESENTATIVE_STATIONS",
+        "URBAN_MORPHOLOGY",
+        "SKY_VIEW_AND_WIND_CONTEXT",
+        "ACTIVITY_SPACE_EXPOSURE",
+        "SPATIAL_DECAY_AND_UNCERTAINTY"
+      ]
+    },
+    {
+      "id": "THERMAL_SERVICE_REFUGE",
+      "claim_scope": "ACTUAL_ACCESSIBLE_THERMAL_SERVICE",
+      "minimum_evidence": [
+        "QUALIFIED_REFUGE_OPERATING_STATE",
+        "AUTHORITY_APPROVED_SAFETY_ENVELOPE",
+        "ACCESSIBLE_ROUTE",
+        "TIME_SPECIFIC_CAPACITY",
+        "WATER_AND_OUTAGE_DEPENDENCIES"
+      ]
+    }
+  ],
+  "promotion_rules": [
+    {
+      "id": "COMPONENT_TO_COURTYARD",
+      "from": "COMPONENT_POOL",
+      "to": "COURTYARD_PEDESTRIAN",
+      "required": [
+        "INDEPENDENT_OUTDOOR_BOUNDARY",
+        "OCCUPIED_HEIGHT_RESPONSE",
+        "MATCHED_DRY_SHADE_CONTROL"
+      ],
+      "automatic": false
+    },
+    {
+      "id": "COURTYARD_TO_BUILDING",
+      "from": "COURTYARD_PEDESTRIAN",
+      "to": "BUILDING_OCCUPIED_ZONE",
+      "required": [
+        "QUALIFIED_BUILDING_SIDE_HEAT_PATH",
+        "INDOOR_OCCUPIED_ZONE_EVIDENCE"
+      ],
+      "automatic": false
+    },
+    {
+      "id": "COURTYARD_TO_NEIGHBORHOOD",
+      "from": "COURTYARD_PEDESTRIAN",
+      "to": "NEIGHBORHOOD_BLUE_SPACE",
+      "required": [
+        "DISTRIBUTED_SPATIAL_SAMPLING",
+        "REPRESENTATIVE_MORPHOLOGY_AND_METEOROLOGY",
+        "SPATIAL_DECAY_ANALYSIS"
+      ],
+      "automatic": false
+    },
+    {
+      "id": "NEIGHBORHOOD_TO_REFUGE",
+      "from": "NEIGHBORHOOD_BLUE_SPACE",
+      "to": "THERMAL_SERVICE_REFUGE",
+      "required": [
+        "REFUGE_OPERATIONS",
+        "TIME_SPECIFIC_CAPACITY",
+        "ACCESSIBLE_REACHABILITY",
+        "AUTHORITY_APPROVED_SERVICE_CRITERIA"
+      ],
+      "automatic": false
+    }
+  ],
+  "literature_transferability_controls": [
+    {
+      "id": "DENSE_URBAN_WATER_BODY_2026_3_41_HA",
+      "source_date": "2026-02",
+      "reported_value": 3.41,
+      "reported_unit": "ha",
+      "context": "ISOLATED_URBAN_WATER_BODIES_IN_SOURCE_STUDY_DOMAIN",
+      "transferability": "NOT_TRANSFERABLE_AS_RESIDENTIAL_POOL_OR_COURTYARD_THRESHOLD",
+      "use": "SCALE_AND_MORPHOLOGY_DEPENDENCE_CONTEXT_ONLY"
+    },
+    {
+      "id": "MOCHOU_LAKE_PARK_2026",
+      "source_date": "2026-09-06",
+      "context": "NANJING_PARK_FIELD_AND_ENVI_MET_STUDY",
+      "field_date": "2025-08-28",
+      "reported_park_mean_air_temperature_difference_c": 1.3,
+      "reported_park_relative_humidity_difference_percentage_points": 2.72,
+      "reported_activity_space_air_temperature_range_c": 2.22,
+      "reported_utci_state": "AT_LEAST_STRONG_HEAT_STRESS_AT_ALL_SAMPLED_INTERNAL_POINTS",
+      "transferability": "CONTEXT_ONLY_NOT_HIGHVELD_TARGET"
+    },
+    {
+      "id": "TRADITIONAL_WATER_CHANNEL_CANYON_2026",
+      "source_date": "2026-08",
+      "context": "STUDY_SPECIFIC_WIND_CANYON_AND_CHANNEL_CONFIGURATIONS",
+      "transferability": "CONTEXT_ONLY_REQUIRES_LOCAL_GEOMETRY_AND_WIND_VALIDATION"
+    }
+  ],
+  "scale_descriptors": [
+    "EXPOSED_WATER_SURFACE_AREA_OVER_WATER_VOLUME",
+    "WATER_SURFACE_AREA_OVER_COURTYARD_PLAN_AREA",
+    "WATER_DEPTH_OVER_CHARACTERISTIC_FEATURE_LENGTH",
+    "SENSOR_DISTANCE_OVER_CHARACTERISTIC_FEATURE_LENGTH",
+    "SKY_VIEW_FACTOR_AND_HORIZON_OBSTRUCTION",
+    "CANYON_HEIGHT_OVER_WIDTH_AND_LOCAL_SHELTER",
+    "WIND_TO_BUOYANCY_REGIME_WITH_VALID_ASSUMPTIONS",
+    "EVAPORATIVE_LATENT_HEAT_OVER_MEASURED_TOTAL_HEAT_INPUT",
+    "EVAPORATED_VOLUME_OVER_DISCRETIONARY_WATER_BUDGET",
+    "USABLE_THERMAL_HEADROOM_OVER_REPRESENTATIVE_HEAT_LOAD_RATE",
+    "SPATIAL_DECAY_OF_PEDESTRIAN_THERMAL_RESPONSE"
+  ],
+  "hard_gates": {
+    "urban_water_body_area_threshold_transferred_to_residential_pool": 0,
+    "land_surface_temperature_only_promoted_to_pedestrian_comfort": 0,
+    "dry_bulb_only_promoted_to_thermal_comfort_or_safety": 0,
+    "spatial_mean_hiding_activity_space_heat_stress": 0,
+    "courtyard_evidence_promoted_to_building_cooling_without_zone_path": 0,
+    "neighborhood_map_promoted_to_refuge_without_capacity_route_operations": 0,
+    "treatment_without_matched_dry_shade_and_upwind_control": 0,
+    "minute_samples_treated_as_independent_replicates": 0,
+    "untraceable_scale_claims": 0
+  },
+  "claim_ceiling": "Scale-tier and transferability contract only; no Johannesburg field measurement, universal cooling coefficient, residential area threshold or safety claim."
+}

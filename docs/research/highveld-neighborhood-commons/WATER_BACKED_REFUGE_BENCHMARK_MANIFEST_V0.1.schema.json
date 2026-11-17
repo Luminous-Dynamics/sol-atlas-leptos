@@ -1,0 +1,332 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://luminousdynamics.io/schemas/highveld-water-backed-refuge-v0.1.schema.json",
+  "title": "Highveld integrated water-backed thermal refuge benchmark v0.1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "format_version",
+    "study_id",
+    "parent_studies",
+    "maturity",
+    "execution_status",
+    "climate_context",
+    "comparison_arms",
+    "scenarios",
+    "case_expansion",
+    "field_reference",
+    "required_weather_fields",
+    "required_occupied_zone_measurements",
+    "required_thermal_loop_measurements",
+    "required_water_terms",
+    "required_metrics",
+    "hard_gates",
+    "governance",
+    "owners",
+    "claim_ceiling"
+  ],
+  "properties": {
+    "format_version": {
+      "const": "0.1"
+    },
+    "study_id": {
+      "const": "HIGHVELD-WATER-BACKED-REFUGE-001"
+    },
+    "parent_studies": {
+      "type": "array",
+      "minItems": 2,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "maturity": {
+      "const": "BENCHMARK_PROTOCOL_NOT_EXECUTED"
+    },
+    "execution_status": {
+      "const": "NOT_EXECUTED"
+    },
+    "climate_context": {
+      "const": "JOHANNESBURG_HIGHVELD"
+    },
+    "comparison_arms": {
+      "type": "array",
+      "minItems": 6,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "role"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "role": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    },
+    "scenarios": {
+      "type": "array",
+      "minItems": 6,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "case_expansion": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "arms",
+        "scenarios",
+        "cases",
+        "state"
+      ],
+      "properties": {
+        "arms": {
+          "const": 6
+        },
+        "scenarios": {
+          "const": 6
+        },
+        "cases": {
+          "const": 36
+        },
+        "state": {
+          "const": "REGISTERED_NOT_EXECUTED"
+        }
+      }
+    },
+    "field_reference": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "reference_id",
+        "evidence_class",
+        "publication_date",
+        "climate_scope",
+        "reported_values",
+        "method_boundary",
+        "transferability"
+      ],
+      "properties": {
+        "reference_id": {
+          "const": "CARTUJA_QANAT_AGORA_SEVILLE_2026"
+        },
+        "evidence_class": {
+          "const": "LARGE_SCALE_FIELD_ASSESSMENT"
+        },
+        "publication_date": {
+          "const": "2026-11"
+        },
+        "climate_scope": {
+          "const": "SEVILLE_MEDITERRANEAN_EXTREME_HEAT"
+        },
+        "reported_values": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "outdoor_conditions_approaching_c",
+            "occupied_zone_temperature_approximately_c",
+            "occupied_zone_air_temperature_reduction_greater_than_c",
+            "night_regeneration_capacity_kw",
+            "reported_cop",
+            "surveyed_users_neutral_thermal_sensation_percent"
+          ],
+          "properties": {
+            "outdoor_conditions_approaching_c": {
+              "const": 40
+            },
+            "occupied_zone_temperature_approximately_c": {
+              "const": 29
+            },
+            "occupied_zone_air_temperature_reduction_greater_than_c": {
+              "const": 15
+            },
+            "night_regeneration_capacity_kw": {
+              "const": 152
+            },
+            "reported_cop": {
+              "const": 32.4
+            },
+            "surveyed_users_neutral_thermal_sensation_percent": {
+              "const": 80
+            }
+          }
+        },
+        "method_boundary": {
+          "type": "string",
+          "minLength": 20
+        },
+        "transferability": {
+          "const": "REFERENCE_ONLY_NOT_HIGHVELD_PREDICTION"
+        }
+      }
+    },
+    "required_weather_fields": {
+      "type": "array",
+      "minItems": 8,
+      "uniqueItems": true,
+      "items": {
+        "type": "string"
+      }
+    },
+    "required_occupied_zone_measurements": {
+      "type": "array",
+      "minItems": 8,
+      "uniqueItems": true,
+      "items": {
+        "type": "string"
+      }
+    },
+    "required_thermal_loop_measurements": {
+      "type": "array",
+      "minItems": 8,
+      "uniqueItems": true,
+      "items": {
+        "type": "string"
+      }
+    },
+    "required_water_terms": {
+      "type": "array",
+      "minItems": 8,
+      "uniqueItems": true,
+      "items": {
+        "type": "string"
+      }
+    },
+    "required_metrics": {
+      "type": "array",
+      "minItems": 10,
+      "uniqueItems": true,
+      "items": {
+        "type": "string"
+      }
+    },
+    "hard_gates": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "protected_essential_water_reserve_breaches",
+        "unqualified_water_or_aerosol_operation",
+        "indoor_cooling_claim_without_building_side_heat_path",
+        "thermal_store_as_sink_without_measured_regeneration",
+        "balance_residual_outside_propagated_uncertainty",
+        "owner_temperature_limit_breach_reported_as_positive_headroom",
+        "untraceable_model_weather_property_rights_or_instrument_inputs",
+        "missed_seeded_negative_controls",
+        "false_blocks_of_positive_controls"
+      ],
+      "properties": {
+        "protected_essential_water_reserve_breaches": {
+          "const": 0
+        },
+        "unqualified_water_or_aerosol_operation": {
+          "const": 0
+        },
+        "indoor_cooling_claim_without_building_side_heat_path": {
+          "const": 0
+        },
+        "thermal_store_as_sink_without_measured_regeneration": {
+          "const": 0
+        },
+        "balance_residual_outside_propagated_uncertainty": {
+          "const": 0
+        },
+        "owner_temperature_limit_breach_reported_as_positive_headroom": {
+          "const": 0
+        },
+        "untraceable_model_weather_property_rights_or_instrument_inputs": {
+          "const": 0
+        },
+        "missed_seeded_negative_controls": {
+          "const": 0
+        },
+        "false_blocks_of_positive_controls": {
+          "const": 0
+        }
+      }
+    },
+    "governance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "aerosol_generating_path_default_enabled",
+        "water_rights_owner",
+        "temperature_limit_owner",
+        "comfort_is_health_safety_limit",
+        "unknown_water_state_means_disallowed",
+        "pool_is_finite_thermal_buffer",
+        "field_reference_transferability_requires_matched_boundary"
+      ],
+      "properties": {
+        "aerosol_generating_path_default_enabled": {
+          "const": false
+        },
+        "water_rights_owner": {
+          "const": "MYCELIX"
+        },
+        "temperature_limit_owner": {
+          "type": "string",
+          "minLength": 1
+        },
+        "comfort_is_health_safety_limit": {
+          "const": false
+        },
+        "unknown_water_state_means_disallowed": {
+          "const": true
+        },
+        "pool_is_finite_thermal_buffer": {
+          "const": true
+        },
+        "field_reference_transferability_requires_matched_boundary": {
+          "const": true
+        }
+      }
+    },
+    "owners": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "geometry_and_microclimate",
+        "event_time_and_trajectory_replay",
+        "water_rights_quality_reserve_and_instruments",
+        "specialist_building_and_plant_physics",
+        "safety_envelope",
+        "resident_and_asset_authority"
+      ],
+      "properties": {
+        "geometry_and_microclimate": {
+          "const": "SOL_ATLAS"
+        },
+        "event_time_and_trajectory_replay": {
+          "const": "SYMTROPY"
+        },
+        "water_rights_quality_reserve_and_instruments": {
+          "const": "MYCELIX"
+        },
+        "specialist_building_and_plant_physics": {
+          "const": "ENERGYPLUS_MODELICA_QUALIFIED_CFD"
+        },
+        "safety_envelope": {
+          "const": "COMPETENT_LOCAL_AUTHORITY_AND_QUALIFIED_PROFESSIONALS"
+        },
+        "resident_and_asset_authority": {
+          "const": "RESIDENT_AND_ASSET_OWNER"
+        }
+      }
+    },
+    "claim_ceiling": {
+      "type": "string",
+      "minLength": 50
+    }
+  }
+}

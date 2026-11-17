@@ -1,0 +1,455 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://luminousdynamics.io/schemas/highveld-pool-passive-regeneration-ledger-v0.1.schema.json",
+  "title": "Highveld pool passive thermal-buffer and regeneration case v0.1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "study_id",
+    "case_id",
+    "maturity",
+    "execution_status",
+    "pool",
+    "water_governance",
+    "latent_heat_method",
+    "cycle_closure_required",
+    "cycle_closure_tolerance_u95_kwh",
+    "evidence_refs",
+    "intervals"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "0.1"
+    },
+    "study_id": {
+      "const": "HIGHVELD-POOL-PASSIVE-REGENERATION-LEDGER-001"
+    },
+    "case_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "maturity": {
+      "const": "SYNTHETIC_KNOWN_ANSWER"
+    },
+    "execution_status": {
+      "const": "NO_PHYSICAL_SIMULATION"
+    },
+    "pool": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "energy_state_basis",
+        "usable_thermal_energy_min_kwh",
+        "usable_thermal_energy_capacity_kwh",
+        "initial_thermal_energy_kwh",
+        "initial_water_volume_l",
+        "water_volume_capacity_l",
+        "maximum_permitted_temperature_c",
+        "temperature_limit_authority_ref"
+      ],
+      "properties": {
+        "energy_state_basis": {
+          "const": "LAYER_RESOLVED_WATER_ENTHALPY_ABOVE_REFERENCE_OR_VALIDATED_EQUIVALENT"
+        },
+        "usable_thermal_energy_min_kwh": {
+          "type": "number",
+          "minimum": 0
+        },
+        "usable_thermal_energy_capacity_kwh": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "initial_thermal_energy_kwh": {
+          "type": "number",
+          "minimum": 0
+        },
+        "initial_water_volume_l": {
+          "type": "number",
+          "minimum": 0
+        },
+        "water_volume_capacity_l": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "maximum_permitted_temperature_c": {
+          "type": "number"
+        },
+        "temperature_limit_authority_ref": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "water_governance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "water_rights_state",
+        "water_quality_state",
+        "discretionary_makeup_permitted",
+        "discretionary_makeup_budget_l",
+        "makeup_source_class",
+        "protected_essential_water_reserve_l"
+      ],
+      "properties": {
+        "water_rights_state": {
+          "enum": [
+            "QUALIFIED",
+            "FAILED",
+            "UNKNOWN"
+          ]
+        },
+        "water_quality_state": {
+          "enum": [
+            "QUALIFIED",
+            "FAILED",
+            "UNKNOWN"
+          ]
+        },
+        "discretionary_makeup_permitted": {
+          "type": "boolean"
+        },
+        "discretionary_makeup_budget_l": {
+          "type": "number",
+          "minimum": 0
+        },
+        "makeup_source_class": {
+          "enum": [
+            "NONE",
+            "POTABLE",
+            "RAINWATER",
+            "RECLAIMED_QUALIFIED",
+            "OTHER"
+          ]
+        },
+        "protected_essential_water_reserve_l": {
+          "type": "number",
+          "minimum": 0
+        }
+      }
+    },
+    "latent_heat_method": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "latent_heat_kwh_per_l",
+        "method_ref"
+      ],
+      "properties": {
+        "latent_heat_kwh_per_l": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "method_ref": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "cycle_closure_required": {
+      "type": "boolean"
+    },
+    "cycle_closure_tolerance_u95_kwh": {
+      "type": "number",
+      "minimum": 0
+    },
+    "evidence_refs": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "source_bundle_ref",
+        "layered_state_method_ref",
+        "flux_measurement_method_ref",
+        "water_meter_method_ref",
+        "evaporation_method_ref",
+        "latent_heat_method_ref",
+        "uncertainty_method_ref",
+        "independent_oracle_ref",
+        "water_rights_evidence_ref"
+      ],
+      "properties": {
+        "source_bundle_ref": {
+          "type": "string",
+          "minLength": 1
+        },
+        "layered_state_method_ref": {
+          "type": "string",
+          "minLength": 1
+        },
+        "flux_measurement_method_ref": {
+          "type": "string",
+          "minLength": 1
+        },
+        "water_meter_method_ref": {
+          "type": "string",
+          "minLength": 1
+        },
+        "evaporation_method_ref": {
+          "type": "string",
+          "minLength": 1
+        },
+        "latent_heat_method_ref": {
+          "type": "string",
+          "minLength": 1
+        },
+        "uncertainty_method_ref": {
+          "type": "string",
+          "minLength": 1
+        },
+        "independent_oracle_ref": {
+          "type": "string",
+          "minLength": 1
+        },
+        "water_rights_evidence_ref": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "intervals": {
+      "type": "array",
+      "minItems": 2,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "interval_id",
+          "duration_h",
+          "cover_mode",
+          "weather",
+          "pool_temperature_start_c",
+          "pool_temperature_end_c",
+          "maximum_layer_temperature_c",
+          "thermal_energy_start_kwh",
+          "building_heat_input_kwh",
+          "solar_absorbed_kwh",
+          "other_heat_input_kwh",
+          "liquid_enthalpy_in_kwh",
+          "longwave_heat_rejected_kwh",
+          "sensible_heat_rejected_kwh",
+          "evaporative_latent_heat_rejected_kwh",
+          "ground_heat_rejected_kwh",
+          "heat_exchanger_heat_rejected_kwh",
+          "liquid_enthalpy_out_kwh",
+          "thermal_balance_u95_kwh",
+          "water_volume_start_l",
+          "makeup_l",
+          "rain_l",
+          "evaporation_l",
+          "intentional_withdrawal_l",
+          "leakage_l",
+          "backwash_purge_l",
+          "overflow_l",
+          "water_volume_end_l",
+          "water_balance_u95_l",
+          "evaporation_latent_heat_u95_kwh",
+          "thermal_state_start_evidence_ref",
+          "thermal_state_end_evidence_ref",
+          "heat_flux_evidence_ref",
+          "water_meter_evidence_ref",
+          "weather_evidence_ref",
+          "cover_state_evidence_ref",
+          "temperature_limit_evidence_ref",
+          "uncertainty_evidence_ref",
+          "thermal_energy_end_kwh"
+        ],
+        "properties": {
+          "interval_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "duration_h": {
+            "type": "number",
+            "exclusiveMinimum": 0
+          },
+          "cover_mode": {
+            "enum": [
+              "UNCOVERED",
+              "COVERED",
+              "SHADED_EXPOSED",
+              "SHADED_COVERED",
+              "ADAPTIVE"
+            ]
+          },
+          "weather": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "dry_bulb_c",
+              "relative_humidity_percent",
+              "wind_speed_m_s",
+              "global_solar_w_m2",
+              "downwelling_longwave_w_m2",
+              "sky_view_factor"
+            ],
+            "properties": {
+              "dry_bulb_c": {
+                "type": "number"
+              },
+              "relative_humidity_percent": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 100
+              },
+              "wind_speed_m_s": {
+                "type": "number",
+                "minimum": 0
+              },
+              "global_solar_w_m2": {
+                "type": "number",
+                "minimum": 0
+              },
+              "downwelling_longwave_w_m2": {
+                "type": "number",
+                "minimum": 0
+              },
+              "sky_view_factor": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 1
+              }
+            }
+          },
+          "pool_temperature_start_c": {
+            "type": "number"
+          },
+          "pool_temperature_end_c": {
+            "type": "number"
+          },
+          "maximum_layer_temperature_c": {
+            "type": "number"
+          },
+          "thermal_energy_start_kwh": {
+            "type": "number",
+            "minimum": 0
+          },
+          "building_heat_input_kwh": {
+            "type": "number",
+            "minimum": 0
+          },
+          "solar_absorbed_kwh": {
+            "type": "number",
+            "minimum": 0
+          },
+          "other_heat_input_kwh": {
+            "type": "number",
+            "minimum": 0
+          },
+          "liquid_enthalpy_in_kwh": {
+            "type": "number",
+            "minimum": 0
+          },
+          "longwave_heat_rejected_kwh": {
+            "type": "number",
+            "minimum": 0
+          },
+          "sensible_heat_rejected_kwh": {
+            "type": "number",
+            "minimum": 0
+          },
+          "evaporative_latent_heat_rejected_kwh": {
+            "type": "number",
+            "minimum": 0
+          },
+          "ground_heat_rejected_kwh": {
+            "type": "number",
+            "minimum": 0
+          },
+          "heat_exchanger_heat_rejected_kwh": {
+            "type": "number",
+            "minimum": 0
+          },
+          "liquid_enthalpy_out_kwh": {
+            "type": "number",
+            "minimum": 0
+          },
+          "thermal_balance_u95_kwh": {
+            "type": "number",
+            "minimum": 0
+          },
+          "water_volume_start_l": {
+            "type": "number",
+            "minimum": 0
+          },
+          "makeup_l": {
+            "type": "number",
+            "minimum": 0
+          },
+          "rain_l": {
+            "type": "number",
+            "minimum": 0
+          },
+          "evaporation_l": {
+            "type": "number",
+            "minimum": 0
+          },
+          "intentional_withdrawal_l": {
+            "type": "number",
+            "minimum": 0
+          },
+          "leakage_l": {
+            "type": "number",
+            "minimum": 0
+          },
+          "backwash_purge_l": {
+            "type": "number",
+            "minimum": 0
+          },
+          "overflow_l": {
+            "type": "number",
+            "minimum": 0
+          },
+          "water_volume_end_l": {
+            "type": "number",
+            "minimum": 0
+          },
+          "water_balance_u95_l": {
+            "type": "number",
+            "minimum": 0
+          },
+          "evaporation_latent_heat_u95_kwh": {
+            "type": "number",
+            "minimum": 0
+          },
+          "thermal_state_start_evidence_ref": {
+            "type": "string",
+            "minLength": 1
+          },
+          "thermal_state_end_evidence_ref": {
+            "type": "string",
+            "minLength": 1
+          },
+          "heat_flux_evidence_ref": {
+            "type": "string",
+            "minLength": 1
+          },
+          "water_meter_evidence_ref": {
+            "type": "string",
+            "minLength": 1
+          },
+          "weather_evidence_ref": {
+            "type": "string",
+            "minLength": 1
+          },
+          "cover_state_evidence_ref": {
+            "type": "string",
+            "minLength": 1
+          },
+          "temperature_limit_evidence_ref": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uncertainty_evidence_ref": {
+            "type": "string",
+            "minLength": 1
+          },
+          "thermal_energy_end_kwh": {
+            "type": "number",
+            "minimum": 0
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,203 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://luminousdynamics.io/schemas/highveld-refuge-network-flow-v0.1.schema.json",
+  "title": "Highveld refuge network flow input v0.1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "study_id",
+    "case_id",
+    "maturity",
+    "execution_status",
+    "allocation_policy",
+    "water_l_per_person",
+    "maximum_route_travel_time_s",
+    "oracle_revision",
+    "demand_areas",
+    "sites",
+    "demand_evidence_ref",
+    "independent_oracle_ref"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "0.1"
+    },
+    "study_id": {
+      "const": "HIGHVELD-REFUGE-NETWORK-FLOW-001"
+    },
+    "case_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "maturity": {
+      "const": "SYNTHETIC_KNOWN_ANSWER"
+    },
+    "execution_status": {
+      "const": "NO_REAL_DEMAND_OR_ROUTE_DATA"
+    },
+    "allocation_policy": {
+      "const": "ACCESSIBLE_FIRST_THEN_GENERAL_REMAINDER_OF_SHARED_SITE_CAPACITY"
+    },
+    "water_l_per_person": {
+      "type": "number",
+      "exclusiveMinimum": 0
+    },
+    "maximum_route_travel_time_s": {
+      "type": "number",
+      "exclusiveMinimum": 0
+    },
+    "oracle_revision": {
+      "const": "EDMONDS_KARP_BIPARTITE_MAX_FLOW_V0_1"
+    },
+    "demand_areas": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "area_id",
+          "total_places",
+          "accessible_places",
+          "route_options"
+        ],
+        "properties": {
+          "area_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "total_places": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 1000000
+          },
+          "accessible_places": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 1000000
+          },
+          "route_options": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "site_id",
+                "route_state",
+                "accessibility_state",
+                "travel_time_s",
+                "route_evidence_ref",
+                "accessibility_evidence_ref"
+              ],
+              "properties": {
+                "site_id": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "route_state": {
+                  "enum": [
+                    "REACHABLE",
+                    "BLOCKED",
+                    "UNKNOWN"
+                  ]
+                },
+                "accessibility_state": {
+                  "enum": [
+                    "QUALIFIED",
+                    "FAILED",
+                    "UNKNOWN"
+                  ]
+                },
+                "travel_time_s": {
+                  "type": "number",
+                  "minimum": 0
+                },
+                "route_evidence_ref": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "accessibility_evidence_ref": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              }
+            }
+          },
+          "maximum_route_travel_time_s": {
+            "type": "number",
+            "exclusiveMinimum": 0
+          }
+        }
+      },
+      "maxItems": 64
+    },
+    "sites": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "site_id",
+          "availability_state",
+          "free_total_places",
+          "free_accessible_places",
+          "free_safe_water_l",
+          "availability_evidence_ref",
+          "capacity_evidence_ref",
+          "water_evidence_ref"
+        ],
+        "properties": {
+          "site_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "availability_state": {
+            "enum": [
+              "ELIGIBLE",
+              "UNAVAILABLE",
+              "UNKNOWN"
+            ]
+          },
+          "free_total_places": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 1000000
+          },
+          "free_accessible_places": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 1000000
+          },
+          "free_safe_water_l": {
+            "type": "number",
+            "minimum": 0
+          },
+          "availability_evidence_ref": {
+            "type": "string",
+            "minLength": 1
+          },
+          "capacity_evidence_ref": {
+            "type": "string",
+            "minLength": 1
+          },
+          "water_evidence_ref": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      },
+      "maxItems": 64
+    },
+    "demand_evidence_ref": {
+      "type": "string",
+      "minLength": 1
+    },
+    "independent_oracle_ref": {
+      "type": "string",
+      "minLength": 1
+    }
+  }
+}

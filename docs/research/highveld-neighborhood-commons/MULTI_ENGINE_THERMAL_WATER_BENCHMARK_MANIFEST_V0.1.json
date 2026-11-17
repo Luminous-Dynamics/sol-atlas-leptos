@@ -1,0 +1,116 @@
+{
+  "format_version": "0.1",
+  "study_id": "HIGHVELD-MULTI-ENGINE-THERMAL-WATER-001",
+  "parent_study_id": "HIGHVELD-PASSIVE-COOLING-WATER-001",
+  "maturity": "BENCHMARK_PREREGISTERED_NOT_EXECUTED",
+  "baseline": "S2_NO_WATER_PASSIVE_BASELINE",
+  "engines": [
+    {
+      "id": "ENERGYPLUS_26_2_0",
+      "product": "EnergyPlus",
+      "version": "26.2.0",
+      "role": "BUILDING_ZONE_HEAT_MOISTURE",
+      "independent_solver": true,
+      "execution_status": "NOT_EXECUTED"
+    },
+    {
+      "id": "MODELICA_BUILDINGS_14_0_0",
+      "product": "Modelica Buildings Library",
+      "version": "14.0.0",
+      "role": "DYNAMIC_HYDRONIC_STORAGE_CONTROL_GROUND",
+      "independent_solver": true,
+      "execution_status": "NOT_EXECUTED"
+    },
+    {
+      "id": "OPENSTUDIO_3_11_0",
+      "product": "OpenStudio SDK",
+      "version": "3.11.0",
+      "role": "MODEL_AUTHORING_AND_WORKFLOW",
+      "independent_solver": false,
+      "execution_status": "NOT_EXECUTED"
+    },
+    {
+      "id": "BOPTEST_0_9_0",
+      "product": "BOPTEST",
+      "version": "0.9.0",
+      "role": "CONTROL_TEST_HARNESS",
+      "independent_solver": false,
+      "execution_status": "NOT_EXECUTED"
+    },
+    {
+      "id": "OPENFOAM_FOUNDATION_14",
+      "product": "OpenFOAM Foundation",
+      "version": "14",
+      "role": "OUTDOOR_CFD",
+      "distribution": "FOUNDATION",
+      "independent_solver": true,
+      "execution_status": "NOT_EXECUTED"
+    },
+    {
+      "id": "OPENFOAM_OPENCFD_2606",
+      "product": "OpenCFD OpenFOAM",
+      "version": "v2606",
+      "role": "OUTDOOR_CFD_ALTERNATE_DISTRIBUTION",
+      "distribution": "OPENCFD",
+      "independent_solver": true,
+      "execution_status": "NOT_EXECUTED"
+    }
+  ],
+  "scenarios": [
+    "S0_ANALYTICAL_KNOWN_ANSWERS",
+    "S1_INDOOR_POOL_REFERENCE",
+    "S2_NO_WATER_PASSIVE_BASELINE",
+    "S3_OUTDOOR_COURTYARD_RILL",
+    "S4_CLOSED_LOOP_THERMAL_STORE",
+    "S5_CONTROL_POLICY_COMPARISON",
+    "S6_WATER_CURTAILMENT_AND_SOURCE_FAILURE",
+    "S7_HUMID_HOT_AND_COLD_NIGHT",
+    "S8_COMPONENT_AND_SENSOR_FAULTS",
+    "S9_PAIRED_FIELD_TEST_CELL"
+  ],
+  "frozen_inputs": [
+    "geometry_digest",
+    "weather_file_digest_and_source_metadata",
+    "occupancy_and_gains_digest",
+    "comfort_criteria_version",
+    "water_budget_and_reserve_digest",
+    "water_source_rights_and_quality_contract",
+    "plant_and_control_configuration_digest",
+    "solver_environment_digest",
+    "instrument_registry_and_calibration_digest",
+    "validation_split_manifest_digest"
+  ],
+  "result_vectors": [
+    "occupied_zone_operative_temperature_and_discomfort",
+    "humidity_dew_point_and_condensation",
+    "sensible_latent_radiative_and_conductive_heat_transfer",
+    "useful_occupied_zone_cooling_when_independently_qualified",
+    "water_balance_by_loss_category_and_source",
+    "pump_filter_treatment_and_control_energy",
+    "maintenance_downtime_and_repairability",
+    "predictive_uncertainty_and_out_of_domain",
+    "constraint_violations_and_safe_degraded_mode"
+  ],
+  "target_gates": {
+    "unauthorized_essential_water_floor_violations": 0,
+    "unknown_or_failed_water_rights_quality_restriction_operations": 0,
+    "unqualified_useful_cooling_credits": 0,
+    "accepted_critical_out_of_domain_decisions": 0,
+    "hard_safety_constraint_violations": 0,
+    "predictive_interval_coverage_targets_percent": [
+      90,
+      95
+    ],
+    "provenance_completeness_percent": 100
+  },
+  "co_simulation_requirements": [
+    "explicit_boundary_variables_and_units",
+    "sign_convention_and_interval_semantics",
+    "synchronization_and_interpolation_policy",
+    "missing_data_behavior",
+    "energy_moisture_conservation_residual",
+    "solver_and_controller_version_digests"
+  ],
+  "claim_ceiling": "No physical cooling, water saving, payback or state-of-the-art superiority claim is permitted before held-out independent validation and field evidence",
+  "execution_status": "NOT_EXECUTED"
+}

@@ -1,0 +1,194 @@
+{
+  "format_version": "0.1",
+  "study_id": "HIGHVELD-TOPOLOGY-REMOVAL-001",
+  "parent_candidate": "NEIGHBORHOOD_RESILIENCE_COMMONS",
+  "maturity": "PROTOCOL_ONLY_NOT_EXECUTED",
+  "pr_736_matrix_change": false,
+  "topology_arms": [
+    "CENTRAL_HUB",
+    "DISTRIBUTED_NODES",
+    "FEDERATED_PEER_MESH",
+    "MOBILE_SUPPORT",
+    "LAYERED_HYBRID"
+  ],
+  "comparison_modes": [
+    {
+      "id": "CAPACITY_MATCHED",
+      "required": true,
+      "held_constant": [
+        "total_installed_service_capacity",
+        "service_quality_limits",
+        "requirement_set_digest",
+        "trace_digest",
+        "initial_resource_state_digest",
+        "oracle_version"
+      ]
+    },
+    {
+      "id": "BUDGET_MATCHED",
+      "required": true,
+      "held_constant": [
+        "lifecycle_budget_envelope",
+        "requirement_set_digest",
+        "trace_digest",
+        "initial_resource_state_digest",
+        "oracle_version"
+      ]
+    },
+    {
+      "id": "MAINTENANCE_CAPACITY_MATCHED",
+      "required": false,
+      "held_constant": [
+        "qualified_technician_hours",
+        "spares_envelope",
+        "repair_access_envelope",
+        "requirement_set_digest",
+        "trace_digest",
+        "oracle_version"
+      ]
+    }
+  ],
+  "frozen_inputs_required": [
+    "requirement_set_digest",
+    "geometry_access_digest",
+    "exogenous_trace_digest",
+    "initial_resource_state_digest",
+    "service_contract_digest",
+    "model_configuration_digest",
+    "independent_service_oracle_id",
+    "independent_dependency_oracle_id"
+  ],
+  "removals": [
+    {
+      "id": "REMOVE_PRIMARY_HUB",
+      "applies_to": [
+        "CENTRAL_HUB",
+        "LAYERED_HYBRID"
+      ],
+      "target": "primary_hub",
+      "kind": "COMPONENT_ABLATION"
+    },
+    {
+      "id": "REMOVE_EACH_DISTRIBUTED_NODE",
+      "applies_to": [
+        "DISTRIBUTED_NODES",
+        "LAYERED_HYBRID"
+      ],
+      "target": "distributed_node",
+      "kind": "COMPONENT_ABLATION"
+    },
+    {
+      "id": "PARTITION_COORDINATION_NETWORK",
+      "applies_to": [
+        "FEDERATED_PEER_MESH",
+        "LAYERED_HYBRID"
+      ],
+      "target": "coordination_network",
+      "kind": "DEPENDENCY_PARTITION"
+    },
+    {
+      "id": "REMOVE_MOBILE_SUPPORT_UNIT",
+      "applies_to": [
+        "MOBILE_SUPPORT",
+        "LAYERED_HYBRID"
+      ],
+      "target": "mobile_support_unit",
+      "kind": "COMPONENT_ABLATION"
+    },
+    {
+      "id": "CUT_PRIMARY_ACCESS_ROUTE",
+      "applies_to": [
+        "CENTRAL_HUB",
+        "DISTRIBUTED_NODES",
+        "FEDERATED_PEER_MESH",
+        "MOBILE_SUPPORT",
+        "LAYERED_HYBRID"
+      ],
+      "target": "primary_access_route",
+      "kind": "ACCESS_CUT"
+    },
+    {
+      "id": "REMOVE_SHARED_UPSTREAM_FEEDER",
+      "applies_to": [
+        "CENTRAL_HUB",
+        "DISTRIBUTED_NODES",
+        "FEDERATED_PEER_MESH",
+        "MOBILE_SUPPORT",
+        "LAYERED_HYBRID"
+      ],
+      "target": "shared_upstream_dependency",
+      "kind": "COMMON_CAUSE_ABLATION"
+    },
+    {
+      "id": "REMOVE_REPAIR_AND_SPARES",
+      "applies_to": [
+        "CENTRAL_HUB",
+        "DISTRIBUTED_NODES",
+        "FEDERATED_PEER_MESH",
+        "MOBILE_SUPPORT",
+        "LAYERED_HYBRID"
+      ],
+      "target": "shared_repair_dependency",
+      "kind": "MAINTENANCE_ABLATION"
+    },
+    {
+      "id": "EXHAUST_SHARED_RESERVE",
+      "applies_to": [
+        "CENTRAL_HUB",
+        "DISTRIBUTED_NODES",
+        "FEDERATED_PEER_MESH",
+        "MOBILE_SUPPORT",
+        "LAYERED_HYBRID"
+      ],
+      "target": "shared_resource_reserve",
+      "kind": "RESOURCE_EXHAUSTION"
+    },
+    {
+      "id": "WITHDRAW_SHARED_DATA_CONSENT",
+      "applies_to": [
+        "CENTRAL_HUB",
+        "DISTRIBUTED_NODES",
+        "FEDERATED_PEER_MESH",
+        "MOBILE_SUPPORT",
+        "LAYERED_HYBRID"
+      ],
+      "target": "shared_household_data_scope",
+      "kind": "AUTHORITY_WITHDRAWAL"
+    }
+  ],
+  "not_applicable_semantics": "EXPLICIT_NOT_APPLICABLE_WITH_REASON",
+  "adaptation_policy": {
+    "first_pass": "STRICT_ABLATION_NO_HIDDEN_RECONFIGURATION",
+    "second_pass": "OPTIONAL_SEPARATELY_VERSIONED_POLICY",
+    "future_information": "PROHIBITED",
+    "policy_must_be_predeclared": true
+  },
+  "required_output_owner": "SYMTROPY_NATIVE_TRAJECTORY_INTERFACE",
+  "event_time_and_ids": "MUST_NOT_BE_SYNTHESIZED_BY_THIS_MANIFEST",
+  "hard_gates": {
+    "household_floor_false_passes": 0,
+    "missing_household_service_outcomes": 0,
+    "availability_as_delivery_false_claims": 0,
+    "missed_common_causes_against_finite_oracle": 0,
+    "duplicate_resource_credits_or_double_commitments": 0,
+    "silent_unit_conversions": 0,
+    "unauthorized_shared_data_accesses": 0,
+    "unknown_or_out_of_domain_as_pass": 0,
+    "positive_control_false_blocks": 0,
+    "exact_finite_known_answer_agreement_percent": 100
+  },
+  "result_vectors": [
+    "per_household_service_delivery",
+    "floor_breach_count_and_duration",
+    "time_to_first_floor_breach",
+    "access_and_queue_delay",
+    "stable_recovery_duration",
+    "resource_balance_and_reserve",
+    "dependency_cut_sets",
+    "maintenance_labour_and_spares",
+    "route_reachability",
+    "privacy_and_appeal_outcomes",
+    "lifecycle_cost_and_environmental_burden"
+  ],
+  "execution_status": "NOT_EXECUTED"
+}

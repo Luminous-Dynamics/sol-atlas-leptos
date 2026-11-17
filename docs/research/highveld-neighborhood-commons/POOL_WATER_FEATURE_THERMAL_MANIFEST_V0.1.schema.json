@@ -1,0 +1,328 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://luminousdynamics.io/schemas/highveld-pool-water-thermal-v0.1.schema.json",
+  "title": "Highveld pool and water-feature thermal programme v0.1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "format_version",
+    "study_id",
+    "parent_studies",
+    "maturity",
+    "execution_status",
+    "climate_context",
+    "archetypes",
+    "scenarios",
+    "cover_modes",
+    "case_expansion",
+    "required_balance_terms",
+    "required_water_terms",
+    "required_health_gates",
+    "hard_gates",
+    "solver_roles",
+    "references",
+    "claim_ceiling",
+    "heat_recovery_contract",
+    "industry_reference_evidence"
+  ],
+  "properties": {
+    "format_version": {
+      "const": "0.1"
+    },
+    "study_id": {
+      "const": "HIGHVELD-POOL-WATER-THERMAL-001"
+    },
+    "parent_studies": {
+      "type": "array",
+      "minItems": 2,
+      "uniqueItems": true,
+      "items": {
+        "type": "string"
+      }
+    },
+    "maturity": {
+      "const": "DESIGN_AND_BENCHMARK_CONTRACT_NOT_EXECUTED"
+    },
+    "execution_status": {
+      "const": "NOT_EXECUTED"
+    },
+    "climate_context": {
+      "const": "JOHANNESBURG_HIGHVELD"
+    },
+    "archetypes": {
+      "type": "array",
+      "minItems": 10,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "thermal_role",
+          "aerosol_generation"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "thermal_role": {
+            "type": "string",
+            "minLength": 1
+          },
+          "aerosol_generation": {
+            "enum": [
+              "NO",
+              "NO_DECLARED_SPRAY",
+              "SURFACE_EVAPORATION_NOT_SPRAY",
+              "MUST_BE_ASSESSED",
+              "YES"
+            ]
+          }
+        }
+      }
+    },
+    "scenarios": {
+      "type": "array",
+      "minItems": 8,
+      "uniqueItems": true,
+      "items": {
+        "type": "string"
+      }
+    },
+    "cover_modes": {
+      "type": "array",
+      "minItems": 5,
+      "uniqueItems": true,
+      "items": {
+        "type": "string"
+      }
+    },
+    "case_expansion": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "archetypes",
+        "scenarios",
+        "cases",
+        "state"
+      ],
+      "properties": {
+        "archetypes": {
+          "const": 10
+        },
+        "scenarios": {
+          "const": 8
+        },
+        "cases": {
+          "const": 80
+        },
+        "state": {
+          "const": "REGISTERED_NOT_EXECUTED"
+        }
+      }
+    },
+    "required_balance_terms": {
+      "type": "array",
+      "minItems": 17,
+      "uniqueItems": true,
+      "items": {
+        "type": "string"
+      }
+    },
+    "required_water_terms": {
+      "type": "array",
+      "minItems": 8,
+      "uniqueItems": true,
+      "items": {
+        "type": "string"
+      }
+    },
+    "required_health_gates": {
+      "type": "array",
+      "minItems": 5,
+      "uniqueItems": true,
+      "items": {
+        "type": "string"
+      }
+    },
+    "hard_gates": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "sustained_cooling_from_store_without_regeneration",
+        "protected_water_floor_breaches",
+        "aerosol_operation_with_unknown_or_failed_water_management",
+        "untreated_greywater_in_aerosol_path",
+        "indoor_cooling_claim_from_outdoor_or_pool_temp_only",
+        "energy_water_balance_outside_uncertainty",
+        "untraceable_inputs_or_controls",
+        "pool_heat_recovery_above_temperature_limit",
+        "pool_heat_recovery_without_isolated_heat_exchanger",
+        "unqualified_fallback_sink_for_excess_heat",
+        "heat_recovery_claim_without_measured_displaced_heater_energy",
+        "condenser_first_law_balance_outside_uncertainty",
+        "condenser_disposition_balance_outside_uncertainty",
+        "condenser_heat_double_counting"
+      ],
+      "properties": {
+        "sustained_cooling_from_store_without_regeneration": {
+          "const": 0
+        },
+        "protected_water_floor_breaches": {
+          "const": 0
+        },
+        "aerosol_operation_with_unknown_or_failed_water_management": {
+          "const": 0
+        },
+        "untreated_greywater_in_aerosol_path": {
+          "const": 0
+        },
+        "indoor_cooling_claim_from_outdoor_or_pool_temp_only": {
+          "const": 0
+        },
+        "energy_water_balance_outside_uncertainty": {
+          "const": 0
+        },
+        "untraceable_inputs_or_controls": {
+          "const": 0
+        },
+        "pool_heat_recovery_above_temperature_limit": {
+          "const": 0
+        },
+        "pool_heat_recovery_without_isolated_heat_exchanger": {
+          "const": 0
+        },
+        "unqualified_fallback_sink_for_excess_heat": {
+          "const": 0
+        },
+        "heat_recovery_claim_without_measured_displaced_heater_energy": {
+          "const": 0
+        },
+        "condenser_first_law_balance_outside_uncertainty": {
+          "const": 0
+        },
+        "condenser_disposition_balance_outside_uncertainty": {
+          "const": 0
+        },
+        "condenser_heat_double_counting": {
+          "const": 0
+        }
+      }
+    },
+    "solver_roles": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "indoor_pool_heat_balance",
+        "pcm_storage",
+        "plant_storage_control",
+        "outdoor_airflow",
+        "trajectory_accounting",
+        "water_rights_health"
+      ],
+      "properties": {
+        "indoor_pool_heat_balance": {
+          "const": "ENERGYPLUS_26_2_SWIMMINGPOOL_INDOOR"
+        },
+        "pcm_storage": {
+          "const": "ENERGYPLUS_26_2_THERMALSTORAGE_PCM"
+        },
+        "plant_storage_control": {
+          "const": "PINNED_MODELICA_BUILDINGS_LIBRARY_AND_SOLVER"
+        },
+        "outdoor_airflow": {
+          "const": "QUALIFIED_OUTDOOR_CFD_AND_MEASUREMENTS"
+        },
+        "trajectory_accounting": {
+          "const": "HIGHVELD_THERMAL_STORE_LEDGER"
+        },
+        "water_rights_health": {
+          "const": "MYCELIX_AND_COMPETENT_LOCAL_AUTHORITY"
+        }
+      }
+    },
+    "references": {
+      "type": "array",
+      "minItems": 4,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "format": "uri"
+      }
+    },
+    "claim_ceiling": {
+      "type": "string",
+      "minLength": 60
+    },
+    "heat_recovery_contract": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "enabled_only_when_pool_heating_demand_exists",
+        "requires_isolated_heat_exchanger",
+        "maximum_pool_temperature_is_owner_and_authority_defined",
+        "fallback_sink_required_when_pool_has_no_headroom",
+        "excess_condenser_heat_must_be_routed_or_recovery_disabled",
+        "no_pool_as_infinite_sink"
+      ],
+      "properties": {
+        "enabled_only_when_pool_heating_demand_exists": {
+          "const": true
+        },
+        "requires_isolated_heat_exchanger": {
+          "const": true
+        },
+        "maximum_pool_temperature_is_owner_and_authority_defined": {
+          "const": true
+        },
+        "fallback_sink_required_when_pool_has_no_headroom": {
+          "const": true
+        },
+        "excess_condenser_heat_must_be_routed_or_recovery_disabled": {
+          "const": true
+        },
+        "no_pool_as_infinite_sink": {
+          "const": true
+        }
+      }
+    },
+    "industry_reference_evidence": {
+      "type": "array",
+      "minItems": 2,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "evidence_class",
+          "transferability"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "evidence_class": {
+            "enum": [
+              "FIELD_DEMONSTRATION",
+              "MODELED_FEASIBILITY_ANALYSIS"
+            ]
+          },
+          "climate_scope": {
+            "type": "string"
+          },
+          "reported_metrics": {
+            "type": "object"
+          },
+          "modeled_ranges": {
+            "type": "object"
+          },
+          "transferability": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    }
+  }
+}

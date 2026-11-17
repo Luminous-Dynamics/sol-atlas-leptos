@@ -1,0 +1,278 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://luminousdynamics.io/schemas/highveld-thermal-sink-governor-input-v0.1.schema.json",
+  "title": "Highveld thermal sink governor input v0.1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "input_id",
+    "model_applicability",
+    "instrument_state",
+    "local_control_state",
+    "network_state",
+    "manual_safe_mode_available",
+    "water_account",
+    "aerosol_controls_state",
+    "humidity_state",
+    "sink_paths",
+    "store_charge_path"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "0.1"
+    },
+    "input_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "model_applicability": {
+      "enum": [
+        "IN_DOMAIN",
+        "OUT_OF_DOMAIN",
+        "UNKNOWN"
+      ]
+    },
+    "instrument_state": {
+      "enum": [
+        "QUALIFIED",
+        "FAILED",
+        "UNKNOWN"
+      ]
+    },
+    "local_control_state": {
+      "enum": [
+        "AVAILABLE",
+        "UNAVAILABLE",
+        "UNKNOWN"
+      ]
+    },
+    "network_state": {
+      "enum": [
+        "CONNECTED",
+        "PARTITIONED",
+        "UNKNOWN"
+      ]
+    },
+    "manual_safe_mode_available": {
+      "type": "boolean"
+    },
+    "water_account": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "rights_state",
+        "quality_state",
+        "restriction_state",
+        "account_available_l",
+        "committed_l",
+        "essential_reserve_l"
+      ],
+      "properties": {
+        "rights_state": {
+          "enum": [
+            "QUALIFIED",
+            "FAILED",
+            "UNKNOWN"
+          ]
+        },
+        "quality_state": {
+          "enum": [
+            "QUALIFIED",
+            "FAILED",
+            "UNKNOWN"
+          ]
+        },
+        "restriction_state": {
+          "enum": [
+            "PERMITS",
+            "PROHIBITS",
+            "UNKNOWN"
+          ]
+        },
+        "account_available_l": {
+          "type": "number",
+          "minimum": 0
+        },
+        "committed_l": {
+          "type": "number",
+          "minimum": 0
+        },
+        "essential_reserve_l": {
+          "type": "number",
+          "minimum": 0
+        }
+      }
+    },
+    "aerosol_controls_state": {
+      "enum": [
+        "QUALIFIED",
+        "FAILED",
+        "UNKNOWN"
+      ]
+    },
+    "humidity_state": {
+      "enum": [
+        "WITHIN_LIMIT",
+        "OUT_OF_LIMIT",
+        "UNKNOWN"
+      ]
+    },
+    "sink_paths": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "qualification_state",
+          "sensor_state",
+          "effective_sink_temperature_c",
+          "store_temperature_c",
+          "minimum_approach_k",
+          "available_heat_rejection_kw",
+          "requested_heat_rejection_kw",
+          "auxiliary_power_available_kw",
+          "auxiliary_power_required_kw",
+          "water_draw_l"
+        ],
+        "properties": {
+          "id": {
+            "enum": [
+              "RADIATIVE_SKY_PANEL",
+              "DRY_AIR_COOLER",
+              "GROUND_HEAT_EXCHANGER",
+              "CONDITIONAL_EVAPORATIVE_REGENERATION"
+            ]
+          },
+          "qualification_state": {
+            "enum": [
+              "QUALIFIED",
+              "FAILED",
+              "UNKNOWN"
+            ]
+          },
+          "sensor_state": {
+            "enum": [
+              "QUALIFIED",
+              "FAILED",
+              "UNKNOWN"
+            ]
+          },
+          "effective_sink_temperature_c": {
+            "type": "number"
+          },
+          "store_temperature_c": {
+            "type": "number"
+          },
+          "minimum_approach_k": {
+            "type": "number",
+            "minimum": 0
+          },
+          "available_heat_rejection_kw": {
+            "type": "number",
+            "minimum": 0
+          },
+          "requested_heat_rejection_kw": {
+            "type": "number",
+            "exclusiveMinimum": 0
+          },
+          "auxiliary_power_available_kw": {
+            "type": "number",
+            "minimum": 0
+          },
+          "auxiliary_power_required_kw": {
+            "type": "number",
+            "minimum": 0
+          },
+          "water_draw_l": {
+            "type": "number",
+            "minimum": 0
+          }
+        }
+      }
+    },
+    "store_charge_path": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "qualification_state",
+        "sensor_state",
+        "source_return_temperature_c",
+        "store_temperature_c",
+        "minimum_approach_k",
+        "available_heat_transfer_kw",
+        "requested_heat_transfer_kw",
+        "requested_duration_h",
+        "store_capacity_kwh",
+        "store_energy_kwh",
+        "load_boundary_evidence_ref",
+        "store_state_evidence_ref",
+        "heat_exchanger_evidence_ref"
+      ],
+      "properties": {
+        "id": {
+          "const": "BUILDING_LOAD_TO_STORE"
+        },
+        "qualification_state": {
+          "enum": [
+            "QUALIFIED",
+            "FAILED",
+            "UNKNOWN"
+          ]
+        },
+        "sensor_state": {
+          "enum": [
+            "QUALIFIED",
+            "FAILED",
+            "UNKNOWN"
+          ]
+        },
+        "source_return_temperature_c": {
+          "type": "number"
+        },
+        "store_temperature_c": {
+          "type": "number"
+        },
+        "minimum_approach_k": {
+          "type": "number",
+          "minimum": 0
+        },
+        "available_heat_transfer_kw": {
+          "type": "number",
+          "minimum": 0
+        },
+        "requested_heat_transfer_kw": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "requested_duration_h": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "store_capacity_kwh": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "store_energy_kwh": {
+          "type": "number",
+          "minimum": 0
+        },
+        "load_boundary_evidence_ref": {
+          "type": "string",
+          "minLength": 1
+        },
+        "store_state_evidence_ref": {
+          "type": "string",
+          "minLength": 1
+        },
+        "heat_exchanger_evidence_ref": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    }
+  }
+}

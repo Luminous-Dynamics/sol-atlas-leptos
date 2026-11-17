@@ -1,0 +1,149 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://luminousdynamics.io/schemas/highveld-thermal-water-screen-v0.1.schema.json",
+  "title": "Highveld first-principles thermal-water screening input",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "study_id",
+    "scenario_id",
+    "evidence_class",
+    "maturity",
+    "water_volume_m3",
+    "water_temperature_swing_k",
+    "evaporation_rate_l_per_hour",
+    "exposure_duration_hours",
+    "pump_input_power_kw",
+    "pump_duty_fraction",
+    "discretionary_water_budget_l",
+    "water_density_kg_per_l",
+    "specific_heat_kj_per_kg_k",
+    "latent_heat_kj_per_kg",
+    "water_source_class",
+    "source_rights_state",
+    "water_quality_state",
+    "weather_input_state",
+    "instrument_state",
+    "restriction_state",
+    "useful_occupied_zone_cooling_kwh",
+    "claim_ceiling"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "0.1.0"
+    },
+    "study_id": {
+      "const": "HIGHVELD-PASSIVE-COOLING-WATER-001"
+    },
+    "scenario_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "evidence_class": {
+      "const": "SyntheticScreeningExample"
+    },
+    "maturity": {
+      "const": "ANALYTICAL_SCREENING_ONLY"
+    },
+    "water_volume_m3": {
+      "type": "number",
+      "exclusiveMinimum": 0
+    },
+    "water_temperature_swing_k": {
+      "type": "number",
+      "minimum": 0
+    },
+    "evaporation_rate_l_per_hour": {
+      "type": "number",
+      "minimum": 0
+    },
+    "exposure_duration_hours": {
+      "type": "number",
+      "minimum": 0
+    },
+    "pump_input_power_kw": {
+      "type": "number",
+      "minimum": 0
+    },
+    "pump_duty_fraction": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1
+    },
+    "discretionary_water_budget_l": {
+      "type": "number",
+      "minimum": 0
+    },
+    "water_density_kg_per_l": {
+      "type": "number",
+      "exclusiveMinimum": 0
+    },
+    "specific_heat_kj_per_kg_k": {
+      "type": "number",
+      "exclusiveMinimum": 0
+    },
+    "latent_heat_kj_per_kg": {
+      "type": "number",
+      "exclusiveMinimum": 0
+    },
+    "water_source_class": {
+      "enum": [
+        "POTABLE",
+        "HARVESTED_RAINWATER",
+        "GREYWATER",
+        "TREATED_RECLAIMED",
+        "OTHER"
+      ]
+    },
+    "source_rights_state": {
+      "enum": [
+        "QUALIFIED",
+        "UNVERIFIED",
+        "REVOKED"
+      ]
+    },
+    "water_quality_state": {
+      "enum": [
+        "QUALIFIED",
+        "UNQUALIFIED",
+        "FAILED",
+        "UNKNOWN"
+      ]
+    },
+    "weather_input_state": {
+      "enum": [
+        "QUALIFIED",
+        "NOT_ADMITTED",
+        "UNKNOWN"
+      ]
+    },
+    "instrument_state": {
+      "enum": [
+        "QUALIFIED",
+        "SYNTHETIC_ONLY",
+        "UNCALIBRATED",
+        "UNKNOWN"
+      ]
+    },
+    "restriction_state": {
+      "enum": [
+        "CHECKED_PERMITTED",
+        "RESTRICTED",
+        "NOT_CHECKED",
+        "UNKNOWN"
+      ]
+    },
+    "useful_occupied_zone_cooling_kwh": {
+      "type": [
+        "number",
+        "null"
+      ],
+      "minimum": 0
+    },
+    "claim_ceiling": {
+      "type": "string",
+      "minLength": 20
+    }
+  }
+}

@@ -1,0 +1,228 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://luminousdynamics.io/schemas/highveld-pool-scale-transferability-v0.1.schema.json",
+  "title": "Highveld pool and water-feature cooling scale-transferability manifest v0.1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "format_version",
+    "study_id",
+    "parent_studies",
+    "maturity",
+    "execution_status",
+    "climate_context",
+    "scale_tiers",
+    "promotion_rules",
+    "literature_transferability_controls",
+    "scale_descriptors",
+    "hard_gates",
+    "claim_ceiling"
+  ],
+  "properties": {
+    "format_version": {
+      "const": "0.1"
+    },
+    "study_id": {
+      "const": "HIGHVELD-POOL-SCALE-TRANSFER-001"
+    },
+    "parent_studies": {
+      "type": "array",
+      "minItems": 2,
+      "uniqueItems": true,
+      "items": {
+        "type": "string"
+      }
+    },
+    "maturity": {
+      "const": "RESEARCH_PROTOCOL_NOT_EXECUTED"
+    },
+    "execution_status": {
+      "const": "NOT_EXECUTED"
+    },
+    "climate_context": {
+      "const": "JOHANNESBURG_HIGHVELD"
+    },
+    "scale_tiers": {
+      "type": "array",
+      "minItems": 5,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "claim_scope",
+          "minimum_evidence"
+        ],
+        "properties": {
+          "id": {
+            "enum": [
+              "COMPONENT_POOL",
+              "COURTYARD_PEDESTRIAN",
+              "BUILDING_OCCUPIED_ZONE",
+              "NEIGHBORHOOD_BLUE_SPACE",
+              "THERMAL_SERVICE_REFUGE"
+            ]
+          },
+          "claim_scope": {
+            "type": "string",
+            "minLength": 1
+          },
+          "minimum_evidence": {
+            "type": "array",
+            "minItems": 1,
+            "uniqueItems": true,
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "promotion_rules": {
+      "type": "array",
+      "minItems": 4,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "from",
+          "to",
+          "required",
+          "automatic"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "from": {
+            "type": "string"
+          },
+          "to": {
+            "type": "string"
+          },
+          "required": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "string"
+            }
+          },
+          "automatic": {
+            "const": false
+          }
+        }
+      }
+    },
+    "literature_transferability_controls": {
+      "type": "array",
+      "minItems": 3,
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "context",
+          "transferability"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "source_date": {
+            "type": "string"
+          },
+          "reported_value": {
+            "type": "number"
+          },
+          "reported_unit": {
+            "type": "string"
+          },
+          "context": {
+            "type": "string",
+            "minLength": 1
+          },
+          "field_date": {
+            "type": "string"
+          },
+          "reported_park_mean_air_temperature_difference_c": {
+            "type": "number"
+          },
+          "reported_park_relative_humidity_difference_percentage_points": {
+            "type": "number"
+          },
+          "reported_activity_space_air_temperature_range_c": {
+            "type": "number"
+          },
+          "reported_utci_state": {
+            "type": "string"
+          },
+          "transferability": {
+            "type": "string",
+            "minLength": 1
+          },
+          "use": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "scale_descriptors": {
+      "type": "array",
+      "minItems": 10,
+      "uniqueItems": true,
+      "items": {
+        "type": "string"
+      }
+    },
+    "hard_gates": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "urban_water_body_area_threshold_transferred_to_residential_pool",
+        "land_surface_temperature_only_promoted_to_pedestrian_comfort",
+        "dry_bulb_only_promoted_to_thermal_comfort_or_safety",
+        "spatial_mean_hiding_activity_space_heat_stress",
+        "courtyard_evidence_promoted_to_building_cooling_without_zone_path",
+        "neighborhood_map_promoted_to_refuge_without_capacity_route_operations",
+        "treatment_without_matched_dry_shade_and_upwind_control",
+        "minute_samples_treated_as_independent_replicates",
+        "untraceable_scale_claims"
+      ],
+      "properties": {
+        "urban_water_body_area_threshold_transferred_to_residential_pool": {
+          "const": 0
+        },
+        "land_surface_temperature_only_promoted_to_pedestrian_comfort": {
+          "const": 0
+        },
+        "dry_bulb_only_promoted_to_thermal_comfort_or_safety": {
+          "const": 0
+        },
+        "spatial_mean_hiding_activity_space_heat_stress": {
+          "const": 0
+        },
+        "courtyard_evidence_promoted_to_building_cooling_without_zone_path": {
+          "const": 0
+        },
+        "neighborhood_map_promoted_to_refuge_without_capacity_route_operations": {
+          "const": 0
+        },
+        "treatment_without_matched_dry_shade_and_upwind_control": {
+          "const": 0
+        },
+        "minute_samples_treated_as_independent_replicates": {
+          "const": 0
+        },
+        "untraceable_scale_claims": {
+          "const": 0
+        }
+      }
+    },
+    "claim_ceiling": {
+      "type": "string",
+      "minLength": 40
+    }
+  }
+}

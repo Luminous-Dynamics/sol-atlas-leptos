@@ -1,0 +1,94 @@
+{
+  "format_version": "0.1",
+  "study_id": "HIGHVELD-POOL-COVER-SCHEDULE-001",
+  "parent_studies": [
+    "HIGHVELD-POOL-WATER-THERMAL-001",
+    "HIGHVELD-POOL-PASSIVE-REGENERATION-LEDGER-001"
+  ],
+  "maturity": "BENCHMARK_PROTOCOL_NOT_EXECUTED",
+  "execution_status": "NOT_EXECUTED",
+  "arms": [
+    {
+      "id": "ALWAYS_COVERED",
+      "role": "WATER_AND_HEAT_RETENTION_REFERENCE"
+    },
+    {
+      "id": "ALWAYS_OPEN",
+      "role": "MAXIMUM_EXPOSURE_REFERENCE"
+    },
+    {
+      "id": "DAY_SHADE_NIGHT_EXPOSE",
+      "role": "FIXED_NIGHT_REGENERATION_TEST"
+    },
+    {
+      "id": "ADAPTIVE_COVER_BY_BOUNDARY_AND_WATER",
+      "role": "CANDIDATE_POLICY"
+    }
+  ],
+  "scenarios": [
+    "HOT_CLEAR_DAY",
+    "CLEAR_COOL_NIGHT",
+    "CLOUDY_HUMID_NIGHT",
+    "WINDY_DRY_NIGHT",
+    "WATER_CURTAILMENT",
+    "HEAT_RECOVERY_DEMAND"
+  ],
+  "case_expansion": {
+    "arms": 4,
+    "scenarios": 6,
+    "cases": 24,
+    "state": "REGISTERED_NOT_EXECUTED"
+  },
+  "exchange_pathways": [
+    "SHORT_WAVE_SOLAR_GAIN",
+    "LONG_WAVE_SKY_AND_SURROUNDING_SURFACE_EXCHANGE",
+    "SENSIBLE_CONVECTION",
+    "LATENT_EVAPORATION_AND_WATER_MASS_LOSS"
+  ],
+  "cover_factors_required": [
+    "cover_evaporation_factor",
+    "cover_convection_factor",
+    "cover_shortwave_radiation_factor",
+    "cover_longwave_radiation_factor"
+  ],
+  "robust_adaptive_gates": {
+    "net_heat_rejection_lower_bound_kw_positive": true,
+    "evaporation_upper_bound_within_discretionary_budget": true,
+    "qualified_water_rights_and_quality": true,
+    "pool_temperature_inside_owner_limits": true,
+    "cover_and_manual_override_qualified": true,
+    "no_conflict_with_active_pool_heat_recovery": true,
+    "unknown_critical_input_means_hold_review": true
+  },
+  "required_measurements": [
+    "pool_layer_temperature_and_volume",
+    "cover_surface_temperature_and_wetness",
+    "shortwave_incident_and_absorbed_radiation",
+    "longwave_downwelling_and_upwelling_radiation",
+    "sensible_heat_flux_or_validated_method",
+    "evaporation_mass_and_water_volume_change",
+    "makeup_water_by_source_class",
+    "cover_fraction_and_four_independent_pathway_factors",
+    "wind_speed_direction_and_exposure",
+    "local_air_temperature_humidity_and_dew_point",
+    "pedestrian_mean_radiant_temperature_or_documented_proxy",
+    "actuator_energy_and_maintenance_state"
+  ],
+  "model_scope": {
+    "indoor_pool_baseline": "ENERGYPLUS_26_2_SWIMMINGPOOL_INDOOR_ONLY",
+    "outdoor_pool": "SPECIALIST_OUTDOOR_BOUNDARY_MODEL_AND_FIELD_VALIDATION_REQUIRED",
+    "no_cross_scope_promotion": true
+  },
+  "hard_gates": {
+    "water_rights_or_quality_violations": 0,
+    "protected_essential_water_reserve_violations": 0,
+    "pool_temperature_limit_violations": 0,
+    "regeneration_with_nonpositive_lower_heat_rejection_bound": 0,
+    "exposure_with_evaporation_upper_bound_above_budget": 0,
+    "missing_required_cover_pathway_factors": 0,
+    "indoor_pool_model_claimed_as_outdoor_validation": 0,
+    "untraceable_schedule_cases": 0,
+    "hard_floor_failures_hidden_by_weighted_score": 0
+  },
+  "claim_ceiling": "24 registered counterfactual comparisons only; no selected or measured cover policy, outdoor pool performance, water saving, energy saving or pedestrian comfort result is claimed."
+}

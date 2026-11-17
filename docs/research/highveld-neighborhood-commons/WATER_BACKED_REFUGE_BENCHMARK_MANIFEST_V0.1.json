@@ -1,0 +1,155 @@
+{
+  "format_version": "0.1",
+  "study_id": "HIGHVELD-WATER-BACKED-REFUGE-001",
+  "parent_studies": [
+    "HIGHVELD-POOL-WATER-THERMAL-001",
+    "HIGHVELD-THERMAL-SERVICE-REFUGE-001"
+  ],
+  "maturity": "BENCHMARK_PROTOCOL_NOT_EXECUTED",
+  "execution_status": "NOT_EXECUTED",
+  "climate_context": "JOHANNESBURG_HIGHVELD",
+  "comparison_arms": [
+    {
+      "id": "DRY_SHADE_VENTILATION_CONTROL",
+      "role": "PRIMARY_PASSIVE_CONTROL"
+    },
+    {
+      "id": "MECHANICAL_REFUGE_REFERENCE",
+      "role": "INDUSTRY_SERVICE_REFERENCE"
+    },
+    {
+      "id": "RADIANT_WATER_LOOP_NO_STORE",
+      "role": "ISOLATED_RADIANT_TRANSFER"
+    },
+    {
+      "id": "CLOSED_LOOP_STORE_GROUND_REGENERATION",
+      "role": "GROUND_REGENERATION_TEST"
+    },
+    {
+      "id": "CLOSED_LOOP_STORE_RADIATIVE_REGENERATION",
+      "role": "RADIATIVE_REGENERATION_TEST"
+    },
+    {
+      "id": "LAYERED_WATER_BACKED_REFUGE",
+      "role": "INTEGRATED_PORTFOLIO_TEST"
+    }
+  ],
+  "scenarios": [
+    "HIGH_VPD_CLEAR_HOT_DAY",
+    "HUMID_CLOUDY_WEAK_SKY_SINK",
+    "MULTIDAY_HEAT_WAVE_HOT_NIGHTS",
+    "GRID_OUTAGE_24H",
+    "WATER_CURTAILMENT_AND_PROTECTED_RESERVE",
+    "COLD_CLEAR_NIGHT_OVERCOOLING"
+  ],
+  "case_expansion": {
+    "arms": 6,
+    "scenarios": 6,
+    "cases": 36,
+    "state": "REGISTERED_NOT_EXECUTED"
+  },
+  "field_reference": {
+    "reference_id": "CARTUJA_QANAT_AGORA_SEVILLE_2026",
+    "evidence_class": "LARGE_SCALE_FIELD_ASSESSMENT",
+    "publication_date": "2026-11",
+    "climate_scope": "SEVILLE_MEDITERRANEAN_EXTREME_HEAT",
+    "reported_values": {
+      "outdoor_conditions_approaching_c": 40,
+      "occupied_zone_temperature_approximately_c": 29,
+      "occupied_zone_air_temperature_reduction_greater_than_c": 15,
+      "night_regeneration_capacity_kw": 152,
+      "reported_cop": 32.4,
+      "surveyed_users_neutral_thermal_sensation_percent": 80
+    },
+    "method_boundary": "SOURCE_SPECIFIC_STUDY_BOUNDARY_TO_BE_RECONSTRUCTED_BEFORE_MATCHED_COMPARISON",
+    "transferability": "REFERENCE_ONLY_NOT_HIGHVELD_PREDICTION"
+  },
+  "required_weather_fields": [
+    "DRY_BULB_TEMPERATURE",
+    "RELATIVE_HUMIDITY_OR_DEW_POINT",
+    "VAPOR_PRESSURE_DEFICIT",
+    "WET_BULB_DEPRESSION",
+    "WIND_SPEED_DIRECTION_AND_EXPOSURE",
+    "GLOBAL_DIRECT_DIFFUSE_SOLAR",
+    "DOWNWELLING_LONGWAVE_OR_QUALIFIED_SKY_MODEL",
+    "CLOUD_COVER_OR_LONGWAVE_BOUNDARY",
+    "SKY_VIEW_FACTOR_AND_HORIZON"
+  ],
+  "required_occupied_zone_measurements": [
+    "OPERATIVE_TEMPERATURE",
+    "MEAN_RADIANT_TEMPERATURE_OR_QUALIFIED_METHOD",
+    "AIR_TEMPERATURE_BY_HEIGHT",
+    "RELATIVE_HUMIDITY_DEW_POINT",
+    "AIR_SPEED",
+    "VENTILATION_AND_INDOOR_AIR_QUALITY_STATE",
+    "AGGREGATE_OCCUPANCY_AND_SERVICE_HOURS",
+    "COMFORT_METHOD_AND_APPLICABILITY",
+    "AUTHORITY_SAFETY_ENVELOPE_WHEN_REQUIRED"
+  ],
+  "required_thermal_loop_measurements": [
+    "RADIANT_SURFACE_TEMPERATURE",
+    "BUILDING_SIDE_HEAT_REMOVAL",
+    "LOOP_FLOW_AND_PRESSURE_DROP",
+    "LOOP_SUPPLY_RETURN_TEMPERATURE",
+    "HEAT_EXCHANGER_APPROACH",
+    "STORE_LAYER_OR_ENTHALPY_STATE",
+    "HEAT_REJECTION_BY_EACH_REGENERATION_PATH",
+    "PUMP_FAN_AND_CONTROL_ELECTRICITY",
+    "STORE_NIGHT_REGENERATION_AND_CYCLE_DRIFT"
+  ],
+  "required_water_terms": [
+    "MAKEUP_BY_SOURCE_CLASS",
+    "EVAPORATION",
+    "SPLASH_AND_DRIFT",
+    "LEAKAGE",
+    "PURGE_BACKWASH_AND_CLEANING",
+    "RAIN",
+    "CLOSING_WATER_VOLUME",
+    "WATER_RIGHTS_QUALITY_TREATMENT_AND_RESERVE"
+  ],
+  "required_metrics": [
+    "QUALIFIED_REFUGE_PERSON_HOURS",
+    "DISCOMFORT_DEGREE_HOURS",
+    "MAXIMUM_CONTINUOUS_SERVICE_EXCEEDANCE",
+    "USEFUL_OCCUPIED_ZONE_HEAT_REMOVAL_KWH",
+    "PEAK_USEFUL_COOLING_KW",
+    "USEFUL_SERVICE_PER_PERSON_HOUR",
+    "THERMAL_STORE_USABLE_KWH_AND_HEADROOM",
+    "PEAK_STORE_CHARGE_DISCHARGE_KW",
+    "NIGHT_REGENERATION_AND_CYCLE_DRIFT",
+    "AUXILIARY_ELECTRICITY_KWH",
+    "WATER_LITRES_PER_PERSON_HOUR",
+    "WATER_LITRES_PER_USEFUL_KWH",
+    "OUTAGE_SERVICE_GAP",
+    "LIFECYCLE_COST_AND_MAINTENANCE_BURDEN"
+  ],
+  "hard_gates": {
+    "protected_essential_water_reserve_breaches": 0,
+    "unqualified_water_or_aerosol_operation": 0,
+    "indoor_cooling_claim_without_building_side_heat_path": 0,
+    "thermal_store_as_sink_without_measured_regeneration": 0,
+    "balance_residual_outside_propagated_uncertainty": 0,
+    "owner_temperature_limit_breach_reported_as_positive_headroom": 0,
+    "untraceable_model_weather_property_rights_or_instrument_inputs": 0,
+    "missed_seeded_negative_controls": 0,
+    "false_blocks_of_positive_controls": 0
+  },
+  "governance": {
+    "aerosol_generating_path_default_enabled": false,
+    "water_rights_owner": "MYCELIX",
+    "temperature_limit_owner": "ASSET_OWNER_AND_COMPETENT_LOCAL_AUTHORITY",
+    "comfort_is_health_safety_limit": false,
+    "unknown_water_state_means_disallowed": true,
+    "pool_is_finite_thermal_buffer": true,
+    "field_reference_transferability_requires_matched_boundary": true
+  },
+  "owners": {
+    "geometry_and_microclimate": "SOL_ATLAS",
+    "event_time_and_trajectory_replay": "SYMTROPY",
+    "water_rights_quality_reserve_and_instruments": "MYCELIX",
+    "specialist_building_and_plant_physics": "ENERGYPLUS_MODELICA_QUALIFIED_CFD",
+    "safety_envelope": "COMPETENT_LOCAL_AUTHORITY_AND_QUALIFIED_PROFESSIONALS",
+    "resident_and_asset_authority": "RESIDENT_AND_ASSET_OWNER"
+  },
+  "claim_ceiling": "Registered 36-case benchmark only. Qanat results are one Seville field reference and do not predict Highveld performance. No Highveld site, occupant, weather, water or physical performance data is admitted."
+}

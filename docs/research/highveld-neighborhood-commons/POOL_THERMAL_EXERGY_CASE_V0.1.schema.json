@@ -1,0 +1,228 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://luminousdynamics.io/schemas/highveld-pool-thermal-exergy-case-v0.1.schema.json",
+  "title": "Highveld pool thermal exergy input v0.1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "study_id",
+    "case_id",
+    "parent_study",
+    "parent_case_ref",
+    "parent_case_id",
+    "maturity",
+    "execution_status",
+    "property_model",
+    "maximum_permitted_temperature_c",
+    "temperature_limit_authority_ref",
+    "intervals",
+    "usable_thermal_energy_min_kwh",
+    "usable_thermal_energy_capacity_kwh",
+    "initial_thermal_energy_kwh",
+    "cycle_closure_required",
+    "cycle_closure_tolerance_u95_kwh"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "0.1"
+    },
+    "study_id": {
+      "const": "HIGHVELD-POOL-THERMAL-EXERGY-001"
+    },
+    "case_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "parent_study": {
+      "const": "HIGHVELD-POOL-PASSIVE-REGENERATION-LEDGER-001"
+    },
+    "parent_case_ref": {
+      "const": "POOL_PASSIVE_REGENERATION_CASE_V0.1.json"
+    },
+    "maturity": {
+      "const": "SYNTHETIC_KNOWN_ANSWER"
+    },
+    "execution_status": {
+      "const": "NO_PHYSICAL_SIMULATION"
+    },
+    "property_model": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "specific_heat_kj_kg_k",
+        "specific_heat_method_ref",
+        "water_density_kg_l",
+        "density_method_ref",
+        "property_uncertainty_u95_kwh",
+        "property_evidence_ref"
+      ],
+      "properties": {
+        "specific_heat_kj_kg_k": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "specific_heat_method_ref": {
+          "type": "string",
+          "minLength": 1
+        },
+        "water_density_kg_l": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "density_method_ref": {
+          "type": "string",
+          "minLength": 1
+        },
+        "property_uncertainty_u95_kwh": {
+          "type": "number",
+          "minimum": 0
+        },
+        "property_evidence_ref": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "maximum_permitted_temperature_c": {
+      "type": "number",
+      "minimum": -273.15
+    },
+    "temperature_limit_authority_ref": {
+      "type": "string",
+      "minLength": 1
+    },
+    "intervals": {
+      "type": "array",
+      "minItems": 2,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "interval_id",
+          "environmental_reference_temperature_c",
+          "environmental_reference_method_ref",
+          "water_volume_start_l",
+          "water_volume_end_l",
+          "layers",
+          "layer_state_evidence_ref",
+          "exergy_uncertainty_u95_kwh",
+          "uncertainty_evidence_ref",
+          "thermal_energy_state_start_kwh",
+          "thermal_energy_state_end_kwh",
+          "thermal_energy_state_evidence_ref"
+        ],
+        "properties": {
+          "interval_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "environmental_reference_temperature_c": {
+            "type": "number",
+            "minimum": -273.15
+          },
+          "environmental_reference_method_ref": {
+            "type": "string",
+            "minLength": 1
+          },
+          "water_volume_start_l": {
+            "type": "number",
+            "exclusiveMinimum": 0
+          },
+          "water_volume_end_l": {
+            "type": "number",
+            "exclusiveMinimum": 0
+          },
+          "layers": {
+            "type": "array",
+            "minItems": 3,
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "layer_id",
+                "mass_fraction_start",
+                "mass_fraction_end",
+                "temperature_start_c",
+                "temperature_end_c"
+              ],
+              "properties": {
+                "layer_id": {
+                  "enum": [
+                    "TOP",
+                    "MID",
+                    "BOTTOM"
+                  ]
+                },
+                "mass_fraction_start": {
+                  "type": "number",
+                  "exclusiveMinimum": 0,
+                  "maximum": 1
+                },
+                "mass_fraction_end": {
+                  "type": "number",
+                  "exclusiveMinimum": 0,
+                  "maximum": 1
+                },
+                "temperature_start_c": {
+                  "type": "number",
+                  "minimum": -273.15
+                },
+                "temperature_end_c": {
+                  "type": "number",
+                  "minimum": -273.15
+                }
+              }
+            }
+          },
+          "layer_state_evidence_ref": {
+            "type": "string",
+            "minLength": 1
+          },
+          "exergy_uncertainty_u95_kwh": {
+            "type": "number",
+            "minimum": 0
+          },
+          "uncertainty_evidence_ref": {
+            "type": "string",
+            "minLength": 1
+          },
+          "thermal_energy_state_start_kwh": {
+            "type": "number",
+            "minimum": 0
+          },
+          "thermal_energy_state_end_kwh": {
+            "type": "number",
+            "minimum": 0
+          },
+          "thermal_energy_state_evidence_ref": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    },
+    "usable_thermal_energy_min_kwh": {
+      "type": "number",
+      "minimum": 0
+    },
+    "usable_thermal_energy_capacity_kwh": {
+      "type": "number",
+      "exclusiveMinimum": 0
+    },
+    "initial_thermal_energy_kwh": {
+      "type": "number",
+      "minimum": 0
+    },
+    "cycle_closure_required": {
+      "type": "boolean"
+    },
+    "cycle_closure_tolerance_u95_kwh": {
+      "type": "number",
+      "minimum": 0
+    },
+    "parent_case_id": {
+      "const": "SYNTHETIC_THREE_INTERVAL_POOL_BUFFER_CYCLE_001"
+    }
+  }
+}

@@ -1,0 +1,226 @@
+{
+  "format_version": "0.1",
+  "study_id": "HIGHVELD-THERMAL-SINK-CASCADE-001",
+  "parent_study": "HIGHVELD-PASSIVE-COOLING-WATER-001",
+  "parent_candidate": "NEIGHBORHOOD_RESILIENCE_COMMONS",
+  "maturity": "PROTOCOL_ONLY_NOT_EXECUTED",
+  "climate_context": "JOHANNESBURG_HIGHVELD",
+  "execution_status": "NOT_EXECUTED",
+  "architecture_arms": [
+    {
+      "id": "NO_WATER_PASSIVE_BASELINE",
+      "role": "PRIMARY_CONTROL",
+      "store_role": "NONE",
+      "sink_paths": [
+        "PASSIVE_LOAD_REDUCTION"
+      ]
+    },
+    {
+      "id": "WATER_STORE_NO_REGENERATION_NEGATIVE_CONTROL",
+      "role": "NEGATIVE_CONTROL",
+      "store_role": "WATER_BUFFER_ONLY",
+      "sink_paths": [
+        "NONE"
+      ]
+    },
+    {
+      "id": "WATER_STORE_RADIATIVE_SKY_REGENERATION",
+      "role": "TEST_ARM",
+      "store_role": "WATER_BUFFER_ONLY",
+      "sink_paths": [
+        "RADIATIVE_SKY_PANEL"
+      ]
+    },
+    {
+      "id": "WATER_STORE_DRY_AIR_REGENERATION",
+      "role": "TEST_ARM",
+      "store_role": "WATER_BUFFER_ONLY",
+      "sink_paths": [
+        "DRY_AIR_COOLER"
+      ]
+    },
+    {
+      "id": "WATER_STORE_GROUND_LOOP_REGENERATION",
+      "role": "TEST_ARM",
+      "store_role": "WATER_BUFFER_ONLY",
+      "sink_paths": [
+        "GROUND_HEAT_EXCHANGER"
+      ]
+    },
+    {
+      "id": "WATER_STORE_CONDITIONAL_EVAPORATIVE_REGENERATION",
+      "role": "TEST_ARM",
+      "store_role": "WATER_BUFFER_ONLY",
+      "sink_paths": [
+        "CONDITIONAL_EVAPORATIVE_REGENERATION"
+      ]
+    },
+    {
+      "id": "WATER_STORE_LAYERED_SINK_CASCADE",
+      "role": "TEST_ARM",
+      "store_role": "WATER_BUFFER_ONLY",
+      "sink_paths": [
+        "RADIATIVE_SKY_PANEL",
+        "DRY_AIR_COOLER",
+        "GROUND_HEAT_EXCHANGER",
+        "CONDITIONAL_EVAPORATIVE_REGENERATION"
+      ]
+    },
+    {
+      "id": "INFINITE_SINK_ASSUMPTION_NEGATIVE_CONTROL",
+      "role": "NEGATIVE_CONTROL",
+      "store_role": "INVALID_UNBOUNDED",
+      "sink_paths": [
+        "INFINITE_SINK_INVALID"
+      ]
+    }
+  ],
+  "sink_path_registry": [
+    {
+      "id": "NONE",
+      "water_consumption": "NONE_REQUIRED",
+      "evidence_required": [
+        "STORE_INITIAL_STATE",
+        "STORE_FINAL_STATE"
+      ]
+    },
+    {
+      "id": "RADIATIVE_SKY_PANEL",
+      "water_consumption": "NO_OPERATIONAL_WATER_BY_DEFAULT",
+      "evidence_required": [
+        "SKY_VIEW_FACTOR",
+        "PANEL_SURFACE_TEMPERATURE",
+        "LONGWAVE_RADIATION",
+        "CLOUD_STATE",
+        "WIND",
+        "LOOP_FLOW",
+        "LOOP_INLET_OUTLET_TEMPERATURE"
+      ]
+    },
+    {
+      "id": "DRY_AIR_COOLER",
+      "water_consumption": "NO_OPERATIONAL_WATER_BY_DEFAULT",
+      "evidence_required": [
+        "AMBIENT_DRY_BULB",
+        "AIRFLOW",
+        "FAN_POWER",
+        "LOOP_FLOW",
+        "LOOP_INLET_OUTLET_TEMPERATURE"
+      ]
+    },
+    {
+      "id": "GROUND_HEAT_EXCHANGER",
+      "water_consumption": "SITE_DEPENDENT_NO_DEFAULT_WATER_CREDIT",
+      "evidence_required": [
+        "GROUND_TEMPERATURE_PROFILE",
+        "GEOLOGY_EVIDENCE",
+        "LOOP_FLOW",
+        "LOOP_INLET_OUTLET_TEMPERATURE",
+        "SEASONAL_DRIFT"
+      ]
+    },
+    {
+      "id": "CONDITIONAL_EVAPORATIVE_REGENERATION",
+      "water_consumption": "METERED_AND_BUDGETED",
+      "evidence_required": [
+        "SOURCE_RIGHTS",
+        "SOURCE_QUALITY",
+        "MAKEUP_WATER_METER",
+        "EVAPORATION_ESTIMATE",
+        "HUMIDITY",
+        "DEW_POINT",
+        "WATER_RESTRICTION_STATE"
+      ]
+    },
+    {
+      "id": "PASSIVE_LOAD_REDUCTION",
+      "water_consumption": "NONE_REQUIRED",
+      "evidence_required": [
+        "SHADE_GEOMETRY",
+        "ENVELOPE_REVISION",
+        "VENTILATION_STATE"
+      ]
+    },
+    {
+      "id": "INFINITE_SINK_INVALID",
+      "water_consumption": "UNDECLARED_INVALID",
+      "evidence_required": [
+        "MUST_BE_REJECTED"
+      ]
+    }
+  ],
+  "scenarios": [
+    "HOT_CLEAR_NIGHT",
+    "CLOUDY_HUMID_NIGHT",
+    "HOT_DRY_WATER_RESTRICTED",
+    "COLD_CLEAR_NIGHT",
+    "MULTIDAY_HEAT_WAVE_STORE_SATURATION",
+    "PUMP_OR_HEAT_EXCHANGER_FAULT",
+    "SENSOR_DRIFT_OR_MISSINGNESS",
+    "WATER_QUALITY_OR_RIGHTS_WITHDRAWAL",
+    "GRID_AND_CONTROL_PARTITION"
+  ],
+  "frozen_inputs_required": [
+    "weather_package_digest",
+    "building_geometry_and_sky_view_digest",
+    "envelope_shading_and_ventilation_digest",
+    "occupancy_and_internal_gains_digest",
+    "thermal_load_profile_digest",
+    "store_initial_state_and_stratification_digest",
+    "heat_exchanger_and_sink_bom_digest",
+    "water_source_rights_quality_and_reserve_digest",
+    "controller_and_forecast_horizon_digest",
+    "instrument_calibration_and_uncertainty_digest",
+    "independent_energy_water_balance_oracle_id"
+  ],
+  "hard_gates": {
+    "essential_water_floor_violations": 0,
+    "unqualified_water_operation": 0,
+    "unmodelled_heat_or_water_terms": 0,
+    "useful_cooling_without_occupied_zone_evidence": 0,
+    "accepted_infinite_sink_assumptions": 0,
+    "missed_seeded_sensor_or_equipment_faults": 0,
+    "unknown_state_as_pass": 0,
+    "positive_control_false_blocks": 0,
+    "energy_and_water_balance_within_propagated_uncertainty": true,
+    "seasonal_store_cycle_closure_required": true,
+    "exact_input_model_controller_instrument_traceability_percent": 100
+  },
+  "control_layers": {
+    "independent_feasibility_governor": "DETERMINISTIC_FAIL_CLOSED",
+    "optimizer": "BOUNDED_MULTI_OBJECTIVE_PARETO_DISPATCH",
+    "future_information": "PROHIBITED",
+    "human_authority_for_discretionary_water": "REQUIRED",
+    "network_partition_fallback": "LOCAL_SAFE_POLICY_REQUIRED"
+  },
+  "required_metrics": [
+    "occupied_zone_operable_comfort_and_discomfort_degree_hours",
+    "useful_zone_cooling_with_qualified_heat_path",
+    "store_state_of_charge_and_temperature_stratification",
+    "heat_rejected_by_each_sink_path",
+    "sink_approach_temperature_and_UA_or_effectiveness",
+    "annual_or_seasonal_store_cycle_drift",
+    "evaporative_water_by_source_class",
+    "pump_and_fan_electricity",
+    "humidity_dew_point_and_condensation_events",
+    "fault_detection_and_recovery",
+    "maintenance_and_lifecycle_cost",
+    "balance_residuals_with_uncertainty"
+  ],
+  "case_expansion": {
+    "topology": "CROSS_PRODUCT_ARCHITECTURE_ARMS_AND_SCENARIOS",
+    "expected_arm_count": 8,
+    "expected_scenario_count": 9,
+    "expected_case_count": 72,
+    "case_state": "REGISTERED_NOT_EXECUTED"
+  },
+  "ownership": {
+    "geometry_and_configuration": "SOL_ATLAS",
+    "native_event_time_and_trajectories": "SYMTROPY",
+    "water_rights_quality_and_instruments": "MYCELIX",
+    "domain_physics": "SPECIALIST_SOLVERS",
+    "independent_conservation_oracle": "INDEPENDENT"
+  },
+  "claim_ceiling": "A pool or cistern is a finite thermal buffer, not an infinite heat sink; no physical cooling, water saving, cost or resilience superiority is claimed.",
+  "schema_engine": "NOT_RUN_GENERAL_JSON_SCHEMA_RUNTIME"
+}

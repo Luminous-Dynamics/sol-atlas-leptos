@@ -1,0 +1,156 @@
+{
+  "schema_version": "0.1",
+  "study_id": "HIGHVELD-POOL-MICROCLIMATE-ATTRIBUTION-001",
+  "parent_studies": [
+    "HIGHVELD-POOL-WATER-THERMAL-001",
+    "HIGHVELD-THERMAL-SERVICE-REFUGE-001"
+  ],
+  "maturity": "BENCHMARK_PROTOCOL_NOT_EXECUTED",
+  "execution_status": "NOT_EXECUTED",
+  "climate_context": "JOHANNESBURG_HIGHVELD",
+  "control_arm": "DRY_SHADE_CONTROL",
+  "treatment_arms": [
+    {
+      "id": "DRY_SHADE_CONTROL",
+      "role": "PRIMARY_CONTROL",
+      "water_surface": "NONE"
+    },
+    {
+      "id": "COVERED_POOL_BUFFER",
+      "role": "TEST_ARM",
+      "water_surface": "COVERED_POOL"
+    },
+    {
+      "id": "SHADED_EXPOSED_POOL",
+      "role": "TEST_ARM",
+      "water_surface": "OPEN_POOL"
+    },
+    {
+      "id": "SHADED_NO_SPRAY_RILL",
+      "role": "TEST_ARM",
+      "water_surface": "LOW_AEROSOL_NO_SPRAY"
+    },
+    {
+      "id": "CLOSED_LOOP_INDIRECT_EVAP_ASSIST",
+      "role": "CONDITIONAL_TEST_ARM",
+      "water_surface": "ISOLATED_LOOP"
+    },
+    {
+      "id": "AEROSOL_GENERATING_FOUNTAIN_NEGATIVE_CONTROL",
+      "role": "NEGATIVE_CONTROL",
+      "water_surface": "AEROSOL_GENERATING"
+    }
+  ],
+  "weather_scenarios": [
+    "HIGH_SOLAR_HOT_DRY",
+    "HOT_HUMID_LOW_EVAPORATIVE_POTENTIAL",
+    "HOT_CALM_LOW_WIND",
+    "MULTIDAY_HEAT_WAVE_HOT_NIGHTS",
+    "CLOUDY_HIGH_LONGWAVE",
+    "COLD_CLEAR_NIGHT_OVERCOOLING"
+  ],
+  "spatial_stations": [
+    {
+      "id": "UPWIND_BACKGROUND",
+      "role": "INCOMING_MICROCLIMATE_BOUNDARY",
+      "control_pair_required": true
+    },
+    {
+      "id": "FEATURE_EDGE",
+      "role": "IMMEDIATE_FEATURE_BOUNDARY",
+      "control_pair_required": true
+    },
+    {
+      "id": "NEAR_FIELD_1M",
+      "role": "NEAR_FIELD",
+      "control_pair_required": true
+    },
+    {
+      "id": "DOWNWIND_3M",
+      "role": "SPATIAL_DECAY",
+      "control_pair_required": true
+    },
+    {
+      "id": "OCCUPIED_ZONE",
+      "role": "PEDESTRIAN_OCCUPIED_POINT",
+      "control_pair_required": true
+    },
+    {
+      "id": "MATCHED_DRY_CONTROL",
+      "role": "NO_WATER_SHADE_MATCH",
+      "control_pair_required": true
+    }
+  ],
+  "measurement_heights_m": [
+    0.1,
+    0.6,
+    1.1,
+    1.7
+  ],
+  "required_measurements": [
+    "DRY_BULB_AIR_TEMPERATURE_BY_STATION_AND_HEIGHT",
+    "RELATIVE_HUMIDITY_OR_DEW_POINT_BY_STATION",
+    "WIND_SPEED_AND_DIRECTION_WITH_EXPOSURE",
+    "GLOBE_OR_MEAN_RADIANT_TEMPERATURE",
+    "GLOBAL_DIRECT_DIFFUSE_SOLAR",
+    "DOWNWELLING_LONGWAVE_WHEN_RADIATIVE_CLAIMED",
+    "WATER_TEMPERATURE_TOP_MID_BOTTOM",
+    "SURROUNDING_SURFACE_TEMPERATURE",
+    "WATER_EVAPORATION_AND_VOLUME_CHANGE",
+    "RECIRCULATION_FLOW_AND_PUMP_ELECTRICITY",
+    "STATION_LOCATION_HEIGHT_AND_SHADE_GEOMETRY"
+  ],
+  "design": {
+    "type": "PREREGISTERED_PAIRED_BLOCK_DESIGN",
+    "assignment": "RANDOMIZED_TREATMENT_ORDER_OR_MATCHED_PARALLEL_PLOTS_IF_CARRYOVER_INVALIDATES_CROSSOVER",
+    "independent_replication_unit": "DAY_OR_MULTI_DAY_WEATHER_BLOCK",
+    "minute_samples_independent": false,
+    "matched_dry_shade_control_required": true,
+    "upwind_background_required": true,
+    "holdout": "DAY_OR_EVENT_BLOCKED",
+    "practical_effect_threshold": "OWNER_AND_STUDY_APPROVED_BEFORE_HOLDOUT"
+  },
+  "required_outcomes": [
+    "DRY_BULB_CHANGE",
+    "OPERATIVE_OR_MEAN_RADIANT_CHANGE",
+    "HUMIDITY_AND_DEWPOINT_CHANGE",
+    "WIND_SPEED_AND_DIRECTION_CHANGE",
+    "OCCUPIED_HOUR_EXPOSURE",
+    "SPATIAL_EFFECT_DECAY",
+    "WATER_L_PER_OCCUPIED_PERSON_HOUR_OF_BENEFIT",
+    "PUMP_FAN_TREATMENT_ELECTRICITY",
+    "INDOOR_USEFUL_COOLING_WHEN_MEASURED"
+  ],
+  "negative_controls": [
+    "DRY_BULB_DROP_WITH_WORSE_HUMIDITY_MISLABELED_COMFORT_BENEFIT",
+    "TREATMENT_SHADE_OR_SOLAR_BOUNDARY_NOT_MATCHED",
+    "UNADJUSTED_WIND_OR_UPWIND_BOUNDARY_MISMATCH",
+    "EVAPORATION_OR_LEAKAGE_TREATED_AS_ZERO_WHEN_MISSING",
+    "SHADE_BENEFIT_ATTRIBUTED_TO_WATER",
+    "OUTDOOR_AIR_TEMPERATURE_PROMOTED_TO_INDOOR_COOLING",
+    "POOL_BUFFER_HEAT_ABSORPTION_PROMOTED_TO_REGENERATION",
+    "AEROSOL_OPERATION_WITH_UNKNOWN_WATER_SAFETY",
+    "MINUTE_SAMPLES_TREATED_AS_INDEPENDENT_REPLICATES",
+    "POST_HOC_WEATHER_BIN_OR_STATION_EXCLUSION",
+    "MISSING_STATION_HEIGHT_CALIBRATION_OR_CLOCK_METADATA"
+  ],
+  "hard_gates": {
+    "water_effect_without_dry_shade_control": 0,
+    "comfort_claim_from_dry_bulb_only": 0,
+    "indoor_cooling_claim_without_building_side_measurement": 0,
+    "unqualified_water_or_aerosol_operation": 0,
+    "untraceable_treatment_control_inputs": 0,
+    "post_hoc_holdout_or_block_changes": 0,
+    "essential_water_reserve_violations": 0,
+    "forced_water_feature_win_when_no_water_control_is_better": 0
+  },
+  "owners": {
+    "geometry_and_spatial_station_provenance": "SOL_ATLAS",
+    "event_time_and_block_chronology": "SYMTROPY",
+    "water_rights_quality_and_meter_admission": "MYCELIX",
+    "thermal_water_balance": "POOL_PASSIVE_REGENERATION_LEDGER",
+    "building_side_physics": "ENERGYPLUS_MODELICA_AND_QUALIFIED_SOLVERS",
+    "participant_authority": "RESIDENT_AND_ASSET_OWNER"
+  },
+  "claim_ceiling": "Registered paired microclimate protocol only; no field plot, weather, pedestrian comfort, water or indoor cooling result is admitted."
+}
