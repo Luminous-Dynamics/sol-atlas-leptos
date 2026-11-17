@@ -547,5 +547,132 @@
     "site_microclimate_claimed": false,
     "building_performance_claimed": false,
     "sota_superiority_claimed": false
-  }
+  },
+  "adversarial_cases": [
+    {
+      "case_id": "TMY_AS_HEATWAVE",
+      "attack": "TMY member is assigned as an observed heatwave",
+      "expected_result": "REJECT_AS_CLASS_MISMATCH"
+    },
+    {
+      "case_id": "TMY_MONTHS_AS_CONTINUOUS_EPISODE",
+      "attack": "Representative TMY months are interpreted as one observed continuous episode",
+      "expected_result": "BLOCK_FROM_ADMISSION"
+    },
+    {
+      "case_id": "STATION_MOVE_UNREVIEWED",
+      "attack": "Station relocation exists but station history is not reviewed",
+      "expected_result": "REQUIRE_OWNER_REVIEW"
+    },
+    {
+      "case_id": "STATION_INSTRUMENT_CHANGE",
+      "attack": "Instrument or reporting method changes within a station series without review",
+      "expected_result": "REQUIRE_OWNER_REVIEW"
+    },
+    {
+      "case_id": "QC_FLAGS_DROPPED",
+      "attack": "Export drops source quality-control flags",
+      "expected_result": "BLOCK_FROM_ADMISSION"
+    },
+    {
+      "case_id": "MISSING_AS_ZERO",
+      "attack": "Missing intervals are silently zero-filled",
+      "expected_result": "BLOCK_FROM_ADMISSION"
+    },
+    {
+      "case_id": "STATION_OUT_OF_SCOPE",
+      "attack": "Station is applied outside declared spatial or temporal scope",
+      "expected_result": "BLOCK_FROM_ADMISSION"
+    },
+    {
+      "case_id": "ERA5_GRID_AS_PARCEL",
+      "attack": "Nearest ERA5 grid point is presented as a parcel measurement",
+      "expected_result": "REJECT_AS_CLASS_MISMATCH"
+    },
+    {
+      "case_id": "ERA5_LAND_AS_SENSOR",
+      "attack": "ERA5-Land output is presented as direct on-site observation",
+      "expected_result": "REJECT_AS_CLASS_MISMATCH"
+    },
+    {
+      "case_id": "ERA5_AND_LAND_AS_INDEPENDENT",
+      "attack": "ERA5 and ERA5-Land are treated as independent observations without dependency review",
+      "expected_result": "REQUIRE_OWNER_REVIEW"
+    },
+    {
+      "case_id": "PROJECTION_METADATA_MISSING",
+      "attack": "Future projection lacks model, ensemble member, pathway or period",
+      "expected_result": "BLOCK_FROM_ADMISSION"
+    },
+    {
+      "case_id": "ENSEMBLE_AVERAGE_HIDES_MEMBER",
+      "attack": "A projection average suppresses an adverse member without a declared method",
+      "expected_result": "KEEP_MEMBERS_SEPARATE"
+    },
+    {
+      "case_id": "EPISODE_WITHOUT_SELECTOR",
+      "attack": "Extreme episode lacks an exact source member or reproducible selection rule",
+      "expected_result": "BLOCK_FROM_ADMISSION"
+    },
+    {
+      "case_id": "HOT_NIGHT_LOCAL_TIME_TRUNCATION",
+      "attack": "Local-time conversion truncates an overnight event window",
+      "expected_result": "REQUIRE_OWNER_REVIEW"
+    },
+    {
+      "case_id": "COLD_SNAP_OMITTED",
+      "attack": "Declared required cold scenario is missing from the mandatory scenario set",
+      "expected_result": "BLOCK_FROM_ADMISSION"
+    },
+    {
+      "case_id": "GRID_WATER_UNALIGNED",
+      "attack": "Grid and water traces have no qualified cross-stream timebase",
+      "expected_result": "UNALIGNED_NOT_ADMITTED"
+    },
+    {
+      "case_id": "CLOCK_RESET_REORDER",
+      "attack": "Clock reset or correction creates duplicated or reordered events",
+      "expected_result": "UNALIGNED_NOT_ADMITTED"
+    },
+    {
+      "case_id": "COMPOUND_COVERAGE_GAP",
+      "attack": "Climate and outage traces do not cover the same declared episode window",
+      "expected_result": "UNALIGNED_NOT_ADMITTED"
+    },
+    {
+      "case_id": "MICROCLIMATE_NO_PASSPORT",
+      "attack": "On-site sensor has no exact admitted instrument passport",
+      "expected_result": "BLOCK_FROM_ADMISSION"
+    },
+    {
+      "case_id": "MICROCLIMATE_INSTALL_UNQUALIFIED",
+      "attack": "Sensor installation or sample stream is not qualified for the declared location",
+      "expected_result": "REQUIRE_OWNER_REVIEW"
+    },
+    {
+      "case_id": "RIGHTS_UNKNOWN",
+      "attack": "Source reuse rights are unknown for the intended processing or redistribution",
+      "expected_result": "BLOCK_FROM_ADMISSION"
+    },
+    {
+      "case_id": "STALE_DIGEST_RESULT",
+      "attack": "A source digest changes but a dependent model result remains current",
+      "expected_result": "INVALIDATE_DEPENDENT_RESULT"
+    },
+    {
+      "case_id": "UNEQUAL_SCENARIO_SET",
+      "attack": "Candidate designs are evaluated against non-identical mandatory scenario identities",
+      "expected_result": "BLOCK_FROM_ADMISSION"
+    },
+    {
+      "case_id": "AGGREGATION_WITHOUT_METHOD",
+      "attack": "Statistical aggregation lacks a method and dependency contract",
+      "expected_result": "BLOCK_FROM_ADMISSION"
+    },
+    {
+      "case_id": "UNCERTAINTY_COMPONENT_COLLAPSE",
+      "attack": "Measurement, model and projection uncertainty are collapsed without a justified model",
+      "expected_result": "REQUIRE_OWNER_REVIEW"
+    }
+  ]
 }
