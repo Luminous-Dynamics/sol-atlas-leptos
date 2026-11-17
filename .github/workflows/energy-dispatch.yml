@@ -5,7 +5,10 @@ on:
     branches: [main]
     paths:
       - "sol-atlas-core/src/energy_dispatch.rs"
+      - "sol-atlas-core/src/maintenance_availability.rs"
+      - "sol-atlas-core/src/energy_maintenance_dispatch.rs"
       - "sol-atlas-core/src/bin/energy_dispatch_assess.rs"
+      - "schemas/maintenance-availability-trace-v1.schema.json"
       - "sol-atlas-core/src/lib.rs"
       - "schemas/energy-dispatch-*.schema.json"
       - "schemas/examples/energy-dispatch-*.synthetic.json"
@@ -14,7 +17,10 @@ on:
   pull_request:
     paths:
       - "sol-atlas-core/src/energy_dispatch.rs"
+      - "sol-atlas-core/src/maintenance_availability.rs"
+      - "sol-atlas-core/src/energy_maintenance_dispatch.rs"
       - "sol-atlas-core/src/bin/energy_dispatch_assess.rs"
+      - "schemas/maintenance-availability-trace-v1.schema.json"
       - "sol-atlas-core/src/lib.rs"
       - "schemas/energy-dispatch-*.schema.json"
       - "schemas/examples/energy-dispatch-*.synthetic.json"
@@ -43,6 +49,8 @@ jobs:
           key: ${{ runner.os }}-energy-dispatch-${{ hashFiles('**/Cargo.lock') }}
       - name: Run finite-model, Pareto and negative-control tests
         run: cargo test -p sol-atlas-core --lib energy_dispatch
+      - name: Run maintenance-to-dispatch coupling tests
+        run: cargo test -p sol-atlas-core --lib energy_maintenance_dispatch
       - name: Run receipt-wrapped dispatch CLI tests
         run: cargo test -p sol-atlas-core --bin energy_dispatch_assess
       - name: Produce frozen known-answer report
