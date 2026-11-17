@@ -92,6 +92,8 @@ pub enum ProjectionDisposition {
 #[serde(deny_unknown_fields)]
 pub struct MaintenanceAvailabilityTraceV1 {
     pub schema_version: u16,
+    /// Stable length-prefixed composite key; not a cryptographic content digest.
+    pub trace_id: String,
     pub study_id: String,
     pub study_window: StudyWindow,
     pub target: AssetIdentity,
@@ -253,6 +255,78 @@ fn require_configuration(
     Ok(())
 }
 
+fn append_id_component(output: &mut String, value: &str) {
+    output.push_str(&value.len().to_string());
+    output.push(':');
+    output.push_str(value);
+    output.push(';');
+}
+
+fn append_optional_evidence(output: &mut String, evidence: Option<&EvidenceRef>) {
+    if let Some(evidence) = evidence {
+        output.push('1');
+        append_id_component(output, &evidence.reference);
+        append_id_component(output, &evidence.digest);
+        append_id_component(output, &evidence.observed_at_unix_seconds.to_string());
+        append_id_component(output, &evidence.configuration_digest);
+    } else {
+        output.push('0');
+        output.push(';');
+    }
+}
+
+/// Derive a stable composite identifier from the exact study and source inputs.
+///
+/// This is intentionally not a hash: consumers that need tamper evidence must
+/// separately hash canonical serialized trace bytes using their approved scheme.
+fn deterministic_trace_id(request: &ProjectionRequest) -> String {
+    let mut trace_id = String::from("maintenance-availability-v1;");
+    append_id_component(&mut trace_id, &request.study_id);
+    append_id_component(
+        &mut trace_id,
+        &request.study_window.start_unix_seconds.to_string(),
+    );
+    append_id_component(
+        &mut trace_id,
+        &request.study_window.end_unix_seconds.to_string(),
+    );
+    append_id_component(&mut trace_id, &request.target.asset_id);
+    append_id_component(
+        &mut trace_id,
+        &request.target.configuration_digest,
+    );
+    append_id_component(&mut trace_id, &request.work_order.work_order_id);
+    append_id_component(
+        &mut trace_id,
+        &request.work_order.planned_start_unix_seconds.to_string(),
+    );
+    append_id_component(
+        &mut trace_id,
+        &request.work_order.planned_end_unix_seconds.to_string(),
+    );
+    append_optional_evidence(&mut trace_id, Some(&request.baseline_available));
+    append_optional_evidence(&mut trace_id, Some(&request.work_order.source_event));
+    append_optional_evidence(&mut trace_id, request.work_order.authorization.as_ref());
+    append_optional_evidence(&mut trace_id, request.work_order.isolation.as_ref());
+    append_optional_evidence(&mut trace_id, request.work_order.completion.as_ref());
+    append_optional_evidence(
+        &mut trace_id,
+        request.work_order.inspection.as_ref(),
+    );
+    append_optional_evidence(
+        &mut trace_id,
+        request.work_order.return_to_service_authorization.as_ref(),
+    );
+    if let Some(digest) = &request.work_order.post_work_configuration_digest {
+        trace_id.push('1');
+        append_id_component(&mut trace_id, digest);
+    } else {
+        trace_id.push('0');
+        trace_id.push(';');
+    }
+    trace_id
+}
+
 fn push_interval(
     intervals: &mut Vec<AvailabilityInterval>,
     start: i64,
@@ -280,6 +354,9 @@ pub fn validate_trace_structure(
 ) -> Result<(), TraceValidationError> {
     if trace.schema_version != MAINTENANCE_AVAILABILITY_SCHEMA_VERSION {
         return Err(TraceValidationError::UnsupportedSchemaVersion);
+    }
+    if !non_empty(&trace.trace_id) {
+        return Err(TraceValidationError::EmptyStudyId);
     }
     if !non_empty(&trace.study_id) {
         return Err(TraceValidationError::EmptyStudyId);
@@ -572,6 +649,7 @@ pub fn project_maintenance_availability(
 
     Ok(MaintenanceAvailabilityTraceV1 {
         schema_version: MAINTENANCE_AVAILABILITY_SCHEMA_VERSION,
+        trace_id: deterministic_trace_id(request),
         study_id: request.study_id.clone(),
         study_window: window.clone(),
         target: request.target.clone(),
@@ -792,6 +870,21 @@ mod tests {
             project_maintenance_availability(&input),
             Err(ProjectionError::ReturnBeforeStudyStart)
         );
+    }
+
+    #[test]
+    fn trace_id_is_stable_for_identical_inputs_and_changes_with_evidence() {
+        let input = request();
+        let first = project_maintenance_availability(&input).expect("valid trace");
+        let second = project_maintenance_availability(&input).expect("same valid trace");
+        assert_eq!(first.trace_id, second.trace_id);
+
+        let mut changed = input;
+        changed.work_order.return_to_service_authorization =
+            Some(evidence("return-authorized-new-receipt", 34, NEW_CONFIG));
+        let changed_trace =
+            project_maintenance_availability(&changed).expect("valid changed trace");
+        assert_ne!(first.trace_id, changed_trace.trace_id);
     }
 
     #[test]
