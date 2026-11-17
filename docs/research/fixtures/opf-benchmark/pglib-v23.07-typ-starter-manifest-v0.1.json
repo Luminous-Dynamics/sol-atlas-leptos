@@ -1,0 +1,248 @@
+{
+  "schema_version": "0.1.0",
+  "manifest_id": "pglib-v23.07-typ-matpower-dcmp-starter-v0.1",
+  "status": "starter_panel",
+  "created_at": "2026-11-17T00:00:00Z",
+  "purpose": "A pinned starter panel for formulation-matched DC power flow and convex DC-OPF comparisons. It is not the full PGLib corpus and does not contain newly measured solver-performance results.",
+  "dataset": {
+    "name": "PGLib-OPF",
+    "release_tag": "v23.07",
+    "git_commit": "dc6be4b2f85ca0e776952ec22cbd4c22396ea5a3",
+    "source_uri": "https://github.com/power-grid-lib/pglib-opf",
+    "release_uri": "https://github.com/power-grid-lib/pglib-opf/releases/tag/v23.07",
+    "license": "CC-BY-4.0",
+    "published_case_groups": [
+      "TYP",
+      "API",
+      "SAD"
+    ],
+    "selected_group": "TYP"
+  },
+  "source_contract": {
+    "format": "MATPOWER v2",
+    "digest": "Git blob SHA-1 over exact source bytes",
+    "rule": "A result must name the exact fixture blob identity. No normalization, line-ending conversion, or reserialization is permitted before identity is computed."
+  },
+  "formulations": [
+    {
+      "profile_id": "matpower_8_1_makeBdc_dcopf",
+      "status": "supported_reference_profile",
+      "description": "MATPOWER 8.1 continuous single-period DC-OPF using makeBdc conventions: branch susceptance -1/x with transformer tap and phase-shift terms, MATPOWER cost semantics, and the declared DC constraints.",
+      "base_mva": "per case source",
+      "transformer_tap_and_phase_shift": "included",
+      "comparison_eligibility": "reference"
+    },
+    {
+      "profile_id": "matpower_8_1_makeBdc_fixed_injection_dc_power_flow",
+      "status": "supported_reference_profile",
+      "description": "MATPOWER 8.1 fixed-injection DC power flow using the exact makeBdc conventions.",
+      "base_mva": "per case source",
+      "transformer_tap_and_phase_shift": "included",
+      "comparison_eligibility": "reference"
+    },
+    {
+      "profile_id": "powermodels_dcmp",
+      "status": "planned_adapter",
+      "description": "PowerModels.jl DCMPPowerModel; uses -1/x and includes transformer tap and phase shift terms.",
+      "comparison_eligibility": "planned_matched_formulation"
+    },
+    {
+      "profile_id": "powermodels_dcp",
+      "status": "diagnostic_only",
+      "description": "PowerModels.jl DCPPowerModel; uses -x/(r^2+x^2) and omits taps and phase shifts.",
+      "comparison_eligibility": "not_a_matpower_makeBdc_parity_oracle"
+    }
+  ],
+  "reference_stack": {
+    "matpower": {
+      "name": "MATPOWER",
+      "version": "8.1",
+      "git_commit": "1a828c7af590714499284e36ee9c81273388c594"
+    },
+    "mp_opt_model": {
+      "name": "MP-Opt-Model",
+      "version": "5.0",
+      "git_commit": "35e81cdc147436e843d69b143b32ec5bacfa14d2"
+    },
+    "mips": {
+      "name": "MIPS",
+      "version": "1.5.2",
+      "git_commit": "7ed83ba9d668864fbf7f4c1931ee697b86aa5764"
+    },
+    "mp_test": {
+      "name": "MP-Test",
+      "version": "8.1",
+      "git_commit": "a918a838ee421af41d64775508a8a6608e75e569"
+    },
+    "rust": {
+      "version": "1.96.0"
+    },
+    "octave": {
+      "version": "runner-installed; exact patch version captured in execution receipt"
+    }
+  },
+  "comparison_targets": [
+    {
+      "solver": "HiGHS",
+      "version": "1.15.1",
+      "status": "planned_adapter",
+      "role": "open-source LP/QP baseline"
+    },
+    {
+      "solver": "Gurobi Optimizer",
+      "version": "14.0.0",
+      "status": "optional_external_baseline",
+      "role": "commercial LP/QP baseline; licence and build identity required"
+    },
+    {
+      "solver": "PowerModels.jl",
+      "version": "not_yet_pinned_for_adapter",
+      "status": "planned_adapter",
+      "role": "common formulation layer; use DCMPPowerModel for MATPOWER-equivalent DC comparisons"
+    },
+    {
+      "solver": "MATPOWER",
+      "version": "8.1",
+      "status": "current_reference",
+      "role": "source-native DC and DC-OPF reference execution"
+    }
+  ],
+  "cases": [
+    {
+      "case_id": "pglib_opf_case14_ieee",
+      "path": "tools/pglib-case-auditor/fixtures/pglib_opf_case14_ieee.m",
+      "source_git_blob_sha1": "2c8260fff0311c902c3d36dcabcbe861576fc97c",
+      "operating_condition": "TYP",
+      "bus_count": 14,
+      "branch_count": 20,
+      "supported_profiles": [
+        "matpower_8_1_makeBdc_dcopf",
+        "matpower_8_1_makeBdc_fixed_injection_dc_power_flow"
+      ],
+      "published_baseline_context": {
+        "source": "PGLib-OPF BASELINE.md",
+        "powermodels_version": "0.19.9",
+        "ipopt_version": "3.14.4",
+        "dc_objective_usd_per_hour": 2051.5,
+        "ac_objective_usd_per_hour": 2178.1,
+        "comparison_role": "context_only_not_a_matpower_makeBdc_or_dc-mp_parity_target"
+      }
+    },
+    {
+      "case_id": "pglib_opf_case24_ieee_rts",
+      "path": "tools/pglib-case-auditor/fixtures/pglib_opf_case24_ieee_rts.m",
+      "source_git_blob_sha1": "00b024c2e583b82452392514d2c22881c708ba7c",
+      "operating_condition": "TYP",
+      "bus_count": 24,
+      "branch_count": 38,
+      "supported_profiles": [
+        "matpower_8_1_makeBdc_dcopf",
+        "matpower_8_1_makeBdc_fixed_injection_dc_power_flow"
+      ],
+      "published_baseline_context": {
+        "source": "PGLib-OPF BASELINE.md",
+        "powermodels_version": "0.19.9",
+        "ipopt_version": "3.14.4",
+        "dc_objective_usd_per_hour": 61001,
+        "ac_objective_usd_per_hour": 63352,
+        "comparison_role": "context_only_not_a_matpower_makeBdc_or_dc-mp_parity_target"
+      }
+    },
+    {
+      "case_id": "pglib_opf_case57_ieee",
+      "path": "tools/pglib-case-auditor/fixtures/pglib_opf_case57_ieee.m",
+      "source_git_blob_sha1": "d8b0c9e8b45265e57f52b7ab96880ad3a874cde5",
+      "operating_condition": "TYP",
+      "bus_count": 57,
+      "branch_count": 80,
+      "supported_profiles": [
+        "matpower_8_1_makeBdc_dcopf",
+        "matpower_8_1_makeBdc_fixed_injection_dc_power_flow"
+      ],
+      "published_baseline_context": {
+        "source": "PGLib-OPF BASELINE.md",
+        "powermodels_version": "0.19.9",
+        "ipopt_version": "3.14.4",
+        "dc_objective_usd_per_hour": 34773,
+        "ac_objective_usd_per_hour": 37589,
+        "comparison_role": "context_only_not_a_matpower_makeBdc_or_dc-mp_parity_target"
+      }
+    }
+  ],
+  "observed_evidence_snapshot": {
+    "repository": "Luminous-Dynamics/sol-atlas-leptos",
+    "audited_head": "b9db4bba791fb7bbbf79943022214202f5ed4945",
+    "pr_url": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/pull/900",
+    "evidence": [
+      {
+        "kind": "matpower_8_1_dc_opf_primal_audit",
+        "run_id": 44037837959,
+        "run_number": 66,
+        "conclusion": "success",
+        "url": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/actions/runs/44037837959",
+        "scope": "the three listed TYP cases"
+      },
+      {
+        "kind": "matpower_8_1_fixed_injection_dc_reference",
+        "run_id": 44037837962,
+        "run_number": 113,
+        "conclusion": "success",
+        "url": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/actions/runs/44037837962",
+        "scope": "the three listed TYP cases"
+      },
+      {
+        "kind": "powerio_matpower_source_differential",
+        "run_id": 44037837898,
+        "run_number": 63,
+        "conclusion": "success",
+        "url": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/actions/runs/44037837898",
+        "scope": "the three listed TYP cases"
+      },
+      {
+        "kind": "matpower_to_dc_network_evaluation",
+        "run_id": 44037837968,
+        "run_number": 112,
+        "conclusion": "success",
+        "url": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/actions/runs/44037837968",
+        "scope": "the three listed TYP cases"
+      }
+    ],
+    "not_established": [
+      "PowerModels DCMP solver parity on this panel",
+      "HiGHS solver parity or performance on this panel",
+      "Gurobi solver parity or performance on this panel",
+      "full PGLib v23.07 corpus coverage",
+      "AC-OPF global optimality",
+      "security-constrained N-1 dispatch qualification",
+      "physical-grid or field validation"
+    ]
+  },
+  "benchmark_protocol": {
+    "minimum_repetitions_for_performance_claim": 10,
+    "hardware_must_be_pinned": true,
+    "report_statistics": [
+      "median",
+      "p95",
+      "standard_deviation",
+      "min",
+      "max"
+    ],
+    "required_timings_ms": [
+      "model_build",
+      "preprocess",
+      "solve",
+      "verify",
+      "end_to_end"
+    ],
+    "required_metrics": [
+      "objective",
+      "primal_residual",
+      "dual_residual",
+      "stationarity_residual",
+      "complementarity",
+      "primal_dual_gap",
+      "peak_memory"
+    ],
+    "rule": "Time-to-qualified includes model build, preprocessing, solver execution, independent verification, and evidence receipt creation. Do not drop unsupported, failed, or not-evaluable cases from panel denominators."
+  }
+}
