@@ -3,7 +3,7 @@
   "profile_id": "SYNTH-HV-EXPRESSION-001",
   "maturity": "SYNTHETIC",
   "linked_brief_id": "SYNTH-HV-FAMILY-001",
-  "linked_design_revision_ref": "SYNTHETIC-HIGHVELD-REV-A-NOT-A-PARCEL-DESIGN",
+  "linked_design_revision_ref": "HFC-SYNTH-REV-0",
   "linked_brief_constraint_ids": [
     "C_SLEEP_02",
     "C_WORK_01",
@@ -617,5 +617,8 @@
     "redaction_status": "REVIEWED_NO_DIRECT_IDENTIFIERS"
   },
   "linked_brief_artifact_ref": "docs/research/home-freedom/HOME_DESIGN_BRIEF_SYNTHETIC_EXAMPLE_V0.1.json",
-  "linked_brief_content_sha": "0090e2f0c883c62817d1b6da51d1a2dbe92a477f"
+  "linked_brief_content_sha": "0090e2f0c883c62817d1b6da51d1a2dbe92a477f",
+  "linked_candidate_set_id": "SYNTH-HV-CASE-001",
+  "linked_candidate_set_artifact_ref": "docs/research/home-freedom/HOME_DESIGN_CANDIDATE_SET_SYNTHETIC_EXAMPLE_V0.1.json",
+  "linked_candidate_set_content_sha": "030e6c0e71cef1a936738910409396a9a48dedcf"
 }
