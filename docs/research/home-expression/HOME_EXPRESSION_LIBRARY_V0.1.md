@@ -316,6 +316,7 @@ This increment provides:
 - a versioned resident expression and experience package contract;
 - a synthetic profile;
 - a deterministic Rust qualifier for contract-level invariants;
+- a source-bound resident decision receipt that keeps unknown gates conditional and preserves resident choice;
 - a research and benchmark protocol.
 
 It does **not** provide:
