@@ -38,6 +38,15 @@ const HOME_CANDIDATE_SET_FIXTURE: &str = include_str!(
 const EXPECTED_CANDIDATE_SET_ARTIFACT_REF: &str =
     "docs/research/home-freedom/HOME_DESIGN_CANDIDATE_SET_SYNTHETIC_EXAMPLE_V0.1.json";
 const EXPECTED_CANDIDATE_SET_BLOB_SHA: &str = "030e6c0e71cef1a936738910409396a9a48dedcf";
+const DECISION_RECEIPT_FIXTURE: &str = include_str!(
+    "../../docs/research/home-expression/HOME_EXPRESSION_DECISION_RECEIPT_SYNTHETIC_HIGHVELD_V0.1.json"
+);
+const DECISION_RECEIPT_SCHEMA: &str = include_str!(
+    "../../docs/research/home-expression/HOME_EXPRESSION_DECISION_RECEIPT_V0.1.schema.json"
+);
+const EXPECTED_PROFILE_ARTIFACT_REF: &str =
+    "docs/research/home-expression/HOME_EXPRESSION_PROFILE_SYNTHETIC_HIGHVELD_V0.1.json";
+const EXPECTED_PROFILE_BLOB_SHA: &str = "a7f34f081c793e0794ad071b3694fe90206ca94a";
 
 const IMPACT_DOMAINS: &[&str] = &[
     "AREA_AND_CIRCULATION",
@@ -655,6 +664,214 @@ fn validate_profile_source_bindings(
     }
 }
 
+fn decision_receipt_fixture() -> Result<(Value, Value), String> {
+    let receipt: Value = serde_json::from_str(DECISION_RECEIPT_FIXTURE)
+        .map_err(|error| format!("decision receipt fixture is invalid JSON: {error}"))?;
+    let schema: Value = serde_json::from_str(DECISION_RECEIPT_SCHEMA)
+        .map_err(|error| format!("decision receipt schema is invalid JSON: {error}"))?;
+    Ok((receipt, schema))
+}
+
+fn candidate_technical_disposition(gates: &[Value]) -> &'static str {
+    if gates
+        .iter()
+        .any(|gate| string_at(gate, "state") == Some("FAIL"))
+    {
+        "BLOCKED"
+    } else if gates
+        .iter()
+        .any(|gate| string_at(gate, "state") != Some("PASS"))
+    {
+        "CONDITIONAL_CONCEPT_ONLY"
+    } else {
+        "ELIGIBLE_FOR_RESIDENT_PREFERENCE_COMPARISON"
+    }
+}
+
+fn validate_decision_receipt(
+    receipt: &Value,
+    schema: &Value,
+    profile: &Value,
+    brief: &Value,
+    source_candidate_set: &Value,
+) -> Vec<String> {
+    let mut errors = Vec::new();
+
+    if string_at(schema, "$schema") != Some("https://json-schema.org/draft/2020-12/schema")
+        || string_at(schema, "type") != Some("object")
+    {
+        errors.push("decision receipt schema must declare a Draft 2020-12 object".to_owned());
+    }
+    if string_at(receipt, "schema_version") != Some("0.1.0")
+        || string_at(receipt, "study_id") != Some("HOME-EXPRESSION-DECISION-RECEIPT-001")
+        || string_at(receipt, "maturity") != Some("SYNTHETIC_CONTRACT_FIXTURE")
+        || string_at(receipt, "execution_status") != Some("NOT_EXECUTED")
+    {
+        errors.push("decision receipt identity, maturity or execution status was promoted".to_owned());
+    }
+
+    let binding = receipt.get("source_binding").unwrap_or(&Value::Null);
+    if string_at(binding, "profile_id") != string_at(profile, "profile_id")
+        || string_at(binding, "profile_artifact_ref") != Some(EXPECTED_PROFILE_ARTIFACT_REF)
+        || string_at(binding, "profile_content_sha") != Some(EXPECTED_PROFILE_BLOB_SHA)
+    {
+        errors.push("decision receipt does not bind the exact resident expression profile path and digest".to_owned());
+    }
+    if string_at(binding, "brief_id") != string_at(brief, "brief_id")
+        || string_at(binding, "brief_id") != string_at(profile, "linked_brief_id")
+        || string_at(binding, "brief_artifact_ref") != Some(EXPECTED_BRIEF_ARTIFACT_REF)
+        || string_at(binding, "brief_content_sha") != Some(EXPECTED_BRIEF_BLOB_SHA)
+    {
+        errors.push("decision receipt does not bind the exact Home Freedom brief path and digest".to_owned());
+    }
+    if string_at(binding, "candidate_set_id") != string_at(source_candidate_set, "candidate_set_id")
+        || string_at(binding, "candidate_set_id") != string_at(profile, "linked_candidate_set_id")
+        || string_at(binding, "candidate_set_artifact_ref")
+            != Some(EXPECTED_CANDIDATE_SET_ARTIFACT_REF)
+        || string_at(binding, "candidate_set_content_sha")
+            != Some(EXPECTED_CANDIDATE_SET_BLOB_SHA)
+        || string_at(binding, "design_revision") != string_at(source_candidate_set, "design_revision")
+        || string_at(binding, "design_revision")
+            != string_at(profile, "linked_design_revision_ref")
+    {
+        errors.push("decision receipt does not bind the exact Home Freedom candidate set and design revision".to_owned());
+    }
+
+    let source_candidates = array_at(source_candidate_set, "candidates")
+        .cloned()
+        .unwrap_or_default();
+    let candidate_receipts = array_at(receipt, "candidate_receipts")
+        .cloned()
+        .unwrap_or_default();
+    if source_candidates.len() != candidate_receipts.len() || source_candidates.is_empty() {
+        errors.push("decision receipt must cover every and only source candidate".to_owned());
+    }
+
+    let mut seen_candidates = BTreeSet::new();
+    let mut all_candidates_blocked = true;
+    let mut any_candidate_preference_eligible = false;
+    for candidate_receipt in &candidate_receipts {
+        let candidate_id = string_at(candidate_receipt, "candidate_id").unwrap_or_default();
+        if candidate_id.is_empty() || !seen_candidates.insert(candidate_id.to_owned()) {
+            errors.push(format!("decision receipt has a missing or duplicate candidate ID: {candidate_id}"));
+        }
+        let source_candidate = source_candidates
+            .iter()
+            .find(|candidate| string_at(candidate, "candidate_id") == Some(candidate_id));
+        let Some(source_candidate) = source_candidate else {
+            errors.push(format!("{candidate_id}: candidate is not present in the exact source candidate set"));
+            continue;
+        };
+
+        if string_at(candidate_receipt, "source_disposition")
+            != string_at(source_candidate, "disposition")
+            || string_at(candidate_receipt, "space_program_state")
+                != string_at(source_candidate, "space_program_state")
+        {
+            errors.push(format!("{candidate_id}: source disposition or symbolic-program state drifted"));
+        }
+
+        let source_gates = array_at(source_candidate, "hard_gate_results")
+            .cloned()
+            .unwrap_or_default();
+        let receipt_gates = array_at(candidate_receipt, "hard_gate_results")
+            .cloned()
+            .unwrap_or_default();
+        if source_gates.len() != receipt_gates.len() {
+            errors.push(format!("{candidate_id}: decision receipt gate count differs from source"));
+        }
+        let source_gate_ids = object_field_string_set(Some(&source_gates), "gate_id");
+        let receipt_gate_ids = object_field_string_set(Some(&receipt_gates), "gate_id");
+        if source_gate_ids != receipt_gate_ids || source_gate_ids.len() != source_gates.len() {
+            errors.push(format!("{candidate_id}: hard-gate IDs are missing, duplicated or invented"));
+        }
+
+        for gate in &receipt_gates {
+            let gate_id = string_at(gate, "gate_id").unwrap_or_default();
+            let Some(source_gate) = source_gates
+                .iter()
+                .find(|source| string_at(source, "gate_id") == Some(gate_id))
+            else {
+                continue;
+            };
+            if string_at(gate, "state") != string_at(source_gate, "state")
+                || string_at(gate, "reason") != string_at(source_gate, "reason")
+                || gate.get("evidence_ref") != source_gate.get("evidence_ref")
+            {
+                errors.push(format!("{candidate_id}/{gate_id}: gate state or evidence differs from exact source"));
+            }
+        }
+
+        let expected_disposition = candidate_technical_disposition(&receipt_gates);
+        if string_at(candidate_receipt, "technical_disposition") != Some(expected_disposition) {
+            errors.push(format!(
+                "{candidate_id}: technical disposition does not follow fail-closed hard-gate semantics"
+            ));
+        }
+        all_candidates_blocked &= expected_disposition == "BLOCKED";
+        any_candidate_preference_eligible |=
+            expected_disposition == "ELIGIBLE_FOR_RESIDENT_PREFERENCE_COMPARISON";
+    }
+    let source_candidate_ids = object_field_string_set(Some(&source_candidates), "candidate_id");
+    if seen_candidates != source_candidate_ids {
+        errors.push("decision receipt does not cover the exact source candidate ID set".to_owned());
+    }
+
+    let policy = receipt.get("comparison_policy").unwrap_or(&Value::Null);
+    let expected_pareto_state = if all_candidates_blocked || !any_candidate_preference_eligible {
+        "NOT_COMPUTABLE_UNTIL_REQUIRED_GATES_PASS_AND_OBJECTIVES_ARE_ADMITTED"
+    } else {
+        "READY_FOR_OWNER_NATIVE_PARETO_COMPARISON"
+    };
+    if string_at(policy, "comparison_layer") != Some("EXPRESSION_PREVIEW_ONLY")
+        || string_at(policy, "technical_pareto_status") != Some(expected_pareto_state)
+        || policy.get("candidates_ranked").and_then(Value::as_bool) != Some(false)
+        || !policy.get("scalar_score").is_some_and(Value::is_null)
+        || policy.get("automatic_selection").and_then(Value::as_bool) != Some(false)
+        || policy.get("feasibility_claim_permitted").and_then(Value::as_bool) != Some(false)
+        || policy
+            .get("pareto_comparison_requires_all_hard_gates_pass")
+            .and_then(Value::as_bool)
+            != Some(true)
+        || string_at(policy, "preference_source") != Some("RESIDENT_AUTHORED_PROFILE_ONLY")
+        || string_at(policy, "unknown_gate_semantics") != Some("CONDITIONAL_NOT_PASS")
+    {
+        errors.push("decision comparison policy weakens resident authority, unknown handling or non-ranking boundary".to_owned());
+    }
+
+    let resident_choice = receipt.get("resident_choice").unwrap_or(&Value::Null);
+    if string_at(resident_choice, "authority") != Some("RESIDENT")
+        || string_at(resident_choice, "state") != Some("NOT_RECORDED")
+        || !resident_choice
+            .get("selected_candidate_id")
+            .is_some_and(Value::is_null)
+    {
+        errors.push("decision receipt invents or delegates resident choice".to_owned());
+    }
+    let pairwise = array_at(resident_choice, "pairwise_preferences")
+        .cloned()
+        .unwrap_or_default();
+    for pair in &pairwise {
+        let left = string_at(pair, "left_candidate_id").unwrap_or_default();
+        let right = string_at(pair, "right_candidate_id").unwrap_or_default();
+        if !source_candidate_ids.contains(left) || !source_candidate_ids.contains(right) {
+            errors.push("resident pairwise decision references a non-source candidate".to_owned());
+        }
+        if string_at(pair, "decision") != Some("UNDECIDED")
+            || !nonempty_string(pair, "basis")
+        {
+            errors.push("resident pairwise preference must remain explicitly undecided until resident input".to_owned());
+        }
+    }
+
+    if string_at(receipt, "claim_ceiling")
+        != Some("CONTRACT_ONLY_NO_TECHNICAL_FEASIBILITY_OR_PREFERENCE_WINNER")
+    {
+        errors.push("decision receipt claim ceiling was promoted".to_owned());
+    }
+    errors
+}
+
 fn validate_profile(profile: &Value, schema: &Value) -> Result<(), Vec<String>> {
     let mut errors = Vec::new();
     validate_schema_header(schema, &mut errors);
@@ -1002,7 +1219,23 @@ fn self_test() -> Result<(), String> {
     let profile = embedded_profile()?;
     let schema = embedded_schema()?;
     validate_profile(&profile, &schema).map_err(|errors| errors.join("\n"))?;
+    let (receipt, receipt_schema) = decision_receipt_fixture()?;
+    let source_brief: Value = serde_json::from_str(HOME_BRIEF_FIXTURE)
+        .map_err(|error| format!("source brief is invalid JSON: {error}"))?;
+    let source_candidate_set: Value = serde_json::from_str(HOME_CANDIDATE_SET_FIXTURE)
+        .map_err(|error| format!("source candidate set is invalid JSON: {error}"))?;
+    let receipt_errors = validate_decision_receipt(
+        &receipt,
+        &receipt_schema,
+        &profile,
+        &source_brief,
+        &source_candidate_set,
+    );
+    if !receipt_errors.is_empty() {
+        return Err(receipt_errors.join("\n"));
+    }
     println!("PASS: synthetic home expression profile satisfies v0.1 owner contract");
+    println!("PASS: resident decision receipt preserves both source candidates and all UNKNOWN gates");
     println!(
         "PASS: resident style blend, optional packages and explicit UNKNOWN impacts preserved"
     );
@@ -1048,6 +1281,88 @@ mod tests {
             embedded_profile().expect("valid embedded fixture"),
             embedded_schema().expect("valid embedded schema"),
         )
+    }
+
+    fn decision_fixture() -> (Value, Value, Value, Value, Value) {
+        let (receipt, schema) = decision_receipt_fixture().expect("valid decision receipt fixture");
+        let profile = embedded_profile().expect("valid expression profile");
+        let brief: Value = serde_json::from_str(HOME_BRIEF_FIXTURE).expect("valid source brief");
+        let candidate_set: Value =
+            serde_json::from_str(HOME_CANDIDATE_SET_FIXTURE).expect("valid source candidate set");
+        (receipt, schema, profile, brief, candidate_set)
+    }
+
+    #[test]
+    fn accepts_exact_source_bound_decision_receipt() {
+        let (receipt, schema, profile, brief, candidate_set) = decision_fixture();
+        assert!(validate_decision_receipt(&receipt, &schema, &profile, &brief, &candidate_set).is_empty());
+    }
+
+    #[test]
+    fn unknown_hard_gate_never_becomes_preference_eligible() {
+        let gates = vec![json!({"gate_id":"C_ACCESS_01","state":"UNKNOWN"})];
+        assert_eq!(candidate_technical_disposition(&gates), "CONDITIONAL_CONCEPT_ONLY");
+    }
+
+    #[test]
+    fn a_known_hard_gate_failure_blocks_candidate() {
+        let gates = vec![
+            json!({"gate_id":"C_ACCESS_01","state":"PASS"}),
+            json!({"gate_id":"STRUCTURE_FIRE","state":"FAIL"}),
+        ];
+        assert_eq!(candidate_technical_disposition(&gates), "BLOCKED");
+    }
+
+    #[test]
+    fn all_pass_gates_only_allow_resident_preference_comparison() {
+        let gates = vec![
+            json!({"gate_id":"C_ACCESS_01","state":"PASS"}),
+            json!({"gate_id":"STRUCTURE_FIRE","state":"PASS"}),
+        ];
+        assert_eq!(
+            candidate_technical_disposition(&gates),
+            "ELIGIBLE_FOR_RESIDENT_PREFERENCE_COMPARISON"
+        );
+    }
+
+    #[test]
+    fn rejects_unknown_gate_promoted_to_pass() {
+        let (mut receipt, schema, profile, brief, candidate_set) = decision_fixture();
+        receipt["candidate_receipts"][0]["hard_gate_results"][0]["state"] = json!("PASS");
+        assert!(!validate_decision_receipt(&receipt, &schema, &profile, &brief, &candidate_set).is_empty());
+    }
+
+    #[test]
+    fn rejects_automatic_candidate_selection() {
+        let (mut receipt, schema, profile, brief, candidate_set) = decision_fixture();
+        receipt["comparison_policy"]["automatic_selection"] = json!(true);
+        assert!(!validate_decision_receipt(&receipt, &schema, &profile, &brief, &candidate_set).is_empty());
+    }
+
+    #[test]
+    fn rejects_invented_resident_choice() {
+        let (mut receipt, schema, profile, brief, candidate_set) = decision_fixture();
+        receipt["resident_choice"]["selected_candidate_id"] = json!("SYNTH-HV-A");
+        receipt["resident_choice"]["state"] = json!("CHOICE_RECORDED");
+        assert!(!validate_decision_receipt(&receipt, &schema, &profile, &brief, &candidate_set).is_empty());
+    }
+
+    #[test]
+    fn rejects_candidate_set_digest_drift() {
+        let (mut receipt, schema, profile, brief, candidate_set) = decision_fixture();
+        receipt["source_binding"]["candidate_set_content_sha"] =
+            json!("0000000000000000000000000000000000000000");
+        assert!(!validate_decision_receipt(&receipt, &schema, &profile, &brief, &candidate_set).is_empty());
+    }
+
+    #[test]
+    fn rejects_missing_source_gate() {
+        let (mut receipt, schema, profile, brief, candidate_set) = decision_fixture();
+        receipt["candidate_receipts"][0]["hard_gate_results"]
+            .as_array_mut()
+            .unwrap()
+            .pop();
+        assert!(!validate_decision_receipt(&receipt, &schema, &profile, &brief, &candidate_set).is_empty());
     }
 
     #[test]
