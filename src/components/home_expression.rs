@@ -89,16 +89,18 @@ fn promote_secondary_if_orphaned(entries: &mut BTreeMap<String, String>) {
     }
 }
 
-fn can_select_secondary(
-    roles: RwSignal<BTreeMap<String, String>>,
+fn can_select_secondary_from_entries(
+    entries: &BTreeMap<String, String>,
     style_id: &str,
 ) -> bool {
-    roles.with(|entries| {
-        entries.get(style_id).is_some_and(|role| role == "SECONDARY")
-            || entries
-                .iter()
-                .any(|(candidate, role)| candidate != style_id && role == "PRIMARY")
-    })
+    entries.get(style_id).is_some_and(|role| role == "SECONDARY")
+        || entries
+            .iter()
+            .any(|(candidate, role)| candidate != style_id && role == "PRIMARY")
+}
+
+fn can_select_secondary(roles: RwSignal<BTreeMap<String, String>>, style_id: &str) -> bool {
+    roles.with(|entries| can_select_secondary_from_entries(entries, style_id))
 }
 
 fn apply_style_role(
@@ -497,7 +499,11 @@ mod tests {
         let mut roles = BTreeMap::new();
         apply_style_role(&mut roles, "SOLARPUNK".to_owned(), "SECONDARY");
         assert!(roles.is_empty());
-        assert!(!can_select_secondary(RwSignal::new(roles), "SOLARPUNK"));
+        assert!(!can_select_secondary_from_entries(&roles, "SOLARPUNK"));
+
+        apply_style_role(&mut roles, "MODERNIST".to_owned(), "PRIMARY");
+        assert!(can_select_secondary_from_entries(&roles, "SOLARPUNK"));
+        assert!(!can_select_secondary_from_entries(&roles, "MODERNIST"));
     }
 
     #[test]
