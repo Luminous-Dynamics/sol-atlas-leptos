@@ -1,0 +1,16 @@
+[package]
+name = "matpower-dc-opf-primal-auditor"
+version = "0.1.0"
+edition = "2024"
+license = "AGPL-3.0-or-later"
+description = "Independent primal feasibility and objective auditor for MATPOWER-convention DC-OPF receipts"
+
+[[bin]]
+name = "matpower-dc-opf-audit"
+path = "src/main.rs"
+
+[lib]
+path = "src/lib.rs"
+
+[dependencies]
+pglib-case-auditor = { path = "../pglib-case-auditor" }

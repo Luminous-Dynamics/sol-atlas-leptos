@@ -1,0 +1,12 @@
+version = 4
+
+[[package]]
+name = "matpower-dc-opf-primal-auditor"
+version = "0.1.0"
+dependencies = [
+ "pglib-case-auditor",
+]
+
+[[package]]
+name = "pglib-case-auditor"
+version = "0.1.0"

@@ -16,7 +16,7 @@ const BRANCH_COLUMNS: usize = 13;
 pub struct AuditSummary {
     pub source_git_blob_sha1: String,
     pub function_name: String,
-    pub matpower_version: String,
+    pub case_format_version: String,
     pub base_mva: f64,
     pub bus_count: usize,
     pub generator_count: usize,
@@ -44,7 +44,7 @@ impl AuditSummary {
                 "  \"schema_version\": \"pglib-case-audit.v0.1.0\",\n",
                 "  \"source_git_blob_sha1\": \"{}\",\n",
                 "  \"function_name\": \"{}\",\n",
-                "  \"matpower_version\": \"{}\",\n",
+                "  \"case_format_version\": \"{}\",\n",
                 "  \"base_mva\": {},\n",
                 "  \"bus_count\": {},\n",
                 "  \"generator_count\": {},\n",
@@ -59,7 +59,7 @@ impl AuditSummary {
             ),
             self.source_git_blob_sha1,
             self.function_name,
-            self.matpower_version,
+            self.case_format_version,
             format_number(self.base_mva),
             self.bus_count,
             self.generator_count,
@@ -532,7 +532,7 @@ pub struct MatpowerDcCost {
 pub struct MatpowerDcProjection {
     pub source_git_blob_sha1: String,
     pub function_name: String,
-    pub matpower_version: String,
+    pub case_format_version: String,
     pub base_mva: f64,
     pub buses: Vec<MatpowerDcBus>,
     pub generators: Vec<MatpowerDcGenerator>,
@@ -713,7 +713,7 @@ pub fn project_matpower_dc_case(source: &str) -> Result<MatpowerDcProjection, St
     Ok(MatpowerDcProjection {
         source_git_blob_sha1: git_blob_sha1(source.as_bytes()),
         function_name: summary.function_name,
-        matpower_version: summary.matpower_version,
+        case_format_version: summary.case_format_version,
         base_mva: summary.base_mva,
         buses: projected_buses,
         generators: projected_generators,
@@ -926,7 +926,7 @@ impl MatpowerDcProjection {
                 "{{",
                 "\"schema_version\":\"matpower-dc-projection.v0.1.0\",",
                 "\"source_git_blob_sha1\":{},",
-                "\"function_name\":{},\"matpower_version\":{},",
+                "\"function_name\":{},\"case_format_version\":{},",
                 "\"base_mva\":{},\"bus_count\":{},\"generator_count\":{},",
                 "\"branch_count\":{},\"cost_row_count\":{},",
                 "\"has_areas_metadata\":{},",
@@ -937,7 +937,7 @@ impl MatpowerDcProjection {
             ),
             projection_json_quote(&self.source_git_blob_sha1),
             projection_json_quote(&self.function_name),
-            projection_json_quote(&self.matpower_version),
+            projection_json_quote(&self.case_format_version),
             projection_json_number(self.base_mva),
             self.buses.len(),
             self.generators.len(),
@@ -1159,7 +1159,7 @@ pub fn audit_matpower_case(source: &str) -> Result<AuditSummary, String> {
     Ok(AuditSummary {
         source_git_blob_sha1: String::new(),
         function_name,
-        matpower_version: version,
+        case_format_version: version,
         base_mva,
         bus_count: buses.len(),
         generator_count: generators.len(),
@@ -1216,7 +1216,7 @@ end
             "2c8260fff0311c902c3d36dcabcbe861576fc97c"
         );
         assert_eq!(result.function_name, "pglib_opf_case14_ieee");
-        assert_eq!(result.matpower_version, "2");
+        assert_eq!(result.case_format_version, "2");
         assert_eq!(result.base_mva, 100.0);
         assert_eq!(result.bus_count, 14);
         assert_eq!(result.generator_count, 5);
