@@ -740,7 +740,8 @@ fn validate_decision_receipt(
         || string_at(binding, "candidate_set_artifact_ref")
             != Some(EXPECTED_CANDIDATE_SET_ARTIFACT_REF)
         || string_at(binding, "candidate_set_content_sha") != Some(EXPECTED_CANDIDATE_SET_BLOB_SHA)
-        || string_at(binding, "design_revision") != string_at(source_candidate_set, "design_revision")
+        || string_at(binding, "design_revision")
+            != string_at(source_candidate_set, "design_revision")
         || string_at(binding, "design_revision") != string_at(profile, "linked_design_revision_ref")
     {
         errors.push("decision receipt does not bind the exact Home Freedom candidate set and design revision".to_owned());
@@ -881,8 +882,7 @@ fn validate_decision_receipt(
         if !source_candidate_ids.contains(left) || !source_candidate_ids.contains(right) {
             errors.push("resident pairwise decision references a non-source candidate".to_owned());
         }
-        if string_at(pair, "decision") != Some("UNDECIDED") || !nonempty_string(pair, "basis")
-        {
+        if string_at(pair, "decision") != Some("UNDECIDED") || !nonempty_string(pair, "basis") {
             errors.push("resident pairwise preference must remain explicitly undecided until resident input".to_owned());
         }
     }
