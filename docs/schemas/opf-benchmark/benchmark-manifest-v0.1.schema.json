@@ -1,0 +1,434 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/blob/main/docs/schemas/opf-benchmark/benchmark-manifest-v0.1.schema.json",
+  "title": "OPF Benchmark Manifest v0.1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "manifest_id",
+    "status",
+    "created_at",
+    "purpose",
+    "dataset",
+    "source_contract",
+    "formulations",
+    "reference_stack",
+    "comparison_targets",
+    "cases",
+    "observed_evidence_snapshot",
+    "benchmark_protocol"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "0.1.0"
+    },
+    "manifest_id": {
+      "$ref": "#/$defs/id"
+    },
+    "status": {
+      "enum": [
+        "draft",
+        "starter_panel",
+        "expanded_panel",
+        "retired"
+      ]
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "purpose": {
+      "$ref": "#/$defs/text"
+    },
+    "dataset": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "release_tag",
+        "git_commit",
+        "source_uri",
+        "release_uri",
+        "license",
+        "published_case_groups",
+        "selected_group"
+      ],
+      "properties": {
+        "name": {
+          "const": "PGLib-OPF"
+        },
+        "release_tag": {
+          "$ref": "#/$defs/text"
+        },
+        "git_commit": {
+          "$ref": "#/$defs/gitSha"
+        },
+        "source_uri": {
+          "type": "string",
+          "format": "uri"
+        },
+        "release_uri": {
+          "type": "string",
+          "format": "uri"
+        },
+        "license": {
+          "$ref": "#/$defs/text"
+        },
+        "published_case_groups": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/text"
+          }
+        },
+        "selected_group": {
+          "$ref": "#/$defs/text"
+        }
+      }
+    },
+    "source_contract": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "format",
+        "digest",
+        "rule"
+      ],
+      "properties": {
+        "format": {
+          "$ref": "#/$defs/text"
+        },
+        "digest": {
+          "$ref": "#/$defs/text"
+        },
+        "rule": {
+          "$ref": "#/$defs/text"
+        }
+      }
+    },
+    "formulations": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "profile_id",
+          "status",
+          "description",
+          "comparison_eligibility"
+        ],
+        "properties": {
+          "profile_id": {
+            "$ref": "#/$defs/id"
+          },
+          "status": {
+            "enum": [
+              "supported_reference_profile",
+              "planned_adapter",
+              "diagnostic_only"
+            ]
+          },
+          "description": {
+            "$ref": "#/$defs/text"
+          },
+          "base_mva": {
+            "$ref": "#/$defs/text"
+          },
+          "transformer_tap_and_phase_shift": {
+            "$ref": "#/$defs/text"
+          },
+          "comparison_eligibility": {
+            "enum": [
+              "reference",
+              "planned_matched_formulation",
+              "not_a_matpower_makeBdc_parity_oracle"
+            ]
+          }
+        }
+      }
+    },
+    "reference_stack": {
+      "type": "object",
+      "minProperties": 1,
+      "additionalProperties": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "name",
+          "version",
+          "git_commit"
+        ],
+        "properties": {
+          "name": {
+            "$ref": "#/$defs/text"
+          },
+          "version": {
+            "$ref": "#/$defs/text"
+          },
+          "git_commit": {
+            "$ref": "#/$defs/text"
+          }
+        }
+      }
+    },
+    "comparison_targets": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "solver",
+          "version",
+          "status",
+          "role"
+        ],
+        "properties": {
+          "solver": {
+            "$ref": "#/$defs/text"
+          },
+          "version": {
+            "$ref": "#/$defs/text"
+          },
+          "status": {
+            "enum": [
+              "planned_adapter",
+              "optional_external_baseline",
+              "current_reference"
+            ]
+          },
+          "role": {
+            "$ref": "#/$defs/text"
+          }
+        }
+      }
+    },
+    "cases": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "case_id",
+          "path",
+          "source_git_blob_sha1",
+          "operating_condition",
+          "bus_count",
+          "branch_count",
+          "supported_profiles",
+          "published_baseline_context"
+        ],
+        "properties": {
+          "case_id": {
+            "$ref": "#/$defs/id"
+          },
+          "path": {
+            "$ref": "#/$defs/text"
+          },
+          "source_git_blob_sha1": {
+            "$ref": "#/$defs/gitSha"
+          },
+          "operating_condition": {
+            "enum": [
+              "TYP",
+              "API",
+              "SAD",
+              "custom"
+            ]
+          },
+          "bus_count": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "branch_count": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "supported_profiles": {
+            "type": "array",
+            "minItems": 1,
+            "uniqueItems": true,
+            "items": {
+              "$ref": "#/$defs/id"
+            }
+          },
+          "published_baseline_context": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "source",
+              "powermodels_version",
+              "ipopt_version",
+              "dc_objective_usd_per_hour",
+              "ac_objective_usd_per_hour",
+              "comparison_role"
+            ],
+            "properties": {
+              "source": {
+                "$ref": "#/$defs/text"
+              },
+              "powermodels_version": {
+                "$ref": "#/$defs/text"
+              },
+              "ipopt_version": {
+                "$ref": "#/$defs/text"
+              },
+              "dc_objective_usd_per_hour": {
+                "type": "number"
+              },
+              "ac_objective_usd_per_hour": {
+                "type": "number"
+              },
+              "comparison_role": {
+                "const": "context_only_not_a_matpower_makeBdc_or_dc-mp_parity_target"
+              }
+            }
+          }
+        }
+      }
+    },
+    "observed_evidence_snapshot": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "repository",
+        "audited_head",
+        "pr_url",
+        "evidence",
+        "not_established"
+      ],
+      "properties": {
+        "repository": {
+          "$ref": "#/$defs/text"
+        },
+        "audited_head": {
+          "$ref": "#/$defs/gitSha"
+        },
+        "pr_url": {
+          "type": "string",
+          "format": "uri"
+        },
+        "evidence": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "kind",
+              "run_id",
+              "run_number",
+              "conclusion",
+              "url",
+              "scope"
+            ],
+            "properties": {
+              "kind": {
+                "$ref": "#/$defs/id"
+              },
+              "run_id": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "run_number": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "conclusion": {
+                "enum": [
+                  "success",
+                  "failure",
+                  "cancelled",
+                  "skipped"
+                ]
+              },
+              "url": {
+                "type": "string",
+                "format": "uri"
+              },
+              "scope": {
+                "$ref": "#/$defs/text"
+              }
+            }
+          }
+        },
+        "not_established": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/text"
+          }
+        }
+      }
+    },
+    "benchmark_protocol": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "minimum_repetitions_for_performance_claim",
+        "hardware_must_be_pinned",
+        "report_statistics",
+        "required_timings_ms",
+        "required_metrics",
+        "rule"
+      ],
+      "properties": {
+        "minimum_repetitions_for_performance_claim": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "hardware_must_be_pinned": {
+          "type": "boolean"
+        },
+        "report_statistics": {
+          "type": "array",
+          "items": {
+            "enum": [
+              "median",
+              "p95",
+              "standard_deviation",
+              "min",
+              "max"
+            ]
+          }
+        },
+        "required_timings_ms": {
+          "type": "array",
+          "items": {
+            "enum": [
+              "model_build",
+              "preprocess",
+              "solve",
+              "verify",
+              "end_to_end"
+            ]
+          }
+        },
+        "required_metrics": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/id"
+          }
+        },
+        "rule": {
+          "$ref": "#/$defs/text"
+        }
+      }
+    }
+  },
+  "$defs": {
+    "text": {
+      "type": "string",
+      "minLength": 1
+    },
+    "id": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/-]*$"
+    },
+    "gitSha": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{40}$"
+    }
+  }
+}
