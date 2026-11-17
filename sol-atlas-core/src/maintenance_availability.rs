@@ -101,6 +101,7 @@ pub struct MaintenanceAvailabilityTraceV1 {
     pub disposition: ProjectionDisposition,
     pub late_start: bool,
     pub late_completion: bool,
+    pub late_return_to_service: bool,
     pub overdue_unresolved: bool,
     pub claim_ceiling: String,
 }
@@ -321,6 +322,9 @@ pub fn project_maintenance_availability(
         if authorization.observed_at_unix_seconds > outage_start {
             return Err(ProjectionError::AuthorizationAfterMaintenanceStart);
         }
+        if authorization.observed_at_unix_seconds < work_order.source_event.observed_at_unix_seconds {
+            return Err(ProjectionError::InvalidEvidenceOrder);
+        }
     }
 
     if let (Some(isolation), Some(completion)) = (&work_order.isolation, &work_order.completion) {
@@ -432,7 +436,10 @@ pub fn project_maintenance_availability(
     let late_start = work_order.isolation.as_ref().is_some_and(|evidence| {
         evidence.observed_at_unix_seconds > work_order.planned_start_unix_seconds
     });
-    let late_completion =
+    let late_completion = work_order.completion.as_ref().is_some_and(|evidence| {
+        evidence.observed_at_unix_seconds > work_order.planned_end_unix_seconds
+    });
+    let late_return_to_service =
         return_at.is_some_and(|timestamp| timestamp > work_order.planned_end_unix_seconds);
     let overdue_unresolved =
         return_at.is_none() && window.end_unix_seconds > work_order.planned_end_unix_seconds;
@@ -448,6 +455,7 @@ pub fn project_maintenance_availability(
         disposition,
         late_start,
         late_completion,
+        late_return_to_service,
         overdue_unresolved,
         claim_ceiling: String::from(
             "Study-scoped software projection for one asset/work order; not asset-health, safety, regulatory, grid-code, switching, energization, or field qualification.",
@@ -536,6 +544,7 @@ mod tests {
         );
         assert!(trace.late_start);
         assert!(trace.late_completion);
+        assert!(trace.late_return_to_service);
         assert!(!trace.overdue_unresolved);
     }
 
@@ -645,6 +654,17 @@ mod tests {
         assert_eq!(
             project_maintenance_availability(&input),
             Err(ProjectionError::InvalidEvidenceOrder)
+        );
+    }
+
+    #[test]
+    fn return_before_study_window_is_rejected() {
+        let mut input = request();
+        input.study_window.start_unix_seconds = 35;
+
+        assert_eq!(
+            project_maintenance_availability(&input),
+            Err(ProjectionError::ReturnBeforeStudyStart)
         );
     }
 
