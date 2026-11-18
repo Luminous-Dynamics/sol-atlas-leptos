@@ -57,10 +57,18 @@ pub enum ClaimBasis {
 #[serde(rename_all = "snake_case")]
 pub enum DisputeState {
     Unassessed,
-    NoKnownChallenge,
+    NoChallengeObservedWithinFrontier,
     Challenged,
     UnderReview,
     Resolved,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum ChallengeCoverage {
+    CompleteWithinDeclaredFrontier,
+    Partial,
+    Unavailable,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
@@ -88,6 +96,7 @@ pub enum EvidenceKind {
     Survey,
     CommunityTestimony,
     CommunityDecision,
+    ChallengeSearchReport,
     Contract,
     EnvironmentalMeasurement,
     RemoteSensingObservation,
@@ -185,6 +194,22 @@ pub struct ChallengeReference {
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
+pub struct ChallengeAssessment {
+    pub id: String,
+    /// Exact scope in which challenge records were sought, not a global absence claim.
+    pub scope_ref: String,
+    /// Exact source/evidence frontier identifier used for the assessment.
+    pub frontier_ref: String,
+    pub assessed_at: String,
+    pub coverage: ChallengeCoverage,
+    pub source_refs: Vec<String>,
+    pub evidence_ids: Vec<String>,
+    #[serde(default)]
+    pub disclosure_class: DisclosureClass,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct SpatialExtent {
     /// Stable URI to a feature in an OGC API Features collection or equivalent.
     pub feature_ref: String,
@@ -224,6 +249,8 @@ pub struct TerritorialAssertion {
     /// Multiple independent authorities may support distinct bases for one assertion.
     pub authority_ids: Vec<String>,
     pub challenge_ids: Vec<String>,
+    /// Required for a bounded no-challenge observation; never implies global absence.
+    pub challenge_assessment_id: Option<String>,
     #[serde(default)]
     pub disclosure_class: DisclosureClass,
 }
@@ -261,6 +288,7 @@ pub struct TerritorialRecord {
     pub evidence: Vec<EvidenceReference>,
     pub authorities: Vec<AuthorityReference>,
     pub challenges: Vec<ChallengeReference>,
+    pub challenge_assessments: Vec<ChallengeAssessment>,
     pub assertions: Vec<TerritorialAssertion>,
     pub obligations: Vec<StewardshipObligation>,
 }
@@ -326,6 +354,58 @@ impl TerritorialRecord {
                 }
             }
         }
+
+        let mut challenge_assessment_ids = HashSet::new();
+        for assessment in &self.challenge_assessments {
+            unique_id(
+                "challenge_assessment",
+                &assessment.id,
+                &mut challenge_assessment_ids,
+                &mut issues,
+            );
+            required("challenge_assessment.scope_ref", &assessment.scope_ref, &mut issues);
+            required("challenge_assessment.frontier_ref", &assessment.frontier_ref, &mut issues);
+            required("challenge_assessment.assessed_at", &assessment.assessed_at, &mut issues);
+            if assessment.source_refs.is_empty()
+                || assessment.source_refs.iter().any(|source| source.trim().is_empty())
+            {
+                issues.push(format!(
+                    "challenge assessment {} has no valid source references",
+                    assessment.id
+                ));
+            }
+            if assessment.evidence_ids.is_empty() {
+                issues.push(format!(
+                    "challenge assessment {} has no evidence references",
+                    assessment.id
+                ));
+            }
+            let has_search_report = assessment.evidence_ids.iter().any(|evidence_id| {
+                evidence_by_id.get(evidence_id.as_str()).is_some_and(|evidence| {
+                    evidence.kind == EvidenceKind::ChallengeSearchReport
+                })
+            });
+            if !has_search_report {
+                issues.push(format!(
+                    "challenge assessment {} lacks challenge-search report evidence",
+                    assessment.id
+                ));
+            }
+            for evidence_id in &assessment.evidence_ids {
+                if !evidence_ids.contains(evidence_id) {
+                    issues.push(format!(
+                        "challenge assessment {} references missing evidence {}",
+                        assessment.id, evidence_id
+                    ));
+                }
+            }
+        }
+
+        let challenge_assessment_by_id = self
+            .challenge_assessments
+            .iter()
+            .map(|assessment| (assessment.id.as_str(), assessment))
+            .collect::<std::collections::HashMap<_, _>>();
 
         let authority_by_id = self
             .authorities
@@ -409,6 +489,15 @@ impl TerritorialRecord {
                     ));
                 }
             }
+            if let Some(assessment_id) = &assertion.challenge_assessment_id {
+                if !challenge_assessment_ids.contains(assessment_id) {
+                    issues.push(format!(
+                        "assertion {} references missing challenge assessment {}",
+                        assertion.id, assessment_id
+                    ));
+                }
+            }
+
             let linked_challenges = self
                 .challenges
                 .iter()
@@ -433,11 +522,26 @@ impl TerritorialRecord {
                 });
 
             match assertion.dispute_state {
-                DisputeState::NoKnownChallenge if !linked_challenges.is_empty() => {
-                    issues.push(format!(
-                        "assertion {} says no_known_challenge while linked challenge records exist",
-                        assertion.id
-                    ));
+                DisputeState::NoChallengeObservedWithinFrontier => {
+                    if !linked_challenges.is_empty() {
+                        issues.push(format!(
+                            "assertion {} says no challenge observed while linked challenge records exist",
+                            assertion.id
+                        ));
+                    }
+                    let complete_assessment = assertion
+                        .challenge_assessment_id
+                        .as_deref()
+                        .and_then(|id| challenge_assessment_by_id.get(id))
+                        .is_some_and(|assessment| {
+                            assessment.coverage == ChallengeCoverage::CompleteWithinDeclaredFrontier
+                        });
+                    if !complete_assessment {
+                        issues.push(format!(
+                            "assertion {} claims no challenge observed without a complete declared challenge frontier",
+                            assertion.id
+                        ));
+                    }
                 }
                 DisputeState::Challenged if !has_submitted_challenge => {
                     issues.push(format!(
@@ -718,7 +822,7 @@ mod tests {
             interest_kind: InterestKind::SurfaceLand,
             relationship: RelationshipKind::Right,
             bases,
-            dispute_state: DisputeState::NoKnownChallenge,
+            dispute_state: DisputeState::Unassessed,
             spatial: SpatialExtent {
                 feature_ref: "urn:ogc:feature:parcel-1".into(),
                 horizontal_crs: "https://www.opengis.net/def/crs/EPSG/0/4326".into(),
@@ -734,6 +838,7 @@ mod tests {
             evidence_ids: vec!["evidence-1".into()],
             authority_ids: Vec::new(),
             challenge_ids: Vec::new(),
+            challenge_assessment_id: None,
             disclosure_class: DisclosureClass::CommunityControlled,
         }
     }
@@ -746,6 +851,7 @@ mod tests {
             evidence: vec![evidence("evidence-1", EvidenceKind::CommunityTestimony)],
             authorities: Vec::new(),
             challenges: Vec::new(),
+            challenge_assessments: Vec::new(),
             assertions,
             obligations: Vec::new(),
         }
