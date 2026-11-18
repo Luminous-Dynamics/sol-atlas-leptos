@@ -90,8 +90,10 @@
       "challenge_ids": [
         "challenge-001"
       ],
-      "disclosure_class": "community_controlled"
+      "disclosure_class": "community_controlled",
+      "challenge_assessment_id": null
     }
   ],
-  "obligations": []
+  "obligations": [],
+  "challenge_assessments": []
 }
