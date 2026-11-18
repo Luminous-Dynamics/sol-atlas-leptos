@@ -139,7 +139,7 @@ fn tib_manifest_pins_unique_cases_and_fixture_objects() {
         "../../benchmarks/territorial-integrity/tib-v0.1-manifest.json"
     ))
     .expect("TIB manifest must be valid JSON");
-    assert_eq!(manifest["suite_version"], "0.1.0");
+    assert_eq!(manifest["suite_version"], "0.2.0");
     assert_eq!(manifest["schema_version"], 1);
     let cases = manifest["cases"]
         .as_array()
