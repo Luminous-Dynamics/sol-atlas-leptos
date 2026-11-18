@@ -6,15 +6,12 @@ use serde_json::Value;
 use std::collections::BTreeSet;
 use std::{env, process};
 
-const BASE_CATALOG: &str = include_str!(
-    "../../docs/research/home-expression/HOME_EXPRESSION_CATALOG_V0.1.json"
-);
-const CATALOG: &str = include_str!(
-    "../../docs/research/home-expression/HOME_EXPRESSION_CATALOG_V0.2.json"
-);
-const CATALOG_SCHEMA: &str = include_str!(
-    "../../docs/research/home-expression/HOME_EXPRESSION_CATALOG_V0.2.schema.json"
-);
+const BASE_CATALOG: &str =
+    include_str!("../../docs/research/home-expression/HOME_EXPRESSION_CATALOG_V0.1.json");
+const CATALOG: &str =
+    include_str!("../../docs/research/home-expression/HOME_EXPRESSION_CATALOG_V0.2.json");
+const CATALOG_SCHEMA: &str =
+    include_str!("../../docs/research/home-expression/HOME_EXPRESSION_CATALOG_V0.2.schema.json");
 const GRAMMAR_SCHEMA: &str = include_str!(
     "../../docs/research/home-expression/HOME_ARCHITECTURAL_GRAMMAR_COMPOSITION_V0.2.schema.json"
 );
@@ -164,7 +161,9 @@ fn validate_intent_option_catalog(
     for option in &options {
         let id = text(option, "option_id").unwrap_or_default();
         if id.is_empty() || !ids.insert(id.to_owned()) {
-            errors.push(format!("{key} contains a missing or duplicate option ID: {id}"));
+            errors.push(format!(
+                "{key} contains a missing or duplicate option ID: {id}"
+            ));
         }
         for field in ["display_name", "description"] {
             if text(option, field).is_none_or(str::is_empty) {
@@ -179,19 +178,30 @@ fn validate_intent_option_catalog(
         if option.get("reference_sources").is_some() {
             let sources = option.get("reference_sources").and_then(Value::as_array);
             if sources.is_none_or(Vec::is_empty)
-                || sources.is_some_and(|items| items.iter().any(|item| {
-                    item.as_str().is_none_or(|value| !value.starts_with("https://"))
-                }))
+                || sources.is_some_and(|items| {
+                    items.iter().any(|item| {
+                        item.as_str()
+                            .is_none_or(|value| !value.starts_with("https://"))
+                    })
+                })
             {
-                errors.push(format!("{key} option {id} has missing or invalid source references"));
+                errors.push(format!(
+                    "{key} option {id} has missing or invalid source references"
+                ));
             }
             for field in ["reference_scope", "context_note"] {
                 if text(option, field).is_none_or(str::is_empty) {
                     errors.push(format!("{key} option {id} is missing {field}"));
                 }
             }
-            if option.get("identity_must_not_be_inferred").and_then(Value::as_bool) != Some(true) {
-                errors.push(format!("{key} option {id} must prohibit identity inference"));
+            if option
+                .get("identity_must_not_be_inferred")
+                .and_then(Value::as_bool)
+                != Some(true)
+            {
+                errors.push(format!(
+                    "{key} option {id} must prohibit identity inference"
+                ));
             }
             if text(option, "selection_status") != Some("ILLUSTRATIVE_NOT_EVALUATED") {
                 errors.push(format!("{key} option {id} has an unsupported status"));
@@ -201,7 +211,9 @@ fn validate_intent_option_catalog(
 
     let expected: BTreeSet<String> = expected_ids.iter().map(|id| (*id).to_owned()).collect();
     if ids != expected {
-        errors.push(format!("{key} option IDs differ from the v0.2 grammar contract"));
+        errors.push(format!(
+            "{key} option IDs differ from the v0.2 grammar contract"
+        ));
     }
     ids
 }
@@ -220,14 +232,22 @@ fn validate_intent_entries(
         .cloned()
         .unwrap_or_default();
     let state = text(axis_value, "state").unwrap_or_default();
-    if !["UNDECIDED", "INTENT_ONLY_NOT_EVALUATED", "CONFLICT_UNRESOLVED"].contains(&state) {
+    if ![
+        "UNDECIDED",
+        "INTENT_ONLY_NOT_EVALUATED",
+        "CONFLICT_UNRESOLVED",
+    ]
+    .contains(&state)
+    {
         errors.push(format!("{axis} has an unsupported intent state: {state}"));
     }
     if entries.is_empty() && state != "UNDECIDED" {
         errors.push(format!("{axis} with no entries must remain UNDECIDED"));
     }
     if !entries.is_empty() && state == "UNDECIDED" {
-        errors.push(format!("{axis} with explicit entries cannot be marked UNDECIDED"));
+        errors.push(format!(
+            "{axis} with explicit entries cannot be marked UNDECIDED"
+        ));
     }
 
     let mut seen = BTreeSet::new();
@@ -242,17 +262,22 @@ fn validate_intent_entries(
         }
         let preference = text(entry, "preference").unwrap_or_default();
         if !["PREFERRED", "CONSIDERED", "AVOIDED", "UNDECIDED"].contains(&preference) {
-            errors.push(format!("{axis} option {id} has unsupported preference: {preference}"));
+            errors.push(format!(
+                "{axis} option {id} has unsupported preference: {preference}"
+            ));
         }
         if preference == "PREFERRED" {
             preferred_count += 1;
         }
     }
     if axis == "spatial_typology" && preferred_count > 1 && state != "CONFLICT_UNRESOLVED" {
-        errors.push("multiple preferred spatial typologies must remain CONFLICT_UNRESOLVED".to_owned());
+        errors.push(
+            "multiple preferred spatial typologies must remain CONFLICT_UNRESOLVED".to_owned(),
+        );
     }
     if axis == "spatial_typology" && state == "CONFLICT_UNRESOLVED" && preferred_count < 2 {
-        errors.push("spatial typology conflict state requires multiple preferred options".to_owned());
+        errors
+            .push("spatial typology conflict state requires multiple preferred options".to_owned());
     }
 }
 
@@ -283,14 +308,16 @@ fn validate_catalog(catalog: &Value, schema: &Value, errors: &mut Vec<String>) {
             "INTENT_ONLY_NO_PHYSICAL_PERFORMANCE_OR_RESOURCE_CLAIM",
         ),
     ] {
-        let option_schema = schema
-            .get("properties")
-            .and_then(|value| value.get(key));
+        let option_schema = schema.get("properties").and_then(|value| value.get(key));
         let option_item_schema = option_schema.and_then(|value| value.get("items"));
         if !schema_required.contains(key)
-            || option_schema.and_then(|value| value.get("minItems")).and_then(Value::as_u64)
+            || option_schema
+                .and_then(|value| value.get("minItems"))
+                .and_then(Value::as_u64)
                 != Some(count)
-            || option_schema.and_then(|value| value.get("maxItems")).and_then(Value::as_u64)
+            || option_schema
+                .and_then(|value| value.get("maxItems"))
+                .and_then(Value::as_u64)
                 != Some(count)
             || option_item_schema
                 .and_then(|value| value.get("additionalProperties"))
@@ -303,7 +330,9 @@ fn validate_catalog(catalog: &Value, schema: &Value, errors: &mut Vec<String>) {
                 .and_then(Value::as_str)
                 != Some(claim)
         {
-            errors.push(format!("{key} schema is missing or weakens its shared vocabulary contract"));
+            errors.push(format!(
+                "{key} schema is missing or weakens its shared vocabulary contract"
+            ));
         }
     }
     if text(catalog, "schema_version") != Some("0.2.0")
@@ -336,13 +365,20 @@ fn validate_catalog(catalog: &Value, schema: &Value, errors: &mut Vec<String>) {
         if id.is_empty() || !style_ids.insert(id.to_owned()) {
             errors.push(format!("missing or duplicate style ID: {id}"));
         }
-        for field in ["display_name", "category", "description", "authenticity_note"] {
+        for field in [
+            "display_name",
+            "category",
+            "description",
+            "authenticity_note",
+        ] {
             if text(style, field).is_none_or(str::is_empty) {
                 errors.push(format!("style {id} is missing {field}"));
             }
         }
         if style.get("not_a_typology").and_then(Value::as_bool) != Some(true) {
-            errors.push(format!("style {id} must remain distinct from spatial typology"));
+            errors.push(format!(
+                "style {id} must remain distinct from spatial typology"
+            ));
         }
         if text(style, "selection_status") != Some("ILLUSTRATIVE_NOT_EVALUATED") {
             errors.push(format!("style {id} has an unsupported evaluation claim"));
@@ -359,7 +395,10 @@ fn validate_catalog(catalog: &Value, schema: &Value, errors: &mut Vec<String>) {
         }
     }
 
-    for id in REQUIRED_BASE_STYLE_IDS.iter().chain(REQUIRED_ADDITIONAL_STYLE_IDS) {
+    for id in REQUIRED_BASE_STYLE_IDS
+        .iter()
+        .chain(REQUIRED_ADDITIONAL_STYLE_IDS)
+    {
         if !style_ids.contains(*id) {
             errors.push(format!("required style ID is missing: {id}"));
         }
@@ -406,9 +445,14 @@ fn validate_catalog(catalog: &Value, schema: &Value, errors: &mut Vec<String>) {
     );
     let forbidden_terms = ["african style", "ethnic style", "pan-african"];
     for style in &styles {
-        let name = text(style, "display_name").unwrap_or_default().to_ascii_lowercase();
+        let name = text(style, "display_name")
+            .unwrap_or_default()
+            .to_ascii_lowercase();
         if forbidden_terms.iter().any(|term| name.contains(term)) {
-            errors.push(format!("generic pan-cultural preset is forbidden: {}", text(style, "style_id").unwrap_or_default()));
+            errors.push(format!(
+                "generic pan-cultural preset is forbidden: {}",
+                text(style, "style_id").unwrap_or_default()
+            ));
         }
     }
 
@@ -418,7 +462,10 @@ fn validate_catalog(catalog: &Value, schema: &Value, errors: &mut Vec<String>) {
         .cloned()
         .unwrap_or_default();
     if packages.len() != 26 {
-        errors.push(format!("expected 26 experience packages, found {}", packages.len()));
+        errors.push(format!(
+            "expected 26 experience packages, found {}",
+            packages.len()
+        ));
     }
     let package_ids = strings(Some(&packages), Some("package_id"));
     if package_ids.len() != packages.len() {
@@ -439,7 +486,9 @@ fn validate_catalog(catalog: &Value, schema: &Value, errors: &mut Vec<String>) {
             || text(package, "claim_ceiling")
                 != Some("CATALOG_ONLY_NO_COST_PERFORMANCE_OR_FEASIBILITY_CLAIM")
         {
-            errors.push(format!("experience package {id} is no longer optional/non-qualifying by default"));
+            errors.push(format!(
+                "experience package {id} is no longer optional/non-qualifying by default"
+            ));
         }
     }
 
@@ -453,7 +502,10 @@ fn validate_catalog(catalog: &Value, schema: &Value, errors: &mut Vec<String>) {
         || text(&heritage[0], "module_type") != Some("CONSERVATION_REFERENCE_ONLY")
         || text(&heritage[0], "selection_status") != Some("REFERENCE_ONLY_NOT_A_STYLE_PRESET")
     {
-        errors.push("Karoo corbelled heritage must remain a separate conservation-only reference module".to_owned());
+        errors.push(
+            "Karoo corbelled heritage must remain a separate conservation-only reference module"
+                .to_owned(),
+        );
     }
     if heritage
         .first()
@@ -465,20 +517,20 @@ fn validate_catalog(catalog: &Value, schema: &Value, errors: &mut Vec<String>) {
     }
 
     let null = Value::Null;
-    let community = catalog.get("community_authored_reference_policy").unwrap_or(&null);
+    let community = catalog
+        .get("community_authored_reference_policy")
+        .unwrap_or(&null);
     if text(community, "maturity") != Some("POLICY_ONLY_NO_COMMUNITY_MODULES_PUBLISHED")
-        || text(community, "prohibition") != Some("DO_NOT_CREATE_GENERIC_AFRICAN_OR_ETHNIC_STYLE_PRESETS")
+        || text(community, "prohibition")
+            != Some("DO_NOT_CREATE_GENERIC_AFRICAN_OR_ETHNIC_STYLE_PRESETS")
     {
-        errors.push("community-authored reference safeguards are missing or were weakened".to_owned());
+        errors.push(
+            "community-authored reference safeguards are missing or were weakened".to_owned(),
+        );
     }
 }
 
-fn validate_grammar(
-    grammar: &Value,
-    schema: &Value,
-    catalog: &Value,
-    errors: &mut Vec<String>,
-) {
+fn validate_grammar(grammar: &Value, schema: &Value, catalog: &Value, errors: &mut Vec<String>) {
     if text(schema, "$schema") != Some("https://json-schema.org/draft/2020-12/schema") {
         errors.push("grammar schema must use JSON Schema Draft 2020-12".to_owned());
     }
@@ -495,8 +547,12 @@ fn validate_grammar(
         }
     }
 
-    if !["SYNTHETIC_NOT_EVALUATED", "RESIDENT_WORKING_DRAFT_NOT_VALIDATED", "OWNER_REVIEW_REQUIRED"]
-        .contains(&text(grammar, "maturity").unwrap_or_default())
+    if ![
+        "SYNTHETIC_NOT_EVALUATED",
+        "RESIDENT_WORKING_DRAFT_NOT_VALIDATED",
+        "OWNER_REVIEW_REQUIRED",
+    ]
+    .contains(&text(grammar, "maturity").unwrap_or_default())
     {
         errors.push("grammar maturity is unsupported".to_owned());
     }
@@ -507,7 +563,9 @@ fn validate_grammar(
             != Some("INTENT_ONLY_NO_GEOMETRY_COST_PERFORMANCE_OR_APPROVAL")
         || text(grammar, "resident_statement").is_none()
     {
-        errors.push("grammar identity, resident statement, evidence or claim ceiling is invalid".to_owned());
+        errors.push(
+            "grammar identity, resident statement, evidence or claim ceiling is invalid".to_owned(),
+        );
     }
 
     if ![
@@ -516,7 +574,9 @@ fn validate_grammar(
     ]
     .contains(&text(grammar, "decision_state").unwrap_or_default())
     {
-        errors.push("grammar decision state is unsupported or implies an unauthorized approval".to_owned());
+        errors.push(
+            "grammar decision state is unsupported or implies an unauthorized approval".to_owned(),
+        );
     }
 
     let styles = catalog
@@ -567,7 +627,9 @@ fn validate_grammar(
             .map(|values| strings(Some(values), None))
             .unwrap_or_default();
         if &schema_ids != expected_ids {
-            errors.push(format!("{axis} schema enum differs from its versioned catalogue"));
+            errors.push(format!(
+                "{axis} schema enum differs from its versioned catalogue"
+            ));
         }
     }
 
@@ -596,11 +658,25 @@ fn validate_grammar(
             errors.push(format!("grammar contains duplicate expression entry: {id}"));
         }
         let role = text(entry, "role").unwrap_or_default();
-        if !["PRIMARY", "SECONDARY", "ACCENT", "REFERENCE_ONLY", "AVOID", "ACCEPTABLE", "UNDECIDED"].contains(&role) {
-            errors.push(format!("grammar style {id} has unsupported resident role: {role}"));
+        if ![
+            "PRIMARY",
+            "SECONDARY",
+            "ACCENT",
+            "REFERENCE_ONLY",
+            "AVOID",
+            "ACCEPTABLE",
+            "UNDECIDED",
+        ]
+        .contains(&role)
+        {
+            errors.push(format!(
+                "grammar style {id} has unsupported resident role: {role}"
+            ));
         }
         if entry.get("resident_selected").and_then(Value::as_bool) != Some(true) {
-            errors.push(format!("grammar style {id} must retain an explicit resident selection flag"));
+            errors.push(format!(
+                "grammar style {id} must retain an explicit resident selection flag"
+            ));
         }
         if role == "PRIMARY" {
             primary_count += 1;
@@ -608,18 +684,24 @@ fn validate_grammar(
         if role == "REFERENCE_ONLY" {
             let source_refs = entry.get("source_refs").and_then(Value::as_array);
             if source_refs.is_none_or(|refs| refs.is_empty()) {
-                errors.push(format!("reference-only style {id} must carry source references"));
+                errors.push(format!(
+                    "reference-only style {id} must carry source references"
+                ));
             } else if let Some(catalog_style) = styles
                 .iter()
                 .find(|style| text(style, "style_id") == Some(id))
             {
                 let allowed_sources = strings(
-                    catalog_style.get("reference_sources").and_then(Value::as_array),
+                    catalog_style
+                        .get("reference_sources")
+                        .and_then(Value::as_array),
                     None,
                 );
                 for source in strings(source_refs, None) {
                     if !allowed_sources.contains(&source) {
-                        errors.push(format!("reference-only style {id} cites a source not declared by the catalogue"));
+                        errors.push(format!(
+                            "reference-only style {id} cites a source not declared by the catalogue"
+                        ));
                     }
                 }
             }
@@ -631,7 +713,8 @@ fn validate_grammar(
         }
     }
     if primary_count > 1 {
-        errors.push("grammar must not silently resolve multiple primary expression roles".to_owned());
+        errors
+            .push("grammar must not silently resolve multiple primary expression roles".to_owned());
     }
 
     let experiences = composition
@@ -644,14 +727,18 @@ fn validate_grammar(
     for entry in &experiences {
         let id = text(entry, "package_id").unwrap_or_default();
         if !package_ids.contains(id) {
-            errors.push(format!("grammar references unknown experience package: {id}"));
+            errors.push(format!(
+                "grammar references unknown experience package: {id}"
+            ));
         }
         if !experience_ids.insert(id.to_owned()) {
             errors.push(format!("grammar contains duplicate experience entry: {id}"));
         }
         let preference = text(entry, "preference").unwrap_or_default();
         if !["PREFERRED", "CONSIDERED", "AVOIDED", "UNDECIDED"].contains(&preference) {
-            errors.push(format!("experience {id} has unsupported preference: {preference}"));
+            errors.push(format!(
+                "experience {id} has unsupported preference: {preference}"
+            ));
         }
     }
 
@@ -665,8 +752,18 @@ fn validate_grammar(
     }
 
     validate_intent_entries(composition, "spatial_typology", &typology_ids, errors);
-    validate_intent_entries(composition, "material_tectonic_intent", &material_ids, errors);
-    validate_intent_entries(composition, "environmental_strategy_intent", &environmental_ids, errors);
+    validate_intent_entries(
+        composition,
+        "material_tectonic_intent",
+        &material_ids,
+        errors,
+    );
+    validate_intent_entries(
+        composition,
+        "environmental_strategy_intent",
+        &environmental_ids,
+        errors,
+    );
 
     let context = grammar.get("context").unwrap_or(&null);
     let context_state = text(context, "context_state").unwrap_or_default();
@@ -676,7 +773,9 @@ fn validate_grammar(
     if context_state == "UNKNOWN"
         && text(grammar, "evidence_state") != Some("UNKNOWN_NOT_EVALUATED")
     {
-        errors.push("unknown site/climate/jurisdiction context cannot be promoted to evaluated".to_owned());
+        errors.push(
+            "unknown site/climate/jurisdiction context cannot be promoted to evaluated".to_owned(),
+        );
     }
 }
 
@@ -695,7 +794,10 @@ fn validate_all(
 fn pointer_segment_mut<'a>(value: &'a mut Value, segment: &str) -> Option<&'a mut Value> {
     match value {
         Value::Object(map) => map.get_mut(segment),
-        Value::Array(items) => segment.parse::<usize>().ok().and_then(|index| items.get_mut(index)),
+        Value::Array(items) => segment
+            .parse::<usize>()
+            .ok()
+            .and_then(|index| items.get_mut(index)),
         _ => None,
     }
 }
@@ -739,7 +841,9 @@ fn run_conformance_corpus() -> Result<(usize, usize), String> {
         || corpus.get("positive_case_count").and_then(Value::as_u64) != Some(5)
         || corpus.get("negative_case_count").and_then(Value::as_u64) != Some(25)
     {
-        return Err("conformance corpus identity, lineage or expected case counts changed".to_owned());
+        return Err(
+            "conformance corpus identity, lineage or expected case counts changed".to_owned(),
+        );
     }
 
     let cases = corpus
@@ -747,7 +851,10 @@ fn run_conformance_corpus() -> Result<(usize, usize), String> {
         .and_then(Value::as_array)
         .ok_or_else(|| "conformance corpus cases must be an array".to_owned())?;
     if cases.len() != 30 {
-        return Err(format!("expected 30 conformance cases, found {}", cases.len()));
+        return Err(format!(
+            "expected 30 conformance cases, found {}",
+            cases.len()
+        ));
     }
 
     let mut case_ids = BTreeSet::new();
@@ -756,7 +863,9 @@ fn run_conformance_corpus() -> Result<(usize, usize), String> {
     for case in cases {
         let case_id = text(case, "case_id").unwrap_or_default();
         if case_id.is_empty() || !case_ids.insert(case_id.to_owned()) {
-            return Err(format!("conformance corpus has a missing or duplicate case ID: {case_id}"));
+            return Err(format!(
+                "conformance corpus has a missing or duplicate case ID: {case_id}"
+            ));
         }
         let expected = text(case, "expected_disposition").unwrap_or_default();
         let category = text(case, "category").unwrap_or_default();
@@ -765,7 +874,9 @@ fn run_conformance_corpus() -> Result<(usize, usize), String> {
             || (category == "NEGATIVE" && expected != "REJECT")
             || !["POSITIVE", "NEGATIVE"].contains(&category)
         {
-            return Err(format!("conformance case {case_id} has inconsistent category/disposition"));
+            return Err(format!(
+                "conformance case {case_id} has inconsistent category/disposition"
+            ));
         }
 
         let mut candidate = base.clone();
@@ -775,7 +886,9 @@ fn run_conformance_corpus() -> Result<(usize, usize), String> {
             .ok_or_else(|| format!("conformance case {case_id} has no mutation array"))?;
         for mutation in mutations {
             if text(mutation, "op") != Some("SET") {
-                return Err(format!("conformance case {case_id} contains an unsupported mutation op"));
+                return Err(format!(
+                    "conformance case {case_id} contains an unsupported mutation op"
+                ));
             }
             let pointer = text(mutation, "path")
                 .ok_or_else(|| format!("conformance case {case_id} mutation has no path"))?;
@@ -792,7 +905,11 @@ fn run_conformance_corpus() -> Result<(usize, usize), String> {
         if (expected == "ACCEPT") != accepted_by_qualifier {
             return Err(format!(
                 "conformance case {case_id} expected {expected}, got {}: {}",
-                if accepted_by_qualifier { "ACCEPT" } else { "REJECT" },
+                if accepted_by_qualifier {
+                    "ACCEPT"
+                } else {
+                    "REJECT"
+                },
                 errors.join("; ")
             ));
         }
@@ -804,7 +921,9 @@ fn run_conformance_corpus() -> Result<(usize, usize), String> {
     }
 
     if accepted != 5 || rejected != 25 {
-        return Err(format!("conformance distribution drifted: {accepted} accepted / {rejected} rejected"));
+        return Err(format!(
+            "conformance distribution drifted: {accepted} accepted / {rejected} rejected"
+        ));
     }
     Ok((accepted, rejected))
 }
@@ -849,8 +968,17 @@ fn run_self_test() -> Result<(), String> {
     let mut lost_heritage_source = catalog.clone();
     lost_heritage_source["regional_reference_modules"][0]["reference_sources"] =
         Value::Array(Vec::new());
-    if validate_all(&lost_heritage_source, &catalog_schema, &grammar, &grammar_schema).is_empty() {
-        return Err("negative control failed: unreferenced heritage module was accepted".to_owned());
+    if validate_all(
+        &lost_heritage_source,
+        &catalog_schema,
+        &grammar,
+        &grammar_schema,
+    )
+    .is_empty()
+    {
+        return Err(
+            "negative control failed: unreferenced heritage module was accepted".to_owned(),
+        );
     }
 
     let mut collapsed = grammar_schema.clone();
@@ -861,33 +989,77 @@ fn run_self_test() -> Result<(), String> {
     }
 
     let mut duplicate_expression = grammar.clone();
-    let expression_entry = duplicate_expression["composition"]["architectural_expression"]["entries"][0].clone();
-    duplicate_expression["composition"]["architectural_expression"]["entries"].as_array_mut().unwrap().push(expression_entry);
-    if validate_all(&catalog, &catalog_schema, &duplicate_expression, &grammar_schema).is_empty() {
+    let expression_entry =
+        duplicate_expression["composition"]["architectural_expression"]["entries"][0].clone();
+    duplicate_expression["composition"]["architectural_expression"]["entries"]
+        .as_array_mut()
+        .unwrap()
+        .push(expression_entry);
+    if validate_all(
+        &catalog,
+        &catalog_schema,
+        &duplicate_expression,
+        &grammar_schema,
+    )
+    .is_empty()
+    {
         return Err("negative control failed: duplicate expression entry was accepted".to_owned());
     }
 
     let mut unreferenced_reference = grammar.clone();
-    unreferenced_reference["composition"]["architectural_expression"]["entries"][1]["source_refs"] = Value::Array(Vec::new());
-    if validate_all(&catalog, &catalog_schema, &unreferenced_reference, &grammar_schema).is_empty() {
-        return Err("negative control failed: unreferenced heritage style entry was accepted".to_owned());
+    unreferenced_reference["composition"]["architectural_expression"]["entries"][1]["source_refs"] =
+        Value::Array(Vec::new());
+    if validate_all(
+        &catalog,
+        &catalog_schema,
+        &unreferenced_reference,
+        &grammar_schema,
+    )
+    .is_empty()
+    {
+        return Err(
+            "negative control failed: unreferenced heritage style entry was accepted".to_owned(),
+        );
     }
 
     let mut unknown_material = grammar.clone();
     unknown_material["composition"]["material_tectonic_intent"]["entries"][0]["item_id"] =
         Value::String("UNKNOWN_ASSEMBLY".to_owned());
-    if validate_all(&catalog, &catalog_schema, &unknown_material, &grammar_schema).is_empty() {
-        return Err("negative control failed: unknown material vocabulary ID was accepted".to_owned());
+    if validate_all(
+        &catalog,
+        &catalog_schema,
+        &unknown_material,
+        &grammar_schema,
+    )
+    .is_empty()
+    {
+        return Err(
+            "negative control failed: unknown material vocabulary ID was accepted".to_owned(),
+        );
     }
 
     let mut wrong_typology_count = catalog.clone();
-    wrong_typology_count["spatial_typology_catalog"].as_array_mut().unwrap().pop();
-    if validate_all(&wrong_typology_count, &catalog_schema, &grammar, &grammar_schema).is_empty() {
-        return Err("negative control failed: incomplete spatial typology vocabulary was accepted".to_owned());
+    wrong_typology_count["spatial_typology_catalog"]
+        .as_array_mut()
+        .unwrap()
+        .pop();
+    if validate_all(
+        &wrong_typology_count,
+        &catalog_schema,
+        &grammar,
+        &grammar_schema,
+    )
+    .is_empty()
+    {
+        return Err(
+            "negative control failed: incomplete spatial typology vocabulary was accepted"
+                .to_owned(),
+        );
     }
 
     let mut mismatched_axis_schema = grammar_schema.clone();
-    mismatched_axis_schema["properties"]["composition"]["properties"]["material_tectonic_intent"]["properties"]["entries"]["items"]["properties"]["item_id"]["enum"] =
+    mismatched_axis_schema["properties"]["composition"]["properties"]["material_tectonic_intent"]
+        ["properties"]["entries"]["items"]["properties"]["item_id"]["enum"] =
         Value::Array(vec![Value::String("UNKNOWN_MATERIAL".to_owned())]);
     if validate_all(&catalog, &catalog_schema, &grammar, &mismatched_axis_schema).is_empty() {
         return Err("negative control failed: schema vocabulary drift was accepted".to_owned());
@@ -922,7 +1094,9 @@ fn main() {
             process::exit(1);
         }
         let (accepted, rejected) = run_conformance_corpus().expect("conformance corpus must pass");
-        println!("PASS: v0.2 catalogue and five-axis grammar integrity; 11 focused negative controls plus 30 corpus cases ({accepted} accepted / {rejected} rejected)");
+        println!(
+            "PASS: v0.2 catalogue and five-axis grammar integrity; 11 focused negative controls plus 30 corpus cases ({accepted} accepted / {rejected} rejected)"
+        );
     } else {
         println!("PASS: v0.2 catalogue and five-axis grammar integrity");
     }
@@ -939,7 +1113,10 @@ mod tests {
         let styles = catalog["style_catalog"].as_array().unwrap();
         assert_eq!(styles.len(), 35);
         let ids = strings(Some(styles), Some("style_id"));
-        for id in REQUIRED_BASE_STYLE_IDS.iter().chain(REQUIRED_ADDITIONAL_STYLE_IDS) {
+        for id in REQUIRED_BASE_STYLE_IDS
+            .iter()
+            .chain(REQUIRED_ADDITIONAL_STYLE_IDS)
+        {
             assert!(ids.contains(*id), "missing {id}");
         }
         let mut errors = Vec::new();
@@ -986,14 +1163,19 @@ mod tests {
         let schema: Value = serde_json::from_str(CATALOG_SCHEMA).unwrap();
         let mut altered = catalog.clone();
         let regional = altered["spatial_typology_catalog"]
-            .as_array_mut().unwrap()
+            .as_array_mut()
+            .unwrap()
             .iter_mut()
             .find(|item| item["option_id"] == "CONE_ON_CYLINDER_DWELLING")
             .unwrap();
         regional["identity_must_not_be_inferred"] = Value::Bool(false);
         let mut errors = Vec::new();
         validate_catalog(&altered, &schema, &mut errors);
-        assert!(errors.iter().any(|error| error.contains("identity inference")));
+        assert!(
+            errors
+                .iter()
+                .any(|error| error.contains("identity inference"))
+        );
     }
 
     #[test]
@@ -1001,14 +1183,19 @@ mod tests {
         let mut catalog: Value = serde_json::from_str(CATALOG).unwrap();
         let schema: Value = serde_json::from_str(CATALOG_SCHEMA).unwrap();
         let regional = catalog["spatial_typology_catalog"]
-            .as_array_mut().unwrap()
+            .as_array_mut()
+            .unwrap()
             .iter_mut()
             .find(|item| item["option_id"] == "BEEHIVE_DOME_DWELLING")
             .unwrap();
         regional["reference_sources"] = serde_json::json!([]);
         let mut errors = Vec::new();
         validate_catalog(&catalog, &schema, &mut errors);
-        assert!(errors.iter().any(|error| error.contains("source references")));
+        assert!(
+            errors
+                .iter()
+                .any(|error| error.contains("source references"))
+        );
     }
 
     #[test]
@@ -1016,6 +1203,9 @@ mod tests {
         let catalog: Value = serde_json::from_str(CATALOG).unwrap();
         let module = &catalog["regional_reference_modules"][0];
         assert_eq!(module["module_type"], "CONSERVATION_REFERENCE_ONLY");
-        assert_eq!(module["selection_status"], "REFERENCE_ONLY_NOT_A_STYLE_PRESET");
+        assert_eq!(
+            module["selection_status"],
+            "REFERENCE_ONLY_NOT_A_STYLE_PRESET"
+        );
     }
 }
