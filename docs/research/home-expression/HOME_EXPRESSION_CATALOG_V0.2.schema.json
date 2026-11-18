@@ -317,8 +317,8 @@
     },
     "spatial_typology_catalog": {
       "type": "array",
-      "minItems": 11,
-      "maxItems": 11,
+      "minItems": 13,
+      "maxItems": 13,
       "items": {
         "type": "object",
         "additionalProperties": false,
@@ -343,6 +343,28 @@
           },
           "claim_ceiling": {
             "const": "INTENT_ONLY_NO_GEOMETRY_CODE_OR_ACCESSIBILITY_CLAIM"
+          },
+          "reference_scope": {
+            "type": "string",
+            "minLength": 1
+          },
+          "reference_sources": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "string",
+              "format": "uri"
+            }
+          },
+          "context_note": {
+            "type": "string",
+            "minLength": 1
+          },
+          "identity_must_not_be_inferred": {
+            "const": true
+          },
+          "selection_status": {
+            "const": "ILLUSTRATIVE_NOT_EVALUATED"
           }
         }
       }
