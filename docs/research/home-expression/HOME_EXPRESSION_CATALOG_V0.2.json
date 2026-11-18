@@ -680,30 +680,6 @@
       "resident_may_rename": true
     },
     {
-      "style_id": "KAROO_CORBELLED_STONE_HISTORIC",
-      "display_name": "Karoo corbelled-stone buildings (historic reference)",
-      "category": "REGIONAL_HISTORICAL_REFERENCE",
-      "description": "A source-led reference to the varied nineteenth-century corbelled buildings of the Great Karoo. Treat this as a historically situated architectural and tectonic precedent rather than a transferable structural system or a single-community style. Research describes frontier-era interaction among communities, changing household uses and a wider set of social histories.",
-      "authenticity_note": "The buildings have layered and debated histories and are associated with local heritage and community identity. Do not assign ownership, ancestry or a single cultural origin from a place name or visual resemblance; use specific heritage sources and local stewardship.",
-      "reference_policy": "CONTEXT_AND_SOURCE_REQUIRED",
-      "reference_scope": "GREAT_KAROO_19TH_CENTURY_CORBELLED_BUILDINGS_HISTORICAL_AND_HERITAGE_CONTEXT",
-      "reference_sources": [
-        "https://open.uct.ac.za/handle/11427/12087",
-        "https://open.uct.ac.za/items/5d247a02-4bab-4a92-8f6f-2ce9d5fb04fb",
-        "https://open.uct.ac.za/items/64a981aa-583f-4940-bf6b-30423fe07415"
-      ],
-      "not_a_typology": true,
-      "selection_status": "ILLUSTRATIVE_NOT_EVALUATED",
-      "must_not_assume": [
-        "single-community authorship or exclusive heritage ownership",
-        "structural safety or modern code compliance from historical appearance",
-        "suitability of corbelling, stone sourcing or foundations for a new site",
-        "thermal or lifecycle performance without qualified evaluation"
-      ],
-      "resident_may_blend": true,
-      "resident_may_rename": true
-    },
-    {
       "style_id": "SOUTH_AFRICAN_ART_DECO_HISTORIC",
       "display_name": "South African 1930s Art Deco (historic reference)",
       "category": "REGIONAL_HISTORICAL_REFERENCE",
