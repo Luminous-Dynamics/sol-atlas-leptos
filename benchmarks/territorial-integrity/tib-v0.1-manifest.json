@@ -8,8 +8,8 @@
   "data_classification": "synthetic_non_personal",
   "real_world_case_data_included": false,
   "expected_valid_cases": 4,
-  "expected_invalid_cases": 9,
-  "case_count": 13,
+  "expected_invalid_cases": 10,
+  "case_count": 14,
   "claim_ceiling": [
     "structural record and reference consistency only",
     "not legal title or statutory registration",
@@ -109,6 +109,13 @@
       "track": "challenge_frontier",
       "rationale": "frontier evidence does not include a challenge-search report",
       "git_blob_sha": "585845320967abde312f40b03d374db39c4b1a9b"
+    },
+    {
+      "fixture": "sol-atlas-core/tests/fixtures/territorial/invalid_admin_authority_evidence_not_linked_to_assertion.json",
+      "expected_disposition": "reject",
+      "track": "authority_and_provenance",
+      "rationale": "authority and registry evidence exist in the territorial record but the assertion does not link the exact source evidence",
+      "git_blob_sha": "26eaadd91691315ac6e0ffd07c0e73579276744b"
     }
   ]
 }
