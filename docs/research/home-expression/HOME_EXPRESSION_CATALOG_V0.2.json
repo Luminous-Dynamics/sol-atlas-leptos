@@ -1547,5 +1547,185 @@
       "withdrawal_or_correction_path"
     ],
     "default_state": "UNAVAILABLE_UNTIL_ATTRIBUTION_RIGHTS_AND_REVIEW_ARE_ESTABLISHED"
-  }
+  },
+  "spatial_typology_catalog": [
+    {
+      "option_id": "DETACHED",
+      "display_name": "Detached home",
+      "description": "A standalone dwelling; setbacks, access, servicing and local rules remain site-specific.",
+      "claim_ceiling": "INTENT_ONLY_NO_GEOMETRY_CODE_OR_ACCESSIBILITY_CLAIM"
+    },
+    {
+      "option_id": "SEMI_DETACHED",
+      "display_name": "Semi-detached",
+      "description": "A paired dwelling arrangement with shared-boundary, acoustic and privacy questions.",
+      "claim_ceiling": "INTENT_ONLY_NO_GEOMETRY_CODE_OR_ACCESSIBILITY_CLAIM"
+    },
+    {
+      "option_id": "ROW_TERRACE",
+      "display_name": "Row or terrace",
+      "description": "A connected series of dwellings with shared-wall, daylight and privacy questions.",
+      "claim_ceiling": "INTENT_ONLY_NO_GEOMETRY_CODE_OR_ACCESSIBILITY_CLAIM"
+    },
+    {
+      "option_id": "COURTYARD",
+      "display_name": "Courtyard home",
+      "description": "A dwelling organized around one or more protected outdoor rooms.",
+      "claim_ceiling": "INTENT_ONLY_NO_GEOMETRY_CODE_OR_ACCESSIBILITY_CLAIM"
+    },
+    {
+      "option_id": "DUPLEX",
+      "display_name": "Duplex",
+      "description": "A multi-level or paired-unit arrangement; circulation and accessibility need exact review.",
+      "claim_ceiling": "INTENT_ONLY_NO_GEOMETRY_CODE_OR_ACCESSIBILITY_CLAIM"
+    },
+    {
+      "option_id": "APARTMENT",
+      "display_name": "Apartment",
+      "description": "A dwelling within a larger multi-unit building and shared-services context.",
+      "claim_ceiling": "INTENT_ONLY_NO_GEOMETRY_CODE_OR_ACCESSIBILITY_CLAIM"
+    },
+    {
+      "option_id": "PAVILION",
+      "display_name": "Pavilion",
+      "description": "A dispersed or clustered set of volumes connected through outdoor or covered space.",
+      "claim_ceiling": "INTENT_ONLY_NO_GEOMETRY_CODE_OR_ACCESSIBILITY_CLAIM"
+    },
+    {
+      "option_id": "MULTIGENERATIONAL_CLUSTER",
+      "display_name": "Multi-generational cluster",
+      "description": "Related private and shared spaces for multiple household members.",
+      "claim_ceiling": "INTENT_ONLY_NO_GEOMETRY_CODE_OR_ACCESSIBILITY_CLAIM"
+    },
+    {
+      "option_id": "LIVE_WORK",
+      "display_name": "Live-work",
+      "description": "A dwelling combining residential and work or studio activity.",
+      "claim_ceiling": "INTENT_ONLY_NO_GEOMETRY_CODE_OR_ACCESSIBILITY_CLAIM"
+    },
+    {
+      "option_id": "INCREMENTAL_CORE",
+      "display_name": "Incremental core",
+      "description": "A phased dwelling intended to support carefully planned future expansion.",
+      "claim_ceiling": "INTENT_ONLY_NO_GEOMETRY_CODE_OR_ACCESSIBILITY_CLAIM"
+    },
+    {
+      "option_id": "RETROFIT_FIRST",
+      "display_name": "Retrofit-first",
+      "description": "An existing building adapted before considering replacement or new construction.",
+      "claim_ceiling": "INTENT_ONLY_NO_GEOMETRY_CODE_OR_ACCESSIBILITY_CLAIM"
+    }
+  ],
+  "material_tectonic_intent_catalog": [
+    {
+      "option_id": "STONE_MASONRY",
+      "display_name": "Stone masonry",
+      "description": "Material intent only; stone type, assembly, sourcing and structural design are unqualified.",
+      "claim_ceiling": "INTENT_ONLY_NO_ASSEMBLY_STRUCTURAL_OR_SOURCING_CLAIM"
+    },
+    {
+      "option_id": "BRICK_MASONRY",
+      "display_name": "Brick masonry",
+      "description": "Material intent only; unit, mortar, wall build-up and thermal properties require specification.",
+      "claim_ceiling": "INTENT_ONLY_NO_ASSEMBLY_STRUCTURAL_OR_SOURCING_CLAIM"
+    },
+    {
+      "option_id": "EARTH_MASONRY",
+      "display_name": "Earth construction",
+      "description": "Explore earth-based assemblies with moisture, durability, code and craft review.",
+      "claim_ceiling": "INTENT_ONLY_NO_ASSEMBLY_STRUCTURAL_OR_SOURCING_CLAIM"
+    },
+    {
+      "option_id": "TIMBER",
+      "display_name": "Timber",
+      "description": "Explore timber structure or finishes; species, treatment, fire and sourcing remain open.",
+      "claim_ceiling": "INTENT_ONLY_NO_ASSEMBLY_STRUCTURAL_OR_SOURCING_CLAIM"
+    },
+    {
+      "option_id": "STEEL",
+      "display_name": "Steel",
+      "description": "Explore steel structure or detailing; sections, protection and embodied impacts require evidence.",
+      "claim_ceiling": "INTENT_ONLY_NO_ASSEMBLY_STRUCTURAL_OR_SOURCING_CLAIM"
+    },
+    {
+      "option_id": "HYBRID_MATERIALS",
+      "display_name": "Hybrid materials",
+      "description": "Combine materials only after interfaces, movement, moisture and lifecycle are reviewed.",
+      "claim_ceiling": "INTENT_ONLY_NO_ASSEMBLY_STRUCTURAL_OR_SOURCING_CLAIM"
+    },
+    {
+      "option_id": "RECLAIMED_REUSED",
+      "display_name": "Reclaimed or reused",
+      "description": "Reuse intent does not establish availability, condition, certification or safe reuse.",
+      "claim_ceiling": "INTENT_ONLY_NO_ASSEMBLY_STRUCTURAL_OR_SOURCING_CLAIM"
+    },
+    {
+      "option_id": "REPAIRABLE_MODULAR",
+      "display_name": "Repairable modular assemblies",
+      "description": "Prefer assemblies designed for access, replacement and repair; evidence remains pending.",
+      "claim_ceiling": "INTENT_ONLY_NO_ASSEMBLY_STRUCTURAL_OR_SOURCING_CLAIM"
+    }
+  ],
+  "environmental_strategy_intent_catalog": [
+    {
+      "option_id": "ORIENTATION_SOLAR_RESPONSE",
+      "display_name": "Orientation and solar response",
+      "description": "Site-relative intent; requires verified location, orientation and solar analysis.",
+      "claim_ceiling": "INTENT_ONLY_NO_PHYSICAL_PERFORMANCE_OR_RESOURCE_CLAIM"
+    },
+    {
+      "option_id": "EXTERNAL_SHADING",
+      "display_name": "External shading",
+      "description": "A shading strategy preference, not a measured reduction in heat gain.",
+      "claim_ceiling": "INTENT_ONLY_NO_PHYSICAL_PERFORMANCE_OR_RESOURCE_CLAIM"
+    },
+    {
+      "option_id": "CROSS_VENTILATION",
+      "display_name": "Cross-ventilation",
+      "description": "A ventilation intent requiring exact openings, wind, security and airflow analysis.",
+      "claim_ceiling": "INTENT_ONLY_NO_PHYSICAL_PERFORMANCE_OR_RESOURCE_CLAIM"
+    },
+    {
+      "option_id": "THERMAL_MASS",
+      "display_name": "Thermal mass",
+      "description": "A strategy preference requiring assembly, climate and operating-schedule evaluation.",
+      "claim_ceiling": "INTENT_ONLY_NO_PHYSICAL_PERFORMANCE_OR_RESOURCE_CLAIM"
+    },
+    {
+      "option_id": "DAYLIGHT_CONTROL",
+      "display_name": "Daylight and glare control",
+      "description": "A daylight intent requiring geometry, glazing, shading and occupancy context.",
+      "claim_ceiling": "INTENT_ONLY_NO_PHYSICAL_PERFORMANCE_OR_RESOURCE_CLAIM"
+    },
+    {
+      "option_id": "RAINWATER_HARVESTING",
+      "display_name": "Rainwater harvesting",
+      "description": "A water strategy requiring rainfall, catchment, storage, quality and demand data.",
+      "claim_ceiling": "INTENT_ONLY_NO_PHYSICAL_PERFORMANCE_OR_RESOURCE_CLAIM"
+    },
+    {
+      "option_id": "GREYWATER_REUSE",
+      "display_name": "Greywater reuse",
+      "description": "A reuse strategy requiring treatment, plumbing, health and jurisdictional review.",
+      "claim_ceiling": "INTENT_ONLY_NO_PHYSICAL_PERFORMANCE_OR_RESOURCE_CLAIM"
+    },
+    {
+      "option_id": "ON_SITE_SOLAR",
+      "display_name": "On-site solar generation",
+      "description": "A generation preference requiring roof/site, resource, grid and storage assessment.",
+      "claim_ceiling": "INTENT_ONLY_NO_PHYSICAL_PERFORMANCE_OR_RESOURCE_CLAIM"
+    },
+    {
+      "option_id": "PRODUCTIVE_LANDSCAPE",
+      "display_name": "Productive landscape",
+      "description": "Landscape intent requiring water, soil, biodiversity and maintenance context.",
+      "claim_ceiling": "INTENT_ONLY_NO_PHYSICAL_PERFORMANCE_OR_RESOURCE_CLAIM"
+    },
+    {
+      "option_id": "PASSIVE_FIRST",
+      "display_name": "Passive-first design",
+      "description": "A design priority, not a claim that active systems can be omitted.",
+      "claim_ceiling": "INTENT_ONLY_NO_PHYSICAL_PERFORMANCE_OR_RESOURCE_CLAIM"
+    }
+  ]
 }
