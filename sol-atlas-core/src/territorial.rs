@@ -679,6 +679,17 @@ mod tests {
     }
 
     #[test]
+    fn testimony_alone_does_not_establish_community_attestation() {
+        let value = record(vec![assertion(vec![ClaimBasis::CommunityAttested])]);
+        let issues = value.validate().expect_err(
+            "community testimony alone must not be promoted to a community decision",
+        );
+        assert!(issues.iter().any(|issue| {
+            issue.contains("community_attested without community-decision evidence")
+        }));
+    }
+
+    #[test]
     fn administrative_record_requires_registry_or_regulator_evidence() {
         let mut value = record(vec![assertion(vec![ClaimBasis::AdministrativeRecord])]);
         assert!(value.validate().is_err());
