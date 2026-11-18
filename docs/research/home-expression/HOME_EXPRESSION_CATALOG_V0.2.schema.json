@@ -85,8 +85,8 @@
     },
     "style_catalog": {
       "type": "array",
-      "minItems": 34,
-      "maxItems": 34,
+      "minItems": 35,
+      "maxItems": 35,
       "items": {
         "type": "object",
         "additionalProperties": false,
