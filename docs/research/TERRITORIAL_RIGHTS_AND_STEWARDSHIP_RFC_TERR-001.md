@@ -55,6 +55,8 @@ Each interest has its own spatial reference, vertical extent where applicable, t
 
 A record is not necessarily true merely because it is digital, signed, replicated or immutable.
 
+**Absence is also an evidence claim.** “No challenge exists” is too strong when nobody has checked all relevant sources. The v0.1 contract therefore uses `NoChallengeObservedWithinFrontier`, requiring a declared scope, exact evidence frontier, searched sources and a challenge-search report. It supports only the bounded statement that no challenge was observed within that declared search. Partial, stale or unavailable coverage cannot support that state; it remains unassessed.
+
 Keep distinct:
 - what a party asserts;
 - what a community process attests;
@@ -213,7 +215,8 @@ The v0.1 validator rejects:
 - court-decision bases without a linked court/tribunal authority and court-order evidence;
 - community-attested bases without both a linked customary/community-governance authority and community-decision evidence (testimony alone is not enough);
 - contractual bases without a linked ContractingParty authority and contract evidence; statutory bases without a linked StatutoryRegulator authority and statutory-instrument evidence;
-- dispute states inconsistent with linked challenge lifecycle (including hiding an active objection as no-known-challenge or resolving while another challenge remains open);
+- dispute states inconsistent with linked challenge lifecycle (including hiding an active objection or resolving while another challenge remains open);
+- `NoChallengeObservedWithinFrontier` without a complete declared source frontier and challenge-search report;
 - verified-complete obligations without a separate verifier and completion evidence.
 
 ### Explicit v0.1 non-claims and gaps
@@ -250,7 +253,7 @@ This RFC/PR supplies a shared territorial interchange and claim/authority crossw
 | Symthaea | Source-grounded legal/policy retrieval, conflict detection, missing-evidence analysis, counterfactual comparison and explanation | Grant permits, decide community representation, infer consent or silently resolve disputes |
 | Symtropy | Physical/ecological digital twin, baselines, impact scenarios, sensor/field observation and rehabilitation monitoring | Treat simulation as measured reality or certify outcomes without independent evidence |
 
-The inter-project interface should be versioned, language-neutral and evidence-carrying. The Sol Atlas core types are the starting interchange contract, not a mandate for every runtime to adopt the same internal storage engine.
+The inter-project interface should be versioned, language-neutral and evidence-carrying. The Sol Atlas core types are the starting interchange contract, not a mandate for every runtime to adopt the same internal storage engine. Mycelix's follow-on adapter/legal-effect boundary is tracked in [LAND-RRR-INTEROP-001 #6315](https://github.com/Luminous-Dynamics/mycelix/issues/6315).
 
 ### Current integration debt to resolve before live adapters
 
@@ -354,7 +357,7 @@ The advantage is not a faster map or a more impressive AI answer. It is fewer un
 
 ### M0 — contract foundation (current PR)
 - Add the Rust territorial interchange types and structural validator.
-- Add fourteen module-level tests plus eight synthetic JSON fixtures exercised by eight integration tests: asserted claim; contested multi-authority record; missing registry authority; testimony-only community attestation; contract and statutory bases with distinct scoped authorities; contract without contracting-party authority; statute linked to the wrong authority kind; and restoration completion without an independent verifier.
+- Add fifteen module-level tests plus ten synthetic JSON fixtures exercised by ten integration tests: asserted claim; contested multi-authority record; missing registry authority; testimony-only community attestation; distinct statutory/contractual authority pairs; incorrect/missing authority pairs; restoration completion without independent verification; and complete versus missing challenge-search frontiers.
 - Publish this RFC, the [LADM crosswalk](./LADM_PROFILE_CROSSWALK_TERR-001.md), explicit boundaries and benchmark plan.
 - Fixtures are synthetic contract examples, not legal case precedents or measured benchmark performance.
 
@@ -432,4 +435,4 @@ No CI result, benchmark result or simulation result can substitute for these ext
 
 ---
 
-**Current implementation status:** the Rust v0.1 type module, fourteen module-level tests, eight synthetic JSON fixtures and eight fixture-driven integration tests have been added in this branch. The fixture set covers asserted claims, disputed multi-authority records, missing registry authority, testimony-only community attestation, positive and negative contractual/statutory authority pairing, and restoration closure without independent verification. JSON fixtures have been retrieved and parsed successfully, but the Rust tests have not been executed in this environment. No passing build, benchmark result, external legal review, survey validation or field trial is claimed by this document.
+**Current implementation status:** the Rust v0.1 type module, fifteen module-level tests, ten synthetic JSON fixtures and ten fixture-driven integration tests have been added in this branch. The suite covers asserted claims, disputed multi-authority records, source/authority pairing, testimony-only community attestation, independent restoration verification and the difference between no challenge observed within a complete declared frontier versus no evidence frontier. JSON fixtures have been retrieved and parsed successfully, but the Rust tests have not been executed in this environment. No passing build, benchmark result, external legal review, survey validation or field trial is claimed by this document.
