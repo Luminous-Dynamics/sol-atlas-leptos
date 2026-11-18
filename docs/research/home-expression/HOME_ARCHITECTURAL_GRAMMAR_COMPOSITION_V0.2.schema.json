@@ -14,7 +14,8 @@
     "composition",
     "decision_state",
     "evidence_state",
-    "claim_ceiling"
+    "claim_ceiling",
+    "resident_statement"
   ],
   "properties": {
     "schema_version": {
@@ -138,6 +139,11 @@
                       "type": "string",
                       "format": "uri"
                     }
+                  },
+                  "blend_weight_pct": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 100
                   }
                 }
               }
@@ -207,6 +213,10 @@
     },
     "claim_ceiling": {
       "const": "INTENT_ONLY_NO_GEOMETRY_COST_PERFORMANCE_OR_APPROVAL"
+    },
+    "resident_statement": {
+      "type": "string",
+      "maxLength": 3000
     }
   },
   "$defs": {
