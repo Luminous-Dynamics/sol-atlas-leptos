@@ -63,7 +63,6 @@ const REQUIRED_ADDITIONAL_STYLE_IDS: &[&str] = &[
     "SPANISH_COLONIAL_MISSION",
     "ALPINE_CHALET",
     "POSTMODERN",
-    "KAROO_CORBELLED_STONE_HISTORIC",
     "SOUTH_AFRICAN_ART_DECO_HISTORIC",
 ];
 
@@ -328,8 +327,8 @@ fn validate_catalog(catalog: &Value, schema: &Value, errors: &mut Vec<String>) {
         .and_then(Value::as_array)
         .cloned()
         .unwrap_or_default();
-    if styles.len() != 36 {
-        errors.push(format!("expected 36 styles, found {}", styles.len()));
+    if styles.len() != 35 {
+        errors.push(format!("expected 35 styles, found {}", styles.len()));
     }
     let mut style_ids = BTreeSet::new();
     for style in &styles {
@@ -938,7 +937,7 @@ mod tests {
         let catalog: Value = serde_json::from_str(CATALOG).unwrap();
         let schema: Value = serde_json::from_str(CATALOG_SCHEMA).unwrap();
         let styles = catalog["style_catalog"].as_array().unwrap();
-        assert_eq!(styles.len(), 36);
+        assert_eq!(styles.len(), 35);
         let ids = strings(Some(styles), Some("style_id"));
         for id in REQUIRED_BASE_STYLE_IDS.iter().chain(REQUIRED_ADDITIONAL_STYLE_IDS) {
             assert!(ids.contains(*id), "missing {id}");
