@@ -1,0 +1,557 @@
+{
+  "schema_version": "0.2.0",
+  "corpus_id": "HOME-EXPRESSION-GRAMMAR-CONFORMANCE-001",
+  "maturity": "SYNTHETIC_TEST_VECTORS_NOT_HOUSEHOLD_DATA",
+  "catalogue_revision": "HOME-EXPRESSION-CATALOG-0.2.0",
+  "grammar_schema_revision": "HOME-ARCHITECTURAL-GRAMMAR-COMPOSITION-0.2.0",
+  "base_fixture_ref": "docs/research/home-expression/HOME_ARCHITECTURAL_GRAMMAR_SYNTHETIC_HIGHVELD_V0.2.json",
+  "base_fixture_grammar_id": "SYNTH-HIGHVELD-GRAMMAR-001",
+  "case_count": 30,
+  "positive_case_count": 5,
+  "negative_case_count": 25,
+  "purpose": "Frozen conformance cases for intent-to-design grammar acceptance, rejection, identity, provenance and unresolved-conflict semantics. These cases do not generate geometry or assert building feasibility.",
+  "mutation_semantics": "Apply SET mutations in listed order to a fresh deep copy of the base synthetic grammar fixture. JSON Pointer paths use RFC 6901 escaping. Every case is evaluated independently.",
+  "cases": [
+    {
+      "case_id": "VALID_BASELINE_SYNTHETIC",
+      "category": "POSITIVE",
+      "expected_disposition": "ACCEPT",
+      "rationale": "Unmodified synthetic v0.2 grammar fixture.",
+      "mutations": []
+    },
+    {
+      "case_id": "VALID_RESIDENT_BLEND",
+      "category": "POSITIVE",
+      "expected_disposition": "ACCEPT",
+      "rationale": "A resident-authored primary and secondary expression blend remains intent, not a winner.",
+      "mutations": [
+        {
+          "op": "SET",
+          "path": "/composition/architectural_expression/entries",
+          "value": [
+            {
+              "style_id": "HIGHVELD_STONE_TIMBER_CONTEMPORARY",
+              "role": "PRIMARY",
+              "resident_selected": true,
+              "blend_weight_pct": 65,
+              "source_refs": []
+            },
+            {
+              "style_id": "SOLARPUNK",
+              "role": "SECONDARY",
+              "resident_selected": true,
+              "blend_weight_pct": 35,
+              "source_refs": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "case_id": "VALID_TYPOLOGY_CONFLICT_PRESERVED",
+      "category": "POSITIVE",
+      "expected_disposition": "ACCEPT",
+      "rationale": "Two preferred spatial arrangements remain explicitly unresolved.",
+      "mutations": [
+        {
+          "op": "SET",
+          "path": "/composition/spatial_typology/state",
+          "value": "CONFLICT_UNRESOLVED"
+        },
+        {
+          "op": "SET",
+          "path": "/composition/spatial_typology/entries",
+          "value": [
+            {
+              "item_id": "COURTYARD",
+              "preference": "PREFERRED"
+            },
+            {
+              "item_id": "ROW_TERRACE",
+              "preference": "PREFERRED"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "case_id": "VALID_RESIDENT_WORKING_DRAFT",
+      "category": "POSITIVE",
+      "expected_disposition": "ACCEPT",
+      "rationale": "Resident working draft with partial intent is accepted without evidence promotion.",
+      "mutations": [
+        {
+          "op": "SET",
+          "path": "/maturity",
+          "value": "RESIDENT_WORKING_DRAFT_NOT_VALIDATED"
+        },
+        {
+          "op": "SET",
+          "path": "/decision_state",
+          "value": "PARTIAL_RESIDENT_INTENT_RECORDED"
+        }
+      ]
+    },
+    {
+      "case_id": "VALID_ALL_AXES_WITH_PARTIAL_INTENT",
+      "category": "POSITIVE",
+      "expected_disposition": "ACCEPT",
+      "rationale": "Every grammar axis carries catalogued IDs with explicit preference states.",
+      "mutations": [
+        {
+          "op": "SET",
+          "path": "/composition/spatial_typology/state",
+          "value": "INTENT_ONLY_NOT_EVALUATED"
+        },
+        {
+          "op": "SET",
+          "path": "/composition/spatial_typology/entries",
+          "value": [
+            {
+              "item_id": "RETROFIT_FIRST",
+              "preference": "PREFERRED"
+            }
+          ]
+        },
+        {
+          "op": "SET",
+          "path": "/composition/material_tectonic_intent/entries",
+          "value": [
+            {
+              "item_id": "EARTH_MASONRY",
+              "preference": "CONSIDERED"
+            }
+          ]
+        },
+        {
+          "op": "SET",
+          "path": "/composition/environmental_strategy_intent/entries",
+          "value": [
+            {
+              "item_id": "PASSIVE_FIRST",
+              "preference": "PREFERRED"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "case_id": "INVALID_UNKNOWN_STYLE_ID",
+      "category": "NEGATIVE",
+      "expected_disposition": "REJECT",
+      "rationale": "Unknown style IDs cannot enter a grammar.",
+      "mutations": [
+        {
+          "op": "SET",
+          "path": "/composition/architectural_expression/entries/0/style_id",
+          "value": "STYLE_NOT_IN_CATALOGUE"
+        }
+      ]
+    },
+    {
+      "case_id": "INVALID_DUPLICATE_STYLE_ENTRY",
+      "category": "NEGATIVE",
+      "expected_disposition": "REJECT",
+      "rationale": "Duplicate expression entries must be rejected.",
+      "mutations": [
+        {
+          "op": "SET",
+          "path": "/composition/architectural_expression/entries",
+          "value": [
+            {
+              "style_id": "HIGHVELD_STONE_TIMBER_CONTEMPORARY",
+              "role": "PRIMARY",
+              "resident_selected": true,
+              "blend_weight_pct": 100
+            },
+            {
+              "style_id": "HIGHVELD_STONE_TIMBER_CONTEMPORARY",
+              "role": "PRIMARY",
+              "resident_selected": true,
+              "blend_weight_pct": 100
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "case_id": "INVALID_MULTIPLE_PRIMARY_STYLES",
+      "category": "NEGATIVE",
+      "expected_disposition": "REJECT",
+      "rationale": "More than one PRIMARY role is ambiguous and must not be auto-resolved.",
+      "mutations": [
+        {
+          "op": "SET",
+          "path": "/composition/architectural_expression/entries",
+          "value": [
+            {
+              "style_id": "HIGHVELD_STONE_TIMBER_CONTEMPORARY",
+              "role": "PRIMARY",
+              "resident_selected": true,
+              "blend_weight_pct": 100
+            },
+            {
+              "style_id": "MODERNIST",
+              "role": "PRIMARY",
+              "resident_selected": true,
+              "source_refs": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "case_id": "INVALID_STYLE_ROLE",
+      "category": "NEGATIVE",
+      "expected_disposition": "REJECT",
+      "rationale": "Unknown expression role must be rejected.",
+      "mutations": [
+        {
+          "op": "SET",
+          "path": "/composition/architectural_expression/entries/0/role",
+          "value": "WINNER"
+        }
+      ]
+    },
+    {
+      "case_id": "INVALID_REFERENCE_WITHOUT_SOURCE",
+      "category": "NEGATIVE",
+      "expected_disposition": "REJECT",
+      "rationale": "Reference-only expression entries require source references.",
+      "mutations": [
+        {
+          "op": "SET",
+          "path": "/composition/architectural_expression/entries/1/source_refs",
+          "value": []
+        }
+      ]
+    },
+    {
+      "case_id": "INVALID_UNBOUND_REFERENCE_SOURCE",
+      "category": "NEGATIVE",
+      "expected_disposition": "REJECT",
+      "rationale": "Reference-only entries may cite only catalogue-bound sources.",
+      "mutations": [
+        {
+          "op": "SET",
+          "path": "/composition/architectural_expression/entries/1/source_refs",
+          "value": [
+            "https://example.invalid/unbound-reference"
+          ]
+        }
+      ]
+    },
+    {
+      "case_id": "INVALID_BLEND_WEIGHT",
+      "category": "NEGATIVE",
+      "expected_disposition": "REJECT",
+      "rationale": "Blend weights must be between 0 and 100.",
+      "mutations": [
+        {
+          "op": "SET",
+          "path": "/composition/architectural_expression/entries/0/blend_weight_pct",
+          "value": 150
+        }
+      ]
+    },
+    {
+      "case_id": "INVALID_UNKNOWN_EXPERIENCE",
+      "category": "NEGATIVE",
+      "expected_disposition": "REJECT",
+      "rationale": "Unknown experiences cannot enter the catalogue-bound grammar.",
+      "mutations": [
+        {
+          "op": "SET",
+          "path": "/composition/experience_programme/entries/0/package_id",
+          "value": "UNLISTED_EXPERIENCE"
+        }
+      ]
+    },
+    {
+      "case_id": "INVALID_DUPLICATE_EXPERIENCE",
+      "category": "NEGATIVE",
+      "expected_disposition": "REJECT",
+      "rationale": "Duplicate experience entries must be rejected.",
+      "mutations": [
+        {
+          "op": "SET",
+          "path": "/composition/experience_programme/entries",
+          "value": [
+            {
+              "package_id": "PRIVATE_OBSERVATORY",
+              "preference": "CONSIDERED"
+            },
+            {
+              "package_id": "PRIVATE_OBSERVATORY",
+              "preference": "CONSIDERED"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "case_id": "INVALID_UNKNOWN_TYPOLOGY",
+      "category": "NEGATIVE",
+      "expected_disposition": "REJECT",
+      "rationale": "Typology IDs must come from the shared versioned vocabulary.",
+      "mutations": [
+        {
+          "op": "SET",
+          "path": "/composition/spatial_typology/entries",
+          "value": [
+            {
+              "item_id": "TREEHOUSE_CITY",
+              "preference": "PREFERRED"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "case_id": "INVALID_DUPLICATE_TYPOLOGY",
+      "category": "NEGATIVE",
+      "expected_disposition": "REJECT",
+      "rationale": "Duplicate typology choices must be rejected.",
+      "mutations": [
+        {
+          "op": "SET",
+          "path": "/composition/spatial_typology/entries",
+          "value": [
+            {
+              "item_id": "COURTYARD",
+              "preference": "PREFERRED"
+            },
+            {
+              "item_id": "COURTYARD",
+              "preference": "CONSIDERED"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "case_id": "INVALID_TYPOLOGY_CONFLICT_HIDDEN",
+      "category": "NEGATIVE",
+      "expected_disposition": "REJECT",
+      "rationale": "Multiple preferred typologies must remain CONFLICT_UNRESOLVED.",
+      "mutations": [
+        {
+          "op": "SET",
+          "path": "/composition/spatial_typology/entries",
+          "value": [
+            {
+              "item_id": "COURTYARD",
+              "preference": "PREFERRED"
+            },
+            {
+              "item_id": "ROW_TERRACE",
+              "preference": "PREFERRED"
+            }
+          ]
+        },
+        {
+          "op": "SET",
+          "path": "/composition/spatial_typology/state",
+          "value": "INTENT_ONLY_NOT_EVALUATED"
+        }
+      ]
+    },
+    {
+      "case_id": "INVALID_UNKNOWN_MATERIAL",
+      "category": "NEGATIVE",
+      "expected_disposition": "REJECT",
+      "rationale": "Material IDs must come from the shared vocabulary.",
+      "mutations": [
+        {
+          "op": "SET",
+          "path": "/composition/material_tectonic_intent/entries",
+          "value": [
+            {
+              "item_id": "UNSPECIFIED_COMPOSITE",
+              "preference": "PREFERRED"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "case_id": "INVALID_DUPLICATE_MATERIAL",
+      "category": "NEGATIVE",
+      "expected_disposition": "REJECT",
+      "rationale": "Duplicate material entries must be rejected.",
+      "mutations": [
+        {
+          "op": "SET",
+          "path": "/composition/material_tectonic_intent/entries",
+          "value": [
+            {
+              "item_id": "TIMBER",
+              "preference": "PREFERRED"
+            },
+            {
+              "item_id": "TIMBER",
+              "preference": "AVOIDED"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "case_id": "INVALID_UNKNOWN_ENVIRONMENT_STRATEGY",
+      "category": "NEGATIVE",
+      "expected_disposition": "REJECT",
+      "rationale": "Environmental strategy IDs must come from the shared vocabulary.",
+      "mutations": [
+        {
+          "op": "SET",
+          "path": "/composition/environmental_strategy_intent/entries",
+          "value": [
+            {
+              "item_id": "NET_ZERO",
+              "preference": "PREFERRED"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "case_id": "INVALID_DUPLICATE_ENVIRONMENT_STRATEGY",
+      "category": "NEGATIVE",
+      "expected_disposition": "REJECT",
+      "rationale": "Duplicate environmental strategies must be rejected.",
+      "mutations": [
+        {
+          "op": "SET",
+          "path": "/composition/environmental_strategy_intent/entries",
+          "value": [
+            {
+              "item_id": "EXTERNAL_SHADING",
+              "preference": "PREFERRED"
+            },
+            {
+              "item_id": "EXTERNAL_SHADING",
+              "preference": "AVOIDED"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "case_id": "INVALID_EVIDENCE_PROMOTION",
+      "category": "NEGATIVE",
+      "expected_disposition": "REJECT",
+      "rationale": "Synthetic/intent-only inputs cannot self-promote evidence.",
+      "mutations": [
+        {
+          "op": "SET",
+          "path": "/evidence_state",
+          "value": "QUALIFIED"
+        }
+      ]
+    },
+    {
+      "case_id": "INVALID_CLAIM_PROMOTION",
+      "category": "NEGATIVE",
+      "expected_disposition": "REJECT",
+      "rationale": "Intent cannot be promoted into geometry or approval.",
+      "mutations": [
+        {
+          "op": "SET",
+          "path": "/claim_ceiling",
+          "value": "BUILDABLE_APPROVED_PLAN"
+        }
+      ]
+    },
+    {
+      "case_id": "INVALID_CATALOGUE_REVISION",
+      "category": "NEGATIVE",
+      "expected_disposition": "REJECT",
+      "rationale": "Grammar must bind the exact catalogue revision.",
+      "mutations": [
+        {
+          "op": "SET",
+          "path": "/catalog_revision",
+          "value": "HOME-EXPRESSION-CATALOG-9.9.9"
+        }
+      ]
+    },
+    {
+      "case_id": "INVALID_SCHEMA_VERSION",
+      "category": "NEGATIVE",
+      "expected_disposition": "REJECT",
+      "rationale": "Grammar schema version mismatch must be rejected.",
+      "mutations": [
+        {
+          "op": "SET",
+          "path": "/schema_version",
+          "value": "9.9.9"
+        }
+      ]
+    },
+    {
+      "case_id": "INVALID_MISSING_RESIDENT_STATEMENT",
+      "category": "NEGATIVE",
+      "expected_disposition": "REJECT",
+      "rationale": "Resident statement must be present as a string, including an explicitly empty string if no prose is supplied.",
+      "mutations": [
+        {
+          "op": "SET",
+          "path": "/resident_statement",
+          "value": null
+        }
+      ]
+    },
+    {
+      "case_id": "INVALID_DECISION_STATE",
+      "category": "NEGATIVE",
+      "expected_disposition": "REJECT",
+      "rationale": "A working intent draft cannot invent resident approval.",
+      "mutations": [
+        {
+          "op": "SET",
+          "path": "/decision_state",
+          "value": "RESIDENT_APPROVED"
+        }
+      ]
+    },
+    {
+      "case_id": "INVALID_CONTEXT_STATE",
+      "category": "NEGATIVE",
+      "expected_disposition": "REJECT",
+      "rationale": "Context state must remain one of the schema-defined evidence states.",
+      "mutations": [
+        {
+          "op": "SET",
+          "path": "/context/context_state",
+          "value": "CERTIFIED"
+        }
+      ]
+    },
+    {
+      "case_id": "INVALID_SELECTED_FLAG_TYPE",
+      "category": "NEGATIVE",
+      "expected_disposition": "REJECT",
+      "rationale": "Selection state must be boolean, not a string.",
+      "mutations": [
+        {
+          "op": "SET",
+          "path": "/composition/architectural_expression/entries/0/resident_selected",
+          "value": "true"
+        }
+      ]
+    },
+    {
+      "case_id": "INVALID_EXPERIENCE_PREFERENCE",
+      "category": "NEGATIVE",
+      "expected_disposition": "REJECT",
+      "rationale": "Programme entries cannot invent technical/installation status.",
+      "mutations": [
+        {
+          "op": "SET",
+          "path": "/composition/experience_programme/entries/0/preference",
+          "value": "INSTALLED"
+        }
+      ]
+    }
+  ]
+}

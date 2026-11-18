@@ -1,0 +1,81 @@
+{
+  "schema_version": "0.2.0",
+  "grammar_id": "SYNTH-HIGHVELD-GRAMMAR-001",
+  "maturity": "SYNTHETIC_NOT_EVALUATED",
+  "catalog_revision": "HOME-EXPRESSION-CATALOG-0.2.0",
+  "design_revision_ref": "SYNTH-HV-GRAMMAR-REV-0",
+  "context": {
+    "site_context_ref": "SYNTH-HIGHVELD-SITE-001",
+    "climate_profile_ref": null,
+    "jurisdiction_ref": null,
+    "context_state": "UNKNOWN"
+  },
+  "composition": {
+    "spatial_typology": {
+      "state": "UNDECIDED",
+      "entries": []
+    },
+    "architectural_expression": {
+      "state": "INTENT_SELECTED",
+      "entries": [
+        {
+          "style_id": "HIGHVELD_STONE_TIMBER_CONTEMPORARY",
+          "role": "PRIMARY",
+          "resident_selected": true,
+          "blend_weight_pct": 100
+        },
+        {
+          "style_id": "CAPE_GEORGIAN_INFLUENCE",
+          "role": "REFERENCE_ONLY",
+          "resident_selected": true,
+          "source_refs": [
+            "https://repository.up.ac.za/server/api/core/bitstreams/fc087af1-69b5-4f2f-9e74-9ed9fe58716e/content"
+          ]
+        }
+      ]
+    },
+    "material_tectonic_intent": {
+      "state": "INTENT_ONLY_NOT_EVALUATED",
+      "entries": [
+        {
+          "item_id": "STONE_MASONRY",
+          "preference": "PREFERRED"
+        },
+        {
+          "item_id": "TIMBER",
+          "preference": "CONSIDERED"
+        }
+      ]
+    },
+    "environmental_strategy_intent": {
+      "state": "INTENT_ONLY_NOT_EVALUATED",
+      "entries": [
+        {
+          "item_id": "EXTERNAL_SHADING",
+          "preference": "PREFERRED"
+        },
+        {
+          "item_id": "CROSS_VENTILATION",
+          "preference": "CONSIDERED"
+        },
+        {
+          "item_id": "THERMAL_MASS",
+          "preference": "CONSIDERED"
+        }
+      ]
+    },
+    "experience_programme": {
+      "state": "OPTIONAL_IDEAS_ONLY",
+      "entries": [
+        {
+          "package_id": "PRIVATE_OBSERVATORY",
+          "preference": "CONSIDERED"
+        }
+      ]
+    }
+  },
+  "decision_state": "PARTIAL_RESIDENT_INTENT_RECORDED",
+  "evidence_state": "UNKNOWN_NOT_EVALUATED",
+  "claim_ceiling": "INTENT_ONLY_NO_GEOMETRY_COST_PERFORMANCE_OR_APPROVAL",
+  "resident_statement": "Synthetic example only: a sheltered, calm home with a strong relationship to landscape and a small private sky-watching space."
+}
