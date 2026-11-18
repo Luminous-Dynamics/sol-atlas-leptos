@@ -1,0 +1,124 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/blob/main/docs/research/home-expression/HOME_EXPRESSION_GRAMMAR_CONFORMANCE_CORPUS_V0.2.schema.json",
+  "title": "Home Expression grammar conformance corpus v0.2",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "corpus_id",
+    "maturity",
+    "catalogue_revision",
+    "grammar_schema_revision",
+    "base_fixture_ref",
+    "base_fixture_grammar_id",
+    "case_count",
+    "positive_case_count",
+    "negative_case_count",
+    "purpose",
+    "mutation_semantics",
+    "cases"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "0.2.0"
+    },
+    "corpus_id": {
+      "const": "HOME-EXPRESSION-GRAMMAR-CONFORMANCE-001"
+    },
+    "maturity": {
+      "const": "SYNTHETIC_TEST_VECTORS_NOT_HOUSEHOLD_DATA"
+    },
+    "catalogue_revision": {
+      "const": "HOME-EXPRESSION-CATALOG-0.2.0"
+    },
+    "grammar_schema_revision": {
+      "const": "HOME-ARCHITECTURAL-GRAMMAR-COMPOSITION-0.2.0"
+    },
+    "base_fixture_ref": {
+      "type": "string",
+      "minLength": 1
+    },
+    "base_fixture_grammar_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "case_count": {
+      "const": 30
+    },
+    "positive_case_count": {
+      "const": 5
+    },
+    "negative_case_count": {
+      "const": 25
+    },
+    "purpose": {
+      "type": "string",
+      "minLength": 1
+    },
+    "mutation_semantics": {
+      "type": "string",
+      "minLength": 1
+    },
+    "cases": {
+      "type": "array",
+      "minItems": 30,
+      "maxItems": 30,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "case_id",
+          "category",
+          "expected_disposition",
+          "rationale",
+          "mutations"
+        ],
+        "properties": {
+          "case_id": {
+            "type": "string",
+            "pattern": "^[A-Z0-9_]{3,100}$"
+          },
+          "category": {
+            "enum": [
+              "POSITIVE",
+              "NEGATIVE"
+            ]
+          },
+          "expected_disposition": {
+            "enum": [
+              "ACCEPT",
+              "REJECT"
+            ]
+          },
+          "rationale": {
+            "type": "string",
+            "minLength": 1
+          },
+          "mutations": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "op",
+                "path",
+                "value"
+              ],
+              "properties": {
+                "op": {
+                  "const": "SET"
+                },
+                "path": {
+                  "type": "string",
+                  "pattern": "^/[^\\s]+$"
+                },
+                "value": {}
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
