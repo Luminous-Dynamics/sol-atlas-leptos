@@ -537,6 +537,22 @@ impl TerritorialRecord {
                         }
                     }
                     ClaimBasis::ContractualInstrument => {
+                        let has_contract_authority = assertion.authority_ids.iter().any(|id| {
+                            authority_by_id.get(id.as_str()).is_some_and(|authority| {
+                                authority.kind == AuthorityKind::ContractingParty
+                                    && evidence_by_id
+                                        .get(authority.source_evidence_id.as_str())
+                                        .is_some_and(|evidence| {
+                                            evidence.kind == EvidenceKind::Contract
+                                        })
+                            })
+                        });
+                        if !has_contract_authority {
+                            issues.push(format!(
+                                "assertion {} declares contractual_instrument without contracting-party authority and linked contract evidence",
+                                assertion.id
+                            ));
+                        }
                         if !assertion.evidence_ids.iter().any(|id| {
                             evidence_by_id
                                 .get(id.as_str())
@@ -549,6 +565,22 @@ impl TerritorialRecord {
                         }
                     }
                     ClaimBasis::StatutoryInstrument => {
+                        let has_statutory_authority = assertion.authority_ids.iter().any(|id| {
+                            authority_by_id.get(id.as_str()).is_some_and(|authority| {
+                                authority.kind == AuthorityKind::StatutoryRegulator
+                                    && evidence_by_id
+                                        .get(authority.source_evidence_id.as_str())
+                                        .is_some_and(|evidence| {
+                                            evidence.kind == EvidenceKind::StatutoryInstrument
+                                        })
+                            })
+                        });
+                        if !has_statutory_authority {
+                            issues.push(format!(
+                                "assertion {} declares statutory_instrument without statutory-regulator authority and linked statutory-instrument evidence",
+                                assertion.id
+                            ));
+                        }
                         if !assertion.evidence_ids.iter().any(|id| {
                             evidence_by_id.get(id.as_str()).is_some_and(|evidence| {
                                 evidence.kind == EvidenceKind::StatutoryInstrument
@@ -897,6 +929,72 @@ mod tests {
             disclosure_class: DisclosureClass::Restricted,
         });
         value.assertions[0].authority_ids = vec!["court-authority".into()];
+        assert_eq!(value.validate(), Ok(()));
+    }
+
+    #[test]
+    fn contractual_instrument_requires_contracting_party_authority() {
+        let mut value = record(vec![assertion(vec![ClaimBasis::ContractualInstrument])]);
+        value.evidence.push(evidence("contract-1", EvidenceKind::Contract));
+        value.assertions[0].evidence_ids.push("contract-1".into());
+        let issues = value.validate().expect_err(
+            "a contract document alone must not establish the authority basis",
+        );
+        assert!(issues.iter().any(|issue| {
+            issue.contains("without contracting-party authority")
+        }));
+
+        value.authorities.push(AuthorityReference {
+            id: "contract-authority".into(),
+            issuer_ref: "institution:contracting-party".into(),
+            kind: AuthorityKind::ContractingParty,
+            jurisdiction: "ZA".into(),
+            scope: "rights and obligations defined by contract-1".into(),
+            source_evidence_id: "contract-1".into(),
+            valid_from: "2026-11-18".into(),
+            valid_until: None,
+            disclosure_class: DisclosureClass::Restricted,
+        });
+        value.assertions[0].authority_ids = vec!["contract-authority".into()];
+        assert_eq!(value.validate(), Ok(()));
+    }
+
+    #[test]
+    fn statutory_instrument_requires_statutory_regulator_authority() {
+        let mut value = record(vec![assertion(vec![ClaimBasis::StatutoryInstrument])]);
+        value.evidence.push(evidence("statute-1", EvidenceKind::StatutoryInstrument));
+        value.assertions[0].evidence_ids.push("statute-1".into());
+        value.authorities.push(AuthorityReference {
+            id: "wrong-authority".into(),
+            issuer_ref: "institution:other".into(),
+            kind: AuthorityKind::Other,
+            jurisdiction: "ZA".into(),
+            scope: "unrelated authority".into(),
+            source_evidence_id: "statute-1".into(),
+            valid_from: "2026-11-18".into(),
+            valid_until: None,
+            disclosure_class: DisclosureClass::Restricted,
+        });
+        value.assertions[0].authority_ids = vec!["wrong-authority".into()];
+        let issues = value.validate().expect_err(
+            "a statutory instrument linked to a non-regulator must not pass",
+        );
+        assert!(issues.iter().any(|issue| {
+            issue.contains("without statutory-regulator authority")
+        }));
+
+        value.authorities.push(AuthorityReference {
+            id: "regulator-authority".into(),
+            issuer_ref: "institution:statutory-regulator".into(),
+            kind: AuthorityKind::StatutoryRegulator,
+            jurisdiction: "ZA".into(),
+            scope: "statutory instrument administration".into(),
+            source_evidence_id: "statute-1".into(),
+            valid_from: "2026-11-18".into(),
+            valid_until: None,
+            disclosure_class: DisclosureClass::Restricted,
+        });
+        value.assertions[0].authority_ids.push("regulator-authority".into());
         assert_eq!(value.validate(), Ok(()));
     }
 
