@@ -21,6 +21,9 @@ const GRAMMAR_SCHEMA: &str = include_str!(
 const GRAMMAR_FIXTURE: &str = include_str!(
     "../../docs/research/home-expression/HOME_ARCHITECTURAL_GRAMMAR_SYNTHETIC_HIGHVELD_V0.2.json"
 );
+const CONFORMANCE_CORPUS: &str = include_str!(
+    "../../docs/research/home-expression/HOME_EXPRESSION_GRAMMAR_CONFORMANCE_CORPUS_V0.2.json"
+);
 
 const REQUIRED_BASE_STYLE_IDS: &[&str] = &[
     "HIGHVELD_STONE_TIMBER_CONTEMPORARY",
@@ -184,12 +187,23 @@ fn validate_intent_entries(
     errors: &mut Vec<String>,
 ) {
     let null = Value::Null;
-    let entries = composition
-        .get(axis)
-        .and_then(|value| value.get("entries"))
+    let axis_value = composition.get(axis).unwrap_or(&null);
+    let entries = axis_value
+        .get("entries")
         .and_then(Value::as_array)
         .cloned()
         .unwrap_or_default();
+    let state = text(axis_value, "state").unwrap_or_default();
+    if !["UNDECIDED", "INTENT_ONLY_NOT_EVALUATED", "CONFLICT_UNRESOLVED"].contains(&state) {
+        errors.push(format!("{axis} has an unsupported intent state: {state}"));
+    }
+    if entries.is_empty() && state != "UNDECIDED" {
+        errors.push(format!("{axis} with no entries must remain UNDECIDED"));
+    }
+    if !entries.is_empty() && state == "UNDECIDED" {
+        errors.push(format!("{axis} with explicit entries cannot be marked UNDECIDED"));
+    }
+
     let mut seen = BTreeSet::new();
     let mut preferred_count = 0usize;
     for entry in &entries {
@@ -208,11 +222,11 @@ fn validate_intent_entries(
             preferred_count += 1;
         }
     }
-    if axis == "spatial_typology" && preferred_count > 1
-        && text(composition.get(axis).unwrap_or(&null), "state")
-            != Some("CONFLICT_UNRESOLVED")
-    {
+    if axis == "spatial_typology" && preferred_count > 1 && state != "CONFLICT_UNRESOLVED" {
         errors.push("multiple preferred spatial typologies must remain CONFLICT_UNRESOLVED".to_owned());
+    }
+    if axis == "spatial_typology" && state == "CONFLICT_UNRESOLVED" && preferred_count < 2 {
+        errors.push("spatial typology conflict state requires multiple preferred options".to_owned());
     }
 }
 
@@ -470,6 +484,15 @@ fn validate_grammar(
         errors.push("grammar identity, resident statement, evidence or claim ceiling is invalid".to_owned());
     }
 
+    if ![
+        "NO_RESIDENT_CHOICE_OR_DESIGN_APPROVAL_RECORDED",
+        "PARTIAL_RESIDENT_INTENT_RECORDED",
+    ]
+    .contains(&text(grammar, "decision_state").unwrap_or_default())
+    {
+        errors.push("grammar decision state is unsupported or implies an unauthorized approval".to_owned());
+    }
+
     let styles = catalog
         .get("style_catalog")
         .and_then(Value::as_array)
@@ -550,6 +573,9 @@ fn validate_grammar(
         if !["PRIMARY", "SECONDARY", "ACCENT", "REFERENCE_ONLY", "AVOID", "ACCEPTABLE", "UNDECIDED"].contains(&role) {
             errors.push(format!("grammar style {id} has unsupported resident role: {role}"));
         }
+        if entry.get("resident_selected").and_then(Value::as_bool) != Some(true) {
+            errors.push(format!("grammar style {id} must retain an explicit resident selection flag"));
+        }
         if role == "PRIMARY" {
             primary_count += 1;
         }
@@ -597,6 +623,19 @@ fn validate_grammar(
         if !experience_ids.insert(id.to_owned()) {
             errors.push(format!("grammar contains duplicate experience entry: {id}"));
         }
+        let preference = text(entry, "preference").unwrap_or_default();
+        if !["PREFERRED", "CONSIDERED", "AVOIDED", "UNDECIDED"].contains(&preference) {
+            errors.push(format!("experience {id} has unsupported preference: {preference}"));
+        }
+    }
+
+    let experience_state = composition
+        .get("experience_programme")
+        .and_then(|value| value.get("state"))
+        .and_then(Value::as_str)
+        .unwrap_or_default();
+    if !["UNDECIDED", "OPTIONAL_IDEAS_ONLY", "CONFLICT_UNRESOLVED"].contains(&experience_state) {
+        errors.push("experience programme state is unsupported".to_owned());
     }
 
     validate_intent_entries(composition, "spatial_typology", &typology_ids, errors);
@@ -604,7 +643,11 @@ fn validate_grammar(
     validate_intent_entries(composition, "environmental_strategy_intent", &environmental_ids, errors);
 
     let context = grammar.get("context").unwrap_or(&null);
-    if text(context, "context_state") == Some("UNKNOWN")
+    let context_state = text(context, "context_state").unwrap_or_default();
+    if !["UNKNOWN", "PARTIAL", "SOURCE_BOUND_NOT_QUALIFIED"].contains(&context_state) {
+        errors.push("context state is unsupported or implies unqualified authority".to_owned());
+    }
+    if context_state == "UNKNOWN"
         && text(grammar, "evidence_state") != Some("UNKNOWN_NOT_EVALUATED")
     {
         errors.push("unknown site/climate/jurisdiction context cannot be promoted to evaluated".to_owned());
@@ -621,6 +664,123 @@ fn validate_all(
     validate_catalog(catalog, catalog_schema, &mut errors);
     validate_grammar(grammar, grammar_schema, catalog, &mut errors);
     errors
+}
+
+fn pointer_segment_mut<'a>(value: &'a mut Value, segment: &str) -> Option<&'a mut Value> {
+    match value {
+        Value::Object(map) => map.get_mut(segment),
+        Value::Array(items) => segment.parse::<usize>().ok().and_then(|index| items.get_mut(index)),
+        _ => None,
+    }
+}
+
+fn set_json_pointer(root: &mut Value, pointer: &str, replacement: Value) -> Result<(), String> {
+    let raw_segments = pointer
+        .strip_prefix('/')
+        .ok_or_else(|| format!("JSON Pointer must start with '/': {pointer}"))?;
+    let segments: Vec<String> = raw_segments
+        .split('/')
+        .map(|segment| segment.replace("~1", "/").replace("~0", "~"))
+        .collect();
+    if segments.is_empty() || segments.iter().any(String::is_empty) {
+        return Err(format!("JSON Pointer has an empty segment: {pointer}"));
+    }
+
+    let mut parent = root;
+    for segment in &segments[..segments.len() - 1] {
+        parent = pointer_segment_mut(parent, segment)
+            .ok_or_else(|| format!("JSON Pointer parent does not exist: {pointer}"))?;
+    }
+    let final_segment = segments.last().expect("non-empty segments");
+    let target = pointer_segment_mut(parent, final_segment)
+        .ok_or_else(|| format!("JSON Pointer target does not exist: {pointer}"))?;
+    *target = replacement;
+    Ok(())
+}
+
+fn run_conformance_corpus() -> Result<(usize, usize), String> {
+    let corpus: Value = serde_json::from_str(CONFORMANCE_CORPUS)
+        .map_err(|error| format!("conformance corpus is invalid JSON: {error}"))?;
+    let catalog: Value = serde_json::from_str(CATALOG).map_err(|e| e.to_string())?;
+    let catalog_schema: Value = serde_json::from_str(CATALOG_SCHEMA).map_err(|e| e.to_string())?;
+    let grammar_schema: Value = serde_json::from_str(GRAMMAR_SCHEMA).map_err(|e| e.to_string())?;
+    let base: Value = serde_json::from_str(GRAMMAR_FIXTURE).map_err(|e| e.to_string())?;
+
+    if text(&corpus, "corpus_id") != Some("HOME-EXPRESSION-GRAMMAR-CONFORMANCE-001")
+        || text(&corpus, "schema_version") != Some("0.2.0")
+        || text(&corpus, "catalogue_revision") != Some("HOME-EXPRESSION-CATALOG-0.2.0")
+        || corpus.get("case_count").and_then(Value::as_u64) != Some(30)
+        || corpus.get("positive_case_count").and_then(Value::as_u64) != Some(5)
+        || corpus.get("negative_case_count").and_then(Value::as_u64) != Some(25)
+    {
+        return Err("conformance corpus identity, lineage or expected case counts changed".to_owned());
+    }
+
+    let cases = corpus
+        .get("cases")
+        .and_then(Value::as_array)
+        .ok_or_else(|| "conformance corpus cases must be an array".to_owned())?;
+    if cases.len() != 30 {
+        return Err(format!("expected 30 conformance cases, found {}", cases.len()));
+    }
+
+    let mut case_ids = BTreeSet::new();
+    let mut accepted = 0usize;
+    let mut rejected = 0usize;
+    for case in cases {
+        let case_id = text(case, "case_id").unwrap_or_default();
+        if case_id.is_empty() || !case_ids.insert(case_id.to_owned()) {
+            return Err(format!("conformance corpus has a missing or duplicate case ID: {case_id}"));
+        }
+        let expected = text(case, "expected_disposition").unwrap_or_default();
+        let category = text(case, "category").unwrap_or_default();
+        if !["ACCEPT", "REJECT"].contains(&expected)
+            || (category == "POSITIVE" && expected != "ACCEPT")
+            || (category == "NEGATIVE" && expected != "REJECT")
+            || !["POSITIVE", "NEGATIVE"].contains(&category)
+        {
+            return Err(format!("conformance case {case_id} has inconsistent category/disposition"));
+        }
+
+        let mut candidate = base.clone();
+        let mutations = case
+            .get("mutations")
+            .and_then(Value::as_array)
+            .ok_or_else(|| format!("conformance case {case_id} has no mutation array"))?;
+        for mutation in mutations {
+            if text(mutation, "op") != Some("SET") {
+                return Err(format!("conformance case {case_id} contains an unsupported mutation op"));
+            }
+            let pointer = text(mutation, "path")
+                .ok_or_else(|| format!("conformance case {case_id} mutation has no path"))?;
+            let replacement = mutation
+                .get("value")
+                .cloned()
+                .ok_or_else(|| format!("conformance case {case_id} mutation has no value"))?;
+            set_json_pointer(&mut candidate, pointer, replacement)
+                .map_err(|error| format!("{case_id}: {error}"))?;
+        }
+
+        let errors = validate_all(&catalog, &catalog_schema, &candidate, &grammar_schema);
+        let accepted_by_qualifier = errors.is_empty();
+        if (expected == "ACCEPT") != accepted_by_qualifier {
+            return Err(format!(
+                "conformance case {case_id} expected {expected}, got {}: {}",
+                if accepted_by_qualifier { "ACCEPT" } else { "REJECT" },
+                errors.join("; ")
+            ));
+        }
+        if accepted_by_qualifier {
+            accepted += 1;
+        } else {
+            rejected += 1;
+        }
+    }
+
+    if accepted != 5 || rejected != 25 {
+        return Err(format!("conformance distribution drifted: {accepted} accepted / {rejected} rejected"));
+    }
+    Ok((accepted, rejected))
 }
 
 fn run_self_test() -> Result<(), String> {
@@ -707,6 +867,11 @@ fn run_self_test() -> Result<(), String> {
         return Err("negative control failed: schema vocabulary drift was accepted".to_owned());
     }
 
+    let (accepted, rejected) = run_conformance_corpus()?;
+    if accepted != 5 || rejected != 25 {
+        return Err("conformance corpus expected 5 positive and 25 negative cases".to_owned());
+    }
+
     Ok(())
 }
 
@@ -730,7 +895,8 @@ fn main() {
             eprintln!("SELF-TEST FAIL: {error}");
             process::exit(1);
         }
-        println!("PASS: v0.2 catalogue and five-axis grammar integrity; 11 adversarial negative controls rejected");
+        let (accepted, rejected) = run_conformance_corpus().expect("conformance corpus must pass");
+        println!("PASS: v0.2 catalogue and five-axis grammar integrity; 11 focused negative controls plus 30 corpus cases ({accepted} accepted / {rejected} rejected)");
     } else {
         println!("PASS: v0.2 catalogue and five-axis grammar integrity");
     }
@@ -765,6 +931,14 @@ mod tests {
         assert!(errors.is_empty(), "{errors:?}");
         assert_eq!(grammar["context"]["context_state"], "UNKNOWN");
         assert_eq!(grammar["evidence_state"], "UNKNOWN_NOT_EVALUATED");
+    }
+
+    #[test]
+    fn frozen_grammar_conformance_corpus_has_thirty_cases() {
+        let corpus: Value = serde_json::from_str(CONFORMANCE_CORPUS).unwrap();
+        assert_eq!(corpus["cases"].as_array().unwrap().len(), 30);
+        let (accepted, rejected) = run_conformance_corpus().unwrap();
+        assert_eq!((accepted, rejected), (5, 25));
     }
 
     #[test]
