@@ -267,21 +267,27 @@ fn validate_grammar(
         }
     }
 
+    if !["SYNTHETIC_NOT_EVALUATED", "RESIDENT_WORKING_DRAFT_NOT_VALIDATED", "OWNER_REVIEW_REQUIRED"]
+        .contains(&text(grammar, "maturity").unwrap_or_default())
+    {
+        errors.push("grammar maturity is unsupported".to_owned());
+    }
     if text(grammar, "schema_version") != Some("0.2.0")
         || text(grammar, "catalog_revision") != Some("HOME-EXPRESSION-CATALOG-0.2.0")
-        || text(grammar, "maturity") != Some("SYNTHETIC_NOT_EVALUATED")
         || text(grammar, "evidence_state") != Some("UNKNOWN_NOT_EVALUATED")
         || text(grammar, "claim_ceiling")
             != Some("INTENT_ONLY_NO_GEOMETRY_COST_PERFORMANCE_OR_APPROVAL")
+        || text(grammar, "resident_statement").is_none()
     {
-        errors.push("grammar identity, maturity, evidence or claim ceiling was promoted".to_owned());
+        errors.push("grammar identity, resident statement, evidence or claim ceiling is invalid".to_owned());
     }
 
-    let style_ids = catalog
+    let styles = catalog
         .get("style_catalog")
         .and_then(Value::as_array)
-        .map(|values| strings(Some(values), Some("style_id")))
+        .cloned()
         .unwrap_or_default();
+    let style_ids = strings(Some(&styles), Some("style_id"));
     let package_ids = catalog
         .get("experience_catalog")
         .and_then(Value::as_array)
@@ -323,6 +329,24 @@ fn validate_grammar(
             let source_refs = entry.get("source_refs").and_then(Value::as_array);
             if source_refs.is_none_or(|refs| refs.is_empty()) {
                 errors.push(format!("reference-only style {id} must carry source references"));
+            } else if let Some(catalog_style) = styles
+                .iter()
+                .find(|style| text(style, "style_id") == Some(id))
+            {
+                let allowed_sources = strings(
+                    catalog_style.get("reference_sources").and_then(Value::as_array),
+                    None,
+                );
+                for source in strings(source_refs, None) {
+                    if !allowed_sources.contains(&source) {
+                        errors.push(format!("reference-only style {id} cites a source not declared by the catalogue"));
+                    }
+                }
+            }
+        }
+        if let Some(weight) = entry.get("blend_weight_pct") {
+            if weight.as_u64().is_none_or(|value| value > 100) {
+                errors.push(format!("grammar style {id} has an invalid blend weight"));
             }
         }
     }
@@ -454,7 +478,7 @@ fn main() {
             eprintln!("SELF-TEST FAIL: {error}");
             process::exit(1);
         }
-        println!("PASS: v0.2 catalogue and five-axis grammar integrity; 6 adversarial negative controls rejected");
+        println!("PASS: v0.2 catalogue and five-axis grammar integrity; 8 adversarial negative controls rejected");
     } else {
         println!("PASS: v0.2 catalogue and five-axis grammar integrity");
     }
