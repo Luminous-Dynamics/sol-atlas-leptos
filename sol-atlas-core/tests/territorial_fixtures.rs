@@ -110,6 +110,14 @@ fn no_challenge_claim_without_frontier_is_rejected() {
 }
 
 #[test]
+fn generic_other_interest_requires_source_code_and_profile() {
+    let record = parse_fixture(include_str!(
+        "fixtures/territorial/invalid_other_interest_without_source_code.json"
+    ));
+    assert_rejected_for(&record, "without preserving its source code and profile");
+}
+
+#[test]
 fn restoration_cannot_close_without_independent_verification() {
     let record = parse_fixture(include_str!(
         "fixtures/territorial/invalid_restoration_completion_without_independent_verifier.json"
