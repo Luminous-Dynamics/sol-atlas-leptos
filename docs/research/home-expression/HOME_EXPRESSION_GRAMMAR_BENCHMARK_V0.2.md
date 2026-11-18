@@ -75,6 +75,41 @@ South Africa is not a single climate or authority profile. Every benchmark case 
 
 Relevant published baselines:
 - **FloorPlanBench (Gary Wang, canonical paper run dated 2026-09-06, commit 7dfcca3):** 28 programmes (249 rooms), four tiers, seven methods, 10 seeds and a 50,000 evaluation-equivalent budget. The exact validator checks overlap, containment in rectilinear/L/U boundaries, dimensions, area bounds, required adjacency, separations, door validity, entrance connectivity and a bounded accessibility criterion. Its seven methods are random, greedy, simulated annealing, greedy-seeded SA, NSGA-II, purpose-built constraint search and analytic placement. In the paper's canonical run, Greedy→SA solved 92% of runs with median 5-objective hypervolume 0.355; greedy also solved 92%, while NSGA-II solved 44% and had median hypervolume 0.098. [Paper](https://floorplanbench.vercel.app/paper), [MIT-licensed source repository](https://github.com/Gariyuuu/floorplanbench).
+### FloorPlanBench objective and normalization lock
+
+At the pinned source, nine raw objective values are recorded for each valid
+plan, but only five define dominance and exact hypervolume:
+
+| Headline objective | Direction | Raw meaning |
+|---|---|---|
+| efficiency | maximize | non-circulation room area / boundary area |
+| circulation | minimize | trip-weighted shortest path through the derived door graph (m) |
+| daylight | maximize | area within 6 m of windows, weighted by room daylight preference |
+| privacy | maximize | private-room door type + graph-depth proxy |
+| carbon | minimize | partition + envelope + slab embodied-carbon proxy |
+
+The other four raw metrics are adjacency, compactness, exterior exposure and
+accessibility. Preserve all nine in run artifacts, but do not put those four
+additional metrics into the five-objective dominance/HV definition.
+
+The exact task-local transform maps the five headline metrics into a
+minimization vector in `[0,1]`:
+- efficiency: `1 - raw`;
+- circulation: `raw / (2 × boundary diagonal)`;
+- daylight: `1 - raw`;
+- privacy: `1 - raw`;
+- carbon: `(raw - envelope/slab floor) / (task-specific carbon upper bound - envelope/slab floor)`.
+
+Exact hypervolume uses reference point `1.0001^5`. Circulation and carbon
+bounds are per task: do not reuse them across tasks or methods without matching
+the task definition. Daylight is a 6 m window-depth proxy, not Radiance or
+EnergyPlus. Carbon is a simplified partition/envelope/slab proxy, not an LCA.
+The Symthaea implementation normalizes only from pre-registered bounds,
+rejects out-of-range values instead of clipping, and cross-checks its exact
+dimension-sweep volume against a WFG reference implementation on small fronts.
+See the pinned Symthaea fixture manifest; its numeric task bounds are
+synthetic placeholders, not FloorPlanBench measurements.
+
 - **Reproduction warning:** the current live benchmark overview reports different headline hypervolume values (e.g. Greedy→SA 0.363 and NSGA-II 0.196) from the paper's stated canonical run (0.355 and 0.098). Do not mix these as one result. Pin the source commit, core hash, task files, per-run artefacts and generated summary before using either. FloorPlanBench is a useful public benchmark/reproduction target, not an independent certification or peer-reviewed universal SOTA verdict. Its geometry is restricted to axis-aligned rectangular rooms in rectilinear envelopes; daylight and carbon are declared proxies, not physical simulations.
 - LayoutGen reports 3.7 to 0.3 measured violations per plan across 200 runs, but only for the specific checks in its loop; the paper explicitly excludes some whole-building/site checks from that count. [Kembhavi et al., 2026-10-15](https://link.springer.com/article/10.1007/s44163-026-02481-9).
 
