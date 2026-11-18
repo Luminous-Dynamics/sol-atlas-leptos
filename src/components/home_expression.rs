@@ -116,8 +116,7 @@ fn load_catalog() -> (
 
     let typologies = load_intent_options(&catalog, "spatial_typology_catalog");
     let materials = load_intent_options(&catalog, "material_tectonic_intent_catalog");
-    let environmental =
-        load_intent_options(&catalog, "environmental_strategy_intent_catalog");
+    let environmental = load_intent_options(&catalog, "environmental_strategy_intent_catalog");
     let regional_references = load_regional_reference_modules(&catalog);
 
     (
@@ -369,7 +368,7 @@ fn HomeIntentAxisPicker(
                                     href=source.clone()
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                >{source}</a>
+                                >{source.clone()}</a>
                             }).collect::<Vec<_>>()}
                             <div class="home-expression-role-row" aria-label="Intent preference">
                                 <button
@@ -585,7 +584,7 @@ pub fn HomeExpressionPage() -> impl IntoView {
                                     href=source.clone()
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                >{source}</a>
+                                >{source.clone()}</a>
                             }).collect::<Vec<_>>()}
                         </article>
                     }).collect::<Vec<_>>()}
@@ -641,7 +640,7 @@ pub fn HomeExpressionPage() -> impl IntoView {
                                         href=source.clone()
                                         target="_blank"
                                         rel="noopener noreferrer"
-                                    >{source}</a>
+                                    >{source.clone()}</a>
                                 }).collect::<Vec<_>>()}
                                 <div class="home-expression-role-row" aria-label="Style preference">
                                     <button
@@ -855,7 +854,11 @@ mod tests {
         assert!(styles.iter().all(|item| !item.reference_policy.is_empty()));
         assert!(styles.iter().all(|item| !item.authenticity_note.is_empty()));
 
-        for option in typologies.iter().chain(materials.iter()).chain(environmental.iter()) {
+        for option in typologies
+            .iter()
+            .chain(materials.iter())
+            .chain(environmental.iter())
+        {
             assert!(!option.id.is_empty());
             assert!(!option.name.is_empty());
             assert!(!option.description.is_empty());
@@ -867,11 +870,24 @@ mod tests {
         let (_, _, typologies, _, _, regional) = load_catalog();
         for id in ["CONE_ON_CYLINDER_DWELLING", "BEEHIVE_DOME_DWELLING"] {
             let option = typologies.iter().find(|item| item.id == id).unwrap();
-            assert!(option.reference_scope.as_ref().is_some_and(|value| !value.is_empty()));
-            assert!(option.context_note.as_ref().is_some_and(|value| !value.is_empty()));
+            assert!(
+                option
+                    .reference_scope
+                    .as_ref()
+                    .is_some_and(|value| !value.is_empty())
+            );
+            assert!(
+                option
+                    .context_note
+                    .as_ref()
+                    .is_some_and(|value| !value.is_empty())
+            );
             assert!(!option.reference_sources.is_empty());
             assert!(option.identity_must_not_be_inferred);
-            assert_eq!(option.selection_status.as_deref(), Some("ILLUSTRATIVE_NOT_EVALUATED"));
+            assert_eq!(
+                option.selection_status.as_deref(),
+                Some("ILLUSTRATIVE_NOT_EVALUATED")
+            );
         }
 
         let karoo = regional
@@ -887,8 +903,16 @@ mod tests {
     #[test]
     fn karoo_heritage_reference_is_not_a_selectable_style() {
         let (styles, _, _, _, _, regional) = load_catalog();
-        assert!(!styles.iter().any(|style| style.id == "KAROO_CORBELLED_STONE_HISTORIC"));
-        assert!(regional.iter().any(|item| item.id == "KAROO_CORBELLED_STONE_HERITAGE"));
+        assert!(
+            !styles
+                .iter()
+                .any(|style| style.id == "KAROO_CORBELLED_STONE_HISTORIC")
+        );
+        assert!(
+            regional
+                .iter()
+                .any(|item| item.id == "KAROO_CORBELLED_STONE_HERITAGE")
+        );
     }
 
     #[test]
