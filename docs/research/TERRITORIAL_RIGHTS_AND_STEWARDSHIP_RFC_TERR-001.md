@@ -199,7 +199,7 @@ It defines:
 - `EvidenceReference`: source URI, evidence kind, capture time, optional SHA-256 and disclosure class;
 - `AuthorityReference`: issuer, jurisdiction, scope, source evidence and validity interval; an assertion can link several distinct authorities because different claim bases must not be collapsed into one issuer;
 - `ChallengeReference`: challenger reference, filing time, state and supporting evidence;
-- `StewardshipObligation`: responsible party, location, originating evidence, due date, verification protocol, independent verifier and completion evidence.
+- `StewardshipObligation`: a spatial projection with an upstream `governance_record_ref`, responsible party, location, originating evidence, due date, verification protocol, independent verifier and completion evidence; it is not a second canonical commitment history.
 
 ### Structural invariants
 
@@ -250,6 +250,27 @@ The inter-project interface should be versioned, language-neutral and evidence-c
 - **Symthaea geodesy:** the current `symthaea-geodesy` crate documents spherical-Earth great-circle distance and bearing. That is useful for navigation and approximate context, not cadastral survey, legal boundary reconstruction, ellipsoidal geodesy, CRS transformation or 3D parcel topology. Do not use those primitives to validate legal boundaries. Add an explicit geospatial-engine adapter and compare results against authoritative survey control. See the [current geodesy module](https://github.com/Luminous-Dynamics/symthaea/blob/main/crates/domains/symthaea-geodesy/src/lib.rs).
 - **Sol Atlas rendering:** globe markers, arcs and visual layers are not a legal spatial record. A visually precise line can still have poor source accuracy. UI must expose source, date, CRS, survey/measurement method, uncertainty and dispute status; do not let rendering precision imply legal precision.
 - **Symtropy:** model outputs must remain scenario or prediction evidence until independently compared with field observations. The physical twin must preserve model version, input provenance, calibration status, uncertainty and observation lineage.
+
+### Existing landscape programme: compose, do not duplicate
+
+This RFC is a rights-and-territory extension to the already-open cross-repository Landscape Design Workbench programme. It must reuse those contracts rather than create parallel geometry, observation, consent, simulation or review systems.
+
+| Existing work | Existing owner and contract | Relationship to this RFC |
+|---|---|---|
+| Sol-Atlas Landscape Design Workbench | [Umbrella #190](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/190), [draft editor PR #191](https://github.com/Luminous-Dynamics/sol-atlas-leptos/pull/191) | Supplies versioned design snapshots and spatial UI; schematic coordinates remain explicitly non-cadastral |
+| South African source catalogue | [Sol-Atlas #206](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/206) | Supplies source/layer identity, access/licence metadata, CRS, coverage, resolution and attribution |
+| Field-observation envelope | [Sol-Atlas #207](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/207), [draft PR #216](https://github.com/Luminous-Dynamics/sol-atlas-leptos/pull/216) | Owns observation payload, method, time, unit, quality and uncertainty; this RFC references observations rather than defining a second sensor record |
+| Evaluation plan | [Sol-Atlas draft PR #210](https://github.com/Luminous-Dynamics/sol-atlas-leptos/pull/210) | Pins baseline/follow-up, metrics, methods, comparison and uncertainty before judging interventions |
+| Geospatial discovery/ingestion | [Sol-Atlas #240](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/240) | Owns OGC/STAC/JSON-FG and source ingestion; do not add a replacement GIS or proprietary data catalogue |
+| Scenario input qualification | [Symtropy draft PR #2322](https://github.com/Luminous-Dynamics/symtropy/pull/2322) | Pins exact Sol-Atlas snapshot and boundary inputs and blocks analytical claims from schematic local drawing units |
+| Read-only alternative review | [Symthaea draft PR #8248](https://github.com/Luminous-Dynamics/symthaea/pull/8248), [LAND-REVIEW-001 #8196](https://github.com/Luminous-Dynamics/symthaea/issues/8196) | Consumes exact design/scenario/evidence digests to expose trade-offs, unknowns and unsupported rankings |
+| Consent-aware stewardship | [Mycelix LAND-STEWARD-001 #5277](https://github.com/Luminous-Dynamics/mycelix/issues/5277), [draft profile PR #5298](https://github.com/Luminous-Dynamics/mycelix/pull/5298) | Remains the authority for participant roles, consent, publication, governance events and commitments; measurement consent, site access and publication consent remain separate |
+
+The current PR adds the missing cross-domain territorial assertion model: surface/subsurface interests, claim bases, multiple authorities, disputes and spatial projections of externally governed obligations. It does **not** replace Mycelix's signed event kernel or consent-aware profile, Sol-Atlas's observation/evaluation/source contracts, Symtropy's scenario gate, or Symthaea's evidence-bound review.
+
+A StewardshipObligation is a spatial projection of an upstream governance/commitment record. Its mandatory governance_record_ref keeps the projection anchored to the upstream record. For this ecosystem, Mycelix is the intended owner of participant consent and stewardship commitment history. Sol-Atlas may display and spatially query a projection, but must not silently create a competing canonical event history. Mycelix's existing event kernel uses BLAKE3 content identity while the cross-repository source/snapshot references use labelled SHA-256 digests; those algorithms and roles must remain distinct.
+
+The existing draft workstreams were last observed as open/draft during this research pass. Their draft state is not evidence that the implementation is fully qualified. The next cross-repo step is contract mapping and conformance fixtures, not duplicating their unmerged schemas.
 
 ## 8. Territorial Integrity Benchmark (TIB)
 
@@ -325,7 +346,7 @@ The advantage is not a faster map or a more impressive AI answer. It is fewer un
 
 ### M0 — contract foundation (current PR)
 - Add the Rust territorial interchange types and structural validator.
-- Add eleven module-level tests plus five JSON fixture cases exercised by integration tests: asserted claim, contested multi-authority record, missing registry authority, testimony-only community attestation and restoration completion without an independent verifier.
+- Add twelve module-level tests plus five JSON fixture cases exercised by integration tests: asserted claim, contested multi-authority record, missing registry authority, testimony-only community attestation and restoration completion without an independent verifier.
 - Publish this RFC with explicit boundaries and benchmark plan.
 - Fixtures are synthetic contract examples, not legal case precedents or measured benchmark performance.
 
@@ -403,4 +424,4 @@ No CI result, benchmark result or simulation result can substitute for these ext
 
 ---
 
-**Current implementation status:** the Rust v0.1 type module, eleven module-level tests, five synthetic JSON fixtures and an integration-test harness have been added in this branch. The fixture set covers asserted claims, disputed multi-authority records, missing registry authority, testimony-only community attestation and restoration closure without an independent verifier. These tests have not been executed in this environment. No passing build, benchmark result, external legal review, survey validation or field trial is claimed by this document.
+**Current implementation status:** the Rust v0.1 type module, twelve module-level tests, five synthetic JSON fixtures and an integration-test harness have been added in this branch. The fixture set covers asserted claims, disputed multi-authority records, missing registry authority, testimony-only community attestation and restoration closure without an independent verifier. These tests have not been executed in this environment. No passing build, benchmark result, external legal review, survey validation or field trial is claimed by this document.
