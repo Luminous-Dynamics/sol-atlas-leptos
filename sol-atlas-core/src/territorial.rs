@@ -937,6 +937,55 @@ mod tests {
     }
 
     #[test]
+    fn partial_challenge_frontier_cannot_support_no_challenge_observation() {
+        let mut value = record(vec![assertion(vec![ClaimBasis::Asserted])]);
+        value.evidence.push(evidence(
+            "challenge-search-1",
+            EvidenceKind::ChallengeSearchReport,
+        ));
+        value.challenge_assessments.push(ChallengeAssessment {
+            id: "challenge-frontier-1".into(),
+            scope_ref: "urn:test:scope:registry-only".into(),
+            frontier_ref: "urn:test:frontier:partial".into(),
+            assessed_at: "2026-11-18T10:10:00Z".into(),
+            coverage: ChallengeCoverage::Partial,
+            source_refs: vec!["urn:test:source:registry".into()],
+            evidence_ids: vec!["challenge-search-1".into()],
+            disclosure_class: DisclosureClass::Restricted,
+        });
+        value.assertions[0].dispute_state = DisputeState::NoChallengeObservedWithinFrontier;
+        value.assertions[0].challenge_assessment_id = Some("challenge-frontier-1".into());
+        let issues = value.validate().expect_err(
+            "partial source coverage must not support a no-challenge observation",
+        );
+        assert!(issues.iter().any(|issue| {
+            issue.contains("without a complete declared challenge frontier")
+        }));
+    }
+
+    #[test]
+    fn challenge_assessment_requires_a_challenge_search_report() {
+        let mut value = record(vec![assertion(vec![ClaimBasis::Asserted])]);
+        value.evidence.push(evidence("not-a-search", EvidenceKind::Other));
+        value.challenge_assessments.push(ChallengeAssessment {
+            id: "challenge-frontier-1".into(),
+            scope_ref: "urn:test:scope:registry-only".into(),
+            frontier_ref: "urn:test:frontier:partial".into(),
+            assessed_at: "2026-11-18T10:10:00Z".into(),
+            coverage: ChallengeCoverage::CompleteWithinDeclaredFrontier,
+            source_refs: vec!["urn:test:source:registry".into()],
+            evidence_ids: vec!["not-a-search".into()],
+            disclosure_class: DisclosureClass::Restricted,
+        });
+        let issues = value.validate().expect_err(
+            "a frontier must bind a challenge-search report, not arbitrary evidence",
+        );
+        assert!(issues.iter().any(|issue| {
+            issue.contains("lacks challenge-search report evidence")
+        }));
+    }
+
+    #[test]
     fn active_challenge_cannot_be_hidden_by_no_challenge_observation() {
         let mut value = record(vec![assertion(vec![ClaimBasis::Asserted])]);
         value.evidence.push(evidence(
