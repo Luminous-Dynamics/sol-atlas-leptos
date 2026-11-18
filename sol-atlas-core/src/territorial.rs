@@ -167,6 +167,8 @@ pub struct AuthorityReference {
     pub source_evidence_id: String,
     pub valid_from: String,
     pub valid_until: Option<String>,
+    #[serde(default)]
+    pub disclosure_class: DisclosureClass,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -177,6 +179,8 @@ pub struct ChallengeReference {
     pub filed_at: String,
     pub state: ChallengeState,
     pub evidence_ids: Vec<String>,
+    #[serde(default)]
+    pub disclosure_class: DisclosureClass,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -241,6 +245,8 @@ pub struct StewardshipObligation {
     pub independent_verifier_ref: Option<String>,
     pub state: ObligationState,
     pub evidence_ids: Vec<String>,
+    #[serde(default)]
+    pub disclosure_class: DisclosureClass,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -479,15 +485,11 @@ impl TerritorialRecord {
                     ClaimBasis::CommunityAttested => {
                         if !assertion.evidence_ids.iter().any(|id| {
                             evidence_by_id.get(id.as_str()).is_some_and(|evidence| {
-                                matches!(
-                                    evidence.kind,
-                                    EvidenceKind::CommunityTestimony
-                                        | EvidenceKind::CommunityDecision
-                                )
+                                evidence.kind == EvidenceKind::CommunityDecision
                             })
                         }) {
                             issues.push(format!(
-                                "assertion {} declares community_attested without community evidence",
+                                "assertion {} declares community_attested without community-decision evidence",
                                 assertion.id
                             ));
                         }
@@ -690,6 +692,7 @@ mod tests {
             source_evidence_id: "registry-1".into(),
             valid_from: "2026-01-01".into(),
             valid_until: None,
+            disclosure_class: DisclosureClass::Restricted,
         });
         value.assertions[0].authority_id = Some("authority-1".into());
         assert_eq!(value.validate(), Ok(()));
@@ -703,6 +706,7 @@ mod tests {
         ])]);
         value.evidence.push(evidence("registry-1", EvidenceKind::RegistryExtract));
         value.evidence.push(evidence("challenge-1", EvidenceKind::CommunityDecision));
+        value.assertions[0].evidence_ids.push("challenge-1".into());
         value.authorities.push(AuthorityReference {
             id: "authority-1".into(),
             issuer_ref: "institution:registry".into(),
@@ -719,6 +723,7 @@ mod tests {
             filed_at: "2026-11-18T10:05:00Z".into(),
             state: ChallengeState::Submitted,
             evidence_ids: vec!["challenge-1".into()],
+            disclosure_class: DisclosureClass::Restricted,
         });
         value.assertions[0].authority_id = Some("authority-1".into());
         value.assertions[0].dispute_state = DisputeState::Challenged;
@@ -770,6 +775,7 @@ mod tests {
             independent_verifier_ref: Some("party:independent-verifier".into()),
             state: ObligationState::VerifiedComplete,
             evidence_ids: vec!["completion-proof".into()],
+            disclosure_class: DisclosureClass::Restricted,
         });
         assert_eq!(value.validate(), Ok(()));
         value.obligations[0].independent_verifier_ref =
