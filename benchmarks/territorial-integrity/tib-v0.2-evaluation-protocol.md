@@ -139,6 +139,37 @@ The May 2026 OGC **Features and Geometries JSON (JSON-FG)** standard is a furthe
 
 Source notes and direct references: [UN-GGIM FELA meeting material (Cape Town, May 2026)](https://www.un.org/globalgeospatial/sites/default/files/2026-06/fela.pdf); [2026 property institutions comparison, 85 jurisdictions](https://doi.org/10.1016/j.worlddev.2026.107354); [OGC JSON-FG release, 21 May 2026](https://www.ogc.org/announcement/ogc-releases-the-features-and-geometries-json-json-fg-standard/).
 
+## 6.2 Property transaction state-transition suite
+
+The 29-case static structural corpus does not test whether a host behaves safely across multi-step external operations. A separate suite now records nine synthetic, ordered scenarios in [TIB-PROPERTY-STATE-TRANSITIONS-001](./tib-property-state-transitions-v0.1.json). It is deliberately separate from TIB-SYNTH-STRUCTURAL-001 and does not change the 29-case count.
+
+Scenarios exercise:
+- internal transfer completion without an external receipt;
+- a receipt digest with unverified issuer competence/scope;
+- stale register snapshots;
+- authority suspension or revocation before projection;
+- external-request timeout with unknown outcome;
+- a new community challenge after initial review;
+- a surface parcel reused for an underground mineral interest;
+- an authenticated issuer outside its delegated decision scope;
+- a retry attempted before the original timed-out operation is reconciled.
+
+Expected dispositions: seven `review_required`, one `not_evaluable`, and one `structural_reject`. **All nine prohibit authoritative mutation.** The expected host behavior ranges from hold/reconcile to rejecting an unsafe retry. The current Mycelix qualification helper and decision packet are not yet wired into the Property transaction coordinator, so this corpus is a target for the future host integration—not evidence that the current host already enforces these rules.
+
+### Operational safety targets (proposed)
+
+| Metric | Initial target |
+|---|---:|
+| Unsafe authoritative mutations from held/rejected/not-evaluable sequences | 0 |
+| Retries before unknown external outcome is reconciled | 0 |
+| Wrong-scope/wrong-jurisdiction authority false accepts | 0 |
+| Active challenge/appeal loss during projection or replay | 0 |
+| Stale-source promotion without fresh verification | 0 |
+| Subsurface acceptance without qualified vertical spatial unit | 0 |
+| Deterministic replay disposition for frozen evidence inputs | 100% |
+
+Every implementation must be tested at the actual host command boundary, including external-call timeout, replay and crash/restart injection. A pure decision function or schema validator does not prove that a write path is gated. Record exact request identifiers, idempotency keys, external receipts, local action hashes, before/after states and reconciliation decisions. Do not retry an external mutation merely because a local RPC timed out.
+
 ## 7. Known limitations and release gates
 
 The current Sol Atlas validator checks record shape and selected internal references. It does not authenticate documents, verify signatures or issuer competence, resolve legal effect, validate CRS transformations, survey geometry, detect real-world overlap, prove consent, establish ecological recovery or guarantee completeness of a source frontier.
