@@ -1,0 +1,185 @@
+{
+  "manifest_version": "landscape-editor-benchmark-v0",
+  "status": "protocol-only-no-measurements",
+  "purpose": "Freeze repeatable editor workloads before publishing any performance claim.",
+  "coordinate_frame": "LOCAL_CARTESIAN_DRAWING_UNITS",
+  "generator": {
+    "algorithm": "lcg32",
+    "version": 1,
+    "initial_seed_hex": "0x4c414e44",
+    "recurrence": "state = (1664525 * state + 1013904223) mod 2^32",
+    "feature_generation": [
+      "For each feature, advance the state once; kind_index = state mod 5.",
+      "Advance the state again; x_du = state mod 1001.",
+      "Advance the state again; y_du = state mod 651.",
+      "Feature IDs are feature-0001 onward without reuse.",
+      "Kinds are ordered: tree, planting-bed, water, path, built-element."
+    ],
+    "geometry_warning": "These generated features are synthetic drawing units; no geographic or physical meaning.",
+    "implementation": "src/landscape.rs::synthetic_benchmark_snapshot",
+    "output_contract": {
+      "schema": "luminous.landscape-design.v0",
+      "geometry_status": "synthetic-benchmark",
+      "feature_status": "synthetic-benchmark",
+      "feature_source": "synthetic-benchmark",
+      "coordinate_frame": "LOCAL_CARTESIAN_DRAWING_UNITS",
+      "georeferenced": false,
+      "reminder": "Synthetic benchmark scenes are not user-authored designs, real-world geometry or field observations."
+    },
+    "reproducibility": "The same feature_count and seed produce the same normalized serde_json snapshot. Validator acceptance is mandatory before benchmarking.",
+    "harness": "src/bin/landscape_bench.rs",
+    "report_schema": "luminous.landscape-benchmark-report-v0",
+    "run_command": "cargo run --release --features landscape-bench --bin landscape-bench -- --out reports/landscape/native-kernel-v0.json"
+  },
+  "workload_sizes": [
+    {
+      "id": "small-100",
+      "feature_count": 100,
+      "role": "smoke-and-correctness"
+    },
+    {
+      "id": "medium-1000",
+      "feature_count": 1000,
+      "role": "interactive-baseline"
+    },
+    {
+      "id": "large-10000",
+      "feature_count": 10000,
+      "role": "proposed-product-gate"
+    },
+    {
+      "id": "stress-100000",
+      "feature_count": 100000,
+      "role": "stress-only-until-qualified"
+    }
+  ],
+  "traces": [
+    {
+      "id": "cold-open",
+      "commands": [
+        "load-snapshot",
+        "first-editable-frame"
+      ]
+    },
+    {
+      "id": "edit-cycle",
+      "commands": [
+        "place-10",
+        "toggle-grid",
+        "toggle-contours",
+        "undo-10",
+        "redo-10",
+        "reload"
+      ]
+    },
+    {
+      "id": "navigation",
+      "commands": [
+        "pan-20",
+        "zoom-in-10",
+        "zoom-out-10",
+        "toggle-layers-20"
+      ]
+    },
+    {
+      "id": "export-round-trip",
+      "commands": [
+        "export-native",
+        "parse-native",
+        "compare-feature-ids-types-coordinates"
+      ]
+    },
+    {
+      "id": "offline",
+      "commands": [
+        "disable-network",
+        "load-local-scene",
+        "edit",
+        "export-native"
+      ]
+    }
+  ],
+  "measurements": [
+    "time-to-first-editable-frame-ms",
+    "initial-render-ms",
+    "edit-latency-ms-p50-p95-p99",
+    "frame-duration-ms-p50-p95-p99",
+    "dropped-frames-count",
+    "peak-memory-bytes",
+    "snapshot-bytes",
+    "export-duration-ms",
+    "round-trip-integrity",
+    "feature-loss-count",
+    "crs-or-coordinate-frame-reinterpretation-count"
+  ],
+  "required_run_metadata": [
+    "git_commit_sha",
+    "toolchain_versions",
+    "build_profile",
+    "os_and_kernel",
+    "cpu_model",
+    "ram_bytes",
+    "gpu_model_and_driver",
+    "browser_and_version",
+    "viewport_css_pixels",
+    "device_pixel_ratio",
+    "scene_sha256",
+    "action_trace_sha256",
+    "seed",
+    "cache_condition",
+    "raw_sample_file_sha256",
+    "git_commit_sha_or_null",
+    "cpu_model_or_null",
+    "ram_bytes_or_null",
+    "benchmark_kind"
+  ],
+  "proposed_gates": {
+    "large-10000": {
+      "edit_latency_p95_ms_lt": 50,
+      "steady_state_frame_duration_p95_ms_lte": 33,
+      "exact_native_round_trip": true,
+      "feature_loss_count": 0
+    },
+    "all_sizes": {
+      "unsupported_coordinate_frame_must_fail_closed": true,
+      "no_silent_crs_reinterpretation": true,
+      "offline_authoring_and_export": true
+    }
+  },
+  "comparisons": {
+    "engineering_baseline": "same Sol-Atlas release, same scene bytes, same reference machine, same browser and command trace",
+    "interoperability_reference": "QGIS 4.2 with independently validated portable datasets; correctness workflow comparison, not raw frame-rate comparison",
+    "professional_workflow_study": "Matched tasks versus recorded-version SketchUp and Vectorworks Landmark; equal inputs, blinded outcome rubric where feasible, task time, rework, completion and deliverable correctness",
+    "disclaimer": "No measurements in this manifest. Thresholds are hypotheses to preregister before runs."
+  },
+  "negative_controls": [
+    "empty project",
+    "duplicate feature IDs",
+    "invalid geometry",
+    "unsupported or absent CRS",
+    "stale source digest",
+    "non-finite numeric field",
+    "extreme coordinates",
+    "dense overlaps",
+    "missing tile or offline source",
+    "interrupted export",
+    "very large export"
+  ],
+  "native_kernel_measurements": [
+    "generation_ns",
+    "validation_ns",
+    "serialization_ns",
+    "sha256_ns",
+    "total_kernel_ns"
+  ],
+  "harness_scope": {
+    "benchmark_kind": "native-landscape-document-kernel",
+    "excludes": [
+      "browser-interaction-latency",
+      "browser-frame-time",
+      "physical-or-ecological-outcomes",
+      "professional-product-comparisons"
+    ],
+    "report_schema": "schemas/landscape-benchmark-report-v0.schema.json"
+  }
+}

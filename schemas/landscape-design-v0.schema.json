@@ -1,0 +1,296 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://luminousdynamics.io/schemas/landscape-design-v0.schema.json",
+  "title": "Luminous Landscape Design Snapshot v0",
+  "description": "Schematic design-intent snapshot. Coordinates are project-local arbitrary drawing units, not metres, a map CRS, or georeferenced coordinates.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "schema_uri",
+    "project_name",
+    "scope",
+    "coordinate_frame",
+    "geometry_status",
+    "features"
+  ],
+  "properties": {
+    "schema": {
+      "const": "luminous.landscape-design.v0"
+    },
+    "project_name": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 200
+    },
+    "scope": {
+      "enum": [
+        "site-parcel",
+        "district",
+        "watershed",
+        "bioregion"
+      ]
+    },
+    "coordinate_frame": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "origin",
+        "x_axis",
+        "y_axis",
+        "georeferenced"
+      ],
+      "properties": {
+        "kind": {
+          "const": "LOCAL_CARTESIAN_DRAWING_UNITS"
+        },
+        "origin": {
+          "const": "canvas top-left"
+        },
+        "x_axis": {
+          "const": "right"
+        },
+        "y_axis": {
+          "const": "down"
+        },
+        "georeferenced": {
+          "const": false
+        }
+      }
+    },
+    "geometry_status": {
+      "enum": [
+        "schematic-design-intent",
+        "synthetic-benchmark"
+      ]
+    },
+    "features": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "kind",
+          "label",
+          "x_du",
+          "y_du",
+          "status",
+          "source",
+          "geometry_representation"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^feature-[0-9]{4,}$",
+            "maxLength": 18,
+            "description": "Stable feature identity. The decimal suffix must fit u32 and be below 4294967295; the Rust validator enforces this numeric bound."
+          },
+          "kind": {
+            "enum": [
+              "tree",
+              "planting-bed",
+              "water",
+              "path",
+              "built-element"
+            ]
+          },
+          "label": {
+            "enum": [
+              "Canopy tree",
+              "Planting bed",
+              "Water feature",
+              "Path",
+              "Built element"
+            ]
+          },
+          "x_du": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 1000
+          },
+          "y_du": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 650
+          },
+          "status": {
+            "enum": [
+              "design-intent",
+              "synthetic-benchmark"
+            ]
+          },
+          "source": {
+            "enum": [
+              "user-authored-schematic",
+              "synthetic-benchmark"
+            ]
+          },
+          "geometry_representation": {
+            "const": "schematic-symbol-anchor-v0"
+          }
+        },
+        "allOf": [
+          {
+            "if": {
+              "properties": {
+                "kind": {
+                  "const": "tree"
+                }
+              },
+              "required": [
+                "kind"
+              ]
+            },
+            "then": {
+              "properties": {
+                "label": {
+                  "const": "Canopy tree"
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "kind": {
+                  "const": "planting-bed"
+                }
+              },
+              "required": [
+                "kind"
+              ]
+            },
+            "then": {
+              "properties": {
+                "label": {
+                  "const": "Planting bed"
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "kind": {
+                  "const": "water"
+                }
+              },
+              "required": [
+                "kind"
+              ]
+            },
+            "then": {
+              "properties": {
+                "label": {
+                  "const": "Water feature"
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "kind": {
+                  "const": "path"
+                }
+              },
+              "required": [
+                "kind"
+              ]
+            },
+            "then": {
+              "properties": {
+                "label": {
+                  "const": "Path"
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "kind": {
+                  "const": "built-element"
+                }
+              },
+              "required": [
+                "kind"
+              ]
+            },
+            "then": {
+              "properties": {
+                "label": {
+                  "const": "Built element"
+                }
+              }
+            }
+          }
+        ]
+      },
+      "maxItems": 100000
+    },
+    "schema_uri": {
+      "const": "https://luminousdynamics.io/schemas/landscape-design-v0.schema.json"
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "geometry_status": {
+            "const": "schematic-design-intent"
+          }
+        },
+        "required": [
+          "geometry_status"
+        ]
+      },
+      "then": {
+        "properties": {
+          "features": {
+            "items": {
+              "properties": {
+                "status": {
+                  "const": "design-intent"
+                },
+                "source": {
+                  "const": "user-authored-schematic"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "geometry_status": {
+            "const": "synthetic-benchmark"
+          }
+        },
+        "required": [
+          "geometry_status"
+        ]
+      },
+      "then": {
+        "properties": {
+          "features": {
+            "items": {
+              "properties": {
+                "status": {
+                  "const": "synthetic-benchmark"
+                },
+                "source": {
+                  "const": "synthetic-benchmark"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  ]
+}
