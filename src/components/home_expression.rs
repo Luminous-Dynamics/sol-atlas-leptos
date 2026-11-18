@@ -41,6 +41,83 @@ struct IntentOption {
     description: String,
 }
 
+fn load_catalog() -> (
+    Vec<StyleOption>,
+    Vec<ExperienceOption>,
+    Vec<IntentOption>,
+    Vec<IntentOption>,
+    Vec<IntentOption>,
+) {
+    let catalog: Value = serde_json::from_str(EXPRESSION_CATALOG)
+        .expect("embedded home expression catalogue must be valid JSON");
+
+    let styles = catalog
+        .get("style_catalog")
+        .and_then(Value::as_array)
+        .into_iter()
+        .flatten()
+        .filter_map(|item| {
+            Some(StyleOption {
+                id: item.get("style_id")?.as_str()?.to_owned(),
+                name: item.get("display_name")?.as_str()?.to_owned(),
+                category: item.get("category")?.as_str()?.to_owned(),
+                description: item.get("description")?.as_str()?.to_owned(),
+                reference_policy: item.get("reference_policy")?.as_str()?.to_owned(),
+                authenticity_note: item.get("authenticity_note")?.as_str()?.to_owned(),
+                reference_sources: item
+                    .get("reference_sources")
+                    .and_then(Value::as_array)
+                    .map(|sources| {
+                        sources
+                            .iter()
+                            .filter_map(Value::as_str)
+                            .map(str::to_owned)
+                            .collect()
+                    })
+                    .unwrap_or_default(),
+            })
+        })
+        .collect();
+
+    let experiences = catalog
+        .get("experience_catalog")
+        .and_then(Value::as_array)
+        .into_iter()
+        .flatten()
+        .filter_map(|item| {
+            Some(ExperienceOption {
+                id: item.get("package_id")?.as_str()?.to_owned(),
+                name: item.get("display_name")?.as_str()?.to_owned(),
+                category: item.get("category")?.as_str()?.to_owned(),
+                description: item.get("description")?.as_str()?.to_owned(),
+            })
+        })
+        .collect();
+
+    let typologies = load_intent_options(&catalog, "spatial_typology_catalog");
+    let materials = load_intent_options(&catalog, "material_tectonic_intent_catalog");
+    let environmental =
+        load_intent_options(&catalog, "environmental_strategy_intent_catalog");
+
+    (styles, experiences, typologies, materials, environmental)
+}
+
+fn load_intent_options(catalog: &Value, key: &str) -> Vec<IntentOption> {
+    catalog
+        .get(key)
+        .and_then(Value::as_array)
+        .into_iter()
+        .flatten()
+        .filter_map(|item| {
+            Some(IntentOption {
+                id: item.get("option_id")?.as_str()?.to_owned(),
+                name: item.get("display_name")?.as_str()?.to_owned(),
+                description: item.get("description")?.as_str()?.to_owned(),
+            })
+        })
+        .collect()
+}
+
 fn current_preference(preferences: RwSignal<BTreeMap<String, String>>, item_id: &str) -> String {
     preferences.with(|entries| {
         entries
