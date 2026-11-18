@@ -357,7 +357,7 @@ The advantage is not a faster map or a more impressive AI answer. It is fewer un
 
 ### M0 — contract foundation (current PR)
 - Add the Rust territorial interchange types and structural validator.
-- Add seventeen module-level tests plus eleven synthetic JSON fixtures exercised by eleven integration tests: asserted claim; contested multi-authority record; missing registry authority; testimony-only community attestation; distinct statutory/contractual authority pairs; incorrect/missing authority pairs; restoration completion without independent verification; complete versus missing challenge-search frontiers; and rejection of an unmapped interest type that drops its source code/profile.
+- Add nineteen module-level tests plus thirteen synthetic JSON fixtures exercised by thirteen integration tests: asserted claim; contested multi-authority record; source/authority pairing; testimony-only community attestation; restoration completion without independent verification; complete, missing and partial challenge frontiers; rejection of a frontier without challenge-search evidence; and rejection of an unmapped interest type that drops its source code/profile.
 - Publish this RFC, the [LADM crosswalk](./LADM_PROFILE_CROSSWALK_TERR-001.md), explicit boundaries and benchmark plan.
 - Fixtures are synthetic contract examples, not legal case precedents or measured benchmark performance.
 
@@ -435,4 +435,4 @@ No CI result, benchmark result or simulation result can substitute for these ext
 
 ---
 
-**Current implementation status:** the Rust v0.1 type module, seventeen module-level tests, eleven synthetic JSON fixtures and eleven fixture-driven integration tests have been added in this branch. The suite covers asserted claims, disputed multi-authority records, source/authority pairing, testimony-only community attestation, independent restoration verification, complete versus missing challenge-search frontiers, and preservation requirements for unmapped source interest types. JSON fixtures have been retrieved and parsed successfully, but the Rust tests have not been executed in this environment. No passing build, benchmark result, external legal review, survey validation or field trial is claimed by this document.
+**Current implementation status:** the Rust v0.1 type module, nineteen module-level tests, thirteen synthetic JSON fixtures and thirteen fixture-driven integration tests have been added in this branch. An independent pre-CI fixture oracle classified all thirteen fixtures as their expected valid/invalid disposition, including partial-frontier and wrong-evidence controls. JSON fixtures have been retrieved and parsed successfully, but the Rust tests have not been executed in this environment. No passing build, benchmark result, external legal review, survey validation or field trial is claimed by this document.
