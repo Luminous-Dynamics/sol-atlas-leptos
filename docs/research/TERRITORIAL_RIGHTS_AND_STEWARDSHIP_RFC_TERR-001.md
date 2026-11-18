@@ -177,11 +177,11 @@ The initial Rust module is `sol-atlas-core::territorial`.
 
 It defines:
 - `TerritorialRecord`: versioned container for territory assertions, evidence, authority references, challenges and obligations;
-- `TerritorialAssertion`: one party's right/responsibility/restriction relationship to a spatial and temporal extent;
+- `TerritorialAssertion`: one party's right/responsibility/restriction relationship to a spatial and temporal extent, with multiple separately scoped authority references where its bases differ;
 - `ClaimBasis`: asserted, community-attested, administratively recorded, judicially determined, contractual or statutory source basis;
 - `DisputeState`: orthogonal to the basis so registered records can remain challenged;
 - `EvidenceReference`: source URI, evidence kind, capture time, optional SHA-256 and disclosure class;
-- `AuthorityReference`: issuer, jurisdiction, scope, source evidence and validity interval;
+- `AuthorityReference`: issuer, jurisdiction, scope, source evidence and validity interval; an assertion can link several distinct authorities because different claim bases must not be collapsed into one issuer;
 - `ChallengeReference`: challenger reference, filing time, state and supporting evidence;
 - `StewardshipObligation`: responsible party, location, originating evidence, due date, verification protocol, independent verifier and completion evidence.
 
@@ -193,9 +193,9 @@ The v0.1 validator rejects:
 - malformed SHA-256 strings;
 - negative/non-finite spatial uncertainty or invalid vertical extents;
 - missing evidence for assertions;
-- administrative-record bases without registry/regulator authority and registry/permit evidence;
-- court-decision bases without court/tribunal authority and court-order evidence;
-- community-attested bases without a recorded community-decision evidence item (testimony alone is not enough);
+- administrative-record bases without a linked registry/regulator authority and registry/permit evidence;
+- court-decision bases without a linked court/tribunal authority and court-order evidence;
+- community-attested bases without both a linked customary/community-governance authority and community-decision evidence (testimony alone is not enough);
 - contractual/statutory bases without corresponding instrument evidence;
 - challenged/reviewed/resolved states without challenge references;
 - verified-complete obligations without a separate verifier and completion evidence.
