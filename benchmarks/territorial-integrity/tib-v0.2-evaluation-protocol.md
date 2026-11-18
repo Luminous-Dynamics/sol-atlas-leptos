@@ -50,7 +50,7 @@ The current Rust v0.1 validator emits structural accept/reject only. A future cr
 | `REVIEW_REQUIRED` | The format is valid but a competent human or external authority must resolve a material question | Hold any dependent decision; preserve the unresolved issue |
 | `NOT_EVALUABLE` | Required source, permission, geometry, temporal or ground-truth data is unavailable | Report the coverage gap; do not impute a pass |
 
-Do not implement these higher-order outcomes by pretending the current boolean validator already supports them. They are the proposed benchmark adapter contract.
+Do not implement these higher-order outcomes by pretending the current boolean validator already supports them. They are the proposed benchmark adapter contract. The machine-readable envelope is [tib-evaluation-result-v0.schema.json](./tib-evaluation-result-v0.schema.json); [this synthetic expected-case annotation](./examples/tib-review-required-expected-case-v0.json) demonstrates a critical authority-currentness gap without pretending a system ran or issued a legal conclusion.
 
 ## 4. Evaluation tracks and metrics
 
