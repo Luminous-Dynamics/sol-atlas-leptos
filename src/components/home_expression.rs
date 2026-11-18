@@ -456,11 +456,11 @@ pub fn HomeExpressionPage() -> impl IntoView {
             .collect();
         let material_entries: Vec<Value> = material_preferences
             .iter()
-            .map(|(item_id, preference)| json!({"item_id": item_id, "preference": preference}))
+            .map(|(item_id, preference)| json!({"option_id": item_id, "preference": preference}))
             .collect();
         let environmental_entries: Vec<Value> = environmental_preferences
             .iter()
-            .map(|(item_id, preference)| json!({"item_id": item_id, "preference": preference}))
+            .map(|(item_id, preference)| json!({"option_id": item_id, "preference": preference}))
             .collect();
         let experience_entries: Vec<Value> = package_states
             .iter()
