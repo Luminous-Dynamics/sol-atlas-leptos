@@ -118,6 +118,22 @@ fn generic_other_interest_requires_source_code_and_profile() {
 }
 
 #[test]
+fn partial_challenge_frontier_cannot_support_no_challenge_observation() {
+    let record = parse_fixture(include_str!(
+        "fixtures/territorial/invalid_no_challenge_partial_frontier.json"
+    ));
+    assert_rejected_for(&record, "without a complete declared challenge frontier");
+}
+
+#[test]
+fn challenge_frontier_requires_search_report_evidence() {
+    let record = parse_fixture(include_str!(
+        "fixtures/territorial/invalid_challenge_frontier_without_search_report.json"
+    ));
+    assert_rejected_for(&record, "lacks challenge-search report evidence");
+}
+
+#[test]
 fn restoration_cannot_close_without_independent_verification() {
     let record = parse_fixture(include_str!(
         "fixtures/territorial/invalid_restoration_completion_without_independent_verifier.json"
