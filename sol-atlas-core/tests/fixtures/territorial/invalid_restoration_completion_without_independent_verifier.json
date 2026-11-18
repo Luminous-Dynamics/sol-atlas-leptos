@@ -40,7 +40,8 @@
       "evidence_ids": [
         "completion-001"
       ],
-      "disclosure_class": "restricted"
+      "disclosure_class": "restricted",
+      "governance_record_ref": "urn:mycelix:stewardship:commitment:restore-001"
     }
   ]
 }
