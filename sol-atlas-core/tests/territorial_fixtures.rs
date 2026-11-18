@@ -134,6 +134,40 @@ fn challenge_frontier_requires_search_report_evidence() {
 }
 
 #[test]
+fn tib_manifest_pins_unique_cases_and_fixture_objects() {
+    let manifest: serde_json::Value = serde_json::from_str(include_str!(
+        "../../benchmarks/territorial-integrity/tib-v0.1-manifest.json"
+    ))
+    .expect("TIB manifest must be valid JSON");
+    assert_eq!(manifest["suite_version"], "0.1.0");
+    assert_eq!(manifest["schema_version"], 1);
+    let cases = manifest["cases"]
+        .as_array()
+        .expect("TIB manifest cases must be an array");
+    assert_eq!(cases.len(), 13);
+    assert_eq!(manifest["case_count"], 13);
+    assert_eq!(manifest["expected_valid_cases"], 4);
+    assert_eq!(manifest["expected_invalid_cases"], 9);
+
+    let mut paths = std::collections::HashSet::new();
+    for case in cases {
+        let path = case["fixture"]
+            .as_str()
+            .expect("fixture path must be a string");
+        let git_blob_sha = case["git_blob_sha"]
+            .as_str()
+            .expect("fixture Git blob SHA must be a string");
+        assert!(paths.insert(path), "duplicate TIB fixture path {path}");
+        assert_eq!(git_blob_sha.len(), 40);
+        assert!(git_blob_sha.bytes().all(|byte| byte.is_ascii_hexdigit()));
+        assert!(matches!(
+            case["expected_disposition"].as_str(),
+            Some("accept" | "reject")
+        ));
+    }
+}
+
+#[test]
 fn restoration_cannot_close_without_independent_verification() {
     let record = parse_fixture(include_str!(
         "fixtures/territorial/invalid_restoration_completion_without_independent_verifier.json"
