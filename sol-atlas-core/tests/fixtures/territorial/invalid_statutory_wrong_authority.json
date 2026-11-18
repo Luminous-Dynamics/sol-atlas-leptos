@@ -1,0 +1,62 @@
+{
+  "schema_version": 1,
+  "territory_ref": "urn:tib:territory:za-site-003",
+  "created_at": "2026-11-18T10:00:00Z",
+  "evidence": [
+    {
+      "id": "statute-003",
+      "kind": "statutory_instrument",
+      "source_ref": "urn:tib:v0.1:evidence:statute-003",
+      "captured_at": "2026-11-18T10:00:00Z",
+      "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "disclosure_class": "restricted"
+    }
+  ],
+  "authorities": [
+    {
+      "id": "other-authority-003",
+      "issuer_ref": "institution:other",
+      "kind": "other",
+      "jurisdiction": "ZA",
+      "scope": "not a statutory regulator",
+      "source_evidence_id": "statute-003",
+      "valid_from": "2026-01-01",
+      "valid_until": null,
+      "disclosure_class": "restricted"
+    }
+  ],
+  "challenges": [],
+  "assertions": [
+    {
+      "id": "assertion-statute-wrong-authority",
+      "holder_ref": "party:operator-001",
+      "interest_kind": "surface_land",
+      "relationship": "responsibility",
+      "bases": [
+        "statutory_instrument"
+      ],
+      "dispute_state": "no_known_challenge",
+      "spatial": {
+        "feature_ref": "urn:ogc:feature:site-001",
+        "horizontal_crs": "https://www.opengis.net/def/crs/EPSG/0/4326",
+        "vertical_min_m": null,
+        "vertical_max_m": null,
+        "vertical_datum": null,
+        "horizontal_uncertainty_m": 2.5
+      },
+      "temporal": {
+        "valid_from": "2026-01-01",
+        "valid_until": null
+      },
+      "evidence_ids": [
+        "statute-003"
+      ],
+      "authority_ids": [
+        "other-authority-003"
+      ],
+      "challenge_ids": [],
+      "disclosure_class": "restricted"
+    }
+  ],
+  "obligations": []
+}
