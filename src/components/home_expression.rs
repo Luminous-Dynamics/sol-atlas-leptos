@@ -23,6 +23,7 @@ struct StyleOption {
     description: String,
     reference_policy: String,
     authenticity_note: String,
+    reference_sources: Vec<String>,
 }
 
 #[derive(Clone)]
@@ -31,6 +32,64 @@ struct ExperienceOption {
     name: String,
     category: String,
     description: String,
+}
+
+#[derive(Clone)]
+struct IntentOption {
+    id: String,
+    name: String,
+    description: String,
+}
+
+fn load_intent_options() -> (Vec<IntentOption>, Vec<IntentOption>, Vec<IntentOption>) {
+    let typologies = vec![
+        ("DETACHED", "Detached home", "A standalone dwelling; exact setbacks, access and services remain site-specific."),
+        ("SEMI_DETACHED", "Semi-detached", "A paired dwelling arrangement with shared-boundary and acoustic questions."),
+        ("ROW_TERRACE", "Row or terrace", "A connected series of dwellings with shared-wall, daylight and privacy questions."),
+        ("COURTYARD", "Courtyard home", "A dwelling organized around one or more protected outdoor rooms."),
+        ("DUPLEX", "Duplex", "A multi-level or paired-unit arrangement; circulation and accessibility need exact review."),
+        ("APARTMENT", "Apartment", "A dwelling within a larger multi-unit building and shared-services context."),
+        ("PAVILION", "Pavilion", "A dispersed or clustered set of volumes connected through outdoor or covered space."),
+        ("MULTIGENERATIONAL_CLUSTER", "Multi-generational cluster", "Related private and shared spaces for multiple household members."),
+        ("LIVE_WORK", "Live-work", "A dwelling combining residential and work or studio activity."),
+        ("INCREMENTAL_CORE", "Incremental core", "A phased dwelling intended to support carefully planned future expansion."),
+        ("RETROFIT_FIRST", "Retrofit-first", "An existing building adapted before considering replacement or new construction."),
+    ]
+    .into_iter()
+    .map(|(id, name, description)| IntentOption { id: id.to_owned(), name: name.to_owned(), description: description.to_owned() })
+    .collect();
+
+    let materials = vec![
+        ("STONE_MASONRY", "Stone masonry", "Material intent only; stone type, assembly, sourcing and structural design are unqualified."),
+        ("BRICK_MASONRY", "Brick masonry", "Material intent only; unit, mortar, wall build-up and thermal properties require specification."),
+        ("EARTH_MASONRY", "Earth construction", "Explore earth-based assemblies with moisture, durability, code and craft review."),
+        ("TIMBER", "Timber", "Explore timber structure or finishes; species, treatment, fire and sourcing remain open."),
+        ("STEEL", "Steel", "Explore steel structure or detailing; sections, protection and embodied impacts require evidence."),
+        ("HYBRID_MATERIALS", "Hybrid materials", "Combine materials only after interfaces, movement, moisture and lifecycle are reviewed."),
+        ("RECLAIMED_REUSED", "Reclaimed or reused", "Reuse intent does not establish availability, condition, certification or safe reuse."),
+        ("REPAIRABLE_MODULAR", "Repairable modular assemblies", "Prefer assemblies designed for access, replacement and repair; evidence remains pending."),
+    ]
+    .into_iter()
+    .map(|(id, name, description)| IntentOption { id: id.to_owned(), name: name.to_owned(), description: description.to_owned() })
+    .collect();
+
+    let environmental = vec![
+        ("ORIENTATION_SOLAR_RESPONSE", "Orientation and solar response", "Site-relative intent; requires verified location, orientation and solar analysis."),
+        ("EXTERNAL_SHADING", "External shading", "A shading strategy preference, not a measured reduction in heat gain."),
+        ("CROSS_VENTILATION", "Cross-ventilation", "A ventilation intent requiring exact openings, wind, security and airflow analysis."),
+        ("THERMAL_MASS", "Thermal mass", "A strategy preference requiring assembly, climate and operating-schedule evaluation."),
+        ("DAYLIGHT_CONTROL", "Daylight and glare control", "A daylight intent requiring geometry, glazing, shading and occupancy context."),
+        ("RAINWATER_HARVESTING", "Rainwater harvesting", "A water strategy requiring rainfall, catchment, storage, quality and demand data."),
+        ("GREYWATER_REUSE", "Greywater reuse", "A reuse strategy requiring treatment, plumbing, health and jurisdictional review."),
+        ("ON_SITE_SOLAR", "On-site solar generation", "A generation preference requiring roof/site, resource, grid and storage assessment."),
+        ("PRODUCTIVE_LANDSCAPE", "Productive landscape", "Landscape intent requiring water, soil, biodiversity and maintenance context."),
+        ("PASSIVE_FIRST", "Passive-first design", "A design priority, not a claim that active systems can be omitted."),
+    ]
+    .into_iter()
+    .map(|(id, name, description)| IntentOption { id: id.to_owned(), name: name.to_owned(), description: description.to_owned() })
+    .collect();
+
+    (typologies, materials, environmental)
 }
 
 fn load_catalog() -> (Vec<StyleOption>, Vec<ExperienceOption>) {
@@ -50,6 +109,13 @@ fn load_catalog() -> (Vec<StyleOption>, Vec<ExperienceOption>) {
                 description: item.get("description")?.as_str()?.to_owned(),
                 reference_policy: item.get("reference_policy")?.as_str()?.to_owned(),
                 authenticity_note: item.get("authenticity_note")?.as_str()?.to_owned(),
+                reference_sources: item
+                    .get("reference_sources")
+                    .and_then(Value::as_array)
+                    .map(|sources| {
+                        sources.iter().filter_map(Value::as_str).map(str::to_owned).collect()
+                    })
+                    .unwrap_or_default(),
             })
         })
         .collect();
@@ -178,22 +244,91 @@ fn set_experience_state(
 }
 
 #[component]
+fn HomeIntentAxisPicker(
+    title: &'static str,
+    description: &'static str,
+    options: Vec<IntentOption>,
+    preferences: RwSignal<BTreeMap<String, String>>,
+) -> impl IntoView {
+    let selected_count = move || preferences.get().len();
+
+    view! {
+        <section class="home-expression-section">
+            <div class="home-expression-section-heading">
+                <div>
+                    <p class="home-expression-step">{title}</p>
+                    <h2>{description}</h2>
+                    <p>"These are resident intent signals, not specified assemblies or performance claims."</p>
+                </div>
+                <span class="home-expression-count">
+                    {move || format!("{} selected", selected_count())}
+                </span>
+            </div>
+            <div class="home-expression-style-grid">
+                {options.into_iter().map(|option| {
+                    let id_prefer_active = option.id.clone();
+                    let id_prefer_click = option.id.clone();
+                    let id_consider_active = option.id.clone();
+                    let id_consider_click = option.id.clone();
+                    let id_avoid_active = option.id.clone();
+                    let id_avoid_click = option.id.clone();
+                    view! {
+                        <article class="home-expression-style-card">
+                            <p class="home-expression-card-category">"RESIDENT-AUTHORED AXIS OPTION"</p>
+                            <h3>{option.name.clone()}</h3>
+                            <p class="home-expression-card-description">{option.description.clone()}</p>
+                            <div class="home-expression-role-row" aria-label="Intent preference">
+                                <button
+                                    class:active=move || current_preference(preferences, &id_prefer_active) == "PREFERRED"
+                                    aria-pressed=move || (current_preference(preferences, &id_prefer_active) == "PREFERRED").to_string()
+                                    on:click=move |_| set_experience_state(preferences, id_prefer_click.clone(), "PREFERRED")
+                                >"Prefer"</button>
+                                <button
+                                    class:active=move || current_preference(preferences, &id_consider_active) == "CONSIDERED"
+                                    aria-pressed=move || (current_preference(preferences, &id_consider_active) == "CONSIDERED").to_string()
+                                    on:click=move |_| set_experience_state(preferences, id_consider_click.clone(), "CONSIDERED")
+                                >"Consider"</button>
+                                <button
+                                    class:active=move || current_preference(preferences, &id_avoid_active) == "AVOIDED"
+                                    aria-pressed=move || (current_preference(preferences, &id_avoid_active) == "AVOIDED").to_string()
+                                    on:click=move |_| set_experience_state(preferences, id_avoid_click.clone(), "AVOIDED")
+                                >"Avoid"</button>
+                            </div>
+                        </article>
+                    }
+                }).collect::<Vec<_>>()}
+            </div>
+        </section>
+    }
+}
+
+#[component]
 pub fn HomeExpressionPage() -> impl IntoView {
     let (styles, experiences) = load_catalog();
+    let (typology_options, material_options, environmental_options) = load_intent_options();
+    let style_sources: BTreeMap<String, Vec<String>> = styles
+        .iter()
+        .map(|style| (style.id.clone(), style.reference_sources.clone()))
+        .collect();
     let style_roles = RwSignal::new(BTreeMap::<String, String>::new());
     let experience_states = RwSignal::new(BTreeMap::<String, String>::new());
+    let typology_states = RwSignal::new(BTreeMap::<String, String>::new());
+    let material_states = RwSignal::new(BTreeMap::<String, String>::new());
+    let environmental_states = RwSignal::new(BTreeMap::<String, String>::new());
     let secondary_weight = RwSignal::new(35u8);
     let resident_statement = RwSignal::new(String::new());
 
     let preview = move || {
         let roles = style_roles.get();
         let package_states = experience_states.get();
+        let typology_preferences = typology_states.get();
+        let material_preferences = material_states.get();
+        let environmental_preferences = environmental_states.get();
         let secondary = roles.values().any(|role| role == "SECONDARY");
-        let primary = roles.values().any(|role| role == "PRIMARY");
         let secondary_pct = secondary_weight.get();
         let primary_pct = 100u8.saturating_sub(secondary_pct);
 
-        let style_entries: Vec<Value> = roles
+        let grammar_style_entries: Vec<Value> = roles
             .iter()
             .map(|(style_id, role)| {
                 let weight = match role.as_str() {
@@ -202,52 +337,84 @@ pub fn HomeExpressionPage() -> impl IntoView {
                     "SECONDARY" => Some(secondary_pct),
                     _ => None,
                 };
-                json!({
+                let mut entry = json!({
                     "style_id": style_id,
                     "role": role,
-                    "blend_weight_pct": weight,
-                    "resident_selected": true
-                })
+                    "resident_selected": true,
+                    "source_refs": style_sources.get(style_id).cloned().unwrap_or_default()
+                });
+                if let Some(weight) = weight {
+                    entry["blend_weight_pct"] = json!(weight);
+                }
+                entry
             })
             .collect();
 
-        let package_entries: Vec<Value> = package_states
+        let typology_entries: Vec<Value> = typology_preferences
             .iter()
-            .map(|(package_id, state)| {
-                json!({
-                    "package_id": package_id,
-                    "resident_preference": state,
-                    "optionality": "OPTIONAL",
-                    "technical_status": "UNKNOWN_NOT_EVALUATED"
-                })
+            .map(|(item_id, preference)| json!({"item_id": item_id, "preference": preference}))
+            .collect();
+        let material_entries: Vec<Value> = material_preferences
+            .iter()
+            .map(|(item_id, preference)| json!({"item_id": item_id, "preference": preference}))
+            .collect();
+        let environmental_entries: Vec<Value> = environmental_preferences
+            .iter()
+            .map(|(item_id, preference)| json!({"item_id": item_id, "preference": preference}))
+            .collect();
+        let experience_entries: Vec<Value> = package_states
+            .iter()
+            .map(|(package_id, preference)| {
+                json!({"package_id": package_id, "preference": preference})
             })
             .collect();
 
-        let style_mode = if !primary {
-            "NONE_UNDECIDED"
-        } else if secondary {
-            "BLENDED"
+        let intent_axis = |entries: Vec<Value>| {
+            json!({
+                "state": if entries.is_empty() { "UNDECIDED" } else { "INTENT_ONLY_NOT_EVALUATED" },
+                "entries": entries
+            })
+        };
+        let expression_state = if grammar_style_entries.is_empty() {
+            "UNDECIDED"
         } else {
-            "SINGLE"
+            "INTENT_SELECTED"
+        };
+        let experience_state = if experience_entries.is_empty() {
+            "UNDECIDED"
+        } else {
+            "OPTIONAL_IDEAS_ONLY"
         };
 
         let draft = json!({
-            "draft_version": "0.2.0",
-            "catalog_revision": "HOME-EXPRESSION-CATALOG-0.2.0",
-            "composition_contract": "HOME-ARCHITECTURAL-GRAMMAR-COMPOSITION-0.2.0",
+            "schema_version": "0.2.0",
+            "grammar_id": "LOCAL-HOME-EXPRESSION-DRAFT",
             "maturity": "RESIDENT_WORKING_DRAFT_NOT_VALIDATED",
-            "scope": "SINGLE_RESIDENT_EXPRESSION_EXPLORATION",
-            "resident_expression": {
-                "statement": resident_statement.get(),
-                "style_preferences": {
-                    "mode": style_mode,
-                    "entries": style_entries
+            "catalog_revision": "HOME-EXPRESSION-CATALOG-0.2.0",
+            "design_revision_ref": "UNBOUND_LOCAL_WORKING_DRAFT",
+            "resident_statement": resident_statement.get(),
+            "context": {
+                "site_context_ref": null,
+                "climate_profile_ref": null,
+                "jurisdiction_ref": null,
+                "context_state": "UNKNOWN"
+            },
+            "composition": {
+                "spatial_typology": intent_axis(typology_entries),
+                "architectural_expression": {
+                    "state": expression_state,
+                    "entries": grammar_style_entries
                 },
-                "experience_preferences": package_entries
+                "material_tectonic_intent": intent_axis(material_entries),
+                "environmental_strategy_intent": intent_axis(environmental_entries),
+                "experience_programme": {
+                    "state": experience_state,
+                    "entries": experience_entries
+                }
             },
             "decision_state": "NO_RESIDENT_CHOICE_OR_DESIGN_APPROVAL_RECORDED",
-            "claim_ceiling": "INSPIRATION_ONLY_NOT_A_BUILDABLE_PLAN",
-            "persistence": "LOCAL_REACTIVE_PAGE_STATE_ONLY_NOT_UPLOADED_OR_SAVED"
+            "evidence_state": "UNKNOWN_NOT_EVALUATED",
+            "claim_ceiling": "INTENT_ONLY_NO_GEOMETRY_COST_PERFORMANCE_OR_APPROVAL"
         });
 
         serde_json::to_string_pretty(&draft).unwrap_or_else(|_| "{}".to_owned())
@@ -280,10 +447,17 @@ pub fn HomeExpressionPage() -> impl IntoView {
                 </p>
             </header>
 
+            <HomeIntentAxisPicker
+                title="01 · SPATIAL TYPOLOGY"
+                description="What kind of dwelling arrangement fits your life?"
+                options=typology_options
+                preferences=typology_states
+            />
+
             <section class="home-expression-section">
                 <div class="home-expression-section-heading">
                     <div>
-                        <p class="home-expression-step">"01 · ARCHITECTURAL LANGUAGE"</p>
+                        <p class="home-expression-step">"02 · ARCHITECTURAL LANGUAGE"</p>
                         <h2>"What should your home feel like?"</h2>
                         <p>"Choose one primary direction, optionally blend a second, or mark styles to avoid or keep acceptable."</p>
                     </div>
@@ -381,10 +555,24 @@ pub fn HomeExpressionPage() -> impl IntoView {
                 </div>
             </section>
 
+            <HomeIntentAxisPicker
+                title="03 · MATERIAL AND TECTONIC INTENT"
+                description="What materials and ways of building appeal to you?"
+                options=material_options
+                preferences=material_states
+            />
+
+            <HomeIntentAxisPicker
+                title="04 · ENVIRONMENTAL STRATEGY INTENT"
+                description="Which environmental strategies should the design explore?"
+                options=environmental_options
+                preferences=environmental_states
+            />
+
             <section class="home-expression-section">
                 <div class="home-expression-section-heading">
                     <div>
-                        <p class="home-expression-step">"02 · EXPERIENCES AND SPACES"</p>
+                        <p class="home-expression-step">"05 · EXPERIENCES AND SPACES"</p>
                         <h2>"What would make it extraordinary?"</h2>
                         <p>"These are optional programme ideas, not promises of feasibility. Mark what attracts you and what you would rather avoid."</p>
                     </div>
@@ -442,7 +630,7 @@ pub fn HomeExpressionPage() -> impl IntoView {
             </section>
 
             <section class="home-expression-section home-expression-intent-section">
-                <p class="home-expression-step">"03 · YOUR WORDS"</p>
+                <p class="home-expression-step">"06 · YOUR WORDS"</p>
                 <h2>"What matters most to you?"</h2>
                 <p>"Describe atmosphere, daily rituals, privacy, gathering, quiet, nature, creativity or anything the catalogue cannot capture."</p>
                 <textarea
@@ -456,7 +644,7 @@ pub fn HomeExpressionPage() -> impl IntoView {
             <section class="home-expression-section home-expression-preview-section">
                 <div class="home-expression-section-heading">
                     <div>
-                        <p class="home-expression-step">"04 · YOUR WORKING DRAFT"</p>
+                        <p class="home-expression-step">"07 · YOUR WORKING DRAFT"</p>
                         <h2>"A record of what you expressed"</h2>
                         <p>"This updates locally as you explore. It is not yet a validated Home Freedom brief or a design proposal."</p>
                     </div>
@@ -465,6 +653,9 @@ pub fn HomeExpressionPage() -> impl IntoView {
                         on:click=move |_| {
                             style_roles.set(BTreeMap::new());
                             experience_states.set(BTreeMap::new());
+                            typology_states.set(BTreeMap::new());
+                            material_states.set(BTreeMap::new());
+                            environmental_states.set(BTreeMap::new());
                             secondary_weight.set(35);
                             resident_statement.set(String::new());
                         }
@@ -504,6 +695,16 @@ mod tests {
                 && !item.category.is_empty()
                 && !item.description.is_empty()
         }));
+        assert!(styles.iter().all(|item| !item.reference_policy.is_empty()));
+        assert!(styles.iter().all(|item| !item.authenticity_note.is_empty()));
+
+        let (typologies, materials, environmental) = load_intent_options();
+        assert_eq!(typologies.len(), 11);
+        assert_eq!(materials.len(), 8);
+        assert_eq!(environmental.len(), 10);
+        assert!(typologies.iter().all(|item| !item.id.is_empty()));
+        assert!(materials.iter().all(|item| !item.id.is_empty()));
+        assert!(environmental.iter().all(|item| !item.id.is_empty()));
     }
 
     #[test]
