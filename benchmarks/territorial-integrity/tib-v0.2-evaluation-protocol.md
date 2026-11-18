@@ -110,6 +110,35 @@ Compare against existing products and workflows by capability, not by branding o
 
 **Current competitive position:** Sol Atlas/Mycelix has not demonstrated superiority over these systems. The implementation is presently a structural evidence contract plus an early reference adapter. The testable differentiation is cross-system preservation of authority scope, source lineage, dispute state, temporal/vertical uncertainty and non-authoritative outcomes. Community workflows, national registration, secure data governance, geospatial qualification and field performance remain unproven.
 
+## 6.1 2026 FELA and geospatial standards update
+
+The UN-GGIM Sixth Expert Meeting on Land Administration and Management was held in Cape Town on 29–30 May 2026 under the theme “From Frameworks to Practice”. Its FELA material makes an important architectural point: land administration is not a technology-only problem. FELA groups nine components across **Governance** (institutions/accountability, policy/legal, finance), **Technology** (data, innovation, standards) and **People** (partnerships, capacity/education, advocacy/awareness).
+
+TIB should therefore score not only data/API conformance but also governance legitimacy, implementation cost, user capability, partnership, recourse and inclusion. A technically perfect exchange that excludes the affected community is a benchmark failure.
+
+A 2026 FELA presentation tabulates a comparative 85-jurisdiction dataset. In its **Eastern and Southern Sub-Saharan Africa** sample (15 observations, which includes South Africa but is not a South Africa-specific estimate), it reports:
+- 20.0% with national-coverage digital land registries;
+- 40.0% with digital cadastres;
+- 46.7% with registry/cadastre integration;
+- 6.7% with API access to a registry and 13.3% with API access to a cadastre;
+- 0.0% with e-conveyance possible.
+
+These are regional descriptive indicators, not a direct measure of any specific country's current system or Project Indwe. They do, however, show why an API-only architecture is not enough. TIB should include a low-connectivity / assisted-workflow track: cached read-only source snapshots, offline capture, signed later synchronization, explicit stale/currentness markers, conflict reconciliation, accessible exports and non-digital review routes. A missing API must produce a declared coverage gap—not a false clean bill of health.
+
+The May 2026 OGC **Features and Geometries JSON (JSON-FG)** standard is a further practical update. It extends GeoJSON for use cases needing other coordinate reference systems, additional geometry types and feature classification. Add JSON-FG to the geometry interchange test set alongside OGC API Features and STAC. The benchmark must score CRS/axis-order/vertical-datum retention and report lossy conversion. JSON-FG conformance still does not establish survey accuracy, legal boundary status or authority.
+
+**Added TIB metrics (proposed):**
+| Track | Measure | Target / interpretation |
+|---|---|---|
+| FELA governance | Authority/accountability, policy and financing evidence captured | No silent legal-policy assumptions; publish unresolved owners and costs |
+| FELA people | Participatory completion, representation, accessibility, dissent and recourse | Independently observed task outcomes; no synthetic proxy for consent |
+| FELA technology | LADM, JSON-FG, OGC API Features, STAC and evidence-schema round-trip fidelity | 100% for fields declared mandatory by each matched profile |
+| Resilience | Offline data capture and later sync under disconnection, clock skew and concurrent edits | Zero silent overwrite; every conflict reconciled or held |
+| API asymmetry | API available / unavailable / rate-limited / stale / permission-restricted | Correctly classified; no unavailable source interpreted as no record |
+| Operating burden | Assisted/manual work, connectivity, user training, field device and support cost | Report per completed case and user group |
+
+Source notes and direct references: [UN-GGIM FELA meeting material (Cape Town, May 2026)](https://www.un.org/globalgeospatial/sites/default/files/2026-06/fela.pdf); [2026 property institutions comparison, 85 jurisdictions](https://doi.org/10.1016/j.worlddev.2026.107354); [OGC JSON-FG release, 21 May 2026](https://www.ogc.org/announcement/ogc-releases-the-features-and-geometries-json-json-fg-standard/).
+
 ## 7. Known limitations and release gates
 
 The current Sol Atlas validator checks record shape and selected internal references. It does not authenticate documents, verify signatures or issuer competence, resolve legal effect, validate CRS transformations, survey geometry, detect real-world overlap, prove consent, establish ecological recovery or guarantee completeness of a source frontier.
