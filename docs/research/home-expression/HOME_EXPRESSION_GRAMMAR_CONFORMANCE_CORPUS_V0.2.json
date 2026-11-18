@@ -337,6 +337,20 @@
       "mutations": [
         {
           "op": "SET",
+          "path": "/composition/spatial_typology/entries",
+          "value": [
+            {
+              "item_id": "COURTYARD",
+              "preference": "PREFERRED"
+            },
+            {
+              "item_id": "ROW_TERRACE",
+              "preference": "PREFERRED"
+            }
+          ]
+        },
+        {
+          "op": "SET",
           "path": "/composition/spatial_typology/state",
           "value": "INTENT_ONLY_NOT_EVALUATED"
         }
