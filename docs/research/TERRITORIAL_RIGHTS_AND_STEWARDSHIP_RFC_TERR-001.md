@@ -228,6 +228,13 @@ The validator is a fail-closed structural preflight, not a legal or scientific c
 
 The inter-project interface should be versioned, language-neutral and evidence-carrying. The Sol Atlas core types are the starting interchange contract, not a mandate for every runtime to adopt the same internal storage engine.
 
+### Current integration debt to resolve before live adapters
+
+- **Mycelix Property:** its public README currently describes immutable ownership records, title-deed management and title transfers with escrow/automatic completion. These are not safe defaults for contested, informal or customary land interests. Reframe this domain around many-to-many rights/obligations and evidence-linked assertions. A transfer workflow may complete only after the applicable external authority has acknowledged the legal disposition; DHT consensus, escrow completion or a community vote must not itself be represented as title transfer. Existing transfer code may still be useful for private agreements, subject to this boundary. See the [current property module description](https://github.com/Luminous-Dynamics/mycelix/blob/main/mycelix-workspace/mycelix-property/README.md).
+- **Symthaea geodesy:** the current `symthaea-geodesy` crate documents spherical-Earth great-circle distance and bearing. That is useful for navigation and approximate context, not cadastral survey, legal boundary reconstruction, ellipsoidal geodesy, CRS transformation or 3D parcel topology. Do not use those primitives to validate legal boundaries. Add an explicit geospatial-engine adapter and compare results against authoritative survey control. See the [current geodesy module](https://github.com/Luminous-Dynamics/symthaea/blob/main/crates/domains/symthaea-geodesy/src/lib.rs).
+- **Sol Atlas rendering:** globe markers, arcs and visual layers are not a legal spatial record. A visually precise line can still have poor source accuracy. UI must expose source, date, CRS, survey/measurement method, uncertainty and dispute status; do not let rendering precision imply legal precision.
+- **Symtropy:** model outputs must remain scenario or prediction evidence until independently compared with field observations. The physical twin must preserve model version, input provenance, calibration status, uncertainty and observation lineage.
+
 ## 8. Territorial Integrity Benchmark (TIB)
 
 There is no single public benchmark that combines tenure semantics, competing claims, geospatial overlap, legal authority, community data sovereignty, environmental monitoring and restoration verification. TIB should fill that evaluation gap, not compare unrelated headline metrics.
