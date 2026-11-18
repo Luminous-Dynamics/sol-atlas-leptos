@@ -357,7 +357,8 @@ The advantage is not a faster map or a more impressive AI answer. It is fewer un
 
 ### M0 — contract foundation (current PR)
 - Add the Rust territorial interchange types and structural validator.
-- Add nineteen module-level tests plus thirteen synthetic JSON fixtures exercised by thirteen integration tests: asserted claim; contested multi-authority record; source/authority pairing; testimony-only community attestation; restoration completion without independent verification; complete, missing and partial challenge frontiers; rejection of a frontier without challenge-search evidence; and rejection of an unmapped interest type that drops its source code/profile.
+- Add nineteen module-level tests plus thirteen synthetic JSON fixtures exercised by fourteen integration tests: asserted claim; contested multi-authority record; source/authority pairing; testimony-only community attestation; restoration completion without independent verification; complete, missing and partial challenge frontiers; rejection of a frontier without challenge-search evidence; rejection of an unmapped interest type that drops its source code/profile; and manifest integrity (unique paths, expected counts and pinned Git blob identities).
+- Add the machine-readable [TIB-0.1 case manifest](../../benchmarks/territorial-integrity/tib-v0.1-manifest.json), binding four expected accepts and nine expected rejections to exact fixture Git blob identities.
 - Publish this RFC, the [LADM crosswalk](./LADM_PROFILE_CROSSWALK_TERR-001.md), explicit boundaries and benchmark plan.
 - Fixtures are synthetic contract examples, not legal case precedents or measured benchmark performance.
 
@@ -435,4 +436,4 @@ No CI result, benchmark result or simulation result can substitute for these ext
 
 ---
 
-**Current implementation status:** the Rust v0.1 type module, nineteen module-level tests, thirteen synthetic JSON fixtures and thirteen fixture-driven integration tests have been added in this branch. An independent pre-CI fixture oracle classified all thirteen fixtures as their expected valid/invalid disposition, including partial-frontier and wrong-evidence controls. JSON fixtures have been retrieved and parsed successfully, but the Rust tests have not been executed in this environment. No passing build, benchmark result, external legal review, survey validation or field trial is claimed by this document.
+**Current implementation status:** the Rust v0.1 type module, nineteen module-level tests, thirteen synthetic JSON fixtures, fourteen fixture-driven integration tests and a machine-readable TIB-0.1 manifest have been added in this branch. An independent pre-CI fixture oracle classified all thirteen fixtures as their expected valid/invalid disposition. A separate manifest audit re-fetched all thirteen fixtures and confirmed every pinned Git blob identity matched. These are source/fixture audits, not Rust execution. The Rust tests have not been executed in this environment. No passing build, benchmark result, external legal review, survey validation or field trial is claimed by this document.
