@@ -21,7 +21,8 @@
         {
           "style_id": "HIGHVELD_STONE_TIMBER_CONTEMPORARY",
           "role": "PRIMARY",
-          "resident_selected": true
+          "resident_selected": true,
+          "blend_weight_pct": 100
         },
         {
           "style_id": "CAPE_GEORGIAN_INFLUENCE",
@@ -75,5 +76,6 @@
   },
   "decision_state": "PARTIAL_RESIDENT_INTENT_RECORDED",
   "evidence_state": "UNKNOWN_NOT_EVALUATED",
-  "claim_ceiling": "INTENT_ONLY_NO_GEOMETRY_COST_PERFORMANCE_OR_APPROVAL"
+  "claim_ceiling": "INTENT_ONLY_NO_GEOMETRY_COST_PERFORMANCE_OR_APPROVAL",
+  "resident_statement": "Synthetic example only: a sheltered, calm home with a strong relationship to landscape and a small private sky-watching space."
 }
