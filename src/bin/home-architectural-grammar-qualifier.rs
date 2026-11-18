@@ -968,6 +968,50 @@ mod tests {
     }
 
     #[test]
+    fn regional_spatial_references_keep_sources_context_and_identity_guard() {
+        let catalog: Value = serde_json::from_str(CATALOG).unwrap();
+        let options = catalog["spatial_typology_catalog"].as_array().unwrap();
+        for id in ["CONE_ON_CYLINDER_DWELLING", "BEEHIVE_DOME_DWELLING"] {
+            let option = options
+                .iter()
+                .find(|item| item["option_id"] == id)
+                .expect("regional spatial reference must exist");
+            assert_eq!(option["identity_must_not_be_inferred"], true);
+            assert_eq!(option["selection_status"], "ILLUSTRATIVE_NOT_EVALUATED");
+            assert!(!option["reference_sources"].as_array().unwrap().is_empty());
+            assert!(!option["reference_scope"].as_str().unwrap().is_empty());
+            assert!(!option["context_note"].as_str().unwrap().is_empty());
+        }
+
+        let schema: Value = serde_json::from_str(CATALOG_SCHEMA).unwrap();
+        let mut altered = catalog.clone();
+        let regional = altered["spatial_typology_catalog"]
+            .as_array_mut().unwrap()
+            .iter_mut()
+            .find(|item| item["option_id"] == "CONE_ON_CYLINDER_DWELLING")
+            .unwrap();
+        regional["identity_must_not_be_inferred"] = Value::Bool(false);
+        let mut errors = Vec::new();
+        validate_catalog(&altered, &schema, &mut errors);
+        assert!(errors.iter().any(|error| error.contains("identity inference")));
+    }
+
+    #[test]
+    fn regional_typology_without_source_is_rejected() {
+        let mut catalog: Value = serde_json::from_str(CATALOG).unwrap();
+        let schema: Value = serde_json::from_str(CATALOG_SCHEMA).unwrap();
+        let regional = catalog["spatial_typology_catalog"]
+            .as_array_mut().unwrap()
+            .iter_mut()
+            .find(|item| item["option_id"] == "BEEHIVE_DOME_DWELLING")
+            .unwrap();
+        regional["reference_sources"] = serde_json::json!([]);
+        let mut errors = Vec::new();
+        validate_catalog(&catalog, &schema, &mut errors);
+        assert!(errors.iter().any(|error| error.contains("source references")));
+    }
+
+    #[test]
     fn karoo_heritage_is_not_a_general_style_preset() {
         let catalog: Value = serde_json::from_str(CATALOG).unwrap();
         let module = &catalog["regional_reference_modules"][0];
