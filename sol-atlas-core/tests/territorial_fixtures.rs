@@ -144,10 +144,10 @@ fn tib_manifest_pins_unique_cases_and_fixture_objects() {
     let cases = manifest["cases"]
         .as_array()
         .expect("TIB manifest cases must be an array");
-    assert_eq!(cases.len(), 13);
-    assert_eq!(manifest["case_count"], 13);
+    assert_eq!(cases.len(), 14);
+    assert_eq!(manifest["case_count"], 14);
     assert_eq!(manifest["expected_valid_cases"], 4);
-    assert_eq!(manifest["expected_invalid_cases"], 9);
+    assert_eq!(manifest["expected_invalid_cases"], 10);
 
     let mut paths = std::collections::HashSet::new();
     for case in cases {
