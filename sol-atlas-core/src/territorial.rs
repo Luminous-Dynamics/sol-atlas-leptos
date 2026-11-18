@@ -746,6 +746,7 @@ mod tests {
             source_evidence_id: "court-1".into(),
             valid_from: "2026-11-18".into(),
             valid_until: None,
+            disclosure_class: DisclosureClass::Restricted,
         });
         value.assertions[0].authority_id = Some("court-authority".into());
         assert_eq!(value.validate(), Ok(()));
