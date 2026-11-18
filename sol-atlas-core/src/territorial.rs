@@ -326,6 +326,12 @@ impl TerritorialRecord {
             }
         }
 
+        let evidence_by_id = self
+            .evidence
+            .iter()
+            .map(|evidence| (evidence.id.as_str(), evidence))
+            .collect::<std::collections::HashMap<_, _>>();
+
         let mut authority_ids = HashSet::new();
         for authority in &self.authorities {
             unique_id("authority", &authority.id, &mut authority_ids, &mut issues);
@@ -416,12 +422,6 @@ impl TerritorialRecord {
             .iter()
             .map(|authority| (authority.id.as_str(), authority))
             .collect::<std::collections::HashMap<_, _>>();
-        let evidence_by_id = self
-            .evidence
-            .iter()
-            .map(|evidence| (evidence.id.as_str(), evidence))
-            .collect::<std::collections::HashMap<_, _>>();
-
         let mut assertion_ids = HashSet::new();
         for assertion in &self.assertions {
             unique_id("assertion", &assertion.id, &mut assertion_ids, &mut issues);
