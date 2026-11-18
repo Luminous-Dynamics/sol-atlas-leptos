@@ -2,7 +2,7 @@
 
 **Status:** Draft research RFC / v0.1 data-contract implementation  
 **Date:** 2026-11-18  
-**Repository:** \`Luminous-Dynamics/sol-atlas-leptos\`  
+**Repository:** `Luminous-Dynamics/sol-atlas-leptos`  
 **Scope:** Sol Atlas spatial/evidence interchange boundary; cross-project integration with Mycelix, Symthaea and Symtropy  
 **Legal effect:** None. This software does not register, create, transfer, adjudicate or extinguish rights.
 
@@ -20,7 +20,7 @@ The fabric is not another title registry, cadastral authority, tokenization laye
 - environmental observations and uncertainty;
 - stewardship obligations, independent verification and remedies.
 
-The first engineering increment is a deliberately bounded Rust data contract in \`sol-atlas-core::territorial\`. It records assertions without silently promoting them to legally established rights. It keeps dispute state independent of the basis on which an assertion was recorded and requires provenance links for administrative, judicial, community-attested and contractual bases.
+The first engineering increment is a deliberately bounded Rust data contract in `sol-atlas-core::territorial`. It records assertions without silently promoting them to legally established rights. It keeps dispute state independent of the basis on which an assertion was recorded and requires provenance links for administrative, judicial, community-attested and contractual bases.
 
 The next increment is a synthetic adversarial corpus and property-based validation suite. Public-data ingestion and live community pilots come later, with legal, surveying, environmental and community governance partners.
 
@@ -98,7 +98,7 @@ Symthaea's subterranean stewardship work already uses a useful principle: physic
 
 Interoperability is important, but publishing every boundary, testimony, sacred-site location, personal record or customary knowledge item can cause harm.
 
-Use FAIR concepts for discoverability and interoperability where appropriate, and CARE principles for community data: Collective Benefit, Authority to Control, Responsibility and Ethics. Data access must be purpose-bound and controlled by the legitimate data stewards. The v0.1 disclosure enum defaults to \`Restricted\`; this is a metadata default, not an access-control implementation.
+Use FAIR concepts for discoverability and interoperability where appropriate, and CARE principles for community data: Collective Benefit, Authority to Control, Responsibility and Ethics. Data access must be purpose-bound and controlled by the legitimate data stewards. The v0.1 disclosure enum defaults to `Restricted` on evidence, authority, challenge, assertion and obligation records; this is a metadata default, not an access-control implementation.
 
 ### 3.7 From one central platform to polycentric federation
 
@@ -173,17 +173,17 @@ Digital Earth Africa products are valuable for time-series analysis. However, it
 
 ## 6. v0.1 data contract
 
-The initial Rust module is \`sol-atlas-core::territorial\`.
+The initial Rust module is `sol-atlas-core::territorial`.
 
 It defines:
-- \`TerritorialRecord\`: versioned container for territory assertions, evidence, authority references, challenges and obligations;
-- \`TerritorialAssertion\`: one party's right/responsibility/restriction relationship to a spatial and temporal extent;
-- \`ClaimBasis\`: asserted, community-attested, administratively recorded, judicially determined, contractual or statutory source basis;
-- \`DisputeState\`: orthogonal to the basis so registered records can remain challenged;
-- \`EvidenceReference\`: source URI, evidence kind, capture time, optional SHA-256 and disclosure class;
-- \`AuthorityReference\`: issuer, jurisdiction, scope, source evidence and validity interval;
-- \`ChallengeReference\`: challenger reference, filing time, state and supporting evidence;
-- \`StewardshipObligation\`: responsible party, location, originating evidence, due date, verification protocol, independent verifier and completion evidence.
+- `TerritorialRecord`: versioned container for territory assertions, evidence, authority references, challenges and obligations;
+- `TerritorialAssertion`: one party's right/responsibility/restriction relationship to a spatial and temporal extent;
+- `ClaimBasis`: asserted, community-attested, administratively recorded, judicially determined, contractual or statutory source basis;
+- `DisputeState`: orthogonal to the basis so registered records can remain challenged;
+- `EvidenceReference`: source URI, evidence kind, capture time, optional SHA-256 and disclosure class;
+- `AuthorityReference`: issuer, jurisdiction, scope, source evidence and validity interval;
+- `ChallengeReference`: challenger reference, filing time, state and supporting evidence;
+- `StewardshipObligation`: responsible party, location, originating evidence, due date, verification protocol, independent verifier and completion evidence.
 
 ### Structural invariants
 
@@ -195,7 +195,7 @@ The v0.1 validator rejects:
 - missing evidence for assertions;
 - administrative-record bases without registry/regulator authority and registry/permit evidence;
 - court-decision bases without court/tribunal authority and court-order evidence;
-- community-attested bases without community testimony/decision evidence;
+- community-attested bases without a recorded community-decision evidence item (testimony alone is not enough);
 - contractual/statutory bases without corresponding instrument evidence;
 - challenged/reviewed/resolved states without challenge references;
 - verified-complete obligations without a separate verifier and completion evidence.
