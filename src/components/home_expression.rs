@@ -372,6 +372,17 @@ pub fn HomeExpressionPage() -> impl IntoView {
             })
             .collect();
 
+        let preferred_typology_count = typology_preferences
+            .values()
+            .filter(|preference| preference.as_str() == "PREFERRED")
+            .count();
+        let typology_state = if typology_entries.is_empty() {
+            "UNDECIDED"
+        } else if preferred_typology_count > 1 {
+            "CONFLICT_UNRESOLVED"
+        } else {
+            "INTENT_ONLY_NOT_EVALUATED"
+        };
         let intent_axis = |entries: Vec<Value>| {
             json!({
                 "state": if entries.is_empty() { "UNDECIDED" } else { "INTENT_ONLY_NOT_EVALUATED" },
@@ -403,7 +414,7 @@ pub fn HomeExpressionPage() -> impl IntoView {
                 "context_state": "UNKNOWN"
             },
             "composition": {
-                "spatial_typology": intent_axis(typology_entries),
+                "spatial_typology": {"state": typology_state, "entries": typology_entries},
                 "architectural_expression": {
                     "state": expression_state,
                     "entries": grammar_style_entries
