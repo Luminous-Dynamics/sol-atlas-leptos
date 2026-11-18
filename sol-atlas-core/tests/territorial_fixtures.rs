@@ -133,6 +133,7 @@ fn challenge_frontier_requires_search_report_evidence() {
     assert_rejected_for(&record, "lacks challenge-search report evidence");
 }
 
+// This manifest qualifies synthetic structure only; it is not a geometry, source-authenticity or legal-effect benchmark.
 #[test]
 fn tib_manifest_pins_unique_cases_and_fixture_objects() {
     let manifest: serde_json::Value = serde_json::from_str(include_str!(
