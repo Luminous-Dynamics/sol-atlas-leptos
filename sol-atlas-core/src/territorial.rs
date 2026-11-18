@@ -716,6 +716,7 @@ mod tests {
             source_evidence_id: "registry-1".into(),
             valid_from: "2026-01-01".into(),
             valid_until: None,
+            disclosure_class: DisclosureClass::Restricted,
         });
         value.challenges.push(ChallengeReference {
             id: "challenge-record-1".into(),
