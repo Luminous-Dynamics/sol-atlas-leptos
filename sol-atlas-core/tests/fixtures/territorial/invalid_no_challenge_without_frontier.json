@@ -42,7 +42,9 @@
       "authority_ids": [],
       "challenge_ids": [],
       "disclosure_class": "community_controlled",
-      "challenge_assessment_id": null
+      "challenge_assessment_id": null,
+      "source_interest_type_code": null,
+      "source_interest_type_profile_ref": null
     }
   ],
   "obligations": [],
