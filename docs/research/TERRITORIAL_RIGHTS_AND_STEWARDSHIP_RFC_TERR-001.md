@@ -126,12 +126,28 @@ This programme should reuse mature standards rather than invent a proprietary on
 
 ### What existing offerings already do well
 
-- **GIS and geospatial platforms** provide mature geometry, visualization, spatial analysis, imagery and operational mapping. We should build on their standards and data products, not compete by rewriting a GIS.
-- **National cadastral and deeds systems** are authoritative for specific records under their legal mandates. We must interoperate with them and must not imply that our mirror is the legal register.
-- **Land-administration frameworks such as LADM and fit-for-purpose approaches** provide the established semantic and implementation foundations for formal, informal, customary and collective tenure. We should extend interoperability and evidence assurance, not claim to have invented inclusive tenure mapping.
-- **Earth-observation platforms** can identify observable land-cover, water and infrastructure changes at scale. They cannot infer legal title, consent or representative legitimacy.
-- **Mining assurance frameworks** already define important company-level social, environmental, governance, tailings and closure expectations. Our opportunity is to link commitments to spatial scope, source evidence, current observations, open challenges and remediation.
+- **FAO SOLA Suite** already provides open-source, LADM-aligned formal land administration and community tenure recording. It supports national adaptation, registry and cadastre workflows, and STDM-aligned extensions. We should reuse its interoperability and learn from its deployment model, not compete by rewriting a land administration system.
+- **FAO Open Tenure** already supports offline mobile community mapping, multilingual forms, evidence attachments, community validation, dispute workflows and publication of community-endorsed records. This is a high bar for usability and inclusion. Our first pilot should interoperate with it or demonstrate a concrete unmet need before building another mobile claims-capture app.
+- **Cadasta** combines mobile/offline geospatial collection, dashboards, secure storage, role-based sharing and partner support on top of established GIS technology. It explicitly foregrounds community control and CARE/FPIC-oriented governance. We must demonstrate equivalent or better community data governance and implementation support; a Rust evidence graph alone is not a substitute.
+- **Commercial GIS and land-administration platforms** provide mature geometry, parcel, imagery, surveying and operational mapping. We should use them as compatible data sources and interfaces, not compete by rewriting a GIS.
+- **National cadastral, deeds and mining-cadastre systems** are authoritative for specific records under their legal mandates. We must interoperate with them and must not imply that our mirror is the legal register. South Africa's Project Indwe pilot is operating in the Western Cape; the latest tracker update dated 1 October 2026 reports 37 initial right-holder registrations and a phased national rollout target of July 2027. Its effects remain too early to evaluate. That makes interoperability and complementarity particularly important.
+- **EITI** already sets expectations for publicly accessible extractive-license registers, including holders, license-area coordinates where collated, application/award/duration and commodity data, together with transparency around awards, transfers and beneficial ownership. We should map to these disclosure fields and test data completeness rather than invent a competing license-disclosure standard.
+- **IRMA and the Global Industry Standard on Tailings Management** already define significant expectations for responsible mining, human rights, stakeholder engagement, grievance mechanisms, tailings and closure. We should turn applicable commitments into traceable spatial obligations and independently reviewed evidence, not imply these frameworks lack governance or assurance practices.
+- **Earth-observation platforms** can identify observable land-cover, water and infrastructure changes at scale. They cannot infer legal title, consent or representative legitimacy. Product-specific uncertainty and local field validation remain essential.
 - **Blockchain or distributed registries** can preserve ordering and tamper-evident histories. They do not establish that the original assertion was true, that the issuer had authority, that a community representative was legitimate, or that disclosure was ethical.
+
+### Competitive position and a credible route to differentiation
+
+| Capability | Existing strong baseline | What we must prove to add value |
+|---|---|---|
+| Participatory/community tenure recording | Open Tenure, Cadasta, STDM-aligned workflows | Better interoperability across community records, public registers, legal challenges and downstream stewardship without reducing community control |
+| Formal parcel/registry administration | SOLA, national land registries, commercial GIS/land systems | Reliable cross-source change detection and evidence reconciliation without substituting for the official register |
+| Mining license transparency | National cadastres, EITI | Detect missing/contradictory public data and link license areas to surface/customary rights, environmental constraints and current obligations |
+| ESG, mine assurance and tailings | IRMA, GISTM and operator systems | Independently replayable link between commitment, spatial scope, method, field observation, grievance and remedy |
+| Ecological monitoring | Earth-observation products, conservation agencies and scientific workflows | Locally calibrated and uncertainty-aware evidence that distinguishes screening signals from verified outcomes |
+| Evidence reasoning | GIS analysts, legal professionals, auditors and document systems | Higher source-level recall and fewer material omissions on a disclosed, expert-reviewed test corpus, with every conclusion challengeable |
+
+**We are not currently ahead of these systems.** Open Tenure and Cadasta already provide community-facing capabilities that v0.1 does not. SOLA already provides an LADM-aligned administration foundation. Project Indwe is intended to improve South African mining-licensing administration. Our proposed differentiation is the assurance layer across otherwise separate systems: a versioned relationship between rights, authorities, evidence, disputes, environmental observations, obligations and remedies, with a reproducible history and controlled disclosure. This is a research thesis until matched pilots and benchmark results demonstrate measurable improvement.
 
 The proposed advantage is the integration of these disciplines into a verifiable, contestable, privacy-aware evidence lifecycle.
 
@@ -309,8 +325,9 @@ The advantage is not a faster map or a more impressive AI answer. It is fewer un
 
 ### M0 — contract foundation (current PR)
 - Add the Rust territorial interchange types and structural validator.
-- Add tests for asserted claims, administrative-record basis, court decisions, contested registered records, digest/geometry metadata and independent obligation verification.
+- Add nine module-level tests plus five JSON fixture cases exercised by integration tests: asserted claim, contested multi-authority record, missing registry authority, testimony-only community attestation and restoration completion without an independent verifier.
 - Publish this RFC with explicit boundaries and benchmark plan.
+- Fixtures are synthetic contract examples, not legal case precedents or measured benchmark performance.
 
 ### M1 — reproducible synthetic corpus
 - Define machine-readable fixtures for parcel, communal-use, mineral-right, water, conservation and heritage overlap.
@@ -377,4 +394,4 @@ No CI result, benchmark result or simulation result can substitute for these ext
 
 ---
 
-**Current implementation status:** the Rust v0.1 type module and unit tests have been added in this branch; this RFC records intended scope and known limitations. No local build, test run, CI result, external legal review, survey validation or field trial is claimed by this document.
+**Current implementation status:** the Rust v0.1 type module, nine module-level tests, five synthetic JSON fixtures and an integration-test harness have been added in this branch. The fixture set covers asserted claims, disputed multi-authority records, missing registry authority, testimony-only community attestation and restoration closure without an independent verifier. These tests have not been executed in this environment. No passing build, benchmark result, external legal review, survey validation or field trial is claimed by this document.
