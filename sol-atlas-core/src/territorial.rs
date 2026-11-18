@@ -815,7 +815,7 @@ mod tests {
             valid_until: None,
             disclosure_class: DisclosureClass::Restricted,
         });
-        value.assertions[0].authority_id = Some("court-authority".into());
+        value.assertions[0].authority_ids = vec!["court-authority".into()];
         assert_eq!(value.validate(), Ok(()));
     }
 
