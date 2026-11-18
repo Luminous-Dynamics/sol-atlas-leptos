@@ -220,6 +220,52 @@ fn validate_catalog(catalog: &Value, schema: &Value, errors: &mut Vec<String>) {
     if text(schema, "$schema") != Some("https://json-schema.org/draft/2020-12/schema") {
         errors.push("catalogue schema must use JSON Schema Draft 2020-12".to_owned());
     }
+
+    let schema_required = schema
+        .get("required")
+        .and_then(Value::as_array)
+        .map(|values| strings(Some(values), None))
+        .unwrap_or_default();
+    for (key, count, claim) in [
+        (
+            "spatial_typology_catalog",
+            11u64,
+            "INTENT_ONLY_NO_GEOMETRY_CODE_OR_ACCESSIBILITY_CLAIM",
+        ),
+        (
+            "material_tectonic_intent_catalog",
+            8u64,
+            "INTENT_ONLY_NO_ASSEMBLY_STRUCTURAL_OR_SOURCING_CLAIM",
+        ),
+        (
+            "environmental_strategy_intent_catalog",
+            10u64,
+            "INTENT_ONLY_NO_PHYSICAL_PERFORMANCE_OR_RESOURCE_CLAIM",
+        ),
+    ] {
+        let option_schema = schema
+            .get("properties")
+            .and_then(|value| value.get(key));
+        let option_item_schema = option_schema.and_then(|value| value.get("items"));
+        if !schema_required.contains(key)
+            || option_schema.and_then(|value| value.get("minItems")).and_then(Value::as_u64)
+                != Some(count)
+            || option_schema.and_then(|value| value.get("maxItems")).and_then(Value::as_u64)
+                != Some(count)
+            || option_item_schema
+                .and_then(|value| value.get("additionalProperties"))
+                .and_then(Value::as_bool)
+                != Some(false)
+            || option_item_schema
+                .and_then(|value| value.get("properties"))
+                .and_then(|value| value.get("claim_ceiling"))
+                .and_then(|value| value.get("const"))
+                .and_then(Value::as_str)
+                != Some(claim)
+        {
+            errors.push(format!("{key} schema is missing or weakens its shared vocabulary contract"));
+        }
+    }
     if text(catalog, "schema_version") != Some("0.2.0")
         || text(catalog, "catalog_revision") != Some("HOME-EXPRESSION-CATALOG-0.2.0")
         || text(catalog, "supersedes_catalog_revision") != Some("HOME-EXPRESSION-CATALOG-0.1.0")
@@ -452,6 +498,30 @@ fn validate_grammar(
         .map(|values| strings(Some(values), Some("option_id")))
         .unwrap_or_default();
 
+    for (axis, expected_ids) in [
+        ("spatial_typology", &typology_ids),
+        ("material_tectonic_intent", &material_ids),
+        ("environmental_strategy_intent", &environmental_ids),
+    ] {
+        let schema_ids = schema
+            .get("properties")
+            .and_then(|value| value.get("composition"))
+            .and_then(|value| value.get("properties"))
+            .and_then(|value| value.get(axis))
+            .and_then(|value| value.get("properties"))
+            .and_then(|value| value.get("entries"))
+            .and_then(|value| value.get("items"))
+            .and_then(|value| value.get("properties"))
+            .and_then(|value| value.get("item_id"))
+            .and_then(|value| value.get("enum"))
+            .and_then(Value::as_array)
+            .map(|values| strings(Some(values), None))
+            .unwrap_or_default();
+        if &schema_ids != expected_ids {
+            errors.push(format!("{axis} schema enum differs from its versioned catalogue"));
+        }
+    }
+
     let null = Value::Null;
     let composition = grammar.get("composition").unwrap_or(&null);
     for axis in REQUIRED_AXES {
@@ -630,6 +700,13 @@ fn run_self_test() -> Result<(), String> {
         return Err("negative control failed: incomplete spatial typology vocabulary was accepted".to_owned());
     }
 
+    let mut mismatched_axis_schema = grammar_schema.clone();
+    mismatched_axis_schema["properties"]["composition"]["properties"]["material_tectonic_intent"]["properties"]["entries"]["items"]["properties"]["item_id"]["enum"] =
+        Value::Array(vec![Value::String("UNKNOWN_MATERIAL".to_owned())]);
+    if validate_all(&catalog, &catalog_schema, &grammar, &mismatched_axis_schema).is_empty() {
+        return Err("negative control failed: schema vocabulary drift was accepted".to_owned());
+    }
+
     Ok(())
 }
 
@@ -653,7 +730,7 @@ fn main() {
             eprintln!("SELF-TEST FAIL: {error}");
             process::exit(1);
         }
-        println!("PASS: v0.2 catalogue and five-axis grammar integrity; 10 adversarial negative controls rejected");
+        println!("PASS: v0.2 catalogue and five-axis grammar integrity; 11 adversarial negative controls rejected");
     } else {
         println!("PASS: v0.2 catalogue and five-axis grammar integrity");
     }
