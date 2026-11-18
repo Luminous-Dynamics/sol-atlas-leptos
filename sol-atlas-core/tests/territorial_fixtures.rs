@@ -168,6 +168,17 @@ fn tib_manifest_pins_unique_cases_and_fixture_objects() {
 }
 
 #[test]
+fn authority_source_evidence_must_be_linked_directly_to_its_assertion() {
+    let record = parse_fixture(include_str!(
+        "fixtures/territorial/invalid_admin_authority_evidence_not_linked_to_assertion.json"
+    ));
+    assert_rejected_for(
+        &record,
+        "administrative_record without matching registry/regulator authority and source evidence",
+    );
+}
+
+#[test]
 fn restoration_cannot_close_without_independent_verification() {
     let record = parse_fixture(include_str!(
         "fixtures/territorial/invalid_restoration_completion_without_independent_verifier.json"
