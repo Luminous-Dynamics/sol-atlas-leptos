@@ -321,7 +321,10 @@ impl TerritorialRecord {
             required("evidence.captured_at", &evidence.captured_at, &mut issues);
             if let Some(digest) = &evidence.sha256 {
                 if digest.len() != 64 || !digest.bytes().all(|byte| byte.is_ascii_hexdigit()) {
-                    issues.push(format!("evidence {} has an invalid SHA-256 digest", evidence.id));
+                    issues.push(format!(
+                        "evidence {} has an invalid SHA-256 digest",
+                        evidence.id
+                    ));
                 }
             }
         }
@@ -336,7 +339,11 @@ impl TerritorialRecord {
         for authority in &self.authorities {
             unique_id("authority", &authority.id, &mut authority_ids, &mut issues);
             required("authority.issuer_ref", &authority.issuer_ref, &mut issues);
-            required("authority.jurisdiction", &authority.jurisdiction, &mut issues);
+            required(
+                "authority.jurisdiction",
+                &authority.jurisdiction,
+                &mut issues,
+            );
             required("authority.scope", &authority.scope, &mut issues);
             required("authority.valid_from", &authority.valid_from, &mut issues);
             if !evidence_ids.contains(&authority.source_evidence_id) {
@@ -350,10 +357,17 @@ impl TerritorialRecord {
         let mut challenge_ids = HashSet::new();
         for challenge in &self.challenges {
             unique_id("challenge", &challenge.id, &mut challenge_ids, &mut issues);
-            required("challenge.raised_by_ref", &challenge.raised_by_ref, &mut issues);
+            required(
+                "challenge.raised_by_ref",
+                &challenge.raised_by_ref,
+                &mut issues,
+            );
             required("challenge.filed_at", &challenge.filed_at, &mut issues);
             if challenge.evidence_ids.is_empty() {
-                issues.push(format!("challenge {} has no evidence references", challenge.id));
+                issues.push(format!(
+                    "challenge {} has no evidence references",
+                    challenge.id
+                ));
             }
             for evidence_id in &challenge.evidence_ids {
                 if !evidence_ids.contains(evidence_id) {
@@ -373,11 +387,26 @@ impl TerritorialRecord {
                 &mut challenge_assessment_ids,
                 &mut issues,
             );
-            required("challenge_assessment.scope_ref", &assessment.scope_ref, &mut issues);
-            required("challenge_assessment.frontier_ref", &assessment.frontier_ref, &mut issues);
-            required("challenge_assessment.assessed_at", &assessment.assessed_at, &mut issues);
+            required(
+                "challenge_assessment.scope_ref",
+                &assessment.scope_ref,
+                &mut issues,
+            );
+            required(
+                "challenge_assessment.frontier_ref",
+                &assessment.frontier_ref,
+                &mut issues,
+            );
+            required(
+                "challenge_assessment.assessed_at",
+                &assessment.assessed_at,
+                &mut issues,
+            );
             if assessment.source_refs.is_empty()
-                || assessment.source_refs.iter().any(|source| source.trim().is_empty())
+                || assessment
+                    .source_refs
+                    .iter()
+                    .any(|source| source.trim().is_empty())
             {
                 issues.push(format!(
                     "challenge assessment {} has no valid source references",
@@ -391,9 +420,9 @@ impl TerritorialRecord {
                 ));
             }
             let has_search_report = assessment.evidence_ids.iter().any(|evidence_id| {
-                evidence_by_id.get(evidence_id.as_str()).is_some_and(|evidence| {
-                    evidence.kind == EvidenceKind::ChallengeSearchReport
-                })
+                evidence_by_id
+                    .get(evidence_id.as_str())
+                    .is_some_and(|evidence| evidence.kind == EvidenceKind::ChallengeSearchReport)
             });
             if !has_search_report {
                 issues.push(format!(
@@ -473,7 +502,10 @@ impl TerritorialRecord {
                     assertion.id
                 ));
             }
-            match (assertion.spatial.vertical_min_m, assertion.spatial.vertical_max_m) {
+            match (
+                assertion.spatial.vertical_min_m,
+                assertion.spatial.vertical_max_m,
+            ) {
                 (Some(min), Some(max)) if min.is_finite() && max.is_finite() && min <= max => {
                     required(
                         "assertion.spatial.vertical_datum",
@@ -491,7 +523,10 @@ impl TerritorialRecord {
                 issues.push(format!("assertion {} has no declared basis", assertion.id));
             }
             if assertion.evidence_ids.is_empty() {
-                issues.push(format!("assertion {} has no evidence references", assertion.id));
+                issues.push(format!(
+                    "assertion {} has no evidence references",
+                    assertion.id
+                ));
             }
             for evidence_id in &assertion.evidence_ids {
                 if !evidence_ids.contains(evidence_id) {
@@ -529,9 +564,7 @@ impl TerritorialRecord {
             let linked_challenges = self
                 .challenges
                 .iter()
-                .filter(|challenge| {
-                    assertion.challenge_ids.iter().any(|id| id == &challenge.id)
-                })
+                .filter(|challenge| assertion.challenge_ids.iter().any(|id| id == &challenge.id))
                 .collect::<Vec<_>>();
             let has_submitted_challenge = linked_challenges
                 .iter()
@@ -597,25 +630,25 @@ impl TerritorialRecord {
             for basis in &assertion.bases {
                 match basis {
                     ClaimBasis::AdministrativeRecord => {
-                        let has_register_authority = assertion.authority_ids.iter().any(|id| {
-                            authority_by_id.get(id.as_str()).is_some_and(|authority| {
-                                matches!(
-                                    authority.kind,
-                                    AuthorityKind::Registry | AuthorityKind::StatutoryRegulator
-                                ) && assertion
-                                    .evidence_ids
-                                    .iter()
-                                    .any(|evidence_id| evidence_id == &authority.source_evidence_id)
-                                    && evidence_by_id
+                        let has_register_authority =
+                            assertion.authority_ids.iter().any(|id| {
+                                authority_by_id.get(id.as_str()).is_some_and(|authority| {
+                                    matches!(
+                                        authority.kind,
+                                        AuthorityKind::Registry | AuthorityKind::StatutoryRegulator
+                                    ) && assertion.evidence_ids.iter().any(|evidence_id| {
+                                        evidence_id == &authority.source_evidence_id
+                                    }) && evidence_by_id
                                         .get(authority.source_evidence_id.as_str())
                                         .is_some_and(|evidence| {
                                             matches!(
                                                 evidence.kind,
-                                                EvidenceKind::RegistryExtract | EvidenceKind::Permit
+                                                EvidenceKind::RegistryExtract
+                                                    | EvidenceKind::Permit
                                             )
                                         })
-                            })
-                        });
+                                })
+                            });
                         if !has_register_authority {
                             issues.push(format!(
                                 "assertion {} declares administrative_record without matching registry/regulator authority and source evidence",
@@ -627,10 +660,9 @@ impl TerritorialRecord {
                         let has_court_authority = assertion.authority_ids.iter().any(|id| {
                             authority_by_id.get(id.as_str()).is_some_and(|authority| {
                                 authority.kind == AuthorityKind::CourtOrTribunal
-                                    && assertion
-                                        .evidence_ids
-                                        .iter()
-                                        .any(|evidence_id| evidence_id == &authority.source_evidence_id)
+                                    && assertion.evidence_ids.iter().any(|evidence_id| {
+                                        evidence_id == &authority.source_evidence_id
+                                    })
                                     && evidence_by_id
                                         .get(authority.source_evidence_id.as_str())
                                         .is_some_and(|evidence| {
@@ -646,23 +678,22 @@ impl TerritorialRecord {
                         }
                     }
                     ClaimBasis::CommunityAttested => {
-                        let has_community_decision_authority = assertion.authority_ids.iter().any(|id| {
-                            authority_by_id.get(id.as_str()).is_some_and(|authority| {
-                                matches!(
-                                    authority.kind,
-                                    AuthorityKind::CustomaryInstitution
-                                        | AuthorityKind::CommunityGovernanceBody
-                                ) && assertion
-                                    .evidence_ids
-                                    .iter()
-                                    .any(|evidence_id| evidence_id == &authority.source_evidence_id)
-                                    && evidence_by_id
+                        let has_community_decision_authority =
+                            assertion.authority_ids.iter().any(|id| {
+                                authority_by_id.get(id.as_str()).is_some_and(|authority| {
+                                    matches!(
+                                        authority.kind,
+                                        AuthorityKind::CustomaryInstitution
+                                            | AuthorityKind::CommunityGovernanceBody
+                                    ) && assertion.evidence_ids.iter().any(|evidence_id| {
+                                        evidence_id == &authority.source_evidence_id
+                                    }) && evidence_by_id
                                         .get(authority.source_evidence_id.as_str())
                                         .is_some_and(|evidence| {
                                             evidence.kind == EvidenceKind::CommunityDecision
                                         })
-                            })
-                        });
+                                })
+                            });
                         if !has_community_decision_authority {
                             issues.push(format!(
                                 "assertion {} declares community_attested without community-governance/customary authority and linked community-decision evidence",
@@ -684,10 +715,9 @@ impl TerritorialRecord {
                         let has_contract_authority = assertion.authority_ids.iter().any(|id| {
                             authority_by_id.get(id.as_str()).is_some_and(|authority| {
                                 authority.kind == AuthorityKind::ContractingParty
-                                    && assertion
-                                        .evidence_ids
-                                        .iter()
-                                        .any(|evidence_id| evidence_id == &authority.source_evidence_id)
+                                    && assertion.evidence_ids.iter().any(|evidence_id| {
+                                        evidence_id == &authority.source_evidence_id
+                                    })
                                     && evidence_by_id
                                         .get(authority.source_evidence_id.as_str())
                                         .is_some_and(|evidence| {
@@ -716,10 +746,9 @@ impl TerritorialRecord {
                         let has_statutory_authority = assertion.authority_ids.iter().any(|id| {
                             authority_by_id.get(id.as_str()).is_some_and(|authority| {
                                 authority.kind == AuthorityKind::StatutoryRegulator
-                                    && assertion
-                                        .evidence_ids
-                                        .iter()
-                                        .any(|evidence_id| evidence_id == &authority.source_evidence_id)
+                                    && assertion.evidence_ids.iter().any(|evidence_id| {
+                                        evidence_id == &authority.source_evidence_id
+                                    })
                                     && evidence_by_id
                                         .get(authority.source_evidence_id.as_str())
                                         .is_some_and(|evidence| {
@@ -751,13 +780,22 @@ impl TerritorialRecord {
 
         let mut obligation_ids = HashSet::new();
         for obligation in &self.obligations {
-            unique_id("obligation", &obligation.id, &mut obligation_ids, &mut issues);
+            unique_id(
+                "obligation",
+                &obligation.id,
+                &mut obligation_ids,
+                &mut issues,
+            );
             required(
                 "obligation.governance_record_ref",
                 &obligation.governance_record_ref,
                 &mut issues,
             );
-            required("obligation.description", &obligation.description, &mut issues);
+            required(
+                "obligation.description",
+                &obligation.description,
+                &mut issues,
+            );
             required(
                 "obligation.spatial_feature_ref",
                 &obligation.spatial_feature_ref,
@@ -782,9 +820,18 @@ impl TerritorialRecord {
             }
             if let Some(value) = obligation.target_value {
                 if !value.is_finite() {
-                    issues.push(format!("obligation {} has a non-finite target", obligation.id));
+                    issues.push(format!(
+                        "obligation {} has a non-finite target",
+                        obligation.id
+                    ));
                 }
-                if obligation.target_unit.as_deref().unwrap_or("").trim().is_empty() {
+                if obligation
+                    .target_unit
+                    .as_deref()
+                    .unwrap_or("")
+                    .trim()
+                    .is_empty()
+                {
                     issues.push(format!(
                         "obligation {} has a target value without a unit",
                         obligation.id
@@ -805,10 +852,7 @@ impl TerritorialRecord {
                 }
             }
             if obligation.state == ObligationState::VerifiedComplete {
-                let verifier = obligation
-                    .independent_verifier_ref
-                    .as_deref()
-                    .unwrap_or("");
+                let verifier = obligation.independent_verifier_ref.as_deref().unwrap_or("");
                 if verifier.trim().is_empty()
                     || verifier == obligation.responsible_party_ref
                     || obligation.evidence_ids.is_empty()
@@ -835,12 +879,7 @@ fn required(field: &str, value: &str, issues: &mut Vec<String>) {
     }
 }
 
-fn unique_id(
-    kind: &str,
-    value: &str,
-    seen: &mut HashSet<String>,
-    issues: &mut Vec<String>,
-) {
+fn unique_id(kind: &str, value: &str, seen: &mut HashSet<String>, issues: &mut Vec<String>) {
     if value.trim().is_empty() {
         issues.push(format!("{kind} id must not be empty"));
     } else if !seen.insert(value.to_owned()) {
@@ -916,9 +955,9 @@ mod tests {
     #[test]
     fn testimony_alone_does_not_establish_community_attestation() {
         let value = record(vec![assertion(vec![ClaimBasis::CommunityAttested])]);
-        let issues = value.validate().expect_err(
-            "community testimony alone must not be promoted to a community decision",
-        );
+        let issues = value
+            .validate()
+            .expect_err("community testimony alone must not be promoted to a community decision");
         assert!(issues.iter().any(|issue| {
             issue.contains("community_attested without community-decision evidence")
         }));
@@ -931,9 +970,11 @@ mod tests {
         let issues = value.validate().expect_err(
             "a no-challenge observation requires a complete declared evidence frontier",
         );
-        assert!(issues.iter().any(|issue| {
-            issue.contains("without a complete declared challenge frontier")
-        }));
+        assert!(
+            issues
+                .iter()
+                .any(|issue| { issue.contains("without a complete declared challenge frontier") })
+        );
 
         value.evidence.push(evidence(
             "challenge-search-1",
@@ -975,18 +1016,22 @@ mod tests {
         });
         value.assertions[0].dispute_state = DisputeState::NoChallengeObservedWithinFrontier;
         value.assertions[0].challenge_assessment_id = Some("challenge-frontier-1".into());
-        let issues = value.validate().expect_err(
-            "partial source coverage must not support a no-challenge observation",
+        let issues = value
+            .validate()
+            .expect_err("partial source coverage must not support a no-challenge observation");
+        assert!(
+            issues
+                .iter()
+                .any(|issue| { issue.contains("without a complete declared challenge frontier") })
         );
-        assert!(issues.iter().any(|issue| {
-            issue.contains("without a complete declared challenge frontier")
-        }));
     }
 
     #[test]
     fn challenge_assessment_requires_a_challenge_search_report() {
         let mut value = record(vec![assertion(vec![ClaimBasis::Asserted])]);
-        value.evidence.push(evidence("not-a-search", EvidenceKind::Other));
+        value
+            .evidence
+            .push(evidence("not-a-search", EvidenceKind::Other));
         value.challenge_assessments.push(ChallengeAssessment {
             id: "challenge-frontier-1".into(),
             scope_ref: "urn:test:scope:registry-only".into(),
@@ -997,12 +1042,14 @@ mod tests {
             evidence_ids: vec!["not-a-search".into()],
             disclosure_class: DisclosureClass::Restricted,
         });
-        let issues = value.validate().expect_err(
-            "a frontier must bind a challenge-search report, not arbitrary evidence",
+        let issues = value
+            .validate()
+            .expect_err("a frontier must bind a challenge-search report, not arbitrary evidence");
+        assert!(
+            issues
+                .iter()
+                .any(|issue| { issue.contains("lacks challenge-search report evidence") })
         );
-        assert!(issues.iter().any(|issue| {
-            issue.contains("lacks challenge-search report evidence")
-        }));
     }
 
     #[test]
@@ -1033,9 +1080,9 @@ mod tests {
             disclosure_class: DisclosureClass::Restricted,
         });
         value.assertions[0].challenge_ids = vec!["challenge-1".into()];
-        let issues = value.validate().expect_err(
-            "an active challenge must contradict a no-challenge observation",
-        );
+        let issues = value
+            .validate()
+            .expect_err("an active challenge must contradict a no-challenge observation");
         assert!(issues.iter().any(|issue| {
             issue.contains("no challenge observed while linked challenge records exist")
         }));
@@ -1063,9 +1110,9 @@ mod tests {
         value.assertions[0].challenge_ids =
             vec!["challenge-closed".into(), "challenge-open".into()];
         value.assertions[0].dispute_state = DisputeState::Resolved;
-        let issues = value.validate().expect_err(
-            "one closed challenge must not conceal another active challenge",
-        );
+        let issues = value
+            .validate()
+            .expect_err("one closed challenge must not conceal another active challenge");
         assert!(issues.iter().any(|issue| {
             issue.contains("resolved while one or more linked challenges remain active")
         }));
@@ -1074,14 +1121,18 @@ mod tests {
     #[test]
     fn community_decision_requires_scoped_community_authority() {
         let mut value = record(vec![assertion(vec![ClaimBasis::CommunityAttested])]);
-        value.evidence.push(evidence("decision-1", EvidenceKind::CommunityDecision));
+        value
+            .evidence
+            .push(evidence("decision-1", EvidenceKind::CommunityDecision));
         value.assertions[0].evidence_ids.push("decision-1".into());
         let issues = value.validate().expect_err(
             "community decision evidence without a scoped community authority must not pass",
         );
-        assert!(issues.iter().any(|issue| {
-            issue.contains("without community-governance/customary authority")
-        }));
+        assert!(
+            issues.iter().any(|issue| {
+                issue.contains("without community-governance/customary authority")
+            })
+        );
         value.authorities.push(AuthorityReference {
             id: "community-authority".into(),
             issuer_ref: "institution:community-governance".into(),
@@ -1101,7 +1152,9 @@ mod tests {
     fn administrative_record_requires_registry_or_regulator_evidence() {
         let mut value = record(vec![assertion(vec![ClaimBasis::AdministrativeRecord])]);
         assert!(value.validate().is_err());
-        value.evidence.push(evidence("registry-1", EvidenceKind::RegistryExtract));
+        value
+            .evidence
+            .push(evidence("registry-1", EvidenceKind::RegistryExtract));
         value.assertions[0].evidence_ids.push("registry-1".into());
         value.authorities.push(AuthorityReference {
             id: "authority-1".into(),
@@ -1124,8 +1177,12 @@ mod tests {
             ClaimBasis::AdministrativeRecord,
             ClaimBasis::CommunityAttested,
         ])]);
-        value.evidence.push(evidence("registry-1", EvidenceKind::RegistryExtract));
-        value.evidence.push(evidence("challenge-1", EvidenceKind::CommunityDecision));
+        value
+            .evidence
+            .push(evidence("registry-1", EvidenceKind::RegistryExtract));
+        value
+            .evidence
+            .push(evidence("challenge-1", EvidenceKind::CommunityDecision));
         value.assertions[0].evidence_ids.push("challenge-1".into());
         value.authorities.push(AuthorityReference {
             id: "authority-1".into(),
@@ -1157,10 +1214,8 @@ mod tests {
             evidence_ids: vec!["challenge-1".into()],
             disclosure_class: DisclosureClass::Restricted,
         });
-        value.assertions[0].authority_ids = vec![
-            "authority-1".into(),
-            "community-authority".into(),
-        ];
+        value.assertions[0].authority_ids =
+            vec!["authority-1".into(), "community-authority".into()];
         value.assertions[0].dispute_state = DisputeState::Challenged;
         value.assertions[0].challenge_ids = vec!["challenge-record-1".into()];
         assert_eq!(value.validate(), Ok(()));
@@ -1170,7 +1225,9 @@ mod tests {
     fn court_decision_requires_court_order_and_court_authority() {
         let mut value = record(vec![assertion(vec![ClaimBasis::CourtDecision])]);
         assert!(value.validate().is_err());
-        value.evidence.push(evidence("court-1", EvidenceKind::CourtOrder));
+        value
+            .evidence
+            .push(evidence("court-1", EvidenceKind::CourtOrder));
         value.assertions[0].evidence_ids.push("court-1".into());
         value.authorities.push(AuthorityReference {
             id: "court-authority".into(),
@@ -1190,14 +1247,18 @@ mod tests {
     #[test]
     fn contractual_instrument_requires_contracting_party_authority() {
         let mut value = record(vec![assertion(vec![ClaimBasis::ContractualInstrument])]);
-        value.evidence.push(evidence("contract-1", EvidenceKind::Contract));
+        value
+            .evidence
+            .push(evidence("contract-1", EvidenceKind::Contract));
         value.assertions[0].evidence_ids.push("contract-1".into());
-        let issues = value.validate().expect_err(
-            "a contract document alone must not establish the authority basis",
+        let issues = value
+            .validate()
+            .expect_err("a contract document alone must not establish the authority basis");
+        assert!(
+            issues
+                .iter()
+                .any(|issue| { issue.contains("without contracting-party authority") })
         );
-        assert!(issues.iter().any(|issue| {
-            issue.contains("without contracting-party authority")
-        }));
 
         value.authorities.push(AuthorityReference {
             id: "contract-authority".into(),
@@ -1217,7 +1278,9 @@ mod tests {
     #[test]
     fn statutory_instrument_requires_statutory_regulator_authority() {
         let mut value = record(vec![assertion(vec![ClaimBasis::StatutoryInstrument])]);
-        value.evidence.push(evidence("statute-1", EvidenceKind::StatutoryInstrument));
+        value
+            .evidence
+            .push(evidence("statute-1", EvidenceKind::StatutoryInstrument));
         value.assertions[0].evidence_ids.push("statute-1".into());
         value.authorities.push(AuthorityReference {
             id: "wrong-authority".into(),
@@ -1231,12 +1294,14 @@ mod tests {
             disclosure_class: DisclosureClass::Restricted,
         });
         value.assertions[0].authority_ids = vec!["wrong-authority".into()];
-        let issues = value.validate().expect_err(
-            "a statutory instrument linked to a non-regulator must not pass",
+        let issues = value
+            .validate()
+            .expect_err("a statutory instrument linked to a non-regulator must not pass");
+        assert!(
+            issues
+                .iter()
+                .any(|issue| { issue.contains("without statutory-regulator authority") })
         );
-        assert!(issues.iter().any(|issue| {
-            issue.contains("without statutory-regulator authority")
-        }));
 
         value.authorities.push(AuthorityReference {
             id: "regulator-authority".into(),
@@ -1249,14 +1314,18 @@ mod tests {
             valid_until: None,
             disclosure_class: DisclosureClass::Restricted,
         });
-        value.assertions[0].authority_ids.push("regulator-authority".into());
+        value.assertions[0]
+            .authority_ids
+            .push("regulator-authority".into());
         assert_eq!(value.validate(), Ok(()));
     }
 
     #[test]
     fn authority_source_evidence_must_be_linked_to_the_assertion() {
         let mut value = record(vec![assertion(vec![ClaimBasis::AdministrativeRecord])]);
-        value.evidence.push(evidence("registry-1", EvidenceKind::RegistryExtract));
+        value
+            .evidence
+            .push(evidence("registry-1", EvidenceKind::RegistryExtract));
         value.authorities.push(AuthorityReference {
             id: "authority-1".into(),
             issuer_ref: "institution:registry".into(),
@@ -1280,10 +1349,9 @@ mod tests {
     #[test]
     fn verified_obligation_requires_independent_verifier_and_evidence() {
         let mut value = record(Vec::new());
-        value.evidence.push(evidence(
-            "obligation-origin",
-            EvidenceKind::Permit,
-        ));
+        value
+            .evidence
+            .push(evidence("obligation-origin", EvidenceKind::Permit));
         value.evidence.push(evidence(
             "completion-proof",
             EvidenceKind::EnvironmentalMeasurement,
@@ -1306,15 +1374,16 @@ mod tests {
             disclosure_class: DisclosureClass::Restricted,
         });
         assert_eq!(value.validate(), Ok(()));
-        value.obligations[0].independent_verifier_ref =
-            Some("party:operator".into());
+        value.obligations[0].independent_verifier_ref = Some("party:operator".into());
         assert!(value.validate().is_err());
     }
 
     #[test]
     fn stewardship_projection_requires_upstream_governance_record_reference() {
         let mut value = record(Vec::new());
-        value.evidence.push(evidence("obligation-origin", EvidenceKind::Permit));
+        value
+            .evidence
+            .push(evidence("obligation-origin", EvidenceKind::Permit));
         value.obligations.push(StewardshipObligation {
             id: "restore-1".into(),
             governance_record_ref: String::new(),
@@ -1335,21 +1404,25 @@ mod tests {
         let issues = value.validate().expect_err(
             "a Sol-Atlas obligation projection must retain its upstream governance record",
         );
-        assert!(issues.iter().any(|issue| {
-            issue.contains("obligation.governance_record_ref must not be empty")
-        }));
+        assert!(
+            issues.iter().any(|issue| {
+                issue.contains("obligation.governance_record_ref must not be empty")
+            })
+        );
     }
 
     #[test]
     fn jurisdictional_interest_code_must_survive_other_mapping() {
         let mut value = record(vec![assertion(vec![ClaimBasis::Asserted])]);
         value.assertions[0].interest_kind = InterestKind::Other;
-        let issues = value.validate().expect_err(
-            "generic Other must not erase a jurisdiction-specific interest type",
+        let issues = value
+            .validate()
+            .expect_err("generic Other must not erase a jurisdiction-specific interest type");
+        assert!(
+            issues
+                .iter()
+                .any(|issue| { issue.contains("without preserving its source code and profile") })
         );
-        assert!(issues.iter().any(|issue| {
-            issue.contains("without preserving its source code and profile")
-        }));
 
         value.assertions[0].source_interest_type_code = Some("CUSTOMARY_GRAZING_V2".into());
         value.assertions[0].source_interest_type_profile_ref =
@@ -1361,12 +1434,14 @@ mod tests {
     fn source_interest_type_code_and_profile_must_be_a_complete_pair() {
         let mut value = record(vec![assertion(vec![ClaimBasis::Asserted])]);
         value.assertions[0].source_interest_type_code = Some("WATER_USE_CLASS_A".into());
-        let issues = value.validate().expect_err(
-            "a source code without its profile namespace is ambiguous",
+        let issues = value
+            .validate()
+            .expect_err("a source code without its profile namespace is ambiguous");
+        assert!(
+            issues.iter().any(|issue| {
+                issue.contains("incomplete source interest-type code/profile pair")
+            })
         );
-        assert!(issues.iter().any(|issue| {
-            issue.contains("incomplete source interest-type code/profile pair")
-        }));
     }
 
     #[test]
