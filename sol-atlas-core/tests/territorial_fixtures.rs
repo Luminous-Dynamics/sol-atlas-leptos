@@ -48,7 +48,10 @@ fn administrative_claim_without_registry_authority_is_rejected() {
     let record = parse_fixture(include_str!(
         "fixtures/territorial/invalid_administrative_claim_without_authority.json"
     ));
-    assert_rejected_for(&record, "administrative_record without matching registry/regulator authority");
+    assert_rejected_for(
+        &record,
+        "administrative_record without matching registry/regulator authority",
+    );
 }
 
 #[test]
@@ -56,7 +59,10 @@ fn testimony_alone_is_not_a_community_decision_or_authority() {
     let record = parse_fixture(include_str!(
         "fixtures/territorial/invalid_community_testimony_only.json"
     ));
-    assert_rejected_for(&record, "community_attested without community-governance/customary authority");
+    assert_rejected_for(
+        &record,
+        "community_attested without community-governance/customary authority",
+    );
 }
 
 #[test]
@@ -75,8 +81,14 @@ fn contract_without_contracting_party_authority_is_rejected() {
         "fixtures/territorial/invalid_contractual_missing_contracting_authority.json"
     ))
     .expect("contract fixture must deserialize");
-    let issues = record.validate().expect_err("contract basis requires authority");
-    assert!(issues.iter().any(|issue| issue.contains("without contracting-party authority")));
+    let issues = record
+        .validate()
+        .expect_err("contract basis requires authority");
+    assert!(
+        issues
+            .iter()
+            .any(|issue| issue.contains("without contracting-party authority"))
+    );
 }
 
 #[test]
@@ -85,8 +97,14 @@ fn statutory_instrument_with_wrong_authority_is_rejected() {
         "fixtures/territorial/invalid_statutory_wrong_authority.json"
     ))
     .expect("statutory fixture must deserialize");
-    let issues = record.validate().expect_err("statute basis requires regulator authority");
-    assert!(issues.iter().any(|issue| issue.contains("without statutory-regulator authority")));
+    let issues = record
+        .validate()
+        .expect_err("statute basis requires regulator authority");
+    assert!(
+        issues
+            .iter()
+            .any(|issue| issue.contains("without statutory-regulator authority"))
+    );
 }
 
 #[test]
@@ -235,7 +253,9 @@ fn tib_v0_2_rejects_spatial_provenance_authority_and_stewardship_hazards() {
             "duplicate evidence id",
         ),
         (
-            include_str!("fixtures/territorial/invalid_contractual_claim_without_contract_evidence.json"),
+            include_str!(
+                "fixtures/territorial/invalid_contractual_claim_without_contract_evidence.json"
+            ),
             "without contracting-party authority",
         ),
         (
@@ -247,7 +267,9 @@ fn tib_v0_2_rejects_spatial_provenance_authority_and_stewardship_hazards() {
             "has a target value without a unit",
         ),
         (
-            include_str!("fixtures/territorial/invalid_verified_stewardship_self_verification.json"),
+            include_str!(
+                "fixtures/territorial/invalid_verified_stewardship_self_verification.json"
+            ),
             "verified_complete without independent verifier",
         ),
     ];
