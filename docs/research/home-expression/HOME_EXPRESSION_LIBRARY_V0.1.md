@@ -349,3 +349,25 @@ It does **not** provide:
 - a claim that an amenity is safe, sustainable, buildable or affordable.
 
 The correct result for missing evidence is UNKNOWN, not optimism.
+
+
+## 6. Southern African source-bound reference expansion — 18 November 2026
+
+The v0.2 catalogue contains **35 architectural expression entries**, but regionally significant material is not forced into the style picker:
+
+- **South African 1930s Art Deco** is added as a regional historical-expression reference. Its source discusses period-specific political/economic conditions and the use of African imagery in public-building ornament. The reference is not a generic motif pack; specific building, authorship, imagery rights and heritage context remain explicit: https://pure.uj.ac.za/en/publications/art-deco-modernity-and-the-politics-of-ornament-in-south-african-/
+- **Great Karoo corbelled-stone architecture** remains in the separate `regional_reference_modules` collection as `CONSERVATION_REFERENCE_ONLY`, not as a resident-selectable modern style preset. UCT research documents the 19th-century forms, frontier interactions and contested/multiple heritage claims. It is not a modern construction kit or transferable structural detail: https://open.uct.ac.za/handle/11427/12087 ; https://open.uct.ac.za/items/5d247a02-4bab-4a92-8f6f-2ce9d5fb04fb ; https://open.uct.ac.za/items/64a981aa-583f-4940-bf6b-30423fe07415
+- **Cone-on-cylinder dwelling (rondavel form)** and **grass-dome/beehive dwelling** are represented as spatial-form references, not styles. These forms have varied histories and adaptations across communities and contexts; the catalog entry carries its sources, scope and contextual note, and prohibits identity inference. Sources include Steyn (2006), Naudé (2007), Van Vuuren (2017), and Ndude & Memela (2024): https://repository.up.ac.za/items/cd8a0dda-0d3e-4fe7-98e4-658e67bc270c ; https://repository.up.ac.za/items/28caf70e-6c82-4c5e-b98b-a31b45958cd9 ; https://journals.co.za/doi/10.10520/EJC-daa8a8145 ; https://www.nature.com/articles/s41599-024-03649-3
+
+These are **resident-selected references**, never inferred from a person's name, address, nationality, photograph or presumed identity. Reference presence does not imply permission, authenticity, material sourcing, building performance, contemporary suitability or professional approval.
+
+## 7. Evidence before aesthetic scoring
+
+Do not introduce a universal style, beauty, cultural authenticity or symbolism score. Evaluate the system by:
+- preserving the resident's stated, avoided, undecided and contested intents;
+- maintaining source attribution and rights for references;
+- identifying when a reference belongs to typology, tectonics, heritage conservation or architectural expression;
+- asking the relevant resident/community/heritage steward to validate meaning where needed;
+- translating a chosen reference into geometry or assemblies only through explicit, reviewed, versioned mapping rules.
+
+The catalogue remains `ILLUSTRATIVE_CATALOG_NOT_EVALUATED`. No style or spatial-form entry is a structural system, compliance result, quote, energy model or construction specification.
