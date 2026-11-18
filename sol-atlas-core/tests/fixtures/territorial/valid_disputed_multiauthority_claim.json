@@ -1,0 +1,97 @@
+{
+  "schema_version": 1,
+  "territory_ref": "urn:tib:v0.1:territory:za-001",
+  "created_at": "2026-11-18T10:00:00Z",
+  "evidence": [
+    {
+      "id": "registry-001",
+      "kind": "registry_extract",
+      "source_ref": "urn:tib:v0.1:evidence:registry-001",
+      "captured_at": "2026-11-18T10:00:00Z",
+      "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "disclosure_class": "restricted"
+    },
+    {
+      "id": "decision-001",
+      "kind": "community_decision",
+      "source_ref": "urn:tib:v0.1:evidence:decision-001",
+      "captured_at": "2026-11-18T10:00:00Z",
+      "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "disclosure_class": "community_controlled"
+    }
+  ],
+  "authorities": [
+    {
+      "id": "registry-authority-001",
+      "issuer_ref": "institution:land-registry",
+      "kind": "registry",
+      "jurisdiction": "ZA",
+      "scope": "registered surface parcel",
+      "source_evidence_id": "registry-001",
+      "valid_from": "2026-01-01",
+      "valid_until": null,
+      "disclosure_class": "restricted"
+    },
+    {
+      "id": "community-authority-001",
+      "issuer_ref": "institution:community-governance",
+      "kind": "community_governance_body",
+      "jurisdiction": "ZA",
+      "scope": "decision for territory za-001",
+      "source_evidence_id": "decision-001",
+      "valid_from": "2026-01-01",
+      "valid_until": null,
+      "disclosure_class": "community_controlled"
+    }
+  ],
+  "challenges": [
+    {
+      "id": "challenge-001",
+      "raised_by_ref": "party:community-002",
+      "filed_at": "2026-11-18T10:05:00Z",
+      "state": "submitted",
+      "evidence_ids": [
+        "decision-001"
+      ],
+      "disclosure_class": "community_controlled"
+    }
+  ],
+  "assertions": [
+    {
+      "id": "assertion-001",
+      "holder_ref": "party:community-001",
+      "interest_kind": "surface_land",
+      "relationship": "right",
+      "bases": [
+        "administrative_record",
+        "community_attested"
+      ],
+      "dispute_state": "challenged",
+      "spatial": {
+        "feature_ref": "urn:ogc:feature:parcel-za-001",
+        "horizontal_crs": "https://www.opengis.net/def/crs/EPSG/0/4326",
+        "vertical_min_m": null,
+        "vertical_max_m": null,
+        "vertical_datum": null,
+        "horizontal_uncertainty_m": 5
+      },
+      "temporal": {
+        "valid_from": "2026-01-01",
+        "valid_until": null
+      },
+      "evidence_ids": [
+        "registry-001",
+        "decision-001"
+      ],
+      "authority_ids": [
+        "registry-authority-001",
+        "community-authority-001"
+      ],
+      "challenge_ids": [
+        "challenge-001"
+      ],
+      "disclosure_class": "community_controlled"
+    }
+  ],
+  "obligations": []
+}
