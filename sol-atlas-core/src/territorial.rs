@@ -232,6 +232,8 @@ pub struct TerritorialAssertion {
 #[serde(deny_unknown_fields)]
 pub struct StewardshipObligation {
     pub id: String,
+    /// Reference to the upstream governance/commitment record; this projection is not canonical.
+    pub governance_record_ref: String,
     pub kind: ObligationKind,
     pub description: String,
     pub spatial_feature_ref: String,
@@ -566,6 +568,11 @@ impl TerritorialRecord {
         let mut obligation_ids = HashSet::new();
         for obligation in &self.obligations {
             unique_id("obligation", &obligation.id, &mut obligation_ids, &mut issues);
+            required(
+                "obligation.governance_record_ref",
+                &obligation.governance_record_ref,
+                &mut issues,
+            );
             required("obligation.description", &obligation.description, &mut issues);
             required(
                 "obligation.spatial_feature_ref",
@@ -906,6 +913,7 @@ mod tests {
         ));
         value.obligations.push(StewardshipObligation {
             id: "restore-1".into(),
+            governance_record_ref: "urn:mycelix:stewardship:commitment:restore-1".into(),
             kind: ObligationKind::RestoreHabitat,
             description: "Restore disturbed riparian habitat".into(),
             spatial_feature_ref: "urn:ogc:feature:site-1".into(),
@@ -924,6 +932,35 @@ mod tests {
         value.obligations[0].independent_verifier_ref =
             Some("party:operator".into());
         assert!(value.validate().is_err());
+    }
+
+    #[test]
+    fn stewardship_projection_requires_upstream_governance_record_reference() {
+        let mut value = record(Vec::new());
+        value.evidence.push(evidence("obligation-origin", EvidenceKind::Permit));
+        value.obligations.push(StewardshipObligation {
+            id: "restore-1".into(),
+            governance_record_ref: String::new(),
+            kind: ObligationKind::RestoreHabitat,
+            description: "Restore disturbed riparian habitat".into(),
+            spatial_feature_ref: "urn:ogc:feature:site-1".into(),
+            responsible_party_ref: "party:operator".into(),
+            originating_evidence_id: "obligation-origin".into(),
+            due_at: "2030-12-31".into(),
+            target_value: None,
+            target_unit: None,
+            verification_protocol_ref: "urn:test:protocol:habitat-v1".into(),
+            independent_verifier_ref: None,
+            state: ObligationState::Open,
+            evidence_ids: Vec::new(),
+            disclosure_class: DisclosureClass::Restricted,
+        });
+        let issues = value.validate().expect_err(
+            "a Sol-Atlas obligation projection must retain its upstream governance record",
+        );
+        assert!(issues.iter().any(|issue| {
+            issue.contains("obligation.governance_record_ref must not be empty")
+        }));
     }
 
     #[test]
