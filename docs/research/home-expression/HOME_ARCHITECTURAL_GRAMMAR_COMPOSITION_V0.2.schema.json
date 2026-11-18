@@ -88,7 +88,57 @@
       ],
       "properties": {
         "spatial_typology": {
-          "$ref": "#/$defs/intentAxis"
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "state",
+            "entries"
+          ],
+          "properties": {
+            "state": {
+              "enum": [
+                "UNDECIDED",
+                "INTENT_ONLY_NOT_EVALUATED",
+                "CONFLICT_UNRESOLVED"
+              ]
+            },
+            "entries": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "item_id",
+                  "preference"
+                ],
+                "properties": {
+                  "item_id": {
+                    "enum": [
+                      "DETACHED",
+                      "SEMI_DETACHED",
+                      "ROW_TERRACE",
+                      "COURTYARD",
+                      "DUPLEX",
+                      "APARTMENT",
+                      "PAVILION",
+                      "MULTIGENERATIONAL_CLUSTER",
+                      "LIVE_WORK",
+                      "INCREMENTAL_CORE",
+                      "RETROFIT_FIRST"
+                    ]
+                  },
+                  "preference": {
+                    "enum": [
+                      "PREFERRED",
+                      "CONSIDERED",
+                      "AVOIDED",
+                      "UNDECIDED"
+                    ]
+                  }
+                }
+              }
+            }
+          }
         },
         "architectural_expression": {
           "type": "object",
@@ -151,10 +201,106 @@
           }
         },
         "material_tectonic_intent": {
-          "$ref": "#/$defs/intentAxis"
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "state",
+            "entries"
+          ],
+          "properties": {
+            "state": {
+              "enum": [
+                "UNDECIDED",
+                "INTENT_ONLY_NOT_EVALUATED",
+                "CONFLICT_UNRESOLVED"
+              ]
+            },
+            "entries": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "item_id",
+                  "preference"
+                ],
+                "properties": {
+                  "item_id": {
+                    "enum": [
+                      "STONE_MASONRY",
+                      "BRICK_MASONRY",
+                      "EARTH_MASONRY",
+                      "TIMBER",
+                      "STEEL",
+                      "HYBRID_MATERIALS",
+                      "RECLAIMED_REUSED",
+                      "REPAIRABLE_MODULAR"
+                    ]
+                  },
+                  "preference": {
+                    "enum": [
+                      "PREFERRED",
+                      "CONSIDERED",
+                      "AVOIDED",
+                      "UNDECIDED"
+                    ]
+                  }
+                }
+              }
+            }
+          }
         },
         "environmental_strategy_intent": {
-          "$ref": "#/$defs/intentAxis"
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "state",
+            "entries"
+          ],
+          "properties": {
+            "state": {
+              "enum": [
+                "UNDECIDED",
+                "INTENT_ONLY_NOT_EVALUATED",
+                "CONFLICT_UNRESOLVED"
+              ]
+            },
+            "entries": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "item_id",
+                  "preference"
+                ],
+                "properties": {
+                  "item_id": {
+                    "enum": [
+                      "ORIENTATION_SOLAR_RESPONSE",
+                      "EXTERNAL_SHADING",
+                      "CROSS_VENTILATION",
+                      "THERMAL_MASS",
+                      "DAYLIGHT_CONTROL",
+                      "RAINWATER_HARVESTING",
+                      "GREYWATER_REUSE",
+                      "ON_SITE_SOLAR",
+                      "PRODUCTIVE_LANDSCAPE",
+                      "PASSIVE_FIRST"
+                    ]
+                  },
+                  "preference": {
+                    "enum": [
+                      "PREFERRED",
+                      "CONSIDERED",
+                      "AVOIDED",
+                      "UNDECIDED"
+                    ]
+                  }
+                }
+              }
+            }
+          }
         },
         "experience_programme": {
           "type": "object",
