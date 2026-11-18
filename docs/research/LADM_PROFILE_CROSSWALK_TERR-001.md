@@ -2,7 +2,7 @@
 
 **Status:** Research mapping; not a conformance claim  
 **Date:** 2026-11-18  
-**Implementation context:** \`sol-atlas-core::territorial\` v0.1  
+**Implementation context:** `sol-atlas-core::territorial` v0.1  
 **Standards baseline:** ISO 19152-1:2024 and ISO 19152-2:2025
 
 ## Purpose
@@ -13,13 +13,13 @@ LADM is deliberately a jurisdiction-adaptable conceptual model. The model must n
 
 ## Core rule
 
-\`\`\`text
+```text
 LADM-aligned interchange
 != LADM conformance
 != national legal validity
 != cadastral authority
 != proof of ownership
-\`\`\`
+```
 
 The v0.1 Rust type set is an evidence envelope around references to authoritative land-administration, community, survey, environmental and legal records. It is not a complete implementation of the LADM conceptual schema or any South African national profile.
 
@@ -27,17 +27,17 @@ The v0.1 Rust type set is an evidence envelope around references to authoritativ
 
 | LADM concept | LADM role | TERR-001 v0.1 representation | Status / gap |
 |---|---|---|---|
-| LA_Party | Person or organisation with a role in land administration | \`TerritorialAssertion.holder_ref\`; \`AuthorityReference.issuer_ref\`; \`StewardshipObligation.responsible_party_ref\` | Opaque references only. Party, person, group-party, identity and role records remain in their owning registries. |
-| LA_GroupParty | Group of parties | \`holder_ref\` may identify a community, collective or group record | Reference only. Group membership, representation, mandate and succession must be resolved by the relevant community/governance system; no group-member inference is made. |
-| LA_BAUnit | Basic administrative unit to which rights/restrictions may be attached | No direct field in v0.1. \`territory_ref\` identifies the evidence bundle, not an LA_BAUnit | **Gap.** Add an explicit external BAUnit reference and jurisdiction-profile identifier before claiming full RRR/BAUnit mapping. Do not overload \`territory_ref\`. |
-| LA_RRR | Rights, restrictions and responsibilities | \`interest_kind\` plus \`relationship\` (\`Right\`, \`Responsibility\`, \`Restriction\`) | Partial semantic mapping. Jurisdictional RRR types, legal effect, priority, share, beneficiaries, and conditionality need versioned profiles. |
-| LA_SpatialUnit | Spatial unit, including parcel and other legally relevant spaces | \`SpatialExtent.feature_ref\`, horizontal CRS, optional vertical range/datum and horizontal uncertainty | External geometry reference. No geometry is stored here; topology, survey method, accuracy class, geometry validity, 3D volumes and representation history are not yet implemented. |
-| LA_Source | Source from which an administrative object is obtained | \`EvidenceReference\` | Partial. Evidence references preserve source URI, kind, capture time, digest and disclosure class, but do not authenticate the issuer, establish legal authenticity, or guarantee source completeness. |
-| Administrative source / authority | Instrument, decision or record issued by a competent organisation | \`AuthorityReference\` linked to source evidence | Partial. Authority kind, jurisdiction, scope and validity are represented; credential verification, delegation, revocation, recognition and competence remain external. |
-| LA_VersionedObject | Versioning of administrative objects | Schema version and content digest, plus \`TemporalExtent\` valid-time strings | Partial. The current record does not implement LADM's full versioning model, transaction-time history, bitemporal reconciliation or event-sourced supersession. Coordinate with Mycelix EPI-008. |
-| Surveying / spatial representation | Survey and geometry/topology evidence | Survey \`EvidenceReference\` and spatial metadata | Partial. A survey file can be referenced; surveyor competence, cadastral adjustment, topology, datum transformation, accuracy statements and legal survey acceptance are not qualified. |
-| Dispute / challenge | Contestation over assertions or records | \`ChallengeReference\` and independent \`DisputeState\` | Domain extension, not a direct LADM substitute. Challenge history is explicit; court/tribunal and customary processes still need jurisdictional profiles and external outcomes. |
-| Stewardship / environmental duty | Long-running obligation with physical outcome evidence | \`StewardshipObligation\` | Domain extension. Links an originating evidence item, responsible party, spatial feature, verification protocol and independent verifier; does not prove the outcome scientifically. |
+| LA_Party | Person or organisation with a role in land administration | `TerritorialAssertion.holder_ref`; `AuthorityReference.issuer_ref`; `StewardshipObligation.responsible_party_ref` | Opaque references only. Party, person, group-party, identity and role records remain in their owning registries. |
+| LA_GroupParty | Group of parties | `holder_ref` may identify a community, collective or group record | Reference only. Group membership, representation, mandate and succession must be resolved by the relevant community/governance system; no group-member inference is made. |
+| LA_BAUnit | Basic administrative unit to which rights/restrictions may be attached | No direct field in v0.1. `territory_ref` identifies the evidence bundle, not an LA_BAUnit | **Gap.** Add an explicit external BAUnit reference and jurisdiction-profile identifier before claiming full RRR/BAUnit mapping. Do not overload `territory_ref`. |
+| LA_RRR | Rights, restrictions and responsibilities | `interest_kind` plus `relationship` (`Right`, `Responsibility`, `Restriction`) | Partial semantic mapping. Jurisdictional RRR types, legal effect, priority, share, beneficiaries, and conditionality need versioned profiles. |
+| LA_SpatialUnit | Spatial unit, including parcel and other legally relevant spaces | `SpatialExtent.feature_ref`, horizontal CRS, optional vertical range/datum and horizontal uncertainty | External geometry reference. No geometry is stored here; topology, survey method, accuracy class, geometry validity, 3D volumes and representation history are not yet implemented. |
+| LA_Source | Source from which an administrative object is obtained | `EvidenceReference` | Partial. Evidence references preserve source URI, kind, capture time, digest and disclosure class, but do not authenticate the issuer, establish legal authenticity, or guarantee source completeness. |
+| Administrative source / authority | Instrument, decision or record issued by a competent organisation | `AuthorityReference` linked to source evidence | Partial. Authority kind, jurisdiction, scope and validity are represented; credential verification, delegation, revocation, recognition and competence remain external. |
+| LA_VersionedObject | Versioning of administrative objects | Schema version and content digest, plus `TemporalExtent` valid-time strings | Partial. The current record does not implement LADM's full versioning model, transaction-time history, bitemporal reconciliation or event-sourced supersession. Coordinate with Mycelix EPI-008. |
+| Surveying / spatial representation | Survey and geometry/topology evidence | Survey `EvidenceReference` and spatial metadata | Partial. A survey file can be referenced; surveyor competence, cadastral adjustment, topology, datum transformation, accuracy statements and legal survey acceptance are not qualified. |
+| Dispute / challenge | Contestation over assertions or records | `ChallengeReference`, `ChallengeAssessment` and independent `DisputeState` | Domain extension, not a direct LADM substitute. Challenge history is explicit; a no-challenge observation requires a declared scope/frontier, searched sources and challenge-search report. It is not a global absence claim. Court/tribunal and customary processes still need jurisdictional profiles and external outcomes. |
+| Stewardship / environmental duty | Long-running obligation with physical outcome evidence | `StewardshipObligation` | Domain extension. Links an originating evidence item, responsible party, spatial feature, verification protocol and independent verifier; does not prove the outcome scientifically. |
 
 ## Why rights are modelled as relationships, not an owner field
 
@@ -53,7 +53,16 @@ A land-administration object can have multiple parties and multiple RRR relation
 
 Those are not interchangeable rights and may be governed by different legislation, instruments, institutions and procedures. In South Africa, mineral rights and surface interests must not be collapsed into one ownership flag; section 3 of the MPRDA establishes the State's custodianship role for mineral and petroleum resources. The data model therefore retains separate interest kinds, legal/administrative bases, authorities, evidence and dispute states.
 
-The current \`InterestKind\` enum is intentionally a small starter vocabulary. A production jurisdiction profile must preserve the exact source-defined type and code, including unknown or unmapped terms. It must never silently map a local right to \`SurfaceLand\`, \`SubsurfaceMineral\` or \`Other\` without retaining the original identifier and transformation.
+The current `InterestKind` enum is intentionally a small starter vocabulary. A production jurisdiction profile must preserve the exact source-defined type and code, including unknown or unmapped terms. It must never silently map a local right to `SurfaceLand`, `SubsurfaceMineral` or `Other` without retaining the original identifier and transformation.
+
+## Absence, challenge searches and evidence frontiers
+
+A zero-row search result is meaningful only relative to an exact, declared search frontier. The Sol Atlas contract distinguishes:
+- `Unassessed`: no defensible assessment of challenge presence has been made;
+- `NoChallengeObservedWithinFrontier`: no challenge was observed within an explicitly bounded scope, source set and evidence frontier with complete declared coverage;
+- `Challenged`, `UnderReview` and `Resolved`: states tied to linked challenge records and their lifecycle.
+
+A challenge-search assessment is not a proof that no challenge exists in the world. It is a bounded result for specified source systems, geographic/legal scope, time frontier and retrieval evidence. An unavailable, partial, stale or incomplete source cannot support `NoChallengeObservedWithinFrontier`. This composes with Mycelix EPI-008's EvidenceFrontier and CurrentnessAssessment semantics rather than introducing a second global completeness claim.
 
 ## Authority and evidence constraints
 
@@ -61,12 +70,12 @@ For v0.1 the validator enforces a narrow source/authority pairing:
 
 | Declared basis | Required evidence | Required linked authority |
 |---|---|---|
-| \`asserted\` | At least one referenced evidence item | None implied |
-| \`community_attested\` | Community decision evidence | Customary institution or community-governance body |
-| \`administrative_record\` | Registry extract or permit | Registry or statutory regulator |
-| \`court_decision\` | Court order | Court or tribunal |
-| \`contractual_instrument\` | Contract | Contracting party |
-| \`statutory_instrument\` | Statutory instrument | Statutory regulator |
+| `asserted` | At least one referenced evidence item | None implied |
+| `community_attested` | Community decision evidence | Customary institution or community-governance body |
+| `administrative_record` | Registry extract or permit | Registry or statutory regulator |
+| `court_decision` | Court order | Court or tribunal |
+| `contractual_instrument` | Contract | Contracting party |
+| `statutory_instrument` | Statutory instrument | Statutory regulator |
 
 These checks validate only the shape and reference pairing. They do not establish the authority's legal competence, signature authenticity, validity at the relevant time, territorial jurisdiction, procedural compliance or legitimacy of a community mandate. A reference to an instrument is not a legal conclusion about its effect.
 
@@ -87,7 +96,7 @@ The next spatial tranche should qualify coordinate transformations and topology 
 
 ### Time
 
-The current \`TemporalExtent\` is a deliberately simple valid-time projection. It is not enough for source capture, publication, assertion, verification and transaction time to be conflated.
+The current `TemporalExtent` is a deliberately simple valid-time projection. It is not enough for source capture, publication, assertion, verification and transaction time to be conflated.
 
 Reuse Mycelix EPI-008's typed temporal roles and evidence frontiers:
 - source publication time;
