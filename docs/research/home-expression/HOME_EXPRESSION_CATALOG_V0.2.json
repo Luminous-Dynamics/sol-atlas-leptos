@@ -1660,6 +1660,37 @@
       "display_name": "Retrofit-first",
       "description": "An existing building adapted before considering replacement or new construction.",
       "claim_ceiling": "INTENT_ONLY_NO_GEOMETRY_CODE_OR_ACCESSIBILITY_CLAIM"
+    },
+    {
+      "option_id": "CONE_ON_CYLINDER_DWELLING",
+      "display_name": "Cone-on-cylinder dwelling (rondavel form; contextual reference)",
+      "description": "A circular dwelling form with a cylindrical wall and conical roof, historically present in multiple South African settings and transformed through different materials, household uses and social histories. This is an optional spatial-form reference, not a uniform cultural marker or a ready-to-build specification.",
+      "claim_ceiling": "INTENT_ONLY_NO_GEOMETRY_CODE_OR_ACCESSIBILITY_CLAIM",
+      "reference_scope": "SOUTH_AFRICAN_CONE_ON_CYLINDER_DWELLING_HISTORICAL_AND_CONTEMPORARY_CONTEXTS",
+      "reference_sources": [
+        "https://repository.up.ac.za/items/cd8a0dda-0d3e-4fe7-98e4-658e67bc270c",
+        "https://repository.up.ac.za/items/28caf70e-6c82-4c5e-b98b-a31b45958cd9",
+        "https://journals.co.za/doi/10.10520/EJC-daa8a8145",
+        "https://www.nature.com/articles/s41599-024-03649-3"
+      ],
+      "context_note": "Research associates this form with different communities and later adaptations. Refer to the specific source and community context selected by residents; never infer cultural identity, household practices or authenticity from appearance.",
+      "identity_must_not_be_inferred": true,
+      "selection_status": "ILLUSTRATIVE_NOT_EVALUATED"
+    },
+    {
+      "option_id": "BEEHIVE_DOME_DWELLING",
+      "display_name": "Grass-dome / beehive dwelling (historical reference)",
+      "description": "A historically documented domed dwelling form made with a framework and thatch/grass covering in particular Southern African contexts. Its construction, spatial use and cultural meanings are source- and community-specific; the label does not imply a single pan-regional design.",
+      "claim_ceiling": "INTENT_ONLY_NO_GEOMETRY_CODE_OR_ACCESSIBILITY_CLAIM",
+      "reference_scope": "SOUTHERN_AFRICAN_BEEHIVE_DOME_DWELLING_HISTORICAL_CONTEXTS",
+      "reference_sources": [
+        "https://sbe.mandela.ac.za/sbe/media/Store/documents/National%20Human%20Settlements%20Conference/NHSC-PRINT.pdf",
+        "https://www.nature.com/articles/s41599-024-03649-3",
+        "https://journals.co.za/doi/10.10520/EJC-daa8a8145"
+      ],
+      "context_note": "Use only as an explicitly selected historical/spatial reference with its regional and community source retained. Do not treat it as a generic African form or assume that its historic material system is suitable for contemporary construction.",
+      "identity_must_not_be_inferred": true,
+      "selection_status": "ILLUSTRATIVE_NOT_EVALUATED"
     }
   ],
   "material_tectonic_intent_catalog": [
