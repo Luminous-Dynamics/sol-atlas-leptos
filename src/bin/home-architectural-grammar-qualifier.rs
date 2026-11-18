@@ -87,6 +87,8 @@ const REQUIRED_TYPOLOGY_IDS: &[&str] = &[
     "LIVE_WORK",
     "INCREMENTAL_CORE",
     "RETROFIT_FIRST",
+    "CONE_ON_CYLINDER_DWELLING",
+    "BEEHIVE_DOME_DWELLING",
 ];
 
 const REQUIRED_MATERIAL_IDS: &[&str] = &[
@@ -172,6 +174,29 @@ fn validate_intent_option_catalog(
         }
         if text(option, "claim_ceiling") != Some(expected_claim_ceiling) {
             errors.push(format!("{key} option {id} has an invalid claim ceiling"));
+        }
+        // Regional vernacular forms are source-bound, context-specific
+        // spatial references. They are never inferred from personal identity.
+        if option.get("reference_sources").is_some() {
+            let sources = option.get("reference_sources").and_then(Value::as_array);
+            if sources.is_none_or(Vec::is_empty)
+                || sources.is_some_and(|items| items.iter().any(|item| {
+                    item.as_str().is_none_or(|value| !value.starts_with("https://"))
+                }))
+            {
+                errors.push(format!("{key} option {id} has missing or invalid source references"));
+            }
+            for field in ["reference_scope", "context_note"] {
+                if text(option, field).is_none_or(str::is_empty) {
+                    errors.push(format!("{key} option {id} is missing {field}"));
+                }
+            }
+            if option.get("identity_must_not_be_inferred").and_then(Value::as_bool) != Some(true) {
+                errors.push(format!("{key} option {id} must prohibit identity inference"));
+            }
+            if text(option, "selection_status") != Some("ILLUSTRATIVE_NOT_EVALUATED") {
+                errors.push(format!("{key} option {id} has an unsupported status"));
+            }
         }
     }
 
