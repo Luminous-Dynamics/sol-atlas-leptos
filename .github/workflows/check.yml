@@ -64,4 +64,30 @@ jobs:
       # faster than a wasm test harness for the pure-logic unit tests
       # (renderer::hex, sol-atlas-core). Must target the bin explicitly:
       # `cargo test --lib` fails with "no library targets found".
-      - run: cargo test --bin sol-atlas-leptos
+      - run: cargo test --features landscape-observation-bench --bin sol-atlas-leptos --bin landscape-observation-bench
+      - name: Run synthetic observation benchmark smoke profiles
+        shell: bash
+        run: |
+          set -euo pipefail
+          output_dir="${RUNNER_TEMP}/landscape-observation-bench"
+          mkdir -p "$output_dir"
+          machine_label="${ImageOS:-ubuntu-latest}-${ImageVersion:-unknown}"
+          cpu_model="$(lscpu | awk -F: '/Model name/ { gsub(/^[[:space:]]+/, "", $2); print $2; exit }')"
+          if [ -z "$cpu_model" ]; then cpu_model="$(uname -m)"; fi
+          ram_mib="$(awk '/MemTotal:/ { print int($2 / 1024) }' /proc/meminfo)"
+          for profile in unique exact-10pct exact-100pct conflict over-limit; do
+            cargo run --quiet --features landscape-observation-bench --bin landscape-observation-bench -- \
+              --commit-sha "$GITHUB_SHA" \
+              --machine-label "$machine_label" \
+              --cpu-model "$cpu_model" \
+              --ram-mib "$ram_mib" \
+              --records 100 --iterations 5 --warmup 1 --profile "$profile" \
+              > "$output_dir/$profile.json"
+          done
+      - name: Upload benchmark smoke reports
+        uses: actions/upload-artifact@v4
+        with:
+          name: landscape-observation-bench-${{ github.sha }}
+          path: ${{ runner.temp }}/landscape-observation-bench/*.json
+          if-no-files-found: error
+          retention-days: 14

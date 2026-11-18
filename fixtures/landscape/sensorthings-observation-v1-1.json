@@ -1,0 +1,49 @@
+{
+  "@iot.id": 71,
+  "phenomenonTime": "2026-10-20T11:30:00.000Z/2026-10-20T11:35:00.000Z",
+  "resultTime": "2026-10-20T11:36:00.000Z",
+  "result": 31.7,
+  "Datastream": {
+    "@iot.id": 12,
+    "name": "Synthetic surface temperature stream",
+    "unitOfMeasurement": {
+      "name": "degree Celsius",
+      "symbol": "degC",
+      "definition": "https://qudt.org/vocab/unit/DEG_C"
+    },
+    "ObservedProperty": {
+      "@iot.id": 6,
+      "name": "Surface temperature",
+      "definition": "urn:luminous:landscape:observed-property:surface-temperature"
+    },
+    "Sensor": {
+      "@iot.id": 9,
+      "name": "Synthetic surface temperature sensor",
+      "description": "Synthetic data fixture only",
+      "metadata": "urn:luminous:landscape:sensor-metadata:synthetic-v0"
+    }
+  },
+  "FeatureOfInterest": {
+    "@iot.id": 3,
+    "name": "Sensitive example feature of interest",
+    "description": "Contains synthetic coordinates specifically to test that the adapter does not copy location into public-facing records.",
+    "feature": {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          18,
+          -30
+        ]
+      },
+      "properties": {
+        "synthetic": true
+      }
+    }
+  },
+  "synthetic_fixture": {
+    "is_synthetic": true,
+    "not_for_scientific_use": true,
+    "payload_hash_is_computed_by_test_caller": true
+  }
+}

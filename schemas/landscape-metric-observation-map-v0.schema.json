@@ -1,0 +1,221 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://luminousdynamics.io/schemas/landscape-metric-observation-map-v0.schema.json",
+  "title": "Landscape Metric Observation Map v0",
+  "description": "Crosswalk from landscape performance metric identifiers to potential observation inputs and required non-observation evidence. It is not a metric calculator.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "schema_uri",
+    "registry_schema_uri",
+    "registry_version",
+    "status",
+    "purpose",
+    "principles",
+    "unit_profile",
+    "mappings",
+    "global_acceptance_rules"
+  ],
+  "properties": {
+    "schema": {
+      "const": "luminous.landscape-metric-observation-map.v0"
+    },
+    "schema_uri": {
+      "const": "https://luminousdynamics.io/schemas/landscape-metric-observation-map-v0.schema.json"
+    },
+    "registry_schema_uri": {
+      "type": "string",
+      "format": "uri"
+    },
+    "registry_version": {
+      "type": "string",
+      "minLength": 1
+    },
+    "status": {
+      "enum": [
+        "cross-pr-dependency-not-yet-merged-or-validated-against-registry",
+        "validated-against-pinned-registry"
+      ]
+    },
+    "purpose": {
+      "type": "string",
+      "minLength": 1
+    },
+    "principles": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "unit_profile": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "version",
+        "rule",
+        "examples"
+      ],
+      "properties": {
+        "version": {
+          "type": "string",
+          "minLength": 1
+        },
+        "rule": {
+          "type": "string",
+          "minLength": 1
+        },
+        "examples": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    },
+    "mappings": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "metric_id",
+          "support_status",
+          "possible_observed_properties",
+          "required_non_observation_inputs",
+          "required_method_contracts",
+          "permitted_claims",
+          "prohibited_inferences",
+          "output_status"
+        ],
+        "properties": {
+          "metric_id": {
+            "type": "string",
+            "pattern": "^[a-z0-9_-]+(\\.[a-z0-9_-]+)+$"
+          },
+          "support_status": {
+            "enum": [
+              "not-supported-v0-spatial-geometry",
+              "supporting-observations-only",
+              "candidate-feature-linked-evidence-inputs",
+              "supporting-inventory-evidence-only",
+              "requires-governance-artifact",
+              "supporting-estimate-inputs-only"
+            ]
+          },
+          "possible_observed_properties": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "id",
+                "label",
+                "unit",
+                "result_kinds",
+                "minimum_evidence_classes",
+                "requires_time",
+                "requires_project_or_site_ref"
+              ],
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "label": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "unit": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "result_kinds": {
+                  "type": "array",
+                  "minItems": 1,
+                  "uniqueItems": true,
+                  "items": {
+                    "enum": [
+                      "quantity",
+                      "category",
+                      "boolean"
+                    ]
+                  }
+                },
+                "minimum_evidence_classes": {
+                  "type": "array",
+                  "minItems": 1,
+                  "uniqueItems": true,
+                  "items": {
+                    "enum": [
+                      "field-observation",
+                      "sensor-observation",
+                      "remote-sensing-classification",
+                      "lab-analysis",
+                      "community-report",
+                      "synthetic-test",
+                      "imported-observation"
+                    ]
+                  }
+                },
+                "requires_time": {
+                  "type": "boolean"
+                },
+                "requires_project_or_site_ref": {
+                  "type": "boolean"
+                }
+              }
+            }
+          },
+          "required_non_observation_inputs": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "required_method_contracts": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "permitted_claims": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "prohibited_inferences": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "output_status": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    },
+    "global_acceptance_rules": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    }
+  }
+}

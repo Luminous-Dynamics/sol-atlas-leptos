@@ -1,0 +1,147 @@
+{
+  "manifest_version": "landscape-observation-ingest-benchmark-v0",
+  "status": "protocol-only-no-measured-results",
+  "purpose": "Reproducible correctness and throughput testing for offline observation batches; not a claim of production capacity.",
+  "schema_profiles": [
+    "luminous.landscape-observation.v0",
+    "luminous.landscape-observation-batch.v0"
+  ],
+  "fixture_seed": "observation-batch-v0",
+  "generator": {
+    "version": 1,
+    "algorithm": "lcg32",
+    "initial_seed_hex": "0x4f425356",
+    "recurrence": "state = (1664525 * state + 1013904223) mod 2^32",
+    "source_cases": "Cycle through the five committed synthetic fixture records in stable order. For generated unique records, rewrite observation_id and source_event_id with deterministic sequence IDs; vary result values, timestamps, and payload digests from the seeded state. Recompute mapped payload digests for transformation-bearing records using the declared digest profile.",
+    "evidence_class": "synthetic-test",
+    "prohibition": "Generated records must never be relabelled as field, sensor, lab, or community evidence."
+  },
+  "workload_sizes": [
+    {
+      "id": "single-1",
+      "input_records": 1,
+      "role": "smoke-correctness"
+    },
+    {
+      "id": "small-10",
+      "input_records": 10,
+      "role": "smoke-throughput"
+    },
+    {
+      "id": "medium-100",
+      "input_records": 100,
+      "role": "interactive-import"
+    },
+    {
+      "id": "large-1000",
+      "input_records": 1000,
+      "role": "large-offline-import"
+    },
+    {
+      "id": "maximum-10000",
+      "input_records": 10000,
+      "role": "declared-validator-limit"
+    },
+    {
+      "id": "over-limit-10001",
+      "input_records": 10001,
+      "role": "early-rejection-control"
+    }
+  ],
+  "duplicate_profiles": [
+    {
+      "id": "no-duplicates",
+      "duplicate_fraction": 0,
+      "expected_behavior": "all unique records"
+    },
+    {
+      "id": "exact-1pct",
+      "duplicate_fraction": 0.01,
+      "expected_behavior": "deduplicate exact copies and report them"
+    },
+    {
+      "id": "exact-10pct",
+      "duplicate_fraction": 0.1,
+      "expected_behavior": "deduplicate exact copies and report them"
+    },
+    {
+      "id": "exact-100pct",
+      "duplicate_fraction": 1,
+      "expected_behavior": "one unique record if all copies are identical"
+    },
+    {
+      "id": "conflicting-id",
+      "duplicate_fraction": 0.01,
+      "expected_behavior": "reject entire batch when same ID carries different content"
+    }
+  ],
+  "negative_controls": [
+    "missing required root field",
+    "missing nested required object",
+    "unknown fields at root and nested record",
+    "same observation ID with mutated result",
+    "result-unit mismatch",
+    "phenomenon window ending after result time",
+    "non-current calibration on accepted sensor record",
+    "invalid OGC:CRS84 longitude/latitude ranges",
+    "local frame missing its unit declaration",
+    "raw-public-approved release without valid consent reference",
+    "restricted location marked public-approved",
+    "synthetic fixture relabelled as real observation",
+    "invalid or discontinuous transformation digest",
+    "inverted uncertainty interval",
+    "batch size 10001"
+  ],
+  "measures": [
+    "validate_batch latency in milliseconds p50/p95/p99",
+    "normalize_batch latency in milliseconds p50/p95/p99",
+    "observations accepted per second",
+    "input bytes and normalized output bytes",
+    "unique observation count",
+    "exact duplicate count",
+    "conflicting-ID rejection rate",
+    "incorrect acceptance rate for negative controls",
+    "incorrect rejection rate for valid controls",
+    "peak resident memory",
+    "process exit status and typed error category"
+  ],
+  "run_metadata_required": [
+    "git_commit_sha",
+    "rustc_version",
+    "cargo_profile",
+    "os_and_kernel",
+    "cpu_model",
+    "ram_bytes",
+    "payload_seed",
+    "generator_version",
+    "input_record_count",
+    "input_sha256",
+    "fixture_bundle_sha256",
+    "duplicate_profile",
+    "cold_or_warm",
+    "sample_count",
+    "raw_measurement_sha256"
+  ],
+  "proposed_gates": {
+    "maximum_10000": {
+      "p95_validate_ms_lt": 500,
+      "p95_normalize_ms_lt": 1000,
+      "peak_memory_mib_lt": 128,
+      "valid_record_loss_count": 0,
+      "conflicting_ids_accepted": 0,
+      "exact_duplicate_count_reported_correctly": true
+    },
+    "all_workloads": {
+      "synthetic_to_real_evidence_class_escalation_count": 0,
+      "restricted_coordinates_copied_to_public_output_count": 0,
+      "malformed_payload_false_accept_count": 0,
+      "source_payload_bytes_required_for_digest_verification": true
+    }
+  },
+  "caveats": [
+    "All thresholds are proposed; freeze the reference machine and run harness before turning them into release gates.",
+    "The current validator checks digest syntax and transformation-chain continuity but does not hash raw source bytes itself; adapter callers must provide the digest of retained/exact bytes.",
+    "The throughput workload generator and benchmark executable are follow-up work, not contained in this manifest.",
+    "Performance on synthetic homogeneous records does not establish throughput for remote-sensing raster datasets or causal/physical model validation."
+  ]
+}
