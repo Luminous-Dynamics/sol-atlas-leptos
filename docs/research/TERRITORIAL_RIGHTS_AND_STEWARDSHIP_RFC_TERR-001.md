@@ -112,7 +112,7 @@ This programme should reuse mature standards rather than invent a proprietary on
 
 | Area | Existing baseline | What Luminous should do |
 |---|---|---|
-| Land-administration semantics | ISO 19152-1:2024 LADM generic conceptual model | Map parties, spatial units, sources and RRRs; document jurisdiction profiles |
+| Land-administration semantics | ISO 19152-1:2024 LADM generic conceptual model | Map parties, spatial units, sources and RRRs; document jurisdiction profiles; see [TERR-001 LADM crosswalk](./LADM_PROFILE_CROSSWALK_TERR-001.md) |
 | Land-registration semantics | ISO 19152-2:2025 LADM land registration, including above- and below-surface spatial elements | Keep registration evidence and spatial representations distinct |
 | Geospatial feature access | OGC API Features | Use feature/collection identifiers and standard query semantics |
 | Geospatial asset catalogues | STAC 1.1 / STAC API 1.0 | Reference imagery, DEM, LiDAR, SAR and derived data with temporal metadata |
@@ -212,7 +212,7 @@ The v0.1 validator rejects:
 - administrative-record bases without a linked registry/regulator authority and registry/permit evidence;
 - court-decision bases without a linked court/tribunal authority and court-order evidence;
 - community-attested bases without both a linked customary/community-governance authority and community-decision evidence (testimony alone is not enough);
-- contractual/statutory bases without corresponding instrument evidence;
+- contractual bases without a linked ContractingParty authority and contract evidence; statutory bases without a linked StatutoryRegulator authority and statutory-instrument evidence;
 - dispute states inconsistent with linked challenge lifecycle (including hiding an active objection as no-known-challenge or resolving while another challenge remains open);
 - verified-complete obligations without a separate verifier and completion evidence.
 
@@ -234,6 +234,14 @@ This is a structural Rust contract only. It does not yet:
 The validator is a fail-closed structural preflight, not a legal or scientific certification engine.
 
 ## 7. Cross-project responsibility boundaries
+
+Do not duplicate active programmes. Compose with the existing work:
+- Sol Atlas: [LAND-DESIGN-001 #190](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/190), [LAND-DATA-001 #206](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/206), [LAND-PILOT-001 #264](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/264), [JUKSKEI-EO-QUALIFICATION-001 #842](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/842), [PHYSICAL-CHANGE-INVARIANCE-001 #845](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/845), and this PR #936.
+- Mycelix: [LAND-STEWARD-001 #5277](https://github.com/Luminous-Dynamics/mycelix/issues/5277) and profile PR #5298 own consent-aware landscape governance; [CIVOS-EVIDENCE-001 #5709](https://github.com/Luminous-Dynamics/mycelix/issues/5709) owns rights-aware claim/provenance receipt foundations; [EPI-008 #2631](https://github.com/Luminous-Dynamics/mycelix/issues/2631) owns typed temporal semantics.
+- Symthaea: [LAND-REVIEW-001 #8196](https://github.com/Luminous-Dynamics/symthaea/issues/8196) owns read-only landscape alternative review and evidence-bound recommendation.
+- Symtropy: [LENV-01 #1240](https://github.com/Luminous-Dynamics/symtropy/issues/1240) owns coherent environmental observation contexts; [CCZ-OBSERVABILITY-001 #2011](https://github.com/Luminous-Dynamics/symtropy/issues/2011) owns falsification-first environmental evidence dispositions; [AQECO-001 #2206](https://github.com/Luminous-Dynamics/symtropy/issues/2206) owns the closed-box aquatic-process oracle.
+
+This RFC/PR supplies a shared territorial interchange and claim/authority crosswalk, not replacement implementations of those programmes.
 
 | Project | Responsibility | Must not do |
 |---|---|---|
@@ -346,8 +354,8 @@ The advantage is not a faster map or a more impressive AI answer. It is fewer un
 
 ### M0 — contract foundation (current PR)
 - Add the Rust territorial interchange types and structural validator.
-- Add twelve module-level tests plus five JSON fixture cases exercised by integration tests: asserted claim, contested multi-authority record, missing registry authority, testimony-only community attestation and restoration completion without an independent verifier.
-- Publish this RFC with explicit boundaries and benchmark plan.
+- Add fourteen module-level tests plus eight synthetic JSON fixtures exercised by eight integration tests: asserted claim; contested multi-authority record; missing registry authority; testimony-only community attestation; contract and statutory bases with distinct scoped authorities; contract without contracting-party authority; statute linked to the wrong authority kind; and restoration completion without an independent verifier.
+- Publish this RFC, the [LADM crosswalk](./LADM_PROFILE_CROSSWALK_TERR-001.md), explicit boundaries and benchmark plan.
 - Fixtures are synthetic contract examples, not legal case precedents or measured benchmark performance.
 
 ### M1 — reproducible synthetic corpus
@@ -424,4 +432,4 @@ No CI result, benchmark result or simulation result can substitute for these ext
 
 ---
 
-**Current implementation status:** the Rust v0.1 type module, twelve module-level tests, five synthetic JSON fixtures and an integration-test harness have been added in this branch. The fixture set covers asserted claims, disputed multi-authority records, missing registry authority, testimony-only community attestation and restoration closure without an independent verifier. These tests have not been executed in this environment. No passing build, benchmark result, external legal review, survey validation or field trial is claimed by this document.
+**Current implementation status:** the Rust v0.1 type module, fourteen module-level tests, eight synthetic JSON fixtures and eight fixture-driven integration tests have been added in this branch. The fixture set covers asserted claims, disputed multi-authority records, missing registry authority, testimony-only community attestation, positive and negative contractual/statutory authority pairing, and restoration closure without independent verification. JSON fixtures have been retrieved and parsed successfully, but the Rust tests have not been executed in this environment. No passing build, benchmark result, external legal review, survey validation or field trial is claimed by this document.
