@@ -213,7 +213,7 @@ The v0.1 validator rejects:
 - court-decision bases without a linked court/tribunal authority and court-order evidence;
 - community-attested bases without both a linked customary/community-governance authority and community-decision evidence (testimony alone is not enough);
 - contractual/statutory bases without corresponding instrument evidence;
-- challenged/reviewed/resolved states without challenge references;
+- dispute states inconsistent with linked challenge lifecycle (including hiding an active objection as no-known-challenge or resolving while another challenge remains open);
 - verified-complete obligations without a separate verifier and completion evidence.
 
 ### Explicit v0.1 non-claims and gaps
@@ -325,7 +325,7 @@ The advantage is not a faster map or a more impressive AI answer. It is fewer un
 
 ### M0 — contract foundation (current PR)
 - Add the Rust territorial interchange types and structural validator.
-- Add nine module-level tests plus five JSON fixture cases exercised by integration tests: asserted claim, contested multi-authority record, missing registry authority, testimony-only community attestation and restoration completion without an independent verifier.
+- Add eleven module-level tests plus five JSON fixture cases exercised by integration tests: asserted claim, contested multi-authority record, missing registry authority, testimony-only community attestation and restoration completion without an independent verifier.
 - Publish this RFC with explicit boundaries and benchmark plan.
 - Fixtures are synthetic contract examples, not legal case precedents or measured benchmark performance.
 
@@ -389,9 +389,18 @@ No CI result, benchmark result or simulation result can substitute for these ext
 - [Global Industry Standard on Tailings Management](https://globaltailingsreview.org/global-industry-standard/)
 - [World Bank — 20 years of South African Biodiversity Stewardship, 8 September 2026](https://www.worldbank.org/en/brief/2026/09/08/analysis-of-20-years-of-implementing-south-africa-s-biodiversity-stewardship-progr)
 - [Digital Earth Africa — Fractional Cover and its evaluation caveat](https://docs.digitalearthafrica.org/en/latest/data_specs/Fractional_Cover_specs.html)
+- [FAO SOLA Suite](https://www.fao.org/tenure/resources/toolbox/sola/en)
+- [FAO Open Tenure / Community Tenure Recording](https://www.fao.org/tenure/resources/toolbox/sola/community-tenure-recording/en)
+- [Cadasta Platform](https://cadasta.org/technology/)
+- [Cadasta Data Sovereignty & Governance](https://cadasta.org/data-sovereignty-governance/)
+- [EITI Standard 2023 — Requirement 2.3: Register of licenses](https://eiti.org/sites/default/files/2023-06/2023%20EITI%20Standard.pdf)
+- [EITI — Using beneficial ownership data in extractive licensing and contracting](https://eiti.org/collections/using-beneficial-ownership-data-extractive-licensing-and-contracting)
+- [IRMA Standard](https://responsiblemining.net/what-we-do/standard/irma-mining-standard/)
+- [Global Industry Standard on Tailings Management](https://globaltailingsreview.org/global-industry-standard/)
+- [BLSA Mining Cadastre Reform Tracker — Project Indwe](https://tracker.blsa.org.za/economic/?reform=Mining+cadastral+system)
 - [South African Mineral and Petroleum Resources Development Act](https://www.gov.za/ve/documents/mineral-and-petroleum-resources-development-act)
 - [Constitutional Court — Tongoane and Others](https://collections.concourt.org.za/items/e7459d6e-99bf-4f4d-af49-ca7e30b69475/full)
 
 ---
 
-**Current implementation status:** the Rust v0.1 type module, nine module-level tests, five synthetic JSON fixtures and an integration-test harness have been added in this branch. The fixture set covers asserted claims, disputed multi-authority records, missing registry authority, testimony-only community attestation and restoration closure without an independent verifier. These tests have not been executed in this environment. No passing build, benchmark result, external legal review, survey validation or field trial is claimed by this document.
+**Current implementation status:** the Rust v0.1 type module, eleven module-level tests, five synthetic JSON fixtures and an integration-test harness have been added in this branch. The fixture set covers asserted claims, disputed multi-authority records, missing registry authority, testimony-only community attestation and restoration closure without an independent verifier. These tests have not been executed in this environment. No passing build, benchmark result, external legal review, survey validation or field trial is claimed by this document.
