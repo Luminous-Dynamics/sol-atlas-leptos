@@ -39,6 +39,25 @@ struct IntentOption {
     id: String,
     name: String,
     description: String,
+    reference_scope: Option<String>,
+    context_note: Option<String>,
+    reference_sources: Vec<String>,
+    identity_must_not_be_inferred: bool,
+    selection_status: Option<String>,
+}
+
+#[derive(Clone)]
+struct RegionalReferenceModule {
+    id: String,
+    name: String,
+    module_type: String,
+    geographic_scope: String,
+    historical_scope: String,
+    description: String,
+    attribution_guardrail: String,
+    reference_sources: Vec<String>,
+    claim_ceiling: String,
+    selection_status: String,
 }
 
 fn load_catalog() -> (
@@ -47,6 +66,7 @@ fn load_catalog() -> (
     Vec<IntentOption>,
     Vec<IntentOption>,
     Vec<IntentOption>,
+    Vec<RegionalReferenceModule>,
 ) {
     let catalog: Value = serde_json::from_str(EXPRESSION_CATALOG)
         .expect("embedded home expression catalogue must be valid JSON");
@@ -98,8 +118,16 @@ fn load_catalog() -> (
     let materials = load_intent_options(&catalog, "material_tectonic_intent_catalog");
     let environmental =
         load_intent_options(&catalog, "environmental_strategy_intent_catalog");
+    let regional_references = load_regional_reference_modules(&catalog);
 
-    (styles, experiences, typologies, materials, environmental)
+    (
+        styles,
+        experiences,
+        typologies,
+        materials,
+        environmental,
+        regional_references,
+    )
 }
 
 fn load_intent_options(catalog: &Value, key: &str) -> Vec<IntentOption> {
@@ -113,6 +141,66 @@ fn load_intent_options(catalog: &Value, key: &str) -> Vec<IntentOption> {
                 id: item.get("option_id")?.as_str()?.to_owned(),
                 name: item.get("display_name")?.as_str()?.to_owned(),
                 description: item.get("description")?.as_str()?.to_owned(),
+                reference_scope: item
+                    .get("reference_scope")
+                    .and_then(Value::as_str)
+                    .map(str::to_owned),
+                context_note: item
+                    .get("context_note")
+                    .and_then(Value::as_str)
+                    .map(str::to_owned),
+                reference_sources: item
+                    .get("reference_sources")
+                    .and_then(Value::as_array)
+                    .map(|sources| {
+                        sources
+                            .iter()
+                            .filter_map(Value::as_str)
+                            .map(str::to_owned)
+                            .collect()
+                    })
+                    .unwrap_or_default(),
+                identity_must_not_be_inferred: item
+                    .get("identity_must_not_be_inferred")
+                    .and_then(Value::as_bool)
+                    .unwrap_or(false),
+                selection_status: item
+                    .get("selection_status")
+                    .and_then(Value::as_str)
+                    .map(str::to_owned),
+            })
+        })
+        .collect()
+}
+
+fn load_regional_reference_modules(catalog: &Value) -> Vec<RegionalReferenceModule> {
+    catalog
+        .get("regional_reference_modules")
+        .and_then(Value::as_array)
+        .into_iter()
+        .flatten()
+        .filter_map(|item| {
+            Some(RegionalReferenceModule {
+                id: item.get("reference_id")?.as_str()?.to_owned(),
+                name: item.get("display_name")?.as_str()?.to_owned(),
+                module_type: item.get("module_type")?.as_str()?.to_owned(),
+                geographic_scope: item.get("geographic_scope")?.as_str()?.to_owned(),
+                historical_scope: item.get("historical_scope")?.as_str()?.to_owned(),
+                description: item.get("description")?.as_str()?.to_owned(),
+                attribution_guardrail: item.get("attribution_guardrail")?.as_str()?.to_owned(),
+                reference_sources: item
+                    .get("reference_sources")
+                    .and_then(Value::as_array)
+                    .map(|sources| {
+                        sources
+                            .iter()
+                            .filter_map(Value::as_str)
+                            .map(str::to_owned)
+                            .collect()
+                    })
+                    .unwrap_or_default(),
+                claim_ceiling: item.get("claim_ceiling")?.as_str()?.to_owned(),
+                selection_status: item.get("selection_status")?.as_str()?.to_owned(),
             })
         })
         .collect()
@@ -260,6 +348,29 @@ fn HomeIntentAxisPicker(
                             <p class="home-expression-card-category">"RESIDENT-AUTHORED AXIS OPTION"</p>
                             <h3>{option.name.clone()}</h3>
                             <p class="home-expression-card-description">{option.description.clone()}</p>
+                            {option.reference_scope.clone().map(|scope| view! {
+                                <p class="home-expression-card-category">{scope}</p>
+                            })}
+                            {option.context_note.clone().map(|note| view! {
+                                <p class="home-expression-card-description">{note}</p>
+                            })}
+                            {if option.identity_must_not_be_inferred {
+                                view! {
+                                    <p class="home-expression-card-description">
+                                        "Context-specific historical reference only. Do not infer a resident's identity or community from this selection."
+                                    </p>
+                                }.into_any()
+                            } else {
+                                view! { <></> }.into_any()
+                            }}
+                            {option.reference_sources.clone().into_iter().map(|source| view! {
+                                <a
+                                    class="home-expression-source-link"
+                                    href=source.clone()
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                >{source}</a>
+                            }).collect::<Vec<_>>()}
                             <div class="home-expression-role-row" aria-label="Intent preference">
                                 <button
                                     class:active=move || current_preference(preferences, &id_prefer_active) == "PREFERRED"
@@ -287,8 +398,14 @@ fn HomeIntentAxisPicker(
 
 #[component]
 pub fn HomeExpressionPage() -> impl IntoView {
-    let (styles, experiences, typology_options, material_options, environmental_options) =
-        load_catalog();
+    let (
+        styles,
+        experiences,
+        typology_options,
+        material_options,
+        environmental_options,
+        regional_references,
+    ) = load_catalog();
     let style_sources: BTreeMap<String, Vec<String>> = styles
         .iter()
         .map(|style| (style.id.clone(), style.reference_sources.clone()))
@@ -335,7 +452,7 @@ pub fn HomeExpressionPage() -> impl IntoView {
 
         let typology_entries: Vec<Value> = typology_preferences
             .iter()
-            .map(|(item_id, preference)| json!({"item_id": item_id, "preference": preference}))
+            .map(|(item_id, preference)| json!({"option_id": item_id, "preference": preference}))
             .collect();
         let material_entries: Vec<Value> = material_preferences
             .iter()
@@ -441,6 +558,40 @@ pub fn HomeExpressionPage() -> impl IntoView {
                 </p>
             </header>
 
+            <section class="home-expression-section home-expression-heritage-section">
+                <div class="home-expression-section-heading">
+                    <div>
+                        <p class="home-expression-step">"REGIONAL HERITAGE REFERENCES"</p>
+                        <h2>"Research and conservation context"</h2>
+                        <p>"These references are not selectable new-build styles or construction details. They are read-only context for documentation, conservation and carefully reviewed interpretation."</p>
+                    </div>
+                </div>
+                <div class="home-expression-style-grid">
+                    {regional_references.into_iter().map(|reference| view! {
+                        <article class="home-expression-style-card">
+                            <p class="home-expression-card-category">{reference.module_type.clone()}</p>
+                            <h3>{reference.name.clone()}</h3>
+                            <p class="home-expression-card-description">{reference.description.clone()}</p>
+                            <p class="home-expression-card-description">
+                                {format!("{} · {}", reference.geographic_scope, reference.historical_scope)}
+                            </p>
+                            <p class="home-expression-card-description">{reference.attribution_guardrail.clone()}</p>
+                            <p class="home-expression-card-description">
+                                {format!("{} · {}", reference.selection_status, reference.claim_ceiling)}
+                            </p>
+                            {reference.reference_sources.clone().into_iter().map(|source| view! {
+                                <a
+                                    class="home-expression-source-link"
+                                    href=source.clone()
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                >{source}</a>
+                            }).collect::<Vec<_>>()}
+                        </article>
+                    }).collect::<Vec<_>>()}
+                </div>
+            </section>
+
             <HomeIntentAxisPicker
                 title="01 · SPATIAL TYPOLOGY"
                 description="What kind of dwelling arrangement fits your life?"
@@ -484,6 +635,14 @@ pub fn HomeExpressionPage() -> impl IntoView {
                                 <p class="home-expression-card-description">
                                     {format!("{} · {}", style.reference_policy, style.authenticity_note)}
                                 </p>
+                                {style.reference_sources.clone().into_iter().map(|source| view! {
+                                    <a
+                                        class="home-expression-source-link"
+                                        href=source.clone()
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                    >{source}</a>
+                                }).collect::<Vec<_>>()}
                                 <div class="home-expression-role-row" aria-label="Style preference">
                                     <button
                                         class:active=move || current_preference(style_roles, &id_primary_active) == "PRIMARY"
@@ -672,12 +831,13 @@ mod tests {
 
     #[test]
     fn embedded_catalog_has_expected_style_and_experience_counts() {
-        let (styles, experiences, typologies, materials, environmental) = load_catalog();
-        assert_eq!(styles.len(), 34);
+        let (styles, experiences, typologies, materials, environmental, regional) = load_catalog();
+        assert_eq!(styles.len(), 35);
         assert_eq!(experiences.len(), 26);
-        assert_eq!(typologies.len(), 11);
+        assert_eq!(typologies.len(), 13);
         assert_eq!(materials.len(), 8);
         assert_eq!(environmental.len(), 10);
+        assert_eq!(regional.len(), 1);
         assert!(styles.iter().all(|item| {
             !item.id.is_empty()
                 && !item.name.is_empty()
@@ -700,6 +860,35 @@ mod tests {
             assert!(!option.name.is_empty());
             assert!(!option.description.is_empty());
         }
+    }
+
+    #[test]
+    fn regional_spatial_typologies_expose_context_sources_and_identity_guard() {
+        let (_, _, typologies, _, _, regional) = load_catalog();
+        for id in ["CONE_ON_CYLINDER_DWELLING", "BEEHIVE_DOME_DWELLING"] {
+            let option = typologies.iter().find(|item| item.id == id).unwrap();
+            assert!(option.reference_scope.as_ref().is_some_and(|value| !value.is_empty()));
+            assert!(option.context_note.as_ref().is_some_and(|value| !value.is_empty()));
+            assert!(!option.reference_sources.is_empty());
+            assert!(option.identity_must_not_be_inferred);
+            assert_eq!(option.selection_status.as_deref(), Some("ILLUSTRATIVE_NOT_EVALUATED"));
+        }
+
+        let karoo = regional
+            .iter()
+            .find(|item| item.id == "KAROO_CORBELLED_STONE_HERITAGE")
+            .unwrap();
+        assert_eq!(karoo.selection_status, "REFERENCE_ONLY_NOT_A_STYLE_PRESET");
+        assert_eq!(karoo.module_type, "CONSERVATION_REFERENCE_ONLY");
+        assert!(!karoo.reference_sources.is_empty());
+        assert!(karoo.claim_ceiling.contains("NO_NEW_BUILD_DETAIL"));
+    }
+
+    #[test]
+    fn karoo_heritage_reference_is_not_a_selectable_style() {
+        let (styles, _, _, _, _, regional) = load_catalog();
+        assert!(!styles.iter().any(|style| style.id == "KAROO_CORBELLED_STONE_HISTORIC"));
+        assert!(regional.iter().any(|item| item.id == "KAROO_CORBELLED_STONE_HERITAGE"));
     }
 
     #[test]
