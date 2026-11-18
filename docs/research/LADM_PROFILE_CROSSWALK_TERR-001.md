@@ -83,7 +83,7 @@ These checks validate only the shape and reference pairing. They do not establis
 
 ### Geometry
 
-Use OGC API Features-compatible feature identities and explicit CRS declarations. Use STAC for source-native satellite, aerial, LiDAR, point-cloud, DEM and derived raster asset metadata, and OGC API Records for discovery of evidence and dataset metadata.
+Use OGC API Features-compatible feature identities and explicit CRS declarations. Use STAC for source-native satellite, aerial, LiDAR, point-cloud, DEM and derived raster asset metadata, and OGC API Records for discovery of evidence and dataset metadata. For feature payload interchange, include the OGC **Features and Geometries JSON (JSON-FG)** standard (released 21 May 2026) in the candidate encodings when extended CRS, geometry or feature-class semantics are required. Preserve the original source encoding and record every transform; JSON-FG conformance is not a survey or legal-boundary certificate.
 
 Do not assume:
 - a surface parcel polygon describes underground mineral space;
@@ -109,6 +109,11 @@ Reuse Mycelix EPI-008's typed temporal roles and evidence frontiers:
 - analysis and verification time.
 
 A future adapter should be able to answer "what was asserted, from which sources, under which authority and according to which evidence frontier at decision time T?" without rewriting history when later evidence arrives.
+
+
+### 2026 FELA implementation context
+
+The UN-GGIM Sixth Expert Meeting on Land Administration and Management met in Cape Town on 29–30 May 2026. Its FELA framing spans Governance, Technology and People, not technology alone. A 2026 comparative dataset covering 85 jurisdictions reports, for its 15-observation Eastern and Southern Sub-Saharan Africa sample (including South Africa, but not a South Africa-specific estimate), 20.0% national digital-registry coverage, 40.0% digital cadastres, 46.7% registry/cadastre integration, 6.7% registry API access and 13.3% cadastre API access. These regional figures make offline/assisted workflows, stale-source handling and non-API reconciliation important benchmark requirements. They are not evidence about current performance of an individual South African registry or Project Indwe.
 
 ## South African profile boundary
 
