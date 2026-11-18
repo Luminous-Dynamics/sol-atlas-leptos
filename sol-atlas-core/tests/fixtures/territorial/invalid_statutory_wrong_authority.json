@@ -35,7 +35,7 @@
       "bases": [
         "statutory_instrument"
       ],
-      "dispute_state": "no_known_challenge",
+      "dispute_state": "unassessed",
       "spatial": {
         "feature_ref": "urn:ogc:feature:site-001",
         "horizontal_crs": "https://www.opengis.net/def/crs/EPSG/0/4326",
@@ -55,8 +55,10 @@
         "other-authority-003"
       ],
       "challenge_ids": [],
-      "disclosure_class": "restricted"
+      "disclosure_class": "restricted",
+      "challenge_assessment_id": null
     }
   ],
-  "obligations": []
+  "obligations": [],
+  "challenge_assessments": []
 }
