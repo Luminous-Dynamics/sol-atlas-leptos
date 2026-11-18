@@ -602,14 +602,18 @@ impl TerritorialRecord {
                                 matches!(
                                     authority.kind,
                                     AuthorityKind::Registry | AuthorityKind::StatutoryRegulator
-                                ) && evidence_by_id
-                                    .get(authority.source_evidence_id.as_str())
-                                    .is_some_and(|evidence| {
-                                        matches!(
-                                            evidence.kind,
-                                            EvidenceKind::RegistryExtract | EvidenceKind::Permit
-                                        )
-                                    })
+                                ) && assertion
+                                    .evidence_ids
+                                    .iter()
+                                    .any(|evidence_id| evidence_id == &authority.source_evidence_id)
+                                    && evidence_by_id
+                                        .get(authority.source_evidence_id.as_str())
+                                        .is_some_and(|evidence| {
+                                            matches!(
+                                                evidence.kind,
+                                                EvidenceKind::RegistryExtract | EvidenceKind::Permit
+                                            )
+                                        })
                             })
                         });
                         if !has_register_authority {
@@ -623,6 +627,10 @@ impl TerritorialRecord {
                         let has_court_authority = assertion.authority_ids.iter().any(|id| {
                             authority_by_id.get(id.as_str()).is_some_and(|authority| {
                                 authority.kind == AuthorityKind::CourtOrTribunal
+                                    && assertion
+                                        .evidence_ids
+                                        .iter()
+                                        .any(|evidence_id| evidence_id == &authority.source_evidence_id)
                                     && evidence_by_id
                                         .get(authority.source_evidence_id.as_str())
                                         .is_some_and(|evidence| {
@@ -644,11 +652,15 @@ impl TerritorialRecord {
                                     authority.kind,
                                     AuthorityKind::CustomaryInstitution
                                         | AuthorityKind::CommunityGovernanceBody
-                                ) && evidence_by_id
-                                    .get(authority.source_evidence_id.as_str())
-                                    .is_some_and(|evidence| {
-                                        evidence.kind == EvidenceKind::CommunityDecision
-                                    })
+                                ) && assertion
+                                    .evidence_ids
+                                    .iter()
+                                    .any(|evidence_id| evidence_id == &authority.source_evidence_id)
+                                    && evidence_by_id
+                                        .get(authority.source_evidence_id.as_str())
+                                        .is_some_and(|evidence| {
+                                            evidence.kind == EvidenceKind::CommunityDecision
+                                        })
                             })
                         });
                         if !has_community_decision_authority {
@@ -672,6 +684,10 @@ impl TerritorialRecord {
                         let has_contract_authority = assertion.authority_ids.iter().any(|id| {
                             authority_by_id.get(id.as_str()).is_some_and(|authority| {
                                 authority.kind == AuthorityKind::ContractingParty
+                                    && assertion
+                                        .evidence_ids
+                                        .iter()
+                                        .any(|evidence_id| evidence_id == &authority.source_evidence_id)
                                     && evidence_by_id
                                         .get(authority.source_evidence_id.as_str())
                                         .is_some_and(|evidence| {
@@ -700,6 +716,10 @@ impl TerritorialRecord {
                         let has_statutory_authority = assertion.authority_ids.iter().any(|id| {
                             authority_by_id.get(id.as_str()).is_some_and(|authority| {
                                 authority.kind == AuthorityKind::StatutoryRegulator
+                                    && assertion
+                                        .evidence_ids
+                                        .iter()
+                                        .any(|evidence_id| evidence_id == &authority.source_evidence_id)
                                     && evidence_by_id
                                         .get(authority.source_evidence_id.as_str())
                                         .is_some_and(|evidence| {
@@ -1082,6 +1102,7 @@ mod tests {
         let mut value = record(vec![assertion(vec![ClaimBasis::AdministrativeRecord])]);
         assert!(value.validate().is_err());
         value.evidence.push(evidence("registry-1", EvidenceKind::RegistryExtract));
+        value.assertions[0].evidence_ids.push("registry-1".into());
         value.authorities.push(AuthorityReference {
             id: "authority-1".into(),
             issuer_ref: "institution:registry".into(),
@@ -1150,6 +1171,7 @@ mod tests {
         let mut value = record(vec![assertion(vec![ClaimBasis::CourtDecision])]);
         assert!(value.validate().is_err());
         value.evidence.push(evidence("court-1", EvidenceKind::CourtOrder));
+        value.assertions[0].evidence_ids.push("court-1".into());
         value.authorities.push(AuthorityReference {
             id: "court-authority".into(),
             issuer_ref: "institution:court".into(),
@@ -1229,6 +1251,30 @@ mod tests {
         });
         value.assertions[0].authority_ids.push("regulator-authority".into());
         assert_eq!(value.validate(), Ok(()));
+    }
+
+    #[test]
+    fn authority_source_evidence_must_be_linked_to_the_assertion() {
+        let mut value = record(vec![assertion(vec![ClaimBasis::AdministrativeRecord])]);
+        value.evidence.push(evidence("registry-1", EvidenceKind::RegistryExtract));
+        value.authorities.push(AuthorityReference {
+            id: "authority-1".into(),
+            issuer_ref: "institution:registry".into(),
+            kind: AuthorityKind::Registry,
+            jurisdiction: "ZA".into(),
+            scope: "land registration".into(),
+            source_evidence_id: "registry-1".into(),
+            valid_from: "2026-01-01".into(),
+            valid_until: None,
+            disclosure_class: DisclosureClass::Restricted,
+        });
+        value.assertions[0].authority_ids = vec!["authority-1".into()];
+        let issues = value.validate().expect_err(
+            "an unrelated evidence item in the same territorial record must not satisfy the assertion authority",
+        );
+        assert!(issues.iter().any(|issue| {
+            issue.contains("administrative_record without matching registry/regulator authority")
+        }));
     }
 
     #[test]
