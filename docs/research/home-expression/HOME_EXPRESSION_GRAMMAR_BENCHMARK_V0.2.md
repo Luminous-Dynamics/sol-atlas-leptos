@@ -85,6 +85,9 @@ All targets below are **research targets**, not observed results. Report each se
 - 100% rejection or quarantine of missing rights, withdrawn references, unbound heritage claims and stale evidence.
 - 0 automatic promotion from style/intent to geometry, cost, climate performance, code compliance or heritage approval.
 - Positive controls must demonstrate that valid, evidence-complete candidates can pass; an always-blocking system is not acceptable.
+- 100% of regional style/typology/heritage references retain source, geographic/historical scope, attribution/context note and rights state; zero identity inference from name, address, nationality, photograph or budget.
+- 0 heritage/conservation-only references are silently promoted into contemporary construction details or new-build style presets.
+- No universal cultural-authenticity, beauty or symbolism score; assess provenance and resident/community validation separately.
 
 ### P1 — grammar quality and compositional behaviour
 - 100% of valid grammar fixtures preserve independent axis identity; 0 silent conversion of typology into style or material preference into a specified assembly.
@@ -92,6 +95,10 @@ All targets below are **research targets**, not observed results. Report each se
 - At least 3 genuinely distinct topology/functional candidates on a tractable non-overconstrained brief, with duplication measured structurally rather than by render similarity.
 - ≥95% retention of resident-stated requirements across candidate revision; 100% of removed or transformed requirements must have a traceable explanation and resident-visible status.
 - Counterfactual locality: changes should propagate only through declared dependencies; publish the exact affected/unaffected receipt set.
+- 100% exact invalidation closure on frozen dependency-DAG fixtures; zero evidence receipt remains current after one of its declared dependency digests changes.
+- 0 unrelated evidence invalidations where the dependency graph is complete and proves independence; report graph coverage/completeness as a separate metric because a missing edge is not evidence of independence.
+- 100% preservation of the distinction between architectural expression, spatial typology, tectonic intent, environmental strategy and experience/programme; no style label is a geometry or material assembly parameter.
+- Source-aware regional references must pass a positive-control attribution test and negative controls for missing/withdrawn sources, absent context, wrong type assignment and attempted identity inference.
 
 ### P2 — search and physical performance
 
@@ -125,6 +132,7 @@ All targets below are **research targets**, not observed results. Report each se
 - Use consented and compensated residents; pre-register tasks and analysis.
 - Measure requirement-comprehension, ability to express "none/undecided", preference correction, perceived influence, accessibility task completion, privacy comprehension and dissent preservation.
 - Compare decisions to resident-declared priorities, not synthetic LLM personas or a universal satisfaction score.
+- Evaluate whether residents can add, remove, rename, reject and leave references undecided; measure agency, correction latency and whether residents understand which references are historical/conservation-only versus selectable spatial or architectural directions.
 - Determine sample size by a power analysis for the chosen outcomes; do not invent a user-study result from a prototype.
 
 ## 5. Execution order
