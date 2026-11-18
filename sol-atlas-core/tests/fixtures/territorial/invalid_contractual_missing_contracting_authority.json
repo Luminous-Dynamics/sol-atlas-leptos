@@ -1,0 +1,48 @@
+{
+  "schema_version": 1,
+  "territory_ref": "urn:tib:territory:za-site-002",
+  "created_at": "2026-11-18T10:00:00Z",
+  "evidence": [
+    {
+      "id": "contract-002",
+      "kind": "contract",
+      "source_ref": "urn:tib:v0.1:evidence:contract-002",
+      "captured_at": "2026-11-18T10:00:00Z",
+      "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "disclosure_class": "restricted"
+    }
+  ],
+  "authorities": [],
+  "challenges": [],
+  "assertions": [
+    {
+      "id": "assertion-contract-only",
+      "holder_ref": "party:operator-001",
+      "interest_kind": "surface_land",
+      "relationship": "responsibility",
+      "bases": [
+        "contractual_instrument"
+      ],
+      "dispute_state": "no_known_challenge",
+      "spatial": {
+        "feature_ref": "urn:ogc:feature:site-001",
+        "horizontal_crs": "https://www.opengis.net/def/crs/EPSG/0/4326",
+        "vertical_min_m": null,
+        "vertical_max_m": null,
+        "vertical_datum": null,
+        "horizontal_uncertainty_m": 2.5
+      },
+      "temporal": {
+        "valid_from": "2026-01-01",
+        "valid_until": null
+      },
+      "evidence_ids": [
+        "contract-002"
+      ],
+      "authority_ids": [],
+      "challenge_ids": [],
+      "disclosure_class": "restricted"
+    }
+  ],
+  "obligations": []
+}
