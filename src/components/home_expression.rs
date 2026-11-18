@@ -267,10 +267,13 @@ fn HomeIntentAxisPicker(
             <div class="home-expression-style-grid">
                 {options.into_iter().map(|option| {
                     let id_prefer_active = option.id.clone();
+                    let id_prefer_pressed = option.id.clone();
                     let id_prefer_click = option.id.clone();
                     let id_consider_active = option.id.clone();
+                    let id_consider_pressed = option.id.clone();
                     let id_consider_click = option.id.clone();
                     let id_avoid_active = option.id.clone();
+                    let id_avoid_pressed = option.id.clone();
                     let id_avoid_click = option.id.clone();
                     view! {
                         <article class="home-expression-style-card">
@@ -280,17 +283,17 @@ fn HomeIntentAxisPicker(
                             <div class="home-expression-role-row" aria-label="Intent preference">
                                 <button
                                     class:active=move || current_preference(preferences, &id_prefer_active) == "PREFERRED"
-                                    aria-pressed=move || (current_preference(preferences, &id_prefer_active) == "PREFERRED").to_string()
+                                    aria-pressed=move || (current_preference(preferences, &id_prefer_pressed) == "PREFERRED").to_string()
                                     on:click=move |_| set_experience_state(preferences, id_prefer_click.clone(), "PREFERRED")
                                 >"Prefer"</button>
                                 <button
                                     class:active=move || current_preference(preferences, &id_consider_active) == "CONSIDERED"
-                                    aria-pressed=move || (current_preference(preferences, &id_consider_active) == "CONSIDERED").to_string()
+                                    aria-pressed=move || (current_preference(preferences, &id_consider_pressed) == "CONSIDERED").to_string()
                                     on:click=move |_| set_experience_state(preferences, id_consider_click.clone(), "CONSIDERED")
                                 >"Consider"</button>
                                 <button
                                     class:active=move || current_preference(preferences, &id_avoid_active) == "AVOIDED"
-                                    aria-pressed=move || (current_preference(preferences, &id_avoid_active) == "AVOIDED").to_string()
+                                    aria-pressed=move || (current_preference(preferences, &id_avoid_pressed) == "AVOIDED").to_string()
                                     on:click=move |_| set_experience_state(preferences, id_avoid_click.clone(), "AVOIDED")
                                 >"Avoid"</button>
                             </div>
