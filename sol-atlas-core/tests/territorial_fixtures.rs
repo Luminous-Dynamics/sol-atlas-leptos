@@ -187,13 +187,14 @@ fn restoration_cannot_close_without_independent_verification() {
     assert_rejected_for(&record, "verified_complete without independent verifier");
 }
 
-
 #[test]
 fn tib_v0_2_accepts_vertical_temporal_challenge_and_stewardship_records() {
     let valid_fixtures = [
         include_str!("fixtures/territorial/valid_subsurface_volume_with_vertical_datum.json"),
         include_str!("fixtures/territorial/valid_terminal_withdrawn_challenge.json"),
-        include_str!("fixtures/territorial/valid_verified_stewardship_with_independent_evidence.json"),
+        include_str!(
+            "fixtures/territorial/valid_verified_stewardship_with_independent_evidence.json"
+        ),
         include_str!("fixtures/territorial/valid_historic_jurisdictional_date_interval.json"),
     ];
     for raw in valid_fixtures {
@@ -205,17 +206,50 @@ fn tib_v0_2_accepts_vertical_temporal_challenge_and_stewardship_records() {
 #[test]
 fn tib_v0_2_rejects_spatial_provenance_authority_and_stewardship_hazards() {
     let invalid_fixtures = [
-        (include_str!("fixtures/territorial/invalid_negative_horizontal_uncertainty.json"), "invalid horizontal uncertainty"),
-        (include_str!("fixtures/territorial/invalid_partial_vertical_extent.json"), "incomplete or invalid vertical extent"),
-        (include_str!("fixtures/territorial/invalid_inverted_vertical_interval.json"), "incomplete or invalid vertical extent"),
-        (include_str!("fixtures/territorial/invalid_assertion_missing_evidence_reference.json"), "references missing evidence"),
-        (include_str!("fixtures/territorial/invalid_empty_claim_basis.json"), "has no declared basis"),
-        (include_str!("fixtures/territorial/invalid_interest_type_code_without_profile.json"), "incomplete source interest-type code/profile pair"),
-        (include_str!("fixtures/territorial/invalid_duplicate_evidence_identifier.json"), "duplicate evidence id"),
-        (include_str!("fixtures/territorial/invalid_contractual_claim_without_contract_evidence.json"), "without contracting-party authority"),
-        (include_str!("fixtures/territorial/invalid_resolved_state_with_active_challenge.json"), "resolved while one or more linked challenges remain active"),
-        (include_str!("fixtures/territorial/invalid_obligation_target_without_unit.json"), "has a target value without a unit"),
-        (include_str!("fixtures/territorial/invalid_verified_stewardship_self_verification.json"), "verified_complete without independent verifier"),
+        (
+            include_str!("fixtures/territorial/invalid_negative_horizontal_uncertainty.json"),
+            "invalid horizontal uncertainty",
+        ),
+        (
+            include_str!("fixtures/territorial/invalid_partial_vertical_extent.json"),
+            "incomplete or invalid vertical extent",
+        ),
+        (
+            include_str!("fixtures/territorial/invalid_inverted_vertical_interval.json"),
+            "incomplete or invalid vertical extent",
+        ),
+        (
+            include_str!("fixtures/territorial/invalid_assertion_missing_evidence_reference.json"),
+            "references missing evidence",
+        ),
+        (
+            include_str!("fixtures/territorial/invalid_empty_claim_basis.json"),
+            "has no declared basis",
+        ),
+        (
+            include_str!("fixtures/territorial/invalid_interest_type_code_without_profile.json"),
+            "incomplete source interest-type code/profile pair",
+        ),
+        (
+            include_str!("fixtures/territorial/invalid_duplicate_evidence_identifier.json"),
+            "duplicate evidence id",
+        ),
+        (
+            include_str!("fixtures/territorial/invalid_contractual_claim_without_contract_evidence.json"),
+            "without contracting-party authority",
+        ),
+        (
+            include_str!("fixtures/territorial/invalid_resolved_state_with_active_challenge.json"),
+            "resolved while one or more linked challenges remain active",
+        ),
+        (
+            include_str!("fixtures/territorial/invalid_obligation_target_without_unit.json"),
+            "has a target value without a unit",
+        ),
+        (
+            include_str!("fixtures/territorial/invalid_verified_stewardship_self_verification.json"),
+            "verified_complete without independent verifier",
+        ),
     ];
     for (raw, fragment) in invalid_fixtures {
         let record = parse_fixture(raw);
