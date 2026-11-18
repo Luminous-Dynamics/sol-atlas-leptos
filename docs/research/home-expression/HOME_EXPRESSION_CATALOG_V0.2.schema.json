@@ -15,7 +15,10 @@
     "style_catalog",
     "experience_catalog",
     "regional_reference_modules",
-    "community_authored_reference_policy"
+    "community_authored_reference_policy",
+    "spatial_typology_catalog",
+    "material_tectonic_intent_catalog",
+    "environmental_strategy_intent_catalog"
   ],
   "properties": {
     "schema_version": {
@@ -309,6 +312,102 @@
         },
         "default_state": {
           "const": "UNAVAILABLE_UNTIL_ATTRIBUTION_RIGHTS_AND_REVIEW_ARE_ESTABLISHED"
+        }
+      }
+    },
+    "spatial_typology_catalog": {
+      "type": "array",
+      "minItems": 11,
+      "maxItems": 11,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "option_id",
+          "display_name",
+          "description",
+          "claim_ceiling"
+        ],
+        "properties": {
+          "option_id": {
+            "type": "string",
+            "pattern": "^[A-Z0-9_]{2,80}$"
+          },
+          "display_name": {
+            "type": "string",
+            "minLength": 1
+          },
+          "description": {
+            "type": "string",
+            "minLength": 1
+          },
+          "claim_ceiling": {
+            "const": "INTENT_ONLY_NO_GEOMETRY_CODE_OR_ACCESSIBILITY_CLAIM"
+          }
+        }
+      }
+    },
+    "material_tectonic_intent_catalog": {
+      "type": "array",
+      "minItems": 8,
+      "maxItems": 8,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "option_id",
+          "display_name",
+          "description",
+          "claim_ceiling"
+        ],
+        "properties": {
+          "option_id": {
+            "type": "string",
+            "pattern": "^[A-Z0-9_]{2,80}$"
+          },
+          "display_name": {
+            "type": "string",
+            "minLength": 1
+          },
+          "description": {
+            "type": "string",
+            "minLength": 1
+          },
+          "claim_ceiling": {
+            "const": "INTENT_ONLY_NO_ASSEMBLY_STRUCTURAL_OR_SOURCING_CLAIM"
+          }
+        }
+      }
+    },
+    "environmental_strategy_intent_catalog": {
+      "type": "array",
+      "minItems": 10,
+      "maxItems": 10,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "option_id",
+          "display_name",
+          "description",
+          "claim_ceiling"
+        ],
+        "properties": {
+          "option_id": {
+            "type": "string",
+            "pattern": "^[A-Z0-9_]{2,80}$"
+          },
+          "display_name": {
+            "type": "string",
+            "minLength": 1
+          },
+          "description": {
+            "type": "string",
+            "minLength": 1
+          },
+          "claim_ceiling": {
+            "const": "INTENT_ONLY_NO_PHYSICAL_PERFORMANCE_OR_RESOURCE_CLAIM"
+          }
         }
       }
     }
