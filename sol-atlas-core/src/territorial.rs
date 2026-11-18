@@ -875,8 +875,56 @@ mod tests {
     }
 
     #[test]
-    fn active_challenge_cannot_be_hidden_by_no_known_challenge_state() {
+    fn no_challenge_observation_requires_a_complete_declared_frontier() {
         let mut value = record(vec![assertion(vec![ClaimBasis::Asserted])]);
+        value.assertions[0].dispute_state = DisputeState::NoChallengeObservedWithinFrontier;
+        let issues = value.validate().expect_err(
+            "a no-challenge observation requires a complete declared evidence frontier",
+        );
+        assert!(issues.iter().any(|issue| {
+            issue.contains("without a complete declared challenge frontier")
+        }));
+
+        value.evidence.push(evidence(
+            "challenge-search-1",
+            EvidenceKind::ChallengeSearchReport,
+        ));
+        value.challenge_assessments.push(ChallengeAssessment {
+            id: "challenge-frontier-1".into(),
+            scope_ref: "urn:test:scope:registry-and-tribunal-records".into(),
+            frontier_ref: "urn:test:frontier:za:2026-11-18".into(),
+            assessed_at: "2026-11-18T10:10:00Z".into(),
+            coverage: ChallengeCoverage::CompleteWithinDeclaredFrontier,
+            source_refs: vec![
+                "urn:test:source:registry".into(),
+                "urn:test:source:tribunal".into(),
+            ],
+            evidence_ids: vec!["challenge-search-1".into()],
+            disclosure_class: DisclosureClass::Restricted,
+        });
+        value.assertions[0].challenge_assessment_id = Some("challenge-frontier-1".into());
+        assert_eq!(value.validate(), Ok(()));
+    }
+
+    #[test]
+    fn active_challenge_cannot_be_hidden_by_no_challenge_observation() {
+        let mut value = record(vec![assertion(vec![ClaimBasis::Asserted])]);
+        value.evidence.push(evidence(
+            "challenge-search-1",
+            EvidenceKind::ChallengeSearchReport,
+        ));
+        value.challenge_assessments.push(ChallengeAssessment {
+            id: "challenge-frontier-1".into(),
+            scope_ref: "urn:test:scope:registry-and-tribunal-records".into(),
+            frontier_ref: "urn:test:frontier:za:2026-11-18".into(),
+            assessed_at: "2026-11-18T10:10:00Z".into(),
+            coverage: ChallengeCoverage::CompleteWithinDeclaredFrontier,
+            source_refs: vec!["urn:test:source:registry".into()],
+            evidence_ids: vec!["challenge-search-1".into()],
+            disclosure_class: DisclosureClass::Restricted,
+        });
+        value.assertions[0].dispute_state = DisputeState::NoChallengeObservedWithinFrontier;
+        value.assertions[0].challenge_assessment_id = Some("challenge-frontier-1".into());
         value.challenges.push(ChallengeReference {
             id: "challenge-1".into(),
             raised_by_ref: "party:challenger".into(),
@@ -887,10 +935,10 @@ mod tests {
         });
         value.assertions[0].challenge_ids = vec!["challenge-1".into()];
         let issues = value.validate().expect_err(
-            "an active challenge must not be presented as no known challenge",
+            "an active challenge must contradict a no-challenge observation",
         );
         assert!(issues.iter().any(|issue| {
-            issue.contains("no_known_challenge while linked challenge records exist")
+            issue.contains("no challenge observed while linked challenge records exist")
         }));
     }
 
