@@ -183,6 +183,7 @@ fn validate_intent_entries(
     known_ids: &BTreeSet<String>,
     errors: &mut Vec<String>,
 ) {
+    let null = Value::Null;
     let entries = composition
         .get(axis)
         .and_then(|value| value.get("entries"))
@@ -208,7 +209,7 @@ fn validate_intent_entries(
         }
     }
     if axis == "spatial_typology" && preferred_count > 1
-        && text(composition.get(axis).unwrap_or(&Value::Null), "state")
+        && text(composition.get(axis).unwrap_or(&null), "state")
             != Some("CONFLICT_UNRESOLVED")
     {
         errors.push("multiple preferred spatial typologies must remain CONFLICT_UNRESOLVED".to_owned());
