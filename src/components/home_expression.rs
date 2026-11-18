@@ -41,103 +41,6 @@ struct IntentOption {
     description: String,
 }
 
-fn load_intent_options() -> (Vec<IntentOption>, Vec<IntentOption>, Vec<IntentOption>) {
-    let typologies = vec![
-        ("DETACHED", "Detached home", "A standalone dwelling; exact setbacks, access and services remain site-specific."),
-        ("SEMI_DETACHED", "Semi-detached", "A paired dwelling arrangement with shared-boundary and acoustic questions."),
-        ("ROW_TERRACE", "Row or terrace", "A connected series of dwellings with shared-wall, daylight and privacy questions."),
-        ("COURTYARD", "Courtyard home", "A dwelling organized around one or more protected outdoor rooms."),
-        ("DUPLEX", "Duplex", "A multi-level or paired-unit arrangement; circulation and accessibility need exact review."),
-        ("APARTMENT", "Apartment", "A dwelling within a larger multi-unit building and shared-services context."),
-        ("PAVILION", "Pavilion", "A dispersed or clustered set of volumes connected through outdoor or covered space."),
-        ("MULTIGENERATIONAL_CLUSTER", "Multi-generational cluster", "Related private and shared spaces for multiple household members."),
-        ("LIVE_WORK", "Live-work", "A dwelling combining residential and work or studio activity."),
-        ("INCREMENTAL_CORE", "Incremental core", "A phased dwelling intended to support carefully planned future expansion."),
-        ("RETROFIT_FIRST", "Retrofit-first", "An existing building adapted before considering replacement or new construction."),
-    ]
-    .into_iter()
-    .map(|(id, name, description)| IntentOption { id: id.to_owned(), name: name.to_owned(), description: description.to_owned() })
-    .collect();
-
-    let materials = vec![
-        ("STONE_MASONRY", "Stone masonry", "Material intent only; stone type, assembly, sourcing and structural design are unqualified."),
-        ("BRICK_MASONRY", "Brick masonry", "Material intent only; unit, mortar, wall build-up and thermal properties require specification."),
-        ("EARTH_MASONRY", "Earth construction", "Explore earth-based assemblies with moisture, durability, code and craft review."),
-        ("TIMBER", "Timber", "Explore timber structure or finishes; species, treatment, fire and sourcing remain open."),
-        ("STEEL", "Steel", "Explore steel structure or detailing; sections, protection and embodied impacts require evidence."),
-        ("HYBRID_MATERIALS", "Hybrid materials", "Combine materials only after interfaces, movement, moisture and lifecycle are reviewed."),
-        ("RECLAIMED_REUSED", "Reclaimed or reused", "Reuse intent does not establish availability, condition, certification or safe reuse."),
-        ("REPAIRABLE_MODULAR", "Repairable modular assemblies", "Prefer assemblies designed for access, replacement and repair; evidence remains pending."),
-    ]
-    .into_iter()
-    .map(|(id, name, description)| IntentOption { id: id.to_owned(), name: name.to_owned(), description: description.to_owned() })
-    .collect();
-
-    let environmental = vec![
-        ("ORIENTATION_SOLAR_RESPONSE", "Orientation and solar response", "Site-relative intent; requires verified location, orientation and solar analysis."),
-        ("EXTERNAL_SHADING", "External shading", "A shading strategy preference, not a measured reduction in heat gain."),
-        ("CROSS_VENTILATION", "Cross-ventilation", "A ventilation intent requiring exact openings, wind, security and airflow analysis."),
-        ("THERMAL_MASS", "Thermal mass", "A strategy preference requiring assembly, climate and operating-schedule evaluation."),
-        ("DAYLIGHT_CONTROL", "Daylight and glare control", "A daylight intent requiring geometry, glazing, shading and occupancy context."),
-        ("RAINWATER_HARVESTING", "Rainwater harvesting", "A water strategy requiring rainfall, catchment, storage, quality and demand data."),
-        ("GREYWATER_REUSE", "Greywater reuse", "A reuse strategy requiring treatment, plumbing, health and jurisdictional review."),
-        ("ON_SITE_SOLAR", "On-site solar generation", "A generation preference requiring roof/site, resource, grid and storage assessment."),
-        ("PRODUCTIVE_LANDSCAPE", "Productive landscape", "Landscape intent requiring water, soil, biodiversity and maintenance context."),
-        ("PASSIVE_FIRST", "Passive-first design", "A design priority, not a claim that active systems can be omitted."),
-    ]
-    .into_iter()
-    .map(|(id, name, description)| IntentOption { id: id.to_owned(), name: name.to_owned(), description: description.to_owned() })
-    .collect();
-
-    (typologies, materials, environmental)
-}
-
-fn load_catalog() -> (Vec<StyleOption>, Vec<ExperienceOption>) {
-    let catalog: Value = serde_json::from_str(EXPRESSION_CATALOG)
-        .expect("embedded home expression catalogue must be valid JSON");
-
-    let styles = catalog
-        .get("style_catalog")
-        .and_then(Value::as_array)
-        .into_iter()
-        .flatten()
-        .filter_map(|item| {
-            Some(StyleOption {
-                id: item.get("style_id")?.as_str()?.to_owned(),
-                name: item.get("display_name")?.as_str()?.to_owned(),
-                category: item.get("category")?.as_str()?.to_owned(),
-                description: item.get("description")?.as_str()?.to_owned(),
-                reference_policy: item.get("reference_policy")?.as_str()?.to_owned(),
-                authenticity_note: item.get("authenticity_note")?.as_str()?.to_owned(),
-                reference_sources: item
-                    .get("reference_sources")
-                    .and_then(Value::as_array)
-                    .map(|sources| {
-                        sources.iter().filter_map(Value::as_str).map(str::to_owned).collect()
-                    })
-                    .unwrap_or_default(),
-            })
-        })
-        .collect();
-
-    let experiences = catalog
-        .get("experience_catalog")
-        .and_then(Value::as_array)
-        .into_iter()
-        .flatten()
-        .filter_map(|item| {
-            Some(ExperienceOption {
-                id: item.get("package_id")?.as_str()?.to_owned(),
-                name: item.get("display_name")?.as_str()?.to_owned(),
-                category: item.get("category")?.as_str()?.to_owned(),
-                description: item.get("description")?.as_str()?.to_owned(),
-            })
-        })
-        .collect();
-
-    (styles, experiences)
-}
-
 fn current_preference(preferences: RwSignal<BTreeMap<String, String>>, item_id: &str) -> String {
     preferences.with(|entries| {
         entries
@@ -307,8 +210,8 @@ fn HomeIntentAxisPicker(
 
 #[component]
 pub fn HomeExpressionPage() -> impl IntoView {
-    let (styles, experiences) = load_catalog();
-    let (typology_options, material_options, environmental_options) = load_intent_options();
+    let (styles, experiences, typology_options, material_options, environmental_options) =
+        load_catalog();
     let style_sources: BTreeMap<String, Vec<String>> = styles
         .iter()
         .map(|style| (style.id.clone(), style.reference_sources.clone()))
@@ -692,9 +595,12 @@ mod tests {
 
     #[test]
     fn embedded_catalog_has_expected_style_and_experience_counts() {
-        let (styles, experiences) = load_catalog();
+        let (styles, experiences, typologies, materials, environmental) = load_catalog();
         assert_eq!(styles.len(), 34);
         assert_eq!(experiences.len(), 26);
+        assert_eq!(typologies.len(), 11);
+        assert_eq!(materials.len(), 8);
+        assert_eq!(environmental.len(), 10);
         assert!(styles.iter().all(|item| {
             !item.id.is_empty()
                 && !item.name.is_empty()
@@ -712,13 +618,11 @@ mod tests {
         assert!(styles.iter().all(|item| !item.reference_policy.is_empty()));
         assert!(styles.iter().all(|item| !item.authenticity_note.is_empty()));
 
-        let (typologies, materials, environmental) = load_intent_options();
-        assert_eq!(typologies.len(), 11);
-        assert_eq!(materials.len(), 8);
-        assert_eq!(environmental.len(), 10);
-        assert!(typologies.iter().all(|item| !item.id.is_empty()));
-        assert!(materials.iter().all(|item| !item.id.is_empty()));
-        assert!(environmental.iter().all(|item| !item.id.is_empty()));
+        for option in typologies.iter().chain(materials.iter()).chain(environmental.iter()) {
+            assert!(!option.id.is_empty());
+            assert!(!option.name.is_empty());
+            assert!(!option.description.is_empty());
+        }
     }
 
     #[test]
