@@ -92,8 +92,9 @@ A data-format validator cannot settle these questions. The expected result must 
 Compare against existing products and workflows by capability, not by branding or one headline score.
 
 - **FAO SOLA Suite** already combines formal land-administration tools with participatory community tenure recording and LADM/STDM alignment. It is a baseline and potential integration partner, not a feature to reimplement.
-- **FAO Open Tenure** supports participatory field collection, mobile mapping and community-led recording. Benchmark the complementary assurance and exchange layer; do not claim superior community participation without user studies.
-- **STDM and Cadasta** are relevant comparators for social-tenure and community-data workflows. Use equivalent data, permissions and user tasks.
+- **FAO Open Tenure** supports participatory field collection, multilingual mobile mapping, offline/low-bandwidth operation, boundary mapping, evidence attachment and community challenge/moderation workflows. It is a strong usability and field-operations baseline. Benchmark the complementary assurance and exchange layer; do not claim superior community participation without matched user studies.
+- **STDM** explicitly models the continuum of people-to-land relationships, including informal and customary tenure, using a LADM specialization. It is a semantic and inclusion baseline, not merely a database benchmark.
+- **Cadasta** publicly describes partner-led data collection, community control, FPIC, CARE-aligned governance, consent that can be withdrawn, and options to continue or transition data after a project. These are real strengths to test against; Sol Atlas/Mycelix must demonstrate equivalent purpose-limited access, revocation, export and continuity before claiming an advantage.
 - **Project Indwe** is a live South African mining-cadastre programme. The BLSA tracker recorded the Western Cape pilot and 37 registered right-holders, while reporting no progress update for July–September 2026 and a phased rollout target through July 2027 (tracker last updated 1 October 2026). This is too early to claim comparative operational performance; use only public, permissioned interfaces and disclosed capabilities.
 - **ISO 19152-1:2024 / ISO 19152-2:2025** provide the LADM conceptual/land-registration model. Interoperability must be tested against the applicable parts and national profiles; a mapping document is not conformance.
 - **OGC API Features, OGC API Records and STAC** are interoperability surfaces for features, resource metadata and spatiotemporal assets. They do not, by themselves, establish legal authority, data permission or evidentiary sufficiency.
@@ -106,6 +107,8 @@ Compare against existing products and workflows by capability, not by branding o
 4. Have independent land-administration, legal, surveying/geospatial and community-governance reviewers label the expected result before running systems.
 5. Blind-score outputs for omitted rights-holders, false authority promotion, dispute loss, privacy leakage and provenance correctness.
 6. Publish all failures, configuration, software version, source snapshot and cost boundary. Do not infer competitor weakness from a feature not exposed by a trial or public documentation.
+
+**Current competitive position:** Sol Atlas/Mycelix has not demonstrated superiority over these systems. The implementation is presently a structural evidence contract plus an early reference adapter. The testable differentiation is cross-system preservation of authority scope, source lineage, dispute state, temporal/vertical uncertainty and non-authoritative outcomes. Community workflows, national registration, secure data governance, geospatial qualification and field performance remain unproven.
 
 ## 7. Known limitations and release gates
 
