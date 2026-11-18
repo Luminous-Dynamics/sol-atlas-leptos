@@ -221,7 +221,8 @@ pub struct TerritorialAssertion {
     pub spatial: SpatialExtent,
     pub temporal: TemporalExtent,
     pub evidence_ids: Vec<String>,
-    pub authority_id: Option<String>,
+    /// Multiple independent authorities may support distinct bases for one assertion.
+    pub authority_ids: Vec<String>,
     pub challenge_ids: Vec<String>,
     #[serde(default)]
     pub disclosure_class: DisclosureClass,
@@ -390,7 +391,7 @@ impl TerritorialRecord {
                     ));
                 }
             }
-            if let Some(authority_id) = &assertion.authority_id {
+            for authority_id in &assertion.authority_ids {
                 if !authority_ids.contains(authority_id) {
                     issues.push(format!(
                         "assertion {} references missing authority {}",
@@ -438,11 +439,8 @@ impl TerritorialRecord {
             for basis in &assertion.bases {
                 match basis {
                     ClaimBasis::AdministrativeRecord => {
-                        let has_register_authority = assertion
-                            .authority_id
-                            .as_deref()
-                            .and_then(|id| authority_by_id.get(id))
-                            .is_some_and(|authority| {
+                        let has_register_authority = assertion.authority_ids.iter().any(|id| {
+                            authority_by_id.get(id.as_str()).is_some_and(|authority| {
                                 matches!(
                                     authority.kind,
                                     AuthorityKind::Registry | AuthorityKind::StatutoryRegulator
@@ -454,7 +452,8 @@ impl TerritorialRecord {
                                             EvidenceKind::RegistryExtract | EvidenceKind::Permit
                                         )
                                     })
-                            });
+                            })
+                        });
                         if !has_register_authority {
                             issues.push(format!(
                                 "assertion {} declares administrative_record without matching registry/regulator authority and source evidence",
@@ -463,18 +462,16 @@ impl TerritorialRecord {
                         }
                     }
                     ClaimBasis::CourtDecision => {
-                        let has_court_authority = assertion
-                            .authority_id
-                            .as_deref()
-                            .and_then(|id| authority_by_id.get(id))
-                            .is_some_and(|authority| {
+                        let has_court_authority = assertion.authority_ids.iter().any(|id| {
+                            authority_by_id.get(id.as_str()).is_some_and(|authority| {
                                 authority.kind == AuthorityKind::CourtOrTribunal
                                     && evidence_by_id
                                         .get(authority.source_evidence_id.as_str())
                                         .is_some_and(|evidence| {
                                             evidence.kind == EvidenceKind::CourtOrder
                                         })
-                            });
+                            })
+                        });
                         if !has_court_authority {
                             issues.push(format!(
                                 "assertion {} declares court_decision without a court/tribunal authority and court-order evidence",
@@ -483,6 +480,25 @@ impl TerritorialRecord {
                         }
                     }
                     ClaimBasis::CommunityAttested => {
+                        let has_community_decision_authority = assertion.authority_ids.iter().any(|id| {
+                            authority_by_id.get(id.as_str()).is_some_and(|authority| {
+                                matches!(
+                                    authority.kind,
+                                    AuthorityKind::CustomaryInstitution
+                                        | AuthorityKind::CommunityGovernanceBody
+                                ) && evidence_by_id
+                                    .get(authority.source_evidence_id.as_str())
+                                    .is_some_and(|evidence| {
+                                        evidence.kind == EvidenceKind::CommunityDecision
+                                    })
+                            })
+                        });
+                        if !has_community_decision_authority {
+                            issues.push(format!(
+                                "assertion {} declares community_attested without community-governance/customary authority and linked community-decision evidence",
+                                assertion.id
+                            ));
+                        }
                         if !assertion.evidence_ids.iter().any(|id| {
                             evidence_by_id.get(id.as_str()).is_some_and(|evidence| {
                                 evidence.kind == EvidenceKind::CommunityDecision
@@ -653,7 +669,7 @@ mod tests {
                 valid_until: None,
             },
             evidence_ids: vec!["evidence-1".into()],
-            authority_id: None,
+            authority_ids: Vec::new(),
             challenge_ids: Vec::new(),
             disclosure_class: DisclosureClass::CommunityControlled,
         }
@@ -690,6 +706,32 @@ mod tests {
     }
 
     #[test]
+    fn community_decision_requires_scoped_community_authority() {
+        let mut value = record(vec![assertion(vec![ClaimBasis::CommunityAttested])]);
+        value.evidence.push(evidence("decision-1", EvidenceKind::CommunityDecision));
+        value.assertions[0].evidence_ids.push("decision-1".into());
+        let issues = value.validate().expect_err(
+            "community decision evidence without a scoped community authority must not pass",
+        );
+        assert!(issues.iter().any(|issue| {
+            issue.contains("without community-governance/customary authority")
+        }));
+        value.authorities.push(AuthorityReference {
+            id: "community-authority".into(),
+            issuer_ref: "institution:community-governance".into(),
+            kind: AuthorityKind::CommunityGovernanceBody,
+            jurisdiction: "ZA".into(),
+            scope: "decision for this territory".into(),
+            source_evidence_id: "decision-1".into(),
+            valid_from: "2026-11-18".into(),
+            valid_until: None,
+            disclosure_class: DisclosureClass::CommunityControlled,
+        });
+        value.assertions[0].authority_ids = vec!["community-authority".into()];
+        assert_eq!(value.validate(), Ok(()));
+    }
+
+    #[test]
     fn administrative_record_requires_registry_or_regulator_evidence() {
         let mut value = record(vec![assertion(vec![ClaimBasis::AdministrativeRecord])]);
         assert!(value.validate().is_err());
@@ -705,7 +747,7 @@ mod tests {
             valid_until: None,
             disclosure_class: DisclosureClass::Restricted,
         });
-        value.assertions[0].authority_id = Some("authority-1".into());
+        value.assertions[0].authority_ids = vec!["authority-1".into()];
         assert_eq!(value.validate(), Ok(()));
     }
 
@@ -729,6 +771,17 @@ mod tests {
             valid_until: None,
             disclosure_class: DisclosureClass::Restricted,
         });
+        value.authorities.push(AuthorityReference {
+            id: "community-authority".into(),
+            issuer_ref: "institution:community-governance".into(),
+            kind: AuthorityKind::CommunityGovernanceBody,
+            jurisdiction: "ZA".into(),
+            scope: "community decision for this asserted territory".into(),
+            source_evidence_id: "challenge-1".into(),
+            valid_from: "2026-11-18".into(),
+            valid_until: None,
+            disclosure_class: DisclosureClass::CommunityControlled,
+        });
         value.challenges.push(ChallengeReference {
             id: "challenge-record-1".into(),
             raised_by_ref: "party:community-2".into(),
@@ -737,7 +790,10 @@ mod tests {
             evidence_ids: vec!["challenge-1".into()],
             disclosure_class: DisclosureClass::Restricted,
         });
-        value.assertions[0].authority_id = Some("authority-1".into());
+        value.assertions[0].authority_ids = vec![
+            "authority-1".into(),
+            "community-authority".into(),
+        ];
         value.assertions[0].dispute_state = DisputeState::Challenged;
         value.assertions[0].challenge_ids = vec!["challenge-record-1".into()];
         assert_eq!(value.validate(), Ok(()));
