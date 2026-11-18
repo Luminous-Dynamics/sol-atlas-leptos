@@ -65,3 +65,7 @@ jobs:
       # (renderer::hex, sol-atlas-core). Must target the bin explicitly:
       # `cargo test --lib` fails with "no library targets found".
       - run: cargo test --bin sol-atlas-leptos
+      - name: Test landscape evaluation-plan contract
+        run: cargo test --features landscape-eval-check --bin landscape-evaluation-check
+      - name: Validate canonical landscape evaluation-plan fixture
+        run: cargo run --quiet --features landscape-eval-check --bin landscape-evaluation-check -- fixtures/landscape/evaluation-plan-v0.json

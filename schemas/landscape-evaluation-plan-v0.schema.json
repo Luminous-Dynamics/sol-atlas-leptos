@@ -1,0 +1,653 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://luminousdynamics.io/schemas/landscape-evaluation-plan-v0.schema.json",
+  "title": "Luminous Landscape Evaluation Plan v0",
+  "description": "A preregisterable plan linking an immutable landscape snapshot to comparison arms, before/after windows, methods and privacy rules. Structural validity is not evidence of impact or causality.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "schema_uri",
+    "evaluation_id",
+    "project_snapshot_sha256",
+    "created_at_unix_s",
+    "project_scope",
+    "plan_status",
+    "study_design",
+    "analysis_intent",
+    "time_windows",
+    "arms",
+    "outcomes",
+    "causal_analysis_plan",
+    "privacy",
+    "interpretation_limit"
+  ],
+  "properties": {
+    "schema": {
+      "const": "luminous.landscape-evaluation-plan.v0"
+    },
+    "schema_uri": {
+      "const": "https://luminousdynamics.io/schemas/landscape-evaluation-plan-v0.schema.json"
+    },
+    "evaluation_id": {
+      "type": "string",
+      "pattern": "^eval-[a-z0-9][a-z0-9-]{2,60}$"
+    },
+    "project_snapshot_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "created_at_unix_s": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "project_scope": {
+      "enum": [
+        "site-parcel",
+        "district",
+        "watershed",
+        "bioregion"
+      ]
+    },
+    "plan_status": {
+      "enum": [
+        "draft",
+        "preregistered",
+        "approved",
+        "completed",
+        "archived"
+      ]
+    },
+    "study_design": {
+      "enum": [
+        "descriptive-monitoring",
+        "before-after",
+        "matched-comparison",
+        "before-after-control-impact"
+      ]
+    },
+    "analysis_intent": {
+      "enum": [
+        "descriptive",
+        "associational",
+        "causal-estimate"
+      ]
+    },
+    "time_windows": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "baseline",
+        "follow_up"
+      ],
+      "properties": {
+        "baseline": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "start_unix_s",
+            "end_unix_s"
+          ],
+          "properties": {
+            "start_unix_s": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "end_unix_s": {
+              "type": "integer",
+              "minimum": 0
+            }
+          }
+        },
+        "follow_up": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "start_unix_s",
+            "end_unix_s"
+          ],
+          "properties": {
+            "start_unix_s": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "end_unix_s": {
+              "type": "integer",
+              "minimum": 0
+            }
+          }
+        }
+      }
+    },
+    "arms": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 12,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "role",
+          "site_ref_sha256",
+          "allocation_method"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^arm-[a-z0-9][a-z0-9-]{0,47}$"
+          },
+          "role": {
+            "enum": [
+              "intervention",
+              "comparison",
+              "reference"
+            ]
+          },
+          "site_ref_sha256": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          },
+          "allocation_method": {
+            "enum": [
+              "randomized",
+              "matched",
+              "non-randomized",
+              "observational"
+            ]
+          }
+        }
+      }
+    },
+    "outcomes": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 64,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "metric_id",
+          "unit",
+          "method_id",
+          "method_uri",
+          "sampling_design",
+          "minimum_observations_per_arm_window",
+          "uncertainty_method",
+          "desired_direction",
+          "target_band"
+        ],
+        "properties": {
+          "metric_id": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_-]*(\\.[a-z][a-z0-9_-]*)+$"
+          },
+          "unit": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 80,
+            "pattern": "\\S"
+          },
+          "method_id": {
+            "type": "string",
+            "pattern": "^[a-z0-9][a-z0-9._-]{2,79}$"
+          },
+          "method_uri": {
+            "type": "string",
+            "format": "uri",
+            "minLength": 8
+          },
+          "sampling_design": {
+            "enum": [
+              "event-based",
+              "daily",
+              "weekly",
+              "monthly",
+              "seasonal",
+              "continuous",
+              "manual-campaign"
+            ]
+          },
+          "minimum_observations_per_arm_window": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 1000000
+          },
+          "uncertainty_method": {
+            "type": "string",
+            "minLength": 8,
+            "maxLength": 1000
+          },
+          "desired_direction": {
+            "enum": [
+              "increase",
+              "decrease",
+              "maintain",
+              "target-band",
+              "non-directional"
+            ]
+          },
+          "target_band": {
+            "oneOf": [
+              {
+                "type": "array",
+                "minItems": 2,
+                "maxItems": 2,
+                "items": {
+                  "type": "number"
+                }
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "allOf": [
+          {
+            "if": {
+              "properties": {
+                "desired_direction": {
+                  "const": "target-band"
+                }
+              },
+              "required": [
+                "desired_direction"
+              ]
+            },
+            "then": {
+              "properties": {
+                "target_band": {
+                  "type": "array",
+                  "minItems": 2,
+                  "maxItems": 2,
+                  "items": {
+                    "type": "number"
+                  }
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "desired_direction": {
+                  "enum": [
+                    "increase",
+                    "decrease",
+                    "maintain",
+                    "non-directional"
+                  ]
+                }
+              },
+              "required": [
+                "desired_direction"
+              ]
+            },
+            "then": {
+              "properties": {
+                "target_band": {
+                  "type": "null"
+                }
+              }
+            }
+          }
+        ]
+      }
+    },
+    "causal_analysis_plan": {
+      "oneOf": [
+        {
+          "type": "null"
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "method",
+            "pre_registered_at_unix_s",
+            "preregistration_record_sha256",
+            "confounders",
+            "sensitivity_checks",
+            "independent_review_required"
+          ],
+          "properties": {
+            "method": {
+              "type": "string",
+              "minLength": 8,
+              "maxLength": 1000
+            },
+            "pre_registered_at_unix_s": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "preregistration_record_sha256": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            },
+            "confounders": {
+              "type": "array",
+              "minItems": 1,
+              "uniqueItems": true,
+              "items": {
+                "type": "string",
+                "minLength": 3,
+                "maxLength": 300
+              }
+            },
+            "sensitivity_checks": {
+              "type": "array",
+              "minItems": 1,
+              "uniqueItems": true,
+              "items": {
+                "type": "string",
+                "minLength": 3,
+                "maxLength": 300
+              }
+            },
+            "independent_review_required": {
+              "const": true
+            }
+          }
+        }
+      ]
+    },
+    "privacy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "location_sensitivity",
+        "publication_policy",
+        "consent_status",
+        "consent_record_ref",
+        "aggregation_policy"
+      ],
+      "properties": {
+        "location_sensitivity": {
+          "enum": [
+            "public",
+            "restricted",
+            "sensitive"
+          ]
+        },
+        "publication_policy": {
+          "enum": [
+            "private",
+            "aggregate-only",
+            "public"
+          ]
+        },
+        "consent_status": {
+          "enum": [
+            "pending",
+            "approved",
+            "not-required",
+            "withdrawn"
+          ]
+        },
+        "consent_record_ref": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 300
+        },
+        "aggregation_policy": {
+          "type": "string",
+          "maxLength": 1000
+        }
+      }
+    },
+    "interpretation_limit": {
+      "const": "validation-does-not-prove-impact-or-causality"
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "study_design": {
+            "const": "descriptive-monitoring"
+          }
+        },
+        "required": [
+          "study_design"
+        ]
+      },
+      "then": {
+        "properties": {
+          "analysis_intent": {
+            "const": "descriptive"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "study_design": {
+            "const": "before-after"
+          }
+        },
+        "required": [
+          "study_design"
+        ]
+      },
+      "then": {
+        "properties": {
+          "analysis_intent": {
+            "enum": [
+              "descriptive",
+              "associational"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "analysis_intent": {
+            "const": "causal-estimate"
+          }
+        },
+        "required": [
+          "analysis_intent"
+        ]
+      },
+      "then": {
+        "properties": {
+          "study_design": {
+            "enum": [
+              "matched-comparison",
+              "before-after-control-impact"
+            ]
+          },
+          "plan_status": {
+            "enum": [
+              "preregistered",
+              "approved"
+            ]
+          },
+          "causal_analysis_plan": {
+            "type": "object"
+          }
+        },
+        "required": [
+          "causal_analysis_plan"
+        ]
+      },
+      "else": {
+        "properties": {
+          "causal_analysis_plan": {
+            "type": "null"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "privacy": {
+            "properties": {
+              "publication_policy": {
+                "const": "public"
+              }
+            },
+            "required": [
+              "publication_policy"
+            ]
+          }
+        },
+        "required": [
+          "privacy"
+        ]
+      },
+      "then": {
+        "properties": {
+          "privacy": {
+            "properties": {
+              "location_sensitivity": {
+                "const": "public"
+              },
+              "consent_status": {
+                "enum": [
+                  "approved",
+                  "not-required"
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "privacy": {
+            "properties": {
+              "publication_policy": {
+                "const": "aggregate-only"
+              }
+            },
+            "required": [
+              "publication_policy"
+            ]
+          }
+        },
+        "required": [
+          "privacy"
+        ]
+      },
+      "then": {
+        "properties": {
+          "privacy": {
+            "properties": {
+              "aggregation_policy": {
+                "minLength": 8
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "study_design": {
+            "const": "matched-comparison"
+          }
+        },
+        "required": [
+          "study_design"
+        ]
+      },
+      "then": {
+        "properties": {
+          "arms": {
+            "contains": {
+              "properties": {
+                "role": {
+                  "const": "comparison"
+                },
+                "allocation_method": {
+                  "const": "matched"
+                }
+              },
+              "required": [
+                "role",
+                "allocation_method"
+              ]
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "privacy": {
+            "properties": {
+              "consent_status": {
+                "const": "withdrawn"
+              }
+            },
+            "required": [
+              "consent_status"
+            ]
+          }
+        },
+        "required": [
+          "privacy"
+        ]
+      },
+      "then": {
+        "properties": {
+          "privacy": {
+            "properties": {
+              "publication_policy": {
+                "const": "private"
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "privacy": {
+            "properties": {
+              "consent_status": {
+                "enum": [
+                  "approved",
+                  "withdrawn"
+                ]
+              }
+            },
+            "required": [
+              "consent_status"
+            ]
+          }
+        },
+        "required": [
+          "privacy"
+        ]
+      },
+      "then": {
+        "properties": {
+          "privacy": {
+            "properties": {
+              "consent_record_ref": {
+                "type": "string",
+                "minLength": 1,
+                "pattern": "\\S"
+              }
+            }
+          }
+        }
+      }
+    }
+  ],
+  "$comment": "Cross-field chronological requirements that JSON Schema cannot express portably are enforced by src/landscape_evaluation.rs and its tests. In particular, causal_analysis_plan.pre_registered_at_unix_s must be strictly earlier than time_windows.follow_up.start_unix_s and no later than created_at_unix_s."
+}
