@@ -90,6 +90,26 @@ fn statutory_instrument_with_wrong_authority_is_rejected() {
 }
 
 #[test]
+fn no_challenge_observation_requires_a_complete_declared_frontier() {
+    let record = parse_fixture(include_str!(
+        "fixtures/territorial/valid_no_challenge_with_complete_frontier.json"
+    ));
+    assert_eq!(record.validate(), Ok(()));
+    assert_eq!(
+        record.assertions[0].dispute_state,
+        sol_atlas_core::territorial::DisputeState::NoChallengeObservedWithinFrontier
+    );
+}
+
+#[test]
+fn no_challenge_claim_without_frontier_is_rejected() {
+    let record = parse_fixture(include_str!(
+        "fixtures/territorial/invalid_no_challenge_without_frontier.json"
+    ));
+    assert_rejected_for(&record, "without a complete declared challenge frontier");
+}
+
+#[test]
 fn restoration_cannot_close_without_independent_verification() {
     let record = parse_fixture(include_str!(
         "fixtures/territorial/invalid_restoration_completion_without_independent_verifier.json"
