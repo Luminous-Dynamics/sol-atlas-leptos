@@ -171,6 +171,28 @@ The profile must distinguish at minimum:
 
 The system must preserve the date, version and jurisdiction of the applicable legislation and instrument. Legal conclusions require qualified review. An LLM-generated explanation is not a legal opinion or an authoritative rights determination.
 
+### 5.1.1 Retrospective mining / tenure precedent profile
+
+The first South African precedent track is now documented in [ZA Mining / Tenure Precedent Profile for TIB v0.1](./ZA_MINING_TENURE_PRECEDENT_PROFILE_TIB_V0_1.md), with a machine-readable index at [za-mining-tenure-precedents-v0.1.json](../../benchmarks/territorial-integrity/za-mining-tenure-precedents-v0.1.json).
+
+It uses two published decisions as bounded system-design references:
+
+- *Baleni and Others v Minister of Mineral Resources and Others* (Gauteng Division, Pretoria, 22 November 2018, Case 73768/2016): the Centre for Environmental Rights' judgment summary records the High Court's conclusion that full and informed consent under IPILRA was required for the mining-right grant over the customary community's land. This is a High Court judgment; a jurisdiction profile must preserve its court, facts, statutory context and later legal developments rather than turn the proposition into a universal global rule.
+- *Maledu and Others v Itereleng Bakgatla Mineral Resources (Pty) Limited and Another* ([2018] ZACC 41, 25 October 2018): the Constitutional Court confirmed that the existence of a mineral right does not itself extinguish other land/occupation rights, and that the statutory MPRDA dispute/negotiation mechanisms could not be bypassed by common-law eviction in the circumstances before it.
+
+The system-design implications are concrete: a mining right and a surface occupation/customary-use right may coexist; consultation, consent, community mandate and lawful deprivation are separate questions; and the existence of an authorisation is not an eviction order.
+
+The South African Government's listing records General Notice 4165 in Government Gazette 55438, published 25 September 2026, as the extension of IPILRA's application. The published legal update reports that the extension runs through **31 December 2027**. Treat that as a time-bounded legal-source record requiring revalidation at future decision frontiers, not as permanent communal tenure legislation.
+
+The precedent pack is retrospective and contains no live-community data or real boundaries. It tests whether the system preserves claims, identifies missing authority/process evidence and abstains; it does not decide whether any real mining right or consent is valid.
+
+Primary/reference links:
+- [Baleni judgment summary — Centre for Environmental Rights](https://cer.org.za/virtual-library/judgments/high-courts/baleni-and-others-v-minister-of-mineral-resources-and-others)
+- [Maledu — Constitutional Court official record](https://collections.concourt.org.za/items/440c94e0-f9e4-4c89-8625-b43b3fdb960a)
+- [Maledu — SAFLII full judgment](https://www3.saflii.org/za/cases/ZACC/2018/41.html)
+- [South African Government notices, including General Notice 4165, Gazette 55438](https://www.gov.za/ss/documents/notices?page=9)
+- [IPILRA extension summary — 30 September 2026](https://www.golegal.co.za/protection-informal-land/)
+
 ### 5.2 Public-first, consent-aware data
 
 Start with published legal instruments, open spatial layers and public environmental observations. Do not scrape or republish personal data, private title documents, sensitive community testimony, sacred locations or restricted customary knowledge.
