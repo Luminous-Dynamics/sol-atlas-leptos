@@ -238,6 +238,10 @@ pub struct TerritorialAssertion {
     /// Stable party/organisation/community reference, not a person's name or ID.
     pub holder_ref: String,
     pub interest_kind: InterestKind,
+    /// Exact source-system code; preserves jurisdictional subtypes through round trips.
+    pub source_interest_type_code: Option<String>,
+    /// Versioned profile/code-system URI that defines the source code.
+    pub source_interest_type_profile_ref: Option<String>,
     pub relationship: RelationshipKind,
     /// Multiple bases can coexist. None is an automatic legal priority ordering.
     pub bases: Vec<ClaimBasis>,
@@ -422,6 +426,30 @@ impl TerritorialRecord {
         for assertion in &self.assertions {
             unique_id("assertion", &assertion.id, &mut assertion_ids, &mut issues);
             required("assertion.holder_ref", &assertion.holder_ref, &mut issues);
+            match (
+                assertion.source_interest_type_code.as_deref(),
+                assertion.source_interest_type_profile_ref.as_deref(),
+            ) {
+                (Some(code), Some(profile)) => {
+                    required("assertion.source_interest_type_code", code, &mut issues);
+                    required(
+                        "assertion.source_interest_type_profile_ref",
+                        profile,
+                        &mut issues,
+                    );
+                }
+                (None, None) if assertion.interest_kind == InterestKind::Other => {
+                    issues.push(format!(
+                        "assertion {} uses other interest_kind without preserving its source code and profile",
+                        assertion.id
+                    ));
+                }
+                (None, None) => {}
+                _ => issues.push(format!(
+                    "assertion {} has an incomplete source interest-type code/profile pair",
+                    assertion.id
+                )),
+            }
             required(
                 "assertion.spatial.feature_ref",
                 &assertion.spatial.feature_ref,
@@ -820,6 +848,8 @@ mod tests {
             id: "assertion-1".into(),
             holder_ref: "party:community-1".into(),
             interest_kind: InterestKind::SurfaceLand,
+            source_interest_type_code: None,
+            source_interest_type_profile_ref: None,
             relationship: RelationshipKind::Right,
             bases,
             dispute_state: DisputeState::Unassessed,
@@ -1212,6 +1242,35 @@ mod tests {
         );
         assert!(issues.iter().any(|issue| {
             issue.contains("obligation.governance_record_ref must not be empty")
+        }));
+    }
+
+    #[test]
+    fn jurisdictional_interest_code_must_survive_other_mapping() {
+        let mut value = record(vec![assertion(vec![ClaimBasis::Asserted])]);
+        value.assertions[0].interest_kind = InterestKind::Other;
+        let issues = value.validate().expect_err(
+            "generic Other must not erase a jurisdiction-specific interest type",
+        );
+        assert!(issues.iter().any(|issue| {
+            issue.contains("without preserving its source code and profile")
+        }));
+
+        value.assertions[0].source_interest_type_code = Some("CUSTOMARY_GRAZING_V2".into());
+        value.assertions[0].source_interest_type_profile_ref =
+            Some("urn:example:jurisdiction-profile:za-customary:v2".into());
+        assert_eq!(value.validate(), Ok(()));
+    }
+
+    #[test]
+    fn source_interest_type_code_and_profile_must_be_a_complete_pair() {
+        let mut value = record(vec![assertion(vec![ClaimBasis::Asserted])]);
+        value.assertions[0].source_interest_type_code = Some("WATER_USE_CLASS_A".into());
+        let issues = value.validate().expect_err(
+            "a source code without its profile namespace is ambiguous",
+        );
+        assert!(issues.iter().any(|issue| {
+            issue.contains("incomplete source interest-type code/profile pair")
         }));
     }
 
