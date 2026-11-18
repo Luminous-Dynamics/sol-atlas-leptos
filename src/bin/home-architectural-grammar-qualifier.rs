@@ -70,6 +70,44 @@ const REQUIRED_AXES: &[&str] = &[
     "experience_programme",
 ];
 
+const REQUIRED_TYPOLOGY_IDS: &[&str] = &[
+    "DETACHED",
+    "SEMI_DETACHED",
+    "ROW_TERRACE",
+    "COURTYARD",
+    "DUPLEX",
+    "APARTMENT",
+    "PAVILION",
+    "MULTIGENERATIONAL_CLUSTER",
+    "LIVE_WORK",
+    "INCREMENTAL_CORE",
+    "RETROFIT_FIRST",
+];
+
+const REQUIRED_MATERIAL_IDS: &[&str] = &[
+    "STONE_MASONRY",
+    "BRICK_MASONRY",
+    "EARTH_MASONRY",
+    "TIMBER",
+    "STEEL",
+    "HYBRID_MATERIALS",
+    "RECLAIMED_REUSED",
+    "REPAIRABLE_MODULAR",
+];
+
+const REQUIRED_ENVIRONMENTAL_IDS: &[&str] = &[
+    "ORIENTATION_SOLAR_RESPONSE",
+    "EXTERNAL_SHADING",
+    "CROSS_VENTILATION",
+    "THERMAL_MASS",
+    "DAYLIGHT_CONTROL",
+    "RAINWATER_HARVESTING",
+    "GREYWATER_REUSE",
+    "ON_SITE_SOLAR",
+    "PRODUCTIVE_LANDSCAPE",
+    "PASSIVE_FIRST",
+];
+
 fn parse(source: &str, label: &str, errors: &mut Vec<String>) -> Value {
     match serde_json::from_str(source) {
         Ok(value) => value,
@@ -94,6 +132,87 @@ fn strings(value: Option<&Vec<Value>>, field: Option<&str>) -> BTreeSet<String> 
         })
         .map(str::to_owned)
         .collect()
+}
+
+fn validate_intent_option_catalog(
+    catalog: &Value,
+    key: &str,
+    expected_ids: &[&str],
+    expected_claim_ceiling: &str,
+    errors: &mut Vec<String>,
+) -> BTreeSet<String> {
+    let options = catalog
+        .get(key)
+        .and_then(Value::as_array)
+        .cloned()
+        .unwrap_or_default();
+    if options.len() != expected_ids.len() {
+        errors.push(format!(
+            "{key} must contain exactly {} entries, found {}",
+            expected_ids.len(),
+            options.len()
+        ));
+    }
+
+    let mut ids = BTreeSet::new();
+    for option in &options {
+        let id = text(option, "option_id").unwrap_or_default();
+        if id.is_empty() || !ids.insert(id.to_owned()) {
+            errors.push(format!("{key} contains a missing or duplicate option ID: {id}"));
+        }
+        for field in ["display_name", "description"] {
+            if text(option, field).is_none_or(str::is_empty) {
+                errors.push(format!("{key} option {id} is missing {field}"));
+            }
+        }
+        if text(option, "claim_ceiling") != Some(expected_claim_ceiling) {
+            errors.push(format!("{key} option {id} has an invalid claim ceiling"));
+        }
+    }
+
+    let expected: BTreeSet<String> = expected_ids.iter().map(|id| (*id).to_owned()).collect();
+    if ids != expected {
+        errors.push(format!("{key} option IDs differ from the v0.2 grammar contract"));
+    }
+    ids
+}
+
+fn validate_intent_entries(
+    composition: &Value,
+    axis: &str,
+    known_ids: &BTreeSet<String>,
+    errors: &mut Vec<String>,
+) {
+    let entries = composition
+        .get(axis)
+        .and_then(|value| value.get("entries"))
+        .and_then(Value::as_array)
+        .cloned()
+        .unwrap_or_default();
+    let mut seen = BTreeSet::new();
+    let mut preferred_count = 0usize;
+    for entry in &entries {
+        let id = text(entry, "item_id").unwrap_or_default();
+        if !known_ids.contains(id) {
+            errors.push(format!("{axis} references unknown option ID: {id}"));
+        }
+        if !seen.insert(id.to_owned()) {
+            errors.push(format!("{axis} contains duplicate option entry: {id}"));
+        }
+        let preference = text(entry, "preference").unwrap_or_default();
+        if !["PREFERRED", "CONSIDERED", "AVOIDED", "UNDECIDED"].contains(&preference) {
+            errors.push(format!("{axis} option {id} has unsupported preference: {preference}"));
+        }
+        if preference == "PREFERRED" {
+            preferred_count += 1;
+        }
+    }
+    if axis == "spatial_typology" && preferred_count > 1
+        && text(composition.get(axis).unwrap_or(&Value::Null), "state")
+            != Some("CONFLICT_UNRESOLVED")
+    {
+        errors.push("multiple preferred spatial typologies must remain CONFLICT_UNRESOLVED".to_owned());
+    }
 }
 
 fn validate_catalog(catalog: &Value, schema: &Value, errors: &mut Vec<String>) {
@@ -176,6 +295,28 @@ fn validate_catalog(catalog: &Value, schema: &Value, errors: &mut Vec<String>) {
     if composition_axes.len() != 5 {
         errors.push("catalogue must define five independent grammar axes".to_owned());
     }
+
+    validate_intent_option_catalog(
+        catalog,
+        "spatial_typology_catalog",
+        REQUIRED_TYPOLOGY_IDS,
+        "INTENT_ONLY_NO_GEOMETRY_CODE_OR_ACCESSIBILITY_CLAIM",
+        errors,
+    );
+    validate_intent_option_catalog(
+        catalog,
+        "material_tectonic_intent_catalog",
+        REQUIRED_MATERIAL_IDS,
+        "INTENT_ONLY_NO_ASSEMBLY_STRUCTURAL_OR_SOURCING_CLAIM",
+        errors,
+    );
+    validate_intent_option_catalog(
+        catalog,
+        "environmental_strategy_intent_catalog",
+        REQUIRED_ENVIRONMENTAL_IDS,
+        "INTENT_ONLY_NO_PHYSICAL_PERFORMANCE_OR_RESOURCE_CLAIM",
+        errors,
+    );
     let forbidden_terms = ["african style", "ethnic style", "pan-african"];
     for style in &styles {
         let name = text(style, "display_name").unwrap_or_default().to_ascii_lowercase();
@@ -294,6 +435,22 @@ fn validate_grammar(
         .map(|values| strings(Some(values), Some("package_id")))
         .unwrap_or_default();
 
+    let typology_ids = catalog
+        .get("spatial_typology_catalog")
+        .and_then(Value::as_array)
+        .map(|values| strings(Some(values), Some("option_id")))
+        .unwrap_or_default();
+    let material_ids = catalog
+        .get("material_tectonic_intent_catalog")
+        .and_then(Value::as_array)
+        .map(|values| strings(Some(values), Some("option_id")))
+        .unwrap_or_default();
+    let environmental_ids = catalog
+        .get("environmental_strategy_intent_catalog")
+        .and_then(Value::as_array)
+        .map(|values| strings(Some(values), Some("option_id")))
+        .unwrap_or_default();
+
     let null = Value::Null;
     let composition = grammar.get("composition").unwrap_or(&null);
     for axis in REQUIRED_AXES {
@@ -370,6 +527,10 @@ fn validate_grammar(
             errors.push(format!("grammar contains duplicate experience entry: {id}"));
         }
     }
+
+    validate_intent_entries(composition, "spatial_typology", &typology_ids, errors);
+    validate_intent_entries(composition, "material_tectonic_intent", &material_ids, errors);
+    validate_intent_entries(composition, "environmental_strategy_intent", &environmental_ids, errors);
 
     let context = grammar.get("context").unwrap_or(&null);
     if text(context, "context_state") == Some("UNKNOWN")
@@ -455,6 +616,19 @@ fn run_self_test() -> Result<(), String> {
         return Err("negative control failed: unreferenced heritage style entry was accepted".to_owned());
     }
 
+    let mut unknown_material = grammar.clone();
+    unknown_material["composition"]["material_tectonic_intent"]["entries"][0]["item_id"] =
+        Value::String("UNKNOWN_ASSEMBLY".to_owned());
+    if validate_all(&catalog, &catalog_schema, &unknown_material, &grammar_schema).is_empty() {
+        return Err("negative control failed: unknown material vocabulary ID was accepted".to_owned());
+    }
+
+    let mut wrong_typology_count = catalog.clone();
+    wrong_typology_count["spatial_typology_catalog"].as_array_mut().unwrap().pop();
+    if validate_all(&wrong_typology_count, &catalog_schema, &grammar, &grammar_schema).is_empty() {
+        return Err("negative control failed: incomplete spatial typology vocabulary was accepted".to_owned());
+    }
+
     Ok(())
 }
 
@@ -478,7 +652,7 @@ fn main() {
             eprintln!("SELF-TEST FAIL: {error}");
             process::exit(1);
         }
-        println!("PASS: v0.2 catalogue and five-axis grammar integrity; 8 adversarial negative controls rejected");
+        println!("PASS: v0.2 catalogue and five-axis grammar integrity; 10 adversarial negative controls rejected");
     } else {
         println!("PASS: v0.2 catalogue and five-axis grammar integrity");
     }
