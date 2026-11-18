@@ -43,5 +43,6 @@
       "disclosure_class": "restricted",
       "governance_record_ref": "urn:mycelix:stewardship:commitment:restore-001"
     }
-  ]
+  ],
+  "challenge_assessments": []
 }
