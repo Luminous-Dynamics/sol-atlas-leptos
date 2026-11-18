@@ -15,7 +15,7 @@ A style is an expressive reference, not a building system. Home Expression v0.2 
 4. **Environmental strategy intent:** orientation, shading, daylight, ventilation, thermal mass, water strategies and landscape relationships. A style's appearance never proves that one of these strategies works on a specific site.
 5. **Experience and programme:** optional spaces and services that change area, structure, fire, services, access, cost, water, energy, sourcing and maintenance.
 
-The composition contract preserves unresolved conflicts. It does not collapse axes into an aesthetic score, infer a style from resident identity, or automatically map a collage of references into geometry.
+The composition contract preserves unresolved conflicts. It does not collapse axes into an aesthetic score, infer a style from resident identity, or automatically map a collage of references into geometry. The v0.2 catalogue now publishes the shared vocabularies as versioned arrays: 11 spatial typologies, 34 expression families, 8 material/tectonic options, 10 environmental strategies and 26 experience packages. The configurator consumes these same IDs rather than maintaining a separate UI-only list; Symthaea adapters should consume this versioned catalogue when their owner accepts the contract.
 
 ### New catalogue families
 
