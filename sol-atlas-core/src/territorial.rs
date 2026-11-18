@@ -407,33 +407,57 @@ impl TerritorialRecord {
                     ));
                 }
             }
-            if matches!(
-                assertion.dispute_state,
-                DisputeState::Challenged | DisputeState::UnderReview | DisputeState::Resolved
-            ) && assertion.challenge_ids.is_empty()
-            {
-                issues.push(format!(
-                    "assertion {} has dispute state {:?} but no challenge reference",
-                    assertion.id, assertion.dispute_state
-                ));
-            }
-            if assertion.dispute_state == DisputeState::Resolved
-                && !assertion.challenge_ids.iter().any(|id| {
-                    self.challenges.iter().any(|challenge| {
-                        challenge.id == *id
-                            && matches!(
-                                challenge.state,
-                                ChallengeState::Resolved
-                                    | ChallengeState::Rejected
-                                    | ChallengeState::Withdrawn
-                            )
-                    })
+            let linked_challenges = self
+                .challenges
+                .iter()
+                .filter(|challenge| {
+                    assertion.challenge_ids.iter().any(|id| id == &challenge.id)
                 })
-            {
-                issues.push(format!(
-                    "assertion {} is marked resolved without a resolved challenge record",
-                    assertion.id
-                ));
+                .collect::<Vec<_>>();
+            let has_submitted_challenge = linked_challenges
+                .iter()
+                .any(|challenge| challenge.state == ChallengeState::Submitted);
+            let has_under_review_challenge = linked_challenges
+                .iter()
+                .any(|challenge| challenge.state == ChallengeState::UnderReview);
+            let all_linked_challenges_terminal = !linked_challenges.is_empty()
+                && linked_challenges.iter().all(|challenge| {
+                    matches!(
+                        challenge.state,
+                        ChallengeState::Resolved
+                            | ChallengeState::Rejected
+                            | ChallengeState::Withdrawn
+                    )
+                });
+
+            match assertion.dispute_state {
+                DisputeState::NoKnownChallenge if !linked_challenges.is_empty() => {
+                    issues.push(format!(
+                        "assertion {} says no_known_challenge while linked challenge records exist",
+                        assertion.id
+                    ));
+                }
+                DisputeState::Challenged if !has_submitted_challenge => {
+                    issues.push(format!(
+                        "assertion {} says challenged without a submitted linked challenge",
+                        assertion.id
+                    ));
+                }
+                DisputeState::UnderReview
+                    if has_submitted_challenge || !has_under_review_challenge =>
+                {
+                    issues.push(format!(
+                        "assertion {} says under_review without exclusively under-review active challenges",
+                        assertion.id
+                    ));
+                }
+                DisputeState::Resolved if !all_linked_challenges_terminal => {
+                    issues.push(format!(
+                        "assertion {} says resolved while one or more linked challenges remain active or no challenge is linked",
+                        assertion.id
+                    ));
+                }
+                _ => {}
             }
 
             for basis in &assertion.bases {
@@ -702,6 +726,56 @@ mod tests {
         );
         assert!(issues.iter().any(|issue| {
             issue.contains("community_attested without community-decision evidence")
+        }));
+    }
+
+    #[test]
+    fn active_challenge_cannot_be_hidden_by_no_known_challenge_state() {
+        let mut value = record(vec![assertion(vec![ClaimBasis::Asserted])]);
+        value.challenges.push(ChallengeReference {
+            id: "challenge-1".into(),
+            raised_by_ref: "party:challenger".into(),
+            filed_at: "2026-11-18T10:05:00Z".into(),
+            state: ChallengeState::Submitted,
+            evidence_ids: vec!["evidence-1".into()],
+            disclosure_class: DisclosureClass::Restricted,
+        });
+        value.assertions[0].challenge_ids = vec!["challenge-1".into()];
+        let issues = value.validate().expect_err(
+            "an active challenge must not be presented as no known challenge",
+        );
+        assert!(issues.iter().any(|issue| {
+            issue.contains("no_known_challenge while linked challenge records exist")
+        }));
+    }
+
+    #[test]
+    fn resolved_state_requires_every_linked_challenge_to_be_terminal() {
+        let mut value = record(vec![assertion(vec![ClaimBasis::Asserted])]);
+        value.challenges.push(ChallengeReference {
+            id: "challenge-closed".into(),
+            raised_by_ref: "party:challenger-1".into(),
+            filed_at: "2026-11-17T10:05:00Z".into(),
+            state: ChallengeState::Rejected,
+            evidence_ids: vec!["evidence-1".into()],
+            disclosure_class: DisclosureClass::Restricted,
+        });
+        value.challenges.push(ChallengeReference {
+            id: "challenge-open".into(),
+            raised_by_ref: "party:challenger-2".into(),
+            filed_at: "2026-11-18T10:05:00Z".into(),
+            state: ChallengeState::Submitted,
+            evidence_ids: vec!["evidence-1".into()],
+            disclosure_class: DisclosureClass::Restricted,
+        });
+        value.assertions[0].challenge_ids =
+            vec!["challenge-closed".into(), "challenge-open".into()];
+        value.assertions[0].dispute_state = DisputeState::Resolved;
+        let issues = value.validate().expect_err(
+            "one closed challenge must not conceal another active challenge",
+        );
+        assert!(issues.iter().any(|issue| {
+            issue.contains("resolved while one or more linked challenges remain active")
         }));
     }
 
