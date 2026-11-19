@@ -25,15 +25,19 @@ The 50 registered cases cover five provision models across ten spatial contexts:
 ## What the auditor checks
 
 - exact v0.1 study identity and claim ceiling;
-- the five frozen provision arms and ten spatial scenario identifiers;
+- the five frozen provision arms, ten spatial scenario identifiers and ten typed scenario definitions;
 - a complete 5 × 10 matrix with no duplicate/missing pair;
 - all 50 cases remaining NOT_EXECUTED / NOT_SUPPLIED / NO_RESULT;
+- each scenario definition having a reviewed class, spatial condition, stressors and owner-output requirements;
+- no invented scenario probabilities and no numeric inputs before a separate fixture freeze;
 - ten amenity archetypes and nine candidate service functional units;
 - every candidate functional unit is explicitly marked CANDIDATE_NOT_OWNER_APPROVED and bound to Mycelix #6328 for owner review;
 - non-essential plant remains an enabling asset, never a standalone amenity service;
 - required excluded scopes and 16 owner-native dependencies remain present with exact owner/role/reference bindings;
 - at least 43 unique source URLs and unique source IDs;
 - eight frozen spatial metric vectors and proposed target invariants.
+
+The standalone auditor currently has 19 adversarial Rust tests. It remains unexecuted locally in this session; the exact-head GitHub workflow is the compilation/test gate.
 
 The report includes SHA-256 of the exact manifest bytes. That digest establishes byte identity only.
 
