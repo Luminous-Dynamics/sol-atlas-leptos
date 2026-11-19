@@ -14,55 +14,113 @@
   "comparison_arms": [
     {
       "id": "PRIVATE_DUPLICATION",
-      "description": "Households individually own and maintain the facility."
+      "description": "Resident-directed private dwelling and accessory structures providing the selected service independently."
     },
     {
       "id": "CENTRAL_SHARED",
-      "description": "One shared facility serves the reference population."
+      "description": "One shared amenity node serves the declared resident catchment."
     },
     {
       "id": "DISTRIBUTED_SHARED",
-      "description": "Several smaller facilities divide demand and failure domains."
+      "description": "Several smaller shared nodes distribute access and catchment coverage."
     },
     {
       "id": "HYBRID_SHARED_PRIVATE",
-      "description": "A declared private minimum is complemented by shared facilities."
+      "description": "A resident-selected private minimum plus selected shared services."
     },
     {
       "id": "EXTERNAL_COMMERCIAL",
-      "description": "Residents purchase equivalent service from verified external providers."
+      "description": "Existing external providers serve the catchment under verified access and availability assumptions."
     }
   ],
   "scenarios": [
-    "ORDINARY_DEMAND",
-    "PEAK_SIMULTANEOUS_DEMAND",
-    "SEASONAL_OR_EVENT_SURGE",
-    "GRID_OR_WATER_INTERRUPTION",
-    "STAFFING_OR_OPERATOR_OUTAGE",
-    "MAJOR_REPAIR_AND_PARTS_DELAY",
-    "OPERATING_COST_INFLATION_AND_RESERVE_SHORTFALL",
-    "ACCESS_ROUTE_DISRUPTION_OR_LIFT_OUTAGE",
-    "HOUSEHOLD_COMPOSITION_AND_DEMAND_CHANGE",
-    "GOVERNANCE_CONFLICT_OR_OPERATOR_CAPTURE_ATTEMPT"
+    "COMPACT_HIGH_DENSITY",
+    "LOW_DENSITY_DISPERSED",
+    "MIXED_USE_TRANSIT_ADJACENT",
+    "SITE_EDGE_LONG_WALK",
+    "ACCESSIBLE_ROUTE_DISCONTINUITY",
+    "UNEQUAL_POPULATION_DISTRIBUTION",
+    "PHASED_OCCUPANCY_GROWTH",
+    "LAND_SCARCITY_COMPETING_USE",
+    "EXTERNAL_PROVIDER_DISTANCE_OR_CLOSURE",
+    "MULTI_NODE_CATCHMENT_REBALANCING"
   ],
   "amenity_archetypes": [
     {
-      "id": "TOOL_LIBRARY_MAKER_WORKSHOP",
-      "service": "Tool access, booking, custody, repair and return",
+      "id": "COMMUNITY_HALL",
+      "service": "Accessible community-room service",
       "critical_dependencies": [
-        "custody",
+        "opening_hours",
+        "operator",
+        "cleaning",
+        "access_route",
+        "condition",
+        "beneficiary_scope"
+      ],
+      "role": "RESIDENT_FACING_SERVICE_ASSET",
+      "functional_unit_id": "ACCESSIBLE_COMMUNITY_ROOM_HOUR"
+    },
+    {
+      "id": "COMMUNITY_KITCHEN",
+      "service": "Accepted meal and food-preparation service",
+      "critical_dependencies": [
+        "food_hygiene",
+        "ventilation",
+        "fire_safety",
+        "cleaning",
+        "staffing",
+        "access"
+      ],
+      "role": "RESIDENT_FACING_SERVICE_ASSET",
+      "functional_unit_id": "ACCEPTED_MEAL_SERVICE"
+    },
+    {
+      "id": "COWORKING_LIBRARY_STUDY",
+      "service": "Accessible study/work seat service",
+      "critical_dependencies": [
         "power",
-        "supervision",
-        "consumables",
+        "connectivity",
+        "acoustics",
+        "privacy",
+        "opening_hours",
         "maintenance"
       ],
       "role": "RESIDENT_FACING_SERVICE_ASSET",
-      "functional_unit_id": "ACCEPTED_TOOL_USER_HOUR"
+      "functional_unit_id": "ACCESSIBLE_SEAT_HOUR"
+    },
+    {
+      "id": "WORKSHOP_TOOL_LIBRARY_REPAIR",
+      "service": "Usable workshop and tool-access service",
+      "critical_dependencies": [
+        "tools",
+        "supervision",
+        "custody",
+        "consumables",
+        "ventilation",
+        "maintenance"
+      ],
+      "role": "RESIDENT_FACING_SERVICE_ASSET",
+      "functional_unit_id": "USABLE_WORKSHOP_HOUR"
+    },
+    {
+      "id": "GUEST_SUITES",
+      "service": "Accessible overnight guest accommodation",
+      "critical_dependencies": [
+        "booking_policy",
+        "cleaning",
+        "privacy",
+        "safeguarding",
+        "accessibility",
+        "maintenance"
+      ],
+      "role": "RESIDENT_FACING_SERVICE_ASSET",
+      "functional_unit_id": "ACCESSIBLE_GUEST_NIGHT"
     },
     {
       "id": "SHARED_LAUNDRY",
-      "service": "Accepted wash/dry cycles and availability",
+      "service": "Accepted laundry service",
       "critical_dependencies": [
+        "water_source",
         "water_quality",
         "water_quantity",
         "energy",
@@ -74,28 +132,16 @@
       "functional_unit_id": "ACCEPTED_LAUNDRY_LOAD"
     },
     {
-      "id": "GUEST_SUITES",
-      "service": "Accessible overnight stays",
-      "critical_dependencies": [
-        "booking_fairness",
-        "cleaning",
-        "privacy",
-        "maintenance",
-        "safeguarding"
-      ],
-      "role": "RESIDENT_FACING_SERVICE_ASSET",
-      "functional_unit_id": "ACCESSIBLE_GUEST_NIGHT"
-    },
-    {
-      "id": "GREENHOUSE_FOOD_GARDEN",
-      "service": "Productive growing service and usable harvest",
+      "id": "GREENHOUSE_NURSERY_FOOD_GROWING",
+      "service": "Usable crop/grade-specific harvest service",
       "critical_dependencies": [
         "water_source",
+        "water_rights",
         "water_quality",
         "climate",
-        "inputs",
-        "soil",
-        "staffing",
+        "crop",
+        "nutrients",
+        "labour",
         "maintenance"
       ],
       "role": "RESIDENT_FACING_SERVICE_ASSET",
@@ -103,83 +149,43 @@
     },
     {
       "id": "POOL_WELLNESS",
-      "service": "Safe and accessible operating hours and capacity",
+      "service": "Operable pool/wellness access service",
       "critical_dependencies": [
-        "water",
+        "water_source",
+        "water_quality",
         "filtration",
-        "energy",
-        "trained_operation",
         "inspection",
-        "cleaning",
-        "reserve"
+        "energy",
+        "operator",
+        "accessibility",
+        "maintenance"
       ],
       "role": "RESIDENT_FACING_SERVICE_ASSET",
-      "functional_unit_id": "OPERABLE_SWIMMER_HOUR"
+      "functional_unit_id": "OPERABLE_POOL_LANE_HOUR"
     },
     {
-      "id": "COMMUNITY_KITCHEN_DINING",
-      "service": "Food preparation and gathering service",
+      "id": "GYM_RECREATION",
+      "service": "Usable gym/recreation service",
       "critical_dependencies": [
-        "food_hygiene",
-        "ventilation",
-        "fire_safety",
-        "cleaning",
-        "accessible_equipment"
-      ],
-      "role": "RESIDENT_FACING_SERVICE_ASSET",
-      "functional_unit_id": "ACCEPTED_MEAL_SERVICE"
-    },
-    {
-      "id": "LIBRARY_STUDY_COWORKING",
-      "service": "Usable quiet, study and work hours",
-      "critical_dependencies": [
-        "power",
-        "connectivity",
-        "acoustics",
-        "privacy",
-        "opening_hours"
-      ],
-      "role": "RESIDENT_FACING_SERVICE_ASSET",
-      "functional_unit_id": "ACCESSIBLE_SEAT_HOUR"
-    },
-    {
-      "id": "CHILDCARE_LEARNING",
-      "service": "Qualified care/learning places and hours",
-      "critical_dependencies": [
-        "licensing",
-        "staffing",
-        "safeguarding",
+        "equipment_condition",
         "access",
-        "sanitation",
-        "emergency"
+        "supervision",
+        "ventilation",
+        "cleaning",
+        "maintenance"
       ],
       "role": "RESIDENT_FACING_SERVICE_ASSET",
-      "functional_unit_id": "LICENSED_CHILD_PLACE_HOUR"
-    },
-    {
-      "id": "SPORTS_PARK_PUBLIC_REALM",
-      "service": "Accessible use-hours and recreation capacity",
-      "critical_dependencies": [
-        "land",
-        "shade",
-        "lighting",
-        "water_constraints",
-        "maintenance",
-        "routes"
-      ],
-      "role": "RESIDENT_FACING_SERVICE_ASSET",
-      "functional_unit_id": "USABLE_RECREATION_SPACE_HOUR"
+      "functional_unit_id": "USABLE_ACTIVITY_SPACE_HOUR"
     },
     {
       "id": "NON_ESSENTIAL_AMENITY_PLANT",
-      "service": "Supporting plant for a named amenity only; not a standalone community utility or resilience service",
+      "service": "Enabling plant for a named amenity service only; not an independent resident-facing service or essential utility service",
       "critical_dependencies": [
-        "supported_amenity_id",
-        "isolation",
-        "metering",
-        "operators",
-        "spares",
-        "maintenance"
+        "canonical_asset_service_contract",
+        "operator",
+        "inspection",
+        "maintenance",
+        "replacement_liability"
       ],
       "role": "ENABLING_ASSET_ONLY",
       "functional_unit_id": null
@@ -193,450 +199,450 @@
   },
   "cases": [
     {
-      "id": "PRIVATE_DUPLICATION__ORDINARY_DEMAND",
+      "id": "PRIVATE_DUPLICATION__COMPACT_HIGH_DENSITY",
       "comparison_arm": "PRIVATE_DUPLICATION",
-      "scenario": "ORDINARY_DEMAND",
+      "scenario": "COMPACT_HIGH_DENSITY",
       "definition_state": "REGISTERED_DESIGN_ONLY",
       "execution_status": "NOT_EXECUTED",
       "numerical_inputs_state": "NOT_SUPPLIED",
       "result_state": "NO_RESULT"
     },
     {
-      "id": "PRIVATE_DUPLICATION__PEAK_SIMULTANEOUS_DEMAND",
+      "id": "PRIVATE_DUPLICATION__LOW_DENSITY_DISPERSED",
       "comparison_arm": "PRIVATE_DUPLICATION",
-      "scenario": "PEAK_SIMULTANEOUS_DEMAND",
+      "scenario": "LOW_DENSITY_DISPERSED",
       "definition_state": "REGISTERED_DESIGN_ONLY",
       "execution_status": "NOT_EXECUTED",
       "numerical_inputs_state": "NOT_SUPPLIED",
       "result_state": "NO_RESULT"
     },
     {
-      "id": "PRIVATE_DUPLICATION__SEASONAL_OR_EVENT_SURGE",
+      "id": "PRIVATE_DUPLICATION__MIXED_USE_TRANSIT_ADJACENT",
       "comparison_arm": "PRIVATE_DUPLICATION",
-      "scenario": "SEASONAL_OR_EVENT_SURGE",
+      "scenario": "MIXED_USE_TRANSIT_ADJACENT",
       "definition_state": "REGISTERED_DESIGN_ONLY",
       "execution_status": "NOT_EXECUTED",
       "numerical_inputs_state": "NOT_SUPPLIED",
       "result_state": "NO_RESULT"
     },
     {
-      "id": "PRIVATE_DUPLICATION__GRID_OR_WATER_INTERRUPTION",
+      "id": "PRIVATE_DUPLICATION__SITE_EDGE_LONG_WALK",
       "comparison_arm": "PRIVATE_DUPLICATION",
-      "scenario": "GRID_OR_WATER_INTERRUPTION",
+      "scenario": "SITE_EDGE_LONG_WALK",
       "definition_state": "REGISTERED_DESIGN_ONLY",
       "execution_status": "NOT_EXECUTED",
       "numerical_inputs_state": "NOT_SUPPLIED",
       "result_state": "NO_RESULT"
     },
     {
-      "id": "PRIVATE_DUPLICATION__STAFFING_OR_OPERATOR_OUTAGE",
+      "id": "PRIVATE_DUPLICATION__ACCESSIBLE_ROUTE_DISCONTINUITY",
       "comparison_arm": "PRIVATE_DUPLICATION",
-      "scenario": "STAFFING_OR_OPERATOR_OUTAGE",
+      "scenario": "ACCESSIBLE_ROUTE_DISCONTINUITY",
       "definition_state": "REGISTERED_DESIGN_ONLY",
       "execution_status": "NOT_EXECUTED",
       "numerical_inputs_state": "NOT_SUPPLIED",
       "result_state": "NO_RESULT"
     },
     {
-      "id": "PRIVATE_DUPLICATION__MAJOR_REPAIR_AND_PARTS_DELAY",
+      "id": "PRIVATE_DUPLICATION__UNEQUAL_POPULATION_DISTRIBUTION",
       "comparison_arm": "PRIVATE_DUPLICATION",
-      "scenario": "MAJOR_REPAIR_AND_PARTS_DELAY",
+      "scenario": "UNEQUAL_POPULATION_DISTRIBUTION",
       "definition_state": "REGISTERED_DESIGN_ONLY",
       "execution_status": "NOT_EXECUTED",
       "numerical_inputs_state": "NOT_SUPPLIED",
       "result_state": "NO_RESULT"
     },
     {
-      "id": "PRIVATE_DUPLICATION__OPERATING_COST_INFLATION_AND_RESERVE_SHORTFALL",
+      "id": "PRIVATE_DUPLICATION__PHASED_OCCUPANCY_GROWTH",
       "comparison_arm": "PRIVATE_DUPLICATION",
-      "scenario": "OPERATING_COST_INFLATION_AND_RESERVE_SHORTFALL",
+      "scenario": "PHASED_OCCUPANCY_GROWTH",
       "definition_state": "REGISTERED_DESIGN_ONLY",
       "execution_status": "NOT_EXECUTED",
       "numerical_inputs_state": "NOT_SUPPLIED",
       "result_state": "NO_RESULT"
     },
     {
-      "id": "PRIVATE_DUPLICATION__ACCESS_ROUTE_DISRUPTION_OR_LIFT_OUTAGE",
+      "id": "PRIVATE_DUPLICATION__LAND_SCARCITY_COMPETING_USE",
       "comparison_arm": "PRIVATE_DUPLICATION",
-      "scenario": "ACCESS_ROUTE_DISRUPTION_OR_LIFT_OUTAGE",
+      "scenario": "LAND_SCARCITY_COMPETING_USE",
       "definition_state": "REGISTERED_DESIGN_ONLY",
       "execution_status": "NOT_EXECUTED",
       "numerical_inputs_state": "NOT_SUPPLIED",
       "result_state": "NO_RESULT"
     },
     {
-      "id": "PRIVATE_DUPLICATION__HOUSEHOLD_COMPOSITION_AND_DEMAND_CHANGE",
+      "id": "PRIVATE_DUPLICATION__EXTERNAL_PROVIDER_DISTANCE_OR_CLOSURE",
       "comparison_arm": "PRIVATE_DUPLICATION",
-      "scenario": "HOUSEHOLD_COMPOSITION_AND_DEMAND_CHANGE",
+      "scenario": "EXTERNAL_PROVIDER_DISTANCE_OR_CLOSURE",
       "definition_state": "REGISTERED_DESIGN_ONLY",
       "execution_status": "NOT_EXECUTED",
       "numerical_inputs_state": "NOT_SUPPLIED",
       "result_state": "NO_RESULT"
     },
     {
-      "id": "PRIVATE_DUPLICATION__GOVERNANCE_CONFLICT_OR_OPERATOR_CAPTURE_ATTEMPT",
+      "id": "PRIVATE_DUPLICATION__MULTI_NODE_CATCHMENT_REBALANCING",
       "comparison_arm": "PRIVATE_DUPLICATION",
-      "scenario": "GOVERNANCE_CONFLICT_OR_OPERATOR_CAPTURE_ATTEMPT",
+      "scenario": "MULTI_NODE_CATCHMENT_REBALANCING",
       "definition_state": "REGISTERED_DESIGN_ONLY",
       "execution_status": "NOT_EXECUTED",
       "numerical_inputs_state": "NOT_SUPPLIED",
       "result_state": "NO_RESULT"
     },
     {
-      "id": "CENTRAL_SHARED__ORDINARY_DEMAND",
+      "id": "CENTRAL_SHARED__COMPACT_HIGH_DENSITY",
       "comparison_arm": "CENTRAL_SHARED",
-      "scenario": "ORDINARY_DEMAND",
+      "scenario": "COMPACT_HIGH_DENSITY",
       "definition_state": "REGISTERED_DESIGN_ONLY",
       "execution_status": "NOT_EXECUTED",
       "numerical_inputs_state": "NOT_SUPPLIED",
       "result_state": "NO_RESULT"
     },
     {
-      "id": "CENTRAL_SHARED__PEAK_SIMULTANEOUS_DEMAND",
+      "id": "CENTRAL_SHARED__LOW_DENSITY_DISPERSED",
       "comparison_arm": "CENTRAL_SHARED",
-      "scenario": "PEAK_SIMULTANEOUS_DEMAND",
+      "scenario": "LOW_DENSITY_DISPERSED",
       "definition_state": "REGISTERED_DESIGN_ONLY",
       "execution_status": "NOT_EXECUTED",
       "numerical_inputs_state": "NOT_SUPPLIED",
       "result_state": "NO_RESULT"
     },
     {
-      "id": "CENTRAL_SHARED__SEASONAL_OR_EVENT_SURGE",
+      "id": "CENTRAL_SHARED__MIXED_USE_TRANSIT_ADJACENT",
       "comparison_arm": "CENTRAL_SHARED",
-      "scenario": "SEASONAL_OR_EVENT_SURGE",
+      "scenario": "MIXED_USE_TRANSIT_ADJACENT",
       "definition_state": "REGISTERED_DESIGN_ONLY",
       "execution_status": "NOT_EXECUTED",
       "numerical_inputs_state": "NOT_SUPPLIED",
       "result_state": "NO_RESULT"
     },
     {
-      "id": "CENTRAL_SHARED__GRID_OR_WATER_INTERRUPTION",
+      "id": "CENTRAL_SHARED__SITE_EDGE_LONG_WALK",
       "comparison_arm": "CENTRAL_SHARED",
-      "scenario": "GRID_OR_WATER_INTERRUPTION",
+      "scenario": "SITE_EDGE_LONG_WALK",
       "definition_state": "REGISTERED_DESIGN_ONLY",
       "execution_status": "NOT_EXECUTED",
       "numerical_inputs_state": "NOT_SUPPLIED",
       "result_state": "NO_RESULT"
     },
     {
-      "id": "CENTRAL_SHARED__STAFFING_OR_OPERATOR_OUTAGE",
+      "id": "CENTRAL_SHARED__ACCESSIBLE_ROUTE_DISCONTINUITY",
       "comparison_arm": "CENTRAL_SHARED",
-      "scenario": "STAFFING_OR_OPERATOR_OUTAGE",
+      "scenario": "ACCESSIBLE_ROUTE_DISCONTINUITY",
       "definition_state": "REGISTERED_DESIGN_ONLY",
       "execution_status": "NOT_EXECUTED",
       "numerical_inputs_state": "NOT_SUPPLIED",
       "result_state": "NO_RESULT"
     },
     {
-      "id": "CENTRAL_SHARED__MAJOR_REPAIR_AND_PARTS_DELAY",
+      "id": "CENTRAL_SHARED__UNEQUAL_POPULATION_DISTRIBUTION",
       "comparison_arm": "CENTRAL_SHARED",
-      "scenario": "MAJOR_REPAIR_AND_PARTS_DELAY",
+      "scenario": "UNEQUAL_POPULATION_DISTRIBUTION",
       "definition_state": "REGISTERED_DESIGN_ONLY",
       "execution_status": "NOT_EXECUTED",
       "numerical_inputs_state": "NOT_SUPPLIED",
       "result_state": "NO_RESULT"
     },
     {
-      "id": "CENTRAL_SHARED__OPERATING_COST_INFLATION_AND_RESERVE_SHORTFALL",
+      "id": "CENTRAL_SHARED__PHASED_OCCUPANCY_GROWTH",
       "comparison_arm": "CENTRAL_SHARED",
-      "scenario": "OPERATING_COST_INFLATION_AND_RESERVE_SHORTFALL",
+      "scenario": "PHASED_OCCUPANCY_GROWTH",
       "definition_state": "REGISTERED_DESIGN_ONLY",
       "execution_status": "NOT_EXECUTED",
       "numerical_inputs_state": "NOT_SUPPLIED",
       "result_state": "NO_RESULT"
     },
     {
-      "id": "CENTRAL_SHARED__ACCESS_ROUTE_DISRUPTION_OR_LIFT_OUTAGE",
+      "id": "CENTRAL_SHARED__LAND_SCARCITY_COMPETING_USE",
       "comparison_arm": "CENTRAL_SHARED",
-      "scenario": "ACCESS_ROUTE_DISRUPTION_OR_LIFT_OUTAGE",
+      "scenario": "LAND_SCARCITY_COMPETING_USE",
       "definition_state": "REGISTERED_DESIGN_ONLY",
       "execution_status": "NOT_EXECUTED",
       "numerical_inputs_state": "NOT_SUPPLIED",
       "result_state": "NO_RESULT"
     },
     {
-      "id": "CENTRAL_SHARED__HOUSEHOLD_COMPOSITION_AND_DEMAND_CHANGE",
+      "id": "CENTRAL_SHARED__EXTERNAL_PROVIDER_DISTANCE_OR_CLOSURE",
       "comparison_arm": "CENTRAL_SHARED",
-      "scenario": "HOUSEHOLD_COMPOSITION_AND_DEMAND_CHANGE",
+      "scenario": "EXTERNAL_PROVIDER_DISTANCE_OR_CLOSURE",
       "definition_state": "REGISTERED_DESIGN_ONLY",
       "execution_status": "NOT_EXECUTED",
       "numerical_inputs_state": "NOT_SUPPLIED",
       "result_state": "NO_RESULT"
     },
     {
-      "id": "CENTRAL_SHARED__GOVERNANCE_CONFLICT_OR_OPERATOR_CAPTURE_ATTEMPT",
+      "id": "CENTRAL_SHARED__MULTI_NODE_CATCHMENT_REBALANCING",
       "comparison_arm": "CENTRAL_SHARED",
-      "scenario": "GOVERNANCE_CONFLICT_OR_OPERATOR_CAPTURE_ATTEMPT",
+      "scenario": "MULTI_NODE_CATCHMENT_REBALANCING",
       "definition_state": "REGISTERED_DESIGN_ONLY",
       "execution_status": "NOT_EXECUTED",
       "numerical_inputs_state": "NOT_SUPPLIED",
       "result_state": "NO_RESULT"
     },
     {
-      "id": "DISTRIBUTED_SHARED__ORDINARY_DEMAND",
+      "id": "DISTRIBUTED_SHARED__COMPACT_HIGH_DENSITY",
       "comparison_arm": "DISTRIBUTED_SHARED",
-      "scenario": "ORDINARY_DEMAND",
+      "scenario": "COMPACT_HIGH_DENSITY",
       "definition_state": "REGISTERED_DESIGN_ONLY",
       "execution_status": "NOT_EXECUTED",
       "numerical_inputs_state": "NOT_SUPPLIED",
       "result_state": "NO_RESULT"
     },
     {
-      "id": "DISTRIBUTED_SHARED__PEAK_SIMULTANEOUS_DEMAND",
+      "id": "DISTRIBUTED_SHARED__LOW_DENSITY_DISPERSED",
       "comparison_arm": "DISTRIBUTED_SHARED",
-      "scenario": "PEAK_SIMULTANEOUS_DEMAND",
+      "scenario": "LOW_DENSITY_DISPERSED",
       "definition_state": "REGISTERED_DESIGN_ONLY",
       "execution_status": "NOT_EXECUTED",
       "numerical_inputs_state": "NOT_SUPPLIED",
       "result_state": "NO_RESULT"
     },
     {
-      "id": "DISTRIBUTED_SHARED__SEASONAL_OR_EVENT_SURGE",
+      "id": "DISTRIBUTED_SHARED__MIXED_USE_TRANSIT_ADJACENT",
       "comparison_arm": "DISTRIBUTED_SHARED",
-      "scenario": "SEASONAL_OR_EVENT_SURGE",
+      "scenario": "MIXED_USE_TRANSIT_ADJACENT",
       "definition_state": "REGISTERED_DESIGN_ONLY",
       "execution_status": "NOT_EXECUTED",
       "numerical_inputs_state": "NOT_SUPPLIED",
       "result_state": "NO_RESULT"
     },
     {
-      "id": "DISTRIBUTED_SHARED__GRID_OR_WATER_INTERRUPTION",
+      "id": "DISTRIBUTED_SHARED__SITE_EDGE_LONG_WALK",
       "comparison_arm": "DISTRIBUTED_SHARED",
-      "scenario": "GRID_OR_WATER_INTERRUPTION",
+      "scenario": "SITE_EDGE_LONG_WALK",
       "definition_state": "REGISTERED_DESIGN_ONLY",
       "execution_status": "NOT_EXECUTED",
       "numerical_inputs_state": "NOT_SUPPLIED",
       "result_state": "NO_RESULT"
     },
     {
-      "id": "DISTRIBUTED_SHARED__STAFFING_OR_OPERATOR_OUTAGE",
+      "id": "DISTRIBUTED_SHARED__ACCESSIBLE_ROUTE_DISCONTINUITY",
       "comparison_arm": "DISTRIBUTED_SHARED",
-      "scenario": "STAFFING_OR_OPERATOR_OUTAGE",
+      "scenario": "ACCESSIBLE_ROUTE_DISCONTINUITY",
       "definition_state": "REGISTERED_DESIGN_ONLY",
       "execution_status": "NOT_EXECUTED",
       "numerical_inputs_state": "NOT_SUPPLIED",
       "result_state": "NO_RESULT"
     },
     {
-      "id": "DISTRIBUTED_SHARED__MAJOR_REPAIR_AND_PARTS_DELAY",
+      "id": "DISTRIBUTED_SHARED__UNEQUAL_POPULATION_DISTRIBUTION",
       "comparison_arm": "DISTRIBUTED_SHARED",
-      "scenario": "MAJOR_REPAIR_AND_PARTS_DELAY",
+      "scenario": "UNEQUAL_POPULATION_DISTRIBUTION",
       "definition_state": "REGISTERED_DESIGN_ONLY",
       "execution_status": "NOT_EXECUTED",
       "numerical_inputs_state": "NOT_SUPPLIED",
       "result_state": "NO_RESULT"
     },
     {
-      "id": "DISTRIBUTED_SHARED__OPERATING_COST_INFLATION_AND_RESERVE_SHORTFALL",
+      "id": "DISTRIBUTED_SHARED__PHASED_OCCUPANCY_GROWTH",
       "comparison_arm": "DISTRIBUTED_SHARED",
-      "scenario": "OPERATING_COST_INFLATION_AND_RESERVE_SHORTFALL",
+      "scenario": "PHASED_OCCUPANCY_GROWTH",
       "definition_state": "REGISTERED_DESIGN_ONLY",
       "execution_status": "NOT_EXECUTED",
       "numerical_inputs_state": "NOT_SUPPLIED",
       "result_state": "NO_RESULT"
     },
     {
-      "id": "DISTRIBUTED_SHARED__ACCESS_ROUTE_DISRUPTION_OR_LIFT_OUTAGE",
+      "id": "DISTRIBUTED_SHARED__LAND_SCARCITY_COMPETING_USE",
       "comparison_arm": "DISTRIBUTED_SHARED",
-      "scenario": "ACCESS_ROUTE_DISRUPTION_OR_LIFT_OUTAGE",
+      "scenario": "LAND_SCARCITY_COMPETING_USE",
       "definition_state": "REGISTERED_DESIGN_ONLY",
       "execution_status": "NOT_EXECUTED",
       "numerical_inputs_state": "NOT_SUPPLIED",
       "result_state": "NO_RESULT"
     },
     {
-      "id": "DISTRIBUTED_SHARED__HOUSEHOLD_COMPOSITION_AND_DEMAND_CHANGE",
+      "id": "DISTRIBUTED_SHARED__EXTERNAL_PROVIDER_DISTANCE_OR_CLOSURE",
       "comparison_arm": "DISTRIBUTED_SHARED",
-      "scenario": "HOUSEHOLD_COMPOSITION_AND_DEMAND_CHANGE",
+      "scenario": "EXTERNAL_PROVIDER_DISTANCE_OR_CLOSURE",
       "definition_state": "REGISTERED_DESIGN_ONLY",
       "execution_status": "NOT_EXECUTED",
       "numerical_inputs_state": "NOT_SUPPLIED",
       "result_state": "NO_RESULT"
     },
     {
-      "id": "DISTRIBUTED_SHARED__GOVERNANCE_CONFLICT_OR_OPERATOR_CAPTURE_ATTEMPT",
+      "id": "DISTRIBUTED_SHARED__MULTI_NODE_CATCHMENT_REBALANCING",
       "comparison_arm": "DISTRIBUTED_SHARED",
-      "scenario": "GOVERNANCE_CONFLICT_OR_OPERATOR_CAPTURE_ATTEMPT",
+      "scenario": "MULTI_NODE_CATCHMENT_REBALANCING",
       "definition_state": "REGISTERED_DESIGN_ONLY",
       "execution_status": "NOT_EXECUTED",
       "numerical_inputs_state": "NOT_SUPPLIED",
       "result_state": "NO_RESULT"
     },
     {
-      "id": "HYBRID_SHARED_PRIVATE__ORDINARY_DEMAND",
+      "id": "HYBRID_SHARED_PRIVATE__COMPACT_HIGH_DENSITY",
       "comparison_arm": "HYBRID_SHARED_PRIVATE",
-      "scenario": "ORDINARY_DEMAND",
+      "scenario": "COMPACT_HIGH_DENSITY",
       "definition_state": "REGISTERED_DESIGN_ONLY",
       "execution_status": "NOT_EXECUTED",
       "numerical_inputs_state": "NOT_SUPPLIED",
       "result_state": "NO_RESULT"
     },
     {
-      "id": "HYBRID_SHARED_PRIVATE__PEAK_SIMULTANEOUS_DEMAND",
+      "id": "HYBRID_SHARED_PRIVATE__LOW_DENSITY_DISPERSED",
       "comparison_arm": "HYBRID_SHARED_PRIVATE",
-      "scenario": "PEAK_SIMULTANEOUS_DEMAND",
+      "scenario": "LOW_DENSITY_DISPERSED",
       "definition_state": "REGISTERED_DESIGN_ONLY",
       "execution_status": "NOT_EXECUTED",
       "numerical_inputs_state": "NOT_SUPPLIED",
       "result_state": "NO_RESULT"
     },
     {
-      "id": "HYBRID_SHARED_PRIVATE__SEASONAL_OR_EVENT_SURGE",
+      "id": "HYBRID_SHARED_PRIVATE__MIXED_USE_TRANSIT_ADJACENT",
       "comparison_arm": "HYBRID_SHARED_PRIVATE",
-      "scenario": "SEASONAL_OR_EVENT_SURGE",
+      "scenario": "MIXED_USE_TRANSIT_ADJACENT",
       "definition_state": "REGISTERED_DESIGN_ONLY",
       "execution_status": "NOT_EXECUTED",
       "numerical_inputs_state": "NOT_SUPPLIED",
       "result_state": "NO_RESULT"
     },
     {
-      "id": "HYBRID_SHARED_PRIVATE__GRID_OR_WATER_INTERRUPTION",
+      "id": "HYBRID_SHARED_PRIVATE__SITE_EDGE_LONG_WALK",
       "comparison_arm": "HYBRID_SHARED_PRIVATE",
-      "scenario": "GRID_OR_WATER_INTERRUPTION",
+      "scenario": "SITE_EDGE_LONG_WALK",
       "definition_state": "REGISTERED_DESIGN_ONLY",
       "execution_status": "NOT_EXECUTED",
       "numerical_inputs_state": "NOT_SUPPLIED",
       "result_state": "NO_RESULT"
     },
     {
-      "id": "HYBRID_SHARED_PRIVATE__STAFFING_OR_OPERATOR_OUTAGE",
+      "id": "HYBRID_SHARED_PRIVATE__ACCESSIBLE_ROUTE_DISCONTINUITY",
       "comparison_arm": "HYBRID_SHARED_PRIVATE",
-      "scenario": "STAFFING_OR_OPERATOR_OUTAGE",
+      "scenario": "ACCESSIBLE_ROUTE_DISCONTINUITY",
       "definition_state": "REGISTERED_DESIGN_ONLY",
       "execution_status": "NOT_EXECUTED",
       "numerical_inputs_state": "NOT_SUPPLIED",
       "result_state": "NO_RESULT"
     },
     {
-      "id": "HYBRID_SHARED_PRIVATE__MAJOR_REPAIR_AND_PARTS_DELAY",
+      "id": "HYBRID_SHARED_PRIVATE__UNEQUAL_POPULATION_DISTRIBUTION",
       "comparison_arm": "HYBRID_SHARED_PRIVATE",
-      "scenario": "MAJOR_REPAIR_AND_PARTS_DELAY",
+      "scenario": "UNEQUAL_POPULATION_DISTRIBUTION",
       "definition_state": "REGISTERED_DESIGN_ONLY",
       "execution_status": "NOT_EXECUTED",
       "numerical_inputs_state": "NOT_SUPPLIED",
       "result_state": "NO_RESULT"
     },
     {
-      "id": "HYBRID_SHARED_PRIVATE__OPERATING_COST_INFLATION_AND_RESERVE_SHORTFALL",
+      "id": "HYBRID_SHARED_PRIVATE__PHASED_OCCUPANCY_GROWTH",
       "comparison_arm": "HYBRID_SHARED_PRIVATE",
-      "scenario": "OPERATING_COST_INFLATION_AND_RESERVE_SHORTFALL",
+      "scenario": "PHASED_OCCUPANCY_GROWTH",
       "definition_state": "REGISTERED_DESIGN_ONLY",
       "execution_status": "NOT_EXECUTED",
       "numerical_inputs_state": "NOT_SUPPLIED",
       "result_state": "NO_RESULT"
     },
     {
-      "id": "HYBRID_SHARED_PRIVATE__ACCESS_ROUTE_DISRUPTION_OR_LIFT_OUTAGE",
+      "id": "HYBRID_SHARED_PRIVATE__LAND_SCARCITY_COMPETING_USE",
       "comparison_arm": "HYBRID_SHARED_PRIVATE",
-      "scenario": "ACCESS_ROUTE_DISRUPTION_OR_LIFT_OUTAGE",
+      "scenario": "LAND_SCARCITY_COMPETING_USE",
       "definition_state": "REGISTERED_DESIGN_ONLY",
       "execution_status": "NOT_EXECUTED",
       "numerical_inputs_state": "NOT_SUPPLIED",
       "result_state": "NO_RESULT"
     },
     {
-      "id": "HYBRID_SHARED_PRIVATE__HOUSEHOLD_COMPOSITION_AND_DEMAND_CHANGE",
+      "id": "HYBRID_SHARED_PRIVATE__EXTERNAL_PROVIDER_DISTANCE_OR_CLOSURE",
       "comparison_arm": "HYBRID_SHARED_PRIVATE",
-      "scenario": "HOUSEHOLD_COMPOSITION_AND_DEMAND_CHANGE",
+      "scenario": "EXTERNAL_PROVIDER_DISTANCE_OR_CLOSURE",
       "definition_state": "REGISTERED_DESIGN_ONLY",
       "execution_status": "NOT_EXECUTED",
       "numerical_inputs_state": "NOT_SUPPLIED",
       "result_state": "NO_RESULT"
     },
     {
-      "id": "HYBRID_SHARED_PRIVATE__GOVERNANCE_CONFLICT_OR_OPERATOR_CAPTURE_ATTEMPT",
+      "id": "HYBRID_SHARED_PRIVATE__MULTI_NODE_CATCHMENT_REBALANCING",
       "comparison_arm": "HYBRID_SHARED_PRIVATE",
-      "scenario": "GOVERNANCE_CONFLICT_OR_OPERATOR_CAPTURE_ATTEMPT",
+      "scenario": "MULTI_NODE_CATCHMENT_REBALANCING",
       "definition_state": "REGISTERED_DESIGN_ONLY",
       "execution_status": "NOT_EXECUTED",
       "numerical_inputs_state": "NOT_SUPPLIED",
       "result_state": "NO_RESULT"
     },
     {
-      "id": "EXTERNAL_COMMERCIAL__ORDINARY_DEMAND",
+      "id": "EXTERNAL_COMMERCIAL__COMPACT_HIGH_DENSITY",
       "comparison_arm": "EXTERNAL_COMMERCIAL",
-      "scenario": "ORDINARY_DEMAND",
+      "scenario": "COMPACT_HIGH_DENSITY",
       "definition_state": "REGISTERED_DESIGN_ONLY",
       "execution_status": "NOT_EXECUTED",
       "numerical_inputs_state": "NOT_SUPPLIED",
       "result_state": "NO_RESULT"
     },
     {
-      "id": "EXTERNAL_COMMERCIAL__PEAK_SIMULTANEOUS_DEMAND",
+      "id": "EXTERNAL_COMMERCIAL__LOW_DENSITY_DISPERSED",
       "comparison_arm": "EXTERNAL_COMMERCIAL",
-      "scenario": "PEAK_SIMULTANEOUS_DEMAND",
+      "scenario": "LOW_DENSITY_DISPERSED",
       "definition_state": "REGISTERED_DESIGN_ONLY",
       "execution_status": "NOT_EXECUTED",
       "numerical_inputs_state": "NOT_SUPPLIED",
       "result_state": "NO_RESULT"
     },
     {
-      "id": "EXTERNAL_COMMERCIAL__SEASONAL_OR_EVENT_SURGE",
+      "id": "EXTERNAL_COMMERCIAL__MIXED_USE_TRANSIT_ADJACENT",
       "comparison_arm": "EXTERNAL_COMMERCIAL",
-      "scenario": "SEASONAL_OR_EVENT_SURGE",
+      "scenario": "MIXED_USE_TRANSIT_ADJACENT",
       "definition_state": "REGISTERED_DESIGN_ONLY",
       "execution_status": "NOT_EXECUTED",
       "numerical_inputs_state": "NOT_SUPPLIED",
       "result_state": "NO_RESULT"
     },
     {
-      "id": "EXTERNAL_COMMERCIAL__GRID_OR_WATER_INTERRUPTION",
+      "id": "EXTERNAL_COMMERCIAL__SITE_EDGE_LONG_WALK",
       "comparison_arm": "EXTERNAL_COMMERCIAL",
-      "scenario": "GRID_OR_WATER_INTERRUPTION",
+      "scenario": "SITE_EDGE_LONG_WALK",
       "definition_state": "REGISTERED_DESIGN_ONLY",
       "execution_status": "NOT_EXECUTED",
       "numerical_inputs_state": "NOT_SUPPLIED",
       "result_state": "NO_RESULT"
     },
     {
-      "id": "EXTERNAL_COMMERCIAL__STAFFING_OR_OPERATOR_OUTAGE",
+      "id": "EXTERNAL_COMMERCIAL__ACCESSIBLE_ROUTE_DISCONTINUITY",
       "comparison_arm": "EXTERNAL_COMMERCIAL",
-      "scenario": "STAFFING_OR_OPERATOR_OUTAGE",
+      "scenario": "ACCESSIBLE_ROUTE_DISCONTINUITY",
       "definition_state": "REGISTERED_DESIGN_ONLY",
       "execution_status": "NOT_EXECUTED",
       "numerical_inputs_state": "NOT_SUPPLIED",
       "result_state": "NO_RESULT"
     },
     {
-      "id": "EXTERNAL_COMMERCIAL__MAJOR_REPAIR_AND_PARTS_DELAY",
+      "id": "EXTERNAL_COMMERCIAL__UNEQUAL_POPULATION_DISTRIBUTION",
       "comparison_arm": "EXTERNAL_COMMERCIAL",
-      "scenario": "MAJOR_REPAIR_AND_PARTS_DELAY",
+      "scenario": "UNEQUAL_POPULATION_DISTRIBUTION",
       "definition_state": "REGISTERED_DESIGN_ONLY",
       "execution_status": "NOT_EXECUTED",
       "numerical_inputs_state": "NOT_SUPPLIED",
       "result_state": "NO_RESULT"
     },
     {
-      "id": "EXTERNAL_COMMERCIAL__OPERATING_COST_INFLATION_AND_RESERVE_SHORTFALL",
+      "id": "EXTERNAL_COMMERCIAL__PHASED_OCCUPANCY_GROWTH",
       "comparison_arm": "EXTERNAL_COMMERCIAL",
-      "scenario": "OPERATING_COST_INFLATION_AND_RESERVE_SHORTFALL",
+      "scenario": "PHASED_OCCUPANCY_GROWTH",
       "definition_state": "REGISTERED_DESIGN_ONLY",
       "execution_status": "NOT_EXECUTED",
       "numerical_inputs_state": "NOT_SUPPLIED",
       "result_state": "NO_RESULT"
     },
     {
-      "id": "EXTERNAL_COMMERCIAL__ACCESS_ROUTE_DISRUPTION_OR_LIFT_OUTAGE",
+      "id": "EXTERNAL_COMMERCIAL__LAND_SCARCITY_COMPETING_USE",
       "comparison_arm": "EXTERNAL_COMMERCIAL",
-      "scenario": "ACCESS_ROUTE_DISRUPTION_OR_LIFT_OUTAGE",
+      "scenario": "LAND_SCARCITY_COMPETING_USE",
       "definition_state": "REGISTERED_DESIGN_ONLY",
       "execution_status": "NOT_EXECUTED",
       "numerical_inputs_state": "NOT_SUPPLIED",
       "result_state": "NO_RESULT"
     },
     {
-      "id": "EXTERNAL_COMMERCIAL__HOUSEHOLD_COMPOSITION_AND_DEMAND_CHANGE",
+      "id": "EXTERNAL_COMMERCIAL__EXTERNAL_PROVIDER_DISTANCE_OR_CLOSURE",
       "comparison_arm": "EXTERNAL_COMMERCIAL",
-      "scenario": "HOUSEHOLD_COMPOSITION_AND_DEMAND_CHANGE",
+      "scenario": "EXTERNAL_PROVIDER_DISTANCE_OR_CLOSURE",
       "definition_state": "REGISTERED_DESIGN_ONLY",
       "execution_status": "NOT_EXECUTED",
       "numerical_inputs_state": "NOT_SUPPLIED",
       "result_state": "NO_RESULT"
     },
     {
-      "id": "EXTERNAL_COMMERCIAL__GOVERNANCE_CONFLICT_OR_OPERATOR_CAPTURE_ATTEMPT",
+      "id": "EXTERNAL_COMMERCIAL__MULTI_NODE_CATCHMENT_REBALANCING",
       "comparison_arm": "EXTERNAL_COMMERCIAL",
-      "scenario": "GOVERNANCE_CONFLICT_OR_OPERATOR_CAPTURE_ATTEMPT",
+      "scenario": "MULTI_NODE_CATCHMENT_REBALANCING",
       "definition_state": "REGISTERED_DESIGN_ONLY",
       "execution_status": "NOT_EXECUTED",
       "numerical_inputs_state": "NOT_SUPPLIED",
@@ -839,6 +845,31 @@
       "id": "ABOVEGROUND_SERVICE_CASSETTE",
       "url": "https://github.com/Luminous-Dynamics/symtropy/issues/4181",
       "role": "MAINTAINABLE_BUILDING_SERVICE_CASSETTES"
+    },
+    {
+      "id": "MYCELIX_HOUSING_AMENITY_COMMONS",
+      "url": "https://github.com/Luminous-Dynamics/mycelix/issues/6328",
+      "role": "CANONICAL_AMENITY_ASSET_SERVICE_ACCESS_FINANCE_MAINTENANCE_GOVERNANCE_CONTRACT"
+    },
+    {
+      "id": "MYCELIX_HOUSING_AMENITY_BENCHMARK",
+      "url": "https://github.com/Luminous-Dynamics/mycelix/pull/6329",
+      "role": "CANONICAL_AMENITY_CONFORMANCE_CORPUS"
+    },
+    {
+      "id": "WHOLE_HOUSEHOLD_COST_OF_PLACE",
+      "url": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/816",
+      "role": "HOUSEHOLD_COST_OF_PLACE_AFFORDABILITY"
+    },
+    {
+      "id": "CAPITAL_TO_COMMONS_FINANCE",
+      "url": "https://github.com/Luminous-Dynamics/mycelix/issues/912",
+      "role": "CAPITAL_TO_COMMONS_STEWARD_FINANCE_TRANSITION"
+    },
+    {
+      "id": "MYCELIX_HOUSING_AMENITY_COMMONS_BENCHMARK_PR_6329",
+      "url": "https://github.com/Luminous-Dynamics/mycelix/pull/6329",
+      "role": "33_CASE_CANONICAL_AMENITY_OPERATIONAL_CONFORMANCE_BENCHMARK"
     }
   ],
   "future_empirical_inputs_required": [
@@ -864,81 +895,99 @@
   },
   "functional_units": [
     {
-      "id": "ACCEPTED_TOOL_USER_HOUR",
-      "amenity_id": "TOOL_LIBRARY_MAKER_WORKSHOP",
-      "output_unit": "tool-user-hour",
-      "acceptance_definition": "A resident receives a correctly identified tool in its permitted use condition for the booked interval; hand-back, condition check and unavailable/repair time are recorded.",
-      "comparison_policy": "WITHIN_FUNCTIONAL_UNIT_ONLY"
+      "id": "ACCESSIBLE_COMMUNITY_ROOM_HOUR",
+      "amenity_id": "COMMUNITY_HALL",
+      "output_unit": "accessible-room-hour",
+      "acceptance_definition": "A room-hour is counted only when the declared shared room is open, accessible, available for the intended use and not closed for maintenance.",
+      "comparison_policy": "WITHIN_FUNCTIONAL_UNIT_ONLY",
+      "owner_contract_reference": "https://github.com/Luminous-Dynamics/mycelix/issues/6328",
+      "owner_alignment_state": "CANDIDATE_NOT_OWNER_APPROVED"
     },
     {
-      "id": "ACCEPTED_LAUNDRY_LOAD",
-      "amenity_id": "SHARED_LAUNDRY",
-      "output_unit": "accepted-load",
-      "acceptance_definition": "A declared load class completes the agreed wash/dry service quality; rejected, rewash, unfinished, and queue-abandoned loads remain visible.",
-      "comparison_policy": "WITHIN_FUNCTIONAL_UNIT_ONLY"
+      "id": "ACCEPTED_MEAL_SERVICE",
+      "amenity_id": "COMMUNITY_KITCHEN",
+      "output_unit": "meal-service",
+      "acceptance_definition": "A meal service is accepted only under its declared service/menu class and the responsible operator's food-safety procedure.",
+      "comparison_policy": "WITHIN_FUNCTIONAL_UNIT_ONLY",
+      "owner_contract_reference": "https://github.com/Luminous-Dynamics/mycelix/issues/6328",
+      "owner_alignment_state": "CANDIDATE_NOT_OWNER_APPROVED"
+    },
+    {
+      "id": "ACCESSIBLE_SEAT_HOUR",
+      "amenity_id": "COWORKING_LIBRARY_STUDY",
+      "output_unit": "seat-hour",
+      "acceptance_definition": "An accessible seat-hour is delivered only when the promised workspace attributes and access window are available.",
+      "comparison_policy": "WITHIN_FUNCTIONAL_UNIT_ONLY",
+      "owner_contract_reference": "https://github.com/Luminous-Dynamics/mycelix/issues/6328",
+      "owner_alignment_state": "CANDIDATE_NOT_OWNER_APPROVED"
+    },
+    {
+      "id": "USABLE_WORKSHOP_HOUR",
+      "amenity_id": "WORKSHOP_TOOL_LIBRARY_REPAIR",
+      "output_unit": "equipped-workshop-hour",
+      "acceptance_definition": "A workshop-hour counts only when the declared equipment/tools are available and the facility is open under its authorized access policy.",
+      "comparison_policy": "WITHIN_FUNCTIONAL_UNIT_ONLY",
+      "owner_contract_reference": "https://github.com/Luminous-Dynamics/mycelix/issues/6328",
+      "owner_alignment_state": "CANDIDATE_NOT_OWNER_APPROVED"
     },
     {
       "id": "ACCESSIBLE_GUEST_NIGHT",
       "amenity_id": "GUEST_SUITES",
       "output_unit": "guest-night",
-      "acceptance_definition": "A bookable overnight stay meets the declared room/service and accessibility brief for the full booked period, including cleaning/turnover availability.",
-      "comparison_policy": "WITHIN_FUNCTIONAL_UNIT_ONLY"
+      "acceptance_definition": "A guest-night is accepted only for the declared room/service class, usable accessibility features and booked/cleaned period.",
+      "comparison_policy": "WITHIN_FUNCTIONAL_UNIT_ONLY",
+      "owner_contract_reference": "https://github.com/Luminous-Dynamics/mycelix/issues/6328",
+      "owner_alignment_state": "CANDIDATE_NOT_OWNER_APPROVED"
+    },
+    {
+      "id": "ACCEPTED_LAUNDRY_LOAD",
+      "amenity_id": "SHARED_LAUNDRY",
+      "output_unit": "accepted-load",
+      "acceptance_definition": "A load is accepted only when the declared load class completes the agreed wash/dry service; rejects and rewash remain visible.",
+      "comparison_policy": "WITHIN_FUNCTIONAL_UNIT_ONLY",
+      "owner_contract_reference": "https://github.com/Luminous-Dynamics/mycelix/issues/6328",
+      "owner_alignment_state": "CANDIDATE_NOT_OWNER_APPROVED"
     },
     {
       "id": "USABLE_HARVEST_KG",
-      "amenity_id": "GREENHOUSE_FOOD_GARDEN",
+      "amenity_id": "GREENHOUSE_NURSERY_FOOD_GROWING",
       "output_unit": "kg-by-crop-and-grade",
-      "acceptance_definition": "Harvest mass is classified by crop, grade, quality and harvest point; rejects, losses, water/energy and growing-cycle boundary are retained.",
-      "comparison_policy": "WITHIN_FUNCTIONAL_UNIT_ONLY"
+      "acceptance_definition": "Harvest mass is classified by crop, grade, quality and harvest point; losses, growing-cycle duration and resource inputs remain visible.",
+      "comparison_policy": "WITHIN_FUNCTIONAL_UNIT_ONLY",
+      "owner_contract_reference": "https://github.com/Luminous-Dynamics/mycelix/issues/6328",
+      "owner_alignment_state": "CANDIDATE_NOT_OWNER_APPROVED"
     },
     {
-      "id": "OPERABLE_SWIMMER_HOUR",
+      "id": "OPERABLE_POOL_LANE_HOUR",
       "amenity_id": "POOL_WELLNESS",
-      "output_unit": "swimmer-hour",
-      "acceptance_definition": "One user-hour delivered within the independently declared pool operating envelope, capacity, water-quality, accessibility and inspection conditions.",
-      "comparison_policy": "WITHIN_FUNCTIONAL_UNIT_ONLY"
+      "output_unit": "pool-lane-hour",
+      "acceptance_definition": "A pool-lane-hour is counted only when the declared lane/service is open within the operating, capacity, water-quality and inspection envelope.",
+      "comparison_policy": "WITHIN_FUNCTIONAL_UNIT_ONLY",
+      "owner_contract_reference": "https://github.com/Luminous-Dynamics/mycelix/issues/6328",
+      "owner_alignment_state": "CANDIDATE_NOT_OWNER_APPROVED"
     },
     {
-      "id": "ACCEPTED_MEAL_SERVICE",
-      "amenity_id": "COMMUNITY_KITCHEN_DINING",
-      "output_unit": "meal-service",
-      "acceptance_definition": "A meal service is delivered under the declared menu/service class, food-safety process and dietary/allergen information conditions.",
-      "comparison_policy": "WITHIN_FUNCTIONAL_UNIT_ONLY"
-    },
-    {
-      "id": "ACCESSIBLE_SEAT_HOUR",
-      "amenity_id": "LIBRARY_STUDY_COWORKING",
-      "output_unit": "seat-hour",
-      "acceptance_definition": "An accessible study/work seat-hour is available with the promised service attributes (for example power, connectivity or quiet zone) during the requested window.",
-      "comparison_policy": "WITHIN_FUNCTIONAL_UNIT_ONLY"
-    },
-    {
-      "id": "LICENSED_CHILD_PLACE_HOUR",
-      "amenity_id": "CHILDCARE_LEARNING",
-      "output_unit": "licensed-place-hour",
-      "acceptance_definition": "A place-hour is delivered under the applicable license/registration, staffing, safeguarding, access and service-class conditions.",
-      "comparison_policy": "WITHIN_FUNCTIONAL_UNIT_ONLY"
-    },
-    {
-      "id": "USABLE_RECREATION_SPACE_HOUR",
-      "amenity_id": "SPORTS_PARK_PUBLIC_REALM",
+      "id": "USABLE_ACTIVITY_SPACE_HOUR",
+      "amenity_id": "GYM_RECREATION",
       "output_unit": "activity-space-hour",
-      "acceptance_definition": "A declared activity space is usable for the stated activity and time window with its surface, lighting, access, maintenance and weather closure state known.",
-      "comparison_policy": "WITHIN_FUNCTIONAL_UNIT_ONLY"
+      "acceptance_definition": "An activity-space-hour is usable only for the declared activity while its equipment/surface, access and operating conditions are met.",
+      "comparison_policy": "WITHIN_FUNCTIONAL_UNIT_ONLY",
+      "owner_contract_reference": "https://github.com/Luminous-Dynamics/mycelix/issues/6328",
+      "owner_alignment_state": "CANDIDATE_NOT_OWNER_APPROVED"
     }
   ],
   "scope_boundary": {
-    "included_scope": "DAILY_USE_AND_PRODUCTIVE_AMENITIES_NOT_ESSENTIAL_RESILIENCE_SERVICES",
+    "included_scope": "SPATIAL_PROVISIONING_COMPARISON_CONSUMES_CANONICAL_AMENITY_SERVICE_AND_HOUSEHOLD_AFFORDABILITY",
     "included_service_classes": [
-      "learning",
+      "community_and_dining",
       "study_and_work",
+      "routine_tools_and_making",
       "guest_accommodation",
       "laundry",
-      "routine_tool_access_and_making",
-      "community_dining",
-      "childcare",
-      "recreation_and_sport",
-      "non_emergency_food_growing"
+      "non_emergency_food_growing",
+      "pool_and_wellness",
+      "gym_and_recreation",
+      "public_recreation"
     ],
     "excluded_scopes": [
       {
@@ -982,7 +1031,7 @@
         "responsibility": "authoritative stock-flow and financial accounting semantics"
       }
     ],
-    "composition_rule": "CONSUME_OWNER_NATIVE_RECEIPTS_READ_ONLY_NO_DUPLICATE_ENGINE_LEDGER_OR_AUTHORITY",
+    "composition_rule": "SOL_ATLAS_OWNS_SPATIAL_PROVISIONING_COMPARISON_MYCELIX_OWNS_CANONICAL_AMENITY_ASSET_SERVICE_AND_FINANCE_OWNER_OUTPUTS_READ_ONLY",
     "owner_native_dependencies": [
       {
         "id": "HIGHVELD_KEEP_REFERENCE_HOME",
@@ -996,7 +1045,7 @@
         "owner": "Sol-Atlas",
         "reference": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/904",
         "role": "RESIDENT_EXPRESSION_AND_OPTIONAL_EXPERIENCE_PACKAGES",
-        "responsibility": "resident-directed architectural expression, optional greenhouse/pool/workshop/guest and other experience packages; no style or prestige default"
+        "responsibility": "resident-directed architectural expression and optional experience packages; no style or prestige default"
       },
       {
         "id": "AGRO_CLIMATE_HIGHVELD",
@@ -1017,7 +1066,7 @@
         "owner": "Symtropy",
         "reference": "https://github.com/Luminous-Dynamics/symtropy/issues/3957",
         "role": "CEA_FULL_BOUNDARY_RESOURCE_AND_NUTRITIONAL_SERVICE",
-        "responsibility": "facility-level accepted nutritional service, energy, water, nutrients, heat, labour and lifecycle accounting"
+        "responsibility": "facility-level accepted nutritional service, electricity, heat, water, nutrients, labour and lifecycle accounting"
       },
       {
         "id": "CEA_CLIMATE",
@@ -1060,6 +1109,34 @@
         "reference": "https://github.com/Luminous-Dynamics/symtropy/issues/4181",
         "role": "MAINTAINABLE_BUILDING_SERVICE_CASSETTES",
         "responsibility": "modular, inspectable, replaceable building-service subassemblies and lifecycle interfaces"
+      },
+      {
+        "id": "MYCELIX_HOUSING_AMENITY_COMMONS",
+        "owner": "Mycelix",
+        "reference": "https://github.com/Luminous-Dynamics/mycelix/issues/6328",
+        "role": "CANONICAL_AMENITY_ASSET_SERVICE_ACCESS_FINANCE_MAINTENANCE_GOVERNANCE_CONTRACT",
+        "responsibility": "canonical asset/service contract, beneficiaries, capacity/access events, operating budgets, reserves, maintenance, asset locks and handback"
+      },
+      {
+        "id": "MYCELIX_HOUSING_AMENITY_BENCHMARK",
+        "owner": "Mycelix",
+        "reference": "https://github.com/Luminous-Dynamics/mycelix/pull/6329",
+        "role": "CANONICAL_AMENITY_CONFORMANCE_CORPUS",
+        "responsibility": "33-case synthetic ownership, service, booking, finance, maintenance and governance conformance suite; Sol-Atlas must not duplicate it"
+      },
+      {
+        "id": "WHOLE_HOUSEHOLD_COST_OF_PLACE",
+        "owner": "Sol-Atlas",
+        "reference": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/816",
+        "role": "HOUSEHOLD_COST_OF_PLACE_AFFORDABILITY",
+        "responsibility": "whole-household land, tenure, finance, servicing, utilities, maintenance and access affordability; #940 consumes rather than recalculates it"
+      },
+      {
+        "id": "CAPITAL_TO_COMMONS_FINANCE",
+        "owner": "Mycelix",
+        "reference": "https://github.com/Luminous-Dynamics/mycelix/issues/912",
+        "role": "CAPITAL_TO_COMMONS_STEWARD_FINANCE_TRANSITION",
+        "responsibility": "bounded investor claims, permanent public-benefit stewardship, maintenance reserves and community transition"
       }
     ]
   }
