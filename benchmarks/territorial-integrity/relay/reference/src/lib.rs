@@ -25,6 +25,7 @@ pub struct Evaluation {
     pub blocked_parent_events: BTreeSet<String>,
     pub equivocation_event_ids: BTreeSet<String>,
     pub sequence_fork_event_ids: BTreeSet<String>,
+    pub sequence_conflict_pending_event_ids: BTreeSet<String>,
     pub hash_collision_event_ids: BTreeSet<String>,
     pub conflict_pairs: BTreeSet<(String, String)>,
 }
@@ -36,7 +37,6 @@ struct ParsedEvent {
     sequence: u64,
     previous_hash: Option<String>,
     event_hash: String,
-    actor: String,
     projection_key: String,
     verification: String,
 }
@@ -54,7 +54,7 @@ fn parse_event(value: &Value) -> Option<ParsedEvent> {
     let stream_id = nonempty_string(value, "stream_id")?;
     let sequence = value.get("sequence")?.as_u64()?;
     let event_hash = nonempty_string(value, "event_hash")?;
-    let actor = nonempty_string(value, "actor")?;
+    let _actor = nonempty_string(value, "actor")?;
     let projection_key = nonempty_string(value, "projection_key")?;
     let verification = nonempty_string(value, "verification")?;
     if !is_lower_hex_digest(&event_hash)
@@ -85,7 +85,6 @@ fn parse_event(value: &Value) -> Option<ParsedEvent> {
         sequence,
         previous_hash,
         event_hash,
-        actor,
         projection_key,
         verification,
     })
@@ -161,17 +160,27 @@ pub fn evaluate(input: &[Value]) -> Evaluation {
     }
 
     // Sequence is per Mycelix claim stream, not per signer/relay/device.
-    // Invalid or unverifiable signatures must not poison a valid stream head.
+    // A same-slot event with unavailable or revoked verification is a possible
+    // competing history. Hold every candidate in that slot until the verifier
+    // resolves it; never let delivery order establish a winner. A definitive
+    // invalid-signature result does not poison a verified event.
     let mut sequence_groups: BTreeMap<(String, u64), BTreeSet<String>> = BTreeMap::new();
     for (id, event) in &unique {
-        if event.verification == "verified" && !result.hash_collision_event_ids.contains(id) {
+        if event.verification != "invalid" && !result.hash_collision_event_ids.contains(id) {
             sequence_groups.entry((event.stream_id.clone(), event.sequence))
                 .or_default().insert(id.clone());
         }
     }
     for ids in sequence_groups.values() {
         if ids.len() > 1 {
-            result.sequence_fork_event_ids.extend(ids.iter().cloned());
+            let all_verified = ids.iter().all(|id| {
+                unique.get(id).map(|event| event.verification == "verified").unwrap_or(false)
+            });
+            if all_verified {
+                result.sequence_fork_event_ids.extend(ids.iter().cloned());
+            } else {
+                result.sequence_conflict_pending_event_ids.extend(ids.iter().cloned());
+            }
         }
     }
 
@@ -183,6 +192,7 @@ pub fn evaluate(input: &[Value]) -> Evaluation {
             "unavailable" => { result.verification_pending.insert(id.clone()); }
             "verified"
                 if !result.sequence_fork_event_ids.contains(id)
+                    && !result.sequence_conflict_pending_event_ids.contains(id)
                     && !result.hash_collision_event_ids.contains(id) =>
             {
                 eligible.insert(id.clone(), event.clone());
@@ -283,6 +293,7 @@ impl Evaluation {
             "blocked_parent_events": self.blocked_parent_events.iter().cloned().collect::<Vec<_>>(),
             "equivocation_event_ids": self.equivocation_event_ids.iter().cloned().collect::<Vec<_>>(),
             "sequence_fork_event_ids": self.sequence_fork_event_ids.iter().cloned().collect::<Vec<_>>(),
+            "sequence_conflict_pending_event_ids": self.sequence_conflict_pending_event_ids.iter().cloned().collect::<Vec<_>>(),
             "hash_collision_event_ids": self.hash_collision_event_ids.iter().cloned().collect::<Vec<_>>(),
             "conflict_pairs": pairs
         })

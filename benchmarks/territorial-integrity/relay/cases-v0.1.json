@@ -1,7 +1,7 @@
 {
   "schema": "luminous.cter.relay-cases.v0",
   "suite_id": "CTER-RELAY-CONVERGENCE-001",
-  "suite_version": "0.1.1",
+  "suite_version": "0.1.2",
   "synthetic_only": true,
   "cases": [
     {
@@ -45,7 +45,8 @@
         "equivocation_event_ids": [],
         "sequence_fork_event_ids": [],
         "hash_collision_event_ids": [],
-        "conflict_pairs": []
+        "conflict_pairs": [],
+        "sequence_conflict_pending_event_ids": []
       }
     },
     {
@@ -89,7 +90,8 @@
         ],
         "sequence_fork_event_ids": [],
         "hash_collision_event_ids": [],
-        "conflict_pairs": []
+        "conflict_pairs": [],
+        "sequence_conflict_pending_event_ids": []
       }
     },
     {
@@ -122,7 +124,8 @@
         "equivocation_event_ids": [],
         "sequence_fork_event_ids": [],
         "hash_collision_event_ids": [],
-        "conflict_pairs": []
+        "conflict_pairs": [],
+        "sequence_conflict_pending_event_ids": []
       }
     },
     {
@@ -167,7 +170,8 @@
         "equivocation_event_ids": [],
         "sequence_fork_event_ids": [],
         "hash_collision_event_ids": [],
-        "conflict_pairs": []
+        "conflict_pairs": [],
+        "sequence_conflict_pending_event_ids": []
       }
     },
     {
@@ -200,7 +204,8 @@
         "equivocation_event_ids": [],
         "sequence_fork_event_ids": [],
         "hash_collision_event_ids": [],
-        "conflict_pairs": []
+        "conflict_pairs": [],
+        "sequence_conflict_pending_event_ids": []
       }
     },
     {
@@ -233,7 +238,8 @@
         "equivocation_event_ids": [],
         "sequence_fork_event_ids": [],
         "hash_collision_event_ids": [],
-        "conflict_pairs": []
+        "conflict_pairs": [],
+        "sequence_conflict_pending_event_ids": []
       }
     },
     {
@@ -266,7 +272,8 @@
         "equivocation_event_ids": [],
         "sequence_fork_event_ids": [],
         "hash_collision_event_ids": [],
-        "conflict_pairs": []
+        "conflict_pairs": [],
+        "sequence_conflict_pending_event_ids": []
       }
     },
     {
@@ -324,7 +331,8 @@
           "e2"
         ],
         "hash_collision_event_ids": [],
-        "conflict_pairs": []
+        "conflict_pairs": [],
+        "sequence_conflict_pending_event_ids": []
       }
     },
     {
@@ -374,7 +382,8 @@
             "e1",
             "e2"
           ]
-        ]
+        ],
+        "sequence_conflict_pending_event_ids": []
       }
     },
     {
@@ -419,7 +428,8 @@
         "equivocation_event_ids": [],
         "sequence_fork_event_ids": [],
         "hash_collision_event_ids": [],
-        "conflict_pairs": []
+        "conflict_pairs": [],
+        "sequence_conflict_pending_event_ids": []
       }
     },
     {
@@ -465,7 +475,8 @@
         "equivocation_event_ids": [],
         "sequence_fork_event_ids": [],
         "hash_collision_event_ids": [],
-        "conflict_pairs": []
+        "conflict_pairs": [],
+        "sequence_conflict_pending_event_ids": []
       }
     },
     {
@@ -511,7 +522,8 @@
         "equivocation_event_ids": [],
         "sequence_fork_event_ids": [],
         "hash_collision_event_ids": [],
-        "conflict_pairs": []
+        "conflict_pairs": [],
+        "sequence_conflict_pending_event_ids": []
       }
     },
     {
@@ -544,7 +556,8 @@
         "equivocation_event_ids": [],
         "sequence_fork_event_ids": [],
         "hash_collision_event_ids": [],
-        "conflict_pairs": []
+        "conflict_pairs": [],
+        "sequence_conflict_pending_event_ids": []
       }
     },
     {
@@ -577,7 +590,8 @@
         "equivocation_event_ids": [],
         "sequence_fork_event_ids": [],
         "hash_collision_event_ids": [],
-        "conflict_pairs": []
+        "conflict_pairs": [],
+        "sequence_conflict_pending_event_ids": []
       }
     },
     {
@@ -622,7 +636,8 @@
           "e1",
           "e2"
         ],
-        "conflict_pairs": []
+        "conflict_pairs": [],
+        "sequence_conflict_pending_event_ids": []
       }
     },
     {
@@ -666,6 +681,150 @@
         "blocked_parent_events": [],
         "equivocation_event_ids": [],
         "sequence_fork_event_ids": [],
+        "hash_collision_event_ids": [],
+        "conflict_pairs": [],
+        "sequence_conflict_pending_event_ids": []
+      }
+    },
+    {
+      "case_id": "UNAVAILABLE-STREAM-SLOT-001",
+      "title": "Verified event is held when a same-sequence competitor cannot yet be verified",
+      "events": [
+        {
+          "event_id": "e1",
+          "stream_id": "stream-a",
+          "sequence": 0,
+          "previous_hash": null,
+          "event_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "actor": "actor-e1",
+          "projection_key": "claim:x",
+          "verification": "verified",
+          "access_class": "restricted"
+        },
+        {
+          "event_id": "e2",
+          "stream_id": "stream-a",
+          "sequence": 0,
+          "previous_hash": null,
+          "event_hash": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "actor": "actor-e2",
+          "projection_key": "claim:x",
+          "verification": "unavailable",
+          "access_class": "restricted"
+        }
+      ],
+      "expected": {
+        "accepted_events": [],
+        "duplicate_replays": 0,
+        "invalid_signatures": [],
+        "revoked_keys": [],
+        "verification_pending": [
+          "e2"
+        ],
+        "malformed_events": [],
+        "missing_parent_events": [],
+        "blocked_parent_events": [],
+        "equivocation_event_ids": [],
+        "sequence_fork_event_ids": [],
+        "sequence_conflict_pending_event_ids": [
+          "e1",
+          "e2"
+        ],
+        "hash_collision_event_ids": [],
+        "conflict_pairs": []
+      }
+    },
+    {
+      "case_id": "INVALID-SIGNATURE-NOT-A-FORK-001",
+      "title": "Definitively invalid same-slot signature does not poison the verified event",
+      "events": [
+        {
+          "event_id": "e1",
+          "stream_id": "stream-a",
+          "sequence": 0,
+          "previous_hash": null,
+          "event_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "actor": "actor-e1",
+          "projection_key": "claim:x",
+          "verification": "verified",
+          "access_class": "restricted"
+        },
+        {
+          "event_id": "e2",
+          "stream_id": "stream-a",
+          "sequence": 0,
+          "previous_hash": null,
+          "event_hash": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "actor": "actor-e2",
+          "projection_key": "claim:x",
+          "verification": "invalid",
+          "access_class": "restricted"
+        }
+      ],
+      "expected": {
+        "accepted_events": [
+          "e1"
+        ],
+        "duplicate_replays": 0,
+        "invalid_signatures": [
+          "e2"
+        ],
+        "revoked_keys": [],
+        "verification_pending": [],
+        "malformed_events": [],
+        "missing_parent_events": [],
+        "blocked_parent_events": [],
+        "equivocation_event_ids": [],
+        "sequence_fork_event_ids": [],
+        "sequence_conflict_pending_event_ids": [],
+        "hash_collision_event_ids": [],
+        "conflict_pairs": []
+      }
+    },
+    {
+      "case_id": "REVOKED-STREAM-SLOT-001",
+      "title": "Verified event is held when a same-sequence competitor has unresolved revocation status",
+      "events": [
+        {
+          "event_id": "e1",
+          "stream_id": "stream-a",
+          "sequence": 0,
+          "previous_hash": null,
+          "event_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "actor": "actor-e1",
+          "projection_key": "claim:x",
+          "verification": "verified",
+          "access_class": "restricted"
+        },
+        {
+          "event_id": "e2",
+          "stream_id": "stream-a",
+          "sequence": 0,
+          "previous_hash": null,
+          "event_hash": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "actor": "actor-e2",
+          "projection_key": "claim:x",
+          "verification": "revoked",
+          "access_class": "restricted"
+        }
+      ],
+      "expected": {
+        "accepted_events": [],
+        "duplicate_replays": 0,
+        "invalid_signatures": [],
+        "revoked_keys": [
+          "e2"
+        ],
+        "verification_pending": [],
+        "malformed_events": [],
+        "missing_parent_events": [],
+        "blocked_parent_events": [],
+        "equivocation_event_ids": [],
+        "sequence_fork_event_ids": [],
+        "sequence_conflict_pending_event_ids": [
+          "e1",
+          "e2"
+        ],
         "hash_collision_event_ids": [],
         "conflict_pairs": []
       }

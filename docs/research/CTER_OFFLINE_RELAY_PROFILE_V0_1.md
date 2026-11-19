@@ -27,7 +27,7 @@ Offline capture is an established capability. CTER must specify what happens whe
 
 Use the existing Mycelix-DeSci signed event envelope and append-only stream as the canonical event wrapper. CTER must not create a second signed event format, hash chain, event ledger or global consensus layer.
 
-Within a Mycelix claim stream, sequence numbers and `previous_hash` establish a single predecessor chain. Two verified events that claim the same `stream_id` and sequence are a fork and must be preserved/quarantined rather than resolved by arrival order. Separate streams that project onto the same territorial relationship can both be retained and surfaced as a conflict.
+Within a Mycelix claim stream, sequence numbers and `previous_hash` establish a single predecessor chain. Two verified events that claim the same `stream_id` and sequence are a fork and must be preserved/quarantined rather than resolved by arrival order. A verified event is also held when a same-slot competitor is awaiting verification or has unresolved revocation status; otherwise an event delivered first could win before the competing signature is checked. A definitively invalid-signature competitor does not poison the valid chain. Separate streams that project onto the same territorial relationship can both be retained and surfaced as a conflict.
 
 The relay's event-set merge is deterministic set union over event identity and signed-event hash. It must be commutative, associative and idempotent. Those algebraic properties make duplicate delivery and reordering safe at the envelope layer; they do not resolve the underlying dispute.
 
@@ -127,7 +127,7 @@ The reference crate checks digest shape, identity collisions, stream sequence an
 2. The same event ID paired with different event hashes or different canonical envelope content is equivocation. Keep every variant in quarantine; accept none as the unique event.
 3. Reuse of a BLAKE3 event hash under different event IDs is an integrity collision and must be quarantined.
 4. Invalid or revoked signatures are never accepted. Unavailable verification remains pending, not accepted.
-5. Two verified events claiming the same `stream_id` and `sequence` are a stream fork. Preserve both; do not choose by arrival time.
+5. Two verified events claiming the same `stream_id` and `sequence` are a stream fork. Preserve both; do not choose by arrival time. If a same-slot competitor has unavailable verification or unresolved revocation status, hold every candidate in that slot pending verification/review. A definitively invalid signature does not block a verified event.
 6. A missing `previous_hash` predecessor leaves the event pending. It may be reconsidered when the predecessor arrives.
 7. A child of an invalid, revoked, unavailable, equivocated or forked predecessor is blocked pending review.
 8. A predecessor must belong to the same stream and have sequence exactly one less than the child. Cross-stream or wrong-sequence links are blocked.
@@ -211,6 +211,8 @@ The reference model's `accepted_events` means only structurally eligible for evi
 | False acceptance of invalid, revoked or unavailable verification | 0 |
 | Event-ID equivocation and hash-collision detection | 100% on frozen cases |
 | Stream/sequence fork detection | 100% on frozen cases |
+| Ambiguous same-slot verification hold | 100% of verified candidates withheld until all competing signatures resolve |
+| Invalid-signature isolation | 100% of definitively invalid competitors excluded without poisoning a valid event |
 | Preservation of active conflict records | 100% |
 | Deterministic replay of same normalized event set | 100% |
 | Independent reference-oracle agreement | 100% on frozen cases |
