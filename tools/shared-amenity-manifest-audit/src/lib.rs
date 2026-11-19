@@ -82,9 +82,9 @@ pub struct AuditError {
 }
 
 impl AuditError {
-    fn new(path: impl Into<String>, message: impl Into<String>) -> Self {
+    fn new(path: impl AsRef<str>, message: impl Into<String>) -> Self {
         Self {
-            path: path.into(),
+            path: path.as_ref().to_owned(),
             message: message.into(),
         }
     }
@@ -453,7 +453,7 @@ fn validate_scope_boundary(root: &Value) -> Result<(), AuditError> {
     }
 
     for required in REQUIRED_EXCLUDED_REFERENCES {
-        if !references.contains(required) {
+        if !references.contains(*required) {
             return Err(AuditError::new(
                 "$.scope_boundary.excluded_scopes",
                 format!("missing required owner boundary reference: {required}"),
