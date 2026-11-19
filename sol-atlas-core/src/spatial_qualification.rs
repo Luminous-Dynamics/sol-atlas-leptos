@@ -467,6 +467,30 @@ mod tests {
     }
 
     #[test]
+    fn capetown_dms_example_remains_a_municipal_not_registered_geometry() {
+        let example: serde_json::Value = serde_json::from_str(include_str!(
+            "../examples/capetown-dms-regulatory-envelope-synthetic-v0.json"
+        ))
+        .expect("Cape Town example must parse");
+        let record: SpatialQualificationRecordV0 = serde_json::from_value(
+            example["record"].clone(),
+        )
+        .expect("Cape Town spatial record must deserialize");
+        assert_eq!(
+            record.layer_kind,
+            SpatialLayerKind::MunicipalRegulatoryEnvelope
+        );
+        assert_eq!(
+            record.assess().outcome,
+            SpatialQualificationOutcome::ReviewRequired
+        );
+        assert_eq!(
+            record.claim_ceiling,
+            SPATIAL_QUALIFICATION_CLAIM_CEILING
+        );
+    }
+
+    #[test]
     fn missing_coordinate_operation_cannot_hide_a_crs_transformation() {
         let mut record = valid_registered_3d();
         record.horizontal_reference.target_crs_uri = "urn:crs:target:v2".into();
