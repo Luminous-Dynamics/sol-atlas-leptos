@@ -1,0 +1,67 @@
+{
+  "schema": "luminous.cter.relay-benchmark.v0",
+  "suite_id": "CTER-RELAY-CONVERGENCE-001",
+  "suite_version": "0.1.0",
+  "status": "synthetic_reference_model",
+  "created_at": "2026-11-19",
+  "parent_issue": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/945",
+  "parent_benchmark": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/937",
+  "purpose": "Evaluate append-only, conflict-preserving event convergence under replay, reordering, equivocation, verification failure, missing parents and causal cycles.",
+  "case_count": 14,
+  "claim_ceiling": "synthetic_convergence_semantics_only",
+  "verifier_boundary": "signature/key verification dispositions are externally supplied; this harness does not verify cryptography",
+  "excluded_claims": [
+    "legal determination",
+    "title validation",
+    "community representation",
+    "consent validity",
+    "cryptographic authenticity",
+    "production transport interoperability",
+    "field usability",
+    "radio coverage",
+    "energy consumption"
+  ],
+  "event_fields": [
+    "id",
+    "origin",
+    "sequence",
+    "parents",
+    "projection_key",
+    "envelope_sha256",
+    "verification",
+    "visibility"
+  ],
+  "verification_values": [
+    "verified",
+    "invalid",
+    "revoked",
+    "unavailable"
+  ],
+  "visibility_values": [
+    "public",
+    "community",
+    "restricted",
+    "culturally_protected"
+  ],
+  "normative_properties": [
+    "idempotent_replay",
+    "preserve_equivocation",
+    "fail_closed_verification",
+    "pending_missing_parent",
+    "detect_origin_sequence_fork",
+    "preserve_concurrent_conflict",
+    "append_only_correction",
+    "deterministic_projection"
+  ],
+  "transport_candidates": [
+    "IETF RFC 9171 Bundle Protocol v7",
+    "HTTPS batch synchronization",
+    "encrypted removable-media transfer"
+  ],
+  "source_standards": [
+    "ISO 19152-1:2024",
+    "OGC GeoPackage 1.4.0",
+    "W3C Verifiable Credentials Data Model 2.0"
+  ],
+  "reference_commit_status": "not_yet_executed"
+}

@@ -1,0 +1,571 @@
+{
+  "schema": "luminous.cter.relay-cases.v0",
+  "suite_id": "CTER-RELAY-CONVERGENCE-001",
+  "suite_version": "0.1.0",
+  "synthetic_only": true,
+  "cases": [
+    {
+      "case_id": "REPLAY-001",
+      "title": "Exact duplicate delivery is idempotent",
+      "events": [
+        {
+          "id": "e1",
+          "origin": "node-a",
+          "sequence": 1,
+          "parents": [],
+          "projection_key": "claim:x",
+          "envelope_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "verification": "verified",
+          "visibility": "restricted"
+        },
+        {
+          "id": "e1",
+          "origin": "node-a",
+          "sequence": 1,
+          "parents": [],
+          "projection_key": "claim:x",
+          "envelope_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "verification": "verified",
+          "visibility": "restricted"
+        }
+      ],
+      "expected": {
+        "accepted_events": [
+          "e1"
+        ],
+        "duplicate_replays": 1,
+        "invalid_signatures": [],
+        "revoked_keys": [],
+        "verification_pending": [],
+        "malformed_events": [],
+        "missing_parent_events": [],
+        "blocked_parent_events": [],
+        "equivocation_event_ids": [],
+        "sequence_fork_event_ids": [],
+        "causal_cycle_events": [],
+        "conflict_pairs": []
+      }
+    },
+    {
+      "case_id": "EQUIVOCATION-001",
+      "title": "Same event ID with different envelope digests is quarantined",
+      "events": [
+        {
+          "id": "e1",
+          "origin": "node-a",
+          "sequence": 1,
+          "parents": [],
+          "projection_key": "claim:x",
+          "envelope_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "verification": "verified",
+          "visibility": "restricted"
+        },
+        {
+          "id": "e1",
+          "origin": "node-a",
+          "sequence": 1,
+          "parents": [],
+          "projection_key": "claim:x",
+          "envelope_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "verification": "verified",
+          "visibility": "restricted"
+        }
+      ],
+      "expected": {
+        "accepted_events": [],
+        "duplicate_replays": 0,
+        "invalid_signatures": [],
+        "revoked_keys": [],
+        "verification_pending": [],
+        "malformed_events": [],
+        "missing_parent_events": [],
+        "blocked_parent_events": [],
+        "equivocation_event_ids": [
+          "e1"
+        ],
+        "sequence_fork_event_ids": [],
+        "causal_cycle_events": [],
+        "conflict_pairs": []
+      }
+    },
+    {
+      "case_id": "PARENT-GAP-001",
+      "title": "Missing causal parent leaves the child pending",
+      "events": [
+        {
+          "id": "e2",
+          "origin": "node-a",
+          "sequence": 2,
+          "parents": [
+            "e1"
+          ],
+          "projection_key": "claim:x",
+          "envelope_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "verification": "verified",
+          "visibility": "restricted"
+        }
+      ],
+      "expected": {
+        "accepted_events": [],
+        "duplicate_replays": 0,
+        "invalid_signatures": [],
+        "revoked_keys": [],
+        "verification_pending": [],
+        "malformed_events": [],
+        "missing_parent_events": [
+          "e2"
+        ],
+        "blocked_parent_events": [],
+        "equivocation_event_ids": [],
+        "sequence_fork_event_ids": [],
+        "causal_cycle_events": [],
+        "conflict_pairs": []
+      }
+    },
+    {
+      "case_id": "REORDER-001",
+      "title": "Child delivered before parent is accepted after batch reconciliation",
+      "events": [
+        {
+          "id": "e2",
+          "origin": "node-a",
+          "sequence": 2,
+          "parents": [
+            "e1"
+          ],
+          "projection_key": "claim:x",
+          "envelope_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "verification": "verified",
+          "visibility": "restricted"
+        },
+        {
+          "id": "e1",
+          "origin": "node-a",
+          "sequence": 1,
+          "parents": [],
+          "projection_key": "claim:x",
+          "envelope_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "verification": "verified",
+          "visibility": "restricted"
+        }
+      ],
+      "expected": {
+        "accepted_events": [
+          "e1",
+          "e2"
+        ],
+        "duplicate_replays": 0,
+        "invalid_signatures": [],
+        "revoked_keys": [],
+        "verification_pending": [],
+        "malformed_events": [],
+        "missing_parent_events": [],
+        "blocked_parent_events": [],
+        "equivocation_event_ids": [],
+        "sequence_fork_event_ids": [],
+        "causal_cycle_events": [],
+        "conflict_pairs": []
+      }
+    },
+    {
+      "case_id": "SIGNATURE-INVALID-001",
+      "title": "Invalid signature is not accepted",
+      "events": [
+        {
+          "id": "e1",
+          "origin": "node-a",
+          "sequence": 1,
+          "parents": [],
+          "projection_key": "claim:x",
+          "envelope_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "verification": "invalid",
+          "visibility": "restricted"
+        }
+      ],
+      "expected": {
+        "accepted_events": [],
+        "duplicate_replays": 0,
+        "invalid_signatures": [
+          "e1"
+        ],
+        "revoked_keys": [],
+        "verification_pending": [],
+        "malformed_events": [],
+        "missing_parent_events": [],
+        "blocked_parent_events": [],
+        "equivocation_event_ids": [],
+        "sequence_fork_event_ids": [],
+        "causal_cycle_events": [],
+        "conflict_pairs": []
+      }
+    },
+    {
+      "case_id": "VERIFIER-UNAVAILABLE-001",
+      "title": "Unavailable verifier remains pending",
+      "events": [
+        {
+          "id": "e1",
+          "origin": "node-a",
+          "sequence": 1,
+          "parents": [],
+          "projection_key": "claim:x",
+          "envelope_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "verification": "unavailable",
+          "visibility": "restricted"
+        }
+      ],
+      "expected": {
+        "accepted_events": [],
+        "duplicate_replays": 0,
+        "invalid_signatures": [],
+        "revoked_keys": [],
+        "verification_pending": [
+          "e1"
+        ],
+        "malformed_events": [],
+        "missing_parent_events": [],
+        "blocked_parent_events": [],
+        "equivocation_event_ids": [],
+        "sequence_fork_event_ids": [],
+        "causal_cycle_events": [],
+        "conflict_pairs": []
+      }
+    },
+    {
+      "case_id": "KEY-REVOKED-001",
+      "title": "Revoked signer key is not accepted",
+      "events": [
+        {
+          "id": "e1",
+          "origin": "node-a",
+          "sequence": 1,
+          "parents": [],
+          "projection_key": "claim:x",
+          "envelope_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "verification": "revoked",
+          "visibility": "restricted"
+        }
+      ],
+      "expected": {
+        "accepted_events": [],
+        "duplicate_replays": 0,
+        "invalid_signatures": [],
+        "revoked_keys": [
+          "e1"
+        ],
+        "verification_pending": [],
+        "malformed_events": [],
+        "missing_parent_events": [],
+        "blocked_parent_events": [],
+        "equivocation_event_ids": [],
+        "sequence_fork_event_ids": [],
+        "causal_cycle_events": [],
+        "conflict_pairs": []
+      }
+    },
+    {
+      "case_id": "SEQUENCE-FORK-001",
+      "title": "Origin sequence reuse quarantines both verified events",
+      "events": [
+        {
+          "id": "e1",
+          "origin": "node-a",
+          "sequence": 4,
+          "parents": [],
+          "projection_key": "claim:x",
+          "envelope_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "verification": "verified",
+          "visibility": "restricted"
+        },
+        {
+          "id": "e2",
+          "origin": "node-a",
+          "sequence": 4,
+          "parents": [],
+          "projection_key": "claim:x",
+          "envelope_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "verification": "verified",
+          "visibility": "restricted"
+        }
+      ],
+      "expected": {
+        "accepted_events": [],
+        "duplicate_replays": 0,
+        "invalid_signatures": [],
+        "revoked_keys": [],
+        "verification_pending": [],
+        "malformed_events": [],
+        "missing_parent_events": [],
+        "blocked_parent_events": [],
+        "equivocation_event_ids": [],
+        "sequence_fork_event_ids": [
+          "e1",
+          "e2"
+        ],
+        "causal_cycle_events": [],
+        "conflict_pairs": []
+      }
+    },
+    {
+      "case_id": "CONCURRENT-CONFLICT-001",
+      "title": "Concurrent submissions are preserved and flagged, never last-write-wins",
+      "events": [
+        {
+          "id": "e1",
+          "origin": "node-a",
+          "sequence": 1,
+          "parents": [],
+          "projection_key": "claim:x",
+          "envelope_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "verification": "verified",
+          "visibility": "restricted"
+        },
+        {
+          "id": "e2",
+          "origin": "node-b",
+          "sequence": 1,
+          "parents": [],
+          "projection_key": "claim:x",
+          "envelope_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "verification": "verified",
+          "visibility": "restricted"
+        }
+      ],
+      "expected": {
+        "accepted_events": [
+          "e1",
+          "e2"
+        ],
+        "duplicate_replays": 0,
+        "invalid_signatures": [],
+        "revoked_keys": [],
+        "verification_pending": [],
+        "malformed_events": [],
+        "missing_parent_events": [],
+        "blocked_parent_events": [],
+        "equivocation_event_ids": [],
+        "sequence_fork_event_ids": [],
+        "causal_cycle_events": [],
+        "conflict_pairs": [
+          [
+            "e1",
+            "e2"
+          ]
+        ]
+      }
+    },
+    {
+      "case_id": "CAUSAL-CORRECTION-001",
+      "title": "Causally linked correction retains history without false conflict",
+      "events": [
+        {
+          "id": "e1",
+          "origin": "node-a",
+          "sequence": 1,
+          "parents": [],
+          "projection_key": "claim:x",
+          "envelope_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "verification": "verified",
+          "visibility": "restricted"
+        },
+        {
+          "id": "e2",
+          "origin": "node-a",
+          "sequence": 2,
+          "parents": [
+            "e1"
+          ],
+          "projection_key": "claim:x",
+          "envelope_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "verification": "verified",
+          "visibility": "restricted"
+        }
+      ],
+      "expected": {
+        "accepted_events": [
+          "e1",
+          "e2"
+        ],
+        "duplicate_replays": 0,
+        "invalid_signatures": [],
+        "revoked_keys": [],
+        "verification_pending": [],
+        "malformed_events": [],
+        "missing_parent_events": [],
+        "blocked_parent_events": [],
+        "equivocation_event_ids": [],
+        "sequence_fork_event_ids": [],
+        "causal_cycle_events": [],
+        "conflict_pairs": []
+      }
+    },
+    {
+      "case_id": "BLOCKED-PARENT-001",
+      "title": "Child of invalid signature is blocked",
+      "events": [
+        {
+          "id": "e1",
+          "origin": "node-a",
+          "sequence": 1,
+          "parents": [],
+          "projection_key": "claim:x",
+          "envelope_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "verification": "invalid",
+          "visibility": "restricted"
+        },
+        {
+          "id": "e2",
+          "origin": "node-a",
+          "sequence": 2,
+          "parents": [
+            "e1"
+          ],
+          "projection_key": "claim:x",
+          "envelope_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "verification": "verified",
+          "visibility": "restricted"
+        }
+      ],
+      "expected": {
+        "accepted_events": [],
+        "duplicate_replays": 0,
+        "invalid_signatures": [
+          "e1"
+        ],
+        "revoked_keys": [],
+        "verification_pending": [],
+        "malformed_events": [],
+        "missing_parent_events": [],
+        "blocked_parent_events": [
+          "e2"
+        ],
+        "equivocation_event_ids": [],
+        "sequence_fork_event_ids": [],
+        "causal_cycle_events": [],
+        "conflict_pairs": []
+      }
+    },
+    {
+      "case_id": "CAUSAL-CYCLE-001",
+      "title": "Causal cycle is quarantined",
+      "events": [
+        {
+          "id": "e1",
+          "origin": "node-a",
+          "sequence": 1,
+          "parents": [
+            "e2"
+          ],
+          "projection_key": "claim:x",
+          "envelope_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "verification": "verified",
+          "visibility": "restricted"
+        },
+        {
+          "id": "e2",
+          "origin": "node-b",
+          "sequence": 1,
+          "parents": [
+            "e1"
+          ],
+          "projection_key": "claim:x",
+          "envelope_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "verification": "verified",
+          "visibility": "restricted"
+        }
+      ],
+      "expected": {
+        "accepted_events": [],
+        "duplicate_replays": 0,
+        "invalid_signatures": [],
+        "revoked_keys": [],
+        "verification_pending": [],
+        "malformed_events": [],
+        "missing_parent_events": [],
+        "blocked_parent_events": [],
+        "equivocation_event_ids": [],
+        "sequence_fork_event_ids": [],
+        "causal_cycle_events": [
+          "e1",
+          "e2"
+        ],
+        "conflict_pairs": []
+      }
+    },
+    {
+      "case_id": "MALFORMED-DIGEST-001",
+      "title": "Malformed digest is rejected structurally",
+      "events": [
+        {
+          "id": "e1",
+          "origin": "node-a",
+          "sequence": 1,
+          "parents": [],
+          "projection_key": "claim:x",
+          "envelope_sha256": "not-a-digest",
+          "verification": "verified",
+          "visibility": "restricted"
+        }
+      ],
+      "expected": {
+        "accepted_events": [],
+        "duplicate_replays": 0,
+        "invalid_signatures": [],
+        "revoked_keys": [],
+        "verification_pending": [],
+        "malformed_events": [
+          "e1"
+        ],
+        "missing_parent_events": [],
+        "blocked_parent_events": [],
+        "equivocation_event_ids": [],
+        "sequence_fork_event_ids": [],
+        "causal_cycle_events": [],
+        "conflict_pairs": []
+      }
+    },
+    {
+      "case_id": "UNRELATED-PROJECTIONS-001",
+      "title": "Independent events on distinct projection keys do not conflict",
+      "events": [
+        {
+          "id": "e1",
+          "origin": "node-a",
+          "sequence": 1,
+          "parents": [],
+          "projection_key": "claim:x",
+          "envelope_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "verification": "verified",
+          "visibility": "restricted"
+        },
+        {
+          "id": "e2",
+          "origin": "node-b",
+          "sequence": 1,
+          "parents": [],
+          "projection_key": "claim:y",
+          "envelope_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "verification": "verified",
+          "visibility": "restricted"
+        }
+      ],
+      "expected": {
+        "accepted_events": [
+          "e1",
+          "e2"
+        ],
+        "duplicate_replays": 0,
+        "invalid_signatures": [],
+        "revoked_keys": [],
+        "verification_pending": [],
+        "malformed_events": [],
+        "missing_parent_events": [],
+        "blocked_parent_events": [],
+        "equivocation_event_ids": [],
+        "sequence_fork_event_ids": [],
+        "causal_cycle_events": [],
+        "conflict_pairs": []
+      }
+    }
+  ]
+}

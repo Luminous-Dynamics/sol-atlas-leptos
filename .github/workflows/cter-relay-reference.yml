@@ -1,0 +1,41 @@
+name: CTER relay reference conformance
+
+on:
+  push:
+    branches: [research/cter-relay-qualification-v0-1]
+    paths:
+      - "benchmarks/territorial-integrity/relay/**"
+      - ".github/workflows/cter-relay-reference.yml"
+  pull_request:
+    branches: [main]
+    paths:
+      - "benchmarks/territorial-integrity/relay/**"
+      - ".github/workflows/cter-relay-reference.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: cter-relay-reference-${{ github.event.pull_request.head.sha || github.sha }}
+  cancel-in-progress: true
+
+jobs:
+  reference-conformance:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
+      - name: Assert exact checkout
+        env:
+          EXPECTED_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: test "$(git rev-parse HEAD)" = "$EXPECTED_SHA"
+      - name: Install pinned Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: "1.96.1"
+      - name: Run standalone reference tests
+        run: cargo test --manifest-path benchmarks/territorial-integrity/relay/reference/Cargo.toml
