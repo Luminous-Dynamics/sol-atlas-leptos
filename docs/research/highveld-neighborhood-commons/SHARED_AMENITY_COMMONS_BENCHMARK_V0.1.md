@@ -205,8 +205,8 @@ These require a real site, consenting residents, measured cost/demand, independe
 ## 12. Execution stages
 
 1. **E0 — contract freeze:** schema, case registry, same-scope rules, units, outcome vectors, legal/authority boundaries and source register.
-2. **E1 — independent oracle:** deterministic Rust evaluator for the bounded synthetic semantics; frozen input bytes; golden cases; fault mutations; independent reference calculations; exact receipts.
-3. **E2 — owner-native composition:** Sol-Atlas scope binding #623; Symtropy spatial/service/resilience outcomes; Mycelix ownership, event, reserve and approval references; Symthaea engineering/process estimates. Read-only adapter composition; no schema shadow ledgers.
+2. **E1 — registry integrity:** deterministic Rust auditor for frozen input identity, exact 5×10 coverage, functional-unit mapping, owner exclusions and claim-state invariants; adversarial mutations and a byte-bound summary receipt. This is not an operational service, capacity, cost or allocation evaluator.
+3. **E2 — owner-native composition:** Sol-Atlas scope binding #623; Symtropy #3768 capacity/resource outputs and #1848 resilience where applicable; Mycelix #5901 allocation, #987 governance, #4808 accounting and lifecycle records; Symthaea engineering/process estimates. Read-only adapter composition; no schema shadow ledgers.
 4. **E3 — measured baseline:** one amenity at a time. Collect lawful demand, actual operating cost, access, capacity, condition, utility use, staff hours and resident feedback with consent and privacy safeguards.
 5. **E4 — non-occupied test cell:** choose the lowest-risk asset with the highest information value (tool-library custody workflow, laundry water/energy mock-up, greenhouse water loop, or pool plant mock-up). No mains/potable/occupied installation without qualified review and approvals.
 6. **E5 — bounded live pilot:** independent assessment, matched comparison, resident governance, funded maintenance reserve and explicit stop/withdrawal process before any public-facing claim.
