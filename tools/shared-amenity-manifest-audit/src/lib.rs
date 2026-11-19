@@ -26,6 +26,17 @@ const EXPECTED_ARMS: &[&str] = &[
     "EXTERNAL_COMMERCIAL",
 ];
 
+const EXPECTED_METRIC_VECTORS: &[&str] = &[
+    "SERVICE_OPPORTUNITY_AND_AVAILABILITY",
+    "EFFECTIVE_ACCESS_AND_TIME",
+    "REACHABLE_CAPACITY_POTENTIAL",
+    "SPATIAL_TOPOLOGY_AND_LAND",
+    "HOUSEHOLD_AFFORDABILITY_OUTPUTS",
+    "RESOURCE_ENVIRONMENT_OWNER_OUTPUTS",
+    "ROBUSTNESS_AND_RECONFIGURATION",
+    "DISTRIBUTIONAL_EQUITY_AND_PRIVACY",
+];
+
 const EXPECTED_SCENARIOS: &[&str] = &[
     "COMPACT_HIGH_DENSITY",
     "LOW_DENSITY_DISPERSED",
@@ -219,6 +230,7 @@ pub fn audit_manifest_bytes(bytes: &[u8]) -> Result<AuditSummary, AuditError> {
     expect_same_set(&scenario_ids, EXPECTED_SCENARIOS, "$.scenarios")?;
 
     validate_amenities(&root)?;
+    validate_metric_vectors(&root)?;
     validate_scope_boundary(&root)?;
     validate_case_matrix(&root, &arm_ids, &scenario_ids)?;
     validate_reference_sources(&root)?;
@@ -436,6 +448,22 @@ fn validate_amenities(root: &Value) -> Result<(), AuditError> {
     }
 
     Ok(())
+}
+
+fn validate_metric_vectors(root: &Value) -> Result<(), AuditError> {
+    let metrics = required_array(root, "metric_vectors", "$")?;
+    if metrics.len() != EXPECTED_METRIC_VECTORS.len() {
+        return Err(AuditError::new(
+            "$.metric_vectors",
+            format!(
+                "expected {} metric vectors, found {}",
+                EXPECTED_METRIC_VECTORS.len(),
+                metrics.len()
+            ),
+        ));
+    }
+    let metric_ids = collect_string_set(metrics, "$.metric_vectors")?;
+    expect_same_set(&metric_ids, EXPECTED_METRIC_VECTORS, "$.metric_vectors")
 }
 
 fn validate_scope_boundary(root: &Value) -> Result<(), AuditError> {
