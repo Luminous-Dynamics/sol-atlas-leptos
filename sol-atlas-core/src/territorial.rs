@@ -1384,6 +1384,29 @@ mod tests {
         }));
     }
 
+    fn verified_obligation(
+        kind: ObligationKind,
+        evidence_ids: Vec<String>,
+    ) -> StewardshipObligation {
+        StewardshipObligation {
+            id: "stewardship-1".into(),
+            governance_record_ref: "urn:mycelix:stewardship:commitment:1".into(),
+            kind,
+            description: "Synthetic stewardship completion".into(),
+            spatial_feature_ref: "urn:ogc:feature:stewardship-site-1".into(),
+            responsible_party_ref: "party:operator".into(),
+            originating_evidence_id: "obligation-origin".into(),
+            due_at: "2030-12-31".into(),
+            target_value: Some(80.0),
+            target_unit: Some("percent_target".into()),
+            verification_protocol_ref: "urn:test:protocol:stewardship-v1".into(),
+            independent_verifier_ref: Some("party:independent-verifier".into()),
+            state: ObligationState::VerifiedComplete,
+            evidence_ids,
+            disclosure_class: DisclosureClass::Restricted,
+        }
+    }
+
     #[test]
     fn verified_obligation_requires_independent_verifier_and_evidence() {
         let mut value = record(Vec::new());
@@ -1414,6 +1437,95 @@ mod tests {
         assert_eq!(value.validate(), Ok(()));
         value.obligations[0].independent_verifier_ref = Some("party:operator".into());
         assert!(value.validate().is_err());
+    }
+
+
+    #[test]
+    fn verified_environmental_restoration_rejects_permit_only_completion_evidence() {
+        let mut value = record(Vec::new());
+        value
+            .evidence
+            .push(evidence("obligation-origin", EvidenceKind::Permit));
+        value
+            .evidence
+            .push(evidence("completion-permit", EvidenceKind::Permit));
+        value.obligations.push(verified_obligation(
+            ObligationKind::RestoreHabitat,
+            vec!["completion-permit".into()],
+        ));
+
+        let issues = value
+            .validate()
+            .expect_err("a permit alone must not evidence completed habitat restoration");
+        assert!(issues.iter().any(|issue| {
+            issue.contains("without evidence of the required environmental observation kind")
+        }));
+    }
+
+    #[test]
+    fn restoration_can_use_remote_sensing_or_environmental_measurement_evidence() {
+        for evidence_kind in [
+            EvidenceKind::RemoteSensingObservation,
+            EvidenceKind::EnvironmentalMeasurement,
+        ] {
+            let mut value = record(Vec::new());
+            value
+                .evidence
+                .push(evidence("obligation-origin", EvidenceKind::Permit));
+            value
+                .evidence
+                .push(evidence("completion-proof", evidence_kind));
+            value.obligations.push(verified_obligation(
+                ObligationKind::RestoreHabitat,
+                vec!["completion-proof".into()],
+            ));
+            assert_eq!(value.validate(), Ok(()));
+        }
+    }
+
+    #[test]
+    fn water_quality_completion_requires_environmental_measurement_not_remote_sensing_alone() {
+        let mut value = record(Vec::new());
+        value
+            .evidence
+            .push(evidence("obligation-origin", EvidenceKind::Permit));
+        value.evidence.push(evidence(
+            "remote-observation",
+            EvidenceKind::RemoteSensingObservation,
+        ));
+        value.obligations.push(verified_obligation(
+            ObligationKind::MonitorWaterQuality,
+            vec!["remote-observation".into()],
+        ));
+        let issues = value
+            .validate()
+            .expect_err("water quality completion requires a measurement record");
+        assert!(issues.iter().any(|issue| {
+            issue.contains("without evidence of the required environmental observation kind")
+        }));
+
+        value.evidence.push(evidence(
+            "water-measurement",
+            EvidenceKind::EnvironmentalMeasurement,
+        ));
+        value.obligations[0].evidence_ids.push("water-measurement".into());
+        assert_eq!(value.validate(), Ok(()));
+    }
+
+    #[test]
+    fn non_environmental_access_obligation_does_not_require_ecological_measurement() {
+        let mut value = record(Vec::new());
+        value
+            .evidence
+            .push(evidence("obligation-origin", EvidenceKind::Permit));
+        value
+            .evidence
+            .push(evidence("access-proof", EvidenceKind::Contract));
+        value.obligations.push(verified_obligation(
+            ObligationKind::MaintainAccess,
+            vec!["access-proof".into()],
+        ));
+        assert_eq!(value.validate(), Ok(()));
     }
 
     #[test]
