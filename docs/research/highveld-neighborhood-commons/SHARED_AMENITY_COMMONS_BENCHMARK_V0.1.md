@@ -108,6 +108,19 @@ Do not duplicate shortest-path routing, GIS, facility booking, allocation, capac
 
 ## 7. Metrics — keep the outcome vector visible
 
+The machine-readable manifest freezes eight reporting vectors:
+
+| Vector | Authority / interpretation |
+|---|---|
+| SERVICE_OPPORTUNITY_AND_AVAILABILITY | Read-only owner evidence of usable service windows and service existence. |
+| EFFECTIVE_ACCESS_AND_TIME | CityMorph #555 route/time/access results. |
+| REACHABLE_CAPACITY_POTENTIAL | Capacity reachable by a group; not allocated supply or bookings. |
+| SPATIAL_TOPOLOGY_AND_LAND | Sol-Atlas comparison of node locations, catchments, competing land uses and phase. |
+| HOUSEHOLD_AFFORDABILITY_OUTPUTS | Sol-Atlas #816 cost-of-place output; not recomputed by this benchmark. |
+| RESOURCE_ENVIRONMENT_OWNER_OUTPUTS | Qualified Symtropy/other owner outputs; no shadow resource ledger. |
+| ROBUSTNESS_AND_RECONFIGURATION | Alternative routes/nodes, substitution, phase and option-value outcomes. |
+| DISTRIBUTIONAL_EQUITY_AND_PRIVACY | Cohort-level access gaps with declared consent and disclosure bounds. |
+
 ### Effective access
 - network travel time and generalized travel cost by mode and relevant time window;
 - median, P90 and worst-decile travel burden, plus share of residents with no known usable route;
