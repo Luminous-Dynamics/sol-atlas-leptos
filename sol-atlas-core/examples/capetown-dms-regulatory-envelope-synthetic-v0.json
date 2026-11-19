@@ -1,0 +1,56 @@
+{
+  "example_kind": "synthetic_municipal_regulatory_envelope_not_registrable_title",
+  "benchmark_reference": "TIB-3D-SPATIAL-QUALIFICATION-001 / SP3D-002",
+  "record": {
+    "schema": "luminous.territorial-spatial-qualification.v0",
+    "schema_uri": "https://luminousdynamics.io/schemas/territorial-spatial-qualification-v0.schema.json",
+    "record_id": "synthetic-capetown-dms-envelope",
+    "feature_reference": "urn:ogc:feature:capetown-dms-envelope-001",
+    "geometry_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "source_record_reference": "urn:source:survey-plan:001",
+    "source_record_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+    "captured_at": "2026-11-19T06:00:00Z",
+    "geometry_encoding": "json_fg",
+    "geometry_kind": "prism",
+    "dimension": "three_d",
+    "spatial_scope": "municipal_development_envelope",
+    "layer_kind": "municipal_regulatory_envelope",
+    "horizontal_reference": {
+      "source_crs_uri": "urn:synthetic:crs:capetown-local:v1",
+      "target_crs_uri": "urn:synthetic:crs:capetown-local:v1",
+      "realization": "synthetic municipal local frame",
+      "axis_order": "east_north",
+      "axis_order_profile_ref": "urn:synthetic:profile:capetown-axis-order",
+      "coordinate_epoch": null
+    },
+    "vertical_reference": {
+      "source_crs_uri": "urn:synthetic:vertical:lld",
+      "target_crs_uri": "urn:synthetic:vertical:lld",
+      "datum_name": "Land Levelling Datum (LLD)",
+      "realization": "Synthetic reference to the Cape Town GLM2019 LLD surface",
+      "unit": "metre"
+    },
+    "coordinate_operations": [],
+    "survey_evidence": {
+      "source_reference": "urn:synthetic:capetown:glm2019-lidar",
+      "source_sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+      "captured_at": "2019-06-01T00:00:00Z",
+      "survey_method": "lidar",
+      "surveyor_reference": "urn:synthetic:survey-team:capetown",
+      "horizontal_uncertainty_m": 0.5,
+      "vertical_uncertainty_m": 0.3
+    },
+    "topology_assessment": {
+      "state": "validated_watertight",
+      "validation_report_reference": "urn:topology:report:001",
+      "validation_report_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+      "assessor_reference": "urn:assessor:001"
+    },
+    "overlap_assessment": null,
+    "governing_instrument_reference": "urn:synthetic:municipal-instrument:mpbl-2025",
+    "external_register_record_reference": null,
+    "claim_ceiling": "reference_only_no_legal_effect"
+  },
+  "expected_outcome": "review_required",
+  "interpretation": "This is a synthetic municipal planning/development envelope. The FIG 2026 paper describes the Cape Town DMS envelopes as municipal regulatory geometry and expressly distinguishes them from registrable cadastral objects. This example has no real parcel coordinates, source digest or title effect."
+}
