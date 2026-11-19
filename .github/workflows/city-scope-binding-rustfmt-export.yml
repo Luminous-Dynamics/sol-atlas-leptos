@@ -1,0 +1,36 @@
+name: City Scope Binding Rustfmt Export (temporary authoring helper)
+
+on:
+  push:
+    branches: ["research/city-scope-binding-v0.1"]
+    paths:
+      - "tools/city-scope-binding-bench/**"
+      - ".github/workflows/city-scope-binding-rustfmt-export.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  export:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: 1.96.0
+          components: rustfmt
+      - name: Format standalone scope-binding crate in ephemeral checkout
+        run: cargo fmt --manifest-path tools/city-scope-binding-bench/Cargo.toml --all
+      - name: Export formatted sources
+        run: |
+          mkdir -p formatted
+          cp tools/city-scope-binding-bench/src/lib.rs formatted/lib.rs
+          cp tools/city-scope-binding-bench/src/main.rs formatted/main.rs
+      - uses: actions/upload-artifact@v4
+        with:
+          name: city-scope-binding-rustfmt-export
+          path: formatted/
+          if-no-files-found: error
+          retention-days: 2

@@ -1,0 +1,333 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://luminousdynamics.io/schemas/citymaker-evaluation-scope-v0.1.schema.json",
+  "title": "CityMaker Evaluation Scope v0.1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "scope_id",
+    "schema_version",
+    "classification",
+    "spatial_scope",
+    "population_frame",
+    "time_horizon",
+    "scenarios",
+    "functional_units",
+    "currency",
+    "design_revisions",
+    "evidence_policy"
+  ],
+  "properties": {
+    "scope_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "schema_version": {
+      "const": "citymaker-evaluation-scope/0.1"
+    },
+    "classification": {
+      "enum": [
+        "synthetic_fixture_only",
+        "real_scope_pending_rights_review",
+        "real_scope_reviewed"
+      ]
+    },
+    "spatial_scope": {
+      "type": "object",
+      "required": [
+        "kind",
+        "boundary_id",
+        "boundary_revision",
+        "coordinate_reference",
+        "spatial_resolution_ceiling",
+        "real_world_coordinates_present"
+      ],
+      "properties": {
+        "kind": {
+          "enum": [
+            "synthetic_grid",
+            "site",
+            "corridor",
+            "ward",
+            "municipality",
+            "service_area"
+          ]
+        },
+        "boundary_id": {
+          "type": "string"
+        },
+        "boundary_revision": {
+          "type": "string"
+        },
+        "coordinate_reference": {
+          "type": "string"
+        },
+        "spatial_resolution_ceiling": {
+          "type": "string"
+        },
+        "real_world_coordinates_present": {
+          "type": "boolean"
+        },
+        "latitude": {
+          "type": "number"
+        },
+        "longitude": {
+          "type": "number"
+        }
+      },
+      "additionalProperties": true
+    },
+    "population_frame": {
+      "type": "object",
+      "required": [
+        "frame_id",
+        "method",
+        "supported_resolution",
+        "group_ids"
+      ],
+      "properties": {
+        "frame_id": {
+          "type": "string"
+        },
+        "method": {
+          "type": "string"
+        },
+        "supported_resolution": {
+          "type": "string"
+        },
+        "group_ids": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "uniqueItems": true
+        }
+      },
+      "additionalProperties": false
+    },
+    "time_horizon": {
+      "type": "object",
+      "required": [
+        "horizon_id",
+        "start_tick",
+        "end_tick",
+        "tick_unit",
+        "temporal_resolution"
+      ],
+      "properties": {
+        "horizon_id": {
+          "type": "string"
+        },
+        "start_tick": {
+          "type": "integer"
+        },
+        "end_tick": {
+          "type": "integer"
+        },
+        "tick_unit": {
+          "type": "string"
+        },
+        "temporal_resolution": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "scenarios": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "scenario_id",
+          "event_ids"
+        ],
+        "properties": {
+          "scenario_id": {
+            "type": "string"
+          },
+          "event_ids": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "uniqueItems": true
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "weather_profile": {
+      "type": "object",
+      "required": [
+        "profile_id",
+        "revision",
+        "applicability"
+      ],
+      "properties": {
+        "profile_id": {
+          "type": "string"
+        },
+        "revision": {
+          "type": "string"
+        },
+        "applicability": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "service_requirements": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "requirement_id",
+          "group_id",
+          "category"
+        ],
+        "properties": {
+          "requirement_id": {
+            "type": "string"
+          },
+          "group_id": {
+            "type": "string"
+          },
+          "category": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "functional_units": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "functional_unit_id",
+          "definition_digest",
+          "quantity",
+          "unit",
+          "service_definition",
+          "lifecycle_boundary"
+        ],
+        "properties": {
+          "functional_unit_id": {
+            "type": "string"
+          },
+          "definition_digest": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          },
+          "quantity": {
+            "type": "number",
+            "exclusiveMinimum": 0
+          },
+          "unit": {
+            "type": "string"
+          },
+          "service_definition": {
+            "type": "string"
+          },
+          "lifecycle_boundary": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "currency": {
+      "type": "object",
+      "required": [
+        "comparison_enabled",
+        "code",
+        "base_year",
+        "note"
+      ],
+      "properties": {
+        "comparison_enabled": {
+          "type": "boolean"
+        },
+        "code": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "base_year": {
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
+        "note": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "design_revisions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "subject_id",
+          "design_revision",
+          "bom_revision"
+        ],
+        "properties": {
+          "subject_id": {
+            "type": "string"
+          },
+          "design_revision": {
+            "type": "string"
+          },
+          "bom_revision": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "evidence_policy": {
+      "type": "object",
+      "required": [
+        "schema_pin_required",
+        "source_revision_required",
+        "receipt_id_unique",
+        "content_digest_required",
+        "subject_digest_required",
+        "stale_or_revoked_abstain",
+        "owner_disposition_preserved",
+        "payload_bytes_must_be_fetched_before_claiming_digest_verified"
+      ],
+      "properties": {
+        "schema_pin_required": {
+          "type": "boolean"
+        },
+        "source_revision_required": {
+          "type": "boolean"
+        },
+        "receipt_id_unique": {
+          "type": "boolean"
+        },
+        "content_digest_required": {
+          "type": "boolean"
+        },
+        "subject_digest_required": {
+          "type": "boolean"
+        },
+        "stale_or_revoked_abstain": {
+          "type": "boolean"
+        },
+        "owner_disposition_preserved": {
+          "type": "boolean"
+        },
+        "payload_bytes_must_be_fetched_before_claiming_digest_verified": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}
