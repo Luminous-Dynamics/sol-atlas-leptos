@@ -360,3 +360,85 @@ These remain unmeasured targets, not expected results:
 - At least 20% lower fully burdened cost per equivalent dwelling-service-year, with identical service floors and lifecycle boundaries.
 
 The targets are not all necessarily jointly attainable. Report the Pareto frontier and the evidence behind each achieved target; never trade mandatory access/safety/legal requirements for speed or price.
+
+
+## 18. Compose the dream home, optional experiences and neighborhood food system
+
+The benchmark is not a new architectural catalogue. It consumes the existing Highveld and Home Freedom work:
+
+- **Highveld Keep #607** is the initial South African computational reference dwelling with four distinct spatial families: Courtyard Cloister, Winged Great Hall, Compact Keep and Garden Pavilions. It already defines the synthetic resident/task programme, accessible arrival-level essentials, kitchen/dining, great hall, library, work/making, sleeping rooms, service/storage and courtyard/garden.
+- **Home Expression Library #904** owns resident-directed style blends and optional experience packages, including library, workshop, conservatory/greenhouse, guest pavilion, pool/water feature, spa/sauna/plunge, music studio and other additions. An experience package is a functional space/system option with cost, service, spatial, utility and maintenance implications—not merely a decorative tag.
+- **Household service composition #694** owns the link from a home design to appliance, water, thermal, air and household service floors.
+- **Multifamily compiler #840** owns apartment/floor/building configurations and vertical shared facilities.
+
+Therefore, do not create another room catalogue or design generator here. Consume the resident-authored brief and exact design revision, then compare whether an amenity belongs in the private dwelling, an accessory structure, a shared facility, a distributed neighbourhood node or an external provider.
+
+### 18.1 Home and experience configuration
+
+For each optional experience package, record:
+- resident-authored task and reason; preference may be required, preferred, optional, phase_later, declined or undecided;
+- exact home/candidate and revision;
+- spatial area, adjacency, access, privacy and servicing needs when known;
+- build assembly/product demand and supply evidence;
+- capital, operating, replacement and maintenance implications, each with source/uncertainty;
+- service dependencies and manual fallback;
+- whether the same function can instead be shared or purchased externally.
+
+A pool is not a mandatory sign of a dream home. A greenhouse is not necessarily economical on an individual plot. A shared guest suite can remove duplicated spare bedrooms for some households but is not equivalent for households requiring permanent private accommodation. Those are resident-defined alternatives, not defaults imposed by the optimiser.
+
+### 18.2 Greenhouse and food-growing composition
+
+A greenhouse is a productive residential amenity only when it delivers a defined resident-facing service such as usable harvest. It must not be evaluated by planting area or rendered greenery alone.
+
+Use the following owner split:
+
+| Owner | Responsibility | What this benchmark consumes |
+|---|---|---|
+| Sol-Atlas #107 AGRO-CLIMATE-001 | Highveld/region-specific food, climate, soil and water evidence readiness | Currentness, geography, spatial resolution and uncertainty; not a plot-level forecast |
+| Sol-Atlas #105 ATLAS-FOOD-001 | Privacy-preserving spatial food-network projection | Permitted producer/pickup/aggregate-demand/fulfilment view, not inventory or household identity |
+| Symtropy #3957 CEA-FULL-BOUNDARY-001 | Whole-facility resource and nutritional-service accounting | Accepted harvest/service, electricity, heat, water, nutrients, labour and lifecycle boundary |
+| Symtropy #4065 CEA-CLIMATE-001 | Spatial temperature, humidity, CO2, airflow, moisture and heat-rejection dynamics | Qualified climate/airflow outputs and calibration/applicability limits |
+| Symtropy #4074 CEA-HARVEST-CONTROL-001 | Harvest-constrained lighting/climate control comparison | Declared harvest target, resource/control policy and modelled-versus-measured status |
+| Mycelix #5001 MYC-FOOD-001 | Producer cooperative, typed product quantities, lots, orders, fulfillment and provenance | Source/lot/accepted-delivery references; planned harvest must never be treated as inventory |
+
+Candidate functional unit: kg of usable harvest by declared crop and grade. Keep crop identity, grade, quality, losses, growing-cycle horizon and harvest point. Report separately:
+- usable harvested mass and rejected/lost mass;
+- electricity and useful heat per kg by crop/grade;
+- potable and non-potable water by source/quality class per kg;
+- nutrient/seed/substrate inputs and residual streams;
+- labour and maintenance hours;
+- area/volume and throughput per cycle;
+- market/household service delivered versus forecast/planned production;
+- capital, replacement, operating and lifecycle cost.
+
+Do not compare lettuce, herbs, tomatoes, microgreens and fruit as interchangeable kg. Nutritional service may be reported when an admitted composition method and accepted harvest composition are present; do not infer nutritional value from mass alone. A modeled yield is not a measured yield. A harvest forecast is not a lot. A mapped producer is not inventory. A food-network projection is not food-safety approval.
+
+### 18.3 South African water and climate constraints
+
+For Johannesburg, the Level 2 restrictions effective 21 November 2026 prohibit using municipal drinking water to irrigate gardens, lawns, parks and public spaces. The greenhouse and landscape design must therefore declare source and lawful use for every water flow: municipal potable, rainwater, greywater, treated wastewater or other separately qualified source. Do not presume that a stored or treated stream is fit for crop contact, washing produce, pool top-up, irrigation or any other use.
+
+The Highveld climate profile must not assume that a regional climate prior predicts a specific parcel's microclimate, soil condition, water availability or crop yield. Site testing, local rights, source quality, seasonal continuity, soil history and operator capacity are prerequisites for a physical installation.
+
+Landscaping should prioritize climate-appropriate and indigenous planting, shade, low-irrigation design, soil health, stormwater attenuation and low-maintenance planting. Rain gardens, swales and stormwater systems must be engineered for the site rather than treated as decorative water features.
+
+### 18.4 Pool and wellness boundary
+
+The pool remains a resident-facing amenity service class with candidate unit operable swimmer-hour. #940 compares whether private, shared or external access is more appropriate, the operating window, availability, cost, access, water/energy intensity and downtime.
+
+It does **not** design or certify pool hydraulics, electrical safety, chemical treatment, water quality, public-health controls, structural support, barriers or statutory pool safety. These require separate qualified design, operation and inspection. Symtropy #4531 room-scale household service integration and #5335 WaterLoop can provide bounded mock-up/service-system evidence where applicable; neither is a pool approval.
+
+A pool option must include source water, evaporation, leakage, treatment/backwash, energy, cleaning, seasonal closure, accessibility, operating staff, inspection and maintenance reserve. Water restrictions and lawful water source take precedence over discretionary amenity targets.
+
+### 18.5 Dream-home and commons comparison
+
+For the same resident-authored task, compare:
+- private room/equipment inside the dwelling;
+- a separate accessory structure on the household plot;
+- a shared amenity operated by the residents/community;
+- several smaller shared nodes;
+- an external commercial provider;
+- omission or later phasing, where the resident accepts that option.
+
+The result is a service/cost/access vector and a resident decision brief. A lower-cost shared design may be rejected by a resident who values privacy, independent access, permanent guest accommodation or a particular workshop. A private facility may be unaffordable to maintain. Preserve the preference and its rationale; do not infer a preferred arrangement from household type or demographic profile.
+
+The benchmark becomes especially useful when linked to #607 and #904: the same Highveld reference home can be explored as a restrained core dwelling, an expressive dream-home configuration, and a household embedded in a neighborhood with shared alternatives—without treating the most expensive configuration as the default or claiming the same layout suits every person.
