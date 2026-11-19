@@ -226,6 +226,36 @@
       "limitations": [
         "Mandatory emergency load reduction is a different category from voluntary or contracted demand response; authority remains with the System Operator or relevant utility."
       ]
+    },
+    {
+      "source_id": "coega-steels-private-energy-assets-2026-10",
+      "title": "Fedgroup-funded renewable energy infrastructure for Coega Steels rolling mill",
+      "publisher": "Fedgroup press release via Bizcommunity; reported by Engineering News",
+      "publication_date": "2026-10-30",
+      "evidence_class": "owner_funder_reported_project_status_not_independent_meter_audit",
+      "urls": [
+        "https://www.bizcommunity.com/PressOffice/PressRelease.aspx?ai=272996&cid=752422",
+        "https://www.engineeringnews.co.za/article/fedgroup-funds-renewable-energy-infrastructure-for-coega-steels-new-rolling-mill-2026-10-30"
+      ],
+      "project_data": {
+        "location": "Coega Special Economic Zone / Nelson Mandela Bay; separate private industrial site, not a TNPA port asset",
+        "solar_pv_capacity_mwp": 7,
+        "solar_energy_generated_kwh_reported_to_2026_10_30": 6000000,
+        "battery_energy_capacity_mwh": 50,
+        "battery_status_as_of_2026_10_30": "reported_nearing_commissioning",
+        "rolling_mill_capacity_tonnes_per_year": 150000,
+        "further_solar_expansion_mwp": 19.8,
+        "further_solar_target_date": "2027-12",
+        "further_expansion_status": "planned_not_finally_funded_or_committed",
+        "owner_funder": "Fedgroup funds/manages energy assets for Coega Steels",
+        "plant_operator": "Coega Steels"
+      },
+      "limitations": [
+        "PV capacity and generation to date are funder/company-reported; raw meter data, calibration, meter boundary, commissioning certificate and interval generation profile are not supplied.",
+        "The 50 MWh battery was reported as nearing commissioning on 30 Oct 2026; actual commissioning, usable energy, power rating, SoC, dispatch rights and operating availability remain unknown.",
+        "The further 19.8 MWp expansion is planned; the funding arrangement was reported as not finalized in a 6 Nov 2026 article.",
+        "The site is a separate private industrial node. No shared PCC, wheeling, export, dispatch, reserve, heat, water or contractual capacity is inferred for TNPA, another port tenant or a proposed data centre."
+      ]
     }
   ],
   "sites": [
@@ -315,7 +345,22 @@
         "reported_transmission_interval_minutes": 30,
         "raw_data_and_quality_status": "unknown",
         "display_only_warning": true
-      }
+      },
+      "adjacent_industrial_context": [
+        {
+          "project_id": "coega-steels-private-energy-assets-2026-10",
+          "relation": "adjacent_industrial_ecosystem_in_Coega_SEZ_not_port_owned",
+          "solar_pv_mwp": 7,
+          "reported_pv_generation_to_2026_10_30_kwh": 6000000,
+          "bess_energy_mwh": 50,
+          "bess_status": "reported_nearing_commissioning_as_of_2026_10_30",
+          "further_pv_mwp": 19.8,
+          "further_pv_target": "by_2027_end",
+          "further_pv_status": "planned_not_finally_funded",
+          "shared_capacity_with_port_or_future_dc": "unknown_no_right_inferred",
+          "meter_and_dispatch_evidence": "unknown_pending_owner_records"
+        }
+      ]
     },
     {
       "site_id": "za-durban",
@@ -635,7 +680,11 @@
     "CSIR WaveNet owner-qualified Ngqura wave/weather data with instrument calibration, quality flags, station coverage and data rights",
     "CSIR WaveNet Durban ADCP current/wave data with current station status, depth bins, calibration, coverage and data rights",
     "Utility-confirmed PCC/feeder/import/export capacity and metered port/berth load series at both sites",
-    "South African demand-response qualification: separate Eskom 6 s IDR, SAWEM 10 s instantaneous reserve, NTCSA supplemental DR and emergency NRS 048-9 load reduction; verify site-specific programme eligibility and metering."
+    "South African demand-response qualification: separate Eskom 6 s IDR, SAWEM 10 s instantaneous reserve, NTCSA supplemental DR and emergency NRS 048-9 load reduction; verify site-specific programme eligibility and metering.",
+    "Coega Steels 7 MWp solar as-built and commissioning data, interval meter series, meter boundary, calibration and ownership/dispatch rights",
+    "Coega Steels 50 MWh BESS commissioning certificate, power rating, usable energy, efficiency, operating SoC and event/dispatch availability",
+    "Any contractual or physical connection, wheeling, export, aggregation or demand-response rights between Coega Steels, TNPA, utility and other Coega IDZ loads (do not infer from geographic proximity)",
+    "19.8 MWp Coega Steels solar expansion FID/funding, permits, construction, commissioning and operating data"
   ],
   "paired_site_strategy": {
     "primary_integration_study_case": "za-ngqura",
