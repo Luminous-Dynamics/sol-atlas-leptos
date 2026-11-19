@@ -62,5 +62,6 @@
   "limitations": [
     "Synthetic expected-case annotation only; no system was executed.",
     "A structurally present authority reference is not proof of authority authenticity or legal effect."
-  ]
+  ],
+  "evidence_class": "proposed_target"
 }
