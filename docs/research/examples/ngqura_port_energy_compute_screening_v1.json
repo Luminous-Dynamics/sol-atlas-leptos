@@ -16,7 +16,7 @@
       "evidence_id": "tnpa-ngqura-renewables-tender-2024",
       "claim": "TNPA tender scope specified a 7 MW renewable-energy plant and 6 MWh battery energy-storage system; annexure identifies approximately 6,991 kW solar PV and 9 kW vertical-axis wind turbines.",
       "evidence_class": "tender_scope",
-      "value": 7.0,
+      "value": 7,
       "unit": "MW nameplate tender scope",
       "source_url": "https://transnetetenders.azurewebsites.net/Home/TenderDetails?Id=46114",
       "as_of": "2024-06-07",
@@ -70,21 +70,36 @@
   ],
   "assets": [
     {
-      "asset_id": "ngqura-renewables-tender-scope",
+      "asset_id": "ngqura-solar-pv-tender-scope",
       "asset_class": "solar_pv",
       "status": "tender_scope_not_verified",
-      "rated_power_mw": 7.0,
+      "rated_power_mw": 6.991,
       "energy_capacity_mwh": null,
-      "source_evidence_ids": ["tnpa-ngqura-renewables-tender-2024"],
-      "notes": "The 7 MW figure is the tendered hybrid plant total, not a PV-only rating. Annexure indicates almost all tendered capacity is PV and only 9 kW is vertical-axis wind."
+      "source_evidence_ids": [
+        "tnpa-ngqura-renewables-tender-2024"
+      ],
+      "notes": "Tender annexure specifies approximately 6,991 kW solar PV; commissioning and operating state are not verified."
+    },
+    {
+      "asset_id": "ngqura-wind-tender-scope",
+      "asset_class": "wind",
+      "status": "tender_scope_not_verified",
+      "rated_power_mw": 0.009,
+      "energy_capacity_mwh": null,
+      "source_evidence_ids": [
+        "tnpa-ngqura-renewables-tender-2024"
+      ],
+      "notes": "Tender annexure specifies approximately 9 kW vertical-axis wind; commissioning and operating state are not verified."
     },
     {
       "asset_id": "ngqura-bess-tender-scope",
       "asset_class": "battery",
       "status": "tender_scope_not_verified",
       "rated_power_mw": null,
-      "energy_capacity_mwh": 6.0,
-      "source_evidence_ids": ["tnpa-ngqura-renewables-tender-2024"],
+      "energy_capacity_mwh": 6,
+      "source_evidence_ids": [
+        "tnpa-ngqura-renewables-tender-2024"
+      ],
       "notes": "Battery inverter power, usable capacity, chemistry, efficiency, degradation and commissioning state are unknown."
     },
     {
@@ -93,7 +108,9 @@
       "status": "unknown",
       "rated_power_mw": null,
       "energy_capacity_mwh": null,
-      "source_evidence_ids": ["ptxhub-ngqura-grid-screen-2025"],
+      "source_evidence_ids": [
+        "ptxhub-ngqura-grid-screen-2025"
+      ],
       "notes": "A port-level screening estimate is not the connection rating of a specific feeder."
     }
   ],
@@ -108,7 +125,12 @@
   "workload": {
     "proposed_it_load_mw": null,
     "location_candidate": "undecided",
-    "workload_classes": ["batch_training", "scientific_hpc", "simulation", "archive"],
+    "workload_classes": [
+      "batch_training",
+      "scientific_hpc",
+      "simulation",
+      "archive"
+    ],
     "service_requirements_status": "unknown",
     "notes": "The Natick 240 kW figure is a comparison reference, not a site proposal. Workload trace, latency, migration, data-sovereignty and availability requirements are not yet supplied."
   },
