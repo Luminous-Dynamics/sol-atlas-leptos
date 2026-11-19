@@ -528,7 +528,24 @@ Sources: [PtX Hub / CSIR Load Connection Capacity Assessment](https://ptx-hub.or
 
 Sources: [Official TNPA Ngqura renewable tender](https://transnetetenders.azurewebsites.net/Home/TenderDetails?Id=46114); [TNPA June 2024 media statement on renewable and solar desalination RFPs](https://www.transnetnationalportsauthority.net/Corporate%20Affairs/Press%20Releases/Media%20Statement%20-%20TNPA%20seeks%20proposals%20for%20renewable%20energy%20projects%20in%20Nelson%20Mandela%20Bay-June%202024.pdf); [SLR Coega Ammonia authorization notice](https://www.slrconsulting.com/afr/public-documents/coega-ammonia/); [SAnews TNPA LNG agreement](https://www.sanews.gov.za/index.php/south-africa/transnet-signs-deal-r22-billion-gas-facility-project).
 
-### 17.3 Marine observation access: useful leads, not automatically qualified design data
+### 17.3 Adjacent Coega industrial renewable/storage node
+
+A separate private industrial-energy project strengthens the Coega-area evidence picture, but must not be mistaken for port-owned capacity.
+
+Fedgroup's 30 October 2026 press release, carried by Bizcommunity and reported by Engineering News, says:
+- a 7 MWp solar PV plant supplies Coega Steels' new rolling mill;
+- the company/funder reports nearly 6 million kWh generated to that date;
+- a 50 MWh BESS was nearing commissioning;
+- the rolling mill has 150,000 tonnes/year capacity;
+- a further 19.8 MWp solar expansion is planned by the end of 2027.
+
+A 6 November 2026 report says the additional 19.8 MWp phase's funding arrangement had not been finalized. Thus the solar project is a reported existing/operating asset, the BESS commissioning/operating status still needs primary evidence, and the 19.8 MWp expansion remains planned.
+
+Sources: [Fedgroup press release via Bizcommunity, 30 Oct 2026](https://www.bizcommunity.com/PressOffice/PressRelease.aspx?ai=272996&cid=752422); [Engineering News, 30 Oct 2026](https://www.engineeringnews.co.za/article/fedgroup-funds-renewable-energy-infrastructure-for-coega-steels-new-rolling-mill-2026-10-30); [The National, 6 Nov 2026](https://thenational.co.za/news/2026-11-06-fedgroup-backs-coega-steels-energy-expansion-amid-rising-power-demand/).
+
+This is a separate private Coega SEZ industrial site, not a TNPA asset. Geographic proximity does not establish a shared PCC, wheeling, export, aggregation, reserve, dispatch, heat or water right. Obtain the exact meter boundary, as-built and commissioning evidence, interval solar generation, BESS power/usable energy/SoC/availability, and any written network/contract rights before including it in a port-city dispatch portfolio.
+
+### 17.4 Marine observation access: useful leads, not automatically qualified design data
 
 - **Ngqura:** CSIR WaveNet identifies a directional Datawell Waverider buoy at 33°50'00"S, 25°43'00"E, in 21 m of water, approximately 2 km off the breakwater tip. The public information page describes half-hourly transmission and near-real-time processing/storage. The public pages carry an explicit warning that displayed values are estimates for display and should not be used to draw conclusions. For engineering use, obtain the owner data product and its timestamps, QC flags, calibration, measurement depth, coverage, uncertainty, access rights and applicability.
 - **Durban:** CSIR's WaveNet history page states that a Teledyne RD Instruments ADCP has operated in real time off the Port of Durban since 2002, providing ocean-current and wave information. The current station status, sensor configuration, depth bins, uptime, calibration, data rights and historical gap structure must be reconfirmed before use.
@@ -537,7 +554,7 @@ These sources create an actionable marine-data intake path for the paired benchm
 
 Sources: [CSIR WaveNet Ngqura station information](https://wavenet.csir.co.za/OnlineData/Ngqura/ngqura.htm); [CSIR WaveNet Ngqura wave data page](https://wavenet.csir.co.za/OnlineData/Ngqura/ngqurawaveD.htm); [CSIR WaveNet history and Durban ADCP note](https://wavenet.csir.co.za/history.htm).
 
-### 17.4 Paired-site qualification sequence
+### 17.5 Paired-site qualification sequence
 
 1. Start a data-room and metering request for Ngqura/Coega: utility-confirmed import/export, current firm supply, upstream network constraints, meter series, shore-power inventory, status of renewable/BESS/desalination procurement, Coega industrial project load and water plans.
 2. Run Durban as a parallel stress-test case: verify actual berth-level ship load profiles, transformer/feeder constraints, operating data access and the scope of its CSIR ADCP record.
