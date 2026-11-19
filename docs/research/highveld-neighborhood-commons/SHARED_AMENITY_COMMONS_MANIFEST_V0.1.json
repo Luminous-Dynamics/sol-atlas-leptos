@@ -55,7 +55,9 @@
         "supervision",
         "consumables",
         "maintenance"
-      ]
+      ],
+      "role": "RESIDENT_FACING_SERVICE_ASSET",
+      "functional_unit_id": "ACCEPTED_TOOL_USER_HOUR"
     },
     {
       "id": "SHARED_LAUNDRY",
@@ -67,7 +69,9 @@
         "drainage",
         "ventilation",
         "equipment_uptime"
-      ]
+      ],
+      "role": "RESIDENT_FACING_SERVICE_ASSET",
+      "functional_unit_id": "ACCEPTED_LAUNDRY_LOAD"
     },
     {
       "id": "GUEST_SUITES",
@@ -78,7 +82,9 @@
         "privacy",
         "maintenance",
         "safeguarding"
-      ]
+      ],
+      "role": "RESIDENT_FACING_SERVICE_ASSET",
+      "functional_unit_id": "ACCESSIBLE_GUEST_NIGHT"
     },
     {
       "id": "GREENHOUSE_FOOD_GARDEN",
@@ -91,7 +97,9 @@
         "soil",
         "staffing",
         "maintenance"
-      ]
+      ],
+      "role": "RESIDENT_FACING_SERVICE_ASSET",
+      "functional_unit_id": "USABLE_HARVEST_KG"
     },
     {
       "id": "POOL_WELLNESS",
@@ -104,7 +112,9 @@
         "inspection",
         "cleaning",
         "reserve"
-      ]
+      ],
+      "role": "RESIDENT_FACING_SERVICE_ASSET",
+      "functional_unit_id": "OPERABLE_SWIMMER_HOUR"
     },
     {
       "id": "COMMUNITY_KITCHEN_DINING",
@@ -115,7 +125,9 @@
         "fire_safety",
         "cleaning",
         "accessible_equipment"
-      ]
+      ],
+      "role": "RESIDENT_FACING_SERVICE_ASSET",
+      "functional_unit_id": "ACCEPTED_MEAL_SERVICE"
     },
     {
       "id": "LIBRARY_STUDY_COWORKING",
@@ -126,7 +138,9 @@
         "acoustics",
         "privacy",
         "opening_hours"
-      ]
+      ],
+      "role": "RESIDENT_FACING_SERVICE_ASSET",
+      "functional_unit_id": "ACCESSIBLE_SEAT_HOUR"
     },
     {
       "id": "CHILDCARE_LEARNING",
@@ -138,7 +152,9 @@
         "access",
         "sanitation",
         "emergency"
-      ]
+      ],
+      "role": "RESIDENT_FACING_SERVICE_ASSET",
+      "functional_unit_id": "LICENSED_CHILD_PLACE_HOUR"
     },
     {
       "id": "SPORTS_PARK_PUBLIC_REALM",
@@ -150,19 +166,23 @@
         "water_constraints",
         "maintenance",
         "routes"
-      ]
+      ],
+      "role": "RESIDENT_FACING_SERVICE_ASSET",
+      "functional_unit_id": "USABLE_RECREATION_SPACE_HOUR"
     },
     {
-      "id": "SHARED_UTILITY_PLANT",
-      "service": "Delivered utility service and continuity",
+      "id": "NON_ESSENTIAL_AMENITY_PLANT",
+      "service": "Supporting plant for a named amenity only; not a standalone community utility or resilience service",
       "critical_dependencies": [
-        "engineering_qualification",
+        "supported_amenity_id",
         "isolation",
         "metering",
         "operators",
         "spares",
-        "failure_domains"
-      ]
+        "maintenance"
+      ],
+      "role": "ENABLING_ASSET_ONLY",
+      "functional_unit_id": null
     }
   ],
   "case_matrix": {
@@ -729,6 +749,21 @@
       "id": "DPWI_STATS_SA_BUILDING_COSTS_DEC_2025",
       "url": "https://www.publicworks.gov.za/PDFs/documents/StrategicPlans/Annual_Performance_Plan-26_27.pdf",
       "role": "DATED_SA_COST_SANITY_CHECK_REPORTED_FROM_STATS_SA"
+    },
+    {
+      "id": "AUTODESK_FORMA_BUILDING_LAYOUT_EXPLORER_2026",
+      "url": "https://blogs.autodesk.com/forma/2026/10/14/what-autodesk-forma-announced-au-2026/",
+      "role": "EXPERIMENTAL_MULTIFAMILY_LAYOUT_GENERATION_COMPETITOR_REFERENCE"
+    },
+    {
+      "id": "AUTODESK_FORMA_CONNECTED_AEC_2026",
+      "url": "https://adsknews.autodesk.com/en/news/autodesk-forma-ai-aec-connected-workflows-2026/",
+      "role": "CONNECTED_AEC_DESIGN_AND_CONSTRUCTION_WORKFLOW_COMPETITOR_REFERENCE"
+    },
+    {
+      "id": "STATS_SA_BUILDING_PLANS_AUG_2026",
+      "url": "https://www.statssa.gov.za/publications/P50411/P50411August2026.pdf",
+      "role": "CURRENT_SA_RESIDENTIAL_BUILDING_ACTIVITY_CONTEXT_NOT_UNIT_COST"
     }
   ],
   "future_empirical_inputs_required": [
@@ -751,5 +786,127 @@
     "no_weighted_score_overrides_hard_gates": true,
     "exact_oracle_agreement_required": true,
     "targets_are_proposed_not_measured": true
+  },
+  "functional_units": [
+    {
+      "id": "ACCEPTED_TOOL_USER_HOUR",
+      "amenity_id": "TOOL_LIBRARY_MAKER_WORKSHOP",
+      "output_unit": "tool-user-hour",
+      "acceptance_definition": "A resident receives a correctly identified tool in its permitted use condition for the booked interval; hand-back, condition check and unavailable/repair time are recorded.",
+      "comparison_policy": "WITHIN_FUNCTIONAL_UNIT_ONLY"
+    },
+    {
+      "id": "ACCEPTED_LAUNDRY_LOAD",
+      "amenity_id": "SHARED_LAUNDRY",
+      "output_unit": "accepted-load",
+      "acceptance_definition": "A declared load class completes the agreed wash/dry service quality; rejected, rewash, unfinished, and queue-abandoned loads remain visible.",
+      "comparison_policy": "WITHIN_FUNCTIONAL_UNIT_ONLY"
+    },
+    {
+      "id": "ACCESSIBLE_GUEST_NIGHT",
+      "amenity_id": "GUEST_SUITES",
+      "output_unit": "guest-night",
+      "acceptance_definition": "A bookable overnight stay meets the declared room/service and accessibility brief for the full booked period, including cleaning/turnover availability.",
+      "comparison_policy": "WITHIN_FUNCTIONAL_UNIT_ONLY"
+    },
+    {
+      "id": "USABLE_HARVEST_KG",
+      "amenity_id": "GREENHOUSE_FOOD_GARDEN",
+      "output_unit": "kg-by-crop-and-grade",
+      "acceptance_definition": "Harvest mass is classified by crop, grade, quality and harvest point; rejects, losses, water/energy and growing-cycle boundary are retained.",
+      "comparison_policy": "WITHIN_FUNCTIONAL_UNIT_ONLY"
+    },
+    {
+      "id": "OPERABLE_SWIMMER_HOUR",
+      "amenity_id": "POOL_WELLNESS",
+      "output_unit": "swimmer-hour",
+      "acceptance_definition": "One user-hour delivered within the independently declared pool operating envelope, capacity, water-quality, accessibility and inspection conditions.",
+      "comparison_policy": "WITHIN_FUNCTIONAL_UNIT_ONLY"
+    },
+    {
+      "id": "ACCEPTED_MEAL_SERVICE",
+      "amenity_id": "COMMUNITY_KITCHEN_DINING",
+      "output_unit": "meal-service",
+      "acceptance_definition": "A meal service is delivered under the declared menu/service class, food-safety process and dietary/allergen information conditions.",
+      "comparison_policy": "WITHIN_FUNCTIONAL_UNIT_ONLY"
+    },
+    {
+      "id": "ACCESSIBLE_SEAT_HOUR",
+      "amenity_id": "LIBRARY_STUDY_COWORKING",
+      "output_unit": "seat-hour",
+      "acceptance_definition": "An accessible study/work seat-hour is available with the promised service attributes (for example power, connectivity or quiet zone) during the requested window.",
+      "comparison_policy": "WITHIN_FUNCTIONAL_UNIT_ONLY"
+    },
+    {
+      "id": "LICENSED_CHILD_PLACE_HOUR",
+      "amenity_id": "CHILDCARE_LEARNING",
+      "output_unit": "licensed-place-hour",
+      "acceptance_definition": "A place-hour is delivered under the applicable license/registration, staffing, safeguarding, access and service-class conditions.",
+      "comparison_policy": "WITHIN_FUNCTIONAL_UNIT_ONLY"
+    },
+    {
+      "id": "USABLE_RECREATION_SPACE_HOUR",
+      "amenity_id": "SPORTS_PARK_PUBLIC_REALM",
+      "output_unit": "activity-space-hour",
+      "acceptance_definition": "A declared activity space is usable for the stated activity and time window with its surface, lighting, access, maintenance and weather closure state known.",
+      "comparison_policy": "WITHIN_FUNCTIONAL_UNIT_ONLY"
+    }
+  ],
+  "scope_boundary": {
+    "included_scope": "DAILY_USE_AND_PRODUCTIVE_AMENITIES_NOT_ESSENTIAL_RESILIENCE_SERVICES",
+    "included_service_classes": [
+      "learning",
+      "study_and_work",
+      "guest_accommodation",
+      "laundry",
+      "routine_tool_access_and_making",
+      "community_dining",
+      "childcare",
+      "recreation_and_sport",
+      "non_emergency_food_growing"
+    ],
+    "excluded_scopes": [
+      {
+        "owner": "Sol-Atlas",
+        "reference": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/694",
+        "responsibility": "essential household service floors and household service composition"
+      },
+      {
+        "owner": "Sol-Atlas",
+        "reference": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/737",
+        "responsibility": "shared emergency energy, water, thermal refuge, communications, charging, repair logistics and neighbourhood resilience topology"
+      },
+      {
+        "owner": "Sol-Atlas",
+        "reference": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/840",
+        "responsibility": "multi-family apartment, floor, building and vertical circulation design"
+      },
+      {
+        "owner": "Sol-Atlas",
+        "reference": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/623",
+        "responsibility": "common evaluation scope and owner evidence envelope"
+      },
+      {
+        "owner": "Symtropy",
+        "reference": "https://github.com/Luminous-Dynamics/symtropy/issues/3768",
+        "responsibility": "generic service, capacity, resource and productive capability feasibility"
+      },
+      {
+        "owner": "Mycelix",
+        "reference": "https://github.com/Luminous-Dynamics/mycelix/issues/5901",
+        "responsibility": "matching, reservation and constrained allocation policy"
+      },
+      {
+        "owner": "Mycelix",
+        "reference": "https://github.com/Luminous-Dynamics/mycelix/issues/987",
+        "responsibility": "constitutional community stewardship and anti-capture governance"
+      },
+      {
+        "owner": "Mycelix",
+        "reference": "https://github.com/Luminous-Dynamics/mycelix/issues/4808",
+        "responsibility": "authoritative stock-flow and financial accounting semantics"
+      }
+    ],
+    "composition_rule": "CONSUME_OWNER_NATIVE_RECEIPTS_READ_ONLY_NO_DUPLICATE_ENGINE_LEDGER_OR_AUTHORITY"
   }
 }
