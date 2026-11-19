@@ -36,6 +36,111 @@
         "The study analyses vessel activity and estimated shore-power demand over 2018-2025.",
         "A demand ranking is not a berth-level equipment inventory or a current metered load profile."
       ]
+    },
+    {
+      "source_id": "tnpa-ngqura-renewable-rfp-2024",
+      "title": "Renewable Energy for Port of Ngqura — TNPA/2023/10/0020/46114/RFP",
+      "publisher": "Transnet National Ports Authority / official eTender",
+      "publication_date": "2024-06-07",
+      "status": "closed_tender",
+      "evidence_class": "procurement_scope_not_operating_asset_evidence",
+      "url": "https://transnetetenders.azurewebsites.net/Home/TenderDetails?Id=46114",
+      "claimed_scope": {
+        "renewable_capacity_mw": 7,
+        "bess_energy_mwh": 6,
+        "technology": "solar PV + vertical-axis wind + battery storage"
+      },
+      "limitations": [
+        "Tender is closed; no commissioned/as-built/operational meter evidence supplied in this fixture.",
+        "Do not count as available generation or storage until contract award, commissioning, ownership, operating limits and meter data are verified."
+      ]
+    },
+    {
+      "source_id": "tnpa-ngqura-solar-desal-rfp-2024",
+      "title": "TNPA Media Statement: renewable energy and solar-powered seawater desalination RFPs in Nelson Mandela Bay",
+      "publisher": "Transnet National Ports Authority",
+      "publication_date": "2024-06-18",
+      "evidence_class": "procurement_scope_not_product_water_evidence",
+      "url": "https://www.transnetnationalportsauthority.net/Corporate%20Affairs/Press%20Releases/Media%20Statement%20-%20TNPA%20seeks%20proposals%20for%20renewable%20energy%20projects%20in%20Nelson%20Mandela%20Bay-June%202024.pdf",
+      "claimed_scope": {
+        "ngqura_desalination_ml_per_day": 0.5,
+        "port_elizabeth_desalination_ml_per_day": 0.8
+      },
+      "limitations": [
+        "RFP/project scope is not evidence of construction or commissioning.",
+        "No feed source, water quality, intended-use certification, brine/outfall permit or metered delivered volume is established."
+      ]
+    },
+    {
+      "source_id": "slr-coega-green-ammonia-ea-2026",
+      "title": "Proposed Coega Green Hydrogen and Ammonia Project — environmental authorization notice",
+      "publisher": "SLR Consulting",
+      "publication_date": "2026-01-21",
+      "evidence_class": "proposed_project_environmental_authorization_not_operating_demand",
+      "url": "https://www.slrconsulting.com/afr/public-documents/coega-ammonia/",
+      "claimed_scope": {
+        "electrolyser_capacity_mw": 1400,
+        "environmental_authorization_date": "2026-01-16",
+        "location": "Coega SEZ Zone 7, Gqeberha"
+      },
+      "limitations": [
+        "Authorization does not establish FID, financing, construction, grid connection, renewable PPAs, water supply or current load.",
+        "Use as a proposed future scenario, not current demand or available generation."
+      ]
+    },
+    {
+      "source_id": "tnpa-ngqura-lng-agreement-2026",
+      "title": "TNPA / Ukwanda LNG terminal agreement announcement",
+      "publisher": "SAnews / Transnet National Ports Authority",
+      "publication_date": "2026-05-29",
+      "evidence_class": "planned_fossil_fuel_infrastructure_not_operating_generation",
+      "url": "https://www.sanews.gov.za/index.php/south-africa/transnet-signs-deal-r22-billion-gas-facility-project",
+      "claimed_scope": {
+        "terminal_capacity_mt_per_year": 3.6,
+        "agreement_years": 25,
+        "projected_full_operations_target": "2035"
+      },
+      "limitations": [
+        "Long-dated planned infrastructure is not available generation or a current supply contract.",
+        "Fossil gas and methane lifecycle emissions must be explicit; do not classify as renewable or zero-carbon."
+      ]
+    },
+    {
+      "source_id": "csir-wavenet-ngqura",
+      "title": "CSIR WaveNet Port of Ngqura station information and wave data",
+      "publisher": "CSIR",
+      "evidence_class": "public_marine_observation_source_metadata_pending",
+      "url": "https://wavenet.csir.co.za/OnlineData/Ngqura/ngqura.htm",
+      "station": {
+        "instrument": "directional Datawell Waverider",
+        "latitude": -33.8333333,
+        "longitude": 25.7166667,
+        "depth_m": 21,
+        "distance_off_breakwater_tip_km": 2,
+        "transmission_interval_minutes": 30
+      },
+      "limitations": [
+        "Public page warns displayed values are estimates and should not be used to draw conclusions.",
+        "Qualified raw data, calibration, QC flags, timestamp, coverage, access rights and applicability must be obtained."
+      ]
+    },
+    {
+      "source_id": "csir-wavenet-durban-adcp-history",
+      "title": "CSIR WaveNet history — Port of Durban ADCP observation record",
+      "publisher": "CSIR",
+      "evidence_class": "historical_station_metadata_pending_current_status",
+      "url": "https://wavenet.csir.co.za/history.htm",
+      "station": {
+        "instrument": "Teledyne RD Instruments ADCP",
+        "reported_operating_since_year": 2002,
+        "reported_parameters": [
+          "ocean currents",
+          "waves"
+        ]
+      },
+      "limitations": [
+        "Current station status, configuration, depth bins, calibration, uptime, data rights and missing-data periods must be reconfirmed."
+      ]
     }
   ],
   "sites": [
@@ -46,7 +151,7 @@
       "screening_role": "first_energy_system_screening_case",
       "evidence": {
         "spare_substation_capacity_mva": {
-          "value": 19.0,
+          "value": 19,
           "unit": "MVA",
           "evidence_class": "published_pre_feasibility_estimate",
           "source_id": "ptxhub-sa-port-connection-capacity-2025-09"
@@ -86,6 +191,45 @@
         "subsea_cable_route_and_repair_access": null,
         "environmental_authorization": null,
         "site_specific_capex_and_opex": null
+      },
+      "paired_site_role": "first_integration_study_candidate_not_selected_site",
+      "projects": [
+        {
+          "project_id": "tnpa-ngqura-renewable-rfp-2024",
+          "technology": "7 MW solar PV + vertical-axis wind + 6 MWh BESS",
+          "status": "tender_closed_commissioning_unknown",
+          "count_as_operating_supply": false
+        },
+        {
+          "project_id": "tnpa-ngqura-solar-desal-rfp-2024",
+          "technology": "solar seawater desalination",
+          "scope_ml_per_day": 0.5,
+          "status": "procurement_record_commissioning_unknown",
+          "count_as_qualified_water": false
+        },
+        {
+          "project_id": "slr-coega-green-ammonia-ea-2026",
+          "technology": "proposed 1,400 MW electrolyser + ammonia plant",
+          "status": "environmental_authorization_issued_2026_01_16_fid_and_construction_unknown",
+          "count_as_current_load": false
+        },
+        {
+          "project_id": "tnpa-ngqura-lng-agreement-2026",
+          "technology": "planned 3.6 Mt/year LNG regasification",
+          "status": "long_dated_planned_infrastructure_not_operating_generation",
+          "count_as_current_supply": false
+        }
+      ],
+      "marine_observation_source": {
+        "source_id": "csir-wavenet-ngqura",
+        "instrument": "directional Datawell Waverider",
+        "latitude": -33.8333333,
+        "longitude": 25.7166667,
+        "depth_m": 21,
+        "distance_off_breakwater_tip_km": 2,
+        "reported_transmission_interval_minutes": 30,
+        "raw_data_and_quality_status": "unknown",
+        "display_only_warning": true
       }
     },
     {
@@ -95,7 +239,7 @@
       "screening_role": "high_shore_power_demand_and_grid_constraint_comparison",
       "evidence": {
         "spare_substation_capacity_mva": {
-          "value": 4.0,
+          "value": 4,
           "unit": "MVA",
           "evidence_class": "published_pre_feasibility_estimate",
           "source_id": "ptxhub-sa-port-connection-capacity-2025-09"
@@ -117,6 +261,14 @@
           "unit": "rank among ports assessed in source study",
           "evidence_class": "published_historical_demand_analysis",
           "source_id": "ptxhub-sa-port-shore-power-demand-2025-09"
+        },
+        "shore_power_demand_metrics": {
+          "financial_year": "2024-2025",
+          "peak_utilization_maximum_mw": 42,
+          "peak_average_maximum_mw": 20,
+          "evidence_class": "published_historical_demand_analysis",
+          "source_id": "ptxhub-sa-port-shore-power-demand-2025-09",
+          "limitation": "Study-defined historical metrics, not firm simultaneous connection demand or utility-confirmed import capacity."
         }
       },
       "unknowns": {
@@ -139,6 +291,17 @@
         "subsea_cable_route_and_repair_access": null,
         "environmental_authorization": null,
         "site_specific_capex_and_opex": null
+      },
+      "paired_site_role": "high_shore_power_demand_and_grid_stress_test",
+      "marine_observation_source": {
+        "source_id": "csir-wavenet-durban-adcp-history",
+        "instrument": "Teledyne RD Instruments ADCP",
+        "reported_operating_since_year": 2002,
+        "reported_parameters": [
+          "ocean currents",
+          "waves"
+        ],
+        "current_station_status_and_data_rights": "unknown_pending_reconfirmation"
       }
     },
     {
@@ -148,7 +311,7 @@
       "screening_role": "comparison_site",
       "evidence": {
         "spare_substation_capacity_mva": {
-          "value": 18.0,
+          "value": 18,
           "unit": "MVA",
           "evidence_class": "published_pre_feasibility_estimate",
           "source_id": "ptxhub-sa-port-connection-capacity-2025-09"
@@ -184,7 +347,7 @@
       "screening_role": "comparison_site",
       "evidence": {
         "spare_substation_capacity_mva": {
-          "value": 15.0,
+          "value": 15,
           "unit": "MVA",
           "evidence_class": "published_pre_feasibility_estimate",
           "source_id": "ptxhub-sa-port-connection-capacity-2025-09"
@@ -256,7 +419,7 @@
       "screening_role": "comparison_site",
       "evidence": {
         "spare_substation_capacity_mva": {
-          "value": 7.0,
+          "value": 7,
           "unit": "MVA",
           "evidence_class": "published_pre_feasibility_estimate",
           "source_id": "ptxhub-sa-port-connection-capacity-2025-09"
@@ -292,13 +455,13 @@
       "screening_role": "high_shore_power_demand_and_grid_constraint_comparison",
       "evidence": {
         "spare_substation_capacity_mva": {
-          "value": 0.0,
+          "value": 0,
           "unit": "MVA",
           "evidence_class": "published_pre_feasibility_estimate",
           "source_id": "ptxhub-sa-port-connection-capacity-2025-09"
         },
         "estimated_spare_capacity_mw": {
-          "value": 0.0,
+          "value": 0,
           "unit": "MW",
           "evidence_class": "published_pre_feasibility_estimate",
           "source_id": "ptxhub-sa-port-connection-capacity-2025-09",
@@ -335,13 +498,13 @@
       "screening_role": "grid_constraint_comparison",
       "evidence": {
         "spare_substation_capacity_mva": {
-          "value": 0.0,
+          "value": 0,
           "unit": "MVA",
           "evidence_class": "published_pre_feasibility_estimate",
           "source_id": "ptxhub-sa-port-connection-capacity-2025-09"
         },
         "estimated_spare_capacity_mw": {
-          "value": 0.0,
+          "value": 0,
           "unit": "MW",
           "evidence_class": "published_pre_feasibility_estimate",
           "source_id": "ptxhub-sa-port-connection-capacity-2025-09",
@@ -379,6 +542,19 @@
     "Cable and fibre route, landing station, latency, path diversity and repair logistics.",
     "Environmental baseline, thermal plume modelling, monitoring design and site-specific authorization.",
     "Compute workload, hardware, utilisation, SLA, power density, cooling design and metered facility-energy boundary.",
-    "Renewable generation, storage, tariff, carbon-intensity and lifecycle-cost time series."
-  ]
+    "Renewable generation, storage, tariff, carbon-intensity and lifecycle-cost time series.",
+    "Ngqura solar/wind/BESS tender award, as-built, commissioning, ownership and interval generation/storage meter data",
+    "Ngqura 0.5 ML/day solar desalination project status, feed rights, treatment train, product quality, brine/outfall and meter records",
+    "Coega Green Ammonia FID, construction, grid, renewable supply, water source and time-series load status",
+    "Ngqura LNG project execution status, gas supply, commissioning timeline and full fuel lifecycle emissions scenario",
+    "CSIR WaveNet owner-qualified Ngqura wave/weather data with instrument calibration, quality flags, station coverage and data rights",
+    "CSIR WaveNet Durban ADCP current/wave data with current station status, depth bins, calibration, coverage and data rights",
+    "Utility-confirmed PCC/feeder/import/export capacity and metered port/berth load series at both sites"
+  ],
+  "paired_site_strategy": {
+    "primary_integration_study_case": "za-ngqura",
+    "high_demand_grid_stress_case": "za-durban",
+    "rationale": "Ngqura has higher published pre-feasibility spare connection capacity; Durban has the highest estimated shore-power demand and materially lower reported spare capacity.",
+    "non_claim": "This is a paired evidence-acquisition strategy, not a site selection, utility connection offer or subsea data-centre siting decision."
+  }
 }
