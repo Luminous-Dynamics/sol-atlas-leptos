@@ -38,11 +38,11 @@ The 50 registered cases cover five provision models across ten spatial contexts:
 - at least 43 unique source URLs and unique source IDs;
 - eight frozen spatial metric vectors and proposed target invariants.
 
-The standalone auditor currently has 20 adversarial Rust tests. It remains unexecuted locally in this session; the exact-head GitHub workflow is the compilation/test gate.
+The standalone auditor currently has 21 adversarial Rust tests. It remains unexecuted locally in this session; the exact-head GitHub workflow is the compilation/test gate.
 
 The report includes SHA-256 of the exact manifest bytes. That digest establishes byte identity only.
 
-The auditor currently has 20 adversarial tests. A local semantic audit/readback is not a Rust execution result; the exact-head CI workflow must pass before an E1 registry-integrity claim is made.
+The auditor currently has 21 adversarial tests. A local semantic audit/readback is not a Rust execution result; the exact-head CI workflow must pass before an E1 registry-integrity claim is made.
 
 ## Canonical owner boundaries
 
