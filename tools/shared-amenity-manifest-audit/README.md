@@ -34,3 +34,15 @@ This tool is not:
 - a title, governance, accessibility, safety or regulatory approval authority.
 
 Those functions remain with the owner-native systems referenced by the benchmark. A semantic audit pass means only that the frozen registry is internally consistent.
+
+
+## Cross-project composition checks
+
+The auditor also requires the exact owner-native composition records for:
+- Highveld Keep #607 and Home Expression Library #904;
+- Highveld food/climate readiness #107 and food-network projection #105;
+- Symtropy CEA accounting #3957, climate/airflow #4065 and harvest control #4074;
+- Mycelix food cooperative #5001;
+- Symtropy room-scale service test cell #4531, WaterLoop demonstrator #5335 and building-service cassettes #4181.
+
+This confirms that the frozen registry names the intended owners and responsibilities. It does not validate those systems or read their payloads; downstream composition still requires exact, source-addressable owner receipts.
