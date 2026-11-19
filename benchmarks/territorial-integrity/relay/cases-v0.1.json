@@ -1,7 +1,7 @@
 {
   "schema": "luminous.cter.relay-cases.v0",
   "suite_id": "CTER-RELAY-CONVERGENCE-001",
-  "suite_version": "0.1.5",
+  "suite_version": "0.1.6",
   "synthetic_only": true,
   "cases": [
     {
@@ -79,10 +79,10 @@
         "equivocation_event_ids": [],
         "sequence_fork_event_ids": [],
         "hash_collision_event_ids": [],
-        "conflict_pairs": [],
         "sequence_conflict_pending_event_ids": [],
         "verification_conflict_event_ids": [],
-        "context_conflict_event_ids": []
+        "context_conflict_event_ids": [],
+        "conflict_groups": []
       }
     },
     {
@@ -160,10 +160,10 @@
         ],
         "sequence_fork_event_ids": [],
         "hash_collision_event_ids": [],
-        "conflict_pairs": [],
         "sequence_conflict_pending_event_ids": [],
         "verification_conflict_event_ids": [],
-        "context_conflict_event_ids": []
+        "context_conflict_event_ids": [],
+        "conflict_groups": []
       }
     },
     {
@@ -213,10 +213,10 @@
         "equivocation_event_ids": [],
         "sequence_fork_event_ids": [],
         "hash_collision_event_ids": [],
-        "conflict_pairs": [],
         "sequence_conflict_pending_event_ids": [],
         "verification_conflict_event_ids": [],
-        "context_conflict_event_ids": []
+        "context_conflict_event_ids": [],
+        "conflict_groups": []
       }
     },
     {
@@ -295,10 +295,10 @@
         "equivocation_event_ids": [],
         "sequence_fork_event_ids": [],
         "hash_collision_event_ids": [],
-        "conflict_pairs": [],
         "sequence_conflict_pending_event_ids": [],
         "verification_conflict_event_ids": [],
-        "context_conflict_event_ids": []
+        "context_conflict_event_ids": [],
+        "conflict_groups": []
       }
     },
     {
@@ -348,10 +348,10 @@
         "equivocation_event_ids": [],
         "sequence_fork_event_ids": [],
         "hash_collision_event_ids": [],
-        "conflict_pairs": [],
         "sequence_conflict_pending_event_ids": [],
         "verification_conflict_event_ids": [],
-        "context_conflict_event_ids": []
+        "context_conflict_event_ids": [],
+        "conflict_groups": []
       }
     },
     {
@@ -401,10 +401,10 @@
         "equivocation_event_ids": [],
         "sequence_fork_event_ids": [],
         "hash_collision_event_ids": [],
-        "conflict_pairs": [],
         "sequence_conflict_pending_event_ids": [],
         "verification_conflict_event_ids": [],
-        "context_conflict_event_ids": []
+        "context_conflict_event_ids": [],
+        "conflict_groups": []
       }
     },
     {
@@ -454,10 +454,10 @@
         "equivocation_event_ids": [],
         "sequence_fork_event_ids": [],
         "hash_collision_event_ids": [],
-        "conflict_pairs": [],
         "sequence_conflict_pending_event_ids": [],
         "verification_conflict_event_ids": [],
-        "context_conflict_event_ids": []
+        "context_conflict_event_ids": [],
+        "conflict_groups": []
       }
     },
     {
@@ -566,10 +566,10 @@
           "e2"
         ],
         "hash_collision_event_ids": [],
-        "conflict_pairs": [],
         "sequence_conflict_pending_event_ids": [],
         "verification_conflict_event_ids": [],
-        "context_conflict_event_ids": []
+        "context_conflict_event_ids": [],
+        "conflict_groups": []
       }
     },
     {
@@ -648,15 +648,24 @@
         "equivocation_event_ids": [],
         "sequence_fork_event_ids": [],
         "hash_collision_event_ids": [],
-        "conflict_pairs": [
-          [
-            "e1",
-            "e2"
-          ]
-        ],
         "sequence_conflict_pending_event_ids": [],
         "verification_conflict_event_ids": [],
-        "context_conflict_event_ids": []
+        "context_conflict_event_ids": [],
+        "conflict_groups": [
+          {
+            "projection_key": "claim:x",
+            "members": [
+              {
+                "event_id": "e1",
+                "stream_id": "stream-a"
+              },
+              {
+                "event_id": "e2",
+                "stream_id": "stream-b"
+              }
+            ]
+          }
+        ]
       }
     },
     {
@@ -735,10 +744,10 @@
         "equivocation_event_ids": [],
         "sequence_fork_event_ids": [],
         "hash_collision_event_ids": [],
-        "conflict_pairs": [],
         "sequence_conflict_pending_event_ids": [],
         "verification_conflict_event_ids": [],
-        "context_conflict_event_ids": []
+        "context_conflict_event_ids": [],
+        "conflict_groups": []
       }
     },
     {
@@ -818,10 +827,10 @@
         "equivocation_event_ids": [],
         "sequence_fork_event_ids": [],
         "hash_collision_event_ids": [],
-        "conflict_pairs": [],
         "sequence_conflict_pending_event_ids": [],
         "verification_conflict_event_ids": [],
-        "context_conflict_event_ids": []
+        "context_conflict_event_ids": [],
+        "conflict_groups": []
       }
     },
     {
@@ -901,10 +910,10 @@
         "equivocation_event_ids": [],
         "sequence_fork_event_ids": [],
         "hash_collision_event_ids": [],
-        "conflict_pairs": [],
         "sequence_conflict_pending_event_ids": [],
         "verification_conflict_event_ids": [],
-        "context_conflict_event_ids": []
+        "context_conflict_event_ids": [],
+        "conflict_groups": []
       }
     },
     {
@@ -954,10 +963,10 @@
         "equivocation_event_ids": [],
         "sequence_fork_event_ids": [],
         "hash_collision_event_ids": [],
-        "conflict_pairs": [],
         "sequence_conflict_pending_event_ids": [],
         "verification_conflict_event_ids": [],
-        "context_conflict_event_ids": []
+        "context_conflict_event_ids": [],
+        "conflict_groups": []
       }
     },
     {
@@ -1007,10 +1016,10 @@
         "equivocation_event_ids": [],
         "sequence_fork_event_ids": [],
         "hash_collision_event_ids": [],
-        "conflict_pairs": [],
         "sequence_conflict_pending_event_ids": [],
         "verification_conflict_event_ids": [],
-        "context_conflict_event_ids": []
+        "context_conflict_event_ids": [],
+        "conflict_groups": []
       }
     },
     {
@@ -1089,10 +1098,10 @@
           "e1",
           "e2"
         ],
-        "conflict_pairs": [],
         "sequence_conflict_pending_event_ids": [],
         "verification_conflict_event_ids": [],
-        "context_conflict_event_ids": []
+        "context_conflict_event_ids": [],
+        "conflict_groups": []
       }
     },
     {
@@ -1171,10 +1180,10 @@
         "equivocation_event_ids": [],
         "sequence_fork_event_ids": [],
         "hash_collision_event_ids": [],
-        "conflict_pairs": [],
         "sequence_conflict_pending_event_ids": [],
         "verification_conflict_event_ids": [],
-        "context_conflict_event_ids": []
+        "context_conflict_event_ids": [],
+        "conflict_groups": []
       }
     },
     {
@@ -1256,9 +1265,9 @@
           "e2"
         ],
         "hash_collision_event_ids": [],
-        "conflict_pairs": [],
         "verification_conflict_event_ids": [],
-        "context_conflict_event_ids": []
+        "context_conflict_event_ids": [],
+        "conflict_groups": []
       }
     },
     {
@@ -1339,9 +1348,9 @@
         "sequence_fork_event_ids": [],
         "sequence_conflict_pending_event_ids": [],
         "hash_collision_event_ids": [],
-        "conflict_pairs": [],
         "verification_conflict_event_ids": [],
-        "context_conflict_event_ids": []
+        "context_conflict_event_ids": [],
+        "conflict_groups": []
       }
     },
     {
@@ -1423,9 +1432,9 @@
           "e2"
         ],
         "hash_collision_event_ids": [],
-        "conflict_pairs": [],
         "verification_conflict_event_ids": [],
-        "context_conflict_event_ids": []
+        "context_conflict_event_ids": [],
+        "conflict_groups": []
       }
     },
     {
@@ -1506,7 +1515,7 @@
         "sequence_conflict_pending_event_ids": [],
         "hash_collision_event_ids": [],
         "context_conflict_event_ids": [],
-        "conflict_pairs": []
+        "conflict_groups": []
       }
     },
     {
@@ -1587,7 +1596,7 @@
         "sequence_conflict_pending_event_ids": [],
         "hash_collision_event_ids": [],
         "context_conflict_event_ids": [],
-        "conflict_pairs": []
+        "conflict_groups": []
       }
     },
     {
@@ -1668,7 +1677,7 @@
         "sequence_conflict_pending_event_ids": [],
         "hash_collision_event_ids": [],
         "context_conflict_event_ids": [],
-        "conflict_pairs": []
+        "conflict_groups": []
       }
     },
     {
@@ -1751,7 +1760,7 @@
         "context_conflict_event_ids": [
           "e1"
         ],
-        "conflict_pairs": []
+        "conflict_groups": []
       }
     },
     {
@@ -1832,7 +1841,7 @@
         "sequence_conflict_pending_event_ids": [],
         "hash_collision_event_ids": [],
         "context_conflict_event_ids": [],
-        "conflict_pairs": []
+        "conflict_groups": []
       }
     },
     {
@@ -1885,7 +1894,7 @@
         "sequence_conflict_pending_event_ids": [],
         "hash_collision_event_ids": [],
         "context_conflict_event_ids": [],
-        "conflict_pairs": []
+        "conflict_groups": []
       }
     },
     {
@@ -1938,7 +1947,7 @@
         "sequence_conflict_pending_event_ids": [],
         "hash_collision_event_ids": [],
         "context_conflict_event_ids": [],
-        "conflict_pairs": []
+        "conflict_groups": []
       }
     },
     {
@@ -1986,7 +1995,7 @@
         "sequence_conflict_pending_event_ids": [],
         "hash_collision_event_ids": [],
         "context_conflict_event_ids": [],
-        "conflict_pairs": []
+        "conflict_groups": []
       }
     },
     {
@@ -2039,7 +2048,7 @@
         "sequence_conflict_pending_event_ids": [],
         "hash_collision_event_ids": [],
         "context_conflict_event_ids": [],
-        "conflict_pairs": []
+        "conflict_groups": []
       }
     }
   ]

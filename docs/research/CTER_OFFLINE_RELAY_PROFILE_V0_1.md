@@ -269,7 +269,11 @@ Hands-on superiority claims require comparable versions and environments. If a p
 9. Integrate Sol-Atlas GeoPackage/source lineage, then read-only Symthaea review and Symtropy observation context.
 10. Begin a community pilot only with a willing partner, legal review, data-governance charter, threat model, consent process and accessible remedy pathway.
 
-## 10. Non-claims
+## 10. Scale and resource qualification
+
+The reference evaluator now propagates stream acceptance from genesis events with a predecessor work queue and emits compact projection conflict groups. The target complexity is O((N + E) log N) time and O(N + E + C) memory, where N is unique events, E predecessor links and C compact group membership. These are design targets, not measured results. Issue [CTER-SCALE-001 #949](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/949) owns larger 10–100k workloads and low-power device CPU, memory, energy and recovery measurements. The focused tests include a reversed 10,000-event chain and a 1,000-stream high-contention projection; they validate behavior/output shape, not a performance threshold.
+
+## 11. Non-claims
 
 This v0.1 work is not a production relay, deployed mesh, validated radio design, cryptographic implementation, legal register, cadastral survey, field study, ecological certification or proof of SOTA performance. Synthetic fixture agreement is a conformance result only. It does not prove that a community consented, that a right exists, or that a land dispute has been resolved.
 

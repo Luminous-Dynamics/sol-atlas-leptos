@@ -11,7 +11,7 @@ pub mod archive;
 //! externally supplied verifier dispositions and stream-chain structure only.
 
 use serde_json::{json, Value};
-use std::collections::{BTreeMap, BTreeSet};
+use std::collections::{BTreeMap, BTreeSet, VecDeque};
 
 #[derive(Debug, Default, Clone, PartialEq, Eq)]
 pub struct Evaluation {
@@ -29,7 +29,7 @@ pub struct Evaluation {
     pub sequence_conflict_pending_event_ids: BTreeSet<String>,
     pub hash_collision_event_ids: BTreeSet<String>,
     pub context_conflict_event_ids: BTreeSet<String>,
-    pub conflict_pairs: BTreeSet<(String, String)>,
+    pub conflict_groups: BTreeMap<String, BTreeSet<(String, String)>>,
 }
 
 #[derive(Debug, Clone)]
@@ -276,69 +276,80 @@ pub fn evaluate(input: &[Value]) -> Evaluation {
         }
     }
 
-    let mut unresolved: BTreeSet<String> = eligible.keys().cloned().collect();
-    loop {
-        let mut progressed = false;
-        for id in unresolved.iter().cloned().collect::<Vec<_>>() {
-            let Some(event) = eligible.get(&id) else { continue };
-            let Some(previous_hash) = event.previous_hash.as_ref() else {
-                result.accepted_events.insert(id.clone());
-                unresolved.remove(&id);
-                progressed = true;
-                continue;
-            };
-            let Some(parent_ids) = hash_to_ids.get(previous_hash) else {
-                result.missing_parent_events.insert(id.clone());
-                unresolved.remove(&id);
-                progressed = true;
-                continue;
-            };
-            if parent_ids.len() != 1 {
-                result.blocked_parent_events.insert(id.clone());
-                unresolved.remove(&id);
-                progressed = true;
-                continue;
-            }
-            let parent_id = parent_ids.iter().next().expect("one parent");
-            let Some(parent) = eligible.get(parent_id) else {
-                result.blocked_parent_events.insert(id.clone());
-                unresolved.remove(&id);
-                progressed = true;
-                continue;
-            };
-            if parent.stream_id != event.stream_id
-                || parent.sequence.checked_add(1) != Some(event.sequence)
-            {
-                result.blocked_parent_events.insert(id.clone());
-                unresolved.remove(&id);
-                progressed = true;
-                continue;
-            }
-            if result.accepted_events.contains(parent_id) {
-                result.accepted_events.insert(id.clone());
-                unresolved.remove(&id);
-                progressed = true;
-            }
+    // Build the predecessor DAG once, then propagate acceptance from genesis
+    // events with a queue. Mycelix sequence links are stream-local and must
+    // increase by exactly one, so a valid predecessor graph is acyclic.
+    let mut children: BTreeMap<String, Vec<String>> = BTreeMap::new();
+    let mut ready = VecDeque::new();
+    for (id, event) in &eligible {
+        let Some(previous_hash) = event.previous_hash.as_ref() else {
+            ready.push_back(id.clone());
+            continue;
+        };
+        let Some(parent_ids) = hash_to_ids.get(previous_hash) else {
+            result.missing_parent_events.insert(id.clone());
+            continue;
+        };
+        if parent_ids.len() != 1 {
+            result.blocked_parent_events.insert(id.clone());
+            continue;
         }
-        if !progressed { break; }
+        let parent_id = parent_ids.iter().next().expect("one predecessor");
+        let Some(parent) = eligible.get(parent_id) else {
+            result.blocked_parent_events.insert(id.clone());
+            continue;
+        };
+        if parent.stream_id != event.stream_id
+            || parent.sequence.checked_add(1) != Some(event.sequence)
+        {
+            result.blocked_parent_events.insert(id.clone());
+            continue;
+        }
+        children.entry(parent_id.clone()).or_default().push(id.clone());
     }
-    result.blocked_parent_events.extend(unresolved);
 
-    // Different streams may project onto one territorial relationship. The
-    // relationship conflict is never converted into legal priority.
-    let accepted: Vec<String> = result.accepted_events.iter().cloned().collect();
-    for i in 0..accepted.len() {
-        for j in (i + 1)..accepted.len() {
-            let left = &accepted[i];
-            let right = &accepted[j];
-            let (Some(le), Some(re)) = (eligible.get(left), eligible.get(right)) else { continue };
-            if le.contexts.len() == 1 && re.contexts.len() == 1 {
-                let left_key = &le.contexts.iter().next().expect("one context").0;
-                let right_key = &re.contexts.iter().next().expect("one context").0;
-                if le.stream_id != re.stream_id && left_key == right_key {
-                    result.conflict_pairs.insert((left.clone(), right.clone()));
-                }
-            }
+    while let Some(id) = ready.pop_front() {
+        if !result.accepted_events.insert(id.clone()) {
+            continue;
+        }
+        if let Some(descendants) = children.get(&id) {
+            ready.extend(descendants.iter().cloned());
+        }
+    }
+
+    // Any structurally eligible descendant whose predecessor chain never
+    // reached genesis is blocked. This includes descendants of missing,
+    // invalid, revoked, unavailable, equivocated or forked predecessor events.
+    for id in eligible.keys() {
+        if !result.accepted_events.contains(id)
+            && !result.missing_parent_events.contains(id)
+            && !result.blocked_parent_events.contains(id)
+        {
+            result.blocked_parent_events.insert(id.clone());
+        }
+    }
+
+    // Store one compact group per disputed projection, not every pair of
+    // conflicting events. This avoids O(k^2) output for a projection with k
+    // independently asserted streams.
+    let mut projections: BTreeMap<String, BTreeSet<(String, String)>> = BTreeMap::new();
+    for id in &result.accepted_events {
+        let Some(event) = eligible.get(id) else { continue };
+        if event.contexts.len() != 1 {
+            continue;
+        }
+        let context = event.contexts.iter().next().expect("one context");
+        let projection_key = context.0.clone();
+        projections.entry(projection_key)
+            .or_default()
+            .insert((id.clone(), event.stream_id.clone()));
+    }
+    for (projection_key, members) in projections {
+        let distinct_streams: BTreeSet<&str> = members.iter()
+            .map(|(_, stream_id)| stream_id.as_str())
+            .collect();
+        if distinct_streams.len() > 1 {
+            result.conflict_groups.insert(projection_key, members);
         }
     }
     result
@@ -346,7 +357,12 @@ pub fn evaluate(input: &[Value]) -> Evaluation {
 
 impl Evaluation {
     pub fn to_json(&self) -> Value {
-        let pairs: Vec<Value> = self.conflict_pairs.iter().map(|(a, b)| json!([a, b])).collect();
+        let groups: Vec<Value> = self.conflict_groups.iter().map(|(projection_key, members)| {
+            let entries: Vec<Value> = members.iter().map(|(event_id, stream_id)| {
+                json!({"event_id": event_id, "stream_id": stream_id})
+            }).collect();
+            json!({"projection_key": projection_key, "members": entries})
+        }).collect();
         json!({
             "accepted_events": self.accepted_events.iter().cloned().collect::<Vec<_>>(),
             "duplicate_replays": self.duplicate_replays,
@@ -362,7 +378,7 @@ impl Evaluation {
             "sequence_conflict_pending_event_ids": self.sequence_conflict_pending_event_ids.iter().cloned().collect::<Vec<_>>(),
             "hash_collision_event_ids": self.hash_collision_event_ids.iter().cloned().collect::<Vec<_>>(),
             "context_conflict_event_ids": self.context_conflict_event_ids.iter().cloned().collect::<Vec<_>>(),
-            "conflict_pairs": pairs
+            "conflict_groups": groups
         })
     }
 }

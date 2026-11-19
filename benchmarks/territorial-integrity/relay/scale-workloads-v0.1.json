@@ -1,0 +1,48 @@
+{
+  "schema": "luminous.cter.scale-workloads.v0",
+  "suite_id": "CTER-RELAY-SCALE-001",
+  "suite_version": "0.1.0",
+  "issue": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/949",
+  "seed_policy": "deterministic synthetic identifiers; no real payload bytes",
+  "sizes_unique_events": [
+    10,
+    100,
+    1000,
+    10000,
+    100000
+  ],
+  "stream_shapes": [
+    "single_long_stream",
+    "many_short_streams",
+    "single_high_contention_projection"
+  ],
+  "duplicate_delivery_rates_percent": [
+    0,
+    25,
+    50
+  ],
+  "arrival_orders": [
+    "forward",
+    "reverse",
+    "deterministically_shuffled"
+  ],
+  "measurements": [
+    "p50_ms",
+    "p95_ms",
+    "p99_ms",
+    "events_per_second",
+    "useful_events_per_second",
+    "peak_rss_bytes",
+    "bytes_per_event",
+    "cpu_time_ms",
+    "energy_mj_per_1000_accepted_events",
+    "recovery_time_ms",
+    "output_bytes"
+  ],
+  "hardware_profiles": [
+    "desktop_reference",
+    "low_cost_android",
+    "battery_powered_linux_relay"
+  ],
+  "status": "workload_specification_only_not_executed"
+}

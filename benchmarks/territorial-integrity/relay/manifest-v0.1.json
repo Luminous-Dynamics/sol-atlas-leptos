@@ -1,7 +1,7 @@
 {
   "schema": "luminous.cter.relay-benchmark.v0",
   "suite_id": "CTER-RELAY-CONVERGENCE-001",
-  "suite_version": "0.1.5",
+  "suite_version": "0.1.6",
   "status": "synthetic_reference_model",
   "created_at": "2026-11-19",
   "parent_issue": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/945",
@@ -101,5 +101,11 @@
     "payload.media_type",
     "payload.blob_sha256"
   ],
-  "payload_hash_algorithm": "SHA-256 over exact stored serialized signed-event blob bytes"
+  "payload_hash_algorithm": "SHA-256 over exact stored serialized signed-event blob bytes",
+  "complexity_target": {
+    "reconciliation_time": "O((N + E) log N) or better; design target only, not measured",
+    "memory": "O(N + E + C); design target only, not measured",
+    "conflict_output": "compact groups, not all pairwise combinations",
+    "chain_processing": "predecessor work queue"
+  }
 }
