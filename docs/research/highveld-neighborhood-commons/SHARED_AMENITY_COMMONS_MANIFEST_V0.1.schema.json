@@ -1,0 +1,392 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://luminousdynamics.io/schemas/shared-amenity-commons-benchmark-v0.1.schema.json",
+  "title": "Shared Amenity Commons Benchmark v0.1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "schema_version",
+    "study_id",
+    "issue_url",
+    "parent_issues",
+    "maturity",
+    "execution_status",
+    "geographic_profile",
+    "claim_ceiling",
+    "comparison_arms",
+    "scenarios",
+    "amenity_archetypes",
+    "case_matrix",
+    "cases",
+    "metric_vectors",
+    "non_compensatory_gates",
+    "evidence_states",
+    "owner_boundaries",
+    "reference_sources",
+    "future_empirical_inputs_required",
+    "targets"
+  ],
+  "properties": {
+    "schema": {
+      "const": "luminous.shared-amenity-commons-benchmark"
+    },
+    "schema_version": {
+      "const": "0.1.0"
+    },
+    "study_id": {
+      "const": "SHARED-AMENITY-COMMONS-001"
+    },
+    "issue_url": {
+      "type": "string",
+      "format": "uri"
+    },
+    "parent_issues": {
+      "type": "array",
+      "minItems": 2,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "format": "uri"
+      }
+    },
+    "maturity": {
+      "const": "BENCHMARK_PROTOCOL_AND_CASE_REGISTRY_ONLY"
+    },
+    "execution_status": {
+      "const": "NOT_EXECUTED"
+    },
+    "geographic_profile": {
+      "const": "JOHANNESBURG_HIGHVELD_REFERENCE_METHOD_PORTABLE"
+    },
+    "claim_ceiling": {
+      "type": "string",
+      "minLength": 1
+    },
+    "comparison_arms": {
+      "type": "array",
+      "minItems": 5,
+      "maxItems": 5,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "description"
+        ],
+        "properties": {
+          "id": {
+            "enum": [
+              "PRIVATE_DUPLICATION",
+              "CENTRAL_SHARED",
+              "DISTRIBUTED_SHARED",
+              "HYBRID_SHARED_PRIVATE",
+              "EXTERNAL_COMMERCIAL"
+            ]
+          },
+          "description": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    },
+    "scenarios": {
+      "type": "array",
+      "minItems": 10,
+      "maxItems": 10,
+      "uniqueItems": true,
+      "items": {
+        "enum": [
+          "ORDINARY_DEMAND",
+          "PEAK_SIMULTANEOUS_DEMAND",
+          "SEASONAL_OR_EVENT_SURGE",
+          "GRID_OR_WATER_INTERRUPTION",
+          "STAFFING_OR_OPERATOR_OUTAGE",
+          "MAJOR_REPAIR_AND_PARTS_DELAY",
+          "OPERATING_COST_INFLATION_AND_RESERVE_SHORTFALL",
+          "ACCESS_ROUTE_DISRUPTION_OR_LIFT_OUTAGE",
+          "HOUSEHOLD_COMPOSITION_AND_DEMAND_CHANGE",
+          "GOVERNANCE_CONFLICT_OR_OPERATOR_CAPTURE_ATTEMPT"
+        ]
+      }
+    },
+    "amenity_archetypes": {
+      "type": "array",
+      "minItems": 10,
+      "maxItems": 10,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "service",
+          "critical_dependencies"
+        ],
+        "properties": {
+          "id": {
+            "enum": [
+              "TOOL_LIBRARY_MAKER_WORKSHOP",
+              "SHARED_LAUNDRY",
+              "GUEST_SUITES",
+              "GREENHOUSE_FOOD_GARDEN",
+              "POOL_WELLNESS",
+              "COMMUNITY_KITCHEN_DINING",
+              "LIBRARY_STUDY_COWORKING",
+              "CHILDCARE_LEARNING",
+              "SPORTS_PARK_PUBLIC_REALM",
+              "SHARED_UTILITY_PLANT"
+            ]
+          },
+          "service": {
+            "type": "string",
+            "minLength": 1
+          },
+          "critical_dependencies": {
+            "type": "array",
+            "minItems": 1,
+            "uniqueItems": true,
+            "items": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        }
+      }
+    },
+    "case_matrix": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "comparison_arm_count",
+        "scenario_count",
+        "registered_case_count",
+        "state"
+      ],
+      "properties": {
+        "comparison_arm_count": {
+          "const": 5
+        },
+        "scenario_count": {
+          "const": 10
+        },
+        "registered_case_count": {
+          "const": 50
+        },
+        "state": {
+          "const": "REGISTERED_DESIGN_ONLY"
+        }
+      }
+    },
+    "cases": {
+      "type": "array",
+      "minItems": 50,
+      "maxItems": 50,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "comparison_arm",
+          "scenario",
+          "definition_state",
+          "execution_status",
+          "numerical_inputs_state",
+          "result_state"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "comparison_arm": {
+            "enum": [
+              "PRIVATE_DUPLICATION",
+              "CENTRAL_SHARED",
+              "DISTRIBUTED_SHARED",
+              "HYBRID_SHARED_PRIVATE",
+              "EXTERNAL_COMMERCIAL"
+            ]
+          },
+          "scenario": {
+            "enum": [
+              "ORDINARY_DEMAND",
+              "PEAK_SIMULTANEOUS_DEMAND",
+              "SEASONAL_OR_EVENT_SURGE",
+              "GRID_OR_WATER_INTERRUPTION",
+              "STAFFING_OR_OPERATOR_OUTAGE",
+              "MAJOR_REPAIR_AND_PARTS_DELAY",
+              "OPERATING_COST_INFLATION_AND_RESERVE_SHORTFALL",
+              "ACCESS_ROUTE_DISRUPTION_OR_LIFT_OUTAGE",
+              "HOUSEHOLD_COMPOSITION_AND_DEMAND_CHANGE",
+              "GOVERNANCE_CONFLICT_OR_OPERATOR_CAPTURE_ATTEMPT"
+            ]
+          },
+          "definition_state": {
+            "const": "REGISTERED_DESIGN_ONLY"
+          },
+          "execution_status": {
+            "const": "NOT_EXECUTED"
+          },
+          "numerical_inputs_state": {
+            "const": "NOT_SUPPLIED"
+          },
+          "result_state": {
+            "const": "NO_RESULT"
+          }
+        }
+      }
+    },
+    "metric_vectors": {
+      "type": "array",
+      "minItems": 8,
+      "maxItems": 8,
+      "uniqueItems": true,
+      "items": {
+        "enum": [
+          "SERVICE_DELIVERY",
+          "ACCESS_AND_TIME",
+          "CAPACITY_AND_UTILIZATION",
+          "LIFECYCLE_ECONOMICS",
+          "ENVIRONMENT_AND_RESOURCE",
+          "RELIABILITY_AND_RECOVERY",
+          "EQUITY_AND_PARTICIPATION",
+          "GOVERNANCE_AND_STEWARDSHIP"
+        ]
+      }
+    },
+    "non_compensatory_gates": {
+      "type": "array",
+      "minItems": 8,
+      "uniqueItems": true,
+      "items": {
+        "enum": [
+          "LIFE_SAFETY_AND_EGRESS",
+          "MANDATORY_ACCESSIBILITY",
+          "LEGAL_AND_STATUTORY_APPROVAL",
+          "ENGINEERING_SCOPE_AND_QUALIFICATION",
+          "WATER_SOURCE_AND_USE_RIGHTS",
+          "SERVICE_FLOOR_AND_MANUAL_FALLBACK",
+          "EVIDENCE_VALIDITY_AND_SCOPE",
+          "PRIVACY_AND_CONSENT"
+        ]
+      }
+    },
+    "evidence_states": {
+      "type": "array",
+      "minItems": 7,
+      "uniqueItems": true,
+      "items": {
+        "enum": [
+          "UNKNOWN",
+          "NOT_COMPARABLE",
+          "BLOCKED",
+          "INVALID",
+          "PROPOSED",
+          "MEASURED",
+          "INDEPENDENTLY_REVIEWED"
+        ]
+      }
+    },
+    "owner_boundaries": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "sol_atlas",
+        "symtropy",
+        "symthaea",
+        "mycelix",
+        "practitioners_and_authorities"
+      ],
+      "properties": {
+        "sol_atlas": {
+          "type": "string"
+        },
+        "symtropy": {
+          "type": "string"
+        },
+        "symthaea": {
+          "type": "string"
+        },
+        "mycelix": {
+          "type": "string"
+        },
+        "practitioners_and_authorities": {
+          "type": "string"
+        }
+      }
+    },
+    "reference_sources": {
+      "type": "array",
+      "minItems": 8,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "url",
+          "role"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "url": {
+            "type": "string",
+            "format": "uri"
+          },
+          "role": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    },
+    "future_empirical_inputs_required": {
+      "type": "array",
+      "minItems": 10,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "targets": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "same_scope_or_not_comparable",
+        "critical_missing_evidence_fails_closed",
+        "unserved_demand_retained",
+        "all_lifecycle_exclusions_reported",
+        "no_weighted_score_overrides_hard_gates",
+        "exact_oracle_agreement_required",
+        "targets_are_proposed_not_measured"
+      ],
+      "properties": {
+        "same_scope_or_not_comparable": {
+          "const": true
+        },
+        "critical_missing_evidence_fails_closed": {
+          "const": true
+        },
+        "unserved_demand_retained": {
+          "const": true
+        },
+        "all_lifecycle_exclusions_reported": {
+          "const": true
+        },
+        "no_weighted_score_overrides_hard_gates": {
+          "const": true
+        },
+        "exact_oracle_agreement_required": {
+          "const": true
+        },
+        "targets_are_proposed_not_measured": {
+          "const": true
+        }
+      }
+    }
+  }
+}
