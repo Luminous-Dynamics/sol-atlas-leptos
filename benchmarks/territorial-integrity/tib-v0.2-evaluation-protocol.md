@@ -99,6 +99,12 @@ Compare against existing products and workflows by capability, not by branding o
 - **ISO 19152-1:2024 / ISO 19152-2:2025** provide the LADM conceptual/land-registration model. Interoperability must be tested against the applicable parts and national profiles; a mapping document is not conformance.
 - **OGC API Features, OGC API Records and STAC** are interoperability surfaces for features, resource metadata and spatiotemporal assets. They do not, by themselves, establish legal authority, data permission or evidentiary sufficiency.
 
+### Industry baseline register
+
+The full evidence-led comparator, documented capabilities, evidence limits, matched tasks and proposed TIB targets now live in [TIB Industry Comparator Matrix v0.1](../../docs/research/TIB_INDUSTRY_COMPARATOR_MATRIX_V0_1.md).
+
+The matrix is explicit that Open Tenure's offline/multilingual/community workflows, STDM's formal/informal/customary people-to-land model, Cadasta's FPIC/CARE/community data control, and Project Indwe's active South African mining-cadastre pilot are real baseline strengths. It does not claim they were hands-on tested or outperformed. The 2026 85-jurisdiction property-institutions survey is used to define institutional interoperability measures, not to estimate current South African performance from the regional sample.
+
 ### Matched protocol
 
 1. Publish one frozen, synthetic input bundle and versioned mapping instructions.
