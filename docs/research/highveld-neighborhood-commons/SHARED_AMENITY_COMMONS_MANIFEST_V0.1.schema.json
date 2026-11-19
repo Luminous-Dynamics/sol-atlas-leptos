@@ -27,7 +27,8 @@
     "future_empirical_inputs_required",
     "targets",
     "functional_units",
-    "scope_boundary"
+    "scope_boundary",
+    "owner_native_dependencies"
   ],
   "properties": {
     "schema": {
@@ -334,7 +335,7 @@
     },
     "reference_sources": {
       "type": "array",
-      "minItems": 17,
+      "minItems": 32,
       "items": {
         "type": "object",
         "additionalProperties": false,
@@ -457,7 +458,8 @@
         "included_scope",
         "included_service_classes",
         "excluded_scopes",
-        "composition_rule"
+        "composition_rule",
+        "owner_native_dependencies"
       ],
       "properties": {
         "included_scope": {
@@ -498,6 +500,48 @@
         },
         "composition_rule": {
           "const": "CONSUME_OWNER_NATIVE_RECEIPTS_READ_ONLY_NO_DUPLICATE_ENGINE_LEDGER_OR_AUTHORITY"
+        },
+        "owner_native_dependencies": {
+          "type": "array",
+          "minItems": 11,
+          "maxItems": 11,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "id",
+              "owner",
+              "reference",
+              "role",
+              "responsibility"
+            ],
+            "properties": {
+              "id": {
+                "type": "string",
+                "minLength": 1
+              },
+              "owner": {
+                "enum": [
+                  "Sol-Atlas",
+                  "Symtropy",
+                  "Symthaea",
+                  "Mycelix"
+                ]
+              },
+              "reference": {
+                "type": "string",
+                "format": "uri"
+              },
+              "role": {
+                "type": "string",
+                "minLength": 1
+              },
+              "responsibility": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          }
         }
       }
     }
