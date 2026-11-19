@@ -92,6 +92,8 @@ The manifest crosses five provision arms with these ten synthetic spatial contex
 
 All 50 case records remain `REGISTERED_DESIGN_ONLY`, `NOT_EXECUTED`, `NOT_SUPPLIED` and `NO_RESULT`. The manifest is a case registry, not an execution receipt.
 
+The standalone Rust registry auditor also rejects duplicate JSON object keys before map deserialization; this prevents parsers from silently overwriting ambiguous evidence fields. This is a byte-interpretation integrity check, not a source-authenticity or payload-truth claim.
+
 ### Typed scenario contract
 
 Each scenario has a separate machine-readable definition in the manifest, with a frozen scenario class, spatial condition, primary stressors, required owner-output references, and two fixed states: `probability_model_state=NOT_ASSIGNED` and `input_state=SYNTHETIC_SPECIFICATION_ONLY`.
