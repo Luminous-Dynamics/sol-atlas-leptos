@@ -1,0 +1,72 @@
+{
+  "schema_version": 1,
+  "territory_ref": "urn:tib:v0.2:territory:za-001",
+  "created_at": "2026-11-18T10:00:00Z",
+  "evidence": [
+    {
+      "id": "testimony-001",
+      "kind": "community_testimony",
+      "source_ref": "urn:tib:v0.2:evidence:testimony-001",
+      "captured_at": "2026-11-18T10:00:00Z",
+      "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "disclosure_class": "community_controlled"
+    }
+  ],
+  "authorities": [],
+  "challenges": [],
+  "assertions": [
+    {
+      "id": "assertion-001",
+      "holder_ref": "party:community-001",
+      "interest_kind": "surface_land",
+      "relationship": "right",
+      "bases": [
+        "asserted"
+      ],
+      "dispute_state": "unassessed",
+      "spatial": {
+        "feature_ref": "urn:ogc:feature:parcel-za-001",
+        "horizontal_crs": "https://www.opengis.net/def/crs/EPSG/0/4326",
+        "vertical_min_m": null,
+        "vertical_max_m": null,
+        "vertical_datum": null,
+        "horizontal_uncertainty_m": 5
+      },
+      "temporal": {
+        "valid_from": "2026-01-01",
+        "valid_until": null
+      },
+      "evidence_ids": [
+        "testimony-001"
+      ],
+      "authority_ids": [],
+      "challenge_ids": [],
+      "disclosure_class": "community_controlled",
+      "challenge_assessment_id": null,
+      "source_interest_type_code": null,
+      "source_interest_type_profile_ref": null
+    }
+  ],
+  "obligations": [
+    {
+      "id": "obligation-001",
+      "governance_record_ref": "urn:mycelix:governance:commitment-003",
+      "kind": "restore_habitat",
+      "description": "Restore native vegetation cover",
+      "spatial_feature_ref": "urn:ogc:feature:restoration-site-003",
+      "responsible_party_ref": "party:operator-001",
+      "originating_evidence_id": "testimony-001",
+      "due_at": "2027-12-31",
+      "target_value": null,
+      "target_unit": null,
+      "verification_protocol_ref": "urn:protocol:vegetation-cover-v1",
+      "independent_verifier_ref": "party:operator-001",
+      "state": "verified_complete",
+      "evidence_ids": [
+        "testimony-001"
+      ],
+      "disclosure_class": "restricted"
+    }
+  ],
+  "challenge_assessments": []
+}

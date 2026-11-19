@@ -1,0 +1,71 @@
+name: Territorial core conformance
+
+on:
+  push:
+    branches:
+      - research/territorial-rights-evidence-v0-1
+    paths:
+      - "sol-atlas-core/src/**"
+      - "sol-atlas-core/tests/**"
+      - "sol-atlas-core/Cargo.toml"
+      - "Cargo.lock"
+      - ".github/workflows/territorial-core-tests.yml"
+  pull_request:
+    branches: [main]
+    paths:
+      - "sol-atlas-core/src/**"
+      - "sol-atlas-core/tests/**"
+      - "sol-atlas-core/Cargo.toml"
+      - "Cargo.lock"
+      - ".github/workflows/territorial-core-tests.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: territorial-core-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+env:
+  CARGO_TERM_COLOR: always
+  QUALIFIED_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+
+jobs:
+  territorial-core:
+    name: Compile and test territorial core (exact head)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - name: Checkout exact PR head
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ env.QUALIFIED_SHA }}
+          persist-credentials: false
+
+      - name: Assert exact checkout
+        run: test "$(git rev-parse HEAD)" = "${QUALIFIED_SHA}"
+
+      - name: Install pinned Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: 1.96.1
+          components: rustfmt, clippy
+
+      - name: Assert pinned toolchain
+        run: |
+          test "$(rustc --version | awk '{print $2}')" = "1.96.1"
+          cargo --version
+          rustfmt --version
+
+      - name: Check core formatting
+        run: cargo fmt --manifest-path sol-atlas-core/Cargo.toml -- --check
+
+      - name: Run sol-atlas-core unit tests
+        run: cargo test --manifest-path sol-atlas-core/Cargo.toml --lib
+
+      - name: Run territorial fixture integration tests
+        run: cargo test --manifest-path sol-atlas-core/Cargo.toml --test territorial_fixtures
+
+      - name: Run strict Clippy on sol-atlas-core
+        run: cargo clippy --manifest-path sol-atlas-core/Cargo.toml --all-targets -- -D warnings

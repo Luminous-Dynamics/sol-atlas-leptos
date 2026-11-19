@@ -1,0 +1,448 @@
+{
+  "suite_id": "TIB-PROPERTY-STATE-TRANSITIONS-001",
+  "suite_version": "0.1.0",
+  "purpose": "Synthetic transition-level adversarial scenarios for a land/resource host that coordinates internal agreements, escrow and property projections with external authorities. This suite is separate from the static TIB-SYNTH-STRUCTURAL-001 fixture manifest.",
+  "data_classification": "synthetic_non_personal",
+  "real_world_case_data_included": false,
+  "claim_ceiling": "reference-only-no-legal-effect",
+  "protocol_version": "0.1.0",
+  "invariant_set": [
+    "internal completion is not external registration",
+    "no signature or digest alone proves authority competence",
+    "external request timeout or ambiguous outcome requires reconciliation before retry",
+    "stale, revoked, wrong-jurisdiction or wrong-scope authority must not promote legal status",
+    "active challenge, appeal or affected-party conflict must remain visible",
+    "surface geometry must not be promoted to a subsurface volume",
+    "no benchmark outcome authorizes authoritative mutation in this prototype"
+  ],
+  "scenarios": [
+    {
+      "scenario_id": "TIB-PT-001",
+      "name": "Internal transfer completed without external receipt",
+      "initial_internal_state": {
+        "agreement": "accepted",
+        "escrow": "released",
+        "transfer": "completed",
+        "property_projection": "owner_updated",
+        "title_deed_projection": "internal_record_created"
+      },
+      "external_operation": {
+        "request_state": "not_submitted",
+        "receipt_reference": null,
+        "receipt_digest": null
+      },
+      "authority_assessment": {
+        "issuer": "not_assessed",
+        "jurisdiction": "not_assessed",
+        "scope": "not_assessed",
+        "currentness": "not_assessed"
+      },
+      "conflicts": [],
+      "evidence_frontier": {
+        "coverage": "complete_within_declared_scope",
+        "included": [
+          "internal_transfer_event",
+          "internal_property_record"
+        ],
+        "excluded": [
+          "external_deeds_registry_receipt"
+        ]
+      },
+      "expected_outcome": "review_required",
+      "expected_host_disposition": "hold_for_reconciliation",
+      "expected_authoritative_mutation": false,
+      "required_actions": [
+        "keep internal workflow status distinct from legal/registered status",
+        "obtain competent external process and exact receipt/decision if applicable",
+        "do not display internal TitleDeed as national registration"
+      ],
+      "rationale": "The internal state transition proves only that Mycelix updated its own application ledger."
+    },
+    {
+      "scenario_id": "TIB-PT-002",
+      "name": "Receipt has a valid digest but issuer competence is unverified",
+      "initial_internal_state": {
+        "agreement": "accepted",
+        "escrow": "held",
+        "transfer": "pending_external_review"
+      },
+      "external_operation": {
+        "request_state": "receipt_received",
+        "receipt_reference": "urn:tib:synthetic:receipt:002",
+        "receipt_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      },
+      "authority_assessment": {
+        "issuer": "signature_or_identity_reference_present",
+        "jurisdiction": "unknown",
+        "scope": "unknown",
+        "currentness": "unknown"
+      },
+      "conflicts": [],
+      "evidence_frontier": {
+        "coverage": "partial",
+        "included": [
+          "receipt_bytes",
+          "receipt_digest"
+        ],
+        "excluded": [
+          "issuer_delegation",
+          "jurisdiction_profile",
+          "revocation_source"
+        ]
+      },
+      "expected_outcome": "review_required",
+      "expected_host_disposition": "hold_for_reconciliation",
+      "expected_authoritative_mutation": false,
+      "required_actions": [
+        "verify issuer identity and competent authority independently",
+        "verify jurisdiction and decision type",
+        "verify delegation and valid-time interval",
+        "verify revocation/currentness source"
+      ],
+      "rationale": "A digest establishes byte identity, not issuer competence, jurisdiction or legal effect."
+    },
+    {
+      "scenario_id": "TIB-PT-003",
+      "name": "External register snapshot is stale",
+      "initial_internal_state": {
+        "agreement": "accepted",
+        "escrow": "held",
+        "transfer": "pending_external_review"
+      },
+      "external_operation": {
+        "request_state": "historical_snapshot_received",
+        "receipt_reference": "urn:tib:synthetic:registry-snapshot:003",
+        "captured_at": "2025-01-01T00:00:00Z"
+      },
+      "authority_assessment": {
+        "issuer": "known_reference",
+        "jurisdiction": "ZA",
+        "scope": "surface parcel extract",
+        "currentness": "stale"
+      },
+      "conflicts": [],
+      "evidence_frontier": {
+        "coverage": "partial",
+        "included": [
+          "historical_register_snapshot"
+        ],
+        "excluded": [
+          "current_register_state",
+          "late_registered_caveats",
+          "current_litigation_index"
+        ]
+      },
+      "expected_outcome": "review_required",
+      "expected_host_disposition": "hold_for_reconciliation",
+      "expected_authoritative_mutation": false,
+      "required_actions": [
+        "obtain a current official source snapshot or response",
+        "record exact capture time and source version",
+        "recheck relevant caveats, filings, appeals and later decisions"
+      ],
+      "rationale": "A historically valid record cannot establish the current state of the register."
+    },
+    {
+      "scenario_id": "TIB-PT-004",
+      "name": "Authority is revoked or suspended before attempted projection",
+      "initial_internal_state": {
+        "agreement": "accepted",
+        "escrow": "held",
+        "transfer": "pending_external_review"
+      },
+      "external_operation": {
+        "request_state": "receipt_received",
+        "receipt_reference": "urn:tib:synthetic:receipt:004",
+        "captured_at": "2026-11-18T10:00:00Z"
+      },
+      "authority_assessment": {
+        "issuer": "previously_verified",
+        "jurisdiction": "ZA",
+        "scope": "specific mineral-right decision",
+        "currentness": "revoked_before_projection"
+      },
+      "conflicts": [],
+      "evidence_frontier": {
+        "coverage": "complete_within_declared_scope",
+        "included": [
+          "receipt",
+          "authority_profile",
+          "revocation_notice"
+        ],
+        "excluded": []
+      },
+      "expected_outcome": "review_required",
+      "expected_host_disposition": "hold_for_reconciliation",
+      "expected_authoritative_mutation": false,
+      "required_actions": [
+        "preserve the historical receipt and revocation notice",
+        "do not project current legal effect from the receipt",
+        "obtain competent legal review of temporal effect and any prior reliance"
+      ],
+      "rationale": "A prior receipt must not be treated as current authority after suspension or revocation."
+    },
+    {
+      "scenario_id": "TIB-PT-005",
+      "name": "External request times out with unknown outcome",
+      "initial_internal_state": {
+        "agreement": "accepted",
+        "escrow": "held",
+        "transfer": "submitting_external_request"
+      },
+      "external_operation": {
+        "request_state": "timeout_unknown",
+        "idempotency_key": "tib-pt-005-key",
+        "receipt_reference": null,
+        "transport_error": "timeout_after_request_may_have_been_received"
+      },
+      "authority_assessment": {
+        "issuer": "known_profile",
+        "jurisdiction": "ZA",
+        "scope": "declared_operation",
+        "currentness": "not_rechecked"
+      },
+      "conflicts": [],
+      "evidence_frontier": {
+        "coverage": "unavailable",
+        "included": [],
+        "excluded": [
+          "external_response",
+          "registry_commit_status",
+          "receipt_lookup"
+        ]
+      },
+      "expected_outcome": "not_evaluable",
+      "expected_host_disposition": "hold_for_reconciliation",
+      "expected_authoritative_mutation": false,
+      "required_actions": [
+        "query external authority using the original operation/idempotency reference",
+        "determine whether the external mutation committed",
+        "reconcile receipt and local state",
+        "do not submit a new mutation until the original outcome is known"
+      ],
+      "rationale": "A timeout does not prove failure; blind retry can create duplicate or conflicting external mutations."
+    },
+    {
+      "scenario_id": "TIB-PT-006",
+      "name": "A relevant customary/community challenge is filed after initial review",
+      "initial_internal_state": {
+        "agreement": "accepted",
+        "escrow": "held",
+        "transfer": "pending_external_review"
+      },
+      "external_operation": {
+        "request_state": "receipt_received",
+        "receipt_reference": "urn:tib:synthetic:receipt:006"
+      },
+      "authority_assessment": {
+        "issuer": "reference_verified",
+        "jurisdiction": "ZA",
+        "scope": "limited statutory filing",
+        "currentness": "current_within_frontier"
+      },
+      "conflicts": [
+        {
+          "kind": "community_challenge",
+          "state": "submitted",
+          "reference": "urn:tib:synthetic:challenge:006",
+          "filed_at": "2026-11-18T11:30:00Z"
+        }
+      ],
+      "evidence_frontier": {
+        "coverage": "partial",
+        "included": [
+          "external_receipt",
+          "challenge_notice"
+        ],
+        "excluded": [
+          "challenge_determination",
+          "affected_party_review"
+        ]
+      },
+      "expected_outcome": "review_required",
+      "expected_host_disposition": "hold_for_reconciliation",
+      "expected_authoritative_mutation": false,
+      "required_actions": [
+        "preserve the challenge independently of the receipt basis",
+        "identify applicable notice, participation, consent and appeal process",
+        "obtain qualified review; do not collapse the challenge into a scalar confidence score"
+      ],
+      "rationale": "An external receipt and a live challenge can coexist; one does not erase the other."
+    },
+    {
+      "scenario_id": "TIB-PT-007",
+      "name": "Surface parcel geometry is reused for an underground mineral interest",
+      "initial_internal_state": {
+        "agreement": "accepted",
+        "escrow": "held",
+        "transfer": "pending_external_review"
+      },
+      "external_operation": {
+        "request_state": "receipt_received",
+        "receipt_reference": "urn:tib:synthetic:receipt:007"
+      },
+      "authority_assessment": {
+        "issuer": "reference_verified",
+        "jurisdiction": "ZA",
+        "scope": "mineral-right instrument",
+        "currentness": "current_within_frontier"
+      },
+      "conflicts": [
+        {
+          "kind": "spatial_representation_mismatch",
+          "surface_feature": "urn:ogc:feature:surface-parcel-007",
+          "subsurface_volume": null
+        }
+      ],
+      "evidence_frontier": {
+        "coverage": "partial",
+        "included": [
+          "surface_parcel_feature",
+          "mineral_right_reference"
+        ],
+        "excluded": [
+          "qualified_subsurface_volume",
+          "vertical_datum",
+          "survey_method"
+        ]
+      },
+      "expected_outcome": "review_required",
+      "expected_host_disposition": "hold_for_reconciliation",
+      "expected_authoritative_mutation": false,
+      "required_actions": [
+        "require the legally relevant subsurface spatial unit",
+        "qualify horizontal and vertical CRS/datum and survey method",
+        "report uncertainty and any non-overlap/overlap analysis"
+      ],
+      "rationale": "A two-dimensional surface parcel is not evidence of the vertical or volumetric extent of a subsurface interest."
+    },
+    {
+      "scenario_id": "TIB-PT-008",
+      "name": "Receipt is authentic but outside the issuer's delegated scope",
+      "initial_internal_state": {
+        "agreement": "accepted",
+        "escrow": "held",
+        "transfer": "pending_external_review"
+      },
+      "external_operation": {
+        "request_state": "receipt_received",
+        "receipt_reference": "urn:tib:synthetic:receipt:008"
+      },
+      "authority_assessment": {
+        "issuer": "authenticated",
+        "jurisdiction": "ZA",
+        "scope": "delegated for water-use permits only",
+        "requested_decision_type": "mining-right transfer",
+        "currentness": "current"
+      },
+      "conflicts": [],
+      "evidence_frontier": {
+        "coverage": "complete_within_declared_scope",
+        "included": [
+          "receipt",
+          "issuer_profile",
+          "delegation_scope"
+        ],
+        "excluded": []
+      },
+      "expected_outcome": "review_required",
+      "expected_host_disposition": "hold_for_reconciliation",
+      "expected_authoritative_mutation": false,
+      "required_actions": [
+        "reject the authority reference for this decision type",
+        "resolve the competent issuer under the applicable jurisdiction profile",
+        "preserve the authentic-but-out-of-scope receipt as evidence, not authority"
+      ],
+      "rationale": "An authentic issuer can still be incompetent for the requested operation or subject matter."
+    },
+    {
+      "scenario_id": "TIB-PT-009",
+      "name": "A retry is attempted before the prior timed-out external operation is reconciled",
+      "initial_internal_state": {
+        "agreement": "accepted",
+        "escrow": "held",
+        "transfer": "external_outcome_unknown"
+      },
+      "external_operation": {
+        "first_request_state": "timeout_unknown",
+        "first_idempotency_key": "tib-pt-009-original",
+        "retry_attempted": true,
+        "retry_idempotency_key": "tib-pt-009-retry",
+        "first_outcome_reconciled": false
+      },
+      "authority_assessment": {
+        "issuer": "known_profile",
+        "jurisdiction": "ZA",
+        "scope": "declared_operation",
+        "currentness": "unknown"
+      },
+      "conflicts": [
+        {
+          "kind": "duplicate_mutation_risk",
+          "reference": "urn:tib:synthetic:operation:009"
+        }
+      ],
+      "evidence_frontier": {
+        "coverage": "unavailable",
+        "included": [],
+        "excluded": [
+          "first_request_commit_status",
+          "first_receipt",
+          "external_operation_lookup"
+        ]
+      },
+      "expected_outcome": "structural_reject",
+      "expected_host_disposition": "reject_retry_and_hold",
+      "expected_authoritative_mutation": false,
+      "required_actions": [
+        "reject the new retry command",
+        "reconcile the original external operation",
+        "reuse a stable idempotency/operation identifier only after external semantics are verified"
+      ],
+      "rationale": "An unreconciled unknown outcome must not create a second write path."
+    }
+  ],
+  "metrics": [
+    {
+      "metric": "unsafe_mutation_rate",
+      "definition": "fraction of held/rejected/unavailable scenarios that produce a new authoritative mutation",
+      "target": 0
+    },
+    {
+      "metric": "unknown_outcome_retry_rate",
+      "definition": "fraction of timeout_unknown cases retried before reconciliation",
+      "target": 0
+    },
+    {
+      "metric": "authority_scope_false_accept_rate",
+      "definition": "fraction of wrong-scope or wrong-jurisdiction issuers promoted to qualified state",
+      "target": 0
+    },
+    {
+      "metric": "active_challenge_loss_rate",
+      "definition": "fraction of live challenge/appeal references lost during projection or replay",
+      "target": 0
+    },
+    {
+      "metric": "stale_source_promotion_rate",
+      "definition": "fraction of stale source snapshots projected as current without a new verification",
+      "target": 0
+    },
+    {
+      "metric": "surface_subsurface_conflation_rate",
+      "definition": "fraction of subsurface cases accepted without a qualified vertical spatial unit",
+      "target": 0
+    },
+    {
+      "metric": "decision_replay_determinism",
+      "definition": "fraction of frozen sequences producing identical dispositions from identical evidence frontiers",
+      "target": 1
+    }
+  ],
+  "non_claims": [
+    "All scenarios are synthetic and do not represent a real registry, person, community or property.",
+    "This corpus does not determine South African legal status or the correct outcome under any particular statute.",
+    "The current Mycelix policy helper is not integrated into Property's live transfer coordinator.",
+    "A correct expected disposition is not proof of implementation performance; the corpus must be executed against the actual host integration and independently reviewed."
+  ]
+}

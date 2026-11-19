@@ -1,0 +1,52 @@
+{
+  "schema_version": 1,
+  "territory_ref": "urn:tib:v0.2:territory:za-001",
+  "created_at": "2026-11-18T10:00:00Z",
+  "evidence": [
+    {
+      "id": "testimony-001",
+      "kind": "community_testimony",
+      "source_ref": "urn:tib:v0.2:evidence:testimony-001",
+      "captured_at": "2026-11-18T10:00:00Z",
+      "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "disclosure_class": "community_controlled"
+    }
+  ],
+  "authorities": [],
+  "challenges": [],
+  "assertions": [
+    {
+      "id": "assertion-001",
+      "holder_ref": "party:community-001",
+      "interest_kind": "surface_land",
+      "relationship": "right",
+      "bases": [
+        "asserted"
+      ],
+      "dispute_state": "unassessed",
+      "spatial": {
+        "feature_ref": "urn:ogc:feature:parcel-za-001",
+        "horizontal_crs": "https://www.opengis.net/def/crs/EPSG/0/4326",
+        "vertical_min_m": null,
+        "vertical_max_m": null,
+        "vertical_datum": null,
+        "horizontal_uncertainty_m": 5
+      },
+      "temporal": {
+        "valid_from": "2026-01-01",
+        "valid_until": null
+      },
+      "evidence_ids": [
+        "testimony-001"
+      ],
+      "authority_ids": [],
+      "challenge_ids": [],
+      "disclosure_class": "community_controlled",
+      "challenge_assessment_id": null,
+      "source_interest_type_code": "ZA-CUSTOMARY-ACCESS-17",
+      "source_interest_type_profile_ref": null
+    }
+  ],
+  "obligations": [],
+  "challenge_assessments": []
+}
