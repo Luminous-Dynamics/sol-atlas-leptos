@@ -764,6 +764,26 @@
       "id": "STATS_SA_BUILDING_PLANS_AUG_2026",
       "url": "https://www.statssa.gov.za/publications/P50411/P50411August2026.pdf",
       "role": "CURRENT_SA_RESIDENTIAL_BUILDING_ACTIVITY_CONTEXT_NOT_UNIT_COST"
+    },
+    {
+      "id": "FINCH3D_PRODUCT_2026",
+      "url": "https://www.finch3d.com/product",
+      "role": "VENDOR_CLAIMED_GENERATIVE_ARCHITECTURE_AND_PLAN_LIBRARY_COMPARATOR"
+    },
+    {
+      "id": "TESTFIT_SITE_SOLVER_2026",
+      "url": "https://www.testfit.io/product/site-solver",
+      "role": "VENDOR_CLAIMED_SITE_FEASIBILITY_AND_UNIT_MIX_COMPARATOR"
+    },
+    {
+      "id": "HYPAR_PRODUCT_UPDATES_2026",
+      "url": "https://docs.hypar.io/what%27s-new-or-product-updates",
+      "role": "VENDOR_PRODUCT_AND_CASE_STUDY_COMPARATOR"
+    },
+    {
+      "id": "HONG_KONG_PSGO_HIGH_PRODUCTIVITY_CONSTRUCTION_2026",
+      "url": "https://www.psgo.gov.hk/en/high-productivity-construction.html",
+      "role": "GOVERNMENT_MIMEP_MICE_ADOPTION_AND_PRODUCTIVITY_REFERENCE"
     }
   ],
   "future_empirical_inputs_required": [
