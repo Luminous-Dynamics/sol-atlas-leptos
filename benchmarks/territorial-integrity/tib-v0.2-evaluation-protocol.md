@@ -176,6 +176,25 @@ Expected dispositions: seven `review_required`, one `not_evaluable`, and one `st
 
 Every implementation must be tested at the actual host command boundary, including external-call timeout, replay and crash/restart injection. A pure decision function or schema validator does not prove that a write path is gated. Record exact request identifiers, idempotency keys, external receipts, local action hashes, before/after states and reconciliation decisions. Do not retry an external mutation merely because a local RPC timed out.
 
+## 6.3 Stewardship completion evidence
+
+The obligation validator now has obligation-specific structural evidence requirements. A permit, contract or arbitrary attachment alone cannot close ecological work:
+- land rehabilitation, habitat restoration and ground stabilization require a linked environmental measurement or remote-sensing observation;
+- groundwater protection, water-quality monitoring and tailings management require a linked environmental measurement;
+- access and benefit-sharing obligations retain their own verification-protocol evidence domains.
+
+Add paired negative/positive controls for every obligation class: a wrong-kind-only evidence set must fail; a matching evidence-kind reference may pass structural preflight; a matching kind with stale capture time, invalid calibration, poor spatial coverage, incorrect baseline or self-verification must still fail the *independent outcome review* even though the structural layer cannot determine those facts.
+
+**No scalar ecological-completion score.** Publish the protocol, baseline, method, unit, observation time, spatial footprint, uncertainty, calibration/source lineage, responsible party, independent verifier and contrary observations separately. Remote sensing can indicate change; it does not by itself establish ecological condition, legal compliance or causal restoration.
+
+Proposed TIB targets:
+| Measure | Initial target |
+|---|---:|
+| Environmental obligations closed with only permit/contract/operator-declaration evidence | 0 |
+| Water-quality/groundwater/tailings closures lacking measurement evidence | 0 |
+| Verified-complete obligations without independent verifier reference | 0 |
+| Ecological outcomes accepted without independent expert review of method, baseline and uncertainty | 0 |
+
 ## 7. Known limitations and release gates
 
 The current Sol Atlas validator checks record shape and selected internal references. It does not authenticate documents, verify signatures or issuer competence, resolve legal effect, validate CRS transformations, survey geometry, detect real-world overlap, prove consent, establish ecological recovery or guarantee completeness of a source frontier.
