@@ -1,18 +1,18 @@
 {
   "schema": "luminous.cter.relay-benchmark.v0",
   "suite_id": "CTER-RELAY-CONVERGENCE-001",
-  "suite_version": "0.1.2",
+  "suite_version": "0.1.3",
   "status": "synthetic_reference_model",
   "created_at": "2026-11-19",
   "parent_issue": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/945",
   "parent_benchmark": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/937",
   "purpose": "Evaluate relay convergence around the existing Mycelix-DeSci signed event stream under replay, reordering, equivocation, verification failure, missing predecessors, stream forks and cross-stream territorial conflicts.",
-  "case_count": 19,
+  "case_count": 24,
   "claim_ceiling": "synthetic_convergence_semantics_only",
   "canonical_event_owner": "Mycelix-DeSci ScientificEventEnvelope / SignedScientificEvent",
   "event_hash_algorithm": "BLAKE3 ContentHash",
   "external_source_hash_algorithm": "SHA-256 (Sol-Atlas source and record references; separate domain)",
-  "verifier_boundary": "signature/key verification and BLAKE3 event hashing are externally supplied; actor/authority authorization is separate and not evaluated by this harness",
+  "verifier_boundary": "verification assessments are detached contextual records; this harness aggregates status and policy IDs but does not authenticate assessment signatures, verifier trust or actor/authority authorization",
   "excluded_claims": [
     "legal determination",
     "title validation",
@@ -26,15 +26,12 @@
     "energy consumption"
   ],
   "event_fields": [
-    "event_id",
-    "stream_id",
-    "sequence",
-    "previous_hash",
-    "event_hash",
-    "actor",
-    "verification",
-    "projection_key",
-    "access_class"
+    "event.event_id",
+    "event.stream_id",
+    "event.sequence",
+    "event.previous_hash",
+    "event.event_hash",
+    "event.actor"
   ],
   "verification_values": [
     "verified",
@@ -57,7 +54,10 @@
     "preserve_cross_stream_conflict",
     "append_only_correction",
     "deterministic_projection",
-    "hold_ambiguous_unverified_stream_slots"
+    "hold_ambiguous_unverified_stream_slots",
+    "detach_verification_assessments_from_signed_event",
+    "assessment_disagreement_requires_review",
+    "context_disagreement_fails_closed_for_projection_use"
   ],
   "transport_candidates": [
     "IETF RFC 9171 Bundle Protocol v7",
@@ -69,5 +69,13 @@
     "OGC GeoPackage 1.4.0",
     "W3C Verifiable Credentials Data Model 2.0"
   ],
-  "reference_commit_status": "not_yet_executed"
+  "reference_commit_status": "not_yet_executed",
+  "detached_context_fields": [
+    "assessment.verifier_id",
+    "assessment.policy_id",
+    "assessment.assessed_at",
+    "assessment.status",
+    "context.projection_key",
+    "context.access_class"
+  ]
 }

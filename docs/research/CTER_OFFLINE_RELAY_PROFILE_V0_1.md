@@ -25,7 +25,7 @@ Offline capture is an established capability. CTER must specify what happens whe
 
 ### 2.2 From last-write-wins to contest-preserving convergence
 
-Use the existing Mycelix-DeSci signed event envelope and append-only stream as the canonical event wrapper. CTER must not create a second signed event format, hash chain, event ledger or global consensus layer.
+Use the existing Mycelix-DeSci signed event envelope and append-only stream as the canonical event wrapper. CTER must not create a second signed event format, hash chain, event ledger or global consensus layer. Verification assessments, verifier identities/policy versions, access annotations and projection hints are detached contextual records; they must never alter the immutable signed-event identity.
 
 Within a Mycelix claim stream, sequence numbers and `previous_hash` establish a single predecessor chain. Two verified events that claim the same `stream_id` and sequence are a fork and must be preserved/quarantined rather than resolved by arrival order. A verified event is also held when a same-slot competitor is awaiting verification or has unresolved revocation status; otherwise an event delivered first could win before the competing signature is checked. A definitively invalid-signature competitor does not poison the valid chain. Separate streams that project onto the same territorial relationship can both be retained and surfaced as a conflict.
 
@@ -103,7 +103,7 @@ The v0.1 Rust reference model does not implement BPv7, BPSec, cryptography, key 
 
 ## 4. Relay benchmark adapter fields
 
-The benchmark adapter reads these canonical event fields from Mycelix:
+The benchmark adapter reads these canonical event fields from Mycelix. Verifier reports and policy annotations are carried separately from the signed envelope:
 
 | Field | Meaning |
 |---|---|
@@ -112,6 +112,8 @@ The benchmark adapter reads these canonical event fields from Mycelix:
 | `sequence` | Sequence within the claim stream |
 | `previous_hash` | BLAKE3 hash of the prior signed event; absent only for genesis |
 | `event_hash` | BLAKE3 hash of the signed canonical event, supplied by the independent Mycelix verifier |
+| `assessment` (detached) | Verifier ID, pinned policy ID, assessment time and status; multiple assessments can coexist |
+| `context` (detached) | Projection key and access-policy class; disagreements block projection/disclosure until reviewed |
 | `actor` | Canonical event actor identity |
 | `verification` | External result: `verified`, `invalid`, `revoked`, or `unavailable` |
 
@@ -119,12 +121,12 @@ The test corpus additionally carries:
 - `projection_key`: benchmark-only key describing which derived territorial view an event may affect; it is not an ownership key or canonical envelope field.
 - `access_class`: CTER policy annotation resolved against the owning Mycelix artifact/consent policy; it is not a substitute for authorization.
 
-The reference crate checks digest shape, identity collisions, stream sequence and hash-link consistency. It does not recompute BLAKE3, parse Ed25519 signatures, verify actor-to-key binding, check authority, resolve consent or enforce confidentiality. A passing structural result is not an authorization.
+The reference crate checks digest shape, identity collisions, stream sequence and hash-link consistency. It aggregates detached assessments conservatively: policy/status disagreement requires review, while independent verifiers agreeing under the same pinned policy do not create a new event. Context disagreement is surfaced and blocks projection use. It does not recompute BLAKE3, parse Ed25519 signatures, authenticate verifier assessments, verify actor-to-key binding, check authority, resolve consent or enforce confidentiality. A passing structural result is not an authorization.
 
 ## 5. Normative convergence behavior for v0.1
 
 1. An exact replay of the same `event_id` and `event_hash` is idempotent.
-2. The same event ID paired with different event hashes or different canonical envelope content is equivocation. Keep every variant in quarantine; accept none as the unique event.
+2. The same event ID paired with different event hashes or different canonical envelope content is equivocation. Keep every variant in quarantine; accept none as the unique event. Detached verification or access-context disagreement is not event equivocation; it produces a separate review state.
 3. Reuse of a BLAKE3 event hash under different event IDs is an integrity collision and must be quarantined.
 4. Invalid or revoked signatures are never accepted. Unavailable verification remains pending, not accepted.
 5. Two verified events claiming the same `stream_id` and `sequence` are a stream fork. Preserve both; do not choose by arrival time. If a same-slot competitor has unavailable verification or unresolved revocation status, hold every candidate in that slot pending verification/review. A definitively invalid signature does not block a verified event.
@@ -136,6 +138,8 @@ The reference crate checks digest shape, identity collisions, stream sequence an
 11. Corrections append new signed events; they do not erase the earlier event or the fact it was received.
 12. No deterministic display sort, timestamp or relay count may be interpreted as legal priority.
 13. Rebuilding the same projection from the same normalized event set and profile version must produce the same result.
+14. Verification status, verifier policy version and access annotations are detached from the signed event. Conflicting assessment policies/statuses require review; a later result never rewrites the source event.
+15. Conflicting access/projection annotations are retained as contextual uncertainty and cannot be resolved by last-write-wins or a less restrictive label.
 
 The reference model's `accepted_events` means only structurally eligible for evidence preservation under the supplied signature/key dispositions and chain links. It does not establish truth, signer authority, community mandate, consent, representativeness or legal effect.
 
@@ -162,7 +166,13 @@ The reference model's `accepted_events` means only structurally eligible for evi
 
 ## 7. Benchmark programme
 
-### TIB-RELAY-A — convergence correctness
+### TIB-RELAY-A — convergence correctness and detached assessment integrity
+- Same signed event delivered with verified then unavailable assessment.
+- Same signed event assessed under incompatible policy versions.
+- Independent verifiers agree under one pinned policy.
+- Access class changes between deliveries; no downgrade is applied.
+- Same event identity/hash with changed signed envelope actor/payload.
+
 - Exact duplicate delivery.
 - Duplicate plus reordered batches.
 - Same event ID / different event hash.
@@ -210,6 +220,8 @@ The reference model's `accepted_events` means only structurally eligible for evi
 | Exact replay idempotence | 100% |
 | False acceptance of invalid, revoked or unavailable verification | 0 |
 | Event-ID equivocation and hash-collision detection | 100% on frozen cases |
+| Conflicting verifier assessment withholding | 100% on frozen cases |
+| Conflicting access-context downgrade block | 100% on frozen cases |
 | Stream/sequence fork detection | 100% on frozen cases |
 | Ambiguous same-slot verification hold | 100% of verified candidates withheld until all competing signatures resolve |
 | Invalid-signature isolation | 100% of definitively invalid competitors excluded without poisoning a valid event |

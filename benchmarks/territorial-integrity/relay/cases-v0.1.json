@@ -1,34 +1,52 @@
 {
   "schema": "luminous.cter.relay-cases.v0",
   "suite_id": "CTER-RELAY-CONVERGENCE-001",
-  "suite_version": "0.1.2",
+  "suite_version": "0.1.3",
   "synthetic_only": true,
   "cases": [
     {
       "case_id": "REPLAY-001",
       "title": "Exact duplicate delivery is idempotent",
-      "events": [
+      "deliveries": [
         {
-          "event_id": "e1",
-          "stream_id": "stream-a",
-          "sequence": 0,
-          "previous_hash": null,
-          "event_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-          "actor": "actor-a",
-          "projection_key": "claim:x",
-          "verification": "verified",
-          "access_class": "restricted"
+          "event": {
+            "event_id": "e1",
+            "stream_id": "stream-a",
+            "sequence": 0,
+            "previous_hash": null,
+            "event_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "actor": "actor-a"
+          },
+          "assessment": {
+            "verifier_id": "verifier-a",
+            "policy_id": "tib-key-policy-v0",
+            "assessed_at": "2026-11-19T00:00:00Z",
+            "status": "verified"
+          },
+          "context": {
+            "projection_key": "claim:x",
+            "access_class": "restricted"
+          }
         },
         {
-          "event_id": "e1",
-          "stream_id": "stream-a",
-          "sequence": 0,
-          "previous_hash": null,
-          "event_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-          "actor": "actor-a",
-          "projection_key": "claim:x",
-          "verification": "verified",
-          "access_class": "restricted"
+          "event": {
+            "event_id": "e1",
+            "stream_id": "stream-a",
+            "sequence": 0,
+            "previous_hash": null,
+            "event_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "actor": "actor-a"
+          },
+          "assessment": {
+            "verifier_id": "verifier-a",
+            "policy_id": "tib-key-policy-v0",
+            "assessed_at": "2026-11-19T00:00:00Z",
+            "status": "verified"
+          },
+          "context": {
+            "projection_key": "claim:x",
+            "access_class": "restricted"
+          }
         }
       ],
       "expected": {
@@ -46,34 +64,54 @@
         "sequence_fork_event_ids": [],
         "hash_collision_event_ids": [],
         "conflict_pairs": [],
-        "sequence_conflict_pending_event_ids": []
+        "sequence_conflict_pending_event_ids": [],
+        "verification_conflict_event_ids": [],
+        "context_conflict_event_ids": []
       }
     },
     {
       "case_id": "EQUIVOCATION-001",
       "title": "Same event ID with different signed-event hashes is quarantined",
-      "events": [
+      "deliveries": [
         {
-          "event_id": "e1",
-          "stream_id": "stream-a",
-          "sequence": 0,
-          "previous_hash": null,
-          "event_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-          "actor": "actor-a",
-          "projection_key": "claim:x",
-          "verification": "verified",
-          "access_class": "restricted"
+          "event": {
+            "event_id": "e1",
+            "stream_id": "stream-a",
+            "sequence": 0,
+            "previous_hash": null,
+            "event_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "actor": "actor-a"
+          },
+          "assessment": {
+            "verifier_id": "verifier-a",
+            "policy_id": "tib-key-policy-v0",
+            "assessed_at": "2026-11-19T00:00:00Z",
+            "status": "verified"
+          },
+          "context": {
+            "projection_key": "claim:x",
+            "access_class": "restricted"
+          }
         },
         {
-          "event_id": "e1",
-          "stream_id": "stream-a",
-          "sequence": 0,
-          "previous_hash": null,
-          "event_hash": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
-          "actor": "actor-a",
-          "projection_key": "claim:x",
-          "verification": "verified",
-          "access_class": "restricted"
+          "event": {
+            "event_id": "e1",
+            "stream_id": "stream-a",
+            "sequence": 0,
+            "previous_hash": null,
+            "event_hash": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "actor": "actor-a"
+          },
+          "assessment": {
+            "verifier_id": "verifier-a",
+            "policy_id": "tib-key-policy-v0",
+            "assessed_at": "2026-11-19T00:00:00Z",
+            "status": "verified"
+          },
+          "context": {
+            "projection_key": "claim:x",
+            "access_class": "restricted"
+          }
         }
       ],
       "expected": {
@@ -91,23 +129,34 @@
         "sequence_fork_event_ids": [],
         "hash_collision_event_ids": [],
         "conflict_pairs": [],
-        "sequence_conflict_pending_event_ids": []
+        "sequence_conflict_pending_event_ids": [],
+        "verification_conflict_event_ids": [],
+        "context_conflict_event_ids": []
       }
     },
     {
       "case_id": "PARENT-GAP-001",
       "title": "Missing previous-hash predecessor leaves the event pending",
-      "events": [
+      "deliveries": [
         {
-          "event_id": "e2",
-          "stream_id": "stream-a",
-          "sequence": 1,
-          "previous_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-          "event_hash": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
-          "actor": "actor-a",
-          "projection_key": "claim:x",
-          "verification": "verified",
-          "access_class": "restricted"
+          "event": {
+            "event_id": "e2",
+            "stream_id": "stream-a",
+            "sequence": 1,
+            "previous_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "event_hash": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "actor": "actor-a"
+          },
+          "assessment": {
+            "verifier_id": "verifier-a",
+            "policy_id": "tib-key-policy-v0",
+            "assessed_at": "2026-11-19T00:00:00Z",
+            "status": "verified"
+          },
+          "context": {
+            "projection_key": "claim:x",
+            "access_class": "restricted"
+          }
         }
       ],
       "expected": {
@@ -125,34 +174,54 @@
         "sequence_fork_event_ids": [],
         "hash_collision_event_ids": [],
         "conflict_pairs": [],
-        "sequence_conflict_pending_event_ids": []
+        "sequence_conflict_pending_event_ids": [],
+        "verification_conflict_event_ids": [],
+        "context_conflict_event_ids": []
       }
     },
     {
       "case_id": "REORDER-001",
       "title": "Child delivered before predecessor is accepted after batch reconciliation",
-      "events": [
+      "deliveries": [
         {
-          "event_id": "e2",
-          "stream_id": "stream-a",
-          "sequence": 1,
-          "previous_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-          "event_hash": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
-          "actor": "actor-a",
-          "projection_key": "claim:x",
-          "verification": "verified",
-          "access_class": "restricted"
+          "event": {
+            "event_id": "e2",
+            "stream_id": "stream-a",
+            "sequence": 1,
+            "previous_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "event_hash": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "actor": "actor-a"
+          },
+          "assessment": {
+            "verifier_id": "verifier-a",
+            "policy_id": "tib-key-policy-v0",
+            "assessed_at": "2026-11-19T00:00:00Z",
+            "status": "verified"
+          },
+          "context": {
+            "projection_key": "claim:x",
+            "access_class": "restricted"
+          }
         },
         {
-          "event_id": "e1",
-          "stream_id": "stream-a",
-          "sequence": 0,
-          "previous_hash": null,
-          "event_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-          "actor": "actor-a",
-          "projection_key": "claim:x",
-          "verification": "verified",
-          "access_class": "restricted"
+          "event": {
+            "event_id": "e1",
+            "stream_id": "stream-a",
+            "sequence": 0,
+            "previous_hash": null,
+            "event_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "actor": "actor-a"
+          },
+          "assessment": {
+            "verifier_id": "verifier-a",
+            "policy_id": "tib-key-policy-v0",
+            "assessed_at": "2026-11-19T00:00:00Z",
+            "status": "verified"
+          },
+          "context": {
+            "projection_key": "claim:x",
+            "access_class": "restricted"
+          }
         }
       ],
       "expected": {
@@ -171,23 +240,34 @@
         "sequence_fork_event_ids": [],
         "hash_collision_event_ids": [],
         "conflict_pairs": [],
-        "sequence_conflict_pending_event_ids": []
+        "sequence_conflict_pending_event_ids": [],
+        "verification_conflict_event_ids": [],
+        "context_conflict_event_ids": []
       }
     },
     {
       "case_id": "SIGNATURE-INVALID-001",
       "title": "Invalid signature is not accepted",
-      "events": [
+      "deliveries": [
         {
-          "event_id": "e1",
-          "stream_id": "stream-a",
-          "sequence": 0,
-          "previous_hash": null,
-          "event_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-          "actor": "actor-a",
-          "projection_key": "claim:x",
-          "verification": "invalid",
-          "access_class": "restricted"
+          "event": {
+            "event_id": "e1",
+            "stream_id": "stream-a",
+            "sequence": 0,
+            "previous_hash": null,
+            "event_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "actor": "actor-a"
+          },
+          "assessment": {
+            "verifier_id": "verifier-a",
+            "policy_id": "tib-key-policy-v0",
+            "assessed_at": "2026-11-19T00:00:00Z",
+            "status": "invalid"
+          },
+          "context": {
+            "projection_key": "claim:x",
+            "access_class": "restricted"
+          }
         }
       ],
       "expected": {
@@ -205,23 +285,34 @@
         "sequence_fork_event_ids": [],
         "hash_collision_event_ids": [],
         "conflict_pairs": [],
-        "sequence_conflict_pending_event_ids": []
+        "sequence_conflict_pending_event_ids": [],
+        "verification_conflict_event_ids": [],
+        "context_conflict_event_ids": []
       }
     },
     {
       "case_id": "VERIFIER-UNAVAILABLE-001",
       "title": "Unavailable verifier remains pending",
-      "events": [
+      "deliveries": [
         {
-          "event_id": "e1",
-          "stream_id": "stream-a",
-          "sequence": 0,
-          "previous_hash": null,
-          "event_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-          "actor": "actor-a",
-          "projection_key": "claim:x",
-          "verification": "unavailable",
-          "access_class": "restricted"
+          "event": {
+            "event_id": "e1",
+            "stream_id": "stream-a",
+            "sequence": 0,
+            "previous_hash": null,
+            "event_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "actor": "actor-a"
+          },
+          "assessment": {
+            "verifier_id": "verifier-a",
+            "policy_id": "tib-key-policy-v0",
+            "assessed_at": "2026-11-19T00:00:00Z",
+            "status": "unavailable"
+          },
+          "context": {
+            "projection_key": "claim:x",
+            "access_class": "restricted"
+          }
         }
       ],
       "expected": {
@@ -239,23 +330,34 @@
         "sequence_fork_event_ids": [],
         "hash_collision_event_ids": [],
         "conflict_pairs": [],
-        "sequence_conflict_pending_event_ids": []
+        "sequence_conflict_pending_event_ids": [],
+        "verification_conflict_event_ids": [],
+        "context_conflict_event_ids": []
       }
     },
     {
       "case_id": "KEY-REVOKED-001",
       "title": "Revoked signer key is not accepted",
-      "events": [
+      "deliveries": [
         {
-          "event_id": "e1",
-          "stream_id": "stream-a",
-          "sequence": 0,
-          "previous_hash": null,
-          "event_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-          "actor": "actor-a",
-          "projection_key": "claim:x",
-          "verification": "revoked",
-          "access_class": "restricted"
+          "event": {
+            "event_id": "e1",
+            "stream_id": "stream-a",
+            "sequence": 0,
+            "previous_hash": null,
+            "event_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "actor": "actor-a"
+          },
+          "assessment": {
+            "verifier_id": "verifier-a",
+            "policy_id": "tib-key-policy-v0",
+            "assessed_at": "2026-11-19T00:00:00Z",
+            "status": "revoked"
+          },
+          "context": {
+            "projection_key": "claim:x",
+            "access_class": "restricted"
+          }
         }
       ],
       "expected": {
@@ -273,45 +375,74 @@
         "sequence_fork_event_ids": [],
         "hash_collision_event_ids": [],
         "conflict_pairs": [],
-        "sequence_conflict_pending_event_ids": []
+        "sequence_conflict_pending_event_ids": [],
+        "verification_conflict_event_ids": [],
+        "context_conflict_event_ids": []
       }
     },
     {
       "case_id": "STREAM-FORK-001",
       "title": "Same stream and sequence with two verified events is a fork",
-      "events": [
+      "deliveries": [
         {
-          "event_id": "e0",
-          "stream_id": "stream-a",
-          "sequence": 0,
-          "previous_hash": null,
-          "event_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-          "actor": "actor-a",
-          "projection_key": "claim:x",
-          "verification": "verified",
-          "access_class": "restricted"
+          "event": {
+            "event_id": "e0",
+            "stream_id": "stream-a",
+            "sequence": 0,
+            "previous_hash": null,
+            "event_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "actor": "actor-a"
+          },
+          "assessment": {
+            "verifier_id": "verifier-a",
+            "policy_id": "tib-key-policy-v0",
+            "assessed_at": "2026-11-19T00:00:00Z",
+            "status": "verified"
+          },
+          "context": {
+            "projection_key": "claim:x",
+            "access_class": "restricted"
+          }
         },
         {
-          "event_id": "e1",
-          "stream_id": "stream-a",
-          "sequence": 1,
-          "previous_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-          "event_hash": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
-          "actor": "actor-a",
-          "projection_key": "claim:x",
-          "verification": "verified",
-          "access_class": "restricted"
+          "event": {
+            "event_id": "e1",
+            "stream_id": "stream-a",
+            "sequence": 1,
+            "previous_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "event_hash": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "actor": "actor-a"
+          },
+          "assessment": {
+            "verifier_id": "verifier-a",
+            "policy_id": "tib-key-policy-v0",
+            "assessed_at": "2026-11-19T00:00:00Z",
+            "status": "verified"
+          },
+          "context": {
+            "projection_key": "claim:x",
+            "access_class": "restricted"
+          }
         },
         {
-          "event_id": "e2",
-          "stream_id": "stream-a",
-          "sequence": 1,
-          "previous_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-          "event_hash": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
-          "actor": "actor-b",
-          "projection_key": "claim:x",
-          "verification": "verified",
-          "access_class": "restricted"
+          "event": {
+            "event_id": "e2",
+            "stream_id": "stream-a",
+            "sequence": 1,
+            "previous_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "event_hash": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "actor": "actor-b"
+          },
+          "assessment": {
+            "verifier_id": "verifier-a",
+            "policy_id": "tib-key-policy-v0",
+            "assessed_at": "2026-11-19T00:00:00Z",
+            "status": "verified"
+          },
+          "context": {
+            "projection_key": "claim:x",
+            "access_class": "restricted"
+          }
         }
       ],
       "expected": {
@@ -332,34 +463,54 @@
         ],
         "hash_collision_event_ids": [],
         "conflict_pairs": [],
-        "sequence_conflict_pending_event_ids": []
+        "sequence_conflict_pending_event_ids": [],
+        "verification_conflict_event_ids": [],
+        "context_conflict_event_ids": []
       }
     },
     {
       "case_id": "CONCURRENT-CONFLICT-001",
       "title": "Concurrent streams affecting the same projection are preserved and flagged",
-      "events": [
+      "deliveries": [
         {
-          "event_id": "e1",
-          "stream_id": "stream-a",
-          "sequence": 0,
-          "previous_hash": null,
-          "event_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-          "actor": "actor-a",
-          "projection_key": "claim:x",
-          "verification": "verified",
-          "access_class": "restricted"
+          "event": {
+            "event_id": "e1",
+            "stream_id": "stream-a",
+            "sequence": 0,
+            "previous_hash": null,
+            "event_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "actor": "actor-a"
+          },
+          "assessment": {
+            "verifier_id": "verifier-a",
+            "policy_id": "tib-key-policy-v0",
+            "assessed_at": "2026-11-19T00:00:00Z",
+            "status": "verified"
+          },
+          "context": {
+            "projection_key": "claim:x",
+            "access_class": "restricted"
+          }
         },
         {
-          "event_id": "e2",
-          "stream_id": "stream-b",
-          "sequence": 0,
-          "previous_hash": null,
-          "event_hash": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
-          "actor": "actor-b",
-          "projection_key": "claim:x",
-          "verification": "verified",
-          "access_class": "restricted"
+          "event": {
+            "event_id": "e2",
+            "stream_id": "stream-b",
+            "sequence": 0,
+            "previous_hash": null,
+            "event_hash": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "actor": "actor-b"
+          },
+          "assessment": {
+            "verifier_id": "verifier-a",
+            "policy_id": "tib-key-policy-v0",
+            "assessed_at": "2026-11-19T00:00:00Z",
+            "status": "verified"
+          },
+          "context": {
+            "projection_key": "claim:x",
+            "access_class": "restricted"
+          }
         }
       ],
       "expected": {
@@ -383,34 +534,54 @@
             "e2"
           ]
         ],
-        "sequence_conflict_pending_event_ids": []
+        "sequence_conflict_pending_event_ids": [],
+        "verification_conflict_event_ids": [],
+        "context_conflict_event_ids": []
       }
     },
     {
       "case_id": "CAUSAL-CORRECTION-001",
       "title": "Causally linked correction retains history without false conflict",
-      "events": [
+      "deliveries": [
         {
-          "event_id": "e1",
-          "stream_id": "stream-a",
-          "sequence": 0,
-          "previous_hash": null,
-          "event_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-          "actor": "actor-a",
-          "projection_key": "claim:x",
-          "verification": "verified",
-          "access_class": "restricted"
+          "event": {
+            "event_id": "e1",
+            "stream_id": "stream-a",
+            "sequence": 0,
+            "previous_hash": null,
+            "event_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "actor": "actor-a"
+          },
+          "assessment": {
+            "verifier_id": "verifier-a",
+            "policy_id": "tib-key-policy-v0",
+            "assessed_at": "2026-11-19T00:00:00Z",
+            "status": "verified"
+          },
+          "context": {
+            "projection_key": "claim:x",
+            "access_class": "restricted"
+          }
         },
         {
-          "event_id": "e2",
-          "stream_id": "stream-a",
-          "sequence": 1,
-          "previous_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-          "event_hash": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
-          "actor": "actor-a",
-          "projection_key": "claim:x",
-          "verification": "verified",
-          "access_class": "restricted"
+          "event": {
+            "event_id": "e2",
+            "stream_id": "stream-a",
+            "sequence": 1,
+            "previous_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "event_hash": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "actor": "actor-a"
+          },
+          "assessment": {
+            "verifier_id": "verifier-a",
+            "policy_id": "tib-key-policy-v0",
+            "assessed_at": "2026-11-19T00:00:00Z",
+            "status": "verified"
+          },
+          "context": {
+            "projection_key": "claim:x",
+            "access_class": "restricted"
+          }
         }
       ],
       "expected": {
@@ -429,34 +600,54 @@
         "sequence_fork_event_ids": [],
         "hash_collision_event_ids": [],
         "conflict_pairs": [],
-        "sequence_conflict_pending_event_ids": []
+        "sequence_conflict_pending_event_ids": [],
+        "verification_conflict_event_ids": [],
+        "context_conflict_event_ids": []
       }
     },
     {
       "case_id": "BLOCKED-PARENT-001",
       "title": "Child of invalid signature is blocked",
-      "events": [
+      "deliveries": [
         {
-          "event_id": "e1",
-          "stream_id": "stream-a",
-          "sequence": 0,
-          "previous_hash": null,
-          "event_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-          "actor": "actor-a",
-          "projection_key": "claim:x",
-          "verification": "invalid",
-          "access_class": "restricted"
+          "event": {
+            "event_id": "e1",
+            "stream_id": "stream-a",
+            "sequence": 0,
+            "previous_hash": null,
+            "event_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "actor": "actor-a"
+          },
+          "assessment": {
+            "verifier_id": "verifier-a",
+            "policy_id": "tib-key-policy-v0",
+            "assessed_at": "2026-11-19T00:00:00Z",
+            "status": "invalid"
+          },
+          "context": {
+            "projection_key": "claim:x",
+            "access_class": "restricted"
+          }
         },
         {
-          "event_id": "e2",
-          "stream_id": "stream-a",
-          "sequence": 1,
-          "previous_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-          "event_hash": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
-          "actor": "actor-a",
-          "projection_key": "claim:x",
-          "verification": "verified",
-          "access_class": "restricted"
+          "event": {
+            "event_id": "e2",
+            "stream_id": "stream-a",
+            "sequence": 1,
+            "previous_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "event_hash": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "actor": "actor-a"
+          },
+          "assessment": {
+            "verifier_id": "verifier-a",
+            "policy_id": "tib-key-policy-v0",
+            "assessed_at": "2026-11-19T00:00:00Z",
+            "status": "verified"
+          },
+          "context": {
+            "projection_key": "claim:x",
+            "access_class": "restricted"
+          }
         }
       ],
       "expected": {
@@ -476,34 +667,54 @@
         "sequence_fork_event_ids": [],
         "hash_collision_event_ids": [],
         "conflict_pairs": [],
-        "sequence_conflict_pending_event_ids": []
+        "sequence_conflict_pending_event_ids": [],
+        "verification_conflict_event_ids": [],
+        "context_conflict_event_ids": []
       }
     },
     {
       "case_id": "WRONG-STREAM-PARENT-001",
       "title": "Previous hash from a different stream is blocked",
-      "events": [
+      "deliveries": [
         {
-          "event_id": "e1",
-          "stream_id": "stream-a",
-          "sequence": 0,
-          "previous_hash": null,
-          "event_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-          "actor": "actor-a",
-          "projection_key": "claim:x",
-          "verification": "verified",
-          "access_class": "restricted"
+          "event": {
+            "event_id": "e1",
+            "stream_id": "stream-a",
+            "sequence": 0,
+            "previous_hash": null,
+            "event_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "actor": "actor-a"
+          },
+          "assessment": {
+            "verifier_id": "verifier-a",
+            "policy_id": "tib-key-policy-v0",
+            "assessed_at": "2026-11-19T00:00:00Z",
+            "status": "verified"
+          },
+          "context": {
+            "projection_key": "claim:x",
+            "access_class": "restricted"
+          }
         },
         {
-          "event_id": "e2",
-          "stream_id": "stream-b",
-          "sequence": 1,
-          "previous_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-          "event_hash": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
-          "actor": "actor-a",
-          "projection_key": "claim:x",
-          "verification": "verified",
-          "access_class": "restricted"
+          "event": {
+            "event_id": "e2",
+            "stream_id": "stream-b",
+            "sequence": 1,
+            "previous_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "event_hash": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "actor": "actor-a"
+          },
+          "assessment": {
+            "verifier_id": "verifier-a",
+            "policy_id": "tib-key-policy-v0",
+            "assessed_at": "2026-11-19T00:00:00Z",
+            "status": "verified"
+          },
+          "context": {
+            "projection_key": "claim:x",
+            "access_class": "restricted"
+          }
         }
       ],
       "expected": {
@@ -523,23 +734,34 @@
         "sequence_fork_event_ids": [],
         "hash_collision_event_ids": [],
         "conflict_pairs": [],
-        "sequence_conflict_pending_event_ids": []
+        "sequence_conflict_pending_event_ids": [],
+        "verification_conflict_event_ids": [],
+        "context_conflict_event_ids": []
       }
     },
     {
       "case_id": "MALFORMED-DIGEST-001",
       "title": "Malformed event hash is rejected structurally",
-      "events": [
+      "deliveries": [
         {
-          "event_id": "e1",
-          "stream_id": "stream-a",
-          "sequence": 0,
-          "previous_hash": null,
-          "event_hash": "not-a-digest",
-          "actor": "actor-a",
-          "projection_key": "claim:x",
-          "verification": "verified",
-          "access_class": "restricted"
+          "event": {
+            "event_id": "e1",
+            "stream_id": "stream-a",
+            "sequence": 0,
+            "previous_hash": null,
+            "event_hash": "not-a-digest",
+            "actor": "actor-a"
+          },
+          "assessment": {
+            "verifier_id": "verifier-a",
+            "policy_id": "tib-key-policy-v0",
+            "assessed_at": "2026-11-19T00:00:00Z",
+            "status": "verified"
+          },
+          "context": {
+            "projection_key": "claim:x",
+            "access_class": "restricted"
+          }
         }
       ],
       "expected": {
@@ -557,23 +779,34 @@
         "sequence_fork_event_ids": [],
         "hash_collision_event_ids": [],
         "conflict_pairs": [],
-        "sequence_conflict_pending_event_ids": []
+        "sequence_conflict_pending_event_ids": [],
+        "verification_conflict_event_ids": [],
+        "context_conflict_event_ids": []
       }
     },
     {
       "case_id": "MALFORMED-GENESIS-001",
       "title": "Genesis event with previous hash is rejected",
-      "events": [
+      "deliveries": [
         {
-          "event_id": "e1",
-          "stream_id": "stream-a",
-          "sequence": 0,
-          "previous_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-          "event_hash": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
-          "actor": "actor-a",
-          "projection_key": "claim:x",
-          "verification": "verified",
-          "access_class": "restricted"
+          "event": {
+            "event_id": "e1",
+            "stream_id": "stream-a",
+            "sequence": 0,
+            "previous_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "event_hash": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "actor": "actor-a"
+          },
+          "assessment": {
+            "verifier_id": "verifier-a",
+            "policy_id": "tib-key-policy-v0",
+            "assessed_at": "2026-11-19T00:00:00Z",
+            "status": "verified"
+          },
+          "context": {
+            "projection_key": "claim:x",
+            "access_class": "restricted"
+          }
         }
       ],
       "expected": {
@@ -591,34 +824,54 @@
         "sequence_fork_event_ids": [],
         "hash_collision_event_ids": [],
         "conflict_pairs": [],
-        "sequence_conflict_pending_event_ids": []
+        "sequence_conflict_pending_event_ids": [],
+        "verification_conflict_event_ids": [],
+        "context_conflict_event_ids": []
       }
     },
     {
       "case_id": "HASH-COLLISION-001",
       "title": "Same BLAKE3 event hash under different event IDs is quarantined",
-      "events": [
+      "deliveries": [
         {
-          "event_id": "e1",
-          "stream_id": "stream-a",
-          "sequence": 0,
-          "previous_hash": null,
-          "event_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-          "actor": "actor-a",
-          "projection_key": "claim:x",
-          "verification": "verified",
-          "access_class": "restricted"
+          "event": {
+            "event_id": "e1",
+            "stream_id": "stream-a",
+            "sequence": 0,
+            "previous_hash": null,
+            "event_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "actor": "actor-a"
+          },
+          "assessment": {
+            "verifier_id": "verifier-a",
+            "policy_id": "tib-key-policy-v0",
+            "assessed_at": "2026-11-19T00:00:00Z",
+            "status": "verified"
+          },
+          "context": {
+            "projection_key": "claim:x",
+            "access_class": "restricted"
+          }
         },
         {
-          "event_id": "e2",
-          "stream_id": "stream-b",
-          "sequence": 0,
-          "previous_hash": null,
-          "event_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-          "actor": "actor-b",
-          "projection_key": "claim:x",
-          "verification": "verified",
-          "access_class": "restricted"
+          "event": {
+            "event_id": "e2",
+            "stream_id": "stream-b",
+            "sequence": 0,
+            "previous_hash": null,
+            "event_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "actor": "actor-b"
+          },
+          "assessment": {
+            "verifier_id": "verifier-a",
+            "policy_id": "tib-key-policy-v0",
+            "assessed_at": "2026-11-19T00:00:00Z",
+            "status": "verified"
+          },
+          "context": {
+            "projection_key": "claim:x",
+            "access_class": "restricted"
+          }
         }
       ],
       "expected": {
@@ -637,34 +890,54 @@
           "e2"
         ],
         "conflict_pairs": [],
-        "sequence_conflict_pending_event_ids": []
+        "sequence_conflict_pending_event_ids": [],
+        "verification_conflict_event_ids": [],
+        "context_conflict_event_ids": []
       }
     },
     {
       "case_id": "UNRELATED-PROJECTIONS-001",
       "title": "Independent streams on distinct projection keys do not conflict",
-      "events": [
+      "deliveries": [
         {
-          "event_id": "e1",
-          "stream_id": "stream-a",
-          "sequence": 0,
-          "previous_hash": null,
-          "event_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-          "actor": "actor-a",
-          "projection_key": "claim:x",
-          "verification": "verified",
-          "access_class": "restricted"
+          "event": {
+            "event_id": "e1",
+            "stream_id": "stream-a",
+            "sequence": 0,
+            "previous_hash": null,
+            "event_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "actor": "actor-a"
+          },
+          "assessment": {
+            "verifier_id": "verifier-a",
+            "policy_id": "tib-key-policy-v0",
+            "assessed_at": "2026-11-19T00:00:00Z",
+            "status": "verified"
+          },
+          "context": {
+            "projection_key": "claim:x",
+            "access_class": "restricted"
+          }
         },
         {
-          "event_id": "e2",
-          "stream_id": "stream-b",
-          "sequence": 0,
-          "previous_hash": null,
-          "event_hash": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
-          "actor": "actor-b",
-          "projection_key": "claim:y",
-          "verification": "verified",
-          "access_class": "restricted"
+          "event": {
+            "event_id": "e2",
+            "stream_id": "stream-b",
+            "sequence": 0,
+            "previous_hash": null,
+            "event_hash": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "actor": "actor-b"
+          },
+          "assessment": {
+            "verifier_id": "verifier-a",
+            "policy_id": "tib-key-policy-v0",
+            "assessed_at": "2026-11-19T00:00:00Z",
+            "status": "verified"
+          },
+          "context": {
+            "projection_key": "claim:y",
+            "access_class": "restricted"
+          }
         }
       ],
       "expected": {
@@ -683,34 +956,54 @@
         "sequence_fork_event_ids": [],
         "hash_collision_event_ids": [],
         "conflict_pairs": [],
-        "sequence_conflict_pending_event_ids": []
+        "sequence_conflict_pending_event_ids": [],
+        "verification_conflict_event_ids": [],
+        "context_conflict_event_ids": []
       }
     },
     {
       "case_id": "UNAVAILABLE-STREAM-SLOT-001",
       "title": "Verified event is held when a same-sequence competitor cannot yet be verified",
-      "events": [
+      "deliveries": [
         {
-          "event_id": "e1",
-          "stream_id": "stream-a",
-          "sequence": 0,
-          "previous_hash": null,
-          "event_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-          "actor": "actor-e1",
-          "projection_key": "claim:x",
-          "verification": "verified",
-          "access_class": "restricted"
+          "event": {
+            "event_id": "e1",
+            "stream_id": "stream-a",
+            "sequence": 0,
+            "previous_hash": null,
+            "event_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "actor": "actor-e1"
+          },
+          "assessment": {
+            "verifier_id": "verifier-a",
+            "policy_id": "tib-key-policy-v0",
+            "assessed_at": "2026-11-19T00:00:00Z",
+            "status": "verified"
+          },
+          "context": {
+            "projection_key": "claim:x",
+            "access_class": "restricted"
+          }
         },
         {
-          "event_id": "e2",
-          "stream_id": "stream-a",
-          "sequence": 0,
-          "previous_hash": null,
-          "event_hash": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
-          "actor": "actor-e2",
-          "projection_key": "claim:x",
-          "verification": "unavailable",
-          "access_class": "restricted"
+          "event": {
+            "event_id": "e2",
+            "stream_id": "stream-a",
+            "sequence": 0,
+            "previous_hash": null,
+            "event_hash": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "actor": "actor-e2"
+          },
+          "assessment": {
+            "verifier_id": "verifier-a",
+            "policy_id": "tib-key-policy-v0",
+            "assessed_at": "2026-11-19T00:00:00Z",
+            "status": "unavailable"
+          },
+          "context": {
+            "projection_key": "claim:x",
+            "access_class": "restricted"
+          }
         }
       ],
       "expected": {
@@ -731,34 +1024,54 @@
           "e2"
         ],
         "hash_collision_event_ids": [],
-        "conflict_pairs": []
+        "conflict_pairs": [],
+        "verification_conflict_event_ids": [],
+        "context_conflict_event_ids": []
       }
     },
     {
       "case_id": "INVALID-SIGNATURE-NOT-A-FORK-001",
       "title": "Definitively invalid same-slot signature does not poison the verified event",
-      "events": [
+      "deliveries": [
         {
-          "event_id": "e1",
-          "stream_id": "stream-a",
-          "sequence": 0,
-          "previous_hash": null,
-          "event_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-          "actor": "actor-e1",
-          "projection_key": "claim:x",
-          "verification": "verified",
-          "access_class": "restricted"
+          "event": {
+            "event_id": "e1",
+            "stream_id": "stream-a",
+            "sequence": 0,
+            "previous_hash": null,
+            "event_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "actor": "actor-e1"
+          },
+          "assessment": {
+            "verifier_id": "verifier-a",
+            "policy_id": "tib-key-policy-v0",
+            "assessed_at": "2026-11-19T00:00:00Z",
+            "status": "verified"
+          },
+          "context": {
+            "projection_key": "claim:x",
+            "access_class": "restricted"
+          }
         },
         {
-          "event_id": "e2",
-          "stream_id": "stream-a",
-          "sequence": 0,
-          "previous_hash": null,
-          "event_hash": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
-          "actor": "actor-e2",
-          "projection_key": "claim:x",
-          "verification": "invalid",
-          "access_class": "restricted"
+          "event": {
+            "event_id": "e2",
+            "stream_id": "stream-a",
+            "sequence": 0,
+            "previous_hash": null,
+            "event_hash": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "actor": "actor-e2"
+          },
+          "assessment": {
+            "verifier_id": "verifier-a",
+            "policy_id": "tib-key-policy-v0",
+            "assessed_at": "2026-11-19T00:00:00Z",
+            "status": "invalid"
+          },
+          "context": {
+            "projection_key": "claim:x",
+            "access_class": "restricted"
+          }
         }
       ],
       "expected": {
@@ -778,34 +1091,54 @@
         "sequence_fork_event_ids": [],
         "sequence_conflict_pending_event_ids": [],
         "hash_collision_event_ids": [],
-        "conflict_pairs": []
+        "conflict_pairs": [],
+        "verification_conflict_event_ids": [],
+        "context_conflict_event_ids": []
       }
     },
     {
       "case_id": "REVOKED-STREAM-SLOT-001",
       "title": "Verified event is held when a same-sequence competitor has unresolved revocation status",
-      "events": [
+      "deliveries": [
         {
-          "event_id": "e1",
-          "stream_id": "stream-a",
-          "sequence": 0,
-          "previous_hash": null,
-          "event_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-          "actor": "actor-e1",
-          "projection_key": "claim:x",
-          "verification": "verified",
-          "access_class": "restricted"
+          "event": {
+            "event_id": "e1",
+            "stream_id": "stream-a",
+            "sequence": 0,
+            "previous_hash": null,
+            "event_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "actor": "actor-e1"
+          },
+          "assessment": {
+            "verifier_id": "verifier-a",
+            "policy_id": "tib-key-policy-v0",
+            "assessed_at": "2026-11-19T00:00:00Z",
+            "status": "verified"
+          },
+          "context": {
+            "projection_key": "claim:x",
+            "access_class": "restricted"
+          }
         },
         {
-          "event_id": "e2",
-          "stream_id": "stream-a",
-          "sequence": 0,
-          "previous_hash": null,
-          "event_hash": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
-          "actor": "actor-e2",
-          "projection_key": "claim:x",
-          "verification": "revoked",
-          "access_class": "restricted"
+          "event": {
+            "event_id": "e2",
+            "stream_id": "stream-a",
+            "sequence": 0,
+            "previous_hash": null,
+            "event_hash": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "actor": "actor-e2"
+          },
+          "assessment": {
+            "verifier_id": "verifier-a",
+            "policy_id": "tib-key-policy-v0",
+            "assessed_at": "2026-11-19T00:00:00Z",
+            "status": "revoked"
+          },
+          "context": {
+            "projection_key": "claim:x",
+            "access_class": "restricted"
+          }
         }
       ],
       "expected": {
@@ -826,6 +1159,335 @@
           "e2"
         ],
         "hash_collision_event_ids": [],
+        "conflict_pairs": [],
+        "verification_conflict_event_ids": [],
+        "context_conflict_event_ids": []
+      }
+    },
+    {
+      "case_id": "ASSESSMENT-STATUS-CHANGE-001",
+      "title": "Same immutable event with conflicting verifier results is not event equivocation and remains pending",
+      "deliveries": [
+        {
+          "event": {
+            "event_id": "e1",
+            "stream_id": "stream-a",
+            "sequence": 0,
+            "previous_hash": null,
+            "event_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "actor": "actor-e1"
+          },
+          "assessment": {
+            "verifier_id": "verifier-a",
+            "policy_id": "tib-key-policy-v0",
+            "assessed_at": "2026-11-19T00:00:00Z",
+            "status": "verified"
+          },
+          "context": {
+            "projection_key": "claim:x",
+            "access_class": "restricted"
+          }
+        },
+        {
+          "event": {
+            "event_id": "e1",
+            "stream_id": "stream-a",
+            "sequence": 0,
+            "previous_hash": null,
+            "event_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "actor": "actor-e1"
+          },
+          "assessment": {
+            "verifier_id": "verifier-b",
+            "policy_id": "tib-key-policy-v0",
+            "assessed_at": "2026-11-19T01:00:00Z",
+            "status": "unavailable"
+          },
+          "context": {
+            "projection_key": "claim:x",
+            "access_class": "restricted"
+          }
+        }
+      ],
+      "expected": {
+        "accepted_events": [],
+        "duplicate_replays": 1,
+        "invalid_signatures": [],
+        "revoked_keys": [],
+        "verification_pending": [],
+        "verification_conflict_event_ids": [
+          "e1"
+        ],
+        "malformed_events": [],
+        "missing_parent_events": [],
+        "blocked_parent_events": [],
+        "equivocation_event_ids": [],
+        "sequence_fork_event_ids": [],
+        "sequence_conflict_pending_event_ids": [],
+        "hash_collision_event_ids": [],
+        "context_conflict_event_ids": [],
+        "conflict_pairs": []
+      }
+    },
+    {
+      "case_id": "ASSESSMENT-POLICY-DIVERGENCE-001",
+      "title": "Same immutable event assessed under different verifier policies requires review",
+      "deliveries": [
+        {
+          "event": {
+            "event_id": "e1",
+            "stream_id": "stream-a",
+            "sequence": 0,
+            "previous_hash": null,
+            "event_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "actor": "actor-e1"
+          },
+          "assessment": {
+            "verifier_id": "verifier-a",
+            "policy_id": "tib-key-policy-v0",
+            "assessed_at": "2026-11-19T00:00:00Z",
+            "status": "verified"
+          },
+          "context": {
+            "projection_key": "claim:x",
+            "access_class": "restricted"
+          }
+        },
+        {
+          "event": {
+            "event_id": "e1",
+            "stream_id": "stream-a",
+            "sequence": 0,
+            "previous_hash": null,
+            "event_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "actor": "actor-e1"
+          },
+          "assessment": {
+            "verifier_id": "verifier-b",
+            "policy_id": "tib-key-policy-v1",
+            "assessed_at": "2026-11-19T00:00:00Z",
+            "status": "verified"
+          },
+          "context": {
+            "projection_key": "claim:x",
+            "access_class": "restricted"
+          }
+        }
+      ],
+      "expected": {
+        "accepted_events": [],
+        "duplicate_replays": 1,
+        "invalid_signatures": [],
+        "revoked_keys": [],
+        "verification_pending": [],
+        "verification_conflict_event_ids": [
+          "e1"
+        ],
+        "malformed_events": [],
+        "missing_parent_events": [],
+        "blocked_parent_events": [],
+        "equivocation_event_ids": [],
+        "sequence_fork_event_ids": [],
+        "sequence_conflict_pending_event_ids": [],
+        "hash_collision_event_ids": [],
+        "context_conflict_event_ids": [],
+        "conflict_pairs": []
+      }
+    },
+    {
+      "case_id": "ASSESSMENT-INDEPENDENT-AGREEMENT-001",
+      "title": "Independent verifiers agreeing under the same policy corroborate one immutable event",
+      "deliveries": [
+        {
+          "event": {
+            "event_id": "e1",
+            "stream_id": "stream-a",
+            "sequence": 0,
+            "previous_hash": null,
+            "event_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "actor": "actor-e1"
+          },
+          "assessment": {
+            "verifier_id": "verifier-a",
+            "policy_id": "tib-key-policy-v0",
+            "assessed_at": "2026-11-19T00:00:00Z",
+            "status": "verified"
+          },
+          "context": {
+            "projection_key": "claim:x",
+            "access_class": "restricted"
+          }
+        },
+        {
+          "event": {
+            "event_id": "e1",
+            "stream_id": "stream-a",
+            "sequence": 0,
+            "previous_hash": null,
+            "event_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "actor": "actor-e1"
+          },
+          "assessment": {
+            "verifier_id": "verifier-b",
+            "policy_id": "tib-key-policy-v0",
+            "assessed_at": "2026-11-19T01:00:00Z",
+            "status": "verified"
+          },
+          "context": {
+            "projection_key": "claim:x",
+            "access_class": "restricted"
+          }
+        }
+      ],
+      "expected": {
+        "accepted_events": [
+          "e1"
+        ],
+        "duplicate_replays": 1,
+        "invalid_signatures": [],
+        "revoked_keys": [],
+        "verification_pending": [],
+        "verification_conflict_event_ids": [],
+        "malformed_events": [],
+        "missing_parent_events": [],
+        "blocked_parent_events": [],
+        "equivocation_event_ids": [],
+        "sequence_fork_event_ids": [],
+        "sequence_conflict_pending_event_ids": [],
+        "hash_collision_event_ids": [],
+        "context_conflict_event_ids": [],
+        "conflict_pairs": []
+      }
+    },
+    {
+      "case_id": "CONTEXT-DOWNGRADE-001",
+      "title": "Changed access annotation on the same event does not change event identity and blocks projection use",
+      "deliveries": [
+        {
+          "event": {
+            "event_id": "e1",
+            "stream_id": "stream-a",
+            "sequence": 0,
+            "previous_hash": null,
+            "event_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "actor": "actor-e1"
+          },
+          "assessment": {
+            "verifier_id": "verifier-a",
+            "policy_id": "tib-key-policy-v0",
+            "assessed_at": "2026-11-19T00:00:00Z",
+            "status": "verified"
+          },
+          "context": {
+            "projection_key": "claim:x",
+            "access_class": "restricted"
+          }
+        },
+        {
+          "event": {
+            "event_id": "e1",
+            "stream_id": "stream-a",
+            "sequence": 0,
+            "previous_hash": null,
+            "event_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "actor": "actor-e1"
+          },
+          "assessment": {
+            "verifier_id": "verifier-b",
+            "policy_id": "tib-key-policy-v0",
+            "assessed_at": "2026-11-19T00:00:00Z",
+            "status": "verified"
+          },
+          "context": {
+            "projection_key": "claim:x",
+            "access_class": "public"
+          }
+        }
+      ],
+      "expected": {
+        "accepted_events": [
+          "e1"
+        ],
+        "duplicate_replays": 1,
+        "invalid_signatures": [],
+        "revoked_keys": [],
+        "verification_pending": [],
+        "verification_conflict_event_ids": [],
+        "malformed_events": [],
+        "missing_parent_events": [],
+        "blocked_parent_events": [],
+        "equivocation_event_ids": [],
+        "sequence_fork_event_ids": [],
+        "sequence_conflict_pending_event_ids": [],
+        "hash_collision_event_ids": [],
+        "context_conflict_event_ids": [
+          "e1"
+        ],
+        "conflict_pairs": []
+      }
+    },
+    {
+      "case_id": "EVENT-PAYLOAD-EQUIVOCATION-001",
+      "title": "Same event ID and event hash with changed signed envelope fields is equivocation",
+      "deliveries": [
+        {
+          "event": {
+            "event_id": "e1",
+            "stream_id": "stream-a",
+            "sequence": 0,
+            "previous_hash": null,
+            "event_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "actor": "actor-e1"
+          },
+          "assessment": {
+            "verifier_id": "verifier-a",
+            "policy_id": "tib-key-policy-v0",
+            "assessed_at": "2026-11-19T00:00:00Z",
+            "status": "verified"
+          },
+          "context": {
+            "projection_key": "claim:x",
+            "access_class": "restricted"
+          }
+        },
+        {
+          "event": {
+            "event_id": "e1",
+            "stream_id": "stream-a",
+            "sequence": 0,
+            "previous_hash": null,
+            "event_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "actor": "actor-attacker"
+          },
+          "assessment": {
+            "verifier_id": "verifier-a",
+            "policy_id": "tib-key-policy-v0",
+            "assessed_at": "2026-11-19T00:00:00Z",
+            "status": "verified"
+          },
+          "context": {
+            "projection_key": "claim:x",
+            "access_class": "restricted"
+          }
+        }
+      ],
+      "expected": {
+        "accepted_events": [],
+        "duplicate_replays": 0,
+        "invalid_signatures": [],
+        "revoked_keys": [],
+        "verification_pending": [],
+        "verification_conflict_event_ids": [],
+        "malformed_events": [],
+        "missing_parent_events": [],
+        "blocked_parent_events": [],
+        "equivocation_event_ids": [
+          "e1"
+        ],
+        "sequence_fork_event_ids": [],
+        "sequence_conflict_pending_event_ids": [],
+        "hash_collision_event_ids": [],
+        "context_conflict_event_ids": [],
         "conflict_pairs": []
       }
     }
