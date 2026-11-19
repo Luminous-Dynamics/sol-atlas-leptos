@@ -27,8 +27,7 @@
     "future_empirical_inputs_required",
     "targets",
     "functional_units",
-    "scope_boundary",
-    "owner_native_dependencies"
+    "scope_boundary"
   ],
   "properties": {
     "schema": {
