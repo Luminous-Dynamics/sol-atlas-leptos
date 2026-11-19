@@ -1047,7 +1047,9 @@
             "timestamp_evidence_ref": "urn:tsa:timestamp:1",
             "renewal_time": "2026-11-19T16:00:00Z",
             "renewal_event_ref": "urn:preservation:renewal:event:1",
-            "algorithm_weakening_time": "2026-12-01T00:00:00Z"
+            "algorithm_weakening_time": "2026-12-01T00:00:00Z",
+            "renewal_time_unix_seconds": 1795104000,
+            "algorithm_weakening_time_unix_seconds": 1796083200
           }
         ],
         "limitations": [

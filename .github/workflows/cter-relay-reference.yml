@@ -64,6 +64,7 @@ jobs:
           python3 -m json.tool benchmarks/territorial-integrity/relay/cases-v0.1.json > /dev/null
           python3 -m json.tool benchmarks/territorial-integrity/relay/manifest-v0.1.json > /dev/null
           python3 -m json.tool benchmarks/territorial-integrity/relay/archive-cases-v0.1.json > /dev/null
+          python3 -m json.tool benchmarks/territorial-integrity/relay/scale-workloads-v0.1.json > /dev/null
           python3 -m json.tool schemas/cter-relay-delivery-v0.1.schema.json > /dev/null
           python3 -m json.tool schemas/cter-community-archive-manifest-v0.1.schema.json > /dev/null
 

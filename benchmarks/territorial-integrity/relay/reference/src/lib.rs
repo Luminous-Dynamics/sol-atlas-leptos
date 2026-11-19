@@ -111,19 +111,22 @@ fn parse_delivery(value: &Value) -> Option<ParsedEvent> {
     ) {
         return None;
     }
+    let time_evidence_ref = nonempty_string(assessment, "time_evidence_ref");
     let raw_status = nonempty_string(assessment, "status")?;
     if !matches!(raw_status.as_str(), "verified" | "invalid" | "revoked" | "unavailable") {
         return None;
     }
     // A signer-controlled occurred_at is not an authenticated timestamp.
-    // A verified/revoked conclusion is actionable only with a trusted event-
-    // time basis. Otherwise downgrade to unavailable, never to accepted.
+    // A trusted basis without its receipt/timestamp evidence reference is
+    // also insufficient: downgrade verified/revoked to unavailable.
+    let has_trusted_time = matches!(
+        time_basis.as_str(),
+        "trusted_append_receipt" | "external_trusted_timestamp"
+    ) && time_evidence_ref.is_some();
     let status = match raw_status.as_str() {
         "invalid" => "invalid",
         "unavailable" => "unavailable",
-        "verified" | "revoked"
-            if matches!(time_basis.as_str(), "trusted_append_receipt" | "external_trusted_timestamp") =>
-        {
+        "verified" | "revoked" if has_trusted_time => {
             if raw_status == "verified" { "verified" } else { "revoked" }
         }
         _ => "unavailable",

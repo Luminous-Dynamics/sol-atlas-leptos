@@ -230,8 +230,8 @@ pub fn evaluate_archive(manifest: &Value) -> ArchiveEvaluation {
             let renewal_ref = nonempty(record, "renewal_event_ref");
             let predecessor = nonempty(record, "predecessor_ref");
             let timestamp = nonempty(record, "timestamp_evidence_ref");
-            let renewal_time = nonempty(record, "renewal_time");
-            let weakening_time = nonempty(record, "algorithm_weakening_time");
+            let renewal_time = record.get("renewal_time_unix_seconds").and_then(Value::as_i64);
+            let weakening_time = record.get("algorithm_weakening_time_unix_seconds").and_then(Value::as_i64);
             let renewal_is_timely = match (renewal_time, weakening_time) {
                 (Some(renewal), Some(weakening)) => renewal <= weakening,
                 _ => false,

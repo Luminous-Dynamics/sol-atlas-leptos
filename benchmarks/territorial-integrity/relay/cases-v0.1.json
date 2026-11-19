@@ -1,7 +1,7 @@
 {
   "schema": "luminous.cter.relay-cases.v0",
   "suite_id": "CTER-RELAY-CONVERGENCE-001",
-  "suite_version": "0.1.6",
+  "suite_version": "0.1.7",
   "synthetic_only": true,
   "cases": [
     {
@@ -24,7 +24,8 @@
             "status": "verified",
             "assessment_id": "assessment-replay-001-1",
             "key_status_snapshot_ref": "urn:tib:key-status:snapshot:synthetic-2026-11-19",
-            "event_time_basis": "external_trusted_timestamp"
+            "event_time_basis": "external_trusted_timestamp",
+            "time_evidence_ref": "urn:synthetic:time-evidence:assessment-replay-001-1"
           },
           "context": {
             "projection_key": "claim:x",
@@ -52,7 +53,8 @@
             "status": "verified",
             "assessment_id": "assessment-replay-001-2",
             "key_status_snapshot_ref": "urn:tib:key-status:snapshot:synthetic-2026-11-19",
-            "event_time_basis": "external_trusted_timestamp"
+            "event_time_basis": "external_trusted_timestamp",
+            "time_evidence_ref": "urn:synthetic:time-evidence:assessment-replay-001-2"
           },
           "context": {
             "projection_key": "claim:x",
@@ -105,7 +107,8 @@
             "status": "verified",
             "assessment_id": "assessment-equivocation-001-1",
             "key_status_snapshot_ref": "urn:tib:key-status:snapshot:synthetic-2026-11-19",
-            "event_time_basis": "external_trusted_timestamp"
+            "event_time_basis": "external_trusted_timestamp",
+            "time_evidence_ref": "urn:synthetic:time-evidence:assessment-equivocation-001-1"
           },
           "context": {
             "projection_key": "claim:x",
@@ -133,7 +136,8 @@
             "status": "verified",
             "assessment_id": "assessment-equivocation-001-2",
             "key_status_snapshot_ref": "urn:tib:key-status:snapshot:synthetic-2026-11-19",
-            "event_time_basis": "external_trusted_timestamp"
+            "event_time_basis": "external_trusted_timestamp",
+            "time_evidence_ref": "urn:synthetic:time-evidence:assessment-equivocation-001-2"
           },
           "context": {
             "projection_key": "claim:x",
@@ -186,7 +190,8 @@
             "status": "verified",
             "assessment_id": "assessment-parent-gap-001-1",
             "key_status_snapshot_ref": "urn:tib:key-status:snapshot:synthetic-2026-11-19",
-            "event_time_basis": "external_trusted_timestamp"
+            "event_time_basis": "external_trusted_timestamp",
+            "time_evidence_ref": "urn:synthetic:time-evidence:assessment-parent-gap-001-1"
           },
           "context": {
             "projection_key": "claim:x",
@@ -239,7 +244,8 @@
             "status": "verified",
             "assessment_id": "assessment-reorder-001-1",
             "key_status_snapshot_ref": "urn:tib:key-status:snapshot:synthetic-2026-11-19",
-            "event_time_basis": "external_trusted_timestamp"
+            "event_time_basis": "external_trusted_timestamp",
+            "time_evidence_ref": "urn:synthetic:time-evidence:assessment-reorder-001-1"
           },
           "context": {
             "projection_key": "claim:x",
@@ -267,7 +273,8 @@
             "status": "verified",
             "assessment_id": "assessment-reorder-001-2",
             "key_status_snapshot_ref": "urn:tib:key-status:snapshot:synthetic-2026-11-19",
-            "event_time_basis": "external_trusted_timestamp"
+            "event_time_basis": "external_trusted_timestamp",
+            "time_evidence_ref": "urn:synthetic:time-evidence:assessment-reorder-001-2"
           },
           "context": {
             "projection_key": "claim:x",
@@ -427,7 +434,8 @@
             "status": "revoked",
             "assessment_id": "assessment-key-revoked-001-1",
             "key_status_snapshot_ref": "urn:tib:key-status:snapshot:synthetic-2026-11-19",
-            "event_time_basis": "external_trusted_timestamp"
+            "event_time_basis": "external_trusted_timestamp",
+            "time_evidence_ref": "urn:synthetic:time-evidence:assessment-key-revoked-001-1"
           },
           "context": {
             "projection_key": "claim:x",
@@ -480,7 +488,8 @@
             "status": "verified",
             "assessment_id": "assessment-stream-fork-001-1",
             "key_status_snapshot_ref": "urn:tib:key-status:snapshot:synthetic-2026-11-19",
-            "event_time_basis": "external_trusted_timestamp"
+            "event_time_basis": "external_trusted_timestamp",
+            "time_evidence_ref": "urn:synthetic:time-evidence:assessment-stream-fork-001-1"
           },
           "context": {
             "projection_key": "claim:x",
@@ -508,7 +517,8 @@
             "status": "verified",
             "assessment_id": "assessment-stream-fork-001-2",
             "key_status_snapshot_ref": "urn:tib:key-status:snapshot:synthetic-2026-11-19",
-            "event_time_basis": "external_trusted_timestamp"
+            "event_time_basis": "external_trusted_timestamp",
+            "time_evidence_ref": "urn:synthetic:time-evidence:assessment-stream-fork-001-2"
           },
           "context": {
             "projection_key": "claim:x",
@@ -536,7 +546,8 @@
             "status": "verified",
             "assessment_id": "assessment-stream-fork-001-3",
             "key_status_snapshot_ref": "urn:tib:key-status:snapshot:synthetic-2026-11-19",
-            "event_time_basis": "external_trusted_timestamp"
+            "event_time_basis": "external_trusted_timestamp",
+            "time_evidence_ref": "urn:synthetic:time-evidence:assessment-stream-fork-001-3"
           },
           "context": {
             "projection_key": "claim:x",
@@ -592,7 +603,8 @@
             "status": "verified",
             "assessment_id": "assessment-concurrent-conflict-001-1",
             "key_status_snapshot_ref": "urn:tib:key-status:snapshot:synthetic-2026-11-19",
-            "event_time_basis": "external_trusted_timestamp"
+            "event_time_basis": "external_trusted_timestamp",
+            "time_evidence_ref": "urn:synthetic:time-evidence:assessment-concurrent-conflict-001-1"
           },
           "context": {
             "projection_key": "claim:x",
@@ -620,7 +632,8 @@
             "status": "verified",
             "assessment_id": "assessment-concurrent-conflict-001-2",
             "key_status_snapshot_ref": "urn:tib:key-status:snapshot:synthetic-2026-11-19",
-            "event_time_basis": "external_trusted_timestamp"
+            "event_time_basis": "external_trusted_timestamp",
+            "time_evidence_ref": "urn:synthetic:time-evidence:assessment-concurrent-conflict-001-2"
           },
           "context": {
             "projection_key": "claim:x",
@@ -688,7 +701,8 @@
             "status": "verified",
             "assessment_id": "assessment-causal-correction-001-1",
             "key_status_snapshot_ref": "urn:tib:key-status:snapshot:synthetic-2026-11-19",
-            "event_time_basis": "external_trusted_timestamp"
+            "event_time_basis": "external_trusted_timestamp",
+            "time_evidence_ref": "urn:synthetic:time-evidence:assessment-causal-correction-001-1"
           },
           "context": {
             "projection_key": "claim:x",
@@ -716,7 +730,8 @@
             "status": "verified",
             "assessment_id": "assessment-causal-correction-001-2",
             "key_status_snapshot_ref": "urn:tib:key-status:snapshot:synthetic-2026-11-19",
-            "event_time_basis": "external_trusted_timestamp"
+            "event_time_basis": "external_trusted_timestamp",
+            "time_evidence_ref": "urn:synthetic:time-evidence:assessment-causal-correction-001-2"
           },
           "context": {
             "projection_key": "claim:x",
@@ -798,7 +813,8 @@
             "status": "verified",
             "assessment_id": "assessment-blocked-parent-001-2",
             "key_status_snapshot_ref": "urn:tib:key-status:snapshot:synthetic-2026-11-19",
-            "event_time_basis": "external_trusted_timestamp"
+            "event_time_basis": "external_trusted_timestamp",
+            "time_evidence_ref": "urn:synthetic:time-evidence:assessment-blocked-parent-001-2"
           },
           "context": {
             "projection_key": "claim:x",
@@ -853,7 +869,8 @@
             "status": "verified",
             "assessment_id": "assessment-wrong-stream-parent-001-1",
             "key_status_snapshot_ref": "urn:tib:key-status:snapshot:synthetic-2026-11-19",
-            "event_time_basis": "external_trusted_timestamp"
+            "event_time_basis": "external_trusted_timestamp",
+            "time_evidence_ref": "urn:synthetic:time-evidence:assessment-wrong-stream-parent-001-1"
           },
           "context": {
             "projection_key": "claim:x",
@@ -881,7 +898,8 @@
             "status": "verified",
             "assessment_id": "assessment-wrong-stream-parent-001-2",
             "key_status_snapshot_ref": "urn:tib:key-status:snapshot:synthetic-2026-11-19",
-            "event_time_basis": "external_trusted_timestamp"
+            "event_time_basis": "external_trusted_timestamp",
+            "time_evidence_ref": "urn:synthetic:time-evidence:assessment-wrong-stream-parent-001-2"
           },
           "context": {
             "projection_key": "claim:x",
@@ -936,7 +954,8 @@
             "status": "verified",
             "assessment_id": "assessment-malformed-digest-001-1",
             "key_status_snapshot_ref": "urn:tib:key-status:snapshot:synthetic-2026-11-19",
-            "event_time_basis": "external_trusted_timestamp"
+            "event_time_basis": "external_trusted_timestamp",
+            "time_evidence_ref": "urn:synthetic:time-evidence:assessment-malformed-digest-001-1"
           },
           "context": {
             "projection_key": "claim:x",
@@ -989,7 +1008,8 @@
             "status": "verified",
             "assessment_id": "assessment-malformed-genesis-001-1",
             "key_status_snapshot_ref": "urn:tib:key-status:snapshot:synthetic-2026-11-19",
-            "event_time_basis": "external_trusted_timestamp"
+            "event_time_basis": "external_trusted_timestamp",
+            "time_evidence_ref": "urn:synthetic:time-evidence:assessment-malformed-genesis-001-1"
           },
           "context": {
             "projection_key": "claim:x",
@@ -1042,7 +1062,8 @@
             "status": "verified",
             "assessment_id": "assessment-hash-collision-001-1",
             "key_status_snapshot_ref": "urn:tib:key-status:snapshot:synthetic-2026-11-19",
-            "event_time_basis": "external_trusted_timestamp"
+            "event_time_basis": "external_trusted_timestamp",
+            "time_evidence_ref": "urn:synthetic:time-evidence:assessment-hash-collision-001-1"
           },
           "context": {
             "projection_key": "claim:x",
@@ -1070,7 +1091,8 @@
             "status": "verified",
             "assessment_id": "assessment-hash-collision-001-2",
             "key_status_snapshot_ref": "urn:tib:key-status:snapshot:synthetic-2026-11-19",
-            "event_time_basis": "external_trusted_timestamp"
+            "event_time_basis": "external_trusted_timestamp",
+            "time_evidence_ref": "urn:synthetic:time-evidence:assessment-hash-collision-001-2"
           },
           "context": {
             "projection_key": "claim:x",
@@ -1124,7 +1146,8 @@
             "status": "verified",
             "assessment_id": "assessment-unrelated-projections-001-1",
             "key_status_snapshot_ref": "urn:tib:key-status:snapshot:synthetic-2026-11-19",
-            "event_time_basis": "external_trusted_timestamp"
+            "event_time_basis": "external_trusted_timestamp",
+            "time_evidence_ref": "urn:synthetic:time-evidence:assessment-unrelated-projections-001-1"
           },
           "context": {
             "projection_key": "claim:x",
@@ -1152,7 +1175,8 @@
             "status": "verified",
             "assessment_id": "assessment-unrelated-projections-001-2",
             "key_status_snapshot_ref": "urn:tib:key-status:snapshot:synthetic-2026-11-19",
-            "event_time_basis": "external_trusted_timestamp"
+            "event_time_basis": "external_trusted_timestamp",
+            "time_evidence_ref": "urn:synthetic:time-evidence:assessment-unrelated-projections-001-2"
           },
           "context": {
             "projection_key": "claim:y",
@@ -1206,7 +1230,8 @@
             "status": "verified",
             "assessment_id": "assessment-unavailable-stream-slot-001-1",
             "key_status_snapshot_ref": "urn:tib:key-status:snapshot:synthetic-2026-11-19",
-            "event_time_basis": "external_trusted_timestamp"
+            "event_time_basis": "external_trusted_timestamp",
+            "time_evidence_ref": "urn:synthetic:time-evidence:assessment-unavailable-stream-slot-001-1"
           },
           "context": {
             "projection_key": "claim:x",
@@ -1290,7 +1315,8 @@
             "status": "verified",
             "assessment_id": "assessment-invalid-signature-not-a-fork-001-1",
             "key_status_snapshot_ref": "urn:tib:key-status:snapshot:synthetic-2026-11-19",
-            "event_time_basis": "external_trusted_timestamp"
+            "event_time_basis": "external_trusted_timestamp",
+            "time_evidence_ref": "urn:synthetic:time-evidence:assessment-invalid-signature-not-a-fork-001-1"
           },
           "context": {
             "projection_key": "claim:x",
@@ -1373,7 +1399,8 @@
             "status": "verified",
             "assessment_id": "assessment-revoked-stream-slot-001-1",
             "key_status_snapshot_ref": "urn:tib:key-status:snapshot:synthetic-2026-11-19",
-            "event_time_basis": "external_trusted_timestamp"
+            "event_time_basis": "external_trusted_timestamp",
+            "time_evidence_ref": "urn:synthetic:time-evidence:assessment-revoked-stream-slot-001-1"
           },
           "context": {
             "projection_key": "claim:x",
@@ -1401,7 +1428,8 @@
             "status": "revoked",
             "assessment_id": "assessment-revoked-stream-slot-001-2",
             "key_status_snapshot_ref": "urn:tib:key-status:snapshot:synthetic-2026-11-19",
-            "event_time_basis": "external_trusted_timestamp"
+            "event_time_basis": "external_trusted_timestamp",
+            "time_evidence_ref": "urn:synthetic:time-evidence:assessment-revoked-stream-slot-001-2"
           },
           "context": {
             "projection_key": "claim:x",
@@ -1457,7 +1485,8 @@
             "status": "verified",
             "assessment_id": "assessment-assessment-status-change-001-1",
             "key_status_snapshot_ref": "urn:tib:key-status:snapshot:synthetic-2026-11-19",
-            "event_time_basis": "external_trusted_timestamp"
+            "event_time_basis": "external_trusted_timestamp",
+            "time_evidence_ref": "urn:synthetic:time-evidence:assessment-assessment-status-change-001-1"
           },
           "context": {
             "projection_key": "claim:x",
@@ -1538,7 +1567,8 @@
             "status": "verified",
             "assessment_id": "assessment-assessment-policy-divergence-001-1",
             "key_status_snapshot_ref": "urn:tib:key-status:snapshot:synthetic-2026-11-19",
-            "event_time_basis": "external_trusted_timestamp"
+            "event_time_basis": "external_trusted_timestamp",
+            "time_evidence_ref": "urn:synthetic:time-evidence:assessment-assessment-policy-divergence-001-1"
           },
           "context": {
             "projection_key": "claim:x",
@@ -1566,7 +1596,8 @@
             "status": "verified",
             "assessment_id": "assessment-assessment-policy-divergence-001-2",
             "key_status_snapshot_ref": "urn:tib:key-status:snapshot:synthetic-2026-11-19",
-            "event_time_basis": "external_trusted_timestamp"
+            "event_time_basis": "external_trusted_timestamp",
+            "time_evidence_ref": "urn:synthetic:time-evidence:assessment-assessment-policy-divergence-001-2"
           },
           "context": {
             "projection_key": "claim:x",
@@ -1619,7 +1650,8 @@
             "status": "verified",
             "assessment_id": "assessment-assessment-independent-agreement-001-1",
             "key_status_snapshot_ref": "urn:tib:key-status:snapshot:synthetic-2026-11-19",
-            "event_time_basis": "external_trusted_timestamp"
+            "event_time_basis": "external_trusted_timestamp",
+            "time_evidence_ref": "urn:synthetic:time-evidence:assessment-assessment-independent-agreement-001-1"
           },
           "context": {
             "projection_key": "claim:x",
@@ -1647,7 +1679,8 @@
             "status": "verified",
             "assessment_id": "assessment-assessment-independent-agreement-001-2",
             "key_status_snapshot_ref": "urn:tib:key-status:snapshot:synthetic-2026-11-19",
-            "event_time_basis": "external_trusted_timestamp"
+            "event_time_basis": "external_trusted_timestamp",
+            "time_evidence_ref": "urn:synthetic:time-evidence:assessment-assessment-independent-agreement-001-2"
           },
           "context": {
             "projection_key": "claim:x",
@@ -1700,7 +1733,8 @@
             "status": "verified",
             "assessment_id": "assessment-context-downgrade-001-1",
             "key_status_snapshot_ref": "urn:tib:key-status:snapshot:synthetic-2026-11-19",
-            "event_time_basis": "external_trusted_timestamp"
+            "event_time_basis": "external_trusted_timestamp",
+            "time_evidence_ref": "urn:synthetic:time-evidence:assessment-context-downgrade-001-1"
           },
           "context": {
             "projection_key": "claim:x",
@@ -1728,7 +1762,8 @@
             "status": "verified",
             "assessment_id": "assessment-context-downgrade-001-2",
             "key_status_snapshot_ref": "urn:tib:key-status:snapshot:synthetic-2026-11-19",
-            "event_time_basis": "external_trusted_timestamp"
+            "event_time_basis": "external_trusted_timestamp",
+            "time_evidence_ref": "urn:synthetic:time-evidence:assessment-context-downgrade-001-2"
           },
           "context": {
             "projection_key": "claim:x",
@@ -1783,7 +1818,8 @@
             "status": "verified",
             "assessment_id": "assessment-event-payload-equivocation-001-1",
             "key_status_snapshot_ref": "urn:tib:key-status:snapshot:synthetic-2026-11-19",
-            "event_time_basis": "external_trusted_timestamp"
+            "event_time_basis": "external_trusted_timestamp",
+            "time_evidence_ref": "urn:synthetic:time-evidence:assessment-event-payload-equivocation-001-1"
           },
           "context": {
             "projection_key": "claim:x",
@@ -1811,7 +1847,8 @@
             "status": "verified",
             "assessment_id": "assessment-event-payload-equivocation-001-2",
             "key_status_snapshot_ref": "urn:tib:key-status:snapshot:synthetic-2026-11-19",
-            "event_time_basis": "external_trusted_timestamp"
+            "event_time_basis": "external_trusted_timestamp",
+            "time_evidence_ref": "urn:synthetic:time-evidence:assessment-event-payload-equivocation-001-2"
           },
           "context": {
             "projection_key": "claim:x",
@@ -1970,7 +2007,8 @@
             "assessed_at": "2026-11-19T16:00:00Z",
             "key_status_snapshot_ref": "urn:tib:key-status:snapshot:1",
             "event_time_basis": "external_trusted_timestamp",
-            "status": "verified"
+            "status": "verified",
+            "time_evidence_ref": "urn:synthetic:time-evidence:assessment-no-payload"
           },
           "context": {
             "projection_key": "claim:no-payload",
@@ -2018,7 +2056,8 @@
             "assessed_at": "2026-11-19T16:00:00Z",
             "key_status_snapshot_ref": "urn:tib:key-status:snapshot:1",
             "event_time_basis": "external_trusted_timestamp",
-            "status": "verified"
+            "status": "verified",
+            "time_evidence_ref": "urn:synthetic:time-evidence:assessment-bad-payload"
           },
           "context": {
             "projection_key": "claim:bad-payload",
@@ -2041,6 +2080,59 @@
         "malformed_events": [
           "e-bad-payload"
         ],
+        "missing_parent_events": [],
+        "blocked_parent_events": [],
+        "equivocation_event_ids": [],
+        "sequence_fork_event_ids": [],
+        "sequence_conflict_pending_event_ids": [],
+        "hash_collision_event_ids": [],
+        "context_conflict_event_ids": [],
+        "conflict_groups": []
+      }
+    },
+    {
+      "case_id": "TRUSTED-TIME-REFERENCE-MISSING-001",
+      "title": "A declared trusted time basis without a receipt or timestamp reference does not qualify the event",
+      "deliveries": [
+        {
+          "event": {
+            "event_id": "e1",
+            "stream_id": "stream-a",
+            "sequence": 0,
+            "previous_hash": null,
+            "event_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "actor": "actor-a"
+          },
+          "assessment": {
+            "assessment_id": "assessment-no-time-ref",
+            "verifier_id": "verifier-a",
+            "policy_id": "tib-key-policy-v0",
+            "assessed_at": "2026-11-19T00:00:00Z",
+            "key_status_snapshot_ref": "urn:tib:key-status:snapshot:synthetic-2026-11-19",
+            "event_time_basis": "trusted_append_receipt",
+            "status": "verified"
+          },
+          "context": {
+            "projection_key": "claim:x",
+            "access_class": "restricted"
+          },
+          "payload": {
+            "blob_ref": "cas://synthetic/no-time-ref",
+            "media_type": "application/vnd.mycelix.signed-scientific-event+json",
+            "blob_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+          }
+        }
+      ],
+      "expected": {
+        "accepted_events": [],
+        "duplicate_replays": 0,
+        "invalid_signatures": [],
+        "revoked_keys": [],
+        "verification_pending": [
+          "e1"
+        ],
+        "verification_conflict_event_ids": [],
+        "malformed_events": [],
         "missing_parent_events": [],
         "blocked_parent_events": [],
         "equivocation_event_ids": [],

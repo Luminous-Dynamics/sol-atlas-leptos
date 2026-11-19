@@ -141,9 +141,42 @@
             "revoked",
             "unavailable"
           ]
+        },
+        "time_evidence_ref": {
+          "type": "string",
+          "minLength": 1
         }
       },
-      "description": "Detached verifier result. A verified/revoked disposition requires a trusted append-receipt or external timestamp basis. A signer-claimed event time is insufficient."
+      "description": "Detached verifier result. A verified/revoked disposition requires a trusted append-receipt or external timestamp basis. A signer-claimed event time is insufficient.",
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "status": {
+                "enum": [
+                  "verified",
+                  "revoked"
+                ]
+              },
+              "event_time_basis": {
+                "enum": [
+                  "trusted_append_receipt",
+                  "external_trusted_timestamp"
+                ]
+              }
+            },
+            "required": [
+              "status",
+              "event_time_basis"
+            ]
+          },
+          "then": {
+            "required": [
+              "time_evidence_ref"
+            ]
+          }
+        }
+      ]
     },
     "context": {
       "type": "object",

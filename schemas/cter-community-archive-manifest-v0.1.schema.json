@@ -246,6 +246,12 @@
           "algorithm_weakening_time": {
             "type": "string",
             "format": "date-time"
+          },
+          "renewal_time_unix_seconds": {
+            "type": "integer"
+          },
+          "algorithm_weakening_time_unix_seconds": {
+            "type": "integer"
           }
         }
       }

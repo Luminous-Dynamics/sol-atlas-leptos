@@ -6,10 +6,10 @@
 //! Android, battery, cryptographic verification or legal/consent operations.
 //!
 //! Usage:
-//!   cargo run --release --bin scale-profile -- <unique_events> <streams> <duplicate_percent> <reverse>
+//!   cargo run --release --bin scale_profile -- <unique_events> <streams> <duplicate_percent> <reverse>
 //!
 //! Example:
-//!   cargo run --release --bin scale-profile -- 10000 1000 25 true
+//!   cargo run --release --bin scale_profile -- 10000 1000 25 true
 
 use cter_relay_reference::evaluate;
 use serde_json::json;
@@ -94,7 +94,7 @@ fn main() {
         "arrival_order": if reverse { "reverse" } else { "forward" },
         "accepted_events": result.accepted_events.len(),
         "conflict_groups": result.conflict_groups.len(),
-        "elapsed_micros": elapsed.as_micros(),
+        "elapsed_micros": elapsed.as_micros() as u64,
         "deliveries_per_second": events.len() as f64 / seconds,
         "claim_ceiling": "host synthetic evaluator timing only; no radio, energy, cryptography, legal or field claim"
     });

@@ -1,13 +1,13 @@
 {
   "schema": "luminous.cter.relay-benchmark.v0",
   "suite_id": "CTER-RELAY-CONVERGENCE-001",
-  "suite_version": "0.1.6",
+  "suite_version": "0.1.7",
   "status": "synthetic_reference_model",
   "created_at": "2026-11-19",
   "parent_issue": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/945",
   "parent_benchmark": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/937",
   "purpose": "Evaluate relay convergence around the existing Mycelix-DeSci signed event stream under replay, reordering, equivocation, verification failure, missing predecessors, stream forks and cross-stream territorial conflicts.",
-  "case_count": 28,
+  "case_count": 29,
   "claim_ceiling": "synthetic_convergence_semantics_only",
   "canonical_event_owner": "Mycelix-DeSci ScientificEventEnvelope / SignedScientificEvent",
   "event_hash_algorithm": "BLAKE3 ContentHash over canonical Mycelix SignedScientificEvent; distinct from payload blob SHA-256",
@@ -88,7 +88,8 @@
     "assessment.assessed_at",
     "assessment.key_status_snapshot_ref",
     "assessment.event_time_basis",
-    "assessment.status"
+    "assessment.status",
+    "assessment.time_evidence_ref"
   ],
   "event_time_basis_values": [
     "trusted_append_receipt",
