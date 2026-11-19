@@ -1,0 +1,530 @@
+{
+  "suite_id": "TIB-3D-SPATIAL-QUALIFICATION-001",
+  "suite_version": "0.1.0",
+  "purpose": "Synthetic conformance cases for geodetic referenceability, 3D survey/topology evidence, coordinate transformation lineage, volumetric scope and legal/indicative layer separation.",
+  "source_context": "FIG Congress 2026 paper on a proposed 3D cadastre for South Africa; includes a Cape Town DMS-envelope case as municipal regulatory geometry, not registered title.",
+  "criteria": [
+    "geodetic_referenceability",
+    "legal_interpretability",
+    "data_integrity_and_topology",
+    "information_system_readiness",
+    "authoritative_vs_indicative_layer_separation"
+  ],
+  "scenarios": [
+    {
+      "scenario_id": "SP3D-001",
+      "description": "Complete synthetic 3D volumetric metadata with exact CRS, vertical reference, survey and watertight topology evidence; structural acceptance remains non-legal",
+      "record": {
+        "schema": "luminous.territorial-spatial-qualification.v0",
+        "schema_uri": "https://luminousdynamics.io/schemas/territorial-spatial-qualification-v0.schema.json",
+        "record_id": "synthetic-3d-record-001",
+        "feature_reference": "urn:ogc:feature:volume-001",
+        "geometry_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "source_record_reference": "urn:source:survey-plan:001",
+        "source_record_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "captured_at": "2026-11-19T06:00:00Z",
+        "geometry_encoding": "json_fg",
+        "geometry_kind": "prism",
+        "dimension": "three_d",
+        "spatial_scope": "subsurface_volume",
+        "layer_kind": "external_registered_geometry_reference",
+        "horizontal_reference": {
+          "source_crs_uri": "urn:crs:itrf:2020",
+          "target_crs_uri": "urn:crs:itrf:2020",
+          "realization": "ITRF2020",
+          "axis_order": "east_north",
+          "axis_order_profile_ref": "urn:profile:axis-order:en",
+          "coordinate_epoch": 2026
+        },
+        "vertical_reference": {
+          "source_crs_uri": "urn:crs:ihrf:geoid:v0",
+          "target_crs_uri": "urn:crs:ihrf:geoid:v0",
+          "datum_name": "Geoid-based vertical reference",
+          "realization": "IHRF-aligned profile reference",
+          "unit": "metre"
+        },
+        "coordinate_operations": [],
+        "survey_evidence": {
+          "source_reference": "urn:survey:evidence:001",
+          "source_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "captured_at": "2026-11-19T05:00:00Z",
+          "survey_method": "gnss",
+          "surveyor_reference": "urn:professional:surveyor:001",
+          "horizontal_uncertainty_m": 0.02,
+          "vertical_uncertainty_m": 0.03
+        },
+        "topology_assessment": {
+          "state": "validated_watertight",
+          "validation_report_reference": "urn:topology:report:001",
+          "validation_report_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+          "assessor_reference": "urn:assessor:001"
+        },
+        "overlap_assessment": null,
+        "governing_instrument_reference": "urn:instrument:external:001",
+        "external_register_record_reference": "urn:registry:record:001",
+        "claim_ceiling": "reference_only_no_legal_effect"
+      },
+      "expected_outcome": "structural_accept"
+    },
+    {
+      "scenario_id": "SP3D-002",
+      "description": "Synthetic municipal 3D development envelope, inspired by the Cape Town DMS example; it remains a municipal regulatory layer, not a registered volumetric title",
+      "record": {
+        "schema": "luminous.territorial-spatial-qualification.v0",
+        "schema_uri": "https://luminousdynamics.io/schemas/territorial-spatial-qualification-v0.schema.json",
+        "record_id": "synthetic-capetown-dms-envelope",
+        "feature_reference": "urn:ogc:feature:capetown-dms-envelope-001",
+        "geometry_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "source_record_reference": "urn:source:survey-plan:001",
+        "source_record_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "captured_at": "2026-11-19T06:00:00Z",
+        "geometry_encoding": "json_fg",
+        "geometry_kind": "prism",
+        "dimension": "three_d",
+        "spatial_scope": "municipal_development_envelope",
+        "layer_kind": "municipal_regulatory_envelope",
+        "horizontal_reference": {
+          "source_crs_uri": "urn:synthetic:crs:capetown-local:v1",
+          "target_crs_uri": "urn:synthetic:crs:capetown-local:v1",
+          "realization": "synthetic municipal local frame",
+          "axis_order": "east_north",
+          "axis_order_profile_ref": "urn:synthetic:profile:capetown-axis-order",
+          "coordinate_epoch": null
+        },
+        "vertical_reference": {
+          "source_crs_uri": "urn:synthetic:vertical:lld",
+          "target_crs_uri": "urn:synthetic:vertical:lld",
+          "datum_name": "Land Levelling Datum (LLD)",
+          "realization": "Synthetic reference to the Cape Town GLM2019 LLD surface",
+          "unit": "metre"
+        },
+        "coordinate_operations": [],
+        "survey_evidence": {
+          "source_reference": "urn:synthetic:capetown:glm2019-lidar",
+          "source_sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+          "captured_at": "2019-06-01T00:00:00Z",
+          "survey_method": "lidar",
+          "surveyor_reference": "urn:synthetic:survey-team:capetown",
+          "horizontal_uncertainty_m": 0.5,
+          "vertical_uncertainty_m": 0.3
+        },
+        "topology_assessment": {
+          "state": "validated_watertight",
+          "validation_report_reference": "urn:topology:report:001",
+          "validation_report_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+          "assessor_reference": "urn:assessor:001"
+        },
+        "overlap_assessment": null,
+        "governing_instrument_reference": "urn:synthetic:municipal-instrument:mpbl-2025",
+        "external_register_record_reference": null,
+        "claim_ceiling": "reference_only_no_legal_effect"
+      },
+      "expected_outcome": "review_required"
+    },
+    {
+      "scenario_id": "SP3D-003",
+      "description": "A 2D surface polygon is reused for a subsurface volume; missing vertical extent makes the case not evaluable",
+      "record": {
+        "schema": "luminous.territorial-spatial-qualification.v0",
+        "schema_uri": "https://luminousdynamics.io/schemas/territorial-spatial-qualification-v0.schema.json",
+        "record_id": "synthetic-2d-subsurface-error",
+        "feature_reference": "urn:ogc:feature:volume-001",
+        "geometry_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "source_record_reference": "urn:source:survey-plan:001",
+        "source_record_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "captured_at": "2026-11-19T06:00:00Z",
+        "geometry_encoding": "json_fg",
+        "geometry_kind": "polygon",
+        "dimension": "two_d",
+        "spatial_scope": "subsurface_volume",
+        "layer_kind": "external_registered_geometry_reference",
+        "horizontal_reference": {
+          "source_crs_uri": "urn:crs:itrf:2020",
+          "target_crs_uri": "urn:crs:itrf:2020",
+          "realization": "ITRF2020",
+          "axis_order": "east_north",
+          "axis_order_profile_ref": "urn:profile:axis-order:en",
+          "coordinate_epoch": 2026
+        },
+        "vertical_reference": null,
+        "coordinate_operations": [],
+        "survey_evidence": null,
+        "topology_assessment": {
+          "state": "not_assessed",
+          "validation_report_reference": null,
+          "validation_report_sha256": null,
+          "assessor_reference": null
+        },
+        "overlap_assessment": null,
+        "governing_instrument_reference": "urn:instrument:external:001",
+        "external_register_record_reference": "urn:registry:record:001",
+        "claim_ceiling": "reference_only_no_legal_effect"
+      },
+      "expected_outcome": "not_evaluable"
+    },
+    {
+      "scenario_id": "SP3D-004",
+      "description": "3D feature reference has no vertical CRS/datum or survey evidence",
+      "record": {
+        "schema": "luminous.territorial-spatial-qualification.v0",
+        "schema_uri": "https://luminousdynamics.io/schemas/territorial-spatial-qualification-v0.schema.json",
+        "record_id": "synthetic-3d-no-vertical-reference",
+        "feature_reference": "urn:ogc:feature:volume-001",
+        "geometry_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "source_record_reference": "urn:source:survey-plan:001",
+        "source_record_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "captured_at": "2026-11-19T06:00:00Z",
+        "geometry_encoding": "json_fg",
+        "geometry_kind": "prism",
+        "dimension": "three_d",
+        "spatial_scope": "subsurface_volume",
+        "layer_kind": "external_registered_geometry_reference",
+        "horizontal_reference": {
+          "source_crs_uri": "urn:crs:itrf:2020",
+          "target_crs_uri": "urn:crs:itrf:2020",
+          "realization": "ITRF2020",
+          "axis_order": "east_north",
+          "axis_order_profile_ref": "urn:profile:axis-order:en",
+          "coordinate_epoch": 2026
+        },
+        "vertical_reference": null,
+        "coordinate_operations": [],
+        "survey_evidence": null,
+        "topology_assessment": {
+          "state": "not_assessed",
+          "validation_report_reference": null,
+          "validation_report_sha256": null,
+          "assessor_reference": null
+        },
+        "overlap_assessment": null,
+        "governing_instrument_reference": "urn:instrument:external:001",
+        "external_register_record_reference": "urn:registry:record:001",
+        "claim_ceiling": "reference_only_no_legal_effect"
+      },
+      "expected_outcome": "not_evaluable"
+    },
+    {
+      "scenario_id": "SP3D-005",
+      "description": "Source and target horizontal CRS differ but no exact versioned transformation operation is pinned",
+      "record": {
+        "schema": "luminous.territorial-spatial-qualification.v0",
+        "schema_uri": "https://luminousdynamics.io/schemas/territorial-spatial-qualification-v0.schema.json",
+        "record_id": "synthetic-3d-undeclared-crs-transform",
+        "feature_reference": "urn:ogc:feature:volume-001",
+        "geometry_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "source_record_reference": "urn:source:survey-plan:001",
+        "source_record_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "captured_at": "2026-11-19T06:00:00Z",
+        "geometry_encoding": "json_fg",
+        "geometry_kind": "prism",
+        "dimension": "three_d",
+        "spatial_scope": "subsurface_volume",
+        "layer_kind": "external_registered_geometry_reference",
+        "horizontal_reference": {
+          "source_crs_uri": "urn:crs:itrf:2020",
+          "target_crs_uri": "urn:crs:transformed-target:v2",
+          "realization": "ITRF2020",
+          "axis_order": "east_north",
+          "axis_order_profile_ref": "urn:profile:axis-order:en",
+          "coordinate_epoch": 2026
+        },
+        "vertical_reference": {
+          "source_crs_uri": "urn:crs:ihrf:geoid:v0",
+          "target_crs_uri": "urn:crs:ihrf:geoid:v0",
+          "datum_name": "Geoid-based vertical reference",
+          "realization": "IHRF-aligned profile reference",
+          "unit": "metre"
+        },
+        "coordinate_operations": [],
+        "survey_evidence": {
+          "source_reference": "urn:survey:evidence:001",
+          "source_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "captured_at": "2026-11-19T05:00:00Z",
+          "survey_method": "gnss",
+          "surveyor_reference": "urn:professional:surveyor:001",
+          "horizontal_uncertainty_m": 0.02,
+          "vertical_uncertainty_m": 0.03
+        },
+        "topology_assessment": {
+          "state": "validated_watertight",
+          "validation_report_reference": "urn:topology:report:001",
+          "validation_report_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+          "assessor_reference": "urn:assessor:001"
+        },
+        "overlap_assessment": null,
+        "governing_instrument_reference": "urn:instrument:external:001",
+        "external_register_record_reference": "urn:registry:record:001",
+        "claim_ceiling": "reference_only_no_legal_effect"
+      },
+      "expected_outcome": "structural_reject"
+    },
+    {
+      "scenario_id": "SP3D-006",
+      "description": "3D topology report identifies a non-manifold volume; the metadata must be rejected for volumetric qualification",
+      "record": {
+        "schema": "luminous.territorial-spatial-qualification.v0",
+        "schema_uri": "https://luminousdynamics.io/schemas/territorial-spatial-qualification-v0.schema.json",
+        "record_id": "synthetic-3d-nonmanifold-volume",
+        "feature_reference": "urn:ogc:feature:volume-001",
+        "geometry_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "source_record_reference": "urn:source:survey-plan:001",
+        "source_record_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "captured_at": "2026-11-19T06:00:00Z",
+        "geometry_encoding": "json_fg",
+        "geometry_kind": "prism",
+        "dimension": "three_d",
+        "spatial_scope": "subsurface_volume",
+        "layer_kind": "external_registered_geometry_reference",
+        "horizontal_reference": {
+          "source_crs_uri": "urn:crs:itrf:2020",
+          "target_crs_uri": "urn:crs:itrf:2020",
+          "realization": "ITRF2020",
+          "axis_order": "east_north",
+          "axis_order_profile_ref": "urn:profile:axis-order:en",
+          "coordinate_epoch": 2026
+        },
+        "vertical_reference": {
+          "source_crs_uri": "urn:crs:ihrf:geoid:v0",
+          "target_crs_uri": "urn:crs:ihrf:geoid:v0",
+          "datum_name": "Geoid-based vertical reference",
+          "realization": "IHRF-aligned profile reference",
+          "unit": "metre"
+        },
+        "coordinate_operations": [],
+        "survey_evidence": {
+          "source_reference": "urn:survey:evidence:001",
+          "source_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "captured_at": "2026-11-19T05:00:00Z",
+          "survey_method": "gnss",
+          "surveyor_reference": "urn:professional:surveyor:001",
+          "horizontal_uncertainty_m": 0.02,
+          "vertical_uncertainty_m": 0.03
+        },
+        "topology_assessment": {
+          "state": "non_manifold",
+          "validation_report_reference": "urn:topology:invalid:006",
+          "validation_report_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+          "assessor_reference": "urn:assessor:invalid:006"
+        },
+        "overlap_assessment": null,
+        "governing_instrument_reference": "urn:instrument:external:001",
+        "external_register_record_reference": "urn:registry:record:001",
+        "claim_ceiling": "reference_only_no_legal_effect"
+      },
+      "expected_outcome": "structural_reject"
+    },
+    {
+      "scenario_id": "SP3D-007",
+      "description": "3D reference has geodetic metadata but no independent topology assessment",
+      "record": {
+        "schema": "luminous.territorial-spatial-qualification.v0",
+        "schema_uri": "https://luminousdynamics.io/schemas/territorial-spatial-qualification-v0.schema.json",
+        "record_id": "synthetic-3d-no-topology-assessment",
+        "feature_reference": "urn:ogc:feature:volume-001",
+        "geometry_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "source_record_reference": "urn:source:survey-plan:001",
+        "source_record_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "captured_at": "2026-11-19T06:00:00Z",
+        "geometry_encoding": "json_fg",
+        "geometry_kind": "prism",
+        "dimension": "three_d",
+        "spatial_scope": "subsurface_volume",
+        "layer_kind": "external_registered_geometry_reference",
+        "horizontal_reference": {
+          "source_crs_uri": "urn:crs:itrf:2020",
+          "target_crs_uri": "urn:crs:itrf:2020",
+          "realization": "ITRF2020",
+          "axis_order": "east_north",
+          "axis_order_profile_ref": "urn:profile:axis-order:en",
+          "coordinate_epoch": 2026
+        },
+        "vertical_reference": {
+          "source_crs_uri": "urn:crs:ihrf:geoid:v0",
+          "target_crs_uri": "urn:crs:ihrf:geoid:v0",
+          "datum_name": "Geoid-based vertical reference",
+          "realization": "IHRF-aligned profile reference",
+          "unit": "metre"
+        },
+        "coordinate_operations": [],
+        "survey_evidence": {
+          "source_reference": "urn:survey:evidence:001",
+          "source_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "captured_at": "2026-11-19T05:00:00Z",
+          "survey_method": "gnss",
+          "surveyor_reference": "urn:professional:surveyor:001",
+          "horizontal_uncertainty_m": 0.02,
+          "vertical_uncertainty_m": 0.03
+        },
+        "topology_assessment": {
+          "state": "not_assessed",
+          "validation_report_reference": null,
+          "validation_report_sha256": null,
+          "assessor_reference": null
+        },
+        "overlap_assessment": null,
+        "governing_instrument_reference": "urn:instrument:external:001",
+        "external_register_record_reference": "urn:registry:record:001",
+        "claim_ceiling": "reference_only_no_legal_effect"
+      },
+      "expected_outcome": "not_evaluable"
+    },
+    {
+      "scenario_id": "SP3D-008",
+      "description": "A complete 3D physical/digital-twin model is not a registered geometry and must stay an indicative layer",
+      "record": {
+        "schema": "luminous.territorial-spatial-qualification.v0",
+        "schema_uri": "https://luminousdynamics.io/schemas/territorial-spatial-qualification-v0.schema.json",
+        "record_id": "synthetic-3d-indicative-city-model",
+        "feature_reference": "urn:ogc:feature:volume-001",
+        "geometry_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "source_record_reference": "urn:source:survey-plan:001",
+        "source_record_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "captured_at": "2026-11-19T06:00:00Z",
+        "geometry_encoding": "json_fg",
+        "geometry_kind": "prism",
+        "dimension": "three_d",
+        "spatial_scope": "subsurface_volume",
+        "layer_kind": "indicative_digital_twin",
+        "horizontal_reference": {
+          "source_crs_uri": "urn:crs:itrf:2020",
+          "target_crs_uri": "urn:crs:itrf:2020",
+          "realization": "ITRF2020",
+          "axis_order": "east_north",
+          "axis_order_profile_ref": "urn:profile:axis-order:en",
+          "coordinate_epoch": 2026
+        },
+        "vertical_reference": {
+          "source_crs_uri": "urn:crs:ihrf:geoid:v0",
+          "target_crs_uri": "urn:crs:ihrf:geoid:v0",
+          "datum_name": "Geoid-based vertical reference",
+          "realization": "IHRF-aligned profile reference",
+          "unit": "metre"
+        },
+        "coordinate_operations": [],
+        "survey_evidence": {
+          "source_reference": "urn:survey:evidence:001",
+          "source_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "captured_at": "2026-11-19T05:00:00Z",
+          "survey_method": "gnss",
+          "surveyor_reference": "urn:professional:surveyor:001",
+          "horizontal_uncertainty_m": 0.02,
+          "vertical_uncertainty_m": 0.03
+        },
+        "topology_assessment": {
+          "state": "validated_watertight",
+          "validation_report_reference": "urn:topology:report:001",
+          "validation_report_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+          "assessor_reference": "urn:assessor:001"
+        },
+        "overlap_assessment": null,
+        "governing_instrument_reference": "urn:instrument:external:001",
+        "external_register_record_reference": null,
+        "claim_ceiling": "reference_only_no_legal_effect"
+      },
+      "expected_outcome": "review_required"
+    },
+    {
+      "scenario_id": "SP3D-009",
+      "description": "Two spatial rights overlap; preserve both features and require review rather than infer priority or choose a winner",
+      "record": {
+        "schema": "luminous.territorial-spatial-qualification.v0",
+        "schema_uri": "https://luminousdynamics.io/schemas/territorial-spatial-qualification-v0.schema.json",
+        "record_id": "synthetic-3d-overlapping-rights",
+        "feature_reference": "urn:ogc:feature:volume-001",
+        "geometry_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "source_record_reference": "urn:source:survey-plan:001",
+        "source_record_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "captured_at": "2026-11-19T06:00:00Z",
+        "geometry_encoding": "json_fg",
+        "geometry_kind": "prism",
+        "dimension": "three_d",
+        "spatial_scope": "subsurface_volume",
+        "layer_kind": "external_registered_geometry_reference",
+        "horizontal_reference": {
+          "source_crs_uri": "urn:crs:itrf:2020",
+          "target_crs_uri": "urn:crs:itrf:2020",
+          "realization": "ITRF2020",
+          "axis_order": "east_north",
+          "axis_order_profile_ref": "urn:profile:axis-order:en",
+          "coordinate_epoch": 2026
+        },
+        "vertical_reference": {
+          "source_crs_uri": "urn:crs:ihrf:geoid:v0",
+          "target_crs_uri": "urn:crs:ihrf:geoid:v0",
+          "datum_name": "Geoid-based vertical reference",
+          "realization": "IHRF-aligned profile reference",
+          "unit": "metre"
+        },
+        "coordinate_operations": [],
+        "survey_evidence": {
+          "source_reference": "urn:survey:evidence:001",
+          "source_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "captured_at": "2026-11-19T05:00:00Z",
+          "survey_method": "gnss",
+          "surveyor_reference": "urn:professional:surveyor:001",
+          "horizontal_uncertainty_m": 0.02,
+          "vertical_uncertainty_m": 0.03
+        },
+        "topology_assessment": {
+          "state": "validated_watertight",
+          "validation_report_reference": "urn:topology:report:001",
+          "validation_report_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+          "assessor_reference": "urn:assessor:001"
+        },
+        "overlap_assessment": {
+          "state": "overlapping",
+          "compared_feature_references": [
+            "urn:ogc:feature:volume-right-a",
+            "urn:ogc:feature:volume-right-b"
+          ],
+          "analysis_reference": "urn:synthetic:overlap-analysis:009",
+          "analysis_sha256": "9999999999999999999999999999999999999999999999999999999999999999"
+        },
+        "governing_instrument_reference": "urn:instrument:external:001",
+        "external_register_record_reference": "urn:registry:record:001",
+        "claim_ceiling": "reference_only_no_legal_effect"
+      },
+      "expected_outcome": "review_required"
+    }
+  ],
+  "proposed_metrics": [
+    {
+      "metric": "silent_crs_or_axis_order_reinterpretation",
+      "target": 0
+    },
+    {
+      "metric": "3d_volume_without_vertical_reference_accepted",
+      "target": 0
+    },
+    {
+      "metric": "3d_volume_without_survey_and_vertical_uncertainty_accepted",
+      "target": 0
+    },
+    {
+      "metric": "non_watertight_3d_volume_accepted",
+      "target": 0
+    },
+    {
+      "metric": "unlogged_coordinate_transform_accepted",
+      "target": 0
+    },
+    {
+      "metric": "municipal_or_indicative_geometry_promoted_to_registered_title",
+      "target": 0
+    },
+    {
+      "metric": "overlap_conflict_silently_resolved_by_software",
+      "target": 0
+    },
+    {
+      "metric": "spatial_record_digest_and_transform_lineage_preservation",
+      "target": 1
+    }
+  ],
+  "non_claims": [
+    "Every record and digest in this corpus is synthetic; no real parcel, right, survey or registry receipt is represented.",
+    "The FIG 2026 South Africa 3D cadastre paper proposes an authoritative 3D cadastre framework and a pilot pathway; it is not evidence of a nationally deployed 3D cadastre.",
+    "The Cape Town DMS envelopes are municipal regulatory/development envelopes and are explicitly not registrable cadastral objects in the cited paper.",
+    "A structural_accept outcome means metadata preflight only; it does not authenticate the geometry, surveyor, legal instrument, external register or legal effect."
+  ]
+}
