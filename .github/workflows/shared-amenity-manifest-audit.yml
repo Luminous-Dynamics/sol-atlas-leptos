@@ -62,7 +62,7 @@ jobs:
             and .unique_case_pairs == 50
             and .amenity_archetype_count == 10
             and .functional_unit_count == 9
-            and .reference_source_count == 37
+            and .reference_source_count == 43
             and .owner_native_dependency_count == 16
             and .execution_status == "NOT_EXECUTED"
             and (.manifest_sha256 | test("^[0-9a-f]{64}$"))
