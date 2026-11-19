@@ -6,6 +6,8 @@ on:
     paths:
       - "benchmarks/territorial-integrity/relay/**"
       - "schemas/cter-relay-delivery-v0.1.schema.json"
+      - "schemas/cter-community-archive-manifest-v0.1.schema.json"
+      - "benchmarks/territorial-integrity/relay/archive-cases-v0.1.json"
       - ".github/workflows/cter-relay-reference.yml"
   pull_request:
     branches: [main]
@@ -43,5 +45,7 @@ jobs:
           python3 -m json.tool benchmarks/territorial-integrity/relay/cases-v0.1.json > /dev/null
           python3 -m json.tool benchmarks/territorial-integrity/relay/manifest-v0.1.json > /dev/null
           python3 -m json.tool schemas/cter-relay-delivery-v0.1.schema.json > /dev/null
+          python3 -m json.tool schemas/cter-community-archive-manifest-v0.1.schema.json > /dev/null
+          python3 -m json.tool benchmarks/territorial-integrity/relay/archive-cases-v0.1.json > /dev/null
       - name: Run standalone reference tests
         run: cargo test --manifest-path benchmarks/territorial-integrity/relay/reference/Cargo.toml
