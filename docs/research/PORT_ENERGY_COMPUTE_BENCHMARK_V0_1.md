@@ -319,3 +319,69 @@ Accordingly, the port-compute benchmark must separately test:
 A sudden protective trip is not a successful demand-response service. The initial programme remains read-only and does not authorize OT/SCADA or protection-system writes.
 
 Source: [ENTSO-E — Data centres and the power system: expected trends, challenges, and opportunities (May 2026)](https://eepublicdownloads.blob.core.windows.net/public-cdn-container/clean-documents/Reports/2026/FINAL_ENTSO-E_Data_Centres_260430.pdf).
+
+
+## 12. Industry update — event-triggered port microgrids, standards and outcome evidence (19 November 2026)
+
+### 12.1 Port-operations baseline: berth/logistics-aware energy scheduling
+
+Li et al., *Microgrid energy optimal scheduling in ports incorporating the bidirectional event trigger mechanism*, *Journal of Cleaner Production* 568, article 148666 (15 June 2026), DOI [10.1016/j.jclepro.2026.148666](https://doi.org/10.1016/j.jclepro.2026.148666), provides a stronger port-energy comparator than a generic EMS.
+
+Its Tianjin Dongjiang Port case jointly schedules berth and quay-crane assignments, renewable use, grid procurement and storage in a day-ahead hourly MILP. A real-time layer updates at 15-minute intervals and re-solves a one-hour horizon only when a bidirectional logistics-side / energy-side event trigger fires. Reported case outcomes include 18.64% and 22.44% lower operating cost than the study's MPC and logistics-event-trigger baselines, with online solution time lower by 88.90% and 77.76%, respectively.
+
+These are case-specific published results, not a direct apples-to-apples comparison with this programme. They establish a mandatory comparator.
+
+**New paradigm:** berth and logistics operations should not be a fixed load trace fed into an energy optimizer. Their decisions create shore-power and cargo-handling demand. Compute jobs, in turn, are a new flexible service class competing for the same headroom. The integrated problem must co-schedule berth/shore power, cranes/yard, compute queues, renewable supply, storage and other port services across multiple time scales.
+
+The first fair comparison should reproduce the published day-ahead hourly + event-triggered 15-minute design on its own case where data and method are available. The Luminous extension should then test whether adding compute workload contracts and aggregate PCC/feeder admission yields a better cost/service/grid/compute Pareto frontier without degrading port logistics service.
+
+Source: [ScienceDirect — BETM port microgrid scheduling](https://www.sciencedirect.com/science/article/pii/S0959652626012072).
+
+### 12.2 Grid-interconnection and disturbance-readiness comparator
+
+NERC's Board adopted its first three Computational Load Ownership & Operations standards on 26 October 2026. NERC submitted them to FERC on **16 November 2026**; NERC currently lists the CLO standards as pending regulatory filing.
+
+- CLO-001-1: computational-load interconnection, studies and modelling data.
+- CLO-002-1: operational data, communications and response to operating instructions.
+- CLO-003-1: protection coordination and disturbance monitoring.
+
+This is an emerging U.S. bulk-power reliability framework—not yet a final FERC-approved obligation as of this snapshot, and not a South African grid-code requirement. Use it as an engineering comparison only; maintain a separate South African/NTCSA requirements profile before any domestic project claim.
+
+The port-compute evidence contract should preserve separate identities for facility owner/operator, PCC boundary, planning model, operating data, communications path, disturbance record and protection-study reference. Intentional demand response must not be confused with involuntary disturbance-driven disconnection.
+
+Sources: [NERC Large Loads Action Plan](https://www.nerc.com/initiatives/large-loads-action-plan); [NERC CLO standards status](https://www.nerc.com/standards/reliability-standards/clo); [NERC filing coverage, 17 November 2026](https://www.publicpower.org/periodical/article/nerc-seeks-ferc-approval-proposed-reliability-standards-tied-integration-computational-loads).
+
+### 12.3 Environmental outcome reporting — evidence as infrastructure
+
+Alavi-Borazjani et al., *Environmental KPI Reporting in Ports: Patterns, Gaps, and Opportunities for Systemic Change*, *International Journal of Environmental Research* 20, article 166 (25 May 2026), DOI [10.1007/s41742-026-01130-4](https://doi.org/10.1007/s41742-026-01130-4), benchmarks 403 environmental KPIs across 25 ports. It finds uneven and fragmented disclosures, with outcome-oriented and integrated indicators under-represented.
+
+This is a useful market gap for Sol-Atlas and Mycelix. We should not compete by publishing the largest KPI catalogue. We should make each KPI reproducible and decision-relevant:
+- definition, formula, unit and boundary;
+- source artifact, owner, timestamp and rights;
+- meter/calibration or model/assumption identity;
+- uncertainty and coverage;
+- target and matched counterfactual;
+- observed result versus installed capacity or announced plan;
+- review, correction and supersession history.
+
+The key outcome set should join port throughput/service, ship auxiliary energy avoided, shore-power delivery, grid import/ramp, renewable matching, compute useful work, emissions, water, habitat/thermal observations, climate resilience and local benefit distribution.
+
+Source: [Springer Nature — Environmental KPI Reporting in Ports (2026)](https://link.springer.com/article/10.1007/s41742-026-01130-4).
+
+### 12.4 Subsea data-centre capacity: operating versus planned
+
+Shanghai Lingang entered operation in May 2026. Public reporting identifies an initial 2.3 MW demonstration phase and a 24 MW planned overall capacity. Reported seawater cooling, offshore-wind connection, 22.8% electricity reduction and zero freshwater use are useful comparison claims, but are not independently audited lifecycle results in this benchmark.
+
+Do not compare the planned 24 MW with operating capacity. Match phase, IT load/utilisation, meter boundary, cooling auxiliary load, weather and environmental scope.
+
+Sources: [Shanghai Government / China Daily, 1 June 2026](https://english.shanghai.gov.cn/en-Latest-WhatsNew/20260601/89a94ac072f842eeacf82fcf0cce8261.html); [Shanghai project launch description](https://english.shanghai.gov.cn/en-Strength-Scitechcenter/20250611/c60460fe62e440d08b62be991cade0c9.html).
+
+## 13. New execution priorities
+
+1. **Multi-timescale co-scheduling:** day-ahead berth/crane/shore-power/compute/energy plan; 15-minute event-triggered updates; faster local controls remain independently authorized.
+2. **Bidirectional event detection:** trigger on both logistics deviations and energy/grid deviations; extend to compute queue/deadline, renewable forecast, PCC headroom and marine conditions. Measure both avoided optimization calls and the cost of delayed response.
+3. **Shared constraint ledger:** PCC, feeder, transformer, export, ramp, reserve and connection headroom must not be allocated twice across shore power, compute, cooling and storage.
+4. **Service-equivalent benchmarking:** never accept lower port throughput, missed shore-power windows, compute deadline misses, or unserved critical load as hidden savings.
+5. **Evidence-first environmental outcomes:** distinguish capacity installed, project announced, commissioned, measured and independently audited. Publish only claims supported by the corresponding evidence class.
+
+The current Symtropy tool is intentionally narrower: it independently checks fixed workload placements against declared PCC and feeder trajectories. It is an admission primitive for this larger port-logistics/energy/compute coordination programme, not the joint optimizer or a grid-study substitute.
