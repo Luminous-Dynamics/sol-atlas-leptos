@@ -94,6 +94,13 @@ The system can test whether required evidence is missing, stale, inconsistent or
 
 A rehabilitation promise is not a rehabilitation outcome. Obligations should remain open until physical progress and appropriate independent evidence are both recorded. Evidence must identify the protocol, observation time, responsible party and verifier.
 
+The structural preflight now requires an evidence-type appropriate to the obligation before `verified_complete` can be accepted:
+- `RehabilitateLand`, `RestoreHabitat` and `StabilizeGround`: at least one `EnvironmentalMeasurement` or `RemoteSensingObservation` reference;
+- `ProtectGroundwater`, `MonitorWaterQuality` and `ManageTailings`: at least one `EnvironmentalMeasurement` reference;
+- `MaintainAccess`, `ShareBenefits` and jurisdiction-specific `Other`: use their declared verification protocol and appropriate evidence domain; they are not forced into an ecological-measurement category.
+
+This type check prevents a permit, contract, operator declaration or unrelated attachment from being the *only* completion evidence for an environmental outcome. It remains a structural precondition only: the validator does not authenticate the sensor/source, inspect calibration, assess sampling design, verify spatial representativeness, establish causal attribution or prove ecological recovery. An observation reference—even one with a valid digest—is not a measurement-quality or outcome certificate.
+
 Symthaea's subterranean stewardship work already uses a useful principle: physical progress alone does not complete an obligation; externally attributable evidence is also required. This RFC carries that evidence boundary into the territorial interchange model. It does not claim that a reference or hash proves the measurement is scientifically sound.
 
 ### 3.6 From "open data by default" to FAIR + CARE
