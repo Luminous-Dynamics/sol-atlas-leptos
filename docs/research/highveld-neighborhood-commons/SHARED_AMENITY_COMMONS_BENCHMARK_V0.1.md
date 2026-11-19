@@ -160,6 +160,21 @@ Identify:
 
 Report the break-even surface and uncertainty, not one magic threshold. A shared node can be cheaper on average and still be rejected because it fails a declared travel, accessibility, privacy or service floor.
 
+### Robust spatial provisioning and option value
+
+Treat an amenity network as a **reconfigurable service topology**, not a once-built set of rooms. A central node, two smaller local nodes, a temporary pop-up, an external provider and a private fallback are different topology states. A design can preserve future options by reserving a route, service connection or convertible space without immediately building the full facility.
+
+For each candidate, test:
+- **robust reachability:** which resident tasks retain a usable service route when one node, route, provider or phase is lost;
+- **reconfiguration cost:** how much land, equipment, staffing, retrofit work and time is required to add, split, relocate or repurpose a node;
+- **option value:** whether a phased or modular provision strategy preserves the ability to respond to uncertain occupancy, service demand, climate, tariff and land-use changes;
+- **common-cause exposure:** whether nominally distributed nodes share the same provider, route, utility, operator, ownership or supply dependency;
+- **transition gaps:** how long residents lose service while a facility is built, moved, upgraded or transferred to a new operator.
+
+Do not invent probabilities for the ten scenario families. Where defensible event frequencies do not exist, report a scenario envelope, worst-case access, and non-dominated alternatives. Use expected-value or CVaR summaries only when the probability model, sampling basis and time period are separately evidenced. Minimax-regret comparisons are permitted only against a declared objective or resident-authored preference model; do not create a universal regret score.
+
+This is where distributed provision can create value beyond shorter average travel: it can preserve substitute service paths and maintain future design freedom. It can also be worse because multiple small facilities duplicate maintenance, operators and land. Both effects must be visible.
+
 ## 9. Non-compensatory gates
 
 - No alternative passes when the required resident task has no known usable route or eligible service.
