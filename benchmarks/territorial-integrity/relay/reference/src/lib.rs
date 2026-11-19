@@ -1,14 +1,12 @@
-//! Synthetic reference model for CTER relay convergence over the existing
-//! Mycelix-DeSci signed event stream.
+//! Synthetic CTER relay reference model around Mycelix-DeSci signed events.
 //!
-//! This crate classifies event records after an independent verifier supplies
-//! signature/key status and a BLAKE3 event hash. It does NOT implement signing,
-//! canonicalization, BLAKE3, key management, transport, authorization or legal
-//! review. Access-class metadata is a relay-policy input, not an access-control
-//! implementation.
+//! Event identity is immutable. Verification assessments and disclosure /
+//! projection annotations are detached, time-scoped context. This model does
+//! not verify signatures, key authorization, assessment signatures, BLAKE3,
+//! consent, access permissions, or legal authority.
 //!
 //! "accepted_events" means eligible for evidence preservation under the
-//! supplied verifier dispositions and stream-chain structure only.
+//! externally supplied verifier dispositions and stream-chain structure only.
 
 use serde_json::{json, Value};
 use std::collections::{BTreeMap, BTreeSet};
@@ -20,6 +18,7 @@ pub struct Evaluation {
     pub invalid_signatures: BTreeSet<String>,
     pub revoked_keys: BTreeSet<String>,
     pub verification_pending: BTreeSet<String>,
+    pub verification_conflict_event_ids: BTreeSet<String>,
     pub malformed_events: BTreeSet<String>,
     pub missing_parent_events: BTreeSet<String>,
     pub blocked_parent_events: BTreeSet<String>,
@@ -27,6 +26,7 @@ pub struct Evaluation {
     pub sequence_fork_event_ids: BTreeSet<String>,
     pub sequence_conflict_pending_event_ids: BTreeSet<String>,
     pub hash_collision_event_ids: BTreeSet<String>,
+    pub context_conflict_event_ids: BTreeSet<String>,
     pub conflict_pairs: BTreeSet<(String, String)>,
 }
 
@@ -37,8 +37,10 @@ struct ParsedEvent {
     sequence: u64,
     previous_hash: Option<String>,
     event_hash: String,
-    projection_key: String,
-    verification: String,
+    canonical_event: String,
+    assessments: BTreeSet<(String, String)>,
+    contexts: BTreeSet<(String, String)>,
+    equivocation: bool,
 }
 
 fn nonempty_string(value: &Value, field: &str) -> Option<String> {
@@ -49,88 +51,143 @@ fn is_lower_hex_digest(value: &str) -> bool {
     value.len() == 64 && value.bytes().all(|b| b.is_ascii_digit() || (b'a'..=b'f').contains(&b))
 }
 
-fn parse_event(value: &Value) -> Option<ParsedEvent> {
-    let id = nonempty_string(value, "event_id")?;
-    let stream_id = nonempty_string(value, "stream_id")?;
-    let sequence = value.get("sequence")?.as_u64()?;
-    let event_hash = nonempty_string(value, "event_hash")?;
-    let _actor = nonempty_string(value, "actor")?;
-    let projection_key = nonempty_string(value, "projection_key")?;
-    let verification = nonempty_string(value, "verification")?;
-    if !is_lower_hex_digest(&event_hash)
-        || !matches!(verification.as_str(), "verified" | "invalid" | "revoked" | "unavailable")
-    {
+fn canonical_json(value: &Value) -> String {
+    match value {
+        Value::Array(items) => format!("[{}]", items.iter().map(canonical_json).collect::<Vec<_>>().join(",")),
+        Value::Object(map) => {
+            let mut keys: Vec<&String> = map.keys().collect();
+            keys.sort();
+            let fields = keys.into_iter().map(|key| {
+                format!("{}:{}", serde_json::to_string(key).expect("string key"), canonical_json(&map[key]))
+            }).collect::<Vec<_>>();
+            format!("{{{}}}", fields.join(","))
+        }
+        _ => value.to_string(),
+    }
+}
+
+fn parse_delivery(value: &Value) -> Option<ParsedEvent> {
+    let event = value.get("event")?;
+    let assessment = value.get("assessment")?;
+    let context = value.get("context")?;
+
+    let id = nonempty_string(event, "event_id")?;
+    let stream_id = nonempty_string(event, "stream_id")?;
+    let sequence = event.get("sequence")?.as_u64()?;
+    let event_hash = nonempty_string(event, "event_hash")?;
+    if !is_lower_hex_digest(&event_hash) {
         return None;
     }
-    let previous_hash = match value.get("previous_hash")? {
+    // Actor is part of the canonical signed Mycelix envelope. The adapter
+    // checks presence only; actor/key authorization is a separate Mycelix gate.
+    let _actor = nonempty_string(event, "actor")?;
+    let previous_hash = match event.get("previous_hash")? {
         Value::Null => None,
         Value::String(hash) if is_lower_hex_digest(hash) => Some(hash.clone()),
         _ => return None,
     };
-    let access_class = nonempty_string(value, "access_class")?;
+    if (sequence == 0 && previous_hash.is_some()) || (sequence > 0 && previous_hash.is_none()) {
+        return None;
+    }
+
+    let _assessment_id = nonempty_string(assessment, "assessment_id")?;
+    let _verifier_id = nonempty_string(assessment, "verifier_id")?;
+    let policy_id = nonempty_string(assessment, "policy_id")?;
+    let _assessed_at = nonempty_string(assessment, "assessed_at")?;
+    let _key_status_snapshot_ref = nonempty_string(assessment, "key_status_snapshot_ref")?;
+    let time_basis = nonempty_string(assessment, "event_time_basis")?;
+    if !matches!(
+        time_basis.as_str(),
+        "trusted_append_receipt" | "external_trusted_timestamp" | "signer_claim_only" | "unknown"
+    ) {
+        return None;
+    }
+    let raw_status = nonempty_string(assessment, "status")?;
+    if !matches!(raw_status.as_str(), "verified" | "invalid" | "revoked" | "unavailable") {
+        return None;
+    }
+    // A signer-controlled occurred_at is not an authenticated timestamp.
+    // A verified/revoked conclusion is actionable only with a trusted event-
+    // time basis. Otherwise downgrade to unavailable, never to accepted.
+    let status = match raw_status.as_str() {
+        "invalid" => "invalid",
+        "unavailable" => "unavailable",
+        "verified" | "revoked"
+            if matches!(time_basis.as_str(), "trusted_append_receipt" | "external_trusted_timestamp") =>
+        {
+            if raw_status == "verified" { "verified" } else { "revoked" }
+        }
+        _ => "unavailable",
+    }.to_string();
+
+    let projection_key = nonempty_string(context, "projection_key")?;
+    let access_class = nonempty_string(context, "access_class")?;
     if !matches!(
         access_class.as_str(),
         "public" | "community" | "restricted" | "culturally_protected"
     ) {
         return None;
     }
-    // Match the existing Mycelix stream-envelope invariant: genesis has no
-    // previous hash; every non-genesis event must name one.
-    if (sequence == 0 && previous_hash.is_some()) || (sequence > 0 && previous_hash.is_none()) {
-        return None;
-    }
+
     Some(ParsedEvent {
         id,
         stream_id,
         sequence,
         previous_hash,
         event_hash,
-        projection_key,
-        verification,
+        canonical_event: canonical_json(event),
+        assessments: BTreeSet::from([(policy_id, status)]),
+        contexts: BTreeSet::from([(projection_key, access_class)]),
+        equivocation: false,
     })
 }
 
-/// Deterministic set-union merge. Distinct contents under the same event ID
-/// are retained as separate variants so evaluate() can mark equivocation.
+/// Deterministic set-union merge of deliveries. Different detached assessments
+/// remain separate; evaluate() aggregates them against immutable event identity.
 pub fn merge_event_sets(left: &[Value], right: &[Value]) -> Vec<Value> {
-    let mut merged: BTreeMap<(String, String, String), Value> = BTreeMap::new();
-    for event in left.iter().chain(right.iter()) {
-        let id = event.get("event_id").and_then(Value::as_str).unwrap_or("");
-        let hash = event.get("event_hash").and_then(Value::as_str).unwrap_or("");
-        let serialized = event.to_string();
-        merged.insert((id.to_owned(), hash.to_owned(), serialized), event.clone());
+    let mut merged: BTreeMap<String, Value> = BTreeMap::new();
+    for delivery in left.iter().chain(right.iter()) {
+        merged.insert(canonical_json(delivery), delivery.clone());
     }
     merged.into_values().collect()
 }
 
-/// Evaluate a batch of Mycelix-shaped signed-event references.
+fn effective_status(event: &ParsedEvent, result: &mut Evaluation) -> Option<String> {
+    if event.assessments.len() != 1 {
+        result.verification_conflict_event_ids.insert(event.id.clone());
+        return None;
+    }
+    event.assessments.iter().next().map(|(_, status)| status.clone())
+}
+
+/// Evaluate a batch of Mycelix-shaped event deliveries.
 ///
-/// `event_hash` is the Mycelix BLAKE3 hash of the signed canonical event,
-/// supplied by the independent Mycelix verifier. This function checks only
-/// its shape and linkage; it does not recompute the digest or verify Ed25519.
+/// `event.event_hash` is the BLAKE3 hash supplied by the independent Mycelix
+/// verifier. Detached verifier results and context labels are not part of the
+/// signed envelope and cannot make an otherwise identical event equivocate.
 pub fn evaluate(input: &[Value]) -> Evaluation {
     let mut result = Evaluation::default();
-    let mut variants: BTreeMap<String, BTreeMap<String, (String, ParsedEvent)>> = BTreeMap::new();
+    let mut variants: BTreeMap<String, BTreeMap<String, ParsedEvent>> = BTreeMap::new();
     let mut hash_to_ids: BTreeMap<String, BTreeSet<String>> = BTreeMap::new();
 
-    for (index, value) in input.iter().enumerate() {
-        let id_hint = value.get("event_id").and_then(Value::as_str)
-            .filter(|s| !s.is_empty()).map(str::to_owned)
-            .unwrap_or_else(|| format!("#event-{index}"));
-        match parse_event(value) {
-            Some(event) => {
-                hash_to_ids.entry(event.event_hash.clone()).or_default().insert(event.id.clone());
-                let canonical_text = value.to_string();
-                let by_hash = variants.entry(event.id.clone()).or_default();
-                if let Some((existing_text, _)) = by_hash.get(&event.event_hash) {
-                    if existing_text == &canonical_text {
-                        result.duplicate_replays += 1;
+    for (index, delivery) in input.iter().enumerate() {
+        let id_hint = delivery.get("event").and_then(|e| e.get("event_id"))
+            .and_then(Value::as_str).filter(|s| !s.is_empty())
+            .map(str::to_owned).unwrap_or_else(|| format!("#delivery-{index}"));
+        match parse_delivery(delivery) {
+            Some(parsed) => {
+                hash_to_ids.entry(parsed.event_hash.clone()).or_default().insert(parsed.id.clone());
+                let by_hash = variants.entry(parsed.id.clone()).or_default();
+                if let Some(existing) = by_hash.get_mut(&parsed.event_hash) {
+                    if existing.canonical_event != parsed.canonical_event {
+                        existing.equivocation = true;
                     } else {
-                        let variant_key = format!("{}:variant:{}", event.event_hash, canonical_text);
-                        by_hash.insert(variant_key, (canonical_text, event));
+                        result.duplicate_replays += 1;
+                        existing.assessments.extend(parsed.assessments);
+                        existing.contexts.extend(parsed.contexts);
                     }
                 } else {
-                    by_hash.insert(event.event_hash.clone(), (canonical_text, event));
+                    by_hash.insert(parsed.event_hash.clone(), parsed);
                 }
             }
             None => {
@@ -145,37 +202,46 @@ pub fn evaluate(input: &[Value]) -> Evaluation {
             result.equivocation_event_ids.insert(id);
             continue;
         }
-        if let Some((_, event)) = by_hash.into_values().next() {
-            unique.insert(id, event);
+        if let Some((_, event)) = by_hash.into_iter().next() {
+            if event.equivocation {
+                result.equivocation_event_ids.insert(id);
+            } else {
+                unique.insert(id, event);
+            }
         }
     }
 
-    // BLAKE3 event hashes are globally content-addressed. The same digest
-    // under different event IDs is treated as an integrity collision, not
-    // as two interchangeable parents.
+    // One BLAKE3 event hash under multiple event IDs is an integrity failure.
     for ids in hash_to_ids.values() {
         if ids.len() > 1 {
             result.hash_collision_event_ids.extend(ids.iter().cloned());
         }
     }
 
-    // Sequence is per Mycelix claim stream, not per signer/relay/device.
-    // A same-slot event with unavailable or revoked verification is a possible
-    // competing history. Hold every candidate in that slot until the verifier
-    // resolves it; never let delivery order establish a winner. A definitive
-    // invalid-signature result does not poison a verified event.
+    let mut statuses: BTreeMap<String, String> = BTreeMap::new();
+    for (id, event) in &unique {
+        if let Some(status) = effective_status(event, &mut result) {
+            statuses.insert(id.clone(), status);
+        }
+        if event.contexts.len() > 1 {
+            result.context_conflict_event_ids.insert(id.clone());
+        }
+    }
+
+    // Stream sequence is not resolved by arrival order. A potentially competing
+    // event with unresolved verification holds the entire slot.
     let mut sequence_groups: BTreeMap<(String, u64), BTreeSet<String>> = BTreeMap::new();
     for (id, event) in &unique {
-        if event.verification != "invalid" && !result.hash_collision_event_ids.contains(id) {
+        if !result.hash_collision_event_ids.contains(id)
+            && statuses.get(id).map(String::as_str) != Some("invalid")
+        {
             sequence_groups.entry((event.stream_id.clone(), event.sequence))
                 .or_default().insert(id.clone());
         }
     }
     for ids in sequence_groups.values() {
         if ids.len() > 1 {
-            let all_verified = ids.iter().all(|id| {
-                unique.get(id).map(|event| event.verification == "verified").unwrap_or(false)
-            });
+            let all_verified = ids.iter().all(|id| statuses.get(id).map(String::as_str) == Some("verified"));
             if all_verified {
                 result.sequence_fork_event_ids.extend(ids.iter().cloned());
             } else {
@@ -184,13 +250,13 @@ pub fn evaluate(input: &[Value]) -> Evaluation {
         }
     }
 
-    let mut eligible = BTreeMap::new();
+    let mut eligible: BTreeMap<String, ParsedEvent> = BTreeMap::new();
     for (id, event) in &unique {
-        match event.verification.as_str() {
-            "invalid" => { result.invalid_signatures.insert(id.clone()); }
-            "revoked" => { result.revoked_keys.insert(id.clone()); }
-            "unavailable" => { result.verification_pending.insert(id.clone()); }
-            "verified"
+        match statuses.get(id).map(String::as_str) {
+            Some("invalid") => { result.invalid_signatures.insert(id.clone()); }
+            Some("revoked") => { result.revoked_keys.insert(id.clone()); }
+            Some("unavailable") => { result.verification_pending.insert(id.clone()); }
+            Some("verified")
                 if !result.sequence_fork_event_ids.contains(id)
                     && !result.sequence_conflict_pending_event_ids.contains(id)
                     && !result.hash_collision_event_ids.contains(id) =>
@@ -204,11 +270,9 @@ pub fn evaluate(input: &[Value]) -> Evaluation {
     let mut unresolved: BTreeSet<String> = eligible.keys().cloned().collect();
     loop {
         let mut progressed = false;
-        let current: Vec<String> = unresolved.iter().cloned().collect();
-        for id in current {
+        for id in unresolved.iter().cloned().collect::<Vec<_>>() {
             let Some(event) = eligible.get(&id) else { continue };
             let Some(previous_hash) = event.previous_hash.as_ref() else {
-                // parse_event only permits this for sequence zero.
                 result.accepted_events.insert(id.clone());
                 unresolved.remove(&id);
                 progressed = true;
@@ -226,14 +290,16 @@ pub fn evaluate(input: &[Value]) -> Evaluation {
                 progressed = true;
                 continue;
             }
-            let parent_id = parent_ids.iter().next().expect("one parent id");
+            let parent_id = parent_ids.iter().next().expect("one parent");
             let Some(parent) = eligible.get(parent_id) else {
                 result.blocked_parent_events.insert(id.clone());
                 unresolved.remove(&id);
                 progressed = true;
                 continue;
             };
-            if parent.stream_id != event.stream_id || parent.sequence.checked_add(1) != Some(event.sequence) {
+            if parent.stream_id != event.stream_id
+                || parent.sequence.checked_add(1) != Some(event.sequence)
+            {
                 result.blocked_parent_events.insert(id.clone());
                 unresolved.remove(&id);
                 progressed = true;
@@ -245,49 +311,40 @@ pub fn evaluate(input: &[Value]) -> Evaluation {
                 progressed = true;
             }
         }
-        if !progressed {
-            break;
-        }
+        if !progressed { break; }
     }
-
-    // Any residual event has a parent that is present but cannot be accepted,
-    // or participates in an invalid chain. A valid Mycelix chain is ordered by
-    // stream-local sequence, so cycles are structurally invalid rather than a
-    // legitimate merge conflict.
     result.blocked_parent_events.extend(unresolved);
 
-    // Different streams can describe the same territorial projection. They
-    // remain accepted as evidence but are emitted as an unresolved conflict.
+    // Different streams may project onto one territorial relationship. The
+    // relationship conflict is never converted into legal priority.
     let accepted: Vec<String> = result.accepted_events.iter().cloned().collect();
-    for left_index in 0..accepted.len() {
-        for right_index in (left_index + 1)..accepted.len() {
-            let left = &accepted[left_index];
-            let right = &accepted[right_index];
-            let (Some(left_event), Some(right_event)) = (eligible.get(left), eligible.get(right)) else {
-                continue;
-            };
-            if left_event.projection_key == right_event.projection_key
-                && left_event.stream_id != right_event.stream_id
-            {
-                result.conflict_pairs.insert((left.clone(), right.clone()));
+    for i in 0..accepted.len() {
+        for j in (i + 1)..accepted.len() {
+            let left = &accepted[i];
+            let right = &accepted[j];
+            let (Some(le), Some(re)) = (eligible.get(left), eligible.get(right)) else { continue };
+            if le.contexts.len() == 1 && re.contexts.len() == 1 {
+                let left_key = &le.contexts.iter().next().expect("one context").0;
+                let right_key = &re.contexts.iter().next().expect("one context").0;
+                if le.stream_id != re.stream_id && left_key == right_key {
+                    result.conflict_pairs.insert((left.clone(), right.clone()));
+                }
             }
         }
     }
-
     result
 }
 
 impl Evaluation {
     pub fn to_json(&self) -> Value {
-        let pairs: Vec<Value> = self.conflict_pairs.iter()
-            .map(|(left, right)| json!([left, right]))
-            .collect();
+        let pairs: Vec<Value> = self.conflict_pairs.iter().map(|(a, b)| json!([a, b])).collect();
         json!({
             "accepted_events": self.accepted_events.iter().cloned().collect::<Vec<_>>(),
             "duplicate_replays": self.duplicate_replays,
             "invalid_signatures": self.invalid_signatures.iter().cloned().collect::<Vec<_>>(),
             "revoked_keys": self.revoked_keys.iter().cloned().collect::<Vec<_>>(),
             "verification_pending": self.verification_pending.iter().cloned().collect::<Vec<_>>(),
+            "verification_conflict_event_ids": self.verification_conflict_event_ids.iter().cloned().collect::<Vec<_>>(),
             "malformed_events": self.malformed_events.iter().cloned().collect::<Vec<_>>(),
             "missing_parent_events": self.missing_parent_events.iter().cloned().collect::<Vec<_>>(),
             "blocked_parent_events": self.blocked_parent_events.iter().cloned().collect::<Vec<_>>(),
@@ -295,6 +352,7 @@ impl Evaluation {
             "sequence_fork_event_ids": self.sequence_fork_event_ids.iter().cloned().collect::<Vec<_>>(),
             "sequence_conflict_pending_event_ids": self.sequence_conflict_pending_event_ids.iter().cloned().collect::<Vec<_>>(),
             "hash_collision_event_ids": self.hash_collision_event_ids.iter().cloned().collect::<Vec<_>>(),
+            "context_conflict_event_ids": self.context_conflict_event_ids.iter().cloned().collect::<Vec<_>>(),
             "conflict_pairs": pairs
         })
     }

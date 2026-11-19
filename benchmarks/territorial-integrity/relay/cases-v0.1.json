@@ -1,7 +1,7 @@
 {
   "schema": "luminous.cter.relay-cases.v0",
   "suite_id": "CTER-RELAY-CONVERGENCE-001",
-  "suite_version": "0.1.3",
+  "suite_version": "0.1.4",
   "synthetic_only": true,
   "cases": [
     {
@@ -21,7 +21,10 @@
             "verifier_id": "verifier-a",
             "policy_id": "tib-key-policy-v0",
             "assessed_at": "2026-11-19T00:00:00Z",
-            "status": "verified"
+            "status": "verified",
+            "assessment_id": "assessment-replay-001-1",
+            "key_status_snapshot_ref": "urn:tib:key-status:snapshot:synthetic-2026-11-19",
+            "event_time_basis": "external_trusted_timestamp"
           },
           "context": {
             "projection_key": "claim:x",
@@ -41,7 +44,10 @@
             "verifier_id": "verifier-a",
             "policy_id": "tib-key-policy-v0",
             "assessed_at": "2026-11-19T00:00:00Z",
-            "status": "verified"
+            "status": "verified",
+            "assessment_id": "assessment-replay-001-2",
+            "key_status_snapshot_ref": "urn:tib:key-status:snapshot:synthetic-2026-11-19",
+            "event_time_basis": "external_trusted_timestamp"
           },
           "context": {
             "projection_key": "claim:x",
@@ -86,7 +92,10 @@
             "verifier_id": "verifier-a",
             "policy_id": "tib-key-policy-v0",
             "assessed_at": "2026-11-19T00:00:00Z",
-            "status": "verified"
+            "status": "verified",
+            "assessment_id": "assessment-equivocation-001-1",
+            "key_status_snapshot_ref": "urn:tib:key-status:snapshot:synthetic-2026-11-19",
+            "event_time_basis": "external_trusted_timestamp"
           },
           "context": {
             "projection_key": "claim:x",
@@ -106,7 +115,10 @@
             "verifier_id": "verifier-a",
             "policy_id": "tib-key-policy-v0",
             "assessed_at": "2026-11-19T00:00:00Z",
-            "status": "verified"
+            "status": "verified",
+            "assessment_id": "assessment-equivocation-001-2",
+            "key_status_snapshot_ref": "urn:tib:key-status:snapshot:synthetic-2026-11-19",
+            "event_time_basis": "external_trusted_timestamp"
           },
           "context": {
             "projection_key": "claim:x",
@@ -151,7 +163,10 @@
             "verifier_id": "verifier-a",
             "policy_id": "tib-key-policy-v0",
             "assessed_at": "2026-11-19T00:00:00Z",
-            "status": "verified"
+            "status": "verified",
+            "assessment_id": "assessment-parent-gap-001-1",
+            "key_status_snapshot_ref": "urn:tib:key-status:snapshot:synthetic-2026-11-19",
+            "event_time_basis": "external_trusted_timestamp"
           },
           "context": {
             "projection_key": "claim:x",
@@ -196,7 +211,10 @@
             "verifier_id": "verifier-a",
             "policy_id": "tib-key-policy-v0",
             "assessed_at": "2026-11-19T00:00:00Z",
-            "status": "verified"
+            "status": "verified",
+            "assessment_id": "assessment-reorder-001-1",
+            "key_status_snapshot_ref": "urn:tib:key-status:snapshot:synthetic-2026-11-19",
+            "event_time_basis": "external_trusted_timestamp"
           },
           "context": {
             "projection_key": "claim:x",
@@ -216,7 +234,10 @@
             "verifier_id": "verifier-a",
             "policy_id": "tib-key-policy-v0",
             "assessed_at": "2026-11-19T00:00:00Z",
-            "status": "verified"
+            "status": "verified",
+            "assessment_id": "assessment-reorder-001-2",
+            "key_status_snapshot_ref": "urn:tib:key-status:snapshot:synthetic-2026-11-19",
+            "event_time_basis": "external_trusted_timestamp"
           },
           "context": {
             "projection_key": "claim:x",
@@ -262,7 +283,10 @@
             "verifier_id": "verifier-a",
             "policy_id": "tib-key-policy-v0",
             "assessed_at": "2026-11-19T00:00:00Z",
-            "status": "invalid"
+            "status": "invalid",
+            "assessment_id": "assessment-signature-invalid-001-1",
+            "key_status_snapshot_ref": "urn:tib:key-status:snapshot:synthetic-2026-11-19",
+            "event_time_basis": "external_trusted_timestamp"
           },
           "context": {
             "projection_key": "claim:x",
@@ -307,7 +331,10 @@
             "verifier_id": "verifier-a",
             "policy_id": "tib-key-policy-v0",
             "assessed_at": "2026-11-19T00:00:00Z",
-            "status": "unavailable"
+            "status": "unavailable",
+            "assessment_id": "assessment-verifier-unavailable-001-1",
+            "key_status_snapshot_ref": "urn:tib:key-status:snapshot:synthetic-2026-11-19",
+            "event_time_basis": "external_trusted_timestamp"
           },
           "context": {
             "projection_key": "claim:x",
@@ -352,7 +379,10 @@
             "verifier_id": "verifier-a",
             "policy_id": "tib-key-policy-v0",
             "assessed_at": "2026-11-19T00:00:00Z",
-            "status": "revoked"
+            "status": "revoked",
+            "assessment_id": "assessment-key-revoked-001-1",
+            "key_status_snapshot_ref": "urn:tib:key-status:snapshot:synthetic-2026-11-19",
+            "event_time_basis": "external_trusted_timestamp"
           },
           "context": {
             "projection_key": "claim:x",
@@ -397,7 +427,10 @@
             "verifier_id": "verifier-a",
             "policy_id": "tib-key-policy-v0",
             "assessed_at": "2026-11-19T00:00:00Z",
-            "status": "verified"
+            "status": "verified",
+            "assessment_id": "assessment-stream-fork-001-1",
+            "key_status_snapshot_ref": "urn:tib:key-status:snapshot:synthetic-2026-11-19",
+            "event_time_basis": "external_trusted_timestamp"
           },
           "context": {
             "projection_key": "claim:x",
@@ -417,7 +450,10 @@
             "verifier_id": "verifier-a",
             "policy_id": "tib-key-policy-v0",
             "assessed_at": "2026-11-19T00:00:00Z",
-            "status": "verified"
+            "status": "verified",
+            "assessment_id": "assessment-stream-fork-001-2",
+            "key_status_snapshot_ref": "urn:tib:key-status:snapshot:synthetic-2026-11-19",
+            "event_time_basis": "external_trusted_timestamp"
           },
           "context": {
             "projection_key": "claim:x",
@@ -437,7 +473,10 @@
             "verifier_id": "verifier-a",
             "policy_id": "tib-key-policy-v0",
             "assessed_at": "2026-11-19T00:00:00Z",
-            "status": "verified"
+            "status": "verified",
+            "assessment_id": "assessment-stream-fork-001-3",
+            "key_status_snapshot_ref": "urn:tib:key-status:snapshot:synthetic-2026-11-19",
+            "event_time_basis": "external_trusted_timestamp"
           },
           "context": {
             "projection_key": "claim:x",
@@ -485,7 +524,10 @@
             "verifier_id": "verifier-a",
             "policy_id": "tib-key-policy-v0",
             "assessed_at": "2026-11-19T00:00:00Z",
-            "status": "verified"
+            "status": "verified",
+            "assessment_id": "assessment-concurrent-conflict-001-1",
+            "key_status_snapshot_ref": "urn:tib:key-status:snapshot:synthetic-2026-11-19",
+            "event_time_basis": "external_trusted_timestamp"
           },
           "context": {
             "projection_key": "claim:x",
@@ -505,7 +547,10 @@
             "verifier_id": "verifier-a",
             "policy_id": "tib-key-policy-v0",
             "assessed_at": "2026-11-19T00:00:00Z",
-            "status": "verified"
+            "status": "verified",
+            "assessment_id": "assessment-concurrent-conflict-001-2",
+            "key_status_snapshot_ref": "urn:tib:key-status:snapshot:synthetic-2026-11-19",
+            "event_time_basis": "external_trusted_timestamp"
           },
           "context": {
             "projection_key": "claim:x",
@@ -556,7 +601,10 @@
             "verifier_id": "verifier-a",
             "policy_id": "tib-key-policy-v0",
             "assessed_at": "2026-11-19T00:00:00Z",
-            "status": "verified"
+            "status": "verified",
+            "assessment_id": "assessment-causal-correction-001-1",
+            "key_status_snapshot_ref": "urn:tib:key-status:snapshot:synthetic-2026-11-19",
+            "event_time_basis": "external_trusted_timestamp"
           },
           "context": {
             "projection_key": "claim:x",
@@ -576,7 +624,10 @@
             "verifier_id": "verifier-a",
             "policy_id": "tib-key-policy-v0",
             "assessed_at": "2026-11-19T00:00:00Z",
-            "status": "verified"
+            "status": "verified",
+            "assessment_id": "assessment-causal-correction-001-2",
+            "key_status_snapshot_ref": "urn:tib:key-status:snapshot:synthetic-2026-11-19",
+            "event_time_basis": "external_trusted_timestamp"
           },
           "context": {
             "projection_key": "claim:x",
@@ -622,7 +673,10 @@
             "verifier_id": "verifier-a",
             "policy_id": "tib-key-policy-v0",
             "assessed_at": "2026-11-19T00:00:00Z",
-            "status": "invalid"
+            "status": "invalid",
+            "assessment_id": "assessment-blocked-parent-001-1",
+            "key_status_snapshot_ref": "urn:tib:key-status:snapshot:synthetic-2026-11-19",
+            "event_time_basis": "external_trusted_timestamp"
           },
           "context": {
             "projection_key": "claim:x",
@@ -642,7 +696,10 @@
             "verifier_id": "verifier-a",
             "policy_id": "tib-key-policy-v0",
             "assessed_at": "2026-11-19T00:00:00Z",
-            "status": "verified"
+            "status": "verified",
+            "assessment_id": "assessment-blocked-parent-001-2",
+            "key_status_snapshot_ref": "urn:tib:key-status:snapshot:synthetic-2026-11-19",
+            "event_time_basis": "external_trusted_timestamp"
           },
           "context": {
             "projection_key": "claim:x",
@@ -689,7 +746,10 @@
             "verifier_id": "verifier-a",
             "policy_id": "tib-key-policy-v0",
             "assessed_at": "2026-11-19T00:00:00Z",
-            "status": "verified"
+            "status": "verified",
+            "assessment_id": "assessment-wrong-stream-parent-001-1",
+            "key_status_snapshot_ref": "urn:tib:key-status:snapshot:synthetic-2026-11-19",
+            "event_time_basis": "external_trusted_timestamp"
           },
           "context": {
             "projection_key": "claim:x",
@@ -709,7 +769,10 @@
             "verifier_id": "verifier-a",
             "policy_id": "tib-key-policy-v0",
             "assessed_at": "2026-11-19T00:00:00Z",
-            "status": "verified"
+            "status": "verified",
+            "assessment_id": "assessment-wrong-stream-parent-001-2",
+            "key_status_snapshot_ref": "urn:tib:key-status:snapshot:synthetic-2026-11-19",
+            "event_time_basis": "external_trusted_timestamp"
           },
           "context": {
             "projection_key": "claim:x",
@@ -756,7 +819,10 @@
             "verifier_id": "verifier-a",
             "policy_id": "tib-key-policy-v0",
             "assessed_at": "2026-11-19T00:00:00Z",
-            "status": "verified"
+            "status": "verified",
+            "assessment_id": "assessment-malformed-digest-001-1",
+            "key_status_snapshot_ref": "urn:tib:key-status:snapshot:synthetic-2026-11-19",
+            "event_time_basis": "external_trusted_timestamp"
           },
           "context": {
             "projection_key": "claim:x",
@@ -801,7 +867,10 @@
             "verifier_id": "verifier-a",
             "policy_id": "tib-key-policy-v0",
             "assessed_at": "2026-11-19T00:00:00Z",
-            "status": "verified"
+            "status": "verified",
+            "assessment_id": "assessment-malformed-genesis-001-1",
+            "key_status_snapshot_ref": "urn:tib:key-status:snapshot:synthetic-2026-11-19",
+            "event_time_basis": "external_trusted_timestamp"
           },
           "context": {
             "projection_key": "claim:x",
@@ -846,7 +915,10 @@
             "verifier_id": "verifier-a",
             "policy_id": "tib-key-policy-v0",
             "assessed_at": "2026-11-19T00:00:00Z",
-            "status": "verified"
+            "status": "verified",
+            "assessment_id": "assessment-hash-collision-001-1",
+            "key_status_snapshot_ref": "urn:tib:key-status:snapshot:synthetic-2026-11-19",
+            "event_time_basis": "external_trusted_timestamp"
           },
           "context": {
             "projection_key": "claim:x",
@@ -866,7 +938,10 @@
             "verifier_id": "verifier-a",
             "policy_id": "tib-key-policy-v0",
             "assessed_at": "2026-11-19T00:00:00Z",
-            "status": "verified"
+            "status": "verified",
+            "assessment_id": "assessment-hash-collision-001-2",
+            "key_status_snapshot_ref": "urn:tib:key-status:snapshot:synthetic-2026-11-19",
+            "event_time_basis": "external_trusted_timestamp"
           },
           "context": {
             "projection_key": "claim:x",
@@ -912,7 +987,10 @@
             "verifier_id": "verifier-a",
             "policy_id": "tib-key-policy-v0",
             "assessed_at": "2026-11-19T00:00:00Z",
-            "status": "verified"
+            "status": "verified",
+            "assessment_id": "assessment-unrelated-projections-001-1",
+            "key_status_snapshot_ref": "urn:tib:key-status:snapshot:synthetic-2026-11-19",
+            "event_time_basis": "external_trusted_timestamp"
           },
           "context": {
             "projection_key": "claim:x",
@@ -932,7 +1010,10 @@
             "verifier_id": "verifier-a",
             "policy_id": "tib-key-policy-v0",
             "assessed_at": "2026-11-19T00:00:00Z",
-            "status": "verified"
+            "status": "verified",
+            "assessment_id": "assessment-unrelated-projections-001-2",
+            "key_status_snapshot_ref": "urn:tib:key-status:snapshot:synthetic-2026-11-19",
+            "event_time_basis": "external_trusted_timestamp"
           },
           "context": {
             "projection_key": "claim:y",
@@ -978,7 +1059,10 @@
             "verifier_id": "verifier-a",
             "policy_id": "tib-key-policy-v0",
             "assessed_at": "2026-11-19T00:00:00Z",
-            "status": "verified"
+            "status": "verified",
+            "assessment_id": "assessment-unavailable-stream-slot-001-1",
+            "key_status_snapshot_ref": "urn:tib:key-status:snapshot:synthetic-2026-11-19",
+            "event_time_basis": "external_trusted_timestamp"
           },
           "context": {
             "projection_key": "claim:x",
@@ -998,7 +1082,10 @@
             "verifier_id": "verifier-a",
             "policy_id": "tib-key-policy-v0",
             "assessed_at": "2026-11-19T00:00:00Z",
-            "status": "unavailable"
+            "status": "unavailable",
+            "assessment_id": "assessment-unavailable-stream-slot-001-2",
+            "key_status_snapshot_ref": "urn:tib:key-status:snapshot:synthetic-2026-11-19",
+            "event_time_basis": "external_trusted_timestamp"
           },
           "context": {
             "projection_key": "claim:x",
@@ -1046,7 +1133,10 @@
             "verifier_id": "verifier-a",
             "policy_id": "tib-key-policy-v0",
             "assessed_at": "2026-11-19T00:00:00Z",
-            "status": "verified"
+            "status": "verified",
+            "assessment_id": "assessment-invalid-signature-not-a-fork-001-1",
+            "key_status_snapshot_ref": "urn:tib:key-status:snapshot:synthetic-2026-11-19",
+            "event_time_basis": "external_trusted_timestamp"
           },
           "context": {
             "projection_key": "claim:x",
@@ -1066,7 +1156,10 @@
             "verifier_id": "verifier-a",
             "policy_id": "tib-key-policy-v0",
             "assessed_at": "2026-11-19T00:00:00Z",
-            "status": "invalid"
+            "status": "invalid",
+            "assessment_id": "assessment-invalid-signature-not-a-fork-001-2",
+            "key_status_snapshot_ref": "urn:tib:key-status:snapshot:synthetic-2026-11-19",
+            "event_time_basis": "external_trusted_timestamp"
           },
           "context": {
             "projection_key": "claim:x",
@@ -1113,7 +1206,10 @@
             "verifier_id": "verifier-a",
             "policy_id": "tib-key-policy-v0",
             "assessed_at": "2026-11-19T00:00:00Z",
-            "status": "verified"
+            "status": "verified",
+            "assessment_id": "assessment-revoked-stream-slot-001-1",
+            "key_status_snapshot_ref": "urn:tib:key-status:snapshot:synthetic-2026-11-19",
+            "event_time_basis": "external_trusted_timestamp"
           },
           "context": {
             "projection_key": "claim:x",
@@ -1133,7 +1229,10 @@
             "verifier_id": "verifier-a",
             "policy_id": "tib-key-policy-v0",
             "assessed_at": "2026-11-19T00:00:00Z",
-            "status": "revoked"
+            "status": "revoked",
+            "assessment_id": "assessment-revoked-stream-slot-001-2",
+            "key_status_snapshot_ref": "urn:tib:key-status:snapshot:synthetic-2026-11-19",
+            "event_time_basis": "external_trusted_timestamp"
           },
           "context": {
             "projection_key": "claim:x",
@@ -1181,7 +1280,10 @@
             "verifier_id": "verifier-a",
             "policy_id": "tib-key-policy-v0",
             "assessed_at": "2026-11-19T00:00:00Z",
-            "status": "verified"
+            "status": "verified",
+            "assessment_id": "assessment-assessment-status-change-001-1",
+            "key_status_snapshot_ref": "urn:tib:key-status:snapshot:synthetic-2026-11-19",
+            "event_time_basis": "external_trusted_timestamp"
           },
           "context": {
             "projection_key": "claim:x",
@@ -1201,7 +1303,10 @@
             "verifier_id": "verifier-b",
             "policy_id": "tib-key-policy-v0",
             "assessed_at": "2026-11-19T01:00:00Z",
-            "status": "unavailable"
+            "status": "unavailable",
+            "assessment_id": "assessment-assessment-status-change-001-2",
+            "key_status_snapshot_ref": "urn:tib:key-status:snapshot:synthetic-2026-11-19",
+            "event_time_basis": "external_trusted_timestamp"
           },
           "context": {
             "projection_key": "claim:x",
@@ -1246,7 +1351,10 @@
             "verifier_id": "verifier-a",
             "policy_id": "tib-key-policy-v0",
             "assessed_at": "2026-11-19T00:00:00Z",
-            "status": "verified"
+            "status": "verified",
+            "assessment_id": "assessment-assessment-policy-divergence-001-1",
+            "key_status_snapshot_ref": "urn:tib:key-status:snapshot:synthetic-2026-11-19",
+            "event_time_basis": "external_trusted_timestamp"
           },
           "context": {
             "projection_key": "claim:x",
@@ -1266,7 +1374,10 @@
             "verifier_id": "verifier-b",
             "policy_id": "tib-key-policy-v1",
             "assessed_at": "2026-11-19T00:00:00Z",
-            "status": "verified"
+            "status": "verified",
+            "assessment_id": "assessment-assessment-policy-divergence-001-2",
+            "key_status_snapshot_ref": "urn:tib:key-status:snapshot:synthetic-2026-11-19",
+            "event_time_basis": "external_trusted_timestamp"
           },
           "context": {
             "projection_key": "claim:x",
@@ -1311,7 +1422,10 @@
             "verifier_id": "verifier-a",
             "policy_id": "tib-key-policy-v0",
             "assessed_at": "2026-11-19T00:00:00Z",
-            "status": "verified"
+            "status": "verified",
+            "assessment_id": "assessment-assessment-independent-agreement-001-1",
+            "key_status_snapshot_ref": "urn:tib:key-status:snapshot:synthetic-2026-11-19",
+            "event_time_basis": "external_trusted_timestamp"
           },
           "context": {
             "projection_key": "claim:x",
@@ -1331,7 +1445,10 @@
             "verifier_id": "verifier-b",
             "policy_id": "tib-key-policy-v0",
             "assessed_at": "2026-11-19T01:00:00Z",
-            "status": "verified"
+            "status": "verified",
+            "assessment_id": "assessment-assessment-independent-agreement-001-2",
+            "key_status_snapshot_ref": "urn:tib:key-status:snapshot:synthetic-2026-11-19",
+            "event_time_basis": "external_trusted_timestamp"
           },
           "context": {
             "projection_key": "claim:x",
@@ -1376,7 +1493,10 @@
             "verifier_id": "verifier-a",
             "policy_id": "tib-key-policy-v0",
             "assessed_at": "2026-11-19T00:00:00Z",
-            "status": "verified"
+            "status": "verified",
+            "assessment_id": "assessment-context-downgrade-001-1",
+            "key_status_snapshot_ref": "urn:tib:key-status:snapshot:synthetic-2026-11-19",
+            "event_time_basis": "external_trusted_timestamp"
           },
           "context": {
             "projection_key": "claim:x",
@@ -1396,7 +1516,10 @@
             "verifier_id": "verifier-b",
             "policy_id": "tib-key-policy-v0",
             "assessed_at": "2026-11-19T00:00:00Z",
-            "status": "verified"
+            "status": "verified",
+            "assessment_id": "assessment-context-downgrade-001-2",
+            "key_status_snapshot_ref": "urn:tib:key-status:snapshot:synthetic-2026-11-19",
+            "event_time_basis": "external_trusted_timestamp"
           },
           "context": {
             "projection_key": "claim:x",
@@ -1443,7 +1566,10 @@
             "verifier_id": "verifier-a",
             "policy_id": "tib-key-policy-v0",
             "assessed_at": "2026-11-19T00:00:00Z",
-            "status": "verified"
+            "status": "verified",
+            "assessment_id": "assessment-event-payload-equivocation-001-1",
+            "key_status_snapshot_ref": "urn:tib:key-status:snapshot:synthetic-2026-11-19",
+            "event_time_basis": "external_trusted_timestamp"
           },
           "context": {
             "projection_key": "claim:x",
@@ -1463,7 +1589,10 @@
             "verifier_id": "verifier-a",
             "policy_id": "tib-key-policy-v0",
             "assessed_at": "2026-11-19T00:00:00Z",
-            "status": "verified"
+            "status": "verified",
+            "assessment_id": "assessment-event-payload-equivocation-001-2",
+            "key_status_snapshot_ref": "urn:tib:key-status:snapshot:synthetic-2026-11-19",
+            "event_time_basis": "external_trusted_timestamp"
           },
           "context": {
             "projection_key": "claim:x",
@@ -1484,6 +1613,102 @@
         "equivocation_event_ids": [
           "e1"
         ],
+        "sequence_fork_event_ids": [],
+        "sequence_conflict_pending_event_ids": [],
+        "hash_collision_event_ids": [],
+        "context_conflict_event_ids": [],
+        "conflict_pairs": []
+      }
+    },
+    {
+      "case_id": "UNTRUSTED-EVENT-TIME-001",
+      "title": "A signer-claimed event timestamp cannot establish historical key validity",
+      "deliveries": [
+        {
+          "event": {
+            "event_id": "e-time-1",
+            "stream_id": "stream-time",
+            "sequence": 0,
+            "previous_hash": null,
+            "event_hash": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "actor": "actor-e-time-1"
+          },
+          "assessment": {
+            "assessment_id": "assessment-e-time-1-signer_claim_only",
+            "verifier_id": "verifier-a",
+            "policy_id": "tib-key-policy-v0",
+            "assessed_at": "2026-11-19T02:00:00Z",
+            "key_status_snapshot_ref": "urn:tib:key-status:snapshot:synthetic-2026-11-19",
+            "event_time_basis": "signer_claim_only",
+            "status": "verified"
+          },
+          "context": {
+            "projection_key": "claim:time",
+            "access_class": "restricted"
+          }
+        }
+      ],
+      "expected": {
+        "accepted_events": [],
+        "duplicate_replays": 0,
+        "invalid_signatures": [],
+        "revoked_keys": [],
+        "verification_pending": [
+          "e-time-1"
+        ],
+        "verification_conflict_event_ids": [],
+        "malformed_events": [],
+        "missing_parent_events": [],
+        "blocked_parent_events": [],
+        "equivocation_event_ids": [],
+        "sequence_fork_event_ids": [],
+        "sequence_conflict_pending_event_ids": [],
+        "hash_collision_event_ids": [],
+        "context_conflict_event_ids": [],
+        "conflict_pairs": []
+      }
+    },
+    {
+      "case_id": "UNTRUSTED-REVOCATION-TIME-001",
+      "title": "Revocation conclusion remains pending without a trusted event-time basis",
+      "deliveries": [
+        {
+          "event": {
+            "event_id": "e-time-2",
+            "stream_id": "stream-time",
+            "sequence": 0,
+            "previous_hash": null,
+            "event_hash": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "actor": "actor-e-time-2"
+          },
+          "assessment": {
+            "assessment_id": "assessment-e-time-2-unknown",
+            "verifier_id": "verifier-a",
+            "policy_id": "tib-key-policy-v0",
+            "assessed_at": "2026-11-19T02:00:00Z",
+            "key_status_snapshot_ref": "urn:tib:key-status:snapshot:synthetic-2026-11-19",
+            "event_time_basis": "unknown",
+            "status": "revoked"
+          },
+          "context": {
+            "projection_key": "claim:time",
+            "access_class": "restricted"
+          }
+        }
+      ],
+      "expected": {
+        "accepted_events": [],
+        "duplicate_replays": 0,
+        "invalid_signatures": [],
+        "revoked_keys": [],
+        "verification_pending": [
+          "e-time-2"
+        ],
+        "verification_conflict_event_ids": [],
+        "malformed_events": [],
+        "missing_parent_events": [],
+        "blocked_parent_events": [],
+        "equivocation_event_ids": [],
         "sequence_fork_event_ids": [],
         "sequence_conflict_pending_event_ids": [],
         "hash_collision_event_ids": [],

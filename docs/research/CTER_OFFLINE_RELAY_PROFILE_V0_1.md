@@ -25,7 +25,7 @@ Offline capture is an established capability. CTER must specify what happens whe
 
 ### 2.2 From last-write-wins to contest-preserving convergence
 
-Use the existing Mycelix-DeSci signed event envelope and append-only stream as the canonical event wrapper. CTER must not create a second signed event format, hash chain, event ledger or global consensus layer. Verification assessments, verifier identities/policy versions, access annotations and projection hints are detached contextual records; they must never alter the immutable signed-event identity.
+Use the existing Mycelix-DeSci signed event envelope and append-only stream as the canonical event wrapper. CTER must not create a second signed event format, hash chain, event ledger or global consensus layer. Verification assessments, verifier identities/policy versions, key-status snapshot references, time-basis claims, access annotations and projection hints are detached contextual records; they must never alter the immutable signed-event identity.
 
 Within a Mycelix claim stream, sequence numbers and `previous_hash` establish a single predecessor chain. Two verified events that claim the same `stream_id` and sequence are a fork and must be preserved/quarantined rather than resolved by arrival order. A verified event is also held when a same-slot competitor is awaiting verification or has unresolved revocation status; otherwise an event delivered first could win before the competing signature is checked. A definitively invalid-signature competitor does not poison the valid chain. Separate streams that project onto the same territorial relationship can both be retained and surfaced as a conflict.
 
@@ -112,7 +112,7 @@ The benchmark adapter reads these canonical event fields from Mycelix. Verifier 
 | `sequence` | Sequence within the claim stream |
 | `previous_hash` | BLAKE3 hash of the prior signed event; absent only for genesis |
 | `event_hash` | BLAKE3 hash of the signed canonical event, supplied by the independent Mycelix verifier |
-| `assessment` (detached) | Verifier ID, pinned policy ID, assessment time and status; multiple assessments can coexist |
+| `assessment` (detached) | Verifier ID, pinned policy ID, assessment time, key-status snapshot and event-time basis; multiple assessments can coexist |
 | `context` (detached) | Projection key and access-policy class; disagreements block projection/disclosure until reviewed |
 | `actor` | Canonical event actor identity |
 | `verification` | External result: `verified`, `invalid`, `revoked`, or `unavailable` |
@@ -138,7 +138,8 @@ The reference crate checks digest shape, identity collisions, stream sequence an
 11. Corrections append new signed events; they do not erase the earlier event or the fact it was received.
 12. No deterministic display sort, timestamp or relay count may be interpreted as legal priority.
 13. Rebuilding the same projection from the same normalized event set and profile version must produce the same result.
-14. Verification status, verifier policy version and access annotations are detached from the signed event. Conflicting assessment policies/statuses require review; a later result never rewrites the source event.
+14. Verification status, verifier policy version, key-status snapshot and access annotations are detached from the signed event. Conflicting assessment policies/statuses require review; a later result never rewrites the source event.
+15. A key-validity conclusion cannot rely solely on the event's signer-controlled occurred_at; a trusted receipt or external timestamp basis is required.
 15. Conflicting access/projection annotations are retained as contextual uncertainty and cannot be resolved by last-write-wins or a less restrictive label.
 
 The reference model's `accepted_events` means only structurally eligible for evidence preservation under the supplied signature/key dispositions and chain links. It does not establish truth, signer authority, community mandate, consent, representativeness or legal effect.
@@ -168,6 +169,8 @@ The reference model's `accepted_events` means only structurally eligible for evi
 
 ### TIB-RELAY-A — convergence correctness and detached assessment integrity
 - Same signed event delivered with verified then unavailable assessment.
+- Same event marked verified using only signer-claimed occurred_at remains pending.
+- Same key marked revoked without trusted event-time evidence remains pending rather than being treated as a historical revocation conclusion.
 - Same signed event assessed under incompatible policy versions.
 - Independent verifiers agree under one pinned policy.
 - Access class changes between deliveries; no downgrade is applied.

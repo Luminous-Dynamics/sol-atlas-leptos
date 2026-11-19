@@ -6,7 +6,7 @@ fn frozen_relay_cases_match_expected_dispositions() {
     let corpus: Value = serde_json::from_str(include_str!("../../cases-v0.1.json"))
         .expect("relay corpus must be valid JSON");
     let cases = corpus["cases"].as_array().expect("cases array");
-    assert_eq!(cases.len(), 24, "frozen corpus size is part of the release contract");
+    assert_eq!(cases.len(), 26, "frozen corpus size is part of the release contract");
 
     for case in cases {
         let case_id = case["case_id"].as_str().expect("case_id");
