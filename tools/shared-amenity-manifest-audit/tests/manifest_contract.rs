@@ -86,3 +86,13 @@ fn unknown_root_field_is_rejected() {
     value["unreviewed_extension"] = json!(true);
     assert!(audit(&value).is_err());
 }
+
+#[test]
+fn greenhouse_and_home_owner_dependencies_cannot_be_removed() {
+    let mut value = fixture();
+    value["scope_boundary"]["owner_native_dependencies"]
+        .as_array_mut()
+        .expect("owner dependencies")
+        .retain(|item| item["reference"] != "https://github.com/Luminous-Dynamics/symtropy/issues/3957");
+    assert!(audit(&value).is_err());
+}
