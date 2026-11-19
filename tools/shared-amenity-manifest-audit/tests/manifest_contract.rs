@@ -96,3 +96,13 @@ fn greenhouse_and_home_owner_dependencies_cannot_be_removed() {
         .retain(|item| item["reference"] != "https://github.com/Luminous-Dynamics/symtropy/issues/3957");
     assert!(audit(&value).is_err());
 }
+
+#[test]
+fn current_sota_and_owner_source_register_cannot_be_thinned() {
+    let mut value = fixture();
+    value["reference_sources"]
+        .as_array_mut()
+        .expect("reference sources")
+        .pop();
+    assert!(audit(&value).is_err());
+}
