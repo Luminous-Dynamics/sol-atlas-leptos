@@ -1,0 +1,273 @@
+# Port-Energy-Compute Nexus: Benchmark Contract and Research Plan
+
+**Protocol:** PORT-ENERGY-COMPUTE-001  
+**Version:** 0.1  
+**Research snapshot:** 19 November 2026  
+**Status:** evidence-screening and benchmark design; not a site selection, feasibility study, construction authorization, grid-connection offer, environmental approval, or performance claim.
+
+Parent work: [Sol-Atlas #942 — PORT-ENERGY-COMPUTE-001](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/942).
+
+Related owners (compose; do not duplicate):
+- [Sol-Atlas #654](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/654): rights-aware maritime spatial/evidence projections.
+- [Symtropy #2721](https://github.com/Luminous-Dynamics/symtropy/issues/2721): architecture generation and independently verified energy-system twins.
+- [Symtropy #5241](https://github.com/Luminous-Dynamics/symtropy/issues/5241): reproducible power-fabric benchmark and matched industry baselines.
+- [Symtropy #6209](https://github.com/Luminous-Dynamics/symtropy/issues/6209): deterministic, provenance-preserving marine forecast replay.
+- [Mycelix #4882](https://github.com/Luminous-Dynamics/mycelix/issues/4882): separate energy-market intent, physical delivery evidence and settlement.
+- Symthaea already contains standalone grid physics, generation and storage scheduling, thermofluids, engineering and simulator bridges.
+
+## 1. Executive decision
+
+**Yes to integrated clean-energy and compute infrastructure in maritime/port cities. No to assuming that an underwater data centre is automatically the best first asset.**
+
+The design target is a **port-city energy and compute commons**: one time-aware, evidence-carrying system model for electricity, port services, ship-at-berth power, renewables, storage, hydrogen, water, compute workloads, heat, grid constraints, fibre connectivity, marine ecology and community governance.
+
+The first build should be a **shore-first, subsea-optional** architecture:
+
+1. Establish the port's real electricity, shore-power, logistics, water, fibre and land-use constraints.
+2. Co-design renewable generation, storage, flexible demand and port electrification.
+3. Add modular onshore/nearshore compute only where demand, grid, fibre, land and heat-reuse economics justify it.
+4. Treat floating or subsea compute as a competing design alternative—not a presumption—and admit it only after bathymetry, seabed habitat, metocean, cable, thermal-plume, permitting, maintenance and lifecycle evidence exists.
+
+The differentiator is not a lower PUE in isolation. It is **time-to-qualified system design**: a proposal whose physics, constraints, costs, carbon, water, ecology, provenance, uncertainties and failure modes can be independently reconstructed.
+
+## 2. Why this is timely — and what the industry has already done
+
+### Underwater compute is no longer hypothetical
+
+| Reference | Publicly reported position | What it establishes | What it does not establish |
+|---|---|---|---|
+| Microsoft Project Natick | The North Sea trial reported a server failure rate one-eighth that of its land-based control group. The experiment ended and the programme was formally closed in 2024. | A sealed subsea module can be operated and studied; the reported reliability result warrants replication. | A commercial cost advantage, universal reliability advantage, or suitability for every seabed and grid. |
+| Hainan/Lingshui, China | The commercial underwater data-centre project began operating in March 2023. A February 2025 report describes an added module with more than 400 high-performance servers and multiple commercial users. | Commercial subsea compute and modular expansion are real deployment classes. | Independent lifecycle cost, environmental performance or a directly comparable PUE result. |
+| Shanghai Lingang, China | The wind-linked underwater project entered operation in May 2026. Official reports describe a 24 MW planned capacity, direct offshore-wind integration and seawater cooling; the city reports PUE around 1.15 and electricity use 22.8% below a conventional land-based comparison. | Offshore renewable co-location and subsea compute are now a direct industry comparator. | That every phase is operating at the full planned capacity, that the comparison is independently audited, or that the energy is 24/7 carbon-free. |
+
+Sources: [Microsoft Project Natick](https://www.microsoft.com/en-us/research/project/natick/); [China State Council/Xinhua on Hainan](https://english.www.gov.cn/news/202502/19/content_WS67b5a14dc6d0868f4e8efcaa.html); [Shanghai Government on Lingang operations](https://english.shanghai.gov.cn/en-Latest-WhatsNew/20260601/89a94ac072f842eeacf82fcf0cce8261.html); [Lingang official performance summary](https://www.lingang.gov.cn/html/website/lg/English/CityofInnovation/InnovationProjects/2021462605065908225.html).
+
+### Conventional data-centre performance is improving too
+
+Uptime Institute's 2025 Global Data Center Survey reports an average PUE of **1.48 for facilities commissioned within the preceding five years**, and **1.44 for facilities of 20 MW or larger**. Those are useful industry reference points, not universal design limits. Shanghai's reported ~1.15 is a stronger public comparator, but it must be compared on equivalent measurement boundaries, load, weather, annualization and independent metrology.
+
+PUE alone cannot establish that a facility delivers more useful compute per kWh, is lower-carbon, uses less freshwater across its supply chain, is more reliable, or causes less marine impact. Keep facility metrics and system outcomes separate.
+
+Sources: [Uptime Institute Global Data Center Survey 2025](https://datacenter.uptimeinstitute.com/rs/711-RIA-145/images/2025.Annual.Survey.Report.pdf?version=0); [ISO/IEC 30134-2:2026 — PUE](https://www.iso.org/standard/30134-2); [ISO/IEC 30134-6:2021 — ERF](https://www.iso.org/standard/71717.html).
+
+### Port energy integration is also an active research field
+
+Recent port-energy research already combines offshore wind, hydrogen and electricity storage, uncertainty-aware scheduling and ship microgrid demand. One 2025 Applied Energy study reports a real-world coupled hydrogen-electricity port case where multi-timescale scheduling saved 25.42% of cost and reduced CO₂ emissions by 14.78% in that case. This is a research comparator, not a transferable guarantee or a result achieved by this project.
+
+Sources: [Applied Energy, multi-timescale port hydrogen-electricity scheduling (2025)](https://www.sciencedirect.com/science/article/pii/S0306261925006154); [Applied Energy, offshore-wind zero-carbon port microgrids under uncertainty (2025)](https://www.sciencedirect.com/science/article/pii/S0306261925014023); [IMO 2023 GHG Strategy](https://www.imo.org/en/ourwork/environment/pages/2023-imo-strategy-on-reduction-of-ghg-emissions-from-ships.aspx).
+
+## 3. First South African screening case
+
+The first case should be **Ngqura for energy-system screening**, with **Durban as the high-demand port comparison**. This does not select an underwater data-centre site.
+
+The September 2025 PtX Hub / CSIR load-connection assessment estimates the following spare capacity at national port substations:
+
+| Port | Estimated spare capacity | Estimated MW equivalent | Connection risk |
+|---|---:|---:|---|
+| Ngqura | 19 MVA | 17.1 MW | Low |
+| East London | 18 MVA | 16.2 MW | Low |
+| Gqeberha | 15 MVA | 13.5 MW | Low |
+| Richards Bay | 11.5 MVA | 10.35 MW | Low |
+| Mossel Bay | 7 MVA | 6.3 MW | Medium |
+| Durban | 4 MVA | 3.6 MW | Medium |
+| Cape Town | 0 MVA | 0 MW | High |
+| Saldanha Bay | 0 MVA | 0 MW | High |
+
+These are **pre-feasibility screening estimates**, not reserved capacity, a connection offer, a firm export/import limit, or proof that upstream network constraints are absent. The study itself notes that upstream authority consultation and grid studies are required where demand exceeds the estimated headroom.
+
+A separate September 2025 shore-power demand study identifies Durban as having the highest shore-power demand among the assessed South African ports, followed by Cape Town. That makes Durban an important load/connectivity comparison even though its estimated spare capacity is much lower than Ngqura's.
+
+**Interpretation:** Ngqura appears to be the more tractable first energy-system screening case based on published substation headroom. Durban is the more demanding test of how shore power, port electrification and flexible compute compete for constrained capacity. Neither statement establishes land availability, fibre latency, subsea suitability, permitting, power quality or project economics.
+
+Sources: [PtX Hub / CSIR — Load Connection Capacity Assessment of South African National Ports (September 2025)](https://ptx-hub.org/wp-content/uploads/2025/09/PtX-Hub-Load-Connection-Capacity-Assessment-of-South-African-National-Ports_final.pdf); [PtX Hub / CSIR — Shore Power Demand for South African Ports (September 2025)](https://ptx-hub.org/publication/shore-power-demand-for-south-african-ports/). A machine-readable evidence seed is included alongside this protocol.
+
+## 4. Paradigm shifts
+
+### 4.1 Compute becomes a controllable grid resource
+
+Treat non-urgent compute as a **time-flexible industrial load**, not an always-on demand sink. Separate workloads by service class:
+
+- **Hard real-time / critical:** port safety, navigation support, emergency response, operational control and contracted low-latency inference. These are not casually shed.
+- **Latency-bounded:** enterprise inference and interactive services with explicit latency and availability envelopes.
+- **Deferrable:** batch training, rendering, scientific processing, indexing, archival work and data transformation with declared deadlines.
+- **Replicable:** work that can migrate between a port-region onshore site and geographically independent sites without violating data-sovereignty, security or service constraints.
+
+The scheduler should shift eligible workloads toward hours of renewable surplus, low marginal carbon, low congestion and lower cost—subject to deadlines, data gravity, network capacity, cooling limits and recovery/rebound constraints. It must account for **the energy required to catch up later**; a load shed now is not a permanent reduction if the queue creates a rebound peak.
+
+The value of flexibility must be calculated from chronological trajectories and system adequacy, not a fixed percentage of theoretical workload deferrability. Reuse Symtropy's existing chronological adequacy work and report product-specific flexibility (market-serving, grid-serving and system-serving) separately.
+
+### 4.2 Co-optimize the port, not just the data centre
+
+The objective function must include the interacting services:
+- ship-at-berth shore power and hotel loads;
+- cranes, cargo handling, reefer containers, pumps and port vehicles;
+- local homes, public services and industrial tenants;
+- onshore/offshore wind, solar and other site-qualified resources;
+- batteries, thermal storage and long-duration storage;
+- electrolysers and hydrogen derivatives where offtake and lifecycle evidence support them;
+- desalination and water/wastewater infrastructure;
+- onshore, floating and subsea compute alternatives;
+- transmission, distribution, substation, fibre and cable-landing constraints;
+- marine habitat, thermal discharge, noise, seabed disturbance and cumulative impacts.
+
+Use a **Pareto frontier** rather than a single opaque weighted score. A low-cost plan that violates environmental or resilience constraints is infeasible, not a clever trade-off.
+
+### 4.3 Make the thermal system an explicit resource network
+
+Seawater cooling can lower mechanical cooling demand, but it does not make heat disappear. Model:
+- IT and facility heat generation by interval;
+- supply/return temperatures, heat-exchanger approach and pumping loads;
+- marine intake, discharge, entrainment and plume dispersion;
+- seasonal stratification, currents, tides and ambient temperature;
+- fouling, corrosion, biofouling, cleaning chemicals and maintenance;
+- heat-pump lift and exergy penalties;
+- actual nearby heat demand and pipe distance.
+
+Recover heat only when a real, metered offtaker exists—such as suitable industrial preheating, a district/greenhouse loop or a properly assessed water process. Low-grade compute heat is not automatically a useful desalination heat source. If there is no viable heat customer, report the energy as rejected heat rather than claiming reuse.
+
+For subsea designs, measure seawater intake/withdrawal volume, temperature difference and plume exposure separately from freshwater WUE. A low or zero freshwater WUE must not hide marine thermal or ecological impacts.
+
+### 4.4 Move from annual renewable accounting to time-matched clean energy
+
+Annual renewable certificates or annual energy matching can hide fossil-heavy operating hours. Report:
+- renewable energy factor (REF) using the relevant standard boundary;
+- hourly (and where data allow, 15-minute) clean-energy matching;
+- residual grid energy and its time/location-specific emissions;
+- curtailment avoided and renewable energy actually consumed;
+- storage losses, charge origin, state of charge and degradation;
+- additionality and contract/attribute ownership;
+- backup fuel use and lifecycle emissions.
+
+The system should prefer direct renewable use, storage and flexible compute before diverting scarce clean power into low-efficiency conversion loops. Hydrogen is best treated as a separately evaluated long-duration, industrial or maritime fuel pathway—not assumed to be the default way to store every surplus kWh.
+
+### 4.5 Replace a single digital twin with evidence-bounded multi-fidelity twins
+
+A planning model is not a physical approval. Use separate fidelity levels:
+- hourly multi-year resource adequacy and techno-economic dispatch;
+- 15-minute port/compute/energy scheduling;
+- network power flow and protection-study interfaces;
+- thermal-fluid and marine plume models;
+- detailed CFD / hydrodynamics / structural assessment where justified;
+- hardware-in-loop and metrology;
+- field observations and independent environmental monitoring.
+
+Each result must state the exact asset/configuration, model version, inputs, calibration, uncertainty, validity envelope and claim ceiling. DC-OPF, AC-OPF, RMS, EMT, CFD and physical observations are different evidence classes—not automatic promotions.
+
+### 4.6 Build ecological observability and local legitimacy into the system
+
+Environmental monitoring is a design input and an operating guardrail, not an afterthought. Baseline before/after/control/impact measurements should cover temperature, salinity, dissolved oxygen, turbidity, noise, relevant chemical indicators and site-specific biological indicators. Use seasonal and extreme-weather coverage. The site-specific environmental authorization sets the legal limits; do not invent a universal allowable thermal plume temperature.
+
+Make ownership, benefits, procurement, energy claims, impact reports and grievance/correction mechanisms legible to port workers, local communities, municipalities, Indigenous/customary rights holders where applicable, and the public. Do not expose sensitive vessel, personnel or infrastructure telemetry merely to make the system auditable.
+
+## 5. Cross-project architecture and authority boundaries
+
+| Project | Proper role in this programme | Must not be treated as |
+|---|---|---|
+| **Sol-Atlas** | Spatial/temporal context: port assets, substations, shipping lanes, cable landings, protected areas, land use, source coverage, rights, bathymetry references and evidence overlays. | A source of live berth status, navigational clearance, legal permission or physical truth just because a feature appears on a map. |
+| **Symtropy** | Deterministic replay, chronological energy/compute simulation, physical twins, storage/thermal-fluid trajectories, failure/common-cause scenarios, uncertainty and benchmark harnesses. | An accredited grid study, marine environmental approval, HIL result or field validation without the relevant evidence. |
+| **Symthaea** | Forecasting, anomaly detection, scenario generation, constrained decision support and diverse design proposals over explicit interfaces. | The protective relay, safety PLC, grid operator, port authority or sole verifier of its own recommendation. |
+| **Mycelix** | Identity and permissions, append-only provenance, asset/community claims, governance, investment/ownership, energy-market intent, authenticated evidence references and settlement lifecycle. | Proof that a physical quantity was delivered merely because an agent wrote a record to a DHT. |
+
+### Authority hierarchy
+
+`sensor / source evidence → validated state estimate → constrained proposal → independent verification → authorized local execution → metered observation → reconciliation → public/private receipt`
+
+- Certified protection, approved local PLCs and the responsible system operator retain physical authority.
+- Symthaea proposes; an independently implemented verifier checks hard constraints and source/model identity.
+- A stale forecast, Mycelix outage, Symtropy fault or network partition cannot remove local protection or prevent safe standalone operation.
+- Mycelix records who asserted, verified, approved, delivered and settled each claim. It does not collapse those distinct actors into one boolean.
+- Unknown outcome means no new mutation until reconciled. Fail closed at the authority boundary.
+
+## 6. Benchmark suite
+
+Do not publish one leaderboard that conflates energy optimization, data-centre efficiency, grid capacity, ecological safety and physical deployment. Keep the tracks distinct and publish the raw receipts.
+
+| Track | Matched baseline | Primary measures | Qualification target |
+|---|---|---|---|
+| A. Site evidence and spatial joins | Manual GIS + source documents; independent second reviewer | Source coverage, date/currentness, coordinate/datum correctness, rights, provenance completeness, unknown visibility | 100% accounting for in-scope source fields; zero silent conversion of unknown to safe/available |
+| B. Port/grid feasibility | Grid-only reference; independently checked OPF and load-flow solvers | Nodal balance, voltage/thermal limits, contingency coverage, reserve margin, unmet critical load | 100% of admitted hard constraints independently rechecked; zero false-feasible results in negative controls |
+| C. Chronological dispatch | Grid-only, rule-based EMS, conventional optimization/MPC | Total cost, import/export, renewable curtailment, storage cycles/degradation, reserve violations, rebound, unserved energy | Same source traces, weather, tariffs and load; report p50/p95 and all scenario failures |
+| D. Compute energy efficiency | Matched onshore air/liquid-cooled and nearshore alternatives | Standard PUE/WUE/CUE/ERF/REF plus workload throughput per IT kWh, utilization, latency and energy per completed job | PUE aspiration ≤1.15 at a declared annual measurement boundary; disclose uncertainty and load factor |
+| E. Clean-energy integrity | Annual matching vs hourly matching | REF, hourly clean-energy coverage, residual carbon intensity, curtailment and attribute provenance | Stretch objective: ≥95% REF and ≥90% hourly clean-energy matching; no certificate-only claim of 24/7 carbon-free operation |
+| F. Water and heat | Matched cooling topology; independently checked thermal balance | Freshwater WUE, seawater intake volume, pump energy, ERF, heat grade, discharge temperature, plume and ecological indicators | No freshwater cooling consumption in the closed-loop design target; site-specific marine limits met with measured margin |
+| G. Flexibility and adequacy | Inflexible compute; rule-based shifting; matched MPC | ELCC-like contribution, LOLE/EUE/CVaR, deadline misses, recovery rebound, latency/SLA violations | No adequacy degradation against the frozen reference; capacity value only reported when the full chronological model identifies it |
+| H. Reliability and cyber-resilience | Single-node and conventional redundant site | Availability, failover, recovery time, common-cause cuts, cable/fibre loss, cooling loss, grid islanding, cyber isolation | Pilot service target ≥99.9%; production stretch ≥99.99% with independent evidence; zero unsafe control transitions in frozen fault suite |
+| I. Lifecycle economics and climate | Matched land-only and port-only reference cases | CAPEX/OPEX, LCOE/LCOS, cost per useful compute, cost per port service, lifecycle CO₂e, embodied materials, repair logistics | No lower-cost/lower-carbon claim without matched lifecycle boundaries; candidate stretch: ≥30% lower operational CO₂e for the combined services |
+| J. Community and port outcomes | Port-only counterfactual and documented benefit-sharing plan | Shore-power served, vessel auxiliary emissions avoided, local jobs/training/procurement, energy affordability, public reporting and grievance resolution | Report disaggregated outcomes and distribution of benefits; no aggregate social score that can mask harm |
+
+The numeric values in the right-most column are **aspirational research gates**, not measured results or regulatory thresholds. The PUE and availability goals require a stated boundary and workload/service definition. For carbon, the 30% figure is a testable hypothesis against a matched counterfactual, not a guaranteed effect.
+
+### Fair-run protocol
+
+Every run freezes and reports:
+- source bytes, source edition, rights/terms, retrieval date and SHA-256;
+- site geometry, CRS, horizontal/vertical datum and coordinate epoch;
+- asset inventory, ratings, units, topology and unknown fields;
+- weather year(s), wind/solar series, ocean conditions and forecast information boundary;
+- vessel and shore-power profile, port service demand, compute mix, deadlines and SLA;
+- tariff, grid marginal/average emissions, renewable contract/attribute treatment and fuel lifecycle factors;
+- storage chemistry, power/energy ratings, efficiency, temperature, degradation and reserve policy;
+- model and solver versions, build hashes, hardware, tolerances, random seeds and all run options;
+- model-build, solve, verification and total time-to-qualified-solution;
+- objective values, primal/dual residuals where relevant, violations, constraint margins, uncertainty and rejected cases.
+
+Use matched annual weather/load traces (at least 8,760 hourly points) for adequacy and annual resource comparisons; 15-minute traces for detailed port dispatch; faster dynamics only in a separate network/control study. Synthetic fixtures must be labelled synthetic and never be blended into observed site records. At least ten repeated runs are required for performance timing on pinned hardware; publish median, p95 and dispersion. Do not drop failures, censored cases or not-evaluable cases from the denominator.
+
+## 7. Candidate targets and comparison posture
+
+The credible initial industry comparison is:
+
+- **Subsea PUE:** Shanghai reports about 1.15; use ≤1.15 as an aspiration, not as a claim of superiority. First reproduce the same boundary, load and annualization.
+- **Conventional new-build PUE:** Uptime's 2025 survey gives 1.48 for facilities commissioned within five years and 1.44 for 20 MW+ facilities. These are useful context only; the best comparison is a matched site and workload.
+- **Port energy optimization:** published 2025 research reports 25.42% lower cost and 14.78% lower CO₂ in one real-world hydrogen-electricity port case. The Luminous benchmark must reproduce its own case and baselines before claiming any advantage.
+- **Reliability:** Natick's 1/8 server failure rate is a compelling experimental result, not a bankable fleet reliability distribution. We need multi-year operational evidence, common-cause analysis, repair/replace logistics and an independent land-based comparator.
+- **Carbon:** beat the matched baseline on lifecycle and hourly operational emissions, not by shifting load or emissions outside the measurement boundary.
+- **Usefulness:** measure completed compute under the same quality, throughput, latency and deadline conditions. A lower PUE that completes less useful work is not a win.
+
+**Our candidate advantage should be verified integration quality:** better source-to-model continuity, constraint coverage, cross-domain optimization, ecological visibility, counterfactual explanation, failure handling and independently auditable decisions. Speed or a lower objective is secondary to valid, safe, reproducible improvement.
+
+## 8. First implementation slices
+
+1. **Freeze the schema and evidence seed.** Start with the companion South African screening JSON; keep all non-published site facts explicitly unknown.
+2. **Build the synthetic reference case.** Use declared hypothetical hourly loads for port, shore power, water and compute; renewable generation, battery and optional hydrogen; tariff and carbon data; fixed service and environmental constraints. Do not label it a South African operating profile.
+3. **Connect the Sol-Atlas context.** Join port, substation, shipping lane and cable-landing context by exact source/reference, preserving CRS/datum, source coverage and rights. Protected areas and bathymetry remain unresolved until rights-cleared data are acquired.
+4. **Reuse the OPF programme.** Keep MATPOWER 8.1 / PGLib v23.07 and formulation-matched PowerModels DCMP / HiGHS comparators from the existing energy benchmark. Keep AC-OPF, dynamic controls and CFD as separate tracks.
+5. **Extend Symtropy chronologically.** Compare fixed compute with deadline-aware flexible compute; include post-curtailment rebound, weather-correlated renewable shortfall, battery degradation, cable failure, grid outage, cooling-loop fault and a no-communications mode.
+6. **Constrain Symthaea.** Allow proposals only through typed, bounded interfaces; test against rule-based and optimization/MPC baselines. Symthaea must not be its own verifier.
+7. **Bind Mycelix evidence.** Keep market offer, dispatch request, controller acceptance, physical meter evidence, delivery reconciliation and settlement as separate append-only states.
+8. **Promote only with new evidence.** Real metering, utility network studies, seabed surveys, environmental baselines, HIL and regulatory review are separate gates. A synthetic pass cannot promote a site or physical design.
+
+## 9. Open questions that must remain open
+
+- Bathymetry, seabed geology, habitat and marine-protected-area overlap for every candidate.
+- Metocean conditions, wave/current loading, corrosion, biofouling, anchoring and subsea repair strategy.
+- Submarine fibre/power cable route, landing capacity, latency, path diversity, repair access and common-cause exposure.
+- Actual port and ship load time series, vessel call profiles, berth-level shore-power compatibility and future electrification demand.
+- Utility-confirmed import/export capacity, fault levels, voltage quality, protection coordination, curtailment and connection timeline.
+- Actual renewable resource time series, permitting, offtake, additionality and grid emissions.
+- Data-centre workload, hardware, service quality, cooling topology, utilisation and annual metered facility energy.
+- Heat customer, temperature grade, distance, seasonality and contract.
+- Environmental baseline, discharge/thermal plume model, monitoring design and site-specific authorization limits.
+- CAPEX, insurance, financing, decommissioning, repair logistics, tax/import, data sovereignty and local benefit-sharing model.
+
+Until these questions are answered, this programme can rank **investigation priority**, not approve a physical site.
+
+## 10. Primary references
+
+1. [Microsoft Research — Project Natick](https://www.microsoft.com/en-us/research/project/natick/)
+2. [China State Council/Xinhua — Hainan underwater intelligent computing cluster, 19 February 2025](https://english.www.gov.cn/news/202502/19/content_WS67b5a14dc6d0868f4e8efcaa.html)
+3. [Shanghai Government — wind-powered undersea data centre operations, 1 June 2026](https://english.shanghai.gov.cn/en-Latest-WhatsNew/20260601/89a94ac072f842eeacf82fcf0cce8261.html)
+4. [Lingang official — underwater data-centre performance summary](https://www.lingang.gov.cn/html/website/lg/English/CityofInnovation/InnovationProjects/2021462605065908225.html)
+5. [Uptime Institute — Global Data Center Survey 2025](https://datacenter.uptimeinstitute.com/rs/711-RIA-145/images/2025.Annual.Survey.Report.pdf?version=0)
+6. [ISO/IEC 30134-2:2026 — Power Usage Effectiveness](https://www.iso.org/standard/30134-2)
+7. [ISO/IEC 30134-6:2021 — Energy Reuse Factor](https://www.iso.org/standard/71717.html)
+8. [ITU-T L.1510 (2025) — environmental KPIs for digital infrastructure](https://www.itu.int/rec/dologin_pub.asp?id=T-REC-L.1510-202510-I%21%21PDF-E&lang=e&type=items)
+9. [Applied Energy — port hydrogen-electricity scheduling, 2025](https://www.sciencedirect.com/science/article/pii/S0306261925006154)
+10. [Applied Energy — offshore-wind zero-carbon port microgrids, 2025](https://www.sciencedirect.com/science/article/pii/S0306261925014023)
+11. [PtX Hub / CSIR — South African port load-connection capacity, September 2025](https://ptx-hub.org/wp-content/uploads/2025/09/PtX-Hub-Load-Connection-Capacity-Assessment-of-South-African-National-Ports_final.pdf)
+12. [PtX Hub / CSIR — South African port shore-power demand, September 2025](https://ptx-hub.org/publication/shore-power-demand-for-south-african-ports/)
+13. [IMO — 2023 Strategy on Reduction of GHG Emissions from Ships](https://www.imo.org/en/ourwork/environment/pages/2023-imo-strategy-on-reduction-of-ghg-emissions-from-ships.aspx)
+
+---
+
+**Claim ceiling:** This document establishes an evidence-backed research and benchmark direction. It does not demonstrate that a subsea data centre is economically or ecologically superior, that a candidate port has firm spare capacity, that any proposed hybrid plant is feasible, or that any Luminous system is ready to dispatch or control real port infrastructure.
