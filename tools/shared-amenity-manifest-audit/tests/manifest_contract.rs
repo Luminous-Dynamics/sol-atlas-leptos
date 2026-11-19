@@ -24,6 +24,7 @@ fn frozen_manifest_has_complete_case_coverage() {
     assert_eq!(summary.functional_unit_count, 9);
     assert_eq!(summary.reference_source_count, 43);
     assert_eq!(summary.owner_native_dependency_count, 16);
+    assert_eq!(summary.metric_vector_count, 8);
     assert_eq!(summary.execution_status, "NOT_EXECUTED");
     assert_eq!(summary.manifest_sha256.len(), 64);
 }
