@@ -176,9 +176,18 @@ Report the break-even surface and uncertainty, not one magic threshold. A shared
 
 ### Routing and effective accessibility
 
-CityMorph #555 is the existing Sol-Atlas access reference. The benchmark should compare its route/access semantics and reports against specialist routing engines such as R5/Conveyal and OpenTripPlanner, while explicitly not claiming that Sol-Atlas beats them at core routing. The value-add is the evidence layer: service quality/capacity, currentness, eligibility, affordability, step-free requirements, distributional outcomes and common-scope binding.
+CityMorph #555 is the existing Sol-Atlas access reference. Its current PR head, `6777acd894027671dbd5decf1ccb02aeda1564ac`, has a successful exact-head workflow: the 24-case synthetic corpus, 14 Rust tests, rustfmt, strict Clippy, locked dependency resolution and exact-head receipt steps all completed successfully on 9 November 2026. This qualifies only the synthetic access oracle and source-readiness contract; the Johannesburg source register remains a research inventory, not ingested GIS or transit data.
 
-Use official SDG 11.2.1 / 11.7.1 and UN-Habitat/ITDP 5Ds as reference indicator families, not as a complete resident access result. A universal 15-minute cut-off is not a substitute for task-specific resident requirements, service hours or accessibility constraints.
+Compare CityMorph with the following:
+- **Conveyal R5 / Conveyal Analysis:** many-to-many, schedule-aware transit accessibility and travel-time distributions by departure window. The published methodology assumes perfect service reliability, complete schedule knowledge and no crowding/accessibility boarding barriers in its baseline routing assumptions. It is a strong timetable-routing reference, not physical ground truth. https://docs.conveyal.com/analysis/methodology
+- **OpenTripPlanner 2:** mature multimodal route planning using open data such as GTFS and OpenStreetMap, plus real-time updates/alerts where supplied. Compare exact feed/network vintages and query semantics. https://docs.opentripplanner.org/en/latest/
+- **PEAI (Journal of Urban Mobility, June 2026):** a Perception-Aware Equitable Accessibility Index combining service availability, infrastructure quality, housing affordability and resident-centred time tolerances/weights. Its Vancouver example reports 99% within median cycling tolerances and 74.5% within walking thresholds, but only 37.9% in the framework's “truly accessible” category. This demonstrates why proximity-only results can mislead. Reproduce the published dataset, definitions and weights before any matched comparison; do not copy the composite as a universal Sol-Atlas score. https://doi.org/10.1016/j.urbmob.2026.100217
+- **UN SDG 11.2.1:** convenient public-transport access uses walking-network distances (500 m to low-capacity transit and 1 km to high-capacity transit in the cited metadata), together with accessibility, frequency and safe/comfortable-stop criteria. Treat this as a transparent policy baseline, not a measure of all daily services. https://unstats.un.org/sdgs/metadata/files/Metadata-11-02-01.pdf
+- **UN SDG 11.7.1:** public open-space share/access metadata. It measures a different dimension from private or shared amenity-service catchments; do not conflate public-space area with delivered amenity service. https://unhabitat.org/sites/default/files/2022/08/sdg_indicator_metadata-11.7.1.pdf
+
+Sol-Atlas should not claim to beat R5/OTP at core routing. Its competitive advantage is the evidence layer above specialist routes: owner-qualified service capacity, service currentness, eligibility, affordability, step-free access, distributional outcomes, common-scope binding, privacy and abstention when evidence is missing.
+
+A universal 15-minute cut-off is not a substitute for task-specific resident requirements, service hours or accessibility constraints.
 
 ### Housing / design tools
 
