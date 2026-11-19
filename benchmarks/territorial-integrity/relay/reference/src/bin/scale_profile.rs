@@ -6,10 +6,10 @@
 //! Android, battery, cryptographic verification or legal/consent operations.
 //!
 //! Usage:
-//!   cargo run --release --bin scale_profile -- <unique_events> <streams> <duplicate_percent> <forward|reverse|shuffle>
+//!   cargo run --release --locked --bin scale_profile -- <unique_events> <streams> <duplicate_percent> <forward|reverse|shuffle> <samples>
 //!
 //! Example:
-//!   cargo run --release --bin scale_profile -- 10000 1000 25 reverse
+//!   cargo run --release --locked --bin scale_profile -- 10000 1000 25 reverse 30
 
 use cter_relay_reference::evaluate;
 use serde_json::json;
@@ -20,12 +20,21 @@ fn parse_arg<T: std::str::FromStr>(args: &[String], index: usize, default: T) ->
     args.get(index).and_then(|value| value.parse::<T>().ok()).unwrap_or(default)
 }
 
+fn percentile(sorted: &[u128], percentile: usize) -> u128 {
+    if sorted.is_empty() {
+        return 0;
+    }
+    let rank = (percentile * sorted.len() + 99) / 100;
+    sorted[rank.saturating_sub(1).min(sorted.len() - 1)]
+}
+
 fn main() {
     let args: Vec<String> = env::args().collect();
     let unique_events: usize = parse_arg(&args, 1, 10_000);
     let stream_count: usize = parse_arg(&args, 2, 1);
     let duplicate_percent: usize = parse_arg(&args, 3, 0);
     let arrival_order = args.get(4).cloned().unwrap_or_else(|| "forward".to_owned());
+    let sample_count: usize = parse_arg(&args, 5, 30_usize).clamp(1, 1_000);
     if !matches!(arrival_order.as_str(), "forward" | "reverse" | "shuffle") {
         eprintln!("arrival order must be forward, reverse, or shuffle");
         std::process::exit(2);
@@ -97,10 +106,24 @@ fn main() {
         _ => {}
     }
 
-    let started = Instant::now();
-    let result = evaluate(&events);
-    let elapsed = started.elapsed();
-    let seconds = elapsed.as_secs_f64().max(f64::EPSILON);
+    // Warm once, then require exact deterministic agreement across measured runs.
+    let expected = evaluate(&events);
+    let _warmup = evaluate(&events);
+    let mut elapsed_micros: Vec<u128> = Vec::with_capacity(sample_count);
+    for _ in 0..sample_count {
+        let started = Instant::now();
+        let result = evaluate(&events);
+        let elapsed = started.elapsed();
+        if result != expected {
+            eprintln!("non-deterministic evaluation result across identical workload");
+            std::process::exit(1);
+        }
+        elapsed_micros.push(elapsed.as_micros());
+    }
+    elapsed_micros.sort_unstable();
+    let p50 = percentile(&elapsed_micros, 50).max(1);
+    let p95 = percentile(&elapsed_micros, 95).max(1);
+    let p99 = percentile(&elapsed_micros, 99).max(1);
     let report = json!({
         "schema": "luminous.cter.scale-result.v0",
         "synthetic_only": true,
@@ -109,12 +132,21 @@ fn main() {
         "stream_count": stream_count,
         "duplicate_percent": duplicate_percent,
         "arrival_order": arrival_order,
-        "accepted_events": result.accepted_events.len(),
-        "conflict_groups": result.conflict_groups.len(),
+        "warmup_runs": 1,
+        "measured_runs": sample_count,
+        "accepted_events": expected.accepted_events.len(),
+        "conflict_groups": expected.conflict_groups.len(),
         "target_os": std::env::consts::OS,
         "target_arch": std::env::consts::ARCH,
-        "elapsed_micros": elapsed.as_micros() as u64,
-        "deliveries_per_second": events.len() as f64 / seconds,
+        "available_parallelism": std::thread::available_parallelism().map(|n| n.get()).unwrap_or(1),
+        "p50_micros": p50,
+        "p95_micros": p95,
+        "p99_micros": p99,
+        "min_micros": elapsed_micros.first().copied().unwrap_or(0),
+        "max_micros": elapsed_micros.last().copied().unwrap_or(0),
+        "deliveries_per_second_at_p50": events.len() as f64 * 1_000_000.0 / p50 as f64,
+        "memory_measurement": "not_measured",
+        "energy_measurement": "not_measured",
         "claim_ceiling": "host synthetic evaluator timing only; no radio, energy, cryptography, legal or field claim"
     });
     println!("{report}");

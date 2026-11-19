@@ -44,5 +44,15 @@
     "low_cost_android",
     "battery_powered_linux_relay"
   ],
-  "status": "workload_specification_only_not_executed"
+  "status": "workload_specification_only_not_executed",
+  "repeated_samples": {
+    "warmup_runs": 1,
+    "measured_runs": 30,
+    "percentiles": [
+      50,
+      95,
+      99
+    ],
+    "note": "host synthetic evaluator timing only; use physical instrumentation for peak memory, CPU energy, radio, battery and low-cost Android measurements"
+  }
 }

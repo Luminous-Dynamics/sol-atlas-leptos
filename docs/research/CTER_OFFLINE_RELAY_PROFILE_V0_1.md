@@ -95,9 +95,23 @@ Signature verification proves integrity of the signed envelope. Mycelix explicit
 | Geospatial container | OGC GeoPackage | Portable offline feature/raster/tabular packages | A GeoPackage is not an access-control or legal model |
 | Transport | BPv7 candidate profile | Store-carry-forward through intermittent and physically mobile links | Transport security is not application authorization |
 
+### Transparency and receipt integration: reuse SCITT, do not build another ledger
+
+IETF published RFC 9942 (COSE Receipts) and RFC 9943 (SCITT architecture) in June 2026. These are now the current standards basis for an optional transparency adapter.
+
+- RFC 9943 defines signed-statement registration through a Transparency Service (TS), explicit auditable registration policy, append-only/non-equivocating/replayable verifiable data structures and COSE receipts.
+- RFC 9942 defines COSE-carried VDS proofs, including inclusion, consistency and selective-disclosure proof families.
+- Mycelix already owns the relevant receipt, split-view and witness qualification work: LEX-NET-028 (#1215), the SCITT checkpoint anti-equivocation issue (#5942) and model PR #5944. CTER consumes the exact typed Mycelix receipt/checkpoint references; it does not create a second VDS, receipt hierarchy, witness service or global event ledger.
+
+**Claim boundary:** a COSE/SCITT receipt can establish that a particular signed statement was registered under a particular TS/VDS and policy. It does not establish that the statement is true, that its issuer had legal authority, that a community mandate is valid, or that an underlying right exists. A missing receipt is not proof that an event or claim does not exist: an issuer may not have submitted it, a TS may not have accepted it, or the client may not have reached the TS.
+
+**Privacy boundary:** do not send raw claimant identities, testimony, household coordinates, sacred/culturally protected locations or unredacted claim payloads to a public TS. For a transparency commitment, prefer a domain-separated, versioned commitment over exact encrypted/archive bytes using a fresh high-entropy random nonce held with the protected archive. Do not publish unsalted hashes of low-entropy content: they invite dictionary guessing. Even a hash-only TS can reveal issuer, timing, volume and relationship metadata; assess that leakage before registration. The selected SCITT profile must state what bytes and metadata the TS actually receives.
+
+**Split-view boundary:** a TS signature alone does not prove that all clients were shown one consistent latest view. Require the Mycelix checkpoint/witness profile to resolve same-log/same-size divergent roots; if its quorum/consistency evidence is unavailable, report UNKNOWN/INCOMPLETE and preserve both observations. Distinct endpoints do not imply independent operators or failure domains.
+
 ### Transport decision
 
-Do not invent a radio protocol or proprietary store-and-forward transport. Evaluate IETF Bundle Protocol v7 (RFC 9171) as a transport candidate and BPSec (RFC 9172) for bundle-level integrity/confidentiality where appropriate. Before implementation, check current RFC updates and select an interoperable implementation. Also benchmark simpler HTTPS synchronization and encrypted removable-media exchange.
+Do not invent a radio protocol or proprietary store-and-forward transport. Evaluate IETF Bundle Protocol v7 (RFC 9171), taking account of its updates RFC 9713 (administrative record type registry) and RFC 9758 (IPN URI scheme). Evaluate BPSec (RFC 9172) and its default security contexts (RFC 9173) where bundle-layer integrity/confidentiality is appropriate. Select an interoperable implementation only after a compatibility and threat-model review. Also benchmark simpler HTTPS synchronization and encrypted removable-media exchange. An RFC is a protocol specification, not proof that a selected implementation is interoperable, secure or suitable for a particular radio.
 
 The v0.1 Rust reference model does not implement BPv7, BPSec, cryptography, key storage or radio communications. It models relay-side convergence of Mycelix-shaped event references after a separate verifier has supplied a signature/key disposition and canonical BLAKE3 event hash.
 
@@ -284,5 +298,10 @@ This v0.1 work is not a production relay, deployed mesh, validated radio design,
 - [Mycelix-DeSci Scientific Event Kernel](https://github.com/Luminous-Dynamics/mycelix/blob/research/land-rrr-interop-v0-1/mycelix-desci/src/core/src/scientific_events.rs)
 - [IETF RFC 9171 — Bundle Protocol v7](https://www.rfc-editor.org/rfc/rfc9171.html)
 - [IETF RFC 9172 — Bundle Protocol Security](https://www.rfc-editor.org/rfc/rfc9172.html)
+- [IETF RFC 9173 — Default Security Contexts for BPSec](https://www.rfc-editor.org/rfc/rfc9173.html)
+- [IETF RFC 9713 — BPv7 Administrative Record Types Registry](https://www.rfc-editor.org/rfc/rfc9713.html)
+- [IETF RFC 9758 — Updates to the IPN URI Scheme](https://www.rfc-editor.org/rfc/rfc9758.html)
+- [IETF RFC 9942 — COSE Receipts](https://www.rfc-editor.org/rfc/rfc9942.html)
+- [IETF RFC 9943 — SCITT Architecture](https://www.rfc-editor.org/rfc/rfc9943.html)
 - [OGC GeoPackage](https://www.ogc.org/standards/geopackage/)
 - [ISO 19152-1:2024 — LADM Part 1](https://www.iso.org/standard/81263.html)

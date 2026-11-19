@@ -70,7 +70,12 @@
   "source_standards": [
     "ISO 19152-1:2024",
     "OGC GeoPackage 1.4.0",
-    "W3C Verifiable Credentials Data Model 2.0"
+    "W3C Verifiable Credentials Data Model 2.0",
+    "IETF RFC 9942 (COSE Receipts, June 2026)",
+    "IETF RFC 9943 (SCITT Architecture, June 2026)",
+    "IETF RFC 4998 (Evidence Record Syntax)",
+    "NIST CSWP 39upd1 (Crypto Agility, June 2026)",
+    "NIST IR 8547 (PQC transition, final 2026-10-27)"
   ],
   "reference_commit_status": "not_yet_executed",
   "detached_context_fields": [
@@ -108,5 +113,16 @@
     "memory": "O(N + E + C); design target only, not measured",
     "conflict_output": "compact groups, not all pairwise combinations",
     "chain_processing": "predecessor work queue"
+  },
+  "governance_frameworks": [
+    "CARE Principles for Indigenous Data Governance (Global Indigenous Data Alliance; context-specific)",
+    "FAO Voluntary Guidelines on Responsible Governance of Tenure (voluntary guidance; non-binding)"
+  ],
+  "interoperability_boundary": {
+    "transparency_receipt_owner": "Mycelix LEX-NET-028 / SCITT transparency work (#1215, #5942, PR #5944)",
+    "cter_role": "consume typed receipts/checkpoints; no CTER-owned VDS or witness ledger",
+    "legal_effect": "none",
+    "privacy_rule": "no raw sensitive claim payloads to public transparency services; use reviewed high-entropy salted commitments where a transparency commitment is justified",
+    "missing_receipt_semantics": "not proof of absence"
   }
 }

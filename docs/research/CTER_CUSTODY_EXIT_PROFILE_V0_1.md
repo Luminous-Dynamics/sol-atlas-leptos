@@ -31,7 +31,7 @@ The benchmark should evaluate against documented Cadasta/Open Tenure capabilitie
 - **CTER** defines package manifest, relay custody, export-frontier and independent restore qualification.
 - **OGC GeoPackage** remains the geospatial container. The package can reference other controlled artefacts without embedding them.
 
-Use Mycelix's typed receipt algebra (#1215) and long-term validation/cryptographic renewal contract (#1354). Use the existing SCITT anti-equivocation work (#5942) where a transparency receipt/checkpoint is required. Do not create a parallel event log, a second generic receipt hierarchy, or a proprietary archive-timestamp protocol.
+Use Mycelix's typed receipt algebra (#1215) and long-term validation/cryptographic renewal contract (#1354). For transparency, align with IETF RFC 9943 (SCITT) and RFC 9942 (COSE Receipts), and consume the existing Mycelix split-view/witness work (#5942; model PR #5944). Mycelix owns SCITT receipt/checkpoint semantics. Do not create a parallel event log, second generic receipt hierarchy, VDS, witness service or proprietary archive-timestamp protocol.
 
 ## 4. Evidence package contract
 
@@ -77,7 +77,45 @@ Only the first three can qualify for a positive provider-independent restore cla
 
 Recovery must not create a single-person capture path. A recovery procedure should state its threshold, participants, revocation behavior, audit evidence and process for leadership/authority disputes. A new key must not silently rewrite old signed events.
 
-## 7. Transport lifetime is not evidence retention
+## 7. Community governance, consent and contestation are first-class evidence
+
+Technical custody is not community authority. A cryptographically valid signature, an archive export, a majority tally or an administrator account cannot by itself establish who may speak for a community, who may disclose a particular dataset, or whose consent is required.
+
+### Separate decisions that are too often collapsed
+
+The owning governance adapter must distinguish at least:
+- authority to collect a particular data class in a defined area;
+- individual participation and consent for personal testimony or identifiable data;
+- collective/community authorization for shared territory, customary knowledge or community-held records;
+- authority to disclose to a named recipient for a stated purpose;
+- authority to publish or generalize a map or dataset;
+- authority to transfer custody, appoint/revoke a steward, or initiate key recovery;
+- retention, preservation, withdrawal, correction and deletion decisions;
+- any competent public/legal authority decision, which remains external to CTER.
+
+These permissions have different subjects, scopes, procedures, validity periods and appeal paths. They must not be encoded as one `community_approved=true` flag.
+
+### A bounded governance mandate
+
+A decision record should bind: the recognized decision-making body under the community's own rules; the people/groups represented and any known gaps; the defined territory/data categories; purpose and recipients; allowed operations; effective and expiry times; decision procedure; quorum or consensus rule if the community itself defines one; dissent/minority positions; appeal route; language/accessibility arrangements; and the exact evidence/receipts that support the decision.
+
+Do not assume that one elected leader, one elder, one landholder, one NGO, or one simple majority represents every rights-holder. Preserve competing mandates and objections as evidence. Unresolved representation or scope means REVIEW/INDETERMINATE, not majority-wins-by-default. Mycelix's authority/consent owner (#6315/#5277) must provide the actual policy decision; the archive validator only checks that relevant references and outcomes are accounted for.
+
+### Consent withdrawal is not magical remote erasure
+
+A withdrawal can change future permitted collection, processing, disclosure or reuse. It does not prove that a recipient has deleted an earlier export, that a public copy can be recalled, or that every offline relay has received the update. Preserve distinct states for: withdrawal requested; authenticated and evaluated; future egress blocked; known recipients notified; recipient deletion/retention response received; residual copies unknown; legal/preservation hold; and dispute/appeal. Never issue a universal "deleted everywhere" receipt without independently verifiable acknowledgements from every declared copy/recipient.
+
+A stale offline node must not treat old consent or authority as current indefinitely. Where currentness cannot be established under a bounded policy/lease, fail closed for new disclosure and preserve the pending update. Existing evidence and retention obligations require a separately governed treatment; do not silently erase an objection or legal hold to satisfy a blanket deletion request.
+
+### Governance frameworks are context, not a replacement for law
+
+For Indigenous data, the CARE Principles (Collective Benefit, Authority to Control, Responsibility, Ethics) are a people- and purpose-oriented complement to FAIR data principles. Apply them in the way relevant Indigenous peoples and their governance bodies direct; do not treat CARE as a generic certification checkbox for every community. The FAO VGGT provide important voluntary guidance for land/fisheries/forest tenure, but they are not legally binding and do not cover water or mineral rights. National and local law, customary protocols and jurisdiction-specific authority must be separately mapped. Neither CARE nor VGGT is a legal adjudication engine.
+
+### Governance adversarial benchmark
+
+Add synthetic cases for: a valid signature from a person outside the decision mandate; a mandate outside its geographic/time scope; consent withdrawn while a relay is partitioned; a public-export request over a restricted item; a dissenting group whose objection is omitted; a donor/NGO administrator attempting to block community export; a key-recovery quorum captured by one controller; a recipient that has not acknowledged deletion; and a legal hold conflicting with deletion. Required fail-safe outcomes are typed DENY, REVIEW, INCOMPLETE or UNKNOWN—not a green aggregate score.
+
+## 8. Transport lifetime is not evidence retention
 
 BPv7's bundle lifetime governs how long a transport bundle is retained/forwarded. Bundle expiry can require the bundle agent to delete the expired bundle. It is not the retention lifetime of the underlying signed event, claim, appeal, or preservation record.
 
@@ -89,9 +127,9 @@ A relay may delete an expired carrier bundle while retaining the immutable signe
 
 This is particularly important where a community is offline for weeks or where a legal dispute may continue long after a transport attempt times out.
 
-## 8. Long-term cryptographic preservation
+## 9. Long-term cryptographic preservation
 
-Use established preservation mechanisms rather than inventing perpetual signatures. RFC 4998 Evidence Record Syntax defines evidence records, timestamp chains/sequences and renewal mechanisms. Mycelix LEX-NET-038 (#1354) already owns the long-term validation and cryptographic renewal contract.
+Use established preservation mechanisms rather than inventing perpetual signatures. RFC 4998 Evidence Record Syntax defines evidence records, timestamp chains/sequences and renewal mechanisms. Mycelix LEX-NET-038 (#1354) already owns the long-term validation and cryptographic renewal contract. Add cryptographic agility and post-quantum migration planning in line with NIST CSWP 39upd1 (June 2026) and NIST IR 8547 (final 27 October 2026); preserve exact historical validation contexts and never silently re-sign old evidence as if it were newly issued.
 
 Preserve separately:
 - original signed bytes and original verification outcome/context;
@@ -104,7 +142,7 @@ Preserve separately:
 
 A later renewal proves continuity of preserved bytes under its qualified preservation process. It does not prove the described real-world event happened at that time, that the signer had legal authority, or that the right remains current.
 
-## 9. Synthetic qualification corpus
+## 10. Synthetic qualification corpus
 
 [archive-cases-v0.1.json](../../benchmarks/territorial-integrity/relay/archive-cases-v0.1.json) contains 12 synthetic cases for:
 - complete independent restore;
@@ -122,7 +160,7 @@ A later renewal proves continuity of preserved bytes under its qualified preserv
 
 The expected dispositions are frozen synthetic oracle labels. The Rust evaluator is committed but still requires exact-head Cargo/CI execution and independent second-implementation agreement.
 
-## 10. Metrics and research targets
+## 11. Metrics and research targets
 
 | Measure | Target |
 |---|---:|
@@ -141,7 +179,7 @@ The expected dispositions are frozen synthetic oracle labels. The Rust evaluator
 
 Do not collapse these into a single sovereignty score. Report each dimension, exclusions, uncertainty and source version separately.
 
-## 11. Acceptance boundary
+## 12. Acceptance boundary
 
 This is a protocol and benchmark proposal. It does not claim that an archive exporter, cold-start restore, key-recovery ceremony, preservation service, user study or community pilot has been implemented or qualified. The synthetic corpus does not establish legal sufficiency or community legitimacy.
 
@@ -155,4 +193,9 @@ This is a protocol and benchmark proposal. It does not claim that an archive exp
 - [RFC 9171 Bundle Protocol v7](https://www.rfc-editor.org/rfc/rfc9171.html)
 - [RFC 9172 BPSec](https://www.rfc-editor.org/rfc/rfc9172.html)
 - [RFC 4998 Evidence Record Syntax](https://www.rfc-editor.org/rfc/rfc4998.html)
-- [RFC 9943 SCITT](https://www.rfc-editor.org/rfc/rfc9943.html)
+- [RFC 9942 COSE Receipts](https://www.rfc-editor.org/rfc/rfc9942.html)
+- [RFC 9943 SCITT Architecture](https://www.rfc-editor.org/rfc/rfc9943.html)
+- [NIST CSWP 39upd1 — Considerations for Achieving Crypto Agility](https://csrc.nist.gov/pubs/cswp/39/upd1/final)
+- [NIST IR 8547 — Transition to Post-Quantum Cryptography Standards](https://csrc.nist.gov/pubs/ir/8547/final)
+- [Global Indigenous Data Alliance — CARE Principles](https://www.gida-global.org/careprinciples)
+- [FAO — Voluntary Guidelines on the Responsible Governance of Tenure](https://www.fao.org/land-water/land/land-governance-and-planning/land-resources-planning-toolbox/detail/voluntary-guidelines-on-responsible-governance-of-tenure-of-land-fisheries-and-forests-in-the-context-of-national-food-security-%28vggt%29/en)
