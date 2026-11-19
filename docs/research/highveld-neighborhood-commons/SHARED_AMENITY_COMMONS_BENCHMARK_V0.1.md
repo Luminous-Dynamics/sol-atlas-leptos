@@ -92,6 +92,25 @@ The manifest crosses five provision arms with these ten synthetic spatial contex
 
 All 50 case records remain `REGISTERED_DESIGN_ONLY`, `NOT_EXECUTED`, `NOT_SUPPLIED` and `NO_RESULT`. The manifest is a case registry, not an execution receipt.
 
+### Typed scenario contract
+
+Each scenario has a separate machine-readable definition in the manifest, with a frozen scenario class, spatial condition, primary stressors, required owner-output references, and two fixed states: `probability_model_state=NOT_ASSIGNED` and `input_state=SYNTHETIC_SPECIFICATION_ONLY`.
+
+| Scenario | Class | Primary stressors |
+|---|---|---|
+| COMPACT_HIGH_DENSITY | DENSITY_AND_CAPACITY | Peak simultaneous demand, shared-node congestion, land opportunity cost |
+| LOW_DENSITY_DISPERSED | DENSITY_AND_DISTANCE | Long active-mode access, low utilization, private duplication burden |
+| MIXED_USE_TRANSIT_ADJACENT | MIXED_USE_AND_TRANSIT | Timetable availability, first/last-mile access, service-window mismatch |
+| SITE_EDGE_LONG_WALK | SITE_EDGE_AND_ROUTE_IMPEDANCE | Route-length asymmetry, crossings/severance, unequal travel-time burden |
+| ACCESSIBLE_ROUTE_DISCONTINUITY | UNIVERSAL_ACCESS | Step-free continuity, unknown edge state, barrier-sensitive reachability |
+| UNEQUAL_POPULATION_DISTRIBUTION | POPULATION_DISTRIBUTION | Within-neighborhood distribution, population-frame uncertainty, small-cell privacy |
+| PHASED_OCCUPANCY_GROWTH | TEMPORAL_PHASING | Occupancy/service mismatch, commissioning delay, temporary access gap |
+| LAND_SCARCITY_COMPETING_USE | LAND_OPPORTUNITY | Land opportunity cost, public-space/access floor, productive/ecological constraints |
+| EXTERNAL_PROVIDER_DISTANCE_OR_CLOSURE | PROVIDER_AVAILABILITY | Provider currentness, price/eligibility uncertainty, provider-loss fallback |
+| MULTI_NODE_CATCHMENT_REBALANCING | NETWORK_RECONFIGURATION | Catchment reassignment, common-cause dependency, substitute paths, reconfiguration effort |
+
+Definitions name the outputs required for a future matched comparison, not results that already exist. Missing owner receipts remain UNKNOWN/BLOCKED. No scenario probability is implied by its registration or ordering; a future probability model requires an independently justified evidence basis.
+
 ## 6. Spatial model and owner-native evidence
 
 Each candidate comparison must bind, through Sol-Atlas #623:
