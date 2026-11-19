@@ -22,6 +22,7 @@ fn frozen_manifest_has_complete_case_coverage() {
     assert_eq!(summary.unique_case_pairs, 50);
     assert_eq!(summary.amenity_archetype_count, 10);
     assert_eq!(summary.functional_unit_count, 9);
+    assert_eq!(summary.reference_source_count, 37);
     assert_eq!(summary.execution_status, "NOT_EXECUTED");
     assert_eq!(summary.manifest_sha256.len(), 64);
 }
@@ -114,5 +115,22 @@ fn canonical_mycelix_amenity_service_contract_cannot_be_removed() {
         .as_array_mut()
         .expect("owner dependencies")
         .retain(|item| item["reference"] != "https://github.com/Luminous-Dynamics/mycelix/issues/6328");
+    assert!(audit(&value).is_err());
+}
+
+#[test]
+fn city_morph_effective_access_owner_cannot_be_removed() {
+    let mut value = fixture();
+    value["scope_boundary"]["owner_native_dependencies"]
+        .as_array_mut()
+        .expect("owner dependencies")
+        .retain(|item| item["reference"] != "https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/555");
+    assert!(audit(&value).is_err());
+}
+
+#[test]
+fn obsolete_operational_scenario_is_rejected() {
+    let mut value = fixture();
+    value["scenarios"][0] = json!("ORDINARY_DEMAND");
     assert!(audit(&value).is_err());
 }
