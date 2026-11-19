@@ -1,0 +1,415 @@
+{
+  "profile_id": "CITY-NEIGHBOURHOOD-EVALUATION-PROFILE-V0.1",
+  "schema_version": "0.1.0",
+  "classification": "synthetic_fixture_only",
+  "scope": {
+    "scope_digest": "synthetic-neighbourhood-scope-v0.1",
+    "study_area": {
+      "subject_id": "fixture-neighbourhood-boundary",
+      "revision": "synthetic-v0.1",
+      "content_digest": "1111111111111111111111111111111111111111111111111111111111111111",
+      "crs": "EPSG:4326",
+      "native_spatial_support": "synthetic site polygon",
+      "display_resolution_limit": "site/block only",
+      "rights_state": "verified",
+      "source_ref": {
+        "owner_repository": "Luminous-Dynamics/sol-atlas-leptos",
+        "owner_contract": "CITY-NEIGHBOURHOOD-REFERENCE-001",
+        "schema_version": "0.1.0",
+        "subject_id": "fixture-neighbourhood-boundary",
+        "subject_revision": "synthetic-v0.1",
+        "scope_digest": "synthetic-neighbourhood-scope-v0.1",
+        "evidence_state": "synthetic",
+        "receipt_id": "synthetic-receipt:fixture-neighbourhood-boundary",
+        "content_digest": "0000000000000000000000000000000000000000000000000000000000000000",
+        "claim_ceiling": "synthetic_fixture_only"
+      }
+    },
+    "time_horizon": {
+      "start": "2026-01-01T00:00:00Z",
+      "end": "2030-01-01T00:00:00Z",
+      "timezone": "UTC"
+    },
+    "population_frame": {
+      "owner_repository": "Luminous-Dynamics/sol-atlas-leptos",
+      "owner_contract": "CITY-MORPH-ACCESS-001",
+      "schema_version": "0.1.0",
+      "subject_id": "synthetic-population-frame",
+      "subject_revision": "synthetic-v0.1",
+      "scope_digest": "synthetic-neighbourhood-scope-v0.1",
+      "evidence_state": "synthetic",
+      "receipt_id": "synthetic-receipt:synthetic-population-frame",
+      "content_digest": "0000000000000000000000000000000000000000000000000000000000000000",
+      "claim_ceiling": "synthetic_fixture_only"
+    },
+    "service_bundle_revision": "synthetic-service-bundle-v0.1",
+    "scenario_family_id": "synthetic-scenario-family-v0.1",
+    "functional_unit_policy": "Per declared service unit per day; no cross-unit aggregation",
+    "boundary_crosswalk_ref": {
+      "owner_repository": "Luminous-Dynamics/sol-atlas-leptos",
+      "owner_contract": "CITY-ACCESS-DATA-READINESS-001",
+      "schema_version": "0.1.0",
+      "subject_id": "synthetic-boundary-crosswalk",
+      "subject_revision": "synthetic-v0.1",
+      "scope_digest": "synthetic-neighbourhood-scope-v0.1",
+      "evidence_state": "synthetic",
+      "receipt_id": "synthetic-receipt:synthetic-boundary-crosswalk",
+      "content_digest": "0000000000000000000000000000000000000000000000000000000000000000",
+      "claim_ceiling": "synthetic_fixture_only"
+    }
+  },
+  "service_requirements": [
+    {
+      "requirement_id": "health-clinic-visits",
+      "group_id": "all-residents",
+      "service_category": "primary-health",
+      "demand_value": 100,
+      "demand_unit": "visits/day",
+      "time_window": "weekday-08-18",
+      "required_access_profile": "step-free-walk",
+      "affordability_limit": 0,
+      "affordability_unit": "synthetic currency/visit",
+      "hard_floor": true,
+      "source_ref": {
+        "owner_repository": "Luminous-Dynamics/sol-atlas-leptos",
+        "owner_contract": "CITY-MORPH-ACCESS-001",
+        "schema_version": "0.1.0",
+        "subject_id": "clinic-demand",
+        "subject_revision": "synthetic-v0.1",
+        "scope_digest": "synthetic-neighbourhood-scope-v0.1",
+        "evidence_state": "synthetic",
+        "receipt_id": "synthetic-receipt:clinic-demand",
+        "content_digest": "0000000000000000000000000000000000000000000000000000000000000000",
+        "claim_ceiling": "synthetic_fixture_only"
+      }
+    },
+    {
+      "requirement_id": "school-places",
+      "group_id": "school-age-residents",
+      "service_category": "education",
+      "demand_value": 80,
+      "demand_unit": "places",
+      "time_window": "school-term-weekday-07-16",
+      "required_access_profile": "step-free-walk",
+      "affordability_limit": null,
+      "affordability_unit": null,
+      "hard_floor": true,
+      "source_ref": {
+        "owner_repository": "Luminous-Dynamics/sol-atlas-leptos",
+        "owner_contract": "CITY-MORPH-ACCESS-001",
+        "schema_version": "0.1.0",
+        "subject_id": "school-demand",
+        "subject_revision": "synthetic-v0.1",
+        "scope_digest": "synthetic-neighbourhood-scope-v0.1",
+        "evidence_state": "synthetic",
+        "receipt_id": "synthetic-receipt:school-demand",
+        "content_digest": "0000000000000000000000000000000000000000000000000000000000000000",
+        "claim_ceiling": "synthetic_fixture_only"
+      }
+    }
+  ],
+  "alternatives": [
+    {
+      "alternative_id": "compact-mixed-use",
+      "morphology_family": "compact-mixed-use",
+      "scope_digest": "synthetic-neighbourhood-scope-v0.1",
+      "design_revision": "candidate-a-v0.1",
+      "geometry_ref": {
+        "subject_id": "fixture-neighbourhood-boundary",
+        "revision": "synthetic-v0.1",
+        "content_digest": "1111111111111111111111111111111111111111111111111111111111111111",
+        "crs": "EPSG:4326",
+        "native_spatial_support": "synthetic site polygon",
+        "display_resolution_limit": "site/block only",
+        "rights_state": "verified",
+        "source_ref": {
+          "owner_repository": "Luminous-Dynamics/sol-atlas-leptos",
+          "owner_contract": "CITY-NEIGHBOURHOOD-REFERENCE-001",
+          "schema_version": "0.1.0",
+          "subject_id": "fixture-neighbourhood-boundary",
+          "subject_revision": "synthetic-v0.1",
+          "scope_digest": "synthetic-neighbourhood-scope-v0.1",
+          "evidence_state": "synthetic",
+          "receipt_id": "synthetic-receipt:fixture-neighbourhood-boundary",
+          "content_digest": "0000000000000000000000000000000000000000000000000000000000000000",
+          "claim_ceiling": "synthetic_fixture_only"
+        }
+      },
+      "owner_receipts": [
+        {
+          "owner_repository": "Luminous-Dynamics/symthaea",
+          "owner_contract": "BUILT-ENV-001",
+          "schema_version": "0.1.0",
+          "subject_id": "candidate-a-building-profiles",
+          "subject_revision": "synthetic-v0.1",
+          "scope_digest": "synthetic-neighbourhood-scope-v0.1",
+          "evidence_state": "synthetic",
+          "receipt_id": "synthetic-receipt:candidate-a-building-profiles",
+          "content_digest": "0000000000000000000000000000000000000000000000000000000000000000",
+          "claim_ceiling": "synthetic_fixture_only"
+        },
+        {
+          "owner_repository": "Luminous-Dynamics/symtropy",
+          "owner_contract": "CITYKIT-SYNTH-001",
+          "schema_version": "0.1.0",
+          "subject_id": "candidate-a-service-feasibility",
+          "subject_revision": "synthetic-v0.1",
+          "scope_digest": "synthetic-neighbourhood-scope-v0.1",
+          "evidence_state": "synthetic",
+          "receipt_id": "synthetic-receipt:candidate-a-service-feasibility",
+          "content_digest": "0000000000000000000000000000000000000000000000000000000000000000",
+          "claim_ceiling": "synthetic_fixture_only"
+        },
+        {
+          "owner_repository": "Luminous-Dynamics/mycelix",
+          "owner_contract": "LIVING-CITY",
+          "schema_version": "0.1.0",
+          "subject_id": "candidate-a-flow-ledger",
+          "subject_revision": "synthetic-v0.1",
+          "scope_digest": "synthetic-neighbourhood-scope-v0.1",
+          "evidence_state": "synthetic",
+          "receipt_id": "synthetic-receipt:candidate-a-flow-ledger",
+          "content_digest": "0000000000000000000000000000000000000000000000000000000000000000",
+          "claim_ceiling": "synthetic_fixture_only"
+        }
+      ],
+      "phase_ids": [
+        "phase-0",
+        "phase-1"
+      ],
+      "resident_participation_ref": {
+        "owner_repository": "Luminous-Dynamics/symtropy",
+        "owner_contract": "SPATIAL-DESIGN-001",
+        "schema_version": "0.1.0",
+        "subject_id": "synthetic-resident-requirements-a",
+        "subject_revision": "synthetic-v0.1",
+        "scope_digest": "synthetic-neighbourhood-scope-v0.1",
+        "evidence_state": "synthetic",
+        "receipt_id": "synthetic-receipt:synthetic-resident-requirements-a",
+        "content_digest": "0000000000000000000000000000000000000000000000000000000000000000",
+        "claim_ceiling": "synthetic_fixture_only"
+      }
+    },
+    {
+      "alternative_id": "polycentric-cluster",
+      "morphology_family": "polycentric",
+      "scope_digest": "synthetic-neighbourhood-scope-v0.1",
+      "design_revision": "candidate-b-v0.1",
+      "geometry_ref": {
+        "subject_id": "fixture-neighbourhood-boundary",
+        "revision": "synthetic-v0.1",
+        "content_digest": "1111111111111111111111111111111111111111111111111111111111111111",
+        "crs": "EPSG:4326",
+        "native_spatial_support": "synthetic site polygon",
+        "display_resolution_limit": "site/block only",
+        "rights_state": "verified",
+        "source_ref": {
+          "owner_repository": "Luminous-Dynamics/sol-atlas-leptos",
+          "owner_contract": "CITY-NEIGHBOURHOOD-REFERENCE-001",
+          "schema_version": "0.1.0",
+          "subject_id": "fixture-neighbourhood-boundary",
+          "subject_revision": "synthetic-v0.1",
+          "scope_digest": "synthetic-neighbourhood-scope-v0.1",
+          "evidence_state": "synthetic",
+          "receipt_id": "synthetic-receipt:fixture-neighbourhood-boundary",
+          "content_digest": "0000000000000000000000000000000000000000000000000000000000000000",
+          "claim_ceiling": "synthetic_fixture_only"
+        }
+      },
+      "owner_receipts": [
+        {
+          "owner_repository": "Luminous-Dynamics/symthaea",
+          "owner_contract": "BUILT-ENV-001",
+          "schema_version": "0.1.0",
+          "subject_id": "candidate-b-building-profiles",
+          "subject_revision": "synthetic-v0.1",
+          "scope_digest": "synthetic-neighbourhood-scope-v0.1",
+          "evidence_state": "synthetic",
+          "receipt_id": "synthetic-receipt:candidate-b-building-profiles",
+          "content_digest": "0000000000000000000000000000000000000000000000000000000000000000",
+          "claim_ceiling": "synthetic_fixture_only"
+        },
+        {
+          "owner_repository": "Luminous-Dynamics/symtropy",
+          "owner_contract": "CITYKIT-SYNTH-001",
+          "schema_version": "0.1.0",
+          "subject_id": "candidate-b-service-feasibility",
+          "subject_revision": "synthetic-v0.1",
+          "scope_digest": "synthetic-neighbourhood-scope-v0.1",
+          "evidence_state": "synthetic",
+          "receipt_id": "synthetic-receipt:candidate-b-service-feasibility",
+          "content_digest": "0000000000000000000000000000000000000000000000000000000000000000",
+          "claim_ceiling": "synthetic_fixture_only"
+        },
+        {
+          "owner_repository": "Luminous-Dynamics/mycelix",
+          "owner_contract": "LIVING-CITY",
+          "schema_version": "0.1.0",
+          "subject_id": "candidate-b-flow-ledger",
+          "subject_revision": "synthetic-v0.1",
+          "scope_digest": "synthetic-neighbourhood-scope-v0.1",
+          "evidence_state": "synthetic",
+          "receipt_id": "synthetic-receipt:candidate-b-flow-ledger",
+          "content_digest": "0000000000000000000000000000000000000000000000000000000000000000",
+          "claim_ceiling": "synthetic_fixture_only"
+        }
+      ],
+      "phase_ids": [
+        "phase-0",
+        "phase-1"
+      ],
+      "resident_participation_ref": {
+        "owner_repository": "Luminous-Dynamics/symtropy",
+        "owner_contract": "SPATIAL-DESIGN-001",
+        "schema_version": "0.1.0",
+        "subject_id": "synthetic-resident-requirements-b",
+        "subject_revision": "synthetic-v0.1",
+        "scope_digest": "synthetic-neighbourhood-scope-v0.1",
+        "evidence_state": "synthetic",
+        "receipt_id": "synthetic-receipt:synthetic-resident-requirements-b",
+        "content_digest": "0000000000000000000000000000000000000000000000000000000000000000",
+        "claim_ceiling": "synthetic_fixture_only"
+      }
+    }
+  ],
+  "scenarios": [
+    {
+      "scenario_id": "baseline",
+      "evidence_class": "synthetic",
+      "event_trace_ref": {
+        "owner_repository": "Luminous-Dynamics/sol-atlas-leptos",
+        "owner_contract": "CITY-MORPH-ROBUST-001",
+        "schema_version": "0.1.0",
+        "subject_id": "synthetic-baseline-event-trace",
+        "subject_revision": "synthetic-v0.1",
+        "scope_digest": "synthetic-neighbourhood-scope-v0.1",
+        "evidence_state": "synthetic",
+        "receipt_id": "synthetic-receipt:synthetic-baseline-event-trace",
+        "content_digest": "0000000000000000000000000000000000000000000000000000000000000000",
+        "claim_ceiling": "synthetic_fixture_only"
+      },
+      "applies_to_all_alternatives": true,
+      "event_probability": null,
+      "probability_basis_ref": null
+    },
+    {
+      "scenario_id": "shared-power-outage",
+      "evidence_class": "synthetic",
+      "event_trace_ref": {
+        "owner_repository": "Luminous-Dynamics/sol-atlas-leptos",
+        "owner_contract": "CITY-MORPH-ROBUST-001",
+        "schema_version": "0.1.0",
+        "subject_id": "synthetic-power-outage-trace",
+        "subject_revision": "synthetic-v0.1",
+        "scope_digest": "synthetic-neighbourhood-scope-v0.1",
+        "evidence_state": "synthetic",
+        "receipt_id": "synthetic-receipt:synthetic-power-outage-trace",
+        "content_digest": "0000000000000000000000000000000000000000000000000000000000000000",
+        "claim_ceiling": "synthetic_fixture_only"
+      },
+      "applies_to_all_alternatives": true,
+      "event_probability": null,
+      "probability_basis_ref": null
+    }
+  ],
+  "hard_constraints": [
+    {
+      "constraint_id": "minimum-step-free-health-access",
+      "domain": "accessibility",
+      "metric_id": "step_free_health_coverage",
+      "unit": "fraction",
+      "operator": "ge",
+      "threshold": 0.8,
+      "source_ref": {
+        "owner_repository": "Luminous-Dynamics/sol-atlas-leptos",
+        "owner_contract": "CITY-MORPH-ACCESS-001",
+        "schema_version": "0.1.0",
+        "subject_id": "synthetic-step-free-floor",
+        "subject_revision": "synthetic-v0.1",
+        "scope_digest": "synthetic-neighbourhood-scope-v0.1",
+        "evidence_state": "synthetic",
+        "receipt_id": "synthetic-receipt:synthetic-step-free-floor",
+        "content_digest": "0000000000000000000000000000000000000000000000000000000000000000",
+        "claim_ceiling": "synthetic_fixture_only"
+      },
+      "non_compensatory": true
+    },
+    {
+      "constraint_id": "water-budget",
+      "domain": "utilities",
+      "metric_id": "peak_water_demand",
+      "unit": "litres/day",
+      "operator": "le",
+      "threshold": 100000,
+      "source_ref": {
+        "owner_repository": "Luminous-Dynamics/symtropy",
+        "owner_contract": "CITYKIT-SYNTH-001",
+        "schema_version": "0.1.0",
+        "subject_id": "synthetic-water-budget",
+        "subject_revision": "synthetic-v0.1",
+        "scope_digest": "synthetic-neighbourhood-scope-v0.1",
+        "evidence_state": "synthetic",
+        "receipt_id": "synthetic-receipt:synthetic-water-budget",
+        "content_digest": "0000000000000000000000000000000000000000000000000000000000000000",
+        "claim_ceiling": "synthetic_fixture_only"
+      },
+      "non_compensatory": true
+    }
+  ],
+  "owner_evidence": [
+    {
+      "owner_repository": "Luminous-Dynamics/sol-atlas-leptos",
+      "owner_contract": "CITY-MORPH-ACCESS-001",
+      "schema_version": "0.1.0",
+      "subject_id": "synthetic-access-evidence",
+      "subject_revision": "synthetic-v0.1",
+      "scope_digest": "synthetic-neighbourhood-scope-v0.1",
+      "evidence_state": "synthetic",
+      "receipt_id": "synthetic-receipt:synthetic-access-evidence",
+      "content_digest": "0000000000000000000000000000000000000000000000000000000000000000",
+      "claim_ceiling": "synthetic_fixture_only"
+    },
+    {
+      "owner_repository": "Luminous-Dynamics/sol-atlas-leptos",
+      "owner_contract": "CITY-MORPH-ROBUST-001",
+      "schema_version": "0.1.0",
+      "subject_id": "synthetic-continuity-evidence",
+      "subject_revision": "synthetic-v0.1",
+      "scope_digest": "synthetic-neighbourhood-scope-v0.1",
+      "evidence_state": "synthetic",
+      "receipt_id": "synthetic-receipt:synthetic-continuity-evidence",
+      "content_digest": "0000000000000000000000000000000000000000000000000000000000000000",
+      "claim_ceiling": "synthetic_fixture_only"
+    },
+    {
+      "owner_repository": "Luminous-Dynamics/symtropy",
+      "owner_contract": "CITYKIT-SYNTH-001",
+      "schema_version": "0.1.0",
+      "subject_id": "synthetic-service-capacity-evidence",
+      "subject_revision": "synthetic-v0.1",
+      "scope_digest": "synthetic-neighbourhood-scope-v0.1",
+      "evidence_state": "synthetic",
+      "receipt_id": "synthetic-receipt:synthetic-service-capacity-evidence",
+      "content_digest": "0000000000000000000000000000000000000000000000000000000000000000",
+      "claim_ceiling": "synthetic_fixture_only"
+    },
+    {
+      "owner_repository": "Luminous-Dynamics/mycelix",
+      "owner_contract": "LIVING-CITY",
+      "schema_version": "0.1.0",
+      "subject_id": "synthetic-physical-flow-evidence",
+      "subject_revision": "synthetic-v0.1",
+      "scope_digest": "synthetic-neighbourhood-scope-v0.1",
+      "evidence_state": "synthetic",
+      "receipt_id": "synthetic-receipt:synthetic-physical-flow-evidence",
+      "content_digest": "0000000000000000000000000000000000000000000000000000000000000000",
+      "claim_ceiling": "synthetic_fixture_only"
+    }
+  ],
+  "decision_policy": {
+    "composite_score_permitted": false,
+    "unknown_policy": "never_promote_to_favourable",
+    "not_comparable_policy": "retain_separately",
+    "resident_decision_rights": "synthetic fixture only; real pilot requires resident and authority participation"
+  }
+}
