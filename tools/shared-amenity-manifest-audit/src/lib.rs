@@ -90,6 +90,7 @@ const REQUIRED_OWNER_NATIVE_DEPENDENCIES: &[(&str, &str, &str, &str)] = &[
     ("MYCELIX_HOUSING_AMENITY_COMMONS", "Mycelix", "https://github.com/Luminous-Dynamics/mycelix/issues/6328", "CANONICAL_AMENITY_ASSET_SERVICE_ACCESS_FINANCE_MAINTENANCE_GOVERNANCE_CONTRACT"),
     ("WHOLE_HOUSEHOLD_COST_OF_PLACE", "Sol-Atlas", "https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/816", "HOUSEHOLD_COST_OF_PLACE_AFFORDABILITY"),
     ("CAPITAL_TO_COMMONS_FINANCE", "Mycelix", "https://github.com/Luminous-Dynamics/mycelix/issues/912", "CAPITAL_TO_COMMONS_STEWARD_FINANCE_TRANSITION"),
+    ("CITY_MORPH_EFFECTIVE_ACCESS", "Sol-Atlas", "https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/555", "EVIDENCE_QUALIFIED_MULTIMODAL_EFFECTIVE_ACCESS"),
 ];
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]
@@ -699,10 +700,10 @@ fn validate_case_matrix(
 
 fn validate_reference_sources(root: &Value) -> Result<(), AuditError> {
     let sources = required_array(root, "reference_sources", "$")?;
-    if sources.len() < 34 {
+    if sources.len() < 36 {
         return Err(AuditError::new(
             "$.reference_sources",
-            format!("expected at least 34 sources, found {}", sources.len()),
+            format!("expected at least 36 sources, found {}", sources.len()),
         ));
     }
 
