@@ -248,3 +248,65 @@ Only after we establish a matched local baseline, scope and acceptance protocol,
 | Asset stewardship | 100% of major shared assets have current condition, renewal horizon, replacement-cost source, named operator and approved reserve policy | For sectional-title profiles, map the current statutory maintenance/repair/replacement requirements; do not generalize that regime to every tenure type. |
 
 These are deliberately demanding research targets. A project that fails to beat them may still be valuable, but we should not call it better than state of the art. Report confidence intervals, sensitivity, adverse cases and the full Pareto frontier. The appropriate comparator changes with housing type, site, density, climate, tenure and local supply chain.
+
+## 14. Scope boundary against adjacent Luminous work
+
+The repository audit identified adjacent work that must remain authoritative. This benchmark is a **daily-use and productive-amenity comparison profile**, not a second essential-services resilience or apartment-design programme.
+
+### Included in this profile
+- Everyday shared-use amenities: learning, study/work, guest accommodation, laundry, routine tool access and making, community dining, childcare, recreation, sport and non-emergency food growing.
+- Whether a household should own, share, use a distributed facility, use a hybrid, or buy an equivalent external service.
+- Service-specific functional units, access/queue outcomes, cost allocation and lifecycle service value.
+- Maintenance and governance of those specific amenity assets.
+
+### Explicitly excluded / delegated
+- **Essential household service floors and household resilience:** Sol-Atlas [HIGHVELD-HOUSEHOLD-SERVICE-001 #694](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/694).
+- **Shared emergency energy/water/thermal refuge/communications/charging/repair logistics and neighborhood-resilience hub topology:** Sol-Atlas [HIGHVELD-NEIGHBORHOOD-RESILIENCE-COMMONS-001 #737](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/737). #940 may consume its receipts but must not redefine those assets or claims.
+- **Apartment/floor/building design, vertical circulation and multi-family household-to-building composition:** Sol-Atlas [HOME-MULTIFAMILY-COMPILER-001 #840](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/840).
+- **City-scale reference district, service basket and spatial integration:** Sol-Atlas #596/#615.
+- **Common scope binding and owner-evidence envelope:** Sol-Atlas #623 and its existing PR #624. Do not create another scope digest format.
+- **Generic service/capacity/resource feasibility:** Symtropy [CITYKIT-SYNTH-001 #3768](https://github.com/Luminous-Dynamics/symtropy/issues/3768). Consume its exact owner-native output; do not build a second general service-capacity oracle here.
+- **Matching, reservation and constrained allocation policy:** Mycelix [#5901](https://github.com/Luminous-Dynamics/mycelix/issues/5901). This benchmark evaluates resulting service, unmet demand, fairness diagnostics and capacity evidence; it does not choose who morally deserves a slot.
+- **Resident-led layout, accessibility and habitability:** Symtropy #1687/#1766/#1848.
+- **Physical household water, thermal and room-scale service integration:** Symthaea #10323/#10329 and Symtropy #4531/#5335. This profile consumes those exact outcomes.
+- **Legal ownership, stewardship, consent, asset lock and financial/physical lifecycle source records:** Mycelix #987/#954/#3095/#4808/#4816.
+
+A routine shared tool library can be evaluated here as a resident amenity. A community emergency repair depot, strategic spares pool or resilience repair hub belongs to #737. A common laundry room is included here; a shared water-backup plant serving essential household use is not. A greenhouse is included as a resident productive amenity; emergency food security and shared water infrastructure remain with their respective resilience/resource owners. A pool plant is an enabling cost/resource component of the pool service, not a separately credited community utility service.
+
+## 15. Amenity functional units: compare equivalent service, not unlike outputs
+
+Every amenity class receives its own functional unit and acceptance definition. Never convert a pool person-hour, guest night, childcare place-hour and kilogram of produce into one invented universal “amenity unit”. A portfolio may show a vector of service/cost outcomes or a resident-authored bundle of separate service floors; it must not collapse unlike outputs into one scalar without a disclosed and justified preference model.
+
+| Amenity class | Candidate functional unit | Minimum definition that must be frozen |
+|---|---|---|
+| Tool library / routine maker workshop | accepted tool-user-hour | Identified tool, allowed use, access window, working condition, safe-return/inspection and downtime treatment |
+| Shared laundry | accepted laundry load | Load class/mass, service quality, cycle, rewash/reject treatment, water/energy boundary and turnaround |
+| Guest suites | accessible guest-night | Room/service class, occupancy, accessible route/features, cleaning/turnover and booking window |
+| Greenhouse / food garden | usable harvest kg by crop/grade | Crop identity, grade/quality, safety boundary, harvest point, losses and growing-cycle horizon |
+| Pool / wellness | operable swimmer-hour | Independently declared operating envelope, capacity, water-quality/plant state, accessibility and closure time |
+| Community kitchen / dining | accepted meal service | Meal/service definition, declared dietary/allergen information, food-safety process and service window |
+| Library / study / coworking | accessible seat-hour | Seat/workspace class, hours, connectivity/acoustic service where promised, access and interruption |
+| Childcare / learning | licensed place-hour | Applicable license/registration, service age/class, staffing and safety conditions, attendance and closure state |
+| Sports / recreation | usable court-hour or recreation-space-hour | Activity, surface/lighting/accessible use condition, opening window, maintenance and weather closure |
+| Non-essential amenity plant | supporting asset only | Pump/filter/ventilation/plant availability and cost is attributed to the service it enables; it is not a standalone beneficiary service unit |
+
+Functional-unit equivalence requires the same service definition, quality class, beneficiary/task, opening window, geography/access boundary, period/season and lifecycle boundary. If the definitions differ, return NOT_COMPARABLE or show separate service classes. A calendar hour of opening is not necessarily a delivered user-hour. Nominal capacity is not accepted output.
+
+## 16. State-of-the-art comparison protocol for design software
+
+Autodesk Forma's 2026 Building Layout Explorer is an experimental AI-assisted multifamily layout exploration capability. Autodesk says it can generate/compare options against unit mix and circulation/core placement, and explicitly describes its current output as an exploration starting point rather than a dependable finished design. Its growing connected workflow links site planning, building design, Revit, Civil 3D, site/subsurface context and project data. References:
+- https://blogs.autodesk.com/forma/2026/10/14/what-autodesk-forma-announced-au-2026/
+- https://adsknews.autodesk.com/en/news/autodesk-forma-ai-aec-connected-workflows-2026/
+
+Do not claim to beat Forma by generating more layouts or faster images. A fair matched benchmark should give each system the same resident/unit brief, site/context package, unit mix, hard constraints, time budget and downstream exchange task. Compare:
+- feasible candidate yield under mandatory constraints;
+- diversity of genuinely different spatial families;
+- resident/task coverage and accessibility conflict visibility;
+- daylight/thermal/acoustic/service analysis evidence and unknown handling;
+- design-to-IFC/IDS information retention and change propagation;
+- time to first credible option and time to independently reviewable package;
+- false-feasible rate, missing constraints and professional correction effort.
+
+Autodesk's experimental feature is one competitor, not the entire industry baseline. Include manual architect workflow and at least one other applicable layout/planning tool when a real comparison begins. Preserve software versions, feature flags, input files, operators and reviewer protocol. Never compare an AI concept sketch with a fully documented professional design package.
+
+For construction productivity, the 2026 ASCE analysis of 491 modular projects uses gross square metres completed per day and finds differences by building category and size (https://doi.org/10.1061/JMENEA.MEENG-7605). That is useful for context, but our distinctive functional unit should remain the independently accepted assembly and, higher up, the equivalent dwelling/neighbourhood service-year. Report gross area/day alongside complete-workflow labour and accepted service; do not substitute one for the other.
