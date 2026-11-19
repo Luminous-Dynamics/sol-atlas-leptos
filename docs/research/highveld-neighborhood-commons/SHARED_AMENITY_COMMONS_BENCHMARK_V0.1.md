@@ -63,7 +63,7 @@ These are candidate service classes to locate and compare, not a requirement to 
 | Amenity | Candidate functional unit | Spatial question |
 |---|---|---|
 | Community hall | accessible community-room-hour | How many nodes and what catchment are needed for ordinary use and events? |
-| Community kitchen | accepted meal-service | Is a local shared kitchen reachable at the required time, or is private/external provision equivalent? |
+| Community kitchen | accessible shared-kitchen-hour | Is a resident-use kitchen reachable at the required time, or is private/external provision equivalent? This is not a delivered meal service. |
 | Coworking / library / study | accessible seat-hour | Does distributed access reduce travel without making staffing/connectivity uneconomic? |
 | Workshop / tool library / repair | usable equipped-workshop-hour | Should workshops cluster, distribute by catchment, or remain private/accessory? |
 | Guest suites | accessible guest-night | Can shared guest accommodation substitute for some private spare-room demand without violating resident privacy or access needs? |
