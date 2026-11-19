@@ -152,3 +152,13 @@ fn included_service_classes_are_a_frozen_exact_set() {
         .push(json!("unreviewed_service_class"));
     assert!(audit(&value).is_err());
 }
+
+#[test]
+fn owner_aware_metric_vector_cannot_be_silently_removed() {
+    let mut value = fixture();
+    value["metric_vectors"]
+        .as_array_mut()
+        .expect("metric vectors")
+        .retain(|item| item != "ROBUSTNESS_AND_RECONFIGURATION");
+    assert!(audit(&value).is_err());
+}
