@@ -50,6 +50,27 @@ const EXPECTED_SCENARIOS: &[&str] = &[
     "MULTI_NODE_CATCHMENT_REBALANCING",
 ];
 
+const EXPECTED_SCENARIO_CLASSES: &[(&str, &str)] = &[
+    ("COMPACT_HIGH_DENSITY", "DENSITY_AND_CAPACITY"),
+    ("LOW_DENSITY_DISPERSED", "DENSITY_AND_DISTANCE"),
+    ("MIXED_USE_TRANSIT_ADJACENT", "MIXED_USE_AND_TRANSIT"),
+    ("SITE_EDGE_LONG_WALK", "SITE_EDGE_AND_ROUTE_IMPEDANCE"),
+    ("ACCESSIBLE_ROUTE_DISCONTINUITY", "UNIVERSAL_ACCESS"),
+    ("UNEQUAL_POPULATION_DISTRIBUTION", "POPULATION_DISTRIBUTION"),
+    ("PHASED_OCCUPANCY_GROWTH", "TEMPORAL_PHASING"),
+    ("LAND_SCARCITY_COMPETING_USE", "LAND_OPPORTUNITY"),
+    ("EXTERNAL_PROVIDER_DISTANCE_OR_CLOSURE", "PROVIDER_AVAILABILITY"),
+    ("MULTI_NODE_CATCHMENT_REBALANCING", "NETWORK_RECONFIGURATION"),
+];
+
+const EXPECTED_REQUIRED_OWNER_OUTPUTS: &[&str] = &[
+    "CITY_SCOPE_BINDING",
+    "CITY_MORPH_EFFECTIVE_ACCESS",
+    "MYCELIX_HOUSING_AMENITY_COMMONS",
+    "SYMTROPY_CITYKIT_CAPACITY",
+    "WHOLE_HOUSEHOLD_COST_OF_PLACE",
+];
+
 const EXPECTED_FUNCTIONAL_UNITS: &[(&str, &str)] = &[
     ("COMMUNITY_HALL", "ACCESSIBLE_COMMUNITY_ROOM_HOUR"),
     ("COMMUNITY_KITCHEN", "ACCESSIBLE_SHARED_KITCHEN_HOUR"),
@@ -139,6 +160,7 @@ pub struct AuditSummary {
     pub manifest_sha256: String,
     pub comparison_arm_count: usize,
     pub scenario_count: usize,
+    pub scenario_definition_count: usize,
     pub registered_case_count: usize,
     pub unique_case_pairs: usize,
     pub amenity_archetype_count: usize,
@@ -187,6 +209,7 @@ pub fn audit_manifest_bytes(bytes: &[u8]) -> Result<AuditSummary, AuditError> {
         "reference_sources",
         "future_empirical_inputs_required",
         "targets",
+        "scenario_definitions",
     ];
     check_keys(root_object, &allowed_root, "$")?;
 
@@ -230,6 +253,7 @@ pub fn audit_manifest_bytes(bytes: &[u8]) -> Result<AuditSummary, AuditError> {
     let scenario_ids = collect_string_set(scenarios, "$.scenarios")?;
     expect_same_set(&scenario_ids, EXPECTED_SCENARIOS, "$.scenarios")?;
 
+    validate_scenario_definitions(&root, &scenario_ids)?;
     validate_amenities(&root)?;
     validate_metric_vectors(&root)?;
     validate_scope_boundary(&root)?;
@@ -251,6 +275,7 @@ pub fn audit_manifest_bytes(bytes: &[u8]) -> Result<AuditSummary, AuditError> {
         manifest_sha256,
         comparison_arm_count: arms.len(),
         scenario_count: scenarios.len(),
+        scenario_definition_count: required_array(&root, "scenario_definitions", "$")?.len(),
         registered_case_count: cases.len(),
         unique_case_pairs: cases.len(),
         amenity_archetype_count: required_array(&root, "amenity_archetypes", "$")?.len(),
@@ -261,6 +286,119 @@ pub fn audit_manifest_bytes(bytes: &[u8]) -> Result<AuditSummary, AuditError> {
         execution_status,
         claim_ceiling,
     })
+}
+
+fn validate_scenario_definitions(
+    root: &Value,
+    scenario_ids: &BTreeSet<String>,
+) -> Result<(), AuditError> {
+    let definitions = required_array(root, "scenario_definitions", "$")?;
+    if definitions.len() != EXPECTED_SCENARIO_CLASSES.len() {
+        return Err(AuditError::new(
+            "$.scenario_definitions",
+            format!(
+                "expected {} definitions, found {}",
+                EXPECTED_SCENARIO_CLASSES.len(),
+                definitions.len()
+            ),
+        ));
+    }
+
+    let mut seen = BTreeSet::new();
+    let expected_classes = EXPECTED_SCENARIO_CLASSES
+        .iter()
+        .map(|(id, class)| ((*id).to_owned(), (*class).to_owned()))
+        .collect::<BTreeMap<_, _>>();
+
+    for (index, definition) in definitions.iter().enumerate() {
+        let path = format!("$.scenario_definitions[{index}]");
+        let object = definition
+            .as_object()
+            .ok_or_else(|| AuditError::new(&path, "expected an object"))?;
+        check_keys(
+            object,
+            &[
+                "scenario_id",
+                "scenario_class",
+                "spatial_condition",
+                "primary_stressors",
+                "required_owner_outputs",
+                "probability_model_state",
+                "input_state",
+            ],
+            &path,
+        )?;
+
+        let scenario_id = required_string(definition, "scenario_id", &path)?;
+        let scenario_class = required_string(definition, "scenario_class", &path)?;
+        let spatial_condition = required_string(definition, "spatial_condition", &path)?;
+        let probability_state = required_string(definition, "probability_model_state", &path)?;
+        let input_state = required_string(definition, "input_state", &path)?;
+
+        if !scenario_ids.contains(&scenario_id) || !seen.insert(scenario_id.clone()) {
+            return Err(AuditError::new(
+                format!("{path}.scenario_id"),
+                "scenario identifier is unknown or duplicated",
+            ));
+        }
+        match expected_classes.get(&scenario_id) {
+            Some(expected_class) if expected_class == &scenario_class => {}
+            Some(expected_class) => {
+                return Err(AuditError::new(
+                    format!("{path}.scenario_class"),
+                    format!("expected {expected_class}, found {scenario_class}"),
+                ));
+            }
+            None => {
+                return Err(AuditError::new(
+                    format!("{path}.scenario_id"),
+                    "scenario is not part of the frozen v0.1 catalogue",
+                ));
+            }
+        }
+        if spatial_condition.trim().len() < 20 {
+            return Err(AuditError::new(
+                format!("{path}.spatial_condition"),
+                "must describe the spatial condition in at least 20 characters",
+            ));
+        }
+
+        let stressors = required_array(definition, "primary_stressors", &path)?;
+        collect_string_set(stressors, &format!("{path}.primary_stressors"))?;
+
+        let outputs = required_array(definition, "required_owner_outputs", &path)?;
+        let output_ids = collect_string_set(outputs, &format!("{path}.required_owner_outputs"))?;
+        let allowed_outputs = EXPECTED_REQUIRED_OWNER_OUTPUTS
+            .iter()
+            .map(|value| (*value).to_owned())
+            .collect::<BTreeSet<_>>();
+        if output_ids.is_empty() || !output_ids.is_subset(&allowed_outputs) {
+            return Err(AuditError::new(
+                format!("{path}.required_owner_outputs"),
+                "owner output set is empty or contains an unregistered owner output",
+            ));
+        }
+
+        expect_equal(
+            &probability_state,
+            "NOT_ASSIGNED",
+            &format!("{path}.probability_model_state"),
+        )?;
+        expect_equal(
+            &input_state,
+            "SYNTHETIC_SPECIFICATION_ONLY",
+            &format!("{path}.input_state"),
+        )?;
+    }
+
+    if seen != *scenario_ids {
+        return Err(AuditError::new(
+            "$.scenario_definitions",
+            "scenario definitions do not cover the exact scenario identifier set",
+        ));
+    }
+
+    Ok(())
 }
 
 fn validate_amenities(root: &Value) -> Result<(), AuditError> {
