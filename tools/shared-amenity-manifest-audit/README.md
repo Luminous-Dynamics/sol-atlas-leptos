@@ -31,8 +31,8 @@ The 50 registered cases cover five provision models across ten spatial contexts:
 - ten amenity archetypes and nine candidate service functional units;
 - every candidate functional unit is explicitly marked CANDIDATE_NOT_OWNER_APPROVED and bound to Mycelix #6328 for owner review;
 - non-essential plant remains an enabling asset, never a standalone amenity service;
-- required excluded scopes and 14 owner-native dependencies remain present with exact owner/role/reference bindings;
-- at least 34 unique source URLs and unique source IDs;
+- required excluded scopes and 16 owner-native dependencies remain present with exact owner/role/reference bindings;
+- at least 37 unique source URLs and unique source IDs;
 - proposed target invariants.
 
 The report includes SHA-256 of the exact manifest bytes. That digest establishes byte identity only.
@@ -40,6 +40,8 @@ The report includes SHA-256 of the exact manifest bytes. That digest establishes
 ## Canonical owner boundaries
 
 - **Mycelix #6328 / draft PR #6329** owns the canonical shared-amenity asset/service/beneficiary/access/finance/reserve/maintenance/governance/handback contract and its 33-case synthetic conformance corpus. Sol-Atlas #940 must consume its records; it must not create a second asset/service ledger.
+- **Sol-Atlas #555** owns effective-access network semantics and access evidence; #940 must not build another route/catchment engine.
+- **Sol-Atlas #623** owns the common district scope digest and owner-evidence envelope.
 - **Sol-Atlas #816** owns whole-household cost-of-place affordability. #940 consumes its cost/access outputs instead of recalculating household affordability.
 - **Mycelix #912** owns capital-to-commons financing and stewardship transition semantics.
 - **Symtropy #3768** owns generic service/capacity/resource feasibility.
@@ -48,6 +50,10 @@ The report includes SHA-256 of the exact manifest bytes. That digest establishes
 - Sol-Atlas #107/#105, Symtropy #3957/#4065/#4074 and Mycelix #5001 own the food/CEA evidence chain.
 
 The auditor checks that these owner references remain in the registry. It does not validate their payloads, schemas, or current execution state.
+
+## Spatial owner composition
+
+The 16 required owner-native references include CityMorph #555 (effective access) and City Scope Binding #623 (common scope digest), alongside the Highveld home, food/CEA, Mycelix amenity commons, whole-household cost-of-place and capital-to-commons owners. The 37-source register includes the current design-tool and construction comparator classes.
 
 ## Deliberate non-goals
 
