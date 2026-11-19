@@ -546,3 +546,41 @@ Sources: [CSIR WaveNet Ngqura station information](https://wavenet.csir.co.za/On
 5. Keep subsea compute as a later option only after onshore integration, water, power, fibre diversity, marine habitat, bathymetry, thermal plume and cable repair evidence is independently qualified.
 
 New owner issue: [ZA-PORT-CITY-PAIRED-SITE-001 #948](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/948).
+
+
+## 18. Commercial subsea-compute competitor evidence (19 November 2026)
+
+### 18.1 Underwater data centres are now commercial comparators
+
+The industry benchmark must move beyond treating Microsoft's Project Natick as the only serious subsea reference.
+
+- **Hainan / Lingshui, China:** the official China government/Xinhua account says the first commercial underwater data-centre project began operations in March 2023 and was expanded in February 2025 with an additional module for over 400 high-performance servers. The report describes ten companies signed up for capacity, including AI training/inference and marine-science use. The reported "30,000 gaming PCs" and 7,000 queries/s figures lack the workload, quality, precision, latency and energy boundaries needed for a matched benchmark.
+- **Shanghai Lingang / HiCloud:** industry reporting in May 2026 says a 24 MW underwater data centre reached full commercial operation. DCD describes a June 2025 launch, October construction completion and February 2026 trials; Offshore Wind reports a 2.3 MW first phase scaled to 24 MW. Both report PUE about 1.15 or below, but attribute performance to Chinese media or developer claims rather than an independently audited common meter boundary.
+- **Material depth conflict:** DCD reports modules around 35 m below the surface; Offshore Wind reports 10 m underwater. This is now encoded as CONFLICTED_UNKNOWN in Symtropy #6283. Sol-Atlas must not select either value for pressure, route, bathymetry or environmental calculations until primary as-built documentation resolves it.
+- **Microsoft Natick:** a research pilot, retrieved in 2020, remains a valuable experimental reliability reference; Microsoft reports one-eighth the server failure rate of its land control. It is not a current commercial deployment or an independently generalized availability/MTTR result.
+- **Nautilus EcoCore:** adjacent liquid-cooling technology; not a submerged UDC.
+- **Panthalassa Ocean-3 / Aikido floating concepts:** floating offshore compute architectures must remain a separate comparator class until operating evidence establishes status.
+
+Sources: [China government / Xinhua — Hainan UDC (19 Feb 2025)](https://english.www.gov.cn/news/202502/19/content_WS67b5a14dc6d0868f4e8efcaa.html); [DCD — Shanghai Lingang UDC (20 May 2026)](https://www.datacenterdynamics.com/en/news/hiclouds-offshore-wind-powered-underwater-data-center-up-and-running-off-coast-of-shanghai-china/); [Offshore Wind — Lingang UDC (18 May 2026)](https://www.offshorewind.biz/2026/05/18/china-puts-worlds-first-offshore-wind-powered-underwater-data-centre-into-operation/); [Microsoft Research — Project Natick](https://www.microsoft.com/en-us/research/project/natick/); [Symtropy subsea-compute industry benchmark #6280 / draft PR #6283](https://github.com/Luminous-Dynamics/symtropy/pull/6283).
+
+### 18.2 What Luminous must do differently
+
+The product cannot be "we can put servers underwater". Commercial competitors already report that capability. Our differentiator should be a **Port-City Compute and Ocean-Energy Commons**:
+- onshore operational core for maintenance, security, low-latency services and local fallback;
+- subsea modules as optional batch/HPC/AI capacity for workloads that tolerate latency and data movement;
+- offshore wind / renewables, grid, storage and port shore-power coordinated against one PCC/feeder envelope;
+- workload placement across onshore/floating/subsea compute with deadline, data-locality, migration and rebound constraints;
+- liquid cooling and seawater rejection with explicit heat-source/useful-sink/loss/rejection balances;
+- heat reuse only where the local process/water sink is real, time-matched, metered and quality-qualified;
+- cable route/common-cause, repair vessel, module retrieval and degraded-mode evidence;
+- independent marine/habitat/thermal-plume and cyber/OT trust qualification.
+
+### 18.3 Metric boundary discipline
+
+PUE below 1.15 is a reported Lingang developer/media benchmark, not an independently audited result in the sources above. Whole-facility PUE, module PUE, site grid import, renewable fraction and compute energy per useful workload must be kept separate.
+
+ASHRAE recommends using heat reuse where a viable external sink exists and tracking useful reuse with ERE/ERF alongside PUE, while also emphasizing water-aware cooling. ITU-T L.1328 defines ERF around energy reused outside the data-centre boundary that substitutes for energy otherwise consumed externally; heat extraction alone does not earn useful-reuse credit.
+
+Sources: [ASHRAE AI data-centre energy and thermal efficiency](https://www.ashrae.org/technical-resources/topics-and-initiatives/ai-data-center/energy-and-thermal-efficiency); [ITU-T L.1328 (2025)](https://www.itu.int/rec/dologin_pub.asp?id=T-REC-L.1328-202509-I%21%21PDF-E&lang=e&type=items).
+
+New owner benchmark: [SUBSEA-COMPUTE-INDUSTRY-BENCH-001 #6280](https://github.com/Luminous-Dynamics/symtropy/issues/6280).
