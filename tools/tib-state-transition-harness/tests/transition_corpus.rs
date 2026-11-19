@@ -111,4 +111,55 @@ fn digest_without_issuer_competence_and_valid_receipt_with_active_conflict_are_h
         assert_eq!(result.outcome, Outcome::ReviewRequired, "{id}");
         assert!(!result.authoritative_mutation, "{id}");
     }
+
+#[test]
+fn replay_of_identical_evidence_frontier_is_deterministic() {
+    let root = corpus();
+    for scenario in root["scenarios"].as_array().unwrap() {
+        let first = evaluate_case(scenario);
+        let second = evaluate_case(scenario);
+        assert_eq!(first, second, "{}", scenario["scenario_id"]);
+    }
+}
+
+#[test]
+fn surface_parcel_cannot_substitute_for_a_subsurface_volume() {
+    let root = corpus();
+    let scenario = root["scenarios"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|scenario| scenario["scenario_id"] == "TIB-PT-007")
+        .unwrap();
+
+    assert_eq!(
+        scenario["conflicts"][0]["kind"],
+        "spatial_representation_mismatch"
+    );
+    assert!(scenario["conflicts"][0]["subsurface_volume"].is_null());
+    let result = evaluate_case(scenario);
+    assert_eq!(result.outcome, Outcome::ReviewRequired);
+    assert!(!result.authoritative_mutation);
+}
+
+#[test]
+fn authenticated_issuer_outside_decision_scope_is_not_promoted() {
+    let root = corpus();
+    let scenario = root["scenarios"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|scenario| scenario["scenario_id"] == "TIB-PT-008")
+        .unwrap();
+
+    assert_eq!(
+        scenario["authority_assessment"]["issuer"],
+        "authenticated"
+    );
+    let result = evaluate_case(scenario);
+    assert_eq!(result.outcome, Outcome::ReviewRequired);
+    assert_eq!(result.host_disposition, "hold_for_reconciliation");
+    assert!(!result.authoritative_mutation);
+}
+
 }
