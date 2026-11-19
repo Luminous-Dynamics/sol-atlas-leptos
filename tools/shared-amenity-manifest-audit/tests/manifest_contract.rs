@@ -106,3 +106,13 @@ fn current_sota_and_owner_source_register_cannot_be_thinned() {
         .pop();
     assert!(audit(&value).is_err());
 }
+
+#[test]
+fn canonical_mycelix_amenity_service_contract_cannot_be_removed() {
+    let mut value = fixture();
+    value["scope_boundary"]["owner_native_dependencies"]
+        .as_array_mut()
+        .expect("owner dependencies")
+        .retain(|item| item["reference"] != "https://github.com/Luminous-Dynamics/mycelix/issues/6328");
+    assert!(audit(&value).is_err());
+}
