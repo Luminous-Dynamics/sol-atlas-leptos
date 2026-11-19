@@ -24,6 +24,7 @@ The 50 registered cases cover five provision models across ten spatial contexts:
 
 ## What the auditor checks
 
+- duplicate JSON object keys are rejected before map deserialization;
 - exact v0.1 study identity and claim ceiling;
 - the five frozen provision arms, ten spatial scenario identifiers and ten typed scenario definitions;
 - a complete 5 × 10 matrix with no duplicate/missing pair;
@@ -37,7 +38,7 @@ The 50 registered cases cover five provision models across ten spatial contexts:
 - at least 43 unique source URLs and unique source IDs;
 - eight frozen spatial metric vectors and proposed target invariants.
 
-The standalone auditor currently has 19 adversarial Rust tests. It remains unexecuted locally in this session; the exact-head GitHub workflow is the compilation/test gate.
+The standalone auditor currently has 20 adversarial Rust tests. It remains unexecuted locally in this session; the exact-head GitHub workflow is the compilation/test gate.
 
 The report includes SHA-256 of the exact manifest bytes. That digest establishes byte identity only.
 
