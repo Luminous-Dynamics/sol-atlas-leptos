@@ -419,3 +419,45 @@ Source: [SAGE / NATO Science for Peace and Security — DOI 10.3233/NICSP260018]
 Symtropy has started [OCEAN-COMPUTE-THERMAL-CABLE-001 #6228](https://github.com/Luminous-Dynamics/symtropy/issues/6228) and draft [PR #6229](https://github.com/Luminous-Dynamics/symtropy/pull/6229). It adds a machine-readable stress matrix for hybrid cooling, marine heatwave/fouling/failure cases, cable common-cause and repair-delay scenarios. The source JSON has 10 thermal and 12 cable scenarios and has been parsed successfully. The same PR now includes a standalone 0D steady-state seawater heat-balance verifier and a frozen fixture with three synthetic cooling modes plus four hostile cases; its JSON parses and the three mode balances were independently recalculated. Rust tests remain authored but unexecuted.
 
 Sol-Atlas remains the owner of spatial context and evidence lineage. It should supply source-qualified geography and expose uncertainty; Symtropy runs bounded physical/recovery scenarios; Symthaea proposes alternatives; Mycelix records permissions, approvals and observations. Mycelix [ASSURE-PORTFOLIO-CUT-002 #5762](https://github.com/Luminous-Dynamics/mycelix/issues/5762) remains the owner for multi-valued/transitive common-cause dependency identities; Symtropy should consume those references rather than implement a second dependency graph. None of these layers turns a map or a simulation into a marine permit, cable route approval or proof of thermal safety.
+
+
+## 15. Multi-timescale coordination: compute, cooling and port operations (19 November 2026)
+
+### 15.1 Seaport VPP under heterogeneous load uncertainty
+
+Zhang et al., *Scenario-driven day-ahead–intraday coordination of seaport virtual power plants under heterogeneous load uncertainty*, Sustainable Energy Research 13, article 38 (11 September 2026), DOI [10.1186/s40807-026-00269-0](https://doi.org/10.1186/s40807-026-00269-0).
+
+The study models ship shore-power and electric heavy-duty truck battery-swap loads as scenarios, derives crane demand from terminal operations, and uses day-ahead dispatch plus intraday rolling correction. Its case reports 9.79% lower total operating cost and 52.11% lower maximum electricity-purchase deviation with storage, with an 18.4% reduction in execution-stage cost under the proposed coordination method. An important reproducibility boundary: its main case treats wind/PV output as a forecast sequence rather than independently stochastic input.
+
+Sol-Atlas should preserve the different source semantics: arrival/berth-derived demand scenarios, operation-derived crane demand, storage state, and forecast-vintage renewable supply. Do not describe all source/load series as equally stochastic if the reference study did not.
+
+Source: [Springer Nature — seaport VPP coordination](https://link.springer.com/article/10.1186/s40807-026-00269-0).
+
+### 15.2 Liquid-cooled compute demand response is electro-thermal
+
+*Exploring the Demand Response Potential of Liquid-Cooled Data Centers*, Applied Energy 412 (1 June 2026), DOI [10.1016/j.apenergy.2026.127679](https://doi.org/10.1016/j.apenergy.2026.127679), uses an electro-thermal coupled model and coordinates server and liquid-cooling response. This reinforces that the compute cluster is not the only flexible resource: cooling pumps, heat exchangers, chillers and thermal state have their own dynamics and constraints.
+
+Source: [Applied Energy — liquid-cooled data-centre demand response](https://www.sciencedirect.com/science/article/pii/S0306261926003314).
+
+### 15.3 Thermal storage can shift peaks without reducing annual energy
+
+*AI-based model predictive control of chiller plant with thermal energy storage combining a water-side economizer system in data centers*, Energy and Buildings (15 August 2026), DOI [10.1016/j.enbuild.2026.117668], reports up to 11% lower chiller energy, 5% lower whole-cooling-system energy and 4% lower cost in its modeled case.
+
+DOE FEMP's data-centre M&V addendum notes that chilled-water TES can shift demand from high-cost periods and add resilience even when annual chilled-water-plant electricity rises. Accordingly, report separately:
+- peak kW and duration;
+- cooling-plant kWh and whole-facility kWh;
+- tariff cost and carbon emissions on their own time/location signals;
+- thermal reserve / autonomy and resilience;
+- chiller/pump constraints, losses and service temperature.
+
+Do not call all peak-shifting or cost-shifting "energy savings".
+
+Sources: [Energy and Buildings — chiller/TES/WSE MPC](https://www.sciencedirect.com/science/article/abs/pii/S0378778826007280); [DOE FEMP Data Center M&V Addendum](https://www.energy.gov/sites/default/files/2025-09/femp_mv_5_0_data-center-addendum_092025.pdf).
+
+### 15.4 New multi-domain re-plan trigger work
+
+Symtropy has started [PORT-NEXUS-MULTIRATE-EVENT-001 #6255 / draft PR #6257](https://github.com/Luminous-Dynamics/symtropy/pull/6257), a read-only, std-only Rust event-trigger monitor with a 12-case synthetic fixture and 21 authored tests (not yet executed). It composes the BETM-style logistics/energy trigger with additional signals for compute deadline slack, cooling margin, thermal-store reserve and evidence freshness.
+
+Sol-Atlas should provide spatial and source-qualified inputs with separate observation/valid/first-available/decision times. The monitor rejects future-available evidence and marks missing/stale critical signals incomplete. A trigger only requests re-planning; it does not reserve power, change schedules or actuate physical assets.
+
+Benchmark against fixed 15-minute and hourly replanning, one-sided energy triggers, logistics+energy BETM, and the multi-domain trigger. Any reduction in optimizer invocations is only an improvement when hard-grid/thermal misses and port/compute service outcomes do not worsen.
