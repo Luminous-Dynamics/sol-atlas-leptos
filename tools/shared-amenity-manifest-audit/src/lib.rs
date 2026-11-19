@@ -4,10 +4,12 @@
 //! calculate capacity, allocate slots, evaluate costs, qualify buildings, or establish
 //! legal ownership or physical performance.
 
+use serde::de::{self, DeserializeSeed, Deserializer, MapAccess, SeqAccess, Visitor};
 use serde::Serialize;
 use serde_json::Value;
 use sha2::{Digest, Sha256};
 use std::collections::{BTreeMap, BTreeSet};
+use std::fmt;
 
 const EXPECTED_SCHEMA: &str = "luminous.shared-amenity-commons-benchmark";
 const EXPECTED_VERSION: &str = "0.1.0";
@@ -172,11 +174,154 @@ pub struct AuditSummary {
     pub claim_ceiling: String,
 }
 
+struct NoDuplicateKeys {
+    path: String,
+}
+
+impl<'de> DeserializeSeed<'de> for NoDuplicateKeys {
+    type Value = ();
+
+    fn deserialize<D>(self, deserializer: D) -> Result<Self::Value, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        deserializer.deserialize_any(NoDuplicateKeyVisitor { path: self.path })
+    }
+}
+
+struct NoDuplicateKeyVisitor {
+    path: String,
+}
+
+impl<'de> Visitor<'de> for NoDuplicateKeyVisitor {
+    type Value = ();
+
+    fn expecting(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        formatter.write_str("a JSON value with unique object keys")
+    }
+
+    fn visit_bool<E>(self, _value: bool) -> Result<Self::Value, E>
+    where
+        E: de::Error,
+    {
+        Ok(())
+    }
+
+    fn visit_i64<E>(self, _value: i64) -> Result<Self::Value, E>
+    where
+        E: de::Error,
+    {
+        Ok(())
+    }
+
+    fn visit_u64<E>(self, _value: u64) -> Result<Self::Value, E>
+    where
+        E: de::Error,
+    {
+        Ok(())
+    }
+
+    fn visit_f64<E>(self, _value: f64) -> Result<Self::Value, E>
+    where
+        E: de::Error,
+    {
+        Ok(())
+    }
+
+    fn visit_str<E>(self, _value: &str) -> Result<Self::Value, E>
+    where
+        E: de::Error,
+    {
+        Ok(())
+    }
+
+    fn visit_string<E>(self, _value: String) -> Result<Self::Value, E>
+    where
+        E: de::Error,
+    {
+        Ok(())
+    }
+
+    fn visit_unit<E>(self) -> Result<Self::Value, E>
+    where
+        E: de::Error,
+    {
+        Ok(())
+    }
+
+    fn visit_none<E>(self) -> Result<Self::Value, E>
+    where
+        E: de::Error,
+    {
+        Ok(())
+    }
+
+    fn visit_some<D>(self, deserializer: D) -> Result<Self::Value, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        NoDuplicateKeys { path: self.path }.deserialize(deserializer)
+    }
+
+    fn visit_seq<A>(self, mut sequence: A) -> Result<Self::Value, A::Error>
+    where
+        A: SeqAccess<'de>,
+    {
+        let mut index = 0usize;
+        while sequence
+            .next_element_seed(NoDuplicateKeys {
+                path: format!("{}[{index}]", self.path),
+            })?
+            .is_some()
+        {
+            index += 1;
+        }
+        Ok(())
+    }
+
+    fn visit_map<A>(self, mut map: A) -> Result<Self::Value, A::Error>
+    where
+        A: MapAccess<'de>,
+    {
+        let mut seen = BTreeSet::new();
+        while let Some(key) = map.next_key::<String>()? {
+            let key_path = format!("{}.{key}", self.path);
+            if !seen.insert(key.clone()) {
+                return Err(de::Error::custom(format!(
+                    "duplicate object key at {key_path}"
+                )));
+            }
+            map.next_value_seed(NoDuplicateKeys { path: key_path })?;
+        }
+        Ok(())
+    }
+}
+
+/// Reject ambiguous JSON objects before deserializing them into a map, where a
+/// conventional parser could otherwise overwrite one occurrence of a duplicate key.
+fn reject_duplicate_json_keys(bytes: &[u8]) -> Result<(), AuditError> {
+    let mut deserializer = serde_json::Deserializer::from_slice(bytes);
+    NoDuplicateKeys {
+        path: "$".to_owned(),
+    }
+    .deserialize(&mut deserializer)
+    .map_err(|error| {
+        AuditError::new(
+            "$",
+            format!("invalid JSON or duplicate object key: {error}"),
+        )
+    })?;
+    deserializer.end().map_err(|error| {
+        AuditError::new("$", format!("invalid trailing JSON content: {error}"))
+    })
+}
+
 /// Validate the semantic invariants of the v0.1 registry.
 ///
 /// The returned digest binds the exact input bytes; it is not an authenticity,
 /// source-truth, engineering, governance, or legal-approval proof.
 pub fn audit_manifest_bytes(bytes: &[u8]) -> Result<AuditSummary, AuditError> {
+    reject_duplicate_json_keys(bytes)?;
     let root: Value = serde_json::from_slice(bytes).map_err(|error| {
         AuditError::new("$", format!("invalid JSON: {error}"))
     })?;
