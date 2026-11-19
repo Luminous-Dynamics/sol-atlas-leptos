@@ -1,0 +1,56 @@
+name: Territorial core conformance
+
+on:
+  push:
+    branches:
+      - research/territorial-rights-evidence-v0-1
+    paths:
+      - "sol-atlas-core/src/**"
+      - "sol-atlas-core/tests/**"
+      - "sol-atlas-core/Cargo.toml"
+      - "Cargo.lock"
+      - ".github/workflows/territorial-core-tests.yml"
+  pull_request:
+    branches: [main]
+    paths:
+      - "sol-atlas-core/src/**"
+      - "sol-atlas-core/tests/**"
+      - "sol-atlas-core/Cargo.toml"
+      - "Cargo.lock"
+      - ".github/workflows/territorial-core-tests.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: territorial-core-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  territorial-core:
+    name: Compile and test territorial core
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout exact source
+        uses: actions/checkout@v4
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+
+      - name: Check formatting
+        run: cargo fmt --manifest-path sol-atlas-core/Cargo.toml -- --check
+
+      - name: Run sol-atlas-core unit tests
+        run: cargo test --locked --manifest-path sol-atlas-core/Cargo.toml --lib
+
+      - name: Run territorial fixture integration tests
+        run: cargo test --locked --manifest-path sol-atlas-core/Cargo.toml --test territorial_fixtures
+
+      - name: Run strict Clippy on sol-atlas-core
+        run: cargo clippy --locked --manifest-path sol-atlas-core/Cargo.toml --all-targets -- -D warnings
