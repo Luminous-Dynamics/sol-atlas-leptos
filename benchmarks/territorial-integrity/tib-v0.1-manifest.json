@@ -1,0 +1,226 @@
+{
+  "suite_id": "TIB-SYNTH-STRUCTURAL-001",
+  "suite_version": "0.2.0",
+  "schema_version": 1,
+  "repository": "Luminous-Dynamics/sol-atlas-leptos",
+  "branch": "research/territorial-rights-evidence-v0-1",
+  "purpose": "Synthetic structural contract corpus for territorial rights, authority, challenge lifecycle, spatiotemporal scope, community governance and stewardship evidence. v0.2 expands vertical-extent, lifecycle, provenance, temporal and independently verified stewardship coverage.",
+  "data_classification": "synthetic_non_personal",
+  "real_world_case_data_included": false,
+  "expected_valid_cases": 8,
+  "expected_invalid_cases": 21,
+  "case_count": 29,
+  "claim_ceiling": [
+    "structural record and reference consistency only",
+    "not legal title or statutory registration",
+    "not authenticated authority or consent",
+    "not survey or geometry validation",
+    "not environmental outcome certification",
+    "not proof of completeness beyond each declared evidence frontier"
+  ],
+  "cases": [
+    {
+      "fixture": "sol-atlas-core/tests/fixtures/territorial/valid_asserted_claim.json",
+      "expected_disposition": "accept",
+      "track": "rights_basis",
+      "rationale": "asserted claim remains represented without title promotion",
+      "git_blob_sha": "3acb518f1cd497817094eb761dc9954f21287be4"
+    },
+    {
+      "fixture": "sol-atlas-core/tests/fixtures/territorial/valid_disputed_multiauthority_claim.json",
+      "expected_disposition": "accept",
+      "track": "authority_and_dispute",
+      "rationale": "administrative and community decision bases coexist with an open challenge",
+      "git_blob_sha": "b62156daaa61cdc852bdc4633f96a6d150f96ac4"
+    },
+    {
+      "fixture": "sol-atlas-core/tests/fixtures/territorial/invalid_administrative_claim_without_authority.json",
+      "expected_disposition": "reject",
+      "track": "authority",
+      "rationale": "administrative basis lacks matching registry/regulator authority",
+      "git_blob_sha": "56934dc7aba0b9c64119060bb3bb31fd32274e6e"
+    },
+    {
+      "fixture": "sol-atlas-core/tests/fixtures/territorial/invalid_community_testimony_only.json",
+      "expected_disposition": "reject",
+      "track": "community_governance",
+      "rationale": "testimony alone is not a community decision or scoped authority",
+      "git_blob_sha": "51a08ad11bb91a427338f6e32684c486bd6b9144"
+    },
+    {
+      "fixture": "sol-atlas-core/tests/fixtures/territorial/invalid_restoration_completion_without_independent_verifier.json",
+      "expected_disposition": "reject",
+      "track": "stewardship",
+      "rationale": "verified completion lacks an independent verifier",
+      "git_blob_sha": "dacabb062f7ea0dccba8099f2b7ef75c4b44a1f6"
+    },
+    {
+      "fixture": "sol-atlas-core/tests/fixtures/territorial/valid_contract_and_statute_with_scoped_authorities.json",
+      "expected_disposition": "accept",
+      "track": "authority",
+      "rationale": "contractual and statutory bases use separate scoped authorities",
+      "git_blob_sha": "abb8228118abde6dfa957845fa8c6aeeb26ed065"
+    },
+    {
+      "fixture": "sol-atlas-core/tests/fixtures/territorial/invalid_contractual_missing_contracting_authority.json",
+      "expected_disposition": "reject",
+      "track": "authority",
+      "rationale": "contract evidence lacks contracting-party authority",
+      "git_blob_sha": "860bd5f9e71c57a0ffda99b7e7efdcbef25dc948"
+    },
+    {
+      "fixture": "sol-atlas-core/tests/fixtures/territorial/invalid_statutory_wrong_authority.json",
+      "expected_disposition": "reject",
+      "track": "authority",
+      "rationale": "statutory instrument is linked to the wrong authority kind",
+      "git_blob_sha": "0b42b7e305ae439e6716534b0d1b8c16b2c613ab"
+    },
+    {
+      "fixture": "sol-atlas-core/tests/fixtures/territorial/valid_no_challenge_with_complete_frontier.json",
+      "expected_disposition": "accept",
+      "track": "challenge_frontier",
+      "rationale": "no challenge observed within a complete, explicitly scoped frontier",
+      "git_blob_sha": "fd1aee90757283414257c77b2fcefd7a521d1f56"
+    },
+    {
+      "fixture": "sol-atlas-core/tests/fixtures/territorial/invalid_no_challenge_without_frontier.json",
+      "expected_disposition": "reject",
+      "track": "challenge_frontier",
+      "rationale": "no-challenge observation has no complete evidence frontier",
+      "git_blob_sha": "ada860c0562083c46e6c3fa3c6a74f9e2d8e8c63"
+    },
+    {
+      "fixture": "sol-atlas-core/tests/fixtures/territorial/invalid_other_interest_without_source_code.json",
+      "expected_disposition": "reject",
+      "track": "lossless_interoperability",
+      "rationale": "generic other interest loses its source code and code-system profile",
+      "git_blob_sha": "37b9df47b0e5c53f984d2f2491f7182e4586143f"
+    },
+    {
+      "fixture": "sol-atlas-core/tests/fixtures/territorial/invalid_no_challenge_partial_frontier.json",
+      "expected_disposition": "reject",
+      "track": "challenge_frontier",
+      "rationale": "partial source coverage cannot support a no-challenge observation",
+      "git_blob_sha": "e8cb911018fface62f1122c959666e71b0c3b5b7"
+    },
+    {
+      "fixture": "sol-atlas-core/tests/fixtures/territorial/invalid_challenge_frontier_without_search_report.json",
+      "expected_disposition": "reject",
+      "track": "challenge_frontier",
+      "rationale": "frontier evidence does not include a challenge-search report",
+      "git_blob_sha": "585845320967abde312f40b03d374db39c4b1a9b"
+    },
+    {
+      "fixture": "sol-atlas-core/tests/fixtures/territorial/invalid_admin_authority_evidence_not_linked_to_assertion.json",
+      "expected_disposition": "reject",
+      "track": "authority_and_provenance",
+      "rationale": "authority and registry evidence exist in the territorial record but the assertion does not link the exact source evidence",
+      "git_blob_sha": "26eaadd91691315ac6e0ffd07c0e73579276744b"
+    },
+    {
+      "fixture": "sol-atlas-core/tests/fixtures/territorial/valid_subsurface_volume_with_vertical_datum.json",
+      "expected_disposition": "accept",
+      "track": "spatial_vertical",
+      "rationale": "A subsurface interest preserves a bounded vertical volume and explicit datum",
+      "git_blob_sha": "fec0c150527675cb35865f6ebd22f63302969f46"
+    },
+    {
+      "fixture": "sol-atlas-core/tests/fixtures/territorial/valid_terminal_withdrawn_challenge.json",
+      "expected_disposition": "accept",
+      "track": "challenge_lifecycle",
+      "rationale": "A withdrawn challenge is terminal and the assertion records a resolved dispute state",
+      "git_blob_sha": "3d589ab4d21d83a2d1f378b5bb147ca7e0473332"
+    },
+    {
+      "fixture": "sol-atlas-core/tests/fixtures/territorial/valid_verified_stewardship_with_independent_evidence.json",
+      "expected_disposition": "accept",
+      "track": "stewardship",
+      "rationale": "A completed obligation carries upstream governance, a quantitative unit, an independent verifier and completion evidence",
+      "git_blob_sha": "413430394f62d268a2e69581b88a71e990a302e8"
+    },
+    {
+      "fixture": "sol-atlas-core/tests/fixtures/territorial/valid_historic_jurisdictional_date_interval.json",
+      "expected_disposition": "accept",
+      "track": "temporal",
+      "rationale": "A historical jurisdictional date interval is preserved without coercion to an instant",
+      "git_blob_sha": "420cc8ffaa990df6b479744cc7265c1dd5e39410"
+    },
+    {
+      "fixture": "sol-atlas-core/tests/fixtures/territorial/invalid_negative_horizontal_uncertainty.json",
+      "expected_disposition": "reject",
+      "track": "spatial_uncertainty",
+      "rationale": "Negative positional uncertainty is rejected",
+      "git_blob_sha": "735ef92e1d22354c5e879d64ab394ccf651d385d"
+    },
+    {
+      "fixture": "sol-atlas-core/tests/fixtures/territorial/invalid_partial_vertical_extent.json",
+      "expected_disposition": "reject",
+      "track": "spatial_vertical",
+      "rationale": "A one-sided vertical interval is rejected",
+      "git_blob_sha": "f47920baab648bd0d26a36ea72c26f01eab065a9"
+    },
+    {
+      "fixture": "sol-atlas-core/tests/fixtures/territorial/invalid_inverted_vertical_interval.json",
+      "expected_disposition": "reject",
+      "track": "spatial_vertical",
+      "rationale": "An inverted vertical interval is rejected",
+      "git_blob_sha": "c6d4643ca18fc68ff646842dc06c24f4c112ac42"
+    },
+    {
+      "fixture": "sol-atlas-core/tests/fixtures/territorial/invalid_assertion_missing_evidence_reference.json",
+      "expected_disposition": "reject",
+      "track": "provenance",
+      "rationale": "An assertion cannot reference absent evidence",
+      "git_blob_sha": "2463e06a3cce56748259ce0891a2de293a73b001"
+    },
+    {
+      "fixture": "sol-atlas-core/tests/fixtures/territorial/invalid_empty_claim_basis.json",
+      "expected_disposition": "reject",
+      "track": "rights_basis",
+      "rationale": "An assertion cannot omit its declared claim basis",
+      "git_blob_sha": "8c849159b21b12e270b3aa190884ef4cd38ddc09"
+    },
+    {
+      "fixture": "sol-atlas-core/tests/fixtures/territorial/invalid_interest_type_code_without_profile.json",
+      "expected_disposition": "reject",
+      "track": "lossless_interoperability",
+      "rationale": "A jurisdictional type code without its defining profile is rejected",
+      "git_blob_sha": "78f8d3e192f2223a90e856e3bd51fdfcff5ec391"
+    },
+    {
+      "fixture": "sol-atlas-core/tests/fixtures/territorial/invalid_duplicate_evidence_identifier.json",
+      "expected_disposition": "reject",
+      "track": "provenance",
+      "rationale": "Duplicate evidence identifiers are rejected",
+      "git_blob_sha": "84555b63ede372d2534fca09d5f91986089b0d64"
+    },
+    {
+      "fixture": "sol-atlas-core/tests/fixtures/territorial/invalid_contractual_claim_without_contract_evidence.json",
+      "expected_disposition": "reject",
+      "track": "authority",
+      "rationale": "A contractual basis without contract evidence and contracting authority is rejected",
+      "git_blob_sha": "8fec60a55947da18a2876b78f99523b2f62bfed3"
+    },
+    {
+      "fixture": "sol-atlas-core/tests/fixtures/territorial/invalid_resolved_state_with_active_challenge.json",
+      "expected_disposition": "reject",
+      "track": "challenge_lifecycle",
+      "rationale": "A resolved dispute cannot retain an active submitted challenge",
+      "git_blob_sha": "3a6e4f6b23ef067af05e7c2df6358ac778c71cfc"
+    },
+    {
+      "fixture": "sol-atlas-core/tests/fixtures/territorial/invalid_obligation_target_without_unit.json",
+      "expected_disposition": "reject",
+      "track": "stewardship",
+      "rationale": "A quantitative obligation target requires a unit",
+      "git_blob_sha": "5940b7e11b8d5900dc3752237b90594f3f495c7c"
+    },
+    {
+      "fixture": "sol-atlas-core/tests/fixtures/territorial/invalid_verified_stewardship_self_verification.json",
+      "expected_disposition": "reject",
+      "track": "stewardship",
+      "rationale": "A responsible party cannot independently verify its own completed obligation",
+      "git_blob_sha": "d561daac84f9504536887c7dc1519603c4f45316"
+    }
+  ]
+}
