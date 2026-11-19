@@ -7,8 +7,8 @@ A standalone Rust tool that checks the frozen v0.1 **Sol-Atlas spatial provision
 From the repository root:
 
 ```bash
-cargo test --manifest-path tools/shared-amenity-manifest-audit/Cargo.toml
-cargo run --manifest-path tools/shared-amenity-manifest-audit/Cargo.toml -- docs/research/highveld-neighborhood-commons/SHARED_AMENITY_COMMONS_MANIFEST_V0.1.json
+cargo test --locked --manifest-path tools/shared-amenity-manifest-audit/Cargo.toml
+cargo run --locked --manifest-path tools/shared-amenity-manifest-audit/Cargo.toml -- docs/research/highveld-neighborhood-commons/SHARED_AMENITY_COMMONS_MANIFEST_V0.1.json
 ```
 
 ## Scope
@@ -37,6 +37,8 @@ The 50 registered cases cover five provision models across ten spatial contexts:
 
 The report includes SHA-256 of the exact manifest bytes. That digest establishes byte identity only.
 
+The auditor currently has 16 adversarial tests. A local semantic audit/readback is not a Rust execution result; the exact-head CI workflow must pass before an E1 registry-integrity claim is made.
+
 ## Canonical owner boundaries
 
 - **Mycelix #6328 / draft PR #6329** owns the canonical shared-amenity asset/service/beneficiary/access/finance/reserve/maintenance/governance/handback contract and its 33-case synthetic conformance corpus. Sol-Atlas #940 must consume its records; it must not create a second asset/service ledger.
@@ -54,7 +56,7 @@ The auditor checks that these owner references remain in the registry. It does n
 
 ## Spatial owner composition
 
-The 16 required owner-native references include CityMorph #555 (effective access) and City Scope Binding #623 (common scope digest), alongside the Highveld home, food/CEA, Mycelix amenity commons, whole-household cost-of-place and capital-to-commons owners. The 37-source register includes the current design-tool and construction comparator classes.
+The 16 required owner-native references include CityMorph #555 (effective access) and City Scope Binding #623 (common scope digest), alongside the Highveld home, food/CEA, Mycelix amenity commons, whole-household cost-of-place and capital-to-commons owners. The 43-source register includes R5, OTP, PEAI and SDG 11 indicator references as well as design-tool and construction comparator classes.
 
 ## Deliberate non-goals
 
