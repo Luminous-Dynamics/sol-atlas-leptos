@@ -32,7 +32,7 @@ The 50 registered cases cover five provision models across ten spatial contexts:
 - every candidate functional unit is explicitly marked CANDIDATE_NOT_OWNER_APPROVED and bound to Mycelix #6328 for owner review;
 - non-essential plant remains an enabling asset, never a standalone amenity service;
 - required excluded scopes and 16 owner-native dependencies remain present with exact owner/role/reference bindings;
-- at least 37 unique source URLs and unique source IDs;
+- at least 43 unique source URLs and unique source IDs;
 - proposed target invariants.
 
 The report includes SHA-256 of the exact manifest bytes. That digest establishes byte identity only.
@@ -41,6 +41,7 @@ The report includes SHA-256 of the exact manifest bytes. That digest establishes
 
 - **Mycelix #6328 / draft PR #6329** owns the canonical shared-amenity asset/service/beneficiary/access/finance/reserve/maintenance/governance/handback contract and its 33-case synthetic conformance corpus. Sol-Atlas #940 must consume its records; it must not create a second asset/service ledger.
 - **Sol-Atlas #555** owns effective-access network semantics and access evidence; #940 must not build another route/catchment engine.
+- **Sol-Atlas #562** owns the comparison crosswalk to R5, OTP, PEAI and SDG 11.2.1/11.7.1; #940 reuses its benchmark protocol.
 - **Sol-Atlas #623** owns the common district scope digest and owner-evidence envelope.
 - **Sol-Atlas #816** owns whole-household cost-of-place affordability. #940 consumes its cost/access outputs instead of recalculating household affordability.
 - **Mycelix #912** owns capital-to-commons financing and stewardship transition semantics.
