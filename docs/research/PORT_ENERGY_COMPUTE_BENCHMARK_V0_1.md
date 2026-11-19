@@ -501,3 +501,48 @@ Source: [Applied Thermal Engineering](https://www.sciencedirect.com/science/arti
 Symtropy opened [PORT-NEXUS-WATER-HEAT-001 #6258 / draft PR #6259](https://github.com/Luminous-Dynamics/symtropy/pull/6259). It creates a matched application benchmark and synthetic 0D heat-interface fixture. The fixture partitions 10 MW IT heat into 6.27 MW useful feedwater preheat, 1.5675 MW transfer loss and 2.1625 MW residual cooling rejection. It deliberately leaves RO SEC change and qualified product-water volume null because no admitted RO temperature/salinity response or independent product-water evidence is supplied.
 
 Sol-Atlas remains the spatial owner for actual site water demand, intake/outfall, feedwater source and chemistry evidence, brine receiving environment, water rights and environmental constraints. Symtropy owns deterministic coupling and scenario replay; the water process, quality and closure authorities remain #5355/#2152/#4958; Mycelix carries source/approval/metrology evidence. No heat-balance pass becomes a potable-water or discharge-compliance claim.
+
+
+## 17. South African paired-site evidence update — Ngqura / Coega and Durban (19 November 2026)
+
+### 17.1 Use two complementary cases, not one premature winner
+
+The September 2025 PtX Hub / CSIR load-connection assessment ranks Ngqura first for reported spare connection capacity and lowest connection risk (19 MVA, estimated 17.1 MW at the report's 0.9 power-factor assumption, low risk). East London follows at 18 MVA / 16.2 MW, then Gqeberha at 15 MVA / 13.5 MW. Durban is 4 MVA / 3.6 MW, medium risk. Cape Town and Saldanha report zero spare capacity in that pre-feasibility study.
+
+The companion PtX Hub / CSIR shore-power study, using vessel activity from 2018–2025, identifies Durban as the highest shore-power-demand port, followed by Cape Town. Its 2024–2025 metric table gives Durban a 42 MW peak-utilization maximum and 20 MW peak-average maximum. Those figures are study-specific historical load estimates, **not** a firm simultaneous connection requirement or a utility offer.
+
+This suggests:
+- **Ngqura / Coega** as the first integration-study candidate: more reported pre-feasibility headroom and an adjacent industrial ecosystem with existing project records worth interrogating.
+- **Durban** as the high-demand, constrained-grid stress test: a valuable case for workload flexibility, berth/shore-power coordination, storage and event-triggered operation.
+
+Neither is selected for construction. Spare substation capacity is not a committed connection; demand rank is not a measured current load profile.
+
+Sources: [PtX Hub / CSIR Load Connection Capacity Assessment](https://ptx-hub.org/fr/publication/load-connection-capactiy-assessment-of-south-african-national-ports/); [PtX Hub / CSIR Shore Power Demand](https://ptx-hub.org/publication/shore-power-demand-for-south-african-ports/); [IKI publication record — connection assessment](https://www.international-climate-initiative.com/en/iki-media/publication/load-connection-capacity-assessment-of-south-african-national-ports-new696e3fd8d74ab589496258/).
+
+### 17.2 Ngqura / Coega project records: model status, not nameplate ambition
+
+- **7 MW hybrid renewable + 6 MWh BESS:** TNPA tender TNPA/2023/10/0020/46114/RFP sought design, permitting, build, commissioning and seven years of operations/maintenance for 7 MW solar PV plus vertical-axis wind and 6 MWh storage. The official eTender entry is closed. As of this screening update, commissioning/as-built meter evidence is not established; do not count the system as operating supply.
+- **Solar-powered seawater desalination:** TNPA's June 2024 media statement sought two solar-powered seawater desalination plants, including approximately 0.5 ML/day for Ngqura and 0.8 ML/day for Port Elizabeth. The RFP is not proof of operating output, product-water quality or water rights.
+- **Coega Green Ammonia:** SLR's project notice dated 21 January 2026 states that the proposed 1,400 MW green-hydrogen electrolyser and ammonia plant received environmental authorization on 16 January 2026. This does not prove FID, construction, grid connection, renewable supply, water supply or operating demand. Treat it as a proposed future industrial load and potential infrastructure/renewables coordination partner, not an existing load or energy source.
+- **Ngqura LNG pathway:** TNPA signed a 25-year terminal operator agreement for a planned LNG regasification facility in May 2026. The cited public statements describe a long-dated facility and a gas-to-power pathway. It is not existing generation, not renewable energy, and must be assessed explicitly for fuel lock-in, methane and lifecycle emissions rather than labeled clean.
+
+Sources: [Official TNPA Ngqura renewable tender](https://transnetetenders.azurewebsites.net/Home/TenderDetails?Id=46114); [TNPA June 2024 media statement on renewable and solar desalination RFPs](https://www.transnetnationalportsauthority.net/Corporate%20Affairs/Press%20Releases/Media%20Statement%20-%20TNPA%20seeks%20proposals%20for%20renewable%20energy%20projects%20in%20Nelson%20Mandela%20Bay-June%202024.pdf); [SLR Coega Ammonia authorization notice](https://www.slrconsulting.com/afr/public-documents/coega-ammonia/); [SAnews TNPA LNG agreement](https://www.sanews.gov.za/index.php/south-africa/transnet-signs-deal-r22-billion-gas-facility-project).
+
+### 17.3 Marine observation access: useful leads, not automatically qualified design data
+
+- **Ngqura:** CSIR WaveNet identifies a directional Datawell Waverider buoy at 33°50'00"S, 25°43'00"E, in 21 m of water, approximately 2 km off the breakwater tip. The public information page describes half-hourly transmission and near-real-time processing/storage. The public pages carry an explicit warning that displayed values are estimates for display and should not be used to draw conclusions. For engineering use, obtain the owner data product and its timestamps, QC flags, calibration, measurement depth, coverage, uncertainty, access rights and applicability.
+- **Durban:** CSIR's WaveNet history page states that a Teledyne RD Instruments ADCP has operated in real time off the Port of Durban since 2002, providing ocean-current and wave information. The current station status, sensor configuration, depth bins, uptime, calibration, data rights and historical gap structure must be reconfirmed before use.
+
+These sources create an actionable marine-data intake path for the paired benchmark, but do not replace site bathymetry, vertical temperature/salinity profiles, benthic habitat surveys, receiving-water baseline, plume validation, cable route survey or environmental authorization.
+
+Sources: [CSIR WaveNet Ngqura station information](https://wavenet.csir.co.za/OnlineData/Ngqura/ngqura.htm); [CSIR WaveNet Ngqura wave data page](https://wavenet.csir.co.za/OnlineData/Ngqura/ngqurawaveD.htm); [CSIR WaveNet history and Durban ADCP note](https://wavenet.csir.co.za/history.htm).
+
+### 17.4 Paired-site qualification sequence
+
+1. Start a data-room and metering request for Ngqura/Coega: utility-confirmed import/export, current firm supply, upstream network constraints, meter series, shore-power inventory, status of renewable/BESS/desalination procurement, Coega industrial project load and water plans.
+2. Run Durban as a parallel stress-test case: verify actual berth-level ship load profiles, transformer/feeder constraints, operating data access and the scope of its CSIR ADCP record.
+3. Acquire WaveNet raw/owner-qualified data and reconcile source/observed/first-available/decision times through Symtropy #6209 and Sol-Atlas source provenance.
+4. Use Mycelix [PORT-CITY-SERVICE-GOLDEN-TRACE-001 #6343 / draft PR #6344](https://github.com/Luminous-Dynamics/mycelix/pull/6344) as the shared service-equivalence comparator; no owner-specific system is duplicated.
+5. Keep subsea compute as a later option only after onshore integration, water, power, fibre diversity, marine habitat, bathymetry, thermal plume and cable repair evidence is independently qualified.
+
+New owner issue: [ZA-PORT-CITY-PAIRED-SITE-001 #948](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/948).
