@@ -1,0 +1,725 @@
+{
+  "schema": "luminous.shared-amenity-commons-benchmark",
+  "schema_version": "0.1.0",
+  "study_id": "SHARED-AMENITY-COMMONS-001",
+  "issue_url": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/940",
+  "parent_issues": [
+    "https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/596",
+    "https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/615"
+  ],
+  "maturity": "BENCHMARK_PROTOCOL_AND_CASE_REGISTRY_ONLY",
+  "execution_status": "NOT_EXECUTED",
+  "geographic_profile": "JOHANNESBURG_HIGHVELD_REFERENCE_METHOD_PORTABLE",
+  "claim_ceiling": "NO_EMPIRICAL_SAVINGS_SAFETY_ACCESSIBILITY_LEGAL_OWNERSHIP_OR_PREFERENCE_CLAIM",
+  "comparison_arms": [
+    {
+      "id": "PRIVATE_DUPLICATION",
+      "description": "Households individually own and maintain the facility."
+    },
+    {
+      "id": "CENTRAL_SHARED",
+      "description": "One shared facility serves the reference population."
+    },
+    {
+      "id": "DISTRIBUTED_SHARED",
+      "description": "Several smaller facilities divide demand and failure domains."
+    },
+    {
+      "id": "HYBRID_SHARED_PRIVATE",
+      "description": "A declared private minimum is complemented by shared facilities."
+    },
+    {
+      "id": "EXTERNAL_COMMERCIAL",
+      "description": "Residents purchase equivalent service from verified external providers."
+    }
+  ],
+  "scenarios": [
+    "ORDINARY_DEMAND",
+    "PEAK_SIMULTANEOUS_DEMAND",
+    "SEASONAL_OR_EVENT_SURGE",
+    "GRID_OR_WATER_INTERRUPTION",
+    "STAFFING_OR_OPERATOR_OUTAGE",
+    "MAJOR_REPAIR_AND_PARTS_DELAY",
+    "OPERATING_COST_INFLATION_AND_RESERVE_SHORTFALL",
+    "ACCESS_ROUTE_DISRUPTION_OR_LIFT_OUTAGE",
+    "HOUSEHOLD_COMPOSITION_AND_DEMAND_CHANGE",
+    "GOVERNANCE_CONFLICT_OR_OPERATOR_CAPTURE_ATTEMPT"
+  ],
+  "amenity_archetypes": [
+    {
+      "id": "TOOL_LIBRARY_MAKER_WORKSHOP",
+      "service": "Tool access, booking, custody, repair and return",
+      "critical_dependencies": [
+        "custody",
+        "power",
+        "supervision",
+        "consumables",
+        "maintenance"
+      ]
+    },
+    {
+      "id": "SHARED_LAUNDRY",
+      "service": "Accepted wash/dry cycles and availability",
+      "critical_dependencies": [
+        "water_quality",
+        "water_quantity",
+        "energy",
+        "drainage",
+        "ventilation",
+        "equipment_uptime"
+      ]
+    },
+    {
+      "id": "GUEST_SUITES",
+      "service": "Accessible overnight stays",
+      "critical_dependencies": [
+        "booking_fairness",
+        "cleaning",
+        "privacy",
+        "maintenance",
+        "safeguarding"
+      ]
+    },
+    {
+      "id": "GREENHOUSE_FOOD_GARDEN",
+      "service": "Productive growing service and usable harvest",
+      "critical_dependencies": [
+        "water_source",
+        "water_quality",
+        "climate",
+        "inputs",
+        "soil",
+        "staffing",
+        "maintenance"
+      ]
+    },
+    {
+      "id": "POOL_WELLNESS",
+      "service": "Safe and accessible operating hours and capacity",
+      "critical_dependencies": [
+        "water",
+        "filtration",
+        "energy",
+        "trained_operation",
+        "inspection",
+        "cleaning",
+        "reserve"
+      ]
+    },
+    {
+      "id": "COMMUNITY_KITCHEN_DINING",
+      "service": "Food preparation and gathering service",
+      "critical_dependencies": [
+        "food_hygiene",
+        "ventilation",
+        "fire_safety",
+        "cleaning",
+        "accessible_equipment"
+      ]
+    },
+    {
+      "id": "LIBRARY_STUDY_COWORKING",
+      "service": "Usable quiet, study and work hours",
+      "critical_dependencies": [
+        "power",
+        "connectivity",
+        "acoustics",
+        "privacy",
+        "opening_hours"
+      ]
+    },
+    {
+      "id": "CHILDCARE_LEARNING",
+      "service": "Qualified care/learning places and hours",
+      "critical_dependencies": [
+        "licensing",
+        "staffing",
+        "safeguarding",
+        "access",
+        "sanitation",
+        "emergency"
+      ]
+    },
+    {
+      "id": "SPORTS_PARK_PUBLIC_REALM",
+      "service": "Accessible use-hours and recreation capacity",
+      "critical_dependencies": [
+        "land",
+        "shade",
+        "lighting",
+        "water_constraints",
+        "maintenance",
+        "routes"
+      ]
+    },
+    {
+      "id": "SHARED_UTILITY_PLANT",
+      "service": "Delivered utility service and continuity",
+      "critical_dependencies": [
+        "engineering_qualification",
+        "isolation",
+        "metering",
+        "operators",
+        "spares",
+        "failure_domains"
+      ]
+    }
+  ],
+  "case_matrix": {
+    "comparison_arm_count": 5,
+    "scenario_count": 10,
+    "registered_case_count": 50,
+    "state": "REGISTERED_DESIGN_ONLY"
+  },
+  "cases": [
+    {
+      "id": "PRIVATE_DUPLICATION__ORDINARY_DEMAND",
+      "comparison_arm": "PRIVATE_DUPLICATION",
+      "scenario": "ORDINARY_DEMAND",
+      "definition_state": "REGISTERED_DESIGN_ONLY",
+      "execution_status": "NOT_EXECUTED",
+      "numerical_inputs_state": "NOT_SUPPLIED",
+      "result_state": "NO_RESULT"
+    },
+    {
+      "id": "PRIVATE_DUPLICATION__PEAK_SIMULTANEOUS_DEMAND",
+      "comparison_arm": "PRIVATE_DUPLICATION",
+      "scenario": "PEAK_SIMULTANEOUS_DEMAND",
+      "definition_state": "REGISTERED_DESIGN_ONLY",
+      "execution_status": "NOT_EXECUTED",
+      "numerical_inputs_state": "NOT_SUPPLIED",
+      "result_state": "NO_RESULT"
+    },
+    {
+      "id": "PRIVATE_DUPLICATION__SEASONAL_OR_EVENT_SURGE",
+      "comparison_arm": "PRIVATE_DUPLICATION",
+      "scenario": "SEASONAL_OR_EVENT_SURGE",
+      "definition_state": "REGISTERED_DESIGN_ONLY",
+      "execution_status": "NOT_EXECUTED",
+      "numerical_inputs_state": "NOT_SUPPLIED",
+      "result_state": "NO_RESULT"
+    },
+    {
+      "id": "PRIVATE_DUPLICATION__GRID_OR_WATER_INTERRUPTION",
+      "comparison_arm": "PRIVATE_DUPLICATION",
+      "scenario": "GRID_OR_WATER_INTERRUPTION",
+      "definition_state": "REGISTERED_DESIGN_ONLY",
+      "execution_status": "NOT_EXECUTED",
+      "numerical_inputs_state": "NOT_SUPPLIED",
+      "result_state": "NO_RESULT"
+    },
+    {
+      "id": "PRIVATE_DUPLICATION__STAFFING_OR_OPERATOR_OUTAGE",
+      "comparison_arm": "PRIVATE_DUPLICATION",
+      "scenario": "STAFFING_OR_OPERATOR_OUTAGE",
+      "definition_state": "REGISTERED_DESIGN_ONLY",
+      "execution_status": "NOT_EXECUTED",
+      "numerical_inputs_state": "NOT_SUPPLIED",
+      "result_state": "NO_RESULT"
+    },
+    {
+      "id": "PRIVATE_DUPLICATION__MAJOR_REPAIR_AND_PARTS_DELAY",
+      "comparison_arm": "PRIVATE_DUPLICATION",
+      "scenario": "MAJOR_REPAIR_AND_PARTS_DELAY",
+      "definition_state": "REGISTERED_DESIGN_ONLY",
+      "execution_status": "NOT_EXECUTED",
+      "numerical_inputs_state": "NOT_SUPPLIED",
+      "result_state": "NO_RESULT"
+    },
+    {
+      "id": "PRIVATE_DUPLICATION__OPERATING_COST_INFLATION_AND_RESERVE_SHORTFALL",
+      "comparison_arm": "PRIVATE_DUPLICATION",
+      "scenario": "OPERATING_COST_INFLATION_AND_RESERVE_SHORTFALL",
+      "definition_state": "REGISTERED_DESIGN_ONLY",
+      "execution_status": "NOT_EXECUTED",
+      "numerical_inputs_state": "NOT_SUPPLIED",
+      "result_state": "NO_RESULT"
+    },
+    {
+      "id": "PRIVATE_DUPLICATION__ACCESS_ROUTE_DISRUPTION_OR_LIFT_OUTAGE",
+      "comparison_arm": "PRIVATE_DUPLICATION",
+      "scenario": "ACCESS_ROUTE_DISRUPTION_OR_LIFT_OUTAGE",
+      "definition_state": "REGISTERED_DESIGN_ONLY",
+      "execution_status": "NOT_EXECUTED",
+      "numerical_inputs_state": "NOT_SUPPLIED",
+      "result_state": "NO_RESULT"
+    },
+    {
+      "id": "PRIVATE_DUPLICATION__HOUSEHOLD_COMPOSITION_AND_DEMAND_CHANGE",
+      "comparison_arm": "PRIVATE_DUPLICATION",
+      "scenario": "HOUSEHOLD_COMPOSITION_AND_DEMAND_CHANGE",
+      "definition_state": "REGISTERED_DESIGN_ONLY",
+      "execution_status": "NOT_EXECUTED",
+      "numerical_inputs_state": "NOT_SUPPLIED",
+      "result_state": "NO_RESULT"
+    },
+    {
+      "id": "PRIVATE_DUPLICATION__GOVERNANCE_CONFLICT_OR_OPERATOR_CAPTURE_ATTEMPT",
+      "comparison_arm": "PRIVATE_DUPLICATION",
+      "scenario": "GOVERNANCE_CONFLICT_OR_OPERATOR_CAPTURE_ATTEMPT",
+      "definition_state": "REGISTERED_DESIGN_ONLY",
+      "execution_status": "NOT_EXECUTED",
+      "numerical_inputs_state": "NOT_SUPPLIED",
+      "result_state": "NO_RESULT"
+    },
+    {
+      "id": "CENTRAL_SHARED__ORDINARY_DEMAND",
+      "comparison_arm": "CENTRAL_SHARED",
+      "scenario": "ORDINARY_DEMAND",
+      "definition_state": "REGISTERED_DESIGN_ONLY",
+      "execution_status": "NOT_EXECUTED",
+      "numerical_inputs_state": "NOT_SUPPLIED",
+      "result_state": "NO_RESULT"
+    },
+    {
+      "id": "CENTRAL_SHARED__PEAK_SIMULTANEOUS_DEMAND",
+      "comparison_arm": "CENTRAL_SHARED",
+      "scenario": "PEAK_SIMULTANEOUS_DEMAND",
+      "definition_state": "REGISTERED_DESIGN_ONLY",
+      "execution_status": "NOT_EXECUTED",
+      "numerical_inputs_state": "NOT_SUPPLIED",
+      "result_state": "NO_RESULT"
+    },
+    {
+      "id": "CENTRAL_SHARED__SEASONAL_OR_EVENT_SURGE",
+      "comparison_arm": "CENTRAL_SHARED",
+      "scenario": "SEASONAL_OR_EVENT_SURGE",
+      "definition_state": "REGISTERED_DESIGN_ONLY",
+      "execution_status": "NOT_EXECUTED",
+      "numerical_inputs_state": "NOT_SUPPLIED",
+      "result_state": "NO_RESULT"
+    },
+    {
+      "id": "CENTRAL_SHARED__GRID_OR_WATER_INTERRUPTION",
+      "comparison_arm": "CENTRAL_SHARED",
+      "scenario": "GRID_OR_WATER_INTERRUPTION",
+      "definition_state": "REGISTERED_DESIGN_ONLY",
+      "execution_status": "NOT_EXECUTED",
+      "numerical_inputs_state": "NOT_SUPPLIED",
+      "result_state": "NO_RESULT"
+    },
+    {
+      "id": "CENTRAL_SHARED__STAFFING_OR_OPERATOR_OUTAGE",
+      "comparison_arm": "CENTRAL_SHARED",
+      "scenario": "STAFFING_OR_OPERATOR_OUTAGE",
+      "definition_state": "REGISTERED_DESIGN_ONLY",
+      "execution_status": "NOT_EXECUTED",
+      "numerical_inputs_state": "NOT_SUPPLIED",
+      "result_state": "NO_RESULT"
+    },
+    {
+      "id": "CENTRAL_SHARED__MAJOR_REPAIR_AND_PARTS_DELAY",
+      "comparison_arm": "CENTRAL_SHARED",
+      "scenario": "MAJOR_REPAIR_AND_PARTS_DELAY",
+      "definition_state": "REGISTERED_DESIGN_ONLY",
+      "execution_status": "NOT_EXECUTED",
+      "numerical_inputs_state": "NOT_SUPPLIED",
+      "result_state": "NO_RESULT"
+    },
+    {
+      "id": "CENTRAL_SHARED__OPERATING_COST_INFLATION_AND_RESERVE_SHORTFALL",
+      "comparison_arm": "CENTRAL_SHARED",
+      "scenario": "OPERATING_COST_INFLATION_AND_RESERVE_SHORTFALL",
+      "definition_state": "REGISTERED_DESIGN_ONLY",
+      "execution_status": "NOT_EXECUTED",
+      "numerical_inputs_state": "NOT_SUPPLIED",
+      "result_state": "NO_RESULT"
+    },
+    {
+      "id": "CENTRAL_SHARED__ACCESS_ROUTE_DISRUPTION_OR_LIFT_OUTAGE",
+      "comparison_arm": "CENTRAL_SHARED",
+      "scenario": "ACCESS_ROUTE_DISRUPTION_OR_LIFT_OUTAGE",
+      "definition_state": "REGISTERED_DESIGN_ONLY",
+      "execution_status": "NOT_EXECUTED",
+      "numerical_inputs_state": "NOT_SUPPLIED",
+      "result_state": "NO_RESULT"
+    },
+    {
+      "id": "CENTRAL_SHARED__HOUSEHOLD_COMPOSITION_AND_DEMAND_CHANGE",
+      "comparison_arm": "CENTRAL_SHARED",
+      "scenario": "HOUSEHOLD_COMPOSITION_AND_DEMAND_CHANGE",
+      "definition_state": "REGISTERED_DESIGN_ONLY",
+      "execution_status": "NOT_EXECUTED",
+      "numerical_inputs_state": "NOT_SUPPLIED",
+      "result_state": "NO_RESULT"
+    },
+    {
+      "id": "CENTRAL_SHARED__GOVERNANCE_CONFLICT_OR_OPERATOR_CAPTURE_ATTEMPT",
+      "comparison_arm": "CENTRAL_SHARED",
+      "scenario": "GOVERNANCE_CONFLICT_OR_OPERATOR_CAPTURE_ATTEMPT",
+      "definition_state": "REGISTERED_DESIGN_ONLY",
+      "execution_status": "NOT_EXECUTED",
+      "numerical_inputs_state": "NOT_SUPPLIED",
+      "result_state": "NO_RESULT"
+    },
+    {
+      "id": "DISTRIBUTED_SHARED__ORDINARY_DEMAND",
+      "comparison_arm": "DISTRIBUTED_SHARED",
+      "scenario": "ORDINARY_DEMAND",
+      "definition_state": "REGISTERED_DESIGN_ONLY",
+      "execution_status": "NOT_EXECUTED",
+      "numerical_inputs_state": "NOT_SUPPLIED",
+      "result_state": "NO_RESULT"
+    },
+    {
+      "id": "DISTRIBUTED_SHARED__PEAK_SIMULTANEOUS_DEMAND",
+      "comparison_arm": "DISTRIBUTED_SHARED",
+      "scenario": "PEAK_SIMULTANEOUS_DEMAND",
+      "definition_state": "REGISTERED_DESIGN_ONLY",
+      "execution_status": "NOT_EXECUTED",
+      "numerical_inputs_state": "NOT_SUPPLIED",
+      "result_state": "NO_RESULT"
+    },
+    {
+      "id": "DISTRIBUTED_SHARED__SEASONAL_OR_EVENT_SURGE",
+      "comparison_arm": "DISTRIBUTED_SHARED",
+      "scenario": "SEASONAL_OR_EVENT_SURGE",
+      "definition_state": "REGISTERED_DESIGN_ONLY",
+      "execution_status": "NOT_EXECUTED",
+      "numerical_inputs_state": "NOT_SUPPLIED",
+      "result_state": "NO_RESULT"
+    },
+    {
+      "id": "DISTRIBUTED_SHARED__GRID_OR_WATER_INTERRUPTION",
+      "comparison_arm": "DISTRIBUTED_SHARED",
+      "scenario": "GRID_OR_WATER_INTERRUPTION",
+      "definition_state": "REGISTERED_DESIGN_ONLY",
+      "execution_status": "NOT_EXECUTED",
+      "numerical_inputs_state": "NOT_SUPPLIED",
+      "result_state": "NO_RESULT"
+    },
+    {
+      "id": "DISTRIBUTED_SHARED__STAFFING_OR_OPERATOR_OUTAGE",
+      "comparison_arm": "DISTRIBUTED_SHARED",
+      "scenario": "STAFFING_OR_OPERATOR_OUTAGE",
+      "definition_state": "REGISTERED_DESIGN_ONLY",
+      "execution_status": "NOT_EXECUTED",
+      "numerical_inputs_state": "NOT_SUPPLIED",
+      "result_state": "NO_RESULT"
+    },
+    {
+      "id": "DISTRIBUTED_SHARED__MAJOR_REPAIR_AND_PARTS_DELAY",
+      "comparison_arm": "DISTRIBUTED_SHARED",
+      "scenario": "MAJOR_REPAIR_AND_PARTS_DELAY",
+      "definition_state": "REGISTERED_DESIGN_ONLY",
+      "execution_status": "NOT_EXECUTED",
+      "numerical_inputs_state": "NOT_SUPPLIED",
+      "result_state": "NO_RESULT"
+    },
+    {
+      "id": "DISTRIBUTED_SHARED__OPERATING_COST_INFLATION_AND_RESERVE_SHORTFALL",
+      "comparison_arm": "DISTRIBUTED_SHARED",
+      "scenario": "OPERATING_COST_INFLATION_AND_RESERVE_SHORTFALL",
+      "definition_state": "REGISTERED_DESIGN_ONLY",
+      "execution_status": "NOT_EXECUTED",
+      "numerical_inputs_state": "NOT_SUPPLIED",
+      "result_state": "NO_RESULT"
+    },
+    {
+      "id": "DISTRIBUTED_SHARED__ACCESS_ROUTE_DISRUPTION_OR_LIFT_OUTAGE",
+      "comparison_arm": "DISTRIBUTED_SHARED",
+      "scenario": "ACCESS_ROUTE_DISRUPTION_OR_LIFT_OUTAGE",
+      "definition_state": "REGISTERED_DESIGN_ONLY",
+      "execution_status": "NOT_EXECUTED",
+      "numerical_inputs_state": "NOT_SUPPLIED",
+      "result_state": "NO_RESULT"
+    },
+    {
+      "id": "DISTRIBUTED_SHARED__HOUSEHOLD_COMPOSITION_AND_DEMAND_CHANGE",
+      "comparison_arm": "DISTRIBUTED_SHARED",
+      "scenario": "HOUSEHOLD_COMPOSITION_AND_DEMAND_CHANGE",
+      "definition_state": "REGISTERED_DESIGN_ONLY",
+      "execution_status": "NOT_EXECUTED",
+      "numerical_inputs_state": "NOT_SUPPLIED",
+      "result_state": "NO_RESULT"
+    },
+    {
+      "id": "DISTRIBUTED_SHARED__GOVERNANCE_CONFLICT_OR_OPERATOR_CAPTURE_ATTEMPT",
+      "comparison_arm": "DISTRIBUTED_SHARED",
+      "scenario": "GOVERNANCE_CONFLICT_OR_OPERATOR_CAPTURE_ATTEMPT",
+      "definition_state": "REGISTERED_DESIGN_ONLY",
+      "execution_status": "NOT_EXECUTED",
+      "numerical_inputs_state": "NOT_SUPPLIED",
+      "result_state": "NO_RESULT"
+    },
+    {
+      "id": "HYBRID_SHARED_PRIVATE__ORDINARY_DEMAND",
+      "comparison_arm": "HYBRID_SHARED_PRIVATE",
+      "scenario": "ORDINARY_DEMAND",
+      "definition_state": "REGISTERED_DESIGN_ONLY",
+      "execution_status": "NOT_EXECUTED",
+      "numerical_inputs_state": "NOT_SUPPLIED",
+      "result_state": "NO_RESULT"
+    },
+    {
+      "id": "HYBRID_SHARED_PRIVATE__PEAK_SIMULTANEOUS_DEMAND",
+      "comparison_arm": "HYBRID_SHARED_PRIVATE",
+      "scenario": "PEAK_SIMULTANEOUS_DEMAND",
+      "definition_state": "REGISTERED_DESIGN_ONLY",
+      "execution_status": "NOT_EXECUTED",
+      "numerical_inputs_state": "NOT_SUPPLIED",
+      "result_state": "NO_RESULT"
+    },
+    {
+      "id": "HYBRID_SHARED_PRIVATE__SEASONAL_OR_EVENT_SURGE",
+      "comparison_arm": "HYBRID_SHARED_PRIVATE",
+      "scenario": "SEASONAL_OR_EVENT_SURGE",
+      "definition_state": "REGISTERED_DESIGN_ONLY",
+      "execution_status": "NOT_EXECUTED",
+      "numerical_inputs_state": "NOT_SUPPLIED",
+      "result_state": "NO_RESULT"
+    },
+    {
+      "id": "HYBRID_SHARED_PRIVATE__GRID_OR_WATER_INTERRUPTION",
+      "comparison_arm": "HYBRID_SHARED_PRIVATE",
+      "scenario": "GRID_OR_WATER_INTERRUPTION",
+      "definition_state": "REGISTERED_DESIGN_ONLY",
+      "execution_status": "NOT_EXECUTED",
+      "numerical_inputs_state": "NOT_SUPPLIED",
+      "result_state": "NO_RESULT"
+    },
+    {
+      "id": "HYBRID_SHARED_PRIVATE__STAFFING_OR_OPERATOR_OUTAGE",
+      "comparison_arm": "HYBRID_SHARED_PRIVATE",
+      "scenario": "STAFFING_OR_OPERATOR_OUTAGE",
+      "definition_state": "REGISTERED_DESIGN_ONLY",
+      "execution_status": "NOT_EXECUTED",
+      "numerical_inputs_state": "NOT_SUPPLIED",
+      "result_state": "NO_RESULT"
+    },
+    {
+      "id": "HYBRID_SHARED_PRIVATE__MAJOR_REPAIR_AND_PARTS_DELAY",
+      "comparison_arm": "HYBRID_SHARED_PRIVATE",
+      "scenario": "MAJOR_REPAIR_AND_PARTS_DELAY",
+      "definition_state": "REGISTERED_DESIGN_ONLY",
+      "execution_status": "NOT_EXECUTED",
+      "numerical_inputs_state": "NOT_SUPPLIED",
+      "result_state": "NO_RESULT"
+    },
+    {
+      "id": "HYBRID_SHARED_PRIVATE__OPERATING_COST_INFLATION_AND_RESERVE_SHORTFALL",
+      "comparison_arm": "HYBRID_SHARED_PRIVATE",
+      "scenario": "OPERATING_COST_INFLATION_AND_RESERVE_SHORTFALL",
+      "definition_state": "REGISTERED_DESIGN_ONLY",
+      "execution_status": "NOT_EXECUTED",
+      "numerical_inputs_state": "NOT_SUPPLIED",
+      "result_state": "NO_RESULT"
+    },
+    {
+      "id": "HYBRID_SHARED_PRIVATE__ACCESS_ROUTE_DISRUPTION_OR_LIFT_OUTAGE",
+      "comparison_arm": "HYBRID_SHARED_PRIVATE",
+      "scenario": "ACCESS_ROUTE_DISRUPTION_OR_LIFT_OUTAGE",
+      "definition_state": "REGISTERED_DESIGN_ONLY",
+      "execution_status": "NOT_EXECUTED",
+      "numerical_inputs_state": "NOT_SUPPLIED",
+      "result_state": "NO_RESULT"
+    },
+    {
+      "id": "HYBRID_SHARED_PRIVATE__HOUSEHOLD_COMPOSITION_AND_DEMAND_CHANGE",
+      "comparison_arm": "HYBRID_SHARED_PRIVATE",
+      "scenario": "HOUSEHOLD_COMPOSITION_AND_DEMAND_CHANGE",
+      "definition_state": "REGISTERED_DESIGN_ONLY",
+      "execution_status": "NOT_EXECUTED",
+      "numerical_inputs_state": "NOT_SUPPLIED",
+      "result_state": "NO_RESULT"
+    },
+    {
+      "id": "HYBRID_SHARED_PRIVATE__GOVERNANCE_CONFLICT_OR_OPERATOR_CAPTURE_ATTEMPT",
+      "comparison_arm": "HYBRID_SHARED_PRIVATE",
+      "scenario": "GOVERNANCE_CONFLICT_OR_OPERATOR_CAPTURE_ATTEMPT",
+      "definition_state": "REGISTERED_DESIGN_ONLY",
+      "execution_status": "NOT_EXECUTED",
+      "numerical_inputs_state": "NOT_SUPPLIED",
+      "result_state": "NO_RESULT"
+    },
+    {
+      "id": "EXTERNAL_COMMERCIAL__ORDINARY_DEMAND",
+      "comparison_arm": "EXTERNAL_COMMERCIAL",
+      "scenario": "ORDINARY_DEMAND",
+      "definition_state": "REGISTERED_DESIGN_ONLY",
+      "execution_status": "NOT_EXECUTED",
+      "numerical_inputs_state": "NOT_SUPPLIED",
+      "result_state": "NO_RESULT"
+    },
+    {
+      "id": "EXTERNAL_COMMERCIAL__PEAK_SIMULTANEOUS_DEMAND",
+      "comparison_arm": "EXTERNAL_COMMERCIAL",
+      "scenario": "PEAK_SIMULTANEOUS_DEMAND",
+      "definition_state": "REGISTERED_DESIGN_ONLY",
+      "execution_status": "NOT_EXECUTED",
+      "numerical_inputs_state": "NOT_SUPPLIED",
+      "result_state": "NO_RESULT"
+    },
+    {
+      "id": "EXTERNAL_COMMERCIAL__SEASONAL_OR_EVENT_SURGE",
+      "comparison_arm": "EXTERNAL_COMMERCIAL",
+      "scenario": "SEASONAL_OR_EVENT_SURGE",
+      "definition_state": "REGISTERED_DESIGN_ONLY",
+      "execution_status": "NOT_EXECUTED",
+      "numerical_inputs_state": "NOT_SUPPLIED",
+      "result_state": "NO_RESULT"
+    },
+    {
+      "id": "EXTERNAL_COMMERCIAL__GRID_OR_WATER_INTERRUPTION",
+      "comparison_arm": "EXTERNAL_COMMERCIAL",
+      "scenario": "GRID_OR_WATER_INTERRUPTION",
+      "definition_state": "REGISTERED_DESIGN_ONLY",
+      "execution_status": "NOT_EXECUTED",
+      "numerical_inputs_state": "NOT_SUPPLIED",
+      "result_state": "NO_RESULT"
+    },
+    {
+      "id": "EXTERNAL_COMMERCIAL__STAFFING_OR_OPERATOR_OUTAGE",
+      "comparison_arm": "EXTERNAL_COMMERCIAL",
+      "scenario": "STAFFING_OR_OPERATOR_OUTAGE",
+      "definition_state": "REGISTERED_DESIGN_ONLY",
+      "execution_status": "NOT_EXECUTED",
+      "numerical_inputs_state": "NOT_SUPPLIED",
+      "result_state": "NO_RESULT"
+    },
+    {
+      "id": "EXTERNAL_COMMERCIAL__MAJOR_REPAIR_AND_PARTS_DELAY",
+      "comparison_arm": "EXTERNAL_COMMERCIAL",
+      "scenario": "MAJOR_REPAIR_AND_PARTS_DELAY",
+      "definition_state": "REGISTERED_DESIGN_ONLY",
+      "execution_status": "NOT_EXECUTED",
+      "numerical_inputs_state": "NOT_SUPPLIED",
+      "result_state": "NO_RESULT"
+    },
+    {
+      "id": "EXTERNAL_COMMERCIAL__OPERATING_COST_INFLATION_AND_RESERVE_SHORTFALL",
+      "comparison_arm": "EXTERNAL_COMMERCIAL",
+      "scenario": "OPERATING_COST_INFLATION_AND_RESERVE_SHORTFALL",
+      "definition_state": "REGISTERED_DESIGN_ONLY",
+      "execution_status": "NOT_EXECUTED",
+      "numerical_inputs_state": "NOT_SUPPLIED",
+      "result_state": "NO_RESULT"
+    },
+    {
+      "id": "EXTERNAL_COMMERCIAL__ACCESS_ROUTE_DISRUPTION_OR_LIFT_OUTAGE",
+      "comparison_arm": "EXTERNAL_COMMERCIAL",
+      "scenario": "ACCESS_ROUTE_DISRUPTION_OR_LIFT_OUTAGE",
+      "definition_state": "REGISTERED_DESIGN_ONLY",
+      "execution_status": "NOT_EXECUTED",
+      "numerical_inputs_state": "NOT_SUPPLIED",
+      "result_state": "NO_RESULT"
+    },
+    {
+      "id": "EXTERNAL_COMMERCIAL__HOUSEHOLD_COMPOSITION_AND_DEMAND_CHANGE",
+      "comparison_arm": "EXTERNAL_COMMERCIAL",
+      "scenario": "HOUSEHOLD_COMPOSITION_AND_DEMAND_CHANGE",
+      "definition_state": "REGISTERED_DESIGN_ONLY",
+      "execution_status": "NOT_EXECUTED",
+      "numerical_inputs_state": "NOT_SUPPLIED",
+      "result_state": "NO_RESULT"
+    },
+    {
+      "id": "EXTERNAL_COMMERCIAL__GOVERNANCE_CONFLICT_OR_OPERATOR_CAPTURE_ATTEMPT",
+      "comparison_arm": "EXTERNAL_COMMERCIAL",
+      "scenario": "GOVERNANCE_CONFLICT_OR_OPERATOR_CAPTURE_ATTEMPT",
+      "definition_state": "REGISTERED_DESIGN_ONLY",
+      "execution_status": "NOT_EXECUTED",
+      "numerical_inputs_state": "NOT_SUPPLIED",
+      "result_state": "NO_RESULT"
+    }
+  ],
+  "metric_vectors": [
+    "SERVICE_DELIVERY",
+    "ACCESS_AND_TIME",
+    "CAPACITY_AND_UTILIZATION",
+    "LIFECYCLE_ECONOMICS",
+    "ENVIRONMENT_AND_RESOURCE",
+    "RELIABILITY_AND_RECOVERY",
+    "EQUITY_AND_PARTICIPATION",
+    "GOVERNANCE_AND_STEWARDSHIP"
+  ],
+  "non_compensatory_gates": [
+    "LIFE_SAFETY_AND_EGRESS",
+    "MANDATORY_ACCESSIBILITY",
+    "LEGAL_AND_STATUTORY_APPROVAL",
+    "ENGINEERING_SCOPE_AND_QUALIFICATION",
+    "WATER_SOURCE_AND_USE_RIGHTS",
+    "SERVICE_FLOOR_AND_MANUAL_FALLBACK",
+    "EVIDENCE_VALIDITY_AND_SCOPE",
+    "PRIVACY_AND_CONSENT"
+  ],
+  "evidence_states": [
+    "UNKNOWN",
+    "NOT_COMPARABLE",
+    "BLOCKED",
+    "INVALID",
+    "PROPOSED",
+    "MEASURED",
+    "INDEPENDENTLY_REVIEWED"
+  ],
+  "owner_boundaries": {
+    "sol_atlas": "SPATIAL_AND_COMPARABLE_SERVICE_PROJECTION",
+    "symtropy": "DETERMINISTIC_SCENARIO_AND_PHYSICAL_SERVICE_EVIDENCE",
+    "symthaea": "DESIGN_REASONING_AND_PRODUCT_PROCESS_ALTERNATIVES",
+    "mycelix": "OWNERSHIP_CONSENT_PROVENANCE_GOVERNANCE_AND_LIFECYCLE_EVENTS",
+    "practitioners_and_authorities": "STATUTORY_PROFESSIONAL_INSPECTION_AND_OPERATIONAL_AUTHORITY"
+  },
+  "reference_sources": [
+    {
+      "id": "SHRA_COMMUNAL_HOUSING_NORMS",
+      "url": "https://www.etenders.gov.za/home/Download/?blobName=09797a42-8553-4615-a677-dab34af1c251.pdf&downloadedFileName=Norms.pdf",
+      "role": "SOUTH_AFRICAN_COMMUNAL_HOUSING_DESIGN_BASELINE"
+    },
+    {
+      "id": "SECTIONAL_TITLES_SCHEMES_MANAGEMENT_ACT",
+      "url": "https://www.gov.za/documents/sectional-titles-schemes-management-act",
+      "role": "COMMON_PROPERTY_MANAGEMENT_LEGAL_REFERENCE"
+    },
+    {
+      "id": "COMMUNAL_PROPERTY_ASSOCIATIONS_ACT",
+      "url": "https://www.gov.za/documents/communal-property-associations-act",
+      "role": "CONDITIONAL_COMMUNAL_TENURE_LEGAL_REFERENCE"
+    },
+    {
+      "id": "IFC_4_3",
+      "url": "https://www.buildingsmart.org/standards/bsi-standards/industry-foundation--classes/",
+      "role": "OPEN_BUILT_ASSET_EXCHANGE"
+    },
+    {
+      "id": "IDS_1_0",
+      "url": "https://www.buildingsmart.org/standards/bsi-standards/information-delivery-specification-ids/",
+      "role": "MACHINE_READABLE_INFORMATION_REQUIREMENTS"
+    },
+    {
+      "id": "JOBURG_LEVEL_2_WATER_RESTRICTIONS",
+      "url": "https://joburg.org.za/media_/Newsroom/Pages/2026-News-Articles/City-implements-Level-2-water-restrictions-to-stabilise-supply.aspx",
+      "role": "TIME_BOUNDED_JURISDICTIONAL_WATER_CONSTRAINT"
+    },
+    {
+      "id": "SINGAPORE_BCA_PPVC",
+      "url": "https://www1.bca.gov.sg/growth-and-transformation/productivity/design-for-manufacturing-and-assembly-dfma/prefabricated-prefinished-volumetric-construction-ppvc/",
+      "role": "INDUSTRY_CONSTRUCTION_PRODUCTIVITY_COMPARATOR_NOT_AMENITY_SAVINGS"
+    },
+    {
+      "id": "HDB_CONSTRUCTION_TRANSFORMATION",
+      "url": "https://www.hdb.gov.sg/hdb-pulse/news/2026/advanced-construction-technologies-at-hdbs-first-ctp-helped-achieve-25-productivity-improvement",
+      "role": "INDUSTRY_CONSTRUCTION_PRODUCTIVITY_COMPARATOR_NOT_AMENITY_SAVINGS"
+    }
+  ],
+  "future_empirical_inputs_required": [
+    "RESIDENT_AUTHORED_SERVICE_BRIEFS_AND_CONSENT",
+    "POPULATION_AND_DEMAND_TRACE",
+    "SITE_AND_ACCESS_NETWORK",
+    "FACILITY_CAPACITY_AND_OPENING_SCHEDULE",
+    "VERIFIED_PROVIDER_AND_COST_DATA",
+    "UTILITY_SOURCE_QUALITY_RIGHTS_AND_METERING",
+    "ASSET_CONDITION_AND_RENEWAL_PLAN",
+    "LEGAL_TENURE_AND_GOVERNANCE_PROFILE",
+    "QUALIFIED_ENGINEERING_AND_STATUTORY_EVIDENCE",
+    "INDEPENDENT_INSPECTION_AND_ACCEPTANCE"
+  ],
+  "targets": {
+    "same_scope_or_not_comparable": true,
+    "critical_missing_evidence_fails_closed": true,
+    "unserved_demand_retained": true,
+    "all_lifecycle_exclusions_reported": true,
+    "no_weighted_score_overrides_hard_gates": true,
+    "exact_oracle_agreement_required": true,
+    "targets_are_proposed_not_measured": true
+  }
+}
