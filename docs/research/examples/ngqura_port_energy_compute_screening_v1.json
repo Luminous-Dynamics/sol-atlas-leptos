@@ -37,7 +37,7 @@
     {
       "evidence_id": "ptxhub-durban-shore-demand-2025",
       "claim": "The September 2025 South African shore-power demand study reports Durban has the highest estimated shore-power demand among the assessed national ports.",
-      "evidence_class": "official_reported",
+      "evidence_class": "published_study",
       "value": "Durban highest among assessed ports",
       "unit": null,
       "source_url": "https://ptx-hub.org/publication/shore-power-demand-for-south-african-ports/",
@@ -66,6 +66,28 @@
       "as_of": "2026-11-19",
       "applicability": "No subsea site selection or environmental suitability conclusion is permitted.",
       "notes": "Unknowns are blocking inputs, not zero-valued impacts."
+    },
+    {
+      "evidence_id": "ptxhub-ngqura-shore-demand-series-2025",
+      "claim": "Table 3 of the September 2025 PtX Hub/CSIR shore-power study lists Coega/Ngqura estimated peak maximum demand of 12.6 MW in FY2019-20 and 9.5 MW in FY2022-23 (latest year shown with a value); average-peak maximum demand is 5.8 MW in FY2019-20 and 4.3 MW in FY2022-23.",
+      "evidence_class": "published_study",
+      "value": "12.6 MW peak maximum (FY2019-20); 9.5 MW peak maximum and 4.3 MW average-peak maximum (FY2022-23)",
+      "unit": "MW",
+      "source_url": "https://ptx-hub.org/wp-content/uploads/2025/10/PtX-Hub-Shore-Power-Demand-for-South-African-Ports-2.pdf",
+      "as_of": "2025-09-01",
+      "applicability": "Published vessel-activity-based demand estimates in Table 3, page 19. Not metered coincident demand or a grid connection study.",
+      "notes": "Preserve financial-year labels and distinguish peak maximum from average-peak maximum. Data are estimates and time series values, not continuous observations."
+    },
+    {
+      "evidence_id": "ptxhub-durban-shore-demand-series-2025",
+      "claim": "Table 3 of the September 2025 PtX Hub/CSIR shore-power study lists Durban estimated peak maximum demand of 47 MW in FY2018-19 and 42 MW in FY2024-25; average-peak maximum demand in FY2024-25 is 20 MW.",
+      "evidence_class": "published_study",
+      "value": "47 MW peak maximum (FY2018-19); 42 MW peak maximum and 20 MW average-peak maximum (FY2024-25)",
+      "unit": "MW",
+      "source_url": "https://ptx-hub.org/wp-content/uploads/2025/10/PtX-Hub-Shore-Power-Demand-for-South-African-Ports-2.pdf",
+      "as_of": "2025-09-01",
+      "applicability": "Published vessel-activity-based demand estimates in Table 3, page 19. Not metered coincident demand or a grid connection study.",
+      "notes": "Preserve financial-year labels and distinguish peak maximum from average-peak maximum."
     }
   ],
   "assets": [
@@ -111,7 +133,7 @@
       "source_evidence_ids": [
         "ptxhub-ngqura-grid-screen-2025"
       ],
-      "notes": "A port-level screening estimate is not the connection rating of a specific feeder."
+      "notes": "Study reports 25 MVA firm supply and 6 MVA NMD; its 17.1 MW equivalent uses 0.9 × (25−6), a screening factor for power factor. This is not current feeder headroom or an interconnection offer."
     }
   ],
   "grid": {
