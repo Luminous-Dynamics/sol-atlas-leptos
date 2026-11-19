@@ -1,0 +1,134 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/blob/main/docs/research/schemas/port_energy_compute_case_v1.schema.json",
+  "title": "Port Energy and Compute Screening Case v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "case_id",
+    "case_kind",
+    "as_of",
+    "site",
+    "evidence_records",
+    "assets",
+    "grid",
+    "workload",
+    "environmental_unknowns",
+    "control_boundary"
+  ],
+  "properties": {
+    "schema_version": { "const": "port-energy-compute-case/v1" },
+    "case_id": { "type": "string", "minLength": 1 },
+    "case_kind": {
+      "enum": ["screening", "synthetic", "measured", "modeled", "qualified"]
+    },
+    "as_of": { "type": "string", "format": "date" },
+    "site": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "country_code", "region", "latitude", "longitude"],
+      "properties": {
+        "name": { "type": "string", "minLength": 1 },
+        "country_code": { "type": "string", "pattern": "^[A-Z]{2}$" },
+        "region": { "type": "string" },
+        "latitude": { "type": ["number", "null"], "minimum": -90, "maximum": 90 },
+        "longitude": { "type": ["number", "null"], "minimum": -180, "maximum": 180 },
+        "coordinate_reference_system": { "type": ["string", "null"] }
+      }
+    },
+    "evidence_records": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["evidence_id", "claim", "evidence_class", "value", "unit", "source_url", "as_of", "applicability"],
+        "properties": {
+          "evidence_id": { "type": "string", "minLength": 1 },
+          "claim": { "type": "string", "minLength": 1 },
+          "evidence_class": {
+            "enum": ["measured", "official_reported", "screening_estimate", "tender_scope", "modeled", "synthetic_assumption", "unknown"]
+          },
+          "value": { "type": ["number", "string", "boolean", "null"] },
+          "unit": { "type": ["string", "null"] },
+          "source_url": { "type": ["string", "null"], "format": "uri" },
+          "as_of": { "type": ["string", "null"], "format": "date" },
+          "applicability": { "type": "string", "minLength": 1 },
+          "notes": { "type": "string" }
+        }
+      }
+    },
+    "assets": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["asset_id", "asset_class", "status", "rated_power_mw", "energy_capacity_mwh", "source_evidence_ids"],
+        "properties": {
+          "asset_id": { "type": "string", "minLength": 1 },
+          "asset_class": {
+            "enum": ["solar_pv", "wind", "wave", "tidal", "battery", "grid_intertie", "shore_power", "port_load", "compute", "water", "marine_sensor", "subsea_cable", "other"]
+          },
+          "status": {
+            "enum": ["measured_operational", "official_reported_operational", "awarded_not_commissioned", "tender_scope_not_verified", "planned", "synthetic", "unknown"]
+          },
+          "rated_power_mw": { "type": ["number", "null"], "minimum": 0 },
+          "energy_capacity_mwh": { "type": ["number", "null"], "minimum": 0 },
+          "source_evidence_ids": {
+            "type": "array",
+            "items": { "type": "string" },
+            "uniqueItems": true
+          },
+          "notes": { "type": "string" }
+        }
+      }
+    },
+    "grid": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["spare_capacity_estimate_mw", "estimate_status", "connection_risk", "verified_connection_offer"],
+      "properties": {
+        "spare_capacity_estimate_mw": { "type": ["number", "null"], "minimum": 0 },
+        "spare_capacity_source_evidence_id": { "type": ["string", "null"] },
+        "estimate_status": {
+          "enum": ["screening_estimate_not_offer", "utility_study", "formal_offer", "measured_operating_limit", "unknown"]
+        },
+        "connection_risk": { "enum": ["low_screening", "medium_screening", "high_screening", "unknown"] },
+        "verified_connection_offer": { "type": "boolean" },
+        "notes": { "type": "string" }
+      }
+    },
+    "workload": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["proposed_it_load_mw", "location_candidate", "workload_classes", "service_requirements_status"],
+      "properties": {
+        "proposed_it_load_mw": { "type": ["number", "null"], "minimum": 0 },
+        "location_candidate": { "enum": ["onshore_edge", "floating_nearshore", "subsea", "undecided"] },
+        "workload_classes": {
+          "type": "array",
+          "items": { "enum": ["batch_training", "inference", "scientific_hpc", "simulation", "rendering", "archive", "port_critical", "other"] }
+        },
+        "service_requirements_status": {
+          "enum": ["measured", "operator_supplied", "synthetic", "unknown"]
+        },
+        "notes": { "type": "string" }
+      }
+    },
+    "environmental_unknowns": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 },
+      "uniqueItems": true
+    },
+    "control_boundary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["mode", "autonomous_ot_write", "operator_approval_required"],
+      "properties": {
+        "mode": { "enum": ["read_only_shadow", "operator_advisory", "hardware_in_loop", "qualified_control"] },
+        "autonomous_ot_write": { "type": "boolean" },
+        "operator_approval_required": { "type": "boolean" }
+      }
+    }
+  }
+}
