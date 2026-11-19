@@ -819,7 +819,7 @@ fn validate_scope_boundary(root: &Value) -> Result<(), AuditError> {
 
     for (expected_owner, expected_reference) in REQUIRED_EXCLUDED_REFERENCES {
         match references.get(*expected_reference) {
-            Some(actual_owner) if actual_owner == expected_owner => {}
+            Some(actual_owner) if actual_owner.as_str() == *expected_owner => {}
             Some(actual_owner) => {
                 return Err(AuditError::new(
                     "$.scope_boundary.excluded_scopes",
