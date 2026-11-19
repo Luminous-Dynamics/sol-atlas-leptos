@@ -201,3 +201,16 @@ fn duplicate_json_object_keys_are_rejected_before_map_deserialization() {
         .expect_err("duplicate JSON object keys must fail closed");
     assert!(error.message.contains("duplicate object key"));
 }
+
+#[test]
+fn duplicate_nested_scenario_keys_are_rejected_recursively() {
+    let duplicate = FIXTURE.replacen(
+        "\"scenario_id\": \"COMPACT_HIGH_DENSITY\",",
+        "\"scenario_id\": \"COMPACT_HIGH_DENSITY\", \"scenario_id\": \"COMPACT_HIGH_DENSITY\",",
+        1,
+    );
+    assert_ne!(duplicate, FIXTURE);
+    let error = audit_manifest_bytes(duplicate.as_bytes())
+        .expect_err("duplicate nested scenario keys must fail closed");
+    assert!(error.message.contains("duplicate object key"));
+}
