@@ -201,6 +201,18 @@ Proposed TIB targets:
 - Add **evidence invalidation completeness** as a cross-system track: when a source is corrected, revoked or challenged, every transitive derived assertion and projection must be marked non-current, while unrelated branches remain unaffected. Preserve all independent causes and event lineage. Proposed targets: 0 omitted descendants, 0 stale projections left current, 0 unrelated false invalidations, 100% deterministic rebuild.
 - The Mycelix dependency graph is a rebuildable index over canonical evidence references, not a duplicate evidence ledger. Its 14 tests are structural/reference tests only; runtime propagation and delivery across products remain unimplemented.
 
+### Evidence-strength labels
+
+Every result packet now has an explicit `evidence_class`:
+- `implemented_and_executed` — exact code/system run or independently observed execution exists;
+- `structurally_checked` — schema, static validator or synthetic fixture check only;
+- `documented_capability` — a provider or standards-body source documents the capability;
+- `proposed_target` — a desired benchmark threshold or expected-case annotation, not a result;
+- `field_unverified` — requires field, community, practitioner, institutional or physical-world validation;
+- `not_evaluable` — required source, permission, ground truth or execution evidence is unavailable.
+
+The schema constrains expected-case annotations to `proposed_target` or `not_evaluable`. A planned test, queued CI, synthetic example or provider description must never be represented as an executed benchmark result. See [TIB FELA Implementation Matrix](../../docs/research/TIB_FELA_IMPLEMENTATION_MATRIX_V0_1.md) for the pathway-level evidence model.
+
 ## 7. Known limitations and release gates
 
 The current Sol Atlas validator checks record shape and selected internal references. It does not authenticate documents, verify signatures or issuer competence, resolve legal effect, validate CRS transformations, survey geometry, detect real-world overlap, prove consent, establish ecological recovery or guarantee completeness of a source frontier.
