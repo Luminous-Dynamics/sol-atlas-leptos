@@ -584,3 +584,56 @@ ASHRAE recommends using heat reuse where a viable external sink exists and track
 Sources: [ASHRAE AI data-centre energy and thermal efficiency](https://www.ashrae.org/technical-resources/topics-and-initiatives/ai-data-center/energy-and-thermal-efficiency); [ITU-T L.1328 (2025)](https://www.itu.int/rec/dologin_pub.asp?id=T-REC-L.1328-202509-I%21%21PDF-E&lang=e&type=items).
 
 New owner benchmark: [SUBSEA-COMPUTE-INDUSTRY-BENCH-001 #6280](https://github.com/Luminous-Dynamics/symtropy/issues/6280).
+
+
+## 19. South African port-city demand-response product qualification (19 November 2026)
+
+### 19.1 Local products have materially different response envelopes
+
+The port-city benchmark must distinguish actual South African programme terms rather than import generic flexibility assumptions.
+
+**Eskom Distribution Instantaneous Demand Response (IDR)** public programme page states:
+- minimum entry of 10 MW;
+- full load reduction within 6 seconds of notification;
+- sustain for 10 minutes;
+- up to three 10-minute events per day;
+- day-ahead scheduling and on-the-day frequency-triggered dispatch;
+- special metering requirements;
+- standby payment, no energy payment.
+
+Source: [Eskom IDR programme](https://www.eskom.co.za/distribution/instantaneous-demand-response-programme/).
+
+**SAWEM Market Code Rev 2.3 (February 2026)** defines Instantaneous Reserve as generation or demand-side managed load available to respond fully within 10 seconds to a frequency drop and sustain that response for at least 10 minutes. It includes day-ahead reserve and real-time dispatch provisions.
+
+Source: [NTCSA SAWEM Market Code Rev 2.3](https://www.ntcsa.co.za/wp-content/uploads/2026/02/Market-Code-v2.3.pdf).
+
+The Eskom six-second programme profile and the SAWEM ten-second definition are not the same product. Publication of the Market Code does not prove that an individual port or data centre is registered or eligible.
+
+**NTCSA Supplemental Demand Response** public page describes:
+- notice from 30 minutes to 6 hours;
+- minimum entry equal to the greater of 500 kW or 15% of average plant demand;
+- a minimum two-hour response, once per day under the published description;
+- 30-minute interval remote metering;
+- standby payment plus energy payment.
+
+Source: [NTCSA Supplemental DR programme](https://www.ntcsa.co.za/supplemental-demand-response-programme-2/).
+
+**NRS 048-9 Edition 3** concerns emergency load reduction and restoration. Mandatory emergency load reduction is distinct from voluntary/contracted demand response, and authority remains with the relevant System Operator/utility.
+
+Source: [NRS 048-9 Edition 3](https://www.kaya959.co.za/wp-content/uploads/2024/04/NERSA-Approved-Version-of-NRS-048-9-2023-Edition-3.pdf).
+
+### 19.2 Regulatory status must be time-qualified
+
+NERSA's September 2026 Electricity Regulation Projects Dashboard, last updated 15 September, listed approval of the Market Code as in finalisation with an end-October target and trading rules in consultation. That snapshot cannot establish whether the subsequent final regulatory decision occurred. NTCSA publishes Market Code Rev 2.3 dated February 2026, but project participation, registration, reserve qualification and current settlement/implementation status must be confirmed with NERSA/NTCSA/Eskom.
+
+Sources: [NERSA September 2026 regulatory tracker](https://www.nersa.org.za/files/files/2026/09/ELRStakeholderDashboard-September2026-Rev1-HighRes.pdf); [NTCSA Market Code publication page](https://www.ntcsa.co.za/energy-market-services/wholesale-market-code/).
+
+### 19.3 What this means for Ngqura and Durban
+
+- Ngqura's 17.1 MW estimated spare substation capacity is not 17.1 MW of flexible demand, contracted IDR or available response.
+- Durban's 3.6 MW estimate is not flexible demand or response capacity. It is below the published 10 MW IDR entry level for a single resource, but this does not rule in or out aggregation under programme-specific rules.
+- The supplemental programme's 500 kW / 15% threshold may be a more accessible starting point, but eligibility, baseline, metering, event response, aggregation and contractual terms need direct confirmation.
+- A 30-minute meter may meet the published supplemental programme prerequisite but cannot prove a six-second IDR response.
+- For every site, collect real metered baseline, participant and point-of-delivery IDs, special meter/telemetry specifications, response profile, sustain and recovery/rebound, event authority, call frequency, compensation and non-delivery rules.
+
+The source register and screening fixture now include four South African product categories and a paired-site applicability matrix. The fixture deliberately leaves actual site DR eligibility unknown pending direct operator evidence.
