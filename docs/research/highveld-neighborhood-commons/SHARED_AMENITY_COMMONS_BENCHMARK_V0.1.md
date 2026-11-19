@@ -214,3 +214,37 @@ These require a real site, consenting residents, measured cost/demand, independe
 ## 13. Claim ceiling
 
 This protocol and registry are design artifacts. They do not demonstrate that shared amenities are cheaper, legally owned, adequately funded, accessible, safe, resilient or preferred by residents. Synthetic cases do not establish physical performance. A hash proves artifact identity, not source truth. An approval receipt is scoped to its authority and artifact revision. All empirical and statutory claims require exact sources, local applicability review and evidence from the relevant project.
+
+
+### Additional 2026 benchmarks and local cost anchors (evidence classes kept separate)
+
+| Reference | Reported evidence | Correct use in our benchmark | What it does not prove |
+|---|---|---|---|
+| Singapore BCA PPVC guidance (updated 1 Oct 2026) | Up to 40% manpower/time savings depending on project complexity; up to 30% floor-cycle time reduction; typical reported project savings of 1–2 months, with some 4+ months. Its Brownstone case reports up to 4 months and 20% project-level manpower savings. | Reference for factory-built volumetric construction, crane/logistics, design-for-manufacture, and end-to-end labour/time accounting. | Not a guarantee for low-rise South African homes, not a shared-amenity saving, and not comparable unless baseline and full workflow boundaries match. |
+| Singapore HDB Construction Transformation Project (18 Sep 2026) | 25% site-productivity improvement against a projected 0.6 m²/man-day baseline, attributed to a package of advanced technologies and more productive methods. | Reference for programme-level site-productivity measurement; benchmark the package and its context, not one device. | Not an isolated technology effect or direct South African benchmark. |
+| Modular Buildings project dataset (ASCE, 9 Sep 2026) | Study analyses 491 modular projects (303 permanent, 188 relocatable) across multiple sectors; productivity is gross m²/day and patterns differ by building category and project size. | Use as an external dataset reference and require building-type/size stratification. | Gross area/day is not accepted dwelling-service output; the abstract says data may be available from authors on request. |
+| Modular 3D-printed housing techno-economic analysis (Journal of Cleaner Production, 14 Jan 2026) | A 120 m² Australian detached-home case models 20–30% lower upfront cost, 50–70% shorter construction time, 80–95% lower on-site labour, up to 40% lower material use and up to 55% lower embodied emissions versus a conventional modular baseline. Results are sensitive to scale and material prices. | A high-ambition scenario for matched techno-economic analysis and sensitivity to equipment utilization, material costs and project pipeline. | A modelled Australian case, not a South African project result, not proof of regulatory approval or measured in-service performance. |
+| South African DPWI 2026/27 Annual Performance Plan, citing Stats SA December 2025 data | Average completed-building costs reported at R7,698.03/m² for dwelling houses below 80 m²; R9,010.23/m² for houses 80 m² and above; R10,994.73/m² for flats/townhouses. Plan values differ from completed-building values. | A dated national macro sanity check for early costing; preserve size/type and plan-vs-completed distinction. Replace with project-specific, current QS estimates and actual invoices before investment decisions. | Not a quote, not Johannesburg-only, and not necessarily inclusive of land, bulk services, finance, professional fees, abnormal ground conditions, VAT, furnishing or lifecycle operation. |
+
+Sources:
+- BCA PPVC: https://www1.bca.gov.sg/growth-and-transformation/productivity/design-for-manufacturing-and-assembly-dfma/prefabricated-prefinished-volumetric-construction-ppvc/
+- HDB CTP: https://www.hdb.gov.sg/hdb-pulse/news/2026/advanced-construction-technologies-at-hdbs-first-ctp-helped-achieve-25-productivity-improvement
+- Hasan & Choi (2026), *Correlation between Size and Productivity for Modular Buildings*, Journal of Management in Engineering: https://doi.org/10.1061/JMENEA.MEENG-7605
+- Nguyen et al. (2026), *Techno-economic analysis of 3D printed modular housing: Productivity, cost, and environmental assessment*, Journal of Cleaner Production: https://doi.org/10.1016/j.jclepro.2025.147461
+- South African DPWI Annual Performance Plan 2026/27, pp. 54–55, Stats SA building-cost series: https://www.publicworks.gov.za/PDFs/documents/StrategicPlans/Annual_Performance_Plan-26_27.pdf
+
+### Candidate Luminous stretch targets (hypotheses to test, not forecasts)
+
+Only after we establish a matched local baseline, scope and acceptance protocol, use the following as ambitious pilot hypotheses:
+
+| Dimension | Candidate stretch objective | Qualification condition |
+|---|---|---|
+| Repeatable construction assemblies | At least 40% fewer on-site labour hours per independently accepted assembly than the matched local baseline | Include off-site labour, equipment, transport, lifting, setup, inspection, rework and commissioning in separate totals; do not hide displaced labour. |
+| Site programme | At least 30% shorter critical-path time for a selected repeatable work package | Same scope, weather/shift calendar, crew capability, access, crane/plant, quality and handover boundaries. |
+| Whole-life affordability | At least 15% lower fully burdened cost per equivalent dwelling-service-year or accepted amenity-service unit | Land, services, finance, staffing, utilities, maintenance, replacement, reserve, disruption and end-of-life are included or explicitly excluded. |
+| Quality and rework | At least 30% less rework labour/material per accepted output | Independent acceptance and defect taxonomy; no reduced inspection or acceptance threshold. |
+| Energy and water | At least 20% lower delivered energy and potable-water intensity for the same declared service | Same climate, occupancy and comfort/service floor; no credit for degraded performance. Water-source and use rights remain explicit. |
+| Shared amenity access | At least 95% of resident-authored priority service requests delivered within their agreed access/wait window | Report each cohort and service class separately; 100% of mandatory accessibility and life-safety requirements remain hard gates. |
+| Asset stewardship | 100% of major shared assets have current condition, renewal horizon, replacement-cost source, named operator and approved reserve policy | For sectional-title profiles, map the current statutory maintenance/repair/replacement requirements; do not generalize that regime to every tenure type. |
+
+These are deliberately demanding research targets. A project that fails to beat them may still be valuable, but we should not call it better than state of the art. Report confidence intervals, sensitivity, adverse cases and the full Pareto frontier. The appropriate comparator changes with housing type, site, density, climate, tenure and local supply chain.
