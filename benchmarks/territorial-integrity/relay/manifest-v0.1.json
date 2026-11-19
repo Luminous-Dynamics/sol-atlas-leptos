@@ -1,35 +1,40 @@
 {
   "schema": "luminous.cter.relay-benchmark.v0",
   "suite_id": "CTER-RELAY-CONVERGENCE-001",
-  "suite_version": "0.1.0",
+  "suite_version": "0.1.1",
   "status": "synthetic_reference_model",
   "created_at": "2026-11-19",
   "parent_issue": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/945",
   "parent_benchmark": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/937",
-  "purpose": "Evaluate append-only, conflict-preserving event convergence under replay, reordering, equivocation, verification failure, missing parents and causal cycles.",
-  "case_count": 14,
+  "purpose": "Evaluate relay convergence around the existing Mycelix-DeSci signed event stream under replay, reordering, equivocation, verification failure, missing predecessors, stream forks and cross-stream territorial conflicts.",
+  "case_count": 16,
   "claim_ceiling": "synthetic_convergence_semantics_only",
-  "verifier_boundary": "signature/key verification dispositions are externally supplied; this harness does not verify cryptography",
+  "canonical_event_owner": "Mycelix-DeSci ScientificEventEnvelope / SignedScientificEvent",
+  "event_hash_algorithm": "BLAKE3 ContentHash",
+  "external_source_hash_algorithm": "SHA-256 (Sol-Atlas source and record references; separate domain)",
+  "verifier_boundary": "signature/key verification and BLAKE3 event hashing are externally supplied; actor/authority authorization is separate and not evaluated by this harness",
   "excluded_claims": [
     "legal determination",
     "title validation",
     "community representation",
     "consent validity",
     "cryptographic authenticity",
+    "actor authority",
     "production transport interoperability",
     "field usability",
     "radio coverage",
     "energy consumption"
   ],
   "event_fields": [
-    "id",
-    "origin",
+    "event_id",
+    "stream_id",
     "sequence",
-    "parents",
-    "projection_key",
-    "envelope_sha256",
+    "previous_hash",
+    "event_hash",
+    "actor",
     "verification",
-    "visibility"
+    "projection_key",
+    "access_class"
   ],
   "verification_values": [
     "verified",
@@ -37,7 +42,7 @@
     "revoked",
     "unavailable"
   ],
-  "visibility_values": [
+  "access_class_values": [
     "public",
     "community",
     "restricted",
@@ -46,10 +51,10 @@
   "normative_properties": [
     "idempotent_replay",
     "preserve_equivocation",
-    "fail_closed_verification",
-    "pending_missing_parent",
-    "detect_origin_sequence_fork",
-    "preserve_concurrent_conflict",
+    "fail_closed_signature_verification",
+    "pending_missing_predecessor",
+    "detect_stream_sequence_fork",
+    "preserve_cross_stream_conflict",
     "append_only_correction",
     "deterministic_projection"
   ],

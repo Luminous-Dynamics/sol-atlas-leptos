@@ -3,6 +3,7 @@
 **Initiative:** Community Territorial Evidence Relays (CTER)  
 **Parent benchmark:** Territorial Integrity Benchmark (TIB), Sol-Atlas issue #937  
 **Implementation issue:** [CTER-RELAY-QUAL-001 #945](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/945)  
+**Implementation:** [Draft PR #946](https://github.com/Luminous-Dynamics/sol-atlas-leptos/pull/946)  
 **Status:** research contract + synthetic reference model; no production transport or field qualification claimed  
 **Date:** 19 November 2026
 
@@ -20,21 +21,21 @@ A relay is a courier and custodian of encrypted packages. It is not an adjudicat
 
 ### 2.1 From offline forms to partition-tolerant evidence networks
 
-Ordinary offline workflows usually focus on collecting data locally and synchronizing it later. CTER must specify what happens when two communities, a claimant and an objector, or several couriers independently create records while disconnected.
-
-The network must preserve concurrent events and expose the need for review. It must never silently pick a winner because one device synchronized last.
+Offline capture is an established capability. CTER must specify what happens when claimants, objectors, community groups and couriers create or carry records while disconnected. The network must preserve concurrent events and expose the need for review; it must not silently pick a winner because one device synchronized last.
 
 ### 2.2 From last-write-wins to contest-preserving convergence
 
-Use an append-only event set with explicit causal parent references. A deterministic projection may be rebuilt from the set, but competing assertions remain separate. Concurrent events affecting the same declared projection key produce a conflict set, not an automatic merge or legal priority.
+Use the existing Mycelix-DeSci signed event envelope and append-only stream as the canonical event wrapper. CTER must not create a second signed event format, hash chain, event ledger or global consensus layer.
 
-The event-set merge operation should be a deterministic set union over event identity and content digest. It should be commutative, associative and idempotent. Those algebraic properties make duplicate delivery and reordering safe at the evidence-envelope layer; they do not resolve the underlying dispute.
+Within a Mycelix claim stream, sequence numbers and `previous_hash` establish a single predecessor chain. Two verified events that claim the same `stream_id` and sequence are a fork and must be preserved/quarantined rather than resolved by arrival order. Separate streams that project onto the same territorial relationship can both be retained and surfaced as a conflict.
 
-### 2.3 From wall-clock ordering to causal evidence
+The relay's event-set merge is deterministic set union over event identity and signed-event hash. It must be commutative, associative and idempotent. Those algebraic properties make duplicate delivery and reordering safe at the envelope layer; they do not resolve the underlying dispute.
 
-Device clocks can drift, be reset, be deliberately changed or be unavailable. Wall-clock timestamps are useful observations with provenance and uncertainty; they are not a safe ordering primitive.
+### 2.3 From wall-clock ordering to stream causality
 
-Causality comes from explicit parent references and origin-scoped sequence evidence. A missing parent leaves the event pending. A timestamp does not fill the causal gap.
+The canonical Mycelix envelope includes `occurred_at`, but that is the signer's claimed time. A server-side `AppendReceipt.received_at` is a separate receipt time. Neither a device wall clock nor relay arrival order may replace `sequence` and `previous_hash` for event-chain causality.
+
+A missing predecessor hash leaves an event pending. A time claim cannot fill the gap. Relay custody times are separate observations and must retain the relay identity, clock source and uncertainty.
 
 ### 2.4 From "delivered" to typed receipts
 
@@ -43,30 +44,52 @@ Keep distinct receipts for:
 - **Local receipt:** the submitting device durably recorded an envelope.
 - **Custody receipt:** a relay accepted responsibility for carrying an identified package.
 - **Destination receipt:** a named destination received an identified package.
-- **Integrity receipt:** a verifier checked the exact bytes/digest under a named algorithm and build.
-- **Signature-verification result:** a named verifier evaluated an issuer signature and key status.
+- **Integrity receipt:** a verifier checked exact bytes/digests using a named algorithm and build.
+- **Signature-verification result:** the canonical Mycelix signed-event envelope passed or failed cryptographic verification.
+- **Authority decision:** an independent governance/authority service evaluated whether the actor was entitled to perform that specific action.
 - **Community attestation:** an authorized participant made a bounded assertion.
 - **Institutional determination:** a competent institution recorded a decision under applicable law.
 
-No earlier receipt implies a later one. In particular, transport delivery is not authenticity, truth, community endorsement, consent, legal effect or registration.
+No earlier receipt implies a later one. In particular, transport delivery is not authenticity, truth, community endorsement, consent, actor authority, legal effect or registration.
 
 ### 2.5 From public maps to purpose-bound disclosure
 
-Confidentiality classification travels with the envelope and its package. A courier may be allowed to carry a sealed object without being allowed to inspect it. An authorization to read a generalized map does not authorize bulk export of household points, testimony, sacred locations or active disputes.
+The relay must enforce the access policy associated with each payload/artifact, not trust a label supplied by an untrusted courier. A courier may be allowed to carry a sealed object without being allowed to inspect it. An authorization to read a generalized map does not authorize bulk export of household points, testimony, sacred locations or active disputes.
 
-Public, community-controlled, restricted and culturally protected data must be separated at both the user interface and export boundary. Sensitive coordinates should not leak through logs, map tiles, search indexes, thumbnails, prompts or benchmark artifacts.
+The CTER benchmark uses disclosure classes `public`, `community`, `restricted` and `culturally_protected` as policy annotations. These are not new Mycelix event-envelope fields. They must resolve to the owning artifact/consent/access policy. Mycelix's existing `ArtifactAvailability` states (`Public`, `Controlled`, `Embargoed`, `Unavailable`) remain distinct and must not be silently conflated with community disclosure categories.
 
 ### 2.6 From a central online service to community-operable infrastructure
 
-A community should be able to operate a local node without calling a Luminous-hosted endpoint. Devices should support local backup, export and recovery. Interoperability must not require a single central database or a token economy.
+A community should be able to operate a local node without calling a Luminous-hosted endpoint. Devices should support local backup, export and recovery. Interoperability must not require a single central database or token economy.
 
-## 3. Protocol layers and ownership
+## 3. Existing canonical event owner and cross-system boundaries
+
+### Mycelix owns the signed event envelope
+
+The public Mycelix-DeSci implementation already defines `ScientificEventEnvelope` and `SignedScientificEvent`:
+
+- `event_id`: UUID-backed event identity;
+- `stream_id`: claim-specific stream identity;
+- `sequence`: sequence within that stream;
+- `previous_hash`: optional hash of the immediately preceding signed event;
+- `actor` and optional `acting_organization`;
+- `occurred_at`, idempotency key and typed payload;
+- versioned canonical codec and Ed25519 signature;
+- `event_hash()`: BLAKE3 `ContentHash` over the signed event.
+
+The envelope validator already requires genesis events to have no previous hash and non-genesis events to carry one. The event-log API returns a separate append receipt including stream, sequence, event ID, event hash and server `received_at`.
+
+Signature verification proves integrity of the signed envelope. Mycelix explicitly keeps actor/key authorization as a separate governed append concern. CTER must preserve this distinction.
+
+**Digest firewall:** Mycelix event-chain `ContentHash` is BLAKE3. Sol-Atlas external source/record references use SHA-256 in the territorial profile. Both are 32-byte/64-hex digests but they have different domains and meanings. Never substitute one for the other, infer one from the other, or label an algorithm-less hash string as an interchangeable digest.
+
+### System ownership
 
 | Layer | Owner | Responsibility | Explicit non-responsibility |
 |---|---|---|---|
 | Territorial semantics | Sol-Atlas | LADM-aligned rights, responsibilities, restrictions, spatial/temporal references and source lineage | Does not adjudicate a claim |
-| Evidence identity and authority | Mycelix | Issuer identity, scoped authority, consent, revocation and attestations | Does not turn DHT consensus into legal registration |
-| Relay convergence | CTER profile | Envelopes, causal parents, merge, replay handling, custody receipts and offline reconciliation | Does not decide legal priority |
+| Signed event identity and authority | Mycelix | Canonical signed envelope, stream chain, actor identity, consent, authority, revocation and attestations | Does not turn DHT consensus into legal registration |
+| Relay convergence | CTER profile | Store-carry-forward, custody receipts, replay handling, partition reconciliation and access-policy enforcement | Does not decide legal priority |
 | Evidence reasoning | Symthaea | Read-only synthesis, contradictions, uncertainty, source citations and abstention | Does not create or approve a right |
 | Environmental observations | Symtropy | Read-only, snapshot-consistent physical/ecological observations and model outputs | A model output is not a measured outcome |
 | Geospatial container | OGC GeoPackage | Portable offline feature/raster/tabular packages | A GeoPackage is not an access-control or legal model |
@@ -74,63 +97,67 @@ A community should be able to operate a local node without calling a Luminous-ho
 
 ### Transport decision
 
-Do not invent a radio protocol or proprietary store-and-forward transport. Evaluate the IETF Bundle Protocol v7 (RFC 9171) as a transport candidate and its Bundle Protocol Security specification (BPSec, RFC 9172) for bundle-level integrity/confidentiality where appropriate. Before implementation, check current RFC updates and select an actual interoperable implementation. Also benchmark simpler HTTPS synchronization and encrypted removable-media exchange.
+Do not invent a radio protocol or proprietary store-and-forward transport. Evaluate IETF Bundle Protocol v7 (RFC 9171) as a transport candidate and BPSec (RFC 9172) for bundle-level integrity/confidentiality where appropriate. Before implementation, check current RFC updates and select an interoperable implementation. Also benchmark simpler HTTPS synchronization and encrypted removable-media exchange.
 
-The v0.1 Rust reference model does not implement BPv7, BPSec, cryptography, key storage or radio communications. It models evidence-event convergence after a separate verifier has supplied a verification disposition.
+The v0.1 Rust reference model does not implement BPv7, BPSec, cryptography, key storage or radio communications. It models relay-side convergence of Mycelix-shaped event references after a separate verifier has supplied a signature/key disposition and canonical BLAKE3 event hash.
 
-## 4. Event envelope minimum
+## 4. Relay benchmark adapter fields
 
-The first reference profile uses these fields:
+The benchmark adapter reads these canonical event fields from Mycelix:
 
 | Field | Meaning |
 |---|---|
-| `event_id` | Stable identity for one event |
-| `origin_id` | Originating device or actor namespace |
-| `origin_sequence` | Monotonic sequence within that origin namespace; not a trusted global clock |
-| `parents[]` | Explicit causal parent event IDs |
-| `projection_key` | Declared derived-view key used to detect concurrent edits; never an ownership key |
-| `envelope_sha256` | Digest of the canonical complete envelope |
-| `verification` | Result supplied by an independently identified signature/key verifier |
-| `visibility` | `public`, `community`, `restricted` or `culturally_protected` |
+| `event_id` | Stable UUID event identity |
+| `stream_id` | Claim-specific stream |
+| `sequence` | Sequence within the claim stream |
+| `previous_hash` | BLAKE3 hash of the prior signed event; absent only for genesis |
+| `event_hash` | BLAKE3 hash of the signed canonical event, supplied by the independent Mycelix verifier |
+| `actor` | Canonical event actor identity |
+| `verification` | External result: `verified`, `invalid`, `revoked`, or `unavailable` |
 
-The canonicalization profile, hash algorithm, signature suites, key lifecycle, trusted timestamp model and authorization policy require separate versioned contracts. The reference crate validates the supplied digest's shape but does not recompute it or authenticate a signature.
+The test corpus additionally carries:
+- `projection_key`: benchmark-only key describing which derived territorial view an event may affect; it is not an ownership key or canonical envelope field.
+- `access_class`: CTER policy annotation resolved against the owning Mycelix artifact/consent policy; it is not a substitute for authorization.
 
-Raw evidence blobs are encrypted and stored outside the transport receipt. Public audit records should contain only the minimum references and commitments needed for verification.
+The reference crate checks digest shape, identity collisions, stream sequence and hash-link consistency. It does not recompute BLAKE3, parse Ed25519 signatures, verify actor-to-key binding, check authority, resolve consent or enforce confidentiality. A passing structural result is not an authorization.
 
 ## 5. Normative convergence behavior for v0.1
 
-1. An exact replay of the same `event_id` and canonical envelope is idempotent.
-2. The same event ID paired with different content digests is equivocation. Keep both variants in quarantine; accept neither as the unique event.
-3. Invalid or revoked signatures are never accepted.
-4. Unavailable verification is pending, not accepted.
-5. A missing parent is pending. It may be reconsidered when the parent later arrives.
-6. A child of an invalid, revoked, unavailable, forked or equivocated parent is blocked pending review.
-7. Two verified events from the same origin reusing one origin sequence are an origin-sequence fork. Preserve both, accept neither automatically.
-8. A causal cycle is quarantined.
-9. Verified concurrent events sharing a projection key are both preserved as evidence and reported as a conflict pair.
-10. A causally ordered correction is a new event; the prior event remains in history.
-11. No deterministic display sort, timestamp or relay count may be interpreted as legal priority.
-12. Rebuilding the same projection from the same normalized event set and profile version must produce the same result.
+1. An exact replay of the same `event_id` and `event_hash` is idempotent.
+2. The same event ID paired with different event hashes or different canonical envelope content is equivocation. Keep every variant in quarantine; accept none as the unique event.
+3. Reuse of a BLAKE3 event hash under different event IDs is an integrity collision and must be quarantined.
+4. Invalid or revoked signatures are never accepted. Unavailable verification remains pending, not accepted.
+5. Two verified events claiming the same `stream_id` and `sequence` are a stream fork. Preserve both; do not choose by arrival time.
+6. A missing `previous_hash` predecessor leaves the event pending. It may be reconsidered when the predecessor arrives.
+7. A child of an invalid, revoked, unavailable, equivocated or forked predecessor is blocked pending review.
+8. A predecessor must belong to the same stream and have sequence exactly one less than the child. Cross-stream or wrong-sequence links are blocked.
+9. Genesis sequence zero has no previous hash; non-genesis events must have a previous hash.
+10. Concurrent accepted events from different streams that affect the same declared projection key are both preserved and reported as a conflict pair.
+11. Corrections append new signed events; they do not erase the earlier event or the fact it was received.
+12. No deterministic display sort, timestamp or relay count may be interpreted as legal priority.
+13. Rebuilding the same projection from the same normalized event set and profile version must produce the same result.
 
-The reference model's `accepted_events` means only structurally eligible for evidence preservation under the supplied verifier dispositions. It does not establish truth, authenticity of the verifier, lawfulness, representativeness, consent or legal effect.
+The reference model's `accepted_events` means only structurally eligible for evidence preservation under the supplied signature/key dispositions and chain links. It does not establish truth, signer authority, community mandate, consent, representativeness or legal effect.
 
 ## 6. Threat model and failure injection
 
 | Threat/failure | Required behavior |
 |---|---|
-| Lost, duplicated, reordered or delayed package | No silent loss; duplicates idempotent; late parents unblock pending events |
+| Lost, duplicated, reordered or delayed package | No silent loss; duplicates idempotent; late predecessor unblocks pending events |
 | Malicious courier | Cannot read restricted payloads or alter accepted content without detection at the receiving verifier |
-| Compromised/stolen device | Revoke/rotate its future signing authority; preserve earlier receipt history and mark the applicable time uncertainty |
-| Same event ID, different content | Quarantine all variants as equivocation |
-| Origin sequence reused | Preserve and surface fork; do not choose first/last |
-| Clock skew or rollback | Preserve clock observation and uncertainty; do not use it for causal ordering |
-| False or unavailable signature verification | Invalid/revoked never accepted; unknown/unavailable remains pending |
-| Relay data loss | Recovery from independent copies and verifiable manifests; missing frontier is explicit |
+| Compromised/stolen device | Revoke/rotate future signing authority; preserve prior receipts and mark time uncertainty |
+| Same event ID, different event hash | Quarantine all variants as equivocation |
+| Same stream/sequence reused | Preserve and surface fork; do not choose first/last |
+| Same event hash under different event IDs | Quarantine as integrity collision |
+| Clock skew or rollback | Preserve clock observation and uncertainty; do not use it for chain causality |
+| False/unavailable signature verification | Invalid/revoked never accepted; unavailable remains pending |
+| Valid signature, unauthorized actor | Integrity may pass; action authority must remain a separate fail-closed check |
+| Relay data loss | Recovery from independent copies and verifiable manifests; missing frontier explicit |
 | Visibility downgrade | Reject export/delivery to a destination whose authorization does not cover the payload |
 | Bulk export or inference | Rate limits, scoped export receipts, minimization and leakage tests |
 | Device power loss mid-write | Transactional durability and recovery without partial promotion |
 | Conflicting community representations | Preserve competing mandates and decision records; do not use popularity/reputation to settle authority |
-| Key rotation and revocation during partition | Existing events retain historical verification context; new signatures require current policy; ambiguous effective time is quarantined |
+| Key rotation/revocation during partition | Preserve historical verification context; new signatures require current policy; ambiguous effective time is quarantined |
 | Bundle expiry/TTL | Transport expiry may stop carriage; it does not expire or extinguish the underlying claim |
 
 ## 7. Benchmark programme
@@ -138,12 +165,15 @@ The reference model's `accepted_events` means only structurally eligible for evi
 ### TIB-RELAY-A — convergence correctness
 - Exact duplicate delivery.
 - Duplicate plus reordered batches.
-- Same event ID / different digest.
-- Origin sequence fork.
-- Parent missing, then arriving.
-- Conflicting concurrent claims.
-- Causal correction chain.
-- Cycles and blocked descendants.
+- Same event ID / different event hash.
+- Same BLAKE3 event hash / different event IDs.
+- Same stream/sequence fork.
+- Missing predecessor, then late arrival.
+- Invalid, revoked and unavailable signature result.
+- Child linked to invalid parent.
+- Wrong stream or wrong predecessor sequence.
+- Concurrent streams projecting onto the same territorial relationship.
+- Causally ordered correction in one stream.
 
 ### TIB-RELAY-B — hostile transport
 - Bit-flipped payload.
@@ -151,7 +181,7 @@ The reference model's `accepted_events` means only structurally eligible for evi
 - Replayed valid old event.
 - Unknown/revoked key.
 - Compromised relay with valid custody identity but no content authority.
-- Downgrade of visibility classification.
+- Downgrade of disclosure class.
 - Package truncation and interrupted write.
 - Malformed manifest and oversized payload.
 
@@ -167,9 +197,9 @@ The reference model's `accepted_events` means only structurally eligible for evi
 - Household-coordinate leakage through exports/logs/indexes.
 - Culturally protected feature accidentally generalized or exposed.
 - Purpose mismatch and revoked publication consent.
-- A participant's withdrawal request while downstream copies exist.
-- Dissent submitted without the local leader's permission.
-- Receipt retrieval without revealing the witness's identity to a courier.
+- Participant withdrawal while downstream copies exist.
+- Dissent submitted without local-leader permission.
+- Receipt retrieval without revealing witness identity to a courier.
 
 ### Metrics and targets
 
@@ -179,14 +209,15 @@ The reference model's `accepted_events` means only structurally eligible for evi
 | Silent overwrite / automatic legal-priority selection | 0 |
 | Exact replay idempotence | 100% |
 | False acceptance of invalid, revoked or unavailable verification | 0 |
-| Equivocation/fork detection on frozen cases | 100% |
+| Event-ID equivocation and hash-collision detection | 100% on frozen cases |
+| Stream/sequence fork detection | 100% on frozen cases |
 | Preservation of active conflict records | 100% |
 | Deterministic replay of same normalized event set | 100% |
 | Independent reference-oracle agreement | 100% on frozen cases |
 | Unauthorized restricted-data disclosures in adversarial corpus | 0 |
 | 30-day disconnection with full local submission/receipt workflow | Demonstrate, then publish observed completion and recovery |
-| p50/p95/p99 receipt latency, sync convergence time, bytes/event, energy/event, storage growth | Measure on declared devices/network schedules; no invented target until baseline |
-| Community task success, comprehension and perceived control | Co-designed field study; do not infer from synthetic tests |
+| p50/p95/p99 receipt latency, sync convergence time, bytes/event, energy/event, storage growth | Measure on declared devices/network schedules; set targets only after baseline |
+| Community task success, comprehension and perceived control | Co-designed field study; never infer from synthetic tests |
 
 Do not collapse the metrics into a single score. Report each failure mode, false positive, abstention, hardware, network trace, payload size, software version and excluded case.
 
@@ -194,38 +225,38 @@ Do not collapse the metrics into a single score. Report each failure mode, false
 
 | Comparator | Documented strength | CTER comparison rule |
 |---|---|---|
-| FAO Open Tenure / Community Server | Offline mobile capture, encrypted local DB, ten-language support, participatory validation, disputes and sync | Do not claim these are novel; test cross-relay merge/fork/replay/causal-gap guarantees with matched fixtures |
-| Cadasta Platform | Offline-ready GIS collection, secure cloud storage, role-based sharing, integration with national systems and community data protocols | Do not imply lack of offline or sovereignty features; distinguish product-documentation comparison from hands-on benchmarking |
+| FAO Open Tenure / Community Server | Offline mobile capture, encrypted local DB, multilingual support, participatory validation, disputes and sync | Do not claim these are novel; test stream-fork/replay/chain-gap guarantees with matched fixtures |
+| Cadasta Platform | Offline-ready GIS collection, secure cloud storage, role-based sharing, integration with national systems and community data protocols | Do not imply lack of offline or sovereignty features; distinguish documented capability from hands-on measurement |
 | OGC GeoPackage | Portable SQLite-based vector/raster/tabular geospatial container usable on mobile with limited connectivity | Reuse as a spatial data container; benchmark read/write/copy cost and integrity, not as a land-rights protocol |
-| LADM ISO 19152-1:2024 | Shared model for parties, BAUnits, RRRs, spatial units, sources and versioned objects | Map CTER envelopes to LADM identities; preserve jurisdictional extensions and unmapped concepts |
-| BPv7 / BPSec | Standardized store-carry-forward transport and bundle-level security building blocks | Reuse/implement interoperably where feasible; CTER adds land-evidence semantics above transport |
+| LADM ISO 19152-1:2024 | Shared model for parties, BAUnits, RRRs, spatial units, sources and versioned objects | Map CTER payloads to LADM identities; preserve jurisdictional extensions and unmapped concepts |
+| BPv7 / BPSec | Standardized store-carry-forward transport and bundle-level security building blocks | Reuse/implement interoperably where feasible; CTER adds land-evidence relay policy above transport |
+| Mycelix-DeSci Scientific Events | Canonical signed event envelope, per-claim stream, BLAKE3 hash chain, idempotency and append receipts | Reuse as the event system; benchmark relay convergence around it, not against a competing ledger |
 
-Hands-on superiority claims require access to comparable versions and environments. If a product cannot be run or the user population differs, report a documented-capability comparison, not a measured score.
+Hands-on superiority claims require comparable versions and environments. If a product cannot be run or the user population differs, report a documented-capability comparison, not a measured score.
 
 ## 9. Implementation sequence
 
-1. Freeze the event-envelope profile and synthetic corpus.
-2. Build the standalone Rust reference convergence model.
-3. Run a second-language independent oracle against the exact corpus.
-4. Add exact-commit CI for the standalone crate; queued/skipped is not pass.
+1. Reuse the Mycelix canonical signed envelope and document the exact adapter mapping.
+2. Freeze the relay convergence profile and synthetic corpus.
+3. Run an independent second-language oracle against the exact corpus.
+4. Add exact-commit CI for the standalone reference package; queued/skipped is not pass.
 5. Extend the existing TIB report with operational measures and a matched Open Tenure/Cadasta comparator plan.
 6. Prototype a local relay using commodity Android/Linux devices and an encrypted local store.
-7. Evaluate BPv7/BPSec implementations against HTTPS and removable media on identical traces.
-8. Add Mycelix key/authority/consent adapters only after their owner contracts pass.
+7. Evaluate BPv7/BPSec implementations against HTTPS and removable media on identical network traces.
+8. Add Mycelix authority/consent adapters only after their owner contracts pass.
 9. Integrate Sol-Atlas GeoPackage/source lineage, then read-only Symthaea review and Symtropy observation context.
 10. Begin a community pilot only with a willing partner, legal review, data-governance charter, threat model, consent process and accessible remedy pathway.
 
 ## 10. Non-claims
 
-This v0.1 work is not a production relay, deployed mesh, validated radio design, cryptographic implementation, legal register, cadastral survey, field study, ecological certification or proof of SOTA performance. Synthetic fixture agreement is a conformance result only. It does not prove that a community has consented, that a right exists, or that a land dispute has been resolved.
+This v0.1 work is not a production relay, deployed mesh, validated radio design, cryptographic implementation, legal register, cadastral survey, field study, ecological certification or proof of SOTA performance. Synthetic fixture agreement is a conformance result only. It does not prove that a community consented, that a right exists, or that a land dispute has been resolved.
 
 ## References
 
 - [FAO Open Tenure / Community Tenure Recording](https://www.fao.org/tenure/resources/toolbox/sola/community-tenure-recording/en)
 - [Cadasta Platform](https://cadasta.org/technology/)
+- [Mycelix-DeSci Scientific Event Kernel](https://github.com/Luminous-Dynamics/mycelix/blob/research/land-rrr-interop-v0-1/mycelix-desci/src/core/src/scientific_events.rs)
 - [IETF RFC 9171 — Bundle Protocol v7](https://www.rfc-editor.org/rfc/rfc9171.html)
 - [IETF RFC 9172 — Bundle Protocol Security](https://www.rfc-editor.org/rfc/rfc9172.html)
 - [OGC GeoPackage](https://www.ogc.org/standards/geopackage/)
 - [ISO 19152-1:2024 — LADM Part 1](https://www.iso.org/standard/81263.html)
-- [W3C Verifiable Credentials Data Model 2.0](https://www.w3.org/TR/vc-data-model-2.0/)
-- [UN-GGIM Framework for Effective Land Administration](https://ggim.un.org/UNGGIM-publications/)

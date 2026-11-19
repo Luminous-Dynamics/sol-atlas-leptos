@@ -1,7 +1,7 @@
 {
   "schema": "luminous.cter.relay-cases.v0",
   "suite_id": "CTER-RELAY-CONVERGENCE-001",
-  "suite_version": "0.1.0",
+  "suite_version": "0.1.1",
   "synthetic_only": true,
   "cases": [
     {
@@ -9,24 +9,26 @@
       "title": "Exact duplicate delivery is idempotent",
       "events": [
         {
-          "id": "e1",
-          "origin": "node-a",
-          "sequence": 1,
-          "parents": [],
+          "event_id": "e1",
+          "stream_id": "stream-a",
+          "sequence": 0,
+          "previous_hash": null,
+          "event_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "actor": "actor-a",
           "projection_key": "claim:x",
-          "envelope_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
           "verification": "verified",
-          "visibility": "restricted"
+          "access_class": "restricted"
         },
         {
-          "id": "e1",
-          "origin": "node-a",
-          "sequence": 1,
-          "parents": [],
+          "event_id": "e1",
+          "stream_id": "stream-a",
+          "sequence": 0,
+          "previous_hash": null,
+          "event_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "actor": "actor-a",
           "projection_key": "claim:x",
-          "envelope_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
           "verification": "verified",
-          "visibility": "restricted"
+          "access_class": "restricted"
         }
       ],
       "expected": {
@@ -42,33 +44,35 @@
         "blocked_parent_events": [],
         "equivocation_event_ids": [],
         "sequence_fork_event_ids": [],
-        "causal_cycle_events": [],
+        "hash_collision_event_ids": [],
         "conflict_pairs": []
       }
     },
     {
       "case_id": "EQUIVOCATION-001",
-      "title": "Same event ID with different envelope digests is quarantined",
+      "title": "Same event ID with different signed-event hashes is quarantined",
       "events": [
         {
-          "id": "e1",
-          "origin": "node-a",
-          "sequence": 1,
-          "parents": [],
+          "event_id": "e1",
+          "stream_id": "stream-a",
+          "sequence": 0,
+          "previous_hash": null,
+          "event_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "actor": "actor-a",
           "projection_key": "claim:x",
-          "envelope_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
           "verification": "verified",
-          "visibility": "restricted"
+          "access_class": "restricted"
         },
         {
-          "id": "e1",
-          "origin": "node-a",
-          "sequence": 1,
-          "parents": [],
+          "event_id": "e1",
+          "stream_id": "stream-a",
+          "sequence": 0,
+          "previous_hash": null,
+          "event_hash": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "actor": "actor-a",
           "projection_key": "claim:x",
-          "envelope_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
           "verification": "verified",
-          "visibility": "restricted"
+          "access_class": "restricted"
         }
       ],
       "expected": {
@@ -84,25 +88,24 @@
           "e1"
         ],
         "sequence_fork_event_ids": [],
-        "causal_cycle_events": [],
+        "hash_collision_event_ids": [],
         "conflict_pairs": []
       }
     },
     {
       "case_id": "PARENT-GAP-001",
-      "title": "Missing causal parent leaves the child pending",
+      "title": "Missing previous-hash predecessor leaves the event pending",
       "events": [
         {
-          "id": "e2",
-          "origin": "node-a",
-          "sequence": 2,
-          "parents": [
-            "e1"
-          ],
+          "event_id": "e2",
+          "stream_id": "stream-a",
+          "sequence": 1,
+          "previous_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "event_hash": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "actor": "actor-a",
           "projection_key": "claim:x",
-          "envelope_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
           "verification": "verified",
-          "visibility": "restricted"
+          "access_class": "restricted"
         }
       ],
       "expected": {
@@ -118,35 +121,35 @@
         "blocked_parent_events": [],
         "equivocation_event_ids": [],
         "sequence_fork_event_ids": [],
-        "causal_cycle_events": [],
+        "hash_collision_event_ids": [],
         "conflict_pairs": []
       }
     },
     {
       "case_id": "REORDER-001",
-      "title": "Child delivered before parent is accepted after batch reconciliation",
+      "title": "Child delivered before predecessor is accepted after batch reconciliation",
       "events": [
         {
-          "id": "e2",
-          "origin": "node-a",
-          "sequence": 2,
-          "parents": [
-            "e1"
-          ],
+          "event_id": "e2",
+          "stream_id": "stream-a",
+          "sequence": 1,
+          "previous_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "event_hash": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "actor": "actor-a",
           "projection_key": "claim:x",
-          "envelope_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
           "verification": "verified",
-          "visibility": "restricted"
+          "access_class": "restricted"
         },
         {
-          "id": "e1",
-          "origin": "node-a",
-          "sequence": 1,
-          "parents": [],
+          "event_id": "e1",
+          "stream_id": "stream-a",
+          "sequence": 0,
+          "previous_hash": null,
+          "event_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "actor": "actor-a",
           "projection_key": "claim:x",
-          "envelope_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
           "verification": "verified",
-          "visibility": "restricted"
+          "access_class": "restricted"
         }
       ],
       "expected": {
@@ -163,7 +166,7 @@
         "blocked_parent_events": [],
         "equivocation_event_ids": [],
         "sequence_fork_event_ids": [],
-        "causal_cycle_events": [],
+        "hash_collision_event_ids": [],
         "conflict_pairs": []
       }
     },
@@ -172,14 +175,15 @@
       "title": "Invalid signature is not accepted",
       "events": [
         {
-          "id": "e1",
-          "origin": "node-a",
-          "sequence": 1,
-          "parents": [],
+          "event_id": "e1",
+          "stream_id": "stream-a",
+          "sequence": 0,
+          "previous_hash": null,
+          "event_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "actor": "actor-a",
           "projection_key": "claim:x",
-          "envelope_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
           "verification": "invalid",
-          "visibility": "restricted"
+          "access_class": "restricted"
         }
       ],
       "expected": {
@@ -195,7 +199,7 @@
         "blocked_parent_events": [],
         "equivocation_event_ids": [],
         "sequence_fork_event_ids": [],
-        "causal_cycle_events": [],
+        "hash_collision_event_ids": [],
         "conflict_pairs": []
       }
     },
@@ -204,14 +208,15 @@
       "title": "Unavailable verifier remains pending",
       "events": [
         {
-          "id": "e1",
-          "origin": "node-a",
-          "sequence": 1,
-          "parents": [],
+          "event_id": "e1",
+          "stream_id": "stream-a",
+          "sequence": 0,
+          "previous_hash": null,
+          "event_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "actor": "actor-a",
           "projection_key": "claim:x",
-          "envelope_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
           "verification": "unavailable",
-          "visibility": "restricted"
+          "access_class": "restricted"
         }
       ],
       "expected": {
@@ -227,7 +232,7 @@
         "blocked_parent_events": [],
         "equivocation_event_ids": [],
         "sequence_fork_event_ids": [],
-        "causal_cycle_events": [],
+        "hash_collision_event_ids": [],
         "conflict_pairs": []
       }
     },
@@ -236,14 +241,15 @@
       "title": "Revoked signer key is not accepted",
       "events": [
         {
-          "id": "e1",
-          "origin": "node-a",
-          "sequence": 1,
-          "parents": [],
+          "event_id": "e1",
+          "stream_id": "stream-a",
+          "sequence": 0,
+          "previous_hash": null,
+          "event_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "actor": "actor-a",
           "projection_key": "claim:x",
-          "envelope_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
           "verification": "revoked",
-          "visibility": "restricted"
+          "access_class": "restricted"
         }
       ],
       "expected": {
@@ -259,37 +265,52 @@
         "blocked_parent_events": [],
         "equivocation_event_ids": [],
         "sequence_fork_event_ids": [],
-        "causal_cycle_events": [],
+        "hash_collision_event_ids": [],
         "conflict_pairs": []
       }
     },
     {
-      "case_id": "SEQUENCE-FORK-001",
-      "title": "Origin sequence reuse quarantines both verified events",
+      "case_id": "STREAM-FORK-001",
+      "title": "Same stream and sequence with two verified events is a fork",
       "events": [
         {
-          "id": "e1",
-          "origin": "node-a",
-          "sequence": 4,
-          "parents": [],
+          "event_id": "e0",
+          "stream_id": "stream-a",
+          "sequence": 0,
+          "previous_hash": null,
+          "event_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "actor": "actor-a",
           "projection_key": "claim:x",
-          "envelope_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
           "verification": "verified",
-          "visibility": "restricted"
+          "access_class": "restricted"
         },
         {
-          "id": "e2",
-          "origin": "node-a",
-          "sequence": 4,
-          "parents": [],
+          "event_id": "e1",
+          "stream_id": "stream-a",
+          "sequence": 1,
+          "previous_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "event_hash": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "actor": "actor-a",
           "projection_key": "claim:x",
-          "envelope_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
           "verification": "verified",
-          "visibility": "restricted"
+          "access_class": "restricted"
+        },
+        {
+          "event_id": "e2",
+          "stream_id": "stream-a",
+          "sequence": 1,
+          "previous_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "event_hash": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "actor": "actor-b",
+          "projection_key": "claim:x",
+          "verification": "verified",
+          "access_class": "restricted"
         }
       ],
       "expected": {
-        "accepted_events": [],
+        "accepted_events": [
+          "e0"
+        ],
         "duplicate_replays": 0,
         "invalid_signatures": [],
         "revoked_keys": [],
@@ -302,33 +323,35 @@
           "e1",
           "e2"
         ],
-        "causal_cycle_events": [],
+        "hash_collision_event_ids": [],
         "conflict_pairs": []
       }
     },
     {
       "case_id": "CONCURRENT-CONFLICT-001",
-      "title": "Concurrent submissions are preserved and flagged, never last-write-wins",
+      "title": "Concurrent streams affecting the same projection are preserved and flagged",
       "events": [
         {
-          "id": "e1",
-          "origin": "node-a",
-          "sequence": 1,
-          "parents": [],
+          "event_id": "e1",
+          "stream_id": "stream-a",
+          "sequence": 0,
+          "previous_hash": null,
+          "event_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "actor": "actor-a",
           "projection_key": "claim:x",
-          "envelope_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
           "verification": "verified",
-          "visibility": "restricted"
+          "access_class": "restricted"
         },
         {
-          "id": "e2",
-          "origin": "node-b",
-          "sequence": 1,
-          "parents": [],
+          "event_id": "e2",
+          "stream_id": "stream-b",
+          "sequence": 0,
+          "previous_hash": null,
+          "event_hash": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "actor": "actor-b",
           "projection_key": "claim:x",
-          "envelope_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
           "verification": "verified",
-          "visibility": "restricted"
+          "access_class": "restricted"
         }
       ],
       "expected": {
@@ -345,7 +368,7 @@
         "blocked_parent_events": [],
         "equivocation_event_ids": [],
         "sequence_fork_event_ids": [],
-        "causal_cycle_events": [],
+        "hash_collision_event_ids": [],
         "conflict_pairs": [
           [
             "e1",
@@ -359,26 +382,26 @@
       "title": "Causally linked correction retains history without false conflict",
       "events": [
         {
-          "id": "e1",
-          "origin": "node-a",
-          "sequence": 1,
-          "parents": [],
+          "event_id": "e1",
+          "stream_id": "stream-a",
+          "sequence": 0,
+          "previous_hash": null,
+          "event_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "actor": "actor-a",
           "projection_key": "claim:x",
-          "envelope_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
           "verification": "verified",
-          "visibility": "restricted"
+          "access_class": "restricted"
         },
         {
-          "id": "e2",
-          "origin": "node-a",
-          "sequence": 2,
-          "parents": [
-            "e1"
-          ],
+          "event_id": "e2",
+          "stream_id": "stream-a",
+          "sequence": 1,
+          "previous_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "event_hash": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "actor": "actor-a",
           "projection_key": "claim:x",
-          "envelope_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
           "verification": "verified",
-          "visibility": "restricted"
+          "access_class": "restricted"
         }
       ],
       "expected": {
@@ -395,7 +418,7 @@
         "blocked_parent_events": [],
         "equivocation_event_ids": [],
         "sequence_fork_event_ids": [],
-        "causal_cycle_events": [],
+        "hash_collision_event_ids": [],
         "conflict_pairs": []
       }
     },
@@ -404,26 +427,26 @@
       "title": "Child of invalid signature is blocked",
       "events": [
         {
-          "id": "e1",
-          "origin": "node-a",
-          "sequence": 1,
-          "parents": [],
+          "event_id": "e1",
+          "stream_id": "stream-a",
+          "sequence": 0,
+          "previous_hash": null,
+          "event_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "actor": "actor-a",
           "projection_key": "claim:x",
-          "envelope_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
           "verification": "invalid",
-          "visibility": "restricted"
+          "access_class": "restricted"
         },
         {
-          "id": "e2",
-          "origin": "node-a",
-          "sequence": 2,
-          "parents": [
-            "e1"
-          ],
+          "event_id": "e2",
+          "stream_id": "stream-a",
+          "sequence": 1,
+          "previous_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "event_hash": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "actor": "actor-a",
           "projection_key": "claim:x",
-          "envelope_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
           "verification": "verified",
-          "visibility": "restricted"
+          "access_class": "restricted"
         }
       ],
       "expected": {
@@ -441,70 +464,70 @@
         ],
         "equivocation_event_ids": [],
         "sequence_fork_event_ids": [],
-        "causal_cycle_events": [],
+        "hash_collision_event_ids": [],
         "conflict_pairs": []
       }
     },
     {
-      "case_id": "CAUSAL-CYCLE-001",
-      "title": "Causal cycle is quarantined",
+      "case_id": "WRONG-STREAM-PARENT-001",
+      "title": "Previous hash from a different stream is blocked",
       "events": [
         {
-          "id": "e1",
-          "origin": "node-a",
-          "sequence": 1,
-          "parents": [
-            "e2"
-          ],
+          "event_id": "e1",
+          "stream_id": "stream-a",
+          "sequence": 0,
+          "previous_hash": null,
+          "event_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "actor": "actor-a",
           "projection_key": "claim:x",
-          "envelope_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
           "verification": "verified",
-          "visibility": "restricted"
+          "access_class": "restricted"
         },
         {
-          "id": "e2",
-          "origin": "node-b",
+          "event_id": "e2",
+          "stream_id": "stream-b",
           "sequence": 1,
-          "parents": [
-            "e1"
-          ],
+          "previous_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "event_hash": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "actor": "actor-a",
           "projection_key": "claim:x",
-          "envelope_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
           "verification": "verified",
-          "visibility": "restricted"
+          "access_class": "restricted"
         }
       ],
       "expected": {
-        "accepted_events": [],
+        "accepted_events": [
+          "e1"
+        ],
         "duplicate_replays": 0,
         "invalid_signatures": [],
         "revoked_keys": [],
         "verification_pending": [],
         "malformed_events": [],
         "missing_parent_events": [],
-        "blocked_parent_events": [],
-        "equivocation_event_ids": [],
-        "sequence_fork_event_ids": [],
-        "causal_cycle_events": [
-          "e1",
+        "blocked_parent_events": [
           "e2"
         ],
+        "equivocation_event_ids": [],
+        "sequence_fork_event_ids": [],
+        "hash_collision_event_ids": [],
         "conflict_pairs": []
       }
     },
     {
       "case_id": "MALFORMED-DIGEST-001",
-      "title": "Malformed digest is rejected structurally",
+      "title": "Malformed event hash is rejected structurally",
       "events": [
         {
-          "id": "e1",
-          "origin": "node-a",
-          "sequence": 1,
-          "parents": [],
+          "event_id": "e1",
+          "stream_id": "stream-a",
+          "sequence": 0,
+          "previous_hash": null,
+          "event_hash": "not-a-digest",
+          "actor": "actor-a",
           "projection_key": "claim:x",
-          "envelope_sha256": "not-a-digest",
           "verification": "verified",
-          "visibility": "restricted"
+          "access_class": "restricted"
         }
       ],
       "expected": {
@@ -520,33 +543,113 @@
         "blocked_parent_events": [],
         "equivocation_event_ids": [],
         "sequence_fork_event_ids": [],
-        "causal_cycle_events": [],
+        "hash_collision_event_ids": [],
+        "conflict_pairs": []
+      }
+    },
+    {
+      "case_id": "MALFORMED-GENESIS-001",
+      "title": "Genesis event with previous hash is rejected",
+      "events": [
+        {
+          "event_id": "e1",
+          "stream_id": "stream-a",
+          "sequence": 0,
+          "previous_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "event_hash": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "actor": "actor-a",
+          "projection_key": "claim:x",
+          "verification": "verified",
+          "access_class": "restricted"
+        }
+      ],
+      "expected": {
+        "accepted_events": [],
+        "duplicate_replays": 0,
+        "invalid_signatures": [],
+        "revoked_keys": [],
+        "verification_pending": [],
+        "malformed_events": [
+          "e1"
+        ],
+        "missing_parent_events": [],
+        "blocked_parent_events": [],
+        "equivocation_event_ids": [],
+        "sequence_fork_event_ids": [],
+        "hash_collision_event_ids": [],
+        "conflict_pairs": []
+      }
+    },
+    {
+      "case_id": "HASH-COLLISION-001",
+      "title": "Same BLAKE3 event hash under different event IDs is quarantined",
+      "events": [
+        {
+          "event_id": "e1",
+          "stream_id": "stream-a",
+          "sequence": 0,
+          "previous_hash": null,
+          "event_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "actor": "actor-a",
+          "projection_key": "claim:x",
+          "verification": "verified",
+          "access_class": "restricted"
+        },
+        {
+          "event_id": "e2",
+          "stream_id": "stream-b",
+          "sequence": 0,
+          "previous_hash": null,
+          "event_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "actor": "actor-b",
+          "projection_key": "claim:x",
+          "verification": "verified",
+          "access_class": "restricted"
+        }
+      ],
+      "expected": {
+        "accepted_events": [],
+        "duplicate_replays": 0,
+        "invalid_signatures": [],
+        "revoked_keys": [],
+        "verification_pending": [],
+        "malformed_events": [],
+        "missing_parent_events": [],
+        "blocked_parent_events": [],
+        "equivocation_event_ids": [],
+        "sequence_fork_event_ids": [],
+        "hash_collision_event_ids": [
+          "e1",
+          "e2"
+        ],
         "conflict_pairs": []
       }
     },
     {
       "case_id": "UNRELATED-PROJECTIONS-001",
-      "title": "Independent events on distinct projection keys do not conflict",
+      "title": "Independent streams on distinct projection keys do not conflict",
       "events": [
         {
-          "id": "e1",
-          "origin": "node-a",
-          "sequence": 1,
-          "parents": [],
+          "event_id": "e1",
+          "stream_id": "stream-a",
+          "sequence": 0,
+          "previous_hash": null,
+          "event_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "actor": "actor-a",
           "projection_key": "claim:x",
-          "envelope_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
           "verification": "verified",
-          "visibility": "restricted"
+          "access_class": "restricted"
         },
         {
-          "id": "e2",
-          "origin": "node-b",
-          "sequence": 1,
-          "parents": [],
+          "event_id": "e2",
+          "stream_id": "stream-b",
+          "sequence": 0,
+          "previous_hash": null,
+          "event_hash": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "actor": "actor-b",
           "projection_key": "claim:y",
-          "envelope_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
           "verification": "verified",
-          "visibility": "restricted"
+          "access_class": "restricted"
         }
       ],
       "expected": {
@@ -563,7 +666,7 @@
         "blocked_parent_events": [],
         "equivocation_event_ids": [],
         "sequence_fork_event_ids": [],
-        "causal_cycle_events": [],
+        "hash_collision_event_ids": [],
         "conflict_pairs": []
       }
     }
