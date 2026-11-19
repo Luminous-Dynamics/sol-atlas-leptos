@@ -1,3 +1,5 @@
+pub mod archive;
+
 //! Synthetic CTER relay reference model around Mycelix-DeSci signed events.
 //!
 //! Event identity is immutable. Verification assessments and disclosure /

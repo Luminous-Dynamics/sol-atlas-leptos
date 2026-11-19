@@ -42,9 +42,10 @@ The JSON Schema is [cter-community-archive-manifest-v0.1.schema.json](../../sche
 3. Per-object identity, owner, schema/profile version, digest algorithm/value, disclosure class and disposition.
 4. Explicit included / withheld / unavailable dispositions with reason codes and optional non-disclosing commitment references.
 5. Access and consent references that are kept separate from possession of the archive.
-6. Restore capability, key-custody model and actual restore-test state.
-7. Cryptographic preservation lineage, predecessor references, timestamp evidence, renewal profile and algorithm status.
-8. A fixed claim ceiling: archive structure and restoration do not establish truth, title, consent, authority or legal effect.
+6. Export destination access class, purpose and authorization reference; these fields must be resolved by an independent policy/authority service before disclosure.
+7. Restore capability, key-custody model and actual restore-test state.
+8. Cryptographic preservation lineage, predecessor references, timestamp evidence, renewal profile and algorithm status.
+9. A fixed claim ceiling: archive structure and restoration do not establish truth, title, consent, authority or legal effect.
 
 The digest algorithm is explicit. Mycelix BLAKE3 event hashes and Sol-Atlas SHA-256 source/record digests must remain distinct. A 64-character hex string without its algorithm and domain is insufficient.
 
@@ -105,7 +106,7 @@ A later renewal proves continuity of preserved bytes under its qualified preserv
 
 ## 9. Synthetic qualification corpus
 
-[archive-cases-v0.1.json](../../benchmarks/territorial-integrity/relay/archive-cases-v0.1.json) contains proposed synthetic cases for:
+[archive-cases-v0.1.json](../../benchmarks/territorial-integrity/relay/archive-cases-v0.1.json) contains 12 synthetic cases for:
 - complete independent restore;
 - complete archive with explicitly withheld culturally protected item;
 - omitted active objection;
@@ -119,7 +120,7 @@ A later renewal proves continuity of preserved bytes under its qualified preserv
 - unresolved license/consent;
 - partial source frontier misrepresented as complete.
 
-The expected dispositions are proposed oracle labels, not executed results. The next implementation increment should add a small Rust evaluator and an independent second implementation before any benchmark pass is reported.
+The expected dispositions are frozen synthetic oracle labels. The Rust evaluator is committed but still requires exact-head Cargo/CI execution and independent second-implementation agreement.
 
 ## 10. Metrics and research targets
 

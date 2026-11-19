@@ -12,6 +12,7 @@
     "created_at",
     "exporter",
     "scope",
+    "export_context",
     "source_frontiers",
     "objects",
     "restore",
@@ -237,6 +238,14 @@
           "renewal_time": {
             "type": "string",
             "format": "date-time"
+          },
+          "renewal_event_ref": {
+            "type": "string",
+            "minLength": 1
+          },
+          "algorithm_weakening_time": {
+            "type": "string",
+            "format": "date-time"
           }
         }
       }
@@ -249,6 +258,70 @@
     },
     "claim_ceiling": {
       "const": "archive-structure-and-restoration-only-no-legal-effect"
+    },
+    "export_context": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "destination_access_class",
+        "authorization_ref",
+        "purpose_ref"
+      ],
+      "properties": {
+        "destination_access_class": {
+          "enum": [
+            "public",
+            "community",
+            "restricted",
+            "culturally_protected"
+          ]
+        },
+        "authorization_ref": {
+          "type": "string",
+          "minLength": 1
+        },
+        "purpose_ref": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "description": "Declared export audience and purpose. Structural presence is not authentication or proof of authorization; resolve the authorization independently."
+    },
+    "transport_observation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "protocol",
+        "carrier_bundle_state",
+        "durable_evidence_state",
+        "retained_event_ref"
+      ],
+      "properties": {
+        "protocol": {
+          "const": "BPv7"
+        },
+        "carrier_bundle_state": {
+          "enum": [
+            "pending",
+            "delivered",
+            "expired",
+            "deleted",
+            "unknown"
+          ]
+        },
+        "durable_evidence_state": {
+          "enum": [
+            "retained",
+            "missing",
+            "unknown"
+          ]
+        },
+        "retained_event_ref": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "description": "Separates transport-carrier lifetime from durable evidence retention."
     }
   },
   "$defs": {
@@ -282,7 +355,8 @@
         "schema_ref",
         "schema_version",
         "access_class",
-        "disposition"
+        "disposition",
+        "license_state"
       ],
       "properties": {
         "object_ref": {
