@@ -1,0 +1,31 @@
+name: Shared Amenity Manifest Audit
+
+on:
+  pull_request:
+    paths:
+      - "docs/research/highveld-neighborhood-commons/SHARED_AMENITY_COMMONS_*"
+      - "tools/shared-amenity-manifest-audit/**"
+      - ".github/workflows/shared-amenity-manifest-audit.yml"
+  push:
+    branches:
+      - "research/shared-amenity-commons-v0.1"
+    paths:
+      - "docs/research/highveld-neighborhood-commons/SHARED_AMENITY_COMMONS_*"
+      - "tools/shared-amenity-manifest-audit/**"
+      - ".github/workflows/shared-amenity-manifest-audit.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: stable
+      - name: Test semantic manifest invariants
+        run: cargo test --manifest-path tools/shared-amenity-manifest-audit/Cargo.toml
+      - name: Audit frozen manifest
+        run: cargo run --manifest-path tools/shared-amenity-manifest-audit/Cargo.toml -- docs/research/highveld-neighborhood-commons/SHARED_AMENITY_COMMONS_MANIFEST_V0.1.json
