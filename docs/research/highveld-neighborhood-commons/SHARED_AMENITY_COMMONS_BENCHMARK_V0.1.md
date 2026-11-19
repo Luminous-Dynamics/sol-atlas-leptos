@@ -310,3 +310,53 @@ Do not claim to beat Forma by generating more layouts or faster images. A fair m
 Autodesk's experimental feature is one competitor, not the entire industry baseline. Include manual architect workflow and at least one other applicable layout/planning tool when a real comparison begins. Preserve software versions, feature flags, input files, operators and reviewer protocol. Never compare an AI concept sketch with a fully documented professional design package.
 
 For construction productivity, the 2026 ASCE analysis of 491 modular projects uses gross square metres completed per day and finds differences by building category and size (https://doi.org/10.1061/JMENEA.MEENG-7605). That is useful for context, but our distinctive functional unit should remain the independently accepted assembly and, higher up, the equivalent dwelling/neighbourhood service-year. Report gross area/day alongside complete-workflow labour and accepted service; do not substitute one for the other.
+
+
+## 17. Broader AEC state-of-practice comparator matrix
+
+A credible comparison must cover separate classes of tools and delivery systems. Product pages below establish advertised or documented capabilities, not independent proof of superior outcomes.
+
+| Comparator | Documented capability / reported benchmark | How Luminous should compare | Evidence class |
+|---|---|---|---|
+| Autodesk Forma Building Layout Explorer | Experimental multifamily layout generation/comparison against unit mix, circulation and core placement; Autodesk describes it as an exploration starting point, not a dependable final design. | Same unit mix, site, brief, hard constraints and time budget; measure feasible yield, diversity, false-feasible rate, constraint coverage, review effort and exchange loss. | Vendor-described experimental capability |
+| Finch3D | Product page describes firm plan libraries, generated layouts, embedded accessibility/local-code rules and rapid iteration from feasibility to detailed layouts. | Give it the same authored standards, accessibility rules, unit mix and candidate brief; measure independently checked constraints, not vendor-described option counts. | Vendor capability claim |
+| TestFit Site Solver | Product page describes site/unit-mix scenario exploration, financial/area metrics, imported standards, Revit integration and a claim of exploring 7× more scenarios. | Compare site yield, unit mix, parking/circulation, local zoning/service constraints, feasibility false positives, export integrity and total review effort. | Vendor capability/marketing claim |
+| Hypar | Product updates describe editable windows/CAD components and a 300,000 ft², eight-building test-fit case delivered in six weeks with IA Interior Architects. | Use an identical site/program and compare model completeness, rule transparency, interoperability, time to a reviewed package and rework. | Vendor product update / vendor case study |
+| Singapore BCA PPVC | Up to 40% manpower/time savings and up to 30% floor-cycle reduction, depending on project complexity; project case variation is material. | Matched complete-workflow labour, programme, transport/lifting, quality and handover boundary; do not transfer a Singapore result to South Africa as a forecast. | Government programme guidance and case examples |
+| Hong Kong MiC / MiMEP | The High Productivity Construction programme promotes off-site prefabrication, multi-trade integration and plug-and-play. Official guidance states MiMEP can reduce on-site MEP installation time, manpower and material waste by at least 30%; MiMEP had been adopted in more than 160 new and RMAA projects by 2026. | Compare complete installed and commissioned MEP service, including factory labour, transport, installation, fit-up, inspection, commissioning, rework and maintenance; separate MiC volumetric modules from MiMEP service cassettes. | Government programme and adoption data |
+| ASCE 491-project modular study | Analyses 303 permanent and 188 relocatable modular projects; reports gross square metres/day and differences by sector and size. | Stratify by housing type, project size and permanency; report gross area/day but retain accepted assemblies and dwelling-service-year as the Luminous functional units. | Peer-reviewed project dataset |
+| South African NHBRC / Agrément | NHBRC publishes dynamic approved-IBT databases; Agrément certificates apply to specific systems and scopes. | Verify exact product, configuration, revision, certificate status, intended use, jurisdiction and site conditions. Treat directory presence as a search lead, not blanket approval. | National qualification pathway / registry |
+
+References:
+- Autodesk Forma AU 2026: https://blogs.autodesk.com/forma/2026/10/14/what-autodesk-forma-announced-au-2026/
+- Finch3D product: https://www.finch3d.com/product
+- TestFit Site Solver: https://www.testfit.io/product/site-solver
+- Hypar product updates: https://docs.hypar.io/what%27s-new-or-product-updates
+- Hong Kong Project Strategy and Governance Office, High Productivity Construction: https://www.psgo.gov.hk/en/high-productivity-construction.html
+- Singapore BCA PPVC: https://www1.bca.gov.sg/growth-and-transformation/productivity/design-for-manufacturing-and-assembly-dfma/prefabricated-prefinished-volumetric-construction-ppvc/
+- ASCE modular project study: https://doi.org/10.1061/JMENEA.MEENG-7605
+- NHBRC approved Innovative Building Technologies: https://www.nhbcrc.org.za/innovative-building-technologies/ (verify the canonical current NHBRC URL before relying on this link; use https://www.nhbrc.org.za/innovative-building-technologies/ as the current source)
+
+### Required head-to-head protocol
+
+1. Freeze a shared input package: parcel/geometry rights, site boundary, unit mix, resident tasks, accessibility requirements, zoning/approval data, climate inputs, service demand, budget/finance assumptions and evaluation horizon.
+2. Record exact product versions, deployment region, enabled features, operator skill, configuration, plan/subscription tier and export settings for every competitor.
+3. Use equal time budgets and equal evidence inputs. Keep manual professional workflows as a comparator, not as an assumed weak baseline.
+4. Keep concept generation, code/rule checks, engineering analysis, IFC/IDS exchange, construction documentation and physical acceptance as different maturity gates.
+5. Measure feasible yield, true spatial diversity, hard-constraint recall, false-feasible rate, change-impact completeness, model-exchange semantic loss, correction time, accepted-output productivity, whole-life cost and post-occupancy service.
+6. Have independent architects, engineers, QSs, access reviewers and residents evaluate the same blinded candidate packages under a preregistered protocol.
+
+A layout generator is not “better” because it creates 10,000 options. It is better only if it reliably surfaces more genuinely feasible, useful, diverse and reviewable solutions with lower total human correction burden and no hidden loss of safety, accessibility, service quality or resident agency.
+
+### Luminous stretch targets — ambition beyond vendor feature claims
+
+These remain unmeasured targets, not expected results:
+- 100% hard-constraint traceability from resident brief through selected design and exchange package; zero silent loss of mandatory requirement IDs.
+- Zero false-feasible candidate promoted to a qualified design state.
+- At least four materially distinct spatial families retained in the Pareto set when the brief admits them; diversity is measured by topology/use, not cosmetic surface variation.
+- 100% of candidate recommendations expose unresolved requirements and the professional role needed to resolve them.
+- At least 30% reduction in total professional correction/rework hours to reach an independently reviewable package on a matched brief.
+- At least 20% reduction in end-to-end design-to-accepted-output time on a repeated, locally buildable work package, including manufacturing, transport, installation, QA and commissioning.
+- At least 20% lower fully burdened cost per equivalent dwelling-service-year, with identical service floors and lifecycle boundaries.
+
+The targets are not all necessarily jointly attainable. Report the Pareto frontier and the evidence behind each achieved target; never trade mandatory access/safety/legal requirements for speed or price.
