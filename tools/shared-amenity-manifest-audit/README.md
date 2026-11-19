@@ -33,7 +33,7 @@ The 50 registered cases cover five provision models across ten spatial contexts:
 - non-essential plant remains an enabling asset, never a standalone amenity service;
 - required excluded scopes and 16 owner-native dependencies remain present with exact owner/role/reference bindings;
 - at least 43 unique source URLs and unique source IDs;
-- proposed target invariants.
+- eight frozen spatial metric vectors and proposed target invariants.
 
 The report includes SHA-256 of the exact manifest bytes. That digest establishes byte identity only.
 
