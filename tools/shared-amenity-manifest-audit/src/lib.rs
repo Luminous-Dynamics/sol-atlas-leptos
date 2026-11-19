@@ -68,7 +68,6 @@ const REQUIRED_EXCLUDED_REFERENCES: &[&str] = &[
     "https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/694",
     "https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/737",
     "https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/840",
-    "https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/623",
     "https://github.com/Luminous-Dynamics/symtropy/issues/3768",
     "https://github.com/Luminous-Dynamics/mycelix/issues/5901",
     "https://github.com/Luminous-Dynamics/mycelix/issues/987",
@@ -91,6 +90,7 @@ const REQUIRED_OWNER_NATIVE_DEPENDENCIES: &[(&str, &str, &str, &str)] = &[
     ("WHOLE_HOUSEHOLD_COST_OF_PLACE", "Sol-Atlas", "https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/816", "HOUSEHOLD_COST_OF_PLACE_AFFORDABILITY"),
     ("CAPITAL_TO_COMMONS_FINANCE", "Mycelix", "https://github.com/Luminous-Dynamics/mycelix/issues/912", "CAPITAL_TO_COMMONS_STEWARD_FINANCE_TRANSITION"),
     ("CITY_MORPH_EFFECTIVE_ACCESS", "Sol-Atlas", "https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/555", "EVIDENCE_QUALIFIED_MULTIMODAL_EFFECTIVE_ACCESS"),
+    ("CITY_SCOPE_BINDING", "Sol-Atlas", "https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/623", "COMMON_SCOPE_DIGEST_AND_OWNER_ENVELOPE"),
 ];
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]
@@ -700,10 +700,10 @@ fn validate_case_matrix(
 
 fn validate_reference_sources(root: &Value) -> Result<(), AuditError> {
     let sources = required_array(root, "reference_sources", "$")?;
-    if sources.len() < 36 {
+    if sources.len() < 37 {
         return Err(AuditError::new(
             "$.reference_sources",
-            format!("expected at least 36 sources, found {}", sources.len()),
+            format!("expected at least 37 sources, found {}", sources.len()),
         ));
     }
 
