@@ -865,6 +865,11 @@
       "id": "CITY_MORPH_ACCESS_IMPLEMENTATION_PR_564",
       "url": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/pull/564",
       "role": "EXISTING_SYNTHETIC_EFFECTIVE_ACCESS_ORACLE_AND_SOURCE_RIGHTS_REGISTER"
+    },
+    {
+      "id": "CITY_SCOPE_BINDING_ISSUE_623",
+      "url": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/623",
+      "role": "COMMON_CROSS_OWNER_EVALUATION_SCOPE_AND_OWNER_ENVELOPE"
     }
   ],
   "future_empirical_inputs_required": [
@@ -1001,11 +1006,6 @@
         "responsibility": "multi-family apartment, floor, building and vertical circulation design"
       },
       {
-        "owner": "Sol-Atlas",
-        "reference": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/623",
-        "responsibility": "common evaluation scope and owner evidence envelope"
-      },
-      {
         "owner": "Symtropy",
         "reference": "https://github.com/Luminous-Dynamics/symtropy/issues/3768",
         "responsibility": "generic service, capacity, resource and productive capability feasibility"
@@ -1132,6 +1132,13 @@
         "reference": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/555",
         "role": "EVIDENCE_QUALIFIED_MULTIMODAL_EFFECTIVE_ACCESS",
         "responsibility": "walk/cycle network reachability, opening, eligibility, affordability, step-free access and group-level reachable capacity potential; routing remains specialist-consumed and capacity potential is not allocation"
+      },
+      {
+        "id": "CITY_SCOPE_BINDING",
+        "owner": "Sol-Atlas",
+        "reference": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/623",
+        "role": "COMMON_SCOPE_DIGEST_AND_OWNER_ENVELOPE",
+        "responsibility": "binds population/service/geography/time/scenario/functional-unit and owner-native source revisions to one comparable evaluation scope; owner payloads remain opaque unless independently fetched"
       }
     ]
   }
