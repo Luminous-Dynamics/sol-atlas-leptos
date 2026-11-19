@@ -87,6 +87,9 @@ const REQUIRED_OWNER_NATIVE_DEPENDENCIES: &[(&str, &str, &str, &str)] = &[
     ("HABITAT_SERVICE_TEST_CELL", "Symtropy", "https://github.com/Luminous-Dynamics/symtropy/issues/4531", "ROOM_SCALE_HOUSEHOLD_SERVICE_TEST_CELL"),
     ("WATERLOOP_PHYSICAL_DEMO", "Symtropy", "https://github.com/Luminous-Dynamics/symtropy/issues/5335", "WATERLOOP_PHYSICAL_DEMONSTRATOR"),
     ("ABOVEGROUND_SERVICE_CASSETTE", "Symtropy", "https://github.com/Luminous-Dynamics/symtropy/issues/4181", "MAINTAINABLE_BUILDING_SERVICE_CASSETTES"),
+    ("MYCELIX_HOUSING_AMENITY_COMMONS", "Mycelix", "https://github.com/Luminous-Dynamics/mycelix/issues/6328", "CANONICAL_AMENITY_ASSET_SERVICE_ACCESS_FINANCE_MAINTENANCE_GOVERNANCE_CONTRACT"),
+    ("WHOLE_HOUSEHOLD_COST_OF_PLACE", "Sol-Atlas", "https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/816", "HOUSEHOLD_COST_OF_PLACE_AFFORDABILITY"),
+    ("CAPITAL_TO_COMMONS_FINANCE", "Mycelix", "https://github.com/Luminous-Dynamics/mycelix/issues/912", "CAPITAL_TO_COMMONS_STEWARD_FINANCE_TRANSITION"),
 ];
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]
@@ -352,6 +355,8 @@ fn validate_amenities(root: &Value) -> Result<(), AuditError> {
                 "output_unit",
                 "acceptance_definition",
                 "comparison_policy",
+                "owner_contract_reference",
+                "owner_alignment_state",
             ],
             &path,
         )?;
@@ -360,11 +365,23 @@ fn validate_amenities(root: &Value) -> Result<(), AuditError> {
         let output_unit = required_string(unit, "output_unit", &path)?;
         let acceptance_definition = required_string(unit, "acceptance_definition", &path)?;
         let comparison_policy = required_string(unit, "comparison_policy", &path)?;
+        let owner_contract_reference = required_string(unit, "owner_contract_reference", &path)?;
+        let owner_alignment_state = required_string(unit, "owner_alignment_state", &path)?;
 
         expect_equal(
             &comparison_policy,
             "WITHIN_FUNCTIONAL_UNIT_ONLY",
             &format!("{path}.comparison_policy"),
+        )?;
+        expect_equal(
+            &owner_contract_reference,
+            "https://github.com/Luminous-Dynamics/mycelix/issues/6328",
+            &format!("{path}.owner_contract_reference"),
+        )?;
+        expect_equal(
+            &owner_alignment_state,
+            "CANDIDATE_NOT_OWNER_APPROVED",
+            &format!("{path}.owner_alignment_state"),
         )?;
         if output_unit.trim().is_empty() || acceptance_definition.trim().is_empty() {
             return Err(AuditError::new(
@@ -427,12 +444,12 @@ fn validate_scope_boundary(root: &Value) -> Result<(), AuditError> {
 
     expect_equal(
         &required_string(scope, "included_scope", "$.scope_boundary")?,
-        "DAILY_USE_AND_PRODUCTIVE_AMENITIES_NOT_ESSENTIAL_RESILIENCE_SERVICES",
+        "SPATIAL_PROVISIONING_COMPARISON_CONSUMES_CANONICAL_AMENITY_SERVICE_AND_HOUSEHOLD_AFFORDABILITY",
         "$.scope_boundary.included_scope",
     )?;
     expect_equal(
         &required_string(scope, "composition_rule", "$.scope_boundary")?,
-        "CONSUME_OWNER_NATIVE_RECEIPTS_READ_ONLY_NO_DUPLICATE_ENGINE_LEDGER_OR_AUTHORITY",
+        "SOL_ATLAS_OWNS_SPATIAL_PROVISIONING_COMPARISON_MYCELIX_OWNS_CANONICAL_AMENITY_ASSET_SERVICE_AND_FINANCE_OWNER_OUTPUTS_READ_ONLY",
         "$.scope_boundary.composition_rule",
     )?;
 
@@ -682,14 +699,15 @@ fn validate_case_matrix(
 
 fn validate_reference_sources(root: &Value) -> Result<(), AuditError> {
     let sources = required_array(root, "reference_sources", "$")?;
-    if sources.len() < 32 {
+    if sources.len() < 34 {
         return Err(AuditError::new(
             "$.reference_sources",
-            format!("expected at least 32 sources, found {}", sources.len()),
+            format!("expected at least 34 sources, found {}", sources.len()),
         ));
     }
 
     let mut ids = BTreeSet::new();
+    let mut urls = BTreeSet::new();
     for (index, source) in sources.iter().enumerate() {
         let path = format!("$.reference_sources[{index}]");
         let object = source
@@ -704,6 +722,9 @@ fn validate_reference_sources(root: &Value) -> Result<(), AuditError> {
         }
         if !ids.insert(id.clone()) {
             return Err(AuditError::new(format!("{path}.id"), "duplicate source id"));
+        }
+        if !urls.insert(url.clone()) {
+            return Err(AuditError::new(format!("{path}.url"), "duplicate source URL"));
         }
     }
     Ok(())
