@@ -38,7 +38,7 @@ struct ParsedEvent {
     previous_hash: Option<String>,
     event_hash: String,
     canonical_event: String,
-    assessments: BTreeSet<(String, String)>,
+    assessments: BTreeSet<(String, String, String, String)>,
     contexts: BTreeSet<(String, String)>,
     equivocation: bool,
 }
@@ -94,7 +94,7 @@ fn parse_delivery(value: &Value) -> Option<ParsedEvent> {
     let _verifier_id = nonempty_string(assessment, "verifier_id")?;
     let policy_id = nonempty_string(assessment, "policy_id")?;
     let _assessed_at = nonempty_string(assessment, "assessed_at")?;
-    let _key_status_snapshot_ref = nonempty_string(assessment, "key_status_snapshot_ref")?;
+    let key_status_snapshot_ref = nonempty_string(assessment, "key_status_snapshot_ref")?;
     let time_basis = nonempty_string(assessment, "event_time_basis")?;
     if !matches!(
         time_basis.as_str(),
@@ -136,7 +136,7 @@ fn parse_delivery(value: &Value) -> Option<ParsedEvent> {
         previous_hash,
         event_hash,
         canonical_event: canonical_json(event),
-        assessments: BTreeSet::from([(policy_id, status)]),
+        assessments: BTreeSet::from([(policy_id, status, key_status_snapshot_ref, time_basis)]),
         contexts: BTreeSet::from([(projection_key, access_class)]),
         equivocation: false,
     })
@@ -157,7 +157,7 @@ fn effective_status(event: &ParsedEvent, result: &mut Evaluation) -> Option<Stri
         result.verification_conflict_event_ids.insert(event.id.clone());
         return None;
     }
-    event.assessments.iter().next().map(|(_, status)| status.clone())
+    event.assessments.iter().next().map(|(_, status, _, _)| status.clone())
 }
 
 /// Evaluate a batch of Mycelix-shaped event deliveries.

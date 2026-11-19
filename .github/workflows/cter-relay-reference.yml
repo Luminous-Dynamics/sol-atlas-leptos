@@ -5,6 +5,7 @@ on:
     branches: [research/cter-relay-qualification-v0-1]
     paths:
       - "benchmarks/territorial-integrity/relay/**"
+      - "schemas/cter-relay-delivery-v0.1.schema.json"
       - ".github/workflows/cter-relay-reference.yml"
   pull_request:
     branches: [main]
@@ -37,5 +38,10 @@ jobs:
         uses: dtolnay/rust-toolchain@stable
         with:
           toolchain: "1.96.1"
+      - name: Validate committed JSON
+        run: |
+          python3 -m json.tool benchmarks/territorial-integrity/relay/cases-v0.1.json > /dev/null
+          python3 -m json.tool benchmarks/territorial-integrity/relay/manifest-v0.1.json > /dev/null
+          python3 -m json.tool schemas/cter-relay-delivery-v0.1.schema.json > /dev/null
       - name: Run standalone reference tests
         run: cargo test --manifest-path benchmarks/territorial-integrity/relay/reference/Cargo.toml
