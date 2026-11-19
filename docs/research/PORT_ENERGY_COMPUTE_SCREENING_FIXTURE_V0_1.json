@@ -1,0 +1,384 @@
+{
+  "schema": "luminous.port-energy-compute-screening",
+  "schema_version": "0.1.0",
+  "snapshot_date": "2026-11-19",
+  "record_type": "evidence_screening_seed",
+  "claim_ceiling": "Pre-feasibility screening only. This file is not a utility connection offer, surveyed site record, environmental approval, engineering design, construction authorization, or proof of current operating capacity.",
+  "data_rules": {
+    "unknown_representation": null,
+    "null_is_not_zero": true,
+    "synthetic_data_may_not_be_mixed_with_site_evidence": true,
+    "screening_estimates_are_not_firm_capacity": true,
+    "source_reported_does_not_mean_independently_audited": true
+  },
+  "sources": [
+    {
+      "source_id": "ptxhub-sa-port-connection-capacity-2025-09",
+      "title": "Load Connection Capacity Assessment of South African National Ports",
+      "publisher": "PtX Hub / CSIR",
+      "publication_month": "2025-09",
+      "evidence_class": "published_pre_feasibility_assessment",
+      "url": "https://ptx-hub.org/wp-content/uploads/2025/09/PtX-Hub-Load-Connection-Capacity-Assessment-of-South-African-National-Ports_final.pdf",
+      "limitations": [
+        "Substation spare-capacity estimates are not reserved capacity or a utility connection offer.",
+        "Upstream network consultation and detailed connection studies may be required.",
+        "The report's estimates must not be interpreted as firm import and export limits for a proposed project."
+      ]
+    },
+    {
+      "source_id": "ptxhub-sa-port-shore-power-demand-2025-09",
+      "title": "Shore Power Demand for South African Ports",
+      "publisher": "PtX Hub / CSIR",
+      "publication_month": "2025-09",
+      "evidence_class": "published_historical_demand_analysis",
+      "url": "https://ptx-hub.org/publication/shore-power-demand-for-south-african-ports/",
+      "limitations": [
+        "The study analyses vessel activity and estimated shore-power demand over 2018-2025.",
+        "A demand ranking is not a berth-level equipment inventory or a current metered load profile."
+      ]
+    }
+  ],
+  "sites": [
+    {
+      "site_id": "za-ngqura",
+      "name": "Port of Ngqura",
+      "country": "South Africa",
+      "screening_role": "first_energy_system_screening_case",
+      "evidence": {
+        "spare_substation_capacity_mva": {
+          "value": 19.0,
+          "unit": "MVA",
+          "evidence_class": "published_pre_feasibility_estimate",
+          "source_id": "ptxhub-sa-port-connection-capacity-2025-09"
+        },
+        "estimated_spare_capacity_mw": {
+          "value": 17.1,
+          "unit": "MW",
+          "evidence_class": "published_pre_feasibility_estimate",
+          "source_id": "ptxhub-sa-port-connection-capacity-2025-09",
+          "conversion_note": "The source assessment applies an assumed 0.9 power factor."
+        },
+        "connection_risk_category": {
+          "value": "low",
+          "evidence_class": "published_pre_feasibility_assessment",
+          "source_id": "ptxhub-sa-port-connection-capacity-2025-09"
+        },
+        "shore_power_demand_rank": null,
+        "shore_power_demand_rank_note": "No rank asserted in this fixture."
+      },
+      "unknowns": {
+        "utility_confirmed_import_capacity_mw": null,
+        "utility_confirmed_export_capacity_mw": null,
+        "upstream_network_constraints": null,
+        "fault_level_and_protection_study": null,
+        "metered_port_load_series": null,
+        "berth_level_shore_power_inventory": null,
+        "renewable_generation_time_series": null,
+        "battery_operating_status_and_rating": null,
+        "compute_load_profile": null,
+        "fibre_latency_and_route_diversity": null,
+        "land_rights_and_land_use": null,
+        "bathymetry": null,
+        "seabed_geology_and_habitat": null,
+        "marine_protected_area_intersection": null,
+        "metocean_design_conditions": null,
+        "marine_thermal_baseline_and_plume_model": null,
+        "subsea_cable_route_and_repair_access": null,
+        "environmental_authorization": null,
+        "site_specific_capex_and_opex": null
+      }
+    },
+    {
+      "site_id": "za-durban",
+      "name": "Port of Durban",
+      "country": "South Africa",
+      "screening_role": "high_shore_power_demand_and_grid_constraint_comparison",
+      "evidence": {
+        "spare_substation_capacity_mva": {
+          "value": 4.0,
+          "unit": "MVA",
+          "evidence_class": "published_pre_feasibility_estimate",
+          "source_id": "ptxhub-sa-port-connection-capacity-2025-09"
+        },
+        "estimated_spare_capacity_mw": {
+          "value": 3.6,
+          "unit": "MW",
+          "evidence_class": "published_pre_feasibility_estimate",
+          "source_id": "ptxhub-sa-port-connection-capacity-2025-09",
+          "conversion_note": "The source assessment applies an assumed 0.9 power factor."
+        },
+        "connection_risk_category": {
+          "value": "medium",
+          "evidence_class": "published_pre_feasibility_assessment",
+          "source_id": "ptxhub-sa-port-connection-capacity-2025-09"
+        },
+        "shore_power_demand_rank": {
+          "value": 1,
+          "unit": "rank among ports assessed in source study",
+          "evidence_class": "published_historical_demand_analysis",
+          "source_id": "ptxhub-sa-port-shore-power-demand-2025-09"
+        }
+      },
+      "unknowns": {
+        "utility_confirmed_import_capacity_mw": null,
+        "utility_confirmed_export_capacity_mw": null,
+        "upstream_network_constraints": null,
+        "fault_level_and_protection_study": null,
+        "metered_port_load_series": null,
+        "berth_level_shore_power_inventory": null,
+        "renewable_generation_time_series": null,
+        "battery_operating_status_and_rating": null,
+        "compute_load_profile": null,
+        "fibre_latency_and_route_diversity": null,
+        "land_rights_and_land_use": null,
+        "bathymetry": null,
+        "seabed_geology_and_habitat": null,
+        "marine_protected_area_intersection": null,
+        "metocean_design_conditions": null,
+        "marine_thermal_baseline_and_plume_model": null,
+        "subsea_cable_route_and_repair_access": null,
+        "environmental_authorization": null,
+        "site_specific_capex_and_opex": null
+      }
+    },
+    {
+      "site_id": "za-east-london",
+      "name": "Port of East London",
+      "country": "South Africa",
+      "screening_role": "comparison_site",
+      "evidence": {
+        "spare_substation_capacity_mva": {
+          "value": 18.0,
+          "unit": "MVA",
+          "evidence_class": "published_pre_feasibility_estimate",
+          "source_id": "ptxhub-sa-port-connection-capacity-2025-09"
+        },
+        "estimated_spare_capacity_mw": {
+          "value": 16.2,
+          "unit": "MW",
+          "evidence_class": "published_pre_feasibility_estimate",
+          "source_id": "ptxhub-sa-port-connection-capacity-2025-09",
+          "conversion_note": "The source assessment applies an assumed 0.9 power factor."
+        },
+        "connection_risk_category": {
+          "value": "low",
+          "evidence_class": "published_pre_feasibility_assessment",
+          "source_id": "ptxhub-sa-port-connection-capacity-2025-09"
+        }
+      },
+      "unknowns": {
+        "utility_confirmed_import_capacity_mw": null,
+        "metered_port_load_series": null,
+        "bathymetry": null,
+        "seabed_geology_and_habitat": null,
+        "metocean_design_conditions": null,
+        "fibre_latency_and_route_diversity": null,
+        "environmental_authorization": null,
+        "site_specific_capex_and_opex": null
+      }
+    },
+    {
+      "site_id": "za-gqeberha",
+      "name": "Port of Gqeberha",
+      "country": "South Africa",
+      "screening_role": "comparison_site",
+      "evidence": {
+        "spare_substation_capacity_mva": {
+          "value": 15.0,
+          "unit": "MVA",
+          "evidence_class": "published_pre_feasibility_estimate",
+          "source_id": "ptxhub-sa-port-connection-capacity-2025-09"
+        },
+        "estimated_spare_capacity_mw": {
+          "value": 13.5,
+          "unit": "MW",
+          "evidence_class": "published_pre_feasibility_estimate",
+          "source_id": "ptxhub-sa-port-connection-capacity-2025-09",
+          "conversion_note": "The source assessment applies an assumed 0.9 power factor."
+        },
+        "connection_risk_category": {
+          "value": "low",
+          "evidence_class": "published_pre_feasibility_assessment",
+          "source_id": "ptxhub-sa-port-connection-capacity-2025-09"
+        }
+      },
+      "unknowns": {
+        "utility_confirmed_import_capacity_mw": null,
+        "metered_port_load_series": null,
+        "bathymetry": null,
+        "seabed_geology_and_habitat": null,
+        "metocean_design_conditions": null,
+        "fibre_latency_and_route_diversity": null,
+        "environmental_authorization": null,
+        "site_specific_capex_and_opex": null
+      }
+    },
+    {
+      "site_id": "za-richards-bay",
+      "name": "Port of Richards Bay",
+      "country": "South Africa",
+      "screening_role": "comparison_site",
+      "evidence": {
+        "spare_substation_capacity_mva": {
+          "value": 11.5,
+          "unit": "MVA",
+          "evidence_class": "published_pre_feasibility_estimate",
+          "source_id": "ptxhub-sa-port-connection-capacity-2025-09"
+        },
+        "estimated_spare_capacity_mw": {
+          "value": 10.35,
+          "unit": "MW",
+          "evidence_class": "published_pre_feasibility_estimate",
+          "source_id": "ptxhub-sa-port-connection-capacity-2025-09",
+          "conversion_note": "The source assessment applies an assumed 0.9 power factor."
+        },
+        "connection_risk_category": {
+          "value": "low",
+          "evidence_class": "published_pre_feasibility_assessment",
+          "source_id": "ptxhub-sa-port-connection-capacity-2025-09"
+        }
+      },
+      "unknowns": {
+        "utility_confirmed_import_capacity_mw": null,
+        "metered_port_load_series": null,
+        "bathymetry": null,
+        "seabed_geology_and_habitat": null,
+        "metocean_design_conditions": null,
+        "fibre_latency_and_route_diversity": null,
+        "environmental_authorization": null,
+        "site_specific_capex_and_opex": null
+      }
+    },
+    {
+      "site_id": "za-mossel-bay",
+      "name": "Port of Mossel Bay",
+      "country": "South Africa",
+      "screening_role": "comparison_site",
+      "evidence": {
+        "spare_substation_capacity_mva": {
+          "value": 7.0,
+          "unit": "MVA",
+          "evidence_class": "published_pre_feasibility_estimate",
+          "source_id": "ptxhub-sa-port-connection-capacity-2025-09"
+        },
+        "estimated_spare_capacity_mw": {
+          "value": 6.3,
+          "unit": "MW",
+          "evidence_class": "published_pre_feasibility_estimate",
+          "source_id": "ptxhub-sa-port-connection-capacity-2025-09",
+          "conversion_note": "The source assessment applies an assumed 0.9 power factor."
+        },
+        "connection_risk_category": {
+          "value": "medium",
+          "evidence_class": "published_pre_feasibility_assessment",
+          "source_id": "ptxhub-sa-port-connection-capacity-2025-09"
+        }
+      },
+      "unknowns": {
+        "utility_confirmed_import_capacity_mw": null,
+        "metered_port_load_series": null,
+        "bathymetry": null,
+        "seabed_geology_and_habitat": null,
+        "metocean_design_conditions": null,
+        "fibre_latency_and_route_diversity": null,
+        "environmental_authorization": null,
+        "site_specific_capex_and_opex": null
+      }
+    },
+    {
+      "site_id": "za-cape-town",
+      "name": "Port of Cape Town",
+      "country": "South Africa",
+      "screening_role": "high_shore_power_demand_and_grid_constraint_comparison",
+      "evidence": {
+        "spare_substation_capacity_mva": {
+          "value": 0.0,
+          "unit": "MVA",
+          "evidence_class": "published_pre_feasibility_estimate",
+          "source_id": "ptxhub-sa-port-connection-capacity-2025-09"
+        },
+        "estimated_spare_capacity_mw": {
+          "value": 0.0,
+          "unit": "MW",
+          "evidence_class": "published_pre_feasibility_estimate",
+          "source_id": "ptxhub-sa-port-connection-capacity-2025-09",
+          "conversion_note": "Zero reported spare capacity in the cited pre-feasibility assessment; this is not a zero-load claim."
+        },
+        "connection_risk_category": {
+          "value": "high",
+          "evidence_class": "published_pre_feasibility_assessment",
+          "source_id": "ptxhub-sa-port-connection-capacity-2025-09"
+        },
+        "shore_power_demand_rank": {
+          "value": 2,
+          "unit": "rank among ports assessed in source study",
+          "evidence_class": "published_historical_demand_analysis",
+          "source_id": "ptxhub-sa-port-shore-power-demand-2025-09"
+        }
+      },
+      "unknowns": {
+        "utility_confirmed_import_capacity_mw": null,
+        "upstream_network_constraints": null,
+        "metered_port_load_series": null,
+        "bathymetry": null,
+        "seabed_geology_and_habitat": null,
+        "metocean_design_conditions": null,
+        "fibre_latency_and_route_diversity": null,
+        "environmental_authorization": null,
+        "site_specific_capex_and_opex": null
+      }
+    },
+    {
+      "site_id": "za-saldanha-bay",
+      "name": "Port of Saldanha Bay",
+      "country": "South Africa",
+      "screening_role": "grid_constraint_comparison",
+      "evidence": {
+        "spare_substation_capacity_mva": {
+          "value": 0.0,
+          "unit": "MVA",
+          "evidence_class": "published_pre_feasibility_estimate",
+          "source_id": "ptxhub-sa-port-connection-capacity-2025-09"
+        },
+        "estimated_spare_capacity_mw": {
+          "value": 0.0,
+          "unit": "MW",
+          "evidence_class": "published_pre_feasibility_estimate",
+          "source_id": "ptxhub-sa-port-connection-capacity-2025-09",
+          "conversion_note": "Zero reported spare capacity in the cited pre-feasibility assessment; this is not a zero-load claim."
+        },
+        "connection_risk_category": {
+          "value": "high",
+          "evidence_class": "published_pre_feasibility_assessment",
+          "source_id": "ptxhub-sa-port-connection-capacity-2025-09"
+        }
+      },
+      "unknowns": {
+        "utility_confirmed_import_capacity_mw": null,
+        "upstream_network_constraints": null,
+        "metered_port_load_series": null,
+        "bathymetry": null,
+        "seabed_geology_and_habitat": null,
+        "metocean_design_conditions": null,
+        "fibre_latency_and_route_diversity": null,
+        "environmental_authorization": null,
+        "site_specific_capex_and_opex": null
+      }
+    }
+  ],
+  "not_included": {
+    "coordinates": "Not included because no verified site geometry was admitted by this screening fixture.",
+    "subsea_data_centre_candidate": "None selected. Bathymetry, seabed habitat, metocean, cable route, fibre, thermal plume, permits, repair logistics and economics remain unknown.",
+    "renewable_project_commissioning": "No asset is represented as commissioned or operational without a primary source proving that state.",
+    "synthetic_hourly_profiles": "Not included. A separate synthetic reference case must use an explicit synthetic label and may not be presented as observed port demand."
+  },
+  "next_evidence_required": [
+    "Utility-confirmed import/export capacity, upstream constraints, fault level and interconnection study.",
+    "Metered port and berth-level load profiles, vessel calls, shore-power compatibility and service demand.",
+    "Rights-cleared bathymetry, seabed geology/habitat, marine protected-area boundaries and metocean records.",
+    "Cable and fibre route, landing station, latency, path diversity and repair logistics.",
+    "Environmental baseline, thermal plume modelling, monitoring design and site-specific authorization.",
+    "Compute workload, hardware, utilisation, SLA, power density, cooling design and metered facility-energy boundary.",
+    "Renewable generation, storage, tariff, carbon-intensity and lifecycle-cost time series."
+  ]
+}
