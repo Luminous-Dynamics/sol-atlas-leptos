@@ -27,7 +27,8 @@
     "future_empirical_inputs_required",
     "targets",
     "functional_units",
-    "scope_boundary"
+    "scope_boundary",
+    "scenario_definitions"
   ],
   "properties": {
     "schema": {
@@ -548,6 +549,87 @@
                 "minLength": 1
               }
             }
+          }
+        }
+      }
+    },
+    "scenario_definitions": {
+      "type": "array",
+      "minItems": 10,
+      "maxItems": 10,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "scenario_id",
+          "scenario_class",
+          "spatial_condition",
+          "primary_stressors",
+          "required_owner_outputs",
+          "probability_model_state",
+          "input_state"
+        ],
+        "properties": {
+          "scenario_id": {
+            "enum": [
+              "COMPACT_HIGH_DENSITY",
+              "LOW_DENSITY_DISPERSED",
+              "MIXED_USE_TRANSIT_ADJACENT",
+              "SITE_EDGE_LONG_WALK",
+              "ACCESSIBLE_ROUTE_DISCONTINUITY",
+              "UNEQUAL_POPULATION_DISTRIBUTION",
+              "PHASED_OCCUPANCY_GROWTH",
+              "LAND_SCARCITY_COMPETING_USE",
+              "EXTERNAL_PROVIDER_DISTANCE_OR_CLOSURE",
+              "MULTI_NODE_CATCHMENT_REBALANCING"
+            ]
+          },
+          "scenario_class": {
+            "enum": [
+              "DENSITY_AND_CAPACITY",
+              "DENSITY_AND_DISTANCE",
+              "MIXED_USE_AND_TRANSIT",
+              "SITE_EDGE_AND_ROUTE_IMPEDANCE",
+              "UNIVERSAL_ACCESS",
+              "POPULATION_DISTRIBUTION",
+              "TEMPORAL_PHASING",
+              "LAND_OPPORTUNITY",
+              "PROVIDER_AVAILABILITY",
+              "NETWORK_RECONFIGURATION"
+            ]
+          },
+          "spatial_condition": {
+            "type": "string",
+            "minLength": 20
+          },
+          "primary_stressors": {
+            "type": "array",
+            "minItems": 1,
+            "uniqueItems": true,
+            "items": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "required_owner_outputs": {
+            "type": "array",
+            "minItems": 1,
+            "uniqueItems": true,
+            "items": {
+              "enum": [
+                "CITY_SCOPE_BINDING",
+                "CITY_MORPH_EFFECTIVE_ACCESS",
+                "MYCELIX_HOUSING_AMENITY_COMMONS",
+                "SYMTROPY_CITYKIT_CAPACITY",
+                "WHOLE_HOUSEHOLD_COST_OF_PLACE"
+              ]
+            }
+          },
+          "probability_model_state": {
+            "const": "NOT_ASSIGNED"
+          },
+          "input_state": {
+            "const": "SYNTHETIC_SPECIFICATION_ONLY"
           }
         }
       }
