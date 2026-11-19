@@ -1,0 +1,48 @@
+{
+  "schema_version": 1,
+  "territory_ref": "urn:tib:v0.1:territory:za-001",
+  "created_at": "2026-11-18T10:00:00Z",
+  "evidence": [
+    {
+      "id": "permit-001",
+      "kind": "permit",
+      "source_ref": "urn:tib:v0.1:evidence:permit-001",
+      "captured_at": "2026-11-18T10:00:00Z",
+      "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "disclosure_class": "restricted"
+    },
+    {
+      "id": "completion-001",
+      "kind": "environmental_measurement",
+      "source_ref": "urn:tib:v0.1:evidence:completion-001",
+      "captured_at": "2026-11-18T10:00:00Z",
+      "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "disclosure_class": "restricted"
+    }
+  ],
+  "authorities": [],
+  "challenges": [],
+  "assertions": [],
+  "obligations": [
+    {
+      "id": "restoration-001",
+      "kind": "restore_habitat",
+      "description": "Restore disturbed riparian habitat",
+      "spatial_feature_ref": "urn:ogc:feature:site-za-001",
+      "responsible_party_ref": "party:operator-001",
+      "originating_evidence_id": "permit-001",
+      "due_at": "2030-12-31",
+      "target_value": 80,
+      "target_unit": "percent_native_cover",
+      "verification_protocol_ref": "urn:tib:protocol:habitat-v1",
+      "independent_verifier_ref": null,
+      "state": "verified_complete",
+      "evidence_ids": [
+        "completion-001"
+      ],
+      "disclosure_class": "restricted",
+      "governance_record_ref": "urn:mycelix:stewardship:commitment:restore-001"
+    }
+  ],
+  "challenge_assessments": []
+}
