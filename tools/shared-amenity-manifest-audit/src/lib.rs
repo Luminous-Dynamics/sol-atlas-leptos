@@ -110,14 +110,14 @@ const EXPECTED_INCLUDED_SERVICE_CLASSES: &[&str] = &[
     "public_recreation",
 ];
 
-const REQUIRED_EXCLUDED_REFERENCES: &[&str] = &[
-    "https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/694",
-    "https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/737",
-    "https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/840",
-    "https://github.com/Luminous-Dynamics/symtropy/issues/3768",
-    "https://github.com/Luminous-Dynamics/mycelix/issues/5901",
-    "https://github.com/Luminous-Dynamics/mycelix/issues/987",
-    "https://github.com/Luminous-Dynamics/mycelix/issues/4808",
+const REQUIRED_EXCLUDED_REFERENCES: &[(&str, &str)] = &[
+    ("Sol-Atlas", "https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/694"),
+    ("Sol-Atlas", "https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/737"),
+    ("Sol-Atlas", "https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/840"),
+    ("Symtropy", "https://github.com/Luminous-Dynamics/symtropy/issues/3768"),
+    ("Mycelix", "https://github.com/Luminous-Dynamics/mycelix/issues/5901"),
+    ("Mycelix", "https://github.com/Luminous-Dynamics/mycelix/issues/987"),
+    ("Mycelix", "https://github.com/Luminous-Dynamics/mycelix/issues/4808"),
 ];
 
 const REQUIRED_OWNER_NATIVE_DEPENDENCIES: &[(&str, &str, &str, &str)] = &[
@@ -509,7 +509,13 @@ fn validate_scenario_definitions(
         }
 
         let stressors = required_array(definition, "primary_stressors", &path)?;
-        collect_string_set(stressors, &format!("{path}.primary_stressors"))?;
+        let stressor_ids = collect_string_set(stressors, &format!("{path}.primary_stressors"))?;
+        if stressor_ids.is_empty() {
+            return Err(AuditError::new(
+                format!("{path}.primary_stressors"),
+                "at least one spatial/service stressor must be declared",
+            ));
+        }
 
         let outputs = required_array(definition, "required_owner_outputs", &path)?;
         let output_ids = collect_string_set(outputs, &format!("{path}.required_owner_outputs"))?;
@@ -790,7 +796,7 @@ fn validate_scope_boundary(root: &Value) -> Result<(), AuditError> {
     )?;
 
     let exclusions = required_array(scope, "excluded_scopes", "$.scope_boundary")?;
-    let mut references = BTreeSet::new();
+    let mut references = BTreeMap::new();
     for (index, exclusion) in exclusions.iter().enumerate() {
         let path = format!("$.scope_boundary.excluded_scopes[{index}]");
         let object = exclusion
@@ -803,7 +809,7 @@ fn validate_scope_boundary(root: &Value) -> Result<(), AuditError> {
         if owner.trim().is_empty() || responsibility.trim().is_empty() {
             return Err(AuditError::new(&path, "owner and responsibility must be non-empty"));
         }
-        if !references.insert(reference) {
+        if references.insert(reference.clone(), owner.clone()).is_some() {
             return Err(AuditError::new(
                 format!("{path}.reference"),
                 "duplicate excluded-owner reference",
@@ -811,12 +817,23 @@ fn validate_scope_boundary(root: &Value) -> Result<(), AuditError> {
         }
     }
 
-    for required in REQUIRED_EXCLUDED_REFERENCES {
-        if !references.contains(*required) {
-            return Err(AuditError::new(
-                "$.scope_boundary.excluded_scopes",
-                format!("missing required owner boundary reference: {required}"),
-            ));
+    for (expected_owner, expected_reference) in REQUIRED_EXCLUDED_REFERENCES {
+        match references.get(*expected_reference) {
+            Some(actual_owner) if actual_owner == expected_owner => {}
+            Some(actual_owner) => {
+                return Err(AuditError::new(
+                    "$.scope_boundary.excluded_scopes",
+                    format!(
+                        "owner mismatch for {expected_reference}: expected {expected_owner}, found {actual_owner}"
+                    ),
+                ));
+            }
+            None => {
+                return Err(AuditError::new(
+                    "$.scope_boundary.excluded_scopes",
+                    format!("missing required owner boundary reference: {expected_reference}"),
+                ));
+            }
         }
     }
 
