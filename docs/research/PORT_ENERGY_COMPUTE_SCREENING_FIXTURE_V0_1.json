@@ -1,0 +1,730 @@
+{
+  "schema": "luminous.port-energy-compute-screening",
+  "schema_version": "0.1.0",
+  "snapshot_date": "2026-11-19",
+  "record_type": "evidence_screening_seed",
+  "claim_ceiling": "Pre-feasibility screening only. This file is not a utility connection offer, surveyed site record, environmental approval, engineering design, construction authorization, or proof of current operating capacity.",
+  "data_rules": {
+    "unknown_representation": null,
+    "null_is_not_zero": true,
+    "synthetic_data_may_not_be_mixed_with_site_evidence": true,
+    "screening_estimates_are_not_firm_capacity": true,
+    "source_reported_does_not_mean_independently_audited": true
+  },
+  "sources": [
+    {
+      "source_id": "ptxhub-sa-port-connection-capacity-2025-09",
+      "title": "Load Connection Capacity Assessment of South African National Ports",
+      "publisher": "PtX Hub / CSIR",
+      "publication_month": "2025-09",
+      "evidence_class": "published_pre_feasibility_assessment",
+      "url": "https://ptx-hub.org/wp-content/uploads/2025/09/PtX-Hub-Load-Connection-Capacity-Assessment-of-South-African-National-Ports_final.pdf",
+      "limitations": [
+        "Substation spare-capacity estimates are not reserved capacity or a utility connection offer.",
+        "Upstream network consultation and detailed connection studies may be required.",
+        "The report's estimates must not be interpreted as firm import and export limits for a proposed project."
+      ]
+    },
+    {
+      "source_id": "ptxhub-sa-port-shore-power-demand-2025-09",
+      "title": "Shore Power Demand for South African Ports",
+      "publisher": "PtX Hub / CSIR",
+      "publication_month": "2025-09",
+      "evidence_class": "published_historical_demand_analysis",
+      "url": "https://ptx-hub.org/publication/shore-power-demand-for-south-african-ports/",
+      "limitations": [
+        "The study analyses vessel activity and estimated shore-power demand over 2018-2025.",
+        "A demand ranking is not a berth-level equipment inventory or a current metered load profile."
+      ]
+    },
+    {
+      "source_id": "tnpa-ngqura-renewable-rfp-2024",
+      "title": "Renewable Energy for Port of Ngqura — TNPA/2023/10/0020/46114/RFP",
+      "publisher": "Transnet National Ports Authority / official eTender",
+      "publication_date": "2024-06-07",
+      "status": "closed_tender",
+      "evidence_class": "procurement_scope_not_operating_asset_evidence",
+      "url": "https://transnetetenders.azurewebsites.net/Home/TenderDetails?Id=46114",
+      "claimed_scope": {
+        "renewable_capacity_mw": 7,
+        "bess_energy_mwh": 6,
+        "technology": "solar PV + vertical-axis wind + battery storage"
+      },
+      "limitations": [
+        "Tender is closed; no commissioned/as-built/operational meter evidence supplied in this fixture.",
+        "Do not count as available generation or storage until contract award, commissioning, ownership, operating limits and meter data are verified."
+      ]
+    },
+    {
+      "source_id": "tnpa-ngqura-solar-desal-rfp-2024",
+      "title": "TNPA Media Statement: renewable energy and solar-powered seawater desalination RFPs in Nelson Mandela Bay",
+      "publisher": "Transnet National Ports Authority",
+      "publication_date": "2024-06-18",
+      "evidence_class": "procurement_scope_not_product_water_evidence",
+      "url": "https://www.transnetnationalportsauthority.net/Corporate%20Affairs/Press%20Releases/Media%20Statement%20-%20TNPA%20seeks%20proposals%20for%20renewable%20energy%20projects%20in%20Nelson%20Mandela%20Bay-June%202024.pdf",
+      "claimed_scope": {
+        "ngqura_desalination_ml_per_day": 0.5,
+        "port_elizabeth_desalination_ml_per_day": 0.8
+      },
+      "limitations": [
+        "RFP/project scope is not evidence of construction or commissioning.",
+        "No feed source, water quality, intended-use certification, brine/outfall permit or metered delivered volume is established."
+      ]
+    },
+    {
+      "source_id": "slr-coega-green-ammonia-ea-2026",
+      "title": "Proposed Coega Green Hydrogen and Ammonia Project — environmental authorization notice",
+      "publisher": "SLR Consulting",
+      "publication_date": "2026-01-21",
+      "evidence_class": "proposed_project_environmental_authorization_not_operating_demand",
+      "url": "https://www.slrconsulting.com/afr/public-documents/coega-ammonia/",
+      "claimed_scope": {
+        "electrolyser_capacity_mw": 1400,
+        "environmental_authorization_date": "2026-01-16",
+        "location": "Coega SEZ Zone 7, Gqeberha"
+      },
+      "limitations": [
+        "Authorization does not establish FID, financing, construction, grid connection, renewable PPAs, water supply or current load.",
+        "Use as a proposed future scenario, not current demand or available generation."
+      ]
+    },
+    {
+      "source_id": "tnpa-ngqura-lng-agreement-2026",
+      "title": "TNPA / Ukwanda LNG terminal agreement announcement",
+      "publisher": "SAnews / Transnet National Ports Authority",
+      "publication_date": "2026-05-29",
+      "evidence_class": "planned_fossil_fuel_infrastructure_not_operating_generation",
+      "url": "https://www.sanews.gov.za/index.php/south-africa/transnet-signs-deal-r22-billion-gas-facility-project",
+      "claimed_scope": {
+        "terminal_capacity_mt_per_year": 3.6,
+        "agreement_years": 25,
+        "projected_full_operations_target": "2035"
+      },
+      "limitations": [
+        "Long-dated planned infrastructure is not available generation or a current supply contract.",
+        "Fossil gas and methane lifecycle emissions must be explicit; do not classify as renewable or zero-carbon."
+      ]
+    },
+    {
+      "source_id": "csir-wavenet-ngqura",
+      "title": "CSIR WaveNet Port of Ngqura station information and wave data",
+      "publisher": "CSIR",
+      "evidence_class": "public_marine_observation_source_metadata_pending",
+      "url": "https://wavenet.csir.co.za/OnlineData/Ngqura/ngqura.htm",
+      "station": {
+        "instrument": "directional Datawell Waverider",
+        "latitude": -33.8333333,
+        "longitude": 25.7166667,
+        "depth_m": 21,
+        "distance_off_breakwater_tip_km": 2,
+        "transmission_interval_minutes": 30
+      },
+      "limitations": [
+        "Public page warns displayed values are estimates and should not be used to draw conclusions.",
+        "Qualified raw data, calibration, QC flags, timestamp, coverage, access rights and applicability must be obtained."
+      ]
+    },
+    {
+      "source_id": "csir-wavenet-durban-adcp-history",
+      "title": "CSIR WaveNet history — Port of Durban ADCP observation record",
+      "publisher": "CSIR",
+      "evidence_class": "historical_station_metadata_pending_current_status",
+      "url": "https://wavenet.csir.co.za/history.htm",
+      "station": {
+        "instrument": "Teledyne RD Instruments ADCP",
+        "reported_operating_since_year": 2002,
+        "reported_parameters": [
+          "ocean currents",
+          "waves"
+        ]
+      },
+      "limitations": [
+        "Current station status, configuration, depth bins, calibration, uptime, data rights and missing-data periods must be reconfirmed."
+      ]
+    },
+    {
+      "source_id": "eskom-idr-distribution-programme",
+      "title": "Instantaneous Demand Response Programme",
+      "publisher": "Eskom Distribution",
+      "evidence_class": "published_programme_description_participant_eligibility_requires_confirmation",
+      "url": "https://www.eskom.co.za/distribution/instantaneous-demand-response-programme/",
+      "product_terms": {
+        "minimum_entry_mw": 10,
+        "full_response_seconds": 6,
+        "sustain_minutes": 10,
+        "maximum_events_per_day": 3,
+        "metering": "special metering requirements",
+        "payment": "standby payment; no energy payment"
+      },
+      "limitations": [
+        "Published programme description is not an offer or approval for any port or data centre.",
+        "Confirm aggregation, baseline, metering, response testing, current programme procurement and contract terms directly."
+      ]
+    },
+    {
+      "source_id": "sawem-market-code-rev-2-3-feb-2026",
+      "title": "South African Wholesale Electricity Market (SAWEM) Market Code Rev 2.3",
+      "publisher": "NTCSA",
+      "publication_date": "2026-02",
+      "evidence_class": "published_market_code_document_regulatory_approval_status_separate",
+      "url": "https://www.ntcsa.co.za/wp-content/uploads/2026/02/Market-Code-v2.3.pdf",
+      "product_terms": {
+        "instantaneous_reserve_full_response_seconds": 10,
+        "sustain_minutes": 10,
+        "resource_type": "generation or demand-side managed load",
+        "schedule": "day-ahead reserve category and real-time dispatch"
+      },
+      "limitations": [
+        "Publication of a Market Code document does not establish that a specific port participant is registered or qualified.",
+        "NERSA's 15 Sep 2026 dashboard listed Market Code approval as finalisation with target 31 Oct 2026; confirm subsequent approval and implementation status."
+      ]
+    },
+    {
+      "source_id": "ntcsa-supplemental-demand-response",
+      "title": "Supplemental Demand Response Programme",
+      "publisher": "NTCSA",
+      "evidence_class": "published_programme_description_participant_eligibility_requires_confirmation",
+      "url": "https://www.ntcsa.co.za/supplemental-demand-response-programme-2/",
+      "product_terms": {
+        "notice_minutes": [
+          30,
+          360
+        ],
+        "minimum_entry": "greater of 500 kW or 15% of average plant demand",
+        "minimum_sustain_minutes": 120,
+        "frequency": "once per day under published description",
+        "metering": "30-minute interval remote metering prerequisite",
+        "payment": "standby plus energy payment"
+      },
+      "limitations": [
+        "Confirm current programme availability, aggregation rules, baseline, settlement and site eligibility with NTCSA/Eskom.",
+        "30-minute interval metering does not qualify a six-second IDR service."
+      ]
+    },
+    {
+      "source_id": "nersa-regulatory-projects-dashboard-september-2026",
+      "title": "NERSA Electricity Regulation Projects Dashboard — September 2026",
+      "publisher": "NERSA",
+      "publication_date": "2026-09-15",
+      "evidence_class": "dated_regulatory_status_snapshot",
+      "url": "https://www.nersa.org.za/files/files/2026/09/ELRStakeholderDashboard-September2026-Rev1-HighRes.pdf",
+      "product_terms": {
+        "market_code_approval_status_as_of_2026_09_15": "finalisation",
+        "target_completion": "2026-10-31",
+        "trading_rules_status": "consultation"
+      },
+      "limitations": [
+        "This snapshot is dated 15 Sep 2026 and cannot establish whether approval occurred after the target date."
+      ]
+    },
+    {
+      "source_id": "nrs-048-9-emergency-load-reduction",
+      "title": "NRS 048-9 Edition 3 — emergency load reduction and restoration",
+      "publisher": "NERSA-approved code of practice",
+      "evidence_class": "published_code_of_practice",
+      "url": "https://www.kaya959.co.za/wp-content/uploads/2024/04/NERSA-Approved-Version-of-NRS-048-9-2023-Edition-3.pdf",
+      "limitations": [
+        "Mandatory emergency load reduction is a different category from voluntary or contracted demand response; authority remains with the System Operator or relevant utility."
+      ]
+    },
+    {
+      "source_id": "coega-steels-private-energy-assets-2026-10",
+      "title": "Fedgroup-funded renewable energy infrastructure for Coega Steels rolling mill",
+      "publisher": "Fedgroup press release via Bizcommunity; reported by Engineering News",
+      "publication_date": "2026-10-30",
+      "evidence_class": "owner_funder_reported_project_status_not_independent_meter_audit",
+      "urls": [
+        "https://www.bizcommunity.com/PressOffice/PressRelease.aspx?ai=272996&cid=752422",
+        "https://www.engineeringnews.co.za/article/fedgroup-funds-renewable-energy-infrastructure-for-coega-steels-new-rolling-mill-2026-10-30"
+      ],
+      "project_data": {
+        "location": "Coega Special Economic Zone / Nelson Mandela Bay; separate private industrial site, not a TNPA port asset",
+        "solar_pv_capacity_mwp": 7,
+        "solar_energy_generated_kwh_reported_to_2026_10_30": 6000000,
+        "battery_energy_capacity_mwh": 50,
+        "battery_status_as_of_2026_10_30": "reported_nearing_commissioning",
+        "rolling_mill_capacity_tonnes_per_year": 150000,
+        "further_solar_expansion_mwp": 19.8,
+        "further_solar_target_date": "2027-12",
+        "further_expansion_status": "planned_not_finally_funded_or_committed",
+        "owner_funder": "Fedgroup funds/manages energy assets for Coega Steels",
+        "plant_operator": "Coega Steels"
+      },
+      "limitations": [
+        "PV capacity and generation to date are funder/company-reported; raw meter data, calibration, meter boundary, commissioning certificate and interval generation profile are not supplied.",
+        "The 50 MWh battery was reported as nearing commissioning on 30 Oct 2026; actual commissioning, usable energy, power rating, SoC, dispatch rights and operating availability remain unknown.",
+        "The further 19.8 MWp expansion is planned; the funding arrangement was reported as not finalized in a 6 Nov 2026 article.",
+        "The site is a separate private industrial node. No shared PCC, wheeling, export, dispatch, reserve, heat, water or contractual capacity is inferred for TNPA, another port tenant or a proposed data centre."
+      ]
+    }
+  ],
+  "sites": [
+    {
+      "site_id": "za-ngqura",
+      "name": "Port of Ngqura",
+      "country": "South Africa",
+      "screening_role": "first_energy_system_screening_case",
+      "evidence": {
+        "spare_substation_capacity_mva": {
+          "value": 19,
+          "unit": "MVA",
+          "evidence_class": "published_pre_feasibility_estimate",
+          "source_id": "ptxhub-sa-port-connection-capacity-2025-09"
+        },
+        "estimated_spare_capacity_mw": {
+          "value": 17.1,
+          "unit": "MW",
+          "evidence_class": "published_pre_feasibility_estimate",
+          "source_id": "ptxhub-sa-port-connection-capacity-2025-09",
+          "conversion_note": "The source assessment applies an assumed 0.9 power factor."
+        },
+        "connection_risk_category": {
+          "value": "low",
+          "evidence_class": "published_pre_feasibility_assessment",
+          "source_id": "ptxhub-sa-port-connection-capacity-2025-09"
+        },
+        "shore_power_demand_rank": null,
+        "shore_power_demand_rank_note": "No rank asserted in this fixture."
+      },
+      "unknowns": {
+        "utility_confirmed_import_capacity_mw": null,
+        "utility_confirmed_export_capacity_mw": null,
+        "upstream_network_constraints": null,
+        "fault_level_and_protection_study": null,
+        "metered_port_load_series": null,
+        "berth_level_shore_power_inventory": null,
+        "renewable_generation_time_series": null,
+        "battery_operating_status_and_rating": null,
+        "compute_load_profile": null,
+        "fibre_latency_and_route_diversity": null,
+        "land_rights_and_land_use": null,
+        "bathymetry": null,
+        "seabed_geology_and_habitat": null,
+        "marine_protected_area_intersection": null,
+        "metocean_design_conditions": null,
+        "marine_thermal_baseline_and_plume_model": null,
+        "subsea_cable_route_and_repair_access": null,
+        "environmental_authorization": null,
+        "site_specific_capex_and_opex": null
+      },
+      "paired_site_role": "first_integration_study_candidate_not_selected_site",
+      "projects": [
+        {
+          "project_id": "tnpa-ngqura-renewable-rfp-2024",
+          "technology": "7 MW solar PV + vertical-axis wind + 6 MWh BESS",
+          "status": "tender_closed_commissioning_unknown",
+          "count_as_operating_supply": false
+        },
+        {
+          "project_id": "tnpa-ngqura-solar-desal-rfp-2024",
+          "technology": "solar seawater desalination",
+          "scope_ml_per_day": 0.5,
+          "status": "procurement_record_commissioning_unknown",
+          "count_as_qualified_water": false
+        },
+        {
+          "project_id": "slr-coega-green-ammonia-ea-2026",
+          "technology": "proposed 1,400 MW electrolyser + ammonia plant",
+          "status": "environmental_authorization_issued_2026_01_16_fid_and_construction_unknown",
+          "count_as_current_load": false
+        },
+        {
+          "project_id": "tnpa-ngqura-lng-agreement-2026",
+          "technology": "planned 3.6 Mt/year LNG regasification",
+          "status": "long_dated_planned_infrastructure_not_operating_generation",
+          "count_as_current_supply": false
+        }
+      ],
+      "marine_observation_source": {
+        "source_id": "csir-wavenet-ngqura",
+        "instrument": "directional Datawell Waverider",
+        "latitude": -33.8333333,
+        "longitude": 25.7166667,
+        "depth_m": 21,
+        "distance_off_breakwater_tip_km": 2,
+        "reported_transmission_interval_minutes": 30,
+        "raw_data_and_quality_status": "unknown",
+        "display_only_warning": true
+      },
+      "adjacent_industrial_context": [
+        {
+          "project_id": "coega-steels-private-energy-assets-2026-10",
+          "relation": "adjacent_industrial_ecosystem_in_Coega_SEZ_not_port_owned",
+          "solar_pv_mwp": 7,
+          "reported_pv_generation_to_2026_10_30_kwh": 6000000,
+          "bess_energy_mwh": 50,
+          "bess_status": "reported_nearing_commissioning_as_of_2026_10_30",
+          "further_pv_mwp": 19.8,
+          "further_pv_target": "by_2027_end",
+          "further_pv_status": "planned_not_finally_funded",
+          "shared_capacity_with_port_or_future_dc": "unknown_no_right_inferred",
+          "meter_and_dispatch_evidence": "unknown_pending_owner_records"
+        }
+      ]
+    },
+    {
+      "site_id": "za-durban",
+      "name": "Port of Durban",
+      "country": "South Africa",
+      "screening_role": "high_shore_power_demand_and_grid_constraint_comparison",
+      "evidence": {
+        "spare_substation_capacity_mva": {
+          "value": 4,
+          "unit": "MVA",
+          "evidence_class": "published_pre_feasibility_estimate",
+          "source_id": "ptxhub-sa-port-connection-capacity-2025-09"
+        },
+        "estimated_spare_capacity_mw": {
+          "value": 3.6,
+          "unit": "MW",
+          "evidence_class": "published_pre_feasibility_estimate",
+          "source_id": "ptxhub-sa-port-connection-capacity-2025-09",
+          "conversion_note": "The source assessment applies an assumed 0.9 power factor."
+        },
+        "connection_risk_category": {
+          "value": "medium",
+          "evidence_class": "published_pre_feasibility_assessment",
+          "source_id": "ptxhub-sa-port-connection-capacity-2025-09"
+        },
+        "shore_power_demand_rank": {
+          "value": 1,
+          "unit": "rank among ports assessed in source study",
+          "evidence_class": "published_historical_demand_analysis",
+          "source_id": "ptxhub-sa-port-shore-power-demand-2025-09"
+        },
+        "shore_power_demand_metrics": {
+          "financial_year": "2024-2025",
+          "peak_utilization_maximum_mw": 42,
+          "peak_average_maximum_mw": 20,
+          "evidence_class": "published_historical_demand_analysis",
+          "source_id": "ptxhub-sa-port-shore-power-demand-2025-09",
+          "limitation": "Study-defined historical metrics, not firm simultaneous connection demand or utility-confirmed import capacity."
+        }
+      },
+      "unknowns": {
+        "utility_confirmed_import_capacity_mw": null,
+        "utility_confirmed_export_capacity_mw": null,
+        "upstream_network_constraints": null,
+        "fault_level_and_protection_study": null,
+        "metered_port_load_series": null,
+        "berth_level_shore_power_inventory": null,
+        "renewable_generation_time_series": null,
+        "battery_operating_status_and_rating": null,
+        "compute_load_profile": null,
+        "fibre_latency_and_route_diversity": null,
+        "land_rights_and_land_use": null,
+        "bathymetry": null,
+        "seabed_geology_and_habitat": null,
+        "marine_protected_area_intersection": null,
+        "metocean_design_conditions": null,
+        "marine_thermal_baseline_and_plume_model": null,
+        "subsea_cable_route_and_repair_access": null,
+        "environmental_authorization": null,
+        "site_specific_capex_and_opex": null
+      },
+      "paired_site_role": "high_shore_power_demand_and_grid_stress_test",
+      "marine_observation_source": {
+        "source_id": "csir-wavenet-durban-adcp-history",
+        "instrument": "Teledyne RD Instruments ADCP",
+        "reported_operating_since_year": 2002,
+        "reported_parameters": [
+          "ocean currents",
+          "waves"
+        ],
+        "current_station_status_and_data_rights": "unknown_pending_reconfirmation"
+      }
+    },
+    {
+      "site_id": "za-east-london",
+      "name": "Port of East London",
+      "country": "South Africa",
+      "screening_role": "comparison_site",
+      "evidence": {
+        "spare_substation_capacity_mva": {
+          "value": 18,
+          "unit": "MVA",
+          "evidence_class": "published_pre_feasibility_estimate",
+          "source_id": "ptxhub-sa-port-connection-capacity-2025-09"
+        },
+        "estimated_spare_capacity_mw": {
+          "value": 16.2,
+          "unit": "MW",
+          "evidence_class": "published_pre_feasibility_estimate",
+          "source_id": "ptxhub-sa-port-connection-capacity-2025-09",
+          "conversion_note": "The source assessment applies an assumed 0.9 power factor."
+        },
+        "connection_risk_category": {
+          "value": "low",
+          "evidence_class": "published_pre_feasibility_assessment",
+          "source_id": "ptxhub-sa-port-connection-capacity-2025-09"
+        }
+      },
+      "unknowns": {
+        "utility_confirmed_import_capacity_mw": null,
+        "metered_port_load_series": null,
+        "bathymetry": null,
+        "seabed_geology_and_habitat": null,
+        "metocean_design_conditions": null,
+        "fibre_latency_and_route_diversity": null,
+        "environmental_authorization": null,
+        "site_specific_capex_and_opex": null
+      }
+    },
+    {
+      "site_id": "za-gqeberha",
+      "name": "Port of Gqeberha",
+      "country": "South Africa",
+      "screening_role": "comparison_site",
+      "evidence": {
+        "spare_substation_capacity_mva": {
+          "value": 15,
+          "unit": "MVA",
+          "evidence_class": "published_pre_feasibility_estimate",
+          "source_id": "ptxhub-sa-port-connection-capacity-2025-09"
+        },
+        "estimated_spare_capacity_mw": {
+          "value": 13.5,
+          "unit": "MW",
+          "evidence_class": "published_pre_feasibility_estimate",
+          "source_id": "ptxhub-sa-port-connection-capacity-2025-09",
+          "conversion_note": "The source assessment applies an assumed 0.9 power factor."
+        },
+        "connection_risk_category": {
+          "value": "low",
+          "evidence_class": "published_pre_feasibility_assessment",
+          "source_id": "ptxhub-sa-port-connection-capacity-2025-09"
+        }
+      },
+      "unknowns": {
+        "utility_confirmed_import_capacity_mw": null,
+        "metered_port_load_series": null,
+        "bathymetry": null,
+        "seabed_geology_and_habitat": null,
+        "metocean_design_conditions": null,
+        "fibre_latency_and_route_diversity": null,
+        "environmental_authorization": null,
+        "site_specific_capex_and_opex": null
+      }
+    },
+    {
+      "site_id": "za-richards-bay",
+      "name": "Port of Richards Bay",
+      "country": "South Africa",
+      "screening_role": "comparison_site",
+      "evidence": {
+        "spare_substation_capacity_mva": {
+          "value": 11.5,
+          "unit": "MVA",
+          "evidence_class": "published_pre_feasibility_estimate",
+          "source_id": "ptxhub-sa-port-connection-capacity-2025-09"
+        },
+        "estimated_spare_capacity_mw": {
+          "value": 10.35,
+          "unit": "MW",
+          "evidence_class": "published_pre_feasibility_estimate",
+          "source_id": "ptxhub-sa-port-connection-capacity-2025-09",
+          "conversion_note": "The source assessment applies an assumed 0.9 power factor."
+        },
+        "connection_risk_category": {
+          "value": "low",
+          "evidence_class": "published_pre_feasibility_assessment",
+          "source_id": "ptxhub-sa-port-connection-capacity-2025-09"
+        }
+      },
+      "unknowns": {
+        "utility_confirmed_import_capacity_mw": null,
+        "metered_port_load_series": null,
+        "bathymetry": null,
+        "seabed_geology_and_habitat": null,
+        "metocean_design_conditions": null,
+        "fibre_latency_and_route_diversity": null,
+        "environmental_authorization": null,
+        "site_specific_capex_and_opex": null
+      }
+    },
+    {
+      "site_id": "za-mossel-bay",
+      "name": "Port of Mossel Bay",
+      "country": "South Africa",
+      "screening_role": "comparison_site",
+      "evidence": {
+        "spare_substation_capacity_mva": {
+          "value": 7,
+          "unit": "MVA",
+          "evidence_class": "published_pre_feasibility_estimate",
+          "source_id": "ptxhub-sa-port-connection-capacity-2025-09"
+        },
+        "estimated_spare_capacity_mw": {
+          "value": 6.3,
+          "unit": "MW",
+          "evidence_class": "published_pre_feasibility_estimate",
+          "source_id": "ptxhub-sa-port-connection-capacity-2025-09",
+          "conversion_note": "The source assessment applies an assumed 0.9 power factor."
+        },
+        "connection_risk_category": {
+          "value": "medium",
+          "evidence_class": "published_pre_feasibility_assessment",
+          "source_id": "ptxhub-sa-port-connection-capacity-2025-09"
+        }
+      },
+      "unknowns": {
+        "utility_confirmed_import_capacity_mw": null,
+        "metered_port_load_series": null,
+        "bathymetry": null,
+        "seabed_geology_and_habitat": null,
+        "metocean_design_conditions": null,
+        "fibre_latency_and_route_diversity": null,
+        "environmental_authorization": null,
+        "site_specific_capex_and_opex": null
+      }
+    },
+    {
+      "site_id": "za-cape-town",
+      "name": "Port of Cape Town",
+      "country": "South Africa",
+      "screening_role": "high_shore_power_demand_and_grid_constraint_comparison",
+      "evidence": {
+        "spare_substation_capacity_mva": {
+          "value": 0,
+          "unit": "MVA",
+          "evidence_class": "published_pre_feasibility_estimate",
+          "source_id": "ptxhub-sa-port-connection-capacity-2025-09"
+        },
+        "estimated_spare_capacity_mw": {
+          "value": 0,
+          "unit": "MW",
+          "evidence_class": "published_pre_feasibility_estimate",
+          "source_id": "ptxhub-sa-port-connection-capacity-2025-09",
+          "conversion_note": "Zero reported spare capacity in the cited pre-feasibility assessment; this is not a zero-load claim."
+        },
+        "connection_risk_category": {
+          "value": "high",
+          "evidence_class": "published_pre_feasibility_assessment",
+          "source_id": "ptxhub-sa-port-connection-capacity-2025-09"
+        },
+        "shore_power_demand_rank": {
+          "value": 2,
+          "unit": "rank among ports assessed in source study",
+          "evidence_class": "published_historical_demand_analysis",
+          "source_id": "ptxhub-sa-port-shore-power-demand-2025-09"
+        }
+      },
+      "unknowns": {
+        "utility_confirmed_import_capacity_mw": null,
+        "upstream_network_constraints": null,
+        "metered_port_load_series": null,
+        "bathymetry": null,
+        "seabed_geology_and_habitat": null,
+        "metocean_design_conditions": null,
+        "fibre_latency_and_route_diversity": null,
+        "environmental_authorization": null,
+        "site_specific_capex_and_opex": null
+      }
+    },
+    {
+      "site_id": "za-saldanha-bay",
+      "name": "Port of Saldanha Bay",
+      "country": "South Africa",
+      "screening_role": "grid_constraint_comparison",
+      "evidence": {
+        "spare_substation_capacity_mva": {
+          "value": 0,
+          "unit": "MVA",
+          "evidence_class": "published_pre_feasibility_estimate",
+          "source_id": "ptxhub-sa-port-connection-capacity-2025-09"
+        },
+        "estimated_spare_capacity_mw": {
+          "value": 0,
+          "unit": "MW",
+          "evidence_class": "published_pre_feasibility_estimate",
+          "source_id": "ptxhub-sa-port-connection-capacity-2025-09",
+          "conversion_note": "Zero reported spare capacity in the cited pre-feasibility assessment; this is not a zero-load claim."
+        },
+        "connection_risk_category": {
+          "value": "high",
+          "evidence_class": "published_pre_feasibility_assessment",
+          "source_id": "ptxhub-sa-port-connection-capacity-2025-09"
+        }
+      },
+      "unknowns": {
+        "utility_confirmed_import_capacity_mw": null,
+        "upstream_network_constraints": null,
+        "metered_port_load_series": null,
+        "bathymetry": null,
+        "seabed_geology_and_habitat": null,
+        "metocean_design_conditions": null,
+        "fibre_latency_and_route_diversity": null,
+        "environmental_authorization": null,
+        "site_specific_capex_and_opex": null
+      }
+    }
+  ],
+  "not_included": {
+    "coordinates": "Not included because no verified site geometry was admitted by this screening fixture.",
+    "subsea_data_centre_candidate": "None selected. Bathymetry, seabed habitat, metocean, cable route, fibre, thermal plume, permits, repair logistics and economics remain unknown.",
+    "renewable_project_commissioning": "No asset is represented as commissioned or operational without a primary source proving that state.",
+    "synthetic_hourly_profiles": "Not included. A separate synthetic reference case must use an explicit synthetic label and may not be presented as observed port demand."
+  },
+  "next_evidence_required": [
+    "Utility-confirmed import/export capacity, upstream constraints, fault level and interconnection study.",
+    "Metered port and berth-level load profiles, vessel calls, shore-power compatibility and service demand.",
+    "Rights-cleared bathymetry, seabed geology/habitat, marine protected-area boundaries and metocean records.",
+    "Cable and fibre route, landing station, latency, path diversity and repair logistics.",
+    "Environmental baseline, thermal plume modelling, monitoring design and site-specific authorization.",
+    "Compute workload, hardware, utilisation, SLA, power density, cooling design and metered facility-energy boundary.",
+    "Renewable generation, storage, tariff, carbon-intensity and lifecycle-cost time series.",
+    "Ngqura solar/wind/BESS tender award, as-built, commissioning, ownership and interval generation/storage meter data",
+    "Ngqura 0.5 ML/day solar desalination project status, feed rights, treatment train, product quality, brine/outfall and meter records",
+    "Coega Green Ammonia FID, construction, grid, renewable supply, water source and time-series load status",
+    "Ngqura LNG project execution status, gas supply, commissioning timeline and full fuel lifecycle emissions scenario",
+    "CSIR WaveNet owner-qualified Ngqura wave/weather data with instrument calibration, quality flags, station coverage and data rights",
+    "CSIR WaveNet Durban ADCP current/wave data with current station status, depth bins, calibration, coverage and data rights",
+    "Utility-confirmed PCC/feeder/import/export capacity and metered port/berth load series at both sites",
+    "South African demand-response qualification: separate Eskom 6 s IDR, SAWEM 10 s instantaneous reserve, NTCSA supplemental DR and emergency NRS 048-9 load reduction; verify site-specific programme eligibility and metering.",
+    "Coega Steels 7 MWp solar as-built and commissioning data, interval meter series, meter boundary, calibration and ownership/dispatch rights",
+    "Coega Steels 50 MWh BESS commissioning certificate, power rating, usable energy, efficiency, operating SoC and event/dispatch availability",
+    "Any contractual or physical connection, wheeling, export, aggregation or demand-response rights between Coega Steels, TNPA, utility and other Coega IDZ loads (do not infer from geographic proximity)",
+    "19.8 MWp Coega Steels solar expansion FID/funding, permits, construction, commissioning and operating data"
+  ],
+  "paired_site_strategy": {
+    "primary_integration_study_case": "za-ngqura",
+    "high_demand_grid_stress_case": "za-durban",
+    "rationale": "Ngqura has higher published pre-feasibility spare connection capacity; Durban has the highest estimated shore-power demand and materially lower reported spare capacity.",
+    "non_claim": "This is a paired evidence-acquisition strategy, not a site selection, utility connection offer or subsea data-centre siting decision."
+  },
+  "south_african_flexibility_product_matrix": {
+    "source_ids": [
+      "eskom-idr-distribution-programme",
+      "sawem-market-code-rev-2-3-feb-2026",
+      "ntcsa-supplemental-demand-response",
+      "nersa-regulatory-projects-dashboard-september-2026",
+      "nrs-048-9-emergency-load-reduction"
+    ],
+    "product_distinctions": [
+      "Eskom IDR six-second response is not the same product definition as SAWEM ten-second instantaneous reserve.",
+      "Supplemental DR with 30-minute interval metering is not proof of six-second IDR performance.",
+      "Emergency load reduction under NRS 048-9 is not a voluntary contracted DR service.",
+      "Published substation spare capacity is not metered or contracted demand-response availability."
+    ],
+    "port_screening": {
+      "ngqura": {
+        "published_spare_capacity_mw": 17.1,
+        "dr_eligibility": "unknown",
+        "note": "17.1 MW is pre-feasibility spare connection estimate, not flexible load, contracted IDR or response capacity."
+      },
+      "durban": {
+        "published_spare_capacity_mw": 3.6,
+        "dr_eligibility": "unknown",
+        "note": "3.6 MW is pre-feasibility spare connection estimate, not flexible load or response capacity; below the published 10 MW Eskom IDR minimum as a single resource, but aggregation eligibility is unknown."
+      }
+    },
+    "next_evidence_required": [
+      "Written current Eskom/NTCSA programme eligibility and aggregation confirmation for port and data-centre participants",
+      "Site metered baseline, interval resolution, special meter performance and telemetry proof for each proposed response product",
+      "Qualified controllable-load inventory with minimum stable consumption, available MW, response latency, sustain duration and restoration/rebound profile",
+      "Participant agreement, event authority, notice channel, event frequency, compensation, non-delivery treatment and settlement methodology",
+      "Whether multiple port tenants or electrical points of delivery may be aggregated into one eligible resource, and exact rules for network-zone and feeder scope",
+      "Current NERSA approval and SAWEM implementation status after the 15 September 2026 tracker snapshot"
+    ]
+  }
+}
