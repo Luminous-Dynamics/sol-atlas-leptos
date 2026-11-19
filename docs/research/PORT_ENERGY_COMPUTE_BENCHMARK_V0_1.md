@@ -385,3 +385,37 @@ Sources: [Shanghai Government / China Daily, 1 June 2026](https://english.shangh
 5. **Evidence-first environmental outcomes:** distinguish capacity installed, project announced, commissioned, measured and independently audited. Publish only claims supported by the corresponding evidence class.
 
 The current Symtropy tool is intentionally narrower: it independently checks fixed workload placements against declared PCC and feeder trajectories. It is an admission primitive for this larger port-logistics/energy/compute coordination programme, not the joint optimizer or a grid-study substitute.
+
+
+## 14. Ocean cooling and subsea cable resilience — research update (19 November 2026)
+
+### 14.1 Warm-water hybrid cooling is the meaningful comparator
+
+Mahmood, Bayhan and Al-Ansari, *Thermo-economic analysis of depth-optimised hybrid seawater cooling for offshore data centres in the shallow Arabian Gulf*, Applied Thermal Engineering 309 (November 2026), DOI [10.1016/j.applthermaleng.2026.133740](https://doi.org/10.1016/j.applthermaleng.2026.133740), models a 15 MW data centre and a three-mode cooling system:
+1. direct seawater cooling where intake conditions permit;
+2. partial water-side economiser plus mechanical chiller;
+3. chiller-only fallback when seawater is too warm.
+
+The model reports 17.0 GWh/year system electricity versus 33.1 GWh/year for its air-cooled baseline and 19.5 GWh/year for a binary water-side economiser; it estimates a 22.1% reduction in 20-year lifecycle cost. A ±1°C seawater temperature bias changes modeled annual electricity cost by −6.4% to +7.4%.
+
+These are modelled results under a particular Arabian Gulf boundary, not field measurements and not a South African prediction. The exact energy boundary must be reconciled before numerical comparison with a whole-facility PUE or another cooling system.
+
+**Spatial implication for Sol-Atlas:** a candidate must expose seasonal and depth-resolved seawater temperature, stratification, currents, bathymetry, intake/discharge geometry, recirculation possibility, cable landing and maintenance access. A surface-temperature map or nearest-shore distance is insufficient evidence for a cooling design.
+
+Source: [Applied Thermal Engineering — DOI 10.1016/j.applthermaleng.2026.133740](https://doi.org/10.1016/j.applthermaleng.2026.133740).
+
+### 14.2 Subsea cable route diversity must be spatial and failure-domain aware
+
+Palmer-Felgate, *Global Submarine Cable Faults and Repair Dynamics: A Statistical Analysis*, first published 16 September 2026, DOI [10.3233/NICSP260018](https://doi.org/10.3233/NICSP260018), analyses 3,224 valid submarine telecommunications cable repair records across 137 countries. It reports 150–200 telecom cable repairs per year, approximately 80% associated with fishing and anchoring, recurring multiple-cable incidents and repair delays approaching 50 days in some contexts.
+
+**Strict scope boundary:** these are global submarine telecommunications cable observations. They are not failure-rate statistics for submarine power cables, a site-specific risk probability, or a forecast for a South African route.
+
+**Spatial paradigm:** two lines on a map are not necessarily two independent routes. A Sol-Atlas route comparison must expose common landing stations, beach manholes, ducts, trench/corridor overlap, shared geohazards, fishing/anchoring/dredging exposure, common substations, inland backhaul and repair-permit dependencies. Unknown failure-domain overlap must remain unknown; do not promote logical redundancy to physical independence.
+
+Source: [SAGE / NATO Science for Peace and Security — DOI 10.3233/NICSP260018](https://doi.org/10.3233/NICSP260018).
+
+### 14.3 Cross-stack execution link
+
+Symtropy has started [OCEAN-COMPUTE-THERMAL-CABLE-001 #6228](https://github.com/Luminous-Dynamics/symtropy/issues/6228) and draft [PR #6229](https://github.com/Luminous-Dynamics/symtropy/pull/6229). It adds a machine-readable stress matrix for hybrid cooling, marine heatwave/fouling/failure cases, cable common-cause and repair-delay scenarios. The source JSON has 10 thermal and 12 cable scenarios and has been parsed successfully.
+
+Sol-Atlas remains the owner of spatial context and evidence lineage. It should supply source-qualified geography and expose uncertainty; Symtropy runs bounded physical/recovery scenarios; Symthaea proposes alternatives; Mycelix records permissions, approvals and observations. None of these layers turns a map or a simulation into a marine permit, cable route approval or proof of thermal safety.
