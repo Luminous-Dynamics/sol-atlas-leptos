@@ -6,7 +6,7 @@ fn frozen_relay_cases_match_expected_dispositions() {
     let corpus: Value = serde_json::from_str(include_str!("../../cases-v0.1.json"))
         .expect("relay corpus must be valid JSON");
     let cases = corpus["cases"].as_array().expect("cases array");
-    assert_eq!(cases.len(), 28, "frozen corpus size is part of the release contract");
+    assert_eq!(cases.len(), 29, "frozen corpus size is part of the release contract");
 
     for case in cases {
         let case_id = case["case_id"].as_str().expect("case_id");
@@ -75,6 +75,7 @@ fn synthetic_delivery(
             "assessed_at": "2026-11-19T00:00:00Z",
             "key_status_snapshot_ref": "urn:synthetic:key-status:snapshot:1",
             "event_time_basis": "trusted_append_receipt",
+            "time_evidence_ref": format!("urn:synthetic:time-evidence:{id}"),
             "status": "verified"
         },
         "context": {

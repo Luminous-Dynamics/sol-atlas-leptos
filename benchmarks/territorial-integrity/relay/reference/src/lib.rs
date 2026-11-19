@@ -1,5 +1,3 @@
-pub mod archive;
-
 //! Synthetic CTER relay reference model around Mycelix-DeSci signed events.
 //!
 //! Event identity is immutable. Verification assessments and disclosure /
@@ -9,6 +7,9 @@ pub mod archive;
 //!
 //! "accepted_events" means eligible for evidence preservation under the
 //! externally supplied verifier dispositions and stream-chain structure only.
+
+
+pub mod archive;
 
 use serde_json::{json, Value};
 use std::collections::{BTreeMap, BTreeSet, VecDeque};
