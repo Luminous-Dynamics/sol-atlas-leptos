@@ -934,10 +934,10 @@
       "owner_alignment_state": "CANDIDATE_NOT_OWNER_APPROVED"
     },
     {
-      "id": "ACCEPTED_MEAL_SERVICE",
+      "id": "ACCESSIBLE_SHARED_KITCHEN_HOUR",
       "amenity_id": "COMMUNITY_KITCHEN",
-      "output_unit": "meal-service",
-      "acceptance_definition": "A meal service is accepted only under its declared service/menu class and the responsible operator's food-safety procedure.",
+      "output_unit": "shared-kitchen-hour",
+      "acceptance_definition": "A shared kitchen-hour is counted only when the declared kitchen/equipment and accessible route are available for the intended resident use during the stated window; no meal-preparation or food-service output is implied.",
       "comparison_policy": "WITHIN_FUNCTIONAL_UNIT_ONLY",
       "owner_contract_reference": "https://github.com/Luminous-Dynamics/mycelix/issues/6328",
       "owner_alignment_state": "CANDIDATE_NOT_OWNER_APPROVED"
