@@ -1,296 +1,240 @@
-# Shared amenity commons benchmark v0.1
+# Spatial amenity provisioning benchmark v0.1
 
 **Study ID:** SHARED-AMENITY-COMMONS-001  
+**Tracking issue:** https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/940  
 **Parent:** Sol-Atlas CITY-NEIGHBOURHOOD-REFERENCE-001 (#596) / CITY-REFERENCE-DISTRICT-001 (#615)  
-**Issue:** https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/940  
 **Maturity:** BENCHMARK_PROTOCOL_AND_CASE_REGISTRY_ONLY  
-**Execution status:** NOT_EXECUTED  
-**Geographic profile:** Johannesburg / Highveld reference; method intended to be jurisdiction-portable  
-**Claim ceiling:** no evidence yet that sharing is cheaper, preferred, safer, more accessible, or more resilient
+**Execution:** NOT_EXECUTED — 50 registered synthetic design cases; no numeric inputs or result claims  
+**Geographic profile:** Johannesburg / Highveld reference method; portable with jurisdiction-specific rules  
+**Claim ceiling:** no proven savings, resident preference, site suitability, legal entitlement, service capacity, affordability or safety claim
 
-## 1. Paradigm shift: compare delivered service, not amenity counts
+## 1. Correct problem boundary: where should a service be provided?
 
-A site plan may show a pool, workshop, greenhouse or library without proving that any resident can use it when needed. Availability depends on capacity, opening hours, route accessibility, staffing, utilities, maintenance, cost, governance, privacy and the actual demand trace.
+This is a **spatial provisioning comparison**, not a second shared-amenity operating platform.
 
-This benchmark asks:
+The question is: given the same resident-authored task, population frame, amenity service, service quality, time horizon and evidence envelope, should the function be provided privately in each dwelling, in one central facility, through several local nodes, through a private/shared hybrid, or by an external provider?
 
-> For the same resident-defined service basket, population, geography, time horizon, accessibility requirements and operating scenarios, when does a shared asset deliver better whole-life value than private duplication or an external commercial service?
+The benchmark compares spatial consequences: catchment reach, route accessibility, time/cost burden, proximity to transit and other daily destinations, distribution of access, land opportunity cost, phasing and resilience to facility/provider loss. It does not decide who receives a booking or establish that a facility is open, safe, legally owned or adequately funded.
 
-Sharing is a hypothesis, not a presumption. Centralization may lower duplicated capital but raise travel time, queues, operator dependence, privacy risks, common-cause failure and deferred maintenance. Distributed or hybrid options may outperform both centralized sharing and private duplication.
+### Canonical owner map — compose, do not duplicate
 
-The unit of comparison is **accepted resident-facing amenity service over time**. Capital cost per room, amenity count, nominal floor area, utilisation percentage or a rendered masterplan cannot stand in for delivered service.
-
-## 2. System boundary and owner responsibilities
-
-This is a Sol-Atlas spatial/service comparison profile. It composes existing project owners:
-
-| System | Owns | Does not claim |
+| Owner | Canonical responsibility | Sol-Atlas #940 consumes |
 |---|---|---|
-| Sol-Atlas | Spatial alternatives, access/network projection, context and comparable reference scope | Title, structural approval, utility engineering or owner-native ledgers |
-| Symtropy | Deterministic scenarios, resource/service trajectories, physical adapter evidence and fail-closed comparison | A universal building solver or statutory building approval |
-| Symthaea | Resident brief reasoning, engineering alternatives, product/process/factory co-design | Legal consent, independent inspection or certification |
-| Mycelix | Ownership/consent/provenance, accountable decisions, lifecycle events, stock-flow and stewardship evidence | Legal title by token, democratic legitimacy by account count, or engineering safety |
-| Qualified practitioners / authorities | Applicable design, statutory, professional, inspection and operating decisions | Automated replacement by a software receipt |
+| Sol-Atlas #555 / PR #564 | Effective access: network reachability, walk/cycle impedance, opening, affordability, eligibility, step-free access and reachable-capacity potential | Group-specific access outcomes and their evidence/currentness. Do not implement another routing engine. |
+| Sol-Atlas #623 / PR #624 | Common district scope digest and owner-evidence envelope | Same population, service frame, geography, horizon, scenario, functional-unit and owner revision binding. |
+| Sol-Atlas #612 | Functional equivalence for component, dwelling service-year and neighbourhood service-year | Correct denominator and conversion boundary. |
+| Sol-Atlas #816 | Whole-household cost of place: land/tenure, finance, servicing, utilities, transport, maintenance and access affordability | Household affordability and cost vectors; #940 does not recalculate these. |
+| Mycelix #6328 / draft PR #6329 | Canonical shared-amenity asset, service, beneficiary, access, finance, reserve, maintenance, governance and handback contract; draft corpus has 33 synthetic cases | Versioned service definition, asset and operating evidence references. The draft contract remains subject to owner review. |
+| Mycelix #5901 | Matching and constrained allocation policy | Allocation outcome evidence where relevant; #940 does not decide moral priority or build a second allocator. |
+| Mycelix #912 | Capital-to-commons finance and stewardship transition | Capital claim and stewardship profile where a provision alternative uses this model. |
+| Symtropy #3768 | Generic service/capacity/resource feasibility | Qualified capacity and resource receipts; no second service-capacity solver. |
+| Symtropy #3957/#4065/#4074 and Mycelix #5001 | CEA full-boundary resource/nutritional service, greenhouse climate/harvest control and food cooperative lots/fulfilment | Greenhouse/growing service evidence when a local productive amenity is considered. No second crop, climate or food inventory model. |
+| Sol-Atlas #607/#904 | Highveld Keep reference dwelling; resident expression and optional experience packages | Resident-defined private/accessory/shared/external amenity alternatives; do not create another room or style catalogue. |
+| Sol-Atlas #694/#737/#840 | Essential household services, neighbourhood resilience commons and multifamily building design | Existing authoritative service floors and building/district configurations; not reimplemented here. |
 
-Existing owners to compose, not duplicate: Sol-Atlas #555, #563, #596, #612, #615, #623; Symtropy #1687, #1766, #1790, #1848, #1900, #4181, #4314, #4531, #5335; Symthaea #5949, #6032, #8051; Mycelix #987, #954, #3095, #4808, #4816, #5149.
+The manifest marks candidate amenity functional units as `CANDIDATE_NOT_OWNER_APPROVED`. This is deliberate: Mycelix #6328/#6329 has the canonical service contract and may revise these units. A schema-valid mapping is not owner approval.
 
-## 3. Comparison arms
+## 2. Paradigm shifts
 
-Each arm must deliver the same declared service basket and pass the same non-compensatory requirements.
+1. **From facility count to service opportunity.** A map pin or floor area is not usable service. Access requires route, time, opening, eligibility, affordability and an owner-qualified service record.
+2. **From centralization to service topology.** A facility may be private, accessory, central, distributed, hybrid or external. The best topology depends on population density, travel network, demand, land cost and failure domains.
+3. **From distance to effective access.** Use network and multimodal evidence, not Euclidean radius alone. Treat step-free routes, gradients, crossings, opening windows, price, eligibility and time-of-day as part of access.
+4. **From average access to distributional guarantees.** Report P50/P90, worst-decile, no-access cohorts, and local service-capacity bottlenecks. A good district average cannot erase a resident group with no usable route or no eligible service.
+5. **From static plan to phased service network.** Model construction/occupancy phases, demand emergence, provider opening/closure and alternate service routes. A masterplan can be spatially attractive but fail before its promised facilities arrive.
+6. **From isolated assets to robust alternatives.** A central facility can fail as a single point of service failure. Distributed options can provide substitutes, but may multiply staffing, maintenance and land burdens. Measure both.
+7. **From one opaque score to Pareto choices.** Keep access, service, affordability, land, privacy, environmental burden and resilience separate. Residents choose among feasible trade-offs; no weighted score can override rights or hard accessibility floors.
 
-| Arm | Model | Required explicit inputs |
+## 3. Matched spatial provision alternatives
+
+| Arm | Provision topology | Required same-scope assumptions |
 |---|---|---|
-| PRIVATE_DUPLICATION | Households individually own and maintain a specified facility/equipment | Per-home capital, floor/land allocation, replacement, utility and maintenance needs |
-| CENTRAL_SHARED | One common facility serves the reference population | Capacity, service schedule, access network, queue policy, staffing, utilities and reserve |
-| DISTRIBUTED_SHARED | Multiple local shared facilities divide demand | Facility locations, capacities, routes, independent/common dependencies and operating model |
-| HYBRID_SHARED_PRIVATE | Private minimum provision plus selected common facilities | Which service remains private, which is shared, fallback and duplication avoided |
-| EXTERNAL_COMMERCIAL | Service purchased outside the development | Verified provider, price, opening hours, capacity, travel, eligibility and continuity |
+| PRIVATE_DUPLICATION | Each household has its own version of the selected amenity or equipment | Same service definition, quality, opening/use window, household population and resident requirements. |
+| CENTRAL_SHARED | One shared node serves the declared catchment | Site location, owner-native service capacity, operating/access window, routes and catchment boundaries. |
+| DISTRIBUTED_SHARED | Multiple smaller shared nodes serve sub-catchments | Node locations/capacities, route graph, overlapping catchments, common dependencies and fallback topology. |
+| HYBRID_SHARED_PRIVATE | Private minimum plus selected shared services | Exact private floor, shared supplement, fallback path and duplication avoided. |
+| EXTERNAL_COMMERCIAL | Existing external providers supply equivalent service | Verified provider/service, price, opening, capacity/eligibility evidence, route and continuity. |
 
-An arm with missing provider, cost, capacity, scope or service evidence is UNKNOWN or NOT_COMPARABLE. Do not replace unavailable data with a zero cost or unlimited capacity.
+Every arm must provide an equivalent declared service basket. When it cannot, report `NOT_COMPARABLE`; do not quietly change the functional unit, quality, population or evaluation period.
 
-## 4. Reference amenity basket
+## 4. Resident-facing amenity service basket
 
-These are distinct service archetypes. A neighbourhood does not need every facility; resident-authored briefs and local demand determine inclusion.
+These are candidate service classes to locate and compare, not a requirement to build all of them. Functional units are candidate mappings for Mycelix #6328 review.
 
-| Archetype | Service to measure | Critical dependencies |
+| Amenity | Candidate functional unit | Spatial question |
 |---|---|---|
-| Tool library / maker workshop | Tool availability, booking, safe access, repair and return | Custody, qualified supervision where required, power, consumables, maintenance |
-| Shared laundry | Accepted wash/dry cycles and availability | Water quality/quantity, energy, drainage, ventilation, equipment uptime |
-| Guest suites | Accessible overnight stays | Booking fairness, cleaning, privacy, maintenance, safeguarding |
-| Greenhouse / food garden | Productive growing area and usable harvest/service | Water entitlement/quality, climate, inputs, staffing, soil/compost and maintenance |
-| Pool / wellness | Safe, accessible operating hours and user capacity | Water, filtration, energy, trained operation, inspection, cleaning and reserve |
-| Community kitchen / dining | Meal-preparation and gathering service | Food hygiene, ventilation, fire safety, cleaning and accessible equipment |
-| Library / study / coworking | Usable quiet/work/study hours | Power, connectivity, acoustic separation, opening, privacy and seating |
-| Childcare / learning | Qualified care/learning places and hours | Licensing, staffing ratios, safeguarding, access, sanitation and emergency provisions |
-| Sports / park / public realm | Accessible use-hours and recreation capacity | Land, shade, lighting, water constraints, maintenance and safe routes |
-| Shared utility plant | Delivered utility service and recovery continuity | Engineering qualification, isolation, metering, operators, spares and failure domains |
+| Community hall | accessible community-room-hour | How many nodes and what catchment are needed for ordinary use and events? |
+| Community kitchen | accepted meal-service | Is a local shared kitchen reachable at the required time, or is private/external provision equivalent? |
+| Coworking / library / study | accessible seat-hour | Does distributed access reduce travel without making staffing/connectivity uneconomic? |
+| Workshop / tool library / repair | usable equipped-workshop-hour | Should workshops cluster, distribute by catchment, or remain private/accessory? |
+| Guest suites | accessible guest-night | Can shared guest accommodation substitute for some private spare-room demand without violating resident privacy or access needs? |
+| Shared laundry | accepted laundry-load | What density and walking catchment justify one laundry node versus in-home equipment? |
+| Greenhouse / nursery / food growing | usable harvest kg by crop/grade | Which sites have lawful water, climate and food-network evidence, and which producer/pickup nodes can serve residents? |
+| Pool / wellness | candidate operable pool-lane-hour | What is the access and resource burden of private versus shared access? Public-pool service remains blocked/out-of-scope absent applicable operator and statutory evidence. |
+| Gym / recreation | usable activity-space-hour | Do distributed smaller facilities improve coverage or duplicate equipment/staffing? |
+| Non-essential amenity plant | enabling asset only | Plant is attributed to the named amenity service; it is never counted as a separate resident-facing service. |
 
-**Pool and greenhouse caution:** Johannesburg Level 2 water restrictions take effect 21 November 2026 and prohibit municipal drinking-water irrigation of gardens, lawns, parks and public spaces. A pool or greenhouse proposal must declare its water source, quality, permitted use, refill/top-up, evaporation, treatment, leakage and drought operating policy. Do not assume that harvested rainwater or greywater is automatically suitable for a given use.
+No universal `amenity unit` is allowed. A guest-night, seat-hour, meal, pool-lane-hour and crop/grade kilogram are not interchangeable. A spatial access result does not promote an owner service claim.
 
-## 5. Registered scenarios
+## 5. Ten spatial scenarios — 50 registered cases
 
-v0.1 registers ten common scenario families. Exact numerical traces, probability distributions, demand values and local costs are deliberately unpopulated; they must be supplied by an identified source or clearly labelled synthetic fixture before execution.
+The manifest crosses five provision arms with these ten synthetic spatial contexts:
 
-1. **ORDINARY_DEMAND** — ordinary operating profile and declared household/service schedule.
-2. **PEAK_SIMULTANEOUS_DEMAND** — coincident demand, queues, booking contention and overflow.
-3. **SEASONAL_OR_EVENT_SURGE** — holiday, community event, seasonal growing or school-calendar variation.
-4. **GRID_OR_WATER_INTERRUPTION** — declared utility interruption, reserves, passive fallback and service-floor degradation.
-5. **STAFFING_OR_OPERATOR_OUTAGE** — absence, provider insolvency or operator replacement.
-6. **MAJOR_REPAIR_AND_PARTS_DELAY** — planned maintenance, unplanned failure, replacement parts and return-to-service.
-7. **OPERATING_COST_INFLATION_AND_RESERVE_SHORTFALL** — utility, labour, insurance, consumable and replacement-cost shock.
-8. **ACCESS_ROUTE_DISRUPTION_OR_LIFT_OUTAGE** — route closure, vertical transport outage and alternative access.
-9. **HOUSEHOLD_COMPOSITION_AND_DEMAND_CHANGE** — changed occupancy, tasks, schedules and service preferences.
-10. **GOVERNANCE_CONFLICT_OR_OPERATOR_CAPTURE_ATTEMPT** — disputed decision, conflicted procurement, unauthorized rule change or attempted capture.
+1. `COMPACT_HIGH_DENSITY` — short route network, high resident concentration and potential peak demand.
+2. `LOW_DENSITY_DISPERSED` — longer distances and lower per-node utilization.
+3. `MIXED_USE_TRANSIT_ADJACENT` — amenity catchments overlap transit and daily destinations.
+4. `SITE_EDGE_LONG_WALK` — residents on the site edge face longer access to central facilities.
+5. `ACCESSIBLE_ROUTE_DISCONTINUITY` — direct geometric proximity exists but step-free/usable route continuity does not.
+6. `UNEQUAL_POPULATION_DISTRIBUTION` — population is unevenly distributed within a nominally equal radius.
+7. `PHASED_OCCUPANCY_GROWTH` — residents and facilities enter service in stages.
+8. `LAND_SCARCITY_COMPETING_USE` — amenity land competes with housing, public realm, productive work and ecological uses.
+9. `EXTERNAL_PROVIDER_DISTANCE_OR_CLOSURE` — external service exists but is distant, costly, ineligible or closes.
+10. `MULTI_NODE_CATCHMENT_REBALANCING` — distributed nodes and catchments change after a node/provider loss or phased growth.
 
-The five arms crossed with ten scenarios create **50 registered comparison cases**. The case registry is not an execution result.
+All 50 case records remain `REGISTERED_DESIGN_ONLY`, `NOT_EXECUTED`, `NOT_SUPPLIED` and `NO_RESULT`. The manifest is a case registry, not an execution receipt.
 
-## 6. Measurement model: keep the outcome vector visible
+## 6. Spatial model and owner-native evidence
 
-### Service delivery
-For each amenity and time interval, preserve requested, eligible, scheduled, delivered, rejected, cancelled, unavailable and unmet demand. Distinguish a service-hour from a person-hour, booking, cycle, meal, overnight stay or other functional unit. Define the accepted-output predicate before comparing arms.
+Each candidate comparison must bind, through Sol-Atlas #623:
+- the same boundary, CRS, population frame, demand/task definition, period, service scope, functional-unit version and scenario;
+- exact amenity service/asset references from Mycelix #6328, with current owner revision and claim ceiling;
+- access network and service-reach evidence from CityMorph #555, with mode, time, route state, impedance, accessibility and source currentness;
+- owner-native capacity/service evidence from Symtropy #3768 and allocation evidence from Mycelix #5901, where needed;
+- cost/affordability outputs from Sol-Atlas #816, not an invented per-room cost;
+- any capital-to-commons or stewardship assumptions from Mycelix #912;
+- design/home revision and resident intent from Sol-Atlas #607/#904;
+- source and resolution limits, and the exact upstream receipt or schema revision.
 
-### Access and time
-Record door-to-door route and travel time, access-window fit, accessible-route availability, wait-time distribution, queue abandonment, booking lead time, opening hours and privacy. A facility is not accessible merely because it lies inside a site boundary.
+Do not duplicate shortest-path routing, GIS, facility booking, allocation, capacity, service, finance, asset, maintenance or governance engines. The Sol-Atlas layer combines the owner receipts into spatially comparable alternatives and highlights missing, stale, mismatched or inaccessible claims.
 
-### Capacity and utilization
-Report rated capacity, safe operating capacity, observed available capacity, peak concurrency, utilization by time window, overflow and unsatisfied demand. Utilization is not a substitute for availability or equitable service. A highly utilized facility can still be undersized.
+## 7. Metrics — keep the outcome vector visible
 
-### Lifecycle economics
-Include capital, design, approvals, land opportunity cost, financing, transport, installation, staffing, operator contracts, cleaning, energy, potable and non-potable water, consumables, insurance, maintenance, repairs, replacement, reserve funding, disruption, decommissioning and residual value. Report:
-- total discounted lifecycle cost under an explicitly named discount/price convention;
-- cost per accepted service unit;
-- cost per served household-year;
-- cost per resident-facing service-hour where the denominator is meaningful;
-- distribution of cost and benefit, not just development-wide averages.
+### Effective access
+- network travel time and generalized travel cost by mode and relevant time window;
+- median, P90 and worst-decile travel burden, plus share of residents with no known usable route;
+- population/task-weighted reachability to service classes;
+- cumulative opportunities and reachable service options within resident-defined travel budgets;
+- step-free route availability and route discontinuity for declared accessibility requirements;
+- opening-window fit, eligibility and affordability filters;
+- external-provider availability and provider-loss sensitivity.
 
-Do not double-count transfers between resident levy, cooperative budget, operator revenue and supplier expenditure as if they were separate social resource costs. Keep cash-flow, financial incidence and real resource consumption ledgers distinct.
+### Service opportunity and capacity
+- reachable, owner-qualified capacity potential per demand unit (not allocated supply);
+- service demand, reachable capacity and aggregate facility capacity kept as separate quantities;
+- facility capacity counted once in city/category totals;
+- number of independent reachable providers/nodes and their common dependencies;
+- queue/wait/capacity results only from the canonical Mycelix/Symtropy owner receipts.
 
-### Environmental and resource accounting
-Where supported by declared methods and sources, report electricity, fuel, water by quality class, materials, waste and lifecycle carbon per accepted service unit. State boundaries and exclusions. An environmental label or supplier assertion is not measured impact.
+### Distribution and equity
+- access distributions by declared, consented task/function cohorts;
+- neighborhood-level and within-neighborhood access gaps;
+- low-access/no-access populations and affected resident tasks;
+- no demographic proxy is used to infer a person's amenity preference.
 
-### Reliability and recovery
-Report service availability, fault detection, time to isolate, repair time, parts delay, recommissioning/reinspection time, restoration, repeat failure, common-cause dependency and fallback service. Distinguish a service that is physically present from one that is operable.
+### Land, cost and environmental burdens
+- land opportunity cost and housing/public-realm/productive/ecological alternative use;
+- lifecycle/household affordability vector from #816;
+- travel time and trip burden per accepted service unit;
+- water/energy/resource intensities only from qualified owner receipts;
+- privacy, noise, congestion, maintenance and operator burden where evidenced.
 
-### Equity and participation
-Report whether the service can meet explicitly resident-authored tasks and access requirements, by opt-in functional cohorts and use cases. Preserve differences between people. Do not infer needs or amenity preferences from age, diagnosis, household size, income or other demographic proxies. Never let a neighbourhood average hide an affected cohort with zero usable service.
+### Robustness and phasing
+- access preserved after facility/provider/route loss;
+- time to viable substitute or recovery, from owner-native continuity evidence;
+- phase at which each service becomes accessible to residents;
+- service gap duration while construction or transition occurs;
+- sensitivity to population growth, density, land price, travel time and provider availability.
 
-### Governance and stewardship
-Record the legal/organizational owner, beneficiary constituency, decision rights, operating authority, procurement controls, asset-purpose protections, conflicts, complaints and appeals, member exit, privacy, insolvency continuity, operator replacement, reserve oversight and handback. Participation counts alone do not establish meaningful influence.
+Do not compute one blended amenity score. Report the Pareto frontier and the full distribution.
 
-## 7. Break-even analysis and Pareto comparison
+## 8. Break-even and option-value analysis
 
-No universal break-even density should be hard-coded.
+Do not hard-code a universal density at which sharing becomes optimal. For each service and matched area, vary population, demand frequency, land cost, facility size, catchment radius, opening window, travel impedance, cost and failure assumptions.
 
-For each amenity service, compare the full annualized and lifecycle cost curves over population/demand, facility capacity, service frequency, land cost, travel time, queueing, maintenance burden, staffing model and failure exposure. Identify:
-- utilization/demand at which shared provision becomes lower-cost than private duplication;
-- utilization at which a shared facility becomes congested or requires a second node;
-- density/radius at which access time begins to outweigh capital savings;
-- reserve and staffing requirements that change the result;
-- sensitivity to land, interest, utility, labour, parts and replacement prices.
+Identify:
+- demand/density at which shared provision becomes less costly than private duplication under the #816 cost boundary;
+- density/radius at which added travel and queue burden outweighs duplicated capital savings;
+- utilization at which central provision requires a second node;
+- whether a distributed node reduces tail access time or just duplicates low-use assets;
+- whether external providers dominate private/shared investment at low utilization;
+- how phasing and node redundancy change future feasible options.
 
-Present the feasible Pareto frontier for cost, delivered service, access time, privacy, reliability, resource use and distributional outcomes. Hard legal, safety and accessibility requirements are constraints, not weighted objectives. Do not collapse unlike outcomes into a single “amenity score.”
+Report the break-even surface and uncertainty, not one magic threshold. A shared node can be cheaper on average and still be rejected because it fails a declared travel, accessibility, privacy or service floor.
 
-## 8. Governance and legal form profiles
+## 9. Non-compensatory gates
 
-The project must select its legal structure only after local legal and land-tenure review. Candidate forms may include:
-- sectional-title common property and a body corporate;
-- housing cooperative or shared deferred ownership, if properly established;
-- a communal property association only where statutory eligibility and land-history conditions apply;
-- nonprofit/social-housing institution with resident participation;
-- contractual amenity operator with enforceable resident oversight;
-- federated or polycentric stewardship across distinct asset owners/operators.
+- No alternative passes when the required resident task has no known usable route or eligible service.
+- A map marker is not available service; missing/stale opening, capacity, eligibility or price remains `UNKNOWN`.
+- A capacity-potential measure is not an allocation and does not prove demand is served.
+- No service capacity is double-counted across group-specific catchments.
+- A direct line or Euclidean radius cannot override a barrier or missing step-free path.
+- Unknown or stale upstream evidence cannot become zero cost, unlimited capacity or open access.
+- Legal rights, public-health, building, fire, pool and regulated service approvals remain with their proper authorities and Mycelix/qualified owner records.
+- A nominal cost or density advantage cannot compensate for displacement, inaccessible routes or a breached mandatory service floor.
+- A candidate owner functional unit remains unapproved until Mycelix #6328 accepts it.
 
-For every profile, separate:
-1. asset/title holder;
-2. asset-purpose guardian or constitutional steward;
-3. resident/user representative body;
-4. day-to-day operator;
-5. independent reviewer/auditor;
-6. relevant public/statutory authority.
+## 10. External baselines and fair comparison
 
-Specify ordinary decisions versus reserved/constitutional matters, voting and representation, conflicts of interest, operator selection/removal, budget and reserve limits, access rules, complaints, appeal, records/privacy, insolvency, member exit, transfer/encumbrance and operational handback. An ordinary majority must not silently gain authority to privatize an asset-locked commons. The lawful mechanism and protection must be confirmed by counsel; a software ledger cannot create or substitute for legal title.
+### Routing and effective accessibility
 
-## 9. South African and interoperability references
+CityMorph #555 is the existing Sol-Atlas access reference. The benchmark should compare its route/access semantics and reports against specialist routing engines such as R5/Conveyal and OpenTripPlanner, while explicitly not claiming that Sol-Atlas beats them at core routing. The value-add is the evidence layer: service quality/capacity, currentness, eligibility, affordability, step-free requirements, distributional outcomes and common-scope binding.
 
-- SHRA Social Housing Norms and Standards contain communal-housing requirements, including rooms with shared amenities, common bathrooms, kitchens and common-area amenities: https://www.etenders.gov.za/home/Download/?blobName=09797a42-8553-4615-a677-dab34af1c251.pdf&downloadedFileName=Norms.pdf
-- Social Housing Regulations include design criteria for internal services, lifecycle maintenance obligations, metering, range of accommodation options and cooperative/shared deferred ownership provisions: https://www.acts.co.za/social_housing_act_2008/r51_20__housing_design_criter
-- Sectional Titles Schemes Management Act 8 of 2011: https://www.gov.za/documents/sectional-titles-schemes-management-act
-- Sectional Titles Act 95 of 1986: https://www.gov.za/documents/sectional-titles-act-17-sep-1986-0000
-- Communal Property Associations Act 28 of 1996: https://www.gov.za/documents/communal-property-associations-act. The 2024 amendment announcement describes its scope and changes; eligibility is not universal: https://www.gov.za/news/media-statements/president-cyril-ramaphosa-signs-law-communal-property-associations-amendment
-- buildingSMART IFC 4.3 / ISO 16739-1:2024: https://www.buildingsmart.org/standards/bsi-standards/industry-foundation--classes/
-- buildingSMART IDS 1.0 for machine-readable alphanumeric information requirements and exchange validation: https://www.buildingsmart.org/standards/bsi-standards/information-delivery-specification-ids/
+Use official SDG 11.2.1 / 11.7.1 and UN-Habitat/ITDP 5Ds as reference indicator families, not as a complete resident access result. A universal 15-minute cut-off is not a substitute for task-specific resident requirements, service hours or accessibility constraints.
 
-The standards crosswalk must pin the exact instrument, edition, amendments, effective status, applicability, municipality, use/occupancy, tenure and reviewer. An IFC/IDS exchange pass does not establish a building's physical performance or legal compliance.
+### Housing / design tools
 
-## 10. Industry baseline and what would count as better
+Autodesk Forma, Finch3D, TestFit and Hypar are relevant to site/layout option generation. They are adjacent comparators, not direct equivalents to Mycelix asset operations or CityMorph network accessibility. Compare them on identical site, design brief, unit mix, resident tasks, hard constraints, time budget and downstream information exchange. Do not claim superiority from option count or render speed.
 
-### Construction productivity is not amenity value
-Singapore BCA states PPVC can raise productivity by up to 40% in manpower/time savings depending on project complexity. HDB reported a 25% site-productivity improvement against a projected 0.6 m²/man-day baseline on its first Construction Transformation Project. These figures are external construction references, not shared-amenity savings and not direct South African performance predictions:
-- https://www1.bca.gov.sg/growth-and-transformation/productivity/design-for-manufacturing-and-assembly-dfma/prefabricated-prefinished-volumetric-construction-ppvc/
-- https://www.hdb.gov.sg/hdb-pulse/news/2026/advanced-construction-technologies-at-hdbs-first-ctp-helped-achieve-25-productivity-improvement
+### Construction and delivery tools
 
-### South African market baseline
-NHBRC publishes an Approved Innovative Building Technologies dynamic database and research on structural performance of registered systems: https://www.nhbrc.org.za/innovative-building-technologies/
-Agrément South Africa publishes active certificates, which must be checked for exact product, revision, scope and status: https://agrement.co.za/active-certificates/
+Singapore BCA PPVC, Hong Kong MiC/MiMEP and the 491-project ASCE modular-building study are relevant construction productivity references. They are not amenity operating savings or direct South African performance forecasts. Use equivalent installed/commissioned service and complete-workflow labor/cost boundaries.
 
-These are baseline sources and qualification routes, not proof that an unreviewed system is approved.
+## 11. Candidate stretch targets — not measured outcomes
 
-### Luminous differentiation hypothesis
-The research contribution is not “we have a digital twin” or “we use prefabrication.” It is the ability to join, on one exact reference scope:
-- equivalent delivered service, not just building output;
-- access, queue and capacity under real schedules;
-- full lifecycle and reserve economics;
-- water/energy/material constraints;
-- repairability, replacement and handback;
-- consent-aware multi-party ownership and governance;
-- interoperable, revision-bound evidence that can be independently replayed.
-
-We should claim superiority only after matched tests demonstrate better results without relaxing quality, accessibility, safety or service floors.
-
-## 11. Proposed gates — targets, not results
-
-- 100% of cases bind the same population, service, period, site, demand trace and operating conditions across comparison arms; otherwise mark NOT_COMPARABLE.
-- 100% of seeded missing, stale, revoked, wrong-scope, corrupt or contradictory critical inputs remain UNKNOWN, BLOCKED or INVALID; zero optimistic defaults.
-- 100% of seeded queue/capacity, travel/access, power/water, staffing, operator, maintenance and reserve failures are visible in the correct outcome.
-- Exact agreement with hand-calculated synthetic reference examples for all deterministic capacity, queue, unit-conversion and stock-flow rules.
-- Zero unserved demand silently dropped from reports.
-- Zero lifecycle claims with unreported boundary exclusions.
-- 100% of major common assets have a condition, inspection date, expected renewal horizon, replacement-cost source and reserve policy before a lifecycle-adequacy claim.
-- Zero access, legal, life-safety or engineering constraints compensated away by a weighted cost or sustainability score.
-- Every recommendation exposes its evidence state, uncertainty, scope, claim ceiling and responsible decision-maker.
-
-### Future physical/operational target gates
-These require a real site, consenting residents, measured cost/demand, independent evaluation and qualified operators. Establish targets only after baseline collection and power analysis. Do not fabricate numerical savings or utilization targets now.
-
-## 12. Execution stages
-
-1. **E0 — contract freeze:** schema, case registry, same-scope rules, units, outcome vectors, legal/authority boundaries and source register.
-2. **E1 — registry integrity:** deterministic Rust auditor for frozen input identity, exact 5×10 coverage, functional-unit mapping, owner exclusions and claim-state invariants; adversarial mutations and a byte-bound summary receipt. This is not an operational service, capacity, cost or allocation evaluator.
-3. **E2 — owner-native composition:** Sol-Atlas scope binding #623; Symtropy #3768 capacity/resource outputs and #1848 resilience where applicable; Mycelix #5901 allocation, #987 governance, #4808 accounting and lifecycle records; Symthaea engineering/process estimates. Read-only adapter composition; no schema shadow ledgers.
-4. **E3 — measured baseline:** one amenity at a time. Collect lawful demand, actual operating cost, access, capacity, condition, utility use, staff hours and resident feedback with consent and privacy safeguards.
-5. **E4 — non-occupied test cell:** choose the lowest-risk asset with the highest information value (tool-library custody workflow, laundry water/energy mock-up, greenhouse water loop, or pool plant mock-up). No mains/potable/occupied installation without qualified review and approvals.
-6. **E5 — bounded live pilot:** independent assessment, matched comparison, resident governance, funded maintenance reserve and explicit stop/withdrawal process before any public-facing claim.
-
-## 13. Claim ceiling
-
-This protocol and registry are design artifacts. They do not demonstrate that shared amenities are cheaper, legally owned, adequately funded, accessible, safe, resilient or preferred by residents. Synthetic cases do not establish physical performance. A hash proves artifact identity, not source truth. An approval receipt is scoped to its authority and artifact revision. All empirical and statutory claims require exact sources, local applicability review and evidence from the relevant project.
-
-
-### Additional 2026 benchmarks and local cost anchors (evidence classes kept separate)
-
-| Reference | Reported evidence | Correct use in our benchmark | What it does not prove |
-|---|---|---|---|
-| Singapore BCA PPVC guidance (updated 1 Oct 2026) | Up to 40% manpower/time savings depending on project complexity; up to 30% floor-cycle time reduction; typical reported project savings of 1–2 months, with some 4+ months. Its Brownstone case reports up to 4 months and 20% project-level manpower savings. | Reference for factory-built volumetric construction, crane/logistics, design-for-manufacture, and end-to-end labour/time accounting. | Not a guarantee for low-rise South African homes, not a shared-amenity saving, and not comparable unless baseline and full workflow boundaries match. |
-| Singapore HDB Construction Transformation Project (18 Sep 2026) | 25% site-productivity improvement against a projected 0.6 m²/man-day baseline, attributed to a package of advanced technologies and more productive methods. | Reference for programme-level site-productivity measurement; benchmark the package and its context, not one device. | Not an isolated technology effect or direct South African benchmark. |
-| Modular Buildings project dataset (ASCE, 9 Sep 2026) | Study analyses 491 modular projects (303 permanent, 188 relocatable) across multiple sectors; productivity is gross m²/day and patterns differ by building category and project size. | Use as an external dataset reference and require building-type/size stratification. | Gross area/day is not accepted dwelling-service output; the abstract says data may be available from authors on request. |
-| Modular 3D-printed housing techno-economic analysis (Journal of Cleaner Production, 14 Jan 2026) | A 120 m² Australian detached-home case models 20–30% lower upfront cost, 50–70% shorter construction time, 80–95% lower on-site labour, up to 40% lower material use and up to 55% lower embodied emissions versus a conventional modular baseline. Results are sensitive to scale and material prices. | A high-ambition scenario for matched techno-economic analysis and sensitivity to equipment utilization, material costs and project pipeline. | A modelled Australian case, not a South African project result, not proof of regulatory approval or measured in-service performance. |
-| South African DPWI 2026/27 Annual Performance Plan, citing Stats SA December 2025 data | Average completed-building costs reported at R7,698.03/m² for dwelling houses below 80 m²; R9,010.23/m² for houses 80 m² and above; R10,994.73/m² for flats/townhouses. Plan values differ from completed-building values. | A dated national macro sanity check for early costing; preserve size/type and plan-vs-completed distinction. Replace with project-specific, current QS estimates and actual invoices before investment decisions. | Not a quote, not Johannesburg-only, and not necessarily inclusive of land, bulk services, finance, professional fees, abnormal ground conditions, VAT, furnishing or lifecycle operation. |
-
-Sources:
-- BCA PPVC: https://www1.bca.gov.sg/growth-and-transformation/productivity/design-for-manufacturing-and-assembly-dfma/prefabricated-prefinished-volumetric-construction-ppvc/
-- HDB CTP: https://www.hdb.gov.sg/hdb-pulse/news/2026/advanced-construction-technologies-at-hdbs-first-ctp-helped-achieve-25-productivity-improvement
-- Hasan & Choi (2026), *Correlation between Size and Productivity for Modular Buildings*, Journal of Management in Engineering: https://doi.org/10.1061/JMENEA.MEENG-7605
-- Nguyen et al. (2026), *Techno-economic analysis of 3D printed modular housing: Productivity, cost, and environmental assessment*, Journal of Cleaner Production: https://doi.org/10.1016/j.jclepro.2025.147461
-- South African DPWI Annual Performance Plan 2026/27, pp. 54–55, Stats SA building-cost series: https://www.publicworks.gov.za/PDFs/documents/StrategicPlans/Annual_Performance_Plan-26_27.pdf
-
-### Candidate Luminous stretch targets (hypotheses to test, not forecasts)
-
-Only after we establish a matched local baseline, scope and acceptance protocol, use the following as ambitious pilot hypotheses:
-
-| Dimension | Candidate stretch objective | Qualification condition |
+| Target | Proposed benchmark objective | Qualification guardrail |
 |---|---|---|
-| Repeatable construction assemblies | At least 40% fewer on-site labour hours per independently accepted assembly than the matched local baseline | Include off-site labour, equipment, transport, lifting, setup, inspection, rework and commissioning in separate totals; do not hide displaced labour. |
-| Site programme | At least 30% shorter critical-path time for a selected repeatable work package | Same scope, weather/shift calendar, crew capability, access, crane/plant, quality and handover boundaries. |
-| Whole-life affordability | At least 15% lower fully burdened cost per equivalent dwelling-service-year or accepted amenity-service unit | Land, services, finance, staffing, utilities, maintenance, replacement, reserve, disruption and end-of-life are included or explicitly excluded. |
-| Quality and rework | At least 30% less rework labour/material per accepted output | Independent acceptance and defect taxonomy; no reduced inspection or acceptance threshold. |
-| Energy and water | At least 20% lower delivered energy and potable-water intensity for the same declared service | Same climate, occupancy and comfort/service floor; no credit for degraded performance. Water-source and use rights remain explicit. |
-| Shared amenity access | At least 95% of resident-authored priority service requests delivered within their agreed access/wait window | Report each cohort and service class separately; 100% of mandatory accessibility and life-safety requirements remain hard gates. |
-| Asset stewardship | 100% of major shared assets have current condition, renewal horizon, replacement-cost source, named operator and approved reserve policy | For sectional-title profiles, map the current statutory maintenance/repair/replacement requirements; do not generalize that regime to every tenure type. |
+| Common scope | 100% of alternatives use identical scope digest, population, tasks, functional unit, horizon and evidence policy | Otherwise `NOT_COMPARABLE`. |
+| Access hard gates | 100% of mandatory step-free / resident-declared access requirements either pass on owner evidence or remain `UNKNOWN/BLOCKED` | No inference from straight-line distance. |
+| Evidence missingness | Zero missing/stale/wrong-scope route, service, capacity, price or opening inputs treated optimistically | Unknown never becomes zero or unlimited. |
+| Capacity integrity | Zero group access potentials promoted to allocations; zero duplicate facility capacity | Allocation remains Mycelix-owned. |
+| Tail accessibility | Candidate stretch: at least 20% lower P90 generalized access burden than the matched central-only baseline on cases where a distributed/hybrid option is feasible | No cohort may lose mandatory access; preserve cost/land/service Pareto trade-offs. |
+| Provider resilience | 100% of declared single-node/provider failure cases expose the affected population, service and substitute path | Do not claim recovery without continuity evidence. |
+| Resident preference | 100% of private/shared/hybrid alternatives remain opt-in, reversible design options until residents decide | No demographic inference, prestige upsell or automatic centralization. |
+| Evidence portability | Every output binds exact upstream schema/revision, source status, scenario, scope digest and verifier version | An exact hash is identity, not truth. |
 
-These are deliberately demanding research targets. A project that fails to beat them may still be valuable, but we should not call it better than state of the art. Report confidence intervals, sensitivity, adverse cases and the full Pareto frontier. The appropriate comparator changes with housing type, site, density, climate, tenure and local supply chain.
+The 20% P90 objective is a stretch hypothesis to test, not a forecast. If a matched baseline shows another feasible topology is better, retain the measured Pareto result rather than force the target.
 
-## 14. Scope boundary against adjacent Luminous work
+## 12. Execution sequence
 
-The repository audit identified adjacent work that must remain authoritative. This benchmark is a **daily-use and productive-amenity comparison profile**, not a second essential-services resilience or apartment-design programme.
+1. **E0 — contract freeze:** spatial alternatives, 10 scenario IDs, amenity candidate units, owner map and 5×10 registry.
+2. **E1 — registry integrity:** Rust auditor checks exact identity, 50 unique arm/scenario pairs, candidate functional-unit mapping, non-approved owner alignment, owner dependencies, source register and NOT_EXECUTED state.
+3. **E2 — common-scope binding:** consume Sol-Atlas #623 and exact owner receipts from #555, Mycelix #6328, #816, Symtropy #3768 and other relevant systems. Payload bytes remain unverified unless fetched.
+4. **E3 — matched spatial runs:** freeze a small set of synthetic neighborhood layouts and run through existing CityMorph #555. Compare central/distributed/private/hybrid/external provision with identical populations and service inputs.
+5. **E4 — independent baselines:** compare effective access with specialist R5/OTP outputs and the published SDG/UN-Habitat indicator methods, with the same network and source inputs.
+6. **E5 — local readiness:** only after rights-cleared population, street, transit, service and site data have been acquired and ingested can a Johannesburg analysis be attempted.
+7. **E6 — physical pilot:** select one low-risk unoccupied amenity mock-up only after canonical asset/service contract, responsible operator, professional approvals and instrumented acceptance are present.
+8. **E7 — operations and replication:** after at least 12 months of service/access/affordability/maintenance evidence, compare multiple sites, densities and governance forms.
 
-### Included in this profile
-- Everyday shared-use amenities: learning, study/work, guest accommodation, laundry, routine tool access and making, community dining, childcare, recreation, sport and non-emergency food growing.
-- Whether a household should own, share, use a distributed facility, use a hybrid, or buy an equivalent external service.
-- Service-specific functional units, access/queue outcomes, cost allocation and lifecycle service value.
-- Maintenance and governance of those specific amenity assets.
+## 13. Johannesburg / Highveld constraints
 
-### Explicitly excluded / delegated
-- **Essential household service floors and household resilience:** Sol-Atlas [HIGHVELD-HOUSEHOLD-SERVICE-001 #694](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/694).
-- **Shared emergency energy/water/thermal refuge/communications/charging/repair logistics and neighborhood-resilience hub topology:** Sol-Atlas [HIGHVELD-NEIGHBORHOOD-RESILIENCE-COMMONS-001 #737](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/737). #940 may consume its receipts but must not redefine those assets or claims.
-- **Apartment/floor/building design, vertical circulation and multi-family household-to-building composition:** Sol-Atlas [HOME-MULTIFAMILY-COMPILER-001 #840](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/840).
-- **City-scale reference district, service basket and spatial integration:** Sol-Atlas #596/#615.
-- **Common scope binding and owner-evidence envelope:** Sol-Atlas #623 and its existing PR #624. Do not create another scope digest format.
-- **Generic service/capacity/resource feasibility:** Symtropy [CITYKIT-SYNTH-001 #3768](https://github.com/Luminous-Dynamics/symtropy/issues/3768). Consume its exact owner-native output; do not build a second general service-capacity oracle here.
-- **Matching, reservation and constrained allocation policy:** Mycelix [#5901](https://github.com/Luminous-Dynamics/mycelix/issues/5901). This benchmark evaluates resulting service, unmet demand, fairness diagnostics and capacity evidence; it does not choose who morally deserves a slot.
-- **Resident-led layout, accessibility and habitability:** Symtropy #1687/#1766/#1848.
-- **Physical household water, thermal and room-scale service integration:** Symthaea #10323/#10329 and Symtropy #4531/#5335. This profile consumes those exact outcomes.
-- **Legal ownership, stewardship, consent, asset lock and financial/physical lifecycle source records:** Mycelix #987/#954/#3095/#4808/#4816.
+On 18 November 2026, Johannesburg Water announced Level 2 restrictions effective **21 November 2026**. Municipal drinking water may not be used to irrigate gardens, lawns, parks and public spaces. The City notice says the restrictions apply across residential, commercial and institutional consumers. The published Level 2 tariff schedule is stated to take effect separately from **1 December 2026**. A greenhouse, food garden or landscape alternative must declare lawful water source, quality and use; a stored, treated, greywater or rainwater supply is not automatically suitable for any given use. Source: https://joburg.org.za/media_/Newsroom/Pages/2026-News-Articles/City-implements-Level-2-water-restrictions-to-stabilise-supply.aspx
 
-A routine shared tool library can be evaluated here as a resident amenity. A community emergency repair depot, strategic spares pool or resilience repair hub belongs to #737. A common laundry room is included here; a shared water-backup plant serving essential household use is not. A greenhouse is included as a resident productive amenity; emergency food security and shared water infrastructure remain with their respective resilience/resource owners. A pool plant is an enabling cost/resource component of the pool service, not a separately credited community utility service.
+Do not use regional climate or soil priors as plot-level yield, microclimate or water-right evidence. For greenhouse/growing comparisons, consume Sol-Atlas #107/#105, Symtropy #3957/#4065/#4074 and Mycelix #5001. Keep planned harvest, forecast, observed lot and fulfilled supply as distinct states.
 
-## 15. Amenity functional units: compare equivalent service, not unlike outputs
+## 14. Claim ceiling
 
-Every amenity class receives its own functional unit and acceptance definition. Never convert a pool person-hour, guest night, childcare place-hour and kilogram of produce into one invented universal “amenity unit”. A portfolio may show a vector of service/cost outcomes or a resident-authored bundle of separate service floors; it must not collapse unlike outputs into one scalar without a disclosed and justified preference model.
+This is a protocol and registry, not an executed urban accessibility study. No source GIS, population grid, transit feed or facility-capacity data is claimed to be ingested by this PR. No design, legal, service, accessibility, cost, environmental or safety claim is qualified. The 50 cases remain NOT_EXECUTED. A valid manifest audit means only the registry is internally consistent.
 
-| Amenity class | Candidate functional unit | Minimum definition that must be frozen |
-|---|---|---|
-| Tool library / routine maker workshop | accepted tool-user-hour | Identified tool, allowed use, access window, working condition, safe-return/inspection and downtime treatment |
-| Shared laundry | accepted laundry load | Load class/mass, service quality, cycle, rewash/reject treatment, water/energy boundary and turnaround |
-| Guest suites | accessible guest-night | Room/service class, occupancy, accessible route/features, cleaning/turnover and booking window |
-| Greenhouse / food garden | usable harvest kg by crop/grade | Crop identity, grade/quality, safety boundary, harvest point, losses and growing-cycle horizon |
-| Pool / wellness | operable swimmer-hour | Independently declared operating envelope, capacity, water-quality/plant state, accessibility and closure time |
-| Community kitchen / dining | accepted meal service | Meal/service definition, declared dietary/allergen information, food-safety process and service window |
-| Library / study / coworking | accessible seat-hour | Seat/workspace class, hours, connectivity/acoustic service where promised, access and interruption |
-| Childcare / learning | licensed place-hour | Applicable license/registration, service age/class, staffing and safety conditions, attendance and closure state |
-| Sports / recreation | usable court-hour or recreation-space-hour | Activity, surface/lighting/accessible use condition, opening window, maintenance and weather closure |
-| Non-essential amenity plant | supporting asset only | Pump/filter/ventilation/plant availability and cost is attributed to the service it enables; it is not a standalone beneficiary service unit |
+## 15. Home, experience and food-network composition
 
-Functional-unit equivalence requires the same service definition, quality class, beneficiary/task, opening window, geography/access boundary, period/season and lifecycle boundary. If the definitions differ, return NOT_COMPARABLE or show separate service classes. A calendar hour of opening is not necessarily a delivered user-hour. Nominal capacity is not accepted output.
+Highveld Keep #607 remains the first reference dwelling; Home Expression Library #904 owns resident-directed expression and optional experience packages such as guest pavilion, workshop, conservatory/greenhouse, pool, music studio and library. This benchmark consumes those options and asks whether each selected task is private, accessory, shared, distributed or externally provided.
+
+The greenhouse is a resident-facing productive amenity only when accepted crop/grade-specific harvest service and lawful water/site evidence exist. Symtropy #3957 owns whole-facility CEA resource/nutritional accounting; #4065 owns spatial climate/airflow; #4074 owns harvest-constrained control. Sol-Atlas #107 owns Highveld food/climate readiness; #105 owns the privacy-preserving food-network projection; Mycelix #5001 owns product lots and fulfilment. Do not duplicate those models or treat a predicted harvest as physical inventory.
+
+The pool/wellness option is a spatial service comparison only. Public-pool operation remains out-of-scope or blocked unless applicable professional, operator, water-quality, public-health and statutory evidence is explicitly bound. A location map does not certify the pool.
+
+Resident-authored requirement and preference remains distinct from engineering feasibility, legal rights, cost estimates and operator claims. Optional experience packages are not defaults or prestige upsells.
+
+
 
 ## 16. State-of-the-art comparison protocol for design software
 
@@ -310,7 +254,6 @@ Do not claim to beat Forma by generating more layouts or faster images. A fair m
 Autodesk's experimental feature is one competitor, not the entire industry baseline. Include manual architect workflow and at least one other applicable layout/planning tool when a real comparison begins. Preserve software versions, feature flags, input files, operators and reviewer protocol. Never compare an AI concept sketch with a fully documented professional design package.
 
 For construction productivity, the 2026 ASCE analysis of 491 modular projects uses gross square metres completed per day and finds differences by building category and size (https://doi.org/10.1061/JMENEA.MEENG-7605). That is useful for context, but our distinctive functional unit should remain the independently accepted assembly and, higher up, the equivalent dwelling/neighbourhood service-year. Report gross area/day alongside complete-workflow labour and accepted service; do not substitute one for the other.
-
 
 ## 17. Broader AEC state-of-practice comparator matrix
 
@@ -360,85 +303,3 @@ These remain unmeasured targets, not expected results:
 - At least 20% lower fully burdened cost per equivalent dwelling-service-year, with identical service floors and lifecycle boundaries.
 
 The targets are not all necessarily jointly attainable. Report the Pareto frontier and the evidence behind each achieved target; never trade mandatory access/safety/legal requirements for speed or price.
-
-
-## 18. Compose the dream home, optional experiences and neighborhood food system
-
-The benchmark is not a new architectural catalogue. It consumes the existing Highveld and Home Freedom work:
-
-- **Highveld Keep #607** is the initial South African computational reference dwelling with four distinct spatial families: Courtyard Cloister, Winged Great Hall, Compact Keep and Garden Pavilions. It already defines the synthetic resident/task programme, accessible arrival-level essentials, kitchen/dining, great hall, library, work/making, sleeping rooms, service/storage and courtyard/garden.
-- **Home Expression Library #904** owns resident-directed style blends and optional experience packages, including library, workshop, conservatory/greenhouse, guest pavilion, pool/water feature, spa/sauna/plunge, music studio and other additions. An experience package is a functional space/system option with cost, service, spatial, utility and maintenance implications—not merely a decorative tag.
-- **Household service composition #694** owns the link from a home design to appliance, water, thermal, air and household service floors.
-- **Multifamily compiler #840** owns apartment/floor/building configurations and vertical shared facilities.
-
-Therefore, do not create another room catalogue or design generator here. Consume the resident-authored brief and exact design revision, then compare whether an amenity belongs in the private dwelling, an accessory structure, a shared facility, a distributed neighbourhood node or an external provider.
-
-### 18.1 Home and experience configuration
-
-For each optional experience package, record:
-- resident-authored task and reason; preference may be required, preferred, optional, phase_later, declined or undecided;
-- exact home/candidate and revision;
-- spatial area, adjacency, access, privacy and servicing needs when known;
-- build assembly/product demand and supply evidence;
-- capital, operating, replacement and maintenance implications, each with source/uncertainty;
-- service dependencies and manual fallback;
-- whether the same function can instead be shared or purchased externally.
-
-A pool is not a mandatory sign of a dream home. A greenhouse is not necessarily economical on an individual plot. A shared guest suite can remove duplicated spare bedrooms for some households but is not equivalent for households requiring permanent private accommodation. Those are resident-defined alternatives, not defaults imposed by the optimiser.
-
-### 18.2 Greenhouse and food-growing composition
-
-A greenhouse is a productive residential amenity only when it delivers a defined resident-facing service such as usable harvest. It must not be evaluated by planting area or rendered greenery alone.
-
-Use the following owner split:
-
-| Owner | Responsibility | What this benchmark consumes |
-|---|---|---|
-| Sol-Atlas #107 AGRO-CLIMATE-001 | Highveld/region-specific food, climate, soil and water evidence readiness | Currentness, geography, spatial resolution and uncertainty; not a plot-level forecast |
-| Sol-Atlas #105 ATLAS-FOOD-001 | Privacy-preserving spatial food-network projection | Permitted producer/pickup/aggregate-demand/fulfilment view, not inventory or household identity |
-| Symtropy #3957 CEA-FULL-BOUNDARY-001 | Whole-facility resource and nutritional-service accounting | Accepted harvest/service, electricity, heat, water, nutrients, labour and lifecycle boundary |
-| Symtropy #4065 CEA-CLIMATE-001 | Spatial temperature, humidity, CO2, airflow, moisture and heat-rejection dynamics | Qualified climate/airflow outputs and calibration/applicability limits |
-| Symtropy #4074 CEA-HARVEST-CONTROL-001 | Harvest-constrained lighting/climate control comparison | Declared harvest target, resource/control policy and modelled-versus-measured status |
-| Mycelix #5001 MYC-FOOD-001 | Producer cooperative, typed product quantities, lots, orders, fulfillment and provenance | Source/lot/accepted-delivery references; planned harvest must never be treated as inventory |
-
-Candidate functional unit: kg of usable harvest by declared crop and grade. Keep crop identity, grade, quality, losses, growing-cycle horizon and harvest point. Report separately:
-- usable harvested mass and rejected/lost mass;
-- electricity and useful heat per kg by crop/grade;
-- potable and non-potable water by source/quality class per kg;
-- nutrient/seed/substrate inputs and residual streams;
-- labour and maintenance hours;
-- area/volume and throughput per cycle;
-- market/household service delivered versus forecast/planned production;
-- capital, replacement, operating and lifecycle cost.
-
-Do not compare lettuce, herbs, tomatoes, microgreens and fruit as interchangeable kg. Nutritional service may be reported when an admitted composition method and accepted harvest composition are present; do not infer nutritional value from mass alone. A modeled yield is not a measured yield. A harvest forecast is not a lot. A mapped producer is not inventory. A food-network projection is not food-safety approval.
-
-### 18.3 South African water and climate constraints
-
-For Johannesburg, the Level 2 restrictions effective 21 November 2026 prohibit using municipal drinking water to irrigate gardens, lawns, parks and public spaces. The greenhouse and landscape design must therefore declare source and lawful use for every water flow: municipal potable, rainwater, greywater, treated wastewater or other separately qualified source. Do not presume that a stored or treated stream is fit for crop contact, washing produce, pool top-up, irrigation or any other use.
-
-The Highveld climate profile must not assume that a regional climate prior predicts a specific parcel's microclimate, soil condition, water availability or crop yield. Site testing, local rights, source quality, seasonal continuity, soil history and operator capacity are prerequisites for a physical installation.
-
-Landscaping should prioritize climate-appropriate and indigenous planting, shade, low-irrigation design, soil health, stormwater attenuation and low-maintenance planting. Rain gardens, swales and stormwater systems must be engineered for the site rather than treated as decorative water features.
-
-### 18.4 Pool and wellness boundary
-
-The pool remains a resident-facing amenity service class with candidate unit operable swimmer-hour. #940 compares whether private, shared or external access is more appropriate, the operating window, availability, cost, access, water/energy intensity and downtime.
-
-It does **not** design or certify pool hydraulics, electrical safety, chemical treatment, water quality, public-health controls, structural support, barriers or statutory pool safety. These require separate qualified design, operation and inspection. Symtropy #4531 room-scale household service integration and #5335 WaterLoop can provide bounded mock-up/service-system evidence where applicable; neither is a pool approval.
-
-A pool option must include source water, evaporation, leakage, treatment/backwash, energy, cleaning, seasonal closure, accessibility, operating staff, inspection and maintenance reserve. Water restrictions and lawful water source take precedence over discretionary amenity targets.
-
-### 18.5 Dream-home and commons comparison
-
-For the same resident-authored task, compare:
-- private room/equipment inside the dwelling;
-- a separate accessory structure on the household plot;
-- a shared amenity operated by the residents/community;
-- several smaller shared nodes;
-- an external commercial provider;
-- omission or later phasing, where the resident accepts that option.
-
-The result is a service/cost/access vector and a resident decision brief. A lower-cost shared design may be rejected by a resident who values privacy, independent access, permanent guest accommodation or a particular workshop. A private facility may be unaffordable to maintain. Preserve the preference and its rationale; do not infer a preferred arrangement from household type or demographic profile.
-
-The benchmark becomes especially useful when linked to #607 and #904: the same Highveld reference home can be explored as a restrained core dwelling, an expressive dream-home configuration, and a household embedded in a neighborhood with shared alternatives—without treating the most expensive configuration as the default or claiming the same layout suits every person.
