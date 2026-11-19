@@ -1,0 +1,67 @@
+{
+  "schema": "luminous.tib.evaluation-result.v0",
+  "record_kind": "expected_case_annotation",
+  "suite": {
+    "suite_id": "TIB-SYNTH-STRUCTURAL-001",
+    "suite_version": "0.2.0",
+    "manifest_reference": "urn:tib:manifest:TIB-SYNTH-STRUCTURAL-001:0.2.0"
+  },
+  "case_id": "TIB-AUTHORITY-CURRENTNESS-001",
+  "system": {
+    "system_id": "reference-policy-annotation",
+    "release_id": "0.0.0-not-run",
+    "adapter_revision": "urn:tib:adapter:future-cross-system-gate",
+    "configuration_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+  },
+  "input_bundle": {
+    "fixture_reference": "urn:tib:synthetic:authority-currentness-case-001",
+    "fixture_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+  },
+  "execution": {
+    "state": "not_executed"
+  },
+  "outcome": "review_required",
+  "claim_ceiling": "reference-only-no-legal-effect",
+  "data_classification": "synthetic",
+  "invariant_results": [
+    {
+      "invariant_id": "AUTHORITY.CURRENTNESS",
+      "status": "review_required",
+      "severity": "critical",
+      "reason": "The record contains an authority reference but no independently verified currentness, scope or revocation evidence.",
+      "evidence_references": [
+        "urn:tib:synthetic:authority-ref-001"
+      ]
+    }
+  ],
+  "field_fidelity": {
+    "preserved_paths": [
+      "authority_reference.id",
+      "authority_reference.jurisdiction",
+      "authority_reference.scope"
+    ],
+    "transformed_fields": [],
+    "dropped_fields": [],
+    "unavailable_fields": [
+      {
+        "source_path": "authority_reference.currentness_proof",
+        "reason": "No currentness or revocation source is included in the synthetic input."
+      }
+    ],
+    "round_trip_status": "not_run"
+  },
+  "review": {
+    "required": true,
+    "reviewer_role": "competent authority or qualified jurisdictional reviewer",
+    "open_questions": [
+      "Is the issuer competent for this jurisdiction and decision type?",
+      "Was the authority valid at the relevant event time?",
+      "Has the authority been suspended or revoked?"
+    ]
+  },
+  "limitations": [
+    "Synthetic expected-case annotation only; no system was executed.",
+    "A structurally present authority reference is not proof of authority authenticity or legal effect."
+  ],
+  "evidence_class": "proposed_target"
+}
