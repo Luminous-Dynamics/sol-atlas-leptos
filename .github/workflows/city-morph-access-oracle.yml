@@ -1,0 +1,82 @@
+name: City Morph Effective-Access Synthetic Oracle
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+    paths:
+      - "tools/city-morph-access-bench/**"
+      - "docs/research/city-morph-access/**"
+      - ".github/workflows/city-morph-access-oracle.yml"
+  push:
+    branches: ["main", "research/city-morph-access-corpus-v0.1"]
+    paths:
+      - "tools/city-morph-access-bench/**"
+      - "docs/research/city-morph-access/**"
+      - ".github/workflows/city-morph-access-oracle.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: city-morph-access-oracle-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  reference-oracle:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
+
+      - name: Install pinned Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: 1.96.0
+          components: rustfmt, clippy
+
+      - name: Check formatting
+        run: cargo fmt --manifest-path tools/city-morph-access-bench/Cargo.toml --all -- --check
+
+      - name: Run reference-oracle and hostile-control tests
+        run: cargo test --locked --manifest-path tools/city-morph-access-bench/Cargo.toml
+
+      - name: Run strict Clippy
+        run: cargo clippy --locked --manifest-path tools/city-morph-access-bench/Cargo.toml --all-targets -- -D warnings
+
+      - name: Emit exact-head, exact-corpus reference receipt
+        shell: bash
+        run: |
+          set -euo pipefail
+          source_commit="$(git rev-parse HEAD)"
+          test "$source_commit" = "${{ github.event.pull_request.head.sha || github.sha }}"
+          cargo run --locked --quiet --manifest-path tools/city-morph-access-bench/Cargo.toml -- \
+            docs/research/city-morph-access/CITY_MORPH_ACCESS_CORPUS_V0_1.json \
+            --source-commit "$source_commit" > city-morph-access-receipt.json
+          jq -e '
+            .result == "pass"
+            and .corpus_id == "CITY-MORPH-ACCESS-CORPUS-V0.1"
+            and .corpus_schema_version == "0.1.0"
+            and .corpus_classification == "synthetic_fixture_only"
+            and .scenario_count == 24
+            and .failure_count == 0
+            and (.corpus_sha256 | test("^[0-9a-f]{64}$"))
+            and .source_register_id == "JOHANNESBURG-SOURCE-REGISTER-V0.1"
+            and .source_register_classification == "research_inventory_not_ingested_data"
+            and (.source_register_count >= 1)
+            and (.source_register_sha256 | test("^[0-9a-f]{64}$"))
+            and (.source_commit | test("^[0-9a-f]{40}$"))
+            and (.scenarios | length == 24)
+            and (.scenarios | all(.status == "pass"))
+          ' city-morph-access-receipt.json
+
+      - name: Upload exact-head accessibility receipt
+        uses: actions/upload-artifact@v4
+        with:
+          name: city-morph-access-reference-receipt
+          path: city-morph-access-receipt.json
+          if-no-files-found: error
+          retention-days: 90
