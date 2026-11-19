@@ -121,6 +121,7 @@ pub struct AuditSummary {
     pub amenity_archetype_count: usize,
     pub functional_unit_count: usize,
     pub reference_source_count: usize,
+    pub owner_native_dependency_count: usize,
     pub execution_status: String,
     pub claim_ceiling: String,
 }
@@ -230,6 +231,7 @@ pub fn audit_manifest_bytes(bytes: &[u8]) -> Result<AuditSummary, AuditError> {
         amenity_archetype_count: required_array(&root, "amenity_archetypes", "$")?.len(),
         functional_unit_count: required_array(&root, "functional_units", "$")?.len(),
         reference_source_count: required_array(&root, "reference_sources", "$")?.len(),
+        owner_native_dependency_count: required_array(root.get("scope_boundary").ok_or_else(|| AuditError::new("$.scope_boundary", "missing field"))?, "owner_native_dependencies", "$.scope_boundary")?.len(),
         execution_status,
         claim_ceiling,
     })
