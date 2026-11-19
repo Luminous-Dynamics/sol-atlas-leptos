@@ -68,6 +68,14 @@ jobs:
           python3 -m json.tool schemas/cter-relay-delivery-v0.1.schema.json > /dev/null
           python3 -m json.tool schemas/cter-community-archive-manifest-v0.1.schema.json > /dev/null
 
+      - name: Install Node for independent second-language oracle
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Run independent relay and archive oracle
+        run: node benchmarks/territorial-integrity/relay/reference/oracle.mjs
+
       - name: Run standalone reference tests
         run: cargo test --manifest-path benchmarks/territorial-integrity/relay/reference/Cargo.toml
 
