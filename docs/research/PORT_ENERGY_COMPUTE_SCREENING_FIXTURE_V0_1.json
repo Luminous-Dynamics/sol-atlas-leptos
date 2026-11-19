@@ -141,6 +141,91 @@
       "limitations": [
         "Current station status, configuration, depth bins, calibration, uptime, data rights and missing-data periods must be reconfirmed."
       ]
+    },
+    {
+      "source_id": "eskom-idr-distribution-programme",
+      "title": "Instantaneous Demand Response Programme",
+      "publisher": "Eskom Distribution",
+      "evidence_class": "published_programme_description_participant_eligibility_requires_confirmation",
+      "url": "https://www.eskom.co.za/distribution/instantaneous-demand-response-programme/",
+      "product_terms": {
+        "minimum_entry_mw": 10,
+        "full_response_seconds": 6,
+        "sustain_minutes": 10,
+        "maximum_events_per_day": 3,
+        "metering": "special metering requirements",
+        "payment": "standby payment; no energy payment"
+      },
+      "limitations": [
+        "Published programme description is not an offer or approval for any port or data centre.",
+        "Confirm aggregation, baseline, metering, response testing, current programme procurement and contract terms directly."
+      ]
+    },
+    {
+      "source_id": "sawem-market-code-rev-2-3-feb-2026",
+      "title": "South African Wholesale Electricity Market (SAWEM) Market Code Rev 2.3",
+      "publisher": "NTCSA",
+      "publication_date": "2026-02",
+      "evidence_class": "published_market_code_document_regulatory_approval_status_separate",
+      "url": "https://www.ntcsa.co.za/wp-content/uploads/2026/02/Market-Code-v2.3.pdf",
+      "product_terms": {
+        "instantaneous_reserve_full_response_seconds": 10,
+        "sustain_minutes": 10,
+        "resource_type": "generation or demand-side managed load",
+        "schedule": "day-ahead reserve category and real-time dispatch"
+      },
+      "limitations": [
+        "Publication of a Market Code document does not establish that a specific port participant is registered or qualified.",
+        "NERSA's 15 Sep 2026 dashboard listed Market Code approval as finalisation with target 31 Oct 2026; confirm subsequent approval and implementation status."
+      ]
+    },
+    {
+      "source_id": "ntcsa-supplemental-demand-response",
+      "title": "Supplemental Demand Response Programme",
+      "publisher": "NTCSA",
+      "evidence_class": "published_programme_description_participant_eligibility_requires_confirmation",
+      "url": "https://www.ntcsa.co.za/supplemental-demand-response-programme-2/",
+      "product_terms": {
+        "notice_minutes": [
+          30,
+          360
+        ],
+        "minimum_entry": "greater of 500 kW or 15% of average plant demand",
+        "minimum_sustain_minutes": 120,
+        "frequency": "once per day under published description",
+        "metering": "30-minute interval remote metering prerequisite",
+        "payment": "standby plus energy payment"
+      },
+      "limitations": [
+        "Confirm current programme availability, aggregation rules, baseline, settlement and site eligibility with NTCSA/Eskom.",
+        "30-minute interval metering does not qualify a six-second IDR service."
+      ]
+    },
+    {
+      "source_id": "nersa-regulatory-projects-dashboard-september-2026",
+      "title": "NERSA Electricity Regulation Projects Dashboard — September 2026",
+      "publisher": "NERSA",
+      "publication_date": "2026-09-15",
+      "evidence_class": "dated_regulatory_status_snapshot",
+      "url": "https://www.nersa.org.za/files/files/2026/09/ELRStakeholderDashboard-September2026-Rev1-HighRes.pdf",
+      "product_terms": {
+        "market_code_approval_status_as_of_2026_09_15": "finalisation",
+        "target_completion": "2026-10-31",
+        "trading_rules_status": "consultation"
+      },
+      "limitations": [
+        "This snapshot is dated 15 Sep 2026 and cannot establish whether approval occurred after the target date."
+      ]
+    },
+    {
+      "source_id": "nrs-048-9-emergency-load-reduction",
+      "title": "NRS 048-9 Edition 3 — emergency load reduction and restoration",
+      "publisher": "NERSA-approved code of practice",
+      "evidence_class": "published_code_of_practice",
+      "url": "https://www.kaya959.co.za/wp-content/uploads/2024/04/NERSA-Approved-Version-of-NRS-048-9-2023-Edition-3.pdf",
+      "limitations": [
+        "Mandatory emergency load reduction is a different category from voluntary or contracted demand response; authority remains with the System Operator or relevant utility."
+      ]
     }
   ],
   "sites": [
@@ -549,12 +634,48 @@
     "Ngqura LNG project execution status, gas supply, commissioning timeline and full fuel lifecycle emissions scenario",
     "CSIR WaveNet owner-qualified Ngqura wave/weather data with instrument calibration, quality flags, station coverage and data rights",
     "CSIR WaveNet Durban ADCP current/wave data with current station status, depth bins, calibration, coverage and data rights",
-    "Utility-confirmed PCC/feeder/import/export capacity and metered port/berth load series at both sites"
+    "Utility-confirmed PCC/feeder/import/export capacity and metered port/berth load series at both sites",
+    "South African demand-response qualification: separate Eskom 6 s IDR, SAWEM 10 s instantaneous reserve, NTCSA supplemental DR and emergency NRS 048-9 load reduction; verify site-specific programme eligibility and metering."
   ],
   "paired_site_strategy": {
     "primary_integration_study_case": "za-ngqura",
     "high_demand_grid_stress_case": "za-durban",
     "rationale": "Ngqura has higher published pre-feasibility spare connection capacity; Durban has the highest estimated shore-power demand and materially lower reported spare capacity.",
     "non_claim": "This is a paired evidence-acquisition strategy, not a site selection, utility connection offer or subsea data-centre siting decision."
+  },
+  "south_african_flexibility_product_matrix": {
+    "source_ids": [
+      "eskom-idr-distribution-programme",
+      "sawem-market-code-rev-2-3-feb-2026",
+      "ntcsa-supplemental-demand-response",
+      "nersa-regulatory-projects-dashboard-september-2026",
+      "nrs-048-9-emergency-load-reduction"
+    ],
+    "product_distinctions": [
+      "Eskom IDR six-second response is not the same product definition as SAWEM ten-second instantaneous reserve.",
+      "Supplemental DR with 30-minute interval metering is not proof of six-second IDR performance.",
+      "Emergency load reduction under NRS 048-9 is not a voluntary contracted DR service.",
+      "Published substation spare capacity is not metered or contracted demand-response availability."
+    ],
+    "port_screening": {
+      "ngqura": {
+        "published_spare_capacity_mw": 17.1,
+        "dr_eligibility": "unknown",
+        "note": "17.1 MW is pre-feasibility spare connection estimate, not flexible load, contracted IDR or response capacity."
+      },
+      "durban": {
+        "published_spare_capacity_mw": 3.6,
+        "dr_eligibility": "unknown",
+        "note": "3.6 MW is pre-feasibility spare connection estimate, not flexible load or response capacity; below the published 10 MW Eskom IDR minimum as a single resource, but aggregation eligibility is unknown."
+      }
+    },
+    "next_evidence_required": [
+      "Written current Eskom/NTCSA programme eligibility and aggregation confirmation for port and data-centre participants",
+      "Site metered baseline, interval resolution, special meter performance and telemetry proof for each proposed response product",
+      "Qualified controllable-load inventory with minimum stable consumption, available MW, response latency, sustain duration and restoration/rebound profile",
+      "Participant agreement, event authority, notice channel, event frequency, compensation, non-delivery treatment and settlement methodology",
+      "Whether multiple port tenants or electrical points of delivery may be aggregated into one eligible resource, and exact rules for network-zone and feeder scope",
+      "Current NERSA approval and SAWEM implementation status after the 15 September 2026 tracker snapshot"
+    ]
   }
 }
