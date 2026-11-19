@@ -24,7 +24,7 @@ fn percentile(sorted: &[u128], percentile: usize) -> u128 {
     if sorted.is_empty() {
         return 0;
     }
-    let rank = (percentile * sorted.len() + 99) / 100;
+    let rank = (percentile * sorted.len()).div_ceil(100);
     sorted[rank.saturating_sub(1).min(sorted.len() - 1)]
 }
 
@@ -138,12 +138,12 @@ fn main() {
         "conflict_groups": expected.conflict_groups.len(),
         "target_os": std::env::consts::OS,
         "target_arch": std::env::consts::ARCH,
-        "available_parallelism": std::thread::available_parallelism().map(|n| n.get()).unwrap_or(1),
+        "available_parallelism": std::thread::available_parallelism().map_or(1, |n| n.get()),
         "p50_micros": p50,
         "p95_micros": p95,
         "p99_micros": p99,
-        "min_micros": elapsed_micros.first().copied().unwrap_or(0),
-        "max_micros": elapsed_micros.last().copied().unwrap_or(0),
+        "min_micros": elapsed_micros.first().copied().unwrap_or_default(),
+        "max_micros": elapsed_micros.last().copied().unwrap_or_default(),
         "deliveries_per_second_at_p50": events.len() as f64 * 1_000_000.0 / p50 as f64,
         "memory_measurement": "not_measured",
         "energy_measurement": "not_measured",
