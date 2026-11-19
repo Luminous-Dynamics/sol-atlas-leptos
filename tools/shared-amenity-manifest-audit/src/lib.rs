@@ -702,10 +702,10 @@ fn validate_case_matrix(
 
 fn validate_reference_sources(root: &Value) -> Result<(), AuditError> {
     let sources = required_array(root, "reference_sources", "$")?;
-    if sources.len() < 37 {
+    if sources.len() < 43 {
         return Err(AuditError::new(
             "$.reference_sources",
-            format!("expected at least 37 sources, found {}", sources.len()),
+            format!("expected at least 43 sources, found {}", sources.len()),
         ));
     }
 
