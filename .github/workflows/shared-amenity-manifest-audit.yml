@@ -1,7 +1,8 @@
-name: Shared Amenity Manifest Audit
+name: Spatial Amenity Manifest Audit
 
 on:
   pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
     paths:
       - "docs/research/highveld-neighborhood-commons/SHARED_AMENITY_COMMONS_*"
       - "tools/shared-amenity-manifest-audit/**"
@@ -13,19 +14,85 @@ on:
       - "docs/research/highveld-neighborhood-commons/SHARED_AMENITY_COMMONS_*"
       - "tools/shared-amenity-manifest-audit/**"
       - ".github/workflows/shared-amenity-manifest-audit.yml"
+  workflow_dispatch:
 
 permissions:
   contents: read
 
+concurrency:
+  group: spatial-amenity-manifest-audit-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 jobs:
   audit:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@stable
         with:
-          toolchain: stable
-      - name: Test semantic manifest invariants
-        run: cargo test --manifest-path tools/shared-amenity-manifest-audit/Cargo.toml
-      - name: Audit frozen manifest
-        run: cargo run --manifest-path tools/shared-amenity-manifest-audit/Cargo.toml -- docs/research/highveld-neighborhood-commons/SHARED_AMENITY_COMMONS_MANIFEST_V0.1.json
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
+
+      - name: Install pinned Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: 1.96.0
+          components: rustfmt, clippy
+
+      - name: Verify formatting
+        run: cargo fmt --manifest-path tools/shared-amenity-manifest-audit/Cargo.toml --all -- --check
+
+      - name: Run reference-oracle and adversarial tests
+        run: cargo test --locked --manifest-path tools/shared-amenity-manifest-audit/Cargo.toml
+
+      - name: Run strict Clippy
+        run: cargo clippy --locked --manifest-path tools/shared-amenity-manifest-audit/Cargo.toml --all-targets -- -D warnings
+
+      - name: Emit exact-head manifest receipt
+        shell: bash
+        run: |
+          set -euo pipefail
+          source_commit="$(git rev-parse HEAD)"
+          test "$source_commit" = "${{ github.event.pull_request.head.sha || github.sha }}"
+          manifest="docs/research/highveld-neighborhood-commons/SHARED_AMENITY_COMMONS_MANIFEST_V0.1.json"
+          manifest_sha256="$(sha256sum "$manifest" | cut -d ' ' -f 1)"
+          cargo run --locked --quiet --manifest-path tools/shared-amenity-manifest-audit/Cargo.toml -- "$manifest" > audit-summary.json
+          jq -e '
+            .study_id == "SHARED-AMENITY-COMMONS-001"
+            and .comparison_arm_count == 5
+            and .scenario_count == 10
+            and .registered_case_count == 50
+            and .unique_case_pairs == 50
+            and .amenity_archetype_count == 10
+            and .functional_unit_count == 9
+            and .reference_source_count == 37
+            and .owner_native_dependency_count == 16
+            and .execution_status == "NOT_EXECUTED"
+            and (.manifest_sha256 | test("^[0-9a-f]{64}$"))
+          ' audit-summary.json
+          jq -n \
+            --arg source_commit "$source_commit" \
+            --arg manifest_sha256 "$manifest_sha256" \
+            --slurpfile audit audit-summary.json \
+            '{
+              schema: "luminous.spatial-amenity-manifest-audit-receipt",
+              schema_version: "0.1.0",
+              result: "pass",
+              source_commit: $source_commit,
+              manifest_sha256: $manifest_sha256,
+              audit: $audit[0]
+            }' > spatial-amenity-manifest-receipt.json
+
+      - name: Validate receipt identity
+        run: |
+          test "$(jq -r .source_commit spatial-amenity-manifest-receipt.json)" = "${{ github.event.pull_request.head.sha || github.sha }}"
+          test "$(jq -r .manifest_sha256 spatial-amenity-manifest-receipt.json)" = "$(sha256sum docs/research/highveld-neighborhood-commons/SHARED_AMENITY_COMMONS_MANIFEST_V0.1.json | cut -d ' ' -f 1)"
+          jq -e '.result == "pass" and .audit.owner_native_dependency_count == 16' spatial-amenity-manifest-receipt.json
+
+      - name: Upload exact-head receipt
+        uses: actions/upload-artifact@v4
+        with:
+          name: spatial-amenity-manifest-receipt
+          path: spatial-amenity-manifest-receipt.json
+          if-no-files-found: error
+          retention-days: 90
