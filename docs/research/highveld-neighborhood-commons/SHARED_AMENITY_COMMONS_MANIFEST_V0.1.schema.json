@@ -334,7 +334,7 @@
     },
     "reference_sources": {
       "type": "array",
-      "minItems": 36,
+      "minItems": 37,
       "items": {
         "type": "object",
         "additionalProperties": false,
@@ -482,7 +482,7 @@
         },
         "excluded_scopes": {
           "type": "array",
-          "minItems": 8,
+          "minItems": 7,
           "items": {
             "type": "object",
             "additionalProperties": false,
@@ -510,8 +510,8 @@
         },
         "owner_native_dependencies": {
           "type": "array",
-          "minItems": 15,
-          "maxItems": 15,
+          "minItems": 16,
+          "maxItems": 16,
           "items": {
             "type": "object",
             "additionalProperties": false,
