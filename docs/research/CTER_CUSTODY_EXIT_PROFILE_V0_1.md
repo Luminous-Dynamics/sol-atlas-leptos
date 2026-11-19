@@ -35,14 +35,14 @@ Use Mycelix's typed receipt algebra (#1215) and long-term validation/cryptograph
 
 ## 4. Evidence package contract
 
-The JSON Schema is [cter-community-archive-manifest-v0.1.schema.json](../../schemas/cter-community-archive-manifest-v0.1.schema.json). It defines a strict top-level archive manifest with:
+The JSON Schema is [cter-community-archive-manifest-v0.1.schema.json](../../schemas/cter-community-archive-manifest-v0.1.schema.json). Its export context names an opaque destination and an explicit set of authorized disclosure classes. It deliberately does not assume that `restricted` automatically includes `community`, or that communities share one universal sensitivity ranking. The schema defines a strict top-level archive manifest with:
 
 1. Exact archive/profile identity, export scope and exporter build identity.
 2. Source frontiers naming each canonical owner, snapshot/record frontier, query or scope, expected count where known, observed count, completeness state and unresolved gaps.
 3. Per-object identity, owner, schema/profile version, digest algorithm/value, disclosure class and disposition.
 4. Explicit included / withheld / unavailable dispositions with reason codes and optional non-disclosing commitment references.
 5. Access and consent references that are kept separate from possession of the archive.
-6. Export destination access class, purpose and authorization reference; these fields must be resolved by an independent policy/authority service before disclosure.
+6. Opaque export destination identity, exact authorized disclosure-class set, purpose and authorization reference; classes are not a universal rank hierarchy and the authorization must be resolved by an independent policy/authority service before disclosure.
 7. Restore capability, key-custody model and actual restore-test state.
 8. Cryptographic preservation lineage, predecessor references, timestamp evidence, renewal profile and algorithm status.
 9. A fixed claim ceiling: archive structure and restoration do not establish truth, title, consent, authority or legal effect.
@@ -60,7 +60,7 @@ Allowed states:
 - **Review required:** schema, license, consent, key-status, preservation or interpretation is unresolved.
 - **Invalid:** integrity or package invariants fail.
 
-A withheld record is not absent. A zero-row query is not global absence. An unavailable source cannot be represented as an empty source. Restricted or culturally protected payloads must not be copied into a public archive merely because an exporter has access to the source system.
+A withheld record is not absent. A zero-row query is not global absence. An unavailable source cannot be represented as an empty source. Restricted or culturally protected payloads must not be copied unless the exact class is explicitly included in the destination's independently resolved authorization. Access classes are labels, not a universal ordered ladder; one class does not implicitly include another.
 
 ## 6. Independent restore and key custody
 

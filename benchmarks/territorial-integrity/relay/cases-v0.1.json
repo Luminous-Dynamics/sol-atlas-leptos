@@ -1,7 +1,7 @@
 {
   "schema": "luminous.cter.relay-cases.v0",
   "suite_id": "CTER-RELAY-CONVERGENCE-001",
-  "suite_version": "0.1.7",
+  "suite_version": "0.1.8",
   "synthetic_only": true,
   "cases": [
     {
@@ -84,7 +84,8 @@
         "sequence_conflict_pending_event_ids": [],
         "verification_conflict_event_ids": [],
         "context_conflict_event_ids": [],
-        "conflict_groups": []
+        "conflict_groups": [],
+        "payload_digest_conflict_event_ids": []
       }
     },
     {
@@ -167,7 +168,8 @@
         "sequence_conflict_pending_event_ids": [],
         "verification_conflict_event_ids": [],
         "context_conflict_event_ids": [],
-        "conflict_groups": []
+        "conflict_groups": [],
+        "payload_digest_conflict_event_ids": []
       }
     },
     {
@@ -221,7 +223,8 @@
         "sequence_conflict_pending_event_ids": [],
         "verification_conflict_event_ids": [],
         "context_conflict_event_ids": [],
-        "conflict_groups": []
+        "conflict_groups": [],
+        "payload_digest_conflict_event_ids": []
       }
     },
     {
@@ -305,7 +308,8 @@
         "sequence_conflict_pending_event_ids": [],
         "verification_conflict_event_ids": [],
         "context_conflict_event_ids": [],
-        "conflict_groups": []
+        "conflict_groups": [],
+        "payload_digest_conflict_event_ids": []
       }
     },
     {
@@ -358,7 +362,8 @@
         "sequence_conflict_pending_event_ids": [],
         "verification_conflict_event_ids": [],
         "context_conflict_event_ids": [],
-        "conflict_groups": []
+        "conflict_groups": [],
+        "payload_digest_conflict_event_ids": []
       }
     },
     {
@@ -411,7 +416,8 @@
         "sequence_conflict_pending_event_ids": [],
         "verification_conflict_event_ids": [],
         "context_conflict_event_ids": [],
-        "conflict_groups": []
+        "conflict_groups": [],
+        "payload_digest_conflict_event_ids": []
       }
     },
     {
@@ -465,7 +471,8 @@
         "sequence_conflict_pending_event_ids": [],
         "verification_conflict_event_ids": [],
         "context_conflict_event_ids": [],
-        "conflict_groups": []
+        "conflict_groups": [],
+        "payload_digest_conflict_event_ids": []
       }
     },
     {
@@ -580,7 +587,8 @@
         "sequence_conflict_pending_event_ids": [],
         "verification_conflict_event_ids": [],
         "context_conflict_event_ids": [],
-        "conflict_groups": []
+        "conflict_groups": [],
+        "payload_digest_conflict_event_ids": []
       }
     },
     {
@@ -678,7 +686,8 @@
               }
             ]
           }
-        ]
+        ],
+        "payload_digest_conflict_event_ids": []
       }
     },
     {
@@ -762,7 +771,8 @@
         "sequence_conflict_pending_event_ids": [],
         "verification_conflict_event_ids": [],
         "context_conflict_event_ids": [],
-        "conflict_groups": []
+        "conflict_groups": [],
+        "payload_digest_conflict_event_ids": []
       }
     },
     {
@@ -846,7 +856,8 @@
         "sequence_conflict_pending_event_ids": [],
         "verification_conflict_event_ids": [],
         "context_conflict_event_ids": [],
-        "conflict_groups": []
+        "conflict_groups": [],
+        "payload_digest_conflict_event_ids": []
       }
     },
     {
@@ -931,7 +942,8 @@
         "sequence_conflict_pending_event_ids": [],
         "verification_conflict_event_ids": [],
         "context_conflict_event_ids": [],
-        "conflict_groups": []
+        "conflict_groups": [],
+        "payload_digest_conflict_event_ids": []
       }
     },
     {
@@ -985,7 +997,8 @@
         "sequence_conflict_pending_event_ids": [],
         "verification_conflict_event_ids": [],
         "context_conflict_event_ids": [],
-        "conflict_groups": []
+        "conflict_groups": [],
+        "payload_digest_conflict_event_ids": []
       }
     },
     {
@@ -1039,7 +1052,8 @@
         "sequence_conflict_pending_event_ids": [],
         "verification_conflict_event_ids": [],
         "context_conflict_event_ids": [],
-        "conflict_groups": []
+        "conflict_groups": [],
+        "payload_digest_conflict_event_ids": []
       }
     },
     {
@@ -1123,7 +1137,8 @@
         "sequence_conflict_pending_event_ids": [],
         "verification_conflict_event_ids": [],
         "context_conflict_event_ids": [],
-        "conflict_groups": []
+        "conflict_groups": [],
+        "payload_digest_conflict_event_ids": []
       }
     },
     {
@@ -1207,7 +1222,8 @@
         "sequence_conflict_pending_event_ids": [],
         "verification_conflict_event_ids": [],
         "context_conflict_event_ids": [],
-        "conflict_groups": []
+        "conflict_groups": [],
+        "payload_digest_conflict_event_ids": []
       }
     },
     {
@@ -1292,7 +1308,8 @@
         "hash_collision_event_ids": [],
         "verification_conflict_event_ids": [],
         "context_conflict_event_ids": [],
-        "conflict_groups": []
+        "conflict_groups": [],
+        "payload_digest_conflict_event_ids": []
       }
     },
     {
@@ -1376,7 +1393,8 @@
         "hash_collision_event_ids": [],
         "verification_conflict_event_ids": [],
         "context_conflict_event_ids": [],
-        "conflict_groups": []
+        "conflict_groups": [],
+        "payload_digest_conflict_event_ids": []
       }
     },
     {
@@ -1462,7 +1480,8 @@
         "hash_collision_event_ids": [],
         "verification_conflict_event_ids": [],
         "context_conflict_event_ids": [],
-        "conflict_groups": []
+        "conflict_groups": [],
+        "payload_digest_conflict_event_ids": []
       }
     },
     {
@@ -1544,7 +1563,8 @@
         "sequence_conflict_pending_event_ids": [],
         "hash_collision_event_ids": [],
         "context_conflict_event_ids": [],
-        "conflict_groups": []
+        "conflict_groups": [],
+        "payload_digest_conflict_event_ids": []
       }
     },
     {
@@ -1627,7 +1647,8 @@
         "sequence_conflict_pending_event_ids": [],
         "hash_collision_event_ids": [],
         "context_conflict_event_ids": [],
-        "conflict_groups": []
+        "conflict_groups": [],
+        "payload_digest_conflict_event_ids": []
       }
     },
     {
@@ -1710,7 +1731,8 @@
         "sequence_conflict_pending_event_ids": [],
         "hash_collision_event_ids": [],
         "context_conflict_event_ids": [],
-        "conflict_groups": []
+        "conflict_groups": [],
+        "payload_digest_conflict_event_ids": []
       }
     },
     {
@@ -1795,7 +1817,8 @@
         "context_conflict_event_ids": [
           "e1"
         ],
-        "conflict_groups": []
+        "conflict_groups": [],
+        "payload_digest_conflict_event_ids": []
       }
     },
     {
@@ -1878,7 +1901,8 @@
         "sequence_conflict_pending_event_ids": [],
         "hash_collision_event_ids": [],
         "context_conflict_event_ids": [],
-        "conflict_groups": []
+        "conflict_groups": [],
+        "payload_digest_conflict_event_ids": []
       }
     },
     {
@@ -1931,7 +1955,8 @@
         "sequence_conflict_pending_event_ids": [],
         "hash_collision_event_ids": [],
         "context_conflict_event_ids": [],
-        "conflict_groups": []
+        "conflict_groups": [],
+        "payload_digest_conflict_event_ids": []
       }
     },
     {
@@ -1984,7 +2009,8 @@
         "sequence_conflict_pending_event_ids": [],
         "hash_collision_event_ids": [],
         "context_conflict_event_ids": [],
-        "conflict_groups": []
+        "conflict_groups": [],
+        "payload_digest_conflict_event_ids": []
       }
     },
     {
@@ -2033,7 +2059,8 @@
         "sequence_conflict_pending_event_ids": [],
         "hash_collision_event_ids": [],
         "context_conflict_event_ids": [],
-        "conflict_groups": []
+        "conflict_groups": [],
+        "payload_digest_conflict_event_ids": []
       }
     },
     {
@@ -2087,7 +2114,8 @@
         "sequence_conflict_pending_event_ids": [],
         "hash_collision_event_ids": [],
         "context_conflict_event_ids": [],
-        "conflict_groups": []
+        "conflict_groups": [],
+        "payload_digest_conflict_event_ids": []
       }
     },
     {
@@ -2140,7 +2168,221 @@
         "sequence_conflict_pending_event_ids": [],
         "hash_collision_event_ids": [],
         "context_conflict_event_ids": [],
+        "conflict_groups": [],
+        "payload_digest_conflict_event_ids": []
+      }
+    },
+    {
+      "case_id": "PAYLOAD-DIGEST-DIVERGENCE-001",
+      "title": "Same signed event identity delivered with different exact serialized payload digests is quarantined",
+      "deliveries": [
+        {
+          "event": {
+            "event_id": "e1",
+            "stream_id": "stream-a",
+            "sequence": 0,
+            "previous_hash": null,
+            "event_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "actor": "actor-stream-a"
+          },
+          "assessment": {
+            "assessment_id": "assessment-e1-1",
+            "verifier_id": "verifier-a",
+            "policy_id": "tib-key-policy-v0",
+            "assessed_at": "2026-11-19T00:00:00Z",
+            "key_status_snapshot_ref": "urn:tib:key-status:snapshot:synthetic-2026-11-19",
+            "event_time_basis": "external_trusted_timestamp",
+            "time_evidence_ref": "urn:synthetic:time-evidence:shared",
+            "status": "verified"
+          },
+          "context": {
+            "projection_key": "claim:x",
+            "access_class": "restricted"
+          },
+          "payload": {
+            "blob_ref": "cas://synthetic/e1",
+            "media_type": "application/vnd.mycelix.signed-scientific-event+json",
+            "blob_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+          }
+        },
+        {
+          "event": {
+            "event_id": "e1",
+            "stream_id": "stream-a",
+            "sequence": 0,
+            "previous_hash": null,
+            "event_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "actor": "actor-stream-a"
+          },
+          "assessment": {
+            "assessment_id": "assessment-e1-2",
+            "verifier_id": "verifier-a",
+            "policy_id": "tib-key-policy-v0",
+            "assessed_at": "2026-11-19T00:00:00Z",
+            "key_status_snapshot_ref": "urn:tib:key-status:snapshot:synthetic-2026-11-19",
+            "event_time_basis": "external_trusted_timestamp",
+            "time_evidence_ref": "urn:synthetic:time-evidence:shared",
+            "status": "verified"
+          },
+          "context": {
+            "projection_key": "claim:x",
+            "access_class": "restricted"
+          },
+          "payload": {
+            "blob_ref": "cas://synthetic/e1",
+            "media_type": "application/vnd.mycelix.signed-scientific-event+json",
+            "blob_sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+          }
+        }
+      ],
+      "expected": {
+        "accepted_events": [],
+        "duplicate_replays": 1,
+        "invalid_signatures": [],
+        "revoked_keys": [],
+        "verification_pending": [],
+        "verification_conflict_event_ids": [],
+        "malformed_events": [],
+        "missing_parent_events": [],
+        "blocked_parent_events": [],
+        "equivocation_event_ids": [],
+        "sequence_fork_event_ids": [],
+        "sequence_conflict_pending_event_ids": [],
+        "hash_collision_event_ids": [],
+        "context_conflict_event_ids": [],
+        "payload_digest_conflict_event_ids": [
+          "e1"
+        ],
         "conflict_groups": []
+      }
+    },
+    {
+      "case_id": "LATEST-STREAM-HEAD-CONFLICT-001",
+      "title": "Conflict group contains latest per-stream assertion, not earlier same-stream history",
+      "deliveries": [
+        {
+          "event": {
+            "event_id": "e1",
+            "stream_id": "stream-a",
+            "sequence": 0,
+            "previous_hash": null,
+            "event_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "actor": "actor-stream-a"
+          },
+          "assessment": {
+            "assessment_id": "assessment-e1-1",
+            "verifier_id": "verifier-a",
+            "policy_id": "tib-key-policy-v0",
+            "assessed_at": "2026-11-19T00:00:00Z",
+            "key_status_snapshot_ref": "urn:tib:key-status:snapshot:synthetic-2026-11-19",
+            "event_time_basis": "external_trusted_timestamp",
+            "time_evidence_ref": "urn:synthetic:time-evidence:shared",
+            "status": "verified"
+          },
+          "context": {
+            "projection_key": "claim:x",
+            "access_class": "restricted"
+          },
+          "payload": {
+            "blob_ref": "cas://synthetic/e1",
+            "media_type": "application/vnd.mycelix.signed-scientific-event+json",
+            "blob_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+          }
+        },
+        {
+          "event": {
+            "event_id": "e2",
+            "stream_id": "stream-a",
+            "sequence": 1,
+            "previous_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "event_hash": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "actor": "actor-stream-a"
+          },
+          "assessment": {
+            "assessment_id": "assessment-e2-1",
+            "verifier_id": "verifier-a",
+            "policy_id": "tib-key-policy-v0",
+            "assessed_at": "2026-11-19T00:00:00Z",
+            "key_status_snapshot_ref": "urn:tib:key-status:snapshot:synthetic-2026-11-19",
+            "event_time_basis": "external_trusted_timestamp",
+            "time_evidence_ref": "urn:synthetic:time-evidence:shared",
+            "status": "verified"
+          },
+          "context": {
+            "projection_key": "claim:x",
+            "access_class": "restricted"
+          },
+          "payload": {
+            "blob_ref": "cas://synthetic/e2",
+            "media_type": "application/vnd.mycelix.signed-scientific-event+json",
+            "blob_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+          }
+        },
+        {
+          "event": {
+            "event_id": "e3",
+            "stream_id": "stream-b",
+            "sequence": 0,
+            "previous_hash": null,
+            "event_hash": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "actor": "actor-stream-b"
+          },
+          "assessment": {
+            "assessment_id": "assessment-e3-1",
+            "verifier_id": "verifier-a",
+            "policy_id": "tib-key-policy-v0",
+            "assessed_at": "2026-11-19T00:00:00Z",
+            "key_status_snapshot_ref": "urn:tib:key-status:snapshot:synthetic-2026-11-19",
+            "event_time_basis": "external_trusted_timestamp",
+            "time_evidence_ref": "urn:synthetic:time-evidence:shared",
+            "status": "verified"
+          },
+          "context": {
+            "projection_key": "claim:x",
+            "access_class": "restricted"
+          },
+          "payload": {
+            "blob_ref": "cas://synthetic/e3",
+            "media_type": "application/vnd.mycelix.signed-scientific-event+json",
+            "blob_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+          }
+        }
+      ],
+      "expected": {
+        "accepted_events": [
+          "e1",
+          "e2",
+          "e3"
+        ],
+        "duplicate_replays": 0,
+        "invalid_signatures": [],
+        "revoked_keys": [],
+        "verification_pending": [],
+        "verification_conflict_event_ids": [],
+        "malformed_events": [],
+        "missing_parent_events": [],
+        "blocked_parent_events": [],
+        "equivocation_event_ids": [],
+        "sequence_fork_event_ids": [],
+        "sequence_conflict_pending_event_ids": [],
+        "hash_collision_event_ids": [],
+        "context_conflict_event_ids": [],
+        "payload_digest_conflict_event_ids": [],
+        "conflict_groups": [
+          {
+            "projection_key": "claim:x",
+            "members": [
+              {
+                "event_id": "e2",
+                "stream_id": "stream-a"
+              },
+              {
+                "event_id": "e3",
+                "stream_id": "stream-b"
+              }
+            ]
+          }
+        ]
       }
     }
   ]

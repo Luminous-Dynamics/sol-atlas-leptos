@@ -1,13 +1,13 @@
 {
   "schema": "luminous.cter.relay-benchmark.v0",
   "suite_id": "CTER-RELAY-CONVERGENCE-001",
-  "suite_version": "0.1.7",
+  "suite_version": "0.1.8",
   "status": "synthetic_reference_model",
   "created_at": "2026-11-19",
   "parent_issue": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/945",
   "parent_benchmark": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/937",
   "purpose": "Evaluate relay convergence around the existing Mycelix-DeSci signed event stream under replay, reordering, equivocation, verification failure, missing predecessors, stream forks and cross-stream territorial conflicts.",
-  "case_count": 29,
+  "case_count": 31,
   "claim_ceiling": "synthetic_convergence_semantics_only",
   "canonical_event_owner": "Mycelix-DeSci ScientificEventEnvelope / SignedScientificEvent",
   "event_hash_algorithm": "BLAKE3 ContentHash over canonical Mycelix SignedScientificEvent; distinct from payload blob SHA-256",
@@ -60,7 +60,9 @@
     "context_disagreement_fails_closed_for_projection_use",
     "do_not_infer_key_validity_from_signer_claimed_event_time",
     "relay_delivery_must_reference_full_signed_event_payload",
-    "payload_blob_digest_is_separate_from_event_identity_hash"
+    "payload_blob_digest_is_separate_from_event_identity_hash",
+    "quarantine_divergent_exact_payload_digests_for_same_event_identity",
+    "conflict_group_uses_latest_per_stream_projection_assertion"
   ],
   "transport_candidates": [
     "IETF RFC 9171 Bundle Protocol v7",
@@ -124,5 +126,6 @@
     "legal_effect": "none",
     "privacy_rule": "no raw sensitive claim payloads to public transparency services; use reviewed high-entropy salted commitments where a transparency commitment is justified",
     "missing_receipt_semantics": "not proof of absence"
-  }
+  },
+  "conflict_group_semantics": "one latest accepted event per stream and projection key; earlier same-stream events remain historical evidence"
 }

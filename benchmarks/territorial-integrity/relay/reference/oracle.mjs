@@ -29,7 +29,7 @@ function parseDelivery(d) {
   const status = ["invalid","unavailable"].includes(a.status) ? a.status : (trusted ? a.status : "unavailable");
   return {
     id:e.event_id, stream:e.stream_id, seq:e.sequence, prev:e.previous_hash,
-    hash:e.event_hash, event:stable(e),
+    hash:e.event_hash, event:stable(e), payloadDigest:p.blob_sha256,
     assessment:[a.policy_id,status,a.key_status_snapshot_ref,a.event_time_basis].join("|"),
     context:[c.projection_key,c.access_class].join("|")
   };
@@ -40,7 +40,7 @@ function relayOracle(deliveries) {
     verification_pending:[],verification_conflict_event_ids:[],malformed_events:[],
     missing_parent_events:[],blocked_parent_events:[],equivocation_event_ids:[],
     sequence_fork_event_ids:[],sequence_conflict_pending_event_ids:[],hash_collision_event_ids:[],
-    context_conflict_event_ids:[],conflict_groups:[]};
+    context_conflict_event_ids:[],payload_digest_conflict_event_ids:[],conflict_groups:[]};
   const variants=new Map(), hashIds=new Map();
   deliveries.forEach((d,i)=>{
     const hint=d?.event?.event_id || "#delivery-"+i, x=parseDelivery(d);
@@ -49,8 +49,8 @@ function relayOracle(deliveries) {
     const by=variants.get(x.id)||new Map(), old=by.get(x.hash);
     if(old){
       if(old.event!==x.event)old.equivocation=true;
-      else {r.duplicate_replays++;old.assessments.add(x.assessment);old.contexts.add(x.context);}
-    } else by.set(x.hash,{...x,assessments:new Set([x.assessment]),contexts:new Set([x.context]),equivocation:false});
+      else {r.duplicate_replays++;old.assessments.add(x.assessment);old.contexts.add(x.context);old.payloadDigests.add(x.payloadDigest);}
+    } else by.set(x.hash,{...x,assessments:new Set([x.assessment]),contexts:new Set([x.context]),payloadDigests:new Set([x.payloadDigest]),equivocation:false});
     variants.set(x.id,by);
   });
   const unique=new Map();
@@ -65,6 +65,7 @@ function relayOracle(deliveries) {
     if(x.assessments.size!==1)r.verification_conflict_event_ids.push(id);
     else status.set(id,[...x.assessments][0].split("|")[1]);
     if(x.contexts.size>1)r.context_conflict_event_ids.push(id);
+    if(x.payloadDigests.size>1)r.payload_digest_conflict_event_ids.push(id);
   }
   const slots=new Map();
   for(const [id,x] of unique){
@@ -82,7 +83,8 @@ function relayOracle(deliveries) {
     else if(s==="revoked")r.revoked_keys.push(id);
     else if(s==="unavailable")r.verification_pending.push(id);
     else if(s==="verified"&&!r.sequence_fork_event_ids.includes(id)
-      &&!r.sequence_conflict_pending_event_ids.includes(id)&&!r.hash_collision_event_ids.includes(id))eligible.set(id,x);
+      &&!r.sequence_conflict_pending_event_ids.includes(id)&&!r.hash_collision_event_ids.includes(id)
+      &&!r.payload_digest_conflict_event_ids.includes(id))eligible.set(id,x);
   }
   // Independent repeated-add evaluator; deliberately not a work queue.
   let changed=true;
@@ -108,36 +110,42 @@ function relayOracle(deliveries) {
   for(const id of r.accepted_events){
     const x=eligible.get(id);if(x.contexts.size!==1)continue;
     const key=[...x.contexts][0].split("|")[0], streams=projections.get(key)||new Map();
-    streams.set(x.stream,[...(streams.get(x.stream)||[]),id]);projections.set(key,streams);
+    const previous=streams.get(x.stream);
+    if(!previous||x.seq>previous.sequence)streams.set(x.stream,{sequence:x.seq,event_id:id});
+    projections.set(key,streams);
   }
   for(const [key,streams] of projections)if(streams.size>1){
-    const members=[...streams.entries()].flatMap(([stream,ids])=>ids.map(event_id=>({event_id,stream_id:stream})))
+    const members=[...streams.entries()].map(([stream,head])=>({event_id:head.event_id,stream_id:stream}))
       .sort((a,b)=>a.event_id.localeCompare(b.event_id)||a.stream_id.localeCompare(b.stream_id));
     r.conflict_groups.push({projection_key:key,members});
   }
   for(const k of ["accepted_events","invalid_signatures","revoked_keys","verification_pending",
     "verification_conflict_event_ids","malformed_events","missing_parent_events","blocked_parent_events",
     "equivocation_event_ids","sequence_fork_event_ids","sequence_conflict_pending_event_ids",
-    "hash_collision_event_ids","context_conflict_event_ids"])r[k].sort();
+    "hash_collision_event_ids","context_conflict_event_ids","payload_digest_conflict_event_ids"])r[k].sort();
   r.conflict_groups.sort((a,b)=>a.projection_key.localeCompare(b.projection_key));
   return r;
 }
 
 function archiveOracle(m) {
-  const rank={public:0,community:1,restricted:2,culturally_protected:3}, invalid="invalid";
+  const classes=new Set(["public","community","restricted","culturally_protected"]), invalid="invalid";
   if(m?.schema!=="luminous.cter.community-archive.v0"
       ||m.claim_ceiling!=="archive-structure-and-restoration-only-no-legal-effect"
       ||!m.archive_id||m.profile_version!=="0.1")return invalid;
   const ec=m.export_context;
-  if(!ec||!(ec.destination_access_class in rank)||!ec.authorization_ref||!ec.purpose_ref)return invalid;
+  if(!ec||!ec.destination_ref||!ec.authorization_ref||!ec.purpose_ref
+      ||!Array.isArray(ec.authorized_access_classes)||!ec.authorized_access_classes.length
+      ||new Set(ec.authorized_access_classes).size!==ec.authorized_access_classes.length
+      ||ec.authorized_access_classes.some(x=>!classes.has(x)))return invalid;
+  const authorized=new Set(ec.authorized_access_classes);
   if(!Array.isArray(m.objects)||!Array.isArray(m.source_frontiers))return invalid;
   if(!m.source_frontiers.length)return "incomplete";
   const refs=new Set(),counts={};let excluded=false,review=false,leak=false;
   for(const o of m.objects){
-    if(!o.object_ref||refs.has(o.object_ref)||!o.owner_system||!(o.access_class in rank)||!o.disposition)return invalid;
+    if(!o.object_ref||refs.has(o.object_ref)||!o.owner_system||!classes.has(o.access_class)||!o.disposition)return invalid;
     refs.add(o.object_ref);counts[o.owner_system]=(counts[o.owner_system]||0)+1;
     if(o.disposition==="included"){
-      if(rank[o.access_class]>rank[ec.destination_access_class])leak=true;
+      if(!authorized.has(o.access_class))leak=true;
       if(!o.digest||!["SHA-256","BLAKE3"].includes(o.digest.algorithm)||!digest(o.digest.value)||!o.payload_ref)return invalid;
       if(["redistributable","reference_only"].includes(o.license_state)){}
       else if(["not_cleared","unknown",undefined].includes(o.license_state))review=true;

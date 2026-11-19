@@ -1,7 +1,7 @@
 {
   "schema": "luminous.cter.archive-cases.v0",
   "suite_id": "CTER-CUSTODY-EXIT-001",
-  "suite_version": "0.1.1",
+  "suite_version": "0.1.2",
   "synthetic_only": true,
   "execution_status": "synthetic_reference_evaluator_added_rust_execution_pending",
   "cases": [
@@ -127,9 +127,13 @@
         ],
         "claim_ceiling": "archive-structure-and-restoration-only-no-legal-effect",
         "export_context": {
-          "destination_access_class": "restricted",
           "authorization_ref": "urn:synthetic:export-authorization:archive-complete-001",
-          "purpose_ref": "urn:synthetic:export-purpose:community-continuity"
+          "purpose_ref": "urn:synthetic:export-purpose:community-continuity",
+          "destination_ref": "urn:synthetic:destination:community-archive",
+          "authorized_access_classes": [
+            "community",
+            "restricted"
+          ]
         }
       },
       "expected": "eligible_for_independent_restore"
@@ -233,7 +237,7 @@
             "license_state": "reference_only"
           },
           {
-            "object_ref": "urn:site:sacred1",
+            "object_ref": "urn:withheld:opaque:object:01",
             "object_type": "cultural_location",
             "owner_system": "sol-atlas",
             "schema_ref": "urn:schema:location:v0",
@@ -241,7 +245,7 @@
             "access_class": "culturally_protected",
             "disposition": "withheld",
             "reason_code": "community-protocol-restricted",
-            "commitment_ref": "urn:commitment:site:sacred1",
+            "commitment_ref": "urn:commitment:opaque:randomized:01",
             "license_state": "not_cleared"
           }
         ],
@@ -268,9 +272,13 @@
         ],
         "claim_ceiling": "archive-structure-and-restoration-only-no-legal-effect",
         "export_context": {
-          "destination_access_class": "restricted",
           "authorization_ref": "urn:synthetic:export-authorization:archive-withheld-001",
-          "purpose_ref": "urn:synthetic:export-purpose:community-continuity"
+          "purpose_ref": "urn:synthetic:export-purpose:community-continuity",
+          "destination_ref": "urn:synthetic:destination:community-archive",
+          "authorized_access_classes": [
+            "community",
+            "restricted"
+          ]
         }
       },
       "expected": "eligible_with_declared_exclusions"
@@ -382,9 +390,13 @@
         ],
         "claim_ceiling": "archive-structure-and-restoration-only-no-legal-effect",
         "export_context": {
-          "destination_access_class": "restricted",
           "authorization_ref": "urn:synthetic:export-authorization:archive-omitted-objection-001",
-          "purpose_ref": "urn:synthetic:export-purpose:community-continuity"
+          "purpose_ref": "urn:synthetic:export-purpose:community-continuity",
+          "destination_ref": "urn:synthetic:destination:community-archive",
+          "authorized_access_classes": [
+            "community",
+            "restricted"
+          ]
         }
       },
       "expected": "incomplete"
@@ -511,9 +523,13 @@
         ],
         "claim_ceiling": "archive-structure-and-restoration-only-no-legal-effect",
         "export_context": {
-          "destination_access_class": "restricted",
           "authorization_ref": "urn:synthetic:export-authorization:archive-unknown-digest-001",
-          "purpose_ref": "urn:synthetic:export-purpose:community-continuity"
+          "purpose_ref": "urn:synthetic:export-purpose:community-continuity",
+          "destination_ref": "urn:synthetic:destination:community-archive",
+          "authorized_access_classes": [
+            "community",
+            "restricted"
+          ]
         }
       },
       "expected": "invalid"
@@ -640,9 +656,13 @@
         ],
         "claim_ceiling": "archive-structure-and-restoration-only-no-legal-effect",
         "export_context": {
-          "destination_access_class": "restricted",
           "authorization_ref": "urn:synthetic:export-authorization:archive-provider-key-001",
-          "purpose_ref": "urn:synthetic:export-purpose:community-continuity"
+          "purpose_ref": "urn:synthetic:export-purpose:community-continuity",
+          "destination_ref": "urn:synthetic:destination:community-archive",
+          "authorized_access_classes": [
+            "community",
+            "restricted"
+          ]
         }
       },
       "expected": "not_independently_restorable"
@@ -710,7 +730,7 @@
               "algorithm": "BLAKE3",
               "value": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
             },
-            "access_class": "community",
+            "access_class": "public",
             "disposition": "included",
             "payload_ref": "file://events/e1",
             "license_state": "reference_only"
@@ -725,7 +745,7 @@
               "algorithm": "SHA-256",
               "value": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
             },
-            "access_class": "community",
+            "access_class": "public",
             "disposition": "included",
             "payload_ref": "file://territory/t1",
             "license_state": "reference_only"
@@ -740,7 +760,7 @@
               "algorithm": "BLAKE3",
               "value": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
             },
-            "access_class": "restricted",
+            "access_class": "public",
             "disposition": "included",
             "payload_ref": "file://objections/o1",
             "license_state": "reference_only"
@@ -784,9 +804,12 @@
         ],
         "claim_ceiling": "archive-structure-and-restoration-only-no-legal-effect",
         "export_context": {
-          "destination_access_class": "public",
           "authorization_ref": "urn:synthetic:export-authorization:archive-sensitive-leak-001",
-          "purpose_ref": "urn:synthetic:export-purpose:community-continuity"
+          "purpose_ref": "urn:synthetic:export-purpose:community-continuity",
+          "destination_ref": "urn:synthetic:destination:public-export",
+          "authorized_access_classes": [
+            "public"
+          ]
         }
       },
       "expected": "disclosure_violation"
@@ -913,9 +936,13 @@
         ],
         "claim_ceiling": "archive-structure-and-restoration-only-no-legal-effect",
         "export_context": {
-          "destination_access_class": "restricted",
           "authorization_ref": "urn:synthetic:export-authorization:archive-bundle-expiry-001",
-          "purpose_ref": "urn:synthetic:export-purpose:community-continuity"
+          "purpose_ref": "urn:synthetic:export-purpose:community-continuity",
+          "destination_ref": "urn:synthetic:destination:community-archive",
+          "authorized_access_classes": [
+            "community",
+            "restricted"
+          ]
         },
         "transport_observation": {
           "protocol": "BPv7",
@@ -1057,9 +1084,13 @@
         ],
         "claim_ceiling": "archive-structure-and-restoration-only-no-legal-effect",
         "export_context": {
-          "destination_access_class": "restricted",
           "authorization_ref": "urn:synthetic:export-authorization:archive-crypto-renewal-001",
-          "purpose_ref": "urn:synthetic:export-purpose:community-continuity"
+          "purpose_ref": "urn:synthetic:export-purpose:community-continuity",
+          "destination_ref": "urn:synthetic:destination:community-archive",
+          "authorized_access_classes": [
+            "community",
+            "restricted"
+          ]
         }
       },
       "expected": "eligible_with_preservation_chain"
@@ -1185,9 +1216,13 @@
         ],
         "claim_ceiling": "archive-structure-and-restoration-only-no-legal-effect",
         "export_context": {
-          "destination_access_class": "restricted",
           "authorization_ref": "urn:synthetic:export-authorization:archive-crypto-renewal-gap-001",
-          "purpose_ref": "urn:synthetic:export-purpose:community-continuity"
+          "purpose_ref": "urn:synthetic:export-purpose:community-continuity",
+          "destination_ref": "urn:synthetic:destination:community-archive",
+          "authorized_access_classes": [
+            "community",
+            "restricted"
+          ]
         }
       },
       "expected": "indeterminate_historical_validation"
@@ -1316,9 +1351,13 @@
         ],
         "claim_ceiling": "archive-structure-and-restoration-only-no-legal-effect",
         "export_context": {
-          "destination_access_class": "restricted",
           "authorization_ref": "urn:synthetic:export-authorization:archive-partial-frontier-001",
-          "purpose_ref": "urn:synthetic:export-purpose:community-continuity"
+          "purpose_ref": "urn:synthetic:export-purpose:community-continuity",
+          "destination_ref": "urn:synthetic:destination:community-archive",
+          "authorized_access_classes": [
+            "community",
+            "restricted"
+          ]
         }
       },
       "expected": "incomplete"
@@ -1445,9 +1484,13 @@
         ],
         "claim_ceiling": "archive-structure-and-restoration-only-no-legal-effect",
         "export_context": {
-          "destination_access_class": "restricted",
           "authorization_ref": "urn:synthetic:export-authorization:archive-complete-001",
-          "purpose_ref": "urn:synthetic:export-purpose:community-continuity"
+          "purpose_ref": "urn:synthetic:export-purpose:community-continuity",
+          "destination_ref": "urn:synthetic:destination:community-archive",
+          "authorized_access_classes": [
+            "community",
+            "restricted"
+          ]
         }
       },
       "expected": "review_required"
@@ -1574,9 +1617,13 @@
         ],
         "claim_ceiling": "archive-structure-and-restoration-only-no-legal-effect",
         "export_context": {
-          "destination_access_class": "restricted",
           "authorization_ref": "urn:synthetic:export-authorization:archive-bundle-expiry-001",
-          "purpose_ref": "urn:synthetic:export-purpose:community-continuity"
+          "purpose_ref": "urn:synthetic:export-purpose:community-continuity",
+          "destination_ref": "urn:synthetic:destination:community-archive",
+          "authorized_access_classes": [
+            "community",
+            "restricted"
+          ]
         },
         "transport_observation": {
           "protocol": "BPv7",
@@ -1586,6 +1633,138 @@
         }
       },
       "expected": "incomplete"
+    },
+    {
+      "case_id": "ARCHIVE-NO-IMPLICIT-CLASS-HIERARCHY-001",
+      "title": "A restricted-data authorization does not implicitly grant a separate community-data class",
+      "manifest": {
+        "schema": "luminous.cter.community-archive.v0",
+        "archive_id": "archive-no-implicit-class-hierarchy",
+        "profile_version": "0.1",
+        "created_at": "2026-11-19T16:00:00Z",
+        "exporter": {
+          "owner_system": "cter-reference",
+          "software_version": "0.1.0",
+          "build_ref": "synthetic-build-v0"
+        },
+        "scope": {
+          "scope_ref": "urn:community:synthetic-scope:1",
+          "object_types": [
+            "signed_event",
+            "territorial_record",
+            "objection",
+            "consent",
+            "spatial_reference"
+          ],
+          "jurisdiction_profile_ref": "urn:jurisdiction:synthetic:v0"
+        },
+        "source_frontiers": [
+          {
+            "owner_system": "mycelix",
+            "snapshot_ref": "urn:mycelix:snapshot:1",
+            "snapshot_digest": {
+              "algorithm": "BLAKE3",
+              "value": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+            },
+            "query_or_scope_ref": "urn:query:scope:all",
+            "expected_count": 2,
+            "observed_count": 2,
+            "completeness": "complete_within_declared_frontier",
+            "gap_refs": []
+          },
+          {
+            "owner_system": "sol-atlas",
+            "snapshot_ref": "urn:sol-atlas:snapshot:1",
+            "snapshot_digest": {
+              "algorithm": "SHA-256",
+              "value": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+            },
+            "query_or_scope_ref": "urn:query:territory-scope:all",
+            "expected_count": 1,
+            "observed_count": 1,
+            "completeness": "complete_within_declared_frontier",
+            "gap_refs": []
+          }
+        ],
+        "objects": [
+          {
+            "object_ref": "urn:event:e1",
+            "object_type": "signed_event",
+            "owner_system": "mycelix",
+            "schema_ref": "urn:schema:event:v3",
+            "schema_version": "3",
+            "digest": {
+              "algorithm": "BLAKE3",
+              "value": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+            },
+            "access_class": "community",
+            "disposition": "included",
+            "payload_ref": "file://events/e1",
+            "license_state": "reference_only"
+          },
+          {
+            "object_ref": "urn:territory:t1",
+            "object_type": "territorial_record",
+            "owner_system": "sol-atlas",
+            "schema_ref": "urn:schema:territorial:v0",
+            "schema_version": "0.1",
+            "digest": {
+              "algorithm": "SHA-256",
+              "value": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+            },
+            "access_class": "community",
+            "disposition": "included",
+            "payload_ref": "file://territory/t1",
+            "license_state": "reference_only"
+          },
+          {
+            "object_ref": "urn:objection:o1",
+            "object_type": "objection",
+            "owner_system": "mycelix",
+            "schema_ref": "urn:schema:objection:v0",
+            "schema_version": "0.1",
+            "digest": {
+              "algorithm": "BLAKE3",
+              "value": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+            },
+            "access_class": "restricted",
+            "disposition": "included",
+            "payload_ref": "file://objections/o1",
+            "license_state": "reference_only"
+          }
+        ],
+        "restore": {
+          "provider_independent_restore": true,
+          "key_custody": "community_threshold",
+          "restore_test_status": "pass",
+          "restore_instructions_ref": "urn:restore:instructions:v0",
+          "restore_run_ref": "urn:restore:synthetic:pass:1"
+        },
+        "preservation": [
+          {
+            "record_ref": "urn:ers:record:1",
+            "profile_ref": "urn:preservation:rfc4998:profile:v0",
+            "predecessor_ref": "urn:ers:record:0",
+            "algorithm_state": "current",
+            "validation_state": "valid",
+            "timestamp_evidence_ref": "urn:tsa:timestamp:1",
+            "renewal_time": "2026-11-19T16:00:00Z"
+          }
+        ],
+        "limitations": [
+          "Synthetic manifest only; no real provider or community data."
+        ],
+        "claim_ceiling": "archive-structure-and-restoration-only-no-legal-effect",
+        "export_context": {
+          "authorization_ref": "urn:synthetic:export-authorization:archive-complete-001",
+          "purpose_ref": "urn:synthetic:export-purpose:community-continuity",
+          "destination_ref": "urn:synthetic:destination:community-archive",
+          "authorized_access_classes": [
+            "restricted"
+          ]
+        }
+      },
+      "expected": "disclosure_violation"
     }
   ]
 }

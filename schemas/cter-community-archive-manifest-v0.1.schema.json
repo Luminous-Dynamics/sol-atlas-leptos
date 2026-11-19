@@ -269,19 +269,12 @@
       "type": "object",
       "additionalProperties": false,
       "required": [
-        "destination_access_class",
+        "destination_ref",
+        "authorized_access_classes",
         "authorization_ref",
         "purpose_ref"
       ],
       "properties": {
-        "destination_access_class": {
-          "enum": [
-            "public",
-            "community",
-            "restricted",
-            "culturally_protected"
-          ]
-        },
         "authorization_ref": {
           "type": "string",
           "minLength": 1
@@ -289,6 +282,25 @@
         "purpose_ref": {
           "type": "string",
           "minLength": 1
+        },
+        "destination_ref": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Opaque destination identity; access rights are not inferred from the destination name."
+        },
+        "authorized_access_classes": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "enum": [
+              "public",
+              "community",
+              "restricted",
+              "culturally_protected"
+            ]
+          },
+          "description": "Exact disclosure classes explicitly authorized by the referenced policy. Classes are not a universal linear clearance hierarchy."
         }
       },
       "description": "Declared export audience and purpose. Structural presence is not authentication or proof of authorization; resolve the authorization independently."

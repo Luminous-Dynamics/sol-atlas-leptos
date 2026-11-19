@@ -30,6 +30,7 @@ pub struct Evaluation {
     pub sequence_conflict_pending_event_ids: BTreeSet<String>,
     pub hash_collision_event_ids: BTreeSet<String>,
     pub context_conflict_event_ids: BTreeSet<String>,
+    pub payload_digest_conflict_event_ids: BTreeSet<String>,
     pub conflict_groups: BTreeMap<String, BTreeSet<(String, String)>>,
 }
 
@@ -42,6 +43,7 @@ struct ParsedEvent {
     event_hash: String,
     canonical_event: String,
     assessments: BTreeSet<(String, String, String, String)>,
+    payload_sha256s: BTreeSet<String>,
     contexts: BTreeSet<(String, String)>,
     equivocation: bool,
 }
@@ -150,6 +152,7 @@ fn parse_delivery(value: &Value) -> Option<ParsedEvent> {
         event_hash,
         canonical_event: canonical_json(event),
         assessments: BTreeSet::from([(policy_id, status, key_status_snapshot_ref, time_basis)]),
+        payload_sha256s: BTreeSet::from([blob_sha256]),
         contexts: BTreeSet::from([(projection_key, access_class)]),
         equivocation: false,
     })
@@ -197,6 +200,7 @@ pub fn evaluate(input: &[Value]) -> Evaluation {
                     } else {
                         result.duplicate_replays += 1;
                         existing.assessments.extend(parsed.assessments);
+                        existing.payload_sha256s.extend(parsed.payload_sha256s);
                         existing.contexts.extend(parsed.contexts);
                     }
                 } else {
@@ -239,6 +243,9 @@ pub fn evaluate(input: &[Value]) -> Evaluation {
         if event.contexts.len() > 1 {
             result.context_conflict_event_ids.insert(id.clone());
         }
+        if event.payload_sha256s.len() > 1 {
+            result.payload_digest_conflict_event_ids.insert(id.clone());
+        }
     }
 
     // Stream sequence is not resolved by arrival order. A potentially competing
@@ -272,7 +279,8 @@ pub fn evaluate(input: &[Value]) -> Evaluation {
             Some("verified")
                 if !result.sequence_fork_event_ids.contains(id)
                     && !result.sequence_conflict_pending_event_ids.contains(id)
-                    && !result.hash_collision_event_ids.contains(id) =>
+                    && !result.hash_collision_event_ids.contains(id)
+                    && !result.payload_digest_conflict_event_ids.contains(id) =>
             {
                 eligible.insert(id.clone(), event.clone());
             }
@@ -333,26 +341,29 @@ pub fn evaluate(input: &[Value]) -> Evaluation {
         }
     }
 
-    // Store one compact group per disputed projection, not every pair of
-    // conflicting events. This avoids O(k^2) output for a projection with k
-    // independently asserted streams.
-    let mut projections: BTreeMap<String, BTreeSet<(String, String)>> = BTreeMap::new();
+    // Keep only the latest accepted event per stream and projection key.
+    // Earlier same-stream events are historical evidence, not new claimants.
+    // A conflict group is compact and never expands all event pairs.
+    let mut projections: BTreeMap<String, BTreeMap<String, (u64, String)>> = BTreeMap::new();
     for id in &result.accepted_events {
         let Some(event) = eligible.get(id) else { continue };
         if event.contexts.len() != 1 {
             continue;
         }
         let context = event.contexts.iter().next().expect("one context");
-        let projection_key = context.0.clone();
-        projections.entry(projection_key)
-            .or_default()
-            .insert((id.clone(), event.stream_id.clone()));
+        let by_stream = projections.entry(context.0.clone()).or_default();
+        let replace = by_stream.get(&event.stream_id)
+            .map(|(sequence, _)| event.sequence > *sequence)
+            .unwrap_or(true);
+        if replace {
+            by_stream.insert(event.stream_id.clone(), (event.sequence, id.clone()));
+        }
     }
-    for (projection_key, members) in projections {
-        let distinct_streams: BTreeSet<&str> = members.iter()
-            .map(|(_, stream_id)| stream_id.as_str())
-            .collect();
-        if distinct_streams.len() > 1 {
+    for (projection_key, latest_by_stream) in projections {
+        if latest_by_stream.len() > 1 {
+            let members = latest_by_stream.into_iter()
+                .map(|(stream_id, (_, event_id))| (event_id, stream_id))
+                .collect();
             result.conflict_groups.insert(projection_key, members);
         }
     }
@@ -382,6 +393,7 @@ impl Evaluation {
             "sequence_conflict_pending_event_ids": self.sequence_conflict_pending_event_ids.iter().cloned().collect::<Vec<_>>(),
             "hash_collision_event_ids": self.hash_collision_event_ids.iter().cloned().collect::<Vec<_>>(),
             "context_conflict_event_ids": self.context_conflict_event_ids.iter().cloned().collect::<Vec<_>>(),
+            "payload_digest_conflict_event_ids": self.payload_digest_conflict_event_ids.iter().cloned().collect::<Vec<_>>(),
             "conflict_groups": groups
         })
     }

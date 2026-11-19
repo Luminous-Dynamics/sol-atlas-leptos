@@ -28,14 +28,8 @@ fn valid_digest(value: &Value) -> bool {
         && hex.bytes().all(|byte| byte.is_ascii_digit() || (b'a'..=b'f').contains(&byte))
 }
 
-fn access_rank(class: &str) -> Option<u8> {
-    match class {
-        "public" => Some(0),
-        "community" => Some(1),
-        "restricted" => Some(2),
-        "culturally_protected" => Some(3),
-        _ => None,
-    }
+fn valid_access_class(class: &str) -> bool {
+    matches!(class, "public" | "community" | "restricted" | "culturally_protected")
 }
 
 fn evaluation(disposition: &'static str, reason: &'static str) -> ArchiveEvaluation {
@@ -58,16 +52,26 @@ pub fn evaluate_archive(manifest: &Value) -> ArchiveEvaluation {
     let Some(export_context) = manifest.get("export_context") else {
         return evaluation("invalid", "export_context_missing");
     };
-    let Some(destination_class) = nonempty(export_context, "destination_access_class") else {
-        return evaluation("invalid", "destination_access_class_missing");
-    };
-    let Some(destination_rank) = access_rank(destination_class) else {
-        return evaluation("invalid", "destination_access_class_unknown");
-    };
-    if nonempty(export_context, "authorization_ref").is_none()
+    if nonempty(export_context, "destination_ref").is_none()
+        || nonempty(export_context, "authorization_ref").is_none()
         || nonempty(export_context, "purpose_ref").is_none()
     {
-        return evaluation("invalid", "export_authorization_or_purpose_reference_missing");
+        return evaluation("invalid", "export_destination_authorization_or_purpose_reference_missing");
+    }
+    let Some(raw_authorized_classes) = export_context.get("authorized_access_classes").and_then(Value::as_array) else {
+        return evaluation("invalid", "authorized_access_classes_missing");
+    };
+    if raw_authorized_classes.is_empty() {
+        return evaluation("invalid", "authorized_access_classes_empty");
+    }
+    let mut authorized_classes = BTreeSet::new();
+    for value in raw_authorized_classes {
+        let Some(class) = value.as_str() else {
+            return evaluation("invalid", "authorized_access_class_not_a_string");
+        };
+        if !valid_access_class(class) || !authorized_classes.insert(class.to_owned()) {
+            return evaluation("invalid", "authorized_access_class_unknown_or_duplicated");
+        }
     }
 
     let Some(objects) = manifest.get("objects").and_then(Value::as_array) else {
@@ -101,16 +105,18 @@ pub fn evaluate_archive(manifest: &Value) -> ArchiveEvaluation {
         let Some(access_class) = nonempty(object, "access_class") else {
             return evaluation("invalid", "object_access_class_missing");
         };
-        let Some(object_rank) = access_rank(access_class) else {
+        if !valid_access_class(access_class) {
             return evaluation("invalid", "object_access_class_unknown");
-        };
+        }
         let Some(disposition) = nonempty(object, "disposition") else {
             return evaluation("invalid", "object_disposition_missing");
         };
 
         match disposition {
             "included" => {
-                if object_rank > destination_rank {
+                // Access classes are not a universal hierarchy. The exact
+                // class must be named by the destination's explicit authorization.
+                if !authorized_classes.contains(access_class) {
                     disclosure_violation = true;
                 }
                 if !valid_digest(&object["digest"]) {

@@ -129,6 +129,7 @@ The benchmark adapter reads these canonical event fields from Mycelix. Each deli
 | `payload.blob_ref` + `payload.blob_sha256` | Exact serialized signed-event bytes to carry/restore plus SHA-256 over those bytes; not interchangeable with BLAKE3 event identity |
 | `assessment` (detached) | Verifier ID, pinned policy ID, assessment time, key-status snapshot and event-time basis; multiple assessments can coexist |
 | `context` (detached) | Projection key and access-policy class; disagreements block projection/disclosure until reviewed |
+| `payload.blob_sha256` | Exact-byte commitment for the serialized signed-event payload; divergent payload commitments for one event identity are quarantined |
 | `actor` | Canonical event actor identity |
 | `verification` | External result: `verified`, `invalid`, `revoked`, or `unavailable` |
 
@@ -143,19 +144,22 @@ The reference crate checks digest shape, identity collisions, stream sequence an
 1. An exact replay of the same `event_id` and `event_hash` is idempotent.
 2. The same event ID paired with different event hashes or different canonical envelope content is equivocation. Keep every variant in quarantine; accept none as the unique event. Detached verification or access-context disagreement is not event equivocation; it produces a separate review state.
 3. Reuse of a BLAKE3 event hash under different event IDs is an integrity collision and must be quarantined.
-4. Invalid or revoked signatures are never accepted. Unavailable verification remains pending, not accepted.
-5. Two verified events claiming the same `stream_id` and `sequence` are a stream fork. Preserve both; do not choose by arrival time. If a same-slot competitor has unavailable verification or unresolved revocation status, hold every candidate in that slot pending verification/review. A definitively invalid signature does not block a verified event.
-6. A missing `previous_hash` predecessor leaves the event pending. It may be reconsidered when the predecessor arrives.
-7. A child of an invalid, revoked, unavailable, equivocated or forked predecessor is blocked pending review.
-8. A predecessor must belong to the same stream and have sequence exactly one less than the child. Cross-stream or wrong-sequence links are blocked.
-9. Genesis sequence zero has no previous hash; non-genesis events must have a previous hash.
-10. Concurrent accepted events from different streams that affect the same declared projection key are both preserved and reported as a conflict pair.
-11. Corrections append new signed events; they do not erase the earlier event or the fact it was received.
-12. No deterministic display sort, timestamp or relay count may be interpreted as legal priority.
-13. Rebuilding the same projection from the same normalized event set and profile version must produce the same result.
-14. Verification status, verifier policy version, key-status snapshot and access annotations are detached from the signed event. Conflicting assessment policies/statuses require review; a later result never rewrites the source event.
+4. The same event identity delivered with different exact serialized-payload SHA-256 digests is a payload-binding conflict; do not accept either delivery for projection until reconciled.
+5. Invalid or revoked signatures are never accepted. Unavailable verification remains pending, not accepted.
+6. Two verified events claiming the same `stream_id` and `sequence` are a stream fork. Preserve both; do not choose by arrival time. If a same-slot competitor has unavailable verification or unresolved revocation status, hold every candidate in that slot pending verification/review. A definitively invalid signature does not block a verified event.
+7. A missing `previous_hash` predecessor leaves the event pending. It may be reconsidered when the predecessor arrives.
+8. A child of an invalid, revoked, unavailable, equivocated or forked predecessor is blocked pending review.
+9. A predecessor must belong to the same stream and have sequence exactly one less than the child. Cross-stream or wrong-sequence links are blocked.
+10. Genesis sequence zero has no previous hash; non-genesis events must have a previous hash.
+11. Concurrent accepted events from different streams that affect the same declared projection key are both preserved and reported as a conflict pair.
+12. Corrections append new signed events; they do not erase the earlier event or the fact it was received.
+13. No deterministic display sort, timestamp or relay count may be interpreted as legal priority.
+14. Rebuilding the same projection from the same normalized event set and profile version must produce the same result.
+15. Verification status, verifier policy version, key-status snapshot and access annotations are detached from the signed event. Conflicting assessment policies/statuses require review; a later result never rewrites the source event.
 15. A key-validity conclusion cannot rely solely on the event's signer-controlled occurred_at; a trusted receipt or external timestamp basis is required.
-15. Conflicting access/projection annotations are retained as contextual uncertainty and cannot be resolved by last-write-wins or a less restrictive label.
+16. Conflicting access/projection annotations are retained as contextual uncertainty and cannot be resolved by last-write-wins or a less restrictive label.
+17. A payload digest mismatch for one immutable event identity is a payload-binding conflict, not a new event and not an acceptable replay.
+18. Conflict groups contain only the latest accepted event per stream for the relevant projection key; earlier same-stream events remain in the append-only history.
 
 The reference model's `accepted_events` means only structurally eligible for evidence preservation under the supplied signature/key dispositions and chain links. It does not establish truth, signer authority, community mandate, consent, representativeness or legal effect.
 
@@ -242,6 +246,7 @@ The reference model's `accepted_events` means only structurally eligible for evi
 | Exact replay idempotence | 100% |
 | False acceptance of invalid, revoked or unavailable verification | 0 |
 | Event-ID equivocation and hash-collision detection | 100% on frozen cases |
+| Payload-byte commitment consistency per event identity | 100% of divergent payload digests detected |
 | Conflicting verifier assessment withholding | 100% on frozen cases |
 | Conflicting access-context downgrade block | 100% on frozen cases |
 | Stream/sequence fork detection | 100% on frozen cases |
