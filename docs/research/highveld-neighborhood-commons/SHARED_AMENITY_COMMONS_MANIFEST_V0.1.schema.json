@@ -101,16 +101,16 @@
       "uniqueItems": true,
       "items": {
         "enum": [
-          "ORDINARY_DEMAND",
-          "PEAK_SIMULTANEOUS_DEMAND",
-          "SEASONAL_OR_EVENT_SURGE",
-          "GRID_OR_WATER_INTERRUPTION",
-          "STAFFING_OR_OPERATOR_OUTAGE",
-          "MAJOR_REPAIR_AND_PARTS_DELAY",
-          "OPERATING_COST_INFLATION_AND_RESERVE_SHORTFALL",
-          "ACCESS_ROUTE_DISRUPTION_OR_LIFT_OUTAGE",
-          "HOUSEHOLD_COMPOSITION_AND_DEMAND_CHANGE",
-          "GOVERNANCE_CONFLICT_OR_OPERATOR_CAPTURE_ATTEMPT"
+          "COMPACT_HIGH_DENSITY",
+          "LOW_DENSITY_DISPERSED",
+          "MIXED_USE_TRANSIT_ADJACENT",
+          "SITE_EDGE_LONG_WALK",
+          "ACCESSIBLE_ROUTE_DISCONTINUITY",
+          "UNEQUAL_POPULATION_DISTRIBUTION",
+          "PHASED_OCCUPANCY_GROWTH",
+          "LAND_SCARCITY_COMPETING_USE",
+          "EXTERNAL_PROVIDER_DISTANCE_OR_CLOSURE",
+          "MULTI_NODE_CATCHMENT_REBALANCING"
         ]
       }
     },
@@ -131,15 +131,15 @@
         "properties": {
           "id": {
             "enum": [
-              "TOOL_LIBRARY_MAKER_WORKSHOP",
-              "SHARED_LAUNDRY",
+              "COMMUNITY_HALL",
+              "COMMUNITY_KITCHEN",
+              "COWORKING_LIBRARY_STUDY",
+              "WORKSHOP_TOOL_LIBRARY_REPAIR",
               "GUEST_SUITES",
-              "GREENHOUSE_FOOD_GARDEN",
+              "SHARED_LAUNDRY",
+              "GREENHOUSE_NURSERY_FOOD_GROWING",
               "POOL_WELLNESS",
-              "COMMUNITY_KITCHEN_DINING",
-              "LIBRARY_STUDY_COWORKING",
-              "CHILDCARE_LEARNING",
-              "SPORTS_PARK_PUBLIC_REALM",
+              "GYM_RECREATION",
               "NON_ESSENTIAL_AMENITY_PLANT"
             ]
           },
@@ -227,16 +227,16 @@
           },
           "scenario": {
             "enum": [
-              "ORDINARY_DEMAND",
-              "PEAK_SIMULTANEOUS_DEMAND",
-              "SEASONAL_OR_EVENT_SURGE",
-              "GRID_OR_WATER_INTERRUPTION",
-              "STAFFING_OR_OPERATOR_OUTAGE",
-              "MAJOR_REPAIR_AND_PARTS_DELAY",
-              "OPERATING_COST_INFLATION_AND_RESERVE_SHORTFALL",
-              "ACCESS_ROUTE_DISRUPTION_OR_LIFT_OUTAGE",
-              "HOUSEHOLD_COMPOSITION_AND_DEMAND_CHANGE",
-              "GOVERNANCE_CONFLICT_OR_OPERATOR_CAPTURE_ATTEMPT"
+              "COMPACT_HIGH_DENSITY",
+              "LOW_DENSITY_DISPERSED",
+              "MIXED_USE_TRANSIT_ADJACENT",
+              "SITE_EDGE_LONG_WALK",
+              "ACCESSIBLE_ROUTE_DISCONTINUITY",
+              "UNEQUAL_POPULATION_DISTRIBUTION",
+              "PHASED_OCCUPANCY_GROWTH",
+              "LAND_SCARCITY_COMPETING_USE",
+              "EXTERNAL_PROVIDER_DISTANCE_OR_CLOSURE",
+              "MULTI_NODE_CATCHMENT_REBALANCING"
             ]
           },
           "definition_state": {
@@ -335,7 +335,7 @@
     },
     "reference_sources": {
       "type": "array",
-      "minItems": 32,
+      "minItems": 34,
       "items": {
         "type": "object",
         "additionalProperties": false,
@@ -417,7 +417,9 @@
           "amenity_id",
           "output_unit",
           "acceptance_definition",
-          "comparison_policy"
+          "comparison_policy",
+          "owner_contract_reference",
+          "owner_alignment_state"
         ],
         "properties": {
           "id": {
@@ -426,15 +428,15 @@
           },
           "amenity_id": {
             "enum": [
-              "TOOL_LIBRARY_MAKER_WORKSHOP",
-              "SHARED_LAUNDRY",
+              "COMMUNITY_HALL",
+              "COMMUNITY_KITCHEN",
+              "COWORKING_LIBRARY_STUDY",
+              "WORKSHOP_TOOL_LIBRARY_REPAIR",
               "GUEST_SUITES",
-              "GREENHOUSE_FOOD_GARDEN",
+              "SHARED_LAUNDRY",
+              "GREENHOUSE_NURSERY_FOOD_GROWING",
               "POOL_WELLNESS",
-              "COMMUNITY_KITCHEN_DINING",
-              "LIBRARY_STUDY_COWORKING",
-              "CHILDCARE_LEARNING",
-              "SPORTS_PARK_PUBLIC_REALM"
+              "GYM_RECREATION"
             ]
           },
           "output_unit": {
@@ -447,6 +449,12 @@
           },
           "comparison_policy": {
             "const": "WITHIN_FUNCTIONAL_UNIT_ONLY"
+          },
+          "owner_contract_reference": {
+            "const": "https://github.com/Luminous-Dynamics/mycelix/issues/6328"
+          },
+          "owner_alignment_state": {
+            "const": "CANDIDATE_NOT_OWNER_APPROVED"
           }
         }
       }
@@ -463,7 +471,7 @@
       ],
       "properties": {
         "included_scope": {
-          "const": "DAILY_USE_AND_PRODUCTIVE_AMENITIES_NOT_ESSENTIAL_RESILIENCE_SERVICES"
+          "const": "SPATIAL_PROVISIONING_COMPARISON_CONSUMES_CANONICAL_AMENITY_SERVICE_AND_HOUSEHOLD_AFFORDABILITY"
         },
         "included_service_classes": {
           "type": "array",
@@ -499,12 +507,12 @@
           }
         },
         "composition_rule": {
-          "const": "CONSUME_OWNER_NATIVE_RECEIPTS_READ_ONLY_NO_DUPLICATE_ENGINE_LEDGER_OR_AUTHORITY"
+          "const": "SOL_ATLAS_OWNS_SPATIAL_PROVISIONING_COMPARISON_MYCELIX_OWNS_CANONICAL_AMENITY_ASSET_SERVICE_AND_FINANCE_OWNER_OUTPUTS_READ_ONLY"
         },
         "owner_native_dependencies": {
           "type": "array",
-          "minItems": 11,
-          "maxItems": 11,
+          "minItems": 14,
+          "maxItems": 14,
           "items": {
             "type": "object",
             "additionalProperties": false,
