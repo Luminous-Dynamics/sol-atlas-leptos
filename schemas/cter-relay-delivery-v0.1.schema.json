@@ -8,7 +8,8 @@
   "required": [
     "event",
     "assessment",
-    "context"
+    "context",
+    "payload"
   ],
   "properties": {
     "event": {
@@ -165,6 +166,31 @@
             "culturally_protected"
           ],
           "description": "Detached policy annotation; not an authorization credential"
+        }
+      }
+    },
+    "payload": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "blob_ref",
+        "media_type",
+        "blob_sha256"
+      ],
+      "properties": {
+        "blob_ref": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Reference to the exact serialized Mycelix SignedScientificEvent bytes in the relay's local content store."
+        },
+        "media_type": {
+          "type": "string",
+          "const": "application/vnd.mycelix.signed-scientific-event+json"
+        },
+        "blob_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$",
+          "description": "SHA-256 over the exact serialized payload bytes; separate from event.event_hash (Mycelix BLAKE3)."
         }
       }
     }

@@ -103,7 +103,7 @@ The v0.1 Rust reference model does not implement BPv7, BPSec, cryptography, key 
 
 ## 4. Relay benchmark adapter fields
 
-The benchmark adapter reads these canonical event fields from Mycelix. Verifier reports and policy annotations are carried separately from the signed envelope:
+The benchmark adapter reads these canonical event fields from Mycelix. Each delivery must also carry/reference the full serialized SignedScientificEvent bytes under payload.blob_ref and bind their exact bytes with payload.blob_sha256 (SHA-256). This raw-blob digest is not the event identity. Verifier reports and policy annotations are carried separately from the signed envelope:
 
 | Field | Meaning |
 |---|---|
@@ -112,6 +112,7 @@ The benchmark adapter reads these canonical event fields from Mycelix. Verifier 
 | `sequence` | Sequence within the claim stream |
 | `previous_hash` | BLAKE3 hash of the prior signed event; absent only for genesis |
 | `event_hash` | BLAKE3 hash of the signed canonical event, supplied by the independent Mycelix verifier |
+| `payload.blob_ref` + `payload.blob_sha256` | Exact serialized signed-event bytes to carry/restore plus SHA-256 over those bytes; not interchangeable with BLAKE3 event identity |
 | `assessment` (detached) | Verifier ID, pinned policy ID, assessment time, key-status snapshot and event-time basis; multiple assessments can coexist |
 | `context` (detached) | Projection key and access-policy class; disagreements block projection/disclosure until reviewed |
 | `actor` | Canonical event actor identity |
@@ -167,7 +168,11 @@ The reference model's `accepted_events` means only structurally eligible for evi
 
 ## 7. Benchmark programme
 
-### TIB-RELAY-A — convergence correctness and detached assessment integrity
+### TIB-RELAY-A — convergence correctness, signed-payload custody and detached assessment integrity
+- Missing signed-envelope payload reference is rejected.
+- Payload blob missing/invalid SHA-256 is rejected.
+- Distinct local blob references to the same event do not create event equivocation when BLAKE3 event identity and payload bytes independently verify.
+
 - Same signed event delivered with verified then unavailable assessment.
 - Same event marked verified using only signer-claimed occurred_at remains pending.
 - Same key marked revoked without trusted event-time evidence remains pending rather than being treated as a historical revocation conclusion.

@@ -70,6 +70,13 @@ fn parse_delivery(value: &Value) -> Option<ParsedEvent> {
     let event = value.get("event")?;
     let assessment = value.get("assessment")?;
     let context = value.get("context")?;
+    let payload = value.get("payload")?;
+    let _blob_ref = nonempty_string(payload, "blob_ref")?;
+    let _blob_media_type = nonempty_string(payload, "media_type")?;
+    let blob_sha256 = nonempty_string(payload, "blob_sha256")?;
+    if !is_lower_hex_digest(&blob_sha256) {
+        return None;
+    }
 
     let id = nonempty_string(event, "event_id")?;
     let stream_id = nonempty_string(event, "stream_id")?;

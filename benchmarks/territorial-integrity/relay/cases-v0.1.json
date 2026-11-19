@@ -1,7 +1,7 @@
 {
   "schema": "luminous.cter.relay-cases.v0",
   "suite_id": "CTER-RELAY-CONVERGENCE-001",
-  "suite_version": "0.1.4",
+  "suite_version": "0.1.5",
   "synthetic_only": true,
   "cases": [
     {
@@ -29,6 +29,11 @@
           "context": {
             "projection_key": "claim:x",
             "access_class": "restricted"
+          },
+          "payload": {
+            "blob_ref": "cas://synthetic/replay-001/e1",
+            "media_type": "application/vnd.mycelix.signed-scientific-event+json",
+            "blob_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
           }
         },
         {
@@ -52,6 +57,11 @@
           "context": {
             "projection_key": "claim:x",
             "access_class": "restricted"
+          },
+          "payload": {
+            "blob_ref": "cas://synthetic/replay-001/e1",
+            "media_type": "application/vnd.mycelix.signed-scientific-event+json",
+            "blob_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
           }
         }
       ],
@@ -100,6 +110,11 @@
           "context": {
             "projection_key": "claim:x",
             "access_class": "restricted"
+          },
+          "payload": {
+            "blob_ref": "cas://synthetic/equivocation-001/e1",
+            "media_type": "application/vnd.mycelix.signed-scientific-event+json",
+            "blob_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
           }
         },
         {
@@ -123,6 +138,11 @@
           "context": {
             "projection_key": "claim:x",
             "access_class": "restricted"
+          },
+          "payload": {
+            "blob_ref": "cas://synthetic/equivocation-001/e1",
+            "media_type": "application/vnd.mycelix.signed-scientific-event+json",
+            "blob_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
           }
         }
       ],
@@ -171,6 +191,11 @@
           "context": {
             "projection_key": "claim:x",
             "access_class": "restricted"
+          },
+          "payload": {
+            "blob_ref": "cas://synthetic/parent-gap-001/e2",
+            "media_type": "application/vnd.mycelix.signed-scientific-event+json",
+            "blob_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
           }
         }
       ],
@@ -219,6 +244,11 @@
           "context": {
             "projection_key": "claim:x",
             "access_class": "restricted"
+          },
+          "payload": {
+            "blob_ref": "cas://synthetic/reorder-001/e2",
+            "media_type": "application/vnd.mycelix.signed-scientific-event+json",
+            "blob_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
           }
         },
         {
@@ -242,6 +272,11 @@
           "context": {
             "projection_key": "claim:x",
             "access_class": "restricted"
+          },
+          "payload": {
+            "blob_ref": "cas://synthetic/reorder-001/e1",
+            "media_type": "application/vnd.mycelix.signed-scientific-event+json",
+            "blob_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
           }
         }
       ],
@@ -291,6 +326,11 @@
           "context": {
             "projection_key": "claim:x",
             "access_class": "restricted"
+          },
+          "payload": {
+            "blob_ref": "cas://synthetic/signature-invalid-001/e1",
+            "media_type": "application/vnd.mycelix.signed-scientific-event+json",
+            "blob_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
           }
         }
       ],
@@ -339,6 +379,11 @@
           "context": {
             "projection_key": "claim:x",
             "access_class": "restricted"
+          },
+          "payload": {
+            "blob_ref": "cas://synthetic/verifier-unavailable-001/e1",
+            "media_type": "application/vnd.mycelix.signed-scientific-event+json",
+            "blob_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
           }
         }
       ],
@@ -387,6 +432,11 @@
           "context": {
             "projection_key": "claim:x",
             "access_class": "restricted"
+          },
+          "payload": {
+            "blob_ref": "cas://synthetic/key-revoked-001/e1",
+            "media_type": "application/vnd.mycelix.signed-scientific-event+json",
+            "blob_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
           }
         }
       ],
@@ -435,6 +485,11 @@
           "context": {
             "projection_key": "claim:x",
             "access_class": "restricted"
+          },
+          "payload": {
+            "blob_ref": "cas://synthetic/stream-fork-001/e0",
+            "media_type": "application/vnd.mycelix.signed-scientific-event+json",
+            "blob_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
           }
         },
         {
@@ -458,6 +513,11 @@
           "context": {
             "projection_key": "claim:x",
             "access_class": "restricted"
+          },
+          "payload": {
+            "blob_ref": "cas://synthetic/stream-fork-001/e1",
+            "media_type": "application/vnd.mycelix.signed-scientific-event+json",
+            "blob_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
           }
         },
         {
@@ -481,6 +541,11 @@
           "context": {
             "projection_key": "claim:x",
             "access_class": "restricted"
+          },
+          "payload": {
+            "blob_ref": "cas://synthetic/stream-fork-001/e2",
+            "media_type": "application/vnd.mycelix.signed-scientific-event+json",
+            "blob_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
           }
         }
       ],
@@ -532,6 +597,11 @@
           "context": {
             "projection_key": "claim:x",
             "access_class": "restricted"
+          },
+          "payload": {
+            "blob_ref": "cas://synthetic/concurrent-conflict-001/e1",
+            "media_type": "application/vnd.mycelix.signed-scientific-event+json",
+            "blob_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
           }
         },
         {
@@ -555,6 +625,11 @@
           "context": {
             "projection_key": "claim:x",
             "access_class": "restricted"
+          },
+          "payload": {
+            "blob_ref": "cas://synthetic/concurrent-conflict-001/e2",
+            "media_type": "application/vnd.mycelix.signed-scientific-event+json",
+            "blob_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
           }
         }
       ],
@@ -609,6 +684,11 @@
           "context": {
             "projection_key": "claim:x",
             "access_class": "restricted"
+          },
+          "payload": {
+            "blob_ref": "cas://synthetic/causal-correction-001/e1",
+            "media_type": "application/vnd.mycelix.signed-scientific-event+json",
+            "blob_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
           }
         },
         {
@@ -632,6 +712,11 @@
           "context": {
             "projection_key": "claim:x",
             "access_class": "restricted"
+          },
+          "payload": {
+            "blob_ref": "cas://synthetic/causal-correction-001/e2",
+            "media_type": "application/vnd.mycelix.signed-scientific-event+json",
+            "blob_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
           }
         }
       ],
@@ -681,6 +766,11 @@
           "context": {
             "projection_key": "claim:x",
             "access_class": "restricted"
+          },
+          "payload": {
+            "blob_ref": "cas://synthetic/blocked-parent-001/e1",
+            "media_type": "application/vnd.mycelix.signed-scientific-event+json",
+            "blob_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
           }
         },
         {
@@ -704,6 +794,11 @@
           "context": {
             "projection_key": "claim:x",
             "access_class": "restricted"
+          },
+          "payload": {
+            "blob_ref": "cas://synthetic/blocked-parent-001/e2",
+            "media_type": "application/vnd.mycelix.signed-scientific-event+json",
+            "blob_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
           }
         }
       ],
@@ -754,6 +849,11 @@
           "context": {
             "projection_key": "claim:x",
             "access_class": "restricted"
+          },
+          "payload": {
+            "blob_ref": "cas://synthetic/wrong-stream-parent-001/e1",
+            "media_type": "application/vnd.mycelix.signed-scientific-event+json",
+            "blob_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
           }
         },
         {
@@ -777,6 +877,11 @@
           "context": {
             "projection_key": "claim:x",
             "access_class": "restricted"
+          },
+          "payload": {
+            "blob_ref": "cas://synthetic/wrong-stream-parent-001/e2",
+            "media_type": "application/vnd.mycelix.signed-scientific-event+json",
+            "blob_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
           }
         }
       ],
@@ -827,6 +932,11 @@
           "context": {
             "projection_key": "claim:x",
             "access_class": "restricted"
+          },
+          "payload": {
+            "blob_ref": "cas://synthetic/malformed-digest-001/e1",
+            "media_type": "application/vnd.mycelix.signed-scientific-event+json",
+            "blob_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
           }
         }
       ],
@@ -875,6 +985,11 @@
           "context": {
             "projection_key": "claim:x",
             "access_class": "restricted"
+          },
+          "payload": {
+            "blob_ref": "cas://synthetic/malformed-genesis-001/e1",
+            "media_type": "application/vnd.mycelix.signed-scientific-event+json",
+            "blob_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
           }
         }
       ],
@@ -923,6 +1038,11 @@
           "context": {
             "projection_key": "claim:x",
             "access_class": "restricted"
+          },
+          "payload": {
+            "blob_ref": "cas://synthetic/hash-collision-001/e1",
+            "media_type": "application/vnd.mycelix.signed-scientific-event+json",
+            "blob_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
           }
         },
         {
@@ -946,6 +1066,11 @@
           "context": {
             "projection_key": "claim:x",
             "access_class": "restricted"
+          },
+          "payload": {
+            "blob_ref": "cas://synthetic/hash-collision-001/e2",
+            "media_type": "application/vnd.mycelix.signed-scientific-event+json",
+            "blob_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
           }
         }
       ],
@@ -995,6 +1120,11 @@
           "context": {
             "projection_key": "claim:x",
             "access_class": "restricted"
+          },
+          "payload": {
+            "blob_ref": "cas://synthetic/unrelated-projections-001/e1",
+            "media_type": "application/vnd.mycelix.signed-scientific-event+json",
+            "blob_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
           }
         },
         {
@@ -1018,6 +1148,11 @@
           "context": {
             "projection_key": "claim:y",
             "access_class": "restricted"
+          },
+          "payload": {
+            "blob_ref": "cas://synthetic/unrelated-projections-001/e2",
+            "media_type": "application/vnd.mycelix.signed-scientific-event+json",
+            "blob_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
           }
         }
       ],
@@ -1067,6 +1202,11 @@
           "context": {
             "projection_key": "claim:x",
             "access_class": "restricted"
+          },
+          "payload": {
+            "blob_ref": "cas://synthetic/unavailable-stream-slot-001/e1",
+            "media_type": "application/vnd.mycelix.signed-scientific-event+json",
+            "blob_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
           }
         },
         {
@@ -1090,6 +1230,11 @@
           "context": {
             "projection_key": "claim:x",
             "access_class": "restricted"
+          },
+          "payload": {
+            "blob_ref": "cas://synthetic/unavailable-stream-slot-001/e2",
+            "media_type": "application/vnd.mycelix.signed-scientific-event+json",
+            "blob_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
           }
         }
       ],
@@ -1141,6 +1286,11 @@
           "context": {
             "projection_key": "claim:x",
             "access_class": "restricted"
+          },
+          "payload": {
+            "blob_ref": "cas://synthetic/invalid-signature-not-a-fork-001/e1",
+            "media_type": "application/vnd.mycelix.signed-scientific-event+json",
+            "blob_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
           }
         },
         {
@@ -1164,6 +1314,11 @@
           "context": {
             "projection_key": "claim:x",
             "access_class": "restricted"
+          },
+          "payload": {
+            "blob_ref": "cas://synthetic/invalid-signature-not-a-fork-001/e2",
+            "media_type": "application/vnd.mycelix.signed-scientific-event+json",
+            "blob_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
           }
         }
       ],
@@ -1214,6 +1369,11 @@
           "context": {
             "projection_key": "claim:x",
             "access_class": "restricted"
+          },
+          "payload": {
+            "blob_ref": "cas://synthetic/revoked-stream-slot-001/e1",
+            "media_type": "application/vnd.mycelix.signed-scientific-event+json",
+            "blob_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
           }
         },
         {
@@ -1237,6 +1397,11 @@
           "context": {
             "projection_key": "claim:x",
             "access_class": "restricted"
+          },
+          "payload": {
+            "blob_ref": "cas://synthetic/revoked-stream-slot-001/e2",
+            "media_type": "application/vnd.mycelix.signed-scientific-event+json",
+            "blob_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
           }
         }
       ],
@@ -1288,6 +1453,11 @@
           "context": {
             "projection_key": "claim:x",
             "access_class": "restricted"
+          },
+          "payload": {
+            "blob_ref": "cas://synthetic/assessment-status-change-001/e1",
+            "media_type": "application/vnd.mycelix.signed-scientific-event+json",
+            "blob_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
           }
         },
         {
@@ -1311,6 +1481,11 @@
           "context": {
             "projection_key": "claim:x",
             "access_class": "restricted"
+          },
+          "payload": {
+            "blob_ref": "cas://synthetic/assessment-status-change-001/e1",
+            "media_type": "application/vnd.mycelix.signed-scientific-event+json",
+            "blob_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
           }
         }
       ],
@@ -1359,6 +1534,11 @@
           "context": {
             "projection_key": "claim:x",
             "access_class": "restricted"
+          },
+          "payload": {
+            "blob_ref": "cas://synthetic/assessment-policy-divergence-001/e1",
+            "media_type": "application/vnd.mycelix.signed-scientific-event+json",
+            "blob_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
           }
         },
         {
@@ -1382,6 +1562,11 @@
           "context": {
             "projection_key": "claim:x",
             "access_class": "restricted"
+          },
+          "payload": {
+            "blob_ref": "cas://synthetic/assessment-policy-divergence-001/e1",
+            "media_type": "application/vnd.mycelix.signed-scientific-event+json",
+            "blob_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
           }
         }
       ],
@@ -1430,6 +1615,11 @@
           "context": {
             "projection_key": "claim:x",
             "access_class": "restricted"
+          },
+          "payload": {
+            "blob_ref": "cas://synthetic/assessment-independent-agreement-001/e1",
+            "media_type": "application/vnd.mycelix.signed-scientific-event+json",
+            "blob_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
           }
         },
         {
@@ -1453,6 +1643,11 @@
           "context": {
             "projection_key": "claim:x",
             "access_class": "restricted"
+          },
+          "payload": {
+            "blob_ref": "cas://synthetic/assessment-independent-agreement-001/e1",
+            "media_type": "application/vnd.mycelix.signed-scientific-event+json",
+            "blob_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
           }
         }
       ],
@@ -1501,6 +1696,11 @@
           "context": {
             "projection_key": "claim:x",
             "access_class": "restricted"
+          },
+          "payload": {
+            "blob_ref": "cas://synthetic/context-downgrade-001/e1",
+            "media_type": "application/vnd.mycelix.signed-scientific-event+json",
+            "blob_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
           }
         },
         {
@@ -1524,6 +1724,11 @@
           "context": {
             "projection_key": "claim:x",
             "access_class": "public"
+          },
+          "payload": {
+            "blob_ref": "cas://synthetic/context-downgrade-001/e1",
+            "media_type": "application/vnd.mycelix.signed-scientific-event+json",
+            "blob_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
           }
         }
       ],
@@ -1574,6 +1779,11 @@
           "context": {
             "projection_key": "claim:x",
             "access_class": "restricted"
+          },
+          "payload": {
+            "blob_ref": "cas://synthetic/event-payload-equivocation-001/e1",
+            "media_type": "application/vnd.mycelix.signed-scientific-event+json",
+            "blob_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
           }
         },
         {
@@ -1597,6 +1807,11 @@
           "context": {
             "projection_key": "claim:x",
             "access_class": "restricted"
+          },
+          "payload": {
+            "blob_ref": "cas://synthetic/event-payload-equivocation-001/e1",
+            "media_type": "application/vnd.mycelix.signed-scientific-event+json",
+            "blob_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
           }
         }
       ],
@@ -1645,6 +1860,11 @@
           "context": {
             "projection_key": "claim:time",
             "access_class": "restricted"
+          },
+          "payload": {
+            "blob_ref": "cas://synthetic/untrusted-event-time-001/e-time-1",
+            "media_type": "application/vnd.mycelix.signed-scientific-event+json",
+            "blob_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
           }
         }
       ],
@@ -1693,6 +1913,11 @@
           "context": {
             "projection_key": "claim:time",
             "access_class": "restricted"
+          },
+          "payload": {
+            "blob_ref": "cas://synthetic/untrusted-revocation-time-001/e-time-2",
+            "media_type": "application/vnd.mycelix.signed-scientific-event+json",
+            "blob_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
           }
         }
       ],
@@ -1706,6 +1931,107 @@
         ],
         "verification_conflict_event_ids": [],
         "malformed_events": [],
+        "missing_parent_events": [],
+        "blocked_parent_events": [],
+        "equivocation_event_ids": [],
+        "sequence_fork_event_ids": [],
+        "sequence_conflict_pending_event_ids": [],
+        "hash_collision_event_ids": [],
+        "context_conflict_event_ids": [],
+        "conflict_pairs": []
+      }
+    },
+    {
+      "case_id": "MISSING-SIGNED-PAYLOAD-001",
+      "title": "Event index without the signed Mycelix envelope payload is not a deliverable relay record",
+      "deliveries": [
+        {
+          "event": {
+            "event_id": "e-no-payload",
+            "stream_id": "stream-a",
+            "sequence": 0,
+            "previous_hash": null,
+            "event_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "actor": "actor-a"
+          },
+          "assessment": {
+            "assessment_id": "assessment-no-payload",
+            "verifier_id": "verifier-a",
+            "policy_id": "tib-key-policy-v0",
+            "assessed_at": "2026-11-19T16:00:00Z",
+            "key_status_snapshot_ref": "urn:tib:key-status:snapshot:1",
+            "event_time_basis": "external_trusted_timestamp",
+            "status": "verified"
+          },
+          "context": {
+            "projection_key": "claim:no-payload",
+            "access_class": "restricted"
+          }
+        }
+      ],
+      "expected": {
+        "accepted_events": [],
+        "duplicate_replays": 0,
+        "invalid_signatures": [],
+        "revoked_keys": [],
+        "verification_pending": [],
+        "verification_conflict_event_ids": [],
+        "malformed_events": [
+          "e-no-payload"
+        ],
+        "missing_parent_events": [],
+        "blocked_parent_events": [],
+        "equivocation_event_ids": [],
+        "sequence_fork_event_ids": [],
+        "sequence_conflict_pending_event_ids": [],
+        "hash_collision_event_ids": [],
+        "context_conflict_event_ids": [],
+        "conflict_pairs": []
+      }
+    },
+    {
+      "case_id": "MALFORMED-PAYLOAD-DIGEST-001",
+      "title": "Raw signed-envelope blob lacks an explicit SHA-256 digest",
+      "deliveries": [
+        {
+          "event": {
+            "event_id": "e-bad-payload",
+            "stream_id": "stream-a",
+            "sequence": 0,
+            "previous_hash": null,
+            "event_hash": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "actor": "actor-a"
+          },
+          "assessment": {
+            "assessment_id": "assessment-bad-payload",
+            "verifier_id": "verifier-a",
+            "policy_id": "tib-key-policy-v0",
+            "assessed_at": "2026-11-19T16:00:00Z",
+            "key_status_snapshot_ref": "urn:tib:key-status:snapshot:1",
+            "event_time_basis": "external_trusted_timestamp",
+            "status": "verified"
+          },
+          "context": {
+            "projection_key": "claim:bad-payload",
+            "access_class": "restricted"
+          },
+          "payload": {
+            "blob_ref": "cas://synthetic/bad",
+            "media_type": "application/vnd.mycelix.signed-scientific-event+json",
+            "blob_sha256": "not-a-hash"
+          }
+        }
+      ],
+      "expected": {
+        "accepted_events": [],
+        "duplicate_replays": 0,
+        "invalid_signatures": [],
+        "revoked_keys": [],
+        "verification_pending": [],
+        "verification_conflict_event_ids": [],
+        "malformed_events": [
+          "e-bad-payload"
+        ],
         "missing_parent_events": [],
         "blocked_parent_events": [],
         "equivocation_event_ids": [],
