@@ -1171,5 +1171,185 @@
         "responsibility": "binds population/service/geography/time/scenario/functional-unit and owner-native source revisions to one comparable evaluation scope; owner payloads remain opaque unless independently fetched"
       }
     ]
-  }
+  },
+  "scenario_definitions": [
+    {
+      "scenario_id": "COMPACT_HIGH_DENSITY",
+      "scenario_class": "DENSITY_AND_CAPACITY",
+      "spatial_condition": "A compact population frame with short network distances, high potential concurrency and a constrained land footprint.",
+      "primary_stressors": [
+        "peak simultaneous demand",
+        "shared-node congestion",
+        "land opportunity cost"
+      ],
+      "required_owner_outputs": [
+        "CITY_SCOPE_BINDING",
+        "CITY_MORPH_EFFECTIVE_ACCESS",
+        "MYCELIX_HOUSING_AMENITY_COMMONS",
+        "SYMTROPY_CITYKIT_CAPACITY",
+        "WHOLE_HOUSEHOLD_COST_OF_PLACE"
+      ],
+      "probability_model_state": "NOT_ASSIGNED",
+      "input_state": "SYNTHETIC_SPECIFICATION_ONLY"
+    },
+    {
+      "scenario_id": "LOW_DENSITY_DISPERSED",
+      "scenario_class": "DENSITY_AND_DISTANCE",
+      "spatial_condition": "A dispersed population frame with longer network distances and lower likely utilization per facility node.",
+      "primary_stressors": [
+        "long walking/cycling access",
+        "low utilization",
+        "private duplication burden"
+      ],
+      "required_owner_outputs": [
+        "CITY_SCOPE_BINDING",
+        "CITY_MORPH_EFFECTIVE_ACCESS",
+        "MYCELIX_HOUSING_AMENITY_COMMONS",
+        "WHOLE_HOUSEHOLD_COST_OF_PLACE"
+      ],
+      "probability_model_state": "NOT_ASSIGNED",
+      "input_state": "SYNTHETIC_SPECIFICATION_ONLY"
+    },
+    {
+      "scenario_id": "MIXED_USE_TRANSIT_ADJACENT",
+      "scenario_class": "MIXED_USE_AND_TRANSIT",
+      "spatial_condition": "Amenity nodes are embedded near mixed-use destinations and public-transport corridors, with time-dependent multimodal access.",
+      "primary_stressors": [
+        "transit timetable availability",
+        "first/last-mile access",
+        "service-window mismatch"
+      ],
+      "required_owner_outputs": [
+        "CITY_SCOPE_BINDING",
+        "CITY_MORPH_EFFECTIVE_ACCESS",
+        "MYCELIX_HOUSING_AMENITY_COMMONS",
+        "WHOLE_HOUSEHOLD_COST_OF_PLACE"
+      ],
+      "probability_model_state": "NOT_ASSIGNED",
+      "input_state": "SYNTHETIC_SPECIFICATION_ONLY"
+    },
+    {
+      "scenario_id": "SITE_EDGE_LONG_WALK",
+      "scenario_class": "SITE_EDGE_AND_ROUTE_IMPEDANCE",
+      "spatial_condition": "Residents at the edge of a site or neighborhood have a longer network route to a centrally placed amenity than residents near the center.",
+      "primary_stressors": [
+        "route length asymmetry",
+        "crossings and severance",
+        "unequal travel-time burden"
+      ],
+      "required_owner_outputs": [
+        "CITY_SCOPE_BINDING",
+        "CITY_MORPH_EFFECTIVE_ACCESS",
+        "MYCELIX_HOUSING_AMENITY_COMMONS"
+      ],
+      "probability_model_state": "NOT_ASSIGNED",
+      "input_state": "SYNTHETIC_SPECIFICATION_ONLY"
+    },
+    {
+      "scenario_id": "ACCESSIBLE_ROUTE_DISCONTINUITY",
+      "scenario_class": "UNIVERSAL_ACCESS",
+      "spatial_condition": "A destination is geometrically close but the route has a missing, closed, unknown or non-step-free segment for a declared resident requirement.",
+      "primary_stressors": [
+        "step-free route continuity",
+        "unknown edge state",
+        "barrier-sensitive reachability"
+      ],
+      "required_owner_outputs": [
+        "CITY_SCOPE_BINDING",
+        "CITY_MORPH_EFFECTIVE_ACCESS",
+        "MYCELIX_HOUSING_AMENITY_COMMONS"
+      ],
+      "probability_model_state": "NOT_ASSIGNED",
+      "input_state": "SYNTHETIC_SPECIFICATION_ONLY"
+    },
+    {
+      "scenario_id": "UNEQUAL_POPULATION_DISTRIBUTION",
+      "scenario_class": "POPULATION_DISTRIBUTION",
+      "spatial_condition": "Resident tasks and population are unevenly distributed inside the same nominal catchment or radius.",
+      "primary_stressors": [
+        "within-neighborhood distribution",
+        "population-frame uncertainty",
+        "small-cell privacy"
+      ],
+      "required_owner_outputs": [
+        "CITY_SCOPE_BINDING",
+        "CITY_MORPH_EFFECTIVE_ACCESS",
+        "MYCELIX_HOUSING_AMENITY_COMMONS"
+      ],
+      "probability_model_state": "NOT_ASSIGNED",
+      "input_state": "SYNTHETIC_SPECIFICATION_ONLY"
+    },
+    {
+      "scenario_id": "PHASED_OCCUPANCY_GROWTH",
+      "scenario_class": "TEMPORAL_PHASING",
+      "spatial_condition": "Housing and amenity nodes enter service in phases; residents may occupy early phases before promised facilities are available.",
+      "primary_stressors": [
+        "occupancy-stage mismatch",
+        "service commissioning delay",
+        "temporary access gap"
+      ],
+      "required_owner_outputs": [
+        "CITY_SCOPE_BINDING",
+        "CITY_MORPH_EFFECTIVE_ACCESS",
+        "MYCELIX_HOUSING_AMENITY_COMMONS",
+        "WHOLE_HOUSEHOLD_COST_OF_PLACE"
+      ],
+      "probability_model_state": "NOT_ASSIGNED",
+      "input_state": "SYNTHETIC_SPECIFICATION_ONLY"
+    },
+    {
+      "scenario_id": "LAND_SCARCITY_COMPETING_USE",
+      "scenario_class": "LAND_OPPORTUNITY",
+      "spatial_condition": "Amenity nodes compete with housing, public realm, production, ecology and transport uses for finite developable land.",
+      "primary_stressors": [
+        "land opportunity cost",
+        "mandatory public-space/access floor",
+        "productive/ecological constraints"
+      ],
+      "required_owner_outputs": [
+        "CITY_SCOPE_BINDING",
+        "MYCELIX_HOUSING_AMENITY_COMMONS",
+        "WHOLE_HOUSEHOLD_COST_OF_PLACE"
+      ],
+      "probability_model_state": "NOT_ASSIGNED",
+      "input_state": "SYNTHETIC_SPECIFICATION_ONLY"
+    },
+    {
+      "scenario_id": "EXTERNAL_PROVIDER_DISTANCE_OR_CLOSURE",
+      "scenario_class": "PROVIDER_AVAILABILITY",
+      "spatial_condition": "An external commercial provider may be distant, too expensive, ineligible, temporally unavailable or may close during the comparison horizon.",
+      "primary_stressors": [
+        "provider availability and currentness",
+        "price/eligibility uncertainty",
+        "provider-loss fallback"
+      ],
+      "required_owner_outputs": [
+        "CITY_SCOPE_BINDING",
+        "CITY_MORPH_EFFECTIVE_ACCESS",
+        "MYCELIX_HOUSING_AMENITY_COMMONS",
+        "WHOLE_HOUSEHOLD_COST_OF_PLACE"
+      ],
+      "probability_model_state": "NOT_ASSIGNED",
+      "input_state": "SYNTHETIC_SPECIFICATION_ONLY"
+    },
+    {
+      "scenario_id": "MULTI_NODE_CATCHMENT_REBALANCING",
+      "scenario_class": "NETWORK_RECONFIGURATION",
+      "spatial_condition": "Multiple amenity nodes have overlapping catchments; the loss, relocation or phase change of one node requires residents to use alternative nodes.",
+      "primary_stressors": [
+        "catchment reassignment",
+        "common-cause dependency",
+        "substitute-path availability",
+        "reconfiguration effort"
+      ],
+      "required_owner_outputs": [
+        "CITY_SCOPE_BINDING",
+        "CITY_MORPH_EFFECTIVE_ACCESS",
+        "MYCELIX_HOUSING_AMENITY_COMMONS",
+        "SYMTROPY_CITYKIT_CAPACITY"
+      ],
+      "probability_model_state": "NOT_ASSIGNED",
+      "input_state": "SYNTHETIC_SPECIFICATION_ONLY"
+    }
+  ]
 }
