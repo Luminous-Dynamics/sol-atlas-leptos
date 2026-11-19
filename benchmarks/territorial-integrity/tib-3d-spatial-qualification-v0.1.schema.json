@@ -1,0 +1,421 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://luminousdynamics.io/schemas/territorial-spatial-qualification-v0.schema.json",
+  "title": "Territorial Spatial Qualification Record v0",
+  "description": "Reference-only metadata for assessing 2D/3D feature evidence. It never establishes legal title, authoritative registration, survey authenticity, or geometry correctness.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "schema_uri",
+    "record_id",
+    "feature_reference",
+    "geometry_sha256",
+    "source_record_reference",
+    "source_record_sha256",
+    "captured_at",
+    "geometry_encoding",
+    "geometry_kind",
+    "dimension",
+    "spatial_scope",
+    "layer_kind",
+    "horizontal_reference",
+    "coordinate_operations",
+    "survey_evidence",
+    "topology_assessment",
+    "overlap_assessment",
+    "governing_instrument_reference",
+    "external_register_record_reference",
+    "claim_ceiling"
+  ],
+  "properties": {
+    "schema": {
+      "const": "luminous.territorial-spatial-qualification.v0"
+    },
+    "schema_uri": {
+      "const": "https://luminousdynamics.io/schemas/territorial-spatial-qualification-v0.schema.json"
+    },
+    "record_id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 256
+    },
+    "feature_reference": {
+      "type": "string",
+      "minLength": 1,
+      "format": "uri",
+      "maxLength": 2048
+    },
+    "geometry_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "source_record_reference": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 2048
+    },
+    "source_record_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "captured_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "geometry_encoding": {
+      "enum": [
+        "geo_json",
+        "json_fg",
+        "gml",
+        "ifc",
+        "other"
+      ]
+    },
+    "geometry_kind": {
+      "enum": [
+        "point",
+        "curve",
+        "polygon",
+        "multi_polygon",
+        "polyhedral_surface",
+        "prism",
+        "solid"
+      ]
+    },
+    "dimension": {
+      "enum": [
+        "two_d",
+        "three_d"
+      ]
+    },
+    "spatial_scope": {
+      "enum": [
+        "surface_only",
+        "subsurface_volume",
+        "mixed_surface_subsurface",
+        "municipal_development_envelope"
+      ]
+    },
+    "layer_kind": {
+      "enum": [
+        "external_registered_geometry_reference",
+        "municipal_regulatory_envelope",
+        "survey_evidence_only",
+        "physical_asset_model",
+        "indicative_digital_twin"
+      ]
+    },
+    "horizontal_reference": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "source_crs_uri",
+        "target_crs_uri",
+        "realization",
+        "axis_order",
+        "axis_order_profile_ref",
+        "coordinate_epoch"
+      ],
+      "properties": {
+        "source_crs_uri": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2048
+        },
+        "target_crs_uri": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2048
+        },
+        "realization": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 512
+        },
+        "axis_order": {
+          "enum": [
+            "xy",
+            "yx",
+            "lon_lat",
+            "lat_lon",
+            "east_north",
+            "north_east"
+          ]
+        },
+        "axis_order_profile_ref": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2048
+        },
+        "coordinate_epoch": {
+          "type": [
+            "number",
+            "null"
+          ]
+        }
+      }
+    },
+    "vertical_reference": {
+      "anyOf": [
+        {
+          "type": "null"
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "source_crs_uri",
+            "target_crs_uri",
+            "datum_name",
+            "realization",
+            "unit"
+          ],
+          "properties": {
+            "source_crs_uri": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 2048
+            },
+            "target_crs_uri": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 2048
+            },
+            "datum_name": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 512
+            },
+            "realization": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 512
+            },
+            "unit": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 64
+            }
+          }
+        }
+      ]
+    },
+    "coordinate_operations": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "source_crs_uri",
+          "target_crs_uri",
+          "operation_ref",
+          "operation_sha256",
+          "reported_accuracy_m"
+        ],
+        "properties": {
+          "source_crs_uri": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 2048
+          },
+          "target_crs_uri": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 2048
+          },
+          "operation_ref": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 2048
+          },
+          "operation_sha256": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          },
+          "reported_accuracy_m": {
+            "type": "number",
+            "minimum": 0
+          }
+        }
+      }
+    },
+    "survey_evidence": {
+      "anyOf": [
+        {
+          "type": "null"
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "source_reference",
+            "source_sha256",
+            "captured_at",
+            "survey_method",
+            "surveyor_reference",
+            "horizontal_uncertainty_m",
+            "vertical_uncertainty_m"
+          ],
+          "properties": {
+            "source_reference": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 2048
+            },
+            "source_sha256": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            },
+            "captured_at": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "survey_method": {
+              "enum": [
+                "lidar",
+                "gnss",
+                "total_station",
+                "photogrammetry",
+                "digital_elevation_model",
+                "as_built_survey",
+                "other"
+              ]
+            },
+            "surveyor_reference": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 2048
+            },
+            "horizontal_uncertainty_m": {
+              "type": "number",
+              "minimum": 0
+            },
+            "vertical_uncertainty_m": {
+              "type": [
+                "number",
+                "null"
+              ],
+              "minimum": 0
+            }
+          }
+        }
+      ]
+    },
+    "topology_assessment": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "state",
+        "validation_report_reference",
+        "validation_report_sha256",
+        "assessor_reference"
+      ],
+      "properties": {
+        "state": {
+          "enum": [
+            "not_assessed",
+            "validated_watertight",
+            "open_surface",
+            "non_manifold",
+            "self_intersecting",
+            "invalid"
+          ]
+        },
+        "validation_report_reference": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "minLength": 1,
+          "maxLength": 2048
+        },
+        "validation_report_sha256": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "assessor_reference": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "minLength": 1,
+          "maxLength": 2048
+        }
+      }
+    },
+    "overlap_assessment": {
+      "anyOf": [
+        {
+          "type": "null"
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "state",
+            "compared_feature_references",
+            "analysis_reference",
+            "analysis_sha256"
+          ],
+          "properties": {
+            "state": {
+              "enum": [
+                "not_assessed",
+                "disjoint",
+                "overlapping",
+                "ambiguous"
+              ]
+            },
+            "compared_feature_references": {
+              "type": "array",
+              "uniqueItems": true,
+              "items": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 2048
+              }
+            },
+            "analysis_reference": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "minLength": 1,
+              "maxLength": 2048
+            },
+            "analysis_sha256": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "pattern": "^[0-9a-f]{64}$"
+            }
+          }
+        }
+      ]
+    },
+    "governing_instrument_reference": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "minLength": 1,
+      "maxLength": 2048
+    },
+    "external_register_record_reference": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "minLength": 1,
+      "maxLength": 2048
+    },
+    "claim_ceiling": {
+      "const": "reference_only_no_legal_effect"
+    }
+  }
+}
