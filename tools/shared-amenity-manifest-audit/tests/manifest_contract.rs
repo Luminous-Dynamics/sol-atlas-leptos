@@ -214,3 +214,24 @@ fn duplicate_nested_scenario_keys_are_rejected_recursively() {
         .expect_err("duplicate nested scenario keys must fail closed");
     assert!(error.message.contains("duplicate object key"));
 }
+
+#[test]
+fn excluded_owner_cannot_be_relabelled() {
+    let mut value = fixture();
+    let boundary = value["scope_boundary"]["excluded_scopes"]
+        .as_array_mut()
+        .expect("excluded scopes");
+    let resilience = boundary
+        .iter_mut()
+        .find(|item| item["reference"] == "https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/737")
+        .expect("resilience owner");
+    resilience["owner"] = json!("Mycelix");
+    assert!(audit(&value).is_err());
+}
+
+#[test]
+fn empty_primary_stressor_list_is_rejected() {
+    let mut value = fixture();
+    value["scenario_definitions"][0]["primary_stressors"] = json!([]);
+    assert!(audit(&value).is_err());
+}
