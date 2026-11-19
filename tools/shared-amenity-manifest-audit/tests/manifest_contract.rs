@@ -18,6 +18,7 @@ fn frozen_manifest_has_complete_case_coverage() {
     let summary = audit_manifest_bytes(FIXTURE.as_bytes()).expect("manifest should pass");
     assert_eq!(summary.comparison_arm_count, 5);
     assert_eq!(summary.scenario_count, 10);
+    assert_eq!(summary.scenario_definition_count, 10);
     assert_eq!(summary.registered_case_count, 50);
     assert_eq!(summary.unique_case_pairs, 50);
     assert_eq!(summary.amenity_archetype_count, 10);
