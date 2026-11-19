@@ -327,7 +327,7 @@ A credible comparison must cover separate classes of tools and delivery systems.
 | ASCE 491-project modular study | Analyses 303 permanent and 188 relocatable modular projects; reports gross square metres/day and differences by sector and size. | Stratify by housing type, project size and permanency; report gross area/day but retain accepted assemblies and dwelling-service-year as the Luminous functional units. | Peer-reviewed project dataset |
 | South African NHBRC / Agrément | NHBRC publishes dynamic approved-IBT databases; Agrément certificates apply to specific systems and scopes. | Verify exact product, configuration, revision, certificate status, intended use, jurisdiction and site conditions. Treat directory presence as a search lead, not blanket approval. | National qualification pathway / registry |
 
-References:
+References (checked 19 November 2026):
 - Autodesk Forma AU 2026: https://blogs.autodesk.com/forma/2026/10/14/what-autodesk-forma-announced-au-2026/
 - Finch3D product: https://www.finch3d.com/product
 - TestFit Site Solver: https://www.testfit.io/product/site-solver
@@ -335,7 +335,7 @@ References:
 - Hong Kong Project Strategy and Governance Office, High Productivity Construction: https://www.psgo.gov.hk/en/high-productivity-construction.html
 - Singapore BCA PPVC: https://www1.bca.gov.sg/growth-and-transformation/productivity/design-for-manufacturing-and-assembly-dfma/prefabricated-prefinished-volumetric-construction-ppvc/
 - ASCE modular project study: https://doi.org/10.1061/JMENEA.MEENG-7605
-- NHBRC approved Innovative Building Technologies: https://www.nhbcrc.org.za/innovative-building-technologies/ (verify the canonical current NHBRC URL before relying on this link; use https://www.nhbrc.org.za/innovative-building-technologies/ as the current source)
+- NHBRC approved Innovative Building Technologies: https://www.nhbrc.org.za/innovative-building-technologies/
 
 ### Required head-to-head protocol
 
