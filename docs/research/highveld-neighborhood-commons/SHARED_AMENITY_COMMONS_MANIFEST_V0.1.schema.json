@@ -25,7 +25,9 @@
     "owner_boundaries",
     "reference_sources",
     "future_empirical_inputs_required",
-    "targets"
+    "targets",
+    "functional_units",
+    "scope_boundary"
   ],
   "properties": {
     "schema": {
@@ -121,7 +123,9 @@
         "required": [
           "id",
           "service",
-          "critical_dependencies"
+          "critical_dependencies",
+          "role",
+          "functional_unit_id"
         ],
         "properties": {
           "id": {
@@ -150,6 +154,18 @@
               "type": "string",
               "minLength": 1
             }
+          },
+          "role": {
+            "enum": [
+              "RESIDENT_FACING_SERVICE_ASSET",
+              "ENABLING_ASSET_ONLY"
+            ]
+          },
+          "functional_unit_id": {
+            "type": [
+              "string",
+              "null"
+            ]
           }
         }
       }
@@ -318,7 +334,7 @@
     },
     "reference_sources": {
       "type": "array",
-      "minItems": 8,
+      "minItems": 17,
       "items": {
         "type": "object",
         "additionalProperties": false,
@@ -385,6 +401,103 @@
         },
         "targets_are_proposed_not_measured": {
           "const": true
+        }
+      }
+    },
+    "functional_units": {
+      "type": "array",
+      "minItems": 9,
+      "maxItems": 9,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "amenity_id",
+          "output_unit",
+          "acceptance_definition",
+          "comparison_policy"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "amenity_id": {
+            "enum": [
+              "TOOL_LIBRARY_MAKER_WORKSHOP",
+              "SHARED_LAUNDRY",
+              "GUEST_SUITES",
+              "GREENHOUSE_FOOD_GARDEN",
+              "POOL_WELLNESS",
+              "COMMUNITY_KITCHEN_DINING",
+              "LIBRARY_STUDY_COWORKING",
+              "CHILDCARE_LEARNING",
+              "SPORTS_PARK_PUBLIC_REALM"
+            ]
+          },
+          "output_unit": {
+            "type": "string",
+            "minLength": 1
+          },
+          "acceptance_definition": {
+            "type": "string",
+            "minLength": 1
+          },
+          "comparison_policy": {
+            "const": "WITHIN_FUNCTIONAL_UNIT_ONLY"
+          }
+        }
+      }
+    },
+    "scope_boundary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "included_scope",
+        "included_service_classes",
+        "excluded_scopes",
+        "composition_rule"
+      ],
+      "properties": {
+        "included_scope": {
+          "const": "DAILY_USE_AND_PRODUCTIVE_AMENITIES_NOT_ESSENTIAL_RESILIENCE_SERVICES"
+        },
+        "included_service_classes": {
+          "type": "array",
+          "minItems": 9,
+          "uniqueItems": true,
+          "items": {
+            "type": "string"
+          }
+        },
+        "excluded_scopes": {
+          "type": "array",
+          "minItems": 8,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "owner",
+              "reference",
+              "responsibility"
+            ],
+            "properties": {
+              "owner": {
+                "type": "string"
+              },
+              "reference": {
+                "type": "string",
+                "format": "uri"
+              },
+              "responsibility": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "composition_rule": {
+          "const": "CONSUME_OWNER_NATIVE_RECEIPTS_READ_ONLY_NO_DUPLICATE_ENGINE_LEDGER_OR_AUTHORITY"
         }
       }
     }
