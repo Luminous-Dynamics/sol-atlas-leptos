@@ -784,6 +784,61 @@
       "id": "HONG_KONG_PSGO_HIGH_PRODUCTIVITY_CONSTRUCTION_2026",
       "url": "https://www.psgo.gov.hk/en/high-productivity-construction.html",
       "role": "GOVERNMENT_MIMEP_MICE_ADOPTION_AND_PRODUCTIVITY_REFERENCE"
+    },
+    {
+      "id": "HIGHVELD_KEEP_REFERENCE_HOME",
+      "url": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/607",
+      "role": "PRIMARY_HOME_REFERENCE_DESIGN"
+    },
+    {
+      "id": "HOME_EXPRESSION_LIBRARY",
+      "url": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/904",
+      "role": "RESIDENT_EXPRESSION_AND_OPTIONAL_EXPERIENCE_PACKAGES"
+    },
+    {
+      "id": "AGRO_CLIMATE_HIGHVELD",
+      "url": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/107",
+      "role": "HIGHVELD_FOOD_CLIMATE_SITE_READINESS"
+    },
+    {
+      "id": "ATLAS_FOOD_NETWORK",
+      "url": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/105",
+      "role": "PRIVACY_PRESERVING_FOOD_NETWORK_PROJECTION"
+    },
+    {
+      "id": "CEA_FULL_BOUNDARY",
+      "url": "https://github.com/Luminous-Dynamics/symtropy/issues/3957",
+      "role": "CEA_FULL_BOUNDARY_RESOURCE_AND_NUTRITIONAL_SERVICE"
+    },
+    {
+      "id": "CEA_CLIMATE",
+      "url": "https://github.com/Luminous-Dynamics/symtropy/issues/4065",
+      "role": "CEA_SPATIAL_CLIMATE_HEAT_MOISTURE_AIRFLOW"
+    },
+    {
+      "id": "CEA_HARVEST_CONTROL",
+      "url": "https://github.com/Luminous-Dynamics/symtropy/issues/4074",
+      "role": "CEA_HARVEST_CONSTRAINED_LIGHTING_AND_CLIMATE_CONTROL"
+    },
+    {
+      "id": "MYCELIX_FOOD_COOPERATIVE",
+      "url": "https://github.com/Luminous-Dynamics/mycelix/issues/5001",
+      "role": "FOOD_COOPERATIVE_PRODUCT_LOT_AND_FULFILLMENT"
+    },
+    {
+      "id": "HABITAT_SERVICE_TEST_CELL",
+      "url": "https://github.com/Luminous-Dynamics/symtropy/issues/4531",
+      "role": "ROOM_SCALE_HOUSEHOLD_SERVICE_TEST_CELL"
+    },
+    {
+      "id": "WATERLOOP_PHYSICAL_DEMO",
+      "url": "https://github.com/Luminous-Dynamics/symtropy/issues/5335",
+      "role": "WATERLOOP_PHYSICAL_DEMONSTRATOR"
+    },
+    {
+      "id": "ABOVEGROUND_SERVICE_CASSETTE",
+      "url": "https://github.com/Luminous-Dynamics/symtropy/issues/4181",
+      "role": "MAINTAINABLE_BUILDING_SERVICE_CASSETTES"
     }
   ],
   "future_empirical_inputs_required": [
@@ -927,6 +982,85 @@
         "responsibility": "authoritative stock-flow and financial accounting semantics"
       }
     ],
-    "composition_rule": "CONSUME_OWNER_NATIVE_RECEIPTS_READ_ONLY_NO_DUPLICATE_ENGINE_LEDGER_OR_AUTHORITY"
+    "composition_rule": "CONSUME_OWNER_NATIVE_RECEIPTS_READ_ONLY_NO_DUPLICATE_ENGINE_LEDGER_OR_AUTHORITY",
+    "owner_native_dependencies": [
+      {
+        "id": "HIGHVELD_KEEP_REFERENCE_HOME",
+        "owner": "Sol-Atlas",
+        "reference": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/607",
+        "role": "PRIMARY_HOME_REFERENCE_DESIGN",
+        "responsibility": "synthetic Highveld reference dwelling, four spatial families, resident/task programme and climate-responsive design basis"
+      },
+      {
+        "id": "HOME_EXPRESSION_LIBRARY",
+        "owner": "Sol-Atlas",
+        "reference": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/904",
+        "role": "RESIDENT_EXPRESSION_AND_OPTIONAL_EXPERIENCE_PACKAGES",
+        "responsibility": "resident-directed architectural expression, optional greenhouse/pool/workshop/guest and other experience packages; no style or prestige default"
+      },
+      {
+        "id": "AGRO_CLIMATE_HIGHVELD",
+        "owner": "Sol-Atlas",
+        "reference": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/107",
+        "role": "HIGHVELD_FOOD_CLIMATE_SITE_READINESS",
+        "responsibility": "regional/site food, climate, soil and water evidence readiness; not a plot-level crop-yield oracle"
+      },
+      {
+        "id": "ATLAS_FOOD_NETWORK",
+        "owner": "Sol-Atlas",
+        "reference": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/105",
+        "role": "PRIVACY_PRESERVING_FOOD_NETWORK_PROJECTION",
+        "responsibility": "read-only spatial projection of producers, pickup points, aggregate demand and fulfilment; not inventory or food-safety authority"
+      },
+      {
+        "id": "CEA_FULL_BOUNDARY",
+        "owner": "Symtropy",
+        "reference": "https://github.com/Luminous-Dynamics/symtropy/issues/3957",
+        "role": "CEA_FULL_BOUNDARY_RESOURCE_AND_NUTRITIONAL_SERVICE",
+        "responsibility": "facility-level accepted nutritional service, energy, water, nutrients, heat, labour and lifecycle accounting"
+      },
+      {
+        "id": "CEA_CLIMATE",
+        "owner": "Symtropy",
+        "reference": "https://github.com/Luminous-Dynamics/symtropy/issues/4065",
+        "role": "CEA_SPATIAL_CLIMATE_HEAT_MOISTURE_AIRFLOW",
+        "responsibility": "greenhouse controlled-environment temperature, humidity, CO2, airflow and heat/moisture dynamics"
+      },
+      {
+        "id": "CEA_HARVEST_CONTROL",
+        "owner": "Symtropy",
+        "reference": "https://github.com/Luminous-Dynamics/symtropy/issues/4074",
+        "role": "CEA_HARVEST_CONSTRAINED_LIGHTING_AND_CLIMATE_CONTROL",
+        "responsibility": "harvest-date/quality-constrained lighting and climate control comparison; model output is not measured yield"
+      },
+      {
+        "id": "MYCELIX_FOOD_COOPERATIVE",
+        "owner": "Mycelix",
+        "reference": "https://github.com/Luminous-Dynamics/mycelix/issues/5001",
+        "role": "FOOD_COOPERATIVE_PRODUCT_LOT_AND_FULFILLMENT",
+        "responsibility": "producer/product units/lots, offers, orders, fulfillment and provenance; planned harvest is not inventory"
+      },
+      {
+        "id": "HABITAT_SERVICE_TEST_CELL",
+        "owner": "Symtropy",
+        "reference": "https://github.com/Luminous-Dynamics/symtropy/issues/4531",
+        "role": "ROOM_SCALE_HOUSEHOLD_SERVICE_TEST_CELL",
+        "responsibility": "unoccupied integrated household-service test cell and independently bounded service integration"
+      },
+      {
+        "id": "WATERLOOP_PHYSICAL_DEMO",
+        "owner": "Symtropy",
+        "reference": "https://github.com/Luminous-Dynamics/symtropy/issues/5335",
+        "role": "WATERLOOP_PHYSICAL_DEMONSTRATOR",
+        "responsibility": "instrumented water-resilience demonstrator; no potable or occupied use without separate qualification"
+      },
+      {
+        "id": "ABOVEGROUND_SERVICE_CASSETTE",
+        "owner": "Symtropy",
+        "reference": "https://github.com/Luminous-Dynamics/symtropy/issues/4181",
+        "role": "MAINTAINABLE_BUILDING_SERVICE_CASSETTES",
+        "responsibility": "modular, inspectable, replaceable building-service subassemblies and lifecycle interfaces"
+      }
+    ]
   }
 }
