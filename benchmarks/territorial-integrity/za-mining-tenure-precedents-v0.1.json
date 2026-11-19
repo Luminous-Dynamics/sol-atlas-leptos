@@ -1,0 +1,66 @@
+{
+  "suite_id": "TIB-ZA-MINING-TENURE-PRECEDENTS",
+  "suite_version": "0.1.0",
+  "date": "2026-11-18",
+  "jurisdiction": "ZA",
+  "data_classification": "public_legal_reference_plus_synthetic_cases",
+  "no_real_party_data_or_geometry": true,
+  "claim_ceiling": "review-disposition-only-no-title-consent-permit-or-eviction-adjudication",
+  "legal_reference_cases": [
+    {
+      "case_id": "ZA-BALENI-2018-HC",
+      "court": "High Court of South Africa, Gauteng Division, Pretoria",
+      "decided": "2018-11-22",
+      "citation": "Case 73768/2016",
+      "reference": "https://cer.org.za/virtual-library/judgments/high-courts/baleni-and-others-v-minister-of-mineral-resources-and-others",
+      "domain": "customary_or_informal_rights_vs_mining_authorisation",
+      "benchmark_proposition": "The reported High Court judgment held that full and informed consent under IPILRA was required for the mining-right grant over the customary community's land.",
+      "expected_system_behaviour": [
+        "preserve_consultation_and_consent_as_distinct_records",
+        "require_exact_authority_and_decision_evidence",
+        "abstain_when_affected_right_holder_or_process_coverage_is_unknown"
+      ],
+      "permitted_disposition": "REVIEW_REQUIRED"
+    },
+    {
+      "case_id": "ZA-MALEDU-2018-CC",
+      "court": "Constitutional Court of South Africa",
+      "decided": "2018-10-25",
+      "citation": "[2018] ZACC 41",
+      "references": [
+        "https://collections.concourt.org.za/items/440c94e0-f9e4-4c89-8625-b43b3fdb960a",
+        "https://www3.saflii.org/za/cases/ZACC/2018/41.html"
+      ],
+      "domain": "informal_occupation_vs_mineral_right_and_eviction_process",
+      "benchmark_proposition": "The existence of a mineral right does not itself extinguish other land rights or lawful occupation; applicable MPRDA statutory processes cannot be bypassed by common-law eviction in the circumstances decided.",
+      "expected_system_behaviour": [
+        "represent_surface_occupation_and_mineral_right_separately",
+        "do_not_promote_mineral_right_to_eviction_authority",
+        "preserve_section_54_process_and_challenge_evidence"
+      ],
+      "permitted_disposition": "REVIEW_REQUIRED"
+    }
+  ],
+  "temporal_instrument_reference": {
+    "instrument": "Interim Protection of Informal Land Rights Act 31 of 1996",
+    "event": "extension_of_application",
+    "notice_number": "General Notice 4165 of 2026",
+    "gazette_number": "55438",
+    "published": "2026-09-25",
+    "reported_extended_through": "2027-12-31",
+    "government_listing": "https://www.gov.za/ss/documents/notices?page=9",
+    "independent_update": "https://www.golegal.co.za/protection-informal-land/",
+    "recertification_required": true
+  },
+  "synthetic_case_families": [
+    "mining_authorisation_overlapping_customary_use",
+    "consultation_without_consent_evidence",
+    "community_meeting_without_notice_or_holder_coverage",
+    "surface_access_dispute_without_statutory_process_evidence",
+    "partial_challenge_search",
+    "superseded_instrument_and_historical_frontier",
+    "remote_sensing_change_cannot_infer_right_or_consent",
+    "authentic_document_wrong_issuer_scope_or_jurisdiction",
+    "case_specific_judgment_cannot_be_overgeneralised"
+  ]
+}
