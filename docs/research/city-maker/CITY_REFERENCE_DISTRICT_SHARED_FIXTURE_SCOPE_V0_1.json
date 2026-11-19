@@ -1,0 +1,119 @@
+{
+  "schema_id": "org.luminousdynamics.citymaker.reference-district-fixture-binding",
+  "schema_version": "0.1.0",
+  "manifest_id": "CITY-REFERENCE-DISTRICT-SHARED-FIXTURE-SCOPE-V0.1",
+  "classification": "synthetic_fixture_binding_only",
+  "claim_ceiling": "Confirms that three independently qualified synthetic evaluators carry the same declared scope digest. It does not instantiate or qualify an integrated district, align the scenario semantics of the cases, authenticate live owner receipts, or establish real service, asset, engineering or physical conditions.",
+  "as_of": "2026-11-08",
+  "scope": {
+    "scope_id": "SYNTHETIC-DISTRICT-01",
+    "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+    "digest_algorithm": "SHA-256",
+    "geography": {
+      "state": "synthetic_only",
+      "real_coordinates": null,
+      "real_site_boundary": null
+    },
+    "population_frame": {
+      "state": "synthetic_only",
+      "real_population": null
+    },
+    "service_horizon": {
+      "state": "not_cross_joined",
+      "note": "The three benchmark corpora test distinct event and decision horizons; they are not one synchronized district timeline."
+    },
+    "functional_units": {
+      "state_sync": "owner-native subject-state projection",
+      "service_restoration": "repair-plan feasibility event",
+      "change_impact": "synthetic-city-claim"
+    },
+    "design_and_bom_revisions": {
+      "state": "not_common_across_cases",
+      "note": "Each corpus retains its own synthetic owner/source revisions."
+    },
+    "evidence_policy": {
+      "state": "fixture_policy_only",
+      "note": "No municipal or project evidence policy is asserted."
+    }
+  },
+  "integration": {
+    "level": "scope_digest_alignment_only",
+    "complete_district_scenario": "not_qualified",
+    "cross_engine_result_join": "not_performed",
+    "cross_owner_source_schema_registration": "not_complete",
+    "payload_bytes_verified": "synthetic fixtures only; no live payload bytes",
+    "rule": "A shared scope digest is a necessary identity condition, not sufficient evidence of equivalent scenario, functional unit, design revision, temporal horizon or physical state. Never promote the three independent PASS receipts into an integrated district PASS."
+  },
+  "evaluators": [
+    {
+      "evaluator": "City State Synchronization",
+      "issue": 625,
+      "pull_request": 638,
+      "source_head": "0b10022b34bdfae381de4d5f6aa3c8fac8e9896a",
+      "workflow_run": 42475373461,
+      "receipt_artifact_id": 13615615429,
+      "corpus_path": "docs/research/city-state-sync/CITY_STATE_SYNC_CORPUS_V0_1.json",
+      "corpus_blob_sha": "b7629d190384ef35c8a9ca771fd50f66e1e815c2",
+      "representative_case": "CS-001",
+      "scope_binding": {
+        "event_scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+        "required_subject_scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+      },
+      "exact_head_result": "pass",
+      "qualification": "36/36 synthetic cases; 16/16 Rust tests; format and strict Clippy passed"
+    },
+    {
+      "evaluator": "City Service Restoration Feasibility",
+      "issue": 639,
+      "pull_request": 646,
+      "source_head": "520860e0fe721c9490b8f5f1617ac49250f0af54",
+      "workflow_run": 42482266428,
+      "receipt_artifact_id": 13617417999,
+      "corpus_path": "docs/research/city-service-restoration/CITY_SERVICE_RESTORATION_EVAL_CORPUS_V0_1.json",
+      "corpus_blob_sha": "cec81c0d6c3c60da39024291f414dede3833a1ba",
+      "representative_case": "CSR-01",
+      "scope_binding": {
+        "scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+      },
+      "exact_head_result": "pass",
+      "qualification": "32/32 synthetic cases; 14/14 Rust tests; format and strict Clippy passed"
+    },
+    {
+      "evaluator": "City Change Impact Projection",
+      "issue": 643,
+      "pull_request": 644,
+      "source_head": "f686ff2cd959e9d7614f46fd4f856a0941600dcc",
+      "workflow_run": 42483627449,
+      "receipt_artifact_id": 13618911017,
+      "corpus_path": "docs/research/city-change-impact/CITY_CHANGE_IMPACT_CORPUS_V0_1.json",
+      "corpus_blob_sha": "d36c24cac3e9aa409eb0ae73ff451e03405e3a79",
+      "representative_case": "CI-01",
+      "scope_binding": {
+        "query_scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+        "impact_report_scope_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+        "claim_scope_digests": [
+          "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+        ]
+      },
+      "exact_head_result": "pass",
+      "qualification": "28/28 synthetic cases and 42/42 claim projections; 7/7 Rust tests; format and strict Clippy passed; mismatched report scope digest negative control passed"
+    }
+  ],
+  "required_next_gates": [
+    "Bind one explicit synthetic district scenario, time horizon and asset/design/BOM revision set; keep each owner functional unit separately typed.",
+    "Run the shared scope binder (#623/#624) over exact owner/schema/subject/scope envelopes; register each native schema under #606.",
+    "Resolve exact source artifacts and use the payload-byte verifier (#500/#637); a declared digest string is not payload verification.",
+    "Produce one scenario-aligned cross-owner fixture linking one dwelling/panel asset, its service requirements, a material lot, an intervention plan and the dependent claims.",
+    "Run cross-owner wrong-scope, wrong-revision, revoked-lot, stale-state, missing-dependency, unavailable-resource and incomplete-revalidation controls.",
+    "Emit an integrated receipt only when all required owner receipts are current, scope- and scenario-compatible, and the independent composition oracle agrees. Otherwise return Unknown/Blocked/NotComparable."
+  ],
+  "explicit_non_claims": [
+    "No real Johannesburg site, boundary or parcel",
+    "No surveyed building or as-built geometry",
+    "No resident or population claim",
+    "No municipal service/inventory/worker/supplier evidence",
+    "No engineering or regulatory approval",
+    "No physical construction or robot performance claim",
+    "No integrated district resilience, sustainability or operational outcome claim"
+  ]
+}
