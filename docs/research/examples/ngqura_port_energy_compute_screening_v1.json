@@ -1,0 +1,176 @@
+{
+  "schema_version": "port-energy-compute-case/v1",
+  "case_id": "za-ngqura-screening-2026-11-19",
+  "case_kind": "screening",
+  "as_of": "2026-11-19",
+  "site": {
+    "name": "Port of Ngqura",
+    "country_code": "ZA",
+    "region": "Eastern Cape",
+    "latitude": null,
+    "longitude": null,
+    "coordinate_reference_system": null
+  },
+  "evidence_records": [
+    {
+      "evidence_id": "tnpa-ngqura-renewables-tender-2024",
+      "claim": "TNPA tender scope specified a 7 MW renewable-energy plant and 6 MWh battery energy-storage system; annexure identifies approximately 6,991 kW solar PV and 9 kW vertical-axis wind turbines.",
+      "evidence_class": "tender_scope",
+      "value": 7,
+      "unit": "MW nameplate tender scope",
+      "source_url": "https://transnetetenders.azurewebsites.net/Home/TenderDetails?Id=46114",
+      "as_of": "2024-06-07",
+      "applicability": "Procurement scope only. Award, construction, commissioning, operating output, current availability and current battery state are not verified by this record.",
+      "notes": "Do not label this asset operational."
+    },
+    {
+      "evidence_id": "ptxhub-ngqura-grid-screen-2025",
+      "claim": "The September 2025 port connection-capacity study reports 19 MVA, approximately 17.1 MW, estimated spare capacity and low screening connection risk for Ngqura.",
+      "evidence_class": "screening_estimate",
+      "value": 17.1,
+      "unit": "MW estimated spare capacity",
+      "source_url": "https://ptx-hub.org/publication/load-connection-capactiy-assessment-of-south-african-national-ports/",
+      "as_of": "2025-09-01",
+      "applicability": "Pre-feasibility port-level estimate; not a utility offer or guaranteed capacity at a specific feeder, point of connection, time or operating condition.",
+      "notes": "Original apparent-power value reported as 19 MVA; the study's corresponding MW estimate is recorded here."
+    },
+    {
+      "evidence_id": "ptxhub-durban-shore-demand-2025",
+      "claim": "The September 2025 South African shore-power demand study reports Durban has the highest estimated shore-power demand among the assessed national ports.",
+      "evidence_class": "published_study",
+      "value": "Durban highest among assessed ports",
+      "unit": null,
+      "source_url": "https://ptx-hub.org/publication/shore-power-demand-for-south-african-ports/",
+      "as_of": "2025-09-01",
+      "applicability": "Comparative demand statement. This does not quantify Ngqura demand or establish an hourly load profile.",
+      "notes": "Durban is retained as a future stress-test comparator, not substituted for Ngqura."
+    },
+    {
+      "evidence_id": "natick-240kw-reference",
+      "claim": "Microsoft Project Natick Phase 2 reports a 240 kW subsea data-centre module with 12 racks and 864 servers.",
+      "evidence_class": "official_reported",
+      "value": 0.24,
+      "unit": "MW IT/facility module reference as reported by Microsoft",
+      "source_url": "https://www.microsoft.com/en-us/research/project/natick/facts-and-figures/",
+      "as_of": null,
+      "applicability": "Scale reference only. Not a proposed Ngqura load, not a normalized PUE comparison and not evidence of a commercial design requirement.",
+      "notes": "Actual power boundary and workload-normalized performance must be pinned before quantitative comparisons."
+    },
+    {
+      "evidence_id": "ngqura-marine-siting-unknown",
+      "claim": "Bathymetry, seabed habitat, metocean baseline, cable corridor, marine protected-area intersections, thermal plume and permitting suitability for a subsea compute module are not established by this case.",
+      "evidence_class": "unknown",
+      "value": null,
+      "unit": null,
+      "source_url": null,
+      "as_of": "2026-11-19",
+      "applicability": "No subsea site selection or environmental suitability conclusion is permitted.",
+      "notes": "Unknowns are blocking inputs, not zero-valued impacts."
+    },
+    {
+      "evidence_id": "ptxhub-ngqura-shore-demand-series-2025",
+      "claim": "Table 3 of the September 2025 PtX Hub/CSIR shore-power study lists Coega/Ngqura estimated peak maximum demand of 12.6 MW in FY2019-20 and 9.5 MW in FY2022-23 (latest year shown with a value); average-peak maximum demand is 5.8 MW in FY2019-20 and 4.3 MW in FY2022-23.",
+      "evidence_class": "published_study",
+      "value": "12.6 MW peak maximum (FY2019-20); 9.5 MW peak maximum and 4.3 MW average-peak maximum (FY2022-23)",
+      "unit": "MW",
+      "source_url": "https://ptx-hub.org/wp-content/uploads/2025/10/PtX-Hub-Shore-Power-Demand-for-South-African-Ports-2.pdf",
+      "as_of": "2025-09-01",
+      "applicability": "Published vessel-activity-based demand estimates in Table 3, page 19. Not metered coincident demand or a grid connection study.",
+      "notes": "Preserve financial-year labels and distinguish peak maximum from average-peak maximum. Data are estimates and time series values, not continuous observations."
+    },
+    {
+      "evidence_id": "ptxhub-durban-shore-demand-series-2025",
+      "claim": "Table 3 of the September 2025 PtX Hub/CSIR shore-power study lists Durban estimated peak maximum demand of 47 MW in FY2018-19 and 42 MW in FY2024-25; average-peak maximum demand in FY2024-25 is 20 MW.",
+      "evidence_class": "published_study",
+      "value": "47 MW peak maximum (FY2018-19); 42 MW peak maximum and 20 MW average-peak maximum (FY2024-25)",
+      "unit": "MW",
+      "source_url": "https://ptx-hub.org/wp-content/uploads/2025/10/PtX-Hub-Shore-Power-Demand-for-South-African-Ports-2.pdf",
+      "as_of": "2025-09-01",
+      "applicability": "Published vessel-activity-based demand estimates in Table 3, page 19. Not metered coincident demand or a grid connection study.",
+      "notes": "Preserve financial-year labels and distinguish peak maximum from average-peak maximum."
+    }
+  ],
+  "assets": [
+    {
+      "asset_id": "ngqura-solar-pv-tender-scope",
+      "asset_class": "solar_pv",
+      "status": "tender_scope_not_verified",
+      "rated_power_mw": 6.991,
+      "energy_capacity_mwh": null,
+      "source_evidence_ids": [
+        "tnpa-ngqura-renewables-tender-2024"
+      ],
+      "notes": "Tender annexure specifies approximately 6,991 kW solar PV; commissioning and operating state are not verified."
+    },
+    {
+      "asset_id": "ngqura-wind-tender-scope",
+      "asset_class": "wind",
+      "status": "tender_scope_not_verified",
+      "rated_power_mw": 0.009,
+      "energy_capacity_mwh": null,
+      "source_evidence_ids": [
+        "tnpa-ngqura-renewables-tender-2024"
+      ],
+      "notes": "Tender annexure specifies approximately 9 kW vertical-axis wind; commissioning and operating state are not verified."
+    },
+    {
+      "asset_id": "ngqura-bess-tender-scope",
+      "asset_class": "battery",
+      "status": "tender_scope_not_verified",
+      "rated_power_mw": null,
+      "energy_capacity_mwh": 6,
+      "source_evidence_ids": [
+        "tnpa-ngqura-renewables-tender-2024"
+      ],
+      "notes": "Battery inverter power, usable capacity, chemistry, efficiency, degradation and commissioning state are unknown."
+    },
+    {
+      "asset_id": "ngqura-grid-connection-screen",
+      "asset_class": "grid_intertie",
+      "status": "unknown",
+      "rated_power_mw": null,
+      "energy_capacity_mwh": null,
+      "source_evidence_ids": [
+        "ptxhub-ngqura-grid-screen-2025"
+      ],
+      "notes": "Study reports 25 MVA firm supply and 6 MVA NMD; its 17.1 MW equivalent uses 0.9 × (25−6), a screening factor for power factor. This is not current feeder headroom or an interconnection offer."
+    }
+  ],
+  "grid": {
+    "spare_capacity_estimate_mw": 17.1,
+    "spare_capacity_source_evidence_id": "ptxhub-ngqura-grid-screen-2025",
+    "estimate_status": "screening_estimate_not_offer",
+    "connection_risk": "low_screening",
+    "verified_connection_offer": false,
+    "notes": "Obtain current feeder data and a formal study before allocating any compute or shore-power load."
+  },
+  "workload": {
+    "proposed_it_load_mw": null,
+    "location_candidate": "undecided",
+    "workload_classes": [
+      "batch_training",
+      "scientific_hpc",
+      "simulation",
+      "archive"
+    ],
+    "service_requirements_status": "unknown",
+    "notes": "The Natick 240 kW figure is a comparison reference, not a site proposal. Workload trace, latency, migration, data-sovereignty and availability requirements are not yet supplied."
+  },
+  "environmental_unknowns": [
+    "bathymetry and seabed slope at any candidate deployment corridor",
+    "seabed substrate and benthic habitat baseline",
+    "seasonal currents, waves, wind and extreme metocean conditions",
+    "temperature and salinity profiles and thermal-plume dispersion",
+    "dissolved oxygen, turbidity, pH and sediment baseline",
+    "marine protected-area, fisheries, mammal and vessel-traffic intersections",
+    "subsea power and data cable route, burial and repair access",
+    "acoustic, electromagnetic and cumulative impacts",
+    "biofouling, corrosion, retrieval and end-of-life recovery plan",
+    "environmental authorization and port/utility permissions"
+  ],
+  "control_boundary": {
+    "mode": "read_only_shadow",
+    "autonomous_ot_write": false,
+    "operator_approval_required": true
+  }
+}
