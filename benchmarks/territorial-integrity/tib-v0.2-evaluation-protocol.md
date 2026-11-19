@@ -213,6 +213,48 @@ Every result packet now has an explicit `evidence_class`:
 
 The schema constrains expected-case annotations to `proposed_target` or `not_evaluable`. A planned test, queued CI, synthetic example or provider description must never be represented as an executed benchmark result. See [TIB FELA Implementation Matrix](../../docs/research/TIB_FELA_IMPLEMENTATION_MATRIX_V0_1.md) for the pathway-level evidence model.
 
+## 6.3 South African 3D spatial qualification track
+
+The new [TIB-3D-SPATIAL-QUALIFICATION-001 corpus](./tib-3d-spatial-qualification-v0.1.json) has nine synthetic cases and a machine-readable metadata schema. It is based on five pilot criteria in the FIG Congress 2026 paper *Development of a 3D cadastre over South Africa*: geodetic referenceability, legal interpretability, data integrity/topology, information-system readiness, and governance separation between authoritative legal geometry and indicative physical/municipal layers.
+
+### Important baseline distinction
+
+The paper **proposes** a nationally authoritative 3D cadastre anchored to ITRF horizontal control and a geoid-based vertical reference aligned with IHRF. It describes the current national cadastral spatial index as predominantly 2D, with above/below-surface rights managed through specialized instruments whose vertical extents are not consistently represented as validated 3D geometry. This is a research proposal/roadmap, not evidence that a national 3D legal cadastre or national IHRF realization has already been deployed.
+
+The same paper reports a substantial existing municipal workflow: Cape Town's 3D Development Management Scheme (DMS) envelopes were generated across approximately 2,700 km², using the GLM2019 LiDAR-derived ground-level surface (reported 2–3 points/m², about 20 cm vertical accuracy, and ±30 cm DEM tolerance) referenced to the Land Levelling Datum (LLD). DMS envelopes encode municipal setbacks and height/buildability restrictions. The paper explicitly says these are **not registrable cadastral objects**; they are municipal regulatory/property-management geometry, distinct from the authoritative legal-property-object layer. It also reports duplicate footprints caused by overlapping parcel data, errors around unsurveyed/unregistered transport parcels, subjective rules requiring manual review, and hardware/skills constraints.
+
+This produces a valuable matched baseline: a sophisticated, real municipal 3D regulatory workflow can be useful, interpretable and city-scale without becoming legal volumetric title. TIB must preserve that distinction instead of treating all precise 3D geometry as authoritative.
+
+### Nine frozen synthetic scenarios
+
+| Scenario | Hazard | Expected outcome |
+|---|---|---|
+| SP3D-001 | Complete 3D registered-geometry reference with explicit CRS, vertical reference, survey evidence and watertight topology report | `structural_accept` (metadata only) |
+| SP3D-002 | Cape Town-style municipal DMS envelope | `review_required` (municipal regulatory layer, not registrable title) |
+| SP3D-003 | 2D surface polygon reused for a subsurface volume | `not_evaluable` |
+| SP3D-004 | 3D geometry without vertical CRS/datum or survey evidence | `not_evaluable` |
+| SP3D-005 | Source/target CRS changed without a pinned coordinate operation | `structural_reject` |
+| SP3D-006 | Non-manifold 3D volume | `structural_reject` |
+| SP3D-007 | 3D geometry with no independent topology assessment | `not_evaluable` |
+| SP3D-008 | Complete physical/indicative digital-twin model | `review_required` |
+| SP3D-009 | Two overlapping 3D interests | `review_required`; preserve both, infer no legal priority |
+
+The Rust reference module `sol-atlas-core/src/spatial_qualification.rs` checks metadata consistency and classifies qualification readiness. It does **not** parse the raw mesh, recompute a CRS transformation, verify a surveyor, authenticate a registry record, or establish the legal effect of the referenced instrument. The fixed claim ceiling is `reference_only_no_legal_effect`.
+
+### Proposed 3D targets
+
+- Zero 3D subsurface acceptance without an explicit vertical CRS/datum/realization, survey evidence and vertical uncertainty.
+- Zero silent horizontal or vertical CRS/axis-order transformations; every changed source/target reference must carry a versioned operation reference, digest and reported accuracy.
+- Zero non-watertight/non-manifold/self-intersecting volumes accepted for volumetric qualification.
+- Zero municipal DMS, physical-asset or indicative digital-twin layers promoted to registered legal geometry by software.
+- 100% geometry/source digest, survey-source and transformation-chain retention.
+- Zero silent overlap resolution or owner selection where rights geometries intersect; retain both interests and require competent review.
+- Report topology, geometric error, transformation error, false overlap and false non-overlap separately by geometry class, survey method, CRS and vertical datum. Do not collapse them into one spatial-confidence score.
+
+### Interchange implications
+
+OGC JSON-FG 1.0 supports alternate CRSs and temporal feature properties, and its optional extensions include solids and prisms. The word *optional* matters: a JSON-FG payload is not necessarily a volumetric solid. Record the actual geometry class and declared conformance; do not infer watertight topology or a vertical datum from the encoding label. Keep LADM Part 2's above/below-surface RRR and surveying/spatial-representation concepts separate from OGC geometry encoding. JSON-FG or LADM conformance does not itself establish national legal registration.
+
 ## 7. Known limitations and release gates
 
 The current Sol Atlas validator checks record shape and selected internal references. It does not authenticate documents, verify signatures or issuer competence, resolve legal effect, validate CRS transformations, survey geometry, detect real-world overlap, prove consent, establish ecological recovery or guarantee completeness of a source frontier.
