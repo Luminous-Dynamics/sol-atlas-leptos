@@ -870,6 +870,36 @@
       "id": "CITY_SCOPE_BINDING_ISSUE_623",
       "url": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/623",
       "role": "COMMON_CROSS_OWNER_EVALUATION_SCOPE_AND_OWNER_ENVELOPE"
+    },
+    {
+      "id": "CITY_ACCESS_REFERENCE_COMPARISON_562",
+      "url": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/562",
+      "role": "CROSSWALK_TO_R5_OTP_PEAI_AND_SDG_11_ACCESSIBILITY_BASELINES"
+    },
+    {
+      "id": "PEAI_ACTIVE_ACCESS_2026",
+      "url": "https://doi.org/10.1016/j.urbmob.2026.100217",
+      "role": "2026_MULTIDIMENSIONAL_ACTIVE_ACCESS_AND_AFFORDABILITY_RESEARCH_COMPARATOR"
+    },
+    {
+      "id": "CONVEYAL_R5_METHODOLOGY",
+      "url": "https://docs.conveyal.com/analysis/methodology",
+      "role": "SCHEDULE_AWARE_TRANSIT_TRAVEL_TIME_DISTRIBUTION_ROUTING_BASELINE"
+    },
+    {
+      "id": "OPENTRIPPLANNER_2_DOCS",
+      "url": "https://docs.opentripplanner.org/en/latest/",
+      "role": "MULTIMODAL_SCHEDULED_TRANSIT_AND_ACTIVE_MODE_ROUTING_BASELINE"
+    },
+    {
+      "id": "SDG_11_2_1_OFFICIAL_METADATA",
+      "url": "https://unstats.un.org/sdgs/metadata/files/Metadata-11-02-01.pdf",
+      "role": "PUBLIC_TRANSPORT_CONVENIENT_ACCESS_INDICATOR_METHOD_BASELINE"
+    },
+    {
+      "id": "SDG_11_7_1_OFFICIAL_METADATA",
+      "url": "https://unhabitat.org/sites/default/files/2022/08/sdg_indicator_metadata-11.7.1.pdf",
+      "role": "PUBLIC_SPACE_SHARE_AND_ACCESSIBILITY_INDICATOR_METHOD_BASELINE"
     }
   ],
   "future_empirical_inputs_required": [
