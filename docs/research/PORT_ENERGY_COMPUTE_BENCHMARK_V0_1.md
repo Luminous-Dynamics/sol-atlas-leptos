@@ -187,7 +187,7 @@ Do not publish one leaderboard that conflates energy optimization, data-centre e
 | A. Site evidence and spatial joins | Manual GIS + source documents; independent second reviewer | Source coverage, date/currentness, coordinate/datum correctness, rights, provenance completeness, unknown visibility | 100% accounting for in-scope source fields; zero silent conversion of unknown to safe/available |
 | B. Port/grid feasibility | Grid-only reference; independently checked OPF and load-flow solvers | Nodal balance, voltage/thermal limits, contingency coverage, reserve margin, unmet critical load | 100% of admitted hard constraints independently rechecked; zero false-feasible results in negative controls |
 | C. Chronological dispatch | Grid-only, rule-based EMS, conventional optimization/MPC | Total cost, import/export, renewable curtailment, storage cycles/degradation, reserve violations, rebound, unserved energy | Same source traces, weather, tariffs and load; report p50/p95 and all scenario failures |
-| D. Compute energy efficiency | Matched onshore air/liquid-cooled and nearshore alternatives | Standard PUE/WUE/CUE/ERF/REF plus workload throughput per IT kWh, utilization, latency and energy per completed job | PUE aspiration ≤1.15 at a declared annual measurement boundary; disclose uncertainty and load factor |
+| D. Compute energy efficiency | Matched onshore air/liquid-cooled and nearshore alternatives | Standard PUE/WUE/CUE/ERF/REF plus workload throughput per IT kWh, utilization, latency and energy per completed job | Report ISO/IEC 30134 PUE at a declared annual measurement boundary and match load factor/ambient conditions. Shanghai's reported ~1.15 is a subsea comparator, not the global SOTA: ENTSO-E's May 2026 report notes advanced cooling designs below 1.1 and leading hyperscalers below 1.05. Do not set a universal PUE win threshold; compare total energy per service-equivalent useful work and full resource impacts. |
 | E. Clean-energy integrity | Annual matching vs hourly matching | REF, hourly clean-energy coverage, residual carbon intensity, curtailment and attribute provenance | Stretch objective: ≥95% REF and ≥90% hourly clean-energy matching; no certificate-only claim of 24/7 carbon-free operation |
 | F. Water and heat | Matched cooling topology; independently checked thermal balance | Freshwater WUE, seawater intake volume, pump energy, ERF, heat grade, discharge temperature, plume and ecological indicators | No freshwater cooling consumption in the closed-loop design target; site-specific marine limits met with measured margin |
 | G. Flexibility and adequacy | Inflexible compute; rule-based shifting; matched MPC | ELCC-like contribution, LOLE/EUE/CVaR, deadline misses, recovery rebound, latency/SLA violations | No adequacy degradation against the frozen reference; capacity value only reported when the full chronological model identifies it |
@@ -271,3 +271,51 @@ Until these questions are answered, this programme can rank **investigation prio
 ---
 
 **Claim ceiling:** This document establishes an evidence-backed research and benchmark direction. It does not demonstrate that a subsea data centre is economically or ecologically superior, that a candidate port has firm spare capacity, that any proposed hybrid plant is feasible, or that any Luminous system is ready to dispatch or control real port infrastructure.
+
+
+## 11. Research update — objective-specific flexibility and grid-safe compute (19 November 2026)
+
+A new article became available online on **14 November 2026**:
+
+Yang et al., *Power-energy profiling of AI data center workloads reveals objective-specific grid flexibility and coordination risks*, **Advances in Applied Energy**, DOI [10.1016/j.adapen.2026.100322](https://doi.org/10.1016/j.adapen.2026.100322).
+
+Its Alibaba workload analysis covers 600,245 AI jobs. It reports that the top 5% by average power intensity and top 5% by cumulative energy overlap by only 19.10%, while the highest-energy 5% account for 85.23% of estimated job energy in the studied trace. It finds that TOU and carbon objectives select different workload populations. Independent shifting increased aggregate peaks in the studied cases; a no-new-peak admission rule retained 73.88–82.51% of TOU and 54.36–59.72% of carbon objective value.
+
+This materially changes the programme's workload-flexibility design:
+
+1. Do not model "flexible compute" as one percentage. Maintain separate power-intensity, total-energy, duration, deadline slack, checkpoint cost, useful-work, hardware and location profiles.
+2. Generate distinct candidate schedules for demand response, TOU, carbon, local congestion and adequacy objectives.
+3. Independently replay the **aggregate** PCC/system trajectory after every proposed move. Reject moves that create a new peak or violate time-varying PCC, feeder, ramp, reserve or service envelopes.
+4. Include deferred-work recovery over the full horizon. A dispatch-window-only comparison can hide a rebound peak later.
+5. Compare objective-only optimization with no-new-peak admission and network-aware constraints. Report the objective value sacrificed for the grid-impact constraint.
+6. Preserve the difference between site-peak screening, feeder/transformer deliverability, system adequacy and dynamic voltage/frequency qualification.
+
+The first synthetic reference case is being developed separately in Symtropy under [PORT-NEXUS-OBJECTIVE-FLEX-001 #6211](https://github.com/Luminous-Dynamics/symtropy/issues/6211). Its small 8-slot case deliberately demonstrates the mechanism; it is **not** a reproduction of the cited study or South African load data.
+
+### New benchmark gates
+
+| Measure | First gate | Stretch research target |
+|---|---|---|
+| Objective fidelity | Distinct price, carbon, peak and local-congestion schedules; report job-selection overlap | Improve objective value without reducing service-equivalent work |
+| New-peak admission | Zero admitted candidates exceeding the frozen full-horizon peak cap | Match a time-varying locational PCC/feeder envelope |
+| TOU value retention | Reproduce published no-new-peak methodology on the exact matched trace where accessible | >82.51% retained benefit, with all service/grid hard gates intact |
+| Carbon value retention | Reproduce published no-new-peak methodology on the exact matched trace where accessible | >59.72% retained benefit, with all service/grid hard gates intact |
+| Workload quality | Same useful work, deadlines, latency and checkpoint obligations across strategies | Held-out workload/site/hardware generalization |
+| Rebound | Full-horizon replay, with no deferred work omitted | Repeated events with realistic recovery/fatigue constraints |
+
+The stretch percentages deliberately exceed the upper ends of one published study's scenario range. They are research hypotheses, not current Luminous results, universal targets or an apples-to-apples leaderboard claim.
+
+### Grid interaction is a separate qualification axis
+
+ENTSO-E's May 2026 report, *Data centres and the power system: expected trends, challenges, and opportunities*, notes that UPS-based architectures can rapidly disconnect large loads during minor disturbances; modern AI facilities can experience multi-megawatt load changes over milliseconds. It also distinguishes workload, cooling and on-site-generation flexibility, and explains why grid-safe operation must precede grid-supporting participation.
+
+Accordingly, the port-compute benchmark must separately test:
+- voltage/frequency ride-through and local protection boundaries;
+- ramp-rate control, disturbance-driven disconnection and staged reconnection;
+- UPS/BESS state, critical-load reserve and cooling continuity;
+- commanded demand response versus involuntary load trip;
+- post-event recovery and synchronized workload restarts.
+
+A sudden protective trip is not a successful demand-response service. The initial programme remains read-only and does not authorize OT/SCADA or protection-system writes.
+
+Source: [ENTSO-E — Data centres and the power system: expected trends, challenges, and opportunities (May 2026)](https://eepublicdownloads.blob.core.windows.net/public-cdn-container/clean-documents/Reports/2026/FINAL_ENTSO-E_Data_Centres_260430.pdf).
