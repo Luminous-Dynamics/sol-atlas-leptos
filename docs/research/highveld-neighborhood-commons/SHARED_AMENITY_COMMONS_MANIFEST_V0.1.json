@@ -699,6 +699,36 @@
       "id": "HDB_CONSTRUCTION_TRANSFORMATION",
       "url": "https://www.hdb.gov.sg/hdb-pulse/news/2026/advanced-construction-technologies-at-hdbs-first-ctp-helped-achieve-25-productivity-improvement",
       "role": "INDUSTRY_CONSTRUCTION_PRODUCTIVITY_COMPARATOR_NOT_AMENITY_SAVINGS"
+    },
+    {
+      "id": "SECTIONAL_TITLES_SCHEMES_MANAGEMENT_REGULATIONS_2016_MAINTENANCE_PLAN",
+      "url": "https://csos.org.za/wp-content/uploads/2023/02/Regulation-on-Sectional-Titles-Schemes-Management-Act.pdf",
+      "role": "COMMON_PROPERTY_10_YEAR_MAINTENANCE_REPAIR_REPLACEMENT_PLAN_AND_RESERVE"
+    },
+    {
+      "id": "SINGAPORE_BCA_PPVC_2026",
+      "url": "https://www1.bca.gov.sg/growth-and-transformation/productivity/design-for-manufacturing-and-assembly-dfma/prefabricated-prefinished-volumetric-construction-ppvc/",
+      "role": "PPVC_PRODUCTIVITY_REFERENCE_NOT_LOCAL_PERFORMANCE"
+    },
+    {
+      "id": "HDB_CTP_2026",
+      "url": "https://www.hdb.gov.sg/hdb-pulse/news/2026/advanced-construction-technologies-at-hdbs-first-ctp-helped-achieve-25-productivity-improvement",
+      "role": "CONSTRUCTION_TRANSFORMATION_PROGRAMME_REFERENCE"
+    },
+    {
+      "id": "ASCE_MODULAR_PROJECTS_491_2026",
+      "url": "https://doi.org/10.1061/JMENEA.MEENG-7605",
+      "role": "MODULAR_PRODUCTIVITY_DATASET_REFERENCE_491_PROJECTS"
+    },
+    {
+      "id": "M3DP_TECHNO_ECONOMIC_2026",
+      "url": "https://doi.org/10.1016/j.jclepro.2025.147461",
+      "role": "AUSTRALIAN_MODELLED_TECHNO_ECONOMIC_SCENARIO_NOT_SA_FIELD_RESULT"
+    },
+    {
+      "id": "DPWI_STATS_SA_BUILDING_COSTS_DEC_2025",
+      "url": "https://www.publicworks.gov.za/PDFs/documents/StrategicPlans/Annual_Performance_Plan-26_27.pdf",
+      "role": "DATED_SA_COST_SANITY_CHECK_REPORTED_FROM_STATS_SA"
     }
   ],
   "future_empirical_inputs_required": [
