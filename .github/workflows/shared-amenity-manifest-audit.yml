@@ -58,6 +58,7 @@ jobs:
             .study_id == "SHARED-AMENITY-COMMONS-001"
             and .comparison_arm_count == 5
             and .scenario_count == 10
+            and .scenario_definition_count == 10
             and .registered_case_count == 50
             and .unique_case_pairs == 50
             and .amenity_archetype_count == 10
