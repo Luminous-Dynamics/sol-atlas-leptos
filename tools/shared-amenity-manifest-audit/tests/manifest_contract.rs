@@ -188,3 +188,16 @@ fn unregistered_owner_output_in_scenario_definition_is_rejected() {
     value["scenario_definitions"][0]["required_owner_outputs"] = json!(["PARALLEL_UNKNOWN_SERVICE_ORACLE"]);
     assert!(audit(&value).is_err());
 }
+
+#[test]
+fn duplicate_json_object_keys_are_rejected_before_map_deserialization() {
+    let duplicate = FIXTURE.replacen(
+        "\"schema\": \"luminous.shared-amenity-commons-benchmark\",",
+        "\"schema\": \"luminous.shared-amenity-commons-benchmark\", \"schema\": \"luminous.shared-amenity-commons-benchmark\",",
+        1,
+    );
+    assert_ne!(duplicate, FIXTURE);
+    let error = audit_manifest_bytes(duplicate.as_bytes())
+        .expect_err("duplicate JSON object keys must fail closed");
+    assert!(error.message.contains("duplicate object key"));
+}
