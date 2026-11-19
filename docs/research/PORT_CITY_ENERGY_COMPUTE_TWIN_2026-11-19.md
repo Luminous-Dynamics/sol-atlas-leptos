@@ -106,6 +106,22 @@ Proposed cross-system evidence envelope:
 
 Do not store large raw time series directly in a consensus ledger. Store content-addressed immutable evidence objects and signed claims pointing to them, subject to retention, privacy and operational-security policy.
 
+## 4.1 Existing cross-project work to compose, not clone
+
+The following open work items already own adjacent problems. This programme adds the port-city / energy-compute case and a shared, source-bound case identity; it should not create duplicate schedulers or physics engines.
+
+- **Symthaea #11572 — MARINE-PORT-ENERGY-CO-DESIGN-001:** ship–port shore-power and berth energy eligibility, interface compatibility, exact delivered/unserved energy and matched emissions boundaries. Reuse its connection/service-window contract.
+- **Symthaea #11028 — MARINE-POWER-TRANSIENT-001:** shipboard multi-timescale power-quality and transient assurance. Its documented boundary matters: existing slow energy models are not proof of converter, protection, or transient stability.
+- **Symtropy #4582 — PORT-ENERGY-SCHEDULE-VERIFIER-001:** exact power (W), cumulative energy (Wh), connection readiness and schedule oracle. Reuse it for proposed port-energy schedules rather than writing another verifier.
+- **Symtropy #3400 / #3404 — POWER-SYSTEM-DIGITAL-TWIN / EVIDENCE:** deterministic energy-system model, source-bound traces and uncertainty handling; extend its evidence model with port and compute assets where appropriate.
+- **Mycelix #5974 — MARITIME-CROSS-STACK-GOLDEN-TRACE-001:** cross-owner integration corpus and independent oracle. Extend this with energy, compute, marine-observation and site-evidence traces; do not reimplement the four systems' internal decisions.
+
+The ownership split is therefore: Sol-Atlas owns spatial/network scenario identity and source mapping; Symtropy owns deterministic schedule/physics replay and exact feasibility checks; Symthaea owns bounded prediction and decision support; Mycelix owns identity, permission, provenance, revocation and external-effect receipts. The new port-city case is an integration/benchmark target, not evidence that these interfaces are already wired together.
+
+### Research comparators now available in the adjacent programme
+
+Recent port-energy literature increasingly co-optimizes berth allocation, cranes, shore-power and multi-source dispatch. For example, a 2026 *Journal of Cleaner Production* study models integrated berth/crane/shore-power/multi-source dispatch and reports case-specific cost improvements; a 2026 *Ocean Engineering* study considers port integrated-energy-system planning under uncertainty; another 2026 study coordinates port virtual power plants with vessel and equipment-load uncertainty. Treat these as methods to reproduce under matched data and objective functions, not savings claims transferable to South Africa. Symtropy #4582 tracks the exact citations and comparison caveats.
+
 ## 5. Benchmark design — separate tracks, matched inputs
 
 The current Sol-Atlas OPF benchmark already establishes an important rule: same formulation, same data, same machine, same tolerances, independent verifier. Extend that discipline instead of inventing an incomparable “green port score”.
