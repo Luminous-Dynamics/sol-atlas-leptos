@@ -862,6 +862,44 @@ impl TerritorialRecord {
                         obligation.id
                     ));
                 }
+
+                // Environmental completion cannot be supported by a permit,
+                // operator declaration or arbitrary attachment alone. This
+                // checks only the declared evidence kind; it does not
+                // authenticate the source, calibration, method or outcome.
+                let has_environmental_measurement = obligation.evidence_ids.iter().any(
+                    |evidence_id| {
+                        evidence_by_id.get(evidence_id.as_str()).is_some_and(|evidence| {
+                            evidence.kind == EvidenceKind::EnvironmentalMeasurement
+                        })
+                    },
+                );
+                let has_remote_sensing_observation = obligation.evidence_ids.iter().any(
+                    |evidence_id| {
+                        evidence_by_id.get(evidence_id.as_str()).is_some_and(|evidence| {
+                            evidence.kind == EvidenceKind::RemoteSensingObservation
+                        })
+                    },
+                );
+                let has_required_environmental_evidence = match obligation.kind {
+                    ObligationKind::RehabilitateLand
+                    | ObligationKind::RestoreHabitat
+                    | ObligationKind::StabilizeGround => {
+                        has_environmental_measurement || has_remote_sensing_observation
+                    }
+                    ObligationKind::ProtectGroundwater
+                    | ObligationKind::MonitorWaterQuality
+                    | ObligationKind::ManageTailings => has_environmental_measurement,
+                    ObligationKind::MaintainAccess
+                    | ObligationKind::ShareBenefits
+                    | ObligationKind::Other => true,
+                };
+                if !has_required_environmental_evidence {
+                    issues.push(format!(
+                        "obligation {} is verified_complete without evidence of the required environmental observation kind",
+                        obligation.id
+                    ));
+                }
             }
         }
 
