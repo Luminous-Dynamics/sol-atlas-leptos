@@ -1118,13 +1118,6 @@
         "responsibility": "canonical asset/service contract, beneficiaries, capacity/access events, operating budgets, reserves, maintenance, asset locks and handback"
       },
       {
-        "id": "MYCELIX_HOUSING_AMENITY_BENCHMARK",
-        "owner": "Mycelix",
-        "reference": "https://github.com/Luminous-Dynamics/mycelix/pull/6329",
-        "role": "CANONICAL_AMENITY_CONFORMANCE_CORPUS",
-        "responsibility": "33-case synthetic ownership, service, booking, finance, maintenance and governance conformance suite; Sol-Atlas must not duplicate it"
-      },
-      {
         "id": "WHOLE_HOUSEHOLD_COST_OF_PLACE",
         "owner": "Sol-Atlas",
         "reference": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/816",
