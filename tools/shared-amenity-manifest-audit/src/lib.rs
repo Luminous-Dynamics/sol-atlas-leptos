@@ -75,6 +75,20 @@ const REQUIRED_EXCLUDED_REFERENCES: &[&str] = &[
     "https://github.com/Luminous-Dynamics/mycelix/issues/4808",
 ];
 
+const REQUIRED_OWNER_NATIVE_DEPENDENCIES: &[(&str, &str, &str, &str)] = &[
+    ("HIGHVELD_KEEP_REFERENCE_HOME", "Sol-Atlas", "https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/607", "PRIMARY_HOME_REFERENCE_DESIGN"),
+    ("HOME_EXPRESSION_LIBRARY", "Sol-Atlas", "https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/904", "RESIDENT_EXPRESSION_AND_OPTIONAL_EXPERIENCE_PACKAGES"),
+    ("AGRO_CLIMATE_HIGHVELD", "Sol-Atlas", "https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/107", "HIGHVELD_FOOD_CLIMATE_SITE_READINESS"),
+    ("ATLAS_FOOD_NETWORK", "Sol-Atlas", "https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/105", "PRIVACY_PRESERVING_FOOD_NETWORK_PROJECTION"),
+    ("CEA_FULL_BOUNDARY", "Symtropy", "https://github.com/Luminous-Dynamics/symtropy/issues/3957", "CEA_FULL_BOUNDARY_RESOURCE_AND_NUTRITIONAL_SERVICE"),
+    ("CEA_CLIMATE", "Symtropy", "https://github.com/Luminous-Dynamics/symtropy/issues/4065", "CEA_SPATIAL_CLIMATE_HEAT_MOISTURE_AIRFLOW"),
+    ("CEA_HARVEST_CONTROL", "Symtropy", "https://github.com/Luminous-Dynamics/symtropy/issues/4074", "CEA_HARVEST_CONSTRAINED_LIGHTING_AND_CLIMATE_CONTROL"),
+    ("MYCELIX_FOOD_COOPERATIVE", "Mycelix", "https://github.com/Luminous-Dynamics/mycelix/issues/5001", "FOOD_COOPERATIVE_PRODUCT_LOT_AND_FULFILLMENT"),
+    ("HABITAT_SERVICE_TEST_CELL", "Symtropy", "https://github.com/Luminous-Dynamics/symtropy/issues/4531", "ROOM_SCALE_HOUSEHOLD_SERVICE_TEST_CELL"),
+    ("WATERLOOP_PHYSICAL_DEMO", "Symtropy", "https://github.com/Luminous-Dynamics/symtropy/issues/5335", "WATERLOOP_PHYSICAL_DEMONSTRATOR"),
+    ("ABOVEGROUND_SERVICE_CASSETTE", "Symtropy", "https://github.com/Luminous-Dynamics/symtropy/issues/4181", "MAINTAINABLE_BUILDING_SERVICE_CASSETTES"),
+];
+
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]
 pub struct AuditError {
     pub path: String,
@@ -406,6 +420,7 @@ fn validate_scope_boundary(root: &Value) -> Result<(), AuditError> {
             "included_service_classes",
             "excluded_scopes",
             "composition_rule",
+            "owner_native_dependencies",
         ],
         "$.scope_boundary",
     )?;
@@ -457,6 +472,85 @@ fn validate_scope_boundary(root: &Value) -> Result<(), AuditError> {
             return Err(AuditError::new(
                 "$.scope_boundary.excluded_scopes",
                 format!("missing required owner boundary reference: {required}"),
+            ));
+        }
+    }
+
+    let dependencies = required_array(scope, "owner_native_dependencies", "$.scope_boundary")?;
+    if dependencies.len() != REQUIRED_OWNER_NATIVE_DEPENDENCIES.len() {
+        return Err(AuditError::new(
+            "$.scope_boundary.owner_native_dependencies",
+            format!(
+                "expected {} owner-native dependencies, found {}",
+                REQUIRED_OWNER_NATIVE_DEPENDENCIES.len(),
+                dependencies.len()
+            ),
+        ));
+    }
+
+    let mut dependency_ids = BTreeSet::new();
+    let mut dependency_refs = BTreeSet::new();
+    let mut dependency_roles = BTreeSet::new();
+
+    for (index, dependency) in dependencies.iter().enumerate() {
+        let path = format!("$.scope_boundary.owner_native_dependencies[{index}]");
+        let object = dependency
+            .as_object()
+            .ok_or_else(|| AuditError::new(&path, "expected an object"))?;
+        check_keys(
+            object,
+            &["id", "owner", "reference", "role", "responsibility"],
+            &path,
+        )?;
+
+        let id = required_string(dependency, "id", &path)?;
+        let owner = required_string(dependency, "owner", &path)?;
+        let reference = required_string(dependency, "reference", &path)?;
+        let role = required_string(dependency, "role", &path)?;
+        let responsibility = required_string(dependency, "responsibility", &path)?;
+
+        if id.trim().is_empty()
+            || owner.trim().is_empty()
+            || reference.trim().is_empty()
+            || role.trim().is_empty()
+            || responsibility.trim().is_empty()
+        {
+            return Err(AuditError::new(
+                &path,
+                "id, owner, reference, role and responsibility must be non-empty",
+            ));
+        }
+
+        if !dependency_ids.insert(id.clone()) {
+            return Err(AuditError::new(format!("{path}.id"), "duplicate dependency id"));
+        }
+        if !dependency_refs.insert(reference.clone()) {
+            return Err(AuditError::new(
+                format!("{path}.reference"),
+                "duplicate owner-native dependency reference",
+            ));
+        }
+        if !dependency_roles.insert(role.clone()) {
+            return Err(AuditError::new(
+                format!("{path}.role"),
+                "duplicate owner-native dependency role",
+            ));
+        }
+    }
+
+    for (expected_id, expected_owner, expected_ref, expected_role) in
+        REQUIRED_OWNER_NATIVE_DEPENDENCIES
+    {
+        let found = dependencies.iter().any(|item| {
+            item.get("id").and_then(Value::as_str) == Some(*expected_id)
+                && item.get("owner").and_then(Value::as_str) == Some(*expected_owner)
+                && item.get("reference").and_then(Value::as_str) == Some(*expected_ref)
+                && item.get("role").and_then(Value::as_str) == Some(*expected_role)
+        });
+        if !found {
+            return Err(AuditError::new(
+                "$.scope_boundary.owner_native_dependencies",
+                format!("missing or mismatched owner-native dependency: {expected_id}"),
             ));
         }
     }
