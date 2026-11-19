@@ -1,0 +1,505 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://luminousdynamics.io/schemas/tib-evaluation-result-v0.schema.json",
+  "title": "Territorial Integrity Benchmark Evaluation Result v0",
+  "description": "Machine-readable benchmark outcome envelope. It records structural qualification or the need for review; it never expresses legal title, authority authenticity or a composite trust score.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "record_kind",
+    "suite",
+    "case_id",
+    "system",
+    "input_bundle",
+    "execution",
+    "outcome",
+    "claim_ceiling",
+    "data_classification",
+    "invariant_results",
+    "field_fidelity",
+    "review",
+    "limitations",
+    "evidence_class"
+  ],
+  "properties": {
+    "schema": {
+      "const": "luminous.tib.evaluation-result.v0"
+    },
+    "record_kind": {
+      "enum": [
+        "expected_case_annotation",
+        "observed_system_run"
+      ]
+    },
+    "suite": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "suite_id",
+        "suite_version",
+        "manifest_reference"
+      ],
+      "properties": {
+        "suite_id": {
+          "const": "TIB-SYNTH-STRUCTURAL-001"
+        },
+        "suite_version": {
+          "type": "string",
+          "minLength": 1
+        },
+        "manifest_reference": {
+          "type": "string",
+          "format": "uri",
+          "maxLength": 2048
+        }
+      }
+    },
+    "case_id": {
+      "type": "string",
+      "pattern": "^[A-Z0-9][A-Z0-9._-]{2,127}$"
+    },
+    "system": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "system_id",
+        "release_id",
+        "adapter_revision",
+        "configuration_sha256"
+      ],
+      "properties": {
+        "system_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200
+        },
+        "release_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200
+        },
+        "adapter_revision": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2048
+        },
+        "configuration_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        }
+      }
+    },
+    "input_bundle": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "fixture_reference",
+        "fixture_sha256"
+      ],
+      "properties": {
+        "fixture_reference": {
+          "type": "string",
+          "format": "uri",
+          "maxLength": 2048
+        },
+        "fixture_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        }
+      }
+    },
+    "execution": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "state"
+      ],
+      "properties": {
+        "state": {
+          "enum": [
+            "executed",
+            "not_executed"
+          ]
+        },
+        "runner_image_digest": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$"
+        },
+        "started_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "duration_ms": {
+          "type": "number",
+          "minimum": 0
+        },
+        "hardware_profile": {
+          "type": "string",
+          "maxLength": 512
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "state": {
+                "const": "executed"
+              }
+            },
+            "required": [
+              "state"
+            ]
+          },
+          "then": {
+            "required": [
+              "runner_image_digest",
+              "started_at",
+              "duration_ms"
+            ]
+          }
+        }
+      ]
+    },
+    "outcome": {
+      "enum": [
+        "structural_accept",
+        "structural_reject",
+        "review_required",
+        "not_evaluable"
+      ]
+    },
+    "claim_ceiling": {
+      "const": "reference-only-no-legal-effect"
+    },
+    "data_classification": {
+      "enum": [
+        "synthetic",
+        "public",
+        "permissioned",
+        "community_controlled",
+        "restricted"
+      ]
+    },
+    "invariant_results": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "invariant_id",
+          "status",
+          "severity",
+          "reason"
+        ],
+        "properties": {
+          "invariant_id": {
+            "type": "string",
+            "pattern": "^[A-Z][A-Z0-9_.-]{2,127}$"
+          },
+          "status": {
+            "enum": [
+              "pass",
+              "fail",
+              "review_required",
+              "not_evaluable"
+            ]
+          },
+          "severity": {
+            "enum": [
+              "critical",
+              "high",
+              "medium",
+              "low",
+              "informational"
+            ]
+          },
+          "reason": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 2000
+          },
+          "evidence_references": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uri",
+              "maxLength": 2048
+            },
+            "uniqueItems": true
+          }
+        }
+      }
+    },
+    "field_fidelity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "preserved_paths",
+        "transformed_fields",
+        "dropped_fields",
+        "unavailable_fields",
+        "round_trip_status"
+      ],
+      "properties": {
+        "preserved_paths": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true
+        },
+        "transformed_fields": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "source_path",
+              "target_path",
+              "reason"
+            ],
+            "properties": {
+              "source_path": {
+                "type": "string"
+              },
+              "target_path": {
+                "type": "string"
+              },
+              "reason": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          }
+        },
+        "dropped_fields": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "source_path",
+              "reason"
+            ],
+            "properties": {
+              "source_path": {
+                "type": "string"
+              },
+              "reason": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          }
+        },
+        "unavailable_fields": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "source_path",
+              "reason"
+            ],
+            "properties": {
+              "source_path": {
+                "type": "string"
+              },
+              "reason": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          }
+        },
+        "round_trip_status": {
+          "enum": [
+            "verified",
+            "failed",
+            "not_run",
+            "not_applicable"
+          ]
+        }
+      }
+    },
+    "review": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "required",
+        "reviewer_role",
+        "open_questions"
+      ],
+      "properties": {
+        "required": {
+          "type": "boolean"
+        },
+        "reviewer_role": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 256
+        },
+        "open_questions": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 2000
+          }
+        }
+      }
+    },
+    "limitations": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 2000
+      }
+    },
+    "measurements": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "latency_ms": {
+          "type": "number",
+          "minimum": 0
+        },
+        "bytes_read": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "bytes_written": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "peak_memory_bytes": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    },
+    "evidence_class": {
+      "type": "string",
+      "enum": [
+        "implemented_and_executed",
+        "structurally_checked",
+        "documented_capability",
+        "proposed_target",
+        "field_unverified",
+        "not_evaluable"
+      ],
+      "description": "Evidence strength of this benchmark statement. This must not be inferred from a planned test or a provider claim."
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "outcome": {
+            "const": "review_required"
+          }
+        },
+        "required": [
+          "outcome"
+        ]
+      },
+      "then": {
+        "properties": {
+          "review": {
+            "properties": {
+              "required": {
+                "const": true
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "record_kind": {
+            "const": "expected_case_annotation"
+          }
+        },
+        "required": [
+          "record_kind"
+        ]
+      },
+      "then": {
+        "properties": {
+          "execution": {
+            "properties": {
+              "state": {
+                "const": "not_executed"
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "record_kind": {
+            "const": "expected_case_annotation"
+          }
+        },
+        "required": [
+          "record_kind"
+        ]
+      },
+      "then": {
+        "properties": {
+          "evidence_class": {
+            "enum": [
+              "proposed_target",
+              "not_evaluable"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "record_kind": {
+            "const": "observed_system_run"
+          },
+          "execution": {
+            "properties": {
+              "state": {
+                "const": "not_executed"
+              }
+            },
+            "required": [
+              "state"
+            ]
+          }
+        },
+        "required": [
+          "record_kind",
+          "execution"
+        ]
+      },
+      "then": {
+        "properties": {
+          "evidence_class": {
+            "enum": [
+              "not_evaluable",
+              "documented_capability",
+              "field_unverified",
+              "proposed_target"
+            ]
+          }
+        }
+      }
+    }
+  ]
+}
