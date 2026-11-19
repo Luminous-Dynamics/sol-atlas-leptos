@@ -195,6 +195,12 @@ Proposed TIB targets:
 | Verified-complete obligations without independent verifier reference | 0 |
 | Ecological outcomes accepted without independent expert review of method, baseline and uncertainty | 0 |
 
+### Industry comparison and correction continuity
+
+- [TIB Industry Comparator Matrix v0.1](../../docs/research/TIB_INDUSTRY_COMPARATOR_MATRIX_V0_1.md) is now carried on this PR branch. It documents the current DMPR Project Indwe portal and explicitly records conflicting older/later BLSA tracker entries; portal functionality is not evidence of public API availability.
+- Add **evidence invalidation completeness** as a cross-system track: when a source is corrected, revoked or challenged, every transitive derived assertion and projection must be marked non-current, while unrelated branches remain unaffected. Preserve all independent causes and event lineage. Proposed targets: 0 omitted descendants, 0 stale projections left current, 0 unrelated false invalidations, 100% deterministic rebuild.
+- The Mycelix dependency graph is a rebuildable index over canonical evidence references, not a duplicate evidence ledger. Its 14 tests are structural/reference tests only; runtime propagation and delivery across products remain unimplemented.
+
 ## 7. Known limitations and release gates
 
 The current Sol Atlas validator checks record shape and selected internal references. It does not authenticate documents, verify signatures or issuer competence, resolve legal effect, validate CRS transformations, survey geometry, detect real-world overlap, prove consent, establish ecological recovery or guarantee completeness of a source frontier.
