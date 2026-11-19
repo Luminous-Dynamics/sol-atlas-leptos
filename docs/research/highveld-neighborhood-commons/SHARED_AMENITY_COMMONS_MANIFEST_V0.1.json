@@ -732,16 +732,6 @@
       "role": "COMMON_PROPERTY_10_YEAR_MAINTENANCE_REPAIR_REPLACEMENT_PLAN_AND_RESERVE"
     },
     {
-      "id": "SINGAPORE_BCA_PPVC_2026",
-      "url": "https://www1.bca.gov.sg/growth-and-transformation/productivity/design-for-manufacturing-and-assembly-dfma/prefabricated-prefinished-volumetric-construction-ppvc/",
-      "role": "PPVC_PRODUCTIVITY_REFERENCE_NOT_LOCAL_PERFORMANCE"
-    },
-    {
-      "id": "HDB_CTP_2026",
-      "url": "https://www.hdb.gov.sg/hdb-pulse/news/2026/advanced-construction-technologies-at-hdbs-first-ctp-helped-achieve-25-productivity-improvement",
-      "role": "CONSTRUCTION_TRANSFORMATION_PROGRAMME_REFERENCE"
-    },
-    {
       "id": "ASCE_MODULAR_PROJECTS_491_2026",
       "url": "https://doi.org/10.1061/JMENEA.MEENG-7605",
       "role": "MODULAR_PRODUCTIVITY_DATASET_REFERENCE_491_PROJECTS"
@@ -850,11 +840,6 @@
       "id": "MYCELIX_HOUSING_AMENITY_COMMONS",
       "url": "https://github.com/Luminous-Dynamics/mycelix/issues/6328",
       "role": "CANONICAL_AMENITY_ASSET_SERVICE_ACCESS_FINANCE_MAINTENANCE_GOVERNANCE_CONTRACT"
-    },
-    {
-      "id": "MYCELIX_HOUSING_AMENITY_BENCHMARK",
-      "url": "https://github.com/Luminous-Dynamics/mycelix/pull/6329",
-      "role": "CANONICAL_AMENITY_CONFORMANCE_CORPUS"
     },
     {
       "id": "WHOLE_HOUSEHOLD_COST_OF_PLACE",
