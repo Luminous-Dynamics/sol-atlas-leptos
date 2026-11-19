@@ -855,6 +855,16 @@
       "id": "MYCELIX_HOUSING_AMENITY_COMMONS_BENCHMARK_PR_6329",
       "url": "https://github.com/Luminous-Dynamics/mycelix/pull/6329",
       "role": "33_CASE_CANONICAL_AMENITY_OPERATIONAL_CONFORMANCE_BENCHMARK"
+    },
+    {
+      "id": "CITY_MORPH_ACCESS_BENCHMARK_ISSUE_555",
+      "url": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/555",
+      "role": "CANONICAL_EFFECTIVE_ACCESS_AND_URBAN_FORM_BENCHMARK"
+    },
+    {
+      "id": "CITY_MORPH_ACCESS_IMPLEMENTATION_PR_564",
+      "url": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/pull/564",
+      "role": "EXISTING_SYNTHETIC_EFFECTIVE_ACCESS_ORACLE_AND_SOURCE_RIGHTS_REGISTER"
     }
   ],
   "future_empirical_inputs_required": [
@@ -1115,6 +1125,13 @@
         "reference": "https://github.com/Luminous-Dynamics/mycelix/issues/912",
         "role": "CAPITAL_TO_COMMONS_STEWARD_FINANCE_TRANSITION",
         "responsibility": "bounded investor claims, permanent public-benefit stewardship, maintenance reserves and community transition"
+      },
+      {
+        "id": "CITY_MORPH_EFFECTIVE_ACCESS",
+        "owner": "Sol-Atlas",
+        "reference": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/555",
+        "role": "EVIDENCE_QUALIFIED_MULTIMODAL_EFFECTIVE_ACCESS",
+        "responsibility": "walk/cycle network reachability, opening, eligibility, affordability, step-free access and group-level reachable capacity potential; routing remains specialist-consumed and capacity potential is not allocation"
       }
     ]
   }
