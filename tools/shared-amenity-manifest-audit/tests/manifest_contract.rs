@@ -135,3 +135,20 @@ fn obsolete_operational_scenario_is_rejected() {
     value["scenarios"][0] = json!("ORDINARY_DEMAND");
     assert!(audit(&value).is_err());
 }
+
+#[test]
+fn case_identity_must_match_its_arm_and_scenario() {
+    let mut value = fixture();
+    value["cases"][0]["id"] = json!("ARBITRARY_CASE_ID");
+    assert!(audit(&value).is_err());
+}
+
+#[test]
+fn included_service_classes_are_a_frozen_exact_set() {
+    let mut value = fixture();
+    value["scope_boundary"]["included_service_classes"]
+        .as_array_mut()
+        .expect("included service classes")
+        .push(json!("unreviewed_service_class"));
+    assert!(audit(&value).is_err());
+}
