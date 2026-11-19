@@ -64,6 +64,18 @@ const EXPECTED_AMENITY_IDS: &[&str] = &[
     "NON_ESSENTIAL_AMENITY_PLANT",
 ];
 
+const EXPECTED_INCLUDED_SERVICE_CLASSES: &[&str] = &[
+    "community_and_dining",
+    "study_and_work",
+    "routine_tools_and_making",
+    "guest_accommodation",
+    "laundry",
+    "non_emergency_food_growing",
+    "pool_and_wellness",
+    "gym_and_recreation",
+    "public_recreation",
+];
+
 const REQUIRED_EXCLUDED_REFERENCES: &[&str] = &[
     "https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/694",
     "https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/737",
@@ -458,12 +470,11 @@ fn validate_scope_boundary(root: &Value) -> Result<(), AuditError> {
 
     let included = required_array(scope, "included_service_classes", "$.scope_boundary")?;
     let included_set = collect_string_set(included, "$.scope_boundary.included_service_classes")?;
-    if included_set.len() < 9 {
-        return Err(AuditError::new(
-            "$.scope_boundary.included_service_classes",
-            "expected at least nine distinct everyday/productive service classes",
-        ));
-    }
+    expect_same_set(
+        &included_set,
+        EXPECTED_INCLUDED_SERVICE_CLASSES,
+        "$.scope_boundary.included_service_classes",
+    )?;
 
     let exclusions = required_array(scope, "excluded_scopes", "$.scope_boundary")?;
     let mut references = BTreeSet::new();
@@ -641,6 +652,8 @@ fn validate_case_matrix(
         let id = required_string(case, "id", &path)?;
         let arm = required_string(case, "comparison_arm", &path)?;
         let scenario = required_string(case, "scenario", &path)?;
+        let expected_case_id = format!("{arm}__{scenario}");
+        expect_equal(&id, &expected_case_id, &format!("{path}.id"))?;
         expect_equal(
             &required_string(case, "definition_state", &path)?,
             "REGISTERED_DESIGN_ONLY",
