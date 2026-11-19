@@ -461,3 +461,43 @@ Symtropy has started [PORT-NEXUS-MULTIRATE-EVENT-001 #6255 / draft PR #6257](htt
 Sol-Atlas should provide spatial and source-qualified inputs with separate observation/valid/first-available/decision times. The monitor rejects future-available evidence and marks missing/stale critical signals incomplete. A trigger only requests re-planning; it does not reserve power, change schedules or actuate physical assets.
 
 Benchmark against fixed 15-minute and hourly replanning, one-sided energy triggers, logistics+energy BETM, and the multi-domain trigger. Any reduction in optimizer invocations is only an improvement when hard-grid/thermal misses and port/compute service outcomes do not worsen.
+
+
+## 16. Port-city energy–water nexus: compute heat and seawater desalination (19 November 2026)
+
+### 16.1 Data-centre heat can be a water-service input—but only with a qualified sink
+
+Yang, Konstantinou and Hou, *Enabling grid-interactive data center-desalination coordination through thermo-electric coupling-based waste heat utilization*, Applied Energy 408 (1 April 2026), DOI [10.1016/j.apenergy.2026.127428](https://doi.org/10.1016/j.apenergy.2026.127428), links compute-workload heat generation to seawater reverse-osmosis feedwater temperature and temperature-/salinity-dependent RO specific energy use. Its two-stage stochastic planning/operation study reports an 86.5% total annualized cost reduction in its specific case, with waste-heat synergy contributing 17%.
+
+The 86.5% is a system-level case result and must not be attributed solely to heat recovery. The 17% is the more appropriate heat-synergy comparison, but still requires exact-boundary reproduction before direct benchmarking.
+
+Spatial/evidence implications:
+- verify an actual, time-matched downstream water demand before assigning value to recovered heat;
+- preserve feed source, flow, temperature, salinity/species, intended-use boundary and rights;
+- locate intake/outfall, receiving-water body, brine discharge and protected/ecologically sensitive areas;
+- preserve the receiving environment and environmental authorization as separate evidence;
+- do not equate feedwater preheat with product water, RO performance improvement or potable-water quality.
+
+Sources: [Applied Energy](https://www.sciencedirect.com/science/article/pii/S0306261926000802); [University of Hong Kong repository](https://hub.hku.hk/handle/10722/379334).
+
+### 16.2 Heat pump versus ORC depends on temperature and market conditions
+
+Hong et al., *Thermal design-based waste heat utilization strategies for liquid-cooled data centers in third-generation district heating networks*, Energy Conversion and Management 368 (15 November 2026), DOI [10.1016/j.enconman.2026.122025](https://doi.org/10.1016/j.enconman.2026.122025), models a 120 MW liquid-cooled data centre with 50–60°C waste heat and compares high-temperature heat pumps with ORC power recovery. It reports an average COP of 3.46 for one selected heat-pump working fluid and 5.80% thermal efficiency for the ORC fluid, with the preferred option depending on the electricity-to-heat price ratio (crossover regions around 2.7 and 3.4 in that case).
+
+The study points out that where liquid cooling already avoids chiller duty, heat-pump recovery may add net electrical load unless it displaces a genuine heat source elsewhere. This should shape the spatial screening: a nearby process/building/heat sink must be characterized by temperature, flow, load profile, distance, delivery infrastructure, ownership and contracted offtake—not merely distance to a data centre.
+
+Source: [Energy Conversion and Management](https://www.sciencedirect.com/science/article/pii/S0196890426009945).
+
+### 16.3 Dual-purpose seawater systems are research comparators, not site guarantees
+
+Chen et al., *A dual-purpose seawater evaporation system for data center cooling and freshwater production: design and performance analysis*, Applied Thermal Engineering 287 (February 2026), article 129458, models seawater evaporation for simultaneous data-centre cooling and freshwater production. Its two study configurations report freshwater generation around 10,004 and 10,744 tonnes/day and power reductions of 41.5% and 40.0% against their study baselines.
+
+These are modeled outcomes, not guaranteed commercial output, qualified potable water or proof of acceptable brine/thermal discharge. Keep the proposed architecture separate from conventional SWRO and evaluate feed chemistry, recovered water quality, brine concentration, outfall impacts and component maturity.
+
+Source: [Applied Thermal Engineering](https://www.sciencedirect.com/science/article/abs/pii/S1359431125040505).
+
+### 16.4 Cross-stack integration
+
+Symtropy opened [PORT-NEXUS-WATER-HEAT-001 #6258 / draft PR #6259](https://github.com/Luminous-Dynamics/symtropy/pull/6259). It creates a matched application benchmark and synthetic 0D heat-interface fixture. The fixture partitions 10 MW IT heat into 6.27 MW useful feedwater preheat, 1.5675 MW transfer loss and 2.1625 MW residual cooling rejection. It deliberately leaves RO SEC change and qualified product-water volume null because no admitted RO temperature/salinity response or independent product-water evidence is supplied.
+
+Sol-Atlas remains the spatial owner for actual site water demand, intake/outfall, feedwater source and chemistry evidence, brine receiving environment, water rights and environmental constraints. Symtropy owns deterministic coupling and scenario replay; the water process, quality and closure authorities remain #5355/#2152/#4958; Mycelix carries source/approval/metrology evidence. No heat-balance pass becomes a potable-water or discharge-compliance claim.
