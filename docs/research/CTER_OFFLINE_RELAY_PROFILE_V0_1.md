@@ -151,15 +151,15 @@ The reference crate checks digest shape, identity collisions, stream sequence an
 8. A child of an invalid, revoked, unavailable, equivocated or forked predecessor is blocked pending review.
 9. A predecessor must belong to the same stream and have sequence exactly one less than the child. Cross-stream or wrong-sequence links are blocked.
 10. Genesis sequence zero has no previous hash; non-genesis events must have a previous hash.
-11. Concurrent accepted events from different streams that affect the same declared projection key are both preserved and reported as a conflict pair.
+11. Concurrent accepted events from different streams that affect the same declared projection key are preserved and reported in a compact conflict group. The group contains only the latest accepted event per stream for that projection key; prior same-stream events remain historical evidence.
 12. Corrections append new signed events; they do not erase the earlier event or the fact it was received.
 13. No deterministic display sort, timestamp or relay count may be interpreted as legal priority.
 14. Rebuilding the same projection from the same normalized event set and profile version must produce the same result.
 15. Verification status, verifier policy version, key-status snapshot and access annotations are detached from the signed event. Conflicting assessment policies/statuses require review; a later result never rewrites the source event.
-15. A key-validity conclusion cannot rely solely on the event's signer-controlled occurred_at; a trusted receipt or external timestamp basis is required.
-16. Conflicting access/projection annotations are retained as contextual uncertainty and cannot be resolved by last-write-wins or a less restrictive label.
-17. A payload digest mismatch for one immutable event identity is a payload-binding conflict, not a new event and not an acceptable replay.
-18. Conflict groups contain only the latest accepted event per stream for the relevant projection key; earlier same-stream events remain in the append-only history.
+16. A key-validity conclusion cannot rely solely on the event's signer-controlled occurred_at; a trusted receipt or external timestamp basis is required.
+17. Conflicting access/projection annotations are retained as contextual uncertainty and cannot be resolved by last-write-wins or a less restrictive label.
+18. A payload digest mismatch for one immutable event identity is a payload-binding conflict, not a new event and not an acceptable replay.
+19. Conflict groups contain only the latest accepted event per stream for the relevant projection key; earlier same-stream events remain in the append-only history.
 
 The reference model's `accepted_events` means only structurally eligible for evidence preservation under the supplied signature/key dispositions and chain links. It does not establish truth, signer authority, community mandate, consent, representativeness or legal effect.
 
