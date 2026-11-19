@@ -163,3 +163,27 @@ fn owner_aware_metric_vector_cannot_be_silently_removed() {
         .retain(|item| item != "ROBUSTNESS_AND_RECONFIGURATION");
     assert!(audit(&value).is_err());
 }
+
+#[test]
+fn incomplete_scenario_definition_registry_is_rejected() {
+    let mut value = fixture();
+    value["scenario_definitions"]
+        .as_array_mut()
+        .expect("scenario definitions")
+        .pop();
+    assert!(audit(&value).is_err());
+}
+
+#[test]
+fn invented_scenario_probabilities_are_rejected() {
+    let mut value = fixture();
+    value["scenario_definitions"][0]["probability_model_state"] = json!("ASSIGNED_0_25");
+    assert!(audit(&value).is_err());
+}
+
+#[test]
+fn unregistered_owner_output_in_scenario_definition_is_rejected() {
+    let mut value = fixture();
+    value["scenario_definitions"][0]["required_owner_outputs"] = json!(["PARALLEL_UNKNOWN_SERVICE_ORACLE"]);
+    assert!(audit(&value).is_err());
+}
