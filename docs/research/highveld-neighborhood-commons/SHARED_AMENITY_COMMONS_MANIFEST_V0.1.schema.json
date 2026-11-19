@@ -334,7 +334,7 @@
     },
     "reference_sources": {
       "type": "array",
-      "minItems": 37,
+      "minItems": 43,
       "items": {
         "type": "object",
         "additionalProperties": false,
