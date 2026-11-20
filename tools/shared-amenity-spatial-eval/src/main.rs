@@ -797,23 +797,6 @@ fn evaluate_arm(
         if group.mandatory_access_required {
             mandatory_group_count += 1;
             if valid_routes.is_empty() {
-                let known_failure = records.iter().any(|record| {
-                    record.access_state == "BLOCKED"
-                        || record.mandatory_access_state == "FAIL"
-                        || (record.access_state == "QUALIFIED"
-                            && facilities
-                                .get(record.facility_id.as_str())
-                                .is_some_and(|facility| facility.service_state == "UNAVAILABLE")
-                            && record.mandatory_access_state == "PASS")
-                        || (record.access_state == "QUALIFIED"
-                            && facilities
-                                .get(record.facility_id.as_str())
-                                .is_some_and(|facility| facility.service_state == "AVAILABLE")
-                            && record.generalized_cost_seconds.is_some_and(|seconds| {
-                                seconds > scenario.scope.maximum_generalized_cost_seconds
-                            })
-                            && record.mandatory_access_state == "PASS")
-                });
                 let has_unknown = records.iter().any(|record| {
                     record.access_state == "UNKNOWN"
                         || record.mandatory_access_state == "UNKNOWN"
@@ -825,8 +808,6 @@ fn evaluate_arm(
                     // An unresolved alternative could satisfy the resident's
                     // mandatory condition; do not turn partial evidence into FAIL.
                     mandatory_unknown = true;
-                } else if known_failure {
-                    mandatory_failure = true;
                 } else {
                     mandatory_failure = true;
                 }
