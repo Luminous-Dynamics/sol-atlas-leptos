@@ -9,6 +9,7 @@ on:
   push:
     branches:
       - "research/shared-amenity-spatial-oracle-v0.1"
+      - "research/temporal-amenity-opportunity-v0.1"
     paths:
       - "tools/shared-amenity-spatial-eval/**"
       - ".github/workflows/shared-amenity-spatial-eval.yml"
