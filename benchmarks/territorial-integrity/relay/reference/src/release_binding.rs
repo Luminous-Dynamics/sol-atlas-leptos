@@ -229,6 +229,23 @@ pub fn evaluate_composed_release_binding(
         );
     }
 
+    if nonblank(authority, "coverage_query_ref") != nonblank(query, "query_ref") {
+        raise(
+            &mut severity,
+            &mut reasons,
+            Severity::Deny,
+            "authorization_coverage_query_reference_mismatch",
+        );
+    }
+    if authority.get("coverage_query_commitment") != query.get("query_commitment") {
+        raise(
+            &mut severity,
+            &mut reasons,
+            Severity::Deny,
+            "authorization_coverage_query_commitment_mismatch",
+        );
+    }
+
     let authorized_classes = data_class_set(authority.get("data_classes"));
     let coverage_classes = data_class_set(query.get("data_classes"));
     match (authorized_classes, coverage_classes) {
