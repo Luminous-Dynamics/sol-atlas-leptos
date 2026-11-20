@@ -460,4 +460,4 @@ assert.equal(chainResult.disposition, "valid_structure", chainResult.reason_code
 passed.push("intermediate-provenance-dag");
 
 console.log("CTER egress oracle: " + passed.length + "/" + passed.length + " local structural cases matched.");
-console.log("Frozen specification corpus: " + corpus.cases.length + " adversarial cases; no production authorization is asserted.");
+console.log("Frozen specification corpus: " + corpus.cases.length + " entries (" + (corpus.cases.length - 1) + " adversarial specifications plus one baseline); no production authorization is asserted.");
