@@ -1,3 +1,4 @@
+use cter_relay_reference::private_coverage::query_input_snapshot_commitment;
 use cter_relay_reference::release_binding::{
     evaluate_composed_release_binding,
     evaluate_composed_release_binding_json,
@@ -248,5 +249,16 @@ fn composed_raw_json_entrypoint_uses_strict_duplicate_member_parser() {
     );
     assert!(
         evaluate_composed_release_binding_json(&manifest_json, &duplicate_coverage).is_err()
+    );
+}
+
+
+#[test]
+fn composed_query_input_snapshot_commitment_matches_frozen_golden_digest() {
+    let (_, coverage) = baseline();
+    assert_eq!(
+        query_input_snapshot_commitment(&coverage["query_input_snapshot"])
+            .expect("composed snapshot canonicalizes"),
+        "a8f000ebab94a5ad4479faa5fb12cf2980cc094376d0cc3eb438698804c3d788"
     );
 }
