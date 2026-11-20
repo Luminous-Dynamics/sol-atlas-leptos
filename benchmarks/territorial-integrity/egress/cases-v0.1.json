@@ -32,7 +32,14 @@
       "purpose_ref": "urn:fixture:purpose:synthetic-research",
       "recipient_ref": "urn:fixture:recipient:synthetic-001",
       "jurisdiction_profile_ref": "urn:fixture:jurisdiction:synthetic-001",
-      "data_classes": ["community"]
+      "data_classes": [
+        "community"
+      ],
+      "coverage_query_ref": "urn:fixture:query:scope-v1",
+      "coverage_query_commitment": {
+        "algorithm": "sha-256",
+        "value": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+      }
     },
     "destination_binding": {
       "recipient_ref": "urn:fixture:recipient:synthetic-001",
@@ -57,7 +64,9 @@
           },
           "byte_length": 128,
           "media_type": "application/octet-stream",
-          "data_classes": ["community"],
+          "data_classes": [
+            "community"
+          ],
           "source_refs": [
             {
               "object_ref": "urn:fixture:source:synthetic-001",
@@ -65,10 +74,14 @@
                 "algorithm": "sha-256",
                 "value": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
               },
-              "data_classes": ["community"]
+              "data_classes": [
+                "community"
+              ]
             }
           ],
-          "transformation_refs": ["urn:fixture:transform:identity-001"]
+          "transformation_refs": [
+            "urn:fixture:transform:identity-001"
+          ]
         }
       ],
       "transformations": [
@@ -80,8 +93,12 @@
             "algorithm": "sha-256",
             "value": "1111111111111111111111111111111111111111111111111111111111111111"
           },
-          "input_object_refs": ["urn:fixture:source:synthetic-001"],
-          "output_object_refs": ["urn:fixture:output:synthetic-001"]
+          "input_object_refs": [
+            "urn:fixture:source:synthetic-001"
+          ],
+          "output_object_refs": [
+            "urn:fixture:output:synthetic-001"
+          ]
         }
       ]
     },
@@ -280,16 +297,28 @@
       "mutation": "Use two canonicalizers that produce different commitments for the same manifest object.",
       "expected": "deny",
       "reason_code": "canonicalization_agreement_failed"
+    },
+    {
+      "case_id": "EGRESS-COVERAGE-QUERY-REF-MISSING-001",
+      "mutation": "Remove the exact coverage query reference from authorization binding.",
+      "expected": "incomplete",
+      "reason_code": "authorization_coverage_query_ref_missing"
+    },
+    {
+      "case_id": "EGRESS-COVERAGE-QUERY-COMMITMENT-MALFORMED-001",
+      "mutation": "Change the coverage query commitment to an unsupported algorithm.",
+      "expected": "incomplete",
+      "reason_code": "authorization_coverage_query_commitment_malformed"
     }
   ],
   "targets": {
     "unauthorized_release_negative_controls": 0,
-    "request_recipient_transform_frontier_substitution_detection": 1.0,
-    "complete_output_lineage_coverage": 1.0,
+    "request_recipient_transform_frontier_substitution_detection": 1,
+    "complete_output_lineage_coverage": 1,
     "unauthorized_classification_downgrade_acceptance": 0,
     "changed_bytes_under_unchanged_commitment": 0,
     "stale_or_untrusted_time_promoted_to_release": 0,
     "unsafe_non_idempotent_retry_after_unknown": 0,
-    "cross_language_canonicalization_agreement": 1.0
+    "cross_language_canonicalization_agreement": 1
   }
 }
