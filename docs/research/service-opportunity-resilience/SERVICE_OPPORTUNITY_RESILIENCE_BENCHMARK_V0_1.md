@@ -156,6 +156,35 @@ Finally, use risk-proportionate model credibility. NIST AMS 100-85 (5 October 20
 
 The novelty hypothesis is therefore deliberately narrow: not a new route engine, not a general network-resilience method, and not a universal accessibility index, but an evidence-reversible composition from realized travel opportunity to a complete, cohort-specific service task and its recovery trajectory.
 
+## 8A. Novelty boundary: separate potential, realized and completed service access
+
+Do not claim that time-dependent or capacity-aware service accessibility is itself new.
+
+- Chen et al. (2024), *From space to service*, already propose STH-G2SFCA: space-time heterogeneity, service capacity and time-varying service accessibility, with a Wuhan catering case. This is a direct methodological comparator, not something to dismiss as distance-only access: https://doi.org/10.1016/j.cities.2024.105314
+- Yadav, Patil and Mepparambath (October 2026), *New public transit accessibility metrics: system and system-facilitated accessibility measures*, integrate fine-grid intrazonal access to transit stops (400 m grid PTAL) with zone-to-zone transit opportunity access. This is a strong comparator for first/last-mile plus network-system access: https://doi.org/10.1016/j.tra.2026.105158
+- Liu, Porr and Miller (2024) address scheduled versus realized transit accessibility using GTFS real-time evidence and space-time prisms: https://doi.org/10.1016/j.jtrangeo.2023.103769
+
+The benchmark should make three distinct layers explicit:
+
+| Layer | Question | Appropriate evidence / baseline |
+|---|---|---|
+| L0 — potential spatial access | Could a resident reach the opportunity under a declared network/schedule model? | R5, OpenTripPlanner, PTAL/system access, cumulative/gravity/2SFCA |
+| L1 — realized trip access | Was the trip actually feasible under the observed or source-qualified transport state at the relevant departure time? | GTFS-RT / real-time trip records, space-time prisms, owner-qualified access receipts |
+| L2 — completed service-task opportunity | Could this resident/cohort complete the full declared task, including service duration, operating/commissioning state, suitability and qualified capacity? | #956/#958 plus owner-native Mycelix/Symtropy evidence |
+| L3 — resilient service-task opportunity | Did L2 remain usable through a declared disruption and return to owner-attested stable usability? | #959 plus Symtropy trajectory/recovery evidence |
+
+L0 is not L1. L1 is not L2. L2 is not L3. An upstream result may be excellent within its scope while still being insufficient to make the downstream claim. This layering is the intended systems contribution.
+
+### Additional falsifiable baseline requirements
+
+1. Reproduce one service-specific space-time/capacity baseline such as STH-G2SFCA where its input requirements are available.
+2. Reproduce one transit-system plus intrazonal-access baseline (PTAL / system-facilitated accessibility) for the travel layer.
+3. Where rights and data allow, compare scheduled accessibility with realized GTFS-RT accessibility before adding the service-task join.
+4. Preserve the incumbent outputs byte-for-byte / digest-for-digest in the paired B0/B1 runs; only the evidence-composition layer may differ.
+5. Report any gain as fewer incorrect downstream service claims, improved cohort/task discrimination, or more faithful recovery detection—not as a routing improvement.
+
+This evidence narrows the novelty hypothesis: the contribution is not inventing a space-time accessibility index, but making the transition from potential route to realized journey to a complete, cohort-specific, owner-accountable service task and its stable recovery explicit and replayable.
+
 ## 9. Benchmark ladder
 
 | Gate | Test | Target |
