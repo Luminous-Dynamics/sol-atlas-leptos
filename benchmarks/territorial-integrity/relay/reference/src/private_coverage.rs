@@ -80,6 +80,82 @@ fn finalize(severity: Severity, reasons: BTreeSet<String>) -> CoverageEvaluation
     }
 }
 
+fn check_public_view(
+    view: Option<&Value>,
+    frontier: &Value,
+    query: &Value,
+    package: &Value,
+    severity: &mut Severity,
+    reasons: &mut BTreeSet<String>,
+) {
+    let Some(view) = view else {
+        raise(
+            severity,
+            reasons,
+            Severity::Incomplete,
+            "public_verifier_view_missing",
+        );
+        return;
+    };
+    let Some(object) = view.as_object() else {
+        raise(
+            severity,
+            reasons,
+            Severity::Deny,
+            "public_verifier_view_not_object",
+        );
+        return;
+    };
+
+    const ALLOWED: &[&str] = &[
+        "frontier_commitment",
+        "query_commitment",
+        "request_commitment",
+        "package_commitment",
+        "proof_ref",
+    ];
+    if object.keys().any(|key| !ALLOWED.contains(&key.as_str())) {
+        raise(
+            severity,
+            reasons,
+            Severity::Deny,
+            "public_verifier_view_over_discloses",
+        );
+    }
+    if nonblank(view, "proof_ref").is_none() {
+        raise(
+            severity,
+            reasons,
+            Severity::Incomplete,
+            "public_proof_reference_missing",
+        );
+    }
+
+    for (public_field, source) in [
+        ("frontier_commitment", frontier.get("commitment")),
+        ("query_commitment", query.get("query_commitment")),
+        ("request_commitment", query.get("request_commitment")),
+        ("package_commitment", package.get("package_commitment")),
+    ] {
+        if view.get(public_field) != source {
+            raise(
+                severity,
+                reasons,
+                Severity::Deny,
+                format!("public_commitment_binding_mismatch:{public_field}"),
+            );
+        }
+        if !view.get(public_field).is_some_and(sha256_digest) {
+            raise(
+                severity,
+                reasons,
+                Severity::Incomplete,
+                format!("public_commitment_malformed:{public_field}"),
+            );
+        }
+    }
+}
+
 fn compare_receipt_projection(
     input: &Value,
     frontier: &Value,
