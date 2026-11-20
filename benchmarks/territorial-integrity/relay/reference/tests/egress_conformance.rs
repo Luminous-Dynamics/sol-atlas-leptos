@@ -21,7 +21,7 @@ fn baseline_manifest_has_structurally_closed_request_destination_and_lineage() {
 fn adversarial_suite_is_frozen_and_explicitly_unexecuted() {
     let suite = corpus();
     let cases = suite["cases"].as_array().expect("case array");
-    assert_eq!(cases.len(), 34);
+    assert_eq!(cases.len(), 35);
     assert_eq!(cases.iter().filter(|case| case["case_id"] != "EGRESS-BASELINE-001").count(), 31);
     assert_eq!(
         suite["execution_status"],
@@ -302,5 +302,20 @@ fn malformed_coverage_query_commitment_is_incomplete() {
         result
             .reason_codes
             .contains("authorization_coverage_query_commitment_malformed")
+    );
+}
+
+
+#[test]
+fn unsupported_coverage_query_profile_is_incomplete() {
+    let mut input = baseline();
+    input["authorization_binding"]["coverage_query_profile_ref"] =
+        Value::String("urn:luminous:cter:predicate-json-v0.2".into());
+    let result = evaluate_disclosure_manifest(&input);
+    assert_eq!(result.disposition, "incomplete");
+    assert!(
+        result.reason_codes.contains(
+            "authorization_coverage_query_profile_missing_or_unsupported"
+        )
     );
 }
