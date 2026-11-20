@@ -303,7 +303,7 @@ The evaluator checks the internal manifest shape and links between request, reci
 
 Classification is deliberately not a total order. A source/output class-set change produces REVIEW when no authority reference is present and UNKNOWN when a reference exists but the host has not resolved it. A reference string is not proof of permission to declassify.
 
-The Rust test module currently specifies 14 focused tests. The Node oracle independently specifies 13 structural checks, including a multi-stage provenance DAG and duplicate-source rejection. The 32-entry corpus contains one valid baseline case and 31 adversarial specifications. The corpus and scale profile are committed, but **the validator, oracle and tests have not yet been executed**. The latest exact-head workflow status must be consulted before claiming any CI result.
+The Rust test module currently specifies 14 focused tests. The independent JavaScript oracle specifies 13 structural checks, including a multi-stage provenance DAG and duplicate-source rejection. The 32-entry corpus contains one valid baseline case and 31 adversarial specifications. The JavaScript evaluator source and its 13 checks were executed in a V8 harness with the committed corpus injected: **13/13 matched**. This is not a Node 22 workflow result. The 14 Rust tests remain unexecuted, and exact-head CI must pass before any Rust or Node workflow claim.
 
 ### Strict limits of this slice
 
