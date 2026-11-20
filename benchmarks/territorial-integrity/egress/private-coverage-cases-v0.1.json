@@ -29,7 +29,7 @@
       "query_ref": "urn:fixture:query:scope-v1",
       "query_commitment": {
         "algorithm": "sha-256",
-        "value": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+        "value": "356a31c171751c9b506942e81ce35cb0dbb1a1862c5844e0a9e1b650a18be309"
       },
       "request_commitment": {
         "algorithm": "sha-256",
@@ -125,7 +125,7 @@
       },
       "query_commitment": {
         "algorithm": "sha-256",
-        "value": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+        "value": "356a31c171751c9b506942e81ce35cb0dbb1a1862c5844e0a9e1b650a18be309"
       },
       "request_commitment": {
         "algorithm": "sha-256",
@@ -150,7 +150,7 @@
       },
       "query_commitment": {
         "algorithm": "sha-256",
-        "value": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+        "value": "356a31c171751c9b506942e81ce35cb0dbb1a1862c5844e0a9e1b650a18be309"
       },
       "request_commitment": {
         "algorithm": "sha-256",
