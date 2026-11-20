@@ -37,23 +37,27 @@ function dataClassSet(value) {
 }
 
 function detectCycle(graph) {
-  const visiting = new Set();
-  const visited = new Set();
-  function visit(node) {
-    if (visiting.has(node)) return true;
-    if (visited.has(node)) return false;
-    visiting.add(node);
+  // Kahn's algorithm is iterative, so long lineage chains do not consume
+  // the JavaScript call stack in scale-oriented corpus runs.
+  const indegree = new Map();
+  for (const [node, children] of graph) {
+    if (!indegree.has(node)) indegree.set(node, 0);
+    for (const child of children) indegree.set(child, (indegree.get(child) ?? 0) + 1);
+  }
+  const ready = [...indegree.entries()]
+    .filter(([, degree]) => degree === 0)
+    .map(([node]) => node);
+  let processed = 0;
+  while (ready.length) {
+    const node = ready.pop();
+    processed += 1;
     for (const child of graph.get(node) ?? []) {
-      if (visit(child)) return true;
+      const degree = indegree.get(child) - 1;
+      indegree.set(child, degree);
+      if (degree === 0) ready.push(child);
     }
-    visiting.delete(node);
-    visited.add(node);
-    return false;
   }
-  for (const node of graph.keys()) {
-    if (visit(node)) return true;
-  }
-  return false;
+  return processed !== indegree.size;
 }
 
 export function evaluateDisclosureManifest(input) {
