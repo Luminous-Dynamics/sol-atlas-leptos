@@ -84,6 +84,141 @@ fn data_class_set(value: &Value) -> Result<BTreeSet<String>, &'static str> {
     }
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum QueryMatch {
+    True,
+    False,
+    Unknown,
+}
+
+fn scalar(value: &Value) -> bool {
+    value.is_string() || value.is_boolean() || value.is_number() || value.is_null()
+}
+
+// v0.1 deliberately supports one ASCII object-member segment only. It does
+// not execute arbitrary JSONPath, SQL, Rego, user code, or extension functions.
+fn query_member<'a>(
+    input: Option<&'a Value>,
+    path: &str,
+) -> Result<Option<&'a Value>, &'static str> {
+    let Some(member) = path.strip_prefix('/') else {
+        return Err("predicate_path_must_be_single_member_pointer");
+    };
+    if member.is_empty()
+        || member.contains('/')
+        || member.contains('~')
+        || !member
+            .bytes()
+            .all(|byte| byte.is_ascii_alphanumeric() || byte == b'_' || byte == b'-')
+        || !member.as_bytes()[0].is_ascii_alphabetic()
+    {
+        return Err("predicate_path_unsupported");
+    }
+    Ok(input.and_then(Value::as_object).and_then(|object| object.get(member)))
+}
+
+fn invert_query_match(value: QueryMatch) -> QueryMatch {
+    match value {
+        QueryMatch::True => QueryMatch::False,
+        QueryMatch::False => QueryMatch::True,
+        QueryMatch::Unknown => QueryMatch::Unknown,
+    }
+}
+
+fn evaluate_query_predicate(
+    predicate: Option<&Value>,
+    input: Option<&Value>,
+    depth: usize,
+) -> Result<QueryMatch, &'static str> {
+    if depth > 32 {
+        return Err("predicate_depth_exceeded");
+    }
+    let Some(predicate) = predicate.and_then(Value::as_object) else {
+        return Err("predicate_node_missing_or_not_object");
+    };
+    let Some(operation) = predicate.get("op").and_then(Value::as_str) else {
+        return Err("predicate_operator_missing");
+    };
+    match operation {
+        "all" | "any" => {
+            let Some(args) = predicate.get("args").and_then(Value::as_array) else {
+                return Err("predicate_args_missing_or_invalid");
+            };
+            if args.is_empty() || args.len() > 32 {
+                return Err("predicate_args_count_out_of_range");
+            }
+            let mut saw_unknown = false;
+            for argument in args {
+                match evaluate_query_predicate(Some(argument), input, depth + 1)? {
+                    QueryMatch::True if operation == "any" => return Ok(QueryMatch::True),
+                    QueryMatch::False if operation == "all" => return Ok(QueryMatch::False),
+                    QueryMatch::Unknown => saw_unknown = true,
+                    _ => {}
+                }
+            }
+            if saw_unknown {
+                Ok(QueryMatch::Unknown)
+            } else if operation == "all" {
+                Ok(QueryMatch::True)
+            } else {
+                Ok(QueryMatch::False)
+            }
+        }
+        "not" => {
+            let Some(argument) = predicate.get("arg") else {
+                return Err("predicate_not_arg_missing");
+            };
+            Ok(invert_query_match(evaluate_query_predicate(
+                Some(argument),
+                input,
+                depth + 1,
+            )?))
+        }
+        "eq" | "in" | "exists" => {
+            let Some(path) = predicate.get("path").and_then(Value::as_str) else {
+                return Err("predicate_path_missing");
+            };
+            let actual = query_member(input, path)?;
+            if operation == "exists" {
+                return Ok(match input.and_then(Value::as_object) {
+                    None => QueryMatch::Unknown,
+                    Some(_) if actual.is_some() => QueryMatch::True,
+                    Some(_) => QueryMatch::False,
+                });
+            }
+            let Some(actual) = actual else {
+                return Ok(QueryMatch::Unknown);
+            };
+            if operation == "eq" {
+                let Some(expected) = predicate.get("value") else {
+                    return Err("predicate_eq_value_missing");
+                };
+                if !scalar(expected) {
+                    return Err("predicate_eq_value_not_scalar");
+                }
+                Ok(if actual == expected {
+                    QueryMatch::True
+                } else {
+                    QueryMatch::False
+                })
+            } else {
+                let Some(values) = predicate.get("values").and_then(Value::as_array) else {
+                    return Err("predicate_in_values_missing_or_invalid");
+                };
+                if values.is_empty() || values.len() > 64 || !values.iter().all(scalar) {
+                    return Err("predicate_in_values_out_of_range_or_not_scalar");
+                }
+                Ok(if values.iter().any(|value| value == actual) {
+                    QueryMatch::True
+                } else {
+                    QueryMatch::False
+                })
+            }
+        }
+        _ => Err("predicate_operator_unsupported"),
+    }
+}
+
 fn finalize(severity: Severity, reasons: BTreeSet<String>) -> CoverageEvaluation {
     let disposition = match severity {
         Severity::None => "valid_partition_structure",
@@ -233,6 +368,7 @@ fn compare_receipt_projection(
     for field in [
         "query_commitment",
         "request_commitment",
+        "query_profile_ref",
         "principal_ref",
         "subject_ref",
         "operation",
@@ -373,6 +509,7 @@ pub fn evaluate_private_coverage(input: &Value) -> CoverageEvaluation {
     };
     for field in [
         "query_ref",
+        "query_profile_ref",
         "principal_ref",
         "subject_ref",
         "operation",
@@ -389,6 +526,14 @@ pub fn evaluate_private_coverage(input: &Value) -> CoverageEvaluation {
                 format!("query_{field}_missing"),
             );
         }
+    }
+    if nonblank(query, "query_profile_ref") != Some("urn:luminous:cter:predicate-json-v0.1") {
+        raise(
+            &mut severity,
+            &mut reasons,
+            Severity::Incomplete,
+            "query_profile_missing_or_unsupported",
+        );
     }
     if !matches!(
         nonblank(query, "operation"),
@@ -436,6 +581,24 @@ pub fn evaluate_private_coverage(input: &Value) -> CoverageEvaluation {
         ),
     }
 
+    let predicate_probe = Value::Object(serde_json::Map::new());
+    let predicate_valid = match evaluate_query_predicate(
+        query.get("predicate"),
+        Some(&predicate_probe),
+        0,
+    ) {
+        Ok(_) => true,
+        Err(reason) => {
+            raise(
+                &mut severity,
+                &mut reasons,
+                Severity::Incomplete,
+                format!("query_predicate_invalid:{reason}"),
+            );
+            false
+        }
+    };
+
     let Some(partition) = input.get("private_partition").and_then(Value::as_array) else {
         raise(
             &mut severity,
@@ -469,6 +632,37 @@ pub fn evaluate_private_coverage(input: &Value) -> CoverageEvaluation {
 
         let scope = nonblank(item, "scope_state");
         let disposition = nonblank(item, "disposition");
+        if predicate_valid {
+            let query_result = match evaluate_query_predicate(
+                query.get("predicate"),
+                item.get("query_input"),
+                0,
+            ) {
+                Ok(result) => result,
+                Err(reason) => {
+                    raise(
+                        &mut severity,
+                        &mut reasons,
+                        Severity::Incomplete,
+                        format!("query_predicate_invalid:{reason}"),
+                    );
+                    QueryMatch::Unknown
+                }
+            };
+            let expected_scope = match query_result {
+                QueryMatch::True => Some("in_scope"),
+                QueryMatch::False => Some("out_of_scope"),
+                QueryMatch::Unknown => Some("unknown"),
+            };
+            if scope != expected_scope {
+                raise(
+                    &mut severity,
+                    &mut reasons,
+                    Severity::Deny,
+                    "partition_scope_does_not_match_query_predicate",
+                );
+            }
+        }
         match (scope, disposition) {
             (Some("in_scope"), Some("included")) => {
                 included_refs.insert(object_ref.to_owned());
