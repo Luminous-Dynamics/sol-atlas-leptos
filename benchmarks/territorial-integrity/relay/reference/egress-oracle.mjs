@@ -296,6 +296,10 @@ export function evaluateDisclosureManifest(input) {
 
   for (const [outputRef, sourceRefs] of outputSourceRefs) {
     const inputs = transformInputs.get(outputRef);
+    if (!inputs || inputs.size !== sourceRefs.size
+        || [...inputs].some((sourceRef) => !sourceRefs.has(sourceRef))) {
+      raise("incomplete", "transformation_input_source_set_mismatch");
+    }
     for (const sourceRef of sourceRefs) {
       if (!sourceDigests.has(sourceRef) || !inputs?.has(sourceRef)) {
         raise("incomplete", "declared_source_not_connected_to_output_transform");
