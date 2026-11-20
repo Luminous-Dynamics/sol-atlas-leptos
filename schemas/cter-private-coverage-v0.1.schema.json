@@ -161,7 +161,8 @@
         "recipient_ref",
         "resource_ref",
         "jurisdiction_profile_ref",
-        "project_snapshot_sha256"
+        "project_snapshot_sha256",
+        "query_profile_ref"
       ],
       "properties": {
         "receipt_ref": {
@@ -225,6 +226,9 @@
         },
         "package_commitment": {
           "$ref": "#/$defs/sha256_digest"
+        },
+        "query_profile_ref": {
+          "$ref": "#/$defs/opaque_ref"
         }
       }
     },
