@@ -821,3 +821,147 @@ pub fn evaluate_private_coverage(input: &Value) -> CoverageEvaluation {
 
     finalize(severity, reasons)
 }
+
+
+#[cfg(test)]
+mod predicate_semantics_tests {
+    use super::{QueryMatch, evaluate_query_predicate};
+    use serde_json::json;
+
+    #[test]
+    fn all_false_dominates_unknown() {
+        let input = json!({});
+        let predicate = json!({
+            "op": "all",
+            "args": [
+                {"op": "eq", "path": "/missing", "value": "x"},
+                {"op": "eq", "path": "/present", "value": "y"}
+            ]
+        });
+        // Missing attributes are UNKNOWN; a known FALSE must dominate.
+        let input = json!({"present": "n"});
+        assert_eq!(
+            evaluate_query_predicate(Some(&predicate), Some(&input), 0),
+            Ok(QueryMatch::False)
+        );
+    }
+
+    #[test]
+    fn all_propagates_unknown_when_no_child_is_false() {
+        let input = json!({"dataset": "cadastre"});
+        let predicate = json!({
+            "op": "all",
+            "args": [
+                {"op": "eq", "path": "/dataset", "value": "cadastre"},
+                {"op": "eq", "path": "/jurisdiction", "value": "ZA"}
+            ]
+        });
+        assert_eq!(
+            evaluate_query_predicate(Some(&predicate), Some(&input), 0),
+            Ok(QueryMatch::Unknown)
+        );
+    }
+
+    #[test]
+    fn any_true_dominates_unknown() {
+        let input = json!({"jurisdiction": "ZA"});
+        let predicate = json!({
+            "op": "any",
+            "args": [
+                {"op": "eq", "path": "/dataset", "value": "cadastre"},
+                {"op": "eq", "path": "/jurisdiction", "value": "ZA"}
+            ]
+        });
+        assert_eq!(
+            evaluate_query_predicate(Some(&predicate), Some(&input), 0),
+            Ok(QueryMatch::True)
+        );
+    }
+
+    #[test]
+    fn any_propagates_unknown_when_no_child_is_true() {
+        let input = json!({"jurisdiction": "US"});
+        let predicate = json!({
+            "op": "any",
+            "args": [
+                {"op": "eq", "path": "/dataset", "value": "cadastre"},
+                {"op": "eq", "path": "/jurisdiction", "value": "ZA"}
+            ]
+        });
+        assert_eq!(
+            evaluate_query_predicate(Some(&predicate), Some(&input), 0),
+            Ok(QueryMatch::Unknown)
+        );
+    }
+
+    #[test]
+    fn not_preserves_unknown() {
+        let predicate = json!({
+            "op": "not",
+            "arg": {"op": "eq", "path": "/missing", "value": "x"}
+        });
+        assert_eq!(
+            evaluate_query_predicate(Some(&predicate), Some(&json!({})), 0),
+            Ok(QueryMatch::Unknown)
+        );
+    }
+
+    #[test]
+    fn exists_distinguishes_unavailable_input_from_known_absence() {
+        let predicate = json!({"op": "exists", "path": "/jurisdiction"});
+        assert_eq!(
+            evaluate_query_predicate(Some(&predicate), None, 0),
+            Ok(QueryMatch::Unknown)
+        );
+        assert_eq!(
+            evaluate_query_predicate(Some(&predicate), Some(&json!({})), 0),
+            Ok(QueryMatch::False)
+        );
+        assert_eq!(
+            evaluate_query_predicate(Some(&predicate), Some(&json!({"jurisdiction": "ZA"})), 0),
+            Ok(QueryMatch::True)
+        );
+    }
+
+    #[test]
+    fn in_uses_exact_scalar_value_equality() {
+        let predicate = json!({
+            "op": "in",
+            "path": "/jurisdiction",
+            "values": ["ZA", "BW", "LS"]
+        });
+        assert_eq!(
+            evaluate_query_predicate(Some(&predicate), Some(&json!({"jurisdiction": "ZA"})), 0),
+            Ok(QueryMatch::True)
+        );
+        assert_eq!(
+            evaluate_query_predicate(Some(&predicate), Some(&json!({"jurisdiction": "US"})), 0),
+            Ok(QueryMatch::False)
+        );
+        assert_eq!(
+            evaluate_query_predicate(Some(&predicate), Some(&json!({})), 0),
+            Ok(QueryMatch::Unknown)
+        );
+    }
+
+    #[test]
+    fn unsupported_operators_fail_closed() {
+        let predicate = json!({"op": "regex", "path": "/name", "value": ".*"});
+        assert_eq!(
+            evaluate_query_predicate(Some(&predicate), Some(&json!({"name": "item"})), 0),
+            Err("predicate_operator_unsupported")
+        );
+    }
+
+    #[test]
+    fn predicate_depth_is_bounded() {
+        let mut predicate = json!({"op": "eq", "path": "/x", "value": "1"});
+        for _ in 0..34 {
+            predicate = json!({"op": "not", "arg": predicate});
+        }
+        assert_eq!(
+            evaluate_query_predicate(Some(&predicate), Some(&json!({"x": "1"})), 0),
+            Err("predicate_depth_exceeded")
+        );
+    }
+}
