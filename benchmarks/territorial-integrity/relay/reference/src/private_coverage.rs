@@ -927,6 +927,7 @@ fn compare_receipt_projection(
         "request_commitment",
         "query_profile_ref",
         "input_snapshot_ref",
+        "input_snapshot_profile_ref",
         "input_snapshot_commitment",
         "principal_ref",
         "subject_ref",
@@ -1235,15 +1236,22 @@ pub fn evaluate_private_coverage(input: &Value) -> CoverageEvaluation {
         let scope = nonblank(item, "scope_state");
         let disposition = nonblank(item, "disposition");
         let snapshot_item = snapshot_items.get(object_ref);
-        if nonblank(item, "query_input_snapshot_item_ref") != Some(object_ref)
-            || snapshot_item.is_none()
-        {
-            raise(
+        match snapshot_item {
+            None => raise(
                 &mut severity,
                 &mut reasons,
-                Severity::Deny,
-                "partition_query_input_snapshot_item_binding_mismatch",
-            );
+                Severity::Incomplete,
+                "partition_query_input_snapshot_item_missing",
+            ),
+            Some(_) if nonblank(item, "query_input_snapshot_item_ref") != Some(object_ref) => {
+                raise(
+                    &mut severity,
+                    &mut reasons,
+                    Severity::Deny,
+                    "partition_query_input_snapshot_item_binding_mismatch",
+                );
+            }
+            Some(_) => {}
         }
         if predicate_valid {
             let query_result = match snapshot_item {
