@@ -128,7 +128,7 @@ Calendar completeness has a critical distinction:
 
 The `coverage_state` completeness assertion in this synthetic adapter is a proposed integration-envelope field, **not a claim that Mycelix PR #6329's current JSON Schema already defines that exact field**. The owner must approve its semantics or provide its equivalent before a live adapter is implemented.
 
-The 17 frozen temporal fixtures cover arrival at close, duration crossing close, maintenance, not commissioned, complete/incomplete gaps, stale evidence, arrival uncertainty, contiguous windows, scope/clock mismatch, blocked/unknown access and mixed revisions. The verifier reports AVAILABLE, UNAVAILABLE, UNKNOWN or NOT_COMPARABLE with reason codes and owner revisions. Invalid overlap, duplicate IDs, negative/zero durations, horizon overflow and excessive uncertainty are rejected by adversarial tests.
+The 20 frozen temporal fixtures cover arrival at close, duration crossing close, maintenance, not commissioned, complete/incomplete gaps, stale evidence, arrival uncertainty, contiguous windows, scope/clock mismatch, blocked/unknown access and mixed revisions. The verifier reports AVAILABLE, UNAVAILABLE, UNKNOWN or NOT_COMPARABLE with reason codes and owner revisions and separate evidence-freshness states. Invalid overlap, duplicate IDs, negative/zero durations, horizon overflow and excessive uncertainty are rejected by adversarial tests.
 
 This is an opportunity check, not a scheduling or booking decision. A group may have a time-compatible service opportunity without any allocation, entitlement, reservation or capacity assignment.
 
