@@ -54,7 +54,7 @@ function hasUnpairedSurrogate(value) {
 
 // Independent, bounded JCS serializer for the predicate JSON value. This
 // relies on ECMAScript JSON string/number formatting and UTF-16 key ordering.
-function canonicalJcs(value) {
+export function canonicalJcs(value) {
   if (value === null || typeof value === "boolean") return JSON.stringify(value);
   if (typeof value === "string") {
     if (hasUnpairedSurrogate(value)) throw new Error("jcs_invalid_unicode");
