@@ -46,7 +46,9 @@
         "purpose_ref",
         "recipient_ref",
         "jurisdiction_profile_ref",
-        "data_classes"
+        "data_classes",
+        "coverage_query_ref",
+        "coverage_query_commitment"
       ],
       "properties": {
         "request_ref": {
@@ -91,6 +93,14 @@
         },
         "data_classes": {
           "$ref": "#/$defs/data_classes"
+        },
+        "coverage_query_ref": {
+          "$ref": "#/$defs/opaque_ref",
+          "description": "Exact query identity used to construct the custodian-controlled coverage partition."
+        },
+        "coverage_query_commitment": {
+          "$ref": "#/$defs/sha256_digest",
+          "description": "Commitment to the exact canonical coverage query predicate."
         }
       }
     },
