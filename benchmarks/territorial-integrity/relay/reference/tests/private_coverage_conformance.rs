@@ -20,7 +20,7 @@ fn baseline_partition_is_structurally_valid_but_not_a_cryptographic_proof() {
 #[test]
 fn private_coverage_suite_size_and_claim_ceiling_are_frozen() {
     let suite = corpus();
-    assert_eq!(suite["cases"].as_array().expect("cases").len(), 37);
+    assert_eq!(suite["cases"].as_array().expect("cases").len(), 38);
     assert_eq!(suite["synthetic_only"].as_bool(), Some(true));
     assert!(
         suite["claim_ceiling"]
@@ -391,6 +391,10 @@ fn apply_case_mutation(case_id: &str, input: &mut Value) {
             input["query_binding"]["predicate"]["args"][0]["path"] =
                 Value::String("dataset".into());
         }
+        "PCOV-PREDICATE-SUBSTITUTION-001" => {
+            input["query_binding"]["predicate"]["args"][1]["value"] =
+                Value::String("US".into());
+        }
         _ => panic!("unknown private coverage case {case_id}"),
     }
 }
@@ -399,7 +403,7 @@ fn apply_case_mutation(case_id: &str, input: &mut Value) {
 fn frozen_private_coverage_corpus_matches_every_expected_disposition() {
     let suite = corpus();
     let cases = suite["cases"].as_array().expect("cases array");
-    assert_eq!(cases.len(), 37);
+    assert_eq!(cases.len(), 38);
     for case in cases {
         let case_id = case["case_id"].as_str().expect("case id");
         let expected = case["expected"].as_str().expect("expected disposition");
@@ -483,4 +487,22 @@ fn malformed_predicate_path_is_incomplete() {
     let result = evaluate_private_coverage(&input);
     assert_eq!(result.disposition, "incomplete");
     assert!(result.reason_codes.contains("query_predicate_invalid:predicate_path_must_be_single_member_pointer"));
+}
+
+
+#[test]
+fn predicate_substitution_without_commitment_refresh_is_denied() {
+    let mut input = baseline();
+    input["query_binding"]["predicate"]["args"][1]["value"] =
+        Value::String("US".into());
+    let result = evaluate_private_coverage(&input);
+    assert_eq!(result.disposition, "deny");
+    assert!(result.reason_codes.contains("query_predicate_commitment_mismatch"));
+}
+
+#[test]
+fn baseline_query_predicate_commitment_is_recomputed() {
+    let result = evaluate_private_coverage(&baseline());
+    assert_eq!(result.disposition, "valid_partition_structure");
+    assert!(!result.reason_codes.contains("query_predicate_commitment_mismatch"));
 }
