@@ -225,7 +225,7 @@ No production privacy guarantee, global absence assertion or cryptographic compl
 The first model artifacts are committed:
 
 - [Private coverage invariants](../../benchmarks/territorial-integrity/egress/private-coverage-invariants-v0.1.json): 16 named invariants covering frontier identity, query binding, one-and-only-one partitioning, package leaf-set equality, proof freshness, privacy, verifier scoping and independent restore.
-- [Private coverage adversarial corpus](../../benchmarks/territorial-integrity/egress/private-coverage-cases-v0.1.json): 30 synthetic cases comprising one valid partition baseline plus 29 adversarial specifications.
+- [Private coverage adversarial corpus](../../benchmarks/territorial-integrity/egress/private-coverage-cases-v0.1.json): 32 synthetic cases comprising one valid partition baseline plus 31 adversarial specifications.
 
 The baseline intentionally contains a private partition with included, withheld, unavailable, excluded and unresolved items, while its public verifier view exposes only synthetic commitments and an opaque proof reference. No real personal, community or territorial evidence is used.
 
@@ -267,7 +267,7 @@ The initial evaluator and cross-language conformance slice is now committed:
 - Rust evaluator: \`benchmarks/territorial-integrity/relay/reference/src/private_coverage.rs\`.
 - Rust tests: \`benchmarks/territorial-integrity/relay/reference/tests/private_coverage_conformance.rs\`.
 - Independent Node oracle: \`benchmarks/territorial-integrity/relay/reference/private-coverage-oracle.mjs\`.
-- Frozen corpus: \`benchmarks/territorial-integrity/egress/private-coverage-cases-v0.1.json\` (30 cases).
+- Frozen corpus: \`benchmarks/territorial-integrity/egress/private-coverage-cases-v0.1.json\` (32 cases).
 
 The record now binds:
 - the exact frontier object-reference set and version;
