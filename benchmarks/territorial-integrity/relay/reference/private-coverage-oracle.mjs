@@ -80,7 +80,7 @@ export function evaluatePrivateCoverage(input) {
     return finish();
   }
   for (const field of [
-    "query_ref", "principal_ref", "operation", "purpose_ref",
+    "query_ref", "principal_ref", "subject_ref", "operation", "purpose_ref",
     "recipient_ref", "resource_ref", "jurisdiction_profile_ref",
   ]) {
     if (!nonblank(query, field)) raise("incomplete", "query_" + field + "_missing");
@@ -93,6 +93,13 @@ export function evaluatePrivateCoverage(input) {
   }
   if (!isHex64(nonblank(query, "project_snapshot_sha256"))) {
     raise("incomplete", "query_project_snapshot_malformed");
+  }
+
+  const validClasses = new Set(["public", "community", "restricted", "culturally_protected"]);
+  const queryClasses = referenceSet(query.data_classes);
+  if (queryClasses.error || queryClasses.refs.size === 0
+      || [...queryClasses.refs].some((value) => !validClasses.has(value))) {
+    raise("incomplete", "query_data_classes_invalid");
   }
 
   if (!Array.isArray(input.private_partition)) {
@@ -160,7 +167,7 @@ export function evaluatePrivateCoverage(input) {
       raise("deny", "receipt_package_commitment_mismatch");
     }
     for (const field of [
-      "query_commitment", "request_commitment", "principal_ref", "operation",
+      "query_commitment", "request_commitment", "principal_ref", "subject_ref", "operation",
       "purpose_ref", "recipient_ref", "resource_ref", "jurisdiction_profile_ref",
       "project_snapshot_sha256",
     ]) {
@@ -170,6 +177,13 @@ export function evaluatePrivateCoverage(input) {
     }
     if (!isSha256(receipt.query_commitment) || !isSha256(receipt.request_commitment)) {
       raise("incomplete", "receipt_query_or_request_commitment_malformed");
+    }
+
+    const receiptClasses = referenceSet(receipt.data_classes);
+    const queryClassSet = referenceSet(query.data_classes);
+    if (receiptClasses.error || queryClassSet.error
+        || JSON.stringify([...receiptClasses.refs].sort()) !== JSON.stringify([...queryClassSet.refs].sort())) {
+      raise("deny", "receipt_query_binding_mismatch:data_classes");
     }
   }
 
