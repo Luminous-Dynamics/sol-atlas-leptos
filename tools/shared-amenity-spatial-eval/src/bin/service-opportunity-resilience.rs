@@ -853,7 +853,10 @@ mod tests {
         assert_eq!(evaluated.disruption_events, case.disruption_events);
         assert_eq!(evaluated.stability_evidence, case.stability_evidence);
         assert!(evaluated.input_alternatives.iter().all(|alternative| {
-            alternative.failure_domains.contains(&"SHARED_OPERATOR_X".to_owned())
+            alternative
+                .failure_domains
+                .iter()
+                .any(|domain| domain == "SHARED_OPERATOR_X")
         }));
         assert!(evaluated.disruption_events.iter().any(|event| {
             event.failure_domain == "SHARED_OPERATOR_X"
