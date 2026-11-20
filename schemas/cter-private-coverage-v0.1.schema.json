@@ -83,7 +83,8 @@
         "query_profile_ref",
         "predicate",
         "input_snapshot_ref",
-        "input_snapshot_commitment"
+        "input_snapshot_commitment",
+        "input_snapshot_profile_ref"
       ],
       "properties": {
         "query_ref": {
@@ -148,6 +149,9 @@
         },
         "input_snapshot_commitment": {
           "$ref": "#/$defs/sha256_digest"
+        },
+        "input_snapshot_profile_ref": {
+          "$ref": "#/$defs/opaque_ref"
         }
       }
     },
@@ -173,7 +177,8 @@
         "project_snapshot_sha256",
         "query_profile_ref",
         "input_snapshot_ref",
-        "input_snapshot_commitment"
+        "input_snapshot_commitment",
+        "input_snapshot_profile_ref"
       ],
       "properties": {
         "receipt_ref": {
@@ -246,6 +251,9 @@
         },
         "input_snapshot_commitment": {
           "$ref": "#/$defs/sha256_digest"
+        },
+        "input_snapshot_profile_ref": {
+          "$ref": "#/$defs/opaque_ref"
         }
       }
     },
