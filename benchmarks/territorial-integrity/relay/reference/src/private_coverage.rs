@@ -570,26 +570,43 @@ fn validate_query_input_snapshot(
                 }
 
                 for path in &predicate_paths {
-                    match query_member(Some(&Value::Object(attributes.clone())), path) {
-                        Ok(Some(_)) if !binding_paths.contains(path) => raise(
+                    let member = path.strip_prefix('/').filter(|member| {
+                        !member.is_empty()
+                            && !member.contains('/')
+                            && !member.contains('~')
+                            && member.bytes().all(|byte| {
+                                byte.is_ascii_alphanumeric() || byte == b'_' || byte == b'-'
+                            })
+                            && member.as_bytes()[0].is_ascii_alphabetic()
+                    });
+                    match member {
+                        Some(member) if attributes.contains_key(member)
+                            && !binding_paths.contains(path) =>
+                        {
+                            raise(
+                                severity,
+                                reasons,
+                                Severity::Incomplete,
+                                format!("query_input_attribute_source_binding_missing:{path}"),
+                            );
+                        }
+                        Some(member) if !attributes.contains_key(member)
+                            && binding_paths.contains(path) =>
+                        {
+                            raise(
+                                severity,
+                                reasons,
+                                Severity::Deny,
+                                format!("query_input_attribute_binding_for_missing_value:{path}"),
+                            );
+                        }
+                        Some(_) => {}
+                        None => raise(
                             severity,
                             reasons,
                             Severity::Incomplete,
-                            format!("query_input_attribute_source_binding_missing:{path}"),
+                            format!("query_input_predicate_path_invalid:{path}"),
                         ),
-                        Ok(None) if binding_paths.contains(path) => raise(
-                            severity,
-                            reasons,
-                            Severity::Deny,
-                            format!("query_input_attribute_binding_for_missing_value:{path}"),
-                        ),
-                        Err(reason) => raise(
-                            severity,
-                            reasons,
-                            Severity::Incomplete,
-                            format!("query_input_predicate_path_invalid:{reason}"),
-                        ),
-                        _ => {}
                     }
                 }
                 if attributes.keys().any(|key| {
