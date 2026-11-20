@@ -14,6 +14,7 @@ pub mod authority;
 pub mod egress;
 pub mod privacy;
 pub mod private_coverage;
+pub mod release_binding;
 
 use serde_json::{json, Value};
 use std::collections::{BTreeMap, BTreeSet, VecDeque};
