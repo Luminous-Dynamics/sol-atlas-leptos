@@ -60,6 +60,9 @@ All fixture ticks are 900-second synthetic ticks. Intervals are half-open, [star
 The reference corpus uses four intervals: [0,2), [2,4), [4,6), and [6,8). These are test discretizations, not observations or probabilities.
 
 ## 4. Recovery semantics
+The output field `first_restored_after_known_loss_tick` is defined as the start of the first interval whose composed opportunity state is AVAILABLE after any earlier UNAVAILABLE interval in the same case. An intervening UNKNOWN interval does not erase the fact that a known loss occurred. This is a **first qualified return observation**, not the physical restoration instant and not proof of stable recovery. Exact physical/service recovery and stable restoration remain owner-native Symtropy evidence.
+
+
 
 Distinguish:
 - first available opportunity;
