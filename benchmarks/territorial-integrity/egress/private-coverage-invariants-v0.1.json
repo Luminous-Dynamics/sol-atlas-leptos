@@ -1,0 +1,154 @@
+{
+  "schema": "luminous.cter.private-coverage-invariants.v0.1",
+  "workstream": "CTER-PRIVATE-COVERAGE-001",
+  "status": "formal_model_candidate_not_cryptographically_implemented",
+  "proof_primitive": "not_selected",
+  "authoritative_receipt_owner": "Mycelix",
+  "definitions": {
+    "frontier": "A named, versioned and owner-declared set of evidence objects with an explicit commitment and provenance boundary.",
+    "query": "A canonical, versioned predicate bound to request, operation, purpose, recipient, jurisdiction and project snapshot.",
+    "included": "An in-scope frontier item represented in the exact package's transitive source lineage.",
+    "withheld": "An in-scope item not disclosed because a separately qualified restriction applies.",
+    "unavailable": "An in-scope item whose content or authoritative resolver cannot currently be obtained.",
+    "excluded": "An item explicitly outside the exact query scope.",
+    "unresolved": "An item whose scope or disposition cannot be safely established.",
+    "complete": "All items in the exact committed frontier have exactly one disposition and the included set is bound to the package; it is not global real-world completeness."
+  },
+  "dispositions": [
+    "included",
+    "withheld",
+    "unavailable",
+    "excluded",
+    "unresolved"
+  ],
+  "invariants": [
+    {
+      "id": "PCOV-INV-001",
+      "statement": "The evidence frontier is explicitly named, versioned, committed and source-owner attributed.",
+      "failure": "unknown"
+    },
+    {
+      "id": "PCOV-INV-002",
+      "statement": "The query commitment binds the exact request, operation, purpose, recipient, jurisdiction and project snapshot.",
+      "failure": "deny"
+    },
+    {
+      "id": "PCOV-INV-003",
+      "statement": "Each frontier object reference occurs exactly once in the private partition.",
+      "failure": "deny"
+    },
+    {
+      "id": "PCOV-INV-004",
+      "statement": "The partition's object-reference set equals the committed frontier's object-reference set.",
+      "failure": "incomplete"
+    },
+    {
+      "id": "PCOV-INV-005",
+      "statement": "Every in-scope item has exactly one of included, withheld, unavailable or unresolved.",
+      "failure": "deny"
+    },
+    {
+      "id": "PCOV-INV-006",
+      "statement": "Every out-of-scope item has the excluded disposition and cannot be silently included.",
+      "failure": "deny"
+    },
+    {
+      "id": "PCOV-INV-007",
+      "statement": "Unknown scope or disposition is unresolved; it is never converted to absent or excluded.",
+      "failure": "unknown"
+    },
+    {
+      "id": "PCOV-INV-008",
+      "statement": "The included frontier set equals the terminal source-leaf set of the exact package's validated transitive transformation lineage.",
+      "failure": "deny"
+    },
+    {
+      "id": "PCOV-INV-009",
+      "statement": "No package output is introduced without a path to a source leaf in the committed frontier.",
+      "failure": "deny"
+    },
+    {
+      "id": "PCOV-INV-010",
+      "statement": "The query, request, recipient, package and frontier commitments are the exact same versions used in the proof.",
+      "failure": "deny"
+    },
+    {
+      "id": "PCOV-INV-011",
+      "statement": "Receipt freshness, signature, issuer trust and VDS proof validity are resolved by Mycelix's authoritative verifier.",
+      "failure": "unknown"
+    },
+    {
+      "id": "PCOV-INV-012",
+      "statement": "Non-inclusion is bounded to the exact VDS and frontier version and is never presented as real-world absence.",
+      "failure": "deny"
+    },
+    {
+      "id": "PCOV-INV-013",
+      "statement": "The public verifier view does not expose protected object references, locations, claimant data, revealing counts or deterministic low-entropy hashes.",
+      "failure": "deny"
+    },
+    {
+      "id": "PCOV-INV-014",
+      "statement": "Proof visibility and detail are scoped to the verifier's operation-specific authority.",
+      "failure": "deny"
+    },
+    {
+      "id": "PCOV-INV-015",
+      "statement": "Every correction or new source event creates an explicit version/supersession; frozen frontier commitments are immutable.",
+      "failure": "unknown"
+    },
+    {
+      "id": "PCOV-INV-016",
+      "statement": "Custody exit restores the frontier, query, partition semantics, receipt references and package relationships without the original provider's credentials.",
+      "failure": "incomplete"
+    }
+  ],
+  "partition_rule": {
+    "scope_state": {
+      "in_scope": ["included", "withheld", "unavailable", "unresolved"],
+      "out_of_scope": ["excluded"],
+      "unknown": ["unresolved"]
+    },
+    "set_equation": "F_v = I disjoint_union W disjoint_union U disjoint_union X disjoint_union R",
+    "package_binding": "I equals the package's transitive terminal source-leaf set",
+    "private_only_fields": [
+      "per_item_reference",
+      "per_item_disposition",
+      "per_item_reason",
+      "protected_location",
+      "claimant_or_party_reference",
+      "restricted_object_digest",
+      "withheld_object_metadata"
+    ]
+  },
+  "verifier_profiles": [
+    {
+      "profile": "recipient",
+      "minimum_disclosure": "exact package commitment and the object-level inclusion proof needed to verify items received",
+      "default_forbidden": ["unrelated frontier items", "withheld inventory", "community-wide object counts"]
+    },
+    {
+      "profile": "independent_auditor",
+      "minimum_disclosure": "proof that the named query and partition were evaluated against the committed frontier, with only approved aggregate facts",
+      "default_forbidden": ["raw protected inventory", "claimant identities", "restricted coordinates"]
+    },
+    {
+      "profile": "public_observer",
+      "minimum_disclosure": "opaque scoped receipt reference and consistency proof, if disclosure is authorized",
+      "default_forbidden": ["item identities", "frontier size", "withheld count", "unavailable count", "locations", "low-entropy hashes"]
+    },
+    {
+      "profile": "community_custodian",
+      "minimum_disclosure": "full private partition and provenance required for its authorized stewardship role",
+      "default_forbidden": ["unrelated projects", "unrelated recipients", "unrelated purposes"]
+    }
+  ],
+  "non_goals": [
+    "global real-world completeness",
+    "new CTER transparency ledger",
+    "new CTER identity or authority system",
+    "automatic consent or community mandate resolution",
+    "claim that a receipt proves source acquisition was honest",
+    "public disclosure of withheld object inventory"
+  ]
+}
