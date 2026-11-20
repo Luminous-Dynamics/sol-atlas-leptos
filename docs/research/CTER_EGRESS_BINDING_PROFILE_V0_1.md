@@ -338,3 +338,14 @@ No post-quantum algorithm has been selected or implemented in this profile. The 
 
 
 The lineage check has an additional exact-set invariant: for each output node, the set of immediate transform inputs must equal the output's declared source-reference set. It is not sufficient for every declared source to appear among the transform inputs; an additional undeclared input is also an incomplete provenance record. The Rust suite and independent Node oracle now include a synthetic hidden-transform-input mutation.
+
+
+## 15. Package coverage is a separate proof layer
+
+The egress validator now composes with [CTER-PRIVATE-COVERAGE-001 #962](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/962). For each output node, #960 checks that the immediate transform-input set equals the declared source-reference set. #962 extends that boundary across the entire package: the private partition's included set must equal the terminal source-leaf set of the validated transitive transformation graph.
+
+The two checks solve different problems:
+- #960 prevents a hidden or undeclared dependency from entering through a transformation and binds output objects to the exact manifest/request/recipient;
+- #962 ensures every object in the declared frontier has exactly one private disposition and that no included source is omitted or phantom source introduced in the package.
+
+The private coverage evaluator currently validates this partition algebra and binds the synthetic receipt projection to the exact query/request/recipient/frontier/package. It does not verify the upstream COSE/VDS proof. The proof primitive remains unselected; see [CTER_PRIVATE_COVERAGE_PROFILE_V0_1.md](CTER_PRIVATE_COVERAGE_PROFILE_V0_1.md).
