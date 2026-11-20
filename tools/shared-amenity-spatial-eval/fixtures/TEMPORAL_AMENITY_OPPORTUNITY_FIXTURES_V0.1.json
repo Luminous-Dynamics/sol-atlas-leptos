@@ -1,0 +1,1276 @@
+{
+  "schema": "luminous.temporal-amenity-opportunity-fixtures",
+  "schema_version": "0.1.0",
+  "maturity": "SYNTHETIC_TEMPORAL_JOIN_ORACLE_ONLY",
+  "claim_ceiling": "NO_LIVE_FACILITY_HOURS_ROUTE_TRAVEL_TIME_BOOKING_ACCESSIBILITY_CAPACITY_OR_JOHANNESBURG_OPERATIONAL_CLAIM",
+  "owner_bindings": {
+    "scope": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/623",
+    "access": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/555",
+    "service": "https://github.com/Luminous-Dynamics/mycelix/issues/6328"
+  },
+  "time_basis_contract": {
+    "tick_seconds": 900,
+    "origin": "SYNTHETIC_LOCAL_DAY_START",
+    "rule": "All tick values are already normalized to this exact time basis by owner systems; this tool performs no timezone conversion or calendar inference.",
+    "interval_semantics": "HALF_OPEN_START_INCLUSIVE_END_EXCLUSIVE",
+    "uncertainty_semantics": "arrival_earliest_tick and arrival_latest_tick are inclusive possible arrival ticks"
+  },
+  "cases": [
+    {
+      "opportunity_id": "OPEN_FULL_SERVICE_SLOT",
+      "scope": {
+        "scope_digest": "synthetic-temporal-scope:OPEN_FULL_SERVICE_SLOT:v0.1",
+        "service_id": "COMMUNITY_KITCHEN",
+        "functional_unit_id": "ACCESSIBLE_SHARED_KITCHEN_HOUR",
+        "period_id": "SYNTHETIC_WEEKDAY",
+        "time_basis_id": "SYNTHETIC_LOCAL_15_MINUTE_TICKS_V1",
+        "horizon_start_tick": 0,
+        "horizon_end_tick": 96
+      },
+      "access": {
+        "owner": "Sol-Atlas",
+        "owner_reference": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/555",
+        "owner_source_id": "synthetic-citymorph-effective-access",
+        "owner_revision": "citymorph-synth-rev-1",
+        "scope_digest": "synthetic-temporal-scope:OPEN_FULL_SERVICE_SLOT:v0.1",
+        "time_basis_id": "SYNTHETIC_LOCAL_15_MINUTE_TICKS_V1",
+        "access_state": "QUALIFIED",
+        "arrival_earliest_tick": 36,
+        "arrival_latest_tick": 36,
+        "evidence_state": "CURRENT"
+      },
+      "calendar": {
+        "owner": "Mycelix",
+        "owner_reference": "https://github.com/Luminous-Dynamics/mycelix/issues/6328",
+        "owner_source_id": "synthetic-housing-amenity-service",
+        "owner_revision": "mycelix-synth-rev-1",
+        "scope_digest": "synthetic-temporal-scope:OPEN_FULL_SERVICE_SLOT:v0.1",
+        "time_basis_id": "SYNTHETIC_LOCAL_15_MINUTE_TICKS_V1",
+        "coverage_state": "COMPLETE",
+        "evidence_state": "CURRENT",
+        "service_windows": [
+          {
+            "window_id": "OPEN_FULL_SERVICE_SLOT-W1",
+            "owner": "Mycelix",
+            "owner_reference": "https://github.com/Luminous-Dynamics/mycelix/issues/6328",
+            "owner_source_id": "synthetic-housing-amenity-service",
+            "owner_revision": "mycelix-synth-rev-1",
+            "scope_digest": "synthetic-temporal-scope:OPEN_FULL_SERVICE_SLOT:v0.1",
+            "time_basis_id": "SYNTHETIC_LOCAL_15_MINUTE_TICKS_V1",
+            "start_tick": 32,
+            "end_tick": 48,
+            "operational_state": "OPERATIONAL",
+            "evidence_state": "CURRENT"
+          }
+        ]
+      },
+      "required_service_duration_ticks": 4,
+      "expected": {
+        "disposition": "AVAILABLE",
+        "reason_code": "ALL_POSSIBLE_ARRIVALS_FIT_OPERATIONAL_WINDOW",
+        "possible_arrival_count": 1,
+        "available_arrival_count": 1,
+        "unavailable_arrival_count": 0,
+        "unknown_arrival_count": 0
+      }
+    },
+    {
+      "opportunity_id": "ARRIVAL_EXACTLY_AT_CLOSE",
+      "scope": {
+        "scope_digest": "synthetic-temporal-scope:ARRIVAL_EXACTLY_AT_CLOSE:v0.1",
+        "service_id": "COMMUNITY_KITCHEN",
+        "functional_unit_id": "ACCESSIBLE_SHARED_KITCHEN_HOUR",
+        "period_id": "SYNTHETIC_WEEKDAY",
+        "time_basis_id": "SYNTHETIC_LOCAL_15_MINUTE_TICKS_V1",
+        "horizon_start_tick": 0,
+        "horizon_end_tick": 96
+      },
+      "access": {
+        "owner": "Sol-Atlas",
+        "owner_reference": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/555",
+        "owner_source_id": "synthetic-citymorph-effective-access",
+        "owner_revision": "citymorph-synth-rev-1",
+        "scope_digest": "synthetic-temporal-scope:ARRIVAL_EXACTLY_AT_CLOSE:v0.1",
+        "time_basis_id": "SYNTHETIC_LOCAL_15_MINUTE_TICKS_V1",
+        "access_state": "QUALIFIED",
+        "arrival_earliest_tick": 40,
+        "arrival_latest_tick": 40,
+        "evidence_state": "CURRENT"
+      },
+      "calendar": {
+        "owner": "Mycelix",
+        "owner_reference": "https://github.com/Luminous-Dynamics/mycelix/issues/6328",
+        "owner_source_id": "synthetic-housing-amenity-service",
+        "owner_revision": "mycelix-synth-rev-1",
+        "scope_digest": "synthetic-temporal-scope:ARRIVAL_EXACTLY_AT_CLOSE:v0.1",
+        "time_basis_id": "SYNTHETIC_LOCAL_15_MINUTE_TICKS_V1",
+        "coverage_state": "COMPLETE",
+        "evidence_state": "CURRENT",
+        "service_windows": [
+          {
+            "window_id": "ARRIVAL_EXACTLY_AT_CLOSE-W1",
+            "owner": "Mycelix",
+            "owner_reference": "https://github.com/Luminous-Dynamics/mycelix/issues/6328",
+            "owner_source_id": "synthetic-housing-amenity-service",
+            "owner_revision": "mycelix-synth-rev-1",
+            "scope_digest": "synthetic-temporal-scope:ARRIVAL_EXACTLY_AT_CLOSE:v0.1",
+            "time_basis_id": "SYNTHETIC_LOCAL_15_MINUTE_TICKS_V1",
+            "start_tick": 32,
+            "end_tick": 40,
+            "operational_state": "OPERATIONAL",
+            "evidence_state": "CURRENT"
+          }
+        ]
+      },
+      "required_service_duration_ticks": 1,
+      "expected": {
+        "disposition": "UNAVAILABLE",
+        "reason_code": "NO_POSSIBLE_ARRIVAL_FITS_OPERATIONAL_WINDOW",
+        "possible_arrival_count": 1,
+        "available_arrival_count": 0,
+        "unavailable_arrival_count": 1,
+        "unknown_arrival_count": 0
+      }
+    },
+    {
+      "opportunity_id": "SERVICE_DURATION_CROSSES_CLOSE",
+      "scope": {
+        "scope_digest": "synthetic-temporal-scope:SERVICE_DURATION_CROSSES_CLOSE:v0.1",
+        "service_id": "COMMUNITY_KITCHEN",
+        "functional_unit_id": "ACCESSIBLE_SHARED_KITCHEN_HOUR",
+        "period_id": "SYNTHETIC_WEEKDAY",
+        "time_basis_id": "SYNTHETIC_LOCAL_15_MINUTE_TICKS_V1",
+        "horizon_start_tick": 0,
+        "horizon_end_tick": 96
+      },
+      "access": {
+        "owner": "Sol-Atlas",
+        "owner_reference": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/555",
+        "owner_source_id": "synthetic-citymorph-effective-access",
+        "owner_revision": "citymorph-synth-rev-1",
+        "scope_digest": "synthetic-temporal-scope:SERVICE_DURATION_CROSSES_CLOSE:v0.1",
+        "time_basis_id": "SYNTHETIC_LOCAL_15_MINUTE_TICKS_V1",
+        "access_state": "QUALIFIED",
+        "arrival_earliest_tick": 39,
+        "arrival_latest_tick": 39,
+        "evidence_state": "CURRENT"
+      },
+      "calendar": {
+        "owner": "Mycelix",
+        "owner_reference": "https://github.com/Luminous-Dynamics/mycelix/issues/6328",
+        "owner_source_id": "synthetic-housing-amenity-service",
+        "owner_revision": "mycelix-synth-rev-1",
+        "scope_digest": "synthetic-temporal-scope:SERVICE_DURATION_CROSSES_CLOSE:v0.1",
+        "time_basis_id": "SYNTHETIC_LOCAL_15_MINUTE_TICKS_V1",
+        "coverage_state": "COMPLETE",
+        "evidence_state": "CURRENT",
+        "service_windows": [
+          {
+            "window_id": "SERVICE_DURATION_CROSSES_CLOSE-W1",
+            "owner": "Mycelix",
+            "owner_reference": "https://github.com/Luminous-Dynamics/mycelix/issues/6328",
+            "owner_source_id": "synthetic-housing-amenity-service",
+            "owner_revision": "mycelix-synth-rev-1",
+            "scope_digest": "synthetic-temporal-scope:SERVICE_DURATION_CROSSES_CLOSE:v0.1",
+            "time_basis_id": "SYNTHETIC_LOCAL_15_MINUTE_TICKS_V1",
+            "start_tick": 32,
+            "end_tick": 40,
+            "operational_state": "OPERATIONAL",
+            "evidence_state": "CURRENT"
+          }
+        ]
+      },
+      "required_service_duration_ticks": 2,
+      "expected": {
+        "disposition": "UNAVAILABLE",
+        "reason_code": "NO_POSSIBLE_ARRIVAL_FITS_OPERATIONAL_WINDOW",
+        "possible_arrival_count": 1,
+        "available_arrival_count": 0,
+        "unavailable_arrival_count": 1,
+        "unknown_arrival_count": 0
+      }
+    },
+    {
+      "opportunity_id": "MAINTENANCE_DURING_REQUEST",
+      "scope": {
+        "scope_digest": "synthetic-temporal-scope:MAINTENANCE_DURING_REQUEST:v0.1",
+        "service_id": "COMMUNITY_KITCHEN",
+        "functional_unit_id": "ACCESSIBLE_SHARED_KITCHEN_HOUR",
+        "period_id": "SYNTHETIC_WEEKDAY",
+        "time_basis_id": "SYNTHETIC_LOCAL_15_MINUTE_TICKS_V1",
+        "horizon_start_tick": 0,
+        "horizon_end_tick": 96
+      },
+      "access": {
+        "owner": "Sol-Atlas",
+        "owner_reference": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/555",
+        "owner_source_id": "synthetic-citymorph-effective-access",
+        "owner_revision": "citymorph-synth-rev-1",
+        "scope_digest": "synthetic-temporal-scope:MAINTENANCE_DURING_REQUEST:v0.1",
+        "time_basis_id": "SYNTHETIC_LOCAL_15_MINUTE_TICKS_V1",
+        "access_state": "QUALIFIED",
+        "arrival_earliest_tick": 35,
+        "arrival_latest_tick": 36,
+        "evidence_state": "CURRENT"
+      },
+      "calendar": {
+        "owner": "Mycelix",
+        "owner_reference": "https://github.com/Luminous-Dynamics/mycelix/issues/6328",
+        "owner_source_id": "synthetic-housing-amenity-service",
+        "owner_revision": "mycelix-synth-rev-1",
+        "scope_digest": "synthetic-temporal-scope:MAINTENANCE_DURING_REQUEST:v0.1",
+        "time_basis_id": "SYNTHETIC_LOCAL_15_MINUTE_TICKS_V1",
+        "coverage_state": "COMPLETE",
+        "evidence_state": "CURRENT",
+        "service_windows": [
+          {
+            "window_id": "MAINTENANCE_DURING_REQUEST-W1",
+            "owner": "Mycelix",
+            "owner_reference": "https://github.com/Luminous-Dynamics/mycelix/issues/6328",
+            "owner_source_id": "synthetic-housing-amenity-service",
+            "owner_revision": "mycelix-synth-rev-1",
+            "scope_digest": "synthetic-temporal-scope:MAINTENANCE_DURING_REQUEST:v0.1",
+            "time_basis_id": "SYNTHETIC_LOCAL_15_MINUTE_TICKS_V1",
+            "start_tick": 32,
+            "end_tick": 36,
+            "operational_state": "OPERATIONAL",
+            "evidence_state": "CURRENT"
+          },
+          {
+            "window_id": "MAINTENANCE_DURING_REQUEST-W2",
+            "owner": "Mycelix",
+            "owner_reference": "https://github.com/Luminous-Dynamics/mycelix/issues/6328",
+            "owner_source_id": "synthetic-housing-amenity-service",
+            "owner_revision": "mycelix-synth-rev-1",
+            "scope_digest": "synthetic-temporal-scope:MAINTENANCE_DURING_REQUEST:v0.1",
+            "time_basis_id": "SYNTHETIC_LOCAL_15_MINUTE_TICKS_V1",
+            "start_tick": 36,
+            "end_tick": 40,
+            "operational_state": "CLOSED_FOR_MAINTENANCE",
+            "evidence_state": "CURRENT"
+          }
+        ]
+      },
+      "required_service_duration_ticks": 2,
+      "expected": {
+        "disposition": "UNAVAILABLE",
+        "reason_code": "NO_POSSIBLE_ARRIVAL_FITS_OPERATIONAL_WINDOW",
+        "possible_arrival_count": 2,
+        "available_arrival_count": 0,
+        "unavailable_arrival_count": 2,
+        "unknown_arrival_count": 0
+      }
+    },
+    {
+      "opportunity_id": "NOT_COMMISSIONED_SERVICE",
+      "scope": {
+        "scope_digest": "synthetic-temporal-scope:NOT_COMMISSIONED_SERVICE:v0.1",
+        "service_id": "COMMUNITY_KITCHEN",
+        "functional_unit_id": "ACCESSIBLE_SHARED_KITCHEN_HOUR",
+        "period_id": "SYNTHETIC_WEEKDAY",
+        "time_basis_id": "SYNTHETIC_LOCAL_15_MINUTE_TICKS_V1",
+        "horizon_start_tick": 0,
+        "horizon_end_tick": 96
+      },
+      "access": {
+        "owner": "Sol-Atlas",
+        "owner_reference": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/555",
+        "owner_source_id": "synthetic-citymorph-effective-access",
+        "owner_revision": "citymorph-synth-rev-1",
+        "scope_digest": "synthetic-temporal-scope:NOT_COMMISSIONED_SERVICE:v0.1",
+        "time_basis_id": "SYNTHETIC_LOCAL_15_MINUTE_TICKS_V1",
+        "access_state": "QUALIFIED",
+        "arrival_earliest_tick": 36,
+        "arrival_latest_tick": 36,
+        "evidence_state": "CURRENT"
+      },
+      "calendar": {
+        "owner": "Mycelix",
+        "owner_reference": "https://github.com/Luminous-Dynamics/mycelix/issues/6328",
+        "owner_source_id": "synthetic-housing-amenity-service",
+        "owner_revision": "mycelix-synth-rev-1",
+        "scope_digest": "synthetic-temporal-scope:NOT_COMMISSIONED_SERVICE:v0.1",
+        "time_basis_id": "SYNTHETIC_LOCAL_15_MINUTE_TICKS_V1",
+        "coverage_state": "COMPLETE",
+        "evidence_state": "CURRENT",
+        "service_windows": [
+          {
+            "window_id": "NOT_COMMISSIONED_SERVICE-W1",
+            "owner": "Mycelix",
+            "owner_reference": "https://github.com/Luminous-Dynamics/mycelix/issues/6328",
+            "owner_source_id": "synthetic-housing-amenity-service",
+            "owner_revision": "mycelix-synth-rev-1",
+            "scope_digest": "synthetic-temporal-scope:NOT_COMMISSIONED_SERVICE:v0.1",
+            "time_basis_id": "SYNTHETIC_LOCAL_15_MINUTE_TICKS_V1",
+            "start_tick": 32,
+            "end_tick": 48,
+            "operational_state": "NOT_COMMISSIONED",
+            "evidence_state": "CURRENT"
+          }
+        ]
+      },
+      "required_service_duration_ticks": 4,
+      "expected": {
+        "disposition": "UNAVAILABLE",
+        "reason_code": "NO_POSSIBLE_ARRIVAL_FITS_OPERATIONAL_WINDOW",
+        "possible_arrival_count": 1,
+        "available_arrival_count": 0,
+        "unavailable_arrival_count": 1,
+        "unknown_arrival_count": 0
+      }
+    },
+    {
+      "opportunity_id": "COMPLETE_CALENDAR_CLOSED_GAP",
+      "scope": {
+        "scope_digest": "synthetic-temporal-scope:COMPLETE_CALENDAR_CLOSED_GAP:v0.1",
+        "service_id": "COMMUNITY_KITCHEN",
+        "functional_unit_id": "ACCESSIBLE_SHARED_KITCHEN_HOUR",
+        "period_id": "SYNTHETIC_WEEKDAY",
+        "time_basis_id": "SYNTHETIC_LOCAL_15_MINUTE_TICKS_V1",
+        "horizon_start_tick": 0,
+        "horizon_end_tick": 96
+      },
+      "access": {
+        "owner": "Sol-Atlas",
+        "owner_reference": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/555",
+        "owner_source_id": "synthetic-citymorph-effective-access",
+        "owner_revision": "citymorph-synth-rev-1",
+        "scope_digest": "synthetic-temporal-scope:COMPLETE_CALENDAR_CLOSED_GAP:v0.1",
+        "time_basis_id": "SYNTHETIC_LOCAL_15_MINUTE_TICKS_V1",
+        "access_state": "QUALIFIED",
+        "arrival_earliest_tick": 36,
+        "arrival_latest_tick": 36,
+        "evidence_state": "CURRENT"
+      },
+      "calendar": {
+        "owner": "Mycelix",
+        "owner_reference": "https://github.com/Luminous-Dynamics/mycelix/issues/6328",
+        "owner_source_id": "synthetic-housing-amenity-service",
+        "owner_revision": "mycelix-synth-rev-1",
+        "scope_digest": "synthetic-temporal-scope:COMPLETE_CALENDAR_CLOSED_GAP:v0.1",
+        "time_basis_id": "SYNTHETIC_LOCAL_15_MINUTE_TICKS_V1",
+        "coverage_state": "COMPLETE",
+        "evidence_state": "CURRENT",
+        "service_windows": [
+          {
+            "window_id": "COMPLETE_CALENDAR_CLOSED_GAP-W1",
+            "owner": "Mycelix",
+            "owner_reference": "https://github.com/Luminous-Dynamics/mycelix/issues/6328",
+            "owner_source_id": "synthetic-housing-amenity-service",
+            "owner_revision": "mycelix-synth-rev-1",
+            "scope_digest": "synthetic-temporal-scope:COMPLETE_CALENDAR_CLOSED_GAP:v0.1",
+            "time_basis_id": "SYNTHETIC_LOCAL_15_MINUTE_TICKS_V1",
+            "start_tick": 32,
+            "end_tick": 36,
+            "operational_state": "OPERATIONAL",
+            "evidence_state": "CURRENT"
+          },
+          {
+            "window_id": "COMPLETE_CALENDAR_CLOSED_GAP-W2",
+            "owner": "Mycelix",
+            "owner_reference": "https://github.com/Luminous-Dynamics/mycelix/issues/6328",
+            "owner_source_id": "synthetic-housing-amenity-service",
+            "owner_revision": "mycelix-synth-rev-1",
+            "scope_digest": "synthetic-temporal-scope:COMPLETE_CALENDAR_CLOSED_GAP:v0.1",
+            "time_basis_id": "SYNTHETIC_LOCAL_15_MINUTE_TICKS_V1",
+            "start_tick": 40,
+            "end_tick": 48,
+            "operational_state": "OPERATIONAL",
+            "evidence_state": "CURRENT"
+          }
+        ]
+      },
+      "required_service_duration_ticks": 1,
+      "expected": {
+        "disposition": "UNAVAILABLE",
+        "reason_code": "NO_POSSIBLE_ARRIVAL_FITS_OPERATIONAL_WINDOW",
+        "possible_arrival_count": 1,
+        "available_arrival_count": 0,
+        "unavailable_arrival_count": 1,
+        "unknown_arrival_count": 0
+      }
+    },
+    {
+      "opportunity_id": "INCOMPLETE_CALENDAR_GAP",
+      "scope": {
+        "scope_digest": "synthetic-temporal-scope:INCOMPLETE_CALENDAR_GAP:v0.1",
+        "service_id": "COMMUNITY_KITCHEN",
+        "functional_unit_id": "ACCESSIBLE_SHARED_KITCHEN_HOUR",
+        "period_id": "SYNTHETIC_WEEKDAY",
+        "time_basis_id": "SYNTHETIC_LOCAL_15_MINUTE_TICKS_V1",
+        "horizon_start_tick": 0,
+        "horizon_end_tick": 96
+      },
+      "access": {
+        "owner": "Sol-Atlas",
+        "owner_reference": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/555",
+        "owner_source_id": "synthetic-citymorph-effective-access",
+        "owner_revision": "citymorph-synth-rev-1",
+        "scope_digest": "synthetic-temporal-scope:INCOMPLETE_CALENDAR_GAP:v0.1",
+        "time_basis_id": "SYNTHETIC_LOCAL_15_MINUTE_TICKS_V1",
+        "access_state": "QUALIFIED",
+        "arrival_earliest_tick": 36,
+        "arrival_latest_tick": 36,
+        "evidence_state": "CURRENT"
+      },
+      "calendar": {
+        "owner": "Mycelix",
+        "owner_reference": "https://github.com/Luminous-Dynamics/mycelix/issues/6328",
+        "owner_source_id": "synthetic-housing-amenity-service",
+        "owner_revision": "mycelix-synth-rev-1",
+        "scope_digest": "synthetic-temporal-scope:INCOMPLETE_CALENDAR_GAP:v0.1",
+        "time_basis_id": "SYNTHETIC_LOCAL_15_MINUTE_TICKS_V1",
+        "coverage_state": "INCOMPLETE",
+        "evidence_state": "CURRENT",
+        "service_windows": [
+          {
+            "window_id": "INCOMPLETE_CALENDAR_GAP-W1",
+            "owner": "Mycelix",
+            "owner_reference": "https://github.com/Luminous-Dynamics/mycelix/issues/6328",
+            "owner_source_id": "synthetic-housing-amenity-service",
+            "owner_revision": "mycelix-synth-rev-1",
+            "scope_digest": "synthetic-temporal-scope:INCOMPLETE_CALENDAR_GAP:v0.1",
+            "time_basis_id": "SYNTHETIC_LOCAL_15_MINUTE_TICKS_V1",
+            "start_tick": 32,
+            "end_tick": 36,
+            "operational_state": "OPERATIONAL",
+            "evidence_state": "CURRENT"
+          },
+          {
+            "window_id": "INCOMPLETE_CALENDAR_GAP-W2",
+            "owner": "Mycelix",
+            "owner_reference": "https://github.com/Luminous-Dynamics/mycelix/issues/6328",
+            "owner_source_id": "synthetic-housing-amenity-service",
+            "owner_revision": "mycelix-synth-rev-1",
+            "scope_digest": "synthetic-temporal-scope:INCOMPLETE_CALENDAR_GAP:v0.1",
+            "time_basis_id": "SYNTHETIC_LOCAL_15_MINUTE_TICKS_V1",
+            "start_tick": 40,
+            "end_tick": 48,
+            "operational_state": "OPERATIONAL",
+            "evidence_state": "CURRENT"
+          }
+        ]
+      },
+      "required_service_duration_ticks": 1,
+      "expected": {
+        "disposition": "UNKNOWN",
+        "reason_code": "ARRIVAL_RANGE_OR_CALENDAR_EVIDENCE_INDETERMINATE",
+        "possible_arrival_count": 1,
+        "available_arrival_count": 0,
+        "unavailable_arrival_count": 0,
+        "unknown_arrival_count": 1
+      }
+    },
+    {
+      "opportunity_id": "STALE_OPERATIONAL_WINDOW",
+      "scope": {
+        "scope_digest": "synthetic-temporal-scope:STALE_OPERATIONAL_WINDOW:v0.1",
+        "service_id": "COMMUNITY_KITCHEN",
+        "functional_unit_id": "ACCESSIBLE_SHARED_KITCHEN_HOUR",
+        "period_id": "SYNTHETIC_WEEKDAY",
+        "time_basis_id": "SYNTHETIC_LOCAL_15_MINUTE_TICKS_V1",
+        "horizon_start_tick": 0,
+        "horizon_end_tick": 96
+      },
+      "access": {
+        "owner": "Sol-Atlas",
+        "owner_reference": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/555",
+        "owner_source_id": "synthetic-citymorph-effective-access",
+        "owner_revision": "citymorph-synth-rev-1",
+        "scope_digest": "synthetic-temporal-scope:STALE_OPERATIONAL_WINDOW:v0.1",
+        "time_basis_id": "SYNTHETIC_LOCAL_15_MINUTE_TICKS_V1",
+        "access_state": "QUALIFIED",
+        "arrival_earliest_tick": 36,
+        "arrival_latest_tick": 36,
+        "evidence_state": "CURRENT"
+      },
+      "calendar": {
+        "owner": "Mycelix",
+        "owner_reference": "https://github.com/Luminous-Dynamics/mycelix/issues/6328",
+        "owner_source_id": "synthetic-housing-amenity-service",
+        "owner_revision": "mycelix-synth-rev-1",
+        "scope_digest": "synthetic-temporal-scope:STALE_OPERATIONAL_WINDOW:v0.1",
+        "time_basis_id": "SYNTHETIC_LOCAL_15_MINUTE_TICKS_V1",
+        "coverage_state": "COMPLETE",
+        "evidence_state": "CURRENT",
+        "service_windows": [
+          {
+            "window_id": "STALE_OPERATIONAL_WINDOW-W1",
+            "owner": "Mycelix",
+            "owner_reference": "https://github.com/Luminous-Dynamics/mycelix/issues/6328",
+            "owner_source_id": "synthetic-housing-amenity-service",
+            "owner_revision": "mycelix-synth-rev-1",
+            "scope_digest": "synthetic-temporal-scope:STALE_OPERATIONAL_WINDOW:v0.1",
+            "time_basis_id": "SYNTHETIC_LOCAL_15_MINUTE_TICKS_V1",
+            "start_tick": 32,
+            "end_tick": 48,
+            "operational_state": "OPERATIONAL",
+            "evidence_state": "STALE"
+          }
+        ]
+      },
+      "required_service_duration_ticks": 4,
+      "expected": {
+        "disposition": "UNKNOWN",
+        "reason_code": "ARRIVAL_RANGE_OR_CALENDAR_EVIDENCE_INDETERMINATE",
+        "possible_arrival_count": 1,
+        "available_arrival_count": 0,
+        "unavailable_arrival_count": 0,
+        "unknown_arrival_count": 1
+      }
+    },
+    {
+      "opportunity_id": "ARRIVAL_RANGE_STRADDLES_CLOSURE",
+      "scope": {
+        "scope_digest": "synthetic-temporal-scope:ARRIVAL_RANGE_STRADDLES_CLOSURE:v0.1",
+        "service_id": "COMMUNITY_KITCHEN",
+        "functional_unit_id": "ACCESSIBLE_SHARED_KITCHEN_HOUR",
+        "period_id": "SYNTHETIC_WEEKDAY",
+        "time_basis_id": "SYNTHETIC_LOCAL_15_MINUTE_TICKS_V1",
+        "horizon_start_tick": 0,
+        "horizon_end_tick": 96
+      },
+      "access": {
+        "owner": "Sol-Atlas",
+        "owner_reference": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/555",
+        "owner_source_id": "synthetic-citymorph-effective-access",
+        "owner_revision": "citymorph-synth-rev-1",
+        "scope_digest": "synthetic-temporal-scope:ARRIVAL_RANGE_STRADDLES_CLOSURE:v0.1",
+        "time_basis_id": "SYNTHETIC_LOCAL_15_MINUTE_TICKS_V1",
+        "access_state": "QUALIFIED",
+        "arrival_earliest_tick": 35,
+        "arrival_latest_tick": 36,
+        "evidence_state": "CURRENT"
+      },
+      "calendar": {
+        "owner": "Mycelix",
+        "owner_reference": "https://github.com/Luminous-Dynamics/mycelix/issues/6328",
+        "owner_source_id": "synthetic-housing-amenity-service",
+        "owner_revision": "mycelix-synth-rev-1",
+        "scope_digest": "synthetic-temporal-scope:ARRIVAL_RANGE_STRADDLES_CLOSURE:v0.1",
+        "time_basis_id": "SYNTHETIC_LOCAL_15_MINUTE_TICKS_V1",
+        "coverage_state": "COMPLETE",
+        "evidence_state": "CURRENT",
+        "service_windows": [
+          {
+            "window_id": "ARRIVAL_RANGE_STRADDLES_CLOSURE-W1",
+            "owner": "Mycelix",
+            "owner_reference": "https://github.com/Luminous-Dynamics/mycelix/issues/6328",
+            "owner_source_id": "synthetic-housing-amenity-service",
+            "owner_revision": "mycelix-synth-rev-1",
+            "scope_digest": "synthetic-temporal-scope:ARRIVAL_RANGE_STRADDLES_CLOSURE:v0.1",
+            "time_basis_id": "SYNTHETIC_LOCAL_15_MINUTE_TICKS_V1",
+            "start_tick": 32,
+            "end_tick": 36,
+            "operational_state": "OPERATIONAL",
+            "evidence_state": "CURRENT"
+          },
+          {
+            "window_id": "ARRIVAL_RANGE_STRADDLES_CLOSURE-W2",
+            "owner": "Mycelix",
+            "owner_reference": "https://github.com/Luminous-Dynamics/mycelix/issues/6328",
+            "owner_source_id": "synthetic-housing-amenity-service",
+            "owner_revision": "mycelix-synth-rev-1",
+            "scope_digest": "synthetic-temporal-scope:ARRIVAL_RANGE_STRADDLES_CLOSURE:v0.1",
+            "time_basis_id": "SYNTHETIC_LOCAL_15_MINUTE_TICKS_V1",
+            "start_tick": 36,
+            "end_tick": 40,
+            "operational_state": "CLOSED_FOR_MAINTENANCE",
+            "evidence_state": "CURRENT"
+          }
+        ]
+      },
+      "required_service_duration_ticks": 1,
+      "expected": {
+        "disposition": "UNKNOWN",
+        "reason_code": "ARRIVAL_RANGE_OR_CALENDAR_EVIDENCE_INDETERMINATE",
+        "possible_arrival_count": 2,
+        "available_arrival_count": 1,
+        "unavailable_arrival_count": 1,
+        "unknown_arrival_count": 0
+      }
+    },
+    {
+      "opportunity_id": "CONTIGUOUS_OPERATIONAL_WINDOWS",
+      "scope": {
+        "scope_digest": "synthetic-temporal-scope:CONTIGUOUS_OPERATIONAL_WINDOWS:v0.1",
+        "service_id": "COMMUNITY_KITCHEN",
+        "functional_unit_id": "ACCESSIBLE_SHARED_KITCHEN_HOUR",
+        "period_id": "SYNTHETIC_WEEKDAY",
+        "time_basis_id": "SYNTHETIC_LOCAL_15_MINUTE_TICKS_V1",
+        "horizon_start_tick": 0,
+        "horizon_end_tick": 96
+      },
+      "access": {
+        "owner": "Sol-Atlas",
+        "owner_reference": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/555",
+        "owner_source_id": "synthetic-citymorph-effective-access",
+        "owner_revision": "citymorph-synth-rev-1",
+        "scope_digest": "synthetic-temporal-scope:CONTIGUOUS_OPERATIONAL_WINDOWS:v0.1",
+        "time_basis_id": "SYNTHETIC_LOCAL_15_MINUTE_TICKS_V1",
+        "access_state": "QUALIFIED",
+        "arrival_earliest_tick": 34,
+        "arrival_latest_tick": 34,
+        "evidence_state": "CURRENT"
+      },
+      "calendar": {
+        "owner": "Mycelix",
+        "owner_reference": "https://github.com/Luminous-Dynamics/mycelix/issues/6328",
+        "owner_source_id": "synthetic-housing-amenity-service",
+        "owner_revision": "mycelix-synth-rev-1",
+        "scope_digest": "synthetic-temporal-scope:CONTIGUOUS_OPERATIONAL_WINDOWS:v0.1",
+        "time_basis_id": "SYNTHETIC_LOCAL_15_MINUTE_TICKS_V1",
+        "coverage_state": "COMPLETE",
+        "evidence_state": "CURRENT",
+        "service_windows": [
+          {
+            "window_id": "CONTIGUOUS_OPERATIONAL_WINDOWS-W1",
+            "owner": "Mycelix",
+            "owner_reference": "https://github.com/Luminous-Dynamics/mycelix/issues/6328",
+            "owner_source_id": "synthetic-housing-amenity-service",
+            "owner_revision": "mycelix-synth-rev-1",
+            "scope_digest": "synthetic-temporal-scope:CONTIGUOUS_OPERATIONAL_WINDOWS:v0.1",
+            "time_basis_id": "SYNTHETIC_LOCAL_15_MINUTE_TICKS_V1",
+            "start_tick": 32,
+            "end_tick": 36,
+            "operational_state": "OPERATIONAL",
+            "evidence_state": "CURRENT"
+          },
+          {
+            "window_id": "CONTIGUOUS_OPERATIONAL_WINDOWS-W2",
+            "owner": "Mycelix",
+            "owner_reference": "https://github.com/Luminous-Dynamics/mycelix/issues/6328",
+            "owner_source_id": "synthetic-housing-amenity-service",
+            "owner_revision": "mycelix-synth-rev-1",
+            "scope_digest": "synthetic-temporal-scope:CONTIGUOUS_OPERATIONAL_WINDOWS:v0.1",
+            "time_basis_id": "SYNTHETIC_LOCAL_15_MINUTE_TICKS_V1",
+            "start_tick": 36,
+            "end_tick": 48,
+            "operational_state": "OPERATIONAL",
+            "evidence_state": "CURRENT"
+          }
+        ]
+      },
+      "required_service_duration_ticks": 4,
+      "expected": {
+        "disposition": "AVAILABLE",
+        "reason_code": "ALL_POSSIBLE_ARRIVALS_FIT_OPERATIONAL_WINDOW",
+        "possible_arrival_count": 1,
+        "available_arrival_count": 1,
+        "unavailable_arrival_count": 0,
+        "unknown_arrival_count": 0
+      }
+    },
+    {
+      "opportunity_id": "ACCESS_SCOPE_MISMATCH",
+      "scope": {
+        "scope_digest": "synthetic-temporal-scope:ACCESS_SCOPE_MISMATCH:v0.1",
+        "service_id": "COMMUNITY_KITCHEN",
+        "functional_unit_id": "ACCESSIBLE_SHARED_KITCHEN_HOUR",
+        "period_id": "SYNTHETIC_WEEKDAY",
+        "time_basis_id": "SYNTHETIC_LOCAL_15_MINUTE_TICKS_V1",
+        "horizon_start_tick": 0,
+        "horizon_end_tick": 96
+      },
+      "access": {
+        "owner": "Sol-Atlas",
+        "owner_reference": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/555",
+        "owner_source_id": "synthetic-citymorph-effective-access",
+        "owner_revision": "citymorph-synth-rev-1",
+        "scope_digest": "synthetic-temporal-scope:other:v0.1",
+        "time_basis_id": "SYNTHETIC_LOCAL_15_MINUTE_TICKS_V1",
+        "access_state": "QUALIFIED",
+        "arrival_earliest_tick": 36,
+        "arrival_latest_tick": 36,
+        "evidence_state": "CURRENT"
+      },
+      "calendar": {
+        "owner": "Mycelix",
+        "owner_reference": "https://github.com/Luminous-Dynamics/mycelix/issues/6328",
+        "owner_source_id": "synthetic-housing-amenity-service",
+        "owner_revision": "mycelix-synth-rev-1",
+        "scope_digest": "synthetic-temporal-scope:ACCESS_SCOPE_MISMATCH:v0.1",
+        "time_basis_id": "SYNTHETIC_LOCAL_15_MINUTE_TICKS_V1",
+        "coverage_state": "COMPLETE",
+        "evidence_state": "CURRENT",
+        "service_windows": [
+          {
+            "window_id": "ACCESS_SCOPE_MISMATCH-W1",
+            "owner": "Mycelix",
+            "owner_reference": "https://github.com/Luminous-Dynamics/mycelix/issues/6328",
+            "owner_source_id": "synthetic-housing-amenity-service",
+            "owner_revision": "mycelix-synth-rev-1",
+            "scope_digest": "synthetic-temporal-scope:ACCESS_SCOPE_MISMATCH:v0.1",
+            "time_basis_id": "SYNTHETIC_LOCAL_15_MINUTE_TICKS_V1",
+            "start_tick": 32,
+            "end_tick": 48,
+            "operational_state": "OPERATIONAL",
+            "evidence_state": "CURRENT"
+          }
+        ]
+      },
+      "required_service_duration_ticks": 4,
+      "expected": {
+        "disposition": "NOT_COMPARABLE",
+        "reason_code": "SCOPE_DIGEST_MISMATCH"
+      }
+    },
+    {
+      "opportunity_id": "SERVICE_CLOCK_MISMATCH",
+      "scope": {
+        "scope_digest": "synthetic-temporal-scope:SERVICE_CLOCK_MISMATCH:v0.1",
+        "service_id": "COMMUNITY_KITCHEN",
+        "functional_unit_id": "ACCESSIBLE_SHARED_KITCHEN_HOUR",
+        "period_id": "SYNTHETIC_WEEKDAY",
+        "time_basis_id": "SYNTHETIC_LOCAL_15_MINUTE_TICKS_V1",
+        "horizon_start_tick": 0,
+        "horizon_end_tick": 96
+      },
+      "access": {
+        "owner": "Sol-Atlas",
+        "owner_reference": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/555",
+        "owner_source_id": "synthetic-citymorph-effective-access",
+        "owner_revision": "citymorph-synth-rev-1",
+        "scope_digest": "synthetic-temporal-scope:SERVICE_CLOCK_MISMATCH:v0.1",
+        "time_basis_id": "SYNTHETIC_LOCAL_15_MINUTE_TICKS_V1",
+        "access_state": "QUALIFIED",
+        "arrival_earliest_tick": 36,
+        "arrival_latest_tick": 36,
+        "evidence_state": "CURRENT"
+      },
+      "calendar": {
+        "owner": "Mycelix",
+        "owner_reference": "https://github.com/Luminous-Dynamics/mycelix/issues/6328",
+        "owner_source_id": "synthetic-housing-amenity-service",
+        "owner_revision": "mycelix-synth-rev-1",
+        "scope_digest": "synthetic-temporal-scope:SERVICE_CLOCK_MISMATCH:v0.1",
+        "time_basis_id": "SYNTHETIC_LOCAL_15_MINUTE_TICKS_V1",
+        "coverage_state": "COMPLETE",
+        "evidence_state": "CURRENT",
+        "service_windows": [
+          {
+            "window_id": "SERVICE_CLOCK_MISMATCH-W1",
+            "owner": "Mycelix",
+            "owner_reference": "https://github.com/Luminous-Dynamics/mycelix/issues/6328",
+            "owner_source_id": "synthetic-housing-amenity-service",
+            "owner_revision": "mycelix-synth-rev-1",
+            "scope_digest": "synthetic-temporal-scope:SERVICE_CLOCK_MISMATCH:v0.1",
+            "time_basis_id": "OTHER_CLOCK",
+            "start_tick": 32,
+            "end_tick": 48,
+            "operational_state": "OPERATIONAL",
+            "evidence_state": "CURRENT"
+          }
+        ]
+      },
+      "required_service_duration_ticks": 4,
+      "expected": {
+        "disposition": "NOT_COMPARABLE",
+        "reason_code": "TIME_BASIS_MISMATCH"
+      }
+    },
+    {
+      "opportunity_id": "ACCESS_ROUTE_UNKNOWN",
+      "scope": {
+        "scope_digest": "synthetic-temporal-scope:ACCESS_ROUTE_UNKNOWN:v0.1",
+        "service_id": "COMMUNITY_KITCHEN",
+        "functional_unit_id": "ACCESSIBLE_SHARED_KITCHEN_HOUR",
+        "period_id": "SYNTHETIC_WEEKDAY",
+        "time_basis_id": "SYNTHETIC_LOCAL_15_MINUTE_TICKS_V1",
+        "horizon_start_tick": 0,
+        "horizon_end_tick": 96
+      },
+      "access": {
+        "owner": "Sol-Atlas",
+        "owner_reference": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/555",
+        "owner_source_id": "synthetic-citymorph-effective-access",
+        "owner_revision": "citymorph-synth-rev-1",
+        "scope_digest": "synthetic-temporal-scope:ACCESS_ROUTE_UNKNOWN:v0.1",
+        "time_basis_id": "SYNTHETIC_LOCAL_15_MINUTE_TICKS_V1",
+        "access_state": "UNKNOWN",
+        "arrival_earliest_tick": 36,
+        "arrival_latest_tick": 36,
+        "evidence_state": "CURRENT"
+      },
+      "calendar": {
+        "owner": "Mycelix",
+        "owner_reference": "https://github.com/Luminous-Dynamics/mycelix/issues/6328",
+        "owner_source_id": "synthetic-housing-amenity-service",
+        "owner_revision": "mycelix-synth-rev-1",
+        "scope_digest": "synthetic-temporal-scope:ACCESS_ROUTE_UNKNOWN:v0.1",
+        "time_basis_id": "SYNTHETIC_LOCAL_15_MINUTE_TICKS_V1",
+        "coverage_state": "COMPLETE",
+        "evidence_state": "CURRENT",
+        "service_windows": [
+          {
+            "window_id": "ACCESS_ROUTE_UNKNOWN-W1",
+            "owner": "Mycelix",
+            "owner_reference": "https://github.com/Luminous-Dynamics/mycelix/issues/6328",
+            "owner_source_id": "synthetic-housing-amenity-service",
+            "owner_revision": "mycelix-synth-rev-1",
+            "scope_digest": "synthetic-temporal-scope:ACCESS_ROUTE_UNKNOWN:v0.1",
+            "time_basis_id": "SYNTHETIC_LOCAL_15_MINUTE_TICKS_V1",
+            "start_tick": 32,
+            "end_tick": 48,
+            "operational_state": "OPERATIONAL",
+            "evidence_state": "CURRENT"
+          }
+        ]
+      },
+      "required_service_duration_ticks": 4,
+      "expected": {
+        "disposition": "UNKNOWN",
+        "reason_code": "ACCESS_EVIDENCE_UNKNOWN",
+        "possible_arrival_count": 0,
+        "available_arrival_count": 0,
+        "unavailable_arrival_count": 0,
+        "unknown_arrival_count": 0
+      }
+    },
+    {
+      "opportunity_id": "ACCESS_ROUTE_BLOCKED",
+      "scope": {
+        "scope_digest": "synthetic-temporal-scope:ACCESS_ROUTE_BLOCKED:v0.1",
+        "service_id": "COMMUNITY_KITCHEN",
+        "functional_unit_id": "ACCESSIBLE_SHARED_KITCHEN_HOUR",
+        "period_id": "SYNTHETIC_WEEKDAY",
+        "time_basis_id": "SYNTHETIC_LOCAL_15_MINUTE_TICKS_V1",
+        "horizon_start_tick": 0,
+        "horizon_end_tick": 96
+      },
+      "access": {
+        "owner": "Sol-Atlas",
+        "owner_reference": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/555",
+        "owner_source_id": "synthetic-citymorph-effective-access",
+        "owner_revision": "citymorph-synth-rev-1",
+        "scope_digest": "synthetic-temporal-scope:ACCESS_ROUTE_BLOCKED:v0.1",
+        "time_basis_id": "SYNTHETIC_LOCAL_15_MINUTE_TICKS_V1",
+        "access_state": "BLOCKED",
+        "arrival_earliest_tick": 36,
+        "arrival_latest_tick": 36,
+        "evidence_state": "CURRENT"
+      },
+      "calendar": {
+        "owner": "Mycelix",
+        "owner_reference": "https://github.com/Luminous-Dynamics/mycelix/issues/6328",
+        "owner_source_id": "synthetic-housing-amenity-service",
+        "owner_revision": "mycelix-synth-rev-1",
+        "scope_digest": "synthetic-temporal-scope:ACCESS_ROUTE_BLOCKED:v0.1",
+        "time_basis_id": "SYNTHETIC_LOCAL_15_MINUTE_TICKS_V1",
+        "coverage_state": "COMPLETE",
+        "evidence_state": "CURRENT",
+        "service_windows": [
+          {
+            "window_id": "ACCESS_ROUTE_BLOCKED-W1",
+            "owner": "Mycelix",
+            "owner_reference": "https://github.com/Luminous-Dynamics/mycelix/issues/6328",
+            "owner_source_id": "synthetic-housing-amenity-service",
+            "owner_revision": "mycelix-synth-rev-1",
+            "scope_digest": "synthetic-temporal-scope:ACCESS_ROUTE_BLOCKED:v0.1",
+            "time_basis_id": "SYNTHETIC_LOCAL_15_MINUTE_TICKS_V1",
+            "start_tick": 32,
+            "end_tick": 48,
+            "operational_state": "OPERATIONAL",
+            "evidence_state": "CURRENT"
+          }
+        ]
+      },
+      "required_service_duration_ticks": 4,
+      "expected": {
+        "disposition": "UNAVAILABLE",
+        "reason_code": "ACCESS_ROUTE_BLOCKED",
+        "possible_arrival_count": 0,
+        "available_arrival_count": 0,
+        "unavailable_arrival_count": 0,
+        "unknown_arrival_count": 0
+      }
+    },
+    {
+      "opportunity_id": "COMPLETE_CALENDAR_NO_SERVICE_WINDOW",
+      "scope": {
+        "scope_digest": "synthetic-temporal-scope:COMPLETE_CALENDAR_NO_SERVICE_WINDOW:v0.1",
+        "service_id": "COMMUNITY_KITCHEN",
+        "functional_unit_id": "ACCESSIBLE_SHARED_KITCHEN_HOUR",
+        "period_id": "SYNTHETIC_WEEKDAY",
+        "time_basis_id": "SYNTHETIC_LOCAL_15_MINUTE_TICKS_V1",
+        "horizon_start_tick": 0,
+        "horizon_end_tick": 96
+      },
+      "access": {
+        "owner": "Sol-Atlas",
+        "owner_reference": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/555",
+        "owner_source_id": "synthetic-citymorph-effective-access",
+        "owner_revision": "citymorph-synth-rev-1",
+        "scope_digest": "synthetic-temporal-scope:COMPLETE_CALENDAR_NO_SERVICE_WINDOW:v0.1",
+        "time_basis_id": "SYNTHETIC_LOCAL_15_MINUTE_TICKS_V1",
+        "access_state": "QUALIFIED",
+        "arrival_earliest_tick": 36,
+        "arrival_latest_tick": 36,
+        "evidence_state": "CURRENT"
+      },
+      "calendar": {
+        "owner": "Mycelix",
+        "owner_reference": "https://github.com/Luminous-Dynamics/mycelix/issues/6328",
+        "owner_source_id": "synthetic-housing-amenity-service",
+        "owner_revision": "mycelix-synth-rev-1",
+        "scope_digest": "synthetic-temporal-scope:COMPLETE_CALENDAR_NO_SERVICE_WINDOW:v0.1",
+        "time_basis_id": "SYNTHETIC_LOCAL_15_MINUTE_TICKS_V1",
+        "coverage_state": "COMPLETE",
+        "evidence_state": "CURRENT",
+        "service_windows": []
+      },
+      "required_service_duration_ticks": 1,
+      "expected": {
+        "disposition": "UNAVAILABLE",
+        "reason_code": "NO_POSSIBLE_ARRIVAL_FITS_OPERATIONAL_WINDOW",
+        "possible_arrival_count": 1,
+        "available_arrival_count": 0,
+        "unavailable_arrival_count": 1,
+        "unknown_arrival_count": 0
+      }
+    },
+    {
+      "opportunity_id": "INCOMPLETE_CALENDAR_NO_WINDOW",
+      "scope": {
+        "scope_digest": "synthetic-temporal-scope:INCOMPLETE_CALENDAR_NO_WINDOW:v0.1",
+        "service_id": "COMMUNITY_KITCHEN",
+        "functional_unit_id": "ACCESSIBLE_SHARED_KITCHEN_HOUR",
+        "period_id": "SYNTHETIC_WEEKDAY",
+        "time_basis_id": "SYNTHETIC_LOCAL_15_MINUTE_TICKS_V1",
+        "horizon_start_tick": 0,
+        "horizon_end_tick": 96
+      },
+      "access": {
+        "owner": "Sol-Atlas",
+        "owner_reference": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/555",
+        "owner_source_id": "synthetic-citymorph-effective-access",
+        "owner_revision": "citymorph-synth-rev-1",
+        "scope_digest": "synthetic-temporal-scope:INCOMPLETE_CALENDAR_NO_WINDOW:v0.1",
+        "time_basis_id": "SYNTHETIC_LOCAL_15_MINUTE_TICKS_V1",
+        "access_state": "QUALIFIED",
+        "arrival_earliest_tick": 36,
+        "arrival_latest_tick": 36,
+        "evidence_state": "CURRENT"
+      },
+      "calendar": {
+        "owner": "Mycelix",
+        "owner_reference": "https://github.com/Luminous-Dynamics/mycelix/issues/6328",
+        "owner_source_id": "synthetic-housing-amenity-service",
+        "owner_revision": "mycelix-synth-rev-1",
+        "scope_digest": "synthetic-temporal-scope:INCOMPLETE_CALENDAR_NO_WINDOW:v0.1",
+        "time_basis_id": "SYNTHETIC_LOCAL_15_MINUTE_TICKS_V1",
+        "coverage_state": "INCOMPLETE",
+        "evidence_state": "CURRENT",
+        "service_windows": []
+      },
+      "required_service_duration_ticks": 1,
+      "expected": {
+        "disposition": "UNKNOWN",
+        "reason_code": "ARRIVAL_RANGE_OR_CALENDAR_EVIDENCE_INDETERMINATE",
+        "possible_arrival_count": 1,
+        "available_arrival_count": 0,
+        "unavailable_arrival_count": 0,
+        "unknown_arrival_count": 1
+      }
+    },
+    {
+      "opportunity_id": "MIXED_OWNER_REVISIONS",
+      "scope": {
+        "scope_digest": "synthetic-temporal-scope:MIXED_OWNER_REVISIONS:v0.1",
+        "service_id": "COMMUNITY_KITCHEN",
+        "functional_unit_id": "ACCESSIBLE_SHARED_KITCHEN_HOUR",
+        "period_id": "SYNTHETIC_WEEKDAY",
+        "time_basis_id": "SYNTHETIC_LOCAL_15_MINUTE_TICKS_V1",
+        "horizon_start_tick": 0,
+        "horizon_end_tick": 96
+      },
+      "access": {
+        "owner": "Sol-Atlas",
+        "owner_reference": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/555",
+        "owner_source_id": "synthetic-citymorph-effective-access",
+        "owner_revision": "citymorph-synth-rev-1",
+        "scope_digest": "synthetic-temporal-scope:MIXED_OWNER_REVISIONS:v0.1",
+        "time_basis_id": "SYNTHETIC_LOCAL_15_MINUTE_TICKS_V1",
+        "access_state": "QUALIFIED",
+        "arrival_earliest_tick": 34,
+        "arrival_latest_tick": 36,
+        "evidence_state": "CURRENT"
+      },
+      "calendar": {
+        "owner": "Mycelix",
+        "owner_reference": "https://github.com/Luminous-Dynamics/mycelix/issues/6328",
+        "owner_source_id": "synthetic-housing-amenity-service",
+        "owner_revision": "mycelix-synth-rev-1",
+        "scope_digest": "synthetic-temporal-scope:MIXED_OWNER_REVISIONS:v0.1",
+        "time_basis_id": "SYNTHETIC_LOCAL_15_MINUTE_TICKS_V1",
+        "coverage_state": "COMPLETE",
+        "evidence_state": "CURRENT",
+        "service_windows": [
+          {
+            "window_id": "MIXED_OWNER_REVISIONS-W1",
+            "owner": "Mycelix",
+            "owner_reference": "https://github.com/Luminous-Dynamics/mycelix/issues/6328",
+            "owner_source_id": "synthetic-housing-amenity-service",
+            "owner_revision": "mycelix-synth-rev-1",
+            "scope_digest": "synthetic-temporal-scope:MIXED_OWNER_REVISIONS:v0.1",
+            "time_basis_id": "SYNTHETIC_LOCAL_15_MINUTE_TICKS_V1",
+            "start_tick": 32,
+            "end_tick": 36,
+            "operational_state": "OPERATIONAL",
+            "evidence_state": "CURRENT"
+          },
+          {
+            "window_id": "MIXED_OWNER_REVISIONS-W2",
+            "owner": "Mycelix",
+            "owner_reference": "https://github.com/Luminous-Dynamics/mycelix/issues/6328",
+            "owner_source_id": "synthetic-housing-amenity-service",
+            "owner_revision": "mycelix-synth-rev-2",
+            "scope_digest": "synthetic-temporal-scope:MIXED_OWNER_REVISIONS:v0.1",
+            "time_basis_id": "SYNTHETIC_LOCAL_15_MINUTE_TICKS_V1",
+            "start_tick": 36,
+            "end_tick": 48,
+            "operational_state": "OPERATIONAL",
+            "evidence_state": "CURRENT"
+          }
+        ]
+      },
+      "required_service_duration_ticks": 4,
+      "expected": {
+        "disposition": "NOT_COMPARABLE",
+        "reason_code": "MIXED_SERVICE_OWNER_REVISIONS"
+      }
+    },
+    {
+      "opportunity_id": "STALE_QUALIFIED_ACCESS_RESULT",
+      "scope": {
+        "scope_digest": "synthetic-temporal-scope:STALE_QUALIFIED_ACCESS_RESULT:v0.1",
+        "service_id": "COMMUNITY_KITCHEN",
+        "functional_unit_id": "ACCESSIBLE_SHARED_KITCHEN_HOUR",
+        "period_id": "SYNTHETIC_WEEKDAY",
+        "time_basis_id": "SYNTHETIC_LOCAL_15_MINUTE_TICKS_V1",
+        "horizon_start_tick": 0,
+        "horizon_end_tick": 96
+      },
+      "access": {
+        "owner": "Sol-Atlas",
+        "owner_reference": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/555",
+        "owner_source_id": "synthetic-citymorph-effective-access",
+        "owner_revision": "citymorph-synth-rev-1",
+        "scope_digest": "synthetic-temporal-scope:STALE_QUALIFIED_ACCESS_RESULT:v0.1",
+        "time_basis_id": "SYNTHETIC_LOCAL_15_MINUTE_TICKS_V1",
+        "access_state": "QUALIFIED",
+        "arrival_earliest_tick": 36,
+        "arrival_latest_tick": 36,
+        "evidence_state": "STALE"
+      },
+      "calendar": {
+        "owner": "Mycelix",
+        "owner_reference": "https://github.com/Luminous-Dynamics/mycelix/issues/6328",
+        "owner_source_id": "synthetic-housing-amenity-service",
+        "owner_revision": "mycelix-synth-rev-1",
+        "scope_digest": "synthetic-temporal-scope:STALE_QUALIFIED_ACCESS_RESULT:v0.1",
+        "time_basis_id": "SYNTHETIC_LOCAL_15_MINUTE_TICKS_V1",
+        "coverage_state": "COMPLETE",
+        "evidence_state": "CURRENT",
+        "service_windows": [
+          {
+            "window_id": "STALE_QUALIFIED_ACCESS_RESULT-W1",
+            "owner": "Mycelix",
+            "owner_reference": "https://github.com/Luminous-Dynamics/mycelix/issues/6328",
+            "owner_source_id": "synthetic-housing-amenity-service",
+            "owner_revision": "mycelix-synth-rev-1",
+            "scope_digest": "synthetic-temporal-scope:STALE_QUALIFIED_ACCESS_RESULT:v0.1",
+            "time_basis_id": "SYNTHETIC_LOCAL_15_MINUTE_TICKS_V1",
+            "start_tick": 32,
+            "end_tick": 48,
+            "operational_state": "OPERATIONAL",
+            "evidence_state": "CURRENT"
+          }
+        ]
+      },
+      "required_service_duration_ticks": 4,
+      "expected": {
+        "disposition": "UNKNOWN",
+        "reason_code": "ACCESS_EVIDENCE_NOT_CURRENT",
+        "possible_arrival_count": 0,
+        "available_arrival_count": 0,
+        "unavailable_arrival_count": 0,
+        "unknown_arrival_count": 0
+      }
+    },
+    {
+      "opportunity_id": "UNKNOWN_ACCESS_EVIDENCE_QUALITY",
+      "scope": {
+        "scope_digest": "synthetic-temporal-scope:UNKNOWN_ACCESS_EVIDENCE_QUALITY:v0.1",
+        "service_id": "COMMUNITY_KITCHEN",
+        "functional_unit_id": "ACCESSIBLE_SHARED_KITCHEN_HOUR",
+        "period_id": "SYNTHETIC_WEEKDAY",
+        "time_basis_id": "SYNTHETIC_LOCAL_15_MINUTE_TICKS_V1",
+        "horizon_start_tick": 0,
+        "horizon_end_tick": 96
+      },
+      "access": {
+        "owner": "Sol-Atlas",
+        "owner_reference": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/555",
+        "owner_source_id": "synthetic-citymorph-effective-access",
+        "owner_revision": "citymorph-synth-rev-1",
+        "scope_digest": "synthetic-temporal-scope:UNKNOWN_ACCESS_EVIDENCE_QUALITY:v0.1",
+        "time_basis_id": "SYNTHETIC_LOCAL_15_MINUTE_TICKS_V1",
+        "access_state": "QUALIFIED",
+        "arrival_earliest_tick": 36,
+        "arrival_latest_tick": 36,
+        "evidence_state": "UNKNOWN"
+      },
+      "calendar": {
+        "owner": "Mycelix",
+        "owner_reference": "https://github.com/Luminous-Dynamics/mycelix/issues/6328",
+        "owner_source_id": "synthetic-housing-amenity-service",
+        "owner_revision": "mycelix-synth-rev-1",
+        "scope_digest": "synthetic-temporal-scope:UNKNOWN_ACCESS_EVIDENCE_QUALITY:v0.1",
+        "time_basis_id": "SYNTHETIC_LOCAL_15_MINUTE_TICKS_V1",
+        "coverage_state": "COMPLETE",
+        "evidence_state": "CURRENT",
+        "service_windows": [
+          {
+            "window_id": "UNKNOWN_ACCESS_EVIDENCE_QUALITY-W1",
+            "owner": "Mycelix",
+            "owner_reference": "https://github.com/Luminous-Dynamics/mycelix/issues/6328",
+            "owner_source_id": "synthetic-housing-amenity-service",
+            "owner_revision": "mycelix-synth-rev-1",
+            "scope_digest": "synthetic-temporal-scope:UNKNOWN_ACCESS_EVIDENCE_QUALITY:v0.1",
+            "time_basis_id": "SYNTHETIC_LOCAL_15_MINUTE_TICKS_V1",
+            "start_tick": 32,
+            "end_tick": 48,
+            "operational_state": "OPERATIONAL",
+            "evidence_state": "CURRENT"
+          }
+        ]
+      },
+      "required_service_duration_ticks": 4,
+      "expected": {
+        "disposition": "UNKNOWN",
+        "reason_code": "ACCESS_EVIDENCE_NOT_CURRENT",
+        "possible_arrival_count": 0,
+        "available_arrival_count": 0,
+        "unavailable_arrival_count": 0,
+        "unknown_arrival_count": 0
+      }
+    },
+    {
+      "opportunity_id": "STALE_BLOCKED_ACCESS_RESULT",
+      "scope": {
+        "scope_digest": "synthetic-temporal-scope:STALE_BLOCKED_ACCESS_RESULT:v0.1",
+        "service_id": "COMMUNITY_KITCHEN",
+        "functional_unit_id": "ACCESSIBLE_SHARED_KITCHEN_HOUR",
+        "period_id": "SYNTHETIC_WEEKDAY",
+        "time_basis_id": "SYNTHETIC_LOCAL_15_MINUTE_TICKS_V1",
+        "horizon_start_tick": 0,
+        "horizon_end_tick": 96
+      },
+      "access": {
+        "owner": "Sol-Atlas",
+        "owner_reference": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/555",
+        "owner_source_id": "synthetic-citymorph-effective-access",
+        "owner_revision": "citymorph-synth-rev-1",
+        "scope_digest": "synthetic-temporal-scope:STALE_BLOCKED_ACCESS_RESULT:v0.1",
+        "time_basis_id": "SYNTHETIC_LOCAL_15_MINUTE_TICKS_V1",
+        "access_state": "BLOCKED",
+        "arrival_earliest_tick": 36,
+        "arrival_latest_tick": 36,
+        "evidence_state": "STALE"
+      },
+      "calendar": {
+        "owner": "Mycelix",
+        "owner_reference": "https://github.com/Luminous-Dynamics/mycelix/issues/6328",
+        "owner_source_id": "synthetic-housing-amenity-service",
+        "owner_revision": "mycelix-synth-rev-1",
+        "scope_digest": "synthetic-temporal-scope:STALE_BLOCKED_ACCESS_RESULT:v0.1",
+        "time_basis_id": "SYNTHETIC_LOCAL_15_MINUTE_TICKS_V1",
+        "coverage_state": "COMPLETE",
+        "evidence_state": "CURRENT",
+        "service_windows": [
+          {
+            "window_id": "STALE_BLOCKED_ACCESS_RESULT-W1",
+            "owner": "Mycelix",
+            "owner_reference": "https://github.com/Luminous-Dynamics/mycelix/issues/6328",
+            "owner_source_id": "synthetic-housing-amenity-service",
+            "owner_revision": "mycelix-synth-rev-1",
+            "scope_digest": "synthetic-temporal-scope:STALE_BLOCKED_ACCESS_RESULT:v0.1",
+            "time_basis_id": "SYNTHETIC_LOCAL_15_MINUTE_TICKS_V1",
+            "start_tick": 32,
+            "end_tick": 48,
+            "operational_state": "OPERATIONAL",
+            "evidence_state": "CURRENT"
+          }
+        ]
+      },
+      "required_service_duration_ticks": 4,
+      "expected": {
+        "disposition": "UNKNOWN",
+        "reason_code": "ACCESS_EVIDENCE_NOT_CURRENT",
+        "possible_arrival_count": 0,
+        "available_arrival_count": 0,
+        "unavailable_arrival_count": 0,
+        "unknown_arrival_count": 0
+      }
+    },
+    {
+      "opportunity_id": "UNSUPPORTED_SHARED_TIME_BASIS",
+      "scope": {
+        "scope_digest": "synthetic-temporal-scope:UNSUPPORTED_SHARED_TIME_BASIS:v0.1",
+        "service_id": "COMMUNITY_KITCHEN",
+        "functional_unit_id": "ACCESSIBLE_SHARED_KITCHEN_HOUR",
+        "period_id": "SYNTHETIC_WEEKDAY",
+        "time_basis_id": "UNDECLARED_CLOCK_V2",
+        "horizon_start_tick": 0,
+        "horizon_end_tick": 96
+      },
+      "access": {
+        "owner": "Sol-Atlas",
+        "owner_reference": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/555",
+        "owner_source_id": "synthetic-citymorph-effective-access",
+        "owner_revision": "citymorph-synth-rev-1",
+        "scope_digest": "synthetic-temporal-scope:UNSUPPORTED_SHARED_TIME_BASIS:v0.1",
+        "time_basis_id": "UNDECLARED_CLOCK_V2",
+        "access_state": "QUALIFIED",
+        "arrival_earliest_tick": 36,
+        "arrival_latest_tick": 36,
+        "evidence_state": "CURRENT"
+      },
+      "calendar": {
+        "owner": "Mycelix",
+        "owner_reference": "https://github.com/Luminous-Dynamics/mycelix/issues/6328",
+        "owner_source_id": "synthetic-housing-amenity-service",
+        "owner_revision": "mycelix-synth-rev-1",
+        "scope_digest": "synthetic-temporal-scope:UNSUPPORTED_SHARED_TIME_BASIS:v0.1",
+        "time_basis_id": "UNDECLARED_CLOCK_V2",
+        "coverage_state": "COMPLETE",
+        "evidence_state": "CURRENT",
+        "service_windows": [
+          {
+            "window_id": "UNSUPPORTED_SHARED_TIME_BASIS-W1",
+            "owner": "Mycelix",
+            "owner_reference": "https://github.com/Luminous-Dynamics/mycelix/issues/6328",
+            "owner_source_id": "synthetic-housing-amenity-service",
+            "owner_revision": "mycelix-synth-rev-1",
+            "scope_digest": "synthetic-temporal-scope:UNSUPPORTED_SHARED_TIME_BASIS:v0.1",
+            "time_basis_id": "UNDECLARED_CLOCK_V2",
+            "start_tick": 32,
+            "end_tick": 48,
+            "operational_state": "OPERATIONAL",
+            "evidence_state": "CURRENT"
+          }
+        ]
+      },
+      "required_service_duration_ticks": 4,
+      "expected": {
+        "disposition": "NOT_COMPARABLE",
+        "reason_code": "UNSUPPORTED_TIME_BASIS",
+        "possible_arrival_count": 0,
+        "available_arrival_count": 0,
+        "unavailable_arrival_count": 0,
+        "unknown_arrival_count": 0
+      }
+    }
+  ]
+}
