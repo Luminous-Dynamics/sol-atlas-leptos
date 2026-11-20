@@ -497,7 +497,7 @@ mod tests {
     fn evaluate_value(v: Value) -> Result<EvaluationOutput, String> {
         evaluate_fixture(&serde_json::to_vec(&v).expect("test JSON"))
     }
-    fn by_id(out: &EvaluationOutput, id: &str) -> &OpportunityResult {
+    fn by_id<'a>(out: &'a EvaluationOutput, id: &str) -> &'a OpportunityResult {
         out.results.iter().find(|r| r.opportunity_id == id).expect("result exists")
     }
 
