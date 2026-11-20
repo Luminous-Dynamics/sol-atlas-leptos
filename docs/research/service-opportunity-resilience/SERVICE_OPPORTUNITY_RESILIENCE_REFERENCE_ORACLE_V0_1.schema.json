@@ -34,7 +34,7 @@
     },
     "cases": {
       "type": "array",
-      "minItems": 16,
+      "minItems": 17,
       "items": {
         "$ref": "#/$defs/case"
       }
@@ -183,6 +183,7 @@
         "population_frame_id",
         "service_id",
         "functional_unit_id",
+        "cohort_id",
         "time_basis_id"
       ],
       "properties": {
@@ -203,6 +204,10 @@
           "minLength": 1
         },
         "time_basis_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "cohort_id": {
           "type": "string",
           "minLength": 1
         }
@@ -386,7 +391,8 @@
         "owner_revision",
         "state",
         "effective_tick",
-        "reason_code"
+        "reason_code",
+        "scope_binding"
       ],
       "properties": {
         "owner": {
@@ -418,6 +424,9 @@
         "reason_code": {
           "type": "string",
           "minLength": 1
+        },
+        "scope_binding": {
+          "$ref": "#/$defs/scope_binding"
         }
       }
     },
