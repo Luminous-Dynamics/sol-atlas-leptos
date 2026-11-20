@@ -30,7 +30,7 @@
     "status_or_revocation_lookup",
     "relay_or_transport_metadata",
     "backup_or_archive_restore",
-    "untracked_plugin_export"
+    "support_bundle"
   ],
   "cases": [
     {
