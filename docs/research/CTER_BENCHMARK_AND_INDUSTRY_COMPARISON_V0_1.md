@@ -346,3 +346,17 @@ The predicate profile now recomputes the domain-separated commitment \`SHA-256("
 Rust raw JSON entry points for coverage, egress and composed release reject duplicate object member names and unsafe integer values before evaluation. The typed \`serde_json::Value\` functions remain available for internal composition; adapters ingesting untrusted JSON should use the raw entrypoints.
 
 The remaining trust boundary is source-input attestation. The exact predicate is now committed, but the private per-item query attributes still require their own frontier-bound snapshot commitment and source-owner/resolver attestation. This is tracked by [CTER-QUERY-INPUT-ATTESTATION-001 #973](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/973). No SOTA, throughput, cryptographic-proof or production authorization result is claimed.
+
+
+## 16. Source-input snapshot integrity
+
+The #973 query-input snapshot profile adds a distinct benchmark dimension: a committed predicate is not enough unless the exact attribute values evaluated by that predicate are also frozen and source-bound. The new workload \`benchmarks/territorial-integrity/egress/query-input-snapshot-workloads-v0.1.json\` covers 1k/10k/100k/1M frontiers, 2/8/32/128 attributes per item, source fan-in, availability mixes, churn and 19 mutation controls.
+
+Current suite inventory:
+- egress: 39 cases;
+- private coverage: 44 cases (1 valid, 31 deny, 7 incomplete, 5 unknown);
+- composed release: 24 cases (2 valid structural, 22 deny);
+- predicate commitment golden vectors: 4;
+- query-input snapshot baseline vectors: private digest \`7eda4c8715c60b17866a5e95675760da6728a04d2066e1de7615fd4a4326cfb8\`, composed digest \`a8f000ebab94a5ad4479faa5fb12cf2980cc094376d0cc3eb438698804c3d788\`.
+
+Rust and Node oracle tests are committed; the latest CTER Actions execution is not yet a PASS. No source-owner attestation, source-byte digest verification, VDS completeness proof or end-to-end product benchmark is claimed.
