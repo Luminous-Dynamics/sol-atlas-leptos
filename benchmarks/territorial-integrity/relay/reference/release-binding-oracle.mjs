@@ -51,10 +51,13 @@ function deriveTerminalLeaves(manifest) {
 export function evaluateComposedReleaseBinding(manifest, coverage) {
   const egress = evaluateDisclosureManifest(manifest);
   const partition = evaluatePrivateCoverage(coverage);
-  let severity = Math.max(
-    LEVEL[egress.disposition] ?? LEVEL.incomplete,
-    LEVEL[partition.disposition === "valid_partition_structure" ? "valid_composed_structure" : partition.disposition] ?? LEVEL.incomplete,
-  );
+  const egressLevel = egress.disposition === "valid_structure"
+    ? LEVEL.valid_composed_structure
+    : (LEVEL[egress.disposition] ?? LEVEL.incomplete);
+  const coverageLevel = partition.disposition === "valid_partition_structure"
+    ? LEVEL.valid_composed_structure
+    : (LEVEL[partition.disposition] ?? LEVEL.incomplete);
+  let severity = Math.max(egressLevel, coverageLevel);
   const reasons = new Set([
     ...egress.reason_codes.map((reason) => "egress:" + reason),
     ...partition.reason_codes.map((reason) => "coverage:" + reason),
