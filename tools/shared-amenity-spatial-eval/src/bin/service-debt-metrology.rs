@@ -374,8 +374,41 @@ fn unexpressed_need(
     }
 
     match string(assessment, "state")? {
-        "NOT_COLLECTED" => Ok(("NOT_COLLECTED".to_owned(), None, None, None)),
-        "UNKNOWN" => Ok(("UNKNOWN".to_owned(), None, None, None)),
+        "NOT_COLLECTED" => {
+            let unused_fields = [
+                "method",
+                "estimate_units",
+                "lower_bound_units",
+                "upper_bound_units",
+                "sample_size",
+                "confidence_level_basis_points",
+            ];
+            if unused_fields
+                .iter()
+                .any(|field| assessment.get(*field) != Some(&Value::Null))
+                || assessment.get("evidence") != Some(&Value::Null)
+            {
+                return Err(
+                    "NOT_COLLECTED resident need cannot carry measurement values or evidence"
+                        .to_owned(),
+                );
+            }
+            Ok(("NOT_COLLECTED".to_owned(), None, None, None))
+        }
+        "UNKNOWN" => {
+            let numeric_fields = [
+                "estimate_units",
+                "lower_bound_units",
+                "upper_bound_units",
+            ];
+            if numeric_fields
+                .iter()
+                .any(|field| assessment.get(*field) != Some(&Value::Null))
+            {
+                return Err("UNKNOWN resident need cannot carry numeric estimates".to_owned());
+            }
+            Ok(("UNKNOWN".to_owned(), None, None, None))
+        }
         "MEASURED" => {
             validate_evidence(
                 assessment,
@@ -729,6 +762,42 @@ mod tests {
         assert!(
             evaluate(value.to_string().as_bytes()).is_err(),
             "cancelled/declined requests cannot create accepted service quantities"
+        );
+    }
+
+    #[test]
+    fn not_collected_need_cannot_claim_a_zero_measurement() {
+        let mut value = fixture_value();
+        let case = value["cases"]
+            .as_array_mut()
+            .expect("case array")
+            .iter_mut()
+            .find(|case| {
+                case["case_id"]
+                    == "NO_REQUESTS_WITHOUT_NEED_ASSESSMENT_DO_NOT_MEAN_ZERO_NEED"
+            })
+            .expect("no-request case");
+        case["need_assessment"]["estimate_units"] = Value::from(0_u64);
+        assert!(
+            evaluate(value.to_string().as_bytes()).is_err(),
+            "NOT_COLLECTED must not be serialized as a zero estimate"
+        );
+    }
+
+    #[test]
+    fn unknown_need_cannot_retain_numeric_estimates() {
+        let mut value = fixture_value();
+        let case = value["cases"]
+            .as_array_mut()
+            .expect("case array")
+            .iter_mut()
+            .find(|case| case["case_id"] == "STALE_RESIDENT_NEED_ESTIMATE_IS_NOT_A_MEASURED_RESULT")
+            .expect("stale need case");
+        case["need_assessment"]["state"] = Value::String("UNKNOWN".to_owned());
+        case["need_assessment"]["estimate_units"] = Value::from(4_u64);
+        assert!(
+            evaluate(value.to_string().as_bytes()).is_err(),
+            "UNKNOWN need must not retain a numeric estimate"
         );
     }
 
