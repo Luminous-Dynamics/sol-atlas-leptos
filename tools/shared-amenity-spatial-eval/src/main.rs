@@ -1050,6 +1050,46 @@ mod tests {
     }
 
     #[test]
+    fn colocated_nodes_with_one_common_failure_domain_are_not_independent() {
+        let mut value = fixture_value();
+        {
+            let arms = value["scenarios"][0]["arms"]
+                .as_array_mut()
+                .expect("provision arm array");
+            let distributed = arms
+                .iter_mut()
+                .find(|arm| arm["comparison_arm"] == "DISTRIBUTED_SHARED")
+                .expect("distributed arm");
+            let facilities = distributed["facilities"]
+                .as_array_mut()
+                .expect("facility array");
+            let second_node = facilities
+                .iter_mut()
+                .find(|facility| facility["id"] == "D2")
+                .expect("second distributed node");
+            second_node["failure_domain_id"] = Value::String("NODE_EAST".to_owned());
+        }
+        {
+            let expected = value["scenarios"][0]["expected"]
+                .as_array_mut()
+                .expect("golden result array");
+            let distributed = expected
+                .iter_mut()
+                .find(|result| result["comparison_arm"] == "DISTRIBUTED_SHARED")
+                .expect("distributed golden result");
+            distributed["minimum_independent_failure_domains"] = Value::from(1_u64);
+        }
+
+        let output = evaluate_value(value).expect("common-cause dependency is representable");
+        let distributed = find_arm(
+            &output,
+            "COMPACT_HIGH_DENSITY",
+            "DISTRIBUTED_SHARED",
+        );
+        assert_eq!(distributed.minimum_independent_failure_domains, Some(1));
+    }
+
+    #[test]
     fn route_outside_resident_tolerance_does_not_count_as_effective_access() {
         let output = evaluate_fixture(FIXTURE.as_bytes()).expect("fixture should pass");
         let external = find_arm(
