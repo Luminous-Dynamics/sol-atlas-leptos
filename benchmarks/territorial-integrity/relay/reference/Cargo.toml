@@ -6,4 +6,7 @@ license = "AGPL-3.0-or-later"
 description = "Synthetic reference model for CTER relay event convergence"
 
 [dependencies]
+serde = "=1.0.228"
+serde_jcs = "=0.2.0"
 serde_json = "=1.0.150"
+sha2 = "=0.10.9"
