@@ -62,7 +62,7 @@
     },
     {
       "id": "COMMUNITY_KITCHEN",
-      "service": "Accepted meal and food-preparation service",
+      "service": "Resident-use shared kitchen and equipment access",
       "critical_dependencies": [
         "food_hygiene",
         "ventilation",
@@ -72,7 +72,7 @@
         "access"
       ],
       "role": "RESIDENT_FACING_SERVICE_ASSET",
-      "functional_unit_id": "ACCEPTED_MEAL_SERVICE"
+      "functional_unit_id": "ACCESSIBLE_SHARED_KITCHEN_HOUR"
     },
     {
       "id": "COWORKING_LIBRARY_STUDY",
