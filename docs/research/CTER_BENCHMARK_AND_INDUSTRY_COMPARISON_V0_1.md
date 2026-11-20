@@ -219,3 +219,42 @@ The end-to-end benchmark now distinguishes three independent claims:
 3. **Query completeness:** every item matching CTER's exact committed query over the declared source frontier is accounted for and the included subset is bound to the exact package.
 
 The first two do not automatically prove the third. That gap is the focus of #962 and must not be hidden behind a generic verified=true flag.
+
+
+## 9. November 2026 research correction: privacy and preservation are existing capabilities too
+
+The comparison must include the newest public work, not freeze competitors at a previous release.
+
+- Cadasta's research catalogue now lists its 2026 *Cadasta Data Guidelines: A Framework for Responsible, Transparent, and Accountable Data Practices*, expressly intended to guide ethical data collection, management, sharing and protection, especially for Indigenous Peoples and Local Communities. CTER must not present generic community data governance as its novelty.
+- W3C Verifiable Credentials 2.0 supports data minimization and selective disclosure mechanisms; W3C Bitstring Status List v1.0 (Recommendation, 15 May 2025) addresses privacy/performance issues of one-status-URL-per-credential lookups. Mycelix should remain the credential/status/currentness owner; CTER should consume privacy-preserving status resolution where that stack supports it.
+- IETF RFC 9942 and RFC 9943 were published in June 2026 as Proposed Standards on the Standards Track. RFC 9942 defines COSE receipts proving properties of Verifiable Data Structures, including inclusion/consistency/disclosure proofs. RFC 9943 defines the SCITT architecture for transparency of single-issuer signed statements. CTER should reuse Mycelix's transparency boundary and not claim a new ledger or generic transparency primitives.
+- RFC 8493 BagIt provides package structure and strong fixity/integrity checking, but its own security considerations say it is not designed to resist active attacks. A valid bag is not an authorization proof, source-truth proof or active-attacker defense.
+- RFC 8785 JCS is an Informational RFC, not an Internet Standards Track specification. It is a useful candidate canonicalization profile, but the CTER profile must explicitly pin its constraints and test vectors instead of calling it a mandatory Internet Standard.
+- NIST IR 8547 reached final publication in October 2026 and describes the transition from quantum-vulnerable to post-quantum signature and key-establishment standards. Long-lived CTER archives therefore need algorithm identifiers, renewal/migration evidence and historical-validation semantics; a digest or signature that verifies today must not be described as timelessly secure.
+
+### New CTER qualification dimension
+
+[CTER-PRIVACY-CHANNEL-001 #964](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/964) adds paired-world non-disclosure tests across spatial tiles, search, counts, error behavior, filenames, logs/traces, previews/OCR, AI retrieval, status lookups, caches, backups and transport metadata. Its first artifacts are:
+
+- \`docs/research/CTER_PRIVACY_CHANNEL_PROFILE_V0_1.md\`
+- \`schemas/cter-privacy-channel-inventory-v0.1.schema.json\`
+- \`benchmarks/territorial-integrity/privacy/cases-v0.1.json\`
+- \`benchmarks/territorial-integrity/relay/reference/privacy-oracle.mjs\`
+- \`benchmarks/territorial-integrity/relay/reference/src/privacy.rs\`
+- \`benchmarks/territorial-integrity/relay/reference/tests/privacy_conformance.rs\`
+
+The synthetic fixture set currently has 24 paired-world cases: 20 leak detections, 3 exact non-disclosure controls and 1 undeclared-channel/inventory-gap control. A tool-side V8 fixture semantics check matched 24/24 expected dispositions. This is not a Node 22 workflow run or a production runtime privacy audit. The Rust tests and integrated CI remain pending exact-head execution.
+
+### Revised differentiation hypothesis
+
+CTER should not try to win by claiming offline mapping, governance, data minimization, selective disclosure, generic provenance, cryptographic packaging or transparency as inventions. Those have mature standards, products and practice.
+
+The testable differentiation is the composition of:
+1. exact upstream authority/consent references;
+2. exact source-to-output transformation lineage;
+3. recipient/package/release-attempt binding;
+4. cross-channel non-disclosure and status-query privacy;
+5. contestation and withheld/unavailable semantics;
+6. independently restorable evidence frontiers with cryptographic migration history.
+
+The comparison must still use matched datasets, operations, hardware, network traces, users and adversarial schedules. No product-level SOTA superiority is established by the current synthetic reference suite.
