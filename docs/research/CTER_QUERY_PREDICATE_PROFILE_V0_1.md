@@ -230,3 +230,12 @@ The workload separates predicate evaluation, parse/compile, canonicalization, co
 - Predicate commitment golden vectors: 4 cross-language canonical-byte/digest vectors.
 
 These are fixture specifications and source-level conformance tests. The local Node 22.16.0 golden-vector check is a separate result. No Rust build/test, exact-head Node workflow pass, owner-attested input snapshot, COSE/VDS proof or production release is claimed.
+
+
+## Query input provenance composition (#973)
+
+The predicate commitment is now complemented by a separate query-input snapshot commitment. The first reference slice freezes the exact per-item attribute projection, source references, source content-digest commitments, availability state, and the frontier/query/profile identity. Scope is evaluated against that snapshot, not mutable partition attributes.
+
+See [CTER_QUERY_INPUT_ATTESTATION_PROFILE_V0_1.md](CTER_QUERY_INPUT_ATTESTATION_PROFILE_V0_1.md) and [#973](https://github.com/Luminous-Dynamics/sol-atlas-leptos). The predicate and snapshot hashes are domain-separated and cannot be substituted for one another.
+
+This does not prove source truth. The custodian creates the snapshot, source-content digests are not recomputed over fetched bytes, and the source owner/Mycelix has not yet issued or confirmed an attestation receipt for this new snapshot type. That is a separate interoperability and trust qualification requirement.
