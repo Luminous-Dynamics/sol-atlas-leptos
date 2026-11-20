@@ -830,7 +830,6 @@ mod predicate_semantics_tests {
 
     #[test]
     fn all_false_dominates_unknown() {
-        let input = json!({});
         let predicate = json!({
             "op": "all",
             "args": [
