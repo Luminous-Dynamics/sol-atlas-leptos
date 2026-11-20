@@ -28,7 +28,7 @@ fn adversarial_suite_is_frozen_and_explicitly_unexecuted() {
     assert_eq!(cases.iter().filter(|case| case["case_id"] != "EGRESS-BASELINE-001").count(), 38);
     assert_eq!(
         suite["execution_status"],
-        "jcs_predicate_commitment_implemented_exact_head_rust_and_node22_pending"
+        "query_predicate_and_input_snapshot_commitments_implemented_exact_head_tests_pending"
     );
 }
 
