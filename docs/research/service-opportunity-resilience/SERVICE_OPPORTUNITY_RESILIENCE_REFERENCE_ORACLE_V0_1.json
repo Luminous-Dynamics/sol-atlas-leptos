@@ -1,0 +1,3569 @@
+{
+  "schema": "luminous.service-opportunity-resilience-reference-oracle",
+  "schema_version": "0.1.0",
+  "maturity": "SYNTHETIC_REFERENCE_ORACLE_ONLY",
+  "claim_ceiling": "NO_JOHANNESBURG_FIELD_VALIDATION_NO_REAL_SERVICE_RELIABILITY_NO_PHYSICAL_SAFETY_OR_LEGAL_CLAIM",
+  "time_basis": {
+    "tick_seconds": 900,
+    "origin": "SYNTHETIC_HORIZON_START",
+    "tick_semantics": "integer 15-minute ticks",
+    "interval_semantics": "HALF_OPEN_START_INCLUSIVE_END_EXCLUSIVE",
+    "horizon_start_tick": 0,
+    "horizon_end_tick": 8
+  },
+  "decision_policy": {
+    "predicate_names": [
+      "route",
+      "service",
+      "capacity",
+      "suitability"
+    ],
+    "predicate_states": [
+      "QUALIFIED_AVAILABLE",
+      "QUALIFIED_UNAVAILABLE",
+      "UNKNOWN",
+      "STALE"
+    ],
+    "alternative_rule": "Scope mismatch yields NOT_COMPARABLE. Otherwise any QUALIFIED_UNAVAILABLE mandatory predicate yields UNAVAILABLE; absent that, any UNKNOWN or STALE yields UNKNOWN; only all QUALIFIED_AVAILABLE predicates yield AVAILABLE.",
+    "opportunity_rule": "AVAILABLE if at least one in-scope alternative is AVAILABLE; otherwise UNKNOWN if any alternative is UNKNOWN; otherwise NOT_COMPARABLE if any alternative is NOT_COMPARABLE; otherwise UNAVAILABLE.",
+    "capacity_rule": "A QUALIFIED_AVAILABLE capacity predicate asserts that owner-qualified supply meets case demand. A QUALIFIED_UNAVAILABLE predicate proves it does not. This evaluator does not calculate capacity.",
+    "freshness_rule": "STALE never qualifies as AVAILABLE. UNKNOWN and STALE do not become UNAVAILABLE absent a current owner-qualified negative fact.",
+    "dependency_rule": "Failure-domain labels are identifiers, not probabilities or proof of physical independence. UNKNOWN dependency-map completeness blocks independence claims but does not negate a currently qualified usable opportunity.",
+    "stable_recovery_rule": "Consume the Symtropy owner-native stability state. Emit VERIFIED stable opportunity restoration only when the owner attests VERIFIED at a tick inside an AVAILABLE opportunity interval. Do not infer stability from a brief AVAILABLE interval."
+  },
+  "cases": [
+    {
+      "case_id": "INDEPENDENT_BACKUP_SURVIVES_PRIMARY_FAILURE",
+      "title": "Independent local fallback maintains a qualified opportunity",
+      "scenario_class": "ALTERNATIVE_CONTINUITY",
+      "scope": {
+        "scope_digest": "synthetic-habitat-scope-v0.1",
+        "population_frame_id": "synthetic-resident-frame-v0.1",
+        "service_id": "COMMUNITY_WORKSHOP",
+        "functional_unit_id": "ACCESSIBLE_WORKSHOP_HOUR",
+        "cohort_id": "COHORT_GENERAL",
+        "time_basis_id": "SYNTHETIC_15M_TICKS_V1",
+        "horizon_start_tick": 0,
+        "horizon_end_tick": 8
+      },
+      "demand": {
+        "unit": "qualified_workshop_service_units",
+        "required_units": 2
+      },
+      "dependency_map_state": "COMPLETE",
+      "disruption_events": [
+        {
+          "event_id": "SYNTHETIC_GRID_EVENT_01",
+          "failure_domain": "GRID_FEED_A",
+          "start_tick": 2,
+          "end_tick": 6,
+          "evidence_class": "SYNTHETIC_CONTROLLED"
+        }
+      ],
+      "alternatives": [
+        {
+          "alternative_id": "CENTRAL_WORKSHOP",
+          "scope_binding": {
+            "scope_digest": "synthetic-habitat-scope-v0.1",
+            "population_frame_id": "synthetic-resident-frame-v0.1",
+            "service_id": "COMMUNITY_WORKSHOP",
+            "functional_unit_id": "ACCESSIBLE_WORKSHOP_HOUR",
+            "time_basis_id": "SYNTHETIC_15M_TICKS_V1",
+            "cohort_id": "COHORT_GENERAL"
+          },
+          "owner_revisions": {
+            "access": "citymorph-synthetic-r1",
+            "service": "mycelix-amenity-synthetic-r1",
+            "capacity": "symtropy-capacity-synthetic-r1",
+            "suitability": "resident-brief-synthetic-r1"
+          },
+          "failure_domains": [
+            "GRID_FEED_A",
+            "CENTRAL_OPERATOR"
+          ],
+          "slices": [
+            {
+              "start_tick": 0,
+              "end_tick": 2,
+              "predicates": {
+                "route": "QUALIFIED_AVAILABLE",
+                "service": "QUALIFIED_AVAILABLE",
+                "capacity": "QUALIFIED_AVAILABLE",
+                "suitability": "QUALIFIED_AVAILABLE"
+              }
+            },
+            {
+              "start_tick": 2,
+              "end_tick": 4,
+              "predicates": {
+                "route": "QUALIFIED_AVAILABLE",
+                "service": "QUALIFIED_UNAVAILABLE",
+                "capacity": "QUALIFIED_AVAILABLE",
+                "suitability": "QUALIFIED_AVAILABLE"
+              }
+            },
+            {
+              "start_tick": 4,
+              "end_tick": 6,
+              "predicates": {
+                "route": "QUALIFIED_AVAILABLE",
+                "service": "QUALIFIED_UNAVAILABLE",
+                "capacity": "QUALIFIED_AVAILABLE",
+                "suitability": "QUALIFIED_AVAILABLE"
+              }
+            },
+            {
+              "start_tick": 6,
+              "end_tick": 8,
+              "predicates": {
+                "route": "QUALIFIED_AVAILABLE",
+                "service": "QUALIFIED_AVAILABLE",
+                "capacity": "QUALIFIED_AVAILABLE",
+                "suitability": "QUALIFIED_AVAILABLE"
+              }
+            }
+          ]
+        },
+        {
+          "alternative_id": "LOCAL_WORKSHOP",
+          "scope_binding": {
+            "scope_digest": "synthetic-habitat-scope-v0.1",
+            "population_frame_id": "synthetic-resident-frame-v0.1",
+            "service_id": "COMMUNITY_WORKSHOP",
+            "functional_unit_id": "ACCESSIBLE_WORKSHOP_HOUR",
+            "time_basis_id": "SYNTHETIC_15M_TICKS_V1",
+            "cohort_id": "COHORT_GENERAL"
+          },
+          "owner_revisions": {
+            "access": "citymorph-synthetic-r1",
+            "service": "mycelix-amenity-synthetic-r1",
+            "capacity": "symtropy-capacity-synthetic-r1",
+            "suitability": "resident-brief-synthetic-r1"
+          },
+          "failure_domains": [
+            "LOCAL_POWER_B",
+            "LOCAL_OPERATOR"
+          ],
+          "slices": [
+            {
+              "start_tick": 0,
+              "end_tick": 2,
+              "predicates": {
+                "route": "QUALIFIED_AVAILABLE",
+                "service": "QUALIFIED_AVAILABLE",
+                "capacity": "QUALIFIED_AVAILABLE",
+                "suitability": "QUALIFIED_AVAILABLE"
+              }
+            },
+            {
+              "start_tick": 2,
+              "end_tick": 4,
+              "predicates": {
+                "route": "QUALIFIED_AVAILABLE",
+                "service": "QUALIFIED_AVAILABLE",
+                "capacity": "QUALIFIED_AVAILABLE",
+                "suitability": "QUALIFIED_AVAILABLE"
+              }
+            },
+            {
+              "start_tick": 4,
+              "end_tick": 6,
+              "predicates": {
+                "route": "QUALIFIED_AVAILABLE",
+                "service": "QUALIFIED_AVAILABLE",
+                "capacity": "QUALIFIED_AVAILABLE",
+                "suitability": "QUALIFIED_AVAILABLE"
+              }
+            },
+            {
+              "start_tick": 6,
+              "end_tick": 8,
+              "predicates": {
+                "route": "QUALIFIED_AVAILABLE",
+                "service": "QUALIFIED_AVAILABLE",
+                "capacity": "QUALIFIED_AVAILABLE",
+                "suitability": "QUALIFIED_AVAILABLE"
+              }
+            }
+          ]
+        }
+      ],
+      "stability_evidence": {
+        "owner": "Symtropy",
+        "owner_reference": "https://github.com/Luminous-Dynamics/symtropy/issues/1848",
+        "owner_revision": "symtropy-synthetic-r1",
+        "state": "NOT_APPLICABLE",
+        "effective_tick": null,
+        "reason_code": "NO_RESTORATION_CLAIM",
+        "scope_binding": {
+          "scope_digest": "synthetic-habitat-scope-v0.1",
+          "population_frame_id": "synthetic-resident-frame-v0.1",
+          "service_id": "COMMUNITY_WORKSHOP",
+          "functional_unit_id": "ACCESSIBLE_WORKSHOP_HOUR",
+          "cohort_id": "COHORT_GENERAL",
+          "time_basis_id": "SYNTHETIC_15M_TICKS_V1"
+        }
+      },
+      "expected": {
+        "opportunity_slices": [
+          {
+            "start_tick": 0,
+            "end_tick": 2,
+            "state": "AVAILABLE",
+            "alternative_counts": {
+              "available": 2,
+              "unavailable": 0,
+              "unknown": 0,
+              "not_comparable": 0
+            }
+          },
+          {
+            "start_tick": 2,
+            "end_tick": 4,
+            "state": "AVAILABLE",
+            "alternative_counts": {
+              "available": 1,
+              "unavailable": 1,
+              "unknown": 0,
+              "not_comparable": 0
+            }
+          },
+          {
+            "start_tick": 4,
+            "end_tick": 6,
+            "state": "AVAILABLE",
+            "alternative_counts": {
+              "available": 1,
+              "unavailable": 1,
+              "unknown": 0,
+              "not_comparable": 0
+            }
+          },
+          {
+            "start_tick": 6,
+            "end_tick": 8,
+            "state": "AVAILABLE",
+            "alternative_counts": {
+              "available": 2,
+              "unavailable": 0,
+              "unknown": 0,
+              "not_comparable": 0
+            }
+          }
+        ],
+        "coalesced_opportunity_intervals": [
+          {
+            "start_tick": 0,
+            "end_tick": 8,
+            "state": "AVAILABLE"
+          }
+        ],
+        "first_available_tick": 0,
+        "first_restored_after_known_loss_tick": null,
+        "stable_opportunity_restoration": {
+          "state": "NOT_APPLICABLE",
+          "tick": null
+        },
+        "dependency_map_state": "COMPLETE"
+      }
+    },
+    {
+      "case_id": "SHARED_OPERATOR_COMMON_CAUSE",
+      "title": "One operator outage disables both nominal facilities",
+      "scenario_class": "COMMON_CAUSE_LOSS",
+      "scope": {
+        "scope_digest": "synthetic-habitat-scope-v0.1",
+        "population_frame_id": "synthetic-resident-frame-v0.1",
+        "service_id": "COMMUNITY_WORKSHOP",
+        "functional_unit_id": "ACCESSIBLE_WORKSHOP_HOUR",
+        "cohort_id": "COHORT_GENERAL",
+        "time_basis_id": "SYNTHETIC_15M_TICKS_V1",
+        "horizon_start_tick": 0,
+        "horizon_end_tick": 8
+      },
+      "demand": {
+        "unit": "qualified_workshop_service_units",
+        "required_units": 2
+      },
+      "dependency_map_state": "COMPLETE",
+      "disruption_events": [
+        {
+          "event_id": "SYNTHETIC_OPERATOR_EVENT_02",
+          "failure_domain": "SHARED_OPERATOR_X",
+          "start_tick": 2,
+          "end_tick": 6,
+          "evidence_class": "SYNTHETIC_CONTROLLED"
+        }
+      ],
+      "alternatives": [
+        {
+          "alternative_id": "NODE_A",
+          "scope_binding": {
+            "scope_digest": "synthetic-habitat-scope-v0.1",
+            "population_frame_id": "synthetic-resident-frame-v0.1",
+            "service_id": "COMMUNITY_WORKSHOP",
+            "functional_unit_id": "ACCESSIBLE_WORKSHOP_HOUR",
+            "time_basis_id": "SYNTHETIC_15M_TICKS_V1",
+            "cohort_id": "COHORT_GENERAL"
+          },
+          "owner_revisions": {
+            "access": "citymorph-synthetic-r1",
+            "service": "mycelix-amenity-synthetic-r1",
+            "capacity": "symtropy-capacity-synthetic-r1",
+            "suitability": "resident-brief-synthetic-r1"
+          },
+          "failure_domains": [
+            "SHARED_OPERATOR_X",
+            "GRID_A"
+          ],
+          "slices": [
+            {
+              "start_tick": 0,
+              "end_tick": 2,
+              "predicates": {
+                "route": "QUALIFIED_AVAILABLE",
+                "service": "QUALIFIED_AVAILABLE",
+                "capacity": "QUALIFIED_AVAILABLE",
+                "suitability": "QUALIFIED_AVAILABLE"
+              }
+            },
+            {
+              "start_tick": 2,
+              "end_tick": 4,
+              "predicates": {
+                "route": "QUALIFIED_AVAILABLE",
+                "service": "QUALIFIED_UNAVAILABLE",
+                "capacity": "QUALIFIED_AVAILABLE",
+                "suitability": "QUALIFIED_AVAILABLE"
+              }
+            },
+            {
+              "start_tick": 4,
+              "end_tick": 6,
+              "predicates": {
+                "route": "QUALIFIED_AVAILABLE",
+                "service": "QUALIFIED_UNAVAILABLE",
+                "capacity": "QUALIFIED_AVAILABLE",
+                "suitability": "QUALIFIED_AVAILABLE"
+              }
+            },
+            {
+              "start_tick": 6,
+              "end_tick": 8,
+              "predicates": {
+                "route": "QUALIFIED_AVAILABLE",
+                "service": "QUALIFIED_AVAILABLE",
+                "capacity": "QUALIFIED_AVAILABLE",
+                "suitability": "QUALIFIED_AVAILABLE"
+              }
+            }
+          ]
+        },
+        {
+          "alternative_id": "NODE_B",
+          "scope_binding": {
+            "scope_digest": "synthetic-habitat-scope-v0.1",
+            "population_frame_id": "synthetic-resident-frame-v0.1",
+            "service_id": "COMMUNITY_WORKSHOP",
+            "functional_unit_id": "ACCESSIBLE_WORKSHOP_HOUR",
+            "time_basis_id": "SYNTHETIC_15M_TICKS_V1",
+            "cohort_id": "COHORT_GENERAL"
+          },
+          "owner_revisions": {
+            "access": "citymorph-synthetic-r1",
+            "service": "mycelix-amenity-synthetic-r1",
+            "capacity": "symtropy-capacity-synthetic-r1",
+            "suitability": "resident-brief-synthetic-r1"
+          },
+          "failure_domains": [
+            "SHARED_OPERATOR_X",
+            "GRID_B"
+          ],
+          "slices": [
+            {
+              "start_tick": 0,
+              "end_tick": 2,
+              "predicates": {
+                "route": "QUALIFIED_AVAILABLE",
+                "service": "QUALIFIED_AVAILABLE",
+                "capacity": "QUALIFIED_AVAILABLE",
+                "suitability": "QUALIFIED_AVAILABLE"
+              }
+            },
+            {
+              "start_tick": 2,
+              "end_tick": 4,
+              "predicates": {
+                "route": "QUALIFIED_AVAILABLE",
+                "service": "QUALIFIED_UNAVAILABLE",
+                "capacity": "QUALIFIED_AVAILABLE",
+                "suitability": "QUALIFIED_AVAILABLE"
+              }
+            },
+            {
+              "start_tick": 4,
+              "end_tick": 6,
+              "predicates": {
+                "route": "QUALIFIED_AVAILABLE",
+                "service": "QUALIFIED_UNAVAILABLE",
+                "capacity": "QUALIFIED_AVAILABLE",
+                "suitability": "QUALIFIED_AVAILABLE"
+              }
+            },
+            {
+              "start_tick": 6,
+              "end_tick": 8,
+              "predicates": {
+                "route": "QUALIFIED_AVAILABLE",
+                "service": "QUALIFIED_AVAILABLE",
+                "capacity": "QUALIFIED_AVAILABLE",
+                "suitability": "QUALIFIED_AVAILABLE"
+              }
+            }
+          ]
+        }
+      ],
+      "stability_evidence": {
+        "owner": "Symtropy",
+        "owner_reference": "https://github.com/Luminous-Dynamics/symtropy/issues/1848",
+        "owner_revision": "symtropy-synthetic-r1",
+        "state": "VERIFIED",
+        "effective_tick": 7,
+        "reason_code": "OWNER_VERIFIED_STABLE_SERVICE_TRAJECTORY",
+        "scope_binding": {
+          "scope_digest": "synthetic-habitat-scope-v0.1",
+          "population_frame_id": "synthetic-resident-frame-v0.1",
+          "service_id": "COMMUNITY_WORKSHOP",
+          "functional_unit_id": "ACCESSIBLE_WORKSHOP_HOUR",
+          "cohort_id": "COHORT_GENERAL",
+          "time_basis_id": "SYNTHETIC_15M_TICKS_V1"
+        }
+      },
+      "expected": {
+        "opportunity_slices": [
+          {
+            "start_tick": 0,
+            "end_tick": 2,
+            "state": "AVAILABLE",
+            "alternative_counts": {
+              "available": 2,
+              "unavailable": 0,
+              "unknown": 0,
+              "not_comparable": 0
+            }
+          },
+          {
+            "start_tick": 2,
+            "end_tick": 4,
+            "state": "UNAVAILABLE",
+            "alternative_counts": {
+              "available": 0,
+              "unavailable": 2,
+              "unknown": 0,
+              "not_comparable": 0
+            }
+          },
+          {
+            "start_tick": 4,
+            "end_tick": 6,
+            "state": "UNAVAILABLE",
+            "alternative_counts": {
+              "available": 0,
+              "unavailable": 2,
+              "unknown": 0,
+              "not_comparable": 0
+            }
+          },
+          {
+            "start_tick": 6,
+            "end_tick": 8,
+            "state": "AVAILABLE",
+            "alternative_counts": {
+              "available": 2,
+              "unavailable": 0,
+              "unknown": 0,
+              "not_comparable": 0
+            }
+          }
+        ],
+        "coalesced_opportunity_intervals": [
+          {
+            "start_tick": 0,
+            "end_tick": 2,
+            "state": "AVAILABLE"
+          },
+          {
+            "start_tick": 2,
+            "end_tick": 6,
+            "state": "UNAVAILABLE"
+          },
+          {
+            "start_tick": 6,
+            "end_tick": 8,
+            "state": "AVAILABLE"
+          }
+        ],
+        "first_available_tick": 0,
+        "first_restored_after_known_loss_tick": 6,
+        "stable_opportunity_restoration": {
+          "state": "VERIFIED",
+          "tick": 7
+        },
+        "dependency_map_state": "COMPLETE"
+      }
+    },
+    {
+      "case_id": "REACHABLE_BUT_NO_FULL_DURATION_SLOT",
+      "title": "Route is reachable but owner evidence proves the requested service cannot fit",
+      "scenario_class": "SERVICE_WINDOW_FAILURE",
+      "scope": {
+        "scope_digest": "synthetic-habitat-scope-v0.1",
+        "population_frame_id": "synthetic-resident-frame-v0.1",
+        "service_id": "COMMUNITY_WORKSHOP",
+        "functional_unit_id": "ACCESSIBLE_WORKSHOP_HOUR",
+        "cohort_id": "COHORT_GENERAL",
+        "time_basis_id": "SYNTHETIC_15M_TICKS_V1",
+        "horizon_start_tick": 0,
+        "horizon_end_tick": 8
+      },
+      "demand": {
+        "unit": "qualified_workshop_service_units",
+        "required_units": 2
+      },
+      "dependency_map_state": "COMPLETE",
+      "disruption_events": [
+        {
+          "event_id": "SYNTHETIC_SERVICE_WINDOW_03",
+          "failure_domain": "SERVICE_WINDOW_A",
+          "start_tick": 2,
+          "end_tick": 6,
+          "evidence_class": "SYNTHETIC_CONTROLLED"
+        }
+      ],
+      "alternatives": [
+        {
+          "alternative_id": "ONLY_NODE",
+          "scope_binding": {
+            "scope_digest": "synthetic-habitat-scope-v0.1",
+            "population_frame_id": "synthetic-resident-frame-v0.1",
+            "service_id": "COMMUNITY_WORKSHOP",
+            "functional_unit_id": "ACCESSIBLE_WORKSHOP_HOUR",
+            "time_basis_id": "SYNTHETIC_15M_TICKS_V1",
+            "cohort_id": "COHORT_GENERAL"
+          },
+          "owner_revisions": {
+            "access": "citymorph-synthetic-r1",
+            "service": "mycelix-amenity-synthetic-r1",
+            "capacity": "symtropy-capacity-synthetic-r1",
+            "suitability": "resident-brief-synthetic-r1"
+          },
+          "failure_domains": [
+            "OPERATOR_A"
+          ],
+          "slices": [
+            {
+              "start_tick": 0,
+              "end_tick": 2,
+              "predicates": {
+                "route": "QUALIFIED_AVAILABLE",
+                "service": "QUALIFIED_AVAILABLE",
+                "capacity": "QUALIFIED_AVAILABLE",
+                "suitability": "QUALIFIED_AVAILABLE"
+              }
+            },
+            {
+              "start_tick": 2,
+              "end_tick": 4,
+              "predicates": {
+                "route": "QUALIFIED_AVAILABLE",
+                "service": "QUALIFIED_UNAVAILABLE",
+                "capacity": "QUALIFIED_AVAILABLE",
+                "suitability": "QUALIFIED_AVAILABLE"
+              }
+            },
+            {
+              "start_tick": 4,
+              "end_tick": 6,
+              "predicates": {
+                "route": "QUALIFIED_AVAILABLE",
+                "service": "QUALIFIED_UNAVAILABLE",
+                "capacity": "QUALIFIED_AVAILABLE",
+                "suitability": "QUALIFIED_AVAILABLE"
+              }
+            },
+            {
+              "start_tick": 6,
+              "end_tick": 8,
+              "predicates": {
+                "route": "QUALIFIED_AVAILABLE",
+                "service": "QUALIFIED_AVAILABLE",
+                "capacity": "QUALIFIED_AVAILABLE",
+                "suitability": "QUALIFIED_AVAILABLE"
+              }
+            }
+          ]
+        }
+      ],
+      "stability_evidence": {
+        "owner": "Symtropy",
+        "owner_reference": "https://github.com/Luminous-Dynamics/symtropy/issues/1848",
+        "owner_revision": "symtropy-synthetic-r1",
+        "state": "NOT_APPLICABLE",
+        "effective_tick": null,
+        "reason_code": "NO_RESTORATION_CLAIM",
+        "scope_binding": {
+          "scope_digest": "synthetic-habitat-scope-v0.1",
+          "population_frame_id": "synthetic-resident-frame-v0.1",
+          "service_id": "COMMUNITY_WORKSHOP",
+          "functional_unit_id": "ACCESSIBLE_WORKSHOP_HOUR",
+          "cohort_id": "COHORT_GENERAL",
+          "time_basis_id": "SYNTHETIC_15M_TICKS_V1"
+        }
+      },
+      "expected": {
+        "opportunity_slices": [
+          {
+            "start_tick": 0,
+            "end_tick": 2,
+            "state": "AVAILABLE",
+            "alternative_counts": {
+              "available": 1,
+              "unavailable": 0,
+              "unknown": 0,
+              "not_comparable": 0
+            }
+          },
+          {
+            "start_tick": 2,
+            "end_tick": 4,
+            "state": "UNAVAILABLE",
+            "alternative_counts": {
+              "available": 0,
+              "unavailable": 1,
+              "unknown": 0,
+              "not_comparable": 0
+            }
+          },
+          {
+            "start_tick": 4,
+            "end_tick": 6,
+            "state": "UNAVAILABLE",
+            "alternative_counts": {
+              "available": 0,
+              "unavailable": 1,
+              "unknown": 0,
+              "not_comparable": 0
+            }
+          },
+          {
+            "start_tick": 6,
+            "end_tick": 8,
+            "state": "AVAILABLE",
+            "alternative_counts": {
+              "available": 1,
+              "unavailable": 0,
+              "unknown": 0,
+              "not_comparable": 0
+            }
+          }
+        ],
+        "coalesced_opportunity_intervals": [
+          {
+            "start_tick": 0,
+            "end_tick": 2,
+            "state": "AVAILABLE"
+          },
+          {
+            "start_tick": 2,
+            "end_tick": 6,
+            "state": "UNAVAILABLE"
+          },
+          {
+            "start_tick": 6,
+            "end_tick": 8,
+            "state": "AVAILABLE"
+          }
+        ],
+        "first_available_tick": 0,
+        "first_restored_after_known_loss_tick": 6,
+        "stable_opportunity_restoration": {
+          "state": "NOT_APPLICABLE",
+          "tick": null
+        },
+        "dependency_map_state": "COMPLETE"
+      }
+    },
+    {
+      "case_id": "ROUTE_RESTORED_AFTER_SERVICE",
+      "title": "Service is operational before the route is usable again",
+      "scenario_class": "SPLIT_RESTORATION",
+      "scope": {
+        "scope_digest": "synthetic-habitat-scope-v0.1",
+        "population_frame_id": "synthetic-resident-frame-v0.1",
+        "service_id": "COMMUNITY_WORKSHOP",
+        "functional_unit_id": "ACCESSIBLE_WORKSHOP_HOUR",
+        "cohort_id": "COHORT_GENERAL",
+        "time_basis_id": "SYNTHETIC_15M_TICKS_V1",
+        "horizon_start_tick": 0,
+        "horizon_end_tick": 8
+      },
+      "demand": {
+        "unit": "qualified_workshop_service_units",
+        "required_units": 2
+      },
+      "dependency_map_state": "COMPLETE",
+      "disruption_events": [
+        {
+          "event_id": "SYNTHETIC_BRIDGE_EVENT_04",
+          "failure_domain": "ACCESS_BRIDGE_A",
+          "start_tick": 2,
+          "end_tick": 6,
+          "evidence_class": "SYNTHETIC_CONTROLLED"
+        }
+      ],
+      "alternatives": [
+        {
+          "alternative_id": "ONLY_NODE",
+          "scope_binding": {
+            "scope_digest": "synthetic-habitat-scope-v0.1",
+            "population_frame_id": "synthetic-resident-frame-v0.1",
+            "service_id": "COMMUNITY_WORKSHOP",
+            "functional_unit_id": "ACCESSIBLE_WORKSHOP_HOUR",
+            "time_basis_id": "SYNTHETIC_15M_TICKS_V1",
+            "cohort_id": "COHORT_GENERAL"
+          },
+          "owner_revisions": {
+            "access": "citymorph-synthetic-r1",
+            "service": "mycelix-amenity-synthetic-r1",
+            "capacity": "symtropy-capacity-synthetic-r1",
+            "suitability": "resident-brief-synthetic-r1"
+          },
+          "failure_domains": [
+            "ACCESS_BRIDGE_A",
+            "WORKSHOP_SERVICE_A"
+          ],
+          "slices": [
+            {
+              "start_tick": 0,
+              "end_tick": 2,
+              "predicates": {
+                "route": "QUALIFIED_AVAILABLE",
+                "service": "QUALIFIED_AVAILABLE",
+                "capacity": "QUALIFIED_AVAILABLE",
+                "suitability": "QUALIFIED_AVAILABLE"
+              }
+            },
+            {
+              "start_tick": 2,
+              "end_tick": 4,
+              "predicates": {
+                "route": "QUALIFIED_UNAVAILABLE",
+                "service": "QUALIFIED_UNAVAILABLE",
+                "capacity": "QUALIFIED_AVAILABLE",
+                "suitability": "QUALIFIED_AVAILABLE"
+              }
+            },
+            {
+              "start_tick": 4,
+              "end_tick": 6,
+              "predicates": {
+                "route": "QUALIFIED_UNAVAILABLE",
+                "service": "QUALIFIED_AVAILABLE",
+                "capacity": "QUALIFIED_AVAILABLE",
+                "suitability": "QUALIFIED_AVAILABLE"
+              }
+            },
+            {
+              "start_tick": 6,
+              "end_tick": 8,
+              "predicates": {
+                "route": "QUALIFIED_AVAILABLE",
+                "service": "QUALIFIED_AVAILABLE",
+                "capacity": "QUALIFIED_AVAILABLE",
+                "suitability": "QUALIFIED_AVAILABLE"
+              }
+            }
+          ]
+        }
+      ],
+      "stability_evidence": {
+        "owner": "Symtropy",
+        "owner_reference": "https://github.com/Luminous-Dynamics/symtropy/issues/1848",
+        "owner_revision": "symtropy-synthetic-r1",
+        "state": "VERIFIED",
+        "effective_tick": 7,
+        "reason_code": "OWNER_VERIFIED_STABLE_SERVICE_TRAJECTORY",
+        "scope_binding": {
+          "scope_digest": "synthetic-habitat-scope-v0.1",
+          "population_frame_id": "synthetic-resident-frame-v0.1",
+          "service_id": "COMMUNITY_WORKSHOP",
+          "functional_unit_id": "ACCESSIBLE_WORKSHOP_HOUR",
+          "cohort_id": "COHORT_GENERAL",
+          "time_basis_id": "SYNTHETIC_15M_TICKS_V1"
+        }
+      },
+      "expected": {
+        "opportunity_slices": [
+          {
+            "start_tick": 0,
+            "end_tick": 2,
+            "state": "AVAILABLE",
+            "alternative_counts": {
+              "available": 1,
+              "unavailable": 0,
+              "unknown": 0,
+              "not_comparable": 0
+            }
+          },
+          {
+            "start_tick": 2,
+            "end_tick": 4,
+            "state": "UNAVAILABLE",
+            "alternative_counts": {
+              "available": 0,
+              "unavailable": 1,
+              "unknown": 0,
+              "not_comparable": 0
+            }
+          },
+          {
+            "start_tick": 4,
+            "end_tick": 6,
+            "state": "UNAVAILABLE",
+            "alternative_counts": {
+              "available": 0,
+              "unavailable": 1,
+              "unknown": 0,
+              "not_comparable": 0
+            }
+          },
+          {
+            "start_tick": 6,
+            "end_tick": 8,
+            "state": "AVAILABLE",
+            "alternative_counts": {
+              "available": 1,
+              "unavailable": 0,
+              "unknown": 0,
+              "not_comparable": 0
+            }
+          }
+        ],
+        "coalesced_opportunity_intervals": [
+          {
+            "start_tick": 0,
+            "end_tick": 2,
+            "state": "AVAILABLE"
+          },
+          {
+            "start_tick": 2,
+            "end_tick": 6,
+            "state": "UNAVAILABLE"
+          },
+          {
+            "start_tick": 6,
+            "end_tick": 8,
+            "state": "AVAILABLE"
+          }
+        ],
+        "first_available_tick": 0,
+        "first_restored_after_known_loss_tick": 6,
+        "stable_opportunity_restoration": {
+          "state": "VERIFIED",
+          "tick": 7
+        },
+        "dependency_map_state": "COMPLETE"
+      }
+    },
+    {
+      "case_id": "SERVICE_RESTORED_AFTER_ROUTE",
+      "title": "Route is usable before facility recommissioning",
+      "scenario_class": "SPLIT_RESTORATION",
+      "scope": {
+        "scope_digest": "synthetic-habitat-scope-v0.1",
+        "population_frame_id": "synthetic-resident-frame-v0.1",
+        "service_id": "COMMUNITY_WORKSHOP",
+        "functional_unit_id": "ACCESSIBLE_WORKSHOP_HOUR",
+        "cohort_id": "COHORT_GENERAL",
+        "time_basis_id": "SYNTHETIC_15M_TICKS_V1",
+        "horizon_start_tick": 0,
+        "horizon_end_tick": 8
+      },
+      "demand": {
+        "unit": "qualified_workshop_service_units",
+        "required_units": 2
+      },
+      "dependency_map_state": "COMPLETE",
+      "disruption_events": [
+        {
+          "event_id": "SYNTHETIC_COMMISSIONING_EVENT_05",
+          "failure_domain": "WORKSHOP_SERVICE_A",
+          "start_tick": 2,
+          "end_tick": 6,
+          "evidence_class": "SYNTHETIC_CONTROLLED"
+        }
+      ],
+      "alternatives": [
+        {
+          "alternative_id": "ONLY_NODE",
+          "scope_binding": {
+            "scope_digest": "synthetic-habitat-scope-v0.1",
+            "population_frame_id": "synthetic-resident-frame-v0.1",
+            "service_id": "COMMUNITY_WORKSHOP",
+            "functional_unit_id": "ACCESSIBLE_WORKSHOP_HOUR",
+            "time_basis_id": "SYNTHETIC_15M_TICKS_V1",
+            "cohort_id": "COHORT_GENERAL"
+          },
+          "owner_revisions": {
+            "access": "citymorph-synthetic-r1",
+            "service": "mycelix-amenity-synthetic-r1",
+            "capacity": "symtropy-capacity-synthetic-r1",
+            "suitability": "resident-brief-synthetic-r1"
+          },
+          "failure_domains": [
+            "ACCESS_BRIDGE_A",
+            "WORKSHOP_SERVICE_A"
+          ],
+          "slices": [
+            {
+              "start_tick": 0,
+              "end_tick": 2,
+              "predicates": {
+                "route": "QUALIFIED_AVAILABLE",
+                "service": "QUALIFIED_AVAILABLE",
+                "capacity": "QUALIFIED_AVAILABLE",
+                "suitability": "QUALIFIED_AVAILABLE"
+              }
+            },
+            {
+              "start_tick": 2,
+              "end_tick": 4,
+              "predicates": {
+                "route": "QUALIFIED_UNAVAILABLE",
+                "service": "QUALIFIED_UNAVAILABLE",
+                "capacity": "QUALIFIED_AVAILABLE",
+                "suitability": "QUALIFIED_AVAILABLE"
+              }
+            },
+            {
+              "start_tick": 4,
+              "end_tick": 6,
+              "predicates": {
+                "route": "QUALIFIED_AVAILABLE",
+                "service": "QUALIFIED_UNAVAILABLE",
+                "capacity": "QUALIFIED_AVAILABLE",
+                "suitability": "QUALIFIED_AVAILABLE"
+              }
+            },
+            {
+              "start_tick": 6,
+              "end_tick": 8,
+              "predicates": {
+                "route": "QUALIFIED_AVAILABLE",
+                "service": "QUALIFIED_AVAILABLE",
+                "capacity": "QUALIFIED_AVAILABLE",
+                "suitability": "QUALIFIED_AVAILABLE"
+              }
+            }
+          ]
+        }
+      ],
+      "stability_evidence": {
+        "owner": "Symtropy",
+        "owner_reference": "https://github.com/Luminous-Dynamics/symtropy/issues/1848",
+        "owner_revision": "symtropy-synthetic-r1",
+        "state": "VERIFIED",
+        "effective_tick": 7,
+        "reason_code": "OWNER_VERIFIED_STABLE_SERVICE_TRAJECTORY",
+        "scope_binding": {
+          "scope_digest": "synthetic-habitat-scope-v0.1",
+          "population_frame_id": "synthetic-resident-frame-v0.1",
+          "service_id": "COMMUNITY_WORKSHOP",
+          "functional_unit_id": "ACCESSIBLE_WORKSHOP_HOUR",
+          "cohort_id": "COHORT_GENERAL",
+          "time_basis_id": "SYNTHETIC_15M_TICKS_V1"
+        }
+      },
+      "expected": {
+        "opportunity_slices": [
+          {
+            "start_tick": 0,
+            "end_tick": 2,
+            "state": "AVAILABLE",
+            "alternative_counts": {
+              "available": 1,
+              "unavailable": 0,
+              "unknown": 0,
+              "not_comparable": 0
+            }
+          },
+          {
+            "start_tick": 2,
+            "end_tick": 4,
+            "state": "UNAVAILABLE",
+            "alternative_counts": {
+              "available": 0,
+              "unavailable": 1,
+              "unknown": 0,
+              "not_comparable": 0
+            }
+          },
+          {
+            "start_tick": 4,
+            "end_tick": 6,
+            "state": "UNAVAILABLE",
+            "alternative_counts": {
+              "available": 0,
+              "unavailable": 1,
+              "unknown": 0,
+              "not_comparable": 0
+            }
+          },
+          {
+            "start_tick": 6,
+            "end_tick": 8,
+            "state": "AVAILABLE",
+            "alternative_counts": {
+              "available": 1,
+              "unavailable": 0,
+              "unknown": 0,
+              "not_comparable": 0
+            }
+          }
+        ],
+        "coalesced_opportunity_intervals": [
+          {
+            "start_tick": 0,
+            "end_tick": 2,
+            "state": "AVAILABLE"
+          },
+          {
+            "start_tick": 2,
+            "end_tick": 6,
+            "state": "UNAVAILABLE"
+          },
+          {
+            "start_tick": 6,
+            "end_tick": 8,
+            "state": "AVAILABLE"
+          }
+        ],
+        "first_available_tick": 0,
+        "first_restored_after_known_loss_tick": 6,
+        "stable_opportunity_restoration": {
+          "state": "VERIFIED",
+          "tick": 7
+        },
+        "dependency_map_state": "COMPLETE"
+      }
+    },
+    {
+      "case_id": "CAPACITY_BELOW_DECLARED_FLOOR",
+      "title": "Facility and route exist but qualified capacity is insufficient",
+      "scenario_class": "CAPACITY_FAILURE",
+      "scope": {
+        "scope_digest": "synthetic-habitat-scope-v0.1",
+        "population_frame_id": "synthetic-resident-frame-v0.1",
+        "service_id": "COMMUNITY_WORKSHOP",
+        "functional_unit_id": "ACCESSIBLE_WORKSHOP_HOUR",
+        "cohort_id": "COHORT_GENERAL",
+        "time_basis_id": "SYNTHETIC_15M_TICKS_V1",
+        "horizon_start_tick": 0,
+        "horizon_end_tick": 8
+      },
+      "demand": {
+        "unit": "qualified_workshop_service_units",
+        "required_units": 2
+      },
+      "dependency_map_state": "COMPLETE",
+      "disruption_events": [
+        {
+          "event_id": "SYNTHETIC_CAPACITY_EVENT_06",
+          "failure_domain": "CAPACITY_RESOURCE_A",
+          "start_tick": 2,
+          "end_tick": 6,
+          "evidence_class": "SYNTHETIC_CONTROLLED"
+        }
+      ],
+      "alternatives": [
+        {
+          "alternative_id": "ONLY_NODE",
+          "scope_binding": {
+            "scope_digest": "synthetic-habitat-scope-v0.1",
+            "population_frame_id": "synthetic-resident-frame-v0.1",
+            "service_id": "COMMUNITY_WORKSHOP",
+            "functional_unit_id": "ACCESSIBLE_WORKSHOP_HOUR",
+            "time_basis_id": "SYNTHETIC_15M_TICKS_V1",
+            "cohort_id": "COHORT_GENERAL"
+          },
+          "owner_revisions": {
+            "access": "citymorph-synthetic-r1",
+            "service": "mycelix-amenity-synthetic-r1",
+            "capacity": "symtropy-capacity-synthetic-r1",
+            "suitability": "resident-brief-synthetic-r1"
+          },
+          "failure_domains": [
+            "CAPACITY_RESOURCE_A"
+          ],
+          "slices": [
+            {
+              "start_tick": 0,
+              "end_tick": 2,
+              "predicates": {
+                "route": "QUALIFIED_AVAILABLE",
+                "service": "QUALIFIED_AVAILABLE",
+                "capacity": "QUALIFIED_AVAILABLE",
+                "suitability": "QUALIFIED_AVAILABLE"
+              }
+            },
+            {
+              "start_tick": 2,
+              "end_tick": 4,
+              "predicates": {
+                "route": "QUALIFIED_AVAILABLE",
+                "service": "QUALIFIED_AVAILABLE",
+                "capacity": "QUALIFIED_UNAVAILABLE",
+                "suitability": "QUALIFIED_AVAILABLE"
+              }
+            },
+            {
+              "start_tick": 4,
+              "end_tick": 6,
+              "predicates": {
+                "route": "QUALIFIED_AVAILABLE",
+                "service": "QUALIFIED_AVAILABLE",
+                "capacity": "QUALIFIED_UNAVAILABLE",
+                "suitability": "QUALIFIED_AVAILABLE"
+              }
+            },
+            {
+              "start_tick": 6,
+              "end_tick": 8,
+              "predicates": {
+                "route": "QUALIFIED_AVAILABLE",
+                "service": "QUALIFIED_AVAILABLE",
+                "capacity": "QUALIFIED_AVAILABLE",
+                "suitability": "QUALIFIED_AVAILABLE"
+              }
+            }
+          ]
+        }
+      ],
+      "stability_evidence": {
+        "owner": "Symtropy",
+        "owner_reference": "https://github.com/Luminous-Dynamics/symtropy/issues/1848",
+        "owner_revision": "symtropy-synthetic-r1",
+        "state": "NOT_APPLICABLE",
+        "effective_tick": null,
+        "reason_code": "NO_RESTORATION_CLAIM",
+        "scope_binding": {
+          "scope_digest": "synthetic-habitat-scope-v0.1",
+          "population_frame_id": "synthetic-resident-frame-v0.1",
+          "service_id": "COMMUNITY_WORKSHOP",
+          "functional_unit_id": "ACCESSIBLE_WORKSHOP_HOUR",
+          "cohort_id": "COHORT_GENERAL",
+          "time_basis_id": "SYNTHETIC_15M_TICKS_V1"
+        }
+      },
+      "expected": {
+        "opportunity_slices": [
+          {
+            "start_tick": 0,
+            "end_tick": 2,
+            "state": "AVAILABLE",
+            "alternative_counts": {
+              "available": 1,
+              "unavailable": 0,
+              "unknown": 0,
+              "not_comparable": 0
+            }
+          },
+          {
+            "start_tick": 2,
+            "end_tick": 4,
+            "state": "UNAVAILABLE",
+            "alternative_counts": {
+              "available": 0,
+              "unavailable": 1,
+              "unknown": 0,
+              "not_comparable": 0
+            }
+          },
+          {
+            "start_tick": 4,
+            "end_tick": 6,
+            "state": "UNAVAILABLE",
+            "alternative_counts": {
+              "available": 0,
+              "unavailable": 1,
+              "unknown": 0,
+              "not_comparable": 0
+            }
+          },
+          {
+            "start_tick": 6,
+            "end_tick": 8,
+            "state": "AVAILABLE",
+            "alternative_counts": {
+              "available": 1,
+              "unavailable": 0,
+              "unknown": 0,
+              "not_comparable": 0
+            }
+          }
+        ],
+        "coalesced_opportunity_intervals": [
+          {
+            "start_tick": 0,
+            "end_tick": 2,
+            "state": "AVAILABLE"
+          },
+          {
+            "start_tick": 2,
+            "end_tick": 6,
+            "state": "UNAVAILABLE"
+          },
+          {
+            "start_tick": 6,
+            "end_tick": 8,
+            "state": "AVAILABLE"
+          }
+        ],
+        "first_available_tick": 0,
+        "first_restored_after_known_loss_tick": 6,
+        "stable_opportunity_restoration": {
+          "state": "NOT_APPLICABLE",
+          "tick": null
+        },
+        "dependency_map_state": "COMPLETE"
+      }
+    },
+    {
+      "case_id": "COHORT_SPECIFIC_SUITABILITY_FAILURE",
+      "title": "Reachable service is unsuitable for the declared resident requirement",
+      "scenario_class": "COHORT_SPECIFIC_ACCESS_FAILURE",
+      "scope": {
+        "scope_digest": "synthetic-habitat-scope-v0.1",
+        "population_frame_id": "synthetic-resident-frame-v0.1",
+        "service_id": "COMMUNITY_WORKSHOP",
+        "functional_unit_id": "ACCESSIBLE_WORKSHOP_HOUR",
+        "cohort_id": "COHORT_STEP_FREE_ACCESS",
+        "time_basis_id": "SYNTHETIC_15M_TICKS_V1",
+        "horizon_start_tick": 0,
+        "horizon_end_tick": 8
+      },
+      "demand": {
+        "unit": "qualified_workshop_service_units",
+        "required_units": 2
+      },
+      "dependency_map_state": "COMPLETE",
+      "disruption_events": [],
+      "alternatives": [
+        {
+          "alternative_id": "ONLY_NODE",
+          "scope_binding": {
+            "scope_digest": "synthetic-habitat-scope-v0.1",
+            "population_frame_id": "synthetic-resident-frame-v0.1",
+            "service_id": "COMMUNITY_WORKSHOP",
+            "functional_unit_id": "ACCESSIBLE_WORKSHOP_HOUR",
+            "time_basis_id": "SYNTHETIC_15M_TICKS_V1",
+            "cohort_id": "COHORT_STEP_FREE_ACCESS"
+          },
+          "owner_revisions": {
+            "access": "citymorph-synthetic-r1",
+            "service": "mycelix-amenity-synthetic-r1",
+            "capacity": "symtropy-capacity-synthetic-r1",
+            "suitability": "resident-brief-synthetic-r1"
+          },
+          "failure_domains": [
+            "ONLY_NODE"
+          ],
+          "slices": [
+            {
+              "start_tick": 0,
+              "end_tick": 2,
+              "predicates": {
+                "route": "QUALIFIED_AVAILABLE",
+                "service": "QUALIFIED_AVAILABLE",
+                "capacity": "QUALIFIED_AVAILABLE",
+                "suitability": "QUALIFIED_UNAVAILABLE"
+              }
+            },
+            {
+              "start_tick": 2,
+              "end_tick": 4,
+              "predicates": {
+                "route": "QUALIFIED_AVAILABLE",
+                "service": "QUALIFIED_AVAILABLE",
+                "capacity": "QUALIFIED_AVAILABLE",
+                "suitability": "QUALIFIED_UNAVAILABLE"
+              }
+            },
+            {
+              "start_tick": 4,
+              "end_tick": 6,
+              "predicates": {
+                "route": "QUALIFIED_AVAILABLE",
+                "service": "QUALIFIED_AVAILABLE",
+                "capacity": "QUALIFIED_AVAILABLE",
+                "suitability": "QUALIFIED_UNAVAILABLE"
+              }
+            },
+            {
+              "start_tick": 6,
+              "end_tick": 8,
+              "predicates": {
+                "route": "QUALIFIED_AVAILABLE",
+                "service": "QUALIFIED_AVAILABLE",
+                "capacity": "QUALIFIED_AVAILABLE",
+                "suitability": "QUALIFIED_UNAVAILABLE"
+              }
+            }
+          ]
+        }
+      ],
+      "stability_evidence": {
+        "owner": "Symtropy",
+        "owner_reference": "https://github.com/Luminous-Dynamics/symtropy/issues/1848",
+        "owner_revision": "symtropy-synthetic-r1",
+        "state": "NOT_APPLICABLE",
+        "effective_tick": null,
+        "reason_code": "NO_RESTORATION_CLAIM",
+        "scope_binding": {
+          "scope_digest": "synthetic-habitat-scope-v0.1",
+          "population_frame_id": "synthetic-resident-frame-v0.1",
+          "service_id": "COMMUNITY_WORKSHOP",
+          "functional_unit_id": "ACCESSIBLE_WORKSHOP_HOUR",
+          "cohort_id": "COHORT_STEP_FREE_ACCESS",
+          "time_basis_id": "SYNTHETIC_15M_TICKS_V1"
+        }
+      },
+      "expected": {
+        "opportunity_slices": [
+          {
+            "start_tick": 0,
+            "end_tick": 2,
+            "state": "UNAVAILABLE",
+            "alternative_counts": {
+              "available": 0,
+              "unavailable": 1,
+              "unknown": 0,
+              "not_comparable": 0
+            }
+          },
+          {
+            "start_tick": 2,
+            "end_tick": 4,
+            "state": "UNAVAILABLE",
+            "alternative_counts": {
+              "available": 0,
+              "unavailable": 1,
+              "unknown": 0,
+              "not_comparable": 0
+            }
+          },
+          {
+            "start_tick": 4,
+            "end_tick": 6,
+            "state": "UNAVAILABLE",
+            "alternative_counts": {
+              "available": 0,
+              "unavailable": 1,
+              "unknown": 0,
+              "not_comparable": 0
+            }
+          },
+          {
+            "start_tick": 6,
+            "end_tick": 8,
+            "state": "UNAVAILABLE",
+            "alternative_counts": {
+              "available": 0,
+              "unavailable": 1,
+              "unknown": 0,
+              "not_comparable": 0
+            }
+          }
+        ],
+        "coalesced_opportunity_intervals": [
+          {
+            "start_tick": 0,
+            "end_tick": 8,
+            "state": "UNAVAILABLE"
+          }
+        ],
+        "first_available_tick": null,
+        "first_restored_after_known_loss_tick": null,
+        "stable_opportunity_restoration": {
+          "state": "NOT_APPLICABLE",
+          "tick": null
+        },
+        "dependency_map_state": "COMPLETE"
+      }
+    },
+    {
+      "case_id": "STALE_SERVICE_EVIDENCE_DURING_OPEN_WINDOW",
+      "title": "Stale service evidence is not promoted to current availability",
+      "scenario_class": "EVIDENCE_FRESHNESS_FAILURE",
+      "scope": {
+        "scope_digest": "synthetic-habitat-scope-v0.1",
+        "population_frame_id": "synthetic-resident-frame-v0.1",
+        "service_id": "COMMUNITY_WORKSHOP",
+        "functional_unit_id": "ACCESSIBLE_WORKSHOP_HOUR",
+        "cohort_id": "COHORT_GENERAL",
+        "time_basis_id": "SYNTHETIC_15M_TICKS_V1",
+        "horizon_start_tick": 0,
+        "horizon_end_tick": 8
+      },
+      "demand": {
+        "unit": "qualified_workshop_service_units",
+        "required_units": 2
+      },
+      "dependency_map_state": "COMPLETE",
+      "disruption_events": [],
+      "alternatives": [
+        {
+          "alternative_id": "ONLY_NODE",
+          "scope_binding": {
+            "scope_digest": "synthetic-habitat-scope-v0.1",
+            "population_frame_id": "synthetic-resident-frame-v0.1",
+            "service_id": "COMMUNITY_WORKSHOP",
+            "functional_unit_id": "ACCESSIBLE_WORKSHOP_HOUR",
+            "time_basis_id": "SYNTHETIC_15M_TICKS_V1",
+            "cohort_id": "COHORT_GENERAL"
+          },
+          "owner_revisions": {
+            "access": "citymorph-synthetic-r1",
+            "service": "mycelix-amenity-synthetic-r1",
+            "capacity": "symtropy-capacity-synthetic-r1",
+            "suitability": "resident-brief-synthetic-r1"
+          },
+          "failure_domains": [
+            "OPERATOR_A"
+          ],
+          "slices": [
+            {
+              "start_tick": 0,
+              "end_tick": 2,
+              "predicates": {
+                "route": "QUALIFIED_AVAILABLE",
+                "service": "QUALIFIED_AVAILABLE",
+                "capacity": "QUALIFIED_AVAILABLE",
+                "suitability": "QUALIFIED_AVAILABLE"
+              }
+            },
+            {
+              "start_tick": 2,
+              "end_tick": 4,
+              "predicates": {
+                "route": "QUALIFIED_AVAILABLE",
+                "service": "QUALIFIED_AVAILABLE",
+                "capacity": "QUALIFIED_AVAILABLE",
+                "suitability": "QUALIFIED_AVAILABLE"
+              }
+            },
+            {
+              "start_tick": 4,
+              "end_tick": 6,
+              "predicates": {
+                "route": "QUALIFIED_AVAILABLE",
+                "service": "STALE",
+                "capacity": "QUALIFIED_AVAILABLE",
+                "suitability": "QUALIFIED_AVAILABLE"
+              }
+            },
+            {
+              "start_tick": 6,
+              "end_tick": 8,
+              "predicates": {
+                "route": "QUALIFIED_AVAILABLE",
+                "service": "QUALIFIED_AVAILABLE",
+                "capacity": "QUALIFIED_AVAILABLE",
+                "suitability": "QUALIFIED_AVAILABLE"
+              }
+            }
+          ]
+        }
+      ],
+      "stability_evidence": {
+        "owner": "Symtropy",
+        "owner_reference": "https://github.com/Luminous-Dynamics/symtropy/issues/1848",
+        "owner_revision": "symtropy-synthetic-r1",
+        "state": "NOT_APPLICABLE",
+        "effective_tick": null,
+        "reason_code": "NO_RESTORATION_CLAIM",
+        "scope_binding": {
+          "scope_digest": "synthetic-habitat-scope-v0.1",
+          "population_frame_id": "synthetic-resident-frame-v0.1",
+          "service_id": "COMMUNITY_WORKSHOP",
+          "functional_unit_id": "ACCESSIBLE_WORKSHOP_HOUR",
+          "cohort_id": "COHORT_GENERAL",
+          "time_basis_id": "SYNTHETIC_15M_TICKS_V1"
+        }
+      },
+      "expected": {
+        "opportunity_slices": [
+          {
+            "start_tick": 0,
+            "end_tick": 2,
+            "state": "AVAILABLE",
+            "alternative_counts": {
+              "available": 1,
+              "unavailable": 0,
+              "unknown": 0,
+              "not_comparable": 0
+            }
+          },
+          {
+            "start_tick": 2,
+            "end_tick": 4,
+            "state": "AVAILABLE",
+            "alternative_counts": {
+              "available": 1,
+              "unavailable": 0,
+              "unknown": 0,
+              "not_comparable": 0
+            }
+          },
+          {
+            "start_tick": 4,
+            "end_tick": 6,
+            "state": "UNKNOWN",
+            "alternative_counts": {
+              "available": 0,
+              "unavailable": 0,
+              "unknown": 1,
+              "not_comparable": 0
+            }
+          },
+          {
+            "start_tick": 6,
+            "end_tick": 8,
+            "state": "AVAILABLE",
+            "alternative_counts": {
+              "available": 1,
+              "unavailable": 0,
+              "unknown": 0,
+              "not_comparable": 0
+            }
+          }
+        ],
+        "coalesced_opportunity_intervals": [
+          {
+            "start_tick": 0,
+            "end_tick": 4,
+            "state": "AVAILABLE"
+          },
+          {
+            "start_tick": 4,
+            "end_tick": 6,
+            "state": "UNKNOWN"
+          },
+          {
+            "start_tick": 6,
+            "end_tick": 8,
+            "state": "AVAILABLE"
+          }
+        ],
+        "first_available_tick": 0,
+        "first_restored_after_known_loss_tick": null,
+        "stable_opportunity_restoration": {
+          "state": "NOT_APPLICABLE",
+          "tick": null
+        },
+        "dependency_map_state": "COMPLETE"
+      }
+    },
+    {
+      "case_id": "OVERLAPPING_COMPOUND_FAILURES",
+      "title": "Independent failures combine to remove all qualified alternatives",
+      "scenario_class": "COMPOUND_FAILURE",
+      "scope": {
+        "scope_digest": "synthetic-habitat-scope-v0.1",
+        "population_frame_id": "synthetic-resident-frame-v0.1",
+        "service_id": "COMMUNITY_WORKSHOP",
+        "functional_unit_id": "ACCESSIBLE_WORKSHOP_HOUR",
+        "cohort_id": "COHORT_GENERAL",
+        "time_basis_id": "SYNTHETIC_15M_TICKS_V1",
+        "horizon_start_tick": 0,
+        "horizon_end_tick": 8
+      },
+      "demand": {
+        "unit": "qualified_workshop_service_units",
+        "required_units": 2
+      },
+      "dependency_map_state": "COMPLETE",
+      "disruption_events": [
+        {
+          "event_id": "SYNTHETIC_POWER_EVENT_09",
+          "failure_domain": "POWER_A",
+          "start_tick": 2,
+          "end_tick": 6,
+          "evidence_class": "SYNTHETIC_CONTROLLED"
+        },
+        {
+          "event_id": "SYNTHETIC_BRIDGE_EVENT_09",
+          "failure_domain": "BRIDGE_B",
+          "start_tick": 4,
+          "end_tick": 6,
+          "evidence_class": "SYNTHETIC_CONTROLLED"
+        },
+        {
+          "event_id": "SYNTHETIC_OPERATOR_EVENT_09",
+          "failure_domain": "OPERATOR_C",
+          "start_tick": 4,
+          "end_tick": 6,
+          "evidence_class": "SYNTHETIC_CONTROLLED"
+        }
+      ],
+      "alternatives": [
+        {
+          "alternative_id": "NODE_POWER_DEPENDENT",
+          "scope_binding": {
+            "scope_digest": "synthetic-habitat-scope-v0.1",
+            "population_frame_id": "synthetic-resident-frame-v0.1",
+            "service_id": "COMMUNITY_WORKSHOP",
+            "functional_unit_id": "ACCESSIBLE_WORKSHOP_HOUR",
+            "time_basis_id": "SYNTHETIC_15M_TICKS_V1",
+            "cohort_id": "COHORT_GENERAL"
+          },
+          "owner_revisions": {
+            "access": "citymorph-synthetic-r1",
+            "service": "mycelix-amenity-synthetic-r1",
+            "capacity": "symtropy-capacity-synthetic-r1",
+            "suitability": "resident-brief-synthetic-r1"
+          },
+          "failure_domains": [
+            "POWER_A"
+          ],
+          "slices": [
+            {
+              "start_tick": 0,
+              "end_tick": 2,
+              "predicates": {
+                "route": "QUALIFIED_AVAILABLE",
+                "service": "QUALIFIED_AVAILABLE",
+                "capacity": "QUALIFIED_AVAILABLE",
+                "suitability": "QUALIFIED_AVAILABLE"
+              }
+            },
+            {
+              "start_tick": 2,
+              "end_tick": 4,
+              "predicates": {
+                "route": "QUALIFIED_AVAILABLE",
+                "service": "QUALIFIED_UNAVAILABLE",
+                "capacity": "QUALIFIED_AVAILABLE",
+                "suitability": "QUALIFIED_AVAILABLE"
+              }
+            },
+            {
+              "start_tick": 4,
+              "end_tick": 6,
+              "predicates": {
+                "route": "QUALIFIED_AVAILABLE",
+                "service": "QUALIFIED_UNAVAILABLE",
+                "capacity": "QUALIFIED_AVAILABLE",
+                "suitability": "QUALIFIED_AVAILABLE"
+              }
+            },
+            {
+              "start_tick": 6,
+              "end_tick": 8,
+              "predicates": {
+                "route": "QUALIFIED_AVAILABLE",
+                "service": "QUALIFIED_AVAILABLE",
+                "capacity": "QUALIFIED_AVAILABLE",
+                "suitability": "QUALIFIED_AVAILABLE"
+              }
+            }
+          ]
+        },
+        {
+          "alternative_id": "NODE_BRIDGE_DEPENDENT",
+          "scope_binding": {
+            "scope_digest": "synthetic-habitat-scope-v0.1",
+            "population_frame_id": "synthetic-resident-frame-v0.1",
+            "service_id": "COMMUNITY_WORKSHOP",
+            "functional_unit_id": "ACCESSIBLE_WORKSHOP_HOUR",
+            "time_basis_id": "SYNTHETIC_15M_TICKS_V1",
+            "cohort_id": "COHORT_GENERAL"
+          },
+          "owner_revisions": {
+            "access": "citymorph-synthetic-r1",
+            "service": "mycelix-amenity-synthetic-r1",
+            "capacity": "symtropy-capacity-synthetic-r1",
+            "suitability": "resident-brief-synthetic-r1"
+          },
+          "failure_domains": [
+            "BRIDGE_B"
+          ],
+          "slices": [
+            {
+              "start_tick": 0,
+              "end_tick": 2,
+              "predicates": {
+                "route": "QUALIFIED_AVAILABLE",
+                "service": "QUALIFIED_AVAILABLE",
+                "capacity": "QUALIFIED_AVAILABLE",
+                "suitability": "QUALIFIED_AVAILABLE"
+              }
+            },
+            {
+              "start_tick": 2,
+              "end_tick": 4,
+              "predicates": {
+                "route": "QUALIFIED_AVAILABLE",
+                "service": "QUALIFIED_AVAILABLE",
+                "capacity": "QUALIFIED_AVAILABLE",
+                "suitability": "QUALIFIED_AVAILABLE"
+              }
+            },
+            {
+              "start_tick": 4,
+              "end_tick": 6,
+              "predicates": {
+                "route": "QUALIFIED_UNAVAILABLE",
+                "service": "QUALIFIED_AVAILABLE",
+                "capacity": "QUALIFIED_AVAILABLE",
+                "suitability": "QUALIFIED_AVAILABLE"
+              }
+            },
+            {
+              "start_tick": 6,
+              "end_tick": 8,
+              "predicates": {
+                "route": "QUALIFIED_AVAILABLE",
+                "service": "QUALIFIED_AVAILABLE",
+                "capacity": "QUALIFIED_AVAILABLE",
+                "suitability": "QUALIFIED_AVAILABLE"
+              }
+            }
+          ]
+        },
+        {
+          "alternative_id": "NODE_OPERATOR_DEPENDENT",
+          "scope_binding": {
+            "scope_digest": "synthetic-habitat-scope-v0.1",
+            "population_frame_id": "synthetic-resident-frame-v0.1",
+            "service_id": "COMMUNITY_WORKSHOP",
+            "functional_unit_id": "ACCESSIBLE_WORKSHOP_HOUR",
+            "time_basis_id": "SYNTHETIC_15M_TICKS_V1",
+            "cohort_id": "COHORT_GENERAL"
+          },
+          "owner_revisions": {
+            "access": "citymorph-synthetic-r1",
+            "service": "mycelix-amenity-synthetic-r1",
+            "capacity": "symtropy-capacity-synthetic-r1",
+            "suitability": "resident-brief-synthetic-r1"
+          },
+          "failure_domains": [
+            "OPERATOR_C"
+          ],
+          "slices": [
+            {
+              "start_tick": 0,
+              "end_tick": 2,
+              "predicates": {
+                "route": "QUALIFIED_AVAILABLE",
+                "service": "QUALIFIED_AVAILABLE",
+                "capacity": "QUALIFIED_AVAILABLE",
+                "suitability": "QUALIFIED_AVAILABLE"
+              }
+            },
+            {
+              "start_tick": 2,
+              "end_tick": 4,
+              "predicates": {
+                "route": "QUALIFIED_AVAILABLE",
+                "service": "QUALIFIED_AVAILABLE",
+                "capacity": "QUALIFIED_AVAILABLE",
+                "suitability": "QUALIFIED_AVAILABLE"
+              }
+            },
+            {
+              "start_tick": 4,
+              "end_tick": 6,
+              "predicates": {
+                "route": "QUALIFIED_AVAILABLE",
+                "service": "QUALIFIED_UNAVAILABLE",
+                "capacity": "QUALIFIED_AVAILABLE",
+                "suitability": "QUALIFIED_AVAILABLE"
+              }
+            },
+            {
+              "start_tick": 6,
+              "end_tick": 8,
+              "predicates": {
+                "route": "QUALIFIED_AVAILABLE",
+                "service": "QUALIFIED_AVAILABLE",
+                "capacity": "QUALIFIED_AVAILABLE",
+                "suitability": "QUALIFIED_AVAILABLE"
+              }
+            }
+          ]
+        }
+      ],
+      "stability_evidence": {
+        "owner": "Symtropy",
+        "owner_reference": "https://github.com/Luminous-Dynamics/symtropy/issues/1848",
+        "owner_revision": "symtropy-synthetic-r1",
+        "state": "NOT_APPLICABLE",
+        "effective_tick": null,
+        "reason_code": "NO_RESTORATION_CLAIM",
+        "scope_binding": {
+          "scope_digest": "synthetic-habitat-scope-v0.1",
+          "population_frame_id": "synthetic-resident-frame-v0.1",
+          "service_id": "COMMUNITY_WORKSHOP",
+          "functional_unit_id": "ACCESSIBLE_WORKSHOP_HOUR",
+          "cohort_id": "COHORT_GENERAL",
+          "time_basis_id": "SYNTHETIC_15M_TICKS_V1"
+        }
+      },
+      "expected": {
+        "opportunity_slices": [
+          {
+            "start_tick": 0,
+            "end_tick": 2,
+            "state": "AVAILABLE",
+            "alternative_counts": {
+              "available": 3,
+              "unavailable": 0,
+              "unknown": 0,
+              "not_comparable": 0
+            }
+          },
+          {
+            "start_tick": 2,
+            "end_tick": 4,
+            "state": "AVAILABLE",
+            "alternative_counts": {
+              "available": 2,
+              "unavailable": 1,
+              "unknown": 0,
+              "not_comparable": 0
+            }
+          },
+          {
+            "start_tick": 4,
+            "end_tick": 6,
+            "state": "UNAVAILABLE",
+            "alternative_counts": {
+              "available": 0,
+              "unavailable": 3,
+              "unknown": 0,
+              "not_comparable": 0
+            }
+          },
+          {
+            "start_tick": 6,
+            "end_tick": 8,
+            "state": "AVAILABLE",
+            "alternative_counts": {
+              "available": 3,
+              "unavailable": 0,
+              "unknown": 0,
+              "not_comparable": 0
+            }
+          }
+        ],
+        "coalesced_opportunity_intervals": [
+          {
+            "start_tick": 0,
+            "end_tick": 4,
+            "state": "AVAILABLE"
+          },
+          {
+            "start_tick": 4,
+            "end_tick": 6,
+            "state": "UNAVAILABLE"
+          },
+          {
+            "start_tick": 6,
+            "end_tick": 8,
+            "state": "AVAILABLE"
+          }
+        ],
+        "first_available_tick": 0,
+        "first_restored_after_known_loss_tick": 6,
+        "stable_opportunity_restoration": {
+          "state": "NOT_APPLICABLE",
+          "tick": null
+        },
+        "dependency_map_state": "COMPLETE"
+      }
+    },
+    {
+      "case_id": "RECURRENT_FAILURE_BLOCKS_STABLE_RECOVERY",
+      "title": "Brief restoration followed by recurrence is not stable recovery",
+      "scenario_class": "RECURRENT_FAILURE",
+      "scope": {
+        "scope_digest": "synthetic-habitat-scope-v0.1",
+        "population_frame_id": "synthetic-resident-frame-v0.1",
+        "service_id": "COMMUNITY_WORKSHOP",
+        "functional_unit_id": "ACCESSIBLE_WORKSHOP_HOUR",
+        "cohort_id": "COHORT_GENERAL",
+        "time_basis_id": "SYNTHETIC_15M_TICKS_V1",
+        "horizon_start_tick": 0,
+        "horizon_end_tick": 8
+      },
+      "demand": {
+        "unit": "qualified_workshop_service_units",
+        "required_units": 2
+      },
+      "dependency_map_state": "COMPLETE",
+      "disruption_events": [
+        {
+          "event_id": "SYNTHETIC_OUTAGE_A",
+          "failure_domain": "SERVICE_A",
+          "start_tick": 2,
+          "end_tick": 4,
+          "evidence_class": "SYNTHETIC_CONTROLLED"
+        },
+        {
+          "event_id": "SYNTHETIC_RECURRENCE_A",
+          "failure_domain": "SERVICE_A",
+          "start_tick": 6,
+          "end_tick": 8,
+          "evidence_class": "SYNTHETIC_CONTROLLED"
+        }
+      ],
+      "alternatives": [
+        {
+          "alternative_id": "ONLY_NODE",
+          "scope_binding": {
+            "scope_digest": "synthetic-habitat-scope-v0.1",
+            "population_frame_id": "synthetic-resident-frame-v0.1",
+            "service_id": "COMMUNITY_WORKSHOP",
+            "functional_unit_id": "ACCESSIBLE_WORKSHOP_HOUR",
+            "time_basis_id": "SYNTHETIC_15M_TICKS_V1",
+            "cohort_id": "COHORT_GENERAL"
+          },
+          "owner_revisions": {
+            "access": "citymorph-synthetic-r1",
+            "service": "mycelix-amenity-synthetic-r1",
+            "capacity": "symtropy-capacity-synthetic-r1",
+            "suitability": "resident-brief-synthetic-r1"
+          },
+          "failure_domains": [
+            "SERVICE_A"
+          ],
+          "slices": [
+            {
+              "start_tick": 0,
+              "end_tick": 2,
+              "predicates": {
+                "route": "QUALIFIED_AVAILABLE",
+                "service": "QUALIFIED_AVAILABLE",
+                "capacity": "QUALIFIED_AVAILABLE",
+                "suitability": "QUALIFIED_AVAILABLE"
+              }
+            },
+            {
+              "start_tick": 2,
+              "end_tick": 4,
+              "predicates": {
+                "route": "QUALIFIED_AVAILABLE",
+                "service": "QUALIFIED_UNAVAILABLE",
+                "capacity": "QUALIFIED_AVAILABLE",
+                "suitability": "QUALIFIED_AVAILABLE"
+              }
+            },
+            {
+              "start_tick": 4,
+              "end_tick": 6,
+              "predicates": {
+                "route": "QUALIFIED_AVAILABLE",
+                "service": "QUALIFIED_AVAILABLE",
+                "capacity": "QUALIFIED_AVAILABLE",
+                "suitability": "QUALIFIED_AVAILABLE"
+              }
+            },
+            {
+              "start_tick": 6,
+              "end_tick": 8,
+              "predicates": {
+                "route": "QUALIFIED_AVAILABLE",
+                "service": "QUALIFIED_UNAVAILABLE",
+                "capacity": "QUALIFIED_AVAILABLE",
+                "suitability": "QUALIFIED_AVAILABLE"
+              }
+            }
+          ]
+        }
+      ],
+      "stability_evidence": {
+        "owner": "Symtropy",
+        "owner_reference": "https://github.com/Luminous-Dynamics/symtropy/issues/1848",
+        "owner_revision": "symtropy-synthetic-r1",
+        "state": "NOT_VERIFIED",
+        "effective_tick": null,
+        "reason_code": "RECURRENCE_BEFORE_STABLE_RECOVERY",
+        "scope_binding": {
+          "scope_digest": "synthetic-habitat-scope-v0.1",
+          "population_frame_id": "synthetic-resident-frame-v0.1",
+          "service_id": "COMMUNITY_WORKSHOP",
+          "functional_unit_id": "ACCESSIBLE_WORKSHOP_HOUR",
+          "cohort_id": "COHORT_GENERAL",
+          "time_basis_id": "SYNTHETIC_15M_TICKS_V1"
+        }
+      },
+      "expected": {
+        "opportunity_slices": [
+          {
+            "start_tick": 0,
+            "end_tick": 2,
+            "state": "AVAILABLE",
+            "alternative_counts": {
+              "available": 1,
+              "unavailable": 0,
+              "unknown": 0,
+              "not_comparable": 0
+            }
+          },
+          {
+            "start_tick": 2,
+            "end_tick": 4,
+            "state": "UNAVAILABLE",
+            "alternative_counts": {
+              "available": 0,
+              "unavailable": 1,
+              "unknown": 0,
+              "not_comparable": 0
+            }
+          },
+          {
+            "start_tick": 4,
+            "end_tick": 6,
+            "state": "AVAILABLE",
+            "alternative_counts": {
+              "available": 1,
+              "unavailable": 0,
+              "unknown": 0,
+              "not_comparable": 0
+            }
+          },
+          {
+            "start_tick": 6,
+            "end_tick": 8,
+            "state": "UNAVAILABLE",
+            "alternative_counts": {
+              "available": 0,
+              "unavailable": 1,
+              "unknown": 0,
+              "not_comparable": 0
+            }
+          }
+        ],
+        "coalesced_opportunity_intervals": [
+          {
+            "start_tick": 0,
+            "end_tick": 2,
+            "state": "AVAILABLE"
+          },
+          {
+            "start_tick": 2,
+            "end_tick": 4,
+            "state": "UNAVAILABLE"
+          },
+          {
+            "start_tick": 4,
+            "end_tick": 6,
+            "state": "AVAILABLE"
+          },
+          {
+            "start_tick": 6,
+            "end_tick": 8,
+            "state": "UNAVAILABLE"
+          }
+        ],
+        "first_available_tick": 0,
+        "first_restored_after_known_loss_tick": 4,
+        "stable_opportunity_restoration": {
+          "state": "UNKNOWN",
+          "tick": null
+        },
+        "dependency_map_state": "COMPLETE"
+      }
+    },
+    {
+      "case_id": "TEMPORARY_SUBSTITUTE_BRIDGES_TRANSITION",
+      "title": "A temporary mobile service preserves continuous opportunity during phased closure",
+      "scenario_class": "PHASED_TRANSITION",
+      "scope": {
+        "scope_digest": "synthetic-habitat-scope-v0.1",
+        "population_frame_id": "synthetic-resident-frame-v0.1",
+        "service_id": "COMMUNITY_WORKSHOP",
+        "functional_unit_id": "ACCESSIBLE_WORKSHOP_HOUR",
+        "cohort_id": "COHORT_GENERAL",
+        "time_basis_id": "SYNTHETIC_15M_TICKS_V1",
+        "horizon_start_tick": 0,
+        "horizon_end_tick": 8
+      },
+      "demand": {
+        "unit": "qualified_workshop_service_units",
+        "required_units": 2
+      },
+      "dependency_map_state": "COMPLETE",
+      "disruption_events": [
+        {
+          "event_id": "SYNTHETIC_BUILD_PHASE_11",
+          "failure_domain": "PERMANENT_NODE_ACCESS",
+          "start_tick": 2,
+          "end_tick": 6,
+          "evidence_class": "SYNTHETIC_CONTROLLED"
+        }
+      ],
+      "alternatives": [
+        {
+          "alternative_id": "PERMANENT_NODE",
+          "scope_binding": {
+            "scope_digest": "synthetic-habitat-scope-v0.1",
+            "population_frame_id": "synthetic-resident-frame-v0.1",
+            "service_id": "COMMUNITY_WORKSHOP",
+            "functional_unit_id": "ACCESSIBLE_WORKSHOP_HOUR",
+            "time_basis_id": "SYNTHETIC_15M_TICKS_V1",
+            "cohort_id": "COHORT_GENERAL"
+          },
+          "owner_revisions": {
+            "access": "citymorph-synthetic-r1",
+            "service": "mycelix-amenity-synthetic-r1",
+            "capacity": "symtropy-capacity-synthetic-r1",
+            "suitability": "resident-brief-synthetic-r1"
+          },
+          "failure_domains": [
+            "PERMANENT_OPERATOR"
+          ],
+          "slices": [
+            {
+              "start_tick": 0,
+              "end_tick": 2,
+              "predicates": {
+                "route": "QUALIFIED_AVAILABLE",
+                "service": "QUALIFIED_AVAILABLE",
+                "capacity": "QUALIFIED_AVAILABLE",
+                "suitability": "QUALIFIED_AVAILABLE"
+              }
+            },
+            {
+              "start_tick": 2,
+              "end_tick": 4,
+              "predicates": {
+                "route": "QUALIFIED_AVAILABLE",
+                "service": "QUALIFIED_UNAVAILABLE",
+                "capacity": "QUALIFIED_AVAILABLE",
+                "suitability": "QUALIFIED_AVAILABLE"
+              }
+            },
+            {
+              "start_tick": 4,
+              "end_tick": 6,
+              "predicates": {
+                "route": "QUALIFIED_AVAILABLE",
+                "service": "QUALIFIED_UNAVAILABLE",
+                "capacity": "QUALIFIED_AVAILABLE",
+                "suitability": "QUALIFIED_AVAILABLE"
+              }
+            },
+            {
+              "start_tick": 6,
+              "end_tick": 8,
+              "predicates": {
+                "route": "QUALIFIED_AVAILABLE",
+                "service": "QUALIFIED_AVAILABLE",
+                "capacity": "QUALIFIED_AVAILABLE",
+                "suitability": "QUALIFIED_AVAILABLE"
+              }
+            }
+          ]
+        },
+        {
+          "alternative_id": "TEMPORARY_MOBILE_NODE",
+          "scope_binding": {
+            "scope_digest": "synthetic-habitat-scope-v0.1",
+            "population_frame_id": "synthetic-resident-frame-v0.1",
+            "service_id": "COMMUNITY_WORKSHOP",
+            "functional_unit_id": "ACCESSIBLE_WORKSHOP_HOUR",
+            "time_basis_id": "SYNTHETIC_15M_TICKS_V1",
+            "cohort_id": "COHORT_GENERAL"
+          },
+          "owner_revisions": {
+            "access": "citymorph-synthetic-r1",
+            "service": "mycelix-amenity-synthetic-r1",
+            "capacity": "symtropy-capacity-synthetic-r1",
+            "suitability": "resident-brief-synthetic-r1"
+          },
+          "failure_domains": [
+            "MOBILE_OPERATOR"
+          ],
+          "slices": [
+            {
+              "start_tick": 0,
+              "end_tick": 2,
+              "predicates": {
+                "route": "QUALIFIED_AVAILABLE",
+                "service": "QUALIFIED_UNAVAILABLE",
+                "capacity": "QUALIFIED_AVAILABLE",
+                "suitability": "QUALIFIED_AVAILABLE"
+              }
+            },
+            {
+              "start_tick": 2,
+              "end_tick": 4,
+              "predicates": {
+                "route": "QUALIFIED_AVAILABLE",
+                "service": "QUALIFIED_AVAILABLE",
+                "capacity": "QUALIFIED_AVAILABLE",
+                "suitability": "QUALIFIED_AVAILABLE"
+              }
+            },
+            {
+              "start_tick": 4,
+              "end_tick": 6,
+              "predicates": {
+                "route": "QUALIFIED_AVAILABLE",
+                "service": "QUALIFIED_AVAILABLE",
+                "capacity": "QUALIFIED_AVAILABLE",
+                "suitability": "QUALIFIED_AVAILABLE"
+              }
+            },
+            {
+              "start_tick": 6,
+              "end_tick": 8,
+              "predicates": {
+                "route": "QUALIFIED_AVAILABLE",
+                "service": "QUALIFIED_UNAVAILABLE",
+                "capacity": "QUALIFIED_AVAILABLE",
+                "suitability": "QUALIFIED_AVAILABLE"
+              }
+            }
+          ]
+        }
+      ],
+      "stability_evidence": {
+        "owner": "Symtropy",
+        "owner_reference": "https://github.com/Luminous-Dynamics/symtropy/issues/1848",
+        "owner_revision": "symtropy-synthetic-r1",
+        "state": "NOT_APPLICABLE",
+        "effective_tick": null,
+        "reason_code": "NO_RESTORATION_CLAIM",
+        "scope_binding": {
+          "scope_digest": "synthetic-habitat-scope-v0.1",
+          "population_frame_id": "synthetic-resident-frame-v0.1",
+          "service_id": "COMMUNITY_WORKSHOP",
+          "functional_unit_id": "ACCESSIBLE_WORKSHOP_HOUR",
+          "cohort_id": "COHORT_GENERAL",
+          "time_basis_id": "SYNTHETIC_15M_TICKS_V1"
+        }
+      },
+      "expected": {
+        "opportunity_slices": [
+          {
+            "start_tick": 0,
+            "end_tick": 2,
+            "state": "AVAILABLE",
+            "alternative_counts": {
+              "available": 1,
+              "unavailable": 1,
+              "unknown": 0,
+              "not_comparable": 0
+            }
+          },
+          {
+            "start_tick": 2,
+            "end_tick": 4,
+            "state": "AVAILABLE",
+            "alternative_counts": {
+              "available": 1,
+              "unavailable": 1,
+              "unknown": 0,
+              "not_comparable": 0
+            }
+          },
+          {
+            "start_tick": 4,
+            "end_tick": 6,
+            "state": "AVAILABLE",
+            "alternative_counts": {
+              "available": 1,
+              "unavailable": 1,
+              "unknown": 0,
+              "not_comparable": 0
+            }
+          },
+          {
+            "start_tick": 6,
+            "end_tick": 8,
+            "state": "AVAILABLE",
+            "alternative_counts": {
+              "available": 1,
+              "unavailable": 1,
+              "unknown": 0,
+              "not_comparable": 0
+            }
+          }
+        ],
+        "coalesced_opportunity_intervals": [
+          {
+            "start_tick": 0,
+            "end_tick": 8,
+            "state": "AVAILABLE"
+          }
+        ],
+        "first_available_tick": 0,
+        "first_restored_after_known_loss_tick": null,
+        "stable_opportunity_restoration": {
+          "state": "NOT_APPLICABLE",
+          "tick": null
+        },
+        "dependency_map_state": "COMPLETE"
+      }
+    },
+    {
+      "case_id": "INCOMPLETE_CALENDAR_GAP_REMAINS_UNKNOWN",
+      "title": "Missing interval in incomplete owner calendar remains unresolved",
+      "scenario_class": "CALENDAR_COMPLETENESS",
+      "scope": {
+        "scope_digest": "synthetic-habitat-scope-v0.1",
+        "population_frame_id": "synthetic-resident-frame-v0.1",
+        "service_id": "COMMUNITY_WORKSHOP",
+        "functional_unit_id": "ACCESSIBLE_WORKSHOP_HOUR",
+        "cohort_id": "COHORT_GENERAL",
+        "time_basis_id": "SYNTHETIC_15M_TICKS_V1",
+        "horizon_start_tick": 0,
+        "horizon_end_tick": 8
+      },
+      "demand": {
+        "unit": "qualified_workshop_service_units",
+        "required_units": 2
+      },
+      "dependency_map_state": "COMPLETE",
+      "disruption_events": [],
+      "alternatives": [
+        {
+          "alternative_id": "ONLY_NODE",
+          "scope_binding": {
+            "scope_digest": "synthetic-habitat-scope-v0.1",
+            "population_frame_id": "synthetic-resident-frame-v0.1",
+            "service_id": "COMMUNITY_WORKSHOP",
+            "functional_unit_id": "ACCESSIBLE_WORKSHOP_HOUR",
+            "time_basis_id": "SYNTHETIC_15M_TICKS_V1",
+            "cohort_id": "COHORT_GENERAL"
+          },
+          "owner_revisions": {
+            "access": "citymorph-synthetic-r1",
+            "service": "mycelix-amenity-synthetic-r1",
+            "capacity": "symtropy-capacity-synthetic-r1",
+            "suitability": "resident-brief-synthetic-r1"
+          },
+          "failure_domains": [
+            "OPERATOR_A"
+          ],
+          "slices": [
+            {
+              "start_tick": 0,
+              "end_tick": 2,
+              "predicates": {
+                "route": "QUALIFIED_AVAILABLE",
+                "service": "QUALIFIED_AVAILABLE",
+                "capacity": "QUALIFIED_AVAILABLE",
+                "suitability": "QUALIFIED_AVAILABLE"
+              }
+            },
+            {
+              "start_tick": 2,
+              "end_tick": 4,
+              "predicates": {
+                "route": "QUALIFIED_AVAILABLE",
+                "service": "UNKNOWN",
+                "capacity": "QUALIFIED_AVAILABLE",
+                "suitability": "QUALIFIED_AVAILABLE"
+              }
+            },
+            {
+              "start_tick": 4,
+              "end_tick": 6,
+              "predicates": {
+                "route": "QUALIFIED_AVAILABLE",
+                "service": "QUALIFIED_AVAILABLE",
+                "capacity": "QUALIFIED_AVAILABLE",
+                "suitability": "QUALIFIED_AVAILABLE"
+              }
+            },
+            {
+              "start_tick": 6,
+              "end_tick": 8,
+              "predicates": {
+                "route": "QUALIFIED_AVAILABLE",
+                "service": "QUALIFIED_AVAILABLE",
+                "capacity": "QUALIFIED_AVAILABLE",
+                "suitability": "QUALIFIED_AVAILABLE"
+              }
+            }
+          ]
+        }
+      ],
+      "stability_evidence": {
+        "owner": "Symtropy",
+        "owner_reference": "https://github.com/Luminous-Dynamics/symtropy/issues/1848",
+        "owner_revision": "symtropy-synthetic-r1",
+        "state": "NOT_APPLICABLE",
+        "effective_tick": null,
+        "reason_code": "NO_RESTORATION_CLAIM",
+        "scope_binding": {
+          "scope_digest": "synthetic-habitat-scope-v0.1",
+          "population_frame_id": "synthetic-resident-frame-v0.1",
+          "service_id": "COMMUNITY_WORKSHOP",
+          "functional_unit_id": "ACCESSIBLE_WORKSHOP_HOUR",
+          "cohort_id": "COHORT_GENERAL",
+          "time_basis_id": "SYNTHETIC_15M_TICKS_V1"
+        }
+      },
+      "expected": {
+        "opportunity_slices": [
+          {
+            "start_tick": 0,
+            "end_tick": 2,
+            "state": "AVAILABLE",
+            "alternative_counts": {
+              "available": 1,
+              "unavailable": 0,
+              "unknown": 0,
+              "not_comparable": 0
+            }
+          },
+          {
+            "start_tick": 2,
+            "end_tick": 4,
+            "state": "UNKNOWN",
+            "alternative_counts": {
+              "available": 0,
+              "unavailable": 0,
+              "unknown": 1,
+              "not_comparable": 0
+            }
+          },
+          {
+            "start_tick": 4,
+            "end_tick": 6,
+            "state": "AVAILABLE",
+            "alternative_counts": {
+              "available": 1,
+              "unavailable": 0,
+              "unknown": 0,
+              "not_comparable": 0
+            }
+          },
+          {
+            "start_tick": 6,
+            "end_tick": 8,
+            "state": "AVAILABLE",
+            "alternative_counts": {
+              "available": 1,
+              "unavailable": 0,
+              "unknown": 0,
+              "not_comparable": 0
+            }
+          }
+        ],
+        "coalesced_opportunity_intervals": [
+          {
+            "start_tick": 0,
+            "end_tick": 2,
+            "state": "AVAILABLE"
+          },
+          {
+            "start_tick": 2,
+            "end_tick": 4,
+            "state": "UNKNOWN"
+          },
+          {
+            "start_tick": 4,
+            "end_tick": 8,
+            "state": "AVAILABLE"
+          }
+        ],
+        "first_available_tick": 0,
+        "first_restored_after_known_loss_tick": null,
+        "stable_opportunity_restoration": {
+          "state": "NOT_APPLICABLE",
+          "tick": null
+        },
+        "dependency_map_state": "COMPLETE"
+      }
+    },
+    {
+      "case_id": "COMPLETE_CALENDAR_GAP_PROVES_CLOSURE",
+      "title": "Missing interval within attested complete calendar is known unavailable",
+      "scenario_class": "CALENDAR_COMPLETENESS",
+      "scope": {
+        "scope_digest": "synthetic-habitat-scope-v0.1",
+        "population_frame_id": "synthetic-resident-frame-v0.1",
+        "service_id": "COMMUNITY_WORKSHOP",
+        "functional_unit_id": "ACCESSIBLE_WORKSHOP_HOUR",
+        "cohort_id": "COHORT_GENERAL",
+        "time_basis_id": "SYNTHETIC_15M_TICKS_V1",
+        "horizon_start_tick": 0,
+        "horizon_end_tick": 8
+      },
+      "demand": {
+        "unit": "qualified_workshop_service_units",
+        "required_units": 2
+      },
+      "dependency_map_state": "COMPLETE",
+      "disruption_events": [],
+      "alternatives": [
+        {
+          "alternative_id": "ONLY_NODE",
+          "scope_binding": {
+            "scope_digest": "synthetic-habitat-scope-v0.1",
+            "population_frame_id": "synthetic-resident-frame-v0.1",
+            "service_id": "COMMUNITY_WORKSHOP",
+            "functional_unit_id": "ACCESSIBLE_WORKSHOP_HOUR",
+            "time_basis_id": "SYNTHETIC_15M_TICKS_V1",
+            "cohort_id": "COHORT_GENERAL"
+          },
+          "owner_revisions": {
+            "access": "citymorph-synthetic-r1",
+            "service": "mycelix-amenity-synthetic-r1",
+            "capacity": "symtropy-capacity-synthetic-r1",
+            "suitability": "resident-brief-synthetic-r1"
+          },
+          "failure_domains": [
+            "OPERATOR_A"
+          ],
+          "slices": [
+            {
+              "start_tick": 0,
+              "end_tick": 2,
+              "predicates": {
+                "route": "QUALIFIED_AVAILABLE",
+                "service": "QUALIFIED_AVAILABLE",
+                "capacity": "QUALIFIED_AVAILABLE",
+                "suitability": "QUALIFIED_AVAILABLE"
+              }
+            },
+            {
+              "start_tick": 2,
+              "end_tick": 4,
+              "predicates": {
+                "route": "QUALIFIED_AVAILABLE",
+                "service": "QUALIFIED_UNAVAILABLE",
+                "capacity": "QUALIFIED_AVAILABLE",
+                "suitability": "QUALIFIED_AVAILABLE"
+              }
+            },
+            {
+              "start_tick": 4,
+              "end_tick": 6,
+              "predicates": {
+                "route": "QUALIFIED_AVAILABLE",
+                "service": "QUALIFIED_AVAILABLE",
+                "capacity": "QUALIFIED_AVAILABLE",
+                "suitability": "QUALIFIED_AVAILABLE"
+              }
+            },
+            {
+              "start_tick": 6,
+              "end_tick": 8,
+              "predicates": {
+                "route": "QUALIFIED_AVAILABLE",
+                "service": "QUALIFIED_AVAILABLE",
+                "capacity": "QUALIFIED_AVAILABLE",
+                "suitability": "QUALIFIED_AVAILABLE"
+              }
+            }
+          ]
+        }
+      ],
+      "stability_evidence": {
+        "owner": "Symtropy",
+        "owner_reference": "https://github.com/Luminous-Dynamics/symtropy/issues/1848",
+        "owner_revision": "symtropy-synthetic-r1",
+        "state": "NOT_APPLICABLE",
+        "effective_tick": null,
+        "reason_code": "NO_RESTORATION_CLAIM",
+        "scope_binding": {
+          "scope_digest": "synthetic-habitat-scope-v0.1",
+          "population_frame_id": "synthetic-resident-frame-v0.1",
+          "service_id": "COMMUNITY_WORKSHOP",
+          "functional_unit_id": "ACCESSIBLE_WORKSHOP_HOUR",
+          "cohort_id": "COHORT_GENERAL",
+          "time_basis_id": "SYNTHETIC_15M_TICKS_V1"
+        }
+      },
+      "expected": {
+        "opportunity_slices": [
+          {
+            "start_tick": 0,
+            "end_tick": 2,
+            "state": "AVAILABLE",
+            "alternative_counts": {
+              "available": 1,
+              "unavailable": 0,
+              "unknown": 0,
+              "not_comparable": 0
+            }
+          },
+          {
+            "start_tick": 2,
+            "end_tick": 4,
+            "state": "UNAVAILABLE",
+            "alternative_counts": {
+              "available": 0,
+              "unavailable": 1,
+              "unknown": 0,
+              "not_comparable": 0
+            }
+          },
+          {
+            "start_tick": 4,
+            "end_tick": 6,
+            "state": "AVAILABLE",
+            "alternative_counts": {
+              "available": 1,
+              "unavailable": 0,
+              "unknown": 0,
+              "not_comparable": 0
+            }
+          },
+          {
+            "start_tick": 6,
+            "end_tick": 8,
+            "state": "AVAILABLE",
+            "alternative_counts": {
+              "available": 1,
+              "unavailable": 0,
+              "unknown": 0,
+              "not_comparable": 0
+            }
+          }
+        ],
+        "coalesced_opportunity_intervals": [
+          {
+            "start_tick": 0,
+            "end_tick": 2,
+            "state": "AVAILABLE"
+          },
+          {
+            "start_tick": 2,
+            "end_tick": 4,
+            "state": "UNAVAILABLE"
+          },
+          {
+            "start_tick": 4,
+            "end_tick": 8,
+            "state": "AVAILABLE"
+          }
+        ],
+        "first_available_tick": 0,
+        "first_restored_after_known_loss_tick": 4,
+        "stable_opportunity_restoration": {
+          "state": "NOT_APPLICABLE",
+          "tick": null
+        },
+        "dependency_map_state": "COMPLETE"
+      }
+    },
+    {
+      "case_id": "HALF_OPEN_ADJACENCY_HAS_NO_GAP",
+      "title": "Adjacent [start,end) segments preserve continuous availability",
+      "scenario_class": "INTERVAL_BOUNDARY",
+      "scope": {
+        "scope_digest": "synthetic-habitat-scope-v0.1",
+        "population_frame_id": "synthetic-resident-frame-v0.1",
+        "service_id": "COMMUNITY_WORKSHOP",
+        "functional_unit_id": "ACCESSIBLE_WORKSHOP_HOUR",
+        "cohort_id": "COHORT_GENERAL",
+        "time_basis_id": "SYNTHETIC_15M_TICKS_V1",
+        "horizon_start_tick": 0,
+        "horizon_end_tick": 8
+      },
+      "demand": {
+        "unit": "qualified_workshop_service_units",
+        "required_units": 2
+      },
+      "dependency_map_state": "COMPLETE",
+      "disruption_events": [],
+      "alternatives": [
+        {
+          "alternative_id": "ONLY_NODE",
+          "scope_binding": {
+            "scope_digest": "synthetic-habitat-scope-v0.1",
+            "population_frame_id": "synthetic-resident-frame-v0.1",
+            "service_id": "COMMUNITY_WORKSHOP",
+            "functional_unit_id": "ACCESSIBLE_WORKSHOP_HOUR",
+            "time_basis_id": "SYNTHETIC_15M_TICKS_V1",
+            "cohort_id": "COHORT_GENERAL"
+          },
+          "owner_revisions": {
+            "access": "citymorph-synthetic-r1",
+            "service": "mycelix-amenity-synthetic-r1",
+            "capacity": "symtropy-capacity-synthetic-r1",
+            "suitability": "resident-brief-synthetic-r1"
+          },
+          "failure_domains": [
+            "OPERATOR_A"
+          ],
+          "slices": [
+            {
+              "start_tick": 0,
+              "end_tick": 2,
+              "predicates": {
+                "route": "QUALIFIED_AVAILABLE",
+                "service": "QUALIFIED_AVAILABLE",
+                "capacity": "QUALIFIED_AVAILABLE",
+                "suitability": "QUALIFIED_AVAILABLE"
+              }
+            },
+            {
+              "start_tick": 2,
+              "end_tick": 4,
+              "predicates": {
+                "route": "QUALIFIED_AVAILABLE",
+                "service": "QUALIFIED_AVAILABLE",
+                "capacity": "QUALIFIED_AVAILABLE",
+                "suitability": "QUALIFIED_AVAILABLE"
+              }
+            },
+            {
+              "start_tick": 4,
+              "end_tick": 6,
+              "predicates": {
+                "route": "QUALIFIED_AVAILABLE",
+                "service": "QUALIFIED_AVAILABLE",
+                "capacity": "QUALIFIED_AVAILABLE",
+                "suitability": "QUALIFIED_AVAILABLE"
+              }
+            },
+            {
+              "start_tick": 6,
+              "end_tick": 8,
+              "predicates": {
+                "route": "QUALIFIED_AVAILABLE",
+                "service": "QUALIFIED_AVAILABLE",
+                "capacity": "QUALIFIED_AVAILABLE",
+                "suitability": "QUALIFIED_AVAILABLE"
+              }
+            }
+          ]
+        }
+      ],
+      "stability_evidence": {
+        "owner": "Symtropy",
+        "owner_reference": "https://github.com/Luminous-Dynamics/symtropy/issues/1848",
+        "owner_revision": "symtropy-synthetic-r1",
+        "state": "NOT_APPLICABLE",
+        "effective_tick": null,
+        "reason_code": "NO_RESTORATION_CLAIM",
+        "scope_binding": {
+          "scope_digest": "synthetic-habitat-scope-v0.1",
+          "population_frame_id": "synthetic-resident-frame-v0.1",
+          "service_id": "COMMUNITY_WORKSHOP",
+          "functional_unit_id": "ACCESSIBLE_WORKSHOP_HOUR",
+          "cohort_id": "COHORT_GENERAL",
+          "time_basis_id": "SYNTHETIC_15M_TICKS_V1"
+        }
+      },
+      "expected": {
+        "opportunity_slices": [
+          {
+            "start_tick": 0,
+            "end_tick": 2,
+            "state": "AVAILABLE",
+            "alternative_counts": {
+              "available": 1,
+              "unavailable": 0,
+              "unknown": 0,
+              "not_comparable": 0
+            }
+          },
+          {
+            "start_tick": 2,
+            "end_tick": 4,
+            "state": "AVAILABLE",
+            "alternative_counts": {
+              "available": 1,
+              "unavailable": 0,
+              "unknown": 0,
+              "not_comparable": 0
+            }
+          },
+          {
+            "start_tick": 4,
+            "end_tick": 6,
+            "state": "AVAILABLE",
+            "alternative_counts": {
+              "available": 1,
+              "unavailable": 0,
+              "unknown": 0,
+              "not_comparable": 0
+            }
+          },
+          {
+            "start_tick": 6,
+            "end_tick": 8,
+            "state": "AVAILABLE",
+            "alternative_counts": {
+              "available": 1,
+              "unavailable": 0,
+              "unknown": 0,
+              "not_comparable": 0
+            }
+          }
+        ],
+        "coalesced_opportunity_intervals": [
+          {
+            "start_tick": 0,
+            "end_tick": 8,
+            "state": "AVAILABLE"
+          }
+        ],
+        "first_available_tick": 0,
+        "first_restored_after_known_loss_tick": null,
+        "stable_opportunity_restoration": {
+          "state": "NOT_APPLICABLE",
+          "tick": null
+        },
+        "dependency_map_state": "COMPLETE"
+      }
+    },
+    {
+      "case_id": "SCOPE_MISMATCH_BLOCKS_COMPARISON",
+      "title": "Apparently usable route and service from another scope are not comparable",
+      "scenario_class": "SCOPE_MISMATCH",
+      "scope": {
+        "scope_digest": "synthetic-habitat-scope-v0.1",
+        "population_frame_id": "synthetic-resident-frame-v0.1",
+        "service_id": "COMMUNITY_WORKSHOP",
+        "functional_unit_id": "ACCESSIBLE_WORKSHOP_HOUR",
+        "cohort_id": "COHORT_GENERAL",
+        "time_basis_id": "SYNTHETIC_15M_TICKS_V1",
+        "horizon_start_tick": 0,
+        "horizon_end_tick": 8
+      },
+      "demand": {
+        "unit": "qualified_workshop_service_units",
+        "required_units": 2
+      },
+      "dependency_map_state": "COMPLETE",
+      "disruption_events": [],
+      "alternatives": [
+        {
+          "alternative_id": "ONLY_NODE",
+          "scope_binding": {
+            "scope_digest": "synthetic-other-scope-v0.1",
+            "population_frame_id": "synthetic-resident-frame-v0.1",
+            "service_id": "COMMUNITY_WORKSHOP",
+            "functional_unit_id": "ACCESSIBLE_WORKSHOP_HOUR",
+            "time_basis_id": "SYNTHETIC_15M_TICKS_V1",
+            "cohort_id": "COHORT_GENERAL"
+          },
+          "owner_revisions": {
+            "access": "citymorph-synthetic-r1",
+            "service": "mycelix-amenity-synthetic-r1",
+            "capacity": "symtropy-capacity-synthetic-r1",
+            "suitability": "resident-brief-synthetic-r1"
+          },
+          "failure_domains": [
+            "OPERATOR_A"
+          ],
+          "slices": [
+            {
+              "start_tick": 0,
+              "end_tick": 2,
+              "predicates": {
+                "route": "QUALIFIED_AVAILABLE",
+                "service": "QUALIFIED_AVAILABLE",
+                "capacity": "QUALIFIED_AVAILABLE",
+                "suitability": "QUALIFIED_AVAILABLE"
+              }
+            },
+            {
+              "start_tick": 2,
+              "end_tick": 4,
+              "predicates": {
+                "route": "QUALIFIED_AVAILABLE",
+                "service": "QUALIFIED_AVAILABLE",
+                "capacity": "QUALIFIED_AVAILABLE",
+                "suitability": "QUALIFIED_AVAILABLE"
+              }
+            },
+            {
+              "start_tick": 4,
+              "end_tick": 6,
+              "predicates": {
+                "route": "QUALIFIED_AVAILABLE",
+                "service": "QUALIFIED_AVAILABLE",
+                "capacity": "QUALIFIED_AVAILABLE",
+                "suitability": "QUALIFIED_AVAILABLE"
+              }
+            },
+            {
+              "start_tick": 6,
+              "end_tick": 8,
+              "predicates": {
+                "route": "QUALIFIED_AVAILABLE",
+                "service": "QUALIFIED_AVAILABLE",
+                "capacity": "QUALIFIED_AVAILABLE",
+                "suitability": "QUALIFIED_AVAILABLE"
+              }
+            }
+          ]
+        }
+      ],
+      "stability_evidence": {
+        "owner": "Symtropy",
+        "owner_reference": "https://github.com/Luminous-Dynamics/symtropy/issues/1848",
+        "owner_revision": "symtropy-synthetic-r1",
+        "state": "NOT_APPLICABLE",
+        "effective_tick": null,
+        "reason_code": "NO_RESTORATION_CLAIM",
+        "scope_binding": {
+          "scope_digest": "synthetic-habitat-scope-v0.1",
+          "population_frame_id": "synthetic-resident-frame-v0.1",
+          "service_id": "COMMUNITY_WORKSHOP",
+          "functional_unit_id": "ACCESSIBLE_WORKSHOP_HOUR",
+          "cohort_id": "COHORT_GENERAL",
+          "time_basis_id": "SYNTHETIC_15M_TICKS_V1"
+        }
+      },
+      "expected": {
+        "opportunity_slices": [
+          {
+            "start_tick": 0,
+            "end_tick": 2,
+            "state": "NOT_COMPARABLE",
+            "alternative_counts": {
+              "available": 0,
+              "unavailable": 0,
+              "unknown": 0,
+              "not_comparable": 1
+            }
+          },
+          {
+            "start_tick": 2,
+            "end_tick": 4,
+            "state": "NOT_COMPARABLE",
+            "alternative_counts": {
+              "available": 0,
+              "unavailable": 0,
+              "unknown": 0,
+              "not_comparable": 1
+            }
+          },
+          {
+            "start_tick": 4,
+            "end_tick": 6,
+            "state": "NOT_COMPARABLE",
+            "alternative_counts": {
+              "available": 0,
+              "unavailable": 0,
+              "unknown": 0,
+              "not_comparable": 1
+            }
+          },
+          {
+            "start_tick": 6,
+            "end_tick": 8,
+            "state": "NOT_COMPARABLE",
+            "alternative_counts": {
+              "available": 0,
+              "unavailable": 0,
+              "unknown": 0,
+              "not_comparable": 1
+            }
+          }
+        ],
+        "coalesced_opportunity_intervals": [
+          {
+            "start_tick": 0,
+            "end_tick": 8,
+            "state": "NOT_COMPARABLE"
+          }
+        ],
+        "first_available_tick": null,
+        "first_restored_after_known_loss_tick": null,
+        "stable_opportunity_restoration": {
+          "state": "NOT_APPLICABLE",
+          "tick": null
+        },
+        "dependency_map_state": "COMPLETE"
+      }
+    },
+    {
+      "case_id": "UNKNOWN_COMMON_CAUSE_MAP_BLOCKS_INDEPENDENCE_CLAIM",
+      "title": "Two currently usable nodes do not establish independent resilience when dependencies are unknown",
+      "scenario_class": "DEPENDENCY_EVIDENCE_GAP",
+      "scope": {
+        "scope_digest": "synthetic-habitat-scope-v0.1",
+        "population_frame_id": "synthetic-resident-frame-v0.1",
+        "service_id": "COMMUNITY_WORKSHOP",
+        "functional_unit_id": "ACCESSIBLE_WORKSHOP_HOUR",
+        "cohort_id": "COHORT_GENERAL",
+        "time_basis_id": "SYNTHETIC_15M_TICKS_V1",
+        "horizon_start_tick": 0,
+        "horizon_end_tick": 8
+      },
+      "demand": {
+        "unit": "qualified_workshop_service_units",
+        "required_units": 2
+      },
+      "dependency_map_state": "UNKNOWN",
+      "disruption_events": [],
+      "alternatives": [
+        {
+          "alternative_id": "NODE_A",
+          "scope_binding": {
+            "scope_digest": "synthetic-habitat-scope-v0.1",
+            "population_frame_id": "synthetic-resident-frame-v0.1",
+            "service_id": "COMMUNITY_WORKSHOP",
+            "functional_unit_id": "ACCESSIBLE_WORKSHOP_HOUR",
+            "time_basis_id": "SYNTHETIC_15M_TICKS_V1",
+            "cohort_id": "COHORT_GENERAL"
+          },
+          "owner_revisions": {
+            "access": "citymorph-synthetic-r1",
+            "service": "mycelix-amenity-synthetic-r1",
+            "capacity": "symtropy-capacity-synthetic-r1",
+            "suitability": "resident-brief-synthetic-r1"
+          },
+          "failure_domains": [
+            "UNMAPPED_DEPENDENCY_A"
+          ],
+          "slices": [
+            {
+              "start_tick": 0,
+              "end_tick": 2,
+              "predicates": {
+                "route": "QUALIFIED_AVAILABLE",
+                "service": "QUALIFIED_AVAILABLE",
+                "capacity": "QUALIFIED_AVAILABLE",
+                "suitability": "QUALIFIED_AVAILABLE"
+              }
+            },
+            {
+              "start_tick": 2,
+              "end_tick": 4,
+              "predicates": {
+                "route": "QUALIFIED_AVAILABLE",
+                "service": "QUALIFIED_AVAILABLE",
+                "capacity": "QUALIFIED_AVAILABLE",
+                "suitability": "QUALIFIED_AVAILABLE"
+              }
+            },
+            {
+              "start_tick": 4,
+              "end_tick": 6,
+              "predicates": {
+                "route": "QUALIFIED_AVAILABLE",
+                "service": "QUALIFIED_AVAILABLE",
+                "capacity": "QUALIFIED_AVAILABLE",
+                "suitability": "QUALIFIED_AVAILABLE"
+              }
+            },
+            {
+              "start_tick": 6,
+              "end_tick": 8,
+              "predicates": {
+                "route": "QUALIFIED_AVAILABLE",
+                "service": "QUALIFIED_AVAILABLE",
+                "capacity": "QUALIFIED_AVAILABLE",
+                "suitability": "QUALIFIED_AVAILABLE"
+              }
+            }
+          ]
+        },
+        {
+          "alternative_id": "NODE_B",
+          "scope_binding": {
+            "scope_digest": "synthetic-habitat-scope-v0.1",
+            "population_frame_id": "synthetic-resident-frame-v0.1",
+            "service_id": "COMMUNITY_WORKSHOP",
+            "functional_unit_id": "ACCESSIBLE_WORKSHOP_HOUR",
+            "time_basis_id": "SYNTHETIC_15M_TICKS_V1",
+            "cohort_id": "COHORT_GENERAL"
+          },
+          "owner_revisions": {
+            "access": "citymorph-synthetic-r1",
+            "service": "mycelix-amenity-synthetic-r1",
+            "capacity": "symtropy-capacity-synthetic-r1",
+            "suitability": "resident-brief-synthetic-r1"
+          },
+          "failure_domains": [
+            "UNMAPPED_DEPENDENCY_B"
+          ],
+          "slices": [
+            {
+              "start_tick": 0,
+              "end_tick": 2,
+              "predicates": {
+                "route": "QUALIFIED_AVAILABLE",
+                "service": "QUALIFIED_AVAILABLE",
+                "capacity": "QUALIFIED_AVAILABLE",
+                "suitability": "QUALIFIED_AVAILABLE"
+              }
+            },
+            {
+              "start_tick": 2,
+              "end_tick": 4,
+              "predicates": {
+                "route": "QUALIFIED_AVAILABLE",
+                "service": "QUALIFIED_AVAILABLE",
+                "capacity": "QUALIFIED_AVAILABLE",
+                "suitability": "QUALIFIED_AVAILABLE"
+              }
+            },
+            {
+              "start_tick": 4,
+              "end_tick": 6,
+              "predicates": {
+                "route": "QUALIFIED_AVAILABLE",
+                "service": "QUALIFIED_AVAILABLE",
+                "capacity": "QUALIFIED_AVAILABLE",
+                "suitability": "QUALIFIED_AVAILABLE"
+              }
+            },
+            {
+              "start_tick": 6,
+              "end_tick": 8,
+              "predicates": {
+                "route": "QUALIFIED_AVAILABLE",
+                "service": "QUALIFIED_AVAILABLE",
+                "capacity": "QUALIFIED_AVAILABLE",
+                "suitability": "QUALIFIED_AVAILABLE"
+              }
+            }
+          ]
+        }
+      ],
+      "stability_evidence": {
+        "owner": "Symtropy",
+        "owner_reference": "https://github.com/Luminous-Dynamics/symtropy/issues/1848",
+        "owner_revision": "symtropy-synthetic-r1",
+        "state": "NOT_APPLICABLE",
+        "effective_tick": null,
+        "reason_code": "NO_RESTORATION_CLAIM",
+        "scope_binding": {
+          "scope_digest": "synthetic-habitat-scope-v0.1",
+          "population_frame_id": "synthetic-resident-frame-v0.1",
+          "service_id": "COMMUNITY_WORKSHOP",
+          "functional_unit_id": "ACCESSIBLE_WORKSHOP_HOUR",
+          "cohort_id": "COHORT_GENERAL",
+          "time_basis_id": "SYNTHETIC_15M_TICKS_V1"
+        }
+      },
+      "expected": {
+        "opportunity_slices": [
+          {
+            "start_tick": 0,
+            "end_tick": 2,
+            "state": "AVAILABLE",
+            "alternative_counts": {
+              "available": 2,
+              "unavailable": 0,
+              "unknown": 0,
+              "not_comparable": 0
+            }
+          },
+          {
+            "start_tick": 2,
+            "end_tick": 4,
+            "state": "AVAILABLE",
+            "alternative_counts": {
+              "available": 2,
+              "unavailable": 0,
+              "unknown": 0,
+              "not_comparable": 0
+            }
+          },
+          {
+            "start_tick": 4,
+            "end_tick": 6,
+            "state": "AVAILABLE",
+            "alternative_counts": {
+              "available": 2,
+              "unavailable": 0,
+              "unknown": 0,
+              "not_comparable": 0
+            }
+          },
+          {
+            "start_tick": 6,
+            "end_tick": 8,
+            "state": "AVAILABLE",
+            "alternative_counts": {
+              "available": 2,
+              "unavailable": 0,
+              "unknown": 0,
+              "not_comparable": 0
+            }
+          }
+        ],
+        "coalesced_opportunity_intervals": [
+          {
+            "start_tick": 0,
+            "end_tick": 8,
+            "state": "AVAILABLE"
+          }
+        ],
+        "first_available_tick": 0,
+        "first_restored_after_known_loss_tick": null,
+        "stable_opportunity_restoration": {
+          "state": "NOT_APPLICABLE",
+          "tick": null
+        },
+        "dependency_map_state": "UNKNOWN"
+      }
+    },
+    {
+      "case_id": "STABLE_RECOVERY_WRONG_SCOPE_NOT_ACCEPTED",
+      "title": "Stable-recovery evidence bound to another cohort and scope cannot certify this result",
+      "scenario_class": "STABLE_RECOVERY_SCOPE_MISMATCH",
+      "scope": {
+        "scope_digest": "synthetic-habitat-scope-v0.1",
+        "population_frame_id": "synthetic-resident-frame-v0.1",
+        "service_id": "COMMUNITY_WORKSHOP",
+        "functional_unit_id": "ACCESSIBLE_WORKSHOP_HOUR",
+        "cohort_id": "COHORT_GENERAL",
+        "time_basis_id": "SYNTHETIC_15M_TICKS_V1",
+        "horizon_start_tick": 0,
+        "horizon_end_tick": 8
+      },
+      "demand": {
+        "unit": "qualified_workshop_service_units",
+        "required_units": 2
+      },
+      "dependency_map_state": "COMPLETE",
+      "disruption_events": [],
+      "alternatives": [
+        {
+          "alternative_id": "ONLY_NODE",
+          "scope_binding": {
+            "scope_digest": "synthetic-habitat-scope-v0.1",
+            "population_frame_id": "synthetic-resident-frame-v0.1",
+            "service_id": "COMMUNITY_WORKSHOP",
+            "functional_unit_id": "ACCESSIBLE_WORKSHOP_HOUR",
+            "time_basis_id": "SYNTHETIC_15M_TICKS_V1",
+            "cohort_id": "COHORT_GENERAL"
+          },
+          "owner_revisions": {
+            "access": "citymorph-synthetic-r1",
+            "service": "mycelix-amenity-synthetic-r1",
+            "capacity": "symtropy-capacity-synthetic-r1",
+            "suitability": "resident-brief-synthetic-r1"
+          },
+          "failure_domains": [
+            "OPERATOR_A"
+          ],
+          "slices": [
+            {
+              "start_tick": 0,
+              "end_tick": 2,
+              "predicates": {
+                "route": "QUALIFIED_AVAILABLE",
+                "service": "QUALIFIED_AVAILABLE",
+                "capacity": "QUALIFIED_AVAILABLE",
+                "suitability": "QUALIFIED_AVAILABLE"
+              }
+            },
+            {
+              "start_tick": 2,
+              "end_tick": 4,
+              "predicates": {
+                "route": "QUALIFIED_AVAILABLE",
+                "service": "QUALIFIED_AVAILABLE",
+                "capacity": "QUALIFIED_AVAILABLE",
+                "suitability": "QUALIFIED_AVAILABLE"
+              }
+            },
+            {
+              "start_tick": 4,
+              "end_tick": 6,
+              "predicates": {
+                "route": "QUALIFIED_AVAILABLE",
+                "service": "QUALIFIED_AVAILABLE",
+                "capacity": "QUALIFIED_AVAILABLE",
+                "suitability": "QUALIFIED_AVAILABLE"
+              }
+            },
+            {
+              "start_tick": 6,
+              "end_tick": 8,
+              "predicates": {
+                "route": "QUALIFIED_AVAILABLE",
+                "service": "QUALIFIED_AVAILABLE",
+                "capacity": "QUALIFIED_AVAILABLE",
+                "suitability": "QUALIFIED_AVAILABLE"
+              }
+            }
+          ]
+        }
+      ],
+      "stability_evidence": {
+        "owner": "Symtropy",
+        "owner_reference": "https://github.com/Luminous-Dynamics/symtropy/issues/1848",
+        "owner_revision": "symtropy-synthetic-r1",
+        "state": "VERIFIED",
+        "effective_tick": 7,
+        "reason_code": "OWNER_VERIFIED_BUT_WRONG_SCOPE",
+        "scope_binding": {
+          "scope_digest": "synthetic-other-scope-v0.1",
+          "population_frame_id": "synthetic-resident-frame-v0.1",
+          "service_id": "COMMUNITY_WORKSHOP",
+          "functional_unit_id": "ACCESSIBLE_WORKSHOP_HOUR",
+          "cohort_id": "COHORT_OTHER",
+          "time_basis_id": "SYNTHETIC_15M_TICKS_V1"
+        }
+      },
+      "expected": {
+        "opportunity_slices": [
+          {
+            "start_tick": 0,
+            "end_tick": 2,
+            "state": "AVAILABLE",
+            "alternative_counts": {
+              "available": 1,
+              "unavailable": 0,
+              "unknown": 0,
+              "not_comparable": 0
+            }
+          },
+          {
+            "start_tick": 2,
+            "end_tick": 4,
+            "state": "AVAILABLE",
+            "alternative_counts": {
+              "available": 1,
+              "unavailable": 0,
+              "unknown": 0,
+              "not_comparable": 0
+            }
+          },
+          {
+            "start_tick": 4,
+            "end_tick": 6,
+            "state": "AVAILABLE",
+            "alternative_counts": {
+              "available": 1,
+              "unavailable": 0,
+              "unknown": 0,
+              "not_comparable": 0
+            }
+          },
+          {
+            "start_tick": 6,
+            "end_tick": 8,
+            "state": "AVAILABLE",
+            "alternative_counts": {
+              "available": 1,
+              "unavailable": 0,
+              "unknown": 0,
+              "not_comparable": 0
+            }
+          }
+        ],
+        "coalesced_opportunity_intervals": [
+          {
+            "start_tick": 0,
+            "end_tick": 8,
+            "state": "AVAILABLE"
+          }
+        ],
+        "first_available_tick": 0,
+        "first_restored_after_known_loss_tick": null,
+        "stable_opportunity_restoration": {
+          "state": "UNKNOWN",
+          "tick": null
+        },
+        "dependency_map_state": "COMPLETE"
+      }
+    },
+    {
+      "case_id": "UNRESOLVED_INTERVAL_BEFORE_QUALIFIED_RETURN",
+      "title": "A known outage followed by unresolved evidence still reports the first qualified return",
+      "scenario_class": "RECOVERY_AFTER_UNRESOLVED_GAP",
+      "scope": {
+        "scope_digest": "synthetic-habitat-scope-v0.1",
+        "population_frame_id": "synthetic-resident-frame-v0.1",
+        "service_id": "COMMUNITY_WORKSHOP",
+        "functional_unit_id": "ACCESSIBLE_WORKSHOP_HOUR",
+        "cohort_id": "COHORT_GENERAL",
+        "time_basis_id": "SYNTHETIC_15M_TICKS_V1",
+        "horizon_start_tick": 0,
+        "horizon_end_tick": 8
+      },
+      "demand": {
+        "unit": "qualified_workshop_service_units",
+        "required_units": 2
+      },
+      "dependency_map_state": "COMPLETE",
+      "disruption_events": [
+        {
+          "event_id": "SYNTHETIC_OUTAGE_GAP_18",
+          "failure_domain": "SERVICE_A",
+          "start_tick": 2,
+          "end_tick": 4,
+          "evidence_class": "SYNTHETIC_CONTROLLED"
+        }
+      ],
+      "alternatives": [
+        {
+          "alternative_id": "ONLY_NODE",
+          "scope_binding": {
+            "scope_digest": "synthetic-habitat-scope-v0.1",
+            "population_frame_id": "synthetic-resident-frame-v0.1",
+            "service_id": "COMMUNITY_WORKSHOP",
+            "functional_unit_id": "ACCESSIBLE_WORKSHOP_HOUR",
+            "cohort_id": "COHORT_GENERAL",
+            "time_basis_id": "SYNTHETIC_15M_TICKS_V1"
+          },
+          "owner_revisions": {
+            "access": "citymorph-synthetic-r1",
+            "service": "mycelix-amenity-synthetic-r1",
+            "capacity": "symtropy-capacity-synthetic-r1",
+            "suitability": "resident-brief-synthetic-r1"
+          },
+          "failure_domains": [
+            "SERVICE_A"
+          ],
+          "slices": [
+            {
+              "start_tick": 0,
+              "end_tick": 2,
+              "predicates": {
+                "route": "QUALIFIED_AVAILABLE",
+                "service": "QUALIFIED_AVAILABLE",
+                "capacity": "QUALIFIED_AVAILABLE",
+                "suitability": "QUALIFIED_AVAILABLE"
+              }
+            },
+            {
+              "start_tick": 2,
+              "end_tick": 4,
+              "predicates": {
+                "route": "QUALIFIED_AVAILABLE",
+                "service": "QUALIFIED_UNAVAILABLE",
+                "capacity": "QUALIFIED_AVAILABLE",
+                "suitability": "QUALIFIED_AVAILABLE"
+              }
+            },
+            {
+              "start_tick": 4,
+              "end_tick": 6,
+              "predicates": {
+                "route": "QUALIFIED_AVAILABLE",
+                "service": "UNKNOWN",
+                "capacity": "QUALIFIED_AVAILABLE",
+                "suitability": "QUALIFIED_AVAILABLE"
+              }
+            },
+            {
+              "start_tick": 6,
+              "end_tick": 8,
+              "predicates": {
+                "route": "QUALIFIED_AVAILABLE",
+                "service": "QUALIFIED_AVAILABLE",
+                "capacity": "QUALIFIED_AVAILABLE",
+                "suitability": "QUALIFIED_AVAILABLE"
+              }
+            }
+          ]
+        }
+      ],
+      "stability_evidence": {
+        "owner": "Symtropy",
+        "owner_reference": "https://github.com/Luminous-Dynamics/symtropy/issues/1848",
+        "owner_revision": "symtropy-synthetic-r1",
+        "state": "UNKNOWN",
+        "effective_tick": null,
+        "reason_code": "STABILITY_NOT_ATTESTED",
+        "scope_binding": {
+          "scope_digest": "synthetic-habitat-scope-v0.1",
+          "population_frame_id": "synthetic-resident-frame-v0.1",
+          "service_id": "COMMUNITY_WORKSHOP",
+          "functional_unit_id": "ACCESSIBLE_WORKSHOP_HOUR",
+          "cohort_id": "COHORT_GENERAL",
+          "time_basis_id": "SYNTHETIC_15M_TICKS_V1"
+        }
+      },
+      "expected": {
+        "opportunity_slices": [
+          {
+            "start_tick": 0,
+            "end_tick": 2,
+            "state": "AVAILABLE",
+            "alternative_counts": {
+              "available": 1,
+              "unavailable": 0,
+              "unknown": 0,
+              "not_comparable": 0
+            }
+          },
+          {
+            "start_tick": 2,
+            "end_tick": 4,
+            "state": "UNAVAILABLE",
+            "alternative_counts": {
+              "available": 0,
+              "unavailable": 1,
+              "unknown": 0,
+              "not_comparable": 0
+            }
+          },
+          {
+            "start_tick": 4,
+            "end_tick": 6,
+            "state": "UNKNOWN",
+            "alternative_counts": {
+              "available": 0,
+              "unavailable": 0,
+              "unknown": 1,
+              "not_comparable": 0
+            }
+          },
+          {
+            "start_tick": 6,
+            "end_tick": 8,
+            "state": "AVAILABLE",
+            "alternative_counts": {
+              "available": 1,
+              "unavailable": 0,
+              "unknown": 0,
+              "not_comparable": 0
+            }
+          }
+        ],
+        "coalesced_opportunity_intervals": [
+          {
+            "start_tick": 0,
+            "end_tick": 2,
+            "state": "AVAILABLE"
+          },
+          {
+            "start_tick": 2,
+            "end_tick": 4,
+            "state": "UNAVAILABLE"
+          },
+          {
+            "start_tick": 4,
+            "end_tick": 6,
+            "state": "UNKNOWN"
+          },
+          {
+            "start_tick": 6,
+            "end_tick": 8,
+            "state": "AVAILABLE"
+          }
+        ],
+        "first_available_tick": 0,
+        "first_restored_after_known_loss_tick": 6,
+        "stable_opportunity_restoration": {
+          "state": "UNKNOWN",
+          "tick": null
+        },
+        "dependency_map_state": "COMPLETE"
+      }
+    }
+  ]
+}

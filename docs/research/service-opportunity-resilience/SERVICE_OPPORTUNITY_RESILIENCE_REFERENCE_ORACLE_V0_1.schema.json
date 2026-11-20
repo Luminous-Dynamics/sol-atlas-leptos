@@ -1,0 +1,678 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Luminous Service Opportunity Resilience Reference Oracle v0.1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "schema_version",
+    "maturity",
+    "claim_ceiling",
+    "time_basis",
+    "decision_policy",
+    "cases"
+  ],
+  "properties": {
+    "schema": {
+      "const": "luminous.service-opportunity-resilience-reference-oracle"
+    },
+    "schema_version": {
+      "const": "0.1.0"
+    },
+    "maturity": {
+      "const": "SYNTHETIC_REFERENCE_ORACLE_ONLY"
+    },
+    "claim_ceiling": {
+      "type": "string",
+      "minLength": 20
+    },
+    "time_basis": {
+      "$ref": "#/$defs/time_basis"
+    },
+    "decision_policy": {
+      "$ref": "#/$defs/decision_policy"
+    },
+    "cases": {
+      "type": "array",
+      "minItems": 18,
+      "items": {
+        "$ref": "#/$defs/case"
+      }
+    }
+  },
+  "$defs": {
+    "time_basis": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "tick_seconds",
+        "origin",
+        "tick_semantics",
+        "interval_semantics",
+        "horizon_start_tick",
+        "horizon_end_tick"
+      ],
+      "properties": {
+        "tick_seconds": {
+          "const": 900
+        },
+        "origin": {
+          "const": "SYNTHETIC_HORIZON_START"
+        },
+        "tick_semantics": {
+          "const": "integer 15-minute ticks"
+        },
+        "interval_semantics": {
+          "const": "HALF_OPEN_START_INCLUSIVE_END_EXCLUSIVE"
+        },
+        "horizon_start_tick": {
+          "const": 0
+        },
+        "horizon_end_tick": {
+          "const": 8
+        }
+      }
+    },
+    "decision_policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "predicate_names",
+        "predicate_states",
+        "alternative_rule",
+        "opportunity_rule",
+        "capacity_rule",
+        "freshness_rule",
+        "dependency_rule",
+        "stable_recovery_rule"
+      ],
+      "properties": {
+        "predicate_names": {
+          "const": [
+            "route",
+            "service",
+            "capacity",
+            "suitability"
+          ]
+        },
+        "predicate_states": {
+          "const": [
+            "QUALIFIED_AVAILABLE",
+            "QUALIFIED_UNAVAILABLE",
+            "UNKNOWN",
+            "STALE"
+          ]
+        },
+        "alternative_rule": {
+          "type": "string",
+          "minLength": 30
+        },
+        "opportunity_rule": {
+          "type": "string",
+          "minLength": 30
+        },
+        "capacity_rule": {
+          "type": "string",
+          "minLength": 20
+        },
+        "freshness_rule": {
+          "type": "string",
+          "minLength": 20
+        },
+        "dependency_rule": {
+          "type": "string",
+          "minLength": 20
+        },
+        "stable_recovery_rule": {
+          "type": "string",
+          "minLength": 20
+        }
+      }
+    },
+    "scope": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "scope_digest",
+        "population_frame_id",
+        "service_id",
+        "functional_unit_id",
+        "cohort_id",
+        "time_basis_id",
+        "horizon_start_tick",
+        "horizon_end_tick"
+      ],
+      "properties": {
+        "scope_digest": {
+          "type": "string",
+          "minLength": 1
+        },
+        "population_frame_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "service_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "functional_unit_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "cohort_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "time_basis_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "horizon_start_tick": {
+          "const": 0
+        },
+        "horizon_end_tick": {
+          "const": 8
+        }
+      }
+    },
+    "scope_binding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "scope_digest",
+        "population_frame_id",
+        "service_id",
+        "functional_unit_id",
+        "cohort_id",
+        "time_basis_id"
+      ],
+      "properties": {
+        "scope_digest": {
+          "type": "string",
+          "minLength": 1
+        },
+        "population_frame_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "service_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "functional_unit_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "time_basis_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "cohort_id": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "predicates": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "route",
+        "service",
+        "capacity",
+        "suitability"
+      ],
+      "properties": {
+        "route": {
+          "enum": [
+            "QUALIFIED_AVAILABLE",
+            "QUALIFIED_UNAVAILABLE",
+            "UNKNOWN",
+            "STALE"
+          ]
+        },
+        "service": {
+          "enum": [
+            "QUALIFIED_AVAILABLE",
+            "QUALIFIED_UNAVAILABLE",
+            "UNKNOWN",
+            "STALE"
+          ]
+        },
+        "capacity": {
+          "enum": [
+            "QUALIFIED_AVAILABLE",
+            "QUALIFIED_UNAVAILABLE",
+            "UNKNOWN",
+            "STALE"
+          ]
+        },
+        "suitability": {
+          "enum": [
+            "QUALIFIED_AVAILABLE",
+            "QUALIFIED_UNAVAILABLE",
+            "UNKNOWN",
+            "STALE"
+          ]
+        }
+      }
+    },
+    "slice": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "start_tick",
+        "end_tick",
+        "predicates"
+      ],
+      "properties": {
+        "start_tick": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 7
+        },
+        "end_tick": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 8
+        },
+        "predicates": {
+          "$ref": "#/$defs/predicates"
+        }
+      }
+    },
+    "source_revisions": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "access",
+        "service",
+        "capacity",
+        "suitability"
+      ],
+      "properties": {
+        "access": {
+          "type": "string",
+          "minLength": 1
+        },
+        "service": {
+          "type": "string",
+          "minLength": 1
+        },
+        "capacity": {
+          "type": "string",
+          "minLength": 1
+        },
+        "suitability": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "alternative": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "alternative_id",
+        "scope_binding",
+        "owner_revisions",
+        "failure_domains",
+        "slices"
+      ],
+      "properties": {
+        "alternative_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "scope_binding": {
+          "$ref": "#/$defs/scope_binding"
+        },
+        "owner_revisions": {
+          "$ref": "#/$defs/source_revisions"
+        },
+        "failure_domains": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true
+        },
+        "slices": {
+          "type": "array",
+          "minItems": 4,
+          "maxItems": 4,
+          "items": {
+            "$ref": "#/$defs/slice"
+          }
+        }
+      }
+    },
+    "event": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "event_id",
+        "failure_domain",
+        "start_tick",
+        "end_tick",
+        "evidence_class"
+      ],
+      "properties": {
+        "event_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "failure_domain": {
+          "type": "string",
+          "minLength": 1
+        },
+        "start_tick": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 7
+        },
+        "end_tick": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 8
+        },
+        "evidence_class": {
+          "const": "SYNTHETIC_CONTROLLED"
+        }
+      }
+    },
+    "stability": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "owner",
+        "owner_reference",
+        "owner_revision",
+        "state",
+        "effective_tick",
+        "reason_code",
+        "scope_binding"
+      ],
+      "properties": {
+        "owner": {
+          "const": "Symtropy"
+        },
+        "owner_reference": {
+          "const": "https://github.com/Luminous-Dynamics/symtropy/issues/1848"
+        },
+        "owner_revision": {
+          "type": "string",
+          "minLength": 1
+        },
+        "state": {
+          "enum": [
+            "VERIFIED",
+            "NOT_VERIFIED",
+            "UNKNOWN",
+            "NOT_APPLICABLE"
+          ]
+        },
+        "effective_tick": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 0,
+          "maximum": 7
+        },
+        "reason_code": {
+          "type": "string",
+          "minLength": 1
+        },
+        "scope_binding": {
+          "$ref": "#/$defs/scope_binding"
+        }
+      }
+    },
+    "countset": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "available",
+        "unavailable",
+        "unknown",
+        "not_comparable"
+      ],
+      "properties": {
+        "available": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "unavailable": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "unknown": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "not_comparable": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    },
+    "expected_slice": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "start_tick",
+        "end_tick",
+        "state",
+        "alternative_counts"
+      ],
+      "properties": {
+        "start_tick": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 7
+        },
+        "end_tick": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 8
+        },
+        "state": {
+          "enum": [
+            "AVAILABLE",
+            "UNAVAILABLE",
+            "UNKNOWN",
+            "NOT_COMPARABLE"
+          ]
+        },
+        "alternative_counts": {
+          "$ref": "#/$defs/countset"
+        }
+      }
+    },
+    "interval": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "start_tick",
+        "end_tick",
+        "state"
+      ],
+      "properties": {
+        "start_tick": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 7
+        },
+        "end_tick": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 8
+        },
+        "state": {
+          "enum": [
+            "AVAILABLE",
+            "UNAVAILABLE",
+            "UNKNOWN",
+            "NOT_COMPARABLE"
+          ]
+        }
+      }
+    },
+    "expected": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "opportunity_slices",
+        "coalesced_opportunity_intervals",
+        "first_available_tick",
+        "first_restored_after_known_loss_tick",
+        "stable_opportunity_restoration",
+        "dependency_map_state"
+      ],
+      "properties": {
+        "opportunity_slices": {
+          "type": "array",
+          "minItems": 4,
+          "maxItems": 4,
+          "items": {
+            "$ref": "#/$defs/expected_slice"
+          }
+        },
+        "coalesced_opportunity_intervals": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/interval"
+          }
+        },
+        "first_available_tick": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 0,
+          "maximum": 7
+        },
+        "first_restored_after_known_loss_tick": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 0,
+          "maximum": 7
+        },
+        "stable_opportunity_restoration": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "state",
+            "tick"
+          ],
+          "properties": {
+            "state": {
+              "enum": [
+                "VERIFIED",
+                "UNKNOWN",
+                "NOT_APPLICABLE"
+              ]
+            },
+            "tick": {
+              "type": [
+                "integer",
+                "null"
+              ],
+              "minimum": 0,
+              "maximum": 7
+            }
+          }
+        },
+        "dependency_map_state": {
+          "enum": [
+            "COMPLETE",
+            "INCOMPLETE",
+            "UNKNOWN"
+          ]
+        }
+      }
+    },
+    "case": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "case_id",
+        "title",
+        "scenario_class",
+        "scope",
+        "demand",
+        "dependency_map_state",
+        "disruption_events",
+        "alternatives",
+        "stability_evidence",
+        "expected"
+      ],
+      "properties": {
+        "case_id": {
+          "type": "string",
+          "pattern": "^[A-Z0-9_]+$"
+        },
+        "title": {
+          "type": "string",
+          "minLength": 5
+        },
+        "scenario_class": {
+          "type": "string",
+          "minLength": 3
+        },
+        "scope": {
+          "$ref": "#/$defs/scope"
+        },
+        "demand": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "unit",
+            "required_units"
+          ],
+          "properties": {
+            "unit": {
+              "type": "string",
+              "minLength": 1
+            },
+            "required_units": {
+              "type": "integer",
+              "minimum": 1
+            }
+          }
+        },
+        "dependency_map_state": {
+          "enum": [
+            "COMPLETE",
+            "INCOMPLETE",
+            "UNKNOWN"
+          ]
+        },
+        "disruption_events": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/event"
+          }
+        },
+        "alternatives": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/alternative"
+          }
+        },
+        "stability_evidence": {
+          "$ref": "#/$defs/stability"
+        },
+        "expected": {
+          "$ref": "#/$defs/expected"
+        }
+      }
+    }
+  }
+}
