@@ -617,13 +617,19 @@ pub fn evaluate_disclosure_manifest(input: &Value) -> EgressEvaluation {
         }
     }
 
-    if source_digests.keys().any(|source_ref| output_ids.contains(source_ref)) {
-        raise(
-            &mut severity,
-            &mut reasons,
-            Severity::Deny,
-            "source_output_identity_domain_collision",
-        );
+    // An intermediate output may legitimately be a source for a later
+    // transform. Its object identity must nevertheless bind the same bytes.
+    for (source_ref, source_digest) in &source_digests {
+        if let Some(output_digest) = output_digests.get(source_ref) {
+            if source_digest != output_digest {
+                raise(
+                    &mut severity,
+                    &mut reasons,
+                    Severity::Deny,
+                    "source_output_content_conflict",
+                );
+            }
+        }
     }
 
     let mut known_object_ids: BTreeSet<String> =
