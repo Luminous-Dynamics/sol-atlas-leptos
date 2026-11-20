@@ -99,10 +99,37 @@ From repository root:
 ```bash
 cargo test --locked --manifest-path tools/shared-amenity-spatial-eval/Cargo.toml
 cargo clippy --locked --manifest-path tools/shared-amenity-spatial-eval/Cargo.toml --all-targets -- -D warnings
-cargo run --locked --manifest-path tools/shared-amenity-spatial-eval/Cargo.toml
+cargo run --locked --manifest-path tools/shared-amenity-spatial-eval/Cargo.toml --bin shared-amenity-spatial-eval
+cargo run --locked --manifest-path tools/shared-amenity-spatial-eval/Cargo.toml --bin temporal-amenity-opportunity
 ```
 
 The CLI defaults to the frozen JSON fixture file. It exits non-zero if the input violates a contract or any computed output differs from the frozen golden result.
+
+## Temporal opportunity join: arrival must fit the service window
+
+The second executable, `temporal-amenity-opportunity`, is a narrow cross-owner interval join. It consumes:
+
+- A CityMorph #555 access result with a qualified arrival-time interval and owner revision.
+- A Mycelix #6328 service calendar with operational windows, operational state, evidence freshness and owner revision.
+- A common Sol-Atlas #623 scope and time-basis identity.
+
+It does not calculate a route, infer opening hours, convert time zones, allocate capacity, create a reservation, or simulate the service timeline.
+
+All times in the synthetic oracle are integer ticks on a declared, owner-normalized time basis (15-minute synthetic ticks). No local timezone conversion or calendar interpretation occurs in this crate. Service intervals use half-open semantics `[start, end)`: an arrival at the closing tick is outside the service window. The requested service duration must fit completely inside operational time.
+
+When arrival uncertainty spans multiple possible ticks, the opportunity is AVAILABLE only when every possible arrival permits the full requested service duration. A mixture of available and unavailable arrival possibilities remains UNKNOWN; the evaluator does not assume the resident can control or perfectly predict arrival.
+
+Calendar completeness has a critical distinction:
+- A **COMPLETE + CURRENT** calendar may treat a gap with no operational interval as known unavailable.
+- An **INCOMPLETE** or **UNKNOWN** calendar cannot interpret a missing interval as closed; the result remains UNKNOWN.
+- Stale, unknown, mismatched-scope, mismatched-clock or mixed-revision evidence is never promoted to AVAILABLE.
+- Explicit Mycelix states `CLOSED_FOR_MAINTENANCE` and `NOT_COMMISSIONED` are known unavailable.
+
+The `coverage_state` completeness assertion in this synthetic adapter is a proposed integration-envelope field, **not a claim that Mycelix PR #6329's current JSON Schema already defines that exact field**. The owner must approve its semantics or provide its equivalent before a live adapter is implemented.
+
+The 17 frozen temporal fixtures cover arrival at close, duration crossing close, maintenance, not commissioned, complete/incomplete gaps, stale evidence, arrival uncertainty, contiguous windows, scope/clock mismatch, blocked/unknown access and mixed revisions. The verifier reports AVAILABLE, UNAVAILABLE, UNKNOWN or NOT_COMPARABLE with reason codes and owner revisions. Invalid overlap, duplicate IDs, negative/zero durations, horizon overflow and excessive uncertainty are rejected by adversarial tests.
+
+This is an opportunity check, not a scheduling or booking decision. A group may have a time-compatible service opportunity without any allocation, entitlement, reservation or capacity assignment.
 
 ## Industry and research comparator protocol
 
