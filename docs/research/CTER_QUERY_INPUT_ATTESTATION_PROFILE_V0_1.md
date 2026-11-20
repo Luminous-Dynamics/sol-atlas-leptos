@@ -120,3 +120,22 @@ No single weighted score. Integrity, privacy, owner-attestation, availability an
 ## 9. Claim ceiling
 
 A matching snapshot commitment proves only that the exact declared private attribute projection is bound to the named frontier/query/profile. Source bindings establish declared provenance references, not source truth. A custodian-computed hash is not owner attestation. Owner attestation does not itself authorize disclosure. Authorization remains a separate Mycelix-owned decision, and global real-world completeness is never inferred from one frontier.
+
+
+## 10. Reference implementation status (2026-11-20)
+
+The research branch now contains:
+- \`schemas/cter-query-input-snapshot-v0.1.schema.json\`;
+- private coverage schema integration for the exact snapshot;
+- \`query_input_snapshot_commitment\` in the Rust reference, using the same pinned JCS/SHA-256 stack as the predicate commitment;
+- strict raw-JSON coverage/egress/composed-release entrypoints that reject duplicate members and unsafe integer values before evaluation;
+- per-item frontier/source-reference checks and required source digest shape;
+- scope evaluation over the frozen snapshot only; mutable partition items carry a reference to their corresponding snapshot item, not the attribute values;
+- exact snapshot reference, profile and digest binding across the private query, receipt projection and egress authorization;
+- private coverage mutation controls for omitted items, source refs outside the frontier, missing source binding, attribute drift, receipt reference drift and unavailable-to-true promotion;
+- private and composed Rust golden-digest tests plus a Node snapshot oracle;
+- a machine-readable 1k/10k/100k/1M workload and exact-head workflow validation.
+
+Frozen synthetic suites now contain 44 private coverage cases, 24 composed-release cases and 39 egress cases. The private baseline snapshot digest is \`7eda4c8715c60b17866a5e95675760da6728a04d2066e1de7615fd4a4326cfb8\`; the composed baseline snapshot digest is \`a8f000ebab94a5ad4479faa5fb12cf2980cc094376d0cc3eb438698804c3d788\`. Those are synthetic golden commitments, not source-owner signatures.
+
+**Not established:** source content digests are shape-checked and the referenced source IDs must be in the named frontier, but source bytes are not fetched/re-hashed here. No Mycelix/source-owner receipt currently attests the snapshot commitment. The custodian snapshot is not proof of source truth, extraction correctness, owner authority or global completeness. The next interface must be confirmed by Mycelix before any source-owner-attested claim.
