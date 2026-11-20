@@ -190,3 +190,17 @@ Committed on the CTER research branch:
 - exact-path CI workflow coverage for the new schema, corpus, scale profile and Node oracle.
 
 **Execution status:** code and tests are committed but not yet executed. Exact-head workflows must finish successfully before any pass claim. No throughput, latency, memory, storage, energy, production authorization or real egress result is claimed. The evaluator checks digest formatting and specified digest equality relationships, not payload hashing; receipt authentication, trusted time, resolver state and release are external host responsibilities.
+
+
+## 11. Privacy-preserving coverage is a separate research dimension
+
+[CTER-PRIVATE-COVERAGE-001 #962](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/962) studies whether CTER can prove completeness for an exact committed frontier and query without exposing withheld inventory or revealing metadata.
+
+Initial artifacts:
+- [Privacy-preserving coverage profile](CTER_PRIVATE_COVERAGE_PROFILE_V0_1.md)
+- [16 coverage invariants](../../benchmarks/territorial-integrity/egress/private-coverage-invariants-v0.1.json)
+- [17 synthetic cases](../../benchmarks/territorial-integrity/egress/private-coverage-cases-v0.1.json)
+
+This programme must distinguish object inclusion from query completeness. RFC 9942 COSE Receipts provides VDS receipt machinery for inclusion, consistency, disclosure and non-inclusion properties; it does not by itself prove that every object matching an arbitrary CTER query was included. The latter requires a separately justified partition/completeness argument. The proof primitive is not selected, and the corpus is specified but unexecuted.
+
+Do not award CTER a privacy or completeness score for opaque IDs, encrypted payloads or a receipt reference alone. The benchmark must test whether a verifier can detect omissions and stale frontiers while learning no protected inventory, count, location or low-entropy value beyond its authorized purpose.
