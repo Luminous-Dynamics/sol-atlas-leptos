@@ -137,7 +137,7 @@ A new workstream, [CTER-EGRESS-BINDING-001 #960](https://github.com/Luminous-Dyn
 
 The new evaluation dimension is whether a prepared package remains identical to the exact request and upstream decision at release time: object bytes, source/transform lineage, project/evidence frontier, recipient and destination-key epoch, transport channel, currentness/revocation recheck, and release-attempt reconciliation.
 
-This is not a claim that policy engines or data-packaging standards lack these capabilities. ODRL, PROV-O, BagIt, SCITT and policy-decision logging already cover important parts. CTER's testable hypothesis is their composition across a portable evidence package and an independently verifiable custody boundary. The current egress corpus has one valid synthetic baseline and 33 adversarial cases; it is specified, not yet executed.
+This is not a claim that policy engines or data-packaging standards lack these capabilities. ODRL, PROV-O, BagIt, SCITT and policy-decision logging already cover important parts. CTER's testable hypothesis is their composition across a portable evidence package and an independently verifiable custody boundary. The current egress corpus has one valid synthetic baseline and 34 adversarial cases; it is specified, not yet executed.
 
 
 ## 9. Expanded industry comparison: do not compete with the wrong layer
@@ -183,9 +183,9 @@ The initial egress consumer implementation and its limits are recorded in [CTER 
 Committed on the CTER research branch:
 
 - versioned [disclosure manifest schema](../../schemas/cter-disclosure-manifest-v0.1.schema.json), with explicit source and output data classes;
-- frozen [34-entry adversarial corpus](../../benchmarks/territorial-integrity/egress/cases-v0.1.json): one valid baseline and 33 adversarial cases;
-- Rust structural evaluator and 17 focused tests;
-- independent no-dependency Node oracle with 16 structural checks;
+- frozen [35-entry adversarial corpus](../../benchmarks/territorial-integrity/egress/cases-v0.1.json): one valid baseline and 34 adversarial cases;
+- Rust structural evaluator and 18 focused tests;
+- independent no-dependency Node oracle with 17 structural checks;
 - [1k/10k/100k/1M scale workload specification](../../benchmarks/territorial-integrity/egress/scale-workloads-v0.1.json);
 - exact-path CI workflow coverage for the new schema, corpus, scale profile and Node oracle.
 
@@ -271,7 +271,7 @@ A tool-side V8 check matched 24/24 fixture expectations. This remains a fixture-
 
 ## 10. Private coverage implementation status
 
-[CTER-PRIVATE-COVERAGE-001 #962](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/962) now has a versioned schema, Rust partition evaluator, Rust conformance tests and independent Node oracle. The machine-readable corpus contains 32 synthetic cases. A tool-side V8 implementation matched 32/32 expected dispositions: 1 valid partition structure, 3 incomplete, 5 unknown and 23 deny. These are fixture semantics only—not Node 22 CI, Rust execution, a COSE/VDS proof or a production completeness claim.
+[CTER-PRIVATE-COVERAGE-001 #962](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/962) now has a versioned schema, Rust partition evaluator, Rust conformance tests and independent Node oracle. The machine-readable corpus contains 37 synthetic cases. A tool-side V8 mirror matched 37/37 expected dispositions: 1 valid partition structure, 5 incomplete, 5 unknown and 26 deny. These are fixture semantics only—not Node 22 CI, Rust execution, a COSE/VDS proof or a production completeness claim.
 
 The new contract requires the exact frontier item set to equal the private partition item set; each item has one compatible scope/disposition; the included set equals package terminal source leaves; the receipt projection binds query/request/recipient/frontier/package; and the public verifier view does not expose item references or counts. Non-inclusion is explicitly restricted to the named frontier version.
 
@@ -280,7 +280,7 @@ RFC 9942 COSE receipts can establish properties of a selected VDS, including inc
 
 The private-coverage comparison now also has a pinned workload specification: \`benchmarks/territorial-integrity/egress/private-coverage-scale-workloads-v0.1.json\`. It compares the designated-auditor baseline, Mycelix's selected VDS/COSE proof profile, and a research-only private partition-predicate proof over identical synthetic 1k/10k/100k/1M frontiers. It measures proof generation and verification separately from partition set-checks and metadata disclosure. No proof primitive, throughput winner or p99 target has been selected or measured.
 
-The egress corpus contains 34 entries (one baseline and 33 adversarial specifications). Rust structural tests and an independent Node oracle are committed, but their exact-head Rust/Node22 execution remains pending; targeted tool-side V8 mirrors are not CI evidence. Egress exact hidden-transform-input mutation was detected. These are test-fixture semantics, not Node 22 Actions runs, Rust execution or production qualification. The CI workflows are configured to run the committed Node oracles and Rust tests on the exact checkout; queued is still not PASS.
+The egress corpus contains 35 entries (one baseline and 34 adversarial specifications). Rust structural tests and an independent Node oracle are committed, but their exact-head Rust/Node22 execution remains pending; targeted tool-side V8 mirrors are not CI evidence. Egress exact hidden-transform-input mutation was detected. These are test-fixture semantics, not Node 22 Actions runs, Rust execution or production qualification. The CI workflows are configured to run the committed Node oracles and Rust tests on the exact checkout; queued is still not PASS.
 
 
 ## 13. Composed release binding and VDS proof selection
@@ -313,10 +313,10 @@ The new comparison profile is \`docs/research/CTER_VDS_PROOF_PRIMITIVE_COMPARISO
 The proof-selection workstream now includes a machine-readable workload profile at \`benchmarks/territorial-integrity/egress/vds-proof-workloads-v0.1.json\`: five candidate families, four frontier scales (1k to 1M), multiple private-partition mixes, source-DAG shapes, churn schedules, verifier audiences and 22 fault injections. It requires proof generation, verification, disclosure leakage, checkpoint availability, update/invalidation and independent restore to be reported separately. This is a workload definition, not a benchmark result or primitive selection.
 
 
-The release-binding projection now includes the exact coverage-query reference and its canonical-query commitment in the egress authorization binding. The composed evaluator requires exact equality with the private coverage record's \`query_ref\` and \`query_commitment\`. The intent is to prevent a package/recipient/authority tuple from being reused under a different query predicate. The egress corpus now has 34 cases, and the joined release corpus has 19 cases (2 positive structural controls, 17 expected denials). These are frozen synthetic specifications; execution and Rust/Node22 CI status are reported separately.
+The release-binding projection now includes the exact coverage-query reference and its canonical-query commitment in the egress authorization binding. The composed evaluator requires exact equality with the private coverage record's \`query_ref\` and \`query_commitment\`. The intent is to prevent a package/recipient/authority tuple from being reused under a different query predicate. The egress corpus now has 35 cases, and the joined release corpus has 21 cases (2 positive structural controls, 19 expected denials). These are frozen synthetic specifications; execution and Rust/Node22 CI status are reported separately.
 
 
-Updated fixture results on the current research branch: private coverage 32/32 expected dispositions in a tool-side V8 mirror (1 valid partition structure, 3 incomplete, 5 unknown, 23 deny); composed release 17/17 in the earlier 17-case mirror (2 valid composed structures, 15 deny). The composed corpus has since grown to 19 cases with two additional query-substitution denials; those two cases are committed but not yet re-executed in the mirror. The egress corpus has grown to 34 cases and the composed corpus to 19. These are not Node 22 workflow runs or Rust results.
+Updated fixture results on the current research branch: private coverage 37/37 expected dispositions in a tool-side V8 mirror (1 valid partition structure, 5 incomplete, 5 unknown, 26 deny); composed release 21/21 in an independent tool-side V8 mirror (2 valid composed structures, 19 deny). The egress corpus has 35 entries. These are tool-side fixture-semantics checks, not Node 22 workflow runs or Rust test execution.
 
 
 ## 14. Query semantics is now a first-class qualification dimension
