@@ -442,6 +442,12 @@ passed.push(test(
   "incomplete",
   "authorization_coverage_query_commitment_malformed",
 ));
+passed.push(test(
+  "unsupported-coverage-query-profile",
+  (input) => { input.authorization_binding.coverage_query_profile_ref = "urn:luminous:cter:predicate-json-v0.2"; },
+  "incomplete",
+  "authorization_coverage_query_profile_missing_or_unsupported",
+));
 
 passed.push(test(
   "duplicate-source-reference",
