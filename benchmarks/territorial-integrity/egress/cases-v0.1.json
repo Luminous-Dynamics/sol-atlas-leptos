@@ -53,7 +53,7 @@
           "object_ref": "urn:fixture:output:synthetic-001",
           "content_digest": {
             "algorithm": "sha-256",
-            "value": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+            "value": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
           },
           "byte_length": 128,
           "media_type": "application/octet-stream",
