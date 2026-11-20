@@ -93,6 +93,55 @@ export function queryPredicateCommitment(profileRef, predicate) {
     .digest("hex");
 }
 
+export function queryInputSnapshotCommitment(snapshot) {
+  if (snapshot?.profile_ref !== "urn:luminous:cter:query-input-json-v0.1") {
+    throw new Error("query_input_snapshot_profile_unsupported");
+  }
+  const items = structuredClone(snapshot.items);
+  if (!Array.isArray(items)) throw new Error("query_input_snapshot_items_missing");
+  for (const item of items) {
+    if (!Array.isArray(item.attribute_source_bindings)) {
+      throw new Error("query_input_attribute_bindings_missing");
+    }
+    item.attribute_source_bindings.sort((a, b) => {
+      const leftPath = a?.path ?? "", rightPath = b?.path ?? "";
+      if (leftPath !== rightPath) return leftPath < rightPath ? -1 : 1;
+      const leftSource = a?.source_object_ref ?? "", rightSource = b?.source_object_ref ?? "";
+      return leftSource < rightSource ? -1 : (leftSource > rightSource ? 1 : 0);
+    });
+  }
+  items.sort((a, b) => {
+    const left = a?.object_ref ?? "", right = b?.object_ref ?? "";
+    return left < right ? -1 : (left > right ? 1 : 0);
+  });
+  const preimage = {
+    snapshot_ref: snapshot.snapshot_ref,
+    profile_ref: snapshot.profile_ref,
+    frontier_ref: snapshot.frontier_ref,
+    frontier_version: snapshot.frontier_version,
+    frontier_commitment: snapshot.frontier_commitment,
+    query_profile_ref: snapshot.query_profile_ref,
+    query_commitment: snapshot.query_commitment,
+    attribute_projection_profile_ref: snapshot.attribute_projection_profile_ref,
+    items,
+  };
+  return createHash("sha256")
+    .update(Buffer.from("luminous.cter.query-input-snapshot.v0.1\0", "utf8"))
+    .update(Buffer.from(canonicalJcs(preimage), "utf8"))
+    .digest("hex");
+}
+
+function collectPredicatePaths(node, output = new Set()) {
+  if (node?.op === "all" || node?.op === "any") {
+    for (const child of node.args ?? []) collectPredicatePaths(child, output);
+  } else if (node?.op === "not") {
+    collectPredicatePaths(node.arg, output);
+  } else if (["eq", "in", "exists"].includes(node?.op) && typeof node.path === "string") {
+    output.add(node.path);
+  }
+  return output;
+}
+
 function queryMember(input, path) {
   if (typeof path !== "string" || !/^\/[A-Za-z][A-Za-z0-9_-]*$/.test(path)) {
     throw new Error("predicate_path_unsupported");
@@ -198,7 +247,8 @@ export function evaluatePrivateCoverage(input) {
     return finish();
   }
   for (const field of [
-    "query_ref", "query_profile_ref", "principal_ref", "subject_ref", "operation", "purpose_ref",
+    "query_ref", "query_profile_ref", "input_snapshot_ref", "input_snapshot_profile_ref",
+    "principal_ref", "subject_ref", "operation", "purpose_ref",
     "recipient_ref", "resource_ref", "jurisdiction_profile_ref",
   ]) {
     if (!nonblank(query, field)) raise("incomplete", "query_" + field + "_missing");
@@ -243,6 +293,118 @@ export function evaluatePrivateCoverage(input) {
     }
   }
 
+
+  const snapshot = input.query_input_snapshot;
+  const snapshotItems = new Map();
+  if (!snapshot || typeof snapshot !== "object" || Array.isArray(snapshot)) {
+    raise("incomplete", "query_input_snapshot_missing");
+  } else {
+    if (nonblank(snapshot, "schema") !== "luminous.cter.query-input-snapshot.v0.1") {
+      raise("incomplete", "query_input_snapshot_schema_unsupported");
+    }
+    if (nonblank(snapshot, "profile_ref") !== "urn:luminous:cter:query-input-json-v0.1") {
+      raise("incomplete", "query_input_snapshot_profile_unsupported");
+    }
+    if (nonblank(snapshot, "snapshot_ref") !== nonblank(query, "input_snapshot_ref")
+        || nonblank(snapshot, "profile_ref") !== nonblank(query, "input_snapshot_profile_ref")
+        || JSON.stringify(snapshot.snapshot_commitment) !== JSON.stringify(query.input_snapshot_commitment)) {
+      raise("deny", "query_input_snapshot_query_binding_mismatch");
+    }
+    if (nonblank(snapshot, "frontier_ref") !== nonblank(frontier, "frontier_ref")
+        || nonblank(snapshot, "frontier_version") !== nonblank(frontier, "version")
+        || JSON.stringify(snapshot.frontier_commitment) !== JSON.stringify(frontier.commitment)) {
+      raise("deny", "query_input_snapshot_frontier_binding_mismatch");
+    }
+    if (nonblank(snapshot, "query_profile_ref") !== nonblank(query, "query_profile_ref")
+        || JSON.stringify(snapshot.query_commitment) !== JSON.stringify(query.query_commitment)) {
+      raise("deny", "query_input_snapshot_predicate_binding_mismatch");
+    }
+    if (!nonblank(snapshot, "attribute_projection_profile_ref")) {
+      raise("incomplete", "query_input_attribute_projection_profile_missing");
+    }
+    if (!isSha256(snapshot.snapshot_commitment)) {
+      raise("incomplete", "query_input_snapshot_commitment_malformed");
+    } else {
+      try {
+        if (snapshot.snapshot_commitment.value !== queryInputSnapshotCommitment(snapshot)) {
+          raise("deny", "query_input_snapshot_commitment_mismatch");
+        }
+      } catch (error) {
+        raise("incomplete", "query_input_snapshot_commitment_unavailable:" + error.message);
+      }
+    }
+    if (!Array.isArray(snapshot.items)) {
+      raise("incomplete", "query_input_snapshot_items_missing");
+    } else {
+      const predicatePaths = collectPredicatePaths(query.predicate);
+      const snapshotRefs = new Set();
+      for (const item of snapshot.items) {
+        const objectRef = nonblank(item, "object_ref");
+        if (!objectRef) {
+          raise("incomplete", "query_input_snapshot_item_ref_missing");
+          continue;
+        }
+        if (snapshotRefs.has(objectRef)) {
+          raise("deny", "query_input_snapshot_item_duplicated");
+          continue;
+        }
+        snapshotRefs.add(objectRef);
+        if (!Array.isArray(item.attribute_source_bindings)) {
+          raise("incomplete", "query_input_attribute_bindings_missing");
+          snapshotItems.set(objectRef, item);
+          continue;
+        }
+        const availability = nonblank(item, "availability_state");
+        if (availability === "available") {
+          if (!item.query_input || typeof item.query_input !== "object" || Array.isArray(item.query_input)) {
+            raise("incomplete", "query_input_attributes_missing_for_available_item");
+            snapshotItems.set(objectRef, item);
+            continue;
+          }
+          const bindingPaths = new Set();
+          for (const binding of item.attribute_source_bindings) {
+            const path = nonblank(binding, "path");
+            if (!path) {
+              raise("incomplete", "query_input_attribute_binding_path_missing");
+              continue;
+            }
+            if (bindingPaths.has(path)) raise("deny", "query_input_attribute_binding_duplicated");
+            bindingPaths.add(path);
+            if (!predicatePaths.has(path)) raise("deny", "query_input_snapshot_contains_unqueried_attribute_binding");
+            if (!frontierRefs.has(nonblank(binding, "source_object_ref"))) {
+              raise("deny", "query_input_attribute_source_outside_frontier");
+            }
+            if (!isSha256(binding.source_content_digest)) {
+              raise("incomplete", "query_input_attribute_source_digest_malformed");
+            }
+          }
+          for (const path of predicatePaths) {
+            const actual = queryMember(item.query_input, path);
+            if (actual !== undefined && !bindingPaths.has(path)) {
+              raise("incomplete", "query_input_attribute_source_binding_missing:" + path);
+            }
+            if (actual === undefined && bindingPaths.has(path)) {
+              raise("deny", "query_input_attribute_binding_for_missing_value:" + path);
+            }
+          }
+          if (Object.keys(item.query_input).some(key => !predicatePaths.has("/" + key))) {
+            raise("deny", "query_input_snapshot_contains_unqueried_attribute");
+          }
+        } else if (availability === "unavailable" || availability === "unknown") {
+          if (Object.hasOwn(item, "query_input") || item.attribute_source_bindings.length > 0) {
+            raise("deny", "query_input_unavailable_item_exposes_attributes");
+          }
+        } else {
+          raise("incomplete", "query_input_availability_state_invalid");
+        }
+        snapshotItems.set(objectRef, item);
+      }
+      if (snapshotRefs.size !== frontierRefs.size || [...snapshotRefs].some(ref => !frontierRefs.has(ref))) {
+        raise("incomplete", "query_input_snapshot_frontier_object_set_mismatch");
+      }
+    }
+  }
+
   if (!Array.isArray(input.private_partition)) {
     raise("incomplete", "private_partition_missing");
     return finish();
@@ -261,10 +423,18 @@ export function evaluatePrivateCoverage(input) {
     partitionRefs.add(objectRef);
     const scope = nonblank(item, "scope_state");
     const disposition = nonblank(item, "disposition");
+    const snapshotItem = snapshotItems.get(objectRef);
+    if (!snapshotItem) {
+      raise("incomplete", "partition_query_input_snapshot_item_missing");
+    } else if (nonblank(item, "query_input_snapshot_item_ref") !== objectRef) {
+      raise("deny", "partition_query_input_snapshot_item_binding_mismatch");
+    }
     if (predicateValid) {
       let match;
       try {
-        match = evaluatePredicate(query.predicate, item?.query_input);
+        match = !snapshotItem || nonblank(snapshotItem, "availability_state") !== "available"
+          ? "unknown"
+          : evaluatePredicate(query.predicate, snapshotItem.query_input);
       } catch (error) {
         predicateValid = false;
         raise("incomplete", "query_predicate_invalid:" + error.message);
@@ -324,7 +494,9 @@ export function evaluatePrivateCoverage(input) {
       raise("deny", "receipt_package_commitment_mismatch");
     }
     for (const field of [
-      "query_commitment", "request_commitment", "query_profile_ref", "principal_ref", "subject_ref", "operation",
+      "query_commitment", "request_commitment", "query_profile_ref",
+      "input_snapshot_ref", "input_snapshot_profile_ref", "input_snapshot_commitment",
+      "principal_ref", "subject_ref", "operation",
       "purpose_ref", "recipient_ref", "resource_ref", "jurisdiction_profile_ref",
       "project_snapshot_sha256",
     ]) {
@@ -471,8 +643,35 @@ function applyMutation(caseId, input) {
       input.query_binding.predicate.op = "matches"; break;
     case "PCOV-PREDICATE-MALFORMED-PATH-001":
       input.query_binding.predicate.args[0].path = "dataset"; break;
+function refreshInputSnapshotCommitments(input) {
+  const commitment = queryInputSnapshotCommitment(input.query_input_snapshot);
+  const value = { algorithm: "sha-256", value: commitment };
+  input.query_input_snapshot.snapshot_commitment = clone(value);
+  input.query_binding.input_snapshot_commitment = clone(value);
+  input.receipt_binding.input_snapshot_commitment = clone(value);
+}
+
     case "PCOV-PREDICATE-SUBSTITUTION-001":
       input.query_binding.predicate.args[1].value = "US"; break;
+    case "PCOV-SNAPSHOT-ITEM-OMISSION-001":
+      input.query_input_snapshot.items.pop();
+      refreshInputSnapshotCommitments(input); break;
+    case "PCOV-SNAPSHOT-SOURCE-OUTSIDE-FRONTIER-001":
+      input.query_input_snapshot.items[0].attribute_source_bindings[0].source_object_ref = "urn:fixture:evidence:outside";
+      refreshInputSnapshotCommitments(input); break;
+    case "PCOV-SNAPSHOT-ATTRIBUTE-BINDING-MISSING-001":
+      input.query_input_snapshot.items[0].attribute_source_bindings =
+        input.query_input_snapshot.items[0].attribute_source_bindings.filter(x => x.path !== "/jurisdiction");
+      refreshInputSnapshotCommitments(input); break;
+    case "PCOV-SNAPSHOT-ATTRIBUTE-DRIFT-001":
+      input.query_input_snapshot.items[0].query_input.jurisdiction = "US"; break;
+    case "PCOV-SNAPSHOT-RECEIPT-REF-DRIFT-001":
+      input.receipt_binding.input_snapshot_ref = "urn:fixture:query-input-snapshot:other"; break;
+    case "PCOV-SNAPSHOT-UNAVAILABLE-AS-TRUE-001":
+      input.query_input_snapshot.items[0].availability_state = "unavailable";
+      delete input.query_input_snapshot.items[0].query_input;
+      input.query_input_snapshot.items[0].attribute_source_bindings = [];
+      refreshInputSnapshotCommitments(input); break;
     default:
       throw new Error("unknown private coverage case: " + caseId);
   }
@@ -493,7 +692,7 @@ for (const testCase of corpus.cases) {
   );
   counts[actual.disposition] += 1;
 }
-assert.equal(corpus.cases.length, 38);
+assert.equal(corpus.cases.length, 44);
 console.log("CTER private coverage oracle: " + corpus.cases.length + "/" + corpus.cases.length + " fixture dispositions matched.");
 console.log("Counts: " + JSON.stringify(counts) + ".");
 console.log("Partition structure only; no VDS/COSE proof, authority or global-completeness claim.");
