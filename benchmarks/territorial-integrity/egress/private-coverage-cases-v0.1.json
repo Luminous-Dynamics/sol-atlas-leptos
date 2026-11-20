@@ -133,7 +133,8 @@
       "assessment_ref": "urn:fixture:receipt-assessment:synthetic-current",
       "resolution_status": "current",
       "status_snapshot_ref": "urn:fixture:vds-status-snapshot:v1"
-    }
+    },
+    "schema": "luminous.cter.private-coverage.v0.1"
   },
   "cases": [
     {
