@@ -63,7 +63,7 @@ The reference corpus uses four intervals: [0,2), [2,4), [4,6), and [6,8). These 
 
 Distinguish:
 - first available opportunity;
-- first opportunity restoration after a known loss;
+- first qualified available interval after a known loss, even if one or more intervening intervals remain UNKNOWN;
 - owner-qualified stable service recovery;
 - stable opportunity recovery, which additionally requires the composed opportunity to be AVAILABLE at the owner-attested stable tick.
 
@@ -87,7 +87,7 @@ It does not estimate independent failure probabilities, MTBF or real-world uptim
 
 The machine-readable oracle is SERVICE_OPPORTUNITY_RESILIENCE_REFERENCE_ORACLE_V0_1.json.
 
-It contains **17 hand-authored synthetic scenarios**, including:
+It contains **18 hand-authored synthetic scenarios**, including:
 - independent local fallback;
 - shared-operator common-cause loss;
 - a reachable destination without a full-duration service opportunity;
@@ -101,7 +101,7 @@ It contains **17 hand-authored synthetic scenarios**, including:
 - incomplete versus complete calendar evidence;
 - half-open interval adjacency;
 - scope mismatch;
-- unknown dependency-map completeness;\n- stable-recovery evidence bound to a different cohort/scope.
+- unknown dependency-map completeness;\n- stable-recovery evidence bound to a different cohort/scope;\n- a known service loss followed by an unresolved interval before qualified availability returns.
 
 The expected output includes per-interval opportunity states, alternative-state counts, coalesced intervals, first availability, restoration after known loss, stable restoration and dependency-map completeness.
 
