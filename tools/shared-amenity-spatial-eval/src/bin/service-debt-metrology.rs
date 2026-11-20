@@ -166,11 +166,17 @@ fn evidence_is_current(value: &Value) -> bool {
             .is_some_and(|revision| !revision.trim().is_empty())
 }
 
-fn validate_evidence(value: &Value, label: &str) -> Result<(), String> {
+fn validate_evidence(
+    value: &Value,
+    label: &str,
+    expected_owner: &str,
+) -> Result<(), String> {
     let evidence = value
         .get("evidence")
         .ok_or_else(|| format!("{label} is missing evidence"))?;
-    string(evidence, "owner")?;
+    if string(evidence, "owner")? != expected_owner {
+        return Err(format!("{label} has an unexpected evidence owner"));
+    }
     string(evidence, "record_id")?;
     string(evidence, "revision")?;
     match string(evidence, "freshness")? {
@@ -188,7 +194,18 @@ fn qualify_demand_or_capacity(
         return Ok(("NOT_COMPARABLE".to_owned(), None));
     }
 
-    validate_evidence(value, label)?;
+    let (expected_owner, expected_basis) = match label {
+        "demand" => ("MYCELIX_DEMAND", "OWNER_QUALIFIED_SERVICE_DEMAND"),
+        "capacity" => (
+            "SYMTROPY_CAPACITY",
+            "OWNER_QUALIFIED_DELIVERABLE_CAPACITY",
+        ),
+        _ => return Err(format!("unsupported measurement owner for {label}")),
+    };
+    validate_evidence(value, label, expected_owner)?;
+    if string(value, "basis")? != expected_basis {
+        return Err(format!("{label} has an unexpected quantity basis"));
+    }
     let state = string(value, "state")?;
     let coverage = string(value, "coverage")?;
     let quantity = optional_number(value, "quantity")?;
@@ -249,7 +266,11 @@ fn accepted_undelivered(
         return Ok(("NOT_COMPARABLE".to_owned(), None));
     }
 
-    validate_evidence(register, "request register")?;
+    validate_evidence(
+        register,
+        "request register",
+        "MYCELIX_REQUEST_REGISTER",
+    )?;
     let coverage = string(register, "coverage")?;
     if coverage != "COMPLETE" || !evidence_is_current(register) {
         if !["PARTIAL", "UNKNOWN", "COMPLETE"].contains(&coverage) {
@@ -275,7 +296,11 @@ fn accepted_undelivered(
         if record.get("scope") != Some(common_scope) {
             return Ok(("NOT_COMPARABLE".to_owned(), None));
         }
-        validate_evidence(record, "request record")?;
+        validate_evidence(
+            record,
+            "request record",
+            "MYCELIX_REQUEST_DELIVERY",
+        )?;
 
         match string(record, "state")? {
             "CANCELLED" | "DECLINED" => continue,
@@ -323,7 +348,11 @@ fn unexpressed_need(
         "NOT_COLLECTED" => Ok(("NOT_COLLECTED".to_owned(), None, None, None)),
         "UNKNOWN" => Ok(("UNKNOWN".to_owned(), None, None, None)),
         "MEASURED" => {
-            validate_evidence(assessment, "resident need assessment")?;
+            validate_evidence(
+                assessment,
+                "resident need assessment",
+                "RESIDENT_NEED_ASSESSMENT",
+            )?;
             if !evidence_is_current(assessment) {
                 return Ok(("UNKNOWN".to_owned(), None, None, None));
             }
