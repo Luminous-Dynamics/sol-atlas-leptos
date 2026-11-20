@@ -743,6 +743,14 @@ pub fn evaluate_disclosure_manifest(input: &Value) -> EgressEvaluation {
 
     for (output_ref, source_refs) in &output_source_refs {
         let inputs = transform_inputs.get(output_ref);
+        if inputs.is_none_or(|values| values != source_refs) {
+            raise(
+                &mut severity,
+                &mut reasons,
+                Severity::Incomplete,
+                "transformation_input_source_set_mismatch",
+            );
+        }
         for source_ref in source_refs {
             if !source_digests.contains_key(source_ref)
                 || !inputs.is_some_and(|values| values.contains(source_ref))
