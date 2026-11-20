@@ -82,6 +82,7 @@ jobs:
           python3 -m json.tool benchmarks/territorial-integrity/relay/authority-cases-v0.1.json > /dev/null
           python3 -m json.tool schemas/cter-authority-use-v0.1.schema.json > /dev/null
           python3 -m json.tool benchmarks/territorial-integrity/egress/cases-v0.1.json > /dev/null
+          python3 -m json.tool benchmarks/territorial-integrity/egress/scale-workloads-v0.1.json > /dev/null
           python3 -m json.tool schemas/cter-disclosure-manifest-v0.1.schema.json > /dev/null
 
       - name: Install Node for independent second-language oracle
