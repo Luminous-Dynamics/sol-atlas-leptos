@@ -323,3 +323,10 @@ For the concrete RFC 9162 SHA-256 inclusion profile, proof verification applies 
 RFC 9942 also states that proof types are VDS-specific and implementations should not expect proof-format interoperability across VDS designs. The CTER adapter must pin Mycelix's VDS identifier, proof type, algorithm, profile version, root, tree size/frontier version, trust/currentness result and resolver implementation. Migration to a different VDS requires a new security/privacy analysis and cross-version proof tests.
 
 A valid inclusion/consistency proof establishes properties of committed entries/roots. It does not alone prove that the CTER query predicate was evaluated over the complete source universe, nor that the package-leaf set equals every entry marked included in a private partition. Those remain separate query/partition proof obligations.
+
+
+## 14. Scale workload artefact
+
+The synthetic benchmark workload is frozen in \`benchmarks/territorial-integrity/egress/private-coverage-scale-workloads-v0.1.json\`. It defines 1k/10k/100k/1M entry frontiers and matched included/withheld/unavailable/excluded/unresolved ratios. It compares an independent-auditor baseline, Mycelix-owned VDS/COSE receipts, and a research-only private predicate proof. It records partition construction/validation, proof generation/verification, proof and public-metadata bytes, memory, CPU, restore and reconciliation time, and leakage metrics.
+
+No arbitrary p99 threshold or proof-system winner is declared before running the same workload on pinned hardware and the same verifier-disclosure level. A proof-size result is not comparable when one profile reveals the partition and another hides it. The workload file is specification only; no performance benchmark has run.
