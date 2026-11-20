@@ -1,4 +1,4 @@
-use cter_relay_reference::privacy::classify_paired_world_case;
+use cter_relay_reference::privacy::{classify_paired_world_case, evaluate_channel_inventory};
 use serde_json::Value;
 use std::collections::BTreeSet;
 
@@ -108,4 +108,47 @@ fn observable_difference_is_a_leak_even_without_canary_hit() {
             .different_channels
             .contains("object_metadata")
     );
+}
+
+
+fn inventory_fixture() -> Value {
+    serde_json::from_str(include_str!("../../privacy/channel-inventory-synthetic-v0.1.json"))
+        .expect("synthetic inventory fixture must be valid JSON")
+}
+
+#[test]
+fn partial_channel_inventory_never_claims_complete_coverage() {
+    let inventory = inventory_fixture();
+    let result = evaluate_channel_inventory(&inventory);
+    assert_eq!(result.disposition, "inventory_incomplete");
+    assert!(result.reason_codes.contains("inventory_coverage_not_complete"));
+    assert_eq!(result.declared_channel_refs.len(), 3);
+}
+
+#[test]
+fn complete_claim_requires_an_independent_coverage_evidence_reference() {
+    let mut inventory = inventory_fixture();
+    inventory["coverage_assessment"] =
+        Value::String("complete_within_declared_boundary".into());
+    let without_evidence = evaluate_channel_inventory(&inventory);
+    assert_eq!(without_evidence.disposition, "inventory_incomplete");
+
+    inventory["independent_coverage_evidence_ref"] =
+        Value::String("urn:fixture:coverage-evidence:independent-001".into());
+    let with_evidence = evaluate_channel_inventory(&inventory);
+    assert_eq!(with_evidence.disposition, "declared_surface_bound");
+    assert!(with_evidence.reason_codes.is_empty());
+}
+
+#[test]
+fn duplicate_channel_reference_is_not_a_valid_inventory() {
+    let mut inventory = inventory_fixture();
+    let duplicate = inventory["channels"][0].clone();
+    inventory["channels"]
+        .as_array_mut()
+        .expect("channels array")
+        .push(duplicate);
+    let result = evaluate_channel_inventory(&inventory);
+    assert_eq!(result.disposition, "inventory_incomplete");
+    assert!(result.reason_codes.contains("channel_ref_duplicated"));
 }
