@@ -1,4 +1,7 @@
-use cter_relay_reference::private_coverage::evaluate_private_coverage;
+use cter_relay_reference::private_coverage::{
+    evaluate_private_coverage,
+    query_input_snapshot_commitment,
+};
 use serde_json::Value;
 
 fn corpus() -> Value {
@@ -20,7 +23,7 @@ fn baseline_partition_is_structurally_valid_but_not_a_cryptographic_proof() {
 #[test]
 fn private_coverage_suite_size_and_claim_ceiling_are_frozen() {
     let suite = corpus();
-    assert_eq!(suite["cases"].as_array().expect("cases").len(), 38);
+    assert_eq!(suite["cases"].as_array().expect("cases").len(), 44);
     assert_eq!(suite["synthetic_only"].as_bool(), Some(true));
     assert!(
         suite["claim_ceiling"]
@@ -252,6 +255,18 @@ fn unsupported_operation_is_denied() {
 }
 
 
+fn refresh_snapshot_commitments(input: &mut Value) {
+    let digest = query_input_snapshot_commitment(&input["query_input_snapshot"])
+        .expect("synthetic snapshot must canonicalize");
+    let commitment = serde_json::json!({
+        "algorithm": "sha-256",
+        "value": digest
+    });
+    input["query_input_snapshot"]["snapshot_commitment"] = commitment.clone();
+    input["query_binding"]["input_snapshot_commitment"] = commitment.clone();
+    input["receipt_binding"]["input_snapshot_commitment"] = commitment;
+}
+
 fn apply_case_mutation(case_id: &str, input: &mut Value) {
     match case_id {
         "PCOV-BASELINE-001" => {}
@@ -395,6 +410,46 @@ fn apply_case_mutation(case_id: &str, input: &mut Value) {
             input["query_binding"]["predicate"]["args"][1]["value"] =
                 Value::String("US".into());
         }
+        "PCOV-SNAPSHOT-ITEM-OMISSION-001" => {
+            input["query_input_snapshot"]["items"]
+                .as_array_mut()
+                .expect("snapshot items")
+                .remove(4);
+            refresh_snapshot_commitments(input);
+        }
+        "PCOV-SNAPSHOT-SOURCE-OUTSIDE-FRONTIER-001" => {
+            input["query_input_snapshot"]["items"][0]["attribute_source_bindings"][0]
+                ["source_object_ref"] =
+                Value::String("urn:fixture:evidence:outside".into());
+            refresh_snapshot_commitments(input);
+        }
+        "PCOV-SNAPSHOT-ATTRIBUTE-BINDING-MISSING-001" => {
+            let bindings = input["query_input_snapshot"]["items"][0]
+                ["attribute_source_bindings"]
+                .as_array_mut()
+                .expect("attribute bindings");
+            bindings.retain(|binding| binding["path"] != "/jurisdiction");
+            refresh_snapshot_commitments(input);
+        }
+        "PCOV-SNAPSHOT-ATTRIBUTE-DRIFT-001" => {
+            input["query_input_snapshot"]["items"][0]["query_input"]["jurisdiction"] =
+                Value::String("US".into());
+        }
+        "PCOV-SNAPSHOT-RECEIPT-REF-DRIFT-001" => {
+            input["receipt_binding"]["input_snapshot_ref"] =
+                Value::String("urn:fixture:query-input-snapshot:other".into());
+        }
+        "PCOV-SNAPSHOT-UNAVAILABLE-AS-TRUE-001" => {
+            input["query_input_snapshot"]["items"][0]["availability_state"] =
+                Value::String("unavailable".into());
+            input["query_input_snapshot"]["items"][0]
+                .as_object_mut()
+                .expect("snapshot item")
+                .remove("query_input");
+            input["query_input_snapshot"]["items"][0]["attribute_source_bindings"] =
+                serde_json::json!([]);
+            refresh_snapshot_commitments(input);
+        }
         _ => panic!("unknown private coverage case {case_id}"),
     }
 }
@@ -403,7 +458,7 @@ fn apply_case_mutation(case_id: &str, input: &mut Value) {
 fn frozen_private_coverage_corpus_matches_every_expected_disposition() {
     let suite = corpus();
     let cases = suite["cases"].as_array().expect("cases array");
-    assert_eq!(cases.len(), 38);
+    assert_eq!(cases.len(), 44);
     for case in cases {
         let case_id = case["case_id"].as_str().expect("case id");
         let expected = case["expected"].as_str().expect("expected disposition");
@@ -505,4 +560,79 @@ fn baseline_query_predicate_commitment_is_recomputed() {
     let result = evaluate_private_coverage(&baseline());
     assert_eq!(result.disposition, "valid_partition_structure");
     assert!(!result.reason_codes.contains("query_predicate_commitment_mismatch"));
+}
+
+
+#[test]
+fn query_input_snapshot_covers_the_exact_frontier_set() {
+    let mut input = baseline();
+    input["query_input_snapshot"]["items"]
+        .as_array_mut()
+        .expect("snapshot items")
+        .remove(4);
+    refresh_snapshot_commitments(&mut input);
+    let result = evaluate_private_coverage(&input);
+    assert_eq!(result.disposition, "incomplete");
+    assert!(result.reason_codes.contains("query_input_snapshot_frontier_object_set_mismatch"));
+}
+
+#[test]
+fn query_input_snapshot_source_must_belong_to_the_frontier() {
+    let mut input = baseline();
+    input["query_input_snapshot"]["items"][0]["attribute_source_bindings"][0]
+        ["source_object_ref"] = Value::String("urn:fixture:evidence:outside".into());
+    refresh_snapshot_commitments(&mut input);
+    let result = evaluate_private_coverage(&input);
+    assert_eq!(result.disposition, "deny");
+    assert!(result.reason_codes.contains("query_input_attribute_source_outside_frontier"));
+}
+
+#[test]
+fn every_present_predicate_attribute_requires_a_source_binding() {
+    let mut input = baseline();
+    let bindings = input["query_input_snapshot"]["items"][0]["attribute_source_bindings"]
+        .as_array_mut()
+        .expect("attribute bindings");
+    bindings.retain(|binding| binding["path"] != "/jurisdiction");
+    refresh_snapshot_commitments(&mut input);
+    let result = evaluate_private_coverage(&input);
+    assert_eq!(result.disposition, "incomplete");
+    assert!(result.reason_codes.contains("query_input_attribute_source_binding_missing:/jurisdiction"));
+}
+
+#[test]
+fn attribute_drift_without_snapshot_refresh_is_denied() {
+    let mut input = baseline();
+    input["query_input_snapshot"]["items"][0]["query_input"]["jurisdiction"] =
+        Value::String("US".into());
+    let result = evaluate_private_coverage(&input);
+    assert_eq!(result.disposition, "deny");
+    assert!(result.reason_codes.contains("query_input_snapshot_commitment_mismatch"));
+}
+
+#[test]
+fn receipt_projection_must_bind_the_exact_input_snapshot_reference() {
+    let mut input = baseline();
+    input["receipt_binding"]["input_snapshot_ref"] =
+        Value::String("urn:fixture:query-input-snapshot:other".into());
+    let result = evaluate_private_coverage(&input);
+    assert_eq!(result.disposition, "deny");
+    assert!(result.reason_codes.contains("receipt_query_binding_mismatch:input_snapshot_ref"));
+}
+
+#[test]
+fn unavailable_query_input_cannot_be_promoted_to_a_true_match() {
+    let mut input = baseline();
+    input["query_input_snapshot"]["items"][0]["availability_state"] =
+        Value::String("unavailable".into());
+    input["query_input_snapshot"]["items"][0]
+        .as_object_mut()
+        .expect("snapshot item")
+        .remove("query_input");
+    input["query_input_snapshot"]["items"][0]["attribute_source_bindings"] =
+        serde_json::json!([]);
+    refresh_snapshot_commitments(&mut input);
+    let result = evaluate_private_coverage(&input);
+    assert_eq!(result.disposition, "deny");
+    assert!(result.reason_codes.contains("partition_scope_does_not_match_query_predicate"));
 }
