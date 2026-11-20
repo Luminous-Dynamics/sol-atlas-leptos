@@ -350,6 +350,8 @@ pub fn evaluate_disclosure_manifest(input: &Value) -> EgressEvaluation {
     let mut output_classes: BTreeMap<String, BTreeSet<String>> = BTreeMap::new();
     let mut output_ids = BTreeSet::new();
     let mut source_digests: BTreeMap<String, String> = BTreeMap::new();
+    let mut source_classes: BTreeMap<String, BTreeSet<String>> = BTreeMap::new();
+    let mut output_digests: BTreeMap<String, String> = BTreeMap::new();
     let mut output_transform_refs: BTreeMap<String, BTreeSet<String>> = BTreeMap::new();
     let mut output_source_refs: BTreeMap<String, BTreeSet<String>> = BTreeMap::new();
 
@@ -382,6 +384,12 @@ pub fn evaluate_disclosure_manifest(input: &Value) -> EgressEvaluation {
                 "output_content_digest_malformed",
             );
         }
+        let output_digest = output
+            .get("content_digest")
+            .and_then(|item| nonblank(item, "value"))
+            .unwrap_or("")
+            .to_owned();
+        output_digests.insert(object_ref.to_owned(), output_digest);
         if output.get("byte_length").and_then(Value::as_u64).is_none()
             || nonblank(output, "media_type").is_none()
         {
@@ -455,6 +463,30 @@ pub fn evaluate_disclosure_manifest(input: &Value) -> EgressEvaluation {
                     Severity::Incomplete,
                     "source_content_digest_malformed",
                 );
+            }
+            let classes = match source.get("data_classes").and_then(valid_data_classes) {
+                Some(classes) => classes,
+                None => {
+                    raise(
+                        &mut severity,
+                        &mut reasons,
+                        Severity::Incomplete,
+                        "source_data_classes_missing_or_invalid",
+                    );
+                    BTreeSet::new()
+                }
+            };
+            if let Some(existing) = source_classes.get(source_ref) {
+                if existing != &classes {
+                    raise(
+                        &mut severity,
+                        &mut reasons,
+                        Severity::Deny,
+                        "source_classification_identity_conflict",
+                    );
+                }
+            } else {
+                source_classes.insert(source_ref.to_owned(), classes);
             }
             let digest = source
                 .get("content_digest")
@@ -550,6 +582,52 @@ pub fn evaluate_disclosure_manifest(input: &Value) -> EgressEvaluation {
                 "transform_kind_missing_or_unknown",
             );
         }
+        if nonblank(transform, "transform_kind") == Some("identity_copy") {
+            let inputs = transform.get("input_object_refs").and_then(string_set);
+            let outputs = transform.get("output_object_refs").and_then(string_set);
+            match (inputs, outputs) {
+                (Some(inputs), Some(outputs)) if inputs.len() == 1 && outputs.len() == 1 => {
+                    let input_ref = inputs.iter().next().expect("one identity-copy input");
+                    let output_ref = outputs.iter().next().expect("one identity-copy output");
+                    let input_digest = source_digests
+                        .get(input_ref)
+                        .or_else(|| output_digests.get(input_ref));
+                    let output_digest = output_digests.get(output_ref);
+                    if let (Some(input_digest), Some(output_digest)) = (input_digest, output_digest) {
+                        if input_digest != output_digest {
+                            raise(
+                                &mut severity,
+                                &mut reasons,
+                                Severity::Deny,
+                                "identity_copy_digest_mismatch",
+                            );
+                        }
+                    } else {
+                        raise(
+                            &mut severity,
+                            &mut reasons,
+                            Severity::Incomplete,
+                            "identity_copy_digest_unresolved",
+                        );
+                    }
+                }
+                _ => raise(
+                    &mut severity,
+                    &mut reasons,
+                    Severity::Incomplete,
+                    "identity_copy_cardinality_invalid",
+                ),
+            }
+        }
+    }
+
+    if source_digests.keys().any(|source_ref| output_ids.contains(source_ref)) {
+        raise(
+            &mut severity,
+            &mut reasons,
+            Severity::Deny,
+            "source_output_identity_domain_collision",
+        );
     }
 
     let mut known_object_ids: BTreeSet<String> =
@@ -640,6 +718,16 @@ pub fn evaluate_disclosure_manifest(input: &Value) -> EgressEvaluation {
                     Severity::Incomplete,
                     "transform_output_object_unresolved",
                 );
+            } else if !output_transform_refs
+                .get(&output_ref)
+                .is_some_and(|refs| refs.contains(transform_ref))
+            {
+                raise(
+                    &mut severity,
+                    &mut reasons,
+                    Severity::Incomplete,
+                    "output_omits_transform_reference",
+                );
             }
         }
     }
@@ -656,6 +744,43 @@ pub fn evaluate_disclosure_manifest(input: &Value) -> EgressEvaluation {
                     Severity::Incomplete,
                     "declared_source_not_connected_to_output_transform",
                 );
+            }
+        }
+
+        let mut source_class_union = BTreeSet::new();
+        for source_ref in source_refs {
+            if let Some(classes) = source_classes.get(source_ref) {
+                source_class_union.extend(classes.iter().cloned());
+            }
+        }
+        if let Some(classes) = output_classes.get(output_ref) {
+            if !source_class_union.is_empty() && source_class_union != *classes {
+                let has_change_reference = output_transform_refs
+                    .get(output_ref)
+                    .is_some_and(|refs| {
+                        refs.iter().any(|transform_ref| {
+                            transform_by_ref
+                                .get(transform_ref)
+                                .is_some_and(|transform| {
+                                    nonblank(transform, "classification_change_authority_ref").is_some()
+                                })
+                        })
+                    });
+                if has_change_reference {
+                    raise(
+                        &mut severity,
+                        &mut reasons,
+                        Severity::Unknown,
+                        "classification_change_authority_resolution_unavailable",
+                    );
+                } else {
+                    raise(
+                        &mut severity,
+                        &mut reasons,
+                        Severity::Review,
+                        "classification_change_authority_reference_missing",
+                    );
+                }
             }
         }
     }
