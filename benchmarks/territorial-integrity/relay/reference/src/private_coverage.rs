@@ -113,6 +113,7 @@ fn check_public_view(
         "request_commitment",
         "package_commitment",
         "proof_ref",
+        "non_inclusion_scope",
     ];
     if object.keys().any(|key| !ALLOWED.contains(&key.as_str())) {
         raise(
@@ -128,6 +129,15 @@ fn check_public_view(
             reasons,
             Severity::Incomplete,
             "public_proof_reference_missing",
+        );
+    }
+
+    if nonblank(view, "non_inclusion_scope") != Some("frontier_version_only") {
+        raise(
+            severity,
+            reasons,
+            Severity::Deny,
+            "non_inclusion_scope_exceeds_committed_frontier",
         );
     }
 
