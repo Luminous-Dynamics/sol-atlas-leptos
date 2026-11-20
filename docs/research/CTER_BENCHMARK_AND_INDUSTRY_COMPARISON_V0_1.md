@@ -281,3 +281,30 @@ RFC 9942 COSE receipts can establish properties of a selected VDS, including inc
 The private-coverage comparison now also has a pinned workload specification: \`benchmarks/territorial-integrity/egress/private-coverage-scale-workloads-v0.1.json\`. It compares the designated-auditor baseline, Mycelix's selected VDS/COSE proof profile, and a research-only private partition-predicate proof over identical synthetic 1k/10k/100k/1M frontiers. It measures proof generation and verification separately from partition set-checks and metadata disclosure. No proof primitive, throughput winner or p99 target has been selected or measured.
 
 Current tool-side V8 fixture results: privacy paired-world corpus 24/24, private coverage partition corpus 30/30. Egress exact hidden-transform-input mutation was detected. These are test-fixture semantics, not Node 22 Actions runs, Rust execution or production qualification. The CI workflows are configured to run the committed Node oracles and Rust tests on the exact checkout; queued is still not PASS.
+
+
+## 13. Composed release binding and VDS proof selection
+
+A further research step joins #960 exact egress binding with #962 private frontier coverage. The new structural evaluator derives terminal source leaves from the egress transformation graph and requires those leaves to equal the private coverage record's included set. It also binds the exact coverage reference, package payload commitment, request, principal, subject, operation, purpose, recipient, resource, jurisdiction, project snapshot, data classes and frontier reference across the two records.
+
+Committed artefacts:
+- \`docs/research/CTER_COMPOSED_RELEASE_BINDING_PROFILE_V0_1.md\`
+- \`benchmarks/territorial-integrity/egress/composed-release-cases-v0.1.json\` — 17 synthetic cases (2 positive structural controls, 15 expected denials).
+- \`benchmarks/territorial-integrity/relay/reference/src/release_binding.rs\` and the \`egress.rs\` terminal-leaf derivation helper.
+- Rust conformance matrix and an independent Node composed-release oracle.
+- Workflow steps that validate the composed corpus and execute the independent oracle.
+
+A tool-side V8 check matched all 17 composed fixture expectations: 2 valid composed structures and 15 denied substitutions. This is not yet the committed Node 22 workflow or Rust execution. It does not recalculate package hashes over bytes, verify COSE/VDS receipts, resolve actual authority/currentness or transmit a package.
+
+### Proof selection is a separate benchmark, not an implementation assumption
+
+[CTER-VDS-PROOF-QUAL-001 #967](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/967) now tracks the choice of a privacy-preserving completeness proof. The comparison evaluates:
+- Mycelix-owned SCITT/COSE VDS receipts for exact statement inclusion and append-only checkpoint consistency;
+- sparse authenticated maps for keyed membership/non-membership;
+- ordered authenticated dictionaries/range proofs for query completeness;
+- private set-equality/zero-knowledge relations for the disjoint partition and included-source equality;
+- a hybrid that keeps the transparency ledger and witness/checkpoint owner in Mycelix while CTER consumes a narrowly scoped coverage proof.
+
+The standards boundary is material: RFC 9942 provides a COSE receipt envelope for VDS-specific proof types, but the initial \`RFC9162_SHA256\` profile concretely specifies inclusion and consistency proofs. The general COSE receipt concept includes non-inclusion as a proof family, but that does not mean an arbitrary frontier/query/partition set-equality proof is available from the initial profile. RFC 9162 itself is Experimental. CTER must identify the exact VDS/proof type and Mycelix interface it consumes rather than treating "COSE receipt verified" as proof of query completeness.
+
+The new comparison profile is \`docs/research/CTER_VDS_PROOF_PRIMITIVE_COMPARISON_V0_1.md\`. It specifies 1k/10k/100k/1M benchmarks, proof size/generation/verification costs, metadata leakage, verifier independence, frontier updates, offline use, split-view and long-term migration. No proof primitive is selected and no cryptographic result is claimed.
