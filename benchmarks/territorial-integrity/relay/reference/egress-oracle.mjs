@@ -88,7 +88,7 @@ export function evaluateDisclosureManifest(input) {
   }
   for (const key of [
     "request_ref", "authorization_receipt_ref", "principal_ref", "subject_ref",
-    "operation", "resource_ref", "evidence_frontier_ref", "coverage_query_ref", "purpose_ref",
+    "operation", "resource_ref", "evidence_frontier_ref", "coverage_query_ref", "coverage_query_profile_ref", "purpose_ref",
     "recipient_ref", "jurisdiction_profile_ref",
   ]) {
     if (!nonblank(binding, key)) raise("incomplete", "authorization_" + key + "_missing");
@@ -98,6 +98,9 @@ export function evaluateDisclosureManifest(input) {
   }
   if (!isSha256Digest(binding.coverage_query_commitment)) {
     raise("incomplete", "authorization_coverage_query_commitment_malformed");
+  }
+  if (nonblank(binding, "coverage_query_profile_ref") !== "urn:luminous:cter:predicate-json-v0.1") {
+    raise("incomplete", "authorization_coverage_query_profile_missing_or_unsupported");
   }
   if (!isHex64(nonblank(binding, "project_snapshot_sha256"))) {
     raise("incomplete", "authorization_project_snapshot_malformed");
@@ -351,6 +354,7 @@ function test(name, mutate, expected, reason) {
 }
 
 const passed = [];
+assert.equal(corpus.cases.length, 35, "frozen egress corpus size");
 assert.equal(corpus.cases.length, 34, "frozen egress corpus size");
 const baselineResult = evaluateDisclosureManifest(corpus.baseline_manifest);
 assert.equal(baselineResult.disposition, "valid_structure", baselineResult.reason_codes.join(","));
