@@ -1,0 +1,2657 @@
+{
+  "schema": "luminous.service-debt-metrology-fixtures",
+  "schema_version": "0.1.0",
+  "maturity": "SYNTHETIC_METROLOGY_ORACLE_ONLY",
+  "claim_ceiling": "NO_LIVE_RESIDENT_DEMAND_DELIVERY_CAPACITY_UNEXPRESSED_NEED_OR_WELFARE_CLAIM",
+  "policy": {
+    "no_cross_metric_scalar": true,
+    "unknown_is_not_zero": true,
+    "capacity_gap_basis": "SAME_SCOPE_COMPLETE_DEMAND_AND_DELIVERABLE_CAPACITY_FOR_ONE_INTERVAL",
+    "request_debt_basis": "IDENTITY_LINKED_ACCEPTED_REQUEST_MINUS_COMPLETED_DELIVERY",
+    "unexpressed_need_basis": "INDEPENDENT_RESIDENT_NEED_ASSESSMENT_ONLY",
+    "booking_is_not_delivery": true,
+    "no_inference_from_absent_requests": true
+  },
+  "cases": [
+    {
+      "case_id": "EXACT_CAPACITY_MATCH_ALL_REQUESTS_DELIVERED",
+      "scope": {
+        "scope_digest": "synthetic-service-debt-scope:v0.1:cohort-a:meal",
+        "population_digest": "synthetic-population:v0.1:cohort-a",
+        "cohort_id": "COHORT_A",
+        "service_id": "COMMUNITY_MEAL",
+        "functional_unit_id": "MEAL_PORTION",
+        "unit_id": "MEAL_PORTION",
+        "period_id": "SYNTHETIC_SERVICE_WINDOW_001",
+        "time_basis_id": "SYNTHETIC_UTC_SECONDS_V1",
+        "start_seconds": 0,
+        "end_seconds": 3600
+      },
+      "demand": {
+        "state": "KNOWN",
+        "quantity": 10,
+        "coverage": "COMPLETE",
+        "basis": "OWNER_QUALIFIED_SERVICE_DEMAND",
+        "scope": {
+          "scope_digest": "synthetic-service-debt-scope:v0.1:cohort-a:meal",
+          "population_digest": "synthetic-population:v0.1:cohort-a",
+          "cohort_id": "COHORT_A",
+          "service_id": "COMMUNITY_MEAL",
+          "functional_unit_id": "MEAL_PORTION",
+          "unit_id": "MEAL_PORTION",
+          "period_id": "SYNTHETIC_SERVICE_WINDOW_001",
+          "time_basis_id": "SYNTHETIC_UTC_SECONDS_V1",
+          "start_seconds": 0,
+          "end_seconds": 3600
+        },
+        "evidence": {
+          "owner": "MYCELIX_DEMAND",
+          "record_id": "DEMAND-10",
+          "revision": "synthetic-r1",
+          "freshness": "CURRENT"
+        }
+      },
+      "capacity": {
+        "state": "KNOWN",
+        "quantity": 10,
+        "coverage": "COMPLETE",
+        "basis": "OWNER_QUALIFIED_DELIVERABLE_CAPACITY",
+        "scope": {
+          "scope_digest": "synthetic-service-debt-scope:v0.1:cohort-a:meal",
+          "population_digest": "synthetic-population:v0.1:cohort-a",
+          "cohort_id": "COHORT_A",
+          "service_id": "COMMUNITY_MEAL",
+          "functional_unit_id": "MEAL_PORTION",
+          "unit_id": "MEAL_PORTION",
+          "period_id": "SYNTHETIC_SERVICE_WINDOW_001",
+          "time_basis_id": "SYNTHETIC_UTC_SECONDS_V1",
+          "start_seconds": 0,
+          "end_seconds": 3600
+        },
+        "evidence": {
+          "owner": "SYMTROPY_CAPACITY",
+          "record_id": "CAPACITY-10",
+          "revision": "synthetic-r1",
+          "freshness": "CURRENT"
+        }
+      },
+      "request_register": {
+        "coverage": "COMPLETE",
+        "scope": {
+          "scope_digest": "synthetic-service-debt-scope:v0.1:cohort-a:meal",
+          "population_digest": "synthetic-population:v0.1:cohort-a",
+          "cohort_id": "COHORT_A",
+          "service_id": "COMMUNITY_MEAL",
+          "functional_unit_id": "MEAL_PORTION",
+          "unit_id": "MEAL_PORTION",
+          "period_id": "SYNTHETIC_SERVICE_WINDOW_001",
+          "time_basis_id": "SYNTHETIC_UTC_SECONDS_V1",
+          "start_seconds": 0,
+          "end_seconds": 3600
+        },
+        "evidence": {
+          "owner": "MYCELIX_REQUEST_REGISTER",
+          "record_id": "REGISTER-001",
+          "revision": "synthetic-r1",
+          "freshness": "CURRENT"
+        },
+        "records": [
+          {
+            "request_id": "REQ-001",
+            "state": "ACCEPTED",
+            "accepted_units": 5,
+            "delivered_units": 5,
+            "delivery_state": "KNOWN",
+            "scope": {
+              "scope_digest": "synthetic-service-debt-scope:v0.1:cohort-a:meal",
+              "population_digest": "synthetic-population:v0.1:cohort-a",
+              "cohort_id": "COHORT_A",
+              "service_id": "COMMUNITY_MEAL",
+              "functional_unit_id": "MEAL_PORTION",
+              "unit_id": "MEAL_PORTION",
+              "period_id": "SYNTHETIC_SERVICE_WINDOW_001",
+              "time_basis_id": "SYNTHETIC_UTC_SECONDS_V1",
+              "start_seconds": 0,
+              "end_seconds": 3600
+            },
+            "evidence": {
+              "owner": "MYCELIX_REQUEST_DELIVERY",
+              "record_id": "REQ-001",
+              "revision": "synthetic-r1",
+              "freshness": "CURRENT"
+            }
+          }
+        ]
+      },
+      "need_assessment": {
+        "state": "MEASURED",
+        "scope": {
+          "scope_digest": "synthetic-service-debt-scope:v0.1:cohort-a:meal",
+          "population_digest": "synthetic-population:v0.1:cohort-a",
+          "cohort_id": "COHORT_A",
+          "service_id": "COMMUNITY_MEAL",
+          "functional_unit_id": "MEAL_PORTION",
+          "unit_id": "MEAL_PORTION",
+          "period_id": "SYNTHETIC_SERVICE_WINDOW_001",
+          "time_basis_id": "SYNTHETIC_UTC_SECONDS_V1",
+          "start_seconds": 0,
+          "end_seconds": 3600
+        },
+        "method": "WEIGHTED_RESIDENT_SURVEY",
+        "estimate_units": 2,
+        "lower_bound_units": 1,
+        "upper_bound_units": 4,
+        "sample_size": 120,
+        "confidence_level_basis_points": 9500,
+        "evidence": {
+          "owner": "RESIDENT_NEED_ASSESSMENT",
+          "record_id": "NEED-001",
+          "revision": "synthetic-r1",
+          "freshness": "CURRENT"
+        }
+      },
+      "expected": {
+        "capacity_gap_state": "KNOWN",
+        "capacity_shortfall_units": 0,
+        "capacity_surplus_units": 0,
+        "accepted_undelivered_state": "KNOWN",
+        "accepted_undelivered_units": 0,
+        "unexpressed_need_state": "MEASURED",
+        "unexpressed_need_estimate_units": 2,
+        "unexpressed_need_lower_bound_units": 1,
+        "unexpressed_need_upper_bound_units": 4,
+        "unresolved_exposure_state": "NONE",
+        "unresolved_reason_codes": [],
+        "unresolved_duration_seconds": 0
+      }
+    },
+    {
+      "case_id": "CAPACITY_SHORTFALL_IS_NOT_REQUEST_DEBT",
+      "scope": {
+        "scope_digest": "synthetic-service-debt-scope:v0.1:cohort-a:meal",
+        "population_digest": "synthetic-population:v0.1:cohort-a",
+        "cohort_id": "COHORT_A",
+        "service_id": "COMMUNITY_MEAL",
+        "functional_unit_id": "MEAL_PORTION",
+        "unit_id": "MEAL_PORTION",
+        "period_id": "SYNTHETIC_SERVICE_WINDOW_001",
+        "time_basis_id": "SYNTHETIC_UTC_SECONDS_V1",
+        "start_seconds": 0,
+        "end_seconds": 3600
+      },
+      "demand": {
+        "state": "KNOWN",
+        "quantity": 10,
+        "coverage": "COMPLETE",
+        "basis": "OWNER_QUALIFIED_SERVICE_DEMAND",
+        "scope": {
+          "scope_digest": "synthetic-service-debt-scope:v0.1:cohort-a:meal",
+          "population_digest": "synthetic-population:v0.1:cohort-a",
+          "cohort_id": "COHORT_A",
+          "service_id": "COMMUNITY_MEAL",
+          "functional_unit_id": "MEAL_PORTION",
+          "unit_id": "MEAL_PORTION",
+          "period_id": "SYNTHETIC_SERVICE_WINDOW_001",
+          "time_basis_id": "SYNTHETIC_UTC_SECONDS_V1",
+          "start_seconds": 0,
+          "end_seconds": 3600
+        },
+        "evidence": {
+          "owner": "MYCELIX_DEMAND",
+          "record_id": "DEMAND-10",
+          "revision": "synthetic-r1",
+          "freshness": "CURRENT"
+        }
+      },
+      "capacity": {
+        "state": "KNOWN",
+        "quantity": 7,
+        "coverage": "COMPLETE",
+        "basis": "OWNER_QUALIFIED_DELIVERABLE_CAPACITY",
+        "scope": {
+          "scope_digest": "synthetic-service-debt-scope:v0.1:cohort-a:meal",
+          "population_digest": "synthetic-population:v0.1:cohort-a",
+          "cohort_id": "COHORT_A",
+          "service_id": "COMMUNITY_MEAL",
+          "functional_unit_id": "MEAL_PORTION",
+          "unit_id": "MEAL_PORTION",
+          "period_id": "SYNTHETIC_SERVICE_WINDOW_001",
+          "time_basis_id": "SYNTHETIC_UTC_SECONDS_V1",
+          "start_seconds": 0,
+          "end_seconds": 3600
+        },
+        "evidence": {
+          "owner": "SYMTROPY_CAPACITY",
+          "record_id": "CAPACITY-7",
+          "revision": "synthetic-r1",
+          "freshness": "CURRENT"
+        }
+      },
+      "request_register": {
+        "coverage": "COMPLETE",
+        "scope": {
+          "scope_digest": "synthetic-service-debt-scope:v0.1:cohort-a:meal",
+          "population_digest": "synthetic-population:v0.1:cohort-a",
+          "cohort_id": "COHORT_A",
+          "service_id": "COMMUNITY_MEAL",
+          "functional_unit_id": "MEAL_PORTION",
+          "unit_id": "MEAL_PORTION",
+          "period_id": "SYNTHETIC_SERVICE_WINDOW_001",
+          "time_basis_id": "SYNTHETIC_UTC_SECONDS_V1",
+          "start_seconds": 0,
+          "end_seconds": 3600
+        },
+        "evidence": {
+          "owner": "MYCELIX_REQUEST_REGISTER",
+          "record_id": "REGISTER-001",
+          "revision": "synthetic-r1",
+          "freshness": "CURRENT"
+        },
+        "records": []
+      },
+      "need_assessment": {
+        "state": "NOT_COLLECTED",
+        "scope": {
+          "scope_digest": "synthetic-service-debt-scope:v0.1:cohort-a:meal",
+          "population_digest": "synthetic-population:v0.1:cohort-a",
+          "cohort_id": "COHORT_A",
+          "service_id": "COMMUNITY_MEAL",
+          "functional_unit_id": "MEAL_PORTION",
+          "unit_id": "MEAL_PORTION",
+          "period_id": "SYNTHETIC_SERVICE_WINDOW_001",
+          "time_basis_id": "SYNTHETIC_UTC_SECONDS_V1",
+          "start_seconds": 0,
+          "end_seconds": 3600
+        },
+        "method": null,
+        "estimate_units": null,
+        "lower_bound_units": null,
+        "upper_bound_units": null,
+        "sample_size": null,
+        "confidence_level_basis_points": null,
+        "evidence": null
+      },
+      "expected": {
+        "capacity_gap_state": "KNOWN",
+        "capacity_shortfall_units": 3,
+        "capacity_surplus_units": 0,
+        "accepted_undelivered_state": "KNOWN",
+        "accepted_undelivered_units": 0,
+        "unexpressed_need_state": "NOT_COLLECTED",
+        "unexpressed_need_estimate_units": null,
+        "unexpressed_need_lower_bound_units": null,
+        "unexpressed_need_upper_bound_units": null,
+        "unresolved_exposure_state": "PRESENT",
+        "unresolved_reason_codes": [
+          "RESIDENT_NEED_NOT_ASSESSED"
+        ],
+        "unresolved_duration_seconds": 3600
+      }
+    },
+    {
+      "case_id": "CAPACITY_SURPLUS_WITH_PARTIAL_DELIVERY",
+      "scope": {
+        "scope_digest": "synthetic-service-debt-scope:v0.1:cohort-a:meal",
+        "population_digest": "synthetic-population:v0.1:cohort-a",
+        "cohort_id": "COHORT_A",
+        "service_id": "COMMUNITY_MEAL",
+        "functional_unit_id": "MEAL_PORTION",
+        "unit_id": "MEAL_PORTION",
+        "period_id": "SYNTHETIC_SERVICE_WINDOW_001",
+        "time_basis_id": "SYNTHETIC_UTC_SECONDS_V1",
+        "start_seconds": 0,
+        "end_seconds": 3600
+      },
+      "demand": {
+        "state": "KNOWN",
+        "quantity": 8,
+        "coverage": "COMPLETE",
+        "basis": "OWNER_QUALIFIED_SERVICE_DEMAND",
+        "scope": {
+          "scope_digest": "synthetic-service-debt-scope:v0.1:cohort-a:meal",
+          "population_digest": "synthetic-population:v0.1:cohort-a",
+          "cohort_id": "COHORT_A",
+          "service_id": "COMMUNITY_MEAL",
+          "functional_unit_id": "MEAL_PORTION",
+          "unit_id": "MEAL_PORTION",
+          "period_id": "SYNTHETIC_SERVICE_WINDOW_001",
+          "time_basis_id": "SYNTHETIC_UTC_SECONDS_V1",
+          "start_seconds": 0,
+          "end_seconds": 3600
+        },
+        "evidence": {
+          "owner": "MYCELIX_DEMAND",
+          "record_id": "DEMAND-8",
+          "revision": "synthetic-r1",
+          "freshness": "CURRENT"
+        }
+      },
+      "capacity": {
+        "state": "KNOWN",
+        "quantity": 12,
+        "coverage": "COMPLETE",
+        "basis": "OWNER_QUALIFIED_DELIVERABLE_CAPACITY",
+        "scope": {
+          "scope_digest": "synthetic-service-debt-scope:v0.1:cohort-a:meal",
+          "population_digest": "synthetic-population:v0.1:cohort-a",
+          "cohort_id": "COHORT_A",
+          "service_id": "COMMUNITY_MEAL",
+          "functional_unit_id": "MEAL_PORTION",
+          "unit_id": "MEAL_PORTION",
+          "period_id": "SYNTHETIC_SERVICE_WINDOW_001",
+          "time_basis_id": "SYNTHETIC_UTC_SECONDS_V1",
+          "start_seconds": 0,
+          "end_seconds": 3600
+        },
+        "evidence": {
+          "owner": "SYMTROPY_CAPACITY",
+          "record_id": "CAPACITY-12",
+          "revision": "synthetic-r1",
+          "freshness": "CURRENT"
+        }
+      },
+      "request_register": {
+        "coverage": "COMPLETE",
+        "scope": {
+          "scope_digest": "synthetic-service-debt-scope:v0.1:cohort-a:meal",
+          "population_digest": "synthetic-population:v0.1:cohort-a",
+          "cohort_id": "COHORT_A",
+          "service_id": "COMMUNITY_MEAL",
+          "functional_unit_id": "MEAL_PORTION",
+          "unit_id": "MEAL_PORTION",
+          "period_id": "SYNTHETIC_SERVICE_WINDOW_001",
+          "time_basis_id": "SYNTHETIC_UTC_SECONDS_V1",
+          "start_seconds": 0,
+          "end_seconds": 3600
+        },
+        "evidence": {
+          "owner": "MYCELIX_REQUEST_REGISTER",
+          "record_id": "REGISTER-001",
+          "revision": "synthetic-r1",
+          "freshness": "CURRENT"
+        },
+        "records": [
+          {
+            "request_id": "REQ-002",
+            "state": "ACCEPTED",
+            "accepted_units": 4,
+            "delivered_units": 2,
+            "delivery_state": "KNOWN",
+            "scope": {
+              "scope_digest": "synthetic-service-debt-scope:v0.1:cohort-a:meal",
+              "population_digest": "synthetic-population:v0.1:cohort-a",
+              "cohort_id": "COHORT_A",
+              "service_id": "COMMUNITY_MEAL",
+              "functional_unit_id": "MEAL_PORTION",
+              "unit_id": "MEAL_PORTION",
+              "period_id": "SYNTHETIC_SERVICE_WINDOW_001",
+              "time_basis_id": "SYNTHETIC_UTC_SECONDS_V1",
+              "start_seconds": 0,
+              "end_seconds": 3600
+            },
+            "evidence": {
+              "owner": "MYCELIX_REQUEST_DELIVERY",
+              "record_id": "REQ-002",
+              "revision": "synthetic-r1",
+              "freshness": "CURRENT"
+            }
+          }
+        ]
+      },
+      "need_assessment": {
+        "state": "NOT_COLLECTED",
+        "scope": {
+          "scope_digest": "synthetic-service-debt-scope:v0.1:cohort-a:meal",
+          "population_digest": "synthetic-population:v0.1:cohort-a",
+          "cohort_id": "COHORT_A",
+          "service_id": "COMMUNITY_MEAL",
+          "functional_unit_id": "MEAL_PORTION",
+          "unit_id": "MEAL_PORTION",
+          "period_id": "SYNTHETIC_SERVICE_WINDOW_001",
+          "time_basis_id": "SYNTHETIC_UTC_SECONDS_V1",
+          "start_seconds": 0,
+          "end_seconds": 3600
+        },
+        "method": null,
+        "estimate_units": null,
+        "lower_bound_units": null,
+        "upper_bound_units": null,
+        "sample_size": null,
+        "confidence_level_basis_points": null,
+        "evidence": null
+      },
+      "expected": {
+        "capacity_gap_state": "KNOWN",
+        "capacity_shortfall_units": 0,
+        "capacity_surplus_units": 4,
+        "accepted_undelivered_state": "KNOWN",
+        "accepted_undelivered_units": 2,
+        "unexpressed_need_state": "NOT_COLLECTED",
+        "unexpressed_need_estimate_units": null,
+        "unexpressed_need_lower_bound_units": null,
+        "unexpressed_need_upper_bound_units": null,
+        "unresolved_exposure_state": "PRESENT",
+        "unresolved_reason_codes": [
+          "RESIDENT_NEED_NOT_ASSESSED"
+        ],
+        "unresolved_duration_seconds": 3600
+      }
+    },
+    {
+      "case_id": "UNKNOWN_DEMAND_IS_NOT_ZERO",
+      "scope": {
+        "scope_digest": "synthetic-service-debt-scope:v0.1:cohort-a:meal",
+        "population_digest": "synthetic-population:v0.1:cohort-a",
+        "cohort_id": "COHORT_A",
+        "service_id": "COMMUNITY_MEAL",
+        "functional_unit_id": "MEAL_PORTION",
+        "unit_id": "MEAL_PORTION",
+        "period_id": "SYNTHETIC_SERVICE_WINDOW_001",
+        "time_basis_id": "SYNTHETIC_UTC_SECONDS_V1",
+        "start_seconds": 0,
+        "end_seconds": 3600
+      },
+      "demand": {
+        "state": "UNKNOWN",
+        "quantity": null,
+        "coverage": "UNKNOWN",
+        "basis": "OWNER_QUALIFIED_SERVICE_DEMAND",
+        "scope": {
+          "scope_digest": "synthetic-service-debt-scope:v0.1:cohort-a:meal",
+          "population_digest": "synthetic-population:v0.1:cohort-a",
+          "cohort_id": "COHORT_A",
+          "service_id": "COMMUNITY_MEAL",
+          "functional_unit_id": "MEAL_PORTION",
+          "unit_id": "MEAL_PORTION",
+          "period_id": "SYNTHETIC_SERVICE_WINDOW_001",
+          "time_basis_id": "SYNTHETIC_UTC_SECONDS_V1",
+          "start_seconds": 0,
+          "end_seconds": 3600
+        },
+        "evidence": {
+          "owner": "MYCELIX_DEMAND",
+          "record_id": "DEMAND-UNKNOWN",
+          "revision": "synthetic-r1",
+          "freshness": "CURRENT"
+        }
+      },
+      "capacity": {
+        "state": "KNOWN",
+        "quantity": 10,
+        "coverage": "COMPLETE",
+        "basis": "OWNER_QUALIFIED_DELIVERABLE_CAPACITY",
+        "scope": {
+          "scope_digest": "synthetic-service-debt-scope:v0.1:cohort-a:meal",
+          "population_digest": "synthetic-population:v0.1:cohort-a",
+          "cohort_id": "COHORT_A",
+          "service_id": "COMMUNITY_MEAL",
+          "functional_unit_id": "MEAL_PORTION",
+          "unit_id": "MEAL_PORTION",
+          "period_id": "SYNTHETIC_SERVICE_WINDOW_001",
+          "time_basis_id": "SYNTHETIC_UTC_SECONDS_V1",
+          "start_seconds": 0,
+          "end_seconds": 3600
+        },
+        "evidence": {
+          "owner": "SYMTROPY_CAPACITY",
+          "record_id": "CAPACITY-10",
+          "revision": "synthetic-r1",
+          "freshness": "CURRENT"
+        }
+      },
+      "request_register": {
+        "coverage": "COMPLETE",
+        "scope": {
+          "scope_digest": "synthetic-service-debt-scope:v0.1:cohort-a:meal",
+          "population_digest": "synthetic-population:v0.1:cohort-a",
+          "cohort_id": "COHORT_A",
+          "service_id": "COMMUNITY_MEAL",
+          "functional_unit_id": "MEAL_PORTION",
+          "unit_id": "MEAL_PORTION",
+          "period_id": "SYNTHETIC_SERVICE_WINDOW_001",
+          "time_basis_id": "SYNTHETIC_UTC_SECONDS_V1",
+          "start_seconds": 0,
+          "end_seconds": 3600
+        },
+        "evidence": {
+          "owner": "MYCELIX_REQUEST_REGISTER",
+          "record_id": "REGISTER-001",
+          "revision": "synthetic-r1",
+          "freshness": "CURRENT"
+        },
+        "records": []
+      },
+      "need_assessment": {
+        "state": "NOT_COLLECTED",
+        "scope": {
+          "scope_digest": "synthetic-service-debt-scope:v0.1:cohort-a:meal",
+          "population_digest": "synthetic-population:v0.1:cohort-a",
+          "cohort_id": "COHORT_A",
+          "service_id": "COMMUNITY_MEAL",
+          "functional_unit_id": "MEAL_PORTION",
+          "unit_id": "MEAL_PORTION",
+          "period_id": "SYNTHETIC_SERVICE_WINDOW_001",
+          "time_basis_id": "SYNTHETIC_UTC_SECONDS_V1",
+          "start_seconds": 0,
+          "end_seconds": 3600
+        },
+        "method": null,
+        "estimate_units": null,
+        "lower_bound_units": null,
+        "upper_bound_units": null,
+        "sample_size": null,
+        "confidence_level_basis_points": null,
+        "evidence": null
+      },
+      "expected": {
+        "capacity_gap_state": "UNKNOWN",
+        "capacity_shortfall_units": null,
+        "capacity_surplus_units": null,
+        "accepted_undelivered_state": "KNOWN",
+        "accepted_undelivered_units": 0,
+        "unexpressed_need_state": "NOT_COLLECTED",
+        "unexpressed_need_estimate_units": null,
+        "unexpressed_need_lower_bound_units": null,
+        "unexpressed_need_upper_bound_units": null,
+        "unresolved_exposure_state": "PRESENT",
+        "unresolved_reason_codes": [
+          "CAPACITY_GAP_EVIDENCE_UNRESOLVED",
+          "RESIDENT_NEED_NOT_ASSESSED"
+        ],
+        "unresolved_duration_seconds": 3600
+      }
+    },
+    {
+      "case_id": "STALE_CAPACITY_EVIDENCE_IS_NOT_CURRENT_CAPACITY",
+      "scope": {
+        "scope_digest": "synthetic-service-debt-scope:v0.1:cohort-a:meal",
+        "population_digest": "synthetic-population:v0.1:cohort-a",
+        "cohort_id": "COHORT_A",
+        "service_id": "COMMUNITY_MEAL",
+        "functional_unit_id": "MEAL_PORTION",
+        "unit_id": "MEAL_PORTION",
+        "period_id": "SYNTHETIC_SERVICE_WINDOW_001",
+        "time_basis_id": "SYNTHETIC_UTC_SECONDS_V1",
+        "start_seconds": 0,
+        "end_seconds": 3600
+      },
+      "demand": {
+        "state": "KNOWN",
+        "quantity": 5,
+        "coverage": "COMPLETE",
+        "basis": "OWNER_QUALIFIED_SERVICE_DEMAND",
+        "scope": {
+          "scope_digest": "synthetic-service-debt-scope:v0.1:cohort-a:meal",
+          "population_digest": "synthetic-population:v0.1:cohort-a",
+          "cohort_id": "COHORT_A",
+          "service_id": "COMMUNITY_MEAL",
+          "functional_unit_id": "MEAL_PORTION",
+          "unit_id": "MEAL_PORTION",
+          "period_id": "SYNTHETIC_SERVICE_WINDOW_001",
+          "time_basis_id": "SYNTHETIC_UTC_SECONDS_V1",
+          "start_seconds": 0,
+          "end_seconds": 3600
+        },
+        "evidence": {
+          "owner": "MYCELIX_DEMAND",
+          "record_id": "DEMAND-5",
+          "revision": "synthetic-r1",
+          "freshness": "CURRENT"
+        }
+      },
+      "capacity": {
+        "state": "KNOWN",
+        "quantity": 5,
+        "coverage": "COMPLETE",
+        "basis": "OWNER_QUALIFIED_DELIVERABLE_CAPACITY",
+        "scope": {
+          "scope_digest": "synthetic-service-debt-scope:v0.1:cohort-a:meal",
+          "population_digest": "synthetic-population:v0.1:cohort-a",
+          "cohort_id": "COHORT_A",
+          "service_id": "COMMUNITY_MEAL",
+          "functional_unit_id": "MEAL_PORTION",
+          "unit_id": "MEAL_PORTION",
+          "period_id": "SYNTHETIC_SERVICE_WINDOW_001",
+          "time_basis_id": "SYNTHETIC_UTC_SECONDS_V1",
+          "start_seconds": 0,
+          "end_seconds": 3600
+        },
+        "evidence": {
+          "owner": "SYMTROPY_CAPACITY",
+          "record_id": "CAPACITY-5",
+          "revision": "synthetic-r1",
+          "freshness": "STALE"
+        }
+      },
+      "request_register": {
+        "coverage": "COMPLETE",
+        "scope": {
+          "scope_digest": "synthetic-service-debt-scope:v0.1:cohort-a:meal",
+          "population_digest": "synthetic-population:v0.1:cohort-a",
+          "cohort_id": "COHORT_A",
+          "service_id": "COMMUNITY_MEAL",
+          "functional_unit_id": "MEAL_PORTION",
+          "unit_id": "MEAL_PORTION",
+          "period_id": "SYNTHETIC_SERVICE_WINDOW_001",
+          "time_basis_id": "SYNTHETIC_UTC_SECONDS_V1",
+          "start_seconds": 0,
+          "end_seconds": 3600
+        },
+        "evidence": {
+          "owner": "MYCELIX_REQUEST_REGISTER",
+          "record_id": "REGISTER-001",
+          "revision": "synthetic-r1",
+          "freshness": "CURRENT"
+        },
+        "records": []
+      },
+      "need_assessment": {
+        "state": "NOT_COLLECTED",
+        "scope": {
+          "scope_digest": "synthetic-service-debt-scope:v0.1:cohort-a:meal",
+          "population_digest": "synthetic-population:v0.1:cohort-a",
+          "cohort_id": "COHORT_A",
+          "service_id": "COMMUNITY_MEAL",
+          "functional_unit_id": "MEAL_PORTION",
+          "unit_id": "MEAL_PORTION",
+          "period_id": "SYNTHETIC_SERVICE_WINDOW_001",
+          "time_basis_id": "SYNTHETIC_UTC_SECONDS_V1",
+          "start_seconds": 0,
+          "end_seconds": 3600
+        },
+        "method": null,
+        "estimate_units": null,
+        "lower_bound_units": null,
+        "upper_bound_units": null,
+        "sample_size": null,
+        "confidence_level_basis_points": null,
+        "evidence": null
+      },
+      "expected": {
+        "capacity_gap_state": "UNKNOWN",
+        "capacity_shortfall_units": null,
+        "capacity_surplus_units": null,
+        "accepted_undelivered_state": "KNOWN",
+        "accepted_undelivered_units": 0,
+        "unexpressed_need_state": "NOT_COLLECTED",
+        "unexpressed_need_estimate_units": null,
+        "unexpressed_need_lower_bound_units": null,
+        "unexpressed_need_upper_bound_units": null,
+        "unresolved_exposure_state": "PRESENT",
+        "unresolved_reason_codes": [
+          "CAPACITY_GAP_EVIDENCE_UNRESOLVED",
+          "RESIDENT_NEED_NOT_ASSESSED"
+        ],
+        "unresolved_duration_seconds": 3600
+      }
+    },
+    {
+      "case_id": "PARTIAL_DEMAND_COVERAGE_CANNOT_PROVE_A_COMPLETE_GAP",
+      "scope": {
+        "scope_digest": "synthetic-service-debt-scope:v0.1:cohort-a:meal",
+        "population_digest": "synthetic-population:v0.1:cohort-a",
+        "cohort_id": "COHORT_A",
+        "service_id": "COMMUNITY_MEAL",
+        "functional_unit_id": "MEAL_PORTION",
+        "unit_id": "MEAL_PORTION",
+        "period_id": "SYNTHETIC_SERVICE_WINDOW_001",
+        "time_basis_id": "SYNTHETIC_UTC_SECONDS_V1",
+        "start_seconds": 0,
+        "end_seconds": 3600
+      },
+      "demand": {
+        "state": "KNOWN",
+        "quantity": 5,
+        "coverage": "PARTIAL",
+        "basis": "OWNER_QUALIFIED_SERVICE_DEMAND",
+        "scope": {
+          "scope_digest": "synthetic-service-debt-scope:v0.1:cohort-a:meal",
+          "population_digest": "synthetic-population:v0.1:cohort-a",
+          "cohort_id": "COHORT_A",
+          "service_id": "COMMUNITY_MEAL",
+          "functional_unit_id": "MEAL_PORTION",
+          "unit_id": "MEAL_PORTION",
+          "period_id": "SYNTHETIC_SERVICE_WINDOW_001",
+          "time_basis_id": "SYNTHETIC_UTC_SECONDS_V1",
+          "start_seconds": 0,
+          "end_seconds": 3600
+        },
+        "evidence": {
+          "owner": "MYCELIX_DEMAND",
+          "record_id": "DEMAND-5",
+          "revision": "synthetic-r1",
+          "freshness": "CURRENT"
+        }
+      },
+      "capacity": {
+        "state": "KNOWN",
+        "quantity": 4,
+        "coverage": "COMPLETE",
+        "basis": "OWNER_QUALIFIED_DELIVERABLE_CAPACITY",
+        "scope": {
+          "scope_digest": "synthetic-service-debt-scope:v0.1:cohort-a:meal",
+          "population_digest": "synthetic-population:v0.1:cohort-a",
+          "cohort_id": "COHORT_A",
+          "service_id": "COMMUNITY_MEAL",
+          "functional_unit_id": "MEAL_PORTION",
+          "unit_id": "MEAL_PORTION",
+          "period_id": "SYNTHETIC_SERVICE_WINDOW_001",
+          "time_basis_id": "SYNTHETIC_UTC_SECONDS_V1",
+          "start_seconds": 0,
+          "end_seconds": 3600
+        },
+        "evidence": {
+          "owner": "SYMTROPY_CAPACITY",
+          "record_id": "CAPACITY-4",
+          "revision": "synthetic-r1",
+          "freshness": "CURRENT"
+        }
+      },
+      "request_register": {
+        "coverage": "COMPLETE",
+        "scope": {
+          "scope_digest": "synthetic-service-debt-scope:v0.1:cohort-a:meal",
+          "population_digest": "synthetic-population:v0.1:cohort-a",
+          "cohort_id": "COHORT_A",
+          "service_id": "COMMUNITY_MEAL",
+          "functional_unit_id": "MEAL_PORTION",
+          "unit_id": "MEAL_PORTION",
+          "period_id": "SYNTHETIC_SERVICE_WINDOW_001",
+          "time_basis_id": "SYNTHETIC_UTC_SECONDS_V1",
+          "start_seconds": 0,
+          "end_seconds": 3600
+        },
+        "evidence": {
+          "owner": "MYCELIX_REQUEST_REGISTER",
+          "record_id": "REGISTER-001",
+          "revision": "synthetic-r1",
+          "freshness": "CURRENT"
+        },
+        "records": []
+      },
+      "need_assessment": {
+        "state": "NOT_COLLECTED",
+        "scope": {
+          "scope_digest": "synthetic-service-debt-scope:v0.1:cohort-a:meal",
+          "population_digest": "synthetic-population:v0.1:cohort-a",
+          "cohort_id": "COHORT_A",
+          "service_id": "COMMUNITY_MEAL",
+          "functional_unit_id": "MEAL_PORTION",
+          "unit_id": "MEAL_PORTION",
+          "period_id": "SYNTHETIC_SERVICE_WINDOW_001",
+          "time_basis_id": "SYNTHETIC_UTC_SECONDS_V1",
+          "start_seconds": 0,
+          "end_seconds": 3600
+        },
+        "method": null,
+        "estimate_units": null,
+        "lower_bound_units": null,
+        "upper_bound_units": null,
+        "sample_size": null,
+        "confidence_level_basis_points": null,
+        "evidence": null
+      },
+      "expected": {
+        "capacity_gap_state": "UNKNOWN",
+        "capacity_shortfall_units": null,
+        "capacity_surplus_units": null,
+        "accepted_undelivered_state": "KNOWN",
+        "accepted_undelivered_units": 0,
+        "unexpressed_need_state": "NOT_COLLECTED",
+        "unexpressed_need_estimate_units": null,
+        "unexpressed_need_lower_bound_units": null,
+        "unexpressed_need_upper_bound_units": null,
+        "unresolved_exposure_state": "PRESENT",
+        "unresolved_reason_codes": [
+          "CAPACITY_GAP_EVIDENCE_UNRESOLVED",
+          "RESIDENT_NEED_NOT_ASSESSED"
+        ],
+        "unresolved_duration_seconds": 3600
+      }
+    },
+    {
+      "case_id": "CAPACITY_UNIT_MISMATCH_IS_NOT_COMPARABLE",
+      "scope": {
+        "scope_digest": "synthetic-service-debt-scope:v0.1:cohort-a:meal",
+        "population_digest": "synthetic-population:v0.1:cohort-a",
+        "cohort_id": "COHORT_A",
+        "service_id": "COMMUNITY_MEAL",
+        "functional_unit_id": "MEAL_PORTION",
+        "unit_id": "MEAL_PORTION",
+        "period_id": "SYNTHETIC_SERVICE_WINDOW_001",
+        "time_basis_id": "SYNTHETIC_UTC_SECONDS_V1",
+        "start_seconds": 0,
+        "end_seconds": 3600
+      },
+      "demand": {
+        "state": "KNOWN",
+        "quantity": 8,
+        "coverage": "COMPLETE",
+        "basis": "OWNER_QUALIFIED_SERVICE_DEMAND",
+        "scope": {
+          "scope_digest": "synthetic-service-debt-scope:v0.1:cohort-a:meal",
+          "population_digest": "synthetic-population:v0.1:cohort-a",
+          "cohort_id": "COHORT_A",
+          "service_id": "COMMUNITY_MEAL",
+          "functional_unit_id": "MEAL_PORTION",
+          "unit_id": "MEAL_PORTION",
+          "period_id": "SYNTHETIC_SERVICE_WINDOW_001",
+          "time_basis_id": "SYNTHETIC_UTC_SECONDS_V1",
+          "start_seconds": 0,
+          "end_seconds": 3600
+        },
+        "evidence": {
+          "owner": "MYCELIX_DEMAND",
+          "record_id": "DEMAND-8",
+          "revision": "synthetic-r1",
+          "freshness": "CURRENT"
+        }
+      },
+      "capacity": {
+        "state": "KNOWN",
+        "quantity": 5,
+        "coverage": "COMPLETE",
+        "basis": "OWNER_QUALIFIED_DELIVERABLE_CAPACITY",
+        "scope": {
+          "scope_digest": "synthetic-service-debt-scope:v0.1:cohort-a:meal",
+          "population_digest": "synthetic-population:v0.1:cohort-a",
+          "cohort_id": "COHORT_A",
+          "service_id": "COMMUNITY_MEAL",
+          "functional_unit_id": "MEAL_PORTION",
+          "unit_id": "KILOGRAM",
+          "period_id": "SYNTHETIC_SERVICE_WINDOW_001",
+          "time_basis_id": "SYNTHETIC_UTC_SECONDS_V1",
+          "start_seconds": 0,
+          "end_seconds": 3600
+        },
+        "evidence": {
+          "owner": "SYMTROPY_CAPACITY",
+          "record_id": "CAPACITY-5",
+          "revision": "synthetic-r1",
+          "freshness": "CURRENT"
+        }
+      },
+      "request_register": {
+        "coverage": "COMPLETE",
+        "scope": {
+          "scope_digest": "synthetic-service-debt-scope:v0.1:cohort-a:meal",
+          "population_digest": "synthetic-population:v0.1:cohort-a",
+          "cohort_id": "COHORT_A",
+          "service_id": "COMMUNITY_MEAL",
+          "functional_unit_id": "MEAL_PORTION",
+          "unit_id": "MEAL_PORTION",
+          "period_id": "SYNTHETIC_SERVICE_WINDOW_001",
+          "time_basis_id": "SYNTHETIC_UTC_SECONDS_V1",
+          "start_seconds": 0,
+          "end_seconds": 3600
+        },
+        "evidence": {
+          "owner": "MYCELIX_REQUEST_REGISTER",
+          "record_id": "REGISTER-001",
+          "revision": "synthetic-r1",
+          "freshness": "CURRENT"
+        },
+        "records": []
+      },
+      "need_assessment": {
+        "state": "NOT_COLLECTED",
+        "scope": {
+          "scope_digest": "synthetic-service-debt-scope:v0.1:cohort-a:meal",
+          "population_digest": "synthetic-population:v0.1:cohort-a",
+          "cohort_id": "COHORT_A",
+          "service_id": "COMMUNITY_MEAL",
+          "functional_unit_id": "MEAL_PORTION",
+          "unit_id": "MEAL_PORTION",
+          "period_id": "SYNTHETIC_SERVICE_WINDOW_001",
+          "time_basis_id": "SYNTHETIC_UTC_SECONDS_V1",
+          "start_seconds": 0,
+          "end_seconds": 3600
+        },
+        "method": null,
+        "estimate_units": null,
+        "lower_bound_units": null,
+        "upper_bound_units": null,
+        "sample_size": null,
+        "confidence_level_basis_points": null,
+        "evidence": null
+      },
+      "expected": {
+        "capacity_gap_state": "NOT_COMPARABLE",
+        "capacity_shortfall_units": null,
+        "capacity_surplus_units": null,
+        "accepted_undelivered_state": "KNOWN",
+        "accepted_undelivered_units": 0,
+        "unexpressed_need_state": "NOT_COLLECTED",
+        "unexpressed_need_estimate_units": null,
+        "unexpressed_need_lower_bound_units": null,
+        "unexpressed_need_upper_bound_units": null,
+        "unresolved_exposure_state": "PRESENT",
+        "unresolved_reason_codes": [
+          "CAPACITY_GAP_SCOPE_MISMATCH",
+          "RESIDENT_NEED_NOT_ASSESSED"
+        ],
+        "unresolved_duration_seconds": 3600
+      }
+    },
+    {
+      "case_id": "PARTIALLY_DELIVERED_ACCEPTED_REQUEST",
+      "scope": {
+        "scope_digest": "synthetic-service-debt-scope:v0.1:cohort-a:meal",
+        "population_digest": "synthetic-population:v0.1:cohort-a",
+        "cohort_id": "COHORT_A",
+        "service_id": "COMMUNITY_MEAL",
+        "functional_unit_id": "MEAL_PORTION",
+        "unit_id": "MEAL_PORTION",
+        "period_id": "SYNTHETIC_SERVICE_WINDOW_001",
+        "time_basis_id": "SYNTHETIC_UTC_SECONDS_V1",
+        "start_seconds": 0,
+        "end_seconds": 3600
+      },
+      "demand": {
+        "state": "KNOWN",
+        "quantity": 5,
+        "coverage": "COMPLETE",
+        "basis": "OWNER_QUALIFIED_SERVICE_DEMAND",
+        "scope": {
+          "scope_digest": "synthetic-service-debt-scope:v0.1:cohort-a:meal",
+          "population_digest": "synthetic-population:v0.1:cohort-a",
+          "cohort_id": "COHORT_A",
+          "service_id": "COMMUNITY_MEAL",
+          "functional_unit_id": "MEAL_PORTION",
+          "unit_id": "MEAL_PORTION",
+          "period_id": "SYNTHETIC_SERVICE_WINDOW_001",
+          "time_basis_id": "SYNTHETIC_UTC_SECONDS_V1",
+          "start_seconds": 0,
+          "end_seconds": 3600
+        },
+        "evidence": {
+          "owner": "MYCELIX_DEMAND",
+          "record_id": "DEMAND-5",
+          "revision": "synthetic-r1",
+          "freshness": "CURRENT"
+        }
+      },
+      "capacity": {
+        "state": "KNOWN",
+        "quantity": 10,
+        "coverage": "COMPLETE",
+        "basis": "OWNER_QUALIFIED_DELIVERABLE_CAPACITY",
+        "scope": {
+          "scope_digest": "synthetic-service-debt-scope:v0.1:cohort-a:meal",
+          "population_digest": "synthetic-population:v0.1:cohort-a",
+          "cohort_id": "COHORT_A",
+          "service_id": "COMMUNITY_MEAL",
+          "functional_unit_id": "MEAL_PORTION",
+          "unit_id": "MEAL_PORTION",
+          "period_id": "SYNTHETIC_SERVICE_WINDOW_001",
+          "time_basis_id": "SYNTHETIC_UTC_SECONDS_V1",
+          "start_seconds": 0,
+          "end_seconds": 3600
+        },
+        "evidence": {
+          "owner": "SYMTROPY_CAPACITY",
+          "record_id": "CAPACITY-10",
+          "revision": "synthetic-r1",
+          "freshness": "CURRENT"
+        }
+      },
+      "request_register": {
+        "coverage": "COMPLETE",
+        "scope": {
+          "scope_digest": "synthetic-service-debt-scope:v0.1:cohort-a:meal",
+          "population_digest": "synthetic-population:v0.1:cohort-a",
+          "cohort_id": "COHORT_A",
+          "service_id": "COMMUNITY_MEAL",
+          "functional_unit_id": "MEAL_PORTION",
+          "unit_id": "MEAL_PORTION",
+          "period_id": "SYNTHETIC_SERVICE_WINDOW_001",
+          "time_basis_id": "SYNTHETIC_UTC_SECONDS_V1",
+          "start_seconds": 0,
+          "end_seconds": 3600
+        },
+        "evidence": {
+          "owner": "MYCELIX_REQUEST_REGISTER",
+          "record_id": "REGISTER-001",
+          "revision": "synthetic-r1",
+          "freshness": "CURRENT"
+        },
+        "records": [
+          {
+            "request_id": "REQ-003",
+            "state": "ACCEPTED",
+            "accepted_units": 6,
+            "delivered_units": 4,
+            "delivery_state": "KNOWN",
+            "scope": {
+              "scope_digest": "synthetic-service-debt-scope:v0.1:cohort-a:meal",
+              "population_digest": "synthetic-population:v0.1:cohort-a",
+              "cohort_id": "COHORT_A",
+              "service_id": "COMMUNITY_MEAL",
+              "functional_unit_id": "MEAL_PORTION",
+              "unit_id": "MEAL_PORTION",
+              "period_id": "SYNTHETIC_SERVICE_WINDOW_001",
+              "time_basis_id": "SYNTHETIC_UTC_SECONDS_V1",
+              "start_seconds": 0,
+              "end_seconds": 3600
+            },
+            "evidence": {
+              "owner": "MYCELIX_REQUEST_DELIVERY",
+              "record_id": "REQ-003",
+              "revision": "synthetic-r1",
+              "freshness": "CURRENT"
+            }
+          }
+        ]
+      },
+      "need_assessment": {
+        "state": "NOT_COLLECTED",
+        "scope": {
+          "scope_digest": "synthetic-service-debt-scope:v0.1:cohort-a:meal",
+          "population_digest": "synthetic-population:v0.1:cohort-a",
+          "cohort_id": "COHORT_A",
+          "service_id": "COMMUNITY_MEAL",
+          "functional_unit_id": "MEAL_PORTION",
+          "unit_id": "MEAL_PORTION",
+          "period_id": "SYNTHETIC_SERVICE_WINDOW_001",
+          "time_basis_id": "SYNTHETIC_UTC_SECONDS_V1",
+          "start_seconds": 0,
+          "end_seconds": 3600
+        },
+        "method": null,
+        "estimate_units": null,
+        "lower_bound_units": null,
+        "upper_bound_units": null,
+        "sample_size": null,
+        "confidence_level_basis_points": null,
+        "evidence": null
+      },
+      "expected": {
+        "capacity_gap_state": "KNOWN",
+        "capacity_shortfall_units": 0,
+        "capacity_surplus_units": 5,
+        "accepted_undelivered_state": "KNOWN",
+        "accepted_undelivered_units": 2,
+        "unexpressed_need_state": "NOT_COLLECTED",
+        "unexpressed_need_estimate_units": null,
+        "unexpressed_need_lower_bound_units": null,
+        "unexpressed_need_upper_bound_units": null,
+        "unresolved_exposure_state": "PRESENT",
+        "unresolved_reason_codes": [
+          "RESIDENT_NEED_NOT_ASSESSED"
+        ],
+        "unresolved_duration_seconds": 3600
+      }
+    },
+    {
+      "case_id": "MULTIPLE_PARTIAL_DELIVERIES_SUM_ONCE_PER_REQUEST",
+      "scope": {
+        "scope_digest": "synthetic-service-debt-scope:v0.1:cohort-a:meal",
+        "population_digest": "synthetic-population:v0.1:cohort-a",
+        "cohort_id": "COHORT_A",
+        "service_id": "COMMUNITY_MEAL",
+        "functional_unit_id": "MEAL_PORTION",
+        "unit_id": "MEAL_PORTION",
+        "period_id": "SYNTHETIC_SERVICE_WINDOW_001",
+        "time_basis_id": "SYNTHETIC_UTC_SECONDS_V1",
+        "start_seconds": 0,
+        "end_seconds": 3600
+      },
+      "demand": {
+        "state": "KNOWN",
+        "quantity": 9,
+        "coverage": "COMPLETE",
+        "basis": "OWNER_QUALIFIED_SERVICE_DEMAND",
+        "scope": {
+          "scope_digest": "synthetic-service-debt-scope:v0.1:cohort-a:meal",
+          "population_digest": "synthetic-population:v0.1:cohort-a",
+          "cohort_id": "COHORT_A",
+          "service_id": "COMMUNITY_MEAL",
+          "functional_unit_id": "MEAL_PORTION",
+          "unit_id": "MEAL_PORTION",
+          "period_id": "SYNTHETIC_SERVICE_WINDOW_001",
+          "time_basis_id": "SYNTHETIC_UTC_SECONDS_V1",
+          "start_seconds": 0,
+          "end_seconds": 3600
+        },
+        "evidence": {
+          "owner": "MYCELIX_DEMAND",
+          "record_id": "DEMAND-9",
+          "revision": "synthetic-r1",
+          "freshness": "CURRENT"
+        }
+      },
+      "capacity": {
+        "state": "KNOWN",
+        "quantity": 9,
+        "coverage": "COMPLETE",
+        "basis": "OWNER_QUALIFIED_DELIVERABLE_CAPACITY",
+        "scope": {
+          "scope_digest": "synthetic-service-debt-scope:v0.1:cohort-a:meal",
+          "population_digest": "synthetic-population:v0.1:cohort-a",
+          "cohort_id": "COHORT_A",
+          "service_id": "COMMUNITY_MEAL",
+          "functional_unit_id": "MEAL_PORTION",
+          "unit_id": "MEAL_PORTION",
+          "period_id": "SYNTHETIC_SERVICE_WINDOW_001",
+          "time_basis_id": "SYNTHETIC_UTC_SECONDS_V1",
+          "start_seconds": 0,
+          "end_seconds": 3600
+        },
+        "evidence": {
+          "owner": "SYMTROPY_CAPACITY",
+          "record_id": "CAPACITY-9",
+          "revision": "synthetic-r1",
+          "freshness": "CURRENT"
+        }
+      },
+      "request_register": {
+        "coverage": "COMPLETE",
+        "scope": {
+          "scope_digest": "synthetic-service-debt-scope:v0.1:cohort-a:meal",
+          "population_digest": "synthetic-population:v0.1:cohort-a",
+          "cohort_id": "COHORT_A",
+          "service_id": "COMMUNITY_MEAL",
+          "functional_unit_id": "MEAL_PORTION",
+          "unit_id": "MEAL_PORTION",
+          "period_id": "SYNTHETIC_SERVICE_WINDOW_001",
+          "time_basis_id": "SYNTHETIC_UTC_SECONDS_V1",
+          "start_seconds": 0,
+          "end_seconds": 3600
+        },
+        "evidence": {
+          "owner": "MYCELIX_REQUEST_REGISTER",
+          "record_id": "REGISTER-001",
+          "revision": "synthetic-r1",
+          "freshness": "CURRENT"
+        },
+        "records": [
+          {
+            "request_id": "REQ-004",
+            "state": "ACCEPTED",
+            "accepted_units": 5,
+            "delivered_units": 2,
+            "delivery_state": "KNOWN",
+            "scope": {
+              "scope_digest": "synthetic-service-debt-scope:v0.1:cohort-a:meal",
+              "population_digest": "synthetic-population:v0.1:cohort-a",
+              "cohort_id": "COHORT_A",
+              "service_id": "COMMUNITY_MEAL",
+              "functional_unit_id": "MEAL_PORTION",
+              "unit_id": "MEAL_PORTION",
+              "period_id": "SYNTHETIC_SERVICE_WINDOW_001",
+              "time_basis_id": "SYNTHETIC_UTC_SECONDS_V1",
+              "start_seconds": 0,
+              "end_seconds": 3600
+            },
+            "evidence": {
+              "owner": "MYCELIX_REQUEST_DELIVERY",
+              "record_id": "REQ-004",
+              "revision": "synthetic-r1",
+              "freshness": "CURRENT"
+            }
+          },
+          {
+            "request_id": "REQ-005",
+            "state": "ACCEPTED",
+            "accepted_units": 3,
+            "delivered_units": 1,
+            "delivery_state": "KNOWN",
+            "scope": {
+              "scope_digest": "synthetic-service-debt-scope:v0.1:cohort-a:meal",
+              "population_digest": "synthetic-population:v0.1:cohort-a",
+              "cohort_id": "COHORT_A",
+              "service_id": "COMMUNITY_MEAL",
+              "functional_unit_id": "MEAL_PORTION",
+              "unit_id": "MEAL_PORTION",
+              "period_id": "SYNTHETIC_SERVICE_WINDOW_001",
+              "time_basis_id": "SYNTHETIC_UTC_SECONDS_V1",
+              "start_seconds": 0,
+              "end_seconds": 3600
+            },
+            "evidence": {
+              "owner": "MYCELIX_REQUEST_DELIVERY",
+              "record_id": "REQ-005",
+              "revision": "synthetic-r1",
+              "freshness": "CURRENT"
+            }
+          }
+        ]
+      },
+      "need_assessment": {
+        "state": "NOT_COLLECTED",
+        "scope": {
+          "scope_digest": "synthetic-service-debt-scope:v0.1:cohort-a:meal",
+          "population_digest": "synthetic-population:v0.1:cohort-a",
+          "cohort_id": "COHORT_A",
+          "service_id": "COMMUNITY_MEAL",
+          "functional_unit_id": "MEAL_PORTION",
+          "unit_id": "MEAL_PORTION",
+          "period_id": "SYNTHETIC_SERVICE_WINDOW_001",
+          "time_basis_id": "SYNTHETIC_UTC_SECONDS_V1",
+          "start_seconds": 0,
+          "end_seconds": 3600
+        },
+        "method": null,
+        "estimate_units": null,
+        "lower_bound_units": null,
+        "upper_bound_units": null,
+        "sample_size": null,
+        "confidence_level_basis_points": null,
+        "evidence": null
+      },
+      "expected": {
+        "capacity_gap_state": "KNOWN",
+        "capacity_shortfall_units": 0,
+        "capacity_surplus_units": 0,
+        "accepted_undelivered_state": "KNOWN",
+        "accepted_undelivered_units": 5,
+        "unexpressed_need_state": "NOT_COLLECTED",
+        "unexpressed_need_estimate_units": null,
+        "unexpressed_need_lower_bound_units": null,
+        "unexpressed_need_upper_bound_units": null,
+        "unresolved_exposure_state": "PRESENT",
+        "unresolved_reason_codes": [
+          "RESIDENT_NEED_NOT_ASSESSED"
+        ],
+        "unresolved_duration_seconds": 3600
+      }
+    },
+    {
+      "case_id": "CANCELLED_AND_DECLINED_REQUESTS_ARE_NOT_UNDELIVERED_SERVICE",
+      "scope": {
+        "scope_digest": "synthetic-service-debt-scope:v0.1:cohort-a:meal",
+        "population_digest": "synthetic-population:v0.1:cohort-a",
+        "cohort_id": "COHORT_A",
+        "service_id": "COMMUNITY_MEAL",
+        "functional_unit_id": "MEAL_PORTION",
+        "unit_id": "MEAL_PORTION",
+        "period_id": "SYNTHETIC_SERVICE_WINDOW_001",
+        "time_basis_id": "SYNTHETIC_UTC_SECONDS_V1",
+        "start_seconds": 0,
+        "end_seconds": 3600
+      },
+      "demand": {
+        "state": "KNOWN",
+        "quantity": 0,
+        "coverage": "COMPLETE",
+        "basis": "OWNER_QUALIFIED_SERVICE_DEMAND",
+        "scope": {
+          "scope_digest": "synthetic-service-debt-scope:v0.1:cohort-a:meal",
+          "population_digest": "synthetic-population:v0.1:cohort-a",
+          "cohort_id": "COHORT_A",
+          "service_id": "COMMUNITY_MEAL",
+          "functional_unit_id": "MEAL_PORTION",
+          "unit_id": "MEAL_PORTION",
+          "period_id": "SYNTHETIC_SERVICE_WINDOW_001",
+          "time_basis_id": "SYNTHETIC_UTC_SECONDS_V1",
+          "start_seconds": 0,
+          "end_seconds": 3600
+        },
+        "evidence": {
+          "owner": "MYCELIX_DEMAND",
+          "record_id": "DEMAND-0",
+          "revision": "synthetic-r1",
+          "freshness": "CURRENT"
+        }
+      },
+      "capacity": {
+        "state": "KNOWN",
+        "quantity": 10,
+        "coverage": "COMPLETE",
+        "basis": "OWNER_QUALIFIED_DELIVERABLE_CAPACITY",
+        "scope": {
+          "scope_digest": "synthetic-service-debt-scope:v0.1:cohort-a:meal",
+          "population_digest": "synthetic-population:v0.1:cohort-a",
+          "cohort_id": "COHORT_A",
+          "service_id": "COMMUNITY_MEAL",
+          "functional_unit_id": "MEAL_PORTION",
+          "unit_id": "MEAL_PORTION",
+          "period_id": "SYNTHETIC_SERVICE_WINDOW_001",
+          "time_basis_id": "SYNTHETIC_UTC_SECONDS_V1",
+          "start_seconds": 0,
+          "end_seconds": 3600
+        },
+        "evidence": {
+          "owner": "SYMTROPY_CAPACITY",
+          "record_id": "CAPACITY-10",
+          "revision": "synthetic-r1",
+          "freshness": "CURRENT"
+        }
+      },
+      "request_register": {
+        "coverage": "COMPLETE",
+        "scope": {
+          "scope_digest": "synthetic-service-debt-scope:v0.1:cohort-a:meal",
+          "population_digest": "synthetic-population:v0.1:cohort-a",
+          "cohort_id": "COHORT_A",
+          "service_id": "COMMUNITY_MEAL",
+          "functional_unit_id": "MEAL_PORTION",
+          "unit_id": "MEAL_PORTION",
+          "period_id": "SYNTHETIC_SERVICE_WINDOW_001",
+          "time_basis_id": "SYNTHETIC_UTC_SECONDS_V1",
+          "start_seconds": 0,
+          "end_seconds": 3600
+        },
+        "evidence": {
+          "owner": "MYCELIX_REQUEST_REGISTER",
+          "record_id": "REGISTER-001",
+          "revision": "synthetic-r1",
+          "freshness": "CURRENT"
+        },
+        "records": [
+          {
+            "request_id": "REQ-006",
+            "state": "CANCELLED",
+            "accepted_units": 0,
+            "delivered_units": 0,
+            "delivery_state": "KNOWN",
+            "scope": {
+              "scope_digest": "synthetic-service-debt-scope:v0.1:cohort-a:meal",
+              "population_digest": "synthetic-population:v0.1:cohort-a",
+              "cohort_id": "COHORT_A",
+              "service_id": "COMMUNITY_MEAL",
+              "functional_unit_id": "MEAL_PORTION",
+              "unit_id": "MEAL_PORTION",
+              "period_id": "SYNTHETIC_SERVICE_WINDOW_001",
+              "time_basis_id": "SYNTHETIC_UTC_SECONDS_V1",
+              "start_seconds": 0,
+              "end_seconds": 3600
+            },
+            "evidence": {
+              "owner": "MYCELIX_REQUEST_DELIVERY",
+              "record_id": "REQ-006",
+              "revision": "synthetic-r1",
+              "freshness": "CURRENT"
+            }
+          },
+          {
+            "request_id": "REQ-007",
+            "state": "DECLINED",
+            "accepted_units": 0,
+            "delivered_units": 0,
+            "delivery_state": "KNOWN",
+            "scope": {
+              "scope_digest": "synthetic-service-debt-scope:v0.1:cohort-a:meal",
+              "population_digest": "synthetic-population:v0.1:cohort-a",
+              "cohort_id": "COHORT_A",
+              "service_id": "COMMUNITY_MEAL",
+              "functional_unit_id": "MEAL_PORTION",
+              "unit_id": "MEAL_PORTION",
+              "period_id": "SYNTHETIC_SERVICE_WINDOW_001",
+              "time_basis_id": "SYNTHETIC_UTC_SECONDS_V1",
+              "start_seconds": 0,
+              "end_seconds": 3600
+            },
+            "evidence": {
+              "owner": "MYCELIX_REQUEST_DELIVERY",
+              "record_id": "REQ-007",
+              "revision": "synthetic-r1",
+              "freshness": "CURRENT"
+            }
+          }
+        ]
+      },
+      "need_assessment": {
+        "state": "NOT_COLLECTED",
+        "scope": {
+          "scope_digest": "synthetic-service-debt-scope:v0.1:cohort-a:meal",
+          "population_digest": "synthetic-population:v0.1:cohort-a",
+          "cohort_id": "COHORT_A",
+          "service_id": "COMMUNITY_MEAL",
+          "functional_unit_id": "MEAL_PORTION",
+          "unit_id": "MEAL_PORTION",
+          "period_id": "SYNTHETIC_SERVICE_WINDOW_001",
+          "time_basis_id": "SYNTHETIC_UTC_SECONDS_V1",
+          "start_seconds": 0,
+          "end_seconds": 3600
+        },
+        "method": null,
+        "estimate_units": null,
+        "lower_bound_units": null,
+        "upper_bound_units": null,
+        "sample_size": null,
+        "confidence_level_basis_points": null,
+        "evidence": null
+      },
+      "expected": {
+        "capacity_gap_state": "KNOWN",
+        "capacity_shortfall_units": 0,
+        "capacity_surplus_units": 10,
+        "accepted_undelivered_state": "KNOWN",
+        "accepted_undelivered_units": 0,
+        "unexpressed_need_state": "NOT_COLLECTED",
+        "unexpressed_need_estimate_units": null,
+        "unexpressed_need_lower_bound_units": null,
+        "unexpressed_need_upper_bound_units": null,
+        "unresolved_exposure_state": "PRESENT",
+        "unresolved_reason_codes": [
+          "RESIDENT_NEED_NOT_ASSESSED"
+        ],
+        "unresolved_duration_seconds": 3600
+      }
+    },
+    {
+      "case_id": "SURVEY_MEASURES_UNEXPRESSED_NEED_SEPARATELY",
+      "scope": {
+        "scope_digest": "synthetic-service-debt-scope:v0.1:cohort-a:meal",
+        "population_digest": "synthetic-population:v0.1:cohort-a",
+        "cohort_id": "COHORT_A",
+        "service_id": "COMMUNITY_MEAL",
+        "functional_unit_id": "MEAL_PORTION",
+        "unit_id": "MEAL_PORTION",
+        "period_id": "SYNTHETIC_SERVICE_WINDOW_001",
+        "time_basis_id": "SYNTHETIC_UTC_SECONDS_V1",
+        "start_seconds": 0,
+        "end_seconds": 3600
+      },
+      "demand": {
+        "state": "KNOWN",
+        "quantity": 0,
+        "coverage": "COMPLETE",
+        "basis": "OWNER_QUALIFIED_SERVICE_DEMAND",
+        "scope": {
+          "scope_digest": "synthetic-service-debt-scope:v0.1:cohort-a:meal",
+          "population_digest": "synthetic-population:v0.1:cohort-a",
+          "cohort_id": "COHORT_A",
+          "service_id": "COMMUNITY_MEAL",
+          "functional_unit_id": "MEAL_PORTION",
+          "unit_id": "MEAL_PORTION",
+          "period_id": "SYNTHETIC_SERVICE_WINDOW_001",
+          "time_basis_id": "SYNTHETIC_UTC_SECONDS_V1",
+          "start_seconds": 0,
+          "end_seconds": 3600
+        },
+        "evidence": {
+          "owner": "MYCELIX_DEMAND",
+          "record_id": "DEMAND-0",
+          "revision": "synthetic-r1",
+          "freshness": "CURRENT"
+        }
+      },
+      "capacity": {
+        "state": "KNOWN",
+        "quantity": 10,
+        "coverage": "COMPLETE",
+        "basis": "OWNER_QUALIFIED_DELIVERABLE_CAPACITY",
+        "scope": {
+          "scope_digest": "synthetic-service-debt-scope:v0.1:cohort-a:meal",
+          "population_digest": "synthetic-population:v0.1:cohort-a",
+          "cohort_id": "COHORT_A",
+          "service_id": "COMMUNITY_MEAL",
+          "functional_unit_id": "MEAL_PORTION",
+          "unit_id": "MEAL_PORTION",
+          "period_id": "SYNTHETIC_SERVICE_WINDOW_001",
+          "time_basis_id": "SYNTHETIC_UTC_SECONDS_V1",
+          "start_seconds": 0,
+          "end_seconds": 3600
+        },
+        "evidence": {
+          "owner": "SYMTROPY_CAPACITY",
+          "record_id": "CAPACITY-10",
+          "revision": "synthetic-r1",
+          "freshness": "CURRENT"
+        }
+      },
+      "request_register": {
+        "coverage": "COMPLETE",
+        "scope": {
+          "scope_digest": "synthetic-service-debt-scope:v0.1:cohort-a:meal",
+          "population_digest": "synthetic-population:v0.1:cohort-a",
+          "cohort_id": "COHORT_A",
+          "service_id": "COMMUNITY_MEAL",
+          "functional_unit_id": "MEAL_PORTION",
+          "unit_id": "MEAL_PORTION",
+          "period_id": "SYNTHETIC_SERVICE_WINDOW_001",
+          "time_basis_id": "SYNTHETIC_UTC_SECONDS_V1",
+          "start_seconds": 0,
+          "end_seconds": 3600
+        },
+        "evidence": {
+          "owner": "MYCELIX_REQUEST_REGISTER",
+          "record_id": "REGISTER-001",
+          "revision": "synthetic-r1",
+          "freshness": "CURRENT"
+        },
+        "records": []
+      },
+      "need_assessment": {
+        "state": "MEASURED",
+        "scope": {
+          "scope_digest": "synthetic-service-debt-scope:v0.1:cohort-a:meal",
+          "population_digest": "synthetic-population:v0.1:cohort-a",
+          "cohort_id": "COHORT_A",
+          "service_id": "COMMUNITY_MEAL",
+          "functional_unit_id": "MEAL_PORTION",
+          "unit_id": "MEAL_PORTION",
+          "period_id": "SYNTHETIC_SERVICE_WINDOW_001",
+          "time_basis_id": "SYNTHETIC_UTC_SECONDS_V1",
+          "start_seconds": 0,
+          "end_seconds": 3600
+        },
+        "method": "WEIGHTED_RESIDENT_SURVEY",
+        "estimate_units": 5,
+        "lower_bound_units": 3,
+        "upper_bound_units": 8,
+        "sample_size": 200,
+        "confidence_level_basis_points": 9500,
+        "evidence": {
+          "owner": "RESIDENT_NEED_ASSESSMENT",
+          "record_id": "NEED-001",
+          "revision": "synthetic-r1",
+          "freshness": "CURRENT"
+        }
+      },
+      "expected": {
+        "capacity_gap_state": "KNOWN",
+        "capacity_shortfall_units": 0,
+        "capacity_surplus_units": 10,
+        "accepted_undelivered_state": "KNOWN",
+        "accepted_undelivered_units": 0,
+        "unexpressed_need_state": "MEASURED",
+        "unexpressed_need_estimate_units": 5,
+        "unexpressed_need_lower_bound_units": 3,
+        "unexpressed_need_upper_bound_units": 8,
+        "unresolved_exposure_state": "NONE",
+        "unresolved_reason_codes": [],
+        "unresolved_duration_seconds": 0
+      }
+    },
+    {
+      "case_id": "NO_REQUESTS_WITHOUT_NEED_ASSESSMENT_DO_NOT_MEAN_ZERO_NEED",
+      "scope": {
+        "scope_digest": "synthetic-service-debt-scope:v0.1:cohort-a:meal",
+        "population_digest": "synthetic-population:v0.1:cohort-a",
+        "cohort_id": "COHORT_A",
+        "service_id": "COMMUNITY_MEAL",
+        "functional_unit_id": "MEAL_PORTION",
+        "unit_id": "MEAL_PORTION",
+        "period_id": "SYNTHETIC_SERVICE_WINDOW_001",
+        "time_basis_id": "SYNTHETIC_UTC_SECONDS_V1",
+        "start_seconds": 0,
+        "end_seconds": 3600
+      },
+      "demand": {
+        "state": "KNOWN",
+        "quantity": 0,
+        "coverage": "COMPLETE",
+        "basis": "OWNER_QUALIFIED_SERVICE_DEMAND",
+        "scope": {
+          "scope_digest": "synthetic-service-debt-scope:v0.1:cohort-a:meal",
+          "population_digest": "synthetic-population:v0.1:cohort-a",
+          "cohort_id": "COHORT_A",
+          "service_id": "COMMUNITY_MEAL",
+          "functional_unit_id": "MEAL_PORTION",
+          "unit_id": "MEAL_PORTION",
+          "period_id": "SYNTHETIC_SERVICE_WINDOW_001",
+          "time_basis_id": "SYNTHETIC_UTC_SECONDS_V1",
+          "start_seconds": 0,
+          "end_seconds": 3600
+        },
+        "evidence": {
+          "owner": "MYCELIX_DEMAND",
+          "record_id": "DEMAND-0",
+          "revision": "synthetic-r1",
+          "freshness": "CURRENT"
+        }
+      },
+      "capacity": {
+        "state": "KNOWN",
+        "quantity": 10,
+        "coverage": "COMPLETE",
+        "basis": "OWNER_QUALIFIED_DELIVERABLE_CAPACITY",
+        "scope": {
+          "scope_digest": "synthetic-service-debt-scope:v0.1:cohort-a:meal",
+          "population_digest": "synthetic-population:v0.1:cohort-a",
+          "cohort_id": "COHORT_A",
+          "service_id": "COMMUNITY_MEAL",
+          "functional_unit_id": "MEAL_PORTION",
+          "unit_id": "MEAL_PORTION",
+          "period_id": "SYNTHETIC_SERVICE_WINDOW_001",
+          "time_basis_id": "SYNTHETIC_UTC_SECONDS_V1",
+          "start_seconds": 0,
+          "end_seconds": 3600
+        },
+        "evidence": {
+          "owner": "SYMTROPY_CAPACITY",
+          "record_id": "CAPACITY-10",
+          "revision": "synthetic-r1",
+          "freshness": "CURRENT"
+        }
+      },
+      "request_register": {
+        "coverage": "COMPLETE",
+        "scope": {
+          "scope_digest": "synthetic-service-debt-scope:v0.1:cohort-a:meal",
+          "population_digest": "synthetic-population:v0.1:cohort-a",
+          "cohort_id": "COHORT_A",
+          "service_id": "COMMUNITY_MEAL",
+          "functional_unit_id": "MEAL_PORTION",
+          "unit_id": "MEAL_PORTION",
+          "period_id": "SYNTHETIC_SERVICE_WINDOW_001",
+          "time_basis_id": "SYNTHETIC_UTC_SECONDS_V1",
+          "start_seconds": 0,
+          "end_seconds": 3600
+        },
+        "evidence": {
+          "owner": "MYCELIX_REQUEST_REGISTER",
+          "record_id": "REGISTER-001",
+          "revision": "synthetic-r1",
+          "freshness": "CURRENT"
+        },
+        "records": []
+      },
+      "need_assessment": {
+        "state": "NOT_COLLECTED",
+        "scope": {
+          "scope_digest": "synthetic-service-debt-scope:v0.1:cohort-a:meal",
+          "population_digest": "synthetic-population:v0.1:cohort-a",
+          "cohort_id": "COHORT_A",
+          "service_id": "COMMUNITY_MEAL",
+          "functional_unit_id": "MEAL_PORTION",
+          "unit_id": "MEAL_PORTION",
+          "period_id": "SYNTHETIC_SERVICE_WINDOW_001",
+          "time_basis_id": "SYNTHETIC_UTC_SECONDS_V1",
+          "start_seconds": 0,
+          "end_seconds": 3600
+        },
+        "method": null,
+        "estimate_units": null,
+        "lower_bound_units": null,
+        "upper_bound_units": null,
+        "sample_size": null,
+        "confidence_level_basis_points": null,
+        "evidence": null
+      },
+      "expected": {
+        "capacity_gap_state": "KNOWN",
+        "capacity_shortfall_units": 0,
+        "capacity_surplus_units": 10,
+        "accepted_undelivered_state": "KNOWN",
+        "accepted_undelivered_units": 0,
+        "unexpressed_need_state": "NOT_COLLECTED",
+        "unexpressed_need_estimate_units": null,
+        "unexpressed_need_lower_bound_units": null,
+        "unexpressed_need_upper_bound_units": null,
+        "unresolved_exposure_state": "PRESENT",
+        "unresolved_reason_codes": [
+          "RESIDENT_NEED_NOT_ASSESSED"
+        ],
+        "unresolved_duration_seconds": 3600
+      }
+    },
+    {
+      "case_id": "CAPACITY_SHORTFALL_AND_COMPLETED_REQUEST_REMAIN_DISTINCT",
+      "scope": {
+        "scope_digest": "synthetic-service-debt-scope:v0.1:cohort-a:meal",
+        "population_digest": "synthetic-population:v0.1:cohort-a",
+        "cohort_id": "COHORT_A",
+        "service_id": "COMMUNITY_MEAL",
+        "functional_unit_id": "MEAL_PORTION",
+        "unit_id": "MEAL_PORTION",
+        "period_id": "SYNTHETIC_SERVICE_WINDOW_001",
+        "time_basis_id": "SYNTHETIC_UTC_SECONDS_V1",
+        "start_seconds": 0,
+        "end_seconds": 3600
+      },
+      "demand": {
+        "state": "KNOWN",
+        "quantity": 10,
+        "coverage": "COMPLETE",
+        "basis": "OWNER_QUALIFIED_SERVICE_DEMAND",
+        "scope": {
+          "scope_digest": "synthetic-service-debt-scope:v0.1:cohort-a:meal",
+          "population_digest": "synthetic-population:v0.1:cohort-a",
+          "cohort_id": "COHORT_A",
+          "service_id": "COMMUNITY_MEAL",
+          "functional_unit_id": "MEAL_PORTION",
+          "unit_id": "MEAL_PORTION",
+          "period_id": "SYNTHETIC_SERVICE_WINDOW_001",
+          "time_basis_id": "SYNTHETIC_UTC_SECONDS_V1",
+          "start_seconds": 0,
+          "end_seconds": 3600
+        },
+        "evidence": {
+          "owner": "MYCELIX_DEMAND",
+          "record_id": "DEMAND-10",
+          "revision": "synthetic-r1",
+          "freshness": "CURRENT"
+        }
+      },
+      "capacity": {
+        "state": "KNOWN",
+        "quantity": 8,
+        "coverage": "COMPLETE",
+        "basis": "OWNER_QUALIFIED_DELIVERABLE_CAPACITY",
+        "scope": {
+          "scope_digest": "synthetic-service-debt-scope:v0.1:cohort-a:meal",
+          "population_digest": "synthetic-population:v0.1:cohort-a",
+          "cohort_id": "COHORT_A",
+          "service_id": "COMMUNITY_MEAL",
+          "functional_unit_id": "MEAL_PORTION",
+          "unit_id": "MEAL_PORTION",
+          "period_id": "SYNTHETIC_SERVICE_WINDOW_001",
+          "time_basis_id": "SYNTHETIC_UTC_SECONDS_V1",
+          "start_seconds": 0,
+          "end_seconds": 3600
+        },
+        "evidence": {
+          "owner": "SYMTROPY_CAPACITY",
+          "record_id": "CAPACITY-8",
+          "revision": "synthetic-r1",
+          "freshness": "CURRENT"
+        }
+      },
+      "request_register": {
+        "coverage": "COMPLETE",
+        "scope": {
+          "scope_digest": "synthetic-service-debt-scope:v0.1:cohort-a:meal",
+          "population_digest": "synthetic-population:v0.1:cohort-a",
+          "cohort_id": "COHORT_A",
+          "service_id": "COMMUNITY_MEAL",
+          "functional_unit_id": "MEAL_PORTION",
+          "unit_id": "MEAL_PORTION",
+          "period_id": "SYNTHETIC_SERVICE_WINDOW_001",
+          "time_basis_id": "SYNTHETIC_UTC_SECONDS_V1",
+          "start_seconds": 0,
+          "end_seconds": 3600
+        },
+        "evidence": {
+          "owner": "MYCELIX_REQUEST_REGISTER",
+          "record_id": "REGISTER-001",
+          "revision": "synthetic-r1",
+          "freshness": "CURRENT"
+        },
+        "records": [
+          {
+            "request_id": "REQ-008",
+            "state": "ACCEPTED",
+            "accepted_units": 2,
+            "delivered_units": 2,
+            "delivery_state": "KNOWN",
+            "scope": {
+              "scope_digest": "synthetic-service-debt-scope:v0.1:cohort-a:meal",
+              "population_digest": "synthetic-population:v0.1:cohort-a",
+              "cohort_id": "COHORT_A",
+              "service_id": "COMMUNITY_MEAL",
+              "functional_unit_id": "MEAL_PORTION",
+              "unit_id": "MEAL_PORTION",
+              "period_id": "SYNTHETIC_SERVICE_WINDOW_001",
+              "time_basis_id": "SYNTHETIC_UTC_SECONDS_V1",
+              "start_seconds": 0,
+              "end_seconds": 3600
+            },
+            "evidence": {
+              "owner": "MYCELIX_REQUEST_DELIVERY",
+              "record_id": "REQ-008",
+              "revision": "synthetic-r1",
+              "freshness": "CURRENT"
+            }
+          }
+        ]
+      },
+      "need_assessment": {
+        "state": "NOT_COLLECTED",
+        "scope": {
+          "scope_digest": "synthetic-service-debt-scope:v0.1:cohort-a:meal",
+          "population_digest": "synthetic-population:v0.1:cohort-a",
+          "cohort_id": "COHORT_A",
+          "service_id": "COMMUNITY_MEAL",
+          "functional_unit_id": "MEAL_PORTION",
+          "unit_id": "MEAL_PORTION",
+          "period_id": "SYNTHETIC_SERVICE_WINDOW_001",
+          "time_basis_id": "SYNTHETIC_UTC_SECONDS_V1",
+          "start_seconds": 0,
+          "end_seconds": 3600
+        },
+        "method": null,
+        "estimate_units": null,
+        "lower_bound_units": null,
+        "upper_bound_units": null,
+        "sample_size": null,
+        "confidence_level_basis_points": null,
+        "evidence": null
+      },
+      "expected": {
+        "capacity_gap_state": "KNOWN",
+        "capacity_shortfall_units": 2,
+        "capacity_surplus_units": 0,
+        "accepted_undelivered_state": "KNOWN",
+        "accepted_undelivered_units": 0,
+        "unexpressed_need_state": "NOT_COLLECTED",
+        "unexpressed_need_estimate_units": null,
+        "unexpressed_need_lower_bound_units": null,
+        "unexpressed_need_upper_bound_units": null,
+        "unresolved_exposure_state": "PRESENT",
+        "unresolved_reason_codes": [
+          "RESIDENT_NEED_NOT_ASSESSED"
+        ],
+        "unresolved_duration_seconds": 3600
+      }
+    },
+    {
+      "case_id": "ACCEPTED_REQUEST_DEBT_CAN_EXIST_WITH_CAPACITY_SURPLUS",
+      "scope": {
+        "scope_digest": "synthetic-service-debt-scope:v0.1:cohort-a:meal",
+        "population_digest": "synthetic-population:v0.1:cohort-a",
+        "cohort_id": "COHORT_A",
+        "service_id": "COMMUNITY_MEAL",
+        "functional_unit_id": "MEAL_PORTION",
+        "unit_id": "MEAL_PORTION",
+        "period_id": "SYNTHETIC_SERVICE_WINDOW_001",
+        "time_basis_id": "SYNTHETIC_UTC_SECONDS_V1",
+        "start_seconds": 0,
+        "end_seconds": 3600
+      },
+      "demand": {
+        "state": "KNOWN",
+        "quantity": 5,
+        "coverage": "COMPLETE",
+        "basis": "OWNER_QUALIFIED_SERVICE_DEMAND",
+        "scope": {
+          "scope_digest": "synthetic-service-debt-scope:v0.1:cohort-a:meal",
+          "population_digest": "synthetic-population:v0.1:cohort-a",
+          "cohort_id": "COHORT_A",
+          "service_id": "COMMUNITY_MEAL",
+          "functional_unit_id": "MEAL_PORTION",
+          "unit_id": "MEAL_PORTION",
+          "period_id": "SYNTHETIC_SERVICE_WINDOW_001",
+          "time_basis_id": "SYNTHETIC_UTC_SECONDS_V1",
+          "start_seconds": 0,
+          "end_seconds": 3600
+        },
+        "evidence": {
+          "owner": "MYCELIX_DEMAND",
+          "record_id": "DEMAND-5",
+          "revision": "synthetic-r1",
+          "freshness": "CURRENT"
+        }
+      },
+      "capacity": {
+        "state": "KNOWN",
+        "quantity": 8,
+        "coverage": "COMPLETE",
+        "basis": "OWNER_QUALIFIED_DELIVERABLE_CAPACITY",
+        "scope": {
+          "scope_digest": "synthetic-service-debt-scope:v0.1:cohort-a:meal",
+          "population_digest": "synthetic-population:v0.1:cohort-a",
+          "cohort_id": "COHORT_A",
+          "service_id": "COMMUNITY_MEAL",
+          "functional_unit_id": "MEAL_PORTION",
+          "unit_id": "MEAL_PORTION",
+          "period_id": "SYNTHETIC_SERVICE_WINDOW_001",
+          "time_basis_id": "SYNTHETIC_UTC_SECONDS_V1",
+          "start_seconds": 0,
+          "end_seconds": 3600
+        },
+        "evidence": {
+          "owner": "SYMTROPY_CAPACITY",
+          "record_id": "CAPACITY-8",
+          "revision": "synthetic-r1",
+          "freshness": "CURRENT"
+        }
+      },
+      "request_register": {
+        "coverage": "COMPLETE",
+        "scope": {
+          "scope_digest": "synthetic-service-debt-scope:v0.1:cohort-a:meal",
+          "population_digest": "synthetic-population:v0.1:cohort-a",
+          "cohort_id": "COHORT_A",
+          "service_id": "COMMUNITY_MEAL",
+          "functional_unit_id": "MEAL_PORTION",
+          "unit_id": "MEAL_PORTION",
+          "period_id": "SYNTHETIC_SERVICE_WINDOW_001",
+          "time_basis_id": "SYNTHETIC_UTC_SECONDS_V1",
+          "start_seconds": 0,
+          "end_seconds": 3600
+        },
+        "evidence": {
+          "owner": "MYCELIX_REQUEST_REGISTER",
+          "record_id": "REGISTER-001",
+          "revision": "synthetic-r1",
+          "freshness": "CURRENT"
+        },
+        "records": [
+          {
+            "request_id": "REQ-009",
+            "state": "ACCEPTED",
+            "accepted_units": 4,
+            "delivered_units": 1,
+            "delivery_state": "KNOWN",
+            "scope": {
+              "scope_digest": "synthetic-service-debt-scope:v0.1:cohort-a:meal",
+              "population_digest": "synthetic-population:v0.1:cohort-a",
+              "cohort_id": "COHORT_A",
+              "service_id": "COMMUNITY_MEAL",
+              "functional_unit_id": "MEAL_PORTION",
+              "unit_id": "MEAL_PORTION",
+              "period_id": "SYNTHETIC_SERVICE_WINDOW_001",
+              "time_basis_id": "SYNTHETIC_UTC_SECONDS_V1",
+              "start_seconds": 0,
+              "end_seconds": 3600
+            },
+            "evidence": {
+              "owner": "MYCELIX_REQUEST_DELIVERY",
+              "record_id": "REQ-009",
+              "revision": "synthetic-r1",
+              "freshness": "CURRENT"
+            }
+          }
+        ]
+      },
+      "need_assessment": {
+        "state": "NOT_COLLECTED",
+        "scope": {
+          "scope_digest": "synthetic-service-debt-scope:v0.1:cohort-a:meal",
+          "population_digest": "synthetic-population:v0.1:cohort-a",
+          "cohort_id": "COHORT_A",
+          "service_id": "COMMUNITY_MEAL",
+          "functional_unit_id": "MEAL_PORTION",
+          "unit_id": "MEAL_PORTION",
+          "period_id": "SYNTHETIC_SERVICE_WINDOW_001",
+          "time_basis_id": "SYNTHETIC_UTC_SECONDS_V1",
+          "start_seconds": 0,
+          "end_seconds": 3600
+        },
+        "method": null,
+        "estimate_units": null,
+        "lower_bound_units": null,
+        "upper_bound_units": null,
+        "sample_size": null,
+        "confidence_level_basis_points": null,
+        "evidence": null
+      },
+      "expected": {
+        "capacity_gap_state": "KNOWN",
+        "capacity_shortfall_units": 0,
+        "capacity_surplus_units": 3,
+        "accepted_undelivered_state": "KNOWN",
+        "accepted_undelivered_units": 3,
+        "unexpressed_need_state": "NOT_COLLECTED",
+        "unexpressed_need_estimate_units": null,
+        "unexpressed_need_lower_bound_units": null,
+        "unexpressed_need_upper_bound_units": null,
+        "unresolved_exposure_state": "PRESENT",
+        "unresolved_reason_codes": [
+          "RESIDENT_NEED_NOT_ASSESSED"
+        ],
+        "unresolved_duration_seconds": 3600
+      }
+    },
+    {
+      "case_id": "REQUEST_DEBT_REMAINS_KNOWN_WHILE_CAPACITY_IS_UNKNOWN",
+      "scope": {
+        "scope_digest": "synthetic-service-debt-scope:v0.1:cohort-a:meal",
+        "population_digest": "synthetic-population:v0.1:cohort-a",
+        "cohort_id": "COHORT_A",
+        "service_id": "COMMUNITY_MEAL",
+        "functional_unit_id": "MEAL_PORTION",
+        "unit_id": "MEAL_PORTION",
+        "period_id": "SYNTHETIC_SERVICE_WINDOW_001",
+        "time_basis_id": "SYNTHETIC_UTC_SECONDS_V1",
+        "start_seconds": 0,
+        "end_seconds": 3600
+      },
+      "demand": {
+        "state": "KNOWN",
+        "quantity": 5,
+        "coverage": "COMPLETE",
+        "basis": "OWNER_QUALIFIED_SERVICE_DEMAND",
+        "scope": {
+          "scope_digest": "synthetic-service-debt-scope:v0.1:cohort-a:meal",
+          "population_digest": "synthetic-population:v0.1:cohort-a",
+          "cohort_id": "COHORT_A",
+          "service_id": "COMMUNITY_MEAL",
+          "functional_unit_id": "MEAL_PORTION",
+          "unit_id": "MEAL_PORTION",
+          "period_id": "SYNTHETIC_SERVICE_WINDOW_001",
+          "time_basis_id": "SYNTHETIC_UTC_SECONDS_V1",
+          "start_seconds": 0,
+          "end_seconds": 3600
+        },
+        "evidence": {
+          "owner": "MYCELIX_DEMAND",
+          "record_id": "DEMAND-5",
+          "revision": "synthetic-r1",
+          "freshness": "CURRENT"
+        }
+      },
+      "capacity": {
+        "state": "UNKNOWN",
+        "quantity": null,
+        "coverage": "UNKNOWN",
+        "basis": "OWNER_QUALIFIED_DELIVERABLE_CAPACITY",
+        "scope": {
+          "scope_digest": "synthetic-service-debt-scope:v0.1:cohort-a:meal",
+          "population_digest": "synthetic-population:v0.1:cohort-a",
+          "cohort_id": "COHORT_A",
+          "service_id": "COMMUNITY_MEAL",
+          "functional_unit_id": "MEAL_PORTION",
+          "unit_id": "MEAL_PORTION",
+          "period_id": "SYNTHETIC_SERVICE_WINDOW_001",
+          "time_basis_id": "SYNTHETIC_UTC_SECONDS_V1",
+          "start_seconds": 0,
+          "end_seconds": 3600
+        },
+        "evidence": {
+          "owner": "SYMTROPY_CAPACITY",
+          "record_id": "CAPACITY-UNKNOWN",
+          "revision": "synthetic-r1",
+          "freshness": "CURRENT"
+        }
+      },
+      "request_register": {
+        "coverage": "COMPLETE",
+        "scope": {
+          "scope_digest": "synthetic-service-debt-scope:v0.1:cohort-a:meal",
+          "population_digest": "synthetic-population:v0.1:cohort-a",
+          "cohort_id": "COHORT_A",
+          "service_id": "COMMUNITY_MEAL",
+          "functional_unit_id": "MEAL_PORTION",
+          "unit_id": "MEAL_PORTION",
+          "period_id": "SYNTHETIC_SERVICE_WINDOW_001",
+          "time_basis_id": "SYNTHETIC_UTC_SECONDS_V1",
+          "start_seconds": 0,
+          "end_seconds": 3600
+        },
+        "evidence": {
+          "owner": "MYCELIX_REQUEST_REGISTER",
+          "record_id": "REGISTER-001",
+          "revision": "synthetic-r1",
+          "freshness": "CURRENT"
+        },
+        "records": [
+          {
+            "request_id": "REQ-010",
+            "state": "ACCEPTED",
+            "accepted_units": 4,
+            "delivered_units": 2,
+            "delivery_state": "KNOWN",
+            "scope": {
+              "scope_digest": "synthetic-service-debt-scope:v0.1:cohort-a:meal",
+              "population_digest": "synthetic-population:v0.1:cohort-a",
+              "cohort_id": "COHORT_A",
+              "service_id": "COMMUNITY_MEAL",
+              "functional_unit_id": "MEAL_PORTION",
+              "unit_id": "MEAL_PORTION",
+              "period_id": "SYNTHETIC_SERVICE_WINDOW_001",
+              "time_basis_id": "SYNTHETIC_UTC_SECONDS_V1",
+              "start_seconds": 0,
+              "end_seconds": 3600
+            },
+            "evidence": {
+              "owner": "MYCELIX_REQUEST_DELIVERY",
+              "record_id": "REQ-010",
+              "revision": "synthetic-r1",
+              "freshness": "CURRENT"
+            }
+          }
+        ]
+      },
+      "need_assessment": {
+        "state": "NOT_COLLECTED",
+        "scope": {
+          "scope_digest": "synthetic-service-debt-scope:v0.1:cohort-a:meal",
+          "population_digest": "synthetic-population:v0.1:cohort-a",
+          "cohort_id": "COHORT_A",
+          "service_id": "COMMUNITY_MEAL",
+          "functional_unit_id": "MEAL_PORTION",
+          "unit_id": "MEAL_PORTION",
+          "period_id": "SYNTHETIC_SERVICE_WINDOW_001",
+          "time_basis_id": "SYNTHETIC_UTC_SECONDS_V1",
+          "start_seconds": 0,
+          "end_seconds": 3600
+        },
+        "method": null,
+        "estimate_units": null,
+        "lower_bound_units": null,
+        "upper_bound_units": null,
+        "sample_size": null,
+        "confidence_level_basis_points": null,
+        "evidence": null
+      },
+      "expected": {
+        "capacity_gap_state": "UNKNOWN",
+        "capacity_shortfall_units": null,
+        "capacity_surplus_units": null,
+        "accepted_undelivered_state": "KNOWN",
+        "accepted_undelivered_units": 2,
+        "unexpressed_need_state": "NOT_COLLECTED",
+        "unexpressed_need_estimate_units": null,
+        "unexpressed_need_lower_bound_units": null,
+        "unexpressed_need_upper_bound_units": null,
+        "unresolved_exposure_state": "PRESENT",
+        "unresolved_reason_codes": [
+          "CAPACITY_GAP_EVIDENCE_UNRESOLVED",
+          "RESIDENT_NEED_NOT_ASSESSED"
+        ],
+        "unresolved_duration_seconds": 3600
+      }
+    },
+    {
+      "case_id": "STALE_RESIDENT_NEED_ESTIMATE_IS_NOT_A_MEASURED_RESULT",
+      "scope": {
+        "scope_digest": "synthetic-service-debt-scope:v0.1:cohort-a:meal",
+        "population_digest": "synthetic-population:v0.1:cohort-a",
+        "cohort_id": "COHORT_A",
+        "service_id": "COMMUNITY_MEAL",
+        "functional_unit_id": "MEAL_PORTION",
+        "unit_id": "MEAL_PORTION",
+        "period_id": "SYNTHETIC_SERVICE_WINDOW_001",
+        "time_basis_id": "SYNTHETIC_UTC_SECONDS_V1",
+        "start_seconds": 0,
+        "end_seconds": 3600
+      },
+      "demand": {
+        "state": "KNOWN",
+        "quantity": 5,
+        "coverage": "COMPLETE",
+        "basis": "OWNER_QUALIFIED_SERVICE_DEMAND",
+        "scope": {
+          "scope_digest": "synthetic-service-debt-scope:v0.1:cohort-a:meal",
+          "population_digest": "synthetic-population:v0.1:cohort-a",
+          "cohort_id": "COHORT_A",
+          "service_id": "COMMUNITY_MEAL",
+          "functional_unit_id": "MEAL_PORTION",
+          "unit_id": "MEAL_PORTION",
+          "period_id": "SYNTHETIC_SERVICE_WINDOW_001",
+          "time_basis_id": "SYNTHETIC_UTC_SECONDS_V1",
+          "start_seconds": 0,
+          "end_seconds": 3600
+        },
+        "evidence": {
+          "owner": "MYCELIX_DEMAND",
+          "record_id": "DEMAND-5",
+          "revision": "synthetic-r1",
+          "freshness": "CURRENT"
+        }
+      },
+      "capacity": {
+        "state": "KNOWN",
+        "quantity": 5,
+        "coverage": "COMPLETE",
+        "basis": "OWNER_QUALIFIED_DELIVERABLE_CAPACITY",
+        "scope": {
+          "scope_digest": "synthetic-service-debt-scope:v0.1:cohort-a:meal",
+          "population_digest": "synthetic-population:v0.1:cohort-a",
+          "cohort_id": "COHORT_A",
+          "service_id": "COMMUNITY_MEAL",
+          "functional_unit_id": "MEAL_PORTION",
+          "unit_id": "MEAL_PORTION",
+          "period_id": "SYNTHETIC_SERVICE_WINDOW_001",
+          "time_basis_id": "SYNTHETIC_UTC_SECONDS_V1",
+          "start_seconds": 0,
+          "end_seconds": 3600
+        },
+        "evidence": {
+          "owner": "SYMTROPY_CAPACITY",
+          "record_id": "CAPACITY-5",
+          "revision": "synthetic-r1",
+          "freshness": "CURRENT"
+        }
+      },
+      "request_register": {
+        "coverage": "COMPLETE",
+        "scope": {
+          "scope_digest": "synthetic-service-debt-scope:v0.1:cohort-a:meal",
+          "population_digest": "synthetic-population:v0.1:cohort-a",
+          "cohort_id": "COHORT_A",
+          "service_id": "COMMUNITY_MEAL",
+          "functional_unit_id": "MEAL_PORTION",
+          "unit_id": "MEAL_PORTION",
+          "period_id": "SYNTHETIC_SERVICE_WINDOW_001",
+          "time_basis_id": "SYNTHETIC_UTC_SECONDS_V1",
+          "start_seconds": 0,
+          "end_seconds": 3600
+        },
+        "evidence": {
+          "owner": "MYCELIX_REQUEST_REGISTER",
+          "record_id": "REGISTER-001",
+          "revision": "synthetic-r1",
+          "freshness": "CURRENT"
+        },
+        "records": []
+      },
+      "need_assessment": {
+        "state": "MEASURED",
+        "scope": {
+          "scope_digest": "synthetic-service-debt-scope:v0.1:cohort-a:meal",
+          "population_digest": "synthetic-population:v0.1:cohort-a",
+          "cohort_id": "COHORT_A",
+          "service_id": "COMMUNITY_MEAL",
+          "functional_unit_id": "MEAL_PORTION",
+          "unit_id": "MEAL_PORTION",
+          "period_id": "SYNTHETIC_SERVICE_WINDOW_001",
+          "time_basis_id": "SYNTHETIC_UTC_SECONDS_V1",
+          "start_seconds": 0,
+          "end_seconds": 3600
+        },
+        "method": "WEIGHTED_RESIDENT_SURVEY",
+        "estimate_units": 4,
+        "lower_bound_units": 2,
+        "upper_bound_units": 7,
+        "sample_size": 90,
+        "confidence_level_basis_points": 9500,
+        "evidence": {
+          "owner": "RESIDENT_NEED_ASSESSMENT",
+          "record_id": "NEED-001",
+          "revision": "synthetic-r1",
+          "freshness": "STALE"
+        }
+      },
+      "expected": {
+        "capacity_gap_state": "KNOWN",
+        "capacity_shortfall_units": 0,
+        "capacity_surplus_units": 0,
+        "accepted_undelivered_state": "KNOWN",
+        "accepted_undelivered_units": 0,
+        "unexpressed_need_state": "UNKNOWN",
+        "unexpressed_need_estimate_units": null,
+        "unexpressed_need_lower_bound_units": null,
+        "unexpressed_need_upper_bound_units": null,
+        "unresolved_exposure_state": "PRESENT",
+        "unresolved_reason_codes": [
+          "RESIDENT_NEED_EVIDENCE_UNRESOLVED"
+        ],
+        "unresolved_duration_seconds": 3600
+      }
+    },
+    {
+      "case_id": "REQUEST_SCOPE_MISMATCH_IS_NOT_COMPARABLE",
+      "scope": {
+        "scope_digest": "synthetic-service-debt-scope:v0.1:cohort-a:meal",
+        "population_digest": "synthetic-population:v0.1:cohort-a",
+        "cohort_id": "COHORT_A",
+        "service_id": "COMMUNITY_MEAL",
+        "functional_unit_id": "MEAL_PORTION",
+        "unit_id": "MEAL_PORTION",
+        "period_id": "SYNTHETIC_SERVICE_WINDOW_001",
+        "time_basis_id": "SYNTHETIC_UTC_SECONDS_V1",
+        "start_seconds": 0,
+        "end_seconds": 3600
+      },
+      "demand": {
+        "state": "KNOWN",
+        "quantity": 5,
+        "coverage": "COMPLETE",
+        "basis": "OWNER_QUALIFIED_SERVICE_DEMAND",
+        "scope": {
+          "scope_digest": "synthetic-service-debt-scope:v0.1:cohort-a:meal",
+          "population_digest": "synthetic-population:v0.1:cohort-a",
+          "cohort_id": "COHORT_A",
+          "service_id": "COMMUNITY_MEAL",
+          "functional_unit_id": "MEAL_PORTION",
+          "unit_id": "MEAL_PORTION",
+          "period_id": "SYNTHETIC_SERVICE_WINDOW_001",
+          "time_basis_id": "SYNTHETIC_UTC_SECONDS_V1",
+          "start_seconds": 0,
+          "end_seconds": 3600
+        },
+        "evidence": {
+          "owner": "MYCELIX_DEMAND",
+          "record_id": "DEMAND-5",
+          "revision": "synthetic-r1",
+          "freshness": "CURRENT"
+        }
+      },
+      "capacity": {
+        "state": "KNOWN",
+        "quantity": 5,
+        "coverage": "COMPLETE",
+        "basis": "OWNER_QUALIFIED_DELIVERABLE_CAPACITY",
+        "scope": {
+          "scope_digest": "synthetic-service-debt-scope:v0.1:cohort-a:meal",
+          "population_digest": "synthetic-population:v0.1:cohort-a",
+          "cohort_id": "COHORT_A",
+          "service_id": "COMMUNITY_MEAL",
+          "functional_unit_id": "MEAL_PORTION",
+          "unit_id": "MEAL_PORTION",
+          "period_id": "SYNTHETIC_SERVICE_WINDOW_001",
+          "time_basis_id": "SYNTHETIC_UTC_SECONDS_V1",
+          "start_seconds": 0,
+          "end_seconds": 3600
+        },
+        "evidence": {
+          "owner": "SYMTROPY_CAPACITY",
+          "record_id": "CAPACITY-5",
+          "revision": "synthetic-r1",
+          "freshness": "CURRENT"
+        }
+      },
+      "request_register": {
+        "coverage": "COMPLETE",
+        "scope": {
+          "scope_digest": "synthetic-service-debt-scope:v0.1:cohort-a:meal",
+          "population_digest": "synthetic-population:v0.1:cohort-a",
+          "cohort_id": "COHORT_A",
+          "service_id": "COMMUNITY_MEAL",
+          "functional_unit_id": "MEAL_PORTION",
+          "unit_id": "MEAL_PORTION",
+          "period_id": "SYNTHETIC_SERVICE_WINDOW_001",
+          "time_basis_id": "SYNTHETIC_UTC_SECONDS_V1",
+          "start_seconds": 0,
+          "end_seconds": 3600
+        },
+        "evidence": {
+          "owner": "MYCELIX_REQUEST_REGISTER",
+          "record_id": "REGISTER-001",
+          "revision": "synthetic-r1",
+          "freshness": "CURRENT"
+        },
+        "records": [
+          {
+            "request_id": "REQ-011",
+            "state": "ACCEPTED",
+            "accepted_units": 4,
+            "delivered_units": 2,
+            "delivery_state": "KNOWN",
+            "scope": {
+              "scope_digest": "synthetic-service-debt-scope:v0.1:cohort-a:meal",
+              "population_digest": "synthetic-population:v0.1:cohort-b",
+              "cohort_id": "COHORT_B",
+              "service_id": "COMMUNITY_MEAL",
+              "functional_unit_id": "MEAL_PORTION",
+              "unit_id": "MEAL_PORTION",
+              "period_id": "SYNTHETIC_SERVICE_WINDOW_001",
+              "time_basis_id": "SYNTHETIC_UTC_SECONDS_V1",
+              "start_seconds": 0,
+              "end_seconds": 3600
+            },
+            "evidence": {
+              "owner": "MYCELIX_REQUEST_DELIVERY",
+              "record_id": "REQ-011",
+              "revision": "synthetic-r1",
+              "freshness": "CURRENT"
+            }
+          }
+        ]
+      },
+      "need_assessment": {
+        "state": "NOT_COLLECTED",
+        "scope": {
+          "scope_digest": "synthetic-service-debt-scope:v0.1:cohort-a:meal",
+          "population_digest": "synthetic-population:v0.1:cohort-a",
+          "cohort_id": "COHORT_A",
+          "service_id": "COMMUNITY_MEAL",
+          "functional_unit_id": "MEAL_PORTION",
+          "unit_id": "MEAL_PORTION",
+          "period_id": "SYNTHETIC_SERVICE_WINDOW_001",
+          "time_basis_id": "SYNTHETIC_UTC_SECONDS_V1",
+          "start_seconds": 0,
+          "end_seconds": 3600
+        },
+        "method": null,
+        "estimate_units": null,
+        "lower_bound_units": null,
+        "upper_bound_units": null,
+        "sample_size": null,
+        "confidence_level_basis_points": null,
+        "evidence": null
+      },
+      "expected": {
+        "capacity_gap_state": "KNOWN",
+        "capacity_shortfall_units": 0,
+        "capacity_surplus_units": 0,
+        "accepted_undelivered_state": "NOT_COMPARABLE",
+        "accepted_undelivered_units": null,
+        "unexpressed_need_state": "NOT_COLLECTED",
+        "unexpressed_need_estimate_units": null,
+        "unexpressed_need_lower_bound_units": null,
+        "unexpressed_need_upper_bound_units": null,
+        "unresolved_exposure_state": "PRESENT",
+        "unresolved_reason_codes": [
+          "REQUEST_DELIVERY_SCOPE_MISMATCH",
+          "RESIDENT_NEED_NOT_ASSESSED"
+        ],
+        "unresolved_duration_seconds": 3600
+      }
+    },
+    {
+      "case_id": "PARTIAL_REQUEST_REGISTER_CANNOT_PROVE_ZERO_UNDELIVERED",
+      "scope": {
+        "scope_digest": "synthetic-service-debt-scope:v0.1:cohort-a:meal",
+        "population_digest": "synthetic-population:v0.1:cohort-a",
+        "cohort_id": "COHORT_A",
+        "service_id": "COMMUNITY_MEAL",
+        "functional_unit_id": "MEAL_PORTION",
+        "unit_id": "MEAL_PORTION",
+        "period_id": "SYNTHETIC_SERVICE_WINDOW_001",
+        "time_basis_id": "SYNTHETIC_UTC_SECONDS_V1",
+        "start_seconds": 0,
+        "end_seconds": 3600
+      },
+      "demand": {
+        "state": "KNOWN",
+        "quantity": 5,
+        "coverage": "COMPLETE",
+        "basis": "OWNER_QUALIFIED_SERVICE_DEMAND",
+        "scope": {
+          "scope_digest": "synthetic-service-debt-scope:v0.1:cohort-a:meal",
+          "population_digest": "synthetic-population:v0.1:cohort-a",
+          "cohort_id": "COHORT_A",
+          "service_id": "COMMUNITY_MEAL",
+          "functional_unit_id": "MEAL_PORTION",
+          "unit_id": "MEAL_PORTION",
+          "period_id": "SYNTHETIC_SERVICE_WINDOW_001",
+          "time_basis_id": "SYNTHETIC_UTC_SECONDS_V1",
+          "start_seconds": 0,
+          "end_seconds": 3600
+        },
+        "evidence": {
+          "owner": "MYCELIX_DEMAND",
+          "record_id": "DEMAND-5",
+          "revision": "synthetic-r1",
+          "freshness": "CURRENT"
+        }
+      },
+      "capacity": {
+        "state": "KNOWN",
+        "quantity": 5,
+        "coverage": "COMPLETE",
+        "basis": "OWNER_QUALIFIED_DELIVERABLE_CAPACITY",
+        "scope": {
+          "scope_digest": "synthetic-service-debt-scope:v0.1:cohort-a:meal",
+          "population_digest": "synthetic-population:v0.1:cohort-a",
+          "cohort_id": "COHORT_A",
+          "service_id": "COMMUNITY_MEAL",
+          "functional_unit_id": "MEAL_PORTION",
+          "unit_id": "MEAL_PORTION",
+          "period_id": "SYNTHETIC_SERVICE_WINDOW_001",
+          "time_basis_id": "SYNTHETIC_UTC_SECONDS_V1",
+          "start_seconds": 0,
+          "end_seconds": 3600
+        },
+        "evidence": {
+          "owner": "SYMTROPY_CAPACITY",
+          "record_id": "CAPACITY-5",
+          "revision": "synthetic-r1",
+          "freshness": "CURRENT"
+        }
+      },
+      "request_register": {
+        "coverage": "PARTIAL",
+        "scope": {
+          "scope_digest": "synthetic-service-debt-scope:v0.1:cohort-a:meal",
+          "population_digest": "synthetic-population:v0.1:cohort-a",
+          "cohort_id": "COHORT_A",
+          "service_id": "COMMUNITY_MEAL",
+          "functional_unit_id": "MEAL_PORTION",
+          "unit_id": "MEAL_PORTION",
+          "period_id": "SYNTHETIC_SERVICE_WINDOW_001",
+          "time_basis_id": "SYNTHETIC_UTC_SECONDS_V1",
+          "start_seconds": 0,
+          "end_seconds": 3600
+        },
+        "evidence": {
+          "owner": "MYCELIX_REQUEST_REGISTER",
+          "record_id": "REGISTER-001",
+          "revision": "synthetic-r1",
+          "freshness": "CURRENT"
+        },
+        "records": []
+      },
+      "need_assessment": {
+        "state": "NOT_COLLECTED",
+        "scope": {
+          "scope_digest": "synthetic-service-debt-scope:v0.1:cohort-a:meal",
+          "population_digest": "synthetic-population:v0.1:cohort-a",
+          "cohort_id": "COHORT_A",
+          "service_id": "COMMUNITY_MEAL",
+          "functional_unit_id": "MEAL_PORTION",
+          "unit_id": "MEAL_PORTION",
+          "period_id": "SYNTHETIC_SERVICE_WINDOW_001",
+          "time_basis_id": "SYNTHETIC_UTC_SECONDS_V1",
+          "start_seconds": 0,
+          "end_seconds": 3600
+        },
+        "method": null,
+        "estimate_units": null,
+        "lower_bound_units": null,
+        "upper_bound_units": null,
+        "sample_size": null,
+        "confidence_level_basis_points": null,
+        "evidence": null
+      },
+      "expected": {
+        "capacity_gap_state": "KNOWN",
+        "capacity_shortfall_units": 0,
+        "capacity_surplus_units": 0,
+        "accepted_undelivered_state": "UNKNOWN",
+        "accepted_undelivered_units": null,
+        "unexpressed_need_state": "NOT_COLLECTED",
+        "unexpressed_need_estimate_units": null,
+        "unexpressed_need_lower_bound_units": null,
+        "unexpressed_need_upper_bound_units": null,
+        "unresolved_exposure_state": "PRESENT",
+        "unresolved_reason_codes": [
+          "REQUEST_DELIVERY_EVIDENCE_UNRESOLVED",
+          "RESIDENT_NEED_NOT_ASSESSED"
+        ],
+        "unresolved_duration_seconds": 3600
+      }
+    },
+    {
+      "case_id": "STALE_DEMAND_EVIDENCE_CANNOT_CREATE_A_CAPACITY_GAP",
+      "scope": {
+        "scope_digest": "synthetic-service-debt-scope:v0.1:cohort-a:meal",
+        "population_digest": "synthetic-population:v0.1:cohort-a",
+        "cohort_id": "COHORT_A",
+        "service_id": "COMMUNITY_MEAL",
+        "functional_unit_id": "MEAL_PORTION",
+        "unit_id": "MEAL_PORTION",
+        "period_id": "SYNTHETIC_SERVICE_WINDOW_001",
+        "time_basis_id": "SYNTHETIC_UTC_SECONDS_V1",
+        "start_seconds": 0,
+        "end_seconds": 3600
+      },
+      "demand": {
+        "state": "KNOWN",
+        "quantity": 9,
+        "coverage": "COMPLETE",
+        "basis": "OWNER_QUALIFIED_SERVICE_DEMAND",
+        "scope": {
+          "scope_digest": "synthetic-service-debt-scope:v0.1:cohort-a:meal",
+          "population_digest": "synthetic-population:v0.1:cohort-a",
+          "cohort_id": "COHORT_A",
+          "service_id": "COMMUNITY_MEAL",
+          "functional_unit_id": "MEAL_PORTION",
+          "unit_id": "MEAL_PORTION",
+          "period_id": "SYNTHETIC_SERVICE_WINDOW_001",
+          "time_basis_id": "SYNTHETIC_UTC_SECONDS_V1",
+          "start_seconds": 0,
+          "end_seconds": 3600
+        },
+        "evidence": {
+          "owner": "MYCELIX_DEMAND",
+          "record_id": "DEMAND-9",
+          "revision": "synthetic-r1",
+          "freshness": "STALE"
+        }
+      },
+      "capacity": {
+        "state": "KNOWN",
+        "quantity": 5,
+        "coverage": "COMPLETE",
+        "basis": "OWNER_QUALIFIED_DELIVERABLE_CAPACITY",
+        "scope": {
+          "scope_digest": "synthetic-service-debt-scope:v0.1:cohort-a:meal",
+          "population_digest": "synthetic-population:v0.1:cohort-a",
+          "cohort_id": "COHORT_A",
+          "service_id": "COMMUNITY_MEAL",
+          "functional_unit_id": "MEAL_PORTION",
+          "unit_id": "MEAL_PORTION",
+          "period_id": "SYNTHETIC_SERVICE_WINDOW_001",
+          "time_basis_id": "SYNTHETIC_UTC_SECONDS_V1",
+          "start_seconds": 0,
+          "end_seconds": 3600
+        },
+        "evidence": {
+          "owner": "SYMTROPY_CAPACITY",
+          "record_id": "CAPACITY-5",
+          "revision": "synthetic-r1",
+          "freshness": "CURRENT"
+        }
+      },
+      "request_register": {
+        "coverage": "COMPLETE",
+        "scope": {
+          "scope_digest": "synthetic-service-debt-scope:v0.1:cohort-a:meal",
+          "population_digest": "synthetic-population:v0.1:cohort-a",
+          "cohort_id": "COHORT_A",
+          "service_id": "COMMUNITY_MEAL",
+          "functional_unit_id": "MEAL_PORTION",
+          "unit_id": "MEAL_PORTION",
+          "period_id": "SYNTHETIC_SERVICE_WINDOW_001",
+          "time_basis_id": "SYNTHETIC_UTC_SECONDS_V1",
+          "start_seconds": 0,
+          "end_seconds": 3600
+        },
+        "evidence": {
+          "owner": "MYCELIX_REQUEST_REGISTER",
+          "record_id": "REGISTER-001",
+          "revision": "synthetic-r1",
+          "freshness": "CURRENT"
+        },
+        "records": []
+      },
+      "need_assessment": {
+        "state": "NOT_COLLECTED",
+        "scope": {
+          "scope_digest": "synthetic-service-debt-scope:v0.1:cohort-a:meal",
+          "population_digest": "synthetic-population:v0.1:cohort-a",
+          "cohort_id": "COHORT_A",
+          "service_id": "COMMUNITY_MEAL",
+          "functional_unit_id": "MEAL_PORTION",
+          "unit_id": "MEAL_PORTION",
+          "period_id": "SYNTHETIC_SERVICE_WINDOW_001",
+          "time_basis_id": "SYNTHETIC_UTC_SECONDS_V1",
+          "start_seconds": 0,
+          "end_seconds": 3600
+        },
+        "method": null,
+        "estimate_units": null,
+        "lower_bound_units": null,
+        "upper_bound_units": null,
+        "sample_size": null,
+        "confidence_level_basis_points": null,
+        "evidence": null
+      },
+      "expected": {
+        "capacity_gap_state": "UNKNOWN",
+        "capacity_shortfall_units": null,
+        "capacity_surplus_units": null,
+        "accepted_undelivered_state": "KNOWN",
+        "accepted_undelivered_units": 0,
+        "unexpressed_need_state": "NOT_COLLECTED",
+        "unexpressed_need_estimate_units": null,
+        "unexpressed_need_lower_bound_units": null,
+        "unexpressed_need_upper_bound_units": null,
+        "unresolved_exposure_state": "PRESENT",
+        "unresolved_reason_codes": [
+          "CAPACITY_GAP_EVIDENCE_UNRESOLVED",
+          "RESIDENT_NEED_NOT_ASSESSED"
+        ],
+        "unresolved_duration_seconds": 3600
+      }
+    }
+  ]
+}
