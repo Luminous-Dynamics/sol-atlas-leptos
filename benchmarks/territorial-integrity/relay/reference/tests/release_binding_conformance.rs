@@ -69,6 +69,14 @@ fn apply_mutation(case_id: &str, manifest: &mut Value, coverage: &mut Value) {
             coverage["query_binding"]["data_classes"] =
                 serde_json::json!(["restricted"]);
         }
+        "COMPOSED-COVERAGE-QUERY-REF-DRIFT-001" => {
+            manifest["authorization_binding"]["coverage_query_ref"] =
+                Value::String("urn:fixture:query:other".into());
+        }
+        "COMPOSED-COVERAGE-QUERY-COMMITMENT-DRIFT-001" => {
+            manifest["authorization_binding"]["coverage_query_commitment"]["value"] =
+                Value::String("9".repeat(64));
+        }
         "COMPOSED-ASSERTED-LEAF-DRIFT-001" => {
             coverage["package_binding"]["terminal_source_leaf_refs"] =
                 serde_json::json!(["urn:fixture:source:other"]);
@@ -152,7 +160,7 @@ fn baseline_composed_release_is_structurally_bound() {
 fn frozen_composed_release_corpus_matches_every_expected_disposition() {
     let suite = corpus();
     let cases = suite["cases"].as_array().expect("case array");
-    assert_eq!(cases.len(), 17);
+    assert_eq!(cases.len(), 19);
     for case in cases {
         let case_id = case["case_id"].as_str().expect("case id");
         let expected = case["expected"].as_str().expect("expected disposition");
