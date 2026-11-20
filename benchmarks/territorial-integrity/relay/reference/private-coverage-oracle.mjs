@@ -390,6 +390,19 @@ function applyMutation(caseId, input) {
       input.receipt_binding.subject_ref = "urn:fixture:subject:other"; break;
     case "PCOV-RECEIPT-DATA-CLASS-DRIFT-001":
       input.receipt_binding.data_classes = ["restricted"]; break;
+    case "PCOV-PREDICATE-SCOPE-MISMATCH-001":
+      input.private_partition[3].scope_state = "in_scope";
+      input.private_partition[3].disposition = "withheld"; break;
+    case "PCOV-UNKNOWN-PREDICATE-AS-IN-SCOPE-001":
+      input.private_partition[4].scope_state = "in_scope";
+      input.private_partition[4].disposition = "withheld"; break;
+    case "PCOV-TRUE-PREDICATE-AS-OUT-OF-SCOPE-001":
+      input.private_partition[1].scope_state = "out_of_scope";
+      input.private_partition[1].disposition = "excluded"; break;
+    case "PCOV-PREDICATE-UNKNOWN-OPERATOR-001":
+      input.query_binding.predicate.op = "matches"; break;
+    case "PCOV-PREDICATE-MALFORMED-PATH-001":
+      input.query_binding.predicate.args[0].path = "dataset"; break;
     default:
       throw new Error("unknown private coverage case: " + caseId);
   }
@@ -410,7 +423,7 @@ for (const testCase of corpus.cases) {
   );
   counts[actual.disposition] += 1;
 }
-assert.equal(corpus.cases.length, 32);
+assert.equal(corpus.cases.length, 37);
 console.log("CTER private coverage oracle: " + corpus.cases.length + "/" + corpus.cases.length + " fixture dispositions matched.");
 console.log("Counts: " + JSON.stringify(counts) + ".");
 console.log("Partition structure only; no VDS/COSE proof, authority or global-completeness claim.");
