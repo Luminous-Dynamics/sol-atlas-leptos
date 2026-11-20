@@ -29,7 +29,7 @@ The evaluator consumes four mandatory predicates for each alternative and cohort
 - **Capacity:** Symtropy's owner-qualified service/resource feasibility result.
 - **Suitability:** resident-declared requirements and their owner-qualified evidence.
 
-Every predicate is bound to exact common scope, population frame, service, functional unit, time basis and source revision.
+Every predicate is bound to exact common scope, population frame, service, functional unit, resident cohort, time basis and source revision. The stable-recovery envelope is bound to the same identity.
 
 ## 3. Normative state algebra
 
@@ -67,7 +67,7 @@ Distinguish:
 - owner-qualified stable service recovery;
 - stable opportunity recovery, which additionally requires the composed opportunity to be AVAILABLE at the owner-attested stable tick.
 
-The evaluator must consume Symtropy's stable-recovery evidence. It must not infer stable restoration from a single good sample or a transient return to service.
+The evaluator must consume Symtropy's stable-recovery evidence through a scope-bound adapter envelope. The normalized predicate labels and envelope property names in this synthetic fixture are not assertions about the exact raw enum or schema fields in CityMorph, Symtropy or Mycelix; raw owner records and revisions must remain preserved, and each owner must approve its mapping. It must not infer stable restoration from a single good sample or a transient return to service.
 
 A route/service/capacity restoration mismatch remains unavailable until all mandatory opportunity predicates are again qualified.
 
@@ -87,7 +87,7 @@ It does not estimate independent failure probabilities, MTBF or real-world uptim
 
 The machine-readable oracle is SERVICE_OPPORTUNITY_RESILIENCE_REFERENCE_ORACLE_V0_1.json.
 
-It contains **16 hand-authored synthetic scenarios**, including:
+It contains **17 hand-authored synthetic scenarios**, including:
 - independent local fallback;
 - shared-operator common-cause loss;
 - a reachable destination without a full-duration service opportunity;
@@ -101,7 +101,7 @@ It contains **16 hand-authored synthetic scenarios**, including:
 - incomplete versus complete calendar evidence;
 - half-open interval adjacency;
 - scope mismatch;
-- unknown dependency-map completeness.
+- unknown dependency-map completeness;\n- stable-recovery evidence bound to a different cohort/scope.
 
 The expected output includes per-interval opportunity states, alternative-state counts, coalesced intervals, first availability, restoration after known loss, stable restoration and dependency-map completeness.
 
