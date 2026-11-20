@@ -311,3 +311,6 @@ The new comparison profile is \`docs/research/CTER_VDS_PROOF_PRIMITIVE_COMPARISO
 
 
 The proof-selection workstream now includes a machine-readable workload profile at \`benchmarks/territorial-integrity/egress/vds-proof-workloads-v0.1.json\`: five candidate families, four frontier scales (1k to 1M), multiple private-partition mixes, source-DAG shapes, churn schedules, verifier audiences and 22 fault injections. It requires proof generation, verification, disclosure leakage, checkpoint availability, update/invalidation and independent restore to be reported separately. This is a workload definition, not a benchmark result or primitive selection.
+
+
+The release-binding projection now includes the exact coverage-query reference and its canonical-query commitment in the egress authorization binding. The composed evaluator requires exact equality with the private coverage record's \`query_ref\` and \`query_commitment\`. The intent is to prevent a package/recipient/authority tuple from being reused under a different query predicate. The egress corpus now has 34 cases, and the joined release corpus has 19 cases (2 positive structural controls, 17 expected denials). These are frozen synthetic specifications; execution and Rust/Node22 CI status are reported separately.
