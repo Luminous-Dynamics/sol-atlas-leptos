@@ -64,7 +64,8 @@
               "content_digest": {
                 "algorithm": "sha-256",
                 "value": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
-              }
+              },
+              "data_classes": ["community"]
             }
           ],
           "transformation_refs": ["urn:fixture:transform:identity-001"]
