@@ -33,6 +33,68 @@ function referenceSet(value) {
   return { refs };
 }
 
+function queryScalar(value) {
+  return value === null || ["string", "boolean", "number"].includes(typeof value);
+}
+
+function queryMember(input, path) {
+  if (typeof path !== "string" || !/^\/[A-Za-z][A-Za-z0-9_-]*$/.test(path)) {
+    throw new Error("predicate_path_unsupported");
+  }
+  if (!input || typeof input !== "object" || Array.isArray(input)) return undefined;
+  return Object.hasOwn(input, path.slice(1)) ? input[path.slice(1)] : undefined;
+}
+
+function evaluatePredicate(node, input, depth = 0) {
+  if (depth > 32) throw new Error("predicate_depth_exceeded");
+  if (!node || typeof node !== "object" || Array.isArray(node)) {
+    throw new Error("predicate_node_missing_or_not_object");
+  }
+  switch (node.op) {
+    case "all":
+    case "any": {
+      if (!Array.isArray(node.args) || node.args.length < 1 || node.args.length > 32) {
+        throw new Error("predicate_args_count_out_of_range");
+      }
+      const results = node.args.map((arg) => evaluatePredicate(arg, input, depth + 1));
+      if (node.op === "all") {
+        if (results.includes("false")) return "false";
+        return results.includes("unknown") ? "unknown" : "true";
+      }
+      if (results.includes("true")) return "true";
+      return results.includes("unknown") ? "unknown" : "false";
+    }
+    case "not": {
+      const result = evaluatePredicate(node.arg, input, depth + 1);
+      return result === "unknown" ? "unknown" : (result === "true" ? "false" : "true");
+    }
+    case "exists": {
+      if (!input || typeof input !== "object" || Array.isArray(input)) return "unknown";
+      return queryMember(input, node.path) === undefined ? "false" : "true";
+    }
+    case "eq": {
+      const actual = queryMember(input, node.path);
+      if (actual === undefined) return "unknown";
+      if (!Object.hasOwn(node, "value") || !queryScalar(node.value)) {
+        throw new Error("predicate_eq_value_not_scalar");
+      }
+      return JSON.stringify(actual) === JSON.stringify(node.value) ? "true" : "false";
+    }
+    case "in": {
+      const actual = queryMember(input, node.path);
+      if (actual === undefined) return "unknown";
+      if (!Array.isArray(node.values) || node.values.length < 1 || node.values.length > 64
+          || !node.values.every(queryScalar)) {
+        throw new Error("predicate_in_values_out_of_range_or_not_scalar");
+      }
+      return node.values.some((value) => JSON.stringify(value) === JSON.stringify(actual))
+        ? "true" : "false";
+    }
+    default:
+      throw new Error("predicate_operator_unsupported");
+  }
+}
+
 export function evaluatePrivateCoverage(input) {
   let severity = LEVEL.none;
   const reasons = new Set();
@@ -80,7 +142,7 @@ export function evaluatePrivateCoverage(input) {
     return finish();
   }
   for (const field of [
-    "query_ref", "principal_ref", "subject_ref", "operation", "purpose_ref",
+    "query_ref", "query_profile_ref", "principal_ref", "subject_ref", "operation", "purpose_ref",
     "recipient_ref", "resource_ref", "jurisdiction_profile_ref",
   ]) {
     if (!nonblank(query, field)) raise("incomplete", "query_" + field + "_missing");
@@ -102,6 +164,17 @@ export function evaluatePrivateCoverage(input) {
     raise("incomplete", "query_data_classes_invalid");
   }
 
+  if (nonblank(query, "query_profile_ref") !== "urn:luminous:cter:predicate-json-v0.1") {
+    raise("incomplete", "query_profile_missing_or_unsupported");
+  }
+  let predicateValid = true;
+  try {
+    evaluatePredicate(query.predicate, {});
+  } catch (error) {
+    predicateValid = false;
+    raise("incomplete", "query_predicate_invalid:" + error.message);
+  }
+
   if (!Array.isArray(input.private_partition)) {
     raise("incomplete", "private_partition_missing");
     return finish();
@@ -120,6 +193,22 @@ export function evaluatePrivateCoverage(input) {
     partitionRefs.add(objectRef);
     const scope = nonblank(item, "scope_state");
     const disposition = nonblank(item, "disposition");
+    if (predicateValid) {
+      let match;
+      try {
+        match = evaluatePredicate(query.predicate, item?.query_input);
+      } catch (error) {
+        predicateValid = false;
+        raise("incomplete", "query_predicate_invalid:" + error.message);
+      }
+      if (predicateValid) {
+        const expectedScope = match === "true" ? "in_scope"
+          : (match === "false" ? "out_of_scope" : "unknown");
+        if (scope !== expectedScope) {
+          raise("deny", "partition_scope_does_not_match_query_predicate");
+        }
+      }
+    }
     if (scope === "in_scope" && disposition === "included") includedRefs.add(objectRef);
     else if (scope === "in_scope" && ["withheld", "unavailable", "unresolved"].includes(disposition)) {}
     else if (scope === "out_of_scope" && disposition === "excluded") {}
@@ -167,7 +256,7 @@ export function evaluatePrivateCoverage(input) {
       raise("deny", "receipt_package_commitment_mismatch");
     }
     for (const field of [
-      "query_commitment", "request_commitment", "principal_ref", "subject_ref", "operation",
+      "query_commitment", "request_commitment", "query_profile_ref", "principal_ref", "subject_ref", "operation",
       "purpose_ref", "recipient_ref", "resource_ref", "jurisdiction_profile_ref",
       "project_snapshot_sha256",
     ]) {
