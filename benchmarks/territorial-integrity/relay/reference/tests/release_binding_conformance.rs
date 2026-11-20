@@ -170,16 +170,12 @@ fn frozen_composed_release_corpus_matches_every_expected_disposition() {
 
 #[test]
 fn composed_release_derives_leaves_through_intermediate_outputs() {
-    let (mut manifest, coverage) = baseline();
+    let (mut manifest, mut coverage) = baseline();
     apply_mutation(
         "COMPOSED-MULTI-STAGE-PROVENANCE-001",
         &mut manifest,
-        &mut coverage.clone(),
+        &mut coverage,
     );
-    let coverage = {
-        let (_, original) = baseline();
-        original
-    };
     let result = evaluate_composed_release_binding(&manifest, &coverage);
     assert_eq!(
         result.disposition,
