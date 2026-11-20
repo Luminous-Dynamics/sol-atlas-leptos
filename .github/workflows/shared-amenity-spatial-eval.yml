@@ -78,6 +78,9 @@ jobs:
             and .disposition_counts.unavailable == 7
             and .disposition_counts.unknown == 8
             and .disposition_counts.not_comparable == 3
+            and .time_basis_tick_seconds == 900
+            and .time_basis_origin == "SYNTHETIC_LOCAL_DAY_START"
+            and .interval_semantics == "HALF_OPEN_START_INCLUSIVE_END_EXCLUSIVE"
             and (.fixture_sha256 | test("^[0-9a-f]{64}$"))
           ' temporal-opportunity-evaluation.json
           test "$(jq -r .fixture_sha256 temporal-opportunity-evaluation.json)" = "$temporal_fixture_sha256"
