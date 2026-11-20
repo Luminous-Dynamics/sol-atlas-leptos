@@ -335,3 +335,6 @@ Compose the egress binding with CTER custody exit #947 and Mycelix cryptographic
 Historical validation and present-day cryptographic acceptability are separate. A signature may have been valid under a past trust policy while its algorithm is no longer accepted for new actions. A later renewal may preserve evidence of prior validity but cannot retroactively make a previously untrusted signature authoritative.
 
 No post-quantum algorithm has been selected or implemented in this profile. The workstream should consume NIST transition guidance and Mycelix's canonical cryptographic renewal owner rather than define a second renewal ledger.
+
+
+The lineage check has an additional exact-set invariant: for each output node, the set of immediate transform inputs must equal the output's declared source-reference set. It is not sufficient for every declared source to appear among the transform inputs; an additional undeclared input is also an incomplete provenance record. The Rust suite and independent Node oracle now include a synthetic hidden-transform-input mutation.
