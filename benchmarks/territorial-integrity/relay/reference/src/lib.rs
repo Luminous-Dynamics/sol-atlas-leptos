@@ -10,6 +10,7 @@
 
 
 pub mod archive;
+pub mod authority;
 
 use serde_json::{json, Value};
 use std::collections::{BTreeMap, BTreeSet, VecDeque};

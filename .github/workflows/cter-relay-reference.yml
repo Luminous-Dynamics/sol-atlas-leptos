@@ -7,8 +7,10 @@ on:
       - "benchmarks/territorial-integrity/relay/**"
       - "schemas/cter-relay-delivery-v0.1.schema.json"
       - "schemas/cter-community-archive-manifest-v0.1.schema.json"
+      - "schemas/cter-authority-use-v0.1.schema.json"
       - "docs/research/CTER_OFFLINE_RELAY_PROFILE_V0_1.md"
       - "docs/research/CTER_CUSTODY_EXIT_PROFILE_V0_1.md"
+      - "docs/research/CTER_AUTHORITY_CONSUMPTION_PROFILE_V0_1.md"
       - ".github/workflows/cter-relay-reference.yml"
   pull_request:
     branches: [main]
@@ -16,8 +18,10 @@ on:
       - "benchmarks/territorial-integrity/relay/**"
       - "schemas/cter-relay-delivery-v0.1.schema.json"
       - "schemas/cter-community-archive-manifest-v0.1.schema.json"
+      - "schemas/cter-authority-use-v0.1.schema.json"
       - "docs/research/CTER_OFFLINE_RELAY_PROFILE_V0_1.md"
       - "docs/research/CTER_CUSTODY_EXIT_PROFILE_V0_1.md"
+      - "docs/research/CTER_AUTHORITY_CONSUMPTION_PROFILE_V0_1.md"
       - ".github/workflows/cter-relay-reference.yml"
   workflow_dispatch:
 
@@ -67,6 +71,8 @@ jobs:
           python3 -m json.tool benchmarks/territorial-integrity/relay/scale-workloads-v0.1.json > /dev/null
           python3 -m json.tool schemas/cter-relay-delivery-v0.1.schema.json > /dev/null
           python3 -m json.tool schemas/cter-community-archive-manifest-v0.1.schema.json > /dev/null
+          python3 -m json.tool benchmarks/territorial-integrity/relay/authority-cases-v0.1.json > /dev/null
+          python3 -m json.tool schemas/cter-authority-use-v0.1.schema.json > /dev/null
 
       - name: Install Node for independent second-language oracle
         uses: actions/setup-node@v4
@@ -75,6 +81,9 @@ jobs:
 
       - name: Run independent relay and archive oracle
         run: node benchmarks/territorial-integrity/relay/reference/oracle.mjs
+
+      - name: Run independent authority consumer oracle
+        run: node benchmarks/territorial-integrity/relay/reference/authority-oracle.mjs
 
       - name: Assert standalone dependency lock is current
         run: cargo metadata --locked --manifest-path benchmarks/territorial-integrity/relay/reference/Cargo.toml > /dev/null
