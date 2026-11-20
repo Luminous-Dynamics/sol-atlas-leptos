@@ -282,7 +282,7 @@ The initial profile artefacts now exist on the CTER research branch:
 
 - Schema: \`schemas/cter-disclosure-manifest-v0.1.schema.json\`.
 - Synthetic suite: \`benchmarks/territorial-integrity/egress/cases-v0.1.json\`.
-- Frozen suite: one structurally valid synthetic baseline plus 31 adversarial mutation cases.
+- Frozen suite: one structurally valid synthetic baseline plus 33 adversarial mutation cases.
 
 The corpus is specified but its reference validator has not yet been implemented or run. Expected dispositions are test requirements, not results. The schema validates the manifest's shape; it does not resolve cross-field equality, source/transform graph closure, exact byte digests, canonicalization, resolver trust, trusted time or release safety. Those checks belong in the Rust reference validator and its independently implemented oracle.
 
