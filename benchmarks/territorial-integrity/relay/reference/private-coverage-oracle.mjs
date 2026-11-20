@@ -297,6 +297,10 @@ function applyMutation(caseId, input) {
       input.receipt_binding.recipient_ref = "urn:fixture:recipient:other"; break;
     case "PCOV-PROOF-VIEW-EXTRA-REFERENCE-001":
       input.public_verifier_view.object_refs = ["urn:fixture:evidence:item-b"]; break;
+    case "PCOV-RECEIPT-SUBJECT-DRIFT-001":
+      input.receipt_binding.subject_ref = "urn:fixture:subject:other"; break;
+    case "PCOV-RECEIPT-DATA-CLASS-DRIFT-001":
+      input.receipt_binding.data_classes = ["restricted"]; break;
     default:
       throw new Error("unknown private coverage case: " + caseId);
   }
@@ -317,7 +321,7 @@ for (const testCase of corpus.cases) {
   );
   counts[actual.disposition] += 1;
 }
-assert.equal(corpus.cases.length, 30);
+assert.equal(corpus.cases.length, 32);
 console.log("CTER private coverage oracle: " + corpus.cases.length + "/" + corpus.cases.length + " fixture dispositions matched.");
 console.log("Counts: " + JSON.stringify(counts) + ".");
 console.log("Partition structure only; no VDS/COSE proof, authority or global-completeness claim.");
