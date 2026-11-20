@@ -199,7 +199,22 @@ Use three comparison levels:
 
 All levels must use the same resident cohort, service, functional unit, period, time basis, network/route source, and source revisions. If the incumbent cannot express an output, label it unsupported; do not manufacture a baseline result. Measure any claimed improvement in false-zero rate, traceability, decision reproducibility, and detection of unmet accepted service. No routing, solver, reliability, causal-effect, or equity outperformance claim is justified by v0.1.
 
-## 9. Research frontiers after v0.1
+## 9. Distributive justice and capability-floor research boundary
+
+A follow-on question is whether a service opportunity meets a resident-authorized minimum capability floor. This is deliberately separate from the four v0.1 metrology outputs and is tracked in [CAPABILITY-FLOOR-ASSURANCE-001 #969](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/969).
+
+Current work already covers much of the fairness and threshold design space:
+
+- The **MAP framework** (published online 3 June 2026) operationalizes equality, utilitarian, and Rawlsian distributive spatial-justice lenses, and applies them to networks in the Netherlands, Mexico and South Africa. Habitat should not claim a new theory or general fairness index. Its narrower future contribution is exact-scope evidence qualification and non-concealment for service-task and delivery floors. [*Ethically Informed Urban Planning: Measuring Distributive Spatial Justice for Neighborhood Accessibility* (2026)](https://doi.org/10.1080/24694452.2026.2671995).
+- A **bi-level multi-objective facility-location framework** (July 2026) already balances accessibility, equity and sustainability and produces Pareto-frontier options. Habitat must consume/compare such optimizer outputs, not replace them with a binary score. [*Balancing accessibility, equity, and sustainability in public facility location-allocation* (2026)](https://doi.org/10.1016/j.apgeog.2026.104027).
+- **Perceived Minimum Accessibility** and **Perceived Sufficient Accessibility** thresholds (July 2026) are derived from a Canadian Mobility Survey sample of 15,960, with region-specific thresholds and differentiated population coverage. This shows that thresholds should be service-, geography-, mode-, population- and perception-bound; no Canadian threshold may be transplanted to Gauteng by default. [*Operationalizing accessibility thresholds: Identifying perceived minimum and sufficient accessibility in Canada* (2026)](https://doi.org/10.1016/j.jtrangeo.2026.104758).
+- An **equitable facility-location** method using Kolm–Pollak equally-distributed-equivalent measures has been benchmarked against p-median, p-center and p-centdian alternatives across 428 US cities. This is an optimization comparator, not an evidence-ledger competitor. [*A scalable optimization approach for equitable facility location* (2025)](https://doi.org/10.1016/j.trb.2025.103319).
+- A September 2026 study developed a Gauteng City Region housing accessibility index using spatial analysis and AHP–MCDA and reported service-access misalignment for subsidized housing locations. This is directly relevant South African context, but it is a potential-accessibility assessment; it does not establish actual task completion, provider delivery or resident-reported unmet need. [*Developing a Decision Support Housing Accessibility Index (DSHAI) in the Gauteng city region, South Africa* (2026)](https://doi.org/10.1016/j.sciaf.2026.e03511).
+- A 2026 systematic review of fifteen-minute-city accessibility assessment argues that potential/objective indicators should be supplemented by realized, behavioral or subjective evidence when effective access or equity is the principal concern. This supports keeping access, service delivery and resident experience as separate evidence families. [*Revisiting the 15-min city through accessibility assessment* (2026)](https://www.sciencedirect.com/science/article/pii/S0264275126007481).
+
+**Implication:** do not propose a new universal fairness score. Let residents and accountable authorities declare service-specific floors; preserve competing justice lenses as separately reported policy views; evaluate each cohort against the exact approved floor; show unresolved coverage explicitly; only then expose admissible efficiency/sustainability trade-offs. A city average, Pareto improvement, or optimizer objective may not erase a protected-cohort floor failure.
+
+## 10. Research frontiers after v0.1
 
 1. **Capability-floor accounting.** Compare each essential service and cohort against a declared minimum service floor. Use lexicographic safeguards for essential floors before cost efficiency; avoid a single weighted welfare score.
 2. **Common-cause-aware service debt.** Join the service-debt ledger to #959 resilience only after upstream owners qualify dependency maps and fault/recovery evidence.
@@ -208,7 +223,7 @@ All levels must use the same resident cohort, service, functional unit, period, 
 5. **Intervention evaluation.** Test whether added staff, extended hours, route changes, or modular capacity actually reduce the same unit-scoped shortfall and improve completed delivery. Use preregistered comparisons and appropriate causal designs; a before/after map alone is not causal evidence.
 6. **Temporal metrology.** Integrate #966's source precision and conversion rules before joining observations from unlike clock resolutions.
 
-## 10. Field validation gate
+## 11. Field validation gate
 
 Before any real city/resident claim:
 - service owner approves the functional unit and what counts as completed delivery;
