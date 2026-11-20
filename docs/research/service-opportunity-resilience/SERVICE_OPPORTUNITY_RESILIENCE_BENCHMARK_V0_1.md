@@ -193,7 +193,53 @@ No local dataset is claimed acquired or validated by this protocol.
 - PEAI, Beyond time: A multidimensional framework for assessing accessibility via active transportation, Journal of Urban Mobility 9 (June 2026), 100217: https://doi.org/10.1016/j.urbmob.2026.100217
 - Which access matters? A comparative analysis of accessibility metrics and their impacts on commuting, Journal of Transport and Land Use (2026): https://doi.org/10.5198/jtlu.2026.2832
 
+
+## 11. Decision-relevant evidence acquisition and service debt
+
+Unknown opportunity states should lead to a deliberate investigation decision, not an indiscriminate request for more data.
+
+Compose Symtropy [SPATIAL-VOI-001 #1892](https://github.com/Luminous-Dynamics/symtropy/issues/1892). Do not create another generic value-of-information engine.
+
+For each unresolved service claim, identify:
+- which missing owner evidence blocks the decision;
+- which lawful, rights-cleared measurement or source request could resolve it;
+- which observation outcomes are possible under the declared finite state set;
+- whether any outcome changes robust-feasible alternatives, the Pareto set or a hard service-floor decision;
+- measurement cost, time, privacy burden and implementation feasibility;
+- residual unknowns that remain after the measurement.
+
+Without defensible priors, likelihoods and calibration, do not report expected monetary VOI or expected probability of a decision change. Report worst-case decision impact, outcome-conditional feasible/Pareto sets, state-set reduction, action cost and residual blockers. A high-volume survey that cannot change any admitted decision may be less valuable than a small, targeted inspection that resolves one decisive service constraint.
+
+### Service debt
+
+Where an owner-qualified demand basis exists, report accumulated unmet service as a dimensional quantity over time rather than a generic resilience score.
+
+For a declared cohort and service functional unit:
+
+`service_debt = integral(unmet_service_rate(t), t0..t1)`
+
+For discrete intervals, this is the sum of unmet service units per interval multiplied by interval duration. The unit might be resident-workshop-hours, household-water-volume, or another service-specific measure. Never add unlike service units together. If the demand rate, service capacity, time basis or cohort denominator is not qualified, report the missing basis and retain UNKNOWN rather than fabricating service debt.
+
+Service debt complements (and does not replace):
+- known unavailable duration;
+- unresolved duration;
+- time to first restoration;
+- time to stable restoration;
+- worst-cohort service-floor breaches.
+
 ## 12. Claim discipline and implementation order
+
+This package is a reference oracle and protocol only. It is not an executable evaluator, not CI evidence, not an empirical study and not field qualification.
+
+Implementation order:
+1. Have the independent golden answers reviewed.
+2. Freeze the closed schema and fixture digest.
+3. Implement a Rust evaluator that consumes these inputs without owning routes, event clocks or capacity.
+4. Add metamorphic and adversarial tests (input order, exact half-open boundaries, stale evidence, recurrence, shared dependencies).
+5. Produce exact-head receipt bound to commit, schema, fixture and owner revisions.
+6. Integrate Symtropy #1892 only for measurement/action decision impact; do not make a duplicate VOI engine.
+7. Only then run B0/B1 comparison on identical specialist inputs.
+
 
 This package is a reference oracle and protocol only. It is not an executable evaluator, not CI evidence, not an empirical study and not field qualification.
 
