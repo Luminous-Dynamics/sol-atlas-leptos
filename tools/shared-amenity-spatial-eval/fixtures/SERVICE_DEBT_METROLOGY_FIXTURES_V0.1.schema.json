@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/blob/research/service-debt-metrology-v0.1/tools/shared-amenity-spatial-eval/fixtures/SERVICE_DEBT_METROLOGY_FIXTURES_V0.1.schema.json",
+  "$id": "urn:luminous:sol-atlas:service-debt-metrology:0.1.0",
   "title": "Luminous service-debt metrology synthetic fixtures",
   "type": "object",
   "additionalProperties": false,
