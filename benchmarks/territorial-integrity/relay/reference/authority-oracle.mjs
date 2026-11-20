@@ -41,7 +41,10 @@ function evaluate(input){
   if(!domains.has(domain))raise(1,"decision_domain_unknown");
   switch(r.disposition){case "allow":break;case "deny":raise(4,"upstream_decision_denied");break;case "review":raise(3,"upstream_decision_requires_review");break;case "unknown":raise(2,"upstream_decision_unknown");break;default:raise(1,"decision_disposition_invalid");}
   switch(r.signature_status){case "verified":break;case "invalid":raise(4,"receipt_signature_invalid");break;case "unavailable":raise(2,"receipt_signature_unavailable");break;default:raise(1,"receipt_signature_status_missing");}
-  switch(r.authority_status){case "resolved":break;case "revoked":raise(4,"issuer_authority_revoked");break;case "unresolved":raise(3,"issuer_authority_unresolved");break;default:raise(1,"issuer_authority_status_missing");}
+  switch(r.issuer_trust_status){case "trusted":break;case "untrusted":raise(4,"receipt_issuer_untrusted");break;
+   case "unavailable":raise(2,"receipt_issuer_trust_unavailable");break;default:raise(1,"receipt_issuer_trust_status_missing");}
+  switch(r.decision_authority_status){case "resolved":break;case "revoked":raise(4,"decision_maker_authority_revoked");break;
+   case "unresolved":raise(3,"decision_maker_authority_unresolved");break;default:raise(1,"decision_authority_status_missing");}
   switch(r.revocation_status){case "clear":break;case "revoked":raise(4,"decision_revoked");break;case "unknown":raise(2,"revocation_state_unknown");break;default:raise(1,"revocation_status_missing");}
   switch(r.currentness_status){case "current":break;case "stale":raise(2,"decision_currentness_stale");break;case "unknown":raise(2,"decision_currentness_unknown");break;default:raise(1,"currentness_status_missing");}
   if(utc(r.valid_from)&&utc(r.valid_until)&&r.valid_from<r.valid_until){if(at<r.valid_from)raise(4,"decision_not_yet_valid");else if(at>=r.valid_until)raise(4,"decision_expired");}else raise(1,"decision_validity_window_invalid");

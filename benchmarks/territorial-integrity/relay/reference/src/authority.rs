@@ -269,25 +269,47 @@ fn evaluate_receipt(
         ),
     }
 
-    match nonblank(receipt, "authority_status") {
-        Some("resolved") => {}
-        Some("revoked") => raise(
+    match nonblank(receipt, "issuer_trust_status") {
+        Some("trusted") => {}
+        Some("untrusted") => raise(
             severity,
             reasons,
             Severity::Deny,
-            "issuer_authority_revoked",
+            "receipt_issuer_untrusted",
         ),
-        Some("unresolved") => raise(
+        Some("unavailable") => raise(
             severity,
             reasons,
-            Severity::Review,
-            "issuer_authority_unresolved",
+            Severity::Unknown,
+            "receipt_issuer_trust_unavailable",
         ),
         _ => raise(
             severity,
             reasons,
             Severity::Incomplete,
-            "issuer_authority_status_missing",
+            "receipt_issuer_trust_status_missing",
+        ),
+    }
+
+    match nonblank(receipt, "decision_authority_status") {
+        Some("resolved") => {}
+        Some("revoked") => raise(
+            severity,
+            reasons,
+            Severity::Deny,
+            "decision_maker_authority_revoked",
+        ),
+        Some("unresolved") => raise(
+            severity,
+            reasons,
+            Severity::Review,
+            "decision_maker_authority_unresolved",
+        ),
+        _ => raise(
+            severity,
+            reasons,
+            Severity::Incomplete,
+            "decision_authority_status_missing",
         ),
     }
 

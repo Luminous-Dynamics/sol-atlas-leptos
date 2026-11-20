@@ -1,7 +1,7 @@
 {
   "schema": "luminous.cter.authority-cases.v0",
   "suite_id": "CTER-AUTH-CONSUMPTION-001",
-  "suite_version": "0.1.1",
+  "suite_version": "0.1.2",
   "synthetic_only": true,
   "parent_issue": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/951",
   "upstream_owners": [
@@ -55,7 +55,6 @@
               "urn:mycelix:input:source-evidence:participant_consent"
             ],
             "signature_status": "verified",
-            "authority_status": "resolved",
             "revocation_status": "clear",
             "currentness_status": "current",
             "status_snapshot_ref": "urn:mycelix:key-and-revocation-snapshot:synthetic-v0",
@@ -64,7 +63,9 @@
             "offline_lease_expires_at": "2026-11-20T03:30:00Z",
             "principal_ref": "did:example:actor-1",
             "decision_maker_ref": "participant:opaque-1",
-            "decision_authority_ref": "urn:authority-basis:participant_consent"
+            "decision_authority_ref": "urn:authority-basis:participant_consent",
+            "decision_authority_status": "resolved",
+            "issuer_trust_status": "trusted"
           },
           {
             "receipt_type": "AuthorizationReceipt",
@@ -86,7 +87,6 @@
               "urn:mycelix:input:source-evidence:site_access"
             ],
             "signature_status": "verified",
-            "authority_status": "resolved",
             "revocation_status": "clear",
             "currentness_status": "current",
             "status_snapshot_ref": "urn:mycelix:key-and-revocation-snapshot:synthetic-v0",
@@ -95,7 +95,9 @@
             "offline_lease_expires_at": "2026-11-20T03:30:00Z",
             "principal_ref": "did:example:actor-1",
             "decision_maker_ref": "authority:site-access",
-            "decision_authority_ref": "urn:authority-basis:site_access"
+            "decision_authority_ref": "urn:authority-basis:site_access",
+            "decision_authority_status": "resolved",
+            "issuer_trust_status": "trusted"
           },
           {
             "receipt_type": "AuthorizationReceipt",
@@ -117,7 +119,6 @@
               "urn:mycelix:input:source-evidence:community_mandate"
             ],
             "signature_status": "verified",
-            "authority_status": "resolved",
             "revocation_status": "clear",
             "currentness_status": "current",
             "status_snapshot_ref": "urn:mycelix:key-and-revocation-snapshot:synthetic-v0",
@@ -126,7 +127,9 @@
             "offline_lease_expires_at": "2026-11-20T03:30:00Z",
             "principal_ref": "did:example:actor-1",
             "decision_maker_ref": "organisation:community-governance",
-            "decision_authority_ref": "urn:authority-basis:community_mandate"
+            "decision_authority_ref": "urn:authority-basis:community_mandate",
+            "decision_authority_status": "resolved",
+            "issuer_trust_status": "trusted"
           }
         ],
         "governance_context": {
@@ -185,7 +188,6 @@
               "urn:mycelix:input:source-evidence:participant_consent"
             ],
             "signature_status": "verified",
-            "authority_status": "resolved",
             "revocation_status": "clear",
             "currentness_status": "current",
             "status_snapshot_ref": "urn:mycelix:key-and-revocation-snapshot:synthetic-v0",
@@ -194,7 +196,9 @@
             "offline_lease_expires_at": "2026-11-20T03:30:00Z",
             "principal_ref": "did:example:actor-1",
             "decision_maker_ref": "participant:opaque-1",
-            "decision_authority_ref": "urn:authority-basis:participant_consent"
+            "decision_authority_ref": "urn:authority-basis:participant_consent",
+            "decision_authority_status": "resolved",
+            "issuer_trust_status": "trusted"
           },
           {
             "receipt_type": "AuthorizationReceipt",
@@ -216,7 +220,6 @@
               "urn:mycelix:input:source-evidence:site_access"
             ],
             "signature_status": "verified",
-            "authority_status": "resolved",
             "revocation_status": "clear",
             "currentness_status": "current",
             "status_snapshot_ref": "urn:mycelix:key-and-revocation-snapshot:synthetic-v0",
@@ -225,7 +228,9 @@
             "offline_lease_expires_at": "2026-11-20T03:30:00Z",
             "principal_ref": "did:example:actor-1",
             "decision_maker_ref": "authority:site-access",
-            "decision_authority_ref": "urn:authority-basis:site_access"
+            "decision_authority_ref": "urn:authority-basis:site_access",
+            "decision_authority_status": "resolved",
+            "issuer_trust_status": "trusted"
           },
           {
             "receipt_type": "AuthorizationReceipt",
@@ -247,7 +252,6 @@
               "urn:mycelix:input:source-evidence:community_mandate"
             ],
             "signature_status": "verified",
-            "authority_status": "resolved",
             "revocation_status": "clear",
             "currentness_status": "current",
             "status_snapshot_ref": "urn:mycelix:key-and-revocation-snapshot:synthetic-v0",
@@ -256,7 +260,9 @@
             "offline_lease_expires_at": "2026-11-20T03:30:00Z",
             "principal_ref": "did:example:actor-1",
             "decision_maker_ref": "organisation:community-governance",
-            "decision_authority_ref": "urn:authority-basis:community_mandate"
+            "decision_authority_ref": "urn:authority-basis:community_mandate",
+            "decision_authority_status": "resolved",
+            "issuer_trust_status": "trusted"
           }
         ],
         "governance_context": {
@@ -315,7 +321,6 @@
               "urn:mycelix:input:source-evidence:participant_consent"
             ],
             "signature_status": "verified",
-            "authority_status": "resolved",
             "revocation_status": "clear",
             "currentness_status": "current",
             "status_snapshot_ref": "urn:mycelix:key-and-revocation-snapshot:synthetic-v0",
@@ -324,7 +329,9 @@
             "offline_lease_expires_at": "2026-11-20T03:30:00Z",
             "principal_ref": "did:example:actor-1",
             "decision_maker_ref": "participant:opaque-1",
-            "decision_authority_ref": "urn:authority-basis:participant_consent"
+            "decision_authority_ref": "urn:authority-basis:participant_consent",
+            "decision_authority_status": "resolved",
+            "issuer_trust_status": "trusted"
           },
           {
             "receipt_type": "AuthorizationReceipt",
@@ -346,7 +353,6 @@
               "urn:mycelix:input:source-evidence:site_access"
             ],
             "signature_status": "verified",
-            "authority_status": "resolved",
             "revocation_status": "clear",
             "currentness_status": "current",
             "status_snapshot_ref": "urn:mycelix:key-and-revocation-snapshot:synthetic-v0",
@@ -355,7 +361,9 @@
             "offline_lease_expires_at": "2026-11-20T03:30:00Z",
             "principal_ref": "did:example:actor-1",
             "decision_maker_ref": "authority:site-access",
-            "decision_authority_ref": "urn:authority-basis:site_access"
+            "decision_authority_ref": "urn:authority-basis:site_access",
+            "decision_authority_status": "resolved",
+            "issuer_trust_status": "trusted"
           },
           {
             "receipt_type": "AuthorizationReceipt",
@@ -377,7 +385,6 @@
               "urn:mycelix:input:source-evidence:community_mandate"
             ],
             "signature_status": "verified",
-            "authority_status": "resolved",
             "revocation_status": "clear",
             "currentness_status": "current",
             "status_snapshot_ref": "urn:mycelix:key-and-revocation-snapshot:synthetic-v0",
@@ -386,7 +393,9 @@
             "offline_lease_expires_at": "2026-11-20T03:30:00Z",
             "principal_ref": "did:example:actor-1",
             "decision_maker_ref": "organisation:community-governance",
-            "decision_authority_ref": "urn:authority-basis:community_mandate"
+            "decision_authority_ref": "urn:authority-basis:community_mandate",
+            "decision_authority_status": "resolved",
+            "issuer_trust_status": "trusted"
           }
         ],
         "governance_context": {
@@ -445,7 +454,6 @@
               "urn:mycelix:input:source-evidence:participant_consent"
             ],
             "signature_status": "verified",
-            "authority_status": "resolved",
             "revocation_status": "clear",
             "currentness_status": "current",
             "status_snapshot_ref": "urn:mycelix:key-and-revocation-snapshot:synthetic-v0",
@@ -454,7 +462,9 @@
             "offline_lease_expires_at": "2026-11-20T03:30:00Z",
             "principal_ref": "did:example:actor-1",
             "decision_maker_ref": "participant:opaque-1",
-            "decision_authority_ref": "urn:authority-basis:participant_consent"
+            "decision_authority_ref": "urn:authority-basis:participant_consent",
+            "decision_authority_status": "resolved",
+            "issuer_trust_status": "trusted"
           },
           {
             "receipt_type": "AuthorizationReceipt",
@@ -476,7 +486,6 @@
               "urn:mycelix:input:source-evidence:site_access"
             ],
             "signature_status": "verified",
-            "authority_status": "resolved",
             "revocation_status": "clear",
             "currentness_status": "current",
             "status_snapshot_ref": "urn:mycelix:key-and-revocation-snapshot:synthetic-v0",
@@ -485,7 +494,9 @@
             "offline_lease_expires_at": "2026-11-20T03:30:00Z",
             "principal_ref": "did:example:actor-1",
             "decision_maker_ref": "authority:site-access",
-            "decision_authority_ref": "urn:authority-basis:site_access"
+            "decision_authority_ref": "urn:authority-basis:site_access",
+            "decision_authority_status": "resolved",
+            "issuer_trust_status": "trusted"
           },
           {
             "receipt_type": "AuthorizationReceipt",
@@ -507,7 +518,6 @@
               "urn:mycelix:input:source-evidence:community_mandate"
             ],
             "signature_status": "verified",
-            "authority_status": "resolved",
             "revocation_status": "clear",
             "currentness_status": "current",
             "status_snapshot_ref": "urn:mycelix:key-and-revocation-snapshot:synthetic-v0",
@@ -516,7 +526,9 @@
             "offline_lease_expires_at": "2026-11-20T03:30:00Z",
             "principal_ref": "did:example:actor-1",
             "decision_maker_ref": "organisation:community-governance",
-            "decision_authority_ref": "urn:authority-basis:community_mandate"
+            "decision_authority_ref": "urn:authority-basis:community_mandate",
+            "decision_authority_status": "resolved",
+            "issuer_trust_status": "trusted"
           }
         ],
         "governance_context": {
@@ -575,7 +587,6 @@
               "urn:mycelix:input:source-evidence:participant_consent"
             ],
             "signature_status": "verified",
-            "authority_status": "resolved",
             "revocation_status": "clear",
             "currentness_status": "current",
             "status_snapshot_ref": "urn:mycelix:key-and-revocation-snapshot:synthetic-v0",
@@ -584,7 +595,9 @@
             "offline_lease_expires_at": "2026-11-20T03:30:00Z",
             "principal_ref": "did:example:actor-1",
             "decision_maker_ref": "participant:opaque-1",
-            "decision_authority_ref": "urn:authority-basis:participant_consent"
+            "decision_authority_ref": "urn:authority-basis:participant_consent",
+            "decision_authority_status": "resolved",
+            "issuer_trust_status": "trusted"
           },
           {
             "receipt_type": "AuthorizationReceipt",
@@ -606,7 +619,6 @@
               "urn:mycelix:input:source-evidence:site_access"
             ],
             "signature_status": "verified",
-            "authority_status": "resolved",
             "revocation_status": "clear",
             "currentness_status": "current",
             "status_snapshot_ref": "urn:mycelix:key-and-revocation-snapshot:synthetic-v0",
@@ -615,7 +627,9 @@
             "offline_lease_expires_at": "2026-11-20T03:30:00Z",
             "principal_ref": "did:example:actor-1",
             "decision_maker_ref": "authority:site-access",
-            "decision_authority_ref": "urn:authority-basis:site_access"
+            "decision_authority_ref": "urn:authority-basis:site_access",
+            "decision_authority_status": "resolved",
+            "issuer_trust_status": "trusted"
           },
           {
             "receipt_type": "AuthorizationReceipt",
@@ -637,7 +651,6 @@
               "urn:mycelix:input:source-evidence:community_mandate"
             ],
             "signature_status": "verified",
-            "authority_status": "resolved",
             "revocation_status": "clear",
             "currentness_status": "current",
             "status_snapshot_ref": "urn:mycelix:key-and-revocation-snapshot:synthetic-v0",
@@ -646,7 +659,9 @@
             "offline_lease_expires_at": "2026-11-20T03:30:00Z",
             "principal_ref": "did:example:actor-1",
             "decision_maker_ref": "organisation:community-governance",
-            "decision_authority_ref": "urn:authority-basis:community_mandate"
+            "decision_authority_ref": "urn:authority-basis:community_mandate",
+            "decision_authority_status": "resolved",
+            "issuer_trust_status": "trusted"
           }
         ],
         "governance_context": {
@@ -705,7 +720,6 @@
               "urn:mycelix:input:source-evidence:participant_consent"
             ],
             "signature_status": "verified",
-            "authority_status": "resolved",
             "revocation_status": "clear",
             "currentness_status": "current",
             "status_snapshot_ref": "urn:mycelix:key-and-revocation-snapshot:synthetic-v0",
@@ -714,7 +728,9 @@
             "offline_lease_expires_at": "2026-11-20T03:30:00Z",
             "principal_ref": "did:example:actor-1",
             "decision_maker_ref": "participant:opaque-1",
-            "decision_authority_ref": "urn:authority-basis:participant_consent"
+            "decision_authority_ref": "urn:authority-basis:participant_consent",
+            "decision_authority_status": "resolved",
+            "issuer_trust_status": "trusted"
           },
           {
             "receipt_type": "AuthorizationReceipt",
@@ -736,7 +752,6 @@
               "urn:mycelix:input:source-evidence:site_access"
             ],
             "signature_status": "verified",
-            "authority_status": "resolved",
             "revocation_status": "clear",
             "currentness_status": "current",
             "status_snapshot_ref": "urn:mycelix:key-and-revocation-snapshot:synthetic-v0",
@@ -745,7 +760,9 @@
             "offline_lease_expires_at": "2026-11-20T03:30:00Z",
             "principal_ref": "did:example:actor-1",
             "decision_maker_ref": "authority:site-access",
-            "decision_authority_ref": "urn:authority-basis:site_access"
+            "decision_authority_ref": "urn:authority-basis:site_access",
+            "decision_authority_status": "resolved",
+            "issuer_trust_status": "trusted"
           },
           {
             "receipt_type": "AuthorizationReceipt",
@@ -767,7 +784,6 @@
               "urn:mycelix:input:source-evidence:community_mandate"
             ],
             "signature_status": "verified",
-            "authority_status": "resolved",
             "revocation_status": "clear",
             "currentness_status": "current",
             "status_snapshot_ref": "urn:mycelix:key-and-revocation-snapshot:synthetic-v0",
@@ -776,7 +792,9 @@
             "offline_lease_expires_at": "2026-11-20T03:30:00Z",
             "principal_ref": "did:example:actor-1",
             "decision_maker_ref": "organisation:community-governance",
-            "decision_authority_ref": "urn:authority-basis:community_mandate"
+            "decision_authority_ref": "urn:authority-basis:community_mandate",
+            "decision_authority_status": "resolved",
+            "issuer_trust_status": "trusted"
           }
         ],
         "governance_context": {
@@ -835,7 +853,6 @@
               "urn:mycelix:input:source-evidence:participant_consent"
             ],
             "signature_status": "verified",
-            "authority_status": "resolved",
             "revocation_status": "clear",
             "currentness_status": "current",
             "status_snapshot_ref": "urn:mycelix:key-and-revocation-snapshot:synthetic-v0",
@@ -844,7 +861,9 @@
             "offline_lease_expires_at": "2026-11-20T03:30:00Z",
             "principal_ref": "did:example:actor-1",
             "decision_maker_ref": "participant:opaque-1",
-            "decision_authority_ref": "urn:authority-basis:participant_consent"
+            "decision_authority_ref": "urn:authority-basis:participant_consent",
+            "decision_authority_status": "resolved",
+            "issuer_trust_status": "trusted"
           },
           {
             "receipt_type": "AuthorizationReceipt",
@@ -866,7 +885,6 @@
               "urn:mycelix:input:source-evidence:site_access"
             ],
             "signature_status": "verified",
-            "authority_status": "resolved",
             "revocation_status": "clear",
             "currentness_status": "current",
             "status_snapshot_ref": "urn:mycelix:key-and-revocation-snapshot:synthetic-v0",
@@ -875,7 +893,9 @@
             "offline_lease_expires_at": "2026-11-20T03:30:00Z",
             "principal_ref": "did:example:actor-1",
             "decision_maker_ref": "authority:site-access",
-            "decision_authority_ref": "urn:authority-basis:site_access"
+            "decision_authority_ref": "urn:authority-basis:site_access",
+            "decision_authority_status": "resolved",
+            "issuer_trust_status": "trusted"
           },
           {
             "receipt_type": "AuthorizationReceipt",
@@ -897,7 +917,6 @@
               "urn:mycelix:input:source-evidence:community_mandate"
             ],
             "signature_status": "verified",
-            "authority_status": "resolved",
             "revocation_status": "clear",
             "currentness_status": "current",
             "status_snapshot_ref": "urn:mycelix:key-and-revocation-snapshot:synthetic-v0",
@@ -906,7 +925,9 @@
             "offline_lease_expires_at": "2026-11-20T03:30:00Z",
             "principal_ref": "did:example:actor-1",
             "decision_maker_ref": "organisation:community-governance",
-            "decision_authority_ref": "urn:authority-basis:community_mandate"
+            "decision_authority_ref": "urn:authority-basis:community_mandate",
+            "decision_authority_status": "resolved",
+            "issuer_trust_status": "trusted"
           }
         ],
         "governance_context": {
@@ -966,7 +987,6 @@
               "urn:mycelix:input:source-evidence:participant_consent"
             ],
             "signature_status": "verified",
-            "authority_status": "resolved",
             "revocation_status": "clear",
             "currentness_status": "current",
             "status_snapshot_ref": "urn:mycelix:key-and-revocation-snapshot:synthetic-v0",
@@ -975,7 +995,9 @@
             "offline_lease_expires_at": "2026-11-20T03:30:00Z",
             "principal_ref": "did:example:actor-1",
             "decision_maker_ref": "participant:opaque-1",
-            "decision_authority_ref": "urn:authority-basis:participant_consent"
+            "decision_authority_ref": "urn:authority-basis:participant_consent",
+            "decision_authority_status": "resolved",
+            "issuer_trust_status": "trusted"
           },
           {
             "receipt_type": "AuthorizationReceipt",
@@ -997,7 +1019,6 @@
               "urn:mycelix:input:source-evidence:site_access"
             ],
             "signature_status": "verified",
-            "authority_status": "resolved",
             "revocation_status": "clear",
             "currentness_status": "current",
             "status_snapshot_ref": "urn:mycelix:key-and-revocation-snapshot:synthetic-v0",
@@ -1006,7 +1027,9 @@
             "offline_lease_expires_at": "2026-11-20T03:30:00Z",
             "principal_ref": "did:example:actor-1",
             "decision_maker_ref": "authority:site-access",
-            "decision_authority_ref": "urn:authority-basis:site_access"
+            "decision_authority_ref": "urn:authority-basis:site_access",
+            "decision_authority_status": "resolved",
+            "issuer_trust_status": "trusted"
           },
           {
             "receipt_type": "AuthorizationReceipt",
@@ -1028,7 +1051,6 @@
               "urn:mycelix:input:source-evidence:community_mandate"
             ],
             "signature_status": "verified",
-            "authority_status": "resolved",
             "revocation_status": "clear",
             "currentness_status": "current",
             "status_snapshot_ref": "urn:mycelix:key-and-revocation-snapshot:synthetic-v0",
@@ -1037,7 +1059,9 @@
             "offline_lease_expires_at": "2026-11-20T03:30:00Z",
             "principal_ref": "did:example:actor-1",
             "decision_maker_ref": "organisation:community-governance",
-            "decision_authority_ref": "urn:authority-basis:community_mandate"
+            "decision_authority_ref": "urn:authority-basis:community_mandate",
+            "decision_authority_status": "resolved",
+            "issuer_trust_status": "trusted"
           }
         ],
         "governance_context": {
@@ -1096,7 +1120,6 @@
               "urn:mycelix:input:source-evidence:participant_consent"
             ],
             "signature_status": "verified",
-            "authority_status": "resolved",
             "revocation_status": "clear",
             "currentness_status": "current",
             "status_snapshot_ref": "urn:mycelix:key-and-revocation-snapshot:synthetic-v0",
@@ -1105,7 +1128,9 @@
             "offline_lease_expires_at": "2026-11-20T03:30:00Z",
             "principal_ref": "did:example:actor-1",
             "decision_maker_ref": "participant:opaque-1",
-            "decision_authority_ref": "urn:authority-basis:participant_consent"
+            "decision_authority_ref": "urn:authority-basis:participant_consent",
+            "decision_authority_status": "resolved",
+            "issuer_trust_status": "trusted"
           },
           {
             "receipt_type": "AuthorizationReceipt",
@@ -1127,7 +1152,6 @@
               "urn:mycelix:input:source-evidence:community_mandate"
             ],
             "signature_status": "verified",
-            "authority_status": "resolved",
             "revocation_status": "clear",
             "currentness_status": "current",
             "status_snapshot_ref": "urn:mycelix:key-and-revocation-snapshot:synthetic-v0",
@@ -1136,7 +1160,9 @@
             "offline_lease_expires_at": "2026-11-20T03:30:00Z",
             "principal_ref": "did:example:actor-1",
             "decision_maker_ref": "organisation:community-governance",
-            "decision_authority_ref": "urn:authority-basis:community_mandate"
+            "decision_authority_ref": "urn:authority-basis:community_mandate",
+            "decision_authority_status": "resolved",
+            "issuer_trust_status": "trusted"
           }
         ],
         "governance_context": {
@@ -1195,7 +1221,6 @@
               "urn:mycelix:input:source-evidence:participant_consent"
             ],
             "signature_status": "verified",
-            "authority_status": "resolved",
             "revocation_status": "clear",
             "currentness_status": "current",
             "status_snapshot_ref": "urn:mycelix:key-and-revocation-snapshot:synthetic-v0",
@@ -1204,7 +1229,9 @@
             "offline_lease_expires_at": "2026-11-20T03:30:00Z",
             "principal_ref": "did:example:actor-1",
             "decision_maker_ref": "participant:opaque-1",
-            "decision_authority_ref": "urn:authority-basis:participant_consent"
+            "decision_authority_ref": "urn:authority-basis:participant_consent",
+            "decision_authority_status": "resolved",
+            "issuer_trust_status": "trusted"
           },
           {
             "receipt_type": "AuthorizationReceipt",
@@ -1226,7 +1253,6 @@
               "urn:mycelix:input:source-evidence:site_access"
             ],
             "signature_status": "verified",
-            "authority_status": "resolved",
             "revocation_status": "clear",
             "currentness_status": "current",
             "status_snapshot_ref": "urn:mycelix:key-and-revocation-snapshot:synthetic-v0",
@@ -1235,7 +1261,9 @@
             "offline_lease_expires_at": "2026-11-20T03:30:00Z",
             "principal_ref": "did:example:actor-1",
             "decision_maker_ref": "authority:site-access",
-            "decision_authority_ref": "urn:authority-basis:site_access"
+            "decision_authority_ref": "urn:authority-basis:site_access",
+            "decision_authority_status": "resolved",
+            "issuer_trust_status": "trusted"
           }
         ],
         "governance_context": {
@@ -1294,7 +1322,6 @@
               "urn:mycelix:input:source-evidence:participant_consent"
             ],
             "signature_status": "verified",
-            "authority_status": "resolved",
             "revocation_status": "clear",
             "currentness_status": "current",
             "status_snapshot_ref": "urn:mycelix:key-and-revocation-snapshot:synthetic-v0",
@@ -1303,7 +1330,9 @@
             "offline_lease_expires_at": "2026-11-20T03:30:00Z",
             "principal_ref": "did:example:actor-1",
             "decision_maker_ref": "participant:opaque-1",
-            "decision_authority_ref": "urn:authority-basis:participant_consent"
+            "decision_authority_ref": "urn:authority-basis:participant_consent",
+            "decision_authority_status": "resolved",
+            "issuer_trust_status": "trusted"
           },
           {
             "receipt_type": "AuthorizationReceipt",
@@ -1325,7 +1354,6 @@
               "urn:mycelix:input:source-evidence:site_access"
             ],
             "signature_status": "verified",
-            "authority_status": "resolved",
             "revocation_status": "clear",
             "currentness_status": "current",
             "status_snapshot_ref": "urn:mycelix:key-and-revocation-snapshot:synthetic-v0",
@@ -1334,7 +1362,9 @@
             "offline_lease_expires_at": "2026-11-20T03:30:00Z",
             "principal_ref": "did:example:actor-1",
             "decision_maker_ref": "authority:site-access",
-            "decision_authority_ref": "urn:authority-basis:site_access"
+            "decision_authority_ref": "urn:authority-basis:site_access",
+            "decision_authority_status": "resolved",
+            "issuer_trust_status": "trusted"
           },
           {
             "receipt_type": "AuthorizationReceipt",
@@ -1356,7 +1386,6 @@
               "urn:mycelix:input:source-evidence:community_mandate"
             ],
             "signature_status": "verified",
-            "authority_status": "resolved",
             "revocation_status": "clear",
             "currentness_status": "current",
             "status_snapshot_ref": "urn:mycelix:key-and-revocation-snapshot:synthetic-v0",
@@ -1365,7 +1394,9 @@
             "offline_lease_expires_at": "2026-11-20T03:30:00Z",
             "principal_ref": "did:example:actor-1",
             "decision_maker_ref": "organisation:community-governance",
-            "decision_authority_ref": "urn:authority-basis:community_mandate"
+            "decision_authority_ref": "urn:authority-basis:community_mandate",
+            "decision_authority_status": "resolved",
+            "issuer_trust_status": "trusted"
           }
         ],
         "governance_context": {
@@ -1424,7 +1455,6 @@
               "urn:mycelix:input:source-evidence:publication_consent"
             ],
             "signature_status": "verified",
-            "authority_status": "resolved",
             "revocation_status": "clear",
             "currentness_status": "current",
             "status_snapshot_ref": "urn:mycelix:key-and-revocation-snapshot:synthetic-v0",
@@ -1433,7 +1463,9 @@
             "offline_lease_expires_at": "2026-11-20T03:30:00Z",
             "principal_ref": "did:example:actor-1",
             "decision_maker_ref": "participant:opaque-1",
-            "decision_authority_ref": "urn:authority-basis:publication_consent"
+            "decision_authority_ref": "urn:authority-basis:publication_consent",
+            "decision_authority_status": "resolved",
+            "issuer_trust_status": "trusted"
           },
           {
             "receipt_type": "AuthorizationReceipt",
@@ -1455,7 +1487,6 @@
               "urn:mycelix:input:source-evidence:community_disclosure"
             ],
             "signature_status": "verified",
-            "authority_status": "resolved",
             "revocation_status": "clear",
             "currentness_status": "current",
             "status_snapshot_ref": "urn:mycelix:key-and-revocation-snapshot:synthetic-v0",
@@ -1464,7 +1495,9 @@
             "offline_lease_expires_at": "2026-11-20T03:30:00Z",
             "principal_ref": "did:example:actor-1",
             "decision_maker_ref": "organisation:community-governance",
-            "decision_authority_ref": "urn:authority-basis:community_disclosure"
+            "decision_authority_ref": "urn:authority-basis:community_disclosure",
+            "decision_authority_status": "resolved",
+            "issuer_trust_status": "trusted"
           }
         ],
         "governance_context": {
@@ -1523,7 +1556,6 @@
               "urn:mycelix:input:source-evidence:archive_export"
             ],
             "signature_status": "verified",
-            "authority_status": "resolved",
             "revocation_status": "clear",
             "currentness_status": "current",
             "status_snapshot_ref": "urn:mycelix:key-and-revocation-snapshot:synthetic-v0",
@@ -1532,7 +1564,9 @@
             "offline_lease_expires_at": "2026-11-20T03:30:00Z",
             "principal_ref": "did:example:actor-1",
             "decision_maker_ref": "authority:archive-export",
-            "decision_authority_ref": "urn:authority-basis:archive_export"
+            "decision_authority_ref": "urn:authority-basis:archive_export",
+            "decision_authority_status": "resolved",
+            "issuer_trust_status": "trusted"
           },
           {
             "receipt_type": "AuthorizationReceipt",
@@ -1554,7 +1588,6 @@
               "urn:mycelix:input:source-evidence:community_disclosure"
             ],
             "signature_status": "verified",
-            "authority_status": "resolved",
             "revocation_status": "clear",
             "currentness_status": "current",
             "status_snapshot_ref": "urn:mycelix:key-and-revocation-snapshot:synthetic-v0",
@@ -1563,7 +1596,9 @@
             "offline_lease_expires_at": "2026-11-20T03:30:00Z",
             "principal_ref": "did:example:actor-1",
             "decision_maker_ref": "organisation:community-governance",
-            "decision_authority_ref": "urn:authority-basis:community_disclosure"
+            "decision_authority_ref": "urn:authority-basis:community_disclosure",
+            "decision_authority_status": "resolved",
+            "issuer_trust_status": "trusted"
           }
         ],
         "governance_context": {
@@ -1622,7 +1657,6 @@
               "urn:mycelix:input:source-evidence:participant_consent"
             ],
             "signature_status": "verified",
-            "authority_status": "resolved",
             "revocation_status": "clear",
             "currentness_status": "current",
             "status_snapshot_ref": "urn:mycelix:key-and-revocation-snapshot:synthetic-v0",
@@ -1631,7 +1665,9 @@
             "offline_lease_expires_at": "2026-11-20T03:30:00Z",
             "principal_ref": "did:example:actor-1",
             "decision_maker_ref": "participant:opaque-1",
-            "decision_authority_ref": "urn:authority-basis:participant_consent"
+            "decision_authority_ref": "urn:authority-basis:participant_consent",
+            "decision_authority_status": "resolved",
+            "issuer_trust_status": "trusted"
           },
           {
             "receipt_type": "AuthorizationReceipt",
@@ -1653,7 +1689,6 @@
               "urn:mycelix:input:source-evidence:site_access"
             ],
             "signature_status": "verified",
-            "authority_status": "resolved",
             "revocation_status": "clear",
             "currentness_status": "current",
             "status_snapshot_ref": "urn:mycelix:key-and-revocation-snapshot:synthetic-v0",
@@ -1662,7 +1697,9 @@
             "offline_lease_expires_at": "2026-11-20T03:30:00Z",
             "principal_ref": "did:example:actor-1",
             "decision_maker_ref": "authority:site-access",
-            "decision_authority_ref": "urn:authority-basis:site_access"
+            "decision_authority_ref": "urn:authority-basis:site_access",
+            "decision_authority_status": "resolved",
+            "issuer_trust_status": "trusted"
           },
           {
             "receipt_type": "AuthorizationReceipt",
@@ -1684,7 +1721,6 @@
               "urn:mycelix:input:source-evidence:community_mandate"
             ],
             "signature_status": "verified",
-            "authority_status": "resolved",
             "revocation_status": "clear",
             "currentness_status": "current",
             "status_snapshot_ref": "urn:mycelix:key-and-revocation-snapshot:synthetic-v0",
@@ -1693,7 +1729,9 @@
             "offline_lease_expires_at": "2026-11-20T03:30:00Z",
             "principal_ref": "did:example:actor-1",
             "decision_maker_ref": "organisation:community-governance",
-            "decision_authority_ref": "urn:authority-basis:community_mandate"
+            "decision_authority_ref": "urn:authority-basis:community_mandate",
+            "decision_authority_status": "resolved",
+            "issuer_trust_status": "trusted"
           }
         ],
         "governance_context": {
@@ -1752,7 +1790,6 @@
               "urn:mycelix:input:source-evidence:participant_consent"
             ],
             "signature_status": "verified",
-            "authority_status": "resolved",
             "revocation_status": "clear",
             "currentness_status": "current",
             "status_snapshot_ref": "urn:mycelix:key-and-revocation-snapshot:synthetic-v0",
@@ -1761,7 +1798,9 @@
             "offline_lease_expires_at": "2026-11-20T03:30:00Z",
             "principal_ref": "did:example:actor-1",
             "decision_maker_ref": "participant:opaque-1",
-            "decision_authority_ref": "urn:authority-basis:participant_consent"
+            "decision_authority_ref": "urn:authority-basis:participant_consent",
+            "decision_authority_status": "resolved",
+            "issuer_trust_status": "trusted"
           },
           {
             "receipt_type": "AuthorizationReceipt",
@@ -1783,7 +1822,6 @@
               "urn:mycelix:input:source-evidence:site_access"
             ],
             "signature_status": "verified",
-            "authority_status": "resolved",
             "revocation_status": "clear",
             "currentness_status": "current",
             "status_snapshot_ref": "urn:mycelix:key-and-revocation-snapshot:synthetic-v0",
@@ -1792,7 +1830,9 @@
             "offline_lease_expires_at": "2026-11-20T03:30:00Z",
             "principal_ref": "did:example:actor-1",
             "decision_maker_ref": "authority:site-access",
-            "decision_authority_ref": "urn:authority-basis:site_access"
+            "decision_authority_ref": "urn:authority-basis:site_access",
+            "decision_authority_status": "resolved",
+            "issuer_trust_status": "trusted"
           },
           {
             "receipt_type": "AuthorizationReceipt",
@@ -1814,7 +1854,6 @@
               "urn:mycelix:input:source-evidence:community_mandate"
             ],
             "signature_status": "verified",
-            "authority_status": "resolved",
             "revocation_status": "clear",
             "currentness_status": "current",
             "status_snapshot_ref": "urn:mycelix:key-and-revocation-snapshot:synthetic-v0",
@@ -1823,7 +1862,9 @@
             "offline_lease_expires_at": "2026-11-20T03:30:00Z",
             "principal_ref": "did:example:actor-1",
             "decision_maker_ref": "organisation:community-governance",
-            "decision_authority_ref": "urn:authority-basis:community_mandate"
+            "decision_authority_ref": "urn:authority-basis:community_mandate",
+            "decision_authority_status": "resolved",
+            "issuer_trust_status": "trusted"
           }
         ],
         "governance_context": {
@@ -1883,7 +1924,6 @@
               "urn:mycelix:input:source-evidence:participant_consent"
             ],
             "signature_status": "verified",
-            "authority_status": "resolved",
             "revocation_status": "clear",
             "currentness_status": "current",
             "status_snapshot_ref": "urn:mycelix:key-and-revocation-snapshot:synthetic-v0",
@@ -1892,7 +1932,9 @@
             "offline_lease_expires_at": "2026-11-20T03:30:00Z",
             "principal_ref": "did:example:actor-1",
             "decision_maker_ref": "participant:opaque-1",
-            "decision_authority_ref": "urn:authority-basis:participant_consent"
+            "decision_authority_ref": "urn:authority-basis:participant_consent",
+            "decision_authority_status": "resolved",
+            "issuer_trust_status": "trusted"
           },
           {
             "receipt_type": "AuthorizationReceipt",
@@ -1914,7 +1956,6 @@
               "urn:mycelix:input:source-evidence:site_access"
             ],
             "signature_status": "verified",
-            "authority_status": "resolved",
             "revocation_status": "clear",
             "currentness_status": "current",
             "status_snapshot_ref": "urn:mycelix:key-and-revocation-snapshot:synthetic-v0",
@@ -1923,7 +1964,9 @@
             "offline_lease_expires_at": "2026-11-20T03:30:00Z",
             "principal_ref": "did:example:actor-1",
             "decision_maker_ref": "authority:site-access",
-            "decision_authority_ref": "urn:authority-basis:site_access"
+            "decision_authority_ref": "urn:authority-basis:site_access",
+            "decision_authority_status": "resolved",
+            "issuer_trust_status": "trusted"
           },
           {
             "receipt_type": "AuthorizationReceipt",
@@ -1945,7 +1988,6 @@
               "urn:mycelix:input:source-evidence:community_mandate"
             ],
             "signature_status": "verified",
-            "authority_status": "resolved",
             "revocation_status": "clear",
             "currentness_status": "current",
             "status_snapshot_ref": "urn:mycelix:key-and-revocation-snapshot:synthetic-v0",
@@ -1954,7 +1996,9 @@
             "offline_lease_expires_at": "2026-11-20T03:30:00Z",
             "principal_ref": "did:example:actor-1",
             "decision_maker_ref": "organisation:community-governance",
-            "decision_authority_ref": "urn:authority-basis:community_mandate"
+            "decision_authority_ref": "urn:authority-basis:community_mandate",
+            "decision_authority_status": "resolved",
+            "issuer_trust_status": "trusted"
           }
         ],
         "governance_context": {
@@ -2014,7 +2058,6 @@
               "urn:mycelix:input:source-evidence:participant_consent"
             ],
             "signature_status": "verified",
-            "authority_status": "resolved",
             "revocation_status": "clear",
             "currentness_status": "current",
             "status_snapshot_ref": "urn:mycelix:key-and-revocation-snapshot:synthetic-v0",
@@ -2023,7 +2066,9 @@
             "offline_lease_expires_at": "2026-11-20T03:30:00Z",
             "principal_ref": "did:example:actor-1",
             "decision_maker_ref": "participant:opaque-1",
-            "decision_authority_ref": "urn:authority-basis:participant_consent"
+            "decision_authority_ref": "urn:authority-basis:participant_consent",
+            "decision_authority_status": "resolved",
+            "issuer_trust_status": "trusted"
           },
           {
             "receipt_type": "AuthorizationReceipt",
@@ -2045,7 +2090,6 @@
               "urn:mycelix:input:source-evidence:site_access"
             ],
             "signature_status": "verified",
-            "authority_status": "resolved",
             "revocation_status": "clear",
             "currentness_status": "current",
             "status_snapshot_ref": "urn:mycelix:key-and-revocation-snapshot:synthetic-v0",
@@ -2054,7 +2098,9 @@
             "offline_lease_expires_at": "2026-11-20T03:30:00Z",
             "principal_ref": "did:example:actor-1",
             "decision_maker_ref": "authority:site-access",
-            "decision_authority_ref": "urn:authority-basis:site_access"
+            "decision_authority_ref": "urn:authority-basis:site_access",
+            "decision_authority_status": "resolved",
+            "issuer_trust_status": "trusted"
           },
           {
             "receipt_type": "AuthorizationReceipt",
@@ -2076,7 +2122,6 @@
               "urn:mycelix:input:source-evidence:community_mandate"
             ],
             "signature_status": "verified",
-            "authority_status": "resolved",
             "revocation_status": "clear",
             "currentness_status": "current",
             "status_snapshot_ref": "urn:mycelix:key-and-revocation-snapshot:synthetic-v0",
@@ -2085,7 +2130,9 @@
             "offline_lease_expires_at": "2026-11-20T03:30:00Z",
             "principal_ref": "did:example:actor-1",
             "decision_maker_ref": "organisation:community-governance",
-            "decision_authority_ref": "urn:authority-basis:community_mandate"
+            "decision_authority_ref": "urn:authority-basis:community_mandate",
+            "decision_authority_status": "resolved",
+            "issuer_trust_status": "trusted"
           }
         ],
         "governance_context": {
@@ -2144,7 +2191,6 @@
               "urn:mycelix:input:source-evidence:participant_consent"
             ],
             "signature_status": "verified",
-            "authority_status": "resolved",
             "revocation_status": "clear",
             "currentness_status": "current",
             "status_snapshot_ref": "urn:mycelix:key-and-revocation-snapshot:synthetic-v0",
@@ -2153,7 +2199,9 @@
             "offline_lease_expires_at": "2026-11-20T03:30:00Z",
             "principal_ref": "did:example:actor-1",
             "decision_maker_ref": "participant:opaque-1",
-            "decision_authority_ref": "urn:authority-basis:participant_consent"
+            "decision_authority_ref": "urn:authority-basis:participant_consent",
+            "decision_authority_status": "resolved",
+            "issuer_trust_status": "trusted"
           },
           {
             "receipt_type": "AuthorizationReceipt",
@@ -2175,7 +2223,6 @@
               "urn:mycelix:input:source-evidence:site_access"
             ],
             "signature_status": "verified",
-            "authority_status": "resolved",
             "revocation_status": "revoked",
             "currentness_status": "current",
             "status_snapshot_ref": "urn:mycelix:key-and-revocation-snapshot:synthetic-v0",
@@ -2184,7 +2231,9 @@
             "offline_lease_expires_at": "2026-11-20T03:30:00Z",
             "principal_ref": "did:example:actor-1",
             "decision_maker_ref": "authority:site-access",
-            "decision_authority_ref": "urn:authority-basis:site_access"
+            "decision_authority_ref": "urn:authority-basis:site_access",
+            "decision_authority_status": "resolved",
+            "issuer_trust_status": "trusted"
           },
           {
             "receipt_type": "AuthorizationReceipt",
@@ -2206,7 +2255,6 @@
               "urn:mycelix:input:source-evidence:community_mandate"
             ],
             "signature_status": "verified",
-            "authority_status": "resolved",
             "revocation_status": "clear",
             "currentness_status": "current",
             "status_snapshot_ref": "urn:mycelix:key-and-revocation-snapshot:synthetic-v0",
@@ -2215,7 +2263,9 @@
             "offline_lease_expires_at": "2026-11-20T03:30:00Z",
             "principal_ref": "did:example:actor-1",
             "decision_maker_ref": "organisation:community-governance",
-            "decision_authority_ref": "urn:authority-basis:community_mandate"
+            "decision_authority_ref": "urn:authority-basis:community_mandate",
+            "decision_authority_status": "resolved",
+            "issuer_trust_status": "trusted"
           }
         ],
         "governance_context": {
@@ -2274,7 +2324,6 @@
               "urn:mycelix:input:source-evidence:participant_consent"
             ],
             "signature_status": "verified",
-            "authority_status": "resolved",
             "revocation_status": "clear",
             "currentness_status": "stale",
             "status_snapshot_ref": "urn:mycelix:key-and-revocation-snapshot:synthetic-v0",
@@ -2283,7 +2332,9 @@
             "offline_lease_expires_at": "2026-11-20T03:30:00Z",
             "principal_ref": "did:example:actor-1",
             "decision_maker_ref": "participant:opaque-1",
-            "decision_authority_ref": "urn:authority-basis:participant_consent"
+            "decision_authority_ref": "urn:authority-basis:participant_consent",
+            "decision_authority_status": "resolved",
+            "issuer_trust_status": "trusted"
           },
           {
             "receipt_type": "AuthorizationReceipt",
@@ -2305,7 +2356,6 @@
               "urn:mycelix:input:source-evidence:site_access"
             ],
             "signature_status": "verified",
-            "authority_status": "resolved",
             "revocation_status": "clear",
             "currentness_status": "current",
             "status_snapshot_ref": "urn:mycelix:key-and-revocation-snapshot:synthetic-v0",
@@ -2314,7 +2364,9 @@
             "offline_lease_expires_at": "2026-11-20T03:30:00Z",
             "principal_ref": "did:example:actor-1",
             "decision_maker_ref": "authority:site-access",
-            "decision_authority_ref": "urn:authority-basis:site_access"
+            "decision_authority_ref": "urn:authority-basis:site_access",
+            "decision_authority_status": "resolved",
+            "issuer_trust_status": "trusted"
           },
           {
             "receipt_type": "AuthorizationReceipt",
@@ -2336,7 +2388,6 @@
               "urn:mycelix:input:source-evidence:community_mandate"
             ],
             "signature_status": "verified",
-            "authority_status": "resolved",
             "revocation_status": "clear",
             "currentness_status": "current",
             "status_snapshot_ref": "urn:mycelix:key-and-revocation-snapshot:synthetic-v0",
@@ -2345,7 +2396,9 @@
             "offline_lease_expires_at": "2026-11-20T03:30:00Z",
             "principal_ref": "did:example:actor-1",
             "decision_maker_ref": "organisation:community-governance",
-            "decision_authority_ref": "urn:authority-basis:community_mandate"
+            "decision_authority_ref": "urn:authority-basis:community_mandate",
+            "decision_authority_status": "resolved",
+            "issuer_trust_status": "trusted"
           }
         ],
         "governance_context": {
@@ -2404,7 +2457,6 @@
               "urn:mycelix:input:source-evidence:participant_consent"
             ],
             "signature_status": "verified",
-            "authority_status": "resolved",
             "revocation_status": "clear",
             "currentness_status": "current",
             "status_snapshot_ref": "urn:mycelix:key-and-revocation-snapshot:synthetic-v0",
@@ -2413,7 +2465,9 @@
             "offline_lease_expires_at": "2026-11-20T03:30:00Z",
             "principal_ref": "did:example:actor-1",
             "decision_maker_ref": "participant:opaque-1",
-            "decision_authority_ref": "urn:authority-basis:participant_consent"
+            "decision_authority_ref": "urn:authority-basis:participant_consent",
+            "decision_authority_status": "resolved",
+            "issuer_trust_status": "trusted"
           },
           {
             "receipt_type": "AuthorizationReceipt",
@@ -2435,7 +2489,6 @@
               "urn:mycelix:input:source-evidence:site_access"
             ],
             "signature_status": "verified",
-            "authority_status": "resolved",
             "revocation_status": "clear",
             "currentness_status": "current",
             "status_snapshot_ref": "urn:mycelix:key-and-revocation-snapshot:synthetic-v0",
@@ -2444,7 +2497,9 @@
             "offline_lease_expires_at": "2026-11-20T03:30:00Z",
             "principal_ref": "did:example:actor-1",
             "decision_maker_ref": "authority:site-access",
-            "decision_authority_ref": "urn:authority-basis:site_access"
+            "decision_authority_ref": "urn:authority-basis:site_access",
+            "decision_authority_status": "resolved",
+            "issuer_trust_status": "trusted"
           },
           {
             "receipt_type": "AuthorizationReceipt",
@@ -2466,7 +2521,6 @@
               "urn:mycelix:input:source-evidence:community_mandate"
             ],
             "signature_status": "verified",
-            "authority_status": "resolved",
             "revocation_status": "clear",
             "currentness_status": "current",
             "status_snapshot_ref": "urn:mycelix:key-and-revocation-snapshot:synthetic-v0",
@@ -2475,7 +2529,9 @@
             "offline_lease_expires_at": "2026-11-20T03:30:00Z",
             "principal_ref": "did:example:actor-1",
             "decision_maker_ref": "organisation:community-governance",
-            "decision_authority_ref": "urn:authority-basis:community_mandate"
+            "decision_authority_ref": "urn:authority-basis:community_mandate",
+            "decision_authority_status": "resolved",
+            "issuer_trust_status": "trusted"
           }
         ],
         "governance_context": {
@@ -2534,7 +2590,6 @@
               "urn:mycelix:input:source-evidence:participant_consent"
             ],
             "signature_status": "unavailable",
-            "authority_status": "resolved",
             "revocation_status": "clear",
             "currentness_status": "current",
             "status_snapshot_ref": "urn:mycelix:key-and-revocation-snapshot:synthetic-v0",
@@ -2543,7 +2598,9 @@
             "offline_lease_expires_at": "2026-11-20T03:30:00Z",
             "principal_ref": "did:example:actor-1",
             "decision_maker_ref": "participant:opaque-1",
-            "decision_authority_ref": "urn:authority-basis:participant_consent"
+            "decision_authority_ref": "urn:authority-basis:participant_consent",
+            "decision_authority_status": "resolved",
+            "issuer_trust_status": "trusted"
           },
           {
             "receipt_type": "AuthorizationReceipt",
@@ -2565,7 +2622,6 @@
               "urn:mycelix:input:source-evidence:site_access"
             ],
             "signature_status": "verified",
-            "authority_status": "resolved",
             "revocation_status": "clear",
             "currentness_status": "current",
             "status_snapshot_ref": "urn:mycelix:key-and-revocation-snapshot:synthetic-v0",
@@ -2574,7 +2630,9 @@
             "offline_lease_expires_at": "2026-11-20T03:30:00Z",
             "principal_ref": "did:example:actor-1",
             "decision_maker_ref": "authority:site-access",
-            "decision_authority_ref": "urn:authority-basis:site_access"
+            "decision_authority_ref": "urn:authority-basis:site_access",
+            "decision_authority_status": "resolved",
+            "issuer_trust_status": "trusted"
           },
           {
             "receipt_type": "AuthorizationReceipt",
@@ -2596,7 +2654,6 @@
               "urn:mycelix:input:source-evidence:community_mandate"
             ],
             "signature_status": "verified",
-            "authority_status": "resolved",
             "revocation_status": "clear",
             "currentness_status": "current",
             "status_snapshot_ref": "urn:mycelix:key-and-revocation-snapshot:synthetic-v0",
@@ -2605,7 +2662,9 @@
             "offline_lease_expires_at": "2026-11-20T03:30:00Z",
             "principal_ref": "did:example:actor-1",
             "decision_maker_ref": "organisation:community-governance",
-            "decision_authority_ref": "urn:authority-basis:community_mandate"
+            "decision_authority_ref": "urn:authority-basis:community_mandate",
+            "decision_authority_status": "resolved",
+            "issuer_trust_status": "trusted"
           }
         ],
         "governance_context": {
@@ -2664,7 +2723,6 @@
               "urn:mycelix:input:source-evidence:participant_consent"
             ],
             "signature_status": "verified",
-            "authority_status": "resolved",
             "revocation_status": "clear",
             "currentness_status": "current",
             "status_snapshot_ref": "urn:mycelix:key-and-revocation-snapshot:synthetic-v0",
@@ -2673,7 +2731,9 @@
             "offline_lease_expires_at": "2026-11-20T03:30:00Z",
             "principal_ref": "did:example:actor-1",
             "decision_maker_ref": "participant:opaque-1",
-            "decision_authority_ref": "urn:authority-basis:participant_consent"
+            "decision_authority_ref": "urn:authority-basis:participant_consent",
+            "decision_authority_status": "resolved",
+            "issuer_trust_status": "trusted"
           },
           {
             "receipt_type": "AuthorizationReceipt",
@@ -2695,7 +2755,6 @@
               "urn:mycelix:input:source-evidence:site_access"
             ],
             "signature_status": "verified",
-            "authority_status": "resolved",
             "revocation_status": "clear",
             "currentness_status": "current",
             "status_snapshot_ref": "urn:mycelix:key-and-revocation-snapshot:synthetic-v0",
@@ -2704,7 +2763,9 @@
             "offline_lease_expires_at": "2026-11-20T03:30:00Z",
             "principal_ref": "did:example:actor-1",
             "decision_maker_ref": "authority:site-access",
-            "decision_authority_ref": "urn:authority-basis:site_access"
+            "decision_authority_ref": "urn:authority-basis:site_access",
+            "decision_authority_status": "resolved",
+            "issuer_trust_status": "trusted"
           },
           {
             "receipt_type": "AuthorizationReceipt",
@@ -2726,7 +2787,6 @@
               "urn:mycelix:input:source-evidence:community_mandate"
             ],
             "signature_status": "verified",
-            "authority_status": "resolved",
             "revocation_status": "clear",
             "currentness_status": "current",
             "status_snapshot_ref": "urn:mycelix:key-and-revocation-snapshot:synthetic-v0",
@@ -2735,7 +2795,9 @@
             "offline_lease_expires_at": "2026-11-20T03:30:00Z",
             "principal_ref": "did:example:actor-1",
             "decision_maker_ref": "organisation:community-governance",
-            "decision_authority_ref": "urn:authority-basis:community_mandate"
+            "decision_authority_ref": "urn:authority-basis:community_mandate",
+            "decision_authority_status": "resolved",
+            "issuer_trust_status": "trusted"
           },
           {
             "receipt_type": "AuthorizationReceipt",
@@ -2757,7 +2819,6 @@
               "urn:mycelix:input:source-evidence:participant_consent"
             ],
             "signature_status": "verified",
-            "authority_status": "resolved",
             "revocation_status": "clear",
             "currentness_status": "current",
             "status_snapshot_ref": "urn:mycelix:key-and-revocation-snapshot:synthetic-v0",
@@ -2766,7 +2827,9 @@
             "offline_lease_expires_at": "2026-11-20T03:30:00Z",
             "principal_ref": "did:example:actor-1",
             "decision_maker_ref": "participant:opaque-1",
-            "decision_authority_ref": "urn:authority-basis:participant_consent"
+            "decision_authority_ref": "urn:authority-basis:participant_consent",
+            "decision_authority_status": "resolved",
+            "issuer_trust_status": "trusted"
           }
         ],
         "governance_context": {
@@ -2825,7 +2888,6 @@
               "urn:mycelix:input:source-evidence:participant_consent"
             ],
             "signature_status": "verified",
-            "authority_status": "resolved",
             "revocation_status": "clear",
             "currentness_status": "current",
             "status_snapshot_ref": "urn:mycelix:key-and-revocation-snapshot:synthetic-v0",
@@ -2834,7 +2896,9 @@
             "offline_lease_expires_at": "2026-11-20T03:30:00Z",
             "principal_ref": "did:example:actor-1",
             "decision_maker_ref": "participant:opaque-1",
-            "decision_authority_ref": "urn:authority-basis:participant_consent"
+            "decision_authority_ref": "urn:authority-basis:participant_consent",
+            "decision_authority_status": "resolved",
+            "issuer_trust_status": "trusted"
           },
           {
             "receipt_type": "AuthorizationReceipt",
@@ -2856,7 +2920,6 @@
               "urn:mycelix:input:source-evidence:site_access"
             ],
             "signature_status": "verified",
-            "authority_status": "resolved",
             "revocation_status": "clear",
             "currentness_status": "current",
             "status_snapshot_ref": "urn:mycelix:key-and-revocation-snapshot:synthetic-v0",
@@ -2865,7 +2928,9 @@
             "offline_lease_expires_at": "2026-11-20T03:30:00Z",
             "principal_ref": "did:example:actor-1",
             "decision_maker_ref": "authority:site-access",
-            "decision_authority_ref": "urn:authority-basis:site_access"
+            "decision_authority_ref": "urn:authority-basis:site_access",
+            "decision_authority_status": "resolved",
+            "issuer_trust_status": "trusted"
           },
           {
             "receipt_type": "AuthorizationReceipt",
@@ -2887,7 +2952,6 @@
               "urn:mycelix:input:source-evidence:community_mandate"
             ],
             "signature_status": "verified",
-            "authority_status": "resolved",
             "revocation_status": "clear",
             "currentness_status": "current",
             "status_snapshot_ref": "urn:mycelix:key-and-revocation-snapshot:synthetic-v0",
@@ -2896,7 +2960,9 @@
             "offline_lease_expires_at": "2026-11-20T03:30:00Z",
             "principal_ref": "did:example:actor-1",
             "decision_maker_ref": "organisation:community-governance",
-            "decision_authority_ref": "urn:authority-basis:community_mandate"
+            "decision_authority_ref": "urn:authority-basis:community_mandate",
+            "decision_authority_status": "resolved",
+            "issuer_trust_status": "trusted"
           }
         ],
         "governance_context": {
@@ -2955,7 +3021,6 @@
               "urn:mycelix:input:source-evidence:participant_consent"
             ],
             "signature_status": "invalid",
-            "authority_status": "resolved",
             "revocation_status": "clear",
             "currentness_status": "current",
             "status_snapshot_ref": "urn:mycelix:key-and-revocation-snapshot:synthetic-v0",
@@ -2964,7 +3029,9 @@
             "offline_lease_expires_at": "2026-11-20T03:30:00Z",
             "principal_ref": "did:example:actor-1",
             "decision_maker_ref": "participant:opaque-1",
-            "decision_authority_ref": "urn:authority-basis:participant_consent"
+            "decision_authority_ref": "urn:authority-basis:participant_consent",
+            "decision_authority_status": "resolved",
+            "issuer_trust_status": "trusted"
           },
           {
             "receipt_type": "AuthorizationReceipt",
@@ -2986,7 +3053,6 @@
               "urn:mycelix:input:source-evidence:site_access"
             ],
             "signature_status": "verified",
-            "authority_status": "resolved",
             "revocation_status": "clear",
             "currentness_status": "current",
             "status_snapshot_ref": "urn:mycelix:key-and-revocation-snapshot:synthetic-v0",
@@ -2995,7 +3061,9 @@
             "offline_lease_expires_at": "2026-11-20T03:30:00Z",
             "principal_ref": "did:example:actor-1",
             "decision_maker_ref": "authority:site-access",
-            "decision_authority_ref": "urn:authority-basis:site_access"
+            "decision_authority_ref": "urn:authority-basis:site_access",
+            "decision_authority_status": "resolved",
+            "issuer_trust_status": "trusted"
           },
           {
             "receipt_type": "AuthorizationReceipt",
@@ -3017,7 +3085,6 @@
               "urn:mycelix:input:source-evidence:community_mandate"
             ],
             "signature_status": "verified",
-            "authority_status": "resolved",
             "revocation_status": "clear",
             "currentness_status": "current",
             "status_snapshot_ref": "urn:mycelix:key-and-revocation-snapshot:synthetic-v0",
@@ -3026,7 +3093,9 @@
             "offline_lease_expires_at": "2026-11-20T03:30:00Z",
             "principal_ref": "did:example:actor-1",
             "decision_maker_ref": "organisation:community-governance",
-            "decision_authority_ref": "urn:authority-basis:community_mandate"
+            "decision_authority_ref": "urn:authority-basis:community_mandate",
+            "decision_authority_status": "resolved",
+            "issuer_trust_status": "trusted"
           }
         ],
         "governance_context": {
@@ -3085,7 +3154,6 @@
               "urn:mycelix:input:source-evidence:participant_consent"
             ],
             "signature_status": "verified",
-            "authority_status": "resolved",
             "revocation_status": "clear",
             "currentness_status": "current",
             "status_snapshot_ref": "urn:mycelix:key-and-revocation-snapshot:synthetic-v0",
@@ -3094,7 +3162,9 @@
             "offline_lease_expires_at": "2026-11-20T03:30:00Z",
             "principal_ref": "did:example:actor-1",
             "decision_maker_ref": "participant:opaque-1",
-            "decision_authority_ref": "urn:authority-basis:participant_consent"
+            "decision_authority_ref": "urn:authority-basis:participant_consent",
+            "decision_authority_status": "resolved",
+            "issuer_trust_status": "trusted"
           },
           {
             "receipt_type": "AuthorizationReceipt",
@@ -3116,7 +3186,6 @@
               "urn:mycelix:input:source-evidence:site_access"
             ],
             "signature_status": "verified",
-            "authority_status": "resolved",
             "revocation_status": "clear",
             "currentness_status": "current",
             "status_snapshot_ref": "urn:mycelix:key-and-revocation-snapshot:synthetic-v0",
@@ -3125,7 +3194,9 @@
             "offline_lease_expires_at": "2026-11-20T03:30:00Z",
             "principal_ref": "did:example:actor-1",
             "decision_maker_ref": "authority:site-access",
-            "decision_authority_ref": "urn:authority-basis:site_access"
+            "decision_authority_ref": "urn:authority-basis:site_access",
+            "decision_authority_status": "resolved",
+            "issuer_trust_status": "trusted"
           },
           {
             "receipt_type": "AuthorizationReceipt",
@@ -3147,7 +3218,6 @@
               "urn:mycelix:input:source-evidence:community_mandate"
             ],
             "signature_status": "verified",
-            "authority_status": "resolved",
             "revocation_status": "clear",
             "currentness_status": "current",
             "status_snapshot_ref": "urn:mycelix:key-and-revocation-snapshot:synthetic-v0",
@@ -3156,7 +3226,9 @@
             "offline_lease_expires_at": "2026-11-20T03:30:00Z",
             "principal_ref": "did:example:actor-1",
             "decision_maker_ref": "organisation:community-governance",
-            "decision_authority_ref": "urn:authority-basis:community_mandate"
+            "decision_authority_ref": "urn:authority-basis:community_mandate",
+            "decision_authority_status": "resolved",
+            "issuer_trust_status": "trusted"
           }
         ],
         "governance_context": {
@@ -3251,7 +3323,6 @@
               "urn:mycelix:input:source-evidence:participant_consent"
             ],
             "signature_status": "verified",
-            "authority_status": "resolved",
             "revocation_status": "clear",
             "currentness_status": "current",
             "status_snapshot_ref": "urn:mycelix:key-and-revocation-snapshot:synthetic-v0",
@@ -3260,7 +3331,9 @@
             "offline_lease_expires_at": "2026-11-20T03:30:00Z",
             "principal_ref": "did:example:actor-1",
             "decision_maker_ref": "participant:opaque-1",
-            "decision_authority_ref": "urn:authority-basis:participant_consent"
+            "decision_authority_ref": "urn:authority-basis:participant_consent",
+            "decision_authority_status": "resolved",
+            "issuer_trust_status": "trusted"
           },
           {
             "receipt_type": "AuthorizationReceipt",
@@ -3282,7 +3355,6 @@
               "urn:mycelix:input:source-evidence:site_access"
             ],
             "signature_status": "verified",
-            "authority_status": "resolved",
             "revocation_status": "clear",
             "currentness_status": "current",
             "status_snapshot_ref": "urn:mycelix:key-and-revocation-snapshot:synthetic-v0",
@@ -3291,7 +3363,9 @@
             "offline_lease_expires_at": "2026-11-20T03:30:00Z",
             "principal_ref": "did:example:actor-1",
             "decision_maker_ref": "authority:site-access",
-            "decision_authority_ref": "urn:authority-basis:site_access"
+            "decision_authority_ref": "urn:authority-basis:site_access",
+            "decision_authority_status": "resolved",
+            "issuer_trust_status": "trusted"
           }
         ]
       },
@@ -3339,7 +3413,6 @@
               "urn:mycelix:input:source-evidence:participant_consent"
             ],
             "signature_status": "verified",
-            "authority_status": "resolved",
             "revocation_status": "clear",
             "currentness_status": "current",
             "status_snapshot_ref": "urn:mycelix:key-and-revocation-snapshot:synthetic-v0",
@@ -3348,7 +3421,9 @@
             "offline_lease_expires_at": "2026-11-20T03:30:00Z",
             "principal_ref": "did:example:actor-1",
             "decision_maker_ref": "participant:opaque-1",
-            "decision_authority_ref": "urn:authority-basis:participant_consent"
+            "decision_authority_ref": "urn:authority-basis:participant_consent",
+            "decision_authority_status": "resolved",
+            "issuer_trust_status": "trusted"
           },
           {
             "receipt_type": "AuthorizationReceipt",
@@ -3370,7 +3445,6 @@
               "urn:mycelix:input:source-evidence:site_access"
             ],
             "signature_status": "verified",
-            "authority_status": "resolved",
             "revocation_status": "clear",
             "currentness_status": "current",
             "status_snapshot_ref": "urn:mycelix:key-and-revocation-snapshot:synthetic-v0",
@@ -3379,7 +3453,9 @@
             "offline_lease_expires_at": "2026-11-20T03:30:00Z",
             "principal_ref": "did:example:actor-1",
             "decision_maker_ref": "authority:site-access",
-            "decision_authority_ref": "urn:authority-basis:site_access"
+            "decision_authority_ref": "urn:authority-basis:site_access",
+            "decision_authority_status": "resolved",
+            "issuer_trust_status": "trusted"
           },
           {
             "receipt_type": "AuthorizationReceipt",
@@ -3401,7 +3477,6 @@
               "urn:mycelix:input:source-evidence:community_mandate"
             ],
             "signature_status": "verified",
-            "authority_status": "resolved",
             "revocation_status": "clear",
             "currentness_status": "current",
             "status_snapshot_ref": "urn:mycelix:key-and-revocation-snapshot:synthetic-v0",
@@ -3410,7 +3485,9 @@
             "offline_lease_expires_at": "2026-11-20T03:30:00Z",
             "principal_ref": "did:example:actor-1",
             "decision_maker_ref": "organisation:community-governance",
-            "decision_authority_ref": "urn:authority-basis:community_mandate"
+            "decision_authority_ref": "urn:authority-basis:community_mandate",
+            "decision_authority_status": "resolved",
+            "issuer_trust_status": "trusted"
           }
         ],
         "governance_context": {
@@ -3469,7 +3546,6 @@
               "urn:mycelix:input:source-evidence:participant_consent"
             ],
             "signature_status": "verified",
-            "authority_status": "resolved",
             "revocation_status": "clear",
             "currentness_status": "current",
             "status_snapshot_ref": "urn:mycelix:key-and-revocation-snapshot:synthetic-v0",
@@ -3478,7 +3554,9 @@
             "offline_lease_expires_at": null,
             "principal_ref": "did:example:actor-1",
             "decision_maker_ref": "participant:opaque-1",
-            "decision_authority_ref": "urn:authority-basis:participant_consent"
+            "decision_authority_ref": "urn:authority-basis:participant_consent",
+            "decision_authority_status": "resolved",
+            "issuer_trust_status": "trusted"
           },
           {
             "receipt_type": "AuthorizationReceipt",
@@ -3500,7 +3578,6 @@
               "urn:mycelix:input:source-evidence:site_access"
             ],
             "signature_status": "verified",
-            "authority_status": "resolved",
             "revocation_status": "clear",
             "currentness_status": "current",
             "status_snapshot_ref": "urn:mycelix:key-and-revocation-snapshot:synthetic-v0",
@@ -3509,7 +3586,9 @@
             "offline_lease_expires_at": "2026-11-20T03:30:00Z",
             "principal_ref": "did:example:actor-1",
             "decision_maker_ref": "authority:site-access",
-            "decision_authority_ref": "urn:authority-basis:site_access"
+            "decision_authority_ref": "urn:authority-basis:site_access",
+            "decision_authority_status": "resolved",
+            "issuer_trust_status": "trusted"
           },
           {
             "receipt_type": "AuthorizationReceipt",
@@ -3531,7 +3610,6 @@
               "urn:mycelix:input:source-evidence:community_mandate"
             ],
             "signature_status": "verified",
-            "authority_status": "resolved",
             "revocation_status": "clear",
             "currentness_status": "current",
             "status_snapshot_ref": "urn:mycelix:key-and-revocation-snapshot:synthetic-v0",
@@ -3540,7 +3618,9 @@
             "offline_lease_expires_at": "2026-11-20T03:30:00Z",
             "principal_ref": "did:example:actor-1",
             "decision_maker_ref": "organisation:community-governance",
-            "decision_authority_ref": "urn:authority-basis:community_mandate"
+            "decision_authority_ref": "urn:authority-basis:community_mandate",
+            "decision_authority_status": "resolved",
+            "issuer_trust_status": "trusted"
           }
         ],
         "governance_context": {
@@ -3599,7 +3679,6 @@
               "urn:mycelix:input:source-evidence:participant_consent"
             ],
             "signature_status": "verified",
-            "authority_status": "resolved",
             "revocation_status": "clear",
             "currentness_status": "unknown",
             "status_snapshot_ref": "urn:mycelix:key-and-revocation-snapshot:synthetic-v0",
@@ -3608,7 +3687,9 @@
             "offline_lease_expires_at": "2026-11-20T03:30:00Z",
             "principal_ref": "did:example:actor-1",
             "decision_maker_ref": "participant:opaque-1",
-            "decision_authority_ref": "urn:authority-basis:participant_consent"
+            "decision_authority_ref": "urn:authority-basis:participant_consent",
+            "decision_authority_status": "resolved",
+            "issuer_trust_status": "trusted"
           },
           {
             "receipt_type": "AuthorizationReceipt",
@@ -3630,7 +3711,6 @@
               "urn:mycelix:input:source-evidence:site_access"
             ],
             "signature_status": "verified",
-            "authority_status": "resolved",
             "revocation_status": "clear",
             "currentness_status": "current",
             "status_snapshot_ref": "urn:mycelix:key-and-revocation-snapshot:synthetic-v0",
@@ -3639,7 +3719,9 @@
             "offline_lease_expires_at": "2026-11-20T03:30:00Z",
             "principal_ref": "did:example:actor-1",
             "decision_maker_ref": "authority:site-access",
-            "decision_authority_ref": "urn:authority-basis:site_access"
+            "decision_authority_ref": "urn:authority-basis:site_access",
+            "decision_authority_status": "resolved",
+            "issuer_trust_status": "trusted"
           },
           {
             "receipt_type": "AuthorizationReceipt",
@@ -3661,7 +3743,6 @@
               "urn:mycelix:input:source-evidence:community_mandate"
             ],
             "signature_status": "verified",
-            "authority_status": "resolved",
             "revocation_status": "clear",
             "currentness_status": "current",
             "status_snapshot_ref": "urn:mycelix:key-and-revocation-snapshot:synthetic-v0",
@@ -3670,7 +3751,9 @@
             "offline_lease_expires_at": "2026-11-20T03:30:00Z",
             "principal_ref": "did:example:actor-1",
             "decision_maker_ref": "organisation:community-governance",
-            "decision_authority_ref": "urn:authority-basis:community_mandate"
+            "decision_authority_ref": "urn:authority-basis:community_mandate",
+            "decision_authority_status": "resolved",
+            "issuer_trust_status": "trusted"
           }
         ],
         "governance_context": {
@@ -3729,7 +3812,6 @@
               "urn:mycelix:input:source-evidence:participant_consent"
             ],
             "signature_status": "verified",
-            "authority_status": "resolved",
             "revocation_status": "clear",
             "currentness_status": "current",
             "status_snapshot_ref": "urn:mycelix:key-and-revocation-snapshot:synthetic-v0",
@@ -3738,7 +3820,9 @@
             "offline_lease_expires_at": "2026-11-20T03:30:00Z",
             "principal_ref": "did:example:actor-1",
             "decision_maker_ref": "participant:opaque-1",
-            "decision_authority_ref": "urn:authority-basis:participant_consent"
+            "decision_authority_ref": "urn:authority-basis:participant_consent",
+            "decision_authority_status": "resolved",
+            "issuer_trust_status": "trusted"
           },
           {
             "receipt_type": "AuthorizationReceipt",
@@ -3760,7 +3844,6 @@
               "urn:mycelix:input:source-evidence:site_access"
             ],
             "signature_status": "verified",
-            "authority_status": "resolved",
             "revocation_status": "clear",
             "currentness_status": "current",
             "status_snapshot_ref": "urn:mycelix:key-and-revocation-snapshot:synthetic-v0",
@@ -3769,7 +3852,9 @@
             "offline_lease_expires_at": "2026-11-20T03:30:00Z",
             "principal_ref": "did:example:actor-1",
             "decision_maker_ref": "authority:site-access",
-            "decision_authority_ref": "urn:authority-basis:site_access"
+            "decision_authority_ref": "urn:authority-basis:site_access",
+            "decision_authority_status": "resolved",
+            "issuer_trust_status": "trusted"
           },
           {
             "receipt_type": "AuthorizationReceipt",
@@ -3791,7 +3876,6 @@
               "urn:mycelix:input:source-evidence:community_mandate"
             ],
             "signature_status": "verified",
-            "authority_status": "resolved",
             "revocation_status": "clear",
             "currentness_status": "current",
             "status_snapshot_ref": "urn:mycelix:key-and-revocation-snapshot:synthetic-v0",
@@ -3800,7 +3884,9 @@
             "offline_lease_expires_at": "2026-11-20T03:30:00Z",
             "principal_ref": "did:example:actor-1",
             "decision_maker_ref": "organisation:community-governance",
-            "decision_authority_ref": "urn:authority-basis:community_mandate"
+            "decision_authority_ref": "urn:authority-basis:community_mandate",
+            "decision_authority_status": "resolved",
+            "issuer_trust_status": "trusted"
           },
           {
             "receipt_type": "AuthorizationReceipt",
@@ -3822,7 +3908,6 @@
               "urn:mycelix:input:source-evidence:participant_consent"
             ],
             "signature_status": "verified",
-            "authority_status": "resolved",
             "revocation_status": "clear",
             "currentness_status": "current",
             "status_snapshot_ref": "urn:mycelix:key-and-revocation-snapshot:synthetic-v0",
@@ -3831,7 +3916,9 @@
             "offline_lease_expires_at": "2026-11-20T03:30:00Z",
             "principal_ref": "did:example:actor-1",
             "decision_maker_ref": "participant:opaque-1",
-            "decision_authority_ref": "urn:authority-basis:participant_consent"
+            "decision_authority_ref": "urn:authority-basis:participant_consent",
+            "decision_authority_status": "resolved",
+            "issuer_trust_status": "trusted"
           }
         ],
         "governance_context": {
@@ -3890,7 +3977,6 @@
               "urn:mycelix:input:source-evidence:participant_consent"
             ],
             "signature_status": "verified",
-            "authority_status": "resolved",
             "revocation_status": "clear",
             "currentness_status": "current",
             "status_snapshot_ref": "urn:mycelix:key-and-revocation-snapshot:synthetic-v0",
@@ -3899,7 +3985,9 @@
             "offline_lease_expires_at": "2026-11-20T03:30:00Z",
             "principal_ref": "did:example:actor-1",
             "decision_maker_ref": "participant:opaque-1",
-            "decision_authority_ref": "urn:authority-basis:participant_consent"
+            "decision_authority_ref": "urn:authority-basis:participant_consent",
+            "decision_authority_status": "resolved",
+            "issuer_trust_status": "trusted"
           },
           {
             "receipt_type": "AuthorizationReceipt",
@@ -3921,7 +4009,6 @@
               "urn:mycelix:input:source-evidence:site_access"
             ],
             "signature_status": "verified",
-            "authority_status": "resolved",
             "revocation_status": "clear",
             "currentness_status": "current",
             "status_snapshot_ref": "urn:mycelix:key-and-revocation-snapshot:synthetic-v0",
@@ -3930,7 +4017,9 @@
             "offline_lease_expires_at": "2026-11-20T03:30:00Z",
             "principal_ref": "did:example:actor-1",
             "decision_maker_ref": "authority:site-access",
-            "decision_authority_ref": "urn:authority-basis:site_access"
+            "decision_authority_ref": "urn:authority-basis:site_access",
+            "decision_authority_status": "resolved",
+            "issuer_trust_status": "trusted"
           },
           {
             "receipt_type": "AuthorizationReceipt",
@@ -3952,7 +4041,6 @@
               "urn:mycelix:input:source-evidence:community_mandate"
             ],
             "signature_status": "verified",
-            "authority_status": "resolved",
             "revocation_status": "clear",
             "currentness_status": "current",
             "status_snapshot_ref": "urn:mycelix:key-and-revocation-snapshot:synthetic-v0",
@@ -3961,7 +4049,9 @@
             "offline_lease_expires_at": "2026-11-20T03:30:00Z",
             "principal_ref": "did:example:actor-1",
             "decision_maker_ref": "organisation:community-governance",
-            "decision_authority_ref": "urn:authority-basis:community_mandate"
+            "decision_authority_ref": "urn:authority-basis:community_mandate",
+            "decision_authority_status": "resolved",
+            "issuer_trust_status": "trusted"
           },
           {
             "receipt_type": "AuthorizationReceipt",
@@ -3983,7 +4073,6 @@
               "urn:mycelix:input:source-evidence:participant_consent"
             ],
             "signature_status": "verified",
-            "authority_status": "resolved",
             "revocation_status": "clear",
             "currentness_status": "current",
             "status_snapshot_ref": "urn:mycelix:key-and-revocation-snapshot:synthetic-v0",
@@ -3992,7 +4081,9 @@
             "offline_lease_expires_at": "2026-11-20T03:30:00Z",
             "principal_ref": "did:example:actor-1",
             "decision_maker_ref": "participant:opaque-1",
-            "decision_authority_ref": "urn:authority-basis:participant_consent"
+            "decision_authority_ref": "urn:authority-basis:participant_consent",
+            "decision_authority_status": "resolved",
+            "issuer_trust_status": "trusted"
           }
         ],
         "governance_context": {
@@ -4051,7 +4142,6 @@
               "urn:mycelix:input:source-evidence:participant_consent"
             ],
             "signature_status": "verified",
-            "authority_status": "resolved",
             "revocation_status": "clear",
             "currentness_status": "current",
             "status_snapshot_ref": "urn:mycelix:key-and-revocation-snapshot:synthetic-v0",
@@ -4060,7 +4150,9 @@
             "offline_lease_expires_at": "2026-11-20T03:30:00Z",
             "principal_ref": "did:example:actor-1",
             "decision_maker_ref": "participant:opaque-1",
-            "decision_authority_ref": "urn:authority-basis:participant_consent"
+            "decision_authority_ref": "urn:authority-basis:participant_consent",
+            "decision_authority_status": "resolved",
+            "issuer_trust_status": "trusted"
           },
           {
             "receipt_type": "AuthorizationReceipt",
@@ -4082,7 +4174,6 @@
               "urn:mycelix:input:source-evidence:site_access"
             ],
             "signature_status": "verified",
-            "authority_status": "resolved",
             "revocation_status": "clear",
             "currentness_status": "current",
             "status_snapshot_ref": "urn:mycelix:key-and-revocation-snapshot:synthetic-v0",
@@ -4091,7 +4182,9 @@
             "offline_lease_expires_at": "2026-11-20T03:30:00Z",
             "principal_ref": "did:example:actor-1",
             "decision_maker_ref": "authority:site-access",
-            "decision_authority_ref": "urn:authority-basis:site_access"
+            "decision_authority_ref": "urn:authority-basis:site_access",
+            "decision_authority_status": "resolved",
+            "issuer_trust_status": "trusted"
           },
           {
             "receipt_type": "AuthorizationReceipt",
@@ -4113,7 +4206,6 @@
               "urn:mycelix:input:source-evidence:community_mandate"
             ],
             "signature_status": "verified",
-            "authority_status": "resolved",
             "revocation_status": "clear",
             "currentness_status": "current",
             "status_snapshot_ref": "urn:mycelix:key-and-revocation-snapshot:synthetic-v0",
@@ -4122,7 +4214,9 @@
             "offline_lease_expires_at": "2026-11-20T03:30:00Z",
             "principal_ref": "did:example:actor-1",
             "decision_maker_ref": "organisation:community-governance",
-            "decision_authority_ref": "urn:authority-basis:community_mandate"
+            "decision_authority_ref": "urn:authority-basis:community_mandate",
+            "decision_authority_status": "resolved",
+            "issuer_trust_status": "trusted"
           }
         ],
         "governance_context": {
@@ -4181,7 +4275,6 @@
               "urn:mycelix:input:source-evidence:participant_consent"
             ],
             "signature_status": "verified",
-            "authority_status": "resolved",
             "revocation_status": "clear",
             "currentness_status": "current",
             "status_snapshot_ref": "urn:mycelix:key-and-revocation-snapshot:synthetic-v0",
@@ -4189,7 +4282,9 @@
             "valid_until": "2026-11-20T04:00:00Z",
             "offline_lease_expires_at": "2026-11-20T03:30:00Z",
             "principal_ref": "did:example:actor-1",
-            "decision_maker_ref": "participant:opaque-1"
+            "decision_maker_ref": "participant:opaque-1",
+            "decision_authority_status": "resolved",
+            "issuer_trust_status": "trusted"
           },
           {
             "receipt_type": "AuthorizationReceipt",
@@ -4211,7 +4306,6 @@
               "urn:mycelix:input:source-evidence:site_access"
             ],
             "signature_status": "verified",
-            "authority_status": "resolved",
             "revocation_status": "clear",
             "currentness_status": "current",
             "status_snapshot_ref": "urn:mycelix:key-and-revocation-snapshot:synthetic-v0",
@@ -4220,7 +4314,9 @@
             "offline_lease_expires_at": "2026-11-20T03:30:00Z",
             "principal_ref": "did:example:actor-1",
             "decision_maker_ref": "authority:site-access",
-            "decision_authority_ref": "urn:authority-basis:site_access"
+            "decision_authority_ref": "urn:authority-basis:site_access",
+            "decision_authority_status": "resolved",
+            "issuer_trust_status": "trusted"
           },
           {
             "receipt_type": "AuthorizationReceipt",
@@ -4242,7 +4338,6 @@
               "urn:mycelix:input:source-evidence:community_mandate"
             ],
             "signature_status": "verified",
-            "authority_status": "resolved",
             "revocation_status": "clear",
             "currentness_status": "current",
             "status_snapshot_ref": "urn:mycelix:key-and-revocation-snapshot:synthetic-v0",
@@ -4251,7 +4346,9 @@
             "offline_lease_expires_at": "2026-11-20T03:30:00Z",
             "principal_ref": "did:example:actor-1",
             "decision_maker_ref": "organisation:community-governance",
-            "decision_authority_ref": "urn:authority-basis:community_mandate"
+            "decision_authority_ref": "urn:authority-basis:community_mandate",
+            "decision_authority_status": "resolved",
+            "issuer_trust_status": "trusted"
           }
         ],
         "governance_context": {
@@ -4310,7 +4407,6 @@
               "urn:mycelix:input:source-evidence:participant_consent"
             ],
             "signature_status": "verified",
-            "authority_status": "resolved",
             "revocation_status": "clear",
             "currentness_status": "current",
             "status_snapshot_ref": "urn:mycelix:key-and-revocation-snapshot:synthetic-v0",
@@ -4319,7 +4415,9 @@
             "offline_lease_expires_at": "2026-11-20T03:30:00Z",
             "principal_ref": "did:example:actor-1",
             "decision_maker_ref": "participant:opaque-1",
-            "decision_authority_ref": "urn:authority-basis:participant_consent"
+            "decision_authority_ref": "urn:authority-basis:participant_consent",
+            "decision_authority_status": "resolved",
+            "issuer_trust_status": "trusted"
           },
           {
             "receipt_type": "AuthorizationReceipt",
@@ -4341,7 +4439,6 @@
               "urn:mycelix:input:source-evidence:site_access"
             ],
             "signature_status": "verified",
-            "authority_status": "resolved",
             "revocation_status": "clear",
             "currentness_status": "current",
             "status_snapshot_ref": "urn:mycelix:key-and-revocation-snapshot:synthetic-v0",
@@ -4350,7 +4447,9 @@
             "offline_lease_expires_at": "2026-11-20T03:30:00Z",
             "principal_ref": "did:example:actor-1",
             "decision_maker_ref": "authority:site-access",
-            "decision_authority_ref": "urn:authority-basis:site_access"
+            "decision_authority_ref": "urn:authority-basis:site_access",
+            "decision_authority_status": "resolved",
+            "issuer_trust_status": "trusted"
           },
           {
             "receipt_type": "AuthorizationReceipt",
@@ -4372,7 +4471,6 @@
               "urn:mycelix:input:source-evidence:community_mandate"
             ],
             "signature_status": "verified",
-            "authority_status": "resolved",
             "revocation_status": "clear",
             "currentness_status": "current",
             "status_snapshot_ref": "urn:mycelix:key-and-revocation-snapshot:synthetic-v0",
@@ -4381,7 +4479,9 @@
             "offline_lease_expires_at": "2026-11-20T03:30:00Z",
             "principal_ref": "did:example:actor-1",
             "decision_maker_ref": "organisation:community-governance",
-            "decision_authority_ref": "urn:authority-basis:community_mandate"
+            "decision_authority_ref": "urn:authority-basis:community_mandate",
+            "decision_authority_status": "resolved",
+            "issuer_trust_status": "trusted"
           }
         ],
         "governance_context": {
@@ -4397,8 +4497,407 @@
         }
       },
       "expected": "incomplete"
+    },
+    {
+      "case_id": "AUTH-ISSUER-TRUST-UNAVAILABLE-001",
+      "title": "Unavailable receipt issuer trust remains unknown even with a valid signature",
+      "input": {
+        "schema": "luminous.cter.authority-use.v0",
+        "request": {
+          "request_id": "request-synthetic-001",
+          "subject_ref": "participant:opaque-1",
+          "operation": "collect_measurement",
+          "resource_ref": "urn:site:opaque-1",
+          "project_snapshot_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "purpose_ref": "urn:purpose:field-observation-2026",
+          "recipient_ref": "urn:recipient:research-collaborative-1",
+          "jurisdiction_profile_ref": "urn:jurisdiction:synthetic-profile-v0",
+          "evaluated_at": "2026-11-20T03:00:00Z",
+          "offline_mode": true,
+          "data_classes": [
+            "community"
+          ],
+          "principal_ref": "did:example:actor-1"
+        },
+        "decisions": [
+          {
+            "receipt_type": "AuthorizationReceipt",
+            "receipt_ref": "urn:mycelix:authorization-receipt:participant_consent:1",
+            "decision_domain": "participant_consent",
+            "disposition": "allow",
+            "subject_ref": "participant:opaque-1",
+            "operation": "collect_measurement",
+            "resource_ref": "urn:site:opaque-1",
+            "project_snapshot_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "purpose_ref": "urn:purpose:field-observation-2026",
+            "recipient_ref": "urn:recipient:research-collaborative-1",
+            "jurisdiction_profile_ref": "urn:jurisdiction:synthetic-profile-v0",
+            "authorized_data_classes": [
+              "community"
+            ],
+            "policy_ref": "urn:policy:synthetic-action-policy-v0",
+            "input_receipt_refs": [
+              "urn:mycelix:input:source-evidence:participant_consent"
+            ],
+            "signature_status": "verified",
+            "revocation_status": "clear",
+            "currentness_status": "current",
+            "status_snapshot_ref": "urn:mycelix:key-and-revocation-snapshot:synthetic-v0",
+            "valid_from": "2026-11-20T02:00:00Z",
+            "valid_until": "2026-11-20T04:00:00Z",
+            "offline_lease_expires_at": "2026-11-20T03:30:00Z",
+            "principal_ref": "did:example:actor-1",
+            "decision_maker_ref": "participant:opaque-1",
+            "decision_authority_ref": "urn:authority-basis:participant_consent",
+            "decision_authority_status": "resolved",
+            "issuer_trust_status": "unavailable"
+          },
+          {
+            "receipt_type": "AuthorizationReceipt",
+            "receipt_ref": "urn:mycelix:authorization-receipt:site_access:2",
+            "decision_domain": "site_access",
+            "disposition": "allow",
+            "subject_ref": "participant:opaque-1",
+            "operation": "collect_measurement",
+            "resource_ref": "urn:site:opaque-1",
+            "project_snapshot_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "purpose_ref": "urn:purpose:field-observation-2026",
+            "recipient_ref": "urn:recipient:research-collaborative-1",
+            "jurisdiction_profile_ref": "urn:jurisdiction:synthetic-profile-v0",
+            "authorized_data_classes": [
+              "community"
+            ],
+            "policy_ref": "urn:policy:synthetic-action-policy-v0",
+            "input_receipt_refs": [
+              "urn:mycelix:input:source-evidence:site_access"
+            ],
+            "signature_status": "verified",
+            "revocation_status": "clear",
+            "currentness_status": "current",
+            "status_snapshot_ref": "urn:mycelix:key-and-revocation-snapshot:synthetic-v0",
+            "valid_from": "2026-11-20T02:00:00Z",
+            "valid_until": "2026-11-20T04:00:00Z",
+            "offline_lease_expires_at": "2026-11-20T03:30:00Z",
+            "principal_ref": "did:example:actor-1",
+            "decision_maker_ref": "authority:site-access",
+            "decision_authority_ref": "urn:authority-basis:site_access",
+            "decision_authority_status": "resolved",
+            "issuer_trust_status": "trusted"
+          },
+          {
+            "receipt_type": "AuthorizationReceipt",
+            "receipt_ref": "urn:mycelix:authorization-receipt:community_mandate:3",
+            "decision_domain": "community_mandate",
+            "disposition": "allow",
+            "subject_ref": "participant:opaque-1",
+            "operation": "collect_measurement",
+            "resource_ref": "urn:site:opaque-1",
+            "project_snapshot_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "purpose_ref": "urn:purpose:field-observation-2026",
+            "recipient_ref": "urn:recipient:research-collaborative-1",
+            "jurisdiction_profile_ref": "urn:jurisdiction:synthetic-profile-v0",
+            "authorized_data_classes": [
+              "community"
+            ],
+            "policy_ref": "urn:policy:synthetic-action-policy-v0",
+            "input_receipt_refs": [
+              "urn:mycelix:input:source-evidence:community_mandate"
+            ],
+            "signature_status": "verified",
+            "revocation_status": "clear",
+            "currentness_status": "current",
+            "status_snapshot_ref": "urn:mycelix:key-and-revocation-snapshot:synthetic-v0",
+            "valid_from": "2026-11-20T02:00:00Z",
+            "valid_until": "2026-11-20T04:00:00Z",
+            "offline_lease_expires_at": "2026-11-20T03:30:00Z",
+            "principal_ref": "did:example:actor-1",
+            "decision_maker_ref": "organisation:community-governance",
+            "decision_authority_ref": "urn:authority-basis:community_mandate",
+            "decision_authority_status": "resolved",
+            "issuer_trust_status": "trusted"
+          }
+        ],
+        "governance_context": {
+          "governance_profile_ref": "urn:governance:synthetic-profile-v0",
+          "decision_procedure_ref": "urn:procedure:community-defined-v0",
+          "representation_assessment_ref": "urn:representation:synthetic-assessment-v0",
+          "appeal_route_ref": "urn:appeal:synthetic-route-v0",
+          "representation_status": "resolved",
+          "coverage_status": "complete_within_declared_scope",
+          "dissent_status": "none",
+          "challenge_status": "none",
+          "governance_offline_lease_expires_at": "2026-11-20T03:30:00Z"
+        }
+      },
+      "expected": "unknown"
+    },
+    {
+      "case_id": "AUTH-UNTRUSTED-RECEIPT-ISSUER-001",
+      "title": "A validly signed receipt from an untrusted issuer is denied",
+      "input": {
+        "schema": "luminous.cter.authority-use.v0",
+        "request": {
+          "request_id": "request-synthetic-001",
+          "subject_ref": "participant:opaque-1",
+          "operation": "collect_measurement",
+          "resource_ref": "urn:site:opaque-1",
+          "project_snapshot_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "purpose_ref": "urn:purpose:field-observation-2026",
+          "recipient_ref": "urn:recipient:research-collaborative-1",
+          "jurisdiction_profile_ref": "urn:jurisdiction:synthetic-profile-v0",
+          "evaluated_at": "2026-11-20T03:00:00Z",
+          "offline_mode": true,
+          "data_classes": [
+            "community"
+          ],
+          "principal_ref": "did:example:actor-1"
+        },
+        "decisions": [
+          {
+            "receipt_type": "AuthorizationReceipt",
+            "receipt_ref": "urn:mycelix:authorization-receipt:participant_consent:1",
+            "decision_domain": "participant_consent",
+            "disposition": "allow",
+            "subject_ref": "participant:opaque-1",
+            "operation": "collect_measurement",
+            "resource_ref": "urn:site:opaque-1",
+            "project_snapshot_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "purpose_ref": "urn:purpose:field-observation-2026",
+            "recipient_ref": "urn:recipient:research-collaborative-1",
+            "jurisdiction_profile_ref": "urn:jurisdiction:synthetic-profile-v0",
+            "authorized_data_classes": [
+              "community"
+            ],
+            "policy_ref": "urn:policy:synthetic-action-policy-v0",
+            "input_receipt_refs": [
+              "urn:mycelix:input:source-evidence:participant_consent"
+            ],
+            "signature_status": "verified",
+            "revocation_status": "clear",
+            "currentness_status": "current",
+            "status_snapshot_ref": "urn:mycelix:key-and-revocation-snapshot:synthetic-v0",
+            "valid_from": "2026-11-20T02:00:00Z",
+            "valid_until": "2026-11-20T04:00:00Z",
+            "offline_lease_expires_at": "2026-11-20T03:30:00Z",
+            "principal_ref": "did:example:actor-1",
+            "decision_maker_ref": "participant:opaque-1",
+            "decision_authority_ref": "urn:authority-basis:participant_consent",
+            "decision_authority_status": "resolved",
+            "issuer_trust_status": "untrusted"
+          },
+          {
+            "receipt_type": "AuthorizationReceipt",
+            "receipt_ref": "urn:mycelix:authorization-receipt:site_access:2",
+            "decision_domain": "site_access",
+            "disposition": "allow",
+            "subject_ref": "participant:opaque-1",
+            "operation": "collect_measurement",
+            "resource_ref": "urn:site:opaque-1",
+            "project_snapshot_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "purpose_ref": "urn:purpose:field-observation-2026",
+            "recipient_ref": "urn:recipient:research-collaborative-1",
+            "jurisdiction_profile_ref": "urn:jurisdiction:synthetic-profile-v0",
+            "authorized_data_classes": [
+              "community"
+            ],
+            "policy_ref": "urn:policy:synthetic-action-policy-v0",
+            "input_receipt_refs": [
+              "urn:mycelix:input:source-evidence:site_access"
+            ],
+            "signature_status": "verified",
+            "revocation_status": "clear",
+            "currentness_status": "current",
+            "status_snapshot_ref": "urn:mycelix:key-and-revocation-snapshot:synthetic-v0",
+            "valid_from": "2026-11-20T02:00:00Z",
+            "valid_until": "2026-11-20T04:00:00Z",
+            "offline_lease_expires_at": "2026-11-20T03:30:00Z",
+            "principal_ref": "did:example:actor-1",
+            "decision_maker_ref": "authority:site-access",
+            "decision_authority_ref": "urn:authority-basis:site_access",
+            "decision_authority_status": "resolved",
+            "issuer_trust_status": "trusted"
+          },
+          {
+            "receipt_type": "AuthorizationReceipt",
+            "receipt_ref": "urn:mycelix:authorization-receipt:community_mandate:3",
+            "decision_domain": "community_mandate",
+            "disposition": "allow",
+            "subject_ref": "participant:opaque-1",
+            "operation": "collect_measurement",
+            "resource_ref": "urn:site:opaque-1",
+            "project_snapshot_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "purpose_ref": "urn:purpose:field-observation-2026",
+            "recipient_ref": "urn:recipient:research-collaborative-1",
+            "jurisdiction_profile_ref": "urn:jurisdiction:synthetic-profile-v0",
+            "authorized_data_classes": [
+              "community"
+            ],
+            "policy_ref": "urn:policy:synthetic-action-policy-v0",
+            "input_receipt_refs": [
+              "urn:mycelix:input:source-evidence:community_mandate"
+            ],
+            "signature_status": "verified",
+            "revocation_status": "clear",
+            "currentness_status": "current",
+            "status_snapshot_ref": "urn:mycelix:key-and-revocation-snapshot:synthetic-v0",
+            "valid_from": "2026-11-20T02:00:00Z",
+            "valid_until": "2026-11-20T04:00:00Z",
+            "offline_lease_expires_at": "2026-11-20T03:30:00Z",
+            "principal_ref": "did:example:actor-1",
+            "decision_maker_ref": "organisation:community-governance",
+            "decision_authority_ref": "urn:authority-basis:community_mandate",
+            "decision_authority_status": "resolved",
+            "issuer_trust_status": "trusted"
+          }
+        ],
+        "governance_context": {
+          "governance_profile_ref": "urn:governance:synthetic-profile-v0",
+          "decision_procedure_ref": "urn:procedure:community-defined-v0",
+          "representation_assessment_ref": "urn:representation:synthetic-assessment-v0",
+          "appeal_route_ref": "urn:appeal:synthetic-route-v0",
+          "representation_status": "resolved",
+          "coverage_status": "complete_within_declared_scope",
+          "dissent_status": "none",
+          "challenge_status": "none",
+          "governance_offline_lease_expires_at": "2026-11-20T03:30:00Z"
+        }
+      },
+      "expected": "deny"
+    },
+    {
+      "case_id": "AUTH-SIGNED-BUT-UNAUTHORIZED-DECISION-MAKER-001",
+      "title": "A validly signed receipt does not prove the decision maker had authority",
+      "input": {
+        "schema": "luminous.cter.authority-use.v0",
+        "request": {
+          "request_id": "request-synthetic-001",
+          "subject_ref": "participant:opaque-1",
+          "operation": "collect_measurement",
+          "resource_ref": "urn:site:opaque-1",
+          "project_snapshot_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "purpose_ref": "urn:purpose:field-observation-2026",
+          "recipient_ref": "urn:recipient:research-collaborative-1",
+          "jurisdiction_profile_ref": "urn:jurisdiction:synthetic-profile-v0",
+          "evaluated_at": "2026-11-20T03:00:00Z",
+          "offline_mode": true,
+          "data_classes": [
+            "community"
+          ],
+          "principal_ref": "did:example:actor-1"
+        },
+        "decisions": [
+          {
+            "receipt_type": "AuthorizationReceipt",
+            "receipt_ref": "urn:mycelix:authorization-receipt:participant_consent:1",
+            "decision_domain": "participant_consent",
+            "disposition": "allow",
+            "subject_ref": "participant:opaque-1",
+            "operation": "collect_measurement",
+            "resource_ref": "urn:site:opaque-1",
+            "project_snapshot_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "purpose_ref": "urn:purpose:field-observation-2026",
+            "recipient_ref": "urn:recipient:research-collaborative-1",
+            "jurisdiction_profile_ref": "urn:jurisdiction:synthetic-profile-v0",
+            "authorized_data_classes": [
+              "community"
+            ],
+            "policy_ref": "urn:policy:synthetic-action-policy-v0",
+            "input_receipt_refs": [
+              "urn:mycelix:input:source-evidence:participant_consent"
+            ],
+            "signature_status": "verified",
+            "revocation_status": "clear",
+            "currentness_status": "current",
+            "status_snapshot_ref": "urn:mycelix:key-and-revocation-snapshot:synthetic-v0",
+            "valid_from": "2026-11-20T02:00:00Z",
+            "valid_until": "2026-11-20T04:00:00Z",
+            "offline_lease_expires_at": "2026-11-20T03:30:00Z",
+            "principal_ref": "did:example:actor-1",
+            "decision_maker_ref": "participant:opaque-1",
+            "decision_authority_ref": "urn:authority-basis:participant_consent",
+            "decision_authority_status": "unresolved",
+            "issuer_trust_status": "trusted"
+          },
+          {
+            "receipt_type": "AuthorizationReceipt",
+            "receipt_ref": "urn:mycelix:authorization-receipt:site_access:2",
+            "decision_domain": "site_access",
+            "disposition": "allow",
+            "subject_ref": "participant:opaque-1",
+            "operation": "collect_measurement",
+            "resource_ref": "urn:site:opaque-1",
+            "project_snapshot_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "purpose_ref": "urn:purpose:field-observation-2026",
+            "recipient_ref": "urn:recipient:research-collaborative-1",
+            "jurisdiction_profile_ref": "urn:jurisdiction:synthetic-profile-v0",
+            "authorized_data_classes": [
+              "community"
+            ],
+            "policy_ref": "urn:policy:synthetic-action-policy-v0",
+            "input_receipt_refs": [
+              "urn:mycelix:input:source-evidence:site_access"
+            ],
+            "signature_status": "verified",
+            "revocation_status": "clear",
+            "currentness_status": "current",
+            "status_snapshot_ref": "urn:mycelix:key-and-revocation-snapshot:synthetic-v0",
+            "valid_from": "2026-11-20T02:00:00Z",
+            "valid_until": "2026-11-20T04:00:00Z",
+            "offline_lease_expires_at": "2026-11-20T03:30:00Z",
+            "principal_ref": "did:example:actor-1",
+            "decision_maker_ref": "authority:site-access",
+            "decision_authority_ref": "urn:authority-basis:site_access",
+            "decision_authority_status": "resolved",
+            "issuer_trust_status": "trusted"
+          },
+          {
+            "receipt_type": "AuthorizationReceipt",
+            "receipt_ref": "urn:mycelix:authorization-receipt:community_mandate:3",
+            "decision_domain": "community_mandate",
+            "disposition": "allow",
+            "subject_ref": "participant:opaque-1",
+            "operation": "collect_measurement",
+            "resource_ref": "urn:site:opaque-1",
+            "project_snapshot_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "purpose_ref": "urn:purpose:field-observation-2026",
+            "recipient_ref": "urn:recipient:research-collaborative-1",
+            "jurisdiction_profile_ref": "urn:jurisdiction:synthetic-profile-v0",
+            "authorized_data_classes": [
+              "community"
+            ],
+            "policy_ref": "urn:policy:synthetic-action-policy-v0",
+            "input_receipt_refs": [
+              "urn:mycelix:input:source-evidence:community_mandate"
+            ],
+            "signature_status": "verified",
+            "revocation_status": "clear",
+            "currentness_status": "current",
+            "status_snapshot_ref": "urn:mycelix:key-and-revocation-snapshot:synthetic-v0",
+            "valid_from": "2026-11-20T02:00:00Z",
+            "valid_until": "2026-11-20T04:00:00Z",
+            "offline_lease_expires_at": "2026-11-20T03:30:00Z",
+            "principal_ref": "did:example:actor-1",
+            "decision_maker_ref": "organisation:community-governance",
+            "decision_authority_ref": "urn:authority-basis:community_mandate",
+            "decision_authority_status": "resolved",
+            "issuer_trust_status": "trusted"
+          }
+        ],
+        "governance_context": {
+          "governance_profile_ref": "urn:governance:synthetic-profile-v0",
+          "decision_procedure_ref": "urn:procedure:community-defined-v0",
+          "representation_assessment_ref": "urn:representation:synthetic-assessment-v0",
+          "appeal_route_ref": "urn:appeal:synthetic-route-v0",
+          "representation_status": "resolved",
+          "coverage_status": "complete_within_declared_scope",
+          "dissent_status": "none",
+          "challenge_status": "none",
+          "governance_offline_lease_expires_at": "2026-11-20T03:30:00Z"
+        }
+      },
+      "expected": "review"
     }
   ],
-  "case_count": 35,
+  "case_count": 38,
   "execution_status": "synthetic_fixture_and_reference_added_execution_pending"
 }

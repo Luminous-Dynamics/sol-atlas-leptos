@@ -79,3 +79,13 @@ The request's `principal_ref` identifies the actor/system seeking to perform the
 An identical replay of the same `receipt_ref` and contents is idempotent. The same receipt reference with changed contents is an identity conflict and is denied. Different decision references for one required decision domain are reviewable conflicts, not a last-write-wins situation.
 
 The Rust consumer additionally checks SHA-256-shaped project snapshot commitments and a strict UTC timestamp shape with Gregorian date bounds. JSON Schema validation remains mandatory; the standalone validator is defense in depth, not a schema replacement.
+
+## 8. Three separate trust questions
+
+The consumer projection distinguishes three facts which cannot substitute for each other:
+
+1. `signature_status`: does the receipt's cryptographic signature verify over the exact signed receipt bytes?
+2. `issuer_trust_status`: is the receipt issuer trusted under the relevant trust policy and current trust-anchor state?
+3. `decision_authority_status`: did the referenced decision maker have authority for this exact scope, jurisdiction, purpose and operation?
+
+A valid signature from an untrusted issuer is denied; an unavailable issuer-trust resolver is UNKNOWN; and a validly signed receipt whose decision-maker authority remains unresolved requires REVIEW. The upstream verifier/resolver must authenticate each status; CTER only consumes the normalized result.

@@ -172,7 +172,6 @@
         "policy_ref",
         "input_receipt_refs",
         "signature_status",
-        "authority_status",
         "revocation_status",
         "currentness_status",
         "status_snapshot_ref",
@@ -180,7 +179,9 @@
         "valid_until",
         "offline_lease_expires_at",
         "decision_maker_ref",
-        "decision_authority_ref"
+        "decision_authority_ref",
+        "decision_authority_status",
+        "issuer_trust_status"
       ],
       "properties": {
         "receipt_type": {
@@ -280,13 +281,6 @@
             "unavailable"
           ]
         },
-        "authority_status": {
-          "enum": [
-            "resolved",
-            "unresolved",
-            "revoked"
-          ]
-        },
         "revocation_status": {
           "enum": [
             "clear",
@@ -332,6 +326,20 @@
         "decision_authority_ref": {
           "type": "string",
           "minLength": 1
+        },
+        "decision_authority_status": {
+          "enum": [
+            "resolved",
+            "unresolved",
+            "revoked"
+          ]
+        },
+        "issuer_trust_status": {
+          "enum": [
+            "trusted",
+            "untrusted",
+            "unavailable"
+          ]
         }
       }
     },

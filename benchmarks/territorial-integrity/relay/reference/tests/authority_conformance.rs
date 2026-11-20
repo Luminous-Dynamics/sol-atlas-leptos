@@ -10,7 +10,7 @@ fn corpus() -> Value {
 fn authority_consumer_corpus_matches_every_expected_disposition() {
     let cases = corpus();
     let cases = cases["cases"].as_array().expect("cases array");
-    assert_eq!(cases.len(), 35, "authority corpus size is part of the release contract");
+    assert_eq!(cases.len(), 38, "authority corpus size is part of the release contract");
     for case in cases {
         let case_id = case["case_id"].as_str().expect("case id");
         let expected = case["expected"].as_str().expect("expected disposition");
