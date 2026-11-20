@@ -1,3 +1,5 @@
+#[rustfmt::skip]
+mod implementation {
 use serde::{
     de::{self, MapAccess, SeqAccess, Visitor},
     Deserialize, Deserializer, Serialize,
@@ -152,16 +154,6 @@ struct DispositionCounts {
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 enum SlotState { Available, Unavailable, Unknown }
 
-impl SlotState {
-    fn as_str(self) -> &'static str {
-        match self {
-            Self::Available => "AVAILABLE",
-            Self::Unavailable => "UNAVAILABLE",
-            Self::Unknown => "UNKNOWN",
-        }
-    }
-}
-
 // Reject duplicate keys recursively before values enter serde_json::Map.
 struct UniqueValue(Value);
 impl<'de> Deserialize<'de> for UniqueValue {
@@ -298,7 +290,12 @@ fn validate_case(c: &OpportunityCase) -> Result<(), String> {
     }
     let mut window_ids = BTreeSet::new();
     let mut ordered = c.calendar.service_windows.iter().collect::<Vec<_>>();
-    ordered.sort_by_key(|w| (w.start_tick, w.end_tick, w.window_id.as_str()));
+    ordered.sort_by(|left, right| {
+        left.start_tick
+            .cmp(&right.start_tick)
+            .then(left.end_tick.cmp(&right.end_tick))
+            .then(left.window_id.cmp(&right.window_id))
+    });
     for w in &ordered {
         if w.window_id.trim().is_empty() || w.owner_source_id.trim().is_empty() || w.owner_revision.trim().is_empty() {
             return Err(format!("{id}: service-window identity/revision is incomplete"));
@@ -355,7 +352,11 @@ fn evaluate_slot(c: &OpportunityCase, arrival: i64) -> Result<SlotState, String>
         .ok_or_else(|| "requested service interval overflow".to_owned())?;
     let mut cursor = arrival;
     let mut windows = c.calendar.service_windows.iter().collect::<Vec<_>>();
-    windows.sort_by_key(|w| (w.start_tick, w.end_tick));
+    windows.sort_by(|left, right| {
+        left.start_tick
+            .cmp(&right.start_tick)
+            .then(left.end_tick.cmp(&right.end_tick))
+    });
     while cursor < finish {
         let next = windows.iter().find(|w| w.start_tick <= cursor && cursor < w.end_tick);
         let Some(w) = next else {
@@ -462,7 +463,7 @@ fn evaluate_fixture(bytes: &[u8]) -> Result<EvaluationOutput, String> {
     })
 }
 
-fn main() {
+pub(super) fn run() {
     let mut args = env::args().skip(1);
     let path = match args.next() {
         None => FIXTURE_PATH.to_owned(),
@@ -496,7 +497,7 @@ mod tests {
     fn evaluate_value(v: Value) -> Result<EvaluationOutput, String> {
         evaluate_fixture(&serde_json::to_vec(&v).expect("test JSON"))
     }
-    fn by_id<'a>(out: &'a EvaluationOutput, id: &str) -> &'a OpportunityResult {
+    fn by_id(out: &EvaluationOutput, id: &str) -> &OpportunityResult {
         out.results.iter().find(|r| r.opportunity_id == id).expect("result exists")
     }
 
@@ -586,7 +587,7 @@ mod tests {
     #[test]
     fn overlapping_windows_are_rejected() {
         let mut v = fixture_value();
-        v["cases"][0]["calendar"]["service_windows"][1]["start_tick"] = Value::from(35_i64);
+        v["cases"][9]["calendar"]["service_windows"][1]["start_tick"] = Value::from(35_i64);
         let e = evaluate_value(v).expect_err("overlap must fail");
         assert!(e.contains("overlapping or contradictory"));
     }
@@ -617,6 +618,7 @@ mod tests {
     #[test]
     fn excessively_wide_arrival_uncertainty_is_rejected() {
         let mut v = fixture_value();
+        v["cases"][0]["scope"]["horizon_end_tick"] = Value::from(3_000_i64);
         v["cases"][0]["access"]["arrival_earliest_tick"] = Value::from(0_i64);
         v["cases"][0]["access"]["arrival_latest_tick"] = Value::from(2_000_i64);
         let e = evaluate_value(v).expect_err("wide arrival range must fail");
@@ -644,4 +646,10 @@ mod tests {
         assert!(!json.contains("assigned_capacity"));
         assert!(!json.contains("allocation_decision"));
     }
+}
+
+}
+
+fn main() {
+    implementation::run();
 }
