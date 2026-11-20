@@ -148,3 +148,6 @@ A later renewal can preserve evidence of an earlier verification result; it cann
 - no generic anonymity guarantee;
 - no assertion that a valid composed structure authorizes actual release;
 - no claim of production cryptographic proof, field readiness or SOTA superiority.
+
+
+The egress authorization projection includes `coverage_query_ref` and `coverage_query_commitment`. The composed evaluator requires exact equality with the private coverage record's query reference and commitment, preventing a request/package binding from being reused under a different selection predicate.
