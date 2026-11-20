@@ -58,6 +58,7 @@ export function classifyPairedWorldCase(testCase, declaredChannels) {
 
 const declared = new Set(corpus.declared_channels);
 const ids = new Set();
+const counts = { leak_detected: 0, non_disclosure: 0, inventory_incomplete: 0 };
 const results = [];
 for (const testCase of corpus.cases) {
   assert.ok(!ids.has(testCase.case_id), "duplicate case id: " + testCase.case_id);
@@ -68,12 +69,17 @@ for (const testCase of corpus.cases) {
     testCase.expected,
     testCase.case_id + ": " + JSON.stringify(actual),
   );
+  counts[actual.disposition] += 1;
   results.push({ case_id: testCase.case_id, disposition: actual.disposition });
 }
 
 assert.equal(corpus.synthetic_only, true);
 assert.equal(corpus.cases.length, 24);
-console.log(
-  "CTER privacy paired-world oracle: " + results.length + "/" + results.length + " expected dispositions matched.",
-);
-console.log("This checks synthetic fixture semantics only; no production channel inventory or anonymity claim is established.");
+assert.deepEqual(counts, {
+  leak_detected: 20,
+  non_disclosure: 3,
+  inventory_incomplete: 1,
+});
+console.log("CTER privacy oracle: " + results.length + "/" + results.length + " paired-world fixture dispositions matched.");
+console.log("Counts: " + JSON.stringify(counts) + ".");
+console.log("Fixture semantics only; no production privacy guarantee is asserted.");
