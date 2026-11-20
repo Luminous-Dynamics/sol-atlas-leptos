@@ -10,43 +10,25 @@
     "coverage_ref",
     "frontier",
     "query_binding",
+    "receipt_binding",
+    "receipt_assessment",
     "private_partition",
     "package_binding",
     "public_verifier_view",
     "fixture_notice"
   ],
   "properties": {
-    "schema": {
-      "const": "luminous.cter.private-coverage.v0.1"
-    },
-    "coverage_ref": {
-      "$ref": "#/$defs/opaque_ref"
-    },
+    "schema": { "const": "luminous.cter.private-coverage.v0.1" },
+    "coverage_ref": { "$ref": "#/$defs/opaque_ref" },
     "frontier": {
       "type": "object",
       "additionalProperties": false,
-      "required": [
-        "frontier_ref",
-        "version",
-        "commitment",
-        "source_owner_ref",
-        "receipt_ref",
-        "object_refs"
-      ],
+      "required": ["frontier_ref", "version", "commitment", "source_owner_ref", "receipt_ref", "object_refs"],
       "properties": {
-        "frontier_ref": {
-          "$ref": "#/$defs/opaque_ref"
-        },
-        "version": {
-          "type": "string",
-          "minLength": 1
-        },
-        "commitment": {
-          "$ref": "#/$defs/sha256_digest"
-        },
-        "source_owner_ref": {
-          "$ref": "#/$defs/opaque_ref"
-        },
+        "frontier_ref": { "$ref": "#/$defs/opaque_ref" },
+        "version": { "type": "string", "minLength": 1 },
+        "commitment": { "$ref": "#/$defs/sha256_digest" },
+        "source_owner_ref": { "$ref": "#/$defs/opaque_ref" },
         "receipt_ref": {
           "$ref": "#/$defs/opaque_ref",
           "description": "Reference only. Mycelix must resolve and verify the actual typed receipt/VDS proof."
@@ -55,9 +37,7 @@
           "type": "array",
           "minItems": 1,
           "uniqueItems": true,
-          "items": {
-            "$ref": "#/$defs/opaque_ref"
-          }
+          "items": { "$ref": "#/$defs/opaque_ref" }
         }
       }
     },
@@ -65,77 +45,73 @@
       "type": "object",
       "additionalProperties": false,
       "required": [
-        "query_ref",
-        "query_commitment",
-        "request_commitment",
-        "principal_ref",
-        "operation",
-        "purpose_ref",
-        "recipient_ref",
-        "resource_ref",
-        "jurisdiction_profile_ref",
+        "query_ref", "query_commitment", "request_commitment", "principal_ref",
+        "operation", "purpose_ref", "recipient_ref", "resource_ref",
+        "jurisdiction_profile_ref", "project_snapshot_sha256"
+      ],
+      "properties": {
+        "query_ref": { "$ref": "#/$defs/opaque_ref" },
+        "query_commitment": { "$ref": "#/$defs/sha256_digest" },
+        "request_commitment": { "$ref": "#/$defs/sha256_digest" },
+        "principal_ref": { "$ref": "#/$defs/opaque_ref" },
+        "operation": { "enum": ["export_evidence", "publish_observation"] },
+        "purpose_ref": { "$ref": "#/$defs/opaque_ref" },
+        "recipient_ref": { "$ref": "#/$defs/opaque_ref" },
+        "resource_ref": { "$ref": "#/$defs/opaque_ref" },
+        "jurisdiction_profile_ref": { "$ref": "#/$defs/opaque_ref" },
+        "project_snapshot_sha256": { "$ref": "#/$defs/sha256_hex" }
+      }
+    },
+    "receipt_binding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "receipt_ref", "frontier_ref", "frontier_version", "frontier_commitment",
+        "query_commitment", "request_commitment", "principal_ref", "operation",
+        "purpose_ref", "recipient_ref", "resource_ref", "jurisdiction_profile_ref",
         "project_snapshot_sha256"
       ],
       "properties": {
-        "query_ref": {
-          "$ref": "#/$defs/opaque_ref"
-        },
-        "query_commitment": {
-          "$ref": "#/$defs/sha256_digest"
-        },
-        "request_commitment": {
-          "$ref": "#/$defs/sha256_digest"
-        },
-        "principal_ref": {
-          "$ref": "#/$defs/opaque_ref"
-        },
-        "operation": {
-          "enum": [
-            "export_evidence",
-            "publish_observation"
-          ]
-        },
-        "purpose_ref": {
-          "$ref": "#/$defs/opaque_ref"
-        },
-        "recipient_ref": {
-          "$ref": "#/$defs/opaque_ref"
-        },
-        "resource_ref": {
-          "$ref": "#/$defs/opaque_ref"
-        },
-        "jurisdiction_profile_ref": {
-          "$ref": "#/$defs/opaque_ref"
-        },
-        "project_snapshot_sha256": {
-          "$ref": "#/$defs/sha256_hex"
-        }
+        "receipt_ref": { "$ref": "#/$defs/opaque_ref" },
+        "frontier_ref": { "$ref": "#/$defs/opaque_ref" },
+        "frontier_version": { "type": "string", "minLength": 1 },
+        "frontier_commitment": { "$ref": "#/$defs/sha256_digest" },
+        "query_commitment": { "$ref": "#/$defs/sha256_digest" },
+        "request_commitment": { "$ref": "#/$defs/sha256_digest" },
+        "principal_ref": { "$ref": "#/$defs/opaque_ref" },
+        "operation": { "enum": ["export_evidence", "publish_observation"] },
+        "purpose_ref": { "$ref": "#/$defs/opaque_ref" },
+        "recipient_ref": { "$ref": "#/$defs/opaque_ref" },
+        "resource_ref": { "$ref": "#/$defs/opaque_ref" },
+        "jurisdiction_profile_ref": { "$ref": "#/$defs/opaque_ref" },
+        "project_snapshot_sha256": { "$ref": "#/$defs/sha256_hex" }
+      }
+    },
+    "receipt_assessment": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["assessment_ref", "resolution_status", "status_snapshot_ref"],
+      "properties": {
+        "assessment_ref": { "$ref": "#/$defs/opaque_ref" },
+        "resolution_status": { "enum": ["current", "stale", "unavailable", "revoked", "unknown"] },
+        "status_snapshot_ref": { "$ref": "#/$defs/opaque_ref" }
       }
     },
     "private_partition": {
       "type": "array",
       "minItems": 1,
-      "items": {
-        "$ref": "#/$defs/partition_item"
-      }
+      "items": { "$ref": "#/$defs/partition_item" }
     },
     "package_binding": {
       "type": "object",
       "additionalProperties": false,
-      "required": [
-        "package_commitment",
-        "terminal_source_leaf_refs"
-      ],
+      "required": ["package_commitment", "terminal_source_leaf_refs"],
       "properties": {
-        "package_commitment": {
-          "$ref": "#/$defs/sha256_digest"
-        },
+        "package_commitment": { "$ref": "#/$defs/sha256_digest" },
         "terminal_source_leaf_refs": {
           "type": "array",
           "uniqueItems": true,
-          "items": {
-            "$ref": "#/$defs/opaque_ref"
-          }
+          "items": { "$ref": "#/$defs/opaque_ref" }
         }
       }
     },
@@ -143,35 +119,18 @@
       "type": "object",
       "additionalProperties": false,
       "required": [
-        "frontier_commitment",
-        "query_commitment",
-        "request_commitment",
-        "package_commitment",
-        "proof_ref"
+        "frontier_commitment", "query_commitment", "request_commitment",
+        "package_commitment", "proof_ref"
       ],
       "properties": {
-        "frontier_commitment": {
-          "$ref": "#/$defs/sha256_digest"
-        },
-        "query_commitment": {
-          "$ref": "#/$defs/sha256_digest"
-        },
-        "request_commitment": {
-          "$ref": "#/$defs/sha256_digest"
-        },
-        "package_commitment": {
-          "$ref": "#/$defs/sha256_digest"
-        },
-        "proof_ref": {
-          "$ref": "#/$defs/opaque_ref"
-        }
+        "frontier_commitment": { "$ref": "#/$defs/sha256_digest" },
+        "query_commitment": { "$ref": "#/$defs/sha256_digest" },
+        "request_commitment": { "$ref": "#/$defs/sha256_digest" },
+        "package_commitment": { "$ref": "#/$defs/sha256_digest" },
+        "proof_ref": { "$ref": "#/$defs/opaque_ref" }
       }
     },
-    "fixture_notice": {
-      "type": "string",
-      "minLength": 1,
-      "maxLength": 2000
-    }
+    "fixture_notice": { "type": "string", "minLength": 1, "maxLength": 2000 }
   },
   "$defs": {
     "opaque_ref": {
@@ -180,54 +139,24 @@
       "maxLength": 1024,
       "pattern": "^[A-Za-z][A-Za-z0-9+.-]*:[^\\s]+$"
     },
-    "sha256_hex": {
-      "type": "string",
-      "pattern": "^[0-9a-f]{64}$"
-    },
+    "sha256_hex": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
     "sha256_digest": {
       "type": "object",
       "additionalProperties": false,
-      "required": [
-        "algorithm",
-        "value"
-      ],
+      "required": ["algorithm", "value"],
       "properties": {
-        "algorithm": {
-          "const": "sha-256"
-        },
-        "value": {
-          "$ref": "#/$defs/sha256_hex"
-        }
+        "algorithm": { "const": "sha-256" },
+        "value": { "$ref": "#/$defs/sha256_hex" }
       }
     },
     "partition_item": {
       "type": "object",
       "additionalProperties": false,
-      "required": [
-        "object_ref",
-        "scope_state",
-        "disposition"
-      ],
+      "required": ["object_ref", "scope_state", "disposition"],
       "properties": {
-        "object_ref": {
-          "$ref": "#/$defs/opaque_ref"
-        },
-        "scope_state": {
-          "enum": [
-            "in_scope",
-            "out_of_scope",
-            "unknown"
-          ]
-        },
-        "disposition": {
-          "enum": [
-            "included",
-            "withheld",
-            "unavailable",
-            "excluded",
-            "unresolved"
-          ]
-        }
+        "object_ref": { "$ref": "#/$defs/opaque_ref" },
+        "scope_state": { "enum": ["in_scope", "out_of_scope", "unknown"] },
+        "disposition": { "enum": ["included", "withheld", "unavailable", "excluded", "unresolved"] }
       }
     }
   }
