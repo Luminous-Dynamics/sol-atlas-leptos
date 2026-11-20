@@ -636,3 +636,57 @@ fn unavailable_query_input_cannot_be_promoted_to_a_true_match() {
     assert_eq!(result.disposition, "deny");
     assert!(result.reason_codes.contains("partition_scope_does_not_match_query_predicate"));
 }
+
+
+#[test]
+fn query_input_snapshot_commitment_matches_frozen_golden_digest() {
+    let input = baseline();
+    let snapshot = &input["query_input_snapshot"];
+    assert_eq!(
+        query_input_snapshot_commitment(snapshot).expect("snapshot canonicalizes"),
+        "7eda4c8715c60b17866a5e95675760da6728a04d2066e1de7615fd4a4326cfb8"
+    );
+}
+
+#[test]
+fn query_input_snapshot_commitment_is_invariant_to_item_and_binding_order() {
+    let input = baseline();
+    let expected = query_input_snapshot_commitment(&input["query_input_snapshot"])
+        .expect("snapshot canonicalizes");
+    let mut reordered = input["query_input_snapshot"].clone();
+    reordered["items"].as_array_mut().expect("items").reverse();
+    for item in reordered["items"].as_array_mut().expect("items") {
+        item["attribute_source_bindings"]
+            .as_array_mut()
+            .expect("source bindings")
+            .reverse();
+    }
+    assert_eq!(
+        query_input_snapshot_commitment(&reordered).expect("reordered snapshot canonicalizes"),
+        expected
+    );
+}
+
+#[test]
+fn query_input_snapshot_commitment_changes_when_source_attribute_changes() {
+    let input = baseline();
+    let expected = query_input_snapshot_commitment(&input["query_input_snapshot"])
+        .expect("snapshot canonicalizes");
+    let mut changed = input["query_input_snapshot"].clone();
+    changed["items"][0]["query_input"]["jurisdiction"] = Value::String("US".into());
+    assert_ne!(
+        query_input_snapshot_commitment(&changed).expect("changed snapshot canonicalizes"),
+        expected
+    );
+}
+
+#[test]
+fn query_input_snapshot_commitment_rejects_unsupported_profile() {
+    let input = baseline();
+    let mut changed = input["query_input_snapshot"].clone();
+    changed["profile_ref"] = Value::String("urn:luminous:cter:query-input-json-v0.2".into());
+    assert_eq!(
+        query_input_snapshot_commitment(&changed),
+        Err("query_input_snapshot_profile_unsupported")
+    );
+}
