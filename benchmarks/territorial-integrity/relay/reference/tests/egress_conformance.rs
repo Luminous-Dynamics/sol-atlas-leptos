@@ -163,3 +163,48 @@ fn identity_copy_requires_source_and_output_digest_commitments_to_match() {
     assert_eq!(result.disposition, "deny");
     assert!(result.reason_codes.contains("identity_copy_digest_mismatch"));
 }
+
+
+#[test]
+fn intermediate_output_can_be_a_source_when_content_identity_matches() {
+    let mut input = baseline();
+    let first_output = input["package"]["outputs"][0].clone();
+    let first_ref = first_output["object_ref"].as_str().expect("first output ref").to_owned();
+    let first_digest = first_output["content_digest"].clone();
+
+    let second_ref = "urn:fixture:output:derived-002";
+    let second = serde_json::json!({
+        "object_ref": second_ref,
+        "content_digest": {
+            "algorithm": "sha-256",
+            "value": "2222222222222222222222222222222222222222222222222222222222222222"
+        },
+        "byte_length": 96,
+        "media_type": "application/octet-stream",
+        "data_classes": ["community"],
+        "source_refs": [{
+            "object_ref": first_ref,
+            "content_digest": first_digest,
+            "data_classes": ["community"]
+        }],
+        "transformation_refs": ["urn:fixture:transform:derived-002"]
+    });
+    input["package"]["outputs"].as_array_mut().expect("outputs").push(second);
+    input["package"]["transformations"].as_array_mut().expect("transforms").push(
+        serde_json::json!({
+            "transform_ref": "urn:fixture:transform:derived-002",
+            "transform_kind": "format_conversion",
+            "profile_ref": "urn:fixture:transform-profile:format-conversion-v0",
+            "version_commitment": {
+                "algorithm": "sha-256",
+                "value": "3333333333333333333333333333333333333333333333333333333333333333"
+            },
+            "input_object_refs": [first_ref],
+            "output_object_refs": [second_ref]
+        })
+    );
+
+    let result = evaluate_disclosure_manifest(&input);
+    assert_eq!(result.disposition, "valid_structure", "{:?}", result.reason_codes);
+    assert!(result.reason_codes.is_empty());
+}
