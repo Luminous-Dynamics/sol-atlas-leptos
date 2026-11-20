@@ -25,10 +25,10 @@ fn adversarial_suite_is_frozen_and_explicitly_unexecuted() {
     let suite = corpus();
     let cases = suite["cases"].as_array().expect("case array");
     assert_eq!(cases.len(), 35);
-    assert_eq!(cases.iter().filter(|case| case["case_id"] != "EGRESS-BASELINE-001").count(), 31);
+    assert_eq!(cases.iter().filter(|case| case["case_id"] != "EGRESS-BASELINE-001").count(), 34);
     assert_eq!(
         suite["execution_status"],
-        "javascript_oracle_v8_16_of_16_rust_tests_and_node22_workflow_pending"
+        "jcs_predicate_commitment_implemented_exact_head_rust_and_node22_pending"
     );
 }
 
@@ -326,13 +326,12 @@ fn unsupported_coverage_query_profile_is_incomplete() {
 
 #[test]
 fn egress_raw_json_entrypoint_rejects_duplicate_object_members() {
-    let mut manifest = baseline();
+    let manifest = baseline();
     let raw = serde_json::to_string(&manifest).expect("baseline serializes");
     let unique = evaluate_disclosure_manifest_json(&raw)
         .expect("strict parser accepts unique JSON");
     assert_eq!(unique.disposition, "valid_structure");
 
-    manifest["manifest_id"] = Value::String("urn:fixture:manifest:replacement".into());
     let raw = raw.replacen(
         "\"manifest_id\":",
         "\"manifest_id\":\"urn:fixture:manifest:duplicate\", \"manifest_id\":",
