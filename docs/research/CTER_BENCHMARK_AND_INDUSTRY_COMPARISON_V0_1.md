@@ -204,3 +204,18 @@ Initial artifacts:
 This programme must distinguish object inclusion from query completeness. RFC 9942 COSE Receipts provides VDS receipt machinery for inclusion, consistency, disclosure and non-inclusion properties; it does not by itself prove that every object matching an arbitrary CTER query was included. The latter requires a separately justified partition/completeness argument. The proof primitive is not selected, and the corpus is specified but unexecuted.
 
 Do not award CTER a privacy or completeness score for opaque IDs, encrypted payloads or a receipt reference alone. The benchmark must test whether a verifier can detect omissions and stale frontiers while learning no protected inventory, count, location or low-entropy value beyond its authorized purpose.
+
+
+## 12. Mycelix-owned transparency dependency: no duplicate VDS
+
+The privacy-coverage and egress benchmarks now explicitly compose with Mycelix [PULSE-TRANSPARENCY-ANTI-EQUIVOCATION-001 #5942](https://github.com/Luminous-Dynamics/mycelix/issues/5942) and [draft PR #5944](https://github.com/Luminous-Dynamics/mycelix/pull/5944). That PR contains a bounded TLA+ witness-quorum model around an existing SCITT-compatible TS/VDS: 4 witnesses, a maximum of 1 Byzantine witness, 3-of-4 matching checkpoint signatures, durable honest-witness checkpoint locks, and UNKNOWN when a client cannot establish quorum. It includes weak-quorum, double-sign and lock-loss negative controls.
+
+The upstream PR is currently a research model, not a deployed protocol or runtime COSE/VDS implementation, and its own qualification record says TLC has not yet run. CTER therefore consumes the future Mycelix-owned verification result; it does not create another tree, witness committee or transparency ledger.
+
+The end-to-end benchmark now distinguishes three independent claims:
+
+1. **Statement/receipt validity:** the exact signed statement and COSE/VDS receipt verify under Mycelix's authoritative resolver.
+2. **Checkpoint agreement:** the exact log/root/tree-size checkpoint has acceptable Mycelix witness/quorum and freshness/equivocation evidence.
+3. **Query completeness:** every item matching CTER's exact committed query over the declared source frontier is accounted for and the included subset is bound to the exact package.
+
+The first two do not automatically prove the third. That gap is the focus of #962 and must not be hidden behind a generic verified=true flag.
