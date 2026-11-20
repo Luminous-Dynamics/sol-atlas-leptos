@@ -54,7 +54,7 @@ fn undeclared_observable_channel_makes_inventory_incomplete() {
     assert!(
         result
             .undeclared_channels
-            .contains("support_bundle")
+            .contains("untracked_plugin_export")
     );
 }
 
