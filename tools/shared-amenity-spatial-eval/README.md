@@ -116,7 +116,7 @@ The second executable, `temporal-amenity-opportunity`, is a narrow cross-owner i
 
 It does not calculate a route, infer opening hours, convert time zones, allocate capacity, create a reservation, or simulate the service timeline.
 
-All times in the synthetic oracle are integer ticks on a declared, owner-normalized time basis (15-minute synthetic ticks). No local timezone conversion or calendar interpretation occurs in this crate. Service intervals use half-open semantics `[start, end)`: an arrival at the closing tick is outside the service window. The requested service duration must fit completely inside operational time.
+All times in the synthetic oracle are integer ticks on a declared, owner-normalized time basis (pinned 900-second / 15-minute synthetic ticks, with a declared origin and half-open interval convention). The output receipt binds tick duration, origin and interval semantics; a changed tick scale is rejected even if the symbolic clock ID is reused. No local timezone conversion or calendar interpretation occurs in this crate. Service intervals use half-open semantics `[start, end)`: an arrival at the closing tick is outside the service window. The requested service duration must fit completely inside operational time.
 
 When arrival uncertainty spans multiple possible ticks, the opportunity is AVAILABLE only when every possible arrival permits the full requested service duration. A mixture of available and unavailable arrival possibilities remains UNKNOWN; the evaluator does not assume the resident can control or perfectly predict arrival.
 
@@ -128,7 +128,7 @@ Calendar completeness has a critical distinction:
 
 The `coverage_state` completeness assertion in this synthetic adapter is a proposed integration-envelope field, **not a claim that Mycelix PR #6329's current JSON Schema already defines that exact field**. The owner must approve its semantics or provide its equivalent before a live adapter is implemented.
 
-The 20 frozen temporal fixtures cover arrival at close, duration crossing close, maintenance, not commissioned, complete/incomplete gaps, stale evidence, arrival uncertainty, contiguous windows, scope/clock mismatch, blocked/unknown access and mixed revisions. The verifier reports AVAILABLE, UNAVAILABLE, UNKNOWN or NOT_COMPARABLE with reason codes and owner revisions and separate evidence-freshness states. Invalid overlap, duplicate IDs, negative/zero durations, horizon overflow and excessive uncertainty are rejected by adversarial tests.
+The 20 frozen temporal fixtures cover arrival at close, duration crossing close, maintenance, not commissioned, complete/incomplete gaps, stale/unknown route and service evidence, arrival uncertainty, contiguous windows, scope/clock mismatch, blocked/unknown access and mixed revisions. The binary has 25 adversarial/reference tests authored; they remain unexecuted until exact-head CI reports a result. The verifier reports AVAILABLE, UNAVAILABLE, UNKNOWN or NOT_COMPARABLE with reason codes and owner revisions and separate evidence-freshness states. Invalid overlap, duplicate IDs, negative/zero durations, horizon overflow and excessive uncertainty are rejected by adversarial tests.
 
 This is an opportunity check, not a scheduling or booking decision. A group may have a time-compatible service opportunity without any allocation, entitlement, reservation or capacity assignment.
 
