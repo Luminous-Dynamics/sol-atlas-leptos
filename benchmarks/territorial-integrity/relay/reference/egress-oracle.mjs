@@ -463,5 +463,48 @@ const chainResult = evaluateDisclosureManifest(chain);
 assert.equal(chainResult.disposition, "valid_structure", chainResult.reason_codes.join(","));
 passed.push("intermediate-provenance-dag");
 
+const hiddenSource = structuredClone(corpus.baseline_manifest);
+const sourceTwo = "urn:fixture:source:synthetic-002";
+const outputTwo = "urn:fixture:output:synthetic-002";
+const transformTwo = "urn:fixture:transform:identity-002";
+hiddenSource.package.outputs.push({
+  object_ref: outputTwo,
+  content_digest: {
+    algorithm: "sha-256",
+    value: "4444444444444444444444444444444444444444444444444444444444444444",
+  },
+  byte_length: 64,
+  media_type: "application/octet-stream",
+  data_classes: ["community"],
+  source_refs: [{
+    object_ref: sourceTwo,
+    content_digest: {
+      algorithm: "sha-256",
+      value: "4444444444444444444444444444444444444444444444444444444444444444",
+    },
+    data_classes: ["community"],
+  }],
+  transformation_refs: [transformTwo],
+});
+hiddenSource.package.transformations.push({
+  transform_ref: transformTwo,
+  transform_kind: "identity_copy",
+  profile_ref: "urn:fixture:transform-profile:identity-copy-v0",
+  version_commitment: {
+    algorithm: "sha-256",
+    value: "5555555555555555555555555555555555555555555555555555555555555555",
+  },
+  input_object_refs: [sourceTwo],
+  output_object_refs: [outputTwo],
+});
+hiddenSource.package.transformations[0].input_object_refs = [
+  "urn:fixture:source:synthetic-001",
+  outputTwo,
+];
+const hiddenSourceResult = evaluateDisclosureManifest(hiddenSource);
+assert.equal(hiddenSourceResult.disposition, "incomplete");
+assert.ok(hiddenSourceResult.reason_codes.includes("transformation_input_source_set_mismatch"));
+passed.push("undeclared-transform-input");
+
 console.log("CTER egress oracle: " + passed.length + "/" + passed.length + " local structural cases matched.");
 console.log("Frozen specification corpus: " + corpus.cases.length + " entries (" + (corpus.cases.length - 1) + " adversarial specifications plus one baseline); no production authorization is asserted.");
