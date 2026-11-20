@@ -123,6 +123,8 @@ struct OpportunityResult {
     time_basis_id: String,
     disposition: String,
     reason_code: String,
+    access_state: String,
+    calendar_coverage_state: String,
     arrival_earliest_tick: i64,
     arrival_latest_tick: i64,
     required_service_duration_ticks: i64,
@@ -143,6 +145,9 @@ struct EvaluationOutput {
     maturity: String,
     claim_ceiling: String,
     fixture_sha256: String,
+    time_basis_tick_seconds: u64,
+    time_basis_origin: String,
+    interval_semantics: String,
     opportunity_count: usize,
     disposition_counts: DispositionCounts,
     results: Vec<OpportunityResult>,
@@ -232,11 +237,12 @@ fn validate_fixture(f: &FixtureSet) -> Result<(), String> {
         return Err("canonical owner bindings changed".to_owned());
     }
     let t = &f.time_basis_contract;
-    if t.tick_seconds == 0 || t.origin != "SYNTHETIC_LOCAL_DAY_START"
+    if t.tick_seconds != 900
+        || t.origin != "SYNTHETIC_LOCAL_DAY_START"
         || t.interval_semantics != "HALF_OPEN_START_INCLUSIVE_END_EXCLUSIVE"
-        || t.rule.trim().is_empty()
+        || t.rule != "All tick values are already normalized to this exact time basis by owner systems; this tool performs no timezone conversion or calendar inference."
         || t.uncertainty_semantics != "arrival_earliest_tick and arrival_latest_tick are inclusive possible arrival ticks" {
-        return Err("time-basis contract is incomplete or unsupported".to_owned());
+        return Err("time-basis contract is incomplete or differs from the frozen 900-second tick profile".to_owned());
     }
     if f.cases.is_empty() { return Err("fixture set must contain at least one opportunity".to_owned()); }
     let mut ids = BTreeSet::new();
@@ -417,6 +423,8 @@ fn evaluate_case(c: &OpportunityCase) -> Result<OpportunityResult, String> {
         time_basis_id: c.scope.time_basis_id.clone(),
         disposition,
         reason_code: reason,
+        access_state: c.access.access_state.clone(),
+        calendar_coverage_state: c.calendar.coverage_state.clone(),
         arrival_earliest_tick: c.access.arrival_earliest_tick,
         arrival_latest_tick: c.access.arrival_latest_tick,
         required_service_duration_ticks: c.required_service_duration_ticks,
@@ -467,6 +475,9 @@ fn evaluate_fixture(bytes: &[u8]) -> Result<EvaluationOutput, String> {
         maturity: EXPECTED_MATURITY.to_owned(),
         claim_ceiling: fixtures.claim_ceiling,
         fixture_sha256,
+        time_basis_tick_seconds: fixtures.time_basis_contract.tick_seconds,
+        time_basis_origin: fixtures.time_basis_contract.origin.clone(),
+        interval_semantics: fixtures.time_basis_contract.interval_semantics.clone(),
         opportunity_count: results.len(),
         disposition_counts: counts,
         results,
@@ -616,6 +627,14 @@ mod tests {
         assert_eq!(result.service_calendar_evidence_state, "CURRENT");
         let stale = by_id(&out, "STALE_QUALIFIED_ACCESS_RESULT");
         assert_eq!(stale.access_evidence_state, "STALE");
+    }
+
+    #[test]
+    fn alternate_tick_duration_cannot_reuse_the_frozen_time_basis_id() {
+        let mut v = fixture_value();
+        v["time_basis_contract"]["tick_seconds"] = Value::from(1_800_u64);
+        let e = evaluate_value(v).expect_err("altered tick scale must fail closed");
+        assert!(e.contains("900-second tick profile"));
     }
 
     #[test]
