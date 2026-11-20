@@ -35,7 +35,9 @@ function referenceSet(value) {
 }
 
 function queryScalar(value) {
-  return value === null || ["string", "boolean", "number"].includes(typeof value);
+  if (value === null || ["string", "boolean"].includes(typeof value)) return true;
+  if (typeof value !== "number" || !Number.isFinite(value)) return false;
+  return !Number.isInteger(value) || Number.isSafeInteger(value);
 }
 
 function hasUnpairedSurrogate(value) {
@@ -62,6 +64,9 @@ export function canonicalJcs(value) {
   }
   if (typeof value === "number") {
     if (!Number.isFinite(value)) throw new Error("jcs_non_finite_number");
+    if (Number.isInteger(value) && !Number.isSafeInteger(value)) {
+      throw new Error("jcs_unsafe_integer");
+    }
     return JSON.stringify(value);
   }
   if (Array.isArray(value)) {
