@@ -32,7 +32,12 @@
         "jurisdiction_profile_ref": "urn:fixture:jurisdiction:synthetic-001",
         "data_classes": [
           "community"
-        ]
+        ],
+        "coverage_query_ref": "urn:fixture:query:scope-v1",
+        "coverage_query_commitment": {
+          "algorithm": "sha-256",
+          "value": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+        }
       },
       "destination_binding": {
         "recipient_ref": "urn:fixture:recipient:synthetic-001",
@@ -321,6 +326,16 @@
       "case_id": "COMPOSED-MULTI-STAGE-PROVENANCE-001",
       "mutation": "Add a derived output whose source is an intermediate output; the terminal leaf remains the original source.",
       "expected": "valid_composed_structure"
+    },
+    {
+      "case_id": "COMPOSED-COVERAGE-QUERY-REF-DRIFT-001",
+      "mutation": "Change the query reference bound by egress authorization while leaving the coverage query unchanged.",
+      "expected": "deny"
+    },
+    {
+      "case_id": "COMPOSED-COVERAGE-QUERY-COMMITMENT-DRIFT-001",
+      "mutation": "Change the query commitment bound by egress authorization while leaving the coverage query unchanged.",
+      "expected": "deny"
     }
   ]
 }
