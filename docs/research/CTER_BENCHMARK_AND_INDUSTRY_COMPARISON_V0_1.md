@@ -126,3 +126,15 @@ Independence is not a policy statement. Test cold restoration under provider los
 - Independent partners and affected communities decide whether real deployments, governance procedures and data-use arrangements are appropriate.
 
 A benchmark pass is not statutory registration, legal effect, community legitimacy, scientific truth or consent. No real-world pilot, partner endorsement or production authorization is implied.
+
+
+## 8. Follow-on benchmark: authorization-to-egress binding
+
+A new workstream, [CTER-EGRESS-BINDING-001 #960](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/960), extends the benchmark past request-side authorization. Its research profile is [CTER_EGRESS_BINDING_PROFILE_V0_1.md](CTER_EGRESS_BINDING_PROFILE_V0_1.md); the machine-readable contract and synthetic suite are:
+
+- \`schemas/cter-disclosure-manifest-v0.1.schema.json\`
+- \`benchmarks/territorial-integrity/egress/cases-v0.1.json\`
+
+The new evaluation dimension is whether a prepared package remains identical to the exact request and upstream decision at release time: object bytes, source/transform lineage, project/evidence frontier, recipient and destination-key epoch, transport channel, currentness/revocation recheck, and release-attempt reconciliation.
+
+This is not a claim that policy engines or data-packaging standards lack these capabilities. ODRL, PROV-O, BagIt, SCITT and policy-decision logging already cover important parts. CTER's testable hypothesis is their composition across a portable evidence package and an independently verifiable custody boundary. The initial corpus has one valid synthetic baseline and 31 adversarial cases; it is specified, not yet executed.
