@@ -78,7 +78,9 @@
         "resource_ref",
         "data_classes",
         "jurisdiction_profile_ref",
-        "project_snapshot_sha256"
+        "project_snapshot_sha256",
+        "query_profile_ref",
+        "predicate"
       ],
       "properties": {
         "query_ref": {
@@ -129,6 +131,14 @@
         },
         "project_snapshot_sha256": {
           "$ref": "#/$defs/sha256_hex"
+        },
+        "query_profile_ref": {
+          "$ref": "#/$defs/opaque_ref",
+          "description": "Versioned deterministic predicate-semantics profile used to interpret this query."
+        },
+        "predicate": {
+          "$ref": "#/$defs/query_predicate",
+          "description": "Private, deterministic query AST; its canonical commitment is carried by query_commitment."
         }
       }
     },
@@ -363,8 +373,148 @@
             "excluded",
             "unresolved"
           ]
+        },
+        "query_input": {
+          "type": "object",
+          "description": "Private per-item attributes evaluated by the committed predicate. Missing required attributes yield UNKNOWN."
         }
       }
+    },
+    "query_predicate": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "op",
+            "args"
+          ],
+          "properties": {
+            "op": {
+              "const": "all"
+            },
+            "args": {
+              "type": "array",
+              "minItems": 1,
+              "maxItems": 32,
+              "items": {
+                "$ref": "#/$defs/query_predicate"
+              }
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "op",
+            "args"
+          ],
+          "properties": {
+            "op": {
+              "const": "any"
+            },
+            "args": {
+              "type": "array",
+              "minItems": 1,
+              "maxItems": 32,
+              "items": {
+                "$ref": "#/$defs/query_predicate"
+              }
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "op",
+            "arg"
+          ],
+          "properties": {
+            "op": {
+              "const": "not"
+            },
+            "arg": {
+              "$ref": "#/$defs/query_predicate"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "op",
+            "path",
+            "value"
+          ],
+          "properties": {
+            "op": {
+              "const": "eq"
+            },
+            "path": {
+              "type": "string",
+              "pattern": "^/[A-Za-z][A-Za-z0-9_-]*$"
+            },
+            "value": {
+              "type": [
+                "string",
+                "boolean",
+                "number",
+                "null"
+              ]
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "op",
+            "path",
+            "values"
+          ],
+          "properties": {
+            "op": {
+              "const": "in"
+            },
+            "path": {
+              "type": "string",
+              "pattern": "^/[A-Za-z][A-Za-z0-9_-]*$"
+            },
+            "values": {
+              "type": "array",
+              "minItems": 1,
+              "maxItems": 64,
+              "items": {
+                "type": [
+                  "string",
+                  "boolean",
+                  "number",
+                  "null"
+                ]
+              }
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "op",
+            "path"
+          ],
+          "properties": {
+            "op": {
+              "const": "exists"
+            },
+            "path": {
+              "type": "string",
+              "pattern": "^/[A-Za-z][A-Za-z0-9_-]*$"
+            }
+          }
+        }
+      ]
     }
   }
 }
