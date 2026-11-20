@@ -3,7 +3,7 @@
   "suite_id": "CTER-PRIVATE-COVERAGE-001",
   "suite_version": "0.1.0",
   "synthetic_only": true,
-  "execution_status": "JCS_predicate_commitment_recomputed_rust_and_node_pending_exact_head_execution",
+  "execution_status": "source_bound_query_input_snapshot_implemented_fixture_suite_extended_rust_node_pending",
   "proof_primitive": "not_selected",
   "invariant_profile": "benchmarks/territorial-integrity/egress/private-coverage-invariants-v0.1.json",
   "claim_ceiling": "partition algebra and binding specifications only; no cryptographic proof is generated or verified",
@@ -61,6 +61,11 @@
             "value": "ZA"
           }
         ]
+      },
+      "input_snapshot_ref": "urn:fixture:query-input-snapshot:private-coverage-001",
+      "input_snapshot_commitment": {
+        "algorithm": "sha-256",
+        "value": "7eda4c8715c60b17866a5e95675760da6728a04d2066e1de7615fd4a4326cfb8"
       }
     },
     "private_partition": [
@@ -68,45 +73,31 @@
         "object_ref": "urn:fixture:evidence:item-a",
         "scope_state": "in_scope",
         "disposition": "included",
-        "query_input": {
-          "dataset": "cadastre",
-          "jurisdiction": "ZA"
-        }
+        "query_input_snapshot_item_ref": "urn:fixture:evidence:item-a"
       },
       {
         "object_ref": "urn:fixture:evidence:item-b",
         "scope_state": "in_scope",
         "disposition": "withheld",
-        "query_input": {
-          "dataset": "cadastre",
-          "jurisdiction": "ZA"
-        }
+        "query_input_snapshot_item_ref": "urn:fixture:evidence:item-b"
       },
       {
         "object_ref": "urn:fixture:evidence:item-c",
         "scope_state": "in_scope",
         "disposition": "unavailable",
-        "query_input": {
-          "dataset": "cadastre",
-          "jurisdiction": "ZA"
-        }
+        "query_input_snapshot_item_ref": "urn:fixture:evidence:item-c"
       },
       {
         "object_ref": "urn:fixture:evidence:item-d",
         "scope_state": "out_of_scope",
         "disposition": "excluded",
-        "query_input": {
-          "dataset": "cadastre",
-          "jurisdiction": "US"
-        }
+        "query_input_snapshot_item_ref": "urn:fixture:evidence:item-d"
       },
       {
         "object_ref": "urn:fixture:evidence:item-e",
         "scope_state": "unknown",
         "disposition": "unresolved",
-        "query_input": {
-          "dataset": "cadastre"
-        }
+        "query_input_snapshot_item_ref": "urn:fixture:evidence:item-e"
       }
     ],
     "package_binding": {
@@ -171,14 +162,163 @@
       "data_classes": [
         "community"
       ],
-      "query_profile_ref": "urn:luminous:cter:predicate-json-v0.1"
+      "query_profile_ref": "urn:luminous:cter:predicate-json-v0.1",
+      "input_snapshot_ref": "urn:fixture:query-input-snapshot:private-coverage-001",
+      "input_snapshot_commitment": {
+        "algorithm": "sha-256",
+        "value": "7eda4c8715c60b17866a5e95675760da6728a04d2066e1de7615fd4a4326cfb8"
+      }
     },
     "receipt_assessment": {
       "assessment_ref": "urn:fixture:receipt-assessment:synthetic-current",
       "resolution_status": "current",
       "status_snapshot_ref": "urn:fixture:vds-status-snapshot:v1"
     },
-    "schema": "luminous.cter.private-coverage.v0.1"
+    "schema": "luminous.cter.private-coverage.v0.1",
+    "query_input_snapshot": {
+      "schema": "luminous.cter.query-input-snapshot.v0.1",
+      "snapshot_ref": "urn:fixture:query-input-snapshot:private-coverage-001",
+      "profile_ref": "urn:luminous:cter:query-input-json-v0.1",
+      "frontier_ref": "urn:fixture:frontier:private-coverage-001",
+      "frontier_version": "v1",
+      "frontier_commitment": {
+        "algorithm": "sha-256",
+        "value": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      },
+      "query_profile_ref": "urn:luminous:cter:predicate-json-v0.1",
+      "query_commitment": {
+        "algorithm": "sha-256",
+        "value": "356a31c171751c9b506942e81ce35cb0dbb1a1862c5844e0a9e1b650a18be309"
+      },
+      "attribute_projection_profile_ref": "urn:fixture:attribute-projection:cadastre-v0.1",
+      "items": [
+        {
+          "object_ref": "urn:fixture:evidence:item-a",
+          "availability_state": "available",
+          "query_input": {
+            "dataset": "cadastre",
+            "jurisdiction": "ZA"
+          },
+          "attribute_source_bindings": [
+            {
+              "path": "/dataset",
+              "source_object_ref": "urn:fixture:evidence:item-a",
+              "source_content_digest": {
+                "algorithm": "sha-256",
+                "value": "1111111111111111111111111111111111111111111111111111111111111111"
+              }
+            },
+            {
+              "path": "/jurisdiction",
+              "source_object_ref": "urn:fixture:evidence:item-a",
+              "source_content_digest": {
+                "algorithm": "sha-256",
+                "value": "1111111111111111111111111111111111111111111111111111111111111111"
+              }
+            }
+          ]
+        },
+        {
+          "object_ref": "urn:fixture:evidence:item-b",
+          "availability_state": "available",
+          "query_input": {
+            "dataset": "cadastre",
+            "jurisdiction": "ZA"
+          },
+          "attribute_source_bindings": [
+            {
+              "path": "/dataset",
+              "source_object_ref": "urn:fixture:evidence:item-b",
+              "source_content_digest": {
+                "algorithm": "sha-256",
+                "value": "2222222222222222222222222222222222222222222222222222222222222222"
+              }
+            },
+            {
+              "path": "/jurisdiction",
+              "source_object_ref": "urn:fixture:evidence:item-b",
+              "source_content_digest": {
+                "algorithm": "sha-256",
+                "value": "2222222222222222222222222222222222222222222222222222222222222222"
+              }
+            }
+          ]
+        },
+        {
+          "object_ref": "urn:fixture:evidence:item-c",
+          "availability_state": "available",
+          "query_input": {
+            "dataset": "cadastre",
+            "jurisdiction": "ZA"
+          },
+          "attribute_source_bindings": [
+            {
+              "path": "/dataset",
+              "source_object_ref": "urn:fixture:evidence:item-c",
+              "source_content_digest": {
+                "algorithm": "sha-256",
+                "value": "3333333333333333333333333333333333333333333333333333333333333333"
+              }
+            },
+            {
+              "path": "/jurisdiction",
+              "source_object_ref": "urn:fixture:evidence:item-c",
+              "source_content_digest": {
+                "algorithm": "sha-256",
+                "value": "3333333333333333333333333333333333333333333333333333333333333333"
+              }
+            }
+          ]
+        },
+        {
+          "object_ref": "urn:fixture:evidence:item-d",
+          "availability_state": "available",
+          "query_input": {
+            "dataset": "cadastre",
+            "jurisdiction": "US"
+          },
+          "attribute_source_bindings": [
+            {
+              "path": "/dataset",
+              "source_object_ref": "urn:fixture:evidence:item-d",
+              "source_content_digest": {
+                "algorithm": "sha-256",
+                "value": "4444444444444444444444444444444444444444444444444444444444444444"
+              }
+            },
+            {
+              "path": "/jurisdiction",
+              "source_object_ref": "urn:fixture:evidence:item-d",
+              "source_content_digest": {
+                "algorithm": "sha-256",
+                "value": "4444444444444444444444444444444444444444444444444444444444444444"
+              }
+            }
+          ]
+        },
+        {
+          "object_ref": "urn:fixture:evidence:item-e",
+          "availability_state": "available",
+          "query_input": {
+            "dataset": "cadastre"
+          },
+          "attribute_source_bindings": [
+            {
+              "path": "/dataset",
+              "source_object_ref": "urn:fixture:evidence:item-e",
+              "source_content_digest": {
+                "algorithm": "sha-256",
+                "value": "5555555555555555555555555555555555555555555555555555555555555555"
+              }
+            }
+          ]
+        }
+      ],
+      "snapshot_commitment": {
+        "algorithm": "sha-256",
+        "value": "7eda4c8715c60b17866a5e95675760da6728a04d2066e1de7615fd4a4326cfb8"
+      }
+    }
   },
   "cases": [
     {
@@ -521,6 +661,59 @@
       "invariants": [
         "PCOV-INV-002",
         "PCOV-INV-010"
+      ]
+    },
+    {
+      "case_id": "PCOV-SNAPSHOT-ITEM-OMISSION-001",
+      "mutation": "Remove one committed frontier item from the query-input snapshot and refresh the snapshot commitment.",
+      "expected": "incomplete",
+      "invariants": [
+        "PCOV-INV-004"
+      ]
+    },
+    {
+      "case_id": "PCOV-SNAPSHOT-SOURCE-OUTSIDE-FRONTIER-001",
+      "mutation": "Bind a predicate attribute to a source object that is not in the committed frontier and refresh the snapshot commitment.",
+      "expected": "deny",
+      "invariants": [
+        "PCOV-INV-004",
+        "PCOV-INV-010"
+      ]
+    },
+    {
+      "case_id": "PCOV-SNAPSHOT-ATTRIBUTE-BINDING-MISSING-001",
+      "mutation": "Remove the source binding for a present predicate attribute and refresh the snapshot commitment.",
+      "expected": "incomplete",
+      "invariants": [
+        "PCOV-INV-002",
+        "PCOV-INV-010"
+      ]
+    },
+    {
+      "case_id": "PCOV-SNAPSHOT-ATTRIBUTE-DRIFT-001",
+      "mutation": "Change a private query-input attribute without refreshing the snapshot commitment.",
+      "expected": "deny",
+      "invariants": [
+        "PCOV-INV-002",
+        "PCOV-INV-010"
+      ]
+    },
+    {
+      "case_id": "PCOV-SNAPSHOT-RECEIPT-REF-DRIFT-001",
+      "mutation": "Change the input snapshot reference only in the receipt projection.",
+      "expected": "deny",
+      "invariants": [
+        "PCOV-INV-002",
+        "PCOV-INV-010"
+      ]
+    },
+    {
+      "case_id": "PCOV-SNAPSHOT-UNAVAILABLE-AS-TRUE-001",
+      "mutation": "Mark the snapshot item unavailable but keep the partition scope in_scope.",
+      "expected": "deny",
+      "invariants": [
+        "PCOV-INV-004",
+        "PCOV-INV-015"
       ]
     }
   ],
