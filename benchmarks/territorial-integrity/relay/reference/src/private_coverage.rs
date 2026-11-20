@@ -918,6 +918,8 @@ fn compare_receipt_projection(
         "query_commitment",
         "request_commitment",
         "query_profile_ref",
+        "input_snapshot_ref",
+        "input_snapshot_commitment",
         "principal_ref",
         "subject_ref",
         "operation",
@@ -1059,6 +1061,7 @@ pub fn evaluate_private_coverage(input: &Value) -> CoverageEvaluation {
     for field in [
         "query_ref",
         "query_profile_ref",
+        "input_snapshot_ref",
         "principal_ref",
         "subject_ref",
         "operation",
@@ -1180,6 +1183,15 @@ pub fn evaluate_private_coverage(input: &Value) -> CoverageEvaluation {
         }
     }
 
+    let snapshot_items = validate_query_input_snapshot(
+        input,
+        frontier,
+        query,
+        &frontier_refs,
+        &mut severity,
+        &mut reasons,
+    );
+
     let Some(partition) = input.get("private_partition").and_then(Value::as_array) else {
         raise(
             &mut severity,
@@ -1213,22 +1225,41 @@ pub fn evaluate_private_coverage(input: &Value) -> CoverageEvaluation {
 
         let scope = nonblank(item, "scope_state");
         let disposition = nonblank(item, "disposition");
+        let snapshot_item = snapshot_items.get(object_ref);
+        if nonblank(item, "query_input_snapshot_item_ref") != Some(object_ref)
+            || snapshot_item.is_none()
+        {
+            raise(
+                &mut severity,
+                &mut reasons,
+                Severity::Deny,
+                "partition_query_input_snapshot_item_binding_mismatch",
+            );
+        }
         if predicate_valid {
-            let query_result = match evaluate_query_predicate(
-                query.get("predicate"),
-                item.get("query_input"),
-                0,
-            ) {
-                Ok(result) => result,
-                Err(reason) => {
-                    raise(
-                        &mut severity,
-                        &mut reasons,
-                        Severity::Incomplete,
-                        format!("query_predicate_invalid:{reason}"),
-                    );
-                    QueryMatch::Unknown
+            let query_result = match snapshot_item {
+                Some(snapshot_item)
+                    if nonblank(snapshot_item, "availability_state") == Some("available") =>
+                {
+                    match evaluate_query_predicate(
+                        query.get("predicate"),
+                        snapshot_item.get("query_input"),
+                        0,
+                    ) {
+                        Ok(result) => result,
+                        Err(reason) => {
+                            raise(
+                                &mut severity,
+                                &mut reasons,
+                                Severity::Incomplete,
+                                format!("query_predicate_invalid:{reason}"),
+                            );
+                            QueryMatch::Unknown
+                        }
+                    }
                 }
+                Some(_) => QueryMatch::Unknown,
+                None => QueryMatch::Unknown,
             };
             let expected_scope = match query_result {
                 QueryMatch::True => Some("in_scope"),
