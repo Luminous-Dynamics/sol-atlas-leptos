@@ -183,13 +183,13 @@ The initial egress consumer implementation and its limits are recorded in [CTER 
 Committed on the CTER research branch:
 
 - versioned [disclosure manifest schema](../../schemas/cter-disclosure-manifest-v0.1.schema.json), with explicit source and output data classes;
-- frozen [32-entry adversarial corpus](../../benchmarks/territorial-integrity/egress/cases-v0.1.json): one valid baseline and 31 adversarial cases;
-- Rust structural evaluator and 14 focused tests;
-- independent no-dependency Node oracle with 13 structural cases;
+- frozen [34-entry adversarial corpus](../../benchmarks/territorial-integrity/egress/cases-v0.1.json): one valid baseline and 33 adversarial cases;
+- Rust structural evaluator and 17 focused tests;
+- independent no-dependency Node oracle with 16 structural checks;
 - [1k/10k/100k/1M scale workload specification](../../benchmarks/territorial-integrity/egress/scale-workloads-v0.1.json);
 - exact-path CI workflow coverage for the new schema, corpus, scale profile and Node oracle.
 
-**Execution status:** the independent JavaScript evaluator was exercised in a V8 harness against the committed synthetic corpus and matched 13/13 structural cases. This does not count as a Node 22 workflow result. The 14 Rust tests remain unexecuted; exact-head workflows are pending. No throughput, latency, memory, storage, energy, production authorization or real egress result is claimed. The evaluator checks digest formatting and specified digest equality relationships, not payload hashing; receipt authentication, trusted time, resolver state and release are external host responsibilities.
+**Execution status:** the independent JavaScript evaluator was exercised in a V8 harness against the committed synthetic corpus and is now specified as a 16-case independent Node oracle with 17 Rust conformance tests. These have not yet been executed on the current exact head; earlier targeted V8 mirrors are not Node 22 workflow or Rust evidence. No throughput, latency, memory, storage, energy, production authorization or real egress result is claimed. The evaluator checks digest formatting and specified digest equality relationships, not payload hashing; receipt authentication, trusted time, resolver state and release are external host responsibilities.
 
 
 ## 11. Privacy-preserving coverage is a separate research dimension
