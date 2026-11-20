@@ -232,3 +232,23 @@ The baseline intentionally contains a private partition with included, withheld,
 These artifacts are a formal model candidate, not an executable proof verifier. The corpus states expected outcomes but is not yet run by a validator. Its proof primitive remains unselected. In particular, no RFC 9942 COSE receipt, SCITT receipt, Merkle proof, non-inclusion proof or zero-knowledge proof is fabricated or represented as valid.
 
 The next step is to confirm Mycelix's implemented VDS/receipt types and test which of the required frontier/query/partition properties those receipts can actually prove. A proof that each included object exists in a committed set is insufficient to prove that all objects matching the query were included.
+
+
+## 11. Concrete Mycelix transparency dependency confirmed
+
+A repository inspection found an existing upstream owner workstream rather than an unowned gap:
+
+- Mycelix [PULSE-TRANSPARENCY-ANTI-EQUIVOCATION-001 #5942](https://github.com/Luminous-Dynamics/mycelix/issues/5942).
+- Mycelix [draft PR #5944](https://github.com/Luminous-Dynamics/mycelix/pull/5944), with its [qualification profile](https://github.com/Luminous-Dynamics/mycelix/blob/research/pulse-transparency-equivocation-v1-20261108/mycelix-workspace/mycelix-pulse/docs/security/PulseTransparencyWitness-qualification-v1.md).
+
+The PR is a bounded TLA+ model of a witness policy around an existing SCITT-compatible TS/VDS. It does **not** implement a COSE parser, Merkle VDS, transparency service or runtime witness protocol. Its candidate assumptions are four witnesses, at most one Byzantine, a 3-of-4 matching checkpoint quorum, durable honest-witness locks per checkpoint identity, and UNKNOWN when a client lacks a matching quorum. It models split-view, weak-quorum, honest double-sign and witness-lock-loss mutants. The PR states that TLC has not yet run on its exact head; model/workflow source is not a result.
+
+This gives CTER a clear composition boundary:
+
+**Mycelix owns and qualifies:** TS/VDS implementation choice; COSE receipt parsing and verification; exact statement digest; inclusion and consistency proofs; checkpoint identity/root; witness membership and committee epoch; witness signature quorum; durable anti-double-sign lock; split-view detection and checkpoint freshness.
+
+**CTER consumes:** the exact upstream receipt/checkpoint/proof references, their Mycelix-resolved verification and currentness dispositions, plus the exact log/root/size/committee epoch to bind into the egress and custody records. Missing quorum, conflicting same-log/same-size roots or unavailable verification remains UNKNOWN/INCOMPLETE. CTER does not implement another VDS, witness committee or transparency ledger.
+
+**Private coverage remains a separate proof obligation:** a valid inclusion/consistency receipt or a non-equivocating checkpoint does not, by itself, prove that every item matching the CTER query was included. The coverage layer must still bind a declared source frontier, exact query, one-and-only-one private disposition partition, and the package's terminal source set. Whether that query-completeness claim is proven by a Mycelix-issued primitive, a separately attested evaluation, or a future ZK proof is deliberately unresolved.
+
+The four-witness quorum only tolerates one Byzantine witness key under its model assumptions. It does not prove independent administrative or infrastructure failure domains. Do not infer four-witness independence from four public keys; the upstream membership/fault-domain evidence remains part of Mycelix qualification.
