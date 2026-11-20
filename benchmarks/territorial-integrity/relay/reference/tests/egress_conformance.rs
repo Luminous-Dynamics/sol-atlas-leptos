@@ -222,3 +222,58 @@ fn duplicate_source_reference_is_denied() {
     assert_eq!(result.disposition, "deny");
     assert!(result.reason_codes.contains("source_reference_duplicated"));
 }
+
+
+#[test]
+fn transform_cannot_consume_an_undeclared_source_object() {
+    let mut input = baseline();
+    let source_two = "urn:fixture:source:synthetic-002";
+    let output_two = "urn:fixture:output:synthetic-002";
+    let transform_two = "urn:fixture:transform:identity-002";
+
+    input["package"]["outputs"].as_array_mut().expect("outputs").push(
+        serde_json::json!({
+            "object_ref": output_two,
+            "content_digest": {
+                "algorithm": "sha-256",
+                "value": "2222222222222222222222222222222222222222222222222222222222222222"
+            },
+            "byte_length": 64,
+            "media_type": "application/octet-stream",
+            "data_classes": ["community"],
+            "source_refs": [{
+                "object_ref": source_two,
+                "content_digest": {
+                    "algorithm": "sha-256",
+                    "value": "4444444444444444444444444444444444444444444444444444444444444444"
+                },
+                "data_classes": ["community"]
+            }],
+            "transformation_refs": [transform_two]
+        })
+    );
+    input["package"]["transformations"].as_array_mut().expect("transforms").push(
+        serde_json::json!({
+            "transform_ref": transform_two,
+            "transform_kind": "identity_copy",
+            "profile_ref": "urn:fixture:transform-profile:identity-copy-v0",
+            "version_commitment": {
+                "algorithm": "sha-256",
+                "value": "5555555555555555555555555555555555555555555555555555555555555555"
+            },
+            "input_object_refs": [source_two],
+            "output_object_refs": [output_two]
+        })
+    );
+
+    input["package"]["transformations"][0]["input_object_refs"] =
+        serde_json::json!(["urn:fixture:source:synthetic-001", output_two]);
+
+    let result = evaluate_disclosure_manifest(&input);
+    assert_eq!(result.disposition, "incomplete");
+    assert!(
+        result
+            .reason_codes
+            .contains("transformation_input_source_set_mismatch")
+    );
+}
