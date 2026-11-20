@@ -53,6 +53,7 @@
         "query_ref": { "$ref": "#/$defs/opaque_ref" },
         "query_commitment": { "$ref": "#/$defs/sha256_digest" },
         "request_commitment": { "$ref": "#/$defs/sha256_digest" },
+        "package_commitment": { "$ref": "#/$defs/sha256_digest" },
         "principal_ref": { "$ref": "#/$defs/opaque_ref" },
         "operation": { "enum": ["export_evidence", "publish_observation"] },
         "purpose_ref": { "$ref": "#/$defs/opaque_ref" },
@@ -67,7 +68,7 @@
       "additionalProperties": false,
       "required": [
         "receipt_ref", "frontier_ref", "frontier_version", "frontier_commitment",
-        "query_commitment", "request_commitment", "principal_ref", "operation",
+        "query_commitment", "request_commitment", "package_commitment", "principal_ref", "operation",
         "purpose_ref", "recipient_ref", "resource_ref", "jurisdiction_profile_ref",
         "project_snapshot_sha256"
       ],
