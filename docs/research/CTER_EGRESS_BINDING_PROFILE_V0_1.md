@@ -315,3 +315,23 @@ The Rust test module currently specifies 14 focused tests. The independent JavaS
 - \`valid_structure\` is not \`eligible\`, \`authorized\` or permission to release.
 
 The scale workload file specifies 1k/10k/100k/1M output-object profiles, source fan-in, transform depth/fan-out and payload-size distributions. It records required hardware/software metadata and metrics, but contains no performance claims or arbitrary latency target.
+
+
+## 14. Long-term cryptographic migration is part of custody, not just hashing
+
+NIST IR 8547 reached final publication in October 2026 and describes the transition from quantum-vulnerable to post-quantum digital-signature and key-establishment standards. This affects CTER's long-lived evidence exports and independent restores.
+
+The CTER manifest must not imply that SHA-256, BLAKE3, an Ed25519 signature or a COSE/SCITT receipt is timelessly secure. The current profile binds explicit algorithm identifiers and versioned profiles, but this is only the start of crypto agility.
+
+Compose the egress binding with CTER custody exit #947 and Mycelix cryptographic renewal #1354. A future archive/renewal record should preserve:
+- original digest/signature algorithm and exact object/manifest scope;
+- original key/trust-anchor and verification context;
+- trusted-time or transparency evidence that existed at the time;
+- later revalidation and renewal events, with their exact inputs and outputs;
+- migrated digest/signature algorithms and profiles;
+- algorithm deprecation/compromise status at each assessment frontier;
+- proof that renewal did not alter the original bytes or rewrite historical verification results.
+
+Historical validation and present-day cryptographic acceptability are separate. A signature may have been valid under a past trust policy while its algorithm is no longer accepted for new actions. A later renewal may preserve evidence of prior validity but cannot retroactively make a previously untrusted signature authoritative.
+
+No post-quantum algorithm has been selected or implemented in this profile. The workstream should consume NIST transition guidance and Mycelix's canonical cryptographic renewal owner rather than define a second renewal ledger.
