@@ -53,7 +53,7 @@ Each scenario defines one common scope and resident-group population. Every arm 
 
 The evaluator rejects any arm whose bindings differ. The symbolic `synthetic-scope:` and `synthetic-population:` identifiers are test identities, not cryptographic owner digests. The access record and the facility's period-specific service state are deliberately separate: a route can be qualified while the service is closed or unknown. An effective opportunity requires both a qualified route within tolerance and `service_state=AVAILABLE`; a route to a closed amenity is not counted as service access.
 
-Access rows are already-qualified owner outputs. The evaluator does not calculate a route. A resident group has effective access only when at least one facility row is `QUALIFIED`, its generalized-cost value is within the common resident tolerance, and any mandatory access condition is `PASS`.
+Access rows are already-qualified owner outputs. The evaluator does not calculate a route. A resident-group opportunity requires at least one facility row to be `QUALIFIED`, within the common resident tolerance, and compliant with any mandatory access condition, **and** that facility's period-specific `service_state` to be `AVAILABLE`.
 
 ### Metrics and denominators
 
@@ -72,7 +72,7 @@ All values remain a vector; no composite score or winning topology is emitted.
 | Capacity gap | Aggregate demand minus aggregate capacity, reported as shortfall/surplus; unknown facility capacity makes the aggregate unknown |
 | Minimum independent failure domains | Minimum count of distinct, explicitly declared failure domains reachable by any one resident group; not inferred from facility count |
 
-The P50/P90/worst-decile values are conditional on effective access, so they must always be read alongside the coverage and no-access/unknown/outside-tolerance populations. A low P90 among the few served residents is not a good outcome if the rest of the population cannot access the service.
+The P50/P90/worst-decile values are conditional on effective access, so they must always be read alongside the coverage and no-access/unknown/service-unavailable/outside-tolerance populations. A low P90 among the few served residents is not a good outcome if the rest of the population cannot access the service.
 
 Reachable capacity is not allocated supply. Group-level access records are not used to multiply facility capacity. This package does not infer a resident's booking, queue position, entitlement, or allocation.
 
@@ -80,7 +80,9 @@ Reachable capacity is not allocated supply. Group-level access records are not u
 
 - duplicate JSON object keys are rejected before map deserialization;
 - unknown JSON fields are rejected by typed Rust structures;
-- route qualification and period-specific Mycelix service availability are separate; both must pass for an effective opportunity;\n- unknown/invalid owner states are not promoted to effective access;\n- a known-closed facility can be reachable but is not counted as an available service opportunity;
+- route qualification and period-specific Mycelix service availability are separate; both must pass for an effective opportunity;
+- unknown/invalid owner states are not promoted to effective access;
+- a known-closed facility can be reachable but is not counted as an available service opportunity;
 - unknown facility service availability or capacity makes the aggregate deliverable capacity unknown, not zero; a known-unavailable facility contributes zero;
 - mandatory access `FAIL` or `UNKNOWN` remains visible;
 - mixed scope/population/service/period/unit/quality bindings are rejected;
