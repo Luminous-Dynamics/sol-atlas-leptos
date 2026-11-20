@@ -225,11 +225,11 @@ No production privacy guarantee, global absence assertion or cryptographic compl
 The first model artifacts are committed:
 
 - [Private coverage invariants](../../benchmarks/territorial-integrity/egress/private-coverage-invariants-v0.1.json): 16 named invariants covering frontier identity, query binding, one-and-only-one partitioning, package leaf-set equality, proof freshness, privacy, verifier scoping and independent restore.
-- [Private coverage adversarial corpus](../../benchmarks/territorial-integrity/egress/private-coverage-cases-v0.1.json): 17 synthetic cases comprising one valid partition baseline plus 16 adversarial specifications.
+- [Private coverage adversarial corpus](../../benchmarks/territorial-integrity/egress/private-coverage-cases-v0.1.json): 30 synthetic cases comprising one valid partition baseline plus 29 adversarial specifications.
 
 The baseline intentionally contains a private partition with included, withheld, unavailable, excluded and unresolved items, while its public verifier view exposes only synthetic commitments and an opaque proof reference. No real personal, community or territorial evidence is used.
 
-These artifacts are a formal model candidate, not an executable proof verifier. The corpus states expected outcomes but is not yet run by a validator. Its proof primitive remains unselected. In particular, no RFC 9942 COSE receipt, SCITT receipt, Merkle proof, non-inclusion proof or zero-knowledge proof is fabricated or represented as valid.
+These artifacts are a formal model candidate, not an executable proof verifier. The corpus states expected outcomes and is now consumed by a structural evaluator and independent second-language oracle. Its cryptographic proof primitive remains unselected. No RFC 9942 COSE receipt, SCITT receipt, Merkle proof, non-inclusion proof or zero-knowledge proof is fabricated or represented as valid.
 
 The next step is to confirm Mycelix's implemented VDS/receipt types and test which of the required frontier/query/partition properties those receipts can actually prove. A proof that each included object exists in a committed set is insufficient to prove that all objects matching the query were included.
 
@@ -257,3 +257,47 @@ The four-witness quorum only tolerates one Byzantine witness key under its model
 ### Exact-head upstream run observation
 
 The exact PR head inspected for Mycelix #5944 is \`38b1d833b75020f8fa08351579034555af836925\`. Its witness-model run #7 failed in the pinned-TLC download step: the immutable \`zactionsz/tla-tools\` release URL returned HTTP 504 on all configured retries. The workflow skipped both safe TLC configurations and all three mutant checks. Therefore **no parser, state-space, invariant or mutant result was produced**. This is a dependency-fetch failure, not evidence that the witness model is false or true. Do not replace the pinned build with an unpinned mutable nightly merely to make CI green; restore access to the same checksum-pinned bytes or select and review a new immutable build with a new checksum.
+
+
+## 12. First executable partition evaluator
+
+The initial evaluator and cross-language conformance slice is now committed:
+
+- JSON Schema: \`schemas/cter-private-coverage-v0.1.schema.json\`.
+- Rust evaluator: \`benchmarks/territorial-integrity/relay/reference/src/private_coverage.rs\`.
+- Rust tests: \`benchmarks/territorial-integrity/relay/reference/tests/private_coverage_conformance.rs\`.
+- Independent Node oracle: \`benchmarks/territorial-integrity/relay/reference/private-coverage-oracle.mjs\`.
+- Frozen corpus: \`benchmarks/territorial-integrity/egress/private-coverage-cases-v0.1.json\` (30 cases).
+
+The record now binds:
+- the exact frontier object-reference set and version;
+- the query/request commitments and principal;
+- operation, purpose, recipient, resource, jurisdiction and project snapshot;
+- a host-resolved receipt projection for the frontier, query, request and package commitment;
+- receipt currentness status and status-snapshot reference;
+- the private one-and-only-one partition;
+- the package terminal source-leaf set;
+- a strict public-verifier allowlist of commitments, an opaque proof reference and \`frontier_version_only\` non-inclusion scope.
+
+The structural evaluator checks:
+1. duplicate, missing and extra frontier/partition references;
+2. exactly one disposition per item and valid scope/disposition combinations;
+3. no conversion of withheld/unavailable/unknown to absent;
+4. exact equality between the included set and package terminal source leaves;
+5. no phantom package leaf outside the frontier;
+6. receipt/query/request/recipient/package/frontier binding;
+7. stale or unavailable receipt assessment as UNKNOWN and revoked as DENY;
+8. no public disclosure of object refs, counts or extra inventory fields;
+9. no global non-inclusion or absence claim.
+
+A tool-side V8 reference check matched **30/30** expected fixture dispositions: 1 valid partition structure, 3 incomplete, 5 unknown and 21 deny. This is a separate fixture-semantics check; it is not a Node 22 CI run, Rust test result, COSE receipt verification, VDS proof verification, zero-knowledge proof, source-owner completeness result or production authorization. The Rust tests and Node oracle are committed but have not yet been executed by the exact-head workflow.
+
+The result label is intentionally \`valid_partition_structure\`, never \`proof_valid\`, \`authorized\` or \`globally_complete\`. The receipt projection fields are synthetic host-resolved inputs; the evaluator does not authenticate the resolver, signature, issuer or witness quorum.
+
+### RFC 9942 boundary and proof selection
+
+RFC 9942's concrete RFC 9162 SHA-256 profile supplies signed inclusion and consistency proofs. Its proof types are tied to their associated VDS; implementers should not assume proof-format interoperability across VDS implementations. COSE receipt verification also involves both proof verification against the candidate entry and signature verification of the receipt. CTER therefore needs the exact Mycelix-selected VDS/profile and resolver contract, not merely a string receipt reference.
+
+Even a valid inclusion/consistency receipt does not prove the custom CTER partition equation or that the package's terminal source leaves equal every item matching a query. That remains a separate predicate proof obligation. The current first slice is a structural model. It deliberately stops before cryptographic proof generation/verification and does not select a ZK-SNARK, STARK, Merkle multiproof or other primitive.
+
+References: [RFC 9942 §4.2](https://www.rfc-editor.org/rfc/rfc9942.html#section-4.2), [RFC 9942 §5.2](https://www.rfc-editor.org/rfc/rfc9942.html#section-5.2), [OCFL 1.1](https://ocfl.io/1.1/spec/), [OPA Decision Logs](https://www.openpolicyagent.org/docs/management-decision-logs).
