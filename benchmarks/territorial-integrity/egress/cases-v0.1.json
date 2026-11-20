@@ -3,7 +3,7 @@
   "suite_id": "CTER-EGRESS-BINDING-001",
   "suite_version": "0.1.0",
   "synthetic_only": true,
-  "execution_status": "fixtures_specified_reference_validator_not_yet_implemented",
+  "execution_status": "reference_validator_and_independent_oracle_implemented_not_executed",
   "parent_issue": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/960",
   "manifest_schema": "schemas/cter-disclosure-manifest-v0.1.schema.json",
   "canonicalization_profile": "rfc8785-jcs-v1",
