@@ -20,7 +20,7 @@ fn baseline_partition_is_structurally_valid_but_not_a_cryptographic_proof() {
 #[test]
 fn private_coverage_suite_size_and_claim_ceiling_are_frozen() {
     let suite = corpus();
-    assert_eq!(suite["cases"].as_array().expect("cases").len(), 30);
+    assert_eq!(suite["cases"].as_array().expect("cases").len(), 32);
     assert_eq!(suite["synthetic_only"].as_bool(), Some(true));
     assert!(
         suite["claim_ceiling"]
@@ -365,6 +365,13 @@ fn apply_case_mutation(case_id: &str, input: &mut Value) {
             input["public_verifier_view"]["object_refs"] =
                 serde_json::json!(["urn:fixture:evidence:item-b"]);
         }
+        "PCOV-RECEIPT-SUBJECT-DRIFT-001" => {
+            input["receipt_binding"]["subject_ref"] =
+                Value::String("urn:fixture:subject:other".into());
+        }
+        "PCOV-RECEIPT-DATA-CLASS-DRIFT-001" => {
+            input["receipt_binding"]["data_classes"] = serde_json::json!(["restricted"]);
+        }
         _ => panic!("unknown private coverage case {case_id}"),
     }
 }
@@ -373,7 +380,7 @@ fn apply_case_mutation(case_id: &str, input: &mut Value) {
 fn frozen_private_coverage_corpus_matches_every_expected_disposition() {
     let suite = corpus();
     let cases = suite["cases"].as_array().expect("cases array");
-    assert_eq!(cases.len(), 30);
+    assert_eq!(cases.len(), 32);
     for case in cases {
         let case_id = case["case_id"].as_str().expect("case id");
         let expected = case["expected"].as_str().expect("expected disposition");
@@ -397,4 +404,24 @@ fn receipt_projection_must_bind_the_exact_package_commitment() {
     let result = evaluate_private_coverage(&input);
     assert_eq!(result.disposition, "deny");
     assert!(result.reason_codes.contains("receipt_package_commitment_mismatch"));
+}
+
+
+#[test]
+fn receipt_projection_must_bind_the_exact_subject() {
+    let mut input = baseline();
+    input["receipt_binding"]["subject_ref"] =
+        Value::String("urn:fixture:subject:other".into());
+    let result = evaluate_private_coverage(&input);
+    assert_eq!(result.disposition, "deny");
+    assert!(result.reason_codes.contains("receipt_query_binding_mismatch:subject_ref"));
+}
+
+#[test]
+fn receipt_projection_must_bind_the_exact_data_class_set() {
+    let mut input = baseline();
+    input["receipt_binding"]["data_classes"] = serde_json::json!(["restricted"]);
+    let result = evaluate_private_coverage(&input);
+    assert_eq!(result.disposition, "deny");
+    assert!(result.reason_codes.contains("receipt_query_binding_mismatch:data_classes"));
 }
