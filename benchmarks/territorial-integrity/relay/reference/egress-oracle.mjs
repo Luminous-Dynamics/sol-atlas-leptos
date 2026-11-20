@@ -88,7 +88,9 @@ export function evaluateDisclosureManifest(input) {
   }
   for (const key of [
     "request_ref", "authorization_receipt_ref", "principal_ref", "subject_ref",
-    "operation", "resource_ref", "evidence_frontier_ref", "coverage_query_ref", "coverage_query_profile_ref", "purpose_ref",
+    "operation", "resource_ref", "evidence_frontier_ref", "coverage_query_ref",
+    "coverage_query_profile_ref", "coverage_input_snapshot_ref",
+    "coverage_input_snapshot_profile_ref", "purpose_ref",
     "recipient_ref", "jurisdiction_profile_ref",
   ]) {
     if (!nonblank(binding, key)) raise("incomplete", "authorization_" + key + "_missing");
@@ -98,6 +100,12 @@ export function evaluateDisclosureManifest(input) {
   }
   if (!isSha256Digest(binding.coverage_query_commitment)) {
     raise("incomplete", "authorization_coverage_query_commitment_malformed");
+  }
+  if (!isSha256Digest(binding.coverage_input_snapshot_commitment)) {
+    raise("incomplete", "authorization_coverage_input_snapshot_commitment_malformed");
+  }
+  if (nonblank(binding, "coverage_input_snapshot_profile_ref") !== "urn:luminous:cter:query-input-json-v0.1") {
+    raise("incomplete", "authorization_coverage_input_snapshot_profile_missing_or_unsupported");
   }
   if (nonblank(binding, "coverage_query_profile_ref") !== "urn:luminous:cter:predicate-json-v0.1") {
     raise("incomplete", "authorization_coverage_query_profile_missing_or_unsupported");
@@ -354,6 +362,7 @@ function test(name, mutate, expected, reason) {
 }
 
 const passed = [];
+assert.equal(corpus.cases.length, 39, "frozen egress corpus size");
 assert.equal(corpus.cases.length, 35, "frozen egress corpus size");
 assert.equal(corpus.cases.length, 34, "frozen egress corpus size");
 const baselineResult = evaluateDisclosureManifest(corpus.baseline_manifest);
@@ -447,6 +456,12 @@ passed.push(test(
   (input) => { input.authorization_binding.coverage_query_profile_ref = "urn:luminous:cter:predicate-json-v0.2"; },
   "incomplete",
   "authorization_coverage_query_profile_missing_or_unsupported",
+));
+passed.push(test(
+  "unsupported-coverage-input-snapshot-profile",
+  (input) => { input.authorization_binding.coverage_input_snapshot_profile_ref = "urn:luminous:cter:query-input-json-v0.2"; },
+  "incomplete",
+  "authorization_coverage_input_snapshot_profile_missing_or_unsupported",
 ));
 
 passed.push(test(
