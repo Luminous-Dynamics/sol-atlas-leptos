@@ -3416,9 +3416,7 @@
             "service_id": "COMMUNITY_WORKSHOP",
             "functional_unit_id": "ACCESSIBLE_WORKSHOP_HOUR",
             "cohort_id": "COHORT_GENERAL",
-            "time_basis_id": "SYNTHETIC_15M_TICKS_V1",
-            "horizon_start_tick": 0,
-            "horizon_end_tick": 8
+            "time_basis_id": "SYNTHETIC_15M_TICKS_V1"
           },
           "owner_revisions": {
             "access": "citymorph-synthetic-r1",
