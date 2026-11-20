@@ -212,6 +212,9 @@
         },
         "project_snapshot_sha256": {
           "$ref": "#/$defs/sha256_hex"
+        },
+        "package_commitment": {
+          "$ref": "#/$defs/sha256_digest"
         }
       }
     },
