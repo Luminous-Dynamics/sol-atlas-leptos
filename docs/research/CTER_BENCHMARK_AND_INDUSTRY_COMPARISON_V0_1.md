@@ -280,7 +280,7 @@ RFC 9942 COSE receipts can establish properties of a selected VDS, including inc
 
 The private-coverage comparison now also has a pinned workload specification: \`benchmarks/territorial-integrity/egress/private-coverage-scale-workloads-v0.1.json\`. It compares the designated-auditor baseline, Mycelix's selected VDS/COSE proof profile, and a research-only private partition-predicate proof over identical synthetic 1k/10k/100k/1M frontiers. It measures proof generation and verification separately from partition set-checks and metadata disclosure. No proof primitive, throughput winner or p99 target has been selected or measured.
 
-Current tool-side V8 fixture results: privacy paired-world corpus 24/24, private coverage partition corpus 30/30. Egress exact hidden-transform-input mutation was detected. These are test-fixture semantics, not Node 22 Actions runs, Rust execution or production qualification. The CI workflows are configured to run the committed Node oracles and Rust tests on the exact checkout; queued is still not PASS.
+The egress corpus contains 34 entries (one baseline and 33 adversarial specifications). Rust structural tests and an independent Node oracle are committed, but their exact-head Rust/Node22 execution remains pending; targeted tool-side V8 mirrors are not CI evidence. Egress exact hidden-transform-input mutation was detected. These are test-fixture semantics, not Node 22 Actions runs, Rust execution or production qualification. The CI workflows are configured to run the committed Node oracles and Rust tests on the exact checkout; queued is still not PASS.
 
 
 ## 13. Composed release binding and VDS proof selection
@@ -314,3 +314,6 @@ The proof-selection workstream now includes a machine-readable workload profile 
 
 
 The release-binding projection now includes the exact coverage-query reference and its canonical-query commitment in the egress authorization binding. The composed evaluator requires exact equality with the private coverage record's \`query_ref\` and \`query_commitment\`. The intent is to prevent a package/recipient/authority tuple from being reused under a different query predicate. The egress corpus now has 34 cases, and the joined release corpus has 19 cases (2 positive structural controls, 17 expected denials). These are frozen synthetic specifications; execution and Rust/Node22 CI status are reported separately.
+
+
+Updated fixture results on the current research branch: private coverage 32/32 expected dispositions in a tool-side V8 mirror (1 valid partition structure, 3 incomplete, 5 unknown, 23 deny); composed release 17/17 in the earlier 17-case mirror (2 valid composed structures, 15 deny). The composed corpus has since grown to 19 cases with two additional query-substitution denials; those two cases are committed but not yet re-executed in the mirror. The egress corpus has grown to 34 cases and the composed corpus to 19. These are not Node 22 workflow runs or Rust results.
