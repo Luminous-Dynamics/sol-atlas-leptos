@@ -66,7 +66,8 @@ All values remain a vector; no composite score or winning topology is emitted.
 | Worst-decile mean | Population-weighted mean burden of the highest-burden 10% of the effective-access population (rounded down to whole seconds) |
 | No-access population | Population for which all explicit route/access rows are known failures or blocks and no reachable service-unavailable/unknown option is declared |
 | Unknown-access population | Population for which no effective option exists and at least one required route or service-availability input is unknown |
-| Service-unavailable population | Population with a qualified route to a facility whose service is known unavailable in the declared period |\n| Outside-tolerance population | Population with a route to an available service but no route within the declared resident tolerance |
+| Service-unavailable population | Population with a qualified route to a facility whose service is known unavailable in the declared period |
+| Outside-tolerance population | Population with a route to an available service but no route within the declared resident tolerance |
 | Mandatory-access gate | `PASS`, `FAIL`, `UNKNOWN` or `NOT_APPLICABLE`; a mandatory failure is never averaged away |
 | Aggregate capacity | Sum of each facility's owner-supplied deliverable capacity **once per arm**, independent of how many groups can reach it; a facility known unavailable in the period contributes zero, while unknown service/capacity state makes the aggregate unknown |
 | Capacity gap | Aggregate demand minus aggregate capacity, reported as shortfall/surplus; unknown facility capacity makes the aggregate unknown |
@@ -142,7 +143,11 @@ The goal is **not** to replace specialist routing engines or claim a superior tr
 | PEAI (2026) | Active-mobility accessibility beyond time-only thresholds, including service availability, infrastructure quality, housing affordability and user-centred insight | Reproduce its published methodology/data before any adaptation; preserve the dimensions separately rather than importing universal weights |
 | UN SDG 11.2.1 / 11.7.1 | Comparable public-transport and public-space indicator baselines | Report the applicable indicator method with data vintage and limitations; do not equate an indicator with full amenity-service accessibility |
 
-R5 publishes percentile-sensitive travel-time analysis and opportunity access. OTP documents both the limits of binary wheelchair-accessibility data and configurable treatment of unknown trip/stop accessibility. PEAI's 2026 Vancouver application reports that threshold-based time results can materially exceed its multidimensional result. These are reasons to compose and qualify specialized evidence, not claims that this Rust evaluator outperforms those products.
+R5 publishes departure-window travel-time distributions and time percentiles. Its methodology states that the default assumes perfectly reliable transit operations: on-time vehicles, full schedule information, and no crowding or boarding/accessibility constraints. Those outputs are still valuable specialist routing evidence; they are not proof that an amenity will be operational when a resident arrives. See https://docs.conveyal.com/analysis/methodology.
+
+OpenTripPlanner documents that GTFS/NeTEx wheelchair-accessibility data are often binary and incomplete, and exposes explicit treatment for unknown trips, stops and elevators. The temporal join preserves that upstream status and does not reinterpret UNKNOWN as accessible. See https://docs.opentripplanner.org/en/latest/Accessibility/.
+
+PEAI's 2026 framework separates proximity, availability, suitability, affordability and awareness. Its Vancouver application reports 99% cycling-time and 74.5% walking-threshold coverage but only 37.9% under its multidimensional truly-accessible classification. This supports measuring service availability separately from route time; it does not prove that this evaluator improves on PEAI. See https://doi.org/10.1016/j.urbmob.2026.100217.
 
 ## Research targets — not achieved results
 
