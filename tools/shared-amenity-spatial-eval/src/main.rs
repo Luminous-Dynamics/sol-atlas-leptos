@@ -1145,6 +1145,30 @@ mod tests {
         facility["service_state"] = Value::String("UNKNOWN".to_owned());
         facility["capacity_state"] = Value::String("UNKNOWN".to_owned());
         facility["capacity_units"] = Value::Null;
+        let expected = value["scenarios"][0]["expected"]
+            .as_array_mut()
+            .expect("golden result array");
+        let expected_central = expected
+            .iter_mut()
+            .find(|result| result["comparison_arm"] == "CENTRAL_SHARED")
+            .expect("central golden result");
+        expected_central["total_population"] = Value::from(100_u64);
+        expected_central["effective_access_population"] = Value::from(0_u64);
+        expected_central["no_access_population"] = Value::from(0_u64);
+        expected_central["unknown_access_population"] = Value::from(100_u64);
+        expected_central["outside_tolerance_population"] = Value::from(0_u64);
+        expected_central["service_unavailable_population"] = Value::from(0_u64);
+        expected_central["effective_access_coverage_basis_points"] = Value::from(0_u64);
+        expected_central["p50_generalized_cost_seconds"] = Value::Null;
+        expected_central["p90_generalized_cost_seconds"] = Value::Null;
+        expected_central["worst_decile_mean_generalized_cost_seconds"] = Value::Null;
+        expected_central["mandatory_access_gate"] = Value::String("UNKNOWN".to_owned());
+        expected_central["aggregate_capacity_units"] = Value::Null;
+        expected_central["demand_units"] = Value::from(100_u64);
+        expected_central["capacity_shortfall_units"] = Value::Null;
+        expected_central["capacity_surplus_units"] = Value::Null;
+        expected_central["capacity_state"] = Value::String("UNKNOWN".to_owned());
+        expected_central["minimum_independent_failure_domains"] = Value::Null;
         let output = evaluate_value(value).expect("unknown service state is representable");
         let central = find_arm(&output, "COMPACT_HIGH_DENSITY", "CENTRAL_SHARED");
         assert_eq!(central.effective_access_population, 0);
