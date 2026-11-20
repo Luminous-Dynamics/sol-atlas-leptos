@@ -1,4 +1,7 @@
-use cter_relay_reference::release_binding::evaluate_composed_release_binding;
+use cter_relay_reference::release_binding::{
+    evaluate_composed_release_binding,
+    evaluate_composed_release_binding_json,
+};
 use serde_json::Value;
 
 fn corpus() -> Value {
@@ -204,5 +207,34 @@ fn composed_release_derives_leaves_through_intermediate_outputs() {
         std::collections::BTreeSet::from([
             "urn:fixture:source:synthetic-001".to_owned()
         ])
+    );
+}
+
+
+#[test]
+fn composed_raw_json_entrypoint_uses_strict_duplicate_member_parser() {
+    let (manifest, coverage) = baseline();
+    let manifest_json = serde_json::to_string(&manifest).expect("manifest serializes");
+    let coverage_json = serde_json::to_string(&coverage).expect("coverage serializes");
+    let result = evaluate_composed_release_binding_json(&manifest_json, &coverage_json)
+        .expect("strict parser accepts unique JSON");
+    assert_eq!(result.disposition, "valid_composed_structure");
+
+    let duplicate_manifest = manifest_json.replacen(
+        "\"manifest_id\":",
+        "\"manifest_id\":\"urn:fixture:manifest:duplicate\", \"manifest_id\":",
+        1,
+    );
+    assert!(
+        evaluate_composed_release_binding_json(&duplicate_manifest, &coverage_json).is_err()
+    );
+
+    let duplicate_coverage = coverage_json.replacen(
+        "\"query_ref\":",
+        "\"query_ref\":\"urn:fixture:query:duplicate\", \"query_ref\":",
+        1,
+    );
+    assert!(
+        evaluate_composed_release_binding_json(&manifest_json, &duplicate_coverage).is_err()
     );
 }
