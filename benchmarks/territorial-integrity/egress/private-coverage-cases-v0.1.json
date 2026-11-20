@@ -197,32 +197,123 @@
         {
           "object_ref": "urn:fixture:evidence:item-a",
           "availability_state": "available",
-          "query_input": {},
-          "attribute_source_bindings": []
+          "query_input": {
+            "dataset": "cadastre",
+            "jurisdiction": "ZA"
+          },
+          "attribute_source_bindings": [
+            {
+              "path": "/dataset",
+              "source_object_ref": "urn:fixture:evidence:item-a",
+              "source_content_digest": {
+                "algorithm": "sha-256",
+                "value": "1111111111111111111111111111111111111111111111111111111111111111"
+              }
+            },
+            {
+              "path": "/jurisdiction",
+              "source_object_ref": "urn:fixture:evidence:item-a",
+              "source_content_digest": {
+                "algorithm": "sha-256",
+                "value": "1111111111111111111111111111111111111111111111111111111111111111"
+              }
+            }
+          ]
         },
         {
           "object_ref": "urn:fixture:evidence:item-b",
           "availability_state": "available",
-          "query_input": {},
-          "attribute_source_bindings": []
+          "query_input": {
+            "dataset": "cadastre",
+            "jurisdiction": "ZA"
+          },
+          "attribute_source_bindings": [
+            {
+              "path": "/dataset",
+              "source_object_ref": "urn:fixture:evidence:item-b",
+              "source_content_digest": {
+                "algorithm": "sha-256",
+                "value": "2222222222222222222222222222222222222222222222222222222222222222"
+              }
+            },
+            {
+              "path": "/jurisdiction",
+              "source_object_ref": "urn:fixture:evidence:item-b",
+              "source_content_digest": {
+                "algorithm": "sha-256",
+                "value": "2222222222222222222222222222222222222222222222222222222222222222"
+              }
+            }
+          ]
         },
         {
           "object_ref": "urn:fixture:evidence:item-c",
           "availability_state": "available",
-          "query_input": {},
-          "attribute_source_bindings": []
+          "query_input": {
+            "dataset": "cadastre",
+            "jurisdiction": "ZA"
+          },
+          "attribute_source_bindings": [
+            {
+              "path": "/dataset",
+              "source_object_ref": "urn:fixture:evidence:item-c",
+              "source_content_digest": {
+                "algorithm": "sha-256",
+                "value": "3333333333333333333333333333333333333333333333333333333333333333"
+              }
+            },
+            {
+              "path": "/jurisdiction",
+              "source_object_ref": "urn:fixture:evidence:item-c",
+              "source_content_digest": {
+                "algorithm": "sha-256",
+                "value": "3333333333333333333333333333333333333333333333333333333333333333"
+              }
+            }
+          ]
         },
         {
           "object_ref": "urn:fixture:evidence:item-d",
           "availability_state": "available",
-          "query_input": {},
-          "attribute_source_bindings": []
+          "query_input": {
+            "dataset": "cadastre",
+            "jurisdiction": "US"
+          },
+          "attribute_source_bindings": [
+            {
+              "path": "/dataset",
+              "source_object_ref": "urn:fixture:evidence:item-d",
+              "source_content_digest": {
+                "algorithm": "sha-256",
+                "value": "4444444444444444444444444444444444444444444444444444444444444444"
+              }
+            },
+            {
+              "path": "/jurisdiction",
+              "source_object_ref": "urn:fixture:evidence:item-d",
+              "source_content_digest": {
+                "algorithm": "sha-256",
+                "value": "4444444444444444444444444444444444444444444444444444444444444444"
+              }
+            }
+          ]
         },
         {
           "object_ref": "urn:fixture:evidence:item-e",
           "availability_state": "available",
-          "query_input": {},
-          "attribute_source_bindings": []
+          "query_input": {
+            "dataset": "cadastre"
+          },
+          "attribute_source_bindings": [
+            {
+              "path": "/dataset",
+              "source_object_ref": "urn:fixture:evidence:item-e",
+              "source_content_digest": {
+                "algorithm": "sha-256",
+                "value": "5555555555555555555555555555555555555555555555555555555555555555"
+              }
+            }
+          ]
         }
       ],
       "snapshot_commitment": {
