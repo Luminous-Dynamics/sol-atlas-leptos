@@ -3,7 +3,7 @@
   "suite_id": "CTER-COMPOSED-RELEASE-BINDING-001",
   "suite_version": "0.1.0",
   "synthetic_only": true,
-  "execution_status": "composed_rust_evaluator_and_node_oracle_implemented_not_executed",
+  "execution_status": "query_predicate_semantics_and_composed_binding_expanded_execution_pending",
   "claim_ceiling": "structural agreement between egress manifest, private coverage record and derived transitive source leaves only; no payload hash recomputation, Mycelix proof authentication, authority resolution or release authorization",
   "baseline": {
     "disclosure_manifest": {
@@ -37,7 +37,8 @@
         "coverage_query_commitment": {
           "algorithm": "sha-256",
           "value": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
-        }
+        },
+        "coverage_query_profile_ref": "urn:luminous:cter:predicate-json-v0.1"
       },
       "destination_binding": {
         "recipient_ref": "urn:fixture:recipient:synthetic-001",
@@ -141,33 +142,68 @@
         "subject_ref": "urn:fixture:subject:synthetic-001",
         "data_classes": [
           "community"
-        ]
+        ],
+        "query_profile_ref": "urn:luminous:cter:predicate-json-v0.1",
+        "predicate": {
+          "op": "all",
+          "args": [
+            {
+              "op": "eq",
+              "path": "/dataset",
+              "value": "cadastre"
+            },
+            {
+              "op": "eq",
+              "path": "/jurisdiction",
+              "value": "ZA"
+            }
+          ]
+        }
       },
       "private_partition": [
         {
           "object_ref": "urn:fixture:source:synthetic-001",
           "scope_state": "in_scope",
-          "disposition": "included"
+          "disposition": "included",
+          "query_input": {
+            "dataset": "cadastre",
+            "jurisdiction": "ZA"
+          }
         },
         {
           "object_ref": "urn:fixture:evidence:item-b",
           "scope_state": "in_scope",
-          "disposition": "withheld"
+          "disposition": "withheld",
+          "query_input": {
+            "dataset": "cadastre",
+            "jurisdiction": "ZA"
+          }
         },
         {
           "object_ref": "urn:fixture:evidence:item-c",
           "scope_state": "in_scope",
-          "disposition": "unavailable"
+          "disposition": "unavailable",
+          "query_input": {
+            "dataset": "cadastre",
+            "jurisdiction": "ZA"
+          }
         },
         {
           "object_ref": "urn:fixture:evidence:item-d",
           "scope_state": "out_of_scope",
-          "disposition": "excluded"
+          "disposition": "excluded",
+          "query_input": {
+            "dataset": "cadastre",
+            "jurisdiction": "US"
+          }
         },
         {
           "object_ref": "urn:fixture:evidence:item-e",
           "scope_state": "unknown",
-          "disposition": "unresolved"
+          "disposition": "unresolved",
+          "query_input": {
+            "dataset": "cadastre"
+          }
         }
       ],
       "package_binding": {
@@ -231,7 +267,8 @@
         "subject_ref": "urn:fixture:subject:synthetic-001",
         "data_classes": [
           "community"
-        ]
+        ],
+        "query_profile_ref": "urn:luminous:cter:predicate-json-v0.1"
       },
       "receipt_assessment": {
         "assessment_ref": "urn:fixture:receipt-assessment:synthetic-current",
@@ -335,6 +372,16 @@
     {
       "case_id": "COMPOSED-COVERAGE-QUERY-COMMITMENT-DRIFT-001",
       "mutation": "Change the query commitment bound by egress authorization while leaving the coverage query unchanged.",
+      "expected": "deny"
+    },
+    {
+      "case_id": "COMPOSED-COVERAGE-QUERY-PROFILE-DRIFT-001",
+      "mutation": "Change the predicate semantics profile in the private coverage record without changing egress authorization.",
+      "expected": "deny"
+    },
+    {
+      "case_id": "COMPOSED-QUERY-PREDICATE-DRIFT-001",
+      "mutation": "Change the query AST while retaining the old query commitment and profile.",
       "expected": "deny"
     }
   ]
