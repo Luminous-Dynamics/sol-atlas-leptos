@@ -656,13 +656,24 @@ fn evaluate_case(case: &Case) -> CaseEvaluation {
         stable_opportunity_state(case, &opportunity_slices);
     let coalesced_opportunity_intervals = coalesce(&opportunity_slices);
 
+    // Canonicalize unordered provenance collections so semantically irrelevant
+    // input permutations do not change the normalized evaluation payload.
+    let mut input_alternatives = case.alternatives.clone();
+    for alternative in &mut input_alternatives {
+        alternative.failure_domains.sort();
+    }
+    input_alternatives.sort_by(|left, right| left.alternative_id.cmp(&right.alternative_id));
+
+    let mut disruption_events = case.disruption_events.clone();
+    disruption_events.sort_by(|left, right| left.event_id.cmp(&right.event_id));
+
     CaseEvaluation {
         case_id: case.case_id.clone(),
         scenario_class: case.scenario_class.clone(),
         scope: case.scope.clone(),
         demand: case.demand.clone(),
-        input_alternatives: case.alternatives.clone(),
-        disruption_events: case.disruption_events.clone(),
+        input_alternatives,
+        disruption_events,
         stability_evidence: case.stability_evidence.clone(),
         opportunity_slices,
         coalesced_opportunity_intervals,
@@ -819,11 +830,12 @@ mod tests {
             .expect("backup case exists");
         let before = evaluate_case(&case);
         case.alternatives.reverse();
+        for alternative in &mut case.alternatives {
+            alternative.failure_domains.reverse();
+        }
+        case.disruption_events.reverse();
         let after = evaluate_case(&case);
-        assert_eq!(before.opportunity_slices, after.opportunity_slices);
-        assert_eq!(before.coalesced_opportunity_intervals, after.coalesced_opportunity_intervals);
-        assert_eq!(before.first_available_tick, after.first_available_tick);
-        assert_eq!(before.first_restored_after_known_loss_tick, after.first_restored_after_known_loss_tick);
+        assert_eq!(before, after);
     }
 
     #[test]
