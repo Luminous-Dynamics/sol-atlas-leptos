@@ -210,16 +210,19 @@ fn qualify_demand_or_capacity(
     let coverage = string(value, "coverage")?;
     let quantity = optional_number(value, "quantity")?;
 
+    if state != "KNOWN" && state != "UNKNOWN" {
+        return Err(format!("{label} has an invalid state"));
+    }
+    if !["COMPLETE", "PARTIAL", "UNKNOWN"].contains(&coverage) {
+        return Err(format!("{label} has invalid coverage"));
+    }
+    if state == "UNKNOWN" && quantity.is_some() {
+        return Err(format!("{label} is UNKNOWN but contains a numeric quantity"));
+    }
     if state == "KNOWN" && coverage == "COMPLETE" && evidence_is_current(value) {
         let quantity = quantity.ok_or_else(|| format!("{label} is KNOWN but has no quantity"))?;
         Ok(("KNOWN".to_owned(), Some(quantity)))
     } else {
-        if state != "KNOWN" && state != "UNKNOWN" {
-            return Err(format!("{label} has an invalid state"));
-        }
-        if !["COMPLETE", "PARTIAL", "UNKNOWN"].contains(&coverage) {
-            return Err(format!("{label} has invalid coverage"));
-        }
         Ok(("UNKNOWN".to_owned(), None))
     }
 }
@@ -302,31 +305,57 @@ fn accepted_undelivered(
             "MYCELIX_REQUEST_DELIVERY",
         )?;
 
-        match string(record, "state")? {
-            "CANCELLED" | "DECLINED" => continue,
-            "ACCEPTED" => {}
-            _ => return Err(format!("request {request_id} has an invalid state")),
+        let request_state = string(record, "state")?;
+        let delivery_state = string(record, "delivery_state")?;
+        if !["ACCEPTED", "CANCELLED", "DECLINED"].contains(&request_state) {
+            return Err(format!("request {request_id} has an invalid state"));
         }
-
-        if string(record, "delivery_state")? != "KNOWN" || !evidence_is_current(record) {
-            unresolved = true;
-            continue;
+        if !["KNOWN", "UNKNOWN"].contains(&delivery_state) {
+            return Err(format!("request {request_id} has an invalid delivery state"));
         }
 
         let accepted = number(record, "accepted_units")?;
-        let delivered = optional_number(record, "delivered_units")?
-            .ok_or_else(|| format!("request {request_id} is KNOWN but delivery is absent"))?;
+        let delivered = optional_number(record, "delivered_units")?;
+        if request_state == "CANCELLED" || request_state == "DECLINED" {
+            if accepted != 0 || delivered != Some(0) || delivery_state != "KNOWN" {
+                return Err(format!(
+                    "non-accepted request {request_id} must have zero accepted/delivered units"
+                ));
+            }
+            if !evidence_is_current(record) {
+                unresolved = true;
+            }
+            continue;
+        }
+
         if accepted == 0 {
             return Err(format!("accepted request {request_id} has zero accepted units"));
         }
-        if delivered > accepted {
-            return Err(format!(
-                "request {request_id} delivery exceeds accepted units"
-            ));
+        match (delivery_state, delivered) {
+            ("UNKNOWN", None) => {
+                unresolved = true;
+                continue;
+            }
+            ("KNOWN", Some(delivered)) => {
+                if delivered > accepted {
+                    return Err(format!(
+                        "request {request_id} delivery exceeds accepted units"
+                    ));
+                }
+                if !evidence_is_current(record) {
+                    unresolved = true;
+                    continue;
+                }
+                total = total
+                    .checked_add(accepted - delivered)
+                    .ok_or_else(|| "accepted-undelivered quantity overflow".to_owned())?;
+            }
+            _ => {
+                return Err(format!(
+                    "request {request_id} has inconsistent delivery state and quantity"
+                ));
+            }
         }
-        total = total
-            .checked_add(accepted - delivered)
-            .ok_or_else(|| "accepted-undelivered quantity overflow".to_owned())?;
     }
 
     if unresolved {
@@ -655,6 +684,51 @@ mod tests {
         assert!(
             evaluate(value.to_string().as_bytes()).is_err(),
             "unknown evidence owners must not be promoted to KNOWN"
+        );
+    }
+
+    #[test]
+    fn unknown_capacity_cannot_carry_a_numeric_quantity() {
+        let mut value = fixture_value();
+        value["cases"][0]["capacity"]["state"] = Value::String("UNKNOWN".to_owned());
+        assert!(
+            evaluate(value.to_string().as_bytes()).is_err(),
+            "unknown capacity cannot silently retain a numeric value"
+        );
+    }
+
+    #[test]
+    fn unknown_delivery_cannot_carry_a_delivered_quantity() {
+        let mut value = fixture_value();
+        let case = value["cases"]
+            .as_array_mut()
+            .expect("case array")
+            .iter_mut()
+            .find(|case| case["case_id"] == "PARTIALLY_DELIVERED_ACCEPTED_REQUEST")
+            .expect("partial delivery case");
+        case["request_register"]["records"][0]["delivery_state"] =
+            Value::String("UNKNOWN".to_owned());
+        assert!(
+            evaluate(value.to_string().as_bytes()).is_err(),
+            "unknown delivery cannot also assert a completed quantity"
+        );
+    }
+
+    #[test]
+    fn non_accepted_request_cannot_carry_accepted_or_delivered_units() {
+        let mut value = fixture_value();
+        let case = value["cases"]
+            .as_array_mut()
+            .expect("case array")
+            .iter_mut()
+            .find(|case| {
+                case["case_id"] == "CANCELLED_AND_DECLINED_REQUESTS_ARE_NOT_UNDELIVERED_SERVICE"
+            })
+            .expect("cancelled request case");
+        case["request_register"]["records"][0]["accepted_units"] = Value::from(1_u64);
+        assert!(
+            evaluate(value.to_string().as_bytes()).is_err(),
+            "cancelled/declined requests cannot create accepted service quantities"
         );
     }
 
