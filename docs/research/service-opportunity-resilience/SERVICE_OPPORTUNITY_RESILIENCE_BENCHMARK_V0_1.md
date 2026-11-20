@@ -144,6 +144,18 @@ More complex accessibility metrics do not automatically predict lived travel beh
 
 PEAI's 2026 Vancouver example demonstrates that time-threshold proximity can differ substantially from a multidimensional assessment: 99% within median tolerable cycling times and 74.5% within acceptable walking thresholds, versus 37.9% classified as truly accessible under its framework. Reproduce the published method; do not copy its weights as universal policy.
 
+### Additional competitive boundary: realized access, cascades and capacity inflation
+
+Disruption-aware transport accessibility is already an active research area. Liu, Porr and Miller (2024) use GTFS real-time data and space-time prisms to distinguish scheduled accessibility from realizable real-time accessibility, and define accessibility unreliability as the difference between them. Luminous should consume such realized route evidence where available; it must not claim that its service-window join is a new transit-reliability method. Its proposed increment is to join those route outcomes to the full amenity task, owner operation/capacity, resident suitability and stable service recovery. Source: https://doi.org/10.1016/j.jtrangeo.2023.103769
+
+A 2026 systematic review of 180 land-transport studies organizes cascading-failure resilience into modelling, evaluation and recovery. It identifies gaps around operational data/calibration, behavioural and institutional assumptions, computational burden and real-world validation. This reinforces the need for a small auditable finite oracle, matched specialist-engine inputs, explicit recovery states and a separate field-validation stage. Source: https://doi.org/10.1016/j.jtte.2026.03.001
+
+Competition-based access methods need their own controls. The 2SFCA family can represent supply-demand competition, but common formulations can inflate demand or supply when they implicitly allow one person to demand multiple opportunities simultaneously or one service unit to serve multiple people at once. Include a balanced/competition-aware baseline where the demand and capacity semantics can be defended; never let a reachable-capacity potential become a booking or allocation. Method overview: https://ipeagit.github.io/intro_access_book/2_indicadores.en.html
+
+Finally, use risk-proportionate model credibility. NIST AMS 100-85 (5 October 2026) describes scaling verification, validation and uncertainty quantification in proportion to model influence and decision consequence. Apply more rigorous evidence and independent review to claims that control safety, legal rights, essential-service floors or capital commitments than to low-consequence exploratory map views. Source: https://doi.org/10.6028/NIST.AMS.100-85
+
+The novelty hypothesis is therefore deliberately narrow: not a new route engine, not a general network-resilience method, and not a universal accessibility index, but an evidence-reversible composition from realized travel opportunity to a complete, cohort-specific service task and its recovery trajectory.
+
 ## 9. Benchmark ladder
 
 | Gate | Test | Target |
