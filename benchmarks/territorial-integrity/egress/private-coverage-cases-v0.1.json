@@ -99,7 +99,36 @@
       "proof_ref": "urn:fixture:proof:opaque-placeholder"
     },
     "fixture_notice": "All references and digests are synthetic placeholders. No COSE receipt or valid proof is included. No signature or VDS proof verification has been performed.",
-    "coverage_ref": "urn:fixture:coverage-record:private-coverage-001"
+    "coverage_ref": "urn:fixture:coverage-record:private-coverage-001",
+    "receipt_binding": {
+      "receipt_ref": "urn:fixture:vds-receipt:synthetic-placeholder",
+      "frontier_ref": "urn:fixture:frontier:private-coverage-001",
+      "frontier_version": "v1",
+      "frontier_commitment": {
+        "algorithm": "sha-256",
+        "value": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      },
+      "query_commitment": {
+        "algorithm": "sha-256",
+        "value": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+      },
+      "request_commitment": {
+        "algorithm": "sha-256",
+        "value": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+      },
+      "principal_ref": "urn:fixture:principal:synthetic-requester",
+      "operation": "export_evidence",
+      "purpose_ref": "urn:fixture:purpose:restricted-evidence-export",
+      "recipient_ref": "urn:fixture:recipient:authorized-recipient",
+      "resource_ref": "urn:fixture:resource:synthetic-project",
+      "jurisdiction_profile_ref": "urn:fixture:jurisdiction:synthetic-profile-v0",
+      "project_snapshot_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+    },
+    "receipt_assessment": {
+      "assessment_ref": "urn:fixture:receipt-assessment:synthetic-current",
+      "resolution_status": "current",
+      "status_snapshot_ref": "urn:fixture:vds-status-snapshot:v1"
+    }
   },
   "cases": [
     {
@@ -322,6 +351,51 @@
       "expected": "deny",
       "invariants": [
         "PCOV-INV-003"
+      ]
+    },
+    {
+      "case_id": "PCOV-RECEIPT-PROJECTION-DRIFT-001",
+      "mutation": "Change the recipient in the host-resolved receipt projection but not in the query binding.",
+      "expected": "deny",
+      "invariants": [
+        "PCOV-INV-002",
+        "PCOV-INV-010",
+        "PCOV-INV-014"
+      ]
+    },
+    {
+      "case_id": "PCOV-RECEIPT-FRONTIER-VERSION-DRIFT-001",
+      "mutation": "Change the frontier version without changing the receipt-bound version.",
+      "expected": "unknown",
+      "invariants": [
+        "PCOV-INV-001",
+        "PCOV-INV-010",
+        "PCOV-INV-015"
+      ]
+    },
+    {
+      "case_id": "PCOV-RECEIPT-UNAVAILABLE-001",
+      "mutation": "The Mycelix resolver cannot establish receipt currentness or status.",
+      "expected": "unknown",
+      "invariants": [
+        "PCOV-INV-011"
+      ]
+    },
+    {
+      "case_id": "PCOV-RECEIPT-REVOKED-001",
+      "mutation": "The Mycelix resolver reports the referenced receipt as revoked.",
+      "expected": "deny",
+      "invariants": [
+        "PCOV-INV-011"
+      ]
+    },
+    {
+      "case_id": "PCOV-PROOF-VIEW-EXTRA-REFERENCE-001",
+      "mutation": "Add an object reference field to the public verifier view.",
+      "expected": "deny",
+      "invariants": [
+        "PCOV-INV-013",
+        "PCOV-INV-014"
       ]
     }
   ],
