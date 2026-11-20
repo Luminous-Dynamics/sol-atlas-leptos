@@ -218,3 +218,17 @@ Benchmark proof generation and verification over 1k, 10k, 100k and 1M frontier e
 7. Re-run the same fixtures during custody-exit restore without original-provider credentials.
 
 No production privacy guarantee, global absence assertion or cryptographic completeness claim is made by this research profile.
+
+
+## 10. Initial machine-readable artefacts
+
+The first model artifacts are committed:
+
+- [Private coverage invariants](../../benchmarks/territorial-integrity/egress/private-coverage-invariants-v0.1.json): 16 named invariants covering frontier identity, query binding, one-and-only-one partitioning, package leaf-set equality, proof freshness, privacy, verifier scoping and independent restore.
+- [Private coverage adversarial corpus](../../benchmarks/territorial-integrity/egress/private-coverage-cases-v0.1.json): 17 synthetic cases comprising one valid partition baseline plus 16 adversarial specifications.
+
+The baseline intentionally contains a private partition with included, withheld, unavailable, excluded and unresolved items, while its public verifier view exposes only synthetic commitments and an opaque proof reference. No real personal, community or territorial evidence is used.
+
+These artifacts are a formal model candidate, not an executable proof verifier. The corpus states expected outcomes but is not yet run by a validator. Its proof primitive remains unselected. In particular, no RFC 9942 COSE receipt, SCITT receipt, Merkle proof, non-inclusion proof or zero-knowledge proof is fabricated or represented as valid.
+
+The next step is to confirm Mycelix's implemented VDS/receipt types and test which of the required frontier/query/partition properties those receipts can actually prove. A proof that each included object exists in a committed set is insufficient to prove that all objects matching the query were included.
