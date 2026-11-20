@@ -114,3 +114,50 @@ fn duplicate_output_identity_is_denied() {
             .contains("output_object_identity_duplicated")
     );
 }
+
+
+#[test]
+fn classification_change_requires_external_authority_review() {
+    let mut input = baseline();
+    input["authorization_binding"]["data_classes"] =
+        serde_json::json!(["community", "public"]);
+    input["package"]["outputs"][0]["data_classes"] = serde_json::json!(["public"]);
+    input["package"]["transformations"][0]["transform_kind"] =
+        Value::String("generalization".into());
+    let result = evaluate_disclosure_manifest(&input);
+    assert_eq!(result.disposition, "review");
+    assert!(
+        result
+            .reason_codes
+            .contains("classification_change_authority_reference_missing")
+    );
+}
+
+#[test]
+fn a_classification_authority_reference_is_not_self_authenticating() {
+    let mut input = baseline();
+    input["authorization_binding"]["data_classes"] =
+        serde_json::json!(["community", "public"]);
+    input["package"]["outputs"][0]["data_classes"] = serde_json::json!(["public"]);
+    input["package"]["transformations"][0]["transform_kind"] =
+        Value::String("generalization".into());
+    input["package"]["transformations"][0]["classification_change_authority_ref"] =
+        Value::String("urn:fixture:authority:classification-change".into());
+    let result = evaluate_disclosure_manifest(&input);
+    assert_eq!(result.disposition, "unknown");
+    assert!(
+        result
+            .reason_codes
+            .contains("classification_change_authority_resolution_unavailable")
+    );
+}
+
+#[test]
+fn identity_copy_requires_source_and_output_digest_commitments_to_match() {
+    let mut input = baseline();
+    input["package"]["outputs"][0]["content_digest"]["value"] =
+        Value::String("bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb".into());
+    let result = evaluate_disclosure_manifest(&input);
+    assert_eq!(result.disposition, "deny");
+    assert!(result.reason_codes.contains("identity_copy_digest_mismatch"));
+}
