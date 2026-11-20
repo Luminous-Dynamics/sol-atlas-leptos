@@ -138,3 +138,39 @@ A new workstream, [CTER-EGRESS-BINDING-001 #960](https://github.com/Luminous-Dyn
 The new evaluation dimension is whether a prepared package remains identical to the exact request and upstream decision at release time: object bytes, source/transform lineage, project/evidence frontier, recipient and destination-key epoch, transport channel, currentness/revocation recheck, and release-attempt reconciliation.
 
 This is not a claim that policy engines or data-packaging standards lack these capabilities. ODRL, PROV-O, BagIt, SCITT and policy-decision logging already cover important parts. CTER's testable hypothesis is their composition across a portable evidence package and an independently verifiable custody boundary. The initial corpus has one valid synthetic baseline and 31 adversarial cases; it is specified, not yet executed.
+
+
+## 9. Expanded industry comparison: do not compete with the wrong layer
+
+The second research pass adds field-capture, policy-decision and digital-preservation systems. Their established features narrow what CTER should claim.
+
+| System / standard | Demonstrated strength to respect | What CTER should consume or test instead of recreating |
+|---|---|---|
+| QField / QFieldCloud | Offline field editing with local GeoPackage staging and later synchronization; stable UUIDs are recommended to avoid sync/relation conflicts | Use its GIS and field-editing capabilities. Test whether CTER can preserve authorization and lineage across the exported package and its later synchronization, not whether it can draw maps better |
+| ODK Collect / Central | Offline form workflows and encrypted form submission; encryption protects finalized content in transit/storage without the server holding the private key in the encrypted-form mode | Use ODK for collection where suitable. CTER must additionally bind the exact export, source/transform lineage, recipient and release attempt. ODK explicitly warns encryption does not prevent malicious replacement/fabrication and cannot guarantee every local plaintext copy is destroyed |
+| Open Policy Agent (OPA) | General-purpose policy decision point and decision logs including decision IDs, policy path, bundle revision, request input, result, timestamps and metrics; supports masking sensitive log fields | Treat OPA as a strong policy-engine/audit baseline. CTER's test is not "we log decisions"; it is whether the decision is bound to exact evidence objects, recipient, transformation graph and final release attempt without disclosing sensitive metadata |
+| Oxford Common File Layout (OCFL) | Application-independent repository storage layout designed around completeness, parsability, versioning, robustness and storage diversity; version directories are immutable | Use OCFL-compatible preservation where it fits the custodian's repository. Test restore from an independent provider and verify the CTER evidence frontier/authorization lineage after provider exit |
+| IETF BagIt (RFC 8493) | Standardized file packaging and payload manifests for reliable storage and transfer | Reuse BagIt for package transport/inventory; do not claim its package checksums prove authorization, source truth, semantic derivation or safe recipient disclosure |
+| W3C ODRL / PROV-O / DCAT | Policy vocabulary; provenance interchange; dataset/distribution catalog vocabulary | Map to these rather than inventing competing generic standards. Keep protected object inventories and sensitive rights context outside public catalog metadata |
+
+### Source references
+
+- [QField offline editing and synchronization](https://docs.qfield.org/get-started/tutorials/advanced-setup-qfc/)
+- [ODK encrypted forms](https://docs.getodk.org/encrypted-forms/)
+- [ODK form finalization and offline workflow](https://docs.getodk.org/collect-forms/)
+- [OPA decision logs and sensitive-field masking](https://www.openpolicyagent.org/docs/management-decision-logs)
+- [OCFL 1.1 specification](https://ocfl.io/1.1/spec/)
+- [BagIt RFC 8493](https://www.rfc-editor.org/rfc/rfc8493.html)
+
+### What this means for fair benchmarking
+
+Do not put the systems above on one synthetic leaderboard. Run matched, task-specific comparisons:
+
+1. **Field capture:** task-completion rate, invalid/missing submissions, offline duration, recovery after partition, conflict resolution, operator training time, battery/storage/network consumption and language support. Compare QField, ODK, Open Tenure and Cadasta on workflows they actually implement.
+2. **Policy decisions:** decision correctness on common fixtures, policy update/revocation delay, explainability, sensitive-log masking and evaluation latency. Compare OPA (and later other policy engines) with the narrow CTER request/package binding, not with Mycelix's authority issuer.
+3. **Preservation and exit:** bit-level integrity, metadata completeness, version recovery, independent restore, storage diversity and time to rebuild a declared evidence frontier. Compare BagIt/OCFL-compatible repositories and CTER custody-exit workflows on matched archives.
+4. **End-to-end evidence release:** unauthorized disclosure, scope substitution, missing lineage, stale/revoked authority, recipient/key-epoch drift, unknown-outcome replay and provider-exit recovery. This is the composition benchmark CTER is intended to own.
+
+For every comparison, pin software versions, configuration, schema/profile, fixtures, host, hardware, network schedule and operators. Publish all failure cases, excluded cases and operational costs. Keep correctness/security thresholds separate from latency and usability; a faster unsafe exporter must never win a weighted score.
+
+**Research hypothesis:** CTER's differentiator is not any one of offline collection, GIS, a policy engine, a hash, a provenance vocabulary or an archive format. It is the compositional proof boundary that binds an upstream owner-qualified decision to a specific recipient-bound disclosure package, its complete source/transform lineage, the actual release attempt and a later independent recovery. That hypothesis remains unproven until the cross-system adapter and matched field/archive trials exist.
