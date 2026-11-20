@@ -152,8 +152,8 @@
       },
       "expected": {
         "capacity_gap_state": "KNOWN",
-        "capacity_shortfall_units": null,
-        "capacity_surplus_units": null,
+        "capacity_shortfall_units": 0,
+        "capacity_surplus_units": 0,
         "accepted_undelivered_state": "KNOWN",
         "accepted_undelivered_units": 0,
         "unexpressed_need_state": "MEASURED",
@@ -274,7 +274,7 @@
       "expected": {
         "capacity_gap_state": "KNOWN",
         "capacity_shortfall_units": 3,
-        "capacity_surplus_units": null,
+        "capacity_surplus_units": 0,
         "accepted_undelivered_state": "KNOWN",
         "accepted_undelivered_units": 0,
         "unexpressed_need_state": "NOT_COLLECTED",
@@ -422,7 +422,7 @@
       },
       "expected": {
         "capacity_gap_state": "KNOWN",
-        "capacity_shortfall_units": null,
+        "capacity_shortfall_units": 0,
         "capacity_surplus_units": 4,
         "accepted_undelivered_state": "KNOWN",
         "accepted_undelivered_units": 2,
@@ -1067,7 +1067,7 @@
       },
       "expected": {
         "capacity_gap_state": "KNOWN",
-        "capacity_shortfall_units": null,
+        "capacity_shortfall_units": 0,
         "capacity_surplus_units": 5,
         "accepted_undelivered_state": "KNOWN",
         "accepted_undelivered_units": 2,
@@ -1241,8 +1241,8 @@
       },
       "expected": {
         "capacity_gap_state": "KNOWN",
-        "capacity_shortfall_units": null,
-        "capacity_surplus_units": null,
+        "capacity_shortfall_units": 0,
+        "capacity_surplus_units": 0,
         "accepted_undelivered_state": "KNOWN",
         "accepted_undelivered_units": 5,
         "unexpressed_need_state": "NOT_COLLECTED",
@@ -1415,7 +1415,7 @@
       },
       "expected": {
         "capacity_gap_state": "KNOWN",
-        "capacity_shortfall_units": null,
+        "capacity_shortfall_units": 0,
         "capacity_surplus_units": 10,
         "accepted_undelivered_state": "KNOWN",
         "accepted_undelivered_units": 0,
@@ -1543,7 +1543,7 @@
       },
       "expected": {
         "capacity_gap_state": "KNOWN",
-        "capacity_shortfall_units": null,
+        "capacity_shortfall_units": 0,
         "capacity_surplus_units": 10,
         "accepted_undelivered_state": "KNOWN",
         "accepted_undelivered_units": 0,
@@ -1664,7 +1664,7 @@
       },
       "expected": {
         "capacity_gap_state": "KNOWN",
-        "capacity_shortfall_units": null,
+        "capacity_shortfall_units": 0,
         "capacity_surplus_units": 10,
         "accepted_undelivered_state": "KNOWN",
         "accepted_undelivered_units": 0,
@@ -1814,7 +1814,7 @@
       "expected": {
         "capacity_gap_state": "KNOWN",
         "capacity_shortfall_units": 2,
-        "capacity_surplus_units": null,
+        "capacity_surplus_units": 0,
         "accepted_undelivered_state": "KNOWN",
         "accepted_undelivered_units": 0,
         "unexpressed_need_state": "NOT_COLLECTED",
@@ -1962,7 +1962,7 @@
       },
       "expected": {
         "capacity_gap_state": "KNOWN",
-        "capacity_shortfall_units": null,
+        "capacity_shortfall_units": 0,
         "capacity_surplus_units": 3,
         "accepted_undelivered_state": "KNOWN",
         "accepted_undelivered_units": 3,
@@ -2240,8 +2240,8 @@
       },
       "expected": {
         "capacity_gap_state": "KNOWN",
-        "capacity_shortfall_units": null,
-        "capacity_surplus_units": null,
+        "capacity_shortfall_units": 0,
+        "capacity_surplus_units": 0,
         "accepted_undelivered_state": "KNOWN",
         "accepted_undelivered_units": 0,
         "unexpressed_need_state": "UNKNOWN",
@@ -2389,8 +2389,8 @@
       },
       "expected": {
         "capacity_gap_state": "KNOWN",
-        "capacity_shortfall_units": null,
-        "capacity_surplus_units": null,
+        "capacity_shortfall_units": 0,
+        "capacity_surplus_units": 0,
         "accepted_undelivered_state": "NOT_COMPARABLE",
         "accepted_undelivered_units": null,
         "unexpressed_need_state": "NOT_COLLECTED",
@@ -2513,8 +2513,8 @@
       },
       "expected": {
         "capacity_gap_state": "KNOWN",
-        "capacity_shortfall_units": null,
-        "capacity_surplus_units": null,
+        "capacity_shortfall_units": 0,
+        "capacity_surplus_units": 0,
         "accepted_undelivered_state": "UNKNOWN",
         "accepted_undelivered_units": null,
         "unexpressed_need_state": "NOT_COLLECTED",
