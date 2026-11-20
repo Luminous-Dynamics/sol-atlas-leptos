@@ -360,3 +360,18 @@ Current suite inventory:
 - query-input snapshot baseline vectors: private digest \`7eda4c8715c60b17866a5e95675760da6728a04d2066e1de7615fd4a4326cfb8\`, composed digest \`a8f000ebab94a5ad4479faa5fb12cf2980cc094376d0cc3eb438698804c3d788\`.
 
 Rust and Node oracle tests are committed; the latest CTER Actions execution is not yet a PASS. No source-owner attestation, source-byte digest verification, VDS completeness proof or end-to-end product benchmark is claimed.
+
+
+## 17. Current CTER suite inventory (2026-11-20)
+
+The source-present, frozen synthetic programmes now contain:
+- **39 egress** cases (1 valid baseline and 38 negative/indeterminate/review controls);
+- **44 private coverage** cases (1 valid, 31 deny, 7 incomplete, 5 unknown);
+- **24 composed-release** cases (2 valid structural controls, 22 denials);
+- **24 paired-world privacy** cases;
+- **4 predicate JCS/SHA-256 golden vectors**;
+- **2 query-input snapshot commitment baselines** (private coverage and composed release);
+- **5 VDS proof candidate families** and **22 proof fault injections**;
+- **4 query-input snapshot frontier scales** (1k/10k/100k/1M) and **19 snapshot fault injections**.
+
+This is inventory of committed specifications and source tests, not a leaderboard result. The current exact-head CTER workflow is pending; no Rust test pass, Node workflow pass, source-owner attestation, COSE/VDS proof verification, throughput result, latency result or SOTA superiority is claimed.
