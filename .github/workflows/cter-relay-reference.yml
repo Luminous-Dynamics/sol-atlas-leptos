@@ -13,10 +13,12 @@ on:
       - "schemas/cter-disclosure-manifest-v0.1.schema.json"
       - "schemas/cter-privacy-channel-inventory-v0.1.schema.json"
       - "schemas/cter-private-coverage-v0.1.schema.json"
+      - "schemas/cter-query-input-snapshot-v0.1.schema.json"
       - "docs/research/CTER_EGRESS_BINDING_PROFILE_V0_1.md"
       - "docs/research/CTER_COMPOSED_RELEASE_BINDING_PROFILE_V0_1.md"
       - "docs/research/CTER_VDS_PROOF_PRIMITIVE_COMPARISON_V0_1.md"
       - "docs/research/CTER_QUERY_PREDICATE_PROFILE_V0_1.md"
+      - "docs/research/CTER_QUERY_INPUT_ATTESTATION_PROFILE_V0_1.md"
       - "docs/research/CTER_PRIVACY_CHANNEL_PROFILE_V0_1.md"
       - "docs/research/CTER_BENCHMARK_AND_INDUSTRY_COMPARISON_V0_1.md"
       - "docs/research/CTER_OFFLINE_RELAY_PROFILE_V0_1.md"
@@ -34,11 +36,13 @@ on:
       - "schemas/cter-authority-use-v0.1.schema.json"
       - "schemas/cter-disclosure-manifest-v0.1.schema.json"
       - "schemas/cter-private-coverage-v0.1.schema.json"
+      - "schemas/cter-query-input-snapshot-v0.1.schema.json"
       - "schemas/cter-privacy-channel-inventory-v0.1.schema.json"
       - "docs/research/CTER_EGRESS_BINDING_PROFILE_V0_1.md"
       - "docs/research/CTER_COMPOSED_RELEASE_BINDING_PROFILE_V0_1.md"
       - "docs/research/CTER_VDS_PROOF_PRIMITIVE_COMPARISON_V0_1.md"
       - "docs/research/CTER_QUERY_PREDICATE_PROFILE_V0_1.md"
+      - "docs/research/CTER_QUERY_INPUT_ATTESTATION_PROFILE_V0_1.md"
       - "docs/research/CTER_PRIVACY_CHANNEL_PROFILE_V0_1.md"
       - "docs/research/CTER_BENCHMARK_AND_INDUSTRY_COMPARISON_V0_1.md"
       - "docs/research/CTER_OFFLINE_RELAY_PROFILE_V0_1.md"
@@ -106,6 +110,8 @@ jobs:
           python3 -m json.tool benchmarks/territorial-integrity/egress/vds-proof-workloads-v0.1.json > /dev/null
           python3 -m json.tool benchmarks/territorial-integrity/egress/predicate-workloads-v0.1.json > /dev/null
           python3 -m json.tool benchmarks/territorial-integrity/egress/query-predicate-commitments-v0.1.json > /dev/null
+          python3 -m json.tool schemas/cter-query-input-snapshot-v0.1.schema.json > /dev/null
+          python3 -m json.tool benchmarks/territorial-integrity/egress/query-input-snapshot-workloads-v0.1.json > /dev/null
           python3 -m json.tool benchmarks/territorial-integrity/egress/private-coverage-scale-workloads-v0.1.json > /dev/null
           python3 -m json.tool schemas/cter-private-coverage-v0.1.schema.json > /dev/null
           python3 -m json.tool schemas/cter-disclosure-manifest-v0.1.schema.json > /dev/null
@@ -132,6 +138,9 @@ jobs:
 
       - name: Run independent query predicate commitment oracle
         run: node benchmarks/territorial-integrity/relay/reference/query-predicate-oracle.mjs
+
+      - name: Run independent query input snapshot oracle
+        run: node benchmarks/territorial-integrity/relay/reference/query-input-snapshot-oracle.mjs
 
       - name: Run independent composed release binding oracle
         run: node benchmarks/territorial-integrity/relay/reference/release-binding-oracle.mjs
