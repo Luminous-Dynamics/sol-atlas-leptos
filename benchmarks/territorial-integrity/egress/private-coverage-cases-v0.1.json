@@ -41,7 +41,11 @@
       "operation": "export_evidence",
       "purpose_ref": "urn:fixture:purpose:restricted-evidence-export",
       "resource_ref": "urn:fixture:resource:synthetic-project",
-      "jurisdiction_profile_ref": "urn:fixture:jurisdiction:synthetic-profile-v0"
+      "jurisdiction_profile_ref": "urn:fixture:jurisdiction:synthetic-profile-v0",
+      "subject_ref": "urn:fixture:subject:synthetic-project-subject",
+      "data_classes": [
+        "community"
+      ]
     },
     "private_partition": [
       {
@@ -127,7 +131,11 @@
       "package_commitment": {
         "algorithm": "sha-256",
         "value": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
-      }
+      },
+      "subject_ref": "urn:fixture:subject:synthetic-project-subject",
+      "data_classes": [
+        "community"
+      ]
     },
     "receipt_assessment": {
       "assessment_ref": "urn:fixture:receipt-assessment:synthetic-current",
