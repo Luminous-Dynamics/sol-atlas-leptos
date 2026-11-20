@@ -71,6 +71,7 @@ struct AccessReceipt {
     scope_digest: String,
     time_basis_id: String,
     access_state: String,
+    evidence_state: String,
     arrival_earliest_tick: i64,
     arrival_latest_tick: i64,
 }
@@ -131,7 +132,9 @@ struct OpportunityResult {
     unavailable_arrival_count: u64,
     unknown_arrival_count: u64,
     service_owner_revision: String,
+    service_calendar_evidence_state: String,
     access_owner_revision: String,
+    access_evidence_state: String,
 }
 #[derive(Debug, Serialize)]
 struct EvaluationOutput {
@@ -277,6 +280,9 @@ fn validate_case(c: &OpportunityCase) -> Result<(), String> {
     if !["QUALIFIED", "UNKNOWN", "BLOCKED"].contains(&c.access.access_state.as_str()) {
         return Err(format!("{id}: unsupported access state"));
     }
+    if !["CURRENT", "STALE", "UNKNOWN"].contains(&c.access.evidence_state.as_str()) {
+        return Err(format!("{id}: unsupported access evidence state"));
+    }
     if !["COMPLETE", "INCOMPLETE", "UNKNOWN"].contains(&c.calendar.coverage_state.as_str()) {
         return Err(format!("{id}: unsupported calendar coverage state"));
     }
@@ -374,6 +380,8 @@ fn evaluate_case(c: &OpportunityCase) -> Result<OpportunityResult, String> {
         .ok_or_else(|| "requested service end overflow".to_owned())?;
     let (disposition, reason, possible, available, unavailable, unknown) = match comparable(c) {
         Err(reason) => ("NOT_COMPARABLE".to_owned(), reason.to_owned(), 0, 0, 0, 0),
+        Ok(()) if c.access.evidence_state != "CURRENT" =>
+            ("UNKNOWN".to_owned(), "ACCESS_EVIDENCE_NOT_CURRENT".to_owned(), 0, 0, 0, 0),
         Ok(()) if c.access.access_state == "BLOCKED" =>
             ("UNAVAILABLE".to_owned(), "ACCESS_ROUTE_BLOCKED".to_owned(), 0, 0, 0, 0),
         Ok(()) if c.access.access_state == "UNKNOWN" =>
@@ -418,7 +426,9 @@ fn evaluate_case(c: &OpportunityCase) -> Result<OpportunityResult, String> {
         unavailable_arrival_count: unavailable,
         unknown_arrival_count: unknown,
         service_owner_revision: c.calendar.owner_revision.clone(),
+        service_calendar_evidence_state: c.calendar.evidence_state.clone(),
         access_owner_revision: c.access.owner_revision.clone(),
+        access_evidence_state: c.access.evidence_state.clone(),
     })
 }
 
@@ -504,10 +514,10 @@ mod tests {
     #[test]
     fn frozen_interval_join_corpus_matches_every_golden_result() {
         let out = evaluate_fixture(FIXTURE.as_bytes()).expect("fixture corpus should pass");
-        assert_eq!(out.opportunity_count, 17);
+        assert_eq!(out.opportunity_count, 20);
         assert_eq!(out.disposition_counts.available, 2);
         assert_eq!(out.disposition_counts.unavailable, 7);
-        assert_eq!(out.disposition_counts.unknown, 5);
+        assert_eq!(out.disposition_counts.unknown, 8);
         assert_eq!(out.disposition_counts.not_comparable, 3);
         assert_eq!(out.fixture_sha256.len(), 64);
     }
@@ -584,6 +594,30 @@ mod tests {
         assert_eq!(r.disposition, "NOT_COMPARABLE");
         assert_eq!(r.reason_code, "MIXED_SERVICE_OWNER_REVISIONS");
     }
+    #[test]
+    fn stale_and_unknown_access_evidence_never_becomes_available() {
+        let out = evaluate_fixture(FIXTURE.as_bytes()).expect("fixtures should pass");
+        for id in [
+            "STALE_QUALIFIED_ACCESS_RESULT",
+            "UNKNOWN_ACCESS_EVIDENCE_QUALITY",
+            "STALE_BLOCKED_ACCESS_RESULT",
+        ] {
+            let result = by_id(&out, id);
+            assert_eq!(result.disposition, "UNKNOWN");
+            assert_eq!(result.reason_code, "ACCESS_EVIDENCE_NOT_CURRENT");
+        }
+    }
+
+    #[test]
+    fn currentness_is_reported_separately_for_access_and_service_evidence() {
+        let out = evaluate_fixture(FIXTURE.as_bytes()).expect("fixtures should pass");
+        let result = by_id(&out, "OPEN_FULL_SERVICE_SLOT");
+        assert_eq!(result.access_evidence_state, "CURRENT");
+        assert_eq!(result.service_calendar_evidence_state, "CURRENT");
+        let stale = by_id(&out, "STALE_QUALIFIED_ACCESS_RESULT");
+        assert_eq!(stale.access_evidence_state, "STALE");
+    }
+
     #[test]
     fn overlapping_windows_are_rejected() {
         let mut v = fixture_value();
