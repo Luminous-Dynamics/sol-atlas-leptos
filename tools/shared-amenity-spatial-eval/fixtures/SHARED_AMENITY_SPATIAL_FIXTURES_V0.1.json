@@ -60,13 +60,15 @@
               "id": "P_INNER",
               "failure_domain_id": "PRIVATE_INNER",
               "capacity_state": "KNOWN",
-              "capacity_units": 80
+              "capacity_units": 80,
+              "service_state": "AVAILABLE"
             },
             {
               "id": "P_EDGE",
               "failure_domain_id": "PRIVATE_EDGE",
               "capacity_state": "KNOWN",
-              "capacity_units": 20
+              "capacity_units": 20,
+              "service_state": "AVAILABLE"
             }
           ],
           "access_records": [
@@ -99,7 +101,8 @@
               "id": "C1",
               "failure_domain_id": "CENTRAL_OPERATOR",
               "capacity_state": "KNOWN",
-              "capacity_units": 100
+              "capacity_units": 100,
+              "service_state": "AVAILABLE"
             }
           ],
           "access_records": [
@@ -132,13 +135,15 @@
               "id": "D1",
               "failure_domain_id": "NODE_EAST",
               "capacity_state": "KNOWN",
-              "capacity_units": 60
+              "capacity_units": 60,
+              "service_state": "AVAILABLE"
             },
             {
               "id": "D2",
               "failure_domain_id": "NODE_WEST",
               "capacity_state": "KNOWN",
-              "capacity_units": 40
+              "capacity_units": 40,
+              "service_state": "AVAILABLE"
             }
           ],
           "access_records": [
@@ -185,13 +190,15 @@
               "id": "H_PRIVATE",
               "failure_domain_id": "PRIVATE_INNER",
               "capacity_state": "KNOWN",
-              "capacity_units": 80
+              "capacity_units": 80,
+              "service_state": "AVAILABLE"
             },
             {
               "id": "H_SHARED",
               "failure_domain_id": "SHARED_OPERATOR",
               "capacity_state": "KNOWN",
-              "capacity_units": 40
+              "capacity_units": 40,
+              "service_state": "AVAILABLE"
             }
           ],
           "access_records": [
@@ -231,7 +238,8 @@
               "id": "X1",
               "failure_domain_id": "EXTERNAL_PROVIDER",
               "capacity_state": "KNOWN",
-              "capacity_units": 100
+              "capacity_units": 100,
+              "service_state": "AVAILABLE"
             }
           ],
           "access_records": [
@@ -260,6 +268,7 @@
           "no_access_population": 0,
           "unknown_access_population": 0,
           "outside_tolerance_population": 0,
+          "service_unavailable_population": 0,
           "effective_access_coverage_basis_points": 10000,
           "p50_generalized_cost_seconds": 120,
           "p90_generalized_cost_seconds": 180,
@@ -279,6 +288,7 @@
           "no_access_population": 0,
           "unknown_access_population": 0,
           "outside_tolerance_population": 0,
+          "service_unavailable_population": 0,
           "effective_access_coverage_basis_points": 10000,
           "p50_generalized_cost_seconds": 240,
           "p90_generalized_cost_seconds": 420,
@@ -298,6 +308,7 @@
           "no_access_population": 0,
           "unknown_access_population": 0,
           "outside_tolerance_population": 0,
+          "service_unavailable_population": 0,
           "effective_access_coverage_basis_points": 10000,
           "p50_generalized_cost_seconds": 150,
           "p90_generalized_cost_seconds": 210,
@@ -317,6 +328,7 @@
           "no_access_population": 0,
           "unknown_access_population": 0,
           "outside_tolerance_population": 0,
+          "service_unavailable_population": 0,
           "effective_access_coverage_basis_points": 10000,
           "p50_generalized_cost_seconds": 100,
           "p90_generalized_cost_seconds": 180,
@@ -336,6 +348,7 @@
           "no_access_population": 0,
           "unknown_access_population": 0,
           "outside_tolerance_population": 0,
+          "service_unavailable_population": 0,
           "effective_access_coverage_basis_points": 10000,
           "p50_generalized_cost_seconds": 600,
           "p90_generalized_cost_seconds": 840,
@@ -390,13 +403,15 @@
               "id": "P_INNER",
               "failure_domain_id": "PRIVATE_INNER",
               "capacity_state": "KNOWN",
-              "capacity_units": 80
+              "capacity_units": 80,
+              "service_state": "AVAILABLE"
             },
             {
               "id": "P_EDGE",
               "failure_domain_id": "PRIVATE_EDGE",
               "capacity_state": "KNOWN",
-              "capacity_units": 20
+              "capacity_units": 20,
+              "service_state": "AVAILABLE"
             }
           ],
           "access_records": [
@@ -429,7 +444,8 @@
               "id": "C1",
               "failure_domain_id": "CENTRAL_OPERATOR",
               "capacity_state": "KNOWN",
-              "capacity_units": 100
+              "capacity_units": 100,
+              "service_state": "AVAILABLE"
             }
           ],
           "access_records": [
@@ -462,13 +478,15 @@
               "id": "D1",
               "failure_domain_id": "NODE_EAST",
               "capacity_state": "KNOWN",
-              "capacity_units": 60
+              "capacity_units": 60,
+              "service_state": "AVAILABLE"
             },
             {
               "id": "D2",
               "failure_domain_id": "NODE_WEST",
               "capacity_state": "KNOWN",
-              "capacity_units": 40
+              "capacity_units": 40,
+              "service_state": "AVAILABLE"
             }
           ],
           "access_records": [
@@ -515,13 +533,15 @@
               "id": "H_PRIVATE",
               "failure_domain_id": "PRIVATE_INNER",
               "capacity_state": "KNOWN",
-              "capacity_units": 80
+              "capacity_units": 80,
+              "service_state": "AVAILABLE"
             },
             {
               "id": "H_SHARED",
               "failure_domain_id": "SHARED_OPERATOR",
               "capacity_state": "KNOWN",
-              "capacity_units": 20
+              "capacity_units": 20,
+              "service_state": "AVAILABLE"
             }
           ],
           "access_records": [
@@ -561,7 +581,8 @@
               "id": "X1",
               "failure_domain_id": "EXTERNAL_PROVIDER",
               "capacity_state": "UNKNOWN",
-              "capacity_units": null
+              "capacity_units": null,
+              "service_state": "AVAILABLE"
             }
           ],
           "access_records": [
@@ -590,6 +611,7 @@
           "no_access_population": 0,
           "unknown_access_population": 0,
           "outside_tolerance_population": 0,
+          "service_unavailable_population": 0,
           "effective_access_coverage_basis_points": 10000,
           "p50_generalized_cost_seconds": 120,
           "p90_generalized_cost_seconds": 300,
@@ -609,6 +631,7 @@
           "no_access_population": 20,
           "unknown_access_population": 0,
           "outside_tolerance_population": 0,
+          "service_unavailable_population": 0,
           "effective_access_coverage_basis_points": 8000,
           "p50_generalized_cost_seconds": 180,
           "p90_generalized_cost_seconds": 180,
@@ -628,6 +651,7 @@
           "no_access_population": 0,
           "unknown_access_population": 0,
           "outside_tolerance_population": 0,
+          "service_unavailable_population": 0,
           "effective_access_coverage_basis_points": 10000,
           "p50_generalized_cost_seconds": 140,
           "p90_generalized_cost_seconds": 360,
@@ -647,6 +671,7 @@
           "no_access_population": 0,
           "unknown_access_population": 0,
           "outside_tolerance_population": 0,
+          "service_unavailable_population": 0,
           "effective_access_coverage_basis_points": 10000,
           "p50_generalized_cost_seconds": 120,
           "p90_generalized_cost_seconds": 300,
@@ -666,6 +691,7 @@
           "no_access_population": 0,
           "unknown_access_population": 20,
           "outside_tolerance_population": 0,
+          "service_unavailable_population": 0,
           "effective_access_coverage_basis_points": 8000,
           "p50_generalized_cost_seconds": 480,
           "p90_generalized_cost_seconds": 480,
@@ -720,13 +746,15 @@
               "id": "P_INNER",
               "failure_domain_id": "PRIVATE_INNER",
               "capacity_state": "KNOWN",
-              "capacity_units": 80
+              "capacity_units": 80,
+              "service_state": "AVAILABLE"
             },
             {
               "id": "P_EDGE",
               "failure_domain_id": "PRIVATE_EDGE",
               "capacity_state": "KNOWN",
-              "capacity_units": 20
+              "capacity_units": 20,
+              "service_state": "AVAILABLE"
             }
           ],
           "access_records": [
@@ -759,7 +787,8 @@
               "id": "C1",
               "failure_domain_id": "CENTRAL_OPERATOR",
               "capacity_state": "KNOWN",
-              "capacity_units": 100
+              "capacity_units": 100,
+              "service_state": "AVAILABLE"
             }
           ],
           "access_records": [
@@ -792,13 +821,15 @@
               "id": "D1",
               "failure_domain_id": "NODE_EAST",
               "capacity_state": "KNOWN",
-              "capacity_units": 60
+              "capacity_units": 60,
+              "service_state": "AVAILABLE"
             },
             {
               "id": "D2",
               "failure_domain_id": "NODE_WEST",
               "capacity_state": "KNOWN",
-              "capacity_units": 40
+              "capacity_units": 40,
+              "service_state": "AVAILABLE"
             }
           ],
           "access_records": [
@@ -845,13 +876,15 @@
               "id": "H_PRIVATE",
               "failure_domain_id": "PRIVATE_INNER",
               "capacity_state": "KNOWN",
-              "capacity_units": 80
+              "capacity_units": 80,
+              "service_state": "AVAILABLE"
             },
             {
               "id": "H_SHARED",
               "failure_domain_id": "SHARED_OPERATOR",
               "capacity_state": "KNOWN",
-              "capacity_units": 20
+              "capacity_units": 20,
+              "service_state": "AVAILABLE"
             }
           ],
           "access_records": [
@@ -891,23 +924,24 @@
               "id": "X1",
               "failure_domain_id": "EXTERNAL_PROVIDER",
               "capacity_state": "KNOWN",
-              "capacity_units": 0
+              "capacity_units": 0,
+              "service_state": "UNAVAILABLE"
             }
           ],
           "access_records": [
             {
               "group_id": "INNER",
               "facility_id": "X1",
-              "access_state": "BLOCKED",
-              "generalized_cost_seconds": null,
+              "access_state": "QUALIFIED",
+              "generalized_cost_seconds": 360,
               "mandatory_access_state": "NOT_REQUIRED"
             },
             {
               "group_id": "EDGE_STEP_FREE",
               "facility_id": "X1",
-              "access_state": "BLOCKED",
-              "generalized_cost_seconds": null,
-              "mandatory_access_state": "FAIL"
+              "access_state": "QUALIFIED",
+              "generalized_cost_seconds": 420,
+              "mandatory_access_state": "PASS"
             }
           ]
         }
@@ -920,6 +954,7 @@
           "no_access_population": 0,
           "unknown_access_population": 0,
           "outside_tolerance_population": 0,
+          "service_unavailable_population": 0,
           "effective_access_coverage_basis_points": 10000,
           "p50_generalized_cost_seconds": 90,
           "p90_generalized_cost_seconds": 150,
@@ -939,6 +974,7 @@
           "no_access_population": 0,
           "unknown_access_population": 0,
           "outside_tolerance_population": 0,
+          "service_unavailable_population": 0,
           "effective_access_coverage_basis_points": 10000,
           "p50_generalized_cost_seconds": 300,
           "p90_generalized_cost_seconds": 500,
@@ -958,6 +994,7 @@
           "no_access_population": 0,
           "unknown_access_population": 0,
           "outside_tolerance_population": 0,
+          "service_unavailable_population": 0,
           "effective_access_coverage_basis_points": 10000,
           "p50_generalized_cost_seconds": 150,
           "p90_generalized_cost_seconds": 210,
@@ -977,6 +1014,7 @@
           "no_access_population": 0,
           "unknown_access_population": 0,
           "outside_tolerance_population": 0,
+          "service_unavailable_population": 0,
           "effective_access_coverage_basis_points": 10000,
           "p50_generalized_cost_seconds": 120,
           "p90_generalized_cost_seconds": 180,
@@ -993,9 +1031,10 @@
           "comparison_arm": "EXTERNAL_COMMERCIAL",
           "total_population": 100,
           "effective_access_population": 0,
-          "no_access_population": 100,
+          "no_access_population": 0,
           "unknown_access_population": 0,
           "outside_tolerance_population": 0,
+          "service_unavailable_population": 100,
           "effective_access_coverage_basis_points": 0,
           "p50_generalized_cost_seconds": null,
           "p90_generalized_cost_seconds": null,
@@ -1050,13 +1089,15 @@
               "id": "P_INNER",
               "failure_domain_id": "PRIVATE_INNER",
               "capacity_state": "KNOWN",
-              "capacity_units": 20
+              "capacity_units": 20,
+              "service_state": "AVAILABLE"
             },
             {
               "id": "P_EDGE",
               "failure_domain_id": "PRIVATE_EDGE",
               "capacity_state": "KNOWN",
-              "capacity_units": 80
+              "capacity_units": 80,
+              "service_state": "AVAILABLE"
             }
           ],
           "access_records": [
@@ -1089,7 +1130,8 @@
               "id": "C1",
               "failure_domain_id": "CENTRAL_OPERATOR",
               "capacity_state": "KNOWN",
-              "capacity_units": 100
+              "capacity_units": 100,
+              "service_state": "AVAILABLE"
             }
           ],
           "access_records": [
@@ -1122,13 +1164,15 @@
               "id": "D1",
               "failure_domain_id": "NODE_EAST",
               "capacity_state": "KNOWN",
-              "capacity_units": 60
+              "capacity_units": 60,
+              "service_state": "AVAILABLE"
             },
             {
               "id": "D2",
               "failure_domain_id": "NODE_WEST",
               "capacity_state": "KNOWN",
-              "capacity_units": 40
+              "capacity_units": 40,
+              "service_state": "AVAILABLE"
             }
           ],
           "access_records": [
@@ -1175,13 +1219,15 @@
               "id": "H_PRIVATE",
               "failure_domain_id": "PRIVATE_INNER",
               "capacity_state": "KNOWN",
-              "capacity_units": 20
+              "capacity_units": 20,
+              "service_state": "AVAILABLE"
             },
             {
               "id": "H_SHARED",
               "failure_domain_id": "SHARED_OPERATOR",
               "capacity_state": "KNOWN",
-              "capacity_units": 80
+              "capacity_units": 80,
+              "service_state": "AVAILABLE"
             }
           ],
           "access_records": [
@@ -1221,7 +1267,8 @@
               "id": "X1",
               "failure_domain_id": "EXTERNAL_PROVIDER",
               "capacity_state": "KNOWN",
-              "capacity_units": 100
+              "capacity_units": 100,
+              "service_state": "AVAILABLE"
             }
           ],
           "access_records": [
@@ -1250,6 +1297,7 @@
           "no_access_population": 0,
           "unknown_access_population": 0,
           "outside_tolerance_population": 0,
+          "service_unavailable_population": 0,
           "effective_access_coverage_basis_points": 10000,
           "p50_generalized_cost_seconds": 180,
           "p90_generalized_cost_seconds": 180,
@@ -1269,6 +1317,7 @@
           "no_access_population": 0,
           "unknown_access_population": 0,
           "outside_tolerance_population": 0,
+          "service_unavailable_population": 0,
           "effective_access_coverage_basis_points": 10000,
           "p50_generalized_cost_seconds": 840,
           "p90_generalized_cost_seconds": 840,
@@ -1288,6 +1337,7 @@
           "no_access_population": 0,
           "unknown_access_population": 0,
           "outside_tolerance_population": 0,
+          "service_unavailable_population": 0,
           "effective_access_coverage_basis_points": 10000,
           "p50_generalized_cost_seconds": 240,
           "p90_generalized_cost_seconds": 240,
@@ -1307,6 +1357,7 @@
           "no_access_population": 0,
           "unknown_access_population": 0,
           "outside_tolerance_population": 0,
+          "service_unavailable_population": 0,
           "effective_access_coverage_basis_points": 10000,
           "p50_generalized_cost_seconds": 300,
           "p90_generalized_cost_seconds": 300,
@@ -1326,6 +1377,7 @@
           "no_access_population": 0,
           "unknown_access_population": 0,
           "outside_tolerance_population": 80,
+          "service_unavailable_population": 0,
           "effective_access_coverage_basis_points": 2000,
           "p50_generalized_cost_seconds": 480,
           "p90_generalized_cost_seconds": 480,
