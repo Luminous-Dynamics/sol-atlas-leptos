@@ -9,7 +9,7 @@ use serde::de::{self, MapAccess, SeqAccess, Visitor};
 use serde::{Deserialize, Deserializer};
 use serde_json::{Map, Number, Value};
 use sha2::{Digest, Sha256};
-use std::collections::BTreeSet;
+use std::collections::{BTreeMap, BTreeSet};
 use std::fmt;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -327,6 +327,295 @@ fn collect_predicate_paths(predicate: &Value, output: &mut BTreeSet<String>) {
         }
         _ => {}
     }
+}
+
+
+fn validate_query_input_snapshot(
+    input: &Value,
+    frontier: &Value,
+    query: &Value,
+    frontier_refs: &BTreeSet<String>,
+    severity: &mut Severity,
+    reasons: &mut BTreeSet<String>,
+) -> BTreeMap<String, Value> {
+    let Some(snapshot) = input.get("query_input_snapshot") else {
+        raise(
+            severity,
+            reasons,
+            Severity::Incomplete,
+            "query_input_snapshot_missing",
+        );
+        return BTreeMap::new();
+    };
+    if nonblank(snapshot, "schema") != Some("luminous.cter.query-input-snapshot.v0.1") {
+        raise(
+            severity,
+            reasons,
+            Severity::Incomplete,
+            "query_input_snapshot_schema_unsupported",
+        );
+    }
+    if nonblank(snapshot, "profile_ref") != Some("urn:luminous:cter:query-input-json-v0.1") {
+        raise(
+            severity,
+            reasons,
+            Severity::Incomplete,
+            "query_input_snapshot_profile_unsupported",
+        );
+    }
+    if nonblank(snapshot, "snapshot_ref") != nonblank(query, "input_snapshot_ref")
+        || snapshot.get("snapshot_commitment") != query.get("input_snapshot_commitment")
+    {
+        raise(
+            severity,
+            reasons,
+            Severity::Deny,
+            "query_input_snapshot_query_binding_mismatch",
+        );
+    }
+    if nonblank(snapshot, "frontier_ref") != nonblank(frontier, "frontier_ref")
+        || nonblank(snapshot, "frontier_version") != nonblank(frontier, "version")
+        || snapshot.get("frontier_commitment") != frontier.get("commitment")
+    {
+        raise(
+            severity,
+            reasons,
+            Severity::Deny,
+            "query_input_snapshot_frontier_binding_mismatch",
+        );
+    }
+    if nonblank(snapshot, "query_profile_ref") != nonblank(query, "query_profile_ref")
+        || snapshot.get("query_commitment") != query.get("query_commitment")
+    {
+        raise(
+            severity,
+            reasons,
+            Severity::Deny,
+            "query_input_snapshot_predicate_binding_mismatch",
+        );
+    }
+    if nonblank(snapshot, "attribute_projection_profile_ref").is_none() {
+        raise(
+            severity,
+            reasons,
+            Severity::Incomplete,
+            "query_input_attribute_projection_profile_missing",
+        );
+    }
+
+    if !snapshot
+        .get("snapshot_commitment")
+        .is_some_and(sha256_digest)
+    {
+        raise(
+            severity,
+            reasons,
+            Severity::Incomplete,
+            "query_input_snapshot_commitment_malformed",
+        );
+    } else {
+        match query_input_snapshot_commitment(snapshot) {
+            Ok(expected) => {
+                let observed = nonblank(
+                    snapshot.get("snapshot_commitment").unwrap_or(&Value::Null),
+                    "value",
+                );
+                if observed != Some(expected.as_str()) {
+                    raise(
+                        severity,
+                        reasons,
+                        Severity::Deny,
+                        "query_input_snapshot_commitment_mismatch",
+                    );
+                }
+            }
+            Err(reason) => raise(
+                severity,
+                reasons,
+                Severity::Incomplete,
+                format!("query_input_snapshot_commitment_unavailable:{reason}"),
+            ),
+        }
+    }
+
+    let predicate_paths = {
+        let mut paths = BTreeSet::new();
+        if let Some(predicate) = query.get("predicate") {
+            collect_predicate_paths(predicate, &mut paths);
+        }
+        paths
+    };
+    let Some(items) = snapshot.get("items").and_then(Value::as_array) else {
+        raise(
+            severity,
+            reasons,
+            Severity::Incomplete,
+            "query_input_snapshot_items_missing",
+        );
+        return BTreeMap::new();
+    };
+    let mut snapshot_refs = BTreeSet::new();
+    let mut by_ref = BTreeMap::new();
+
+    for item in items {
+        let Some(object_ref) = nonblank(item, "object_ref") else {
+            raise(
+                severity,
+                reasons,
+                Severity::Incomplete,
+                "query_input_snapshot_item_ref_missing",
+            );
+            continue;
+        };
+        if !snapshot_refs.insert(object_ref.to_owned()) {
+            raise(
+                severity,
+                reasons,
+                Severity::Deny,
+                "query_input_snapshot_item_duplicated",
+            );
+            continue;
+        }
+        let availability = nonblank(item, "availability_state");
+        let Some(bindings) = item
+            .get("attribute_source_bindings")
+            .and_then(Value::as_array)
+        else {
+            raise(
+                severity,
+                reasons,
+                Severity::Incomplete,
+                "query_input_attribute_bindings_missing",
+            );
+            by_ref.insert(object_ref.to_owned(), item.clone());
+            continue;
+        };
+
+        match availability {
+            Some("available") => {
+                let Some(attributes) = item.get("query_input").and_then(Value::as_object) else {
+                    raise(
+                        severity,
+                        reasons,
+                        Severity::Incomplete,
+                        "query_input_attributes_missing_for_available_item",
+                    );
+                    by_ref.insert(object_ref.to_owned(), item.clone());
+                    continue;
+                };
+                let mut binding_paths = BTreeSet::new();
+                for binding in bindings {
+                    let Some(path) = nonblank(binding, "path") else {
+                        raise(
+                            severity,
+                            reasons,
+                            Severity::Incomplete,
+                            "query_input_attribute_binding_path_missing",
+                        );
+                        continue;
+                    };
+                    if !binding_paths.insert(path.to_owned()) {
+                        raise(
+                            severity,
+                            reasons,
+                            Severity::Deny,
+                            "query_input_attribute_binding_duplicated",
+                        );
+                    }
+                    if !predicate_paths.contains(path) {
+                        raise(
+                            severity,
+                            reasons,
+                            Severity::Deny,
+                            "query_input_snapshot_contains_unqueried_attribute_binding",
+                        );
+                    }
+                    if !nonblank(binding, "source_object_ref")
+                        .is_some_and(|source_ref| frontier_refs.contains(source_ref))
+                    {
+                        raise(
+                            severity,
+                            reasons,
+                            Severity::Deny,
+                            "query_input_attribute_source_outside_frontier",
+                        );
+                    }
+                    if !binding
+                        .get("source_content_digest")
+                        .is_some_and(sha256_digest)
+                    {
+                        raise(
+                            severity,
+                            reasons,
+                            Severity::Incomplete,
+                            "query_input_attribute_source_digest_malformed",
+                        );
+                    }
+                }
+
+                for path in &predicate_paths {
+                    match query_member(Some(&Value::Object(attributes.clone())), path) {
+                        Ok(Some(_)) if !binding_paths.contains(path) => raise(
+                            severity,
+                            reasons,
+                            Severity::Incomplete,
+                            format!("query_input_attribute_source_binding_missing:{path}"),
+                        ),
+                        Ok(None) if binding_paths.contains(path) => raise(
+                            severity,
+                            reasons,
+                            Severity::Deny,
+                            format!("query_input_attribute_binding_for_missing_value:{path}"),
+                        ),
+                        Err(reason) => raise(
+                            severity,
+                            reasons,
+                            Severity::Incomplete,
+                            format!("query_input_predicate_path_invalid:{reason}"),
+                        ),
+                        _ => {}
+                    }
+                }
+                if attributes.keys().any(|key| {
+                    !predicate_paths.contains(&format!("/{key}"))
+                }) {
+                    raise(
+                        severity,
+                        reasons,
+                        Severity::Deny,
+                        "query_input_snapshot_contains_unqueried_attribute",
+                    );
+                }
+            }
+            Some("unavailable" | "unknown") => {
+                if item.get("query_input").is_some() || !bindings.is_empty() {
+                    raise(
+                        severity,
+                        reasons,
+                        Severity::Deny,
+                        "query_input_unavailable_item_exposes_attributes",
+                    );
+                }
+            }
+            _ => raise(
+                severity,
+                reasons,
+                Severity::Incomplete,
+                "query_input_availability_state_invalid",
+            ),
+        }
+        by_ref.insert(object_ref.to_owned(), item.clone());
+    }
+
+    if snapshot_refs != *frontier_refs {
+        raise(
+            severity,
+            reasons,
+            Severity::Incomplete,
+            "query_input_snapshot_frontier_object_set_mismatch",
+        );
+    }
+    by_ref
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
