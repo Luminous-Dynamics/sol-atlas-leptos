@@ -3,7 +3,7 @@
   "suite_id": "CTER-EGRESS-BINDING-001",
   "suite_version": "0.1.0",
   "synthetic_only": true,
-  "execution_status": "jcs_predicate_commitment_implemented_exact_head_rust_and_node22_pending",
+  "execution_status": "query_predicate_and_input_snapshot_commitments_implemented_exact_head_tests_pending",
   "parent_issue": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/960",
   "manifest_schema": "schemas/cter-disclosure-manifest-v0.1.schema.json",
   "canonicalization_profile": "rfc8785-jcs-v1",
@@ -40,7 +40,12 @@
         "algorithm": "sha-256",
         "value": "356a31c171751c9b506942e81ce35cb0dbb1a1862c5844e0a9e1b650a18be309"
       },
-      "coverage_query_profile_ref": "urn:luminous:cter:predicate-json-v0.1"
+      "coverage_query_profile_ref": "urn:luminous:cter:predicate-json-v0.1",
+      "coverage_input_snapshot_ref": "urn:fixture:query-input-snapshot:composed-release-001",
+      "coverage_input_snapshot_commitment": {
+        "algorithm": "sha-256",
+        "value": "a8f000ebab94a5ad4479faa5fb12cf2980cc094376d0cc3eb438698804c3d788"
+      }
     },
     "destination_binding": {
       "recipient_ref": "urn:fixture:recipient:synthetic-001",
@@ -316,6 +321,24 @@
       "mutation": "Use an unsupported coverage-query semantics profile.",
       "expected": "incomplete",
       "reason_code": "authorization_coverage_query_profile_missing_or_unsupported"
+    },
+    {
+      "case_id": "EGRESS-INPUT-SNAPSHOT-REF-MISSING-001",
+      "mutation": "Remove the source input snapshot reference from authorization binding.",
+      "expected": "incomplete",
+      "reason_code": "authorization_coverage_input_snapshot_ref_missing"
+    },
+    {
+      "case_id": "EGRESS-INPUT-SNAPSHOT-COMMITMENT-MALFORMED-001",
+      "mutation": "Use a malformed source input snapshot commitment.",
+      "expected": "incomplete",
+      "reason_code": "authorization_coverage_input_snapshot_commitment_malformed"
+    },
+    {
+      "case_id": "EGRESS-INPUT-SNAPSHOT-PROFILE-UNSUPPORTED-001",
+      "mutation": "Use an unsupported snapshot reference scheme.",
+      "expected": "incomplete",
+      "reason_code": "authorization_coverage_input_snapshot_ref_missing"
     }
   ],
   "targets": {
