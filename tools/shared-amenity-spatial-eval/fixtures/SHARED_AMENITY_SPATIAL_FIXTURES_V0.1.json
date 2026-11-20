@@ -1,0 +1,1344 @@
+{
+  "schema": "luminous.shared-amenity-spatial-evaluation-fixtures",
+  "schema_version": "0.1.0",
+  "maturity": "SYNTHETIC_ORACLE_FIXTURES_ONLY",
+  "claim_ceiling": "NO_LIVE_JOHANNESBURG_GEOGRAPHY_RESIDENTS_PROVIDER_EVIDENCE_MEASURED_PERFORMANCE_OR_ALLOCATION_CLAIM",
+  "owner_bindings": {
+    "common_scope": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/623",
+    "effective_access": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/555",
+    "amenity_service": "https://github.com/Luminous-Dynamics/mycelix/issues/6328",
+    "capacity_feasibility": "https://github.com/Luminous-Dynamics/symtropy/issues/3768",
+    "household_affordability": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/816"
+  },
+  "fixture_policy": {
+    "fixture_data_state": "SYNTHETIC_ONLY",
+    "registered_50_case_benchmark_state": "NOT_EXECUTED",
+    "routing_computation": "OWNER_OUTPUT_CONSUMED_ONLY",
+    "allocation": "NOT_PERFORMED",
+    "queueing": "NOT_PERFORMED",
+    "capacity_accounting": "COUNT_EACH_FACILITY_ONCE_PER_ARM",
+    "aggregate_metrics": "NO_WEIGHTED_COMPOSITE_SCORE"
+  },
+  "scenarios": [
+    {
+      "scenario_id": "COMPACT_HIGH_DENSITY",
+      "scope": {
+        "scope_digest": "synthetic-scope:COMPACT_HIGH_DENSITY:v0.1",
+        "population_digest": "synthetic-population:COMPACT_HIGH_DENSITY:v0.1",
+        "service_id": "COMMUNITY_KITCHEN",
+        "functional_unit_id": "ACCESSIBLE_SHARED_KITCHEN_HOUR",
+        "period": "SYNTHETIC_WEEK",
+        "service_quality": "RESIDENT_USE_ACCESS",
+        "maximum_generalized_cost_seconds": 900
+      },
+      "population_groups": [
+        {
+          "id": "INNER",
+          "population": 80,
+          "demand_units": 80,
+          "mandatory_access_required": false
+        },
+        {
+          "id": "EDGE_STEP_FREE",
+          "population": 20,
+          "demand_units": 20,
+          "mandatory_access_required": true
+        }
+      ],
+      "demand_units": 100,
+      "arms": [
+        {
+          "comparison_arm": "PRIVATE_DUPLICATION",
+          "scope_digest": "synthetic-scope:COMPACT_HIGH_DENSITY:v0.1",
+          "population_digest": "synthetic-population:COMPACT_HIGH_DENSITY:v0.1",
+          "service_id": "COMMUNITY_KITCHEN",
+          "functional_unit_id": "ACCESSIBLE_SHARED_KITCHEN_HOUR",
+          "period": "SYNTHETIC_WEEK",
+          "service_quality": "RESIDENT_USE_ACCESS",
+          "facilities": [
+            {
+              "id": "P_INNER",
+              "failure_domain_id": "PRIVATE_INNER",
+              "capacity_state": "KNOWN",
+              "capacity_units": 80
+            },
+            {
+              "id": "P_EDGE",
+              "failure_domain_id": "PRIVATE_EDGE",
+              "capacity_state": "KNOWN",
+              "capacity_units": 20
+            }
+          ],
+          "access_records": [
+            {
+              "group_id": "INNER",
+              "facility_id": "P_INNER",
+              "access_state": "QUALIFIED",
+              "generalized_cost_seconds": 120,
+              "mandatory_access_state": "NOT_REQUIRED"
+            },
+            {
+              "group_id": "EDGE_STEP_FREE",
+              "facility_id": "P_EDGE",
+              "access_state": "QUALIFIED",
+              "generalized_cost_seconds": 180,
+              "mandatory_access_state": "PASS"
+            }
+          ]
+        },
+        {
+          "comparison_arm": "CENTRAL_SHARED",
+          "scope_digest": "synthetic-scope:COMPACT_HIGH_DENSITY:v0.1",
+          "population_digest": "synthetic-population:COMPACT_HIGH_DENSITY:v0.1",
+          "service_id": "COMMUNITY_KITCHEN",
+          "functional_unit_id": "ACCESSIBLE_SHARED_KITCHEN_HOUR",
+          "period": "SYNTHETIC_WEEK",
+          "service_quality": "RESIDENT_USE_ACCESS",
+          "facilities": [
+            {
+              "id": "C1",
+              "failure_domain_id": "CENTRAL_OPERATOR",
+              "capacity_state": "KNOWN",
+              "capacity_units": 100
+            }
+          ],
+          "access_records": [
+            {
+              "group_id": "INNER",
+              "facility_id": "C1",
+              "access_state": "QUALIFIED",
+              "generalized_cost_seconds": 240,
+              "mandatory_access_state": "NOT_REQUIRED"
+            },
+            {
+              "group_id": "EDGE_STEP_FREE",
+              "facility_id": "C1",
+              "access_state": "QUALIFIED",
+              "generalized_cost_seconds": 420,
+              "mandatory_access_state": "PASS"
+            }
+          ]
+        },
+        {
+          "comparison_arm": "DISTRIBUTED_SHARED",
+          "scope_digest": "synthetic-scope:COMPACT_HIGH_DENSITY:v0.1",
+          "population_digest": "synthetic-population:COMPACT_HIGH_DENSITY:v0.1",
+          "service_id": "COMMUNITY_KITCHEN",
+          "functional_unit_id": "ACCESSIBLE_SHARED_KITCHEN_HOUR",
+          "period": "SYNTHETIC_WEEK",
+          "service_quality": "RESIDENT_USE_ACCESS",
+          "facilities": [
+            {
+              "id": "D1",
+              "failure_domain_id": "NODE_EAST",
+              "capacity_state": "KNOWN",
+              "capacity_units": 60
+            },
+            {
+              "id": "D2",
+              "failure_domain_id": "NODE_WEST",
+              "capacity_state": "KNOWN",
+              "capacity_units": 40
+            }
+          ],
+          "access_records": [
+            {
+              "group_id": "INNER",
+              "facility_id": "D1",
+              "access_state": "QUALIFIED",
+              "generalized_cost_seconds": 150,
+              "mandatory_access_state": "NOT_REQUIRED"
+            },
+            {
+              "group_id": "INNER",
+              "facility_id": "D2",
+              "access_state": "QUALIFIED",
+              "generalized_cost_seconds": 240,
+              "mandatory_access_state": "NOT_REQUIRED"
+            },
+            {
+              "group_id": "EDGE_STEP_FREE",
+              "facility_id": "D2",
+              "access_state": "QUALIFIED",
+              "generalized_cost_seconds": 210,
+              "mandatory_access_state": "PASS"
+            },
+            {
+              "group_id": "EDGE_STEP_FREE",
+              "facility_id": "D1",
+              "access_state": "QUALIFIED",
+              "generalized_cost_seconds": 270,
+              "mandatory_access_state": "PASS"
+            }
+          ]
+        },
+        {
+          "comparison_arm": "HYBRID_SHARED_PRIVATE",
+          "scope_digest": "synthetic-scope:COMPACT_HIGH_DENSITY:v0.1",
+          "population_digest": "synthetic-population:COMPACT_HIGH_DENSITY:v0.1",
+          "service_id": "COMMUNITY_KITCHEN",
+          "functional_unit_id": "ACCESSIBLE_SHARED_KITCHEN_HOUR",
+          "period": "SYNTHETIC_WEEK",
+          "service_quality": "RESIDENT_USE_ACCESS",
+          "facilities": [
+            {
+              "id": "H_PRIVATE",
+              "failure_domain_id": "PRIVATE_INNER",
+              "capacity_state": "KNOWN",
+              "capacity_units": 80
+            },
+            {
+              "id": "H_SHARED",
+              "failure_domain_id": "SHARED_OPERATOR",
+              "capacity_state": "KNOWN",
+              "capacity_units": 40
+            }
+          ],
+          "access_records": [
+            {
+              "group_id": "INNER",
+              "facility_id": "H_PRIVATE",
+              "access_state": "QUALIFIED",
+              "generalized_cost_seconds": 100,
+              "mandatory_access_state": "NOT_REQUIRED"
+            },
+            {
+              "group_id": "INNER",
+              "facility_id": "H_SHARED",
+              "access_state": "QUALIFIED",
+              "generalized_cost_seconds": 220,
+              "mandatory_access_state": "NOT_REQUIRED"
+            },
+            {
+              "group_id": "EDGE_STEP_FREE",
+              "facility_id": "H_SHARED",
+              "access_state": "QUALIFIED",
+              "generalized_cost_seconds": 180,
+              "mandatory_access_state": "PASS"
+            }
+          ]
+        },
+        {
+          "comparison_arm": "EXTERNAL_COMMERCIAL",
+          "scope_digest": "synthetic-scope:COMPACT_HIGH_DENSITY:v0.1",
+          "population_digest": "synthetic-population:COMPACT_HIGH_DENSITY:v0.1",
+          "service_id": "COMMUNITY_KITCHEN",
+          "functional_unit_id": "ACCESSIBLE_SHARED_KITCHEN_HOUR",
+          "period": "SYNTHETIC_WEEK",
+          "service_quality": "RESIDENT_USE_ACCESS",
+          "facilities": [
+            {
+              "id": "X1",
+              "failure_domain_id": "EXTERNAL_PROVIDER",
+              "capacity_state": "KNOWN",
+              "capacity_units": 100
+            }
+          ],
+          "access_records": [
+            {
+              "group_id": "INNER",
+              "facility_id": "X1",
+              "access_state": "QUALIFIED",
+              "generalized_cost_seconds": 600,
+              "mandatory_access_state": "NOT_REQUIRED"
+            },
+            {
+              "group_id": "EDGE_STEP_FREE",
+              "facility_id": "X1",
+              "access_state": "QUALIFIED",
+              "generalized_cost_seconds": 840,
+              "mandatory_access_state": "PASS"
+            }
+          ]
+        }
+      ],
+      "expected": [
+        {
+          "comparison_arm": "PRIVATE_DUPLICATION",
+          "total_population": 100,
+          "effective_access_population": 100,
+          "no_access_population": 0,
+          "unknown_access_population": 0,
+          "outside_tolerance_population": 0,
+          "effective_access_coverage_basis_points": 10000,
+          "p50_generalized_cost_seconds": 120,
+          "p90_generalized_cost_seconds": 180,
+          "worst_decile_mean_generalized_cost_seconds": 180,
+          "mandatory_access_gate": "PASS",
+          "aggregate_capacity_units": 100,
+          "demand_units": 100,
+          "capacity_shortfall_units": 0,
+          "capacity_surplus_units": 0,
+          "capacity_state": "BALANCED",
+          "minimum_independent_failure_domains": 1
+        },
+        {
+          "comparison_arm": "CENTRAL_SHARED",
+          "total_population": 100,
+          "effective_access_population": 100,
+          "no_access_population": 0,
+          "unknown_access_population": 0,
+          "outside_tolerance_population": 0,
+          "effective_access_coverage_basis_points": 10000,
+          "p50_generalized_cost_seconds": 240,
+          "p90_generalized_cost_seconds": 420,
+          "worst_decile_mean_generalized_cost_seconds": 420,
+          "mandatory_access_gate": "PASS",
+          "aggregate_capacity_units": 100,
+          "demand_units": 100,
+          "capacity_shortfall_units": 0,
+          "capacity_surplus_units": 0,
+          "capacity_state": "BALANCED",
+          "minimum_independent_failure_domains": 1
+        },
+        {
+          "comparison_arm": "DISTRIBUTED_SHARED",
+          "total_population": 100,
+          "effective_access_population": 100,
+          "no_access_population": 0,
+          "unknown_access_population": 0,
+          "outside_tolerance_population": 0,
+          "effective_access_coverage_basis_points": 10000,
+          "p50_generalized_cost_seconds": 150,
+          "p90_generalized_cost_seconds": 210,
+          "worst_decile_mean_generalized_cost_seconds": 210,
+          "mandatory_access_gate": "PASS",
+          "aggregate_capacity_units": 100,
+          "demand_units": 100,
+          "capacity_shortfall_units": 0,
+          "capacity_surplus_units": 0,
+          "capacity_state": "BALANCED",
+          "minimum_independent_failure_domains": 2
+        },
+        {
+          "comparison_arm": "HYBRID_SHARED_PRIVATE",
+          "total_population": 100,
+          "effective_access_population": 100,
+          "no_access_population": 0,
+          "unknown_access_population": 0,
+          "outside_tolerance_population": 0,
+          "effective_access_coverage_basis_points": 10000,
+          "p50_generalized_cost_seconds": 100,
+          "p90_generalized_cost_seconds": 180,
+          "worst_decile_mean_generalized_cost_seconds": 180,
+          "mandatory_access_gate": "PASS",
+          "aggregate_capacity_units": 120,
+          "demand_units": 100,
+          "capacity_shortfall_units": 0,
+          "capacity_surplus_units": 20,
+          "capacity_state": "SURPLUS",
+          "minimum_independent_failure_domains": 1
+        },
+        {
+          "comparison_arm": "EXTERNAL_COMMERCIAL",
+          "total_population": 100,
+          "effective_access_population": 100,
+          "no_access_population": 0,
+          "unknown_access_population": 0,
+          "outside_tolerance_population": 0,
+          "effective_access_coverage_basis_points": 10000,
+          "p50_generalized_cost_seconds": 600,
+          "p90_generalized_cost_seconds": 840,
+          "worst_decile_mean_generalized_cost_seconds": 840,
+          "mandatory_access_gate": "PASS",
+          "aggregate_capacity_units": 100,
+          "demand_units": 100,
+          "capacity_shortfall_units": 0,
+          "capacity_surplus_units": 0,
+          "capacity_state": "BALANCED",
+          "minimum_independent_failure_domains": 1
+        }
+      ]
+    },
+    {
+      "scenario_id": "ACCESSIBLE_ROUTE_DISCONTINUITY",
+      "scope": {
+        "scope_digest": "synthetic-scope:ACCESSIBLE_ROUTE_DISCONTINUITY:v0.1",
+        "population_digest": "synthetic-population:ACCESSIBLE_ROUTE_DISCONTINUITY:v0.1",
+        "service_id": "COMMUNITY_KITCHEN",
+        "functional_unit_id": "ACCESSIBLE_SHARED_KITCHEN_HOUR",
+        "period": "SYNTHETIC_WEEK",
+        "service_quality": "RESIDENT_USE_ACCESS",
+        "maximum_generalized_cost_seconds": 900
+      },
+      "population_groups": [
+        {
+          "id": "INNER",
+          "population": 80,
+          "demand_units": 80,
+          "mandatory_access_required": false
+        },
+        {
+          "id": "EDGE_STEP_FREE",
+          "population": 20,
+          "demand_units": 20,
+          "mandatory_access_required": true
+        }
+      ],
+      "demand_units": 100,
+      "arms": [
+        {
+          "comparison_arm": "PRIVATE_DUPLICATION",
+          "scope_digest": "synthetic-scope:ACCESSIBLE_ROUTE_DISCONTINUITY:v0.1",
+          "population_digest": "synthetic-population:ACCESSIBLE_ROUTE_DISCONTINUITY:v0.1",
+          "service_id": "COMMUNITY_KITCHEN",
+          "functional_unit_id": "ACCESSIBLE_SHARED_KITCHEN_HOUR",
+          "period": "SYNTHETIC_WEEK",
+          "service_quality": "RESIDENT_USE_ACCESS",
+          "facilities": [
+            {
+              "id": "P_INNER",
+              "failure_domain_id": "PRIVATE_INNER",
+              "capacity_state": "KNOWN",
+              "capacity_units": 80
+            },
+            {
+              "id": "P_EDGE",
+              "failure_domain_id": "PRIVATE_EDGE",
+              "capacity_state": "KNOWN",
+              "capacity_units": 20
+            }
+          ],
+          "access_records": [
+            {
+              "group_id": "INNER",
+              "facility_id": "P_INNER",
+              "access_state": "QUALIFIED",
+              "generalized_cost_seconds": 120,
+              "mandatory_access_state": "NOT_REQUIRED"
+            },
+            {
+              "group_id": "EDGE_STEP_FREE",
+              "facility_id": "P_EDGE",
+              "access_state": "QUALIFIED",
+              "generalized_cost_seconds": 300,
+              "mandatory_access_state": "PASS"
+            }
+          ]
+        },
+        {
+          "comparison_arm": "CENTRAL_SHARED",
+          "scope_digest": "synthetic-scope:ACCESSIBLE_ROUTE_DISCONTINUITY:v0.1",
+          "population_digest": "synthetic-population:ACCESSIBLE_ROUTE_DISCONTINUITY:v0.1",
+          "service_id": "COMMUNITY_KITCHEN",
+          "functional_unit_id": "ACCESSIBLE_SHARED_KITCHEN_HOUR",
+          "period": "SYNTHETIC_WEEK",
+          "service_quality": "RESIDENT_USE_ACCESS",
+          "facilities": [
+            {
+              "id": "C1",
+              "failure_domain_id": "CENTRAL_OPERATOR",
+              "capacity_state": "KNOWN",
+              "capacity_units": 100
+            }
+          ],
+          "access_records": [
+            {
+              "group_id": "INNER",
+              "facility_id": "C1",
+              "access_state": "QUALIFIED",
+              "generalized_cost_seconds": 180,
+              "mandatory_access_state": "NOT_REQUIRED"
+            },
+            {
+              "group_id": "EDGE_STEP_FREE",
+              "facility_id": "C1",
+              "access_state": "BLOCKED",
+              "generalized_cost_seconds": null,
+              "mandatory_access_state": "FAIL"
+            }
+          ]
+        },
+        {
+          "comparison_arm": "DISTRIBUTED_SHARED",
+          "scope_digest": "synthetic-scope:ACCESSIBLE_ROUTE_DISCONTINUITY:v0.1",
+          "population_digest": "synthetic-population:ACCESSIBLE_ROUTE_DISCONTINUITY:v0.1",
+          "service_id": "COMMUNITY_KITCHEN",
+          "functional_unit_id": "ACCESSIBLE_SHARED_KITCHEN_HOUR",
+          "period": "SYNTHETIC_WEEK",
+          "service_quality": "RESIDENT_USE_ACCESS",
+          "facilities": [
+            {
+              "id": "D1",
+              "failure_domain_id": "NODE_EAST",
+              "capacity_state": "KNOWN",
+              "capacity_units": 60
+            },
+            {
+              "id": "D2",
+              "failure_domain_id": "NODE_WEST",
+              "capacity_state": "KNOWN",
+              "capacity_units": 40
+            }
+          ],
+          "access_records": [
+            {
+              "group_id": "INNER",
+              "facility_id": "D1",
+              "access_state": "QUALIFIED",
+              "generalized_cost_seconds": 140,
+              "mandatory_access_state": "NOT_REQUIRED"
+            },
+            {
+              "group_id": "INNER",
+              "facility_id": "D2",
+              "access_state": "QUALIFIED",
+              "generalized_cost_seconds": 250,
+              "mandatory_access_state": "NOT_REQUIRED"
+            },
+            {
+              "group_id": "EDGE_STEP_FREE",
+              "facility_id": "D2",
+              "access_state": "QUALIFIED",
+              "generalized_cost_seconds": 360,
+              "mandatory_access_state": "PASS"
+            },
+            {
+              "group_id": "EDGE_STEP_FREE",
+              "facility_id": "D1",
+              "access_state": "QUALIFIED",
+              "generalized_cost_seconds": 420,
+              "mandatory_access_state": "PASS"
+            }
+          ]
+        },
+        {
+          "comparison_arm": "HYBRID_SHARED_PRIVATE",
+          "scope_digest": "synthetic-scope:ACCESSIBLE_ROUTE_DISCONTINUITY:v0.1",
+          "population_digest": "synthetic-population:ACCESSIBLE_ROUTE_DISCONTINUITY:v0.1",
+          "service_id": "COMMUNITY_KITCHEN",
+          "functional_unit_id": "ACCESSIBLE_SHARED_KITCHEN_HOUR",
+          "period": "SYNTHETIC_WEEK",
+          "service_quality": "RESIDENT_USE_ACCESS",
+          "facilities": [
+            {
+              "id": "H_PRIVATE",
+              "failure_domain_id": "PRIVATE_INNER",
+              "capacity_state": "KNOWN",
+              "capacity_units": 80
+            },
+            {
+              "id": "H_SHARED",
+              "failure_domain_id": "SHARED_OPERATOR",
+              "capacity_state": "KNOWN",
+              "capacity_units": 20
+            }
+          ],
+          "access_records": [
+            {
+              "group_id": "INNER",
+              "facility_id": "H_PRIVATE",
+              "access_state": "QUALIFIED",
+              "generalized_cost_seconds": 120,
+              "mandatory_access_state": "NOT_REQUIRED"
+            },
+            {
+              "group_id": "INNER",
+              "facility_id": "H_SHARED",
+              "access_state": "QUALIFIED",
+              "generalized_cost_seconds": 240,
+              "mandatory_access_state": "NOT_REQUIRED"
+            },
+            {
+              "group_id": "EDGE_STEP_FREE",
+              "facility_id": "H_SHARED",
+              "access_state": "QUALIFIED",
+              "generalized_cost_seconds": 300,
+              "mandatory_access_state": "PASS"
+            }
+          ]
+        },
+        {
+          "comparison_arm": "EXTERNAL_COMMERCIAL",
+          "scope_digest": "synthetic-scope:ACCESSIBLE_ROUTE_DISCONTINUITY:v0.1",
+          "population_digest": "synthetic-population:ACCESSIBLE_ROUTE_DISCONTINUITY:v0.1",
+          "service_id": "COMMUNITY_KITCHEN",
+          "functional_unit_id": "ACCESSIBLE_SHARED_KITCHEN_HOUR",
+          "period": "SYNTHETIC_WEEK",
+          "service_quality": "RESIDENT_USE_ACCESS",
+          "facilities": [
+            {
+              "id": "X1",
+              "failure_domain_id": "EXTERNAL_PROVIDER",
+              "capacity_state": "UNKNOWN",
+              "capacity_units": null
+            }
+          ],
+          "access_records": [
+            {
+              "group_id": "INNER",
+              "facility_id": "X1",
+              "access_state": "QUALIFIED",
+              "generalized_cost_seconds": 480,
+              "mandatory_access_state": "NOT_REQUIRED"
+            },
+            {
+              "group_id": "EDGE_STEP_FREE",
+              "facility_id": "X1",
+              "access_state": "UNKNOWN",
+              "generalized_cost_seconds": null,
+              "mandatory_access_state": "UNKNOWN"
+            }
+          ]
+        }
+      ],
+      "expected": [
+        {
+          "comparison_arm": "PRIVATE_DUPLICATION",
+          "total_population": 100,
+          "effective_access_population": 100,
+          "no_access_population": 0,
+          "unknown_access_population": 0,
+          "outside_tolerance_population": 0,
+          "effective_access_coverage_basis_points": 10000,
+          "p50_generalized_cost_seconds": 120,
+          "p90_generalized_cost_seconds": 300,
+          "worst_decile_mean_generalized_cost_seconds": 300,
+          "mandatory_access_gate": "PASS",
+          "aggregate_capacity_units": 100,
+          "demand_units": 100,
+          "capacity_shortfall_units": 0,
+          "capacity_surplus_units": 0,
+          "capacity_state": "BALANCED",
+          "minimum_independent_failure_domains": 1
+        },
+        {
+          "comparison_arm": "CENTRAL_SHARED",
+          "total_population": 100,
+          "effective_access_population": 80,
+          "no_access_population": 20,
+          "unknown_access_population": 0,
+          "outside_tolerance_population": 0,
+          "effective_access_coverage_basis_points": 8000,
+          "p50_generalized_cost_seconds": 180,
+          "p90_generalized_cost_seconds": 180,
+          "worst_decile_mean_generalized_cost_seconds": 180,
+          "mandatory_access_gate": "FAIL",
+          "aggregate_capacity_units": 100,
+          "demand_units": 100,
+          "capacity_shortfall_units": 0,
+          "capacity_surplus_units": 0,
+          "capacity_state": "BALANCED",
+          "minimum_independent_failure_domains": 1
+        },
+        {
+          "comparison_arm": "DISTRIBUTED_SHARED",
+          "total_population": 100,
+          "effective_access_population": 100,
+          "no_access_population": 0,
+          "unknown_access_population": 0,
+          "outside_tolerance_population": 0,
+          "effective_access_coverage_basis_points": 10000,
+          "p50_generalized_cost_seconds": 140,
+          "p90_generalized_cost_seconds": 360,
+          "worst_decile_mean_generalized_cost_seconds": 360,
+          "mandatory_access_gate": "PASS",
+          "aggregate_capacity_units": 100,
+          "demand_units": 100,
+          "capacity_shortfall_units": 0,
+          "capacity_surplus_units": 0,
+          "capacity_state": "BALANCED",
+          "minimum_independent_failure_domains": 2
+        },
+        {
+          "comparison_arm": "HYBRID_SHARED_PRIVATE",
+          "total_population": 100,
+          "effective_access_population": 100,
+          "no_access_population": 0,
+          "unknown_access_population": 0,
+          "outside_tolerance_population": 0,
+          "effective_access_coverage_basis_points": 10000,
+          "p50_generalized_cost_seconds": 120,
+          "p90_generalized_cost_seconds": 300,
+          "worst_decile_mean_generalized_cost_seconds": 300,
+          "mandatory_access_gate": "PASS",
+          "aggregate_capacity_units": 100,
+          "demand_units": 100,
+          "capacity_shortfall_units": 0,
+          "capacity_surplus_units": 0,
+          "capacity_state": "BALANCED",
+          "minimum_independent_failure_domains": 1
+        },
+        {
+          "comparison_arm": "EXTERNAL_COMMERCIAL",
+          "total_population": 100,
+          "effective_access_population": 80,
+          "no_access_population": 0,
+          "unknown_access_population": 20,
+          "outside_tolerance_population": 0,
+          "effective_access_coverage_basis_points": 8000,
+          "p50_generalized_cost_seconds": 480,
+          "p90_generalized_cost_seconds": 480,
+          "worst_decile_mean_generalized_cost_seconds": 480,
+          "mandatory_access_gate": "UNKNOWN",
+          "aggregate_capacity_units": null,
+          "demand_units": 100,
+          "capacity_shortfall_units": null,
+          "capacity_surplus_units": null,
+          "capacity_state": "UNKNOWN",
+          "minimum_independent_failure_domains": 1
+        }
+      ]
+    },
+    {
+      "scenario_id": "EXTERNAL_PROVIDER_DISTANCE_OR_CLOSURE",
+      "scope": {
+        "scope_digest": "synthetic-scope:EXTERNAL_PROVIDER_DISTANCE_OR_CLOSURE:v0.1",
+        "population_digest": "synthetic-population:EXTERNAL_PROVIDER_DISTANCE_OR_CLOSURE:v0.1",
+        "service_id": "COMMUNITY_KITCHEN",
+        "functional_unit_id": "ACCESSIBLE_SHARED_KITCHEN_HOUR",
+        "period": "SYNTHETIC_WEEK",
+        "service_quality": "RESIDENT_USE_ACCESS",
+        "maximum_generalized_cost_seconds": 900
+      },
+      "population_groups": [
+        {
+          "id": "INNER",
+          "population": 80,
+          "demand_units": 80,
+          "mandatory_access_required": false
+        },
+        {
+          "id": "EDGE_STEP_FREE",
+          "population": 20,
+          "demand_units": 20,
+          "mandatory_access_required": true
+        }
+      ],
+      "demand_units": 100,
+      "arms": [
+        {
+          "comparison_arm": "PRIVATE_DUPLICATION",
+          "scope_digest": "synthetic-scope:EXTERNAL_PROVIDER_DISTANCE_OR_CLOSURE:v0.1",
+          "population_digest": "synthetic-population:EXTERNAL_PROVIDER_DISTANCE_OR_CLOSURE:v0.1",
+          "service_id": "COMMUNITY_KITCHEN",
+          "functional_unit_id": "ACCESSIBLE_SHARED_KITCHEN_HOUR",
+          "period": "SYNTHETIC_WEEK",
+          "service_quality": "RESIDENT_USE_ACCESS",
+          "facilities": [
+            {
+              "id": "P_INNER",
+              "failure_domain_id": "PRIVATE_INNER",
+              "capacity_state": "KNOWN",
+              "capacity_units": 80
+            },
+            {
+              "id": "P_EDGE",
+              "failure_domain_id": "PRIVATE_EDGE",
+              "capacity_state": "KNOWN",
+              "capacity_units": 20
+            }
+          ],
+          "access_records": [
+            {
+              "group_id": "INNER",
+              "facility_id": "P_INNER",
+              "access_state": "QUALIFIED",
+              "generalized_cost_seconds": 90,
+              "mandatory_access_state": "NOT_REQUIRED"
+            },
+            {
+              "group_id": "EDGE_STEP_FREE",
+              "facility_id": "P_EDGE",
+              "access_state": "QUALIFIED",
+              "generalized_cost_seconds": 150,
+              "mandatory_access_state": "PASS"
+            }
+          ]
+        },
+        {
+          "comparison_arm": "CENTRAL_SHARED",
+          "scope_digest": "synthetic-scope:EXTERNAL_PROVIDER_DISTANCE_OR_CLOSURE:v0.1",
+          "population_digest": "synthetic-population:EXTERNAL_PROVIDER_DISTANCE_OR_CLOSURE:v0.1",
+          "service_id": "COMMUNITY_KITCHEN",
+          "functional_unit_id": "ACCESSIBLE_SHARED_KITCHEN_HOUR",
+          "period": "SYNTHETIC_WEEK",
+          "service_quality": "RESIDENT_USE_ACCESS",
+          "facilities": [
+            {
+              "id": "C1",
+              "failure_domain_id": "CENTRAL_OPERATOR",
+              "capacity_state": "KNOWN",
+              "capacity_units": 100
+            }
+          ],
+          "access_records": [
+            {
+              "group_id": "INNER",
+              "facility_id": "C1",
+              "access_state": "QUALIFIED",
+              "generalized_cost_seconds": 300,
+              "mandatory_access_state": "NOT_REQUIRED"
+            },
+            {
+              "group_id": "EDGE_STEP_FREE",
+              "facility_id": "C1",
+              "access_state": "QUALIFIED",
+              "generalized_cost_seconds": 500,
+              "mandatory_access_state": "PASS"
+            }
+          ]
+        },
+        {
+          "comparison_arm": "DISTRIBUTED_SHARED",
+          "scope_digest": "synthetic-scope:EXTERNAL_PROVIDER_DISTANCE_OR_CLOSURE:v0.1",
+          "population_digest": "synthetic-population:EXTERNAL_PROVIDER_DISTANCE_OR_CLOSURE:v0.1",
+          "service_id": "COMMUNITY_KITCHEN",
+          "functional_unit_id": "ACCESSIBLE_SHARED_KITCHEN_HOUR",
+          "period": "SYNTHETIC_WEEK",
+          "service_quality": "RESIDENT_USE_ACCESS",
+          "facilities": [
+            {
+              "id": "D1",
+              "failure_domain_id": "NODE_EAST",
+              "capacity_state": "KNOWN",
+              "capacity_units": 60
+            },
+            {
+              "id": "D2",
+              "failure_domain_id": "NODE_WEST",
+              "capacity_state": "KNOWN",
+              "capacity_units": 40
+            }
+          ],
+          "access_records": [
+            {
+              "group_id": "INNER",
+              "facility_id": "D1",
+              "access_state": "QUALIFIED",
+              "generalized_cost_seconds": 150,
+              "mandatory_access_state": "NOT_REQUIRED"
+            },
+            {
+              "group_id": "INNER",
+              "facility_id": "D2",
+              "access_state": "QUALIFIED",
+              "generalized_cost_seconds": 240,
+              "mandatory_access_state": "NOT_REQUIRED"
+            },
+            {
+              "group_id": "EDGE_STEP_FREE",
+              "facility_id": "D2",
+              "access_state": "QUALIFIED",
+              "generalized_cost_seconds": 210,
+              "mandatory_access_state": "PASS"
+            },
+            {
+              "group_id": "EDGE_STEP_FREE",
+              "facility_id": "D1",
+              "access_state": "QUALIFIED",
+              "generalized_cost_seconds": 270,
+              "mandatory_access_state": "PASS"
+            }
+          ]
+        },
+        {
+          "comparison_arm": "HYBRID_SHARED_PRIVATE",
+          "scope_digest": "synthetic-scope:EXTERNAL_PROVIDER_DISTANCE_OR_CLOSURE:v0.1",
+          "population_digest": "synthetic-population:EXTERNAL_PROVIDER_DISTANCE_OR_CLOSURE:v0.1",
+          "service_id": "COMMUNITY_KITCHEN",
+          "functional_unit_id": "ACCESSIBLE_SHARED_KITCHEN_HOUR",
+          "period": "SYNTHETIC_WEEK",
+          "service_quality": "RESIDENT_USE_ACCESS",
+          "facilities": [
+            {
+              "id": "H_PRIVATE",
+              "failure_domain_id": "PRIVATE_INNER",
+              "capacity_state": "KNOWN",
+              "capacity_units": 80
+            },
+            {
+              "id": "H_SHARED",
+              "failure_domain_id": "SHARED_OPERATOR",
+              "capacity_state": "KNOWN",
+              "capacity_units": 20
+            }
+          ],
+          "access_records": [
+            {
+              "group_id": "INNER",
+              "facility_id": "H_PRIVATE",
+              "access_state": "QUALIFIED",
+              "generalized_cost_seconds": 120,
+              "mandatory_access_state": "NOT_REQUIRED"
+            },
+            {
+              "group_id": "INNER",
+              "facility_id": "H_SHARED",
+              "access_state": "QUALIFIED",
+              "generalized_cost_seconds": 200,
+              "mandatory_access_state": "NOT_REQUIRED"
+            },
+            {
+              "group_id": "EDGE_STEP_FREE",
+              "facility_id": "H_SHARED",
+              "access_state": "QUALIFIED",
+              "generalized_cost_seconds": 180,
+              "mandatory_access_state": "PASS"
+            }
+          ]
+        },
+        {
+          "comparison_arm": "EXTERNAL_COMMERCIAL",
+          "scope_digest": "synthetic-scope:EXTERNAL_PROVIDER_DISTANCE_OR_CLOSURE:v0.1",
+          "population_digest": "synthetic-population:EXTERNAL_PROVIDER_DISTANCE_OR_CLOSURE:v0.1",
+          "service_id": "COMMUNITY_KITCHEN",
+          "functional_unit_id": "ACCESSIBLE_SHARED_KITCHEN_HOUR",
+          "period": "SYNTHETIC_WEEK",
+          "service_quality": "RESIDENT_USE_ACCESS",
+          "facilities": [
+            {
+              "id": "X1",
+              "failure_domain_id": "EXTERNAL_PROVIDER",
+              "capacity_state": "KNOWN",
+              "capacity_units": 0
+            }
+          ],
+          "access_records": [
+            {
+              "group_id": "INNER",
+              "facility_id": "X1",
+              "access_state": "BLOCKED",
+              "generalized_cost_seconds": null,
+              "mandatory_access_state": "NOT_REQUIRED"
+            },
+            {
+              "group_id": "EDGE_STEP_FREE",
+              "facility_id": "X1",
+              "access_state": "BLOCKED",
+              "generalized_cost_seconds": null,
+              "mandatory_access_state": "FAIL"
+            }
+          ]
+        }
+      ],
+      "expected": [
+        {
+          "comparison_arm": "PRIVATE_DUPLICATION",
+          "total_population": 100,
+          "effective_access_population": 100,
+          "no_access_population": 0,
+          "unknown_access_population": 0,
+          "outside_tolerance_population": 0,
+          "effective_access_coverage_basis_points": 10000,
+          "p50_generalized_cost_seconds": 90,
+          "p90_generalized_cost_seconds": 150,
+          "worst_decile_mean_generalized_cost_seconds": 150,
+          "mandatory_access_gate": "PASS",
+          "aggregate_capacity_units": 100,
+          "demand_units": 100,
+          "capacity_shortfall_units": 0,
+          "capacity_surplus_units": 0,
+          "capacity_state": "BALANCED",
+          "minimum_independent_failure_domains": 1
+        },
+        {
+          "comparison_arm": "CENTRAL_SHARED",
+          "total_population": 100,
+          "effective_access_population": 100,
+          "no_access_population": 0,
+          "unknown_access_population": 0,
+          "outside_tolerance_population": 0,
+          "effective_access_coverage_basis_points": 10000,
+          "p50_generalized_cost_seconds": 300,
+          "p90_generalized_cost_seconds": 500,
+          "worst_decile_mean_generalized_cost_seconds": 500,
+          "mandatory_access_gate": "PASS",
+          "aggregate_capacity_units": 100,
+          "demand_units": 100,
+          "capacity_shortfall_units": 0,
+          "capacity_surplus_units": 0,
+          "capacity_state": "BALANCED",
+          "minimum_independent_failure_domains": 1
+        },
+        {
+          "comparison_arm": "DISTRIBUTED_SHARED",
+          "total_population": 100,
+          "effective_access_population": 100,
+          "no_access_population": 0,
+          "unknown_access_population": 0,
+          "outside_tolerance_population": 0,
+          "effective_access_coverage_basis_points": 10000,
+          "p50_generalized_cost_seconds": 150,
+          "p90_generalized_cost_seconds": 210,
+          "worst_decile_mean_generalized_cost_seconds": 210,
+          "mandatory_access_gate": "PASS",
+          "aggregate_capacity_units": 100,
+          "demand_units": 100,
+          "capacity_shortfall_units": 0,
+          "capacity_surplus_units": 0,
+          "capacity_state": "BALANCED",
+          "minimum_independent_failure_domains": 2
+        },
+        {
+          "comparison_arm": "HYBRID_SHARED_PRIVATE",
+          "total_population": 100,
+          "effective_access_population": 100,
+          "no_access_population": 0,
+          "unknown_access_population": 0,
+          "outside_tolerance_population": 0,
+          "effective_access_coverage_basis_points": 10000,
+          "p50_generalized_cost_seconds": 120,
+          "p90_generalized_cost_seconds": 180,
+          "worst_decile_mean_generalized_cost_seconds": 180,
+          "mandatory_access_gate": "PASS",
+          "aggregate_capacity_units": 100,
+          "demand_units": 100,
+          "capacity_shortfall_units": 0,
+          "capacity_surplus_units": 0,
+          "capacity_state": "BALANCED",
+          "minimum_independent_failure_domains": 1
+        },
+        {
+          "comparison_arm": "EXTERNAL_COMMERCIAL",
+          "total_population": 100,
+          "effective_access_population": 0,
+          "no_access_population": 100,
+          "unknown_access_population": 0,
+          "outside_tolerance_population": 0,
+          "effective_access_coverage_basis_points": 0,
+          "p50_generalized_cost_seconds": null,
+          "p90_generalized_cost_seconds": null,
+          "worst_decile_mean_generalized_cost_seconds": null,
+          "mandatory_access_gate": "FAIL",
+          "aggregate_capacity_units": 0,
+          "demand_units": 100,
+          "capacity_shortfall_units": 100,
+          "capacity_surplus_units": 0,
+          "capacity_state": "SHORTFALL",
+          "minimum_independent_failure_domains": null
+        }
+      ]
+    },
+    {
+      "scenario_id": "UNEQUAL_POPULATION_DISTRIBUTION",
+      "scope": {
+        "scope_digest": "synthetic-scope:UNEQUAL_POPULATION_DISTRIBUTION:v0.1",
+        "population_digest": "synthetic-population:UNEQUAL_POPULATION_DISTRIBUTION:v0.1",
+        "service_id": "COMMUNITY_KITCHEN",
+        "functional_unit_id": "ACCESSIBLE_SHARED_KITCHEN_HOUR",
+        "period": "SYNTHETIC_WEEK",
+        "service_quality": "RESIDENT_USE_ACCESS",
+        "maximum_generalized_cost_seconds": 900
+      },
+      "population_groups": [
+        {
+          "id": "INNER",
+          "population": 20,
+          "demand_units": 20,
+          "mandatory_access_required": false
+        },
+        {
+          "id": "EDGE_STEP_FREE",
+          "population": 80,
+          "demand_units": 80,
+          "mandatory_access_required": true
+        }
+      ],
+      "demand_units": 100,
+      "arms": [
+        {
+          "comparison_arm": "PRIVATE_DUPLICATION",
+          "scope_digest": "synthetic-scope:UNEQUAL_POPULATION_DISTRIBUTION:v0.1",
+          "population_digest": "synthetic-population:UNEQUAL_POPULATION_DISTRIBUTION:v0.1",
+          "service_id": "COMMUNITY_KITCHEN",
+          "functional_unit_id": "ACCESSIBLE_SHARED_KITCHEN_HOUR",
+          "period": "SYNTHETIC_WEEK",
+          "service_quality": "RESIDENT_USE_ACCESS",
+          "facilities": [
+            {
+              "id": "P_INNER",
+              "failure_domain_id": "PRIVATE_INNER",
+              "capacity_state": "KNOWN",
+              "capacity_units": 20
+            },
+            {
+              "id": "P_EDGE",
+              "failure_domain_id": "PRIVATE_EDGE",
+              "capacity_state": "KNOWN",
+              "capacity_units": 80
+            }
+          ],
+          "access_records": [
+            {
+              "group_id": "INNER",
+              "facility_id": "P_INNER",
+              "access_state": "QUALIFIED",
+              "generalized_cost_seconds": 120,
+              "mandatory_access_state": "NOT_REQUIRED"
+            },
+            {
+              "group_id": "EDGE_STEP_FREE",
+              "facility_id": "P_EDGE",
+              "access_state": "QUALIFIED",
+              "generalized_cost_seconds": 180,
+              "mandatory_access_state": "PASS"
+            }
+          ]
+        },
+        {
+          "comparison_arm": "CENTRAL_SHARED",
+          "scope_digest": "synthetic-scope:UNEQUAL_POPULATION_DISTRIBUTION:v0.1",
+          "population_digest": "synthetic-population:UNEQUAL_POPULATION_DISTRIBUTION:v0.1",
+          "service_id": "COMMUNITY_KITCHEN",
+          "functional_unit_id": "ACCESSIBLE_SHARED_KITCHEN_HOUR",
+          "period": "SYNTHETIC_WEEK",
+          "service_quality": "RESIDENT_USE_ACCESS",
+          "facilities": [
+            {
+              "id": "C1",
+              "failure_domain_id": "CENTRAL_OPERATOR",
+              "capacity_state": "KNOWN",
+              "capacity_units": 100
+            }
+          ],
+          "access_records": [
+            {
+              "group_id": "INNER",
+              "facility_id": "C1",
+              "access_state": "QUALIFIED",
+              "generalized_cost_seconds": 180,
+              "mandatory_access_state": "NOT_REQUIRED"
+            },
+            {
+              "group_id": "EDGE_STEP_FREE",
+              "facility_id": "C1",
+              "access_state": "QUALIFIED",
+              "generalized_cost_seconds": 840,
+              "mandatory_access_state": "PASS"
+            }
+          ]
+        },
+        {
+          "comparison_arm": "DISTRIBUTED_SHARED",
+          "scope_digest": "synthetic-scope:UNEQUAL_POPULATION_DISTRIBUTION:v0.1",
+          "population_digest": "synthetic-population:UNEQUAL_POPULATION_DISTRIBUTION:v0.1",
+          "service_id": "COMMUNITY_KITCHEN",
+          "functional_unit_id": "ACCESSIBLE_SHARED_KITCHEN_HOUR",
+          "period": "SYNTHETIC_WEEK",
+          "service_quality": "RESIDENT_USE_ACCESS",
+          "facilities": [
+            {
+              "id": "D1",
+              "failure_domain_id": "NODE_EAST",
+              "capacity_state": "KNOWN",
+              "capacity_units": 60
+            },
+            {
+              "id": "D2",
+              "failure_domain_id": "NODE_WEST",
+              "capacity_state": "KNOWN",
+              "capacity_units": 40
+            }
+          ],
+          "access_records": [
+            {
+              "group_id": "INNER",
+              "facility_id": "D1",
+              "access_state": "QUALIFIED",
+              "generalized_cost_seconds": 150,
+              "mandatory_access_state": "NOT_REQUIRED"
+            },
+            {
+              "group_id": "INNER",
+              "facility_id": "D2",
+              "access_state": "QUALIFIED",
+              "generalized_cost_seconds": 240,
+              "mandatory_access_state": "NOT_REQUIRED"
+            },
+            {
+              "group_id": "EDGE_STEP_FREE",
+              "facility_id": "D2",
+              "access_state": "QUALIFIED",
+              "generalized_cost_seconds": 240,
+              "mandatory_access_state": "PASS"
+            },
+            {
+              "group_id": "EDGE_STEP_FREE",
+              "facility_id": "D1",
+              "access_state": "QUALIFIED",
+              "generalized_cost_seconds": 300,
+              "mandatory_access_state": "PASS"
+            }
+          ]
+        },
+        {
+          "comparison_arm": "HYBRID_SHARED_PRIVATE",
+          "scope_digest": "synthetic-scope:UNEQUAL_POPULATION_DISTRIBUTION:v0.1",
+          "population_digest": "synthetic-population:UNEQUAL_POPULATION_DISTRIBUTION:v0.1",
+          "service_id": "COMMUNITY_KITCHEN",
+          "functional_unit_id": "ACCESSIBLE_SHARED_KITCHEN_HOUR",
+          "period": "SYNTHETIC_WEEK",
+          "service_quality": "RESIDENT_USE_ACCESS",
+          "facilities": [
+            {
+              "id": "H_PRIVATE",
+              "failure_domain_id": "PRIVATE_INNER",
+              "capacity_state": "KNOWN",
+              "capacity_units": 20
+            },
+            {
+              "id": "H_SHARED",
+              "failure_domain_id": "SHARED_OPERATOR",
+              "capacity_state": "KNOWN",
+              "capacity_units": 80
+            }
+          ],
+          "access_records": [
+            {
+              "group_id": "INNER",
+              "facility_id": "H_PRIVATE",
+              "access_state": "QUALIFIED",
+              "generalized_cost_seconds": 120,
+              "mandatory_access_state": "NOT_REQUIRED"
+            },
+            {
+              "group_id": "INNER",
+              "facility_id": "H_SHARED",
+              "access_state": "QUALIFIED",
+              "generalized_cost_seconds": 240,
+              "mandatory_access_state": "NOT_REQUIRED"
+            },
+            {
+              "group_id": "EDGE_STEP_FREE",
+              "facility_id": "H_SHARED",
+              "access_state": "QUALIFIED",
+              "generalized_cost_seconds": 300,
+              "mandatory_access_state": "PASS"
+            }
+          ]
+        },
+        {
+          "comparison_arm": "EXTERNAL_COMMERCIAL",
+          "scope_digest": "synthetic-scope:UNEQUAL_POPULATION_DISTRIBUTION:v0.1",
+          "population_digest": "synthetic-population:UNEQUAL_POPULATION_DISTRIBUTION:v0.1",
+          "service_id": "COMMUNITY_KITCHEN",
+          "functional_unit_id": "ACCESSIBLE_SHARED_KITCHEN_HOUR",
+          "period": "SYNTHETIC_WEEK",
+          "service_quality": "RESIDENT_USE_ACCESS",
+          "facilities": [
+            {
+              "id": "X1",
+              "failure_domain_id": "EXTERNAL_PROVIDER",
+              "capacity_state": "KNOWN",
+              "capacity_units": 100
+            }
+          ],
+          "access_records": [
+            {
+              "group_id": "INNER",
+              "facility_id": "X1",
+              "access_state": "QUALIFIED",
+              "generalized_cost_seconds": 480,
+              "mandatory_access_state": "NOT_REQUIRED"
+            },
+            {
+              "group_id": "EDGE_STEP_FREE",
+              "facility_id": "X1",
+              "access_state": "QUALIFIED",
+              "generalized_cost_seconds": 960,
+              "mandatory_access_state": "PASS"
+            }
+          ]
+        }
+      ],
+      "expected": [
+        {
+          "comparison_arm": "PRIVATE_DUPLICATION",
+          "total_population": 100,
+          "effective_access_population": 100,
+          "no_access_population": 0,
+          "unknown_access_population": 0,
+          "outside_tolerance_population": 0,
+          "effective_access_coverage_basis_points": 10000,
+          "p50_generalized_cost_seconds": 180,
+          "p90_generalized_cost_seconds": 180,
+          "worst_decile_mean_generalized_cost_seconds": 180,
+          "mandatory_access_gate": "PASS",
+          "aggregate_capacity_units": 100,
+          "demand_units": 100,
+          "capacity_shortfall_units": 0,
+          "capacity_surplus_units": 0,
+          "capacity_state": "BALANCED",
+          "minimum_independent_failure_domains": 1
+        },
+        {
+          "comparison_arm": "CENTRAL_SHARED",
+          "total_population": 100,
+          "effective_access_population": 100,
+          "no_access_population": 0,
+          "unknown_access_population": 0,
+          "outside_tolerance_population": 0,
+          "effective_access_coverage_basis_points": 10000,
+          "p50_generalized_cost_seconds": 840,
+          "p90_generalized_cost_seconds": 840,
+          "worst_decile_mean_generalized_cost_seconds": 840,
+          "mandatory_access_gate": "PASS",
+          "aggregate_capacity_units": 100,
+          "demand_units": 100,
+          "capacity_shortfall_units": 0,
+          "capacity_surplus_units": 0,
+          "capacity_state": "BALANCED",
+          "minimum_independent_failure_domains": 1
+        },
+        {
+          "comparison_arm": "DISTRIBUTED_SHARED",
+          "total_population": 100,
+          "effective_access_population": 100,
+          "no_access_population": 0,
+          "unknown_access_population": 0,
+          "outside_tolerance_population": 0,
+          "effective_access_coverage_basis_points": 10000,
+          "p50_generalized_cost_seconds": 240,
+          "p90_generalized_cost_seconds": 240,
+          "worst_decile_mean_generalized_cost_seconds": 240,
+          "mandatory_access_gate": "PASS",
+          "aggregate_capacity_units": 100,
+          "demand_units": 100,
+          "capacity_shortfall_units": 0,
+          "capacity_surplus_units": 0,
+          "capacity_state": "BALANCED",
+          "minimum_independent_failure_domains": 2
+        },
+        {
+          "comparison_arm": "HYBRID_SHARED_PRIVATE",
+          "total_population": 100,
+          "effective_access_population": 100,
+          "no_access_population": 0,
+          "unknown_access_population": 0,
+          "outside_tolerance_population": 0,
+          "effective_access_coverage_basis_points": 10000,
+          "p50_generalized_cost_seconds": 300,
+          "p90_generalized_cost_seconds": 300,
+          "worst_decile_mean_generalized_cost_seconds": 300,
+          "mandatory_access_gate": "PASS",
+          "aggregate_capacity_units": 100,
+          "demand_units": 100,
+          "capacity_shortfall_units": 0,
+          "capacity_surplus_units": 0,
+          "capacity_state": "BALANCED",
+          "minimum_independent_failure_domains": 1
+        },
+        {
+          "comparison_arm": "EXTERNAL_COMMERCIAL",
+          "total_population": 100,
+          "effective_access_population": 20,
+          "no_access_population": 0,
+          "unknown_access_population": 0,
+          "outside_tolerance_population": 80,
+          "effective_access_coverage_basis_points": 2000,
+          "p50_generalized_cost_seconds": 480,
+          "p90_generalized_cost_seconds": 480,
+          "worst_decile_mean_generalized_cost_seconds": 480,
+          "mandatory_access_gate": "FAIL",
+          "aggregate_capacity_units": 100,
+          "demand_units": 100,
+          "capacity_shortfall_units": 0,
+          "capacity_surplus_units": 0,
+          "capacity_state": "BALANCED",
+          "minimum_independent_failure_domains": 1
+        }
+      ]
+    }
+  ]
+}
