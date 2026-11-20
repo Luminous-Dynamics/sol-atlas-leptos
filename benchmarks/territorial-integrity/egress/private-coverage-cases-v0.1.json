@@ -3,7 +3,7 @@
   "suite_id": "CTER-PRIVATE-COVERAGE-001",
   "suite_version": "0.1.0",
   "synthetic_only": true,
-  "execution_status": "composed_release_binding_implemented_frozen_private_coverage_suite_pending_execution",
+  "execution_status": "predicate_semantics_implemented_fixture_suite_expanded_execution_pending",
   "proof_primitive": "not_selected",
   "invariant_profile": "benchmarks/territorial-integrity/egress/private-coverage-invariants-v0.1.json",
   "claim_ceiling": "partition algebra and binding specifications only; no cryptographic proof is generated or verified",
@@ -45,33 +45,68 @@
       "subject_ref": "urn:fixture:subject:synthetic-project-subject",
       "data_classes": [
         "community"
-      ]
+      ],
+      "query_profile_ref": "urn:luminous:cter:predicate-json-v0.1",
+      "predicate": {
+        "op": "all",
+        "args": [
+          {
+            "op": "eq",
+            "path": "/dataset",
+            "value": "cadastre"
+          },
+          {
+            "op": "eq",
+            "path": "/jurisdiction",
+            "value": "ZA"
+          }
+        ]
+      }
     },
     "private_partition": [
       {
         "object_ref": "urn:fixture:evidence:item-a",
         "scope_state": "in_scope",
-        "disposition": "included"
+        "disposition": "included",
+        "query_input": {
+          "dataset": "cadastre",
+          "jurisdiction": "ZA"
+        }
       },
       {
         "object_ref": "urn:fixture:evidence:item-b",
         "scope_state": "in_scope",
-        "disposition": "withheld"
+        "disposition": "withheld",
+        "query_input": {
+          "dataset": "cadastre",
+          "jurisdiction": "ZA"
+        }
       },
       {
         "object_ref": "urn:fixture:evidence:item-c",
         "scope_state": "in_scope",
-        "disposition": "unavailable"
+        "disposition": "unavailable",
+        "query_input": {
+          "dataset": "cadastre",
+          "jurisdiction": "ZA"
+        }
       },
       {
         "object_ref": "urn:fixture:evidence:item-d",
         "scope_state": "out_of_scope",
-        "disposition": "excluded"
+        "disposition": "excluded",
+        "query_input": {
+          "dataset": "cadastre",
+          "jurisdiction": "US"
+        }
       },
       {
         "object_ref": "urn:fixture:evidence:item-e",
         "scope_state": "unknown",
-        "disposition": "unresolved"
+        "disposition": "unresolved",
+        "query_input": {
+          "dataset": "cadastre"
+        }
       }
     ],
     "package_binding": {
@@ -135,7 +170,8 @@
       "subject_ref": "urn:fixture:subject:synthetic-project-subject",
       "data_classes": [
         "community"
-      ]
+      ],
+      "query_profile_ref": "urn:luminous:cter:predicate-json-v0.1"
     },
     "receipt_assessment": {
       "assessment_ref": "urn:fixture:receipt-assessment:synthetic-current",
@@ -433,6 +469,49 @@
       "invariants": [
         "PCOV-INV-002",
         "PCOV-INV-010"
+      ]
+    },
+    {
+      "case_id": "PCOV-PREDICATE-SCOPE-MISMATCH-001",
+      "mutation": "Mark an object whose private attributes do not match the committed predicate as in_scope.",
+      "expected": "deny",
+      "invariants": [
+        "PCOV-INV-002",
+        "PCOV-INV-004"
+      ]
+    },
+    {
+      "case_id": "PCOV-UNKNOWN-PREDICATE-AS-IN-SCOPE-001",
+      "mutation": "Treat an object with a missing required predicate attribute as in_scope.",
+      "expected": "deny",
+      "invariants": [
+        "PCOV-INV-004",
+        "PCOV-INV-015"
+      ]
+    },
+    {
+      "case_id": "PCOV-TRUE-PREDICATE-AS-OUT-OF-SCOPE-001",
+      "mutation": "Mark an object matching the committed predicate as out_of_scope.",
+      "expected": "deny",
+      "invariants": [
+        "PCOV-INV-002",
+        "PCOV-INV-004"
+      ]
+    },
+    {
+      "case_id": "PCOV-PREDICATE-UNKNOWN-OPERATOR-001",
+      "mutation": "Use an operator outside the versioned predicate profile.",
+      "expected": "incomplete",
+      "invariants": [
+        "PCOV-INV-002"
+      ]
+    },
+    {
+      "case_id": "PCOV-PREDICATE-MALFORMED-PATH-001",
+      "mutation": "Use a malformed or unsupported object-member path.",
+      "expected": "incomplete",
+      "invariants": [
+        "PCOV-INV-002"
       ]
     }
   ],
