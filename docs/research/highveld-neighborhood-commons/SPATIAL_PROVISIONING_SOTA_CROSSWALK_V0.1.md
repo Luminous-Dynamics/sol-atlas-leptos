@@ -28,11 +28,11 @@ The system consumes specialist routing, amenity-service, capacity, affordability
 
 - Conveyal R5 documentation describes isochrones and opportunity access, and supports travel-time percentile distributions rather than only one mean. Its percentiles are useful as routing evidence, not as a full service-availability guarantee: https://docs.conveyal.com/analysis/methods
 - OpenTripPlanner documents that wheelchair accessibility metadata in GTFS/NeTEx is often binary and incomplete, with configurable treatment of unknown accessibility and trip/stop accessibility: https://docs.opentripplanner.org/en/latest/RouteRequest/
-- The 2026 PEAI paper is *Beyond time: A multidimensional framework for assessing accessibility via active transportation*, Journal of Urban Mobility 9 (June 2026): https://doi.org/10.1016/j.urbmob.2026.100151
+- The 2026 PEAI paper is *Beyond time: A multidimensional framework for assessing accessibility via active transportation*, Journal of Urban Mobility 9 (June 2026): https://doi.org/10.1016/j.urbmob.2026.100217
 - UN SDG 11.2.1 metadata defines pedestrian-network access to public transport and service-class thresholds; it is not a generic access rule for every amenity: https://unstats.un.org/sdgs/metadata/files/Metadata-11-02-01.pdf
 - UN SDG 11.7.1 metadata concerns the share of built-up area allocated to open public space: https://unstats.un.org/sdgs/metadata/files/Metadata-11-07-01.pdf
 
-The paper's Vancouver example reports that conventional time-threshold coverage and its multidimensional "truly accessible" category diverge materially. That is a reason to reproduce the published method and assess dimensions separately—not to copy one city's weights or to claim a universal correction factor.
+The PEAI operationalizes five dimensions—proximity, availability, suitability, affordability and awareness. The paper's Vancouver example reports that conventional time-threshold coverage and its multidimensional "truly accessible" category diverge materially. That is a reason to reproduce the published method and assess dimensions separately—not to copy one city's weights or to claim a universal correction factor.
 
 ## 3. Fair comparison protocol
 
