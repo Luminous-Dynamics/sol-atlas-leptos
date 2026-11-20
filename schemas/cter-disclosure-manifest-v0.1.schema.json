@@ -48,7 +48,8 @@
         "jurisdiction_profile_ref",
         "data_classes",
         "coverage_query_ref",
-        "coverage_query_commitment"
+        "coverage_query_commitment",
+        "coverage_query_profile_ref"
       ],
       "properties": {
         "request_ref": {
@@ -101,6 +102,10 @@
         "coverage_query_commitment": {
           "$ref": "#/$defs/sha256_digest",
           "description": "Commitment to the exact canonical coverage query predicate."
+        },
+        "coverage_query_profile_ref": {
+          "$ref": "#/$defs/opaque_ref",
+          "description": "Exact predicate-semantics profile used by the custodian coverage query."
         }
       }
     },
