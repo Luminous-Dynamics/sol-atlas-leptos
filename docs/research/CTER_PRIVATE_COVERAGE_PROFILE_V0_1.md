@@ -225,7 +225,7 @@ No production privacy guarantee, global absence assertion or cryptographic compl
 The first model artifacts are committed:
 
 - [Private coverage invariants](../../benchmarks/territorial-integrity/egress/private-coverage-invariants-v0.1.json): 16 named invariants covering frontier identity, query binding, one-and-only-one partitioning, package leaf-set equality, proof freshness, privacy, verifier scoping and independent restore.
-- [Private coverage adversarial corpus](../../benchmarks/territorial-integrity/egress/private-coverage-cases-v0.1.json): 37 synthetic cases comprising one valid partition baseline plus 36 adversarial specifications.
+- [Private coverage adversarial corpus](../../benchmarks/territorial-integrity/egress/private-coverage-cases-v0.1.json): 38 synthetic cases comprising one valid partition baseline plus 37 mutation/negative controls.
 
 The baseline intentionally contains a private partition with included, withheld, unavailable, excluded and unresolved items, while its public verifier view exposes only synthetic commitments and an opaque proof reference. No real personal, community or territorial evidence is used.
 
@@ -267,7 +267,7 @@ The initial evaluator and cross-language conformance slice is now committed:
 - Rust evaluator: \`benchmarks/territorial-integrity/relay/reference/src/private_coverage.rs\`.
 - Rust tests: \`benchmarks/territorial-integrity/relay/reference/tests/private_coverage_conformance.rs\`.
 - Independent Node oracle: \`benchmarks/territorial-integrity/relay/reference/private-coverage-oracle.mjs\`.
-- Frozen corpus: \`benchmarks/territorial-integrity/egress/private-coverage-cases-v0.1.json\` (37 cases).
+- Frozen corpus: \`benchmarks/territorial-integrity/egress/private-coverage-cases-v0.1.json\` (38 cases).
 
 The record now binds:
 - the exact frontier object-reference set and version;
@@ -338,4 +338,19 @@ The reference evaluator now includes the versioned predicate profile \`urn:lumin
 
 The query profile reference is bound across the private query, receipt projection and egress authorization. The current profile is specified in [CTER_QUERY_PREDICATE_PROFILE_V0_1.md](CTER_QUERY_PREDICATE_PROFILE_V0_1.md) and tracked by [#972](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/972).
 
-The current fixture suite has 37 cases; the tool-side V8 mirror matched 37/37 (1 valid partition structure, 5 incomplete, 5 unknown, 26 deny). This is not a Node 22 workflow, Rust execution or cryptographic commitment result. The evaluator does not yet recompute query commitments over canonical predicate bytes.
+The current fixture suite has 38 cases: 1 valid partition structure, 5 incomplete, 5 unknown and 27 deny expectations. The previous tool-side V8 mirror covered 37 cases before the final predicate-commitment substitution control was added. The evaluator now recomputes the canonical predicate commitment; four JCS golden vectors were separately checked in local Node 22.16.0. The 38-case committed Node oracle and Rust suite have not yet passed the exact-head workflow.
+
+
+## Predicate commitment and strict raw-input boundary
+
+The exact query predicate is now committed as:
+
+\`SHA-256("luminous.cter.query-predicate.v0.1\\0" || JCS({profile_ref, predicate}))\`
+
+The Rust reference uses pinned \`serde_jcs 0.2.0\` and \`sha2 0.10.9\`. The Node oracle independently canonicalizes using ECMAScript JSON formatting/UTF-16 property order and hashes with \`node:crypto\`. Four shared golden vectors cover key ordering, non-normalized Unicode and IEEE-754 exponent formatting. A local Node 22.16.0 run matched 4/4 canonical preimages and digests; this is not a workflow result or Rust execution.
+
+The Rust raw coverage entrypoint rejects duplicate object members and unsafe integer values before evaluating or committing the query. Egress and composed-release raw JSON entrypoints use the same parser. Public verifier projections still omit private per-item query inputs.
+
+## Remaining source-input attestation gap
+
+The predicate hash authenticates the rule, not the values evaluated under that rule. Per-item \`query_input\` attributes remain in the custodian-controlled private coverage record. [CTER-QUERY-INPUT-ATTESTATION-001 #973](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/973) now specifies a separate source-input snapshot commitment, per-attribute source object/digest bindings and an owner/resolver receipt. A custodian hash alone must never be interpreted as proof of source truth or owner attestation.
