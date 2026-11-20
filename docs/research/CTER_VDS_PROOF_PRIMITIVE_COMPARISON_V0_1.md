@@ -178,3 +178,20 @@ The snapshot hash alone proves only that a particular projection was frozen. It 
 The extended proof relation is now at least:
 \`frontier + query predicate + source-input snapshot + private partition + package transform graph\`.
 The verifier must establish that predicate evaluation follows from the exact attested input snapshot, that the partition accounts for the exact frontier, and that the included set equals the graph-derived package leaves. The five candidate proof families must be compared against this stronger statement, not the earlier partition-only abstraction.
+
+
+## 10. Source-input snapshot is now an explicit proof input
+
+The exact predicate and private partition are not sufficient for a query-completeness proof. The #973 snapshot relation now freezes the per-item private attribute projection and source bindings under its own domain-separated JCS commitment. The extended relation that a candidate construction must support is:
+
+\`frontier + predicate + source-input snapshot + private disposition partition + package transform graph\`.
+
+The verifier must establish:
+- snapshot/frontier/query-profile bindings;
+- exact source input item set equal to the frontier;
+- each evaluated attribute is source-bound under the named projection profile;
+- predicate evaluation is performed over the exact committed snapshot;
+- partition scope/dispositions follow the predicate's three-valued result;
+- included partition set equals graph-derived package terminal leaves.
+
+The current custodian-side snapshot hash does not authenticate source truth or owner authority. Mycelix must confirm the typed receipt/owner-attestation interface. Update the candidate comparison so each proof family measures this stronger statement, including the extra attribute/source-binding witness cost and privacy leakage.
