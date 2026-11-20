@@ -1,0 +1,94 @@
+name: Shared Amenity Spatial Evaluation
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+    paths:
+      - "tools/shared-amenity-spatial-eval/**"
+      - ".github/workflows/shared-amenity-spatial-eval.yml"
+  push:
+    branches:
+      - "research/shared-amenity-spatial-oracle-v0.1"
+    paths:
+      - "tools/shared-amenity-spatial-eval/**"
+      - ".github/workflows/shared-amenity-spatial-eval.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: shared-amenity-spatial-eval-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  synthetic-oracle:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
+
+      - name: Install pinned Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: 1.96.0
+          components: clippy, rustfmt
+
+      - name: Verify formatting
+        run: cargo fmt --manifest-path tools/shared-amenity-spatial-eval/Cargo.toml -- --check
+
+      - name: Run frozen oracle and adversarial tests
+        run: cargo test --locked --manifest-path tools/shared-amenity-spatial-eval/Cargo.toml
+
+      - name: Run strict Clippy
+        run: cargo clippy --locked --manifest-path tools/shared-amenity-spatial-eval/Cargo.toml --all-targets -- -D warnings
+
+      - name: Generate synthetic evaluation and exact-head receipt
+        shell: bash
+        run: |
+          set -euo pipefail
+          source_commit="$(git rev-parse HEAD)"
+          test "$source_commit" = "${{ github.event.pull_request.head.sha || github.sha }}"
+          fixture="tools/shared-amenity-spatial-eval/fixtures/SHARED_AMENITY_SPATIAL_FIXTURES_V0.1.json"
+          fixture_sha256="$(sha256sum "$fixture" | cut -d ' ' -f 1)"
+          cargo run --locked --quiet --manifest-path tools/shared-amenity-spatial-eval/Cargo.toml -- "$fixture" > spatial-evaluation.json
+          jq -e '
+            .schema == "luminous.shared-amenity-spatial-evaluation"
+            and .schema_version == "0.1.0"
+            and .maturity == "SYNTHETIC_ORACLE_FIXTURES_ONLY"
+            and .scenario_count == 4
+            and .arm_result_count == 20
+            and .frozen_oracle_match_count == 20
+            and (.fixture_sha256 | test("^[0-9a-f]{64}$"))
+          ' spatial-evaluation.json
+          test "$(jq -r .fixture_sha256 spatial-evaluation.json)" = "$fixture_sha256"
+          jq -n \
+            --arg source_commit "$source_commit" \
+            --arg fixture_sha256 "$fixture_sha256" \
+            --slurpfile evaluation spatial-evaluation.json \
+            '{
+              schema: "luminous.shared-amenity-spatial-evaluation-receipt",
+              schema_version: "0.1.0",
+              result: "pass",
+              maturity: "SYNTHETIC_ORACLE_FIXTURES_ONLY",
+              source_commit: $source_commit,
+              fixture_sha256: $fixture_sha256,
+              evaluation: $evaluation[0]
+            }' > shared-amenity-spatial-evaluation-receipt.json
+
+      - name: Validate receipt identity
+        run: |
+          test "$(jq -r .source_commit shared-amenity-spatial-evaluation-receipt.json)" = "${{ github.event.pull_request.head.sha || github.sha }}"
+          test "$(jq -r .fixture_sha256 shared-amenity-spatial-evaluation-receipt.json)" = "$(sha256sum tools/shared-amenity-spatial-eval/fixtures/SHARED_AMENITY_SPATIAL_FIXTURES_V0.1.json | cut -d ' ' -f 1)"
+          jq -e '.result == "pass" and .evaluation.frozen_oracle_match_count == 20' shared-amenity-spatial-evaluation-receipt.json
+
+      - name: Upload exact-head synthetic receipt
+        uses: actions/upload-artifact@v4
+        with:
+          name: shared-amenity-spatial-evaluation-receipt
+          path: shared-amenity-spatial-evaluation-receipt.json
+          if-no-files-found: error
+          retention-days: 90

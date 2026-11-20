@@ -1,0 +1,13 @@
+[package]
+name = "shared-amenity-spatial-eval"
+version = "0.1.0"
+edition = "2024"
+publish = false
+description = "Fail-closed matched-scope synthetic evaluator for spatial amenity provision"
+
+[dependencies]
+serde = { version = "=1.0.228", features = ["derive"] }
+serde_json = "=1.0.150"
+sha2 = "=0.10.9"
+
+[workspace]
