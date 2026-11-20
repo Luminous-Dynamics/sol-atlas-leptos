@@ -25,7 +25,7 @@ fn adversarial_suite_is_frozen_and_explicitly_unexecuted() {
     assert_eq!(cases.iter().filter(|case| case["case_id"] != "EGRESS-BASELINE-001").count(), 31);
     assert_eq!(
         suite["execution_status"],
-        "javascript_oracle_v8_13_of_13_rust_tests_and_node22_workflow_pending"
+        "javascript_oracle_v8_14_of_14_rust_tests_and_node22_workflow_pending"
     );
 }
 
