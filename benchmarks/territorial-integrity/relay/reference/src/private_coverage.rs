@@ -363,6 +363,14 @@ fn validate_query_input_snapshot(
             "query_input_snapshot_profile_unsupported",
         );
     }
+    if nonblank(snapshot, "profile_ref") != nonblank(query, "input_snapshot_profile_ref") {
+        raise(
+            severity,
+            reasons,
+            Severity::Deny,
+            "query_input_snapshot_profile_binding_mismatch",
+        );
+    }
     if nonblank(snapshot, "snapshot_ref") != nonblank(query, "input_snapshot_ref")
         || snapshot.get("snapshot_commitment") != query.get("input_snapshot_commitment")
     {
@@ -1062,6 +1070,7 @@ pub fn evaluate_private_coverage(input: &Value) -> CoverageEvaluation {
         "query_ref",
         "query_profile_ref",
         "input_snapshot_ref",
+        "input_snapshot_profile_ref",
         "principal_ref",
         "subject_ref",
         "operation",
