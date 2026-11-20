@@ -159,3 +159,22 @@ The matched workload matrix is committed at \`benchmarks/territorial-integrity/e
 The file records proof generation and verification separately, checkpoint/receipt bytes, public metadata bytes, frontier update and invalidation cost, source-leaf derivation, quorum availability, split-view detection, false accept/reject/unknown counts, privacy findings and independent restore. It explicitly forbids a single weighted score and requires candidates to receive the exact same frontier bytes, query, package graph, partition, audience, schedules, host and resource limits.
 
 The workload file is a benchmark specification only; no candidate proof has been generated, measured or selected.
+
+
+## 9. Query-input provenance is a separate relation
+
+[CTER-QUERY-INPUT-ATTESTATION-001 #973](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/973) identifies a further condition for any private completeness proof: the exact per-item attributes evaluated by the committed predicate must themselves be frozen and bound to the frontier. A predicate commitment proves which rule was used; it does not prove which values were evaluated.
+
+The proof statement must therefore include a separate source-input snapshot relation:
+- exact frontier reference/version/commitment;
+- exact query predicate profile and commitment;
+- exact attribute-projection schema/profile;
+- sorted per-item query-input projections, availability states and source object/digest bindings;
+- a domain-separated snapshot commitment;
+- an owner/resolver attestation of that commitment under a typed receipt, distinct from the custodian's own hash.
+
+The snapshot hash alone proves only that a particular projection was frozen. It does not prove that the source values are true, owner-authoritative, or globally complete. Mycelix must confirm the receipt type and owner/resolver semantics before CTER describes the snapshot as source-attested.
+
+The extended proof relation is now at least:
+\`frontier + query predicate + source-input snapshot + private partition + package transform graph\`.
+The verifier must establish that predicate evaluation follows from the exact attested input snapshot, that the partition accounts for the exact frontier, and that the included set equals the graph-derived package leaves. The five candidate proof families must be compared against this stronger statement, not the earlier partition-only abstraction.
