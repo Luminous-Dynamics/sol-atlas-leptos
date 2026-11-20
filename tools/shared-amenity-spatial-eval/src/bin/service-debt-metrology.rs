@@ -637,6 +637,28 @@ mod tests {
     }
 
     #[test]
+    fn unexpected_capacity_quantity_basis_is_rejected() {
+        let mut value = fixture_value();
+        value["cases"][0]["capacity"]["basis"] =
+            Value::String("NAMEPLATE_CAPACITY".to_owned());
+        assert!(
+            evaluate(value.to_string().as_bytes()).is_err(),
+            "nominal capacity must not be treated as deliverable capacity"
+        );
+    }
+
+    #[test]
+    fn unexpected_demand_owner_is_rejected() {
+        let mut value = fixture_value();
+        value["cases"][0]["demand"]["evidence"]["owner"] =
+            Value::String("UNVERIFIED_FEED".to_owned());
+        assert!(
+            evaluate(value.to_string().as_bytes()).is_err(),
+            "unknown evidence owners must not be promoted to KNOWN"
+        );
+    }
+
+    #[test]
     fn duplicate_json_object_keys_are_rejected() {
         let ambiguous = br#"{"schema":"a","schema":"b"}"#;
         assert!(evaluate(ambiguous).is_err());
