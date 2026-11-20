@@ -189,7 +189,7 @@ Committed on the CTER research branch:
 - [1k/10k/100k/1M scale workload specification](../../benchmarks/territorial-integrity/egress/scale-workloads-v0.1.json);
 - exact-path CI workflow coverage for the new schema, corpus, scale profile and Node oracle.
 
-**Execution status:** code and tests are committed but not yet executed. Exact-head workflows must finish successfully before any pass claim. No throughput, latency, memory, storage, energy, production authorization or real egress result is claimed. The evaluator checks digest formatting and specified digest equality relationships, not payload hashing; receipt authentication, trusted time, resolver state and release are external host responsibilities.
+**Execution status:** the independent JavaScript evaluator was exercised in a V8 harness against the committed synthetic corpus and matched 13/13 structural cases. This does not count as a Node 22 workflow result. The 14 Rust tests remain unexecuted; exact-head workflows are pending. No throughput, latency, memory, storage, energy, production authorization or real egress result is claimed. The evaluator checks digest formatting and specified digest equality relationships, not payload hashing; receipt authentication, trusted time, resolver state and release are external host responsibilities.
 
 
 ## 11. Privacy-preserving coverage is a separate research dimension
