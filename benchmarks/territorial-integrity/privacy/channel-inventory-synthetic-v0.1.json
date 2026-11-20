@@ -1,0 +1,67 @@
+{
+  "schema": "luminous.cter.privacy-channel-inventory.v0.1",
+  "inventory_id": "urn:fixture:privacy-inventory:synthetic-001",
+  "deployment_ref": "urn:fixture:deployment:synthetic-001",
+  "build_commit": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "instrumentation_profile_ref": "urn:fixture:instrumentation-profile:partial-v0",
+  "inventory_method": "combined",
+  "observation_boundary": {
+    "audiences": ["public", "recipient", "operator"],
+    "time_window_start": "2026-11-20T00:00:00Z",
+    "time_window_end": "2026-11-20T12:00:00Z",
+    "external_systems_included": ["urn:fixture:system:api-gateway"],
+    "explicit_exclusions": [
+      "Third-party CDN edge logs are not yet observable in this synthetic partial inventory.",
+      "The fixture does not claim complete deployment channel discovery."
+    ]
+  },
+  "coverage_assessment": "partial",
+  "channels": [
+    {
+      "channel_ref": "urn:fixture:channel:public-search",
+      "channel_kind": "search_or_autocomplete",
+      "audience": "public",
+      "purpose_ref": "urn:fixture:purpose:public-search",
+      "owner_ref": "urn:fixture:owner:sol-atlas-search",
+      "policy_ref": "urn:fixture:policy:public-search-v0",
+      "data_classes": ["public"],
+      "retention": {
+        "retention_profile_ref": "urn:fixture:retention:search-short-v0",
+        "deletion_or_expiry_semantics": "Synthetic public index entry expires with the test run."
+      },
+      "observable_surface": ["query", "result identifiers", "pagination", "HTTP status"],
+      "declared": true
+    },
+    {
+      "channel_ref": "urn:fixture:channel:operator-log",
+      "channel_kind": "application_log",
+      "audience": "operator",
+      "purpose_ref": "urn:fixture:purpose:service-diagnostics",
+      "owner_ref": "urn:fixture:owner:operations",
+      "policy_ref": "urn:fixture:policy:log-minimization-v0",
+      "data_classes": ["community"],
+      "retention": {
+        "retention_profile_ref": "urn:fixture:retention:logs-7d",
+        "deletion_or_expiry_semantics": "Synthetic logs expire after the fixture retention period."
+      },
+      "observable_surface": ["message", "structured attributes", "trace correlation"],
+      "declared": true
+    },
+    {
+      "channel_ref": "urn:fixture:channel:status-query",
+      "channel_kind": "status_or_revocation_lookup",
+      "audience": "upstream_resolver",
+      "purpose_ref": "urn:fixture:purpose:currentness-resolution",
+      "owner_ref": "urn:fixture:owner:mycelix-resolver",
+      "policy_ref": "urn:fixture:policy:status-query-v0",
+      "data_classes": ["restricted"],
+      "retention": {
+        "retention_profile_ref": "urn:fixture:retention:status-query-minimal",
+        "deletion_or_expiry_semantics": "Synthetic query observations are retained only for the test."
+      },
+      "observable_surface": ["request destination", "batch/list reference", "response size", "timing"],
+      "declared": true
+    }
+  ],
+  "prepared_at": "2026-11-20T12:00:00Z"
+}

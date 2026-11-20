@@ -1,0 +1,205 @@
+{
+  "schema": "luminous.cter.vds-proof-workloads.v0.1",
+  "suite_id": "CTER-VDS-PROOF-QUAL-001",
+  "suite_version": "0.1.0",
+  "status": "benchmark_specification_only",
+  "proof_primitive_selected": false,
+  "claim_ceiling": "workload design only; no proof generation, verification, throughput, latency or privacy result is claimed",
+  "candidate_profiles": [
+    {
+      "id": "rfc9162-sha256-scitt",
+      "family": "append_only_merkle_log",
+      "ownership": "Mycelix-owned transparency service",
+      "proof_relations": ["statement_inclusion", "tree_consistency"],
+      "not_assumed": ["arbitrary_key_non_inclusion", "query_completeness", "private_partition_set_equality"],
+      "comparison_role": "baseline for registered source-frontier and receipt statements"
+    },
+    {
+      "id": "sparse-authenticated-map",
+      "family": "authenticated_key_value_map",
+      "ownership": "candidate profile; proof interface must be confirmed with Mycelix",
+      "proof_relations": ["key_membership", "key_non_membership"],
+      "not_assumed": ["arbitrary_query_predicate_completeness", "private_partition_set_equality"],
+      "comparison_role": "candidate for opaque keyed frontier membership and non-membership"
+    },
+    {
+      "id": "ordered-authenticated-range",
+      "family": "ordered_authenticated_dictionary",
+      "ownership": "candidate profile; no current owner interface presumed",
+      "proof_relations": ["key_membership", "adjacent_key_absence", "range_completeness"],
+      "not_assumed": ["zero_order_leakage", "arbitrary_private_predicate_proof"],
+      "comparison_role": "candidate when CTER query can be represented as a stable ordered range"
+    },
+    {
+      "id": "private-set-relation-proof",
+      "family": "zero_knowledge_relation",
+      "ownership": "research-only candidate; no primitive selected",
+      "proof_relations": ["partition_disjointness", "frontier_partition_equality", "included_source_leaf_equality"],
+      "not_assumed": ["low_prover_cost", "no_trusted_setup", "automatic_semantic_correctness"],
+      "comparison_role": "candidate for hiding the private partition while proving the exact CTER relation"
+    },
+    {
+      "id": "hybrid-log-plus-private-proof",
+      "family": "transparency_plus_authenticated_partition",
+      "ownership": "Mycelix owns transparency; CTER consumes the consumer-side relation proof",
+      "proof_relations": ["statement_inclusion", "tree_consistency", "frontier_partition_equality", "included_source_leaf_equality"],
+      "not_assumed": ["single_component_atomicity", "no_cross_profile_binding_risk"],
+      "comparison_role": "candidate composition; every proof must bind the same frontier, query and package"
+    }
+  ],
+  "frontier_sizes": [1000, 10000, 100000, 1000000],
+  "partition_mix_profiles": [
+    {
+      "id": "mostly-included",
+      "included": 0.80,
+      "withheld": 0.05,
+      "unavailable": 0.05,
+      "excluded": 0.05,
+      "unresolved": 0.05
+    },
+    {
+      "id": "mixed-restrictions",
+      "included": 0.50,
+      "withheld": 0.20,
+      "unavailable": 0.10,
+      "excluded": 0.10,
+      "unresolved": 0.10
+    },
+    {
+      "id": "high-withholding",
+      "included": 0.20,
+      "withheld": 0.50,
+      "unavailable": 0.10,
+      "excluded": 0.10,
+      "unresolved": 0.10
+    }
+  ],
+  "source_graph_profiles": [
+    {
+      "id": "shallow",
+      "outputs_per_frontier_item": 1,
+      "transform_depth_p50": 1,
+      "transform_depth_p95": 2,
+      "transform_depth_max": 4,
+      "fan_in_p95": 3
+    },
+    {
+      "id": "moderate",
+      "outputs_per_frontier_item": 2,
+      "transform_depth_p50": 2,
+      "transform_depth_p95": 4,
+      "transform_depth_max": 12,
+      "fan_in_p95": 5
+    },
+    {
+      "id": "deep",
+      "outputs_per_frontier_item": 3,
+      "transform_depth_p50": 4,
+      "transform_depth_p95": 8,
+      "transform_depth_max": 24,
+      "fan_in_p95": 12
+    }
+  ],
+  "update_schedules": [
+    {
+      "id": "append-only",
+      "frontier_change_fraction": 0.0,
+      "description": "Freeze one frontier and verify all proof audiences."
+    },
+    {
+      "id": "low-churn",
+      "frontier_change_fraction": 0.001,
+      "description": "Append or supersede 0.1 percent of frontier items per update epoch."
+    },
+    {
+      "id": "moderate-churn",
+      "frontier_change_fraction": 0.01,
+      "description": "Append or supersede 1 percent of frontier items per update epoch."
+    },
+    {
+      "id": "high-churn",
+      "frontier_change_fraction": 0.1,
+      "description": "Append or supersede 10 percent of frontier items per update epoch; measure proof invalidation and rebuild cost."
+    }
+  ],
+  "audiences": [
+    "authorized_recipient",
+    "independent_auditor",
+    "public_observer",
+    "community_custodian"
+  ],
+  "fault_injection": [
+    "omit_one_frontier_item",
+    "add_phantom_frontier_item",
+    "duplicate_item_under_alias",
+    "overlap_partition_dispositions",
+    "relabel_withheld_as_absent",
+    "relabel_unavailable_as_absent",
+    "substitute_query_commitment",
+    "substitute_recipient",
+    "substitute_package_commitment",
+    "substitute_frontier_version",
+    "stale_checkpoint",
+    "forked_same_size_root",
+    "invalid_inclusion_proof",
+    "invalid_consistency_proof",
+    "unsupported_non_inclusion_proof_type",
+    "proof_type_vds_mismatch",
+    "reveal_withheld_count",
+    "reveal_frontier_size",
+    "low_entropy_commitment_dictionary_attack",
+    "late_source_event_after_frontier_freeze",
+    "restore_without_proof_profile",
+    "cryptographic_profile_migration"
+  ],
+  "required_metrics": [
+    "proof_generation_ms",
+    "proof_verification_ms",
+    "proof_bytes",
+    "checkpoint_receipt_bytes",
+    "public_metadata_bytes",
+    "prover_peak_rss_bytes",
+    "prover_cpu_ms",
+    "verifier_peak_rss_bytes",
+    "verifier_cpu_ms",
+    "frontier_update_ms",
+    "proof_invalidation_ms",
+    "partition_reconciliation_ms",
+    "package_leaf_derivation_ms",
+    "checkpoint_quorum_availability",
+    "split_view_detection_rate",
+    "false_accept_count",
+    "false_reject_count",
+    "unknown_count",
+    "privacy_leakage_findings",
+    "independent_restore_ms",
+    "independent_restore_bytes",
+    "historical_verification_reconstruction_ms"
+  ],
+  "reporting": {
+    "latency_quantiles": ["p50", "p95", "p99", "max"],
+    "required_hardware_metadata": [
+      "cpu_model_and_microcode",
+      "physical_core_and_thread_count",
+      "ram_capacity_and_speed",
+      "storage_model_and_filesystem",
+      "os_and_kernel"
+    ],
+    "required_software_metadata": [
+      "proof_implementation_and_version",
+      "vds_profile_identifier",
+      "receipt_profile_identifier",
+      "cryptographic_algorithm_identifiers",
+      "rust_toolchain",
+      "node_version",
+      "build_flags",
+      "corpus_digest",
+      "frontier_generation_seed"
+    ],
+    "proof_generation_and_verification_measured_separately": true,
+    "hashing_and_graph_validation_measured_separately": true,
+    "no_single_weighted_score": true,
+    "energy": "report only when measured with declared meter or calibrated telemetry",
+    "candidate_comparison_rule": "same exact frontier bytes, query, package graph, partition, audience, update schedule, fault schedule, host and resource limits"
+  }
+}

@@ -1,0 +1,235 @@
+{
+  "schema": "luminous.cter.privacy-cases.v0.1",
+  "suite_id": "CTER-PRIVACY-CHANNEL-001",
+  "suite_version": "0.1.0",
+  "synthetic_only": true,
+  "execution_status": "paired_world_fixture_oracle_not_yet_implemented",
+  "parent_issue": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/964",
+  "claim_ceiling": "fixture-level observable transcript equality and canary detection only; no production privacy guarantee or universal non-inference proof",
+  "declared_channels": [
+    "primary_payload",
+    "object_metadata",
+    "filename_or_path",
+    "stable_identifier",
+    "spatial_projection",
+    "raster_or_vector_tile",
+    "search_or_autocomplete",
+    "catalogue",
+    "aggregate_or_dashboard",
+    "snapshot_or_diff",
+    "http_status_or_error",
+    "response_size_or_timing",
+    "pagination_or_ordering",
+    "application_log",
+    "trace_or_metric",
+    "analytics_or_crash_report",
+    "thumbnail_or_preview",
+    "ocr_or_conversion",
+    "ai_prompt_or_retrieval",
+    "embedding_or_cache",
+    "status_or_revocation_lookup",
+    "relay_or_transport_metadata",
+    "backup_or_archive_restore",
+    "support_bundle"
+  ],
+  "cases": [
+    {
+      "case_id": "PRIVACY-STRICT-WORLD-EQUIVALENCE-001",
+      "protected_delta": "A synthetic restricted record exists only in world B.",
+      "canaries": ["SYNTH-CANARY-ALPHA-001"],
+      "world_a": {"observables": {"primary_payload": {"records": []}, "http_status_or_error": {"status": 200}}},
+      "world_b": {"observables": {"primary_payload": {"records": []}, "http_status_or_error": {"status": 200}}},
+      "expected": "non_disclosure"
+    },
+    {
+      "case_id": "PRIVACY-WITHHELD-NOT-ABSENT-001",
+      "protected_delta": "Internal state is withheld in world B, but the public response intentionally does not reveal existence.",
+      "canaries": ["SYNTH-CANARY-WITHHELD-002"],
+      "world_a": {"observables": {"search_or_autocomplete": {"results": []}, "http_status_or_error": {"status": 200, "body": {"items": []}}}},
+      "world_b": {"observables": {"search_or_autocomplete": {"results": []}, "http_status_or_error": {"status": 200, "body": {"items": []}}}},
+      "expected": "non_disclosure"
+    },
+    {
+      "case_id": "PRIVACY-FILENAME-LEAK-001",
+      "protected_delta": "A private object path appears in one public archive.",
+      "canaries": ["SYNTH-CANARY-FILENAME-003"],
+      "world_a": {"observables": {"filename_or_path": {"name": "export-01.bin"}}},
+      "world_b": {"observables": {"filename_or_path": {"name": "SYNTH-CANARY-FILENAME-003-sacred-site.bin"}}},
+      "expected": "leak_detected"
+    },
+    {
+      "case_id": "PRIVACY-LOW-ENTROPY-HASH-001",
+      "protected_delta": "A predictable synthetic location is hashed and published.",
+      "canaries": ["SYNTH-CANARY-LOW-ENTROPY-004"],
+      "world_a": {"observables": {"object_metadata": {"digest": "8a" }}},
+      "world_b": {"observables": {"object_metadata": {"digest": "8b" }}},
+      "expected": "leak_detected"
+    },
+    {
+      "case_id": "PRIVACY-STABLE-ID-LINKABILITY-001",
+      "protected_delta": "The same participant pseudonym appears in two recipient-specific views.",
+      "canaries": ["SYNTH-CANARY-PARTICIPANT-005"],
+      "world_a": {"observables": {"stable_identifier": {"recipient_a": "opaque-77", "recipient_b": "opaque-77"}}},
+      "world_b": {"observables": {"stable_identifier": {"recipient_a": "opaque-77", "recipient_b": "opaque-77", "canary": "SYNTH-CANARY-PARTICIPANT-005"}}},
+      "expected": "leak_detected"
+    },
+    {
+      "case_id": "PRIVACY-VECTOR-TILE-LEAK-001",
+      "protected_delta": "A private geometry is visible in a high-zoom vector tile.",
+      "canaries": ["SYNTH-CANARY-TILE-006"],
+      "world_a": {"observables": {"raster_or_vector_tile": {"features": []}}},
+      "world_b": {"observables": {"raster_or_vector_tile": {"features": [{"label": "SYNTH-CANARY-TILE-006"}]}}},
+      "expected": "leak_detected"
+    },
+    {
+      "case_id": "PRIVACY-BOUNDS-LEAK-001",
+      "protected_delta": "A generalized polygon's bounds still disclose the protected location.",
+      "canaries": ["SYNTH-CANARY-BOUNDS-007"],
+      "world_a": {"observables": {"spatial_projection": {"bounds": null}}},
+      "world_b": {"observables": {"spatial_projection": {"bounds": [-26.2, 28.0, -26.1, 28.1]}}},
+      "expected": "leak_detected"
+    },
+    {
+      "case_id": "PRIVACY-SEARCH-EXISTENCE-LEAK-001",
+      "protected_delta": "Autocomplete reveals the name of a restricted claim.",
+      "canaries": ["SYNTH-CANARY-SEARCH-008"],
+      "world_a": {"observables": {"search_or_autocomplete": {"results": []}}},
+      "world_b": {"observables": {"search_or_autocomplete": {"results": ["SYNTH-CANARY-SEARCH-008"]}}},
+      "expected": "leak_detected"
+    },
+    {
+      "case_id": "PRIVACY-COUNT-DIFFERENCING-001",
+      "protected_delta": "A one-person change in a protected group shifts the public aggregate count.",
+      "canaries": ["SYNTH-CANARY-COUNT-009"],
+      "world_a": {"observables": {"aggregate_or_dashboard": {"count": 12}}},
+      "world_b": {"observables": {"aggregate_or_dashboard": {"count": 13}}},
+      "expected": "leak_detected"
+    },
+    {
+      "case_id": "PRIVACY-ERROR-DISTINCTION-001",
+      "protected_delta": "The API returns different errors for absent and withheld object references.",
+      "canaries": ["SYNTH-CANARY-ERROR-010"],
+      "world_a": {"observables": {"http_status_or_error": {"status": 404, "body": "not found"}}},
+      "world_b": {"observables": {"http_status_or_error": {"status": 403, "body": "withheld"}}},
+      "expected": "leak_detected"
+    },
+    {
+      "case_id": "PRIVACY-RESPONSE-SIZE-LEAK-001",
+      "protected_delta": "Package length varies when a restricted object exists.",
+      "canaries": ["SYNTH-CANARY-SIZE-011"],
+      "world_a": {"observables": {"response_size_or_timing": {"content_length": 1024}}},
+      "world_b": {"observables": {"response_size_or_timing": {"content_length": 4096}}},
+      "expected": "leak_detected"
+    },
+    {
+      "case_id": "PRIVACY-LOG-CANARY-001",
+      "protected_delta": "A restricted contributor token is copied into application logs.",
+      "canaries": ["SYNTH-CANARY-LOG-012"],
+      "world_a": {"observables": {"application_log": {"message": "request complete"}}},
+      "world_b": {"observables": {"application_log": {"message": "processed SYNTH-CANARY-LOG-012"}}},
+      "expected": "leak_detected"
+    },
+    {
+      "case_id": "PRIVACY-TRACE-CANARY-001",
+      "protected_delta": "A trace attribute contains a protected project identifier.",
+      "canaries": ["SYNTH-CANARY-TRACE-013"],
+      "world_a": {"observables": {"trace_or_metric": {"span": {"status": "ok"}}}},
+      "world_b": {"observables": {"trace_or_metric": {"span": {"status": "ok", "site": "SYNTH-CANARY-TRACE-013"}}}},
+      "expected": "leak_detected"
+    },
+    {
+      "case_id": "PRIVACY-OCR-THUMBNAIL-LEAK-001",
+      "protected_delta": "A converted thumbnail or OCR sidecar preserves a hidden label.",
+      "canaries": ["SYNTH-CANARY-OCR-014"],
+      "world_a": {"observables": {"thumbnail_or_preview": {"ocr_text": ""}, "ocr_or_conversion": {"text": ""}}},
+      "world_b": {"observables": {"thumbnail_or_preview": {"ocr_text": "SYNTH-CANARY-OCR-014"}, "ocr_or_conversion": {"text": "SYNTH-CANARY-OCR-014"}}},
+      "expected": "leak_detected"
+    },
+    {
+      "case_id": "PRIVACY-AI-PROMPT-LEAK-001",
+      "protected_delta": "A restricted source is retrieved into an agent prompt.",
+      "canaries": ["SYNTH-CANARY-AI-015"],
+      "world_a": {"observables": {"ai_prompt_or_retrieval": {"context": []}}},
+      "world_b": {"observables": {"ai_prompt_or_retrieval": {"context": ["SYNTH-CANARY-AI-015"]}}},
+      "expected": "leak_detected"
+    },
+    {
+      "case_id": "PRIVACY-STATUS-LOOKUP-CORRELATION-001",
+      "protected_delta": "A verifier's status check becomes linkable to a specific protected receipt.",
+      "canaries": ["SYNTH-CANARY-STATUS-016"],
+      "world_a": {"observables": {"status_or_revocation_lookup": {"url": "/status/list/shared-01", "query_id": "batch-01"}}},
+      "world_b": {"observables": {"status_or_revocation_lookup": {"url": "/status/credential/SYNTH-CANARY-STATUS-016", "query_id": "one-to-one"}}},
+      "expected": "leak_detected"
+    },
+    {
+      "case_id": "PRIVACY-CACHE-ETAG-LEAK-001",
+      "protected_delta": "A public cache validator changes when a protected object changes.",
+      "canaries": ["SYNTH-CANARY-CACHE-017"],
+      "world_a": {"observables": {"embedding_or_cache": {"etag": "etag-a"}}},
+      "world_b": {"observables": {"embedding_or_cache": {"etag": "etag-b"}}},
+      "expected": "leak_detected"
+    },
+    {
+      "case_id": "PRIVACY-ARCHIVE-BACKUP-LEAK-001",
+      "protected_delta": "A backup archive includes an undeclared restricted object.",
+      "canaries": ["SYNTH-CANARY-BACKUP-018"],
+      "world_a": {"observables": {"backup_or_archive_restore": {"entries": ["public-01"]}}},
+      "world_b": {"observables": {"backup_or_archive_restore": {"entries": ["public-01", "SYNTH-CANARY-BACKUP-018"]}}},
+      "expected": "leak_detected"
+    },
+    {
+      "case_id": "PRIVACY-TRANSPORT-INVENTORY-LEAK-001",
+      "protected_delta": "A relay log exposes a private recipient inventory.",
+      "canaries": ["SYNTH-CANARY-TRANSPORT-019"],
+      "world_a": {"observables": {"relay_or_transport_metadata": {"recipient_count": 0}}},
+      "world_b": {"observables": {"relay_or_transport_metadata": {"recipient_count": 1, "recipient": "SYNTH-CANARY-TRANSPORT-019"}}},
+      "expected": "leak_detected"
+    },
+    {
+      "case_id": "PRIVACY-SNAPSHOT-DIFF-LEAK-001",
+      "protected_delta": "A public diff reveals a hidden record update.",
+      "canaries": ["SYNTH-CANARY-DIFF-020"],
+      "world_a": {"observables": {"snapshot_or_diff": {"changed_objects": 0}}},
+      "world_b": {"observables": {"snapshot_or_diff": {"changed_objects": 1, "changed_ref": "SYNTH-CANARY-DIFF-020"}}},
+      "expected": "leak_detected"
+    },
+    {
+      "case_id": "PRIVACY-PAGINATION-ORDER-LEAK-001",
+      "protected_delta": "A hidden object shifts a public result's rank.",
+      "canaries": ["SYNTH-CANARY-PAGE-021"],
+      "world_a": {"observables": {"pagination_or_ordering": {"items": ["a", "b"], "total": 2}}},
+      "world_b": {"observables": {"pagination_or_ordering": {"items": ["a", "b"], "total": 3, "has_more": true}}},
+      "expected": "leak_detected"
+    },
+    {
+      "case_id": "PRIVACY-UNDECLARED-CHANNEL-001",
+      "protected_delta": "A channel observed in production is absent from the declared inventory.",
+      "canaries": ["SYNTH-CANARY-UNDECLARED-022"],
+      "world_a": {"observables": {"untracked_plugin_export": {"canary": "SYNTH-CANARY-UNDECLARED-022"}}},
+      "world_b": {"observables": {"untracked_plugin_export": {"canary": "SYNTH-CANARY-UNDECLARED-022"}}},
+      "expected": "inventory_incomplete"
+    },
+    {
+      "case_id": "PRIVACY-REPEATED-AGGREGATE-QUERY-001",
+      "protected_delta": "A sequence of overlapping aggregate windows isolates one protected contribution.",
+      "canaries": ["SYNTH-CANARY-AGGREGATE-023"],
+      "world_a": {"observables": {"aggregate_or_dashboard": {"q1": 10, "q2": 7, "q3": 3}}},
+      "world_b": {"observables": {"aggregate_or_dashboard": {"q1": 10, "q2": 7, "q3": 4}}},
+      "expected": "leak_detected"
+    },
+    {
+      "case_id": "PRIVACY-RECIPIENT-SCOPED-OPAQUE-REF-001",
+      "protected_delta": "Different recipients receive uncorrelatable opaque references and equivalent public projections.",
+      "canaries": ["SYNTH-CANARY-OPAQUE-024"],
+      "world_a": {"observables": {"stable_identifier": {"recipient_a": "scoped-a-1", "recipient_b": "scoped-b-9"}}},
+      "world_b": {"observables": {"stable_identifier": {"recipient_a": "scoped-a-1", "recipient_b": "scoped-b-9"}}},
+      "expected": "non_disclosure"
+    }
+  ],
+  "targets": {
+    "forbidden_channel_canary_hits": 0,
+    "strict_non_disclosure_world_pairs": 1.0,
+    "undeclared_observable_channels": 0,
+    "unauthorized_stable_identifier_linkability": 0
+  }
+}

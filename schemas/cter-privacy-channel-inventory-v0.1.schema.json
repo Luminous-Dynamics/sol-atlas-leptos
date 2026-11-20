@@ -1,0 +1,242 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://luminousdynamics.io/schemas/cter-privacy-channel-inventory-v0.1.schema.json",
+  "title": "CTER observable privacy channel inventory v0.1",
+  "description": "Declared observation boundary for synthetic privacy qualification. Schema validity does not prove inventory completeness or absence of uninstrumented channels.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "inventory_id",
+    "deployment_ref",
+    "build_commit",
+    "instrumentation_profile_ref",
+    "inventory_method",
+    "observation_boundary",
+    "coverage_assessment",
+    "channels",
+    "prepared_at"
+  ],
+  "properties": {
+    "schema": {
+      "const": "luminous.cter.privacy-channel-inventory.v0.1"
+    },
+    "inventory_id": {
+      "$ref": "#/$defs/opaque_ref"
+    },
+    "deployment_ref": {
+      "$ref": "#/$defs/opaque_ref"
+    },
+    "build_commit": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{40}$"
+    },
+    "instrumentation_profile_ref": {
+      "$ref": "#/$defs/opaque_ref"
+    },
+    "inventory_method": {
+      "enum": [
+        "static_analysis",
+        "runtime_observation",
+        "host_telemetry",
+        "independent_red_team",
+        "combined"
+      ]
+    },
+    "observation_boundary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "audiences",
+        "time_window_start",
+        "time_window_end",
+        "external_systems_included",
+        "explicit_exclusions"
+      ],
+      "properties": {
+        "audiences": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "enum": [
+              "public",
+              "recipient",
+              "custodian",
+              "operator",
+              "upstream_resolver",
+              "transport_provider",
+              "independent_auditor"
+            ]
+          }
+        },
+        "time_window_start": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "time_window_end": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "external_systems_included": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/opaque_ref"
+          }
+        },
+        "explicit_exclusions": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 2000
+          }
+        }
+      }
+    },
+    "coverage_assessment": {
+      "enum": [
+        "complete_within_declared_boundary",
+        "partial",
+        "unknown"
+      ]
+    },
+    "independent_coverage_evidence_ref": {
+      "$ref": "#/$defs/opaque_ref"
+    },
+    "channels": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/channel"
+      }
+    },
+    "prepared_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "$defs": {
+    "opaque_ref": {
+      "type": "string",
+      "minLength": 3,
+      "maxLength": 1024,
+      "pattern": "^[A-Za-z][A-Za-z0-9+.-]*:[^\\s]+$"
+    },
+    "channel": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "channel_ref",
+        "channel_kind",
+        "audience",
+        "purpose_ref",
+        "owner_ref",
+        "policy_ref",
+        "data_classes",
+        "retention",
+        "observable_surface",
+        "declared"
+      ],
+      "properties": {
+        "channel_ref": {
+          "$ref": "#/$defs/opaque_ref"
+        },
+        "channel_kind": {
+          "enum": [
+            "primary_payload",
+            "object_metadata",
+            "filename_or_path",
+            "stable_identifier",
+            "spatial_projection",
+            "raster_or_vector_tile",
+            "search_or_autocomplete",
+            "catalogue",
+            "aggregate_or_dashboard",
+            "snapshot_or_diff",
+            "http_status_or_error",
+            "response_size_or_timing",
+            "pagination_or_ordering",
+            "application_log",
+            "trace_or_metric",
+            "analytics_or_crash_report",
+            "thumbnail_or_preview",
+            "ocr_or_conversion",
+            "ai_prompt_or_retrieval",
+            "embedding_or_cache",
+            "status_or_revocation_lookup",
+            "relay_or_transport_metadata",
+            "backup_or_archive_restore",
+            "support_bundle",
+            "other"
+          ]
+        },
+        "audience": {
+          "enum": [
+            "public",
+            "recipient",
+            "custodian",
+            "operator",
+            "upstream_resolver",
+            "transport_provider",
+            "independent_auditor"
+          ]
+        },
+        "purpose_ref": {
+          "$ref": "#/$defs/opaque_ref"
+        },
+        "owner_ref": {
+          "$ref": "#/$defs/opaque_ref"
+        },
+        "policy_ref": {
+          "$ref": "#/$defs/opaque_ref"
+        },
+        "data_classes": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "enum": [
+              "public",
+              "community",
+              "restricted",
+              "culturally_protected"
+            ]
+          }
+        },
+        "retention": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "retention_profile_ref",
+            "deletion_or_expiry_semantics"
+          ],
+          "properties": {
+            "retention_profile_ref": {
+              "$ref": "#/$defs/opaque_ref"
+            },
+            "deletion_or_expiry_semantics": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 2000
+            }
+          }
+        },
+        "observable_surface": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 500
+          }
+        },
+        "declared": {
+          "const": true
+        }
+      }
+    }
+  }
+}

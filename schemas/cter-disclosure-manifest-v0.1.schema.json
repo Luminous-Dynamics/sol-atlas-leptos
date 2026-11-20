@@ -1,0 +1,371 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://luminousdynamics.io/schemas/cter-disclosure-manifest-v0.1.schema.json",
+  "title": "CTER recipient-scoped disclosure manifest v0.1",
+  "description": "Synthetic consumer-side package binding. This schema does not authenticate upstream receipts, resolve authority, hash source bytes, prove redaction safety, or authorize release.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "manifest_id",
+    "canonicalization_profile",
+    "manifest_commitment",
+    "authorization_binding",
+    "destination_binding",
+    "package",
+    "coverage_record_ref",
+    "prepared_at"
+  ],
+  "properties": {
+    "schema": {
+      "const": "luminous.cter.disclosure-manifest.v0.1"
+    },
+    "manifest_id": {
+      "$ref": "#/$defs/opaque_ref"
+    },
+    "canonicalization_profile": {
+      "const": "rfc8785-jcs-v1"
+    },
+    "manifest_commitment": {
+      "$ref": "#/$defs/sha256_digest",
+      "description": "SHA-256 of RFC 8785 canonical JSON with this manifest_commitment property omitted."
+    },
+    "authorization_binding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "request_ref",
+        "request_commitment",
+        "authorization_receipt_ref",
+        "principal_ref",
+        "subject_ref",
+        "operation",
+        "resource_ref",
+        "project_snapshot_sha256",
+        "evidence_frontier_ref",
+        "purpose_ref",
+        "recipient_ref",
+        "jurisdiction_profile_ref",
+        "data_classes",
+        "coverage_query_ref",
+        "coverage_query_commitment",
+        "coverage_query_profile_ref",
+        "coverage_input_snapshot_ref",
+        "coverage_input_snapshot_commitment",
+        "coverage_input_snapshot_profile_ref"
+      ],
+      "properties": {
+        "request_ref": {
+          "$ref": "#/$defs/opaque_ref"
+        },
+        "request_commitment": {
+          "$ref": "#/$defs/sha256_digest"
+        },
+        "authorization_receipt_ref": {
+          "$ref": "#/$defs/opaque_ref"
+        },
+        "principal_ref": {
+          "$ref": "#/$defs/opaque_ref"
+        },
+        "subject_ref": {
+          "$ref": "#/$defs/opaque_ref"
+        },
+        "operation": {
+          "enum": [
+            "collect_measurement",
+            "publish_observation",
+            "export_evidence"
+          ]
+        },
+        "resource_ref": {
+          "$ref": "#/$defs/opaque_ref"
+        },
+        "project_snapshot_sha256": {
+          "$ref": "#/$defs/sha256_hex"
+        },
+        "evidence_frontier_ref": {
+          "$ref": "#/$defs/opaque_ref"
+        },
+        "purpose_ref": {
+          "$ref": "#/$defs/opaque_ref"
+        },
+        "recipient_ref": {
+          "$ref": "#/$defs/opaque_ref"
+        },
+        "jurisdiction_profile_ref": {
+          "$ref": "#/$defs/opaque_ref"
+        },
+        "data_classes": {
+          "$ref": "#/$defs/data_classes"
+        },
+        "coverage_query_ref": {
+          "$ref": "#/$defs/opaque_ref",
+          "description": "Exact query identity used to construct the custodian-controlled coverage partition."
+        },
+        "coverage_query_commitment": {
+          "$ref": "#/$defs/sha256_digest",
+          "description": "Commitment to the exact canonical coverage query predicate."
+        },
+        "coverage_query_profile_ref": {
+          "$ref": "#/$defs/opaque_ref",
+          "description": "Exact predicate-semantics profile used by the custodian coverage query."
+        },
+        "coverage_input_snapshot_ref": {
+          "$ref": "#/$defs/opaque_ref"
+        },
+        "coverage_input_snapshot_commitment": {
+          "$ref": "#/$defs/sha256_digest"
+        },
+        "coverage_input_snapshot_profile_ref": {
+          "$ref": "#/$defs/opaque_ref"
+        }
+      }
+    },
+    "destination_binding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "recipient_ref",
+        "destination_ref",
+        "destination_key_epoch_ref",
+        "channel_ref",
+        "transport_profile_ref"
+      ],
+      "properties": {
+        "recipient_ref": {
+          "$ref": "#/$defs/opaque_ref"
+        },
+        "destination_ref": {
+          "$ref": "#/$defs/opaque_ref"
+        },
+        "destination_key_epoch_ref": {
+          "$ref": "#/$defs/opaque_ref"
+        },
+        "channel_ref": {
+          "$ref": "#/$defs/opaque_ref"
+        },
+        "transport_profile_ref": {
+          "$ref": "#/$defs/opaque_ref"
+        }
+      }
+    },
+    "package": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "package_ref",
+        "media_type",
+        "package_payload_digest",
+        "outputs",
+        "transformations"
+      ],
+      "properties": {
+        "package_ref": {
+          "$ref": "#/$defs/opaque_ref"
+        },
+        "media_type": {
+          "type": "string",
+          "minLength": 3,
+          "maxLength": 255
+        },
+        "package_payload_digest": {
+          "$ref": "#/$defs/sha256_digest",
+          "description": "Digest of exact serialized package payload bytes, excluding this CTER disclosure manifest."
+        },
+        "outputs": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/output_object"
+          }
+        },
+        "transformations": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/transformation"
+          }
+        }
+      }
+    },
+    "coverage_record_ref": {
+      "$ref": "#/$defs/opaque_ref",
+      "description": "Custodian-controlled coverage accounting. Do not expose protected object inventories or revealing counts in a public manifest."
+    },
+    "prepared_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Recorded preparation time. This field is not a trusted-time proof."
+    }
+  },
+  "$defs": {
+    "opaque_ref": {
+      "type": "string",
+      "minLength": 3,
+      "maxLength": 1024,
+      "pattern": "^[A-Za-z][A-Za-z0-9+.-]*:[^\\s]+$",
+      "description": "Opaque stable reference. Must not contain personal data or sensitive coordinates."
+    },
+    "sha256_hex": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "sha256_digest": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "algorithm",
+        "value"
+      ],
+      "properties": {
+        "algorithm": {
+          "const": "sha-256"
+        },
+        "value": {
+          "$ref": "#/$defs/sha256_hex"
+        }
+      }
+    },
+    "data_class": {
+      "enum": [
+        "public",
+        "community",
+        "restricted",
+        "culturally_protected"
+      ]
+    },
+    "data_classes": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "$ref": "#/$defs/data_class"
+      }
+    },
+    "source_ref": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "object_ref",
+        "content_digest",
+        "data_classes"
+      ],
+      "properties": {
+        "object_ref": {
+          "$ref": "#/$defs/opaque_ref"
+        },
+        "content_digest": {
+          "$ref": "#/$defs/sha256_digest"
+        },
+        "data_classes": {
+          "$ref": "#/$defs/data_classes",
+          "description": "Source-side information classification; not an authorization decision."
+        }
+      }
+    },
+    "output_object": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "object_ref",
+        "content_digest",
+        "byte_length",
+        "media_type",
+        "data_classes",
+        "source_refs",
+        "transformation_refs"
+      ],
+      "properties": {
+        "object_ref": {
+          "$ref": "#/$defs/opaque_ref"
+        },
+        "content_digest": {
+          "$ref": "#/$defs/sha256_digest"
+        },
+        "byte_length": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "media_type": {
+          "type": "string",
+          "minLength": 3,
+          "maxLength": 255
+        },
+        "data_classes": {
+          "$ref": "#/$defs/data_classes"
+        },
+        "source_refs": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/source_ref"
+          }
+        },
+        "transformation_refs": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/opaque_ref"
+          }
+        }
+      }
+    },
+    "transformation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "transform_ref",
+        "transform_kind",
+        "profile_ref",
+        "version_commitment",
+        "input_object_refs",
+        "output_object_refs"
+      ],
+      "properties": {
+        "transform_ref": {
+          "$ref": "#/$defs/opaque_ref"
+        },
+        "transform_kind": {
+          "enum": [
+            "identity_copy",
+            "redaction",
+            "aggregation",
+            "generalization",
+            "translation",
+            "format_conversion",
+            "derived_summary",
+            "other"
+          ]
+        },
+        "profile_ref": {
+          "$ref": "#/$defs/opaque_ref"
+        },
+        "version_commitment": {
+          "$ref": "#/$defs/sha256_digest"
+        },
+        "input_object_refs": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/opaque_ref"
+          }
+        },
+        "output_object_refs": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/opaque_ref"
+          }
+        },
+        "classification_change_authority_ref": {
+          "$ref": "#/$defs/opaque_ref",
+          "description": "Required by the consumer validator if source/output data-class sets differ. It is a reference only, not validation of authority."
+        }
+      }
+    }
+  }
+}

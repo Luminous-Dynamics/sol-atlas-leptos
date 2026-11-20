@@ -1,0 +1,231 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://luminousdynamics.io/schemas/cter-relay-delivery-v0.1.schema.json",
+  "title": "CTER Relay Delivery Reference v0.1",
+  "description": "A transport delivery observation that references immutable Mycelix event identity and carries detached verification and projection/access context. This is not the full signed Mycelix envelope.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "event",
+    "assessment",
+    "context",
+    "payload"
+  ],
+  "properties": {
+    "event": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "event_id",
+        "stream_id",
+        "sequence",
+        "previous_hash",
+        "event_hash",
+        "actor"
+      ],
+      "properties": {
+        "event_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "stream_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "sequence": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "previous_hash": {
+          "oneOf": [
+            {
+              "type": "null"
+            },
+            {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            }
+          ]
+        },
+        "event_hash": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$",
+          "description": "Mycelix BLAKE3 ContentHash of the canonical signed event"
+        },
+        "actor": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "sequence": {
+                "const": 0
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "previous_hash": {
+                "type": "null"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "sequence": {
+                "minimum": 1
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "previous_hash": {
+                "type": "string",
+                "pattern": "^[0-9a-f]{64}$"
+              }
+            }
+          }
+        }
+      ]
+    },
+    "assessment": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "assessment_id",
+        "verifier_id",
+        "policy_id",
+        "assessed_at",
+        "key_status_snapshot_ref",
+        "event_time_basis",
+        "status"
+      ],
+      "properties": {
+        "assessment_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "verifier_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "policy_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "assessed_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "key_status_snapshot_ref": {
+          "type": "string",
+          "minLength": 1
+        },
+        "event_time_basis": {
+          "enum": [
+            "trusted_append_receipt",
+            "external_trusted_timestamp",
+            "signer_claim_only",
+            "unknown"
+          ]
+        },
+        "status": {
+          "enum": [
+            "verified",
+            "invalid",
+            "revoked",
+            "unavailable"
+          ]
+        },
+        "time_evidence_ref": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "description": "Detached verifier result. A verified/revoked disposition requires a trusted append-receipt or external timestamp basis. A signer-claimed event time is insufficient.",
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "status": {
+                "enum": [
+                  "verified",
+                  "revoked"
+                ]
+              },
+              "event_time_basis": {
+                "enum": [
+                  "trusted_append_receipt",
+                  "external_trusted_timestamp"
+                ]
+              }
+            },
+            "required": [
+              "status",
+              "event_time_basis"
+            ]
+          },
+          "then": {
+            "required": [
+              "time_evidence_ref"
+            ]
+          }
+        }
+      ]
+    },
+    "context": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "projection_key",
+        "access_class"
+      ],
+      "properties": {
+        "projection_key": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Benchmark projection hint, not a canonical Mycelix event field or ownership key"
+        },
+        "access_class": {
+          "enum": [
+            "public",
+            "community",
+            "restricted",
+            "culturally_protected"
+          ],
+          "description": "Detached policy annotation; not an authorization credential"
+        }
+      }
+    },
+    "payload": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "blob_ref",
+        "media_type",
+        "blob_sha256"
+      ],
+      "properties": {
+        "blob_ref": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Reference to the exact serialized Mycelix SignedScientificEvent bytes in the relay's local content store."
+        },
+        "media_type": {
+          "type": "string",
+          "const": "application/vnd.mycelix.signed-scientific-event+json"
+        },
+        "blob_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$",
+          "description": "SHA-256 over the exact serialized payload bytes; separate from event.event_hash (Mycelix BLAKE3)."
+        }
+      }
+    }
+  }
+}

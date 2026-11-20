@@ -1,0 +1,155 @@
+name: CTER relay reference conformance
+
+on:
+  push:
+    branches: [research/cter-relay-qualification-v0-1]
+    paths:
+      - "benchmarks/territorial-integrity/relay/**"
+      - "benchmarks/territorial-integrity/egress/**"
+      - "benchmarks/territorial-integrity/privacy/**"
+      - "schemas/cter-relay-delivery-v0.1.schema.json"
+      - "schemas/cter-community-archive-manifest-v0.1.schema.json"
+      - "schemas/cter-authority-use-v0.1.schema.json"
+      - "schemas/cter-disclosure-manifest-v0.1.schema.json"
+      - "schemas/cter-privacy-channel-inventory-v0.1.schema.json"
+      - "schemas/cter-private-coverage-v0.1.schema.json"
+      - "schemas/cter-query-input-snapshot-v0.1.schema.json"
+      - "docs/research/CTER_EGRESS_BINDING_PROFILE_V0_1.md"
+      - "docs/research/CTER_COMPOSED_RELEASE_BINDING_PROFILE_V0_1.md"
+      - "docs/research/CTER_VDS_PROOF_PRIMITIVE_COMPARISON_V0_1.md"
+      - "docs/research/CTER_QUERY_PREDICATE_PROFILE_V0_1.md"
+      - "docs/research/CTER_QUERY_INPUT_ATTESTATION_PROFILE_V0_1.md"
+      - "docs/research/CTER_PRIVACY_CHANNEL_PROFILE_V0_1.md"
+      - "docs/research/CTER_BENCHMARK_AND_INDUSTRY_COMPARISON_V0_1.md"
+      - "docs/research/CTER_OFFLINE_RELAY_PROFILE_V0_1.md"
+      - "docs/research/CTER_CUSTODY_EXIT_PROFILE_V0_1.md"
+      - "docs/research/CTER_AUTHORITY_CONSUMPTION_PROFILE_V0_1.md"
+      - ".github/workflows/cter-relay-reference.yml"
+  pull_request:
+    branches: [main]
+    paths:
+      - "benchmarks/territorial-integrity/relay/**"
+      - "benchmarks/territorial-integrity/egress/**"
+      - "benchmarks/territorial-integrity/privacy/**"
+      - "schemas/cter-relay-delivery-v0.1.schema.json"
+      - "schemas/cter-community-archive-manifest-v0.1.schema.json"
+      - "schemas/cter-authority-use-v0.1.schema.json"
+      - "schemas/cter-disclosure-manifest-v0.1.schema.json"
+      - "schemas/cter-private-coverage-v0.1.schema.json"
+      - "schemas/cter-query-input-snapshot-v0.1.schema.json"
+      - "schemas/cter-privacy-channel-inventory-v0.1.schema.json"
+      - "docs/research/CTER_EGRESS_BINDING_PROFILE_V0_1.md"
+      - "docs/research/CTER_COMPOSED_RELEASE_BINDING_PROFILE_V0_1.md"
+      - "docs/research/CTER_VDS_PROOF_PRIMITIVE_COMPARISON_V0_1.md"
+      - "docs/research/CTER_QUERY_PREDICATE_PROFILE_V0_1.md"
+      - "docs/research/CTER_QUERY_INPUT_ATTESTATION_PROFILE_V0_1.md"
+      - "docs/research/CTER_PRIVACY_CHANNEL_PROFILE_V0_1.md"
+      - "docs/research/CTER_BENCHMARK_AND_INDUSTRY_COMPARISON_V0_1.md"
+      - "docs/research/CTER_OFFLINE_RELAY_PROFILE_V0_1.md"
+      - "docs/research/CTER_CUSTODY_EXIT_PROFILE_V0_1.md"
+      - "docs/research/CTER_AUTHORITY_CONSUMPTION_PROFILE_V0_1.md"
+      - ".github/workflows/cter-relay-reference.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: cter-relay-reference-${{ github.event.pull_request.head.sha || github.sha }}
+  cancel-in-progress: true
+
+jobs:
+  reference-conformance:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
+
+      - name: Assert exact checkout
+        env:
+          EXPECTED_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: test "$(git rev-parse HEAD)" = "$EXPECTED_SHA"
+
+      - name: Install pinned Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: "1.96.1"
+          components: rustfmt, clippy
+
+      - name: Assert pinned toolchain
+        run: |
+          test "$(rustc --version | awk '{print $2}')" = "1.96.1"
+          cargo --version
+          rustfmt --version
+          cargo clippy --version
+
+      - name: Check Rust formatting
+        run: cargo fmt --manifest-path benchmarks/territorial-integrity/relay/reference/Cargo.toml -- --check
+
+      - name: Validate committed JSON
+        run: |
+          python3 -m json.tool benchmarks/territorial-integrity/relay/cases-v0.1.json > /dev/null
+          python3 -m json.tool benchmarks/territorial-integrity/relay/manifest-v0.1.json > /dev/null
+          python3 -m json.tool benchmarks/territorial-integrity/relay/archive-cases-v0.1.json > /dev/null
+          python3 -m json.tool benchmarks/territorial-integrity/relay/scale-workloads-v0.1.json > /dev/null
+          python3 -m json.tool schemas/cter-relay-delivery-v0.1.schema.json > /dev/null
+          python3 -m json.tool schemas/cter-community-archive-manifest-v0.1.schema.json > /dev/null
+          python3 -m json.tool benchmarks/territorial-integrity/relay/authority-cases-v0.1.json > /dev/null
+          python3 -m json.tool schemas/cter-authority-use-v0.1.schema.json > /dev/null
+          python3 -m json.tool benchmarks/territorial-integrity/egress/cases-v0.1.json > /dev/null
+          python3 -m json.tool benchmarks/territorial-integrity/egress/scale-workloads-v0.1.json > /dev/null
+          python3 -m json.tool benchmarks/territorial-integrity/privacy/cases-v0.1.json > /dev/null
+          python3 -m json.tool benchmarks/territorial-integrity/privacy/channel-inventory-synthetic-v0.1.json > /dev/null
+          python3 -m json.tool schemas/cter-privacy-channel-inventory-v0.1.schema.json > /dev/null
+          python3 -m json.tool benchmarks/territorial-integrity/egress/private-coverage-invariants-v0.1.json > /dev/null
+          python3 -m json.tool benchmarks/territorial-integrity/egress/private-coverage-cases-v0.1.json > /dev/null
+          python3 -m json.tool benchmarks/territorial-integrity/egress/composed-release-cases-v0.1.json > /dev/null
+          python3 -m json.tool benchmarks/territorial-integrity/egress/vds-proof-workloads-v0.1.json > /dev/null
+          python3 -m json.tool benchmarks/territorial-integrity/egress/predicate-workloads-v0.1.json > /dev/null
+          python3 -m json.tool benchmarks/territorial-integrity/egress/query-predicate-commitments-v0.1.json > /dev/null
+          python3 -m json.tool schemas/cter-query-input-snapshot-v0.1.schema.json > /dev/null
+          python3 -m json.tool benchmarks/territorial-integrity/egress/query-input-snapshot-workloads-v0.1.json > /dev/null
+          python3 -m json.tool benchmarks/territorial-integrity/egress/private-coverage-scale-workloads-v0.1.json > /dev/null
+          python3 -m json.tool schemas/cter-private-coverage-v0.1.schema.json > /dev/null
+          python3 -m json.tool schemas/cter-disclosure-manifest-v0.1.schema.json > /dev/null
+
+      - name: Install Node for independent second-language oracle
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Run independent relay and archive oracle
+        run: node benchmarks/territorial-integrity/relay/reference/oracle.mjs
+
+      - name: Run independent authority consumer oracle
+        run: node benchmarks/territorial-integrity/relay/reference/authority-oracle.mjs
+
+      - name: Run independent egress manifest oracle
+        run: node benchmarks/territorial-integrity/relay/reference/egress-oracle.mjs
+
+      - name: Run independent paired-world privacy oracle
+        run: node benchmarks/territorial-integrity/relay/reference/privacy-oracle.mjs
+
+      - name: Run independent private coverage oracle
+        run: node benchmarks/territorial-integrity/relay/reference/private-coverage-oracle.mjs
+
+      - name: Run independent query predicate commitment oracle
+        run: node benchmarks/territorial-integrity/relay/reference/query-predicate-oracle.mjs
+
+      - name: Run independent query input snapshot oracle
+        run: node benchmarks/territorial-integrity/relay/reference/query-input-snapshot-oracle.mjs
+
+      - name: Run independent composed release binding oracle
+        run: node benchmarks/territorial-integrity/relay/reference/release-binding-oracle.mjs
+
+      - name: Assert standalone dependency lock is current
+        run: cargo metadata --locked --manifest-path benchmarks/territorial-integrity/relay/reference/Cargo.toml > /dev/null
+
+      - name: Run standalone reference tests
+        run: cargo test --locked --manifest-path benchmarks/territorial-integrity/relay/reference/Cargo.toml
+
+      - name: Run strict Clippy
+        run: cargo clippy --locked --manifest-path benchmarks/territorial-integrity/relay/reference/Cargo.toml --all-targets -- -D warnings

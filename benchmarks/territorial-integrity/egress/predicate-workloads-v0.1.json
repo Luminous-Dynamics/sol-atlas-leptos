@@ -1,0 +1,123 @@
+{
+  "schema": "luminous.cter.query-predicate-workloads.v0.1",
+  "suite_id": "CTER-QUERY-SEMANTICS-001",
+  "suite_version": "0.1.0",
+  "status": "benchmark_specification_only",
+  "claim_ceiling": "workload design; no query throughput, canonical commitment, proof or production result is claimed",
+  "supported_profile": "urn:luminous:cter:predicate-json-v0.1",
+  "reference_operators": ["all", "any", "not", "eq", "in", "exists"],
+  "limits": {
+    "max_expression_depth": 32,
+    "max_boolean_children": 32,
+    "max_in_values": 64,
+    "max_path_length": 128,
+    "path_profile": "one ASCII object-member segment beginning with slash",
+    "operand_profile": "JSON scalar only",
+    "user_functions": false,
+    "external_lookups": false
+  },
+  "frontier_sizes": [1000, 10000, 100000, 1000000],
+  "predicate_counts_per_batch": [1, 10, 100],
+  "expression_depths": [1, 4, 8, 16, 32],
+  "missing_attribute_rates": [0, 0.01, 0.1, 0.5],
+  "expected_truth_mix": [
+    {"id": "mostly-true", "true": 0.8, "false": 0.15, "unknown": 0.05},
+    {"id": "balanced", "true": 0.33, "false": 0.34, "unknown": 0.33},
+    {"id": "mostly-unknown", "true": 0.2, "false": 0.2, "unknown": 0.6}
+  ],
+  "candidate_evaluators": [
+    {
+      "id": "cter-reference-rust",
+      "role": "authoritative reference implementation for the frozen v0.1 profile",
+      "profile": "urn:luminous:cter:predicate-json-v0.1"
+    },
+    {
+      "id": "cter-independent-node",
+      "role": "independent cross-language verifier",
+      "profile": "urn:luminous:cter:predicate-json-v0.1"
+    },
+    {
+      "id": "jsonpath-rfc9535-adapter",
+      "role": "research adapter compiled from supported JSONPath subset to CTER predicate AST",
+      "profile": "RFC 9535 core subset only; extension functions disabled unless explicitly profiled"
+    },
+    {
+      "id": "opa-rego-selection-adapter",
+      "role": "research adapter for pure data-selection predicates; authorization decisions remain a separate output",
+      "profile": "pinned Rego version and builtins; no network or nondeterministic builtins in this workload"
+    }
+  ],
+  "operator_workloads": [
+    {"id": "equality", "expression": {"op": "eq", "path": "/jurisdiction", "value": "ZA"}},
+    {"id": "membership", "expression": {"op": "in", "path": "/jurisdiction", "values": ["ZA", "BW", "LS"]}},
+    {"id": "existence", "expression": {"op": "exists", "path": "/consent_ref"}},
+    {"id": "conjunction", "expression": {"op": "all", "args": [{"op": "eq", "path": "/dataset", "value": "cadastre"}, {"op": "eq", "path": "/jurisdiction", "value": "ZA"}]}},
+    {"id": "disjunction", "expression": {"op": "any", "args": [{"op": "eq", "path": "/dataset", "value": "cadastre"}, {"op": "eq", "path": "/dataset", "value": "survey"}]}},
+    {"id": "negation", "expression": {"op": "not", "arg": {"op": "eq", "path": "/status", "value": "withdrawn"}}}
+  ],
+  "fault_injection": [
+    "missing_attribute_coerced_to_false",
+    "missing_attribute_coerced_to_true",
+    "null_confused_with_absent",
+    "string_number_boolean_type_coercion",
+    "all_any_order_dependent_result",
+    "unsupported_extension_function_accepted",
+    "unknown_operator_accepted",
+    "predicate_depth_limit_bypass",
+    "boolean_argument_limit_bypass",
+    "in_list_limit_bypass",
+    "malformed_member_path_accepted",
+    "query_profile_substitution",
+    "query_predicate_substitution_without_commitment_refresh",
+    "duplicate_json_property_name_before_canonicalization",
+    "object_key_order_canonicalization_drift",
+    "unicode_string_mutation",
+    "number_representation_boundary",
+    "rust_node_disposition_disagreement",
+    "sql_or_ui_filter_compilation_semantic_drift",
+    "authorization_decision_used_as_query_match",
+    "unknown_scope_narrowed_to_out_of_scope",
+    "unknown_scope_narrowed_to_in_scope"
+  ],
+  "required_metrics": [
+    "evaluation_ms",
+    "parse_ms",
+    "compile_ms",
+    "canonicalization_ms",
+    "commitment_generation_ms",
+    "commitment_verification_ms",
+    "peak_rss_bytes",
+    "allocations",
+    "true_count",
+    "false_count",
+    "unknown_count",
+    "false_match_count",
+    "false_nonmatch_count",
+    "scope_substitution_accept_count",
+    "cross_implementation_disagreement_count"
+  ],
+  "reporting": {
+    "latency_quantiles": ["p50", "p95", "p99", "max"],
+    "truth_semantics": "three_valued",
+    "unknown_is_not_a_negative_match": true,
+    "authorization_is_not_selection": true,
+    "predicate_evaluation_and_commitment_costs_separate": true,
+    "canonicalization_profile": "RFC 8785 JCS with explicit I-JSON input restrictions; RFC 8785 is Informational",
+    "required_metadata": [
+      "cpu_model_and_microcode",
+      "physical_core_and_thread_count",
+      "ram_capacity_and_speed",
+      "storage_model_and_filesystem",
+      "os_and_kernel",
+      "rust_toolchain",
+      "node_version",
+      "jsonpath_implementation_and_version",
+      "opa_and_rego_version",
+      "canonicalization_library_and_version",
+      "predicate_corpus_digest",
+      "build_flags"
+    ],
+    "candidate_comparison_rule": "same exact frontier record bytes, normalized predicate, truth distribution, limits, host and resource constraints",
+    "no_single_weighted_score": true
+  }
+}
