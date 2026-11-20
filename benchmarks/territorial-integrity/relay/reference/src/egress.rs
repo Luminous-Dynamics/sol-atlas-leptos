@@ -206,6 +206,7 @@ pub fn evaluate_disclosure_manifest(input: &Value) -> EgressEvaluation {
         "coverage_query_ref",
         "coverage_query_profile_ref",
         "coverage_input_snapshot_ref",
+        "coverage_input_snapshot_profile_ref",
         "purpose_ref",
         "recipient_ref",
         "jurisdiction_profile_ref",
@@ -252,6 +253,17 @@ pub fn evaluate_disclosure_manifest(input: &Value) -> EgressEvaluation {
             &mut reasons,
             Severity::Incomplete,
             "authorization_coverage_input_snapshot_commitment_malformed",
+        );
+    }
+
+    if nonblank(binding, "coverage_input_snapshot_profile_ref")
+        != Some("urn:luminous:cter:query-input-json-v0.1")
+    {
+        raise(
+            &mut severity,
+            &mut reasons,
+            Severity::Incomplete,
+            "authorization_coverage_input_snapshot_profile_missing_or_unsupported",
         );
     }
 
