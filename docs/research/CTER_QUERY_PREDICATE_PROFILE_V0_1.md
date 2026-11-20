@@ -184,3 +184,16 @@ This is the prerequisite for claiming a proof that a private partition covers al
 The current implementation checks the exact v0.1 AST against the private query-input snapshots present in the fixture. It does not prove that the source owner supplied truthful or complete attributes, that the frontier covers all real-world evidence, that the query is legally appropriate, that the predicate commitment has been cryptographically recomputed, or that the disclosure is authorized.
 
 Symthaea may propose alternate predicates and counterexamples read-only. It cannot choose the authoritative query or grant authority. Mycelix remains the identity, consent, policy, signed receipt and currentness owner. CTER remains the consumer-side query/package/partition binding and qualification layer.
+
+
+## 10. Machine-readable workload profile
+
+The benchmark matrix is committed at \`benchmarks/territorial-integrity/egress/predicate-workloads-v0.1.json\`. It freezes:
+- 1k/10k/100k/1M record frontiers;
+- 1/10/100 predicates per batch and expression depths 1/4/8/16/32;
+- missing-attribute rates of 0/1/10/50 percent and several TRUE/FALSE/UNKNOWN distributions;
+- six operator workloads;
+- Rust, independent Node, RFC 9535 JSONPath-subset and OPA/Rego adapter candidates;
+- 22 adversarial semantics, canonicalization and cross-implementation faults.
+
+The workload separates predicate evaluation, parse/compile, canonicalization, commitment generation and commitment verification cost. No performance result or candidate winner is selected.
