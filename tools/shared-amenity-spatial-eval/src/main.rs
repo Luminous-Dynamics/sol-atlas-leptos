@@ -115,6 +115,7 @@ struct ProvisionArm {
 struct Facility {
     id: String,
     failure_domain_id: String,
+    service_state: String,
     capacity_state: String,
     capacity_units: Option<u64>,
 }
@@ -138,6 +139,7 @@ struct ArmResult {
     no_access_population: u64,
     unknown_access_population: u64,
     outside_tolerance_population: u64,
+    service_unavailable_population: u64,
     effective_access_coverage_basis_points: u64,
     p50_generalized_cost_seconds: Option<u64>,
     p90_generalized_cost_seconds: Option<u64>,
@@ -448,11 +450,18 @@ fn validate_fixture(fixtures: &FixtureSet) -> Result<(), String> {
                         scenario.scenario_id, arm.comparison_arm
                     ));
                 }
-                match (facility.capacity_state.as_str(), facility.capacity_units) {
-                    ("KNOWN", Some(_)) | ("UNKNOWN", None) => {}
+                match (
+                    facility.service_state.as_str(),
+                    facility.capacity_state.as_str(),
+                    facility.capacity_units,
+                ) {
+                    ("AVAILABLE", "KNOWN", Some(_))
+                    | ("AVAILABLE", "UNKNOWN", None)
+                    | ("UNAVAILABLE", "KNOWN", Some(0))
+                    | ("UNKNOWN", "UNKNOWN", None) => {}
                     _ => {
                         return Err(format!(
-                            "facility {} must pair KNOWN with a value or UNKNOWN with null",
+                            "facility {} has inconsistent service-availability and deliverable-capacity states",
                             facility.id
                         ));
                     }
@@ -652,9 +661,14 @@ fn evaluate_arm(
 
     let mut aggregate_capacity = Some(0_u64);
     for facility in &arm.facilities {
-        if facility.capacity_state == "UNKNOWN" {
+        if facility.service_state == "UNKNOWN" || facility.capacity_state == "UNKNOWN" {
             aggregate_capacity = None;
             break;
+        }
+        // A facility known to be unavailable in the declared period contributes
+        // zero deliverable service capacity, even if the physical asset exists.
+        if facility.service_state == "UNAVAILABLE" {
+            continue;
         }
         if let Some(current) = aggregate_capacity {
             aggregate_capacity = Some(
@@ -670,6 +684,7 @@ fn evaluate_arm(
     let mut no_access_population = 0_u64;
     let mut unknown_access_population = 0_u64;
     let mut outside_tolerance_population = 0_u64;
+    let mut service_unavailable_population = 0_u64;
     let mut samples = Vec::new();
     let mut minimum_failure_domains: Option<usize> = None;
     let mut mandatory_group_count = 0_usize;
@@ -689,7 +704,11 @@ fn evaluate_arm(
         let valid_routes = records
             .iter()
             .filter(|record| {
+                let service_available = facilities
+                    .get(record.facility_id.as_str())
+                    .is_some_and(|facility| facility.service_state == "AVAILABLE");
                 record.access_state == "QUALIFIED"
+                    && service_available
                     && record
                         .generalized_cost_seconds
                         .is_some_and(|seconds| {
@@ -728,10 +747,25 @@ fn evaluate_arm(
             );
         } else {
             let has_unknown = records.iter().any(|record| {
-                record.access_state == "UNKNOWN" || record.mandatory_access_state == "UNKNOWN"
+                record.access_state == "UNKNOWN"
+                    || record.mandatory_access_state == "UNKNOWN"
+                    || facilities
+                        .get(record.facility_id.as_str())
+                        .is_some_and(|facility| facility.service_state == "UNKNOWN")
+            });
+            let has_service_unavailable = records.iter().any(|record| {
+                record.access_state == "QUALIFIED"
+                    && facilities
+                        .get(record.facility_id.as_str())
+                        .is_some_and(|facility| facility.service_state == "UNAVAILABLE")
+                    && (!group.mandatory_access_required
+                        || record.mandatory_access_state == "PASS")
             });
             let known_route_outside_tolerance = records.iter().any(|record| {
                 record.access_state == "QUALIFIED"
+                    && facilities
+                        .get(record.facility_id.as_str())
+                        .is_some_and(|facility| facility.service_state == "AVAILABLE")
                     && record
                         .generalized_cost_seconds
                         .is_some_and(|seconds| {
@@ -745,6 +779,10 @@ fn evaluate_arm(
                 unknown_access_population = unknown_access_population
                     .checked_add(group.population)
                     .ok_or_else(|| "unknown-access population overflow".to_owned())?;
+            } else if has_service_unavailable {
+                service_unavailable_population = service_unavailable_population
+                    .checked_add(group.population)
+                    .ok_or_else(|| "service-unavailable population overflow".to_owned())?;
             } else if known_route_outside_tolerance {
                 outside_tolerance_population = outside_tolerance_population
                     .checked_add(group.population)
@@ -763,6 +801,14 @@ fn evaluate_arm(
                     record.access_state == "BLOCKED"
                         || record.mandatory_access_state == "FAIL"
                         || (record.access_state == "QUALIFIED"
+                            && facilities
+                                .get(record.facility_id.as_str())
+                                .is_some_and(|facility| facility.service_state == "UNAVAILABLE")
+                            && record.mandatory_access_state == "PASS")
+                        || (record.access_state == "QUALIFIED"
+                            && facilities
+                                .get(record.facility_id.as_str())
+                                .is_some_and(|facility| facility.service_state == "AVAILABLE")
                             && record.generalized_cost_seconds.is_some_and(|seconds| {
                                 seconds > scenario.scope.maximum_generalized_cost_seconds
                             })
@@ -771,6 +817,9 @@ fn evaluate_arm(
                 let has_unknown = records.iter().any(|record| {
                     record.access_state == "UNKNOWN"
                         || record.mandatory_access_state == "UNKNOWN"
+                        || facilities
+                            .get(record.facility_id.as_str())
+                            .is_some_and(|facility| facility.service_state == "UNKNOWN")
                 });
                 if known_failure {
                     mandatory_failure = true;
@@ -823,6 +872,7 @@ fn evaluate_arm(
         no_access_population,
         unknown_access_population,
         outside_tolerance_population,
+        service_unavailable_population,
         effective_access_coverage_basis_points: coverage_basis_points,
         p50_generalized_cost_seconds: weighted_quantile(&samples, 50, 100)?,
         p90_generalized_cost_seconds: weighted_quantile(&samples, 90, 100)?,
@@ -1087,6 +1137,46 @@ mod tests {
         value["scenarios"][0]["population_groups"][0]["population"] = Value::from(-1);
         let error = evaluate_value(value).expect_err("negative population must be rejected");
         assert!(error.contains("fixture schema error"));
+    }
+
+    #[test]
+    fn reachable_but_closed_service_is_not_an_effective_opportunity() {
+        let output = evaluate_fixture(FIXTURE.as_bytes()).expect("fixture should pass");
+        let external = find_arm(
+            &output,
+            "EXTERNAL_PROVIDER_DISTANCE_OR_CLOSURE",
+            "EXTERNAL_COMMERCIAL",
+        );
+        assert_eq!(external.effective_access_population, 0);
+        assert_eq!(external.service_unavailable_population, 100);
+        assert_eq!(external.no_access_population, 0);
+        assert_eq!(external.mandatory_access_gate, "FAIL");
+        assert_eq!(external.aggregate_capacity_units, Some(0));
+        assert_eq!(external.capacity_shortfall_units, Some(100));
+    }
+
+    #[test]
+    fn unknown_service_availability_is_not_assumed_open() {
+        let mut value = fixture_value();
+        let facility = &mut value["scenarios"][0]["arms"][1]["facilities"][0];
+        facility["service_state"] = Value::String("UNKNOWN".to_owned());
+        facility["capacity_state"] = Value::String("UNKNOWN".to_owned());
+        facility["capacity_units"] = Value::Null;
+        let output = evaluate_value(value).expect("unknown service state is representable");
+        let central = find_arm(&output, "COMPACT_HIGH_DENSITY", "CENTRAL_SHARED");
+        assert_eq!(central.effective_access_population, 0);
+        assert_eq!(central.unknown_access_population, 100);
+        assert_eq!(central.mandatory_access_gate, "UNKNOWN");
+        assert_eq!(central.capacity_state, "UNKNOWN");
+    }
+
+    #[test]
+    fn aggregate_capacity_overflow_fails_closed() {
+        let mut value = fixture_value();
+        value["scenarios"][0]["arms"][0]["facilities"][0]["capacity_units"] =
+            Value::from(u64::MAX);
+        let error = evaluate_value(value).expect_err("capacity overflow must fail closed");
+        assert!(error.contains("aggregate facility capacity overflow"));
     }
 
     #[test]
