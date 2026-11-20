@@ -66,7 +66,8 @@
       "input_snapshot_commitment": {
         "algorithm": "sha-256",
         "value": "7eda4c8715c60b17866a5e95675760da6728a04d2066e1de7615fd4a4326cfb8"
-      }
+      },
+      "input_snapshot_profile_ref": "urn:luminous:cter:query-input-json-v0.1"
     },
     "private_partition": [
       {
@@ -167,7 +168,8 @@
       "input_snapshot_commitment": {
         "algorithm": "sha-256",
         "value": "7eda4c8715c60b17866a5e95675760da6728a04d2066e1de7615fd4a4326cfb8"
-      }
+      },
+      "input_snapshot_profile_ref": "urn:luminous:cter:query-input-json-v0.1"
     },
     "receipt_assessment": {
       "assessment_ref": "urn:fixture:receipt-assessment:synthetic-current",
