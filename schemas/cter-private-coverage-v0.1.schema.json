@@ -458,7 +458,8 @@
             },
             "path": {
               "type": "string",
-              "pattern": "^/[A-Za-z][A-Za-z0-9_-]*$"
+              "pattern": "^/[A-Za-z][A-Za-z0-9_-]*$",
+              "maxLength": 128
             },
             "value": {
               "type": [
@@ -484,7 +485,8 @@
             },
             "path": {
               "type": "string",
-              "pattern": "^/[A-Za-z][A-Za-z0-9_-]*$"
+              "pattern": "^/[A-Za-z][A-Za-z0-9_-]*$",
+              "maxLength": 128
             },
             "values": {
               "type": "array",
@@ -514,7 +516,8 @@
             },
             "path": {
               "type": "string",
-              "pattern": "^/[A-Za-z][A-Za-z0-9_-]*$"
+              "pattern": "^/[A-Za-z][A-Za-z0-9_-]*$",
+              "maxLength": 128
             }
           }
         }
