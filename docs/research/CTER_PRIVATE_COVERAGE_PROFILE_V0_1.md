@@ -290,7 +290,7 @@ The structural evaluator checks:
 8. no public disclosure of object refs, counts or extra inventory fields;
 9. no global non-inclusion or absence claim.
 
-A tool-side V8 reference check matched **30/30** expected fixture dispositions: 1 valid partition structure, 3 incomplete, 5 unknown and 21 deny. This is a separate fixture-semantics check; it is not a Node 22 CI run, Rust test result, COSE receipt verification, VDS proof verification, zero-knowledge proof, source-owner completeness result or production authorization. The Rust tests and Node oracle are committed but have not yet been executed by the exact-head workflow.
+A tool-side V8 mirror matched **32/32** expected fixture dispositions: 1 valid partition structure, 3 incomplete, 5 unknown and 23 deny. This is a separate fixture-semantics check; it is not a Node 22 CI run, Rust test result, COSE receipt verification, VDS proof verification, zero-knowledge proof, source-owner completeness result or production authorization. The Rust tests and Node oracle are committed but have not yet been executed by the exact-head workflow.
 
 The result label is intentionally \`valid_partition_structure\`, never \`proof_valid\`, \`authorized\` or \`globally_complete\`. The receipt projection fields are synthetic host-resolved inputs; the evaluator does not authenticate the resolver, signature, issuer or witness quorum.
 
