@@ -3,7 +3,7 @@
   "suite_id": "CTER-EGRESS-BINDING-001",
   "suite_version": "0.1.0",
   "synthetic_only": true,
-  "execution_status": "javascript_oracle_v8_16_of_16_rust_tests_and_node22_workflow_pending",
+  "execution_status": "javascript_oracle_profile_check_extended_rust_tests_and_node22_workflow_pending",
   "parent_issue": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/960",
   "manifest_schema": "schemas/cter-disclosure-manifest-v0.1.schema.json",
   "canonicalization_profile": "rfc8785-jcs-v1",
@@ -310,6 +310,12 @@
       "mutation": "Change the coverage query commitment to an unsupported algorithm.",
       "expected": "incomplete",
       "reason_code": "authorization_coverage_query_commitment_malformed"
+    },
+    {
+      "case_id": "EGRESS-COVERAGE-QUERY-PROFILE-UNSUPPORTED-001",
+      "mutation": "Use an unsupported coverage-query semantics profile.",
+      "expected": "incomplete",
+      "reason_code": "authorization_coverage_query_profile_missing_or_unsupported"
     }
   ],
   "targets": {
