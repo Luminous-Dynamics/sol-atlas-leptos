@@ -34,7 +34,30 @@ The system consumes specialist routing, amenity-service, capacity, affordability
 
 The PEAI operationalizes five dimensions—proximity, availability, suitability, affordability and awareness. The paper's Vancouver example reports that conventional time-threshold coverage and its multidimensional "truly accessible" category diverge materially. That is a reason to reproduce the published method and assess dimensions separately—not to copy one city's weights or to claim a universal correction factor.
 
-## 3. Fair comparison protocol
+## 3. Temporal usability: travel arrival must meet service availability
+
+The temporal-opportunity child [#956](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/956) adds a narrow join across two independent owner facts:
+
+1. CityMorph #555's route/access result, including its qualified arrival-time interval.
+2. Mycelix #6328's operational state and service-availability window for the exact functional unit.
+
+The trip result is not recomputed. The amenity calendar is not inferred from a map point. The requested service duration must fit wholly inside a current operational window on the same declared scope and time basis.
+
+This closes a specific false-positive path: someone can reach a workshop at 16:55, but a one-hour workshop service is not available when the facility closes at 17:00. A route that reaches a facility before close is not enough; the whole declared service interval must fit.
+
+The join uses explicit half-open intervals `[start, end)`. For uncertain arrival-time results, every possible arrival in the declared range must fit before the output can be AVAILABLE. A mixture of fitting and non-fitting possibilities stays UNKNOWN; the evaluator does not assume a resident can choose the favourable arrival.
+
+The calendar-completeness state in the synthetic adapter is an integration-envelope proposal, not an already-approved field in Mycelix #6329's current JSON Schema. It distinguishes a complete schedule with a known closed gap from an incomplete feed where the same missing interval must remain UNKNOWN. Mycelix must approve this assertion or supply an equivalent owner-native field before production integration.
+
+### Fair industry comparison
+
+- **Conveyal R5:** consumes departure-window travel-time distributions and time percentiles. Its documented default assumes perfectly reliable transit operations—on-time vehicles, full schedule information, and no crowding or boarding/accessibility constraints. We therefore use its travel-time outputs as a routing comparator and do not claim that the amenity-window join improves transit reliability or route calculation. https://docs.conveyal.com/analysis/methodology
+- **OpenTripPlanner 2:** documents that wheelchair accessibility metadata in GTFS/NeTEx is often binary and incomplete, with explicit configuration for unknown trips, stops and elevators. We preserve upstream UNKNOWN and never promote it to accessible. https://docs.opentripplanner.org/en/latest/Accessibility/
+- **PEAI (2026):** integrates proximity, availability, suitability, affordability and awareness. Its Vancouver application reports 99% cycling-time and 74.5% walking-threshold reachability, versus 37.9% under its multidimensional truly-accessible category. This makes it important to benchmark service availability separately from proximity. We should reproduce PEAI before adaptation and not claim this interval join replaces or outperforms the index. https://doi.org/10.1016/j.urbmob.2026.100217
+
+The novel Luminous contribution is not a new router or PEAI clone. It is a verifiable join of specialist route evidence with canonical facility/service availability, exact functional unit, scope, source revision and time basis. That is a cross-owner correctness layer; it must be tested against the same route and calendar inputs as the incumbent workflow.
+
+## 4. Fair comparison protocol
 
 Every competitor and Luminous result must use the same:
 
