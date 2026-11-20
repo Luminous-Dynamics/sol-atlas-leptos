@@ -135,7 +135,7 @@ The v0.1 predicate uses only simple scalar operands and restricted object-member
 - domain separation between predicate, query and request commitments;
 - cross-language test vectors for Rust and Node implementations.
 
-The reference evaluator does not yet perform this cryptographic recomputation.
+**Implemented on the research branch:** the Rust reference evaluator and independent Node oracle recompute this commitment. Rust uses `serde_jcs` 0.2.0 and `sha2` 0.10.9; Node uses an independent JCS serializer and `node:crypto`. The four shared golden vectors are frozen in `benchmarks/territorial-integrity/egress/query-predicate-commitments-v0.1.json`. A local Node 22.16.0 check matched the four canonical byte strings and SHA-256 digests, including key-order equivalence, decomposed Unicode and the `1e-7` number form. This was an inline local check, not execution of the committed workflow oracle or Rust tests.
 
 ## 7. Benchmark plan
 
@@ -167,21 +167,44 @@ Targets, not achieved results:
 
 Do not use one weighted score. Correctness and fail-closed behavior are gates; performance is reported separately.
 
-## 8. Next proof and commitment increment
+## 8. Canonical commitment and strict raw-input boundary
 
-Before a VDS or private proof can establish query completeness, the verifier must know what predicate was committed. Required next steps:
-1. define canonical predicate bytes and domain-separated commitment preimage;
-2. implement hash recomputation in Rust and Node;
-3. publish shared test vectors (property order, Unicode, duplicate keys, number edge cases, null and missing);
-4. add predicate substitution and canonicalization mismatch controls;
-5. compare the reference AST against pinned JSONPath and an OPA/rego adapter on an identical source corpus;
-6. include the exact predicate/profile commitment in the host-resolved typed receipt and proof statement.
+The query predicate commitment is now:
 
-This is the prerequisite for claiming a proof that a private partition covers all items matching a query. A VDS inclusion proof over an opaque query hash alone cannot show that the custodian actually evaluated the intended predicate correctly.
+\`SHA-256("luminous.cter.query-predicate.v0.1\\0" || JCS({profile_ref, predicate}))\`
 
-## 9. Claim ceiling
+The canonical preimage includes the semantics profile, not only the AST. This prevents the same expression from being silently reinterpreted under a different predicate language. Rust computes it with pinned \`serde_jcs = 0.2.0\` and \`sha2 = 0.10.9\`; the independent Node oracle uses ECMAScript JSON number/string formatting, UTF-16 key ordering and Node's SHA-256 implementation.
 
-The current implementation checks the exact v0.1 AST against the private query-input snapshots present in the fixture. It does not prove that the source owner supplied truthful or complete attributes, that the frontier covers all real-world evidence, that the query is legally appropriate, that the predicate commitment has been cryptographically recomputed, or that the disclosure is authorized.
+The shared four-vector corpus covers:
+1. the baseline all/equality query;
+2. reordered JSON member names producing the same canonical bytes and digest;
+3. decomposed Unicode preserved without normalization;
+4. IEEE-754 exponent rendering for \`1e-7\`.
+
+Rust tests assert both canonical bytes and digests. The independent Node script does the same, checks query/receipt/public-projection digest agreement and rejects predicate substitution without commitment refresh. A local Node 22.16.0 inline run matched 4/4 vectors, demonstrated key-order invariance and predicate mutation sensitivity, and rejected an unsafe integer. The committed Node 22 workflow and Rust tests remain pending exact-head execution.
+
+Rust also exposes strict raw-input entry points for private coverage, egress manifests and composed releases. They parse recursively with a duplicate-member-detecting Serde visitor and reject integers outside the exact IEEE-754 safe-integer range before JCS commitment evaluation. These production-facing adapters should use the raw \`*_json\` entry points rather than first deserializing into \`serde_json::Value\`, because ordinary JSON value parsing can discard duplicate-member evidence.
+
+This closes the *predicate-integrity* gap, not the *query-input provenance* gap. A committed predicate establishes the rule, but the per-item \`query_input\` attributes remain a separate input set that must be bound to exact frontier source records and an owner/resolver attestation.
+
+## 9. Next proof and source-input integrity increment
+
+The next requirement is tracked in [CTER-QUERY-INPUT-ATTESTATION-001 #973](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/973). The predicate commitment must be paired with a separate, domain-separated commitment to the sorted per-item query-input snapshot, binding:
+- exact frontier reference, version and commitment;
+- exact query and predicate profile/commitment;
+- versioned attribute projection schema;
+- each item reference, availability state, private attribute projection and source-object/content-digest bindings;
+- canonicalization profile and snapshot commitment.
+
+The custodian snapshot hash proves only what was frozen, not that its attributes are true. Mycelix/source-owner resolution must authenticate the snapshot under a distinct typed receipt before any result can be described as source-owner attested. Predicate result, source-origin binding, owner attestation and authorization remain separate facts.
+
+The VDS/private proof qualification in #967 must then cover the relation between the owner-attested input snapshot, the predicate result, the complete frontier partition and the package's terminal source leaves. An inclusion receipt over an opaque query hash alone is not enough.
+
+## 10. Claim ceiling
+
+The current evaluator recomputes the exact v0.1 predicate commitment and checks TRUE/FALSE/UNKNOWN results against the private query-input snapshots supplied to it. The raw Rust entry points reject duplicate JSON object members and unsafe integers. This establishes integrity of the declared rule and strict parsing of the consumed record; it does not establish truth or completeness of the per-item attributes.
+
+It does not prove that the source owner discovered every real-world fact, that the frontier covers the real world, that the query is legally appropriate, or that disclosure is authorized. The per-item source-input snapshot and its owner/resolver attestation are the remaining qualification layer tracked by #973.
 
 Symthaea may propose alternate predicates and counterexamples read-only. It cannot choose the authoritative query or grant authority. Mycelix remains the identity, consent, policy, signed receipt and currentness owner. CTER remains the consumer-side query/package/partition binding and qualification layer.
 
@@ -197,3 +220,13 @@ The benchmark matrix is committed at \`benchmarks/territorial-integrity/egress/p
 - 22 adversarial semantics, canonicalization and cross-implementation faults.
 
 The workload separates predicate evaluation, parse/compile, canonicalization, commitment generation and commitment verification cost. No performance result or candidate winner is selected.
+
+
+## 11. Current executable suite counts
+
+- Private coverage: 38 synthetic cases (1 valid, 5 incomplete, 5 unknown, 27 deny).
+- Composed release: 21 cases (2 valid structural controls, 19 denials).
+- Egress binding: 35 cases (1 valid baseline and 34 adverse/indeterminate/review controls).
+- Predicate commitment golden vectors: 4 cross-language canonical-byte/digest vectors.
+
+These are fixture specifications and source-level conformance tests. The local Node 22.16.0 golden-vector check is a separate result. No Rust build/test, exact-head Node workflow pass, owner-attested input snapshot, COSE/VDS proof or production release is claimed.
