@@ -2,7 +2,7 @@ use cter_relay_reference::egress::evaluate_disclosure_manifest;
 use serde_json::Value;
 
 fn corpus() -> Value {
-    serde_json::from_str(include_str!("../../egress/cases-v0.1.json"))
+    serde_json::from_str(include_str!("../../../egress/cases-v0.1.json"))
         .expect("egress corpus must be valid JSON")
 }
 
