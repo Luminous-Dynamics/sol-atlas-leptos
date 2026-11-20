@@ -173,3 +173,17 @@ The egress authorization carries the exact query reference, digest and profile, 
 The raw JSON entrypoints for the disclosure manifest, private coverage record and composed release use one shared strict parser. It rejects duplicate object member names and unsafe integer values before evaluating records or recomputing commitments. Typed \`serde_json::Value\` entrypoints remain available for internal composition; external adapters should use the raw \`*_json\` entrypoints so duplicate-key evidence has not already been lost.
 
 The remaining provenance gap is separate: the per-item private \`query_input\` values are not yet bound to an owner-authenticated source-input snapshot. [CTER-QUERY-INPUT-ATTESTATION-001 #973](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/973) defines the next relation. A custodian-computed snapshot hash is not a source-owner attestation and does not establish real-world truth.
+
+
+## Source-input snapshot composition
+
+The composed release now binds the query-input snapshot reference, profile and commitment across:
+- the private coverage record;
+- its receipt projection;
+- the egress authorization binding.
+
+The snapshot itself binds the exact frontier version/commitment and predicate profile/commitment. Private partition rows point to their snapshot item by object reference. The evaluator checks the snapshot's canonical commitment and evaluates scope from the snapshot, not a second custodian-supplied set of mutable partition attributes.
+
+The composed corpus now has 24 cases: two positive structural controls and 22 expected denials, including snapshot reference, commitment and attribute-drift controls. Its synthetic snapshot digest is \`a8f000ebab94a5ad4479faa5fb12cf2980cc094376d0cc3eb438698804c3d788\`.
+
+The snapshot hash is not source-owner attestation. Mycelix has not yet confirmed/issued the owner-authenticated receipt for this snapshot type, and the reference does not fetch source bytes to recompute attribute-source digests. See [#973](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/973).
