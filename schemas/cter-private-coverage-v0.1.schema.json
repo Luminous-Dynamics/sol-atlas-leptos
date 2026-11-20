@@ -15,7 +15,8 @@
     "private_partition",
     "package_binding",
     "public_verifier_view",
-    "fixture_notice"
+    "fixture_notice",
+    "query_input_snapshot"
   ],
   "properties": {
     "schema": {
@@ -80,7 +81,9 @@
         "jurisdiction_profile_ref",
         "project_snapshot_sha256",
         "query_profile_ref",
-        "predicate"
+        "predicate",
+        "input_snapshot_ref",
+        "input_snapshot_commitment"
       ],
       "properties": {
         "query_ref": {
@@ -139,6 +142,12 @@
         "predicate": {
           "$ref": "#/$defs/query_predicate",
           "description": "Private, deterministic query AST; its canonical commitment is carried by query_commitment."
+        },
+        "input_snapshot_ref": {
+          "$ref": "#/$defs/opaque_ref"
+        },
+        "input_snapshot_commitment": {
+          "$ref": "#/$defs/sha256_digest"
         }
       }
     },
@@ -162,7 +171,9 @@
         "resource_ref",
         "jurisdiction_profile_ref",
         "project_snapshot_sha256",
-        "query_profile_ref"
+        "query_profile_ref",
+        "input_snapshot_ref",
+        "input_snapshot_commitment"
       ],
       "properties": {
         "receipt_ref": {
@@ -229,6 +240,12 @@
         },
         "query_profile_ref": {
           "$ref": "#/$defs/opaque_ref"
+        },
+        "input_snapshot_ref": {
+          "$ref": "#/$defs/opaque_ref"
+        },
+        "input_snapshot_commitment": {
+          "$ref": "#/$defs/sha256_digest"
         }
       }
     },
@@ -321,6 +338,9 @@
       "type": "string",
       "minLength": 1,
       "maxLength": 2000
+    },
+    "query_input_snapshot": {
+      "$ref": "#/$defs/query_input_snapshot"
     }
   },
   "$defs": {
@@ -356,7 +376,8 @@
       "required": [
         "object_ref",
         "scope_state",
-        "disposition"
+        "disposition",
+        "query_input_snapshot_item_ref"
       ],
       "properties": {
         "object_ref": {
@@ -378,9 +399,8 @@
             "unresolved"
           ]
         },
-        "query_input": {
-          "type": "object",
-          "description": "Private per-item attributes evaluated by the committed predicate. Missing required attributes yield UNKNOWN."
+        "query_input_snapshot_item_ref": {
+          "$ref": "#/$defs/opaque_ref"
         }
       }
     },
@@ -526,6 +546,168 @@
           }
         }
       ]
+    },
+    "query_input_snapshot": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "snapshot_ref",
+        "profile_ref",
+        "frontier_ref",
+        "frontier_version",
+        "frontier_commitment",
+        "query_profile_ref",
+        "query_commitment",
+        "attribute_projection_profile_ref",
+        "items",
+        "snapshot_commitment",
+        "schema"
+      ],
+      "properties": {
+        "schema": {
+          "const": "luminous.cter.query-input-snapshot.v0.1"
+        },
+        "snapshot_ref": {
+          "$ref": "#/$defs/opaque_ref"
+        },
+        "profile_ref": {
+          "const": "urn:luminous:cter:query-input-json-v0.1"
+        },
+        "frontier_ref": {
+          "$ref": "#/$defs/opaque_ref"
+        },
+        "frontier_version": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "frontier_commitment": {
+          "$ref": "#/$defs/sha256_digest"
+        },
+        "query_profile_ref": {
+          "const": "urn:luminous:cter:predicate-json-v0.1"
+        },
+        "query_commitment": {
+          "$ref": "#/$defs/sha256_digest"
+        },
+        "attribute_projection_profile_ref": {
+          "$ref": "#/$defs/opaque_ref"
+        },
+        "items": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/query_input_snapshot_item"
+          }
+        },
+        "snapshot_commitment": {
+          "$ref": "#/$defs/sha256_digest",
+          "description": "SHA-256 over the domain-separated JCS canonical snapshot preimage. It is not an owner signature."
+        }
+      }
+    },
+    "query_input_snapshot_item": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "object_ref",
+        "availability_state",
+        "attribute_source_bindings"
+      ],
+      "properties": {
+        "object_ref": {
+          "$ref": "#/$defs/opaque_ref"
+        },
+        "availability_state": {
+          "enum": [
+            "available",
+            "unavailable",
+            "unknown"
+          ]
+        },
+        "query_input": {
+          "type": "object",
+          "additionalProperties": {
+            "type": [
+              "string",
+              "boolean",
+              "number",
+              "null"
+            ],
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          }
+        },
+        "attribute_source_bindings": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/attribute_source_binding"
+          }
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "availability_state": {
+                "const": "available"
+              }
+            },
+            "required": [
+              "availability_state"
+            ]
+          },
+          "then": {
+            "required": [
+              "query_input"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "availability_state": {
+                "enum": [
+                  "unavailable",
+                  "unknown"
+                ]
+              }
+            },
+            "required": [
+              "availability_state"
+            ]
+          },
+          "then": {
+            "not": {
+              "required": [
+                "query_input"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "attribute_source_binding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "path",
+        "source_object_ref",
+        "source_content_digest"
+      ],
+      "properties": {
+        "path": {
+          "type": "string",
+          "pattern": "^/[A-Za-z][A-Za-z0-9_-]*$",
+          "maxLength": 128
+        },
+        "source_object_ref": {
+          "$ref": "#/$defs/opaque_ref"
+        },
+        "source_content_digest": {
+          "$ref": "#/$defs/sha256_digest"
+        }
+      }
     }
   }
 }
