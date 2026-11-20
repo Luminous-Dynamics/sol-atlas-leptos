@@ -137,7 +137,7 @@ A new workstream, [CTER-EGRESS-BINDING-001 #960](https://github.com/Luminous-Dyn
 
 The new evaluation dimension is whether a prepared package remains identical to the exact request and upstream decision at release time: object bytes, source/transform lineage, project/evidence frontier, recipient and destination-key epoch, transport channel, currentness/revocation recheck, and release-attempt reconciliation.
 
-This is not a claim that policy engines or data-packaging standards lack these capabilities. ODRL, PROV-O, BagIt, SCITT and policy-decision logging already cover important parts. CTER's testable hypothesis is their composition across a portable evidence package and an independently verifiable custody boundary. The initial corpus has one valid synthetic baseline and 31 adversarial cases; it is specified, not yet executed.
+This is not a claim that policy engines or data-packaging standards lack these capabilities. ODRL, PROV-O, BagIt, SCITT and policy-decision logging already cover important parts. CTER's testable hypothesis is their composition across a portable evidence package and an independently verifiable custody boundary. The current egress corpus has one valid synthetic baseline and 33 adversarial cases; it is specified, not yet executed.
 
 
 ## 9. Expanded industry comparison: do not compete with the wrong layer
@@ -271,7 +271,7 @@ A tool-side V8 check matched 24/24 fixture expectations. This remains a fixture-
 
 ## 10. Private coverage implementation status
 
-[CTER-PRIVATE-COVERAGE-001 #962](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/962) now has a versioned schema, Rust partition evaluator, Rust conformance tests and independent Node oracle. The machine-readable corpus contains 30 synthetic cases. A tool-side V8 implementation matched 30/30 expected dispositions: 1 valid partition structure, 3 incomplete, 5 unknown and 21 deny. These are fixture semantics only—not Node 22 CI, Rust execution, a COSE/VDS proof or a production completeness claim.
+[CTER-PRIVATE-COVERAGE-001 #962](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/962) now has a versioned schema, Rust partition evaluator, Rust conformance tests and independent Node oracle. The machine-readable corpus contains 32 synthetic cases. A tool-side V8 implementation matched 32/32 expected dispositions: 1 valid partition structure, 3 incomplete, 5 unknown and 23 deny. These are fixture semantics only—not Node 22 CI, Rust execution, a COSE/VDS proof or a production completeness claim.
 
 The new contract requires the exact frontier item set to equal the private partition item set; each item has one compatible scope/disposition; the included set equals package terminal source leaves; the receipt projection binds query/request/recipient/frontier/package; and the public verifier view does not expose item references or counts. Non-inclusion is explicitly restricted to the named frontier version.
 
