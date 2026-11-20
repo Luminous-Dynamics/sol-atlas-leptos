@@ -194,6 +194,7 @@ pub fn evaluate_disclosure_manifest(input: &Value) -> EgressEvaluation {
         "resource_ref",
         "evidence_frontier_ref",
         "coverage_query_ref",
+        "coverage_query_profile_ref",
         "purpose_ref",
         "recipient_ref",
         "jurisdiction_profile_ref",
@@ -228,6 +229,17 @@ pub fn evaluate_disclosure_manifest(input: &Value) -> EgressEvaluation {
             &mut reasons,
             Severity::Incomplete,
             "authorization_coverage_query_commitment_malformed",
+        );
+    }
+
+    if nonblank(binding, "coverage_query_profile_ref")
+        != Some("urn:luminous:cter:predicate-json-v0.1")
+    {
+        raise(
+            &mut severity,
+            &mut reasons,
+            Severity::Incomplete,
+            "authorization_coverage_query_profile_missing_or_unsupported",
         );
     }
     if !nonblank(binding, "project_snapshot_sha256").is_some_and(lower_hex_64) {
