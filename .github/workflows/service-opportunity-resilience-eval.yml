@@ -61,9 +61,9 @@ jobs:
             .schema == "luminous.service-opportunity-resilience-evaluation"
             and .schema_version == "0.1.0"
             and .maturity == "SYNTHETIC_REFERENCE_ORACLE_EXECUTION_ONLY"
-            and .case_count == 17
-            and .opportunity_interval_count == 68
-            and .frozen_oracle_match_count == 17
+            and .case_count == 18
+            and .opportunity_interval_count == 72
+            and .frozen_oracle_match_count == 18
             and .mismatch_count == 0
             and (.fixture_sha256 | test("^[0-9a-f]{64}$"))
           ' service-opportunity-resilience-evaluation.json
@@ -86,7 +86,7 @@ jobs:
         run: |
           test "$(jq -r .source_commit service-opportunity-resilience-receipt.json)" = "${{ github.event.pull_request.head.sha || github.sha }}"
           test "$(jq -r .fixture_sha256 service-opportunity-resilience-receipt.json)" = "$(sha256sum docs/research/service-opportunity-resilience/SERVICE_OPPORTUNITY_RESILIENCE_REFERENCE_ORACLE_V0_1.json | cut -d ' ' -f 1)"
-          jq -e '.result == "pass" and .evaluation.frozen_oracle_match_count == 17' service-opportunity-resilience-receipt.json
+          jq -e '.result == "pass" and .evaluation.frozen_oracle_match_count == 18' service-opportunity-resilience-receipt.json
 
       - name: Upload exact-head receipt
         uses: actions/upload-artifact@v4
