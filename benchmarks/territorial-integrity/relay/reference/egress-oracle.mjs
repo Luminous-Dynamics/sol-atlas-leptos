@@ -1,0 +1,413 @@
+import assert from "node:assert/strict";
+import fs from "node:fs";
+
+const corpusUrl = new URL("../../egress/cases-v0.1.json", import.meta.url);
+const corpus = JSON.parse(fs.readFileSync(corpusUrl, "utf8"));
+
+const LEVEL = { none: 0, incomplete: 1, unknown: 2, review: 3, deny: 4 };
+
+function nonblank(value, key) {
+  const candidate = value?.[key];
+  return typeof candidate === "string" && candidate.trim().length > 0
+    ? candidate
+    : null;
+}
+
+function isHex64(value) {
+  return typeof value === "string" && /^[0-9a-f]{64}$/.test(value);
+}
+
+function isSha256Digest(value) {
+  return nonblank(value, "algorithm") === "sha-256"
+    && isHex64(nonblank(value, "value"));
+}
+
+function stringSet(value) {
+  if (!Array.isArray(value) || value.length === 0) return null;
+  const values = value.map((item) => typeof item === "string" ? item.trim() : "");
+  if (values.some((item) => !item) || new Set(values).size !== values.length) return null;
+  return new Set(values);
+}
+
+function dataClassSet(value) {
+  const values = stringSet(value);
+  const allowed = new Set(["public", "community", "restricted", "culturally_protected"]);
+  if (!values || [...values].some((value) => !allowed.has(value))) return null;
+  return values;
+}
+
+function detectCycle(graph) {
+  const visiting = new Set();
+  const visited = new Set();
+  function visit(node) {
+    if (visiting.has(node)) return true;
+    if (visited.has(node)) return false;
+    visiting.add(node);
+    for (const child of graph.get(node) ?? []) {
+      if (visit(child)) return true;
+    }
+    visiting.delete(node);
+    visited.add(node);
+    return false;
+  }
+  for (const node of graph.keys()) {
+    if (visit(node)) return true;
+  }
+  return false;
+}
+
+export function evaluateDisclosureManifest(input) {
+  let severity = LEVEL.none;
+  const reasons = new Set();
+  const raise = (level, code) => {
+    severity = Math.max(severity, LEVEL[level]);
+    reasons.add(code);
+  };
+
+  if (nonblank(input, "schema") !== "luminous.cter.disclosure-manifest.v0.1") {
+    raise("incomplete", "manifest_schema_missing_or_unsupported");
+  }
+  if (nonblank(input, "canonicalization_profile") !== "rfc8785-jcs-v1") {
+    raise("incomplete", "canonicalization_profile_missing_or_unsupported");
+  }
+  for (const key of ["manifest_id", "coverage_record_ref", "prepared_at"]) {
+    if (!nonblank(input, key)) raise("incomplete", "manifest_" + key + "_missing");
+  }
+  if (!isSha256Digest(input?.manifest_commitment)) {
+    raise("incomplete", "manifest_commitment_malformed");
+  }
+
+  const binding = input?.authorization_binding;
+  if (!binding || typeof binding !== "object") {
+    raise("incomplete", "authorization_binding_missing");
+    return result();
+  }
+  for (const key of [
+    "request_ref", "authorization_receipt_ref", "principal_ref", "subject_ref",
+    "operation", "resource_ref", "evidence_frontier_ref", "purpose_ref",
+    "recipient_ref", "jurisdiction_profile_ref",
+  ]) {
+    if (!nonblank(binding, key)) raise("incomplete", "authorization_" + key + "_missing");
+  }
+  if (!isSha256Digest(binding.request_commitment)) {
+    raise("incomplete", "authorization_request_commitment_malformed");
+  }
+  if (!isHex64(nonblank(binding, "project_snapshot_sha256"))) {
+    raise("incomplete", "authorization_project_snapshot_malformed");
+  }
+  if (!["collect_measurement", "publish_observation", "export_evidence"].includes(binding.operation)) {
+    raise("deny", "operation_outside_cter_disclosure_boundary");
+  }
+  const authorizedClasses = dataClassSet(binding.data_classes);
+  if (!authorizedClasses) raise("incomplete", "authorization_data_classes_missing_or_invalid");
+
+  const destination = input?.destination_binding;
+  if (!destination || typeof destination !== "object") {
+    raise("incomplete", "destination_binding_missing");
+    return result();
+  }
+  for (const key of ["recipient_ref", "destination_ref", "destination_key_epoch_ref", "channel_ref", "transport_profile_ref"]) {
+    if (!nonblank(destination, key)) raise("incomplete", "destination_" + key + "_missing");
+  }
+  if (nonblank(destination, "recipient_ref") !== nonblank(binding, "recipient_ref")) {
+    raise("deny", "recipient_binding_mismatch");
+  }
+
+  const packageValue = input?.package;
+  if (!packageValue || typeof packageValue !== "object") {
+    raise("incomplete", "package_missing");
+    return result();
+  }
+  if (!nonblank(packageValue, "package_ref") || !nonblank(packageValue, "media_type")) {
+    raise("incomplete", "package_identity_or_media_type_missing");
+  }
+  if (!isSha256Digest(packageValue.package_payload_digest)) {
+    raise("incomplete", "package_payload_digest_malformed");
+  }
+  const outputs = packageValue.outputs;
+  const transformations = packageValue.transformations;
+  if (!Array.isArray(outputs)) {
+    raise("incomplete", "package_outputs_missing");
+    return result();
+  }
+  if (!Array.isArray(transformations)) {
+    raise("incomplete", "package_transformations_missing");
+    return result();
+  }
+  if (outputs.length === 0 || transformations.length === 0) {
+    raise("incomplete", "package_outputs_or_transformations_empty");
+    return result();
+  }
+
+  const outputIds = new Set();
+  const outputClasses = new Map();
+  const outputDigests = new Map();
+  const sourceDigests = new Map();
+  const sourceClasses = new Map();
+  const outputTransformRefs = new Map();
+  const outputSourceRefs = new Map();
+
+  for (const output of outputs) {
+    const objectRef = nonblank(output, "object_ref");
+    if (!objectRef) {
+      raise("incomplete", "output_object_ref_missing");
+      continue;
+    }
+    if (outputIds.has(objectRef)) raise("deny", "output_object_identity_duplicated");
+    outputIds.add(objectRef);
+    if (!isSha256Digest(output.content_digest)) raise("incomplete", "output_content_digest_malformed");
+    outputDigests.set(objectRef, nonblank(output.content_digest, "value") ?? "");
+    if (!Number.isSafeInteger(output.byte_length) || output.byte_length < 0 || !nonblank(output, "media_type")) {
+      raise("incomplete", "output_length_or_media_type_invalid");
+    }
+
+    const classes = dataClassSet(output.data_classes);
+    if (!classes) raise("incomplete", "output_data_classes_missing_or_invalid");
+    if (classes && authorizedClasses && [...classes].some((value) => !authorizedClasses.has(value))) {
+      raise("deny", "output_data_class_outside_authorized_scope");
+    }
+    outputClasses.set(objectRef, classes ?? new Set());
+
+    if (!Array.isArray(output.source_refs)) {
+      raise("incomplete", "output_source_lineage_missing");
+      continue;
+    }
+    if (output.source_refs.length === 0) raise("incomplete", "output_source_lineage_empty");
+    const sourceIds = new Set();
+    for (const source of output.source_refs) {
+      const sourceRef = nonblank(source, "object_ref");
+      if (!sourceRef) {
+        raise("incomplete", "source_object_ref_missing");
+        continue;
+      }
+      if (!isSha256Digest(source.content_digest)) raise("incomplete", "source_content_digest_malformed");
+      const digest = nonblank(source.content_digest, "value") ?? "";
+      if (sourceDigests.has(sourceRef) && sourceDigests.get(sourceRef) !== digest) {
+        raise("deny", "source_object_identity_conflict");
+      }
+      sourceDigests.set(sourceRef, digest);
+      const sourceClassSet = dataClassSet(source.data_classes);
+      if (!sourceClassSet) raise("incomplete", "source_data_classes_missing_or_invalid");
+      if (sourceClasses.has(sourceRef) && JSON.stringify([...sourceClasses.get(sourceRef)].sort()) !== JSON.stringify([...(sourceClassSet ?? [])].sort())) {
+        raise("deny", "source_classification_identity_conflict");
+      }
+      sourceClasses.set(sourceRef, sourceClassSet ?? new Set());
+      sourceIds.add(sourceRef);
+    }
+    outputSourceRefs.set(objectRef, sourceIds);
+
+    const transformRefs = stringSet(output.transformation_refs);
+    if (!transformRefs) raise("incomplete", "output_transformation_refs_missing_or_invalid");
+    outputTransformRefs.set(objectRef, transformRefs ?? new Set());
+  }
+
+  const transformByRef = new Map();
+  for (const transform of transformations) {
+    const transformRef = nonblank(transform, "transform_ref");
+    if (!transformRef) {
+      raise("incomplete", "transform_ref_missing");
+      continue;
+    }
+    if (transformByRef.has(transformRef)) raise("deny", "transform_identity_duplicated");
+    transformByRef.set(transformRef, transform);
+    if (!nonblank(transform, "profile_ref")) raise("incomplete", "transform_profile_ref_missing");
+    if (!isSha256Digest(transform.version_commitment)) raise("incomplete", "transform_version_commitment_malformed");
+    const allowedKinds = [
+      "identity_copy", "redaction", "aggregation", "generalization",
+      "translation", "format_conversion", "derived_summary", "other",
+    ];
+    if (!allowedKinds.includes(transform.transform_kind)) raise("incomplete", "transform_kind_missing_or_unknown");
+
+    if (transform.transform_kind === "identity_copy") {
+      const inputs = stringSet(transform.input_object_refs);
+      const produced = stringSet(transform.output_object_refs);
+      if (!inputs || !produced || inputs.size !== 1 || produced.size !== 1) {
+        raise("incomplete", "identity_copy_cardinality_invalid");
+      } else {
+        const inputRef = [...inputs][0];
+        const outputRef = [...produced][0];
+        const inputDigest = sourceDigests.get(inputRef) ?? outputDigests.get(inputRef);
+        const outputDigest = outputDigests.get(outputRef);
+        if (inputDigest === undefined || outputDigest === undefined) {
+          raise("incomplete", "identity_copy_digest_unresolved");
+        } else if (inputDigest !== outputDigest) {
+          raise("deny", "identity_copy_digest_mismatch");
+        }
+      }
+    }
+  }
+
+  if ([...sourceDigests.keys()].some((key) => outputIds.has(key))) {
+    raise("deny", "source_output_identity_domain_collision");
+  }
+
+  const knownObjectIds = new Set([...sourceDigests.keys(), ...outputIds]);
+  const graph = new Map();
+  const referencedTransforms = new Set();
+  const transformInputs = new Map();
+  for (const [outputRef, refs] of outputTransformRefs) {
+    for (const transformRef of refs) {
+      referencedTransforms.add(transformRef);
+      const transform = transformByRef.get(transformRef);
+      if (!transform) {
+        raise("incomplete", "transformation_lineage_incomplete");
+        continue;
+      }
+      const inputs = stringSet(transform.input_object_refs);
+      const produced = stringSet(transform.output_object_refs);
+      if (!inputs || !produced) {
+        raise("incomplete", "transform_input_or_output_refs_invalid");
+        continue;
+      }
+      if (!produced.has(outputRef)) raise("deny", "transform_does_not_produce_referenced_output");
+      if ([...inputs].some((ref) => !knownObjectIds.has(ref))) raise("incomplete", "transform_input_object_unresolved");
+      for (const inputRef of inputs) {
+        if (outputIds.has(inputRef)) {
+          if (!graph.has(inputRef)) graph.set(inputRef, new Set());
+          graph.get(inputRef).add(outputRef);
+        }
+      }
+      if (!transformInputs.has(outputRef)) transformInputs.set(outputRef, new Set());
+      for (const inputRef of inputs) transformInputs.get(outputRef).add(inputRef);
+    }
+  }
+
+  for (const [transformRef, transform] of transformByRef) {
+    if (!referencedTransforms.has(transformRef)) raise("incomplete", "orphan_transformation_unreferenced");
+    const produced = stringSet(transform.output_object_refs);
+    if (!produced) continue;
+    for (const outputRef of produced) {
+      if (!outputIds.has(outputRef)) {
+        raise("incomplete", "transform_output_object_unresolved");
+      } else if (!outputTransformRefs.get(outputRef)?.has(transformRef)) {
+        raise("incomplete", "output_omits_transform_reference");
+      }
+    }
+  }
+
+  for (const [outputRef, sourceRefs] of outputSourceRefs) {
+    const inputs = transformInputs.get(outputRef);
+    for (const sourceRef of sourceRefs) {
+      if (!sourceDigests.has(sourceRef) || !inputs?.has(sourceRef)) {
+        raise("incomplete", "declared_source_not_connected_to_output_transform");
+      }
+    }
+    const sourceClassUnion = new Set();
+    for (const sourceRef of sourceRefs) {
+      for (const cls of sourceClasses.get(sourceRef) ?? []) sourceClassUnion.add(cls);
+    }
+    const classes = outputClasses.get(outputRef);
+    if (sourceClassUnion.size && classes
+        && JSON.stringify([...sourceClassUnion].sort()) !== JSON.stringify([...classes].sort())) {
+      const hasReference = [...(outputTransformRefs.get(outputRef) ?? [])].some((ref) =>
+        nonblank(transformByRef.get(ref), "classification_change_authority_ref"));
+      if (hasReference) {
+        raise("unknown", "classification_change_authority_resolution_unavailable");
+      } else {
+        raise("review", "classification_change_authority_reference_missing");
+      }
+    }
+  }
+
+  if (detectCycle(graph)) raise("deny", "transformation_graph_cycle");
+  return result();
+
+  function result() {
+    const disposition = Object.keys(LEVEL).find((key) => LEVEL[key] === severity);
+    const labels = {
+      none: "valid_structure",
+      incomplete: "incomplete",
+      unknown: "unknown",
+      review: "review",
+      deny: "deny",
+    };
+    return { disposition: labels[disposition], reason_codes: [...reasons].sort() };
+  }
+}
+
+function test(name, mutate, expected, reason) {
+  const input = structuredClone(corpus.baseline_manifest);
+  mutate(input);
+  const actual = evaluateDisclosureManifest(input);
+  assert.equal(actual.disposition, expected, name + ": " + actual.reason_codes.join(","));
+  assert.ok(actual.reason_codes.includes(reason), name + ": missing reason " + reason);
+  return name;
+}
+
+const passed = [];
+const baselineResult = evaluateDisclosureManifest(corpus.baseline_manifest);
+assert.equal(baselineResult.disposition, "valid_structure", baselineResult.reason_codes.join(","));
+passed.push("baseline");
+
+passed.push(test(
+  "recipient-binding",
+  (input) => { input.destination_binding.recipient_ref = "urn:fixture:recipient:other"; },
+  "deny",
+  "recipient_binding_mismatch",
+));
+passed.push(test(
+  "data-class-overreach",
+  (input) => { input.package.outputs[0].data_classes = ["community", "restricted"]; },
+  "deny",
+  "output_data_class_outside_authorized_scope",
+));
+passed.push(test(
+  "malformed-digest-algorithm",
+  (input) => { input.package.outputs[0].content_digest.algorithm = "blake3"; },
+  "incomplete",
+  "output_content_digest_malformed",
+));
+passed.push(test(
+  "missing-source",
+  (input) => { input.package.outputs[0].source_refs = []; },
+  "incomplete",
+  "output_source_lineage_empty",
+));
+passed.push(test(
+  "missing-transform",
+  (input) => { input.package.outputs[0].transformation_refs = ["urn:fixture:transform:missing"]; },
+  "incomplete",
+  "transformation_lineage_incomplete",
+));
+passed.push(test(
+  "cycle",
+  (input) => { input.package.transformations[0].input_object_refs = [input.package.outputs[0].object_ref]; },
+  "deny",
+  "transformation_graph_cycle",
+));
+passed.push(test(
+  "duplicate-output",
+  (input) => { input.package.outputs.push(structuredClone(input.package.outputs[0])); },
+  "deny",
+  "output_object_identity_duplicated",
+));
+passed.push(test(
+  "classification-change-needs-review",
+  (input) => {
+    input.authorization_binding.data_classes = ["community", "public"];
+    input.package.outputs[0].data_classes = ["public"];
+    input.package.transformations[0].transform_kind = "generalization";
+  },
+  "review",
+  "classification_change_authority_reference_missing",
+));
+passed.push(test(
+  "classification-reference-not-self-authenticating",
+  (input) => {
+    input.authorization_binding.data_classes = ["community", "public"];
+    input.package.outputs[0].data_classes = ["public"];
+    input.package.transformations[0].transform_kind = "generalization";
+    input.package.transformations[0].classification_change_authority_ref = "urn:fixture:authority:classification-change";
+  },
+  "unknown",
+  "classification_change_authority_resolution_unavailable",
+));
+passed.push(test(
+  "identity-copy-digest",
+  (input) => { input.package.outputs[0].content_digest.value = "b".repeat(64); },
+  "deny",
+  "identity_copy_digest_mismatch",
+));
+
+console.log("CTER egress oracle: " + passed.length + "/" + passed.length + " local structural cases matched.");
+console.log("Frozen specification corpus: " + corpus.cases.length + " adversarial cases; no production authorization is asserted.");
