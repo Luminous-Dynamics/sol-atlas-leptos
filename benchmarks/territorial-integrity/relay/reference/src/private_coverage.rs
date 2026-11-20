@@ -170,6 +170,7 @@ fn compare_receipt_projection(
     input: &Value,
     frontier: &Value,
     query: &Value,
+    package: &Value,
     severity: &mut Severity,
     reasons: &mut BTreeSet<String>,
 ) {
@@ -200,6 +201,15 @@ fn compare_receipt_projection(
             reasons,
             Severity::Unknown,
             "receipt_frontier_version_or_commitment_mismatch",
+        );
+    }
+
+    if receipt.get("package_commitment") != package.get("package_commitment") {
+        raise(
+            severity,
+            reasons,
+            Severity::Deny,
+            "receipt_package_commitment_mismatch",
         );
     }
 
@@ -503,6 +513,7 @@ pub fn evaluate_private_coverage(input: &Value) -> CoverageEvaluation {
         input,
         frontier,
         query,
+        package,
         &mut severity,
         &mut reasons,
     );
