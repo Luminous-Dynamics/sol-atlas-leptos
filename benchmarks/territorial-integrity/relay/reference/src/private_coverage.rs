@@ -6,6 +6,7 @@
 //! A valid_partition_structure result is not cryptographic proof or permission.
 
 use serde_json::Value;
+use sha2::{Digest, Sha256};
 use std::collections::BTreeSet;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -82,6 +83,30 @@ fn data_class_set(value: &Value) -> Result<BTreeSet<String>, &'static str> {
     } else {
         Err("data_class_unknown")
     }
+}
+
+
+/// Compute the domain-separated SHA-256 commitment for the exact predicate
+/// and semantics profile. The public reference is not the commitment preimage
+/// by itself: both the profile identifier and the AST are canonicalized.
+pub fn query_predicate_commitment(
+    profile_ref: &str,
+    predicate: &Value,
+) -> Result<String, &'static str> {
+    if profile_ref != "urn:luminous:cter:predicate-json-v0.1" {
+        return Err("query_profile_unsupported_for_commitment");
+    }
+    let preimage = serde_json::json!({
+        "profile_ref": profile_ref,
+        "predicate": predicate,
+    });
+    let canonical = serde_jcs::to_vec(&preimage)
+        .map_err(|_| "query_predicate_canonicalization_failed")?;
+    let mut hasher = Sha256::new();
+    hasher.update(b"luminous.cter.query-predicate.v0.1\0");
+    hasher.update(&canonical);
+    let digest = hasher.finalize();
+    Ok(digest.iter().map(|byte| format!("{byte:02x}")).collect())
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -598,6 +623,38 @@ pub fn evaluate_private_coverage(input: &Value) -> CoverageEvaluation {
             false
         }
     };
+
+    if predicate_valid
+        && query
+            .get("query_commitment")
+            .is_some_and(sha256_digest)
+    {
+        match query_predicate_commitment(
+            nonblank(query, "query_profile_ref").unwrap_or(""),
+            query.get("predicate").unwrap_or(&Value::Null),
+        ) {
+            Ok(expected) => {
+                let observed = nonblank(
+                    query.get("query_commitment").unwrap_or(&Value::Null),
+                    "value",
+                );
+                if observed != Some(expected.as_str()) {
+                    raise(
+                        &mut severity,
+                        &mut reasons,
+                        Severity::Deny,
+                        "query_predicate_commitment_mismatch",
+                    );
+                }
+            }
+            Err(reason) => raise(
+                &mut severity,
+                &mut reasons,
+                Severity::Incomplete,
+                format!("query_predicate_commitment_unavailable:{reason}"),
+            ),
+        }
+    }
 
     let Some(partition) = input.get("private_partition").and_then(Value::as_array) else {
         raise(
