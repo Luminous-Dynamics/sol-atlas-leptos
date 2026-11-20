@@ -241,8 +241,12 @@ export function evaluateDisclosureManifest(input) {
     }
   }
 
-  if ([...sourceDigests.keys()].some((key) => outputIds.has(key))) {
-    raise("deny", "source_output_identity_domain_collision");
+  // An intermediate output can be a source for a downstream transform;
+  // the shared object reference must still bind identical content.
+  for (const [sourceRef, sourceDigest] of sourceDigests) {
+    if (outputDigests.has(sourceRef) && outputDigests.get(sourceRef) !== sourceDigest) {
+      raise("deny", "source_output_content_conflict");
+    }
   }
 
   const knownObjectIds = new Set([...sourceDigests.keys(), ...outputIds]);
