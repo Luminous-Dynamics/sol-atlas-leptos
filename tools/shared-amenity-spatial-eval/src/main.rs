@@ -414,7 +414,7 @@ fn validate_fixture(fixtures: &FixtureSet) -> Result<(), String> {
         }
         let mut seen_arms = BTreeSet::new();
 
-        for (arm_index, arm) in scenario.arms.iter().enumerate() {
+        for arm in &scenario.arms {
             if !seen_arms.insert(arm.comparison_arm.as_str()) {
                 return Err(format!(
                     "scenario {} contains duplicate arm {}",
@@ -533,7 +533,6 @@ fn validate_fixture(fixtures: &FixtureSet) -> Result<(), String> {
                     scenario.scenario_id, arm.comparison_arm
                 ));
             }
-            let _ = arm_index;
         }
 
         let actual_arms = seen_arms
@@ -563,14 +562,6 @@ fn validate_fixture(fixtures: &FixtureSet) -> Result<(), String> {
         return Err("scenario identifiers differ from the frozen synthetic corpus".to_owned());
     }
     Ok(())
-}
-
-fn checked_population_total(groups: &[PopulationGroup]) -> Result<u64, String> {
-    groups.iter().try_fold(0_u64, |total, group| {
-        total
-            .checked_add(group.population)
-            .ok_or_else(|| "population total overflow".to_owned())
-    })
 }
 
 fn weighted_quantile(
