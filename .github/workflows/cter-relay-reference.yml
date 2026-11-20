@@ -96,6 +96,7 @@ jobs:
           python3 -m json.tool schemas/cter-privacy-channel-inventory-v0.1.schema.json > /dev/null
           python3 -m json.tool benchmarks/territorial-integrity/egress/private-coverage-invariants-v0.1.json > /dev/null
           python3 -m json.tool benchmarks/territorial-integrity/egress/private-coverage-cases-v0.1.json > /dev/null
+          python3 -m json.tool benchmarks/territorial-integrity/egress/private-coverage-scale-workloads-v0.1.json > /dev/null
           python3 -m json.tool schemas/cter-private-coverage-v0.1.schema.json > /dev/null
           python3 -m json.tool schemas/cter-disclosure-manifest-v0.1.schema.json > /dev/null
 
