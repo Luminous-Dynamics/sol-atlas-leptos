@@ -252,3 +252,8 @@ This gives CTER a clear composition boundary:
 **Private coverage remains a separate proof obligation:** a valid inclusion/consistency receipt or a non-equivocating checkpoint does not, by itself, prove that every item matching the CTER query was included. The coverage layer must still bind a declared source frontier, exact query, one-and-only-one private disposition partition, and the package's terminal source set. Whether that query-completeness claim is proven by a Mycelix-issued primitive, a separately attested evaluation, or a future ZK proof is deliberately unresolved.
 
 The four-witness quorum only tolerates one Byzantine witness key under its model assumptions. It does not prove independent administrative or infrastructure failure domains. Do not infer four-witness independence from four public keys; the upstream membership/fault-domain evidence remains part of Mycelix qualification.
+
+
+### Exact-head upstream run observation
+
+The exact PR head inspected for Mycelix #5944 is \`38b1d833b75020f8fa08351579034555af836925\`. Its witness-model run #7 failed in the pinned-TLC download step: the immutable \`zactionsz/tla-tools\` release URL returned HTTP 504 on all configured retries. The workflow skipped both safe TLC configurations and all three mutant checks. Therefore **no parser, state-space, invariant or mutant result was produced**. This is a dependency-fetch failure, not evidence that the witness model is false or true. Do not replace the pinned build with an unpinned mutable nightly merely to make CI green; restore access to the same checksum-pinned bytes or select and review a new immutable build with a new checksum.
