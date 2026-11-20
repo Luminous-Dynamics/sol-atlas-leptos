@@ -98,7 +98,7 @@ Reachable capacity is not allocated supply. Group-level access records are not u
 From repository root:
 
 ```bash
-cargo test --locked --manifest-path tools/shared-amenity-spatial-eval/Cargo.toml
+cargo test --locked --all-targets --manifest-path tools/shared-amenity-spatial-eval/Cargo.toml
 cargo clippy --locked --manifest-path tools/shared-amenity-spatial-eval/Cargo.toml --all-targets -- -D warnings
 cargo run --locked --manifest-path tools/shared-amenity-spatial-eval/Cargo.toml --bin shared-amenity-spatial-eval
 cargo run --locked --manifest-path tools/shared-amenity-spatial-eval/Cargo.toml --bin temporal-amenity-opportunity
