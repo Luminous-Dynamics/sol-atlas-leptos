@@ -301,3 +301,25 @@ RFC 9942's concrete RFC 9162 SHA-256 profile supplies signed inclusion and consi
 Even a valid inclusion/consistency receipt does not prove the custom CTER partition equation or that the package's terminal source leaves equal every item matching a query. That remains a separate predicate proof obligation. The current first slice is a structural model. It deliberately stops before cryptographic proof generation/verification and does not select a ZK-SNARK, STARK, Merkle multiproof or other primitive.
 
 References: [RFC 9942 §4.2](https://www.rfc-editor.org/rfc/rfc9942.html#section-4.2), [RFC 9942 §5.2](https://www.rfc-editor.org/rfc/rfc9942.html#section-5.2), [OCFL 1.1](https://ocfl.io/1.1/spec/), [OPA Decision Logs](https://www.openpolicyagent.org/docs/management-decision-logs).
+
+
+## 13. Matched proof-profile scale programme
+
+The companion [private-coverage scale workload profile](../../benchmarks/territorial-integrity/egress/private-coverage-scale-workloads-v0.1.json) now specifies identical synthetic frontiers at 1k, 10k, 100k and 1M entries. It fixes the disposition distribution, query complexity, package-leaf count and transformation depth so each candidate is compared on the same workload.
+
+Compare three profiles without assuming one is best:
+1. a designated independent auditor who receives the full private partition;
+2. Mycelix-owned VDS/COSE receipts for exact membership and consistency properties supported by the selected VDS;
+3. a research-only private predicate proof over the partition and package-leaf equality.
+
+Record partition materialization, set validation, VDS proof generation/verification, predicate-proof generation/verification, proof bytes, public metadata bytes, private partition storage, peak memory, CPU, restore/reconciliation time and disclosure leakage. Include every failed proof and rejected/accepted mutant. Do not compare proof latency unless the same security statement and verifier-disclosure level are being established.
+
+### Important RFC 9942 implementation nuance
+
+RFC 9942 describes a general COSE receipt framework and discusses proof types including inclusion, consistency, disclosure and non-inclusion. Its concrete RFC 9162 SHA-256 examples define inclusion and consistency encodings; the existence and semantics of a non-inclusion proof must be confirmed for the exact VDS/proof-type registration selected by Mycelix. Do not assume that a generic COSE receipt field means a valid non-inclusion proof exists.
+
+For the concrete RFC 9162 SHA-256 inclusion profile, proof verification applies the proof to the candidate entry bytes to derive the Merkle root, then verifies the receipt signature over that root. The VDS identifier and proof type determine how the proof bytes are interpreted. A receipt therefore cannot be accepted solely because its COSE signature is valid or because a JSON field asserts inclusion.
+
+RFC 9942 also states that proof types are VDS-specific and implementations should not expect proof-format interoperability across VDS designs. The CTER adapter must pin Mycelix's VDS identifier, proof type, algorithm, profile version, root, tree size/frontier version, trust/currentness result and resolver implementation. Migration to a different VDS requires a new security/privacy analysis and cross-version proof tests.
+
+A valid inclusion/consistency proof establishes properties of committed entries/roots. It does not alone prove that the CTER query predicate was evaluated over the complete source universe, nor that the package-leaf set equals every entry marked included in a private partition. Those remain separate query/partition proof obligations.
