@@ -5,14 +5,134 @@
 //! prove source-owner completeness, establish trusted time, or authorize export.
 //! A valid_partition_structure result is not cryptographic proof or permission.
 
-use serde_json::Value;
+use serde::de::{self, MapAccess, SeqAccess, Visitor};
+use serde::{Deserialize, Deserializer};
+use serde_json::{Map, Number, Value};
 use sha2::{Digest, Sha256};
 use std::collections::BTreeSet;
+use std::fmt;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct CoverageEvaluation {
     pub disposition: &'static str,
     pub reason_codes: BTreeSet<String>,
+}
+
+
+const MAX_SAFE_INTEGER: i64 = 9_007_199_254_740_991;
+
+struct UniqueJsonValue(Value);
+
+impl<'de> Deserialize<'de> for UniqueJsonValue {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        deserializer.deserialize_any(UniqueJsonValueVisitor)
+    }
+}
+
+struct UniqueJsonValueVisitor;
+
+impl<'de> Visitor<'de> for UniqueJsonValueVisitor {
+    type Value = UniqueJsonValue;
+
+    fn expecting(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        formatter.write_str("an I-JSON value without duplicate object members")
+    }
+
+    fn visit_unit<E>(self) -> Result<Self::Value, E> {
+        Ok(UniqueJsonValue(Value::Null))
+    }
+
+    fn visit_none<E>(self) -> Result<Self::Value, E> {
+        self.visit_unit()
+    }
+
+    fn visit_bool<E>(self, value: bool) -> Result<Self::Value, E> {
+        Ok(UniqueJsonValue(Value::Bool(value)))
+    }
+
+    fn visit_i64<E>(self, value: i64) -> Result<Self::Value, E>
+    where
+        E: de::Error,
+    {
+        if !(-MAX_SAFE_INTEGER..=MAX_SAFE_INTEGER).contains(&value) {
+            return Err(E::custom("integer is outside the exact I-JSON safe range"));
+        }
+        Ok(UniqueJsonValue(Value::Number(Number::from(value))))
+    }
+
+    fn visit_u64<E>(self, value: u64) -> Result<Self::Value, E>
+    where
+        E: de::Error,
+    {
+        if value > MAX_SAFE_INTEGER as u64 {
+            return Err(E::custom("integer is outside the exact I-JSON safe range"));
+        }
+        Ok(UniqueJsonValue(Value::Number(Number::from(value))))
+    }
+
+    fn visit_f64<E>(self, value: f64) -> Result<Self::Value, E>
+    where
+        E: de::Error,
+    {
+        Number::from_f64(value)
+            .map(|number| UniqueJsonValue(Value::Number(number)))
+            .ok_or_else(|| E::custom("non-finite JSON number"))
+    }
+
+    fn visit_str<E>(self, value: &str) -> Result<Self::Value, E> {
+        Ok(UniqueJsonValue(Value::String(value.to_owned())))
+    }
+
+    fn visit_string<E>(self, value: String) -> Result<Self::Value, E> {
+        Ok(UniqueJsonValue(Value::String(value)))
+    }
+
+    fn visit_seq<A>(self, mut sequence: A) -> Result<Self::Value, A::Error>
+    where
+        A: SeqAccess<'de>,
+    {
+        let mut values = Vec::new();
+        while let Some(value) = sequence.next_element::<UniqueJsonValue>()? {
+            values.push(value.0);
+        }
+        Ok(UniqueJsonValue(Value::Array(values)))
+    }
+
+    fn visit_map<A>(self, mut object: A) -> Result<Self::Value, A::Error>
+    where
+        A: MapAccess<'de>,
+    {
+        let mut values = Map::new();
+        while let Some(key) = object.next_key::<String>()? {
+            if values.contains_key(&key) {
+                return Err(de::Error::custom("duplicate JSON object member"));
+            }
+            let value = object.next_value::<UniqueJsonValue>()?;
+            values.insert(key, value.0);
+        }
+        Ok(UniqueJsonValue(Value::Object(values)))
+    }
+}
+
+/// Parse an input record without silently collapsing duplicate JSON object
+/// members. Integer operands outside the exact IEEE-754 safe-integer range
+/// are rejected before JCS canonicalization.
+pub fn parse_unique_json_value(input: &str) -> Result<Value, serde_json::Error> {
+    let mut deserializer = serde_json::Deserializer::from_str(input);
+    let value = UniqueJsonValue::deserialize(&mut deserializer)?;
+    deserializer.end()?;
+    Ok(value.0)
+}
+
+/// Evaluate a raw private-coverage record through the strict JSON boundary.
+pub fn evaluate_private_coverage_json(
+    input: &str,
+) -> Result<CoverageEvaluation, serde_json::Error> {
+    let value = parse_unique_json_value(input)?;
+    Ok(evaluate_private_coverage(&value))
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
@@ -117,7 +237,19 @@ enum QueryMatch {
 }
 
 fn scalar(value: &Value) -> bool {
-    value.is_string() || value.is_boolean() || value.is_number() || value.is_null()
+    if value.is_string() || value.is_boolean() || value.is_null() {
+        return true;
+    }
+    let Some(number) = value.as_number() else {
+        return false;
+    };
+    if let Some(integer) = number.as_i64() {
+        return (-MAX_SAFE_INTEGER..=MAX_SAFE_INTEGER).contains(&integer);
+    }
+    if let Some(integer) = number.as_u64() {
+        return integer <= MAX_SAFE_INTEGER as u64;
+    }
+    number.as_f64().is_some_and(f64::is_finite)
 }
 
 // v0.1 deliberately supports one ASCII object-member segment only. It does
