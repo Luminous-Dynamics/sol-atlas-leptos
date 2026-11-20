@@ -127,7 +127,8 @@
         "query_commitment": { "$ref": "#/$defs/sha256_digest" },
         "request_commitment": { "$ref": "#/$defs/sha256_digest" },
         "package_commitment": { "$ref": "#/$defs/sha256_digest" },
-        "proof_ref": { "$ref": "#/$defs/opaque_ref" }
+        "proof_ref": { "$ref": "#/$defs/opaque_ref" },
+        "non_inclusion_scope": { "const": "frontier_version_only" }
       }
     },
     "fixture_notice": { "type": "string", "minLength": 1, "maxLength": 2000 }
