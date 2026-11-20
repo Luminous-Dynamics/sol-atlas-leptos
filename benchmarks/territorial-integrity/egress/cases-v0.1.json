@@ -45,7 +45,8 @@
       "coverage_input_snapshot_commitment": {
         "algorithm": "sha-256",
         "value": "a8f000ebab94a5ad4479faa5fb12cf2980cc094376d0cc3eb438698804c3d788"
-      }
+      },
+      "coverage_input_snapshot_profile_ref": "urn:luminous:cter:query-input-json-v0.1"
     },
     "destination_binding": {
       "recipient_ref": "urn:fixture:recipient:synthetic-001",
@@ -338,7 +339,13 @@
       "case_id": "EGRESS-INPUT-SNAPSHOT-PROFILE-UNSUPPORTED-001",
       "mutation": "Use an unsupported snapshot reference scheme.",
       "expected": "incomplete",
-      "reason_code": "authorization_coverage_input_snapshot_ref_missing"
+      "reason_code": "authorization_coverage_input_snapshot_profile_missing_or_unsupported"
+    },
+    {
+      "case_id": "EGRESS-INPUT-SNAPSHOT-PROFILE-MISMATCH-001",
+      "mutation": "Use an unsupported query input snapshot semantics profile.",
+      "expected": "incomplete",
+      "reason_code": "authorization_coverage_input_snapshot_profile_missing_or_unsupported"
     }
   ],
   "targets": {
