@@ -287,3 +287,31 @@ The initial profile artefacts now exist on the CTER research branch:
 The corpus is specified but its reference validator has not yet been implemented or run. Expected dispositions are test requirements, not results. The schema validates the manifest's shape; it does not resolve cross-field equality, source/transform graph closure, exact byte digests, canonicalization, resolver trust, trusted time or release safety. Those checks belong in the Rust reference validator and its independently implemented oracle.
 
 A package's SHA-256 digest is distinct from the manifest commitment and from Mycelix's BLAKE3 event identity. The package payload digest excludes the CTER manifest; the manifest commitment hashes the RFC 8785 canonicalized manifest with the manifest_commitment property omitted. Canonicalization must be pinned and tested before the digest is used across implementations.
+
+
+## 13. Initial implementation slice committed
+
+The first standalone reference implementation now exists on the CTER research branch:
+
+- Rust structural evaluator: \`benchmarks/territorial-integrity/relay/reference/src/egress.rs\`.
+- Rust conformance tests: \`benchmarks/territorial-integrity/relay/reference/tests/egress_conformance.rs\`.
+- Independent no-dependency Node oracle: \`benchmarks/territorial-integrity/relay/reference/egress-oracle.mjs\`.
+- Source-side data-class binding is required in the manifest schema.
+- Scale workload specification: \`benchmarks/territorial-integrity/egress/scale-workloads-v0.1.json\`.
+
+The evaluator checks the internal manifest shape and links between request, recipient, output, source and transformation references. It rejects output scope overreach, divergent identity-copy commitments, duplicate source/output/transform identities, unresolved lineage links and provenance cycles. It uses iterative topological elimination for cycle detection so a deeply nested graph does not rely on recursive call-stack depth.
+
+Classification is deliberately not a total order. A source/output class-set change produces REVIEW when no authority reference is present and UNKNOWN when a reference exists but the host has not resolved it. A reference string is not proof of permission to declassify.
+
+The Rust test module currently specifies 14 focused tests. The Node oracle independently specifies 12 structural checks, including a multi-stage provenance DAG. The 32-entry corpus contains one valid baseline case and 31 adversarial specifications. The corpus and scale profile are committed, but **the validator, oracle and tests have not yet been executed**. The latest exact-head workflow status must be consulted before claiming any CI result.
+
+### Strict limits of this slice
+
+- SHA-256 digest *shapes* and equality relationships are checked; the validator is not supplied with package/source bytes and therefore does not recompute payload hashes.
+- The RFC 8785 canonicalization identifier is required, but canonicalization and manifest commitment recomputation are not implemented in this slice.
+- The Mycelix AuthorizationReceipt reference is bound but not cryptographically authenticated or resolved.
+- Issuer trust, decision-maker authority, currentness, revocation, trusted time and community governance remain upstream host responsibilities.
+- Source availability, transformation correctness, declassification safety, inference-risk review, transport invocation, recipient acknowledgement and external finality are not established.
+- \`valid_structure\` is not \`eligible\`, \`authorized\` or permission to release.
+
+The scale workload file specifies 1k/10k/100k/1M output-object profiles, source fan-in, transform depth/fan-out and payload-size distributions. It records required hardware/software metadata and metrics, but contains no performance claims or arbitrary latency target.
