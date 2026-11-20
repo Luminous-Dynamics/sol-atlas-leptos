@@ -114,6 +114,9 @@ export function evaluateComposedReleaseBinding(manifest, coverage) {
   if (JSON.stringify(auth.coverage_query_commitment) !== JSON.stringify(query.query_commitment)) {
     raise("deny", "authorization_coverage_query_commitment_mismatch");
   }
+  if (auth.coverage_query_profile_ref !== query.query_profile_ref) {
+    raise("deny", "authorization_coverage_query_profile_mismatch");
+  }
   const leftClasses = canonicalSet(auth.data_classes);
   const rightClasses = canonicalSet(query.data_classes);
   if (!leftClasses || !rightClasses) {
@@ -171,6 +174,10 @@ function applyMutation(caseId, manifest, coverage) {
       manifest.authorization_binding.coverage_query_ref = "urn:fixture:query:other"; break;
     case "COMPOSED-COVERAGE-QUERY-COMMITMENT-DRIFT-001":
       manifest.authorization_binding.coverage_query_commitment.value = "9".repeat(64); break;
+    case "COMPOSED-COVERAGE-QUERY-PROFILE-DRIFT-001":
+      coverage.query_binding.query_profile_ref = "urn:luminous:cter:predicate-json-v0.2"; break;
+    case "COMPOSED-QUERY-PREDICATE-DRIFT-001":
+      coverage.query_binding.predicate.args[1].value = "US"; break;
     case "COMPOSED-ASSERTED-LEAF-DRIFT-001":
       coverage.package_binding.terminal_source_leaf_refs = ["urn:fixture:source:other"]; break;
     case "COMPOSED-DERIVED-LEAF-DRIFT-001": {
@@ -234,7 +241,7 @@ for (const testCase of corpus.cases) {
   );
   counts[actual.disposition] += 1;
 }
-assert.equal(corpus.cases.length, 19);
+assert.equal(corpus.cases.length, 21);
 assert.equal(counts.valid_composed_structure, 2);
 console.log("CTER composed release oracle: 17/17 synthetic fixture dispositions matched.");
 console.log("Counts: " + JSON.stringify(counts) + ".");
