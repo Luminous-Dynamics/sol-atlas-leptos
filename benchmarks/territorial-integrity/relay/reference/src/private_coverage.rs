@@ -256,6 +256,14 @@ pub fn query_predicate_commitment(
 pub fn query_input_snapshot_commitment(
     snapshot: &Value,
 ) -> Result<String, &'static str> {
+    if nonblank(snapshot, "snapshot_ref").is_none() {
+        raise(
+            severity,
+            reasons,
+            Severity::Incomplete,
+            "query_input_snapshot_reference_missing",
+        );
+    }
     if nonblank(snapshot, "profile_ref")
         != Some("urn:luminous:cter:query-input-json-v0.1")
     {
