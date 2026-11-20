@@ -303,7 +303,7 @@ The evaluator checks the internal manifest shape and links between request, reci
 
 Classification is deliberately not a total order. A source/output class-set change produces REVIEW when no authority reference is present and UNKNOWN when a reference exists but the host has not resolved it. A reference string is not proof of permission to declassify.
 
-The Rust test module now specifies 18 focused tests, and the independent Node oracle specifies 17 structural checks. The frozen corpus contains 35 entries: one baseline plus 34 adversarial specifications. Tool-side V8 checks previously covered the core recipient, lineage, identity-copy, class-change and intermediate-DAG cases; the expanded Node oracle itself has not yet run under Node 22. The 18 Rust tests remain unexecuted, and exact-head CI is pending.
+The Rust egress integration module now contains 20 focused tests, and the independent Node oracle specifies 17 structural checks. The frozen corpus contains 35 entries: one baseline plus 34 adversarial/indeterminate/review specifications. Tool-side V8 checks previously covered the core recipient, lineage, identity-copy, class-change and intermediate-DAG cases; the expanded Node oracle itself has not yet run under Node 22. The 20 Rust integration tests remain unexecuted, and exact-head CI is pending.
 
 ### Strict limits of this slice
 
@@ -355,3 +355,10 @@ The authorization binding additionally names the exact custodian coverage query 
 
 
 The authorization binding also names the exact query-semantics profile in `coverage_query_profile_ref`. It must equal the private coverage query profile used by the partition evaluator and the profile in its receipt projection. The supported v0.1 profile is `urn:luminous:cter:predicate-json-v0.1`; it is deliberately bounded and does not execute arbitrary query languages or user-defined functions. See [CTER_QUERY_PREDICATE_PROFILE_V0_1.md](CTER_QUERY_PREDICATE_PROFILE_V0_1.md).
+
+
+## Strict raw-input and query commitment boundary
+
+Egress now exposes \`evaluate_disclosure_manifest_json\`, which parses raw JSON with the shared duplicate-member-detecting/I-JSON-safe parser before evaluating the manifest. This avoids silently accepting a duplicate key after a regular \`serde_json::Value\` parse. The egress authorization also binds \`coverage_query_ref\`, \`coverage_query_profile_ref\` and \`coverage_query_commitment\`; the private coverage evaluator recomputes the profile+AST commitment and the composed evaluator requires exact equality.
+
+The raw entrypoint still performs structural qualification only. It does not recompute the package payload digest over actual package bytes, authenticate Mycelix receipts, resolve current authority or transmit the package. The query-input snapshot provenance/owner-attestation question is tracked separately in #973.
