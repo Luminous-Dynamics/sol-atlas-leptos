@@ -134,6 +134,16 @@ fn finalize(severity: Severity, reason_codes: BTreeSet<String>) -> EgressEvaluat
 /// shape-checked but are not recomputed because this function is not supplied
 /// the exact source/package bytes. All resolver and cryptographic facts remain
 /// the responsibility of their owning Mycelix/custodian host.
+/// Evaluate a raw disclosure manifest after strict duplicate-member and
+/// I-JSON numeric validation. Production adapters should use this entry point
+/// rather than deserializing directly into serde_json::Value.
+pub fn evaluate_disclosure_manifest_json(
+    input: &str,
+) -> Result<EgressEvaluation, serde_json::Error> {
+    let value = crate::private_coverage::parse_unique_json_value(input)?;
+    Ok(evaluate_disclosure_manifest(&value))
+}
+
 pub fn evaluate_disclosure_manifest(input: &Value) -> EgressEvaluation {
     let mut severity = Severity::None;
     let mut reasons = BTreeSet::new();
