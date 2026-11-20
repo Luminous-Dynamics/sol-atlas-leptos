@@ -54,7 +54,7 @@ jobs:
           test "$source_commit" = "${{ github.event.pull_request.head.sha || github.sha }}"
           fixture="tools/shared-amenity-spatial-eval/fixtures/SHARED_AMENITY_SPATIAL_FIXTURES_V0.1.json"
           fixture_sha256="$(sha256sum "$fixture" | cut -d ' ' -f 1)"
-          cargo run --locked --quiet --manifest-path tools/shared-amenity-spatial-eval/Cargo.toml -- "$fixture" > spatial-evaluation.json
+          cargo run --locked --quiet --manifest-path tools/shared-amenity-spatial-eval/Cargo.toml --bin shared-amenity-spatial-eval -- "$fixture" > spatial-evaluation.json
           jq -e '
             .schema == "luminous.shared-amenity-spatial-evaluation"
             and .schema_version == "0.1.0"
@@ -65,10 +65,29 @@ jobs:
             and (.fixture_sha256 | test("^[0-9a-f]{64}$"))
           ' spatial-evaluation.json
           test "$(jq -r .fixture_sha256 spatial-evaluation.json)" = "$fixture_sha256"
+
+          temporal_fixture="tools/shared-amenity-spatial-eval/fixtures/TEMPORAL_AMENITY_OPPORTUNITY_FIXTURES_V0.1.json"
+          temporal_fixture_sha256="$(sha256sum "$temporal_fixture" | cut -d ' ' -f 1)"
+          cargo run --locked --quiet --manifest-path tools/shared-amenity-spatial-eval/Cargo.toml --bin temporal-amenity-opportunity -- "$temporal_fixture" > temporal-opportunity-evaluation.json
+          jq -e '
+            .schema == "luminous.temporal-amenity-opportunity-evaluation"
+            and .schema_version == "0.1.0"
+            and .maturity == "SYNTHETIC_TEMPORAL_JOIN_ORACLE_ONLY"
+            and .opportunity_count == 17
+            and .disposition_counts.available == 2
+            and .disposition_counts.unavailable == 7
+            and .disposition_counts.unknown == 5
+            and .disposition_counts.not_comparable == 3
+            and (.fixture_sha256 | test("^[0-9a-f]{64}$"))
+          ' temporal-opportunity-evaluation.json
+          test "$(jq -r .fixture_sha256 temporal-opportunity-evaluation.json)" = "$temporal_fixture_sha256"
+
           jq -n \
             --arg source_commit "$source_commit" \
             --arg fixture_sha256 "$fixture_sha256" \
+            --arg temporal_fixture_sha256 "$temporal_fixture_sha256" \
             --slurpfile evaluation spatial-evaluation.json \
+            --slurpfile temporal temporal-opportunity-evaluation.json \
             '{
               schema: "luminous.shared-amenity-spatial-evaluation-receipt",
               schema_version: "0.1.0",
@@ -76,14 +95,17 @@ jobs:
               maturity: "SYNTHETIC_ORACLE_FIXTURES_ONLY",
               source_commit: $source_commit,
               fixture_sha256: $fixture_sha256,
-              evaluation: $evaluation[0]
+              evaluation: $evaluation[0],
+              temporal_fixture_sha256: $temporal_fixture_sha256,
+              temporal_opportunity_evaluation: $temporal[0]
             }' > shared-amenity-spatial-evaluation-receipt.json
 
       - name: Validate receipt identity
         run: |
           test "$(jq -r .source_commit shared-amenity-spatial-evaluation-receipt.json)" = "${{ github.event.pull_request.head.sha || github.sha }}"
           test "$(jq -r .fixture_sha256 shared-amenity-spatial-evaluation-receipt.json)" = "$(sha256sum tools/shared-amenity-spatial-eval/fixtures/SHARED_AMENITY_SPATIAL_FIXTURES_V0.1.json | cut -d ' ' -f 1)"
-          jq -e '.result == "pass" and .evaluation.frozen_oracle_match_count == 20' shared-amenity-spatial-evaluation-receipt.json
+          test "$(jq -r .temporal_fixture_sha256 shared-amenity-spatial-evaluation-receipt.json)" = "$(sha256sum tools/shared-amenity-spatial-eval/fixtures/TEMPORAL_AMENITY_OPPORTUNITY_FIXTURES_V0.1.json | cut -d ' ' -f 1)"
+          jq -e '.result == "pass" and .evaluation.frozen_oracle_match_count == 20 and .temporal_opportunity_evaluation.opportunity_count == 17' shared-amenity-spatial-evaluation-receipt.json
 
       - name: Upload exact-head synthetic receipt
         uses: actions/upload-artifact@v4
