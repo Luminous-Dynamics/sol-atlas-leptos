@@ -297,3 +297,16 @@ pub fn evaluate_composed_release_binding(
 
     finalize(severity, reasons, derived_leaves)
 }
+
+
+/// Strict raw-JSON entry point for composed releases. Both records pass
+/// through the same duplicate-member and I-JSON numeric boundary before any
+/// structural evaluator consumes them.
+pub fn evaluate_composed_release_binding_json(
+    manifest_json: &str,
+    coverage_json: &str,
+) -> Result<ReleaseBindingEvaluation, serde_json::Error> {
+    let manifest = crate::private_coverage::parse_unique_json_value(manifest_json)?;
+    let coverage = crate::private_coverage::parse_unique_json_value(coverage_json)?;
+    Ok(evaluate_composed_release_binding(&manifest, &coverage))
+}
