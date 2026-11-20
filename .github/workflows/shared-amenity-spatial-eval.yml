@@ -108,7 +108,7 @@ jobs:
           test "$(jq -r .source_commit shared-amenity-spatial-evaluation-receipt.json)" = "${{ github.event.pull_request.head.sha || github.sha }}"
           test "$(jq -r .fixture_sha256 shared-amenity-spatial-evaluation-receipt.json)" = "$(sha256sum tools/shared-amenity-spatial-eval/fixtures/SHARED_AMENITY_SPATIAL_FIXTURES_V0.1.json | cut -d ' ' -f 1)"
           test "$(jq -r .temporal_fixture_sha256 shared-amenity-spatial-evaluation-receipt.json)" = "$(sha256sum tools/shared-amenity-spatial-eval/fixtures/TEMPORAL_AMENITY_OPPORTUNITY_FIXTURES_V0.1.json | cut -d ' ' -f 1)"
-          jq -e '.result == "pass" and .evaluation.frozen_oracle_match_count == 20 and .temporal_opportunity_evaluation.opportunity_count == 17' shared-amenity-spatial-evaluation-receipt.json
+          jq -e '.result == "pass" and .evaluation.frozen_oracle_match_count == 20 and .temporal_opportunity_evaluation.opportunity_count == 21' shared-amenity-spatial-evaluation-receipt.json
 
       - name: Upload exact-head synthetic receipt
         uses: actions/upload-artifact@v4
