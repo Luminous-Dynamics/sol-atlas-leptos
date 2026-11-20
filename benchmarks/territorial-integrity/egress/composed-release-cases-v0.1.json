@@ -43,7 +43,8 @@
         "coverage_input_snapshot_commitment": {
           "algorithm": "sha-256",
           "value": "a8f000ebab94a5ad4479faa5fb12cf2980cc094376d0cc3eb438698804c3d788"
-        }
+        },
+        "coverage_input_snapshot_profile_ref": "urn:luminous:cter:query-input-json-v0.1"
       },
       "destination_binding": {
         "recipient_ref": "urn:fixture:recipient:synthetic-001",
@@ -168,7 +169,8 @@
         "input_snapshot_commitment": {
           "algorithm": "sha-256",
           "value": "a8f000ebab94a5ad4479faa5fb12cf2980cc094376d0cc3eb438698804c3d788"
-        }
+        },
+        "input_snapshot_profile_ref": "urn:luminous:cter:query-input-json-v0.1"
       },
       "private_partition": [
         {
@@ -269,7 +271,8 @@
         "input_snapshot_commitment": {
           "algorithm": "sha-256",
           "value": "a8f000ebab94a5ad4479faa5fb12cf2980cc094376d0cc3eb438698804c3d788"
-        }
+        },
+        "input_snapshot_profile_ref": "urn:luminous:cter:query-input-json-v0.1"
       },
       "receipt_assessment": {
         "assessment_ref": "urn:fixture:receipt-assessment:synthetic-current",
