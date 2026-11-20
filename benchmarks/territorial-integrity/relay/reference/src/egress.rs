@@ -816,3 +816,69 @@ pub fn evaluate_disclosure_manifest(input: &Value) -> EgressEvaluation {
     // a release host must resolve the exact class-change authority separately.
     finalize(severity, reasons)
 }
+
+
+/// Derive the terminal source-leaf set from the same validated package graph.
+///
+/// Call only after evaluate_disclosure_manifest returns valid_structure.
+/// An intermediate output is traversed to its own source references; its
+/// object reference is not treated as a terminal source leaf. This prevents a
+/// separate caller-supplied leaf list from becoming the authority for the
+/// coverage comparison.
+pub fn terminal_source_leaf_refs(
+    input: &Value,
+) -> Result<BTreeSet<String>, &'static str> {
+    let package = input
+        .get("package")
+        .ok_or("package_missing")?;
+    let outputs = package
+        .get("outputs")
+        .and_then(Value::as_array)
+        .ok_or("package_outputs_missing")?;
+
+    let mut sources_by_output: BTreeMap<String, BTreeSet<String>> = BTreeMap::new();
+    for output in outputs {
+        let object_ref = nonblank(output, "object_ref")
+            .ok_or("output_object_ref_missing")?;
+        let sources = output
+            .get("source_refs")
+            .and_then(Value::as_array)
+            .ok_or("output_source_lineage_missing")?;
+        let mut source_refs = BTreeSet::new();
+        for source in sources {
+            let source_ref = nonblank(source, "object_ref")
+                .ok_or("source_object_ref_missing")?;
+            if !source_refs.insert(source_ref.to_owned()) {
+                return Err("source_reference_duplicated");
+            }
+        }
+        if sources_by_output
+            .insert(object_ref.to_owned(), source_refs)
+            .is_some()
+        {
+            return Err("output_object_identity_duplicated");
+        }
+    }
+
+    let mut pending: Vec<String> = sources_by_output
+        .values()
+        .flat_map(|refs| refs.iter().cloned())
+        .collect();
+    let mut visited_outputs = BTreeSet::new();
+    let mut terminal_leaves = BTreeSet::new();
+
+    while let Some(reference) = pending.pop() {
+        if let Some(parent_sources) = sources_by_output.get(&reference) {
+            if visited_outputs.insert(reference) {
+                pending.extend(parent_sources.iter().cloned());
+            }
+        } else {
+            terminal_leaves.insert(reference);
+        }
+    }
+
+    if terminal_leaves.is_empty() {
+        return Err("terminal_source_leaf_set_empty");
+    }
+    Ok(terminal_leaves)
+}
