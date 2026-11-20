@@ -23,7 +23,7 @@ fn adversarial_suite_is_frozen_and_explicitly_unexecuted() {
     assert_eq!(suite["cases"].as_array().expect("case array").len(), 31);
     assert_eq!(
         suite["execution_status"],
-        "reference_validator_implemented_not_executed"
+        "reference_validator_and_independent_oracle_implemented_not_executed"
     );
 }
 
