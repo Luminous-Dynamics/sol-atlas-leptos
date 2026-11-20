@@ -30,7 +30,7 @@
     "status_or_revocation_lookup",
     "relay_or_transport_metadata",
     "backup_or_archive_restore",
-    "support_bundle"
+    "untracked_plugin_export"
   ],
   "cases": [
     {
@@ -205,8 +205,8 @@
       "case_id": "PRIVACY-UNDECLARED-CHANNEL-001",
       "protected_delta": "A channel observed in production is absent from the declared inventory.",
       "canaries": ["SYNTH-CANARY-UNDECLARED-022"],
-      "world_a": {"observables": {"support_bundle": {"canary": "SYNTH-CANARY-UNDECLARED-022"}}},
-      "world_b": {"observables": {"support_bundle": {"canary": "SYNTH-CANARY-UNDECLARED-022"}}},
+      "world_a": {"observables": {"untracked_plugin_export": {"canary": "SYNTH-CANARY-UNDECLARED-022"}}},
+      "world_b": {"observables": {"untracked_plugin_export": {"canary": "SYNTH-CANARY-UNDECLARED-022"}}},
       "expected": "inventory_incomplete"
     },
     {
