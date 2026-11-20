@@ -3,7 +3,7 @@
   "suite_id": "CTER-PRIVATE-COVERAGE-001",
   "suite_version": "0.1.0",
   "synthetic_only": true,
-  "execution_status": "partition_evaluator_implemented_not_executed",
+  "execution_status": "partition_evaluator_and_rust_tests_implemented_not_executed",
   "proof_primitive": "not_selected",
   "invariant_profile": "benchmarks/territorial-integrity/egress/private-coverage-invariants-v0.1.json",
   "claim_ceiling": "partition algebra and binding specifications only; no cryptographic proof is generated or verified",
@@ -123,7 +123,11 @@
       "recipient_ref": "urn:fixture:recipient:authorized-recipient",
       "resource_ref": "urn:fixture:resource:synthetic-project",
       "jurisdiction_profile_ref": "urn:fixture:jurisdiction:synthetic-profile-v0",
-      "project_snapshot_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+      "project_snapshot_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+      "package_commitment": {
+        "algorithm": "sha-256",
+        "value": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+      }
     },
     "receipt_assessment": {
       "assessment_ref": "urn:fixture:receipt-assessment:synthetic-current",
@@ -175,7 +179,7 @@
     {
       "case_id": "PCOV-UNAVAILABLE-AS-ABSENT-001",
       "mutation": "Replace item-c disposition unavailable with absent.",
-      "expected": "unknown",
+      "expected": "deny",
       "invariants": [
         "PCOV-INV-005",
         "PCOV-INV-007"
@@ -229,7 +233,7 @@
     },
     {
       "case_id": "PCOV-STALE-VDS-RECEIPT-001",
-      "mutation": "The Mycelix resolver reports the receipt or VDS root as stale, forked, revoked or unavailable.",
+      "mutation": "The Mycelix resolver reports the receipt or VDS root as stale or unavailable; revocation is tested separately.",
       "expected": "unknown",
       "invariants": [
         "PCOV-INV-011",
