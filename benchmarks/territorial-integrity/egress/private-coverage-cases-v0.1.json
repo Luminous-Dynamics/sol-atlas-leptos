@@ -3,7 +3,7 @@
   "suite_id": "CTER-PRIVATE-COVERAGE-001",
   "suite_version": "0.1.0",
   "synthetic_only": true,
-  "execution_status": "predicate_semantics_implemented_fixture_suite_expanded_execution_pending",
+  "execution_status": "JCS_predicate_commitment_recomputed_rust_and_node_pending_exact_head_execution",
   "proof_primitive": "not_selected",
   "invariant_profile": "benchmarks/territorial-integrity/egress/private-coverage-invariants-v0.1.json",
   "claim_ceiling": "partition algebra and binding specifications only; no cryptographic proof is generated or verified",
@@ -512,6 +512,15 @@
       "expected": "incomplete",
       "invariants": [
         "PCOV-INV-002"
+      ]
+    },
+    {
+      "case_id": "PCOV-PREDICATE-SUBSTITUTION-001",
+      "mutation": "Change one predicate value without recomputing the domain-separated canonical predicate commitment.",
+      "expected": "deny",
+      "invariants": [
+        "PCOV-INV-002",
+        "PCOV-INV-010"
       ]
     }
   ],
