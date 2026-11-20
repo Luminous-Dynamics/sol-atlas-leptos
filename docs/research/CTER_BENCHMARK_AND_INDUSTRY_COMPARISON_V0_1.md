@@ -271,7 +271,7 @@ A tool-side V8 check matched 24/24 fixture expectations. This remains a fixture-
 
 ## 10. Private coverage implementation status
 
-[CTER-PRIVATE-COVERAGE-001 #962](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/962) now has a versioned schema, Rust partition evaluator, Rust conformance tests and independent Node oracle. The machine-readable corpus contains 37 synthetic cases. A tool-side V8 mirror matched 37/37 expected dispositions: 1 valid partition structure, 5 incomplete, 5 unknown and 26 deny. These are fixture semantics only—not Node 22 CI, Rust execution, a COSE/VDS proof or a production completeness claim.
+[CTER-PRIVATE-COVERAGE-001 #962](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/962) now has a versioned schema, Rust partition evaluator, Rust conformance tests and independent Node oracle. The machine-readable corpus now contains 38 synthetic cases: 1 valid partition structure, 5 incomplete, 5 unknown and 27 deny expectations. The earlier tool-side V8 mirror covered 37 cases before the predicate-substitution negative control was added; the expanded 38-case suite is pending a complete re-run. These are fixture semantics only—not Node 22 CI, Rust execution, a COSE/VDS proof or a production completeness claim.
 
 The new contract requires the exact frontier item set to equal the private partition item set; each item has one compatible scope/disposition; the included set equals package terminal source leaves; the receipt projection binds query/request/recipient/frontier/package; and the public verifier view does not expose item references or counts. Non-inclusion is explicitly restricted to the named frontier version.
 
@@ -316,7 +316,7 @@ The proof-selection workstream now includes a machine-readable workload profile 
 The release-binding projection now includes the exact coverage-query reference and its canonical-query commitment in the egress authorization binding. The composed evaluator requires exact equality with the private coverage record's \`query_ref\` and \`query_commitment\`. The intent is to prevent a package/recipient/authority tuple from being reused under a different query predicate. The egress corpus now has 35 cases, and the joined release corpus has 21 cases (2 positive structural controls, 19 expected denials). These are frozen synthetic specifications; execution and Rust/Node22 CI status are reported separately.
 
 
-Updated fixture results on the current research branch: private coverage 37/37 expected dispositions in a tool-side V8 mirror (1 valid partition structure, 5 incomplete, 5 unknown, 26 deny); composed release 21/21 in an independent tool-side V8 mirror (2 valid composed structures, 19 deny). The egress corpus has 35 entries. These are tool-side fixture-semantics checks, not Node 22 workflow runs or Rust test execution.
+Fixture results and execution scope: composed release 21/21 had a tool-side V8 mirror before the later query-hash recomputation/raw-input changes; private coverage 37/37 was likewise mirrored before its 38th predicate-substitution control. Egress has 35 entries. These historical fixture mirrors are not rerun evidence for the current exact head, and none is a Rust pass. A separate local Node 22.16.0 inline check matched 4/4 JCS predicate commitment golden vectors; it did not execute the committed oracle file or replace GitHub Actions.
 
 
 ## 14. Query semantics is now a first-class qualification dimension
@@ -337,3 +337,12 @@ The v0.1 AST is intentionally narrow (\`all\`, \`any\`, \`not\`, \`eq\`, \`in\`,
 
 
 The query-semantics programme now has a machine-readable workload at \`benchmarks/territorial-integrity/egress/predicate-workloads-v0.1.json\`, including four frontier sizes, three predicate-count batches, five AST depths, missing-attribute and truth-state distributions, and four candidate evaluator families (Rust reference, independent Node, JSONPath RFC 9535 subset adapter, and OPA/Rego selection adapter). It freezes 22 fault injections and separates evaluation, compilation, canonicalization and commitment costs. No adapter has been benchmarked or selected.
+
+
+## 15. Canonical predicate commitment and strict raw-input validation
+
+The predicate profile now recomputes the domain-separated commitment \`SHA-256("luminous.cter.query-predicate.v0.1\\0" || JCS({profile_ref,predicate}))\`. The Rust reference is pinned to \`serde_jcs 0.2.0\` and \`sha2 0.10.9\`; the independent Node oracle uses its own bounded canonicalizer and \`node:crypto\`. Four golden vectors cover key-order equivalence, decomposed Unicode preservation and IEEE-754 exponent formatting. A local Node 22.16.0 inline verification matched all four vectors; the committed workflow oracle and Rust tests remain pending exact-head execution.
+
+Rust raw JSON entry points for coverage, egress and composed release reject duplicate object member names and unsafe integer values before evaluation. The typed \`serde_json::Value\` functions remain available for internal composition; adapters ingesting untrusted JSON should use the raw entrypoints.
+
+The remaining trust boundary is source-input attestation. The exact predicate is now committed, but the private per-item query attributes still require their own frontier-bound snapshot commitment and source-owner/resolver attestation. This is tracked by [CTER-QUERY-INPUT-ATTESTATION-001 #973](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/973). No SOTA, throughput, cryptographic-proof or production authorization result is claimed.
