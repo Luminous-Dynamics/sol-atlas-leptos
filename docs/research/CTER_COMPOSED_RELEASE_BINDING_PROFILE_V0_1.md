@@ -151,3 +151,12 @@ A later renewal can preserve evidence of an earlier verification result; it cann
 
 
 The egress authorization projection includes `coverage_query_ref` and `coverage_query_commitment`. The composed evaluator requires exact equality with the private coverage record's query reference and commitment, preventing a request/package binding from being reused under a different selection predicate.
+
+
+## Predicate profile is part of the release binding
+
+The egress authorization projection now carries \`coverage_query_profile_ref\`. It must equal the private coverage query's \`query_profile_ref\`, which is also repeated in the receipt projection. This prevents a package/recipient/request binding from silently switching predicate semantics.
+
+The private query uses \`urn:luminous:cter:predicate-json-v0.1\`, a restricted three-valued AST. Its per-item result must agree with the private partition's scope state before the composed release can be structurally valid. The 21-case corpus now contains two positive structural controls and 19 expected denials, including profile and predicate substitution controls.
+
+A tool-side V8 mirror matched 21/21 composed fixtures (2 valid composed structures, 19 denials). This is not Node 22 CI or Rust execution. The predicate commitment is still cross-bound by reference/hash equality only; canonical-byte hash recomputation remains a separate requirement.
