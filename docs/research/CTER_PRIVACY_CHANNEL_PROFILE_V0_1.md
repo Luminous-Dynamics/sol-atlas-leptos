@@ -182,3 +182,28 @@ Do not collapse privacy failures, community acceptability, usability and perform
 - Communities and data custodians define applicable restrictions, permitted audiences and acceptable governance processes. A benchmark cannot manufacture that legitimacy.
 
 A PASS on this profile means only that the declared build, corpus, query schedules and channels satisfied the published test properties. It does not prove universal anonymity, absence of unknown channels, legal compliance, consent, community approval or safety against every auxiliary dataset.
+
+
+## 10. Initial machine-readable and executable slice
+
+The first public artefacts are now committed:
+
+- Channel inventory schema: \`schemas/cter-privacy-channel-inventory-v0.1.schema.json\`.
+- Synthetic, explicitly partial inventory: \`benchmarks/territorial-integrity/privacy/channel-inventory-synthetic-v0.1.json\`.
+- Paired-world corpus: \`benchmarks/territorial-integrity/privacy/cases-v0.1.json\`.
+- Rust fixture evaluator: \`benchmarks/territorial-integrity/relay/reference/src/privacy.rs\`.
+- Rust tests: \`benchmarks/territorial-integrity/relay/reference/tests/privacy_conformance.rs\`.
+- Independent Node oracle: \`benchmarks/territorial-integrity/relay/reference/privacy-oracle.mjs\`.
+
+The 24-case paired-world corpus has:
+- 20 known synthetic leak cases;
+- 3 exact non-disclosure controls;
+- 1 deliberately undeclared channel that must produce inventory-incomplete.
+
+A tool-side V8 harness parsed the committed schema, synthetic inventory and corpus and matched **24/24** expected fixture dispositions. Counts: 20 leak-detected, 3 non-disclosure, 1 inventory-incomplete. This is not a Node 22 workflow execution, Rust execution, production channel audit, statistical timing study or anonymity proof.
+
+The sample inventory deliberately says \`partial\` and names three illustrative channels. It excludes a third-party CDN edge-log surface, making the incompleteness explicit. The Rust inventory evaluator checks required record structure, duplicate channel references and the presence of an independent coverage-evidence reference for a complete-boundary claim. A reference string is not authentication: the host/independent auditor must still resolve and inspect the evidence.
+
+The paired-world evaluator only compares the JSON observations represented in the fixture, detects synthetic canary strings and flags channel names absent from the declared inventory. It does not inspect live map tiles, application logs, CDNs, caches, production APIs, AI providers or backups. The production channel inventory and independent observation method are prerequisites for any field claim.
+
+The exact-head workflow has been extended to validate the privacy schema, fixture and corpus, and run both Node oracles. At the time of this profile revision those jobs remain subject to live GitHub Actions status; queued is not PASS.
