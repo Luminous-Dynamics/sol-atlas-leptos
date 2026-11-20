@@ -20,7 +20,7 @@ fn declared_channels(corpus: &Value) -> BTreeSet<String> {
 fn paired_world_corpus_size_and_synthetic_ceiling_are_frozen() {
     let corpus = corpus();
     assert_eq!(corpus["cases"].as_array().expect("cases").len(), 24);
-    assert_eq!(corpus["synthetic_only"], true);
+    assert!(corpus["synthetic_only"].as_bool().expect("synthetic-only marker"));
     assert_eq!(
         corpus["claim_ceiling"],
         "fixture-level observable transcript equality and canary detection only; no production privacy guarantee or universal non-inference proof"
@@ -102,7 +102,7 @@ fn observable_difference_is_a_leak_even_without_canary_hit() {
         .expect("digest difference case");
     let result = classify_paired_world_case(case, &declared);
     assert_eq!(result.disposition, "leak_detected");
-    assert!(result.canary_hit_count == 0);
+    assert_eq!(result.canary_hit_count, 0);
     assert!(
         result
             .different_channels
