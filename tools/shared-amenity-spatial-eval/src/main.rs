@@ -747,11 +747,30 @@ fn evaluate_arm(
             );
         } else {
             let has_unknown = records.iter().any(|record| {
-                record.access_state == "UNKNOWN"
-                    || record.mandatory_access_state == "UNKNOWN"
-                    || facilities
-                        .get(record.facility_id.as_str())
-                        .is_some_and(|facility| facility.service_state == "UNKNOWN")
+                let facility = facilities
+                    .get(record.facility_id.as_str())
+                    .expect("access references were validated");
+                let within_tolerance = record
+                    .generalized_cost_seconds
+                    .is_some_and(|seconds| {
+                        seconds <= scenario.scope.maximum_generalized_cost_seconds
+                    });
+                let service_not_known_unavailable = facility.service_state != "UNAVAILABLE";
+                let unresolved_route_candidate = record.access_state == "UNKNOWN"
+                    && record.mandatory_access_state != "FAIL"
+                    && service_not_known_unavailable;
+                let unresolved_mandatory_candidate = record.access_state == "QUALIFIED"
+                    && within_tolerance
+                    && record.mandatory_access_state == "UNKNOWN"
+                    && service_not_known_unavailable;
+                let unresolved_service_candidate = record.access_state == "QUALIFIED"
+                    && within_tolerance
+                    && (!group.mandatory_access_required
+                        || record.mandatory_access_state == "PASS")
+                    && facility.service_state == "UNKNOWN";
+                unresolved_route_candidate
+                    || unresolved_mandatory_candidate
+                    || unresolved_service_candidate
             });
             let has_service_unavailable = records.iter().any(|record| {
                 record.access_state == "QUALIFIED"
@@ -798,11 +817,30 @@ fn evaluate_arm(
             mandatory_group_count += 1;
             if valid_routes.is_empty() {
                 let has_unknown = records.iter().any(|record| {
-                    record.access_state == "UNKNOWN"
-                        || record.mandatory_access_state == "UNKNOWN"
-                        || facilities
-                            .get(record.facility_id.as_str())
-                            .is_some_and(|facility| facility.service_state == "UNKNOWN")
+                    let facility = facilities
+                        .get(record.facility_id.as_str())
+                        .expect("access references were validated");
+                    let within_tolerance = record
+                        .generalized_cost_seconds
+                        .is_some_and(|seconds| {
+                            seconds <= scenario.scope.maximum_generalized_cost_seconds
+                        });
+                    let service_not_known_unavailable =
+                        facility.service_state != "UNAVAILABLE";
+                    let unresolved_route_candidate = record.access_state == "UNKNOWN"
+                        && record.mandatory_access_state != "FAIL"
+                        && service_not_known_unavailable;
+                    let unresolved_mandatory_candidate = record.access_state == "QUALIFIED"
+                        && within_tolerance
+                        && record.mandatory_access_state == "UNKNOWN"
+                        && service_not_known_unavailable;
+                    let unresolved_service_candidate = record.access_state == "QUALIFIED"
+                        && within_tolerance
+                        && record.mandatory_access_state == "PASS"
+                        && facility.service_state == "UNKNOWN";
+                    unresolved_route_candidate
+                        || unresolved_mandatory_candidate
+                        || unresolved_service_candidate
                 });
                 if has_unknown {
                     // An unresolved alternative could satisfy the resident's
@@ -1215,6 +1253,53 @@ mod tests {
         assert_eq!(central.unknown_access_population, 100);
         assert_eq!(central.mandatory_access_gate, "UNKNOWN");
         assert_eq!(central.capacity_state, "UNKNOWN");
+    }
+
+    #[test]
+    fn unknown_service_on_a_blocked_mandatory_route_does_not_erase_known_failure() {
+        let mut value = fixture_value();
+        let central = value["scenarios"][1]["arms"]
+            .as_array_mut()
+            .expect("arm array")
+            .iter_mut()
+            .find(|arm| arm["comparison_arm"] == "CENTRAL_SHARED")
+            .expect("central arm");
+        let facility = &mut central["facilities"][0];
+        facility["service_state"] = Value::String("UNKNOWN".to_owned());
+        facility["capacity_state"] = Value::String("UNKNOWN".to_owned());
+        facility["capacity_units"] = Value::Null;
+
+        let expected = value["scenarios"][1]["expected"]
+            .as_array_mut()
+            .expect("golden result array");
+        let expected_central = expected
+            .iter_mut()
+            .find(|result| result["comparison_arm"] == "CENTRAL_SHARED")
+            .expect("central golden result");
+        expected_central["effective_access_population"] = Value::from(0_u64);
+        expected_central["no_access_population"] = Value::from(20_u64);
+        expected_central["unknown_access_population"] = Value::from(80_u64);
+        expected_central["service_unavailable_population"] = Value::from(0_u64);
+        expected_central["effective_access_coverage_basis_points"] = Value::from(0_u64);
+        expected_central["p50_generalized_cost_seconds"] = Value::Null;
+        expected_central["p90_generalized_cost_seconds"] = Value::Null;
+        expected_central["worst_decile_mean_generalized_cost_seconds"] = Value::Null;
+        expected_central["mandatory_access_gate"] = Value::String("FAIL".to_owned());
+        expected_central["aggregate_capacity_units"] = Value::Null;
+        expected_central["capacity_shortfall_units"] = Value::Null;
+        expected_central["capacity_surplus_units"] = Value::Null;
+        expected_central["capacity_state"] = Value::String("UNKNOWN".to_owned());
+        expected_central["minimum_independent_failure_domains"] = Value::Null;
+
+        let output = evaluate_value(value).expect("blocked route remains a known failure");
+        let result = find_arm(
+            &output,
+            "ACCESSIBLE_ROUTE_DISCONTINUITY",
+            "CENTRAL_SHARED",
+        );
+        assert_eq!(result.unknown_access_population, 80);
+        assert_eq!(result.no_access_population, 20);
+        assert_eq!(result.mandatory_access_gate, "FAIL");
     }
 
     #[test]
