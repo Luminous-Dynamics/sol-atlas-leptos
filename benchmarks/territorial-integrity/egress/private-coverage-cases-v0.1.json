@@ -3,7 +3,7 @@
   "suite_id": "CTER-PRIVATE-COVERAGE-001",
   "suite_version": "0.1.0",
   "synthetic_only": true,
-  "execution_status": "formal_cases_specified_not_executed",
+  "execution_status": "formal_cases_specified_evaluator_not_yet_implemented",
   "proof_primitive": "not_selected",
   "invariant_profile": "benchmarks/territorial-integrity/egress/private-coverage-invariants-v0.1.json",
   "claim_ceiling": "partition algebra and binding specifications only; no cryptographic proof is generated or verified",
@@ -16,7 +16,14 @@
         "value": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
       },
       "source_owner_ref": "urn:fixture:source-owner:synthetic",
-      "receipt_ref": "urn:fixture:vds-receipt:synthetic-placeholder"
+      "receipt_ref": "urn:fixture:vds-receipt:synthetic-placeholder",
+      "object_refs": [
+        "urn:fixture:evidence:item-a",
+        "urn:fixture:evidence:item-b",
+        "urn:fixture:evidence:item-c",
+        "urn:fixture:evidence:item-d",
+        "urn:fixture:evidence:item-e"
+      ]
     },
     "query_binding": {
       "query_ref": "urn:fixture:query:scope-v1",
@@ -29,7 +36,12 @@
         "value": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
       },
       "recipient_ref": "urn:fixture:recipient:authorized-recipient",
-      "project_snapshot_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+      "project_snapshot_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+      "principal_ref": "urn:fixture:principal:synthetic-requester",
+      "operation": "export_evidence",
+      "purpose_ref": "urn:fixture:purpose:restricted-evidence-export",
+      "resource_ref": "urn:fixture:resource:synthetic-project",
+      "jurisdiction_profile_ref": "urn:fixture:jurisdiction:synthetic-profile-v0"
     },
     "private_partition": [
       {
@@ -86,110 +98,231 @@
       },
       "proof_ref": "urn:fixture:proof:opaque-placeholder"
     },
-    "fixture_notice": "All references and digests are synthetic placeholders. No COSE receipt or valid proof is included."
+    "fixture_notice": "All references and digests are synthetic placeholders. No COSE receipt or valid proof is included. No signature or VDS proof verification has been performed.",
+    "coverage_ref": "urn:fixture:coverage-record:private-coverage-001"
   },
   "cases": [
     {
       "case_id": "PCOV-BASELINE-001",
       "mutation": "none",
       "expected": "valid_partition_structure",
-      "invariants": ["PCOV-INV-001", "PCOV-INV-002", "PCOV-INV-003", "PCOV-INV-004", "PCOV-INV-005", "PCOV-INV-006", "PCOV-INV-007", "PCOV-INV-008"]
+      "invariants": [
+        "PCOV-INV-001",
+        "PCOV-INV-002",
+        "PCOV-INV-003",
+        "PCOV-INV-004",
+        "PCOV-INV-005",
+        "PCOV-INV-006",
+        "PCOV-INV-007",
+        "PCOV-INV-008"
+      ]
     },
     {
       "case_id": "PCOV-DUPLICATE-DISPOSITION-001",
       "mutation": "Assign item-a to both included and withheld.",
       "expected": "deny",
-      "invariants": ["PCOV-INV-003"]
+      "invariants": [
+        "PCOV-INV-003"
+      ]
     },
     {
       "case_id": "PCOV-OMITTED-FRONTIER-ITEM-001",
       "mutation": "Remove item-b from the private partition while claiming the frontier is fully accounted for.",
       "expected": "incomplete",
-      "invariants": ["PCOV-INV-004"]
+      "invariants": [
+        "PCOV-INV-004"
+      ]
     },
     {
       "case_id": "PCOV-WITHHELD-AS-ABSENT-001",
       "mutation": "Replace item-b disposition withheld with absent.",
       "expected": "deny",
-      "invariants": ["PCOV-INV-005", "PCOV-INV-007"]
+      "invariants": [
+        "PCOV-INV-005",
+        "PCOV-INV-007"
+      ]
     },
     {
       "case_id": "PCOV-UNAVAILABLE-AS-ABSENT-001",
       "mutation": "Replace item-c disposition unavailable with absent.",
       "expected": "unknown",
-      "invariants": ["PCOV-INV-005", "PCOV-INV-007"]
+      "invariants": [
+        "PCOV-INV-005",
+        "PCOV-INV-007"
+      ]
     },
     {
       "case_id": "PCOV-INCLUDED-SET-MISMATCH-001",
       "mutation": "Mark item-b included in the partition but omit it from package terminal source leaves.",
       "expected": "deny",
-      "invariants": ["PCOV-INV-008"]
+      "invariants": [
+        "PCOV-INV-008"
+      ]
     },
     {
       "case_id": "PCOV-PHANTOM-PACKAGE-SOURCE-001",
       "mutation": "Add a terminal package source leaf that is absent from the committed frontier.",
       "expected": "deny",
-      "invariants": ["PCOV-INV-008", "PCOV-INV-009"]
+      "invariants": [
+        "PCOV-INV-008",
+        "PCOV-INV-009"
+      ]
     },
     {
       "case_id": "PCOV-FRONTIER-VERSION-DRIFT-001",
       "mutation": "Use a receipt for frontier v1 while the query result claims frontier v2.",
       "expected": "unknown",
-      "invariants": ["PCOV-INV-001", "PCOV-INV-010", "PCOV-INV-015"]
+      "invariants": [
+        "PCOV-INV-001",
+        "PCOV-INV-010",
+        "PCOV-INV-015"
+      ]
     },
     {
       "case_id": "PCOV-QUERY-SUBSTITUTION-001",
       "mutation": "Change the query commitment after the private partition was computed.",
       "expected": "deny",
-      "invariants": ["PCOV-INV-002", "PCOV-INV-010"]
+      "invariants": [
+        "PCOV-INV-002",
+        "PCOV-INV-010"
+      ]
     },
     {
       "case_id": "PCOV-RECIPIENT-SUBSTITUTION-001",
       "mutation": "Reuse a proof prepared for a different recipient.",
       "expected": "deny",
-      "invariants": ["PCOV-INV-002", "PCOV-INV-010", "PCOV-INV-014"]
+      "invariants": [
+        "PCOV-INV-002",
+        "PCOV-INV-010",
+        "PCOV-INV-014"
+      ]
     },
     {
       "case_id": "PCOV-STALE-VDS-RECEIPT-001",
       "mutation": "The Mycelix resolver reports the receipt or VDS root as stale, forked, revoked or unavailable.",
       "expected": "unknown",
-      "invariants": ["PCOV-INV-011", "PCOV-INV-015"]
+      "invariants": [
+        "PCOV-INV-011",
+        "PCOV-INV-015"
+      ]
     },
     {
       "case_id": "PCOV-NONINCLUSION-AS-GLOBAL-ABSENCE-001",
       "mutation": "Interpret non-inclusion in frontier v1 as proof that a right or object does not exist outside v1.",
       "expected": "deny",
-      "invariants": ["PCOV-INV-012"]
+      "invariants": [
+        "PCOV-INV-012"
+      ]
     },
     {
       "case_id": "PCOV-PUBLIC-COUNT-LEAK-001",
       "mutation": "Expose the number of withheld or unavailable items in a public verifier view without authority.",
       "expected": "deny",
-      "invariants": ["PCOV-INV-013", "PCOV-INV-014"]
+      "invariants": [
+        "PCOV-INV-013",
+        "PCOV-INV-014"
+      ]
     },
     {
       "case_id": "PCOV-LOW-ENTROPY-HASH-LEAK-001",
       "mutation": "Publish a deterministic unsalted hash of a low-entropy location or identity.",
       "expected": "deny",
-      "invariants": ["PCOV-INV-013"]
+      "invariants": [
+        "PCOV-INV-013"
+      ]
     },
     {
       "case_id": "PCOV-ALIAS-DUPLICATION-001",
       "mutation": "Represent one object under two aliases and count both as distinct included evidence.",
       "expected": "deny",
-      "invariants": ["PCOV-INV-003", "PCOV-INV-008"]
+      "invariants": [
+        "PCOV-INV-003",
+        "PCOV-INV-008"
+      ]
     },
     {
       "case_id": "PCOV-LATE-SOURCE-EVENT-001",
       "mutation": "A new source event arrives after the committed frontier was frozen, but the old proof is silently mutated.",
       "expected": "unknown",
-      "invariants": ["PCOV-INV-015"]
+      "invariants": [
+        "PCOV-INV-015"
+      ]
     },
     {
       "case_id": "PCOV-RESTORE-SEMANTICS-LOSS-001",
       "mutation": "Independent restore recovers package bytes but loses frontier, query, partition and receipt references.",
       "expected": "incomplete",
-      "invariants": ["PCOV-INV-016"]
+      "invariants": [
+        "PCOV-INV-016"
+      ]
+    },
+    {
+      "case_id": "PCOV-EXTRA-PARTITION-OBJECT-001",
+      "mutation": "Add a private partition item that is not in the committed frontier.",
+      "expected": "incomplete",
+      "invariants": [
+        "PCOV-INV-004"
+      ]
+    },
+    {
+      "case_id": "PCOV-PUBLIC-INVENTORY-REF-LEAK-001",
+      "mutation": "Add a protected item reference to the public verifier view.",
+      "expected": "deny",
+      "invariants": [
+        "PCOV-INV-013",
+        "PCOV-INV-014"
+      ]
+    },
+    {
+      "case_id": "PCOV-PUBLIC-WITHHELD-COUNT-LEAK-001",
+      "mutation": "Add a withheld_count field to the public verifier view.",
+      "expected": "deny",
+      "invariants": [
+        "PCOV-INV-013"
+      ]
+    },
+    {
+      "case_id": "PCOV-OPERATION-SUBSTITUTION-001",
+      "mutation": "Reuse the partition under an operation other than export_evidence.",
+      "expected": "deny",
+      "invariants": [
+        "PCOV-INV-002",
+        "PCOV-INV-010"
+      ]
+    },
+    {
+      "case_id": "PCOV-PURPOSE-SUBSTITUTION-001",
+      "mutation": "Reuse the proof under a different purpose reference.",
+      "expected": "deny",
+      "invariants": [
+        "PCOV-INV-002",
+        "PCOV-INV-010"
+      ]
+    },
+    {
+      "case_id": "PCOV-JURISDICTION-SUBSTITUTION-001",
+      "mutation": "Reuse the proof under a different jurisdiction profile.",
+      "expected": "deny",
+      "invariants": [
+        "PCOV-INV-002",
+        "PCOV-INV-010"
+      ]
+    },
+    {
+      "case_id": "PCOV-PUBLIC-PACKAGE-COMMITMENT-DRIFT-001",
+      "mutation": "Change the package commitment only in the public verifier view.",
+      "expected": "deny",
+      "invariants": [
+        "PCOV-INV-010"
+      ]
+    },
+    {
+      "case_id": "PCOV-FRONTIER-ITEM-DUPLICATE-001",
+      "mutation": "Repeat an object reference in the committed frontier item set.",
+      "expected": "deny",
+      "invariants": [
+        "PCOV-INV-003"
+      ]
     }
   ],
   "targets": {
@@ -200,6 +333,6 @@
     "stale_or_invalid_vds_proofs_accepted": 0,
     "protected_inventory_disclosures_in_public_fixtures": 0,
     "global_absence_claims_from_scoped_frontiers": 0,
-    "independent_verifier_agreement": 1.0
+    "independent_verifier_agreement": 1
   }
 }
