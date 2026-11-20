@@ -88,13 +88,16 @@ export function evaluateDisclosureManifest(input) {
   }
   for (const key of [
     "request_ref", "authorization_receipt_ref", "principal_ref", "subject_ref",
-    "operation", "resource_ref", "evidence_frontier_ref", "purpose_ref",
+    "operation", "resource_ref", "evidence_frontier_ref", "coverage_query_ref", "purpose_ref",
     "recipient_ref", "jurisdiction_profile_ref",
   ]) {
     if (!nonblank(binding, key)) raise("incomplete", "authorization_" + key + "_missing");
   }
   if (!isSha256Digest(binding.request_commitment)) {
     raise("incomplete", "authorization_request_commitment_malformed");
+  }
+  if (!isSha256Digest(binding.coverage_query_commitment)) {
+    raise("incomplete", "authorization_coverage_query_commitment_malformed");
   }
   if (!isHex64(nonblank(binding, "project_snapshot_sha256"))) {
     raise("incomplete", "authorization_project_snapshot_malformed");
@@ -420,6 +423,19 @@ passed.push(test(
   (input) => { input.package.outputs[0].content_digest.value = "b".repeat(64); },
   "deny",
   "identity_copy_digest_mismatch",
+));
+
+passed.push(test(
+  "missing-coverage-query-reference",
+  (input) => { delete input.authorization_binding.coverage_query_ref; },
+  "incomplete",
+  "authorization_coverage_query_ref_missing",
+));
+passed.push(test(
+  "malformed-coverage-query-commitment",
+  (input) => { input.authorization_binding.coverage_query_commitment.algorithm = "blake3"; },
+  "incomplete",
+  "authorization_coverage_query_commitment_malformed",
 ));
 
 passed.push(test(
