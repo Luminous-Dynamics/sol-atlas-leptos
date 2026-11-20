@@ -466,6 +466,8 @@ function applyMutation(caseId, input) {
       input.query_binding.predicate.op = "matches"; break;
     case "PCOV-PREDICATE-MALFORMED-PATH-001":
       input.query_binding.predicate.args[0].path = "dataset"; break;
+    case "PCOV-PREDICATE-SUBSTITUTION-001":
+      input.query_binding.predicate.args[1].value = "US"; break;
     default:
       throw new Error("unknown private coverage case: " + caseId);
   }
@@ -486,7 +488,7 @@ for (const testCase of corpus.cases) {
   );
   counts[actual.disposition] += 1;
 }
-assert.equal(corpus.cases.length, 37);
+assert.equal(corpus.cases.length, 38);
 console.log("CTER private coverage oracle: " + corpus.cases.length + "/" + corpus.cases.length + " fixture dispositions matched.");
 console.log("Counts: " + JSON.stringify(counts) + ".");
 console.log("Partition structure only; no VDS/COSE proof, authority or global-completeness claim.");
