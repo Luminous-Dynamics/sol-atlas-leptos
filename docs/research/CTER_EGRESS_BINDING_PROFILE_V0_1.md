@@ -274,3 +274,16 @@ It must explicitly state which checks remain external:
 - inference-risk review and legal effect.
 
 Do not block this standalone reference work on production Mycelix APIs, but do not describe its synthetic status inputs as authenticated upstream facts. When the Mycelix runtime adapter exists, feed the same frozen corpus through it and add cross-repository conformance tests.
+
+
+## 12. Initial machine-readable artefacts committed
+
+The initial profile artefacts now exist on the CTER research branch:
+
+- Schema: \`schemas/cter-disclosure-manifest-v0.1.schema.json\`.
+- Synthetic suite: \`benchmarks/territorial-integrity/egress/cases-v0.1.json\`.
+- Frozen suite: one structurally valid synthetic baseline plus 31 adversarial mutation cases.
+
+The corpus is specified but its reference validator has not yet been implemented or run. Expected dispositions are test requirements, not results. The schema validates the manifest's shape; it does not resolve cross-field equality, source/transform graph closure, exact byte digests, canonicalization, resolver trust, trusted time or release safety. Those checks belong in the Rust reference validator and its independently implemented oracle.
+
+A package's SHA-256 digest is distinct from the manifest commitment and from Mycelix's BLAKE3 event identity. The package payload digest excludes the CTER manifest; the manifest commitment hashes the RFC 8785 canonicalized manifest with the manifest_commitment property omitted. Canonicalization must be pinned and tested before the digest is used across implementations.
