@@ -3,7 +3,7 @@ use serde_json::Value;
 use std::collections::BTreeSet;
 
 fn corpus() -> Value {
-    serde_json::from_str(include_str!("../../privacy/cases-v0.1.json"))
+    serde_json::from_str(include_str!("../../../privacy/cases-v0.1.json"))
         .expect("privacy fixture corpus must be valid JSON")
 }
 
@@ -112,7 +112,7 @@ fn observable_difference_is_a_leak_even_without_canary_hit() {
 
 
 fn inventory_fixture() -> Value {
-    serde_json::from_str(include_str!("../../privacy/channel-inventory-synthetic-v0.1.json"))
+    serde_json::from_str(include_str!("../../../privacy/channel-inventory-synthetic-v0.1.json"))
         .expect("synthetic inventory fixture must be valid JSON")
 }
 
