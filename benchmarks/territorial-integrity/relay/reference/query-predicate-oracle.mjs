@@ -49,6 +49,10 @@ assert.throws(
   ),
   /query_profile_unsupported_for_commitment/,
 );
+assert.throws(
+  () => canonicalJcs({ value: 9007199254740992 }),
+  /jcs_unsafe_integer/,
+);
 
 const changed = structuredClone(baseline.query_binding.predicate);
 changed.args[1].value = "US";
