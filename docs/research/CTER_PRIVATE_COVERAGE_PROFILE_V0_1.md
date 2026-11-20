@@ -225,7 +225,7 @@ No production privacy guarantee, global absence assertion or cryptographic compl
 The first model artifacts are committed:
 
 - [Private coverage invariants](../../benchmarks/territorial-integrity/egress/private-coverage-invariants-v0.1.json): 16 named invariants covering frontier identity, query binding, one-and-only-one partitioning, package leaf-set equality, proof freshness, privacy, verifier scoping and independent restore.
-- [Private coverage adversarial corpus](../../benchmarks/territorial-integrity/egress/private-coverage-cases-v0.1.json): 32 synthetic cases comprising one valid partition baseline plus 31 adversarial specifications.
+- [Private coverage adversarial corpus](../../benchmarks/territorial-integrity/egress/private-coverage-cases-v0.1.json): 37 synthetic cases comprising one valid partition baseline plus 36 adversarial specifications.
 
 The baseline intentionally contains a private partition with included, withheld, unavailable, excluded and unresolved items, while its public verifier view exposes only synthetic commitments and an opaque proof reference. No real personal, community or territorial evidence is used.
 
@@ -267,7 +267,7 @@ The initial evaluator and cross-language conformance slice is now committed:
 - Rust evaluator: \`benchmarks/territorial-integrity/relay/reference/src/private_coverage.rs\`.
 - Rust tests: \`benchmarks/territorial-integrity/relay/reference/tests/private_coverage_conformance.rs\`.
 - Independent Node oracle: \`benchmarks/territorial-integrity/relay/reference/private-coverage-oracle.mjs\`.
-- Frozen corpus: \`benchmarks/territorial-integrity/egress/private-coverage-cases-v0.1.json\` (32 cases).
+- Frozen corpus: \`benchmarks/territorial-integrity/egress/private-coverage-cases-v0.1.json\` (37 cases).
 
 The record now binds:
 - the exact frontier object-reference set and version;
@@ -290,7 +290,7 @@ The structural evaluator checks:
 8. no public disclosure of object refs, counts or extra inventory fields;
 9. no global non-inclusion or absence claim.
 
-A tool-side V8 mirror matched **32/32** expected fixture dispositions: 1 valid partition structure, 3 incomplete, 5 unknown and 23 deny. This is a separate fixture-semantics check; it is not a Node 22 CI run, Rust test result, COSE receipt verification, VDS proof verification, zero-knowledge proof, source-owner completeness result or production authorization. The Rust tests and Node oracle are committed but have not yet been executed by the exact-head workflow.
+A tool-side V8 mirror matched **37/37** expected fixture dispositions: 1 valid partition structure, 5 incomplete, 5 unknown and 26 deny. This is a separate fixture-semantics check; it is not a Node 22 CI run, Rust test result, COSE receipt verification, VDS proof verification, zero-knowledge proof, source-owner completeness result or production authorization. The Rust tests and Node oracle are committed but have not yet been executed by the exact-head workflow.
 
 The result label is intentionally \`valid_partition_structure\`, never \`proof_valid\`, \`authorized\` or \`globally_complete\`. The receipt projection fields are synthetic host-resolved inputs; the evaluator does not authenticate the resolver, signature, issuer or witness quorum.
 
@@ -330,3 +330,12 @@ A valid inclusion/consistency proof establishes properties of committed entries/
 The synthetic benchmark workload is frozen in \`benchmarks/territorial-integrity/egress/private-coverage-scale-workloads-v0.1.json\`. It defines 1k/10k/100k/1M entry frontiers and matched included/withheld/unavailable/excluded/unresolved ratios. It compares an independent-auditor baseline, Mycelix-owned VDS/COSE receipts, and a research-only private predicate proof. It records partition construction/validation, proof generation/verification, proof and public-metadata bytes, memory, CPU, restore and reconciliation time, and leakage metrics.
 
 No arbitrary p99 threshold or proof-system winner is declared before running the same workload on pinned hardware and the same verifier-disclosure level. A proof-size result is not comparable when one profile reveals the partition and another hides it. The workload file is specification only; no performance benchmark has run.
+
+
+## Query semantics hardening
+
+The reference evaluator now includes the versioned predicate profile \`urn:luminous:cter:predicate-json-v0.1\`. The private coverage record includes a bounded AST (\`all\`, \`any\`, \`not\`, \`eq\`, \`in\`, \`exists\`) and private per-item query inputs. The evaluator uses three-valued logic and requires the predicate result to agree with every partition item's \`scope_state\`: TRUE -> in_scope, FALSE -> out_of_scope, UNKNOWN -> unknown. Missing required attributes remain UNKNOWN.
+
+The query profile reference is bound across the private query, receipt projection and egress authorization. The current profile is specified in [CTER_QUERY_PREDICATE_PROFILE_V0_1.md](CTER_QUERY_PREDICATE_PROFILE_V0_1.md) and tracked by [#972](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/972).
+
+The current fixture suite has 37 cases; the tool-side V8 mirror matched 37/37 (1 valid partition structure, 5 incomplete, 5 unknown, 26 deny). This is not a Node 22 workflow, Rust execution or cryptographic commitment result. The evaluator does not yet recompute query commitments over canonical predicate bytes.
