@@ -12,6 +12,7 @@ on:
       - "research/service-debt-metrology-v0.1"
     paths:
       - "tools/shared-amenity-spatial-eval/**"
+      - "docs/research/service-debt-metrology/**"
       - ".github/workflows/service-debt-metrology-eval.yml"
   workflow_dispatch:
 
