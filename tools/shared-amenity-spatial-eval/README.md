@@ -40,7 +40,7 @@ This evaluator composes owner outputs; it is not another GIS, capacity engine, o
 | Sol-Atlas [#816](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/816) | Whole-household affordability | Financial accounting or household affordability recalculation |
 | Mycelix [#5901](https://github.com/Luminous-Dynamics/mycelix/issues/5901) | Matching and constrained allocation | Reservations, assignments, priority or allocation decisions |
 
-The links above identify the intended owner contracts. The synthetic fixtures do not contain actual owner receipts and do not establish that those upstream systems have emitted qualified data.
+The links above identify the intended owner contracts. The nine amenity functional-unit candidates in parent #940 remain `CANDIDATE_NOT_OWNER_APPROVED` pending Mycelix #6328 review. The synthetic fixtures do not contain actual owner receipts and do not establish that those upstream systems have emitted qualified data.
 
 ## Input and evaluation rules
 
@@ -51,7 +51,7 @@ Each scenario defines one common scope and resident-group population. Every arm 
 - evaluation period and quality profile;
 - resident-declared maximum generalized access burden.
 
-The evaluator rejects any arm whose bindings differ. The symbolic `synthetic-scope:` and `synthetic-population:` identifiers are test identities, not cryptographic owner digests.
+The evaluator rejects any arm whose bindings differ. The symbolic `synthetic-scope:` and `synthetic-population:` identifiers are test identities, not cryptographic owner digests. The access record and the facility's period-specific service state are deliberately separate: a route can be qualified while the service is closed or unknown. An effective opportunity requires both a qualified route within tolerance and `service_state=AVAILABLE`; a route to a closed amenity is not counted as service access.
 
 Access rows are already-qualified owner outputs. The evaluator does not calculate a route. A resident group has effective access only when at least one facility row is `QUALIFIED`, its generalized-cost value is within the common resident tolerance, and any mandatory access condition is `PASS`.
 
@@ -68,7 +68,7 @@ All values remain a vector; no composite score or winning topology is emitted.
 | Unknown-access population | Population for which no effective option exists and at least one required access input is unknown |
 | Outside-tolerance population | Population with a known route but no route within the declared resident tolerance |
 | Mandatory-access gate | `PASS`, `FAIL`, `UNKNOWN` or `NOT_APPLICABLE`; a mandatory failure is never averaged away |
-| Aggregate capacity | Sum of each facility's owner-supplied capacity **once per arm**, independent of how many groups can reach it |
+| Aggregate capacity | Sum of each facility's owner-supplied deliverable capacity **once per arm**, independent of how many groups can reach it; a facility known unavailable in the period contributes zero, while unknown service/capacity state makes the aggregate unknown |
 | Capacity gap | Aggregate demand minus aggregate capacity, reported as shortfall/surplus; unknown facility capacity makes the aggregate unknown |
 | Minimum independent failure domains | Minimum count of distinct, explicitly declared failure domains reachable by any one resident group; not inferred from facility count |
 
@@ -80,8 +80,8 @@ Reachable capacity is not allocated supply. Group-level access records are not u
 
 - duplicate JSON object keys are rejected before map deserialization;
 - unknown JSON fields are rejected by typed Rust structures;
-- unknown/invalid owner states are not promoted to effective access;
-- unknown facility capacity makes the aggregate capacity unknown, not zero;
+- route qualification and period-specific Mycelix service availability are separate; both must pass for an effective opportunity;\n- unknown/invalid owner states are not promoted to effective access;\n- a known-closed facility can be reachable but is not counted as an available service opportunity;
+- unknown facility service availability or capacity makes the aggregate deliverable capacity unknown, not zero; a known-unavailable facility contributes zero;
 - mandatory access `FAIL` or `UNKNOWN` remains visible;
 - mixed scope/population/service/period/unit/quality bindings are rejected;
 - duplicate facility IDs and duplicate group/facility rows are rejected;
