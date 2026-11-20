@@ -159,4 +159,17 @@ The egress authorization projection now carries \`coverage_query_profile_ref\`. 
 
 The private query uses \`urn:luminous:cter:predicate-json-v0.1\`, a restricted three-valued AST. Its per-item result must agree with the private partition's scope state before the composed release can be structurally valid. The 21-case corpus now contains two positive structural controls and 19 expected denials, including profile and predicate substitution controls.
 
-A tool-side V8 mirror matched 21/21 composed fixtures (2 valid composed structures, 19 denials). This is not Node 22 CI or Rust execution. The predicate commitment is still cross-bound by reference/hash equality only; canonical-byte hash recomputation remains a separate requirement.
+A tool-side V8 mirror previously matched the 21-case composed corpus (2 valid composed structures, 19 denials) before JCS commitment recomputation was added. The predicate commitment is now recomputed by the private coverage evaluator from the exact profile+AST canonical preimage; the composed evaluator requires profile/reference/digest equality across egress authorization, private coverage and receipt projection. Four shared JCS golden vectors were separately checked in local Node 22.16.0, but the committed Node 22 workflow and Rust tests are still pending exact-head execution.
+
+
+## Canonical predicate commitment and strict parsing
+
+The private coverage evaluator now recomputes the query predicate digest as:
+
+\`SHA-256("luminous.cter.query-predicate.v0.1\\0" || JCS({profile_ref, predicate}))\`
+
+The egress authorization carries the exact query reference, digest and profile, and the host-resolved receipt projection repeats the profile and digest. The composed release evaluator therefore joins one exact predicate, not merely a matching set of authorization attributes. The golden vectors are in \`benchmarks/territorial-integrity/egress/query-predicate-commitments-v0.1.json\`.
+
+The raw JSON entrypoints for the disclosure manifest, private coverage record and composed release use one shared strict parser. It rejects duplicate object member names and unsafe integer values before evaluating records or recomputing commitments. Typed \`serde_json::Value\` entrypoints remain available for internal composition; external adapters should use the raw \`*_json\` entrypoints so duplicate-key evidence has not already been lost.
+
+The remaining provenance gap is separate: the per-item private \`query_input\` values are not yet bound to an owner-authenticated source-input snapshot. [CTER-QUERY-INPUT-ATTESTATION-001 #973](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/973) defines the next relation. A custodian-computed snapshot hash is not a source-owner attestation and does not establish real-world truth.
