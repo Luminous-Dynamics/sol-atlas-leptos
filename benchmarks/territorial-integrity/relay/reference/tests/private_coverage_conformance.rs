@@ -253,16 +253,20 @@ fn unsupported_operation_is_denied() {
 
 
 fn apply_case_mutation(case_id: &str, input: &mut Value) {
-    let partition = input["private_partition"]
-        .as_array_mut()
-        .expect("partition array");
     match case_id {
         "PCOV-BASELINE-001" => {}
         "PCOV-DUPLICATE-DISPOSITION-001" | "PCOV-ALIAS-DUPLICATION-001" => {
-            partition.push(partition[0].clone());
+            let partition = input["private_partition"]
+                .as_array_mut()
+                .expect("partition array");
+            let duplicate = partition[0].clone();
+            partition.push(duplicate);
         }
         "PCOV-OMITTED-FRONTIER-ITEM-001" => {
-            partition.remove(1);
+            input["private_partition"]
+                .as_array_mut()
+                .expect("partition array")
+                .remove(1);
         }
         "PCOV-WITHHELD-AS-ABSENT-001" => {
             input["private_partition"][1]["disposition"] = Value::String("absent".into());
