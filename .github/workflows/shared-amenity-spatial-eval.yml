@@ -73,10 +73,10 @@ jobs:
             .schema == "luminous.temporal-amenity-opportunity-evaluation"
             and .schema_version == "0.1.0"
             and .maturity == "SYNTHETIC_TEMPORAL_JOIN_ORACLE_ONLY"
-            and .opportunity_count == 17
+            and .opportunity_count == 20
             and .disposition_counts.available == 2
             and .disposition_counts.unavailable == 7
-            and .disposition_counts.unknown == 5
+            and .disposition_counts.unknown == 8
             and .disposition_counts.not_comparable == 3
             and (.fixture_sha256 | test("^[0-9a-f]{64}$"))
           ' temporal-opportunity-evaluation.json
