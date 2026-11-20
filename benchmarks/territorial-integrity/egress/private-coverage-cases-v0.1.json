@@ -3,7 +3,7 @@
   "suite_id": "CTER-PRIVATE-COVERAGE-001",
   "suite_version": "0.1.0",
   "synthetic_only": true,
-  "execution_status": "partition_evaluator_and_rust_tests_implemented_not_executed",
+  "execution_status": "structural_evaluator_and_independent_oracle_implemented_not_executed",
   "proof_primitive": "not_selected",
   "invariant_profile": "benchmarks/territorial-integrity/egress/private-coverage-invariants-v0.1.json",
   "claim_ceiling": "partition algebra and binding specifications only; no cryptographic proof is generated or verified",
