@@ -20,7 +20,7 @@ fn baseline_partition_is_structurally_valid_but_not_a_cryptographic_proof() {
 #[test]
 fn private_coverage_suite_size_and_claim_ceiling_are_frozen() {
     let suite = corpus();
-    assert_eq!(suite["cases"].as_array().expect("cases").len(), 32);
+    assert_eq!(suite["cases"].as_array().expect("cases").len(), 37);
     assert_eq!(suite["synthetic_only"].as_bool(), Some(true));
     assert!(
         suite["claim_ceiling"]
@@ -372,6 +372,25 @@ fn apply_case_mutation(case_id: &str, input: &mut Value) {
         "PCOV-RECEIPT-DATA-CLASS-DRIFT-001" => {
             input["receipt_binding"]["data_classes"] = serde_json::json!(["restricted"]);
         }
+        "PCOV-PREDICATE-SCOPE-MISMATCH-001" => {
+            input["private_partition"][3]["scope_state"] = Value::String("in_scope".into());
+            input["private_partition"][3]["disposition"] = Value::String("withheld".into());
+        }
+        "PCOV-UNKNOWN-PREDICATE-AS-IN-SCOPE-001" => {
+            input["private_partition"][4]["scope_state"] = Value::String("in_scope".into());
+            input["private_partition"][4]["disposition"] = Value::String("withheld".into());
+        }
+        "PCOV-TRUE-PREDICATE-AS-OUT-OF-SCOPE-001" => {
+            input["private_partition"][1]["scope_state"] = Value::String("out_of_scope".into());
+            input["private_partition"][1]["disposition"] = Value::String("excluded".into());
+        }
+        "PCOV-PREDICATE-UNKNOWN-OPERATOR-001" => {
+            input["query_binding"]["predicate"]["op"] = Value::String("matches".into());
+        }
+        "PCOV-PREDICATE-MALFORMED-PATH-001" => {
+            input["query_binding"]["predicate"]["args"][0]["path"] =
+                Value::String("dataset".into());
+        }
         _ => panic!("unknown private coverage case {case_id}"),
     }
 }
@@ -380,7 +399,7 @@ fn apply_case_mutation(case_id: &str, input: &mut Value) {
 fn frozen_private_coverage_corpus_matches_every_expected_disposition() {
     let suite = corpus();
     let cases = suite["cases"].as_array().expect("cases array");
-    assert_eq!(cases.len(), 32);
+    assert_eq!(cases.len(), 37);
     for case in cases {
         let case_id = case["case_id"].as_str().expect("case id");
         let expected = case["expected"].as_str().expect("expected disposition");
@@ -424,4 +443,44 @@ fn receipt_projection_must_bind_the_exact_data_class_set() {
     let result = evaluate_private_coverage(&input);
     assert_eq!(result.disposition, "deny");
     assert!(result.reason_codes.contains("receipt_query_binding_mismatch:data_classes"));
+}
+
+
+#[test]
+fn partition_scope_must_match_query_predicate_result() {
+    let mut input = baseline();
+    input["private_partition"][3]["scope_state"] = Value::String("in_scope".into());
+    input["private_partition"][3]["disposition"] = Value::String("withheld".into());
+    let result = evaluate_private_coverage(&input);
+    assert_eq!(result.disposition, "deny");
+    assert!(result.reason_codes.contains("partition_scope_does_not_match_query_predicate"));
+}
+
+#[test]
+fn missing_query_attribute_remains_unknown_not_in_scope() {
+    let mut input = baseline();
+    input["private_partition"][4]["scope_state"] = Value::String("in_scope".into());
+    input["private_partition"][4]["disposition"] = Value::String("withheld".into());
+    let result = evaluate_private_coverage(&input);
+    assert_eq!(result.disposition, "deny");
+    assert!(result.reason_codes.contains("partition_scope_does_not_match_query_predicate"));
+}
+
+#[test]
+fn unsupported_predicate_operator_is_incomplete() {
+    let mut input = baseline();
+    input["query_binding"]["predicate"]["op"] = Value::String("matches".into());
+    let result = evaluate_private_coverage(&input);
+    assert_eq!(result.disposition, "incomplete");
+    assert!(result.reason_codes.contains("query_predicate_invalid:predicate_operator_unsupported"));
+}
+
+#[test]
+fn malformed_predicate_path_is_incomplete() {
+    let mut input = baseline();
+    input["query_binding"]["predicate"]["args"][0]["path"] =
+        Value::String("dataset".into());
+    let result = evaluate_private_coverage(&input);
+    assert_eq!(result.disposition, "incomplete");
+    assert!(result.reason_codes.contains("query_predicate_invalid:predicate_path_must_be_single_member_pointer"));
 }
