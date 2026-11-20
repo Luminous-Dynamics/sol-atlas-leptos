@@ -754,7 +754,7 @@ pub fn evaluate_disclosure_manifest(input: &Value) -> EgressEvaluation {
             }
         }
         if let Some(classes) = output_classes.get(output_ref) {
-            if !source_class_union.is_empty() && source_class_union != *classes {
+            if !source_class_union.is_empty() && &source_class_union != classes {
                 let has_change_reference = output_transform_refs
                     .get(output_ref)
                     .is_some_and(|refs| {
