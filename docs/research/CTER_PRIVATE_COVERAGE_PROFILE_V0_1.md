@@ -375,3 +375,8 @@ Partition items now point to their exact snapshot item using \`query_input_snaps
 The current private-coverage corpus has **44 synthetic cases**: 1 valid structure, 31 deny, 7 incomplete, 5 unknown. The latest snapshot cases are source-present in Rust/Node oracles; do not reuse the earlier 37/37 V8 result as an execution claim for the expanded 44-case suite. Rust and committed Node 22 exact-head execution remain pending.
 
 The two snapshot baseline digests are frozen in the private and composed corpora. A custodian-generated snapshot hash establishes only the integrity of the declared projection after construction. Source bindings are not self-authenticating; Mycelix/source-owner attestation and source-byte/content verification remain separate.
+
+
+## Superseding suite count after query-input snapshot integration
+
+The corpus has grown from 38 to **44** synthetic cases after the six source-input snapshot mutations were added. Current expected dispositions: 1 valid partition structure, 31 deny, 7 incomplete and 5 unknown. The 37/37 V8 mirror recorded earlier predates the snapshot suite and does not qualify the current 44-case revision. The current Rust/Node tests have not yet been run to completion on the exact branch head.
