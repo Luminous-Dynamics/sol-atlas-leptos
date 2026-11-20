@@ -1201,3 +1201,44 @@ mod predicate_semantics_tests {
         );
         assert_eq!(result, Err("query_profile_unsupported_for_commitment"));
     }
+
+
+#[cfg(test)]
+mod strict_json_boundary_tests {
+    use super::{evaluate_private_coverage_json, parse_unique_json_value};
+    use serde_json::json;
+
+    #[test]
+    fn duplicate_object_members_are_rejected_at_raw_json_boundary() {
+        assert!(parse_unique_json_value(r#"{"predicate":{"op":"eq","op":"not"}}"#).is_err());
+        assert!(parse_unique_json_value(r#"{"outer":{"x":1,"x":2}}"#).is_err());
+    }
+
+    #[test]
+    fn unsafe_integer_operands_are_rejected_before_canonicalization() {
+        assert!(parse_unique_json_value(r#"{"value":9007199254740993}"#).is_err());
+        assert!(parse_unique_json_value(r#"{"value":-9007199254740992}"#).is_err());
+    }
+
+    #[test]
+    fn safe_raw_json_preserves_exact_values() {
+        let parsed = parse_unique_json_value(
+            r#"{"a":1,"b":1e-7,"text":"e\u0301"}"#,
+        )
+        .expect("valid unique I-JSON input");
+        assert_eq!(parsed["a"], json!(1));
+        assert_eq!(parsed["b"], json!(1e-7));
+        assert_eq!(parsed["text"], json!("e\u0301"));
+    }
+
+    #[test]
+    fn strict_raw_coverage_entrypoint_accepts_current_baseline() {
+        let suite: serde_json::Value =
+            serde_json::from_str(include_str!("../../../egress/private-coverage-cases-v0.1.json"))
+                .expect("coverage fixture");
+        let raw = suite["baseline"].to_string();
+        let result = evaluate_private_coverage_json(&raw)
+            .expect("strict parser accepts the synthetic baseline");
+        assert_eq!(result.disposition, "valid_partition_structure");
+    }
+}
