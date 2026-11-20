@@ -362,3 +362,12 @@ The authorization binding also names the exact query-semantics profile in `cover
 Egress now exposes \`evaluate_disclosure_manifest_json\`, which parses raw JSON with the shared duplicate-member-detecting/I-JSON-safe parser before evaluating the manifest. This avoids silently accepting a duplicate key after a regular \`serde_json::Value\` parse. The egress authorization also binds \`coverage_query_ref\`, \`coverage_query_profile_ref\` and \`coverage_query_commitment\`; the private coverage evaluator recomputes the profile+AST commitment and the composed evaluator requires exact equality.
 
 The raw entrypoint still performs structural qualification only. It does not recompute the package payload digest over actual package bytes, authenticate Mycelix receipts, resolve current authority or transmit the package. The query-input snapshot provenance/owner-attestation question is tracked separately in #973.
+
+
+## Query-input snapshot egress binding
+
+Egress authorization now requires \`coverage_input_snapshot_ref\`, \`coverage_input_snapshot_profile_ref\` and \`coverage_input_snapshot_commitment\`. The composed evaluator checks exact equality with the private coverage query's snapshot reference/profile/commitment. The egress evaluator also rejects malformed snapshot digests and unsupported snapshot profile identifiers.
+
+The egress corpus now has 39 cases (one valid synthetic baseline plus 38 adverse/indeterminate controls). The Rust egress test module has 23 focused tests; the independent Node oracle has 18 local structural checks. Neither current exact-head Rust tests nor the committed Node 22 oracle has been run as part of a completed dedicated CTER workflow. These counts are source/test inventory, not pass claims.
+
+The egress raw JSON entrypoint uses the shared duplicate-member/I-JSON-safe parser. It still does not hash package bytes, resolve upstream receipts, authorize a release or attest source truth. The snapshot's owner/resolver attestation is tracked separately in #973.
