@@ -68,7 +68,8 @@
             "population_frame_id": "synthetic-resident-frame-v0.1",
             "service_id": "COMMUNITY_WORKSHOP",
             "functional_unit_id": "ACCESSIBLE_WORKSHOP_HOUR",
-            "time_basis_id": "SYNTHETIC_15M_TICKS_V1"
+            "time_basis_id": "SYNTHETIC_15M_TICKS_V1",
+            "cohort_id": "COHORT_GENERAL"
           },
           "owner_revisions": {
             "access": "citymorph-synthetic-r1",
@@ -130,7 +131,8 @@
             "population_frame_id": "synthetic-resident-frame-v0.1",
             "service_id": "COMMUNITY_WORKSHOP",
             "functional_unit_id": "ACCESSIBLE_WORKSHOP_HOUR",
-            "time_basis_id": "SYNTHETIC_15M_TICKS_V1"
+            "time_basis_id": "SYNTHETIC_15M_TICKS_V1",
+            "cohort_id": "COHORT_GENERAL"
           },
           "owner_revisions": {
             "access": "citymorph-synthetic-r1",
@@ -192,7 +194,15 @@
         "owner_revision": "symtropy-synthetic-r1",
         "state": "NOT_APPLICABLE",
         "effective_tick": null,
-        "reason_code": "NO_RESTORATION_CLAIM"
+        "reason_code": "NO_RESTORATION_CLAIM",
+        "scope_binding": {
+          "scope_digest": "synthetic-habitat-scope-v0.1",
+          "population_frame_id": "synthetic-resident-frame-v0.1",
+          "service_id": "COMMUNITY_WORKSHOP",
+          "functional_unit_id": "ACCESSIBLE_WORKSHOP_HOUR",
+          "cohort_id": "COHORT_GENERAL",
+          "time_basis_id": "SYNTHETIC_15M_TICKS_V1"
+        }
       },
       "expected": {
         "opportunity_slices": [
@@ -293,7 +303,8 @@
             "population_frame_id": "synthetic-resident-frame-v0.1",
             "service_id": "COMMUNITY_WORKSHOP",
             "functional_unit_id": "ACCESSIBLE_WORKSHOP_HOUR",
-            "time_basis_id": "SYNTHETIC_15M_TICKS_V1"
+            "time_basis_id": "SYNTHETIC_15M_TICKS_V1",
+            "cohort_id": "COHORT_GENERAL"
           },
           "owner_revisions": {
             "access": "citymorph-synthetic-r1",
@@ -355,7 +366,8 @@
             "population_frame_id": "synthetic-resident-frame-v0.1",
             "service_id": "COMMUNITY_WORKSHOP",
             "functional_unit_id": "ACCESSIBLE_WORKSHOP_HOUR",
-            "time_basis_id": "SYNTHETIC_15M_TICKS_V1"
+            "time_basis_id": "SYNTHETIC_15M_TICKS_V1",
+            "cohort_id": "COHORT_GENERAL"
           },
           "owner_revisions": {
             "access": "citymorph-synthetic-r1",
@@ -417,7 +429,15 @@
         "owner_revision": "symtropy-synthetic-r1",
         "state": "VERIFIED",
         "effective_tick": 7,
-        "reason_code": "OWNER_VERIFIED_STABLE_SERVICE_TRAJECTORY"
+        "reason_code": "OWNER_VERIFIED_STABLE_SERVICE_TRAJECTORY",
+        "scope_binding": {
+          "scope_digest": "synthetic-habitat-scope-v0.1",
+          "population_frame_id": "synthetic-resident-frame-v0.1",
+          "service_id": "COMMUNITY_WORKSHOP",
+          "functional_unit_id": "ACCESSIBLE_WORKSHOP_HOUR",
+          "cohort_id": "COHORT_GENERAL",
+          "time_basis_id": "SYNTHETIC_15M_TICKS_V1"
+        }
       },
       "expected": {
         "opportunity_slices": [
@@ -528,7 +548,8 @@
             "population_frame_id": "synthetic-resident-frame-v0.1",
             "service_id": "COMMUNITY_WORKSHOP",
             "functional_unit_id": "ACCESSIBLE_WORKSHOP_HOUR",
-            "time_basis_id": "SYNTHETIC_15M_TICKS_V1"
+            "time_basis_id": "SYNTHETIC_15M_TICKS_V1",
+            "cohort_id": "COHORT_GENERAL"
           },
           "owner_revisions": {
             "access": "citymorph-synthetic-r1",
@@ -589,7 +610,15 @@
         "owner_revision": "symtropy-synthetic-r1",
         "state": "NOT_APPLICABLE",
         "effective_tick": null,
-        "reason_code": "NO_RESTORATION_CLAIM"
+        "reason_code": "NO_RESTORATION_CLAIM",
+        "scope_binding": {
+          "scope_digest": "synthetic-habitat-scope-v0.1",
+          "population_frame_id": "synthetic-resident-frame-v0.1",
+          "service_id": "COMMUNITY_WORKSHOP",
+          "functional_unit_id": "ACCESSIBLE_WORKSHOP_HOUR",
+          "cohort_id": "COHORT_GENERAL",
+          "time_basis_id": "SYNTHETIC_15M_TICKS_V1"
+        }
       },
       "expected": {
         "opportunity_slices": [
@@ -700,7 +729,8 @@
             "population_frame_id": "synthetic-resident-frame-v0.1",
             "service_id": "COMMUNITY_WORKSHOP",
             "functional_unit_id": "ACCESSIBLE_WORKSHOP_HOUR",
-            "time_basis_id": "SYNTHETIC_15M_TICKS_V1"
+            "time_basis_id": "SYNTHETIC_15M_TICKS_V1",
+            "cohort_id": "COHORT_GENERAL"
           },
           "owner_revisions": {
             "access": "citymorph-synthetic-r1",
@@ -762,7 +792,15 @@
         "owner_revision": "symtropy-synthetic-r1",
         "state": "VERIFIED",
         "effective_tick": 7,
-        "reason_code": "OWNER_VERIFIED_STABLE_SERVICE_TRAJECTORY"
+        "reason_code": "OWNER_VERIFIED_STABLE_SERVICE_TRAJECTORY",
+        "scope_binding": {
+          "scope_digest": "synthetic-habitat-scope-v0.1",
+          "population_frame_id": "synthetic-resident-frame-v0.1",
+          "service_id": "COMMUNITY_WORKSHOP",
+          "functional_unit_id": "ACCESSIBLE_WORKSHOP_HOUR",
+          "cohort_id": "COHORT_GENERAL",
+          "time_basis_id": "SYNTHETIC_15M_TICKS_V1"
+        }
       },
       "expected": {
         "opportunity_slices": [
@@ -873,7 +911,8 @@
             "population_frame_id": "synthetic-resident-frame-v0.1",
             "service_id": "COMMUNITY_WORKSHOP",
             "functional_unit_id": "ACCESSIBLE_WORKSHOP_HOUR",
-            "time_basis_id": "SYNTHETIC_15M_TICKS_V1"
+            "time_basis_id": "SYNTHETIC_15M_TICKS_V1",
+            "cohort_id": "COHORT_GENERAL"
           },
           "owner_revisions": {
             "access": "citymorph-synthetic-r1",
@@ -935,7 +974,15 @@
         "owner_revision": "symtropy-synthetic-r1",
         "state": "VERIFIED",
         "effective_tick": 7,
-        "reason_code": "OWNER_VERIFIED_STABLE_SERVICE_TRAJECTORY"
+        "reason_code": "OWNER_VERIFIED_STABLE_SERVICE_TRAJECTORY",
+        "scope_binding": {
+          "scope_digest": "synthetic-habitat-scope-v0.1",
+          "population_frame_id": "synthetic-resident-frame-v0.1",
+          "service_id": "COMMUNITY_WORKSHOP",
+          "functional_unit_id": "ACCESSIBLE_WORKSHOP_HOUR",
+          "cohort_id": "COHORT_GENERAL",
+          "time_basis_id": "SYNTHETIC_15M_TICKS_V1"
+        }
       },
       "expected": {
         "opportunity_slices": [
@@ -1046,7 +1093,8 @@
             "population_frame_id": "synthetic-resident-frame-v0.1",
             "service_id": "COMMUNITY_WORKSHOP",
             "functional_unit_id": "ACCESSIBLE_WORKSHOP_HOUR",
-            "time_basis_id": "SYNTHETIC_15M_TICKS_V1"
+            "time_basis_id": "SYNTHETIC_15M_TICKS_V1",
+            "cohort_id": "COHORT_GENERAL"
           },
           "owner_revisions": {
             "access": "citymorph-synthetic-r1",
@@ -1107,7 +1155,15 @@
         "owner_revision": "symtropy-synthetic-r1",
         "state": "NOT_APPLICABLE",
         "effective_tick": null,
-        "reason_code": "NO_RESTORATION_CLAIM"
+        "reason_code": "NO_RESTORATION_CLAIM",
+        "scope_binding": {
+          "scope_digest": "synthetic-habitat-scope-v0.1",
+          "population_frame_id": "synthetic-resident-frame-v0.1",
+          "service_id": "COMMUNITY_WORKSHOP",
+          "functional_unit_id": "ACCESSIBLE_WORKSHOP_HOUR",
+          "cohort_id": "COHORT_GENERAL",
+          "time_basis_id": "SYNTHETIC_15M_TICKS_V1"
+        }
       },
       "expected": {
         "opportunity_slices": [
@@ -1210,7 +1266,8 @@
             "population_frame_id": "synthetic-resident-frame-v0.1",
             "service_id": "COMMUNITY_WORKSHOP",
             "functional_unit_id": "ACCESSIBLE_WORKSHOP_HOUR",
-            "time_basis_id": "SYNTHETIC_15M_TICKS_V1"
+            "time_basis_id": "SYNTHETIC_15M_TICKS_V1",
+            "cohort_id": "COHORT_STEP_FREE_ACCESS"
           },
           "owner_revisions": {
             "access": "citymorph-synthetic-r1",
@@ -1271,7 +1328,15 @@
         "owner_revision": "symtropy-synthetic-r1",
         "state": "NOT_APPLICABLE",
         "effective_tick": null,
-        "reason_code": "NO_RESTORATION_CLAIM"
+        "reason_code": "NO_RESTORATION_CLAIM",
+        "scope_binding": {
+          "scope_digest": "synthetic-habitat-scope-v0.1",
+          "population_frame_id": "synthetic-resident-frame-v0.1",
+          "service_id": "COMMUNITY_WORKSHOP",
+          "functional_unit_id": "ACCESSIBLE_WORKSHOP_HOUR",
+          "cohort_id": "COHORT_STEP_FREE_ACCESS",
+          "time_basis_id": "SYNTHETIC_15M_TICKS_V1"
+        }
       },
       "expected": {
         "opportunity_slices": [
@@ -1364,7 +1429,8 @@
             "population_frame_id": "synthetic-resident-frame-v0.1",
             "service_id": "COMMUNITY_WORKSHOP",
             "functional_unit_id": "ACCESSIBLE_WORKSHOP_HOUR",
-            "time_basis_id": "SYNTHETIC_15M_TICKS_V1"
+            "time_basis_id": "SYNTHETIC_15M_TICKS_V1",
+            "cohort_id": "COHORT_GENERAL"
           },
           "owner_revisions": {
             "access": "citymorph-synthetic-r1",
@@ -1425,7 +1491,15 @@
         "owner_revision": "symtropy-synthetic-r1",
         "state": "NOT_APPLICABLE",
         "effective_tick": null,
-        "reason_code": "NO_RESTORATION_CLAIM"
+        "reason_code": "NO_RESTORATION_CLAIM",
+        "scope_binding": {
+          "scope_digest": "synthetic-habitat-scope-v0.1",
+          "population_frame_id": "synthetic-resident-frame-v0.1",
+          "service_id": "COMMUNITY_WORKSHOP",
+          "functional_unit_id": "ACCESSIBLE_WORKSHOP_HOUR",
+          "cohort_id": "COHORT_GENERAL",
+          "time_basis_id": "SYNTHETIC_15M_TICKS_V1"
+        }
       },
       "expected": {
         "opportunity_slices": [
@@ -1550,7 +1624,8 @@
             "population_frame_id": "synthetic-resident-frame-v0.1",
             "service_id": "COMMUNITY_WORKSHOP",
             "functional_unit_id": "ACCESSIBLE_WORKSHOP_HOUR",
-            "time_basis_id": "SYNTHETIC_15M_TICKS_V1"
+            "time_basis_id": "SYNTHETIC_15M_TICKS_V1",
+            "cohort_id": "COHORT_GENERAL"
           },
           "owner_revisions": {
             "access": "citymorph-synthetic-r1",
@@ -1611,7 +1686,8 @@
             "population_frame_id": "synthetic-resident-frame-v0.1",
             "service_id": "COMMUNITY_WORKSHOP",
             "functional_unit_id": "ACCESSIBLE_WORKSHOP_HOUR",
-            "time_basis_id": "SYNTHETIC_15M_TICKS_V1"
+            "time_basis_id": "SYNTHETIC_15M_TICKS_V1",
+            "cohort_id": "COHORT_GENERAL"
           },
           "owner_revisions": {
             "access": "citymorph-synthetic-r1",
@@ -1672,7 +1748,8 @@
             "population_frame_id": "synthetic-resident-frame-v0.1",
             "service_id": "COMMUNITY_WORKSHOP",
             "functional_unit_id": "ACCESSIBLE_WORKSHOP_HOUR",
-            "time_basis_id": "SYNTHETIC_15M_TICKS_V1"
+            "time_basis_id": "SYNTHETIC_15M_TICKS_V1",
+            "cohort_id": "COHORT_GENERAL"
           },
           "owner_revisions": {
             "access": "citymorph-synthetic-r1",
@@ -1733,7 +1810,15 @@
         "owner_revision": "symtropy-synthetic-r1",
         "state": "NOT_APPLICABLE",
         "effective_tick": null,
-        "reason_code": "NO_RESTORATION_CLAIM"
+        "reason_code": "NO_RESTORATION_CLAIM",
+        "scope_binding": {
+          "scope_digest": "synthetic-habitat-scope-v0.1",
+          "population_frame_id": "synthetic-resident-frame-v0.1",
+          "service_id": "COMMUNITY_WORKSHOP",
+          "functional_unit_id": "ACCESSIBLE_WORKSHOP_HOUR",
+          "cohort_id": "COHORT_GENERAL",
+          "time_basis_id": "SYNTHETIC_15M_TICKS_V1"
+        }
       },
       "expected": {
         "opportunity_slices": [
@@ -1851,7 +1936,8 @@
             "population_frame_id": "synthetic-resident-frame-v0.1",
             "service_id": "COMMUNITY_WORKSHOP",
             "functional_unit_id": "ACCESSIBLE_WORKSHOP_HOUR",
-            "time_basis_id": "SYNTHETIC_15M_TICKS_V1"
+            "time_basis_id": "SYNTHETIC_15M_TICKS_V1",
+            "cohort_id": "COHORT_GENERAL"
           },
           "owner_revisions": {
             "access": "citymorph-synthetic-r1",
@@ -1912,7 +1998,15 @@
         "owner_revision": "symtropy-synthetic-r1",
         "state": "NOT_VERIFIED",
         "effective_tick": null,
-        "reason_code": "RECURRENCE_BEFORE_STABLE_RECOVERY"
+        "reason_code": "RECURRENCE_BEFORE_STABLE_RECOVERY",
+        "scope_binding": {
+          "scope_digest": "synthetic-habitat-scope-v0.1",
+          "population_frame_id": "synthetic-resident-frame-v0.1",
+          "service_id": "COMMUNITY_WORKSHOP",
+          "functional_unit_id": "ACCESSIBLE_WORKSHOP_HOUR",
+          "cohort_id": "COHORT_GENERAL",
+          "time_basis_id": "SYNTHETIC_15M_TICKS_V1"
+        }
       },
       "expected": {
         "opportunity_slices": [
@@ -2028,7 +2122,8 @@
             "population_frame_id": "synthetic-resident-frame-v0.1",
             "service_id": "COMMUNITY_WORKSHOP",
             "functional_unit_id": "ACCESSIBLE_WORKSHOP_HOUR",
-            "time_basis_id": "SYNTHETIC_15M_TICKS_V1"
+            "time_basis_id": "SYNTHETIC_15M_TICKS_V1",
+            "cohort_id": "COHORT_GENERAL"
           },
           "owner_revisions": {
             "access": "citymorph-synthetic-r1",
@@ -2089,7 +2184,8 @@
             "population_frame_id": "synthetic-resident-frame-v0.1",
             "service_id": "COMMUNITY_WORKSHOP",
             "functional_unit_id": "ACCESSIBLE_WORKSHOP_HOUR",
-            "time_basis_id": "SYNTHETIC_15M_TICKS_V1"
+            "time_basis_id": "SYNTHETIC_15M_TICKS_V1",
+            "cohort_id": "COHORT_GENERAL"
           },
           "owner_revisions": {
             "access": "citymorph-synthetic-r1",
@@ -2150,7 +2246,15 @@
         "owner_revision": "symtropy-synthetic-r1",
         "state": "NOT_APPLICABLE",
         "effective_tick": null,
-        "reason_code": "NO_RESTORATION_CLAIM"
+        "reason_code": "NO_RESTORATION_CLAIM",
+        "scope_binding": {
+          "scope_digest": "synthetic-habitat-scope-v0.1",
+          "population_frame_id": "synthetic-resident-frame-v0.1",
+          "service_id": "COMMUNITY_WORKSHOP",
+          "functional_unit_id": "ACCESSIBLE_WORKSHOP_HOUR",
+          "cohort_id": "COHORT_GENERAL",
+          "time_basis_id": "SYNTHETIC_15M_TICKS_V1"
+        }
       },
       "expected": {
         "opportunity_slices": [
@@ -2243,7 +2347,8 @@
             "population_frame_id": "synthetic-resident-frame-v0.1",
             "service_id": "COMMUNITY_WORKSHOP",
             "functional_unit_id": "ACCESSIBLE_WORKSHOP_HOUR",
-            "time_basis_id": "SYNTHETIC_15M_TICKS_V1"
+            "time_basis_id": "SYNTHETIC_15M_TICKS_V1",
+            "cohort_id": "COHORT_GENERAL"
           },
           "owner_revisions": {
             "access": "citymorph-synthetic-r1",
@@ -2304,7 +2409,15 @@
         "owner_revision": "symtropy-synthetic-r1",
         "state": "NOT_APPLICABLE",
         "effective_tick": null,
-        "reason_code": "NO_RESTORATION_CLAIM"
+        "reason_code": "NO_RESTORATION_CLAIM",
+        "scope_binding": {
+          "scope_digest": "synthetic-habitat-scope-v0.1",
+          "population_frame_id": "synthetic-resident-frame-v0.1",
+          "service_id": "COMMUNITY_WORKSHOP",
+          "functional_unit_id": "ACCESSIBLE_WORKSHOP_HOUR",
+          "cohort_id": "COHORT_GENERAL",
+          "time_basis_id": "SYNTHETIC_15M_TICKS_V1"
+        }
       },
       "expected": {
         "opportunity_slices": [
@@ -2407,7 +2520,8 @@
             "population_frame_id": "synthetic-resident-frame-v0.1",
             "service_id": "COMMUNITY_WORKSHOP",
             "functional_unit_id": "ACCESSIBLE_WORKSHOP_HOUR",
-            "time_basis_id": "SYNTHETIC_15M_TICKS_V1"
+            "time_basis_id": "SYNTHETIC_15M_TICKS_V1",
+            "cohort_id": "COHORT_GENERAL"
           },
           "owner_revisions": {
             "access": "citymorph-synthetic-r1",
@@ -2468,7 +2582,15 @@
         "owner_revision": "symtropy-synthetic-r1",
         "state": "NOT_APPLICABLE",
         "effective_tick": null,
-        "reason_code": "NO_RESTORATION_CLAIM"
+        "reason_code": "NO_RESTORATION_CLAIM",
+        "scope_binding": {
+          "scope_digest": "synthetic-habitat-scope-v0.1",
+          "population_frame_id": "synthetic-resident-frame-v0.1",
+          "service_id": "COMMUNITY_WORKSHOP",
+          "functional_unit_id": "ACCESSIBLE_WORKSHOP_HOUR",
+          "cohort_id": "COHORT_GENERAL",
+          "time_basis_id": "SYNTHETIC_15M_TICKS_V1"
+        }
       },
       "expected": {
         "opportunity_slices": [
@@ -2571,7 +2693,8 @@
             "population_frame_id": "synthetic-resident-frame-v0.1",
             "service_id": "COMMUNITY_WORKSHOP",
             "functional_unit_id": "ACCESSIBLE_WORKSHOP_HOUR",
-            "time_basis_id": "SYNTHETIC_15M_TICKS_V1"
+            "time_basis_id": "SYNTHETIC_15M_TICKS_V1",
+            "cohort_id": "COHORT_GENERAL"
           },
           "owner_revisions": {
             "access": "citymorph-synthetic-r1",
@@ -2632,7 +2755,15 @@
         "owner_revision": "symtropy-synthetic-r1",
         "state": "NOT_APPLICABLE",
         "effective_tick": null,
-        "reason_code": "NO_RESTORATION_CLAIM"
+        "reason_code": "NO_RESTORATION_CLAIM",
+        "scope_binding": {
+          "scope_digest": "synthetic-habitat-scope-v0.1",
+          "population_frame_id": "synthetic-resident-frame-v0.1",
+          "service_id": "COMMUNITY_WORKSHOP",
+          "functional_unit_id": "ACCESSIBLE_WORKSHOP_HOUR",
+          "cohort_id": "COHORT_GENERAL",
+          "time_basis_id": "SYNTHETIC_15M_TICKS_V1"
+        }
       },
       "expected": {
         "opportunity_slices": [
@@ -2725,7 +2856,8 @@
             "population_frame_id": "synthetic-resident-frame-v0.1",
             "service_id": "COMMUNITY_WORKSHOP",
             "functional_unit_id": "ACCESSIBLE_WORKSHOP_HOUR",
-            "time_basis_id": "SYNTHETIC_15M_TICKS_V1"
+            "time_basis_id": "SYNTHETIC_15M_TICKS_V1",
+            "cohort_id": "COHORT_GENERAL"
           },
           "owner_revisions": {
             "access": "citymorph-synthetic-r1",
@@ -2786,7 +2918,15 @@
         "owner_revision": "symtropy-synthetic-r1",
         "state": "NOT_APPLICABLE",
         "effective_tick": null,
-        "reason_code": "NO_RESTORATION_CLAIM"
+        "reason_code": "NO_RESTORATION_CLAIM",
+        "scope_binding": {
+          "scope_digest": "synthetic-habitat-scope-v0.1",
+          "population_frame_id": "synthetic-resident-frame-v0.1",
+          "service_id": "COMMUNITY_WORKSHOP",
+          "functional_unit_id": "ACCESSIBLE_WORKSHOP_HOUR",
+          "cohort_id": "COHORT_GENERAL",
+          "time_basis_id": "SYNTHETIC_15M_TICKS_V1"
+        }
       },
       "expected": {
         "opportunity_slices": [
@@ -2879,7 +3019,8 @@
             "population_frame_id": "synthetic-resident-frame-v0.1",
             "service_id": "COMMUNITY_WORKSHOP",
             "functional_unit_id": "ACCESSIBLE_WORKSHOP_HOUR",
-            "time_basis_id": "SYNTHETIC_15M_TICKS_V1"
+            "time_basis_id": "SYNTHETIC_15M_TICKS_V1",
+            "cohort_id": "COHORT_GENERAL"
           },
           "owner_revisions": {
             "access": "citymorph-synthetic-r1",
@@ -2940,7 +3081,8 @@
             "population_frame_id": "synthetic-resident-frame-v0.1",
             "service_id": "COMMUNITY_WORKSHOP",
             "functional_unit_id": "ACCESSIBLE_WORKSHOP_HOUR",
-            "time_basis_id": "SYNTHETIC_15M_TICKS_V1"
+            "time_basis_id": "SYNTHETIC_15M_TICKS_V1",
+            "cohort_id": "COHORT_GENERAL"
           },
           "owner_revisions": {
             "access": "citymorph-synthetic-r1",
@@ -3001,7 +3143,15 @@
         "owner_revision": "symtropy-synthetic-r1",
         "state": "NOT_APPLICABLE",
         "effective_tick": null,
-        "reason_code": "NO_RESTORATION_CLAIM"
+        "reason_code": "NO_RESTORATION_CLAIM",
+        "scope_binding": {
+          "scope_digest": "synthetic-habitat-scope-v0.1",
+          "population_frame_id": "synthetic-resident-frame-v0.1",
+          "service_id": "COMMUNITY_WORKSHOP",
+          "functional_unit_id": "ACCESSIBLE_WORKSHOP_HOUR",
+          "cohort_id": "COHORT_GENERAL",
+          "time_basis_id": "SYNTHETIC_15M_TICKS_V1"
+        }
       },
       "expected": {
         "opportunity_slices": [
@@ -3064,6 +3214,169 @@
           "tick": null
         },
         "dependency_map_state": "UNKNOWN"
+      }
+    },
+    {
+      "case_id": "STABLE_RECOVERY_WRONG_SCOPE_NOT_ACCEPTED",
+      "title": "Stable-recovery evidence bound to another cohort and scope cannot certify this result",
+      "scenario_class": "STABLE_RECOVERY_SCOPE_MISMATCH",
+      "scope": {
+        "scope_digest": "synthetic-habitat-scope-v0.1",
+        "population_frame_id": "synthetic-resident-frame-v0.1",
+        "service_id": "COMMUNITY_WORKSHOP",
+        "functional_unit_id": "ACCESSIBLE_WORKSHOP_HOUR",
+        "cohort_id": "COHORT_GENERAL",
+        "time_basis_id": "SYNTHETIC_15M_TICKS_V1",
+        "horizon_start_tick": 0,
+        "horizon_end_tick": 8
+      },
+      "demand": {
+        "unit": "qualified_workshop_service_units",
+        "required_units": 2
+      },
+      "dependency_map_state": "COMPLETE",
+      "disruption_events": [],
+      "alternatives": [
+        {
+          "alternative_id": "ONLY_NODE",
+          "scope_binding": {
+            "scope_digest": "synthetic-habitat-scope-v0.1",
+            "population_frame_id": "synthetic-resident-frame-v0.1",
+            "service_id": "COMMUNITY_WORKSHOP",
+            "functional_unit_id": "ACCESSIBLE_WORKSHOP_HOUR",
+            "time_basis_id": "SYNTHETIC_15M_TICKS_V1",
+            "cohort_id": "COHORT_GENERAL"
+          },
+          "owner_revisions": {
+            "access": "citymorph-synthetic-r1",
+            "service": "mycelix-amenity-synthetic-r1",
+            "capacity": "symtropy-capacity-synthetic-r1",
+            "suitability": "resident-brief-synthetic-r1"
+          },
+          "failure_domains": [
+            "OPERATOR_A"
+          ],
+          "slices": [
+            {
+              "start_tick": 0,
+              "end_tick": 2,
+              "predicates": {
+                "route": "QUALIFIED_AVAILABLE",
+                "service": "QUALIFIED_AVAILABLE",
+                "capacity": "QUALIFIED_AVAILABLE",
+                "suitability": "QUALIFIED_AVAILABLE"
+              }
+            },
+            {
+              "start_tick": 2,
+              "end_tick": 4,
+              "predicates": {
+                "route": "QUALIFIED_AVAILABLE",
+                "service": "QUALIFIED_AVAILABLE",
+                "capacity": "QUALIFIED_AVAILABLE",
+                "suitability": "QUALIFIED_AVAILABLE"
+              }
+            },
+            {
+              "start_tick": 4,
+              "end_tick": 6,
+              "predicates": {
+                "route": "QUALIFIED_AVAILABLE",
+                "service": "QUALIFIED_AVAILABLE",
+                "capacity": "QUALIFIED_AVAILABLE",
+                "suitability": "QUALIFIED_AVAILABLE"
+              }
+            },
+            {
+              "start_tick": 6,
+              "end_tick": 8,
+              "predicates": {
+                "route": "QUALIFIED_AVAILABLE",
+                "service": "QUALIFIED_AVAILABLE",
+                "capacity": "QUALIFIED_AVAILABLE",
+                "suitability": "QUALIFIED_AVAILABLE"
+              }
+            }
+          ]
+        }
+      ],
+      "stability_evidence": {
+        "owner": "Symtropy",
+        "owner_reference": "https://github.com/Luminous-Dynamics/symtropy/issues/1848",
+        "owner_revision": "symtropy-synthetic-r1",
+        "state": "VERIFIED",
+        "effective_tick": 7,
+        "reason_code": "OWNER_VERIFIED_BUT_WRONG_SCOPE",
+        "scope_binding": {
+          "scope_digest": "synthetic-other-scope-v0.1",
+          "population_frame_id": "synthetic-resident-frame-v0.1",
+          "service_id": "COMMUNITY_WORKSHOP",
+          "functional_unit_id": "ACCESSIBLE_WORKSHOP_HOUR",
+          "cohort_id": "COHORT_OTHER",
+          "time_basis_id": "SYNTHETIC_15M_TICKS_V1"
+        }
+      },
+      "expected": {
+        "opportunity_slices": [
+          {
+            "start_tick": 0,
+            "end_tick": 2,
+            "state": "AVAILABLE",
+            "alternative_counts": {
+              "available": 1,
+              "unavailable": 0,
+              "unknown": 0,
+              "not_comparable": 0
+            }
+          },
+          {
+            "start_tick": 2,
+            "end_tick": 4,
+            "state": "AVAILABLE",
+            "alternative_counts": {
+              "available": 1,
+              "unavailable": 0,
+              "unknown": 0,
+              "not_comparable": 0
+            }
+          },
+          {
+            "start_tick": 4,
+            "end_tick": 6,
+            "state": "AVAILABLE",
+            "alternative_counts": {
+              "available": 1,
+              "unavailable": 0,
+              "unknown": 0,
+              "not_comparable": 0
+            }
+          },
+          {
+            "start_tick": 6,
+            "end_tick": 8,
+            "state": "AVAILABLE",
+            "alternative_counts": {
+              "available": 1,
+              "unavailable": 0,
+              "unknown": 0,
+              "not_comparable": 0
+            }
+          }
+        ],
+        "coalesced_opportunity_intervals": [
+          {
+            "start_tick": 0,
+            "end_tick": 8,
+            "state": "AVAILABLE"
+          }
+        ],
+        "first_available_tick": 0,
+        "first_restored_after_known_loss_tick": null,
+        "stable_opportunity_restoration": {
+          "state": "UNKNOWN",
+          "tick": null
+        },
+        "dependency_map_state": "COMPLETE"
       }
     }
   ]
