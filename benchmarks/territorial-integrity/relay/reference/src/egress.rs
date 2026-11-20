@@ -501,7 +501,14 @@ pub fn evaluate_disclosure_manifest(input: &Value) -> EgressEvaluation {
             } else {
                 source_digests.insert(source_ref.to_owned(), digest);
             }
-            source_ids.insert(source_ref.to_owned());
+            if !source_ids.insert(source_ref.to_owned()) {
+                raise(
+                    &mut severity,
+                    &mut reasons,
+                    Severity::Deny,
+                    "source_reference_duplicated",
+                );
+            }
         }
         output_source_refs.insert(object_ref.to_owned(), source_ids);
 
