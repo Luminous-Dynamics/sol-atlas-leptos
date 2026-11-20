@@ -303,7 +303,7 @@ The evaluator checks the internal manifest shape and links between request, reci
 
 Classification is deliberately not a total order. A source/output class-set change produces REVIEW when no authority reference is present and UNKNOWN when a reference exists but the host has not resolved it. A reference string is not proof of permission to declassify.
 
-The Rust test module now specifies 17 focused tests, and the independent Node oracle specifies 16 structural checks. The frozen corpus contains 34 entries: one baseline plus 33 adversarial specifications. Tool-side V8 checks previously covered the core recipient, lineage, identity-copy, class-change and intermediate-DAG cases; the expanded Node oracle itself has not yet run under Node 22. The 17 Rust tests remain unexecuted, and exact-head CI is pending.
+The Rust test module now specifies 18 focused tests, and the independent Node oracle specifies 17 structural checks. The frozen corpus contains 35 entries: one baseline plus 34 adversarial specifications. Tool-side V8 checks previously covered the core recipient, lineage, identity-copy, class-change and intermediate-DAG cases; the expanded Node oracle itself has not yet run under Node 22. The 18 Rust tests remain unexecuted, and exact-head CI is pending.
 
 ### Strict limits of this slice
 
@@ -352,3 +352,6 @@ The private coverage evaluator currently validates this partition algebra and bi
 
 
 The authorization binding additionally names the exact custodian coverage query using `coverage_query_ref` and `coverage_query_commitment`. The latter is a SHA-256 commitment to the canonical query predicate. These fields are required structurally and are cross-checked against the private coverage record's `query_ref` and `query_commitment` by the composed release evaluator. The hash value is not recomputed by this structural evaluator.
+
+
+The authorization binding also names the exact query-semantics profile in `coverage_query_profile_ref`. It must equal the private coverage query profile used by the partition evaluator and the profile in its receipt projection. The supported v0.1 profile is `urn:luminous:cter:predicate-json-v0.1`; it is deliberately bounded and does not execute arbitrary query languages or user-defined functions. See [CTER_QUERY_PREDICATE_PROFILE_V0_1.md](CTER_QUERY_PREDICATE_PROFILE_V0_1.md).
