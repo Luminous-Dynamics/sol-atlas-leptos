@@ -67,6 +67,23 @@ fn reference_set(value: &Value) -> Result<BTreeSet<String>, &'static str> {
     Ok(refs)
 }
 
+fn data_class_set(value: &Value) -> Result<BTreeSet<String>, &'static str> {
+    let classes = reference_set(value)?;
+    if classes.is_empty() {
+        return Err("data_class_set_empty");
+    }
+    if classes.iter().all(|class| {
+        matches!(
+            class.as_str(),
+            "public" | "community" | "restricted" | "culturally_protected"
+        )
+    }) {
+        Ok(classes)
+    } else {
+        Err("data_class_unknown")
+    }
+}
+
 fn finalize(severity: Severity, reasons: BTreeSet<String>) -> CoverageEvaluation {
     let disposition = match severity {
         Severity::None => "valid_partition_structure",
@@ -217,6 +234,7 @@ fn compare_receipt_projection(
         "query_commitment",
         "request_commitment",
         "principal_ref",
+        "subject_ref",
         "operation",
         "purpose_ref",
         "recipient_ref",
@@ -232,6 +250,21 @@ fn compare_receipt_projection(
                 format!("receipt_query_binding_mismatch:{field}"),
             );
         }
+    }
+
+    let query_classes = query
+        .get("data_classes")
+        .and_then(|value| data_class_set(value).ok());
+    let receipt_classes = receipt
+        .get("data_classes")
+        .and_then(|value| data_class_set(value).ok());
+    if query_classes != receipt_classes {
+        raise(
+            severity,
+            reasons,
+            Severity::Deny,
+            "receipt_query_binding_mismatch:data_classes",
+        );
     }
 
     if !receipt
@@ -341,6 +374,7 @@ pub fn evaluate_private_coverage(input: &Value) -> CoverageEvaluation {
     for field in [
         "query_ref",
         "principal_ref",
+        "subject_ref",
         "operation",
         "purpose_ref",
         "recipient_ref",
@@ -384,6 +418,22 @@ pub fn evaluate_private_coverage(input: &Value) -> CoverageEvaluation {
             Severity::Incomplete,
             "query_project_snapshot_malformed",
         );
+    }
+
+    match query.get("data_classes").map(data_class_set) {
+        Some(Ok(_)) => {}
+        Some(Err(reason)) => raise(
+            &mut severity,
+            &mut reasons,
+            Severity::Incomplete,
+            format!("query_data_classes_invalid:{reason}"),
+        ),
+        None => raise(
+            &mut severity,
+            &mut reasons,
+            Severity::Incomplete,
+            "query_data_classes_missing",
+        ),
     }
 
     let Some(partition) = input.get("private_partition").and_then(Value::as_array) else {
