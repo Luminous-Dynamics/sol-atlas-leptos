@@ -13,6 +13,7 @@ const EXPECTED_SCHEMA: &str = "luminous.temporal-amenity-opportunity-fixtures";
 const EXPECTED_VERSION: &str = "0.1.0";
 const EXPECTED_MATURITY: &str = "SYNTHETIC_TEMPORAL_JOIN_ORACLE_ONLY";
 const MAX_ARRIVAL_CANDIDATES: i64 = 1_000;
+const EXPECTED_TIME_BASIS_ID: &str = "SYNTHETIC_LOCAL_15_MINUTE_TICKS_V1";
 const SOL_ATLAS_SCOPE: &str = "https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/623";
 const SOL_ATLAS_ACCESS: &str = "https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/555";
 const MYCELIX_SERVICE: &str = "https://github.com/Luminous-Dynamics/mycelix/issues/6328";
@@ -344,6 +345,9 @@ fn comparable(c: &OpportunityCase) -> Result<(), &'static str> {
         || c.calendar.service_windows.iter().any(|w| w.time_basis_id != c.scope.time_basis_id) {
         return Err("TIME_BASIS_MISMATCH");
     }
+    if c.scope.time_basis_id != EXPECTED_TIME_BASIS_ID {
+        return Err("UNSUPPORTED_TIME_BASIS");
+    }
     if c.access.owner != "Sol-Atlas" || c.access.owner_reference != SOL_ATLAS_ACCESS
         || c.calendar.owner != "Mycelix" || c.calendar.owner_reference != MYCELIX_SERVICE
         || c.calendar.service_windows.iter().any(|w| w.owner != "Mycelix" || w.owner_reference != MYCELIX_SERVICE) {
@@ -525,11 +529,11 @@ mod tests {
     #[test]
     fn frozen_interval_join_corpus_matches_every_golden_result() {
         let out = evaluate_fixture(FIXTURE.as_bytes()).expect("fixture corpus should pass");
-        assert_eq!(out.opportunity_count, 20);
+        assert_eq!(out.opportunity_count, 21);
         assert_eq!(out.disposition_counts.available, 2);
         assert_eq!(out.disposition_counts.unavailable, 7);
         assert_eq!(out.disposition_counts.unknown, 8);
-        assert_eq!(out.disposition_counts.not_comparable, 3);
+        assert_eq!(out.disposition_counts.not_comparable, 4);
         assert_eq!(out.fixture_sha256.len(), 64);
     }
     #[test]
@@ -605,6 +609,14 @@ mod tests {
         assert_eq!(r.disposition, "NOT_COMPARABLE");
         assert_eq!(r.reason_code, "MIXED_SERVICE_OWNER_REVISIONS");
     }
+    #[test]
+    fn unsupported_shared_time_basis_is_not_comparable_even_when_all_inputs_match() {
+        let out = evaluate_fixture(FIXTURE.as_bytes()).expect("fixtures should pass");
+        let result = by_id(&out, "UNSUPPORTED_SHARED_TIME_BASIS");
+        assert_eq!(result.disposition, "NOT_COMPARABLE");
+        assert_eq!(result.reason_code, "UNSUPPORTED_TIME_BASIS");
+    }
+
     #[test]
     fn stale_and_unknown_access_evidence_never_becomes_available() {
         let out = evaluate_fixture(FIXTURE.as_bytes()).expect("fixtures should pass");
