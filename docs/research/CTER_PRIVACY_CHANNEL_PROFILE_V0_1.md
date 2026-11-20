@@ -207,3 +207,10 @@ The sample inventory deliberately says \`partial\` and names three illustrative 
 The paired-world evaluator only compares the JSON observations represented in the fixture, detects synthetic canary strings and flags channel names absent from the declared inventory. It does not inspect live map tiles, application logs, CDNs, caches, production APIs, AI providers or backups. The production channel inventory and independent observation method are prerequisites for any field claim.
 
 The exact-head workflow has been extended to validate the privacy schema, fixture and corpus, and run both Node oracles. At the time of this profile revision those jobs remain subject to live GitHub Actions status; queued is not PASS.
+
+
+## 11. Private coverage is complementary to channel non-disclosure
+
+[CTER-PRIVATE-COVERAGE-001 #962](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/962) supplies a separate custody-side property: verify the partition of a declared frontier without publishing withheld/unavailable item references, counts or low-entropy commitments. The public verifier view is deliberately a strict allowlist of commitments and an opaque proof reference, and non-inclusion is scoped to one exact frontier version.
+
+This does not replace paired-world tests in this privacy profile. A mathematically valid partition proof can still leak metadata through a status URL, cache validator, tile, log or timing channel. Conversely, a clean public transcript does not prove that the custodian's private partition exhausts its declared frontier. The two workstreams must be benchmarked together but keep their claim ceilings separate.
