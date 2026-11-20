@@ -821,10 +821,12 @@ fn evaluate_arm(
                             .get(record.facility_id.as_str())
                             .is_some_and(|facility| facility.service_state == "UNKNOWN")
                 });
-                if known_failure {
-                    mandatory_failure = true;
-                } else if has_unknown {
+                if has_unknown {
+                    // An unresolved alternative could satisfy the resident's
+                    // mandatory condition; do not turn partial evidence into FAIL.
                     mandatory_unknown = true;
+                } else if known_failure {
+                    mandatory_failure = true;
                 } else {
                     mandatory_failure = true;
                 }
