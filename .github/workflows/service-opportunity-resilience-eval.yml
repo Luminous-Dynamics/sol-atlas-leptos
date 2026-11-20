@@ -1,0 +1,97 @@
+name: Service Opportunity Resilience Oracle
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+    paths:
+      - "tools/shared-amenity-spatial-eval/**"
+      - "docs/research/service-opportunity-resilience/**"
+      - ".github/workflows/service-opportunity-resilience-eval.yml"
+  push:
+    branches:
+      - "research/service-opportunity-resilience-eval-v0.1"
+    paths:
+      - "tools/shared-amenity-spatial-eval/**"
+      - "docs/research/service-opportunity-resilience/**"
+      - ".github/workflows/service-opportunity-resilience-eval.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: service-opportunity-resilience-eval-${{ github.head_ref || github.ref_name }}
+  cancel-in-progress: true
+
+jobs:
+  synthetic-oracle:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
+
+      - name: Install pinned Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: 1.96.0
+          components: clippy, rustfmt
+
+      - name: Verify formatting
+        run: cargo fmt --manifest-path tools/shared-amenity-spatial-eval/Cargo.toml -- --check
+
+      - name: Run frozen oracle and adversarial tests
+        run: cargo test --locked --all-targets --manifest-path tools/shared-amenity-spatial-eval/Cargo.toml
+
+      - name: Run strict Clippy
+        run: cargo clippy --locked --all-targets --manifest-path tools/shared-amenity-spatial-eval/Cargo.toml -- -D warnings
+
+      - name: Generate exact-head reference-oracle evaluation
+        shell: bash
+        run: |
+          set -euo pipefail
+          source_commit="$(git rev-parse HEAD)"
+          test "$source_commit" = "${{ github.event.pull_request.head.sha || github.sha }}"
+          fixture="docs/research/service-opportunity-resilience/SERVICE_OPPORTUNITY_RESILIENCE_REFERENCE_ORACLE_V0_1.json"
+          fixture_sha256="$(sha256sum "$fixture" | cut -d ' ' -f 1)"
+          cargo run --locked --quiet --manifest-path tools/shared-amenity-spatial-eval/Cargo.toml --bin service-opportunity-resilience -- "$fixture" > service-opportunity-resilience-evaluation.json
+          jq -e '
+            .schema == "luminous.service-opportunity-resilience-evaluation"
+            and .schema_version == "0.1.0"
+            and .maturity == "SYNTHETIC_REFERENCE_ORACLE_EXECUTION_ONLY"
+            and .case_count == 18
+            and .opportunity_interval_count == 72
+            and .frozen_oracle_match_count == 18
+            and .mismatch_count == 0
+            and (.fixture_sha256 | test("^[0-9a-f]{64}$"))
+          ' service-opportunity-resilience-evaluation.json
+          test "$(jq -r .fixture_sha256 service-opportunity-resilience-evaluation.json)" = "$fixture_sha256"
+          jq -n \
+            --arg source_commit "$source_commit" \
+            --arg fixture_sha256 "$fixture_sha256" \
+            --slurpfile evaluation service-opportunity-resilience-evaluation.json \
+            '{
+              schema: "luminous.service-opportunity-resilience-receipt",
+              schema_version: "0.1.0",
+              result: "pass",
+              maturity: "SYNTHETIC_REFERENCE_ORACLE_ONLY",
+              source_commit: $source_commit,
+              fixture_sha256: $fixture_sha256,
+              evaluation: $evaluation[0]
+            }' > service-opportunity-resilience-receipt.json
+
+      - name: Validate exact-head receipt identity
+        run: |
+          test "$(jq -r .source_commit service-opportunity-resilience-receipt.json)" = "${{ github.event.pull_request.head.sha || github.sha }}"
+          test "$(jq -r .fixture_sha256 service-opportunity-resilience-receipt.json)" = "$(sha256sum docs/research/service-opportunity-resilience/SERVICE_OPPORTUNITY_RESILIENCE_REFERENCE_ORACLE_V0_1.json | cut -d ' ' -f 1)"
+          jq -e '.result == "pass" and .evaluation.frozen_oracle_match_count == 18' service-opportunity-resilience-receipt.json
+
+      - name: Upload exact-head receipt
+        uses: actions/upload-artifact@v4
+        with:
+          name: service-opportunity-resilience-receipt
+          path: service-opportunity-resilience-receipt.json
+          if-no-files-found: error
+          retention-days: 90
