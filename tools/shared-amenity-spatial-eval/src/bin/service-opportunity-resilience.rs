@@ -45,7 +45,7 @@ struct DecisionPolicy {
     stable_recovery_rule: String,
 }
 
-#[derive(Debug, Clone, Deserialize, PartialEq, Eq)]
+#[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq)]
 #[serde(deny_unknown_fields)]
 struct Scope {
     scope_digest: String,
@@ -71,7 +71,7 @@ impl Scope {
     }
 }
 
-#[derive(Debug, Clone, Deserialize, PartialEq, Eq)]
+#[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq)]
 #[serde(deny_unknown_fields)]
 struct ScopeBinding {
     scope_digest: String,
@@ -82,14 +82,14 @@ struct ScopeBinding {
     time_basis_id: String,
 }
 
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq)]
 #[serde(deny_unknown_fields)]
 struct Demand {
     unit: String,
     required_units: u64,
 }
 
-#[derive(Debug, Clone, Copy, Deserialize, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, Deserialize, Serialize, PartialEq, Eq)]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 enum PredicateState {
     QualifiedAvailable,
@@ -98,7 +98,7 @@ enum PredicateState {
     Stale,
 }
 
-#[derive(Debug, Clone, Copy, Deserialize, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, Deserialize, Serialize, PartialEq, Eq)]
 #[serde(deny_unknown_fields)]
 struct Predicates {
     route: PredicateState,
@@ -122,7 +122,7 @@ enum OpportunityState {
     NotComparable,
 }
 
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq)]
 #[serde(deny_unknown_fields)]
 struct SourceRevisions {
     access: String,
@@ -131,7 +131,7 @@ struct SourceRevisions {
     suitability: String,
 }
 
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq)]
 #[serde(deny_unknown_fields)]
 struct AlternativeSlice {
     start_tick: i64,
@@ -139,7 +139,7 @@ struct AlternativeSlice {
     predicates: Predicates,
 }
 
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq)]
 #[serde(deny_unknown_fields)]
 struct Alternative {
     alternative_id: String,
@@ -149,13 +149,13 @@ struct Alternative {
     slices: Vec<AlternativeSlice>,
 }
 
-#[derive(Debug, Clone, Copy, Deserialize)]
+#[derive(Debug, Clone, Copy, Deserialize, Serialize, PartialEq, Eq)]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 enum EvidenceClass {
     SyntheticControlled,
 }
 
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq)]
 #[serde(deny_unknown_fields)]
 struct DisruptionEvent {
     event_id: String,
@@ -165,7 +165,7 @@ struct DisruptionEvent {
     evidence_class: EvidenceClass,
 }
 
-#[derive(Debug, Clone, Copy, Deserialize, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, Deserialize, Serialize, PartialEq, Eq)]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 enum RecoveryState {
     Verified,
@@ -174,7 +174,7 @@ enum RecoveryState {
     NotApplicable,
 }
 
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq)]
 #[serde(deny_unknown_fields)]
 struct StabilityEvidence {
     owner: String,
@@ -264,6 +264,12 @@ struct Case {
 #[derive(Debug, Clone, Serialize, PartialEq, Eq)]
 struct CaseEvaluation {
     case_id: String,
+    scenario_class: String,
+    scope: Scope,
+    demand: Demand,
+    input_alternatives: Vec<Alternative>,
+    disruption_events: Vec<DisruptionEvent>,
+    stability_evidence: StabilityEvidence,
     opportunity_slices: Vec<OpportunitySlice>,
     coalesced_opportunity_intervals: Vec<OpportunityInterval>,
     first_available_tick: Option<i64>,
@@ -277,6 +283,7 @@ struct EvaluationOutput {
     schema: &'static str,
     schema_version: &'static str,
     maturity: &'static str,
+    claim_ceiling: String,
     fixture_sha256: String,
     case_count: usize,
     opportunity_interval_count: usize,
@@ -648,6 +655,12 @@ fn evaluate_case(case: &Case) -> CaseEvaluation {
 
     CaseEvaluation {
         case_id: case.case_id.clone(),
+        scenario_class: case.scenario_class.clone(),
+        scope: case.scope.clone(),
+        demand: case.demand.clone(),
+        input_alternatives: case.alternatives.clone(),
+        disruption_events: case.disruption_events.clone(),
+        stability_evidence: case.stability_evidence.clone(),
         opportunity_slices,
         coalesced_opportunity_intervals,
         first_available_tick,
@@ -715,6 +728,7 @@ fn evaluate_fixture(bytes: &[u8]) -> Result<EvaluationOutput, String> {
         schema: OUTPUT_SCHEMA,
         schema_version: "0.1.0",
         maturity: "SYNTHETIC_REFERENCE_ORACLE_EXECUTION_ONLY",
+        claim_ceiling: fixture.claim_ceiling,
         fixture_sha256,
         case_count,
         opportunity_interval_count,
@@ -791,6 +805,44 @@ mod tests {
         left.sort_by(|a, b| a.case_id.cmp(&b.case_id));
         right.sort_by(|a, b| a.case_id.cmp(&b.case_id));
         assert_eq!(left, right);
+    }
+
+    #[test]
+    fn alternative_order_does_not_change_opportunity_results() {
+        let mut case = fixture()
+            .cases
+            .into_iter()
+            .find(|case| case.case_id == "INDEPENDENT_BACKUP_SURVIVES_PRIMARY_FAILURE")
+            .expect("backup case exists");
+        let before = evaluate_case(&case);
+        case.alternatives.reverse();
+        let after = evaluate_case(&case);
+        assert_eq!(before.opportunity_slices, after.opportunity_slices);
+        assert_eq!(before.coalesced_opportunity_intervals, after.coalesced_opportunity_intervals);
+        assert_eq!(before.first_available_tick, after.first_available_tick);
+        assert_eq!(before.first_restored_after_known_loss_tick, after.first_restored_after_known_loss_tick);
+    }
+
+    #[test]
+    fn evaluation_preserves_exact_scope_revisions_events_and_failure_domains() {
+        let case = fixture()
+            .cases
+            .into_iter()
+            .find(|case| case.case_id == "SHARED_OPERATOR_COMMON_CAUSE")
+            .expect("shared operator case exists");
+        let evaluated = evaluate_case(&case);
+        assert_eq!(evaluated.scope, case.scope);
+        assert_eq!(evaluated.demand.unit, case.demand.unit);
+        assert_eq!(evaluated.demand.required_units, case.demand.required_units);
+        assert_eq!(evaluated.input_alternatives, case.alternatives);
+        assert_eq!(evaluated.disruption_events, case.disruption_events);
+        assert_eq!(evaluated.stability_evidence, case.stability_evidence);
+        assert!(evaluated.input_alternatives.iter().all(|alternative| {
+            alternative.failure_domains.contains(&"SHARED_OPERATOR_X".to_owned())
+        }));
+        assert!(evaluated.disruption_events.iter().any(|event| {
+            event.failure_domain == "SHARED_OPERATOR_X"
+        }));
     }
 
     #[test]
