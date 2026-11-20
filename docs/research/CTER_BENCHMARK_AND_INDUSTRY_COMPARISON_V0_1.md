@@ -317,3 +317,20 @@ The release-binding projection now includes the exact coverage-query reference a
 
 
 Updated fixture results on the current research branch: private coverage 32/32 expected dispositions in a tool-side V8 mirror (1 valid partition structure, 3 incomplete, 5 unknown, 23 deny); composed release 17/17 in the earlier 17-case mirror (2 valid composed structures, 15 deny). The composed corpus has since grown to 19 cases with two additional query-substitution denials; those two cases are committed but not yet re-executed in the mirror. The egress corpus has grown to 34 cases and the composed corpus to 19. These are not Node 22 workflow runs or Rust results.
+
+
+## 14. Query semantics is now a first-class qualification dimension
+
+A structurally complete partition is not necessarily a correct answer to the exact query. [CTER-QUERY-SEMANTICS-001 #972](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/972) adds a restricted deterministic predicate profile and three-valued evaluation to the private coverage record.
+
+Artifacts:
+- \`docs/research/CTER_QUERY_PREDICATE_PROFILE_V0_1.md\`
+- \`urn:luminous:cter:predicate-json-v0.1\` query profile, bound by receipt and egress authorization;
+- private per-item query inputs and a Rust/Node predicate evaluator;
+- 37 private coverage cases and 21 composed-release cases.
+
+The core rule is \`TRUE -> in_scope\`, \`FALSE -> out_of_scope\`, \`UNKNOWN -> unknown\`. Missing attributes remain UNKNOWN; they are not converted into false non-matches. Query selection remains separate from authorization. OPA/Mycelix is the authority/policy owner; CTER verifies that the exact package and partition correspond to the exact declared selection.
+
+The v0.1 AST is intentionally narrow (\`all\`, \`any\`, \`not\`, \`eq\`, \`in\`, \`exists\`) and does not execute arbitrary SQL, JSONPath extension functions, Rego or user-defined code. RFC 9535 JSONPath and OPA decision logs are comparison/adapter baselines, not replaced systems. See the dedicated profile for the exact semantics and limits.
+
+**Commitment limitation:** the structural evaluators now cross-bind the query profile reference, but they do not yet recompute the query commitment over canonical predicate bytes. The next step is domain-separated canonicalization/hash test vectors in Rust and Node. Until that lands, query predicate commitment is a bound reference/hash shape, not a cryptographically reverified predicate.
