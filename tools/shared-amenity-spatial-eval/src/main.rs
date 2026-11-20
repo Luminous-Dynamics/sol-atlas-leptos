@@ -1,6 +1,6 @@
 use serde::{
-    de::{self, MapAccess, SeqAccess, Visitor},
     Deserialize, Deserializer, Serialize,
+    de::{self, MapAccess, SeqAccess, Visitor},
 };
 use serde_json::{Map, Value};
 use sha2::{Digest, Sha256};
@@ -14,8 +14,7 @@ const FIXTURE_PATH: &str =
 const EXPECTED_SCHEMA: &str = "luminous.shared-amenity-spatial-evaluation-fixtures";
 const EXPECTED_VERSION: &str = "0.1.0";
 const EXPECTED_MATURITY: &str = "SYNTHETIC_ORACLE_FIXTURES_ONLY";
-const EXPECTED_CLAIM_CEILING: &str =
-    "NO_LIVE_JOHANNESBURG_GEOGRAPHY_RESIDENTS_PROVIDER_EVIDENCE_MEASURED_PERFORMANCE_OR_ALLOCATION_CLAIM";
+const EXPECTED_CLAIM_CEILING: &str = "NO_LIVE_JOHANNESBURG_GEOGRAPHY_RESIDENTS_PROVIDER_EVIDENCE_MEASURED_PERFORMANCE_OR_ALLOCATION_CLAIM";
 const EXPECTED_ARMS: &[&str] = &[
     "PRIVATE_DUPLICATION",
     "CENTRAL_SHARED",
@@ -290,8 +289,8 @@ impl<'de> Visitor<'de> for UniqueValueVisitor {
 }
 
 fn parse_fixture(bytes: &[u8]) -> Result<FixtureSet, String> {
-    let UniqueValue(value) =
-        serde_json::from_slice(bytes).map_err(|error| format!("invalid or ambiguous JSON: {error}"))?;
+    let UniqueValue(value) = serde_json::from_slice(bytes)
+        .map_err(|error| format!("invalid or ambiguous JSON: {error}"))?;
     serde_json::from_value(value).map_err(|error| format!("fixture schema error: {error}"))
 }
 
@@ -305,12 +304,10 @@ fn validate_fixture(fixtures: &FixtureSet) -> Result<(), String> {
     }
 
     let owners = &fixtures.owner_bindings;
-    if owners.common_scope
-        != "https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/623"
+    if owners.common_scope != "https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/623"
         || owners.effective_access
             != "https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/555"
-        || owners.amenity_service
-            != "https://github.com/Luminous-Dynamics/mycelix/issues/6328"
+        || owners.amenity_service != "https://github.com/Luminous-Dynamics/mycelix/issues/6328"
         || owners.capacity_feasibility
             != "https://github.com/Luminous-Dynamics/symtropy/issues/3768"
         || owners.household_affordability
@@ -497,7 +494,10 @@ fn validate_fixture(fixtures: &FixtureSet) -> Result<(), String> {
                 }
                 groups_with_records.insert(record.group_id.as_str());
 
-                match (record.access_state.as_str(), record.generalized_cost_seconds) {
+                match (
+                    record.access_state.as_str(),
+                    record.generalized_cost_seconds,
+                ) {
                     ("QUALIFIED", Some(_)) => {}
                     ("UNREACHABLE" | "UNKNOWN" | "BLOCKED", None) => {}
                     _ => {
@@ -649,10 +649,7 @@ fn worst_decile_mean(samples: &[(u64, u64)]) -> Result<Option<u64>, String> {
     ))
 }
 
-fn evaluate_arm(
-    scenario: &ScenarioFixture,
-    arm: &ProvisionArm,
-) -> Result<ArmResult, String> {
+fn evaluate_arm(scenario: &ScenarioFixture, arm: &ProvisionArm) -> Result<ArmResult, String> {
     let facilities = arm
         .facilities
         .iter()
@@ -709,13 +706,10 @@ fn evaluate_arm(
                     .is_some_and(|facility| facility.service_state == "AVAILABLE");
                 record.access_state == "QUALIFIED"
                     && service_available
-                    && record
-                        .generalized_cost_seconds
-                        .is_some_and(|seconds| {
-                            seconds <= scenario.scope.maximum_generalized_cost_seconds
-                        })
-                    && (!group.mandatory_access_required
-                        || record.mandatory_access_state == "PASS")
+                    && record.generalized_cost_seconds.is_some_and(|seconds| {
+                        seconds <= scenario.scope.maximum_generalized_cost_seconds
+                    })
+                    && (!group.mandatory_access_required || record.mandatory_access_state == "PASS")
             })
             .copied()
             .collect::<Vec<_>>();
@@ -742,19 +736,16 @@ fn evaluate_arm(
                 .collect::<Result<BTreeSet<_>, _>>()?;
             let domain_count = domains.len();
             minimum_failure_domains = Some(
-                minimum_failure_domains
-                    .map_or(domain_count, |current| current.min(domain_count)),
+                minimum_failure_domains.map_or(domain_count, |current| current.min(domain_count)),
             );
         } else {
             let has_unknown = records.iter().any(|record| {
                 let facility = facilities
                     .get(record.facility_id.as_str())
                     .expect("access references were validated");
-                let within_tolerance = record
-                    .generalized_cost_seconds
-                    .is_some_and(|seconds| {
-                        seconds <= scenario.scope.maximum_generalized_cost_seconds
-                    });
+                let within_tolerance = record.generalized_cost_seconds.is_some_and(|seconds| {
+                    seconds <= scenario.scope.maximum_generalized_cost_seconds
+                });
                 let service_not_known_unavailable = facility.service_state != "UNAVAILABLE";
                 let unresolved_route_candidate = record.access_state == "UNKNOWN"
                     && record.mandatory_access_state != "FAIL"
@@ -765,8 +756,7 @@ fn evaluate_arm(
                     && service_not_known_unavailable;
                 let unresolved_service_candidate = record.access_state == "QUALIFIED"
                     && within_tolerance
-                    && (!group.mandatory_access_required
-                        || record.mandatory_access_state == "PASS")
+                    && (!group.mandatory_access_required || record.mandatory_access_state == "PASS")
                     && facility.service_state == "UNKNOWN";
                 unresolved_route_candidate
                     || unresolved_mandatory_candidate
@@ -785,13 +775,10 @@ fn evaluate_arm(
                     && facilities
                         .get(record.facility_id.as_str())
                         .is_some_and(|facility| facility.service_state == "AVAILABLE")
-                    && record
-                        .generalized_cost_seconds
-                        .is_some_and(|seconds| {
-                            seconds > scenario.scope.maximum_generalized_cost_seconds
-                        })
-                    && (!group.mandatory_access_required
-                        || record.mandatory_access_state == "PASS")
+                    && record.generalized_cost_seconds.is_some_and(|seconds| {
+                        seconds > scenario.scope.maximum_generalized_cost_seconds
+                    })
+                    && (!group.mandatory_access_required || record.mandatory_access_state == "PASS")
             });
 
             if has_unknown {
@@ -820,13 +807,10 @@ fn evaluate_arm(
                     let facility = facilities
                         .get(record.facility_id.as_str())
                         .expect("access references were validated");
-                    let within_tolerance = record
-                        .generalized_cost_seconds
-                        .is_some_and(|seconds| {
-                            seconds <= scenario.scope.maximum_generalized_cost_seconds
-                        });
-                    let service_not_known_unavailable =
-                        facility.service_state != "UNAVAILABLE";
+                    let within_tolerance = record.generalized_cost_seconds.is_some_and(|seconds| {
+                        seconds <= scenario.scope.maximum_generalized_cost_seconds
+                    });
+                    let service_not_known_unavailable = facility.service_state != "UNAVAILABLE";
                     let unresolved_route_candidate = record.access_state == "UNKNOWN"
                         && record.mandatory_access_state != "FAIL"
                         && service_not_known_unavailable;
@@ -873,16 +857,12 @@ fn evaluate_arm(
 
     let (capacity_shortfall, capacity_surplus, capacity_state) = match aggregate_capacity {
         None => (None, None, "UNKNOWN"),
-        Some(capacity) if capacity < scenario.demand_units => (
-            Some(scenario.demand_units - capacity),
-            Some(0),
-            "SHORTFALL",
-        ),
-        Some(capacity) if capacity > scenario.demand_units => (
-            Some(0),
-            Some(capacity - scenario.demand_units),
-            "SURPLUS",
-        ),
+        Some(capacity) if capacity < scenario.demand_units => {
+            (Some(scenario.demand_units - capacity), Some(0), "SHORTFALL")
+        }
+        Some(capacity) if capacity > scenario.demand_units => {
+            (Some(0), Some(capacity - scenario.demand_units), "SURPLUS")
+        }
         Some(_) => (Some(0), Some(0), "BALANCED"),
     };
 
@@ -1006,8 +986,7 @@ fn main() {
 mod tests {
     use super::*;
 
-    const FIXTURE: &str =
-        include_str!("../fixtures/SHARED_AMENITY_SPATIAL_FIXTURES_V0.1.json");
+    const FIXTURE: &str = include_str!("../fixtures/SHARED_AMENITY_SPATIAL_FIXTURES_V0.1.json");
 
     fn fixture_value() -> Value {
         serde_json::from_str(FIXTURE).expect("fixture JSON must parse for mutation tests")
@@ -1048,11 +1027,7 @@ mod tests {
     #[test]
     fn shared_facility_capacity_is_counted_once_not_once_per_reachable_group() {
         let output = evaluate_fixture(FIXTURE.as_bytes()).expect("fixture should pass");
-        let distributed = find_arm(
-            &output,
-            "COMPACT_HIGH_DENSITY",
-            "DISTRIBUTED_SHARED",
-        );
+        let distributed = find_arm(&output, "COMPACT_HIGH_DENSITY", "DISTRIBUTED_SHARED");
         assert_eq!(distributed.aggregate_capacity_units, Some(100));
         assert_eq!(distributed.demand_units, 100);
         assert_eq!(distributed.capacity_state, "BALANCED");
@@ -1062,11 +1037,7 @@ mod tests {
     #[test]
     fn mandatory_access_failure_is_not_hidden_by_other_groups_access() {
         let output = evaluate_fixture(FIXTURE.as_bytes()).expect("fixture should pass");
-        let central = find_arm(
-            &output,
-            "ACCESSIBLE_ROUTE_DISCONTINUITY",
-            "CENTRAL_SHARED",
-        );
+        let central = find_arm(&output, "ACCESSIBLE_ROUTE_DISCONTINUITY", "CENTRAL_SHARED");
         assert_eq!(central.effective_access_coverage_basis_points, 8_000);
         assert_eq!(central.no_access_population, 20);
         assert_eq!(central.mandatory_access_gate, "FAIL");
@@ -1292,11 +1263,7 @@ mod tests {
         expected_central["minimum_independent_failure_domains"] = Value::Null;
 
         let output = evaluate_value(value).expect("blocked route remains a known failure");
-        let result = find_arm(
-            &output,
-            "ACCESSIBLE_ROUTE_DISCONTINUITY",
-            "CENTRAL_SHARED",
-        );
+        let result = find_arm(&output, "ACCESSIBLE_ROUTE_DISCONTINUITY", "CENTRAL_SHARED");
         assert_eq!(result.unknown_access_population, 80);
         assert_eq!(result.no_access_population, 20);
         assert_eq!(result.mandatory_access_gate, "FAIL");
@@ -1305,8 +1272,7 @@ mod tests {
     #[test]
     fn aggregate_capacity_overflow_fails_closed() {
         let mut value = fixture_value();
-        value["scenarios"][0]["arms"][0]["facilities"][0]["capacity_units"] =
-            Value::from(u64::MAX);
+        value["scenarios"][0]["arms"][0]["facilities"][0]["capacity_units"] = Value::from(u64::MAX);
         let error = evaluate_value(value).expect_err("capacity overflow must fail closed");
         assert!(error.contains("aggregate facility capacity overflow"));
     }
