@@ -20,7 +20,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: service-opportunity-resilience-eval-\${{ github.head_ref || github.ref_name }}
+  group: service-opportunity-resilience-eval-${{ github.head_ref || github.ref_name }}
   cancel-in-progress: true
 
 jobs:
@@ -30,7 +30,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: \${{ github.event.pull_request.head.sha || github.sha }}
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
           persist-credentials: false
 
       - name: Install pinned Rust toolchain
@@ -53,7 +53,7 @@ jobs:
         run: |
           set -euo pipefail
           source_commit="$(git rev-parse HEAD)"
-          test "$source_commit" = "\${{ github.event.pull_request.head.sha || github.sha }}"
+          test "$source_commit" = "${{ github.event.pull_request.head.sha || github.sha }}"
           fixture="docs/research/service-opportunity-resilience/SERVICE_OPPORTUNITY_RESILIENCE_REFERENCE_ORACLE_V0_1.json"
           fixture_sha256="$(sha256sum "$fixture" | cut -d ' ' -f 1)"
           cargo run --locked --quiet --manifest-path tools/shared-amenity-spatial-eval/Cargo.toml --bin service-opportunity-resilience -- "$fixture" > service-opportunity-resilience-evaluation.json
@@ -84,7 +84,7 @@ jobs:
 
       - name: Validate exact-head receipt identity
         run: |
-          test "$(jq -r .source_commit service-opportunity-resilience-receipt.json)" = "\${{ github.event.pull_request.head.sha || github.sha }}"
+          test "$(jq -r .source_commit service-opportunity-resilience-receipt.json)" = "${{ github.event.pull_request.head.sha || github.sha }}"
           test "$(jq -r .fixture_sha256 service-opportunity-resilience-receipt.json)" = "$(sha256sum docs/research/service-opportunity-resilience/SERVICE_OPPORTUNITY_RESILIENCE_REFERENCE_ORACLE_V0_1.json | cut -d ' ' -f 1)"
           jq -e '.result == "pass" and .evaluation.frozen_oracle_match_count == 17' service-opportunity-resilience-receipt.json
 
