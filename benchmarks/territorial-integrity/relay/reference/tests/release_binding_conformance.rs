@@ -88,6 +88,18 @@ fn apply_mutation(case_id: &str, manifest: &mut Value, coverage: &mut Value) {
             coverage["query_binding"]["predicate"]["args"][1]["value"] =
                 Value::String("US".into());
         }
+        "COMPOSED-INPUT-SNAPSHOT-REF-DRIFT-001" => {
+            manifest["authorization_binding"]["coverage_input_snapshot_ref"] =
+                Value::String("urn:fixture:query-input-snapshot:other".into());
+        }
+        "COMPOSED-INPUT-SNAPSHOT-COMMITMENT-DRIFT-001" => {
+            manifest["authorization_binding"]["coverage_input_snapshot_commitment"]["value"] =
+                Value::String("9".repeat(64));
+        }
+        "COMPOSED-INPUT-SNAPSHOT-ATTRIBUTE-DRIFT-001" => {
+            coverage["query_input_snapshot"]["items"][0]["query_input"]["jurisdiction"] =
+                Value::String("US".into());
+        }
         "COMPOSED-ASSERTED-LEAF-DRIFT-001" => {
             coverage["package_binding"]["terminal_source_leaf_refs"] =
                 serde_json::json!(["urn:fixture:source:other"]);
@@ -171,7 +183,7 @@ fn baseline_composed_release_is_structurally_bound() {
 fn frozen_composed_release_corpus_matches_every_expected_disposition() {
     let suite = corpus();
     let cases = suite["cases"].as_array().expect("case array");
-    assert_eq!(cases.len(), 21);
+    assert_eq!(cases.len(), 24);
     for case in cases {
         let case_id = case["case_id"].as_str().expect("case id");
         let expected = case["expected"].as_str().expect("expected disposition");
