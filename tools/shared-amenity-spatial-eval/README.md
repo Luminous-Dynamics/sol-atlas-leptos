@@ -64,9 +64,9 @@ All values remain a vector; no composite score or winning topology is emitted.
 | Effective-access coverage | Population with at least one effective access option ÷ total declared population; emitted in basis points |
 | P50 / P90 burden | Weighted quantiles of generalized burden among the **effective-access population only** |
 | Worst-decile mean | Population-weighted mean burden of the highest-burden 10% of the effective-access population (rounded down to whole seconds) |
-| No-access population | Population for which all explicit access rows are known failures/blocks |
-| Unknown-access population | Population for which no effective option exists and at least one required access input is unknown |
-| Outside-tolerance population | Population with a known route but no route within the declared resident tolerance |
+| No-access population | Population for which all explicit route/access rows are known failures or blocks and no reachable service-unavailable/unknown option is declared |
+| Unknown-access population | Population for which no effective option exists and at least one required route or service-availability input is unknown |
+| Service-unavailable population | Population with a qualified route to a facility whose service is known unavailable in the declared period |\n| Outside-tolerance population | Population with a route to an available service but no route within the declared resident tolerance |
 | Mandatory-access gate | `PASS`, `FAIL`, `UNKNOWN` or `NOT_APPLICABLE`; a mandatory failure is never averaged away |
 | Aggregate capacity | Sum of each facility's owner-supplied deliverable capacity **once per arm**, independent of how many groups can reach it; a facility known unavailable in the period contributes zero, while unknown service/capacity state makes the aggregate unknown |
 | Capacity gap | Aggregate demand minus aggregate capacity, reported as shortfall/surplus; unknown facility capacity makes the aggregate unknown |
