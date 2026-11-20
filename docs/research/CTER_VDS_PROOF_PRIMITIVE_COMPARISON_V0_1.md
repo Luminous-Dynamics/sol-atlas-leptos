@@ -150,3 +150,12 @@ Before selecting a proof primitive:
 - **Symtropy** may generate synthetic spatial/network scenarios; those simulations do not establish field or legal facts.
 
 A successful benchmark establishes only the exact statement, VDS, frontier version, query, package, policy, audiences, implementation and tested schedules. It does not prove global real-world completeness, truth, consent, legal title, community legitimacy, or permission to release.
+
+
+## 8. Machine-readable candidate workload
+
+The matched workload matrix is committed at \`benchmarks/territorial-integrity/egress/vds-proof-workloads-v0.1.json\`. It records five candidate families, frontier sizes of 1k/10k/100k/1M, three private-partition mixes, three source-DAG profiles, four update/churn schedules, four verifier audiences and 22 fault injections.
+
+The file records proof generation and verification separately, checkpoint/receipt bytes, public metadata bytes, frontier update and invalidation cost, source-leaf derivation, quorum availability, split-view detection, false accept/reject/unknown counts, privacy findings and independent restore. It explicitly forbids a single weighted score and requires candidates to receive the exact same frontier bytes, query, package graph, partition, audience, schedules, host and resource limits.
+
+The workload file is a benchmark specification only; no candidate proof has been generated, measured or selected.
