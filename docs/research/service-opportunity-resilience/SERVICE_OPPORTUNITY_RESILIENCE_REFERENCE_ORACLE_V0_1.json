@@ -3378,6 +3378,194 @@
         },
         "dependency_map_state": "COMPLETE"
       }
+    },
+    {
+      "case_id": "UNRESOLVED_INTERVAL_BEFORE_QUALIFIED_RETURN",
+      "title": "A known outage followed by unresolved evidence still reports the first qualified return",
+      "scenario_class": "RECOVERY_AFTER_UNRESOLVED_GAP",
+      "scope": {
+        "scope_digest": "synthetic-habitat-scope-v0.1",
+        "population_frame_id": "synthetic-resident-frame-v0.1",
+        "service_id": "COMMUNITY_WORKSHOP",
+        "functional_unit_id": "ACCESSIBLE_WORKSHOP_HOUR",
+        "cohort_id": "COHORT_GENERAL",
+        "time_basis_id": "SYNTHETIC_15M_TICKS_V1",
+        "horizon_start_tick": 0,
+        "horizon_end_tick": 8
+      },
+      "demand": {
+        "unit": "qualified_workshop_service_units",
+        "required_units": 2
+      },
+      "dependency_map_state": "COMPLETE",
+      "disruption_events": [
+        {
+          "event_id": "SYNTHETIC_OUTAGE_GAP_18",
+          "failure_domain": "SERVICE_A",
+          "start_tick": 2,
+          "end_tick": 4,
+          "evidence_class": "SYNTHETIC_CONTROLLED"
+        }
+      ],
+      "alternatives": [
+        {
+          "alternative_id": "ONLY_NODE",
+          "scope_binding": {
+            "scope_digest": "synthetic-habitat-scope-v0.1",
+            "population_frame_id": "synthetic-resident-frame-v0.1",
+            "service_id": "COMMUNITY_WORKSHOP",
+            "functional_unit_id": "ACCESSIBLE_WORKSHOP_HOUR",
+            "cohort_id": "COHORT_GENERAL",
+            "time_basis_id": "SYNTHETIC_15M_TICKS_V1",
+            "horizon_start_tick": 0,
+            "horizon_end_tick": 8
+          },
+          "owner_revisions": {
+            "access": "citymorph-synthetic-r1",
+            "service": "mycelix-amenity-synthetic-r1",
+            "capacity": "symtropy-capacity-synthetic-r1",
+            "suitability": "resident-brief-synthetic-r1"
+          },
+          "failure_domains": [
+            "SERVICE_A"
+          ],
+          "slices": [
+            {
+              "start_tick": 0,
+              "end_tick": 2,
+              "predicates": {
+                "route": "QUALIFIED_AVAILABLE",
+                "service": "QUALIFIED_AVAILABLE",
+                "capacity": "QUALIFIED_AVAILABLE",
+                "suitability": "QUALIFIED_AVAILABLE"
+              }
+            },
+            {
+              "start_tick": 2,
+              "end_tick": 4,
+              "predicates": {
+                "route": "QUALIFIED_AVAILABLE",
+                "service": "QUALIFIED_UNAVAILABLE",
+                "capacity": "QUALIFIED_AVAILABLE",
+                "suitability": "QUALIFIED_AVAILABLE"
+              }
+            },
+            {
+              "start_tick": 4,
+              "end_tick": 6,
+              "predicates": {
+                "route": "QUALIFIED_AVAILABLE",
+                "service": "UNKNOWN",
+                "capacity": "QUALIFIED_AVAILABLE",
+                "suitability": "QUALIFIED_AVAILABLE"
+              }
+            },
+            {
+              "start_tick": 6,
+              "end_tick": 8,
+              "predicates": {
+                "route": "QUALIFIED_AVAILABLE",
+                "service": "QUALIFIED_AVAILABLE",
+                "capacity": "QUALIFIED_AVAILABLE",
+                "suitability": "QUALIFIED_AVAILABLE"
+              }
+            }
+          ]
+        }
+      ],
+      "stability_evidence": {
+        "owner": "Symtropy",
+        "owner_reference": "https://github.com/Luminous-Dynamics/symtropy/issues/1848",
+        "owner_revision": "symtropy-synthetic-r1",
+        "state": "UNKNOWN",
+        "effective_tick": null,
+        "reason_code": "STABILITY_NOT_ATTESTED",
+        "scope_binding": {
+          "scope_digest": "synthetic-habitat-scope-v0.1",
+          "population_frame_id": "synthetic-resident-frame-v0.1",
+          "service_id": "COMMUNITY_WORKSHOP",
+          "functional_unit_id": "ACCESSIBLE_WORKSHOP_HOUR",
+          "cohort_id": "COHORT_GENERAL",
+          "time_basis_id": "SYNTHETIC_15M_TICKS_V1"
+        }
+      },
+      "expected": {
+        "opportunity_slices": [
+          {
+            "start_tick": 0,
+            "end_tick": 2,
+            "state": "AVAILABLE",
+            "alternative_counts": {
+              "available": 1,
+              "unavailable": 0,
+              "unknown": 0,
+              "not_comparable": 0
+            }
+          },
+          {
+            "start_tick": 2,
+            "end_tick": 4,
+            "state": "UNAVAILABLE",
+            "alternative_counts": {
+              "available": 0,
+              "unavailable": 1,
+              "unknown": 0,
+              "not_comparable": 0
+            }
+          },
+          {
+            "start_tick": 4,
+            "end_tick": 6,
+            "state": "UNKNOWN",
+            "alternative_counts": {
+              "available": 0,
+              "unavailable": 0,
+              "unknown": 1,
+              "not_comparable": 0
+            }
+          },
+          {
+            "start_tick": 6,
+            "end_tick": 8,
+            "state": "AVAILABLE",
+            "alternative_counts": {
+              "available": 1,
+              "unavailable": 0,
+              "unknown": 0,
+              "not_comparable": 0
+            }
+          }
+        ],
+        "coalesced_opportunity_intervals": [
+          {
+            "start_tick": 0,
+            "end_tick": 2,
+            "state": "AVAILABLE"
+          },
+          {
+            "start_tick": 2,
+            "end_tick": 4,
+            "state": "UNAVAILABLE"
+          },
+          {
+            "start_tick": 4,
+            "end_tick": 6,
+            "state": "UNKNOWN"
+          },
+          {
+            "start_tick": 6,
+            "end_tick": 8,
+            "state": "AVAILABLE"
+          }
+        ],
+        "first_available_tick": 0,
+        "first_restored_after_known_loss_tick": 6,
+        "stable_opportunity_restoration": {
+          "state": "UNKNOWN",
+          "tick": null
+        },
+        "dependency_map_state": "COMPLETE"
+      }
     }
   ]
 }
