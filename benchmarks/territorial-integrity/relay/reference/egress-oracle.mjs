@@ -418,6 +418,13 @@ passed.push(test(
   "identity_copy_digest_mismatch",
 ));
 
+passed.push(test(
+  "duplicate-source-reference",
+  (input) => { input.package.outputs[0].source_refs.push(structuredClone(input.package.outputs[0].source_refs[0])); },
+  "deny",
+  "source_reference_duplicated",
+));
+
 const chain = structuredClone(corpus.baseline_manifest);
 const firstOutput = structuredClone(chain.package.outputs[0]);
 const secondRef = "urn:fixture:output:derived-002";
