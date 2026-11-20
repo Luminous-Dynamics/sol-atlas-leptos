@@ -349,3 +349,6 @@ The two checks solve different problems:
 - #962 ensures every object in the declared frontier has exactly one private disposition and that no included source is omitted or phantom source introduced in the package.
 
 The private coverage evaluator currently validates this partition algebra and binds the synthetic receipt projection to the exact query/request/recipient/frontier/package. It does not verify the upstream COSE/VDS proof. The proof primitive remains unselected; see [CTER_PRIVATE_COVERAGE_PROFILE_V0_1.md](CTER_PRIVATE_COVERAGE_PROFILE_V0_1.md).
+
+
+The authorization binding additionally names the exact custodian coverage query using `coverage_query_ref` and `coverage_query_commitment`. The latter is a SHA-256 commitment to the canonical query predicate. These fields are required structurally and are cross-checked against the private coverage record's `query_ref` and `query_commitment` by the composed release evaluator. The hash value is not recomputed by this structural evaluator.
