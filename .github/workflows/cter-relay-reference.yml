@@ -5,9 +5,13 @@ on:
     branches: [research/cter-relay-qualification-v0-1]
     paths:
       - "benchmarks/territorial-integrity/relay/**"
+      - "benchmarks/territorial-integrity/egress/**"
       - "schemas/cter-relay-delivery-v0.1.schema.json"
       - "schemas/cter-community-archive-manifest-v0.1.schema.json"
       - "schemas/cter-authority-use-v0.1.schema.json"
+      - "schemas/cter-disclosure-manifest-v0.1.schema.json"
+      - "docs/research/CTER_EGRESS_BINDING_PROFILE_V0_1.md"
+      - "docs/research/CTER_BENCHMARK_AND_INDUSTRY_COMPARISON_V0_1.md"
       - "docs/research/CTER_OFFLINE_RELAY_PROFILE_V0_1.md"
       - "docs/research/CTER_CUSTODY_EXIT_PROFILE_V0_1.md"
       - "docs/research/CTER_AUTHORITY_CONSUMPTION_PROFILE_V0_1.md"
@@ -16,9 +20,13 @@ on:
     branches: [main]
     paths:
       - "benchmarks/territorial-integrity/relay/**"
+      - "benchmarks/territorial-integrity/egress/**"
       - "schemas/cter-relay-delivery-v0.1.schema.json"
       - "schemas/cter-community-archive-manifest-v0.1.schema.json"
       - "schemas/cter-authority-use-v0.1.schema.json"
+      - "schemas/cter-disclosure-manifest-v0.1.schema.json"
+      - "docs/research/CTER_EGRESS_BINDING_PROFILE_V0_1.md"
+      - "docs/research/CTER_BENCHMARK_AND_INDUSTRY_COMPARISON_V0_1.md"
       - "docs/research/CTER_OFFLINE_RELAY_PROFILE_V0_1.md"
       - "docs/research/CTER_CUSTODY_EXIT_PROFILE_V0_1.md"
       - "docs/research/CTER_AUTHORITY_CONSUMPTION_PROFILE_V0_1.md"
@@ -73,6 +81,8 @@ jobs:
           python3 -m json.tool schemas/cter-community-archive-manifest-v0.1.schema.json > /dev/null
           python3 -m json.tool benchmarks/territorial-integrity/relay/authority-cases-v0.1.json > /dev/null
           python3 -m json.tool schemas/cter-authority-use-v0.1.schema.json > /dev/null
+          python3 -m json.tool benchmarks/territorial-integrity/egress/cases-v0.1.json > /dev/null
+          python3 -m json.tool schemas/cter-disclosure-manifest-v0.1.schema.json > /dev/null
 
       - name: Install Node for independent second-language oracle
         uses: actions/setup-node@v4
@@ -84,6 +94,9 @@ jobs:
 
       - name: Run independent authority consumer oracle
         run: node benchmarks/territorial-integrity/relay/reference/authority-oracle.mjs
+
+      - name: Run independent egress manifest oracle
+        run: node benchmarks/territorial-integrity/relay/reference/egress-oracle.mjs
 
       - name: Assert standalone dependency lock is current
         run: cargo metadata --locked --manifest-path benchmarks/territorial-integrity/relay/reference/Cargo.toml > /dev/null
