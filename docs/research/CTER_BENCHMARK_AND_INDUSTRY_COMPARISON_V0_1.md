@@ -258,3 +258,12 @@ The testable differentiation is the composition of:
 6. independently restorable evidence frontiers with cryptographic migration history.
 
 The comparison must still use matched datasets, operations, hardware, network traces, users and adversarial schedules. No product-level SOTA superiority is established by the current synthetic reference suite.
+
+
+The privacy inventory/evaluator slice has since been expanded with:
+- a channel-inventory JSON Schema and a synthetic inventory that is explicitly marked partial;
+- a Rust structural evaluator that refuses to promote partial coverage to a complete declaration and requires an independent coverage-evidence reference for a complete claim;
+- an independent paired-world Node oracle and matching Rust fixture tests;
+- exact fixture counts of 20 detected synthetic leaks, 3 no-disclosure controls and 1 undeclared-channel inventory gap.
+
+A tool-side V8 check matched 24/24 fixture expectations. This remains a fixture-semantics result, not a Node 22 workflow run, Rust run, live application audit or privacy guarantee. The workflow includes the new schema, corpus, inventory fixture and oracle; exact-head CI must still complete before any test-pass statement.
