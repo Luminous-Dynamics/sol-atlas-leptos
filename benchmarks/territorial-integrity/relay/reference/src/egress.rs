@@ -193,6 +193,7 @@ pub fn evaluate_disclosure_manifest(input: &Value) -> EgressEvaluation {
         "operation",
         "resource_ref",
         "evidence_frontier_ref",
+        "coverage_query_ref",
         "purpose_ref",
         "recipient_ref",
         "jurisdiction_profile_ref",
@@ -215,6 +216,18 @@ pub fn evaluate_disclosure_manifest(input: &Value) -> EgressEvaluation {
             &mut reasons,
             Severity::Incomplete,
             "authorization_request_commitment_malformed",
+        );
+    }
+
+    if !binding
+        .get("coverage_query_commitment")
+        .is_some_and(sha256_digest)
+    {
+        raise(
+            &mut severity,
+            &mut reasons,
+            Severity::Incomplete,
+            "authorization_coverage_query_commitment_malformed",
         );
     }
     if !nonblank(binding, "project_snapshot_sha256").is_some_and(lower_hex_64) {
