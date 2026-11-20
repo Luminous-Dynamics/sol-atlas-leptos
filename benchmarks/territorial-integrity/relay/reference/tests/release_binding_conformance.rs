@@ -2,7 +2,7 @@ use cter_relay_reference::release_binding::evaluate_composed_release_binding;
 use serde_json::Value;
 
 fn corpus() -> Value {
-    serde_json::from_str(include_str!("../../egress/composed-release-cases-v0.1.json"))
+    serde_json::from_str(include_str!("../../../egress/composed-release-cases-v0.1.json"))
         .expect("composed release corpus must be valid JSON")
 }
 
