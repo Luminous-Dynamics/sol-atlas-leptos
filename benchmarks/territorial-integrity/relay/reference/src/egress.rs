@@ -82,40 +82,36 @@ fn valid_data_classes(value: &Value) -> Option<BTreeSet<String>> {
     }
 }
 
-fn cycle_from(
-    node: &str,
-    graph: &BTreeMap<String, BTreeSet<String>>,
-    visiting: &mut BTreeSet<String>,
-    visited: &mut BTreeSet<String>,
-) -> bool {
-    if visiting.contains(node) {
-        return true;
-    }
-    if visited.contains(node) {
-        return false;
-    }
-    visiting.insert(node.to_owned());
-    if let Some(children) = graph.get(node) {
+// Kahn's topological elimination avoids recursion on deep provenance chains.
+fn has_cycle(graph: &BTreeMap<String, BTreeSet<String>>) -> bool {
+    let mut indegree: BTreeMap<String, usize> = BTreeMap::new();
+    for (node, children) in graph {
+        indegree.entry(node.clone()).or_insert(0);
         for child in children {
-            if cycle_from(child, graph, visiting, visited) {
-                return true;
+            *indegree.entry(child.clone()).or_insert(0) += 1;
+        }
+    }
+
+    let mut ready: Vec<String> = indegree
+        .iter()
+        .filter(|(_, degree)| **degree == 0)
+        .map(|(node, _)| node.clone())
+        .collect();
+    let mut processed = 0usize;
+    while let Some(node) = ready.pop() {
+        processed += 1;
+        if let Some(children) = graph.get(&node) {
+            for child in children {
+                if let Some(degree) = indegree.get_mut(child) {
+                    *degree -= 1;
+                    if *degree == 0 {
+                        ready.push(child.clone());
+                    }
+                }
             }
         }
     }
-    visiting.remove(node);
-    visited.insert(node.to_owned());
-    false
-}
-
-fn has_cycle(graph: &BTreeMap<String, BTreeSet<String>>) -> bool {
-    let mut visiting = BTreeSet::new();
-    let mut visited = BTreeSet::new();
-    for node in graph.keys() {
-        if cycle_from(node, graph, &mut visiting, &mut visited) {
-            return true;
-        }
-    }
-    false
+    processed != indegree.len()
 }
 
 fn finalize(severity: Severity, reason_codes: BTreeSet<String>) -> EgressEvaluation {
