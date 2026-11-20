@@ -1,0 +1,95 @@
+{
+  "schema": "luminous.cter.egress-scale-workloads.v0.1",
+  "suite_id": "CTER-EGRESS-BINDING-001",
+  "suite_version": "0.1.0",
+  "status": "workload_specification_only",
+  "claim_ceiling": "no throughput, latency, memory, storage or energy result is claimed",
+  "generation": {
+    "seed": "fixed-per-run-and-recorded",
+    "payload_mode": "synthetic-byte-streams-with-exact-digests",
+    "metadata_only_mode_allowed": true,
+    "real_personal_or_community_data": false,
+    "digest_compute_and_graph_validation_measured_separately": true
+  },
+  "workloads": [
+    {
+      "output_objects": 1000,
+      "sources_per_output": { "p50": 1, "p95": 4, "max": 12 },
+      "transform_depth": { "p50": 1, "p95": 2, "max": 8 },
+      "transform_fanout": { "p50": 1, "p95": 3, "max": 20 },
+      "payload_bytes": { "p50": 1024, "p95": 32768, "max": 1048576 }
+    },
+    {
+      "output_objects": 10000,
+      "sources_per_output": { "p50": 1, "p95": 5, "max": 16 },
+      "transform_depth": { "p50": 1, "p95": 3, "max": 12 },
+      "transform_fanout": { "p50": 1, "p95": 4, "max": 40 },
+      "payload_bytes": { "p50": 1024, "p95": 32768, "max": 1048576 }
+    },
+    {
+      "output_objects": 100000,
+      "sources_per_output": { "p50": 1, "p95": 5, "max": 20 },
+      "transform_depth": { "p50": 1, "p95": 4, "max": 16 },
+      "transform_fanout": { "p50": 1, "p95": 5, "max": 64 },
+      "payload_bytes": { "p50": 1024, "p95": 65536, "max": 1048576 }
+    },
+    {
+      "output_objects": 1000000,
+      "sources_per_output": { "p50": 1, "p95": 6, "max": 24 },
+      "transform_depth": { "p50": 1, "p95": 4, "max": 20 },
+      "transform_fanout": { "p50": 1, "p95": 6, "max": 100 },
+      "payload_bytes": { "p50": 1024, "p95": 65536, "max": 1048576 }
+    }
+  ],
+  "class_distribution_targets": {
+    "source_output_classes_equal": 0.85,
+    "class_change_with_external_reference": 0.10,
+    "class_change_without_reference": 0.05
+  },
+  "fault_injection": [
+    "missing_source_reference",
+    "missing_transform_reference",
+    "orphan_transform",
+    "cycle_at_depth_1",
+    "cycle_at_depth_8",
+    "cycle_at_depth_20",
+    "duplicate_object_reference",
+    "conflicting_digest_for_same_source_ref",
+    "unauthorized_output_class",
+    "unresolved_classification_change_authority"
+  ],
+  "metrics": [
+    "manifest_parse_ms",
+    "manifest_structural_validation_ms",
+    "canonicalization_ms",
+    "manifest_commitment_hash_ms",
+    "payload_digest_compute_ms",
+    "lineage_graph_build_ms",
+    "lineage_topological_validation_ms",
+    "release_recheck_ms",
+    "objects_per_second",
+    "bytes_per_second",
+    "peak_rss_bytes",
+    "allocator_high_water_bytes",
+    "cpu_time_ms",
+    "storage_amplification_ratio",
+    "recovery_time_ms"
+  ],
+  "reporting": {
+    "latency_quantiles": ["p50", "p95", "p99", "max"],
+    "required_machine_metadata": [
+      "cpu_model_and_microcode",
+      "physical_core_and_thread_count",
+      "ram_capacity_and_speed",
+      "storage_model_and_filesystem",
+      "operating_system_and_kernel",
+      "rust_toolchain",
+      "node_version",
+      "schema_and_corpus_digest",
+      "build_flags_and_feature_set"
+    ],
+    "energy_measurement": "report_only_when_measured_with_declared_physical_meter_or_calibrated_telemetry",
+    "comparison_rule": "compare implementations only on the same exact workload bytes, seeds, host, toolchain and limits",
+    "no_single_weighted_score": true
+  }
+}
