@@ -49,6 +49,24 @@ The join uses explicit half-open intervals `[start, end)`. For uncertain arrival
 
 The calendar-completeness state in the synthetic adapter is an integration-envelope proposal, not an already-approved field in Mycelix #6329's current JSON Schema. It distinguishes a complete schedule with a known closed gap from an incomplete feed where the same missing interval must remain UNKNOWN. Mycelix must approve this assertion or supply an equivalent owner-native field before production integration.
 
+### Temporal opportunity benchmarks
+
+Report these separately from conventional travel-time percentiles:
+
+| Metric | Definition | Proposed gate |
+|---|---|---:|
+| Full-duration service-window fit | A possible arrival whose entire required service interval is covered by current operational evidence | Exact known-answer agreement |
+| False AVAILABLE | Any result marked AVAILABLE despite a closure, commissioning failure, missing interval in a complete calendar, stale evidence, scope mismatch or clock mismatch | 0 |
+| False UNAVAILABLE | Any valid, fully covered operational interval rejected without an owner-evidenced reason | 0 |
+| Unknown promotion | Stale, incomplete, contradictory or uncertain evidence promoted to AVAILABLE or UNAVAILABLE without the required authority | 0 |
+| Clean-case acceptance | Owner-qualified arrival and service intervals that fully fit but are incorrectly blocked | 0 |
+| Time-basis mismatch detection | Different clock/timezone normalization or period identity treated as comparable | 100% detected |
+| Owner revision match | Arrival, service calendar and scope refer to the same declared revision envelope | 100% or NOT_COMPARABLE |
+
+The evaluator reports counts of possible arrival ticks (available / unavailable / unknown). These counts are **not probabilities**: no distribution is assigned to the ticks. A future statistical success estimate must consume a calibrated owner-supplied arrival distribution, such as a properly interpreted routing travel-time distribution, and preserve its departure window and time-percentile semantics.
+
+A useful anti-gaming rule is to test both safety and selectivity: 0 false AVAILABLE is insufficient if the implementation blocks every clean case. The frozen suite includes valid AVAILABLE cases and adversarial closures/unknowns so both sides are visible.
+
 ### Fair industry comparison
 
 - **Conveyal R5:** consumes departure-window travel-time distributions and time percentiles. Its documented default assumes perfectly reliable transit operations—on-time vehicles, full schedule information, and no crowding or boarding/accessibility constraints. We therefore use its travel-time outputs as a routing comparator and do not claim that the amenity-window join improves transit reliability or route calculation. https://docs.conveyal.com/analysis/methodology
