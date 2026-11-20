@@ -39,7 +39,8 @@
       "coverage_query_commitment": {
         "algorithm": "sha-256",
         "value": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
-      }
+      },
+      "coverage_query_profile_ref": "urn:luminous:cter:predicate-json-v0.1"
     },
     "destination_binding": {
       "recipient_ref": "urn:fixture:recipient:synthetic-001",
