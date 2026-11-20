@@ -1,0 +1,326 @@
+{
+  "schema": "luminous.cter.composed-release-binding-cases.v0.1",
+  "suite_id": "CTER-COMPOSED-RELEASE-BINDING-001",
+  "suite_version": "0.1.0",
+  "synthetic_only": true,
+  "execution_status": "composed_rust_evaluator_and_node_oracle_implemented_not_executed",
+  "claim_ceiling": "structural agreement between egress manifest, private coverage record and derived transitive source leaves only; no payload hash recomputation, Mycelix proof authentication, authority resolution or release authorization",
+  "baseline": {
+    "disclosure_manifest": {
+      "schema": "luminous.cter.disclosure-manifest.v0.1",
+      "manifest_id": "urn:fixture:manifest:synthetic-001",
+      "canonicalization_profile": "rfc8785-jcs-v1",
+      "manifest_commitment": {
+        "algorithm": "sha-256",
+        "value": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+      },
+      "authorization_binding": {
+        "request_ref": "urn:fixture:request:synthetic-001",
+        "request_commitment": {
+          "algorithm": "sha-256",
+          "value": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+        },
+        "authorization_receipt_ref": "urn:fixture:authorization:synthetic-001",
+        "principal_ref": "urn:fixture:principal:synthetic-001",
+        "subject_ref": "urn:fixture:subject:synthetic-001",
+        "operation": "export_evidence",
+        "resource_ref": "urn:fixture:resource:synthetic-001",
+        "project_snapshot_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "evidence_frontier_ref": "urn:fixture:frontier:synthetic-001",
+        "purpose_ref": "urn:fixture:purpose:synthetic-research",
+        "recipient_ref": "urn:fixture:recipient:synthetic-001",
+        "jurisdiction_profile_ref": "urn:fixture:jurisdiction:synthetic-001",
+        "data_classes": [
+          "community"
+        ]
+      },
+      "destination_binding": {
+        "recipient_ref": "urn:fixture:recipient:synthetic-001",
+        "destination_ref": "urn:fixture:destination:synthetic-001",
+        "destination_key_epoch_ref": "urn:fixture:recipient-key-epoch:1",
+        "channel_ref": "urn:fixture:channel:encrypted-transfer",
+        "transport_profile_ref": "urn:fixture:transport:synthetic-v0"
+      },
+      "package": {
+        "package_ref": "urn:fixture:package:synthetic-001",
+        "media_type": "application/vnd.ter.example-package",
+        "package_payload_digest": {
+          "algorithm": "sha-256",
+          "value": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+        },
+        "outputs": [
+          {
+            "object_ref": "urn:fixture:output:synthetic-001",
+            "content_digest": {
+              "algorithm": "sha-256",
+              "value": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+            },
+            "byte_length": 128,
+            "media_type": "application/octet-stream",
+            "data_classes": [
+              "community"
+            ],
+            "source_refs": [
+              {
+                "object_ref": "urn:fixture:source:synthetic-001",
+                "content_digest": {
+                  "algorithm": "sha-256",
+                  "value": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+                },
+                "data_classes": [
+                  "community"
+                ]
+              }
+            ],
+            "transformation_refs": [
+              "urn:fixture:transform:identity-001"
+            ]
+          }
+        ],
+        "transformations": [
+          {
+            "transform_ref": "urn:fixture:transform:identity-001",
+            "transform_kind": "identity_copy",
+            "profile_ref": "urn:fixture:transform-profile:identity-copy-v0",
+            "version_commitment": {
+              "algorithm": "sha-256",
+              "value": "1111111111111111111111111111111111111111111111111111111111111111"
+            },
+            "input_object_refs": [
+              "urn:fixture:source:synthetic-001"
+            ],
+            "output_object_refs": [
+              "urn:fixture:output:synthetic-001"
+            ]
+          }
+        ]
+      },
+      "coverage_record_ref": "urn:fixture:coverage:synthetic-001",
+      "prepared_at": "2026-11-20T08:00:00Z"
+    },
+    "private_coverage": {
+      "frontier": {
+        "frontier_ref": "urn:fixture:frontier:synthetic-001",
+        "version": "v1",
+        "commitment": {
+          "algorithm": "sha-256",
+          "value": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        },
+        "source_owner_ref": "urn:fixture:source-owner:synthetic",
+        "receipt_ref": "urn:fixture:vds-receipt:synthetic-placeholder",
+        "object_refs": [
+          "urn:fixture:source:synthetic-001",
+          "urn:fixture:evidence:item-b",
+          "urn:fixture:evidence:item-c",
+          "urn:fixture:evidence:item-d",
+          "urn:fixture:evidence:item-e"
+        ]
+      },
+      "query_binding": {
+        "query_ref": "urn:fixture:query:scope-v1",
+        "query_commitment": {
+          "algorithm": "sha-256",
+          "value": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+        },
+        "request_commitment": {
+          "algorithm": "sha-256",
+          "value": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+        },
+        "recipient_ref": "urn:fixture:recipient:synthetic-001",
+        "project_snapshot_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "principal_ref": "urn:fixture:principal:synthetic-001",
+        "operation": "export_evidence",
+        "purpose_ref": "urn:fixture:purpose:synthetic-research",
+        "resource_ref": "urn:fixture:resource:synthetic-001",
+        "jurisdiction_profile_ref": "urn:fixture:jurisdiction:synthetic-001",
+        "subject_ref": "urn:fixture:subject:synthetic-001",
+        "data_classes": [
+          "community"
+        ]
+      },
+      "private_partition": [
+        {
+          "object_ref": "urn:fixture:source:synthetic-001",
+          "scope_state": "in_scope",
+          "disposition": "included"
+        },
+        {
+          "object_ref": "urn:fixture:evidence:item-b",
+          "scope_state": "in_scope",
+          "disposition": "withheld"
+        },
+        {
+          "object_ref": "urn:fixture:evidence:item-c",
+          "scope_state": "in_scope",
+          "disposition": "unavailable"
+        },
+        {
+          "object_ref": "urn:fixture:evidence:item-d",
+          "scope_state": "out_of_scope",
+          "disposition": "excluded"
+        },
+        {
+          "object_ref": "urn:fixture:evidence:item-e",
+          "scope_state": "unknown",
+          "disposition": "unresolved"
+        }
+      ],
+      "package_binding": {
+        "package_commitment": {
+          "algorithm": "sha-256",
+          "value": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+        },
+        "terminal_source_leaf_refs": [
+          "urn:fixture:source:synthetic-001"
+        ]
+      },
+      "public_verifier_view": {
+        "frontier_commitment": {
+          "algorithm": "sha-256",
+          "value": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        },
+        "query_commitment": {
+          "algorithm": "sha-256",
+          "value": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+        },
+        "request_commitment": {
+          "algorithm": "sha-256",
+          "value": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+        },
+        "package_commitment": {
+          "algorithm": "sha-256",
+          "value": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+        },
+        "proof_ref": "urn:fixture:proof:opaque-placeholder",
+        "non_inclusion_scope": "frontier_version_only"
+      },
+      "fixture_notice": "All references and digests are synthetic placeholders. No COSE receipt or valid proof is included. No signature or VDS proof verification has been performed.",
+      "coverage_ref": "urn:fixture:coverage:synthetic-001",
+      "receipt_binding": {
+        "receipt_ref": "urn:fixture:vds-receipt:synthetic-placeholder",
+        "frontier_ref": "urn:fixture:frontier:synthetic-001",
+        "frontier_version": "v1",
+        "frontier_commitment": {
+          "algorithm": "sha-256",
+          "value": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        },
+        "query_commitment": {
+          "algorithm": "sha-256",
+          "value": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+        },
+        "request_commitment": {
+          "algorithm": "sha-256",
+          "value": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+        },
+        "principal_ref": "urn:fixture:principal:synthetic-001",
+        "operation": "export_evidence",
+        "purpose_ref": "urn:fixture:purpose:synthetic-research",
+        "recipient_ref": "urn:fixture:recipient:synthetic-001",
+        "resource_ref": "urn:fixture:resource:synthetic-001",
+        "jurisdiction_profile_ref": "urn:fixture:jurisdiction:synthetic-001",
+        "project_snapshot_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "package_commitment": {
+          "algorithm": "sha-256",
+          "value": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+        },
+        "subject_ref": "urn:fixture:subject:synthetic-001",
+        "data_classes": [
+          "community"
+        ]
+      },
+      "receipt_assessment": {
+        "assessment_ref": "urn:fixture:receipt-assessment:synthetic-current",
+        "resolution_status": "current",
+        "status_snapshot_ref": "urn:fixture:vds-status-snapshot:v1"
+      },
+      "schema": "luminous.cter.private-coverage.v0.1"
+    }
+  },
+  "cases": [
+    {
+      "case_id": "COMPOSED-BASELINE-001",
+      "mutation": "none",
+      "expected": "valid_composed_structure"
+    },
+    {
+      "case_id": "COMPOSED-COVERAGE-REFERENCE-DRIFT-001",
+      "mutation": "Substitute the coverage record reference.",
+      "expected": "deny"
+    },
+    {
+      "case_id": "COMPOSED-PACKAGE-DIGEST-DRIFT-001",
+      "mutation": "Use a different package payload digest in the private coverage commitment.",
+      "expected": "deny"
+    },
+    {
+      "case_id": "COMPOSED-REQUEST-DRIFT-001",
+      "mutation": "Change the request commitment only in the coverage query.",
+      "expected": "deny"
+    },
+    {
+      "case_id": "COMPOSED-PRINCIPAL-DRIFT-001",
+      "mutation": "Change the principal only in the coverage query.",
+      "expected": "deny"
+    },
+    {
+      "case_id": "COMPOSED-SUBJECT-DRIFT-001",
+      "mutation": "Change the subject only in the coverage query.",
+      "expected": "deny"
+    },
+    {
+      "case_id": "COMPOSED-OPERATION-DRIFT-001",
+      "mutation": "Change the operation only in the coverage query.",
+      "expected": "deny"
+    },
+    {
+      "case_id": "COMPOSED-PURPOSE-DRIFT-001",
+      "mutation": "Change the purpose only in the coverage query.",
+      "expected": "deny"
+    },
+    {
+      "case_id": "COMPOSED-RECIPIENT-DRIFT-001",
+      "mutation": "Change the recipient only in the coverage query.",
+      "expected": "deny"
+    },
+    {
+      "case_id": "COMPOSED-RESOURCE-DRIFT-001",
+      "mutation": "Change the resource only in the coverage query.",
+      "expected": "deny"
+    },
+    {
+      "case_id": "COMPOSED-JURISDICTION-DRIFT-001",
+      "mutation": "Change jurisdiction only in the coverage query.",
+      "expected": "deny"
+    },
+    {
+      "case_id": "COMPOSED-SNAPSHOT-DRIFT-001",
+      "mutation": "Change the project snapshot only in the coverage query.",
+      "expected": "deny"
+    },
+    {
+      "case_id": "COMPOSED-FRONTIER-DRIFT-001",
+      "mutation": "Change the evidence frontier reference.",
+      "expected": "deny"
+    },
+    {
+      "case_id": "COMPOSED-DATA-CLASS-DRIFT-001",
+      "mutation": "Change the data-class scope in the coverage query.",
+      "expected": "deny"
+    },
+    {
+      "case_id": "COMPOSED-ASSERTED-LEAF-DRIFT-001",
+      "mutation": "Change the caller-supplied terminal leaf set.",
+      "expected": "deny"
+    },
+    {
+      "case_id": "COMPOSED-DERIVED-LEAF-DRIFT-001",
+      "mutation": "Alter the partition and asserted leaves consistently, but not the egress provenance graph.",
+      "expected": "deny"
+    },
+    {
+      "case_id": "COMPOSED-MULTI-STAGE-PROVENANCE-001",
+      "mutation": "Add a derived output whose source is an intermediate output; the terminal leaf remains the original source.",
+      "expected": "valid_composed_structure"
+    }
+  ]
+}
