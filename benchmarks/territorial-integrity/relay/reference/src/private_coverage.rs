@@ -1021,3 +1021,51 @@ mod predicate_semantics_tests {
         );
     }
 }
+
+
+    #[test]
+    fn query_predicate_jcs_commitment_matches_cross_language_golden_vectors() {
+        let corpus: Value = serde_json::from_str(include_str!(
+            "../../../egress/query-predicate-commitments-v0.1.json"
+        ))
+        .expect("JCS predicate vector corpus must be valid JSON");
+        let cases = corpus["cases"].as_array().expect("cases");
+        assert_eq!(cases.len(), 4);
+        for case in cases {
+            let predicate = &case["predicate"];
+            let profile = case["profile_ref"]
+                .as_str()
+                .unwrap_or("urn:luminous:cter:predicate-json-v0.1");
+            let expected_preimage = case["canonical_preimage"]
+                .as_str()
+                .expect("canonical preimage");
+            let preimage = serde_json::json!({
+                "profile_ref": profile,
+                "predicate": predicate
+            });
+            let canonical = serde_jcs::to_vec(&preimage)
+                .expect("predicate preimage canonicalizes");
+            assert_eq!(
+                std::str::from_utf8(&canonical).expect("canonical bytes are UTF-8"),
+                expected_preimage,
+                "case {}",
+                case["case_id"]
+            );
+            assert_eq!(
+                super::query_predicate_commitment(profile, predicate)
+                    .expect("predicate commitment"),
+                case["expected_digest"].as_str().expect("expected digest"),
+                "case {}",
+                case["case_id"]
+            );
+        }
+    }
+
+    #[test]
+    fn query_predicate_commitment_rejects_unrecognized_semantics_profile() {
+        let result = super::query_predicate_commitment(
+            "urn:luminous:cter:predicate-json-v0.2",
+            &json!({"op": "eq", "path": "/x", "value": "y"}),
+        );
+        assert_eq!(result, Err("query_profile_unsupported_for_commitment"));
+    }
