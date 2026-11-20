@@ -77,6 +77,11 @@ impl<'de> Visitor<'de> for UniqueJsonValueVisitor {
     where
         E: de::Error,
     {
+        if !value.is_finite()
+            || (value.fract() == 0.0 && value.abs() > MAX_SAFE_INTEGER as f64)
+        {
+            return Err(E::custom("number is outside the supported I-JSON range"));
+        }
         Number::from_f64(value)
             .map(|number| UniqueJsonValue(Value::Number(number)))
             .ok_or_else(|| E::custom("non-finite JSON number"))
@@ -249,7 +254,10 @@ fn scalar(value: &Value) -> bool {
     if let Some(integer) = number.as_u64() {
         return integer <= MAX_SAFE_INTEGER as u64;
     }
-    number.as_f64().is_some_and(f64::is_finite)
+    number.as_f64().is_some_and(|value| {
+        value.is_finite()
+            && (value.fract() != 0.0 || value.abs() <= MAX_SAFE_INTEGER as f64)
+    })
 }
 
 // v0.1 deliberately supports one ASCII object-member segment only. It does
@@ -1218,6 +1226,7 @@ mod strict_json_boundary_tests {
     fn unsafe_integer_operands_are_rejected_before_canonicalization() {
         assert!(parse_unique_json_value(r#"{"value":9007199254740993}"#).is_err());
         assert!(parse_unique_json_value(r#"{"value":-9007199254740992}"#).is_err());
+        assert!(parse_unique_json_value(r#"{"value":9007199254740992.0}"#).is_err());
     }
 
     #[test]
