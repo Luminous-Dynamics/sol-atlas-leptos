@@ -354,3 +354,24 @@ The Rust raw coverage entrypoint rejects duplicate object members and unsafe int
 ## Remaining source-input attestation gap
 
 The predicate hash authenticates the rule, not the values evaluated under that rule. Per-item \`query_input\` attributes remain in the custodian-controlled private coverage record. [CTER-QUERY-INPUT-ATTESTATION-001 #973](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/973) now specifies a separate source-input snapshot commitment, per-attribute source object/digest bindings and an owner/resolver receipt. A custodian hash alone must never be interpreted as proof of source truth or owner attestation.
+
+
+## Query input source snapshot implementation update
+
+The private per-item attributes have now moved out of the mutable partition entries into a separate, immutable query-input snapshot. The snapshot binds the frontier reference/version/commitment, query profile/commitment, attribute projection profile, sorted item identities, availability states, private attributes, and per-attribute source references/content-digest commitments.
+
+The private coverage evaluator:
+- recomputes the domain-separated JCS snapshot commitment;
+- checks exact snapshot-to-frontier and snapshot-to-query binding;
+- requires the snapshot item set to equal the committed frontier item set;
+- requires predicate-referenced available attributes to have source bindings;
+- rejects source references outside the frontier and extra/unqueried attributes;
+- evaluates TRUE/FALSE/UNKNOWN from snapshot attributes only;
+- refuses to promote unavailable/unknown inputs into TRUE or FALSE;
+- binds the exact snapshot reference/profile/commitment through query and receipt projections.
+
+Partition items now point to their exact snapshot item using \`query_input_snapshot_item_ref\`; they no longer carry their own mutable attribute projection.
+
+The current private-coverage corpus has **44 synthetic cases**: 1 valid structure, 31 deny, 7 incomplete, 5 unknown. The latest snapshot cases are source-present in Rust/Node oracles; do not reuse the earlier 37/37 V8 result as an execution claim for the expanded 44-case suite. Rust and committed Node 22 exact-head execution remain pending.
+
+The two snapshot baseline digests are frozen in the private and composed corpora. A custodian-generated snapshot hash establishes only the integrity of the declared projection after construction. Source bindings are not self-authenticating; Mycelix/source-owner attestation and source-byte/content verification remain separate.
