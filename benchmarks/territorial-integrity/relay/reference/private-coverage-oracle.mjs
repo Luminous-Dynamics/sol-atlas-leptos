@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import fs from "node:fs";
+import { createHash } from "node:crypto";
 
 const corpusUrl = new URL("../../egress/private-coverage-cases-v0.1.json", import.meta.url);
 const corpus = JSON.parse(fs.readFileSync(corpusUrl, "utf8"));
@@ -35,6 +36,56 @@ function referenceSet(value) {
 
 function queryScalar(value) {
   return value === null || ["string", "boolean", "number"].includes(typeof value);
+}
+
+function hasUnpairedSurrogate(value) {
+  for (let i = 0; i < value.length; i += 1) {
+    const code = value.charCodeAt(i);
+    if (code >= 0xd800 && code <= 0xdbff) {
+      const next = value.charCodeAt(i + 1);
+      if (!(next >= 0xdc00 && next <= 0xdfff)) return true;
+      i += 1;
+    } else if (code >= 0xdc00 && code <= 0xdfff) {
+      return true;
+    }
+  }
+  return false;
+}
+
+// Independent, bounded JCS serializer for the predicate JSON value. This
+// relies on ECMAScript JSON string/number formatting and UTF-16 key ordering.
+function canonicalJcs(value) {
+  if (value === null || typeof value === "boolean") return JSON.stringify(value);
+  if (typeof value === "string") {
+    if (hasUnpairedSurrogate(value)) throw new Error("jcs_invalid_unicode");
+    return JSON.stringify(value);
+  }
+  if (typeof value === "number") {
+    if (!Number.isFinite(value)) throw new Error("jcs_non_finite_number");
+    return JSON.stringify(value);
+  }
+  if (Array.isArray(value)) {
+    return "[" + value.map((item) => canonicalJcs(item)).join(",") + "]";
+  }
+  if (typeof value === "object") {
+    const keys = Object.keys(value).sort();
+    return "{" + keys.map((key) => {
+      if (hasUnpairedSurrogate(key)) throw new Error("jcs_invalid_property_name");
+      return JSON.stringify(key) + ":" + canonicalJcs(value[key]);
+    }).join(",") + "}";
+  }
+  throw new Error("jcs_unsupported_value");
+}
+
+export function queryPredicateCommitment(profileRef, predicate) {
+  if (profileRef !== "urn:luminous:cter:predicate-json-v0.1") {
+    throw new Error("query_profile_unsupported_for_commitment");
+  }
+  const canonical = canonicalJcs({ profile_ref: profileRef, predicate });
+  return createHash("sha256")
+    .update(Buffer.from("luminous.cter.query-predicate.v0.1\0", "utf8"))
+    .update(Buffer.from(canonical, "utf8"))
+    .digest("hex");
 }
 
 function queryMember(input, path) {
@@ -173,6 +224,18 @@ export function evaluatePrivateCoverage(input) {
   } catch (error) {
     predicateValid = false;
     raise("incomplete", "query_predicate_invalid:" + error.message);
+  }
+
+
+  if (predicateValid && isSha256(query.query_commitment)) {
+    try {
+      const expected = queryPredicateCommitment(query.query_profile_ref, query.predicate);
+      if (query.query_commitment.value !== expected) {
+        raise("deny", "query_predicate_commitment_mismatch");
+      }
+    } catch (error) {
+      raise("incomplete", "query_predicate_commitment_unavailable:" + error.message);
+    }
   }
 
   if (!Array.isArray(input.private_partition)) {
