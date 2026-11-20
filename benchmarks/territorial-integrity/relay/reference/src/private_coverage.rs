@@ -41,15 +41,24 @@ impl<'de> Visitor<'de> for UniqueJsonValueVisitor {
         formatter.write_str("an I-JSON value without duplicate object members")
     }
 
-    fn visit_unit<E>(self) -> Result<Self::Value, E> {
+    fn visit_unit<E>(self) -> Result<Self::Value, E>
+    where
+        E: de::Error,
+    {
         Ok(UniqueJsonValue(Value::Null))
     }
 
-    fn visit_none<E>(self) -> Result<Self::Value, E> {
-        self.visit_unit()
+    fn visit_none<E>(self) -> Result<Self::Value, E>
+    where
+        E: de::Error,
+    {
+        Ok(UniqueJsonValue(Value::Null))
     }
 
-    fn visit_bool<E>(self, value: bool) -> Result<Self::Value, E> {
+    fn visit_bool<E>(self, value: bool) -> Result<Self::Value, E>
+    where
+        E: de::Error,
+    {
         Ok(UniqueJsonValue(Value::Bool(value)))
     }
 
@@ -87,11 +96,17 @@ impl<'de> Visitor<'de> for UniqueJsonValueVisitor {
             .ok_or_else(|| E::custom("non-finite JSON number"))
     }
 
-    fn visit_str<E>(self, value: &str) -> Result<Self::Value, E> {
+    fn visit_str<E>(self, value: &str) -> Result<Self::Value, E>
+    where
+        E: de::Error,
+    {
         Ok(UniqueJsonValue(Value::String(value.to_owned())))
     }
 
-    fn visit_string<E>(self, value: String) -> Result<Self::Value, E> {
+    fn visit_string<E>(self, value: String) -> Result<Self::Value, E>
+    where
+        E: de::Error,
+    {
         Ok(UniqueJsonValue(Value::String(value)))
     }
 
