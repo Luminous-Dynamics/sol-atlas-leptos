@@ -351,6 +351,7 @@ function test(name, mutate, expected, reason) {
 }
 
 const passed = [];
+assert.equal(corpus.cases.length, 34, "frozen egress corpus size");
 const baselineResult = evaluateDisclosureManifest(corpus.baseline_manifest);
 assert.equal(baselineResult.disposition, "valid_structure", baselineResult.reason_codes.join(","));
 passed.push("baseline");
