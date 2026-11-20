@@ -208,3 +208,17 @@ fn intermediate_output_can_be_a_source_when_content_identity_matches() {
     assert_eq!(result.disposition, "valid_structure", "{:?}", result.reason_codes);
     assert!(result.reason_codes.is_empty());
 }
+
+
+#[test]
+fn duplicate_source_reference_is_denied() {
+    let mut input = baseline();
+    let source = input["package"]["outputs"][0]["source_refs"][0].clone();
+    input["package"]["outputs"][0]["source_refs"]
+        .as_array_mut()
+        .expect("source refs")
+        .push(source);
+    let result = evaluate_disclosure_manifest(&input);
+    assert_eq!(result.disposition, "deny");
+    assert!(result.reason_codes.contains("source_reference_duplicated"));
+}
