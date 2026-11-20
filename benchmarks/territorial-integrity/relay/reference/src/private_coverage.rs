@@ -249,6 +249,86 @@ pub fn query_predicate_commitment(
     Ok(digest.iter().map(|byte| format!("{byte:02x}")).collect())
 }
 
+
+/// Domain-separated commitment to the exact private query-input snapshot.
+/// Array ordering is canonicalized semantically before JCS: items by
+/// object_ref, then attribute bindings by path and source object reference.
+pub fn query_input_snapshot_commitment(
+    snapshot: &Value,
+) -> Result<String, &'static str> {
+    if nonblank(snapshot, "profile_ref")
+        != Some("urn:luminous:cter:query-input-json-v0.1")
+    {
+        return Err("query_input_snapshot_profile_unsupported");
+    }
+    let mut items = snapshot
+        .get("items")
+        .and_then(Value::as_array)
+        .cloned()
+        .ok_or("query_input_snapshot_items_missing")?;
+
+    for item in &mut items {
+        let bindings = item
+            .get_mut("attribute_source_bindings")
+            .and_then(Value::as_array_mut)
+            .ok_or("query_input_attribute_bindings_missing")?;
+        bindings.sort_by(|left, right| {
+            let left_path = nonblank(left, "path").unwrap_or("");
+            let right_path = nonblank(right, "path").unwrap_or("");
+            let left_source = nonblank(left, "source_object_ref").unwrap_or("");
+            let right_source = nonblank(right, "source_object_ref").unwrap_or("");
+            (left_path, left_source).cmp(&(right_path, right_source))
+        });
+    }
+    items.sort_by(|left, right| {
+        nonblank(left, "object_ref")
+            .unwrap_or("")
+            .cmp(nonblank(right, "object_ref").unwrap_or(""))
+    });
+
+    let preimage = serde_json::json!({
+        "snapshot_ref": snapshot.get("snapshot_ref"),
+        "profile_ref": snapshot.get("profile_ref"),
+        "frontier_ref": snapshot.get("frontier_ref"),
+        "frontier_version": snapshot.get("frontier_version"),
+        "frontier_commitment": snapshot.get("frontier_commitment"),
+        "query_profile_ref": snapshot.get("query_profile_ref"),
+        "query_commitment": snapshot.get("query_commitment"),
+        "attribute_projection_profile_ref": snapshot.get("attribute_projection_profile_ref"),
+        "items": items,
+    });
+    let canonical = serde_jcs::to_vec(&preimage)
+        .map_err(|_| "query_input_snapshot_canonicalization_failed")?;
+    let mut hasher = Sha256::new();
+    hasher.update(b"luminous.cter.query-input-snapshot.v0.1\\0");
+    hasher.update(&canonical);
+    let digest = hasher.finalize();
+    Ok(digest.iter().map(|byte| format!("{byte:02x}")).collect())
+}
+
+fn collect_predicate_paths(predicate: &Value, output: &mut BTreeSet<String>) {
+    match nonblank(predicate, "op") {
+        Some("all" | "any") => {
+            if let Some(args) = predicate.get("args").and_then(Value::as_array) {
+                for argument in args {
+                    collect_predicate_paths(argument, output);
+                }
+            }
+        }
+        Some("not") => {
+            if let Some(argument) = predicate.get("arg") {
+                collect_predicate_paths(argument, output);
+            }
+        }
+        Some("eq" | "in" | "exists") => {
+            if let Some(path) = nonblank(predicate, "path") {
+                output.insert(path.to_owned());
+            }
+        }
+        _ => {}
+    }
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 enum QueryMatch {
     True,
