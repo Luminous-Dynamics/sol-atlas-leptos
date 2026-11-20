@@ -174,3 +174,19 @@ Do not put the systems above on one synthetic leaderboard. Run matched, task-spe
 For every comparison, pin software versions, configuration, schema/profile, fixtures, host, hardware, network schedule and operators. Publish all failure cases, excluded cases and operational costs. Keep correctness/security thresholds separate from latency and usability; a faster unsafe exporter must never win a weighted score.
 
 **Research hypothesis:** CTER's differentiator is not any one of offline collection, GIS, a policy engine, a hash, a provenance vocabulary or an archive format. It is the compositional proof boundary that binds an upstream owner-qualified decision to a specific recipient-bound disclosure package, its complete source/transform lineage, the actual release attempt and a later independent recovery. That hypothesis remains unproven until the cross-system adapter and matched field/archive trials exist.
+
+
+## 10. Egress binding implementation and scale fixture status
+
+The initial egress consumer implementation and its limits are recorded in [CTER Egress Binding Profile v0.1](CTER_EGRESS_BINDING_PROFILE_V0_1.md).
+
+Committed on the CTER research branch:
+
+- versioned [disclosure manifest schema](../../schemas/cter-disclosure-manifest-v0.1.schema.json), with explicit source and output data classes;
+- frozen [32-entry adversarial corpus](../../benchmarks/territorial-integrity/egress/cases-v0.1.json): one valid baseline and 31 adversarial cases;
+- Rust structural evaluator and 14 focused tests;
+- independent no-dependency Node oracle with 13 structural cases;
+- [1k/10k/100k/1M scale workload specification](../../benchmarks/territorial-integrity/egress/scale-workloads-v0.1.json);
+- exact-path CI workflow coverage for the new schema, corpus, scale profile and Node oracle.
+
+**Execution status:** code and tests are committed but not yet executed. Exact-head workflows must finish successfully before any pass claim. No throughput, latency, memory, storage, energy, production authorization or real egress result is claimed. The evaluator checks digest formatting and specified digest equality relationships, not payload hashing; receipt authentication, trusted time, resolver state and release are external host responsibilities.
