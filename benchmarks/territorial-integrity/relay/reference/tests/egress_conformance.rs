@@ -1,4 +1,7 @@
-use cter_relay_reference::egress::evaluate_disclosure_manifest;
+use cter_relay_reference::egress::{
+    evaluate_disclosure_manifest,
+    evaluate_disclosure_manifest_json,
+};
 use serde_json::Value;
 
 fn corpus() -> Value {
@@ -318,4 +321,28 @@ fn unsupported_coverage_query_profile_is_incomplete() {
             "authorization_coverage_query_profile_missing_or_unsupported"
         )
     );
+}
+
+
+#[test]
+fn egress_raw_json_entrypoint_rejects_duplicate_object_members() {
+    let mut manifest = baseline();
+    let raw = serde_json::to_string(&manifest).expect("baseline serializes");
+    let unique = evaluate_disclosure_manifest_json(&raw)
+        .expect("strict parser accepts unique JSON");
+    assert_eq!(unique.disposition, "valid_structure");
+
+    manifest["manifest_id"] = Value::String("urn:fixture:manifest:replacement".into());
+    let raw = raw.replacen(
+        "\"manifest_id\":",
+        "\"manifest_id\":\"urn:fixture:manifest:duplicate\", \"manifest_id\":",
+        1,
+    );
+    assert!(evaluate_disclosure_manifest_json(&raw).is_err());
+}
+
+#[test]
+fn egress_raw_json_entrypoint_rejects_unsafe_integer_values() {
+    let raw = r#"{"manifest_id":"urn:fixture:manifest:test","payload_bytes":9007199254740993}"#;
+    assert!(evaluate_disclosure_manifest_json(raw).is_err());
 }
