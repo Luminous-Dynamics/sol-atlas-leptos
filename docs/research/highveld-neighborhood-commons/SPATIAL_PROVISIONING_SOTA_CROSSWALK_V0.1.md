@@ -10,13 +10,13 @@ The relevant product is not a routing engine, site-plan renderer, or universal n
 
 > Given the same resident needs, population, functional unit, time period, geographic/network scope and resource boundary, which private, central, distributed, hybrid or external provision topology offers the strongest feasible service opportunity—and what happens to each resident group when evidence is missing or a dependency fails?
 
-The system consumes specialist routing, amenity-service, capacity, affordability, legal and engineering evidence. It compares those outputs under common scope and exposes non-compensatory constraints. It must not silently replace an upstream authority or promote a planning option into a construction or allocation decision.
+The system consumes specialist routing, amenity-service, capacity, affordability, legal and engineering evidence. It compares those outputs under common scope and exposes non-compensatory constraints. Crucially, route qualification (CityMorph) and period-specific service availability (Mycelix) are independent predicates: a resident can reach a facility that is closed, unstaffed, ineligible or otherwise unable to deliver the declared service. It must not silently replace an upstream authority or promote a planning option into a construction or allocation decision.
 
 ## 2. SOTA crosswalk
 
 | Reference system / method | Established scope to respect | What Sol-Atlas should add without duplicating it |
 |---|---|---|
-| Conveyal R5 | Network isochrones, opportunity access, schedule-sensitive travel-time distributions and percentile analysis | Bind path/time outputs to owner-qualified service availability, capacity potential, eligibility, affordability, step-free access, resident tolerances and population-group outcomes |
+| Conveyal R5 | Network isochrones, opportunity access, schedule-sensitive travel-time distributions and percentile analysis | Bind path/time outputs to Mycelix service-availability state for the declared functional unit and time window, plus owner-qualified capacity potential, eligibility, affordability, step-free access, resident tolerances and population-group outcomes |
 | OpenTripPlanner 2 | Multimodal trip planning, transit timetable and accessibility profile handling | Preserve the distinction between accessible, inaccessible and unknown; bind access outputs to the actual amenity/service record and its operating state |
 | PEAI (2026) | Multidimensional active-mobility accessibility, including service availability, infrastructure quality, housing affordability and user-centred insight | Reproduce the published case and method before adaptation; add independently qualified service/capacity and resilience evidence without assuming PEAI weights are universal |
 | UN SDG 11.2.1 | Access to public transport using pedestrian-network distances and transport service classes | Use as a comparable public-transport indicator, not as a universal amenity-access guarantee |
@@ -47,7 +47,7 @@ Every competitor and Luminous result must use the same:
 
 Separate errors and differences by layer:
 - **Network/routing difference:** path, generalized time, transfer/waiting and reliability.
-- **Evidence/usability difference:** facility open, service qualified, eligible, affordable, accessible and within the resident tolerance.
+- **Evidence/usability difference:** keep route qualification, Mycelix service availability for the declared period, eligibility, affordability, mandatory accessibility, capacity and resident tolerance as separate evidence states. A reachable but closed facility is not an effective service opportunity.
 - **Capacity difference:** owner-qualified total capacity and demand; never multiply facility capacity by the number of groups who can reach it.
 - **Distribution difference:** coverage and burden for each declared cohort, not only a weighted city mean.
 - **Topology difference:** independent nodes, common-cause dependencies, substitution and phasing.
@@ -98,7 +98,7 @@ Translate design intent into testable, time-bounded service commitments: what se
 
 - Population-weighted effective-access coverage.
 - P50/P90 and worst-decile generalized access burden **among the effectively served population**, always alongside the coverage and unserved/unknown populations.
-- No-access, unknown-access and outside-tolerance population shares, separately.
+- No-access, unknown-access, known-service-unavailable and outside-tolerance population shares, separately.
 - Mandatory step-free / resident-declared access gate.
 - Reachable owner-qualified capacity potential, aggregate demand and shortfall, with once-only facility accounting.
 - Minimum independent facility/operator/utility/route failure domains per group.
