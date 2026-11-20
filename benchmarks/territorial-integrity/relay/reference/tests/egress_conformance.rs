@@ -24,8 +24,8 @@ fn baseline_manifest_has_structurally_closed_request_destination_and_lineage() {
 fn adversarial_suite_is_frozen_and_explicitly_unexecuted() {
     let suite = corpus();
     let cases = suite["cases"].as_array().expect("case array");
-    assert_eq!(cases.len(), 35);
-    assert_eq!(cases.iter().filter(|case| case["case_id"] != "EGRESS-BASELINE-001").count(), 34);
+    assert_eq!(cases.len(), 39);
+    assert_eq!(cases.iter().filter(|case| case["case_id"] != "EGRESS-BASELINE-001").count(), 38);
     assert_eq!(
         suite["execution_status"],
         "jcs_predicate_commitment_implemented_exact_head_rust_and_node22_pending"
@@ -338,6 +338,50 @@ fn egress_raw_json_entrypoint_rejects_duplicate_object_members() {
         1,
     );
     assert!(evaluate_disclosure_manifest_json(&raw).is_err());
+}
+
+#[test]
+fn missing_query_input_snapshot_reference_is_incomplete() {
+    let mut input = baseline();
+    input["authorization_binding"]
+        .as_object_mut()
+        .expect("authorization binding")
+        .remove("coverage_input_snapshot_ref");
+    let result = evaluate_disclosure_manifest(&input);
+    assert_eq!(result.disposition, "incomplete");
+    assert!(
+        result
+            .reason_codes
+            .contains("authorization_coverage_input_snapshot_ref_missing")
+    );
+}
+
+#[test]
+fn malformed_query_input_snapshot_commitment_is_incomplete() {
+    let mut input = baseline();
+    input["authorization_binding"]["coverage_input_snapshot_commitment"]["algorithm"] =
+        Value::String("blake3".into());
+    let result = evaluate_disclosure_manifest(&input);
+    assert_eq!(result.disposition, "incomplete");
+    assert!(
+        result
+            .reason_codes
+            .contains("authorization_coverage_input_snapshot_commitment_malformed")
+    );
+}
+
+#[test]
+fn unsupported_query_input_snapshot_profile_is_incomplete() {
+    let mut input = baseline();
+    input["authorization_binding"]["coverage_input_snapshot_profile_ref"] =
+        Value::String("urn:luminous:cter:query-input-json-v0.2".into());
+    let result = evaluate_disclosure_manifest(&input);
+    assert_eq!(result.disposition, "incomplete");
+    assert!(
+        result.reason_codes.contains(
+            "authorization_coverage_input_snapshot_profile_missing_or_unsupported"
+        )
+    );
 }
 
 #[test]
