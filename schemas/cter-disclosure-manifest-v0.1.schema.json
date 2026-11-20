@@ -51,7 +51,8 @@
         "coverage_query_commitment",
         "coverage_query_profile_ref",
         "coverage_input_snapshot_ref",
-        "coverage_input_snapshot_commitment"
+        "coverage_input_snapshot_commitment",
+        "coverage_input_snapshot_profile_ref"
       ],
       "properties": {
         "request_ref": {
@@ -114,6 +115,9 @@
         },
         "coverage_input_snapshot_commitment": {
           "$ref": "#/$defs/sha256_digest"
+        },
+        "coverage_input_snapshot_profile_ref": {
+          "$ref": "#/$defs/opaque_ref"
         }
       }
     },
