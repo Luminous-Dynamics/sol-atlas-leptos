@@ -274,6 +274,16 @@ pub fn evaluate_composed_release_binding(
             "authorization_input_snapshot_commitment_mismatch",
         );
     }
+    if authority.get("coverage_input_snapshot_profile_ref")
+        != query.get("input_snapshot_profile_ref")
+    {
+        raise(
+            &mut severity,
+            &mut reasons,
+            Severity::Deny,
+            "authorization_input_snapshot_profile_mismatch",
+        );
+    }
 
     let authorized_classes = data_class_set(authority.get("data_classes"));
     let coverage_classes = data_class_set(query.get("data_classes"));
