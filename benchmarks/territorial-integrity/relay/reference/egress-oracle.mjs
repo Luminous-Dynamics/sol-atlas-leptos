@@ -196,6 +196,7 @@ export function evaluateDisclosureManifest(input) {
         raise("deny", "source_classification_identity_conflict");
       }
       sourceClasses.set(sourceRef, sourceClassSet ?? new Set());
+      if (sourceIds.has(sourceRef)) raise("deny", "source_reference_duplicated");
       sourceIds.add(sourceRef);
     }
     outputSourceRefs.set(objectRef, sourceIds);
