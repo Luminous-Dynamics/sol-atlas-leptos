@@ -2,7 +2,7 @@ use cter_relay_reference::private_coverage::evaluate_private_coverage;
 use serde_json::Value;
 
 fn corpus() -> Value {
-    serde_json::from_str(include_str!("../../egress/private-coverage-cases-v0.1.json"))
+    serde_json::from_str(include_str!("../../../egress/private-coverage-cases-v0.1.json"))
         .expect("private coverage corpus must be valid JSON")
 }
 
