@@ -117,6 +117,15 @@ export function evaluateComposedReleaseBinding(manifest, coverage) {
   if (auth.coverage_query_profile_ref !== query.query_profile_ref) {
     raise("deny", "authorization_coverage_query_profile_mismatch");
   }
+  if (auth.coverage_input_snapshot_ref !== query.input_snapshot_ref) {
+    raise("deny", "authorization_input_snapshot_reference_mismatch");
+  }
+  if (JSON.stringify(auth.coverage_input_snapshot_commitment) !== JSON.stringify(query.input_snapshot_commitment)) {
+    raise("deny", "authorization_input_snapshot_commitment_mismatch");
+  }
+  if (auth.coverage_input_snapshot_profile_ref !== query.input_snapshot_profile_ref) {
+    raise("deny", "authorization_input_snapshot_profile_mismatch");
+  }
   const leftClasses = canonicalSet(auth.data_classes);
   const rightClasses = canonicalSet(query.data_classes);
   if (!leftClasses || !rightClasses) {
@@ -178,6 +187,12 @@ function applyMutation(caseId, manifest, coverage) {
       coverage.query_binding.query_profile_ref = "urn:luminous:cter:predicate-json-v0.2"; break;
     case "COMPOSED-QUERY-PREDICATE-DRIFT-001":
       coverage.query_binding.predicate.args[1].value = "US"; break;
+    case "COMPOSED-INPUT-SNAPSHOT-REF-DRIFT-001":
+      manifest.authorization_binding.coverage_input_snapshot_ref = "urn:fixture:query-input-snapshot:other"; break;
+    case "COMPOSED-INPUT-SNAPSHOT-COMMITMENT-DRIFT-001":
+      manifest.authorization_binding.coverage_input_snapshot_commitment.value = "9".repeat(64); break;
+    case "COMPOSED-INPUT-SNAPSHOT-ATTRIBUTE-DRIFT-001":
+      coverage.query_input_snapshot.items[0].query_input.jurisdiction = "US"; break;
     case "COMPOSED-ASSERTED-LEAF-DRIFT-001":
       coverage.package_binding.terminal_source_leaf_refs = ["urn:fixture:source:other"]; break;
     case "COMPOSED-DERIVED-LEAF-DRIFT-001": {
@@ -241,8 +256,8 @@ for (const testCase of corpus.cases) {
   );
   counts[actual.disposition] += 1;
 }
-assert.equal(corpus.cases.length, 21);
+assert.equal(corpus.cases.length, 24);
 assert.equal(counts.valid_composed_structure, 2);
-console.log("CTER composed release oracle: 17/17 synthetic fixture dispositions matched.");
+console.log("CTER composed release oracle: " + corpus.cases.length + "/" + corpus.cases.length + " synthetic fixture dispositions matched.");
 console.log("Counts: " + JSON.stringify(counts) + ".");
 console.log("Structural composition only; no production proof or release authorization is asserted.");
