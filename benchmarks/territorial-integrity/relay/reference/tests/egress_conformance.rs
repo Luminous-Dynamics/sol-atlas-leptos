@@ -21,11 +21,11 @@ fn baseline_manifest_has_structurally_closed_request_destination_and_lineage() {
 fn adversarial_suite_is_frozen_and_explicitly_unexecuted() {
     let suite = corpus();
     let cases = suite["cases"].as_array().expect("case array");
-    assert_eq!(cases.len(), 32);
+    assert_eq!(cases.len(), 34);
     assert_eq!(cases.iter().filter(|case| case["case_id"] != "EGRESS-BASELINE-001").count(), 31);
     assert_eq!(
         suite["execution_status"],
-        "javascript_oracle_v8_14_of_14_rust_tests_and_node22_workflow_pending"
+        "javascript_oracle_v8_16_of_16_rust_tests_and_node22_workflow_pending"
     );
 }
 
@@ -275,5 +275,32 @@ fn transform_cannot_consume_an_undeclared_source_object() {
         result
             .reason_codes
             .contains("transformation_input_source_set_mismatch")
+    );
+}
+
+
+#[test]
+fn missing_coverage_query_reference_is_incomplete() {
+    let mut input = baseline();
+    input["authorization_binding"]
+        .as_object_mut()
+        .expect("authorization binding")
+        .remove("coverage_query_ref");
+    let result = evaluate_disclosure_manifest(&input);
+    assert_eq!(result.disposition, "incomplete");
+    assert!(result.reason_codes.contains("authorization_coverage_query_ref_missing"));
+}
+
+#[test]
+fn malformed_coverage_query_commitment_is_incomplete() {
+    let mut input = baseline();
+    input["authorization_binding"]["coverage_query_commitment"]["algorithm"] =
+        Value::String("blake3".into());
+    let result = evaluate_disclosure_manifest(&input);
+    assert_eq!(result.disposition, "incomplete");
+    assert!(
+        result
+            .reason_codes
+            .contains("authorization_coverage_query_commitment_malformed")
     );
 }
