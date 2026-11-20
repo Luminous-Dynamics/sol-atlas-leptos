@@ -417,5 +417,39 @@ passed.push(test(
   "identity_copy_digest_mismatch",
 ));
 
+const chain = structuredClone(corpus.baseline_manifest);
+const firstOutput = structuredClone(chain.package.outputs[0]);
+const secondRef = "urn:fixture:output:derived-002";
+chain.package.outputs.push({
+  object_ref: secondRef,
+  content_digest: {
+    algorithm: "sha-256",
+    value: "2222222222222222222222222222222222222222222222222222222222222222",
+  },
+  byte_length: 96,
+  media_type: "application/octet-stream",
+  data_classes: ["community"],
+  source_refs: [{
+    object_ref: firstOutput.object_ref,
+    content_digest: firstOutput.content_digest,
+    data_classes: ["community"],
+  }],
+  transformation_refs: ["urn:fixture:transform:derived-002"],
+});
+chain.package.transformations.push({
+  transform_ref: "urn:fixture:transform:derived-002",
+  transform_kind: "format_conversion",
+  profile_ref: "urn:fixture:transform-profile:format-conversion-v0",
+  version_commitment: {
+    algorithm: "sha-256",
+    value: "3333333333333333333333333333333333333333333333333333333333333333",
+  },
+  input_object_refs: [firstOutput.object_ref],
+  output_object_refs: [secondRef],
+});
+const chainResult = evaluateDisclosureManifest(chain);
+assert.equal(chainResult.disposition, "valid_structure", chainResult.reason_codes.join(","));
+passed.push("intermediate-provenance-dag");
+
 console.log("CTER egress oracle: " + passed.length + "/" + passed.length + " local structural cases matched.");
 console.log("Frozen specification corpus: " + corpus.cases.length + " adversarial cases; no production authorization is asserted.");
