@@ -239,3 +239,15 @@ The predicate commitment is now complemented by a separate query-input snapshot 
 See [CTER_QUERY_INPUT_ATTESTATION_PROFILE_V0_1.md](CTER_QUERY_INPUT_ATTESTATION_PROFILE_V0_1.md) and [#973](https://github.com/Luminous-Dynamics/sol-atlas-leptos). The predicate and snapshot hashes are domain-separated and cannot be substituted for one another.
 
 This does not prove source truth. The custodian creates the snapshot, source-content digests are not recomputed over fetched bytes, and the source owner/Mycelix has not yet issued or confirmed an attestation receipt for this new snapshot type. That is a separate interoperability and trust qualification requirement.
+
+
+## 12. Current suite inventory after #973
+
+The predicate rule is now paired with the separate query-input source snapshot. The current branch's frozen suite sizes are:
+- predicate/private coverage: 44 cases;
+- composed release: 24 cases;
+- egress binding: 39 cases;
+- predicate JCS golden vectors: 4;
+- source-input snapshot golden fixtures: 2 (private and composed).
+
+Earlier 38-case predicate-suite and 37/37 fixture-mirror statements in this document describe the pre-snapshot revision. They must not be read as execution results for the current 44-case suite. The latest current suite is source-present; exact-head Rust and committed Node 22 workflows remain pending.
