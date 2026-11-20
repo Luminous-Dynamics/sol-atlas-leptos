@@ -641,13 +641,16 @@ fn evaluate_case(case: &Case) -> CaseEvaluation {
         .find(|slice| slice.state == OpportunityState::Available)
         .map(|slice| slice.start_tick);
 
-    let first_restored_after_known_loss_tick = opportunity_slices
-        .windows(2)
-        .find(|pair| {
-            pair[0].state == OpportunityState::Unavailable
-                && pair[1].state == OpportunityState::Available
-        })
-        .map(|pair| pair[1].start_tick);
+    let mut known_loss_seen = false;
+    let mut first_restored_after_known_loss_tick = None;
+    for slice in &opportunity_slices {
+        if slice.state == OpportunityState::Unavailable {
+            known_loss_seen = true;
+        } else if known_loss_seen && slice.state == OpportunityState::Available {
+            first_restored_after_known_loss_tick = Some(slice.start_tick);
+            break;
+        }
+    }
 
     let stable_opportunity_restoration =
         stable_opportunity_state(case, &opportunity_slices);
@@ -787,9 +790,9 @@ mod tests {
     #[test]
     fn frozen_reference_oracle_matches_all_seventeen_cases() {
         let output = evaluate_fixture(FIXTURE.as_bytes()).expect("all frozen cases must match");
-        assert_eq!(output.case_count, 17);
-        assert_eq!(output.opportunity_interval_count, 68);
-        assert_eq!(output.frozen_oracle_match_count, 17);
+        assert_eq!(output.case_count, 18);
+        assert_eq!(output.opportunity_interval_count, 72);
+        assert_eq!(output.frozen_oracle_match_count, 18);
         assert_eq!(output.mismatch_count, 0);
         assert_eq!(output.fixture_sha256.len(), 64);
     }
@@ -904,6 +907,19 @@ mod tests {
             result.opportunity_slices[1].state,
             OpportunityState::Unavailable
         );
+    }
+
+    #[test]
+    fn qualified_return_after_an_unknown_interval_is_still_reported() {
+        let output = evaluate_fixture(FIXTURE.as_bytes()).expect("fixture matches");
+        let result = by_id(
+            &output.results,
+            "UNRESOLVED_INTERVAL_BEFORE_QUALIFIED_RETURN",
+        );
+        assert_eq!(result.opportunity_slices[1].state, OpportunityState::Unavailable);
+        assert_eq!(result.opportunity_slices[2].state, OpportunityState::Unknown);
+        assert_eq!(result.opportunity_slices[3].state, OpportunityState::Available);
+        assert_eq!(result.first_restored_after_known_loss_tick, Some(6));
     }
 
     #[test]
