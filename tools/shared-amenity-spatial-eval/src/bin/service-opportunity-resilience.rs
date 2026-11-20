@@ -344,8 +344,8 @@ fn validate_fixture(fixture: &Fixture) -> Result<(), String> {
     {
         return Err("time basis differs from the frozen v0.1 synthetic profile".to_owned());
     }
-    if fixture.cases.len() < 17 {
-        return Err("reference fixture must contain at least 17 cases".to_owned());
+    if fixture.cases.len() < 18 {
+        return Err("reference fixture must contain at least 18 cases".to_owned());
     }
 
     let mut case_ids = HashSet::new();
