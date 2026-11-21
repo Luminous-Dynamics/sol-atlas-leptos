@@ -109,22 +109,11 @@ impl InstitutionalRelationship {
         if self.scope.domain_id.trim().is_empty() {
             return Err(RelationshipError::EmptyField("scope.domain_id"));
         }
-        if matches!(
-            self.subject.entity_kind,
-            EntityKind::Person
-        ) || matches!(
-            self.object.entity_kind,
-            EntityKind::Person
-        ) {
-            if self.disclosure != DisclosureClass::Restricted {
-                return Err(RelationshipError::PersonEndpointNotRestricted);
-            }
-        }
-        if self.disclosure == DisclosureClass::AggregatedOnly
-            && (self.subject.entity_kind == EntityKind::Person
-                || self.object.entity_kind == EntityKind::Person)
+        if (self.subject.entity_kind == EntityKind::Person
+            || self.object.entity_kind == EntityKind::Person)
+            && self.disclosure != DisclosureClass::Restricted
         {
-            return Err(RelationshipError::PersonEndpointInAggregateProjection);
+            return Err(RelationshipError::PersonEndpointNotRestricted);
         }
         self.evidence
             .validate()
@@ -141,6 +130,11 @@ fn validate_entity(entity: &EntityRef, field: &'static str) -> Result<(), Relati
     }
 }
 
+/// Audience classification supplied by the calling application.
+///
+/// The caller must establish Mycelix/host authorization before selecting
+/// `Authorized`. This enum is a projection input, not an access-control
+/// credential or security boundary.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum ProjectionAudience {
     Public,
@@ -272,7 +266,6 @@ pub enum RelationshipError {
     EmptyField(&'static str),
     SelfRelationship,
     PersonEndpointNotRestricted,
-    PersonEndpointInAggregateProjection,
     InvalidEvidence(EvidenceError),
 }
 
@@ -283,9 +276,6 @@ impl std::fmt::Display for RelationshipError {
             Self::SelfRelationship => write!(f, "relationship subject and object must differ"),
             Self::PersonEndpointNotRestricted => {
                 write!(f, "relationships with person endpoints require restricted disclosure")
-            }
-            Self::PersonEndpointInAggregateProjection => {
-                write!(f, "aggregated-only projections must not contain person endpoints")
             }
             Self::InvalidEvidence(error) => write!(f, "invalid relationship evidence: {error}"),
         }
