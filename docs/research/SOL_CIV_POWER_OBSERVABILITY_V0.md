@@ -49,7 +49,7 @@ Compose the existing work:
 - Sol Atlas #937 for cross-system territorial rights and stewardship qualification.
 - Mycelix #4816 for Civilization Twin subsystem boundaries.
 - Mycelix #4814 for production/input-output and critical-supply network fabric.
-- Mycelix #5699 for institutional feedback and lock-in.
+- Mycelix #5698 for institutional feedback and lock-in.
 - Mycelix #2976 for public-integrity mechanism analysis without actor blame.
 - Symthaea #7190 for power, agency, dependency and rights-floor observables.
 - Symthaea #3054/#3095 for institutional game semantics and experiment receipts.
@@ -337,5 +337,5 @@ A result can pass the first layer and fail the other three. Publish separate rep
 - [Sol Atlas temporal historical projection (#12)](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/12)
 - [Symthaea power, agency and dependency stress lab (#7190)](https://github.com/Luminous-Dynamics/symthaea/issues/7190)
 - [Mycelix Civilization Twin (#4816)](https://github.com/Luminous-Dynamics/mycelix/issues/4816)
-- [Mycelix institutional feedback / lock-in (#5699)](https://github.com/Luminous-Dynamics/mycelix/issues/5699)
+- [Mycelix institutional feedback / lock-in (#5698)](https://github.com/Luminous-Dynamics/mycelix/issues/5698)
 - [Symtropy attractor and regime qualification (#6441)](https://github.com/Luminous-Dynamics/symtropy/issues/6441)
