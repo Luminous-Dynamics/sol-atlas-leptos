@@ -1,0 +1,131 @@
+name: MATPOWER 8.1 DC-OPF numerical KKT verifier
+
+on:
+  pull_request:
+    paths:
+      - "tools/matpower-dc-opf-kkt-verifier/**"
+      - "tools/matpower-dc-opf-primal-auditor/**"
+      - "tools/pglib-case-auditor/**"
+      - "tools/matpower-reference-differential/run_matpower_dcopf.m"
+      - ".github/workflows/matpower-8.1-dc-opf-kkt-verifier.yml"
+  push:
+    paths:
+      - "tools/matpower-dc-opf-kkt-verifier/**"
+      - "tools/matpower-dc-opf-primal-auditor/**"
+      - "tools/pglib-case-auditor/**"
+      - "tools/matpower-reference-differential/run_matpower_dcopf.m"
+      - ".github/workflows/matpower-8.1-dc-opf-kkt-verifier.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: matpower-8-1-dc-opf-kkt-verifier
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Sol-Atlas
+        uses: actions/checkout@v4
+
+      - name: Checkout immutable MATPOWER 8.1
+        uses: actions/checkout@v4
+        with:
+          repository: MATPOWER/matpower
+          ref: 1a828c7af590714499284e36ee9c81273388c594
+          path: vendor/matpower
+
+      - name: Checkout immutable MP-Opt-Model 5.0
+        uses: actions/checkout@v4
+        with:
+          repository: MATPOWER/mp-opt-model
+          ref: 35e81cdc147436e843d69b143b32ec5bacfa14d2
+          path: vendor/mp-opt-model
+
+      - name: Checkout immutable MIPS 1.5.2
+        uses: actions/checkout@v4
+        with:
+          repository: MATPOWER/mips
+          ref: 7ed83ba9d668864fbf7f4c1931ee697b86aa5764
+          path: vendor/mips
+
+      - name: Checkout immutable MP-Test 8.1
+        uses: actions/checkout@v4
+        with:
+          repository: MATPOWER/mptest
+          ref: a918a838ee421af41d64775508a8a6608e75e569
+          path: vendor/mptest
+
+      - name: Verify reference source identities
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git -C vendor/matpower rev-parse HEAD)" = "1a828c7af590714499284e36ee9c81273388c594"
+          test "$(git -C vendor/mp-opt-model rev-parse HEAD)" = "35e81cdc147436e843d69b143b32ec5bacfa14d2"
+          test "$(git -C vendor/mips rev-parse HEAD)" = "7ed83ba9d668864fbf7f4c1931ee697b86aa5764"
+          test "$(git -C vendor/mptest rev-parse HEAD)" = "a918a838ee421af41d64775508a8a6608e75e569"
+
+      - name: Install GNU Octave
+        run: |
+          sudo apt-get update
+          sudo apt-get install --no-install-recommends -y octave
+          octave-cli --version
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: 1.96.0
+          components: rustfmt, clippy
+
+      - name: Strict formatting (primal auditor toolchain)
+        run: cargo fmt --manifest-path tools/matpower-dc-opf-primal-auditor/Cargo.toml -- --check
+
+      - name: Strict formatting (pinned Rust 1.96.0 for both crates)
+        run: |
+          cargo fmt --manifest-path tools/matpower-dc-opf-primal-auditor/Cargo.toml -- --check
+          cargo fmt --manifest-path tools/matpower-dc-opf-kkt-verifier/Cargo.toml -- --check
+
+      - name: Locked offline tests
+        run: |
+          cargo test --manifest-path tools/pglib-case-auditor/Cargo.toml --locked --offline
+          cargo test --manifest-path tools/matpower-dc-opf-primal-auditor/Cargo.toml --locked --offline
+          cargo test --manifest-path tools/matpower-dc-opf-kkt-verifier/Cargo.toml --locked --offline
+
+      - name: Strict Clippy
+        run: |
+          cargo clippy --manifest-path tools/pglib-case-auditor/Cargo.toml --locked --offline --all-targets -- -D warnings
+          cargo clippy --manifest-path tools/matpower-dc-opf-primal-auditor/Cargo.toml --locked --offline --all-targets -- -D warnings
+          cargo clippy --manifest-path tools/matpower-dc-opf-kkt-verifier/Cargo.toml --locked --offline --all-targets -- -D warnings
+
+      - name: Run MATPOWER 8.1 two-bus DC-OPF and export named duals
+        shell: bash
+        run: |
+          set -euo pipefail
+          SOURCE="tools/matpower-dc-opf-primal-auditor/fixtures/two_bus.m"
+          SOURCE_SHA="$(git hash-object "$SOURCE")"
+          octave-cli --quiet --no-gui --eval "addpath('tools/matpower-reference-differential'); run_matpower_dcopf('$SOURCE', '/tmp/matpower-two-bus.tsv', 'vendor/matpower', 'vendor/mp-opt-model', 'vendor/mips', 'vendor/mptest', '$SOURCE_SHA')"
+
+      - name: Independently verify MATPOWER primal and KKT conditions
+        shell: bash
+        run: |
+          set -euo pipefail
+          cargo run --manifest-path tools/matpower-dc-opf-kkt-verifier/Cargo.toml --locked --offline -- tools/matpower-dc-opf-primal-auditor/fixtures/two_bus.m /tmp/matpower-two-bus.tsv | tee /tmp/kkt-report.json
+          jq -e '.numerical_kkt_satisfied == true and .formal_global_optimality_proof == false and .numerical_gap_is_rigorous_lower_bound == false' /tmp/kkt-report.json >/dev/null
+
+      - name: Run active-line MATPOWER 8.1 DC-OPF and export binding shadow price
+        shell: bash
+        run: |
+          set -euo pipefail
+          SOURCE="tools/matpower-dc-opf-kkt-verifier/fixtures/two_bus_binding_line.m"
+          SOURCE_SHA="$(git hash-object "$SOURCE")"
+          octave-cli --quiet --no-gui --eval "addpath('tools/matpower-reference-differential'); run_matpower_dcopf('$SOURCE', '/tmp/matpower-binding-line.tsv', 'vendor/matpower', 'vendor/mp-opt-model', 'vendor/mips', 'vendor/mptest', '$SOURCE_SHA')"
+
+      - name: Independently verify active-line KKT and nodal-price conditions
+        shell: bash
+        run: |
+          set -euo pipefail
+          cargo run --manifest-path tools/matpower-dc-opf-kkt-verifier/Cargo.toml --locked --offline -- tools/matpower-dc-opf-kkt-verifier/fixtures/two_bus_binding_line.m /tmp/matpower-binding-line.tsv | tee /tmp/kkt-binding-line-report.json
+          jq -e '.numerical_kkt_satisfied == true and .flow_constraint_count == 1 and .formal_global_optimality_proof == false and .numerical_gap_is_rigorous_lower_bound == false' /tmp/kkt-binding-line-report.json >/dev/null
