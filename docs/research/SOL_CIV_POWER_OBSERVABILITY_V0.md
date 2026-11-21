@@ -310,6 +310,24 @@ Use matched inputs and measure:
 
 A conventional GIS may be better at general spatial operations, a network package may be better at specialized graph analytics, and an evidence/provenance platform may be better at source custody. Sol Atlas should claim advantage only where its integrated, reversible institutional-spatial inspection demonstrably improves a measured task without weakening those specialist capabilities.
 
+### 9.1 Interoperability and industry benchmark anchors
+
+The first release should be standards-compatible, not another closed geospatial format:
+
+- **OGC API – Features:** use as the feature-query and CRS interop baseline. Part 1 Core and Part 2 CRS by Reference define the baseline for feature access and coordinate-system handling; the benchmark should include conformance checks and exact round-trips. [OGC standard](https://www.ogc.org/standards/ogcapi-features/).
+- **OGC API – Common – Part 2: Geospatial Data:** incorporate the newly published standard (approved 15 October 2026; published 12 November 2026) into the export/interchange review. Do not claim conformance until a validator and exact test report exist. [Official standard document](https://docs.ogc.org/is/20-024/20-024.pdf).
+- **STAC 1.1.0 / STAC API 1.0.0:** use for discovery and metadata of spatiotemporal assets such as imagery, lidar, point clouds, DEMs and vector datasets. Sol Atlas may extend these with evidence/rights metadata, but should not redefine STAC's asset catalog semantics. [OGC STAC standard page](https://www.ogc.org/standards/stac/).
+- **W3C PROV-DM:** crosswalk source, entity, activity, agent and derivation lineage to a domain-agnostic provenance model. Keep rights, epistemic class and claim qualification as domain extensions rather than pretending PROV alone establishes truth. [W3C PROV-DM](https://www.w3.org/TR/prov-dm/).
+- **ArcGIS Knowledge:** treat as a direct industry comparison for knowledge graphs that combine entities, relationships, spatial/temporal analysis and network/link analysis. Our differentiation must be measured in source/claim reversibility, explicit epistemic and missingness semantics, historical evidence frontiers, privacy/rights preservation and model-to-decision claim boundaries—not in the mere ability to draw a graph on a map. [ArcGIS Knowledge overview](https://doc.esri.com/en/arcgis-knowledge/latest/introduction/what-is-arcgis-knowledge.html).
+
+The comparison suite should distinguish at least four layers of conformance:
+1. **Format interchange:** can the same features, geometries, CRS and spatiotemporal assets round-trip through the applicable OGC/STAC interfaces?
+2. **Graph semantics:** are relationship direction, entity identity, time and scope preserved without adjacency inference?
+3. **Evidence semantics:** can consumers retain claim lineage, epistemic class, missingness, dispute, rights and known-by frontier?
+4. **Decision safety:** can a consumer distinguish a source claim, spatial projection, simulation output, authorized decision and independently observed outcome?
+
+A result can pass the first layer and fail the other three. Publish separate reports; do not compress them into an "interoperability score".
+
 ---
 
 ## References
