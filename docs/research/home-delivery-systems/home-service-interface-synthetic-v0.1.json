@@ -1,0 +1,645 @@
+{
+  "schema_version": "home-service-stack/0.1",
+  "profile_id": "SYN-HOME-SERVICE-STACK-001",
+  "maturity": "synthetic_contract",
+  "source_binding": {
+    "resident_brief": {
+      "kind": "synthetic_resident_brief",
+      "id": "urn:synthetic:home-freedom:resident-brief:unbound",
+      "revision": null,
+      "digest": null
+    },
+    "candidate_design": {
+      "kind": "synthetic_home_candidate",
+      "id": "urn:synthetic:home-freedom:candidate:unbound",
+      "revision": null,
+      "digest": null
+    },
+    "design_revision": {
+      "kind": "synthetic_design_revision",
+      "id": "urn:synthetic:home-freedom:revision:unbound",
+      "revision": null,
+      "digest": null
+    },
+    "jurisdiction_profile": {
+      "kind": "jurisdiction_profile",
+      "id": "urn:synthetic:jurisdiction:unselected",
+      "revision": null,
+      "digest": null
+    }
+  },
+  "service_profiles": [
+    {
+      "schema_version": "home-service-interface/0.1",
+      "profile_id": "SYN-SERVICE-WAREWASHING-001",
+      "maturity": "synthetic_contract",
+      "source_binding": {
+        "resident_brief": {
+          "kind": "synthetic_resident_brief",
+          "id": "urn:synthetic:home-freedom:resident-brief:unbound",
+          "revision": null,
+          "digest": null
+        },
+        "candidate_design": {
+          "kind": "synthetic_home_candidate",
+          "id": "urn:synthetic:home-freedom:candidate:unbound",
+          "revision": null,
+          "digest": null
+        },
+        "design_revision": {
+          "kind": "synthetic_design_revision",
+          "id": "urn:synthetic:home-freedom:revision:unbound",
+          "revision": null,
+          "digest": null
+        },
+        "jurisdiction_profile": {
+          "kind": "jurisdiction_profile",
+          "id": "urn:synthetic:jurisdiction:unselected",
+          "revision": null,
+          "digest": null
+        }
+      },
+      "service": "warewashing",
+      "functional_unit": {
+        "state": "unknown",
+        "basis": "resident_defined",
+        "quantity": null,
+        "unit": null,
+        "resident_definition_ref": null
+      },
+      "implementation": {
+        "kind": "service_only",
+        "identity_state": "unknown",
+        "product_or_prototype_ref": null,
+        "configuration_revision": null,
+        "firmware_revision": null,
+        "component_bom_revision": null,
+        "owner_reference": "https://github.com/Luminous-Dynamics/symthaea/issues/10326"
+      },
+      "interfaces": [
+        {
+          "kind": "spatial",
+          "state": "unknown",
+          "requirements": [],
+          "measurements": [],
+          "evidence_refs": []
+        },
+        {
+          "kind": "electrical",
+          "state": "unknown",
+          "requirements": [],
+          "measurements": [],
+          "evidence_refs": []
+        },
+        {
+          "kind": "water",
+          "state": "unknown",
+          "requirements": [],
+          "measurements": [],
+          "evidence_refs": []
+        },
+        {
+          "kind": "drainage",
+          "state": "unknown",
+          "requirements": [],
+          "measurements": [],
+          "evidence_refs": []
+        },
+        {
+          "kind": "thermal",
+          "state": "unknown",
+          "requirements": [],
+          "measurements": [],
+          "evidence_refs": []
+        },
+        {
+          "kind": "acoustic",
+          "state": "unknown",
+          "requirements": [],
+          "measurements": [],
+          "evidence_refs": []
+        },
+        {
+          "kind": "controls",
+          "state": "unknown",
+          "requirements": [],
+          "measurements": [],
+          "evidence_refs": []
+        },
+        {
+          "kind": "consumables",
+          "state": "unknown",
+          "requirements": [],
+          "measurements": [],
+          "evidence_refs": []
+        },
+        {
+          "kind": "service_access",
+          "state": "unknown",
+          "requirements": [],
+          "measurements": [],
+          "evidence_refs": []
+        }
+      ],
+      "local_operation": {
+        "manual_operation_state": "unknown",
+        "network_loss_behavior": "unknown",
+        "user_override_state": "unknown",
+        "safety_interlock_owner_ref": null,
+        "cloud_dependency_state": "unknown"
+      },
+      "maintenance": {
+        "repair_path_state": "unknown",
+        "instructions_ref": null,
+        "spares_state": "unknown",
+        "tools_state": "unknown",
+        "firmware_support_state": "unknown",
+        "end_of_life_state": "unknown"
+      },
+      "qualification": {
+        "status": "not_assessed",
+        "scope": "synthetic interface inventory only",
+        "authority_refs": [],
+        "limitations": [
+          "No resident brief, exact candidate design, jurisdiction or product revision is bound.",
+          "All dimensions, electrical loads, water flows, thermal flows, airflows, acoustic values and performance endpoints remain unknown.",
+          "No safety, compliance, performance, market, affordability or household-suitability claim is made."
+        ]
+      },
+      "revision_dependencies": [
+        "resident_intent",
+        "spatial_geometry",
+        "electrical",
+        "water_supply",
+        "drainage",
+        "thermal",
+        "acoustic",
+        "controls_firmware",
+        "consumables",
+        "procurement_cost",
+        "manufacturing",
+        "installation",
+        "maintenance",
+        "jurisdictional_approval"
+      ],
+      "claim_ceiling": "A profile pass establishes only declared interface completeness and traceability; it does not establish product safety, performance, compliance, manufacturability, affordability or household suitability."
+    },
+    {
+      "schema_version": "home-service-interface/0.1",
+      "profile_id": "SYN-SERVICE-WATER-CONTINUITY-001",
+      "maturity": "synthetic_contract",
+      "source_binding": {
+        "resident_brief": {
+          "kind": "synthetic_resident_brief",
+          "id": "urn:synthetic:home-freedom:resident-brief:unbound",
+          "revision": null,
+          "digest": null
+        },
+        "candidate_design": {
+          "kind": "synthetic_home_candidate",
+          "id": "urn:synthetic:home-freedom:candidate:unbound",
+          "revision": null,
+          "digest": null
+        },
+        "design_revision": {
+          "kind": "synthetic_design_revision",
+          "id": "urn:synthetic:home-freedom:revision:unbound",
+          "revision": null,
+          "digest": null
+        },
+        "jurisdiction_profile": {
+          "kind": "jurisdiction_profile",
+          "id": "urn:synthetic:jurisdiction:unselected",
+          "revision": null,
+          "digest": null
+        }
+      },
+      "service": "water_continuity",
+      "functional_unit": {
+        "state": "unknown",
+        "basis": "resident_defined",
+        "quantity": null,
+        "unit": null,
+        "resident_definition_ref": null
+      },
+      "implementation": {
+        "kind": "service_only",
+        "identity_state": "unknown",
+        "product_or_prototype_ref": null,
+        "configuration_revision": null,
+        "firmware_revision": null,
+        "component_bom_revision": null,
+        "owner_reference": "https://github.com/Luminous-Dynamics/symthaea/issues/10323"
+      },
+      "interfaces": [
+        {
+          "kind": "spatial",
+          "state": "unknown",
+          "requirements": [],
+          "measurements": [],
+          "evidence_refs": []
+        },
+        {
+          "kind": "electrical",
+          "state": "unknown",
+          "requirements": [],
+          "measurements": [],
+          "evidence_refs": []
+        },
+        {
+          "kind": "water",
+          "state": "unknown",
+          "requirements": [],
+          "measurements": [],
+          "evidence_refs": []
+        },
+        {
+          "kind": "water_quality",
+          "state": "unknown",
+          "requirements": [],
+          "measurements": [],
+          "evidence_refs": []
+        },
+        {
+          "kind": "drainage",
+          "state": "unknown",
+          "requirements": [],
+          "measurements": [],
+          "evidence_refs": []
+        },
+        {
+          "kind": "controls",
+          "state": "unknown",
+          "requirements": [],
+          "measurements": [],
+          "evidence_refs": []
+        },
+        {
+          "kind": "consumables",
+          "state": "unknown",
+          "requirements": [],
+          "measurements": [],
+          "evidence_refs": []
+        },
+        {
+          "kind": "service_access",
+          "state": "unknown",
+          "requirements": [],
+          "measurements": [],
+          "evidence_refs": []
+        }
+      ],
+      "local_operation": {
+        "manual_operation_state": "unknown",
+        "network_loss_behavior": "unknown",
+        "user_override_state": "unknown",
+        "safety_interlock_owner_ref": null,
+        "cloud_dependency_state": "unknown"
+      },
+      "maintenance": {
+        "repair_path_state": "unknown",
+        "instructions_ref": null,
+        "spares_state": "unknown",
+        "tools_state": "unknown",
+        "firmware_support_state": "unknown",
+        "end_of_life_state": "unknown"
+      },
+      "qualification": {
+        "status": "not_assessed",
+        "scope": "synthetic interface inventory only",
+        "authority_refs": [],
+        "limitations": [
+          "No resident brief, exact candidate design, jurisdiction or product revision is bound.",
+          "All dimensions, electrical loads, water flows, thermal flows, airflows, acoustic values and performance endpoints remain unknown.",
+          "No safety, compliance, performance, market, affordability or household-suitability claim is made."
+        ]
+      },
+      "revision_dependencies": [
+        "resident_intent",
+        "spatial_geometry",
+        "electrical",
+        "water_supply",
+        "water_quality",
+        "drainage",
+        "controls_firmware",
+        "consumables",
+        "procurement_cost",
+        "manufacturing",
+        "installation",
+        "maintenance",
+        "jurisdictional_approval"
+      ],
+      "claim_ceiling": "A profile pass establishes only declared interface completeness and traceability; it does not establish product safety, performance, compliance, manufacturability, affordability or household suitability."
+    },
+    {
+      "schema_version": "home-service-interface/0.1",
+      "profile_id": "SYN-SERVICE-HOT-WATER-001",
+      "maturity": "synthetic_contract",
+      "source_binding": {
+        "resident_brief": {
+          "kind": "synthetic_resident_brief",
+          "id": "urn:synthetic:home-freedom:resident-brief:unbound",
+          "revision": null,
+          "digest": null
+        },
+        "candidate_design": {
+          "kind": "synthetic_home_candidate",
+          "id": "urn:synthetic:home-freedom:candidate:unbound",
+          "revision": null,
+          "digest": null
+        },
+        "design_revision": {
+          "kind": "synthetic_design_revision",
+          "id": "urn:synthetic:home-freedom:revision:unbound",
+          "revision": null,
+          "digest": null
+        },
+        "jurisdiction_profile": {
+          "kind": "jurisdiction_profile",
+          "id": "urn:synthetic:jurisdiction:unselected",
+          "revision": null,
+          "digest": null
+        }
+      },
+      "service": "hot_water",
+      "functional_unit": {
+        "state": "unknown",
+        "basis": "resident_defined",
+        "quantity": null,
+        "unit": null,
+        "resident_definition_ref": null
+      },
+      "implementation": {
+        "kind": "service_only",
+        "identity_state": "unknown",
+        "product_or_prototype_ref": null,
+        "configuration_revision": null,
+        "firmware_revision": null,
+        "component_bom_revision": null,
+        "owner_reference": "https://github.com/Luminous-Dynamics/symthaea/issues/10329"
+      },
+      "interfaces": [
+        {
+          "kind": "spatial",
+          "state": "unknown",
+          "requirements": [],
+          "measurements": [],
+          "evidence_refs": []
+        },
+        {
+          "kind": "electrical",
+          "state": "unknown",
+          "requirements": [],
+          "measurements": [],
+          "evidence_refs": []
+        },
+        {
+          "kind": "water",
+          "state": "unknown",
+          "requirements": [],
+          "measurements": [],
+          "evidence_refs": []
+        },
+        {
+          "kind": "drainage",
+          "state": "unknown",
+          "requirements": [],
+          "measurements": [],
+          "evidence_refs": []
+        },
+        {
+          "kind": "thermal",
+          "state": "unknown",
+          "requirements": [],
+          "measurements": [],
+          "evidence_refs": []
+        },
+        {
+          "kind": "acoustic",
+          "state": "unknown",
+          "requirements": [],
+          "measurements": [],
+          "evidence_refs": []
+        },
+        {
+          "kind": "controls",
+          "state": "unknown",
+          "requirements": [],
+          "measurements": [],
+          "evidence_refs": []
+        },
+        {
+          "kind": "consumables",
+          "state": "unknown",
+          "requirements": [],
+          "measurements": [],
+          "evidence_refs": []
+        },
+        {
+          "kind": "service_access",
+          "state": "unknown",
+          "requirements": [],
+          "measurements": [],
+          "evidence_refs": []
+        }
+      ],
+      "local_operation": {
+        "manual_operation_state": "unknown",
+        "network_loss_behavior": "unknown",
+        "user_override_state": "unknown",
+        "safety_interlock_owner_ref": null,
+        "cloud_dependency_state": "unknown"
+      },
+      "maintenance": {
+        "repair_path_state": "unknown",
+        "instructions_ref": null,
+        "spares_state": "unknown",
+        "tools_state": "unknown",
+        "firmware_support_state": "unknown",
+        "end_of_life_state": "unknown"
+      },
+      "qualification": {
+        "status": "not_assessed",
+        "scope": "synthetic interface inventory only",
+        "authority_refs": [],
+        "limitations": [
+          "No resident brief, exact candidate design, jurisdiction or product revision is bound.",
+          "All dimensions, electrical loads, water flows, thermal flows, airflows, acoustic values and performance endpoints remain unknown.",
+          "No safety, compliance, performance, market, affordability or household-suitability claim is made."
+        ]
+      },
+      "revision_dependencies": [
+        "resident_intent",
+        "spatial_geometry",
+        "electrical",
+        "water_supply",
+        "drainage",
+        "thermal",
+        "acoustic",
+        "controls_firmware",
+        "consumables",
+        "procurement_cost",
+        "manufacturing",
+        "installation",
+        "maintenance",
+        "jurisdictional_approval"
+      ],
+      "claim_ceiling": "A profile pass establishes only declared interface completeness and traceability; it does not establish product safety, performance, compliance, manufacturability, affordability or household suitability."
+    },
+    {
+      "schema_version": "home-service-interface/0.1",
+      "profile_id": "SYN-SERVICE-VENTILATION-001",
+      "maturity": "synthetic_contract",
+      "source_binding": {
+        "resident_brief": {
+          "kind": "synthetic_resident_brief",
+          "id": "urn:synthetic:home-freedom:resident-brief:unbound",
+          "revision": null,
+          "digest": null
+        },
+        "candidate_design": {
+          "kind": "synthetic_home_candidate",
+          "id": "urn:synthetic:home-freedom:candidate:unbound",
+          "revision": null,
+          "digest": null
+        },
+        "design_revision": {
+          "kind": "synthetic_design_revision",
+          "id": "urn:synthetic:home-freedom:revision:unbound",
+          "revision": null,
+          "digest": null
+        },
+        "jurisdiction_profile": {
+          "kind": "jurisdiction_profile",
+          "id": "urn:synthetic:jurisdiction:unselected",
+          "revision": null,
+          "digest": null
+        }
+      },
+      "service": "ventilation_filtration",
+      "functional_unit": {
+        "state": "unknown",
+        "basis": "resident_defined",
+        "quantity": null,
+        "unit": null,
+        "resident_definition_ref": null
+      },
+      "implementation": {
+        "kind": "service_only",
+        "identity_state": "unknown",
+        "product_or_prototype_ref": null,
+        "configuration_revision": null,
+        "firmware_revision": null,
+        "component_bom_revision": null,
+        "owner_reference": "https://github.com/Luminous-Dynamics/symthaea/issues/10330"
+      },
+      "interfaces": [
+        {
+          "kind": "spatial",
+          "state": "unknown",
+          "requirements": [],
+          "measurements": [],
+          "evidence_refs": []
+        },
+        {
+          "kind": "electrical",
+          "state": "unknown",
+          "requirements": [],
+          "measurements": [],
+          "evidence_refs": []
+        },
+        {
+          "kind": "thermal",
+          "state": "unknown",
+          "requirements": [],
+          "measurements": [],
+          "evidence_refs": []
+        },
+        {
+          "kind": "air",
+          "state": "unknown",
+          "requirements": [],
+          "measurements": [],
+          "evidence_refs": []
+        },
+        {
+          "kind": "acoustic",
+          "state": "unknown",
+          "requirements": [],
+          "measurements": [],
+          "evidence_refs": []
+        },
+        {
+          "kind": "controls",
+          "state": "unknown",
+          "requirements": [],
+          "measurements": [],
+          "evidence_refs": []
+        },
+        {
+          "kind": "consumables",
+          "state": "unknown",
+          "requirements": [],
+          "measurements": [],
+          "evidence_refs": []
+        },
+        {
+          "kind": "service_access",
+          "state": "unknown",
+          "requirements": [],
+          "measurements": [],
+          "evidence_refs": []
+        }
+      ],
+      "local_operation": {
+        "manual_operation_state": "unknown",
+        "network_loss_behavior": "unknown",
+        "user_override_state": "unknown",
+        "safety_interlock_owner_ref": null,
+        "cloud_dependency_state": "unknown"
+      },
+      "maintenance": {
+        "repair_path_state": "unknown",
+        "instructions_ref": null,
+        "spares_state": "unknown",
+        "tools_state": "unknown",
+        "firmware_support_state": "unknown",
+        "end_of_life_state": "unknown"
+      },
+      "qualification": {
+        "status": "not_assessed",
+        "scope": "synthetic interface inventory only",
+        "authority_refs": [],
+        "limitations": [
+          "No resident brief, exact candidate design, jurisdiction or product revision is bound.",
+          "All dimensions, electrical loads, water flows, thermal flows, airflows, acoustic values and performance endpoints remain unknown.",
+          "No safety, compliance, performance, market, affordability or household-suitability claim is made."
+        ]
+      },
+      "revision_dependencies": [
+        "resident_intent",
+        "spatial_geometry",
+        "electrical",
+        "thermal",
+        "ventilation",
+        "air_quality",
+        "acoustic",
+        "controls_firmware",
+        "consumables",
+        "procurement_cost",
+        "manufacturing",
+        "installation",
+        "maintenance",
+        "jurisdictional_approval"
+      ],
+      "claim_ceiling": "A profile pass establishes only declared interface completeness and traceability; it does not establish product safety, performance, compliance, manufacturability, affordability or household suitability."
+    }
+  ],
+  "fixture_notes": [
+    "Synthetic interface inventory only; no specific resident brief, candidate dwelling, jurisdiction or appliance model is bound.",
+    "Every product identity, utility property, service level, functional-unit quantity and measurement remains unknown.",
+    "Potable and non-potable water paths must remain distinct; no treatment or potable-use claim is represented.",
+    "This fixture does not establish market demand, local supply, affordability, safety or product suitability."
+  ],
+  "claim_ceiling": "This synthetic stack is an interface inventory only; it establishes no real resident requirement, product identity, utility capacity, performance, safety, compliance or demand."
+}

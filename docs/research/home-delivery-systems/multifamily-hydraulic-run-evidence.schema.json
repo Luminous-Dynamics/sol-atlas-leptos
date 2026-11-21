@@ -1,0 +1,1000 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/Luminous-Dynamics/sol-atlas-leptos/main/docs/research/home-delivery-systems/multifamily-hydraulic-run-evidence.schema.json",
+  "title": "Multi-family Hydraulic Run Evidence v0.1",
+  "description": "Evidence envelope and adapter contract for external hydraulic solvers. It does not implement hydraulics or certify physical service, calibration, potability, safety or compliance.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "run_id",
+    "maturity",
+    "execution_state",
+    "solver",
+    "model_binding",
+    "run_configuration",
+    "assumptions",
+    "mappings",
+    "result_series",
+    "calibration",
+    "water_quality",
+    "warnings",
+    "claim_ceiling"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "multifamily-hydraulic-run-evidence/0.1"
+    },
+    "run_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "maturity": {
+      "const": "synthetic_contract"
+    },
+    "execution_state": {
+      "enum": [
+        "not_executed",
+        "completed",
+        "failed",
+        "invalidated"
+      ]
+    },
+    "solver": {
+      "$ref": "#/$defs/solver"
+    },
+    "model_binding": {
+      "$ref": "#/$defs/modelBinding"
+    },
+    "run_configuration": {
+      "$ref": "#/$defs/runConfiguration"
+    },
+    "assumptions": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/assumption"
+      }
+    },
+    "mappings": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/mapping"
+      }
+    },
+    "result_series": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/resultSeries"
+      }
+    },
+    "calibration": {
+      "$ref": "#/$defs/calibration"
+    },
+    "water_quality": {
+      "$ref": "#/$defs/waterQuality"
+    },
+    "warnings": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/warning"
+      }
+    },
+    "claim_ceiling": {
+      "const": "This record establishes only solver run provenance, declared model-to-service-topology mappings, and result-series contract integrity. It does not establish hydraulic correctness, measured service delivery, water quality/potability, pressure adequacy, pump safety, fire-flow adequacy, fairness, affordability, code compliance or physical resilience."
+    }
+  },
+  "$defs": {
+    "reference": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "id",
+        "revision",
+        "digest"
+      ],
+      "properties": {
+        "kind": {
+          "type": "string",
+          "minLength": 1
+        },
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "revision": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "digest": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+    "nullableReference": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/reference"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "solver": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "family",
+        "product",
+        "vendor",
+        "version",
+        "build_digest",
+        "adapter_version",
+        "license_tier"
+      ],
+      "properties": {
+        "family": {
+          "const": "hydraulic"
+        },
+        "product": {
+          "enum": [
+            "EPANET",
+            "OpenFlows_Water",
+            "consultant_model",
+            "manufacturer_model",
+            "other"
+          ]
+        },
+        "vendor": {
+          "type": "string",
+          "minLength": 1
+        },
+        "version": {
+          "type": "string",
+          "minLength": 1
+        },
+        "build_digest": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "adapter_version": {
+          "type": "string",
+          "minLength": 1
+        },
+        "license_tier": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+    "modelBinding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "building_ref",
+        "service_topology_ref",
+        "design_revision_ref",
+        "jurisdiction_profile_ref",
+        "scenario_id",
+        "input_model_digest",
+        "result_digest"
+      ],
+      "properties": {
+        "building_ref": {
+          "$ref": "#/$defs/reference"
+        },
+        "service_topology_ref": {
+          "$ref": "#/$defs/reference"
+        },
+        "design_revision_ref": {
+          "$ref": "#/$defs/reference"
+        },
+        "jurisdiction_profile_ref": {
+          "$ref": "#/$defs/reference"
+        },
+        "scenario_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "input_model_digest": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "result_digest": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "pattern": "^[a-f0-9]{64}$"
+        }
+      }
+    },
+    "runConfiguration": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "solver_status",
+        "flow_units",
+        "pressure_units",
+        "time_zone",
+        "start_elapsed_s",
+        "end_elapsed_s",
+        "time_step_s",
+        "duration_s",
+        "model_coordinate_basis",
+        "vertical_datum"
+      ],
+      "properties": {
+        "solver_status": {
+          "enum": [
+            "not_run",
+            "converged",
+            "failed",
+            "non_converged",
+            "invalidated"
+          ]
+        },
+        "flow_units": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "pressure_units": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "time_zone": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "start_elapsed_s": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "end_elapsed_s": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "time_step_s": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 1
+        },
+        "duration_s": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "model_coordinate_basis": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "vertical_datum": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+    "assumption": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "assumption_id",
+        "domain",
+        "statement",
+        "source_state",
+        "value_ref",
+        "evidence_ref"
+      ],
+      "properties": {
+        "assumption_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "domain": {
+          "enum": [
+            "source_boundary",
+            "demand",
+            "pipe",
+            "pump",
+            "valve",
+            "tank",
+            "control",
+            "leakage",
+            "quality",
+            "environment",
+            "other"
+          ]
+        },
+        "statement": {
+          "type": "string",
+          "minLength": 1
+        },
+        "source_state": {
+          "enum": [
+            "measured_input",
+            "design_input",
+            "estimated_input",
+            "solver_default",
+            "unknown",
+            "disputed"
+          ]
+        },
+        "value_ref": {
+          "$ref": "#/$defs/nullableReference"
+        },
+        "evidence_ref": {
+          "$ref": "#/$defs/nullableReference"
+        }
+      }
+    },
+    "mapping": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "mapping_id",
+        "solver_entity_id",
+        "solver_entity_kind",
+        "service_node_id",
+        "service_edge_id",
+        "resource_id",
+        "unit_id",
+        "mapping_state",
+        "mapping_evidence_ref"
+      ],
+      "properties": {
+        "mapping_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "solver_entity_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "solver_entity_kind": {
+          "enum": [
+            "junction",
+            "reservoir",
+            "tank",
+            "pipe",
+            "pump",
+            "valve",
+            "other"
+          ]
+        },
+        "service_node_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "service_edge_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "resource_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "unit_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "mapping_state": {
+          "enum": [
+            "planned",
+            "bound",
+            "ambiguous",
+            "excluded",
+            "unknown"
+          ]
+        },
+        "mapping_evidence_ref": {
+          "$ref": "#/$defs/nullableReference"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "mapping_state": {
+                "const": "bound"
+              }
+            },
+            "required": [
+              "mapping_state"
+            ]
+          },
+          "then": {
+            "required": [
+              "solver_entity_id",
+              "mapping_evidence_ref"
+            ],
+            "properties": {
+              "solver_entity_id": {
+                "type": "string",
+                "minLength": 1
+              },
+              "mapping_evidence_ref": {
+                "$ref": "#/$defs/reference"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "mapping_state": {
+                "const": "planned"
+              }
+            },
+            "required": [
+              "mapping_state"
+            ]
+          },
+          "then": {
+            "properties": {
+              "solver_entity_id": {
+                "type": "null"
+              },
+              "mapping_evidence_ref": {
+                "type": "null"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "mapping_state": {
+                "enum": [
+                  "ambiguous",
+                  "excluded",
+                  "unknown"
+                ]
+              }
+            },
+            "required": [
+              "mapping_state"
+            ]
+          },
+          "then": {
+            "properties": {
+              "solver_entity_id": {
+                "type": "null"
+              }
+            }
+          }
+        }
+      ]
+    },
+    "resultSeries": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "series_id",
+        "mapping_id",
+        "solver_entity_id",
+        "quantity_kind",
+        "unit",
+        "value_state",
+        "time_basis",
+        "points",
+        "evidence_ref"
+      ],
+      "properties": {
+        "series_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "mapping_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "solver_entity_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "quantity_kind": {
+          "enum": [
+            "pressure",
+            "head",
+            "flow",
+            "velocity",
+            "tank_level",
+            "pump_power",
+            "pump_energy",
+            "headloss",
+            "water_age",
+            "constituent_concentration",
+            "source_fraction"
+          ]
+        },
+        "unit": {
+          "type": "string",
+          "minLength": 1
+        },
+        "value_state": {
+          "enum": [
+            "modelled",
+            "calibrated_modelled",
+            "disputed",
+            "invalidated"
+          ]
+        },
+        "time_basis": {
+          "enum": [
+            "elapsed_seconds"
+          ]
+        },
+        "points": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/point"
+          }
+        },
+        "evidence_ref": {
+          "$ref": "#/$defs/nullableReference"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "value_state": {
+                "enum": [
+                  "modelled",
+                  "calibrated_modelled"
+                ]
+              }
+            },
+            "required": [
+              "value_state"
+            ]
+          },
+          "then": {
+            "properties": {
+              "evidence_ref": {
+                "$ref": "#/$defs/reference"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "value_state": {
+                "const": "calibrated_modelled"
+              }
+            },
+            "required": [
+              "value_state"
+            ]
+          },
+          "then": {
+            "properties": {
+              "value_state": {
+                "const": "calibrated_modelled"
+              }
+            }
+          }
+        }
+      ]
+    },
+    "point": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "elapsed_s",
+        "lower",
+        "value",
+        "upper"
+      ],
+      "properties": {
+        "elapsed_s": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "lower": {
+          "type": "number"
+        },
+        "value": {
+          "type": "number"
+        },
+        "upper": {
+          "type": "number"
+        }
+      }
+    },
+    "calibration": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "state",
+        "calibration_dataset_ref",
+        "calibration_window_id",
+        "validation_dataset_ref",
+        "validation_window_id",
+        "residual_state",
+        "residual_evidence_ref"
+      ],
+      "properties": {
+        "state": {
+          "enum": [
+            "not_assessed",
+            "uncalibrated",
+            "calibrated_model",
+            "disputed"
+          ]
+        },
+        "calibration_dataset_ref": {
+          "$ref": "#/$defs/nullableReference"
+        },
+        "calibration_window_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "validation_dataset_ref": {
+          "$ref": "#/$defs/nullableReference"
+        },
+        "validation_window_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "residual_state": {
+          "enum": [
+            "unknown",
+            "not_computed",
+            "reported",
+            "disputed"
+          ]
+        },
+        "residual_evidence_ref": {
+          "$ref": "#/$defs/nullableReference"
+        }
+      }
+    },
+    "waterQuality": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "model_output_scope",
+        "potable_quality_credit",
+        "laboratory_samples"
+      ],
+      "properties": {
+        "model_output_scope": {
+          "enum": [
+            "none",
+            "modelled_constituent_or_age_only"
+          ]
+        },
+        "potable_quality_credit": {
+          "const": "none_from_solver_output"
+        },
+        "laboratory_samples": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/labSample"
+          }
+        }
+      }
+    },
+    "labSample": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "sample_id",
+        "sample_boundary_ref",
+        "collected_at",
+        "lab_ref",
+        "method_ref",
+        "chain_of_custody_ref",
+        "result_state"
+      ],
+      "properties": {
+        "sample_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "sample_boundary_ref": {
+          "$ref": "#/$defs/reference"
+        },
+        "collected_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "lab_ref": {
+          "$ref": "#/$defs/reference"
+        },
+        "method_ref": {
+          "$ref": "#/$defs/reference"
+        },
+        "chain_of_custody_ref": {
+          "$ref": "#/$defs/reference"
+        },
+        "result_state": {
+          "enum": [
+            "not_supplied",
+            "pending",
+            "reported",
+            "failed",
+            "disputed"
+          ]
+        }
+      }
+    },
+    "warning": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "warning_id",
+        "severity",
+        "code",
+        "statement",
+        "solver_entity_id"
+      ],
+      "properties": {
+        "warning_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "severity": {
+          "enum": [
+            "informational",
+            "review_required",
+            "blocking"
+          ]
+        },
+        "code": {
+          "type": "string",
+          "minLength": 1
+        },
+        "statement": {
+          "type": "string",
+          "minLength": 1
+        },
+        "solver_entity_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "execution_state": {
+            "const": "not_executed"
+          }
+        },
+        "required": [
+          "execution_state"
+        ]
+      },
+      "then": {
+        "properties": {
+          "run_configuration": {
+            "properties": {
+              "solver_status": {
+                "const": "not_run"
+              }
+            }
+          },
+          "model_binding": {
+            "properties": {
+              "input_model_digest": {
+                "type": "null"
+              },
+              "result_digest": {
+                "type": "null"
+              }
+            }
+          },
+          "result_series": {
+            "maxItems": 0
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "execution_state": {
+            "const": "completed"
+          }
+        },
+        "required": [
+          "execution_state"
+        ]
+      },
+      "then": {
+        "properties": {
+          "solver": {
+            "properties": {
+              "build_digest": {
+                "type": "string",
+                "minLength": 64,
+                "maxLength": 64,
+                "pattern": "^[a-f0-9]{64}$"
+              }
+            },
+            "required": [
+              "build_digest"
+            ]
+          },
+          "model_binding": {
+            "properties": {
+              "input_model_digest": {
+                "type": "string",
+                "minLength": 64,
+                "maxLength": 64,
+                "pattern": "^[a-f0-9]{64}$"
+              },
+              "result_digest": {
+                "type": "string",
+                "minLength": 64,
+                "maxLength": 64,
+                "pattern": "^[a-f0-9]{64}$"
+              },
+              "building_ref": {
+                "$ref": "#/$defs/reference"
+              },
+              "service_topology_ref": {
+                "$ref": "#/$defs/reference"
+              },
+              "design_revision_ref": {
+                "$ref": "#/$defs/reference"
+              },
+              "jurisdiction_profile_ref": {
+                "$ref": "#/$defs/reference"
+              }
+            }
+          },
+          "run_configuration": {
+            "properties": {
+              "solver_status": {
+                "const": "converged"
+              },
+              "flow_units": {
+                "type": "string",
+                "minLength": 1
+              },
+              "pressure_units": {
+                "type": "string",
+                "minLength": 1
+              },
+              "time_zone": {
+                "type": "string",
+                "minLength": 1
+              },
+              "start_elapsed_s": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "end_elapsed_s": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "time_step_s": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "duration_s": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "model_coordinate_basis": {
+                "type": "string",
+                "minLength": 1
+              },
+              "vertical_datum": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          },
+          "result_series": {
+            "minItems": 1
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "execution_state": {
+            "const": "failed"
+          }
+        },
+        "required": [
+          "execution_state"
+        ]
+      },
+      "then": {
+        "properties": {
+          "run_configuration": {
+            "properties": {
+              "solver_status": {
+                "enum": [
+                  "failed",
+                  "non_converged"
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "execution_state": {
+            "const": "invalidated"
+          }
+        },
+        "required": [
+          "execution_state"
+        ]
+      },
+      "then": {
+        "properties": {
+          "run_configuration": {
+            "properties": {
+              "solver_status": {
+                "const": "invalidated"
+              }
+            }
+          }
+        }
+      }
+    }
+  ]
+}

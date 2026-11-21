@@ -1,0 +1,692 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/Luminous-Dynamics/sol-atlas-leptos/main/docs/research/home-delivery-systems/home-service-interface.schema.json",
+  "title": "Home Service Interface v0.1",
+  "description": "Research-stage interface contract connecting a resident-selected household service to spatial, electrical, water, thermal, air, acoustic, control, maintenance and qualification evidence. It is not a product safety or engineering approval.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "profile_id",
+    "maturity",
+    "source_binding",
+    "service",
+    "functional_unit",
+    "implementation",
+    "interfaces",
+    "local_operation",
+    "maintenance",
+    "qualification",
+    "revision_dependencies",
+    "claim_ceiling"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "home-service-interface/0.1"
+    },
+    "profile_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "maturity": {
+      "enum": [
+        "synthetic_contract",
+        "candidate",
+        "bench_tested",
+        "independently_qualified",
+        "production_observed"
+      ]
+    },
+    "source_binding": {
+      "$ref": "#/$defs/sourceBinding"
+    },
+    "service": {
+      "enum": [
+        "warewashing",
+        "water_continuity",
+        "non_potable_reuse",
+        "hot_water",
+        "ventilation_filtration",
+        "other_resident_service"
+      ]
+    },
+    "functional_unit": {
+      "$ref": "#/$defs/functionalUnit"
+    },
+    "implementation": {
+      "$ref": "#/$defs/implementation"
+    },
+    "interfaces": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/interface"
+      },
+      "minItems": 1
+    },
+    "local_operation": {
+      "$ref": "#/$defs/localOperation"
+    },
+    "maintenance": {
+      "$ref": "#/$defs/maintenance"
+    },
+    "qualification": {
+      "$ref": "#/$defs/qualification"
+    },
+    "revision_dependencies": {
+      "type": "array",
+      "items": {
+        "enum": [
+          "resident_intent",
+          "spatial_geometry",
+          "structure",
+          "electrical",
+          "water_supply",
+          "water_quality",
+          "drainage",
+          "thermal",
+          "ventilation",
+          "air_quality",
+          "acoustic",
+          "controls_firmware",
+          "consumables",
+          "material_assembly",
+          "procurement_cost",
+          "manufacturing",
+          "installation",
+          "maintenance",
+          "jurisdictional_approval"
+        ]
+      },
+      "uniqueItems": true
+    },
+    "claim_ceiling": {
+      "const": "A profile pass establishes only declared interface completeness and traceability; it does not establish product safety, performance, compliance, manufacturability, affordability or household suitability."
+    }
+  },
+  "$defs": {
+    "nullableString": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "reference": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "id",
+        "revision",
+        "digest"
+      ],
+      "properties": {
+        "kind": {
+          "type": "string",
+          "minLength": 1
+        },
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "revision": {
+          "$ref": "#/$defs/nullableString"
+        },
+        "digest": {
+          "$ref": "#/$defs/nullableString"
+        }
+      }
+    },
+    "sourceBinding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "resident_brief",
+        "candidate_design",
+        "design_revision",
+        "jurisdiction_profile"
+      ],
+      "properties": {
+        "resident_brief": {
+          "$ref": "#/$defs/reference"
+        },
+        "candidate_design": {
+          "$ref": "#/$defs/reference"
+        },
+        "design_revision": {
+          "$ref": "#/$defs/reference"
+        },
+        "jurisdiction_profile": {
+          "$ref": "#/$defs/reference"
+        }
+      }
+    },
+    "functionalUnit": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "state",
+        "basis",
+        "quantity",
+        "unit",
+        "resident_definition_ref"
+      ],
+      "properties": {
+        "state": {
+          "enum": [
+            "known",
+            "unknown",
+            "not_computed",
+            "not_applicable",
+            "disputed"
+          ]
+        },
+        "basis": {
+          "enum": [
+            "per_item",
+            "per_cycle",
+            "per_litre",
+            "per_kilogram",
+            "per_room_hour",
+            "per_household_day",
+            "resident_defined",
+            "other"
+          ]
+        },
+        "quantity": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "unit": {
+          "$ref": "#/$defs/nullableString"
+        },
+        "resident_definition_ref": {
+          "$ref": "#/$defs/nullableString"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "state": {
+                "const": "known"
+              }
+            },
+            "required": [
+              "state"
+            ]
+          },
+          "then": {
+            "properties": {
+              "quantity": {
+                "type": "number"
+              },
+              "unit": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "state": {
+                "enum": [
+                  "unknown",
+                  "not_computed",
+                  "not_applicable",
+                  "disputed"
+                ]
+              }
+            },
+            "required": [
+              "state"
+            ]
+          },
+          "then": {
+            "properties": {
+              "quantity": {
+                "type": "null"
+              },
+              "unit": {
+                "type": "null"
+              }
+            }
+          }
+        }
+      ]
+    },
+    "implementation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "identity_state",
+        "product_or_prototype_ref",
+        "configuration_revision",
+        "firmware_revision",
+        "component_bom_revision",
+        "owner_reference"
+      ],
+      "properties": {
+        "kind": {
+          "enum": [
+            "existing_product",
+            "prototype",
+            "reference_baseline",
+            "service_only",
+            "unknown"
+          ]
+        },
+        "identity_state": {
+          "enum": [
+            "known",
+            "unknown",
+            "not_applicable",
+            "disputed"
+          ]
+        },
+        "product_or_prototype_ref": {
+          "$ref": "#/$defs/nullableString"
+        },
+        "configuration_revision": {
+          "$ref": "#/$defs/nullableString"
+        },
+        "firmware_revision": {
+          "$ref": "#/$defs/nullableString"
+        },
+        "component_bom_revision": {
+          "$ref": "#/$defs/nullableString"
+        },
+        "owner_reference": {
+          "$ref": "#/$defs/nullableString"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "identity_state": {
+                "const": "known"
+              }
+            },
+            "required": [
+              "identity_state"
+            ]
+          },
+          "then": {
+            "properties": {
+              "product_or_prototype_ref": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          }
+        }
+      ]
+    },
+    "measurement": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "metric_id",
+        "state",
+        "value",
+        "unit",
+        "boundary",
+        "method_ref",
+        "calibration_ref",
+        "uncertainty",
+        "observed_at",
+        "evidence_ref"
+      ],
+      "properties": {
+        "metric_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "state": {
+          "enum": [
+            "measured",
+            "estimated",
+            "unknown",
+            "not_computed",
+            "not_applicable",
+            "disputed"
+          ]
+        },
+        "value": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "unit": {
+          "$ref": "#/$defs/nullableString"
+        },
+        "boundary": {
+          "$ref": "#/$defs/nullableString"
+        },
+        "method_ref": {
+          "$ref": "#/$defs/nullableString"
+        },
+        "calibration_ref": {
+          "$ref": "#/$defs/nullableString"
+        },
+        "uncertainty": {
+          "type": [
+            "object",
+            "null"
+          ],
+          "additionalProperties": false,
+          "required": [
+            "value",
+            "unit"
+          ],
+          "properties": {
+            "value": {
+              "type": "number",
+              "minimum": 0
+            },
+            "unit": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        },
+        "observed_at": {
+          "$ref": "#/$defs/nullableString"
+        },
+        "evidence_ref": {
+          "$ref": "#/$defs/nullableString"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "state": {
+                "const": "measured"
+              }
+            },
+            "required": [
+              "state"
+            ]
+          },
+          "then": {
+            "properties": {
+              "value": {
+                "type": "number"
+              },
+              "unit": {
+                "type": "string",
+                "minLength": 1
+              },
+              "boundary": {
+                "type": "string",
+                "minLength": 1
+              },
+              "method_ref": {
+                "type": "string",
+                "minLength": 1
+              },
+              "calibration_ref": {
+                "type": "string",
+                "minLength": 1
+              },
+              "observed_at": {
+                "type": "string",
+                "minLength": 1
+              },
+              "evidence_ref": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "state": {
+                "enum": [
+                  "unknown",
+                  "not_computed",
+                  "not_applicable",
+                  "disputed"
+                ]
+              }
+            },
+            "required": [
+              "state"
+            ]
+          },
+          "then": {
+            "properties": {
+              "value": {
+                "type": "null"
+              },
+              "unit": {
+                "type": "null"
+              }
+            }
+          }
+        }
+      ]
+    },
+    "interface": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "state",
+        "requirements",
+        "measurements",
+        "evidence_refs"
+      ],
+      "properties": {
+        "kind": {
+          "enum": [
+            "spatial",
+            "electrical",
+            "water",
+            "water_quality",
+            "drainage",
+            "thermal",
+            "air",
+            "acoustic",
+            "controls",
+            "consumables",
+            "mounting",
+            "service_access"
+          ]
+        },
+        "state": {
+          "enum": [
+            "known",
+            "unknown",
+            "not_computed",
+            "not_applicable",
+            "disputed",
+            "partially_evidenced"
+          ]
+        },
+        "requirements": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true
+        },
+        "measurements": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/measurement"
+          }
+        },
+        "evidence_refs": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true
+        }
+      }
+    },
+    "localOperation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "manual_operation_state",
+        "network_loss_behavior",
+        "user_override_state",
+        "safety_interlock_owner_ref",
+        "cloud_dependency_state"
+      ],
+      "properties": {
+        "manual_operation_state": {
+          "enum": [
+            "available",
+            "unavailable",
+            "unknown",
+            "not_applicable"
+          ]
+        },
+        "network_loss_behavior": {
+          "enum": [
+            "continues_locally",
+            "safe_stop",
+            "manual_only",
+            "unknown",
+            "not_applicable"
+          ]
+        },
+        "user_override_state": {
+          "enum": [
+            "available",
+            "unavailable",
+            "unknown",
+            "not_applicable"
+          ]
+        },
+        "safety_interlock_owner_ref": {
+          "$ref": "#/$defs/nullableString"
+        },
+        "cloud_dependency_state": {
+          "enum": [
+            "none",
+            "optional",
+            "required",
+            "unknown",
+            "not_applicable"
+          ]
+        }
+      }
+    },
+    "maintenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "repair_path_state",
+        "instructions_ref",
+        "spares_state",
+        "tools_state",
+        "firmware_support_state",
+        "end_of_life_state"
+      ],
+      "properties": {
+        "repair_path_state": {
+          "enum": [
+            "documented",
+            "partially_documented",
+            "unknown",
+            "not_repairable",
+            "not_applicable"
+          ]
+        },
+        "instructions_ref": {
+          "$ref": "#/$defs/nullableString"
+        },
+        "spares_state": {
+          "enum": [
+            "available",
+            "limited",
+            "unavailable",
+            "unknown",
+            "not_applicable"
+          ]
+        },
+        "tools_state": {
+          "enum": [
+            "standard",
+            "specialist",
+            "proprietary",
+            "unknown",
+            "not_applicable"
+          ]
+        },
+        "firmware_support_state": {
+          "enum": [
+            "supported",
+            "unsupported",
+            "unknown",
+            "not_applicable"
+          ]
+        },
+        "end_of_life_state": {
+          "enum": [
+            "reuse_route_known",
+            "recycling_route_known",
+            "disposal_route_known",
+            "unknown",
+            "not_applicable"
+          ]
+        }
+      }
+    },
+    "qualification": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "status",
+        "scope",
+        "authority_refs",
+        "limitations"
+      ],
+      "properties": {
+        "status": {
+          "enum": [
+            "not_assessed",
+            "evidence_incomplete",
+            "bench_tested",
+            "independently_qualified",
+            "rejected"
+          ]
+        },
+        "scope": {
+          "type": "string",
+          "minLength": 1
+        },
+        "authority_refs": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true
+        },
+        "limitations": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  }
+}

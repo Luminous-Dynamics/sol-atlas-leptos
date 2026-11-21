@@ -1,0 +1,465 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/Luminous-Dynamics/sol-atlas-leptos/main/docs/research/home-delivery-systems/multifamily-in-use-outcome.schema.json",
+  "title": "Multi-family In-Use Outcome Crosswalk v0.1",
+  "description": "Resident-authorized outcome plans and evidence crosswalk into lifecycle/service revisions. Not a survey platform, BMS, sensor network, resident surveillance system or health/accessibility certification engine.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "profile_id",
+    "maturity",
+    "source_bindings",
+    "outcomes",
+    "measurement_plans",
+    "observations",
+    "decision_links",
+    "collection_policy",
+    "claim_ceiling"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "multifamily-in-use-outcome/0.1"
+    },
+    "profile_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "maturity": {
+      "const": "synthetic_contract"
+    },
+    "source_bindings": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "building_ref",
+        "resident_programme_ref",
+        "lifecycle_ref",
+        "service_topology_ref",
+        "in_use_outcomes_owner_ref"
+      ],
+      "properties": {
+        "building_ref": {
+          "$ref": "#/$defs/reference"
+        },
+        "resident_programme_ref": {
+          "$ref": "#/$defs/reference"
+        },
+        "lifecycle_ref": {
+          "$ref": "#/$defs/reference"
+        },
+        "service_topology_ref": {
+          "$ref": "#/$defs/reference"
+        },
+        "in_use_outcomes_owner_ref": {
+          "$ref": "#/$defs/reference"
+        }
+      }
+    },
+    "outcomes": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/outcome"
+      }
+    },
+    "measurement_plans": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/measurementPlan"
+      }
+    },
+    "observations": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/observation"
+      }
+    },
+    "decision_links": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/decisionLink"
+      }
+    },
+    "collection_policy": {
+      "$ref": "#/$defs/collectionPolicy"
+    },
+    "claim_ceiling": {
+      "const": "This record establishes only synthetic outcome-to-resident-programme identity, measurement-plan provenance and collection-policy contract integrity. It does not establish comfort, privacy, accessibility, health, safety, energy/water performance, resident satisfaction, affordability, code compliance or causal impact."
+    }
+  },
+  "$defs": {
+    "reference": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "id",
+        "revision",
+        "digest"
+      ],
+      "properties": {
+        "kind": {
+          "type": "string",
+          "minLength": 1
+        },
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "revision": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "digest": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+    "outcome": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "outcome_id",
+        "unit_id",
+        "domain",
+        "source_scope",
+        "requirement_ids",
+        "preference_ids",
+        "activity_ids",
+        "priority_state",
+        "claim_state"
+      ],
+      "properties": {
+        "outcome_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "unit_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "domain": {
+          "enum": [
+            "acoustic",
+            "privacy",
+            "storage",
+            "adaptability",
+            "outdoor",
+            "thermal_comfort",
+            "water_service",
+            "energy_service",
+            "daylight",
+            "view",
+            "access",
+            "maintenance",
+            "affordability",
+            "other"
+          ]
+        },
+        "source_scope": {
+          "const": "synthetic_resident_programme_not_real_resident"
+        },
+        "requirement_ids": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "uniqueItems": true
+        },
+        "preference_ids": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "uniqueItems": true
+        },
+        "activity_ids": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string"
+          },
+          "uniqueItems": true
+        },
+        "priority_state": {
+          "enum": [
+            "not_supplied",
+            "unknown",
+            "resident_declared"
+          ]
+        },
+        "claim_state": {
+          "const": "intent_only_not_observed"
+        }
+      }
+    },
+    "measurementPlan": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "plan_id",
+        "outcome_id",
+        "measurement_kind",
+        "method_state",
+        "method_ref",
+        "instrument_ref",
+        "schedule_state",
+        "sampling_window",
+        "consent_state",
+        "purpose",
+        "data_minimisation"
+      ],
+      "properties": {
+        "plan_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "outcome_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "measurement_kind": {
+          "enum": [
+            "instrument_measurement",
+            "resident_self_report",
+            "professional_assessment",
+            "asset_service_record",
+            "cost_record"
+          ]
+        },
+        "method_state": {
+          "enum": [
+            "not_selected",
+            "declared",
+            "professionally_approved"
+          ]
+        },
+        "method_ref": {
+          "$ref": "#/$defs/nullableReference"
+        },
+        "instrument_ref": {
+          "$ref": "#/$defs/nullableReference"
+        },
+        "schedule_state": {
+          "enum": [
+            "not_scheduled",
+            "draft",
+            "approved",
+            "withdrawn",
+            "disputed"
+          ]
+        },
+        "sampling_window": {
+          "$ref": "#/$defs/nullableReference"
+        },
+        "consent_state": {
+          "enum": [
+            "not_requested",
+            "not_granted",
+            "granted",
+            "withdrawn",
+            "not_applicable"
+          ]
+        },
+        "purpose": {
+          "type": "string",
+          "minLength": 1
+        },
+        "data_minimisation": {
+          "enum": [
+            "no_personal_data",
+            "resident_opt_in_minimum",
+            "operator_asset_only",
+            "unknown"
+          ]
+        }
+      }
+    },
+    "nullableReference": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/reference"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "observation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "observation_id",
+        "outcome_id",
+        "unit_id",
+        "evidence_state",
+        "observed_at",
+        "value",
+        "unit",
+        "uncertainty",
+        "instrument_ref",
+        "calibration_ref",
+        "consent_ref",
+        "evidence_ref",
+        "design_revision_ref"
+      ],
+      "properties": {
+        "observation_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "outcome_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "unit_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "evidence_state": {
+          "enum": [
+            "modelled",
+            "measured",
+            "self_reported",
+            "professionally_assessed",
+            "disputed",
+            "withdrawn",
+            "invalidated"
+          ]
+        },
+        "observed_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "value": {
+          "type": [
+            "number",
+            "string",
+            "null"
+          ]
+        },
+        "unit": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "uncertainty": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "instrument_ref": {
+          "$ref": "#/$defs/nullableReference"
+        },
+        "calibration_ref": {
+          "$ref": "#/$defs/nullableReference"
+        },
+        "consent_ref": {
+          "$ref": "#/$defs/nullableReference"
+        },
+        "evidence_ref": {
+          "$ref": "#/$defs/nullableReference"
+        },
+        "design_revision_ref": {
+          "$ref": "#/$defs/reference"
+        }
+      }
+    },
+    "decisionLink": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "decision_id",
+        "observation_ids",
+        "decision_state",
+        "target_revision_ref",
+        "reviewer_ref"
+      ],
+      "properties": {
+        "decision_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "observation_ids": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string"
+          },
+          "uniqueItems": true
+        },
+        "decision_state": {
+          "enum": [
+            "not_decided",
+            "proposed",
+            "professionally_reviewed",
+            "accepted",
+            "rejected",
+            "deferred"
+          ]
+        },
+        "target_revision_ref": {
+          "$ref": "#/$defs/nullableReference"
+        },
+        "reviewer_ref": {
+          "$ref": "#/$defs/nullableReference"
+        }
+      }
+    },
+    "collectionPolicy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "policy_id",
+        "default_collection",
+        "audio_video_allowed",
+        "continuous_occupancy_allowed",
+        "continuous_device_telemetry_allowed",
+        "resident_consent_required_for_self_report",
+        "resident_withdrawal_supported",
+        "retention_state"
+      ],
+      "properties": {
+        "policy_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "default_collection": {
+          "const": "none"
+        },
+        "audio_video_allowed": {
+          "const": false
+        },
+        "continuous_occupancy_allowed": {
+          "const": false
+        },
+        "continuous_device_telemetry_allowed": {
+          "const": false
+        },
+        "resident_consent_required_for_self_report": {
+          "const": true
+        },
+        "resident_withdrawal_supported": {
+          "const": true
+        },
+        "retention_state": {
+          "enum": [
+            "not_defined",
+            "draft",
+            "approved",
+            "disputed"
+          ]
+        }
+      }
+    }
+  }
+}

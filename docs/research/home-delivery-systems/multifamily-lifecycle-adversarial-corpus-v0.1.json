@@ -1,0 +1,494 @@
+{
+  "schema_version": "multifamily-lifecycle-adversarial-corpus/0.1",
+  "corpus_id": "MF-LIFECYCLE-ADVERSARIAL-001",
+  "maturity": "authored_manifest_not_executed",
+  "base_fixture": "multifamily-lifecycle-synthetic-v0.1.json",
+  "case_count": 30,
+  "executed_cases": 0,
+  "case_split": {
+    "development_cases": [
+      "MF-LIFE-001",
+      "MF-LIFE-002",
+      "MF-LIFE-003",
+      "MF-LIFE-004",
+      "MF-LIFE-005",
+      "MF-LIFE-006",
+      "MF-LIFE-007",
+      "MF-LIFE-008",
+      "MF-LIFE-009",
+      "MF-LIFE-010",
+      "MF-LIFE-011",
+      "MF-LIFE-012",
+      "MF-LIFE-013",
+      "MF-LIFE-014",
+      "MF-LIFE-015",
+      "MF-LIFE-016",
+      "MF-LIFE-017",
+      "MF-LIFE-018",
+      "MF-LIFE-019",
+      "MF-LIFE-020",
+      "MF-LIFE-021",
+      "MF-LIFE-022",
+      "MF-LIFE-023",
+      "MF-LIFE-024",
+      "MF-LIFE-025",
+      "MF-LIFE-026",
+      "MF-LIFE-027",
+      "MF-LIFE-028",
+      "MF-LIFE-029",
+      "MF-LIFE-030"
+    ],
+    "calibration_cases": [],
+    "sealed_confirmation_cases": [],
+    "note": "All cases are authored development controls. The Rust test harness replays them against the exact synthetic base fixture; no sealed or independent physical confirmation set is claimed."
+  },
+  "cases": [
+    {
+      "case_id": "MF-LIFE-001",
+      "case_kind": "positive_control",
+      "expected_disposition": "ACCEPT_SYNTHETIC_BASELINE",
+      "execution_state": "not_executed",
+      "probability": null,
+      "mutations": [],
+      "oracle_invariant": "synthetic_base_fixture_is_identity_consistent"
+    },
+    {
+      "case_id": "MF-LIFE-002",
+      "case_kind": "adversarial_mutation",
+      "expected_disposition": "REJECT_SYNTHETIC_MUTATION",
+      "execution_state": "not_executed",
+      "probability": null,
+      "mutations": [
+        {
+          "pointer": "/revisions/1/revision_id",
+          "value": "U-001-R0"
+        }
+      ],
+      "oracle_invariant": "duplicate_revision_id"
+    },
+    {
+      "case_id": "MF-LIFE-003",
+      "case_kind": "adversarial_mutation",
+      "expected_disposition": "REJECT_SYNTHETIC_MUTATION",
+      "execution_state": "not_executed",
+      "probability": null,
+      "mutations": [
+        {
+          "pointer": "/revisions/1/parent_revision_id",
+          "value": "NO-SUCH-REVISION"
+        }
+      ],
+      "oracle_invariant": "broken_parent_revision"
+    },
+    {
+      "case_id": "MF-LIFE-004",
+      "case_kind": "adversarial_mutation",
+      "expected_disposition": "REJECT_SYNTHETIC_MUTATION",
+      "execution_state": "not_executed",
+      "probability": null,
+      "mutations": [
+        {
+          "pointer": "/revisions/1/parent_revision_id",
+          "value": "U-002-R0"
+        }
+      ],
+      "oracle_invariant": "cross_unit_parent_revision"
+    },
+    {
+      "case_id": "MF-LIFE-005",
+      "case_kind": "adversarial_mutation",
+      "expected_disposition": "REJECT_SYNTHETIC_MUTATION",
+      "execution_state": "not_executed",
+      "probability": null,
+      "mutations": [
+        {
+          "pointer": "/revisions/0/parent_revision_id",
+          "value": "U-001-R1"
+        }
+      ],
+      "oracle_invariant": "revision_ancestry_cycle"
+    },
+    {
+      "case_id": "MF-LIFE-006",
+      "case_kind": "adversarial_mutation",
+      "expected_disposition": "REJECT_SYNTHETIC_MUTATION",
+      "execution_state": "not_executed",
+      "probability": null,
+      "mutations": [
+        {
+          "pointer": "/claims/0/claim_state",
+          "value": "pass"
+        },
+        {
+          "pointer": "/claims/0/invalidated_by_event_id",
+          "value": null
+        }
+      ],
+      "oracle_invariant": "stale_pass_after_adaptation"
+    },
+    {
+      "case_id": "MF-LIFE-007",
+      "case_kind": "adversarial_mutation",
+      "expected_disposition": "REJECT_SYNTHETIC_MUTATION",
+      "execution_state": "not_executed",
+      "probability": null,
+      "mutations": [
+        {
+          "pointer": "/events/0/unit_ids",
+          "value": [
+            "U-999"
+          ]
+        }
+      ],
+      "oracle_invariant": "unknown_unit_event_scope"
+    },
+    {
+      "case_id": "MF-LIFE-008",
+      "case_kind": "adversarial_mutation",
+      "expected_disposition": "REJECT_SYNTHETIC_MUTATION",
+      "execution_state": "not_executed",
+      "probability": null,
+      "mutations": [
+        {
+          "pointer": "/events/22/asset_ids",
+          "value": [
+            "ASSET-UNKNOWN"
+          ]
+        }
+      ],
+      "oracle_invariant": "unknown_shared_asset_event"
+    },
+    {
+      "case_id": "MF-LIFE-009",
+      "case_kind": "adversarial_mutation",
+      "expected_disposition": "REJECT_SYNTHETIC_MUTATION",
+      "execution_state": "not_executed",
+      "probability": null,
+      "mutations": [
+        {
+          "pointer": "/asset_bindings/0/served_unit_ids",
+          "value": [
+            "U-001",
+            "U-003"
+          ]
+        }
+      ],
+      "oracle_invariant": "asset_served_units_disagree_with_topology"
+    },
+    {
+      "case_id": "MF-LIFE-010",
+      "case_kind": "adversarial_mutation",
+      "expected_disposition": "REJECT_SYNTHETIC_MUTATION",
+      "execution_state": "not_executed",
+      "probability": null,
+      "mutations": [
+        {
+          "pointer": "/events/1/event_order",
+          "value": 1
+        }
+      ],
+      "oracle_invariant": "duplicate_event_order"
+    },
+    {
+      "case_id": "MF-LIFE-011",
+      "case_kind": "adversarial_mutation",
+      "expected_disposition": "REJECT_SYNTHETIC_MUTATION",
+      "execution_state": "not_executed",
+      "probability": null,
+      "mutations": [
+        {
+          "pointer": "/events/0/occurred_at",
+          "value": "2026-01-01T00:00:00Z"
+        }
+      ],
+      "oracle_invariant": "fabricated_event_time"
+    },
+    {
+      "case_id": "MF-LIFE-012",
+      "case_kind": "adversarial_mutation",
+      "expected_disposition": "REJECT_SYNTHETIC_MUTATION",
+      "execution_state": "not_executed",
+      "probability": null,
+      "mutations": [
+        {
+          "pointer": "/events/0/recorded_at",
+          "value": "2026-01-01T00:00:00Z"
+        }
+      ],
+      "oracle_invariant": "fabricated_record_time"
+    },
+    {
+      "case_id": "MF-LIFE-013",
+      "case_kind": "adversarial_mutation",
+      "expected_disposition": "REJECT_SYNTHETIC_MUTATION",
+      "execution_state": "not_executed",
+      "probability": null,
+      "mutations": [
+        {
+          "pointer": "/events/0/execution_state",
+          "value": "executed"
+        }
+      ],
+      "oracle_invariant": "synthetic_event_promoted_to_executed"
+    },
+    {
+      "case_id": "MF-LIFE-014",
+      "case_kind": "adversarial_mutation",
+      "expected_disposition": "REJECT_SYNTHETIC_MUTATION",
+      "execution_state": "not_executed",
+      "probability": null,
+      "mutations": [
+        {
+          "pointer": "/unit_timelines/0/event_ids",
+          "value": [
+            "EV-U-001-DESIGN"
+          ]
+        }
+      ],
+      "oracle_invariant": "unit_timeline_omits_events"
+    },
+    {
+      "case_id": "MF-LIFE-015",
+      "case_kind": "adversarial_mutation",
+      "expected_disposition": "REJECT_SYNTHETIC_MUTATION",
+      "execution_state": "not_executed",
+      "probability": null,
+      "mutations": [
+        {
+          "pointer": "/unit_timelines/0/event_ids",
+          "value": [
+            "EV-U-001-DESIGN",
+            "EV-U-001-DESIGN"
+          ]
+        }
+      ],
+      "oracle_invariant": "unit_timeline_duplicates_event"
+    },
+    {
+      "case_id": "MF-LIFE-016",
+      "case_kind": "adversarial_mutation",
+      "expected_disposition": "REJECT_SYNTHETIC_MUTATION",
+      "execution_state": "not_executed",
+      "probability": null,
+      "mutations": [
+        {
+          "pointer": "/unit_timelines/0/current_revision_id",
+          "value": "U-001-R1"
+        }
+      ],
+      "oracle_invariant": "current_revision_disagrees_with_timeline"
+    },
+    {
+      "case_id": "MF-LIFE-017",
+      "case_kind": "adversarial_mutation",
+      "expected_disposition": "REJECT_SYNTHETIC_MUTATION",
+      "execution_state": "not_executed",
+      "probability": null,
+      "mutations": [
+        {
+          "pointer": "/claims/0/claim_state",
+          "value": "unknown"
+        },
+        {
+          "pointer": "/claims/0/invalidated_by_event_id",
+          "value": null
+        }
+      ],
+      "oracle_invariant": "stale_unknown_claim_not_invalidated"
+    },
+    {
+      "case_id": "MF-LIFE-018",
+      "case_kind": "adversarial_mutation",
+      "expected_disposition": "REJECT_SYNTHETIC_MUTATION",
+      "execution_state": "not_executed",
+      "probability": null,
+      "mutations": [
+        {
+          "pointer": "/events/1/invalidated_claim_ids",
+          "value": []
+        }
+      ],
+      "oracle_invariant": "invalidation_reciprocity_missing"
+    },
+    {
+      "case_id": "MF-LIFE-019",
+      "case_kind": "adversarial_mutation",
+      "expected_disposition": "REJECT_SYNTHETIC_MUTATION",
+      "execution_state": "not_executed",
+      "probability": null,
+      "mutations": [
+        {
+          "pointer": "/claims/0/invalidated_by_event_id",
+          "value": "EV-U-001-DESIGN"
+        }
+      ],
+      "oracle_invariant": "wrong_invalidating_event"
+    },
+    {
+      "case_id": "MF-LIFE-020",
+      "case_kind": "adversarial_mutation",
+      "expected_disposition": "REJECT_SYNTHETIC_MUTATION",
+      "execution_state": "not_executed",
+      "probability": null,
+      "mutations": [
+        {
+          "pointer": "/source_bindings/service_topology_ref/id",
+          "value": "SYN-WRONG-SERVICE-TOPOLOGY"
+        }
+      ],
+      "oracle_invariant": "wrong_service_topology_source_binding"
+    },
+    {
+      "case_id": "MF-LIFE-021",
+      "case_kind": "adversarial_mutation",
+      "expected_disposition": "REJECT_SYNTHETIC_MUTATION",
+      "execution_state": "not_executed",
+      "probability": null,
+      "mutations": [
+        {
+          "pointer": "/events/5/resident_data_state",
+          "value": "personal_data_present"
+        },
+        {
+          "pointer": "/events/5/consent_state",
+          "value": "obtained"
+        }
+      ],
+      "oracle_invariant": "resident_personal_data_smuggled"
+    },
+    {
+      "case_id": "MF-LIFE-022",
+      "case_kind": "adversarial_mutation",
+      "expected_disposition": "REJECT_SYNTHETIC_MUTATION",
+      "execution_state": "not_executed",
+      "probability": null,
+      "mutations": [
+        {
+          "pointer": "/events/0/event_kind",
+          "value": "unknown_event"
+        }
+      ],
+      "oracle_invariant": "unknown_typed_event_kind"
+    },
+    {
+      "case_id": "MF-LIFE-023",
+      "case_kind": "adversarial_mutation",
+      "expected_disposition": "REJECT_SYNTHETIC_MUTATION",
+      "execution_state": "not_executed",
+      "probability": null,
+      "mutations": [
+        {
+          "pointer": "/revisions/0/revision_kind",
+          "value": "as_built"
+        }
+      ],
+      "oracle_invariant": "root_revision_not_design"
+    },
+    {
+      "case_id": "MF-LIFE-024",
+      "case_kind": "adversarial_mutation",
+      "expected_disposition": "REJECT_SYNTHETIC_MUTATION",
+      "execution_state": "not_executed",
+      "probability": null,
+      "mutations": [
+        {
+          "pointer": "/claims/2/revision_id",
+          "value": "U-002-R2"
+        }
+      ],
+      "oracle_invariant": "cross_unit_claim_revision"
+    },
+    {
+      "case_id": "MF-LIFE-025",
+      "case_kind": "adversarial_mutation",
+      "expected_disposition": "REJECT_SYNTHETIC_MUTATION",
+      "execution_state": "not_executed",
+      "probability": null,
+      "mutations": [
+        {
+          "pointer": "/events/1/to_revision_id",
+          "value": "U-001-R2"
+        }
+      ],
+      "oracle_invariant": "adaptation_target_parent_mismatch"
+    },
+    {
+      "case_id": "MF-LIFE-026",
+      "case_kind": "adversarial_mutation",
+      "expected_disposition": "REJECT_SYNTHETIC_MUTATION",
+      "execution_state": "not_executed",
+      "probability": null,
+      "mutations": [
+        {
+          "pointer": "/events/1/event_kind",
+          "value": "as_built_capture"
+        }
+      ],
+      "oracle_invariant": "event_kind_revision_kind_mismatch"
+    },
+    {
+      "case_id": "MF-LIFE-027",
+      "case_kind": "adversarial_mutation",
+      "expected_disposition": "REJECT_SYNTHETIC_MUTATION",
+      "execution_state": "not_executed",
+      "probability": null,
+      "mutations": [
+        {
+          "pointer": "/asset_bindings/1/asset_id",
+          "value": "ASSET-F0-WATER-RISER"
+        }
+      ],
+      "oracle_invariant": "duplicate_asset_identity"
+    },
+    {
+      "case_id": "MF-LIFE-028",
+      "case_kind": "adversarial_mutation",
+      "expected_disposition": "REJECT_SYNTHETIC_MUTATION",
+      "execution_state": "not_executed",
+      "probability": null,
+      "mutations": [
+        {
+          "pointer": "/events/0/evidence_refs",
+          "value": [
+            {
+              "kind": "inspection",
+              "id": "REAL-REPORT",
+              "revision": null,
+              "digest": null
+            }
+          ]
+        }
+      ],
+      "oracle_invariant": "synthetic_event_claims_evidence"
+    },
+    {
+      "case_id": "MF-LIFE-029",
+      "case_kind": "adversarial_mutation",
+      "expected_disposition": "REJECT_SYNTHETIC_MUTATION",
+      "execution_state": "not_executed",
+      "probability": null,
+      "mutations": [
+        {
+          "pointer": "/asset_bindings/0/evidence_state",
+          "value": "measured"
+        }
+      ],
+      "oracle_invariant": "asset_physical_state_promotion"
+    },
+    {
+      "case_id": "MF-LIFE-030",
+      "case_kind": "adversarial_mutation",
+      "expected_disposition": "REJECT_SYNTHETIC_MUTATION",
+      "execution_state": "not_executed",
+      "probability": null,
+      "mutations": [
+        {
+          "pointer": "/asset_bindings/0/source_ref/id",
+          "value": "BOUNDARY-U-001-WATER"
+        }
+      ],
+      "oracle_invariant": "asset_source_node_type_mismatch"
+    }
+  ],
+  "claim_ceiling": "The corpus tests synthetic identity, revision, event, topology-scope and stale-claim handling only. It does not establish a real building lifecycle or physical performance."
+}

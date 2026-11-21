@@ -1,0 +1,1096 @@
+{
+  "schema_version": "multifamily-unit-layout/0.1",
+  "layout_id": "SYN-MF-UNIT-LAYOUT-004",
+  "maturity": "synthetic_room_rectangles_only",
+  "source_binding": {
+    "building_candidate_ref": {
+      "kind": "synthetic_multi_family_building",
+      "id": "SYN-MF-COURTYARD-004",
+      "revision": "0.1",
+      "digest": null
+    },
+    "resident_programme_ref": {
+      "kind": "synthetic_multi_family_resident_programme",
+      "id": "SYN-MF-RESIDENT-PROGRAMME-001",
+      "revision": "0.1",
+      "digest": null
+    },
+    "layout_revision_ref": {
+      "kind": "synthetic_unit_layout_revision",
+      "id": "SYN-MF-UNIT-LAYOUT-004-v0.1",
+      "revision": "0.1",
+      "digest": null
+    }
+  },
+  "unit_layouts": [
+    {
+      "unit_id": "U-001",
+      "unit_space_id": "U-001",
+      "floor_id": "F0",
+      "unit_footprint_ref": {
+        "kind": "building_unit_space",
+        "id": "U-001",
+        "revision": "0.1",
+        "digest": null
+      },
+      "unit_transform": {
+        "translation_x_mm": 0,
+        "translation_y_mm": 0,
+        "coordinate_basis": "unit-local lower-left origin translated into building floor-plan coordinates"
+      },
+      "unit_envelope_local": {
+        "x_mm": 0,
+        "y_mm": 0,
+        "width_mm": 6000,
+        "height_mm": 8000
+      },
+      "rooms": [
+        {
+          "room_id": "U-001-ROOM-BED",
+          "room_kind": "sleeping",
+          "privacy_zone": "private",
+          "footprint_local_mm": {
+            "x_mm": 0,
+            "y_mm": 0,
+            "width_mm": 3000,
+            "height_mm": 3000
+          },
+          "activity_ids": [
+            "U-001-QUIET-WORK-ACT-01"
+          ]
+        },
+        {
+          "room_id": "U-001-ROOM-FOOD",
+          "room_kind": "food_preparation",
+          "privacy_zone": "semi_private",
+          "footprint_local_mm": {
+            "x_mm": 3000,
+            "y_mm": 0,
+            "width_mm": 3000,
+            "height_mm": 3000
+          },
+          "activity_ids": [
+            "U-001-QUIET-WORK-ACT-02"
+          ]
+        },
+        {
+          "room_id": "U-001-ROOM-WORK",
+          "room_kind": "work_study",
+          "privacy_zone": "private",
+          "footprint_local_mm": {
+            "x_mm": 0,
+            "y_mm": 3000,
+            "width_mm": 2000,
+            "height_mm": 3000
+          },
+          "activity_ids": [
+            "U-001-QUIET-WORK-ACT-03"
+          ]
+        },
+        {
+          "room_id": "U-001-ROOM-LIVING",
+          "room_kind": "living_guest",
+          "privacy_zone": "semi_private",
+          "footprint_local_mm": {
+            "x_mm": 2000,
+            "y_mm": 3000,
+            "width_mm": 4000,
+            "height_mm": 3000
+          },
+          "activity_ids": [
+            "U-001-QUIET-WORK-ACT-04"
+          ]
+        },
+        {
+          "room_id": "U-001-ROOM-HYGIENE",
+          "room_kind": "hygiene_laundry",
+          "privacy_zone": "private",
+          "footprint_local_mm": {
+            "x_mm": 0,
+            "y_mm": 6000,
+            "width_mm": 2000,
+            "height_mm": 2000
+          },
+          "activity_ids": [
+            "U-001-HYGIENE-ACT-01"
+          ]
+        },
+        {
+          "room_id": "U-001-ROOM-STORAGE",
+          "room_kind": "storage",
+          "privacy_zone": "service",
+          "footprint_local_mm": {
+            "x_mm": 2000,
+            "y_mm": 6000,
+            "width_mm": 1500,
+            "height_mm": 2000
+          },
+          "activity_ids": [
+            "U-001-QUIET-WORK-ACT-05"
+          ]
+        },
+        {
+          "room_id": "U-001-ROOM-CIRC",
+          "room_kind": "circulation_entry",
+          "privacy_zone": "service",
+          "footprint_local_mm": {
+            "x_mm": 3500,
+            "y_mm": 6000,
+            "width_mm": 2500,
+            "height_mm": 2000
+          },
+          "activity_ids": []
+        }
+      ],
+      "activity_assignments": [
+        {
+          "activity_id": "U-001-QUIET-WORK-ACT-01",
+          "target_kind": "unit_room",
+          "target_id": "U-001-ROOM-BED"
+        },
+        {
+          "activity_id": "U-001-QUIET-WORK-ACT-02",
+          "target_kind": "unit_room",
+          "target_id": "U-001-ROOM-FOOD"
+        },
+        {
+          "activity_id": "U-001-QUIET-WORK-ACT-03",
+          "target_kind": "unit_room",
+          "target_id": "U-001-ROOM-WORK"
+        },
+        {
+          "activity_id": "U-001-QUIET-WORK-ACT-04",
+          "target_kind": "unit_room",
+          "target_id": "U-001-ROOM-LIVING"
+        },
+        {
+          "activity_id": "U-001-QUIET-WORK-ACT-05",
+          "target_kind": "unit_room",
+          "target_id": "U-001-ROOM-STORAGE"
+        },
+        {
+          "activity_id": "U-001-HYGIENE-ACT-01",
+          "target_kind": "unit_room",
+          "target_id": "U-001-ROOM-HYGIENE"
+        }
+      ],
+      "relationship_mappings": [
+        {
+          "relationship_id": "U-001-QUIET-WORK-REL-01",
+          "from_activity_id": "U-001-QUIET-WORK-ACT-03",
+          "to_activity_id": "U-001-QUIET-WORK-ACT-02",
+          "relationship": "acoustically_separate",
+          "from_target_id": "U-001-ROOM-WORK",
+          "to_target_id": "U-001-ROOM-FOOD"
+        }
+      ],
+      "portals": [
+        {
+          "portal_id": "U-001-PORTAL-01",
+          "from_room_id": "U-001-ROOM-BED",
+          "to_room_id": "U-001-ROOM-FOOD",
+          "orientation": "vertical",
+          "coordinate_mm": 3000,
+          "start_mm": 500,
+          "end_mm": 1500,
+          "clear_width_state": "not_computed",
+          "clear_width_mm": null,
+          "door_swing_state": "not_modelled"
+        },
+        {
+          "portal_id": "U-001-PORTAL-02",
+          "from_room_id": "U-001-ROOM-BED",
+          "to_room_id": "U-001-ROOM-WORK",
+          "orientation": "horizontal",
+          "coordinate_mm": 3000,
+          "start_mm": 500,
+          "end_mm": 1500,
+          "clear_width_state": "not_computed",
+          "clear_width_mm": null,
+          "door_swing_state": "not_modelled"
+        },
+        {
+          "portal_id": "U-001-PORTAL-03",
+          "from_room_id": "U-001-ROOM-FOOD",
+          "to_room_id": "U-001-ROOM-LIVING",
+          "orientation": "horizontal",
+          "coordinate_mm": 3000,
+          "start_mm": 3500,
+          "end_mm": 4500,
+          "clear_width_state": "not_computed",
+          "clear_width_mm": null,
+          "door_swing_state": "not_modelled"
+        },
+        {
+          "portal_id": "U-001-PORTAL-04",
+          "from_room_id": "U-001-ROOM-WORK",
+          "to_room_id": "U-001-ROOM-LIVING",
+          "orientation": "vertical",
+          "coordinate_mm": 2000,
+          "start_mm": 4000,
+          "end_mm": 5000,
+          "clear_width_state": "not_computed",
+          "clear_width_mm": null,
+          "door_swing_state": "not_modelled"
+        },
+        {
+          "portal_id": "U-001-PORTAL-05",
+          "from_room_id": "U-001-ROOM-WORK",
+          "to_room_id": "U-001-ROOM-HYGIENE",
+          "orientation": "horizontal",
+          "coordinate_mm": 6000,
+          "start_mm": 500,
+          "end_mm": 1500,
+          "clear_width_state": "not_computed",
+          "clear_width_mm": null,
+          "door_swing_state": "not_modelled"
+        },
+        {
+          "portal_id": "U-001-PORTAL-06",
+          "from_room_id": "U-001-ROOM-LIVING",
+          "to_room_id": "U-001-ROOM-CIRC",
+          "orientation": "horizontal",
+          "coordinate_mm": 6000,
+          "start_mm": 4000,
+          "end_mm": 5000,
+          "clear_width_state": "not_computed",
+          "clear_width_mm": null,
+          "door_swing_state": "not_modelled"
+        },
+        {
+          "portal_id": "U-001-PORTAL-07",
+          "from_room_id": "U-001-ROOM-HYGIENE",
+          "to_room_id": "U-001-ROOM-STORAGE",
+          "orientation": "vertical",
+          "coordinate_mm": 2000,
+          "start_mm": 6500,
+          "end_mm": 7500,
+          "clear_width_state": "not_computed",
+          "clear_width_mm": null,
+          "door_swing_state": "not_modelled"
+        },
+        {
+          "portal_id": "U-001-PORTAL-08",
+          "from_room_id": "U-001-ROOM-STORAGE",
+          "to_room_id": "U-001-ROOM-CIRC",
+          "orientation": "vertical",
+          "coordinate_mm": 3500,
+          "start_mm": 6500,
+          "end_mm": 7500,
+          "clear_width_state": "not_computed",
+          "clear_width_mm": null,
+          "door_swing_state": "not_modelled"
+        }
+      ],
+      "everyday_root_room_id": "U-001-ROOM-CIRC",
+      "claim_ceiling": "Synthetic local room rectangles and everyday portal topology only; no room suitability, acoustic performance, clear width, door swing, accessibility, egress, fire or code result."
+    },
+    {
+      "unit_id": "U-002",
+      "unit_space_id": "U-002",
+      "floor_id": "F0",
+      "unit_footprint_ref": {
+        "kind": "building_unit_space",
+        "id": "U-002",
+        "revision": "0.1",
+        "digest": null
+      },
+      "unit_transform": {
+        "translation_x_mm": 6000,
+        "translation_y_mm": 0,
+        "coordinate_basis": "unit-local lower-left origin translated into building floor-plan coordinates"
+      },
+      "unit_envelope_local": {
+        "x_mm": 0,
+        "y_mm": 0,
+        "width_mm": 6000,
+        "height_mm": 8000
+      },
+      "rooms": [
+        {
+          "room_id": "U-002-ROOM-BED",
+          "room_kind": "sleeping",
+          "privacy_zone": "private",
+          "footprint_local_mm": {
+            "x_mm": 0,
+            "y_mm": 0,
+            "width_mm": 3000,
+            "height_mm": 3000
+          },
+          "activity_ids": [
+            "U-002-SHARED-MAKING-ACT-01",
+            "U-002-SHARED-MAKING-ACT-04"
+          ]
+        },
+        {
+          "room_id": "U-002-ROOM-FOOD",
+          "room_kind": "food_preparation",
+          "privacy_zone": "semi_private",
+          "footprint_local_mm": {
+            "x_mm": 3000,
+            "y_mm": 0,
+            "width_mm": 3000,
+            "height_mm": 3000
+          },
+          "activity_ids": [
+            "U-002-SHARED-MAKING-ACT-03"
+          ]
+        },
+        {
+          "room_id": "U-002-ROOM-WORK",
+          "room_kind": "work_study",
+          "privacy_zone": "private",
+          "footprint_local_mm": {
+            "x_mm": 0,
+            "y_mm": 3000,
+            "width_mm": 2000,
+            "height_mm": 3000
+          },
+          "activity_ids": [
+            "U-002-SHARED-MAKING-ACT-02"
+          ]
+        },
+        {
+          "room_id": "U-002-ROOM-LIVING",
+          "room_kind": "living_guest",
+          "privacy_zone": "semi_private",
+          "footprint_local_mm": {
+            "x_mm": 2000,
+            "y_mm": 3000,
+            "width_mm": 4000,
+            "height_mm": 3000
+          },
+          "activity_ids": []
+        },
+        {
+          "room_id": "U-002-ROOM-HYGIENE",
+          "room_kind": "hygiene_laundry",
+          "privacy_zone": "private",
+          "footprint_local_mm": {
+            "x_mm": 0,
+            "y_mm": 6000,
+            "width_mm": 2000,
+            "height_mm": 2000
+          },
+          "activity_ids": [
+            "U-002-HYGIENE-ACT-01"
+          ]
+        },
+        {
+          "room_id": "U-002-ROOM-STORAGE",
+          "room_kind": "storage",
+          "privacy_zone": "service",
+          "footprint_local_mm": {
+            "x_mm": 2000,
+            "y_mm": 6000,
+            "width_mm": 1500,
+            "height_mm": 2000
+          },
+          "activity_ids": [
+            "U-002-SHARED-MAKING-ACT-05"
+          ]
+        },
+        {
+          "room_id": "U-002-ROOM-CIRC",
+          "room_kind": "circulation_entry",
+          "privacy_zone": "service",
+          "footprint_local_mm": {
+            "x_mm": 3500,
+            "y_mm": 6000,
+            "width_mm": 2500,
+            "height_mm": 2000
+          },
+          "activity_ids": []
+        }
+      ],
+      "activity_assignments": [
+        {
+          "activity_id": "U-002-SHARED-MAKING-ACT-01",
+          "target_kind": "unit_room",
+          "target_id": "U-002-ROOM-BED"
+        },
+        {
+          "activity_id": "U-002-SHARED-MAKING-ACT-02",
+          "target_kind": "unit_room",
+          "target_id": "U-002-ROOM-WORK"
+        },
+        {
+          "activity_id": "U-002-SHARED-MAKING-ACT-03",
+          "target_kind": "unit_room",
+          "target_id": "U-002-ROOM-FOOD"
+        },
+        {
+          "activity_id": "U-002-SHARED-MAKING-ACT-04",
+          "target_kind": "unit_room",
+          "target_id": "U-002-ROOM-BED"
+        },
+        {
+          "activity_id": "U-002-SHARED-MAKING-ACT-05",
+          "target_kind": "unit_room",
+          "target_id": "U-002-ROOM-STORAGE"
+        },
+        {
+          "activity_id": "U-002-HYGIENE-ACT-01",
+          "target_kind": "unit_room",
+          "target_id": "U-002-ROOM-HYGIENE"
+        }
+      ],
+      "relationship_mappings": [
+        {
+          "relationship_id": "U-002-SHARED-MAKING-REL-01",
+          "from_activity_id": "U-002-SHARED-MAKING-ACT-02",
+          "to_activity_id": "U-002-SHARED-MAKING-ACT-03",
+          "relationship": "acoustically_separate",
+          "from_target_id": "U-002-ROOM-WORK",
+          "to_target_id": "U-002-ROOM-FOOD"
+        },
+        {
+          "relationship_id": "U-002-SHARED-MAKING-REL-02",
+          "from_activity_id": "U-002-SHARED-MAKING-ACT-02",
+          "to_activity_id": "U-002-SHARED-MAKING-ACT-05",
+          "relationship": "near",
+          "from_target_id": "U-002-ROOM-WORK",
+          "to_target_id": "U-002-ROOM-STORAGE"
+        }
+      ],
+      "portals": [
+        {
+          "portal_id": "U-002-PORTAL-01",
+          "from_room_id": "U-002-ROOM-BED",
+          "to_room_id": "U-002-ROOM-FOOD",
+          "orientation": "vertical",
+          "coordinate_mm": 3000,
+          "start_mm": 500,
+          "end_mm": 1500,
+          "clear_width_state": "not_computed",
+          "clear_width_mm": null,
+          "door_swing_state": "not_modelled"
+        },
+        {
+          "portal_id": "U-002-PORTAL-02",
+          "from_room_id": "U-002-ROOM-BED",
+          "to_room_id": "U-002-ROOM-WORK",
+          "orientation": "horizontal",
+          "coordinate_mm": 3000,
+          "start_mm": 500,
+          "end_mm": 1500,
+          "clear_width_state": "not_computed",
+          "clear_width_mm": null,
+          "door_swing_state": "not_modelled"
+        },
+        {
+          "portal_id": "U-002-PORTAL-03",
+          "from_room_id": "U-002-ROOM-FOOD",
+          "to_room_id": "U-002-ROOM-LIVING",
+          "orientation": "horizontal",
+          "coordinate_mm": 3000,
+          "start_mm": 3500,
+          "end_mm": 4500,
+          "clear_width_state": "not_computed",
+          "clear_width_mm": null,
+          "door_swing_state": "not_modelled"
+        },
+        {
+          "portal_id": "U-002-PORTAL-04",
+          "from_room_id": "U-002-ROOM-WORK",
+          "to_room_id": "U-002-ROOM-LIVING",
+          "orientation": "vertical",
+          "coordinate_mm": 2000,
+          "start_mm": 4000,
+          "end_mm": 5000,
+          "clear_width_state": "not_computed",
+          "clear_width_mm": null,
+          "door_swing_state": "not_modelled"
+        },
+        {
+          "portal_id": "U-002-PORTAL-05",
+          "from_room_id": "U-002-ROOM-WORK",
+          "to_room_id": "U-002-ROOM-HYGIENE",
+          "orientation": "horizontal",
+          "coordinate_mm": 6000,
+          "start_mm": 500,
+          "end_mm": 1500,
+          "clear_width_state": "not_computed",
+          "clear_width_mm": null,
+          "door_swing_state": "not_modelled"
+        },
+        {
+          "portal_id": "U-002-PORTAL-06",
+          "from_room_id": "U-002-ROOM-LIVING",
+          "to_room_id": "U-002-ROOM-CIRC",
+          "orientation": "horizontal",
+          "coordinate_mm": 6000,
+          "start_mm": 4000,
+          "end_mm": 5000,
+          "clear_width_state": "not_computed",
+          "clear_width_mm": null,
+          "door_swing_state": "not_modelled"
+        },
+        {
+          "portal_id": "U-002-PORTAL-07",
+          "from_room_id": "U-002-ROOM-HYGIENE",
+          "to_room_id": "U-002-ROOM-STORAGE",
+          "orientation": "vertical",
+          "coordinate_mm": 2000,
+          "start_mm": 6500,
+          "end_mm": 7500,
+          "clear_width_state": "not_computed",
+          "clear_width_mm": null,
+          "door_swing_state": "not_modelled"
+        },
+        {
+          "portal_id": "U-002-PORTAL-08",
+          "from_room_id": "U-002-ROOM-STORAGE",
+          "to_room_id": "U-002-ROOM-CIRC",
+          "orientation": "vertical",
+          "coordinate_mm": 3500,
+          "start_mm": 6500,
+          "end_mm": 7500,
+          "clear_width_state": "not_computed",
+          "clear_width_mm": null,
+          "door_swing_state": "not_modelled"
+        }
+      ],
+      "everyday_root_room_id": "U-002-ROOM-CIRC",
+      "claim_ceiling": "Synthetic local room rectangles and everyday portal topology only; no room suitability, acoustic performance, clear width, door swing, accessibility, egress, fire or code result."
+    },
+    {
+      "unit_id": "U-003",
+      "unit_space_id": "U-003",
+      "floor_id": "F1",
+      "unit_footprint_ref": {
+        "kind": "building_unit_space",
+        "id": "U-003",
+        "revision": "0.1",
+        "digest": null
+      },
+      "unit_transform": {
+        "translation_x_mm": 0,
+        "translation_y_mm": 0,
+        "coordinate_basis": "unit-local lower-left origin translated into building floor-plan coordinates"
+      },
+      "unit_envelope_local": {
+        "x_mm": 0,
+        "y_mm": 0,
+        "width_mm": 6000,
+        "height_mm": 8000
+      },
+      "rooms": [
+        {
+          "room_id": "U-003-ROOM-BED",
+          "room_kind": "sleeping",
+          "privacy_zone": "private",
+          "footprint_local_mm": {
+            "x_mm": 0,
+            "y_mm": 0,
+            "width_mm": 3000,
+            "height_mm": 3000
+          },
+          "activity_ids": [
+            "U-003-FLEXIBLE-CARE-ACT-01"
+          ]
+        },
+        {
+          "room_id": "U-003-ROOM-FOOD",
+          "room_kind": "food_preparation",
+          "privacy_zone": "semi_private",
+          "footprint_local_mm": {
+            "x_mm": 3000,
+            "y_mm": 0,
+            "width_mm": 3000,
+            "height_mm": 3000
+          },
+          "activity_ids": [
+            "U-003-FLEXIBLE-CARE-ACT-03"
+          ]
+        },
+        {
+          "room_id": "U-003-ROOM-WORK",
+          "room_kind": "work_study",
+          "privacy_zone": "private",
+          "footprint_local_mm": {
+            "x_mm": 0,
+            "y_mm": 3000,
+            "width_mm": 2000,
+            "height_mm": 3000
+          },
+          "activity_ids": [
+            "U-003-FLEXIBLE-CARE-ACT-02"
+          ]
+        },
+        {
+          "room_id": "U-003-ROOM-LIVING",
+          "room_kind": "living_guest",
+          "privacy_zone": "semi_private",
+          "footprint_local_mm": {
+            "x_mm": 2000,
+            "y_mm": 3000,
+            "width_mm": 4000,
+            "height_mm": 3000
+          },
+          "activity_ids": [
+            "U-003-FLEXIBLE-CARE-ACT-04"
+          ]
+        },
+        {
+          "room_id": "U-003-ROOM-HYGIENE",
+          "room_kind": "hygiene_laundry",
+          "privacy_zone": "private",
+          "footprint_local_mm": {
+            "x_mm": 0,
+            "y_mm": 6000,
+            "width_mm": 2000,
+            "height_mm": 2000
+          },
+          "activity_ids": [
+            "U-003-HYGIENE-ACT-01"
+          ]
+        },
+        {
+          "room_id": "U-003-ROOM-STORAGE",
+          "room_kind": "storage",
+          "privacy_zone": "service",
+          "footprint_local_mm": {
+            "x_mm": 2000,
+            "y_mm": 6000,
+            "width_mm": 1500,
+            "height_mm": 2000
+          },
+          "activity_ids": []
+        },
+        {
+          "room_id": "U-003-ROOM-CIRC",
+          "room_kind": "circulation_entry",
+          "privacy_zone": "service",
+          "footprint_local_mm": {
+            "x_mm": 3500,
+            "y_mm": 6000,
+            "width_mm": 2500,
+            "height_mm": 2000
+          },
+          "activity_ids": []
+        }
+      ],
+      "activity_assignments": [
+        {
+          "activity_id": "U-003-FLEXIBLE-CARE-ACT-01",
+          "target_kind": "unit_room",
+          "target_id": "U-003-ROOM-BED"
+        },
+        {
+          "activity_id": "U-003-FLEXIBLE-CARE-ACT-02",
+          "target_kind": "unit_room",
+          "target_id": "U-003-ROOM-WORK"
+        },
+        {
+          "activity_id": "U-003-FLEXIBLE-CARE-ACT-03",
+          "target_kind": "unit_room",
+          "target_id": "U-003-ROOM-FOOD"
+        },
+        {
+          "activity_id": "U-003-FLEXIBLE-CARE-ACT-04",
+          "target_kind": "unit_room",
+          "target_id": "U-003-ROOM-LIVING"
+        },
+        {
+          "activity_id": "U-003-FLEXIBLE-CARE-ACT-05",
+          "target_kind": "building_shared_space",
+          "target_id": "TERRACE-1"
+        },
+        {
+          "activity_id": "U-003-HYGIENE-ACT-01",
+          "target_kind": "unit_room",
+          "target_id": "U-003-ROOM-HYGIENE"
+        }
+      ],
+      "relationship_mappings": [
+        {
+          "relationship_id": "U-003-FLEXIBLE-CARE-REL-01",
+          "from_activity_id": "U-003-FLEXIBLE-CARE-ACT-01",
+          "to_activity_id": "U-003-FLEXIBLE-CARE-ACT-02",
+          "relationship": "separate",
+          "from_target_id": "U-003-ROOM-BED",
+          "to_target_id": "U-003-ROOM-WORK"
+        },
+        {
+          "relationship_id": "U-003-FLEXIBLE-CARE-REL-02",
+          "from_activity_id": "U-003-FLEXIBLE-CARE-ACT-03",
+          "to_activity_id": "U-003-FLEXIBLE-CARE-ACT-05",
+          "relationship": "near",
+          "from_target_id": "U-003-ROOM-FOOD",
+          "to_target_id": "TERRACE-1"
+        }
+      ],
+      "portals": [
+        {
+          "portal_id": "U-003-PORTAL-01",
+          "from_room_id": "U-003-ROOM-BED",
+          "to_room_id": "U-003-ROOM-FOOD",
+          "orientation": "vertical",
+          "coordinate_mm": 3000,
+          "start_mm": 500,
+          "end_mm": 1500,
+          "clear_width_state": "not_computed",
+          "clear_width_mm": null,
+          "door_swing_state": "not_modelled"
+        },
+        {
+          "portal_id": "U-003-PORTAL-02",
+          "from_room_id": "U-003-ROOM-BED",
+          "to_room_id": "U-003-ROOM-WORK",
+          "orientation": "horizontal",
+          "coordinate_mm": 3000,
+          "start_mm": 500,
+          "end_mm": 1500,
+          "clear_width_state": "not_computed",
+          "clear_width_mm": null,
+          "door_swing_state": "not_modelled"
+        },
+        {
+          "portal_id": "U-003-PORTAL-03",
+          "from_room_id": "U-003-ROOM-FOOD",
+          "to_room_id": "U-003-ROOM-LIVING",
+          "orientation": "horizontal",
+          "coordinate_mm": 3000,
+          "start_mm": 3500,
+          "end_mm": 4500,
+          "clear_width_state": "not_computed",
+          "clear_width_mm": null,
+          "door_swing_state": "not_modelled"
+        },
+        {
+          "portal_id": "U-003-PORTAL-04",
+          "from_room_id": "U-003-ROOM-WORK",
+          "to_room_id": "U-003-ROOM-LIVING",
+          "orientation": "vertical",
+          "coordinate_mm": 2000,
+          "start_mm": 4000,
+          "end_mm": 5000,
+          "clear_width_state": "not_computed",
+          "clear_width_mm": null,
+          "door_swing_state": "not_modelled"
+        },
+        {
+          "portal_id": "U-003-PORTAL-05",
+          "from_room_id": "U-003-ROOM-WORK",
+          "to_room_id": "U-003-ROOM-HYGIENE",
+          "orientation": "horizontal",
+          "coordinate_mm": 6000,
+          "start_mm": 500,
+          "end_mm": 1500,
+          "clear_width_state": "not_computed",
+          "clear_width_mm": null,
+          "door_swing_state": "not_modelled"
+        },
+        {
+          "portal_id": "U-003-PORTAL-06",
+          "from_room_id": "U-003-ROOM-LIVING",
+          "to_room_id": "U-003-ROOM-CIRC",
+          "orientation": "horizontal",
+          "coordinate_mm": 6000,
+          "start_mm": 4000,
+          "end_mm": 5000,
+          "clear_width_state": "not_computed",
+          "clear_width_mm": null,
+          "door_swing_state": "not_modelled"
+        },
+        {
+          "portal_id": "U-003-PORTAL-07",
+          "from_room_id": "U-003-ROOM-HYGIENE",
+          "to_room_id": "U-003-ROOM-STORAGE",
+          "orientation": "vertical",
+          "coordinate_mm": 2000,
+          "start_mm": 6500,
+          "end_mm": 7500,
+          "clear_width_state": "not_computed",
+          "clear_width_mm": null,
+          "door_swing_state": "not_modelled"
+        },
+        {
+          "portal_id": "U-003-PORTAL-08",
+          "from_room_id": "U-003-ROOM-STORAGE",
+          "to_room_id": "U-003-ROOM-CIRC",
+          "orientation": "vertical",
+          "coordinate_mm": 3500,
+          "start_mm": 6500,
+          "end_mm": 7500,
+          "clear_width_state": "not_computed",
+          "clear_width_mm": null,
+          "door_swing_state": "not_modelled"
+        }
+      ],
+      "everyday_root_room_id": "U-003-ROOM-CIRC",
+      "claim_ceiling": "Synthetic local room rectangles and everyday portal topology only; no room suitability, acoustic performance, clear width, door swing, accessibility, egress, fire or code result."
+    },
+    {
+      "unit_id": "U-004",
+      "unit_space_id": "U-004",
+      "floor_id": "F1",
+      "unit_footprint_ref": {
+        "kind": "building_unit_space",
+        "id": "U-004",
+        "revision": "0.1",
+        "digest": null
+      },
+      "unit_transform": {
+        "translation_x_mm": 6000,
+        "translation_y_mm": 0,
+        "coordinate_basis": "unit-local lower-left origin translated into building floor-plan coordinates"
+      },
+      "unit_envelope_local": {
+        "x_mm": 0,
+        "y_mm": 0,
+        "width_mm": 6000,
+        "height_mm": 8000
+      },
+      "rooms": [
+        {
+          "room_id": "U-004-ROOM-BED",
+          "room_kind": "sleeping",
+          "privacy_zone": "private",
+          "footprint_local_mm": {
+            "x_mm": 0,
+            "y_mm": 0,
+            "width_mm": 3000,
+            "height_mm": 3000
+          },
+          "activity_ids": [
+            "U-004-REST-AND-ACCESS-ACT-01",
+            "U-004-REST-AND-ACCESS-ACT-02"
+          ]
+        },
+        {
+          "room_id": "U-004-ROOM-FOOD",
+          "room_kind": "food_preparation",
+          "privacy_zone": "semi_private",
+          "footprint_local_mm": {
+            "x_mm": 3000,
+            "y_mm": 0,
+            "width_mm": 3000,
+            "height_mm": 3000
+          },
+          "activity_ids": [
+            "U-004-REST-AND-ACCESS-ACT-03"
+          ]
+        },
+        {
+          "room_id": "U-004-ROOM-WORK",
+          "room_kind": "work_study",
+          "privacy_zone": "private",
+          "footprint_local_mm": {
+            "x_mm": 0,
+            "y_mm": 3000,
+            "width_mm": 2000,
+            "height_mm": 3000
+          },
+          "activity_ids": [
+            "U-004-REST-AND-ACCESS-ACT-04"
+          ]
+        },
+        {
+          "room_id": "U-004-ROOM-LIVING",
+          "room_kind": "living_guest",
+          "privacy_zone": "semi_private",
+          "footprint_local_mm": {
+            "x_mm": 2000,
+            "y_mm": 3000,
+            "width_mm": 4000,
+            "height_mm": 3000
+          },
+          "activity_ids": [
+            "U-004-REST-AND-ACCESS-ACT-05"
+          ]
+        },
+        {
+          "room_id": "U-004-ROOM-HYGIENE",
+          "room_kind": "hygiene_laundry",
+          "privacy_zone": "private",
+          "footprint_local_mm": {
+            "x_mm": 0,
+            "y_mm": 6000,
+            "width_mm": 2000,
+            "height_mm": 2000
+          },
+          "activity_ids": [
+            "U-004-HYGIENE-ACT-01"
+          ]
+        },
+        {
+          "room_id": "U-004-ROOM-STORAGE",
+          "room_kind": "storage",
+          "privacy_zone": "service",
+          "footprint_local_mm": {
+            "x_mm": 2000,
+            "y_mm": 6000,
+            "width_mm": 1500,
+            "height_mm": 2000
+          },
+          "activity_ids": []
+        },
+        {
+          "room_id": "U-004-ROOM-CIRC",
+          "room_kind": "circulation_entry",
+          "privacy_zone": "service",
+          "footprint_local_mm": {
+            "x_mm": 3500,
+            "y_mm": 6000,
+            "width_mm": 2500,
+            "height_mm": 2000
+          },
+          "activity_ids": []
+        }
+      ],
+      "activity_assignments": [
+        {
+          "activity_id": "U-004-REST-AND-ACCESS-ACT-01",
+          "target_kind": "unit_room",
+          "target_id": "U-004-ROOM-BED"
+        },
+        {
+          "activity_id": "U-004-REST-AND-ACCESS-ACT-02",
+          "target_kind": "unit_room",
+          "target_id": "U-004-ROOM-BED"
+        },
+        {
+          "activity_id": "U-004-REST-AND-ACCESS-ACT-03",
+          "target_kind": "unit_room",
+          "target_id": "U-004-ROOM-FOOD"
+        },
+        {
+          "activity_id": "U-004-REST-AND-ACCESS-ACT-04",
+          "target_kind": "unit_room",
+          "target_id": "U-004-ROOM-WORK"
+        },
+        {
+          "activity_id": "U-004-REST-AND-ACCESS-ACT-05",
+          "target_kind": "unit_room",
+          "target_id": "U-004-ROOM-LIVING"
+        },
+        {
+          "activity_id": "U-004-HYGIENE-ACT-01",
+          "target_kind": "unit_room",
+          "target_id": "U-004-ROOM-HYGIENE"
+        }
+      ],
+      "relationship_mappings": [
+        {
+          "relationship_id": "U-004-REST-AND-ACCESS-REL-01",
+          "from_activity_id": "U-004-REST-AND-ACCESS-ACT-01",
+          "to_activity_id": "U-004-REST-AND-ACCESS-ACT-02",
+          "relationship": "near",
+          "from_target_id": "U-004-ROOM-BED",
+          "to_target_id": "U-004-ROOM-BED"
+        },
+        {
+          "relationship_id": "U-004-REST-AND-ACCESS-REL-02",
+          "from_activity_id": "U-004-REST-AND-ACCESS-ACT-02",
+          "to_activity_id": "U-004-REST-AND-ACCESS-ACT-04",
+          "relationship": "acoustically_separate",
+          "from_target_id": "U-004-ROOM-BED",
+          "to_target_id": "U-004-ROOM-WORK"
+        }
+      ],
+      "portals": [
+        {
+          "portal_id": "U-004-PORTAL-01",
+          "from_room_id": "U-004-ROOM-BED",
+          "to_room_id": "U-004-ROOM-FOOD",
+          "orientation": "vertical",
+          "coordinate_mm": 3000,
+          "start_mm": 500,
+          "end_mm": 1500,
+          "clear_width_state": "not_computed",
+          "clear_width_mm": null,
+          "door_swing_state": "not_modelled"
+        },
+        {
+          "portal_id": "U-004-PORTAL-02",
+          "from_room_id": "U-004-ROOM-BED",
+          "to_room_id": "U-004-ROOM-WORK",
+          "orientation": "horizontal",
+          "coordinate_mm": 3000,
+          "start_mm": 500,
+          "end_mm": 1500,
+          "clear_width_state": "not_computed",
+          "clear_width_mm": null,
+          "door_swing_state": "not_modelled"
+        },
+        {
+          "portal_id": "U-004-PORTAL-03",
+          "from_room_id": "U-004-ROOM-FOOD",
+          "to_room_id": "U-004-ROOM-LIVING",
+          "orientation": "horizontal",
+          "coordinate_mm": 3000,
+          "start_mm": 3500,
+          "end_mm": 4500,
+          "clear_width_state": "not_computed",
+          "clear_width_mm": null,
+          "door_swing_state": "not_modelled"
+        },
+        {
+          "portal_id": "U-004-PORTAL-04",
+          "from_room_id": "U-004-ROOM-WORK",
+          "to_room_id": "U-004-ROOM-LIVING",
+          "orientation": "vertical",
+          "coordinate_mm": 2000,
+          "start_mm": 4000,
+          "end_mm": 5000,
+          "clear_width_state": "not_computed",
+          "clear_width_mm": null,
+          "door_swing_state": "not_modelled"
+        },
+        {
+          "portal_id": "U-004-PORTAL-05",
+          "from_room_id": "U-004-ROOM-WORK",
+          "to_room_id": "U-004-ROOM-HYGIENE",
+          "orientation": "horizontal",
+          "coordinate_mm": 6000,
+          "start_mm": 500,
+          "end_mm": 1500,
+          "clear_width_state": "not_computed",
+          "clear_width_mm": null,
+          "door_swing_state": "not_modelled"
+        },
+        {
+          "portal_id": "U-004-PORTAL-06",
+          "from_room_id": "U-004-ROOM-LIVING",
+          "to_room_id": "U-004-ROOM-CIRC",
+          "orientation": "horizontal",
+          "coordinate_mm": 6000,
+          "start_mm": 4000,
+          "end_mm": 5000,
+          "clear_width_state": "not_computed",
+          "clear_width_mm": null,
+          "door_swing_state": "not_modelled"
+        },
+        {
+          "portal_id": "U-004-PORTAL-07",
+          "from_room_id": "U-004-ROOM-HYGIENE",
+          "to_room_id": "U-004-ROOM-STORAGE",
+          "orientation": "vertical",
+          "coordinate_mm": 2000,
+          "start_mm": 6500,
+          "end_mm": 7500,
+          "clear_width_state": "not_computed",
+          "clear_width_mm": null,
+          "door_swing_state": "not_modelled"
+        },
+        {
+          "portal_id": "U-004-PORTAL-08",
+          "from_room_id": "U-004-ROOM-STORAGE",
+          "to_room_id": "U-004-ROOM-CIRC",
+          "orientation": "vertical",
+          "coordinate_mm": 3500,
+          "start_mm": 6500,
+          "end_mm": 7500,
+          "clear_width_state": "not_computed",
+          "clear_width_mm": null,
+          "door_swing_state": "not_modelled"
+        }
+      ],
+      "everyday_root_room_id": "U-004-ROOM-CIRC",
+      "claim_ceiling": "Synthetic local room rectangles and everyday portal topology only; no room suitability, acoustic performance, clear width, door swing, accessibility, egress, fire or code result."
+    }
+  ],
+  "claim_ceiling": "A pass establishes only exact unit-local rectangle partition, unit/building transform identity, activity-to-room/shared-space mappings, room relationship mapping and everyday portal graph connectivity. It does not establish room suitability, usable clear dimensions, door clear width/swing, accessibility, fire/egress, structure, daylight, view/privacy, acoustics, thermal/ventilation, services, cost, planning, buildability or occupancy."
+}

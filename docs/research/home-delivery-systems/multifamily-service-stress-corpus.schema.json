@@ -1,0 +1,255 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/Luminous-Dynamics/sol-atlas-leptos/main/docs/research/home-delivery-systems/multifamily-service-stress-corpus.schema.json",
+  "title": "Multi-family Service Stress Corpus v0.1",
+  "description": "Pre-execution registration contract for synthetic apartment shared-service stress scenarios. It records event traces and conservative expected dispositions; it does not simulate utility delivery or assign failure probabilities.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "corpus_id",
+    "maturity",
+    "parent_issue",
+    "base_fixture",
+    "case_count",
+    "executed_cases",
+    "case_split",
+    "cases",
+    "scoring_rules",
+    "claim_ceiling"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "multifamily-service-stress-corpus/0.1"
+    },
+    "corpus_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "maturity": {
+      "const": "authored_manifest_not_executed"
+    },
+    "parent_issue": {
+      "type": "string",
+      "format": "uri"
+    },
+    "base_fixture": {
+      "const": "multifamily-service-distribution-synthetic-v0.1.json"
+    },
+    "case_count": {
+      "const": 16
+    },
+    "executed_cases": {
+      "const": 0
+    },
+    "case_split": {
+      "$ref": "#/$defs/caseSplit"
+    },
+    "cases": {
+      "type": "array",
+      "minItems": 16,
+      "maxItems": 16,
+      "items": {
+        "$ref": "#/$defs/case"
+      }
+    },
+    "scoring_rules": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "claim_ceiling": {
+      "type": "string",
+      "minLength": 1
+    }
+  },
+  "$defs": {
+    "caseSplit": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "development_cases",
+        "calibration_cases",
+        "sealed_confirmation_cases",
+        "note"
+      ],
+      "properties": {
+        "development_cases": {
+          "type": "array",
+          "minItems": 16,
+          "maxItems": 16,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "calibration_cases": {
+          "type": "array",
+          "maxItems": 0
+        },
+        "sealed_confirmation_cases": {
+          "type": "array",
+          "maxItems": 0
+        },
+        "note": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "event": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "event_id",
+        "event_kind",
+        "start_s",
+        "duration_s",
+        "affected_node_ids",
+        "state",
+        "probability"
+      ],
+      "properties": {
+        "event_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "event_kind": {
+          "enum": [
+            "baseline",
+            "source_interruption",
+            "plant_failure",
+            "power_interruption",
+            "riser_isolation",
+            "quality_evidence_withdrawal",
+            "maintenance_isolation",
+            "communications_failure",
+            "recovery",
+            "reserve_exhaustion",
+            "allocation_policy_change",
+            "repair_delay",
+            "network_partition"
+          ]
+        },
+        "start_s": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "duration_s": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "affected_node_ids": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "state": {
+          "const": "declared_synthetic"
+        },
+        "probability": {
+          "const": null
+        }
+      }
+    },
+    "case": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "case_id",
+        "scenario_id",
+        "family",
+        "description",
+        "case_kind",
+        "base_fixture",
+        "events",
+        "expected_disposition",
+        "probability",
+        "execution_state",
+        "claim_ceiling"
+      ],
+      "properties": {
+        "case_id": {
+          "type": "string",
+          "pattern": "^MF-SVC-[A-Z0-9-]+$"
+        },
+        "scenario_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "family": {
+          "enum": [
+            "baseline",
+            "source_interruption",
+            "plant_failure",
+            "power_interruption",
+            "riser_isolation",
+            "maintenance_isolation",
+            "quality_evidence_withdrawal",
+            "reserve_exhaustion",
+            "allocation_policy_change",
+            "compound_failure",
+            "communications_failure",
+            "repair_delay",
+            "recovery"
+          ]
+        },
+        "description": {
+          "type": "string",
+          "minLength": 1
+        },
+        "case_kind": {
+          "enum": [
+            "positive_control",
+            "adversarial_stress_control"
+          ]
+        },
+        "base_fixture": {
+          "const": "multifamily-service-distribution-synthetic-v0.1.json"
+        },
+        "events": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/event"
+          }
+        },
+        "expected_disposition": {
+          "enum": [
+            "TOPOLOGY_ONLY_NOT_SERVICE_PASS",
+            "ABSTAIN_UNKNOWN_CAPACITY",
+            "BLOCK_UNIT_SERVICE_PASS",
+            "PER_UNIT_TRAJECTORY_REQUIRED",
+            "BLOCK_QUALITY_CREDIT",
+            "BLOCK_UNAUTHORIZED_ALLOCATION",
+            "BLOCK_INDEPENDENCE_ASSUMPTION",
+            "DEPENDENCY_UNKNOWN_NOT_SERVICE_PASS",
+            "BLOCK_STABLE_RECOVERY_CLAIM",
+            "BLOCK_POTABLE_OR_NONPOTABLE_QUALITY_CREDIT",
+            "BLOCK_USEFUL_THERMAL_DELIVERY_PASS"
+          ]
+        },
+        "probability": {
+          "const": null
+        },
+        "execution_state": {
+          "const": "not_executed"
+        },
+        "claim_ceiling": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    }
+  }
+}

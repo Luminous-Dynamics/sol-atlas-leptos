@@ -1,0 +1,110 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/Luminous-Dynamics/sol-atlas-leptos/main/docs/research/home-delivery-systems/home-service-stack.schema.json",
+  "title": "Synthetic Home Service Stack v0.1",
+  "description": "A composition of resident-selected service profiles. Each child must satisfy the Home Service Interface v0.1 contract.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "profile_id",
+    "maturity",
+    "source_binding",
+    "service_profiles",
+    "fixture_notes",
+    "claim_ceiling"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "home-service-stack/0.1"
+    },
+    "profile_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "maturity": {
+      "enum": [
+        "synthetic_contract",
+        "candidate",
+        "bench_tested",
+        "independently_qualified",
+        "production_observed"
+      ]
+    },
+    "source_binding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "resident_brief",
+        "candidate_design",
+        "design_revision",
+        "jurisdiction_profile"
+      ],
+      "properties": {
+        "resident_brief": {
+          "$ref": "#/$defs/reference"
+        },
+        "candidate_design": {
+          "$ref": "#/$defs/reference"
+        },
+        "design_revision": {
+          "$ref": "#/$defs/reference"
+        },
+        "jurisdiction_profile": {
+          "$ref": "#/$defs/reference"
+        }
+      }
+    },
+    "service_profiles": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "home-service-interface.schema.json"
+      }
+    },
+    "fixture_notes": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "minItems": 1
+    },
+    "claim_ceiling": {
+      "const": "This synthetic stack is an interface inventory only; it establishes no real resident requirement, product identity, utility capacity, performance, safety, compliance or demand."
+    }
+  },
+  "$defs": {
+    "reference": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "id",
+        "revision",
+        "digest"
+      ],
+      "properties": {
+        "kind": {
+          "type": "string",
+          "minLength": 1
+        },
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "revision": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "digest": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    }
+  }
+}

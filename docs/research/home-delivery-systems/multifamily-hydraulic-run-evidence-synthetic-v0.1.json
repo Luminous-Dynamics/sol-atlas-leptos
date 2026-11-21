@@ -1,0 +1,186 @@
+{
+  "schema_version": "multifamily-hydraulic-run-evidence/0.1",
+  "run_id": "SYN-HYDRAULIC-RUN-EVIDENCE-001",
+  "maturity": "synthetic_contract",
+  "execution_state": "not_executed",
+  "solver": {
+    "family": "hydraulic",
+    "product": "EPANET",
+    "vendor": "US EPA",
+    "version": "2.2",
+    "build_digest": null,
+    "adapter_version": "0.1",
+    "license_tier": "public_domain"
+  },
+  "model_binding": {
+    "building_ref": {
+      "kind": "synthetic_multi_family_building",
+      "id": "SYN-MF-COURTYARD-004",
+      "revision": null,
+      "digest": null
+    },
+    "service_topology_ref": {
+      "kind": "synthetic_multifamily_service_topology",
+      "id": "SYN-MF-SERVICE-DISTRIBUTION-001",
+      "revision": null,
+      "digest": null
+    },
+    "design_revision_ref": {
+      "kind": "synthetic_design_revision",
+      "id": "urn:synthetic:mf:design-revision:unbound",
+      "revision": null,
+      "digest": null
+    },
+    "jurisdiction_profile_ref": {
+      "kind": "jurisdiction_profile",
+      "id": "urn:synthetic:jurisdiction:unselected",
+      "revision": null,
+      "digest": null
+    },
+    "scenario_id": "MF-SVC-001",
+    "input_model_digest": null,
+    "result_digest": null
+  },
+  "run_configuration": {
+    "solver_status": "not_run",
+    "flow_units": null,
+    "pressure_units": null,
+    "time_zone": null,
+    "start_elapsed_s": null,
+    "end_elapsed_s": null,
+    "time_step_s": null,
+    "duration_s": null,
+    "model_coordinate_basis": null,
+    "vertical_datum": null
+  },
+  "assumptions": [],
+  "mappings": [
+    {
+      "mapping_id": "MAP-SOURCE",
+      "solver_entity_id": null,
+      "solver_entity_kind": "junction",
+      "service_node_id": "SRC-MUNICIPAL-WATER-UNQUALIFIED",
+      "service_edge_id": null,
+      "resource_id": "R-POTABLE-WATER",
+      "unit_id": null,
+      "mapping_state": "planned",
+      "mapping_evidence_ref": null
+    },
+    {
+      "mapping_id": "MAP-PUMP",
+      "solver_entity_id": null,
+      "solver_entity_kind": "pump",
+      "service_node_id": "PLANT-WATER-PUMP",
+      "service_edge_id": null,
+      "resource_id": "R-POTABLE-WATER",
+      "unit_id": null,
+      "mapping_state": "planned",
+      "mapping_evidence_ref": null
+    },
+    {
+      "mapping_id": "MAP-ZONE-F0",
+      "solver_entity_id": null,
+      "solver_entity_kind": "junction",
+      "service_node_id": "ZONE-F0-WATER",
+      "service_edge_id": null,
+      "resource_id": "R-POTABLE-WATER",
+      "unit_id": null,
+      "mapping_state": "planned",
+      "mapping_evidence_ref": null
+    },
+    {
+      "mapping_id": "MAP-ZONE-F1",
+      "solver_entity_id": null,
+      "solver_entity_kind": "junction",
+      "service_node_id": "ZONE-F1-WATER",
+      "service_edge_id": null,
+      "resource_id": "R-POTABLE-WATER",
+      "unit_id": null,
+      "mapping_state": "planned",
+      "mapping_evidence_ref": null
+    },
+    {
+      "mapping_id": "MAP-RISER-F0",
+      "solver_entity_id": null,
+      "solver_entity_kind": "junction",
+      "service_node_id": "RISER-F0-WATER",
+      "service_edge_id": null,
+      "resource_id": "R-POTABLE-WATER",
+      "unit_id": null,
+      "mapping_state": "planned",
+      "mapping_evidence_ref": null
+    },
+    {
+      "mapping_id": "MAP-RISER-F1",
+      "solver_entity_id": null,
+      "solver_entity_kind": "junction",
+      "service_node_id": "RISER-F1-WATER",
+      "service_edge_id": null,
+      "resource_id": "R-POTABLE-WATER",
+      "unit_id": null,
+      "mapping_state": "planned",
+      "mapping_evidence_ref": null
+    },
+    {
+      "mapping_id": "MAP-U-001-BOUNDARY",
+      "solver_entity_id": null,
+      "solver_entity_kind": "junction",
+      "service_node_id": "BOUNDARY-U-001-WATER",
+      "service_edge_id": null,
+      "resource_id": "R-POTABLE-WATER",
+      "unit_id": "U-001",
+      "mapping_state": "planned",
+      "mapping_evidence_ref": null
+    },
+    {
+      "mapping_id": "MAP-U-002-BOUNDARY",
+      "solver_entity_id": null,
+      "solver_entity_kind": "junction",
+      "service_node_id": "BOUNDARY-U-002-WATER",
+      "service_edge_id": null,
+      "resource_id": "R-POTABLE-WATER",
+      "unit_id": "U-002",
+      "mapping_state": "planned",
+      "mapping_evidence_ref": null
+    },
+    {
+      "mapping_id": "MAP-U-003-BOUNDARY",
+      "solver_entity_id": null,
+      "solver_entity_kind": "junction",
+      "service_node_id": "BOUNDARY-U-003-WATER",
+      "service_edge_id": null,
+      "resource_id": "R-POTABLE-WATER",
+      "unit_id": "U-003",
+      "mapping_state": "planned",
+      "mapping_evidence_ref": null
+    },
+    {
+      "mapping_id": "MAP-U-004-BOUNDARY",
+      "solver_entity_id": null,
+      "solver_entity_kind": "junction",
+      "service_node_id": "BOUNDARY-U-004-WATER",
+      "service_edge_id": null,
+      "resource_id": "R-POTABLE-WATER",
+      "unit_id": "U-004",
+      "mapping_state": "planned",
+      "mapping_evidence_ref": null
+    }
+  ],
+  "result_series": [],
+  "calibration": {
+    "state": "not_assessed",
+    "calibration_dataset_ref": null,
+    "calibration_window_id": null,
+    "validation_dataset_ref": null,
+    "validation_window_id": null,
+    "residual_state": "unknown",
+    "residual_evidence_ref": null
+  },
+  "water_quality": {
+    "model_output_scope": "none",
+    "potable_quality_credit": "none_from_solver_output",
+    "laboratory_samples": []
+  },
+  "warnings": [],
+  "claim_ceiling": "This record establishes only solver run provenance, declared model-to-service-topology mappings, and result-series contract integrity. It does not establish hydraulic correctness, measured service delivery, water quality/potability, pressure adequacy, pump safety, fire-flow adequacy, fairness, affordability, code compliance or physical resilience."
+}

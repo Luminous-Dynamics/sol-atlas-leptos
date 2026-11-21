@@ -1,0 +1,518 @@
+{
+  "schema_version": "multifamily-service-stress-corpus/0.1",
+  "corpus_id": "MF-SERVICE-STRESS-001",
+  "maturity": "authored_manifest_not_executed",
+  "parent_issue": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/844",
+  "base_fixture": "multifamily-service-distribution-synthetic-v0.1.json",
+  "case_count": 16,
+  "executed_cases": 0,
+  "case_split": {
+    "development_cases": [
+      "MF-SVC-001",
+      "MF-SVC-002",
+      "MF-SVC-003",
+      "MF-SVC-004",
+      "MF-SVC-005",
+      "MF-SVC-006",
+      "MF-SVC-007",
+      "MF-SVC-008",
+      "MF-SVC-009",
+      "MF-SVC-010",
+      "MF-SVC-011",
+      "MF-SVC-012",
+      "MF-SVC-013",
+      "MF-SVC-014",
+      "MF-SVC-015",
+      "MF-SVC-016"
+    ],
+    "calibration_cases": [],
+    "sealed_confirmation_cases": [],
+    "note": "All authored scenarios are development cases. No blind, sealed or physically measured confirmation set is claimed."
+  },
+  "cases": [
+    {
+      "case_id": "MF-SVC-001",
+      "scenario_id": "SVC-POS-001",
+      "family": "baseline",
+      "description": "normal declared topology; no delivery measurements",
+      "case_kind": "positive_control",
+      "base_fixture": "multifamily-service-distribution-synthetic-v0.1.json",
+      "events": [
+        {
+          "event_id": "SVC-EV-BASELINE",
+          "event_kind": "baseline",
+          "start_s": 0,
+          "duration_s": 3600,
+          "affected_node_ids": [],
+          "state": "declared_synthetic",
+          "probability": null
+        }
+      ],
+      "expected_disposition": "TOPOLOGY_ONLY_NOT_SERVICE_PASS",
+      "probability": null,
+      "execution_state": "not_executed",
+      "claim_ceiling": "Synthetic event topology only; no real outage frequency, demand, capacity or delivery result."
+    },
+    {
+      "case_id": "MF-SVC-002",
+      "scenario_id": "SVC-WATER-OUTAGE-001",
+      "family": "source_interruption",
+      "description": "municipal water interruption with storage capacity unknown",
+      "case_kind": "adversarial_stress_control",
+      "base_fixture": "multifamily-service-distribution-synthetic-v0.1.json",
+      "events": [
+        {
+          "event_id": "SVC-EV-WATER-OUTAGE",
+          "event_kind": "source_interruption",
+          "start_s": 3600,
+          "duration_s": 7200,
+          "affected_node_ids": [
+            "SRC-MUNICIPAL-WATER-UNQUALIFIED",
+            "STORAGE-POTABLE"
+          ],
+          "state": "declared_synthetic",
+          "probability": null
+        }
+      ],
+      "expected_disposition": "ABSTAIN_UNKNOWN_CAPACITY",
+      "probability": null,
+      "execution_state": "not_executed",
+      "claim_ceiling": "Synthetic event topology only; no real outage frequency, demand, capacity or delivery result."
+    },
+    {
+      "case_id": "MF-SVC-003",
+      "scenario_id": "SVC-PUMP-FAIL-001",
+      "family": "plant_failure",
+      "description": "common water pump failure propagates to both floor zones",
+      "case_kind": "adversarial_stress_control",
+      "base_fixture": "multifamily-service-distribution-synthetic-v0.1.json",
+      "events": [
+        {
+          "event_id": "SVC-EV-PUMP-FAIL",
+          "event_kind": "plant_failure",
+          "start_s": 7200,
+          "duration_s": 3600,
+          "affected_node_ids": [
+            "PLANT-WATER-PUMP",
+            "ZONE-F0-WATER",
+            "ZONE-F1-WATER"
+          ],
+          "state": "declared_synthetic",
+          "probability": null
+        }
+      ],
+      "expected_disposition": "BLOCK_UNIT_SERVICE_PASS",
+      "probability": null,
+      "execution_state": "not_executed",
+      "claim_ceiling": "Synthetic event topology only; no real outage frequency, demand, capacity or delivery result."
+    },
+    {
+      "case_id": "MF-SVC-004",
+      "scenario_id": "SVC-POWER-OUTAGE-001",
+      "family": "power_interruption",
+      "description": "common electrical interruption affects the shared plant boundary",
+      "case_kind": "adversarial_stress_control",
+      "base_fixture": "multifamily-service-distribution-synthetic-v0.1.json",
+      "events": [
+        {
+          "event_id": "SVC-EV-POWER-OUTAGE",
+          "event_kind": "power_interruption",
+          "start_s": 10800,
+          "duration_s": 7200,
+          "affected_node_ids": [
+            "SRC-ELECTRICITY",
+            "METER-BUILDING-ELECTRICITY",
+            "PLANT-WATER-PUMP",
+            "PLANT-HOT-WATER"
+          ],
+          "state": "declared_synthetic",
+          "probability": null
+        }
+      ],
+      "expected_disposition": "BLOCK_UNIT_SERVICE_PASS",
+      "probability": null,
+      "execution_state": "not_executed",
+      "claim_ceiling": "Synthetic event topology only; no real outage frequency, demand, capacity or delivery result."
+    },
+    {
+      "case_id": "MF-SVC-005",
+      "scenario_id": "SVC-F0-RISER-001",
+      "family": "riser_isolation",
+      "description": "floor zero riser isolated; apartment boundaries U-001 and U-002 affected",
+      "case_kind": "adversarial_stress_control",
+      "base_fixture": "multifamily-service-distribution-synthetic-v0.1.json",
+      "events": [
+        {
+          "event_id": "SVC-EV-F0-RISER",
+          "event_kind": "riser_isolation",
+          "start_s": 14400,
+          "duration_s": 3600,
+          "affected_node_ids": [
+            "RISER-F0-WATER",
+            "BOUNDARY-U-001-WATER",
+            "BOUNDARY-U-002-WATER"
+          ],
+          "state": "declared_synthetic",
+          "probability": null
+        }
+      ],
+      "expected_disposition": "PER_UNIT_TRAJECTORY_REQUIRED",
+      "probability": null,
+      "execution_state": "not_executed",
+      "claim_ceiling": "Synthetic event topology only; no real outage frequency, demand, capacity or delivery result."
+    },
+    {
+      "case_id": "MF-SVC-006",
+      "scenario_id": "SVC-F1-MAINT-001",
+      "family": "maintenance_isolation",
+      "description": "floor one riser isolated for maintenance",
+      "case_kind": "adversarial_stress_control",
+      "base_fixture": "multifamily-service-distribution-synthetic-v0.1.json",
+      "events": [
+        {
+          "event_id": "SVC-EV-F1-MAINT",
+          "event_kind": "maintenance_isolation",
+          "start_s": 18000,
+          "duration_s": 3600,
+          "affected_node_ids": [
+            "RISER-F1-WATER",
+            "BOUNDARY-U-003-WATER",
+            "BOUNDARY-U-004-WATER"
+          ],
+          "state": "declared_synthetic",
+          "probability": null
+        }
+      ],
+      "expected_disposition": "PER_UNIT_TRAJECTORY_REQUIRED",
+      "probability": null,
+      "execution_state": "not_executed",
+      "claim_ceiling": "Synthetic event topology only; no real outage frequency, demand, capacity or delivery result."
+    },
+    {
+      "case_id": "MF-SVC-007",
+      "scenario_id": "SVC-QUALITY-WITHDRAW-001",
+      "family": "quality_evidence_withdrawal",
+      "description": "potable quality evidence withdrawn; no quality-qualified delivery credit",
+      "case_kind": "adversarial_stress_control",
+      "base_fixture": "multifamily-service-distribution-synthetic-v0.1.json",
+      "events": [
+        {
+          "event_id": "SVC-EV-QUALITY-WITHDRAW",
+          "event_kind": "quality_evidence_withdrawal",
+          "start_s": 21600,
+          "duration_s": null,
+          "affected_node_ids": [
+            "SRC-MUNICIPAL-WATER-UNQUALIFIED",
+            "STORAGE-POTABLE"
+          ],
+          "state": "declared_synthetic",
+          "probability": null
+        }
+      ],
+      "expected_disposition": "BLOCK_QUALITY_CREDIT",
+      "probability": null,
+      "execution_state": "not_executed",
+      "claim_ceiling": "Synthetic event topology only; no real outage frequency, demand, capacity or delivery result."
+    },
+    {
+      "case_id": "MF-SVC-008",
+      "scenario_id": "SVC-RESERVE-UNKNOWN-001",
+      "family": "reserve_exhaustion",
+      "description": "declared reserve scenario while storage volume and unit demand remain unknown",
+      "case_kind": "adversarial_stress_control",
+      "base_fixture": "multifamily-service-distribution-synthetic-v0.1.json",
+      "events": [
+        {
+          "event_id": "SVC-EV-RESERVE-UNKNOWN",
+          "event_kind": "reserve_exhaustion",
+          "start_s": 25200,
+          "duration_s": null,
+          "affected_node_ids": [
+            "STORAGE-POTABLE",
+            "BOUNDARY-U-001-WATER",
+            "BOUNDARY-U-002-WATER",
+            "BOUNDARY-U-003-WATER",
+            "BOUNDARY-U-004-WATER"
+          ],
+          "state": "declared_synthetic",
+          "probability": null
+        }
+      ],
+      "expected_disposition": "ABSTAIN_UNKNOWN_CAPACITY",
+      "probability": null,
+      "execution_state": "not_executed",
+      "claim_ceiling": "Synthetic event topology only; no real outage frequency, demand, capacity or delivery result."
+    },
+    {
+      "case_id": "MF-SVC-009",
+      "scenario_id": "SVC-ALLOCATION-CHANGE-001",
+      "family": "allocation_policy_change",
+      "description": "allocation policy changes under scarcity without authority/rules evidence",
+      "case_kind": "adversarial_stress_control",
+      "base_fixture": "multifamily-service-distribution-synthetic-v0.1.json",
+      "events": [
+        {
+          "event_id": "SVC-EV-ALLOCATION-CHANGE",
+          "event_kind": "allocation_policy_change",
+          "start_s": 28800,
+          "duration_s": null,
+          "affected_node_ids": [
+            "BOUNDARY-U-001-WATER",
+            "BOUNDARY-U-002-WATER",
+            "BOUNDARY-U-003-WATER",
+            "BOUNDARY-U-004-WATER"
+          ],
+          "state": "declared_synthetic",
+          "probability": null
+        }
+      ],
+      "expected_disposition": "BLOCK_UNAUTHORIZED_ALLOCATION",
+      "probability": null,
+      "execution_state": "not_executed",
+      "claim_ceiling": "Synthetic event topology only; no real outage frequency, demand, capacity or delivery result."
+    },
+    {
+      "case_id": "MF-SVC-010",
+      "scenario_id": "SVC-COMPOUND-OUTAGE-001",
+      "family": "compound_failure",
+      "description": "municipal water and electrical supply interrupted on the same trace",
+      "case_kind": "adversarial_stress_control",
+      "base_fixture": "multifamily-service-distribution-synthetic-v0.1.json",
+      "events": [
+        {
+          "event_id": "SVC-EV-COMPOUND-WATER",
+          "event_kind": "source_interruption",
+          "start_s": 32400,
+          "duration_s": 7200,
+          "affected_node_ids": [
+            "SRC-MUNICIPAL-WATER-UNQUALIFIED",
+            "STORAGE-POTABLE"
+          ],
+          "state": "declared_synthetic",
+          "probability": null
+        },
+        {
+          "event_id": "SVC-EV-COMPOUND-POWER",
+          "event_kind": "power_interruption",
+          "start_s": 32400,
+          "duration_s": 7200,
+          "affected_node_ids": [
+            "SRC-ELECTRICITY",
+            "METER-BUILDING-ELECTRICITY",
+            "PLANT-WATER-PUMP",
+            "PLANT-HOT-WATER"
+          ],
+          "state": "declared_synthetic",
+          "probability": null
+        }
+      ],
+      "expected_disposition": "BLOCK_INDEPENDENCE_ASSUMPTION",
+      "probability": null,
+      "execution_state": "not_executed",
+      "claim_ceiling": "Synthetic event topology only; no real outage frequency, demand, capacity or delivery result."
+    },
+    {
+      "case_id": "MF-SVC-011",
+      "scenario_id": "SVC-COMMS-FAIL-001",
+      "family": "communications_failure",
+      "description": "optional control gateway unavailable; physical dependency remains unknown",
+      "case_kind": "adversarial_stress_control",
+      "base_fixture": "multifamily-service-distribution-synthetic-v0.1.json",
+      "events": [
+        {
+          "event_id": "SVC-EV-COMMS-FAIL",
+          "event_kind": "communications_failure",
+          "start_s": 36000,
+          "duration_s": 1800,
+          "affected_node_ids": [
+            "GATEWAY-OPTIONAL-CONTROL"
+          ],
+          "state": "declared_synthetic",
+          "probability": null
+        }
+      ],
+      "expected_disposition": "DEPENDENCY_UNKNOWN_NOT_SERVICE_PASS",
+      "probability": null,
+      "execution_state": "not_executed",
+      "claim_ceiling": "Synthetic event topology only; no real outage frequency, demand, capacity or delivery result."
+    },
+    {
+      "case_id": "MF-SVC-012",
+      "scenario_id": "SVC-PUMP-REPAIR-DELAY-001",
+      "family": "repair_delay",
+      "description": "pump failure followed by unknown spare-part/repair delay",
+      "case_kind": "adversarial_stress_control",
+      "base_fixture": "multifamily-service-distribution-synthetic-v0.1.json",
+      "events": [
+        {
+          "event_id": "SVC-EV-PUMP-REPAIR-FAIL",
+          "event_kind": "plant_failure",
+          "start_s": 37800,
+          "duration_s": 1800,
+          "affected_node_ids": [
+            "PLANT-WATER-PUMP"
+          ],
+          "state": "declared_synthetic",
+          "probability": null
+        },
+        {
+          "event_id": "SVC-EV-PUMP-REPAIR-DELAY",
+          "event_kind": "repair_delay",
+          "start_s": 39600,
+          "duration_s": null,
+          "affected_node_ids": [
+            "PLANT-WATER-PUMP"
+          ],
+          "state": "declared_synthetic",
+          "probability": null
+        }
+      ],
+      "expected_disposition": "BLOCK_STABLE_RECOVERY_CLAIM",
+      "probability": null,
+      "execution_state": "not_executed",
+      "claim_ceiling": "Synthetic event topology only; no real outage frequency, demand, capacity or delivery result."
+    },
+    {
+      "case_id": "MF-SVC-013",
+      "scenario_id": "SVC-RECOVERY-RECURRENCE-001",
+      "family": "recovery",
+      "description": "water service restored, then interrupted again before stable recovery",
+      "case_kind": "adversarial_stress_control",
+      "base_fixture": "multifamily-service-distribution-synthetic-v0.1.json",
+      "events": [
+        {
+          "event_id": "SVC-EV-RECOVERY-START",
+          "event_kind": "recovery",
+          "start_s": 43200,
+          "duration_s": 900,
+          "affected_node_ids": [
+            "SRC-MUNICIPAL-WATER-UNQUALIFIED",
+            "STORAGE-POTABLE"
+          ],
+          "state": "declared_synthetic",
+          "probability": null
+        },
+        {
+          "event_id": "SVC-EV-RECOVERY-RECUR",
+          "event_kind": "source_interruption",
+          "start_s": 44100,
+          "duration_s": 3600,
+          "affected_node_ids": [
+            "SRC-MUNICIPAL-WATER-UNQUALIFIED",
+            "STORAGE-POTABLE"
+          ],
+          "state": "declared_synthetic",
+          "probability": null
+        }
+      ],
+      "expected_disposition": "BLOCK_STABLE_RECOVERY_CLAIM",
+      "probability": null,
+      "execution_state": "not_executed",
+      "claim_ceiling": "Synthetic event topology only; no real outage frequency, demand, capacity or delivery result."
+    },
+    {
+      "case_id": "MF-SVC-014",
+      "scenario_id": "SVC-NONPOTABLE-QUALITY-001",
+      "family": "quality_evidence_withdrawal",
+      "description": "non-potable source identity exists but no treatment or unit-use path is qualified",
+      "case_kind": "adversarial_stress_control",
+      "base_fixture": "multifamily-service-distribution-synthetic-v0.1.json",
+      "events": [
+        {
+          "event_id": "SVC-EV-NONPOTABLE-QUALITY",
+          "event_kind": "quality_evidence_withdrawal",
+          "start_s": 47700,
+          "duration_s": null,
+          "affected_node_ids": [
+            "SRC-NONPOTABLE-UNQUALIFIED"
+          ],
+          "state": "declared_synthetic",
+          "probability": null
+        }
+      ],
+      "expected_disposition": "BLOCK_POTABLE_OR_NONPOTABLE_QUALITY_CREDIT",
+      "probability": null,
+      "execution_state": "not_executed",
+      "claim_ceiling": "Synthetic event topology only; no real outage frequency, demand, capacity or delivery result."
+    },
+    {
+      "case_id": "MF-SVC-015",
+      "scenario_id": "SVC-ALL-RISERS-ISOLATED-001",
+      "family": "maintenance_isolation",
+      "description": "both floor risers isolated in a declared maintenance stress case",
+      "case_kind": "adversarial_stress_control",
+      "base_fixture": "multifamily-service-distribution-synthetic-v0.1.json",
+      "events": [
+        {
+          "event_id": "SVC-EV-MAINT-F0",
+          "event_kind": "maintenance_isolation",
+          "start_s": 51300,
+          "duration_s": 3600,
+          "affected_node_ids": [
+            "RISER-F0-WATER",
+            "BOUNDARY-U-001-WATER",
+            "BOUNDARY-U-002-WATER"
+          ],
+          "state": "declared_synthetic",
+          "probability": null
+        },
+        {
+          "event_id": "SVC-EV-MAINT-F1",
+          "event_kind": "maintenance_isolation",
+          "start_s": 51300,
+          "duration_s": 3600,
+          "affected_node_ids": [
+            "RISER-F1-WATER",
+            "BOUNDARY-U-003-WATER",
+            "BOUNDARY-U-004-WATER"
+          ],
+          "state": "declared_synthetic",
+          "probability": null
+        }
+      ],
+      "expected_disposition": "PER_UNIT_TRAJECTORY_REQUIRED",
+      "probability": null,
+      "execution_state": "not_executed",
+      "claim_ceiling": "Synthetic event topology only; no real outage frequency, demand, capacity or delivery result."
+    },
+    {
+      "case_id": "MF-SVC-016",
+      "scenario_id": "SVC-HOT-WATER-PLANT-001",
+      "family": "maintenance_isolation",
+      "description": "hot-water plant unavailable; useful thermal output remains unknown",
+      "case_kind": "adversarial_stress_control",
+      "base_fixture": "multifamily-service-distribution-synthetic-v0.1.json",
+      "events": [
+        {
+          "event_id": "SVC-EV-HOT-WATER-MAINT",
+          "event_kind": "maintenance_isolation",
+          "start_s": 54900,
+          "duration_s": 7200,
+          "affected_node_ids": [
+            "PLANT-HOT-WATER",
+            "BOUNDARY-U-001-THERMAL",
+            "BOUNDARY-U-002-THERMAL",
+            "BOUNDARY-U-003-THERMAL",
+            "BOUNDARY-U-004-THERMAL"
+          ],
+          "state": "declared_synthetic",
+          "probability": null
+        }
+      ],
+      "expected_disposition": "BLOCK_USEFUL_THERMAL_DELIVERY_PASS",
+      "probability": null,
+      "execution_state": "not_executed",
+      "claim_ceiling": "Synthetic event topology only; no real outage frequency, demand, capacity or delivery result."
+    }
+  ],
+  "scoring_rules": [
+    "No scenario can produce a service PASS from declared topology alone.",
+    "Unknown demand, capacity, quality, meter status, allocation authority or repair time remains UNKNOWN or BLOCKED from positive promotion.",
+    "Every event uses a shared deterministic synthetic time axis; probabilities remain null.",
+    "Per-unit boundary outcomes are separate; a building-average cannot conceal a unit-level service-floor breach.",
+    "Resource conservation cannot be marked reconciled without measured quantities, declared losses/storage change and an exact observation window.",
+    "Electrical and useful thermal carriers remain distinct.",
+    "Manifest authorship is not execution evidence."
+  ],
+  "claim_ceiling": "This manifest defines synthetic event scenarios and expected conservative dispositions only. It has not been executed by a simulator, Rust qualifier, independent meter, professional or physical building."
+}

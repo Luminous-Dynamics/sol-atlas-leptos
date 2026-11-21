@@ -1,0 +1,519 @@
+# Multi-family Housing Benchmark v0.1
+
+**Status:** synthetic-first benchmark protocol; no real apartment design or building performance is qualified.
+**Parent:** [HOME-MULTIFAMILY-COMPILER-001 #840](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/840).
+**Initial candidate:** `SYN-MF-COURTYARD-004`, a two-floor / four-unit synthetic building-level geometry fixture.
+
+## 1. Research thesis
+
+The objective is not to maximize dwelling count or produce more apartment renders. It is to improve **qualified resident outcomes per site, per lifecycle rand, and per unit of public infrastructure** without concealing the distribution of outcomes between apartments.
+
+The decision object is nested:
+
+`resident / household -> apartment -> floor -> building -> block / neighbourhood -> city services`
+
+Every level must expose its own requirements, assets, ownership, maintenance, resource constraints, service trajectories and failure modes. A building-average result cannot compensate for a unit that fails a resident's hard requirement or essential service floor.
+
+## 2. Johannesburg planning context
+
+The City of Johannesburg's council-approved Spatial Development Framework 2040 (2024) supports a compact, polycentric city, mixed land use, infill and redevelopment, and proximity to jobs, public transport, social facilities and bulk infrastructure. It also explicitly states that densification alone does not make neighbourhoods liveable or sustainable.
+
+Primary sources:
+- City of Johannesburg SDF 2040: https://joburg.org.za/documents_/Documents/Johannesburg-Spatial-Development-Framework-2040.pdf
+- City SDF page: https://joburg.org.za/documents_/Pages/Spatial-Development-Framework-2040.aspx
+- UN-Habitat project description: https://unhabitat.org/spatial-development-framework-2040-city-of-johannesburg-metropolitan-municipality
+
+The SDF is strategic planning context, not a parcel-specific development entitlement. Each actual site still requires exact zoning/land-use, building-line, height/FAR/coverage, title/servitude, environmental/heritage, bulk-service and authority review. No SDF density guideline should be hard-coded as a universal maximum, minimum or permission.
+
+JOSHCO's published portfolio spans social/rental housing, greenfield and brownfield development, hostel redevelopment, inner-city conversions/refurbishment, communal/transitional housing and student accommodation. This is a useful local delivery and operating comparator; portfolio scale does not establish that one typology is suitable for every site or household.
+- https://www.joshco.co.za/about-joshco/who-we-are/
+
+## 3. Current industry baseline
+
+The comparison must be specific and fair about product capability and maturity.
+
+| Comparator | Publicly described capability | What it does not establish by itself |
+|---|---|---|
+| Autodesk Forma Building Layout Explorer / Building Design | The experimental Layout Explorer generates multifamily floor-plan options from massing; Forma Building Design also supports floor-plan/facade editing, unit-mix/area metrics and integrated sun-hours, daylight-potential and embodied-carbon analysis. | Layout Explorer is an early workflow, not a compliance authority. Performance indicators do not by themselves establish resident acceptance, project entitlement, construction release, as-built results or in-use service performance. |
+| TestFit Site Planning / Site Solver | Multifamily and mixed-use site planning, unit mix, parking, setbacks, zoning/site constraints, feasibility metrics and Revit/CAD-style hand-off. | Exact current South African legal applicability, physical performance, professionally approved design or final cost certainty. |
+| Finch | Residential/high-rise layout exploration, firm standards and plan libraries, unit distribution, BIM geometry and interoperability claims. | Independent validation of generated outputs, local project compliance, physical acceptance or resident outcomes. |
+| Revit / Archicad + specialist tools | Detailed authoring and coordinated engineering workflows, subject to the selected toolchain and professional team. | Automatic preservation of every resident preference, cross-system evidence freshness or independently measured lifecycle outcome. |
+| Human-led integrated architecture/engineering/QS | Professional judgment and context-specific coordination. | Zero omissions, low revision burden, transparent evidence dependency or reproducible performance without a measured process baseline. |
+| Classical constraint / Pareto optimisers | Deterministic constraints, repeatable option search, transparent objectives and baselines. | Correct requirements, model assumptions, professional validity or source evidence unless explicitly supplied. |
+
+Public product sources:
+- Autodesk AU 2026: https://blogs.autodesk.com/forma/2026/10/14/what-autodesk-forma-announced-au-2026/
+- Forma Building Design capabilities: https://www.autodesk.com/products/forma-building-design/overview
+- TestFit Site Planning AI: https://www.testfit.io/product/site-planning-ai
+- TestFit Site Solver: https://www.testfit.io/product/site-solver
+- Finch product: https://www.finch3d.com/product
+
+The test should compare equivalent deliverables, not a Luminous model against a commercial screenshot or a commercial feasibility diagram against a professionally reviewed BIM package.
+
+## 4. Research evidence that changes the benchmark
+
+### Daylight, view and privacy are distinct
+
+A July 2026 *Building and Environment* study assessed 10,420 rooms across 35 New York apartment properties. It reports that view quality and daylight are affected by density, while visual privacy behaved largely independently of view in that dataset; the reported correlation between privacy and view was low. Its proposed resident-centric metrics and numerical thresholds are New York-specific and must not be treated as South African standards.
+
+- Kim et al. (15 July 2026), DOI 10.1016/j.buildenv.2026.114680: https://www.sciencedirect.com/science/article/pii/S0360132326004853
+- SimBuild 2026 in-situ metric-validation study: https://publications.ibpsa.org/conference/paper/?id=simbuild2026_1363
+
+Design implication: keep daylight, glare, view and privacy as separate outcome vectors. Evaluate every occupied room/unit and report distribution and lower-tail results.
+
+### High-rise water distribution is its own engineering problem
+
+A review available online 27 October 2026 synthesizes 53 studies of water supply/distribution systems in high-rise residential buildings and identifies modelling, optimization and evidence gaps. It supports dedicated pressure, pumping, storage, energy, demand and outage analysis—not a generic building-water placeholder.
+
+- Zhang et al. (2026), DOI 10.1016/j.jobe.2026.117679: https://www.sciencedirect.com/science/article/pii/S2352710226025015
+
+Design implication: household water continuity must be assessed at actual delivery boundaries and by floor/pressure zone. A building-level tank volume does not establish delivered service.
+
+### Thermal resilience is temporal
+
+A June 2026 review argues that residential thermal resilience under climatic extremes and power outages must be treated as a time-dependent process rather than a single annual-energy number.
+
+- Gortych et al. (25 June 2026), DOI 10.3390/en19133006: https://www.mdpi.com/1996-1073/19/13/3006
+
+Design implication: compare indoor-temperature/service trajectories, recovery and loss of service under matched heat/outage scenarios; do not infer resilience from annual energy or modelled peak efficiency alone.
+
+### Fire resilience remains a non-compensatory gate
+
+Recent high-rise fire-resilience research emphasizes lifecycle management and interactions among facade systems, vertical pathways, governance, maintenance and emergency response. A visually connected route graph is nowhere near an evacuation or fire-safety assessment.
+
+- Tang et al. (15 July 2026), DOI 10.1016/j.jobe.2026.117080: https://www.sciencedirect.com/science/article/pii/S2352710226019029
+- Dong & Shi (13 April 2026), *Nature Cities*: https://www.nature.com/articles/s44284-026-00430-2
+
+Design implication: fire strategy, compartmentation, escape, smoke control, facade performance, maintenance and responsible authority review remain separate specialist evidence gates.
+
+## 5. Typology comparison set
+
+At least six families should be represented, with a repair/retrofit and no-build option retained:
+
+1. Walk-up / low-rise courtyard.
+2. Mid-rise courtyard / perimeter block.
+3. Slab.
+4. Point tower.
+5. Mixed-use transit/economic-node block.
+6. Adaptive reuse / conversion.
+
+Each is a candidate family, not a preferred solution. A site may justify one, several or none. Unit mix and height are not sufficient to describe a design: floor plate, access core, unit orientation, facade exposure, common spaces, vertical services, plant, loading/waste and maintenance logistics matter.
+
+## 6. v0.1 synthetic fixture and claim ceiling
+
+Artifacts:
+- `multifamily-building.schema.json`
+- `multifamily-building-synthetic-v0.1.json`
+- `multifamily-adversarial-corpus-v0.1.json` (47 authored cases: one positive control and 46 adversarial development controls; none are sealed or executed).
+
+The first fixture describes a synthetic two-floor, four-unit building with floor-local integer-millimetre rectangles, corridors, a stair, a lift, shared courtyard/terrace spaces, declared everyday portals and vertical links. Each floor envelope is fully accounted for by declared synthetic spaces in the baseline fixture; the adversarial corpus separately tests unallocated floor regions.
+
+P0 does not model internal apartment rooms, wall thickness, structure, shafts, detailed doors/windows, parking, site setbacks, multiple blocks, fire compartments or specialist engineering. Its connections are for everyday/shared/service topology, **never emergency egress**. A lift identity is not step-free qualification. A stair identity is not an evacuation strategy.
+
+Independent fixture replay checks:
+- JSON parse and local schema-reference resolution;
+- exact unit/space/floor identities;
+- per-floor rectangle containment and positive-area overlap;
+- portal segments against shared room boundaries;
+- declared vertical-core/floor identity;
+- explicit UNKNOWN service topology/capacity and NOT_ASSESSED specialist registers.
+
+These are fixture-integrity checks, not a full JSON Schema validator, Rust implementation run, architectural review or physical result.
+
+## 7. Benchmark dimensions
+
+Report separate vectors. Do not collapse these into one ranking.
+
+### Urban / site
+- dwellings and resident-defined capacity per net/gross hectare;
+- floor-area ratio, site coverage, open-space allocation and public/private/shared realm;
+- access to jobs, public transport, schools, health, food and daily services;
+- bulk water, electricity, wastewater, stormwater, road, fire-service and waste capacity, each source-qualified;
+- land acquisition, remediation, site preparation and infrastructure contribution.
+
+### Apartment and building quality
+- unit area and clear dimensions against exact resident-authored requirements;
+- daylight/glare, view, visual privacy, airborne/impact acoustics and thermal exposure by occupied room;
+- per-unit storage, laundry, cooking, work/care, mobility equipment and outdoor-space satisfaction;
+- vertical circulation availability, step-free route evidence and lift/stair outage trajectories;
+- maintenance access, replacement path, deliveries, waste and emergency service access.
+
+### Service resilience
+- water litres at actual fixture/service boundary by source/use class, pressure, outage minutes, reserve estimation error and recovery;
+- electricity availability/quality, kWh, peak kW, critical-load coverage and outage minutes;
+- useful hot-water/thermal service delivered, unmet demand, recovery, losses and safe fallback;
+- ventilation flow, pollutant-specific occupied-zone endpoints, humidity, noise, filter loading and maintenance;
+- per-unit essential-service breach minutes; report median, worst-decile and worst-unit, not only building average.
+
+### Cost and equity
+- monthly total housing cost per unit: rent/finance, levies/service charge, utilities, maintenance reserve, insurance and transport;
+- lifecycle cost and replacement/repair exposure;
+- cost distribution by unit/tenure and declared affordability cohorts where lawful and privacy-preserving;
+- daylight, acoustic, privacy, access and service outcome distributions by unit, floor and orientation;
+- shared-amenity access, usage, governance, hours, operating cost and whether any essential private service is being replaced.
+
+### Construction and lifecycle
+- whole-workflow installed cost and schedule;
+- design/factory/site labour, setup, yield, scrap, transport/lift, weather downtime, inspection and rework;
+- first-time-right and tolerance/nonconformance;
+- as-built deviation and service commissioning completeness;
+- adaptation/repair/replace/disassembly time and cost;
+- embodied and operational carbon/water under explicit lifecycle scope.
+
+## 8. Hard gates
+
+- 100% exact unit/space/floor identity and fixture geometry parity.
+- Zero false-positive geometry passes in frozen adversarial controls.
+- 100% non-negotiable resident requirements traced to the affected unit and evidence owner.
+- Zero unit-level hard failures concealed by building averages or premium-unit gains.
+- Zero geometry, topology or IDS checks promoted to fire, accessibility, structure, planning, daylight, acoustic, thermal, utility-capacity or occupancy approval.
+- Zero stale PASS after relevant unit/core/floor/envelope/utility/product/site/rule revisions.
+- 100% shared resource conservation and explicit service-boundary accounting.
+- No service capacity, cost, transport access or site entitlement filled with assumed defaults.
+- No apartment layout selected solely because it maximizes unit count, parking or saleable area.
+
+## 9. Research targets and improvement hypotheses
+
+Targets below are **proposed experiments**, not standards or achieved performance. Freeze them only after pilot variance, comparator capability and assessor agreement are measured.
+
+- **Intent / correctness:** 100% preservation of non-negotiables; zero unsupported requirement inference.
+- **Search productivity:** target at least 20% more professionally reviewable non-dominated options per fixed expert-hour than the best matched baseline, without reducing defect recall or increasing false passes.
+- **Revision productivity:** target at least 25% lower professional re-review effort for a fixed suite of benign and consequential changes, with zero stale relevant PASS results.
+- **Cost-of-place:** test whether an option can reduce total monthly/lifecycle housing cost by at least 10% at matched resident requirements, service floors, location/access and quality. If the matched feasibility set cannot support this, publish the frontier rather than forcing the target.
+- **Resilience:** test whether a design can reduce essential-service breach minutes by at least 20% under matched water/power/heat/outage scenarios without transferring shortages to other households or neighbours.
+- **Manufacturing:** test whether DfMA reduces installed rework and schedule variance while retaining unit-level acoustic/fire/moisture/thermal interfaces. No universal prefabrication savings percentage is assumed.
+
+All numeric hypotheses are subject to preregistration, sufficient independent samples and confidence/uncertainty reporting. Hard safety/rights/quality gates cannot be traded for speed, cost or yield.
+
+## 10. Matched comparison protocol
+
+Every method receives the same:
+- resident brief and non-negotiables;
+- surveyed site, parcel envelope and actual jurisdiction/rule edition;
+- unit mix / household programme and common-space requirements;
+- weather, climate and surrounding-building context;
+- utility and transport capacity evidence;
+- budget/cost boundaries, material supply assumptions and delivery method options;
+- output requirements and professional review scope.
+
+Pin software version, license/feature access, locale, libraries, prompt/settings, scripts, hardware, human time, compute, model versions and export configuration. Keep sealed tasks and blind professional review out of development/tuning.
+
+Comparators:
+1. Conventional integrated architect / engineer / quantity-surveyor team.
+2. Best-of-breed commercial tools: Forma, TestFit, Finch and Revit/Archicad where equivalent functions are available.
+3. Classical CP-SAT/MILP/constraint-based search and Pareto optimizers.
+4. Repair/retrofit/adaptive reuse and no-build alternatives.
+5. Luminous's own evidence-carrying workflow.
+
+Report candidate options, time, review effort, requirement loss, independent defect recall/false blocks, IFC semantic loss, cost completeness and post-occupancy performance. Publish all failed attempts and exclusions.
+
+## 11. Standards and authority boundaries
+
+Use IFC 4.3.2.0 / ISO 16739-1:2024 for open built-asset exchange and IDS 1.0 for information requirements. IDS is limited to alphanumeric IFC information checks; it does not carry out the advanced geometric/physics/safety assessment.
+
+- IFC: https://www.buildingsmart.org/standards/bsi-standards/industry-foundation-classes/
+- IDS: https://www.buildingsmart.org/standards/bsi-standards/information-delivery-specification-ids/
+
+Real project rules must be pinned to the exact applicable jurisdiction, edition, effective date, authority and use case. Professional fire, structural, geotechnical, building-services, accessibility, acoustic and environmental review remain separate. No benchmark score or software receipt is a permit.
+
+## 12. Execution sequence
+
+1. Stabilize the current single-home geometry PR #831 at its exact head.
+2. Extend #833 / #832 to resident-authored unit programmes and whole-building evidence invalidation.
+3. Implement a Rust multi-family contract qualifier and independent known-answer/adversarial corpus.
+4. Add room-level geometry only after the building/floor/unit identity and topology contracts stabilize.
+5. Add specialist result adapters for daylight/view/privacy, acoustics, thermal/ventilation, fire/accessibility, structural/foundation and utility performance.
+6. Add IFC/IDS round-trip and semantic-loss receipts.
+7. Compose #803/#814 DfMA delivery and #837 appliance/service interfaces for both private units and shared building systems.
+8. Run matched commercial / human / classical-optimiser trials and blind professional review.
+9. Progress to one surveyed and permissioned project only after independent review, controlled standards, service-capacity evidence and a competent delivery team.
+
+## 13. Claim ceiling
+
+This protocol, the schema and synthetic fixture do not establish a real site's development rights, infrastructure capacity, geotechnical conditions, structural or fire safety, accessibility, daylight/view/privacy/acoustic/thermal performance, product safety, affordability, resident satisfaction, cost savings, buildability or occupancy. No construction or operational action is authorized.
+
+
+## 14. Updated industry, interoperability and South African evidence scan
+
+This section records a dated capability scan, not independent verification of vendor performance.
+
+### Commercial design baselines (14 November 2026)
+
+**Autodesk Forma Building Layout Explorer** (announced 2 June 2026) is an experimental generative AI workflow for generating multifamily floor-plan options from a massing model. Autodesk describes it as exploratory and invites users to co-develop it; this is an important early-stage option-generation baseline, not a finished compliance or delivery authority:
+- https://adsknews.autodesk.com/en/news/building-layout-explorer-in-autodesk-forma
+
+**TestFit Site Solver / Multi-Family** publicly describes:
+- parcel/site definition, mixed-use and 3D context;
+- zoning profile parameters such as FAR, dwelling-unit density and parking ratio;
+- topography and US-specific data integrations (ESRI flood/wetlands and SSURGO soil/water-table/bedrock/slope);
+- unit mix, amenity, setbacks, egress/core inputs, automatic unit takeoffs, conceptual cost modelling, scheme comparison and Revit / DXF / CSV / SketchUp exchange.
+Sources:
+- https://www.testfit.io/product/site-solver
+- https://www.testfit.io/typologies/multi-family
+
+These are meaningful feasibility capabilities. US parcel, zoning, soil and cost integrations must not be treated as available or applicable for a Johannesburg site. Vendor-published speed, deal-volume or iteration claims remain marketing claims until matched experiments reproduce them.
+
+**Finch** publicly describes:
+- encoded firm standards and plan libraries;
+- multi-family and high-rise unit distribution and floor-plan generation;
+- vertical alignment, area/feasibility metrics, BIM geometry, and exchanges with Rhino, Revit, Grasshopper and Forma;
+- region/local-code and accessibility-aware plan libraries, with feature availability varying by subscription/customer tier.
+Sources:
+- https://www.finch3d.com/product
+- https://www.finch3d.com/
+
+The benchmark must record actual account entitlement, product version, region, setup, libraries, code pack and available export path. Do not benchmark a feature that the test account cannot actually use.
+
+### Open exchange: a 2026 IDS implementation challenge
+
+buildingSMART's 2026 IDS survey reports 186 completed responses; 58% of respondents had used IDS on real projects, and users raised concerns about documentation quality and differing checking results across tools. The same source describes IDS 1.0 as focused on alphanumeric IFC information and not geometric verification:
+- https://www.buildingsmart.org/ids-survey-results-2026/
+- https://www.buildingsmart.org/standards/bsi-standards/information-delivery-specification-ids/
+
+This creates a concrete interoperability benchmark lane:
+1. Freeze a small IFC 4.3.2.0 test model and IDS 1.0 requirement set.
+2. Execute it in at least two independent IDS checking implementations where available.
+3. Compare object selection, property, classification and relationship outcomes.
+4. Record checker version, IDS/IFC versions, warnings, unsupported constructs and semantic loss.
+5. Separately test geometry, space identity, boundaries and portal connectivity with a geometric oracle; never attribute those checks to IDS.
+6. Report result parity and disagreements at rule level rather than collapsing to one pass percentage.
+
+### Local regulatory and planning context
+
+The City of Johannesburg SDF 2040 gives strategic compact-city indicators including at least 15,000 people/km² and a jobs-density target of at least 7,500 jobs/km², while explicitly linking density to mixed use and accessibility and cautioning that densification alone does not ensure liveability. These are strategic planning indicators, not zoning rights or a parcel approval:
+- https://joburg.org.za/documents_/Documents/Johannesburg-Spatial-Development-Framework-2040.pdf
+
+South Africa's October 2026 government gazette describes mandatory building energy codes under Part XA of the National Building Regulations, supported by SANS 10400-XA:2021, and says the requirements apply to most building classes including homes. The exact applicable building classification, controlled standard edition, local authority process and project-specific route must still be established for a real project:
+- https://www.gov.za/sites/default/files/gcis_document/202610/55638gen4221.pdf
+
+Use this as a jurisdiction-adapter requirement, not as a substitute for controlled SANS texts or a competent energy professional. Do not infer compliance from a simulation or geometry result.
+
+### Whole-life cost and offsite evidence
+
+ISO 15686-5:2017 remains the current confirmed international standard for building/constructed-asset life-cycle costing; it requires a declared analysis period and scope across relevant acquisition, operation and disposal cash flows:
+- https://www.iso.org/standard/61148.html
+
+A 2026 systematic review of industrialised housing reports broad, heterogeneous examples: commonly cited schedule reductions of 25–60%, while cost outcomes range from savings to substantial increases depending on factory utilisation, transport/cranage, procurement, supply-chain capacity, interface rework and other conditions. It is not a universal forecast or a matched South African apartment result:
+- https://www.mdpi.com/2075-5309/16/3/552
+
+Therefore, the manufacturing benchmark must measure the all-in delivered apartment/building outcome, including factory setup and utilisation, component yield, packaging, storage, transport, cranage, site access, installation, commissioning, QA, defects, repair and financing/carrying costs. Compare against a matched conventional baseline and report the distribution, not just a point estimate.
+
+### Existing Luminous owners to compose (do not duplicate)
+
+- [#617 — 2026 AEC industry comparison](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/617): product capability/version matrix, matched commercial and human-led workflows, IFC/IDS exchange and expert review.
+- [#816 — Cost of Place](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/816): whole-household cost, service readiness, finance, transport and lifecycle affordability.
+- [#752 — Thermal Service Refuge](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/752): heat/power/water stress trajectories and accessible refuge network.
+- [Symtropy #1848 — Spatial Resilience](https://github.com/Luminous-Dynamics/symtropy/issues/1848): time-varying habitability and essential-service trajectories under matched stress traces.
+- [#819 — Home Freedom 100-case corpus](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/819): household × site evidence dispositions.
+- [#338 — IBAP run manifest](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/338): pre-registered run conditions and execution/evaluation separation.
+
+The apartment benchmark should provide adapters and exact scope mappings into these owners. The apartment programme must not fork their cost model, service-trajectory kernel, industry comparison or benchmark registration protocol.
+
+## 15. Executable multi-family qualifier
+
+The first Rust qualifier is `src/bin/home-multifamily-qualifier.rs`, with focused CI in `.github/workflows/home-multifamily-qualifier.yml`.
+
+P0 checks:
+- integer-mm coordinate and positive rectangle semantics;
+- building/floor envelope containment;
+- exact floor partition (declared rectangle area equals envelope area, with zero pairwise positive-area overlaps);
+- unique floor, space, unit, connection, core and service identities;
+- exact dwelling-unit / unit-programme mapping;
+- everyday portal segments located on a shared boundary and within its common span;
+- vertical core floor/space and vertical-link identity;
+- shared-service references only to declared units;
+- case-manifest identity, development-split integrity and the explicit unexecuted/sealed-set claim boundary.
+
+The qualifier consumes the synthetic fixture and the 47-case authored manifest. It does not execute all 46 adversarial mutations yet; its unit tests are the initial executable negative controls. It does not evaluate internal apartment rooms, door swings, wall thickness, egress, accessibility, fire, daylight, view/privacy, acoustics, thermal/ventilation, utility capacity, cost, planning or physical buildability.
+
+The workflow tests the qualifier separately from the existing stacked geometry PR. A queued workflow is not a pass; preserve exact-head run/commit identity in every status update.
+
+
+## 16. Apartment design-to-manufacture and lifecycle interface
+
+The apartment-specific interface to existing DfMA owners is documented in [MULTIFAMILY_DFMA_INTERFACE_V0.1.md](MULTIFAMILY_DFMA_INTERFACE_V0.1.md). It maps party walls/floors, facade/shading cassettes, wet cores, service risers, plant skids, vertical-core components and demountable interior systems to exact design revisions, product evidence, factory capability, transport, lifting, installation, inspection, as-built, repair and replacement records.
+
+The current P0 geometry fixture does not contain internal rooms, wall thickness, real shafts, facade details, exact products or assemblies. Consequently, all assembly takeoffs, BOMs, factory capacity, tolerances, logistics, local supplier availability and installed cost remain `NOT_COMPUTED` or `UNKNOWN`. The interface is not a fabrication release and does not authorize construction.
+
+
+## 17. Per-unit shared service delivery benchmark
+
+The apartment-specific service-distribution contract is owned by [#844](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/844) and is designed to compose:
+- [#752 Thermal Service Refuge](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/752);
+- [#816 Cost of Place](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/816);
+- Symtropy [#1848 Spatial Resilience](https://github.com/Luminous-Dynamics/symtropy/issues/1848), [#1739 Settlement Time](https://github.com/Luminous-Dynamics/symtropy/issues/1739), [#1752 Settlement Policy](https://github.com/Luminous-Dynamics/symtropy/issues/1752);
+- Symthaea [#10445 Home Service Continuity](https://github.com/Luminous-Dynamics/symthaea/issues/10445), [#10474 service deficit arithmetic](https://github.com/Luminous-Dynamics/symthaea/issues/10474), [#10486 electrical/thermal carrier typing](https://github.com/Luminous-Dynamics/symthaea/issues/10486), [#10341 metrology](https://github.com/Luminous-Dynamics/symthaea/issues/10341).
+
+### Registered P0 artifacts
+
+- `multifamily-service-distribution.schema.json` and `multifamily-service-distribution-synthetic-v0.1.json`: six resource classes, 24 nodes, 21 edges, 12 per-unit service records and six sample event entries.
+- `multifamily-service-stress-corpus-v0.1.json`: 16 authored scenarios with 20 deterministic synthetic event entries (one positive topology-only control and 15 adversarial stress controls). None are executed, calibrated or sealed.
+- `src/bin/home-multifamily-service-qualifier.rs`: validates typed resource-flow edges, exact apartment boundary mappings, event/node identities, quantity/evidence claim states, allocation authority prerequisites, and the minimum evidence conditions for any resource-conservation reconciliation.
+- The focused workflow runs both `home-multifamily-qualifier` and `home-multifamily-service-qualifier`, including rustfmt checks.
+
+### Scenario families
+
+The 16 cases cover:
+1. baseline topology-only positive control;
+2. municipal water source interruption with unknown storage capacity;
+3. common water pump failure affecting both floor zones;
+4. common electrical interruption affecting shared plant;
+5. floor-specific riser isolation;
+6. floor-specific maintenance isolation;
+7. withdrawal of potable-quality evidence;
+8. reserve exhaustion when storage and demand remain unknown;
+9. allocation-policy change without authority/rules evidence;
+10. compound water and electricity interruption;
+11. communications/control gateway failure with dependency still unknown;
+12. pump failure followed by unknown repair/spare delay;
+13. apparent restoration followed by recurrence before stable recovery;
+14. unqualified non-potable source with no treatment or unit-use evidence;
+15. concurrent isolation of both floor risers;
+16. hot-water plant maintenance interruption with useful thermal delivery unknown.
+
+### Hard measurement boundary
+
+A valid topology does not prove resource delivery. The per-unit benchmark must eventually receive:
+- exact unit-boundary flow/power/thermal measurements, with units and observation windows;
+- source class and quality-specific qualification for water;
+- pressure/flow or electrical/thermal capacity evidence from the responsible engineering owner;
+- calibration, uncertainty, missingness and meter revision;
+- storage change, distribution losses and delivered quantities on one consistent resource/time basis;
+- common stress traces and stable-recovery criteria.
+
+Until these exist, all demands, deliveries, capacities, reserve depletion, allocations and conservation states remain UNKNOWN or NOT_COMPUTED. There is no service-availability or fairness result in the current synthetic fixtures.
+
+### Additional acceptance gates
+
+- Zero unit service PASS from building-level nameplate or aggregate storage alone.
+- Zero resource-flow edges that cross resource/carrier classes.
+- Zero potable-use credit from the non-potable or unqualified source identity.
+- Zero double allocation or resource conservation claim from unknown quantities.
+- Zero authorized allocation state without exact authority and rules references.
+- Zero service trajectory promoted from a synthetic event manifest.
+- 100% of stress event times are explicit, ordered within each scenario and shared across matched architecture variants; failure probabilities remain unknown unless independently evidenced.
+- Report worst-served unit, unit/floor/zone deficit minutes, reserve depletion, stable recovery and allocation incidence separately; never let the building mean hide an apartment-level service-floor breach.
+
+The current qualifier contains 15 authored tests (one positive and 14 negative). It validates data/claim boundaries and manifest consistency; it does not execute the 16 stress scenarios or model physical service trajectories.
+
+
+## 18. Resident programme traceability across apartment units
+
+The apartment unit geometry now binds to [multifamily-resident-programme.schema.json](multifamily-resident-programme.schema.json) and [multifamily-resident-programme-synthetic-v0.1.json](multifamily-resident-programme-synthetic-v0.1.json), composing resident spatial programme #833.
+
+The P0 fixture covers four synthetic unit programmes, 24 activity nodes, six synthetic requirements, eight preferences and within-unit relationships. Every requirement and preference references the activity IDs it affects. It keeps occupancy, concurrence, required/preferred dimensions, equipment envelopes, access needs, service demand and preference priority NOT_SUPPLIED. It contains no real resident, demographic or household data.
+
+The Rust apartment qualifier now checks aggregate and per-unit programme identity, exact unit mapping, activity/relationship identity, synthetic provenance, non-inference, and the absence of fabricated physical requirements. The current source has 19 authored tests (one positive fixture and 18 negative controls); test execution remains subject to exact-head hosted validation.
+
+Benchmark additions:
+- 100% of each unit's resident activities and hard requirements must remain traceable through programme -> unit -> spaces -> generated layout -> downstream evidence;
+- 100% of requirements and preferences bound to exact within-unit activity IDs;
+- zero inferred demographic or household requirements;
+- zero preference-to-hard-requirement promotion without explicit resident change;
+- zero dimensions, access requirements, service demand or equipment envelope promoted from NOT_SUPPLIED;
+- resident choice and tradeable preferences remain distinct from hard constraints.
+
+This contract is the programme input to layout generation; it does not establish room suitability, accessibility, affordability or resident satisfaction.
+
+
+## 19. Unit-interior geometry and resident activity placement
+
+P0 room-layout artifacts:
+- `multifamily-unit-layout.schema.json`;
+- `multifamily-unit-layout-synthetic-v0.1.json`;
+- `src/bin/home-multifamily-unit-layout-qualifier.rs`.
+
+The synthetic fixture contains four apartment layouts, seven rooms per unit (28 total), 24 activity assignments, seven resident relationship mappings and 32 everyday portals. Each unit-local 6,000 × 8,000 mm rectangle is exactly partitioned with zero room overlaps; every room is inside its unit envelope; the unit-local-to-building transform matches its exact dwelling footprint; and all rooms are reachable through the declared everyday portal graph.
+
+Every resident activity maps exactly once to a room or an explicit shared-space target, and every requirement/preference relationship preserves its exact activity and target binding. The hygiene rooms use private privacy zones to respect the declared synthetic private-activity requirement; this does not certify acoustic or visual privacy performance.
+
+The qualifier explicitly rejects fabricated portal clear widths and door swings. Everyday graph connectivity does not prove step-free access, accessibility, emergency egress, fire safety or code compliance.
+
+Hard gates:
+- 100% resident activity assignment coverage and zero orphan target;
+- 100% exact relationship-ID and activity-scope preservation;
+- zero room overlap, out-of-envelope geometry or unallocated unit-envelope area;
+- zero unqualified door clear-width/swing promotion;
+- zero everyday-topology promotion to accessibility or emergency egress;
+- 100% exact unit/footprint/floor transform binding.
+
+The unit-layout Rust source has 18 authored tests (one positive fixture and 17 negative controls). The authored corpus contains 24 cases (one positive and 23 adversarial development controls, none sealed or executed); the qualifier validates manifest identity/split but does not yet run every adversarial mutation as an automated scenario. Hosted test/rustfmt evidence remains exact-head gated.
+
+
+## 20. Shared household-service distribution and apartment-boundary resilience
+
+The apartment programme now composes [#844 Multi-family Shared-Service Allocation](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/844). Its detailed benchmark is [MULTIFAMILY_SHARED_SERVICE_BENCHMARK_V0.1.md](MULTIFAMILY_SHARED_SERVICE_BENCHMARK_V0.1.md).
+
+The P0 service topology contains 6 resource classes, 34 nodes, 30 typed edges, 16 apartment-boundary service records, 16 synthetic event records, and a separate 16-case / 20-event authored stress manifest. The four per-unit service classes are potable-water delivery, electricity delivery, useful hot water and wastewater removal. A non-potable source/storage/treatment path is represented separately and receives no potable-use credit.
+
+The Rust service qualifier checks:
+- exact unit/floor/resource identity and service-boundary binding;
+- resource-flow type consistency and separate power/control dependencies;
+- directed connectivity from water/electricity/thermal sources to each apartment boundary and wastewater removal from each apartment to the declared outfall;
+- non-potable path separation from potable apartment boundaries;
+- event-to-node references and monotonic event time;
+- measurement/capacity/quality/quantity and allocation-policy evidence states;
+- exact stress-corpus ID, case split and not-executed claim ceiling.
+
+These checks establish only synthetic topology and evidence integrity. The Rust service qualifier now also emits a deterministic topology-impact preview for all 16 stress cases / 20 events: it accumulates declared unavailable nodes, propagates explicitly typed power/control dependencies, and reports the apartment/service paths that remain connected or become disconnected. A recovery event does not restore a path without measured recommissioning evidence. Connected topology is explicitly `CONNECTED_ONLY_NOT_SERVICE_PASS`. This is graph-impact replay, not a hydraulic simulation or physical service result. Hydraulic simulations, metered service, quality sampling, service-deficit trajectories, conservation and physical trials remain NOT_RUN.
+
+Industry integration must consume specialist tools rather than replace them. EPA EPANET 2.2 provides established hydraulic/water-quality analysis of pressurised pipe networks; Bentley OpenFlows Water provides commercial hydraulic, water-quality, scenario and transient workflows; Grundfos documents pressure-zoned high-rise booster configurations. Luminous's research target is the evidence layer across those solvers: exact resident/service boundaries, shared dependency graphs, per-unit failure consequences, resource accounting, governance and revision-bound evidence. The benchmark must compare equivalent hydraulic models separately from workflow/assurance outcomes.
+
+Johannesburg Water's October 2026 reports of constrained reservoirs/towers, low pressure and intermittent supply reinforce why apartment service must be measured at the actual floor/unit boundary, rather than inferred from the presence of storage or booster equipment.
+
+
+## 21. Unit-layout mutation corpus and schema
+
+- `multifamily-unit-layout-corpus.schema.json`
+- `multifamily-unit-layout-corpus-v0.1.json`
+
+The corpus contains 24 authored cases: one positive topology-only control and 23 adversarial development controls. It covers unit identity and transforms, room overlap/containment/partition, activity assignment and room mapping, shared-space references, privacy compatibility, relationship IDs/targets, portal boundary/span, everyday graph connectivity and forbidden clear-width/door-swing/access/egress promotion.
+
+All case states are `not_executed`; probabilities are null; calibration and sealed confirmation splits are empty. The Rust unit-layout qualifier validates the manifest's identity/count/split/expected disposition and base-fixture binding, but does not yet automatically mutate and execute all 23 cases. The 18 authored Rust unit tests provide an initial, separate negative-control set. No blind or independent benchmark pass is claimed.
+
+## Multi-family lifecycle / adaptation bridge
+
+The apartment programme now includes [#849 lifecycle and adaptation continuity](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/849). See [MULTIFAMILY_LIFECYCLE_BENCHMARK_V0.1.md](MULTIFAMILY_LIFECYCLE_BENCHMARK_V0.1.md).
+
+The P0 synthetic adapter links exact building, resident-programme, room-layout and shared-service source identities to 13 unit-scoped configuration revisions, two shared-asset bindings, 24 authored lifecycle events, four unit timelines and seven claim records. The U-001 adaptation invalidates two baseline claims. All times, as-built observations, commissioning evidence, post-occupancy results, resident data, repairs and physical outcomes remain UNKNOWN/not supplied. All events remain authored/not executed.
+
+The Rust qualifier covers revision ancestry, asset/unit scope, logical event order, bitemporal unknown-time preservation, exact timeline-event coverage and stale claim rejection. It does not replace #832's general dependency invalidation or #633's post-occupancy/outcome evaluation.
+
+
+## 22. Premise plumbing and in-use evidence: expand the service definition
+
+Two new owner-linked research tracks close gaps that are material for apartment housing:
+
+- [#857 Hydraulic Evidence Bridge](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/857): exact, versioned, calibrated/validated solver evidence mapped to apartment service boundaries. EPANET/OpenFlows remain the hydraulic engines; their outputs stay MODELLED/CALIBRATED_MODELLED and cannot become measurements.
+- [#863 Premise Plumbing Evidence](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/863): water-quality, stagnation, treatment, temperature and use-point evidence linked to the same apartment/asset/revision graph.
+- [#864 In-Use Outcome Crosswalk](https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/864): resident-authorized post-occupancy evidence mapped into #633 City In-Use Outcomes and #849 lifecycle identity, without creating a sensor-surveillance or survey platform.
+
+### New evidence: premise plumbing
+
+A 2026 *Water Research* review of premise plumbing systems (Vol. 293, article 125437, DOI 10.1016/j.watres.2026.125437) identifies oversizing, stagnation and energy–health trade-offs as ongoing problems. It highlights the limits of static demand assumptions and the underuse of digital modelling/full-scale integration:
+- https://www.sciencedirect.com/science/article/pii/S0043135426001193
+
+The implication is important: an apartment water system cannot be considered qualified just because its pipes/pumps meet a hydraulic calculation. The design/operation evidence must also identify use points, treatment, branch/dead-leg geometry where known, time/temperature, residence or water-age modelling, maintenance and exact laboratory sampling. Modelled water age is not a potable-quality result; a sample result applies only to its exact boundary, collection time, method and chain of custody.
+
+### New evidence: post-occupancy feedback
+
+A 2025 *Building Research & Information* review on bringing POE forward into residential energy-efficiency design reports that static, linear project delivery and a lack of standardized/continuous evidence contribute to performance gaps. Its findings support defining measurement and user-engagement plans at design time rather than waiting until handover:
+- https://www.tandfonline.com/doi/full/10.1080/09613218.2025.2538167
+
+The apartment benchmark now treats the resident as a rights-holder and participant, not a passive sensor. Technical measurement, professional assessment and resident self-report must remain distinct evidence types. No continuous occupancy/audio/video or fine-grained behaviour collection is a default.
+
+### Additional benchmark dimensions
+
+Report these independently, not as a single housing-quality score:
+- use-point water age / residence model and exact measured sample coverage;
+- water quality results by sample boundary/time/method, with no cross-unit extrapolation;
+- treatment/filtration/disinfection maintenance and filter replacement evidence;
+- measured water temperature at exact points and instruments, against project-specific controlled requirements;
+- water/energy used by treatment, recirculation and flushing;
+- measured in-use service at each apartment boundary and service-deficit duration;
+- objective environmental observations versus resident-reported comfort, noise, privacy and satisfaction;
+- missingness, calibration uncertainty, resident burden, consent/withdrawal and data minimisation;
+- time from a measured anomaly or resident report to a validated maintenance/design decision.
+
+These outcomes compose #633, #849, #844, #857 and #863. No universal litres/person/day, temperature, stagnation duration or microbial threshold is invented here; applicable controlled standards, water-service authority and specialist review determine project-specific requirements.
+

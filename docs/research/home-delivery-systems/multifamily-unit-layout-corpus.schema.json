@@ -1,0 +1,178 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/Luminous-Dynamics/sol-atlas-leptos/main/docs/research/home-delivery-systems/multifamily-unit-layout-corpus.schema.json",
+  "title": "Multi-family Unit Layout Adversarial Corpus v0.1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "corpus_id",
+    "maturity",
+    "parent_issue",
+    "base_fixture",
+    "case_count",
+    "executed_cases",
+    "case_split",
+    "cases",
+    "scoring_rules",
+    "claim_ceiling"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "multifamily-unit-layout-corpus/0.1"
+    },
+    "corpus_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "maturity": {
+      "const": "authored_manifest_not_executed"
+    },
+    "parent_issue": {
+      "type": "string",
+      "format": "uri"
+    },
+    "base_fixture": {
+      "const": "multifamily-unit-layout-synthetic-v0.1.json"
+    },
+    "case_count": {
+      "const": 24
+    },
+    "executed_cases": {
+      "const": 0
+    },
+    "case_split": {
+      "$ref": "#/$defs/split"
+    },
+    "cases": {
+      "type": "array",
+      "minItems": 24,
+      "maxItems": 24,
+      "items": {
+        "$ref": "#/$defs/case"
+      }
+    },
+    "scoring_rules": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "claim_ceiling": {
+      "type": "string",
+      "minLength": 1
+    }
+  },
+  "$defs": {
+    "split": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "development_cases",
+        "calibration_cases",
+        "sealed_confirmation_cases",
+        "note"
+      ],
+      "properties": {
+        "development_cases": {
+          "type": "array",
+          "minItems": 24,
+          "maxItems": 24,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "calibration_cases": {
+          "type": "array",
+          "maxItems": 0
+        },
+        "sealed_confirmation_cases": {
+          "type": "array",
+          "maxItems": 0
+        },
+        "note": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "case": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "case_id",
+        "family",
+        "case_kind",
+        "base_fixture",
+        "mutation",
+        "expected_disposition",
+        "oracle_invariant",
+        "scope",
+        "probability",
+        "execution_state",
+        "claim_ceiling"
+      ],
+      "properties": {
+        "case_id": {
+          "type": "string",
+          "pattern": "^UL-[A-Z0-9-]+$"
+        },
+        "family": {
+          "enum": [
+            "positive_control",
+            "identity",
+            "transform",
+            "geometry",
+            "activity_traceability",
+            "privacy",
+            "relationship",
+            "portal",
+            "connectivity",
+            "claim_boundary"
+          ]
+        },
+        "case_kind": {
+          "enum": [
+            "positive_control",
+            "adversarial_control"
+          ]
+        },
+        "base_fixture": {
+          "const": "multifamily-unit-layout-synthetic-v0.1.json"
+        },
+        "mutation": {
+          "type": "string",
+          "minLength": 1
+        },
+        "expected_disposition": {
+          "enum": [
+            "PASS_SYNTHETIC_TOPOLOGY_ONLY",
+            "REJECT",
+            "REJECT_PROMOTION"
+          ]
+        },
+        "oracle_invariant": {
+          "type": "string",
+          "minLength": 1
+        },
+        "scope": {
+          "const": "synthetic_geometry_only"
+        },
+        "probability": {
+          "const": null
+        },
+        "execution_state": {
+          "const": "not_executed"
+        },
+        "claim_ceiling": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    }
+  }
+}

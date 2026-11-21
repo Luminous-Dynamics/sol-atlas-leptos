@@ -1,0 +1,194 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/Luminous-Dynamics/sol-atlas-leptos/main/docs/research/home-delivery-systems/multifamily-lifecycle-adversarial-corpus.schema.json",
+  "title": "Multi-family Lifecycle Adversarial Corpus v0.1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "corpus_id",
+    "maturity",
+    "base_fixture",
+    "case_count",
+    "executed_cases",
+    "case_split",
+    "cases",
+    "claim_ceiling"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "multifamily-lifecycle-adversarial-corpus/0.1"
+    },
+    "corpus_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "maturity": {
+      "const": "authored_manifest_not_executed"
+    },
+    "base_fixture": {
+      "const": "multifamily-lifecycle-synthetic-v0.1.json"
+    },
+    "case_count": {
+      "const": 30
+    },
+    "executed_cases": {
+      "const": 0
+    },
+    "case_split": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "development_cases",
+        "calibration_cases",
+        "sealed_confirmation_cases",
+        "note"
+      ],
+      "properties": {
+        "development_cases": {
+          "type": "array",
+          "minItems": 30,
+          "maxItems": 30,
+          "uniqueItems": true,
+          "items": {
+            "type": "string"
+          }
+        },
+        "calibration_cases": {
+          "type": "array",
+          "maxItems": 0
+        },
+        "sealed_confirmation_cases": {
+          "type": "array",
+          "maxItems": 0
+        },
+        "note": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "cases": {
+      "type": "array",
+      "minItems": 30,
+      "maxItems": 30,
+      "items": {
+        "$ref": "#/$defs/case"
+      }
+    },
+    "claim_ceiling": {
+      "type": "string",
+      "minLength": 1
+    }
+  },
+  "$defs": {
+    "mutation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "pointer",
+        "value"
+      ],
+      "properties": {
+        "pointer": {
+          "type": "string",
+          "pattern": "^/"
+        },
+        "value": {}
+      }
+    },
+    "case": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "case_id",
+        "case_kind",
+        "expected_disposition",
+        "execution_state",
+        "probability",
+        "mutations",
+        "oracle_invariant"
+      ],
+      "properties": {
+        "case_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "case_kind": {
+          "enum": [
+            "positive_control",
+            "adversarial_mutation"
+          ]
+        },
+        "expected_disposition": {
+          "enum": [
+            "ACCEPT_SYNTHETIC_BASELINE",
+            "REJECT_SYNTHETIC_MUTATION"
+          ]
+        },
+        "execution_state": {
+          "const": "not_executed"
+        },
+        "probability": {
+          "type": "null"
+        },
+        "mutations": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/mutation"
+          }
+        },
+        "oracle_invariant": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "case_kind": {
+                "const": "positive_control"
+              }
+            },
+            "required": [
+              "case_kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "expected_disposition": {
+                "const": "ACCEPT_SYNTHETIC_BASELINE"
+              },
+              "mutations": {
+                "maxItems": 0
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "case_kind": {
+                "const": "adversarial_mutation"
+              }
+            },
+            "required": [
+              "case_kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "expected_disposition": {
+                "const": "REJECT_SYNTHETIC_MUTATION"
+              },
+              "mutations": {
+                "minItems": 1
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}
