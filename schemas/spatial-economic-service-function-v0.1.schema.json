@@ -1,0 +1,143 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://luminousdynamics.io/schemas/spatial-economic-service-function-v0.1.schema.json",
+  "title": "Spatial-Economic Service Function Assessment",
+  "description": "Evidence-aware functional adequacy assessment using explicit capacity and requirement quantities with uncertainty bounds. No unit conversion, reliability probability, or causal inference is implied.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "id",
+    "as_of",
+    "service_entity_id",
+    "available_capacity",
+    "required_capacity"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "0.1.0"
+    },
+    "id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "as_of": {
+      "type": "string",
+      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z$"
+    },
+    "service_entity_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "available_capacity": {
+      "$ref": "#/$defs/measurement"
+    },
+    "required_capacity": {
+      "$ref": "#/$defs/measurement"
+    }
+  },
+  "$defs": {
+    "quantity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "value",
+        "unit"
+      ],
+      "properties": {
+        "value": {
+          "type": "number",
+          "minimum": 0
+        },
+        "unit": {
+          "type": "string",
+          "minLength": 1
+        },
+        "uncertainty_abs": {
+          "type": "number",
+          "minimum": 0
+        }
+      }
+    },
+    "measurement": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "entity_id",
+        "quantity",
+        "basis",
+        "rationale"
+      ],
+      "properties": {
+        "entity_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "quantity": {
+          "$ref": "#/$defs/quantity"
+        },
+        "basis": {
+          "enum": [
+            "assumed",
+            "observed"
+          ]
+        },
+        "rationale": {
+          "type": "string",
+          "minLength": 1
+        },
+        "supporting_evidence_ids": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "basis": {
+                "const": "observed"
+              }
+            },
+            "required": [
+              "basis"
+            ]
+          },
+          "then": {
+            "required": [
+              "supporting_evidence_ids"
+            ],
+            "properties": {
+              "supporting_evidence_ids": {
+                "minItems": 1
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "basis": {
+                "const": "assumed"
+              }
+            },
+            "required": [
+              "basis"
+            ]
+          },
+          "then": {
+            "properties": {
+              "supporting_evidence_ids": {
+                "maxItems": 0
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

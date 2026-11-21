@@ -1,0 +1,33 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://luminousdynamics.io/schemas/spatial-economic-service-network-portfolio-request-v0.1.schema.json",
+  "title": "Spatial-Economic Service Network Robust Portfolio Request",
+  "description": "Evaluate the same hypothetical intervention plans over a declared, unweighted set of disruption scenarios with a consistent service-network topology. Scenario counts are not hazard probabilities.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "comparison_id",
+    "scenarios",
+    "plans"
+  ],
+  "properties": {
+    "comparison_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "scenarios": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "spatial-economic-service-capacity-network-v0.1.schema.json"
+      }
+    },
+    "plans": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "spatial-economic-service-network-intervention-v0.1.schema.json"
+      }
+    }
+  }
+}

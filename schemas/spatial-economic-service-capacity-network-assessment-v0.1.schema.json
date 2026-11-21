@@ -1,0 +1,178 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://luminousdynamics.io/schemas/spatial-economic-service-capacity-network-assessment-v0.1.schema.json",
+  "title": "Spatial-Economic Service Capacity Network Assessment",
+  "description": "Directed max-flow/min-cut capacity result. If topology is partial or unknown, computed flows describe the declared subgraph only and the service state must be indeterminate.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "scenario_id",
+    "service_entity_id",
+    "as_of",
+    "topology_completeness",
+    "state",
+    "unit",
+    "required_capacity_value",
+    "required_capacity_lower_bound",
+    "required_capacity_upper_bound",
+    "conservative_available_capacity",
+    "optimistic_available_capacity",
+    "conservative_min_cut_link_ids",
+    "active_link_ids",
+    "inactive_link_ids",
+    "unknown_link_ids",
+    "capacity_evidence_ids",
+    "availability_evidence_ids"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "0.1.0"
+    },
+    "scenario_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "service_entity_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "as_of": {
+      "type": "string",
+      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z$"
+    },
+    "topology_completeness": {
+      "enum": [
+        "complete",
+        "partial",
+        "unknown"
+      ]
+    },
+    "state": {
+      "enum": [
+        "adequate",
+        "degraded",
+        "unavailable",
+        "indeterminate"
+      ]
+    },
+    "unit": {
+      "type": "string",
+      "minLength": 1
+    },
+    "required_capacity_value": {
+      "type": "number",
+      "minimum": 0
+    },
+    "required_capacity_lower_bound": {
+      "type": "number",
+      "minimum": 0
+    },
+    "required_capacity_upper_bound": {
+      "type": "number",
+      "minimum": 0
+    },
+    "conservative_available_capacity": {
+      "type": "number",
+      "minimum": 0
+    },
+    "optimistic_available_capacity": {
+      "type": "number",
+      "minimum": 0
+    },
+    "coverage_lower_bound": {
+      "type": "number",
+      "minimum": 0
+    },
+    "coverage_upper_bound": {
+      "type": "number",
+      "minimum": 0
+    },
+    "conservative_min_cut_link_ids": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "active_link_ids": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "inactive_link_ids": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "unknown_link_ids": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "capacity_evidence_ids": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "availability_evidence_ids": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "topology_completeness": {
+            "enum": [
+              "partial",
+              "unknown"
+            ]
+          }
+        },
+        "required": [
+          "topology_completeness"
+        ]
+      },
+      "then": {
+        "properties": {
+          "state": {
+            "const": "indeterminate"
+          }
+        },
+        "not": {
+          "anyOf": [
+            {
+              "required": [
+                "coverage_lower_bound"
+              ]
+            },
+            {
+              "required": [
+                "coverage_upper_bound"
+              ]
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

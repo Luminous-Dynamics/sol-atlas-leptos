@@ -1,0 +1,16 @@
+{
+  "id": "synthetic-pump-outage-alternate-feed",
+  "as_of": "2026-10-15T12:00:00Z",
+  "entity_conditions": {
+    "synthetic-feeder-east": {
+      "state": "unavailable",
+      "basis": "assumed",
+      "rationale": "Synthetic exercise assumption: primary feeder is unavailable."
+    },
+    "synthetic-feeder-west": {
+      "state": "available",
+      "basis": "assumed",
+      "rationale": "Synthetic exercise assumption: alternate feeder remains available."
+    }
+  }
+}
