@@ -141,15 +141,6 @@ pub enum ProjectionAudience {
     Authorized,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub enum ProjectionDisposition {
-    Included,
-    ExcludedFutureEvidence,
-    UnknownKnownByTime,
-    OutsideValidityInterval,
-    WithheldByAccessPolicy,
-}
-
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct ProjectedRelationship {
     pub relationship_id: String,
@@ -157,13 +148,12 @@ pub struct ProjectedRelationship {
     pub object: EntityRef,
     pub relationship_type: RelationshipType,
     pub scope: RelationshipScope,
-    pub epistemic_class: EpistemicClass,
-    pub missingness: Missingness,
-    pub verification_status: VerificationStatus,
-    pub spatial_scope: SpatialScope,
     pub known_by_unix_seconds: Option<i64>,
-    pub valid_from_unix_seconds: Option<i64>,
-    pub valid_until_unix_seconds: Option<i64>,
+    /// Preserve the complete evidence envelope so source references,
+    /// derivation lineage, limitations, rights and alternative qualifications
+    /// remain inspectable after projection.
+    pub evidence: EvidenceMetadata,
+    pub disclosure: DisclosureClass,
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -248,13 +238,9 @@ pub fn project_relationships(
             object: relationship.object.clone(),
             relationship_type: relationship.relationship_type,
             scope: relationship.scope.clone(),
-            epistemic_class: relationship.evidence.epistemic_class,
-            missingness: relationship.evidence.missingness,
-            verification_status: relationship.evidence.verification_status,
-            spatial_scope: relationship.evidence.spatial.clone(),
             known_by_unix_seconds: relationship.known_by_unix_seconds,
-            valid_from_unix_seconds: temporal.valid_from_unix_seconds,
-            valid_until_unix_seconds: temporal.valid_until_unix_seconds,
+            evidence: relationship.evidence.clone(),
+            disclosure: relationship.disclosure,
         });
     }
 
@@ -515,10 +501,18 @@ mod tests {
         .unwrap();
         assert_eq!(result.visible.len(), 1);
         assert_eq!(
-            result.visible[0].epistemic_class,
+            result.visible[0].evidence.epistemic_class,
             EpistemicClass::ScenarioAssumption
         );
-        assert_eq!(result.visible[0].missingness, Missingness::Present);
+        assert_eq!(
+            result.visible[0].evidence.missingness,
+            Missingness::Present
+        );
+        assert_eq!(
+            result.visible[0].evidence.record_id,
+            "claim-water-provider-01"
+        );
+        assert_eq!(result.visible[0].evidence.sources.len(), 1);
     }
 
     #[test]
