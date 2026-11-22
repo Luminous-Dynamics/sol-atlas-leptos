@@ -3,8 +3,8 @@
   "schema_version": "0.1.0",
   "manifest_id": "CITY-REFERENCE-DISTRICT-COMPOSITION-MANIFEST-V0.1",
   "classification": "synthetic_integration_plan_only",
-  "claim_ceiling": "Records composition boundaries and owner-contract readiness only. It does not instantiate a district, authenticate owner receipts, establish local capacity, or qualify a building, service or city.",
-  "as_of": "2026-11-07",
+  "claim_ceiling": "Records composition boundaries and owner-contract readiness only. It does not instantiate a district, authenticate owner receipts, establish local capacity, or qualify a building, service or city. Manufacturing process and resource-offer rows are draft/issue-level integration references only. Typed process refs remain unresolved until owner-object verification; resource-offer schema and physical capability evidence are unavailable.",
+  "as_of": "2026-11-23",
   "profile_ref": {
     "repository": "Luminous-Dynamics/sol-atlas-leptos",
     "pull_request": 616,
@@ -150,7 +150,9 @@
         "#5149",
         "Symtropy #1856",
         "#1984",
-        "Sol-Atlas #569"
+        "Sol-Atlas #569",
+        "Mycelix #6533",
+        "Symtropy #6786"
       ],
       "functional_unit": "kg-by-material-grade-destination-and-period"
     },
@@ -164,74 +166,15 @@
         "#5774",
         "Symtropy #3768",
         "#1834",
-        "Sol-Atlas #563"
+        "Sol-Atlas #563",
+        "Mycelix #6533",
+        "Mycelix #6531",
+        "Symtropy #6786"
       ],
       "functional_unit": null
     }
   ],
   "owner_contract_registry": [
-    {
-      "owner": "Symthaea",
-      "contract": "CIV-BOOT productive capability assessment",
-      "owner_ref": "https://github.com/Luminous-Dynamics/symthaea/issues/5774",
-      "consumed_by": "Symtropy #3768 and Sol-Atlas #603/#606",
-      "schema_status": "consumer_field_surface_observed_no_canonical_owner_schema_pinned",
-      "known_identity_fields": [
-        "target_id",
-        "scenario_id",
-        "source_owner",
-        "source_contract",
-        "source_revision",
-        "source_receipt_id",
-        "source_subject_digest",
-        "evidence_state",
-        "status",
-        "operationally_reachable",
-        "locally_closed"
-      ],
-      "mapping_boundary": "CityMaker consumes the owner result. It does not calculate the AND/OR closure theorem. Import-dependent capability is not local capability.",
-      "owner_schema_artifact": null,
-      "consumer_evidence": {
-        "repository": "Luminous-Dynamics/symtropy",
-        "pull_request": 3800,
-        "source_revision": "678f2c496486096cda311337e98e6c9f336101ff",
-        "path": "crates/tools/citykit-benchmark/src/lib.rs",
-        "git_blob_sha": "32217062db71d63785caad7cdc614af3b0530e39",
-        "role": "CityKit reads and checks owner-native receipt identity/status; it does not calculate CIV-BOOT closure."
-      }
-    },
-    {
-      "owner": "Mycelix",
-      "contract": "living-city-metabolism/0.1",
-      "owner_ref": "https://github.com/Luminous-Dynamics/mycelix/pull/5035",
-      "consumed_by": "Sol-Atlas #569/#615 and Symtropy CityKit integration",
-      "schema_status": "draft_versioned_json_schema_pinned_unmerged",
-      "known_semantics": [
-        "system_boundary",
-        "spatial_temporal_scope",
-        "functional_unit",
-        "scenario",
-        "physical_flow",
-        "evidence_kind",
-        "lifecycle_stage",
-        "model_run",
-        "input_manifest_digest",
-        "calibration_receipt",
-        "distributional_coverage"
-      ],
-      "mapping_boundary": "Physical flow/model-evidence accounting is not product inventory, qualified batch, supplier stock or lot custody.",
-      "schema_artifact": {
-        "repository": "Luminous-Dynamics/mycelix",
-        "pull_request": 5035,
-        "source_revision": "0aae2f0a7625304c9a7eab0c3528e02fe5d57567",
-        "path": "schemas/living-city-metabolism-v0.1.schema.json",
-        "git_blob_sha": "4f7f3eeee4e91964a6422d2aba9f59e3c3aff57b",
-        "json_schema_draft": "2020-12",
-        "schema_id": "https://luminousdynamics.io/schemas/living-city-metabolism-v0.1.schema.json",
-        "schema_version": "living-city-metabolism/0.1",
-        "status": "draft_pr_unmerged"
-      }
-    },
     {
       "owner": "Mycelix",
       "contract": "CIV-ECON-005 production/input-output network",
@@ -271,67 +214,149 @@
       "owner_schema_artifact": null
     },
     {
-      "owner": "Symtropy",
-      "contract": "CONSTRUCTION-ACCEPTED-OUTPUT-001",
-      "owner_ref": "https://github.com/Luminous-Dynamics/symtropy/issues/3605",
-      "consumer": "ABOVEGROUND-PANELCELL-001 #3773",
-      "schema_status": "owner_issue_contract_only_formal_schema_not_pinned",
+      "owner": "Mycelix",
+      "contract": "living-city-metabolism/0.1",
+      "owner_ref": "https://github.com/Luminous-Dynamics/mycelix/pull/5035",
+      "consumed_by": "Sol-Atlas #569/#615 and Symtropy CityKit integration",
+      "schema_status": "draft_versioned_json_schema_pinned_unmerged",
       "known_semantics": [
-        "task_family_functional_unit",
-        "independent_acceptance_predicate",
-        "first_pass_acceptance",
-        "final_acceptance",
-        "defects",
-        "rework",
-        "full_workflow_labour_time"
+        "system_boundary",
+        "spatial_temporal_scope",
+        "functional_unit",
+        "scenario",
+        "physical_flow",
+        "evidence_kind",
+        "lifecycle_stage",
+        "model_run",
+        "input_manifest_digest",
+        "calibration_receipt",
+        "distributional_coverage"
       ],
-      "mapping_boundary": "Keep task-family functional units and all labour/rework denominators. Do not create a second construction productivity ontology.",
-      "owner_schema_artifact": null
-    },
-    {
-      "owner": "Symtropy",
-      "contract": "CITYKIT-SYNTH-001",
-      "owner_ref": "https://github.com/Luminous-Dynamics/symtropy/issues/3768",
-      "consumer": "Sol-Atlas #615",
-      "schema_status": "synthetic_consumer_qualified_owner_schema_registration_pending",
-      "known_semantics": [
-        "service_capacity",
-        "resource_balance",
-        "capability_receipt_consistency",
-        "resource_unit_compatibility"
-      ],
-      "mapping_boundary": "CityKit checks receipt consistency and resource/service feasibility. Symthaea remains capability-closure authority.",
-      "consumer_implementation": {
-        "repository": "Luminous-Dynamics/symtropy",
-        "pull_request": 3800,
-        "source_revision": "678f2c496486096cda311337e98e6c9f336101ff",
-        "code_path": "crates/tools/citykit-benchmark/src/lib.rs",
-        "code_git_blob_sha": "32217062db71d63785caad7cdc614af3b0530e39",
-        "corpus_path": "docs/research/citykit/CITYKIT_SYNTH_CORPUS_V0_1.json",
-        "corpus_git_blob_sha": "944a0b2ea73f9424be72ff26dca1d1c830fcada0",
-        "corpus_case_count": 18,
-        "exact_head_workflow": "https://github.com/Luminous-Dynamics/symtropy/actions/runs/42160625679",
-        "claim_ceiling": "E1 synthetic CityKit reference checks only; not owner-native CIV-BOOT schema publication or physical city capability"
+      "mapping_boundary": "Physical flow/model-evidence accounting is not product inventory, qualified batch, supplier stock or lot custody.",
+      "schema_artifact": {
+        "repository": "Luminous-Dynamics/mycelix",
+        "pull_request": 5035,
+        "source_revision": "0aae2f0a7625304c9a7eab0c3528e02fe5d57567",
+        "path": "schemas/living-city-metabolism-v0.1.schema.json",
+        "git_blob_sha": "4f7f3eeee4e91964a6422d2aba9f59e3c3aff57b",
+        "json_schema_draft": "2020-12",
+        "schema_id": "https://luminousdynamics.io/schemas/living-city-metabolism-v0.1.schema.json",
+        "schema_version": "living-city-metabolism/0.1",
+        "status": "draft_pr_unmerged"
       }
     },
     {
-      "owner": "Symtropy",
-      "contract": "ABOVEGROUND-PANELCELL-001",
-      "owner_ref": "https://github.com/Luminous-Dynamics/symtropy/issues/3773",
-      "consumer": "Sol-Atlas #602/#615 and Symthaea #6040",
-      "schema_status": "benchmark_profile_defined_physical_evidence_pending",
+      "owner": "Mycelix",
+      "contract": "MFG-PROC-001A typed process references and migration-safe operation/routing/machine bindings",
+      "owner_ref": "https://github.com/Luminous-Dynamics/mycelix/pull/6532",
+      "consumed_by": "Symtropy #6786/#6790; Sol-Atlas #606; later Mycelix MFG-PROC-001B #6533",
+      "schema_status": "draft_PR_unmerged_exact_head_software_checks_passed_external_owner_resolution_not_implemented",
       "known_semantics": [
-        "B0_conventional",
-        "B1_productized_prefabricated",
-        "B2_assisted",
-        "B3_guarded_automation",
-        "accepted_output",
-        "human_factors",
-        "quality",
-        "labour",
-        "lifecycle"
+        "immutable_pinned_Symthaea_object_ref",
+        "process_definition_ref",
+        "process_capability_requirement_ref",
+        "process_capability_profile_ref",
+        "process_recipe_ref",
+        "typed_process_binding",
+        "ProcessRegistryEntry",
+        "legacy_unbound_vs_typed_reference_present_vs_malformed"
       ],
-      "mapping_boundary": "Industry maturity and synthetic results do not establish physical productivity. Physical pilot needs matched article, baseline and independent acceptance."
+      "mapping_boundary": "A well-formed pointer is TypedReferencePresent only. It is not an authenticated/resolved owner object, qualified capability, site/resource offer, available time slot, reservation, execution or accepted product. OwnerObjectVerified is unreachable in the current tranche.",
+      "schema_artifacts": [
+        {
+          "repository": "Luminous-Dynamics/mycelix",
+          "pull_request": 6532,
+          "source_revision": "3fbd57bfdd7a7e67149fe88355861bb94d0da558",
+          "path": "mycelix-workspace/mycelix-manufacturing/schemas/mfg_proc_001a/typed_process_refs_v0_1.schema.json",
+          "git_blob_sha": "0e616aec6a87c8645073bd392e3563f268205f8c",
+          "json_schema_draft": "2020-12",
+          "schema_id": "https://github.com/Luminous-Dynamics/mycelix/blob/main/mycelix-workspace/mycelix-manufacturing/schemas/mfg_proc_001a/typed_process_refs_v0_1.schema.json",
+          "schema_version": "0.1",
+          "status": "draft_PR_unmerged"
+        },
+        {
+          "repository": "Luminous-Dynamics/mycelix",
+          "pull_request": 6532,
+          "source_revision": "3fbd57bfdd7a7e67149fe88355861bb94d0da558",
+          "path": "mycelix-workspace/mycelix-manufacturing/schemas/mfg_proc_001a/process_registry_entry_v0_1.schema.json",
+          "git_blob_sha": "81180cf2f729b2218b9f779c17fa886f76ad51d2",
+          "json_schema_draft": "2020-12",
+          "schema_id": "https://github.com/Luminous-Dynamics/mycelix/blob/main/mycelix-workspace/mycelix-manufacturing/schemas/mfg_proc_001a/process_registry_entry_v0_1.schema.json",
+          "schema_version": "0.1",
+          "status": "draft_PR_unmerged"
+        }
+      ],
+      "consumer_evidence": {
+        "repository": "Luminous-Dynamics/mycelix",
+        "pull_request": 6532,
+        "source_revision": "3fbd57bfdd7a7e67149fe88355861bb94d0da558",
+        "workflow_run": 45047336760,
+        "workflow_url": "https://github.com/Luminous-Dynamics/mycelix/actions/runs/45047336760",
+        "outcome": "success",
+        "checks": [
+          "committed_source_rustfmt",
+          "focused_compile_and_tests",
+          "strict_clippy_warnings_denied",
+          "schema_and_16_case_fixture_json_parse"
+        ],
+        "role": "software-contract qualification only; does not fetch/authenticate Symthaea owner objects or qualify machine capability"
+      },
+      "claim_ceiling": "Draft typed-reference contract and schemas passed focused exact-head software checks. PR is unmerged; external owner-object resolution and any physical capability remain unqualified."
+    },
+    {
+      "owner": "Mycelix",
+      "contract": "MFG-PROC-001B distributed manufacturing resource offers and capacity claims",
+      "owner_ref": "https://github.com/Luminous-Dynamics/mycelix/issues/6533",
+      "consumed_by": "Sol-Atlas #606; Symtropy machine-capability route consumer #6786; Mycelix Node 0 #4689",
+      "schema_status": "owner_issue_contract_only_no_versioned_schema_or_implementation_yet",
+      "known_semantics": [
+        "provider_identity_ref",
+        "site_facility_ref",
+        "resource_equipment_ref",
+        "typed_process_and_capability_profile_refs",
+        "configuration_tooling_material_and_operator_prerequisite_refs",
+        "declared_capacity",
+        "calendar_availability",
+        "bookable_capacity",
+        "reservation",
+        "observed_execution"
+      ],
+      "mapping_boundary": "A published offer is a provider claim, not proof of provider control, physical machine existence, qualification, calendar availability, reserved capacity or execution. Do not infer supply from geographic proximity or a map marker.",
+      "owner_schema_artifact": null,
+      "claim_ceiling": "Issue-level design contract only. No exact versioned resource-offer schema, provider relationship, supplier capacity or local production availability is established."
+    },
+    {
+      "owner": "Sol-Atlas",
+      "contract": "CITY-MORPH-ACCESS-001",
+      "owner_ref": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/pull/564",
+      "consumer": "CITY-MORPH-ROBUST-001 and district composition",
+      "schema_status": "synthetic_reference_oracle_qualified",
+      "known_semantics": [
+        "group",
+        "mode",
+        "network_access",
+        "service_usability",
+        "capacity_potential",
+        "uncertainty",
+        "source_register_digest"
+      ],
+      "mapping_boundary": "Consumes route/service evidence; synthetic benchmark does not establish Johannesburg access or real service capacity."
+    },
+    {
+      "owner": "Sol-Atlas",
+      "contract": "CITY-MORPH-ROBUST-001",
+      "owner_ref": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/pull/574",
+      "consumer": "district composition",
+      "schema_status": "synthetic_reference_oracle_qualified",
+      "known_semantics": [
+        "phase_timeline",
+        "adequate_time",
+        "constrained_time",
+        "inaccessible_time",
+        "unknown_time",
+        "recovery_confirmation"
+      ],
+      "mapping_boundary": "Consumes exact access receipts; no hazard probabilities or real-world resilience claim are generated."
     },
     {
       "owner": "Symthaea",
@@ -369,6 +394,95 @@
       ]
     },
     {
+      "owner": "Symthaea",
+      "contract": "CIV-BOOT productive capability assessment",
+      "owner_ref": "https://github.com/Luminous-Dynamics/symthaea/issues/5774",
+      "consumed_by": "Symtropy #3768 and Sol-Atlas #603/#606",
+      "schema_status": "consumer_field_surface_observed_no_canonical_owner_schema_pinned",
+      "known_identity_fields": [
+        "target_id",
+        "scenario_id",
+        "source_owner",
+        "source_contract",
+        "source_revision",
+        "source_receipt_id",
+        "source_subject_digest",
+        "evidence_state",
+        "status",
+        "operationally_reachable",
+        "locally_closed"
+      ],
+      "mapping_boundary": "CityMaker consumes the owner result. It does not calculate the AND/OR closure theorem. Import-dependent capability is not local capability.",
+      "owner_schema_artifact": null,
+      "consumer_evidence": {
+        "repository": "Luminous-Dynamics/symtropy",
+        "pull_request": 3800,
+        "source_revision": "678f2c496486096cda311337e98e6c9f336101ff",
+        "path": "crates/tools/citykit-benchmark/src/lib.rs",
+        "git_blob_sha": "32217062db71d63785caad7cdc614af3b0530e39",
+        "role": "CityKit reads and checks owner-native receipt identity/status; it does not calculate CIV-BOOT closure."
+      }
+    },
+    {
+      "owner": "Symthaea",
+      "contract": "MFG-PROC-000 process identity and extensible process-family semantics",
+      "owner_ref": "https://github.com/Luminous-Dynamics/symthaea/issues/5686",
+      "consumed_by": "Mycelix MFG-PROC-001A #6531; Symtropy #6786/#6791; Sol-Atlas #606",
+      "schema_status": "exact_public_source_replayed_in_draft_current_main_PR; targeted_qualification_pending",
+      "known_semantics": [
+        "ProcessDefinitionV1",
+        "ProcessDefinitionId",
+        "ProcessFamilyRef",
+        "TransformationEffectV1",
+        "ManufacturingOperationModeV1",
+        "ExtensionProfileRefV1",
+        "versioned_extension_schema_digest"
+      ],
+      "mapping_boundary": "Sol-Atlas may project the exact process identity and source/evidence state only. A process definition or family name is not a machine capability, qualified process, scheduled operation or accepted manufactured product.",
+      "contract_artifacts": [
+        {
+          "repository": "Luminous-Dynamics/symthaea",
+          "pull_request": 13305,
+          "source_revision": "7f8611d068abab3da67152f75ea9f31428262f5d",
+          "historical_source_revision": "0b3feb49a3c2e9c1c1748ca2a0c0ff40ed320ecd",
+          "path": "crates/domains/symthaea-manufacturing-process/src/lib.rs",
+          "git_blob_sha": "f2cac22f81190a802ad3201a318699fa5d52e9d9",
+          "role": "canonical process identity and extension registry source; exact blob preserved from original public contract commit",
+          "status": "draft_replay_PR_unmerged"
+        },
+        {
+          "repository": "Luminous-Dynamics/symthaea",
+          "pull_request": 13305,
+          "source_revision": "7f8611d068abab3da67152f75ea9f31428262f5d",
+          "historical_source_revision": "0b3feb49a3c2e9c1c1748ca2a0c0ff40ed320ecd",
+          "path": "crates/domains/symthaea-manufacturing-contracts/src/lib.rs",
+          "git_blob_sha": "74c472069a85e95ccb9301b1ba00d0b90699628f",
+          "role": "public composable state, capability, recipe and process-plan contract facade",
+          "status": "draft_replay_PR_unmerged"
+        }
+      ],
+      "claim_ceiling": "Source-byte identity is verified for the replayed files. The replay PR is unmerged and its isolated exact-head qualification is still pending. No physical process or capability is qualified."
+    },
+    {
+      "owner": "Symtropy",
+      "contract": "ABOVEGROUND-PANELCELL-001",
+      "owner_ref": "https://github.com/Luminous-Dynamics/symtropy/issues/3773",
+      "consumer": "Sol-Atlas #602/#615 and Symthaea #6040",
+      "schema_status": "benchmark_profile_defined_physical_evidence_pending",
+      "known_semantics": [
+        "B0_conventional",
+        "B1_productized_prefabricated",
+        "B2_assisted",
+        "B3_guarded_automation",
+        "accepted_output",
+        "human_factors",
+        "quality",
+        "labour",
+        "lifecycle"
+      ],
+      "mapping_boundary": "Industry maturity and synthetic results do not establish physical productivity. Physical pilot needs matched article, baseline and independent acceptance."
+    },
+    {
       "owner": "Symtropy",
       "contract": "CIRC-BUILD-001 and CIRC-MFG-001",
       "owner_ref": "https://github.com/Luminous-Dynamics/symtropy/issues/1856",
@@ -389,37 +503,103 @@
       "mapping_boundary": "Spatial candidate matching does not approve demolition, reuse, structural substitution, recycling destination or product qualification."
     },
     {
-      "owner": "Sol-Atlas",
-      "contract": "CITY-MORPH-ACCESS-001",
-      "owner_ref": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/pull/564",
-      "consumer": "CITY-MORPH-ROBUST-001 and district composition",
-      "schema_status": "synthetic_reference_oracle_qualified",
+      "owner": "Symtropy",
+      "contract": "CITYKIT-SYNTH-001",
+      "owner_ref": "https://github.com/Luminous-Dynamics/symtropy/issues/3768",
+      "consumer": "Sol-Atlas #615",
+      "schema_status": "synthetic_consumer_qualified_owner_schema_registration_pending",
       "known_semantics": [
-        "group",
-        "mode",
-        "network_access",
-        "service_usability",
-        "capacity_potential",
-        "uncertainty",
-        "source_register_digest"
+        "service_capacity",
+        "resource_balance",
+        "capability_receipt_consistency",
+        "resource_unit_compatibility"
       ],
-      "mapping_boundary": "Consumes route/service evidence; synthetic benchmark does not establish Johannesburg access or real service capacity."
+      "mapping_boundary": "CityKit checks receipt consistency and resource/service feasibility. Symthaea remains capability-closure authority.",
+      "consumer_implementation": {
+        "repository": "Luminous-Dynamics/symtropy",
+        "pull_request": 3800,
+        "source_revision": "678f2c496486096cda311337e98e6c9f336101ff",
+        "code_path": "crates/tools/citykit-benchmark/src/lib.rs",
+        "code_git_blob_sha": "32217062db71d63785caad7cdc614af3b0530e39",
+        "corpus_path": "docs/research/citykit/CITYKIT_SYNTH_CORPUS_V0_1.json",
+        "corpus_git_blob_sha": "944a0b2ea73f9424be72ff26dca1d1c830fcada0",
+        "corpus_case_count": 18,
+        "exact_head_workflow": "https://github.com/Luminous-Dynamics/symtropy/actions/runs/42160625679",
+        "claim_ceiling": "E1 synthetic CityKit reference checks only; not owner-native CIV-BOOT schema publication or physical city capability"
+      }
     },
     {
-      "owner": "Sol-Atlas",
-      "contract": "CITY-MORPH-ROBUST-001",
-      "owner_ref": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/pull/574",
-      "consumer": "district composition",
-      "schema_status": "synthetic_reference_oracle_qualified",
+      "owner": "Symtropy",
+      "contract": "CONSTRUCTION-ACCEPTED-OUTPUT-001",
+      "owner_ref": "https://github.com/Luminous-Dynamics/symtropy/issues/3605",
+      "consumer": "ABOVEGROUND-PANELCELL-001 #3773",
+      "schema_status": "owner_issue_contract_only_formal_schema_not_pinned",
       "known_semantics": [
-        "phase_timeline",
-        "adequate_time",
-        "constrained_time",
-        "inaccessible_time",
-        "unknown_time",
-        "recovery_confirmation"
+        "task_family_functional_unit",
+        "independent_acceptance_predicate",
+        "first_pass_acceptance",
+        "final_acceptance",
+        "defects",
+        "rework",
+        "full_workflow_labour_time"
       ],
-      "mapping_boundary": "Consumes exact access receipts; no hazard probabilities or real-world resilience claim are generated."
+      "mapping_boundary": "Keep task-family functional units and all labour/rework denominators. Do not create a second construction productivity ontology.",
+      "owner_schema_artifact": null
+    },
+    {
+      "owner": "Symtropy",
+      "contract": "MACHINE-CAPABILITY-COMPILER-001 executable synthetic route-feasibility reference",
+      "owner_ref": "https://github.com/Luminous-Dynamics/symtropy/pull/6790",
+      "consumed_by": "Sol-Atlas #606/#615; Mycelix MFG-PROC-001A/001B #6531/#6533; Symtropy #6735/#6762",
+      "schema_status": "draft_PR_unmerged_22_case_synthetic_corpus_and_focused_exact_head_workflows_passed",
+      "known_semantics": [
+        "feasible",
+        "infeasible",
+        "unknown",
+        "unsupported",
+        "AND_OR_route_prerequisites",
+        "transitive_machine_dependency_closure",
+        "cost_per_accepted_output",
+        "feasible_route_pareto_frontier",
+        "explicit_local_closure_disposition"
+      ],
+      "mapping_boundary": "The evaluator checks synthetic known-answer route semantics only. It does not resolve real Mycelix resource offers, schedule live capacity, generate machine programs, authorize execution, validate physical output or establish local self-sufficiency.",
+      "schema_artifact": {
+        "repository": "Luminous-Dynamics/symtropy",
+        "pull_request": 6790,
+        "source_revision": "82406a27ca60a25347c8793247eb80b4e555b84d",
+        "path": "schemas/manufacturing/machine_capability_case_v0_1.schema.json",
+        "git_blob_sha": "86c270d6f35d422e1886a7bf46ef86c002011295",
+        "json_schema_draft": "2020-12",
+        "schema_version": "0.1",
+        "status": "draft_PR_unmerged"
+      },
+      "corpus_artifact": {
+        "repository": "Luminous-Dynamics/symtropy",
+        "pull_request": 6790,
+        "source_revision": "82406a27ca60a25347c8793247eb80b4e555b84d",
+        "path": "fixtures/manufacturing/machine_capability_cases_v0_1.json",
+        "git_blob_sha": "63bc07c053b381a5ddab6f0b8309c7364314c1ca",
+        "schema_id": "MACHINE-CAPABILITY-COMPILER-CASES-0.1",
+        "case_count": 22,
+        "classification": "synthetic_known_answer_corpus_pending_independent_review"
+      },
+      "consumer_evidence": {
+        "repository": "Luminous-Dynamics/symtropy",
+        "pull_request": 6790,
+        "source_revision": "82406a27ca60a25347c8793247eb80b4e555b84d",
+        "workflow_runs": [
+          45049129411,
+          45049129412
+        ],
+        "workflow_urls": [
+          "https://github.com/Luminous-Dynamics/symtropy/actions/runs/45049129411",
+          "https://github.com/Luminous-Dynamics/symtropy/actions/runs/45049129412"
+        ],
+        "outcome": "success",
+        "role": "synthetic reference evaluator and route-feasibility comparison; not an upstream process/resource schema owner"
+      },
+      "claim_ceiling": "Exact-head software workflows passed for a 22-case synthetic reference evaluator. The corpus is awaiting independent review; no physical route, local supplier or machine capability is qualified."
     }
   ],
   "composition_invariants": [
@@ -433,6 +613,24 @@
     "All population, service, cost, climate, utility, production and capacity inputs remain null/Unknown until sourced or labelled synthetic."
   ],
   "next_integration_gates": [
+    {
+      "gate_id": "G1C_MANUFACTURING_PROCESS_AND_RESOURCE_ADAPTERS",
+      "state": "in_progress_owner_contracts_pinned_resource_offer_schema_unavailable",
+      "required": [
+        "Symthaea MFG-PROC public source replay qualified and merged",
+        "Mycelix MFG-PROC-001A typed-reference contract merged and owner object resolver qualified",
+        "Mycelix MFG-PROC-001B resource-offer schema published with provider/site/resource identity and separate capacity states",
+        "Symtropy route compiler consumes exact offer references without importing schema authority",
+        "independent tests prove no promotion from declared offer to qualified capability, calendar availability, reservation or execution",
+        "scope-bound, rights-cleared local physical evidence before any local production claim"
+      ],
+      "blocks": [
+        "No district local-manufacturing capacity from a map point or provider marketing claim",
+        "No process qualification from process identity",
+        "No reservation or dispatch inference from declared capacity",
+        "No local productive-closure result from synthetic route feasibility"
+      ]
+    },
     {
       "gate_id": "G0_SCOPE_BINDING",
       "state": "blocked_until_declared",
@@ -471,7 +669,10 @@
       "verified": [
         "Mycelix living-city-metabolism/0.1 JSON Schema artifact and draft revision pinned",
         "Symtropy CityKit consumer implementation and 18-case synthetic corpus artifacts pinned",
-        "IFC 4.3.2.0 and IDS 1.0 identified as external published exchange standards"
+        "IFC 4.3.2.0 and IDS 1.0 identified as external published exchange standards",
+        "Mycelix MFG-PROC-001A typed process-reference JSON schemas pinned to draft PR #6532 exact head; focused software workflow passed",
+        "Symtropy MACHINE-CAPABILITY-COMPILER schema and 22-case synthetic corpus pinned to draft PR #6790 exact head; focused workflows passed",
+        "Symthaea MFG-PROC-007 contract source blobs replayed byte-identically in draft current-main PR #13305"
       ],
       "unresolved": [
         "Canonical Symthaea CIV-BOOT owner schema/version/revision",
@@ -479,9 +680,13 @@
         "Mycelix #5149 custody/inspection schema/version/revision",
         "Symtropy #3605 accepted-output schema/version/revision",
         "Symthaea BUILT-ROB-PILOT owner receipt schema/version/revision",
-        "Symtropy panel-cell physical evidence schema and actual measurements"
+        "Symtropy panel-cell physical evidence schema and actual measurements",
+        "Symthaea MFG-PROC-007R current-main replay exact-head isolated qualification and merge",
+        "Mycelix MFG-PROC-001A external owner-object resolution/authentication and production release",
+        "Mycelix MFG-PROC-001B versioned resource-offer schema/implementation and provider/site/resource authority evidence",
+        "Symtropy machine-capability corpus independent review and real-resource adapter"
       ],
-      "rule": "Consumer observations and issue descriptions do not substitute for owner-published schema artifacts. Missing schema registrations remain Unknown and block cross-owner composition for the affected claim."
+      "rule": "Consumer observations and issue descriptions do not substitute for owner-published schema artifacts. Missing schema registrations remain Unknown and block cross-owner composition for the affected claim. Draft source/schema artifacts and successful synthetic or software workflows remain separate from merged owner contracts, authenticated owner objects and physical qualification."
     },
     {
       "gate_id": "G2_SYNTHETIC_COMMON_INSTANCE",
