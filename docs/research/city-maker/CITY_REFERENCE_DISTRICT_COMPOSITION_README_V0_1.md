@@ -80,3 +80,13 @@ The manifest now pins the draft owner surfaces for the production-capability cha
 - Symtropy #6786 / draft PR #6790 contributes a deterministic synthetic route-feasibility compiler; the 22-case exact-head workflow passed, but the corpus remains synthetic and pending independent review.
 
 These four owners remain distinct. CityMaker only projects their native evidence and dispositions; it does not create process semantics, verify machines, calculate capacity, issue reservations or qualify physical output. All real geography, local supplier/capacity and common-scope fields remain Unknown until rights-cleared, owner-native evidence is available.
+
+
+## Factory vertical and benchmark owners
+
+The manifest composes:
+- Symthaea #8051 product/factory/supply-chain vertical, #12355 reconfigurable capability networks, #12288 apparel microfactory and #12289 matched microfactory benchmark.
+- Symtropy #5966 accepted conforming-output economics, #5875 material-accounted routes, #5704 common-cause resilience and #5758 intended/recorded/observed execution reconciliation.
+- Mycelix #6098 NIST IR 8536 traceability interoperability profile.
+
+The design principle is a product–process–factory–network co-design loop, not a universal factory ontology or another scheduler. Benchmark actual independent outcomes: accepted output, full cost, quality escapes, setup/requalification, worker/utilities/material constraints, restoration time, common-cause resilience and traceability completeness. Treat every source owner's readiness independently; no end-to-end factory PASS is claimed.
