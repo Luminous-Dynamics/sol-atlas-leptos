@@ -106,3 +106,22 @@ The composition manifest now has explicit rows for the manufacturing owner chain
 - A fixture print is not a qualified fixture, appliance, manufactured unit or accepted output
 
 The shared district scope remains Unbound. No local Johannesburg productive capacity, supplier sufficiency, district service or physical production claim is made.
+
+
+## Product–factory–network benchmark owners — 23 November 2026
+
+The district composition manifest now registers the wider factory chain as separate owner-native profiles:
+
+| Question | Owner | Evidence boundary |
+|---|---|---|
+| Product → process → factory → supply chain → repair/recovery | Symthaea [HABITAT-VERTICAL #8051](https://github.com/Luminous-Dynamics/symthaea/issues/8051) | Integration/benchmark profile; not a second MES/MRP, process ontology, material registry or qualification authority |
+| Reconfigurable multi-industry capability network | Symthaea [MULTIPURPOSE-FACTORY #12355](https://github.com/Luminous-Dynamics/symthaea/issues/12355) | Capability graph/reconfiguration design; no universal factory or qualified physical module |
+| Apparel production-cell vertical | Symthaea [ATELIER-MICROFACTORY #12288](https://github.com/Luminous-Dynamics/symthaea/issues/12288) | Product-specific apparel cell architecture; no site/workforce/output claim |
+| Matched layout/flow/capacity/resilience corpus | Symthaea [ATELIER-FACTORYBENCH #12289](https://github.com/Luminous-Dynamics/symthaea/issues/12289) | Proposed benchmark; independent physical campaigns still required |
+| Released conforming-output economics | Symtropy [FACTORY-ACCEPTED-OUTPUT-ECONOMICS #5966](https://github.com/Luminous-Dynamics/symtropy/issues/5966) | Fully burdened cost per independently released conforming output against named baselines |
+| Mass/grade/utility accounting | Symtropy [MATERIAL-ACCOUNTED-ROUTES #5875](https://github.com/Luminous-Dynamics/symtropy/issues/5875) | Route accounting must compose canonical material/assay owners |
+| Common-cause production resilience | Symtropy [FACTORY-CAPABILITY-RESILIENCE #5704](https://github.com/Luminous-Dynamics/symtropy/issues/5704) | Critical dependency cuts and qualified alternate paths, not nominal machine redundancy |
+| Intended/recorded/observed reconciliation | Symtropy [FACTORY-EXECUTION-REALITY #5758](https://github.com/Luminous-Dynamics/symtropy/issues/5758) | Synthetic evidence-reconciliation profile; missing observation is not proof of non-occurrence |
+| Traceability interoperability | Mycelix [NIST-IR-8536-PROFILE #6098](https://github.com/Luminous-Dynamics/mycelix/issues/6098) | NIST profile mapping, not NIST certification or proof that a signed event occurred |
+
+These are separate benchmark/architecture owners, not one combined PASS. The city projection must preserve each owner’s schema/profile, revision, scope, evidence disposition and claim ceiling. No end-to-end factory productivity, capacity, cost advantage, local resilience or product-conformity claim is established.
