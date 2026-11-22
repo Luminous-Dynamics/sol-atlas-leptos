@@ -83,3 +83,26 @@ The machine-readable binding contract is `CITY_REFERENCE_DISTRICT_SHARED_FIXTURE
 **Readiness distinction:** common digest alignment is now evidenced across these synthetic inputs; common scenario alignment and integrated district qualification remain **Not started**. The fixtures do not yet refer to one exact dwelling/panel asset, common material lot, unified intervention, real site or shared service horizon. Do not add these owner-level PASS results to an integrated district success count.
 
 Next E1 step is to construct one explicit synthetic district case linking a dwelling and non-loadbearing panel, one exact BOM/lot, a service interruption, a feasible restoration proposal, an impact event and an owner-confirmed postcondition. All owners must consume the same declared scenario/scope envelope. Run wrong-scope, stale-revision, revoked-lot, unavailable-resource, unverified-payload and missing-dependent-decision negative controls before issuing any integrated receipt.
+
+
+## Manufacturing process and distributed-resource integration — 23 November 2026
+
+The composition manifest now has explicit rows for the manufacturing owner chain. These are owner-specific readiness records, not one combined manufacturing PASS.
+
+| Owner layer | Exact reference | Current readiness | What remains Unknown / blocked |
+|---|---|---|---|
+| Symthaea process semantics | [MFG-PROC-000 #5686](https://github.com/Luminous-Dynamics/symthaea/issues/5686); current-main replay [PR #13305](https://github.com/Luminous-Dynamics/symthaea/pull/13305) | Nine public contract source blobs replayed byte-identically from historical source commit; isolated qualification pending | Replay not merged; no physical process or capability qualification |
+| Mycelix typed process references | [MFG-PROC-001A #6531 / PR #6532](https://github.com/Luminous-Dynamics/mycelix/pull/6532) | Draft schemas pinned; dedicated exact-head workflow passed at `3fbd57bfdd7a7e67149fe88355861bb94d0da558` (format, focused compile/tests, strict Clippy, 16-case fixture parse) | PR unmerged; typed refs remain present/unresolved; no source-object resolver/authentication |
+| Mycelix resource offers | [MFG-PROC-001B #6533](https://github.com/Luminous-Dynamics/mycelix/issues/6533) | Owner contract scoped | No versioned schema, provider/site/resource verification, capacity calendar or reservation evidence |
+| Symtropy route compiler | [MACHINE-CAPABILITY-COMPILER #6786 / PR #6790](https://github.com/Luminous-Dynamics/symtropy/pull/6790) | Draft 22-case synthetic corpus and schema pinned; exact-head CI passed at `82406a27ca60a25347c8793247eb80b4e555b84d` | Corpus independent review pending; no real resource offer or physical route |
+| Specific local manufacturing equipment | Symthaea [LD-PRINT-PILOT #12533](https://github.com/Luminous-Dynamics/symthaea/issues/12533), Mycelix [Node 0 #4689](https://github.com/Luminous-Dynamics/mycelix/issues/4689), Symtropy #6603/#6735 | Mechanical dossier and product-linked FDM workload being prepared | No physical machine built, calibrated or qualified; no local facility capacity established |
+
+### Non-promotion rules
+
+- `ProcessDefinitionV1` is not a process capability or qualified recipe
+- A Mycelix typed pointer is not a resolved/authenticated source object
+- A resource offer is not qualified capability, calendar availability, bookable capacity, reservation or executed work
+- A Symtropy synthetic feasible route is not a real-world available supplier/machine route
+- A fixture print is not a qualified fixture, appliance, manufactured unit or accepted output
+
+The shared district scope remains Unbound. No local Johannesburg productive capacity, supplier sufficiency, district service or physical production claim is made.
