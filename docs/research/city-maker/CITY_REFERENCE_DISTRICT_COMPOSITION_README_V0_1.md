@@ -68,3 +68,15 @@ Those three individual evaluator workflows passed their exact-head synthetic cor
 **This is only a common scope-identity fixture. It is not yet a common district scenario or integrated district PASS.** The three corpora test different events, case semantics, horizons and functional units. They have not been cross-joined to one dwelling, panel asset, material lot, service requirement, intervention or outcome.
 
 Next integration gate remains: bind one explicitly declared synthetic district scenario with common asset/design/BOM revisions and a shared time horizon; run the owner scope binder and schema registry; verify exact owner payload bytes; then run cross-owner positive and negative controls. The real district evaluation scope remains Unbound.
+
+
+## Manufacturing process and local-resource owner chain — 23 November 2026
+
+The manifest now pins the draft owner surfaces for the production-capability chain:
+
+- Symthaea MFG-PROC-000 #5686 owns process identity and semantic meaning. Its exact public contract sources are being replayed on current main in draft PR #13305; no process qualification is implied.
+- Mycelix MFG-PROC-001A #6531 / draft PR #6532 provides optional typed references for process definitions, capability requirements/profiles and recipes. Its focused exact-head software checks passed, but the PR is unmerged and external owner objects remain unresolved.
+- Mycelix MFG-PROC-001B #6533 is the resource-offer owner. It does not yet publish an exact versioned schema or establish any provider, site, resource, calendar or bookable capacity.
+- Symtropy #6786 / draft PR #6790 contributes a deterministic synthetic route-feasibility compiler; the 22-case exact-head workflow passed, but the corpus remains synthetic and pending independent review.
+
+These four owners remain distinct. CityMaker only projects their native evidence and dispositions; it does not create process semantics, verify machines, calculate capacity, issue reservations or qualify physical output. All real geography, local supplier/capacity and common-scope fields remain Unknown until rights-cleared, owner-native evidence is available.
