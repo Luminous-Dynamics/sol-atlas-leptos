@@ -1,0 +1,607 @@
+{
+  "schema_id": "org.luminousdynamics.citymaker.reference-district-profile",
+  "schema_version": "0.1.0",
+  "profile_id": "CITY-REFERENCE-DISTRICT-PROFILE-V0.1",
+  "classification": "synthetic_parameterized_template_only",
+  "claim_ceiling": "A reusable scope template only. No population, land, service demand, supplier, construction capacity, cost, safety, compliance or Johannesburg status is asserted.",
+  "status": "not_instantiated",
+  "scope": {
+    "geography": {
+      "status": "unselected",
+      "value": null,
+      "source_ref": null
+    },
+    "jurisdiction": {
+      "status": "unselected",
+      "value": null,
+      "source_ref": null
+    },
+    "climate_file": {
+      "status": "unknown",
+      "value": null,
+      "revision": null,
+      "source_ref": null
+    },
+    "horizon": {
+      "status": "to_be_defined",
+      "start": null,
+      "end": null,
+      "study_period_years": null
+    },
+    "population_frame": {
+      "status": "unknown",
+      "value": null,
+      "source_ref": null,
+      "uncertainty": null
+    },
+    "boundary_digest": null,
+    "comparison_scope_digest": null
+  },
+  "parameters": [
+    {
+      "id": "population_by_group",
+      "value": null,
+      "unit": "persons",
+      "required": true,
+      "evidence_state": "unknown",
+      "source_requirement": "rights-cleared aggregate population source and reviewed group definitions"
+    },
+    {
+      "id": "household_archetypes",
+      "value": null,
+      "unit": "households",
+      "required": true,
+      "evidence_state": "unknown",
+      "source_requirement": "declared occupancy, household and accessibility profiles"
+    },
+    {
+      "id": "dwelling_demand",
+      "value": null,
+      "unit": "dwelling-years",
+      "required": true,
+      "evidence_state": "unknown",
+      "source_requirement": "approved housing service requirement and occupancy profile"
+    },
+    {
+      "id": "health_demand",
+      "value": null,
+      "unit": "service-units-per-year",
+      "required": true,
+      "evidence_state": "unknown",
+      "source_requirement": "declared clinical service package, capacity and operating hours"
+    },
+    {
+      "id": "education_demand",
+      "value": null,
+      "unit": "learner-service-years",
+      "required": true,
+      "evidence_state": "unknown",
+      "source_requirement": "declared age cohort, education service profile and operating calendar"
+    },
+    {
+      "id": "food_demand",
+      "value": null,
+      "unit": "food-service-units-per-year",
+      "required": true,
+      "evidence_state": "unknown",
+      "source_requirement": "declared nutrition/retail/market service boundary"
+    },
+    {
+      "id": "potable_water_demand",
+      "value": null,
+      "unit": "m3-per-year",
+      "required": true,
+      "evidence_state": "unknown",
+      "source_requirement": "declared quality class, demand profile, source and outage allowance"
+    },
+    {
+      "id": "electricity_demand",
+      "value": null,
+      "unit": "kWh-per-year",
+      "required": true,
+      "evidence_state": "unknown",
+      "source_requirement": "declared end uses, time profile, source mix and reliability requirement"
+    },
+    {
+      "id": "mobility_demand",
+      "value": null,
+      "unit": "person-trips-by-mode-and-time",
+      "required": true,
+      "evidence_state": "unknown",
+      "source_requirement": "group-specific travel demand and mode assumptions"
+    },
+    {
+      "id": "freight_demand",
+      "value": null,
+      "unit": "tonne-km-by-mode-and-time",
+      "required": true,
+      "evidence_state": "unknown",
+      "source_requirement": "goods demand, shipment size, delivery windows and vehicle class"
+    },
+    {
+      "id": "public_space_requirement",
+      "value": null,
+      "unit": "service-profile-to-be-defined",
+      "required": true,
+      "evidence_state": "unknown",
+      "source_requirement": "public-use status, quality, access and distribution requirements"
+    },
+    {
+      "id": "waste_and_recovery_flows",
+      "value": null,
+      "unit": "kg-by-material-grade-and-period",
+      "required": true,
+      "evidence_state": "unknown",
+      "source_requirement": "measured or owner-qualified waste/material flow by process and destination"
+    },
+    {
+      "id": "cost_base_year",
+      "value": null,
+      "unit": "calendar-year-and-currency",
+      "required": true,
+      "evidence_state": "unknown",
+      "source_requirement": "declared price/cost source, base year and boundary"
+    },
+    {
+      "id": "embodied_operational_lca_boundary",
+      "value": null,
+      "unit": "lifecycle-modules-and-functional-unit",
+      "required": true,
+      "evidence_state": "unknown",
+      "source_requirement": "pinned LCA method/database, modules, reference service life and allocation"
+    },
+    {
+      "id": "community_governance_and_rights",
+      "value": null,
+      "unit": "decision-record-set",
+      "required": true,
+      "evidence_state": "unknown",
+      "source_requirement": "rights, participation, consultation and affected-group decision record"
+    }
+  ],
+  "service_contracts": [
+    {
+      "service_id": "housing",
+      "beneficiary_frame": "household-and-accessibility-groups",
+      "functional_unit": "dwelling-service-year",
+      "required_assets": [
+        "dwelling",
+        "envelope",
+        "interior",
+        "water",
+        "energy",
+        "ventilation",
+        "accessibility"
+      ],
+      "minimum_service_profile": null,
+      "owner_evidence": [
+        "design/BOM",
+        "qualified materials",
+        "installation",
+        "commissioning",
+        "maintenance",
+        "affordability",
+        "access"
+      ]
+    },
+    {
+      "service_id": "health",
+      "beneficiary_frame": "declared_population_groups",
+      "functional_unit": null,
+      "required_assets": [
+        "clinic",
+        "clinical-equipment",
+        "critical-power",
+        "water",
+        "cold-chain",
+        "digital-connectivity"
+      ],
+      "minimum_service_profile": null,
+      "owner_evidence": [
+        "service-capacity",
+        "equipment-capability",
+        "utility-dependency",
+        "workforce",
+        "access",
+        "commissioning",
+        "continuity"
+      ]
+    },
+    {
+      "service_id": "education_childcare",
+      "beneficiary_frame": "declared_age_and_accessibility_groups",
+      "functional_unit": null,
+      "required_assets": [
+        "school_or_childcare",
+        "learning-equipment",
+        "water",
+        "sanitation",
+        "energy",
+        "digital-connectivity",
+        "safe-access"
+      ],
+      "minimum_service_profile": null,
+      "owner_evidence": [
+        "facility-capacity",
+        "equipment",
+        "staffing",
+        "access",
+        "commissioning",
+        "continuity"
+      ]
+    },
+    {
+      "service_id": "food",
+      "beneficiary_frame": "declared_population_groups",
+      "functional_unit": null,
+      "required_assets": [
+        "market_or_retail",
+        "food-storage",
+        "cold-chain",
+        "food-processing-where-required",
+        "delivery-access"
+      ],
+      "minimum_service_profile": null,
+      "owner_evidence": [
+        "qualified-supply",
+        "storage-capacity",
+        "energy",
+        "water",
+        "logistics",
+        "food-safety",
+        "affordability"
+      ]
+    },
+    {
+      "service_id": "water_sanitation",
+      "beneficiary_frame": "declared_population_groups",
+      "functional_unit": "m3-by-quality-class-and-time",
+      "required_assets": [
+        "treatment-interface",
+        "pumping",
+        "storage",
+        "above-ground-pipework-interface",
+        "meters",
+        "sanitation-fixtures",
+        "wastewater-treatment-interface"
+      ],
+      "minimum_service_profile": null,
+      "owner_evidence": [
+        "source-quality",
+        "capacity",
+        "reliability",
+        "flow-balance",
+        "inspection",
+        "maintenance"
+      ]
+    },
+    {
+      "service_id": "energy_thermal",
+      "beneficiary_frame": "declared_population_groups-and-critical-assets",
+      "functional_unit": "kWh-by-source-and-time",
+      "required_assets": [
+        "generation-interface",
+        "storage",
+        "inverters",
+        "switchgear",
+        "protection",
+        "distribution-interface",
+        "ventilation",
+        "heating_cooling"
+      ],
+      "minimum_service_profile": null,
+      "owner_evidence": [
+        "capacity",
+        "source-mix",
+        "connection",
+        "safety",
+        "commissioning",
+        "continuity",
+        "maintenance"
+      ]
+    },
+    {
+      "service_id": "mobility_freight",
+      "beneficiary_frame": "people-groups-and-goods-flows",
+      "functional_unit": "person-trips-and-tonne-km-by-mode-time",
+      "required_assets": [
+        "street_network",
+        "footways",
+        "crossings",
+        "transit-interfaces",
+        "freight-gates",
+        "loading",
+        "staging",
+        "maintenance"
+      ],
+      "minimum_service_profile": null,
+      "owner_evidence": [
+        "network",
+        "schedule-if-available",
+        "vehicle-restrictions",
+        "worker-access",
+        "freight-delivery",
+        "public-realm-constraints"
+      ]
+    },
+    {
+      "service_id": "public_space_ecology",
+      "beneficiary_frame": "declared_population_groups-and-ecological-receptors",
+      "functional_unit": null,
+      "required_assets": [
+        "public-space",
+        "shade",
+        "green_blue_infrastructure",
+        "play_or_recreation",
+        "public-toilets",
+        "lighting",
+        "access-routes"
+      ],
+      "minimum_service_profile": null,
+      "owner_evidence": [
+        "public-use-status",
+        "land-rights",
+        "quality",
+        "accessibility",
+        "ecological-constraints",
+        "maintenance"
+      ]
+    },
+    {
+      "service_id": "waste_repair_recovery",
+      "beneficiary_frame": "district-material-flows-and-receiving-facilities",
+      "functional_unit": "kg-by-material-grade-destination-and-period",
+      "required_assets": [
+        "collection",
+        "sorting",
+        "repair-workshop",
+        "salvage_storage",
+        "testing",
+        "recovery_facility",
+        "residual-disposal-interface"
+      ],
+      "minimum_service_profile": null,
+      "owner_evidence": [
+        "flow-balance",
+        "custody",
+        "grade",
+        "process-capability",
+        "receiving-capacity",
+        "environmental-permits"
+      ]
+    },
+    {
+      "service_id": "emergency_maintenance",
+      "beneficiary_frame": "all-residents-workers-and-critical-assets",
+      "functional_unit": null,
+      "required_assets": [
+        "emergency-access",
+        "response-facility-interface",
+        "maintenance-workshop",
+        "spares-storage",
+        "utility-recovery",
+        "inspection-tools"
+      ],
+      "minimum_service_profile": null,
+      "owner_evidence": [
+        "response-coverage",
+        "capability",
+        "access",
+        "spares",
+        "recovery-time",
+        "maintenance-ownership"
+      ]
+    }
+  ],
+  "asset_archetypes": [
+    {
+      "id": "dwelling_archetype_01",
+      "status": "not_instantiated",
+      "count": null,
+      "design_revision": null,
+      "requirements_ref": null,
+      "product_families": [
+        "structure",
+        "envelope",
+        "roof",
+        "windows_doors",
+        "interior",
+        "water",
+        "sanitation",
+        "electrical",
+        "ventilation",
+        "thermal",
+        "fire_life_safety",
+        "accessibility"
+      ]
+    },
+    {
+      "id": "clinic_archetype_01",
+      "status": "not_instantiated",
+      "count": null,
+      "design_revision": null,
+      "requirements_ref": null,
+      "product_families": [
+        "building_shell",
+        "clinical_equipment",
+        "critical_power",
+        "water",
+        "cold_chain",
+        "ventilation",
+        "fire_life_safety",
+        "digital",
+        "accessibility"
+      ]
+    },
+    {
+      "id": "education_archetype_01",
+      "status": "not_instantiated",
+      "count": null,
+      "design_revision": null,
+      "requirements_ref": null,
+      "product_families": [
+        "building_shell",
+        "classroom_furniture",
+        "learning_equipment",
+        "water",
+        "sanitation",
+        "electrical",
+        "digital",
+        "fire_life_safety",
+        "accessibility"
+      ]
+    },
+    {
+      "id": "food_market_archetype_01",
+      "status": "not_instantiated",
+      "count": null,
+      "design_revision": null,
+      "requirements_ref": null,
+      "product_families": [
+        "market_structure",
+        "cold_chain",
+        "storage",
+        "water",
+        "sanitation",
+        "electrical",
+        "food_handling",
+        "waste"
+      ]
+    },
+    {
+      "id": "maintenance_recovery_archetype_01",
+      "status": "not_instantiated",
+      "count": null,
+      "design_revision": null,
+      "requirements_ref": null,
+      "product_families": [
+        "workshop_structure",
+        "tools",
+        "metrology",
+        "spares",
+        "material_testing",
+        "sorting",
+        "repair_equipment",
+        "storage"
+      ]
+    }
+  ],
+  "production_alternatives": [
+    {
+      "id": "maintain_retrofit_first",
+      "status": "hypothesis_only",
+      "design_manifest_digest": null,
+      "required_scope_digest": null
+    },
+    {
+      "id": "conventional_site_built",
+      "status": "hypothesis_only",
+      "design_manifest_digest": null,
+      "required_scope_digest": null
+    },
+    {
+      "id": "panelized_prefabricated_hybrid",
+      "status": "hypothesis_only",
+      "design_manifest_digest": null,
+      "required_scope_digest": null
+    }
+  ],
+  "owner_contracts": [
+    {
+      "domain": "product_chain",
+      "owner": "sol-atlas",
+      "issue": 603,
+      "authority": "lifecycle-stage completeness"
+    },
+    {
+      "domain": "owner_receipt_adapters",
+      "owner": "sol-atlas",
+      "issue": 606,
+      "authority": "schema-native source adapter registry"
+    },
+    {
+      "domain": "productive_design_capability",
+      "owner": "symthaea",
+      "issues": [
+        5774,
+        6032,
+        6040
+      ],
+      "authority": "design/process/capability/commissioning"
+    },
+    {
+      "domain": "service_workcell_feasibility",
+      "owner": "symtropy",
+      "issues": [
+        3768,
+        3773,
+        3605
+      ],
+      "authority": "capacity, workcell and accepted-output evidence"
+    },
+    {
+      "domain": "production_supply_dependencies",
+      "owner": "mycelix",
+      "issue": 4814,
+      "authority": "supplier, inventory, substitution and lead-time facts"
+    },
+    {
+      "domain": "material_resource_flows",
+      "owner": "mycelix",
+      "pr": 5035,
+      "authority": "physical material/energy/water flow and distributional impact"
+    },
+    {
+      "domain": "custody_inspection",
+      "owner": "mycelix",
+      "issue": 5149,
+      "authority": "lot identity, custody, inspection, correction and revocation"
+    },
+    {
+      "domain": "effective_access",
+      "owner": "sol-atlas",
+      "issue": 555,
+      "authority": "population-group access"
+    },
+    {
+      "domain": "continuity",
+      "owner": "sol-atlas",
+      "issue": 563,
+      "authority": "time-dependent service continuity"
+    },
+    {
+      "domain": "material_loops",
+      "owner": "sol-atlas",
+      "issue": 569,
+      "authority": "spatial secondary-material projection"
+    },
+    {
+      "domain": "delivery",
+      "owner": "sol-atlas",
+      "issue": 573,
+      "authority": "time-bound transport/receiving feasibility"
+    },
+    {
+      "domain": "production_geography",
+      "owner": "sol-atlas",
+      "issue": 613,
+      "authority": "spatial production-site/cluster comparison"
+    },
+    {
+      "domain": "functional_equivalence",
+      "owner": "sol-atlas",
+      "issue": 612,
+      "authority": "component/building/neighbourhood service comparison"
+    }
+  ],
+  "constraints": {
+    "synthetic_values_only": true,
+    "no_real_johannesburg_claims": true,
+    "no_individual_household_coordinates": true,
+    "imported_supply_is_not_local_capability": true,
+    "unknown_is_never_pass": true,
+    "no_scalar_city_score": true,
+    "no_physical_actuation_or_procurement": true,
+    "sub_surface_systems_are_external_interfaces_only": true
+  }
+}
