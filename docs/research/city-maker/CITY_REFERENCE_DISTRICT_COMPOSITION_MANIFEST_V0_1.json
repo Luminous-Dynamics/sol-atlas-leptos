@@ -3,7 +3,7 @@
   "schema_version": "0.1.0",
   "manifest_id": "CITY-REFERENCE-DISTRICT-COMPOSITION-MANIFEST-V0.1",
   "classification": "synthetic_integration_plan_only",
-  "claim_ceiling": "Records composition boundaries and owner-contract readiness only. It does not instantiate a district, authenticate owner receipts, establish local capacity, or qualify a building, service or city. Manufacturing process and resource-offer rows are draft/issue-level integration references only. Typed process refs remain unresolved until owner-object verification; resource-offer schema and physical capability evidence are unavailable. Mycelix 001B now has a draft versioned resource-offer schema and 16-case synthetic corpus with a successful exact-head software workflow; its PR is unmerged and owner-native provider/site/resource/capacity evidence remains unresolved.",
+  "claim_ceiling": "Records composition boundaries and owner-contract readiness only. It does not instantiate a district, authenticate owner receipts, establish local capacity, or qualify a building, service or city. Manufacturing process and resource-offer rows are draft/issue-level integration references only. Typed process refs remain unresolved until owner-object verification; resource-offer schema and physical capability evidence are unavailable. Mycelix 001B now has a draft versioned resource-offer schema and 16-case synthetic corpus with a successful exact-head software workflow; its PR is unmerged and owner-native provider/site/resource/capacity evidence remains unresolved. The factory-vertical and reconfiguration owners (Symthaea #8051/#12355/#12288/#12289), accepted-output/material/resilience/execution owners (Symtropy #5966/#5875/#5704/#5758), and Mycelix NIST traceability profile #6098 are registered as owner-native architecture/benchmark contracts only; their issue-level status does not establish measured factory throughput, independent resilience, product conformity or NIST certification.",
   "as_of": "2026-11-23",
   "profile_ref": {
     "repository": "Luminous-Dynamics/sol-atlas-leptos",
@@ -289,7 +289,7 @@
       "consumer_evidence": {
         "repository": "Luminous-Dynamics/mycelix",
         "pull_request": 6532,
-        "source_revision": "3fbd57bfdd7a7e67149fe88355861bb94d0da558",
+        "source_revision": "8e83efbc50fedad2c75f204d371a1bb7e4088ead",
         "workflow_run": 45047336760,
         "workflow_url": "https://github.com/Luminous-Dynamics/mycelix/actions/runs/45047336760",
         "outcome": "success",
@@ -299,9 +299,17 @@
           "strict_clippy_warnings_denied",
           "schema_and_16_case_fixture_json_parse"
         ],
-        "role": "software-contract qualification only; does not fetch/authenticate Symthaea owner objects or qualify machine capability"
+        "role": "software-contract qualification only; does not fetch/authenticate Symthaea owner objects or qualify machine capability",
+        "workflow_runs": [
+          45077583703,
+          45077579607
+        ],
+        "workflow_urls": [
+          "https://github.com/Luminous-Dynamics/mycelix/actions/runs/45077583703",
+          "https://github.com/Luminous-Dynamics/mycelix/actions/runs/45077579607"
+        ]
       },
-      "claim_ceiling": "Draft typed-reference contract and schemas passed focused exact-head software checks. PR is unmerged; external owner-object resolution and any physical capability remain unqualified."
+      "claim_ceiling": "Draft typed-reference contract and schemas passed two focused exact-head software workflows, including Rust-bound 16-case migration fixtures. PR is unmerged; external owner-object resolution and any physical capability remain unqualified."
     },
     {
       "owner": "Mycelix",
@@ -361,6 +369,22 @@
       }
     },
     {
+      "owner": "Mycelix",
+      "contract": "NIST-IR-8536-PROFILE-001 manufacturing traceability interoperability profile",
+      "owner_ref": "https://github.com/Luminous-Dynamics/mycelix/issues/6098",
+      "consumed_by": "Symtropy #5758/#4685/#5228; Mycelix #3084/#3095/#6531/#6533; Sol-Atlas #606",
+      "schema_status": "interop_profile_issue_only_external_reference_implementation_early_stage_not_production",
+      "known_semantics": [
+        "temporal_provenance_events",
+        "cryptographically_verifiable_links",
+        "selective_disclosure",
+        "owner_native_sector_standards",
+        "correction_dispute_revocation_and_supersession"
+      ],
+      "mapping_boundary": "A signature validates a cryptographic assertion under its key/policy; it does not prove that the physical operation actually happened. No central replacement ledger or universal event schema is introduced.",
+      "claim_ceiling": "NIST interoperability profile only; not NIST certification, reference implementation production qualification or proof of physical event truth."
+    },
+    {
       "owner": "Sol-Atlas",
       "contract": "CITY-MORPH-ACCESS-001",
       "owner_ref": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/pull/564",
@@ -392,6 +416,40 @@
         "recovery_confirmation"
       ],
       "mapping_boundary": "Consumes exact access receipts; no hazard probabilities or real-world resilience claim are generated."
+    },
+    {
+      "owner": "Symthaea",
+      "contract": "ATELIER-FACTORYBENCH-001 matched layout/flow/capacity/resilience benchmark",
+      "owner_ref": "https://github.com/Luminous-Dynamics/symthaea/issues/12289",
+      "consumed_by": "Symtropy #5966/#5704/#5758; Mycelix #6533; Sol-Atlas #606",
+      "schema_status": "benchmark_corpus_issue_only_independent_measurement_pending",
+      "known_semantics": [
+        "matched_layouts",
+        "capacity_and_flow",
+        "work_in_process",
+        "changeover",
+        "inspection_queues",
+        "workforce_constraints",
+        "disruption_and_resilience"
+      ],
+      "mapping_boundary": "Use matched product demand, same staffing/utilities/quality assumptions and source-bound measurement; a simulated layout result is not physical capacity.",
+      "claim_ceiling": "Proposed matched benchmark only; no measured factory throughput/yield result is claimed."
+    },
+    {
+      "owner": "Symthaea",
+      "contract": "ATELIER-MICROFACTORY-001 apparel cell reference architecture",
+      "owner_ref": "https://github.com/Luminous-Dynamics/symthaea/issues/12288",
+      "consumed_by": "Symthaea #12289/#8051; Mycelix #6533; Symtropy #4875/#5758; Sol-Atlas #606",
+      "schema_status": "product_specific_reference_architecture_issue_only",
+      "known_semantics": [
+        "apparel_product_mix",
+        "textile_material_handling",
+        "pattern_cutting_sewing_finishing",
+        "workforce_skill_and_ergonomics",
+        "inspection_repair_and_distributed_production"
+      ],
+      "mapping_boundary": "Apparel-specific process/equipment and worker conditions cannot be inferred from the generic desktop FDM capability profile.",
+      "claim_ceiling": "Apparel reference-design scope only; no site, workforce or production output is verified."
     },
     {
       "owner": "Symthaea",
@@ -460,10 +518,27 @@
     },
     {
       "owner": "Symthaea",
+      "contract": "HABITAT-VERTICAL-001 product/factory/supply-chain vertical integration",
+      "owner_ref": "https://github.com/Luminous-Dynamics/symthaea/issues/8051",
+      "consumed_by": "Sol-Atlas #602/#606; Symtropy #5966/#5704/#5758; Mycelix #3084/#3085/#6531/#6533",
+      "schema_status": "integration_and_benchmark_profile_issue_only_no_new_generic_mes_mrp_or_factory_ontology",
+      "known_semantics": [
+        "product_and_variant_requirements",
+        "BOM_and_process_plan_refs",
+        "supplier_and_lot_inputs",
+        "conversion_assembly_and_inspection",
+        "utilities_workforce_and_facility",
+        "delivery_repair_refurbishment_and_recovery"
+      ],
+      "mapping_boundary": "A product-factory vertical is a composed evidence chain. No single upstream supplier claim, process plan, factory simulation or execution event establishes an accepted article or local supply-chain closure.",
+      "claim_ceiling": "Integration/benchmark profile only; physical textile/conversion pilot and product performance require their own exact owner evidence."
+    },
+    {
+      "owner": "Symthaea",
       "contract": "MFG-PROC-000 process identity and extensible process-family semantics",
       "owner_ref": "https://github.com/Luminous-Dynamics/symthaea/issues/5686",
       "consumed_by": "Mycelix MFG-PROC-001A #6531; Symtropy #6786/#6791; Sol-Atlas #606",
-      "schema_status": "exact_public_source_replayed_in_draft_current_main_PR; targeted_qualification_pending",
+      "schema_status": "draft_current_main_replay_exact_head_isolated_software_qualification_passed_root_workspace_manifest_repair_separate",
       "known_semantics": [
         "ProcessDefinitionV1",
         "ProcessDefinitionId",
@@ -496,7 +571,45 @@
           "status": "draft_replay_PR_unmerged"
         }
       ],
-      "claim_ceiling": "Source-byte identity is verified for the replayed files. The replay PR is unmerged and its isolated exact-head qualification is still pending. No physical process or capability is qualified."
+      "claim_ceiling": "Nine public source files were replayed from the historical MFG-PROC source lineage and the two public contract crates passed isolated exact-head formatting/tests/strict Clippy. Replay PR remains unmerged; root workspace issue is separately addressed by draft PR #13080; no physical process or capability is qualified.",
+      "consumer_evidence": {
+        "repository": "Luminous-Dynamics/symthaea",
+        "pull_request": 13305,
+        "source_revision": "153169a016c9c4ad1883d8d68fbacf4c85a9ed37",
+        "workflow_runs": [
+          45077516320,
+          45077514106
+        ],
+        "workflow_urls": [
+          "https://github.com/Luminous-Dynamics/symthaea/actions/runs/45077516320",
+          "https://github.com/Luminous-Dynamics/symthaea/actions/runs/45077514106"
+        ],
+        "outcome": "success",
+        "checks": [
+          "rustfmt_replayed_public_crates",
+          "isolated_workspace_tests_for_both_public_crates",
+          "strict_clippy_warnings_denied"
+        ],
+        "role": "software contract crate qualification only; exact source replay PR unmerged; root workspace fixed separately by workspace PR #13080"
+      }
+    },
+    {
+      "owner": "Symthaea",
+      "contract": "MULTIPURPOSE-FACTORY-001 reconfigurable industrial capability-network architecture",
+      "owner_ref": "https://github.com/Luminous-Dynamics/symthaea/issues/12355",
+      "consumed_by": "Mycelix #6531/#6533; Symtropy #6786/#5966/#5704; Sol-Atlas #606",
+      "schema_status": "architecture_issue_only_no_single_universal_factory_or_second_scheduler",
+      "known_semantics": [
+        "process_module_capability_graph",
+        "machine_tool_fixture_metrology",
+        "material_and_product_state",
+        "workforce_skill_and_calendar",
+        "utilities_and_environment",
+        "transport_buffers_and_inspection",
+        "reconfiguration_requalification_and_common_cause_resilience"
+      ],
+      "mapping_boundary": "Capability graph is not floor-plan simulation or physical qualification. A reconfiguration is accepted only after stop/WIP handling, isolation/cleaning, equipment/configuration, calibration/safety/first-article/inspection and stable restart evidence.",
+      "claim_ceiling": "Architecture/benchmark definition only; no reconfigurable physical factory or production line is qualified."
     },
     {
       "owner": "Symtropy",
@@ -583,6 +696,53 @@
     },
     {
       "owner": "Symtropy",
+      "contract": "FACTORY-ACCEPTED-OUTPUT-ECONOMICS-001 accepted conforming-output economics",
+      "owner_ref": "https://github.com/Luminous-Dynamics/symtropy/issues/5966",
+      "consumed_by": "Symthaea #7608/#8051/#12355; Mycelix #3084/#6533; Sol-Atlas #606",
+      "schema_status": "benchmark_owner_issue_only_independent_campaigns_required",
+      "known_semantics": [
+        "fully_burdened_cost_per_released_conforming_pump_valve_output",
+        "matched_oem_and_job_shop_baselines",
+        "first_pass_yield",
+        "scrap_rework_inspection_warranty_and_lifecycle_cost"
+      ],
+      "mapping_boundary": "Cost per conforming output must be compared at matched quality-escape risk and independent lot/campaign level; nominal throughput or quoted hourly rate is not accepted-output economics.",
+      "claim_ceiling": "Benchmark target/protocol only until independent matched-campaign measurements exist."
+    },
+    {
+      "owner": "Symtropy",
+      "contract": "FACTORY-CAPABILITY-RESILIENCE-001 common-cause route resilience",
+      "owner_ref": "https://github.com/Luminous-Dynamics/symtropy/issues/5704",
+      "consumed_by": "Symthaea #12355/#8051; Mycelix #6533; Sol-Atlas #606",
+      "schema_status": "resilience_benchmark_issue_only",
+      "known_semantics": [
+        "common_cause_dependency_cuts",
+        "single_source_critical_resources",
+        "utility_and_material_disruptions",
+        "qualified_alternate_routes",
+        "requalification_and_recovery_time"
+      ],
+      "mapping_boundary": "Two machines sharing the same upstream power, controller, tooling supplier, material lot or calibration source are not independent redundancy.",
+      "claim_ceiling": "Synthetic/benchmark resilience scope only until route alternatives and common-cause evidence are verified."
+    },
+    {
+      "owner": "Symtropy",
+      "contract": "FACTORY-EXECUTION-REALITY-001 intended/recorded/observed reconciliation",
+      "owner_ref": "https://github.com/Luminous-Dynamics/symtropy/issues/5758",
+      "consumed_by": "Mycelix #4685/#5228/#6098; Symthaea #12531; Sol-Atlas #606",
+      "schema_status": "synthetic_execution_reconciliation_owner_issue_only",
+      "known_semantics": [
+        "intended_route",
+        "recorded_mes_events",
+        "independent_observation_streams",
+        "coverage_and_uncertainty",
+        "confirmed_conflicted_unknown_not_observed_with_coverage"
+      ],
+      "mapping_boundary": "A missing or late observation is not proof that the event did not occur; a MES event is not proof of the physical event; multiple derivatives of one source are not independent corroboration.",
+      "claim_ceiling": "Execution-reconciliation benchmark only; no sensor coverage, physical route or product acceptance is established."
+    },
+    {
+      "owner": "Symtropy",
       "contract": "MACHINE-CAPABILITY-COMPILER-001 executable synthetic route-feasibility reference",
       "owner_ref": "https://github.com/Luminous-Dynamics/symtropy/pull/6790",
       "consumed_by": "Sol-Atlas #606/#615; Mycelix MFG-PROC-001A/001B #6531/#6533; Symtropy #6735/#6762",
@@ -635,6 +795,22 @@
         "role": "synthetic reference evaluator and route-feasibility comparison; not an upstream process/resource schema owner"
       },
       "claim_ceiling": "Exact-head software workflows passed for a 22-case synthetic reference evaluator. The corpus is awaiting independent review; no physical route, local supplier or machine capability is qualified."
+    },
+    {
+      "owner": "Symtropy",
+      "contract": "MATERIAL-ACCOUNTED-ROUTES-001 mass/grade/utility/output accounting",
+      "owner_ref": "https://github.com/Luminous-Dynamics/symtropy/issues/5875",
+      "consumed_by": "Mycelix #3084/#3095/#6098/#6533; Symthaea #5705/#8051; Sol-Atlas #569/#606",
+      "schema_status": "route_accounting_owner_issue_only_no_physical_material_assay_claim",
+      "known_semantics": [
+        "input_mass_and_grade",
+        "process_conversion_and_byproducts",
+        "utility_consumption",
+        "accepted_output_mass",
+        "scrap_rework_and_recovery"
+      ],
+      "mapping_boundary": "Material balance/grade accounting must use owner-native material and assay evidence; recycled/recovered material is not qualified feedstock without grade/custody/requalification evidence.",
+      "claim_ceiling": "Accounting contract only; no actual yield, circularity or environmental benefit claim."
     }
   ],
   "composition_invariants": [
@@ -657,7 +833,8 @@
         "Mycelix MFG-PROC-001B resource-offer schema/contract merged; provider/site/resource authority and source payload verification remain explicit",
         "Symtropy route compiler consumes exact offer refs with unresolved/unknown states and no schema-authority duplication",
         "independent tests prove no promotion from provider-declared capacity to qualified capability, calendar availability, bookable/reserved capacity or executed output",
-        "scope-bound, rights-cleared local physical evidence before any local production claim"
+        "scope-bound, rights-cleared local physical evidence before any local production claim",
+        "product/factory vertical benchmark owners remain projections only; no single aggregate factory PASS is inferred"
       ],
       "blocks": [
         "No district local-manufacturing capacity from a map point or provider marketing claim",
