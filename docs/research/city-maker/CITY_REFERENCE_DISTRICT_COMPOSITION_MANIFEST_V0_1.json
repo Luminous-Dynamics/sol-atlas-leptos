@@ -3,7 +3,7 @@
   "schema_version": "0.1.0",
   "manifest_id": "CITY-REFERENCE-DISTRICT-COMPOSITION-MANIFEST-V0.1",
   "classification": "synthetic_integration_plan_only",
-  "claim_ceiling": "Records composition boundaries and owner-contract readiness only. It does not instantiate a district, authenticate owner receipts, establish local capacity, or qualify a building, service or city. Manufacturing process and resource-offer rows are draft/issue-level integration references only. Typed process refs remain unresolved until owner-object verification; resource-offer schema and physical capability evidence are unavailable.",
+  "claim_ceiling": "Records composition boundaries and owner-contract readiness only. It does not instantiate a district, authenticate owner receipts, establish local capacity, or qualify a building, service or city. Manufacturing process and resource-offer rows are draft/issue-level integration references only. Typed process refs remain unresolved until owner-object verification; resource-offer schema and physical capability evidence are unavailable. Mycelix 001B now has a draft versioned resource-offer schema and 16-case synthetic corpus with a successful exact-head software workflow; its PR is unmerged and owner-native provider/site/resource/capacity evidence remains unresolved.",
   "as_of": "2026-11-23",
   "profile_ref": {
     "repository": "Luminous-Dynamics/sol-atlas-leptos",
@@ -305,25 +305,60 @@
     },
     {
       "owner": "Mycelix",
-      "contract": "MFG-PROC-001B distributed manufacturing resource offers and capacity claims",
-      "owner_ref": "https://github.com/Luminous-Dynamics/mycelix/issues/6533",
-      "consumed_by": "Sol-Atlas #606; Symtropy machine-capability route consumer #6786; Mycelix Node 0 #4689",
-      "schema_status": "owner_issue_contract_only_no_versioned_schema_or_implementation_yet",
+      "contract": "MFG-PROC-001B typed distributed manufacturing resource offers and capacity claims",
+      "owner_ref": "https://github.com/Luminous-Dynamics/mycelix/pull/6541",
+      "consumed_by": "Sol-Atlas #606; Symtropy #6786/#6790; Mycelix MFG-003 Node 0 #4689",
+      "schema_status": "draft_PR_unmerged_exact_head_software_checks_passed_external_owner_resolution_and_physical_capacity_unavailable",
       "known_semantics": [
-        "provider_identity_ref",
-        "site_facility_ref",
-        "resource_equipment_ref",
-        "typed_process_and_capability_profile_refs",
-        "configuration_tooling_material_and_operator_prerequisite_refs",
-        "declared_capacity",
-        "calendar_availability",
-        "bookable_capacity",
-        "reservation",
-        "observed_execution"
+        "provider_identity_and_optional_authority_ref",
+        "resource_equipment_site_and_configuration_refs",
+        "exact_Symthaea_process_definition_and_capability_profile_refs",
+        "tooling_fixture_material_environment_utility_operator_safety_inspection_calibration_prerequisite_refs",
+        "declared_capacity_profile_ref_not_capacity_quantity_copy",
+        "optional_availability_calendar_ref_not_slot_availability",
+        "capacity_claim_provenance_and_evidence_refs",
+        "offer_revision_publication_state_and_validity_window",
+        "distinct_NotYetValid_ActiveOfferWindow_Expired_Withdrawn_Disputed_Superseded_dispositions"
       ],
-      "mapping_boundary": "A published offer is a provider claim, not proof of provider control, physical machine existence, qualification, calendar availability, reserved capacity or execution. Do not infer supply from geographic proximity or a map marker.",
+      "mapping_boundary": "A well-formed resource offer is only a provider/resource/site/process declaration with unresolved owner-native references. It does not verify signer authority, provider control, resource existence, external process/profile payload, qualified capability, calendar availability, bookable or reserved capacity, execution, or accepted product. An ActiveOfferWindow is not an available slot.",
       "owner_schema_artifact": null,
-      "claim_ceiling": "Issue-level design contract only. No exact versioned resource-offer schema, provider relationship, supplier capacity or local production availability is established."
+      "claim_ceiling": "Draft Mycelix resource-offer Rust contract/schema and 16-case synthetic corpus passed focused exact-head software checks. PR is unmerged and stacked on MFG-PROC-001A. No provider/resource/site relationship, qualified machine/process, available/bookable/reserved capacity, physical output or local production availability is established.",
+      "schema_artifact": {
+        "repository": "Luminous-Dynamics/mycelix",
+        "pull_request": 6541,
+        "source_revision": "1600f961776d1b1d2a486f83368af705611737ab",
+        "path": "mycelix-workspace/mycelix-manufacturing/schemas/mfg_proc_001b/manufacturing_resource_offer_v0_1.schema.json",
+        "git_blob_sha": "b901a35a9b797d0d89934c47802ea8fad1b599db",
+        "json_schema_draft": "2020-12",
+        "schema_id": "https://github.com/Luminous-Dynamics/mycelix/blob/main/mycelix-workspace/mycelix-manufacturing/schemas/mfg_proc_001b/manufacturing_resource_offer_v0_1.schema.json",
+        "schema_version": "0.1.0",
+        "status": "draft_PR_unmerged"
+      },
+      "corpus_artifact": {
+        "repository": "Luminous-Dynamics/mycelix",
+        "pull_request": 6541,
+        "source_revision": "1600f961776d1b1d2a486f83368af705611737ab",
+        "path": "mycelix-workspace/mycelix-manufacturing/tests/fixtures/mfg_proc_001b_resource_offer_v0_1.json",
+        "git_blob_sha": "3e62ca1628211be9981961b0cb6aee6d56e8e3d2",
+        "schema_id": "mycelix.manufacturing.mfg-proc-001b.resource-offer.cases.v0_1",
+        "case_count": 16,
+        "classification": "synthetic_contract_conformance_only"
+      },
+      "consumer_evidence": {
+        "repository": "Luminous-Dynamics/mycelix",
+        "pull_request": 6541,
+        "source_revision": "1600f961776d1b1d2a486f83368af705611737ab",
+        "workflow_run": 45078279445,
+        "workflow_url": "https://github.com/Luminous-Dynamics/mycelix/actions/runs/45078279445",
+        "outcome": "success",
+        "checks": [
+          "committed_source_rustfmt",
+          "shared_common_rust_tests_16_case_resource_offer_corpus",
+          "strict_clippy_warnings_denied",
+          "resource_offer_schema_and_corpus_json_parse"
+        ],
+        "role": "software contract only; no provider/site/resource owner payload resolution, authority verification, capability qualification, slot availability, booking or execution"
+      }
     },
     {
       "owner": "Sol-Atlas",
@@ -615,19 +650,19 @@
   "next_integration_gates": [
     {
       "gate_id": "G1C_MANUFACTURING_PROCESS_AND_RESOURCE_ADAPTERS",
-      "state": "in_progress_owner_contracts_pinned_resource_offer_schema_unavailable",
+      "state": "in_progress_draft_resource_offer_schema_software_qualified_owner_resolution_unavailable",
       "required": [
-        "Symthaea MFG-PROC public source replay qualified and merged",
-        "Mycelix MFG-PROC-001A typed-reference contract merged and owner object resolver qualified",
-        "Mycelix MFG-PROC-001B resource-offer schema published with provider/site/resource identity and separate capacity states",
-        "Symtropy route compiler consumes exact offer references without importing schema authority",
-        "independent tests prove no promotion from declared offer to qualified capability, calendar availability, reservation or execution",
+        "Symthaea MFG-PROC public source replay merged and source objects independently resolvable",
+        "Mycelix MFG-PROC-001A typed-reference contract merged and exact owner-object resolver qualified",
+        "Mycelix MFG-PROC-001B resource-offer schema/contract merged; provider/site/resource authority and source payload verification remain explicit",
+        "Symtropy route compiler consumes exact offer refs with unresolved/unknown states and no schema-authority duplication",
+        "independent tests prove no promotion from provider-declared capacity to qualified capability, calendar availability, bookable/reserved capacity or executed output",
         "scope-bound, rights-cleared local physical evidence before any local production claim"
       ],
       "blocks": [
         "No district local-manufacturing capacity from a map point or provider marketing claim",
-        "No process qualification from process identity",
-        "No reservation or dispatch inference from declared capacity",
+        "No process qualification from process identity or a valid pointer",
+        "No availability/reservation/dispatch inference from declared capacity or ActiveOfferWindow",
         "No local productive-closure result from synthetic route feasibility"
       ]
     },
