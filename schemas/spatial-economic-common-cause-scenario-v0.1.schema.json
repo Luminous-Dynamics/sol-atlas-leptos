@@ -1,0 +1,50 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://luminousdynamics.io/schemas/spatial-economic-common-cause-scenario-v0.1.schema.json",
+  "title": "Spatial-Economic Common-Cause Scenario",
+  "description": "Explicit active/inactive/unknown scenario conditions for declared common-cause domains. Exposure is not an asset outage or failure probability.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["id", "as_of", "conditions"],
+  "properties": {
+    "id": { "type": "string", "minLength": 1 },
+    "as_of": {
+      "type": "string",
+      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z$"
+    },
+    "conditions": {
+      "type": "object",
+      "additionalProperties": { "$ref": "#/$defs/condition" }
+    }
+  },
+  "$defs": {
+    "condition": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["state", "basis", "rationale"],
+      "properties": {
+        "state": { "enum": ["active", "inactive", "unknown"] },
+        "basis": { "enum": ["assumed", "observed"] },
+        "rationale": { "type": "string", "minLength": 1 },
+        "supporting_evidence_ids": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": { "type": "string", "minLength": 1 }
+        }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "basis": { "const": "observed" } }, "required": ["basis"] },
+          "then": {
+            "required": ["supporting_evidence_ids"],
+            "properties": { "supporting_evidence_ids": { "minItems": 1 } }
+          }
+        },
+        {
+          "if": { "properties": { "basis": { "const": "assumed" } }, "required": ["basis"] },
+          "then": { "properties": { "supporting_evidence_ids": { "maxItems": 0 } } }
+        }
+      ]
+    }
+  }
+}

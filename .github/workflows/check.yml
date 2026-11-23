@@ -65,3 +65,6 @@ jobs:
       # (renderer::hex, sol-atlas-core). Must target the bin explicitly:
       # `cargo test --lib` fails with "no library targets found".
       - run: cargo test --bin sol-atlas-leptos
+      # The path dependency has its own manifest, so the binary test above does not run its unit-test module.
+      - name: Test sol-atlas-core library (includes resource-allocation oracle tests)
+        run: cargo test --manifest-path sol-atlas-core/Cargo.toml

@@ -1,0 +1,28 @@
+{
+  "schema_version": "0.1.0",
+  "id": "equity:water-floor",
+  "as_of": "2026-10-17T10:00:00Z",
+  "cells": [
+    {
+      "id": "north-cell",
+      "service_scenario_id": "service:a",
+      "community_id": "north",
+      "beneficiary_weight": 6,
+      "essential_coverage_floor": 0.8
+    },
+    {
+      "id": "south-cell",
+      "service_scenario_id": "service:b",
+      "community_id": "south",
+      "beneficiary_weight": 2,
+      "essential_coverage_floor": 0.8
+    },
+    {
+      "id": "east-cell",
+      "service_scenario_id": "service:c",
+      "community_id": "east",
+      "beneficiary_weight": 2,
+      "essential_coverage_floor": 0.8
+    }
+  ]
+}

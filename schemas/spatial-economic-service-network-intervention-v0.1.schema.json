@@ -1,0 +1,95 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://luminousdynamics.io/schemas/spatial-economic-service-network-intervention-v0.1.schema.json",
+  "title": "Spatial-Economic Service Network Intervention Plan",
+  "description": "Hypothetical link-availability or capacity overrides. Each override is an assumption for comparison, not proof that work was executed.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "id",
+    "rationale",
+    "link_overrides"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "0.1.0"
+    },
+    "id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "rationale": {
+      "type": "string",
+      "minLength": 1
+    },
+    "link_overrides": {
+      "type": "object",
+      "minProperties": 1,
+      "propertyNames": {
+        "minLength": 1
+      },
+      "additionalProperties": {
+        "$ref": "#/$defs/link_override"
+      }
+    }
+  },
+  "$defs": {
+    "link_override": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "rationale"
+      ],
+      "properties": {
+        "availability": {
+          "enum": [
+            "active",
+            "inactive",
+            "unknown"
+          ]
+        },
+        "capacity_value": {
+          "type": "number",
+          "minimum": 0
+        },
+        "capacity_uncertainty_abs": {
+          "type": "number",
+          "minimum": 0
+        },
+        "rationale": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "allOf": [
+        {
+          "anyOf": [
+            {
+              "required": [
+                "availability"
+              ]
+            },
+            {
+              "required": [
+                "capacity_value"
+              ]
+            }
+          ]
+        },
+        {
+          "if": {
+            "required": [
+              "capacity_uncertainty_abs"
+            ]
+          },
+          "then": {
+            "required": [
+              "capacity_value"
+            ]
+          }
+        }
+      ]
+    }
+  }
+}

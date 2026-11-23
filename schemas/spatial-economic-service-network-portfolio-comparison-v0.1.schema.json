@@ -1,0 +1,189 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://luminousdynamics.io/schemas/spatial-economic-service-network-portfolio-comparison-v0.1.schema.json",
+  "title": "Spatial-Economic Service Network Robust Portfolio Comparison",
+  "description": "Compares explicit intervention plans across an unweighted scenario set, retaining a deterministic display rank plus Pareto non-dominated layers for capacity gain, worst-case delivered capacity, and scenario improvement/regression counts. Scenario counts are not probabilities; rank and Pareto front are not cost-benefit or social-welfare conclusions.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "comparison_id",
+    "service_entity_id",
+    "unit",
+    "scenario_count",
+    "plan_count",
+    "scenario_ids",
+    "ranking_method",
+    "plans",
+    "pareto_objectives"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "0.1.0"
+    },
+    "comparison_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "service_entity_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "unit": {
+      "type": "string",
+      "minLength": 1
+    },
+    "scenario_count": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "plan_count": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "scenario_ids": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "ranking_method": {
+      "const": "worst_case_conservative_capacity_gain_desc_then_scenarios_improved_desc_then_scenarios_worsened_asc_then_plan_id_asc"
+    },
+    "plans": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/plan"
+      }
+    },
+    "pareto_objectives": {
+      "const": [
+        "worst_case_conservative_capacity_gain:maximize",
+        "minimum_post_intervention_conservative_capacity:maximize",
+        "scenarios_improved:maximize",
+        "scenarios_worsened:minimize"
+      ]
+    }
+  },
+  "$defs": {
+    "frequency": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "link_id",
+        "scenario_count"
+      ],
+      "properties": {
+        "link_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "scenario_count": {
+          "type": "integer",
+          "minimum": 1
+        }
+      }
+    },
+    "plan": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "rank",
+        "pareto_front",
+        "pareto_dominated_by_plan_ids",
+        "plan_id",
+        "rationale",
+        "scenario_count",
+        "worst_case_conservative_capacity_gain",
+        "worst_case_optimistic_capacity_gain",
+        "best_case_conservative_capacity_gain",
+        "scenarios_improved",
+        "scenarios_unchanged",
+        "scenarios_worsened",
+        "minimum_post_intervention_conservative_capacity",
+        "recurring_baseline_cut_links",
+        "recurring_post_intervention_cut_links",
+        "scenario_comparisons"
+      ],
+      "properties": {
+        "rank": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "plan_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "rationale": {
+          "type": "string",
+          "minLength": 1
+        },
+        "scenario_count": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "worst_case_conservative_capacity_gain": {
+          "type": "number"
+        },
+        "worst_case_optimistic_capacity_gain": {
+          "type": "number"
+        },
+        "best_case_conservative_capacity_gain": {
+          "type": "number"
+        },
+        "scenarios_improved": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "scenarios_unchanged": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "scenarios_worsened": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "minimum_post_intervention_conservative_capacity": {
+          "type": "number",
+          "minimum": 0
+        },
+        "recurring_baseline_cut_links": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/frequency"
+          }
+        },
+        "recurring_post_intervention_cut_links": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/frequency"
+          }
+        },
+        "scenario_comparisons": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "spatial-economic-service-network-intervention-comparison-v0.1.schema.json"
+          }
+        },
+        "pareto_front": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Pareto layer: 1 is non-dominated; larger values are progressively dominated layers."
+        },
+        "pareto_dominated_by_plan_ids": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "description": "Stable-sorted IDs of all candidate plans that strictly dominate this plan on the declared Pareto objectives."
+        }
+      }
+    }
+  }
+}

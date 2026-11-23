@@ -1,0 +1,527 @@
+{
+  "schema_version": "0.1.0",
+  "id": "synthetic-pump-backup",
+  "rationale": "Synthetic assumed backup source during two outage intervals; not field evidence.",
+  "baseline": {
+    "schema_version": "0.1.0",
+    "id": "baseline-pump-outage",
+    "service_entity_id": "service-north",
+    "initial_storage": {
+      "entity_id": "tank-a",
+      "quantity": {
+        "value": 50,
+        "unit": "m3"
+      },
+      "basis": "assumed",
+      "rationale": "Synthetic assumption for tank-a."
+    },
+    "storage_capacity": {
+      "entity_id": "tank-a",
+      "quantity": {
+        "value": 150,
+        "unit": "m3"
+      },
+      "basis": "assumed",
+      "rationale": "Synthetic assumption for tank-a."
+    },
+    "steps": [
+      {
+        "id": "normal",
+        "as_of": "2026-10-16T10:00:00Z",
+        "step_hours": 1,
+        "source_flow_rate": {
+          "entity_id": "source-a",
+          "quantity": {
+            "value": 100,
+            "unit": "m3/h"
+          },
+          "basis": "assumed",
+          "rationale": "Synthetic assumption for source-a."
+        },
+        "pump_capacity": {
+          "entity_id": "pump-a",
+          "quantity": {
+            "value": 100,
+            "unit": "m3/h"
+          },
+          "basis": "assumed",
+          "rationale": "Synthetic assumption for pump-a."
+        },
+        "treatment_capacity": {
+          "entity_id": "treatment-a",
+          "quantity": {
+            "value": 100,
+            "unit": "m3/h"
+          },
+          "basis": "assumed",
+          "rationale": "Synthetic assumption for treatment-a."
+        },
+        "distribution_capacity": {
+          "entity_id": "distribution-a",
+          "quantity": {
+            "value": 120,
+            "unit": "m3/h"
+          },
+          "basis": "assumed",
+          "rationale": "Synthetic assumption for distribution-a."
+        },
+        "demand_rate": {
+          "entity_id": "service-north",
+          "quantity": {
+            "value": 100,
+            "unit": "m3/h"
+          },
+          "basis": "assumed",
+          "rationale": "Synthetic assumption for service-north."
+        },
+        "distribution_loss_fraction": {
+          "entity_id": "distribution-a",
+          "quantity": {
+            "value": 0,
+            "unit": "1"
+          },
+          "basis": "assumed",
+          "rationale": "Synthetic assumption for distribution-a."
+        }
+      },
+      {
+        "id": "outage-1",
+        "as_of": "2026-10-16T11:00:00Z",
+        "step_hours": 1,
+        "source_flow_rate": {
+          "entity_id": "source-a",
+          "quantity": {
+            "value": 0,
+            "unit": "m3/h"
+          },
+          "basis": "assumed",
+          "rationale": "Synthetic assumption for source-a."
+        },
+        "pump_capacity": {
+          "entity_id": "pump-a",
+          "quantity": {
+            "value": 100,
+            "unit": "m3/h"
+          },
+          "basis": "assumed",
+          "rationale": "Synthetic assumption for pump-a."
+        },
+        "treatment_capacity": {
+          "entity_id": "treatment-a",
+          "quantity": {
+            "value": 100,
+            "unit": "m3/h"
+          },
+          "basis": "assumed",
+          "rationale": "Synthetic assumption for treatment-a."
+        },
+        "distribution_capacity": {
+          "entity_id": "distribution-a",
+          "quantity": {
+            "value": 120,
+            "unit": "m3/h"
+          },
+          "basis": "assumed",
+          "rationale": "Synthetic assumption for distribution-a."
+        },
+        "demand_rate": {
+          "entity_id": "service-north",
+          "quantity": {
+            "value": 100,
+            "unit": "m3/h"
+          },
+          "basis": "assumed",
+          "rationale": "Synthetic assumption for service-north."
+        },
+        "distribution_loss_fraction": {
+          "entity_id": "distribution-a",
+          "quantity": {
+            "value": 0,
+            "unit": "1"
+          },
+          "basis": "assumed",
+          "rationale": "Synthetic assumption for distribution-a."
+        }
+      },
+      {
+        "id": "outage-2",
+        "as_of": "2026-10-16T12:00:00Z",
+        "step_hours": 1,
+        "source_flow_rate": {
+          "entity_id": "source-a",
+          "quantity": {
+            "value": 0,
+            "unit": "m3/h"
+          },
+          "basis": "assumed",
+          "rationale": "Synthetic assumption for source-a."
+        },
+        "pump_capacity": {
+          "entity_id": "pump-a",
+          "quantity": {
+            "value": 100,
+            "unit": "m3/h"
+          },
+          "basis": "assumed",
+          "rationale": "Synthetic assumption for pump-a."
+        },
+        "treatment_capacity": {
+          "entity_id": "treatment-a",
+          "quantity": {
+            "value": 100,
+            "unit": "m3/h"
+          },
+          "basis": "assumed",
+          "rationale": "Synthetic assumption for treatment-a."
+        },
+        "distribution_capacity": {
+          "entity_id": "distribution-a",
+          "quantity": {
+            "value": 120,
+            "unit": "m3/h"
+          },
+          "basis": "assumed",
+          "rationale": "Synthetic assumption for distribution-a."
+        },
+        "demand_rate": {
+          "entity_id": "service-north",
+          "quantity": {
+            "value": 100,
+            "unit": "m3/h"
+          },
+          "basis": "assumed",
+          "rationale": "Synthetic assumption for service-north."
+        },
+        "distribution_loss_fraction": {
+          "entity_id": "distribution-a",
+          "quantity": {
+            "value": 0,
+            "unit": "1"
+          },
+          "basis": "assumed",
+          "rationale": "Synthetic assumption for distribution-a."
+        }
+      },
+      {
+        "id": "recovery",
+        "as_of": "2026-10-16T13:00:00Z",
+        "step_hours": 1,
+        "source_flow_rate": {
+          "entity_id": "source-a",
+          "quantity": {
+            "value": 100,
+            "unit": "m3/h"
+          },
+          "basis": "assumed",
+          "rationale": "Synthetic assumption for source-a."
+        },
+        "pump_capacity": {
+          "entity_id": "pump-a",
+          "quantity": {
+            "value": 100,
+            "unit": "m3/h"
+          },
+          "basis": "assumed",
+          "rationale": "Synthetic assumption for pump-a."
+        },
+        "treatment_capacity": {
+          "entity_id": "treatment-a",
+          "quantity": {
+            "value": 100,
+            "unit": "m3/h"
+          },
+          "basis": "assumed",
+          "rationale": "Synthetic assumption for treatment-a."
+        },
+        "distribution_capacity": {
+          "entity_id": "distribution-a",
+          "quantity": {
+            "value": 120,
+            "unit": "m3/h"
+          },
+          "basis": "assumed",
+          "rationale": "Synthetic assumption for distribution-a."
+        },
+        "demand_rate": {
+          "entity_id": "service-north",
+          "quantity": {
+            "value": 100,
+            "unit": "m3/h"
+          },
+          "basis": "assumed",
+          "rationale": "Synthetic assumption for service-north."
+        },
+        "distribution_loss_fraction": {
+          "entity_id": "distribution-a",
+          "quantity": {
+            "value": 0,
+            "unit": "1"
+          },
+          "basis": "assumed",
+          "rationale": "Synthetic assumption for distribution-a."
+        }
+      }
+    ]
+  },
+  "candidate": {
+    "schema_version": "0.1.0",
+    "id": "candidate-backup-flow",
+    "service_entity_id": "service-north",
+    "initial_storage": {
+      "entity_id": "tank-a",
+      "quantity": {
+        "value": 50,
+        "unit": "m3"
+      },
+      "basis": "assumed",
+      "rationale": "Synthetic assumption for tank-a."
+    },
+    "storage_capacity": {
+      "entity_id": "tank-a",
+      "quantity": {
+        "value": 150,
+        "unit": "m3"
+      },
+      "basis": "assumed",
+      "rationale": "Synthetic assumption for tank-a."
+    },
+    "steps": [
+      {
+        "id": "normal",
+        "as_of": "2026-10-16T10:00:00Z",
+        "step_hours": 1,
+        "source_flow_rate": {
+          "entity_id": "source-a",
+          "quantity": {
+            "value": 100,
+            "unit": "m3/h"
+          },
+          "basis": "assumed",
+          "rationale": "Synthetic assumption for source-a."
+        },
+        "pump_capacity": {
+          "entity_id": "pump-a",
+          "quantity": {
+            "value": 100,
+            "unit": "m3/h"
+          },
+          "basis": "assumed",
+          "rationale": "Synthetic assumption for pump-a."
+        },
+        "treatment_capacity": {
+          "entity_id": "treatment-a",
+          "quantity": {
+            "value": 100,
+            "unit": "m3/h"
+          },
+          "basis": "assumed",
+          "rationale": "Synthetic assumption for treatment-a."
+        },
+        "distribution_capacity": {
+          "entity_id": "distribution-a",
+          "quantity": {
+            "value": 120,
+            "unit": "m3/h"
+          },
+          "basis": "assumed",
+          "rationale": "Synthetic assumption for distribution-a."
+        },
+        "demand_rate": {
+          "entity_id": "service-north",
+          "quantity": {
+            "value": 100,
+            "unit": "m3/h"
+          },
+          "basis": "assumed",
+          "rationale": "Synthetic assumption for service-north."
+        },
+        "distribution_loss_fraction": {
+          "entity_id": "distribution-a",
+          "quantity": {
+            "value": 0,
+            "unit": "1"
+          },
+          "basis": "assumed",
+          "rationale": "Synthetic assumption for distribution-a."
+        }
+      },
+      {
+        "id": "outage-1",
+        "as_of": "2026-10-16T11:00:00Z",
+        "step_hours": 1,
+        "source_flow_rate": {
+          "entity_id": "source-a",
+          "quantity": {
+            "value": 50,
+            "unit": "m3/h"
+          },
+          "basis": "assumed",
+          "rationale": "Synthetic assumption for source-a."
+        },
+        "pump_capacity": {
+          "entity_id": "pump-a",
+          "quantity": {
+            "value": 100,
+            "unit": "m3/h"
+          },
+          "basis": "assumed",
+          "rationale": "Synthetic assumption for pump-a."
+        },
+        "treatment_capacity": {
+          "entity_id": "treatment-a",
+          "quantity": {
+            "value": 100,
+            "unit": "m3/h"
+          },
+          "basis": "assumed",
+          "rationale": "Synthetic assumption for treatment-a."
+        },
+        "distribution_capacity": {
+          "entity_id": "distribution-a",
+          "quantity": {
+            "value": 120,
+            "unit": "m3/h"
+          },
+          "basis": "assumed",
+          "rationale": "Synthetic assumption for distribution-a."
+        },
+        "demand_rate": {
+          "entity_id": "service-north",
+          "quantity": {
+            "value": 100,
+            "unit": "m3/h"
+          },
+          "basis": "assumed",
+          "rationale": "Synthetic assumption for service-north."
+        },
+        "distribution_loss_fraction": {
+          "entity_id": "distribution-a",
+          "quantity": {
+            "value": 0,
+            "unit": "1"
+          },
+          "basis": "assumed",
+          "rationale": "Synthetic assumption for distribution-a."
+        }
+      },
+      {
+        "id": "outage-2",
+        "as_of": "2026-10-16T12:00:00Z",
+        "step_hours": 1,
+        "source_flow_rate": {
+          "entity_id": "source-a",
+          "quantity": {
+            "value": 50,
+            "unit": "m3/h"
+          },
+          "basis": "assumed",
+          "rationale": "Synthetic assumption for source-a."
+        },
+        "pump_capacity": {
+          "entity_id": "pump-a",
+          "quantity": {
+            "value": 100,
+            "unit": "m3/h"
+          },
+          "basis": "assumed",
+          "rationale": "Synthetic assumption for pump-a."
+        },
+        "treatment_capacity": {
+          "entity_id": "treatment-a",
+          "quantity": {
+            "value": 100,
+            "unit": "m3/h"
+          },
+          "basis": "assumed",
+          "rationale": "Synthetic assumption for treatment-a."
+        },
+        "distribution_capacity": {
+          "entity_id": "distribution-a",
+          "quantity": {
+            "value": 120,
+            "unit": "m3/h"
+          },
+          "basis": "assumed",
+          "rationale": "Synthetic assumption for distribution-a."
+        },
+        "demand_rate": {
+          "entity_id": "service-north",
+          "quantity": {
+            "value": 100,
+            "unit": "m3/h"
+          },
+          "basis": "assumed",
+          "rationale": "Synthetic assumption for service-north."
+        },
+        "distribution_loss_fraction": {
+          "entity_id": "distribution-a",
+          "quantity": {
+            "value": 0,
+            "unit": "1"
+          },
+          "basis": "assumed",
+          "rationale": "Synthetic assumption for distribution-a."
+        }
+      },
+      {
+        "id": "recovery",
+        "as_of": "2026-10-16T13:00:00Z",
+        "step_hours": 1,
+        "source_flow_rate": {
+          "entity_id": "source-a",
+          "quantity": {
+            "value": 100,
+            "unit": "m3/h"
+          },
+          "basis": "assumed",
+          "rationale": "Synthetic assumption for source-a."
+        },
+        "pump_capacity": {
+          "entity_id": "pump-a",
+          "quantity": {
+            "value": 100,
+            "unit": "m3/h"
+          },
+          "basis": "assumed",
+          "rationale": "Synthetic assumption for pump-a."
+        },
+        "treatment_capacity": {
+          "entity_id": "treatment-a",
+          "quantity": {
+            "value": 100,
+            "unit": "m3/h"
+          },
+          "basis": "assumed",
+          "rationale": "Synthetic assumption for treatment-a."
+        },
+        "distribution_capacity": {
+          "entity_id": "distribution-a",
+          "quantity": {
+            "value": 120,
+            "unit": "m3/h"
+          },
+          "basis": "assumed",
+          "rationale": "Synthetic assumption for distribution-a."
+        },
+        "demand_rate": {
+          "entity_id": "service-north",
+          "quantity": {
+            "value": 100,
+            "unit": "m3/h"
+          },
+          "basis": "assumed",
+          "rationale": "Synthetic assumption for service-north."
+        },
+        "distribution_loss_fraction": {
+          "entity_id": "distribution-a",
+          "quantity": {
+            "value": 0,
+            "unit": "1"
+          },
+          "basis": "assumed",
+          "rationale": "Synthetic assumption for distribution-a."
+        }
+      }
+    ]
+  }
+}

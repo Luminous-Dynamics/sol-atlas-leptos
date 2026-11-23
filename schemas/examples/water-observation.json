@@ -1,0 +1,38 @@
+{
+  "id": "urn:sol-atlas:example:evidence:water-observation-001",
+  "schema_version": "0.1.0",
+  "kind": "observation",
+  "state": "asserted",
+  "issuer_id": "did:example:field-team",
+  "subject_id": "urn:sol-atlas:entity:water-site-001",
+  "spatial": {
+    "entity_id": "urn:sol-atlas:entity:water-site-001",
+    "geometry_uri": "https://example.invalid/geometry/water-site-001",
+    "crs": "EPSG:4326"
+  },
+  "time": {
+    "occurred_at": "2026-10-15T10:00:00Z",
+    "recorded_at": "2026-10-15T10:01:30Z",
+    "valid_from": "2026-10-15T10:00:00Z",
+    "valid_until": "2026-10-15T10:00:00Z"
+  },
+  "statement": "SYNTHETIC EXAMPLE ONLY: illustrative water-level observation; this is not a real-world measurement.",
+  "quantity": {
+    "value": 12.5,
+    "unit": "m",
+    "uncertainty_abs": 0.2
+  },
+  "provenance": {
+    "method": "synthetic_fixture",
+    "source_artifacts": [
+      {
+        "id": "urn:sol-atlas:example:artifact:water-observation-001",
+        "uri": "https://example.invalid/artifact/water-observation-001",
+        "role": "synthetic_input",
+        "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      }
+    ],
+    "derivation_id": "urn:sol-atlas:example:derivation:water-observation-001"
+  },
+  "access_policy": "policy:public-synthetic-fixture"
+}
