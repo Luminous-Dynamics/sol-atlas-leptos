@@ -153,106 +153,127 @@ impl Layer {
                 source: "USACE dam inventory + NRC SMR pipeline",
                 snapshot_date: "2025-11",
                 kind: Observed,
+                time_basis: DataTimeBasis::FrozenSnapshot,
             },
             Self::ResontiaVaults => DataProvenance {
                 source: "Sol Atlas planning scenario",
                 snapshot_date: "",
                 kind: Scenario,
+                time_basis: DataTimeBasis::Scenario,
             },
             Self::Maglev => DataProvenance {
                 source: "Sol Atlas planning scenario",
                 snapshot_date: "",
                 kind: Scenario,
+                time_basis: DataTimeBasis::Scenario,
             },
             Self::Geothermal => DataProvenance {
                 source: "Sol Atlas planning scenario",
                 snapshot_date: "",
                 kind: Scenario,
+                time_basis: DataTimeBasis::Scenario,
             },
             Self::TerraLumina => DataProvenance {
                 source: "Sol Atlas planning scenario",
                 snapshot_date: "",
                 kind: Scenario,
+                time_basis: DataTimeBasis::Scenario,
             },
             Self::Regions => DataProvenance {
                 source: "curated regional aggregates (estimates)",
                 snapshot_date: "",
                 kind: Curated,
+                time_basis: DataTimeBasis::UndatedReference,
             },
             Self::SupplyChain => DataProvenance {
                 source: "curated schematic of major trade flows",
                 snapshot_date: "",
                 kind: Curated,
+                time_basis: DataTimeBasis::UndatedReference,
             },
             Self::Climate => DataProvenance {
                 source: "curated major climate projects (estimates)",
                 snapshot_date: "",
                 kind: Curated,
+                time_basis: DataTimeBasis::UndatedReference,
             },
             Self::Emergency => DataProvenance {
                 source: "curated illustrative shelter network",
                 snapshot_date: "",
                 kind: Curated,
+                time_basis: DataTimeBasis::UndatedReference,
             },
             Self::Health => DataProvenance {
                 source: "curated illustrative facility set",
                 snapshot_date: "",
                 kind: Curated,
+                time_basis: DataTimeBasis::UndatedReference,
             },
             Self::Robotics => DataProvenance {
                 source: "Sol Atlas planning scenario",
                 snapshot_date: "",
                 kind: Scenario,
+                time_basis: DataTimeBasis::Scenario,
             },
             Self::FossilDeposits => DataProvenance {
                 source: "curated major fields (EROI estimated)",
                 snapshot_date: "",
                 kind: Curated,
+                time_basis: DataTimeBasis::UndatedReference,
             },
             Self::Nuclear => DataProvenance {
                 source: "curated operating plants",
                 snapshot_date: "",
                 kind: Curated,
+                time_basis: DataTimeBasis::UndatedReference,
             },
             Self::Earthquakes => DataProvenance {
-                source: "USGS earthquake feed",
-                snapshot_date: "2026-04",
+                source: "USGS ComCat M1.0+ live feed; bundled fallback",
+                snapshot_date: "",
                 kind: Observed,
+                time_basis: DataTimeBasis::LiveFeedWithBundledFallback,
             },
             Self::Fires => DataProvenance {
-                source: "NASA FIRMS active-fire feed",
-                snapshot_date: "2026-04",
-                kind: Observed,
+                source: "NASA EONET live fire events + bundled synthetic NASA FIRMS fixture",
+                snapshot_date: "",
+                kind: Mixed,
+                time_basis: DataTimeBasis::LiveFeedWithBundledFallback,
             },
             Self::Storms => DataProvenance {
-                source: "NASA EONET event feed",
-                snapshot_date: "2026-04",
+                source: "NASA EONET live events; bundled EONET fallback snapshot",
+                snapshot_date: "",
                 kind: Observed,
+                time_basis: DataTimeBasis::LiveFeedWithBundledFallback,
             },
             Self::Volcanoes => DataProvenance {
                 source: "curated active volcanoes",
                 snapshot_date: "",
                 kind: Curated,
+                time_basis: DataTimeBasis::UndatedReference,
             },
             Self::Infrastructure => DataProvenance {
                 source: "curated critical-infrastructure set",
                 snapshot_date: "",
                 kind: Curated,
+                time_basis: DataTimeBasis::UndatedReference,
             },
             Self::Chokepoints => DataProvenance {
                 source: "curated maritime chokepoints",
                 snapshot_date: "",
                 kind: Curated,
+                time_basis: DataTimeBasis::UndatedReference,
             },
             Self::MajorCities => DataProvenance {
                 source: "curated cities (population >= 1M)",
                 snapshot_date: "",
                 kind: Curated,
+                time_basis: DataTimeBasis::UndatedReference,
             },
             Self::DeSciEvidence => DataProvenance {
                 source: "Sol Atlas demo scenario",
                 snapshot_date: "",
                 kind: Scenario,
+                time_basis: DataTimeBasis::Scenario,
             },
         }
     }
@@ -263,10 +284,14 @@ impl Layer {
 /// How a dataset relates to reality.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum DataKind {
-    /// Direct observations from a named source — a dated snapshot, not live.
+    /// Direct observations from a named source.
     Observed,
     /// Real-world entities, hand-curated; some fields are estimates.
     Curated,
+    /// Generated/demo fixtures, not observations from the named real-world source.
+    Synthetic,
+    /// A layer combines records with different provenance classifications; inspect each record.
+    Mixed,
     /// Speculative planning fiction — these do not exist.
     Scenario,
 }
@@ -276,7 +301,44 @@ impl DataKind {
         match self {
             Self::Observed => "observed",
             Self::Curated => "curated",
+            Self::Synthetic => "synthetic",
+            Self::Mixed => "mixed provenance",
             Self::Scenario => "scenario",
+        }
+    }
+}
+
+/// Temporal contract for the data currently represented by a layer.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum DataTimeBasis {
+    /// Data corresponds to a dated, frozen source snapshot.
+    FrozenSnapshot,
+    /// A live source is refreshed over time; the effective snapshot date is per retrieval.
+    LiveFeedWithBundledFallback,
+    /// Real-world reference data whose capture date is not recorded.
+    UndatedReference,
+    /// Fictional/planning content rather than an observation of the present world.
+    Scenario,
+}
+
+/// Where this individual record came from, independent of whether it is
+/// observed, curated, synthetic, or otherwise classified.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+pub enum RecordTemporalOrigin {
+    /// Accepted through the source-specific live adapter during this session.
+    LiveFeed,
+    /// Loaded from an embedded or otherwise frozen local data snapshot.
+    BundledSnapshot,
+    /// A persistent curated reference record, not a current event observation.
+    CuratedReference,
+}
+
+impl RecordTemporalOrigin {
+    pub fn label(&self) -> &'static str {
+        match self {
+            Self::LiveFeed => "live feed",
+            Self::BundledSnapshot => "bundled snapshot",
+            Self::CuratedReference => "curated reference",
         }
     }
 }
@@ -285,22 +347,34 @@ impl DataKind {
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct DataProvenance {
     pub source: &'static str,
-    /// Empty string = undated/slow-changing reference data.
+    /// Non-empty only for FrozenSnapshot; live feeds use retrieval-specific dates.
     pub snapshot_date: &'static str,
     pub kind: DataKind,
+    pub time_basis: DataTimeBasis,
 }
 
 impl DataProvenance {
-    /// One-line human-readable summary, e.g.
-    /// `"USGS earthquake feed — snapshot 2026-04"` or
-    /// `"Sol Atlas planning scenario (fictional)"`.
+    /// One-line human-readable summary preserving provenance and time semantics.
     pub fn summary(&self) -> String {
-        match self.kind {
+        let source_summary = match self.kind {
             DataKind::Scenario => format!("{} (fictional)", self.source),
-            _ if !self.snapshot_date.is_empty() => {
-                format!("{} — snapshot {}", self.source, self.snapshot_date)
+            DataKind::Synthetic => format!("{} (synthetic demo data)", self.source),
+            DataKind::Mixed => format!(
+                "{} (mixed provenance; inspect each record's source and classification)",
+                self.source
+            ),
+            DataKind::Observed | DataKind::Curated => self.source.to_string(),
+        };
+
+        match self.time_basis {
+            DataTimeBasis::Scenario => source_summary,
+            DataTimeBasis::FrozenSnapshot => {
+                format!("{} — snapshot {}", source_summary, self.snapshot_date)
             }
-            _ => self.source.to_string(),
+            DataTimeBasis::LiveFeedWithBundledFallback => {
+                format!("{} — snapshot depends on retrieval/source", source_summary)
+            }
+            DataTimeBasis::UndatedReference => source_summary,
         }
     }
 }
@@ -687,6 +761,40 @@ pub struct NaturalEvent {
     pub event_type: NaturalEventType,
     pub magnitude: f64,
     pub name: String,
+    /// Optional source-specific measurement units; not globally comparable.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub magnitude_unit: Option<String>,
+    /// Optional source-specific description of a reported measure.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub magnitude_description: Option<String>,
+    /// Source name self-declared by the record or established by a validated live adapter.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub source_name: Option<String>,
+    /// Provenance classification for this record. None means the origin was not classified.
+    /// Callers must not infer Observed without source evidence.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub data_kind: Option<DataKind>,
+    /// Temporal origin of this record, independent of its provenance class.
+    /// An Observed record from a bundled snapshot is not a live observation.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub record_temporal_origin: Option<RecordTemporalOrigin>,
+    /// Stable identifier at the originating source, when available.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub source_id: Option<String>,
+    /// Only a validated source URL; absent for unlinked bundled records.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub source_url: Option<String>,
+    /// Event time supplied by the source, in Unix milliseconds UTC.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub occurred_at_ms: Option<i64>,
+    /// Last source update time, in Unix milliseconds UTC.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub updated_at_ms: Option<i64>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub depth_km: Option<f64>,
+    /// How a source geometry was reduced to one globe marker, when approximate.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub geometry_note: Option<String>,
 }
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq)]
@@ -816,31 +924,67 @@ mod provenance_tests {
     }
 
     #[test]
-    fn observed_layers_carry_snapshot_dates() {
+    fn layer_time_basis_matches_snapshot_and_provenance_contract() {
         for layer in Layer::all() {
             let p = layer.provenance();
-            if p.kind == DataKind::Observed {
-                assert!(
-                    !p.snapshot_date.is_empty(),
-                    "{layer:?} is Observed but undated — snapshots must be dated"
-                );
+            match p.time_basis {
+                DataTimeBasis::FrozenSnapshot => {
+                    assert!(
+                        !p.snapshot_date.is_empty(),
+                        "{layer:?} declares FrozenSnapshot without a date"
+                    );
+                }
+                DataTimeBasis::LiveFeedWithBundledFallback => {
+                    assert!(
+                        p.snapshot_date.is_empty(),
+                        "{layer:?} uses a fixed date for a live feed"
+                    );
+                    assert!(
+                        p.source.to_ascii_lowercase().contains("live"),
+                        "{layer:?} must identify the live source"
+                    );
+                    assert!(
+                        p.source.to_ascii_lowercase().contains("bundled"),
+                        "{layer:?} must identify the bundled fallback"
+                    );
+                    assert_ne!(p.kind, DataKind::Scenario);
+                }
+                DataTimeBasis::UndatedReference => {
+                    assert!(p.snapshot_date.is_empty());
+                    assert_ne!(p.kind, DataKind::Scenario);
+                }
+                DataTimeBasis::Scenario => {
+                    assert_eq!(p.kind, DataKind::Scenario);
+                }
             }
         }
     }
 
     #[test]
-    fn scenario_summary_says_fictional() {
+    fn summary_exposes_time_basis_without_fabricating_live_snapshot_date() {
         assert!(
             Layer::ResontiaVaults
                 .provenance()
                 .summary()
                 .contains("fictional")
         );
+
+        let earthquake = Layer::Earthquakes.provenance();
         assert!(
-            Layer::Earthquakes
-                .provenance()
+            earthquake
                 .summary()
-                .contains("snapshot")
+                .contains("snapshot depends on retrieval/source")
+        );
+        assert!(earthquake.summary().contains("bundled fallback"));
+        assert!(earthquake.snapshot_date.is_empty());
+
+        let fires = Layer::Fires.provenance();
+        assert_eq!(fires.kind, DataKind::Mixed);
+        assert!(fires.summary().contains("mixed provenance"));
+        assert!(
+            fires
+                .summary()
+                .contains("snapshot depends on retrieval/source")
         );
     }
 }

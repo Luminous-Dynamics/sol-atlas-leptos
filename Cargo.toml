@@ -29,6 +29,13 @@ version = "0.3"
 features = [
     "Window",
     "Document",
+    "AbortController",
+    "AbortSignal",
+    "Headers",
+    "RequestInit",
+    "ReadableStream",
+    "ReadableStreamDefaultReader",
+    "Response",
     "Element",
     "HtmlElement",
     "HtmlCanvasElement",

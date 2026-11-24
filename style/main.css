@@ -939,3 +939,59 @@ canvas#globe-canvas.has-hover {
         transition: none;
     }
 }
+
+
+/* Feed health is explicit; a failed request must never masquerade as LIVE. */
+.live-feed-badge {
+    display: inline-flex;
+    align-items: center;
+    white-space: nowrap;
+    margin-left: 0.55rem;
+    padding: 0.25rem 0.45rem;
+    border: 1px solid rgba(148, 163, 184, 0.28);
+    border-radius: 999px;
+    background: rgba(2, 6, 23, 0.55);
+    color: rgba(203, 213, 225, 0.86);
+    font: 600 0.58rem/1.2 ui-monospace, SFMono-Regular, Menlo, monospace;
+    letter-spacing: 0.045em;
+}
+.live-feed-badge.live {
+    border-color: rgba(52, 211, 153, 0.48);
+    color: #6ee7b7;
+}
+.live-feed-badge.degraded {
+    border-color: rgba(251, 191, 36, 0.48);
+    color: #fcd34d;
+}
+.live-feed-badge.stale,
+.live-feed-badge.unavailable {
+    border-color: rgba(248, 113, 113, 0.48);
+    color: #fca5a5;
+}
+.live-feed-badge.loading {
+    color: rgba(203, 213, 225, 0.75);
+}
+.source-link {
+    display: flex;
+    text-decoration: none;
+}
+.source-link:hover .stat-value {
+    color: #6ee7b7;
+}
+@media (max-width: 560px) {
+    .live-feed-badge {
+        margin-left: 0.25rem;
+        font-size: 0.5rem;
+        padding: 0.2rem 0.32rem;
+    }
+}
+
+
+.context-note {
+    margin: 0.55rem 0 0.35rem;
+    color: rgba(203, 213, 225, 0.72);
+    font: 400 0.68rem/1.4 ui-sans-serif, system-ui, sans-serif;
+}
+.nearby-context-row .stat-label {
+    max-width: 58%;
+}

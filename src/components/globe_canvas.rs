@@ -351,6 +351,7 @@ pub fn GlobeCanvas() -> impl IntoView {
         let f: Rc<RefCell<Option<Closure<dyn FnMut(f64)>>>> = Rc::new(RefCell::new(None));
         let g = f.clone();
         let mut last_layer_hash = 0u64;
+        let mut last_data_revision = ds.data_revision.get_untracked();
         let mut frame_count = 0u32;
         let mut tick = 0u64;
         let mut last_aesthetic = globe_state.aesthetic.get_untracked();
@@ -383,8 +384,10 @@ pub fn GlobeCanvas() -> impl IntoView {
                 h ^= gs2.timeline_year.get() as u64 * 1000003; // timeline changes trigger rebuild
                 h
             };
-            if layer_hash != last_layer_hash {
+            let data_revision = ds.data_revision.get_untracked();
+            if layer_hash != last_layer_hash || data_revision != last_data_revision {
                 last_layer_hash = layer_hash;
+                last_data_revision = data_revision;
                 update_renderer_data(&r_frame, &picks_frame, &ds, &gs2);
             }
 
@@ -976,7 +979,15 @@ fn update_renderer_data(
     // right now.
     if globe_state.show_confluence.get() {
         let snapshot = data_state.snapshot();
-        let cells = sol_atlas_core::confluence::compute(&snapshot, 2);
+        use sol_atlas_core::usgs::FeedHealth;
+        let usgs_health = data_state.usgs_feed_status.get_untracked().health;
+        let eonet_health = data_state.eonet_feed_status.get_untracked().health;
+        let freshness = sol_atlas_core::confluence::LiveSourceFreshness {
+            usgs_is_current: matches!(usgs_health, FeedHealth::Live | FeedHealth::Degraded),
+            eonet_is_current: matches!(eonet_health, FeedHealth::Live | FeedHealth::Degraded),
+        };
+        let cells =
+            sol_atlas_core::confluence::compute_with_live_source_freshness(&snapshot, 2, freshness);
         for cell in &cells {
             let pos = geo::lat_lon_to_xyz(cell.lat, cell.lon, 1.008);
             // Size and brightness scale with how many distinct real
