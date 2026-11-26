@@ -1,0 +1,31 @@
+name: SAFRB read-only projection reference
+
+on:
+  push:
+    branches:
+      - research/safrb-shared-pump-readonly-projection-v0.1
+    paths:
+      - "research/safrb-shared-pump-v0.1/**"
+      - ".github/workflows/safrb-readonly-projection-reference.yml"
+  pull_request:
+    paths:
+      - "research/safrb-shared-pump-v0.1/**"
+      - ".github/workflows/safrb-readonly-projection-reference.yml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: safrb-readonly-projection-reference-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  independent-read-only-projection:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out exact revision
+        uses: actions/checkout@v4
+      - name: Validate projection JSON syntax
+        run: python3 -m json.tool research/safrb-shared-pump-v0.1/read-only-projection-known-answer.json > /dev/null
+      - name: Run independent projection verifier
+        run: python3 research/safrb-shared-pump-v0.1/verify_read_only_projection.py research/safrb-shared-pump-v0.1/read-only-projection-known-answer.json
