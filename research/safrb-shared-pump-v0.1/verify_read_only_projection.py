@@ -33,6 +33,11 @@ def verify(doc):
     require(len(pump_edges)==2 and {e["to"] for e in pump_edges}=={"route-a","route-b"},"shared pump projection edges changed")
     evidence=doc["layers"]["evidence"]
     by_evidence={e["evidence_id"]:e for e in evidence}
+    require(len(by_evidence)==len(evidence),"duplicate evidence identity")
+    for item in evidence:
+        require(item["verdict"]=="indeterminate_not_guaranteed","evidence verdict promoted by projection")
+        require(item["claim_scope"]=="FUEL-DELIVERABILITY","evidence claim scope promoted by projection")
+        require(item["unit"]=="t","evidence unit mismatch")
     require(by_evidence["shared-pump-certificate"]["lower_bound_max_flow"]==8,"single-window lower flow")
     require(by_evidence["shared-pump-certificate"]["lower_bound_min_cut"]==8,"single-window cut")
     require(by_evidence["shared-pump-certificate"]["verdict"]=="indeterminate_not_guaranteed","single-window verdict promotion")
