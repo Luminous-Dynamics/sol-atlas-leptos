@@ -1,0 +1,110 @@
+{
+  "schema_version": "sol-atlas-safrb-evidence-projection-v0.1",
+  "projection_id": "SOL-ATLAS-SAFRB-SHARED-PUMP-001",
+  "maturity": "synthetic_test_fixture",
+  "source": {
+    "case_id": "SAFRB-SHARED-PUMP-2ROUTE-001",
+    "scenario_sha256": "0a1c507d3bff9b3062e24ca8718e102244473d839c2a31c5ead31812ee249be2",
+    "owner": "Luminous-Dynamics/symtropy",
+    "certificate_ref": "https://github.com/Luminous-Dynamics/symtropy/pull/7543"
+  },
+  "coordinate_frame": "schematic_only_no_geographic_coordinates",
+  "layers": {
+    "physical_logistics": [
+      {
+        "node_id": "terminal-a",
+        "kind": "terminal",
+        "status": "synthetic"
+      },
+      {
+        "node_id": "terminal-b",
+        "kind": "terminal",
+        "status": "synthetic"
+      },
+      {
+        "node_id": "pump-01",
+        "kind": "physical_resource",
+        "resource_id": "physical:pump-01",
+        "capacity_lower": 8,
+        "capacity_upper": 14,
+        "unit": "t",
+        "status": "shared_bottleneck"
+      },
+      {
+        "node_id": "route-a",
+        "kind": "logical_route",
+        "status": "synthetic"
+      },
+      {
+        "node_id": "route-b",
+        "kind": "logical_route",
+        "status": "synthetic"
+      },
+      {
+        "node_id": "generator",
+        "kind": "generator",
+        "status": "synthetic"
+      },
+      {
+        "node_id": "beneficiary",
+        "kind": "beneficiary",
+        "required_delivery": 12,
+        "unit": "t",
+        "status": "synthetic"
+      }
+    ],
+    "route_references": [
+      {
+        "route_id": "route-a",
+        "uses_resource_ids": [
+          "physical:pump-01"
+        ]
+      },
+      {
+        "route_id": "route-b",
+        "uses_resource_ids": [
+          "physical:pump-01"
+        ]
+      }
+    ],
+    "evidence": [
+      {
+        "evidence_id": "shared-pump-certificate",
+        "lower_bound_max_flow": 8,
+        "lower_bound_min_cut": 8,
+        "upper_bound_max_flow": 12,
+        "shortfall": 4,
+        "unit": "t",
+        "verdict": "indeterminate_not_guaranteed",
+        "claim_scope": "FUEL-DELIVERABILITY"
+      }
+    ],
+    "communication": [],
+    "dependencies": [
+      {
+        "dependency_id": "failure-domain:pump-01",
+        "shared_by": [
+          "route-a",
+          "route-b"
+        ],
+        "status": "synthetic_known_truth"
+      }
+    ]
+  },
+  "visual_invariants": [
+    "render-one-physical-pump-node-only",
+    "both-route-references-point-to-same-pump-id",
+    "show-lower-and-upper-bounds-separately",
+    "show-indeterminate-claim-scope-and-synthetic-maturity",
+    "never-infer-geographic-coordinates",
+    "never-upgrade-physical-delivery-or-service-from-visualization"
+  ],
+  "read_only": true,
+  "prohibited_effects": [
+    "dispatch",
+    "reserve",
+    "inventory-mutation",
+    "equipment-actuation",
+    "legal-or-authority-decision"
+  ]
+}
