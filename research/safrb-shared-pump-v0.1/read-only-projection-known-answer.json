@@ -122,6 +122,18 @@
         "unit": "t",
         "verdict": "indeterminate_not_guaranteed",
         "claim_scope": "FUEL-DELIVERABILITY"
+      },
+      {
+        "evidence_id": "two-window-shared-pump-certificate",
+        "scenario_sha256": "edfd1c2a5a3eb52a0026a0e63abb38ab2ca8109c4de3d96fbff1215ad78f0308",
+        "lower_bound_max_flow": 9,
+        "lower_bound_min_cut": 9,
+        "upper_bound_max_flow": 12,
+        "upper_bound_min_cut": 12,
+        "shortfall": 3,
+        "unit": "t",
+        "verdict": "indeterminate_not_guaranteed",
+        "claim_scope": "FUEL-DELIVERABILITY"
       }
     ],
     "communication": [],
@@ -134,6 +146,25 @@
         ],
         "status": "synthetic_known_truth"
       }
+    ],
+    "time_windows": [
+      {
+        "window": "[0,1)",
+        "pump_capacity_lower": 6,
+        "pump_capacity_upper": 8,
+        "required_at_next_boundary": 6,
+        "lower_bound_delivery": 6,
+        "disposition": "guaranteed_within_synthetic_fixture"
+      },
+      {
+        "window": "[1,2)",
+        "pump_capacity_lower": 3,
+        "pump_capacity_upper": 8,
+        "required_at_next_boundary": 6,
+        "lower_bound_delivery": 3,
+        "upper_bound_delivery": 6,
+        "disposition": "indeterminate_not_guaranteed"
+      }
     ]
   },
   "visual_invariants": [
@@ -142,7 +173,10 @@
     "show-lower-and-upper-bounds-separately",
     "show-indeterminate-claim-scope-and-synthetic-maturity",
     "never-infer-geographic-coordinates",
-    "never-upgrade-physical-delivery-or-service-from-visualization"
+    "never-upgrade-physical-delivery-or-service-from-visualization",
+    "display-service-by-window-not-only-horizon-total",
+    "preserve-pump-capacity-validity-intervals",
+    "do-not-backdate-later-delivery-to-earlier-beneficiary-window"
   ],
   "read_only": true,
   "prohibited_effects": [
@@ -151,5 +185,17 @@
     "inventory-mutation",
     "equipment-actuation",
     "legal-or-authority-decision"
+  ],
+  "source_scenarios": [
+    {
+      "case_id": "SAFRB-SHARED-PUMP-2ROUTE-001",
+      "scenario_sha256": "0a1c507d3bff9b3062e24ca8718e102244473d839c2a31c5ead31812ee249be2",
+      "certificate_ref": "https://github.com/Luminous-Dynamics/symtropy/pull/7543"
+    },
+    {
+      "case_id": "SAFRB-TWO-WINDOW-SHARED-PUMP-001",
+      "scenario_sha256": "edfd1c2a5a3eb52a0026a0e63abb38ab2ca8109c4de3d96fbff1215ad78f0308",
+      "certificate_ref": "https://github.com/Luminous-Dynamics/symtropy/pull/7543"
+    }
   ]
 }
