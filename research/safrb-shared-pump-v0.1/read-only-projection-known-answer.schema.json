@@ -1,0 +1,81 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Sol-Atlas SAFRB shared-pump read-only projection fixture v0.1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "projection_id",
+    "maturity",
+    "source",
+    "coordinate_frame",
+    "layers",
+    "visual_invariants",
+    "read_only",
+    "prohibited_effects",
+    "source_scenarios"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "sol-atlas-safrb-evidence-projection-v0.1"
+    },
+    "projection_id": {
+      "const": "SOL-ATLAS-SAFRB-SHARED-PUMP-001"
+    },
+    "maturity": {
+      "const": "synthetic_test_fixture"
+    },
+    "source": {
+      "type": "object",
+      "required": [
+        "case_id",
+        "scenario_sha256",
+        "owner",
+        "certificate_ref"
+      ]
+    },
+    "coordinate_frame": {
+      "const": "schematic_only_no_geographic_coordinates"
+    },
+    "layers": {
+      "type": "object",
+      "required": [
+        "physical_logistics",
+        "route_references",
+        "evidence",
+        "communication",
+        "dependencies",
+        "time_windows"
+      ]
+    },
+    "visual_invariants": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "string"
+      }
+    },
+    "read_only": {
+      "const": true
+    },
+    "prohibited_effects": {
+      "type": "array",
+      "minItems": 5,
+      "items": {
+        "type": "string"
+      }
+    },
+    "source_scenarios": {
+      "type": "array",
+      "minItems": 2,
+      "items": {
+        "type": "object",
+        "required": [
+          "case_id",
+          "scenario_sha256",
+          "certificate_ref"
+        ]
+      }
+    }
+  }
+}
