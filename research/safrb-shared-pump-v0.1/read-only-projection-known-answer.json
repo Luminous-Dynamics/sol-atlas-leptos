@@ -10,49 +10,94 @@
   },
   "coordinate_frame": "schematic_only_no_geographic_coordinates",
   "layers": {
-    "physical_logistics": [
-      {
-        "node_id": "terminal-a",
-        "kind": "terminal",
-        "status": "synthetic"
-      },
-      {
-        "node_id": "terminal-b",
-        "kind": "terminal",
-        "status": "synthetic"
-      },
-      {
-        "node_id": "pump-01",
-        "kind": "physical_resource",
-        "resource_id": "physical:pump-01",
-        "capacity_lower": 8,
-        "capacity_upper": 14,
-        "unit": "t",
-        "status": "shared_bottleneck"
-      },
-      {
-        "node_id": "route-a",
-        "kind": "logical_route",
-        "status": "synthetic"
-      },
-      {
-        "node_id": "route-b",
-        "kind": "logical_route",
-        "status": "synthetic"
-      },
-      {
-        "node_id": "generator",
-        "kind": "generator",
-        "status": "synthetic"
-      },
-      {
-        "node_id": "beneficiary",
-        "kind": "beneficiary",
-        "required_delivery": 12,
-        "unit": "t",
-        "status": "synthetic"
-      }
-    ],
+    "physical_logistics": {
+      "nodes": [
+        {
+          "node_id": "terminal-a",
+          "kind": "terminal",
+          "status": "synthetic"
+        },
+        {
+          "node_id": "terminal-b",
+          "kind": "terminal",
+          "status": "synthetic"
+        },
+        {
+          "node_id": "pump-01",
+          "kind": "physical_resource",
+          "resource_id": "physical:pump-01",
+          "capacity_lower": 8,
+          "capacity_upper": 14,
+          "unit": "t",
+          "status": "shared_bottleneck"
+        },
+        {
+          "node_id": "route-a",
+          "kind": "logical_route",
+          "status": "synthetic"
+        },
+        {
+          "node_id": "route-b",
+          "kind": "logical_route",
+          "status": "synthetic"
+        },
+        {
+          "node_id": "generator",
+          "kind": "generator",
+          "status": "synthetic"
+        },
+        {
+          "node_id": "beneficiary",
+          "kind": "beneficiary",
+          "required_delivery": 12,
+          "unit": "t",
+          "status": "synthetic"
+        }
+      ],
+      "edges": [
+        {
+          "edge_id": "terminal-a-pump",
+          "from": "terminal-a",
+          "to": "pump-01",
+          "route_ref": "route-a"
+        },
+        {
+          "edge_id": "terminal-b-pump",
+          "from": "terminal-b",
+          "to": "pump-01",
+          "route_ref": "route-b"
+        },
+        {
+          "edge_id": "pump-route-a",
+          "from": "pump-01",
+          "to": "route-a",
+          "resource_id": "physical:pump-01"
+        },
+        {
+          "edge_id": "pump-route-b",
+          "from": "pump-01",
+          "to": "route-b",
+          "resource_id": "physical:pump-01"
+        },
+        {
+          "edge_id": "route-a-generator",
+          "from": "route-a",
+          "to": "generator",
+          "route_ref": "route-a"
+        },
+        {
+          "edge_id": "route-b-generator",
+          "from": "route-b",
+          "to": "generator",
+          "route_ref": "route-b"
+        },
+        {
+          "edge_id": "generator-beneficiary",
+          "from": "generator",
+          "to": "beneficiary"
+        }
+      ]
+    },
     "route_references": [
       {
         "route_id": "route-a",
