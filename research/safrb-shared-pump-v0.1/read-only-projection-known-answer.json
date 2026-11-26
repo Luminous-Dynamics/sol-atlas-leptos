@@ -1,0 +1,201 @@
+{
+  "schema_version": "sol-atlas-safrb-evidence-projection-v0.1",
+  "projection_id": "SOL-ATLAS-SAFRB-SHARED-PUMP-001",
+  "maturity": "synthetic_test_fixture",
+  "source": {
+    "case_id": "SAFRB-SHARED-PUMP-2ROUTE-001",
+    "scenario_sha256": "0a1c507d3bff9b3062e24ca8718e102244473d839c2a31c5ead31812ee249be2",
+    "owner": "Luminous-Dynamics/symtropy",
+    "certificate_ref": "https://github.com/Luminous-Dynamics/symtropy/pull/7543"
+  },
+  "coordinate_frame": "schematic_only_no_geographic_coordinates",
+  "layers": {
+    "physical_logistics": {
+      "nodes": [
+        {
+          "node_id": "terminal-a",
+          "kind": "terminal",
+          "status": "synthetic"
+        },
+        {
+          "node_id": "terminal-b",
+          "kind": "terminal",
+          "status": "synthetic"
+        },
+        {
+          "node_id": "pump-01",
+          "kind": "physical_resource",
+          "resource_id": "physical:pump-01",
+          "capacity_lower": 8,
+          "capacity_upper": 14,
+          "unit": "t",
+          "status": "shared_bottleneck"
+        },
+        {
+          "node_id": "route-a",
+          "kind": "logical_route",
+          "status": "synthetic"
+        },
+        {
+          "node_id": "route-b",
+          "kind": "logical_route",
+          "status": "synthetic"
+        },
+        {
+          "node_id": "generator",
+          "kind": "generator",
+          "status": "synthetic"
+        },
+        {
+          "node_id": "beneficiary",
+          "kind": "beneficiary",
+          "required_delivery": 12,
+          "unit": "t",
+          "status": "synthetic"
+        }
+      ],
+      "edges": [
+        {
+          "edge_id": "terminal-a-pump",
+          "from": "terminal-a",
+          "to": "pump-01",
+          "route_ref": "route-a"
+        },
+        {
+          "edge_id": "terminal-b-pump",
+          "from": "terminal-b",
+          "to": "pump-01",
+          "route_ref": "route-b"
+        },
+        {
+          "edge_id": "pump-route-a",
+          "from": "pump-01",
+          "to": "route-a",
+          "resource_id": "physical:pump-01"
+        },
+        {
+          "edge_id": "pump-route-b",
+          "from": "pump-01",
+          "to": "route-b",
+          "resource_id": "physical:pump-01"
+        },
+        {
+          "edge_id": "route-a-generator",
+          "from": "route-a",
+          "to": "generator",
+          "route_ref": "route-a"
+        },
+        {
+          "edge_id": "route-b-generator",
+          "from": "route-b",
+          "to": "generator",
+          "route_ref": "route-b"
+        },
+        {
+          "edge_id": "generator-beneficiary",
+          "from": "generator",
+          "to": "beneficiary"
+        }
+      ]
+    },
+    "route_references": [
+      {
+        "route_id": "route-a",
+        "uses_resource_ids": [
+          "physical:pump-01"
+        ]
+      },
+      {
+        "route_id": "route-b",
+        "uses_resource_ids": [
+          "physical:pump-01"
+        ]
+      }
+    ],
+    "evidence": [
+      {
+        "evidence_id": "shared-pump-certificate",
+        "lower_bound_max_flow": 8,
+        "lower_bound_min_cut": 8,
+        "upper_bound_max_flow": 12,
+        "shortfall": 4,
+        "unit": "t",
+        "verdict": "indeterminate_not_guaranteed",
+        "claim_scope": "FUEL-DELIVERABILITY"
+      },
+      {
+        "evidence_id": "two-window-shared-pump-certificate",
+        "scenario_sha256": "edfd1c2a5a3eb52a0026a0e63abb38ab2ca8109c4de3d96fbff1215ad78f0308",
+        "lower_bound_max_flow": 9,
+        "lower_bound_min_cut": 9,
+        "upper_bound_max_flow": 12,
+        "upper_bound_min_cut": 12,
+        "shortfall": 3,
+        "unit": "t",
+        "verdict": "indeterminate_not_guaranteed",
+        "claim_scope": "FUEL-DELIVERABILITY"
+      }
+    ],
+    "communication": [],
+    "dependencies": [
+      {
+        "dependency_id": "failure-domain:pump-01",
+        "shared_by": [
+          "route-a",
+          "route-b"
+        ],
+        "status": "synthetic_known_truth"
+      }
+    ],
+    "time_windows": [
+      {
+        "window": "[0,1)",
+        "pump_capacity_lower": 6,
+        "pump_capacity_upper": 8,
+        "required_at_next_boundary": 6,
+        "lower_bound_delivery": 6,
+        "disposition": "guaranteed_within_synthetic_fixture"
+      },
+      {
+        "window": "[1,2)",
+        "pump_capacity_lower": 3,
+        "pump_capacity_upper": 8,
+        "required_at_next_boundary": 6,
+        "lower_bound_delivery": 3,
+        "upper_bound_delivery": 6,
+        "disposition": "indeterminate_not_guaranteed"
+      }
+    ]
+  },
+  "visual_invariants": [
+    "render-one-physical-pump-node-only",
+    "both-route-references-point-to-same-pump-id",
+    "show-lower-and-upper-bounds-separately",
+    "show-indeterminate-claim-scope-and-synthetic-maturity",
+    "never-infer-geographic-coordinates",
+    "never-upgrade-physical-delivery-or-service-from-visualization",
+    "display-service-by-window-not-only-horizon-total",
+    "preserve-pump-capacity-validity-intervals",
+    "do-not-backdate-later-delivery-to-earlier-beneficiary-window"
+  ],
+  "read_only": true,
+  "prohibited_effects": [
+    "dispatch",
+    "reserve",
+    "inventory-mutation",
+    "equipment-actuation",
+    "legal-or-authority-decision"
+  ],
+  "source_scenarios": [
+    {
+      "case_id": "SAFRB-SHARED-PUMP-2ROUTE-001",
+      "scenario_sha256": "0a1c507d3bff9b3062e24ca8718e102244473d839c2a31c5ead31812ee249be2",
+      "certificate_ref": "https://github.com/Luminous-Dynamics/symtropy/pull/7543"
+    },
+    {
+      "case_id": "SAFRB-TWO-WINDOW-SHARED-PUMP-001",
+      "scenario_sha256": "edfd1c2a5a3eb52a0026a0e63abb38ab2ca8109c4de3d96fbff1215ad78f0308",
+      "certificate_ref": "https://github.com/Luminous-Dynamics/symtropy/pull/7543"
+    }
+  ]
+}
