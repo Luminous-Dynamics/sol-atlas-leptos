@@ -83,6 +83,21 @@
       "id": "INV-13",
       "name": "deterministic-canonical-semantic-replay",
       "expected": "preserve"
+    },
+    {
+      "id": "INV-14",
+      "name": "field-disposition-ledger-completeness",
+      "expected": "every profile field preserved, transformed with explicit mapping, or blocked with reason"
+    },
+    {
+      "id": "INV-15",
+      "name": "public-projection-noninterference",
+      "expected": "restricted-only input changes produce byte-identical canonical public projection"
+    },
+    {
+      "id": "INV-16",
+      "name": "unordered-input-permutation-invariance",
+      "expected": "canonical semantic output is unchanged by source-record ordering"
     }
   ],
   "negativeControls": [
@@ -169,6 +184,24 @@
       "mutation": "Alter a provenance input digest or the configuration digest.",
       "expected": "reject",
       "reason": "Reconstruction lineage must be content-bound."
+    },
+    {
+      "id": "NEG-15",
+      "mutation": "Strip properties.solAtlas while returning a valid GeoJSON Feature.",
+      "expected": "reject",
+      "reason": "Syntactic GeoJSON validity cannot mask loss of required profile semantics."
+    },
+    {
+      "id": "NEG-16",
+      "mutation": "Add a restricted-only evidence record to the input and compare the canonical public projection.",
+      "expected": "reject-if-different",
+      "reason": "Private-only changes must not affect public observable output."
+    },
+    {
+      "id": "NEG-17",
+      "mutation": "Permute the evidence record array and re-run canonicalization.",
+      "expected": "same-output",
+      "reason": "Unordered set semantics must not depend on transport ordering."
     }
   ],
   "qualificationRules": {
