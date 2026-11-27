@@ -1294,6 +1294,41 @@ mod tests {
     }
 
     #[test]
+    fn model_prediction_can_be_retained_as_counter_evidence_without_becoming_measurement() {
+        let mut value = input();
+        let mut model_counter = evidence(
+            "model-prediction-counter",
+            EvidenceKind::ModelPrediction,
+            EvidenceOrigin::ModelOutput,
+            'e',
+        );
+        model_counter.relation = EvidenceRelation::Contradicts;
+        model_counter.rights_status = RightsStatus::Pending;
+        model_counter.rights_receipt_ref = None;
+        value.evidence.push(model_counter);
+
+        let mut element = observed_element();
+        element.counter_evidence_ids = vec!["model-prediction-counter".into()];
+        element.dependencies.push(ReconstructionDependency {
+            dependency_id: "model-counter-source".into(),
+            kind: DependencyKind::SourceEvidence,
+            reference_id: Some("model-prediction-counter".into()),
+            artifact_sha256: None,
+            statement: "Model prediction conflicts with the observed-surface hypothesis".into(),
+        });
+        value.elements = vec![element];
+
+        let report = validate_heritage_reconstruction(&value).unwrap();
+        assert_eq!(report.supporting_evidence_association_count, 1);
+        assert_eq!(report.counter_evidence_association_count, 1);
+        assert_eq!(value.elements[0].source_evidence_ids, vec!["lidar-measurement"]);
+        assert_eq!(
+            value.elements[0].counter_evidence_ids,
+            vec!["model-prediction-counter"]
+        );
+    }
+
+    #[test]
     fn contextual_evidence_is_retained_but_not_counted_as_support() {
         let mut value = input();
         let mut context = evidence(
