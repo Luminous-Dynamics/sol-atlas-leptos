@@ -523,7 +523,7 @@ mod tests {
     #[test]
     fn wrong_subject_or_role_is_rejected_even_with_a_valid_signature() {
         let store = fixture_store();
-        let (reference, digest, observed, valid_until, attestation) = signed_attestation();
+        let (reference, digest, _, _, attestation) = signed_attestation();
         let result = verify_fixture(
             &reference,
             &digest,
