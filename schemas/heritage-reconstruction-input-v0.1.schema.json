@@ -154,6 +154,8 @@
           "geometry_uncertainty",
           "temporal_interval",
           "source_evidence_ids",
+          "counter_evidence_ids",
+          "context_evidence_ids",
           "dependencies",
           "method_build_sha256",
           "simulation_manifest_sha256",
@@ -545,6 +547,22 @@
           },
           "exact_geometry_publication_allowed": {
             "type": "boolean"
+          },
+          "counter_evidence_ids": {
+            "type": "array",
+            "uniqueItems": true,
+            "items": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "context_evidence_ids": {
+            "type": "array",
+            "uniqueItems": true,
+            "items": {
+              "type": "string",
+              "minLength": 1
+            }
           }
         },
         "allOf": [
