@@ -14,6 +14,7 @@ pub mod constants;
 pub mod data;
 pub mod economics;
 pub mod energy_trading;
+pub mod ev_evidence_admission;
 pub mod ev_route_assurance;
 pub mod geo;
 pub mod lod;
