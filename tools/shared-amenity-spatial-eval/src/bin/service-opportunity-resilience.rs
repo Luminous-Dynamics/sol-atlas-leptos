@@ -377,10 +377,16 @@ fn validate_case(case: &Case, basis: &TimeBasis) -> Result<(), String> {
         || case.scope.horizon_end_tick != basis.horizon_end_tick
         || case.scope.horizon_end_tick <= case.scope.horizon_start_tick
     {
-        return Err(format!("{}: invalid demand or evaluation horizon", case.case_id));
+        return Err(format!(
+            "{}: invalid demand or evaluation horizon",
+            case.case_id
+        ));
     }
     if case.alternatives.is_empty() {
-        return Err(format!("{}: at least one alternative is required", case.case_id));
+        return Err(format!(
+            "{}: at least one alternative is required",
+            case.case_id
+        ));
     }
 
     let mut alternative_ids = HashSet::new();
@@ -391,10 +397,22 @@ fn validate_case(case: &Case, basis: &TimeBasis) -> Result<(), String> {
             return Err(format!("{}: duplicate alternative_id", case.case_id));
         }
         for (field, value) in [
-            ("access revision", alternative.owner_revisions.access.as_str()),
-            ("service revision", alternative.owner_revisions.service.as_str()),
-            ("capacity revision", alternative.owner_revisions.capacity.as_str()),
-            ("suitability revision", alternative.owner_revisions.suitability.as_str()),
+            (
+                "access revision",
+                alternative.owner_revisions.access.as_str(),
+            ),
+            (
+                "service revision",
+                alternative.owner_revisions.service.as_str(),
+            ),
+            (
+                "capacity revision",
+                alternative.owner_revisions.capacity.as_str(),
+            ),
+            (
+                "suitability revision",
+                alternative.owner_revisions.suitability.as_str(),
+            ),
         ] {
             ensure_non_empty(value, field)?;
         }
@@ -403,7 +421,10 @@ fn validate_case(case: &Case, basis: &TimeBasis) -> Result<(), String> {
         for domain in &alternative.failure_domains {
             ensure_non_empty(domain, "failure_domain")?;
             if !domains.insert(domain.as_str()) {
-                return Err(format!("{}: duplicate failure-domain identifier", case.case_id));
+                return Err(format!(
+                    "{}: duplicate failure-domain identifier",
+                    case.case_id
+                ));
             }
         }
 
@@ -415,10 +436,16 @@ fn validate_case(case: &Case, basis: &TimeBasis) -> Result<(), String> {
             || binding.cohort_id.trim().is_empty()
             || binding.time_basis_id.trim().is_empty()
         {
-            return Err(format!("{}: alternative scope binding is incomplete", case.case_id));
+            return Err(format!(
+                "{}: alternative scope binding is incomplete",
+                case.case_id
+            ));
         }
         if alternative.slices.len() != 4 {
-            return Err(format!("{}: expected exactly four v0.1 time slices", case.case_id));
+            return Err(format!(
+                "{}: expected exactly four v0.1 time slices",
+                case.case_id
+            ));
         }
 
         let mut cursor = case.scope.horizon_start_tick;
@@ -437,11 +464,17 @@ fn validate_case(case: &Case, basis: &TimeBasis) -> Result<(), String> {
             grid.push((slice.start_tick, slice.end_tick));
         }
         if cursor != case.scope.horizon_end_tick {
-            return Err(format!("{}: slices do not cover the full horizon", case.case_id));
+            return Err(format!(
+                "{}: slices do not cover the full horizon",
+                case.case_id
+            ));
         }
         if let Some(expected_grid) = &canonical_grid {
             if expected_grid != &grid {
-                return Err(format!("{}: alternatives use different time partitions", case.case_id));
+                return Err(format!(
+                    "{}: alternatives use different time partitions",
+                    case.case_id
+                ));
             }
         } else {
             canonical_grid = Some(grid);
@@ -453,7 +486,10 @@ fn validate_case(case: &Case, basis: &TimeBasis) -> Result<(), String> {
         ensure_non_empty(&event.event_id, "event_id")?;
         ensure_non_empty(&event.failure_domain, "event failure_domain")?;
         if !event_ids.insert(event.event_id.as_str()) {
-            return Err(format!("{}: duplicate disruption event identity", case.case_id));
+            return Err(format!(
+                "{}: duplicate disruption event identity",
+                case.case_id
+            ));
         }
         if event.start_tick < case.scope.horizon_start_tick
             || event.end_tick <= event.start_tick
@@ -482,8 +518,7 @@ fn validate_case(case: &Case, basis: &TimeBasis) -> Result<(), String> {
     if case.stability_evidence.state == RecoveryState::Verified {
         match case.stability_evidence.effective_tick {
             Some(tick)
-                if case.scope.horizon_start_tick <= tick
-                    && tick < case.scope.horizon_end_tick => {}
+                if case.scope.horizon_start_tick <= tick && tick < case.scope.horizon_end_tick => {}
             _ => {
                 return Err(format!(
                     "{}: VERIFIED stability evidence needs an in-horizon effective_tick",
@@ -499,9 +534,7 @@ fn classify_predicates(predicates: Predicates) -> OpportunityState {
     let values = predicates.values();
     if values.contains(&PredicateState::QualifiedUnavailable) {
         OpportunityState::Unavailable
-    } else if values.contains(&PredicateState::Unknown)
-        || values.contains(&PredicateState::Stale)
-    {
+    } else if values.contains(&PredicateState::Unknown) || values.contains(&PredicateState::Stale) {
         OpportunityState::Unknown
     } else {
         OpportunityState::Available
@@ -654,8 +687,7 @@ fn evaluate_case(case: &Case) -> CaseEvaluation {
         }
     }
 
-    let stable_opportunity_restoration =
-        stable_opportunity_state(case, &opportunity_slices);
+    let stable_opportunity_restoration = stable_opportunity_state(case, &opportunity_slices);
     let coalesced_opportunity_intervals = coalesce(&opportunity_slices);
 
     // Canonicalize unordered provenance collections so semantically irrelevant
@@ -689,16 +721,24 @@ fn evaluate_case(case: &Case) -> CaseEvaluation {
 fn verify_case(case: &Case, actual: &CaseEvaluation) -> Result<(), String> {
     let expected = &case.expected;
     if actual.opportunity_slices != expected.opportunity_slices {
-        return Err(format!("{}: opportunity slice/oracle mismatch", case.case_id));
+        return Err(format!(
+            "{}: opportunity slice/oracle mismatch",
+            case.case_id
+        ));
     }
     if actual.coalesced_opportunity_intervals != expected.coalesced_opportunity_intervals {
-        return Err(format!("{}: coalesced interval/oracle mismatch", case.case_id));
+        return Err(format!(
+            "{}: coalesced interval/oracle mismatch",
+            case.case_id
+        ));
     }
     if actual.first_available_tick != expected.first_available_tick {
-        return Err(format!("{}: first_available_tick/oracle mismatch", case.case_id));
+        return Err(format!(
+            "{}: first_available_tick/oracle mismatch",
+            case.case_id
+        ));
     }
-    if actual.first_restored_after_known_loss_tick
-        != expected.first_restored_after_known_loss_tick
+    if actual.first_restored_after_known_loss_tick != expected.first_restored_after_known_loss_tick
     {
         return Err(format!(
             "{}: first_restored_after_known_loss_tick/oracle mismatch",
@@ -709,7 +749,10 @@ fn verify_case(case: &Case, actual: &CaseEvaluation) -> Result<(), String> {
         return Err(format!("{}: stable recovery/oracle mismatch", case.case_id));
     }
     if actual.dependency_map_state != expected.dependency_map_state {
-        return Err(format!("{}: dependency map state/oracle mismatch", case.case_id));
+        return Err(format!(
+            "{}: dependency map state/oracle mismatch",
+            case.case_id
+        ));
     }
     Ok(())
 }
@@ -860,9 +903,12 @@ mod tests {
                 .iter()
                 .any(|domain| domain == "SHARED_OPERATOR_X")
         }));
-        assert!(evaluated.disruption_events.iter().any(|event| {
-            event.failure_domain == "SHARED_OPERATOR_X"
-        }));
+        assert!(
+            evaluated
+                .disruption_events
+                .iter()
+                .any(|event| { event.failure_domain == "SHARED_OPERATOR_X" })
+        );
     }
 
     #[test]
@@ -882,10 +928,9 @@ mod tests {
     #[test]
     fn available_alternative_dominates_unknown_alternative() {
         assert_eq!(
-            aggregate_alternative_states(&[
-                OpportunityState::Unknown,
-                OpportunityState::Available,
-            ]),
+            aggregate_alternative_states(
+                &[OpportunityState::Unknown, OpportunityState::Available,]
+            ),
             OpportunityState::Available
         );
     }
@@ -919,7 +964,10 @@ mod tests {
     fn shared_operator_failure_removes_both_nominal_nodes() {
         let output = evaluate_fixture(FIXTURE.as_bytes()).expect("fixture matches");
         let result = by_id(&output.results, "SHARED_OPERATOR_COMMON_CAUSE");
-        assert_eq!(result.opportunity_slices[1].alternative_counts.unavailable, 2);
+        assert_eq!(
+            result.opportunity_slices[1].alternative_counts.unavailable,
+            2
+        );
         assert_eq!(
             result.opportunity_slices[1].state,
             OpportunityState::Unavailable
@@ -933,9 +981,18 @@ mod tests {
             &output.results,
             "UNRESOLVED_INTERVAL_BEFORE_QUALIFIED_RETURN",
         );
-        assert_eq!(result.opportunity_slices[1].state, OpportunityState::Unavailable);
-        assert_eq!(result.opportunity_slices[2].state, OpportunityState::Unknown);
-        assert_eq!(result.opportunity_slices[3].state, OpportunityState::Available);
+        assert_eq!(
+            result.opportunity_slices[1].state,
+            OpportunityState::Unavailable
+        );
+        assert_eq!(
+            result.opportunity_slices[2].state,
+            OpportunityState::Unknown
+        );
+        assert_eq!(
+            result.opportunity_slices[3].state,
+            OpportunityState::Available
+        );
         assert_eq!(result.first_restored_after_known_loss_tick, Some(6));
     }
 
@@ -958,10 +1015,7 @@ mod tests {
     #[test]
     fn wrong_cohort_stable_recovery_evidence_remains_unknown() {
         let output = evaluate_fixture(FIXTURE.as_bytes()).expect("fixture matches");
-        let result = by_id(
-            &output.results,
-            "STABLE_RECOVERY_WRONG_SCOPE_NOT_ACCEPTED",
-        );
+        let result = by_id(&output.results, "STABLE_RECOVERY_WRONG_SCOPE_NOT_ACCEPTED");
         assert_eq!(
             result.stable_opportunity_restoration,
             StableOutput {
@@ -974,10 +1028,7 @@ mod tests {
     #[test]
     fn transient_return_before_recurrence_is_not_stable_recovery() {
         let output = evaluate_fixture(FIXTURE.as_bytes()).expect("fixture matches");
-        let result = by_id(
-            &output.results,
-            "RECURRENT_FAILURE_BLOCKS_STABLE_RECOVERY",
-        );
+        let result = by_id(&output.results, "RECURRENT_FAILURE_BLOCKS_STABLE_RECOVERY");
         assert_eq!(result.first_restored_after_known_loss_tick, Some(4));
         assert_eq!(
             result.stable_opportunity_restoration.state,
@@ -1003,17 +1054,12 @@ mod tests {
     fn incomplete_calendar_gap_is_unknown_and_complete_gap_is_unavailable() {
         let output = evaluate_fixture(FIXTURE.as_bytes()).expect("fixture matches");
         assert_eq!(
-            by_id(
-                &output.results,
-                "INCOMPLETE_CALENDAR_GAP_REMAINS_UNKNOWN"
-            )
-            .opportunity_slices[1]
+            by_id(&output.results, "INCOMPLETE_CALENDAR_GAP_REMAINS_UNKNOWN").opportunity_slices[1]
                 .state,
             OpportunityState::Unknown
         );
         assert_eq!(
-            by_id(&output.results, "COMPLETE_CALENDAR_GAP_PROVES_CLOSURE")
-                .opportunity_slices[1]
+            by_id(&output.results, "COMPLETE_CALENDAR_GAP_PROVES_CLOSURE").opportunity_slices[1]
                 .state,
             OpportunityState::Unavailable
         );
@@ -1039,12 +1085,9 @@ mod tests {
     fn stale_service_evidence_is_unknown() {
         let output = evaluate_fixture(FIXTURE.as_bytes()).expect("fixture matches");
         assert_eq!(
-            by_id(
-                &output.results,
-                "STALE_SERVICE_EVIDENCE_DURING_OPEN_WINDOW"
-            )
-            .opportunity_slices[2]
-                .state,
+            by_id(&output.results, "STALE_SERVICE_EVIDENCE_DURING_OPEN_WINDOW").opportunity_slices
+                [2]
+            .state,
             OpportunityState::Unknown
         );
     }
@@ -1052,10 +1095,7 @@ mod tests {
     #[test]
     fn unsuitable_service_is_not_rescued_by_route_proximity() {
         let output = evaluate_fixture(FIXTURE.as_bytes()).expect("fixture matches");
-        let result = by_id(
-            &output.results,
-            "COHORT_SPECIFIC_SUITABILITY_FAILURE",
-        );
+        let result = by_id(&output.results, "COHORT_SPECIFIC_SUITABILITY_FAILURE");
         assert!(
             result
                 .opportunity_slices
@@ -1086,8 +1126,7 @@ mod tests {
     #[test]
     fn duplicate_alternative_and_event_ids_are_rejected() {
         let mut case = fixture().cases.remove(0);
-        case.alternatives[1].alternative_id =
-            case.alternatives[0].alternative_id.clone();
+        case.alternatives[1].alternative_id = case.alternatives[0].alternative_id.clone();
         let basis = fixture().time_basis;
         assert!(validate_case(&case, &basis).is_err());
 
@@ -1096,8 +1135,7 @@ mod tests {
             .into_iter()
             .find(|candidate| candidate.case_id == "OVERLAPPING_COMPOUND_FAILURES")
             .expect("compound case exists");
-        compound.disruption_events[1].event_id =
-            compound.disruption_events[0].event_id.clone();
+        compound.disruption_events[1].event_id = compound.disruption_events[0].event_id.clone();
         assert!(validate_case(&compound, &basis).is_err());
     }
 }
