@@ -290,13 +290,20 @@ pub struct AssessmentEnvelope {
 pub fn assess_json(
     input_bytes: &[u8],
     trust_store_bytes: &[u8],
+    expected_trust_store_sha256: &str,
 ) -> Result<AssessmentEnvelope, String> {
     let input: RoutePlan = serde_json::from_slice(input_bytes)
         .map_err(|error| format!("invalid input JSON: {error}"))?;
+    let trust_store_sha256 = sha256_hex(trust_store_bytes);
+    if !is_sha256_hex(expected_trust_store_sha256)
+        || trust_store_sha256 != expected_trust_store_sha256
+    {
+        return Err("evidence trust-store digest does not match the deployment-pinned SHA-256".into());
+    }
     let trust_store: EvidenceTrustStore = serde_json::from_slice(trust_store_bytes)
         .map_err(|error| format!("invalid evidence trust-store JSON: {error}"))?;
     validate_trust_store(&trust_store)?;
-    let assessment = assess(&input, &trust_store)?;
+    let assessment = assess(&input, &trust_store, expected_trust_store_sha256)?;
     let assessment_bytes = serde_json::to_vec(&assessment)
         .map_err(|error| format!("could not serialize assessment: {error}"))?;
     Ok(AssessmentEnvelope {
@@ -312,8 +319,19 @@ pub fn assess_json(
 /// Audit a parsed route plan against an independently supplied trust store.
 /// Invalid structure/numerics/trust policy are rejected; missing or unauthenticated
 /// source evidence returns INDETERMINATE rather than a false pass.
-pub fn assess(input: &RoutePlan, trust_store: &EvidenceTrustStore) -> Result<Assessment, String> {
+pub fn assess(
+    input: &RoutePlan,
+    trust_store: &EvidenceTrustStore,
+    expected_trust_store_sha256: &str,
+) -> Result<Assessment, String> {
     validate_trust_store(trust_store)?;
+    let trust_store_bytes = serde_json::to_vec(trust_store)
+        .map_err(|error| format!("cannot serialize evidence trust store: {error}"))?;
+    if !is_sha256_hex(expected_trust_store_sha256)
+        || sha256_hex(&trust_store_bytes) != expected_trust_store_sha256
+    {
+        return Err("evidence trust-store digest does not match the deployment-pinned SHA-256".into());
+    }
     if input.schema_version != INPUT_SCHEMA_VERSION {
         return Err(format!(
             "unsupported schema_version: expected {INPUT_SCHEMA_VERSION}"
@@ -1256,6 +1274,13 @@ fn push_finding(findings: &mut Vec<Finding>, event_id: Option<&str>, code: &str,
     });
 }
 
+fn is_sha256_hex(value: &str) -> bool {
+    value.len() == 64
+        && value
+            .bytes()
+            .all(|byte| byte.is_ascii_digit() || (b'a'..=b'f').contains(&byte))
+}
+
 fn sha256_hex(bytes: &[u8]) -> String {
     let digest = Sha256::digest(bytes);
     let mut output = String::with_capacity(64);
@@ -1359,7 +1384,10 @@ mod tests {
     }
 
     fn assess_test_plan(input: &RoutePlan) -> Result<Assessment, String> {
-        assess(input, &test_trust_store())
+        let store = test_trust_store();
+        let bytes = serde_json::to_vec(&store).expect("serialize test trust store");
+        let expected_sha256 = sha256_hex(&bytes);
+        assess(input, &store, &expected_sha256)
     }
 
     fn test_trust_store_bytes() -> Vec<u8> {
@@ -1558,7 +1586,9 @@ mod tests {
     fn synthetic_fixture_is_never_promoted_to_feasible() {
         let bytes = include_str!("../../schemas/examples/ev-route-assurance-v0.1.synthetic.json");
         let trust_bytes = test_trust_store_bytes();
-        let envelope = assess_json(bytes.as_bytes(), &trust_bytes).expect("fixture is valid JSON");
+        let trust_store_pin = sha256_hex(&trust_bytes);
+        let envelope = assess_json(bytes.as_bytes(), &trust_bytes, &trust_store_pin)
+            .expect("fixture is valid JSON");
         assert_eq!(
             envelope.assessment.disposition,
             AssessmentDisposition::Indeterminate
@@ -1573,6 +1603,14 @@ mod tests {
             "test-only-ev-route-trust-policy"
         );
         assert_eq!(envelope.assessment.consumed_evidence.len(), 13);
+    }
+
+
+    #[test]
+    fn trust_store_substitution_is_rejected_without_the_pinned_digest() {
+        let bytes = include_str!("../../schemas/examples/ev-route-assurance-v0.1.synthetic.json");
+        let trust_bytes = test_trust_store_bytes();
+        assert!(assess_json(bytes.as_bytes(), &trust_bytes, &"00".repeat(32)).is_err());
     }
 
     #[test]
