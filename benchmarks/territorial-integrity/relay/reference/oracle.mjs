@@ -6,8 +6,10 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
-const dir = path.dirname(fileURLToPath(import.meta.url));
-const read = (name) => JSON.parse(fs.readFileSync(path.join(dir, name), "utf8"));
+const referenceDir = path.dirname(fileURLToPath(import.meta.url));
+// The frozen case corpus is a sibling of reference/, not inside it.
+const relayDataDir = path.resolve(referenceDir, "..");
+const read = (name) => JSON.parse(fs.readFileSync(path.join(relayDataDir, name), "utf8"));
 const stable = (v) => Array.isArray(v) ? "[" + v.map(stable).join(",") + "]"
   : v && typeof v === "object" ? "{" + Object.keys(v).sort().map(k => JSON.stringify(k) + ":" + stable(v[k])).join(",") + "}"
   : JSON.stringify(v);
