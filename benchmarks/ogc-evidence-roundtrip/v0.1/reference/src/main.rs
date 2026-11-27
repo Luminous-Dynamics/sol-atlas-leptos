@@ -211,7 +211,6 @@ mod tests {
         changed["records"][1]["recordId"] = Value::String("secret-record-renamed".into());
         changed["records"][1]["summary"] = Value::String("Different hidden summary".into());
         changed["records"][1]["payloadDigest"] = Value::String("sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc".into());
-        changed["records"][1]["syntheticPayload"] = Value::Null;
         let mut changed_feature = feature.clone();
         changed_feature["features"][0]["properties"]["solAtlas"]["evidenceAssociations"]["contradicts"][0]["recordId"] = Value::String("secret-record-renamed".into());
         changed_feature["features"][0]["properties"]["solAtlas"]["evidenceAssociations"]["contradicts"][0]["recordDigest"] = changed["records"][1]["payloadDigest"].clone();
