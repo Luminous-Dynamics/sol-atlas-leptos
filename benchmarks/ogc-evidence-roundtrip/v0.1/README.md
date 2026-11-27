@@ -31,3 +31,12 @@ A future executable runner must:
 8. apply all negative controls and assert rejection / quarantine with a reason code.
 
 Do not treat JSON parse success as profile conformance. Do not compare only rendered maps, geometry overlap or feature counts.
+
+## Official JSON-FG conformance reference
+
+The fixture declares JSON-FG Core and Feature Types and Schemas conformance. The normative JSON-FG 1.0.0 specification was published on 2026-04-30. Qualification must use the relevant abstract tests in Annex A and normative schemas in Annex B; checking only the `conformsTo` string is not conformance.
+
+- Standard: https://docs.ogc.org/is/21-045r1/21-045r1.html
+- OGC JSON-FG standard page and official model/schema resources: https://www.ogc.org/standards/json-fg/
+- JSON-FG Core conformance URI: `http://www.opengis.net/spec/json-fg-1/1.0/conf/core`
+- Feature Types and Schemas conformance URI: `http://www.opengis.net/spec/json-fg-1/1.0/conf/types-schemas`
