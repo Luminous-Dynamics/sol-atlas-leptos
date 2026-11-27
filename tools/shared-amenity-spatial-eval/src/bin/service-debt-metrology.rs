@@ -118,7 +118,9 @@ impl<'de> Visitor<'de> for UniqueValueVisitor {
         let mut values = Map::new();
         while let Some(key) = map.next_key::<String>()? {
             if values.contains_key(&key) {
-                return Err(de::Error::custom(format!("duplicate JSON object key: {key}")));
+                return Err(de::Error::custom(format!(
+                    "duplicate JSON object key: {key}"
+                )));
             }
             let UniqueValue(value) = map.next_value::<UniqueValue>()?;
             values.insert(key, value);
@@ -166,11 +168,7 @@ fn evidence_is_current(value: &Value) -> bool {
             .is_some_and(|revision| !revision.trim().is_empty())
 }
 
-fn validate_evidence(
-    value: &Value,
-    label: &str,
-    expected_owner: &str,
-) -> Result<(), String> {
+fn validate_evidence(value: &Value, label: &str, expected_owner: &str) -> Result<(), String> {
     let evidence = value
         .get("evidence")
         .ok_or_else(|| format!("{label} is missing evidence"))?;
@@ -196,10 +194,7 @@ fn qualify_demand_or_capacity(
 
     let (expected_owner, expected_basis) = match label {
         "demand" => ("MYCELIX_DEMAND", "OWNER_QUALIFIED_SERVICE_DEMAND"),
-        "capacity" => (
-            "SYMTROPY_CAPACITY",
-            "OWNER_QUALIFIED_DELIVERABLE_CAPACITY",
-        ),
+        "capacity" => ("SYMTROPY_CAPACITY", "OWNER_QUALIFIED_DELIVERABLE_CAPACITY"),
         _ => return Err(format!("unsupported measurement owner for {label}")),
     };
     validate_evidence(value, label, expected_owner)?;
@@ -217,7 +212,9 @@ fn qualify_demand_or_capacity(
         return Err(format!("{label} has invalid coverage"));
     }
     if state == "UNKNOWN" && quantity.is_some() {
-        return Err(format!("{label} is UNKNOWN but contains a numeric quantity"));
+        return Err(format!(
+            "{label} is UNKNOWN but contains a numeric quantity"
+        ));
     }
     if state == "KNOWN" && coverage == "COMPLETE" && evidence_is_current(value) {
         let quantity = quantity.ok_or_else(|| format!("{label} is KNOWN but has no quantity"))?;
@@ -232,8 +229,7 @@ fn capacity_gap(
     capacity: &Value,
     common_scope: &Value,
 ) -> Result<(String, Option<u64>, Option<u64>), String> {
-    let (demand_state, demand_units) =
-        qualify_demand_or_capacity(demand, common_scope, "demand")?;
+    let (demand_state, demand_units) = qualify_demand_or_capacity(demand, common_scope, "demand")?;
     let (capacity_state, capacity_units) =
         qualify_demand_or_capacity(capacity, common_scope, "capacity")?;
 
@@ -269,11 +265,7 @@ fn accepted_undelivered(
         return Ok(("NOT_COMPARABLE".to_owned(), None));
     }
 
-    validate_evidence(
-        register,
-        "request register",
-        "MYCELIX_REQUEST_REGISTER",
-    )?;
+    validate_evidence(register, "request register", "MYCELIX_REQUEST_REGISTER")?;
     let coverage = string(register, "coverage")?;
     if coverage != "COMPLETE" || !evidence_is_current(register) {
         if !["PARTIAL", "UNKNOWN", "COMPLETE"].contains(&coverage) {
@@ -299,11 +291,7 @@ fn accepted_undelivered(
         if record.get("scope") != Some(common_scope) {
             return Ok(("NOT_COMPARABLE".to_owned(), None));
         }
-        validate_evidence(
-            record,
-            "request record",
-            "MYCELIX_REQUEST_DELIVERY",
-        )?;
+        validate_evidence(record, "request record", "MYCELIX_REQUEST_DELIVERY")?;
 
         let request_state = string(record, "state")?;
         let delivery_state = string(record, "delivery_state")?;
@@ -311,7 +299,9 @@ fn accepted_undelivered(
             return Err(format!("request {request_id} has an invalid state"));
         }
         if !["KNOWN", "UNKNOWN"].contains(&delivery_state) {
-            return Err(format!("request {request_id} has an invalid delivery state"));
+            return Err(format!(
+                "request {request_id} has an invalid delivery state"
+            ));
         }
 
         let accepted = number(record, "accepted_units")?;
@@ -329,7 +319,9 @@ fn accepted_undelivered(
         }
 
         if accepted == 0 {
-            return Err(format!("accepted request {request_id} has zero accepted units"));
+            return Err(format!(
+                "accepted request {request_id} has zero accepted units"
+            ));
         }
         match (delivery_state, delivered) {
             ("UNKNOWN", None) => {
@@ -396,11 +388,7 @@ fn unexpressed_need(
             Ok(("NOT_COLLECTED".to_owned(), None, None, None))
         }
         "UNKNOWN" => {
-            let numeric_fields = [
-                "estimate_units",
-                "lower_bound_units",
-                "upper_bound_units",
-            ];
+            let numeric_fields = ["estimate_units", "lower_bound_units", "upper_bound_units"];
             if numeric_fields
                 .iter()
                 .any(|field| assessment.get(*field) != Some(&Value::Null))
@@ -420,7 +408,10 @@ fn unexpressed_need(
             }
             let method = string(assessment, "method")?;
             if method != "WEIGHTED_RESIDENT_SURVEY" {
-                return Err("measured unexpressed need requires an approved resident-survey method".to_owned());
+                return Err(
+                    "measured unexpressed need requires an approved resident-survey method"
+                        .to_owned(),
+                );
             }
             let estimate = optional_number(assessment, "estimate_units")?
                 .ok_or_else(|| "measured need has no estimate".to_owned())?;
@@ -434,9 +425,16 @@ fn unexpressed_need(
                 return Err("resident need sample size or confidence level is invalid".to_owned());
             }
             if lower > estimate || estimate > upper {
-                return Err("resident need estimate lies outside its uncertainty interval".to_owned());
+                return Err(
+                    "resident need estimate lies outside its uncertainty interval".to_owned(),
+                );
             }
-            Ok(("MEASURED".to_owned(), Some(estimate), Some(lower), Some(upper)))
+            Ok((
+                "MEASURED".to_owned(),
+                Some(estimate),
+                Some(lower),
+                Some(upper),
+            ))
         }
         _ => Err("resident need assessment has an invalid state".to_owned()),
     }
@@ -555,8 +553,7 @@ fn evaluate(bytes: &[u8]) -> Result<Value, String> {
         != "SAME_SCOPE_COMPLETE_DEMAND_AND_DELIVERABLE_CAPACITY_FOR_ONE_INTERVAL"
         || string(policy, "request_debt_basis")?
             != "IDENTITY_LINKED_ACCEPTED_REQUEST_MINUS_COMPLETED_DELIVERY"
-        || string(policy, "unexpressed_need_basis")?
-            != "INDEPENDENT_RESIDENT_NEED_ASSESSMENT_ONLY"
+        || string(policy, "unexpressed_need_basis")? != "INDEPENDENT_RESIDENT_NEED_ASSESSMENT_ONLY"
     {
         return Err("fixture policy semantics changed".to_owned());
     }
@@ -620,8 +617,7 @@ fn main() {
 mod tests {
     use super::*;
 
-    const FIXTURE: &str =
-        include_str!("../../fixtures/SERVICE_DEBT_METROLOGY_FIXTURES_V0.1.json");
+    const FIXTURE: &str = include_str!("../../fixtures/SERVICE_DEBT_METROLOGY_FIXTURES_V0.1.json");
 
     fn fixture_value() -> Value {
         serde_json::from_str(FIXTURE).expect("fixture JSON should parse")
@@ -646,7 +642,10 @@ mod tests {
             })
             .expect("no-request case");
         assert_eq!(row["metrics"]["unexpressed_need_state"], "NOT_COLLECTED");
-        assert_eq!(row["metrics"]["unexpressed_need_estimate_units"], Value::Null);
+        assert_eq!(
+            row["metrics"]["unexpressed_need_estimate_units"],
+            Value::Null
+        );
     }
 
     #[test]
@@ -701,8 +700,7 @@ mod tests {
     #[test]
     fn unexpected_capacity_quantity_basis_is_rejected() {
         let mut value = fixture_value();
-        value["cases"][0]["capacity"]["basis"] =
-            Value::String("NAMEPLATE_CAPACITY".to_owned());
+        value["cases"][0]["capacity"]["basis"] = Value::String("NAMEPLATE_CAPACITY".to_owned());
         assert!(
             evaluate(value.to_string().as_bytes()).is_err(),
             "nominal capacity must not be treated as deliverable capacity"
@@ -773,8 +771,7 @@ mod tests {
             .expect("case array")
             .iter_mut()
             .find(|case| {
-                case["case_id"]
-                    == "NO_REQUESTS_WITHOUT_NEED_ASSESSMENT_DO_NOT_MEAN_ZERO_NEED"
+                case["case_id"] == "NO_REQUESTS_WITHOUT_NEED_ASSESSMENT_DO_NOT_MEAN_ZERO_NEED"
             })
             .expect("no-request case");
         case["need_assessment"]["estimate_units"] = Value::from(0_u64);
