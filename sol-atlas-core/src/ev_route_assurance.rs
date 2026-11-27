@@ -1607,6 +1607,7 @@ mod tests {
         assert_eq!(envelope.receipt.input_sha256.len(), 64);
         assert_eq!(envelope.receipt.assessment_sha256.len(), 64);
         assert_eq!(envelope.receipt.trust_store_sha256.len(), 64);
+        assert_eq!(envelope.receipt.trust_store_canonical_sha256, trust_store_pin);
         assert_eq!(
             envelope.assessment.trust_policy_id,
             "test-only-ev-route-trust-policy"
