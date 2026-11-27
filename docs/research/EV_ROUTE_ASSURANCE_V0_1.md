@@ -24,6 +24,8 @@ It is deliberately not a route optimizer, road-graph implementation, EV energy m
 3. A charger must have a current operational observation. Unknown, forecast, synthetic or expired status is not treated as available.
 4. Site import power is usable only when the connection stage is energized, accompanied by its own current evidence and a site-import interval. An application, budget quote, allocation or signed agreement is not energization.
 5. Conservative connector power is bounded by the minimum of (a) site import multiplied by the declared site-to-connector efficiency, (b) EVSE output power and (c) pack charge acceptance. Charging energy is limited by the planned dwell duration.
+6. **SOC-taper boundary:** the v0.1 pack charge-acceptance interval is a session-wide conservative minimum over the complete SOC and battery-temperature envelope expected during the dwell. It must not be a nameplate rating, peak power, or a point sample at arrival SOC. The input digest/evidence reference must bind the underlying envelope calculation. A pointwise or unscoped value is not eligible for a qualified-model evidence class.
+7. The v0.1 schema does not carry the piecewise SOC/temperature curve itself. Before production route qualification, v0.2 should consume the banded acceptance curves being developed in Symtropy EV charging-curve work (#2116), plus a scoped thermal/capability envelope from Symthaea, and verify that the full predicted SOC/temperature trajectory stays inside the supplied curve domain.
 6. Missing, synthetic, forecast, scenario or unknown evidence yields INDETERMINATE; an evidenced closed road, offline charger, incompatible connector, impossible charge target or definite reserve breach yields INFEASIBLE.
 7. Events must be chronologically ordered and non-overlapping. Input interval and digest shape errors are rejected.
 
@@ -52,6 +54,10 @@ The frozen example deliberately uses synthetic evidence and must return INDETERM
 3. **Measured route calibration:** use rights-cleared vehicle/pack logs and metered route energy, split by physical vehicle/configuration and route campaign. Report MAE, RMSE, P95 absolute error and prediction-interval coverage by vehicle/terrain/temperature strata.
 4. **Charger/site validation:** bind dated operator status, exact EVSE model, connector, power curve, approved import/energization records and independent metering. Keep failed sessions and stale/missing observations in the denominator.
 5. **Corridor demonstration:** Johannesburg–Durban/N3 in both directions, with each charger/site and vehicle observation individually sourced. One vehicle or one journey is never a fleet distribution.
+
+## Known v0.1 limitation: charging taper
+
+The route arithmetic uses a single acceptance interval. Its safety meaning therefore depends on the upstream producer supplying a conservative minimum across the full charge session; this implementation does not reconstruct or independently validate a piecewise SOC-dependent taper curve. Do not feed a battery nameplate maximum or initial-SOC point into this field and then interpret a pass as an end-to-end charging validation. The v0.2 target is explicit piecewise SOC acceptance, temperature/health derating, session integration and domain-coverage checks against the actual charger/site power ceiling.
 
 ## Prospective benchmark targets (not achieved)
 
