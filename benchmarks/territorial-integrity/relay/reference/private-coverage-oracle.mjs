@@ -313,7 +313,7 @@ export function evaluatePrivateCoverage(input) {
     if (nonblank(snapshot, "frontier_ref") !== nonblank(frontier, "frontier_ref")
         || nonblank(snapshot, "frontier_version") !== nonblank(frontier, "version")
         || JSON.stringify(snapshot.frontier_commitment) !== JSON.stringify(frontier.commitment)) {
-      raise("deny", "query_input_snapshot_frontier_binding_mismatch");
+      raise("unknown", "query_input_snapshot_frontier_binding_mismatch");
     }
     if (nonblank(snapshot, "query_profile_ref") !== nonblank(query, "query_profile_ref")
         || JSON.stringify(snapshot.query_commitment) !== JSON.stringify(query.query_commitment)) {
