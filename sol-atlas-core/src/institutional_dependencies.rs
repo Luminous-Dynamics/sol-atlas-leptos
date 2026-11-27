@@ -10,8 +10,7 @@
 //! envelope rather than redefined here.
 
 use crate::evidence::{
-    EpistemicClass, EvidenceError, EvidenceMetadata, Missingness, SpatialScope,
-    VerificationStatus,
+    EpistemicClass, EvidenceError, EvidenceMetadata, Missingness, SpatialScope, VerificationStatus,
 };
 use serde::{Deserialize, Serialize};
 
@@ -162,7 +161,6 @@ pub struct RelationshipProjection {
     pub excluded_future_evidence: Vec<String>,
     pub unknown_known_by_time: Vec<String>,
     pub outside_validity_interval: Vec<String>,
-    pub withheld_by_access_policy: Vec<String>,
 }
 
 impl RelationshipProjection {
@@ -172,7 +170,6 @@ impl RelationshipProjection {
             excluded_future_evidence: Vec::new(),
             unknown_known_by_time: Vec::new(),
             outside_validity_interval: Vec::new(),
-            withheld_by_access_policy: Vec::new(),
         }
     }
 }
@@ -192,6 +189,14 @@ pub fn project_relationships(
     let mut projection = RelationshipProjection::empty();
 
     for relationship in relationships {
+        // Restricted relationship records are opaque to public projections:
+        // do not validate, classify, or expose their identifiers or metadata.
+        if relationship.disclosure == DisclosureClass::Restricted
+            && audience != ProjectionAudience::Authorized
+        {
+            continue;
+        }
+
         relationship.validate()?;
 
         let temporal = relationship.evidence.temporal;
@@ -219,15 +224,6 @@ pub fn project_relationships(
         if known_by > evidence_frontier_unix_seconds {
             projection
                 .excluded_future_evidence
-                .push(relationship.relationship_id.clone());
-            continue;
-        }
-
-        if relationship.disclosure == DisclosureClass::Restricted
-            && audience != ProjectionAudience::Authorized
-        {
-            projection
-                .withheld_by_access_policy
                 .push(relationship.relationship_id.clone());
             continue;
         }
@@ -370,13 +366,8 @@ mod tests {
     fn only_explicit_relationships_are_projected() {
         // Two records with the same spatial scope but no relationship claim
         // produce no graph edge. The projection never synthesizes adjacency.
-        let result = project_relationships(
-            &[],
-            VALID_AT,
-            FRONTIER,
-            ProjectionAudience::Public,
-        )
-        .unwrap();
+        let result =
+            project_relationships(&[], VALID_AT, FRONTIER, ProjectionAudience::Public).unwrap();
         assert!(result.visible.is_empty());
     }
 
@@ -388,13 +379,8 @@ mod tests {
             DisclosureClass::Public,
             EpistemicClass::CompiledSecondarySource,
         );
-        let result = project_relationships(
-            &[item],
-            VALID_AT,
-            FRONTIER,
-            ProjectionAudience::Public,
-        )
-        .unwrap();
+        let result =
+            project_relationships(&[item], VALID_AT, FRONTIER, ProjectionAudience::Public).unwrap();
         assert!(result.visible.is_empty());
         assert_eq!(result.excluded_future_evidence, vec!["future-edge"]);
     }
@@ -407,13 +393,8 @@ mod tests {
             DisclosureClass::Public,
             EpistemicClass::CompiledSecondarySource,
         );
-        let result = project_relationships(
-            &[item],
-            VALID_AT,
-            FRONTIER,
-            ProjectionAudience::Public,
-        )
-        .unwrap();
+        let result =
+            project_relationships(&[item], VALID_AT, FRONTIER, ProjectionAudience::Public).unwrap();
         assert!(result.visible.is_empty());
         assert_eq!(result.unknown_known_by_time, vec!["unknown-frontier-edge"]);
     }
@@ -427,13 +408,8 @@ mod tests {
             EpistemicClass::CompiledSecondarySource,
         );
         item.evidence.temporal.valid_from_unix_seconds = Some(VALID_AT + 10);
-        let result = project_relationships(
-            &[item],
-            VALID_AT,
-            FRONTIER,
-            ProjectionAudience::Public,
-        )
-        .unwrap();
+        let result =
+            project_relationships(&[item], VALID_AT, FRONTIER, ProjectionAudience::Public).unwrap();
         assert!(result.visible.is_empty());
         assert_eq!(result.outside_validity_interval, vec!["not-yet-valid"]);
     }
@@ -454,16 +430,58 @@ mod tests {
         )
         .unwrap();
         assert!(public.visible.is_empty());
-        assert_eq!(public.withheld_by_access_policy, vec!["restricted-edge"]);
+        assert!(public.excluded_future_evidence.is_empty());
+        assert!(public.unknown_known_by_time.is_empty());
+        assert!(public.outside_validity_interval.is_empty());
 
-        let authorized = project_relationships(
-            &[item],
+        let authorized =
+            project_relationships(&[item], VALID_AT, FRONTIER, ProjectionAudience::Authorized)
+                .unwrap();
+        assert_eq!(authorized.visible.len(), 1);
+    }
+
+    #[test]
+    fn restricted_relationship_metadata_is_opaque_to_public_projection() {
+        let future = relationship(
+            "secret-future",
+            Some(FRONTIER + 1),
+            DisclosureClass::Restricted,
+            EpistemicClass::CompiledSecondarySource,
+        );
+        let unknown = relationship(
+            "secret-unknown",
+            None,
+            DisclosureClass::Restricted,
+            EpistemicClass::CompiledSecondarySource,
+        );
+        let mut outside = relationship(
+            "secret-outside",
+            Some(FRONTIER - 1),
+            DisclosureClass::Restricted,
+            EpistemicClass::CompiledSecondarySource,
+        );
+        outside.evidence.temporal.valid_from_unix_seconds = Some(VALID_AT + 1);
+
+        let mut malformed = relationship(
+            "secret-malformed",
+            Some(FRONTIER + 1),
+            DisclosureClass::Restricted,
+            EpistemicClass::CompiledSecondarySource,
+        );
+        malformed.evidence.temporal.valid_until_unix_seconds = Some(10);
+
+        let result = project_relationships(
+            &[future, unknown, outside, malformed],
             VALID_AT,
             FRONTIER,
-            ProjectionAudience::Authorized,
+            ProjectionAudience::Public,
         )
         .unwrap();
-        assert_eq!(authorized.visible.len(), 1);
+
+        assert!(result.visible.is_empty());
+        assert!(result.excluded_future_evidence.is_empty());
+        assert!(result.unknown_known_by_time.is_empty());
+        assert!(result.outside_validity_interval.is_empty());
     }
 
     #[test]
@@ -492,22 +510,14 @@ mod tests {
             DisclosureClass::Public,
             EpistemicClass::ScenarioAssumption,
         );
-        let result = project_relationships(
-            &[item],
-            VALID_AT,
-            FRONTIER,
-            ProjectionAudience::Public,
-        )
-        .unwrap();
+        let result =
+            project_relationships(&[item], VALID_AT, FRONTIER, ProjectionAudience::Public).unwrap();
         assert_eq!(result.visible.len(), 1);
         assert_eq!(
             result.visible[0].evidence.epistemic_class,
             EpistemicClass::ScenarioAssumption
         );
-        assert_eq!(
-            result.visible[0].evidence.missingness,
-            Missingness::Present
-        );
+        assert_eq!(result.visible[0].evidence.missingness, Missingness::Present);
         assert_eq!(
             result.visible[0].evidence.record_id,
             "claim-water-provider-01"
@@ -527,7 +537,9 @@ mod tests {
         item.evidence.temporal.valid_until_unix_seconds = Some(10);
         assert!(matches!(
             item.validate(),
-            Err(RelationshipError::InvalidEvidence(EvidenceError::InvalidTemporalInterval { .. }))
+            Err(RelationshipError::InvalidEvidence(
+                EvidenceError::InvalidTemporalInterval { .. }
+            ))
         ));
     }
 }
