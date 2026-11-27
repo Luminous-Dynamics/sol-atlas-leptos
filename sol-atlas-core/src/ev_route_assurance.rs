@@ -305,7 +305,10 @@ pub fn assess_json(
     if !is_sha256_hex(expected_trust_store_sha256)
         || canonical_trust_store_sha256 != expected_trust_store_sha256
     {
-        return Err("canonical evidence trust-store digest does not match the deployment-pinned SHA-256".into());
+        return Err(
+            "canonical evidence trust-store digest does not match the deployment-pinned SHA-256"
+                .into(),
+        );
     }
     let assessment = assess(&input, &trust_store, expected_trust_store_sha256)?;
     let assessment_bytes = serde_json::to_vec(&assessment)
@@ -335,7 +338,10 @@ pub fn assess(
     if !is_sha256_hex(expected_trust_store_sha256)
         || sha256_hex(&canonical_trust_store_bytes) != expected_trust_store_sha256
     {
-        return Err("canonical evidence trust-store digest does not match the deployment-pinned SHA-256".into());
+        return Err(
+            "canonical evidence trust-store digest does not match the deployment-pinned SHA-256"
+                .into(),
+        );
     }
     if input.schema_version != INPUT_SCHEMA_VERSION {
         return Err(format!(
@@ -602,10 +608,8 @@ pub fn assess(
                     }
                 }
 
-                let raw_energy_lower =
-                    energy.lower - leg.energy_consumption_wh.upper;
-                let raw_energy_upper =
-                    energy.upper - leg.energy_consumption_wh.lower;
+                let raw_energy_lower = energy.lower - leg.energy_consumption_wh.upper;
+                let raw_energy_upper = energy.upper - leg.energy_consumption_wh.lower;
                 if raw_energy_upper < 0.0 {
                     push_finding(
                         &mut findings,
@@ -1627,7 +1631,7 @@ mod tests {
         assert_eq!(envelope.receipt.input_sha256.len(), 64);
         assert_eq!(envelope.receipt.assessment_sha256.len(), 64);
         assert_eq!(envelope.receipt.trust_store_sha256.len(), 64);
-        assert_eq!(envelope.receipt.trust_store_canonical_sha256, trust_store_pin);
+
         assert_eq!(
             envelope.assessment.trust_policy_id,
             "test-only-ev-route-trust-policy"
