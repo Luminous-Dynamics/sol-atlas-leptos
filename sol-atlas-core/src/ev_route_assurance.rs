@@ -304,22 +304,31 @@ pub fn assess(input: &RoutePlan) -> Result<Assessment, String> {
     let mut any_infeasible = false;
     let mut any_indeterminate = false;
 
-    if !evidence_class_qualified(&input.vehicle.configuration_evidence, "vehicle.configuration_evidence")? {
+    let vehicle_configuration_qualified =
+        evidence_class_qualified(&input.vehicle.configuration_evidence, "vehicle.configuration_evidence")?;
+    let vehicle_energy_model_qualified =
+        evidence_class_qualified(&input.vehicle.energy_model_evidence, "vehicle.energy_model_evidence")?;
+    let pack_capability_qualified =
+        evidence_class_qualified(&input.pack.capability_evidence, "pack.capability_evidence")?;
+
+    if !vehicle_configuration_qualified {
         push_finding(&mut findings, None, "VEHICLE_CONFIGURATION_EVIDENCE_UNQUALIFIED",
             "Vehicle configuration lineage is synthetic, forecast, predicted, scenario, or unknown.");
         any_indeterminate = true;
     }
-    if !evidence_class_qualified(&input.vehicle.energy_model_evidence, "vehicle.energy_model_evidence")? {
+    if !vehicle_energy_model_qualified {
         push_finding(&mut findings, None, "VEHICLE_ENERGY_MODEL_EVIDENCE_UNQUALIFIED",
             "The upstream vehicle energy model is not observed or independently qualified.");
         any_indeterminate = true;
     }
-    if !evidence_class_qualified(&input.pack.capability_evidence, "pack.capability_evidence")? {
+    if !pack_capability_qualified {
         push_finding(&mut findings, None, "PACK_CAPABILITY_EVIDENCE_UNQUALIFIED",
             "The upstream pack capability descriptor is not observed or independently qualified.");
         any_indeterminate = true;
     }
 
+    let mut energy_bounds_qualified =
+        vehicle_configuration_qualified && vehicle_energy_model_qualified && pack_capability_qualified;
     let mut energy = input.pack.initial_energy_wh;
     if input.pack.reserve_floor_wh > input.pack.usable_energy_wh.upper + EPSILON {
         push_finding(&mut findings, None, "RESERVE_EXCEEDS_PACK_CAPACITY",
@@ -329,7 +338,11 @@ pub fn assess(input: &RoutePlan) -> Result<Assessment, String> {
     if energy.upper + EPSILON < input.pack.reserve_floor_wh {
         push_finding(&mut findings, None, "INITIAL_ENERGY_BELOW_RESERVE",
             "Even the upper initial-energy bound is below the reserve floor.");
-        any_infeasible = true;
+        if pack_capability_qualified {
+            any_infeasible = true;
+        } else {
+            any_indeterminate = true;
+        }
     } else if energy.lower + EPSILON < input.pack.reserve_floor_wh {
         push_finding(&mut findings, None, "INITIAL_RESERVE_NOT_GUARANTEED",
             "The initial-energy interval crosses the reserve floor.");
@@ -376,11 +389,14 @@ pub fn assess(input: &RoutePlan) -> Result<Assessment, String> {
         match event {
             PlanEvent::DriveLeg(leg) => {
                 validate_interval(leg.energy_consumption_wh, &format!("{event_id}.energy_consumption_wh"))?;
-                if !evidence_class_qualified(&leg.energy_estimate_evidence, &format!("{event_id}.energy_estimate_evidence"))? {
+                let leg_energy_qualified =
+                    evidence_class_qualified(&leg.energy_estimate_evidence, &format!("{event_id}.energy_estimate_evidence"))?;
+                if !leg_energy_qualified {
                     push_finding(&mut findings, Some(event_id), "ENERGY_ESTIMATE_EVIDENCE_UNQUALIFIED",
                         "The leg-energy interval is not backed by observed or qualified-model evidence.");
                     event_indeterminate = true;
                 }
+                energy_bounds_qualified &= leg_energy_qualified;
                 match leg.route_state {
                     RouteState::ClosedObserved => {
                         if evidence_current_for_window(&leg.route_evidence, input.assessed_at_unix_s, end,
@@ -415,7 +431,11 @@ pub fn assess(input: &RoutePlan) -> Result<Assessment, String> {
                 if energy.upper + EPSILON < input.pack.reserve_floor_wh {
                     push_finding(&mut findings, Some(event_id), "RESERVE_DEFINITELY_BREACHED",
                         "Even the upper remaining-energy bound falls below the reserve floor.");
-                    event_infeasible = true;
+                    if energy_bounds_qualified {
+                        event_infeasible = true;
+                    } else {
+                        event_indeterminate = true;
+                    }
                 } else if energy.lower + EPSILON < input.pack.reserve_floor_wh {
                     push_finding(&mut findings, Some(event_id), "RESERVE_NOT_GUARANTEED",
                         "The remaining-energy interval crosses the reserve floor.");
@@ -431,23 +451,35 @@ pub fn assess(input: &RoutePlan) -> Result<Assessment, String> {
                 require_identifier(&charger.charger_id, &format!("{event_id}.charger_id"))?;
                 require_identifier(&charger.connector_id, &format!("{event_id}.connector_id"))?;
 
-                if !input.vehicle.connector_ids.iter().any(|connector| connector == &charger.connector_id) {
+                let connector_compatible =
+                    input.vehicle.connector_ids.iter().any(|connector| connector == &charger.connector_id);
+                if !connector_compatible {
                     push_finding(&mut findings, Some(event_id), "CONNECTOR_INCOMPATIBLE",
                         "The charger connector is not present in the exact vehicle configuration.");
-                    event_infeasible = true;
+                    if vehicle_configuration_qualified {
+                        event_infeasible = true;
+                    } else {
+                        event_indeterminate = true;
+                    }
                 }
 
-                if !evidence_class_qualified(&charger.configuration_evidence, &format!("{event_id}.charger.configuration_evidence"))? {
+                let charger_configuration_qualified =
+                    evidence_class_qualified(&charger.configuration_evidence, &format!("{event_id}.charger.configuration_evidence"))?;
+                let evse_power_qualified =
+                    evidence_class_qualified(&charger.evse_power_evidence, &format!("{event_id}.charger.evse_power_evidence"))?;
+                let conversion_qualified =
+                    evidence_class_qualified(&charger.conversion_evidence, &format!("{event_id}.charger.conversion_evidence"))?;
+                if !charger_configuration_qualified {
                     push_finding(&mut findings, Some(event_id), "CHARGER_CONFIGURATION_EVIDENCE_UNQUALIFIED",
                         "Charger equipment/configuration lineage is not observed or independently qualified.");
                     event_indeterminate = true;
                 }
-                if !evidence_class_qualified(&charger.evse_power_evidence, &format!("{event_id}.charger.evse_power_evidence"))? {
+                if !evse_power_qualified {
                     push_finding(&mut findings, Some(event_id), "EVSE_POWER_EVIDENCE_UNQUALIFIED",
                         "The EVSE output-power interval is not observed or independently qualified.");
                     event_indeterminate = true;
                 }
-                if !evidence_class_qualified(&charger.conversion_evidence, &format!("{event_id}.charger.conversion_evidence"))? {
+                if !conversion_qualified {
                     push_finding(&mut findings, Some(event_id), "CONVERSION_EVIDENCE_UNQUALIFIED",
                         "The site-to-connector conversion-efficiency interval is not observed or independently qualified.");
                     event_indeterminate = true;
@@ -458,10 +490,13 @@ pub fn assess(input: &RoutePlan) -> Result<Assessment, String> {
                     return Err(format!("{event_id}: conversion efficiency cannot exceed 1"));
                 }
 
+                let charger_status_current = evidence_current_for_window(
+                    &charger.status_evidence, input.assessed_at_unix_s, end,
+                    &format!("{event_id}.charger.status_evidence")
+                )?;
                 match charger.operational_status {
                     ChargerOperationalStatus::OfflineObserved => {
-                        if evidence_current_for_window(&charger.status_evidence, input.assessed_at_unix_s, end,
-                            &format!("{event_id}.charger.status_evidence"))? {
+                        if charger_status_current {
                             push_finding(&mut findings, Some(event_id), "CHARGER_OFFLINE",
                                 "The source-qualified charger status is offline for the planned stop.");
                             event_infeasible = true;
@@ -472,8 +507,7 @@ pub fn assess(input: &RoutePlan) -> Result<Assessment, String> {
                         }
                     }
                     ChargerOperationalStatus::OperationalObserved => {
-                        if !evidence_current_for_window(&charger.status_evidence, input.assessed_at_unix_s, end,
-                            &format!("{event_id}.charger.status_evidence"))? {
+                        if !charger_status_current {
                             push_finding(&mut findings, Some(event_id), "CHARGER_OPERATION_NOT_CURRENT",
                                 "Operational status is not source-qualified and valid through the planned stop.");
                             event_indeterminate = true;
@@ -489,10 +523,15 @@ pub fn assess(input: &RoutePlan) -> Result<Assessment, String> {
 
                 let site = &charger.site_connection;
                 let mut site_import = None;
+                let mut site_connection_current = false;
+                let mut site_import_evidence_current = false;
                 match site.grid_connection_stage {
                     GridConnectionStage::Energized => {
-                        if !evidence_current_for_window(&site.connection_evidence, input.assessed_at_unix_s, end,
-                            &format!("{event_id}.site_connection_evidence"))? {
+                        site_connection_current = evidence_current_for_window(
+                            &site.connection_evidence, input.assessed_at_unix_s, end,
+                            &format!("{event_id}.site_connection_evidence")
+                        )?;
+                        if !site_connection_current {
                             push_finding(&mut findings, Some(event_id), "GRID_ENERGIZATION_EVIDENCE_NOT_CURRENT",
                                 "The site connection evidence does not establish an energized connection valid through the planned stop.");
                             event_indeterminate = true;
@@ -500,8 +539,11 @@ pub fn assess(input: &RoutePlan) -> Result<Assessment, String> {
                         match (&site.site_import_power_w, &site.import_power_evidence) {
                             (Some(power), Some(evidence)) => {
                                 validate_interval(*power, &format!("{event_id}.site_import_power_w"))?;
-                                if !evidence_current_for_window(evidence, input.assessed_at_unix_s, end,
-                                    &format!("{event_id}.site_import_power_evidence"))? {
+                                site_import_evidence_current = evidence_current_for_window(
+                                    evidence, input.assessed_at_unix_s, end,
+                                    &format!("{event_id}.site_import_power_evidence")
+                                )?;
+                                if !site_import_evidence_current {
                                     push_finding(&mut findings, Some(event_id), "SITE_IMPORT_POWER_EVIDENCE_NOT_CURRENT",
                                         "The site import-power evidence is not an observed, current bound valid through the stop.");
                                     event_indeterminate = true;
@@ -523,6 +565,16 @@ pub fn assess(input: &RoutePlan) -> Result<Assessment, String> {
                     }
                 }
 
+                let power_bounds_qualified = pack_capability_qualified
+                    && charger_configuration_qualified
+                    && evse_power_qualified
+                    && conversion_qualified
+                    && site_connection_current
+                    && site_import_evidence_current;
+                let charging_service_current = power_bounds_qualified
+                    && charger_status_current
+                    && connector_compatible;
+
                 if let Some(import_power) = site_import {
                     let site_connector_power_lower = import_power.lower * charger.site_to_connector_efficiency.lower;
                     let site_connector_power_upper = import_power.upper * charger.site_to_connector_efficiency.upper;
@@ -534,16 +586,26 @@ pub fn assess(input: &RoutePlan) -> Result<Assessment, String> {
                         .min(input.pack.charge_acceptance_power_w.upper);
                     let physical_charge_lower = guaranteed_connector_power * duration as f64 / 3600.0;
                     let physical_charge_upper = possible_connector_power * duration as f64 / 3600.0;
-                    let charge_lower = stop.requested_charge_energy_wh.min(physical_charge_lower);
-                    let charge_upper = stop.requested_charge_energy_wh.min(physical_charge_upper);
+                    // An unqualified source can never contribute to the conservative
+                    // lower-energy path. Preserve only a conditional upper possibility.
+                    let charge_lower = if charging_service_current {
+                        stop.requested_charge_energy_wh.min(physical_charge_lower)
+                    } else {
+                        0.0
+                    };
+                    let charge_upper = if power_bounds_qualified {
+                        stop.requested_charge_energy_wh.min(physical_charge_upper)
+                    } else {
+                        stop.requested_charge_energy_wh
+                    };
 
-                    if charge_upper + EPSILON < stop.requested_charge_energy_wh {
+                    if power_bounds_qualified && physical_charge_upper + EPSILON < stop.requested_charge_energy_wh {
                         push_finding(&mut findings, Some(event_id), "CHARGE_TARGET_PHYSICALLY_UNAVAILABLE",
-                            "Even the upper site/EVSE/vehicle power bound cannot deliver the requested energy within the declared stop duration.");
+                            "Even the upper qualified site/EVSE/vehicle power bound cannot deliver the requested energy within the declared stop duration.");
                         event_infeasible = true;
                     } else if charge_lower + EPSILON < stop.requested_charge_energy_wh {
                         push_finding(&mut findings, Some(event_id), "CHARGE_TARGET_NOT_GUARANTEED",
-                            "The lower power bound cannot guarantee the requested charge energy within the stop duration.");
+                            "The available lower bound, status evidence or site evidence cannot guarantee the requested charge energy.");
                         event_indeterminate = true;
                     }
 
@@ -552,7 +614,11 @@ pub fn assess(input: &RoutePlan) -> Result<Assessment, String> {
                     if resulting_lower > input.pack.usable_energy_wh.upper + EPSILON {
                         push_finding(&mut findings, Some(event_id), "CHARGE_EXCEEDS_PACK_CAPACITY",
                             "Even the lower resulting-energy bound exceeds the upper usable-capacity bound.");
-                        event_infeasible = true;
+                        if energy_bounds_qualified && charging_service_current {
+                            event_infeasible = true;
+                        } else {
+                            event_indeterminate = true;
+                        }
                     } else if resulting_lower > input.pack.usable_energy_wh.lower + EPSILON
                         || resulting_upper > input.pack.usable_energy_wh.upper + EPSILON {
                         push_finding(&mut findings, Some(event_id), "CHARGE_CAPACITY_NOT_GUARANTEED",
@@ -562,8 +628,10 @@ pub fn assess(input: &RoutePlan) -> Result<Assessment, String> {
 
                     energy = NumericInterval { lower: resulting_lower, upper: resulting_upper };
                     delivered_charge = Some(NumericInterval { lower: charge_lower, upper: charge_upper });
+                    energy_bounds_qualified &= charging_service_current;
                 } else {
-                    delivered_charge = Some(NumericInterval { lower: 0.0, upper: 0.0 });
+                    delivered_charge = Some(NumericInterval { lower: 0.0, upper: stop.requested_charge_energy_wh });
+                    energy_bounds_qualified = false;
                 }
             }
         }
