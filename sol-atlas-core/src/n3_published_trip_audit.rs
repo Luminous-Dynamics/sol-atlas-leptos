@@ -208,9 +208,15 @@ pub fn audit_dataset(dataset: &PublishedDataset, input_bytes: &[u8]) -> Result<A
             trip.energy_efficiency_kwh_per_100km * trip.distance_km / 100.0;
         let capacity_soc_proxy =
             trip.reported_pack_capacity_kwh * trip.battery_used_percent / 100.0;
+        if !energy_from_efficiency.is_finite() || !capacity_soc_proxy.is_finite() {
+            return Err(format!("{}: derived energy proxy overflowed", trip.trip_id));
+        }
         let abs_energy_residual = (energy_from_efficiency - capacity_soc_proxy).abs();
         let relative_energy_residual =
             abs_energy_residual / energy_from_efficiency.max(f64::MIN_POSITIVE) * 100.0;
+        if !abs_energy_residual.is_finite() || !relative_energy_residual.is_finite() {
+            return Err(format!("{}: derived energy residual is non-finite", trip.trip_id));
+        }
         let energy_consistency = if abs_energy_residual <= ABSOLUTE_ENERGY_TOLERANCE_KWH
             && relative_energy_residual <= RELATIVE_ENERGY_TOLERANCE_PERCENT
         {
@@ -221,6 +227,9 @@ pub fn audit_dataset(dataset: &PublishedDataset, input_bytes: &[u8]) -> Result<A
         };
 
         let range_from_used = trip.distance_km / (trip.battery_used_percent / 100.0);
+        if !range_from_used.is_finite() {
+            return Err(format!("{}: derived full-charge range proxy is non-finite", trip.trip_id));
+        }
         let (range_residual, range_consistency) = match trip.published_range_km_per_100pct {
             Some(published) => {
                 let residual = (range_from_used - published).abs();
