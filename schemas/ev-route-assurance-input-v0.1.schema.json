@@ -84,6 +84,51 @@
             "integer",
             "null"
           ]
+        },
+        "attestation": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "evidence_role",
+            "subject_id",
+            "issuer_id",
+            "issuer_role",
+            "key_id",
+            "issued_at_unix_s"
+          ],
+          "properties": {
+            "evidence_role": {
+              "type": "string",
+              "minLength": 1
+            },
+            "subject_id": {
+              "type": "string",
+              "minLength": 1
+            },
+            "issuer_id": {
+              "type": "string",
+              "minLength": 1
+            },
+            "issuer_role": {
+              "type": "string",
+              "minLength": 1
+            },
+            "key_id": {
+              "type": "string",
+              "minLength": 1
+            },
+            "issued_at_unix_s": {
+              "type": "integer"
+            },
+            "signature_ed25519_hex": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "pattern": "^[a-f0-9]{128}$"
+            }
+          },
+          "description": "Optional Ed25519 attestation over the exact evidence reference, digest, class, time window, evidence role, subject, issuer and key identifier. Required for any evidence that is to contribute to FEASIBLE_UNDER_DECLARED_BOUNDS."
         }
       }
     },
