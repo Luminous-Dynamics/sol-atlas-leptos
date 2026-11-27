@@ -386,7 +386,7 @@ fn validate_query_input_snapshot(
         raise(
             severity,
             reasons,
-            Severity::Deny,
+            Severity::Unknown,
             "query_input_snapshot_frontier_binding_mismatch",
         );
     }
