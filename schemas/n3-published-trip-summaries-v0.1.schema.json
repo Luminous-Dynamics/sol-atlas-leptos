@@ -66,14 +66,12 @@
         "direction",
         "vehicle_make",
         "vehicle_model",
-        "reported_pack_capacity_kwh",
         "distance_km",
         "elevation_change_m",
         "total_ascent_m",
         "total_descent_m",
         "average_speed_kmh",
-        "battery_used_percent",
-        "energy_efficiency_kwh_per_100km"
+        "battery_used_percent"
       ],
       "properties": {
         "trip_id": {
@@ -99,7 +97,10 @@
           "minLength": 1
         },
         "reported_pack_capacity_kwh": {
-          "type": "number",
+          "type": [
+            "number",
+            "null"
+          ],
           "exclusiveMinimum": 0
         },
         "distance_km": {
@@ -128,7 +129,10 @@
           "maximum": 100
         },
         "energy_efficiency_kwh_per_100km": {
-          "type": "number",
+          "type": [
+            "number",
+            "null"
+          ],
           "exclusiveMinimum": 0
         },
         "published_range_km_per_100pct": {
