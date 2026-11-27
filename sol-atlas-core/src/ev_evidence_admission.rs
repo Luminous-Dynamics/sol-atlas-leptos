@@ -478,7 +478,14 @@ mod tests {
     fn exact_claims_and_trusted_role_authenticate() {
         let store = fixture_store();
         let (reference, digest, _, _, attestation) = signed_attestation();
-        let result = verify_fixture(&reference, &digest, Some(&attestation), &store, "route_state", "LEG-1");
+        let result = verify_fixture(
+            &reference,
+            &digest,
+            Some(&attestation),
+            &store,
+            "route_state",
+            "LEG-1",
+        );
         assert!(result.authenticated());
     }
 
@@ -495,7 +502,14 @@ mod tests {
     fn digest_tampering_breaks_the_signature() {
         let store = fixture_store();
         let (reference, _digest, _, _, attestation) = signed_attestation();
-        let result = verify_fixture(&reference, &"cd".repeat(32), Some(&attestation), &store, "route_state", "LEG-1");
+        let result = verify_fixture(
+            &reference,
+            &"cd".repeat(32),
+            Some(&attestation),
+            &store,
+            "route_state",
+            "LEG-1",
+        );
         assert_eq!(result.status, "REJECTED_SIGNATURE");
     }
 
@@ -503,7 +517,14 @@ mod tests {
     fn wrong_subject_or_role_is_rejected_even_with_a_valid_signature() {
         let store = fixture_store();
         let (reference, digest, observed, valid_until, attestation) = signed_attestation();
-        let result = verify_fixture(&reference, &digest, Some(&attestation), &store, "charger_status", "CHARGER-1");
+        let result = verify_fixture(
+            &reference,
+            &digest,
+            Some(&attestation),
+            &store,
+            "charger_status",
+            "CHARGER-1",
+        );
         assert_eq!(result.status, "REJECTED_SCOPE");
     }
 
