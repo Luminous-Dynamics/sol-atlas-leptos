@@ -477,7 +477,7 @@ mod tests {
     #[test]
     fn exact_claims_and_trusted_role_authenticate() {
         let store = fixture_store();
-        let (reference, digest, observed, valid_until, attestation) = signed_attestation();
+        let (reference, digest, _, _, attestation) = signed_attestation();
         let result = verify_fixture(&reference, &digest, Some(&attestation), &store, "route_state", "LEG-1");
         assert!(result.authenticated());
     }
@@ -485,7 +485,7 @@ mod tests {
     #[test]
     fn missing_signature_is_unattested() {
         let store = fixture_store();
-        let (reference, digest, observed, valid_until, mut attestation) = signed_attestation();
+        let (reference, digest, _, _, mut attestation) = signed_attestation();
         attestation.signature_ed25519_hex = None;
         let result = verify_fixture(&reference, &digest, Some(&attestation), &store, "route_state", "LEG-1");
         assert_eq!(result.status, "UNATTESTED");
@@ -494,7 +494,7 @@ mod tests {
     #[test]
     fn digest_tampering_breaks_the_signature() {
         let store = fixture_store();
-        let (reference, _digest, observed, valid_until, attestation) = signed_attestation();
+        let (reference, _digest, _, _, attestation) = signed_attestation();
         let result = verify_fixture(&reference, &"cd".repeat(32), Some(&attestation), &store, "route_state", "LEG-1");
         assert_eq!(result.status, "REJECTED_SIGNATURE");
     }
