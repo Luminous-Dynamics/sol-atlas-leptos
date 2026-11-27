@@ -183,6 +183,14 @@ C. the Sol-Atlas profile round trip;
 D. at least two independent, version-pinned GIS/feature-service consumers;  
 E. an expert-curated reference dossier for adjudication-sensitive cases.
 
+**Candidate adapter set (not yet tested by Sol-Atlas):**
+
+- **pygeoapi 0.24.0** as an OGC API reference-implementation candidate; its published standards matrix lists OGC API - Features as a reference implementation and OGC API - Records as implementing.
+- **GeoServer's stable OGC API - Features service** as a second service stack. Its documentation places OGC API modules in the community area and warns that some modules/extensions remain in active development; treat it as an adapter/capability probe, not an assumed certification result.
+- **GDAL/OGR** as an independent file-conversion path; add desktop GIS clients (QGIS / ArcGIS Pro) only with a version-pinned, repeatable automated workflow.
+
+These are candidates for matched testing, not a vendor ranking. Do not assume that any consumer preserves or drops Sol-Atlas profile fields before running the fixture corpus.
+
 Record adapter/version support and unsupported fields. Do not score a product as failing when a capability was not claimed; report it as `not supported` and show the resulting information loss. Do not use random tile splits: hold out whole sites / source collections to avoid leakage.
 
 ### 5.5 Scoring and anti-gaming
@@ -246,5 +254,8 @@ The profile needs review by geospatial interoperability specialists, heritage pr
 - OGC JSON-FG 1.0.0: https://docs.ogc.org/is/21-045r1/21-045r1.html
 - OGC API - Records: https://docs.ogc.org/is/20-004r1/20-004r1.html
 - GeoParquet 2.0.0: https://geoparquet.org/releases/v2.0.0/
+- pygeoapi 0.24.0 documentation: https://docs.pygeoapi.io/en/stable/
+- GeoServer stable OGC API modules: https://docs.geoserver.org/stable/en/user/community/ogc-api/
+- GeoServer OGC API - Features service: https://docs.geoserver.org/stable/en/user/services/features/service/
 - London Charter: https://www.london-charter.org/principles.html
 - CARE Principles: https://www.gida-global.org/care
