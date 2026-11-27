@@ -810,16 +810,15 @@ pub fn evaluate_disclosure_manifest(input: &Value) -> EgressEvaluation {
             && !source_class_union.is_empty()
             && &source_class_union != classes
         {
-            let has_change_reference =
-                output_transform_refs.get(output_ref).is_some_and(|refs| {
-                    refs.iter().any(|transform_ref| {
-                        transform_by_ref
-                            .get(transform_ref)
-                            .is_some_and(|transform| {
-                                nonblank(transform, "classification_change_authority_ref").is_some()
-                            })
-                    })
-                });
+            let has_change_reference = output_transform_refs.get(output_ref).is_some_and(|refs| {
+                refs.iter().any(|transform_ref| {
+                    transform_by_ref
+                        .get(transform_ref)
+                        .is_some_and(|transform| {
+                            nonblank(transform, "classification_change_authority_ref").is_some()
+                        })
+                })
+            });
             if has_change_reference {
                 raise(
                     &mut severity,
