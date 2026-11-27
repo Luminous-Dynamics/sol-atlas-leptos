@@ -125,7 +125,7 @@ fn validate(feature_collection: &Value, evidence_package: &Value) -> Value {
         }));
     }
     semantic_features.sort_by(|a,b| a.get("featureId").map(Value::to_string).cmp(&b.get("featureId").map(Value::to_string)));
-    println!("VALID: {} feature(s), {} evidence record(s), {} association(s)", features.len(), records.len(), total_associations);
+    let _ = (total_associations, records.len());
     serde_json::json!({"profileVersion":"0.1","features":semantic_features})
 }
 
@@ -138,6 +138,7 @@ fn main() {
     let feature_collection = read_json(&args[1]);
     let evidence_package = read_json(&args[2]);
     let projection = validate(&feature_collection, &evidence_package);
+    println!("VALID: semantic projection emitted");
     println!("{}", serde_json::to_string(&projection).expect("semantic projection serializes"));
 }
 
@@ -156,6 +157,33 @@ mod tests {
         let (feature, evidence) = fixtures();
         let projection = validate(&feature, &evidence);
         assert_eq!(projection["features"].as_array().unwrap().len(), 1);
+    }
+
+ 
+    #[test]
+    fn restricted_unreferenced_input_does_not_change_public_semantic_projection() {
+        let (feature, evidence) = fixtures();
+        let baseline = validate(&feature, &evidence);
+        let mut changed = evidence.clone();
+        changed["records"].as_array_mut().unwrap().push(serde_json::json!({
+            "recordId":"private-added-after-baseline",
+            "recordType":"other",
+            "relation":"context_only",
+            "summary":"A secret record with no public metadata permission.",
+            "payloadDigest":"sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "rights":{
+                "decisionStatus":"pending",
+                "recordVisibility":"prohibited",
+                "metadataVisibility":"prohibited",
+                "contentRetrieval":"prohibited",
+                "publicDisclosure":"prohibited",
+                "redistribution":"prohibited",
+                "commercialUse":"unknown",
+                "modelTraining":"prohibited"
+            }
+        }));
+        let after = validate(&feature, &changed);
+        assert_eq!(baseline, after, "restricted-only package changes must not alter the public semantic projection");
     }
 
     #[test]
