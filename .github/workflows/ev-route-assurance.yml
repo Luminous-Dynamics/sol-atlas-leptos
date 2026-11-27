@@ -2,7 +2,7 @@ name: EV route assurance v0.1
 
 on:
   push:
-    branches: [main]
+    branches: [main, "research/**"]
     paths:
       - ".github/workflows/ev-route-assurance.yml"
       - "Cargo.toml"
