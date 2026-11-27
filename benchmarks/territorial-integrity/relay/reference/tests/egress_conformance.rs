@@ -291,8 +291,7 @@ fn transform_cannot_consume_an_undeclared_source_object() {
 
     let result = evaluate_disclosure_manifest(&input);
     assert_eq!(
-        result.disposition,
-        "incomplete",
+        result.disposition, "incomplete",
         "unexpected disposition reasons: {:?}",
         result.reason_codes
     );
