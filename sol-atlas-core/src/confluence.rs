@@ -104,8 +104,14 @@ fn eligible_real_layers() -> [Layer; 10] {
 /// layer's own marker).
 pub fn compute(data: &LoadedData, min_layers: usize) -> Vec<ConfluenceCell> {
     let mut cells: HashMap<CellIndex, (Vec<Layer>, u32)> = HashMap::new();
+    let mut allowed_real_layers = eligible_real_layers().to_vec();
+    allowed_real_layers.extend([Layer::Climate, Layer::Emergency, Layer::Health]);
 
     let mut bin = |lat: f64, lon: f64, layer: Layer| {
+        debug_assert!(
+            allowed_real_layers.contains(&layer),
+            "confluence received an unlisted layer {layer:?}"
+        );
         debug_assert_ne!(
             layer.provenance().kind,
             DataKind::Scenario,
