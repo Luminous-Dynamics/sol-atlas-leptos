@@ -1,0 +1,531 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:luminous-dynamics:sol-atlas:schema:feature-extension:0.1",
+  "title": "Sol-Atlas feature evidence extension v0.1",
+  "description": "Schema for properties.solAtlas on a GeoJSON / JSON-FG Feature. Cross-record, cross-array, digest and policy invariants require semantic validation in addition to JSON Schema.",
+  "type": "object",
+  "required": [
+    "profileVersion",
+    "claim",
+    "temporal",
+    "uncertainty",
+    "geometryOrigin",
+    "evidenceAssociations",
+    "provenance",
+    "hypothesisSet"
+  ],
+  "properties": {
+    "profileVersion": {
+      "const": "0.1"
+    },
+    "claim": {
+      "type": "object",
+      "required": [
+        "id",
+        "proposition",
+        "assessmentState",
+        "scope"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "proposition": {
+          "type": "string",
+          "minLength": 1
+        },
+        "assessmentState": {
+          "enum": [
+            "supported",
+            "contested",
+            "provisional",
+            "rejected",
+            "unknown"
+          ]
+        },
+        "scope": {
+          "type": "object",
+          "required": [
+            "siteId",
+            "elementId"
+          ],
+          "properties": {
+            "siteId": {
+              "type": "string",
+              "minLength": 1
+            },
+            "elementId": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "additionalProperties": true
+        }
+      },
+      "additionalProperties": true
+    },
+    "temporal": {
+      "type": "object",
+      "required": [
+        "validTime",
+        "observationTime",
+        "recordedTime",
+        "decisionTime"
+      ],
+      "properties": {
+        "validTime": {
+          "oneOf": [
+            {
+              "type": "object",
+              "required": [
+                "kind",
+                "start",
+                "end",
+                "status"
+              ],
+              "properties": {
+                "kind": {
+                  "const": "interval"
+                },
+                "start": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "end": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "status": {
+                  "enum": [
+                    "asserted",
+                    "unknown",
+                    "disputed"
+                  ]
+                }
+              },
+              "additionalProperties": true
+            },
+            {
+              "type": "object",
+              "required": [
+                "kind",
+                "reason"
+              ],
+              "properties": {
+                "kind": {
+                  "const": "unknown"
+                },
+                "reason": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              },
+              "additionalProperties": true
+            }
+          ]
+        },
+        "observationTime": {
+          "oneOf": [
+            {
+              "type": "object",
+              "required": [
+                "kind",
+                "value",
+                "status"
+              ],
+              "properties": {
+                "kind": {
+                  "const": "timestamp"
+                },
+                "value": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "status": {
+                  "enum": [
+                    "known",
+                    "estimated",
+                    "disputed"
+                  ]
+                }
+              },
+              "additionalProperties": true
+            },
+            {
+              "type": "object",
+              "required": [
+                "kind",
+                "reason"
+              ],
+              "properties": {
+                "kind": {
+                  "const": "unknown"
+                },
+                "reason": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              },
+              "additionalProperties": true
+            }
+          ]
+        },
+        "recordedTime": {
+          "oneOf": [
+            {
+              "type": "object",
+              "required": [
+                "kind",
+                "value",
+                "status"
+              ],
+              "properties": {
+                "kind": {
+                  "const": "timestamp"
+                },
+                "value": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "status": {
+                  "enum": [
+                    "known",
+                    "estimated",
+                    "disputed"
+                  ]
+                }
+              },
+              "additionalProperties": true
+            },
+            {
+              "type": "object",
+              "required": [
+                "kind",
+                "reason"
+              ],
+              "properties": {
+                "kind": {
+                  "const": "unknown"
+                },
+                "reason": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              },
+              "additionalProperties": true
+            }
+          ]
+        },
+        "decisionTime": {
+          "oneOf": [
+            {
+              "type": "object",
+              "required": [
+                "kind",
+                "value",
+                "status"
+              ],
+              "properties": {
+                "kind": {
+                  "const": "timestamp"
+                },
+                "value": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "status": {
+                  "enum": [
+                    "known",
+                    "estimated",
+                    "disputed"
+                  ]
+                }
+              },
+              "additionalProperties": true
+            },
+            {
+              "type": "object",
+              "required": [
+                "kind",
+                "reason"
+              ],
+              "properties": {
+                "kind": {
+                  "const": "unknown"
+                },
+                "reason": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              },
+              "additionalProperties": true
+            }
+          ]
+        }
+      },
+      "additionalProperties": true
+    },
+    "uncertainty": {
+      "type": "object",
+      "required": [
+        "horizontalAccuracy"
+      ],
+      "properties": {
+        "horizontalAccuracy": {
+          "type": "object",
+          "required": [
+            "value",
+            "unit",
+            "confidenceLevel",
+            "method"
+          ],
+          "properties": {
+            "value": {
+              "type": "number",
+              "minimum": 0
+            },
+            "unit": {
+              "type": "string",
+              "minLength": 1
+            },
+            "confidenceLevel": {
+              "type": "number",
+              "exclusiveMinimum": 0,
+              "maximum": 1
+            },
+            "method": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "additionalProperties": true
+        },
+        "geometryTolerance": {
+          "type": "object",
+          "required": [
+            "value",
+            "unit",
+            "basis"
+          ],
+          "properties": {
+            "value": {
+              "type": "number",
+              "minimum": 0
+            },
+            "unit": {
+              "type": "string",
+              "minLength": 1
+            },
+            "basis": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "additionalProperties": true
+        }
+      },
+      "additionalProperties": true
+    },
+    "geometryOrigin": {
+      "enum": [
+        "direct_measurement",
+        "survey_derived",
+        "model_derived",
+        "reconstructed",
+        "digitized",
+        "unknown"
+      ]
+    },
+    "evidenceAssociations": {
+      "type": "object",
+      "required": [
+        "supports",
+        "contradicts",
+        "contextOnly"
+      ],
+      "properties": {
+        "supports": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "recordId",
+              "relation",
+              "recordDigest"
+            ],
+            "properties": {
+              "recordId": {
+                "type": "string",
+                "minLength": 1
+              },
+              "relation": {
+                "const": "supports"
+              },
+              "recordDigest": {
+                "type": "string",
+                "pattern": "^sha256:[0-9a-f]{64}$"
+              }
+            },
+            "additionalProperties": true
+          },
+          "uniqueItems": true
+        },
+        "contradicts": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "recordId",
+              "relation",
+              "recordDigest"
+            ],
+            "properties": {
+              "recordId": {
+                "type": "string",
+                "minLength": 1
+              },
+              "relation": {
+                "const": "contradicts"
+              },
+              "recordDigest": {
+                "type": "string",
+                "pattern": "^sha256:[0-9a-f]{64}$"
+              }
+            },
+            "additionalProperties": true
+          },
+          "uniqueItems": true
+        },
+        "contextOnly": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "recordId",
+              "relation",
+              "recordDigest"
+            ],
+            "properties": {
+              "recordId": {
+                "type": "string",
+                "minLength": 1
+              },
+              "relation": {
+                "const": "context_only"
+              },
+              "recordDigest": {
+                "type": "string",
+                "pattern": "^sha256:[0-9a-f]{64}$"
+              }
+            },
+            "additionalProperties": true
+          },
+          "uniqueItems": true
+        }
+      },
+      "additionalProperties": false
+    },
+    "provenance": {
+      "type": "object",
+      "required": [
+        "activityId",
+        "operatorKind",
+        "softwareId",
+        "softwareVersion",
+        "configurationDigest",
+        "inputDigests",
+        "outputDigest"
+      ],
+      "properties": {
+        "activityId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "operatorKind": {
+          "enum": [
+            "human",
+            "human_supervised",
+            "automated",
+            "model",
+            "unknown"
+          ]
+        },
+        "softwareId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "softwareVersion": {
+          "type": "string",
+          "minLength": 1
+        },
+        "configurationDigest": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$"
+        },
+        "inputDigests": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^sha256:[0-9a-f]{64}$"
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "outputDigest": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$"
+        }
+      },
+      "additionalProperties": true
+    },
+    "hypothesisSet": {
+      "type": "object",
+      "required": [
+        "selection",
+        "alternatives"
+      ],
+      "properties": {
+        "selection": {
+          "enum": [
+            "none",
+            "selected_by_recorded_decision"
+          ]
+        },
+        "alternatives": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "required": [
+              "id",
+              "status",
+              "description"
+            ],
+            "properties": {
+              "id": {
+                "type": "string",
+                "minLength": 1
+              },
+              "status": {
+                "enum": [
+                  "retained",
+                  "proposed",
+                  "rejected_by_recorded_decision",
+                  "unknown"
+                ]
+              },
+              "description": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "additionalProperties": true
+          }
+        }
+      },
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": true
+}
