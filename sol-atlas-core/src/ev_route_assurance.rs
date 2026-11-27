@@ -9,8 +9,8 @@
 //! references satisfy this bounded audit contract.
 
 use crate::ev_evidence_admission::{
-    verify_evidence, validate_trust_store, EvidenceAttestation, EvidenceTrustStore,
-    EvidenceVerification,
+    EvidenceAttestation, EvidenceTrustStore, EvidenceVerification, validate_trust_store,
+    verify_evidence,
 };
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
@@ -312,10 +312,7 @@ pub fn assess_json(
 /// Audit a parsed route plan against an independently supplied trust store.
 /// Invalid structure/numerics/trust policy are rejected; missing or unauthenticated
 /// source evidence returns INDETERMINATE rather than a false pass.
-pub fn assess(
-    input: &RoutePlan,
-    trust_store: &EvidenceTrustStore,
-) -> Result<Assessment, String> {
+pub fn assess(input: &RoutePlan, trust_store: &EvidenceTrustStore) -> Result<Assessment, String> {
     validate_trust_store(trust_store)?;
     if input.schema_version != INPUT_SCHEMA_VERSION {
         return Err(format!(
@@ -980,10 +977,7 @@ pub fn assess(
     })
 }
 
-fn collect_evidence(
-    input: &RoutePlan,
-    trust_store: &EvidenceTrustStore,
-) -> Vec<EvidenceBinding> {
+fn collect_evidence(input: &RoutePlan, trust_store: &EvidenceTrustStore) -> Vec<EvidenceBinding> {
     fn add(
         output: &mut Vec<EvidenceBinding>,
         report_role: String,
@@ -1280,8 +1274,8 @@ mod tests {
 
     fn test_signing_key() -> SigningKey {
         SigningKey::from_bytes(&[
-            0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,
-            16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31,
+            0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23,
+            24, 25, 26, 27, 28, 29, 30, 31,
         ])
     }
 
@@ -1380,8 +1374,20 @@ mod tests {
             vehicle: VehicleEvidence {
                 vehicle_configuration_id: "EV-REF-01-CONFIG-A".into(),
                 connector_ids: vec!["CCS2".into()],
-                configuration_evidence: evidence("mycelix:vehicle-config", EvidenceClass::Observed, 1, "vehicle_configuration", "EV-REF-01-CONFIG-A"),
-                energy_model_evidence: evidence("symtropy:ev-energy-model", EvidenceClass::QualifiedModel, 2, "vehicle_energy_model", "EV-REF-01-CONFIG-A"),
+                configuration_evidence: evidence(
+                    "mycelix:vehicle-config",
+                    EvidenceClass::Observed,
+                    1,
+                    "vehicle_configuration",
+                    "EV-REF-01-CONFIG-A",
+                ),
+                energy_model_evidence: evidence(
+                    "symtropy:ev-energy-model",
+                    EvidenceClass::QualifiedModel,
+                    2,
+                    "vehicle_energy_model",
+                    "EV-REF-01-CONFIG-A",
+                ),
             },
             pack: PackCapability {
                 pack_id: "PACK-REF-01-A".into(),
@@ -1398,7 +1404,13 @@ mod tests {
                     lower: 40_000.0,
                     upper: 40_000.0,
                 },
-                capability_evidence: evidence("symthaea:pack-capability", EvidenceClass::QualifiedModel, 3, "pack_capability", "PACK-REF-01-A"),
+                capability_evidence: evidence(
+                    "symthaea:pack-capability",
+                    EvidenceClass::QualifiedModel,
+                    3,
+                    "pack_capability",
+                    "PACK-REF-01-A",
+                ),
             },
             events: vec![
                 PlanEvent::DriveLeg(DriveLeg {
@@ -1411,8 +1423,20 @@ mod tests {
                         lower: 20_000.0,
                         upper: 20_000.0,
                     },
-                    route_evidence: evidence("sol-atlas:road-state-1", EvidenceClass::Observed, 4, "route_state", "LEG-1"),
-                    energy_estimate_evidence: evidence("symtropy:leg-energy-1", EvidenceClass::QualifiedModel, 5, "leg_energy_estimate", "LEG-1"),
+                    route_evidence: evidence(
+                        "sol-atlas:road-state-1",
+                        EvidenceClass::Observed,
+                        4,
+                        "route_state",
+                        "LEG-1",
+                    ),
+                    energy_estimate_evidence: evidence(
+                        "symtropy:leg-energy-1",
+                        EvidenceClass::QualifiedModel,
+                        5,
+                        "leg_energy_estimate",
+                        "LEG-1",
+                    ),
                 }),
                 PlanEvent::ChargingStop(ChargingStop {
                     kind: "charging_stop".into(),
@@ -1424,26 +1448,62 @@ mod tests {
                         charger_id: "N3-CHARGER-01".into(),
                         connector_id: "CCS2".into(),
                         operational_status: ChargerOperationalStatus::OperationalObserved,
-                        status_evidence: evidence("sol-atlas:charger-status", EvidenceClass::Observed, 6, "charger_status", "N3-CHARGER-01"),
-                        configuration_evidence: evidence("mycelix:charger-config", EvidenceClass::Observed, 7, "charger_configuration", "N3-CHARGER-01"),
+                        status_evidence: evidence(
+                            "sol-atlas:charger-status",
+                            EvidenceClass::Observed,
+                            6,
+                            "charger_status",
+                            "N3-CHARGER-01",
+                        ),
+                        configuration_evidence: evidence(
+                            "mycelix:charger-config",
+                            EvidenceClass::Observed,
+                            7,
+                            "charger_configuration",
+                            "N3-CHARGER-01",
+                        ),
                         evse_output_power_w: NumericInterval {
                             lower: 50_000.0,
                             upper: 50_000.0,
                         },
-                        evse_power_evidence: evidence("mycelix:evse-rating", EvidenceClass::Observed, 8, "evse_power_rating", "N3-CHARGER-01"),
+                        evse_power_evidence: evidence(
+                            "mycelix:evse-rating",
+                            EvidenceClass::Observed,
+                            8,
+                            "evse_power_rating",
+                            "N3-CHARGER-01",
+                        ),
                         site_to_connector_efficiency: NumericInterval {
                             lower: 0.9,
                             upper: 0.9,
                         },
-                        conversion_evidence: evidence("symtropy:conversion-model", EvidenceClass::QualifiedModel, 9, "conversion_efficiency_model", "N3-CHARGER-01"),
+                        conversion_evidence: evidence(
+                            "symtropy:conversion-model",
+                            EvidenceClass::QualifiedModel,
+                            9,
+                            "conversion_efficiency_model",
+                            "N3-CHARGER-01",
+                        ),
                         site_connection: SiteConnection {
                             grid_connection_stage: GridConnectionStage::Energized,
                             site_import_power_w: Some(NumericInterval {
                                 lower: 60_000.0,
                                 upper: 60_000.0,
                             }),
-                            connection_evidence: evidence("sol-atlas:site-energization", EvidenceClass::Observed, 10, "site_connection", "N3-CHARGER-01"),
-                            import_power_evidence: Some(evidence("sol-atlas:site-import-limit", EvidenceClass::Observed, 11, "site_import_power", "N3-CHARGER-01")),
+                            connection_evidence: evidence(
+                                "sol-atlas:site-energization",
+                                EvidenceClass::Observed,
+                                10,
+                                "site_connection",
+                                "N3-CHARGER-01",
+                            ),
+                            import_power_evidence: Some(evidence(
+                                "sol-atlas:site-import-limit",
+                                EvidenceClass::Observed,
+                                11,
+                                "site_import_power",
+                                "N3-CHARGER-01",
+                            )),
                         },
                     },
                 }),
@@ -1457,8 +1517,20 @@ mod tests {
                         lower: 30_000.0,
                         upper: 30_000.0,
                     },
-                    route_evidence: evidence("sol-atlas:road-state-2", EvidenceClass::Observed, 12, "route_state", "LEG-2"),
-                    energy_estimate_evidence: evidence("symtropy:leg-energy-2", EvidenceClass::QualifiedModel, 13, "leg_energy_estimate", "LEG-2"),
+                    route_evidence: evidence(
+                        "sol-atlas:road-state-2",
+                        EvidenceClass::Observed,
+                        12,
+                        "route_state",
+                        "LEG-2",
+                    ),
+                    energy_estimate_evidence: evidence(
+                        "symtropy:leg-energy-2",
+                        EvidenceClass::QualifiedModel,
+                        13,
+                        "leg_energy_estimate",
+                        "LEG-2",
+                    ),
                 }),
             ],
         }
@@ -1474,10 +1546,12 @@ mod tests {
         assert!((result.final_energy_wh.lower - 15_000.0).abs() < EPSILON);
         assert!((result.final_energy_wh.upper - 15_000.0).abs() < EPSILON);
         assert!(result.findings.is_empty());
-        assert!(result
-            .consumed_evidence
-            .iter()
-            .all(|binding| binding.verification_status == "AUTHENTICATED"));
+        assert!(
+            result
+                .consumed_evidence
+                .iter()
+                .all(|binding| binding.verification_status == "AUTHENTICATED")
+        );
     }
 
     #[test]
@@ -1494,7 +1568,10 @@ mod tests {
         assert_eq!(envelope.receipt.input_sha256.len(), 64);
         assert_eq!(envelope.receipt.assessment_sha256.len(), 64);
         assert_eq!(envelope.receipt.trust_store_sha256.len(), 64);
-        assert_eq!(envelope.assessment.trust_policy_id, "test-only-ev-route-trust-policy");
+        assert_eq!(
+            envelope.assessment.trust_policy_id,
+            "test-only-ev-route-trust-policy"
+        );
         assert_eq!(envelope.assessment.consumed_evidence.len(), 13);
     }
 
@@ -1597,8 +1674,7 @@ mod tests {
         let result = assess_test_plan(&plan).expect("structurally valid plan");
         assert_eq!(result.disposition, AssessmentDisposition::Indeterminate);
         assert!(result.consumed_evidence.iter().any(|binding| {
-            binding.role == "vehicle.configuration"
-                && binding.verification_status == "UNATTESTED"
+            binding.role == "vehicle.configuration" && binding.verification_status == "UNATTESTED"
         }));
     }
 
