@@ -540,7 +540,14 @@ mod tests {
         let mut store = fixture_store();
         store.trusted_keys[0].revoked = true;
         let (reference, digest, observed, valid_until, attestation) = signed_attestation();
-        let result = verify_fixture(&reference, &digest, Some(&attestation), &store, "route_state", "LEG-1");
+        let result = verify_fixture(
+            &reference,
+            &digest,
+            Some(&attestation),
+            &store,
+            "route_state",
+            "LEG-1",
+        );
         assert_eq!(result.status, "REJECTED_REVOKED_KEY");
     }
 
