@@ -357,10 +357,12 @@ fn accepted_undelivered(
     }
 }
 
+type UnexpressedNeedAssessment = (String, Option<u64>, Option<u64>, Option<u64>);
+
 fn unexpressed_need(
     assessment: &Value,
     common_scope: &Value,
-) -> Result<(String, Option<u64>, Option<u64>, Option<u64>), String> {
+) -> Result<UnexpressedNeedAssessment, String> {
     if assessment.get("scope") != Some(common_scope) {
         return Ok(("NOT_COMPARABLE".to_owned(), None, None, None));
     }
