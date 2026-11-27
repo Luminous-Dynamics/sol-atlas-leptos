@@ -450,22 +450,35 @@ mod tests {
         (reference.into(), digest, observed, valid_until, attestation)
     }
 
+    fn verify_fixture(
+        reference: &str,
+        digest: &str,
+        attestation: Option<&EvidenceAttestation>,
+        store: &EvidenceTrustStore,
+        expected_role: &str,
+        expected_subject: &str,
+    ) -> EvidenceVerification {
+        verify_evidence(
+            EvidenceVerificationRequest {
+                reference_id: reference,
+                digest_sha256: digest,
+                source_class: "observed",
+                observed_at_unix_s: Some(800),
+                valid_until_unix_s: Some(2_000),
+                attestation,
+                expected_evidence_role: expected_role,
+                expected_subject_id: expected_subject,
+                assessed_at_unix_s: 1_000,
+            },
+            store,
+        )
+    }
+
     #[test]
     fn exact_claims_and_trusted_role_authenticate() {
         let store = fixture_store();
         let (reference, digest, observed, valid_until, attestation) = signed_attestation();
-        let result = verify_evidence(
-            &reference,
-            &digest,
-            "observed",
-            observed,
-            valid_until,
-            Some(&attestation),
-            &store,
-            "route_state",
-            "LEG-1",
-            1_000,
-        );
+        let result = verify_fixture(&reference, &digest, Some(&attestation), &store, "route_state", "LEG-1");
         assert!(result.authenticated());
     }
 
@@ -474,18 +487,7 @@ mod tests {
         let store = fixture_store();
         let (reference, digest, observed, valid_until, mut attestation) = signed_attestation();
         attestation.signature_ed25519_hex = None;
-        let result = verify_evidence(
-            &reference,
-            &digest,
-            "observed",
-            observed,
-            valid_until,
-            Some(&attestation),
-            &store,
-            "route_state",
-            "LEG-1",
-            1_000,
-        );
+        let result = verify_fixture(&reference, &digest, Some(&attestation), &store, "route_state", "LEG-1");
         assert_eq!(result.status, "UNATTESTED");
     }
 
@@ -493,18 +495,7 @@ mod tests {
     fn digest_tampering_breaks_the_signature() {
         let store = fixture_store();
         let (reference, _digest, observed, valid_until, attestation) = signed_attestation();
-        let result = verify_evidence(
-            &reference,
-            &"cd".repeat(32),
-            "observed",
-            observed,
-            valid_until,
-            Some(&attestation),
-            &store,
-            "route_state",
-            "LEG-1",
-            1_000,
-        );
+        let result = verify_fixture(&reference, &"cd".repeat(32), Some(&attestation), &store, "route_state", "LEG-1");
         assert_eq!(result.status, "REJECTED_SIGNATURE");
     }
 
@@ -512,18 +503,7 @@ mod tests {
     fn wrong_subject_or_role_is_rejected_even_with_a_valid_signature() {
         let store = fixture_store();
         let (reference, digest, observed, valid_until, attestation) = signed_attestation();
-        let result = verify_evidence(
-            &reference,
-            &digest,
-            "observed",
-            observed,
-            valid_until,
-            Some(&attestation),
-            &store,
-            "charger_status",
-            "CHARGER-1",
-            1_000,
-        );
+        let result = verify_fixture(&reference, &digest, Some(&attestation), &store, "charger_status", "CHARGER-1");
         assert_eq!(result.status, "REJECTED_SCOPE");
     }
 
@@ -532,18 +512,7 @@ mod tests {
         let mut store = fixture_store();
         store.trusted_keys[0].revoked = true;
         let (reference, digest, observed, valid_until, attestation) = signed_attestation();
-        let result = verify_evidence(
-            &reference,
-            &digest,
-            "observed",
-            observed,
-            valid_until,
-            Some(&attestation),
-            &store,
-            "route_state",
-            "LEG-1",
-            1_000,
-        );
+        let result = verify_fixture(&reference, &digest, Some(&attestation), &store, "route_state", "LEG-1");
         assert_eq!(result.status, "REJECTED_REVOKED_KEY");
     }
 
