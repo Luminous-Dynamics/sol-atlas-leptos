@@ -265,7 +265,7 @@ fn transform_cannot_consume_an_undeclared_source_object() {
                 "object_ref": source_two,
                 "content_digest": {
                     "algorithm": "sha-256",
-                    "value": "4444444444444444444444444444444444444444444444444444444444444444"
+                    "value": "2222222222222222222222222222222222222222222222222222222222222222"
                 },
                 "data_classes": ["community"]
             }],
