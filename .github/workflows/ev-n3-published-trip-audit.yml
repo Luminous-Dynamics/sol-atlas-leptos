@@ -1,0 +1,64 @@
+name: N3 published trip-summary audit v0.1
+
+on:
+  push:
+    branches: [main, "research/**"]
+    paths:
+      - ".github/workflows/ev-n3-published-trip-audit.yml"
+      - "Cargo.toml"
+      - "Cargo.lock"
+      - "sol-atlas-core/Cargo.toml"
+      - "sol-atlas-core/src/n3_published_trip_audit.rs"
+      - "sol-atlas-core/src/bin/ev_n3_published_trip_audit.rs"
+      - "sol-atlas-core/src/lib.rs"
+      - "schemas/n3-published-trip-summaries-v0.1.schema.json"
+      - "data/benchmarks/n3_published_trip_summaries_v0_1.json"
+  pull_request:
+    paths:
+      - ".github/workflows/ev-n3-published-trip-audit.yml"
+      - "Cargo.toml"
+      - "Cargo.lock"
+      - "sol-atlas-core/Cargo.toml"
+      - "sol-atlas-core/src/n3_published_trip_audit.rs"
+      - "sol-atlas-core/src/bin/ev_n3_published_trip_audit.rs"
+      - "sol-atlas-core/src/lib.rs"
+      - "schemas/n3-published-trip-summaries-v0.1.schema.json"
+      - "data/benchmarks/n3_published_trip_summaries_v0_1.json"
+
+permissions:
+  contents: read
+
+jobs:
+  exact-subject:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: "1.96.0"
+          components: rustfmt, clippy
+      - name: Check schema and dataset JSON syntax
+        run: |
+          jq empty schemas/n3-published-trip-summaries-v0.1.schema.json
+          jq empty data/benchmarks/n3_published_trip_summaries_v0_1.json
+      - name: Format check
+        run: cargo fmt --package sol-atlas-core -- --check
+      - name: Exact core unit tests
+        run: cargo test --package sol-atlas-core --locked
+      - name: Warnings-denied Clippy
+        run: cargo clippy --package sol-atlas-core --all-targets --locked -- -D warnings
+      - name: Produce reproducible N3 published-summary audit
+        run: |
+          cargo run --package sol-atlas-core --bin ev_n3_published_trip_audit --locked -- --input data/benchmarks/n3_published_trip_summaries_v0_1.json > n3-published-trip-audit-report.json
+          jq -e '.report.trip_count == 13 and .report.energy_within_published_rounding_count == 13 and .report.range_within_published_rounding_count == 13 and .report.raw_telemetry_included == false' n3-published-trip-audit-report.json
+          sha256sum data/benchmarks/n3_published_trip_summaries_v0_1.json n3-published-trip-audit-report.json > n3-published-trip-audit.sha256
+      - name: Upload exact input, report and digests
+        uses: actions/upload-artifact@v4
+        with:
+          name: n3-published-trip-audit-\${{ github.sha }}
+          path: |
+            data/benchmarks/n3_published_trip_summaries_v0_1.json
+            n3-published-trip-audit-report.json
+            n3-published-trip-audit.sha256
+          if-no-files-found: error
+          retention-days: 14
