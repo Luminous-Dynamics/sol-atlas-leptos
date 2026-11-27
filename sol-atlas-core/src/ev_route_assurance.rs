@@ -1636,8 +1636,7 @@ mod tests {
             envelope.assessment.trust_policy_id,
             "test-only-ev-route-trust-policy"
         );
-        assert_eq!(envelope.assessment.consumed_evidence.len(), 13);
-    }
+        assert_eq!(envelope.assessment.consumed_evidence.len(), 13);    }
 
 
     #[test]
@@ -1734,8 +1733,7 @@ mod tests {
     #[test]
     fn malformed_digest_is_rejected() {
         let mut plan = qualified_plan();
-        plan.pack.capability_evidence.digest_sha256 = "not-a-digest".into();
-        assert!(assess_test_plan(&plan).is_err());
+        plan.pack.capability_evidence.digest_sha256 = "not-a-digest".into();        assert!(assess_test_plan(&plan).is_err());
     }
 
 
