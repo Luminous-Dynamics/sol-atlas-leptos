@@ -42,3 +42,7 @@ This is a structural interchange and validation increment. It does not determine
 - An attached counter/context record without a matching source dependency fails.
 - A rights-pending contradiction remains retained but is not promoted to licensed source material.
 - A model output remains a model output even when it contradicts an element.
+
+## Report visibility
+
+The structural report exposes separate counts for support, counter-evidence and contextual evidence associations, plus the number of elements carrying counter-evidence or contextual records. These are association counts, not unique evidence-record counts: one evidence record may be related to multiple elements. This makes conflict presence visible to downstream reviewers without collapsing it into a confidence score or deciding which interpretation is correct.
