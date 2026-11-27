@@ -57,4 +57,4 @@ jobs:
           jq empty schemas/ev-route-assurance-report-v0.1.schema.json
           jq empty schemas/examples/ev-route-assurance-v0.1.synthetic.json
       - name: Exercise synthetic CLI fixture with separate trust store
-        run: cargo run --package sol-atlas-core --bin ev_route_assess --locked -- --input schemas/examples/ev-route-assurance-v0.1.synthetic.json --trust-store schemas/examples/ev-route-trust-store-v0.1.synthetic.json --expected-trust-store-sha256 eef9746f0215b49e4c071c8661f7eedce54e9f27bb627c26d4a896757d5b998e
+        run: cargo run --package sol-atlas-core --bin ev_route_assess --locked -- --input schemas/examples/ev-route-assurance-v0.1.synthetic.json --trust-store schemas/examples/ev-route-trust-store-v0.1.synthetic.json --expected-trust-store-sha256 939cec28ec4f240505600f96bd4275f4f9f17cfe9428225cc06e8d8b16488b72
