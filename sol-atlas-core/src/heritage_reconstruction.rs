@@ -223,6 +223,13 @@ pub struct HeritageReconstructionReport {
     pub simulated_geometry_count: usize,
     pub unknown_geometry_count: usize,
     pub evidence_record_count: usize,
+    /// Association counts are not unique evidence-record counts: one record
+    /// may be associated with multiple reconstruction elements.
+    pub supporting_evidence_association_count: usize,
+    pub counter_evidence_association_count: usize,
+    pub context_evidence_association_count: usize,
+    pub elements_with_counter_evidence_count: usize,
+    pub elements_with_context_evidence_count: usize,
     pub restricted_exact_geometry_count: usize,
     pub alternative_hypothesis_family_count: usize,
     pub non_identifiable_element_count: usize,
@@ -989,6 +996,11 @@ pub fn validate_heritage_reconstruction(
     let mut inferred_count = 0;
     let mut simulated_count = 0;
     let mut unknown_count = 0;
+    let mut supporting_evidence_association_count = 0;
+    let mut counter_evidence_association_count = 0;
+    let mut context_evidence_association_count = 0;
+    let mut elements_with_counter_evidence_count = 0;
+    let mut elements_with_context_evidence_count = 0;
     let mut restricted_exact_count = 0;
     let mut non_identifiable_count = 0;
 
@@ -999,6 +1011,16 @@ pub fn validate_heritage_reconstruction(
             ));
         }
         validate_element(element, &evidence_by_id)?;
+
+        supporting_evidence_association_count += element.source_evidence_ids.len();
+        counter_evidence_association_count += element.counter_evidence_ids.len();
+        context_evidence_association_count += element.context_evidence_ids.len();
+        if !element.counter_evidence_ids.is_empty() {
+            elements_with_counter_evidence_count += 1;
+        }
+        if !element.context_evidence_ids.is_empty() {
+            elements_with_context_evidence_count += 1;
+        }
 
         match element.epistemic_class {
             EpistemicGeometryClass::Observed => observed_count += 1,
@@ -1057,6 +1079,11 @@ pub fn validate_heritage_reconstruction(
         simulated_geometry_count: simulated_count,
         unknown_geometry_count: unknown_count,
         evidence_record_count: input.evidence.len(),
+        supporting_evidence_association_count,
+        counter_evidence_association_count,
+        context_evidence_association_count,
+        elements_with_counter_evidence_count,
+        elements_with_context_evidence_count,
         restricted_exact_geometry_count: restricted_exact_count,
         alternative_hypothesis_family_count: alternative_family_count,
         non_identifiable_element_count: non_identifiable_count,
@@ -1185,6 +1212,9 @@ mod tests {
     fn observed_geometry_requires_and_preserves_direct_measurement() {
         let report = validate_heritage_reconstruction(&input()).unwrap();
         assert_eq!(report.observed_geometry_count, 1);
+        assert_eq!(report.supporting_evidence_association_count, 1);
+        assert_eq!(report.counter_evidence_association_count, 0);
+        assert_eq!(report.context_evidence_association_count, 0);
         assert_eq!(report.inferred_geometry_count, 0);
         assert!(!report.archaeological_fact_established);
         assert!(!report.historical_truth_established);
@@ -1248,6 +1278,11 @@ mod tests {
 
         let report = validate_heritage_reconstruction(&value).unwrap();
         assert_eq!(report.observed_geometry_count, 1);
+        assert_eq!(report.supporting_evidence_association_count, 1);
+        assert_eq!(report.counter_evidence_association_count, 1);
+        assert_eq!(report.context_evidence_association_count, 0);
+        assert_eq!(report.elements_with_counter_evidence_count, 1);
+        assert_eq!(report.elements_with_context_evidence_count, 0);
         assert_eq!(
             value.elements[0].source_evidence_ids,
             vec!["lidar-measurement"]
@@ -1281,7 +1316,12 @@ mod tests {
         });
         value.elements = vec![element];
 
-        assert!(validate_heritage_reconstruction(&value).is_ok());
+        let report = validate_heritage_reconstruction(&value).unwrap();
+        assert_eq!(report.supporting_evidence_association_count, 1);
+        assert_eq!(report.counter_evidence_association_count, 0);
+        assert_eq!(report.context_evidence_association_count, 1);
+        assert_eq!(report.elements_with_counter_evidence_count, 0);
+        assert_eq!(report.elements_with_context_evidence_count, 1);
         assert!(
             value.elements[0]
                 .source_evidence_ids
