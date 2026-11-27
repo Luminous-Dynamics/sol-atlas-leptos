@@ -1,0 +1,55 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/blob/main/schemas/n3-published-trip-summaries-v0.1.schema.json",
+  "title": "CHARGE N3 operator-published EV trip summaries v0.1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version", "dataset_id", "publisher", "source_url",
+    "retrieved_at_utc_date", "evidence_class", "raw_telemetry_included",
+    "limitations", "trips"
+  ],
+  "properties": {
+    "schema_version": { "const": "n3-published-trip-summaries/v0.1" },
+    "dataset_id": { "type": "string", "minLength": 1 },
+    "publisher": { "const": "CHARGE N3" },
+    "source_url": { "type": "string", "format": "uri" },
+    "retrieved_at_utc_date": { "type": "string", "pattern": "^\\\\d{4}-\\\\d{2}-\\\\d{2}$" },
+    "evidence_class": { "const": "operator_published_summary" },
+    "raw_telemetry_included": { "const": false },
+    "limitations": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1 } },
+    "trips": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/trip" }
+    }
+  },
+  "$defs": {
+    "trip": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "trip_id", "test_date", "direction", "vehicle_make", "vehicle_model",
+        "reported_pack_capacity_kwh", "distance_km", "elevation_change_m",
+        "total_ascent_m", "total_descent_m", "average_speed_kmh",
+        "battery_used_percent", "energy_efficiency_kwh_per_100km"
+      ],
+      "properties": {
+        "trip_id": { "type": "string", "pattern": "^[a-z0-9-]+$" },
+        "test_date": { "type": "string", "pattern": "^\\\\d{4}-\\\\d{2}-\\\\d{2}$" },
+        "direction": { "enum": ["up", "down"] },
+        "vehicle_make": { "type": "string", "minLength": 1 },
+        "vehicle_model": { "type": "string", "minLength": 1 },
+        "reported_pack_capacity_kwh": { "type": "number", "exclusiveMinimum": 0 },
+        "distance_km": { "type": "number", "exclusiveMinimum": 0 },
+        "elevation_change_m": { "type": "integer" },
+        "total_ascent_m": { "type": "integer", "minimum": 1 },
+        "total_descent_m": { "type": "integer", "minimum": 1 },
+        "average_speed_kmh": { "type": "number", "exclusiveMinimum": 0, "maximum": 200 },
+        "battery_used_percent": { "type": "number", "exclusiveMinimum": 0, "maximum": 100 },
+        "energy_efficiency_kwh_per_100km": { "type": "number", "exclusiveMinimum": 0 },
+        "published_range_km_per_100pct": { "type": "number", "exclusiveMinimum": 0 }
+      }
+    }
+  }
+}
