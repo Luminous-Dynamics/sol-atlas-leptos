@@ -16,6 +16,7 @@ pub mod economics;
 pub mod energy_trading;
 pub mod evidence;
 pub mod geo;
+pub mod institutional_dependencies;
 pub mod lod;
 pub mod mycelix_flows;
 // pub mod relativity_viz;
