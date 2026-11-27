@@ -58,7 +58,7 @@ jobs:
       - name: Upload exact input, report and digests
         uses: actions/upload-artifact@v4
         with:
-          name: n3-published-trip-audit-\${{ github.sha }}
+          name: n3-published-trip-audit-${{ github.sha }}
           path: |
             data/benchmarks/n3_published_trip_summaries_v0_1.json
             n3-published-trip-audit-report.json
