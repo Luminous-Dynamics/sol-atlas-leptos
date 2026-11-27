@@ -787,6 +787,7 @@ mod tests {
             },
             events: vec![
                 PlanEvent::DriveLeg(DriveLeg {
+                    kind: "drive_leg".into(),
                     event_id: "LEG-1".into(),
                     planned_start_unix_s: 1_000,
                     duration_seconds: 1_800,
@@ -796,6 +797,7 @@ mod tests {
                     energy_estimate_evidence: evidence("symtropy:leg-energy-1", EvidenceClass::QualifiedModel, 5),
                 }),
                 PlanEvent::ChargingStop(ChargingStop {
+                    kind: "charging_stop".into(),
                     event_id: "CHARGE-1".into(),
                     planned_start_unix_s: 2_800,
                     duration_seconds: 1_800,
@@ -819,6 +821,7 @@ mod tests {
                     },
                 }),
                 PlanEvent::DriveLeg(DriveLeg {
+                    kind: "drive_leg".into(),
                     event_id: "LEG-2".into(),
                     planned_start_unix_s: 4_600,
                     duration_seconds: 1_800,
