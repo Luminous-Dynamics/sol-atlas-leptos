@@ -7,11 +7,13 @@ on:
       - ".github/workflows/ev-n3-published-trip-audit.yml"
       - "Cargo.toml"
       - "Cargo.lock"
+      - "sol-atlas-core/Cargo.lock"
       - "sol-atlas-core/Cargo.toml"
       - "sol-atlas-core/src/n3_published_trip_audit.rs"
       - "sol-atlas-core/src/bin/ev_n3_published_trip_audit.rs"
       - "sol-atlas-core/src/lib.rs"
       - "schemas/n3-published-trip-summaries-v0.1.schema.json"
+      - "schemas/n3-published-trip-audit-report-v0.1.schema.json"
       - "data/benchmarks/n3_published_trip_summaries_v0_1.json"
   pull_request:
     paths:
@@ -40,6 +42,7 @@ jobs:
       - name: Check schema and dataset JSON syntax
         run: |
           jq empty schemas/n3-published-trip-summaries-v0.1.schema.json
+          jq empty schemas/n3-published-trip-audit-report-v0.1.schema.json
           jq empty data/benchmarks/n3_published_trip_summaries_v0_1.json
       - name: Format check
         run: cargo fmt --manifest-path sol-atlas-core/Cargo.toml --all -- --check
