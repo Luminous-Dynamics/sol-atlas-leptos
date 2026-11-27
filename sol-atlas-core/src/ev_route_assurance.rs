@@ -1636,8 +1636,8 @@ mod tests {
             envelope.assessment.trust_policy_id,
             "test-only-ev-route-trust-policy"
         );
-        assert_eq!(envelope.assessment.consumed_evidence.len(), 13);    }
-
+        assert_eq!(envelope.assessment.consumed_evidence.len(), 13);
+    }
 
     #[test]
     fn trust_store_substitution_is_rejected_without_the_pinned_digest() {
@@ -1733,9 +1733,9 @@ mod tests {
     #[test]
     fn malformed_digest_is_rejected() {
         let mut plan = qualified_plan();
-        plan.pack.capability_evidence.digest_sha256 = "not-a-digest".into();        assert!(assess_test_plan(&plan).is_err());
+        plan.pack.capability_evidence.digest_sha256 = "not-a-digest".into();
+        assert!(assess_test_plan(&plan).is_err());
     }
-
 
     #[test]
     fn fabricated_observed_evidence_cannot_produce_a_feasible_route() {
