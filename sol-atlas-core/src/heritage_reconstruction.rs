@@ -1248,8 +1248,14 @@ mod tests {
 
         let report = validate_heritage_reconstruction(&value).unwrap();
         assert_eq!(report.observed_geometry_count, 1);
-        assert_eq!(value.elements[0].source_evidence_ids, vec!["lidar-measurement"]);
-        assert_eq!(value.elements[0].counter_evidence_ids, vec!["contradictory-field-record"]);
+        assert_eq!(
+            value.elements[0].source_evidence_ids,
+            vec!["lidar-measurement"]
+        );
+        assert_eq!(
+            value.elements[0].counter_evidence_ids,
+            vec!["contradictory-field-record"]
+        );
     }
 
     #[test]
@@ -1276,8 +1282,15 @@ mod tests {
         value.elements = vec![element];
 
         assert!(validate_heritage_reconstruction(&value).is_ok());
-        assert!(value.elements[0].source_evidence_ids.contains(&"lidar-measurement".into()));
-        assert_eq!(value.elements[0].context_evidence_ids, vec!["context-document"]);
+        assert!(
+            value.elements[0]
+                .source_evidence_ids
+                .contains(&"lidar-measurement".into())
+        );
+        assert_eq!(
+            value.elements[0].context_evidence_ids,
+            vec!["context-document"]
+        );
     }
 
     #[test]
@@ -1302,10 +1315,12 @@ mod tests {
 
         assert!(matches!(
             validate_heritage_reconstruction(&value),
-            Err(HeritageReconstructionError::EvidenceAssociationRelationMismatch {
-                expected_relation: EvidenceRelation::Contradicts,
-                ..
-            })
+            Err(
+                HeritageReconstructionError::EvidenceAssociationRelationMismatch {
+                    expected_relation: EvidenceRelation::Contradicts,
+                    ..
+                }
+            )
         ));
     }
 
