@@ -17,12 +17,16 @@ fn main() -> ExitCode {
             "--trust-store" => trust_store_path = args.next(),
             "--expected-trust-store-sha256" => expected_trust_store_sha256 = args.next(),
             "--help" | "-h" => {
-                println!("usage: ev_route_assess --input PATH --trust-store PATH --expected-trust-store-sha256 HEX");
+                println!(
+                    "usage: ev_route_assess --input PATH --trust-store PATH --expected-trust-store-sha256 HEX"
+                );
                 return ExitCode::SUCCESS;
             }
             _ => {
                 eprintln!("unknown argument: {arg}");
-                eprintln!("usage: ev_route_assess --input PATH --trust-store PATH --expected-trust-store-sha256 HEX");
+                eprintln!(
+                    "usage: ev_route_assess --input PATH --trust-store PATH --expected-trust-store-sha256 HEX"
+                );
                 return ExitCode::from(2);
             }
         }
@@ -32,7 +36,9 @@ fn main() -> ExitCode {
         (input_path, trust_store_path, expected_trust_store_sha256)
     else {
         eprintln!("--input, --trust-store and --expected-trust-store-sha256 are required");
-        eprintln!("usage: ev_route_assess --input PATH --trust-store PATH --expected-trust-store-sha256 HEX");
+        eprintln!(
+            "usage: ev_route_assess --input PATH --trust-store PATH --expected-trust-store-sha256 HEX"
+        );
         return ExitCode::from(2);
     };
 
