@@ -602,8 +602,28 @@ pub fn assess(
                     }
                 }
 
-                energy.lower -= leg.energy_consumption_wh.upper;
-                energy.upper -= leg.energy_consumption_wh.lower;
+                let raw_energy_lower =
+                    energy.lower - leg.energy_consumption_wh.upper;
+                let raw_energy_upper =
+                    energy.upper - leg.energy_consumption_wh.lower;
+                if raw_energy_upper < 0.0 {
+                    push_finding(
+                        &mut findings,
+                        Some(event_id),
+                        "ENERGY_INTERVAL_DEPLETED",
+                        "Even the upper remaining-energy bound is negative after this leg.",
+                    );
+                } else if raw_energy_lower < 0.0 {
+                    push_finding(
+                        &mut findings,
+                        Some(event_id),
+                        "ENERGY_LOWER_BOUND_DEPLETED",
+                        "The lower remaining-energy bound is negative; the interval has been clamped at zero.",
+                    );
+                    event_indeterminate = true;
+                }
+                energy.lower = raw_energy_lower.max(0.0);
+                energy.upper = raw_energy_upper.max(0.0);
                 if energy.upper + EPSILON < input.pack.reserve_floor_wh {
                     push_finding(
                         &mut findings,
