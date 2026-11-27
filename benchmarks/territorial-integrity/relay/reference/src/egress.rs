@@ -61,11 +61,7 @@ fn string_set(value: &Value) -> Option<BTreeSet<String>> {
             return None;
         }
     }
-    if out.is_empty() {
-        None
-    } else {
-        Some(out)
-    }
+    if out.is_empty() { None } else { Some(out) }
 }
 
 fn valid_data_classes(value: &Value) -> Option<BTreeSet<String>> {
@@ -174,10 +170,7 @@ pub fn evaluate_disclosure_manifest(input: &Value) -> EgressEvaluation {
             );
         }
     }
-    if !input
-        .get("manifest_commitment")
-        .is_some_and(sha256_digest)
-    {
+    if !input.get("manifest_commitment").is_some_and(sha256_digest) {
         raise(
             &mut severity,
             &mut reasons,
@@ -220,10 +213,7 @@ pub fn evaluate_disclosure_manifest(input: &Value) -> EgressEvaluation {
             );
         }
     }
-    if !binding
-        .get("request_commitment")
-        .is_some_and(sha256_digest)
-    {
+    if !binding.get("request_commitment").is_some_and(sha256_digest) {
         raise(
             &mut severity,
             &mut reasons,
@@ -353,9 +343,7 @@ pub fn evaluate_disclosure_manifest(input: &Value) -> EgressEvaluation {
         );
         return finalize(severity, reasons);
     };
-    if nonblank(package, "package_ref").is_none()
-        || nonblank(package, "media_type").is_none()
-    {
+    if nonblank(package, "package_ref").is_none() || nonblank(package, "media_type").is_none() {
         raise(
             &mut severity,
             &mut reasons,
@@ -429,10 +417,7 @@ pub fn evaluate_disclosure_manifest(input: &Value) -> EgressEvaluation {
                 "output_object_identity_duplicated",
             );
         }
-        if !output
-            .get("content_digest")
-            .is_some_and(sha256_digest)
-        {
+        if !output.get("content_digest").is_some_and(sha256_digest) {
             raise(
                 &mut severity,
                 &mut reasons,
@@ -469,9 +454,7 @@ pub fn evaluate_disclosure_manifest(input: &Value) -> EgressEvaluation {
                 BTreeSet::new()
             }
         };
-        if !authorized_classes.is_empty()
-            && !classes.is_subset(&authorized_classes)
-        {
+        if !authorized_classes.is_empty() && !classes.is_subset(&authorized_classes) {
             raise(
                 &mut severity,
                 &mut reasons,
@@ -509,10 +492,7 @@ pub fn evaluate_disclosure_manifest(input: &Value) -> EgressEvaluation {
                 );
                 continue;
             };
-            if !source
-                .get("content_digest")
-                .is_some_and(sha256_digest)
-            {
+            if !source.get("content_digest").is_some_and(sha256_digest) {
                 raise(
                     &mut severity,
                     &mut reasons,
@@ -572,10 +552,7 @@ pub fn evaluate_disclosure_manifest(input: &Value) -> EgressEvaluation {
         }
         output_source_refs.insert(object_ref.to_owned(), source_ids);
 
-        let Some(transform_refs) = output
-            .get("transformation_refs")
-            .and_then(string_set)
-        else {
+        let Some(transform_refs) = output.get("transformation_refs").and_then(string_set) else {
             raise(
                 &mut severity,
                 &mut reasons,
@@ -598,7 +575,10 @@ pub fn evaluate_disclosure_manifest(input: &Value) -> EgressEvaluation {
             );
             continue;
         };
-        if transform_by_ref.insert(transform_ref.to_owned(), transform).is_some() {
+        if transform_by_ref
+            .insert(transform_ref.to_owned(), transform)
+            .is_some()
+        {
             raise(
                 &mut severity,
                 &mut reasons,
@@ -656,7 +636,8 @@ pub fn evaluate_disclosure_manifest(input: &Value) -> EgressEvaluation {
                         .get(input_ref)
                         .or_else(|| output_digests.get(input_ref));
                     let output_digest = output_digests.get(output_ref);
-                    if let (Some(input_digest), Some(output_digest)) = (input_digest, output_digest) {
+                    if let (Some(input_digest), Some(output_digest)) = (input_digest, output_digest)
+                    {
                         if input_digest != output_digest {
                             raise(
                                 &mut severity,
@@ -699,8 +680,7 @@ pub fn evaluate_disclosure_manifest(input: &Value) -> EgressEvaluation {
         }
     }
 
-    let mut known_object_ids: BTreeSet<String> =
-        source_digests.keys().cloned().collect();
+    let mut known_object_ids: BTreeSet<String> = source_digests.keys().cloned().collect();
     known_object_ids.extend(output_ids.iter().cloned());
     let mut graph: BTreeMap<String, BTreeSet<String>> = BTreeMap::new();
     let mut referenced_transforms = BTreeSet::new();
@@ -718,12 +698,8 @@ pub fn evaluate_disclosure_manifest(input: &Value) -> EgressEvaluation {
                 );
                 continue;
             };
-            let inputs = transform
-                .get("input_object_refs")
-                .and_then(string_set);
-            let produced = transform
-                .get("output_object_refs")
-                .and_then(string_set);
+            let inputs = transform.get("input_object_refs").and_then(string_set);
+            let produced = transform.get("output_object_refs").and_then(string_set);
             let (Some(inputs), Some(produced)) = (inputs, produced) else {
                 raise(
                     &mut severity,
@@ -741,7 +717,10 @@ pub fn evaluate_disclosure_manifest(input: &Value) -> EgressEvaluation {
                     "transform_does_not_produce_referenced_output",
                 );
             }
-            if inputs.iter().any(|input_ref| !known_object_ids.contains(input_ref)) {
+            if inputs
+                .iter()
+                .any(|input_ref| !known_object_ids.contains(input_ref))
+            {
                 raise(
                     &mut severity,
                     &mut reasons,
@@ -773,10 +752,7 @@ pub fn evaluate_disclosure_manifest(input: &Value) -> EgressEvaluation {
                 "orphan_transformation_unreferenced",
             );
         }
-        let Some(produced) = transform
-            .get("output_object_refs")
-            .and_then(string_set)
-        else {
+        let Some(produced) = transform.get("output_object_refs").and_then(string_set) else {
             continue;
         };
         for output_ref in produced {
@@ -832,14 +808,14 @@ pub fn evaluate_disclosure_manifest(input: &Value) -> EgressEvaluation {
         }
         if let Some(classes) = output_classes.get(output_ref) {
             if !source_class_union.is_empty() && &source_class_union != classes {
-                let has_change_reference = output_transform_refs
-                    .get(output_ref)
-                    .is_some_and(|refs| {
+                let has_change_reference =
+                    output_transform_refs.get(output_ref).is_some_and(|refs| {
                         refs.iter().any(|transform_ref| {
                             transform_by_ref
                                 .get(transform_ref)
                                 .is_some_and(|transform| {
-                                    nonblank(transform, "classification_change_authority_ref").is_some()
+                                    nonblank(transform, "classification_change_authority_ref")
+                                        .is_some()
                                 })
                         })
                     });
@@ -877,7 +853,6 @@ pub fn evaluate_disclosure_manifest(input: &Value) -> EgressEvaluation {
     finalize(severity, reasons)
 }
 
-
 /// Derive the terminal source-leaf set from the same validated package graph.
 ///
 /// Call only after evaluate_disclosure_manifest returns valid_structure.
@@ -885,12 +860,8 @@ pub fn evaluate_disclosure_manifest(input: &Value) -> EgressEvaluation {
 /// object reference is not treated as a terminal source leaf. This prevents a
 /// separate caller-supplied leaf list from becoming the authority for the
 /// coverage comparison.
-pub fn terminal_source_leaf_refs(
-    input: &Value,
-) -> Result<BTreeSet<String>, &'static str> {
-    let package = input
-        .get("package")
-        .ok_or("package_missing")?;
+pub fn terminal_source_leaf_refs(input: &Value) -> Result<BTreeSet<String>, &'static str> {
+    let package = input.get("package").ok_or("package_missing")?;
     let outputs = package
         .get("outputs")
         .and_then(Value::as_array)
@@ -898,16 +869,14 @@ pub fn terminal_source_leaf_refs(
 
     let mut sources_by_output: BTreeMap<String, BTreeSet<String>> = BTreeMap::new();
     for output in outputs {
-        let object_ref = nonblank(output, "object_ref")
-            .ok_or("output_object_ref_missing")?;
+        let object_ref = nonblank(output, "object_ref").ok_or("output_object_ref_missing")?;
         let sources = output
             .get("source_refs")
             .and_then(Value::as_array)
             .ok_or("output_source_lineage_missing")?;
         let mut source_refs = BTreeSet::new();
         for source in sources {
-            let source_ref = nonblank(source, "object_ref")
-                .ok_or("source_object_ref_missing")?;
+            let source_ref = nonblank(source, "object_ref").ok_or("source_object_ref_missing")?;
             if !source_refs.insert(source_ref.to_owned()) {
                 return Err("source_reference_duplicated");
             }
