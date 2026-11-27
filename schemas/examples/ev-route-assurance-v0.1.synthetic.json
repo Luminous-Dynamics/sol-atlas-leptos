@@ -1,0 +1,129 @@
+{
+  "schema_version": "ev-route-assurance-input/v0.1",
+  "plan_id": "N3-EV-ROUTE-SYNTHETIC-001",
+  "assessed_at_unix_s": 900,
+  "vehicle": {
+    "vehicle_configuration_id": "EV-REF-01-CONFIG-A",
+    "connector_ids": ["CCS2"],
+    "configuration_evidence": {
+      "reference_id": "mycelix:synthetic-vehicle-config",
+      "digest_sha256": "0101010101010101010101010101010101010101010101010101010101010101",
+      "source_class": "synthetic",
+      "observed_at_unix_s": 800,
+      "valid_until_unix_s": 20000
+    },
+    "energy_model_evidence": {
+      "reference_id": "symtropy:synthetic-ev-energy-model",
+      "digest_sha256": "0202020202020202020202020202020202020202020202020202020202020202",
+      "source_class": "synthetic"
+    }
+  },
+  "pack": {
+    "pack_id": "PACK-REF-01-A",
+    "usable_energy_wh": { "lower": 60000, "upper": 60000 },
+    "initial_energy_wh": { "lower": 45000, "upper": 45000 },
+    "reserve_floor_wh": 10000,
+    "charge_acceptance_power_w": { "lower": 40000, "upper": 40000 },
+    "capability_evidence": {
+      "reference_id": "symthaea:synthetic-pack-capability",
+      "digest_sha256": "0303030303030303030303030303030303030303030303030303030303030303",
+      "source_class": "synthetic"
+    }
+  },
+  "events": [
+    {
+      "kind": "drive_leg",
+      "event_id": "LEG-1",
+      "planned_start_unix_s": 1000,
+      "duration_seconds": 1800,
+      "route_state": "open_observed",
+      "energy_consumption_wh": { "lower": 20000, "upper": 20000 },
+      "route_evidence": {
+        "reference_id": "sol-atlas:synthetic-road-state-1",
+        "digest_sha256": "0404040404040404040404040404040404040404040404040404040404040404",
+        "source_class": "synthetic",
+        "observed_at_unix_s": 800,
+        "valid_until_unix_s": 20000
+      },
+      "energy_estimate_evidence": {
+        "reference_id": "symtropy:synthetic-leg-energy-1",
+        "digest_sha256": "0505050505050505050505050505050505050505050505050505050505050505",
+        "source_class": "synthetic"
+      }
+    },
+    {
+      "kind": "charging_stop",
+      "event_id": "CHARGE-1",
+      "planned_start_unix_s": 2800,
+      "duration_seconds": 1800,
+      "requested_charge_energy_wh": 20000,
+      "charger": {
+        "charger_id": "N3-CHARGER-SYNTHETIC-01",
+        "connector_id": "CCS2",
+        "operational_status": "operational_observed",
+        "status_evidence": {
+          "reference_id": "sol-atlas:synthetic-charger-status",
+          "digest_sha256": "0606060606060606060606060606060606060606060606060606060606060606",
+          "source_class": "synthetic",
+          "observed_at_unix_s": 800,
+          "valid_until_unix_s": 20000
+        },
+        "configuration_evidence": {
+          "reference_id": "mycelix:synthetic-charger-config",
+          "digest_sha256": "0707070707070707070707070707070707070707070707070707070707070707",
+          "source_class": "synthetic"
+        },
+        "evse_output_power_w": { "lower": 50000, "upper": 50000 },
+        "evse_power_evidence": {
+          "reference_id": "mycelix:synthetic-evse-rating",
+          "digest_sha256": "0808080808080808080808080808080808080808080808080808080808080808",
+          "source_class": "synthetic"
+        },
+        "site_to_connector_efficiency": { "lower": 0.9, "upper": 0.9 },
+        "conversion_evidence": {
+          "reference_id": "symtropy:synthetic-conversion-model",
+          "digest_sha256": "0909090909090909090909090909090909090909090909090909090909090909",
+          "source_class": "synthetic"
+        },
+        "site_connection": {
+          "grid_connection_stage": "energized",
+          "site_import_power_w": { "lower": 60000, "upper": 60000 },
+          "connection_evidence": {
+            "reference_id": "sol-atlas:synthetic-site-energization",
+            "digest_sha256": "1010101010101010101010101010101010101010101010101010101010101010",
+            "source_class": "synthetic",
+            "observed_at_unix_s": 800,
+            "valid_until_unix_s": 20000
+          },
+          "import_power_evidence": {
+            "reference_id": "sol-atlas:synthetic-site-import-limit",
+            "digest_sha256": "1111111111111111111111111111111111111111111111111111111111111111",
+            "source_class": "synthetic",
+            "observed_at_unix_s": 800,
+            "valid_until_unix_s": 20000
+          }
+        }
+      }
+    },
+    {
+      "kind": "drive_leg",
+      "event_id": "LEG-2",
+      "planned_start_unix_s": 4600,
+      "duration_seconds": 1800,
+      "route_state": "open_observed",
+      "energy_consumption_wh": { "lower": 30000, "upper": 30000 },
+      "route_evidence": {
+        "reference_id": "sol-atlas:synthetic-road-state-2",
+        "digest_sha256": "1212121212121212121212121212121212121212121212121212121212121212",
+        "source_class": "synthetic",
+        "observed_at_unix_s": 800,
+        "valid_until_unix_s": 20000
+      },
+      "energy_estimate_evidence": {
+        "reference_id": "symtropy:synthetic-leg-energy-2",
+        "digest_sha256": "1313131313131313131313131313131313131313131313131313131313131313",
+        "source_class": "synthetic"
+      }
+    }
+  ]
+}
