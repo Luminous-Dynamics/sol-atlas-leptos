@@ -35,41 +35,6 @@ permissions:
   contents: read
 
 jobs:
-  lockfile-diagnostic:
-    permissions:
-      contents: write
-    runs-on: ubuntu-24.04
-    steps:
-      - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@stable
-        with:
-          toolchain: "1.96.0"
-      - name: Generate authoritative workspace lockfile
-        run: |
-          mkdir -p lockfile-diagnostic
-          cp Cargo.lock lockfile-diagnostic/Cargo.lock.before
-          cargo update --workspace
-          cp Cargo.lock lockfile-diagnostic/Cargo.lock.generated
-          git diff -- Cargo.lock > lockfile-diagnostic/Cargo.lock.diff
-          sha256sum lockfile-diagnostic/* > lockfile-diagnostic/SHA256SUMS
-      - name: Commit lockfile reconciliation on research branch pushes
-        if: github.event_name == 'push' && startsWith(github.ref, 'refs/heads/research/')
-        run: |
-          if ! git diff --quiet -- Cargo.lock; then
-            git config user.name "github-actions[bot]"
-            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-            git add Cargo.lock
-            git commit -m "build: reconcile workspace Cargo.lock"
-            git push
-          fi
-      - name: Upload lockfile diagnostic
-        uses: actions/upload-artifact@v4
-        with:
-          name: ev-route-lockfile-diagnostic-${{ github.sha }}
-          path: lockfile-diagnostic/
-          if-no-files-found: error
-          retention-days: 7
-
   exact-subject:
     runs-on: ubuntu-24.04
     steps:
