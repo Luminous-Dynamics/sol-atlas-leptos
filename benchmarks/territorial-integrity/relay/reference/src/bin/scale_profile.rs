@@ -17,7 +17,9 @@ use std::env;
 use std::time::Instant;
 
 fn parse_arg<T: std::str::FromStr>(args: &[String], index: usize, default: T) -> T {
-    args.get(index).and_then(|value| value.parse::<T>().ok()).unwrap_or(default)
+    args.get(index)
+        .and_then(|value| value.parse::<T>().ok())
+        .unwrap_or(default)
 }
 
 fn percentile(sorted: &[u128], percentile: usize) -> u128 {
