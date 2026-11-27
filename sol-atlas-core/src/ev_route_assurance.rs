@@ -573,7 +573,9 @@ pub fn assess(input: &RoutePlan) -> Result<Assessment, String> {
                     && site_import_evidence_current;
                 let charging_service_current = power_bounds_qualified
                     && charger_status_current
-                    && connector_compatible;
+                    && connector_compatible
+                    && vehicle_configuration_qualified
+                    && charger.operational_status == ChargerOperationalStatus::OperationalObserved;
 
                 if let Some(import_power) = site_import {
                     let site_connector_power_lower = import_power.lower * charger.site_to_connector_efficiency.lower;
@@ -835,7 +837,8 @@ mod tests {
         let bytes = include_str!("../../schemas/examples/ev-route-assurance-v0.1.synthetic.json");
         let envelope = assess_json(bytes.as_bytes()).expect("fixture is valid JSON");
         assert_eq!(envelope.assessment.disposition, AssessmentDisposition::Indeterminate);
-        assert!((envelope.assessment.final_energy_wh.lower - 15_000.0).abs() < EPSILON);
+        assert!(envelope.assessment.final_energy_wh.lower < 10_000.0);
+        assert!((envelope.assessment.final_energy_wh.upper - 15_000.0).abs() < EPSILON);
         assert_eq!(envelope.receipt.input_sha256.len(), 64);
         assert_eq!(envelope.receipt.assessment_sha256.len(), 64);
     }
