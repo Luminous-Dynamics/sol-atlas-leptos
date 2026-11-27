@@ -361,7 +361,7 @@ mod tests {
     use super::*;
 
     const FIXTURE: &[u8] =
-        include_bytes!("../../../../data/benchmarks/n3_published_trip_summaries_v0_1.json");
+        include_bytes!("../../data/benchmarks/n3_published_trip_summaries_v0_1.json");
 
     #[test]
     fn published_n3_trip_summaries_reconcile_within_reported_rounding() {
