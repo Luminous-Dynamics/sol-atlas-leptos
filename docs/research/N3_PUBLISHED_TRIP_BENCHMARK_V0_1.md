@@ -12,7 +12,7 @@ CHARGE describes its N3 route as a public real-world EV benchmark. Its current p
 
 The N3 is a geographically fixed 185 km corridor with opposing uphill/downhill profiles. That gives us a useful challenge set for terrain-conditioned prediction and route reserve assessment, beyond synthetic drive cycles. It is not a raw CAN/BMS, GPS, charger meter, or environmental time-series dataset.
 
-This v0.1 corpus contains 20 individually transcribed trip cards across 14 make/model labels, retrieved on 27 November 2026. Identifiers are local anonymized labels; registration-like run IDs and charging transaction IDs are excluded. The sample is curated from the visible public cards, not sampled randomly, and is not statistically representative of the national fleet.
+This v0.1 corpus contains 26 individually transcribed trip cards across 15 make/model labels, retrieved on 27 November 2026. It includes the later September Geely and iCAUR cards and the 7 and 9 November Alfa Romeo Junior Elettrica runs. Identifiers are local anonymized labels; publisher run IDs and charging transaction IDs are excluded from the local primary keys. The sample is curated from the visible public cards, not sampled randomly, and is not statistically representative of the national fleet.
 
 ## Executable audit and source completeness
 
@@ -25,9 +25,11 @@ For each trip the auditor checks:
 5. Ascent minus descent against net elevation change, and the consistency of direction with the sign of that change.
 6. Per-make/model/direction counts and min/median/max published energy intensity, using only rows with an actual published efficiency value.
 
-The current frozen corpus has 18 rows where both capacity and energy efficiency are published, and 2 rows where that pairwise comparison is unavailable. All 20 rows publish enough information for the current range proxy check. Missing source fields remain null and are counted as unavailable; the auditor does not impute them, silently drop the trips, or count them as passes.
+The current frozen corpus has 24 rows where both nominal pack capacity and published energy efficiency are present, and 2 rows where that pairwise comparison is unavailable. Of the 24 matched rows, 23 fall within the display-rounding screen and 1 exceeds it. All 26 rows publish enough information for the current range proxy check. Missing source fields remain null and are counted as unavailable; the auditor does not impute them, silently drop the trips, or count them as passes.
 
-Current local arithmetic review: 18/18 eligible energy comparisons and 20/20 range comparisons fall within the current display-rounding screens. The maximum energy residual is approximately 0.0085 kWh (maximum relative residual approximately 0.0366%); the maximum range residual is approximately 0.48 km. These are consistency residuals among co-published fields, not model errors or physical measurement accuracy.
+The visible iCAUR V23 uphill card (24 September 2026) reports 49% battery used, 59.9 kWh pack size and 17.16 kWh/100 km. The derived quantities differ by approximately 2.395 kWh, or 7.54% of the efficiency-derived energy. The auditor preserves this as `EXCEEDS_PUBLISHED_ROUNDING`; it does not decide which source field is wrong. Nominal nameplate capacity, usable capacity, SOC calibration and the source's energy calculation may not share the same basis. This is a useful negative result: the benchmark must expose disagreements rather than assume all co-published metrics reconcile.
+
+The maximum range residual across the 26 cards remains approximately 0.48 km. These are consistency residuals among operator-published fields, not model errors or physical measurement accuracy.
 
 Default tolerances are 0.10 kWh and 0.50% for the energy pair, and 2 km for the range proxy. They are explicit display-rounding screens, not empirical uncertainty bounds.
 
