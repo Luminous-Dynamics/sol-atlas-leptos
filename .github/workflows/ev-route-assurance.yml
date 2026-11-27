@@ -40,7 +40,7 @@ jobs:
         run: |
           mkdir -p lockfile-diagnostic
           cp Cargo.lock lockfile-diagnostic/Cargo.lock.before
-          cargo generate-lockfile
+          cargo update --workspace
           cp Cargo.lock lockfile-diagnostic/Cargo.lock.generated
           git diff -- Cargo.lock > lockfile-diagnostic/Cargo.lock.diff
           sha256sum lockfile-diagnostic/* > lockfile-diagnostic/SHA256SUMS
