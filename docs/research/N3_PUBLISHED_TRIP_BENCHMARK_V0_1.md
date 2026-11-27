@@ -102,6 +102,6 @@ No state-of-the-art or field-accuracy claim is made by the public-summary audit.
 
 ## Reproducible command
 
-    cargo run -p sol-atlas-core --bin ev_n3_published_trip_audit --locked -- --input data/benchmarks/n3_published_trip_summaries_v0_1.json
+    cargo run --manifest-path sol-atlas-core/Cargo.toml --bin ev_n3_published_trip_audit --locked -- --input data/benchmarks/n3_published_trip_summaries_v0_1.json
 
 The generated report binds the exact input bytes with SHA-256 and records its own deterministic report digest. These hashes establish replay identity, not the truth of the publisher's claims.
