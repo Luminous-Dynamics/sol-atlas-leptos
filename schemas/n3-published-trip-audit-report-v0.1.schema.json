@@ -27,6 +27,7 @@
         "report_sha256",
         "trip_count",
         "energy_within_published_rounding_count",
+        "energy_comparison_unavailable_count",
         "range_within_published_rounding_count",
         "maximum_absolute_energy_residual_kwh",
         "maximum_relative_energy_residual_percent",
@@ -99,6 +100,10 @@
         "claim_ceiling": {
           "type": "string",
           "minLength": 1
+        },
+        "energy_comparison_unavailable_count": {
+          "type": "integer",
+          "minimum": 0
         }
       }
     },
@@ -200,29 +205,45 @@
           "minimum": 0
         },
         "published_energy_efficiency_kwh_per_100km": {
-          "type": "number",
+          "type": [
+            "number",
+            "null"
+          ],
           "minimum": 0
         },
         "energy_from_published_efficiency_kwh": {
-          "type": "number",
+          "type": [
+            "number",
+            "null"
+          ],
           "minimum": 0
         },
         "nominal_capacity_soc_proxy_kwh": {
-          "type": "number",
+          "type": [
+            "number",
+            "null"
+          ],
           "minimum": 0
         },
         "absolute_energy_residual_kwh": {
-          "type": "number",
+          "type": [
+            "number",
+            "null"
+          ],
           "minimum": 0
         },
         "relative_energy_residual_percent": {
-          "type": "number",
+          "type": [
+            "number",
+            "null"
+          ],
           "minimum": 0
         },
         "energy_consistency": {
           "enum": [
             "WITHIN_PUBLISHED_ROUNDING",
-            "EXCEEDS_PUBLISHED_ROUNDING"
+            "EXCEEDS_PUBLISHED_ROUNDING",
+            "UNAVAILABLE_MISSING_SOURCE_DATA"
           ]
         },
         "published_range_km_per_100pct": {
