@@ -7,7 +7,7 @@
   "inferred_geometry_count": 0,
   "simulated_geometry_count": 0,
   "unknown_geometry_count": 0,
-  "evidence_record_count": 4,
+  "evidence_record_count": 6,
   "restricted_exact_geometry_count": 0,
   "alternative_hypothesis_family_count": 0,
   "non_identifiable_element_count": 0,
@@ -18,8 +18,8 @@
   "archaeological_fact_established": false,
   "historical_truth_established": false,
   "supporting_evidence_association_count": 1,
-  "counter_evidence_association_count": 0,
-  "context_evidence_association_count": 0,
-  "elements_with_counter_evidence_count": 0,
-  "elements_with_context_evidence_count": 0
+  "counter_evidence_association_count": 1,
+  "context_evidence_association_count": 1,
+  "elements_with_counter_evidence_count": 1,
+  "elements_with_context_evidence_count": 1
 }
