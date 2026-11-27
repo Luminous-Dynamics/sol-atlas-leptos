@@ -352,7 +352,7 @@ mod integration_tests {
             let c = energy_trading::stress_color(load);
             for channel in c {
                 assert!(
-                    channel >= 0.0 && channel <= 1.0,
+                    (0.0..=1.0).contains(&channel),
                     "Color channel out of range at load {}: {:?}",
                     load,
                     c

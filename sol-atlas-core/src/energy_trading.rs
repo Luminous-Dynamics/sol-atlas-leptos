@@ -173,12 +173,7 @@ mod tests {
         let joburg = stress_y0.iter().find(|s| s.name == "Johannesburg").unwrap();
         assert!(joburg.allostatic_load > 0.5);
 
-        // Stress should generally increase over time as fossils decline
-        let avg_0: f32 =
-            stress_y0.iter().map(|s| s.allostatic_load).sum::<f32>() / stress_y0.len() as f32;
-        let avg_200: f32 =
-            stress_y200.iter().map(|s| s.allostatic_load).sum::<f32>() / stress_y200.len() as f32;
-        // But renewable growth offsets some stress, so check specific high-stress regions
+        // Renewable growth can offset aggregate stress; check a critical region directly.
         let joburg_200 = stress_y200
             .iter()
             .find(|s| s.name == "Johannesburg")

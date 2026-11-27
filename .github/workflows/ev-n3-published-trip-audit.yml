@@ -1,0 +1,67 @@
+name: N3 published trip-summary audit v0.1
+
+on:
+  push:
+    branches: [main, "research/**"]
+    paths:
+      - ".github/workflows/ev-n3-published-trip-audit.yml"
+      - "Cargo.toml"
+      - "Cargo.lock"
+      - "sol-atlas-core/Cargo.lock"
+      - "sol-atlas-core/Cargo.toml"
+      - "sol-atlas-core/src/n3_published_trip_audit.rs"
+      - "sol-atlas-core/src/bin/ev_n3_published_trip_audit.rs"
+      - "sol-atlas-core/src/lib.rs"
+      - "schemas/n3-published-trip-summaries-v0.1.schema.json"
+      - "schemas/n3-published-trip-audit-report-v0.1.schema.json"
+      - "data/benchmarks/n3_published_trip_summaries_v0_1.json"
+  pull_request:
+    paths:
+      - ".github/workflows/ev-n3-published-trip-audit.yml"
+      - "Cargo.toml"
+      - "Cargo.lock"
+      - "sol-atlas-core/Cargo.toml"
+      - "sol-atlas-core/src/n3_published_trip_audit.rs"
+      - "sol-atlas-core/src/bin/ev_n3_published_trip_audit.rs"
+      - "sol-atlas-core/src/lib.rs"
+      - "schemas/n3-published-trip-summaries-v0.1.schema.json"
+      - "data/benchmarks/n3_published_trip_summaries_v0_1.json"
+
+permissions:
+  contents: read
+
+jobs:
+  exact-subject:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: "1.96.0"
+          components: rustfmt, clippy
+      - name: Check schema and dataset JSON syntax
+        run: |
+          jq empty schemas/n3-published-trip-summaries-v0.1.schema.json
+          jq empty schemas/n3-published-trip-audit-report-v0.1.schema.json
+          jq empty data/benchmarks/n3_published_trip_summaries_v0_1.json
+      - name: Format check
+        run: cargo fmt --manifest-path sol-atlas-core/Cargo.toml --all -- --check
+      - name: Exact core unit tests
+        run: cargo test --manifest-path sol-atlas-core/Cargo.toml --locked
+      - name: Warnings-denied Clippy
+        run: cargo clippy --manifest-path sol-atlas-core/Cargo.toml --all-targets --locked -- -D warnings
+      - name: Produce reproducible N3 published-summary audit
+        run: |
+          cargo run --manifest-path sol-atlas-core/Cargo.toml --bin ev_n3_published_trip_audit --locked -- --input data/benchmarks/n3_published_trip_summaries_v0_1.json > n3-published-trip-audit-report.json
+          jq -e '.report.trip_count == 26 and .report.energy_comparison_count == 24 and .report.energy_within_published_rounding_count == 23 and .report.energy_comparison_exceeds_rounding_count == 1 and .report.energy_comparison_unavailable_count == 2 and .report.range_within_published_rounding_count == 26 and .report.raw_telemetry_included == false' n3-published-trip-audit-report.json
+          sha256sum data/benchmarks/n3_published_trip_summaries_v0_1.json n3-published-trip-audit-report.json > n3-published-trip-audit.sha256
+      - name: Upload exact input, report and digests
+        uses: actions/upload-artifact@v4
+        with:
+          name: n3-published-trip-audit-${{ github.sha }}
+          path: |
+            data/benchmarks/n3_published_trip_summaries_v0_1.json
+            n3-published-trip-audit-report.json
+            n3-published-trip-audit.sha256
+          if-no-files-found: error
+          retention-days: 14
