@@ -1,13 +1,14 @@
 use cter_relay_reference::private_coverage::query_input_snapshot_commitment;
 use cter_relay_reference::release_binding::{
-    evaluate_composed_release_binding,
-    evaluate_composed_release_binding_json,
+    evaluate_composed_release_binding, evaluate_composed_release_binding_json,
 };
 use serde_json::Value;
 
 fn corpus() -> Value {
-    serde_json::from_str(include_str!("../../../egress/composed-release-cases-v0.1.json"))
-        .expect("composed release corpus must be valid JSON")
+    serde_json::from_str(include_str!(
+        "../../../egress/composed-release-cases-v0.1.json"
+    ))
+    .expect("composed release corpus must be valid JSON")
 }
 
 fn baseline() -> (Value, Value) {
@@ -22,8 +23,7 @@ fn apply_mutation(case_id: &str, manifest: &mut Value, coverage: &mut Value) {
     match case_id {
         "COMPOSED-BASELINE-001" => {}
         "COMPOSED-COVERAGE-REFERENCE-DRIFT-001" => {
-            coverage["coverage_ref"] =
-                Value::String("urn:fixture:coverage:other".into());
+            coverage["coverage_ref"] = Value::String("urn:fixture:coverage:other".into());
         }
         "COMPOSED-PACKAGE-DIGEST-DRIFT-001" => {
             coverage["package_binding"]["package_commitment"]["value"] =
@@ -42,8 +42,7 @@ fn apply_mutation(case_id: &str, manifest: &mut Value, coverage: &mut Value) {
                 Value::String("urn:fixture:subject:other".into());
         }
         "COMPOSED-OPERATION-DRIFT-001" => {
-            coverage["query_binding"]["operation"] =
-                Value::String("assert_legal_title".into());
+            coverage["query_binding"]["operation"] = Value::String("assert_legal_title".into());
         }
         "COMPOSED-PURPOSE-DRIFT-001" => {
             coverage["query_binding"]["purpose_ref"] =
@@ -62,16 +61,14 @@ fn apply_mutation(case_id: &str, manifest: &mut Value, coverage: &mut Value) {
                 Value::String("urn:fixture:jurisdiction:other".into());
         }
         "COMPOSED-SNAPSHOT-DRIFT-001" => {
-            coverage["query_binding"]["project_snapshot_sha256"] =
-                Value::String("9".repeat(64));
+            coverage["query_binding"]["project_snapshot_sha256"] = Value::String("9".repeat(64));
         }
         "COMPOSED-FRONTIER-DRIFT-001" => {
             manifest["authorization_binding"]["evidence_frontier_ref"] =
                 Value::String("urn:fixture:frontier:other".into());
         }
         "COMPOSED-DATA-CLASS-DRIFT-001" => {
-            coverage["query_binding"]["data_classes"] =
-                serde_json::json!(["restricted"]);
+            coverage["query_binding"]["data_classes"] = serde_json::json!(["restricted"]);
         }
         "COMPOSED-COVERAGE-QUERY-REF-DRIFT-001" => {
             manifest["authorization_binding"]["coverage_query_ref"] =
@@ -86,8 +83,7 @@ fn apply_mutation(case_id: &str, manifest: &mut Value, coverage: &mut Value) {
                 Value::String("urn:luminous:cter:predicate-json-v0.2".into());
         }
         "COMPOSED-QUERY-PREDICATE-DRIFT-001" => {
-            coverage["query_binding"]["predicate"]["args"][1]["value"] =
-                Value::String("US".into());
+            coverage["query_binding"]["predicate"]["args"][1]["value"] = Value::String("US".into());
         }
         "COMPOSED-INPUT-SNAPSHOT-REF-DRIFT-001" => {
             manifest["authorization_binding"]["coverage_input_snapshot_ref"] =
@@ -107,10 +103,8 @@ fn apply_mutation(case_id: &str, manifest: &mut Value, coverage: &mut Value) {
         }
         "COMPOSED-DERIVED-LEAF-DRIFT-001" => {
             let replacement = "urn:fixture:source:other";
-            coverage["frontier"]["object_refs"][0] =
-                Value::String(replacement.into());
-            coverage["private_partition"][0]["object_ref"] =
-                Value::String(replacement.into());
+            coverage["frontier"]["object_refs"][0] = Value::String(replacement.into());
+            coverage["private_partition"][0]["object_ref"] = Value::String(replacement.into());
             coverage["package_binding"]["terminal_source_leaf_refs"] =
                 serde_json::json!([replacement]);
         }
@@ -166,17 +160,14 @@ fn baseline_composed_release_is_structurally_bound() {
     let (manifest, coverage) = baseline();
     let result = evaluate_composed_release_binding(&manifest, &coverage);
     assert_eq!(
-        result.disposition,
-        "valid_composed_structure",
+        result.disposition, "valid_composed_structure",
         "{:?}",
         result.reason_codes
     );
     assert!(result.reason_codes.is_empty());
     assert_eq!(
         result.derived_terminal_source_leaf_refs,
-        std::collections::BTreeSet::from([
-            "urn:fixture:source:synthetic-001".to_owned()
-        ])
+        std::collections::BTreeSet::from(["urn:fixture:source:synthetic-001".to_owned()])
     );
 }
 
@@ -192,8 +183,7 @@ fn frozen_composed_release_corpus_matches_every_expected_disposition() {
         apply_mutation(case_id, &mut manifest, &mut coverage);
         let actual = evaluate_composed_release_binding(&manifest, &coverage);
         assert_eq!(
-            actual.disposition,
-            expected,
+            actual.disposition, expected,
             "case {case_id}; reasons={:?}",
             actual.reason_codes
         );
@@ -210,19 +200,15 @@ fn composed_release_derives_leaves_through_intermediate_outputs() {
     );
     let result = evaluate_composed_release_binding(&manifest, &coverage);
     assert_eq!(
-        result.disposition,
-        "valid_composed_structure",
+        result.disposition, "valid_composed_structure",
         "{:?}",
         result.reason_codes
     );
     assert_eq!(
         result.derived_terminal_source_leaf_refs,
-        std::collections::BTreeSet::from([
-            "urn:fixture:source:synthetic-001".to_owned()
-        ])
+        std::collections::BTreeSet::from(["urn:fixture:source:synthetic-001".to_owned()])
     );
 }
-
 
 #[test]
 fn composed_raw_json_entrypoint_uses_strict_duplicate_member_parser() {
@@ -238,20 +224,15 @@ fn composed_raw_json_entrypoint_uses_strict_duplicate_member_parser() {
         "\"manifest_id\":\"urn:fixture:manifest:duplicate\", \"manifest_id\":",
         1,
     );
-    assert!(
-        evaluate_composed_release_binding_json(&duplicate_manifest, &coverage_json).is_err()
-    );
+    assert!(evaluate_composed_release_binding_json(&duplicate_manifest, &coverage_json).is_err());
 
     let duplicate_coverage = coverage_json.replacen(
         "\"query_ref\":",
         "\"query_ref\":\"urn:fixture:query:duplicate\", \"query_ref\":",
         1,
     );
-    assert!(
-        evaluate_composed_release_binding_json(&manifest_json, &duplicate_coverage).is_err()
-    );
+    assert!(evaluate_composed_release_binding_json(&manifest_json, &duplicate_coverage).is_err());
 }
-
 
 #[test]
 fn composed_query_input_snapshot_commitment_matches_frozen_golden_digest() {
