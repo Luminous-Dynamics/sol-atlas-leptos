@@ -94,7 +94,12 @@ fn validate(feature_collection: &Value, evidence_package: &Value) -> Value {
                 let digest = string(required(association, "recordDigest", &ap), &format!("{ap}.recordDigest"));
                 let record_digest = string(required(record, "payloadDigest", &format!("record {id}")), &format!("record {id}.payloadDigest"));
                 if digest != record_digest { fail(format!("association {id} digest differs from evidence record")); }
-                semantic_associations.push(serde_json::json!({"bucket":bucket,"recordId":id,"relation":relation,"recordDigest":digest}));
+                let rights = required(record, "rights", &format!("record {id}"));
+                let record_visible = rights.get("recordVisibility").and_then(Value::as_str) == Some("allowed");
+                let metadata_visible = rights.get("metadataVisibility").and_then(Value::as_str) == Some("allowed");
+                if record_visible && metadata_visible {
+                    semantic_associations.push(serde_json::json!({"bucket":bucket,"recordId":id,"relation":relation,"recordDigest":digest}));
+                }
                 total_associations += 1;
             }
         }
@@ -112,6 +117,13 @@ fn validate(feature_collection: &Value, evidence_package: &Value) -> Value {
         if alternatives.is_empty() { fail(format!("{path} must retain at least one hypothesis")); }
 
         semantic_associations.sort_by(|a,b| a.to_string().cmp(&b.to_string()));
+        let mut public_provenance = provenance.clone();
+        let visible_digests: BTreeSet<String> = semantic_associations.iter()
+            .filter_map(|association| association.get("recordDigest").and_then(Value::as_str).map(str::to_owned))
+            .collect();
+        public_provenance["inputDigests"] = Value::Array(
+            visible_digests.into_iter().map(Value::String).collect()
+        );
         semantic_features.push(serde_json::json!({
             "featureId": feature.get("id"),
             "geometry": feature.get("geometry"),
@@ -120,7 +132,7 @@ fn validate(feature_collection: &Value, evidence_package: &Value) -> Value {
             "uncertainty": uncertainty,
             "geometryOrigin": profile.get("geometryOrigin"),
             "evidenceAssociations": semantic_associations,
-            "provenance": provenance,
+            "provenance": public_provenance,
             "hypothesisSet": hypotheses
         }));
     }
@@ -184,6 +196,29 @@ mod tests {
         }));
         let after = validate(&feature, &changed);
         assert_eq!(baseline, after, "restricted-only package changes must not alter the public semantic projection");
+    }
+
+ 
+    #[test]
+    fn restricted_linked_record_details_do_not_change_public_projection() {
+        let (feature, evidence) = fixtures();
+        let mut restricted = evidence.clone();
+        restricted["records"][1]["rights"]["recordVisibility"] = Value::String("prohibited".into());
+        restricted["records"][1]["rights"]["metadataVisibility"] = Value::String("prohibited".into());
+        let baseline = validate(&feature, &restricted);
+
+        let mut changed = restricted.clone();
+        changed["records"][1]["recordId"] = Value::String("secret-record-renamed".into());
+        changed["records"][1]["summary"] = Value::String("Different hidden summary".into());
+        changed["records"][1]["payloadDigest"] = Value::String("sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc".into());
+        changed["records"][1]["syntheticPayload"] = Value::Null;
+        let mut changed_feature = feature.clone();
+        changed_feature["features"][0]["properties"]["solAtlas"]["evidenceAssociations"]["contradicts"][0]["recordId"] = Value::String("secret-record-renamed".into());
+        changed_feature["features"][0]["properties"]["solAtlas"]["evidenceAssociations"]["contradicts"][0]["recordDigest"] = changed["records"][1]["payloadDigest"].clone();
+        changed_feature["features"][0]["properties"]["solAtlas"]["provenance"]["inputDigests"][1] = changed["records"][1]["payloadDigest"].clone();
+
+        let after = validate(&changed_feature, &changed);
+        assert_eq!(baseline, after, "restricted linked metadata must not influence the public projection");
     }
 
     #[test]
