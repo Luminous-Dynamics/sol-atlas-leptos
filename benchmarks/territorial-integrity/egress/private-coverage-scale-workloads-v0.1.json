@@ -1,0 +1,161 @@
+{
+  "schema": "luminous.cter.private-coverage-scale-workloads.v0.1",
+  "suite_id": "CTER-PRIVATE-COVERAGE-001",
+  "suite_version": "0.1.0",
+  "status": "workload_specification_only",
+  "claim_ceiling": "no proof generation, verification, privacy, latency, throughput or memory result is claimed",
+  "generation": {
+    "seed": "fixed-per-run-and-recorded",
+    "frontier_entries": "synthetic opaque references with independent random identifiers",
+    "partition_dispositions": {
+      "included": 0.55,
+      "withheld": 0.15,
+      "unavailable": 0.10,
+      "excluded": 0.15,
+      "unresolved": 0.05
+    },
+    "package_terminal_source_leaves_equal_included_count": true,
+    "public_view_contains_only_commitments_and_opaque_proof_reference": true,
+    "no_real_claimant_or_community_data": true
+  },
+  "workloads": [
+    {
+      "frontier_entries": 1000,
+      "included_entries": 550,
+      "withheld_entries": 150,
+      "unavailable_entries": 100,
+      "excluded_entries": 150,
+      "unresolved_entries": 50,
+      "query_predicate_terms": 8,
+      "source_frontier_fanout": 2,
+      "transform_lineage_depth": 3
+    },
+    {
+      "frontier_entries": 10000,
+      "included_entries": 5500,
+      "withheld_entries": 1500,
+      "unavailable_entries": 1000,
+      "excluded_entries": 1500,
+      "unresolved_entries": 500,
+      "query_predicate_terms": 12,
+      "source_frontier_fanout": 3,
+      "transform_lineage_depth": 6
+    },
+    {
+      "frontier_entries": 100000,
+      "included_entries": 55000,
+      "withheld_entries": 15000,
+      "unavailable_entries": 10000,
+      "excluded_entries": 15000,
+      "unresolved_entries": 5000,
+      "query_predicate_terms": 16,
+      "source_frontier_fanout": 4,
+      "transform_lineage_depth": 10
+    },
+    {
+      "frontier_entries": 1000000,
+      "included_entries": 550000,
+      "withheld_entries": 150000,
+      "unavailable_entries": 100000,
+      "excluded_entries": 150000,
+      "unresolved_entries": 50000,
+      "query_predicate_terms": 20,
+      "source_frontier_fanout": 5,
+      "transform_lineage_depth": 16
+    }
+  ],
+  "proof_profiles_to_compare": [
+    {
+      "profile": "auditor_full_partition",
+      "status": "baseline_candidate",
+      "disclosure": "designated independent auditor receives private partition under an explicit audit mandate",
+      "proof_generation": "not applicable",
+      "proof_verification": "auditor recomputes set equations"
+    },
+    {
+      "profile": "vds_inclusion_consistency",
+      "status": "candidate_only",
+      "disclosure": "recipient receives item-specific inclusion proofs; root/consistency metadata is public only where approved",
+      "proof_generation": "reuse Mycelix-owned VDS/COSE receipt implementation",
+      "proof_verification": "reuse Mycelix resolver and exact VDS profile"
+    },
+    {
+      "profile": "private_partition_predicate_proof",
+      "status": "research_candidate_only",
+      "disclosure": "frontier/query/request/package commitments and opaque proof reference; no item list or count",
+      "proof_generation": "unselected proof system",
+      "proof_verification": "independent verifier using a versioned circuit/program profile"
+    }
+  ],
+  "fault_injection": [
+    "omitted_frontier_entry",
+    "duplicate_partition_disposition",
+    "withheld_to_absent_relabel",
+    "unavailable_to_absent_relabel",
+    "phantom_package_source_leaf",
+    "included_leaf_omission",
+    "query_commitment_substitution",
+    "recipient_or_purpose_substitution",
+    "frontier_version_rollback",
+    "stale_or_revoked_vds_receipt",
+    "same_frontier_different_package_commitment",
+    "global_non_inclusion_claim",
+    "low_entropy_commitment_dictionary_leak",
+    "cross_recipient_proof_linkability",
+    "proof_malleability_or_wrong_circuit_version",
+    "custody_restore_loses_partition_or_query_semantics"
+  ],
+  "metrics": [
+    "partition_materialization_ms",
+    "partition_set_validation_ms",
+    "package_leaf_set_validation_ms",
+    "vds_receipt_generation_ms",
+    "vds_receipt_verification_ms",
+    "predicate_proof_generation_ms",
+    "predicate_proof_verification_ms",
+    "private_partition_bytes",
+    "proof_bytes",
+    "public_metadata_bytes",
+    "peak_rss_bytes",
+    "allocator_high_water_bytes",
+    "cpu_time_ms",
+    "storage_amplification_ratio",
+    "cold_restore_time_ms",
+    "reconciliation_time_ms",
+    "unauthorized_inventory_leak_count",
+    "false_complete_count",
+    "false_incomplete_count",
+    "invalid_proof_acceptance_count"
+  ],
+  "reporting": {
+    "latency_quantiles": ["p50", "p95", "p99", "max"],
+    "required_machine_metadata": [
+      "cpu_model_and_microcode",
+      "physical_core_and_thread_count",
+      "ram_capacity_and_speed",
+      "storage_model_and_filesystem",
+      "operating_system_and_kernel",
+      "rust_toolchain",
+      "node_version",
+      "corpus_digest",
+      "schema_digest",
+      "proof_system_and_version_or_none",
+      "vds_algorithm_and_version_or_none",
+      "build_flags_and_feature_set"
+    ],
+    "comparison_rule": "same exact frontier bytes, partition distribution, query, package leaves, hardware, toolchain, proof/VDS profile and verifier disclosure level",
+    "energy_measurement": "only measured values with declared physical meter or calibrated telemetry",
+    "no_single_weighted_score": true
+  },
+  "acceptance_targets": {
+    "omitted_in_scope_items_claimed_complete": 0,
+    "duplicate_dispositions_accepted": 0,
+    "phantom_package_leaves_accepted": 0,
+    "query_recipient_frontier_package_substitution_accepted": 0,
+    "stale_or_revoked_proof_promoted_to_current": 0,
+    "withheld_or_unavailable_items_disclosed_without_authority": 0,
+    "global_completeness_or_absence_claims_from_scoped_frontier": 0,
+    "independent_frozen_fixture_agreement": 1.0,
+    "independent_restore_of_frontier_query_partition_and_package_semantics": 1.0
+  }
+}

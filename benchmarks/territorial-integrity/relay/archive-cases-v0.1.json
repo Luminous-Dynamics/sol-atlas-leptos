@@ -1,0 +1,1770 @@
+{
+  "schema": "luminous.cter.archive-cases.v0",
+  "suite_id": "CTER-CUSTODY-EXIT-001",
+  "suite_version": "0.1.2",
+  "synthetic_only": true,
+  "execution_status": "synthetic_reference_evaluator_added_rust_execution_pending",
+  "cases": [
+    {
+      "case_id": "ARCHIVE-COMPLETE-001",
+      "title": "Complete declared frontier and independent restore",
+      "manifest": {
+        "schema": "luminous.cter.community-archive.v0",
+        "archive_id": "archive-complete",
+        "profile_version": "0.1",
+        "created_at": "2026-11-19T16:00:00Z",
+        "exporter": {
+          "owner_system": "cter-reference",
+          "software_version": "0.1.0",
+          "build_ref": "synthetic-build-v0"
+        },
+        "scope": {
+          "scope_ref": "urn:community:synthetic-scope:1",
+          "object_types": [
+            "signed_event",
+            "territorial_record",
+            "objection",
+            "consent",
+            "spatial_reference"
+          ],
+          "jurisdiction_profile_ref": "urn:jurisdiction:synthetic:v0"
+        },
+        "source_frontiers": [
+          {
+            "owner_system": "mycelix",
+            "snapshot_ref": "urn:mycelix:snapshot:1",
+            "snapshot_digest": {
+              "algorithm": "BLAKE3",
+              "value": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+            },
+            "query_or_scope_ref": "urn:query:scope:all",
+            "expected_count": 2,
+            "observed_count": 2,
+            "completeness": "complete_within_declared_frontier",
+            "gap_refs": []
+          },
+          {
+            "owner_system": "sol-atlas",
+            "snapshot_ref": "urn:sol-atlas:snapshot:1",
+            "snapshot_digest": {
+              "algorithm": "SHA-256",
+              "value": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+            },
+            "query_or_scope_ref": "urn:query:territory-scope:all",
+            "expected_count": 1,
+            "observed_count": 1,
+            "completeness": "complete_within_declared_frontier",
+            "gap_refs": []
+          }
+        ],
+        "objects": [
+          {
+            "object_ref": "urn:event:e1",
+            "object_type": "signed_event",
+            "owner_system": "mycelix",
+            "schema_ref": "urn:schema:event:v3",
+            "schema_version": "3",
+            "digest": {
+              "algorithm": "BLAKE3",
+              "value": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+            },
+            "access_class": "community",
+            "disposition": "included",
+            "payload_ref": "file://events/e1",
+            "license_state": "reference_only"
+          },
+          {
+            "object_ref": "urn:territory:t1",
+            "object_type": "territorial_record",
+            "owner_system": "sol-atlas",
+            "schema_ref": "urn:schema:territorial:v0",
+            "schema_version": "0.1",
+            "digest": {
+              "algorithm": "SHA-256",
+              "value": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+            },
+            "access_class": "community",
+            "disposition": "included",
+            "payload_ref": "file://territory/t1",
+            "license_state": "reference_only"
+          },
+          {
+            "object_ref": "urn:objection:o1",
+            "object_type": "objection",
+            "owner_system": "mycelix",
+            "schema_ref": "urn:schema:objection:v0",
+            "schema_version": "0.1",
+            "digest": {
+              "algorithm": "BLAKE3",
+              "value": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+            },
+            "access_class": "restricted",
+            "disposition": "included",
+            "payload_ref": "file://objections/o1",
+            "license_state": "reference_only"
+          }
+        ],
+        "restore": {
+          "provider_independent_restore": true,
+          "key_custody": "community_threshold",
+          "restore_test_status": "pass",
+          "restore_instructions_ref": "urn:restore:instructions:v0",
+          "restore_run_ref": "urn:restore:synthetic:pass:1"
+        },
+        "preservation": [
+          {
+            "record_ref": "urn:ers:record:1",
+            "profile_ref": "urn:preservation:rfc4998:profile:v0",
+            "predecessor_ref": "urn:ers:record:0",
+            "algorithm_state": "current",
+            "validation_state": "valid",
+            "timestamp_evidence_ref": "urn:tsa:timestamp:1",
+            "renewal_time": "2026-11-19T16:00:00Z"
+          }
+        ],
+        "limitations": [
+          "Synthetic manifest only; no real provider or community data."
+        ],
+        "claim_ceiling": "archive-structure-and-restoration-only-no-legal-effect",
+        "export_context": {
+          "authorization_ref": "urn:synthetic:export-authorization:archive-complete-001",
+          "purpose_ref": "urn:synthetic:export-purpose:community-continuity",
+          "destination_ref": "urn:synthetic:destination:community-archive",
+          "authorized_access_classes": [
+            "community",
+            "restricted"
+          ]
+        }
+      },
+      "expected": "eligible_for_independent_restore"
+    },
+    {
+      "case_id": "ARCHIVE-WITHHELD-001",
+      "title": "Culturally protected item is explicitly withheld with no payload disclosure",
+      "manifest": {
+        "schema": "luminous.cter.community-archive.v0",
+        "archive_id": "archive-withheld",
+        "profile_version": "0.1",
+        "created_at": "2026-11-19T16:00:00Z",
+        "exporter": {
+          "owner_system": "cter-reference",
+          "software_version": "0.1.0",
+          "build_ref": "synthetic-build-v0"
+        },
+        "scope": {
+          "scope_ref": "urn:community:synthetic-scope:1",
+          "object_types": [
+            "signed_event",
+            "territorial_record",
+            "objection",
+            "consent",
+            "spatial_reference"
+          ],
+          "jurisdiction_profile_ref": "urn:jurisdiction:synthetic:v0"
+        },
+        "source_frontiers": [
+          {
+            "owner_system": "mycelix",
+            "snapshot_ref": "urn:mycelix:snapshot:1",
+            "snapshot_digest": {
+              "algorithm": "BLAKE3",
+              "value": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+            },
+            "query_or_scope_ref": "urn:query:scope:all",
+            "expected_count": 2,
+            "observed_count": 2,
+            "completeness": "complete_within_declared_frontier",
+            "gap_refs": []
+          },
+          {
+            "owner_system": "sol-atlas",
+            "snapshot_ref": "urn:sol-atlas:snapshot:1",
+            "snapshot_digest": {
+              "algorithm": "SHA-256",
+              "value": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+            },
+            "query_or_scope_ref": "urn:query:territory-scope:all",
+            "expected_count": 2,
+            "observed_count": 2,
+            "completeness": "complete_within_declared_frontier",
+            "gap_refs": []
+          }
+        ],
+        "objects": [
+          {
+            "object_ref": "urn:event:e1",
+            "object_type": "signed_event",
+            "owner_system": "mycelix",
+            "schema_ref": "urn:schema:event:v3",
+            "schema_version": "3",
+            "digest": {
+              "algorithm": "BLAKE3",
+              "value": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+            },
+            "access_class": "community",
+            "disposition": "included",
+            "payload_ref": "file://events/e1",
+            "license_state": "reference_only"
+          },
+          {
+            "object_ref": "urn:territory:t1",
+            "object_type": "territorial_record",
+            "owner_system": "sol-atlas",
+            "schema_ref": "urn:schema:territorial:v0",
+            "schema_version": "0.1",
+            "digest": {
+              "algorithm": "SHA-256",
+              "value": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+            },
+            "access_class": "community",
+            "disposition": "included",
+            "payload_ref": "file://territory/t1",
+            "license_state": "reference_only"
+          },
+          {
+            "object_ref": "urn:objection:o1",
+            "object_type": "objection",
+            "owner_system": "mycelix",
+            "schema_ref": "urn:schema:objection:v0",
+            "schema_version": "0.1",
+            "digest": {
+              "algorithm": "BLAKE3",
+              "value": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+            },
+            "access_class": "restricted",
+            "disposition": "included",
+            "payload_ref": "file://objections/o1",
+            "license_state": "reference_only"
+          },
+          {
+            "object_ref": "urn:withheld:opaque:object:01",
+            "object_type": "cultural_location",
+            "owner_system": "sol-atlas",
+            "schema_ref": "urn:schema:location:v0",
+            "schema_version": "0.1",
+            "access_class": "culturally_protected",
+            "disposition": "withheld",
+            "reason_code": "community-protocol-restricted",
+            "commitment_ref": "urn:commitment:opaque:randomized:01",
+            "license_state": "not_cleared"
+          }
+        ],
+        "restore": {
+          "provider_independent_restore": true,
+          "key_custody": "community_threshold",
+          "restore_test_status": "pass",
+          "restore_instructions_ref": "urn:restore:instructions:v0",
+          "restore_run_ref": "urn:restore:synthetic:pass:1"
+        },
+        "preservation": [
+          {
+            "record_ref": "urn:ers:record:1",
+            "profile_ref": "urn:preservation:rfc4998:profile:v0",
+            "predecessor_ref": "urn:ers:record:0",
+            "algorithm_state": "current",
+            "validation_state": "valid",
+            "timestamp_evidence_ref": "urn:tsa:timestamp:1",
+            "renewal_time": "2026-11-19T16:00:00Z"
+          }
+        ],
+        "limitations": [
+          "Synthetic manifest only; no real provider or community data."
+        ],
+        "claim_ceiling": "archive-structure-and-restoration-only-no-legal-effect",
+        "export_context": {
+          "authorization_ref": "urn:synthetic:export-authorization:archive-withheld-001",
+          "purpose_ref": "urn:synthetic:export-purpose:community-continuity",
+          "destination_ref": "urn:synthetic:destination:community-archive",
+          "authorized_access_classes": [
+            "community",
+            "restricted"
+          ]
+        }
+      },
+      "expected": "eligible_with_declared_exclusions"
+    },
+    {
+      "case_id": "ARCHIVE-OMITTED-OBJECTION-001",
+      "title": "An active objection required by the declared scope is silently omitted",
+      "manifest": {
+        "schema": "luminous.cter.community-archive.v0",
+        "archive_id": "archive-omitted-objection",
+        "profile_version": "0.1",
+        "created_at": "2026-11-19T16:00:00Z",
+        "exporter": {
+          "owner_system": "cter-reference",
+          "software_version": "0.1.0",
+          "build_ref": "synthetic-build-v0"
+        },
+        "scope": {
+          "scope_ref": "urn:community:synthetic-scope:1",
+          "object_types": [
+            "signed_event",
+            "territorial_record",
+            "objection",
+            "consent",
+            "spatial_reference"
+          ],
+          "jurisdiction_profile_ref": "urn:jurisdiction:synthetic:v0"
+        },
+        "source_frontiers": [
+          {
+            "owner_system": "mycelix",
+            "snapshot_ref": "urn:mycelix:snapshot:1",
+            "snapshot_digest": {
+              "algorithm": "BLAKE3",
+              "value": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+            },
+            "query_or_scope_ref": "urn:query:scope:all",
+            "expected_count": 2,
+            "observed_count": 2,
+            "completeness": "complete_within_declared_frontier",
+            "gap_refs": []
+          },
+          {
+            "owner_system": "sol-atlas",
+            "snapshot_ref": "urn:sol-atlas:snapshot:1",
+            "snapshot_digest": {
+              "algorithm": "SHA-256",
+              "value": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+            },
+            "query_or_scope_ref": "urn:query:territory-scope:all",
+            "expected_count": 1,
+            "observed_count": 1,
+            "completeness": "complete_within_declared_frontier",
+            "gap_refs": []
+          }
+        ],
+        "objects": [
+          {
+            "object_ref": "urn:event:e1",
+            "object_type": "signed_event",
+            "owner_system": "mycelix",
+            "schema_ref": "urn:schema:event:v3",
+            "schema_version": "3",
+            "digest": {
+              "algorithm": "BLAKE3",
+              "value": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+            },
+            "access_class": "community",
+            "disposition": "included",
+            "payload_ref": "file://events/e1",
+            "license_state": "reference_only"
+          },
+          {
+            "object_ref": "urn:territory:t1",
+            "object_type": "territorial_record",
+            "owner_system": "sol-atlas",
+            "schema_ref": "urn:schema:territorial:v0",
+            "schema_version": "0.1",
+            "digest": {
+              "algorithm": "SHA-256",
+              "value": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+            },
+            "access_class": "community",
+            "disposition": "included",
+            "payload_ref": "file://territory/t1",
+            "license_state": "reference_only"
+          }
+        ],
+        "restore": {
+          "provider_independent_restore": true,
+          "key_custody": "community_threshold",
+          "restore_test_status": "pass",
+          "restore_instructions_ref": "urn:restore:instructions:v0",
+          "restore_run_ref": "urn:restore:synthetic:pass:1"
+        },
+        "preservation": [
+          {
+            "record_ref": "urn:ers:record:1",
+            "profile_ref": "urn:preservation:rfc4998:profile:v0",
+            "predecessor_ref": "urn:ers:record:0",
+            "algorithm_state": "current",
+            "validation_state": "valid",
+            "timestamp_evidence_ref": "urn:tsa:timestamp:1",
+            "renewal_time": "2026-11-19T16:00:00Z"
+          }
+        ],
+        "limitations": [
+          "Synthetic manifest only; no real provider or community data."
+        ],
+        "claim_ceiling": "archive-structure-and-restoration-only-no-legal-effect",
+        "export_context": {
+          "authorization_ref": "urn:synthetic:export-authorization:archive-omitted-objection-001",
+          "purpose_ref": "urn:synthetic:export-purpose:community-continuity",
+          "destination_ref": "urn:synthetic:destination:community-archive",
+          "authorized_access_classes": [
+            "community",
+            "restricted"
+          ]
+        }
+      },
+      "expected": "incomplete"
+    },
+    {
+      "case_id": "ARCHIVE-UNKNOWN-DIGEST-001",
+      "title": "Digest algorithm is omitted or mislabeled",
+      "manifest": {
+        "schema": "luminous.cter.community-archive.v0",
+        "archive_id": "archive-bad-digest",
+        "profile_version": "0.1",
+        "created_at": "2026-11-19T16:00:00Z",
+        "exporter": {
+          "owner_system": "cter-reference",
+          "software_version": "0.1.0",
+          "build_ref": "synthetic-build-v0"
+        },
+        "scope": {
+          "scope_ref": "urn:community:synthetic-scope:1",
+          "object_types": [
+            "signed_event",
+            "territorial_record",
+            "objection",
+            "consent",
+            "spatial_reference"
+          ],
+          "jurisdiction_profile_ref": "urn:jurisdiction:synthetic:v0"
+        },
+        "source_frontiers": [
+          {
+            "owner_system": "mycelix",
+            "snapshot_ref": "urn:mycelix:snapshot:1",
+            "snapshot_digest": {
+              "algorithm": "BLAKE3",
+              "value": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+            },
+            "query_or_scope_ref": "urn:query:scope:all",
+            "expected_count": 2,
+            "observed_count": 2,
+            "completeness": "complete_within_declared_frontier",
+            "gap_refs": []
+          },
+          {
+            "owner_system": "sol-atlas",
+            "snapshot_ref": "urn:sol-atlas:snapshot:1",
+            "snapshot_digest": {
+              "algorithm": "SHA-256",
+              "value": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+            },
+            "query_or_scope_ref": "urn:query:territory-scope:all",
+            "expected_count": 1,
+            "observed_count": 1,
+            "completeness": "complete_within_declared_frontier",
+            "gap_refs": []
+          }
+        ],
+        "objects": [
+          {
+            "object_ref": "urn:event:e1",
+            "object_type": "signed_event",
+            "owner_system": "mycelix",
+            "schema_ref": "urn:schema:event:v3",
+            "schema_version": "3",
+            "digest": {
+              "algorithm": "unknown",
+              "value": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+            },
+            "access_class": "community",
+            "disposition": "included",
+            "payload_ref": "file://events/e1",
+            "license_state": "reference_only"
+          },
+          {
+            "object_ref": "urn:territory:t1",
+            "object_type": "territorial_record",
+            "owner_system": "sol-atlas",
+            "schema_ref": "urn:schema:territorial:v0",
+            "schema_version": "0.1",
+            "digest": {
+              "algorithm": "SHA-256",
+              "value": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+            },
+            "access_class": "community",
+            "disposition": "included",
+            "payload_ref": "file://territory/t1",
+            "license_state": "reference_only"
+          },
+          {
+            "object_ref": "urn:objection:o1",
+            "object_type": "objection",
+            "owner_system": "mycelix",
+            "schema_ref": "urn:schema:objection:v0",
+            "schema_version": "0.1",
+            "digest": {
+              "algorithm": "BLAKE3",
+              "value": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+            },
+            "access_class": "restricted",
+            "disposition": "included",
+            "payload_ref": "file://objections/o1",
+            "license_state": "reference_only"
+          }
+        ],
+        "restore": {
+          "provider_independent_restore": true,
+          "key_custody": "community_threshold",
+          "restore_test_status": "pass",
+          "restore_instructions_ref": "urn:restore:instructions:v0",
+          "restore_run_ref": "urn:restore:synthetic:pass:1"
+        },
+        "preservation": [
+          {
+            "record_ref": "urn:ers:record:1",
+            "profile_ref": "urn:preservation:rfc4998:profile:v0",
+            "predecessor_ref": "urn:ers:record:0",
+            "algorithm_state": "current",
+            "validation_state": "valid",
+            "timestamp_evidence_ref": "urn:tsa:timestamp:1",
+            "renewal_time": "2026-11-19T16:00:00Z"
+          }
+        ],
+        "limitations": [
+          "Synthetic manifest only; no real provider or community data."
+        ],
+        "claim_ceiling": "archive-structure-and-restoration-only-no-legal-effect",
+        "export_context": {
+          "authorization_ref": "urn:synthetic:export-authorization:archive-unknown-digest-001",
+          "purpose_ref": "urn:synthetic:export-purpose:community-continuity",
+          "destination_ref": "urn:synthetic:destination:community-archive",
+          "authorized_access_classes": [
+            "community",
+            "restricted"
+          ]
+        }
+      },
+      "expected": "invalid"
+    },
+    {
+      "case_id": "ARCHIVE-PROVIDER-KEY-001",
+      "title": "Encryption key is held only by the terminated provider",
+      "manifest": {
+        "schema": "luminous.cter.community-archive.v0",
+        "archive_id": "archive-provider-key",
+        "profile_version": "0.1",
+        "created_at": "2026-11-19T16:00:00Z",
+        "exporter": {
+          "owner_system": "cter-reference",
+          "software_version": "0.1.0",
+          "build_ref": "synthetic-build-v0"
+        },
+        "scope": {
+          "scope_ref": "urn:community:synthetic-scope:1",
+          "object_types": [
+            "signed_event",
+            "territorial_record",
+            "objection",
+            "consent",
+            "spatial_reference"
+          ],
+          "jurisdiction_profile_ref": "urn:jurisdiction:synthetic:v0"
+        },
+        "source_frontiers": [
+          {
+            "owner_system": "mycelix",
+            "snapshot_ref": "urn:mycelix:snapshot:1",
+            "snapshot_digest": {
+              "algorithm": "BLAKE3",
+              "value": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+            },
+            "query_or_scope_ref": "urn:query:scope:all",
+            "expected_count": 2,
+            "observed_count": 2,
+            "completeness": "complete_within_declared_frontier",
+            "gap_refs": []
+          },
+          {
+            "owner_system": "sol-atlas",
+            "snapshot_ref": "urn:sol-atlas:snapshot:1",
+            "snapshot_digest": {
+              "algorithm": "SHA-256",
+              "value": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+            },
+            "query_or_scope_ref": "urn:query:territory-scope:all",
+            "expected_count": 1,
+            "observed_count": 1,
+            "completeness": "complete_within_declared_frontier",
+            "gap_refs": []
+          }
+        ],
+        "objects": [
+          {
+            "object_ref": "urn:event:e1",
+            "object_type": "signed_event",
+            "owner_system": "mycelix",
+            "schema_ref": "urn:schema:event:v3",
+            "schema_version": "3",
+            "digest": {
+              "algorithm": "BLAKE3",
+              "value": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+            },
+            "access_class": "community",
+            "disposition": "included",
+            "payload_ref": "file://events/e1",
+            "license_state": "reference_only"
+          },
+          {
+            "object_ref": "urn:territory:t1",
+            "object_type": "territorial_record",
+            "owner_system": "sol-atlas",
+            "schema_ref": "urn:schema:territorial:v0",
+            "schema_version": "0.1",
+            "digest": {
+              "algorithm": "SHA-256",
+              "value": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+            },
+            "access_class": "community",
+            "disposition": "included",
+            "payload_ref": "file://territory/t1",
+            "license_state": "reference_only"
+          },
+          {
+            "object_ref": "urn:objection:o1",
+            "object_type": "objection",
+            "owner_system": "mycelix",
+            "schema_ref": "urn:schema:objection:v0",
+            "schema_version": "0.1",
+            "digest": {
+              "algorithm": "BLAKE3",
+              "value": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+            },
+            "access_class": "restricted",
+            "disposition": "included",
+            "payload_ref": "file://objections/o1",
+            "license_state": "reference_only"
+          }
+        ],
+        "restore": {
+          "provider_independent_restore": true,
+          "key_custody": "provider_only",
+          "restore_test_status": "blocked",
+          "restore_instructions_ref": "urn:restore:instructions:v0",
+          "restore_run_ref": "urn:restore:synthetic:pass:1"
+        },
+        "preservation": [
+          {
+            "record_ref": "urn:ers:record:1",
+            "profile_ref": "urn:preservation:rfc4998:profile:v0",
+            "predecessor_ref": "urn:ers:record:0",
+            "algorithm_state": "current",
+            "validation_state": "valid",
+            "timestamp_evidence_ref": "urn:tsa:timestamp:1",
+            "renewal_time": "2026-11-19T16:00:00Z"
+          }
+        ],
+        "limitations": [
+          "Synthetic manifest only; no real provider or community data."
+        ],
+        "claim_ceiling": "archive-structure-and-restoration-only-no-legal-effect",
+        "export_context": {
+          "authorization_ref": "urn:synthetic:export-authorization:archive-provider-key-001",
+          "purpose_ref": "urn:synthetic:export-purpose:community-continuity",
+          "destination_ref": "urn:synthetic:destination:community-archive",
+          "authorized_access_classes": [
+            "community",
+            "restricted"
+          ]
+        }
+      },
+      "expected": "not_independently_restorable"
+    },
+    {
+      "case_id": "ARCHIVE-SENSITIVE-LEAK-001",
+      "title": "Culturally protected object is copied into a public export",
+      "manifest": {
+        "schema": "luminous.cter.community-archive.v0",
+        "archive_id": "archive-sensitive-leak",
+        "profile_version": "0.1",
+        "created_at": "2026-11-19T16:00:00Z",
+        "exporter": {
+          "owner_system": "cter-reference",
+          "software_version": "0.1.0",
+          "build_ref": "synthetic-build-v0"
+        },
+        "scope": {
+          "scope_ref": "urn:community:synthetic-scope:1",
+          "object_types": [
+            "signed_event",
+            "territorial_record",
+            "objection",
+            "consent",
+            "spatial_reference"
+          ],
+          "jurisdiction_profile_ref": "urn:jurisdiction:synthetic:v0"
+        },
+        "source_frontiers": [
+          {
+            "owner_system": "mycelix",
+            "snapshot_ref": "urn:mycelix:snapshot:1",
+            "snapshot_digest": {
+              "algorithm": "BLAKE3",
+              "value": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+            },
+            "query_or_scope_ref": "urn:query:scope:all",
+            "expected_count": 2,
+            "observed_count": 2,
+            "completeness": "complete_within_declared_frontier",
+            "gap_refs": []
+          },
+          {
+            "owner_system": "sol-atlas",
+            "snapshot_ref": "urn:sol-atlas:snapshot:1",
+            "snapshot_digest": {
+              "algorithm": "SHA-256",
+              "value": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+            },
+            "query_or_scope_ref": "urn:query:territory-scope:all",
+            "expected_count": 2,
+            "observed_count": 2,
+            "completeness": "complete_within_declared_frontier",
+            "gap_refs": []
+          }
+        ],
+        "objects": [
+          {
+            "object_ref": "urn:event:e1",
+            "object_type": "signed_event",
+            "owner_system": "mycelix",
+            "schema_ref": "urn:schema:event:v3",
+            "schema_version": "3",
+            "digest": {
+              "algorithm": "BLAKE3",
+              "value": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+            },
+            "access_class": "public",
+            "disposition": "included",
+            "payload_ref": "file://events/e1",
+            "license_state": "reference_only"
+          },
+          {
+            "object_ref": "urn:territory:t1",
+            "object_type": "territorial_record",
+            "owner_system": "sol-atlas",
+            "schema_ref": "urn:schema:territorial:v0",
+            "schema_version": "0.1",
+            "digest": {
+              "algorithm": "SHA-256",
+              "value": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+            },
+            "access_class": "public",
+            "disposition": "included",
+            "payload_ref": "file://territory/t1",
+            "license_state": "reference_only"
+          },
+          {
+            "object_ref": "urn:objection:o1",
+            "object_type": "objection",
+            "owner_system": "mycelix",
+            "schema_ref": "urn:schema:objection:v0",
+            "schema_version": "0.1",
+            "digest": {
+              "algorithm": "BLAKE3",
+              "value": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+            },
+            "access_class": "public",
+            "disposition": "included",
+            "payload_ref": "file://objections/o1",
+            "license_state": "reference_only"
+          },
+          {
+            "object_ref": "urn:site:sacred1",
+            "object_type": "cultural_location",
+            "owner_system": "sol-atlas",
+            "schema_ref": "urn:schema:location:v0",
+            "schema_version": "0.1",
+            "digest": {
+              "algorithm": "SHA-256",
+              "value": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+            },
+            "access_class": "culturally_protected",
+            "disposition": "included",
+            "payload_ref": "file://public/sacred1",
+            "license_state": "reference_only"
+          }
+        ],
+        "restore": {
+          "provider_independent_restore": true,
+          "key_custody": "community_threshold",
+          "restore_test_status": "pass",
+          "restore_instructions_ref": "urn:restore:instructions:v0",
+          "restore_run_ref": "urn:restore:synthetic:pass:1"
+        },
+        "preservation": [
+          {
+            "record_ref": "urn:ers:record:1",
+            "profile_ref": "urn:preservation:rfc4998:profile:v0",
+            "predecessor_ref": "urn:ers:record:0",
+            "algorithm_state": "current",
+            "validation_state": "valid",
+            "timestamp_evidence_ref": "urn:tsa:timestamp:1",
+            "renewal_time": "2026-11-19T16:00:00Z"
+          }
+        ],
+        "limitations": [
+          "Synthetic manifest only; no real provider or community data."
+        ],
+        "claim_ceiling": "archive-structure-and-restoration-only-no-legal-effect",
+        "export_context": {
+          "authorization_ref": "urn:synthetic:export-authorization:archive-sensitive-leak-001",
+          "purpose_ref": "urn:synthetic:export-purpose:community-continuity",
+          "destination_ref": "urn:synthetic:destination:public-export",
+          "authorized_access_classes": [
+            "public"
+          ]
+        }
+      },
+      "expected": "disclosure_violation"
+    },
+    {
+      "case_id": "ARCHIVE-BUNDLE-EXPIRY-001",
+      "title": "Transport bundle expired but durable signed evidence remains in the archive",
+      "manifest": {
+        "schema": "luminous.cter.community-archive.v0",
+        "archive_id": "archive-after-bundle-expiry",
+        "profile_version": "0.1",
+        "created_at": "2026-11-19T16:00:00Z",
+        "exporter": {
+          "owner_system": "cter-reference",
+          "software_version": "0.1.0",
+          "build_ref": "synthetic-build-v0"
+        },
+        "scope": {
+          "scope_ref": "urn:community:synthetic-scope:1",
+          "object_types": [
+            "signed_event",
+            "territorial_record",
+            "objection",
+            "consent",
+            "spatial_reference"
+          ],
+          "jurisdiction_profile_ref": "urn:jurisdiction:synthetic:v0"
+        },
+        "source_frontiers": [
+          {
+            "owner_system": "mycelix",
+            "snapshot_ref": "urn:mycelix:snapshot:1",
+            "snapshot_digest": {
+              "algorithm": "BLAKE3",
+              "value": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+            },
+            "query_or_scope_ref": "urn:query:scope:all",
+            "expected_count": 2,
+            "observed_count": 2,
+            "completeness": "complete_within_declared_frontier",
+            "gap_refs": []
+          },
+          {
+            "owner_system": "sol-atlas",
+            "snapshot_ref": "urn:sol-atlas:snapshot:1",
+            "snapshot_digest": {
+              "algorithm": "SHA-256",
+              "value": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+            },
+            "query_or_scope_ref": "urn:query:territory-scope:all",
+            "expected_count": 1,
+            "observed_count": 1,
+            "completeness": "complete_within_declared_frontier",
+            "gap_refs": []
+          }
+        ],
+        "objects": [
+          {
+            "object_ref": "urn:event:e1",
+            "object_type": "signed_event",
+            "owner_system": "mycelix",
+            "schema_ref": "urn:schema:event:v3",
+            "schema_version": "3",
+            "digest": {
+              "algorithm": "BLAKE3",
+              "value": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+            },
+            "access_class": "community",
+            "disposition": "included",
+            "payload_ref": "file://events/e1",
+            "license_state": "reference_only"
+          },
+          {
+            "object_ref": "urn:territory:t1",
+            "object_type": "territorial_record",
+            "owner_system": "sol-atlas",
+            "schema_ref": "urn:schema:territorial:v0",
+            "schema_version": "0.1",
+            "digest": {
+              "algorithm": "SHA-256",
+              "value": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+            },
+            "access_class": "community",
+            "disposition": "included",
+            "payload_ref": "file://territory/t1",
+            "license_state": "reference_only"
+          },
+          {
+            "object_ref": "urn:objection:o1",
+            "object_type": "objection",
+            "owner_system": "mycelix",
+            "schema_ref": "urn:schema:objection:v0",
+            "schema_version": "0.1",
+            "digest": {
+              "algorithm": "BLAKE3",
+              "value": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+            },
+            "access_class": "restricted",
+            "disposition": "included",
+            "payload_ref": "file://objections/o1",
+            "license_state": "reference_only"
+          }
+        ],
+        "restore": {
+          "provider_independent_restore": true,
+          "key_custody": "community_threshold",
+          "restore_test_status": "pass",
+          "restore_instructions_ref": "urn:restore:instructions:v0",
+          "restore_run_ref": "urn:restore:synthetic:pass:1"
+        },
+        "preservation": [
+          {
+            "record_ref": "urn:ers:record:1",
+            "profile_ref": "urn:preservation:rfc4998:profile:v0",
+            "predecessor_ref": "urn:ers:record:0",
+            "algorithm_state": "current",
+            "validation_state": "valid",
+            "timestamp_evidence_ref": "urn:tsa:timestamp:1",
+            "renewal_time": "2026-11-19T16:00:00Z"
+          }
+        ],
+        "limitations": [
+          "Synthetic manifest only; no real provider or community data."
+        ],
+        "claim_ceiling": "archive-structure-and-restoration-only-no-legal-effect",
+        "export_context": {
+          "authorization_ref": "urn:synthetic:export-authorization:archive-bundle-expiry-001",
+          "purpose_ref": "urn:synthetic:export-purpose:community-continuity",
+          "destination_ref": "urn:synthetic:destination:community-archive",
+          "authorized_access_classes": [
+            "community",
+            "restricted"
+          ]
+        },
+        "transport_observation": {
+          "protocol": "BPv7",
+          "carrier_bundle_state": "expired",
+          "durable_evidence_state": "retained",
+          "retained_event_ref": "urn:event:e1"
+        }
+      },
+      "transport_observation": {
+        "bundle_status": "expired-and-deleted",
+        "durable_event_ref": "urn:event:e1",
+        "repackaging_required": true
+      },
+      "expected": "eligible_for_independent_restore"
+    },
+    {
+      "case_id": "ARCHIVE-CRYPTO-RENEWAL-001",
+      "title": "Preservation renewal is predecessor-bound before algorithm deprecation",
+      "manifest": {
+        "schema": "luminous.cter.community-archive.v0",
+        "archive_id": "archive-renewed",
+        "profile_version": "0.1",
+        "created_at": "2026-11-19T16:00:00Z",
+        "exporter": {
+          "owner_system": "cter-reference",
+          "software_version": "0.1.0",
+          "build_ref": "synthetic-build-v0"
+        },
+        "scope": {
+          "scope_ref": "urn:community:synthetic-scope:1",
+          "object_types": [
+            "signed_event",
+            "territorial_record",
+            "objection",
+            "consent",
+            "spatial_reference"
+          ],
+          "jurisdiction_profile_ref": "urn:jurisdiction:synthetic:v0"
+        },
+        "source_frontiers": [
+          {
+            "owner_system": "mycelix",
+            "snapshot_ref": "urn:mycelix:snapshot:1",
+            "snapshot_digest": {
+              "algorithm": "BLAKE3",
+              "value": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+            },
+            "query_or_scope_ref": "urn:query:scope:all",
+            "expected_count": 2,
+            "observed_count": 2,
+            "completeness": "complete_within_declared_frontier",
+            "gap_refs": []
+          },
+          {
+            "owner_system": "sol-atlas",
+            "snapshot_ref": "urn:sol-atlas:snapshot:1",
+            "snapshot_digest": {
+              "algorithm": "SHA-256",
+              "value": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+            },
+            "query_or_scope_ref": "urn:query:territory-scope:all",
+            "expected_count": 1,
+            "observed_count": 1,
+            "completeness": "complete_within_declared_frontier",
+            "gap_refs": []
+          }
+        ],
+        "objects": [
+          {
+            "object_ref": "urn:event:e1",
+            "object_type": "signed_event",
+            "owner_system": "mycelix",
+            "schema_ref": "urn:schema:event:v3",
+            "schema_version": "3",
+            "digest": {
+              "algorithm": "BLAKE3",
+              "value": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+            },
+            "access_class": "community",
+            "disposition": "included",
+            "payload_ref": "file://events/e1",
+            "license_state": "reference_only"
+          },
+          {
+            "object_ref": "urn:territory:t1",
+            "object_type": "territorial_record",
+            "owner_system": "sol-atlas",
+            "schema_ref": "urn:schema:territorial:v0",
+            "schema_version": "0.1",
+            "digest": {
+              "algorithm": "SHA-256",
+              "value": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+            },
+            "access_class": "community",
+            "disposition": "included",
+            "payload_ref": "file://territory/t1",
+            "license_state": "reference_only"
+          },
+          {
+            "object_ref": "urn:objection:o1",
+            "object_type": "objection",
+            "owner_system": "mycelix",
+            "schema_ref": "urn:schema:objection:v0",
+            "schema_version": "0.1",
+            "digest": {
+              "algorithm": "BLAKE3",
+              "value": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+            },
+            "access_class": "restricted",
+            "disposition": "included",
+            "payload_ref": "file://objections/o1",
+            "license_state": "reference_only"
+          }
+        ],
+        "restore": {
+          "provider_independent_restore": true,
+          "key_custody": "community_threshold",
+          "restore_test_status": "pass",
+          "restore_instructions_ref": "urn:restore:instructions:v0",
+          "restore_run_ref": "urn:restore:synthetic:pass:1"
+        },
+        "preservation": [
+          {
+            "record_ref": "urn:ers:record:1",
+            "profile_ref": "urn:preservation:rfc4998:profile:v0",
+            "predecessor_ref": "urn:ers:record:0",
+            "algorithm_state": "deprecated",
+            "validation_state": "valid",
+            "timestamp_evidence_ref": "urn:tsa:timestamp:1",
+            "renewal_time": "2026-11-19T16:00:00Z",
+            "renewal_event_ref": "urn:preservation:renewal:event:1",
+            "algorithm_weakening_time": "2026-12-01T00:00:00Z",
+            "renewal_time_unix_seconds": 1795104000,
+            "algorithm_weakening_time_unix_seconds": 1796083200
+          }
+        ],
+        "limitations": [
+          "Synthetic manifest only; no real provider or community data."
+        ],
+        "claim_ceiling": "archive-structure-and-restoration-only-no-legal-effect",
+        "export_context": {
+          "authorization_ref": "urn:synthetic:export-authorization:archive-crypto-renewal-001",
+          "purpose_ref": "urn:synthetic:export-purpose:community-continuity",
+          "destination_ref": "urn:synthetic:destination:community-archive",
+          "authorized_access_classes": [
+            "community",
+            "restricted"
+          ]
+        }
+      },
+      "expected": "eligible_with_preservation_chain"
+    },
+    {
+      "case_id": "ARCHIVE-CRYPTO-RENEWAL-GAP-001",
+      "title": "Original algorithm compromised and no valid preservation renewal exists",
+      "manifest": {
+        "schema": "luminous.cter.community-archive.v0",
+        "archive_id": "archive-renewal-gap",
+        "profile_version": "0.1",
+        "created_at": "2026-11-19T16:00:00Z",
+        "exporter": {
+          "owner_system": "cter-reference",
+          "software_version": "0.1.0",
+          "build_ref": "synthetic-build-v0"
+        },
+        "scope": {
+          "scope_ref": "urn:community:synthetic-scope:1",
+          "object_types": [
+            "signed_event",
+            "territorial_record",
+            "objection",
+            "consent",
+            "spatial_reference"
+          ],
+          "jurisdiction_profile_ref": "urn:jurisdiction:synthetic:v0"
+        },
+        "source_frontiers": [
+          {
+            "owner_system": "mycelix",
+            "snapshot_ref": "urn:mycelix:snapshot:1",
+            "snapshot_digest": {
+              "algorithm": "BLAKE3",
+              "value": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+            },
+            "query_or_scope_ref": "urn:query:scope:all",
+            "expected_count": 2,
+            "observed_count": 2,
+            "completeness": "complete_within_declared_frontier",
+            "gap_refs": []
+          },
+          {
+            "owner_system": "sol-atlas",
+            "snapshot_ref": "urn:sol-atlas:snapshot:1",
+            "snapshot_digest": {
+              "algorithm": "SHA-256",
+              "value": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+            },
+            "query_or_scope_ref": "urn:query:territory-scope:all",
+            "expected_count": 1,
+            "observed_count": 1,
+            "completeness": "complete_within_declared_frontier",
+            "gap_refs": []
+          }
+        ],
+        "objects": [
+          {
+            "object_ref": "urn:event:e1",
+            "object_type": "signed_event",
+            "owner_system": "mycelix",
+            "schema_ref": "urn:schema:event:v3",
+            "schema_version": "3",
+            "digest": {
+              "algorithm": "BLAKE3",
+              "value": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+            },
+            "access_class": "community",
+            "disposition": "included",
+            "payload_ref": "file://events/e1",
+            "license_state": "reference_only"
+          },
+          {
+            "object_ref": "urn:territory:t1",
+            "object_type": "territorial_record",
+            "owner_system": "sol-atlas",
+            "schema_ref": "urn:schema:territorial:v0",
+            "schema_version": "0.1",
+            "digest": {
+              "algorithm": "SHA-256",
+              "value": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+            },
+            "access_class": "community",
+            "disposition": "included",
+            "payload_ref": "file://territory/t1",
+            "license_state": "reference_only"
+          },
+          {
+            "object_ref": "urn:objection:o1",
+            "object_type": "objection",
+            "owner_system": "mycelix",
+            "schema_ref": "urn:schema:objection:v0",
+            "schema_version": "0.1",
+            "digest": {
+              "algorithm": "BLAKE3",
+              "value": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+            },
+            "access_class": "restricted",
+            "disposition": "included",
+            "payload_ref": "file://objections/o1",
+            "license_state": "reference_only"
+          }
+        ],
+        "restore": {
+          "provider_independent_restore": true,
+          "key_custody": "community_threshold",
+          "restore_test_status": "pass",
+          "restore_instructions_ref": "urn:restore:instructions:v0",
+          "restore_run_ref": "urn:restore:synthetic:pass:1"
+        },
+        "preservation": [
+          {
+            "record_ref": "urn:ers:record:1",
+            "profile_ref": "urn:preservation:rfc4998:profile:v0",
+            "predecessor_ref": "urn:ers:record:0",
+            "algorithm_state": "compromised",
+            "validation_state": "indeterminate",
+            "renewal_time": "2026-11-19T16:00:00Z"
+          }
+        ],
+        "limitations": [
+          "Synthetic manifest only; no real provider or community data."
+        ],
+        "claim_ceiling": "archive-structure-and-restoration-only-no-legal-effect",
+        "export_context": {
+          "authorization_ref": "urn:synthetic:export-authorization:archive-crypto-renewal-gap-001",
+          "purpose_ref": "urn:synthetic:export-purpose:community-continuity",
+          "destination_ref": "urn:synthetic:destination:community-archive",
+          "authorized_access_classes": [
+            "community",
+            "restricted"
+          ]
+        }
+      },
+      "expected": "indeterminate_historical_validation"
+    },
+    {
+      "case_id": "ARCHIVE-PARTIAL-FRONTIER-001",
+      "title": "Unavailable source frontier is misrepresented as complete",
+      "manifest": {
+        "schema": "luminous.cter.community-archive.v0",
+        "archive_id": "archive-partial",
+        "profile_version": "0.1",
+        "created_at": "2026-11-19T16:00:00Z",
+        "exporter": {
+          "owner_system": "cter-reference",
+          "software_version": "0.1.0",
+          "build_ref": "synthetic-build-v0"
+        },
+        "scope": {
+          "scope_ref": "urn:community:synthetic-scope:1",
+          "object_types": [
+            "signed_event",
+            "territorial_record",
+            "objection",
+            "consent",
+            "spatial_reference"
+          ],
+          "jurisdiction_profile_ref": "urn:jurisdiction:synthetic:v0"
+        },
+        "source_frontiers": [
+          {
+            "owner_system": "mycelix",
+            "snapshot_ref": "urn:mycelix:snapshot:1",
+            "snapshot_digest": {
+              "algorithm": "BLAKE3",
+              "value": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+            },
+            "query_or_scope_ref": "urn:query:scope:all",
+            "expected_count": 2,
+            "observed_count": 2,
+            "completeness": "partial",
+            "gap_refs": [
+              "urn:gap:offline-owner"
+            ]
+          },
+          {
+            "owner_system": "sol-atlas",
+            "snapshot_ref": "urn:sol-atlas:snapshot:1",
+            "snapshot_digest": {
+              "algorithm": "SHA-256",
+              "value": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+            },
+            "query_or_scope_ref": "urn:query:territory-scope:all",
+            "expected_count": 1,
+            "observed_count": 1,
+            "completeness": "complete_within_declared_frontier",
+            "gap_refs": []
+          }
+        ],
+        "objects": [
+          {
+            "object_ref": "urn:event:e1",
+            "object_type": "signed_event",
+            "owner_system": "mycelix",
+            "schema_ref": "urn:schema:event:v3",
+            "schema_version": "3",
+            "digest": {
+              "algorithm": "BLAKE3",
+              "value": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+            },
+            "access_class": "community",
+            "disposition": "included",
+            "payload_ref": "file://events/e1",
+            "license_state": "reference_only"
+          },
+          {
+            "object_ref": "urn:territory:t1",
+            "object_type": "territorial_record",
+            "owner_system": "sol-atlas",
+            "schema_ref": "urn:schema:territorial:v0",
+            "schema_version": "0.1",
+            "digest": {
+              "algorithm": "SHA-256",
+              "value": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+            },
+            "access_class": "community",
+            "disposition": "included",
+            "payload_ref": "file://territory/t1",
+            "license_state": "reference_only"
+          },
+          {
+            "object_ref": "urn:objection:o1",
+            "object_type": "objection",
+            "owner_system": "mycelix",
+            "schema_ref": "urn:schema:objection:v0",
+            "schema_version": "0.1",
+            "digest": {
+              "algorithm": "BLAKE3",
+              "value": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+            },
+            "access_class": "restricted",
+            "disposition": "included",
+            "payload_ref": "file://objections/o1",
+            "license_state": "reference_only"
+          }
+        ],
+        "restore": {
+          "provider_independent_restore": true,
+          "key_custody": "community_threshold",
+          "restore_test_status": "pass",
+          "restore_instructions_ref": "urn:restore:instructions:v0",
+          "restore_run_ref": "urn:restore:synthetic:pass:1"
+        },
+        "preservation": [
+          {
+            "record_ref": "urn:ers:record:1",
+            "profile_ref": "urn:preservation:rfc4998:profile:v0",
+            "predecessor_ref": "urn:ers:record:0",
+            "algorithm_state": "current",
+            "validation_state": "valid",
+            "timestamp_evidence_ref": "urn:tsa:timestamp:1",
+            "renewal_time": "2026-11-19T16:00:00Z"
+          }
+        ],
+        "limitations": [
+          "Synthetic manifest only; no real provider or community data."
+        ],
+        "claim_ceiling": "archive-structure-and-restoration-only-no-legal-effect",
+        "export_context": {
+          "authorization_ref": "urn:synthetic:export-authorization:archive-partial-frontier-001",
+          "purpose_ref": "urn:synthetic:export-purpose:community-continuity",
+          "destination_ref": "urn:synthetic:destination:community-archive",
+          "authorized_access_classes": [
+            "community",
+            "restricted"
+          ]
+        }
+      },
+      "expected": "incomplete"
+    },
+    {
+      "case_id": "ARCHIVE-LICENSE-UNKNOWN-001",
+      "title": "Included evidence has unresolved redistribution/license status",
+      "manifest": {
+        "schema": "luminous.cter.community-archive.v0",
+        "archive_id": "archive-license-unknown",
+        "profile_version": "0.1",
+        "created_at": "2026-11-19T16:00:00Z",
+        "exporter": {
+          "owner_system": "cter-reference",
+          "software_version": "0.1.0",
+          "build_ref": "synthetic-build-v0"
+        },
+        "scope": {
+          "scope_ref": "urn:community:synthetic-scope:1",
+          "object_types": [
+            "signed_event",
+            "territorial_record",
+            "objection",
+            "consent",
+            "spatial_reference"
+          ],
+          "jurisdiction_profile_ref": "urn:jurisdiction:synthetic:v0"
+        },
+        "source_frontiers": [
+          {
+            "owner_system": "mycelix",
+            "snapshot_ref": "urn:mycelix:snapshot:1",
+            "snapshot_digest": {
+              "algorithm": "BLAKE3",
+              "value": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+            },
+            "query_or_scope_ref": "urn:query:scope:all",
+            "expected_count": 2,
+            "observed_count": 2,
+            "completeness": "complete_within_declared_frontier",
+            "gap_refs": []
+          },
+          {
+            "owner_system": "sol-atlas",
+            "snapshot_ref": "urn:sol-atlas:snapshot:1",
+            "snapshot_digest": {
+              "algorithm": "SHA-256",
+              "value": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+            },
+            "query_or_scope_ref": "urn:query:territory-scope:all",
+            "expected_count": 1,
+            "observed_count": 1,
+            "completeness": "complete_within_declared_frontier",
+            "gap_refs": []
+          }
+        ],
+        "objects": [
+          {
+            "object_ref": "urn:event:e1",
+            "object_type": "signed_event",
+            "owner_system": "mycelix",
+            "schema_ref": "urn:schema:event:v3",
+            "schema_version": "3",
+            "digest": {
+              "algorithm": "BLAKE3",
+              "value": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+            },
+            "access_class": "community",
+            "disposition": "included",
+            "payload_ref": "file://events/e1",
+            "license_state": "unknown"
+          },
+          {
+            "object_ref": "urn:territory:t1",
+            "object_type": "territorial_record",
+            "owner_system": "sol-atlas",
+            "schema_ref": "urn:schema:territorial:v0",
+            "schema_version": "0.1",
+            "digest": {
+              "algorithm": "SHA-256",
+              "value": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+            },
+            "access_class": "community",
+            "disposition": "included",
+            "payload_ref": "file://territory/t1",
+            "license_state": "reference_only"
+          },
+          {
+            "object_ref": "urn:objection:o1",
+            "object_type": "objection",
+            "owner_system": "mycelix",
+            "schema_ref": "urn:schema:objection:v0",
+            "schema_version": "0.1",
+            "digest": {
+              "algorithm": "BLAKE3",
+              "value": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+            },
+            "access_class": "restricted",
+            "disposition": "included",
+            "payload_ref": "file://objections/o1",
+            "license_state": "reference_only"
+          }
+        ],
+        "restore": {
+          "provider_independent_restore": true,
+          "key_custody": "community_threshold",
+          "restore_test_status": "pass",
+          "restore_instructions_ref": "urn:restore:instructions:v0",
+          "restore_run_ref": "urn:restore:synthetic:pass:1"
+        },
+        "preservation": [
+          {
+            "record_ref": "urn:ers:record:1",
+            "profile_ref": "urn:preservation:rfc4998:profile:v0",
+            "predecessor_ref": "urn:ers:record:0",
+            "algorithm_state": "current",
+            "validation_state": "valid",
+            "timestamp_evidence_ref": "urn:tsa:timestamp:1",
+            "renewal_time": "2026-11-19T16:00:00Z"
+          }
+        ],
+        "limitations": [
+          "Synthetic manifest only; no real provider or community data."
+        ],
+        "claim_ceiling": "archive-structure-and-restoration-only-no-legal-effect",
+        "export_context": {
+          "authorization_ref": "urn:synthetic:export-authorization:archive-complete-001",
+          "purpose_ref": "urn:synthetic:export-purpose:community-continuity",
+          "destination_ref": "urn:synthetic:destination:community-archive",
+          "authorized_access_classes": [
+            "community",
+            "restricted"
+          ]
+        }
+      },
+      "expected": "review_required"
+    },
+    {
+      "case_id": "ARCHIVE-BUNDLE-EXPIRY-LOSS-001",
+      "title": "Carrier bundle expiry is followed by loss of the durable evidence archive",
+      "manifest": {
+        "schema": "luminous.cter.community-archive.v0",
+        "archive_id": "archive-bundle-expired-lost",
+        "profile_version": "0.1",
+        "created_at": "2026-11-19T16:00:00Z",
+        "exporter": {
+          "owner_system": "cter-reference",
+          "software_version": "0.1.0",
+          "build_ref": "synthetic-build-v0"
+        },
+        "scope": {
+          "scope_ref": "urn:community:synthetic-scope:1",
+          "object_types": [
+            "signed_event",
+            "territorial_record",
+            "objection",
+            "consent",
+            "spatial_reference"
+          ],
+          "jurisdiction_profile_ref": "urn:jurisdiction:synthetic:v0"
+        },
+        "source_frontiers": [
+          {
+            "owner_system": "mycelix",
+            "snapshot_ref": "urn:mycelix:snapshot:1",
+            "snapshot_digest": {
+              "algorithm": "BLAKE3",
+              "value": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+            },
+            "query_or_scope_ref": "urn:query:scope:all",
+            "expected_count": 2,
+            "observed_count": 2,
+            "completeness": "complete_within_declared_frontier",
+            "gap_refs": []
+          },
+          {
+            "owner_system": "sol-atlas",
+            "snapshot_ref": "urn:sol-atlas:snapshot:1",
+            "snapshot_digest": {
+              "algorithm": "SHA-256",
+              "value": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+            },
+            "query_or_scope_ref": "urn:query:territory-scope:all",
+            "expected_count": 1,
+            "observed_count": 1,
+            "completeness": "complete_within_declared_frontier",
+            "gap_refs": []
+          }
+        ],
+        "objects": [
+          {
+            "object_ref": "urn:event:e1",
+            "object_type": "signed_event",
+            "owner_system": "mycelix",
+            "schema_ref": "urn:schema:event:v3",
+            "schema_version": "3",
+            "digest": {
+              "algorithm": "BLAKE3",
+              "value": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+            },
+            "access_class": "community",
+            "disposition": "included",
+            "payload_ref": "file://events/e1",
+            "license_state": "reference_only"
+          },
+          {
+            "object_ref": "urn:territory:t1",
+            "object_type": "territorial_record",
+            "owner_system": "sol-atlas",
+            "schema_ref": "urn:schema:territorial:v0",
+            "schema_version": "0.1",
+            "digest": {
+              "algorithm": "SHA-256",
+              "value": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+            },
+            "access_class": "community",
+            "disposition": "included",
+            "payload_ref": "file://territory/t1",
+            "license_state": "reference_only"
+          },
+          {
+            "object_ref": "urn:objection:o1",
+            "object_type": "objection",
+            "owner_system": "mycelix",
+            "schema_ref": "urn:schema:objection:v0",
+            "schema_version": "0.1",
+            "digest": {
+              "algorithm": "BLAKE3",
+              "value": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+            },
+            "access_class": "restricted",
+            "disposition": "included",
+            "payload_ref": "file://objections/o1",
+            "license_state": "reference_only"
+          }
+        ],
+        "restore": {
+          "provider_independent_restore": true,
+          "key_custody": "community_threshold",
+          "restore_test_status": "pass",
+          "restore_instructions_ref": "urn:restore:instructions:v0",
+          "restore_run_ref": "urn:restore:synthetic:pass:1"
+        },
+        "preservation": [
+          {
+            "record_ref": "urn:ers:record:1",
+            "profile_ref": "urn:preservation:rfc4998:profile:v0",
+            "predecessor_ref": "urn:ers:record:0",
+            "algorithm_state": "current",
+            "validation_state": "valid",
+            "timestamp_evidence_ref": "urn:tsa:timestamp:1",
+            "renewal_time": "2026-11-19T16:00:00Z"
+          }
+        ],
+        "limitations": [
+          "Synthetic manifest only; no real provider or community data."
+        ],
+        "claim_ceiling": "archive-structure-and-restoration-only-no-legal-effect",
+        "export_context": {
+          "authorization_ref": "urn:synthetic:export-authorization:archive-bundle-expiry-001",
+          "purpose_ref": "urn:synthetic:export-purpose:community-continuity",
+          "destination_ref": "urn:synthetic:destination:community-archive",
+          "authorized_access_classes": [
+            "community",
+            "restricted"
+          ]
+        },
+        "transport_observation": {
+          "protocol": "BPv7",
+          "carrier_bundle_state": "expired",
+          "durable_evidence_state": "deleted",
+          "retained_event_ref": "urn:event:e1"
+        }
+      },
+      "expected": "incomplete"
+    },
+    {
+      "case_id": "ARCHIVE-NO-IMPLICIT-CLASS-HIERARCHY-001",
+      "title": "A restricted-data authorization does not implicitly grant a separate community-data class",
+      "manifest": {
+        "schema": "luminous.cter.community-archive.v0",
+        "archive_id": "archive-no-implicit-class-hierarchy",
+        "profile_version": "0.1",
+        "created_at": "2026-11-19T16:00:00Z",
+        "exporter": {
+          "owner_system": "cter-reference",
+          "software_version": "0.1.0",
+          "build_ref": "synthetic-build-v0"
+        },
+        "scope": {
+          "scope_ref": "urn:community:synthetic-scope:1",
+          "object_types": [
+            "signed_event",
+            "territorial_record",
+            "objection",
+            "consent",
+            "spatial_reference"
+          ],
+          "jurisdiction_profile_ref": "urn:jurisdiction:synthetic:v0"
+        },
+        "source_frontiers": [
+          {
+            "owner_system": "mycelix",
+            "snapshot_ref": "urn:mycelix:snapshot:1",
+            "snapshot_digest": {
+              "algorithm": "BLAKE3",
+              "value": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+            },
+            "query_or_scope_ref": "urn:query:scope:all",
+            "expected_count": 2,
+            "observed_count": 2,
+            "completeness": "complete_within_declared_frontier",
+            "gap_refs": []
+          },
+          {
+            "owner_system": "sol-atlas",
+            "snapshot_ref": "urn:sol-atlas:snapshot:1",
+            "snapshot_digest": {
+              "algorithm": "SHA-256",
+              "value": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+            },
+            "query_or_scope_ref": "urn:query:territory-scope:all",
+            "expected_count": 1,
+            "observed_count": 1,
+            "completeness": "complete_within_declared_frontier",
+            "gap_refs": []
+          }
+        ],
+        "objects": [
+          {
+            "object_ref": "urn:event:e1",
+            "object_type": "signed_event",
+            "owner_system": "mycelix",
+            "schema_ref": "urn:schema:event:v3",
+            "schema_version": "3",
+            "digest": {
+              "algorithm": "BLAKE3",
+              "value": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+            },
+            "access_class": "community",
+            "disposition": "included",
+            "payload_ref": "file://events/e1",
+            "license_state": "reference_only"
+          },
+          {
+            "object_ref": "urn:territory:t1",
+            "object_type": "territorial_record",
+            "owner_system": "sol-atlas",
+            "schema_ref": "urn:schema:territorial:v0",
+            "schema_version": "0.1",
+            "digest": {
+              "algorithm": "SHA-256",
+              "value": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+            },
+            "access_class": "community",
+            "disposition": "included",
+            "payload_ref": "file://territory/t1",
+            "license_state": "reference_only"
+          },
+          {
+            "object_ref": "urn:objection:o1",
+            "object_type": "objection",
+            "owner_system": "mycelix",
+            "schema_ref": "urn:schema:objection:v0",
+            "schema_version": "0.1",
+            "digest": {
+              "algorithm": "BLAKE3",
+              "value": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+            },
+            "access_class": "restricted",
+            "disposition": "included",
+            "payload_ref": "file://objections/o1",
+            "license_state": "reference_only"
+          }
+        ],
+        "restore": {
+          "provider_independent_restore": true,
+          "key_custody": "community_threshold",
+          "restore_test_status": "pass",
+          "restore_instructions_ref": "urn:restore:instructions:v0",
+          "restore_run_ref": "urn:restore:synthetic:pass:1"
+        },
+        "preservation": [
+          {
+            "record_ref": "urn:ers:record:1",
+            "profile_ref": "urn:preservation:rfc4998:profile:v0",
+            "predecessor_ref": "urn:ers:record:0",
+            "algorithm_state": "current",
+            "validation_state": "valid",
+            "timestamp_evidence_ref": "urn:tsa:timestamp:1",
+            "renewal_time": "2026-11-19T16:00:00Z"
+          }
+        ],
+        "limitations": [
+          "Synthetic manifest only; no real provider or community data."
+        ],
+        "claim_ceiling": "archive-structure-and-restoration-only-no-legal-effect",
+        "export_context": {
+          "authorization_ref": "urn:synthetic:export-authorization:archive-complete-001",
+          "purpose_ref": "urn:synthetic:export-purpose:community-continuity",
+          "destination_ref": "urn:synthetic:destination:community-archive",
+          "authorized_access_classes": [
+            "restricted"
+          ]
+        }
+      },
+      "expected": "disclosure_violation"
+    }
+  ]
+}

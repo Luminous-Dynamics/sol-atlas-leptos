@@ -1,0 +1,436 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://luminousdynamics.io/schemas/cter-authority-use-v0.1.schema.json",
+  "title": "CTER authority-use consumer envelope v0.1",
+  "description": "A consumer-side reference contract for checking exact scope and host-resolved statuses of upstream decisions. It does not authenticate receipts, decide authority or create legal effect.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "request",
+    "decisions"
+  ],
+  "properties": {
+    "schema": {
+      "const": "luminous.cter.authority-use.v0"
+    },
+    "request": {
+      "$ref": "#/$defs/request"
+    },
+    "decisions": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/decision"
+      }
+    },
+    "governance_context": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/governance_context"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "request": {
+            "properties": {
+              "data_classes": {
+                "contains": {
+                  "enum": [
+                    "community",
+                    "culturally_protected"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "data_classes"
+            ]
+          }
+        },
+        "required": [
+          "request"
+        ]
+      },
+      "then": {
+        "required": [
+          "governance_context"
+        ]
+      }
+    }
+  ],
+  "$defs": {
+    "utc": {
+      "type": "string",
+      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z$"
+    },
+    "sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "request": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "request_id",
+        "principal_ref",
+        "subject_ref",
+        "operation",
+        "resource_ref",
+        "project_snapshot_sha256",
+        "purpose_ref",
+        "recipient_ref",
+        "jurisdiction_profile_ref",
+        "evaluated_at",
+        "offline_mode",
+        "data_classes"
+      ],
+      "properties": {
+        "request_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "subject_ref": {
+          "type": "string",
+          "minLength": 1
+        },
+        "operation": {
+          "enum": [
+            "collect_measurement",
+            "publish_observation",
+            "export_evidence",
+            "assert_legal_title"
+          ]
+        },
+        "resource_ref": {
+          "type": "string",
+          "minLength": 1
+        },
+        "project_snapshot_sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "purpose_ref": {
+          "type": "string",
+          "minLength": 1
+        },
+        "recipient_ref": {
+          "type": "string",
+          "minLength": 1
+        },
+        "jurisdiction_profile_ref": {
+          "type": "string",
+          "minLength": 1
+        },
+        "evaluated_at": {
+          "$ref": "#/$defs/utc"
+        },
+        "offline_mode": {
+          "type": "boolean"
+        },
+        "data_classes": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "enum": [
+              "public",
+              "community",
+              "restricted",
+              "culturally_protected"
+            ]
+          }
+        },
+        "principal_ref": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "decision": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "receipt_type",
+        "receipt_ref",
+        "decision_domain",
+        "disposition",
+        "principal_ref",
+        "subject_ref",
+        "operation",
+        "resource_ref",
+        "project_snapshot_sha256",
+        "purpose_ref",
+        "recipient_ref",
+        "jurisdiction_profile_ref",
+        "authorized_data_classes",
+        "policy_ref",
+        "input_receipt_refs",
+        "signature_status",
+        "revocation_status",
+        "currentness_status",
+        "status_snapshot_ref",
+        "valid_from",
+        "valid_until",
+        "offline_lease_expires_at",
+        "decision_maker_ref",
+        "decision_authority_ref",
+        "decision_authority_status",
+        "issuer_trust_status"
+      ],
+      "properties": {
+        "receipt_type": {
+          "enum": [
+            "AuthorizationReceipt",
+            "TransportReceipt",
+            "DiscoveryReceipt",
+            "RecognitionReceipt",
+            "TranslationReceipt",
+            "CapabilityLeaseReceipt",
+            "ExecutionReceipt"
+          ]
+        },
+        "receipt_ref": {
+          "type": "string",
+          "minLength": 1
+        },
+        "decision_domain": {
+          "enum": [
+            "participant_consent",
+            "site_access",
+            "community_mandate",
+            "publication_consent",
+            "community_disclosure",
+            "archive_export"
+          ]
+        },
+        "disposition": {
+          "enum": [
+            "allow",
+            "deny",
+            "review",
+            "unknown"
+          ]
+        },
+        "subject_ref": {
+          "type": "string",
+          "minLength": 1
+        },
+        "operation": {
+          "enum": [
+            "collect_measurement",
+            "publish_observation",
+            "export_evidence",
+            "assert_legal_title"
+          ]
+        },
+        "resource_ref": {
+          "type": "string",
+          "minLength": 1
+        },
+        "project_snapshot_sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "purpose_ref": {
+          "type": "string",
+          "minLength": 1
+        },
+        "recipient_ref": {
+          "type": "string",
+          "minLength": 1
+        },
+        "jurisdiction_profile_ref": {
+          "type": "string",
+          "minLength": 1
+        },
+        "authorized_data_classes": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "enum": [
+              "public",
+              "community",
+              "restricted",
+              "culturally_protected"
+            ]
+          }
+        },
+        "policy_ref": {
+          "type": "string",
+          "minLength": 1
+        },
+        "input_receipt_refs": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "signature_status": {
+          "enum": [
+            "verified",
+            "invalid",
+            "unavailable"
+          ]
+        },
+        "revocation_status": {
+          "enum": [
+            "clear",
+            "revoked",
+            "unknown"
+          ]
+        },
+        "currentness_status": {
+          "enum": [
+            "current",
+            "stale",
+            "unknown"
+          ]
+        },
+        "status_snapshot_ref": {
+          "type": "string",
+          "minLength": 1
+        },
+        "valid_from": {
+          "$ref": "#/$defs/utc"
+        },
+        "valid_until": {
+          "$ref": "#/$defs/utc"
+        },
+        "offline_lease_expires_at": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/utc"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "principal_ref": {
+          "type": "string",
+          "minLength": 1
+        },
+        "decision_maker_ref": {
+          "type": "string",
+          "minLength": 1
+        },
+        "decision_authority_ref": {
+          "type": "string",
+          "minLength": 1
+        },
+        "decision_authority_status": {
+          "enum": [
+            "resolved",
+            "unresolved",
+            "revoked"
+          ]
+        },
+        "issuer_trust_status": {
+          "enum": [
+            "trusted",
+            "untrusted",
+            "unavailable"
+          ]
+        }
+      }
+    },
+    "governance_context": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "governance_profile_ref",
+        "decision_procedure_ref",
+        "representation_assessment_ref",
+        "appeal_route_ref",
+        "representation_status",
+        "coverage_status",
+        "dissent_status",
+        "challenge_status"
+      ],
+      "properties": {
+        "governance_profile_ref": {
+          "type": "string",
+          "minLength": 1
+        },
+        "decision_procedure_ref": {
+          "type": "string",
+          "minLength": 1
+        },
+        "representation_assessment_ref": {
+          "type": "string",
+          "minLength": 1
+        },
+        "appeal_route_ref": {
+          "type": "string",
+          "minLength": 1
+        },
+        "representation_status": {
+          "enum": [
+            "resolved",
+            "contested",
+            "unknown"
+          ]
+        },
+        "coverage_status": {
+          "enum": [
+            "complete_within_declared_scope",
+            "known_gaps",
+            "unknown"
+          ]
+        },
+        "dissent_status": {
+          "enum": [
+            "none",
+            "recorded",
+            "material_unresolved",
+            "unknown"
+          ]
+        },
+        "dissent_register_ref": {
+          "type": "string",
+          "minLength": 1
+        },
+        "challenge_status": {
+          "enum": [
+            "none",
+            "open",
+            "resolved",
+            "unknown"
+          ]
+        },
+        "governance_offline_lease_expires_at": {
+          "$ref": "#/$defs/utc"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "dissent_status": {
+                "const": "recorded"
+              }
+            },
+            "required": [
+              "dissent_status"
+            ]
+          },
+          "then": {
+            "required": [
+              "dissent_register_ref"
+            ]
+          }
+        }
+      ]
+    }
+  },
+  "suite_version": "0.1.1"
+}

@@ -1,0 +1,479 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://luminousdynamics.io/schemas/cter-community-archive-manifest-v0.1.schema.json",
+  "title": "CTER Community Evidence Archive Manifest v0.1",
+  "description": "Strict archive manifest for export frontier, object dispositions, access policy, independent restore and cryptographic preservation. Does not itself prove completeness, legality or truth.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "archive_id",
+    "profile_version",
+    "created_at",
+    "exporter",
+    "scope",
+    "export_context",
+    "source_frontiers",
+    "objects",
+    "restore",
+    "preservation",
+    "claim_ceiling"
+  ],
+  "properties": {
+    "schema": {
+      "const": "luminous.cter.community-archive.v0"
+    },
+    "archive_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "profile_version": {
+      "const": "0.1"
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "exporter": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "owner_system",
+        "software_version",
+        "build_ref"
+      ],
+      "properties": {
+        "owner_system": {
+          "type": "string",
+          "minLength": 1
+        },
+        "software_version": {
+          "type": "string",
+          "minLength": 1
+        },
+        "build_ref": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "scope": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "scope_ref",
+        "object_types",
+        "jurisdiction_profile_ref"
+      ],
+      "properties": {
+        "scope_ref": {
+          "type": "string",
+          "minLength": 1
+        },
+        "object_types": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "jurisdiction_profile_ref": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "source_frontiers": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "owner_system",
+          "snapshot_ref",
+          "query_or_scope_ref",
+          "observed_count",
+          "completeness",
+          "gap_refs"
+        ],
+        "properties": {
+          "owner_system": {
+            "type": "string",
+            "minLength": 1
+          },
+          "snapshot_ref": {
+            "type": "string",
+            "minLength": 1
+          },
+          "snapshot_digest": {
+            "$ref": "#/$defs/digest"
+          },
+          "query_or_scope_ref": {
+            "type": "string",
+            "minLength": 1
+          },
+          "expected_count": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "observed_count": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "completeness": {
+            "enum": [
+              "complete_within_declared_frontier",
+              "partial",
+              "unavailable",
+              "stale",
+              "unknown"
+            ]
+          },
+          "gap_refs": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            },
+            "uniqueItems": true
+          }
+        }
+      }
+    },
+    "objects": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/objectDisposition"
+      }
+    },
+    "restore": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "provider_independent_restore",
+        "key_custody",
+        "restore_test_status",
+        "restore_instructions_ref"
+      ],
+      "properties": {
+        "provider_independent_restore": {
+          "type": "boolean"
+        },
+        "key_custody": {
+          "enum": [
+            "community_threshold",
+            "participant_controlled",
+            "independent_trustee",
+            "provider_only",
+            "unknown"
+          ]
+        },
+        "restore_test_status": {
+          "enum": [
+            "not_run",
+            "pass",
+            "fail",
+            "blocked",
+            "indeterminate"
+          ]
+        },
+        "restore_instructions_ref": {
+          "type": "string",
+          "minLength": 1
+        },
+        "restore_run_ref": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "preservation": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "record_ref",
+          "profile_ref",
+          "predecessor_ref",
+          "algorithm_state",
+          "validation_state"
+        ],
+        "properties": {
+          "record_ref": {
+            "type": "string",
+            "minLength": 1
+          },
+          "profile_ref": {
+            "type": "string",
+            "minLength": 1
+          },
+          "predecessor_ref": {
+            "type": "string",
+            "minLength": 1
+          },
+          "algorithm_state": {
+            "enum": [
+              "current",
+              "deprecated",
+              "compromised",
+              "unknown"
+            ]
+          },
+          "validation_state": {
+            "enum": [
+              "valid",
+              "failed",
+              "indeterminate",
+              "not_evaluated"
+            ]
+          },
+          "timestamp_evidence_ref": {
+            "type": "string",
+            "minLength": 1
+          },
+          "renewal_time": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "renewal_event_ref": {
+            "type": "string",
+            "minLength": 1
+          },
+          "algorithm_weakening_time": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "renewal_time_unix_seconds": {
+            "type": "integer"
+          },
+          "algorithm_weakening_time_unix_seconds": {
+            "type": "integer"
+          }
+        }
+      }
+    },
+    "limitations": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "claim_ceiling": {
+      "const": "archive-structure-and-restoration-only-no-legal-effect"
+    },
+    "export_context": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "destination_ref",
+        "authorized_access_classes",
+        "authorization_ref",
+        "purpose_ref"
+      ],
+      "properties": {
+        "authorization_ref": {
+          "type": "string",
+          "minLength": 1
+        },
+        "purpose_ref": {
+          "type": "string",
+          "minLength": 1
+        },
+        "destination_ref": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Opaque destination identity; access rights are not inferred from the destination name."
+        },
+        "authorized_access_classes": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "enum": [
+              "public",
+              "community",
+              "restricted",
+              "culturally_protected"
+            ]
+          },
+          "description": "Exact disclosure classes explicitly authorized by the referenced policy. Classes are not a universal linear clearance hierarchy."
+        }
+      },
+      "description": "Declared export audience and purpose. Structural presence is not authentication or proof of authorization; resolve the authorization independently."
+    },
+    "transport_observation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "protocol",
+        "carrier_bundle_state",
+        "durable_evidence_state",
+        "retained_event_ref"
+      ],
+      "properties": {
+        "protocol": {
+          "const": "BPv7"
+        },
+        "carrier_bundle_state": {
+          "enum": [
+            "pending",
+            "delivered",
+            "expired",
+            "deleted",
+            "unknown"
+          ]
+        },
+        "durable_evidence_state": {
+          "enum": [
+            "retained",
+            "missing",
+            "unknown"
+          ]
+        },
+        "retained_event_ref": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "description": "Separates transport-carrier lifetime from durable evidence retention."
+    }
+  },
+  "$defs": {
+    "digest": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "algorithm",
+        "value"
+      ],
+      "properties": {
+        "algorithm": {
+          "enum": [
+            "SHA-256",
+            "BLAKE3"
+          ]
+        },
+        "value": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        }
+      }
+    },
+    "objectDisposition": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "object_ref",
+        "object_type",
+        "owner_system",
+        "schema_ref",
+        "schema_version",
+        "access_class",
+        "disposition",
+        "license_state"
+      ],
+      "properties": {
+        "object_ref": {
+          "type": "string",
+          "minLength": 1
+        },
+        "object_type": {
+          "type": "string",
+          "minLength": 1
+        },
+        "owner_system": {
+          "type": "string",
+          "minLength": 1
+        },
+        "schema_ref": {
+          "type": "string",
+          "minLength": 1
+        },
+        "schema_version": {
+          "type": "string",
+          "minLength": 1
+        },
+        "digest": {
+          "$ref": "#/$defs/digest"
+        },
+        "access_class": {
+          "enum": [
+            "public",
+            "community",
+            "restricted",
+            "culturally_protected"
+          ]
+        },
+        "disposition": {
+          "enum": [
+            "included",
+            "withheld",
+            "unavailable"
+          ]
+        },
+        "payload_ref": {
+          "type": "string",
+          "minLength": 1
+        },
+        "reason_code": {
+          "type": "string",
+          "minLength": 1
+        },
+        "commitment_ref": {
+          "type": "string",
+          "minLength": 1
+        },
+        "license_state": {
+          "enum": [
+            "redistributable",
+            "reference_only",
+            "not_cleared",
+            "unknown"
+          ]
+        },
+        "consent_ref": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "disposition": {
+                "const": "included"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "digest",
+              "payload_ref"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "disposition": {
+                "enum": [
+                  "withheld",
+                  "unavailable"
+                ]
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "reason_code"
+            ]
+          }
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,361 @@
+{
+  "schema": "luminous.cter.disclosure-cases.v0.1",
+  "suite_id": "CTER-EGRESS-BINDING-001",
+  "suite_version": "0.1.0",
+  "synthetic_only": true,
+  "execution_status": "query_predicate_and_input_snapshot_commitments_implemented_exact_head_tests_pending",
+  "parent_issue": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/960",
+  "manifest_schema": "schemas/cter-disclosure-manifest-v0.1.schema.json",
+  "canonicalization_profile": "rfc8785-jcs-v1",
+  "claim_ceiling": "synthetic package/request/lineage/destination binding only; no upstream receipt authentication, trusted time, legal effect, privacy guarantee or production egress",
+  "baseline_manifest": {
+    "schema": "luminous.cter.disclosure-manifest.v0.1",
+    "manifest_id": "urn:fixture:manifest:synthetic-001",
+    "canonicalization_profile": "rfc8785-jcs-v1",
+    "manifest_commitment": {
+      "algorithm": "sha-256",
+      "value": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+    },
+    "authorization_binding": {
+      "request_ref": "urn:fixture:request:synthetic-001",
+      "request_commitment": {
+        "algorithm": "sha-256",
+        "value": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+      },
+      "authorization_receipt_ref": "urn:fixture:authorization:synthetic-001",
+      "principal_ref": "urn:fixture:principal:synthetic-001",
+      "subject_ref": "urn:fixture:subject:synthetic-001",
+      "operation": "export_evidence",
+      "resource_ref": "urn:fixture:resource:synthetic-001",
+      "project_snapshot_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "evidence_frontier_ref": "urn:fixture:frontier:synthetic-001",
+      "purpose_ref": "urn:fixture:purpose:synthetic-research",
+      "recipient_ref": "urn:fixture:recipient:synthetic-001",
+      "jurisdiction_profile_ref": "urn:fixture:jurisdiction:synthetic-001",
+      "data_classes": [
+        "community"
+      ],
+      "coverage_query_ref": "urn:fixture:query:scope-v1",
+      "coverage_query_commitment": {
+        "algorithm": "sha-256",
+        "value": "356a31c171751c9b506942e81ce35cb0dbb1a1862c5844e0a9e1b650a18be309"
+      },
+      "coverage_query_profile_ref": "urn:luminous:cter:predicate-json-v0.1",
+      "coverage_input_snapshot_ref": "urn:fixture:query-input-snapshot:composed-release-001",
+      "coverage_input_snapshot_commitment": {
+        "algorithm": "sha-256",
+        "value": "a8f000ebab94a5ad4479faa5fb12cf2980cc094376d0cc3eb438698804c3d788"
+      },
+      "coverage_input_snapshot_profile_ref": "urn:luminous:cter:query-input-json-v0.1"
+    },
+    "destination_binding": {
+      "recipient_ref": "urn:fixture:recipient:synthetic-001",
+      "destination_ref": "urn:fixture:destination:synthetic-001",
+      "destination_key_epoch_ref": "urn:fixture:recipient-key-epoch:1",
+      "channel_ref": "urn:fixture:channel:encrypted-transfer",
+      "transport_profile_ref": "urn:fixture:transport:synthetic-v0"
+    },
+    "package": {
+      "package_ref": "urn:fixture:package:synthetic-001",
+      "media_type": "application/vnd.ter.example-package",
+      "package_payload_digest": {
+        "algorithm": "sha-256",
+        "value": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+      },
+      "outputs": [
+        {
+          "object_ref": "urn:fixture:output:synthetic-001",
+          "content_digest": {
+            "algorithm": "sha-256",
+            "value": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+          },
+          "byte_length": 128,
+          "media_type": "application/octet-stream",
+          "data_classes": [
+            "community"
+          ],
+          "source_refs": [
+            {
+              "object_ref": "urn:fixture:source:synthetic-001",
+              "content_digest": {
+                "algorithm": "sha-256",
+                "value": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+              },
+              "data_classes": [
+                "community"
+              ]
+            }
+          ],
+          "transformation_refs": [
+            "urn:fixture:transform:identity-001"
+          ]
+        }
+      ],
+      "transformations": [
+        {
+          "transform_ref": "urn:fixture:transform:identity-001",
+          "transform_kind": "identity_copy",
+          "profile_ref": "urn:fixture:transform-profile:identity-copy-v0",
+          "version_commitment": {
+            "algorithm": "sha-256",
+            "value": "1111111111111111111111111111111111111111111111111111111111111111"
+          },
+          "input_object_refs": [
+            "urn:fixture:source:synthetic-001"
+          ],
+          "output_object_refs": [
+            "urn:fixture:output:synthetic-001"
+          ]
+        }
+      ]
+    },
+    "coverage_record_ref": "urn:fixture:coverage:synthetic-001",
+    "prepared_at": "2026-11-20T08:00:00Z"
+  },
+  "cases": [
+    {
+      "case_id": "EGRESS-BASELINE-001",
+      "mutation": "none",
+      "expected": "valid_structure",
+      "reason_code": "manifest_and_lineage_structurally_closed"
+    },
+    {
+      "case_id": "EGRESS-ADDED-OUTPUT-AFTER-AUTH-001",
+      "mutation": "Add an output object to package bytes after the manifest and request were authorized.",
+      "expected": "deny",
+      "reason_code": "package_member_set_mismatch"
+    },
+    {
+      "case_id": "EGRESS-REMOVED-OUTPUT-CLAIMED-COMPLETE-001",
+      "mutation": "Remove an output object while the custodian coverage record still claims complete coverage.",
+      "expected": "incomplete",
+      "reason_code": "coverage_frontier_mismatch"
+    },
+    {
+      "case_id": "EGRESS-PAYLOAD-BYTES-CHANGED-001",
+      "mutation": "Change payload bytes without changing the manifest content digest.",
+      "expected": "deny",
+      "reason_code": "payload_digest_mismatch"
+    },
+    {
+      "case_id": "EGRESS-OBJECT-REF-DIGEST-CONFLICT-001",
+      "mutation": "Reuse one output object reference with divergent content digests.",
+      "expected": "deny",
+      "reason_code": "object_identity_conflict"
+    },
+    {
+      "case_id": "EGRESS-MISSING-SOURCE-ANCESTOR-001",
+      "mutation": "Remove a referenced source object or its digest from the lineage graph.",
+      "expected": "incomplete",
+      "reason_code": "source_lineage_incomplete"
+    },
+    {
+      "case_id": "EGRESS-SOURCE-UNAVAILABLE-001",
+      "mutation": "Keep a source reference but mark its resolver result unavailable.",
+      "expected": "unknown",
+      "reason_code": "source_availability_unknown"
+    },
+    {
+      "case_id": "EGRESS-MISSING-TRANSFORM-ANCESTOR-001",
+      "mutation": "Remove a transform node referenced by an output object.",
+      "expected": "incomplete",
+      "reason_code": "transformation_lineage_incomplete"
+    },
+    {
+      "case_id": "EGRESS-TRANSFORM-CYCLE-001",
+      "mutation": "Create a cycle in the source-to-transform-to-output dependency graph.",
+      "expected": "deny",
+      "reason_code": "transformation_graph_cycle"
+    },
+    {
+      "case_id": "EGRESS-TRANSFORM-VERSION-UNKNOWN-001",
+      "mutation": "Reference a transform profile version that the host cannot resolve.",
+      "expected": "unknown",
+      "reason_code": "transform_profile_unresolved"
+    },
+    {
+      "case_id": "EGRESS-REQUEST-COMMITMENT-DRIFT-001",
+      "mutation": "Change the canonical request while retaining the original request commitment.",
+      "expected": "deny",
+      "reason_code": "authorization_request_commitment_mismatch"
+    },
+    {
+      "case_id": "EGRESS-PRINCIPAL-SCOPE-DRIFT-001",
+      "mutation": "Change the principal or subject in the manifest after request qualification.",
+      "expected": "deny",
+      "reason_code": "authorization_scope_mismatch"
+    },
+    {
+      "case_id": "EGRESS-RECIPIENT-SUBSTITUTION-001",
+      "mutation": "Make destination recipient_ref differ from authorization_binding recipient_ref.",
+      "expected": "deny",
+      "reason_code": "recipient_binding_mismatch"
+    },
+    {
+      "case_id": "EGRESS-DESTINATION-KEY-EPOCH-CHANGE-001",
+      "mutation": "Rotate or replace the destination key epoch after prepare but before release.",
+      "expected": "unknown",
+      "reason_code": "destination_key_epoch_requires_reresolution"
+    },
+    {
+      "case_id": "EGRESS-CHANNEL-SUBSTITUTION-001",
+      "mutation": "Change the channel or transport profile after authorization.",
+      "expected": "deny",
+      "reason_code": "transport_binding_mismatch"
+    },
+    {
+      "case_id": "EGRESS-PROJECT-SNAPSHOT-DRIFT-001",
+      "mutation": "Change the project snapshot digest between preparation and release.",
+      "expected": "unknown",
+      "reason_code": "project_snapshot_requires_reresolution"
+    },
+    {
+      "case_id": "EGRESS-EVIDENCE-FRONTIER-DRIFT-001",
+      "mutation": "Advance or replace the evidence frontier without requalifying the exact request.",
+      "expected": "unknown",
+      "reason_code": "evidence_frontier_requires_reresolution"
+    },
+    {
+      "case_id": "EGRESS-DATA-CLASS-OVERREACH-001",
+      "mutation": "Add an output data class outside the exact authorization scope.",
+      "expected": "deny",
+      "reason_code": "output_data_class_outside_scope"
+    },
+    {
+      "case_id": "EGRESS-UNAUTHORIZED-CLASSIFICATION-DOWNGRADE-001",
+      "mutation": "Change an output classification without an explicit qualified classification-change authority reference.",
+      "expected": "review",
+      "reason_code": "classification_change_not_qualified"
+    },
+    {
+      "case_id": "EGRESS-IDENTITY-COPY-MISLABELED-REDACTION-001",
+      "mutation": "Label an identity-copy transform as redaction while the output retains the input bytes.",
+      "expected": "deny",
+      "reason_code": "transformation_claim_mismatch"
+    },
+    {
+      "case_id": "EGRESS-REVOCATION-ARRIVES-BEFORE-SEND-001",
+      "mutation": "Upstream authority is revoked after preparation and before the release recheck.",
+      "expected": "deny",
+      "reason_code": "upstream_authority_revoked_before_release"
+    },
+    {
+      "case_id": "EGRESS-TRUSTED-TIME-UNAVAILABLE-001",
+      "mutation": "The host cannot establish a qualified evaluation time/currentness context.",
+      "expected": "unknown",
+      "reason_code": "trusted_time_or_currentness_unavailable"
+    },
+    {
+      "case_id": "EGRESS-OFFLINE-LEASE-LOCALLY-EXTENDED-001",
+      "mutation": "A disconnected relay extends its own expired offline authorization lease.",
+      "expected": "deny",
+      "reason_code": "offline_lease_local_renewal_forbidden"
+    },
+    {
+      "case_id": "EGRESS-UNKNOWN-OUTCOME-RETRY-001",
+      "mutation": "Retry a non-idempotent release after the original delivery outcome became unknown.",
+      "expected": "unknown",
+      "reason_code": "release_outcome_requires_reconciliation"
+    },
+    {
+      "case_id": "EGRESS-REPLAY-ID-CHANGED-CONTENT-001",
+      "mutation": "Reuse one release-attempt/idempotency reference with a different package commitment.",
+      "expected": "deny",
+      "reason_code": "release_attempt_identity_conflict"
+    },
+    {
+      "case_id": "EGRESS-WITHHELD-OBJECT-REPORTED-ABSENT-001",
+      "mutation": "Collapse a withheld or unavailable source into global absence in the coverage record.",
+      "expected": "incomplete",
+      "reason_code": "coverage_state_erasure"
+    },
+    {
+      "case_id": "EGRESS-SIDE-CHANNEL-LEAK-001",
+      "mutation": "Expose protected data through metadata, filenames, thumbnails, tiles, logs, caches, indexes or model prompts.",
+      "expected": "deny",
+      "reason_code": "unauthorized_secondary_channel_disclosure"
+    },
+    {
+      "case_id": "EGRESS-LOW-ENTROPY-COMMITMENT-LEAK-001",
+      "mutation": "Publish a deterministic hash that permits guessing a low-entropy sensitive value.",
+      "expected": "review",
+      "reason_code": "commitment_privacy_review_required"
+    },
+    {
+      "case_id": "EGRESS-TRANSPORT-RECEIPT-AS-ACK-001",
+      "mutation": "Treat a transport-stage receipt as proof that the named recipient acknowledged the package.",
+      "expected": "deny",
+      "reason_code": "receipt_stage_substitution"
+    },
+    {
+      "case_id": "EGRESS-ACK-AS-EXTERNAL-FINALITY-001",
+      "mutation": "Treat recipient acknowledgement as proof of legal or external finality.",
+      "expected": "deny",
+      "reason_code": "external_finality_not_established"
+    },
+    {
+      "case_id": "EGRESS-WITHDRAWAL-MEANS-REMOTE-ERASURE-001",
+      "mutation": "Represent post-release withdrawal as proof that every downstream copy was erased.",
+      "expected": "deny",
+      "reason_code": "downstream_erasure_not_proven"
+    },
+    {
+      "case_id": "EGRESS-CANONICALIZATION-DIVERGENCE-001",
+      "mutation": "Use two canonicalizers that produce different commitments for the same manifest object.",
+      "expected": "deny",
+      "reason_code": "canonicalization_agreement_failed"
+    },
+    {
+      "case_id": "EGRESS-COVERAGE-QUERY-REF-MISSING-001",
+      "mutation": "Remove the exact coverage query reference from authorization binding.",
+      "expected": "incomplete",
+      "reason_code": "authorization_coverage_query_ref_missing"
+    },
+    {
+      "case_id": "EGRESS-COVERAGE-QUERY-COMMITMENT-MALFORMED-001",
+      "mutation": "Change the coverage query commitment to an unsupported algorithm.",
+      "expected": "incomplete",
+      "reason_code": "authorization_coverage_query_commitment_malformed"
+    },
+    {
+      "case_id": "EGRESS-COVERAGE-QUERY-PROFILE-UNSUPPORTED-001",
+      "mutation": "Use an unsupported coverage-query semantics profile.",
+      "expected": "incomplete",
+      "reason_code": "authorization_coverage_query_profile_missing_or_unsupported"
+    },
+    {
+      "case_id": "EGRESS-INPUT-SNAPSHOT-REF-MISSING-001",
+      "mutation": "Remove the source input snapshot reference from authorization binding.",
+      "expected": "incomplete",
+      "reason_code": "authorization_coverage_input_snapshot_ref_missing"
+    },
+    {
+      "case_id": "EGRESS-INPUT-SNAPSHOT-COMMITMENT-MALFORMED-001",
+      "mutation": "Use a malformed source input snapshot commitment.",
+      "expected": "incomplete",
+      "reason_code": "authorization_coverage_input_snapshot_commitment_malformed"
+    },
+    {
+      "case_id": "EGRESS-INPUT-SNAPSHOT-PROFILE-UNSUPPORTED-001",
+      "mutation": "Use an unsupported snapshot reference scheme.",
+      "expected": "incomplete",
+      "reason_code": "authorization_coverage_input_snapshot_profile_missing_or_unsupported"
+    },
+    {
+      "case_id": "EGRESS-INPUT-SNAPSHOT-PROFILE-MISMATCH-001",
+      "mutation": "Use an unsupported query input snapshot semantics profile.",
+      "expected": "incomplete",
+      "reason_code": "authorization_coverage_input_snapshot_profile_missing_or_unsupported"
+    }
+  ],
+  "targets": {
+    "unauthorized_release_negative_controls": 0,
+    "request_recipient_transform_frontier_substitution_detection": 1,
+    "complete_output_lineage_coverage": 1,
+    "unauthorized_classification_downgrade_acceptance": 0,
+    "changed_bytes_under_unchanged_commitment": 0,
+    "stale_or_untrusted_time_promoted_to_release": 0,
+    "unsafe_non_idempotent_retry_after_unknown": 0,
+    "cross_language_canonicalization_agreement": 1
+  }
+}

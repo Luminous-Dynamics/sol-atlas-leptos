@@ -1,0 +1,73 @@
+{
+  "schema": "luminous.cter.query-input-snapshot-workloads.v0.1",
+  "suite_id": "CTER-QUERY-INPUT-ATTESTATION-001",
+  "suite_version": "0.1.0",
+  "status": "benchmark_specification_only",
+  "claim_ceiling": "workload definition only; no owner attestation, source truth or performance result is claimed",
+  "profile_ref": "urn:luminous:cter:query-input-json-v0.1",
+  "commitment": {
+    "algorithm": "sha-256",
+    "domain_tag": "luminous.cter.query-input-snapshot.v0.1",
+    "canonicalization": "rfc8785-jcs-v1",
+    "item_order": "object_ref ascending",
+    "attribute_source_order": ["path ascending", "source_object_ref ascending"]
+  },
+  "frontier_sizes": [1000, 10000, 100000, 1000000],
+  "attributes_per_item": [2, 8, 32, 128],
+  "source_fan_in": [1, 2, 5, 10],
+  "availability_mix": [
+    {"id":"all-available","available":1.0,"unavailable":0.0,"unknown":0.0},
+    {"id":"mostly-available","available":0.95,"unavailable":0.03,"unknown":0.02},
+    {"id":"high-unknown","available":0.7,"unavailable":0.1,"unknown":0.2}
+  ],
+  "frontier_churn_fraction": [0.0, 0.001, 0.01, 0.1],
+  "query_predicate_counts": [1, 10, 100],
+  "fault_injection": [
+    "attribute_value_changed_after_snapshot",
+    "source_reference_substituted",
+    "source_digest_substituted",
+    "attribute_source_binding_missing",
+    "attribute_source_outside_frontier",
+    "duplicate_snapshot_item",
+    "duplicate_attribute_source",
+    "available_to_unavailable_transition",
+    "unknown_to_false_coercion",
+    "unknown_to_true_coercion",
+    "frontier_version_substitution",
+    "query_predicate_substitution",
+    "query_profile_substitution",
+    "snapshot_commitment_substitution",
+    "custodian_hash_without_owner_receipt",
+    "stale_or_revoked_owner_receipt",
+    "receipt_from_other_subject_or_recipient",
+    "restore_without_attribute_projection_profile",
+    "public_low_entropy_metadata_leak"
+  ],
+  "required_metrics": [
+    "snapshot_generation_ms",
+    "snapshot_verification_ms",
+    "per_item_commitment_ms",
+    "receipt_verification_ms",
+    "snapshot_bytes",
+    "receipt_bytes",
+    "private_memory_peak_bytes",
+    "allocations",
+    "source_reference_resolution_ms",
+    "stale_detection_ms",
+    "requalification_ms",
+    "unknown_count",
+    "false_accept_count",
+    "false_reject_count",
+    "metadata_leakage_findings",
+    "independent_restore_ms",
+    "owner_attestation_availability"
+  ],
+  "reporting": {
+    "latency_quantiles": ["p50","p95","p99","max"],
+    "hashing_and_source_resolution_measured_separately": true,
+    "custodian_integrity_and_owner_attestation_separate": true,
+    "owner_attestation_and_action_authorization_separate": true,
+    "no_single_weighted_score": true,
+    "candidate_comparison_rule": "same exact frontier bytes, source attribute projection, predicate, availability schedule, audience, hardware and resource limits"
+  }
+}

@@ -1,0 +1,71 @@
+{
+  "schema": "luminous.cter.query-predicate-commitments.v0.1",
+  "suite_id": "CTER-QUERY-COMMITMENT-JCS-001",
+  "suite_version": "0.1.0",
+  "canonicalization_profile": "rfc8785-jcs-v1",
+  "domain_tag": "luminous.cter.query-predicate.v0.1",
+  "profile_ref": "urn:luminous:cter:predicate-json-v0.1",
+  "claim_ceiling": "golden canonicalization and SHA-256 vectors only; no raw JSON duplicate-name rejection, upstream signature or production receipt verification",
+  "cases": [
+    {
+      "case_id": "baseline",
+      "predicate": {
+        "op": "all",
+        "args": [
+          {
+            "op": "eq",
+            "path": "/dataset",
+            "value": "cadastre"
+          },
+          {
+            "op": "eq",
+            "path": "/jurisdiction",
+            "value": "ZA"
+          }
+        ]
+      },
+      "canonical_preimage": "{\"predicate\":{\"args\":[{\"op\":\"eq\",\"path\":\"/dataset\",\"value\":\"cadastre\"},{\"op\":\"eq\",\"path\":\"/jurisdiction\",\"value\":\"ZA\"}],\"op\":\"all\"},\"profile_ref\":\"urn:luminous:cter:predicate-json-v0.1\"}",
+      "expected_digest": "356a31c171751c9b506942e81ce35cb0dbb1a1862c5844e0a9e1b650a18be309"
+    },
+    {
+      "case_id": "equivalent-key-order",
+      "predicate": {
+        "args": [
+          {
+            "value": "cadastre",
+            "path": "/dataset",
+            "op": "eq"
+          },
+          {
+            "value": "ZA",
+            "op": "eq",
+            "path": "/jurisdiction"
+          }
+        ],
+        "op": "all"
+      },
+      "canonical_preimage": "{\"predicate\":{\"args\":[{\"op\":\"eq\",\"path\":\"/dataset\",\"value\":\"cadastre\"},{\"op\":\"eq\",\"path\":\"/jurisdiction\",\"value\":\"ZA\"}],\"op\":\"all\"},\"profile_ref\":\"urn:luminous:cter:predicate-json-v0.1\"}",
+      "expected_digest": "356a31c171751c9b506942e81ce35cb0dbb1a1862c5844e0a9e1b650a18be309"
+    },
+    {
+      "case_id": "unicode-preservation",
+      "predicate": {
+        "op": "eq",
+        "path": "/label",
+        "value": "é / 𝄞"
+      },
+      "canonical_preimage": "{\"predicate\":{\"op\":\"eq\",\"path\":\"/label\",\"value\":\"é / 𝄞\"},\"profile_ref\":\"urn:luminous:cter:predicate-json-v0.1\"}",
+      "expected_digest": "8a13729d863546bbb0c4a49f809b37f50a989c2e235f832e1b7250e6570c954b"
+    },
+    {
+      "case_id": "ieee754-number-format",
+      "predicate": {
+        "op": "eq",
+        "path": "/accuracy",
+        "value": 1e-7
+      },
+      "canonical_preimage": "{\"predicate\":{\"op\":\"eq\",\"path\":\"/accuracy\",\"value\":1e-7},\"profile_ref\":\"urn:luminous:cter:predicate-json-v0.1\"}",
+      "expected_digest": "3fafb746cf9ff49884c8bba446a698e07300d087ec5cbc24d4fdbcb091539c1e"
+    }
+  ]
+}

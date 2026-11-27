@@ -1,0 +1,2389 @@
+{
+  "schema": "luminous.cter.relay-cases.v0",
+  "suite_id": "CTER-RELAY-CONVERGENCE-001",
+  "suite_version": "0.1.8",
+  "synthetic_only": true,
+  "cases": [
+    {
+      "case_id": "REPLAY-001",
+      "title": "Exact duplicate delivery is idempotent",
+      "deliveries": [
+        {
+          "event": {
+            "event_id": "e1",
+            "stream_id": "stream-a",
+            "sequence": 0,
+            "previous_hash": null,
+            "event_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "actor": "actor-a"
+          },
+          "assessment": {
+            "verifier_id": "verifier-a",
+            "policy_id": "tib-key-policy-v0",
+            "assessed_at": "2026-11-19T00:00:00Z",
+            "status": "verified",
+            "assessment_id": "assessment-replay-001-1",
+            "key_status_snapshot_ref": "urn:tib:key-status:snapshot:synthetic-2026-11-19",
+            "event_time_basis": "external_trusted_timestamp",
+            "time_evidence_ref": "urn:synthetic:time-evidence:assessment-replay-001-1"
+          },
+          "context": {
+            "projection_key": "claim:x",
+            "access_class": "restricted"
+          },
+          "payload": {
+            "blob_ref": "cas://synthetic/replay-001/e1",
+            "media_type": "application/vnd.mycelix.signed-scientific-event+json",
+            "blob_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+          }
+        },
+        {
+          "event": {
+            "event_id": "e1",
+            "stream_id": "stream-a",
+            "sequence": 0,
+            "previous_hash": null,
+            "event_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "actor": "actor-a"
+          },
+          "assessment": {
+            "verifier_id": "verifier-a",
+            "policy_id": "tib-key-policy-v0",
+            "assessed_at": "2026-11-19T00:00:00Z",
+            "status": "verified",
+            "assessment_id": "assessment-replay-001-2",
+            "key_status_snapshot_ref": "urn:tib:key-status:snapshot:synthetic-2026-11-19",
+            "event_time_basis": "external_trusted_timestamp",
+            "time_evidence_ref": "urn:synthetic:time-evidence:assessment-replay-001-2"
+          },
+          "context": {
+            "projection_key": "claim:x",
+            "access_class": "restricted"
+          },
+          "payload": {
+            "blob_ref": "cas://synthetic/replay-001/e1",
+            "media_type": "application/vnd.mycelix.signed-scientific-event+json",
+            "blob_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+          }
+        }
+      ],
+      "expected": {
+        "accepted_events": [
+          "e1"
+        ],
+        "duplicate_replays": 1,
+        "invalid_signatures": [],
+        "revoked_keys": [],
+        "verification_pending": [],
+        "malformed_events": [],
+        "missing_parent_events": [],
+        "blocked_parent_events": [],
+        "equivocation_event_ids": [],
+        "sequence_fork_event_ids": [],
+        "hash_collision_event_ids": [],
+        "sequence_conflict_pending_event_ids": [],
+        "verification_conflict_event_ids": [],
+        "context_conflict_event_ids": [],
+        "conflict_groups": [],
+        "payload_digest_conflict_event_ids": []
+      }
+    },
+    {
+      "case_id": "EQUIVOCATION-001",
+      "title": "Same event ID with different signed-event hashes is quarantined",
+      "deliveries": [
+        {
+          "event": {
+            "event_id": "e1",
+            "stream_id": "stream-a",
+            "sequence": 0,
+            "previous_hash": null,
+            "event_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "actor": "actor-a"
+          },
+          "assessment": {
+            "verifier_id": "verifier-a",
+            "policy_id": "tib-key-policy-v0",
+            "assessed_at": "2026-11-19T00:00:00Z",
+            "status": "verified",
+            "assessment_id": "assessment-equivocation-001-1",
+            "key_status_snapshot_ref": "urn:tib:key-status:snapshot:synthetic-2026-11-19",
+            "event_time_basis": "external_trusted_timestamp",
+            "time_evidence_ref": "urn:synthetic:time-evidence:assessment-equivocation-001-1"
+          },
+          "context": {
+            "projection_key": "claim:x",
+            "access_class": "restricted"
+          },
+          "payload": {
+            "blob_ref": "cas://synthetic/equivocation-001/e1",
+            "media_type": "application/vnd.mycelix.signed-scientific-event+json",
+            "blob_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+          }
+        },
+        {
+          "event": {
+            "event_id": "e1",
+            "stream_id": "stream-a",
+            "sequence": 0,
+            "previous_hash": null,
+            "event_hash": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "actor": "actor-a"
+          },
+          "assessment": {
+            "verifier_id": "verifier-a",
+            "policy_id": "tib-key-policy-v0",
+            "assessed_at": "2026-11-19T00:00:00Z",
+            "status": "verified",
+            "assessment_id": "assessment-equivocation-001-2",
+            "key_status_snapshot_ref": "urn:tib:key-status:snapshot:synthetic-2026-11-19",
+            "event_time_basis": "external_trusted_timestamp",
+            "time_evidence_ref": "urn:synthetic:time-evidence:assessment-equivocation-001-2"
+          },
+          "context": {
+            "projection_key": "claim:x",
+            "access_class": "restricted"
+          },
+          "payload": {
+            "blob_ref": "cas://synthetic/equivocation-001/e1",
+            "media_type": "application/vnd.mycelix.signed-scientific-event+json",
+            "blob_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+          }
+        }
+      ],
+      "expected": {
+        "accepted_events": [],
+        "duplicate_replays": 0,
+        "invalid_signatures": [],
+        "revoked_keys": [],
+        "verification_pending": [],
+        "malformed_events": [],
+        "missing_parent_events": [],
+        "blocked_parent_events": [],
+        "equivocation_event_ids": [
+          "e1"
+        ],
+        "sequence_fork_event_ids": [],
+        "hash_collision_event_ids": [],
+        "sequence_conflict_pending_event_ids": [],
+        "verification_conflict_event_ids": [],
+        "context_conflict_event_ids": [],
+        "conflict_groups": [],
+        "payload_digest_conflict_event_ids": []
+      }
+    },
+    {
+      "case_id": "PARENT-GAP-001",
+      "title": "Missing previous-hash predecessor leaves the event pending",
+      "deliveries": [
+        {
+          "event": {
+            "event_id": "e2",
+            "stream_id": "stream-a",
+            "sequence": 1,
+            "previous_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "event_hash": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "actor": "actor-a"
+          },
+          "assessment": {
+            "verifier_id": "verifier-a",
+            "policy_id": "tib-key-policy-v0",
+            "assessed_at": "2026-11-19T00:00:00Z",
+            "status": "verified",
+            "assessment_id": "assessment-parent-gap-001-1",
+            "key_status_snapshot_ref": "urn:tib:key-status:snapshot:synthetic-2026-11-19",
+            "event_time_basis": "external_trusted_timestamp",
+            "time_evidence_ref": "urn:synthetic:time-evidence:assessment-parent-gap-001-1"
+          },
+          "context": {
+            "projection_key": "claim:x",
+            "access_class": "restricted"
+          },
+          "payload": {
+            "blob_ref": "cas://synthetic/parent-gap-001/e2",
+            "media_type": "application/vnd.mycelix.signed-scientific-event+json",
+            "blob_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+          }
+        }
+      ],
+      "expected": {
+        "accepted_events": [],
+        "duplicate_replays": 0,
+        "invalid_signatures": [],
+        "revoked_keys": [],
+        "verification_pending": [],
+        "malformed_events": [],
+        "missing_parent_events": [
+          "e2"
+        ],
+        "blocked_parent_events": [],
+        "equivocation_event_ids": [],
+        "sequence_fork_event_ids": [],
+        "hash_collision_event_ids": [],
+        "sequence_conflict_pending_event_ids": [],
+        "verification_conflict_event_ids": [],
+        "context_conflict_event_ids": [],
+        "conflict_groups": [],
+        "payload_digest_conflict_event_ids": []
+      }
+    },
+    {
+      "case_id": "REORDER-001",
+      "title": "Child delivered before predecessor is accepted after batch reconciliation",
+      "deliveries": [
+        {
+          "event": {
+            "event_id": "e2",
+            "stream_id": "stream-a",
+            "sequence": 1,
+            "previous_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "event_hash": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "actor": "actor-a"
+          },
+          "assessment": {
+            "verifier_id": "verifier-a",
+            "policy_id": "tib-key-policy-v0",
+            "assessed_at": "2026-11-19T00:00:00Z",
+            "status": "verified",
+            "assessment_id": "assessment-reorder-001-1",
+            "key_status_snapshot_ref": "urn:tib:key-status:snapshot:synthetic-2026-11-19",
+            "event_time_basis": "external_trusted_timestamp",
+            "time_evidence_ref": "urn:synthetic:time-evidence:assessment-reorder-001-1"
+          },
+          "context": {
+            "projection_key": "claim:x",
+            "access_class": "restricted"
+          },
+          "payload": {
+            "blob_ref": "cas://synthetic/reorder-001/e2",
+            "media_type": "application/vnd.mycelix.signed-scientific-event+json",
+            "blob_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+          }
+        },
+        {
+          "event": {
+            "event_id": "e1",
+            "stream_id": "stream-a",
+            "sequence": 0,
+            "previous_hash": null,
+            "event_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "actor": "actor-a"
+          },
+          "assessment": {
+            "verifier_id": "verifier-a",
+            "policy_id": "tib-key-policy-v0",
+            "assessed_at": "2026-11-19T00:00:00Z",
+            "status": "verified",
+            "assessment_id": "assessment-reorder-001-2",
+            "key_status_snapshot_ref": "urn:tib:key-status:snapshot:synthetic-2026-11-19",
+            "event_time_basis": "external_trusted_timestamp",
+            "time_evidence_ref": "urn:synthetic:time-evidence:assessment-reorder-001-2"
+          },
+          "context": {
+            "projection_key": "claim:x",
+            "access_class": "restricted"
+          },
+          "payload": {
+            "blob_ref": "cas://synthetic/reorder-001/e1",
+            "media_type": "application/vnd.mycelix.signed-scientific-event+json",
+            "blob_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+          }
+        }
+      ],
+      "expected": {
+        "accepted_events": [
+          "e1",
+          "e2"
+        ],
+        "duplicate_replays": 0,
+        "invalid_signatures": [],
+        "revoked_keys": [],
+        "verification_pending": [],
+        "malformed_events": [],
+        "missing_parent_events": [],
+        "blocked_parent_events": [],
+        "equivocation_event_ids": [],
+        "sequence_fork_event_ids": [],
+        "hash_collision_event_ids": [],
+        "sequence_conflict_pending_event_ids": [],
+        "verification_conflict_event_ids": [],
+        "context_conflict_event_ids": [],
+        "conflict_groups": [],
+        "payload_digest_conflict_event_ids": []
+      }
+    },
+    {
+      "case_id": "SIGNATURE-INVALID-001",
+      "title": "Invalid signature is not accepted",
+      "deliveries": [
+        {
+          "event": {
+            "event_id": "e1",
+            "stream_id": "stream-a",
+            "sequence": 0,
+            "previous_hash": null,
+            "event_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "actor": "actor-a"
+          },
+          "assessment": {
+            "verifier_id": "verifier-a",
+            "policy_id": "tib-key-policy-v0",
+            "assessed_at": "2026-11-19T00:00:00Z",
+            "status": "invalid",
+            "assessment_id": "assessment-signature-invalid-001-1",
+            "key_status_snapshot_ref": "urn:tib:key-status:snapshot:synthetic-2026-11-19",
+            "event_time_basis": "external_trusted_timestamp"
+          },
+          "context": {
+            "projection_key": "claim:x",
+            "access_class": "restricted"
+          },
+          "payload": {
+            "blob_ref": "cas://synthetic/signature-invalid-001/e1",
+            "media_type": "application/vnd.mycelix.signed-scientific-event+json",
+            "blob_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+          }
+        }
+      ],
+      "expected": {
+        "accepted_events": [],
+        "duplicate_replays": 0,
+        "invalid_signatures": [
+          "e1"
+        ],
+        "revoked_keys": [],
+        "verification_pending": [],
+        "malformed_events": [],
+        "missing_parent_events": [],
+        "blocked_parent_events": [],
+        "equivocation_event_ids": [],
+        "sequence_fork_event_ids": [],
+        "hash_collision_event_ids": [],
+        "sequence_conflict_pending_event_ids": [],
+        "verification_conflict_event_ids": [],
+        "context_conflict_event_ids": [],
+        "conflict_groups": [],
+        "payload_digest_conflict_event_ids": []
+      }
+    },
+    {
+      "case_id": "VERIFIER-UNAVAILABLE-001",
+      "title": "Unavailable verifier remains pending",
+      "deliveries": [
+        {
+          "event": {
+            "event_id": "e1",
+            "stream_id": "stream-a",
+            "sequence": 0,
+            "previous_hash": null,
+            "event_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "actor": "actor-a"
+          },
+          "assessment": {
+            "verifier_id": "verifier-a",
+            "policy_id": "tib-key-policy-v0",
+            "assessed_at": "2026-11-19T00:00:00Z",
+            "status": "unavailable",
+            "assessment_id": "assessment-verifier-unavailable-001-1",
+            "key_status_snapshot_ref": "urn:tib:key-status:snapshot:synthetic-2026-11-19",
+            "event_time_basis": "external_trusted_timestamp"
+          },
+          "context": {
+            "projection_key": "claim:x",
+            "access_class": "restricted"
+          },
+          "payload": {
+            "blob_ref": "cas://synthetic/verifier-unavailable-001/e1",
+            "media_type": "application/vnd.mycelix.signed-scientific-event+json",
+            "blob_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+          }
+        }
+      ],
+      "expected": {
+        "accepted_events": [],
+        "duplicate_replays": 0,
+        "invalid_signatures": [],
+        "revoked_keys": [],
+        "verification_pending": [
+          "e1"
+        ],
+        "malformed_events": [],
+        "missing_parent_events": [],
+        "blocked_parent_events": [],
+        "equivocation_event_ids": [],
+        "sequence_fork_event_ids": [],
+        "hash_collision_event_ids": [],
+        "sequence_conflict_pending_event_ids": [],
+        "verification_conflict_event_ids": [],
+        "context_conflict_event_ids": [],
+        "conflict_groups": [],
+        "payload_digest_conflict_event_ids": []
+      }
+    },
+    {
+      "case_id": "KEY-REVOKED-001",
+      "title": "Revoked signer key is not accepted",
+      "deliveries": [
+        {
+          "event": {
+            "event_id": "e1",
+            "stream_id": "stream-a",
+            "sequence": 0,
+            "previous_hash": null,
+            "event_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "actor": "actor-a"
+          },
+          "assessment": {
+            "verifier_id": "verifier-a",
+            "policy_id": "tib-key-policy-v0",
+            "assessed_at": "2026-11-19T00:00:00Z",
+            "status": "revoked",
+            "assessment_id": "assessment-key-revoked-001-1",
+            "key_status_snapshot_ref": "urn:tib:key-status:snapshot:synthetic-2026-11-19",
+            "event_time_basis": "external_trusted_timestamp",
+            "time_evidence_ref": "urn:synthetic:time-evidence:assessment-key-revoked-001-1"
+          },
+          "context": {
+            "projection_key": "claim:x",
+            "access_class": "restricted"
+          },
+          "payload": {
+            "blob_ref": "cas://synthetic/key-revoked-001/e1",
+            "media_type": "application/vnd.mycelix.signed-scientific-event+json",
+            "blob_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+          }
+        }
+      ],
+      "expected": {
+        "accepted_events": [],
+        "duplicate_replays": 0,
+        "invalid_signatures": [],
+        "revoked_keys": [
+          "e1"
+        ],
+        "verification_pending": [],
+        "malformed_events": [],
+        "missing_parent_events": [],
+        "blocked_parent_events": [],
+        "equivocation_event_ids": [],
+        "sequence_fork_event_ids": [],
+        "hash_collision_event_ids": [],
+        "sequence_conflict_pending_event_ids": [],
+        "verification_conflict_event_ids": [],
+        "context_conflict_event_ids": [],
+        "conflict_groups": [],
+        "payload_digest_conflict_event_ids": []
+      }
+    },
+    {
+      "case_id": "STREAM-FORK-001",
+      "title": "Same stream and sequence with two verified events is a fork",
+      "deliveries": [
+        {
+          "event": {
+            "event_id": "e0",
+            "stream_id": "stream-a",
+            "sequence": 0,
+            "previous_hash": null,
+            "event_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "actor": "actor-a"
+          },
+          "assessment": {
+            "verifier_id": "verifier-a",
+            "policy_id": "tib-key-policy-v0",
+            "assessed_at": "2026-11-19T00:00:00Z",
+            "status": "verified",
+            "assessment_id": "assessment-stream-fork-001-1",
+            "key_status_snapshot_ref": "urn:tib:key-status:snapshot:synthetic-2026-11-19",
+            "event_time_basis": "external_trusted_timestamp",
+            "time_evidence_ref": "urn:synthetic:time-evidence:assessment-stream-fork-001-1"
+          },
+          "context": {
+            "projection_key": "claim:x",
+            "access_class": "restricted"
+          },
+          "payload": {
+            "blob_ref": "cas://synthetic/stream-fork-001/e0",
+            "media_type": "application/vnd.mycelix.signed-scientific-event+json",
+            "blob_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+          }
+        },
+        {
+          "event": {
+            "event_id": "e1",
+            "stream_id": "stream-a",
+            "sequence": 1,
+            "previous_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "event_hash": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "actor": "actor-a"
+          },
+          "assessment": {
+            "verifier_id": "verifier-a",
+            "policy_id": "tib-key-policy-v0",
+            "assessed_at": "2026-11-19T00:00:00Z",
+            "status": "verified",
+            "assessment_id": "assessment-stream-fork-001-2",
+            "key_status_snapshot_ref": "urn:tib:key-status:snapshot:synthetic-2026-11-19",
+            "event_time_basis": "external_trusted_timestamp",
+            "time_evidence_ref": "urn:synthetic:time-evidence:assessment-stream-fork-001-2"
+          },
+          "context": {
+            "projection_key": "claim:x",
+            "access_class": "restricted"
+          },
+          "payload": {
+            "blob_ref": "cas://synthetic/stream-fork-001/e1",
+            "media_type": "application/vnd.mycelix.signed-scientific-event+json",
+            "blob_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+          }
+        },
+        {
+          "event": {
+            "event_id": "e2",
+            "stream_id": "stream-a",
+            "sequence": 1,
+            "previous_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "event_hash": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "actor": "actor-b"
+          },
+          "assessment": {
+            "verifier_id": "verifier-a",
+            "policy_id": "tib-key-policy-v0",
+            "assessed_at": "2026-11-19T00:00:00Z",
+            "status": "verified",
+            "assessment_id": "assessment-stream-fork-001-3",
+            "key_status_snapshot_ref": "urn:tib:key-status:snapshot:synthetic-2026-11-19",
+            "event_time_basis": "external_trusted_timestamp",
+            "time_evidence_ref": "urn:synthetic:time-evidence:assessment-stream-fork-001-3"
+          },
+          "context": {
+            "projection_key": "claim:x",
+            "access_class": "restricted"
+          },
+          "payload": {
+            "blob_ref": "cas://synthetic/stream-fork-001/e2",
+            "media_type": "application/vnd.mycelix.signed-scientific-event+json",
+            "blob_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+          }
+        }
+      ],
+      "expected": {
+        "accepted_events": [
+          "e0"
+        ],
+        "duplicate_replays": 0,
+        "invalid_signatures": [],
+        "revoked_keys": [],
+        "verification_pending": [],
+        "malformed_events": [],
+        "missing_parent_events": [],
+        "blocked_parent_events": [],
+        "equivocation_event_ids": [],
+        "sequence_fork_event_ids": [
+          "e1",
+          "e2"
+        ],
+        "hash_collision_event_ids": [],
+        "sequence_conflict_pending_event_ids": [],
+        "verification_conflict_event_ids": [],
+        "context_conflict_event_ids": [],
+        "conflict_groups": [],
+        "payload_digest_conflict_event_ids": []
+      }
+    },
+    {
+      "case_id": "CONCURRENT-CONFLICT-001",
+      "title": "Concurrent streams affecting the same projection are preserved and flagged",
+      "deliveries": [
+        {
+          "event": {
+            "event_id": "e1",
+            "stream_id": "stream-a",
+            "sequence": 0,
+            "previous_hash": null,
+            "event_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "actor": "actor-a"
+          },
+          "assessment": {
+            "verifier_id": "verifier-a",
+            "policy_id": "tib-key-policy-v0",
+            "assessed_at": "2026-11-19T00:00:00Z",
+            "status": "verified",
+            "assessment_id": "assessment-concurrent-conflict-001-1",
+            "key_status_snapshot_ref": "urn:tib:key-status:snapshot:synthetic-2026-11-19",
+            "event_time_basis": "external_trusted_timestamp",
+            "time_evidence_ref": "urn:synthetic:time-evidence:assessment-concurrent-conflict-001-1"
+          },
+          "context": {
+            "projection_key": "claim:x",
+            "access_class": "restricted"
+          },
+          "payload": {
+            "blob_ref": "cas://synthetic/concurrent-conflict-001/e1",
+            "media_type": "application/vnd.mycelix.signed-scientific-event+json",
+            "blob_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+          }
+        },
+        {
+          "event": {
+            "event_id": "e2",
+            "stream_id": "stream-b",
+            "sequence": 0,
+            "previous_hash": null,
+            "event_hash": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "actor": "actor-b"
+          },
+          "assessment": {
+            "verifier_id": "verifier-a",
+            "policy_id": "tib-key-policy-v0",
+            "assessed_at": "2026-11-19T00:00:00Z",
+            "status": "verified",
+            "assessment_id": "assessment-concurrent-conflict-001-2",
+            "key_status_snapshot_ref": "urn:tib:key-status:snapshot:synthetic-2026-11-19",
+            "event_time_basis": "external_trusted_timestamp",
+            "time_evidence_ref": "urn:synthetic:time-evidence:assessment-concurrent-conflict-001-2"
+          },
+          "context": {
+            "projection_key": "claim:x",
+            "access_class": "restricted"
+          },
+          "payload": {
+            "blob_ref": "cas://synthetic/concurrent-conflict-001/e2",
+            "media_type": "application/vnd.mycelix.signed-scientific-event+json",
+            "blob_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+          }
+        }
+      ],
+      "expected": {
+        "accepted_events": [
+          "e1",
+          "e2"
+        ],
+        "duplicate_replays": 0,
+        "invalid_signatures": [],
+        "revoked_keys": [],
+        "verification_pending": [],
+        "malformed_events": [],
+        "missing_parent_events": [],
+        "blocked_parent_events": [],
+        "equivocation_event_ids": [],
+        "sequence_fork_event_ids": [],
+        "hash_collision_event_ids": [],
+        "sequence_conflict_pending_event_ids": [],
+        "verification_conflict_event_ids": [],
+        "context_conflict_event_ids": [],
+        "conflict_groups": [
+          {
+            "projection_key": "claim:x",
+            "members": [
+              {
+                "event_id": "e1",
+                "stream_id": "stream-a"
+              },
+              {
+                "event_id": "e2",
+                "stream_id": "stream-b"
+              }
+            ]
+          }
+        ],
+        "payload_digest_conflict_event_ids": []
+      }
+    },
+    {
+      "case_id": "CAUSAL-CORRECTION-001",
+      "title": "Causally linked correction retains history without false conflict",
+      "deliveries": [
+        {
+          "event": {
+            "event_id": "e1",
+            "stream_id": "stream-a",
+            "sequence": 0,
+            "previous_hash": null,
+            "event_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "actor": "actor-a"
+          },
+          "assessment": {
+            "verifier_id": "verifier-a",
+            "policy_id": "tib-key-policy-v0",
+            "assessed_at": "2026-11-19T00:00:00Z",
+            "status": "verified",
+            "assessment_id": "assessment-causal-correction-001-1",
+            "key_status_snapshot_ref": "urn:tib:key-status:snapshot:synthetic-2026-11-19",
+            "event_time_basis": "external_trusted_timestamp",
+            "time_evidence_ref": "urn:synthetic:time-evidence:assessment-causal-correction-001-1"
+          },
+          "context": {
+            "projection_key": "claim:x",
+            "access_class": "restricted"
+          },
+          "payload": {
+            "blob_ref": "cas://synthetic/causal-correction-001/e1",
+            "media_type": "application/vnd.mycelix.signed-scientific-event+json",
+            "blob_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+          }
+        },
+        {
+          "event": {
+            "event_id": "e2",
+            "stream_id": "stream-a",
+            "sequence": 1,
+            "previous_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "event_hash": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "actor": "actor-a"
+          },
+          "assessment": {
+            "verifier_id": "verifier-a",
+            "policy_id": "tib-key-policy-v0",
+            "assessed_at": "2026-11-19T00:00:00Z",
+            "status": "verified",
+            "assessment_id": "assessment-causal-correction-001-2",
+            "key_status_snapshot_ref": "urn:tib:key-status:snapshot:synthetic-2026-11-19",
+            "event_time_basis": "external_trusted_timestamp",
+            "time_evidence_ref": "urn:synthetic:time-evidence:assessment-causal-correction-001-2"
+          },
+          "context": {
+            "projection_key": "claim:x",
+            "access_class": "restricted"
+          },
+          "payload": {
+            "blob_ref": "cas://synthetic/causal-correction-001/e2",
+            "media_type": "application/vnd.mycelix.signed-scientific-event+json",
+            "blob_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+          }
+        }
+      ],
+      "expected": {
+        "accepted_events": [
+          "e1",
+          "e2"
+        ],
+        "duplicate_replays": 0,
+        "invalid_signatures": [],
+        "revoked_keys": [],
+        "verification_pending": [],
+        "malformed_events": [],
+        "missing_parent_events": [],
+        "blocked_parent_events": [],
+        "equivocation_event_ids": [],
+        "sequence_fork_event_ids": [],
+        "hash_collision_event_ids": [],
+        "sequence_conflict_pending_event_ids": [],
+        "verification_conflict_event_ids": [],
+        "context_conflict_event_ids": [],
+        "conflict_groups": [],
+        "payload_digest_conflict_event_ids": []
+      }
+    },
+    {
+      "case_id": "BLOCKED-PARENT-001",
+      "title": "Child of invalid signature is blocked",
+      "deliveries": [
+        {
+          "event": {
+            "event_id": "e1",
+            "stream_id": "stream-a",
+            "sequence": 0,
+            "previous_hash": null,
+            "event_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "actor": "actor-a"
+          },
+          "assessment": {
+            "verifier_id": "verifier-a",
+            "policy_id": "tib-key-policy-v0",
+            "assessed_at": "2026-11-19T00:00:00Z",
+            "status": "invalid",
+            "assessment_id": "assessment-blocked-parent-001-1",
+            "key_status_snapshot_ref": "urn:tib:key-status:snapshot:synthetic-2026-11-19",
+            "event_time_basis": "external_trusted_timestamp"
+          },
+          "context": {
+            "projection_key": "claim:x",
+            "access_class": "restricted"
+          },
+          "payload": {
+            "blob_ref": "cas://synthetic/blocked-parent-001/e1",
+            "media_type": "application/vnd.mycelix.signed-scientific-event+json",
+            "blob_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+          }
+        },
+        {
+          "event": {
+            "event_id": "e2",
+            "stream_id": "stream-a",
+            "sequence": 1,
+            "previous_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "event_hash": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "actor": "actor-a"
+          },
+          "assessment": {
+            "verifier_id": "verifier-a",
+            "policy_id": "tib-key-policy-v0",
+            "assessed_at": "2026-11-19T00:00:00Z",
+            "status": "verified",
+            "assessment_id": "assessment-blocked-parent-001-2",
+            "key_status_snapshot_ref": "urn:tib:key-status:snapshot:synthetic-2026-11-19",
+            "event_time_basis": "external_trusted_timestamp",
+            "time_evidence_ref": "urn:synthetic:time-evidence:assessment-blocked-parent-001-2"
+          },
+          "context": {
+            "projection_key": "claim:x",
+            "access_class": "restricted"
+          },
+          "payload": {
+            "blob_ref": "cas://synthetic/blocked-parent-001/e2",
+            "media_type": "application/vnd.mycelix.signed-scientific-event+json",
+            "blob_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+          }
+        }
+      ],
+      "expected": {
+        "accepted_events": [],
+        "duplicate_replays": 0,
+        "invalid_signatures": [
+          "e1"
+        ],
+        "revoked_keys": [],
+        "verification_pending": [],
+        "malformed_events": [],
+        "missing_parent_events": [],
+        "blocked_parent_events": [
+          "e2"
+        ],
+        "equivocation_event_ids": [],
+        "sequence_fork_event_ids": [],
+        "hash_collision_event_ids": [],
+        "sequence_conflict_pending_event_ids": [],
+        "verification_conflict_event_ids": [],
+        "context_conflict_event_ids": [],
+        "conflict_groups": [],
+        "payload_digest_conflict_event_ids": []
+      }
+    },
+    {
+      "case_id": "WRONG-STREAM-PARENT-001",
+      "title": "Previous hash from a different stream is blocked",
+      "deliveries": [
+        {
+          "event": {
+            "event_id": "e1",
+            "stream_id": "stream-a",
+            "sequence": 0,
+            "previous_hash": null,
+            "event_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "actor": "actor-a"
+          },
+          "assessment": {
+            "verifier_id": "verifier-a",
+            "policy_id": "tib-key-policy-v0",
+            "assessed_at": "2026-11-19T00:00:00Z",
+            "status": "verified",
+            "assessment_id": "assessment-wrong-stream-parent-001-1",
+            "key_status_snapshot_ref": "urn:tib:key-status:snapshot:synthetic-2026-11-19",
+            "event_time_basis": "external_trusted_timestamp",
+            "time_evidence_ref": "urn:synthetic:time-evidence:assessment-wrong-stream-parent-001-1"
+          },
+          "context": {
+            "projection_key": "claim:x",
+            "access_class": "restricted"
+          },
+          "payload": {
+            "blob_ref": "cas://synthetic/wrong-stream-parent-001/e1",
+            "media_type": "application/vnd.mycelix.signed-scientific-event+json",
+            "blob_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+          }
+        },
+        {
+          "event": {
+            "event_id": "e2",
+            "stream_id": "stream-b",
+            "sequence": 1,
+            "previous_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "event_hash": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "actor": "actor-a"
+          },
+          "assessment": {
+            "verifier_id": "verifier-a",
+            "policy_id": "tib-key-policy-v0",
+            "assessed_at": "2026-11-19T00:00:00Z",
+            "status": "verified",
+            "assessment_id": "assessment-wrong-stream-parent-001-2",
+            "key_status_snapshot_ref": "urn:tib:key-status:snapshot:synthetic-2026-11-19",
+            "event_time_basis": "external_trusted_timestamp",
+            "time_evidence_ref": "urn:synthetic:time-evidence:assessment-wrong-stream-parent-001-2"
+          },
+          "context": {
+            "projection_key": "claim:x",
+            "access_class": "restricted"
+          },
+          "payload": {
+            "blob_ref": "cas://synthetic/wrong-stream-parent-001/e2",
+            "media_type": "application/vnd.mycelix.signed-scientific-event+json",
+            "blob_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+          }
+        }
+      ],
+      "expected": {
+        "accepted_events": [
+          "e1"
+        ],
+        "duplicate_replays": 0,
+        "invalid_signatures": [],
+        "revoked_keys": [],
+        "verification_pending": [],
+        "malformed_events": [],
+        "missing_parent_events": [],
+        "blocked_parent_events": [
+          "e2"
+        ],
+        "equivocation_event_ids": [],
+        "sequence_fork_event_ids": [],
+        "hash_collision_event_ids": [],
+        "sequence_conflict_pending_event_ids": [],
+        "verification_conflict_event_ids": [],
+        "context_conflict_event_ids": [],
+        "conflict_groups": [],
+        "payload_digest_conflict_event_ids": []
+      }
+    },
+    {
+      "case_id": "MALFORMED-DIGEST-001",
+      "title": "Malformed event hash is rejected structurally",
+      "deliveries": [
+        {
+          "event": {
+            "event_id": "e1",
+            "stream_id": "stream-a",
+            "sequence": 0,
+            "previous_hash": null,
+            "event_hash": "not-a-digest",
+            "actor": "actor-a"
+          },
+          "assessment": {
+            "verifier_id": "verifier-a",
+            "policy_id": "tib-key-policy-v0",
+            "assessed_at": "2026-11-19T00:00:00Z",
+            "status": "verified",
+            "assessment_id": "assessment-malformed-digest-001-1",
+            "key_status_snapshot_ref": "urn:tib:key-status:snapshot:synthetic-2026-11-19",
+            "event_time_basis": "external_trusted_timestamp",
+            "time_evidence_ref": "urn:synthetic:time-evidence:assessment-malformed-digest-001-1"
+          },
+          "context": {
+            "projection_key": "claim:x",
+            "access_class": "restricted"
+          },
+          "payload": {
+            "blob_ref": "cas://synthetic/malformed-digest-001/e1",
+            "media_type": "application/vnd.mycelix.signed-scientific-event+json",
+            "blob_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+          }
+        }
+      ],
+      "expected": {
+        "accepted_events": [],
+        "duplicate_replays": 0,
+        "invalid_signatures": [],
+        "revoked_keys": [],
+        "verification_pending": [],
+        "malformed_events": [
+          "e1"
+        ],
+        "missing_parent_events": [],
+        "blocked_parent_events": [],
+        "equivocation_event_ids": [],
+        "sequence_fork_event_ids": [],
+        "hash_collision_event_ids": [],
+        "sequence_conflict_pending_event_ids": [],
+        "verification_conflict_event_ids": [],
+        "context_conflict_event_ids": [],
+        "conflict_groups": [],
+        "payload_digest_conflict_event_ids": []
+      }
+    },
+    {
+      "case_id": "MALFORMED-GENESIS-001",
+      "title": "Genesis event with previous hash is rejected",
+      "deliveries": [
+        {
+          "event": {
+            "event_id": "e1",
+            "stream_id": "stream-a",
+            "sequence": 0,
+            "previous_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "event_hash": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "actor": "actor-a"
+          },
+          "assessment": {
+            "verifier_id": "verifier-a",
+            "policy_id": "tib-key-policy-v0",
+            "assessed_at": "2026-11-19T00:00:00Z",
+            "status": "verified",
+            "assessment_id": "assessment-malformed-genesis-001-1",
+            "key_status_snapshot_ref": "urn:tib:key-status:snapshot:synthetic-2026-11-19",
+            "event_time_basis": "external_trusted_timestamp",
+            "time_evidence_ref": "urn:synthetic:time-evidence:assessment-malformed-genesis-001-1"
+          },
+          "context": {
+            "projection_key": "claim:x",
+            "access_class": "restricted"
+          },
+          "payload": {
+            "blob_ref": "cas://synthetic/malformed-genesis-001/e1",
+            "media_type": "application/vnd.mycelix.signed-scientific-event+json",
+            "blob_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+          }
+        }
+      ],
+      "expected": {
+        "accepted_events": [],
+        "duplicate_replays": 0,
+        "invalid_signatures": [],
+        "revoked_keys": [],
+        "verification_pending": [],
+        "malformed_events": [
+          "e1"
+        ],
+        "missing_parent_events": [],
+        "blocked_parent_events": [],
+        "equivocation_event_ids": [],
+        "sequence_fork_event_ids": [],
+        "hash_collision_event_ids": [],
+        "sequence_conflict_pending_event_ids": [],
+        "verification_conflict_event_ids": [],
+        "context_conflict_event_ids": [],
+        "conflict_groups": [],
+        "payload_digest_conflict_event_ids": []
+      }
+    },
+    {
+      "case_id": "HASH-COLLISION-001",
+      "title": "Same BLAKE3 event hash under different event IDs is quarantined",
+      "deliveries": [
+        {
+          "event": {
+            "event_id": "e1",
+            "stream_id": "stream-a",
+            "sequence": 0,
+            "previous_hash": null,
+            "event_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "actor": "actor-a"
+          },
+          "assessment": {
+            "verifier_id": "verifier-a",
+            "policy_id": "tib-key-policy-v0",
+            "assessed_at": "2026-11-19T00:00:00Z",
+            "status": "verified",
+            "assessment_id": "assessment-hash-collision-001-1",
+            "key_status_snapshot_ref": "urn:tib:key-status:snapshot:synthetic-2026-11-19",
+            "event_time_basis": "external_trusted_timestamp",
+            "time_evidence_ref": "urn:synthetic:time-evidence:assessment-hash-collision-001-1"
+          },
+          "context": {
+            "projection_key": "claim:x",
+            "access_class": "restricted"
+          },
+          "payload": {
+            "blob_ref": "cas://synthetic/hash-collision-001/e1",
+            "media_type": "application/vnd.mycelix.signed-scientific-event+json",
+            "blob_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+          }
+        },
+        {
+          "event": {
+            "event_id": "e2",
+            "stream_id": "stream-b",
+            "sequence": 0,
+            "previous_hash": null,
+            "event_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "actor": "actor-b"
+          },
+          "assessment": {
+            "verifier_id": "verifier-a",
+            "policy_id": "tib-key-policy-v0",
+            "assessed_at": "2026-11-19T00:00:00Z",
+            "status": "verified",
+            "assessment_id": "assessment-hash-collision-001-2",
+            "key_status_snapshot_ref": "urn:tib:key-status:snapshot:synthetic-2026-11-19",
+            "event_time_basis": "external_trusted_timestamp",
+            "time_evidence_ref": "urn:synthetic:time-evidence:assessment-hash-collision-001-2"
+          },
+          "context": {
+            "projection_key": "claim:x",
+            "access_class": "restricted"
+          },
+          "payload": {
+            "blob_ref": "cas://synthetic/hash-collision-001/e2",
+            "media_type": "application/vnd.mycelix.signed-scientific-event+json",
+            "blob_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+          }
+        }
+      ],
+      "expected": {
+        "accepted_events": [],
+        "duplicate_replays": 0,
+        "invalid_signatures": [],
+        "revoked_keys": [],
+        "verification_pending": [],
+        "malformed_events": [],
+        "missing_parent_events": [],
+        "blocked_parent_events": [],
+        "equivocation_event_ids": [],
+        "sequence_fork_event_ids": [],
+        "hash_collision_event_ids": [
+          "e1",
+          "e2"
+        ],
+        "sequence_conflict_pending_event_ids": [],
+        "verification_conflict_event_ids": [],
+        "context_conflict_event_ids": [],
+        "conflict_groups": [],
+        "payload_digest_conflict_event_ids": []
+      }
+    },
+    {
+      "case_id": "UNRELATED-PROJECTIONS-001",
+      "title": "Independent streams on distinct projection keys do not conflict",
+      "deliveries": [
+        {
+          "event": {
+            "event_id": "e1",
+            "stream_id": "stream-a",
+            "sequence": 0,
+            "previous_hash": null,
+            "event_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "actor": "actor-a"
+          },
+          "assessment": {
+            "verifier_id": "verifier-a",
+            "policy_id": "tib-key-policy-v0",
+            "assessed_at": "2026-11-19T00:00:00Z",
+            "status": "verified",
+            "assessment_id": "assessment-unrelated-projections-001-1",
+            "key_status_snapshot_ref": "urn:tib:key-status:snapshot:synthetic-2026-11-19",
+            "event_time_basis": "external_trusted_timestamp",
+            "time_evidence_ref": "urn:synthetic:time-evidence:assessment-unrelated-projections-001-1"
+          },
+          "context": {
+            "projection_key": "claim:x",
+            "access_class": "restricted"
+          },
+          "payload": {
+            "blob_ref": "cas://synthetic/unrelated-projections-001/e1",
+            "media_type": "application/vnd.mycelix.signed-scientific-event+json",
+            "blob_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+          }
+        },
+        {
+          "event": {
+            "event_id": "e2",
+            "stream_id": "stream-b",
+            "sequence": 0,
+            "previous_hash": null,
+            "event_hash": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "actor": "actor-b"
+          },
+          "assessment": {
+            "verifier_id": "verifier-a",
+            "policy_id": "tib-key-policy-v0",
+            "assessed_at": "2026-11-19T00:00:00Z",
+            "status": "verified",
+            "assessment_id": "assessment-unrelated-projections-001-2",
+            "key_status_snapshot_ref": "urn:tib:key-status:snapshot:synthetic-2026-11-19",
+            "event_time_basis": "external_trusted_timestamp",
+            "time_evidence_ref": "urn:synthetic:time-evidence:assessment-unrelated-projections-001-2"
+          },
+          "context": {
+            "projection_key": "claim:y",
+            "access_class": "restricted"
+          },
+          "payload": {
+            "blob_ref": "cas://synthetic/unrelated-projections-001/e2",
+            "media_type": "application/vnd.mycelix.signed-scientific-event+json",
+            "blob_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+          }
+        }
+      ],
+      "expected": {
+        "accepted_events": [
+          "e1",
+          "e2"
+        ],
+        "duplicate_replays": 0,
+        "invalid_signatures": [],
+        "revoked_keys": [],
+        "verification_pending": [],
+        "malformed_events": [],
+        "missing_parent_events": [],
+        "blocked_parent_events": [],
+        "equivocation_event_ids": [],
+        "sequence_fork_event_ids": [],
+        "hash_collision_event_ids": [],
+        "sequence_conflict_pending_event_ids": [],
+        "verification_conflict_event_ids": [],
+        "context_conflict_event_ids": [],
+        "conflict_groups": [],
+        "payload_digest_conflict_event_ids": []
+      }
+    },
+    {
+      "case_id": "UNAVAILABLE-STREAM-SLOT-001",
+      "title": "Verified event is held when a same-sequence competitor cannot yet be verified",
+      "deliveries": [
+        {
+          "event": {
+            "event_id": "e1",
+            "stream_id": "stream-a",
+            "sequence": 0,
+            "previous_hash": null,
+            "event_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "actor": "actor-e1"
+          },
+          "assessment": {
+            "verifier_id": "verifier-a",
+            "policy_id": "tib-key-policy-v0",
+            "assessed_at": "2026-11-19T00:00:00Z",
+            "status": "verified",
+            "assessment_id": "assessment-unavailable-stream-slot-001-1",
+            "key_status_snapshot_ref": "urn:tib:key-status:snapshot:synthetic-2026-11-19",
+            "event_time_basis": "external_trusted_timestamp",
+            "time_evidence_ref": "urn:synthetic:time-evidence:assessment-unavailable-stream-slot-001-1"
+          },
+          "context": {
+            "projection_key": "claim:x",
+            "access_class": "restricted"
+          },
+          "payload": {
+            "blob_ref": "cas://synthetic/unavailable-stream-slot-001/e1",
+            "media_type": "application/vnd.mycelix.signed-scientific-event+json",
+            "blob_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+          }
+        },
+        {
+          "event": {
+            "event_id": "e2",
+            "stream_id": "stream-a",
+            "sequence": 0,
+            "previous_hash": null,
+            "event_hash": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "actor": "actor-e2"
+          },
+          "assessment": {
+            "verifier_id": "verifier-a",
+            "policy_id": "tib-key-policy-v0",
+            "assessed_at": "2026-11-19T00:00:00Z",
+            "status": "unavailable",
+            "assessment_id": "assessment-unavailable-stream-slot-001-2",
+            "key_status_snapshot_ref": "urn:tib:key-status:snapshot:synthetic-2026-11-19",
+            "event_time_basis": "external_trusted_timestamp"
+          },
+          "context": {
+            "projection_key": "claim:x",
+            "access_class": "restricted"
+          },
+          "payload": {
+            "blob_ref": "cas://synthetic/unavailable-stream-slot-001/e2",
+            "media_type": "application/vnd.mycelix.signed-scientific-event+json",
+            "blob_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+          }
+        }
+      ],
+      "expected": {
+        "accepted_events": [],
+        "duplicate_replays": 0,
+        "invalid_signatures": [],
+        "revoked_keys": [],
+        "verification_pending": [
+          "e2"
+        ],
+        "malformed_events": [],
+        "missing_parent_events": [],
+        "blocked_parent_events": [],
+        "equivocation_event_ids": [],
+        "sequence_fork_event_ids": [],
+        "sequence_conflict_pending_event_ids": [
+          "e1",
+          "e2"
+        ],
+        "hash_collision_event_ids": [],
+        "verification_conflict_event_ids": [],
+        "context_conflict_event_ids": [],
+        "conflict_groups": [],
+        "payload_digest_conflict_event_ids": []
+      }
+    },
+    {
+      "case_id": "INVALID-SIGNATURE-NOT-A-FORK-001",
+      "title": "Definitively invalid same-slot signature does not poison the verified event",
+      "deliveries": [
+        {
+          "event": {
+            "event_id": "e1",
+            "stream_id": "stream-a",
+            "sequence": 0,
+            "previous_hash": null,
+            "event_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "actor": "actor-e1"
+          },
+          "assessment": {
+            "verifier_id": "verifier-a",
+            "policy_id": "tib-key-policy-v0",
+            "assessed_at": "2026-11-19T00:00:00Z",
+            "status": "verified",
+            "assessment_id": "assessment-invalid-signature-not-a-fork-001-1",
+            "key_status_snapshot_ref": "urn:tib:key-status:snapshot:synthetic-2026-11-19",
+            "event_time_basis": "external_trusted_timestamp",
+            "time_evidence_ref": "urn:synthetic:time-evidence:assessment-invalid-signature-not-a-fork-001-1"
+          },
+          "context": {
+            "projection_key": "claim:x",
+            "access_class": "restricted"
+          },
+          "payload": {
+            "blob_ref": "cas://synthetic/invalid-signature-not-a-fork-001/e1",
+            "media_type": "application/vnd.mycelix.signed-scientific-event+json",
+            "blob_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+          }
+        },
+        {
+          "event": {
+            "event_id": "e2",
+            "stream_id": "stream-a",
+            "sequence": 0,
+            "previous_hash": null,
+            "event_hash": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "actor": "actor-e2"
+          },
+          "assessment": {
+            "verifier_id": "verifier-a",
+            "policy_id": "tib-key-policy-v0",
+            "assessed_at": "2026-11-19T00:00:00Z",
+            "status": "invalid",
+            "assessment_id": "assessment-invalid-signature-not-a-fork-001-2",
+            "key_status_snapshot_ref": "urn:tib:key-status:snapshot:synthetic-2026-11-19",
+            "event_time_basis": "external_trusted_timestamp"
+          },
+          "context": {
+            "projection_key": "claim:x",
+            "access_class": "restricted"
+          },
+          "payload": {
+            "blob_ref": "cas://synthetic/invalid-signature-not-a-fork-001/e2",
+            "media_type": "application/vnd.mycelix.signed-scientific-event+json",
+            "blob_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+          }
+        }
+      ],
+      "expected": {
+        "accepted_events": [
+          "e1"
+        ],
+        "duplicate_replays": 0,
+        "invalid_signatures": [
+          "e2"
+        ],
+        "revoked_keys": [],
+        "verification_pending": [],
+        "malformed_events": [],
+        "missing_parent_events": [],
+        "blocked_parent_events": [],
+        "equivocation_event_ids": [],
+        "sequence_fork_event_ids": [],
+        "sequence_conflict_pending_event_ids": [],
+        "hash_collision_event_ids": [],
+        "verification_conflict_event_ids": [],
+        "context_conflict_event_ids": [],
+        "conflict_groups": [],
+        "payload_digest_conflict_event_ids": []
+      }
+    },
+    {
+      "case_id": "REVOKED-STREAM-SLOT-001",
+      "title": "Verified event is held when a same-sequence competitor has unresolved revocation status",
+      "deliveries": [
+        {
+          "event": {
+            "event_id": "e1",
+            "stream_id": "stream-a",
+            "sequence": 0,
+            "previous_hash": null,
+            "event_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "actor": "actor-e1"
+          },
+          "assessment": {
+            "verifier_id": "verifier-a",
+            "policy_id": "tib-key-policy-v0",
+            "assessed_at": "2026-11-19T00:00:00Z",
+            "status": "verified",
+            "assessment_id": "assessment-revoked-stream-slot-001-1",
+            "key_status_snapshot_ref": "urn:tib:key-status:snapshot:synthetic-2026-11-19",
+            "event_time_basis": "external_trusted_timestamp",
+            "time_evidence_ref": "urn:synthetic:time-evidence:assessment-revoked-stream-slot-001-1"
+          },
+          "context": {
+            "projection_key": "claim:x",
+            "access_class": "restricted"
+          },
+          "payload": {
+            "blob_ref": "cas://synthetic/revoked-stream-slot-001/e1",
+            "media_type": "application/vnd.mycelix.signed-scientific-event+json",
+            "blob_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+          }
+        },
+        {
+          "event": {
+            "event_id": "e2",
+            "stream_id": "stream-a",
+            "sequence": 0,
+            "previous_hash": null,
+            "event_hash": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "actor": "actor-e2"
+          },
+          "assessment": {
+            "verifier_id": "verifier-a",
+            "policy_id": "tib-key-policy-v0",
+            "assessed_at": "2026-11-19T00:00:00Z",
+            "status": "revoked",
+            "assessment_id": "assessment-revoked-stream-slot-001-2",
+            "key_status_snapshot_ref": "urn:tib:key-status:snapshot:synthetic-2026-11-19",
+            "event_time_basis": "external_trusted_timestamp",
+            "time_evidence_ref": "urn:synthetic:time-evidence:assessment-revoked-stream-slot-001-2"
+          },
+          "context": {
+            "projection_key": "claim:x",
+            "access_class": "restricted"
+          },
+          "payload": {
+            "blob_ref": "cas://synthetic/revoked-stream-slot-001/e2",
+            "media_type": "application/vnd.mycelix.signed-scientific-event+json",
+            "blob_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+          }
+        }
+      ],
+      "expected": {
+        "accepted_events": [],
+        "duplicate_replays": 0,
+        "invalid_signatures": [],
+        "revoked_keys": [
+          "e2"
+        ],
+        "verification_pending": [],
+        "malformed_events": [],
+        "missing_parent_events": [],
+        "blocked_parent_events": [],
+        "equivocation_event_ids": [],
+        "sequence_fork_event_ids": [],
+        "sequence_conflict_pending_event_ids": [
+          "e1",
+          "e2"
+        ],
+        "hash_collision_event_ids": [],
+        "verification_conflict_event_ids": [],
+        "context_conflict_event_ids": [],
+        "conflict_groups": [],
+        "payload_digest_conflict_event_ids": []
+      }
+    },
+    {
+      "case_id": "ASSESSMENT-STATUS-CHANGE-001",
+      "title": "Same immutable event with conflicting verifier results is not event equivocation and remains pending",
+      "deliveries": [
+        {
+          "event": {
+            "event_id": "e1",
+            "stream_id": "stream-a",
+            "sequence": 0,
+            "previous_hash": null,
+            "event_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "actor": "actor-e1"
+          },
+          "assessment": {
+            "verifier_id": "verifier-a",
+            "policy_id": "tib-key-policy-v0",
+            "assessed_at": "2026-11-19T00:00:00Z",
+            "status": "verified",
+            "assessment_id": "assessment-assessment-status-change-001-1",
+            "key_status_snapshot_ref": "urn:tib:key-status:snapshot:synthetic-2026-11-19",
+            "event_time_basis": "external_trusted_timestamp",
+            "time_evidence_ref": "urn:synthetic:time-evidence:assessment-assessment-status-change-001-1"
+          },
+          "context": {
+            "projection_key": "claim:x",
+            "access_class": "restricted"
+          },
+          "payload": {
+            "blob_ref": "cas://synthetic/assessment-status-change-001/e1",
+            "media_type": "application/vnd.mycelix.signed-scientific-event+json",
+            "blob_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+          }
+        },
+        {
+          "event": {
+            "event_id": "e1",
+            "stream_id": "stream-a",
+            "sequence": 0,
+            "previous_hash": null,
+            "event_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "actor": "actor-e1"
+          },
+          "assessment": {
+            "verifier_id": "verifier-b",
+            "policy_id": "tib-key-policy-v0",
+            "assessed_at": "2026-11-19T01:00:00Z",
+            "status": "unavailable",
+            "assessment_id": "assessment-assessment-status-change-001-2",
+            "key_status_snapshot_ref": "urn:tib:key-status:snapshot:synthetic-2026-11-19",
+            "event_time_basis": "external_trusted_timestamp"
+          },
+          "context": {
+            "projection_key": "claim:x",
+            "access_class": "restricted"
+          },
+          "payload": {
+            "blob_ref": "cas://synthetic/assessment-status-change-001/e1",
+            "media_type": "application/vnd.mycelix.signed-scientific-event+json",
+            "blob_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+          }
+        }
+      ],
+      "expected": {
+        "accepted_events": [],
+        "duplicate_replays": 1,
+        "invalid_signatures": [],
+        "revoked_keys": [],
+        "verification_pending": [],
+        "verification_conflict_event_ids": [
+          "e1"
+        ],
+        "malformed_events": [],
+        "missing_parent_events": [],
+        "blocked_parent_events": [],
+        "equivocation_event_ids": [],
+        "sequence_fork_event_ids": [],
+        "sequence_conflict_pending_event_ids": [],
+        "hash_collision_event_ids": [],
+        "context_conflict_event_ids": [],
+        "conflict_groups": [],
+        "payload_digest_conflict_event_ids": []
+      }
+    },
+    {
+      "case_id": "ASSESSMENT-POLICY-DIVERGENCE-001",
+      "title": "Same immutable event assessed under different verifier policies requires review",
+      "deliveries": [
+        {
+          "event": {
+            "event_id": "e1",
+            "stream_id": "stream-a",
+            "sequence": 0,
+            "previous_hash": null,
+            "event_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "actor": "actor-e1"
+          },
+          "assessment": {
+            "verifier_id": "verifier-a",
+            "policy_id": "tib-key-policy-v0",
+            "assessed_at": "2026-11-19T00:00:00Z",
+            "status": "verified",
+            "assessment_id": "assessment-assessment-policy-divergence-001-1",
+            "key_status_snapshot_ref": "urn:tib:key-status:snapshot:synthetic-2026-11-19",
+            "event_time_basis": "external_trusted_timestamp",
+            "time_evidence_ref": "urn:synthetic:time-evidence:assessment-assessment-policy-divergence-001-1"
+          },
+          "context": {
+            "projection_key": "claim:x",
+            "access_class": "restricted"
+          },
+          "payload": {
+            "blob_ref": "cas://synthetic/assessment-policy-divergence-001/e1",
+            "media_type": "application/vnd.mycelix.signed-scientific-event+json",
+            "blob_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+          }
+        },
+        {
+          "event": {
+            "event_id": "e1",
+            "stream_id": "stream-a",
+            "sequence": 0,
+            "previous_hash": null,
+            "event_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "actor": "actor-e1"
+          },
+          "assessment": {
+            "verifier_id": "verifier-b",
+            "policy_id": "tib-key-policy-v1",
+            "assessed_at": "2026-11-19T00:00:00Z",
+            "status": "verified",
+            "assessment_id": "assessment-assessment-policy-divergence-001-2",
+            "key_status_snapshot_ref": "urn:tib:key-status:snapshot:synthetic-2026-11-19",
+            "event_time_basis": "external_trusted_timestamp",
+            "time_evidence_ref": "urn:synthetic:time-evidence:assessment-assessment-policy-divergence-001-2"
+          },
+          "context": {
+            "projection_key": "claim:x",
+            "access_class": "restricted"
+          },
+          "payload": {
+            "blob_ref": "cas://synthetic/assessment-policy-divergence-001/e1",
+            "media_type": "application/vnd.mycelix.signed-scientific-event+json",
+            "blob_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+          }
+        }
+      ],
+      "expected": {
+        "accepted_events": [],
+        "duplicate_replays": 1,
+        "invalid_signatures": [],
+        "revoked_keys": [],
+        "verification_pending": [],
+        "verification_conflict_event_ids": [
+          "e1"
+        ],
+        "malformed_events": [],
+        "missing_parent_events": [],
+        "blocked_parent_events": [],
+        "equivocation_event_ids": [],
+        "sequence_fork_event_ids": [],
+        "sequence_conflict_pending_event_ids": [],
+        "hash_collision_event_ids": [],
+        "context_conflict_event_ids": [],
+        "conflict_groups": [],
+        "payload_digest_conflict_event_ids": []
+      }
+    },
+    {
+      "case_id": "ASSESSMENT-INDEPENDENT-AGREEMENT-001",
+      "title": "Independent verifiers agreeing under the same policy corroborate one immutable event",
+      "deliveries": [
+        {
+          "event": {
+            "event_id": "e1",
+            "stream_id": "stream-a",
+            "sequence": 0,
+            "previous_hash": null,
+            "event_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "actor": "actor-e1"
+          },
+          "assessment": {
+            "verifier_id": "verifier-a",
+            "policy_id": "tib-key-policy-v0",
+            "assessed_at": "2026-11-19T00:00:00Z",
+            "status": "verified",
+            "assessment_id": "assessment-assessment-independent-agreement-001-1",
+            "key_status_snapshot_ref": "urn:tib:key-status:snapshot:synthetic-2026-11-19",
+            "event_time_basis": "external_trusted_timestamp",
+            "time_evidence_ref": "urn:synthetic:time-evidence:assessment-assessment-independent-agreement-001-1"
+          },
+          "context": {
+            "projection_key": "claim:x",
+            "access_class": "restricted"
+          },
+          "payload": {
+            "blob_ref": "cas://synthetic/assessment-independent-agreement-001/e1",
+            "media_type": "application/vnd.mycelix.signed-scientific-event+json",
+            "blob_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+          }
+        },
+        {
+          "event": {
+            "event_id": "e1",
+            "stream_id": "stream-a",
+            "sequence": 0,
+            "previous_hash": null,
+            "event_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "actor": "actor-e1"
+          },
+          "assessment": {
+            "verifier_id": "verifier-b",
+            "policy_id": "tib-key-policy-v0",
+            "assessed_at": "2026-11-19T01:00:00Z",
+            "status": "verified",
+            "assessment_id": "assessment-assessment-independent-agreement-001-2",
+            "key_status_snapshot_ref": "urn:tib:key-status:snapshot:synthetic-2026-11-19",
+            "event_time_basis": "external_trusted_timestamp",
+            "time_evidence_ref": "urn:synthetic:time-evidence:assessment-assessment-independent-agreement-001-2"
+          },
+          "context": {
+            "projection_key": "claim:x",
+            "access_class": "restricted"
+          },
+          "payload": {
+            "blob_ref": "cas://synthetic/assessment-independent-agreement-001/e1",
+            "media_type": "application/vnd.mycelix.signed-scientific-event+json",
+            "blob_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+          }
+        }
+      ],
+      "expected": {
+        "accepted_events": [
+          "e1"
+        ],
+        "duplicate_replays": 1,
+        "invalid_signatures": [],
+        "revoked_keys": [],
+        "verification_pending": [],
+        "verification_conflict_event_ids": [],
+        "malformed_events": [],
+        "missing_parent_events": [],
+        "blocked_parent_events": [],
+        "equivocation_event_ids": [],
+        "sequence_fork_event_ids": [],
+        "sequence_conflict_pending_event_ids": [],
+        "hash_collision_event_ids": [],
+        "context_conflict_event_ids": [],
+        "conflict_groups": [],
+        "payload_digest_conflict_event_ids": []
+      }
+    },
+    {
+      "case_id": "CONTEXT-DOWNGRADE-001",
+      "title": "Changed access annotation on the same event does not change event identity and blocks projection use",
+      "deliveries": [
+        {
+          "event": {
+            "event_id": "e1",
+            "stream_id": "stream-a",
+            "sequence": 0,
+            "previous_hash": null,
+            "event_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "actor": "actor-e1"
+          },
+          "assessment": {
+            "verifier_id": "verifier-a",
+            "policy_id": "tib-key-policy-v0",
+            "assessed_at": "2026-11-19T00:00:00Z",
+            "status": "verified",
+            "assessment_id": "assessment-context-downgrade-001-1",
+            "key_status_snapshot_ref": "urn:tib:key-status:snapshot:synthetic-2026-11-19",
+            "event_time_basis": "external_trusted_timestamp",
+            "time_evidence_ref": "urn:synthetic:time-evidence:assessment-context-downgrade-001-1"
+          },
+          "context": {
+            "projection_key": "claim:x",
+            "access_class": "restricted"
+          },
+          "payload": {
+            "blob_ref": "cas://synthetic/context-downgrade-001/e1",
+            "media_type": "application/vnd.mycelix.signed-scientific-event+json",
+            "blob_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+          }
+        },
+        {
+          "event": {
+            "event_id": "e1",
+            "stream_id": "stream-a",
+            "sequence": 0,
+            "previous_hash": null,
+            "event_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "actor": "actor-e1"
+          },
+          "assessment": {
+            "verifier_id": "verifier-b",
+            "policy_id": "tib-key-policy-v0",
+            "assessed_at": "2026-11-19T00:00:00Z",
+            "status": "verified",
+            "assessment_id": "assessment-context-downgrade-001-2",
+            "key_status_snapshot_ref": "urn:tib:key-status:snapshot:synthetic-2026-11-19",
+            "event_time_basis": "external_trusted_timestamp",
+            "time_evidence_ref": "urn:synthetic:time-evidence:assessment-context-downgrade-001-2"
+          },
+          "context": {
+            "projection_key": "claim:x",
+            "access_class": "public"
+          },
+          "payload": {
+            "blob_ref": "cas://synthetic/context-downgrade-001/e1",
+            "media_type": "application/vnd.mycelix.signed-scientific-event+json",
+            "blob_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+          }
+        }
+      ],
+      "expected": {
+        "accepted_events": [
+          "e1"
+        ],
+        "duplicate_replays": 1,
+        "invalid_signatures": [],
+        "revoked_keys": [],
+        "verification_pending": [],
+        "verification_conflict_event_ids": [],
+        "malformed_events": [],
+        "missing_parent_events": [],
+        "blocked_parent_events": [],
+        "equivocation_event_ids": [],
+        "sequence_fork_event_ids": [],
+        "sequence_conflict_pending_event_ids": [],
+        "hash_collision_event_ids": [],
+        "context_conflict_event_ids": [
+          "e1"
+        ],
+        "conflict_groups": [],
+        "payload_digest_conflict_event_ids": []
+      }
+    },
+    {
+      "case_id": "EVENT-PAYLOAD-EQUIVOCATION-001",
+      "title": "Same event ID and event hash with changed signed envelope fields is equivocation",
+      "deliveries": [
+        {
+          "event": {
+            "event_id": "e1",
+            "stream_id": "stream-a",
+            "sequence": 0,
+            "previous_hash": null,
+            "event_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "actor": "actor-e1"
+          },
+          "assessment": {
+            "verifier_id": "verifier-a",
+            "policy_id": "tib-key-policy-v0",
+            "assessed_at": "2026-11-19T00:00:00Z",
+            "status": "verified",
+            "assessment_id": "assessment-event-payload-equivocation-001-1",
+            "key_status_snapshot_ref": "urn:tib:key-status:snapshot:synthetic-2026-11-19",
+            "event_time_basis": "external_trusted_timestamp",
+            "time_evidence_ref": "urn:synthetic:time-evidence:assessment-event-payload-equivocation-001-1"
+          },
+          "context": {
+            "projection_key": "claim:x",
+            "access_class": "restricted"
+          },
+          "payload": {
+            "blob_ref": "cas://synthetic/event-payload-equivocation-001/e1",
+            "media_type": "application/vnd.mycelix.signed-scientific-event+json",
+            "blob_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+          }
+        },
+        {
+          "event": {
+            "event_id": "e1",
+            "stream_id": "stream-a",
+            "sequence": 0,
+            "previous_hash": null,
+            "event_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "actor": "actor-attacker"
+          },
+          "assessment": {
+            "verifier_id": "verifier-a",
+            "policy_id": "tib-key-policy-v0",
+            "assessed_at": "2026-11-19T00:00:00Z",
+            "status": "verified",
+            "assessment_id": "assessment-event-payload-equivocation-001-2",
+            "key_status_snapshot_ref": "urn:tib:key-status:snapshot:synthetic-2026-11-19",
+            "event_time_basis": "external_trusted_timestamp",
+            "time_evidence_ref": "urn:synthetic:time-evidence:assessment-event-payload-equivocation-001-2"
+          },
+          "context": {
+            "projection_key": "claim:x",
+            "access_class": "restricted"
+          },
+          "payload": {
+            "blob_ref": "cas://synthetic/event-payload-equivocation-001/e1",
+            "media_type": "application/vnd.mycelix.signed-scientific-event+json",
+            "blob_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+          }
+        }
+      ],
+      "expected": {
+        "accepted_events": [],
+        "duplicate_replays": 0,
+        "invalid_signatures": [],
+        "revoked_keys": [],
+        "verification_pending": [],
+        "verification_conflict_event_ids": [],
+        "malformed_events": [],
+        "missing_parent_events": [],
+        "blocked_parent_events": [],
+        "equivocation_event_ids": [
+          "e1"
+        ],
+        "sequence_fork_event_ids": [],
+        "sequence_conflict_pending_event_ids": [],
+        "hash_collision_event_ids": [],
+        "context_conflict_event_ids": [],
+        "conflict_groups": [],
+        "payload_digest_conflict_event_ids": []
+      }
+    },
+    {
+      "case_id": "UNTRUSTED-EVENT-TIME-001",
+      "title": "A signer-claimed event timestamp cannot establish historical key validity",
+      "deliveries": [
+        {
+          "event": {
+            "event_id": "e-time-1",
+            "stream_id": "stream-time",
+            "sequence": 0,
+            "previous_hash": null,
+            "event_hash": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "actor": "actor-e-time-1"
+          },
+          "assessment": {
+            "assessment_id": "assessment-e-time-1-signer_claim_only",
+            "verifier_id": "verifier-a",
+            "policy_id": "tib-key-policy-v0",
+            "assessed_at": "2026-11-19T02:00:00Z",
+            "key_status_snapshot_ref": "urn:tib:key-status:snapshot:synthetic-2026-11-19",
+            "event_time_basis": "signer_claim_only",
+            "status": "verified"
+          },
+          "context": {
+            "projection_key": "claim:time",
+            "access_class": "restricted"
+          },
+          "payload": {
+            "blob_ref": "cas://synthetic/untrusted-event-time-001/e-time-1",
+            "media_type": "application/vnd.mycelix.signed-scientific-event+json",
+            "blob_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+          }
+        }
+      ],
+      "expected": {
+        "accepted_events": [],
+        "duplicate_replays": 0,
+        "invalid_signatures": [],
+        "revoked_keys": [],
+        "verification_pending": [
+          "e-time-1"
+        ],
+        "verification_conflict_event_ids": [],
+        "malformed_events": [],
+        "missing_parent_events": [],
+        "blocked_parent_events": [],
+        "equivocation_event_ids": [],
+        "sequence_fork_event_ids": [],
+        "sequence_conflict_pending_event_ids": [],
+        "hash_collision_event_ids": [],
+        "context_conflict_event_ids": [],
+        "conflict_groups": [],
+        "payload_digest_conflict_event_ids": []
+      }
+    },
+    {
+      "case_id": "UNTRUSTED-REVOCATION-TIME-001",
+      "title": "Revocation conclusion remains pending without a trusted event-time basis",
+      "deliveries": [
+        {
+          "event": {
+            "event_id": "e-time-2",
+            "stream_id": "stream-time",
+            "sequence": 0,
+            "previous_hash": null,
+            "event_hash": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "actor": "actor-e-time-2"
+          },
+          "assessment": {
+            "assessment_id": "assessment-e-time-2-unknown",
+            "verifier_id": "verifier-a",
+            "policy_id": "tib-key-policy-v0",
+            "assessed_at": "2026-11-19T02:00:00Z",
+            "key_status_snapshot_ref": "urn:tib:key-status:snapshot:synthetic-2026-11-19",
+            "event_time_basis": "unknown",
+            "status": "revoked"
+          },
+          "context": {
+            "projection_key": "claim:time",
+            "access_class": "restricted"
+          },
+          "payload": {
+            "blob_ref": "cas://synthetic/untrusted-revocation-time-001/e-time-2",
+            "media_type": "application/vnd.mycelix.signed-scientific-event+json",
+            "blob_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+          }
+        }
+      ],
+      "expected": {
+        "accepted_events": [],
+        "duplicate_replays": 0,
+        "invalid_signatures": [],
+        "revoked_keys": [],
+        "verification_pending": [
+          "e-time-2"
+        ],
+        "verification_conflict_event_ids": [],
+        "malformed_events": [],
+        "missing_parent_events": [],
+        "blocked_parent_events": [],
+        "equivocation_event_ids": [],
+        "sequence_fork_event_ids": [],
+        "sequence_conflict_pending_event_ids": [],
+        "hash_collision_event_ids": [],
+        "context_conflict_event_ids": [],
+        "conflict_groups": [],
+        "payload_digest_conflict_event_ids": []
+      }
+    },
+    {
+      "case_id": "MISSING-SIGNED-PAYLOAD-001",
+      "title": "Event index without the signed Mycelix envelope payload is not a deliverable relay record",
+      "deliveries": [
+        {
+          "event": {
+            "event_id": "e-no-payload",
+            "stream_id": "stream-a",
+            "sequence": 0,
+            "previous_hash": null,
+            "event_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "actor": "actor-a"
+          },
+          "assessment": {
+            "assessment_id": "assessment-no-payload",
+            "verifier_id": "verifier-a",
+            "policy_id": "tib-key-policy-v0",
+            "assessed_at": "2026-11-19T16:00:00Z",
+            "key_status_snapshot_ref": "urn:tib:key-status:snapshot:1",
+            "event_time_basis": "external_trusted_timestamp",
+            "status": "verified",
+            "time_evidence_ref": "urn:synthetic:time-evidence:assessment-no-payload"
+          },
+          "context": {
+            "projection_key": "claim:no-payload",
+            "access_class": "restricted"
+          }
+        }
+      ],
+      "expected": {
+        "accepted_events": [],
+        "duplicate_replays": 0,
+        "invalid_signatures": [],
+        "revoked_keys": [],
+        "verification_pending": [],
+        "verification_conflict_event_ids": [],
+        "malformed_events": [
+          "e-no-payload"
+        ],
+        "missing_parent_events": [],
+        "blocked_parent_events": [],
+        "equivocation_event_ids": [],
+        "sequence_fork_event_ids": [],
+        "sequence_conflict_pending_event_ids": [],
+        "hash_collision_event_ids": [],
+        "context_conflict_event_ids": [],
+        "conflict_groups": [],
+        "payload_digest_conflict_event_ids": []
+      }
+    },
+    {
+      "case_id": "MALFORMED-PAYLOAD-DIGEST-001",
+      "title": "Raw signed-envelope blob lacks an explicit SHA-256 digest",
+      "deliveries": [
+        {
+          "event": {
+            "event_id": "e-bad-payload",
+            "stream_id": "stream-a",
+            "sequence": 0,
+            "previous_hash": null,
+            "event_hash": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "actor": "actor-a"
+          },
+          "assessment": {
+            "assessment_id": "assessment-bad-payload",
+            "verifier_id": "verifier-a",
+            "policy_id": "tib-key-policy-v0",
+            "assessed_at": "2026-11-19T16:00:00Z",
+            "key_status_snapshot_ref": "urn:tib:key-status:snapshot:1",
+            "event_time_basis": "external_trusted_timestamp",
+            "status": "verified",
+            "time_evidence_ref": "urn:synthetic:time-evidence:assessment-bad-payload"
+          },
+          "context": {
+            "projection_key": "claim:bad-payload",
+            "access_class": "restricted"
+          },
+          "payload": {
+            "blob_ref": "cas://synthetic/bad",
+            "media_type": "application/vnd.mycelix.signed-scientific-event+json",
+            "blob_sha256": "not-a-hash"
+          }
+        }
+      ],
+      "expected": {
+        "accepted_events": [],
+        "duplicate_replays": 0,
+        "invalid_signatures": [],
+        "revoked_keys": [],
+        "verification_pending": [],
+        "verification_conflict_event_ids": [],
+        "malformed_events": [
+          "e-bad-payload"
+        ],
+        "missing_parent_events": [],
+        "blocked_parent_events": [],
+        "equivocation_event_ids": [],
+        "sequence_fork_event_ids": [],
+        "sequence_conflict_pending_event_ids": [],
+        "hash_collision_event_ids": [],
+        "context_conflict_event_ids": [],
+        "conflict_groups": [],
+        "payload_digest_conflict_event_ids": []
+      }
+    },
+    {
+      "case_id": "TRUSTED-TIME-REFERENCE-MISSING-001",
+      "title": "A declared trusted time basis without a receipt or timestamp reference does not qualify the event",
+      "deliveries": [
+        {
+          "event": {
+            "event_id": "e1",
+            "stream_id": "stream-a",
+            "sequence": 0,
+            "previous_hash": null,
+            "event_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "actor": "actor-a"
+          },
+          "assessment": {
+            "assessment_id": "assessment-no-time-ref",
+            "verifier_id": "verifier-a",
+            "policy_id": "tib-key-policy-v0",
+            "assessed_at": "2026-11-19T00:00:00Z",
+            "key_status_snapshot_ref": "urn:tib:key-status:snapshot:synthetic-2026-11-19",
+            "event_time_basis": "trusted_append_receipt",
+            "status": "verified"
+          },
+          "context": {
+            "projection_key": "claim:x",
+            "access_class": "restricted"
+          },
+          "payload": {
+            "blob_ref": "cas://synthetic/no-time-ref",
+            "media_type": "application/vnd.mycelix.signed-scientific-event+json",
+            "blob_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+          }
+        }
+      ],
+      "expected": {
+        "accepted_events": [],
+        "duplicate_replays": 0,
+        "invalid_signatures": [],
+        "revoked_keys": [],
+        "verification_pending": [
+          "e1"
+        ],
+        "verification_conflict_event_ids": [],
+        "malformed_events": [],
+        "missing_parent_events": [],
+        "blocked_parent_events": [],
+        "equivocation_event_ids": [],
+        "sequence_fork_event_ids": [],
+        "sequence_conflict_pending_event_ids": [],
+        "hash_collision_event_ids": [],
+        "context_conflict_event_ids": [],
+        "conflict_groups": [],
+        "payload_digest_conflict_event_ids": []
+      }
+    },
+    {
+      "case_id": "PAYLOAD-DIGEST-DIVERGENCE-001",
+      "title": "Same signed event identity delivered with different exact serialized payload digests is quarantined",
+      "deliveries": [
+        {
+          "event": {
+            "event_id": "e1",
+            "stream_id": "stream-a",
+            "sequence": 0,
+            "previous_hash": null,
+            "event_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "actor": "actor-stream-a"
+          },
+          "assessment": {
+            "assessment_id": "assessment-e1-1",
+            "verifier_id": "verifier-a",
+            "policy_id": "tib-key-policy-v0",
+            "assessed_at": "2026-11-19T00:00:00Z",
+            "key_status_snapshot_ref": "urn:tib:key-status:snapshot:synthetic-2026-11-19",
+            "event_time_basis": "external_trusted_timestamp",
+            "time_evidence_ref": "urn:synthetic:time-evidence:shared",
+            "status": "verified"
+          },
+          "context": {
+            "projection_key": "claim:x",
+            "access_class": "restricted"
+          },
+          "payload": {
+            "blob_ref": "cas://synthetic/e1",
+            "media_type": "application/vnd.mycelix.signed-scientific-event+json",
+            "blob_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+          }
+        },
+        {
+          "event": {
+            "event_id": "e1",
+            "stream_id": "stream-a",
+            "sequence": 0,
+            "previous_hash": null,
+            "event_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "actor": "actor-stream-a"
+          },
+          "assessment": {
+            "assessment_id": "assessment-e1-2",
+            "verifier_id": "verifier-a",
+            "policy_id": "tib-key-policy-v0",
+            "assessed_at": "2026-11-19T00:00:00Z",
+            "key_status_snapshot_ref": "urn:tib:key-status:snapshot:synthetic-2026-11-19",
+            "event_time_basis": "external_trusted_timestamp",
+            "time_evidence_ref": "urn:synthetic:time-evidence:shared",
+            "status": "verified"
+          },
+          "context": {
+            "projection_key": "claim:x",
+            "access_class": "restricted"
+          },
+          "payload": {
+            "blob_ref": "cas://synthetic/e1",
+            "media_type": "application/vnd.mycelix.signed-scientific-event+json",
+            "blob_sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+          }
+        }
+      ],
+      "expected": {
+        "accepted_events": [],
+        "duplicate_replays": 1,
+        "invalid_signatures": [],
+        "revoked_keys": [],
+        "verification_pending": [],
+        "verification_conflict_event_ids": [],
+        "malformed_events": [],
+        "missing_parent_events": [],
+        "blocked_parent_events": [],
+        "equivocation_event_ids": [],
+        "sequence_fork_event_ids": [],
+        "sequence_conflict_pending_event_ids": [],
+        "hash_collision_event_ids": [],
+        "context_conflict_event_ids": [],
+        "payload_digest_conflict_event_ids": [
+          "e1"
+        ],
+        "conflict_groups": []
+      }
+    },
+    {
+      "case_id": "LATEST-STREAM-HEAD-CONFLICT-001",
+      "title": "Conflict group contains latest per-stream assertion, not earlier same-stream history",
+      "deliveries": [
+        {
+          "event": {
+            "event_id": "e1",
+            "stream_id": "stream-a",
+            "sequence": 0,
+            "previous_hash": null,
+            "event_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "actor": "actor-stream-a"
+          },
+          "assessment": {
+            "assessment_id": "assessment-e1-1",
+            "verifier_id": "verifier-a",
+            "policy_id": "tib-key-policy-v0",
+            "assessed_at": "2026-11-19T00:00:00Z",
+            "key_status_snapshot_ref": "urn:tib:key-status:snapshot:synthetic-2026-11-19",
+            "event_time_basis": "external_trusted_timestamp",
+            "time_evidence_ref": "urn:synthetic:time-evidence:shared",
+            "status": "verified"
+          },
+          "context": {
+            "projection_key": "claim:x",
+            "access_class": "restricted"
+          },
+          "payload": {
+            "blob_ref": "cas://synthetic/e1",
+            "media_type": "application/vnd.mycelix.signed-scientific-event+json",
+            "blob_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+          }
+        },
+        {
+          "event": {
+            "event_id": "e2",
+            "stream_id": "stream-a",
+            "sequence": 1,
+            "previous_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "event_hash": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "actor": "actor-stream-a"
+          },
+          "assessment": {
+            "assessment_id": "assessment-e2-1",
+            "verifier_id": "verifier-a",
+            "policy_id": "tib-key-policy-v0",
+            "assessed_at": "2026-11-19T00:00:00Z",
+            "key_status_snapshot_ref": "urn:tib:key-status:snapshot:synthetic-2026-11-19",
+            "event_time_basis": "external_trusted_timestamp",
+            "time_evidence_ref": "urn:synthetic:time-evidence:shared",
+            "status": "verified"
+          },
+          "context": {
+            "projection_key": "claim:x",
+            "access_class": "restricted"
+          },
+          "payload": {
+            "blob_ref": "cas://synthetic/e2",
+            "media_type": "application/vnd.mycelix.signed-scientific-event+json",
+            "blob_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+          }
+        },
+        {
+          "event": {
+            "event_id": "e3",
+            "stream_id": "stream-b",
+            "sequence": 0,
+            "previous_hash": null,
+            "event_hash": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "actor": "actor-stream-b"
+          },
+          "assessment": {
+            "assessment_id": "assessment-e3-1",
+            "verifier_id": "verifier-a",
+            "policy_id": "tib-key-policy-v0",
+            "assessed_at": "2026-11-19T00:00:00Z",
+            "key_status_snapshot_ref": "urn:tib:key-status:snapshot:synthetic-2026-11-19",
+            "event_time_basis": "external_trusted_timestamp",
+            "time_evidence_ref": "urn:synthetic:time-evidence:shared",
+            "status": "verified"
+          },
+          "context": {
+            "projection_key": "claim:x",
+            "access_class": "restricted"
+          },
+          "payload": {
+            "blob_ref": "cas://synthetic/e3",
+            "media_type": "application/vnd.mycelix.signed-scientific-event+json",
+            "blob_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+          }
+        }
+      ],
+      "expected": {
+        "accepted_events": [
+          "e1",
+          "e2",
+          "e3"
+        ],
+        "duplicate_replays": 0,
+        "invalid_signatures": [],
+        "revoked_keys": [],
+        "verification_pending": [],
+        "verification_conflict_event_ids": [],
+        "malformed_events": [],
+        "missing_parent_events": [],
+        "blocked_parent_events": [],
+        "equivocation_event_ids": [],
+        "sequence_fork_event_ids": [],
+        "sequence_conflict_pending_event_ids": [],
+        "hash_collision_event_ids": [],
+        "context_conflict_event_ids": [],
+        "payload_digest_conflict_event_ids": [],
+        "conflict_groups": [
+          {
+            "projection_key": "claim:x",
+            "members": [
+              {
+                "event_id": "e2",
+                "stream_id": "stream-a"
+              },
+              {
+                "event_id": "e3",
+                "stream_id": "stream-b"
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ]
+}
