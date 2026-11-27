@@ -560,7 +560,7 @@ fn validate_query_input_snapshot(
                     }
                 }
 
-                for path in &predicate_paths {
+                for path in predicate_paths.iter().filter(|_| predicate_valid) {
                     let member = path.strip_prefix('/').filter(|member| {
                         !member.is_empty()
                             && !member.contains('/')
