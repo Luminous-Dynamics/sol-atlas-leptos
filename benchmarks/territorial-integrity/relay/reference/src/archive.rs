@@ -15,25 +15,40 @@ pub struct ArchiveEvaluation {
 }
 
 fn nonempty<'a>(value: &'a Value, field: &str) -> Option<&'a str> {
-    value.get(field)?.as_str().filter(|text| !text.trim().is_empty())
+    value
+        .get(field)?
+        .as_str()
+        .filter(|text| !text.trim().is_empty())
 }
 
 fn valid_digest(value: &Value) -> bool {
-    let Some(algorithm) = nonempty(value, "algorithm") else { return false };
+    let Some(algorithm) = nonempty(value, "algorithm") else {
+        return false;
+    };
     if !matches!(algorithm, "SHA-256" | "BLAKE3") {
         return false;
     }
-    let Some(hex) = nonempty(value, "value") else { return false };
+    let Some(hex) = nonempty(value, "value") else {
+        return false;
+    };
     hex.len() == 64
-        && hex.bytes().all(|byte| byte.is_ascii_digit() || (b'a'..=b'f').contains(&byte))
+        && hex
+            .bytes()
+            .all(|byte| byte.is_ascii_digit() || (b'a'..=b'f').contains(&byte))
 }
 
 fn valid_access_class(class: &str) -> bool {
-    matches!(class, "public" | "community" | "restricted" | "culturally_protected")
+    matches!(
+        class,
+        "public" | "community" | "restricted" | "culturally_protected"
+    )
 }
 
 fn evaluation(disposition: &'static str, reason: &'static str) -> ArchiveEvaluation {
-    ArchiveEvaluation { disposition, reasons: vec![reason] }
+    ArchiveEvaluation {
+        disposition,
+        reasons: vec![reason],
+    }
 }
 
 /// Classify a manifest without claiming that referenced evidence or
@@ -56,9 +71,15 @@ pub fn evaluate_archive(manifest: &Value) -> ArchiveEvaluation {
         || nonempty(export_context, "authorization_ref").is_none()
         || nonempty(export_context, "purpose_ref").is_none()
     {
-        return evaluation("invalid", "export_destination_authorization_or_purpose_reference_missing");
+        return evaluation(
+            "invalid",
+            "export_destination_authorization_or_purpose_reference_missing",
+        );
     }
-    let Some(raw_authorized_classes) = export_context.get("authorized_access_classes").and_then(Value::as_array) else {
+    let Some(raw_authorized_classes) = export_context
+        .get("authorized_access_classes")
+        .and_then(Value::as_array)
+    else {
         return evaluation("invalid", "authorized_access_classes_missing");
     };
     if raw_authorized_classes.is_empty() {
@@ -171,15 +192,20 @@ pub fn evaluate_archive(manifest: &Value) -> ArchiveEvaluation {
         if expected != observed || object_counts.get(owner).copied().unwrap_or(0) != observed {
             incomplete = true;
         }
-        let complete = nonempty(frontier, "completeness")
-            == Some("complete_within_declared_frontier");
-        let gaps_empty = frontier.get("gap_refs").and_then(Value::as_array)
+        let complete =
+            nonempty(frontier, "completeness") == Some("complete_within_declared_frontier");
+        let gaps_empty = frontier
+            .get("gap_refs")
+            .and_then(Value::as_array)
             .is_some_and(|gaps| gaps.is_empty());
         if !complete || !gaps_empty {
             incomplete = true;
         }
     }
-    if object_counts.keys().any(|owner| !frontier_owners.contains(owner)) {
+    if object_counts
+        .keys()
+        .any(|owner| !frontier_owners.contains(owner))
+    {
         incomplete = true;
     }
 
@@ -195,26 +221,40 @@ pub fn evaluate_archive(manifest: &Value) -> ArchiveEvaluation {
     }
 
     if disclosure_violation {
-        return evaluation("disclosure_violation", "export_exceeds_declared_destination_clearance");
+        return evaluation(
+            "disclosure_violation",
+            "export_exceeds_declared_destination_clearance",
+        );
     }
     if incomplete {
-        return evaluation("incomplete", "declared_frontier_or_object_accounting_is_incomplete");
+        return evaluation(
+            "incomplete",
+            "declared_frontier_or_object_accounting_is_incomplete",
+        );
     }
 
     let Some(restore) = manifest.get("restore") else {
         return evaluation("invalid", "restore_section_missing");
     };
     let custody = nonempty(restore, "key_custody");
-    let provider_independent = restore.get("provider_independent_restore").and_then(Value::as_bool)
+    let provider_independent = restore
+        .get("provider_independent_restore")
+        .and_then(Value::as_bool)
         == Some(true);
     let restore_passed = nonempty(restore, "restore_test_status") == Some("pass")
         && nonempty(restore, "restore_instructions_ref").is_some()
         && nonempty(restore, "restore_run_ref").is_some();
     if !provider_independent
-        || !matches!(custody, Some("community_threshold" | "participant_controlled" | "independent_trustee"))
+        || !matches!(
+            custody,
+            Some("community_threshold" | "participant_controlled" | "independent_trustee")
+        )
         || !restore_passed
     {
-        return evaluation("not_independently_restorable", "provider_independent_custody_or_restore_test_not_qualified");
+        return evaluation(
+            "not_independently_restorable",
+            "provider_independent_custody_or_restore_test_not_qualified",
+        );
     }
 
     let Some(preservation) = manifest.get("preservation").and_then(Value::as_array) else {
@@ -232,12 +272,19 @@ pub fn evaluate_archive(manifest: &Value) -> ArchiveEvaluation {
             historical_indeterminate = true;
             continue;
         }
-        if matches!(algorithm_state, Some("compromised" | "deprecated" | "unknown")) {
+        if matches!(
+            algorithm_state,
+            Some("compromised" | "deprecated" | "unknown")
+        ) {
             let renewal_ref = nonempty(record, "renewal_event_ref");
             let predecessor = nonempty(record, "predecessor_ref");
             let timestamp = nonempty(record, "timestamp_evidence_ref");
-            let renewal_time = record.get("renewal_time_unix_seconds").and_then(Value::as_i64);
-            let weakening_time = record.get("algorithm_weakening_time_unix_seconds").and_then(Value::as_i64);
+            let renewal_time = record
+                .get("renewal_time_unix_seconds")
+                .and_then(Value::as_i64);
+            let weakening_time = record
+                .get("algorithm_weakening_time_unix_seconds")
+                .and_then(Value::as_i64);
             let renewal_is_timely = match (renewal_time, weakening_time) {
                 (Some(renewal), Some(weakening)) => renewal <= weakening,
                 _ => false,
@@ -261,16 +308,31 @@ pub fn evaluate_archive(manifest: &Value) -> ArchiveEvaluation {
         }
     }
     if historical_indeterminate {
-        return evaluation("indeterminate_historical_validation", "preservation_chain_cannot_establish_historical_validation");
+        return evaluation(
+            "indeterminate_historical_validation",
+            "preservation_chain_cannot_establish_historical_validation",
+        );
     }
     if license_review {
-        return evaluation("review_required", "license_or_redistribution_rights_unresolved");
+        return evaluation(
+            "review_required",
+            "license_or_redistribution_rights_unresolved",
+        );
     }
     if has_withheld {
-        return evaluation("eligible_with_declared_exclusions", "withheld_objects_accounted_for_without_payload_disclosure");
+        return evaluation(
+            "eligible_with_declared_exclusions",
+            "withheld_objects_accounted_for_without_payload_disclosure",
+        );
     }
     if renewed_chain {
-        return evaluation("eligible_with_preservation_chain", "predecessor_bound_preservation_renewal_declared");
+        return evaluation(
+            "eligible_with_preservation_chain",
+            "predecessor_bound_preservation_renewal_declared",
+        );
     }
-    evaluation("eligible_for_independent_restore", "frontiers_and_restore_controls_structurally_consistent")
+    evaluation(
+        "eligible_for_independent_restore",
+        "frontiers_and_restore_controls_structurally_consistent",
+    )
 }
