@@ -44,7 +44,7 @@ The receipt hashes the exact input bytes, the separately supplied trust-store by
 
 Each evidence reference may carry an Ed25519 attestation binding the exact reference ID, SHA-256 digest, evidence class, observation/validity window, evidence role, subject ID, issuer ID/role, key ID and issue time. Signatures use a route-protocol domain separator and a versioned typed claim encoding.
 
-The independent trust-store input contains the admitted public keys, issuer identities/roles, authorization by evidence role, validity windows and revocation state. A signature is accepted only when the exact claim, signer, scope, role and assessment-time policy checks pass. The assessment output records each consumed reference's authentication status and issuer/key identity, and its receipt separately hashes the trust-store snapshot.
+The independent trust-store input contains the admitted public keys, issuer identities/roles, authorization by evidence role, validity windows and revocation state. The caller must also supply an **expected trust-store SHA-256 pinned by deployment policy outside the route plan and trust-store file**. The auditor rejects a trust-store snapshot whose exact bytes do not match this pinned digest. A signature is accepted only when the exact claim, signer, scope, role and assessment-time policy checks pass. The assessment output records each consumed reference's authentication status and issuer/key identity, and its receipt separately hashes the trust-store snapshot. The synthetic CLI example uses a fixed public test-fixture digest only; production deployments must pin their actual trust-store digest through their protected deployment configuration.
 
 **A signature authenticates an issuer-bound claim; it does not establish sensor accuracy, calibration correctness, model validity, grid approval, vehicle safety or the state of the physical world.** The route auditor does not fetch referenced source artifacts or independently re-hash their underlying bytes. Those must be verified by the evidence-admission and source-specific owner before a claim is classified as suitable for this contract. Never place production private keys or real trust anchors in fixtures or public examples. The example trust store is deliberately synthetic and must not be used for production evidence.
 
@@ -52,7 +52,7 @@ The independent trust-store input contains the admitted public keys, issuer iden
 
 Run from the repository root:
 
-    cargo run -p sol-atlas-core --bin ev_route_assess --locked -- --input schemas/examples/ev-route-assurance-v0.1.synthetic.json --trust-store schemas/examples/ev-route-trust-store-v0.1.synthetic.json
+    cargo run -p sol-atlas-core --bin ev_route_assess --locked -- --input schemas/examples/ev-route-assurance-v0.1.synthetic.json --trust-store schemas/examples/ev-route-trust-store-v0.1.synthetic.json --expected-trust-store-sha256 eef9746f0215b49e4c071c8661f7eedce54e9f27bb627c26d4a896757d5b998e
 
 The frozen route example deliberately carries no attestations and must return INDETERMINATE, while still exposing the arithmetic path and the per-reference UNATTESTED statuses. The trust-store example contains only a deterministic public test key; it cannot authenticate the example plan because no evidence signatures are supplied. Neither file is field evidence.
 
