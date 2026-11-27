@@ -18,7 +18,6 @@ pub struct CoverageEvaluation {
     pub reason_codes: BTreeSet<String>,
 }
 
-
 const MAX_SAFE_INTEGER: i64 = 9_007_199_254_740_991;
 
 struct UniqueJsonValue(Value);
@@ -86,9 +85,7 @@ impl<'de> Visitor<'de> for UniqueJsonValueVisitor {
     where
         E: de::Error,
     {
-        if !value.is_finite()
-            || (value.fract() == 0.0 && value.abs() > MAX_SAFE_INTEGER as f64)
-        {
+        if !value.is_finite() || (value.fract() == 0.0 && value.abs() > MAX_SAFE_INTEGER as f64) {
             return Err(E::custom("number is outside the supported I-JSON range"));
         }
         Number::from_f64(value)
@@ -225,7 +222,6 @@ fn data_class_set(value: &Value) -> Result<BTreeSet<String>, &'static str> {
     }
 }
 
-
 /// Compute the domain-separated SHA-256 commitment for the exact predicate
 /// and semantics profile. The public reference is not the commitment preimage
 /// by itself: both the profile identifier and the AST are canonicalized.
@@ -240,8 +236,8 @@ pub fn query_predicate_commitment(
         "profile_ref": profile_ref,
         "predicate": predicate,
     });
-    let canonical = serde_jcs::to_vec(&preimage)
-        .map_err(|_| "query_predicate_canonicalization_failed")?;
+    let canonical =
+        serde_jcs::to_vec(&preimage).map_err(|_| "query_predicate_canonicalization_failed")?;
     let mut hasher = Sha256::new();
     hasher.update(b"luminous.cter.query-predicate.v0.1\0");
     hasher.update(&canonical);
@@ -249,13 +245,10 @@ pub fn query_predicate_commitment(
     Ok(digest.iter().map(|byte| format!("{byte:02x}")).collect())
 }
 
-
 /// Domain-separated commitment to the exact private query-input snapshot.
 /// Array ordering is canonicalized semantically before JCS: items by
 /// object_ref, then attribute bindings by path and source object reference.
-pub fn query_input_snapshot_commitment(
-    snapshot: &Value,
-) -> Result<String, &'static str> {
+pub fn query_input_snapshot_commitment(snapshot: &Value) -> Result<String, &'static str> {
     if nonblank(snapshot, "snapshot_ref").is_none() {
         raise(
             severity,
@@ -264,9 +257,7 @@ pub fn query_input_snapshot_commitment(
             "query_input_snapshot_reference_missing",
         );
     }
-    if nonblank(snapshot, "profile_ref")
-        != Some("urn:luminous:cter:query-input-json-v0.1")
-    {
+    if nonblank(snapshot, "profile_ref") != Some("urn:luminous:cter:query-input-json-v0.1") {
         return Err("query_input_snapshot_profile_unsupported");
     }
     let mut items = snapshot
@@ -305,8 +296,8 @@ pub fn query_input_snapshot_commitment(
         "attribute_projection_profile_ref": snapshot.get("attribute_projection_profile_ref"),
         "items": items,
     });
-    let canonical = serde_jcs::to_vec(&preimage)
-        .map_err(|_| "query_input_snapshot_canonicalization_failed")?;
+    let canonical =
+        serde_jcs::to_vec(&preimage).map_err(|_| "query_input_snapshot_canonicalization_failed")?;
     let mut hasher = Sha256::new();
     hasher.update(b"luminous.cter.query-input-snapshot.v0.1\\0");
     hasher.update(&canonical);
@@ -336,7 +327,6 @@ fn collect_predicate_paths(predicate: &Value, output: &mut BTreeSet<String>) {
         _ => {}
     }
 }
-
 
 fn validate_query_input_snapshot(
     input: &Value,
@@ -580,8 +570,8 @@ fn validate_query_input_snapshot(
                             && member.as_bytes()[0].is_ascii_alphabetic()
                     });
                     match member {
-                        Some(member) if attributes.contains_key(member)
-                            && !binding_paths.contains(path) =>
+                        Some(member)
+                            if attributes.contains_key(member) && !binding_paths.contains(path) =>
                         {
                             raise(
                                 severity,
@@ -590,8 +580,8 @@ fn validate_query_input_snapshot(
                                 format!("query_input_attribute_source_binding_missing:{path}"),
                             );
                         }
-                        Some(member) if !attributes.contains_key(member)
-                            && binding_paths.contains(path) =>
+                        Some(member)
+                            if !attributes.contains_key(member) && binding_paths.contains(path) =>
                         {
                             raise(
                                 severity,
@@ -609,9 +599,10 @@ fn validate_query_input_snapshot(
                         ),
                     }
                 }
-                if attributes.keys().any(|key| {
-                    !predicate_paths.contains(&format!("/{key}"))
-                }) {
+                if attributes
+                    .keys()
+                    .any(|key| !predicate_paths.contains(&format!("/{key}")))
+                {
                     raise(
                         severity,
                         reasons,
@@ -672,8 +663,7 @@ fn scalar(value: &Value) -> bool {
         return integer <= MAX_SAFE_INTEGER as u64;
     }
     number.as_f64().is_some_and(|value| {
-        value.is_finite()
-            && (value.fract() != 0.0 || value.abs() <= MAX_SAFE_INTEGER as f64)
+        value.is_finite() && (value.fract() != 0.0 || value.abs() <= MAX_SAFE_INTEGER as f64)
     })
 }
 
@@ -696,7 +686,9 @@ fn query_member<'a>(
     {
         return Err("predicate_path_unsupported");
     }
-    Ok(input.and_then(Value::as_object).and_then(|object| object.get(member)))
+    Ok(input
+        .and_then(Value::as_object)
+        .and_then(|object| object.get(member)))
 }
 
 fn invert_query_match(value: QueryMatch) -> QueryMatch {
@@ -988,12 +980,8 @@ fn compare_receipt_projection(
         );
     }
 
-    if !receipt
-        .get("query_commitment")
-        .is_some_and(sha256_digest)
-        || !receipt
-            .get("request_commitment")
-            .is_some_and(sha256_digest)
+    if !receipt.get("query_commitment").is_some_and(sha256_digest)
+        || !receipt.get("request_commitment").is_some_and(sha256_digest)
     {
         raise(
             severity,
@@ -1169,28 +1157,21 @@ pub fn evaluate_private_coverage(input: &Value) -> CoverageEvaluation {
     }
 
     let predicate_probe = Value::Object(serde_json::Map::new());
-    let predicate_valid = match evaluate_query_predicate(
-        query.get("predicate"),
-        Some(&predicate_probe),
-        0,
-    ) {
-        Ok(_) => true,
-        Err(reason) => {
-            raise(
-                &mut severity,
-                &mut reasons,
-                Severity::Incomplete,
-                format!("query_predicate_invalid:{reason}"),
-            );
-            false
-        }
-    };
+    let predicate_valid =
+        match evaluate_query_predicate(query.get("predicate"), Some(&predicate_probe), 0) {
+            Ok(_) => true,
+            Err(reason) => {
+                raise(
+                    &mut severity,
+                    &mut reasons,
+                    Severity::Incomplete,
+                    format!("query_predicate_invalid:{reason}"),
+                );
+                false
+            }
+        };
 
-    if predicate_valid
-        && query
-            .get("query_commitment")
-            .is_some_and(sha256_digest)
-    {
+    if predicate_valid && query.get("query_commitment").is_some_and(sha256_digest) {
         match query_predicate_commitment(
             nonblank(query, "query_profile_ref").unwrap_or(""),
             query.get("predicate").unwrap_or(&Value::Null),
@@ -1371,10 +1352,7 @@ pub fn evaluate_private_coverage(input: &Value) -> CoverageEvaluation {
             "package_commitment_malformed",
         );
     }
-    let package_leaves = match package
-        .get("terminal_source_leaf_refs")
-        .map(reference_set)
-    {
+    let package_leaves = match package.get("terminal_source_leaf_refs").map(reference_set) {
         Some(Ok(refs)) => refs,
         Some(Err(reason)) => {
             raise(&mut severity, &mut reasons, Severity::Deny, reason);
@@ -1407,14 +1385,7 @@ pub fn evaluate_private_coverage(input: &Value) -> CoverageEvaluation {
         );
     }
 
-    compare_receipt_projection(
-        input,
-        frontier,
-        query,
-        package,
-        &mut severity,
-        &mut reasons,
-    );
+    compare_receipt_projection(input, frontier, query, package, &mut severity, &mut reasons);
 
     match nonblank(
         input.get("receipt_assessment").unwrap_or(&Value::Null),
@@ -1475,7 +1446,6 @@ pub fn evaluate_private_coverage(input: &Value) -> CoverageEvaluation {
 
     finalize(severity, reasons)
 }
-
 
 #[cfg(test)]
 mod predicate_semantics_tests {
@@ -1619,54 +1589,50 @@ mod predicate_semantics_tests {
     }
 }
 
-
-    #[test]
-    fn query_predicate_jcs_commitment_matches_cross_language_golden_vectors() {
-        let corpus: Value = serde_json::from_str(include_str!(
-            "../../../egress/query-predicate-commitments-v0.1.json"
-        ))
-        .expect("JCS predicate vector corpus must be valid JSON");
-        let cases = corpus["cases"].as_array().expect("cases");
-        assert_eq!(cases.len(), 4);
-        for case in cases {
-            let predicate = &case["predicate"];
-            let profile = case["profile_ref"]
-                .as_str()
-                .unwrap_or("urn:luminous:cter:predicate-json-v0.1");
-            let expected_preimage = case["canonical_preimage"]
-                .as_str()
-                .expect("canonical preimage");
-            let preimage = serde_json::json!({
-                "profile_ref": profile,
-                "predicate": predicate
-            });
-            let canonical = serde_jcs::to_vec(&preimage)
-                .expect("predicate preimage canonicalizes");
-            assert_eq!(
-                std::str::from_utf8(&canonical).expect("canonical bytes are UTF-8"),
-                expected_preimage,
-                "case {}",
-                case["case_id"]
-            );
-            assert_eq!(
-                super::query_predicate_commitment(profile, predicate)
-                    .expect("predicate commitment"),
-                case["expected_digest"].as_str().expect("expected digest"),
-                "case {}",
-                case["case_id"]
-            );
-        }
-    }
-
-    #[test]
-    fn query_predicate_commitment_rejects_unrecognized_semantics_profile() {
-        let result = super::query_predicate_commitment(
-            "urn:luminous:cter:predicate-json-v0.2",
-            &json!({"op": "eq", "path": "/x", "value": "y"}),
+#[test]
+fn query_predicate_jcs_commitment_matches_cross_language_golden_vectors() {
+    let corpus: Value = serde_json::from_str(include_str!(
+        "../../../egress/query-predicate-commitments-v0.1.json"
+    ))
+    .expect("JCS predicate vector corpus must be valid JSON");
+    let cases = corpus["cases"].as_array().expect("cases");
+    assert_eq!(cases.len(), 4);
+    for case in cases {
+        let predicate = &case["predicate"];
+        let profile = case["profile_ref"]
+            .as_str()
+            .unwrap_or("urn:luminous:cter:predicate-json-v0.1");
+        let expected_preimage = case["canonical_preimage"]
+            .as_str()
+            .expect("canonical preimage");
+        let preimage = serde_json::json!({
+            "profile_ref": profile,
+            "predicate": predicate
+        });
+        let canonical = serde_jcs::to_vec(&preimage).expect("predicate preimage canonicalizes");
+        assert_eq!(
+            std::str::from_utf8(&canonical).expect("canonical bytes are UTF-8"),
+            expected_preimage,
+            "case {}",
+            case["case_id"]
         );
-        assert_eq!(result, Err("query_profile_unsupported_for_commitment"));
+        assert_eq!(
+            super::query_predicate_commitment(profile, predicate).expect("predicate commitment"),
+            case["expected_digest"].as_str().expect("expected digest"),
+            "case {}",
+            case["case_id"]
+        );
     }
+}
 
+#[test]
+fn query_predicate_commitment_rejects_unrecognized_semantics_profile() {
+    let result = super::query_predicate_commitment(
+        "urn:luminous:cter:predicate-json-v0.2",
+        &json!({"op": "eq", "path": "/x", "value": "y"}),
+    );
+    assert_eq!(result, Err("query_profile_unsupported_for_commitment"));
+}
 
 #[cfg(test)]
 mod strict_json_boundary_tests {
@@ -1688,10 +1654,8 @@ mod strict_json_boundary_tests {
 
     #[test]
     fn safe_raw_json_preserves_exact_values() {
-        let parsed = parse_unique_json_value(
-            r#"{"a":1,"b":1e-7,"text":"e\u0301"}"#,
-        )
-        .expect("valid unique I-JSON input");
+        let parsed = parse_unique_json_value(r#"{"a":1,"b":1e-7,"text":"e\u0301"}"#)
+            .expect("valid unique I-JSON input");
         assert_eq!(parsed["a"], json!(1));
         assert_eq!(parsed["b"], json!(1e-7));
         assert_eq!(parsed["text"], json!("e\u{0301}"));
@@ -1699,9 +1663,10 @@ mod strict_json_boundary_tests {
 
     #[test]
     fn strict_raw_coverage_entrypoint_accepts_current_baseline() {
-        let suite: serde_json::Value =
-            serde_json::from_str(include_str!("../../../egress/private-coverage-cases-v0.1.json"))
-                .expect("coverage fixture");
+        let suite: serde_json::Value = serde_json::from_str(include_str!(
+            "../../../egress/private-coverage-cases-v0.1.json"
+        ))
+        .expect("coverage fixture");
         let raw = suite["baseline"].to_string();
         let result = evaluate_private_coverage_json(&raw)
             .expect("strict parser accepts the synthetic baseline");
