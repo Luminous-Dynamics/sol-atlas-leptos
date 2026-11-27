@@ -294,15 +294,17 @@ pub fn assess_json(
 ) -> Result<AssessmentEnvelope, String> {
     let input: RoutePlan = serde_json::from_slice(input_bytes)
         .map_err(|error| format!("invalid input JSON: {error}"))?;
-    let trust_store_sha256 = sha256_hex(trust_store_bytes);
-    if !is_sha256_hex(expected_trust_store_sha256)
-        || trust_store_sha256 != expected_trust_store_sha256
-    {
-        return Err("evidence trust-store digest does not match the deployment-pinned SHA-256".into());
-    }
     let trust_store: EvidenceTrustStore = serde_json::from_slice(trust_store_bytes)
         .map_err(|error| format!("invalid evidence trust-store JSON: {error}"))?;
     validate_trust_store(&trust_store)?;
+    let canonical_trust_store_bytes = serde_json::to_vec(&trust_store)
+        .map_err(|error| format!("cannot canonicalize evidence trust store: {error}"))?;
+    let canonical_trust_store_sha256 = sha256_hex(&canonical_trust_store_bytes);
+    if !is_sha256_hex(expected_trust_store_sha256)
+        || canonical_trust_store_sha256 != expected_trust_store_sha256
+    {
+        return Err("canonical evidence trust-store digest does not match the deployment-pinned SHA-256".into());
+    }
     let assessment = assess(&input, &trust_store, expected_trust_store_sha256)?;
     let assessment_bytes = serde_json::to_vec(&assessment)
         .map_err(|error| format!("could not serialize assessment: {error}"))?;
@@ -325,12 +327,12 @@ pub fn assess(
     expected_trust_store_sha256: &str,
 ) -> Result<Assessment, String> {
     validate_trust_store(trust_store)?;
-    let trust_store_bytes = serde_json::to_vec(trust_store)
-        .map_err(|error| format!("cannot serialize evidence trust store: {error}"))?;
+    let canonical_trust_store_bytes = serde_json::to_vec(trust_store)
+        .map_err(|error| format!("cannot canonicalize evidence trust store: {error}"))?;
     if !is_sha256_hex(expected_trust_store_sha256)
-        || sha256_hex(&trust_store_bytes) != expected_trust_store_sha256
+        || sha256_hex(&canonical_trust_store_bytes) != expected_trust_store_sha256
     {
-        return Err("evidence trust-store digest does not match the deployment-pinned SHA-256".into());
+        return Err("canonical evidence trust-store digest does not match the deployment-pinned SHA-256".into());
     }
     if input.schema_version != INPUT_SCHEMA_VERSION {
         return Err(format!(
@@ -1586,7 +1588,11 @@ mod tests {
     fn synthetic_fixture_is_never_promoted_to_feasible() {
         let bytes = include_str!("../../schemas/examples/ev-route-assurance-v0.1.synthetic.json");
         let trust_bytes = test_trust_store_bytes();
-        let trust_store_pin = sha256_hex(&trust_bytes);
+        let parsed_trust_store: EvidenceTrustStore =
+            serde_json::from_slice(&trust_bytes).expect("test trust store JSON");
+        let canonical_trust_store_bytes =
+            serde_json::to_vec(&parsed_trust_store).expect("canonical trust store");
+        let trust_store_pin = sha256_hex(&canonical_trust_store_bytes);
         let envelope = assess_json(bytes.as_bytes(), &trust_bytes, &trust_store_pin)
             .expect("fixture is valid JSON");
         assert_eq!(
