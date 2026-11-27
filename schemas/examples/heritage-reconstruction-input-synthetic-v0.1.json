@@ -48,6 +48,28 @@
       "method_family_id": "forward-simulation",
       "rights_status": "verified",
       "rights_receipt_ref": "urn:synthetic:rights:simulation"
+    },
+    {
+      "evidence_id": "contradictory-field-assessment",
+      "evidence_kind": "surface_field_assessment",
+      "origin": "human_interpretation",
+      "relation": "contradicts",
+      "source_asset_sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+      "source_lineage_id": "lineage-counter",
+      "method_family_id": "field-archaeological-assessment",
+      "rights_status": "pending",
+      "rights_receipt_ref": null
+    },
+    {
+      "evidence_id": "historical-context-document",
+      "evidence_kind": "historical_document",
+      "origin": "human_interpretation",
+      "relation": "context_only",
+      "source_asset_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+      "source_lineage_id": "lineage-context",
+      "method_family_id": "archive-document-review",
+      "rights_status": "verified",
+      "rights_receipt_ref": "urn:synthetic:rights:context"
     }
   ],
   "elements": [
@@ -84,6 +106,20 @@
           "reference_id": "dem-builder-v1",
           "artifact_sha256": "2222222222222222222222222222222222222222222222222222222222222222",
           "statement": "Declared terrain reconstruction pipeline"
+        },
+        {
+          "dependency_id": "counter-field-assessment",
+          "kind": "source_evidence",
+          "reference_id": "contradictory-field-assessment",
+          "artifact_sha256": null,
+          "statement": "Synthetic contradictory field interpretation retained without positive-support promotion"
+        },
+        {
+          "dependency_id": "context-archive-record",
+          "kind": "source_evidence",
+          "reference_id": "historical-context-document",
+          "artifact_sha256": null,
+          "statement": "Synthetic contextual document retained without establishing surface geometry"
         }
       ],
       "method_build_sha256": "2222222222222222222222222222222222222222222222222222222222222222",
@@ -93,8 +129,12 @@
       "identifiability": "identifiable",
       "coordinate_access_tier": "public",
       "exact_geometry_publication_allowed": true,
-      "counter_evidence_ids": [],
-      "context_evidence_ids": []
+      "counter_evidence_ids": [
+        "contradictory-field-assessment"
+      ],
+      "context_evidence_ids": [
+        "historical-context-document"
+      ]
     }
   ]
 }
