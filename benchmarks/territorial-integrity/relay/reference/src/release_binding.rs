@@ -4,9 +4,7 @@
 //! Mycelix receipt, verify a VDS proof, hash supplied payload bytes, resolve
 //! consent/authority/currentness, or authorize a transmission.
 
-use crate::egress::{
-    evaluate_disclosure_manifest, terminal_source_leaf_refs,
-};
+use crate::egress::{evaluate_disclosure_manifest, terminal_source_leaf_refs};
 use crate::private_coverage::evaluate_private_coverage;
 use serde_json::Value;
 use std::collections::BTreeSet;
@@ -254,9 +252,7 @@ pub fn evaluate_composed_release_binding(
         );
     }
 
-    if nonblank(authority, "coverage_input_snapshot_ref")
-        != nonblank(query, "input_snapshot_ref")
-    {
+    if nonblank(authority, "coverage_input_snapshot_ref") != nonblank(query, "input_snapshot_ref") {
         raise(
             &mut severity,
             &mut reasons,
@@ -264,8 +260,7 @@ pub fn evaluate_composed_release_binding(
             "authorization_input_snapshot_reference_mismatch",
         );
     }
-    if authority.get("coverage_input_snapshot_commitment")
-        != query.get("input_snapshot_commitment")
+    if authority.get("coverage_input_snapshot_commitment") != query.get("input_snapshot_commitment")
     {
         raise(
             &mut severity,
@@ -306,9 +301,7 @@ pub fn evaluate_composed_release_binding(
     match terminal_source_leaf_refs(manifest) {
         Ok(leaves) => {
             derived_leaves = leaves;
-            let asserted_leaves = reference_set(
-                coverage_package.get("terminal_source_leaf_refs"),
-            );
+            let asserted_leaves = reference_set(coverage_package.get("terminal_source_leaf_refs"));
             if asserted_leaves.as_ref() != Some(&derived_leaves) {
                 raise(
                     &mut severity,
@@ -328,7 +321,6 @@ pub fn evaluate_composed_release_binding(
 
     finalize(severity, reasons, derived_leaves)
 }
-
 
 /// Strict raw-JSON entry point for composed releases. Both records pass
 /// through the same duplicate-member and I-JSON numeric boundary before any
