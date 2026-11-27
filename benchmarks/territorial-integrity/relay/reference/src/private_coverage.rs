@@ -250,12 +250,7 @@ pub fn query_predicate_commitment(
 /// object_ref, then attribute bindings by path and source object reference.
 pub fn query_input_snapshot_commitment(snapshot: &Value) -> Result<String, &'static str> {
     if nonblank(snapshot, "snapshot_ref").is_none() {
-        raise(
-            severity,
-            reasons,
-            Severity::Incomplete,
-            "query_input_snapshot_reference_missing",
-        );
+        return Err("query_input_snapshot_reference_missing");
     }
     if nonblank(snapshot, "profile_ref") != Some("urn:luminous:cter:query-input-json-v0.1") {
         return Err("query_input_snapshot_profile_unsupported");
@@ -1623,7 +1618,7 @@ fn query_predicate_jcs_commitment_matches_cross_language_golden_vectors() {
             case["case_id"]
         );
         assert_eq!(
-            super::query_predicate_commitment(profile, predicate).expect("predicate commitment"),
+            query_predicate_commitment(profile, predicate).expect("predicate commitment"),
             case["expected_digest"].as_str().expect("expected digest"),
             "case {}",
             case["case_id"]
@@ -1633,9 +1628,9 @@ fn query_predicate_jcs_commitment_matches_cross_language_golden_vectors() {
 
 #[test]
 fn query_predicate_commitment_rejects_unrecognized_semantics_profile() {
-    let result = super::query_predicate_commitment(
+    let result = query_predicate_commitment(
         "urn:luminous:cter:predicate-json-v0.2",
-        &json!({"op": "eq", "path": "/x", "value": "y"}),
+        &serde_json::json!({"op": "eq", "path": "/x", "value": "y"}),
     );
     assert_eq!(result, Err("query_profile_unsupported_for_commitment"));
 }
