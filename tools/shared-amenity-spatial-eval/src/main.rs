@@ -756,7 +756,8 @@ fn evaluate_arm(scenario: &ScenarioFixture, arm: &ProvisionArm) -> Result<ArmRes
                     && service_not_known_unavailable;
                 let unresolved_service_candidate = record.access_state == "QUALIFIED"
                     && within_tolerance
-                    && (!group.mandatory_access_required || record.mandatory_access_state == "PASS")
+                    && (!group.mandatory_access_required
+                        || record.mandatory_access_state == "PASS")
                     && facility.service_state == "UNKNOWN";
                 unresolved_route_candidate
                     || unresolved_mandatory_candidate
