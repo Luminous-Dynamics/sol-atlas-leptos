@@ -1,0 +1,743 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:luminous:sol-atlas:service-debt-metrology:0.1.0",
+  "title": "Luminous service-debt metrology synthetic fixtures",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "schema_version",
+    "maturity",
+    "claim_ceiling",
+    "policy",
+    "cases"
+  ],
+  "properties": {
+    "schema": {
+      "const": "luminous.service-debt-metrology-fixtures"
+    },
+    "schema_version": {
+      "const": "0.1.0"
+    },
+    "maturity": {
+      "const": "SYNTHETIC_METROLOGY_ORACLE_ONLY"
+    },
+    "claim_ceiling": {
+      "const": "NO_LIVE_RESIDENT_DEMAND_DELIVERY_CAPACITY_UNEXPRESSED_NEED_OR_WELFARE_CLAIM"
+    },
+    "policy": {
+      "$ref": "#/$defs/Policy"
+    },
+    "cases": {
+      "type": "array",
+      "minItems": 19,
+      "maxItems": 19,
+      "items": {
+        "$ref": "#/$defs/Case"
+      }
+    }
+  },
+  "$defs": {
+    "Scope": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "scope_digest",
+        "population_digest",
+        "cohort_id",
+        "service_id",
+        "functional_unit_id",
+        "unit_id",
+        "period_id",
+        "time_basis_id",
+        "start_seconds",
+        "end_seconds"
+      ],
+      "properties": {
+        "scope_digest": {
+          "type": "string",
+          "minLength": 1
+        },
+        "population_digest": {
+          "type": "string",
+          "minLength": 1
+        },
+        "cohort_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "service_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "functional_unit_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "unit_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "period_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "time_basis_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "start_seconds": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "end_seconds": {
+          "type": "integer",
+          "minimum": 1
+        }
+      }
+    },
+    "Evidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "owner",
+        "record_id",
+        "revision",
+        "freshness"
+      ],
+      "properties": {
+        "owner": {
+          "type": "string",
+          "minLength": 1
+        },
+        "record_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "revision": {
+          "type": "string",
+          "minLength": 1
+        },
+        "freshness": {
+          "enum": [
+            "CURRENT",
+            "STALE"
+          ]
+        }
+      }
+    },
+    "Policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "no_cross_metric_scalar",
+        "unknown_is_not_zero",
+        "capacity_gap_basis",
+        "request_debt_basis",
+        "unexpressed_need_basis",
+        "booking_is_not_delivery",
+        "no_inference_from_absent_requests"
+      ],
+      "properties": {
+        "no_cross_metric_scalar": {
+          "const": true
+        },
+        "unknown_is_not_zero": {
+          "const": true
+        },
+        "capacity_gap_basis": {
+          "const": "SAME_SCOPE_COMPLETE_DEMAND_AND_DELIVERABLE_CAPACITY_FOR_ONE_INTERVAL"
+        },
+        "request_debt_basis": {
+          "const": "IDENTITY_LINKED_ACCEPTED_REQUEST_MINUS_COMPLETED_DELIVERY"
+        },
+        "unexpressed_need_basis": {
+          "const": "INDEPENDENT_RESIDENT_NEED_ASSESSMENT_ONLY"
+        },
+        "booking_is_not_delivery": {
+          "const": true
+        },
+        "no_inference_from_absent_requests": {
+          "const": true
+        }
+      }
+    },
+    "DemandOrCapacity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "state",
+        "quantity",
+        "coverage",
+        "basis",
+        "scope",
+        "evidence"
+      ],
+      "properties": {
+        "state": {
+          "enum": [
+            "KNOWN",
+            "UNKNOWN"
+          ]
+        },
+        "quantity": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "coverage": {
+          "enum": [
+            "COMPLETE",
+            "PARTIAL",
+            "UNKNOWN"
+          ]
+        },
+        "basis": {
+          "type": "string",
+          "minLength": 1
+        },
+        "scope": {
+          "$ref": "#/$defs/Scope"
+        },
+        "evidence": {
+          "$ref": "#/$defs/Evidence"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "state": {
+                "const": "KNOWN"
+              }
+            },
+            "required": [
+              "state"
+            ]
+          },
+          "then": {
+            "properties": {
+              "quantity": {
+                "type": "integer"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "state": {
+                "const": "UNKNOWN"
+              }
+            },
+            "required": [
+              "state"
+            ]
+          },
+          "then": {
+            "properties": {
+              "quantity": {
+                "type": "null"
+              }
+            }
+          }
+        }
+      ]
+    },
+    "RequestRecord": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "request_id",
+        "state",
+        "accepted_units",
+        "delivered_units",
+        "delivery_state",
+        "scope",
+        "evidence"
+      ],
+      "properties": {
+        "request_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "state": {
+          "enum": [
+            "ACCEPTED",
+            "CANCELLED",
+            "DECLINED"
+          ]
+        },
+        "accepted_units": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "delivered_units": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "delivery_state": {
+          "enum": [
+            "KNOWN",
+            "UNKNOWN"
+          ]
+        },
+        "scope": {
+          "$ref": "#/$defs/Scope"
+        },
+        "evidence": {
+          "$ref": "#/$defs/Evidence"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "state": {
+                "const": "ACCEPTED"
+              }
+            },
+            "required": [
+              "state"
+            ]
+          },
+          "then": {
+            "properties": {
+              "accepted_units": {
+                "minimum": 1
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "state": {
+                "enum": [
+                  "CANCELLED",
+                  "DECLINED"
+                ]
+              }
+            },
+            "required": [
+              "state"
+            ]
+          },
+          "then": {
+            "properties": {
+              "accepted_units": {
+                "const": 0
+              },
+              "delivered_units": {
+                "const": 0
+              },
+              "delivery_state": {
+                "const": "KNOWN"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "delivery_state": {
+                "const": "KNOWN"
+              }
+            },
+            "required": [
+              "delivery_state"
+            ]
+          },
+          "then": {
+            "properties": {
+              "delivered_units": {
+                "type": "integer"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "delivery_state": {
+                "const": "UNKNOWN"
+              }
+            },
+            "required": [
+              "delivery_state"
+            ]
+          },
+          "then": {
+            "properties": {
+              "delivered_units": {
+                "type": "null"
+              }
+            }
+          }
+        }
+      ]
+    },
+    "RequestRegister": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "coverage",
+        "scope",
+        "evidence",
+        "records"
+      ],
+      "properties": {
+        "coverage": {
+          "enum": [
+            "COMPLETE",
+            "PARTIAL",
+            "UNKNOWN"
+          ]
+        },
+        "scope": {
+          "$ref": "#/$defs/Scope"
+        },
+        "evidence": {
+          "$ref": "#/$defs/Evidence"
+        },
+        "records": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/RequestRecord"
+          }
+        }
+      }
+    },
+    "NeedAssessment": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "state",
+        "scope",
+        "method",
+        "estimate_units",
+        "lower_bound_units",
+        "upper_bound_units",
+        "sample_size",
+        "confidence_level_basis_points",
+        "evidence"
+      ],
+      "properties": {
+        "state": {
+          "enum": [
+            "MEASURED",
+            "NOT_COLLECTED",
+            "UNKNOWN"
+          ]
+        },
+        "scope": {
+          "$ref": "#/$defs/Scope"
+        },
+        "method": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "estimate_units": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "lower_bound_units": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "upper_bound_units": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "sample_size": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 1
+        },
+        "confidence_level_basis_points": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 1,
+          "maximum": 9999
+        },
+        "evidence": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/Evidence"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "state": {
+                "const": "MEASURED"
+              }
+            },
+            "required": [
+              "state"
+            ]
+          },
+          "then": {
+            "properties": {
+              "method": {
+                "type": "string"
+              },
+              "estimate_units": {
+                "type": "integer"
+              },
+              "lower_bound_units": {
+                "type": "integer"
+              },
+              "upper_bound_units": {
+                "type": "integer"
+              },
+              "sample_size": {
+                "type": "integer"
+              },
+              "confidence_level_basis_points": {
+                "type": "integer"
+              },
+              "evidence": {
+                "$ref": "#/$defs/Evidence"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "state": {
+                "const": "NOT_COLLECTED"
+              }
+            },
+            "required": [
+              "state"
+            ]
+          },
+          "then": {
+            "properties": {
+              "method": {
+                "type": "null"
+              },
+              "estimate_units": {
+                "type": "null"
+              },
+              "lower_bound_units": {
+                "type": "null"
+              },
+              "upper_bound_units": {
+                "type": "null"
+              },
+              "sample_size": {
+                "type": "null"
+              },
+              "confidence_level_basis_points": {
+                "type": "null"
+              },
+              "evidence": {
+                "type": "null"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "state": {
+                "const": "UNKNOWN"
+              }
+            },
+            "required": [
+              "state"
+            ]
+          },
+          "then": {
+            "properties": {
+              "estimate_units": {
+                "type": "null"
+              },
+              "lower_bound_units": {
+                "type": "null"
+              },
+              "upper_bound_units": {
+                "type": "null"
+              }
+            }
+          }
+        }
+      ]
+    },
+    "Expected": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "capacity_gap_state",
+        "capacity_shortfall_units",
+        "capacity_surplus_units",
+        "accepted_undelivered_state",
+        "accepted_undelivered_units",
+        "unexpressed_need_state",
+        "unexpressed_need_estimate_units",
+        "unexpressed_need_lower_bound_units",
+        "unexpressed_need_upper_bound_units",
+        "unresolved_exposure_state",
+        "unresolved_reason_codes",
+        "unresolved_duration_seconds"
+      ],
+      "properties": {
+        "capacity_gap_state": {
+          "enum": [
+            "KNOWN",
+            "UNKNOWN",
+            "NOT_COMPARABLE"
+          ]
+        },
+        "capacity_shortfall_units": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "capacity_surplus_units": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "accepted_undelivered_state": {
+          "enum": [
+            "KNOWN",
+            "UNKNOWN",
+            "NOT_COMPARABLE"
+          ]
+        },
+        "accepted_undelivered_units": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "unexpressed_need_state": {
+          "enum": [
+            "MEASURED",
+            "NOT_COLLECTED",
+            "UNKNOWN",
+            "NOT_COMPARABLE"
+          ]
+        },
+        "unexpressed_need_estimate_units": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "unexpressed_need_lower_bound_units": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "unexpressed_need_upper_bound_units": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "unresolved_exposure_state": {
+          "enum": [
+            "PRESENT",
+            "NONE"
+          ]
+        },
+        "unresolved_reason_codes": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "enum": [
+              "CAPACITY_GAP_EVIDENCE_UNRESOLVED",
+              "CAPACITY_GAP_SCOPE_MISMATCH",
+              "REQUEST_DELIVERY_EVIDENCE_UNRESOLVED",
+              "REQUEST_DELIVERY_SCOPE_MISMATCH",
+              "RESIDENT_NEED_NOT_ASSESSED",
+              "RESIDENT_NEED_EVIDENCE_UNRESOLVED",
+              "RESIDENT_NEED_SCOPE_MISMATCH"
+            ]
+          }
+        },
+        "unresolved_duration_seconds": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    },
+    "Case": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "case_id",
+        "scope",
+        "demand",
+        "capacity",
+        "request_register",
+        "need_assessment",
+        "expected"
+      ],
+      "properties": {
+        "case_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "scope": {
+          "$ref": "#/$defs/Scope"
+        },
+        "demand": {
+          "$ref": "#/$defs/DemandOrCapacity"
+        },
+        "capacity": {
+          "$ref": "#/$defs/DemandOrCapacity"
+        },
+        "request_register": {
+          "$ref": "#/$defs/RequestRegister"
+        },
+        "need_assessment": {
+          "$ref": "#/$defs/NeedAssessment"
+        },
+        "expected": {
+          "$ref": "#/$defs/Expected"
+        }
+      }
+    }
+  }
+}

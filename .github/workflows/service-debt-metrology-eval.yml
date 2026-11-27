@@ -1,0 +1,110 @@
+name: Service Debt Metrology Oracle
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+    paths:
+      - "tools/shared-amenity-spatial-eval/**"
+      - "docs/research/service-debt-metrology/**"
+      - ".github/workflows/service-debt-metrology-eval.yml"
+  push:
+    branches:
+      - "research/service-debt-metrology-v0.1"
+    paths:
+      - "tools/shared-amenity-spatial-eval/**"
+      - "docs/research/service-debt-metrology/**"
+      - ".github/workflows/service-debt-metrology-eval.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: service-debt-metrology-${{ github.event.pull_request.head.sha || github.sha }}
+  cancel-in-progress: true
+
+jobs:
+  synthetic-oracle:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
+
+      - name: Install pinned Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: 1.96.0
+          components: clippy, rustfmt
+
+      - name: Verify formatting
+        run: cargo fmt --manifest-path tools/shared-amenity-spatial-eval/Cargo.toml -- --check
+
+      - name: Run locked tests
+        run: cargo test --locked --all-targets --manifest-path tools/shared-amenity-spatial-eval/Cargo.toml
+
+      - name: Run strict Clippy
+        run: cargo clippy --locked --manifest-path tools/shared-amenity-spatial-eval/Cargo.toml --all-targets -- -D warnings
+
+      - name: Evaluate frozen metrology corpus
+        shell: bash
+        run: |
+          set -euo pipefail
+          source_commit="$(git rev-parse HEAD)"
+          test "$source_commit" = "${{ github.event.pull_request.head.sha || github.sha }}"
+          fixture="tools/shared-amenity-spatial-eval/fixtures/SERVICE_DEBT_METROLOGY_FIXTURES_V0.1.json"
+          schema="tools/shared-amenity-spatial-eval/fixtures/SERVICE_DEBT_METROLOGY_FIXTURES_V0.1.schema.json"
+          fixture_sha256="$(sha256sum "$fixture" | cut -d ' ' -f 1)"
+          schema_sha256="$(sha256sum "$schema" | cut -d ' ' -f 1)"
+          jq -e '
+            .["$schema"] == "https://json-schema.org/draft/2020-12/schema"
+            and .["$id"] == "urn:luminous:sol-atlas:service-debt-metrology:0.1.0"
+            and .additionalProperties == false
+            and .properties.cases.minItems == 19
+            and .properties.cases.maxItems == 19
+            and .properties.cases.items["$ref"] == "#/$defs/Case"
+            and .["$defs"].Scope.additionalProperties == false
+          ' "$schema"
+          cargo run --locked --quiet --manifest-path tools/shared-amenity-spatial-eval/Cargo.toml --bin service-debt-metrology -- "$fixture" > service-debt-metrology-evaluation.json
+          jq -e '
+            .schema == "luminous.service-debt-metrology-evaluation"
+            and .schema_version == "0.1.0"
+            and .maturity == "SYNTHETIC_METROLOGY_ORACLE_ONLY"
+            and .case_count == 19
+            and .oracle_match_count == 19
+            and (.fixture_sha256 | test("^[0-9a-f]{64}$"))
+          ' service-debt-metrology-evaluation.json
+          test "$(jq -r .fixture_sha256 service-debt-metrology-evaluation.json)" = "$fixture_sha256"
+
+          jq -n \
+            --arg source_commit "$source_commit" \
+            --arg fixture_sha256 "$fixture_sha256" \
+            --arg schema_sha256 "$schema_sha256" \
+            --slurpfile evaluation service-debt-metrology-evaluation.json \
+            '{
+              schema: "luminous.service-debt-metrology-receipt",
+              schema_version: "0.1.0",
+              result: "pass",
+              maturity: "SYNTHETIC_METROLOGY_ORACLE_ONLY",
+              source_commit: $source_commit,
+              fixture_sha256: $fixture_sha256,
+              schema_sha256: $schema_sha256,
+              evaluation: $evaluation[0]
+            }' > service-debt-metrology-receipt.json
+
+      - name: Validate exact-head receipt
+        run: |
+          test "$(jq -r .source_commit service-debt-metrology-receipt.json)" = "${{ github.event.pull_request.head.sha || github.sha }}"
+          test "$(jq -r .fixture_sha256 service-debt-metrology-receipt.json)" = "$(sha256sum tools/shared-amenity-spatial-eval/fixtures/SERVICE_DEBT_METROLOGY_FIXTURES_V0.1.json | cut -d ' ' -f 1)"
+          test "$(jq -r .schema_sha256 service-debt-metrology-receipt.json)" = "$(sha256sum tools/shared-amenity-spatial-eval/fixtures/SERVICE_DEBT_METROLOGY_FIXTURES_V0.1.schema.json | cut -d ' ' -f 1)"
+          jq -e '.result == "pass" and .evaluation.case_count == 19 and .evaluation.oracle_match_count == 19 and (.schema_sha256 | test("^[0-9a-f]{64}$"))' service-debt-metrology-receipt.json
+
+      - name: Upload exact-head synthetic receipt
+        uses: actions/upload-artifact@v4
+        with:
+          name: service-debt-metrology-receipt
+          path: service-debt-metrology-receipt.json
+          if-no-files-found: error
+          retention-days: 90
