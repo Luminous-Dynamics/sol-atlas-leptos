@@ -494,7 +494,14 @@ mod tests {
         let store = fixture_store();
         let (reference, digest, _, _, mut attestation) = signed_attestation();
         attestation.signature_ed25519_hex = None;
-        let result = verify_fixture(&reference, &digest, Some(&attestation), &store, "route_state", "LEG-1");
+        let result = verify_fixture(
+            &reference,
+            &digest,
+            Some(&attestation),
+            &store,
+            "route_state",
+            "LEG-1",
+        );
         assert_eq!(result.status, "UNATTESTED");
     }
 
