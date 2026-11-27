@@ -64,6 +64,22 @@ pub struct EvidenceVerification {
     pub reason: Option<String>,
 }
 
+/// Inputs bound to one evidence consumer field and the independently admitted
+/// trust policy. Keeping these values in one request prevents argument-order
+/// mistakes when adding new evidence dimensions.
+#[derive(Debug, Clone, Copy)]
+pub struct EvidenceVerificationRequest<'a> {
+    pub reference_id: &'a str,
+    pub digest_sha256: &'a str,
+    pub source_class: &'a str,
+    pub observed_at_unix_s: Option<i64>,
+    pub valid_until_unix_s: Option<i64>,
+    pub attestation: Option<&'a EvidenceAttestation>,
+    pub expected_evidence_role: &'a str,
+    pub expected_subject_id: &'a str,
+    pub assessed_at_unix_s: i64,
+}
+
 impl EvidenceVerification {
     pub fn authenticated(&self) -> bool {
         self.status == "AUTHENTICATED"
@@ -215,17 +231,20 @@ pub fn validate_trust_store(store: &EvidenceTrustStore) -> Result<(), String> {
 /// Verify signer identity, key status, validity interval, role authority,
 /// subject binding and the Ed25519 signature over the exact evidence claim.
 pub fn verify_evidence(
-    reference_id: &str,
-    digest_sha256: &str,
-    source_class: &str,
-    observed_at_unix_s: Option<i64>,
-    valid_until_unix_s: Option<i64>,
-    attestation: Option<&EvidenceAttestation>,
+    request: EvidenceVerificationRequest<'_>,
     store: &EvidenceTrustStore,
-    expected_evidence_role: &str,
-    expected_subject_id: &str,
-    assessed_at_unix_s: i64,
 ) -> EvidenceVerification {
+    let EvidenceVerificationRequest {
+        reference_id,
+        digest_sha256,
+        source_class,
+        observed_at_unix_s,
+        valid_until_unix_s,
+        attestation,
+        expected_evidence_role,
+        expected_subject_id,
+        assessed_at_unix_s,
+    } = request;
     let Some(attestation) = attestation else {
         return failed(
             "UNATTESTED",
