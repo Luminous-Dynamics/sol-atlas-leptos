@@ -2,8 +2,7 @@ use serde_json::Value;
 use std::{collections::{BTreeMap, BTreeSet}, env, fs, process};
 
 fn fail(message: impl AsRef<str>) -> ! {
-    eprintln!("INVALID: {}", message.as_ref());
-    process::exit(2);
+    panic!("INVALID: {}", message.as_ref());
 }
 
 fn read_json(path: &str) -> Value {
@@ -147,8 +146,8 @@ mod tests {
     use super::*;
 
     fn fixtures() -> (Value, Value) {
-        let feature = include_str!("../fixtures/feature-collection.json");
-        let evidence = include_str!("../fixtures/evidence-records.json");
+        let feature = include_str!("../../fixtures/feature-collection.json");
+        let evidence = include_str!("../../fixtures/evidence-records.json");
         (serde_json::from_str(feature).unwrap(), serde_json::from_str(evidence).unwrap())
     }
 
