@@ -16,6 +16,8 @@ An evidence ID may occur in only one association class for a given element. Ever
 
 Rights state remains explicit. A rights-pending or rights-unknown counter-record may be retained as a reference, but is not thereby cleared for content retrieval, public disclosure, redistribution or model training. Verified rights still require a receipt. Positive support retains the existing verified-rights requirement.
 
+The committed synthetic known-answer input now demonstrates all three associations on one observed geometry element: one direct measurement supports it, one rights-pending field assessment contradicts it, and one rights-verified historical document provides context. Its expected report records each association category separately. A dedicated Rust regression also confirms that a model prediction can be retained as counter-evidence without being promoted to measurement or positive support.
+
 ## Benchmark extension
 
 Add the following matched evaluation tracks to HDB-12:
