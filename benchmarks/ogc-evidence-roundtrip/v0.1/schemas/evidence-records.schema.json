@@ -1,0 +1,204 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:luminous-dynamics:sol-atlas:schema:evidence-records:0.1",
+  "title": "Sol-Atlas evidence-record package v0.1",
+  "type": "object",
+  "required": [
+    "fixtureStatus",
+    "records"
+  ],
+  "properties": {
+    "fixtureStatus": {
+      "enum": [
+        "synthetic",
+        "research",
+        "production"
+      ]
+    },
+    "records": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "recordId",
+          "recordType",
+          "relation",
+          "summary",
+          "payloadDigest",
+          "rights"
+        ],
+        "properties": {
+          "recordId": {
+            "type": "string",
+            "minLength": 1
+          },
+          "recordType": {
+            "enum": [
+              "direct_measurement",
+              "field_assessment",
+              "historical_document",
+              "remote_sensing",
+              "model_prediction",
+              "other"
+            ]
+          },
+          "relation": {
+            "enum": [
+              "supports",
+              "contradicts",
+              "context_only"
+            ]
+          },
+          "summary": {
+            "type": "string",
+            "minLength": 1
+          },
+          "payloadDigest": {
+            "type": "string",
+            "pattern": "^sha256:[0-9a-f]{64}$"
+          },
+          "syntheticPayload": {
+            "type": "string"
+          },
+          "rights": {
+            "type": "object",
+            "required": [
+              "decisionStatus",
+              "recordVisibility",
+              "metadataVisibility",
+              "contentRetrieval",
+              "publicDisclosure",
+              "redistribution",
+              "commercialUse",
+              "modelTraining"
+            ],
+            "properties": {
+              "decisionStatus": {
+                "enum": [
+                  "verified",
+                  "pending",
+                  "unknown",
+                  "revoked",
+                  "denied"
+                ]
+              },
+              "recordVisibility": {
+                "enum": [
+                  "allowed",
+                  "prohibited",
+                  "pending",
+                  "unknown"
+                ]
+              },
+              "metadataVisibility": {
+                "enum": [
+                  "allowed",
+                  "prohibited",
+                  "pending",
+                  "unknown"
+                ]
+              },
+              "contentRetrieval": {
+                "enum": [
+                  "allowed",
+                  "prohibited",
+                  "pending",
+                  "unknown"
+                ]
+              },
+              "publicDisclosure": {
+                "enum": [
+                  "allowed",
+                  "prohibited",
+                  "pending",
+                  "unknown"
+                ]
+              },
+              "redistribution": {
+                "enum": [
+                  "allowed",
+                  "prohibited",
+                  "pending",
+                  "unknown"
+                ]
+              },
+              "commercialUse": {
+                "enum": [
+                  "allowed",
+                  "prohibited",
+                  "pending",
+                  "unknown"
+                ]
+              },
+              "modelTraining": {
+                "enum": [
+                  "allowed",
+                  "prohibited",
+                  "pending",
+                  "unknown"
+                ]
+              }
+            },
+            "additionalProperties": true
+          }
+        },
+        "allOf": [
+          {
+            "if": {
+              "properties": {
+                "rights": {
+                  "properties": {
+                    "contentRetrieval": {
+                      "const": "prohibited"
+                    }
+                  },
+                  "required": [
+                    "contentRetrieval"
+                  ]
+                }
+              },
+              "required": [
+                "rights"
+              ]
+            },
+            "then": {
+              "not": {
+                "required": [
+                  "syntheticPayload"
+                ]
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "rights": {
+                  "properties": {
+                    "publicDisclosure": {
+                      "const": "prohibited"
+                    }
+                  },
+                  "required": [
+                    "publicDisclosure"
+                  ]
+                }
+              },
+              "required": [
+                "rights"
+              ]
+            },
+            "then": {
+              "not": {
+                "required": [
+                  "syntheticPayload"
+                ]
+              }
+            }
+          }
+        ],
+        "additionalProperties": true
+      }
+    }
+  },
+  "additionalProperties": true
+}
