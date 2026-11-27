@@ -901,8 +901,7 @@ mod tests {
         for alternative in &mut expected_alternatives {
             alternative.failure_domains.sort();
         }
-        expected_alternatives
-            .sort_by(|left, right| left.alternative_id.cmp(&right.alternative_id));
+        expected_alternatives.sort_by(|left, right| left.alternative_id.cmp(&right.alternative_id));
         assert_eq!(evaluated.input_alternatives, expected_alternatives);
 
         let mut expected_events = case.disruption_events.clone();
