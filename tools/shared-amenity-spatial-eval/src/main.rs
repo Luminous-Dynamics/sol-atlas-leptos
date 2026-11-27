@@ -625,7 +625,7 @@ fn worst_decile_mean(samples: &[(u64, u64)]) -> Result<Option<u64>, String> {
     let mut remaining = target;
     let mut weighted_seconds = 0_u128;
     let mut ordered = samples.to_vec();
-    ordered.sort_by(|left, right| right.0.cmp(&left.0));
+    ordered.sort_by_key(|entry| std::cmp::Reverse(entry.0));
 
     for (seconds, population) in ordered {
         let included = remaining.min(population);
