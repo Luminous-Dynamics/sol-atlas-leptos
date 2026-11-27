@@ -1,0 +1,149 @@
+{
+  "type": "FeatureCollection",
+  "conformsTo": [
+    "http://www.opengis.net/spec/json-fg-1/1.0/conf/core",
+    "http://www.opengis.net/spec/json-fg-1/1.0/conf/types-schemas"
+  ],
+  "featureType": "HeritageElement",
+  "features": [
+    {
+      "type": "Feature",
+      "id": "synthetic-site:element-001",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              0.1,
+              0.1
+            ],
+            [
+              0.2,
+              0.1
+            ],
+            [
+              0.2,
+              0.2
+            ],
+            [
+              0.1,
+              0.2
+            ],
+            [
+              0.1,
+              0.1
+            ]
+          ]
+        ]
+      },
+      "time": {
+        "interval": [
+          "1930-01-01",
+          ".."
+        ]
+      },
+      "properties": {
+        "label": "Synthetic masonry element",
+        "solAtlas": {
+          "profileVersion": "0.1",
+          "claim": {
+            "id": "claim-001",
+            "proposition": "The synthetic geometry represents a surviving masonry element.",
+            "assessmentState": "contested",
+            "scope": {
+              "siteId": "synthetic-site",
+              "elementId": "element-001"
+            }
+          },
+          "temporal": {
+            "validTime": {
+              "kind": "interval",
+              "start": "1930-01-01",
+              "end": "..",
+              "status": "asserted"
+            },
+            "observationTime": {
+              "kind": "timestamp",
+              "value": "2025-04-07T09:32:00Z",
+              "status": "known"
+            },
+            "recordedTime": {
+              "kind": "timestamp",
+              "value": "2025-04-08T13:11:00Z",
+              "status": "known"
+            },
+            "decisionTime": {
+              "kind": "unknown",
+              "reason": "No adjudication decision is represented in this fixture."
+            }
+          },
+          "uncertainty": {
+            "horizontalAccuracy": {
+              "value": 0.15,
+              "unit": "m",
+              "confidenceLevel": 0.95,
+              "method": "synthetic independent check points"
+            },
+            "geometryTolerance": {
+              "value": 0.01,
+              "unit": "m",
+              "basis": "pre-registered synthetic test tolerance"
+            }
+          },
+          "geometryOrigin": "survey_derived",
+          "evidenceAssociations": {
+            "supports": [
+              {
+                "recordId": "record-support-001",
+                "relation": "supports",
+                "recordDigest": "sha256:5cfc7c307855e4f423b034e94c7eb951605d31f3500c660d758dafee3851758a"
+              }
+            ],
+            "contradicts": [
+              {
+                "recordId": "record-counter-001",
+                "relation": "contradicts",
+                "recordDigest": "sha256:b16ee28fb58345bc1c7680b171d00f03d6d0958f879eab282cab959058849d3f"
+              }
+            ],
+            "contextOnly": [
+              {
+                "recordId": "record-context-001",
+                "relation": "context_only",
+                "recordDigest": "sha256:d319705acf25fbe6f6365009a3e9dddaa0eaf9112537253324f237771d71d925"
+              }
+            ]
+          },
+          "provenance": {
+            "activityId": "activity-reconstruction-001",
+            "operatorKind": "human_supervised",
+            "softwareId": "sol-atlas-synthetic-reference",
+            "softwareVersion": "0.1.0",
+            "configurationDigest": "sha256:2676853fa96f39cbf609c193265db6bb1a1ebe54b37c07eb774f7380d82c3399",
+            "inputDigests": [
+              "sha256:5cfc7c307855e4f423b034e94c7eb951605d31f3500c660d758dafee3851758a",
+              "sha256:b16ee28fb58345bc1c7680b171d00f03d6d0958f879eab282cab959058849d3f",
+              "sha256:d319705acf25fbe6f6365009a3e9dddaa0eaf9112537253324f237771d71d925"
+            ],
+            "outputDigest": "sha256:4d80968b6d1c1a15b5b00ffe41e4f81afd414b52a569fb1ab04dc44a7b67b898"
+          },
+          "hypothesisSet": {
+            "selection": "none",
+            "alternatives": [
+              {
+                "id": "hypothesis-001",
+                "status": "retained",
+                "description": "The geometry is a surviving masonry element."
+              },
+              {
+                "id": "hypothesis-002",
+                "status": "retained",
+                "description": "The geometry represents a later repair or replacement."
+              }
+            ]
+          }
+        }
+      }
+    }
+  ]
+}
