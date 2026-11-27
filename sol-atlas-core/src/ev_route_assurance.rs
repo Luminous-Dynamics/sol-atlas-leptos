@@ -157,7 +157,7 @@ pub struct ChargingStop {
 #[serde(untagged)]
 pub enum PlanEvent {
     DriveLeg(DriveLeg),
-    ChargingStop(ChargingStop),
+    ChargingStop(Box<ChargingStop>),
 }
 
 impl PlanEvent {
@@ -1217,10 +1217,9 @@ fn evidence_reference_valid(value: &EvidenceRef, label: &str) -> Result<(), Stri
     }
     if let (Some(observed), Some(valid_until)) =
         (value.observed_at_unix_s, value.valid_until_unix_s)
+        && valid_until < observed
     {
-        if valid_until < observed {
-            return Err(format!("{label}: validity ends before observation time"));
-        }
+        return Err(format!("{label}: validity ends before observation time"));
     }
     Ok(())
 }
@@ -1501,7 +1500,7 @@ mod tests {
                         "LEG-1",
                     ),
                 }),
-                PlanEvent::ChargingStop(ChargingStop {
+                PlanEvent::ChargingStop(Box::new(ChargingStop {
                     kind: "charging_stop".into(),
                     event_id: "CHARGE-1".into(),
                     planned_start_unix_s: 2_800,
@@ -1569,7 +1568,7 @@ mod tests {
                             )),
                         },
                     },
-                }),
+                })),
                 PlanEvent::DriveLeg(DriveLeg {
                     kind: "drive_leg".into(),
                     event_id: "LEG-2".into(),
