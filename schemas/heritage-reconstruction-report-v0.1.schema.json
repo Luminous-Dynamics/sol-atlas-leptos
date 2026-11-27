@@ -14,6 +14,11 @@
     "simulated_geometry_count",
     "unknown_geometry_count",
     "evidence_record_count",
+    "supporting_evidence_association_count",
+    "counter_evidence_association_count",
+    "context_evidence_association_count",
+    "elements_with_counter_evidence_count",
+    "elements_with_context_evidence_count",
     "restricted_exact_geometry_count",
     "alternative_hypothesis_family_count",
     "non_identifiable_element_count",
@@ -89,6 +94,26 @@
     },
     "historical_truth_established": {
       "const": false
+    },
+    "supporting_evidence_association_count": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "counter_evidence_association_count": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "context_evidence_association_count": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "elements_with_counter_evidence_count": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "elements_with_context_evidence_count": {
+      "type": "integer",
+      "minimum": 0
     }
   }
 }
