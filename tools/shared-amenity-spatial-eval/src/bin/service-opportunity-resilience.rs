@@ -329,7 +329,9 @@ fn validate_fixture(fixture: &Fixture) -> Result<(), String> {
         || !policy.capacity_rule.contains("does not calculate capacity")
         || !policy.freshness_rule.contains("STALE")
         || !policy.dependency_rule.contains("not probabilities")
-        || !policy.stable_recovery_rule.contains("Do not infer stability")
+        || !policy
+            .stable_recovery_rule
+            .contains("Do not infer stability")
     {
         return Err("decision policy differs from the frozen v0.1 contract".to_owned());
     }
