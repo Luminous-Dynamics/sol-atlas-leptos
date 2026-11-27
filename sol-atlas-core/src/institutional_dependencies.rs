@@ -257,7 +257,10 @@ impl std::fmt::Display for RelationshipError {
             Self::EmptyField(field) => write!(f, "{field} must not be empty"),
             Self::SelfRelationship => write!(f, "relationship subject and object must differ"),
             Self::PersonEndpointNotRestricted => {
-                write!(f, "relationships with person endpoints require restricted disclosure")
+                write!(
+                    f,
+                    "relationships with person endpoints require restricted disclosure"
+                )
             }
             Self::InvalidEvidence(error) => write!(f, "invalid relationship evidence: {error}"),
         }
