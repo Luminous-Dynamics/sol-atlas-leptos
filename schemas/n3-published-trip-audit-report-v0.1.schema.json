@@ -1,0 +1,90 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/blob/main/schemas/n3-published-trip-audit-report-v0.1.schema.json",
+  "title": "N3 published trip-summary audit report v0.1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["report"],
+  "properties": {
+    "report": { "$ref": "#/$defs/report" }
+  },
+  "$defs": {
+    "report": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema_version", "dataset_id", "source_url", "retrieved_at_utc_date",
+        "evidence_class", "raw_telemetry_included", "input_sha256", "report_sha256",
+        "trip_count", "energy_within_published_rounding_count",
+        "range_within_published_rounding_count", "maximum_absolute_energy_residual_kwh",
+        "maximum_relative_energy_residual_percent", "group_summaries", "trips", "claim_ceiling"
+      ],
+      "properties": {
+        "schema_version": { "const": "n3-published-trip-audit-report/v0.1" },
+        "dataset_id": { "type": "string", "minLength": 1 },
+        "source_url": { "type": "string", "format": "uri" },
+        "retrieved_at_utc_date": { "type": "string", "pattern": "^\\\\d{4}-\\\\d{2}-\\\\d{2}$" },
+        "evidence_class": { "const": "operator_published_summary" },
+        "raw_telemetry_included": { "const": false },
+        "input_sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+        "report_sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+        "trip_count": { "type": "integer", "minimum": 1 },
+        "energy_within_published_rounding_count": { "type": "integer", "minimum": 0 },
+        "range_within_published_rounding_count": { "type": "integer", "minimum": 0 },
+        "maximum_absolute_energy_residual_kwh": { "type": "number", "minimum": 0 },
+        "maximum_relative_energy_residual_percent": { "type": "number", "minimum": 0 },
+        "group_summaries": { "type": "array", "items": { "$ref": "#/$defs/group_summary" } },
+        "trips": { "type": "array", "items": { "$ref": "#/$defs/trip_assessment" } },
+        "claim_ceiling": { "type": "string", "minLength": 1 }
+      }
+    },
+    "group_summary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "vehicle_make", "vehicle_model", "direction", "sample_count",
+        "minimum_kwh_per_100km", "median_kwh_per_100km", "maximum_kwh_per_100km"
+      ],
+      "properties": {
+        "vehicle_make": { "type": "string", "minLength": 1 },
+        "vehicle_model": { "type": "string", "minLength": 1 },
+        "direction": { "enum": ["up", "down"] },
+        "sample_count": { "type": "integer", "minimum": 1 },
+        "minimum_kwh_per_100km": { "type": "number", "minimum": 0 },
+        "median_kwh_per_100km": { "type": "number", "minimum": 0 },
+        "maximum_kwh_per_100km": { "type": "number", "minimum": 0 }
+      }
+    },
+    "trip_assessment": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "trip_id", "direction", "vehicle_make", "vehicle_model", "distance_km",
+        "elevation_change_m", "average_speed_kmh", "published_energy_efficiency_kwh_per_100km",
+        "energy_from_published_efficiency_kwh", "nominal_capacity_soc_proxy_kwh",
+        "absolute_energy_residual_kwh", "relative_energy_residual_percent", "energy_consistency",
+        "published_range_km_per_100pct", "range_from_battery_used_km",
+        "absolute_range_residual_km", "range_consistency"
+      ],
+      "properties": {
+        "trip_id": { "type": "string", "minLength": 1 },
+        "direction": { "enum": ["up", "down"] },
+        "vehicle_make": { "type": "string", "minLength": 1 },
+        "vehicle_model": { "type": "string", "minLength": 1 },
+        "distance_km": { "type": "number", "minimum": 0 },
+        "elevation_change_m": { "type": "integer" },
+        "average_speed_kmh": { "type": "number", "minimum": 0 },
+        "published_energy_efficiency_kwh_per_100km": { "type": "number", "minimum": 0 },
+        "energy_from_published_efficiency_kwh": { "type": "number", "minimum": 0 },
+        "nominal_capacity_soc_proxy_kwh": { "type": "number", "minimum": 0 },
+        "absolute_energy_residual_kwh": { "type": "number", "minimum": 0 },
+        "relative_energy_residual_percent": { "type": "number", "minimum": 0 },
+        "energy_consistency": { "enum": ["WITHIN_PUBLISHED_ROUNDING", "EXCEEDS_PUBLISHED_ROUNDING"] },
+        "published_range_km_per_100pct": { "type": ["number", "null"], "minimum": 0 },
+        "range_from_battery_used_km": { "type": ["number", "null"], "minimum": 0 },
+        "absolute_range_residual_km": { "type": ["number", "null"], "minimum": 0 },
+        "range_consistency": { "type": ["string", "null"], "enum": ["WITHIN_PUBLISHED_ROUNDING", "EXCEEDS_PUBLISHED_ROUNDING", null] }
+      }
+    }
+  }
+}
