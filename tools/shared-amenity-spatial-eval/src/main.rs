@@ -768,8 +768,7 @@ fn evaluate_arm(scenario: &ScenarioFixture, arm: &ProvisionArm) -> Result<ArmRes
                     && facilities
                         .get(record.facility_id.as_str())
                         .is_some_and(|facility| facility.service_state == "UNAVAILABLE")
-                    && (!group.mandatory_access_required
-                        || record.mandatory_access_state == "PASS")
+                    && (!group.mandatory_access_required || record.mandatory_access_state == "PASS")
             });
             let known_route_outside_tolerance = records.iter().any(|record| {
                 record.access_state == "QUALIFIED"
