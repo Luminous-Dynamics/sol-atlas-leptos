@@ -20,7 +20,11 @@ fn declared_channels(corpus: &Value) -> BTreeSet<String> {
 fn paired_world_corpus_size_and_synthetic_ceiling_are_frozen() {
     let corpus = corpus();
     assert_eq!(corpus["cases"].as_array().expect("cases").len(), 24);
-    assert!(corpus["synthetic_only"].as_bool().expect("synthetic-only marker"));
+    assert!(
+        corpus["synthetic_only"]
+            .as_bool()
+            .expect("synthetic-only marker")
+    );
     assert_eq!(
         corpus["claim_ceiling"],
         "fixture-level observable transcript equality and canary detection only; no production privacy guarantee or universal non-inference proof"
@@ -103,17 +107,14 @@ fn observable_difference_is_a_leak_even_without_canary_hit() {
     let result = classify_paired_world_case(case, &declared);
     assert_eq!(result.disposition, "leak_detected");
     assert_eq!(result.canary_hit_count, 0);
-    assert!(
-        result
-            .different_channels
-            .contains("object_metadata")
-    );
+    assert!(result.different_channels.contains("object_metadata"));
 }
 
-
 fn inventory_fixture() -> Value {
-    serde_json::from_str(include_str!("../../../privacy/channel-inventory-synthetic-v0.1.json"))
-        .expect("synthetic inventory fixture must be valid JSON")
+    serde_json::from_str(include_str!(
+        "../../../privacy/channel-inventory-synthetic-v0.1.json"
+    ))
+    .expect("synthetic inventory fixture must be valid JSON")
 }
 
 #[test]
@@ -121,15 +122,18 @@ fn partial_channel_inventory_never_claims_complete_coverage() {
     let inventory = inventory_fixture();
     let result = evaluate_channel_inventory(&inventory);
     assert_eq!(result.disposition, "inventory_incomplete");
-    assert!(result.reason_codes.contains("inventory_coverage_not_complete"));
+    assert!(
+        result
+            .reason_codes
+            .contains("inventory_coverage_not_complete")
+    );
     assert_eq!(result.declared_channel_refs.len(), 3);
 }
 
 #[test]
 fn complete_claim_requires_an_independent_coverage_evidence_reference() {
     let mut inventory = inventory_fixture();
-    inventory["coverage_assessment"] =
-        Value::String("complete_within_declared_boundary".into());
+    inventory["coverage_assessment"] = Value::String("complete_within_declared_boundary".into());
     let without_evidence = evaluate_channel_inventory(&inventory);
     assert_eq!(without_evidence.disposition, "inventory_incomplete");
 
