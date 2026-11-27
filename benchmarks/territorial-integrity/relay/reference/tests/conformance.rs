@@ -6,7 +6,11 @@ fn frozen_relay_cases_match_expected_dispositions() {
     let corpus: Value = serde_json::from_str(include_str!("../../cases-v0.1.json"))
         .expect("relay corpus must be valid JSON");
     let cases = corpus["cases"].as_array().expect("cases array");
-    assert_eq!(cases.len(), 31, "frozen corpus size is part of the release contract");
+    assert_eq!(
+        cases.len(),
+        31,
+        "frozen corpus size is part of the release contract"
+    );
 
     for case in cases {
         let case_id = case["case_id"].as_str().expect("case_id");
@@ -21,9 +25,15 @@ fn delivery_set_merge_is_idempotent_commutative_and_associative() {
     let corpus: Value = serde_json::from_str(include_str!("../../cases-v0.1.json"))
         .expect("relay corpus must be valid JSON");
     let cases = corpus["cases"].as_array().expect("cases array");
-    let a = cases[0]["deliveries"].as_array().expect("case 0 deliveries");
-    let b = cases[1]["deliveries"].as_array().expect("case 1 deliveries");
-    let c = cases[2]["deliveries"].as_array().expect("case 2 deliveries");
+    let a = cases[0]["deliveries"]
+        .as_array()
+        .expect("case 0 deliveries");
+    let b = cases[1]["deliveries"]
+        .as_array()
+        .expect("case 1 deliveries");
+    let c = cases[2]["deliveries"]
+        .as_array()
+        .expect("case 2 deliveries");
 
     let aa = merge_event_sets(a, a);
     let ab = merge_event_sets(a, b);
@@ -45,10 +55,14 @@ fn delivery_reordering_does_not_change_the_normalized_result() {
         let deliveries = case["deliveries"].as_array().expect("deliveries");
         let mut reversed = deliveries.clone();
         reversed.reverse();
-        assert_eq!(evaluate(deliveries).to_json(), evaluate(&reversed).to_json(), "{}", case["case_id"]);
+        assert_eq!(
+            evaluate(deliveries).to_json(),
+            evaluate(&reversed).to_json(),
+            "{}",
+            case["case_id"]
+        );
     }
 }
-
 
 fn synthetic_delivery(
     id: usize,
@@ -119,17 +133,22 @@ fn high_contention_projection_is_one_compact_group() {
     let actual = evaluate(&events);
     assert_eq!(actual.accepted_events.len(), 1_000);
     assert_eq!(actual.conflict_groups.len(), 1);
-    let group = actual.conflict_groups.get("shared-claim").expect("one group");
+    let group = actual
+        .conflict_groups
+        .get("shared-claim")
+        .expect("one group");
     assert_eq!(group.len(), 1_000);
 }
 
-
 #[test]
 fn divergent_payload_digest_for_one_event_identity_is_quarantined() {
-    let corpus: Value = serde_json::from_str(include_str!("../../cases-v0.1.json"))
-        .expect("relay corpus");
-    let case = corpus["cases"].as_array().expect("cases")
-        .iter().find(|case| case["case_id"] == "PAYLOAD-DIGEST-DIVERGENCE-001")
+    let corpus: Value =
+        serde_json::from_str(include_str!("../../cases-v0.1.json")).expect("relay corpus");
+    let case = corpus["cases"]
+        .as_array()
+        .expect("cases")
+        .iter()
+        .find(|case| case["case_id"] == "PAYLOAD-DIGEST-DIVERGENCE-001")
         .expect("payload divergence fixture");
     let result = evaluate(case["deliveries"].as_array().expect("deliveries"));
     assert!(result.accepted_events.is_empty());
@@ -138,13 +157,19 @@ fn divergent_payload_digest_for_one_event_identity_is_quarantined() {
 
 #[test]
 fn conflict_group_exposes_only_latest_assertion_per_stream() {
-    let corpus: Value = serde_json::from_str(include_str!("../../cases-v0.1.json"))
-        .expect("relay corpus");
-    let case = corpus["cases"].as_array().expect("cases")
-        .iter().find(|case| case["case_id"] == "LATEST-STREAM-HEAD-CONFLICT-001")
+    let corpus: Value =
+        serde_json::from_str(include_str!("../../cases-v0.1.json")).expect("relay corpus");
+    let case = corpus["cases"]
+        .as_array()
+        .expect("cases")
+        .iter()
+        .find(|case| case["case_id"] == "LATEST-STREAM-HEAD-CONFLICT-001")
         .expect("latest stream head fixture");
     let result = evaluate(case["deliveries"].as_array().expect("deliveries"));
-    let group = result.conflict_groups.get("claim:x").expect("projection conflict");
+    let group = result
+        .conflict_groups
+        .get("claim:x")
+        .expect("projection conflict");
     assert_eq!(group.len(), 2);
     assert!(!group.iter().any(|(event_id, _)| event_id == "e1"));
 }
