@@ -156,7 +156,7 @@ pub struct ChargingStop {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(untagged)]
 pub enum PlanEvent {
-    DriveLeg(DriveLeg),
+    DriveLeg(Box<DriveLeg>),
     ChargingStop(Box<ChargingStop>),
 }
 
@@ -1475,7 +1475,7 @@ mod tests {
                 ),
             },
             events: vec![
-                PlanEvent::DriveLeg(DriveLeg {
+                PlanEvent::DriveLeg(Box::new(DriveLeg {
                     kind: "drive_leg".into(),
                     event_id: "LEG-1".into(),
                     planned_start_unix_s: 1_000,
@@ -1499,7 +1499,7 @@ mod tests {
                         "leg_energy_estimate",
                         "LEG-1",
                     ),
-                }),
+                })),
                 PlanEvent::ChargingStop(Box::new(ChargingStop {
                     kind: "charging_stop".into(),
                     event_id: "CHARGE-1".into(),
@@ -1569,7 +1569,7 @@ mod tests {
                         },
                     },
                 })),
-                PlanEvent::DriveLeg(DriveLeg {
+                PlanEvent::DriveLeg(Box::new(DriveLeg {
                     kind: "drive_leg".into(),
                     event_id: "LEG-2".into(),
                     planned_start_unix_s: 4_600,
@@ -1593,7 +1593,7 @@ mod tests {
                         "leg_energy_estimate",
                         "LEG-2",
                     ),
-                }),
+                })),
             ],
         }
     }
