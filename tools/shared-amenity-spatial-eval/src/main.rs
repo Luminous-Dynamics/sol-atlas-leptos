@@ -1090,11 +1090,7 @@ mod tests {
         }
 
         let output = evaluate_value(value).expect("common-cause dependency is representable");
-        let distributed = find_arm(
-            &output,
-            "COMPACT_HIGH_DENSITY",
-            "DISTRIBUTED_SHARED",
-        );
+        let distributed = find_arm(&output, "COMPACT_HIGH_DENSITY", "DISTRIBUTED_SHARED");
         assert_eq!(distributed.minimum_independent_failure_domains, Some(1));
     }
 
