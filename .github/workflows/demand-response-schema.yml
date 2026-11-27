@@ -1,0 +1,92 @@
+name: Demand response schema
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "Cargo.toml"
+      - "Cargo.lock"
+      - "sol-atlas-core/Cargo.toml"
+      - "Cargo.toml"
+      - "Cargo.lock"
+      - "sol-atlas-core/Cargo.toml"
+      - "schemas/demand-response-trace-v1.schema.json"
+      - "schemas/demand-response-assessment-report-v1.schema.json"
+      - "schemas/examples/demand-response-trace-v1.synthetic.json"
+      - "schemas/flexdc-sim-run-manifest-v1.schema.json"
+      - "schemas/examples/flexdc-sim-run-manifest-v1.synthetic.json"
+      - "schemas/examples/flexdc-sim-power-trace.synthetic.csv"
+      - "sol-atlas-core/src/bin/flexdc_trace_adapter.rs"
+      - "sol-atlas-core/src/bin/demand_response_assess.rs"
+      - "sol-atlas-core/src/demand_response_metrics.rs"
+      - "tools/validate_demand_response_schemas.py"
+      - ".github/workflows/demand-response-schema.yml"
+  pull_request:
+    paths:
+      - "schemas/demand-response-trace-v1.schema.json"
+      - "schemas/demand-response-assessment-report-v1.schema.json"
+      - "schemas/examples/demand-response-trace-v1.synthetic.json"
+      - "schemas/flexdc-sim-run-manifest-v1.schema.json"
+      - "schemas/examples/flexdc-sim-run-manifest-v1.synthetic.json"
+      - "schemas/examples/flexdc-sim-power-trace.synthetic.csv"
+      - "sol-atlas-core/src/bin/flexdc_trace_adapter.rs"
+      - "sol-atlas-core/src/bin/demand_response_assess.rs"
+      - "sol-atlas-core/src/demand_response_metrics.rs"
+      - "tools/validate_demand_response_schemas.py"
+      - ".github/workflows/demand-response-schema.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  schema-conformance:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - name: Install pinned JSON Schema validator (CI tooling only)
+        run: python -m pip install --disable-pip-version-check "jsonschema[format]==4.26.0"
+      - uses: dtolnay/rust-toolchain@stable
+      - name: Validate metric contracts and FlexDC run-manifest schema
+        run: python tools/validate_demand_response_schemas.py
+      - name: Run synthetic FlexDC adapter end-to-end through both metric schemas
+        run: |
+          cargo run -p sol-atlas-core --bin flexdc_trace_adapter -- \
+            schemas/examples/flexdc-sim-power-trace.synthetic.csv \
+            schemas/examples/flexdc-sim-run-manifest-v1.synthetic.json > /tmp/flexdc-adapted-trace.json
+          cargo run -p sol-atlas-core --bin demand_response_assess -- \
+            /tmp/flexdc-adapted-trace.json > /tmp/flexdc-assessment-report.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          from jsonschema import Draft202012Validator, FormatChecker
+
+          root = Path(".")
+          trace = json.loads(Path("/tmp/flexdc-adapted-trace.json").read_text())
+          report = json.loads(Path("/tmp/flexdc-assessment-report.json").read_text())
+          trace_schema = json.loads((root / "schemas/demand-response-trace-v1.schema.json").read_text())
+          report_schema = json.loads((root / "schemas/demand-response-assessment-report-v1.schema.json").read_text())
+          Draft202012Validator(trace_schema, format_checker=FormatChecker()).validate(trace)
+          Draft202012Validator(report_schema, format_checker=FormatChecker()).validate(report)
+          source_rsr = report["metrics"]["rsr_reference"]
+          aligned_rsr = report["metrics"]["rsr"]
+          assert trace["synthetic"] is True
+          assert trace["claim_ceiling"] == "metric_accounting_only"
+          # Source-native series: one 0.8 sample among ten -> p90 about 0.08.
+          assert abs(source_rsr["p90_normalized_absolute_error"] - 0.08) < 1.0e-12
+          assert source_rsr["p90_threshold_satisfied"] is True
+          assert source_rsr["exceedance_rate_requirement_satisfied"] is False
+          # Same-row W->kW reconstruction: five 0.4 samples among ten -> p90 about 0.4.
+          assert abs(aligned_rsr["p90_normalized_absolute_error"] - 0.4) < 1.0e-12
+          assert aligned_rsr["p90_threshold_satisfied"] is False
+          assert aligned_rsr["threshold_exceedance_count"] == 5
+          assert aligned_rsr["exceedance_rate_requirement_satisfied"] is False
+          assert report["metrics"]["rsr_reference_metadata"]["sample_time_semantics"] == "prior_cycle_state"
+          assert report["metrics"]["rsr_reference_metadata"]["denominator_convention"] == "reserve_plus_epsilon"
+          assert report["metrics"]["rsr_reference_metadata"]["source_artifact_sha256"] == trace["rsr_reference"]["metadata"]["source_artifact_sha256"]
+          assert report["metrics"]["rsr_reference_metadata"]["source_run_manifest_sha256"] == trace["rsr_reference"]["metadata"]["source_run_manifest_sha256"]
+          print("PASS paired source-native vs same-row RSR paths; both schemas valid and timing mismatch remains observable")
+          PY

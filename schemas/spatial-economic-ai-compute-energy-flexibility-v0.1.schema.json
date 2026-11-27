@@ -1,0 +1,282 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:sol-atlas:spatial-economic-ai-compute-energy-flexibility:0.1",
+  "title": "Sol-Atlas AI compute-energy flexibility scenario V0.1",
+  "description": "Shape validation only. Cross-field/time-alignment/units semantics require an independent Rust semantic validator.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "fixture_id",
+    "synthetic",
+    "claim_ceiling",
+    "intervals",
+    "site",
+    "workloads",
+    "baseline_policy",
+    "candidate_policies"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "0.1"
+    },
+    "fixture_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "synthetic": {
+      "type": "boolean"
+    },
+    "claim_ceiling": {
+      "type": "string",
+      "minLength": 1
+    },
+    "intervals": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 168,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "duration_hours",
+          "grid_import_limit_kw",
+          "facility_energy_per_it_energy",
+          "thermal_it_power_limit_kw",
+          "cooling_water_limit_l",
+          "water_l_per_it_kwh"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "duration_hours": {
+            "type": "number",
+            "exclusiveMinimum": 0
+          },
+          "grid_import_limit_kw": {
+            "type": "number",
+            "minimum": 0
+          },
+          "grid_carbon_intensity_gco2_per_kwh": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "minimum": 0
+          },
+          "electricity_price_usd_per_kwh": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "ambient_temperature_c": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "facility_energy_per_it_energy": {
+            "type": "number",
+            "minimum": 1
+          },
+          "thermal_it_power_limit_kw": {
+            "type": "number",
+            "minimum": 0
+          },
+          "cooling_water_limit_l": {
+            "type": "number",
+            "minimum": 0
+          },
+          "water_l_per_it_kwh": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "minimum": 0
+          },
+          "failure_tags": {
+            "type": "array",
+            "uniqueItems": true,
+            "items": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        }
+      }
+    },
+    "site": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "site_id",
+        "it_power_capacity_kw"
+      ],
+      "properties": {
+        "site_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "it_power_capacity_kw": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "region_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+    "workloads": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "workload_id",
+          "work_class",
+          "required_work_units",
+          "energy_kwh_per_work_unit",
+          "release_interval_index",
+          "deadline_interval_index",
+          "minimum_accepted_units_by_interval",
+          "service_quality_profile_id",
+          "interruptible"
+        ],
+        "properties": {
+          "workload_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "work_class": {
+            "enum": [
+              "protected",
+              "deferrable"
+            ]
+          },
+          "required_work_units": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "energy_kwh_per_work_unit": {
+            "type": "number",
+            "exclusiveMinimum": 0
+          },
+          "release_interval_index": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "deadline_interval_index": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "minimum_accepted_units_by_interval": {
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "minimum": 0
+            }
+          },
+          "service_quality_profile_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "interruptible": {
+            "type": "boolean"
+          }
+        }
+      }
+    },
+    "storage": {
+      "type": [
+        "object",
+        "null"
+      ],
+      "additionalProperties": false,
+      "required": [
+        "capacity_kwh",
+        "opening_stock_kwh",
+        "charge_limit_kw",
+        "discharge_limit_kw",
+        "round_trip_efficiency",
+        "terminal_reserve_kwh"
+      ],
+      "properties": {
+        "capacity_kwh": {
+          "type": "number",
+          "minimum": 0
+        },
+        "opening_stock_kwh": {
+          "type": "number",
+          "minimum": 0
+        },
+        "charge_limit_kw": {
+          "type": "number",
+          "minimum": 0
+        },
+        "discharge_limit_kw": {
+          "type": "number",
+          "minimum": 0
+        },
+        "round_trip_efficiency": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "maximum": 1
+        },
+        "terminal_reserve_kwh": {
+          "type": "number",
+          "minimum": 0
+        }
+      },
+      "description": "Reserved for future horizon-wide storage dispatch. The v0.1 Rust evaluator returns Unsupported for a non-null storage profile rather than silently ignoring it."
+    },
+    "baseline_policy": {
+      "enum": [
+        "fixed_earliest_ready"
+      ]
+    },
+    "candidate_policies": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "enum": [
+          "power_cap_greedy",
+          "water_power_aware",
+          "price_aware",
+          "carbon_aware",
+          "joint_horizon_optimizer"
+        ]
+      }
+    },
+    "oracle_expectations": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "protected_work_units",
+        "max_deferrable_work_units",
+        "resource_limits_hold"
+      ],
+      "properties": {
+        "protected_work_units": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "max_deferrable_work_units": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "resource_limits_hold": {
+          "const": true
+        }
+      }
+    }
+  }
+}

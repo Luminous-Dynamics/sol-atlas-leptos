@@ -1,0 +1,119 @@
+{
+  "schema_version": "0.1",
+  "fixture_id": "synthetic-four-interval-flexible-compute",
+  "synthetic": true,
+  "claim_ceiling": "Hand-calculated synthetic scheduling fixture only. Not an AI model measurement, real grid/facility profile, national forecast, or field-performance claim.",
+  "intervals": [
+    {
+      "id": "t0",
+      "duration_hours": 1,
+      "grid_import_limit_kw": 20,
+      "grid_carbon_intensity_gco2_per_kwh": 1200,
+      "electricity_price_usd_per_kwh": 0.1,
+      "ambient_temperature_c": 24,
+      "facility_energy_per_it_energy": 1.15,
+      "thermal_it_power_limit_kw": 80,
+      "cooling_water_limit_l": 100,
+      "water_l_per_it_kwh": 0.1,
+      "failure_tags": []
+    },
+    {
+      "id": "t1",
+      "duration_hours": 1,
+      "grid_import_limit_kw": 10,
+      "grid_carbon_intensity_gco2_per_kwh": 700,
+      "electricity_price_usd_per_kwh": 0.3,
+      "ambient_temperature_c": 38,
+      "facility_energy_per_it_energy": 1.35,
+      "thermal_it_power_limit_kw": 60,
+      "cooling_water_limit_l": 100,
+      "water_l_per_it_kwh": 0.4,
+      "failure_tags": [
+        "grid-cap",
+        "hot-weather"
+      ]
+    },
+    {
+      "id": "t2",
+      "duration_hours": 1,
+      "grid_import_limit_kw": 10,
+      "grid_carbon_intensity_gco2_per_kwh": 600,
+      "electricity_price_usd_per_kwh": 0.27,
+      "ambient_temperature_c": 42,
+      "facility_energy_per_it_energy": 1.4,
+      "thermal_it_power_limit_kw": 50,
+      "cooling_water_limit_l": 2,
+      "water_l_per_it_kwh": 0.5,
+      "failure_tags": [
+        "grid-cap",
+        "water-cap",
+        "hot-weather"
+      ]
+    },
+    {
+      "id": "t3",
+      "duration_hours": 1,
+      "grid_import_limit_kw": 20,
+      "grid_carbon_intensity_gco2_per_kwh": 250,
+      "electricity_price_usd_per_kwh": 0.08,
+      "ambient_temperature_c": 28,
+      "facility_energy_per_it_energy": 1.15,
+      "thermal_it_power_limit_kw": 80,
+      "cooling_water_limit_l": 100,
+      "water_l_per_it_kwh": 0.1,
+      "failure_tags": []
+    }
+  ],
+  "site": {
+    "site_id": "synthetic-campus-a",
+    "it_power_capacity_kw": 80,
+    "region_id": null
+  },
+  "workloads": [
+    {
+      "workload_id": "protected-inference",
+      "work_class": "protected",
+      "required_work_units": 24,
+      "energy_kwh_per_work_unit": 0.5,
+      "release_interval_index": 0,
+      "deadline_interval_index": 3,
+      "minimum_accepted_units_by_interval": [
+        6,
+        6,
+        6,
+        6
+      ],
+      "service_quality_profile_id": "synthetic-quality-profile-v1",
+      "interruptible": false
+    },
+    {
+      "workload_id": "deferrable-batch",
+      "work_class": "deferrable",
+      "required_work_units": 80,
+      "energy_kwh_per_work_unit": 0.5,
+      "release_interval_index": 0,
+      "deadline_interval_index": 3,
+      "minimum_accepted_units_by_interval": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "service_quality_profile_id": "synthetic-quality-profile-v1",
+      "interruptible": true
+    }
+  ],
+  "baseline_policy": "fixed_earliest_ready",
+  "candidate_policies": [
+    "power_cap_greedy",
+    "water_power_aware",
+    "price_aware",
+    "carbon_aware",
+    "joint_horizon_optimizer"
+  ],
+  "oracle_expectations": {
+    "protected_work_units": 24,
+    "max_deferrable_work_units": 66,
+    "resource_limits_hold": true
+  }
+}

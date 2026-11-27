@@ -59,9 +59,23 @@ jobs:
             ~/.cargo/git/db/
             target/
           key: ${{ runner.os }}-cargo-native-${{ hashFiles('**/Cargo.lock') }}
-      # This crate is a wasm-bindgen-heavy [[bin]] with no [lib] target —
-      # native `cargo test` still works (verified 2026-07-11) and is much
-      # faster than a wasm test harness for the pure-logic unit tests
-      # (renderer::hex, sol-atlas-core). Must target the bin explicitly:
-      # `cargo test --lib` fails with "no library targets found".
-      - run: cargo test --bin sol-atlas-leptos
+      # The application is a wasm-bindgen-heavy [[bin]] without a root [lib]
+      # target, so test its renderer-only unit tests through this explicit bin.
+      - name: Test application binary
+        run: cargo test --bin sol-atlas-leptos
+      # The resource-bound evaluator and its exhaustive-oracle tests live in the
+      # separate sol-atlas-core package; the app-binary command does not run them.
+      - name: Test core library and evaluator unit tests
+        run: cargo test -p sol-atlas-core --lib
+      # Exercise the receipt-wrapped JSON report contract in the evaluator CLI.
+      - name: Test compute-energy assessment CLI
+        run: cargo test -p sol-atlas-core --bin ai_compute_energy_assess
+      # Exercise the receipt-bound RSR/EDR metrics CLI and its known-answer fixture.
+      - name: Test demand-response assessment CLI
+        run: cargo test -p sol-atlas-core --bin demand_response_assess
+      # Verify the strict pinned-source CSV adapter and its synthetic known-answer slice.
+      - name: Test FlexDC-Sim trace adapter
+        run: cargo test -p sol-atlas-core --bin flexdc_trace_adapter
+      # Compile the core library and every binary/test target.
+      - name: Check core library, tests, and binaries
+        run: cargo check -p sol-atlas-core --all-targets

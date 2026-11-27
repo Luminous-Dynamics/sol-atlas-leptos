@@ -1,0 +1,233 @@
+name: Pinned FlexDC-Sim reference run
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - ".github/workflows/flexdc-reference.yml"
+      - "sol-atlas-core/src/bin/flexdc_trace_adapter.rs"
+      - "sol-atlas-core/src/bin/demand_response_assess.rs"
+      - "sol-atlas-core/src/demand_response_metrics.rs"
+      - "schemas/flexdc-sim-run-manifest-v1.schema.json"
+      - "schemas/demand-response-trace-v1.schema.json"
+      - "schemas/demand-response-assessment-report-v1.schema.json"
+      - ".github/workflows/demand-response-schema.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  reference-run:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 25
+    steps:
+      - name: Checkout Sol-Atlas at the tested revision
+        uses: actions/checkout@v4
+      - name: Checkout pinned upstream simulator
+        uses: actions/checkout@v4
+        with:
+          repository: peaclab/flexdc-sim
+          ref: ea50bd582b5d1b55fcb09ea46899fa9d325cce3b
+          path: .reference/flexdc-sim
+          persist-credentials: false
+      - name: Install exact Python interpreter
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10.16"
+      - name: Install pinned FlexDC runtime toolchain
+        working-directory: .reference/flexdc-sim
+        run: |
+          python -m pip install --disable-pip-version-check \
+            "pip==25.0.1" "setuptools==75.8.0" "wheel==0.45.1" \
+            "numpy==1.26.4" "pandas==2.2.3" "tqdm==4.67.1"
+          python -m pip install --disable-pip-version-check \
+            --no-deps --no-build-isolation .
+      - name: Capture runtime environment artifact
+        run: |
+          mkdir -p artifacts/flexdc-reference
+          {
+            printf 'python_version='
+            python -c 'import sys; print(".".join(map(str, sys.version_info[:3])))'
+            printf 'platform='
+            python -c 'import platform; print(platform.platform())'
+            printf 'machine='
+            python -c 'import platform; print(platform.machine())'
+            printf 'pip_version='
+            python -m pip --version
+            printf 'packages_begin\n'
+            python -m pip freeze --all | LC_ALL=C sort
+            printf 'packages_end\n'
+          } > artifacts/flexdc-reference/runtime-environment.txt
+      - name: Execute the pinned 3,600-second AQA reference scenario
+        working-directory: .reference/flexdc-sim/src/peacsim
+        run: |
+          set -euo pipefail
+          run_name="flexdc-reference-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+          echo "FLEXDC_RUN_NAME=$run_name" >> "$GITHUB_ENV"
+          mkdir -p output/simulation
+          # Preserve and actually use the effective policy config whose bytes
+          # and SHA-256 will travel with the run manifest.
+          cp ../../configs/policy/example_flexDC_simulation.ini \
+            "$GITHUB_WORKSPACE/artifacts/flexdc-reference/effective-policy.ini"
+          python run_simulator.py \
+            --experiment-config ../../configs/experiment/exp_low_util.ini \
+            --cluster-config ../../configs/cluster/cluster.ini \
+            --policy-config "$GITHUB_WORKSPACE/artifacts/flexdc-reference/effective-policy.ini" \
+            --job-config ../../configs/workload/W2-short-qos3445.ini \
+            --output-dir "$run_name" \
+            --qos-percentile 0.9 \
+            > "$GITHUB_WORKSPACE/artifacts/flexdc-reference/simulator.stdout.log" 2>&1
+          run_dir="$(find output/simulation -maxdepth 1 -type d -name "${run_name}_*" -print | LC_ALL=C sort | tail -n 1)"
+          test -n "$run_dir"
+          test -s "$run_dir/power_trace.csv"
+          test -s "$run_dir/job_table.csv"
+          cp "$run_dir/power_trace.csv" "$GITHUB_WORKSPACE/artifacts/flexdc-reference/power_trace.csv"
+          cp "$run_dir/job_table.csv" "$GITHUB_WORKSPACE/artifacts/flexdc-reference/job_table.csv"
+          for filename in qos_summary.csv QoSDegAvg.csv cost_power_rsr.csv PRtable.csv; do
+            if [ -s "$run_dir/$filename" ]; then
+              cp "$run_dir/$filename" "$GITHUB_WORKSPACE/artifacts/flexdc-reference/$filename"
+            fi
+          done
+      - name: Create the exact run manifest
+        env:
+          SOL_ATLAS_REVISION: ${{ github.sha }}
+        run: |
+          python - <<'PY'
+          import hashlib
+          import json
+          import os
+          from pathlib import Path
+
+          bundle = Path("artifacts/flexdc-reference")
+          environment_bytes = (bundle / "runtime-environment.txt").read_bytes()
+          environment_sha256 = hashlib.sha256(environment_bytes).hexdigest()
+          effective_policy_bytes = (bundle / "effective-policy.ini").read_bytes()
+          effective_policy_sha256 = hashlib.sha256(effective_policy_bytes).hexdigest()
+          command = (
+              "python run_simulator.py "
+              "--experiment-config ../../configs/experiment/exp_low_util.ini "
+              "--cluster-config ../../configs/cluster/cluster.ini "
+              f"--policy-config {bundle.resolve() / 'effective-policy.ini'} "
+              "--job-config ../../configs/workload/W2-short-qos3445.ini "
+              f"--output-dir {os.environ['FLEXDC_RUN_NAME']} --qos-percentile 0.9"
+          )
+          manifest = {
+              "schema_version": "1.0",
+              "run_id": f"gha-{os.environ['GITHUB_RUN_ID']}-{os.environ['GITHUB_RUN_ATTEMPT']}",
+              "synthetic": False,
+              "effective_policy_name": "AQA",
+              "effective_policy_config_path": "effective-policy.ini",
+              "effective_policy_config_sha256": effective_policy_sha256,
+              "source_revision": "ea50bd582b5d1b55fcb09ea46899fa9d325cce3b",
+              "simulator_command": command,
+              "random_seed": 20,
+              "python_version": ".".join(map(str, __import__("sys").version_info[:3])),
+              "runtime_environment_manifest_path": "runtime-environment.txt",
+              "runtime_environment_sha256": environment_sha256,
+              "power_cap_w": 24216.0,
+              "regulation_reserve_w": 9626.0,
+              "qos_percentile": 0.9,
+              "simulation_duration_seconds": 3600,
+              "simulation_step_seconds": 1,
+              "signal_step_seconds": 4,
+              "config_artifacts": [
+                  {"role": "experiment_config", "path": "configs/experiment/exp_low_util.ini", "git_blob_sha1": "554bb80355e85fb0c3fbf73e4d8a4f1521fa2184"},
+                  {"role": "cluster_config", "path": "configs/cluster/cluster.ini", "git_blob_sha1": "9acf360f05e88e82e812c8d412979a91dcbe3399"},
+                  {"role": "workload_config", "path": "configs/workload/W2-short-qos3445.ini", "git_blob_sha1": "c7f5e7d9e91de0ef17a4995b4d07cd896dc436f1"},
+                  {"role": "runtime_policy_config", "path": "configs/policy/example_flexDC_simulation.ini", "git_blob_sha1": "8a12f500ed8116b99e7e6b79010d5ab76be85051"},
+                  {"role": "power_signal", "path": "data/ISO24h.csv", "git_blob_sha1": "6f7a8e4275d00ad43702f8a94d0a085b79f21f65"},
+                  {"role": "optimization_weights", "path": "src/peacsim/output/optimization/W2-simulated_annealing_low_util_availability=False_20250308130817/opt_weights.csv", "git_blob_sha1": "f84164c63ba4215f92bb41c174955ec6e041db85"}
+              ],
+              "notes": (
+                  "Actual FlexDC-Sim process executed by GitHub Actions. "
+                  f"Sol-Atlas revision={os.environ['SOL_ATLAS_REVISION']}; "
+                  f"GitHub run={os.environ['GITHUB_RUN_ID']} attempt={os.environ['GITHUB_RUN_ATTEMPT']}. "
+                  "Output power is simulator-modeled from source workload/server power profiles, not "
+                  "wall-metered facility energy. Environment manifest bytes are bundled next to this file."
+              )
+          }
+          (bundle / "run-manifest.json").write_text(
+              json.dumps(manifest, indent=2, sort_keys=True) + "\n",
+              encoding="utf-8",
+          )
+          PY
+      - name: Adapt actual power trace and calculate both RSR views
+        run: |
+          cargo run -p sol-atlas-core --bin flexdc_trace_adapter -- \
+            artifacts/flexdc-reference/power_trace.csv \
+            artifacts/flexdc-reference/run-manifest.json \
+            > artifacts/flexdc-reference/adapted-trace.json
+          cargo run -p sol-atlas-core --bin demand_response_assess -- \
+            artifacts/flexdc-reference/adapted-trace.json \
+            > artifacts/flexdc-reference/assessment-report.json
+      # Install report-validation tooling only after the simulation environment has
+      # been captured; do not let validator packages contaminate that run receipt.
+      - name: Install pinned JSON Schema validation tooling
+        run: python -m pip install --disable-pip-version-check "jsonschema[format]==4.26.0"
+      - name: Validate outputs and write paired comparison summary
+        run: |
+          python - <<'PY'
+          import hashlib
+          import json
+          from pathlib import Path
+          from jsonschema import Draft202012Validator, FormatChecker
+
+          root = Path(".")
+          bundle = Path("artifacts/flexdc-reference")
+          trace = json.loads((bundle / "adapted-trace.json").read_text())
+          report = json.loads((bundle / "assessment-report.json").read_text())
+          trace_schema = json.loads((root / "schemas/demand-response-trace-v1.schema.json").read_text())
+          report_schema = json.loads((root / "schemas/demand-response-assessment-report-v1.schema.json").read_text())
+          checker = FormatChecker()
+          Draft202012Validator(trace_schema, format_checker=checker).validate(trace)
+          Draft202012Validator(report_schema, format_checker=checker).validate(report)
+          assert trace["synthetic"] is False
+          assert trace["claim_ceiling"] == "metric_accounting_only"
+          assert report["metrics"]["synthetic"] is False
+          assert report["metrics"]["claim_ceiling"] == "metric_accounting_only"
+          source = report["metrics"]["rsr_reference"]
+          aligned = report["metrics"]["rsr"]
+          metadata = report["metrics"]["rsr_reference_metadata"]
+          assert source["sample_count"] == 3601
+          assert aligned["sample_count"] == 3601
+          assert metadata["source_name"] == "FlexDC-Sim"
+          assert metadata["source_revision"] == "ea50bd582b5d1b55fcb09ea46899fa9d325cce3b"
+          assert metadata["sample_time_semantics"] == "prior_cycle_state"
+          assert metadata["denominator_convention"] == "reserve_plus_epsilon"
+          assert metadata["source_run_manifest_sha256"] == trace["rsr_reference"]["metadata"]["source_run_manifest_sha256"]
+          summary = {
+              "evidence_class": "simulator_metric_accounting_only_not_facility_metering",
+              "run_id": trace["fixture_id"],
+              "rows": source["sample_count"],
+              "source_native": {
+                  "p90_normalized_absolute_error": source["p90_normalized_absolute_error"],
+                  "p90_threshold_satisfied": source["p90_threshold_satisfied"],
+                  "exceedance_count": source["threshold_exceedance_count"],
+                  "exceedance_fraction": source["threshold_exceedance_fraction"]
+              },
+              "same_row_recomputed": {
+                  "p90_normalized_absolute_error": aligned["p90_normalized_absolute_error"],
+                  "p90_threshold_satisfied": aligned["p90_threshold_satisfied"],
+                  "exceedance_count": aligned["threshold_exceedance_count"],
+                  "exceedance_fraction": aligned["threshold_exceedance_fraction"]
+              },
+              "p90_delta_same_row_minus_source": aligned["p90_normalized_absolute_error"] - source["p90_normalized_absolute_error"],
+              "power_trace_sha256": metadata["source_artifact_sha256"],
+              "run_manifest_sha256": metadata["source_run_manifest_sha256"]
+          }
+          (bundle / "paired-comparison-summary.json").write_text(
+              json.dumps(summary, indent=2, sort_keys=True) + "\n", encoding="utf-8"
+          )
+          for filename in ("power_trace.csv", "job_table.csv", "adapted-trace.json", "assessment-report.json"):
+              digest = hashlib.sha256((bundle / filename).read_bytes()).hexdigest()
+              print(f"{filename} sha256={digest}")
+          print(json.dumps(summary, indent=2, sort_keys=True))
+          PY
+      - name: Upload pinned simulator run and receipts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: flexdc-sim-reference-${{ github.run_id }}-${{ github.run_attempt }}
+          path: artifacts/flexdc-reference/
+          if-no-files-found: warn
+          retention-days: 30
