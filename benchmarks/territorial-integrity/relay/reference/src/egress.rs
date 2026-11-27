@@ -668,15 +668,15 @@ pub fn evaluate_disclosure_manifest(input: &Value) -> EgressEvaluation {
     // An intermediate output may legitimately be a source for a later
     // transform. Its object identity must nevertheless bind the same bytes.
     for (source_ref, source_digest) in &source_digests {
-        if let Some(output_digest) = output_digests.get(source_ref) {
-            if source_digest != output_digest {
-                raise(
-                    &mut severity,
-                    &mut reasons,
-                    Severity::Deny,
-                    "source_output_content_conflict",
-                );
-            }
+        if let Some(output_digest) = output_digests.get(source_ref)
+            && source_digest != output_digest
+        {
+            raise(
+                &mut severity,
+                &mut reasons,
+                Severity::Deny,
+                "source_output_content_conflict",
+            );
         }
     }
 
@@ -806,34 +806,34 @@ pub fn evaluate_disclosure_manifest(input: &Value) -> EgressEvaluation {
                 source_class_union.extend(classes.iter().cloned());
             }
         }
-        if let Some(classes) = output_classes.get(output_ref) {
-            if !source_class_union.is_empty() && &source_class_union != classes {
-                let has_change_reference =
-                    output_transform_refs.get(output_ref).is_some_and(|refs| {
-                        refs.iter().any(|transform_ref| {
-                            transform_by_ref
-                                .get(transform_ref)
-                                .is_some_and(|transform| {
-                                    nonblank(transform, "classification_change_authority_ref")
-                                        .is_some()
-                                })
-                        })
-                    });
-                if has_change_reference {
-                    raise(
-                        &mut severity,
-                        &mut reasons,
-                        Severity::Unknown,
-                        "classification_change_authority_resolution_unavailable",
-                    );
-                } else {
-                    raise(
-                        &mut severity,
-                        &mut reasons,
-                        Severity::Review,
-                        "classification_change_authority_reference_missing",
-                    );
-                }
+        if let Some(classes) = output_classes.get(output_ref)
+            && !source_class_union.is_empty()
+            && &source_class_union != classes
+        {
+            let has_change_reference =
+                output_transform_refs.get(output_ref).is_some_and(|refs| {
+                    refs.iter().any(|transform_ref| {
+                        transform_by_ref
+                            .get(transform_ref)
+                            .is_some_and(|transform| {
+                                nonblank(transform, "classification_change_authority_ref").is_some()
+                            })
+                    })
+                });
+            if has_change_reference {
+                raise(
+                    &mut severity,
+                    &mut reasons,
+                    Severity::Unknown,
+                    "classification_change_authority_resolution_unavailable",
+                );
+            } else {
+                raise(
+                    &mut severity,
+                    &mut reasons,
+                    Severity::Review,
+                    "classification_change_authority_reference_missing",
+                );
             }
         }
     }
