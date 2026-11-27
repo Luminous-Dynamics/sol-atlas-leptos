@@ -712,7 +712,11 @@
       "required_service_duration_ticks": 4,
       "expected": {
         "disposition": "NOT_COMPARABLE",
-        "reason_code": "SCOPE_DIGEST_MISMATCH"
+        "reason_code": "SCOPE_DIGEST_MISMATCH",
+        "possible_arrival_count": 0,
+        "available_arrival_count": 0,
+        "unavailable_arrival_count": 0,
+        "unknown_arrival_count": 0
       }
     },
     {
@@ -766,7 +770,11 @@
       "required_service_duration_ticks": 4,
       "expected": {
         "disposition": "NOT_COMPARABLE",
-        "reason_code": "TIME_BASIS_MISMATCH"
+        "reason_code": "TIME_BASIS_MISMATCH",
+        "possible_arrival_count": 0,
+        "available_arrival_count": 0,
+        "unavailable_arrival_count": 0,
+        "unknown_arrival_count": 0
       }
     },
     {
@@ -1037,7 +1045,11 @@
       "required_service_duration_ticks": 4,
       "expected": {
         "disposition": "NOT_COMPARABLE",
-        "reason_code": "MIXED_SERVICE_OWNER_REVISIONS"
+        "reason_code": "MIXED_SERVICE_OWNER_REVISIONS",
+        "possible_arrival_count": 0,
+        "available_arrival_count": 0,
+        "unavailable_arrival_count": 0,
+        "unknown_arrival_count": 0
       }
     },
     {
