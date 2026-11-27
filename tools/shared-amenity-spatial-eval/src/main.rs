@@ -625,7 +625,7 @@ fn worst_decile_mean(samples: &[(u64, u64)]) -> Result<Option<u64>, String> {
     let mut remaining = target;
     let mut weighted_seconds = 0_u128;
     let mut ordered = samples.to_vec();
-    ordered.sort_by(|left, right| right.0.cmp(&left.0));
+    ordered.sort_by_key(|entry| std::cmp::Reverse(entry.0));
 
     for (seconds, population) in ordered {
         let included = remaining.min(population);
@@ -756,7 +756,8 @@ fn evaluate_arm(scenario: &ScenarioFixture, arm: &ProvisionArm) -> Result<ArmRes
                     && service_not_known_unavailable;
                 let unresolved_service_candidate = record.access_state == "QUALIFIED"
                     && within_tolerance
-                    && (!group.mandatory_access_required || record.mandatory_access_state == "PASS")
+                    && (!group.mandatory_access_required
+                        || record.mandatory_access_state == "PASS")
                     && facility.service_state == "UNKNOWN";
                 unresolved_route_candidate
                     || unresolved_mandatory_candidate
@@ -767,8 +768,7 @@ fn evaluate_arm(scenario: &ScenarioFixture, arm: &ProvisionArm) -> Result<ArmRes
                     && facilities
                         .get(record.facility_id.as_str())
                         .is_some_and(|facility| facility.service_state == "UNAVAILABLE")
-                    && (!group.mandatory_access_required
-                        || record.mandatory_access_state == "PASS")
+                    && (!group.mandatory_access_required || record.mandatory_access_state == "PASS")
             });
             let known_route_outside_tolerance = records.iter().any(|record| {
                 record.access_state == "QUALIFIED"
@@ -1090,11 +1090,7 @@ mod tests {
         }
 
         let output = evaluate_value(value).expect("common-cause dependency is representable");
-        let distributed = find_arm(
-            &output,
-            "COMPACT_HIGH_DENSITY",
-            "DISTRIBUTED_SHARED",
-        );
+        let distributed = find_arm(&output, "COMPACT_HIGH_DENSITY", "DISTRIBUTED_SHARED");
         assert_eq!(distributed.minimum_independent_failure_domains, Some(1));
     }
 
