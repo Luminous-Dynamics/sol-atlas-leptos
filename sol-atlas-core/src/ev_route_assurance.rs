@@ -230,6 +230,18 @@ pub struct Finding {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct EvidenceBinding {
+    pub role: String,
+    pub reference_id: String,
+    pub digest_sha256: String,
+    pub source_class: EvidenceClass,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub observed_at_unix_s: Option<i64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub valid_until_unix_s: Option<i64>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Assessment {
     pub schema_version: String,
     pub plan_id: String,
@@ -237,6 +249,7 @@ pub struct Assessment {
     pub reserve_floor_wh: f64,
     pub final_energy_wh: NumericInterval,
     pub event_assessments: Vec<EventAssessment>,
+    pub consumed_evidence: Vec<EvidenceBinding>,
     pub findings: Vec<Finding>,
     pub claim_ceiling: String,
 }
@@ -335,7 +348,11 @@ pub fn assess(input: &RoutePlan) -> Result<Assessment, String> {
     if input.pack.reserve_floor_wh > input.pack.usable_energy_wh.upper + EPSILON {
         push_finding(&mut findings, None, "RESERVE_EXCEEDS_PACK_CAPACITY",
             "The required reserve exceeds the maximum declared usable pack capacity.");
-        any_infeasible = true;
+        if pack_capability_qualified {
+            any_infeasible = true;
+        } else {
+            any_indeterminate = true;
+        }
     }
     if energy.upper + EPSILON < input.pack.reserve_floor_wh {
         push_finding(&mut findings, None, "INITIAL_ENERGY_BELOW_RESERVE",
@@ -679,9 +696,48 @@ pub fn assess(input: &RoutePlan) -> Result<Assessment, String> {
         reserve_floor_wh: input.pack.reserve_floor_wh,
         final_energy_wh: energy,
         event_assessments,
+        consumed_evidence: collect_evidence(input),
         findings,
         claim_ceiling: "Proposal audit only. This result does not prove physical model validity, live charger availability beyond the supplied evidence window, grid approval, route legality, vehicle safety, or authority to control a vehicle or charger.".into(),
     })
+}
+
+fn collect_evidence(input: &RoutePlan) -> Vec<EvidenceBinding> {
+    fn add(output: &mut Vec<EvidenceBinding>, role: String, evidence: &EvidenceRef) {
+        output.push(EvidenceBinding {
+            role,
+            reference_id: evidence.reference_id.clone(),
+            digest_sha256: evidence.digest_sha256.clone(),
+            source_class: evidence.source_class,
+            observed_at_unix_s: evidence.observed_at_unix_s,
+            valid_until_unix_s: evidence.valid_until_unix_s,
+        });
+    }
+
+    let mut output = Vec::new();
+    add(&mut output, "vehicle.configuration".into(), &input.vehicle.configuration_evidence);
+    add(&mut output, "vehicle.energy_model".into(), &input.vehicle.energy_model_evidence);
+    add(&mut output, "pack.capability".into(), &input.pack.capability_evidence);
+    for event in &input.events {
+        match event {
+            PlanEvent::DriveLeg(leg) => {
+                add(&mut output, format!("{}.route", leg.event_id), &leg.route_evidence);
+                add(&mut output, format!("{}.energy_estimate", leg.event_id), &leg.energy_estimate_evidence);
+            }
+            PlanEvent::ChargingStop(stop) => {
+                let prefix = format!("{}.charger", stop.event_id);
+                add(&mut output, format!("{prefix}.status"), &stop.charger.status_evidence);
+                add(&mut output, format!("{prefix}.configuration"), &stop.charger.configuration_evidence);
+                add(&mut output, format!("{prefix}.evse_power"), &stop.charger.evse_power_evidence);
+                add(&mut output, format!("{prefix}.conversion"), &stop.charger.conversion_evidence);
+                add(&mut output, format!("{prefix}.site_connection"), &stop.charger.site_connection.connection_evidence);
+                if let Some(evidence) = &stop.charger.site_connection.import_power_evidence {
+                    add(&mut output, format!("{prefix}.site_import_power"), evidence);
+                }
+            }
+        }
+    }
+    output
 }
 
 fn require_identifier(value: &str, label: &str) -> Result<(), String> {
@@ -852,6 +908,7 @@ mod tests {
         assert!((envelope.assessment.final_energy_wh.upper - 15_000.0).abs() < EPSILON);
         assert_eq!(envelope.receipt.input_sha256.len(), 64);
         assert_eq!(envelope.receipt.assessment_sha256.len(), 64);
+        assert_eq!(envelope.assessment.consumed_evidence.len(), 13);
     }
 
     #[test]
