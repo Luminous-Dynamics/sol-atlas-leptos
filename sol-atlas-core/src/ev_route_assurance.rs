@@ -79,6 +79,7 @@ pub enum RouteState {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct DriveLeg {
+    pub kind: String,
     pub event_id: String,
     pub planned_start_unix_s: i64,
     pub duration_seconds: u64,
@@ -138,6 +139,7 @@ pub struct Charger {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct ChargingStop {
+    pub kind: String,
     pub event_id: String,
     pub planned_start_unix_s: i64,
     pub duration_seconds: u64,
@@ -146,7 +148,7 @@ pub struct ChargingStop {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(tag = "kind", rename_all = "snake_case")]
+#[serde(untagged)]
 pub enum PlanEvent {
     DriveLeg(DriveLeg),
     ChargingStop(ChargingStop),
@@ -388,6 +390,9 @@ pub fn assess(input: &RoutePlan) -> Result<Assessment, String> {
 
         match event {
             PlanEvent::DriveLeg(leg) => {
+                if leg.kind != "drive_leg" {
+                    return Err(format!("{event_id}: kind must be drive_leg"));
+                }
                 validate_interval(leg.energy_consumption_wh, &format!("{event_id}.energy_consumption_wh"))?;
                 let leg_energy_qualified =
                     evidence_class_qualified(&leg.energy_estimate_evidence, &format!("{event_id}.energy_estimate_evidence"))?;
@@ -443,6 +448,9 @@ pub fn assess(input: &RoutePlan) -> Result<Assessment, String> {
                 }
             }
             PlanEvent::ChargingStop(stop) => {
+                if stop.kind != "charging_stop" {
+                    return Err(format!("{event_id}: kind must be charging_stop"));
+                }
                 validate_nonnegative(stop.requested_charge_energy_wh, &format!("{event_id}.requested_charge_energy_wh"))?;
                 if stop.requested_charge_energy_wh <= EPSILON {
                     return Err(format!("{event_id}: requested charge energy must be positive"));
