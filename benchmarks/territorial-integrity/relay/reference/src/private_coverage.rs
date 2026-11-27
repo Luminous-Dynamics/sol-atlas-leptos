@@ -1259,7 +1259,10 @@ pub fn evaluate_private_coverage(input: &Value) -> CoverageEvaluation {
             }
             Some(_) => {}
         }
-        if predicate_valid {
+        // An object outside the frozen snapshot cannot be evaluated against
+        // the query predicate. Preserve it as incomplete evidence; do not
+        // convert the absence of a query input into a predicate contradiction.
+        if predicate_valid && snapshot_item.is_some() {
             let query_result = match snapshot_item {
                 Some(snapshot_item)
                     if nonblank(snapshot_item, "availability_state") == Some("available") =>
