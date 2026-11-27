@@ -29,6 +29,29 @@ permissions:
   contents: read
 
 jobs:
+  lockfile-diagnostic:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: "1.96.0"
+      - name: Generate authoritative workspace lockfile
+        run: |
+          mkdir -p lockfile-diagnostic
+          cp Cargo.lock lockfile-diagnostic/Cargo.lock.before
+          cargo generate-lockfile
+          cp Cargo.lock lockfile-diagnostic/Cargo.lock.generated
+          git diff -- Cargo.lock > lockfile-diagnostic/Cargo.lock.diff
+          sha256sum lockfile-diagnostic/* > lockfile-diagnostic/SHA256SUMS
+      - name: Upload lockfile diagnostic
+        uses: actions/upload-artifact@v4
+        with:
+          name: ev-route-lockfile-diagnostic-${{ github.sha }}
+          path: lockfile-diagnostic/
+          if-no-files-found: error
+          retention-days: 7
+
   exact-subject:
     runs-on: ubuntu-24.04
     steps:
