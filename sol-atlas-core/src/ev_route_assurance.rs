@@ -9,7 +9,7 @@
 //! references satisfy this bounded audit contract.
 
 use crate::ev_evidence_admission::{
-    EvidenceAttestation, EvidenceTrustStore, EvidenceVerification, validate_trust_store,
+    EvidenceAttestation, EvidenceTrustStore, EvidenceVerificationRequest, validate_trust_store,
     verify_evidence,
 };
 use serde::{Deserialize, Serialize};
@@ -1035,16 +1035,18 @@ fn collect_evidence(input: &RoutePlan, trust_store: &EvidenceTrustStore) -> Vec<
         assessed_at_unix_s: i64,
     ) {
         let verification = verify_evidence(
-            &evidence.reference_id,
-            &evidence.digest_sha256,
-            evidence_class_label(evidence.source_class),
-            evidence.observed_at_unix_s,
-            evidence.valid_until_unix_s,
-            evidence.attestation.as_ref(),
+            EvidenceVerificationRequest {
+                reference_id: &evidence.reference_id,
+                digest_sha256: &evidence.digest_sha256,
+                source_class: evidence_class_label(evidence.source_class),
+                observed_at_unix_s: evidence.observed_at_unix_s,
+                valid_until_unix_s: evidence.valid_until_unix_s,
+                attestation: evidence.attestation.as_ref(),
+                expected_evidence_role: evidence_role,
+                expected_subject_id: subject_id,
+                assessed_at_unix_s,
+            },
             trust_store,
-            evidence_role,
-            subject_id,
-            assessed_at_unix_s,
         );
         output.push(EvidenceBinding {
             role: report_role,
@@ -1245,16 +1247,18 @@ fn evidence_class_qualified(
 ) -> Result<bool, String> {
     evidence_reference_valid(value, label)?;
     let verification = verify_evidence(
-        &value.reference_id,
-        &value.digest_sha256,
-        evidence_class_label(value.source_class),
-        value.observed_at_unix_s,
-        value.valid_until_unix_s,
-        value.attestation.as_ref(),
+        EvidenceVerificationRequest {
+            reference_id: &value.reference_id,
+            digest_sha256: &value.digest_sha256,
+            source_class: evidence_class_label(value.source_class),
+            observed_at_unix_s: value.observed_at_unix_s,
+            valid_until_unix_s: value.valid_until_unix_s,
+            attestation: value.attestation.as_ref(),
+            expected_evidence_role: expected_role,
+            expected_subject_id,
+            assessed_at_unix_s: assessed_at,
+        },
         trust_store,
-        expected_role,
-        expected_subject_id,
-        assessed_at,
     );
     Ok(verification.authenticated()
         && matches!(
@@ -1274,16 +1278,18 @@ fn evidence_current_for_window(
 ) -> Result<bool, String> {
     evidence_reference_valid(value, label)?;
     let verification = verify_evidence(
-        &value.reference_id,
-        &value.digest_sha256,
-        evidence_class_label(value.source_class),
-        value.observed_at_unix_s,
-        value.valid_until_unix_s,
-        value.attestation.as_ref(),
+        EvidenceVerificationRequest {
+            reference_id: &value.reference_id,
+            digest_sha256: &value.digest_sha256,
+            source_class: evidence_class_label(value.source_class),
+            observed_at_unix_s: value.observed_at_unix_s,
+            valid_until_unix_s: value.valid_until_unix_s,
+            attestation: value.attestation.as_ref(),
+            expected_evidence_role: expected_role,
+            expected_subject_id,
+            assessed_at_unix_s: assessed_at,
+        },
         trust_store,
-        expected_role,
-        expected_subject_id,
-        assessed_at,
     );
     Ok(value.source_class == EvidenceClass::Observed
         && verification.authenticated()
