@@ -93,17 +93,15 @@ pub fn parse_climate_projects(json: &str) -> Result<Vec<ClimateProject>, serde_j
     serde_json::from_str(json)
 }
 
+/// Parsed infrastructure collections in stable source-field order.
+pub type ParsedInfrastructure = (
+    Vec<EmergencyShelter>,
+    Vec<HealthFacility>,
+    Vec<RoboticsDispatch>,
+);
+
 /// Parse infrastructure.json → (emergency_shelters, health_facilities, robotics_dispatch).
-pub fn parse_infrastructure(
-    json: &str,
-) -> Result<
-    (
-        Vec<EmergencyShelter>,
-        Vec<HealthFacility>,
-        Vec<RoboticsDispatch>,
-    ),
-    serde_json::Error,
-> {
+pub fn parse_infrastructure(json: &str) -> Result<ParsedInfrastructure, serde_json::Error> {
     let bundle: InfrastructureBundle = serde_json::from_str(json)?;
     Ok((
         bundle.emergency_shelters,
@@ -135,6 +133,9 @@ fn parse_or_log<T: Default>(dataset: &str, result: Result<T, serde_json::Error>)
 }
 
 /// Load all datasets from their respective JSON strings into a single `LoadedData`.
+///
+/// The explicit parameters preserve the established one-input-per-dataset API.
+#[allow(clippy::too_many_arguments)]
 pub fn load_all(
     sites_json: &str,
     maglev_json: &str,
@@ -275,6 +276,7 @@ fn parse_natural_events(
                     .as_deref()
                     .or(f.properties.place.as_deref())
                     .or(f.properties.name.as_deref())
+                    .or(f.properties.event_kind.as_deref())
                     .unwrap_or("Unknown")
                     .to_string();
                 Some(NaturalEvent {
@@ -453,7 +455,7 @@ mod infra_tests {
             let rgb = layer.rgb();
             for c in rgb {
                 assert!(
-                    c >= 0.0 && c <= 1.0,
+                    (0.0..=1.0).contains(&c),
                     "Layer {:?} RGB out of range: {:?}",
                     layer,
                     rgb
