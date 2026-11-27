@@ -17,6 +17,7 @@ pub mod energy_trading;
 pub mod geo;
 pub mod lod;
 pub mod mycelix_flows;
+pub mod n3_published_trip_audit;
 // pub mod relativity_viz;
 pub mod geometry;
 pub mod math;
