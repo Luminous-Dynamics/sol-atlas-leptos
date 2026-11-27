@@ -1,0 +1,245 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/blob/main/schemas/ev-route-assurance-report-v0.1.schema.json",
+  "title": "EV Route Assurance Report v0.1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "receipt",
+    "assessment"
+  ],
+  "properties": {
+    "receipt": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "input_sha256",
+        "assessment_sha256",
+        "trust_store_sha256",
+        "trust_store_canonical_sha256"
+      ],
+      "properties": {
+        "input_sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "assessment_sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "trust_store_sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "trust_store_canonical_sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        }
+      }
+    },
+    "assessment": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema_version",
+        "plan_id",
+        "disposition",
+        "reserve_floor_wh",
+        "final_energy_wh",
+        "event_assessments",
+        "findings",
+        "claim_ceiling",
+        "consumed_evidence",
+        "trust_policy_id"
+      ],
+      "properties": {
+        "schema_version": {
+          "const": "ev-route-assurance-assessment/v0.1"
+        },
+        "plan_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "disposition": {
+          "enum": [
+            "FEASIBLE_UNDER_DECLARED_BOUNDS",
+            "INFEASIBLE",
+            "INDETERMINATE"
+          ]
+        },
+        "reserve_floor_wh": {
+          "type": "number",
+          "minimum": 0
+        },
+        "final_energy_wh": {
+          "$ref": "#/$defs/interval"
+        },
+        "event_assessments": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/event_assessment"
+          }
+        },
+        "findings": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/finding"
+          }
+        },
+        "claim_ceiling": {
+          "type": "string",
+          "minLength": 1
+        },
+        "consumed_evidence": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/evidence_binding"
+          }
+        },
+        "trust_policy_id": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    }
+  },
+  "$defs": {
+    "interval": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "lower",
+        "upper"
+      ],
+      "properties": {
+        "lower": {
+          "type": "number"
+        },
+        "upper": {
+          "type": "number"
+        }
+      }
+    },
+    "event_assessment": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "event_id",
+        "event_kind",
+        "disposition",
+        "energy_after_wh"
+      ],
+      "properties": {
+        "event_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "event_kind": {
+          "enum": [
+            "drive_leg",
+            "charging_stop"
+          ]
+        },
+        "disposition": {
+          "enum": [
+            "WITHIN_DECLARED_BOUNDS",
+            "INFEASIBLE",
+            "INDETERMINATE"
+          ]
+        },
+        "energy_after_wh": {
+          "$ref": "#/$defs/interval"
+        },
+        "delivered_charge_wh": {
+          "$ref": "#/$defs/interval"
+        }
+      }
+    },
+    "finding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "code",
+        "detail"
+      ],
+      "properties": {
+        "event_id": {
+          "type": "string"
+        },
+        "code": {
+          "type": "string",
+          "minLength": 1
+        },
+        "detail": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "evidence_binding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "role",
+        "reference_id",
+        "digest_sha256",
+        "source_class",
+        "evidence_role",
+        "subject_id",
+        "verification_status"
+      ],
+      "properties": {
+        "role": {
+          "type": "string",
+          "minLength": 1
+        },
+        "reference_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "digest_sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "source_class": {
+          "enum": [
+            "observed",
+            "qualified_model",
+            "forecast",
+            "predicted",
+            "scenario",
+            "synthetic",
+            "unknown"
+          ]
+        },
+        "observed_at_unix_s": {
+          "type": "integer"
+        },
+        "valid_until_unix_s": {
+          "type": "integer"
+        },
+        "evidence_role": {
+          "type": "string",
+          "minLength": 1
+        },
+        "subject_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "verification_status": {
+          "type": "string",
+          "minLength": 1
+        },
+        "issuer_id": {
+          "type": "string"
+        },
+        "issuer_role": {
+          "type": "string"
+        },
+        "key_id": {
+          "type": "string"
+        }
+      }
+    }
+  }
+}

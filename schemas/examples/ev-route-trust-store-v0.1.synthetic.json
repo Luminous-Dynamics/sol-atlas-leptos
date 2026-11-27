@@ -1,0 +1,28 @@
+{
+  "schema_version": "ev-route-evidence-trust-store/v0.1",
+  "policy_id": "synthetic-n3-demonstration-policy-do-not-use-in-production",
+  "trusted_keys": [
+    {
+      "key_id": "synthetic-test-key-001",
+      "issuer_id": "synthetic-demo-issuer",
+      "issuer_role": "engineering_evidence_issuer",
+      "public_key_ed25519_hex": "03a107bff3ce10be1d70dd18e74bc09967e4d6309ba50d5f1ddc8664125531b8",
+      "valid_from_unix_s": 0,
+      "valid_until_unix_s": 20000,
+      "revoked": false,
+      "authorized_evidence_roles": [
+        "vehicle_configuration",
+        "vehicle_energy_model",
+        "pack_capability",
+        "route_state",
+        "leg_energy_estimate",
+        "charger_status",
+        "charger_configuration",
+        "evse_power_rating",
+        "conversion_efficiency_model",
+        "site_connection",
+        "site_import_power"
+      ]
+    }
+  ]
+}

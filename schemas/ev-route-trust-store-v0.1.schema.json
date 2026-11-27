@@ -1,0 +1,42 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/blob/main/schemas/ev-route-trust-store-v0.1.schema.json",
+  "title": "EV Route Evidence Trust Store v0.1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "policy_id", "trusted_keys"],
+  "properties": {
+    "schema_version": { "const": "ev-route-evidence-trust-store/v0.1" },
+    "policy_id": { "type": "string", "minLength": 1 },
+    "trusted_keys": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/trusted_key" }
+    }
+  },
+  "$defs": {
+    "trusted_key": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "key_id", "issuer_id", "issuer_role", "public_key_ed25519_hex",
+        "valid_from_unix_s", "revoked", "authorized_evidence_roles"
+      ],
+      "properties": {
+        "key_id": { "type": "string", "minLength": 1 },
+        "issuer_id": { "type": "string", "minLength": 1 },
+        "issuer_role": { "type": "string", "minLength": 1 },
+        "public_key_ed25519_hex": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+        "valid_from_unix_s": { "type": "integer" },
+        "valid_until_unix_s": { "type": ["integer", "null"] },
+        "revoked": { "type": "boolean" },
+        "authorized_evidence_roles": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "type": "string", "minLength": 1 }
+        }
+      }
+    }
+  }
+}
