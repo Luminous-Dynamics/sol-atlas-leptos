@@ -1276,14 +1276,100 @@ fn sha256_hex(bytes: &[u8]) -> String {
 mod tests {
     use super::*;
 
-    fn evidence(reference_id: &str, source_class: EvidenceClass, seed: u8) -> EvidenceRef {
+    use ed25519_dalek::{Signer, SigningKey};
+
+    fn test_signing_key() -> SigningKey {
+        SigningKey::from_bytes(&[
+            0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,
+            16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31,
+        ])
+    }
+
+    fn test_trust_store() -> EvidenceTrustStore {
+        let key = test_signing_key();
+        EvidenceTrustStore {
+            schema_version: crate::ev_evidence_admission::TRUST_STORE_SCHEMA_VERSION.into(),
+            policy_id: "test-only-ev-route-trust-policy".into(),
+            trusted_keys: vec![crate::ev_evidence_admission::TrustedEvidenceKey {
+                key_id: "test-key-001".into(),
+                issuer_id: "test-issuer-001".into(),
+                issuer_role: "engineering_evidence_issuer".into(),
+                public_key_ed25519_hex: key
+                    .verifying_key()
+                    .to_bytes()
+                    .iter()
+                    .map(|byte| format!("{byte:02x}"))
+                    .collect(),
+                valid_from_unix_s: 0,
+                valid_until_unix_s: Some(20_000),
+                revoked: false,
+                authorized_evidence_roles: vec![
+                    "vehicle_configuration".into(),
+                    "vehicle_energy_model".into(),
+                    "pack_capability".into(),
+                    "route_state".into(),
+                    "leg_energy_estimate".into(),
+                    "charger_status".into(),
+                    "charger_configuration".into(),
+                    "evse_power_rating".into(),
+                    "conversion_efficiency_model".into(),
+                    "site_connection".into(),
+                    "site_import_power".into(),
+                ],
+            }],
+        }
+    }
+
+    fn evidence(
+        reference_id: &str,
+        source_class: EvidenceClass,
+        seed: u8,
+        evidence_role: &str,
+        subject_id: &str,
+    ) -> EvidenceRef {
+        let digest_sha256 = format!("{seed:02x}").repeat(32);
+        let mut attestation = EvidenceAttestation {
+            evidence_role: evidence_role.into(),
+            subject_id: subject_id.into(),
+            issuer_id: "test-issuer-001".into(),
+            issuer_role: "engineering_evidence_issuer".into(),
+            key_id: "test-key-001".into(),
+            issued_at_unix_s: 900,
+            signature_ed25519_hex: None,
+        };
+        let message = crate::ev_evidence_admission::signature_message(
+            reference_id,
+            &digest_sha256,
+            evidence_class_label(source_class),
+            Some(800),
+            Some(20_000),
+            &attestation,
+        )
+        .expect("evidence signing payload");
+        attestation.signature_ed25519_hex = Some(
+            test_signing_key()
+                .sign(&message)
+                .to_bytes()
+                .iter()
+                .map(|byte| format!("{byte:02x}"))
+                .collect(),
+        );
         EvidenceRef {
             reference_id: reference_id.into(),
-            digest_sha256: format!("{:02x}", seed).repeat(32),
+            digest_sha256,
             source_class,
             observed_at_unix_s: Some(800),
             valid_until_unix_s: Some(20_000),
+            attestation: Some(attestation),
         }
+    }
+
+    fn assess_test_plan(input: &RoutePlan) -> Result<Assessment, String> {
+        assess(input, &test_trust_store())
+    }
+
+    fn test_trust_store_bytes() -> Vec<u8> {
+        serde_json::to_vec(&test_trust_store()).expect("serialize test trust store")
     }
 
     fn qualified_plan() -> RoutePlan {
@@ -1294,16 +1380,8 @@ mod tests {
             vehicle: VehicleEvidence {
                 vehicle_configuration_id: "EV-REF-01-CONFIG-A".into(),
                 connector_ids: vec!["CCS2".into()],
-                configuration_evidence: evidence(
-                    "mycelix:vehicle-config",
-                    EvidenceClass::Observed,
-                    1,
-                ),
-                energy_model_evidence: evidence(
-                    "symtropy:ev-energy-model",
-                    EvidenceClass::QualifiedModel,
-                    2,
-                ),
+                configuration_evidence: evidence("mycelix:vehicle-config", EvidenceClass::Observed, 1, "vehicle_configuration", "EV-REF-01-CONFIG-A"),
+                energy_model_evidence: evidence("symtropy:ev-energy-model", EvidenceClass::QualifiedModel, 2, "vehicle_energy_model", "EV-REF-01-CONFIG-A"),
             },
             pack: PackCapability {
                 pack_id: "PACK-REF-01-A".into(),
@@ -1320,11 +1398,7 @@ mod tests {
                     lower: 40_000.0,
                     upper: 40_000.0,
                 },
-                capability_evidence: evidence(
-                    "symthaea:pack-capability",
-                    EvidenceClass::QualifiedModel,
-                    3,
-                ),
+                capability_evidence: evidence("symthaea:pack-capability", EvidenceClass::QualifiedModel, 3, "pack_capability", "PACK-REF-01-A"),
             },
             events: vec![
                 PlanEvent::DriveLeg(DriveLeg {
@@ -1337,12 +1411,8 @@ mod tests {
                         lower: 20_000.0,
                         upper: 20_000.0,
                     },
-                    route_evidence: evidence("sol-atlas:road-state-1", EvidenceClass::Observed, 4),
-                    energy_estimate_evidence: evidence(
-                        "symtropy:leg-energy-1",
-                        EvidenceClass::QualifiedModel,
-                        5,
-                    ),
+                    route_evidence: evidence("sol-atlas:road-state-1", EvidenceClass::Observed, 4, "route_state", "LEG-1"),
+                    energy_estimate_evidence: evidence("symtropy:leg-energy-1", EvidenceClass::QualifiedModel, 5, "leg_energy_estimate", "LEG-1"),
                 }),
                 PlanEvent::ChargingStop(ChargingStop {
                     kind: "charging_stop".into(),
@@ -1354,50 +1424,26 @@ mod tests {
                         charger_id: "N3-CHARGER-01".into(),
                         connector_id: "CCS2".into(),
                         operational_status: ChargerOperationalStatus::OperationalObserved,
-                        status_evidence: evidence(
-                            "sol-atlas:charger-status",
-                            EvidenceClass::Observed,
-                            6,
-                        ),
-                        configuration_evidence: evidence(
-                            "mycelix:charger-config",
-                            EvidenceClass::Observed,
-                            7,
-                        ),
+                        status_evidence: evidence("sol-atlas:charger-status", EvidenceClass::Observed, 6, "charger_status", "N3-CHARGER-01"),
+                        configuration_evidence: evidence("mycelix:charger-config", EvidenceClass::Observed, 7, "charger_configuration", "N3-CHARGER-01"),
                         evse_output_power_w: NumericInterval {
                             lower: 50_000.0,
                             upper: 50_000.0,
                         },
-                        evse_power_evidence: evidence(
-                            "mycelix:evse-rating",
-                            EvidenceClass::Observed,
-                            8,
-                        ),
+                        evse_power_evidence: evidence("mycelix:evse-rating", EvidenceClass::Observed, 8, "evse_power_rating", "N3-CHARGER-01"),
                         site_to_connector_efficiency: NumericInterval {
                             lower: 0.9,
                             upper: 0.9,
                         },
-                        conversion_evidence: evidence(
-                            "symtropy:conversion-model",
-                            EvidenceClass::QualifiedModel,
-                            9,
-                        ),
+                        conversion_evidence: evidence("symtropy:conversion-model", EvidenceClass::QualifiedModel, 9, "conversion_efficiency_model", "N3-CHARGER-01"),
                         site_connection: SiteConnection {
                             grid_connection_stage: GridConnectionStage::Energized,
                             site_import_power_w: Some(NumericInterval {
                                 lower: 60_000.0,
                                 upper: 60_000.0,
                             }),
-                            connection_evidence: evidence(
-                                "sol-atlas:site-energization",
-                                EvidenceClass::Observed,
-                                10,
-                            ),
-                            import_power_evidence: Some(evidence(
-                                "sol-atlas:site-import-limit",
-                                EvidenceClass::Observed,
-                                11,
-                            )),
+                            connection_evidence: evidence("sol-atlas:site-energization", EvidenceClass::Observed, 10, "site_connection", "N3-CHARGER-01"),
+                            import_power_evidence: Some(evidence("sol-atlas:site-import-limit", EvidenceClass::Observed, 11, "site_import_power", "N3-CHARGER-01")),
                         },
                     },
                 }),
@@ -1411,12 +1457,8 @@ mod tests {
                         lower: 30_000.0,
                         upper: 30_000.0,
                     },
-                    route_evidence: evidence("sol-atlas:road-state-2", EvidenceClass::Observed, 12),
-                    energy_estimate_evidence: evidence(
-                        "symtropy:leg-energy-2",
-                        EvidenceClass::QualifiedModel,
-                        13,
-                    ),
+                    route_evidence: evidence("sol-atlas:road-state-2", EvidenceClass::Observed, 12, "route_state", "LEG-2"),
+                    energy_estimate_evidence: evidence("symtropy:leg-energy-2", EvidenceClass::QualifiedModel, 13, "leg_energy_estimate", "LEG-2"),
                 }),
             ],
         }
@@ -1424,7 +1466,7 @@ mod tests {
 
     #[test]
     fn qualified_route_plan_passes_only_under_declared_bounds() {
-        let result = assess(&qualified_plan()).expect("valid plan");
+        let result = assess_test_plan(&qualified_plan()).expect("valid plan");
         assert_eq!(
             result.disposition,
             AssessmentDisposition::FeasibleUnderDeclaredBounds
@@ -1432,12 +1474,17 @@ mod tests {
         assert!((result.final_energy_wh.lower - 15_000.0).abs() < EPSILON);
         assert!((result.final_energy_wh.upper - 15_000.0).abs() < EPSILON);
         assert!(result.findings.is_empty());
+        assert!(result
+            .consumed_evidence
+            .iter()
+            .all(|binding| binding.verification_status == "AUTHENTICATED"));
     }
 
     #[test]
     fn synthetic_fixture_is_never_promoted_to_feasible() {
         let bytes = include_str!("../../schemas/examples/ev-route-assurance-v0.1.synthetic.json");
-        let envelope = assess_json(bytes.as_bytes()).expect("fixture is valid JSON");
+        let trust_bytes = test_trust_store_bytes();
+        let envelope = assess_json(bytes.as_bytes(), &trust_bytes).expect("fixture is valid JSON");
         assert_eq!(
             envelope.assessment.disposition,
             AssessmentDisposition::Indeterminate
@@ -1446,6 +1493,8 @@ mod tests {
         assert!((envelope.assessment.final_energy_wh.upper - 15_000.0).abs() < EPSILON);
         assert_eq!(envelope.receipt.input_sha256.len(), 64);
         assert_eq!(envelope.receipt.assessment_sha256.len(), 64);
+        assert_eq!(envelope.receipt.trust_store_sha256.len(), 64);
+        assert_eq!(envelope.assessment.trust_policy_id, "test-only-ev-route-trust-policy");
         assert_eq!(envelope.assessment.consumed_evidence.len(), 13);
     }
 
@@ -1455,7 +1504,7 @@ mod tests {
         if let PlanEvent::ChargingStop(stop) = &mut plan.events[1] {
             stop.charger.connector_id = "CHAdeMO".into();
         }
-        let result = assess(&plan).expect("validly structured plan");
+        let result = assess_test_plan(&plan).expect("validly structured plan");
         assert_eq!(result.disposition, AssessmentDisposition::Infeasible);
         assert!(
             result
@@ -1472,7 +1521,7 @@ mod tests {
             stop.charger.site_connection.grid_connection_stage =
                 GridConnectionStage::SignedAgreement;
         }
-        let result = assess(&plan).expect("validly structured plan");
+        let result = assess_test_plan(&plan).expect("validly structured plan");
         assert_eq!(result.disposition, AssessmentDisposition::Indeterminate);
         assert!(
             result
@@ -1488,7 +1537,7 @@ mod tests {
         if let PlanEvent::ChargingStop(stop) = &mut plan.events[1] {
             stop.charger.status_evidence.valid_until_unix_s = Some(2_000);
         }
-        let result = assess(&plan).expect("validly structured plan");
+        let result = assess_test_plan(&plan).expect("validly structured plan");
         assert_eq!(result.disposition, AssessmentDisposition::Indeterminate);
         assert!(
             result
@@ -1507,7 +1556,7 @@ mod tests {
                 upper: 40_000.0,
             };
         }
-        let result = assess(&plan).expect("validly structured plan");
+        let result = assess_test_plan(&plan).expect("validly structured plan");
         assert_eq!(result.disposition, AssessmentDisposition::Infeasible);
         assert!(
             result
@@ -1523,7 +1572,7 @@ mod tests {
         if let PlanEvent::ChargingStop(stop) = &mut plan.events[1] {
             stop.requested_charge_energy_wh = 21_000.0;
         }
-        let result = assess(&plan).expect("validly structured plan");
+        let result = assess_test_plan(&plan).expect("validly structured plan");
         assert_eq!(result.disposition, AssessmentDisposition::Infeasible);
         assert!(
             result
@@ -1537,7 +1586,32 @@ mod tests {
     fn malformed_digest_is_rejected() {
         let mut plan = qualified_plan();
         plan.pack.capability_evidence.digest_sha256 = "not-a-digest".into();
-        assert!(assess(&plan).is_err());
+        assert!(assess_test_plan(&plan).is_err());
+    }
+
+
+    #[test]
+    fn fabricated_observed_evidence_cannot_produce_a_feasible_route() {
+        let mut plan = qualified_plan();
+        plan.vehicle.configuration_evidence.attestation = None;
+        let result = assess_test_plan(&plan).expect("structurally valid plan");
+        assert_eq!(result.disposition, AssessmentDisposition::Indeterminate);
+        assert!(result.consumed_evidence.iter().any(|binding| {
+            binding.role == "vehicle.configuration"
+                && binding.verification_status == "UNATTESTED"
+        }));
+    }
+
+    #[test]
+    fn digest_tampering_breaks_route_evidence_admission() {
+        let mut plan = qualified_plan();
+        plan.vehicle.configuration_evidence.digest_sha256 = "ff".repeat(32);
+        let result = assess_test_plan(&plan).expect("structurally valid plan");
+        assert_eq!(result.disposition, AssessmentDisposition::Indeterminate);
+        assert!(result.consumed_evidence.iter().any(|binding| {
+            binding.role == "vehicle.configuration"
+                && binding.verification_status == "REJECTED_SIGNATURE"
+        }));
     }
 
     #[test]
@@ -1546,6 +1620,6 @@ mod tests {
         if let PlanEvent::ChargingStop(stop) = &mut plan.events[1] {
             stop.planned_start_unix_s = 2_700;
         }
-        assert!(assess(&plan).is_err());
+        assert!(assess_test_plan(&plan).is_err());
     }
 }
