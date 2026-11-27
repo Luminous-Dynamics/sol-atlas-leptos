@@ -53,6 +53,23 @@
         "modelTraining": "prohibited"
       },
       "syntheticPayload": "synthetic evidence payload: contextual archive excerpt v0.1"
+    },
+    {
+      "recordId": "record-private-unreferenced-001",
+      "recordType": "other",
+      "relation": "context_only",
+      "summary": "Synthetic restricted record; no public metadata permission.",
+      "payloadDigest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "rights": {
+        "decisionStatus": "pending",
+        "recordVisibility": "prohibited",
+        "metadataVisibility": "prohibited",
+        "contentRetrieval": "prohibited",
+        "publicDisclosure": "prohibited",
+        "redistribution": "prohibited",
+        "commercialUse": "unknown",
+        "modelTraining": "prohibited"
+      }
     }
   ]
 }
