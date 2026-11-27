@@ -539,7 +539,7 @@ mod tests {
     fn revoked_key_cannot_authenticate() {
         let mut store = fixture_store();
         store.trusted_keys[0].revoked = true;
-        let (reference, digest, observed, valid_until, attestation) = signed_attestation();
+        let (reference, digest, _, _, attestation) = signed_attestation();
         let result = verify_fixture(
             &reference,
             &digest,
