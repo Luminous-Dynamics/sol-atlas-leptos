@@ -8,7 +8,6 @@
 //! "accepted_events" means eligible for evidence preservation under the
 //! externally supplied verifier dispositions and stream-chain structure only.
 
-
 pub mod archive;
 pub mod authority;
 pub mod egress;
@@ -16,7 +15,7 @@ pub mod privacy;
 pub mod private_coverage;
 pub mod release_binding;
 
-use serde_json::{json, Value};
+use serde_json::{Value, json};
 use std::collections::{BTreeMap, BTreeSet, VecDeque};
 
 #[derive(Debug, Default, Clone, PartialEq, Eq)]
@@ -54,22 +53,43 @@ struct ParsedEvent {
 }
 
 fn nonempty_string(value: &Value, field: &str) -> Option<String> {
-    value.get(field)?.as_str().filter(|s| !s.trim().is_empty()).map(str::to_owned)
+    value
+        .get(field)?
+        .as_str()
+        .filter(|s| !s.trim().is_empty())
+        .map(str::to_owned)
 }
 
 fn is_lower_hex_digest(value: &str) -> bool {
-    value.len() == 64 && value.bytes().all(|b| b.is_ascii_digit() || (b'a'..=b'f').contains(&b))
+    value.len() == 64
+        && value
+            .bytes()
+            .all(|b| b.is_ascii_digit() || (b'a'..=b'f').contains(&b))
 }
 
 fn canonical_json(value: &Value) -> String {
     match value {
-        Value::Array(items) => format!("[{}]", items.iter().map(canonical_json).collect::<Vec<_>>().join(",")),
+        Value::Array(items) => format!(
+            "[{}]",
+            items
+                .iter()
+                .map(canonical_json)
+                .collect::<Vec<_>>()
+                .join(",")
+        ),
         Value::Object(map) => {
             let mut keys: Vec<&String> = map.keys().collect();
             keys.sort();
-            let fields = keys.into_iter().map(|key| {
-                format!("{}:{}", serde_json::to_string(key).expect("string key"), canonical_json(&map[key]))
-            }).collect::<Vec<_>>();
+            let fields = keys
+                .into_iter()
+                .map(|key| {
+                    format!(
+                        "{}:{}",
+                        serde_json::to_string(key).expect("string key"),
+                        canonical_json(&map[key])
+                    )
+                })
+                .collect::<Vec<_>>();
             format!("{{{}}}", fields.join(","))
         }
         _ => value.to_string(),
@@ -121,7 +141,10 @@ fn parse_delivery(value: &Value) -> Option<ParsedEvent> {
     }
     let time_evidence_ref = nonempty_string(assessment, "time_evidence_ref");
     let raw_status = nonempty_string(assessment, "status")?;
-    if !matches!(raw_status.as_str(), "verified" | "invalid" | "revoked" | "unavailable") {
+    if !matches!(
+        raw_status.as_str(),
+        "verified" | "invalid" | "revoked" | "unavailable"
+    ) {
         return None;
     }
     // A signer-controlled occurred_at is not an authenticated timestamp.
@@ -135,10 +158,15 @@ fn parse_delivery(value: &Value) -> Option<ParsedEvent> {
         "invalid" => "invalid",
         "unavailable" => "unavailable",
         "verified" | "revoked" if has_trusted_time => {
-            if raw_status == "verified" { "verified" } else { "revoked" }
+            if raw_status == "verified" {
+                "verified"
+            } else {
+                "revoked"
+            }
         }
         _ => "unavailable",
-    }.to_string();
+    }
+    .to_string();
 
     let projection_key = nonempty_string(context, "projection_key")?;
     let access_class = nonempty_string(context, "access_class")?;
@@ -175,10 +203,16 @@ pub fn merge_event_sets(left: &[Value], right: &[Value]) -> Vec<Value> {
 
 fn effective_status(event: &ParsedEvent, result: &mut Evaluation) -> Option<String> {
     if event.assessments.len() != 1 {
-        result.verification_conflict_event_ids.insert(event.id.clone());
+        result
+            .verification_conflict_event_ids
+            .insert(event.id.clone());
         return None;
     }
-    event.assessments.iter().next().map(|(_, status, _, _)| status.clone())
+    event
+        .assessments
+        .iter()
+        .next()
+        .map(|(_, status, _, _)| status.clone())
 }
 
 /// Evaluate a batch of Mycelix-shaped event deliveries.
@@ -192,12 +226,19 @@ pub fn evaluate(input: &[Value]) -> Evaluation {
     let mut hash_to_ids: BTreeMap<String, BTreeSet<String>> = BTreeMap::new();
 
     for (index, delivery) in input.iter().enumerate() {
-        let id_hint = delivery.get("event").and_then(|e| e.get("event_id"))
-            .and_then(Value::as_str).filter(|s| !s.is_empty())
-            .map(str::to_owned).unwrap_or_else(|| format!("#delivery-{index}"));
+        let id_hint = delivery
+            .get("event")
+            .and_then(|e| e.get("event_id"))
+            .and_then(Value::as_str)
+            .filter(|s| !s.is_empty())
+            .map(str::to_owned)
+            .unwrap_or_else(|| format!("#delivery-{index}"));
         match parse_delivery(delivery) {
             Some(parsed) => {
-                hash_to_ids.entry(parsed.event_hash.clone()).or_default().insert(parsed.id.clone());
+                hash_to_ids
+                    .entry(parsed.event_hash.clone())
+                    .or_default()
+                    .insert(parsed.id.clone());
                 let by_hash = variants.entry(parsed.id.clone()).or_default();
                 if let Some(existing) = by_hash.get_mut(&parsed.event_hash) {
                     if existing.canonical_event != parsed.canonical_event {
@@ -260,17 +301,23 @@ pub fn evaluate(input: &[Value]) -> Evaluation {
         if !result.hash_collision_event_ids.contains(id)
             && statuses.get(id).map(String::as_str) != Some("invalid")
         {
-            sequence_groups.entry((event.stream_id.clone(), event.sequence))
-                .or_default().insert(id.clone());
+            sequence_groups
+                .entry((event.stream_id.clone(), event.sequence))
+                .or_default()
+                .insert(id.clone());
         }
     }
     for ids in sequence_groups.values() {
         if ids.len() > 1 {
-            let all_verified = ids.iter().all(|id| statuses.get(id).map(String::as_str) == Some("verified"));
+            let all_verified = ids
+                .iter()
+                .all(|id| statuses.get(id).map(String::as_str) == Some("verified"));
             if all_verified {
                 result.sequence_fork_event_ids.extend(ids.iter().cloned());
             } else {
-                result.sequence_conflict_pending_event_ids.extend(ids.iter().cloned());
+                result
+                    .sequence_conflict_pending_event_ids
+                    .extend(ids.iter().cloned());
             }
         }
     }
@@ -278,9 +325,15 @@ pub fn evaluate(input: &[Value]) -> Evaluation {
     let mut eligible: BTreeMap<String, ParsedEvent> = BTreeMap::new();
     for (id, event) in &unique {
         match statuses.get(id).map(String::as_str) {
-            Some("invalid") => { result.invalid_signatures.insert(id.clone()); }
-            Some("revoked") => { result.revoked_keys.insert(id.clone()); }
-            Some("unavailable") => { result.verification_pending.insert(id.clone()); }
+            Some("invalid") => {
+                result.invalid_signatures.insert(id.clone());
+            }
+            Some("revoked") => {
+                result.revoked_keys.insert(id.clone());
+            }
+            Some("unavailable") => {
+                result.verification_pending.insert(id.clone());
+            }
             Some("verified")
                 if !result.sequence_fork_event_ids.contains(id)
                     && !result.sequence_conflict_pending_event_ids.contains(id)
@@ -322,7 +375,10 @@ pub fn evaluate(input: &[Value]) -> Evaluation {
             result.blocked_parent_events.insert(id.clone());
             continue;
         }
-        children.entry(parent_id.clone()).or_default().push(id.clone());
+        children
+            .entry(parent_id.clone())
+            .or_default()
+            .push(id.clone());
     }
 
     while let Some(id) = ready.pop_front() {
@@ -351,13 +407,16 @@ pub fn evaluate(input: &[Value]) -> Evaluation {
     // A conflict group is compact and never expands all event pairs.
     let mut projections: BTreeMap<String, BTreeMap<String, (u64, String)>> = BTreeMap::new();
     for id in &result.accepted_events {
-        let Some(event) = eligible.get(id) else { continue };
+        let Some(event) = eligible.get(id) else {
+            continue;
+        };
         if event.contexts.len() != 1 {
             continue;
         }
         let context = event.contexts.iter().next().expect("one context");
         let by_stream = projections.entry(context.0.clone()).or_default();
-        let replace = by_stream.get(&event.stream_id)
+        let replace = by_stream
+            .get(&event.stream_id)
             .map(|(sequence, _)| event.sequence > *sequence)
             .unwrap_or(true);
         if replace {
@@ -366,7 +425,8 @@ pub fn evaluate(input: &[Value]) -> Evaluation {
     }
     for (projection_key, latest_by_stream) in projections {
         if latest_by_stream.len() > 1 {
-            let members = latest_by_stream.into_iter()
+            let members = latest_by_stream
+                .into_iter()
                 .map(|(stream_id, (_, event_id))| (event_id, stream_id))
                 .collect();
             result.conflict_groups.insert(projection_key, members);
@@ -377,12 +437,16 @@ pub fn evaluate(input: &[Value]) -> Evaluation {
 
 impl Evaluation {
     pub fn to_json(&self) -> Value {
-        let groups: Vec<Value> = self.conflict_groups.iter().map(|(projection_key, members)| {
-            let entries: Vec<Value> = members.iter().map(|(event_id, stream_id)| {
+        let groups: Vec<Value> = self
+            .conflict_groups
+            .iter()
+            .map(|(projection_key, members)| {
+                let entries: Vec<Value> = members.iter().map(|(event_id, stream_id)| {
                 json!({"event_id": event_id, "stream_id": stream_id})
             }).collect();
-            json!({"projection_key": projection_key, "members": entries})
-        }).collect();
+                json!({"projection_key": projection_key, "members": entries})
+            })
+            .collect();
         json!({
             "accepted_events": self.accepted_events.iter().cloned().collect::<Vec<_>>(),
             "duplicate_replays": self.duplicate_replays,
