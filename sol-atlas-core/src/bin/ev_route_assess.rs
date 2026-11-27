@@ -8,27 +8,31 @@ use std::process::ExitCode;
 fn main() -> ExitCode {
     let mut input_path = None;
     let mut trust_store_path = None;
+    let mut expected_trust_store_sha256 = None;
     let mut args = env::args().skip(1);
 
     while let Some(arg) = args.next() {
         match arg.as_str() {
             "--input" => input_path = args.next(),
             "--trust-store" => trust_store_path = args.next(),
+            "--expected-trust-store-sha256" => expected_trust_store_sha256 = args.next(),
             "--help" | "-h" => {
-                println!("usage: ev_route_assess --input PATH --trust-store PATH");
+                println!("usage: ev_route_assess --input PATH --trust-store PATH --expected-trust-store-sha256 HEX");
                 return ExitCode::SUCCESS;
             }
             _ => {
                 eprintln!("unknown argument: {arg}");
-                eprintln!("usage: ev_route_assess --input PATH --trust-store PATH");
+                eprintln!("usage: ev_route_assess --input PATH --trust-store PATH --expected-trust-store-sha256 HEX");
                 return ExitCode::from(2);
             }
         }
     }
 
-    let (Some(input_path), Some(trust_store_path)) = (input_path, trust_store_path) else {
-        eprintln!("both --input and --trust-store are required");
-        eprintln!("usage: ev_route_assess --input PATH --trust-store PATH");
+    let (Some(input_path), Some(trust_store_path), Some(expected_trust_store_sha256)) =
+        (input_path, trust_store_path, expected_trust_store_sha256)
+    else {
+        eprintln!("--input, --trust-store and --expected-trust-store-sha256 are required");
+        eprintln!("usage: ev_route_assess --input PATH --trust-store PATH --expected-trust-store-sha256 HEX");
         return ExitCode::from(2);
     };
 
@@ -47,7 +51,11 @@ fn main() -> ExitCode {
         }
     };
 
-    match sol_atlas_core::ev_route_assurance::assess_json(&input, &trust_store) {
+    match sol_atlas_core::ev_route_assurance::assess_json(
+        &input,
+        &trust_store,
+        &expected_trust_store_sha256,
+    ) {
         Ok(envelope) => match serde_json::to_string_pretty(&envelope) {
             Ok(output) => {
                 println!("{output}");
