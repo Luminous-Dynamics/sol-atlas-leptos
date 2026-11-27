@@ -44,6 +44,26 @@ jobs:
       # would otherwise have shipped, 2026-07-10.
       - run: cargo check --target wasm32-unknown-unknown
 
+  ogc-evidence-validator:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: benchmarks/ogc-evidence-roundtrip/v0.1
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+      - name: Format reference validator
+        run: cargo fmt --manifest-path reference/Cargo.toml -- --check
+      - name: Test evidence and rights invariants
+        run: cargo test --manifest-path reference/Cargo.toml
+      - name: Enforce strict Clippy
+        run: cargo clippy --manifest-path reference/Cargo.toml --all-targets -- -D warnings
+      - name: Validate synthetic exchange fixture
+        run: cargo run --manifest-path reference/Cargo.toml -- fixtures/feature-collection.json fixtures/evidence-records.json
+
   test-native:
     runs-on: ubuntu-latest
     steps:
