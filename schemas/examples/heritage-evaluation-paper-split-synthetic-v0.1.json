@@ -1,0 +1,64 @@
+{
+  "schema_version": "luminous.heritage-evaluation-split.v0.1",
+  "dataset_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "split_protocol_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+  "coordinate_reference_id": "EPSG:32735",
+  "profile": "paper_faithful_random_tiles",
+  "random_seed": 42,
+  "samples": [
+    {
+      "sample_id": "tile-train-1",
+      "role": "train",
+      "site_id": "site-1",
+      "region_id": "region-1",
+      "sensor_id": "drone-1",
+      "acquisition_epoch_id": "epoch-1",
+      "block_id": "block-1",
+      "source_capture_id": "ortho-1",
+      "source_capture_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+      "source_tile_sha256": "1111111111111111111111111111111111111111111111111111111111111111",
+      "source_image_width_px": 1000,
+      "source_image_height_px": 1000,
+      "source_pixel_window": {
+        "min_x_px": 0,
+        "min_y_px": 0,
+        "max_x_px": 100,
+        "max_y_px": 100
+      },
+      "metric_bounds": {
+        "min_x_m": 100.0,
+        "min_y_m": 200.0,
+        "max_x_m": 110.0,
+        "max_y_m": 210.0
+      },
+      "physical_entity_ids": ["wall-1", "stone-1"]
+    },
+    {
+      "sample_id": "tile-test-1",
+      "role": "test",
+      "site_id": "site-1",
+      "region_id": "region-1",
+      "sensor_id": "drone-1",
+      "acquisition_epoch_id": "epoch-1",
+      "block_id": "block-2",
+      "source_capture_id": "ortho-1",
+      "source_capture_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+      "source_tile_sha256": "2222222222222222222222222222222222222222222222222222222222222222",
+      "source_image_width_px": 1000,
+      "source_image_height_px": 1000,
+      "source_pixel_window": {
+        "min_x_px": 50,
+        "min_y_px": 0,
+        "max_x_px": 150,
+        "max_y_px": 100
+      },
+      "metric_bounds": {
+        "min_x_m": 105.0,
+        "min_y_m": 200.0,
+        "max_x_m": 115.0,
+        "max_y_m": 210.0
+      },
+      "physical_entity_ids": ["wall-1", "stone-1"]
+    }
+  ]
+}
