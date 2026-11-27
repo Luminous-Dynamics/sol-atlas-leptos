@@ -429,10 +429,13 @@ export function evaluatePrivateCoverage(input) {
     } else if (nonblank(item, "query_input_snapshot_item_ref") !== objectRef) {
       raise("deny", "partition_query_input_snapshot_item_binding_mismatch");
     }
-    if (predicateValid) {
+    // A partition object absent from the frozen query snapshot has no
+    // predicate input. Keep the result incomplete instead of treating an
+    // unevaluable predicate as a contradictory in-scope claim.
+    if (predicateValid && snapshotItem) {
       let match;
       try {
-        match = !snapshotItem || nonblank(snapshotItem, "availability_state") !== "available"
+        match = nonblank(snapshotItem, "availability_state") !== "available"
           ? "unknown"
           : evaluatePredicate(query.predicate, snapshotItem.query_input);
       } catch (error) {
