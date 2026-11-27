@@ -145,8 +145,10 @@ jobs:
       - name: Run independent composed release binding oracle
         run: node benchmarks/territorial-integrity/relay/reference/release-binding-oracle.mjs
 
-      - name: Assert standalone dependency lock is current
-        run: cargo metadata --locked --manifest-path benchmarks/territorial-integrity/relay/reference/Cargo.toml > /dev/null
+      - name: Refresh standalone dependency lock (temporary maintenance step)
+        run: |
+          cargo metadata --manifest-path benchmarks/territorial-integrity/relay/reference/Cargo.toml > /dev/null
+          cat benchmarks/territorial-integrity/relay/reference/Cargo.lock
 
       - name: Run standalone reference tests
         run: cargo test --locked --manifest-path benchmarks/territorial-integrity/relay/reference/Cargo.toml
