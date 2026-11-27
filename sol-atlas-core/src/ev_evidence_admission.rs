@@ -124,7 +124,9 @@ fn decode_hex<const N: usize>(value: &str, label: &str) -> Result<[u8; N], Strin
             .bytes()
             .all(|byte| byte.is_ascii_digit() || (b'a'..=b'f').contains(&byte))
     {
-        return Err(format!("{label} must be {N} bytes of lowercase hexadecimal"));
+        return Err(format!(
+            "{label} must be {N} bytes of lowercase hexadecimal"
+        ));
     }
     let mut output = [0u8; N];
     for (index, byte) in output.iter_mut().enumerate() {
@@ -135,7 +137,11 @@ fn decode_hex<const N: usize>(value: &str, label: &str) -> Result<[u8; N], Strin
     Ok(output)
 }
 
-fn failed(status: &str, reason: &str, attestation: Option<&EvidenceAttestation>) -> EvidenceVerification {
+fn failed(
+    status: &str,
+    reason: &str,
+    attestation: Option<&EvidenceAttestation>,
+) -> EvidenceVerification {
     EvidenceVerification {
         status: status.to_owned(),
         issuer_id: attestation.map(|value| value.issuer_id.clone()),
@@ -165,22 +171,41 @@ pub fn validate_trust_store(store: &EvidenceTrustStore) -> Result<(), String> {
             || key.issuer_role.trim().is_empty()
             || !key_ids.insert(key.key_id.clone())
         {
-            return Err(format!("empty or duplicate trusted evidence key: {}", key.key_id));
+            return Err(format!(
+                "empty or duplicate trusted evidence key: {}",
+                key.key_id
+            ));
         }
-        if key.valid_until_unix_s.is_some_and(|end| end < key.valid_from_unix_s) {
-            return Err(format!("trusted key {} has an inverted validity window", key.key_id));
+        if key
+            .valid_until_unix_s
+            .is_some_and(|end| end < key.valid_from_unix_s)
+        {
+            return Err(format!(
+                "trusted key {} has an inverted validity window",
+                key.key_id
+            ));
         }
         let bytes = decode_hex::<32>(&key.public_key_ed25519_hex, "trusted Ed25519 public key")?;
-        VerifyingKey::from_bytes(&bytes)
-            .map_err(|_| format!("trusted key {} is not a valid Ed25519 public key", key.key_id))?;
+        VerifyingKey::from_bytes(&bytes).map_err(|_| {
+            format!(
+                "trusted key {} is not a valid Ed25519 public key",
+                key.key_id
+            )
+        })?;
 
         if key.authorized_evidence_roles.is_empty() {
-            return Err(format!("trusted key {} has no authorized evidence roles", key.key_id));
+            return Err(format!(
+                "trusted key {} has no authorized evidence roles",
+                key.key_id
+            ));
         }
         let mut roles = BTreeSet::new();
         for role in &key.authorized_evidence_roles {
             if role.trim().is_empty() || !roles.insert(role) {
-                return Err(format!("trusted key {} has an empty or duplicate evidence role", key.key_id));
+                return Err(format!(
+                    "trusted key {} has an empty or duplicate evidence role",
+                    key.key_id
+                ));
             }
         }
     }
@@ -202,7 +227,11 @@ pub fn verify_evidence(
     assessed_at_unix_s: i64,
 ) -> EvidenceVerification {
     let Some(attestation) = attestation else {
-        return failed("UNATTESTED", "evidence reference has no Ed25519 attestation", None);
+        return failed(
+            "UNATTESTED",
+            "evidence reference has no Ed25519 attestation",
+            None,
+        );
     };
     if attestation.evidence_role != expected_evidence_role
         || attestation.subject_id != expected_subject_id
@@ -221,7 +250,11 @@ pub fn verify_evidence(
         );
     }
 
-    let Some(key) = store.trusted_keys.iter().find(|key| key.key_id == attestation.key_id) else {
+    let Some(key) = store
+        .trusted_keys
+        .iter()
+        .find(|key| key.key_id == attestation.key_id)
+    else {
         return failed(
             "REJECTED_UNKNOWN_KEY",
             "attestation key_id is not present in the separately supplied trust store",
@@ -242,7 +275,11 @@ pub fn verify_evidence(
             Some(attestation),
         );
     }
-    if !key.authorized_evidence_roles.iter().any(|role| role == expected_evidence_role) {
+    if !key
+        .authorized_evidence_roles
+        .iter()
+        .any(|role| role == expected_evidence_role)
+    {
         return failed(
             "REJECTED_ROLE_AUTHORITY",
             "trusted key is not authorized to attest this evidence role",
@@ -250,7 +287,9 @@ pub fn verify_evidence(
         );
     }
     if attestation.issued_at_unix_s < key.valid_from_unix_s
-        || key.valid_until_unix_s.is_some_and(|end| attestation.issued_at_unix_s > end)
+        || key
+            .valid_until_unix_s
+            .is_some_and(|end| attestation.issued_at_unix_s > end)
     {
         return failed(
             "REJECTED_KEY_VALIDITY",
@@ -259,13 +298,20 @@ pub fn verify_evidence(
         );
     }
 
-    let public_key = match decode_hex::<32>(&key.public_key_ed25519_hex, "trusted Ed25519 public key") {
-        Ok(value) => value,
-        Err(reason) => return failed("REJECTED_KEY_MALFORMED", &reason, Some(attestation)),
-    };
+    let public_key =
+        match decode_hex::<32>(&key.public_key_ed25519_hex, "trusted Ed25519 public key") {
+            Ok(value) => value,
+            Err(reason) => return failed("REJECTED_KEY_MALFORMED", &reason, Some(attestation)),
+        };
     let signature_hex = match attestation.signature_ed25519_hex.as_deref() {
         Some(value) if !value.is_empty() => value,
-        _ => return failed("UNATTESTED", "Ed25519 signature is absent", Some(attestation)),
+        _ => {
+            return failed(
+                "UNATTESTED",
+                "Ed25519 signature is absent",
+                Some(attestation),
+            );
+        }
     };
     let signature_bytes = match decode_hex::<64>(signature_hex, "Ed25519 signature") {
         Ok(value) => value,
@@ -273,7 +319,13 @@ pub fn verify_evidence(
     };
     let verifying_key = match VerifyingKey::from_bytes(&public_key) {
         Ok(value) => value,
-        Err(_) => return failed("REJECTED_KEY_MALFORMED", "trusted Ed25519 public key is invalid", Some(attestation)),
+        Err(_) => {
+            return failed(
+                "REJECTED_KEY_MALFORMED",
+                "trusted Ed25519 public key is invalid",
+                Some(attestation),
+            );
+        }
     };
     let signature = Signature::from_bytes(&signature_bytes);
     let message = match signature_message(
@@ -311,8 +363,8 @@ mod tests {
 
     fn fixture_key() -> SigningKey {
         SigningKey::from_bytes(&[
-            0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,
-            16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31,
+            0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23,
+            24, 25, 26, 27, 28, 29, 30, 31,
         ])
     }
 
@@ -325,8 +377,12 @@ mod tests {
                 key_id: "test-key-001".into(),
                 issuer_id: "test-issuer-001".into(),
                 issuer_role: "engineering_evidence_issuer".into(),
-                public_key_ed25519_hex: key.verifying_key().to_bytes().iter()
-                    .map(|byte| format!("{byte:02x}")).collect(),
+                public_key_ed25519_hex: key
+                    .verifying_key()
+                    .to_bytes()
+                    .iter()
+                    .map(|byte| format!("{byte:02x}"))
+                    .collect(),
                 valid_from_unix_s: 0,
                 valid_until_unix_s: Some(20_000),
                 revoked: false,
@@ -335,7 +391,13 @@ mod tests {
         }
     }
 
-    fn signed_attestation() -> (String, String, Option<i64>, Option<i64>, EvidenceAttestation) {
+    fn signed_attestation() -> (
+        String,
+        String,
+        Option<i64>,
+        Option<i64>,
+        EvidenceAttestation,
+    ) {
         let key = fixture_key();
         let reference = "test:route-state";
         let digest = "ab".repeat(32);
@@ -350,10 +412,21 @@ mod tests {
             issued_at_unix_s: 900,
             signature_ed25519_hex: None,
         };
-        let message = signature_message(reference, &digest, "observed", observed, valid_until, &attestation)
-            .expect("signed evidence message");
+        let message = signature_message(
+            reference,
+            &digest,
+            "observed",
+            observed,
+            valid_until,
+            &attestation,
+        )
+        .expect("signed evidence message");
         attestation.signature_ed25519_hex = Some(
-            key.sign(&message).to_bytes().iter().map(|byte| format!("{byte:02x}")).collect()
+            key.sign(&message)
+                .to_bytes()
+                .iter()
+                .map(|byte| format!("{byte:02x}"))
+                .collect(),
         );
         (reference.into(), digest, observed, valid_until, attestation)
     }
@@ -363,8 +436,16 @@ mod tests {
         let store = fixture_store();
         let (reference, digest, observed, valid_until, attestation) = signed_attestation();
         let result = verify_evidence(
-            &reference, &digest, "observed", observed, valid_until,
-            Some(&attestation), &store, "route_state", "LEG-1", 1_000,
+            &reference,
+            &digest,
+            "observed",
+            observed,
+            valid_until,
+            Some(&attestation),
+            &store,
+            "route_state",
+            "LEG-1",
+            1_000,
         );
         assert!(result.authenticated());
     }
@@ -375,8 +456,16 @@ mod tests {
         let (reference, digest, observed, valid_until, mut attestation) = signed_attestation();
         attestation.signature_ed25519_hex = None;
         let result = verify_evidence(
-            &reference, &digest, "observed", observed, valid_until,
-            Some(&attestation), &store, "route_state", "LEG-1", 1_000,
+            &reference,
+            &digest,
+            "observed",
+            observed,
+            valid_until,
+            Some(&attestation),
+            &store,
+            "route_state",
+            "LEG-1",
+            1_000,
         );
         assert_eq!(result.status, "UNATTESTED");
     }
@@ -386,8 +475,16 @@ mod tests {
         let store = fixture_store();
         let (reference, _digest, observed, valid_until, attestation) = signed_attestation();
         let result = verify_evidence(
-            &reference, &"cd".repeat(32), "observed", observed, valid_until,
-            Some(&attestation), &store, "route_state", "LEG-1", 1_000,
+            &reference,
+            &"cd".repeat(32),
+            "observed",
+            observed,
+            valid_until,
+            Some(&attestation),
+            &store,
+            "route_state",
+            "LEG-1",
+            1_000,
         );
         assert_eq!(result.status, "REJECTED_SIGNATURE");
     }
@@ -397,8 +494,16 @@ mod tests {
         let store = fixture_store();
         let (reference, digest, observed, valid_until, attestation) = signed_attestation();
         let result = verify_evidence(
-            &reference, &digest, "observed", observed, valid_until,
-            Some(&attestation), &store, "charger_status", "CHARGER-1", 1_000,
+            &reference,
+            &digest,
+            "observed",
+            observed,
+            valid_until,
+            Some(&attestation),
+            &store,
+            "charger_status",
+            "CHARGER-1",
+            1_000,
         );
         assert_eq!(result.status, "REJECTED_SCOPE");
     }
@@ -409,8 +514,16 @@ mod tests {
         store.trusted_keys[0].revoked = true;
         let (reference, digest, observed, valid_until, attestation) = signed_attestation();
         let result = verify_evidence(
-            &reference, &digest, "observed", observed, valid_until,
-            Some(&attestation), &store, "route_state", "LEG-1", 1_000,
+            &reference,
+            &digest,
+            "observed",
+            observed,
+            valid_until,
+            Some(&attestation),
+            &store,
+            "route_state",
+            "LEG-1",
+            1_000,
         );
         assert_eq!(result.status, "REJECTED_REVOKED_KEY");
     }
