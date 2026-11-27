@@ -177,5 +177,22 @@
     "privacyAndRights": "Zero rights escalations and zero restricted-source disclosures.",
     "replayQualification": "Canonical semantic projection digest identical across three repeated runs.",
     "ogcQualification": "Run the official OGC API - Features ETS for advertised API classes separately; these profile fixtures alone do not confer OGC conformance."
+  },
+  "schemas": {
+    "featureExtension": "schemas/feature-extension.schema.json",
+    "evidenceRecords": "schemas/evidence-records.schema.json",
+    "jsonSchemaDraft": "https://json-schema.org/draft/2020-12/schema"
+  },
+  "validationBoundary": {
+    "jsonSchemaValidates": "Per-object shape, required fields, primitive types and enumerations.",
+    "semanticValidatorRequired": [
+      "cross-association ID disjointness",
+      "association-to-record resolution and relation agreement",
+      "record digest binding",
+      "rights capability non-escalation across transformation",
+      "public-projection noninterference / side-channel checks",
+      "CRS transform correctness and canonical geometry comparison",
+      "canonical provenance digest verification"
+    ]
   }
 }
