@@ -1694,7 +1694,7 @@ mod strict_json_boundary_tests {
         .expect("valid unique I-JSON input");
         assert_eq!(parsed["a"], json!(1));
         assert_eq!(parsed["b"], json!(1e-7));
-        assert_eq!(parsed["text"], json!("e\u0301"));
+        assert_eq!(parsed["text"], json!("e\u{0301}"));
     }
 
     #[test]
