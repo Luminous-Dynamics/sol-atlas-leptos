@@ -26,7 +26,9 @@
         "input_sha256",
         "report_sha256",
         "trip_count",
+        "energy_comparison_count",
         "energy_within_published_rounding_count",
+        "energy_comparison_exceeds_rounding_count",
         "energy_comparison_unavailable_count",
         "range_within_published_rounding_count",
         "maximum_absolute_energy_residual_kwh",
@@ -102,6 +104,14 @@
           "minLength": 1
         },
         "energy_comparison_unavailable_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "energy_comparison_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "energy_comparison_exceeds_rounding_count": {
           "type": "integer",
           "minimum": 0
         }
