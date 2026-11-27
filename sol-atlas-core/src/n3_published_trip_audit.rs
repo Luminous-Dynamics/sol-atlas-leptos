@@ -32,14 +32,16 @@ pub struct PublishedTrip {
     pub direction: Direction,
     pub vehicle_make: String,
     pub vehicle_model: String,
-    pub reported_pack_capacity_kwh: f64,
+    #[serde(default)]
+    pub reported_pack_capacity_kwh: Option<f64>,
     pub distance_km: f64,
     pub elevation_change_m: i64,
     pub total_ascent_m: u64,
     pub total_descent_m: u64,
     pub average_speed_kmh: f64,
     pub battery_used_percent: f64,
-    pub energy_efficiency_kwh_per_100km: f64,
+    #[serde(default)]
+    pub energy_efficiency_kwh_per_100km: Option<f64>,
     #[serde(default)]
     pub published_range_km_per_100pct: Option<f64>,
 }
@@ -67,11 +69,11 @@ pub struct TripAssessment {
     pub distance_km: f64,
     pub elevation_change_m: i64,
     pub average_speed_kmh: f64,
-    pub published_energy_efficiency_kwh_per_100km: f64,
-    pub energy_from_published_efficiency_kwh: f64,
-    pub nominal_capacity_soc_proxy_kwh: f64,
-    pub absolute_energy_residual_kwh: f64,
-    pub relative_energy_residual_percent: f64,
+    pub published_energy_efficiency_kwh_per_100km: Option<f64>,
+    pub energy_from_published_efficiency_kwh: Option<f64>,
+    pub nominal_capacity_soc_proxy_kwh: Option<f64>,
+    pub absolute_energy_residual_kwh: Option<f64>,
+    pub relative_energy_residual_percent: Option<f64>,
     pub energy_consistency: String,
     pub published_range_km_per_100pct: Option<f64>,
     pub range_from_battery_used_km: Option<f64>,
@@ -102,6 +104,7 @@ pub struct AuditReport {
     pub report_sha256: String,
     pub trip_count: usize,
     pub energy_within_published_rounding_count: usize,
+    pub energy_comparison_unavailable_count: usize,
     pub range_within_published_rounding_count: usize,
     pub maximum_absolute_energy_residual_kwh: f64,
     pub maximum_relative_energy_residual_percent: f64,
@@ -163,6 +166,7 @@ pub fn audit_dataset(
     let mut assessments = Vec::with_capacity(dataset.trips.len());
     let mut grouped: BTreeMap<(String, String, Direction), Vec<f64>> = BTreeMap::new();
     let mut energy_pass_count = 0usize;
+    let mut energy_comparison_unavailable_count = 0usize;
     let mut range_pass_count = 0usize;
     let mut max_abs_energy_residual = 0.0_f64;
     let mut max_relative_energy_residual = 0.0_f64;
@@ -181,18 +185,18 @@ pub fn audit_dataset(
             &trip.vehicle_model,
             &format!("{}.vehicle_model", trip.trip_id),
         )?;
-        validate_positive(
-            trip.reported_pack_capacity_kwh,
-            "reported_pack_capacity_kwh",
-            &trip.trip_id,
-        )?;
+        if let Some(capacity) = trip.reported_pack_capacity_kwh {
+            validate_positive(capacity, "reported_pack_capacity_kwh", &trip.trip_id)?;
+        }
         validate_positive(trip.distance_km, "distance_km", &trip.trip_id)?;
         validate_positive(trip.average_speed_kmh, "average_speed_kmh", &trip.trip_id)?;
-        validate_positive(
-            trip.energy_efficiency_kwh_per_100km,
-            "energy_efficiency_kwh_per_100km",
-            &trip.trip_id,
-        )?;
+        if let Some(efficiency) = trip.energy_efficiency_kwh_per_100km {
+            validate_positive(
+                efficiency,
+                "energy_efficiency_kwh_per_100km",
+                &trip.trip_id,
+            )?;
+        }
         validate_finite_nonnegative(
             trip.battery_used_percent,
             "battery_used_percent",
@@ -242,33 +246,52 @@ pub fn audit_dataset(
             validate_positive(range, "published_range_km_per_100pct", &trip.trip_id)?;
         }
 
-        // The two source fields are both operator-published summaries. This
-        // compares their arithmetic consistency; it is not an independent
-        // measurement of traction energy or usable pack capacity.
-        let energy_from_efficiency =
-            trip.energy_efficiency_kwh_per_100km * trip.distance_km / 100.0;
-        let capacity_soc_proxy =
-            trip.reported_pack_capacity_kwh * trip.battery_used_percent / 100.0;
-        if !energy_from_efficiency.is_finite() || !capacity_soc_proxy.is_finite() {
+        // These co-published fields may share an upstream calculation. We
+        // compare them only when both are present; absence is tracked as
+        // coverage, never imputed or silently treated as a passing result.
+        let energy_from_efficiency = trip
+            .energy_efficiency_kwh_per_100km
+            .map(|efficiency| efficiency * trip.distance_km / 100.0);
+        let capacity_soc_proxy = trip
+            .reported_pack_capacity_kwh
+            .map(|capacity| capacity * trip.battery_used_percent / 100.0);
+        if energy_from_efficiency.is_some_and(|value| !value.is_finite())
+            || capacity_soc_proxy.is_some_and(|value| !value.is_finite())
+        {
             return Err(format!("{}: derived energy proxy overflowed", trip.trip_id));
         }
-        let abs_energy_residual = (energy_from_efficiency - capacity_soc_proxy).abs();
-        let relative_energy_residual =
-            abs_energy_residual / energy_from_efficiency.max(f64::MIN_POSITIVE) * 100.0;
-        if !abs_energy_residual.is_finite() || !relative_energy_residual.is_finite() {
-            return Err(format!(
-                "{}: derived energy residual is non-finite",
-                trip.trip_id
-            ));
-        }
-        let energy_consistency = if abs_energy_residual <= ABSOLUTE_ENERGY_TOLERANCE_KWH
-            && relative_energy_residual <= RELATIVE_ENERGY_TOLERANCE_PERCENT
-        {
-            energy_pass_count += 1;
-            "WITHIN_PUBLISHED_ROUNDING".to_owned()
-        } else {
-            "EXCEEDS_PUBLISHED_ROUNDING".to_owned()
-        };
+        let (abs_energy_residual, relative_energy_residual, energy_consistency) =
+            match (energy_from_efficiency, capacity_soc_proxy) {
+                (Some(energy), Some(capacity_proxy)) => {
+                    let absolute = (energy - capacity_proxy).abs();
+                    let relative = absolute / energy.max(f64::MIN_POSITIVE) * 100.0;
+                    if !absolute.is_finite() || !relative.is_finite() {
+                        return Err(format!(
+                            "{}: derived energy residual is non-finite",
+                            trip.trip_id
+                        ));
+                    }
+                    max_abs_energy_residual = max_abs_energy_residual.max(absolute);
+                    max_relative_energy_residual = max_relative_energy_residual.max(relative);
+                    let consistency = if absolute <= ABSOLUTE_ENERGY_TOLERANCE_KWH
+                        && relative <= RELATIVE_ENERGY_TOLERANCE_PERCENT
+                    {
+                        energy_pass_count += 1;
+                        "WITHIN_PUBLISHED_ROUNDING"
+                    } else {
+                        "EXCEEDS_PUBLISHED_ROUNDING"
+                    };
+                    (Some(absolute), Some(relative), consistency.to_owned())
+                }
+                _ => {
+                    energy_comparison_unavailable_count += 1;
+                    (
+                        None,
+                        None,
+                        "UNAVAILABLE_MISSING_SOURCE_DATA".to_owned(),
+                    )
+                }
+            };
 
         let range_from_used = trip.distance_km / (trip.battery_used_percent / 100.0);
         if !range_from_used.is_finite() {
@@ -291,16 +314,16 @@ pub fn audit_dataset(
             None => (None, None),
         };
 
-        max_abs_energy_residual = max_abs_energy_residual.max(abs_energy_residual);
-        max_relative_energy_residual = max_relative_energy_residual.max(relative_energy_residual);
-        grouped
-            .entry((
-                trip.vehicle_make.clone(),
-                trip.vehicle_model.clone(),
-                trip.direction,
-            ))
-            .or_default()
-            .push(trip.energy_efficiency_kwh_per_100km);
+        if let Some(efficiency) = trip.energy_efficiency_kwh_per_100km {
+            grouped
+                .entry((
+                    trip.vehicle_make.clone(),
+                    trip.vehicle_model.clone(),
+                    trip.direction,
+                ))
+                .or_default()
+                .push(efficiency);
+        }
 
         assessments.push(TripAssessment {
             trip_id: trip.trip_id.clone(),
@@ -357,6 +380,7 @@ pub fn audit_dataset(
         report_sha256: String::new(),
         trip_count: assessments.len(),
         energy_within_published_rounding_count: energy_pass_count,
+        energy_comparison_unavailable_count,
         range_within_published_rounding_count: range_pass_count,
         maximum_absolute_energy_residual_kwh: max_abs_energy_residual,
         maximum_relative_energy_residual_percent: max_relative_energy_residual,
@@ -425,9 +449,10 @@ mod tests {
     fn published_n3_trip_summaries_reconcile_within_reported_rounding() {
         let envelope = audit_json(FIXTURE).expect("published N3 summary fixture");
         let report = envelope.report;
-        assert_eq!(report.trip_count, 13);
-        assert_eq!(report.energy_within_published_rounding_count, 13);
-        assert_eq!(report.range_within_published_rounding_count, 13);
+        assert_eq!(report.trip_count, 20);
+        assert_eq!(report.energy_within_published_rounding_count, 18);
+        assert_eq!(report.energy_comparison_unavailable_count, 2);
+        assert_eq!(report.range_within_published_rounding_count, 20);
         assert!(report.maximum_absolute_energy_residual_kwh < ABSOLUTE_ENERGY_TOLERANCE_KWH);
         assert_eq!(report.input_sha256.len(), 64);
         assert_eq!(report.report_sha256.len(), 64);
@@ -454,7 +479,8 @@ mod tests {
     fn inconsistent_published_energy_is_reported_not_silently_corrected() {
         let mut dataset: PublishedDataset =
             serde_json::from_slice(FIXTURE).expect("fixture parses");
-        dataset.trips[0].energy_efficiency_kwh_per_100km *= 1.2;
+        dataset.trips[0].energy_efficiency_kwh_per_100km =
+            Some(dataset.trips[0].energy_efficiency_kwh_per_100km.unwrap() * 1.2);
         let report = audit_dataset(&dataset, FIXTURE).expect("structurally valid summary");
         assert!(
             report
@@ -480,8 +506,36 @@ mod tests {
         let mut dataset: PublishedDataset =
             serde_json::from_slice(FIXTURE).expect("fixture parses");
         dataset.trips[0].distance_km = f64::MAX;
-        dataset.trips[0].energy_efficiency_kwh_per_100km = f64::MAX;
+        dataset.trips[0].energy_efficiency_kwh_per_100km = Some(f64::MAX);
         assert!(audit_dataset(&dataset, FIXTURE).is_err());
+    }
+
+    #[test]
+    fn missing_published_metrics_are_reported_as_unavailable_not_imputed() {
+        let report = audit_json(FIXTURE).expect("partial source fields remain admissible");
+        let geely = report
+            .report
+            .trips
+            .iter()
+            .find(|trip| trip.trip_id == "geely-e5-down-2026-09-18")
+            .expect("Geely E5 summary");
+        assert_eq!(
+            geely.energy_consistency,
+            "UNAVAILABLE_MISSING_SOURCE_DATA"
+        );
+        assert!(geely.nominal_capacity_soc_proxy_kwh.is_none());
+
+        let dolphin = report
+            .report
+            .trips
+            .iter()
+            .find(|trip| trip.trip_id == "byd-dolphin-up-2026-09-06")
+            .expect("BYD Dolphin summary");
+        assert_eq!(
+            dolphin.energy_consistency,
+            "UNAVAILABLE_MISSING_SOURCE_DATA"
+        );
+        assert!(dolphin.published_energy_efficiency_kwh_per_100km.is_none());
     }
 
     #[test]
