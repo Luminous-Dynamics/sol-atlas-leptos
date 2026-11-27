@@ -357,14 +357,28 @@ pub fn assess(
 
     let vehicle_configuration_qualified = evidence_class_qualified(
         &input.vehicle.configuration_evidence,
+        "vehicle_configuration",
+        &input.vehicle.vehicle_configuration_id,
+        trust_store,
+        input.assessed_at_unix_s,
         "vehicle.configuration_evidence",
     )?;
     let vehicle_energy_model_qualified = evidence_class_qualified(
         &input.vehicle.energy_model_evidence,
+        "vehicle_energy_model",
+        &input.vehicle.vehicle_configuration_id,
+        trust_store,
+        input.assessed_at_unix_s,
         "vehicle.energy_model_evidence",
     )?;
-    let pack_capability_qualified =
-        evidence_class_qualified(&input.pack.capability_evidence, "pack.capability_evidence")?;
+    let pack_capability_qualified = evidence_class_qualified(
+        &input.pack.capability_evidence,
+        "pack_capability",
+        &input.pack.pack_id,
+        trust_store,
+        input.assessed_at_unix_s,
+        "pack.capability_evidence",
+    )?;
 
     if !vehicle_configuration_qualified {
         push_finding(
@@ -488,6 +502,10 @@ pub fn assess(
                 )?;
                 let leg_energy_qualified = evidence_class_qualified(
                     &leg.energy_estimate_evidence,
+                    "leg_energy_estimate",
+                    event_id,
+                    trust_store,
+                    input.assessed_at_unix_s,
                     &format!("{event_id}.energy_estimate_evidence"),
                 )?;
                 if !leg_energy_qualified {
@@ -506,6 +524,9 @@ pub fn assess(
                             &leg.route_evidence,
                             input.assessed_at_unix_s,
                             end,
+                            "route_state",
+                            event_id,
+                            trust_store,
                             &format!("{event_id}.route_evidence"),
                         )? {
                             push_finding(
@@ -530,6 +551,9 @@ pub fn assess(
                             &leg.route_evidence,
                             input.assessed_at_unix_s,
                             end,
+                            "route_state",
+                            event_id,
+                            trust_store,
                             &format!("{event_id}.route_evidence"),
                         )? {
                             push_finding(
@@ -618,14 +642,26 @@ pub fn assess(
 
                 let charger_configuration_qualified = evidence_class_qualified(
                     &charger.configuration_evidence,
+                    "charger_configuration",
+                    &charger.charger_id,
+                    trust_store,
+                    input.assessed_at_unix_s,
                     &format!("{event_id}.charger.configuration_evidence"),
                 )?;
                 let evse_power_qualified = evidence_class_qualified(
                     &charger.evse_power_evidence,
+                    "evse_power_rating",
+                    &charger.charger_id,
+                    trust_store,
+                    input.assessed_at_unix_s,
                     &format!("{event_id}.charger.evse_power_evidence"),
                 )?;
                 let conversion_qualified = evidence_class_qualified(
                     &charger.conversion_evidence,
+                    "conversion_efficiency_model",
+                    &charger.charger_id,
+                    trust_store,
+                    input.assessed_at_unix_s,
                     &format!("{event_id}.charger.conversion_evidence"),
                 )?;
                 if !charger_configuration_qualified {
@@ -671,6 +707,9 @@ pub fn assess(
                     &charger.status_evidence,
                     input.assessed_at_unix_s,
                     end,
+                    "charger_status",
+                    &charger.charger_id,
+                    trust_store,
                     &format!("{event_id}.charger.status_evidence"),
                 )?;
                 match charger.operational_status {
@@ -729,6 +768,9 @@ pub fn assess(
                             &site.connection_evidence,
                             input.assessed_at_unix_s,
                             end,
+                            "site_connection",
+                            &charger.charger_id,
+                            trust_store,
                             &format!("{event_id}.site_connection_evidence"),
                         )?;
                         if !site_connection_current {
@@ -750,6 +792,9 @@ pub fn assess(
                                     evidence,
                                     input.assessed_at_unix_s,
                                     end,
+                                    "site_import_power",
+                                    &charger.charger_id,
+                                    trust_store,
                                     &format!("{event_id}.site_import_power_evidence"),
                                 )?;
                                 if !site_import_evidence_current {
@@ -922,13 +967,14 @@ pub fn assess(
     Ok(Assessment {
         schema_version: ASSESSMENT_SCHEMA_VERSION.into(),
         plan_id: input.plan_id.clone(),
+        trust_policy_id: trust_store.policy_id.clone(),
         disposition,
         reserve_floor_wh: input.pack.reserve_floor_wh,
         final_energy_wh: energy,
         event_assessments,
-        consumed_evidence: collect_evidence(input),
+        consumed_evidence: collect_evidence(input, trust_store),
         findings,
-        claim_ceiling: "Proposal audit only. This result does not prove physical model validity, live charger availability beyond the supplied evidence window, grid approval, route legality, vehicle safety, or authority to control a vehicle or charger.".into(),
+        claim_ceiling: "Proposal audit only. This result requires signatures from keys in the separately supplied trust store, but signatures establish issuer-bound claims rather than sensor truth, model validity, grid approval, route legality, vehicle safety, or actuation authority. The referenced artifact bytes are not fetched or independently re-hashed by this module.".into(),
     })
 }
 
