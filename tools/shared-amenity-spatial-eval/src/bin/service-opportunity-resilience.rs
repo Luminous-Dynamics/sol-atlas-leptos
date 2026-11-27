@@ -568,11 +568,12 @@ fn aggregate_alternative_states(states: &[OpportunityState]) -> OpportunityState
 fn coalesce(slices: &[OpportunitySlice]) -> Vec<OpportunityInterval> {
     let mut intervals: Vec<OpportunityInterval> = Vec::new();
     for slice in slices {
-        if let Some(previous) = intervals.last_mut() {
-            if previous.state == slice.state && previous.end_tick == slice.start_tick {
-                previous.end_tick = slice.end_tick;
-                continue;
-            }
+        if let Some(previous) = intervals.last_mut()
+            && previous.state == slice.state
+            && previous.end_tick == slice.start_tick
+        {
+            previous.end_tick = slice.end_tick;
+            continue;
         }
         intervals.push(OpportunityInterval {
             start_tick: slice.start_tick,
