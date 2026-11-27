@@ -92,7 +92,9 @@
       "hypothesis_id": null,
       "identifiability": "identifiable",
       "coordinate_access_tier": "public",
-      "exact_geometry_publication_allowed": true
+      "exact_geometry_publication_allowed": true,
+      "counter_evidence_ids": [],
+      "context_evidence_ids": []
     }
   ]
 }
