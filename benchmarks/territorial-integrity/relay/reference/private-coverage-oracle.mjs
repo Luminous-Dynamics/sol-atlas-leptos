@@ -378,7 +378,7 @@ export function evaluatePrivateCoverage(input) {
               raise("incomplete", "query_input_attribute_source_digest_malformed");
             }
           }
-          for (const path of predicatePaths) {
+          if (predicateValid) for (const path of predicatePaths) {
             const actual = queryMember(item.query_input, path);
             if (actual !== undefined && !bindingPaths.has(path)) {
               raise("incomplete", "query_input_attribute_source_binding_missing:" + path);
