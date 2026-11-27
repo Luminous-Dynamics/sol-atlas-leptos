@@ -191,11 +191,7 @@ pub fn audit_dataset(
         validate_positive(trip.distance_km, "distance_km", &trip.trip_id)?;
         validate_positive(trip.average_speed_kmh, "average_speed_kmh", &trip.trip_id)?;
         if let Some(efficiency) = trip.energy_efficiency_kwh_per_100km {
-            validate_positive(
-                efficiency,
-                "energy_efficiency_kwh_per_100km",
-                &trip.trip_id,
-            )?;
+            validate_positive(efficiency, "energy_efficiency_kwh_per_100km", &trip.trip_id)?;
         }
         validate_finite_nonnegative(
             trip.battery_used_percent,
@@ -285,11 +281,7 @@ pub fn audit_dataset(
                 }
                 _ => {
                     energy_comparison_unavailable_count += 1;
-                    (
-                        None,
-                        None,
-                        "UNAVAILABLE_MISSING_SOURCE_DATA".to_owned(),
-                    )
+                    (None, None, "UNAVAILABLE_MISSING_SOURCE_DATA".to_owned())
                 }
             };
 
@@ -519,10 +511,7 @@ mod tests {
             .iter()
             .find(|trip| trip.trip_id == "geely-e5-down-2026-09-18")
             .expect("Geely E5 summary");
-        assert_eq!(
-            geely.energy_consistency,
-            "UNAVAILABLE_MISSING_SOURCE_DATA"
-        );
+        assert_eq!(geely.energy_consistency, "UNAVAILABLE_MISSING_SOURCE_DATA");
         assert!(geely.nominal_capacity_soc_proxy_kwh.is_none());
 
         let dolphin = report
