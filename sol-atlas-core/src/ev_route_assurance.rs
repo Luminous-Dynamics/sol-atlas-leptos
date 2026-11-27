@@ -276,6 +276,8 @@ pub struct RunReceipt {
     pub input_sha256: String,
     /// SHA-256 of the exact separately supplied trust-store file bytes.
     pub trust_store_sha256: String,
+    /// Canonical typed trust-store digest pinned by the deployment policy.
+    pub trust_store_canonical_sha256: String,
     /// SHA-256 of the compact serialized assessment object.
     pub assessment_sha256: String,
 }
@@ -312,6 +314,7 @@ pub fn assess_json(
         receipt: RunReceipt {
             input_sha256: sha256_hex(input_bytes),
             trust_store_sha256: sha256_hex(trust_store_bytes),
+            trust_store_canonical_sha256: expected_trust_store_sha256.to_owned(),
             assessment_sha256: sha256_hex(&assessment_bytes),
         },
         assessment,
