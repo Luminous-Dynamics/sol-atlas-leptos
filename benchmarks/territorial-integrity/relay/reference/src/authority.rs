@@ -49,11 +49,7 @@ fn string_set(value: &Value, field: &str) -> Option<BTreeSet<String>> {
             return None;
         }
     }
-    if out.is_empty() {
-        None
-    } else {
-        Some(out)
-    }
+    if out.is_empty() { None } else { Some(out) }
 }
 
 fn utc_timestamp(value: &str) -> bool {
@@ -68,23 +64,27 @@ fn utc_timestamp(value: &str) -> bool {
     {
         return false;
     }
-    if !bytes.iter().enumerate().all(|(index, byte)| {
-        matches!(index, 4 | 7 | 10 | 13 | 16 | 19) || byte.is_ascii_digit()
-    }) {
+    if !bytes
+        .iter()
+        .enumerate()
+        .all(|(index, byte)| matches!(index, 4 | 7 | 10 | 13 | 16 | 19) || byte.is_ascii_digit())
+    {
         return false;
     }
     let number = |start: usize, end: usize| -> Option<u32> {
         std::str::from_utf8(&bytes[start..end]).ok()?.parse().ok()
     };
     let (Some(year), Some(month), Some(day), Some(hour), Some(minute), Some(second)) = (
-        number(0, 4), number(5, 7), number(8, 10),
-        number(11, 13), number(14, 16), number(17, 19)
+        number(0, 4),
+        number(5, 7),
+        number(8, 10),
+        number(11, 13),
+        number(14, 16),
+        number(17, 19),
     ) else {
         return false;
     };
-    if year == 0 || !(1..=12).contains(&month)
-        || hour > 23 || minute > 59 || second > 60
-    {
+    if year == 0 || !(1..=12).contains(&month) || hour > 23 || minute > 59 || second > 60 {
         return false;
     }
     let leap = year % 4 == 0 && (year % 100 != 0 || year % 400 == 0);
@@ -100,7 +100,9 @@ fn utc_timestamp(value: &str) -> bool {
 
 fn is_sha256(value: &str) -> bool {
     value.len() == 64
-        && value.bytes().all(|byte| byte.is_ascii_digit() || (b'a'..=b'f').contains(&byte))
+        && value
+            .bytes()
+            .all(|byte| byte.is_ascii_digit() || (b'a'..=b'f').contains(&byte))
 }
 
 fn sensitive(classes: &BTreeSet<String>) -> bool {
@@ -163,20 +165,10 @@ fn evaluate_receipt(
     let _receipt_ref = nonblank(receipt, "receipt_ref")?.to_owned();
 
     if nonblank(receipt, "receipt_type") != Some("AuthorizationReceipt") {
-        raise(
-            severity,
-            reasons,
-            Severity::Deny,
-            "receipt_type_laundering",
-        );
+        raise(severity, reasons, Severity::Deny, "receipt_type_laundering");
     }
     if !exact_scope(receipt, request) {
-        raise(
-            severity,
-            reasons,
-            Severity::Deny,
-            "decision_scope_mismatch",
-        );
+        raise(severity, reasons, Severity::Deny, "decision_scope_mismatch");
     }
     if nonblank(receipt, "policy_ref").is_none()
         || nonblank(receipt, "status_snapshot_ref").is_none()
@@ -315,12 +307,7 @@ fn evaluate_receipt(
 
     match nonblank(receipt, "revocation_status") {
         Some("clear") => {}
-        Some("revoked") => raise(
-            severity,
-            reasons,
-            Severity::Deny,
-            "decision_revoked",
-        ),
+        Some("revoked") => raise(severity, reasons, Severity::Deny, "decision_revoked"),
         Some("unknown") => raise(
             severity,
             reasons,
@@ -361,23 +348,11 @@ fn evaluate_receipt(
         nonblank(receipt, "valid_from"),
         nonblank(receipt, "valid_until"),
     ) {
-        (Some(start), Some(end))
-            if utc_timestamp(start) && utc_timestamp(end) && start < end =>
-        {
+        (Some(start), Some(end)) if utc_timestamp(start) && utc_timestamp(end) && start < end => {
             if evaluated_at < start {
-                raise(
-                    severity,
-                    reasons,
-                    Severity::Deny,
-                    "decision_not_yet_valid",
-                );
+                raise(severity, reasons, Severity::Deny, "decision_not_yet_valid");
             } else if evaluated_at >= end {
-                raise(
-                    severity,
-                    reasons,
-                    Severity::Deny,
-                    "decision_expired",
-                );
+                raise(severity, reasons, Severity::Deny, "decision_expired");
             }
         }
         _ => raise(
@@ -562,10 +537,7 @@ fn evaluate_governance(
     }
 }
 
-fn finalize(
-    severity: Severity,
-    reason_codes: BTreeSet<String>,
-) -> AuthorizationEvaluation {
+fn finalize(severity: Severity, reason_codes: BTreeSet<String>) -> AuthorizationEvaluation {
     let disposition = match severity {
         Severity::None => "eligible",
         Severity::Incomplete => "incomplete",
@@ -633,9 +605,7 @@ pub fn evaluate_authority_use(input: &Value) -> AuthorizationEvaluation {
         );
     }
 
-    if !nonblank(request, "project_snapshot_sha256")
-        .is_some_and(is_sha256)
-    {
+    if !nonblank(request, "project_snapshot_sha256").is_some_and(is_sha256) {
         raise(
             &mut severity,
             &mut reasons,
@@ -752,11 +722,10 @@ pub fn evaluate_authority_use(input: &Value) -> AuthorizationEvaluation {
             &mut reasons,
         ) {
             Some(domain) => {
-                by_domain.entry(domain).or_default().push(
-                    nonblank(receipt, "receipt_ref")
-                        .unwrap_or("")
-                        .to_owned(),
-                );
+                by_domain
+                    .entry(domain)
+                    .or_default()
+                    .push(nonblank(receipt, "receipt_ref").unwrap_or("").to_owned());
             }
             None => raise(
                 &mut severity,
@@ -776,7 +745,12 @@ pub fn evaluate_authority_use(input: &Value) -> AuthorizationEvaluation {
                 format!("required_decision_missing:{domain}"),
             ),
             Some(refs)
-                if refs.iter().map(String::as_str).collect::<BTreeSet<_>>().len() > 1 =>
+                if refs
+                    .iter()
+                    .map(String::as_str)
+                    .collect::<BTreeSet<_>>()
+                    .len()
+                    > 1 =>
             {
                 raise(
                     &mut severity,
@@ -800,9 +774,7 @@ pub fn evaluate_authority_use(input: &Value) -> AuthorizationEvaluation {
         }
     }
 
-    if required.contains("community_mandate")
-        || required.contains("community_disclosure")
-    {
+    if required.contains("community_mandate") || required.contains("community_disclosure") {
         evaluate_governance(
             input.get("governance_context"),
             evaluated_at,
