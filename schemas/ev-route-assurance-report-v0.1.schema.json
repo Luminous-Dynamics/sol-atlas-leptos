@@ -15,7 +15,8 @@
       "required": [
         "input_sha256",
         "assessment_sha256",
-        "trust_store_sha256"
+        "trust_store_sha256",
+        "trust_store_canonical_sha256"
       ],
       "properties": {
         "input_sha256": {
@@ -27,6 +28,10 @@
           "pattern": "^[a-f0-9]{64}$"
         },
         "trust_store_sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "trust_store_canonical_sha256": {
           "type": "string",
           "pattern": "^[a-f0-9]{64}$"
         }
