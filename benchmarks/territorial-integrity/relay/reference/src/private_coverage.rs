@@ -294,7 +294,7 @@ pub fn query_input_snapshot_commitment(snapshot: &Value) -> Result<String, &'sta
     let canonical =
         serde_jcs::to_vec(&preimage).map_err(|_| "query_input_snapshot_canonicalization_failed")?;
     let mut hasher = Sha256::new();
-    hasher.update(b"luminous.cter.query-input-snapshot.v0.1\\0");
+    hasher.update(b"luminous.cter.query-input-snapshot.v0.1\0");
     hasher.update(&canonical);
     let digest = hasher.finalize();
     Ok(digest.iter().map(|byte| format!("{byte:02x}")).collect())
