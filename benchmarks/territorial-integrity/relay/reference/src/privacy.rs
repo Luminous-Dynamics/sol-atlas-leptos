@@ -112,7 +112,6 @@ pub fn classify_paired_world_case(
     }
 }
 
-
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct InventoryEvaluation {
     pub disposition: &'static str,
@@ -148,7 +147,10 @@ pub fn evaluate_channel_inventory(input: &Value) -> InventoryEvaluation {
             reasons.insert(format!("inventory_{field}_missing"));
         }
     }
-    let build = input.get("build_commit").and_then(Value::as_str).unwrap_or("");
+    let build = input
+        .get("build_commit")
+        .and_then(Value::as_str)
+        .unwrap_or("");
     if build.len() != 40
         || !build
             .bytes()
@@ -160,10 +162,10 @@ pub fn evaluate_channel_inventory(input: &Value) -> InventoryEvaluation {
     match input.get("inventory_method").and_then(Value::as_str) {
         Some(
             "static_analysis"
-                | "runtime_observation"
-                | "host_telemetry"
-                | "independent_red_team"
-                | "combined",
+            | "runtime_observation"
+            | "host_telemetry"
+            | "independent_red_team"
+            | "combined",
         ) => {}
         _ => {
             reasons.insert("inventory_method_invalid".to_owned());
@@ -178,10 +180,7 @@ pub fn evaluate_channel_inventory(input: &Value) -> InventoryEvaluation {
         "external_systems_included",
         "explicit_exclusions",
     ] {
-        if boundary
-            .and_then(|value| value.get(field))
-            .is_none()
-        {
+        if boundary.and_then(|value| value.get(field)).is_none() {
             reasons.insert(format!("observation_boundary_{field}_missing"));
         }
     }
@@ -223,11 +222,7 @@ pub fn evaluate_channel_inventory(input: &Value) -> InventoryEvaluation {
                 reasons.insert(format!("channel_{field}_missing"));
             }
         }
-        if channel
-            .get("declared")
-            .and_then(Value::as_bool)
-            != Some(true)
-        {
+        if channel.get("declared").and_then(Value::as_bool) != Some(true) {
             reasons.insert("channel_not_explicitly_declared".to_owned());
         }
         if channel
@@ -239,9 +234,7 @@ pub fn evaluate_channel_inventory(input: &Value) -> InventoryEvaluation {
         }
     }
 
-    let coverage = input
-        .get("coverage_assessment")
-        .and_then(Value::as_str);
+    let coverage = input.get("coverage_assessment").and_then(Value::as_str);
     let disposition = match coverage {
         Some("complete_within_declared_boundary")
             if input
