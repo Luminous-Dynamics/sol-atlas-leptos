@@ -26,7 +26,7 @@ A future executable runner must:
 3. resolve every association to exactly one record;
 4. check that relation labels match the association bucket and the sets are disjoint;
 5. verify source and provenance digests against frozen bytes;
-6. enforce rights non-escalation and restricted-content omission;
+6. enforce rights non-escalation, restricted-content omission and restricted linked-metadata non-interference;
 7. canonicalize a semantic projection and compare it after each adapter hop;
 8. apply all negative controls and assert rejection / quarantine with a reason code.
 
