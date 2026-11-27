@@ -125,6 +125,10 @@ For each case, run a frozen package through:
 
 Adapters must be named and version-pinned. Preserve the exact package, tool versions, configuration, locale, CRS database version, and digests. Run each path at least three times to test deterministic replay. A skipped adapter is not a pass.
 
+Each adapter hop must publish a **capability manifest** and a **semantic-loss ledger**. For every profile field, the ledger records one of: `preserved`, `transformed`, `omitted`, `blocked_by_policy`, or `unknown`; transformed fields include the mapping, parameters and resulting digest; omitted/blocked fields include a stable reason code. A required field marked omitted or unknown fails qualification. An adapter cannot claim success merely because the output remains syntactically valid GeoJSON.
+
+The ledger is an auditable description, not a permission grant. It must not disclose hidden field names, IDs, values, or counts in public projections when those details are restricted.
+
 ### 5.2 Required tracks
 
 | Track | Measurement | v0.1 qualification target |
@@ -140,6 +144,9 @@ Adapters must be named and version-pinned. Preserve the exact package, tool vers
 | Uncertainty | Units, metric, method, coverage and bounds preserved | 100% |
 | Hypothesis integrity | Alternatives remain separately addressable and unranked unless a decision record says otherwise | 100% |
 | Deterministic replay | Canonical semantic digest stable across three identical replays | 100% |
+| Semantic-loss disclosure | Every field disposition is declared; required semantics are not silently omitted | 0 silent losses; 100% disposition coverage |
+| Privacy non-interference | Public projection is unchanged when only restricted inputs differ | 0 observable differences |
+| Permutation invariance | Reordering semantically unordered records does not change canonical semantic output | 100% stable replay |
 | Performance | Export/import throughput, p50/p95 latency, peak memory and package size | Report first; set thresholds only after matched baselines |
 
 Targets are qualification gates for this benchmark, not achieved measurements or claims of superiority over GIS vendors.
@@ -159,9 +166,12 @@ Every run includes deliberate mutations and must reject or quarantine them:
 - remove uncertainty units or method;
 - collapse two competing hypotheses into one without a decision record;
 - alter a model-derived geometry's origin to `measured`;
-- replay the same package with a different hidden or unrecorded configuration.
+- replay the same package with a different hidden or unrecorded configuration;
+- strip the complete Sol-Atlas extension while returning a syntactically valid feature response, without reporting loss;
+- add or alter only a restricted source record and check whether the public projection changes;
+- permute input evidence-record ordering and check whether the canonical semantic result changes.
 
-Any negative control accepted as valid is a benchmark failure, even if visual similarity or geometric overlap remains high.
+Any negative control accepted as valid is a benchmark failure, even if visual similarity or geometric overlap remains high. The restricted-input comparison is an information-flow non-interference test; it is not differential privacy and must not be described as such.
 
 ### 5.4 Baselines
 
