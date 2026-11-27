@@ -130,6 +130,12 @@ pub fn audit_dataset(dataset: &PublishedDataset, input_bytes: &[u8]) -> Result<A
     require_text(&dataset.publisher, "publisher")?;
     require_text(&dataset.source_url, "source_url")?;
     require_date(&dataset.retrieved_at_utc_date, "retrieved_at_utc_date")?;
+    if dataset.publisher != "CHARGE N3" {
+        return Err("publisher must be CHARGE N3 for this source-specific v0.1 corpus".into());
+    }
+    if !dataset.source_url.starts_with("https://charge.co.za/n3-real-world-ev-tests/") {
+        return Err("source_url must identify the official CHARGE N3 test results page".into());
+    }
     if dataset.evidence_class != "operator_published_summary" {
         return Err("evidence_class must be operator_published_summary for this v0.1 corpus".into());
     }
@@ -413,6 +419,27 @@ mod tests {
                 .iter()
                 .any(|trip| trip.energy_consistency == "EXCEEDS_PUBLISHED_ROUNDING")
         );
+    }
+
+
+    #[test]
+    fn range_inconsistency_is_reported_not_rewritten() {
+        let mut dataset: PublishedDataset =
+            serde_json::from_slice(FIXTURE).expect("fixture parses");
+        dataset.trips[0].published_range_km_per_100pct = Some(700.0);
+        let report = audit_dataset(&dataset, FIXTURE).expect("structurally valid summary");
+        assert!(report.trips.iter().any(|trip| {
+            trip.range_consistency.as_deref() == Some("EXCEEDS_PUBLISHED_ROUNDING")
+        }));
+    }
+
+    #[test]
+    fn derived_energy_overflow_is_rejected() {
+        let mut dataset: PublishedDataset =
+            serde_json::from_slice(FIXTURE).expect("fixture parses");
+        dataset.trips[0].distance_km = f64::MAX;
+        dataset.trips[0].energy_efficiency_kwh_per_100km = f64::MAX;
+        assert!(audit_dataset(&dataset, FIXTURE).is_err());
     }
 
     #[test]
