@@ -4,115 +4,336 @@
   "title": "EV Route Assurance Input v0.1",
   "type": "object",
   "additionalProperties": false,
-  "required": ["schema_version", "plan_id", "assessed_at_unix_s", "vehicle", "pack", "events"],
+  "required": [
+    "schema_version",
+    "plan_id",
+    "assessed_at_unix_s",
+    "vehicle",
+    "pack",
+    "events"
+  ],
   "properties": {
-    "schema_version": { "const": "ev-route-assurance-input/v0.1" },
-    "plan_id": { "type": "string", "minLength": 1 },
-    "assessed_at_unix_s": { "type": "integer" },
-    "vehicle": { "$ref": "#/$defs/vehicle" },
-    "pack": { "$ref": "#/$defs/pack" },
-    "events": { "type": "array", "minItems": 1, "items": { "oneOf": [{ "$ref": "#/$defs/drive_leg" }, { "$ref": "#/$defs/charging_stop" }] } }
+    "schema_version": {
+      "const": "ev-route-assurance-input/v0.1"
+    },
+    "plan_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "assessed_at_unix_s": {
+      "type": "integer"
+    },
+    "vehicle": {
+      "$ref": "#/$defs/vehicle"
+    },
+    "pack": {
+      "$ref": "#/$defs/pack"
+    },
+    "events": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "oneOf": [
+          {
+            "$ref": "#/$defs/drive_leg"
+          },
+          {
+            "$ref": "#/$defs/charging_stop"
+          }
+        ]
+      }
+    }
   },
   "$defs": {
     "evidence": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["reference_id", "digest_sha256", "source_class"],
+      "required": [
+        "reference_id",
+        "digest_sha256",
+        "source_class"
+      ],
       "properties": {
-        "reference_id": { "type": "string", "minLength": 1 },
-        "digest_sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
-        "source_class": { "enum": ["observed", "qualified_model", "forecast", "predicted", "scenario", "synthetic", "unknown"] },
-        "observed_at_unix_s": { "type": ["integer", "null"] },
-        "valid_until_unix_s": { "type": ["integer", "null"] }
+        "reference_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "digest_sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "source_class": {
+          "enum": [
+            "observed",
+            "qualified_model",
+            "forecast",
+            "predicted",
+            "scenario",
+            "synthetic",
+            "unknown"
+          ]
+        },
+        "observed_at_unix_s": {
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
+        "valid_until_unix_s": {
+          "type": [
+            "integer",
+            "null"
+          ]
+        }
       }
     },
     "interval": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["lower", "upper"],
+      "required": [
+        "lower",
+        "upper"
+      ],
       "properties": {
-        "lower": { "type": "number", "minimum": 0 },
-        "upper": { "type": "number", "minimum": 0 }
+        "lower": {
+          "type": "number",
+          "minimum": 0
+        },
+        "upper": {
+          "type": "number",
+          "minimum": 0
+        }
       }
     },
     "vehicle": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["vehicle_configuration_id", "connector_ids", "configuration_evidence", "energy_model_evidence"],
+      "required": [
+        "vehicle_configuration_id",
+        "connector_ids",
+        "configuration_evidence",
+        "energy_model_evidence"
+      ],
       "properties": {
-        "vehicle_configuration_id": { "type": "string", "minLength": 1 },
-        "connector_ids": { "type": "array", "minItems": 1, "uniqueItems": true, "items": { "type": "string", "minLength": 1 } },
-        "configuration_evidence": { "$ref": "#/$defs/evidence" },
-        "energy_model_evidence": { "$ref": "#/$defs/evidence" }
+        "vehicle_configuration_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "connector_ids": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "configuration_evidence": {
+          "$ref": "#/$defs/evidence"
+        },
+        "energy_model_evidence": {
+          "$ref": "#/$defs/evidence"
+        }
       }
     },
     "pack": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["pack_id", "usable_energy_wh", "initial_energy_wh", "reserve_floor_wh", "charge_acceptance_power_w", "capability_evidence"],
+      "required": [
+        "pack_id",
+        "usable_energy_wh",
+        "initial_energy_wh",
+        "reserve_floor_wh",
+        "charge_acceptance_power_w",
+        "capability_evidence"
+      ],
       "properties": {
-        "pack_id": { "type": "string", "minLength": 1 },
-        "usable_energy_wh": { "$ref": "#/$defs/interval" },
-        "initial_energy_wh": { "$ref": "#/$defs/interval" },
-        "reserve_floor_wh": { "type": "number", "minimum": 0 },
-        "charge_acceptance_power_w": { "$ref": "#/$defs/interval" },
-        "capability_evidence": { "$ref": "#/$defs/evidence" }
+        "pack_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "usable_energy_wh": {
+          "$ref": "#/$defs/interval"
+        },
+        "initial_energy_wh": {
+          "$ref": "#/$defs/interval"
+        },
+        "reserve_floor_wh": {
+          "type": "number",
+          "minimum": 0
+        },
+        "charge_acceptance_power_w": {
+          "$ref": "#/$defs/interval",
+          "description": "Session-wide conservative pack-side charge-acceptance power interval. The declared interval must bound acceptance for the entire planned SOC and battery-temperature envelope over each charging dwell. It must not be a nameplate rating, peak power, or a point sample at the initial SOC. v0.1 reuses this conservative envelope for every charging stop; if a session-wide lower bound cannot be established, the source must not be classified as qualified_model."
+        },
+        "capability_evidence": {
+          "$ref": "#/$defs/evidence"
+        }
       }
     },
     "drive_leg": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["kind", "event_id", "planned_start_unix_s", "duration_seconds", "route_state", "energy_consumption_wh", "route_evidence", "energy_estimate_evidence"],
+      "required": [
+        "kind",
+        "event_id",
+        "planned_start_unix_s",
+        "duration_seconds",
+        "route_state",
+        "energy_consumption_wh",
+        "route_evidence",
+        "energy_estimate_evidence"
+      ],
       "properties": {
-        "kind": { "const": "drive_leg" },
-        "event_id": { "type": "string", "minLength": 1 },
-        "planned_start_unix_s": { "type": "integer" },
-        "duration_seconds": { "type": "integer", "minimum": 1 },
-        "route_state": { "enum": ["open_observed", "closed_observed", "forecast_open", "unknown"] },
-        "energy_consumption_wh": { "$ref": "#/$defs/interval" },
-        "route_evidence": { "$ref": "#/$defs/evidence" },
-        "energy_estimate_evidence": { "$ref": "#/$defs/evidence" }
+        "kind": {
+          "const": "drive_leg"
+        },
+        "event_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "planned_start_unix_s": {
+          "type": "integer"
+        },
+        "duration_seconds": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "route_state": {
+          "enum": [
+            "open_observed",
+            "closed_observed",
+            "forecast_open",
+            "unknown"
+          ]
+        },
+        "energy_consumption_wh": {
+          "$ref": "#/$defs/interval"
+        },
+        "route_evidence": {
+          "$ref": "#/$defs/evidence"
+        },
+        "energy_estimate_evidence": {
+          "$ref": "#/$defs/evidence"
+        }
       }
     },
     "site_connection": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["grid_connection_stage", "connection_evidence"],
+      "required": [
+        "grid_connection_stage",
+        "connection_evidence"
+      ],
       "properties": {
-        "grid_connection_stage": { "enum": ["energized", "signed_agreement", "capacity_allocated", "application_submitted", "budget_quote", "unknown"] },
-        "site_import_power_w": { "$ref": "#/$defs/interval" },
-        "connection_evidence": { "$ref": "#/$defs/evidence" },
-        "import_power_evidence": { "$ref": "#/$defs/evidence" }
+        "grid_connection_stage": {
+          "enum": [
+            "energized",
+            "signed_agreement",
+            "capacity_allocated",
+            "application_submitted",
+            "budget_quote",
+            "unknown"
+          ]
+        },
+        "site_import_power_w": {
+          "$ref": "#/$defs/interval"
+        },
+        "connection_evidence": {
+          "$ref": "#/$defs/evidence"
+        },
+        "import_power_evidence": {
+          "$ref": "#/$defs/evidence"
+        }
       }
     },
     "charger": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["charger_id", "connector_id", "operational_status", "status_evidence", "configuration_evidence", "evse_output_power_w", "evse_power_evidence", "site_to_connector_efficiency", "conversion_evidence", "site_connection"],
+      "required": [
+        "charger_id",
+        "connector_id",
+        "operational_status",
+        "status_evidence",
+        "configuration_evidence",
+        "evse_output_power_w",
+        "evse_power_evidence",
+        "site_to_connector_efficiency",
+        "conversion_evidence",
+        "site_connection"
+      ],
       "properties": {
-        "charger_id": { "type": "string", "minLength": 1 },
-        "connector_id": { "type": "string", "minLength": 1 },
-        "operational_status": { "enum": ["operational_observed", "offline_observed", "unknown"] },
-        "status_evidence": { "$ref": "#/$defs/evidence" },
-        "configuration_evidence": { "$ref": "#/$defs/evidence" },
-        "evse_output_power_w": { "$ref": "#/$defs/interval" },
-        "evse_power_evidence": { "$ref": "#/$defs/evidence" },
-        "site_to_connector_efficiency": { "$ref": "#/$defs/interval" },
-        "conversion_evidence": { "$ref": "#/$defs/evidence" },
-        "site_connection": { "$ref": "#/$defs/site_connection" }
+        "charger_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "connector_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "operational_status": {
+          "enum": [
+            "operational_observed",
+            "offline_observed",
+            "unknown"
+          ]
+        },
+        "status_evidence": {
+          "$ref": "#/$defs/evidence"
+        },
+        "configuration_evidence": {
+          "$ref": "#/$defs/evidence"
+        },
+        "evse_output_power_w": {
+          "$ref": "#/$defs/interval"
+        },
+        "evse_power_evidence": {
+          "$ref": "#/$defs/evidence"
+        },
+        "site_to_connector_efficiency": {
+          "$ref": "#/$defs/interval"
+        },
+        "conversion_evidence": {
+          "$ref": "#/$defs/evidence"
+        },
+        "site_connection": {
+          "$ref": "#/$defs/site_connection"
+        }
       }
     },
     "charging_stop": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["kind", "event_id", "planned_start_unix_s", "duration_seconds", "requested_charge_energy_wh", "charger"],
+      "required": [
+        "kind",
+        "event_id",
+        "planned_start_unix_s",
+        "duration_seconds",
+        "requested_charge_energy_wh",
+        "charger"
+      ],
       "properties": {
-        "kind": { "const": "charging_stop" },
-        "event_id": { "type": "string", "minLength": 1 },
-        "planned_start_unix_s": { "type": "integer" },
-        "duration_seconds": { "type": "integer", "minimum": 1 },
-        "requested_charge_energy_wh": { "type": "number", "exclusiveMinimum": 0 },
-        "charger": { "$ref": "#/$defs/charger" }
+        "kind": {
+          "const": "charging_stop"
+        },
+        "event_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "planned_start_unix_s": {
+          "type": "integer"
+        },
+        "duration_seconds": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "requested_charge_energy_wh": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "charger": {
+          "$ref": "#/$defs/charger"
+        }
       }
     }
   }
