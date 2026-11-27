@@ -8,6 +8,8 @@ This directory contains a synthetic, implementation-neutral fixture corpus for t
 - `schemas/evidence-records.schema.json`: JSON Schema for evidence metadata and rights dimensions; prohibited content is not embedded.
 - `cases.json`: expected baseline invariants and 14 registered negative controls.
 
+See also [`SOL-ATLAS-INDUSTRY-SOTA-AND-EVALUATION-UPDATE-2026-11.md`](../../../../docs/research/SOL-ATLAS-INDUSTRY-SOTA-AND-EVALUATION-UPDATE-2026-11.md) for current standards, industry baselines, benchmark tracks and falsifiable research hypotheses.
+
 ## Scope
 
 These are benchmark fixtures, not a deployed OGC API endpoint, not a certified OGC conformance suite, and not proof that any GIS application preserves the extension fields. The fixture is intended to make information loss testable before adapters are implemented.
