@@ -894,8 +894,20 @@ mod tests {
         assert_eq!(evaluated.scope, case.scope);
         assert_eq!(evaluated.demand.unit, case.demand.unit);
         assert_eq!(evaluated.demand.required_units, case.demand.required_units);
-        assert_eq!(evaluated.input_alternatives, case.alternatives);
-        assert_eq!(evaluated.disruption_events, case.disruption_events);
+        // The evaluator canonicalizes unordered provenance collections.
+        // Compare against the normalized source records, while retaining every
+        // identifier, revision, scope binding and failure-domain membership.
+        let mut expected_alternatives = case.alternatives.clone();
+        for alternative in &mut expected_alternatives {
+            alternative.failure_domains.sort();
+        }
+        expected_alternatives
+            .sort_by(|left, right| left.alternative_id.cmp(&right.alternative_id));
+        assert_eq!(evaluated.input_alternatives, expected_alternatives);
+
+        let mut expected_events = case.disruption_events.clone();
+        expected_events.sort_by(|left, right| left.event_id.cmp(&right.event_id));
+        assert_eq!(evaluated.disruption_events, expected_events);
         assert_eq!(evaluated.stability_evidence, case.stability_evidence);
         assert!(evaluated.input_alternatives.iter().all(|alternative| {
             alternative
