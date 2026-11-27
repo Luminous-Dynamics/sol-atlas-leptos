@@ -103,7 +103,9 @@ pub struct AuditReport {
     pub input_sha256: String,
     pub report_sha256: String,
     pub trip_count: usize,
+    pub energy_comparison_count: usize,
     pub energy_within_published_rounding_count: usize,
+    pub energy_comparison_exceeds_rounding_count: usize,
     pub energy_comparison_unavailable_count: usize,
     pub range_within_published_rounding_count: usize,
     pub maximum_absolute_energy_residual_kwh: f64,
@@ -165,7 +167,9 @@ pub fn audit_dataset(
     let mut trip_ids = BTreeSet::new();
     let mut assessments = Vec::with_capacity(dataset.trips.len());
     let mut grouped: BTreeMap<(String, String, Direction), Vec<f64>> = BTreeMap::new();
+    let mut energy_comparison_count = 0usize;
     let mut energy_pass_count = 0usize;
+    let mut energy_comparison_exceeds_rounding_count = 0usize;
     let mut energy_comparison_unavailable_count = 0usize;
     let mut range_pass_count = 0usize;
     let mut max_abs_energy_residual = 0.0_f64;
@@ -259,6 +263,7 @@ pub fn audit_dataset(
         let (abs_energy_residual, relative_energy_residual, energy_consistency) =
             match (energy_from_efficiency, capacity_soc_proxy) {
                 (Some(energy), Some(capacity_proxy)) => {
+                    energy_comparison_count += 1;
                     let absolute = (energy - capacity_proxy).abs();
                     let relative = absolute / energy.max(f64::MIN_POSITIVE) * 100.0;
                     if !absolute.is_finite() || !relative.is_finite() {
@@ -275,6 +280,7 @@ pub fn audit_dataset(
                         energy_pass_count += 1;
                         "WITHIN_PUBLISHED_ROUNDING"
                     } else {
+                        energy_comparison_exceeds_rounding_count += 1;
                         "EXCEEDS_PUBLISHED_ROUNDING"
                     };
                     (Some(absolute), Some(relative), consistency.to_owned())
@@ -371,7 +377,9 @@ pub fn audit_dataset(
         input_sha256,
         report_sha256: String::new(),
         trip_count: assessments.len(),
+        energy_comparison_count,
         energy_within_published_rounding_count: energy_pass_count,
+        energy_comparison_exceeds_rounding_count,
         energy_comparison_unavailable_count,
         range_within_published_rounding_count: range_pass_count,
         maximum_absolute_energy_residual_kwh: max_abs_energy_residual,
@@ -438,17 +446,34 @@ mod tests {
         include_bytes!("../../data/benchmarks/n3_published_trip_summaries_v0_1.json");
 
     #[test]
-    fn published_n3_trip_summaries_reconcile_within_reported_rounding() {
+    fn published_n3_trip_summaries_preserve_matched_missing_and_mismatched_rows() {
         let envelope = audit_json(FIXTURE).expect("published N3 summary fixture");
         let report = envelope.report;
-        assert_eq!(report.trip_count, 20);
-        assert_eq!(report.energy_within_published_rounding_count, 18);
+        assert_eq!(report.trip_count, 26);
+        assert_eq!(report.energy_comparison_count, 24);
+        assert_eq!(report.energy_within_published_rounding_count, 23);
+        assert_eq!(report.energy_comparison_exceeds_rounding_count, 1);
         assert_eq!(report.energy_comparison_unavailable_count, 2);
-        assert_eq!(report.range_within_published_rounding_count, 20);
-        assert!(report.maximum_absolute_energy_residual_kwh < ABSOLUTE_ENERGY_TOLERANCE_KWH);
+        assert_eq!(report.range_within_published_rounding_count, 26);
+        assert!((report.maximum_absolute_energy_residual_kwh - 2.395).abs() < 1e-9);
+        assert!((report.maximum_relative_energy_residual_percent - 7.544257544257543).abs() < 1e-9);
         assert_eq!(report.input_sha256.len(), 64);
         assert_eq!(report.report_sha256.len(), 64);
         assert!(!report.raw_telemetry_included);
+    }
+
+    #[test]
+    fn i_caur_uphill_energy_fields_remain_a_visible_source_discrepancy() {
+        let report = audit_json(FIXTURE).expect("published source data audit");
+        let trip = report
+            .report
+            .trips
+            .iter()
+            .find(|trip| trip.trip_id == "icaur-v23-up-2026-09-24")
+            .expect("iCAUR V23 uphill run");
+        assert_eq!(trip.energy_consistency, "EXCEEDS_PUBLISHED_ROUNDING");
+        assert!((trip.absolute_energy_residual_kwh.unwrap() - 2.395).abs() < 1e-9);
+        assert!(trip.relative_energy_residual_percent.unwrap() > 7.5);
     }
 
     #[test]
