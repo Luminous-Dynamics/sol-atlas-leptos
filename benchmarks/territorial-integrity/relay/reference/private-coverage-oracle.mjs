@@ -370,7 +370,7 @@ export function evaluatePrivateCoverage(input) {
             }
             if (bindingPaths.has(path)) raise("deny", "query_input_attribute_binding_duplicated");
             bindingPaths.add(path);
-            if (!predicatePaths.has(path)) raise("deny", "query_input_snapshot_contains_unqueried_attribute_binding");
+            if (predicateValid && !predicatePaths.has(path)) raise("deny", "query_input_snapshot_contains_unqueried_attribute_binding");
             if (!frontierRefs.has(nonblank(binding, "source_object_ref"))) {
               raise("deny", "query_input_attribute_source_outside_frontier");
             }
@@ -387,7 +387,7 @@ export function evaluatePrivateCoverage(input) {
               raise("deny", "query_input_attribute_binding_for_missing_value:" + path);
             }
           }
-          if (Object.keys(item.query_input).some(key => !predicatePaths.has("/" + key))) {
+          if (predicateValid && Object.keys(item.query_input).some(key => !predicatePaths.has("/" + key))) {
             raise("deny", "query_input_snapshot_contains_unqueried_attribute");
           }
         } else if (availability === "unavailable" || availability === "unknown") {
