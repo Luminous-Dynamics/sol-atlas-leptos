@@ -14,7 +14,8 @@
       "additionalProperties": false,
       "required": [
         "input_sha256",
-        "assessment_sha256"
+        "assessment_sha256",
+        "trust_store_sha256"
       ],
       "properties": {
         "input_sha256": {
@@ -22,6 +23,10 @@
           "pattern": "^[a-f0-9]{64}$"
         },
         "assessment_sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "trust_store_sha256": {
           "type": "string",
           "pattern": "^[a-f0-9]{64}$"
         }
@@ -39,7 +44,8 @@
         "event_assessments",
         "findings",
         "claim_ceiling",
-        "consumed_evidence"
+        "consumed_evidence",
+        "trust_policy_id"
       ],
       "properties": {
         "schema_version": {
@@ -84,6 +90,10 @@
           "items": {
             "$ref": "#/$defs/evidence_binding"
           }
+        },
+        "trust_policy_id": {
+          "type": "string",
+          "minLength": 1
         }
       }
     }
@@ -168,7 +178,10 @@
         "role",
         "reference_id",
         "digest_sha256",
-        "source_class"
+        "source_class",
+        "evidence_role",
+        "subject_id",
+        "verification_status"
       ],
       "properties": {
         "role": {
@@ -199,6 +212,27 @@
         },
         "valid_until_unix_s": {
           "type": "integer"
+        },
+        "evidence_role": {
+          "type": "string",
+          "minLength": 1
+        },
+        "subject_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "verification_status": {
+          "type": "string",
+          "minLength": 1
+        },
+        "issuer_id": {
+          "type": "string"
+        },
+        "issuer_role": {
+          "type": "string"
+        },
+        "key_id": {
+          "type": "string"
         }
       }
     }
