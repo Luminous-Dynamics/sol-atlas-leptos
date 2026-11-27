@@ -12,6 +12,10 @@ This directory contains a synthetic, implementation-neutral fixture corpus for t
 
 These are benchmark fixtures, not a deployed OGC API endpoint, not a certified OGC conformance suite, and not proof that any GIS application preserves the extension fields. The fixture is intended to make information loss testable before adapters are implemented.
 
+## Rust reference validator
+
+A dependency-light Rust validator is provided in `reference/`. Run `cargo test --manifest-path benchmarks/ogc-evidence-roundtrip/v0.1/reference/Cargo.toml` and `cargo run --manifest-path benchmarks/ogc-evidence-roundtrip/v0.1/reference/Cargo.toml -- fixtures/feature-collection.json fixtures/evidence-records.json` from this directory. It checks cross-file associations, relation agreement, rights/content consistency, temporal-role presence, provenance-to-association binding and retained hypotheses. It emits a canonical semantic projection; it does not yet compute a cryptographic digest or replace JSON Schema / official OGC conformance validation.
+
 ## Initial validation
 
 A future executable runner must:
