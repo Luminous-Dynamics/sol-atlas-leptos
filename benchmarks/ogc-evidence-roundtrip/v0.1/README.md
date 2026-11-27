@@ -4,6 +4,8 @@ This directory contains a synthetic, implementation-neutral fixture corpus for t
 
 - `fixtures/feature-collection.json`: JSON-FG 1.0.0 root FeatureCollection with one synthetic feature, typed claim, three disjoint evidence associations, separate temporal roles, uncertainty, provenance and competing hypotheses.
 - `fixtures/evidence-records.json`: three synthetic evidence records. The contradictory record exposes only a public reference and metadata; content retrieval, disclosure, redistribution and model training are prohibited or pending.
+- `schemas/feature-extension.schema.json`: JSON Schema for the per-feature Sol-Atlas extension.
+- `schemas/evidence-records.schema.json`: JSON Schema for evidence metadata and rights dimensions; prohibited content is not embedded.
 - `cases.json`: expected baseline invariants and 14 registered negative controls.
 
 ## Scope
