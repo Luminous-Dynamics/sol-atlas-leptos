@@ -52,7 +52,7 @@ The independent trust-store input contains the admitted public keys, issuer iden
 
 Run from the repository root:
 
-    cargo run -p sol-atlas-core --bin ev_route_assess --locked -- --input schemas/examples/ev-route-assurance-v0.1.synthetic.json --trust-store schemas/examples/ev-route-trust-store-v0.1.synthetic.json --expected-trust-store-sha256 eef9746f0215b49e4c071c8661f7eedce54e9f27bb627c26d4a896757d5b998e
+    cargo run -p sol-atlas-core --bin ev_route_assess --locked -- --input schemas/examples/ev-route-assurance-v0.1.synthetic.json --trust-store schemas/examples/ev-route-trust-store-v0.1.synthetic.json --expected-trust-store-sha256 939cec28ec4f240505600f96bd4275f4f9f17cfe9428225cc06e8d8b16488b72
 
 The frozen route example deliberately carries no attestations and must return INDETERMINATE, while still exposing the arithmetic path and the per-reference UNATTESTED statuses. The trust-store example contains only a deterministic public test key; it cannot authenticate the example plan because no evidence signatures are supplied. Neither file is field evidence.
 
