@@ -1,6 +1,6 @@
 use serde::{
-    de::{self, MapAccess, SeqAccess, Visitor},
     Deserialize, Deserializer,
+    de::{self, MapAccess, SeqAccess, Visitor},
 };
 use serde_json::{Map, Value, json};
 use sha2::{Digest, Sha256};
