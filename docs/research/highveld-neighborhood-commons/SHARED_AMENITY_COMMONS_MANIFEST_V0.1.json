@@ -1,0 +1,1355 @@
+{
+  "schema": "luminous.shared-amenity-commons-benchmark",
+  "schema_version": "0.1.0",
+  "study_id": "SHARED-AMENITY-COMMONS-001",
+  "issue_url": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/940",
+  "parent_issues": [
+    "https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/596",
+    "https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/615"
+  ],
+  "maturity": "BENCHMARK_PROTOCOL_AND_CASE_REGISTRY_ONLY",
+  "execution_status": "NOT_EXECUTED",
+  "geographic_profile": "JOHANNESBURG_HIGHVELD_REFERENCE_METHOD_PORTABLE",
+  "claim_ceiling": "NO_EMPIRICAL_SAVINGS_SAFETY_ACCESSIBILITY_LEGAL_OWNERSHIP_OR_PREFERENCE_CLAIM",
+  "comparison_arms": [
+    {
+      "id": "PRIVATE_DUPLICATION",
+      "description": "Resident-directed private dwelling and accessory structures providing the selected service independently."
+    },
+    {
+      "id": "CENTRAL_SHARED",
+      "description": "One shared amenity node serves the declared resident catchment."
+    },
+    {
+      "id": "DISTRIBUTED_SHARED",
+      "description": "Several smaller shared nodes distribute access and catchment coverage."
+    },
+    {
+      "id": "HYBRID_SHARED_PRIVATE",
+      "description": "A resident-selected private minimum plus selected shared services."
+    },
+    {
+      "id": "EXTERNAL_COMMERCIAL",
+      "description": "Existing external providers serve the catchment under verified access and availability assumptions."
+    }
+  ],
+  "scenarios": [
+    "COMPACT_HIGH_DENSITY",
+    "LOW_DENSITY_DISPERSED",
+    "MIXED_USE_TRANSIT_ADJACENT",
+    "SITE_EDGE_LONG_WALK",
+    "ACCESSIBLE_ROUTE_DISCONTINUITY",
+    "UNEQUAL_POPULATION_DISTRIBUTION",
+    "PHASED_OCCUPANCY_GROWTH",
+    "LAND_SCARCITY_COMPETING_USE",
+    "EXTERNAL_PROVIDER_DISTANCE_OR_CLOSURE",
+    "MULTI_NODE_CATCHMENT_REBALANCING"
+  ],
+  "amenity_archetypes": [
+    {
+      "id": "COMMUNITY_HALL",
+      "service": "Accessible community-room service",
+      "critical_dependencies": [
+        "opening_hours",
+        "operator",
+        "cleaning",
+        "access_route",
+        "condition",
+        "beneficiary_scope"
+      ],
+      "role": "RESIDENT_FACING_SERVICE_ASSET",
+      "functional_unit_id": "ACCESSIBLE_COMMUNITY_ROOM_HOUR"
+    },
+    {
+      "id": "COMMUNITY_KITCHEN",
+      "service": "Resident-use shared kitchen and equipment access",
+      "critical_dependencies": [
+        "food_hygiene",
+        "ventilation",
+        "fire_safety",
+        "cleaning",
+        "staffing",
+        "access"
+      ],
+      "role": "RESIDENT_FACING_SERVICE_ASSET",
+      "functional_unit_id": "ACCESSIBLE_SHARED_KITCHEN_HOUR"
+    },
+    {
+      "id": "COWORKING_LIBRARY_STUDY",
+      "service": "Accessible study/work seat service",
+      "critical_dependencies": [
+        "power",
+        "connectivity",
+        "acoustics",
+        "privacy",
+        "opening_hours",
+        "maintenance"
+      ],
+      "role": "RESIDENT_FACING_SERVICE_ASSET",
+      "functional_unit_id": "ACCESSIBLE_SEAT_HOUR"
+    },
+    {
+      "id": "WORKSHOP_TOOL_LIBRARY_REPAIR",
+      "service": "Usable workshop and tool-access service",
+      "critical_dependencies": [
+        "tools",
+        "supervision",
+        "custody",
+        "consumables",
+        "ventilation",
+        "maintenance"
+      ],
+      "role": "RESIDENT_FACING_SERVICE_ASSET",
+      "functional_unit_id": "USABLE_WORKSHOP_HOUR"
+    },
+    {
+      "id": "GUEST_SUITES",
+      "service": "Accessible overnight guest accommodation",
+      "critical_dependencies": [
+        "booking_policy",
+        "cleaning",
+        "privacy",
+        "safeguarding",
+        "accessibility",
+        "maintenance"
+      ],
+      "role": "RESIDENT_FACING_SERVICE_ASSET",
+      "functional_unit_id": "ACCESSIBLE_GUEST_NIGHT"
+    },
+    {
+      "id": "SHARED_LAUNDRY",
+      "service": "Accepted laundry service",
+      "critical_dependencies": [
+        "water_source",
+        "water_quality",
+        "water_quantity",
+        "energy",
+        "drainage",
+        "ventilation",
+        "equipment_uptime"
+      ],
+      "role": "RESIDENT_FACING_SERVICE_ASSET",
+      "functional_unit_id": "ACCEPTED_LAUNDRY_LOAD"
+    },
+    {
+      "id": "GREENHOUSE_NURSERY_FOOD_GROWING",
+      "service": "Usable crop/grade-specific harvest service",
+      "critical_dependencies": [
+        "water_source",
+        "water_rights",
+        "water_quality",
+        "climate",
+        "crop",
+        "nutrients",
+        "labour",
+        "maintenance"
+      ],
+      "role": "RESIDENT_FACING_SERVICE_ASSET",
+      "functional_unit_id": "USABLE_HARVEST_KG"
+    },
+    {
+      "id": "POOL_WELLNESS",
+      "service": "Operable pool/wellness access service",
+      "critical_dependencies": [
+        "water_source",
+        "water_quality",
+        "filtration",
+        "inspection",
+        "energy",
+        "operator",
+        "accessibility",
+        "maintenance"
+      ],
+      "role": "RESIDENT_FACING_SERVICE_ASSET",
+      "functional_unit_id": "OPERABLE_POOL_LANE_HOUR"
+    },
+    {
+      "id": "GYM_RECREATION",
+      "service": "Usable gym/recreation service",
+      "critical_dependencies": [
+        "equipment_condition",
+        "access",
+        "supervision",
+        "ventilation",
+        "cleaning",
+        "maintenance"
+      ],
+      "role": "RESIDENT_FACING_SERVICE_ASSET",
+      "functional_unit_id": "USABLE_ACTIVITY_SPACE_HOUR"
+    },
+    {
+      "id": "NON_ESSENTIAL_AMENITY_PLANT",
+      "service": "Enabling plant for a named amenity service only; not an independent resident-facing service or essential utility service",
+      "critical_dependencies": [
+        "canonical_asset_service_contract",
+        "operator",
+        "inspection",
+        "maintenance",
+        "replacement_liability"
+      ],
+      "role": "ENABLING_ASSET_ONLY",
+      "functional_unit_id": null
+    }
+  ],
+  "case_matrix": {
+    "comparison_arm_count": 5,
+    "scenario_count": 10,
+    "registered_case_count": 50,
+    "state": "REGISTERED_DESIGN_ONLY"
+  },
+  "cases": [
+    {
+      "id": "PRIVATE_DUPLICATION__COMPACT_HIGH_DENSITY",
+      "comparison_arm": "PRIVATE_DUPLICATION",
+      "scenario": "COMPACT_HIGH_DENSITY",
+      "definition_state": "REGISTERED_DESIGN_ONLY",
+      "execution_status": "NOT_EXECUTED",
+      "numerical_inputs_state": "NOT_SUPPLIED",
+      "result_state": "NO_RESULT"
+    },
+    {
+      "id": "PRIVATE_DUPLICATION__LOW_DENSITY_DISPERSED",
+      "comparison_arm": "PRIVATE_DUPLICATION",
+      "scenario": "LOW_DENSITY_DISPERSED",
+      "definition_state": "REGISTERED_DESIGN_ONLY",
+      "execution_status": "NOT_EXECUTED",
+      "numerical_inputs_state": "NOT_SUPPLIED",
+      "result_state": "NO_RESULT"
+    },
+    {
+      "id": "PRIVATE_DUPLICATION__MIXED_USE_TRANSIT_ADJACENT",
+      "comparison_arm": "PRIVATE_DUPLICATION",
+      "scenario": "MIXED_USE_TRANSIT_ADJACENT",
+      "definition_state": "REGISTERED_DESIGN_ONLY",
+      "execution_status": "NOT_EXECUTED",
+      "numerical_inputs_state": "NOT_SUPPLIED",
+      "result_state": "NO_RESULT"
+    },
+    {
+      "id": "PRIVATE_DUPLICATION__SITE_EDGE_LONG_WALK",
+      "comparison_arm": "PRIVATE_DUPLICATION",
+      "scenario": "SITE_EDGE_LONG_WALK",
+      "definition_state": "REGISTERED_DESIGN_ONLY",
+      "execution_status": "NOT_EXECUTED",
+      "numerical_inputs_state": "NOT_SUPPLIED",
+      "result_state": "NO_RESULT"
+    },
+    {
+      "id": "PRIVATE_DUPLICATION__ACCESSIBLE_ROUTE_DISCONTINUITY",
+      "comparison_arm": "PRIVATE_DUPLICATION",
+      "scenario": "ACCESSIBLE_ROUTE_DISCONTINUITY",
+      "definition_state": "REGISTERED_DESIGN_ONLY",
+      "execution_status": "NOT_EXECUTED",
+      "numerical_inputs_state": "NOT_SUPPLIED",
+      "result_state": "NO_RESULT"
+    },
+    {
+      "id": "PRIVATE_DUPLICATION__UNEQUAL_POPULATION_DISTRIBUTION",
+      "comparison_arm": "PRIVATE_DUPLICATION",
+      "scenario": "UNEQUAL_POPULATION_DISTRIBUTION",
+      "definition_state": "REGISTERED_DESIGN_ONLY",
+      "execution_status": "NOT_EXECUTED",
+      "numerical_inputs_state": "NOT_SUPPLIED",
+      "result_state": "NO_RESULT"
+    },
+    {
+      "id": "PRIVATE_DUPLICATION__PHASED_OCCUPANCY_GROWTH",
+      "comparison_arm": "PRIVATE_DUPLICATION",
+      "scenario": "PHASED_OCCUPANCY_GROWTH",
+      "definition_state": "REGISTERED_DESIGN_ONLY",
+      "execution_status": "NOT_EXECUTED",
+      "numerical_inputs_state": "NOT_SUPPLIED",
+      "result_state": "NO_RESULT"
+    },
+    {
+      "id": "PRIVATE_DUPLICATION__LAND_SCARCITY_COMPETING_USE",
+      "comparison_arm": "PRIVATE_DUPLICATION",
+      "scenario": "LAND_SCARCITY_COMPETING_USE",
+      "definition_state": "REGISTERED_DESIGN_ONLY",
+      "execution_status": "NOT_EXECUTED",
+      "numerical_inputs_state": "NOT_SUPPLIED",
+      "result_state": "NO_RESULT"
+    },
+    {
+      "id": "PRIVATE_DUPLICATION__EXTERNAL_PROVIDER_DISTANCE_OR_CLOSURE",
+      "comparison_arm": "PRIVATE_DUPLICATION",
+      "scenario": "EXTERNAL_PROVIDER_DISTANCE_OR_CLOSURE",
+      "definition_state": "REGISTERED_DESIGN_ONLY",
+      "execution_status": "NOT_EXECUTED",
+      "numerical_inputs_state": "NOT_SUPPLIED",
+      "result_state": "NO_RESULT"
+    },
+    {
+      "id": "PRIVATE_DUPLICATION__MULTI_NODE_CATCHMENT_REBALANCING",
+      "comparison_arm": "PRIVATE_DUPLICATION",
+      "scenario": "MULTI_NODE_CATCHMENT_REBALANCING",
+      "definition_state": "REGISTERED_DESIGN_ONLY",
+      "execution_status": "NOT_EXECUTED",
+      "numerical_inputs_state": "NOT_SUPPLIED",
+      "result_state": "NO_RESULT"
+    },
+    {
+      "id": "CENTRAL_SHARED__COMPACT_HIGH_DENSITY",
+      "comparison_arm": "CENTRAL_SHARED",
+      "scenario": "COMPACT_HIGH_DENSITY",
+      "definition_state": "REGISTERED_DESIGN_ONLY",
+      "execution_status": "NOT_EXECUTED",
+      "numerical_inputs_state": "NOT_SUPPLIED",
+      "result_state": "NO_RESULT"
+    },
+    {
+      "id": "CENTRAL_SHARED__LOW_DENSITY_DISPERSED",
+      "comparison_arm": "CENTRAL_SHARED",
+      "scenario": "LOW_DENSITY_DISPERSED",
+      "definition_state": "REGISTERED_DESIGN_ONLY",
+      "execution_status": "NOT_EXECUTED",
+      "numerical_inputs_state": "NOT_SUPPLIED",
+      "result_state": "NO_RESULT"
+    },
+    {
+      "id": "CENTRAL_SHARED__MIXED_USE_TRANSIT_ADJACENT",
+      "comparison_arm": "CENTRAL_SHARED",
+      "scenario": "MIXED_USE_TRANSIT_ADJACENT",
+      "definition_state": "REGISTERED_DESIGN_ONLY",
+      "execution_status": "NOT_EXECUTED",
+      "numerical_inputs_state": "NOT_SUPPLIED",
+      "result_state": "NO_RESULT"
+    },
+    {
+      "id": "CENTRAL_SHARED__SITE_EDGE_LONG_WALK",
+      "comparison_arm": "CENTRAL_SHARED",
+      "scenario": "SITE_EDGE_LONG_WALK",
+      "definition_state": "REGISTERED_DESIGN_ONLY",
+      "execution_status": "NOT_EXECUTED",
+      "numerical_inputs_state": "NOT_SUPPLIED",
+      "result_state": "NO_RESULT"
+    },
+    {
+      "id": "CENTRAL_SHARED__ACCESSIBLE_ROUTE_DISCONTINUITY",
+      "comparison_arm": "CENTRAL_SHARED",
+      "scenario": "ACCESSIBLE_ROUTE_DISCONTINUITY",
+      "definition_state": "REGISTERED_DESIGN_ONLY",
+      "execution_status": "NOT_EXECUTED",
+      "numerical_inputs_state": "NOT_SUPPLIED",
+      "result_state": "NO_RESULT"
+    },
+    {
+      "id": "CENTRAL_SHARED__UNEQUAL_POPULATION_DISTRIBUTION",
+      "comparison_arm": "CENTRAL_SHARED",
+      "scenario": "UNEQUAL_POPULATION_DISTRIBUTION",
+      "definition_state": "REGISTERED_DESIGN_ONLY",
+      "execution_status": "NOT_EXECUTED",
+      "numerical_inputs_state": "NOT_SUPPLIED",
+      "result_state": "NO_RESULT"
+    },
+    {
+      "id": "CENTRAL_SHARED__PHASED_OCCUPANCY_GROWTH",
+      "comparison_arm": "CENTRAL_SHARED",
+      "scenario": "PHASED_OCCUPANCY_GROWTH",
+      "definition_state": "REGISTERED_DESIGN_ONLY",
+      "execution_status": "NOT_EXECUTED",
+      "numerical_inputs_state": "NOT_SUPPLIED",
+      "result_state": "NO_RESULT"
+    },
+    {
+      "id": "CENTRAL_SHARED__LAND_SCARCITY_COMPETING_USE",
+      "comparison_arm": "CENTRAL_SHARED",
+      "scenario": "LAND_SCARCITY_COMPETING_USE",
+      "definition_state": "REGISTERED_DESIGN_ONLY",
+      "execution_status": "NOT_EXECUTED",
+      "numerical_inputs_state": "NOT_SUPPLIED",
+      "result_state": "NO_RESULT"
+    },
+    {
+      "id": "CENTRAL_SHARED__EXTERNAL_PROVIDER_DISTANCE_OR_CLOSURE",
+      "comparison_arm": "CENTRAL_SHARED",
+      "scenario": "EXTERNAL_PROVIDER_DISTANCE_OR_CLOSURE",
+      "definition_state": "REGISTERED_DESIGN_ONLY",
+      "execution_status": "NOT_EXECUTED",
+      "numerical_inputs_state": "NOT_SUPPLIED",
+      "result_state": "NO_RESULT"
+    },
+    {
+      "id": "CENTRAL_SHARED__MULTI_NODE_CATCHMENT_REBALANCING",
+      "comparison_arm": "CENTRAL_SHARED",
+      "scenario": "MULTI_NODE_CATCHMENT_REBALANCING",
+      "definition_state": "REGISTERED_DESIGN_ONLY",
+      "execution_status": "NOT_EXECUTED",
+      "numerical_inputs_state": "NOT_SUPPLIED",
+      "result_state": "NO_RESULT"
+    },
+    {
+      "id": "DISTRIBUTED_SHARED__COMPACT_HIGH_DENSITY",
+      "comparison_arm": "DISTRIBUTED_SHARED",
+      "scenario": "COMPACT_HIGH_DENSITY",
+      "definition_state": "REGISTERED_DESIGN_ONLY",
+      "execution_status": "NOT_EXECUTED",
+      "numerical_inputs_state": "NOT_SUPPLIED",
+      "result_state": "NO_RESULT"
+    },
+    {
+      "id": "DISTRIBUTED_SHARED__LOW_DENSITY_DISPERSED",
+      "comparison_arm": "DISTRIBUTED_SHARED",
+      "scenario": "LOW_DENSITY_DISPERSED",
+      "definition_state": "REGISTERED_DESIGN_ONLY",
+      "execution_status": "NOT_EXECUTED",
+      "numerical_inputs_state": "NOT_SUPPLIED",
+      "result_state": "NO_RESULT"
+    },
+    {
+      "id": "DISTRIBUTED_SHARED__MIXED_USE_TRANSIT_ADJACENT",
+      "comparison_arm": "DISTRIBUTED_SHARED",
+      "scenario": "MIXED_USE_TRANSIT_ADJACENT",
+      "definition_state": "REGISTERED_DESIGN_ONLY",
+      "execution_status": "NOT_EXECUTED",
+      "numerical_inputs_state": "NOT_SUPPLIED",
+      "result_state": "NO_RESULT"
+    },
+    {
+      "id": "DISTRIBUTED_SHARED__SITE_EDGE_LONG_WALK",
+      "comparison_arm": "DISTRIBUTED_SHARED",
+      "scenario": "SITE_EDGE_LONG_WALK",
+      "definition_state": "REGISTERED_DESIGN_ONLY",
+      "execution_status": "NOT_EXECUTED",
+      "numerical_inputs_state": "NOT_SUPPLIED",
+      "result_state": "NO_RESULT"
+    },
+    {
+      "id": "DISTRIBUTED_SHARED__ACCESSIBLE_ROUTE_DISCONTINUITY",
+      "comparison_arm": "DISTRIBUTED_SHARED",
+      "scenario": "ACCESSIBLE_ROUTE_DISCONTINUITY",
+      "definition_state": "REGISTERED_DESIGN_ONLY",
+      "execution_status": "NOT_EXECUTED",
+      "numerical_inputs_state": "NOT_SUPPLIED",
+      "result_state": "NO_RESULT"
+    },
+    {
+      "id": "DISTRIBUTED_SHARED__UNEQUAL_POPULATION_DISTRIBUTION",
+      "comparison_arm": "DISTRIBUTED_SHARED",
+      "scenario": "UNEQUAL_POPULATION_DISTRIBUTION",
+      "definition_state": "REGISTERED_DESIGN_ONLY",
+      "execution_status": "NOT_EXECUTED",
+      "numerical_inputs_state": "NOT_SUPPLIED",
+      "result_state": "NO_RESULT"
+    },
+    {
+      "id": "DISTRIBUTED_SHARED__PHASED_OCCUPANCY_GROWTH",
+      "comparison_arm": "DISTRIBUTED_SHARED",
+      "scenario": "PHASED_OCCUPANCY_GROWTH",
+      "definition_state": "REGISTERED_DESIGN_ONLY",
+      "execution_status": "NOT_EXECUTED",
+      "numerical_inputs_state": "NOT_SUPPLIED",
+      "result_state": "NO_RESULT"
+    },
+    {
+      "id": "DISTRIBUTED_SHARED__LAND_SCARCITY_COMPETING_USE",
+      "comparison_arm": "DISTRIBUTED_SHARED",
+      "scenario": "LAND_SCARCITY_COMPETING_USE",
+      "definition_state": "REGISTERED_DESIGN_ONLY",
+      "execution_status": "NOT_EXECUTED",
+      "numerical_inputs_state": "NOT_SUPPLIED",
+      "result_state": "NO_RESULT"
+    },
+    {
+      "id": "DISTRIBUTED_SHARED__EXTERNAL_PROVIDER_DISTANCE_OR_CLOSURE",
+      "comparison_arm": "DISTRIBUTED_SHARED",
+      "scenario": "EXTERNAL_PROVIDER_DISTANCE_OR_CLOSURE",
+      "definition_state": "REGISTERED_DESIGN_ONLY",
+      "execution_status": "NOT_EXECUTED",
+      "numerical_inputs_state": "NOT_SUPPLIED",
+      "result_state": "NO_RESULT"
+    },
+    {
+      "id": "DISTRIBUTED_SHARED__MULTI_NODE_CATCHMENT_REBALANCING",
+      "comparison_arm": "DISTRIBUTED_SHARED",
+      "scenario": "MULTI_NODE_CATCHMENT_REBALANCING",
+      "definition_state": "REGISTERED_DESIGN_ONLY",
+      "execution_status": "NOT_EXECUTED",
+      "numerical_inputs_state": "NOT_SUPPLIED",
+      "result_state": "NO_RESULT"
+    },
+    {
+      "id": "HYBRID_SHARED_PRIVATE__COMPACT_HIGH_DENSITY",
+      "comparison_arm": "HYBRID_SHARED_PRIVATE",
+      "scenario": "COMPACT_HIGH_DENSITY",
+      "definition_state": "REGISTERED_DESIGN_ONLY",
+      "execution_status": "NOT_EXECUTED",
+      "numerical_inputs_state": "NOT_SUPPLIED",
+      "result_state": "NO_RESULT"
+    },
+    {
+      "id": "HYBRID_SHARED_PRIVATE__LOW_DENSITY_DISPERSED",
+      "comparison_arm": "HYBRID_SHARED_PRIVATE",
+      "scenario": "LOW_DENSITY_DISPERSED",
+      "definition_state": "REGISTERED_DESIGN_ONLY",
+      "execution_status": "NOT_EXECUTED",
+      "numerical_inputs_state": "NOT_SUPPLIED",
+      "result_state": "NO_RESULT"
+    },
+    {
+      "id": "HYBRID_SHARED_PRIVATE__MIXED_USE_TRANSIT_ADJACENT",
+      "comparison_arm": "HYBRID_SHARED_PRIVATE",
+      "scenario": "MIXED_USE_TRANSIT_ADJACENT",
+      "definition_state": "REGISTERED_DESIGN_ONLY",
+      "execution_status": "NOT_EXECUTED",
+      "numerical_inputs_state": "NOT_SUPPLIED",
+      "result_state": "NO_RESULT"
+    },
+    {
+      "id": "HYBRID_SHARED_PRIVATE__SITE_EDGE_LONG_WALK",
+      "comparison_arm": "HYBRID_SHARED_PRIVATE",
+      "scenario": "SITE_EDGE_LONG_WALK",
+      "definition_state": "REGISTERED_DESIGN_ONLY",
+      "execution_status": "NOT_EXECUTED",
+      "numerical_inputs_state": "NOT_SUPPLIED",
+      "result_state": "NO_RESULT"
+    },
+    {
+      "id": "HYBRID_SHARED_PRIVATE__ACCESSIBLE_ROUTE_DISCONTINUITY",
+      "comparison_arm": "HYBRID_SHARED_PRIVATE",
+      "scenario": "ACCESSIBLE_ROUTE_DISCONTINUITY",
+      "definition_state": "REGISTERED_DESIGN_ONLY",
+      "execution_status": "NOT_EXECUTED",
+      "numerical_inputs_state": "NOT_SUPPLIED",
+      "result_state": "NO_RESULT"
+    },
+    {
+      "id": "HYBRID_SHARED_PRIVATE__UNEQUAL_POPULATION_DISTRIBUTION",
+      "comparison_arm": "HYBRID_SHARED_PRIVATE",
+      "scenario": "UNEQUAL_POPULATION_DISTRIBUTION",
+      "definition_state": "REGISTERED_DESIGN_ONLY",
+      "execution_status": "NOT_EXECUTED",
+      "numerical_inputs_state": "NOT_SUPPLIED",
+      "result_state": "NO_RESULT"
+    },
+    {
+      "id": "HYBRID_SHARED_PRIVATE__PHASED_OCCUPANCY_GROWTH",
+      "comparison_arm": "HYBRID_SHARED_PRIVATE",
+      "scenario": "PHASED_OCCUPANCY_GROWTH",
+      "definition_state": "REGISTERED_DESIGN_ONLY",
+      "execution_status": "NOT_EXECUTED",
+      "numerical_inputs_state": "NOT_SUPPLIED",
+      "result_state": "NO_RESULT"
+    },
+    {
+      "id": "HYBRID_SHARED_PRIVATE__LAND_SCARCITY_COMPETING_USE",
+      "comparison_arm": "HYBRID_SHARED_PRIVATE",
+      "scenario": "LAND_SCARCITY_COMPETING_USE",
+      "definition_state": "REGISTERED_DESIGN_ONLY",
+      "execution_status": "NOT_EXECUTED",
+      "numerical_inputs_state": "NOT_SUPPLIED",
+      "result_state": "NO_RESULT"
+    },
+    {
+      "id": "HYBRID_SHARED_PRIVATE__EXTERNAL_PROVIDER_DISTANCE_OR_CLOSURE",
+      "comparison_arm": "HYBRID_SHARED_PRIVATE",
+      "scenario": "EXTERNAL_PROVIDER_DISTANCE_OR_CLOSURE",
+      "definition_state": "REGISTERED_DESIGN_ONLY",
+      "execution_status": "NOT_EXECUTED",
+      "numerical_inputs_state": "NOT_SUPPLIED",
+      "result_state": "NO_RESULT"
+    },
+    {
+      "id": "HYBRID_SHARED_PRIVATE__MULTI_NODE_CATCHMENT_REBALANCING",
+      "comparison_arm": "HYBRID_SHARED_PRIVATE",
+      "scenario": "MULTI_NODE_CATCHMENT_REBALANCING",
+      "definition_state": "REGISTERED_DESIGN_ONLY",
+      "execution_status": "NOT_EXECUTED",
+      "numerical_inputs_state": "NOT_SUPPLIED",
+      "result_state": "NO_RESULT"
+    },
+    {
+      "id": "EXTERNAL_COMMERCIAL__COMPACT_HIGH_DENSITY",
+      "comparison_arm": "EXTERNAL_COMMERCIAL",
+      "scenario": "COMPACT_HIGH_DENSITY",
+      "definition_state": "REGISTERED_DESIGN_ONLY",
+      "execution_status": "NOT_EXECUTED",
+      "numerical_inputs_state": "NOT_SUPPLIED",
+      "result_state": "NO_RESULT"
+    },
+    {
+      "id": "EXTERNAL_COMMERCIAL__LOW_DENSITY_DISPERSED",
+      "comparison_arm": "EXTERNAL_COMMERCIAL",
+      "scenario": "LOW_DENSITY_DISPERSED",
+      "definition_state": "REGISTERED_DESIGN_ONLY",
+      "execution_status": "NOT_EXECUTED",
+      "numerical_inputs_state": "NOT_SUPPLIED",
+      "result_state": "NO_RESULT"
+    },
+    {
+      "id": "EXTERNAL_COMMERCIAL__MIXED_USE_TRANSIT_ADJACENT",
+      "comparison_arm": "EXTERNAL_COMMERCIAL",
+      "scenario": "MIXED_USE_TRANSIT_ADJACENT",
+      "definition_state": "REGISTERED_DESIGN_ONLY",
+      "execution_status": "NOT_EXECUTED",
+      "numerical_inputs_state": "NOT_SUPPLIED",
+      "result_state": "NO_RESULT"
+    },
+    {
+      "id": "EXTERNAL_COMMERCIAL__SITE_EDGE_LONG_WALK",
+      "comparison_arm": "EXTERNAL_COMMERCIAL",
+      "scenario": "SITE_EDGE_LONG_WALK",
+      "definition_state": "REGISTERED_DESIGN_ONLY",
+      "execution_status": "NOT_EXECUTED",
+      "numerical_inputs_state": "NOT_SUPPLIED",
+      "result_state": "NO_RESULT"
+    },
+    {
+      "id": "EXTERNAL_COMMERCIAL__ACCESSIBLE_ROUTE_DISCONTINUITY",
+      "comparison_arm": "EXTERNAL_COMMERCIAL",
+      "scenario": "ACCESSIBLE_ROUTE_DISCONTINUITY",
+      "definition_state": "REGISTERED_DESIGN_ONLY",
+      "execution_status": "NOT_EXECUTED",
+      "numerical_inputs_state": "NOT_SUPPLIED",
+      "result_state": "NO_RESULT"
+    },
+    {
+      "id": "EXTERNAL_COMMERCIAL__UNEQUAL_POPULATION_DISTRIBUTION",
+      "comparison_arm": "EXTERNAL_COMMERCIAL",
+      "scenario": "UNEQUAL_POPULATION_DISTRIBUTION",
+      "definition_state": "REGISTERED_DESIGN_ONLY",
+      "execution_status": "NOT_EXECUTED",
+      "numerical_inputs_state": "NOT_SUPPLIED",
+      "result_state": "NO_RESULT"
+    },
+    {
+      "id": "EXTERNAL_COMMERCIAL__PHASED_OCCUPANCY_GROWTH",
+      "comparison_arm": "EXTERNAL_COMMERCIAL",
+      "scenario": "PHASED_OCCUPANCY_GROWTH",
+      "definition_state": "REGISTERED_DESIGN_ONLY",
+      "execution_status": "NOT_EXECUTED",
+      "numerical_inputs_state": "NOT_SUPPLIED",
+      "result_state": "NO_RESULT"
+    },
+    {
+      "id": "EXTERNAL_COMMERCIAL__LAND_SCARCITY_COMPETING_USE",
+      "comparison_arm": "EXTERNAL_COMMERCIAL",
+      "scenario": "LAND_SCARCITY_COMPETING_USE",
+      "definition_state": "REGISTERED_DESIGN_ONLY",
+      "execution_status": "NOT_EXECUTED",
+      "numerical_inputs_state": "NOT_SUPPLIED",
+      "result_state": "NO_RESULT"
+    },
+    {
+      "id": "EXTERNAL_COMMERCIAL__EXTERNAL_PROVIDER_DISTANCE_OR_CLOSURE",
+      "comparison_arm": "EXTERNAL_COMMERCIAL",
+      "scenario": "EXTERNAL_PROVIDER_DISTANCE_OR_CLOSURE",
+      "definition_state": "REGISTERED_DESIGN_ONLY",
+      "execution_status": "NOT_EXECUTED",
+      "numerical_inputs_state": "NOT_SUPPLIED",
+      "result_state": "NO_RESULT"
+    },
+    {
+      "id": "EXTERNAL_COMMERCIAL__MULTI_NODE_CATCHMENT_REBALANCING",
+      "comparison_arm": "EXTERNAL_COMMERCIAL",
+      "scenario": "MULTI_NODE_CATCHMENT_REBALANCING",
+      "definition_state": "REGISTERED_DESIGN_ONLY",
+      "execution_status": "NOT_EXECUTED",
+      "numerical_inputs_state": "NOT_SUPPLIED",
+      "result_state": "NO_RESULT"
+    }
+  ],
+  "metric_vectors": [
+    "SERVICE_OPPORTUNITY_AND_AVAILABILITY",
+    "EFFECTIVE_ACCESS_AND_TIME",
+    "REACHABLE_CAPACITY_POTENTIAL",
+    "SPATIAL_TOPOLOGY_AND_LAND",
+    "HOUSEHOLD_AFFORDABILITY_OUTPUTS",
+    "RESOURCE_ENVIRONMENT_OWNER_OUTPUTS",
+    "ROBUSTNESS_AND_RECONFIGURATION",
+    "DISTRIBUTIONAL_EQUITY_AND_PRIVACY"
+  ],
+  "non_compensatory_gates": [
+    "LIFE_SAFETY_AND_EGRESS",
+    "MANDATORY_ACCESSIBILITY",
+    "LEGAL_AND_STATUTORY_APPROVAL",
+    "ENGINEERING_SCOPE_AND_QUALIFICATION",
+    "WATER_SOURCE_AND_USE_RIGHTS",
+    "SERVICE_FLOOR_AND_MANUAL_FALLBACK",
+    "EVIDENCE_VALIDITY_AND_SCOPE",
+    "PRIVACY_AND_CONSENT"
+  ],
+  "evidence_states": [
+    "UNKNOWN",
+    "NOT_COMPARABLE",
+    "BLOCKED",
+    "INVALID",
+    "PROPOSED",
+    "MEASURED",
+    "INDEPENDENTLY_REVIEWED"
+  ],
+  "owner_boundaries": {
+    "sol_atlas": "SPATIAL_AND_COMPARABLE_SERVICE_PROJECTION",
+    "symtropy": "DETERMINISTIC_SCENARIO_AND_PHYSICAL_SERVICE_EVIDENCE",
+    "symthaea": "DESIGN_REASONING_AND_PRODUCT_PROCESS_ALTERNATIVES",
+    "mycelix": "OWNERSHIP_CONSENT_PROVENANCE_GOVERNANCE_AND_LIFECYCLE_EVENTS",
+    "practitioners_and_authorities": "STATUTORY_PROFESSIONAL_INSPECTION_AND_OPERATIONAL_AUTHORITY"
+  },
+  "reference_sources": [
+    {
+      "id": "SHRA_COMMUNAL_HOUSING_NORMS",
+      "url": "https://www.etenders.gov.za/home/Download/?blobName=09797a42-8553-4615-a677-dab34af1c251.pdf&downloadedFileName=Norms.pdf",
+      "role": "SOUTH_AFRICAN_COMMUNAL_HOUSING_DESIGN_BASELINE"
+    },
+    {
+      "id": "SECTIONAL_TITLES_SCHEMES_MANAGEMENT_ACT",
+      "url": "https://www.gov.za/documents/sectional-titles-schemes-management-act",
+      "role": "COMMON_PROPERTY_MANAGEMENT_LEGAL_REFERENCE"
+    },
+    {
+      "id": "COMMUNAL_PROPERTY_ASSOCIATIONS_ACT",
+      "url": "https://www.gov.za/documents/communal-property-associations-act",
+      "role": "CONDITIONAL_COMMUNAL_TENURE_LEGAL_REFERENCE"
+    },
+    {
+      "id": "IFC_4_3",
+      "url": "https://www.buildingsmart.org/standards/bsi-standards/industry-foundation--classes/",
+      "role": "OPEN_BUILT_ASSET_EXCHANGE"
+    },
+    {
+      "id": "IDS_1_0",
+      "url": "https://www.buildingsmart.org/standards/bsi-standards/information-delivery-specification-ids/",
+      "role": "MACHINE_READABLE_INFORMATION_REQUIREMENTS"
+    },
+    {
+      "id": "JOBURG_LEVEL_2_WATER_RESTRICTIONS",
+      "url": "https://joburg.org.za/media_/Newsroom/Pages/2026-News-Articles/City-implements-Level-2-water-restrictions-to-stabilise-supply.aspx",
+      "role": "TIME_BOUNDED_JURISDICTIONAL_WATER_CONSTRAINT"
+    },
+    {
+      "id": "SINGAPORE_BCA_PPVC",
+      "url": "https://www1.bca.gov.sg/growth-and-transformation/productivity/design-for-manufacturing-and-assembly-dfma/prefabricated-prefinished-volumetric-construction-ppvc/",
+      "role": "INDUSTRY_CONSTRUCTION_PRODUCTIVITY_COMPARATOR_NOT_AMENITY_SAVINGS"
+    },
+    {
+      "id": "HDB_CONSTRUCTION_TRANSFORMATION",
+      "url": "https://www.hdb.gov.sg/hdb-pulse/news/2026/advanced-construction-technologies-at-hdbs-first-ctp-helped-achieve-25-productivity-improvement",
+      "role": "INDUSTRY_CONSTRUCTION_PRODUCTIVITY_COMPARATOR_NOT_AMENITY_SAVINGS"
+    },
+    {
+      "id": "SECTIONAL_TITLES_SCHEMES_MANAGEMENT_REGULATIONS_2016_MAINTENANCE_PLAN",
+      "url": "https://csos.org.za/wp-content/uploads/2023/02/Regulation-on-Sectional-Titles-Schemes-Management-Act.pdf",
+      "role": "COMMON_PROPERTY_10_YEAR_MAINTENANCE_REPAIR_REPLACEMENT_PLAN_AND_RESERVE"
+    },
+    {
+      "id": "ASCE_MODULAR_PROJECTS_491_2026",
+      "url": "https://doi.org/10.1061/JMENEA.MEENG-7605",
+      "role": "MODULAR_PRODUCTIVITY_DATASET_REFERENCE_491_PROJECTS"
+    },
+    {
+      "id": "M3DP_TECHNO_ECONOMIC_2026",
+      "url": "https://doi.org/10.1016/j.jclepro.2025.147461",
+      "role": "AUSTRALIAN_MODELLED_TECHNO_ECONOMIC_SCENARIO_NOT_SA_FIELD_RESULT"
+    },
+    {
+      "id": "DPWI_STATS_SA_BUILDING_COSTS_DEC_2025",
+      "url": "https://www.publicworks.gov.za/PDFs/documents/StrategicPlans/Annual_Performance_Plan-26_27.pdf",
+      "role": "DATED_SA_COST_SANITY_CHECK_REPORTED_FROM_STATS_SA"
+    },
+    {
+      "id": "AUTODESK_FORMA_BUILDING_LAYOUT_EXPLORER_2026",
+      "url": "https://blogs.autodesk.com/forma/2026/10/14/what-autodesk-forma-announced-au-2026/",
+      "role": "EXPERIMENTAL_MULTIFAMILY_LAYOUT_GENERATION_COMPETITOR_REFERENCE"
+    },
+    {
+      "id": "AUTODESK_FORMA_CONNECTED_AEC_2026",
+      "url": "https://adsknews.autodesk.com/en/news/autodesk-forma-ai-aec-connected-workflows-2026/",
+      "role": "CONNECTED_AEC_DESIGN_AND_CONSTRUCTION_WORKFLOW_COMPETITOR_REFERENCE"
+    },
+    {
+      "id": "STATS_SA_BUILDING_PLANS_AUG_2026",
+      "url": "https://www.statssa.gov.za/publications/P50411/P50411August2026.pdf",
+      "role": "CURRENT_SA_RESIDENTIAL_BUILDING_ACTIVITY_CONTEXT_NOT_UNIT_COST"
+    },
+    {
+      "id": "FINCH3D_PRODUCT_2026",
+      "url": "https://www.finch3d.com/product",
+      "role": "VENDOR_CLAIMED_GENERATIVE_ARCHITECTURE_AND_PLAN_LIBRARY_COMPARATOR"
+    },
+    {
+      "id": "TESTFIT_SITE_SOLVER_2026",
+      "url": "https://www.testfit.io/product/site-solver",
+      "role": "VENDOR_CLAIMED_SITE_FEASIBILITY_AND_UNIT_MIX_COMPARATOR"
+    },
+    {
+      "id": "HYPAR_PRODUCT_UPDATES_2026",
+      "url": "https://docs.hypar.io/what%27s-new-or-product-updates",
+      "role": "VENDOR_PRODUCT_AND_CASE_STUDY_COMPARATOR"
+    },
+    {
+      "id": "HONG_KONG_PSGO_HIGH_PRODUCTIVITY_CONSTRUCTION_2026",
+      "url": "https://www.psgo.gov.hk/en/high-productivity-construction.html",
+      "role": "GOVERNMENT_MIMEP_MICE_ADOPTION_AND_PRODUCTIVITY_REFERENCE"
+    },
+    {
+      "id": "HIGHVELD_KEEP_REFERENCE_HOME",
+      "url": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/607",
+      "role": "PRIMARY_HOME_REFERENCE_DESIGN"
+    },
+    {
+      "id": "HOME_EXPRESSION_LIBRARY",
+      "url": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/904",
+      "role": "RESIDENT_EXPRESSION_AND_OPTIONAL_EXPERIENCE_PACKAGES"
+    },
+    {
+      "id": "AGRO_CLIMATE_HIGHVELD",
+      "url": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/107",
+      "role": "HIGHVELD_FOOD_CLIMATE_SITE_READINESS"
+    },
+    {
+      "id": "ATLAS_FOOD_NETWORK",
+      "url": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/105",
+      "role": "PRIVACY_PRESERVING_FOOD_NETWORK_PROJECTION"
+    },
+    {
+      "id": "CEA_FULL_BOUNDARY",
+      "url": "https://github.com/Luminous-Dynamics/symtropy/issues/3957",
+      "role": "CEA_FULL_BOUNDARY_RESOURCE_AND_NUTRITIONAL_SERVICE"
+    },
+    {
+      "id": "CEA_CLIMATE",
+      "url": "https://github.com/Luminous-Dynamics/symtropy/issues/4065",
+      "role": "CEA_SPATIAL_CLIMATE_HEAT_MOISTURE_AIRFLOW"
+    },
+    {
+      "id": "CEA_HARVEST_CONTROL",
+      "url": "https://github.com/Luminous-Dynamics/symtropy/issues/4074",
+      "role": "CEA_HARVEST_CONSTRAINED_LIGHTING_AND_CLIMATE_CONTROL"
+    },
+    {
+      "id": "MYCELIX_FOOD_COOPERATIVE",
+      "url": "https://github.com/Luminous-Dynamics/mycelix/issues/5001",
+      "role": "FOOD_COOPERATIVE_PRODUCT_LOT_AND_FULFILLMENT"
+    },
+    {
+      "id": "HABITAT_SERVICE_TEST_CELL",
+      "url": "https://github.com/Luminous-Dynamics/symtropy/issues/4531",
+      "role": "ROOM_SCALE_HOUSEHOLD_SERVICE_TEST_CELL"
+    },
+    {
+      "id": "WATERLOOP_PHYSICAL_DEMO",
+      "url": "https://github.com/Luminous-Dynamics/symtropy/issues/5335",
+      "role": "WATERLOOP_PHYSICAL_DEMONSTRATOR"
+    },
+    {
+      "id": "ABOVEGROUND_SERVICE_CASSETTE",
+      "url": "https://github.com/Luminous-Dynamics/symtropy/issues/4181",
+      "role": "MAINTAINABLE_BUILDING_SERVICE_CASSETTES"
+    },
+    {
+      "id": "MYCELIX_HOUSING_AMENITY_COMMONS",
+      "url": "https://github.com/Luminous-Dynamics/mycelix/issues/6328",
+      "role": "CANONICAL_AMENITY_ASSET_SERVICE_ACCESS_FINANCE_MAINTENANCE_GOVERNANCE_CONTRACT"
+    },
+    {
+      "id": "WHOLE_HOUSEHOLD_COST_OF_PLACE",
+      "url": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/816",
+      "role": "HOUSEHOLD_COST_OF_PLACE_AFFORDABILITY"
+    },
+    {
+      "id": "CAPITAL_TO_COMMONS_FINANCE",
+      "url": "https://github.com/Luminous-Dynamics/mycelix/issues/912",
+      "role": "CAPITAL_TO_COMMONS_STEWARD_FINANCE_TRANSITION"
+    },
+    {
+      "id": "MYCELIX_HOUSING_AMENITY_COMMONS_BENCHMARK_PR_6329",
+      "url": "https://github.com/Luminous-Dynamics/mycelix/pull/6329",
+      "role": "33_CASE_CANONICAL_AMENITY_OPERATIONAL_CONFORMANCE_BENCHMARK"
+    },
+    {
+      "id": "CITY_MORPH_ACCESS_BENCHMARK_ISSUE_555",
+      "url": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/555",
+      "role": "CANONICAL_EFFECTIVE_ACCESS_AND_URBAN_FORM_BENCHMARK"
+    },
+    {
+      "id": "CITY_MORPH_ACCESS_IMPLEMENTATION_PR_564",
+      "url": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/pull/564",
+      "role": "EXISTING_SYNTHETIC_EFFECTIVE_ACCESS_ORACLE_AND_SOURCE_RIGHTS_REGISTER"
+    },
+    {
+      "id": "CITY_SCOPE_BINDING_ISSUE_623",
+      "url": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/623",
+      "role": "COMMON_CROSS_OWNER_EVALUATION_SCOPE_AND_OWNER_ENVELOPE"
+    },
+    {
+      "id": "CITY_ACCESS_REFERENCE_COMPARISON_562",
+      "url": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/562",
+      "role": "CROSSWALK_TO_R5_OTP_PEAI_AND_SDG_11_ACCESSIBILITY_BASELINES"
+    },
+    {
+      "id": "PEAI_ACTIVE_ACCESS_2026",
+      "url": "https://doi.org/10.1016/j.urbmob.2026.100217",
+      "role": "2026_MULTIDIMENSIONAL_ACTIVE_ACCESS_AND_AFFORDABILITY_RESEARCH_COMPARATOR"
+    },
+    {
+      "id": "CONVEYAL_R5_METHODOLOGY",
+      "url": "https://docs.conveyal.com/analysis/methodology",
+      "role": "SCHEDULE_AWARE_TRANSIT_TRAVEL_TIME_DISTRIBUTION_ROUTING_BASELINE"
+    },
+    {
+      "id": "OPENTRIPPLANNER_2_DOCS",
+      "url": "https://docs.opentripplanner.org/en/latest/",
+      "role": "MULTIMODAL_SCHEDULED_TRANSIT_AND_ACTIVE_MODE_ROUTING_BASELINE"
+    },
+    {
+      "id": "SDG_11_2_1_OFFICIAL_METADATA",
+      "url": "https://unstats.un.org/sdgs/metadata/files/Metadata-11-02-01.pdf",
+      "role": "PUBLIC_TRANSPORT_CONVENIENT_ACCESS_INDICATOR_METHOD_BASELINE"
+    },
+    {
+      "id": "SDG_11_7_1_OFFICIAL_METADATA",
+      "url": "https://unhabitat.org/sites/default/files/2022/08/sdg_indicator_metadata-11.7.1.pdf",
+      "role": "PUBLIC_SPACE_SHARE_AND_ACCESSIBILITY_INDICATOR_METHOD_BASELINE"
+    }
+  ],
+  "future_empirical_inputs_required": [
+    "RESIDENT_AUTHORED_SERVICE_BRIEFS_AND_CONSENT",
+    "POPULATION_AND_DEMAND_TRACE",
+    "SITE_AND_ACCESS_NETWORK",
+    "FACILITY_CAPACITY_AND_OPENING_SCHEDULE",
+    "VERIFIED_PROVIDER_AND_COST_DATA",
+    "UTILITY_SOURCE_QUALITY_RIGHTS_AND_METERING",
+    "ASSET_CONDITION_AND_RENEWAL_PLAN",
+    "LEGAL_TENURE_AND_GOVERNANCE_PROFILE",
+    "QUALIFIED_ENGINEERING_AND_STATUTORY_EVIDENCE",
+    "INDEPENDENT_INSPECTION_AND_ACCEPTANCE"
+  ],
+  "targets": {
+    "same_scope_or_not_comparable": true,
+    "critical_missing_evidence_fails_closed": true,
+    "unserved_demand_retained": true,
+    "all_lifecycle_exclusions_reported": true,
+    "no_weighted_score_overrides_hard_gates": true,
+    "exact_oracle_agreement_required": true,
+    "targets_are_proposed_not_measured": true
+  },
+  "functional_units": [
+    {
+      "id": "ACCESSIBLE_COMMUNITY_ROOM_HOUR",
+      "amenity_id": "COMMUNITY_HALL",
+      "output_unit": "accessible-room-hour",
+      "acceptance_definition": "A room-hour is counted only when the declared shared room is open, accessible, available for the intended use and not closed for maintenance.",
+      "comparison_policy": "WITHIN_FUNCTIONAL_UNIT_ONLY",
+      "owner_contract_reference": "https://github.com/Luminous-Dynamics/mycelix/issues/6328",
+      "owner_alignment_state": "CANDIDATE_NOT_OWNER_APPROVED"
+    },
+    {
+      "id": "ACCESSIBLE_SHARED_KITCHEN_HOUR",
+      "amenity_id": "COMMUNITY_KITCHEN",
+      "output_unit": "shared-kitchen-hour",
+      "acceptance_definition": "A shared kitchen-hour is counted only when the declared kitchen/equipment and accessible route are available for the intended resident use during the stated window; no meal-preparation or food-service output is implied.",
+      "comparison_policy": "WITHIN_FUNCTIONAL_UNIT_ONLY",
+      "owner_contract_reference": "https://github.com/Luminous-Dynamics/mycelix/issues/6328",
+      "owner_alignment_state": "CANDIDATE_NOT_OWNER_APPROVED"
+    },
+    {
+      "id": "ACCESSIBLE_SEAT_HOUR",
+      "amenity_id": "COWORKING_LIBRARY_STUDY",
+      "output_unit": "seat-hour",
+      "acceptance_definition": "An accessible seat-hour is delivered only when the promised workspace attributes and access window are available.",
+      "comparison_policy": "WITHIN_FUNCTIONAL_UNIT_ONLY",
+      "owner_contract_reference": "https://github.com/Luminous-Dynamics/mycelix/issues/6328",
+      "owner_alignment_state": "CANDIDATE_NOT_OWNER_APPROVED"
+    },
+    {
+      "id": "USABLE_WORKSHOP_HOUR",
+      "amenity_id": "WORKSHOP_TOOL_LIBRARY_REPAIR",
+      "output_unit": "equipped-workshop-hour",
+      "acceptance_definition": "A workshop-hour counts only when the declared equipment/tools are available and the facility is open under its authorized access policy.",
+      "comparison_policy": "WITHIN_FUNCTIONAL_UNIT_ONLY",
+      "owner_contract_reference": "https://github.com/Luminous-Dynamics/mycelix/issues/6328",
+      "owner_alignment_state": "CANDIDATE_NOT_OWNER_APPROVED"
+    },
+    {
+      "id": "ACCESSIBLE_GUEST_NIGHT",
+      "amenity_id": "GUEST_SUITES",
+      "output_unit": "guest-night",
+      "acceptance_definition": "A guest-night is accepted only for the declared room/service class, usable accessibility features and booked/cleaned period.",
+      "comparison_policy": "WITHIN_FUNCTIONAL_UNIT_ONLY",
+      "owner_contract_reference": "https://github.com/Luminous-Dynamics/mycelix/issues/6328",
+      "owner_alignment_state": "CANDIDATE_NOT_OWNER_APPROVED"
+    },
+    {
+      "id": "ACCEPTED_LAUNDRY_LOAD",
+      "amenity_id": "SHARED_LAUNDRY",
+      "output_unit": "accepted-load",
+      "acceptance_definition": "A load is accepted only when the declared load class completes the agreed wash/dry service; rejects and rewash remain visible.",
+      "comparison_policy": "WITHIN_FUNCTIONAL_UNIT_ONLY",
+      "owner_contract_reference": "https://github.com/Luminous-Dynamics/mycelix/issues/6328",
+      "owner_alignment_state": "CANDIDATE_NOT_OWNER_APPROVED"
+    },
+    {
+      "id": "USABLE_HARVEST_KG",
+      "amenity_id": "GREENHOUSE_NURSERY_FOOD_GROWING",
+      "output_unit": "kg-by-crop-and-grade",
+      "acceptance_definition": "Harvest mass is classified by crop, grade, quality and harvest point; losses, growing-cycle duration and resource inputs remain visible.",
+      "comparison_policy": "WITHIN_FUNCTIONAL_UNIT_ONLY",
+      "owner_contract_reference": "https://github.com/Luminous-Dynamics/mycelix/issues/6328",
+      "owner_alignment_state": "CANDIDATE_NOT_OWNER_APPROVED"
+    },
+    {
+      "id": "OPERABLE_POOL_LANE_HOUR",
+      "amenity_id": "POOL_WELLNESS",
+      "output_unit": "pool-lane-hour",
+      "acceptance_definition": "A pool-lane-hour is counted only when the declared lane/service is open within the operating, capacity, water-quality and inspection envelope.",
+      "comparison_policy": "WITHIN_FUNCTIONAL_UNIT_ONLY",
+      "owner_contract_reference": "https://github.com/Luminous-Dynamics/mycelix/issues/6328",
+      "owner_alignment_state": "CANDIDATE_NOT_OWNER_APPROVED"
+    },
+    {
+      "id": "USABLE_ACTIVITY_SPACE_HOUR",
+      "amenity_id": "GYM_RECREATION",
+      "output_unit": "activity-space-hour",
+      "acceptance_definition": "An activity-space-hour is usable only for the declared activity while its equipment/surface, access and operating conditions are met.",
+      "comparison_policy": "WITHIN_FUNCTIONAL_UNIT_ONLY",
+      "owner_contract_reference": "https://github.com/Luminous-Dynamics/mycelix/issues/6328",
+      "owner_alignment_state": "CANDIDATE_NOT_OWNER_APPROVED"
+    }
+  ],
+  "scope_boundary": {
+    "included_scope": "SPATIAL_PROVISIONING_COMPARISON_CONSUMES_CANONICAL_AMENITY_SERVICE_AND_HOUSEHOLD_AFFORDABILITY",
+    "included_service_classes": [
+      "community_and_dining",
+      "study_and_work",
+      "routine_tools_and_making",
+      "guest_accommodation",
+      "laundry",
+      "non_emergency_food_growing",
+      "pool_and_wellness",
+      "gym_and_recreation",
+      "public_recreation"
+    ],
+    "excluded_scopes": [
+      {
+        "owner": "Sol-Atlas",
+        "reference": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/694",
+        "responsibility": "essential household service floors and household service composition"
+      },
+      {
+        "owner": "Sol-Atlas",
+        "reference": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/737",
+        "responsibility": "shared emergency energy, water, thermal refuge, communications, charging, repair logistics and neighbourhood resilience topology"
+      },
+      {
+        "owner": "Sol-Atlas",
+        "reference": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/840",
+        "responsibility": "multi-family apartment, floor, building and vertical circulation design"
+      },
+      {
+        "owner": "Symtropy",
+        "reference": "https://github.com/Luminous-Dynamics/symtropy/issues/3768",
+        "responsibility": "generic service, capacity, resource and productive capability feasibility"
+      },
+      {
+        "owner": "Mycelix",
+        "reference": "https://github.com/Luminous-Dynamics/mycelix/issues/5901",
+        "responsibility": "matching, reservation and constrained allocation policy"
+      },
+      {
+        "owner": "Mycelix",
+        "reference": "https://github.com/Luminous-Dynamics/mycelix/issues/987",
+        "responsibility": "constitutional community stewardship and anti-capture governance"
+      },
+      {
+        "owner": "Mycelix",
+        "reference": "https://github.com/Luminous-Dynamics/mycelix/issues/4808",
+        "responsibility": "authoritative stock-flow and financial accounting semantics"
+      }
+    ],
+    "composition_rule": "SOL_ATLAS_OWNS_SPATIAL_PROVISIONING_COMPARISON_MYCELIX_OWNS_CANONICAL_AMENITY_ASSET_SERVICE_AND_FINANCE_OWNER_OUTPUTS_READ_ONLY",
+    "owner_native_dependencies": [
+      {
+        "id": "HIGHVELD_KEEP_REFERENCE_HOME",
+        "owner": "Sol-Atlas",
+        "reference": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/607",
+        "role": "PRIMARY_HOME_REFERENCE_DESIGN",
+        "responsibility": "synthetic Highveld reference dwelling, four spatial families, resident/task programme and climate-responsive design basis"
+      },
+      {
+        "id": "HOME_EXPRESSION_LIBRARY",
+        "owner": "Sol-Atlas",
+        "reference": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/904",
+        "role": "RESIDENT_EXPRESSION_AND_OPTIONAL_EXPERIENCE_PACKAGES",
+        "responsibility": "resident-directed architectural expression and optional experience packages; no style or prestige default"
+      },
+      {
+        "id": "AGRO_CLIMATE_HIGHVELD",
+        "owner": "Sol-Atlas",
+        "reference": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/107",
+        "role": "HIGHVELD_FOOD_CLIMATE_SITE_READINESS",
+        "responsibility": "regional/site food, climate, soil and water evidence readiness; not a plot-level crop-yield oracle"
+      },
+      {
+        "id": "ATLAS_FOOD_NETWORK",
+        "owner": "Sol-Atlas",
+        "reference": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/105",
+        "role": "PRIVACY_PRESERVING_FOOD_NETWORK_PROJECTION",
+        "responsibility": "read-only spatial projection of producers, pickup points, aggregate demand and fulfilment; not inventory or food-safety authority"
+      },
+      {
+        "id": "CEA_FULL_BOUNDARY",
+        "owner": "Symtropy",
+        "reference": "https://github.com/Luminous-Dynamics/symtropy/issues/3957",
+        "role": "CEA_FULL_BOUNDARY_RESOURCE_AND_NUTRITIONAL_SERVICE",
+        "responsibility": "facility-level accepted nutritional service, electricity, heat, water, nutrients, labour and lifecycle accounting"
+      },
+      {
+        "id": "CEA_CLIMATE",
+        "owner": "Symtropy",
+        "reference": "https://github.com/Luminous-Dynamics/symtropy/issues/4065",
+        "role": "CEA_SPATIAL_CLIMATE_HEAT_MOISTURE_AIRFLOW",
+        "responsibility": "greenhouse controlled-environment temperature, humidity, CO2, airflow and heat/moisture dynamics"
+      },
+      {
+        "id": "CEA_HARVEST_CONTROL",
+        "owner": "Symtropy",
+        "reference": "https://github.com/Luminous-Dynamics/symtropy/issues/4074",
+        "role": "CEA_HARVEST_CONSTRAINED_LIGHTING_AND_CLIMATE_CONTROL",
+        "responsibility": "harvest-date/quality-constrained lighting and climate control comparison; model output is not measured yield"
+      },
+      {
+        "id": "MYCELIX_FOOD_COOPERATIVE",
+        "owner": "Mycelix",
+        "reference": "https://github.com/Luminous-Dynamics/mycelix/issues/5001",
+        "role": "FOOD_COOPERATIVE_PRODUCT_LOT_AND_FULFILLMENT",
+        "responsibility": "producer/product units/lots, offers, orders, fulfillment and provenance; planned harvest is not inventory"
+      },
+      {
+        "id": "HABITAT_SERVICE_TEST_CELL",
+        "owner": "Symtropy",
+        "reference": "https://github.com/Luminous-Dynamics/symtropy/issues/4531",
+        "role": "ROOM_SCALE_HOUSEHOLD_SERVICE_TEST_CELL",
+        "responsibility": "unoccupied integrated household-service test cell and independently bounded service integration"
+      },
+      {
+        "id": "WATERLOOP_PHYSICAL_DEMO",
+        "owner": "Symtropy",
+        "reference": "https://github.com/Luminous-Dynamics/symtropy/issues/5335",
+        "role": "WATERLOOP_PHYSICAL_DEMONSTRATOR",
+        "responsibility": "instrumented water-resilience demonstrator; no potable or occupied use without separate qualification"
+      },
+      {
+        "id": "ABOVEGROUND_SERVICE_CASSETTE",
+        "owner": "Symtropy",
+        "reference": "https://github.com/Luminous-Dynamics/symtropy/issues/4181",
+        "role": "MAINTAINABLE_BUILDING_SERVICE_CASSETTES",
+        "responsibility": "modular, inspectable, replaceable building-service subassemblies and lifecycle interfaces"
+      },
+      {
+        "id": "MYCELIX_HOUSING_AMENITY_COMMONS",
+        "owner": "Mycelix",
+        "reference": "https://github.com/Luminous-Dynamics/mycelix/issues/6328",
+        "role": "CANONICAL_AMENITY_ASSET_SERVICE_ACCESS_FINANCE_MAINTENANCE_GOVERNANCE_CONTRACT",
+        "responsibility": "canonical asset/service contract, beneficiaries, capacity/access events, operating budgets, reserves, maintenance, asset locks and handback"
+      },
+      {
+        "id": "WHOLE_HOUSEHOLD_COST_OF_PLACE",
+        "owner": "Sol-Atlas",
+        "reference": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/816",
+        "role": "HOUSEHOLD_COST_OF_PLACE_AFFORDABILITY",
+        "responsibility": "whole-household land, tenure, finance, servicing, utilities, maintenance and access affordability; #940 consumes rather than recalculates it"
+      },
+      {
+        "id": "CAPITAL_TO_COMMONS_FINANCE",
+        "owner": "Mycelix",
+        "reference": "https://github.com/Luminous-Dynamics/mycelix/issues/912",
+        "role": "CAPITAL_TO_COMMONS_STEWARD_FINANCE_TRANSITION",
+        "responsibility": "bounded investor claims, permanent public-benefit stewardship, maintenance reserves and community transition"
+      },
+      {
+        "id": "CITY_MORPH_EFFECTIVE_ACCESS",
+        "owner": "Sol-Atlas",
+        "reference": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/555",
+        "role": "EVIDENCE_QUALIFIED_MULTIMODAL_EFFECTIVE_ACCESS",
+        "responsibility": "walk/cycle network reachability, opening, eligibility, affordability, step-free access and group-level reachable capacity potential; routing remains specialist-consumed and capacity potential is not allocation"
+      },
+      {
+        "id": "CITY_SCOPE_BINDING",
+        "owner": "Sol-Atlas",
+        "reference": "https://github.com/Luminous-Dynamics/sol-atlas-leptos/issues/623",
+        "role": "COMMON_SCOPE_DIGEST_AND_OWNER_ENVELOPE",
+        "responsibility": "binds population/service/geography/time/scenario/functional-unit and owner-native source revisions to one comparable evaluation scope; owner payloads remain opaque unless independently fetched"
+      }
+    ]
+  },
+  "scenario_definitions": [
+    {
+      "scenario_id": "COMPACT_HIGH_DENSITY",
+      "scenario_class": "DENSITY_AND_CAPACITY",
+      "spatial_condition": "A compact population frame with short network distances, high potential concurrency and a constrained land footprint.",
+      "primary_stressors": [
+        "peak simultaneous demand",
+        "shared-node congestion",
+        "land opportunity cost"
+      ],
+      "required_owner_outputs": [
+        "CITY_SCOPE_BINDING",
+        "CITY_MORPH_EFFECTIVE_ACCESS",
+        "MYCELIX_HOUSING_AMENITY_COMMONS",
+        "SYMTROPY_CITYKIT_CAPACITY",
+        "WHOLE_HOUSEHOLD_COST_OF_PLACE"
+      ],
+      "probability_model_state": "NOT_ASSIGNED",
+      "input_state": "SYNTHETIC_SPECIFICATION_ONLY"
+    },
+    {
+      "scenario_id": "LOW_DENSITY_DISPERSED",
+      "scenario_class": "DENSITY_AND_DISTANCE",
+      "spatial_condition": "A dispersed population frame with longer network distances and lower likely utilization per facility node.",
+      "primary_stressors": [
+        "long walking/cycling access",
+        "low utilization",
+        "private duplication burden"
+      ],
+      "required_owner_outputs": [
+        "CITY_SCOPE_BINDING",
+        "CITY_MORPH_EFFECTIVE_ACCESS",
+        "MYCELIX_HOUSING_AMENITY_COMMONS",
+        "WHOLE_HOUSEHOLD_COST_OF_PLACE"
+      ],
+      "probability_model_state": "NOT_ASSIGNED",
+      "input_state": "SYNTHETIC_SPECIFICATION_ONLY"
+    },
+    {
+      "scenario_id": "MIXED_USE_TRANSIT_ADJACENT",
+      "scenario_class": "MIXED_USE_AND_TRANSIT",
+      "spatial_condition": "Amenity nodes are embedded near mixed-use destinations and public-transport corridors, with time-dependent multimodal access.",
+      "primary_stressors": [
+        "transit timetable availability",
+        "first/last-mile access",
+        "service-window mismatch"
+      ],
+      "required_owner_outputs": [
+        "CITY_SCOPE_BINDING",
+        "CITY_MORPH_EFFECTIVE_ACCESS",
+        "MYCELIX_HOUSING_AMENITY_COMMONS",
+        "WHOLE_HOUSEHOLD_COST_OF_PLACE"
+      ],
+      "probability_model_state": "NOT_ASSIGNED",
+      "input_state": "SYNTHETIC_SPECIFICATION_ONLY"
+    },
+    {
+      "scenario_id": "SITE_EDGE_LONG_WALK",
+      "scenario_class": "SITE_EDGE_AND_ROUTE_IMPEDANCE",
+      "spatial_condition": "Residents at the edge of a site or neighborhood have a longer network route to a centrally placed amenity than residents near the center.",
+      "primary_stressors": [
+        "route length asymmetry",
+        "crossings and severance",
+        "unequal travel-time burden"
+      ],
+      "required_owner_outputs": [
+        "CITY_SCOPE_BINDING",
+        "CITY_MORPH_EFFECTIVE_ACCESS",
+        "MYCELIX_HOUSING_AMENITY_COMMONS"
+      ],
+      "probability_model_state": "NOT_ASSIGNED",
+      "input_state": "SYNTHETIC_SPECIFICATION_ONLY"
+    },
+    {
+      "scenario_id": "ACCESSIBLE_ROUTE_DISCONTINUITY",
+      "scenario_class": "UNIVERSAL_ACCESS",
+      "spatial_condition": "A destination is geometrically close but the route has a missing, closed, unknown or non-step-free segment for a declared resident requirement.",
+      "primary_stressors": [
+        "step-free route continuity",
+        "unknown edge state",
+        "barrier-sensitive reachability"
+      ],
+      "required_owner_outputs": [
+        "CITY_SCOPE_BINDING",
+        "CITY_MORPH_EFFECTIVE_ACCESS",
+        "MYCELIX_HOUSING_AMENITY_COMMONS"
+      ],
+      "probability_model_state": "NOT_ASSIGNED",
+      "input_state": "SYNTHETIC_SPECIFICATION_ONLY"
+    },
+    {
+      "scenario_id": "UNEQUAL_POPULATION_DISTRIBUTION",
+      "scenario_class": "POPULATION_DISTRIBUTION",
+      "spatial_condition": "Resident tasks and population are unevenly distributed inside the same nominal catchment or radius.",
+      "primary_stressors": [
+        "within-neighborhood distribution",
+        "population-frame uncertainty",
+        "small-cell privacy"
+      ],
+      "required_owner_outputs": [
+        "CITY_SCOPE_BINDING",
+        "CITY_MORPH_EFFECTIVE_ACCESS",
+        "MYCELIX_HOUSING_AMENITY_COMMONS"
+      ],
+      "probability_model_state": "NOT_ASSIGNED",
+      "input_state": "SYNTHETIC_SPECIFICATION_ONLY"
+    },
+    {
+      "scenario_id": "PHASED_OCCUPANCY_GROWTH",
+      "scenario_class": "TEMPORAL_PHASING",
+      "spatial_condition": "Housing and amenity nodes enter service in phases; residents may occupy early phases before promised facilities are available.",
+      "primary_stressors": [
+        "occupancy-stage mismatch",
+        "service commissioning delay",
+        "temporary access gap"
+      ],
+      "required_owner_outputs": [
+        "CITY_SCOPE_BINDING",
+        "CITY_MORPH_EFFECTIVE_ACCESS",
+        "MYCELIX_HOUSING_AMENITY_COMMONS",
+        "WHOLE_HOUSEHOLD_COST_OF_PLACE"
+      ],
+      "probability_model_state": "NOT_ASSIGNED",
+      "input_state": "SYNTHETIC_SPECIFICATION_ONLY"
+    },
+    {
+      "scenario_id": "LAND_SCARCITY_COMPETING_USE",
+      "scenario_class": "LAND_OPPORTUNITY",
+      "spatial_condition": "Amenity nodes compete with housing, public realm, production, ecology and transport uses for finite developable land.",
+      "primary_stressors": [
+        "land opportunity cost",
+        "mandatory public-space/access floor",
+        "productive/ecological constraints"
+      ],
+      "required_owner_outputs": [
+        "CITY_SCOPE_BINDING",
+        "MYCELIX_HOUSING_AMENITY_COMMONS",
+        "WHOLE_HOUSEHOLD_COST_OF_PLACE"
+      ],
+      "probability_model_state": "NOT_ASSIGNED",
+      "input_state": "SYNTHETIC_SPECIFICATION_ONLY"
+    },
+    {
+      "scenario_id": "EXTERNAL_PROVIDER_DISTANCE_OR_CLOSURE",
+      "scenario_class": "PROVIDER_AVAILABILITY",
+      "spatial_condition": "An external commercial provider may be distant, too expensive, ineligible, temporally unavailable or may close during the comparison horizon.",
+      "primary_stressors": [
+        "provider availability and currentness",
+        "price/eligibility uncertainty",
+        "provider-loss fallback"
+      ],
+      "required_owner_outputs": [
+        "CITY_SCOPE_BINDING",
+        "CITY_MORPH_EFFECTIVE_ACCESS",
+        "MYCELIX_HOUSING_AMENITY_COMMONS",
+        "WHOLE_HOUSEHOLD_COST_OF_PLACE"
+      ],
+      "probability_model_state": "NOT_ASSIGNED",
+      "input_state": "SYNTHETIC_SPECIFICATION_ONLY"
+    },
+    {
+      "scenario_id": "MULTI_NODE_CATCHMENT_REBALANCING",
+      "scenario_class": "NETWORK_RECONFIGURATION",
+      "spatial_condition": "Multiple amenity nodes have overlapping catchments; the loss, relocation or phase change of one node requires residents to use alternative nodes.",
+      "primary_stressors": [
+        "catchment reassignment",
+        "common-cause dependency",
+        "substitute-path availability",
+        "reconfiguration effort"
+      ],
+      "required_owner_outputs": [
+        "CITY_SCOPE_BINDING",
+        "CITY_MORPH_EFFECTIVE_ACCESS",
+        "MYCELIX_HOUSING_AMENITY_COMMONS",
+        "SYMTROPY_CITYKIT_CAPACITY"
+      ],
+      "probability_model_state": "NOT_ASSIGNED",
+      "input_state": "SYNTHETIC_SPECIFICATION_ONLY"
+    }
+  ]
+}

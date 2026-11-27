@@ -1,0 +1,638 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://luminousdynamics.io/schemas/shared-amenity-commons-benchmark-v0.1.schema.json",
+  "title": "Shared Amenity Commons Benchmark v0.1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "schema_version",
+    "study_id",
+    "issue_url",
+    "parent_issues",
+    "maturity",
+    "execution_status",
+    "geographic_profile",
+    "claim_ceiling",
+    "comparison_arms",
+    "scenarios",
+    "amenity_archetypes",
+    "case_matrix",
+    "cases",
+    "metric_vectors",
+    "non_compensatory_gates",
+    "evidence_states",
+    "owner_boundaries",
+    "reference_sources",
+    "future_empirical_inputs_required",
+    "targets",
+    "functional_units",
+    "scope_boundary",
+    "scenario_definitions"
+  ],
+  "properties": {
+    "schema": {
+      "const": "luminous.shared-amenity-commons-benchmark"
+    },
+    "schema_version": {
+      "const": "0.1.0"
+    },
+    "study_id": {
+      "const": "SHARED-AMENITY-COMMONS-001"
+    },
+    "issue_url": {
+      "type": "string",
+      "format": "uri"
+    },
+    "parent_issues": {
+      "type": "array",
+      "minItems": 2,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "format": "uri"
+      }
+    },
+    "maturity": {
+      "const": "BENCHMARK_PROTOCOL_AND_CASE_REGISTRY_ONLY"
+    },
+    "execution_status": {
+      "const": "NOT_EXECUTED"
+    },
+    "geographic_profile": {
+      "const": "JOHANNESBURG_HIGHVELD_REFERENCE_METHOD_PORTABLE"
+    },
+    "claim_ceiling": {
+      "type": "string",
+      "minLength": 1
+    },
+    "comparison_arms": {
+      "type": "array",
+      "minItems": 5,
+      "maxItems": 5,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "description"
+        ],
+        "properties": {
+          "id": {
+            "enum": [
+              "PRIVATE_DUPLICATION",
+              "CENTRAL_SHARED",
+              "DISTRIBUTED_SHARED",
+              "HYBRID_SHARED_PRIVATE",
+              "EXTERNAL_COMMERCIAL"
+            ]
+          },
+          "description": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    },
+    "scenarios": {
+      "type": "array",
+      "minItems": 10,
+      "maxItems": 10,
+      "uniqueItems": true,
+      "items": {
+        "enum": [
+          "COMPACT_HIGH_DENSITY",
+          "LOW_DENSITY_DISPERSED",
+          "MIXED_USE_TRANSIT_ADJACENT",
+          "SITE_EDGE_LONG_WALK",
+          "ACCESSIBLE_ROUTE_DISCONTINUITY",
+          "UNEQUAL_POPULATION_DISTRIBUTION",
+          "PHASED_OCCUPANCY_GROWTH",
+          "LAND_SCARCITY_COMPETING_USE",
+          "EXTERNAL_PROVIDER_DISTANCE_OR_CLOSURE",
+          "MULTI_NODE_CATCHMENT_REBALANCING"
+        ]
+      }
+    },
+    "amenity_archetypes": {
+      "type": "array",
+      "minItems": 10,
+      "maxItems": 10,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "service",
+          "critical_dependencies",
+          "role",
+          "functional_unit_id"
+        ],
+        "properties": {
+          "id": {
+            "enum": [
+              "COMMUNITY_HALL",
+              "COMMUNITY_KITCHEN",
+              "COWORKING_LIBRARY_STUDY",
+              "WORKSHOP_TOOL_LIBRARY_REPAIR",
+              "GUEST_SUITES",
+              "SHARED_LAUNDRY",
+              "GREENHOUSE_NURSERY_FOOD_GROWING",
+              "POOL_WELLNESS",
+              "GYM_RECREATION",
+              "NON_ESSENTIAL_AMENITY_PLANT"
+            ]
+          },
+          "service": {
+            "type": "string",
+            "minLength": 1
+          },
+          "critical_dependencies": {
+            "type": "array",
+            "minItems": 1,
+            "uniqueItems": true,
+            "items": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "role": {
+            "enum": [
+              "RESIDENT_FACING_SERVICE_ASSET",
+              "ENABLING_ASSET_ONLY"
+            ]
+          },
+          "functional_unit_id": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        }
+      }
+    },
+    "case_matrix": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "comparison_arm_count",
+        "scenario_count",
+        "registered_case_count",
+        "state"
+      ],
+      "properties": {
+        "comparison_arm_count": {
+          "const": 5
+        },
+        "scenario_count": {
+          "const": 10
+        },
+        "registered_case_count": {
+          "const": 50
+        },
+        "state": {
+          "const": "REGISTERED_DESIGN_ONLY"
+        }
+      }
+    },
+    "cases": {
+      "type": "array",
+      "minItems": 50,
+      "maxItems": 50,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "comparison_arm",
+          "scenario",
+          "definition_state",
+          "execution_status",
+          "numerical_inputs_state",
+          "result_state"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "comparison_arm": {
+            "enum": [
+              "PRIVATE_DUPLICATION",
+              "CENTRAL_SHARED",
+              "DISTRIBUTED_SHARED",
+              "HYBRID_SHARED_PRIVATE",
+              "EXTERNAL_COMMERCIAL"
+            ]
+          },
+          "scenario": {
+            "enum": [
+              "COMPACT_HIGH_DENSITY",
+              "LOW_DENSITY_DISPERSED",
+              "MIXED_USE_TRANSIT_ADJACENT",
+              "SITE_EDGE_LONG_WALK",
+              "ACCESSIBLE_ROUTE_DISCONTINUITY",
+              "UNEQUAL_POPULATION_DISTRIBUTION",
+              "PHASED_OCCUPANCY_GROWTH",
+              "LAND_SCARCITY_COMPETING_USE",
+              "EXTERNAL_PROVIDER_DISTANCE_OR_CLOSURE",
+              "MULTI_NODE_CATCHMENT_REBALANCING"
+            ]
+          },
+          "definition_state": {
+            "const": "REGISTERED_DESIGN_ONLY"
+          },
+          "execution_status": {
+            "const": "NOT_EXECUTED"
+          },
+          "numerical_inputs_state": {
+            "const": "NOT_SUPPLIED"
+          },
+          "result_state": {
+            "const": "NO_RESULT"
+          }
+        }
+      }
+    },
+    "metric_vectors": {
+      "type": "array",
+      "minItems": 8,
+      "maxItems": 8,
+      "uniqueItems": true,
+      "items": {
+        "enum": [
+          "SERVICE_OPPORTUNITY_AND_AVAILABILITY",
+          "EFFECTIVE_ACCESS_AND_TIME",
+          "REACHABLE_CAPACITY_POTENTIAL",
+          "SPATIAL_TOPOLOGY_AND_LAND",
+          "HOUSEHOLD_AFFORDABILITY_OUTPUTS",
+          "RESOURCE_ENVIRONMENT_OWNER_OUTPUTS",
+          "ROBUSTNESS_AND_RECONFIGURATION",
+          "DISTRIBUTIONAL_EQUITY_AND_PRIVACY"
+        ]
+      }
+    },
+    "non_compensatory_gates": {
+      "type": "array",
+      "minItems": 8,
+      "uniqueItems": true,
+      "items": {
+        "enum": [
+          "LIFE_SAFETY_AND_EGRESS",
+          "MANDATORY_ACCESSIBILITY",
+          "LEGAL_AND_STATUTORY_APPROVAL",
+          "ENGINEERING_SCOPE_AND_QUALIFICATION",
+          "WATER_SOURCE_AND_USE_RIGHTS",
+          "SERVICE_FLOOR_AND_MANUAL_FALLBACK",
+          "EVIDENCE_VALIDITY_AND_SCOPE",
+          "PRIVACY_AND_CONSENT"
+        ]
+      }
+    },
+    "evidence_states": {
+      "type": "array",
+      "minItems": 7,
+      "uniqueItems": true,
+      "items": {
+        "enum": [
+          "UNKNOWN",
+          "NOT_COMPARABLE",
+          "BLOCKED",
+          "INVALID",
+          "PROPOSED",
+          "MEASURED",
+          "INDEPENDENTLY_REVIEWED"
+        ]
+      }
+    },
+    "owner_boundaries": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "sol_atlas",
+        "symtropy",
+        "symthaea",
+        "mycelix",
+        "practitioners_and_authorities"
+      ],
+      "properties": {
+        "sol_atlas": {
+          "type": "string"
+        },
+        "symtropy": {
+          "type": "string"
+        },
+        "symthaea": {
+          "type": "string"
+        },
+        "mycelix": {
+          "type": "string"
+        },
+        "practitioners_and_authorities": {
+          "type": "string"
+        }
+      }
+    },
+    "reference_sources": {
+      "type": "array",
+      "minItems": 43,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "url",
+          "role"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "url": {
+            "type": "string",
+            "format": "uri"
+          },
+          "role": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    },
+    "future_empirical_inputs_required": {
+      "type": "array",
+      "minItems": 10,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "targets": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "same_scope_or_not_comparable",
+        "critical_missing_evidence_fails_closed",
+        "unserved_demand_retained",
+        "all_lifecycle_exclusions_reported",
+        "no_weighted_score_overrides_hard_gates",
+        "exact_oracle_agreement_required",
+        "targets_are_proposed_not_measured"
+      ],
+      "properties": {
+        "same_scope_or_not_comparable": {
+          "const": true
+        },
+        "critical_missing_evidence_fails_closed": {
+          "const": true
+        },
+        "unserved_demand_retained": {
+          "const": true
+        },
+        "all_lifecycle_exclusions_reported": {
+          "const": true
+        },
+        "no_weighted_score_overrides_hard_gates": {
+          "const": true
+        },
+        "exact_oracle_agreement_required": {
+          "const": true
+        },
+        "targets_are_proposed_not_measured": {
+          "const": true
+        }
+      }
+    },
+    "functional_units": {
+      "type": "array",
+      "minItems": 9,
+      "maxItems": 9,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "amenity_id",
+          "output_unit",
+          "acceptance_definition",
+          "comparison_policy",
+          "owner_contract_reference",
+          "owner_alignment_state"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "amenity_id": {
+            "enum": [
+              "COMMUNITY_HALL",
+              "COMMUNITY_KITCHEN",
+              "COWORKING_LIBRARY_STUDY",
+              "WORKSHOP_TOOL_LIBRARY_REPAIR",
+              "GUEST_SUITES",
+              "SHARED_LAUNDRY",
+              "GREENHOUSE_NURSERY_FOOD_GROWING",
+              "POOL_WELLNESS",
+              "GYM_RECREATION"
+            ]
+          },
+          "output_unit": {
+            "type": "string",
+            "minLength": 1
+          },
+          "acceptance_definition": {
+            "type": "string",
+            "minLength": 1
+          },
+          "comparison_policy": {
+            "const": "WITHIN_FUNCTIONAL_UNIT_ONLY"
+          },
+          "owner_contract_reference": {
+            "const": "https://github.com/Luminous-Dynamics/mycelix/issues/6328"
+          },
+          "owner_alignment_state": {
+            "const": "CANDIDATE_NOT_OWNER_APPROVED"
+          }
+        }
+      }
+    },
+    "scope_boundary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "included_scope",
+        "included_service_classes",
+        "excluded_scopes",
+        "composition_rule",
+        "owner_native_dependencies"
+      ],
+      "properties": {
+        "included_scope": {
+          "const": "SPATIAL_PROVISIONING_COMPARISON_CONSUMES_CANONICAL_AMENITY_SERVICE_AND_HOUSEHOLD_AFFORDABILITY"
+        },
+        "included_service_classes": {
+          "type": "array",
+          "minItems": 9,
+          "uniqueItems": true,
+          "items": {
+            "type": "string"
+          }
+        },
+        "excluded_scopes": {
+          "type": "array",
+          "minItems": 7,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "owner",
+              "reference",
+              "responsibility"
+            ],
+            "properties": {
+              "owner": {
+                "type": "string"
+              },
+              "reference": {
+                "type": "string",
+                "format": "uri"
+              },
+              "responsibility": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "composition_rule": {
+          "const": "SOL_ATLAS_OWNS_SPATIAL_PROVISIONING_COMPARISON_MYCELIX_OWNS_CANONICAL_AMENITY_ASSET_SERVICE_AND_FINANCE_OWNER_OUTPUTS_READ_ONLY"
+        },
+        "owner_native_dependencies": {
+          "type": "array",
+          "minItems": 16,
+          "maxItems": 16,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "id",
+              "owner",
+              "reference",
+              "role",
+              "responsibility"
+            ],
+            "properties": {
+              "id": {
+                "type": "string",
+                "minLength": 1
+              },
+              "owner": {
+                "enum": [
+                  "Sol-Atlas",
+                  "Symtropy",
+                  "Symthaea",
+                  "Mycelix"
+                ]
+              },
+              "reference": {
+                "type": "string",
+                "format": "uri"
+              },
+              "role": {
+                "type": "string",
+                "minLength": 1
+              },
+              "responsibility": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          }
+        }
+      }
+    },
+    "scenario_definitions": {
+      "type": "array",
+      "minItems": 10,
+      "maxItems": 10,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "scenario_id",
+          "scenario_class",
+          "spatial_condition",
+          "primary_stressors",
+          "required_owner_outputs",
+          "probability_model_state",
+          "input_state"
+        ],
+        "properties": {
+          "scenario_id": {
+            "enum": [
+              "COMPACT_HIGH_DENSITY",
+              "LOW_DENSITY_DISPERSED",
+              "MIXED_USE_TRANSIT_ADJACENT",
+              "SITE_EDGE_LONG_WALK",
+              "ACCESSIBLE_ROUTE_DISCONTINUITY",
+              "UNEQUAL_POPULATION_DISTRIBUTION",
+              "PHASED_OCCUPANCY_GROWTH",
+              "LAND_SCARCITY_COMPETING_USE",
+              "EXTERNAL_PROVIDER_DISTANCE_OR_CLOSURE",
+              "MULTI_NODE_CATCHMENT_REBALANCING"
+            ]
+          },
+          "scenario_class": {
+            "enum": [
+              "DENSITY_AND_CAPACITY",
+              "DENSITY_AND_DISTANCE",
+              "MIXED_USE_AND_TRANSIT",
+              "SITE_EDGE_AND_ROUTE_IMPEDANCE",
+              "UNIVERSAL_ACCESS",
+              "POPULATION_DISTRIBUTION",
+              "TEMPORAL_PHASING",
+              "LAND_OPPORTUNITY",
+              "PROVIDER_AVAILABILITY",
+              "NETWORK_RECONFIGURATION"
+            ]
+          },
+          "spatial_condition": {
+            "type": "string",
+            "minLength": 20
+          },
+          "primary_stressors": {
+            "type": "array",
+            "minItems": 1,
+            "uniqueItems": true,
+            "items": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "required_owner_outputs": {
+            "type": "array",
+            "minItems": 1,
+            "uniqueItems": true,
+            "items": {
+              "enum": [
+                "CITY_SCOPE_BINDING",
+                "CITY_MORPH_EFFECTIVE_ACCESS",
+                "MYCELIX_HOUSING_AMENITY_COMMONS",
+                "SYMTROPY_CITYKIT_CAPACITY",
+                "WHOLE_HOUSEHOLD_COST_OF_PLACE"
+              ]
+            }
+          },
+          "probability_model_state": {
+            "const": "NOT_ASSIGNED"
+          },
+          "input_state": {
+            "const": "SYNTHETIC_SPECIFICATION_ONLY"
+          }
+        }
+      }
+    }
+  }
+}
