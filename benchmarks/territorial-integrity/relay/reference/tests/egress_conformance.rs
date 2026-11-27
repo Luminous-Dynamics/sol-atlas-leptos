@@ -290,11 +290,18 @@ fn transform_cannot_consume_an_undeclared_source_object() {
         serde_json::json!(["urn:fixture:source:synthetic-001", output_two]);
 
     let result = evaluate_disclosure_manifest(&input);
-    assert_eq!(result.disposition, "incomplete");
+    assert_eq!(
+        result.disposition,
+        "incomplete",
+        "unexpected disposition reasons: {:?}",
+        result.reason_codes
+    );
     assert!(
         result
             .reason_codes
-            .contains("transformation_input_source_set_mismatch")
+            .contains("transformation_input_source_set_mismatch"),
+        "missing source-set mismatch reason: {:?}",
+        result.reason_codes
     );
 }
 
