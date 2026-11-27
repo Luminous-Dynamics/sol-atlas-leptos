@@ -45,6 +45,8 @@ pub struct SpatialCell {
     pub avg_color: [f32; 3],
 }
 
+type SpatialMarker = (f64, f64, f64, [f32; 3]);
+
 /// Cluster a set of (lat, lon, importance, color) markers into spatial cells.
 /// Uses a simple lat/lon grid with `lat_cells` x `lon_cells` divisions.
 pub fn cluster_markers(
@@ -55,7 +57,7 @@ pub fn cluster_markers(
     let lat_step = 180.0 / lat_cells as f64;
     let lon_step = 360.0 / lon_cells as f64;
 
-    let mut cells: Vec<Vec<(f64, f64, f64, [f32; 3])>> = vec![Vec::new(); lat_cells * lon_cells];
+    let mut cells: Vec<Vec<SpatialMarker>> = vec![Vec::new(); lat_cells * lon_cells];
 
     for &(lat, lon, importance, color) in markers {
         let lat_idx = ((lat + 90.0) / lat_step).floor() as usize;
