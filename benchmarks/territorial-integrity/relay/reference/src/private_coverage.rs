@@ -333,6 +333,7 @@ fn validate_query_input_snapshot(
     frontier: &Value,
     query: &Value,
     frontier_refs: &BTreeSet<String>,
+    predicate_valid: bool,
     severity: &mut Severity,
     reasons: &mut BTreeSet<String>,
 ) -> BTreeMap<String, Value> {
@@ -528,7 +529,7 @@ fn validate_query_input_snapshot(
                             "query_input_attribute_binding_duplicated",
                         );
                     }
-                    if !predicate_paths.contains(path) {
+                    if predicate_valid && !predicate_paths.contains(path) {
                         raise(
                             severity,
                             reasons,
@@ -599,9 +600,10 @@ fn validate_query_input_snapshot(
                         ),
                     }
                 }
-                if attributes
-                    .keys()
-                    .any(|key| !predicate_paths.contains(&format!("/{key}")))
+                if predicate_valid
+                    && attributes
+                        .keys()
+                        .any(|key| !predicate_paths.contains(&format!("/{key}")))
                 {
                     raise(
                         severity,
@@ -1204,6 +1206,7 @@ pub fn evaluate_private_coverage(input: &Value) -> CoverageEvaluation {
         frontier,
         query,
         &frontier_refs,
+        predicate_valid,
         &mut severity,
         &mut reasons,
     );
