@@ -1321,7 +1321,10 @@ mod tests {
         let report = validate_heritage_reconstruction(&value).unwrap();
         assert_eq!(report.supporting_evidence_association_count, 1);
         assert_eq!(report.counter_evidence_association_count, 1);
-        assert_eq!(value.elements[0].source_evidence_ids, vec!["lidar-measurement"]);
+        assert_eq!(
+            value.elements[0].source_evidence_ids,
+            vec!["lidar-measurement"]
+        );
         assert_eq!(
             value.elements[0].counter_evidence_ids,
             vec!["model-prediction-counter"]
