@@ -1,6 +1,8 @@
 use cter_relay_reference::authority::evaluate_authority_use;
 use serde_json::Value;
 
+type AuthorityMutation = (&'static str, fn(&mut Value));
+
 fn corpus() -> Value {
     serde_json::from_str(include_str!("../../authority-cases-v0.1.json"))
         .expect("authority corpus must be valid JSON")
@@ -102,7 +104,7 @@ fn authority_scope_and_status_mutations_never_remain_eligible() {
         .expect("positive baseline")["input"]
         .clone();
 
-    let mutations: Vec<(&str, fn(&mut Value))> = vec![
+    let mutations: Vec<AuthorityMutation> = vec![
         ("receipt type", |v| {
             v["decisions"][0]["receipt_type"] = Value::String("TransportReceipt".into())
         }),
