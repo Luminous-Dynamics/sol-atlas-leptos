@@ -16,5 +16,10 @@
   "all_non_unknown_elements_have_uncertainty": true,
   "simulated_geometry_promoted_to_observed": false,
   "archaeological_fact_established": false,
-  "historical_truth_established": false
+  "historical_truth_established": false,
+  "supporting_evidence_association_count": 1,
+  "counter_evidence_association_count": 0,
+  "context_evidence_association_count": 0,
+  "elements_with_counter_evidence_count": 0,
+  "elements_with_context_evidence_count": 0
 }
