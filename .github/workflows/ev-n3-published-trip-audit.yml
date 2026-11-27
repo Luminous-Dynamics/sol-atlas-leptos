@@ -53,7 +53,7 @@ jobs:
       - name: Produce reproducible N3 published-summary audit
         run: |
           cargo run --manifest-path sol-atlas-core/Cargo.toml --bin ev_n3_published_trip_audit --locked -- --input data/benchmarks/n3_published_trip_summaries_v0_1.json > n3-published-trip-audit-report.json
-          jq -e '.report.trip_count == 13 and .report.energy_within_published_rounding_count == 13 and .report.range_within_published_rounding_count == 13 and .report.raw_telemetry_included == false' n3-published-trip-audit-report.json
+          jq -e '.report.trip_count == 20 and .report.energy_within_published_rounding_count == 18 and .report.energy_comparison_unavailable_count == 2 and .report.range_within_published_rounding_count == 20 and .report.raw_telemetry_included == false' n3-published-trip-audit-report.json
           sha256sum data/benchmarks/n3_published_trip_summaries_v0_1.json n3-published-trip-audit-report.json > n3-published-trip-audit.sha256
       - name: Upload exact input, report and digests
         uses: actions/upload-artifact@v4
