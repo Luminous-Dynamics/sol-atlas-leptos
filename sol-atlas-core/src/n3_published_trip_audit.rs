@@ -464,7 +464,6 @@ mod tests {
         );
     }
 
-
     #[test]
     fn range_inconsistency_is_reported_not_rewritten() {
         let mut dataset: PublishedDataset =
