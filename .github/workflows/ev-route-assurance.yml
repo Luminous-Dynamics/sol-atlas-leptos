@@ -9,10 +9,13 @@ on:
       - "Cargo.lock"
       - "sol-atlas-core/Cargo.toml"
       - "sol-atlas-core/src/ev_route_assurance.rs"
+      - "sol-atlas-core/src/ev_evidence_admission.rs"
       - "sol-atlas-core/src/bin/ev_route_assess.rs"
       - "sol-atlas-core/src/lib.rs"
       - "schemas/ev-route-assurance-*.schema.json"
+      - "schemas/ev-route-trust-store-*.schema.json"
       - "schemas/examples/ev-route-assurance-*.json"
+      - "schemas/examples/ev-route-trust-store-*.json"
   pull_request:
     paths:
       - ".github/workflows/ev-route-assurance.yml"
@@ -20,16 +23,21 @@ on:
       - "Cargo.lock"
       - "sol-atlas-core/Cargo.toml"
       - "sol-atlas-core/src/ev_route_assurance.rs"
+      - "sol-atlas-core/src/ev_evidence_admission.rs"
       - "sol-atlas-core/src/bin/ev_route_assess.rs"
       - "sol-atlas-core/src/lib.rs"
       - "schemas/ev-route-assurance-*.schema.json"
+      - "schemas/ev-route-trust-store-*.schema.json"
       - "schemas/examples/ev-route-assurance-*.json"
+      - "schemas/examples/ev-route-trust-store-*.json"
 
 permissions:
   contents: read
 
 jobs:
   lockfile-diagnostic:
+    permissions:
+      contents: write
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
@@ -44,6 +52,16 @@ jobs:
           cp Cargo.lock lockfile-diagnostic/Cargo.lock.generated
           git diff -- Cargo.lock > lockfile-diagnostic/Cargo.lock.diff
           sha256sum lockfile-diagnostic/* > lockfile-diagnostic/SHA256SUMS
+      - name: Commit lockfile reconciliation on research branch pushes
+        if: github.event_name == 'push' && startsWith(github.ref, 'refs/heads/research/')
+        run: |
+          if ! git diff --quiet -- Cargo.lock; then
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add Cargo.lock
+            git commit -m "build: reconcile workspace Cargo.lock"
+            git push
+          fi
       - name: Upload lockfile diagnostic
         uses: actions/upload-artifact@v4
         with:
@@ -66,5 +84,12 @@ jobs:
         run: cargo test --package sol-atlas-core --locked
       - name: Warnings-denied Clippy
         run: cargo clippy --package sol-atlas-core --all-targets --locked -- -D warnings
-      - name: Exercise synthetic CLI fixture
-        run: cargo run --package sol-atlas-core --bin ev_route_assess --locked -- schemas/examples/ev-route-assurance-v0.1.synthetic.json
+      - name: Validate trust-store and synthetic fixture JSON
+        run: |
+          jq empty schemas/ev-route-trust-store-v0.1.schema.json
+          jq empty schemas/examples/ev-route-trust-store-v0.1.synthetic.json
+          jq empty schemas/ev-route-assurance-input-v0.1.schema.json
+          jq empty schemas/ev-route-assurance-report-v0.1.schema.json
+          jq empty schemas/examples/ev-route-assurance-v0.1.synthetic.json
+      - name: Exercise synthetic CLI fixture with separate trust store
+        run: cargo run --package sol-atlas-core --bin ev_route_assess --locked -- --input schemas/examples/ev-route-assurance-v0.1.synthetic.json --trust-store schemas/examples/ev-route-trust-store-v0.1.synthetic.json
