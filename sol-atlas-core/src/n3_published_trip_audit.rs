@@ -122,9 +122,14 @@ pub fn audit_json(input_bytes: &[u8]) -> Result<AuditEnvelope, String> {
     Ok(AuditEnvelope { report })
 }
 
-pub fn audit_dataset(dataset: &PublishedDataset, input_bytes: &[u8]) -> Result<AuditReport, String> {
+pub fn audit_dataset(
+    dataset: &PublishedDataset,
+    input_bytes: &[u8],
+) -> Result<AuditReport, String> {
     if dataset.schema_version != DATASET_SCHEMA_VERSION {
-        return Err(format!("unsupported dataset schema version; expected {DATASET_SCHEMA_VERSION}"));
+        return Err(format!(
+            "unsupported dataset schema version; expected {DATASET_SCHEMA_VERSION}"
+        ));
     }
     require_text(&dataset.dataset_id, "dataset_id")?;
     require_text(&dataset.publisher, "publisher")?;
@@ -133,11 +138,16 @@ pub fn audit_dataset(dataset: &PublishedDataset, input_bytes: &[u8]) -> Result<A
     if dataset.publisher != "CHARGE N3" {
         return Err("publisher must be CHARGE N3 for this source-specific v0.1 corpus".into());
     }
-    if !dataset.source_url.starts_with("https://charge.co.za/n3-real-world-ev-tests/") {
+    if !dataset
+        .source_url
+        .starts_with("https://charge.co.za/n3-real-world-ev-tests/")
+    {
         return Err("source_url must identify the official CHARGE N3 test results page".into());
     }
     if dataset.evidence_class != "operator_published_summary" {
-        return Err("evidence_class must be operator_published_summary for this v0.1 corpus".into());
+        return Err(
+            "evidence_class must be operator_published_summary for this v0.1 corpus".into(),
+        );
     }
     if dataset.raw_telemetry_included {
         return Err("v0.1 public-summary corpus must not claim to contain raw telemetry".into());
@@ -163,9 +173,19 @@ pub fn audit_dataset(dataset: &PublishedDataset, input_bytes: &[u8]) -> Result<A
             return Err(format!("duplicate trip_id: {}", trip.trip_id));
         }
         require_date(&trip.test_date, &format!("{}.test_date", trip.trip_id))?;
-        require_text(&trip.vehicle_make, &format!("{}.vehicle_make", trip.trip_id))?;
-        require_text(&trip.vehicle_model, &format!("{}.vehicle_model", trip.trip_id))?;
-        validate_positive(trip.reported_pack_capacity_kwh, "reported_pack_capacity_kwh", &trip.trip_id)?;
+        require_text(
+            &trip.vehicle_make,
+            &format!("{}.vehicle_make", trip.trip_id),
+        )?;
+        require_text(
+            &trip.vehicle_model,
+            &format!("{}.vehicle_model", trip.trip_id),
+        )?;
+        validate_positive(
+            trip.reported_pack_capacity_kwh,
+            "reported_pack_capacity_kwh",
+            &trip.trip_id,
+        )?;
         validate_positive(trip.distance_km, "distance_km", &trip.trip_id)?;
         validate_positive(trip.average_speed_kmh, "average_speed_kmh", &trip.trip_id)?;
         validate_positive(
@@ -179,13 +199,22 @@ pub fn audit_dataset(dataset: &PublishedDataset, input_bytes: &[u8]) -> Result<A
             &trip.trip_id,
         )?;
         if trip.battery_used_percent <= 0.0 || trip.battery_used_percent > 100.0 {
-            return Err(format!("{}: battery_used_percent must be in (0, 100]", trip.trip_id));
+            return Err(format!(
+                "{}: battery_used_percent must be in (0, 100]",
+                trip.trip_id
+            ));
         }
         if trip.average_speed_kmh > 200.0 {
-            return Err(format!("{}: average_speed_kmh exceeds the v0.1 plausibility bound", trip.trip_id));
+            return Err(format!(
+                "{}: average_speed_kmh exceeds the v0.1 plausibility bound",
+                trip.trip_id
+            ));
         }
         if trip.total_ascent_m == 0 || trip.total_descent_m == 0 {
-            return Err(format!("{}: total ascent and descent must both be present", trip.trip_id));
+            return Err(format!(
+                "{}: total ascent and descent must both be present",
+                trip.trip_id
+            ));
         }
         let net_elevation = i128::from(trip.total_ascent_m) - i128::from(trip.total_descent_m);
         if (net_elevation - i128::from(trip.elevation_change_m)).abs() > 5 {
@@ -196,10 +225,16 @@ pub fn audit_dataset(dataset: &PublishedDataset, input_bytes: &[u8]) -> Result<A
         }
         match trip.direction {
             Direction::Up if trip.elevation_change_m <= 0 => {
-                return Err(format!("{}: an up trip must have positive net elevation change", trip.trip_id));
+                return Err(format!(
+                    "{}: an up trip must have positive net elevation change",
+                    trip.trip_id
+                ));
             }
             Direction::Down if trip.elevation_change_m >= 0 => {
-                return Err(format!("{}: a down trip must have negative net elevation change", trip.trip_id));
+                return Err(format!(
+                    "{}: a down trip must have negative net elevation change",
+                    trip.trip_id
+                ));
             }
             _ => {}
         }
@@ -221,7 +256,10 @@ pub fn audit_dataset(dataset: &PublishedDataset, input_bytes: &[u8]) -> Result<A
         let relative_energy_residual =
             abs_energy_residual / energy_from_efficiency.max(f64::MIN_POSITIVE) * 100.0;
         if !abs_energy_residual.is_finite() || !relative_energy_residual.is_finite() {
-            return Err(format!("{}: derived energy residual is non-finite", trip.trip_id));
+            return Err(format!(
+                "{}: derived energy residual is non-finite",
+                trip.trip_id
+            ));
         }
         let energy_consistency = if abs_energy_residual <= ABSOLUTE_ENERGY_TOLERANCE_KWH
             && relative_energy_residual <= RELATIVE_ENERGY_TOLERANCE_PERCENT
@@ -234,7 +272,10 @@ pub fn audit_dataset(dataset: &PublishedDataset, input_bytes: &[u8]) -> Result<A
 
         let range_from_used = trip.distance_km / (trip.battery_used_percent / 100.0);
         if !range_from_used.is_finite() {
-            return Err(format!("{}: derived full-charge range proxy is non-finite", trip.trip_id));
+            return Err(format!(
+                "{}: derived full-charge range proxy is non-finite",
+                trip.trip_id
+            ));
         }
         let (range_residual, range_consistency) = match trip.published_range_km_per_100pct {
             Some(published) => {
@@ -359,7 +400,9 @@ fn validate_positive(value: f64, label: &str, trip_id: &str) -> Result<(), Strin
 
 fn validate_finite_nonnegative(value: f64, label: &str, trip_id: &str) -> Result<(), String> {
     if !value.is_finite() || value < 0.0 {
-        return Err(format!("{trip_id}: {label} must be finite and non-negative"));
+        return Err(format!(
+            "{trip_id}: {label} must be finite and non-negative"
+        ));
     }
     Ok(())
 }
