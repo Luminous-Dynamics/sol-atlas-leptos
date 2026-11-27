@@ -98,6 +98,11 @@
       "id": "INV-16",
       "name": "unordered-input-permutation-invariance",
       "expected": "canonical semantic output is unchanged by source-record ordering"
+    },
+    {
+      "id": "INV-17",
+      "name": "restricted-linked-metadata-noninterference",
+      "expected": "changes to hidden linked record IDs, summaries and digests do not change the public semantic projection"
     }
   ],
   "negativeControls": [
@@ -202,6 +207,12 @@
       "mutation": "Permute the evidence record array and re-run canonicalization.",
       "expected": "same-output",
       "reason": "Unordered set semantics must not depend on transport ordering."
+    },
+    {
+      "id": "NEG-18",
+      "mutation": "Change only the identifier, summary and digest of a linked record whose recordVisibility and metadataVisibility are prohibited; update private references consistently.",
+      "expected": "same-public-output",
+      "reason": "Restricted linked metadata must not leak through association references or provenance digest lists."
     }
   ],
   "qualificationRules": {
