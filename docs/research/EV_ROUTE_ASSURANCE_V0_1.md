@@ -28,6 +28,7 @@ It is deliberately not a route optimizer, road-graph implementation, EV energy m
 7. The v0.1 schema does not carry the piecewise SOC/temperature curve itself. Before production route qualification, v0.2 should consume the banded acceptance curves being developed in Symtropy EV charging-curve work (#2116), plus a scoped thermal/capability envelope from Symthaea, and verify that the full predicted SOC/temperature trajectory stays inside the supplied curve domain.
 6. Missing, synthetic, forecast, scenario or unknown evidence yields INDETERMINATE; an evidenced closed road, offline charger, incompatible connector, impossible charge target or definite reserve breach yields INFEASIBLE.
 7. Events must be chronologically ordered and non-overlapping. Input interval and digest shape errors are rejected.
+8. Evidence can contribute to a FEASIBLE result only when it is authenticated by an independently supplied, role-scoped, non-revoked and time-valid Ed25519 trust-store key. Missing, malformed, mismatched, revoked or unauthorized signatures remain non-qualifying.
 
 ## Result semantics
 
@@ -37,15 +38,23 @@ It is deliberately not a route optimizer, road-graph implementation, EV energy m
 
 A feasible result is not a statement that an EV trip is physically safe, that an advertised charger is genuinely available beyond its evidence window, that grid import has been legally approved, or that the model is empirically calibrated. It is a proposal audit under declared bounds only.
 
-The receipt hashes the exact input bytes and compact assessment JSON. These hashes bind identity/replay; they do not authenticate a source, prove truth or substitute for a signature or authority check.
+The receipt hashes the exact input bytes, the separately supplied trust-store bytes and the compact assessment JSON. The trust store is external to the route plan: a plan cannot insert its own trusted keys or expand its own issuer authority.
+
+### Evidence admission and trust roots
+
+Each evidence reference may carry an Ed25519 attestation binding the exact reference ID, SHA-256 digest, evidence class, observation/validity window, evidence role, subject ID, issuer ID/role, key ID and issue time. Signatures use a route-protocol domain separator and a versioned typed claim encoding.
+
+The independent trust-store input contains the admitted public keys, issuer identities/roles, authorization by evidence role, validity windows and revocation state. A signature is accepted only when the exact claim, signer, scope, role and assessment-time policy checks pass. The assessment output records each consumed reference's authentication status and issuer/key identity, and its receipt separately hashes the trust-store snapshot.
+
+**A signature authenticates an issuer-bound claim; it does not establish sensor accuracy, calibration correctness, model validity, grid approval, vehicle safety or the state of the physical world.** The route auditor does not fetch referenced source artifacts or independently re-hash their underlying bytes. Those must be verified by the evidence-admission and source-specific owner before a claim is classified as suitable for this contract. Never place production private keys or real trust anchors in fixtures or public examples. The example trust store is deliberately synthetic and must not be used for production evidence.
 
 ## CLI
 
 Run from the repository root:
 
-    cargo run -p sol-atlas-core --bin ev_route_assess --locked -- schemas/examples/ev-route-assurance-v0.1.synthetic.json
+    cargo run -p sol-atlas-core --bin ev_route_assess --locked -- --input schemas/examples/ev-route-assurance-v0.1.synthetic.json --trust-store schemas/examples/ev-route-trust-store-v0.1.synthetic.json
 
-The frozen example deliberately uses synthetic evidence and must return INDETERMINATE, while still exposing the arithmetic path. It is not a field-data result.
+The frozen route example deliberately carries no attestations and must return INDETERMINATE, while still exposing the arithmetic path and the per-reference UNATTESTED statuses. The trust-store example contains only a deterministic public test key; it cannot authenticate the example plan because no evidence signatures are supplied. Neither file is field evidence.
 
 ## Validation ladder
 
