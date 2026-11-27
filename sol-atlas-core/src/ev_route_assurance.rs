@@ -8,6 +8,10 @@
 //! vehicle. A passing result means only that declared bounds and evidence
 //! references satisfy this bounded audit contract.
 
+use crate::ev_evidence_admission::{
+    verify_evidence, validate_trust_store, EvidenceAttestation, EvidenceTrustStore,
+    EvidenceVerification,
+};
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 use std::collections::HashSet;
@@ -38,6 +42,8 @@ pub struct EvidenceRef {
     pub observed_at_unix_s: Option<i64>,
     #[serde(default)]
     pub valid_until_unix_s: Option<i64>,
+    #[serde(default)]
+    pub attestation: Option<EvidenceAttestation>,
 }
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize)]
@@ -235,6 +241,13 @@ pub struct EvidenceBinding {
     pub reference_id: String,
     pub digest_sha256: String,
     pub source_class: EvidenceClass,
+    pub verification_status: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub issuer_id: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub issuer_role: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub key_id: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub observed_at_unix_s: Option<i64>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -245,6 +258,7 @@ pub struct EvidenceBinding {
 pub struct Assessment {
     pub schema_version: String,
     pub plan_id: String,
+    pub trust_policy_id: String,
     pub disposition: AssessmentDisposition,
     pub reserve_floor_wh: f64,
     pub final_energy_wh: NumericInterval,
@@ -258,6 +272,8 @@ pub struct Assessment {
 pub struct RunReceipt {
     /// SHA-256 of the exact input file bytes, including whitespace.
     pub input_sha256: String,
+    /// SHA-256 of the exact separately supplied trust-store file bytes.
+    pub trust_store_sha256: String,
     /// SHA-256 of the compact serialized assessment object.
     pub assessment_sha256: String,
 }
@@ -268,25 +284,37 @@ pub struct AssessmentEnvelope {
     pub assessment: Assessment,
 }
 
-/// Parse, assess and bind a result to the exact source bytes.
-pub fn assess_json(input_bytes: &[u8]) -> Result<AssessmentEnvelope, String> {
+/// Parse, assess and bind a result to the exact input and trust-store bytes.
+pub fn assess_json(
+    input_bytes: &[u8],
+    trust_store_bytes: &[u8],
+) -> Result<AssessmentEnvelope, String> {
     let input: RoutePlan = serde_json::from_slice(input_bytes)
         .map_err(|error| format!("invalid input JSON: {error}"))?;
-    let assessment = assess(&input)?;
+    let trust_store: EvidenceTrustStore = serde_json::from_slice(trust_store_bytes)
+        .map_err(|error| format!("invalid evidence trust-store JSON: {error}"))?;
+    validate_trust_store(&trust_store)?;
+    let assessment = assess(&input, &trust_store)?;
     let assessment_bytes = serde_json::to_vec(&assessment)
         .map_err(|error| format!("could not serialize assessment: {error}"))?;
     Ok(AssessmentEnvelope {
         receipt: RunReceipt {
             input_sha256: sha256_hex(input_bytes),
+            trust_store_sha256: sha256_hex(trust_store_bytes),
             assessment_sha256: sha256_hex(&assessment_bytes),
         },
         assessment,
     })
 }
 
-/// Audit a parsed route plan. Invalid structure/numerics are rejected;
-/// incomplete or weak evidence returns INDETERMINATE rather than a false pass.
-pub fn assess(input: &RoutePlan) -> Result<Assessment, String> {
+/// Audit a parsed route plan against an independently supplied trust store.
+/// Invalid structure/numerics/trust policy are rejected; missing or unauthenticated
+/// source evidence returns INDETERMINATE rather than a false pass.
+pub fn assess(
+    input: &RoutePlan,
+    trust_store: &EvidenceTrustStore,
+) -> Result<Assessment, String> {
+    validate_trust_store(trust_store)?;
     if input.schema_version != INPUT_SCHEMA_VERSION {
         return Err(format!(
             "unsupported schema_version: expected {INPUT_SCHEMA_VERSION}"
