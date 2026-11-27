@@ -1,0 +1,47 @@
+name: EV route assurance v0.1
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/ev-route-assurance.yml"
+      - "Cargo.toml"
+      - "Cargo.lock"
+      - "sol-atlas-core/Cargo.toml"
+      - "sol-atlas-core/src/ev_route_assurance.rs"
+      - "sol-atlas-core/src/bin/ev_route_assess.rs"
+      - "sol-atlas-core/src/lib.rs"
+      - "schemas/ev-route-assurance-*.schema.json"
+      - "schemas/examples/ev-route-assurance-*.json"
+  pull_request:
+    paths:
+      - ".github/workflows/ev-route-assurance.yml"
+      - "Cargo.toml"
+      - "Cargo.lock"
+      - "sol-atlas-core/Cargo.toml"
+      - "sol-atlas-core/src/ev_route_assurance.rs"
+      - "sol-atlas-core/src/bin/ev_route_assess.rs"
+      - "sol-atlas-core/src/lib.rs"
+      - "schemas/ev-route-assurance-*.schema.json"
+      - "schemas/examples/ev-route-assurance-*.json"
+
+permissions:
+  contents: read
+
+jobs:
+  exact-subject:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: "1.96.0"
+          components: rustfmt, clippy
+      - name: Format check
+        run: cargo fmt --package sol-atlas-core -- --check
+      - name: Unit tests
+        run: cargo test --package sol-atlas-core --locked
+      - name: Warnings-denied Clippy
+        run: cargo clippy --package sol-atlas-core --all-targets --locked -- -D warnings
+      - name: Exercise synthetic CLI fixture
+        run: cargo run --package sol-atlas-core --bin ev_route_assess --locked -- schemas/examples/ev-route-assurance-v0.1.synthetic.json
