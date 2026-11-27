@@ -6,25 +6,48 @@ use std::fs;
 use std::process::ExitCode;
 
 fn main() -> ExitCode {
-    let mut args = env::args_os();
-    let _program = args.next();
-    let Some(path) = args.next() else {
-        eprintln!("usage: ev_route_assess <input.json>");
-        return ExitCode::from(2);
-    };
-    if args.next().is_some() {
-        eprintln!("usage: ev_route_assess <input.json>");
-        return ExitCode::from(2);
+    let mut input_path = None;
+    let mut trust_store_path = None;
+    let mut args = env::args().skip(1);
+
+    while let Some(arg) = args.next() {
+        match arg.as_str() {
+            "--input" => input_path = args.next(),
+            "--trust-store" => trust_store_path = args.next(),
+            "--help" | "-h" => {
+                println!("usage: ev_route_assess --input PATH --trust-store PATH");
+                return ExitCode::SUCCESS;
+            }
+            _ => {
+                eprintln!("unknown argument: {arg}");
+                eprintln!("usage: ev_route_assess --input PATH --trust-store PATH");
+                return ExitCode::from(2);
+            }
+        }
     }
 
-    let input = match fs::read(&path) {
+    let (Some(input_path), Some(trust_store_path)) = (input_path, trust_store_path) else {
+        eprintln!("both --input and --trust-store are required");
+        eprintln!("usage: ev_route_assess --input PATH --trust-store PATH");
+        return ExitCode::from(2);
+    };
+
+    let input = match fs::read(&input_path) {
         Ok(bytes) => bytes,
         Err(error) => {
-            eprintln!("could not read input file: {error}");
+            eprintln!("could not read route input {input_path}: {error}");
             return ExitCode::from(2);
         }
     };
-    match sol_atlas_core::ev_route_assurance::assess_json(&input) {
+    let trust_store = match fs::read(&trust_store_path) {
+        Ok(bytes) => bytes,
+        Err(error) => {
+            eprintln!("could not read evidence trust store {trust_store_path}: {error}");
+            return ExitCode::from(2);
+        }
+    };
+
+    match sol_atlas_core::ev_route_assurance::assess_json(&input, &trust_store) {
         Ok(envelope) => match serde_json::to_string_pretty(&envelope) {
             Ok(output) => {
                 println!("{output}");
