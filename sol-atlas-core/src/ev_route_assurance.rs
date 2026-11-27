@@ -241,6 +241,8 @@ pub struct EvidenceBinding {
     pub reference_id: String,
     pub digest_sha256: String,
     pub source_class: EvidenceClass,
+    pub evidence_role: String,
+    pub subject_id: String,
     pub verification_status: String,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub issuer_id: Option<String>,
@@ -978,33 +980,75 @@ pub fn assess(
     })
 }
 
-fn collect_evidence(input: &RoutePlan) -> Vec<EvidenceBinding> {
-    fn add(output: &mut Vec<EvidenceBinding>, role: String, evidence: &EvidenceRef) {
+fn collect_evidence(
+    input: &RoutePlan,
+    trust_store: &EvidenceTrustStore,
+) -> Vec<EvidenceBinding> {
+    fn add(
+        output: &mut Vec<EvidenceBinding>,
+        report_role: String,
+        evidence_role: &str,
+        subject_id: &str,
+        evidence: &EvidenceRef,
+        trust_store: &EvidenceTrustStore,
+        assessed_at_unix_s: i64,
+    ) {
+        let verification = verify_evidence(
+            &evidence.reference_id,
+            &evidence.digest_sha256,
+            evidence_class_label(evidence.source_class),
+            evidence.observed_at_unix_s,
+            evidence.valid_until_unix_s,
+            evidence.attestation.as_ref(),
+            trust_store,
+            evidence_role,
+            subject_id,
+            assessed_at_unix_s,
+        );
         output.push(EvidenceBinding {
-            role,
+            role: report_role,
             reference_id: evidence.reference_id.clone(),
             digest_sha256: evidence.digest_sha256.clone(),
             source_class: evidence.source_class,
+            evidence_role: evidence_role.to_owned(),
+            subject_id: subject_id.to_owned(),
+            verification_status: verification.status,
+            issuer_id: verification.issuer_id,
+            issuer_role: verification.issuer_role,
+            key_id: verification.key_id,
             observed_at_unix_s: evidence.observed_at_unix_s,
             valid_until_unix_s: evidence.valid_until_unix_s,
         });
     }
 
     let mut output = Vec::new();
+    let assessed_at = input.assessed_at_unix_s;
     add(
         &mut output,
         "vehicle.configuration".into(),
+        "vehicle_configuration",
+        &input.vehicle.vehicle_configuration_id,
         &input.vehicle.configuration_evidence,
+        trust_store,
+        assessed_at,
     );
     add(
         &mut output,
         "vehicle.energy_model".into(),
+        "vehicle_energy_model",
+        &input.vehicle.vehicle_configuration_id,
         &input.vehicle.energy_model_evidence,
+        trust_store,
+        assessed_at,
     );
     add(
         &mut output,
         "pack.capability".into(),
+        "pack_capability",
+        &input.pack.pack_id,
         &input.pack.capability_evidence,
+        trust_store,
+        assessed_at,
     );
     for event in &input.events {
         match event {
@@ -1012,43 +1056,80 @@ fn collect_evidence(input: &RoutePlan) -> Vec<EvidenceBinding> {
                 add(
                     &mut output,
                     format!("{}.route", leg.event_id),
+                    "route_state",
+                    &leg.event_id,
                     &leg.route_evidence,
+                    trust_store,
+                    assessed_at,
                 );
                 add(
                     &mut output,
                     format!("{}.energy_estimate", leg.event_id),
+                    "leg_energy_estimate",
+                    &leg.event_id,
                     &leg.energy_estimate_evidence,
+                    trust_store,
+                    assessed_at,
                 );
             }
             PlanEvent::ChargingStop(stop) => {
                 let prefix = format!("{}.charger", stop.event_id);
+                let charger_id = &stop.charger.charger_id;
                 add(
                     &mut output,
                     format!("{prefix}.status"),
+                    "charger_status",
+                    charger_id,
                     &stop.charger.status_evidence,
+                    trust_store,
+                    assessed_at,
                 );
                 add(
                     &mut output,
                     format!("{prefix}.configuration"),
+                    "charger_configuration",
+                    charger_id,
                     &stop.charger.configuration_evidence,
+                    trust_store,
+                    assessed_at,
                 );
                 add(
                     &mut output,
                     format!("{prefix}.evse_power"),
+                    "evse_power_rating",
+                    charger_id,
                     &stop.charger.evse_power_evidence,
+                    trust_store,
+                    assessed_at,
                 );
                 add(
                     &mut output,
                     format!("{prefix}.conversion"),
+                    "conversion_efficiency_model",
+                    charger_id,
                     &stop.charger.conversion_evidence,
+                    trust_store,
+                    assessed_at,
                 );
                 add(
                     &mut output,
                     format!("{prefix}.site_connection"),
+                    "site_connection",
+                    charger_id,
                     &stop.charger.site_connection.connection_evidence,
+                    trust_store,
+                    assessed_at,
                 );
                 if let Some(evidence) = &stop.charger.site_connection.import_power_evidence {
-                    add(&mut output, format!("{prefix}.site_import_power"), evidence);
+                    add(
+                        &mut output,
+                        format!("{prefix}.site_import_power"),
+                        "site_import_power",
+                        charger_id,
+                        evidence,
+                        trust_store,
+                        assessed_at,
+                    );
                 }
             }
         }
@@ -1101,22 +1182,70 @@ fn evidence_reference_valid(value: &EvidenceRef, label: &str) -> Result<(), Stri
     Ok(())
 }
 
-fn evidence_class_qualified(value: &EvidenceRef, label: &str) -> Result<bool, String> {
+fn evidence_class_label(value: EvidenceClass) -> &'static str {
+    match value {
+        EvidenceClass::Observed => "observed",
+        EvidenceClass::QualifiedModel => "qualified_model",
+        EvidenceClass::Forecast => "forecast",
+        EvidenceClass::Predicted => "predicted",
+        EvidenceClass::Scenario => "scenario",
+        EvidenceClass::Synthetic => "synthetic",
+        EvidenceClass::Unknown => "unknown",
+    }
+}
+
+fn evidence_class_qualified(
+    value: &EvidenceRef,
+    expected_role: &str,
+    expected_subject_id: &str,
+    trust_store: &EvidenceTrustStore,
+    assessed_at: i64,
+    label: &str,
+) -> Result<bool, String> {
     evidence_reference_valid(value, label)?;
-    Ok(matches!(
-        value.source_class,
-        EvidenceClass::Observed | EvidenceClass::QualifiedModel
-    ))
+    let verification = verify_evidence(
+        &value.reference_id,
+        &value.digest_sha256,
+        evidence_class_label(value.source_class),
+        value.observed_at_unix_s,
+        value.valid_until_unix_s,
+        value.attestation.as_ref(),
+        trust_store,
+        expected_role,
+        expected_subject_id,
+        assessed_at,
+    );
+    Ok(verification.authenticated()
+        && matches!(
+            value.source_class,
+            EvidenceClass::Observed | EvidenceClass::QualifiedModel
+        ))
 }
 
 fn evidence_current_for_window(
     value: &EvidenceRef,
     assessed_at: i64,
     planned_end: i64,
+    expected_role: &str,
+    expected_subject_id: &str,
+    trust_store: &EvidenceTrustStore,
     label: &str,
 ) -> Result<bool, String> {
     evidence_reference_valid(value, label)?;
+    let verification = verify_evidence(
+        &value.reference_id,
+        &value.digest_sha256,
+        evidence_class_label(value.source_class),
+        value.observed_at_unix_s,
+        value.valid_until_unix_s,
+        value.attestation.as_ref(),
+        trust_store,
+        expected_role,
+        expected_subject_id,
+        assessed_at,
+    );
     Ok(value.source_class == EvidenceClass::Observed
+        && verification.authenticated()
         && value
             .observed_at_unix_s
             .is_some_and(|observed| observed <= assessed_at)
