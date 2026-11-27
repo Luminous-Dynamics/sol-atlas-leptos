@@ -66,7 +66,8 @@ All values remain a vector; no composite score or winning topology is emitted.
 | Worst-decile mean | Population-weighted mean burden of the highest-burden 10% of the effective-access population (rounded down to whole seconds) |
 | No-access population | Population for which all explicit route/access rows are known failures or blocks and no reachable service-unavailable/unknown option is declared |
 | Unknown-access population | Population for which no effective option exists and at least one required route or service-availability input is unknown |
-| Service-unavailable population | Population with a qualified route to a facility whose service is known unavailable in the declared period |\n| Outside-tolerance population | Population with a route to an available service but no route within the declared resident tolerance |
+| Service-unavailable population | Population with a qualified route to a facility whose service is known unavailable in the declared period |
+| Outside-tolerance population | Population with a route to an available service but no route within the declared resident tolerance |
 | Mandatory-access gate | `PASS`, `FAIL`, `UNKNOWN` or `NOT_APPLICABLE`; a mandatory failure is never averaged away |
 | Aggregate capacity | Sum of each facility's owner-supplied deliverable capacity **once per arm**, independent of how many groups can reach it; a facility known unavailable in the period contributes zero, while unknown service/capacity state makes the aggregate unknown |
 | Capacity gap | Aggregate demand minus aggregate capacity, reported as shortfall/surplus; unknown facility capacity makes the aggregate unknown |
@@ -97,12 +98,39 @@ Reachable capacity is not allocated supply. Group-level access records are not u
 From repository root:
 
 ```bash
-cargo test --locked --manifest-path tools/shared-amenity-spatial-eval/Cargo.toml
+cargo test --locked --all-targets --manifest-path tools/shared-amenity-spatial-eval/Cargo.toml
 cargo clippy --locked --manifest-path tools/shared-amenity-spatial-eval/Cargo.toml --all-targets -- -D warnings
-cargo run --locked --manifest-path tools/shared-amenity-spatial-eval/Cargo.toml
+cargo run --locked --manifest-path tools/shared-amenity-spatial-eval/Cargo.toml --bin shared-amenity-spatial-eval
+cargo run --locked --manifest-path tools/shared-amenity-spatial-eval/Cargo.toml --bin temporal-amenity-opportunity
 ```
 
 The CLI defaults to the frozen JSON fixture file. It exits non-zero if the input violates a contract or any computed output differs from the frozen golden result.
+
+## Temporal opportunity join: arrival must fit the service window
+
+The second executable, `temporal-amenity-opportunity`, is a narrow cross-owner interval join. It consumes:
+
+- A CityMorph #555 access result with a qualified arrival-time interval and owner revision.
+- A Mycelix #6328 service calendar with operational windows, operational state, evidence freshness and owner revision.
+- A common Sol-Atlas #623 scope and time-basis identity.
+
+It does not calculate a route, infer opening hours, convert time zones, allocate capacity, create a reservation, or simulate the service timeline.
+
+All times in the synthetic oracle are integer ticks on a declared, owner-normalized time basis (pinned 900-second / 15-minute synthetic ticks, with a declared origin and half-open interval convention). The output receipt binds tick duration, origin and interval semantics; a changed tick scale or undeclared clock ID is rejected even if every owner input repeats the same unsupported ID. No local timezone conversion or calendar interpretation occurs in this crate. Service intervals use half-open semantics `[start, end)`: an arrival at the closing tick is outside the service window. The requested service duration must fit completely inside operational time.
+
+When arrival uncertainty spans multiple possible ticks, the opportunity is AVAILABLE only when every possible arrival permits the full requested service duration. A mixture of available and unavailable arrival possibilities remains UNKNOWN; the evaluator does not assume the resident can control or perfectly predict arrival.
+
+Calendar completeness has a critical distinction:
+- A **COMPLETE + CURRENT** calendar may treat a gap with no operational interval as known unavailable.
+- An **INCOMPLETE** or **UNKNOWN** calendar cannot interpret a missing interval as closed; the result remains UNKNOWN.
+- Stale, unknown, mismatched-scope, mismatched-clock or mixed-revision evidence is never promoted to AVAILABLE.
+- Explicit Mycelix states `CLOSED_FOR_MAINTENANCE` and `NOT_COMMISSIONED` are known unavailable.
+
+The `coverage_state` completeness assertion in this synthetic adapter is a proposed integration-envelope field, **not a claim that Mycelix PR #6329's current JSON Schema already defines that exact field**. The owner must approve its semantics or provide its equivalent before a live adapter is implemented.
+
+The 21 frozen temporal fixtures cover arrival at close, duration crossing close, maintenance, not commissioned, complete/incomplete gaps, stale/unknown route and service evidence, arrival uncertainty, contiguous windows, scope/clock mismatch, blocked/unknown access and mixed revisions. The binary has 26 adversarial/reference tests authored; they remain unexecuted until exact-head CI reports a result. The verifier reports AVAILABLE, UNAVAILABLE, UNKNOWN or NOT_COMPARABLE with reason codes and owner revisions and separate evidence-freshness states. Invalid overlap, duplicate IDs, negative/zero durations, horizon overflow and excessive uncertainty are rejected by adversarial tests.
+
+This is an opportunity check, not a scheduling or booking decision. A group may have a time-compatible service opportunity without any allocation, entitlement, reservation or capacity assignment.
 
 ## Industry and research comparator protocol
 
@@ -115,7 +143,11 @@ The goal is **not** to replace specialist routing engines or claim a superior tr
 | PEAI (2026) | Active-mobility accessibility beyond time-only thresholds, including service availability, infrastructure quality, housing affordability and user-centred insight | Reproduce its published methodology/data before any adaptation; preserve the dimensions separately rather than importing universal weights |
 | UN SDG 11.2.1 / 11.7.1 | Comparable public-transport and public-space indicator baselines | Report the applicable indicator method with data vintage and limitations; do not equate an indicator with full amenity-service accessibility |
 
-R5 publishes percentile-sensitive travel-time analysis and opportunity access. OTP documents both the limits of binary wheelchair-accessibility data and configurable treatment of unknown trip/stop accessibility. PEAI's 2026 Vancouver application reports that threshold-based time results can materially exceed its multidimensional result. These are reasons to compose and qualify specialized evidence, not claims that this Rust evaluator outperforms those products.
+R5 publishes departure-window travel-time distributions and time percentiles. Its methodology states that the default assumes perfectly reliable transit operations: on-time vehicles, full schedule information, and no crowding or boarding/accessibility constraints. Those outputs are still valuable specialist routing evidence; they are not proof that an amenity will be operational when a resident arrives. See https://docs.conveyal.com/analysis/methodology.
+
+OpenTripPlanner documents that GTFS/NeTEx wheelchair-accessibility data are often binary and incomplete, and exposes explicit treatment for unknown trips, stops and elevators. The temporal join preserves that upstream status and does not reinterpret UNKNOWN as accessible. See https://docs.opentripplanner.org/en/latest/Accessibility/.
+
+PEAI's 2026 framework separates proximity, availability, suitability, affordability and awareness. Its Vancouver application reports 99% cycling-time and 74.5% walking-threshold coverage but only 37.9% under its multidimensional truly-accessible classification. This supports measuring service availability separately from route time; it does not prove that this evaluator improves on PEAI. See https://doi.org/10.1016/j.urbmob.2026.100217.
 
 ## Research targets — not achieved results
 
