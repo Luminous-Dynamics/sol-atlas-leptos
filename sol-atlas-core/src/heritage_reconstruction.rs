@@ -174,7 +174,14 @@ pub struct ReconstructionElement {
     pub spatial_reference_id: Option<String>,
     pub geometry_uncertainty: Option<GeometryUncertainty>,
     pub temporal_interval: TemporalInterval,
+    /// Evidence records that support this element's geometry claim.
     pub source_evidence_ids: Vec<String>,
+    /// Explicit counter-evidence. These records remain visible as contradictions
+    /// and are never counted as positive empirical support.
+    pub counter_evidence_ids: Vec<String>,
+    /// Contextual records that inform interpretation without supporting or
+    /// contradicting the geometry claim.
+    pub context_evidence_ids: Vec<String>,
     pub dependencies: Vec<ReconstructionDependency>,
     pub method_build_sha256: Option<String>,
     pub simulation_manifest_sha256: Option<String>,
@@ -310,6 +317,19 @@ pub enum HeritageReconstructionError {
         evidence_id: String,
     },
     EvidenceNotSupportingClaim {
+        element_id: String,
+        evidence_id: String,
+    },
+    EvidenceAssociationReferenceMissing {
+        element_id: String,
+        evidence_id: String,
+    },
+    EvidenceAssociationRelationMismatch {
+        element_id: String,
+        evidence_id: String,
+        expected_relation: EvidenceRelation,
+    },
+    EvidenceAssociationOverlap {
         element_id: String,
         evidence_id: String,
     },
@@ -522,6 +542,40 @@ fn validate_element(
         };
         validate_empirical_support(&element.element_id, evidence)?;
         source_evidence.push(*evidence);
+    }
+
+    // Keep contradictory and contextual records attached to the element without
+    // allowing them to enter the positive-support set above. All three
+    // association classes share one identity namespace and one dependency set.
+    for (evidence_ids, expected_relation) in [
+        (&element.counter_evidence_ids, EvidenceRelation::Contradicts),
+        (&element.context_evidence_ids, EvidenceRelation::ContextOnly),
+    ] {
+        for evidence_id in evidence_ids {
+            if !source_seen.insert(evidence_id.clone()) {
+                return Err(HeritageReconstructionError::EvidenceAssociationOverlap {
+                    element_id: element.element_id.clone(),
+                    evidence_id: evidence_id.clone(),
+                });
+            }
+            let Some(evidence) = evidence_by_id.get(evidence_id) else {
+                return Err(
+                    HeritageReconstructionError::EvidenceAssociationReferenceMissing {
+                        element_id: element.element_id.clone(),
+                        evidence_id: evidence_id.clone(),
+                    },
+                );
+            };
+            if evidence.relation != expected_relation {
+                return Err(
+                    HeritageReconstructionError::EvidenceAssociationRelationMismatch {
+                        element_id: element.element_id.clone(),
+                        evidence_id: evidence_id.clone(),
+                        expected_relation,
+                    },
+                );
+            }
+        }
     }
 
     let mut dependency_ids = BTreeSet::new();
@@ -1062,6 +1116,8 @@ mod tests {
                 chronology_evidence_ids: vec![],
             },
             source_evidence_ids: vec!["lidar-measurement".into()],
+            counter_evidence_ids: vec![],
+            context_evidence_ids: vec![],
             dependencies: vec![
                 ReconstructionDependency {
                     dependency_id: "source-lidar".into(),
@@ -1164,6 +1220,126 @@ mod tests {
     }
 
     #[test]
+    fn contradictory_evidence_is_retained_without_becoming_positive_support() {
+        let mut value = input();
+        let mut contradiction = evidence(
+            "contradictory-field-record",
+            EvidenceKind::SurfaceFieldAssessment,
+            EvidenceOrigin::HumanInterpretation,
+            'e',
+        );
+        contradiction.relation = EvidenceRelation::Contradicts;
+        // A rights-pending counter-record may be retained, but cannot silently
+        // become an admissible positive-support source.
+        contradiction.rights_status = RightsStatus::Pending;
+        contradiction.rights_receipt_ref = None;
+        value.evidence.push(contradiction);
+
+        let mut element = observed_element();
+        element.counter_evidence_ids = vec!["contradictory-field-record".into()];
+        element.dependencies.push(ReconstructionDependency {
+            dependency_id: "counter-field-source".into(),
+            kind: DependencyKind::SourceEvidence,
+            reference_id: Some("contradictory-field-record".into()),
+            artifact_sha256: None,
+            statement: "Contradictory field interpretation retained for review".into(),
+        });
+        value.elements = vec![element];
+
+        let report = validate_heritage_reconstruction(&value).unwrap();
+        assert_eq!(report.observed_geometry_count, 1);
+        assert_eq!(value.elements[0].source_evidence_ids, vec!["lidar-measurement"]);
+        assert_eq!(value.elements[0].counter_evidence_ids, vec!["contradictory-field-record"]);
+    }
+
+    #[test]
+    fn contextual_evidence_is_retained_but_not_counted_as_support() {
+        let mut value = input();
+        let mut context = evidence(
+            "context-document",
+            EvidenceKind::HistoricalDocument,
+            EvidenceOrigin::HumanInterpretation,
+            'e',
+        );
+        context.relation = EvidenceRelation::ContextOnly;
+        value.evidence.push(context);
+
+        let mut element = observed_element();
+        element.context_evidence_ids = vec!["context-document".into()];
+        element.dependencies.push(ReconstructionDependency {
+            dependency_id: "context-document-source".into(),
+            kind: DependencyKind::SourceEvidence,
+            reference_id: Some("context-document".into()),
+            artifact_sha256: None,
+            statement: "Contextual document does not establish this surface geometry".into(),
+        });
+        value.elements = vec![element];
+
+        assert!(validate_heritage_reconstruction(&value).is_ok());
+        assert!(value.elements[0].source_evidence_ids.contains(&"lidar-measurement".into()));
+        assert_eq!(value.elements[0].context_evidence_ids, vec!["context-document"]);
+    }
+
+    #[test]
+    fn counter_evidence_relation_must_match_its_association_class() {
+        let mut value = input();
+        value.evidence.push(evidence(
+            "misclassified-counter",
+            EvidenceKind::SurfaceFieldAssessment,
+            EvidenceOrigin::HumanInterpretation,
+            'e',
+        ));
+        let mut element = observed_element();
+        element.counter_evidence_ids = vec!["misclassified-counter".into()];
+        element.dependencies.push(ReconstructionDependency {
+            dependency_id: "counter-source".into(),
+            kind: DependencyKind::SourceEvidence,
+            reference_id: Some("misclassified-counter".into()),
+            artifact_sha256: None,
+            statement: "Declared contradiction must actually be marked contradicts".into(),
+        });
+        value.elements = vec![element];
+
+        assert!(matches!(
+            validate_heritage_reconstruction(&value),
+            Err(HeritageReconstructionError::EvidenceAssociationRelationMismatch {
+                expected_relation: EvidenceRelation::Contradicts,
+                ..
+            })
+        ));
+    }
+
+    #[test]
+    fn an_evidence_record_cannot_be_positive_and_counter_evidence_for_one_element() {
+        let mut value = input();
+        value.elements[0].counter_evidence_ids = vec!["lidar-measurement".into()];
+
+        assert!(matches!(
+            validate_heritage_reconstruction(&value),
+            Err(HeritageReconstructionError::EvidenceAssociationOverlap { .. })
+        ));
+    }
+
+    #[test]
+    fn every_evidence_association_must_be_bound_by_a_source_dependency() {
+        let mut value = input();
+        let mut contradiction = evidence(
+            "unbound-contradiction",
+            EvidenceKind::SurfaceFieldAssessment,
+            EvidenceOrigin::HumanInterpretation,
+            'e',
+        );
+        contradiction.relation = EvidenceRelation::Contradicts;
+        value.evidence.push(contradiction);
+        value.elements[0].counter_evidence_ids = vec!["unbound-contradiction".into()];
+
+        assert!(matches!(
+            validate_heritage_reconstruction(&value),
+            Err(HeritageReconstructionError::SourceEvidenceDependencySetMismatch(_))
+        ));
+    }
+
+    #[test]
     fn simulation_is_explicit_and_never_counted_as_observed() {
         let mut value = input();
         let mut element = observed_element();
@@ -1226,6 +1402,8 @@ mod tests {
                 chronology_evidence_ids: vec![],
             },
             source_evidence_ids: vec![],
+            counter_evidence_ids: vec![],
+            context_evidence_ids: vec![],
             dependencies: vec![],
             method_build_sha256: None,
             simulation_manifest_sha256: None,
@@ -1540,6 +1718,8 @@ mod tests {
                 chronology_evidence_ids: vec![],
             },
             source_evidence_ids: vec![],
+            counter_evidence_ids: vec![],
+            context_evidence_ids: vec![],
             dependencies: vec![],
             method_build_sha256: None,
             simulation_manifest_sha256: None,
