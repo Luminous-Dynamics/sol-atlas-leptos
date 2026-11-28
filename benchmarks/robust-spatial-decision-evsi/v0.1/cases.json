@@ -1,0 +1,87 @@
+{
+  "benchmarkId": "sol-atlas-robust-spatial-decision-evsi",
+  "version": "0.1.0",
+  "status": "synthetic-reference-corpus",
+  "invariants": [
+    {
+      "id": "INV-01",
+      "name": "normalized-scenario-weights",
+      "expected": "all plausible scenarios have finite non-negative weights summing to one"
+    },
+    {
+      "id": "INV-02",
+      "name": "scenario-complete-priors-utilities-likelihoods",
+      "expected": "every scenario defines every hypothesis, action utility and candidate survey exactly once"
+    },
+    {
+      "id": "INV-03",
+      "name": "effort-feasibility",
+      "expected": "every candidate portfolio respects the fixed survey-effort budget"
+    },
+    {
+      "id": "INV-04",
+      "name": "no-observation-option",
+      "expected": "the empty portfolio is always considered and has zero net EVSI"
+    },
+    {
+      "id": "INV-05",
+      "name": "nominal-maximin-regret-separation",
+      "expected": "weighted mean EVSI, maximin net EVSI and minimax regret are calculated as separate objectives"
+    },
+    {
+      "id": "INV-06",
+      "name": "scenario-order-invariance",
+      "expected": "reordering scenarios or survey candidates does not alter policy semantics"
+    },
+    {
+      "id": "INV-07",
+      "name": "finite-support-total-variation-dro",
+      "expected": "worst-case expected net EVSI is computed by reweighting nominal scenario probabilities within each declared TV radius"
+    },
+    {
+      "id": "INV-08",
+      "name": "tv-radius-boundary-equivalence",
+      "expected": "radius 0 reproduces nominal weighted expected EVSI and radius 1 reproduces finite-scenario maximin"
+    },
+    {
+      "id": "INV-09",
+      "name": "tv-ambiguity-monotonicity",
+      "expected": "optimal worst-case expected value cannot increase as the TV ambiguity radius grows"
+    }
+  ],
+  "negativeControls": [
+    {
+      "id": "NEG-01",
+      "mutation": "Use scenario weights that do not sum to one.",
+      "expected": "reject",
+      "reason": "Weighted expectations are invalid without a normalized scenario distribution."
+    },
+    {
+      "id": "NEG-02",
+      "mutation": "Set a sensor likelihood below zero or above one.",
+      "expected": "reject",
+      "reason": "Scenario likelihoods must be probabilities."
+    },
+    {
+      "id": "NEG-03",
+      "mutation": "Remove a candidate survey from one scenario.",
+      "expected": "reject",
+      "reason": "Every scenario must score the same candidate set."
+    },
+    {
+      "id": "NEG-04",
+      "mutation": "Supply a total-variation ambiguity radius outside [0,1].",
+      "expected": "reject",
+      "reason": "TV distance between probability distributions lies in [0,1]."
+    }
+  ],
+  "baselines": [
+    "nominal expected net EVSI",
+    "maximin net EVSI",
+    "minimax regret",
+    "finite-support total-variation DRO at multiple radii",
+    "no-observation policy",
+    "human expert plan"
+  ],
+  "qualificationBoundary": "Synthetic scenarios show decision-criterion behavior only. Real robustness requires pre-registered scenario envelopes grounded in independent survey/campaign evidence and stakeholder-approved utilities. Finite-support total variation protects only against reweighting the supplied scenarios, not omitted scenarios or continuous distribution shift."
+}

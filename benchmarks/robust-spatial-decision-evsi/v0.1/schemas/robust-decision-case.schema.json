@@ -1,0 +1,153 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:luminous-dynamics:sol-atlas:robust-spatial-decision-evsi:0.1",
+  "type": "object",
+  "required": [
+    "benchmarkId",
+    "version",
+    "fixtureStatus",
+    "decisionProblem"
+  ],
+  "properties": {
+    "benchmarkId": {
+      "const": "sol-atlas-robust-spatial-decision-evsi"
+    },
+    "version": {
+      "const": "0.1.0"
+    },
+    "fixtureStatus": {
+      "const": "synthetic"
+    },
+    "decisionProblem": {
+      "type": "object",
+      "required": [
+        "hypotheses",
+        "actions",
+        "candidateSurveyIds",
+        "maxEffortUnits",
+        "scenarios",
+        "totalVariationRadii"
+      ],
+      "properties": {
+        "hypotheses": {
+          "type": "array",
+          "minItems": 2,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "actions": {
+          "type": "array",
+          "minItems": 2,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "candidateSurveyIds": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 8,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "maxEffortUnits": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "scenarios": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 32,
+          "items": {
+            "type": "object",
+            "required": [
+              "scenarioId",
+              "weight",
+              "hypothesisPriors",
+              "actionUtilities",
+              "surveys"
+            ],
+            "properties": {
+              "scenarioId": {
+                "type": "string",
+                "minLength": 1
+              },
+              "weight": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 1
+              },
+              "hypothesisPriors": {
+                "type": "object",
+                "minProperties": 2,
+                "additionalProperties": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 1
+                }
+              },
+              "actionUtilities": {
+                "type": "object",
+                "minProperties": 2
+              },
+              "surveys": {
+                "type": "array",
+                "minItems": 1,
+                "maxItems": 8,
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "surveyId",
+                    "effortUnits",
+                    "acquisitionCostUtility",
+                    "positiveLikelihoodByHypothesis"
+                  ],
+                  "properties": {
+                    "surveyId": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "effortUnits": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "acquisitionCostUtility": {
+                      "type": "number",
+                      "minimum": 0
+                    },
+                    "positiveLikelihoodByHypothesis": {
+                      "type": "object",
+                      "minProperties": 2,
+                      "additionalProperties": {
+                        "type": "number",
+                        "minimum": 0,
+                        "maximum": 1
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "totalVariationRadii": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,144 @@
+{
+  "benchmarkId": "sol-atlas-robust-spatial-decision-evsi",
+  "version": "0.1.0",
+  "fixtureStatus": "synthetic",
+  "decisionProblem": {
+    "hypotheses": [
+      "original_fabric",
+      "later_repair"
+    ],
+    "actions": [
+      "preserve_in_situ",
+      "intervene_and_repair"
+    ],
+    "candidateSurveyIds": [
+      "multispectral_material_scan",
+      "archive_crosscheck"
+    ],
+    "maxEffortUnits": 1,
+    "scenarios": [
+      {
+        "scenarioId": "ordinary_conditions",
+        "weight": 0.7,
+        "hypothesisPriors": {
+          "original_fabric": 0.7,
+          "later_repair": 0.3
+        },
+        "actionUtilities": {
+          "preserve_in_situ": {
+            "original_fabric": 100,
+            "later_repair": 0
+          },
+          "intervene_and_repair": {
+            "original_fabric": 0,
+            "later_repair": 100
+          }
+        },
+        "surveys": [
+          {
+            "surveyId": "multispectral_material_scan",
+            "effortUnits": 1,
+            "acquisitionCostUtility": 2,
+            "positiveLikelihoodByHypothesis": {
+              "original_fabric": 0.95,
+              "later_repair": 0.05
+            }
+          },
+          {
+            "surveyId": "archive_crosscheck",
+            "effortUnits": 1,
+            "acquisitionCostUtility": 2,
+            "positiveLikelihoodByHypothesis": {
+              "original_fabric": 0.8,
+              "later_repair": 0.2
+            }
+          }
+        ]
+      },
+      {
+        "scenarioId": "sensor_shift",
+        "weight": 0.1,
+        "hypothesisPriors": {
+          "original_fabric": 0.5,
+          "later_repair": 0.5
+        },
+        "actionUtilities": {
+          "preserve_in_situ": {
+            "original_fabric": 100,
+            "later_repair": 0
+          },
+          "intervene_and_repair": {
+            "original_fabric": 0,
+            "later_repair": 100
+          }
+        },
+        "surveys": [
+          {
+            "surveyId": "multispectral_material_scan",
+            "effortUnits": 1,
+            "acquisitionCostUtility": 2,
+            "positiveLikelihoodByHypothesis": {
+              "original_fabric": 0.51,
+              "later_repair": 0.49
+            }
+          },
+          {
+            "surveyId": "archive_crosscheck",
+            "effortUnits": 1,
+            "acquisitionCostUtility": 2,
+            "positiveLikelihoodByHypothesis": {
+              "original_fabric": 0.8,
+              "later_repair": 0.2
+            }
+          }
+        ]
+      },
+      {
+        "scenarioId": "rarer_original_fabric",
+        "weight": 0.2,
+        "hypothesisPriors": {
+          "original_fabric": 0.25,
+          "later_repair": 0.75
+        },
+        "actionUtilities": {
+          "preserve_in_situ": {
+            "original_fabric": 100,
+            "later_repair": 0
+          },
+          "intervene_and_repair": {
+            "original_fabric": 0,
+            "later_repair": 100
+          }
+        },
+        "surveys": [
+          {
+            "surveyId": "multispectral_material_scan",
+            "effortUnits": 1,
+            "acquisitionCostUtility": 2,
+            "positiveLikelihoodByHypothesis": {
+              "original_fabric": 0.95,
+              "later_repair": 0.05
+            }
+          },
+          {
+            "surveyId": "archive_crosscheck",
+            "effortUnits": 1,
+            "acquisitionCostUtility": 2,
+            "positiveLikelihoodByHypothesis": {
+              "original_fabric": 0.8,
+              "later_repair": 0.2
+            }
+          }
+        ]
+      }
+    ],
+    "totalVariationRadii": [
+      0,
+      0.1,
+      0.3,
+      0.5,
+      0.7,
+      1
+    ]
+  }
+}
