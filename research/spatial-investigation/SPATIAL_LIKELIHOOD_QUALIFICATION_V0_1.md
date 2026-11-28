@@ -79,6 +79,26 @@ Sol-Atlas supplies qualified likelihood evidence and action descriptors. Symthae
 
 Do not create a parallel sensor registry, source-authority service, inference engine or EVSI planner. Keep modality-specific physics with the relevant owner.
 
+## 3.1 Cross-repository numerical ownership — compose, do not reproduce
+
+A repository audit found mature adjacent numerical owners. This specification is an **adapter and spatial qualification contract**, not a second statistical-inference programme.
+
+- **Mycelix #5632 — TERRA-VOI-006** already owns covariance-aware sequential likelihoods, shared batch/device effects, temporal/spatial covariance, model discrepancy, predictive checks, prior/posterior SBC and calibration diagnostics. Its issue reports executable synthetic correlated-information and covariance-attribution CLIs. These do not constitute physical calibration or field qualification.
+- **Mycelix #5648 — TERRA-ROBUST-002** already owns robust Bayesian acquisition research, KL-constrained ambiguity, Sibson information, shared-KL stochastic policy evaluation, posterior-SBC extensions and robust-policy comparators. Its own claim boundary distinguishes finite exact references from the paper's not-yet-reproduced nested-Monte-Carlo/PAC-Bayes components.
+- **Symthaea #13904** owns the dynamic full-covariance state-space and covariance-model uncertainty reference, including continuous-time state propagation, common/device covariance, model averaging and elapsed-time-aware decision policy integration.
+- **Symthaea #13567** owns the exact finite-horizon sequential policy oracle; #13739 owns the audit/integration of existing experiment selectors.
+
+Sol-Atlas must not reimplement those Bayesian, covariance, state-space, robust-design or sequential-policy engines. Instead it owns the spatially specific input/output contract and independent integration checks:
+- physical spatial support, footprint, depth, geometry, CRS/vertical datum, coordinate epoch and temporal support;
+- exact target/site/campaign/instrument/configuration binding;
+- spatially valid train/calibration/test split manifests and grouped holdouts;
+- rights-qualified source and reference-truth identities;
+- transportability strata and spatial regime coverage;
+- a typed adapter carrying the provider's model, calibration, discrepancy, dependence and robustness receipts into Sol-Atlas' observation and decision evidence;
+- independent checks that the returned likelihood applies to the exact requested support, time, frame, instrument and purpose.
+
+An upstream posterior/SBC/robust-policy pass is not a Sol-Atlas spatial qualification pass. Conversely, Sol-Atlas must not claim to have recomputed or validated a posterior merely because it verified receipt identity, scope and digest. The combined evidence package must preserve the separate claim ceilings of all owners.
+
 ## 4. Calibration evidence and model identity
 
 Every likelihood qualification package must bind:
@@ -98,7 +118,9 @@ Every likelihood qualification package must bind:
 
 A calibration receipt does not prove that all relevant site, instrument or environment conditions are represented. Missing or stale fields remain explicit and block unsupported promotion.
 
-## 5. Matched likelihood baselines
+## 5. Matched likelihood-provider outputs and adapter qualification
+
+The following are candidate provider outputs / comparison arms, not implementations to be duplicated in Sol-Atlas. Statistical and Bayesian methods should be supplied by Mycelix #5632/#5648 or another named, independently reviewed provider. Sol-Atlas compares them only after binding every output to the same spatial support, outcome semantics, calibration set and model revision.
 
 ### 5.1 Binary detection
 
@@ -121,6 +143,8 @@ Where the task predicts spatial fields or intervals, compare ordinary conformal,
 
 ## 6. Model checking and uncertainty qualification
 
+Mycelix #5632/#5648 own statistical inference diagnostics such as posterior predictive checks and prior/posterior SBC. Sol-Atlas consumes their exact reports and independently checks scope, calibration-data identity, split membership, spatial strata, version and claim ceiling. It must not call a schema-valid but stale, mismatched or non-spatially transportable inference report a qualified likelihood.
+
 Report separately:
 
 - proper predictive scores: log score and Brier for binary/categorical outcomes; CRPS and suitable multivariate scores (energy / variogram) for continuous outcomes;
@@ -134,9 +158,11 @@ Report separately:
 
 Aggregate calibration is insufficient if a material site, sensor, environment or target stratum fails. Use abstention, a wider supported envelope or a new calibration acquisition rather than silently carrying over nominal accuracy.
 
-## 7. Data-derived ambiguity sets for robust EVSI
+## 7. Spatial binding of data-derived ambiguity sets for robust EVSI
 
-Feed #987 with ambiguity sets grounded in calibration evidence:
+Mycelix #5648 is the numerical owner for robust Bayesian-design methods and associated assumptions. Symthaea #13904 owns dynamic covariance/model-uncertainty propagation where applicable. Sol-Atlas must not implement a second KL/Wasserstein/PAC-Bayes/Sibson engine. It supplies exact spatial support, calibration grouping, site/instrument/regime membership and provenance to those owners, then adapts their qualified outputs into the finite scenario/sensitivity interface in #987.
+
+The ambiguity sets passed downstream must be grounded in calibration evidence:
 
 - posterior credible regions or posterior-predictive model mixtures;
 - cluster-bootstrap confidence regions respecting site/campaign/instrument dependence;
@@ -147,6 +173,8 @@ Feed #987 with ambiguity sets grounded in calibration evidence:
 Keep uncertainty within a model, uncertainty over parameters, ambiguity over the generating distribution and omitted-scenario risk distinct. Increasing an ambiguity radius does not protect against an omitted mechanism. Publish construction, calibration evidence, support, finite-sample limitations and sensitivity frontiers.
 
 ## 8. Split and leakage protocol
+
+Sol-Atlas owns the spatial split manifest and verifies grouping/overlap. Statistical split procedures and inference diagnostics are supplied by their numerical providers. Keep the manifest digest identical across the likelihood provider, evaluator and independent reviewer.
 
 Random point-level splits are insufficient. Freeze and report independent:
 
@@ -161,6 +189,8 @@ Random point-level splits are insufficient. Freeze and report independent:
 Where deployment targets both a new site and a new instrument, hold out both together. Keep repeated measurements and derived products from one acquisition/campaign on one side. Calibration labels, held-out truth, fault schedules and scenario identifiers remain evaluator-only.
 
 ## 9. Frozen adversarial corpus
+
+Fixtures should be composed from the existing #771/#785/#845 observation and forward-model controls, Mycelix #5632/#5648 statistical controls, Symthaea #13567/#13904 policy/covariance controls and new Sol-Atlas spatial-scope/adapter controls. Do not fork their numerical engines or silently change their fixture truth.
 
 At minimum, include:
 
@@ -188,6 +218,8 @@ At minimum, include:
 Include positive controls: an informative eligible measurement must be selected when it changes a declared decision and has positive qualified net value. An always-abstaining or always-buying policy cannot pass.
 
 ## 10. Metrics and qualification targets
+
+Statistical posterior, covariance and robust-design quantities are emitted by upstream numerical owners. Sol-Atlas adds spatially stratified accounting and adapter-integrity checks; it does not relabel those outputs as locally implemented estimators.
 
 Report separate results for:
 
