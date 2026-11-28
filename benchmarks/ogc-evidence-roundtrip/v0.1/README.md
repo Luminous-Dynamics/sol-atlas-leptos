@@ -9,6 +9,7 @@ This directory contains a synthetic, implementation-neutral fixture corpus for t
 - `schemas/evidence-records.schema.json`: JSON Schema for evidence metadata and rights dimensions; content is embedded only when both retrieval and public disclosure are explicitly allowed; pending or unknown rights fail closed.
 - `schemas/field-disposition-ledger.schema.json`: machine-readable ledger schema with conditional rules that prevent a route being marked completed while required evidence is absent or fields remain unassessed.
 - `cases.json`: expected baseline invariants and 21 registered negative controls.
+- `adapter-readiness.json`: reviewed candidate/validator matrix; every adapter route is explicitly marked not executed until real adapter tests run.
 
 See also [`SOL-ATLAS-INDUSTRY-SOTA-AND-EVALUATION-UPDATE-2026-11.md`](../../../docs/research/SOL-ATLAS-INDUSTRY-SOTA-AND-EVALUATION-UPDATE-2026-11.md) for current standards, industry baselines, benchmark tracks and falsifiable research hypotheses.
 
@@ -39,6 +40,10 @@ A complete adapter qualification must:
 9. apply all negative controls and assert rejection / quarantine with a reason code.
 
 Do not treat JSON parse success as profile conformance. Do not compare only rendered maps, geometry overlap or feature counts.
+
+## Independent JSON-FG validation
+
+CI invokes the Geonovum OGC Checker CLI at the pinned package version `@geonovum/ogc-checker@1.3.2` against the synthetic JSON-FG 1.0.0 feature collection. A negative control removes the required Core conformance declaration and requires the independent checker to reject it. This is a document-level conformance check, not full certification. The checker documentation marks `/req/core/valid-geometry` untested, `/req/core/axis-order` not testable, and `/req/types-schemas/feature-schemas` untested because referenced schemas are not dereferenced. These gaps remain explicit in `adapter-readiness.json`.
 
 ## Official JSON-FG conformance reference
 
