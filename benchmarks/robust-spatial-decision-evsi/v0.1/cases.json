@@ -42,6 +42,21 @@
       "id": "INV-08",
       "name": "tv-radius-monotonic-protection",
       "expected": "for each fixed portfolio, worst-case expected net EVSI cannot increase as the TV radius grows"
+    },
+    {
+      "id": "INV-07",
+      "name": "finite-support-total-variation-dro",
+      "expected": "worst-case expected net EVSI is computed by reweighting nominal scenario probabilities within each declared TV radius"
+    },
+    {
+      "id": "INV-08",
+      "name": "tv-radius-boundary-equivalence",
+      "expected": "radius 0 reproduces nominal weighted expected EVSI and radius 1 reproduces finite-scenario maximin"
+    },
+    {
+      "id": "INV-09",
+      "name": "tv-ambiguity-monotonicity",
+      "expected": "optimal worst-case expected value cannot increase as the TV ambiguity radius grows"
     }
   ],
   "negativeControls": [
@@ -68,6 +83,12 @@
       "mutation": "Set a total-variation ambiguity radius below zero or above one.",
       "expected": "reject",
       "reason": "Total-variation distance between probability distributions lies in [0, 1]."
+    },
+    {
+      "id": "NEG-04",
+      "mutation": "Supply a total-variation ambiguity radius outside [0,1].",
+      "expected": "reject",
+      "reason": "TV distance between probability distributions lies in [0,1]."
     }
   ],
   "baselines": [
