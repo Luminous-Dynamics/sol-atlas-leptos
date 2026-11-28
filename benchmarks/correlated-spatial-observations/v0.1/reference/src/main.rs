@@ -86,7 +86,11 @@ fn as_number(value: &Value, path: &str) -> f64 {
 }
 
 fn parse_problem(case: &Value) -> Problem {
-    if as_string(required(case, "fixtureStatus", "case"), "case.fixtureStatus") != "synthetic" {
+    if as_string(
+        required(case, "fixtureStatus", "case"),
+        "case.fixtureStatus",
+    ) != "synthetic"
+    {
         fail("reference evaluator only accepts synthetic fixtures");
     }
     let decision = required(case, "decisionProblem", "case");
@@ -114,7 +118,9 @@ fn parse_problem(case: &Value) -> Problem {
         hypotheses.push(Hypothesis { id, prior });
     }
     if (prior_sum - 1.0).abs() > EPSILON {
-        fail(format!("hypothesis priors must sum to 1.0, observed {prior_sum}"));
+        fail(format!(
+            "hypothesis priors must sum to 1.0, observed {prior_sum}"
+        ));
     }
 
     let action_values = as_array(
@@ -172,11 +178,18 @@ fn parse_problem(case: &Value) -> Problem {
         let mut positive_likelihood = BTreeMap::new();
         for hypothesis in &hypotheses {
             let probability = as_number(
-                required(probabilities, &hypothesis.id, &format!("{path}.positiveLikelihoodByHypothesis")),
+                required(
+                    probabilities,
+                    &hypothesis.id,
+                    &format!("{path}.positiveLikelihoodByHypothesis"),
+                ),
                 &format!("{path}.positiveLikelihoodByHypothesis.{}", hypothesis.id),
             );
             if !(0.0..=1.0).contains(&probability) {
-                fail(format!("{path} likelihood for {} must be within [0, 1]", hypothesis.id));
+                fail(format!(
+                    "{path} likelihood for {} must be within [0, 1]",
+                    hypothesis.id
+                ));
             }
             positive_likelihood.insert(hypothesis.id.clone(), probability);
         }
@@ -203,7 +216,11 @@ fn parse_problem(case: &Value) -> Problem {
 
     for hypothesis in &hypotheses {
         let outcomes = as_array(
-            required(joint_values, &hypothesis.id, "jointOutcomeLikelihoodsByHypothesis"),
+            required(
+                joint_values,
+                &hypothesis.id,
+                "jointOutcomeLikelihoodsByHypothesis",
+            ),
             &format!("jointOutcomeLikelihoodsByHypothesis.{}", hypothesis.id),
         );
         if outcomes.len() != expected_pattern_count {
@@ -215,12 +232,21 @@ fn parse_problem(case: &Value) -> Problem {
         let mut distribution = BTreeMap::new();
         let mut sum = 0.0;
         for (index, outcome) in outcomes.iter().enumerate() {
-            let path = format!("jointOutcomeLikelihoodsByHypothesis.{}[{index}]", hypothesis.id);
-            let pattern = as_string(required(outcome, "outcomes", &path), &format!("{path}.outcomes"));
+            let path = format!(
+                "jointOutcomeLikelihoodsByHypothesis.{}[{index}]",
+                hypothesis.id
+            );
+            let pattern = as_string(
+                required(outcome, "outcomes", &path),
+                &format!("{path}.outcomes"),
+            );
             if pattern.len() != surveys.len()
                 || !pattern.bytes().all(|byte| byte == b'0' || byte == b'1')
             {
-                fail(format!("{path}.outcomes must be a binary string of length {}", surveys.len()));
+                fail(format!(
+                    "{path}.outcomes must be a binary string of length {}",
+                    surveys.len()
+                ));
             }
             let probability = as_number(
                 required(outcome, "probability", &path),
@@ -230,7 +256,10 @@ fn parse_problem(case: &Value) -> Problem {
                 fail(format!("{path}.probability must be within [0, 1]"));
             }
             if distribution.insert(pattern.clone(), probability).is_some() {
-                fail(format!("duplicate joint outcome pattern {pattern} for {}", hypothesis.id));
+                fail(format!(
+                    "duplicate joint outcome pattern {pattern} for {}",
+                    hypothesis.id
+                ));
             }
             sum += probability;
         }
@@ -243,7 +272,10 @@ fn parse_problem(case: &Value) -> Problem {
             .collect();
         for pattern in expected_patterns {
             if !distribution.contains_key(&pattern) {
-                fail(format!("joint model for {} is missing pattern {pattern}", hypothesis.id));
+                fail(format!(
+                    "joint model for {} is missing pattern {pattern}",
+                    hypothesis.id
+                ));
             }
         }
         if (sum - 1.0).abs() > EPSILON {
@@ -309,7 +341,11 @@ fn conditional_outcome_probability(
                 let survey = &problem.surveys[*survey_index];
                 let positive = selected_outcome_mask & (1usize << bit) != 0;
                 let probability = survey.positive_likelihood[&hypothesis.id];
-                if positive { probability } else { 1.0 - probability }
+                if positive {
+                    probability
+                } else {
+                    1.0 - probability
+                }
             })
             .product();
     }
@@ -318,10 +354,13 @@ fn conditional_outcome_probability(
     distribution
         .iter()
         .filter(|(pattern, _)| {
-            selected_indices.iter().enumerate().all(|(bit, survey_index)| {
-                let observed = selected_outcome_mask & (1usize << bit) != 0;
-                pattern.as_bytes()[*survey_index] == if observed { b'1' } else { b'0' }
-            })
+            selected_indices
+                .iter()
+                .enumerate()
+                .all(|(bit, survey_index)| {
+                    let observed = selected_outcome_mask & (1usize << bit) != 0;
+                    pattern.as_bytes()[*survey_index] == if observed { b'1' } else { b'0' }
+                })
         })
         .map(|(_, probability)| *probability)
         .sum()
@@ -444,8 +483,12 @@ fn solve_sequential_policy(
                     if history_given_h <= EPSILON {
                         0.0
                     } else {
-                        let child_given_h =
-                            event_likelihood(problem, hypothesis, observed, Some((survey_index, positive)));
+                        let child_given_h = event_likelihood(
+                            problem,
+                            hypothesis,
+                            observed,
+                            Some((survey_index, positive)),
+                        );
                         joint_mass[hypothesis_index] * (child_given_h / history_given_h)
                     }
                 })
@@ -622,7 +665,10 @@ mod tests {
     #[test]
     fn correlated_observations_are_not_double_counted() {
         let result = calculate(&fixture());
-        close(result["baseline"]["expectedUtility"].as_f64().unwrap(), 60.0);
+        close(
+            result["baseline"]["expectedUtility"].as_f64().unwrap(),
+            60.0,
+        );
         close(
             result["twoSurveyCorrelationAudit"]["jointModel"]["grossEvsi"]
                 .as_f64()
@@ -660,7 +706,9 @@ mod tests {
             problem.max_effort_units,
         );
         assert_eq!(
-            policy.survey_index.map(|index| problem.surveys[index].id.as_str()),
+            policy
+                .survey_index
+                .map(|index| problem.surveys[index].id.as_str()),
             Some("aerial_texture_scan")
         );
         close(policy.value, 79.9);
@@ -697,8 +745,8 @@ mod tests {
     #[should_panic(expected = "does not match the declared single-survey likelihood")]
     fn rejects_joint_marginals_that_disagree_with_single_survey_likelihoods() {
         let mut case = fixture();
-        case["decisionProblem"]["surveys"][0]["positiveLikelihoodByHypothesis"]
-            ["original_fabric"] = json!(0.7);
+        case["decisionProblem"]["surveys"][0]["positiveLikelihoodByHypothesis"]["original_fabric"] =
+            json!(0.7);
         let _ = calculate(&case);
     }
 
@@ -706,8 +754,8 @@ mod tests {
     #[should_panic(expected = "must sum to 1.0")]
     fn rejects_non_normalized_joint_distribution() {
         let mut case = fixture();
-        case["decisionProblem"]["jointOutcomeLikelihoodsByHypothesis"]["original_fabric"][0]
-            ["probability"] = json!(0.5);
+        case["decisionProblem"]["jointOutcomeLikelihoodsByHypothesis"]["original_fabric"][0]["probability"] =
+            json!(0.5);
         let _ = calculate(&case);
     }
 
@@ -726,8 +774,8 @@ mod tests {
     #[should_panic(expected = "binary string of length 2")]
     fn rejects_malformed_joint_outcome_pattern() {
         let mut case = fixture();
-        case["decisionProblem"]["jointOutcomeLikelihoodsByHypothesis"]["original_fabric"][0]
-            ["outcomes"] = json!("0x");
+        case["decisionProblem"]["jointOutcomeLikelihoodsByHypothesis"]["original_fabric"][0]["outcomes"] =
+            json!("0x");
         let _ = calculate(&case);
     }
 }
