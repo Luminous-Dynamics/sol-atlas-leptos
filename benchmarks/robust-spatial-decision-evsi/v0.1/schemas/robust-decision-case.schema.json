@@ -27,7 +27,7 @@
         "maxEffortUnits",
         "scenarios",
         "totalVariationRadii",
-        "cvarAlphas"
+        "cvarTailMasses"
       ],
       "properties": {
         "hypotheses": {
@@ -148,7 +148,7 @@
             "maximum": 1
           }
         },
-        "cvarAlphas": {
+        "cvarTailMasses": {
           "type": "array",
           "minItems": 1,
           "uniqueItems": true,
