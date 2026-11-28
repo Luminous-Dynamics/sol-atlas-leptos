@@ -2,7 +2,7 @@
 
 This directory contains a **small exact synthetic oracle**, not a geostatistical, covariance, posterior, GIS or network-simulation engine.
 
-It applies a declared functional to provider-supplied synthetic joint worlds after checking the exact support contract. The first reference supports:
+It applies a declared functional to provider-supplied synthetic joint worlds after checking the exact support contract. The initial frozen corpus contains seven synthetic cases. The first reference supports:
 
 - `weighted_mean`: area/volume/line-weighted mean over the complete target support;
 - `weighted_total`: weighted total over the complete target support;
