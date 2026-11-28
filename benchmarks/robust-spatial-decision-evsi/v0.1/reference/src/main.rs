@@ -6,7 +6,6 @@ const EPSILON: f64 = 1e-10;
 
 #[derive(Clone, Debug)]
 struct Survey {
-    id: String,
     effort_units: usize,
     cost: f64,
     positive_likelihood: BTreeMap<String, f64>,
@@ -24,7 +23,6 @@ struct Scenario {
 #[derive(Clone, Debug)]
 struct Problem {
     hypotheses: Vec<String>,
-    action_ids: Vec<String>,
     survey_ids: Vec<String>,
     max_effort_units: usize,
     scenarios: Vec<Scenario>,
@@ -260,7 +258,6 @@ fn parse_problem(case: &Value) -> Problem {
                 fail(format!("{survey_path} has missing or extra hypothesis likelihoods"));
             }
             if surveys.insert(survey_id.clone(), Survey {
-                id: survey_id.clone(),
                 effort_units,
                 cost,
                 positive_likelihood,
@@ -288,7 +285,6 @@ fn parse_problem(case: &Value) -> Problem {
 
     Problem {
         hypotheses,
-        action_ids,
         survey_ids,
         max_effort_units,
         scenarios,
