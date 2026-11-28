@@ -1,0 +1,114 @@
+{
+  "benchmarkId": "sol-atlas-tiered-spatial-validation-contracts",
+  "schemaVersion": "0.1.0",
+  "protocolDigest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "sealedBeforeScoring": true,
+  "cases": [
+    {
+      "caseId": "t0-random",
+      "regime": "T0_RANDOM_DIAGNOSTIC",
+      "datasetDigest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "observations": [
+        {"observationId":"o1","x":0,"y":0,"siteId":"s1","regionId":"r1","adminAreaId":"a1","campaignId":"c1","graphCommunityId":"g1"},
+        {"observationId":"o2","x":10,"y":0,"siteId":"s1","regionId":"r1","adminAreaId":"a1","campaignId":"c1","graphCommunityId":"g1"},
+        {"observationId":"o3","x":100,"y":0,"siteId":"s2","regionId":"r1","adminAreaId":"a1","campaignId":"c1","graphCommunityId":"g2"},
+        {"observationId":"o4","x":110,"y":0,"siteId":"s2","regionId":"r1","adminAreaId":"a1","campaignId":"c1","graphCommunityId":"g2"},
+        {"observationId":"o5","x":500,"y":0,"siteId":"s3","regionId":"r2","adminAreaId":"a2","campaignId":"c2","graphCommunityId":"g3"},
+        {"observationId":"o6","x":510,"y":0,"siteId":"s3","regionId":"r2","adminAreaId":"a2","campaignId":"c2","graphCommunityId":"g3"},
+        {"observationId":"o7","x":1000,"y":0,"siteId":"s4","regionId":"r2","adminAreaId":"a2","campaignId":"c2","graphCommunityId":"g4"},
+        {"observationId":"o8","x":1010,"y":0,"siteId":"s4","regionId":"r2","adminAreaId":"a2","campaignId":"c2","graphCommunityId":"g4"}
+      ],
+      "trainingObservationIds": ["o1","o3","o5","o7"],
+      "evaluationObservationIds": ["o2","o4","o6","o8"]
+    },
+    {
+      "caseId": "t1-matched-random",
+      "regime": "T1_MATCHED_SIZE_RANDOM_CONTROL",
+      "datasetDigest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "matchedToCaseId": "t2-buffered",
+      "observations": [
+        {"observationId":"o1","x":0,"y":0,"siteId":"s1","regionId":"r1","adminAreaId":"a1","campaignId":"c1","graphCommunityId":"g1"},
+        {"observationId":"o2","x":10,"y":0,"siteId":"s1","regionId":"r1","adminAreaId":"a1","campaignId":"c1","graphCommunityId":"g1"},
+        {"observationId":"o3","x":100,"y":0,"siteId":"s2","regionId":"r1","adminAreaId":"a1","campaignId":"c1","graphCommunityId":"g2"},
+        {"observationId":"o4","x":110,"y":0,"siteId":"s2","regionId":"r1","adminAreaId":"a1","campaignId":"c1","graphCommunityId":"g2"},
+        {"observationId":"o5","x":500,"y":0,"siteId":"s3","regionId":"r2","adminAreaId":"a2","campaignId":"c2","graphCommunityId":"g3"},
+        {"observationId":"o6","x":510,"y":0,"siteId":"s3","regionId":"r2","adminAreaId":"a2","campaignId":"c2","graphCommunityId":"g3"},
+        {"observationId":"o7","x":1000,"y":0,"siteId":"s4","regionId":"r2","adminAreaId":"a2","campaignId":"c2","graphCommunityId":"g4"},
+        {"observationId":"o8","x":1010,"y":0,"siteId":"s4","regionId":"r2","adminAreaId":"a2","campaignId":"c2","graphCommunityId":"g4"}
+      ],
+      "trainingObservationIds": ["o1","o3","o5","o7"],
+      "evaluationObservationIds": ["o2","o4","o6","o8"]
+    },
+    {
+      "caseId": "t2-buffered",
+      "regime": "T2_COORDINATE_BUFFERED",
+      "datasetDigest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "coordinateReferenceSystem": "EPSG:32735",
+      "coordinateUnits": "metre",
+      "minimumSeparationMeters": 500,
+      "observations": [
+        {"observationId":"o1","x":0,"y":0,"siteId":"s1","regionId":"r1","adminAreaId":"a1","campaignId":"c1","graphCommunityId":"g1"},
+        {"observationId":"o2","x":10,"y":0,"siteId":"s1","regionId":"r1","adminAreaId":"a1","campaignId":"c1","graphCommunityId":"g1"},
+        {"observationId":"o3","x":100,"y":0,"siteId":"s2","regionId":"r1","adminAreaId":"a1","campaignId":"c1","graphCommunityId":"g2"},
+        {"observationId":"o4","x":110,"y":0,"siteId":"s2","regionId":"r1","adminAreaId":"a1","campaignId":"c1","graphCommunityId":"g2"},
+        {"observationId":"o5","x":500,"y":0,"siteId":"s3","regionId":"r2","adminAreaId":"a2","campaignId":"c2","graphCommunityId":"g3"},
+        {"observationId":"o6","x":510,"y":0,"siteId":"s3","regionId":"r2","adminAreaId":"a2","campaignId":"c2","graphCommunityId":"g3"},
+        {"observationId":"o7","x":1000,"y":0,"siteId":"s4","regionId":"r2","adminAreaId":"a2","campaignId":"c2","graphCommunityId":"g4"},
+        {"observationId":"o8","x":1010,"y":0,"siteId":"s4","regionId":"r2","adminAreaId":"a2","campaignId":"c2","graphCommunityId":"g4"}
+      ],
+      "trainingObservationIds": ["o1","o2","o3","o4"],
+      "evaluationObservationIds": ["o7","o8"]
+    },
+    {
+      "caseId": "t3-graph",
+      "regime": "T3_GRAPH_COMMUNITY_HOLDOUT",
+      "datasetDigest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "observations": [
+        {"observationId":"o1","x":0,"y":0,"siteId":"s1","regionId":"r1","adminAreaId":"a1","campaignId":"c1","graphCommunityId":"g1"},
+        {"observationId":"o2","x":10,"y":0,"siteId":"s1","regionId":"r1","adminAreaId":"a1","campaignId":"c1","graphCommunityId":"g1"},
+        {"observationId":"o3","x":100,"y":0,"siteId":"s2","regionId":"r1","adminAreaId":"a1","campaignId":"c1","graphCommunityId":"g2"},
+        {"observationId":"o4","x":110,"y":0,"siteId":"s2","regionId":"r1","adminAreaId":"a1","campaignId":"c1","graphCommunityId":"g2"},
+        {"observationId":"o5","x":500,"y":0,"siteId":"s3","regionId":"r2","adminAreaId":"a2","campaignId":"c2","graphCommunityId":"g3"},
+        {"observationId":"o6","x":510,"y":0,"siteId":"s3","regionId":"r2","adminAreaId":"a2","campaignId":"c2","graphCommunityId":"g3"},
+        {"observationId":"o7","x":1000,"y":0,"siteId":"s4","regionId":"r2","adminAreaId":"a2","campaignId":"c2","graphCommunityId":"g4"},
+        {"observationId":"o8","x":1010,"y":0,"siteId":"s4","regionId":"r2","adminAreaId":"a2","campaignId":"c2","graphCommunityId":"g4"}
+      ],
+      "trainingObservationIds": ["o1","o2","o5","o6"],
+      "evaluationObservationIds": ["o3","o4","o7","o8"]
+    },
+    {
+      "caseId": "t4-admin",
+      "regime": "T4_ADMINISTRATIVE_HOLDOUT",
+      "datasetDigest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "observations": [
+        {"observationId":"o1","x":0,"y":0,"siteId":"s1","regionId":"r1","adminAreaId":"a1","campaignId":"c1","graphCommunityId":"g1"},
+        {"observationId":"o2","x":10,"y":0,"siteId":"s1","regionId":"r1","adminAreaId":"a1","campaignId":"c1","graphCommunityId":"g1"},
+        {"observationId":"o3","x":100,"y":0,"siteId":"s2","regionId":"r1","adminAreaId":"a1","campaignId":"c1","graphCommunityId":"g2"},
+        {"observationId":"o4","x":110,"y":0,"siteId":"s2","regionId":"r1","adminAreaId":"a1","campaignId":"c1","graphCommunityId":"g2"},
+        {"observationId":"o5","x":500,"y":0,"siteId":"s3","regionId":"r2","adminAreaId":"a2","campaignId":"c2","graphCommunityId":"g3"},
+        {"observationId":"o6","x":510,"y":0,"siteId":"s3","regionId":"r2","adminAreaId":"a2","campaignId":"c2","graphCommunityId":"g3"},
+        {"observationId":"o7","x":1000,"y":0,"siteId":"s4","regionId":"r2","adminAreaId":"a2","campaignId":"c2","graphCommunityId":"g4"},
+        {"observationId":"o8","x":1010,"y":0,"siteId":"s4","regionId":"r2","adminAreaId":"a2","campaignId":"c2","graphCommunityId":"g4"}
+      ],
+      "trainingObservationIds": ["o1","o2","o3","o4"],
+      "evaluationObservationIds": ["o5","o6","o7","o8"]
+    },
+    {
+      "caseId": "t5-external",
+      "regime": "T5_EXTERNAL_REGION_CAMPAIGN",
+      "datasetDigest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "observations": [
+        {"observationId":"o1","x":0,"y":0,"siteId":"s1","regionId":"r1","adminAreaId":"a1","campaignId":"c1","graphCommunityId":"g1"},
+        {"observationId":"o2","x":10,"y":0,"siteId":"s1","regionId":"r1","adminAreaId":"a1","campaignId":"c1","graphCommunityId":"g1"},
+        {"observationId":"o3","x":100,"y":0,"siteId":"s2","regionId":"r1","adminAreaId":"a1","campaignId":"c1","graphCommunityId":"g2"},
+        {"observationId":"o4","x":110,"y":0,"siteId":"s2","regionId":"r1","adminAreaId":"a1","campaignId":"c1","graphCommunityId":"g2"},
+        {"observationId":"o5","x":500,"y":0,"siteId":"s3","regionId":"r2","adminAreaId":"a2","campaignId":"c2","graphCommunityId":"g3"},
+        {"observationId":"o6","x":510,"y":0,"siteId":"s3","regionId":"r2","adminAreaId":"a2","campaignId":"c2","graphCommunityId":"g3"},
+        {"observationId":"o7","x":1000,"y":0,"siteId":"s4","regionId":"r2","adminAreaId":"a2","campaignId":"c2","graphCommunityId":"g4"},
+        {"observationId":"o8","x":1010,"y":0,"siteId":"s4","regionId":"r2","adminAreaId":"a2","campaignId":"c2","graphCommunityId":"g4"}
+      ],
+      "trainingObservationIds": ["o1","o2","o3","o4"],
+      "evaluationObservationIds": ["o5","o6","o7","o8"]
+    }
+  ]
+}

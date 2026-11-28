@@ -1,0 +1,62 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://luminousdynamics.io/schemas/tiered-spatial-validation-contracts-v0.1.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["benchmarkId", "schemaVersion", "protocolDigest", "sealedBeforeScoring", "cases"],
+  "properties": {
+    "benchmarkId": {"const": "sol-atlas-tiered-spatial-validation-contracts"},
+    "schemaVersion": {"const": "0.1.0"},
+    "protocolDigest": {"type": "string", "pattern": "^sha256:[0-9a-fA-F]{64}$"},
+    "sealedBeforeScoring": {"const": true},
+    "cases": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["caseId", "regime", "datasetDigest", "observations", "trainingObservationIds", "evaluationObservationIds"],
+        "properties": {
+          "caseId": {"type": "string", "minLength": 1},
+          "regime": {"enum": ["T0_RANDOM_DIAGNOSTIC", "T1_MATCHED_SIZE_RANDOM_CONTROL", "T2_COORDINATE_BUFFERED", "T3_GRAPH_COMMUNITY_HOLDOUT", "T4_ADMINISTRATIVE_HOLDOUT", "T5_EXTERNAL_REGION_CAMPAIGN"]},
+          "datasetDigest": {"type": "string", "pattern": "^sha256:[0-9a-fA-F]{64}$"},
+          "observations": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["observationId", "x", "y", "siteId", "regionId", "adminAreaId", "campaignId", "graphCommunityId"],
+              "properties": {
+                "observationId": {"type": "string", "minLength": 1},
+                "x": {"type": "number"},
+                "y": {"type": "number"},
+                "siteId": {"type": "string", "minLength": 1},
+                "regionId": {"type": "string", "minLength": 1},
+                "adminAreaId": {"type": "string", "minLength": 1},
+                "campaignId": {"type": "string", "minLength": 1},
+                "graphCommunityId": {"type": "string", "minLength": 1}
+              }
+            }
+          },
+          "trainingObservationIds": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+          "evaluationObservationIds": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+          "matchedToCaseId": {"type": "string", "minLength": 1},
+          "coordinateReferenceSystem": {"type": "string", "minLength": 1},
+          "coordinateUnits": {"const": "metre"},
+          "minimumSeparationMeters": {"type": "number", "exclusiveMinimum": 0}
+        },
+        "allOf": [
+          {
+            "if": {"properties": {"regime": {"const": "T1_MATCHED_SIZE_RANDOM_CONTROL"}}},
+            "then": {"required": ["matchedToCaseId"]}
+          },
+          {
+            "if": {"properties": {"regime": {"const": "T2_COORDINATE_BUFFERED"}}},
+            "then": {"required": ["coordinateReferenceSystem", "coordinateUnits", "minimumSeparationMeters"]}
+          }
+        ]
+      }
+    }
+  }
+}
