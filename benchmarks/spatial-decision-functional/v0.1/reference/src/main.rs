@@ -865,7 +865,7 @@ mod tests {
     fn unknown_support_without_bounds_never_becomes_zero() {
         let mut document = fixture();
         document["cases"][0]["support"]["cells"][1].as_object_mut().unwrap().remove("lowerValue");
-        document["cases"][1]["support"]["cells"][1].as_object_mut().unwrap().remove("upperValue");
+        document["cases"][0]["support"]["cells"][1].as_object_mut().unwrap().remove("upperValue");
         let report = evaluate_document(&document).expect("unknown support remains a valid input");
         let result = case_result(&report, "mean-with-unknown-support");
         assert_eq!(result["status"], "UNKNOWN");
@@ -908,7 +908,7 @@ mod tests {
     #[test]
     fn rejects_unknown_cell_values_smuggled_into_worlds() {
         let mut document = fixture();
-        document["cases"][1]["worlds"][0]["values"]["cell-unknown"] = json!(3.0);
+        document["cases"][1]["worlds"][0]["values"]["cell-c"] = json!(3.0);
         assert!(evaluate_document(&document).is_err());
     }
 }
