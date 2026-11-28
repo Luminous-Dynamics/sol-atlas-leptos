@@ -320,7 +320,7 @@ fn parse_dataset(case: &Value) -> Dataset {
 
     predictions.sort_by(|a, b| a.prediction_id.cmp(&b.prediction_id));
     measurements.sort_by(|a, b| a.observation_id.cmp(&b.observation_id));
-    ok_or_fail(Dataset {
+    Dataset {
         training_sites,
         evaluation_sites,
         predictions,
@@ -330,11 +330,7 @@ fn parse_dataset(case: &Value) -> Dataset {
         selective_thresholds,
         bootstrap_replicates,
         bootstrap_seed,
-    })
-}
-
-fn ok_or_fail(dataset: Dataset) -> Dataset {
-    dataset
+    }
 }
 
 fn calibration_metrics(dataset: &Dataset) -> Value {
@@ -362,6 +358,39 @@ fn calibration_metrics(dataset: &Dataset) -> Value {
         })
         .sum::<f64>()
         / count;
+
+    // Exact forecast-category Murphy decomposition: BS = reliability - resolution + uncertainty.
+    // Grouping by exact forecast values gives a sample-exact decomposition; sparse categories remain noisy.
+    let base_rate = dataset
+        .predictions
+        .iter()
+        .filter(|prediction| prediction.outcome)
+        .count() as f64
+        / count;
+    let mut forecast_groups = BTreeMap::<u64, Vec<&ProbabilityPrediction>>::new();
+    for prediction in &dataset.predictions {
+        forecast_groups
+            .entry(prediction.probability.to_bits())
+            .or_default()
+            .push(prediction);
+    }
+    let mut brier_reliability = 0.0;
+    let mut brier_resolution = 0.0;
+    for bucket in forecast_groups.values() {
+        let bucket_count = bucket.len() as f64;
+        let forecast_probability = bucket[0].probability;
+        let observed_frequency = bucket
+            .iter()
+            .filter(|prediction| prediction.outcome)
+            .count() as f64
+            / bucket_count;
+        let weight = bucket_count / count;
+        brier_reliability +=
+            weight * (forecast_probability - observed_frequency).powi(2);
+        brier_resolution += weight * (observed_frequency - base_rate).powi(2);
+    }
+    let brier_uncertainty = base_rate * (1.0 - base_rate);
+    let reconstructed_brier = brier_reliability - brier_resolution + brier_uncertainty;
 
     let mut bins: Vec<Vec<&ProbabilityPrediction>> =
         (0..dataset.calibration_bins).map(|_| Vec::new()).collect();
@@ -441,6 +470,14 @@ fn calibration_metrics(dataset: &Dataset) -> Value {
     json!({
         "sampleCount": dataset.predictions.len(),
         "brierScore": brier_score,
+        "brierDecomposition": {
+            "baseRate": base_rate,
+            "reliability": brier_reliability,
+            "resolution": brier_resolution,
+            "uncertainty": brier_uncertainty,
+            "reconstructedBrierScore": reconstructed_brier,
+            "forecastCategoryCount": forecast_groups.len()
+        },
         "logLoss": log_loss,
         "expectedCalibrationError": expected_calibration_error,
         "binCount": dataset.calibration_bins,
@@ -721,6 +758,18 @@ mod tests {
             0.9844225560537794,
         );
         close(
+            result["probabilisticCalibration"]["brierDecomposition"]["reconstructedBrierScore"]
+                .as_f64()
+                .unwrap(),
+            0.21501666666666666,
+        );
+        close(
+            result["probabilisticCalibration"]["brierDecomposition"]["baseRate"]
+                .as_f64()
+                .unwrap(),
+            0.5,
+        );
+        close(
             result["probabilisticCalibration"]["expectedCalibrationError"]
                 .as_f64()
                 .unwrap(),
@@ -770,7 +819,10 @@ mod tests {
         let bootstrap = &result["siteClusterBootstrap"];
         assert_eq!(bootstrap["clusterCount"], 3);
         assert_eq!(bootstrap["replicates"], 1000);
-        assert_eq!(calculate(&fixture())["siteClusterBootstrap"], *bootstrap);
+        assert_eq!(
+            calculate(&fixture())["siteClusterBootstrap"],
+            bootstrap.clone()
+        );
         assert!(
             bootstrap["intervalCoverage95PercentCI"]["lower"]
                 .as_f64()
