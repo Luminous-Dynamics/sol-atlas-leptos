@@ -1,0 +1,75 @@
+{
+  "fixtureStatus": "synthetic",
+  "records": [
+    {
+      "recordId": "record-support-001",
+      "recordType": "direct_measurement",
+      "relation": "supports",
+      "summary": "Synthetic measured survey record.",
+      "payloadDigest": "sha256:5cfc7c307855e4f423b034e94c7eb951605d31f3500c660d758dafee3851758a",
+      "rights": {
+        "decisionStatus": "verified",
+        "recordVisibility": "allowed",
+        "metadataVisibility": "allowed",
+        "contentRetrieval": "allowed",
+        "publicDisclosure": "allowed",
+        "redistribution": "allowed",
+        "commercialUse": "allowed",
+        "modelTraining": "prohibited"
+      },
+      "syntheticPayload": "synthetic evidence payload: measured survey record v0.1"
+    },
+    {
+      "recordId": "record-counter-001",
+      "recordType": "field_assessment",
+      "relation": "contradicts",
+      "summary": "Synthetic contradictory field assessment; source content is deliberately withheld.",
+      "payloadDigest": "sha256:b16ee28fb58345bc1c7680b171d00f03d6d0958f879eab282cab959058849d3f",
+      "rights": {
+        "decisionStatus": "pending",
+        "recordVisibility": "allowed",
+        "metadataVisibility": "allowed",
+        "contentRetrieval": "prohibited",
+        "publicDisclosure": "prohibited",
+        "redistribution": "prohibited",
+        "commercialUse": "unknown",
+        "modelTraining": "prohibited"
+      }
+    },
+    {
+      "recordId": "record-context-001",
+      "recordType": "historical_document",
+      "relation": "context_only",
+      "summary": "Synthetic contextual historical record.",
+      "payloadDigest": "sha256:d319705acf25fbe6f6365009a3e9dddaa0eaf9112537253324f237771d71d925",
+      "rights": {
+        "decisionStatus": "verified",
+        "recordVisibility": "allowed",
+        "metadataVisibility": "allowed",
+        "contentRetrieval": "allowed",
+        "publicDisclosure": "allowed",
+        "redistribution": "allowed",
+        "commercialUse": "prohibited",
+        "modelTraining": "prohibited"
+      },
+      "syntheticPayload": "synthetic evidence payload: contextual archive excerpt v0.1"
+    },
+    {
+      "recordId": "record-private-unreferenced-001",
+      "recordType": "other",
+      "relation": "context_only",
+      "summary": "Synthetic restricted record; no public metadata permission.",
+      "payloadDigest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "rights": {
+        "decisionStatus": "pending",
+        "recordVisibility": "prohibited",
+        "metadataVisibility": "prohibited",
+        "contentRetrieval": "prohibited",
+        "publicDisclosure": "prohibited",
+        "redistribution": "prohibited",
+        "commercialUse": "unknown",
+        "modelTraining": "prohibited"
+      }
+    }
+  ]
+}

@@ -1,0 +1,60 @@
+{
+  "schemaVersion": "0.1.0",
+  "ledgerId": "sol-atlas-ogc-json-fg-registration-only",
+  "sourceProfile": "sol-atlas-evidence-profile/0.1",
+  "targetFormat": "OGC JSON-FG/1.0.0",
+  "adapterPath": [
+    "sol-atlas-evidence-profile/0.1",
+    "ogc-json-fg/1.0.0"
+  ],
+  "executionStatus": "not_executed",
+  "sourceArtifactDigest": null,
+  "targetArtifactDigest": null,
+  "entries": [
+    {
+      "fieldPath": "Feature.id",
+      "disposition": "not_assessed",
+      "reason": "No adapter route has been executed; this entry is a registration-only placeholder."
+    },
+    {
+      "fieldPath": "Feature.geometry",
+      "disposition": "not_assessed",
+      "reason": "No adapter route has been executed; geometry/CRS preservation is unmeasured."
+    },
+    {
+      "fieldPath": "Feature.properties.solAtlas.claim",
+      "disposition": "not_assessed",
+      "reason": "No adapter route has been executed; claim semantics are unmeasured."
+    },
+    {
+      "fieldPath": "Feature.properties.solAtlas.temporal",
+      "disposition": "not_assessed",
+      "reason": "No adapter route has been executed; temporal-role preservation is unmeasured."
+    },
+    {
+      "fieldPath": "Feature.properties.solAtlas.uncertainty",
+      "disposition": "not_assessed",
+      "reason": "No adapter route has been executed; uncertainty semantics are unmeasured."
+    },
+    {
+      "fieldPath": "Feature.properties.solAtlas.evidenceAssociations",
+      "disposition": "not_assessed",
+      "reason": "No adapter route has been executed; evidence relations and links are unmeasured."
+    },
+    {
+      "fieldPath": "Feature.properties.solAtlas.provenance",
+      "disposition": "not_assessed",
+      "reason": "No adapter route has been executed; provenance and digest behavior are unmeasured."
+    },
+    {
+      "fieldPath": "Feature.properties.solAtlas.hypothesisSet",
+      "disposition": "not_assessed",
+      "reason": "No adapter route has been executed; alternative-interpretation retention is unmeasured."
+    },
+    {
+      "fieldPath": "EvidenceRecord.rights",
+      "disposition": "not_assessed",
+      "reason": "No adapter route has been executed; rights non-escalation is unmeasured."
+    }
+  ]
+}

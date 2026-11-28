@@ -1,0 +1,289 @@
+{
+  "benchmarkId": "ogc-evidence-roundtrip",
+  "version": "0.1",
+  "status": "draft-fixture-corpus",
+  "fixtureFiles": [
+    "fixtures/feature-collection.json",
+    "fixtures/evidence-records.json",
+    "fixtures/field-disposition-ledger.json"
+  ],
+  "expectedBaseline": {
+    "featureCount": 1,
+    "featureId": "synthetic-site:element-001",
+    "claimAssessmentState": "contested",
+    "supportAssociations": 1,
+    "contradictAssociations": 1,
+    "contextOnlyAssociations": 1,
+    "hypothesisAlternatives": 2,
+    "selectedHypothesisCount": 0,
+    "rightsEscalations": 0,
+    "restrictedContentEmbedded": 0,
+    "fieldDispositionEntries": 9,
+    "unassessedFieldDispositionEntries": 9
+  },
+  "invariants": [
+    {
+      "id": "INV-01",
+      "name": "feature-and-claim-identity",
+      "expected": "preserve"
+    },
+    {
+      "id": "INV-02",
+      "name": "association-set-disjointness",
+      "expected": "preserve"
+    },
+    {
+      "id": "INV-03",
+      "name": "association-record-relation-match",
+      "expected": "preserve"
+    },
+    {
+      "id": "INV-04",
+      "name": "record-dependency-completeness",
+      "expected": "preserve"
+    },
+    {
+      "id": "INV-05",
+      "name": "source-payload-digest-binding",
+      "expected": "preserve"
+    },
+    {
+      "id": "INV-06",
+      "name": "rights-capability-non-escalation",
+      "expected": "preserve"
+    },
+    {
+      "id": "INV-07",
+      "name": "restricted-content-omission",
+      "expected": "preserve"
+    },
+    {
+      "id": "INV-08",
+      "name": "valid-observation-recorded-decision-time-separation",
+      "expected": "preserve"
+    },
+    {
+      "id": "INV-09",
+      "name": "uncertainty-units-method-and-coverage",
+      "expected": "preserve"
+    },
+    {
+      "id": "INV-10",
+      "name": "geometry-origin-and-crs-semantics",
+      "expected": "preserve"
+    },
+    {
+      "id": "INV-11",
+      "name": "provenance-input-config-output-digests",
+      "expected": "preserve"
+    },
+    {
+      "id": "INV-12",
+      "name": "competing-hypothesis-set",
+      "expected": "preserve"
+    },
+    {
+      "id": "INV-13",
+      "name": "deterministic-canonical-semantic-replay",
+      "expected": "preserve"
+    },
+    {
+      "id": "INV-14",
+      "name": "field-disposition-ledger-completeness",
+      "expected": "every profile field preserved, transformed with explicit mapping, or blocked with reason"
+    },
+    {
+      "id": "INV-15",
+      "name": "public-projection-noninterference",
+      "expected": "restricted-only input changes produce byte-identical canonical public projection"
+    },
+    {
+      "id": "INV-16",
+      "name": "unordered-input-permutation-invariance",
+      "expected": "canonical semantic output is unchanged by source-record ordering"
+    },
+    {
+      "id": "INV-17",
+      "name": "restricted-linked-metadata-noninterference",
+      "expected": "changes to hidden linked record IDs, summaries and digests do not change the public semantic projection"
+    },
+    {
+      "id": "INV-18",
+      "name": "field-disposition-ledger-completeness",
+      "expected": "every profile field has an explicit disposition; a route cannot be complete while any entry remains not_assessed or required execution digests are absent"
+    },
+    {
+      "id": "INV-19",
+      "name": "derived-field-rights-taint-propagation",
+      "expected": "a public semantic field is emitted only when every declared source-record dependency is explicitly visible; hidden-derived claim, geometry, time, uncertainty or hypothesis values are withheld"
+    }
+  ],
+  "negativeControls": [
+    {
+      "id": "NEG-01",
+      "mutation": "Move record-counter-001 from contradicts to supports.",
+      "expected": "reject",
+      "reason": "A contradicting source must not satisfy positive support."
+    },
+    {
+      "id": "NEG-02",
+      "mutation": "Duplicate record-support-001 in contradicts.",
+      "expected": "reject",
+      "reason": "Association sets must be disjoint per feature."
+    },
+    {
+      "id": "NEG-03",
+      "mutation": "Delete record-context-001 from the record dependency package.",
+      "expected": "reject",
+      "reason": "All associations must resolve to a dependency."
+    },
+    {
+      "id": "NEG-04",
+      "mutation": "Change the counter record relation to supports but keep its association in contradicts.",
+      "expected": "reject",
+      "reason": "Declared record relation must match the association class."
+    },
+    {
+      "id": "NEG-05",
+      "mutation": "Change counter record contentRetrieval from prohibited to allowed without an independent rights decision.",
+      "expected": "reject",
+      "reason": "A transform cannot upgrade rights."
+    },
+    {
+      "id": "NEG-06",
+      "mutation": "Embed the pending counter-source body in the public feature response.",
+      "expected": "reject",
+      "reason": "A public metadata reference does not authorize content disclosure."
+    },
+    {
+      "id": "NEG-07",
+      "mutation": "Remove the rights-pending record ID from the public-reference fixture but leave its count in an aggregate field.",
+      "expected": "reject",
+      "reason": "No side-channel disclosure of restricted or omitted records."
+    },
+    {
+      "id": "NEG-08",
+      "mutation": "Replace unknown decisionTime with the export timestamp.",
+      "expected": "reject",
+      "reason": "Unknown time cannot be fabricated."
+    },
+    {
+      "id": "NEG-09",
+      "mutation": "Drop observationTime or recordedTime while preserving JSON-FG time.",
+      "expected": "reject",
+      "reason": "JSON-FG time does not encode every temporal role."
+    },
+    {
+      "id": "NEG-10",
+      "mutation": "Swap longitude and latitude without a declared CRS transform.",
+      "expected": "reject",
+      "reason": "Axis-order drift is a semantic geometry error."
+    },
+    {
+      "id": "NEG-11",
+      "mutation": "Remove uncertainty units or method.",
+      "expected": "reject",
+      "reason": "Uncertainty values without dimensional/method context are incomplete."
+    },
+    {
+      "id": "NEG-12",
+      "mutation": "Change geometryOrigin from survey_derived to measured.",
+      "expected": "reject",
+      "reason": "Derived geometry must not be relabelled as a direct observation."
+    },
+    {
+      "id": "NEG-13",
+      "mutation": "Collapse the two retained hypotheses into one without a decision record.",
+      "expected": "reject",
+      "reason": "Alternative interpretations remain explicit until adjudicated."
+    },
+    {
+      "id": "NEG-14",
+      "mutation": "Alter a provenance input digest or the configuration digest.",
+      "expected": "reject",
+      "reason": "Reconstruction lineage must be content-bound."
+    },
+    {
+      "id": "NEG-15",
+      "mutation": "Strip properties.solAtlas while returning a valid GeoJSON Feature.",
+      "expected": "reject",
+      "reason": "Syntactic GeoJSON validity cannot mask loss of required profile semantics."
+    },
+    {
+      "id": "NEG-16",
+      "mutation": "Add a restricted-only evidence record to the input and compare the canonical public projection.",
+      "expected": "reject-if-different",
+      "reason": "Private-only changes must not affect public observable output."
+    },
+    {
+      "id": "NEG-17",
+      "mutation": "Permute the evidence record array and re-run canonicalization.",
+      "expected": "same-output",
+      "reason": "Unordered set semantics must not depend on transport ordering."
+    },
+    {
+      "id": "NEG-18",
+      "mutation": "Change only the identifier, summary and digest of a linked record whose recordVisibility and metadataVisibility are prohibited; update private references consistently.",
+      "expected": "same-public-output",
+      "reason": "Restricted linked metadata must not leak through association references or provenance digest lists."
+    },
+    {
+      "id": "NEG-19",
+      "mutation": "Mark the field-disposition ledger completed while entries remain not_assessed or source/target artifact digests are absent.",
+      "expected": "reject",
+      "reason": "An unexecuted or incompletely accounted-for adapter route must never be reported as qualified."
+    },
+    {
+      "id": "NEG-20",
+      "mutation": "Embed syntheticPayload when contentRetrieval or publicDisclosure is pending or unknown (rather than explicitly allowed).",
+      "expected": "reject",
+      "reason": "The profile is fail-closed: both content retrieval and public disclosure must be explicitly allowed before content is embedded."
+    },
+    {
+      "id": "NEG-21",
+      "mutation": "Remove a required field from the field-disposition ledger or duplicate another field path.",
+      "expected": "reject",
+      "reason": "The adapter ledger must account for the frozen source-profile field inventory exactly once."
+    },
+    {
+      "id": "NEG-22",
+      "mutation": "Mark a linked source record's recordVisibility or metadataVisibility as prohibited while leaving a derived semantic claim or hypothesis public.",
+      "expected": "omit-derived-field",
+      "reason": "Restrictions propagate transitively to derived semantic values; public claims cannot launder restricted source content."
+    },
+    {
+      "id": "NEG-23",
+      "mutation": "Remove a field dependency or reference a record not present in the evidence package.",
+      "expected": "reject",
+      "reason": "Unknown lineage cannot be treated as public; field-level provenance is fail-closed."
+    }
+  ],
+  "qualificationRules": {
+    "profileQualification": "100% of registered invariants preserved on each claimed adapter path.",
+    "negativeControlQualification": "100% of registered negative controls rejected or quarantined with a reason code.",
+    "privacyAndRights": "Zero rights escalations and zero restricted-source disclosures.",
+    "replayQualification": "Canonical semantic projection digest identical across three repeated runs.",
+    "ogcQualification": "Run the official OGC API - Features ETS for advertised API classes separately; these profile fixtures alone do not confer OGC conformance.",
+    "adapterRouteQualification": "A route may be reported completed only when every registered source field has a terminal disposition, source and target artifact digests are present, and the adapter/environment versions are recorded."
+  },
+  "schemas": {
+    "featureExtension": "schemas/feature-extension.schema.json",
+    "evidenceRecords": "schemas/evidence-records.schema.json",
+    "jsonSchemaDraft": "https://json-schema.org/draft/2020-12/schema",
+    "fieldDispositionLedger": "schemas/field-disposition-ledger.schema.json"
+  },
+  "validationBoundary": {
+    "jsonSchemaValidates": "Per-object shape, required fields, primitive types and enumerations. Field-disposition ledger states and conditional completion requirements. Evidence payload embedding only when both contentRetrieval and publicDisclosure are explicitly allowed; pending/unknown rights do not qualify. Semantic CI check compares the ledger's unique field paths with the frozen nine-field source-profile inventory and rejects missing or duplicate paths.",
+    "semanticValidatorRequired": [
+      "cross-association ID disjointness",
+      "association-to-record resolution and relation agreement",
+      "record digest binding",
+      "rights capability non-escalation across transformation",
+      "public-projection noninterference / side-channel checks",
+      "CRS transform correctness and canonical geometry comparison",
+      "canonical provenance digest verification",
+      "adapter field-disposition coverage against a frozen source-profile field inventory",
+      "field-level dependency closure and rights-taint propagation for derived claim, geometry, temporal, uncertainty, geometry-origin and hypothesis fields"
+    ]
+  }
+}

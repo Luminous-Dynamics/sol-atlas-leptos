@@ -44,6 +44,147 @@ jobs:
       # would otherwise have shipped, 2026-07-10.
       - run: cargo check --target wasm32-unknown-unknown
 
+  ogc-evidence-validator:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: benchmarks/ogc-evidence-roundtrip/v0.1
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+      - name: Validate profile JSON Schemas and field-disposition ledger
+        run: |
+          python -m pip install --disable-pip-version-check jsonschema==4.26.0
+          python - <<'PY'
+          import copy
+          import json
+          from pathlib import Path
+          from jsonschema import Draft202012Validator
+
+          def load(path):
+              return json.loads(Path(path).read_text(encoding="utf-8"))
+
+          checks = [
+              ("schemas/feature-extension.schema.json",
+               load("fixtures/feature-collection.json")["features"][0]["properties"]["solAtlas"]),
+              ("schemas/evidence-records.schema.json",
+               load("fixtures/evidence-records.json")),
+              ("schemas/field-disposition-ledger.schema.json",
+               load("fixtures/field-disposition-ledger.json")),
+          ]
+          for schema_path, instance in checks:
+              schema = load(schema_path)
+              Draft202012Validator.check_schema(schema)
+              errors = sorted(
+                  Draft202012Validator(schema).iter_errors(instance),
+                  key=lambda error: list(error.absolute_path),
+              )
+              if errors:
+                  raise SystemExit(
+                      f"{schema_path}: " + "; ".join(error.message for error in errors)
+                  )
+              print(f"VALID: {schema_path}")
+
+          ledger_schema = load("schemas/field-disposition-ledger.schema.json")
+          ledger_validator = Draft202012Validator(ledger_schema)
+          invalid_completion = load("fixtures/field-disposition-ledger.json")
+          invalid_completion["executionStatus"] = "completed"
+          invalid_completion["sourceArtifactDigest"] = "sha256:" + "a" * 64
+          invalid_completion["targetArtifactDigest"] = "sha256:" + "b" * 64
+          if ledger_validator.is_valid(invalid_completion):
+              raise SystemExit("NEGATIVE CONTROL FAILED: unassessed ledger accepted as completed")
+
+          missing_reason = load("fixtures/field-disposition-ledger.json")
+          del missing_reason["entries"][0]["reason"]
+          if ledger_validator.is_valid(missing_reason):
+              raise SystemExit("NEGATIVE CONTROL FAILED: not_assessed entry without reason accepted")
+          ledger_fixture = load("fixtures/field-disposition-ledger.json")
+          required_field_inventory = {
+              "Feature.id",
+              "Feature.geometry",
+              "Feature.properties.solAtlas.claim",
+              "Feature.properties.solAtlas.temporal",
+              "Feature.properties.solAtlas.uncertainty",
+              "Feature.properties.solAtlas.evidenceAssociations",
+              "Feature.properties.solAtlas.provenance",
+              "Feature.properties.solAtlas.hypothesisSet",
+              "EvidenceRecord.rights",
+          }
+
+          def covers_required_inventory(ledger):
+              paths = [entry["fieldPath"] for entry in ledger["entries"]]
+              return len(paths) == len(set(paths)) and set(paths) == required_field_inventory
+
+          if not covers_required_inventory(ledger_fixture):
+              raise SystemExit("FIELD INVENTORY FAILED: baseline ledger is incomplete or contains duplicates")
+
+          missing_field_ledger = copy.deepcopy(ledger_fixture)
+          missing_field_ledger["entries"] = [
+              entry for entry in missing_field_ledger["entries"]
+              if entry["fieldPath"] != "Feature.geometry"
+          ]
+          if covers_required_inventory(missing_field_ledger):
+              raise SystemExit("NEGATIVE CONTROL FAILED: ledger missing a required field was accepted")
+          print("VALID: frozen field inventory and missing-field negative control")
+
+          restricted_payload = load("fixtures/evidence-records.json")
+          restricted_payload["records"][1]["rights"]["contentRetrieval"] = "unknown"
+          restricted_payload["records"][1]["rights"]["publicDisclosure"] = "allowed"
+          restricted_payload["records"][1]["syntheticPayload"] = "must not be embedded"
+          evidence_schema = load("schemas/evidence-records.schema.json")
+          if Draft202012Validator(evidence_schema).is_valid(restricted_payload):
+              raise SystemExit("NEGATIVE CONTROL FAILED: payload accepted without explicit retrieval permission")
+          print("VALID: rights-pending payload negative control rejected")
+          print("VALID: field-disposition ledger negative controls rejected")
+          PY
+      - name: Format reference validator
+        run: cargo fmt --manifest-path reference/Cargo.toml -- --check
+      - name: Test evidence and rights invariants
+        run: cargo test --manifest-path reference/Cargo.toml
+      - name: Enforce strict Clippy
+        run: cargo clippy --manifest-path reference/Cargo.toml --all-targets -- -D warnings
+      - name: Validate synthetic exchange fixture
+        run: cargo run --manifest-path reference/Cargo.toml -- fixtures/feature-collection.json fixtures/evidence-records.json
+
+  json-fg-conformance:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: benchmarks/ogc-evidence-roundtrip/v0.1
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Node for pinned independent OGC checker
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Validate JSON-FG 1.0.0 with Geonovum checker
+        run: |
+          npx --yes @geonovum/ogc-checker@1.3.2 validate --standard json-fg --version 1.0.0 --input fixtures/feature-collection.json --format json --fail-on error
+      - name: Negative control rejects a missing JSON-FG Core declaration
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          document = json.loads(Path("fixtures/feature-collection.json").read_text(encoding="utf-8"))
+          document["conformsTo"] = []
+          Path("/tmp/invalid-json-fg.json").write_text(
+              json.dumps(document), encoding="utf-8"
+          )
+          PY
+          set +e
+          npx --yes @geonovum/ogc-checker@1.3.2 validate --standard json-fg --version 1.0.0 --input /tmp/invalid-json-fg.json --format json --fail-on error
+          status=$?
+          set -e
+          if [ "$status" -eq 0 ]; then
+            echo "NEGATIVE CONTROL FAILED: JSON-FG Core declaration omission was accepted"
+            exit 1
+          fi
+          echo "VALID: independent JSON-FG checker rejected missing Core conformance declaration"
+
   test-native:
     runs-on: ubuntu-latest
     steps:
