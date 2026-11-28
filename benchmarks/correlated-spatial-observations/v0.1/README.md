@@ -22,7 +22,7 @@ This is a constructed counterexample. It is intended to verify probability handl
 
 ## Model
 
-For (m) surveys, each hypothesis supplies a complete conditional distribution over (2^m) binary outcome patterns. Probabilities must be finite, within [0,1], cover every pattern exactly once and sum to 1. The pattern's character positions use lexicographically sorted survey IDs, making serialization order irrelevant.
+For (m) surveys, each hypothesis supplies a complete conditional distribution over (2^m) binary outcome patterns. Probabilities must be finite, within [0,1], cover every pattern exactly once and sum to 1. The pattern's character positions use lexicographically sorted survey IDs, making serialization order irrelevant. Each single-survey likelihood is checked against the corresponding marginal of the complete joint distribution; a mismatch is rejected so the dependence comparison cannot silently change the sensor model.
 
 For a selected subset, the evaluator sums over all full outcome patterns consistent with the selected observations. This is exact marginalization; it does not assume that unselected outcomes are missing at random beyond the supplied joint distribution.
 
