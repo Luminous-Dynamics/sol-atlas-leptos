@@ -252,6 +252,20 @@ fn parse_problem(case: &Value) -> Problem {
                 hypothesis.id
             ));
         }
+        for (survey_index, survey) in surveys.iter().enumerate() {
+            let joint_marginal = distribution
+                .iter()
+                .filter(|(pattern, _)| pattern.as_bytes()[survey_index] == b'1')
+                .map(|(_, probability)| *probability)
+                .sum::<f64>();
+            let declared_marginal = survey.positive_likelihood[&hypothesis.id];
+            if (joint_marginal - declared_marginal).abs() > EPSILON {
+                fail(format!(
+                    "joint distribution marginal for {} under {} does not match the declared single-survey likelihood",
+                    survey.id, hypothesis.id
+                ));
+            }
+        }
         joint_outcomes.insert(hypothesis.id.clone(), distribution);
     }
 
@@ -677,6 +691,15 @@ mod tests {
                 });
         }
         assert_eq!(calculate(&fixture()), calculate(&case));
+    }
+
+    #[test]
+    #[should_panic(expected = "does not match the declared single-survey likelihood")]
+    fn rejects_joint_marginals_that_disagree_with_single_survey_likelihoods() {
+        let mut case = fixture();
+        case["decisionProblem"]["surveys"][0]["positiveLikelihoodByHypothesis"]
+            ["original_fabric"] = json!(0.7);
+        let _ = calculate(&case);
     }
 
     #[test]
