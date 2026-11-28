@@ -1,0 +1,9 @@
+[package]
+name = "sol-atlas-tiered-spatial-validation"
+version = "0.1.0"
+edition = "2024"
+publish = false
+description = "Pre-metric integrity auditor for tiered spatial validation partitions"
+
+[dependencies]
+serde_json = "1"
