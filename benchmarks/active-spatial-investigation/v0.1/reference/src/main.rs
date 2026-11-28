@@ -511,7 +511,7 @@ mod tests {
             .collect();
         for action in case["decisionProblem"]["actions"].as_array_mut().unwrap() {
             for hypothesis_id in &hypothesis_ids {
-                action["utilities"][hypothesis_id] = json!(50.0);
+                action["utilities"][hypothesis_id.as_str()] = json!(50.0);
             }
         }
         let result = calculate(&case);
