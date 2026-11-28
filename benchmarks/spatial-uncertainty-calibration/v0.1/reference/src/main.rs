@@ -874,6 +874,9 @@ mod tests {
     fn rejects_too_few_sites_for_cluster_bootstrap() {
         let mut case = fixture();
         case["evaluationSiteIds"].as_array_mut().unwrap().pop();
+        for field in ["probabilityPredictions", "metrologyObservations"] {
+            case[field].as_array_mut().unwrap().retain(|row| row["siteId"] != "site-gamma");
+        }
         let _ = calculate(&case);
     }
 
@@ -907,6 +910,7 @@ mod tests {
     }
 
     #[test]
+    #[should_panic]
     fn rejects_training_evaluation_site_leakage() {
         let mut case = fixture();
         case["trainingSiteIds"]
@@ -917,6 +921,7 @@ mod tests {
     }
 
     #[test]
+    #[should_panic]
     fn rejects_observation_from_unregistered_evaluation_site() {
         let mut case = fixture();
         case["metrologyObservations"][0]["siteId"] = json!("unregistered-site");
@@ -924,6 +929,7 @@ mod tests {
     }
 
     #[test]
+    #[should_panic]
     fn rejects_probability_outside_unit_interval() {
         let mut case = fixture();
         case["probabilityPredictions"][0]["probability"] = json!(1.01);
@@ -931,6 +937,7 @@ mod tests {
     }
 
     #[test]
+    #[should_panic]
     fn rejects_inverted_metrology_interval() {
         let mut case = fixture();
         case["metrologyObservations"][0]["lower95"] = json!(11.0);
