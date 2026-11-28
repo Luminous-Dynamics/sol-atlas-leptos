@@ -85,7 +85,11 @@ fn read_site_set(value: &Value, path: &str) -> BTreeSet<String> {
 }
 
 fn parse_dataset(case: &Value) -> Dataset {
-    if as_string(required(case, "fixtureStatus", "case"), "case.fixtureStatus") != "synthetic" {
+    if as_string(
+        required(case, "fixtureStatus", "case"),
+        "case.fixtureStatus",
+    ) != "synthetic"
+    {
         fail("reference evaluator only accepts synthetic fixtures");
     }
 
@@ -106,7 +110,8 @@ fn parse_dataset(case: &Value) -> Dataset {
 
     let calibration_bins = required(case, "calibrationBins", "case")
         .as_u64()
-        .unwrap_or_else(|| fail("calibrationBins must be a positive integer")) as usize;
+        .unwrap_or_else(|| fail("calibrationBins must be a positive integer"))
+        as usize;
     if !(2..=50).contains(&calibration_bins) {
         fail("calibrationBins must be between 2 and 50");
     }
@@ -121,7 +126,8 @@ fn parse_dataset(case: &Value) -> Dataset {
 
     let bootstrap_replicates = required(case, "bootstrapReplicates", "case")
         .as_u64()
-        .unwrap_or_else(|| fail("bootstrapReplicates must be an integer")) as usize;
+        .unwrap_or_else(|| fail("bootstrapReplicates must be an integer"))
+        as usize;
     if !(100..=20_000).contains(&bootstrap_replicates) {
         fail("bootstrapReplicates must be between 100 and 20000");
     }
@@ -165,7 +171,9 @@ fn parse_dataset(case: &Value) -> Dataset {
         }
         let site_id = as_string(required(item, "siteId", &path), &format!("{path}.siteId"));
         if !evaluation_sites.contains(&site_id) {
-            fail(format!("prediction {prediction_id} uses non-evaluation site {site_id}"));
+            fail(format!(
+                "prediction {prediction_id} uses non-evaluation site {site_id}"
+            ));
         }
         let sensor_group = as_string(
             required(item, "sensorGroup", &path),
@@ -176,7 +184,9 @@ fn parse_dataset(case: &Value) -> Dataset {
             &format!("{path}.probability"),
         );
         if !(0.0..=1.0).contains(&probability) {
-            fail(format!("prediction {prediction_id} probability must be within [0, 1]"));
+            fail(format!(
+                "prediction {prediction_id} probability must be within [0, 1]"
+            ));
         }
         let outcome = required(item, "outcome", &path)
             .as_bool()
@@ -192,8 +202,10 @@ fn parse_dataset(case: &Value) -> Dataset {
     if predictions.is_empty() {
         fail("at least one probability prediction is required");
     }
-    let prediction_sites: BTreeSet<String> =
-        predictions.iter().map(|item| item.site_id.clone()).collect();
+    let prediction_sites: BTreeSet<String> = predictions
+        .iter()
+        .map(|item| item.site_id.clone())
+        .collect();
     if prediction_sites != evaluation_sites {
         fail("every registered evaluation site must contribute probability predictions");
     }
@@ -207,8 +219,10 @@ fn parse_dataset(case: &Value) -> Dataset {
     .enumerate()
     {
         let path = format!("metrologyReceipts[{index}]");
-        if as_string(required(receipt, "receiptStatus", &path), &format!("{path}.receiptStatus"))
-            != "synthetic_fixture"
+        if as_string(
+            required(receipt, "receiptStatus", &path),
+            &format!("{path}.receiptStatus"),
+        ) != "synthetic_fixture"
         {
             fail("reference calibration benchmark accepts only synthetic metrology receipts");
         }
@@ -216,19 +230,32 @@ fn parse_dataset(case: &Value) -> Dataset {
             required(receipt, "receiptId", &path),
             &format!("{path}.receiptId"),
         );
-        let site_id = as_string(required(receipt, "siteId", &path), &format!("{path}.siteId"));
+        let site_id = as_string(
+            required(receipt, "siteId", &path),
+            &format!("{path}.siteId"),
+        );
         if !evaluation_sites.contains(&site_id) {
-            fail(format!("metrology receipt {receipt_id} uses non-evaluation site {site_id}"));
+            fail(format!(
+                "metrology receipt {receipt_id} uses non-evaluation site {site_id}"
+            ));
         }
         let instrument = required(receipt, "instrument", &path);
         let modality = as_string(
             required(instrument, "modality", &format!("{path}.instrument")),
             &format!("{path}.instrument.modality"),
         );
-        if !["tls", "photogrammetry", "mobile_lidar", "total_station", "gnss"]
-            .contains(&modality.as_str())
+        if ![
+            "tls",
+            "photogrammetry",
+            "mobile_lidar",
+            "total_station",
+            "gnss",
+        ]
+        .contains(&modality.as_str())
         {
-            fail(format!("metrology receipt {receipt_id} has unsupported modality {modality}"));
+            fail(format!(
+                "metrology receipt {receipt_id} has unsupported modality {modality}"
+            ));
         }
         if receipt_map
             .insert(receipt_id.clone(), (site_id, modality))
@@ -256,7 +283,9 @@ fn parse_dataset(case: &Value) -> Dataset {
             &format!("{path}.observationId"),
         );
         if !observation_ids.insert(observation_id.clone()) {
-            fail(format!("duplicate metrology observation ID: {observation_id}"));
+            fail(format!(
+                "duplicate metrology observation ID: {observation_id}"
+            ));
         }
         let receipt_id = as_string(
             required(item, "receiptId", &path),
@@ -264,7 +293,9 @@ fn parse_dataset(case: &Value) -> Dataset {
         );
         let site_id = as_string(required(item, "siteId", &path), &format!("{path}.siteId"));
         if !evaluation_sites.contains(&site_id) {
-            fail(format!("metrology observation {observation_id} uses non-evaluation site {site_id}"));
+            fail(format!(
+                "metrology observation {observation_id} uses non-evaluation site {site_id}"
+            ));
         }
         let sensor_group = as_string(
             required(item, "sensorGroup", &path),
@@ -275,9 +306,7 @@ fn parse_dataset(case: &Value) -> Dataset {
                 "metrology observation {observation_id} references unknown receipt {receipt_id}"
             ))
         });
-        if receipt.0.as_str() != site_id.as_str()
-            || receipt.1.as_str() != sensor_group.as_str()
-        {
+        if receipt.0.as_str() != site_id.as_str() || receipt.1.as_str() != sensor_group.as_str() {
             fail(format!(
                 "metrology observation {observation_id} does not match receipt site/modality"
             ));
@@ -293,7 +322,9 @@ fn parse_dataset(case: &Value) -> Dataset {
         let lower = as_number(required(item, "lower95", &path), &format!("{path}.lower95"));
         let upper = as_number(required(item, "upper95", &path), &format!("{path}.upper95"));
         if lower > upper {
-            fail(format!("metrology observation {observation_id} has lower95 greater than upper95"));
+            fail(format!(
+                "metrology observation {observation_id} has lower95 greater than upper95"
+            ));
         }
         measurements.push(MetrologyObservation {
             observation_id,
@@ -309,8 +340,10 @@ fn parse_dataset(case: &Value) -> Dataset {
     if measurements.is_empty() {
         fail("at least one metrology observation is required");
     }
-    let measurement_sites: BTreeSet<String> =
-        measurements.iter().map(|item| item.site_id.clone()).collect();
+    let measurement_sites: BTreeSet<String> = measurements
+        .iter()
+        .map(|item| item.site_id.clone())
+        .collect();
     if measurement_sites != evaluation_sites {
         fail("every registered evaluation site must contribute metrology observations");
     }
@@ -385,8 +418,7 @@ fn calibration_metrics(dataset: &Dataset) -> Value {
             .count() as f64
             / bucket_count;
         let weight = bucket_count / count;
-        brier_reliability +=
-            weight * (forecast_probability - observed_frequency).powi(2);
+        brier_reliability += weight * (forecast_probability - observed_frequency).powi(2);
         brier_resolution += weight * (observed_frequency - base_rate).powi(2);
     }
     let brier_uncertainty = base_rate * (1.0 - base_rate);
@@ -750,11 +782,15 @@ mod tests {
     fn computes_proper_scores_ece_and_spatial_interval_coverage() {
         let result = calculate(&fixture());
         close(
-            result["probabilisticCalibration"]["brierScore"].as_f64().unwrap(),
+            result["probabilisticCalibration"]["brierScore"]
+                .as_f64()
+                .unwrap(),
             0.21501666666666666,
         );
         close(
-            result["probabilisticCalibration"]["logLoss"].as_f64().unwrap(),
+            result["probabilisticCalibration"]["logLoss"]
+                .as_f64()
+                .unwrap(),
             0.9844225560537794,
         );
         close(
@@ -873,7 +909,10 @@ mod tests {
     #[test]
     fn rejects_training_evaluation_site_leakage() {
         let mut case = fixture();
-        case["trainingSiteIds"].as_array_mut().unwrap().push(json!("site-alpha"));
+        case["trainingSiteIds"]
+            .as_array_mut()
+            .unwrap()
+            .push(json!("site-alpha"));
         let _ = calculate(&case);
     }
 
@@ -902,8 +941,14 @@ mod tests {
     #[test]
     fn input_order_does_not_change_metric_results() {
         let mut case = fixture();
-        case["probabilityPredictions"].as_array_mut().unwrap().reverse();
-        case["metrologyObservations"].as_array_mut().unwrap().reverse();
+        case["probabilityPredictions"]
+            .as_array_mut()
+            .unwrap()
+            .reverse();
+        case["metrologyObservations"]
+            .as_array_mut()
+            .unwrap()
+            .reverse();
         assert_eq!(calculate(&fixture()), calculate(&case));
     }
 }
