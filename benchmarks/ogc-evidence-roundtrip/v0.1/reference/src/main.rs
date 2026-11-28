@@ -123,11 +123,8 @@ fn validate(feature_collection: &Value, evidence_package: &Value) -> Value {
 
         let claim = required(profile, "claim", &format!("{path}.solAtlas"));
         let temporal = required(profile, "temporal", &format!("{path}.solAtlas"));
-        let field_dependencies = required(
-            profile,
-            "fieldDependencies",
-            &format!("{path}.solAtlas"),
-        );
+        let field_dependencies =
+            required(profile, "fieldDependencies", &format!("{path}.solAtlas"));
         let dependency_fields = [
             "claim",
             "geometry",
@@ -139,11 +136,17 @@ fn validate(feature_collection: &Value, evidence_package: &Value) -> Value {
         let mut field_visibility = BTreeMap::<String, bool>::new();
         for field in dependency_fields {
             let dependencies = array(
-                required(field_dependencies, field, &format!("{path}.fieldDependencies")),
+                required(
+                    field_dependencies,
+                    field,
+                    &format!("{path}.fieldDependencies"),
+                ),
                 &format!("{path}.fieldDependencies.{field}"),
             );
             if dependencies.is_empty() {
-                fail(format!("{path}.fieldDependencies.{field} must not be empty"));
+                fail(format!(
+                    "{path}.fieldDependencies.{field} must not be empty"
+                ));
             }
             let mut visible = true;
             for (dependency_index, dependency) in dependencies.iter().enumerate() {
@@ -377,7 +380,10 @@ fn validate(feature_collection: &Value, evidence_package: &Value) -> Value {
         if field_visibility["geometryOrigin"] {
             public_feature.insert(
                 "geometryOrigin".to_owned(),
-                profile.get("geometryOrigin").cloned().unwrap_or(Value::Null),
+                profile
+                    .get("geometryOrigin")
+                    .cloned()
+                    .unwrap_or(Value::Null),
             );
         }
         public_feature.insert(
@@ -506,8 +512,7 @@ mod tests {
     fn restricted_source_taints_and_withholds_dependent_semantic_fields() {
         let (feature, evidence) = fixtures();
         let mut restricted = evidence.clone();
-        restricted["records"][1]["rights"]["recordVisibility"] =
-            Value::String("prohibited".into());
+        restricted["records"][1]["rights"]["recordVisibility"] = Value::String("prohibited".into());
         restricted["records"][1]["rights"]["metadataVisibility"] =
             Value::String("prohibited".into());
         let baseline = validate(&feature, &restricted);
@@ -530,12 +535,12 @@ mod tests {
             changed["records"][1]["payloadDigest"].clone();
         changed_feature["features"][0]["properties"]["solAtlas"]["fieldDependencies"]["claim"][1] =
             Value::String("hidden-record-renamed".into());
-        changed_feature["features"][0]["properties"]["solAtlas"]["fieldDependencies"]["hypothesisSet"][1] =
-            Value::String("hidden-record-renamed".into());
+        changed_feature["features"][0]["properties"]["solAtlas"]["fieldDependencies"]["hypothesisSet"]
+            [1] = Value::String("hidden-record-renamed".into());
         changed_feature["features"][0]["properties"]["solAtlas"]["claim"]["proposition"] =
             Value::String("Different private-derived claim text".into());
-        changed_feature["features"][0]["properties"]["solAtlas"]["hypothesisSet"]["alternatives"][0]["description"] =
-            Value::String("Different private-derived interpretation".into());
+        changed_feature["features"][0]["properties"]["solAtlas"]["hypothesisSet"]["alternatives"]
+            [0]["description"] = Value::String("Different private-derived interpretation".into());
 
         assert_eq!(
             baseline,
