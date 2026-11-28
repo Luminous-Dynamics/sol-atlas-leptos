@@ -112,8 +112,8 @@ fn parse_dataset(case: &Value) -> Dataset {
         required(case, "nominalIntervalLevel", "case"),
         "case.nominalIntervalLevel",
     );
-    if !(0.0..1.0).contains(&interval_level) {
-        fail("nominalIntervalLevel must be within (0, 1)");
+    if (interval_level - 0.95).abs() > EPSILON {
+        fail("lower95/upper95 observations require nominalIntervalLevel 0.95");
     }
 
     let mut selective_thresholds = Vec::new();
@@ -234,7 +234,7 @@ fn parse_dataset(case: &Value) -> Dataset {
 
     predictions.sort_by(|a, b| a.prediction_id.cmp(&b.prediction_id));
     measurements.sort_by(|a, b| a.observation_id.cmp(&b.observation_id));
-    Ok_or_fail(Dataset {
+    ok_or_fail(Dataset {
         training_sites,
         evaluation_sites,
         predictions,
@@ -245,7 +245,7 @@ fn parse_dataset(case: &Value) -> Dataset {
     })
 }
 
-fn Ok_or_fail(dataset: Dataset) -> Dataset {
+fn ok_or_fail(dataset: Dataset) -> Dataset {
     dataset
 }
 
@@ -363,11 +363,11 @@ fn calibration_metrics(dataset: &Dataset) -> Value {
 
 fn group_coverages<F>(measurements: &[MetrologyObservation], key: F) -> Value
 where
-    F: Fn(&MetrologyObservation) -> &str,
+    F: Fn(&MetrologyObservation) -> String,
 {
     let mut groups: BTreeMap<String, (usize, usize)> = BTreeMap::new();
     for observation in measurements {
-        let entry = groups.entry(key(observation).to_owned()).or_insert((0, 0));
+        let entry = groups.entry(key(observation)).or_insert((0, 0));
         entry.0 += 1;
         if observation.lower <= observation.reference_value
             && observation.reference_value <= observation.upper
@@ -425,8 +425,8 @@ fn metrology_metrics(dataset: &Dataset) -> Value {
         .map(|observation| observation.upper - observation.lower)
         .sum::<f64>()
         / count;
-    let sensor_coverage = group_coverages(&dataset.measurements, |item| &item.sensor_group);
-    let site_coverage = group_coverages(&dataset.measurements, |item| &item.site_id);
+    let sensor_coverage = group_coverages(&dataset.measurements, |item| item.sensor_group.clone());
+    let site_coverage = group_coverages(&dataset.measurements, |item| item.site_id.clone());
 
     json!({
         "sampleCount": dataset.measurements.len(),
