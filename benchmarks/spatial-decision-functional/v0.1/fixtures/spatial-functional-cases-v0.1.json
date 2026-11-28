@@ -1,0 +1,323 @@
+{
+  "schemaVersion": "0.1",
+  "fixtureStatus": "synthetic",
+  "worldWeightSemantics": "exact_probability",
+  "cases": [
+    {
+      "caseId": "mean-with-unknown-support",
+      "functional": {
+        "kind": "weighted_mean",
+        "valueUnits": "kg/m2",
+        "outputUnits": "kg/m2"
+      },
+      "support": {
+        "supportId": "catchment-mean-a",
+        "supportRevision": "support-v1",
+        "geometryDigest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "coordinateReference": "EPSG:6933",
+        "verticalDatum": "not_applicable",
+        "coordinateEpoch": "2026.0",
+        "measureKind": "area",
+        "measureUnits": "m2",
+        "targetMeasure": 2,
+        "cells": [
+          {
+            "id": "cell-known",
+            "measure": 1,
+            "status": "observed"
+          },
+          {
+            "id": "cell-unknown",
+            "measure": 1,
+            "status": "unknown",
+            "lowerValue": 0,
+            "upperValue": 10
+          }
+        ]
+      },
+      "worlds": [
+        {
+          "worldId": "low-field",
+          "weight": 0.5,
+          "values": {
+            "cell-known": 2
+          }
+        },
+        {
+          "worldId": "high-field",
+          "weight": 0.5,
+          "values": {
+            "cell-known": 4
+          }
+        }
+      ]
+    },
+    {
+      "caseId": "thresholded-area-with-unknown-cell",
+      "functional": {
+        "kind": "thresholded_measure",
+        "valueUnits": "mg/kg",
+        "thresholdUnits": "mg/kg",
+        "threshold": 3,
+        "outputUnits": "m2"
+      },
+      "support": {
+        "supportId": "parcel-threshold-a",
+        "supportRevision": "support-v1",
+        "geometryDigest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "coordinateReference": "EPSG:6933",
+        "verticalDatum": "not_applicable",
+        "coordinateEpoch": "2026.0",
+        "measureKind": "area",
+        "measureUnits": "m2",
+        "targetMeasure": 4,
+        "cells": [
+          {
+            "id": "cell-a",
+            "measure": 1,
+            "status": "observed"
+          },
+          {
+            "id": "cell-b",
+            "measure": 2,
+            "status": "observed"
+          },
+          {
+            "id": "cell-c",
+            "measure": 1,
+            "status": "unknown",
+            "lowerValue": 0,
+            "upperValue": 6
+          }
+        ]
+      },
+      "worlds": [
+        {
+          "worldId": "cluster-small",
+          "weight": 0.25,
+          "values": {
+            "cell-a": 4,
+            "cell-b": 2
+          }
+        },
+        {
+          "worldId": "cluster-large",
+          "weight": 0.75,
+          "values": {
+            "cell-a": 4,
+            "cell-b": 5
+          }
+        }
+      ]
+    },
+    {
+      "caseId": "weighted-stock-total",
+      "functional": {
+        "kind": "weighted_total",
+        "valueUnits": "kg/m3",
+        "integrandUnits": "kg/m3",
+        "outputUnits": "kg"
+      },
+      "support": {
+        "supportId": "reservoir-volume-a",
+        "supportRevision": "volume-v1",
+        "geometryDigest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "coordinateReference": "EPSG:4978",
+        "verticalDatum": "local-vertical-datum-v1",
+        "coordinateEpoch": "2026.0",
+        "measureKind": "volume",
+        "measureUnits": "m3",
+        "targetMeasure": 5,
+        "cells": [
+          {
+            "id": "voxel-a",
+            "measure": 2,
+            "status": "observed"
+          },
+          {
+            "id": "voxel-b",
+            "measure": 3,
+            "status": "observed"
+          }
+        ]
+      },
+      "worlds": [
+        {
+          "worldId": "known-volume-world",
+          "weight": 1,
+          "values": {
+            "voxel-a": 1,
+            "voxel-b": 2
+          }
+        }
+      ]
+    },
+    {
+      "caseId": "corridor-line-integral",
+      "functional": {
+        "kind": "line_integral",
+        "valueUnits": "risk-unit/km",
+        "integrandUnits": "risk-unit/km",
+        "outputUnits": "risk-unit"
+      },
+      "support": {
+        "supportId": "corridor-a",
+        "supportRevision": "route-v1",
+        "geometryDigest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+        "coordinateReference": "EPSG:4326",
+        "verticalDatum": "not_applicable",
+        "coordinateEpoch": "2026.0",
+        "measureKind": "line",
+        "measureUnits": "km",
+        "targetMeasure": 1.5,
+        "cells": [
+          {
+            "id": "segment-short",
+            "measure": 0.5,
+            "status": "observed"
+          },
+          {
+            "id": "segment-long",
+            "measure": 1,
+            "status": "observed"
+          }
+        ]
+      },
+      "worlds": [
+        {
+          "worldId": "route-world",
+          "weight": 1,
+          "values": {
+            "segment-short": 2,
+            "segment-long": 4
+          }
+        }
+      ]
+    },
+    {
+      "caseId": "joint-connectivity-worlds",
+      "functional": {
+        "kind": "connectivity",
+        "outputUnits": "probability"
+      },
+      "support": {
+        "supportId": "water-network-a",
+        "supportRevision": "network-v1",
+        "geometryDigest": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+        "coordinateReference": "network-local-frame/v1",
+        "verticalDatum": "not_applicable",
+        "coordinateEpoch": "2026.0",
+        "measureKind": "graph",
+        "measureUnits": "1",
+        "targetMeasure": 0,
+        "cells": []
+      },
+      "graph": {
+        "directed": false,
+        "sourceNode": "A",
+        "targetNode": "C",
+        "nodes": [
+          "A",
+          "B",
+          "C"
+        ],
+        "edges": [
+          {
+            "id": "edge-ab",
+            "from": "A",
+            "to": "B"
+          },
+          {
+            "id": "edge-bc",
+            "from": "B",
+            "to": "C"
+          },
+          {
+            "id": "edge-ac",
+            "from": "A",
+            "to": "C"
+          }
+        ]
+      },
+      "worlds": [
+        {
+          "worldId": "connected-world",
+          "weight": 0.4,
+          "activeEdgeIds": [
+            "edge-ab",
+            "edge-bc"
+          ],
+          "unknownEdgeIds": []
+        },
+        {
+          "worldId": "disconnected-world",
+          "weight": 0.6,
+          "activeEdgeIds": [],
+          "unknownEdgeIds": []
+        }
+      ]
+    },
+    {
+      "caseId": "connectivity-with-unknown-edge",
+      "functional": {
+        "kind": "connectivity",
+        "outputUnits": "probability"
+      },
+      "support": {
+        "supportId": "utility-network-b",
+        "supportRevision": "network-v1",
+        "geometryDigest": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+        "coordinateReference": "network-local-frame/v1",
+        "verticalDatum": "not_applicable",
+        "coordinateEpoch": "2026.0",
+        "measureKind": "graph",
+        "measureUnits": "1",
+        "targetMeasure": 0,
+        "cells": []
+      },
+      "graph": {
+        "directed": false,
+        "sourceNode": "A",
+        "targetNode": "C",
+        "nodes": [
+          "A",
+          "B",
+          "C"
+        ],
+        "edges": [
+          {
+            "id": "edge-ab",
+            "from": "A",
+            "to": "B"
+          },
+          {
+            "id": "edge-bc",
+            "from": "B",
+            "to": "C"
+          }
+        ]
+      },
+      "worlds": [
+        {
+          "worldId": "known-path",
+          "weight": 0.5,
+          "activeEdgeIds": [
+            "edge-ab",
+            "edge-bc"
+          ],
+          "unknownEdgeIds": []
+        },
+        {
+          "worldId": "unknown-final-edge",
+          "weight": 0.5,
+          "activeEdgeIds": [
+            "edge-ab"
+          ],
+          "unknownEdgeIds": [
+            "edge-bc"
+          ]
+        }
+      ]
+    }
+  ]
+}
