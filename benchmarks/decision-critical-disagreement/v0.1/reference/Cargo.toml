@@ -1,0 +1,9 @@
+[package]
+name = "sol-atlas-decision-critical-disagreement"
+version = "0.1.0"
+edition = "2024"
+publish = false
+description = "Finite action-loss reference for decision-critical spatial disagreement"
+
+[dependencies]
+serde_json = "1"
