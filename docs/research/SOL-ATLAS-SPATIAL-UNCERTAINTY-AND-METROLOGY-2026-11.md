@@ -30,6 +30,12 @@ A 2026 article on nonstationary spatial processes further describes spatial weig
 
 Do not simply compare coverage percentages. Compare coverage against interval width, local coverage by spatial block/site, worst-region coverage and computational cost. Keep the calibration data spatially separated from the evaluation sites.
 
+### Validation must follow the deployment regime
+
+A 2026 tiered spatial validation study formalizes a practical ladder from random folds and matched-size random controls through coordinate clusters, nearest-neighbour graph communities, administrative holdouts and external regional stress tests. Its Baltimore demonstration shows that random validation can produce more optimistic scores than geographically structured or external-region holdouts; coordinate-cluster validation still remained optimistic relative to its external region. The study recommends reporting repeated-seed variability, spatial autocorrelation and block-scale sensitivity ([Jiang, Wu & Liu, 2026](https://doi.org/10.1016/j.mex.2026.104072)).
+
+This changes the Sol-Atlas validation contract: **every performance claim must declare its deployment regime**. Random CV is an interpolation diagnostic, not evidence of new-region transfer. Include size-matched random controls to isolate training-size effects, spatial blocks / graph communities for within-region separation, administrative holdouts for jurisdiction transfer, and sealed external-region or independent-campaign stress tests for genuine transfer claims. Do not treat spatial blocking as universally superior: it can be overly pessimistic when the actual task is local interpolation. Report the tier, support, fold sizes, seeds, block-scale sensitivity, residual spatial autocorrelation, nearest-training-support distance, coverage/width, proper scores and worst-site/group results.
+
 ### ECE is not a sufficient calibration objective
 
 Expected Calibration Error is a useful reliability-diagram summary, but its value depends on binning and sample size; fixed-width ECE can be discontinuous and can obscure calibration/accuracy interactions. The 2026 review of classifier probability-calibration metrics discusses these limitations and alternative metrics ([Comprehensive Review of Classifier Probability Calibration Metrics, 2026](https://journals.sagepub.com/doi/full/10.1177/24518492261436231)).
