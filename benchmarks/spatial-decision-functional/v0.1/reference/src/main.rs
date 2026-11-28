@@ -434,6 +434,8 @@ fn evaluate_numeric_case(case: &Value, kind: &str) -> Result<Value, String> {
         if bounds_available {
             if (upper - lower).abs() <= EPSILON * upper.abs().max(lower.abs()).max(1.0) {
                 exact_values.push((lower, weight));
+                bounded_lowers.push((lower, weight));
+                bounded_uppers.push((upper, weight));
                 world_results.push(json!({
                     "worldId": world_id,
                     "weight": weight,
@@ -573,7 +575,7 @@ fn graph_reachable(
         }
         if let Some(neighbours) = adjacency.get(node.as_str()) {
             for neighbour in neighbours {
-                if nodes.contains(*neighbour) && !visited.contains(**neighbour) {
+                if nodes.contains(*neighbour) && !visited.contains(*neighbour) {
                     pending.push((*neighbour).to_owned());
                 }
             }
@@ -730,7 +732,7 @@ fn evaluate_case(case: &Value) -> Result<Value, String> {
 }
 
 fn evaluate_document(document: &Value) -> Result<Value, String> {
-    let root = as_object(document, "document")?;
+    as_object(document, "document")?;
     let schema_version = as_string(
         required(document, "schemaVersion", "document")?,
         "document.schemaVersion",
@@ -847,6 +849,14 @@ mod tests {
         let result = case_result(&report, "corridor-line-integral");
         assert_eq!(result["status"], "QUALIFIED");
         assert!((result["summary"]["expectedValue"].as_f64().unwrap() - 5.0).abs() < EPSILON);
+    }
+
+    #[test]
+    fn weighted_total_multiplies_density_by_volume_measure() {
+        let report = evaluate_document(&fixture()).expect("fixture must evaluate");
+        let result = case_result(&report, "weighted-stock-total");
+        assert_eq!(result["status"], "QUALIFIED");
+        assert!((result["summary"]["expectedValue"].as_f64().unwrap() - 8.0).abs() < EPSILON);
     }
 
     #[test]
