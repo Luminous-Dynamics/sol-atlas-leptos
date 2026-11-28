@@ -1,0 +1,86 @@
+{
+  "benchmarkId": "sol-atlas-active-spatial-investigation",
+  "version": "0.1.0",
+  "status": "synthetic-reference-corpus",
+  "fixture": "fixtures/decision-case.json",
+  "invariants": [
+    {
+      "id": "INV-01",
+      "name": "normalized-hypothesis-priors",
+      "expected": "priors are finite, within [0,1], unique by ID and sum to 1"
+    },
+    {
+      "id": "INV-02",
+      "name": "complete-action-utility-matrix",
+      "expected": "each action has a finite utility for every hypothesis"
+    },
+    {
+      "id": "INV-03",
+      "name": "bounded-observation-likelihoods",
+      "expected": "each survey supplies one finite positive-outcome likelihood per hypothesis in [0,1]"
+    },
+    {
+      "id": "INV-04",
+      "name": "effort-budget-respected",
+      "expected": "selected portfolio effort does not exceed the declared budget"
+    },
+    {
+      "id": "INV-05",
+      "name": "decision-value-objective",
+      "expected": "selection maximizes net EVSI and includes the no-observation option"
+    },
+    {
+      "id": "INV-06",
+      "name": "stable-permutation-invariance",
+      "expected": "reordering candidate survey inputs does not change the canonical plan or scores"
+    },
+    {
+      "id": "INV-07",
+      "name": "information-gain-versus-decision-value",
+      "expected": "report top-EIG single survey and its own EVSI separately; a high information-gain score must not be treated as proof of decision improvement"
+    }
+  ],
+  "negativeControls": [
+    {
+      "id": "NEG-01",
+      "mutation": "Change one prior so the prior probabilities no longer sum to one.",
+      "expected": "reject",
+      "reason": "Posterior and expected-utility calculations require a normalized prior."
+    },
+    {
+      "id": "NEG-02",
+      "mutation": "Set one outcome likelihood below zero or above one.",
+      "expected": "reject",
+      "reason": "A likelihood must be a valid probability."
+    },
+    {
+      "id": "NEG-03",
+      "mutation": "Remove one hypothesis utility from an action.",
+      "expected": "reject",
+      "reason": "The action utility matrix must cover the hypothesis space."
+    },
+    {
+      "id": "NEG-04",
+      "mutation": "Reorder candidate surveys without changing their content.",
+      "expected": "same-output",
+      "reason": "Plan selection must not depend on transport ordering."
+    },
+    {
+      "id": "NEG-05",
+      "mutation": "Make all actions utility-equivalent across hypotheses while keeping informative surveys.",
+      "expected": "select-no-survey",
+      "reason": "Information without a possible decision improvement has zero gross EVSI and should not be purchased at positive cost."
+    },
+    {
+      "id": "NEG-06",
+      "mutation": "Treat the highest-EIG survey as decision-optimal without computing its expected post-observation decision utility and acquisition cost.",
+      "expected": "reject",
+      "reason": "The selection objective is net decision value, not entropy reduction alone."
+    }
+  ],
+  "qualification": {
+    "referenceOracle": "Exact enumeration is the correctness oracle for small synthetic cases.",
+    "productionTarget": "Compare against human survey selection, fixed priority, EIG ranking, random selection and a clairvoyant upper bound under matched budgets.",
+    "statisticalGate": "Likelihood calibration and utility sensitivity must be reported separately; synthetic values do not qualify a real-world planner."
+  }
+}
