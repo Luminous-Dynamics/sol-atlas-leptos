@@ -166,3 +166,13 @@ The 20% target is a stretch threshold for a prospective, powered independent stu
 - Esri, [Using cross validation to assess interpolation results](https://doc.esri.com/en/arcgis-pro/latest/help/analysis/geostatistical-analyst/performing-cross-validation-and-validation.html).
 - Jiang, Wu & Liu (2026), [A tiered spatial validation workflow for geographic prediction models](https://doi.org/10.1016/j.mex.2026.104072).
 - [GeoParquet 2.0.0 release and specification](https://geoparquet.org/releases/v2.0.0/).
+
+
+### New active-investigation comparator: decision-aligned monitoring
+
+A 2026 geostatistical active-learning study on groundwater nitrate monitoring compared neighbourhood-aware acquisition near regulatory thresholds with dispersion and standard-error heuristics. Its focal-logit criterion achieved up to 58% greater gains in exceedance-mapping accuracy in that case study; pointwise variants lagged neighbourhood-aware criteria there. The study's result is not a general guarantee and is not a Sol-Atlas result ([Henkel et al., 2026](https://doi.org/10.1016/j.envsoft.2026.107091)).
+
+This points to a new benchmark track: hold the candidate site set and acquisition budget fixed, then compare random, maximum variance/SE, entropy, spatial diversity, threshold-proximity/focal-logit, neighbourhood-functional, nominal EVSI and robust sequential EVSI strategies. Use the same provider-native predictions and covariance; evaluate net decision regret, thresholded area error, functional calibration, worst-neighbourhood performance, acquisition cost and runtime. The new idea is not to replace EVSI with one more heuristic: use threshold/neighbourhood-aware screening to reduce the candidate set, then apply joint, correlation-aware EVSI and robust policy evaluation. The decision functional must be explicit and support-qualified, and unknown support remains unknown rather than being silently assigned zero.
+
+This fits the existing programme as a composition rather than another monolithic spatial predictor: #986/#996 qualify calibration and deployment split; #991 defines the spatial functional; #993 exposes action-disagreement support and regret; #985 handles dependent/sequential observations; #987 chooses a robust acquisition policy.
+
