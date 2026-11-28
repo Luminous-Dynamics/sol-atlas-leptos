@@ -13,6 +13,12 @@ This directory contains a synthetic, implementation-neutral fixture corpus for t
 
 See also [`SOL-ATLAS-INDUSTRY-SOTA-AND-EVALUATION-UPDATE-2026-11.md`](../../../docs/research/SOL-ATLAS-INDUSTRY-SOTA-AND-EVALUATION-UPDATE-2026-11.md) for current standards, industry baselines, benchmark tracks and falsifiable research hypotheses.
 
+## Additional storage route: GeoParquet 2.0.0
+
+GeoParquet 2.0.0 is a candidate **columnar storage** route, not a replacement for JSON-FG feature exchange. Version 2.0 is built on Parquet's native `GEOMETRY` / `GEOGRAPHY` logical types, carries CRS definitions with geometry columns, and uses row-group spatial statistics for pruning. It could improve large-scale analytical storage and selective scans, but it does not define Sol-Atlas evidence-rights, claim, uncertainty, or derivation semantics. Those must remain explicit in typed columns and/or governed evidence sidecars, with canonical semantic digests and the same field-disposition and non-interference tests. The route is registered as **not executed / not qualified** until a pinned reader-writer round-trip passes ([GeoParquet 2.0.0 release](https://geoparquet.org/releases/v2.0.0/)).
+
+The GDAL JSONFG route remains unqualified. Current stable GDAL documentation explicitly says its JSONFG driver implements a draft version of the standard, even though it supports read/write operations and selected JSON-FG fields. It must not be represented as a certified JSON-FG 1.0.0 adapter without a pinned-version field matrix and independent conformance/semantic tests ([GDAL JSONFG driver documentation](https://gdal.org/en/stable/drivers/vector/jsonfg.html)).
+
 ## Scope
 
 These are benchmark fixtures, not a deployed OGC API endpoint, not a certified OGC conformance suite, and not proof that any GIS application preserves the extension fields. The fixture is intended to make information loss testable before adapters are implemented.
