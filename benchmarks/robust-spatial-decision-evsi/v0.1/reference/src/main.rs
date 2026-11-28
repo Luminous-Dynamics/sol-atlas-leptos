@@ -725,6 +725,32 @@ mod tests {
                 .unwrap(),
         );
 
+        let half_radius = tv_policies
+            .iter()
+            .find(|policy| policy["totalVariationRadius"] == json!(0.5))
+            .unwrap();
+        assert_eq!(
+            half_radius["selectedPolicy"]["selectedSurveyIds"],
+            json!(["multispectral_material_scan"])
+        );
+        close(
+            half_radius["worstCaseExpectedNetEvsi"].as_f64().unwrap(),
+            7.6,
+        );
+
+        let shift_radius = tv_policies
+            .iter()
+            .find(|policy| policy["totalVariationRadius"] == json!(0.7))
+            .unwrap();
+        assert_eq!(
+            shift_radius["selectedPolicy"]["selectedSurveyIds"],
+            json!(["archive_crosscheck"])
+        );
+        close(
+            shift_radius["worstCaseExpectedNetEvsi"].as_f64().unwrap(),
+            3.5,
+        );
+
         let unit_radius = tv_policies
             .iter()
             .find(|policy| policy["totalVariationRadius"] == json!(1.0))
