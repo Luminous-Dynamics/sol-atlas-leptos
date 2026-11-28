@@ -32,6 +32,16 @@
       "id": "INV-06",
       "name": "scenario-order-invariance",
       "expected": "reordering scenarios or survey candidates does not alter policy semantics"
+    },
+    {
+      "id": "INV-07",
+      "name": "finite-scenario-total-variation-dro",
+      "expected": "compute worst-case expected net EVSI over the TV ball around nominal scenario weights; radius zero recovers nominal mean and radius one recovers maximin"
+    },
+    {
+      "id": "INV-08",
+      "name": "tv-radius-monotonic-protection",
+      "expected": "for each fixed portfolio, worst-case expected net EVSI cannot increase as the TV radius grows"
     }
   ],
   "negativeControls": [
@@ -52,6 +62,12 @@
       "mutation": "Remove a candidate survey from one scenario.",
       "expected": "reject",
       "reason": "Every scenario must score the same candidate set."
+    },
+    {
+      "id": "NEG-04",
+      "mutation": "Set a total-variation ambiguity radius below zero or above one.",
+      "expected": "reject",
+      "reason": "Total-variation distance between probability distributions lies in [0, 1]."
     }
   ],
   "baselines": [

@@ -25,7 +25,8 @@
         "actions",
         "candidateSurveyIds",
         "maxEffortUnits",
-        "scenarios"
+        "scenarios",
+        "totalVariationRadii"
       ],
       "properties": {
         "hypotheses": {
@@ -134,6 +135,16 @@
                 }
               }
             }
+          }
+        },
+        "totalVariationRadii": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1
           }
         }
       }
