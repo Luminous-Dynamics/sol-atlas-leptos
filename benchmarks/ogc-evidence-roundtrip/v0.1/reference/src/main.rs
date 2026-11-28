@@ -500,6 +500,15 @@ mod tests {
             );
         changed_feature["features"][0]["properties"]["solAtlas"]["provenance"]["privateTrace"] =
             Value::String("hidden trace must not escape".into());
+        for dependencies in changed_feature["features"][0]["properties"]["solAtlas"]["fieldDependencies"]
+            .as_object_mut().unwrap().values_mut()
+        {
+            for dependency in dependencies.as_array_mut().unwrap() {
+                if dependency == "record-counter-001" {
+                    *dependency = Value::String("secret-record-renamed".into());
+                }
+            }
+        }
 
         let after = validate(&changed_feature, &changed);
         assert_eq!(
