@@ -1,0 +1,232 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:luminous-dynamics:sol-atlas:schema:field-disposition-ledger:0.1",
+  "title": "Sol-Atlas field-disposition ledger v0.1",
+  "description": "A machine-readable accounting of every source field across an adapter route. A not_executed ledger is a registration fixture, not evidence of interoperability.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "ledgerId",
+    "sourceProfile",
+    "targetFormat",
+    "adapterPath",
+    "executionStatus",
+    "sourceArtifactDigest",
+    "targetArtifactDigest",
+    "entries"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": "0.1.0"
+    },
+    "ledgerId": {
+      "type": "string",
+      "minLength": 1
+    },
+    "sourceProfile": {
+      "const": "sol-atlas-evidence-profile/0.1"
+    },
+    "targetFormat": {
+      "const": "OGC JSON-FG/1.0.0"
+    },
+    "adapterPath": {
+      "type": "array",
+      "minItems": 2,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "executionStatus": {
+      "enum": [
+        "not_executed",
+        "partial",
+        "completed"
+      ]
+    },
+    "sourceArtifactDigest": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    },
+    "targetArtifactDigest": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    },
+    "entries": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "fieldPath",
+          "disposition"
+        ],
+        "properties": {
+          "fieldPath": {
+            "type": "string",
+            "minLength": 1
+          },
+          "disposition": {
+            "enum": [
+              "preserved",
+              "transformed",
+              "omitted",
+              "blocked",
+              "not_assessed"
+            ]
+          },
+          "targetPath": {
+            "type": "string",
+            "minLength": 1
+          },
+          "transformation": {
+            "type": "string",
+            "minLength": 1
+          },
+          "reason": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "allOf": [
+          {
+            "if": {
+              "properties": {
+                "disposition": {
+                  "const": "preserved"
+                }
+              },
+              "required": [
+                "disposition"
+              ]
+            },
+            "then": {
+              "required": [
+                "targetPath"
+              ]
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "disposition": {
+                  "const": "transformed"
+                }
+              },
+              "required": [
+                "disposition"
+              ]
+            },
+            "then": {
+              "required": [
+                "targetPath",
+                "transformation",
+                "reason"
+              ]
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "disposition": {
+                  "enum": [
+                    "omitted",
+                    "blocked",
+                    "not_assessed"
+                  ]
+                }
+              },
+              "required": [
+                "disposition"
+              ]
+            },
+            "then": {
+              "required": [
+                "reason"
+              ]
+            }
+          }
+        ]
+      }
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "executionStatus": {
+            "const": "not_executed"
+          }
+        },
+        "required": [
+          "executionStatus"
+        ]
+      },
+      "then": {
+        "properties": {
+          "sourceArtifactDigest": {
+            "type": "null"
+          },
+          "targetArtifactDigest": {
+            "type": "null"
+          },
+          "entries": {
+            "items": {
+              "properties": {
+                "disposition": {
+                  "const": "not_assessed"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "executionStatus": {
+            "const": "completed"
+          }
+        },
+        "required": [
+          "executionStatus"
+        ]
+      },
+      "then": {
+        "properties": {
+          "sourceArtifactDigest": {
+            "type": "string",
+            "pattern": "^sha256:[0-9a-f]{64}$"
+          },
+          "targetArtifactDigest": {
+            "type": "string",
+            "pattern": "^sha256:[0-9a-f]{64}$"
+          },
+          "entries": {
+            "not": {
+              "contains": {
+                "properties": {
+                  "disposition": {
+                    "const": "not_assessed"
+                  }
+                },
+                "required": [
+                  "disposition"
+                ]
+              }
+            }
+          }
+        }
+      }
+    }
+  ]
+}
