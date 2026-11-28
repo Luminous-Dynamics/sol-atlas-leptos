@@ -35,16 +35,6 @@
     },
     {
       "id": "INV-07",
-      "name": "finite-scenario-total-variation-dro",
-      "expected": "compute worst-case expected net EVSI over the TV ball around nominal scenario weights; radius zero recovers nominal mean and radius one recovers maximin"
-    },
-    {
-      "id": "INV-08",
-      "name": "tv-radius-monotonic-protection",
-      "expected": "for each fixed portfolio, worst-case expected net EVSI cannot increase as the TV radius grows"
-    },
-    {
-      "id": "INV-07",
       "name": "finite-support-total-variation-dro",
       "expected": "worst-case expected net EVSI is computed by reweighting nominal scenario probabilities within each declared TV radius"
     },
@@ -80,12 +70,6 @@
     },
     {
       "id": "NEG-04",
-      "mutation": "Set a total-variation ambiguity radius below zero or above one.",
-      "expected": "reject",
-      "reason": "Total-variation distance between probability distributions lies in [0, 1]."
-    },
-    {
-      "id": "NEG-04",
       "mutation": "Supply a total-variation ambiguity radius outside [0,1].",
       "expected": "reject",
       "reason": "TV distance between probability distributions lies in [0,1]."
@@ -95,8 +79,9 @@
     "nominal expected net EVSI",
     "maximin net EVSI",
     "minimax regret",
+    "finite-support total-variation DRO at multiple radii",
     "no-observation policy",
     "human expert plan"
   ],
-  "qualificationBoundary": "Synthetic scenarios show decision-criterion behavior only. Real robustness requires pre-registered scenario envelopes grounded in independent survey/campaign evidence and stakeholder-approved utilities."
+  "qualificationBoundary": "Synthetic scenarios show decision-criterion behavior only. Real robustness requires pre-registered scenario envelopes grounded in independent survey/campaign evidence and stakeholder-approved utilities. Finite-support total variation protects only against reweighting the supplied scenarios, not omitted scenarios or continuous distribution shift."
 }
