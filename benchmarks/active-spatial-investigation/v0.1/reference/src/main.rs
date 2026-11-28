@@ -503,9 +503,15 @@ mod tests {
     #[test]
     fn no_survey_is_selected_when_all_decisions_are_equivalent() {
         let mut case = fixture();
+        let hypothesis_ids: Vec<String> = case["decisionProblem"]["hypotheses"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .map(|hypothesis| hypothesis["id"].as_str().unwrap().to_owned())
+            .collect();
         for action in case["decisionProblem"]["actions"].as_array_mut().unwrap() {
-            for hypothesis in case["decisionProblem"]["hypotheses"].as_array().unwrap() {
-                action["utilities"][hypothesis["id"].as_str().unwrap()] = json!(50.0);
+            for hypothesis_id in &hypothesis_ids {
+                action["utilities"][hypothesis_id] = json!(50.0);
             }
         }
         let result = calculate(&case);
