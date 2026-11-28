@@ -141,6 +141,28 @@
                 "description": "The geometry represents a later repair or replacement."
               }
             ]
+          },
+          "fieldDependencies": {
+            "claim": [
+              "record-support-001",
+              "record-counter-001"
+            ],
+            "geometry": [
+              "record-support-001"
+            ],
+            "temporal": [
+              "record-support-001"
+            ],
+            "uncertainty": [
+              "record-support-001"
+            ],
+            "geometryOrigin": [
+              "record-support-001"
+            ],
+            "hypothesisSet": [
+              "record-support-001",
+              "record-counter-001"
+            ]
           }
         }
       }

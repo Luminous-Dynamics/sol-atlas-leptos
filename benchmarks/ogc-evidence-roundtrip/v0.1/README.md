@@ -7,7 +7,7 @@ This directory contains a synthetic, implementation-neutral fixture corpus for t
 - `fixtures/field-disposition-ledger.json`: explicit registration-only ledger for the expected adapter semantics. Its `not_executed` state and nine `not_assessed` entries are deliberate; this is not evidence that an adapter round-trip has run.
 - `schemas/feature-extension.schema.json`: JSON Schema for the per-feature Sol-Atlas extension.
 - `schemas/evidence-records.schema.json`: JSON Schema for evidence metadata and rights dimensions; content is embedded only when both retrieval and public disclosure are explicitly allowed; pending or unknown rights fail closed.
-- `schemas/field-disposition-ledger.schema.json`: machine-readable ledger schema with conditional rules that prevent a route being marked completed while required evidence is absent or fields remain unassessed.
+- `schemas/field-disposition-ledger.schema.json`: machine-readable ledger schema with conditional rules that prevent a route being marked completed while required evidence is absent or fields remain unassessed.\n- `properties.solAtlas.fieldDependencies`: required source-record lineage for each public semantic field. The Rust validator withholds any derived field whose dependencies include records that are not explicitly visible.
 - `cases.json`: expected baseline invariants and 21 registered negative controls.
 - `adapter-readiness.json`: reviewed candidate/validator matrix; every adapter route is explicitly marked not executed until real adapter tests run.
 
@@ -34,7 +34,7 @@ A complete adapter qualification must:
 3. resolve every association to exactly one record;
 4. check relation labels, set disjointness, digest binding and rights non-escalation;
 5. verify source and provenance digests against frozen bytes;
-6. enforce restricted-content omission and restricted linked-metadata non-interference;
+6. enforce restricted-content omission and restricted linked-metadata and derived-field non-interference;
 7. canonicalize the public semantic projection and compare it after each adapter hop;
 8. account for every field in the disposition ledger;
 9. apply all negative controls and assert rejection / quarantine with a reason code.

@@ -111,6 +111,11 @@
       "id": "INV-18",
       "name": "field-disposition-ledger-completeness",
       "expected": "every profile field has an explicit disposition; a route cannot be complete while any entry remains not_assessed or required execution digests are absent"
+    },
+    {
+      "id": "INV-19",
+      "name": "derived-field-rights-taint-propagation",
+      "expected": "a public semantic field is emitted only when every declared source-record dependency is explicitly visible; hidden-derived claim, geometry, time, uncertainty or hypothesis values are withheld"
     }
   ],
   "negativeControls": [
@@ -239,6 +244,18 @@
       "mutation": "Remove a required field from the field-disposition ledger or duplicate another field path.",
       "expected": "reject",
       "reason": "The adapter ledger must account for the frozen source-profile field inventory exactly once."
+    },
+    {
+      "id": "NEG-22",
+      "mutation": "Mark a linked source record's recordVisibility or metadataVisibility as prohibited while leaving a derived semantic claim or hypothesis public.",
+      "expected": "omit-derived-field",
+      "reason": "Restrictions propagate transitively to derived semantic values; public claims cannot launder restricted source content."
+    },
+    {
+      "id": "NEG-23",
+      "mutation": "Remove a field dependency or reference a record not present in the evidence package.",
+      "expected": "reject",
+      "reason": "Unknown lineage cannot be treated as public; field-level provenance is fail-closed."
     }
   ],
   "qualificationRules": {
@@ -265,7 +282,8 @@
       "public-projection noninterference / side-channel checks",
       "CRS transform correctness and canonical geometry comparison",
       "canonical provenance digest verification",
-      "adapter field-disposition coverage against a frozen source-profile field inventory"
+      "adapter field-disposition coverage against a frozen source-profile field inventory",
+      "field-level dependency closure and rights-taint propagation for derived claim, geometry, temporal, uncertainty, geometry-origin and hypothesis fields"
     ]
   }
 }

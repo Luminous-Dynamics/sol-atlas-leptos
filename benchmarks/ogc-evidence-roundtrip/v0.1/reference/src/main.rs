@@ -123,6 +123,48 @@ fn validate(feature_collection: &Value, evidence_package: &Value) -> Value {
 
         let claim = required(profile, "claim", &format!("{path}.solAtlas"));
         let temporal = required(profile, "temporal", &format!("{path}.solAtlas"));
+        let field_dependencies = required(
+            profile,
+            "fieldDependencies",
+            &format!("{path}.solAtlas"),
+        );
+        let dependency_fields = [
+            "claim",
+            "geometry",
+            "temporal",
+            "uncertainty",
+            "geometryOrigin",
+            "hypothesisSet",
+        ];
+        let mut field_visibility = BTreeMap::<String, bool>::new();
+        for field in dependency_fields {
+            let dependencies = array(
+                required(field_dependencies, field, &format!("{path}.fieldDependencies")),
+                &format!("{path}.fieldDependencies.{field}"),
+            );
+            if dependencies.is_empty() {
+                fail(format!("{path}.fieldDependencies.{field} must not be empty"));
+            }
+            let mut visible = true;
+            for (dependency_index, dependency) in dependencies.iter().enumerate() {
+                let record_id = string(
+                    dependency,
+                    &format!("{path}.fieldDependencies.{field}[{dependency_index}]"),
+                );
+                let record = record_map.get(record_id).unwrap_or_else(|| {
+                    fail(format!(
+                        "{path}.fieldDependencies.{field} references unknown record {record_id}"
+                    ))
+                });
+                let rights = required(record, "rights", &format!("record {record_id}"));
+                let record_visible =
+                    rights.get("recordVisibility").and_then(Value::as_str) == Some("allowed");
+                let metadata_visible =
+                    rights.get("metadataVisibility").and_then(Value::as_str) == Some("allowed");
+                visible &= record_visible && metadata_visible;
+            }
+            field_visibility.insert(field.to_owned(), visible);
+        }
         for role in [
             "validTime",
             "observationTime",
@@ -310,17 +352,43 @@ fn validate(feature_collection: &Value, evidence_package: &Value) -> Value {
             "inputDigests": visible_digests
         });
 
-        semantic_features.push(serde_json::json!({
-            "featureId": feature.get("id"),
-            "geometry": feature.get("geometry"),
-            "claim": claim,
-            "temporal": temporal,
-            "uncertainty": uncertainty,
-            "geometryOrigin": profile.get("geometryOrigin"),
-            "evidenceAssociations": semantic_associations,
-            "provenance": public_provenance,
-            "hypothesisSet": hypotheses
-        }));
+        // Public semantic fields are taint-tracked through their source-record dependencies.
+        // A value influenced by any non-public dependency is omitted from the public projection.
+        let mut public_feature = serde_json::Map::new();
+        public_feature.insert(
+            "featureId".to_owned(),
+            feature.get("id").cloned().unwrap_or(Value::Null),
+        );
+        if field_visibility["geometry"] {
+            public_feature.insert(
+                "geometry".to_owned(),
+                feature.get("geometry").cloned().unwrap_or(Value::Null),
+            );
+        }
+        if field_visibility["claim"] {
+            public_feature.insert("claim".to_owned(), claim.clone());
+        }
+        if field_visibility["temporal"] {
+            public_feature.insert("temporal".to_owned(), temporal.clone());
+        }
+        if field_visibility["uncertainty"] {
+            public_feature.insert("uncertainty".to_owned(), uncertainty.clone());
+        }
+        if field_visibility["geometryOrigin"] {
+            public_feature.insert(
+                "geometryOrigin".to_owned(),
+                profile.get("geometryOrigin").cloned().unwrap_or(Value::Null),
+            );
+        }
+        public_feature.insert(
+            "evidenceAssociations".to_owned(),
+            Value::Array(semantic_associations),
+        );
+        public_feature.insert("provenance".to_owned(), public_provenance);
+        if field_visibility["hypothesisSet"] {
+            public_feature.insert("hypothesisSet".to_owned(), hypotheses.clone());
+        }
+        semantic_features.push(Value::Object(public_feature));
     }
 
     semantic_features.sort_by(|a, b| {
@@ -432,6 +500,66 @@ mod tests {
             baseline, after,
             "restricted linked metadata and private provenance must not influence the public projection"
         );
+    }
+
+    #[test]
+    fn restricted_source_taints_and_withholds_dependent_semantic_fields() {
+        let (feature, evidence) = fixtures();
+        let mut restricted = evidence.clone();
+        restricted["records"][1]["rights"]["recordVisibility"] =
+            Value::String("prohibited".into());
+        restricted["records"][1]["rights"]["metadataVisibility"] =
+            Value::String("prohibited".into());
+        let baseline = validate(&feature, &restricted);
+        assert!(baseline["features"][0].get("claim").is_none());
+        assert!(baseline["features"][0].get("hypothesisSet").is_none());
+        assert!(baseline["features"][0].get("geometry").is_some());
+
+        let mut changed = restricted.clone();
+        changed["records"][1]["recordId"] = Value::String("hidden-record-renamed".into());
+        changed["records"][1]["summary"] = Value::String("Hidden source summary changed".into());
+        changed["records"][1]["payloadDigest"] = Value::String(
+            "sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee".into(),
+        );
+        let mut changed_feature = feature.clone();
+        changed_feature["features"][0]["properties"]["solAtlas"]["evidenceAssociations"]["contradicts"]
+            [0]["recordId"] = Value::String("hidden-record-renamed".into());
+        changed_feature["features"][0]["properties"]["solAtlas"]["evidenceAssociations"]["contradicts"]
+            [0]["recordDigest"] = changed["records"][1]["payloadDigest"].clone();
+        changed_feature["features"][0]["properties"]["solAtlas"]["provenance"]["inputDigests"][1] =
+            changed["records"][1]["payloadDigest"].clone();
+        changed_feature["features"][0]["properties"]["solAtlas"]["fieldDependencies"]["claim"][1] =
+            Value::String("hidden-record-renamed".into());
+        changed_feature["features"][0]["properties"]["solAtlas"]["fieldDependencies"]["hypothesisSet"][1] =
+            Value::String("hidden-record-renamed".into());
+        changed_feature["features"][0]["properties"]["solAtlas"]["claim"]["proposition"] =
+            Value::String("Different private-derived claim text".into());
+        changed_feature["features"][0]["properties"]["solAtlas"]["hypothesisSet"]["alternatives"][0]["description"] =
+            Value::String("Different private-derived interpretation".into());
+
+        assert_eq!(
+            baseline,
+            validate(&changed_feature, &changed),
+            "private-derived semantic fields must not alter public output"
+        );
+    }
+
+    #[test]
+    #[should_panic(expected = "references unknown record")]
+    fn rejects_unknown_semantic_field_dependency() {
+        let (mut feature, evidence) = fixtures();
+        feature["features"][0]["properties"]["solAtlas"]["fieldDependencies"]["claim"][0] =
+            Value::String("missing-record".into());
+        let _ = validate(&feature, &evidence);
+    }
+
+    #[test]
+    #[should_panic(expected = "must not be empty")]
+    fn rejects_missing_semantic_field_dependencies() {
+        let (mut feature, evidence) = fixtures();
+        feature["features"][0]["properties"]["solAtlas"]["fieldDependencies"]["geometry"] =
+            serde_json::json!([]);
+        let _ = validate(&feature, &evidence);
     }
 
     #[test]
