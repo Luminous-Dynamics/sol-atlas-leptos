@@ -1,0 +1,105 @@
+{
+  "benchmarkId": "sol-atlas-correlated-spatial-observations",
+  "version": "0.1.0",
+  "fixtureStatus": "synthetic",
+  "decisionProblem": {
+    "hypotheses": [
+      {
+        "id": "original_fabric",
+        "prior": 0.6
+      },
+      {
+        "id": "later_repair",
+        "prior": 0.4
+      }
+    ],
+    "actions": [
+      {
+        "id": "preserve_in_situ",
+        "utilities": {
+          "original_fabric": 100,
+          "later_repair": 0
+        }
+      },
+      {
+        "id": "intervene_and_repair",
+        "utilities": {
+          "original_fabric": 0,
+          "later_repair": 100
+        }
+      }
+    ],
+    "maxEffortUnits": 2,
+    "surveys": [
+      {
+        "id": "aerial_texture_scan",
+        "effortUnits": 1,
+        "utilityCost": 0.1,
+        "positiveLikelihoodByHypothesis": {
+          "original_fabric": 0.8,
+          "later_repair": 0.2
+        }
+      },
+      {
+        "id": "stratigraphic_microsection",
+        "effortUnits": 1,
+        "utilityCost": 0.1,
+        "positiveLikelihoodByHypothesis": {
+          "original_fabric": 0.8,
+          "later_repair": 0.2
+        }
+      }
+    ],
+    "jointOutcomeLikelihoodsByHypothesis": {
+      "original_fabric": [
+        {
+          "outcomes": "00",
+          "probability": 0.2
+        },
+        {
+          "outcomes": "01",
+          "probability": 0
+        },
+        {
+          "outcomes": "10",
+          "probability": 0
+        },
+        {
+          "outcomes": "11",
+          "probability": 0.8
+        }
+      ],
+      "later_repair": [
+        {
+          "outcomes": "00",
+          "probability": 0.8
+        },
+        {
+          "outcomes": "01",
+          "probability": 0
+        },
+        {
+          "outcomes": "10",
+          "probability": 0
+        },
+        {
+          "outcomes": "11",
+          "probability": 0.2
+        }
+      ]
+    }
+  },
+  "expectedSyntheticOracle": {
+    "baselineBestAction": "preserve_in_situ",
+    "baselineExpectedUtility": 60,
+    "correlatedPairExpectedPostSurveyUtility": 80,
+    "correlatedPairGrossEvsi": 20,
+    "independentPairExpectedPostSurveyUtility": 83.2,
+    "independentPairGrossEvsi": 23.2,
+    "falseGrossEvsiInflationFromIndependence": 3.2,
+    "selectedSingleSurveyIds": [
+      "aerial_texture_scan"
+    ],
+    "selectedSingleNetEvsi": 19.9
+  }
+}
