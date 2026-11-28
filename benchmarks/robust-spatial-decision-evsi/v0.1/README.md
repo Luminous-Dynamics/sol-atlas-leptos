@@ -109,3 +109,31 @@ References:
 - Jiang & Xie (2026), [Spatial Conformal Inference through Localized Quantile Regression](https://proceedings.mlr.press/v306/jiang26at.html), ICML/PMLR 306.
 - Luo (2026), [Quantifying Uncertainty in Spatial Prediction for Nonstationary Spatial Processes](https://doi.org/10.1080/24694452.2026.2639721), GeoSIMCP.
 - [OGC JSON-FG 1.0.0](https://www.ogc.org/standards/json-fg/), released 2026-05-21.
+
+## Decision-aligned spatial acquisition research (2026-11)
+
+A September 2026 *Environmental Modelling & Software* study recasts groundwater monitoring-network expansion as geostatistical active learning. It compares neighbourhood-aware, decision-task-aligned acquisition criteria—including a focal-logit utility that prioritizes neighbourhoods near a regulatory exceedance threshold—with dispersion and standard-error heuristics. In its groundwater nitrate case study, the focal-logit criterion delivered up to 58% greater gains in exceedance-mapping accuracy than the compared heuristics; focal-logit and SE criteria outperformed pointwise counterparts by roughly 45% on average. The look-ahead reduction in prediction standard error was competitive but substantially more computationally expensive. These are study-specific results and must not be generalized to other targets or claimed for Sol-Atlas ([Henkel et al., 2026](https://doi.org/10.1016/j.envsoft.2026.107091)).
+
+This reinforces a critical distinction: **uncertainty reduction is not decision improvement**. A high-variance region may be irrelevant when every plausible state supports the same action. A lower-variance neighbourhood near a consequential decision threshold may be a better acquisition target. The next Sol-Atlas comparison should include:
+
+- random sampling;
+- maximum pointwise variance / standard error;
+- maximum predictive entropy;
+- spatial diversity / distance-based coverage;
+- focal-logit or threshold-proximity acquisition;
+- neighbourhood-weighted thresholded-area acquisition;
+- decision-regret reduction / expected value of sample information;
+- robust, correlation-aware sequential EVSI.
+
+Every strategy must receive the same frozen candidate sites, data, acquisition budget, operational constraints and independent evaluation support. Report net decision regret, thresholded-area error, exceedance-map calibration, worst-neighbourhood error, improvement per acquisition cost, and total compute/time. A method cannot win by purchasing more samples or using more permissive support.
+
+### Compose the existing Sol-Atlas work instead of building another predictor
+
+1. #986 and #996 qualify calibration, support and the geographic deployment regime.
+2. #991 computes the relevant spatial functional (e.g., weighted exceedance area, corridor exposure, or network reach), preserving unknown support.
+3. #993 identifies where admissible hypotheses imply different actions and quantifies regret.
+4. #985 computes dependent joint-observation and sequential value rather than assuming repeated or nearby samples are independent.
+5. #987 compares nominal, maximin, minimax-regret, finite-support TV-DRO and lower-tail policies.
+
+The unbuilt extension is a spatial acquisition adapter that uses provider-native predictive distributions and covariance, but optimizes the *change in qualified decision functional* under acquisition cost, rights, and robust likelihood uncertainty. Do not interpret the focal-logit paper as permission to replace EVSI with a threshold heuristic: benchmark both. The useful synthesis is a cheap task-aligned screening score followed by full correlation-aware decision EVSI for a short-list.
+
