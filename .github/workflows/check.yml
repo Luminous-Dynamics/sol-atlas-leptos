@@ -149,6 +149,42 @@ jobs:
       - name: Validate synthetic exchange fixture
         run: cargo run --manifest-path reference/Cargo.toml -- fixtures/feature-collection.json fixtures/evidence-records.json
 
+  json-fg-conformance:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: benchmarks/ogc-evidence-roundtrip/v0.1
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Node for pinned independent OGC checker
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Validate JSON-FG 1.0.0 with Geonovum checker
+        run: |
+          npx --yes @geonovum/ogc-checker@1.3.2 validate --standard json-fg --version 1.0.0 --input fixtures/feature-collection.json --format json --fail-on error
+      - name: Negative control rejects a missing JSON-FG Core declaration
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          document = json.loads(Path("fixtures/feature-collection.json").read_text(encoding="utf-8"))
+          document["conformsTo"] = []
+          Path("/tmp/invalid-json-fg.json").write_text(
+              json.dumps(document), encoding="utf-8"
+          )
+          PY
+          set +e
+          npx --yes @geonovum/ogc-checker@1.3.2 validate --standard json-fg --version 1.0.0 --input /tmp/invalid-json-fg.json --format json --fail-on error
+          status=$?
+          set -e
+          if [ "$status" -eq 0 ]; then
+            echo "NEGATIVE CONTROL FAILED: JSON-FG Core declaration omission was accepted"
+            exit 1
+          fi
+          echo "VALID: independent JSON-FG checker rejected missing Core conformance declaration"
+
   test-native:
     runs-on: ubuntu-latest
     steps:
