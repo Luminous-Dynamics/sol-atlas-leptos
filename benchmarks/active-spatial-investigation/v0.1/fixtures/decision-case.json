@@ -35,7 +35,7 @@
         }
       }
     ],
-    "maxEffortUnits": 3,
+    "maxEffortUnits": 2,
     "surveys": [
       {
         "id": "stratigraphic_microsection",
