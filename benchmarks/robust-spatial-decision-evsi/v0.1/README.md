@@ -69,7 +69,7 @@ This is intentionally constructed. It is not an empirical claim about multispect
 
 The reference implementation uses a finite set of named scenarios and a total-variation ball around their nominal weights. For each candidate portfolio, it moves probability mass from the scenarios with the highest net EVSI to the lowest-scoring scenario, bounded by the declared TV radius. This exactly solves the finite-support weight-ambiguity subproblem; it does **not** construct a Wasserstein ball over raw sensor measurements, continuous covariates or unknown likelihood functions. Its guarantees apply only to the declared scenario support and radius.
 
-The benchmark includes TV radii 0, 0.1, 0.3, 0.5, 0.7 and 1.0, plus lower-tail lower-tail probability masses τ=0.1, 0.2, 0.5 and 1.0. The two boundary cases are tested: radius 0 equals nominal expected weighting; radius 1 equals maximin over the finite scenario set. The optimum worst-case value is tested as non-increasing with larger radii.
+The benchmark includes TV radii 0, 0.1, 0.3, 0.5, 0.7 and 1.0, plus lower-tail probability masses τ=0.1, 0.2, 0.5 and 1.0. The two boundary cases are tested: radius 0 equals nominal expected weighting; radius 1 equals maximin over the finite scenario set. The optimum worst-case value is tested as non-increasing with larger radii.
 
 ## Interpreting lower-tail CVaR
 
