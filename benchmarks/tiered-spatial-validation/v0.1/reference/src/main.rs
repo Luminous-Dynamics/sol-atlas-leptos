@@ -187,9 +187,28 @@ fn evaluate_case(
             required(case, "matchedToCaseId", "case")?,
             "case.matchedToCaseId",
         )?;
+        if reference_id == case_id {
+            return Err(format!("case {case_id} cannot use itself as its matched-size reference"));
+        }
         let reference = all_cases
             .get(&reference_id)
             .ok_or_else(|| format!("case {case_id} references unknown matched case {reference_id}"))?;
+        let reference_regime = as_string(
+            required(reference, "regime", "matched case")?,
+            "matched case.regime",
+        )?;
+        if ![
+            "T2_COORDINATE_BUFFERED",
+            "T3_GRAPH_COMMUNITY_HOLDOUT",
+            "T4_ADMINISTRATIVE_HOLDOUT",
+            "T5_EXTERNAL_REGION_CAMPAIGN",
+        ]
+        .contains(&reference_regime.as_str())
+        {
+            return Err(format!(
+                "case {case_id} matched-size reference must be a spatial or external holdout, not {reference_regime}"
+            ));
+        }
         let reference_train = parse_id_set(
             required(reference, "trainingObservationIds", "matched case")?,
             "matched case.trainingObservationIds",
@@ -461,6 +480,13 @@ mod tests {
         let mut external = fixture();
         external["cases"][5]["observations"][4]["regionId"] = json!("r1");
         assert!(evaluate_document(&external).unwrap_err().contains("regionId"));
+    }
+
+    #[test]
+    fn rejects_matched_control_that_targets_a_random_diagnostic() {
+        let mut document = fixture();
+        document["cases"][1]["matchedToCaseId"] = json!("t0-random");
+        assert!(evaluate_document(&document).unwrap_err().contains("must be a spatial or external holdout"));
     }
 
     #[test]
