@@ -208,7 +208,7 @@ fn evaluate_case(case: &Value) -> Result<Value, String> {
             preferred.insert(hypothesis_id.clone(), optimal_actions(&unit_evidence.losses));
         }
         let first_preference = preferred.values().next().cloned().unwrap_or_default();
-        let disagrees = preferred.values().any(|candidate| *candidate != first_preference);
+        let disagrees = preferred.values().any(|candidate| candidate != &first_preference);
         if disagrees {
             decision_disagreement_weight += unit.weight;
         }
