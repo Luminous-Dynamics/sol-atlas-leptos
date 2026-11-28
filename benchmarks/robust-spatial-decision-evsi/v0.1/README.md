@@ -41,6 +41,18 @@ The multispectral survey is much more valuable under ordinary conditions, but it
 
 The policy changes near a TV radius of 0.6632 for this fixture. This is a sensitivity result for the declared three-scenario problem, not a universal robustness threshold.
 
+### Lower-tail CVaR risk frontier
+
+| Tail level α | Selected survey | Lower-tail CVaR net EVSI |
+|---:|---|---:|
+| 0.1 | Archive cross-check | 3.0 |
+| 0.2 | Multispectral material scan | 8.5 |
+| 0.5 | Multispectral material scan | 16.2 |
+| 1.0 | Multispectral material scan | 19.6 |
+
+The policy changes between α=0.1 and α=0.2 in this fixture. The tail level is a risk preference, not a learned physical parameter; it should be pre-registered with decision-makers.
+
+
 This is intentionally constructed. It is not an empirical claim about multispectral scanning or archival research.
 
 ## Protocol
@@ -57,7 +69,11 @@ This is intentionally constructed. It is not an empirical claim about multispect
 
 The reference implementation uses a finite set of named scenarios and a total-variation ball around their nominal weights. For each candidate portfolio, it moves probability mass from the scenarios with the highest net EVSI to the lowest-scoring scenario, bounded by the declared TV radius. This exactly solves the finite-support weight-ambiguity subproblem; it does **not** construct a Wasserstein ball over raw sensor measurements, continuous covariates or unknown likelihood functions. Its guarantees apply only to the declared scenario support and radius.
 
-The benchmark includes radii 0, 0.1, 0.3, 0.5, 0.7 and 1.0. The two boundary cases are tested: radius 0 equals nominal expected weighting; radius 1 equals maximin over the finite scenario set. The optimum worst-case value is tested as non-increasing with larger radii.
+The benchmark includes TV radii 0, 0.1, 0.3, 0.5, 0.7 and 1.0, plus lower-tail CVaR levels α=0.1, 0.2, 0.5 and 1.0. The two boundary cases are tested: radius 0 equals nominal expected weighting; radius 1 equals maximin over the finite scenario set. The optimum worst-case value is tested as non-increasing with larger radii.
+
+## Interpreting lower-tail CVaR
+
+For a fixed portfolio, lower-tail CVaR sorts scenario net EVSI from lowest to highest and averages the worst α probability mass, splitting a scenario's probability mass at the tail boundary when needed. The policy maximizes that value. This produces a risk-preference frontier between the worst case and the full nominal expectation. The α value must be chosen and pre-registered with the relevant decision-makers; it is not a property discovered by the sensor model.
 
 ## Limits
 
