@@ -14,7 +14,8 @@ This benchmark provides an executable reference for:
 - empirical coverage and width of nominal 95% spatial measurement intervals;
 - mean absolute metrology error;
 - worst sensor-group and worst-site interval coverage;
-- train/evaluation separation at whole-site granularity.
+- train/evaluation separation at whole-site granularity;
+- deterministic site-cluster bootstrap percentile confidence intervals for Brier, log loss and spatial interval coverage.
 
 ## Synthetic oracle
 
@@ -42,6 +43,7 @@ These results are designed to demonstrate that aggregate metrics and worst-strat
 5. Break out sensor, material, scale, occlusion, operator, environment and site strata; publish worst-group coverage and selective risk. Include spatially weighted conformal baselines where local dependence or nonstationarity is material.
 6. Compare human / survey-metrology baseline, uncalibrated model, post-hoc calibrated model, ensemble or conformal method, and abstention policies on the same frozen holdouts.
 7. Pre-register target coverage and statistical confidence bounds before the evaluation. Small samples such as this fixture are only for implementation checks.
+8. Estimate uncertainty in the benchmark metrics by resampling whole sites/campaigns, not individual points. The small synthetic three-site bootstrap here only validates the implementation; three clusters are far too few for a strong empirical interval.
 
 ## Initial qualification targets (proposed, not measured)
 

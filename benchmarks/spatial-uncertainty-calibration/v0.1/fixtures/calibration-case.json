@@ -117,5 +117,7 @@
       "lower95": 7,
       "upper95": 7.4
     }
-  ]
+  ],
+  "bootstrapReplicates": 1000,
+  "bootstrapSeed": 20261128
 }

@@ -34,6 +34,8 @@ struct Dataset {
     calibration_bins: usize,
     interval_level: f64,
     selective_thresholds: Vec<f64>,
+    bootstrap_replicates: usize,
+    bootstrap_seed: u64,
 }
 
 fn fail(message: impl AsRef<str>) -> ! {
@@ -116,6 +118,16 @@ fn parse_dataset(case: &Value) -> Dataset {
         fail("lower95/upper95 observations require nominalIntervalLevel 0.95");
     }
 
+    let bootstrap_replicates = required(case, "bootstrapReplicates", "case")
+        .as_u64()
+        .unwrap_or_else(|| fail("bootstrapReplicates must be an integer")) as usize;
+    if !(100..=20_000).contains(&bootstrap_replicates) {
+        fail("bootstrapReplicates must be between 100 and 20000");
+    }
+    let bootstrap_seed = required(case, "bootstrapSeed", "case")
+        .as_u64()
+        .unwrap_or_else(|| fail("bootstrapSeed must be a non-negative integer"));
+
     let mut selective_thresholds = Vec::new();
     for (index, item) in as_array(
         required(case, "selectiveConfidenceThresholds", "case"),
@@ -179,6 +191,11 @@ fn parse_dataset(case: &Value) -> Dataset {
     if predictions.is_empty() {
         fail("at least one probability prediction is required");
     }
+    let prediction_sites: BTreeSet<String> =
+        predictions.iter().map(|item| item.site_id.clone()).collect();
+    if prediction_sites != evaluation_sites {
+        fail("every registered evaluation site must contribute probability predictions");
+    }
 
     let mut measurements = Vec::new();
     let mut observation_ids = BTreeSet::new();
@@ -231,6 +248,14 @@ fn parse_dataset(case: &Value) -> Dataset {
     if measurements.is_empty() {
         fail("at least one metrology observation is required");
     }
+    let measurement_sites: BTreeSet<String> =
+        measurements.iter().map(|item| item.site_id.clone()).collect();
+    if measurement_sites != evaluation_sites {
+        fail("every registered evaluation site must contribute metrology observations");
+    }
+    if evaluation_sites.len() < 3 {
+        fail("site-cluster bootstrap requires at least three evaluation sites");
+    }
 
     predictions.sort_by(|a, b| a.prediction_id.cmp(&b.prediction_id));
     measurements.sort_by(|a, b| a.observation_id.cmp(&b.observation_id));
@@ -242,6 +267,8 @@ fn parse_dataset(case: &Value) -> Dataset {
         calibration_bins,
         interval_level,
         selective_thresholds,
+        bootstrap_replicates,
+        bootstrap_seed,
     })
 }
 
@@ -441,6 +468,116 @@ fn metrology_metrics(dataset: &Dataset) -> Value {
     })
 }
 
+fn next_random(state: &mut u64) -> u64 {
+    *state = state
+        .wrapping_mul(6_364_136_223_846_793_005)
+        .wrapping_add(1_442_695_040_888_963_407);
+    *state
+}
+
+fn percentile(values: &mut [f64], quantile: f64) -> f64 {
+    if values.is_empty() {
+        fail("cannot compute percentile from empty bootstrap sample");
+    }
+    values.sort_by(f64::total_cmp);
+    let position = quantile * (values.len() - 1) as f64;
+    let lower = position.floor() as usize;
+    let upper = position.ceil() as usize;
+    let weight = position - lower as f64;
+    values[lower] * (1.0 - weight) + values[upper] * weight
+}
+
+fn site_cluster_bootstrap(dataset: &Dataset) -> Value {
+    let sites: Vec<String> = dataset.evaluation_sites.iter().cloned().collect();
+    let mut rng = dataset.bootstrap_seed;
+    let mut brier_scores = Vec::with_capacity(dataset.bootstrap_replicates);
+    let mut log_losses = Vec::with_capacity(dataset.bootstrap_replicates);
+    let mut interval_coverages = Vec::with_capacity(dataset.bootstrap_replicates);
+
+    for _ in 0..dataset.bootstrap_replicates {
+        let mut sampled_predictions = Vec::new();
+        let mut sampled_measurements = Vec::new();
+
+        // Resample whole sites, preserving within-site spatial/campaign dependence.
+        for _ in 0..sites.len() {
+            let selected_site = &sites[(next_random(&mut rng) as usize) % sites.len()];
+            sampled_predictions.extend(
+                dataset
+                    .predictions
+                    .iter()
+                    .filter(|row| &row.site_id == selected_site)
+                    .cloned(),
+            );
+            sampled_measurements.extend(
+                dataset
+                    .measurements
+                    .iter()
+                    .filter(|row| &row.site_id == selected_site)
+                    .cloned(),
+            );
+        }
+
+        if sampled_predictions.is_empty() || sampled_measurements.is_empty() {
+            fail("cluster bootstrap produced an empty resample");
+        }
+
+        let prediction_count = sampled_predictions.len() as f64;
+        let brier = sampled_predictions
+            .iter()
+            .map(|row| {
+                let observed = if row.outcome { 1.0 } else { 0.0 };
+                (row.probability - observed).powi(2)
+            })
+            .sum::<f64>()
+            / prediction_count;
+        let log_loss = sampled_predictions
+            .iter()
+            .map(|row| {
+                let probability = row.probability.clamp(LOG_EPSILON, 1.0 - LOG_EPSILON);
+                if row.outcome {
+                    -probability.ln()
+                } else {
+                    -(1.0 - probability).ln()
+                }
+            })
+            .sum::<f64>()
+            / prediction_count;
+        let measurement_count = sampled_measurements.len() as f64;
+        let coverage = sampled_measurements
+            .iter()
+            .filter(|row| row.lower <= row.reference_value && row.reference_value <= row.upper)
+            .count() as f64
+            / measurement_count;
+
+        brier_scores.push(brier);
+        log_losses.push(log_loss);
+        interval_coverages.push(coverage);
+    }
+
+    let mut brier_for_ci = brier_scores.clone();
+    let mut log_for_ci = log_losses.clone();
+    let mut coverage_for_ci = interval_coverages.clone();
+    json!({
+        "method": "percentile cluster bootstrap resampling whole evaluation sites",
+        "clusterCount": sites.len(),
+        "replicates": dataset.bootstrap_replicates,
+        "seed": dataset.bootstrap_seed,
+        "intervalLevel": 0.95,
+        "brierScore95PercentCI": {
+            "lower": percentile(&mut brier_for_ci, 0.025),
+            "upper": percentile(&mut brier_scores, 0.975)
+        },
+        "logLoss95PercentCI": {
+            "lower": percentile(&mut log_for_ci, 0.025),
+            "upper": percentile(&mut log_losses, 0.975)
+        },
+        "intervalCoverage95PercentCI": {
+            "lower": percentile(&mut coverage_for_ci, 0.025),
+            "upper": percentile(&mut interval_coverages, 0.975)
+        }
+    })
+}
+
 fn calculate(case: &Value) -> Value {
     let dataset = parse_dataset(case);
     json!({
@@ -454,6 +591,7 @@ fn calculate(case: &Value) -> Value {
         },
         "probabilisticCalibration": calibration_metrics(&dataset),
         "spatialMetrology": metrology_metrics(&dataset),
+        "siteClusterBootstrap": site_cluster_bootstrap(&dataset),
         "qualificationBoundary": {
             "fieldEvidence": false,
             "holdoutPolicy": "split by entire site/campaign; never split acquisitions from the same site between training and evaluation",
@@ -556,6 +694,31 @@ mod tests {
                 .unwrap(),
             1.0 / 3.0,
         );
+    }
+
+    #[test]
+    fn site_cluster_bootstrap_is_deterministic_and_reports_three_clusters() {
+        let result = calculate(&fixture());
+        let bootstrap = &result["siteClusterBootstrap"];
+        assert_eq!(bootstrap["clusterCount"], 3);
+        assert_eq!(bootstrap["replicates"], 1000);
+        assert_eq!(calculate(&fixture())["siteClusterBootstrap"], *bootstrap);
+        assert!(
+            bootstrap["intervalCoverage95PercentCI"]["lower"]
+                .as_f64()
+                .unwrap()
+                <= bootstrap["intervalCoverage95PercentCI"]["upper"]
+                    .as_f64()
+                    .unwrap()
+        );
+    }
+
+    #[test]
+    #[should_panic(expected = "at least three evaluation sites")]
+    fn rejects_too_few_sites_for_cluster_bootstrap() {
+        let mut case = fixture();
+        case["evaluationSiteIds"].as_array_mut().unwrap().pop();
+        let _ = calculate(&case);
     }
 
     #[test]

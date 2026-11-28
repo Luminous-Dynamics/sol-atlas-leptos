@@ -37,6 +37,16 @@
       "id": "INV-07",
       "name": "deterministic-input-order-invariance",
       "expected": "reordering rows does not change computed metrics"
+    },
+    {
+      "id": "INV-08",
+      "name": "site-cluster-bootstrap",
+      "expected": "confidence intervals resample whole evaluation sites/campaigns, preserve within-site rows, and are deterministic for a frozen seed"
+    },
+    {
+      "id": "INV-09",
+      "name": "minimum-independent-cluster-count",
+      "expected": "cluster bootstrap rejects fewer than three evaluation sites"
     }
   ],
   "negativeControls": [
@@ -63,6 +73,12 @@
       "mutation": "Provide a metrology interval with lower95 greater than upper95.",
       "expected": "reject",
       "reason": "An inverted interval is malformed and cannot be scored."
+    },
+    {
+      "id": "NEG-05",
+      "mutation": "Use fewer than three independent evaluation sites for the cluster bootstrap.",
+      "expected": "reject",
+      "reason": "A point-level bootstrap must not be substituted for absent independent site clusters."
     }
   ],
   "baselines": [
