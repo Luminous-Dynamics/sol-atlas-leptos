@@ -265,8 +265,10 @@ fn parse_world_values(
         required(world, "values", &path)?,
         &format!("{path}.values"),
     )?;
-    let cells_by_id: BTreeMap<&str, &Cell> =
-        cells.iter().map(|cell| (cell.id.as_str(), cell)).collect();
+    let cells_by_id: BTreeMap<String, &Cell> = cells
+        .iter()
+        .map(|cell| (cell.id.clone(), cell))
+        .collect();
 
     for key in raw_values.keys() {
         let cell = cells_by_id
