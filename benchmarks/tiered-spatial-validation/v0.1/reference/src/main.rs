@@ -439,7 +439,7 @@ mod tests {
     #[test]
     fn rejects_coordinate_buffer_violation() {
         let mut document = fixture();
-        document["cases"][2]["evaluationObservationIds"] = json!(["o3", "o4"]);
+        document["cases"][2]["evaluationObservationIds"] = json!(["o5", "o6"]);
         let result = evaluate_document(&document);
         assert!(result.unwrap_err().contains("below required"));
     }
@@ -447,7 +447,7 @@ mod tests {
     #[test]
     fn rejects_graph_community_leakage() {
         let mut document = fixture();
-        document["cases"][3]["evaluationObservationIds"] = json!(["o2", "o4", "o7", "o8"]);
+        document["cases"][3]["observations"][2]["graphCommunityId"] = json!("g1");
         let result = evaluate_document(&document);
         assert!(result.unwrap_err().contains("graphCommunityId"));
     }
@@ -455,11 +455,11 @@ mod tests {
     #[test]
     fn rejects_administrative_and_external_region_campaign_leakage() {
         let mut admin = fixture();
-        admin["cases"][4]["evaluationObservationIds"] = json!(["o3", "o4"]);
+        admin["cases"][4]["observations"][4]["adminAreaId"] = json!("a1");
         assert!(evaluate_document(&admin).unwrap_err().contains("adminAreaId"));
 
         let mut external = fixture();
-        external["cases"][5]["evaluationObservationIds"] = json!(["o3", "o4"]);
+        external["cases"][5]["observations"][4]["regionId"] = json!("r1");
         assert!(evaluate_document(&external).unwrap_err().contains("regionId"));
     }
 
