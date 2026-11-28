@@ -101,6 +101,14 @@ jobs:
           del missing_reason["entries"][0]["reason"]
           if ledger_validator.is_valid(missing_reason):
               raise SystemExit("NEGATIVE CONTROL FAILED: not_assessed entry without reason accepted")
+          restricted_payload = load("fixtures/evidence-records.json")
+          restricted_payload["records"][1]["rights"]["contentRetrieval"] = "unknown"
+          restricted_payload["records"][1]["rights"]["publicDisclosure"] = "allowed"
+          restricted_payload["records"][1]["syntheticPayload"] = "must not be embedded"
+          evidence_schema = load("schemas/evidence-records.schema.json")
+          if Draft202012Validator(evidence_schema).is_valid(restricted_payload):
+              raise SystemExit("NEGATIVE CONTROL FAILED: payload accepted without explicit retrieval permission")
+          print("VALID: rights-pending payload negative control rejected")
           print("VALID: field-disposition ledger negative controls rejected")
           PY
       - name: Format reference validator
