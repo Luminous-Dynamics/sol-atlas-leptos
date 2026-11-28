@@ -12,12 +12,13 @@ It applies a declared functional to provider-supplied synthetic joint worlds aft
 
 ## Run
 
-From this directory:
+From the repository root:
 
 ```sh
-cargo fmt --manifest-path reference/Cargo.toml -- --check
-cargo test --manifest-path reference/Cargo.toml
-cargo run --manifest-path reference/Cargo.toml -- ../fixtures/spatial-functional-cases-v0.1.json
+cargo fmt --manifest-path benchmarks/spatial-decision-functional/v0.1/reference/Cargo.toml -- --check
+cargo test --manifest-path benchmarks/spatial-decision-functional/v0.1/reference/Cargo.toml
+cargo run --manifest-path benchmarks/spatial-decision-functional/v0.1/reference/Cargo.toml -- \
+  benchmarks/spatial-decision-functional/v0.1/fixtures/spatial-functional-cases-v0.1.json
 ```
 
 The CLI emits a JSON report to stdout.
