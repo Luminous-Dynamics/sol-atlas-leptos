@@ -163,10 +163,6 @@ fn parse_dataset(case: &Value) -> Dataset {
         if !prediction_ids.insert(prediction_id.clone()) {
             fail(format!("duplicate prediction ID: {prediction_id}"));
         }
-        let receipt_id = as_string(
-            required(item, "receiptId", &path),
-            &format!("{path}.receiptId"),
-        );
         let site_id = as_string(required(item, "siteId", &path), &format!("{path}.siteId"));
         if !evaluation_sites.contains(&site_id) {
             fail(format!("prediction {prediction_id} uses non-evaluation site {site_id}"));
@@ -262,6 +258,10 @@ fn parse_dataset(case: &Value) -> Dataset {
         if !observation_ids.insert(observation_id.clone()) {
             fail(format!("duplicate metrology observation ID: {observation_id}"));
         }
+        let receipt_id = as_string(
+            required(item, "receiptId", &path),
+            &format!("{path}.receiptId"),
+        );
         let site_id = as_string(required(item, "siteId", &path), &format!("{path}.siteId"));
         if !evaluation_sites.contains(&site_id) {
             fail(format!("metrology observation {observation_id} uses non-evaluation site {site_id}"));
