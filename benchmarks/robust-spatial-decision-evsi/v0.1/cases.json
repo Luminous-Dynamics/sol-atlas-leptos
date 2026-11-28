@@ -51,12 +51,12 @@
     {
       "id": "INV-10",
       "name": "lower-tail-cvar-frontier",
-      "expected": "maximize weighted average net EVSI in the worst alpha probability mass, with alpha 1 reducing to nominal expectation"
+      "expected": "maximize weighted average net EVSI in the worst tail mass τ probability mass, with tail mass τ 1 reducing to nominal expectation"
     },
     {
       "id": "INV-11",
       "name": "tail-mass-correctness",
-      "expected": "scenario probability is split at the alpha boundary when required; normalized tail weights sum to one"
+      "expected": "scenario probability is split at the tail mass τ boundary when required; normalized tail weights sum to one"
     }
   ],
   "negativeControls": [
@@ -86,7 +86,7 @@
     },
     {
       "id": "NEG-05",
-      "mutation": "Set lower-tail CVaR alpha to zero or greater than one.",
+      "mutation": "Set lower-tail CVaR tail mass to zero or greater than one.",
       "expected": "reject",
       "reason": "The lower-tail probability mass must lie in (0,1]."
     }
