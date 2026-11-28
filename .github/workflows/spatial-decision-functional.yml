@@ -1,0 +1,71 @@
+name: Spatial Decision Functional Reference
+
+on:
+  pull_request:
+    paths:
+      - "benchmarks/spatial-decision-functional/**"
+      - ".github/workflows/spatial-decision-functional.yml"
+  push:
+    branches: [main]
+    paths:
+      - "benchmarks/spatial-decision-functional/**"
+      - ".github/workflows/spatial-decision-functional.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  spatial-decision-functional:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Validate frozen fixture against Draft 2020-12 schema
+        run: |
+          python -m pip install --disable-pip-version-check jsonschema==4.26.0
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          from jsonschema import Draft202012Validator
+
+          base = Path("benchmarks/spatial-decision-functional/v0.1")
+          schema = json.loads((base / "schemas/spatial-functional-cases.schema.json").read_text())
+          fixture = json.loads((base / "fixtures/spatial-functional-cases-v0.1.json").read_text())
+          errors = sorted(
+              Draft202012Validator(schema).iter_errors(fixture),
+              key=lambda error: list(error.absolute_path),
+          )
+          if errors:
+              for error in errors:
+                  print(f"INVALID: {list(error.absolute_path)}: {error.message}")
+              raise SystemExit(1)
+          print("VALID: spatial decision functional schema and fixture")
+          PY
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+
+      - name: Check standalone benchmark formatting
+        run: cargo fmt --manifest-path benchmarks/spatial-decision-functional/v0.1/reference/Cargo.toml -- --check
+
+      - name: Run exact functional reference tests
+        run: cargo test --manifest-path benchmarks/spatial-decision-functional/v0.1/reference/Cargo.toml
+
+      - name: Run strict Clippy
+        run: cargo clippy --manifest-path benchmarks/spatial-decision-functional/v0.1/reference/Cargo.toml --all-targets -- -D warnings
+
+      - name: Execute frozen spatial-functional oracle
+        run: |
+          cargo run --manifest-path benchmarks/spatial-decision-functional/v0.1/reference/Cargo.toml --             benchmarks/spatial-decision-functional/v0.1/fixtures/spatial-functional-cases-v0.1.json             > /tmp/spatial-functional-report.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          report = json.loads(Path("/tmp/spatial-functional-report.json").read_text())
+          assert report["fixtureStatus"] == "synthetic"
+          assert report["caseCount"] == 6
+          assert len(report["results"]) == 6
+          print("VALID: executable spatial decision functional oracle")
+          PY
