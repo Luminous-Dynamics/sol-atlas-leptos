@@ -44,6 +44,42 @@ jobs:
       # would otherwise have shipped, 2026-07-10.
       - run: cargo check --target wasm32-unknown-unknown
 
+  correlated-spatial-observations:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: benchmarks/correlated-spatial-observations/v0.1
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+      - name: Validate correlated observation schema and fixture
+        run: |
+          python -m pip install --disable-pip-version-check jsonschema==4.26.0
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          from jsonschema import Draft202012Validator
+
+          schema = json.loads(Path("schemas/correlated-case.schema.json").read_text())
+          fixture = json.loads(Path("fixtures/correlated-case.json").read_text())
+          Draft202012Validator.check_schema(schema)
+          errors = list(Draft202012Validator(schema).iter_errors(fixture))
+          if errors:
+              raise SystemExit("; ".join(error.message for error in errors))
+          print("VALID: correlated observation schema and synthetic fixture")
+          PY
+      - name: Format correlated EVSI reference
+        run: cargo fmt --manifest-path reference/Cargo.toml -- --check
+      - name: Test exact joint EVSI and negative controls
+        run: cargo test --manifest-path reference/Cargo.toml
+      - name: Enforce strict Clippy
+        run: cargo clippy --manifest-path reference/Cargo.toml --all-targets -- -D warnings
+      - name: Execute correlated observation oracle
+        run: cargo run --manifest-path reference/Cargo.toml -- fixtures/correlated-case.json
+
   test-native:
     runs-on: ubuntu-latest
     steps:

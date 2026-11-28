@@ -1,0 +1,9 @@
+[package]
+name = "sol-atlas-correlated-observations"
+version = "0.1.0"
+edition = "2024"
+publish = false
+description = "Exact EVSI reference with conditional joint observation distributions"
+
+[dependencies]
+serde_json = "1"
