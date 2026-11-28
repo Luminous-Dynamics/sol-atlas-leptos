@@ -1,0 +1,65 @@
+{
+  "benchmarkId": "sol-atlas-robust-spatial-decision-evsi",
+  "version": "0.1.0",
+  "status": "synthetic-reference-corpus",
+  "invariants": [
+    {
+      "id": "INV-01",
+      "name": "normalized-scenario-weights",
+      "expected": "all plausible scenarios have finite non-negative weights summing to one"
+    },
+    {
+      "id": "INV-02",
+      "name": "scenario-complete-priors-utilities-likelihoods",
+      "expected": "every scenario defines every hypothesis, action utility and candidate survey exactly once"
+    },
+    {
+      "id": "INV-03",
+      "name": "effort-feasibility",
+      "expected": "every candidate portfolio respects the fixed survey-effort budget"
+    },
+    {
+      "id": "INV-04",
+      "name": "no-observation-option",
+      "expected": "the empty portfolio is always considered and has zero net EVSI"
+    },
+    {
+      "id": "INV-05",
+      "name": "nominal-maximin-regret-separation",
+      "expected": "weighted mean EVSI, maximin net EVSI and minimax regret are calculated as separate objectives"
+    },
+    {
+      "id": "INV-06",
+      "name": "scenario-order-invariance",
+      "expected": "reordering scenarios or survey candidates does not alter policy semantics"
+    }
+  ],
+  "negativeControls": [
+    {
+      "id": "NEG-01",
+      "mutation": "Use scenario weights that do not sum to one.",
+      "expected": "reject",
+      "reason": "Weighted expectations are invalid without a normalized scenario distribution."
+    },
+    {
+      "id": "NEG-02",
+      "mutation": "Set a sensor likelihood below zero or above one.",
+      "expected": "reject",
+      "reason": "Scenario likelihoods must be probabilities."
+    },
+    {
+      "id": "NEG-03",
+      "mutation": "Remove a candidate survey from one scenario.",
+      "expected": "reject",
+      "reason": "Every scenario must score the same candidate set."
+    }
+  ],
+  "baselines": [
+    "nominal expected net EVSI",
+    "maximin net EVSI",
+    "minimax regret",
+    "no-observation policy",
+    "human expert plan"
+  ],
+  "qualificationBoundary": "Synthetic scenarios show decision-criterion behavior only. Real robustness requires pre-registered scenario envelopes grounded in independent survey/campaign evidence and stakeholder-approved utilities."
+}
