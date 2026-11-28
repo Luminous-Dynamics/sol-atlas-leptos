@@ -1,0 +1,128 @@
+{
+  "benchmarkId": "sol-atlas-decision-critical-disagreement",
+  "cases": [
+    {
+      "caseId": "same-prediction-different-action",
+      "actions": ["protect", "build"],
+      "supportUnits": [
+        {"unitId": "reach-a", "weight": 1.0, "status": "known"}
+      ],
+      "hypotheses": [
+        {
+          "hypothesisId": "network-topology-a",
+          "unitEvidence": {
+            "reach-a": {
+              "prediction": 0.5,
+              "actionLosses": {"protect": 0.0, "build": 8.0}
+            }
+          }
+        },
+        {
+          "hypothesisId": "network-topology-b",
+          "unitEvidence": {
+            "reach-a": {
+              "prediction": 0.5,
+              "actionLosses": {"protect": 8.0, "build": 0.0}
+            }
+          }
+        }
+      ]
+    },
+    {
+      "caseId": "different-prediction-same-action",
+      "actions": ["protect", "build"],
+      "supportUnits": [
+        {"unitId": "parcel-a", "weight": 1.0, "status": "known"}
+      ],
+      "hypotheses": [
+        {
+          "hypothesisId": "spectral-model-low",
+          "unitEvidence": {
+            "parcel-a": {
+              "prediction": 0.02,
+              "actionLosses": {"protect": 0.0, "build": 12.0}
+            }
+          }
+        },
+        {
+          "hypothesisId": "spectral-model-high",
+          "unitEvidence": {
+            "parcel-a": {
+              "prediction": 0.98,
+              "actionLosses": {"protect": 0.0, "build": 12.0}
+            }
+          }
+        }
+      ]
+    },
+    {
+      "caseId": "narrow-critical-corridor",
+      "actions": ["protect", "build"],
+      "supportUnits": [
+        {"unitId": "background", "weight": 0.95, "status": "known"},
+        {"unitId": "corridor", "weight": 0.05, "status": "known"}
+      ],
+      "hypotheses": [
+        {
+          "hypothesisId": "corridor-open",
+          "unitEvidence": {
+            "background": {
+              "prediction": 0.4,
+              "actionLosses": {"protect": 0.0, "build": 1.0}
+            },
+            "corridor": {
+              "prediction": 0.1,
+              "actionLosses": {"protect": 0.0, "build": 1000.0}
+            }
+          }
+        },
+        {
+          "hypothesisId": "corridor-obstructed",
+          "unitEvidence": {
+            "background": {
+              "prediction": 0.4,
+              "actionLosses": {"protect": 0.0, "build": 1.0}
+            },
+            "corridor": {
+              "prediction": 0.9,
+              "actionLosses": {"protect": 1000.0, "build": 0.0}
+            }
+          }
+        }
+      ]
+    },
+    {
+      "caseId": "partial-support",
+      "actions": ["protect", "build"],
+      "supportUnits": [
+        {"unitId": "observed-area", "weight": 0.8, "status": "known"},
+        {"unitId": "missing-model-area", "weight": 0.2, "status": "known"},
+        {"unitId": "unknown-area", "weight": 0.1, "status": "unknown"}
+      ],
+      "hypotheses": [
+        {
+          "hypothesisId": "hypothesis-a",
+          "unitEvidence": {
+            "observed-area": {
+              "prediction": 4.0,
+              "actionLosses": {"protect": 0.0, "build": 5.0}
+            },
+            "missing-model-area": {
+              "prediction": 2.0,
+              "actionLosses": {"protect": 0.0, "build": 5.0}
+            }
+          }
+        },
+        {
+          "hypothesisId": "hypothesis-b",
+          "unitEvidence": {
+            "observed-area": {
+              "prediction": 3.8,
+              "actionLosses": {"protect": 0.0, "build": 6.0}
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
