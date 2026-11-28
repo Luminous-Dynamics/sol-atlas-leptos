@@ -8,7 +8,7 @@ A low average geometric error does not establish that uncertainty estimates are 
 
 This benchmark provides an executable reference for:
 
-- Brier score and log loss (proper scoring rules for probabilistic predictions);
+- Brier score and log loss (proper scoring rules for probabilistic predictions), with an exact forecast-category Murphy decomposition into reliability, resolution and outcome uncertainty;
 - equal-width expected calibration error (ECE) with the reliability-bin counts and gaps retained. ECE is diagnostic only because it is binning- and sample-size-sensitive;
 - selective risk versus coverage when low-confidence predictions are withheld;
 - empirical coverage and width of nominal 95% spatial measurement intervals;
@@ -38,6 +38,10 @@ These results are designed to demonstrate that aggregate metrics and worst-strat
 ## Metrology receipt and physical-evidence boundary
 
 Every scored metrology observation now names a receipt identifying its instrument modality and site. The receipt provides fields for calibration certificate status, coordinate reference system, acquisition setup, environment, GUM-style Type A/Type B uncertainty contributions and covariance terms, reference survey and processing lineage. All six receipts are **synthetic fixtures**: they explicitly contain no real calibration certificate, no physical reference survey and no artifact digests. They validate linkage and schema behavior only. A field dataset cannot be qualified until actual instrument certificates, reference-control observations, data digests, environmental logs and independently reviewed uncertainty budgets replace these placeholders.
+
+## Interpreting the Brier score
+
+Brier score is an overall proper forecast score, not a calibration-only measure: it combines reliability, resolution and outcome uncertainty. The reference scorer therefore also emits the exact finite-sample forecast-category Murphy decomposition `BS = reliability - resolution + uncertainty`, grouping identical forecast probabilities. Sparse forecast categories can make the components noisy, so retain category counts and do not substitute the decomposition for reliability diagrams or independent-site evaluation.
 
 ## Protocol recommendations
 
