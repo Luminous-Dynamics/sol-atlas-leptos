@@ -33,6 +33,11 @@
       "id": "INV-06",
       "name": "stable-permutation-invariance",
       "expected": "reordering candidate survey inputs does not change the canonical plan or scores"
+    },
+    {
+      "id": "INV-07",
+      "name": "information-gain-versus-decision-value",
+      "expected": "report top-EIG single survey and its own EVSI separately; a high information-gain score must not be treated as proof of decision improvement"
     }
   ],
   "negativeControls": [
@@ -65,6 +70,12 @@
       "mutation": "Make all actions utility-equivalent across hypotheses while keeping informative surveys.",
       "expected": "select-no-survey",
       "reason": "Information without a possible decision improvement has zero gross EVSI and should not be purchased at positive cost."
+    },
+    {
+      "id": "NEG-06",
+      "mutation": "Treat the highest-EIG survey as decision-optimal without computing its expected post-observation decision utility and acquisition cost.",
+      "expected": "reject",
+      "reason": "The selection objective is net decision value, not entropy reduction alone."
     }
   ],
   "qualification": {
