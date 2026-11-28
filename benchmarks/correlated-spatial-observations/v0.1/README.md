@@ -38,7 +38,7 @@ For a selected subset, the evaluator sums over all full outcome patterns consist
 - Binary observations and a complete joint outcome table.
 - Exact enumeration; maximum 16 candidate surveys.
 - Supplied priors, utilities and costs are not inferred or calibrated.
-- No adaptive sequential survey policy yet.
+- The sequential policy evaluator is limited to eight candidates and currently has an exact binary-outcome joint distribution; it is a small oracle rather than a scalable production solver.
 - Joint likelihoods must be learned, elicited or estimated from independent campaign data before operational use.
 
 ## Run
