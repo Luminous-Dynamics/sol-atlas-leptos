@@ -316,6 +316,56 @@
           ]
         }
       ]
+    },
+    {
+      "caseId": "mean-full-support",
+      "functional": {
+        "kind": "weighted_mean",
+        "valueUnits": "kg/m2",
+        "outputUnits": "kg/m2",
+        "decisionThreshold": 3
+      },
+      "support": {
+        "supportId": "field-mean-b",
+        "supportRevision": "support-v1",
+        "geometryDigest": "1212121212121212121212121212121212121212121212121212121212121212",
+        "coordinateReference": "EPSG:6933",
+        "verticalDatum": "not_applicable",
+        "coordinateEpoch": "2026.0",
+        "measureKind": "area",
+        "measureUnits": "m2",
+        "targetMeasure": 3,
+        "cells": [
+          {
+            "id": "cell-x",
+            "measure": 1,
+            "status": "observed"
+          },
+          {
+            "id": "cell-y",
+            "measure": 2,
+            "status": "observed"
+          }
+        ]
+      },
+      "worlds": [
+        {
+          "worldId": "low-mean-world",
+          "weight": 0.25,
+          "values": {
+            "cell-x": 1,
+            "cell-y": 2
+          }
+        },
+        {
+          "worldId": "high-mean-world",
+          "weight": 0.75,
+          "values": {
+            "cell-x": 4,
+            "cell-y": 5
+          }
+        }
+      ]
     }
   ]
 }
