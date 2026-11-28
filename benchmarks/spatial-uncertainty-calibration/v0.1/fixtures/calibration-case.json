@@ -70,7 +70,8 @@
       "referenceValue": 10,
       "estimate": 10.1,
       "lower95": 9.8,
-      "upper95": 10.4
+      "upper95": 10.4,
+      "receiptId": "receipt-tls-alpha"
     },
     {
       "observationId": "m-002",
@@ -79,7 +80,8 @@
       "referenceValue": 20,
       "estimate": 19.9,
       "lower95": 19.5,
-      "upper95": 20.3
+      "upper95": 20.3,
+      "receiptId": "receipt-tls-beta"
     },
     {
       "observationId": "m-003",
@@ -88,7 +90,8 @@
       "referenceValue": 30,
       "estimate": 30.4,
       "lower95": 30,
-      "upper95": 30.8
+      "upper95": 30.8,
+      "receiptId": "receipt-tls-gamma"
     },
     {
       "observationId": "m-004",
@@ -97,7 +100,8 @@
       "referenceValue": 5,
       "estimate": 5.4,
       "lower95": 5.3,
-      "upper95": 5.5
+      "upper95": 5.5,
+      "receiptId": "receipt-photogrammetry-alpha"
     },
     {
       "observationId": "m-005",
@@ -106,7 +110,8 @@
       "referenceValue": 7,
       "estimate": 7.1,
       "lower95": 6.8,
-      "upper95": 7.4
+      "upper95": 7.4,
+      "receiptId": "receipt-photogrammetry-beta"
     },
     {
       "observationId": "m-006",
@@ -115,9 +120,510 @@
       "referenceValue": 8,
       "estimate": 7.2,
       "lower95": 7,
-      "upper95": 7.4
+      "upper95": 7.4,
+      "receiptId": "receipt-photogrammetry-gamma"
     }
   ],
   "bootstrapReplicates": 1000,
-  "bootstrapSeed": 20261128
+  "bootstrapSeed": 20261128,
+  "metrologyReceipts": [
+    {
+      "receiptId": "receipt-tls-alpha",
+      "receiptStatus": "synthetic_fixture",
+      "siteId": "site-alpha",
+      "campaignId": "synthetic-campaign-site-alpha",
+      "instrument": {
+        "instrumentId": "synthetic-tls-alpha",
+        "modality": "tls",
+        "manufacturer": "Synthetic fixture generator",
+        "model": "NON-PHYSICAL TEST INSTRUMENT",
+        "serialToken": "NOT-A-REAL-INSTRUMENT"
+      },
+      "calibration": {
+        "status": "not_supplied_synthetic_fixture",
+        "calibrationDate": null,
+        "validUntil": null,
+        "certificateDigest": null,
+        "referenceStandard": "not supplied; synthetic-only fixture"
+      },
+      "measurementSetup": {
+        "coordinateReferenceSystem": "EPSG:3857",
+        "linearUnit": "m",
+        "acquisitionMethod": "tls",
+        "acquisitionConfigurationDigest": null,
+        "processingFrame": "synthetic-local-frame"
+      },
+      "environment": {
+        "airTemperatureC": 20,
+        "airTemperatureStandardUncertaintyC": 0.5,
+        "relativeHumidityPercent": 50,
+        "relativeHumidityStandardUncertaintyPercent": 5
+      },
+      "uncertaintyBudget": {
+        "status": "illustrative_only_not_metrologically_validated",
+        "unit": "m",
+        "components": [
+          {
+            "componentId": "repeatability",
+            "type": "A",
+            "distribution": "normal",
+            "standardUncertainty": 0.002,
+            "sensitivityCoefficient": 1,
+            "degreesOfFreedom": 20
+          },
+          {
+            "componentId": "instrument",
+            "type": "B",
+            "distribution": "rectangular",
+            "standardUncertainty": 0.003,
+            "sensitivityCoefficient": 1,
+            "degreesOfFreedom": null
+          },
+          {
+            "componentId": "registration",
+            "type": "B",
+            "distribution": "normal",
+            "standardUncertainty": 0.002,
+            "sensitivityCoefficient": 1,
+            "degreesOfFreedom": null
+          }
+        ],
+        "covarianceTerms": [],
+        "combinedStandardUncertainty": 0.0041231056256,
+        "coverageFactor": 2,
+        "expandedUncertainty": 0.0082462112512
+      },
+      "referenceMeasurement": {
+        "status": "synthetic_only_no_physical_reference",
+        "method": "fixed synthetic fixture values; no traceable physical survey",
+        "referenceInstrument": "none",
+        "referenceStandard": "none",
+        "checkPointCount": 0,
+        "referenceDatasetDigest": null
+      },
+      "processingProvenance": {
+        "pipelineId": "sol-atlas-synthetic-calibration-fixture",
+        "softwareId": "sol-atlas-spatial-calibration",
+        "softwareVersion": "0.1.0",
+        "configurationDigest": null,
+        "inputDatasetDigest": null,
+        "outputDatasetDigest": null
+      }
+    },
+    {
+      "receiptId": "receipt-tls-beta",
+      "receiptStatus": "synthetic_fixture",
+      "siteId": "site-beta",
+      "campaignId": "synthetic-campaign-site-beta",
+      "instrument": {
+        "instrumentId": "synthetic-tls-beta",
+        "modality": "tls",
+        "manufacturer": "Synthetic fixture generator",
+        "model": "NON-PHYSICAL TEST INSTRUMENT",
+        "serialToken": "NOT-A-REAL-INSTRUMENT"
+      },
+      "calibration": {
+        "status": "not_supplied_synthetic_fixture",
+        "calibrationDate": null,
+        "validUntil": null,
+        "certificateDigest": null,
+        "referenceStandard": "not supplied; synthetic-only fixture"
+      },
+      "measurementSetup": {
+        "coordinateReferenceSystem": "EPSG:3857",
+        "linearUnit": "m",
+        "acquisitionMethod": "tls",
+        "acquisitionConfigurationDigest": null,
+        "processingFrame": "synthetic-local-frame"
+      },
+      "environment": {
+        "airTemperatureC": 20,
+        "airTemperatureStandardUncertaintyC": 0.5,
+        "relativeHumidityPercent": 50,
+        "relativeHumidityStandardUncertaintyPercent": 5
+      },
+      "uncertaintyBudget": {
+        "status": "illustrative_only_not_metrologically_validated",
+        "unit": "m",
+        "components": [
+          {
+            "componentId": "repeatability",
+            "type": "A",
+            "distribution": "normal",
+            "standardUncertainty": 0.002,
+            "sensitivityCoefficient": 1,
+            "degreesOfFreedom": 20
+          },
+          {
+            "componentId": "instrument",
+            "type": "B",
+            "distribution": "rectangular",
+            "standardUncertainty": 0.003,
+            "sensitivityCoefficient": 1,
+            "degreesOfFreedom": null
+          },
+          {
+            "componentId": "registration",
+            "type": "B",
+            "distribution": "normal",
+            "standardUncertainty": 0.002,
+            "sensitivityCoefficient": 1,
+            "degreesOfFreedom": null
+          }
+        ],
+        "covarianceTerms": [],
+        "combinedStandardUncertainty": 0.0041231056256,
+        "coverageFactor": 2,
+        "expandedUncertainty": 0.0082462112512
+      },
+      "referenceMeasurement": {
+        "status": "synthetic_only_no_physical_reference",
+        "method": "fixed synthetic fixture values; no traceable physical survey",
+        "referenceInstrument": "none",
+        "referenceStandard": "none",
+        "checkPointCount": 0,
+        "referenceDatasetDigest": null
+      },
+      "processingProvenance": {
+        "pipelineId": "sol-atlas-synthetic-calibration-fixture",
+        "softwareId": "sol-atlas-spatial-calibration",
+        "softwareVersion": "0.1.0",
+        "configurationDigest": null,
+        "inputDatasetDigest": null,
+        "outputDatasetDigest": null
+      }
+    },
+    {
+      "receiptId": "receipt-tls-gamma",
+      "receiptStatus": "synthetic_fixture",
+      "siteId": "site-gamma",
+      "campaignId": "synthetic-campaign-site-gamma",
+      "instrument": {
+        "instrumentId": "synthetic-tls-gamma",
+        "modality": "tls",
+        "manufacturer": "Synthetic fixture generator",
+        "model": "NON-PHYSICAL TEST INSTRUMENT",
+        "serialToken": "NOT-A-REAL-INSTRUMENT"
+      },
+      "calibration": {
+        "status": "not_supplied_synthetic_fixture",
+        "calibrationDate": null,
+        "validUntil": null,
+        "certificateDigest": null,
+        "referenceStandard": "not supplied; synthetic-only fixture"
+      },
+      "measurementSetup": {
+        "coordinateReferenceSystem": "EPSG:3857",
+        "linearUnit": "m",
+        "acquisitionMethod": "tls",
+        "acquisitionConfigurationDigest": null,
+        "processingFrame": "synthetic-local-frame"
+      },
+      "environment": {
+        "airTemperatureC": 20,
+        "airTemperatureStandardUncertaintyC": 0.5,
+        "relativeHumidityPercent": 50,
+        "relativeHumidityStandardUncertaintyPercent": 5
+      },
+      "uncertaintyBudget": {
+        "status": "illustrative_only_not_metrologically_validated",
+        "unit": "m",
+        "components": [
+          {
+            "componentId": "repeatability",
+            "type": "A",
+            "distribution": "normal",
+            "standardUncertainty": 0.002,
+            "sensitivityCoefficient": 1,
+            "degreesOfFreedom": 20
+          },
+          {
+            "componentId": "instrument",
+            "type": "B",
+            "distribution": "rectangular",
+            "standardUncertainty": 0.003,
+            "sensitivityCoefficient": 1,
+            "degreesOfFreedom": null
+          },
+          {
+            "componentId": "registration",
+            "type": "B",
+            "distribution": "normal",
+            "standardUncertainty": 0.002,
+            "sensitivityCoefficient": 1,
+            "degreesOfFreedom": null
+          }
+        ],
+        "covarianceTerms": [],
+        "combinedStandardUncertainty": 0.0041231056256,
+        "coverageFactor": 2,
+        "expandedUncertainty": 0.0082462112512
+      },
+      "referenceMeasurement": {
+        "status": "synthetic_only_no_physical_reference",
+        "method": "fixed synthetic fixture values; no traceable physical survey",
+        "referenceInstrument": "none",
+        "referenceStandard": "none",
+        "checkPointCount": 0,
+        "referenceDatasetDigest": null
+      },
+      "processingProvenance": {
+        "pipelineId": "sol-atlas-synthetic-calibration-fixture",
+        "softwareId": "sol-atlas-spatial-calibration",
+        "softwareVersion": "0.1.0",
+        "configurationDigest": null,
+        "inputDatasetDigest": null,
+        "outputDatasetDigest": null
+      }
+    },
+    {
+      "receiptId": "receipt-photogrammetry-alpha",
+      "receiptStatus": "synthetic_fixture",
+      "siteId": "site-alpha",
+      "campaignId": "synthetic-campaign-site-alpha",
+      "instrument": {
+        "instrumentId": "synthetic-photogrammetry-alpha",
+        "modality": "photogrammetry",
+        "manufacturer": "Synthetic fixture generator",
+        "model": "NON-PHYSICAL TEST INSTRUMENT",
+        "serialToken": "NOT-A-REAL-INSTRUMENT"
+      },
+      "calibration": {
+        "status": "not_supplied_synthetic_fixture",
+        "calibrationDate": null,
+        "validUntil": null,
+        "certificateDigest": null,
+        "referenceStandard": "not supplied; synthetic-only fixture"
+      },
+      "measurementSetup": {
+        "coordinateReferenceSystem": "EPSG:3857",
+        "linearUnit": "m",
+        "acquisitionMethod": "photogrammetry",
+        "acquisitionConfigurationDigest": null,
+        "processingFrame": "synthetic-local-frame"
+      },
+      "environment": {
+        "airTemperatureC": 20,
+        "airTemperatureStandardUncertaintyC": 0.5,
+        "relativeHumidityPercent": 50,
+        "relativeHumidityStandardUncertaintyPercent": 5
+      },
+      "uncertaintyBudget": {
+        "status": "illustrative_only_not_metrologically_validated",
+        "unit": "m",
+        "components": [
+          {
+            "componentId": "repeatability",
+            "type": "A",
+            "distribution": "normal",
+            "standardUncertainty": 0.002,
+            "sensitivityCoefficient": 1,
+            "degreesOfFreedom": 20
+          },
+          {
+            "componentId": "instrument",
+            "type": "B",
+            "distribution": "rectangular",
+            "standardUncertainty": 0.003,
+            "sensitivityCoefficient": 1,
+            "degreesOfFreedom": null
+          },
+          {
+            "componentId": "registration",
+            "type": "B",
+            "distribution": "normal",
+            "standardUncertainty": 0.002,
+            "sensitivityCoefficient": 1,
+            "degreesOfFreedom": null
+          }
+        ],
+        "covarianceTerms": [],
+        "combinedStandardUncertainty": 0.0041231056256,
+        "coverageFactor": 2,
+        "expandedUncertainty": 0.0082462112512
+      },
+      "referenceMeasurement": {
+        "status": "synthetic_only_no_physical_reference",
+        "method": "fixed synthetic fixture values; no traceable physical survey",
+        "referenceInstrument": "none",
+        "referenceStandard": "none",
+        "checkPointCount": 0,
+        "referenceDatasetDigest": null
+      },
+      "processingProvenance": {
+        "pipelineId": "sol-atlas-synthetic-calibration-fixture",
+        "softwareId": "sol-atlas-spatial-calibration",
+        "softwareVersion": "0.1.0",
+        "configurationDigest": null,
+        "inputDatasetDigest": null,
+        "outputDatasetDigest": null
+      }
+    },
+    {
+      "receiptId": "receipt-photogrammetry-beta",
+      "receiptStatus": "synthetic_fixture",
+      "siteId": "site-beta",
+      "campaignId": "synthetic-campaign-site-beta",
+      "instrument": {
+        "instrumentId": "synthetic-photogrammetry-beta",
+        "modality": "photogrammetry",
+        "manufacturer": "Synthetic fixture generator",
+        "model": "NON-PHYSICAL TEST INSTRUMENT",
+        "serialToken": "NOT-A-REAL-INSTRUMENT"
+      },
+      "calibration": {
+        "status": "not_supplied_synthetic_fixture",
+        "calibrationDate": null,
+        "validUntil": null,
+        "certificateDigest": null,
+        "referenceStandard": "not supplied; synthetic-only fixture"
+      },
+      "measurementSetup": {
+        "coordinateReferenceSystem": "EPSG:3857",
+        "linearUnit": "m",
+        "acquisitionMethod": "photogrammetry",
+        "acquisitionConfigurationDigest": null,
+        "processingFrame": "synthetic-local-frame"
+      },
+      "environment": {
+        "airTemperatureC": 20,
+        "airTemperatureStandardUncertaintyC": 0.5,
+        "relativeHumidityPercent": 50,
+        "relativeHumidityStandardUncertaintyPercent": 5
+      },
+      "uncertaintyBudget": {
+        "status": "illustrative_only_not_metrologically_validated",
+        "unit": "m",
+        "components": [
+          {
+            "componentId": "repeatability",
+            "type": "A",
+            "distribution": "normal",
+            "standardUncertainty": 0.002,
+            "sensitivityCoefficient": 1,
+            "degreesOfFreedom": 20
+          },
+          {
+            "componentId": "instrument",
+            "type": "B",
+            "distribution": "rectangular",
+            "standardUncertainty": 0.003,
+            "sensitivityCoefficient": 1,
+            "degreesOfFreedom": null
+          },
+          {
+            "componentId": "registration",
+            "type": "B",
+            "distribution": "normal",
+            "standardUncertainty": 0.002,
+            "sensitivityCoefficient": 1,
+            "degreesOfFreedom": null
+          }
+        ],
+        "covarianceTerms": [],
+        "combinedStandardUncertainty": 0.0041231056256,
+        "coverageFactor": 2,
+        "expandedUncertainty": 0.0082462112512
+      },
+      "referenceMeasurement": {
+        "status": "synthetic_only_no_physical_reference",
+        "method": "fixed synthetic fixture values; no traceable physical survey",
+        "referenceInstrument": "none",
+        "referenceStandard": "none",
+        "checkPointCount": 0,
+        "referenceDatasetDigest": null
+      },
+      "processingProvenance": {
+        "pipelineId": "sol-atlas-synthetic-calibration-fixture",
+        "softwareId": "sol-atlas-spatial-calibration",
+        "softwareVersion": "0.1.0",
+        "configurationDigest": null,
+        "inputDatasetDigest": null,
+        "outputDatasetDigest": null
+      }
+    },
+    {
+      "receiptId": "receipt-photogrammetry-gamma",
+      "receiptStatus": "synthetic_fixture",
+      "siteId": "site-gamma",
+      "campaignId": "synthetic-campaign-site-gamma",
+      "instrument": {
+        "instrumentId": "synthetic-photogrammetry-gamma",
+        "modality": "photogrammetry",
+        "manufacturer": "Synthetic fixture generator",
+        "model": "NON-PHYSICAL TEST INSTRUMENT",
+        "serialToken": "NOT-A-REAL-INSTRUMENT"
+      },
+      "calibration": {
+        "status": "not_supplied_synthetic_fixture",
+        "calibrationDate": null,
+        "validUntil": null,
+        "certificateDigest": null,
+        "referenceStandard": "not supplied; synthetic-only fixture"
+      },
+      "measurementSetup": {
+        "coordinateReferenceSystem": "EPSG:3857",
+        "linearUnit": "m",
+        "acquisitionMethod": "photogrammetry",
+        "acquisitionConfigurationDigest": null,
+        "processingFrame": "synthetic-local-frame"
+      },
+      "environment": {
+        "airTemperatureC": 20,
+        "airTemperatureStandardUncertaintyC": 0.5,
+        "relativeHumidityPercent": 50,
+        "relativeHumidityStandardUncertaintyPercent": 5
+      },
+      "uncertaintyBudget": {
+        "status": "illustrative_only_not_metrologically_validated",
+        "unit": "m",
+        "components": [
+          {
+            "componentId": "repeatability",
+            "type": "A",
+            "distribution": "normal",
+            "standardUncertainty": 0.002,
+            "sensitivityCoefficient": 1,
+            "degreesOfFreedom": 20
+          },
+          {
+            "componentId": "instrument",
+            "type": "B",
+            "distribution": "rectangular",
+            "standardUncertainty": 0.003,
+            "sensitivityCoefficient": 1,
+            "degreesOfFreedom": null
+          },
+          {
+            "componentId": "registration",
+            "type": "B",
+            "distribution": "normal",
+            "standardUncertainty": 0.002,
+            "sensitivityCoefficient": 1,
+            "degreesOfFreedom": null
+          }
+        ],
+        "covarianceTerms": [],
+        "combinedStandardUncertainty": 0.0041231056256,
+        "coverageFactor": 2,
+        "expandedUncertainty": 0.0082462112512
+      },
+      "referenceMeasurement": {
+        "status": "synthetic_only_no_physical_reference",
+        "method": "fixed synthetic fixture values; no traceable physical survey",
+        "referenceInstrument": "none",
+        "referenceStandard": "none",
+        "checkPointCount": 0,
+        "referenceDatasetDigest": null
+      },
+      "processingProvenance": {
+        "pipelineId": "sol-atlas-synthetic-calibration-fixture",
+        "softwareId": "sol-atlas-spatial-calibration",
+        "softwareVersion": "0.1.0",
+        "configurationDigest": null,
+        "inputDatasetDigest": null,
+        "outputDatasetDigest": null
+      }
+    }
+  ]
 }

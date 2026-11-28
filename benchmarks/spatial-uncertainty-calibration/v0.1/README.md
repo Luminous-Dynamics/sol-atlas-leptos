@@ -14,6 +14,7 @@ This benchmark provides an executable reference for:
 - empirical coverage and width of nominal 95% spatial measurement intervals;
 - mean absolute metrology error;
 - worst sensor-group and worst-site interval coverage;
+- traceability receipts binding each measurement to instrument/modality, calibration status, CRS/units, environment, uncertainty budget, reference method and processing lineage. The synthetic receipts explicitly state that no physical calibration or reference evidence was supplied;
 - train/evaluation separation at whole-site granularity;
 - deterministic site-cluster bootstrap percentile confidence intervals for Brier, log loss and spatial interval coverage.
 
@@ -33,6 +34,10 @@ The fixture intentionally includes one highly confident but wrong probability pr
 | Worst site coverage | 50.00% |
 
 These results are designed to demonstrate that aggregate metrics and worst-stratum performance can tell different stories. They are not estimates of Sol-Atlas or any real sensor system.
+
+## Metrology receipt and physical-evidence boundary
+
+Every scored metrology observation now names a receipt identifying its instrument modality and site. The receipt provides fields for calibration certificate status, coordinate reference system, acquisition setup, environment, GUM-style Type A/Type B uncertainty contributions and covariance terms, reference survey and processing lineage. All six receipts are **synthetic fixtures**: they explicitly contain no real calibration certificate, no physical reference survey and no artifact digests. They validate linkage and schema behavior only. A field dataset cannot be qualified until actual instrument certificates, reference-control observations, data digests, environmental logs and independently reviewed uncertainty budgets replace these placeholders.
 
 ## Protocol recommendations
 

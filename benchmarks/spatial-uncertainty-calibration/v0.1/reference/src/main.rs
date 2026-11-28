@@ -17,6 +17,7 @@ struct ProbabilityPrediction {
 #[derive(Clone, Debug)]
 struct MetrologyObservation {
     observation_id: String,
+    receipt_id: String,
     site_id: String,
     sensor_group: String,
     reference_value: f64,
@@ -162,6 +163,10 @@ fn parse_dataset(case: &Value) -> Dataset {
         if !prediction_ids.insert(prediction_id.clone()) {
             fail(format!("duplicate prediction ID: {prediction_id}"));
         }
+        let receipt_id = as_string(
+            required(item, "receiptId", &path),
+            &format!("{path}.receiptId"),
+        );
         let site_id = as_string(required(item, "siteId", &path), &format!("{path}.siteId"));
         if !evaluation_sites.contains(&site_id) {
             fail(format!("prediction {prediction_id} uses non-evaluation site {site_id}"));
@@ -197,6 +202,49 @@ fn parse_dataset(case: &Value) -> Dataset {
         fail("every registered evaluation site must contribute probability predictions");
     }
 
+    let mut receipt_map = BTreeMap::<String, (String, String)>::new();
+    for (index, receipt) in as_array(
+        required(case, "metrologyReceipts", "case"),
+        "case.metrologyReceipts",
+    )
+    .iter()
+    .enumerate()
+    {
+        let path = format!("metrologyReceipts[{index}]");
+        if as_string(required(receipt, "receiptStatus", &path), &format!("{path}.receiptStatus"))
+            != "synthetic_fixture"
+        {
+            fail("reference calibration benchmark accepts only synthetic metrology receipts");
+        }
+        let receipt_id = as_string(
+            required(receipt, "receiptId", &path),
+            &format!("{path}.receiptId"),
+        );
+        let site_id = as_string(required(receipt, "siteId", &path), &format!("{path}.siteId"));
+        if !evaluation_sites.contains(&site_id) {
+            fail(format!("metrology receipt {receipt_id} uses non-evaluation site {site_id}"));
+        }
+        let instrument = required(receipt, "instrument", &path);
+        let modality = as_string(
+            required(instrument, "modality", &format!("{path}.instrument")),
+            &format!("{path}.instrument.modality"),
+        );
+        if !["tls", "photogrammetry", "mobile_lidar", "total_station", "gnss"]
+            .contains(&modality.as_str())
+        {
+            fail(format!("metrology receipt {receipt_id} has unsupported modality {modality}"));
+        }
+        if receipt_map
+            .insert(receipt_id.clone(), (site_id, modality))
+            .is_some()
+        {
+            fail(format!("duplicate metrology receipt ID: {receipt_id}"));
+        }
+    }
+    if receipt_map.is_empty() {
+        fail("at least one metrology receipt is required");
+    }
+
     let mut measurements = Vec::new();
     let mut observation_ids = BTreeSet::new();
     for (index, item) in as_array(
@@ -222,6 +270,18 @@ fn parse_dataset(case: &Value) -> Dataset {
             required(item, "sensorGroup", &path),
             &format!("{path}.sensorGroup"),
         );
+        let receipt = receipt_map.get(&receipt_id).unwrap_or_else(|| {
+            fail(format!(
+                "metrology observation {observation_id} references unknown receipt {receipt_id}"
+            ))
+        });
+        if receipt.0.as_str() != site_id.as_str()
+            || receipt.1.as_str() != sensor_group.as_str()
+        {
+            fail(format!(
+                "metrology observation {observation_id} does not match receipt site/modality"
+            ));
+        }
         let reference_value = as_number(
             required(item, "referenceValue", &path),
             &format!("{path}.referenceValue"),
@@ -237,6 +297,7 @@ fn parse_dataset(case: &Value) -> Dataset {
         }
         measurements.push(MetrologyObservation {
             observation_id,
+            receipt_id,
             site_id,
             sensor_group,
             reference_value,
@@ -432,6 +493,11 @@ fn worst_coverage(groups: &Value) -> f64 {
 
 fn metrology_metrics(dataset: &Dataset) -> Value {
     let count = dataset.measurements.len() as f64;
+    let receipt_ids: BTreeSet<String> = dataset
+        .measurements
+        .iter()
+        .map(|observation| observation.receipt_id.clone())
+        .collect();
     let covered = dataset
         .measurements
         .iter()
@@ -457,6 +523,8 @@ fn metrology_metrics(dataset: &Dataset) -> Value {
 
     json!({
         "sampleCount": dataset.measurements.len(),
+        "metrologyReceiptCount": receipt_ids.len(),
+        "metrologyReceiptIds": receipt_ids,
         "nominalIntervalLevel": dataset.interval_level,
         "empiricalIntervalCoverage": covered as f64 / count,
         "meanIntervalWidth": mean_interval_width,
@@ -718,6 +786,35 @@ mod tests {
     fn rejects_too_few_sites_for_cluster_bootstrap() {
         let mut case = fixture();
         case["evaluationSiteIds"].as_array_mut().unwrap().pop();
+        let _ = calculate(&case);
+    }
+
+    #[test]
+    fn all_scored_measurements_resolve_to_synthetic_receipts() {
+        let result = calculate(&fixture());
+        assert_eq!(result["spatialMetrology"]["metrologyReceiptCount"], 6);
+        assert_eq!(
+            result["spatialMetrology"]["metrologyReceiptIds"]
+                .as_array()
+                .unwrap()
+                .len(),
+            6
+        );
+    }
+
+    #[test]
+    #[should_panic(expected = "references unknown receipt")]
+    fn rejects_unregistered_metrology_receipt() {
+        let mut case = fixture();
+        case["metrologyObservations"][0]["receiptId"] = json!("missing-receipt");
+        let _ = calculate(&case);
+    }
+
+    #[test]
+    #[should_panic(expected = "does not match receipt site/modality")]
+    fn rejects_receipt_with_wrong_sensor_group() {
+        let mut case = fixture();
+        case["metrologyObservations"][0]["sensorGroup"] = json!("photogrammetry");
         let _ = calculate(&case);
     }
 

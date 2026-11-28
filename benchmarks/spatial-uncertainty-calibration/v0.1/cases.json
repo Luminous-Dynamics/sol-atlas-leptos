@@ -47,6 +47,16 @@
       "id": "INV-09",
       "name": "minimum-independent-cluster-count",
       "expected": "cluster bootstrap rejects fewer than three evaluation sites"
+    },
+    {
+      "id": "INV-10",
+      "name": "metrology-receipt-linkage",
+      "expected": "every measurement references a receipt whose site and modality agree with the measurement row"
+    },
+    {
+      "id": "INV-11",
+      "name": "metrology-traceability-fields",
+      "expected": "instrument, calibration status, CRS/units, environment, uncertainty budget, reference survey and processing provenance are represented"
     }
   ],
   "negativeControls": [
@@ -79,6 +89,12 @@
       "mutation": "Use fewer than three independent evaluation sites for the cluster bootstrap.",
       "expected": "reject",
       "reason": "A point-level bootstrap must not be substituted for absent independent site clusters."
+    },
+    {
+      "id": "NEG-06",
+      "mutation": "Remove or invent the receipt ID for a metrology observation, or link it to a different site/modality.",
+      "expected": "reject",
+      "reason": "Scored measurements must be traceable to an explicitly registered instrument and acquisition receipt."
     }
   ],
   "baselines": [
