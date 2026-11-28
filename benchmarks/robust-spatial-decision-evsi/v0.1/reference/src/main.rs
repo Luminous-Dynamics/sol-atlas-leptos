@@ -26,7 +26,7 @@ struct Problem {
     survey_ids: Vec<String>,
     max_effort_units: usize,
     tv_radii: Vec<f64>,
-    cvar_alphas: Vec<f64>,
+    cvar_tail_masses: Vec<f64>,
     scenarios: Vec<Scenario>,
 }
 
@@ -150,28 +150,28 @@ fn parse_problem(case: &Value) -> Problem {
     }
     tv_radii.sort_by(f64::total_cmp);
 
-    let mut cvar_alphas = Vec::new();
-    let mut cvar_alpha_values = BTreeSet::new();
+    let mut cvar_tail_masses = Vec::new();
+    let mut cvar_tail_mass_values = BTreeSet::new();
     for (index, value) in as_array(
-        required(decision, "cvarAlphas", "decisionProblem"),
-        "decisionProblem.cvarAlphas",
+        required(decision, "cvarTailMasses", "decisionProblem"),
+        "decisionProblem.cvarTailMasses",
     )
     .iter()
     .enumerate()
     {
-        let alpha = as_number(value, &format!("cvarAlphas[{index}]"));
-        if alpha <= 0.0 || alpha > 1.0 {
-            fail("lower-tail CVaR alphas must be within (0, 1]");
+        let tail_mass = as_number(value, &format!("cvarTailMasses[{index}]"));
+        if tail_mass <= 0.0 || tail_mass > 1.0 {
+            fail("lower-tail CVaR tail masses must be within (0, 1]");
         }
-        if !cvar_alpha_values.insert(alpha.to_bits()) {
-            fail("lower-tail CVaR alphas must be unique");
+        if !cvar_tail_mass_values.insert(tail_mass.to_bits()) {
+            fail("lower-tail CVaR tail masses must be unique");
         }
-        cvar_alphas.push(alpha);
+        cvar_tail_masses.push(tail_mass);
     }
-    if cvar_alphas.is_empty() {
-        fail("at least one lower-tail CVaR alpha is required");
+    if cvar_tail_masses.is_empty() {
+        fail("at least one lower-tail CVaR tail mass is required");
     }
-    cvar_alphas.sort_by(f64::total_cmp);
+    cvar_tail_masses.sort_by(f64::total_cmp);
 
     let scenario_values = as_array(
         required(decision, "scenarios", "decisionProblem"),
@@ -336,7 +336,7 @@ fn parse_problem(case: &Value) -> Problem {
         survey_ids,
         max_effort_units,
         tv_radii,
-        cvar_alphas,
+        cvar_tail_masses,
         scenarios,
     }
 }
@@ -709,7 +709,7 @@ fn calculate(case: &Value) -> Value {
         .collect();
 
     let cvar_policies: Vec<Value> = problem
-        .cvar_alphas
+        .cvar_tail_masses
         .iter()
         .map(|alpha| {
             let (policy, cvar_value, tail_weights) =
@@ -721,7 +721,7 @@ fn calculate(case: &Value) -> Value {
                 .map(|(scenario, weight)| (scenario.id.clone(), *weight))
                 .collect();
             json!({
-                "alpha": alpha,
+                "tailMass": alpha,
                 "selectedPolicy": portfolio_json(policy, &problem),
                 "lowerTailCvarNetEvsi": cvar_value,
                 "normalizedTailScenarioWeights": tail_weights_by_scenario
@@ -883,7 +883,7 @@ mod tests {
         let policies = result["lowerTailCvarPolicies"].as_array().unwrap();
         let ten_percent = policies
             .iter()
-            .find(|policy| policy["alpha"] == json!(0.1))
+            .find(|policy| policy["tailMass"] == json!(0.1))
             .unwrap();
         assert_eq!(
             ten_percent["selectedPolicy"]["selectedSurveyIds"],
@@ -896,7 +896,7 @@ mod tests {
 
         let twenty_percent = policies
             .iter()
-            .find(|policy| policy["alpha"] == json!(0.2))
+            .find(|policy| policy["tailMass"] == json!(0.2))
             .unwrap();
         assert_eq!(
             twenty_percent["selectedPolicy"]["selectedSurveyIds"],
@@ -909,7 +909,7 @@ mod tests {
 
         let full_distribution = policies
             .iter()
-            .find(|policy| policy["alpha"] == json!(1.0))
+            .find(|policy| policy["tailMass"] == json!(1.0))
             .unwrap();
         assert_eq!(
             full_distribution["selectedPolicy"]["selectedSurveyIds"],
@@ -927,7 +927,7 @@ mod tests {
     #[should_panic(expected = "within (0, 1]")]
     fn rejects_cvar_alpha_outside_open_closed_unit_interval() {
         let mut case = fixture();
-        case["decisionProblem"]["cvarAlphas"][0] = json!(0.0);
+        case["decisionProblem"]["cvarTailMasses"][0] = json!(0.0);
         let _ = calculate(&case);
     }
 
