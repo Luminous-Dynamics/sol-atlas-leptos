@@ -65,6 +65,7 @@ jobs:
 
           report = json.loads(Path("/tmp/spatial-functional-report.json").read_text())
           assert report["fixtureStatus"] == "synthetic"
+          assert report["claimCeiling"] == "SYNTHETIC_FINITE_REFERENCE_ONLY"
           assert report["caseCount"] == 6
           assert len(report["results"]) == 6
           print("VALID: executable spatial decision functional oracle")
